@@ -1,8 +1,8 @@
 # Lords of the Guild — MVP Roadmap (v0.1 "Fundação online")
 
 > **Status:** plano de execução  
-> **Versão do documento:** 1.1 (contratos de comandos, sessões, cache HTTP e exclusão consolidados)\
-> **Base:** [GAME_DESIGN.md](GAME_DESIGN.md) v0.4 (seções §14, §16.1 e §18.1 são o contrato; versão do jogo: v0.1)\
+> **Versão do documento:** 1.2 (Fase 3 replanejada: o cliente passa a ser um app web com aparência de editor, [ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md))\
+> **Base:** [GAME_DESIGN.md](GAME_DESIGN.md) v0.5 (seções §14, §16.1 e §18.1 são o contrato; versão do jogo: v0.1)\
 > **Forma de trabalho:** desenvolvimento 100% com Claude Code, uma tarefa por sessão, Docker para banco, API e produção  
 > **Idioma:** português (Brasil); identificadores de código em inglês
 
@@ -12,9 +12,9 @@
 
 ### 0.1 O que é o MVP
 
-O MVP é exatamente a **v0.1 do GDD** (§16.1): um feudo com economia, construção e recrutamento que roda em um **servidor Node.js + PostgreSQL**, com **conta criada em um clique**, vínculo opcional ao GitHub ou por **Código do Reino**, e uma **extensão do VS Code** como cliente. O jogador instala, clica em **Jogar agora** e vê Pedra Alta crescer enquanto trabalha, de qualquer máquina.
+O MVP é exatamente a **v0.1 do GDD** (§16.1): um feudo com economia, construção e recrutamento que roda em um **servidor Node.js + PostgreSQL**, com **conta criada em um clique**, vínculo opcional ao GitHub ou por **Código do Reino**, e um **app web com aparência de editor de código** como cliente. O jogador abre o endereço, clica em **Jogar agora** e vê Pedra Alta crescer enquanto trabalha, de qualquer máquina.
 
-**Entra no MVP:** motor determinístico (economia, obras, recrutamento, escassez, Objetivos 1–4, Crônica simples), servidor (auth, partidas, comandos idempotentes, eventos, job horário), extensão (boas-vindas, TreeView, painel Feudo, status bar, comandos, modo sem conexão), Docker (dev e produção), backup, implantação em VPS.
+**Entra no MVP:** motor determinístico (economia, obras, recrutamento, escassez, Objetivos 1–4, Crônica simples), servidor (auth, partidas, comandos idempotentes, eventos, job horário), app web (boas-vindas, árvore lateral, abas Hoje e Feudo, barra de status, paleta de comandos, modo sem conexão), Docker (dev e produção), backup, implantação em VPS.
 
 **Não entra:** efeitos de estação, cartas do Conselho, heróis, exército, mapa, mercado, Temporadas, interação entre jogadores, som. Tudo isso tem fase própria a partir da v0.2 (GDD §16.2) e **não deve ser antecipado**, nem "só a estrutura".
 
@@ -45,9 +45,11 @@ Estimativa total: **5 a 6 semanas** com uma a duas sessões por dia útil. A ord
 
 ### 0.4 O que o Claude Code não decide sozinho
 
-Provedor do VPS e domínio (F4-T3), publicação no Marketplace ou distribuição por `.vsix` (F3-T10), nome público do jogo e ícone, política de privacidade final (texto), e qualquer **desvio do GDD**. Desvios são propostos pelo agente em `docs/decisions/` e aprovados por você antes da implementação.
+Provedor do VPS e domínio (F4-T3), registro do OAuth App do GitHub usado no vínculo de conta (F3W-T8), nome público do jogo e ícone, política de privacidade final (texto), e qualquer **desvio do GDD**. Desvios são propostos pelo agente em `docs/decisions/` e aprovados por você antes da implementação.
 
 Os ajustes documentais de 2026-10-01 nos pontos 1–3 da revisão estão consolidados no GDD 0.4 e nos [ADRs 0003–0005](docs/decisions/README.md): recibos de comandos e avanço em recusas; histórico de refresh e revogação; ETag, HMAC de recuperação e exclusão em duas etapas. Implementar esses contratos não constitui novo desvio. Nenhuma tarefa de código foi concluída por esta revisão.
+
+A mudança de plataforma de 2026-10-01 (extensão do VS Code → app web com aparência de editor) foi decidida por você e está no GDD 0.5 e no [ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md). O ADR lista seis pontos em que o plano adotou a opção recomendada e que você pode trocar: onde ficam os tokens no navegador, como é o vínculo com o GitHub, o destino dos pacotes da extensão, as notificações, as novas dependências e o uso da marca.
 
 ---
 
@@ -60,9 +62,10 @@ Os ajustes documentais de 2026-10-01 nos pontos 1–3 da revisão estão consoli
 | PostgreSQL | Docker (`db` na porta 5432 e `db_test` na 5433) | Docker (`db`, volume persistente, backup diário) |
 | API (Fastify) | **No host**, com `tsx watch` e depurador (`pnpm dev:api`); opcionalmente em Docker com `--profile full` para paridade | Docker (imagem multi-stage, não root, healthcheck) |
 | Caddy (TLS) | Não roda | Docker (certificado automático, proxy para `api:3000`) |
-| Extensão VS Code | No host, via F5 (Extension Development Host) | Pacote `.vsix` ou Marketplace |
+| App web | No host, com o servidor de desenvolvimento do Vite (`pnpm dev:web`, porta 5173), que encaminha `/v1` para a API | Arquivos estáticos servidos pelo Caddy, na mesma origem da API |
 | Testes unitários | No host (`vitest`) | CI |
 | Testes de integração | No host contra `db_test` em Docker | CI com serviço PostgreSQL |
+| Testes em navegador | No host: Playwright com Chromium sem interface, contra a API e o app locais | CI |
 | `sim-cli` | No host; modo remoto aponta para a API local | Não roda |
 
 **Por que a API roda no host no dev:** hot reload e depurador diretos, com dependências instaladas no ambiente que as executa. A imagem Docker é testada no `--profile full` e em produção; não compartilhar `node_modules` entre host e contêiner. Mantida a base `node:22-bookworm-slim` para consistência entre build e runtime. Argon2 não é necessário na v0.1: os contratos de credenciais usam `node:crypto` (F2-T4 e F2-T5).
@@ -74,6 +77,7 @@ Os ajustes documentais de 2026-10-01 nos pontos 1–3 da revisão estão consoli
 | Serviço | Porta | Observação |
 |---|---|---|
 | API | 3000 | `http://localhost:3000/v1/health` |
+| App web (dev) | 5173 | `http://localhost:5173`; encaminha `/v1` para a API |
 | PostgreSQL dev | 5432 | banco `lotg`, usuário `lotg` |
 | PostgreSQL test | 5433 | banco `lotg_test`, recriado a cada suíte, `tmpfs` |
 | pgweb (opcional, `--profile tools`) | 8081 | inspeção visual do banco |
@@ -96,11 +100,13 @@ Os ajustes documentais de 2026-10-01 nos pontos 1–3 da revisão estão consoli
 | `ADVANCE_JOB_INTERVAL_MS` | API | `60000` (prod: `3600000`) | job de avanço |
 | `ADVANCE_STALE_AFTER_MS` | API | `3600000` | partida parada há mais de 1 h |
 | `GITHUB_API_URL` | API | `https://api.github.com` | sobrescrito nos testes |
+| `GITHUB_CLIENT_ID` | API | vazio (vínculo GitHub desligado) | Identificador público do OAuth App usado no *device flow*; não é segredo |
+| `GITHUB_OAUTH_URL` | API | `https://github.com` | Origem das rotas de *device flow* do GitHub; sobrescrito nos testes |
 | `POSTGRES_PASSWORD` | compose | `lotg` (prod: forte) | senha do banco |
 | `PUBLIC_HOST` | compose prod | — | domínio para o Caddy |
 | `API_IMAGE_TAG` | compose prod | `latest` | tag da imagem publicada |
 
-Configurações da extensão (em `package.json` → `contributes.configuration`): `lords.serverUrl` (padrão: a instância hospedada; `http://localhost:3000` no dev), `lords.notifications` (`silent` · `essential` · `all`), `lords.discreetMode` (boolean), `lords.vigilHour` (0–23, padrão 20).
+Preferências do app, guardadas no navegador: notificações (`silent` · `essential` · `all`), modo discreto, tema (`dark` · `light` · `high-contrast`) e Hora da Vigília (0–23, padrão 20). O app fala sempre com a própria origem: não há endereço de servidor para configurar.
 
 ### 1.4 Scripts do `package.json` raiz
 
@@ -109,7 +115,7 @@ Configurações da extensão (em `package.json` → `contributes.configuration`)
 | `pnpm dev:up` | `docker compose -f deploy/docker-compose.dev.yml up -d db db_test` |
 | `pnpm dev:down` | derruba os contêineres de dev (mantém volumes) |
 | `pnpm dev:api` | `pnpm --filter @lotg/server dev` (tsx watch) |
-| `pnpm dev:ext` | compila extensão e webview em modo watch |
+| `pnpm dev:web` | servidor de desenvolvimento do app web (Vite, porta 5173, com proxy de `/v1`) |
 | `pnpm db:migrate` | aplica migrações no banco de dev |
 | `pnpm db:psql` | abre `psql` no contêiner `db` |
 | `pnpm build` | compila todos os pacotes |
@@ -117,6 +123,7 @@ Configurações da extensão (em `package.json` → `contributes.configuration`)
 | `pnpm lint` | ESLint + Prettier (verificação) |
 | `pnpm test` | testes unitários e de conteúdo (Vitest) |
 | `pnpm test:integration` | testes do servidor contra `db_test` |
+| `pnpm test:e2e` | testes do app em um navegador real (Playwright), contra a API e o app locais |
 | `pnpm verify` | `lint` + `typecheck` + `test` (porta de entrada de todo "pronto") |
 | `pnpm sim -- --seed <s> --days 7 --strategy economico` | bot de playtest em processo |
 | `pnpm secrets:gen` | gera `JWT_SECRET`, `RECOVERY_CODE_SECRET` independente e senha do banco para `.env`; não sobrescreve segredos existentes |
@@ -132,11 +139,11 @@ lords-of-the-guild/                  (= esta pasta)
 ├── README.md
 ├── package.json · pnpm-workspace.yaml · tsconfig.base.json · vitest.workspace.ts
 ├── .nvmrc · .editorconfig · .gitignore · eslint.config.js · .prettierrc
-├── .vscode/launch.json · tasks.json  # F5 da extensão
+├── .vscode/tasks.json                # tarefas de desenvolvimento (API e app)
 ├── .github/workflows/ci.yml          # opcional (F0-T5)
 ├── docs/
 │   ├── decisions/                    # ADRs curtos: 0001-dev-api-no-host.md …
-│   ├── manual-test-v0.1.md           # roteiro manual (F3-T9)
+│   ├── manual-test-v0.1.md           # roteiro manual (F3W-T10)
 │   └── architecture.md               # F5-T4
 ├── deploy/
 │   ├── Dockerfile                    # multi-stage: deps → build → runtime
@@ -154,20 +161,19 @@ lords-of-the-guild/                  (= esta pasta)
 │   ├── server/        @lotg/server      Fastify + Drizzle
 │   ├── client-sdk/    @lotg/client-sdk  cliente HTTP tipado
 │   ├── sim-cli/       @lotg/sim-cli     bots de playtest
-│   ├── extension/     lords-of-the-guild (VS Code)
-│   └── webview/       @lotg/webview     Preact
-└── tests/                            # integração entre pacotes (servidor↔banco, extensão↔servidor)
+│   └── web/           @lotg/web         app web (Preact): bancada, sessão de jogo, cache
+└── tests/                            # integração entre pacotes (servidor↔banco) e e2e do app em navegador real
 ```
 
 ### 1.6 Bibliotecas permitidas
 
-Conforme GDD §18.1: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify, `pg`, Drizzle (`drizzle-orm` + `drizzle-kit`), `jose`, `pino`. Hashes, HMAC e geração de credenciais usam `node:crypto` no servidor; não instalar `argon2`. Consideram-se parte do ecossistema permitido: plugins oficiais `@fastify/*` (`rate-limit`, `sensible`, `under-pressure`), `tsx` (dev), `@types/vscode`, `@vscode/vsce`, ESLint e Prettier. **Qualquer outra dependência exige um ADR em `docs/decisions/` aprovado por você.**
+Conforme GDD §18.1: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify, `pg`, Drizzle (`drizzle-orm` + `drizzle-kit`), `jose`, `pino`. Hashes, HMAC e geração de credenciais usam `node:crypto` no servidor; não instalar `argon2`. Consideram-se parte do ecossistema permitido: plugins oficiais `@fastify/*` (`rate-limit`, `sensible`, `under-pressure`), `tsx` (dev), ESLint e Prettier. Para o app web ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md), ponto 5): `vite` e `@preact/preset-vite` (servidor de desenvolvimento e build), `@vscode/codicons` (ícones) e `@playwright/test` (testes em navegador real). `@types/node` e `@types/pg` seguem o [ADR 0006](docs/decisions/0006-types-node.md). `@types/vscode` e `@vscode/vsce` saem junto com a extensão. **Qualquer outra dependência exige um ADR em `docs/decisions/` aprovado por você.**
 
 ### 1.7 Convenções de código e Git
 
 - Nomes de jogo em português nas strings de interface e conteúdo; identificadores em inglês (`townHall`, `lumberMill`, `startConstruction`).
-- Motor sem `Date.now()`, `Math.random()`, I/O ou importações do VS Code e do Node de servidor. Teste de pureza em F1-T11.
-- Nenhuma regra de jogo fora do motor; nenhum número de jogo fora de `@lotg/content`; a Webview só exibe o `ViewState`.
+- Motor sem `Date.now()`, `Math.random()`, I/O ou importações do navegador e do Node de servidor. Teste de pureza em F1-T11.
+- Nenhuma regra de jogo fora do motor; nenhum número de jogo fora de `@lotg/content`; o app web só exibe o `ViewState`.
 - Commits pequenos, um por tarefa (ou por subtarefa em tarefas `L`), mensagem `F1-T3: resumo no imperativo`. O Claude Code acrescenta a linha de coautoria automaticamente.
 - Branch `main` sempre verde (`pnpm verify`). Tarefas `L` em branch `f1-t5-construcoes` com merge ao final.
 - Testes: `*.test.ts` ao lado do código; golden files em `__golden__/`; integração em `tests/` ou `packages/server/test/`.
@@ -781,13 +787,15 @@ Esperado: `api` `healthy`; usuário não root.
 
 ---
 
-## 5. Fase 3 — Cliente: `@lotg/client-sdk`, extensão VS Code e Webview
+## 5. Fase 3 — Cliente: `@lotg/client-sdk` e app web com aparência de editor
 
-**Meta da fase:** instalar a extensão, clicar em **Jogar agora** e governar Pedra Alta em menos de 30 segundos; continuar de outra máquina; funcionar sem conexão em modo leitura.
+**Meta da fase:** abrir o endereço, clicar em **Jogar agora** e governar Pedra Alta em menos de 30 segundos, em uma página que parece um editor de código; continuar de outra máquina; funcionar sem conexão em modo leitura.
+
+**Replanejamento ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)).** Esta fase foi executada uma primeira vez com o cliente como extensão do VS Code (tarefas F3-T2 a F3-T10, registradas na §9). A plataforma mudou para o navegador. F3-T1 (`client-sdk`) continua valendo como está. As tarefas **F3W-T1 a F3W-T10** substituem F3-T2 a F3-T10 e partem do que já existe: os módulos sem dependência do VS Code (conta, sessão de jogo, política de notificações, modelo da árvore, formatação) e os componentes Preact migram para `packages/web`; a cola com o editor é descartada.
 
 ### F3-T1 · `@lotg/client-sdk` `M`
 
-**Objetivo:** cliente HTTP tipado, com refresh automático, ETag e erros claros, sem nada do VS Code.
+**Objetivo:** cliente HTTP tipado, com refresh automático, ETag e erros claros, sem nada específico de uma plataforma: só depende de `fetch`.
 **GDD:** §14.2, §14.10.
 **Depende de:** F2-T9.
 **Entregáveis:** `packages/client-sdk/src/{client,tokens,errors,retry}.ts`, testes com `fetch` simulado.
@@ -809,189 +817,251 @@ pnpm --filter @lotg/client-sdk test
 
 **Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.10 e MVP-ROADMAP.md F3-T1. Implemente o client-sdk tipado com refresh single-flight, ETag, retentativas seguras e erros claros, testado com fetch simulado."
 
-### F3-T2 · Esqueleto da extensão e pipeline de build `M`
+### Tarefas substituídas (F3-T2 a F3-T10)
 
-**Objetivo:** a extensão ativa no VS Code com ícone, árvore vazia e build reproduzível para extensão e Webview.
-**GDD:** §13.1, §14.10.
+Executadas em 2026-10-01 para a extensão do VS Code e substituídas pelas tarefas F3W abaixo. O texto original delas está no histórico do Git (versão 1.1 deste arquivo); o que foi feito e verificado em cada uma está no Registro de Execução (§9).
+
+| Tarefa antiga | O que virou |
+|---|---|
+| F3-T2 · Esqueleto da extensão e build | F3W-T1 (esqueleto do app) |
+| F3-T3 · Conta | F3W-T3 e F3W-T8 |
+| F3-T4 · Ciclo de atualização, cache e Relatório de Retorno | F3W-T4 |
+| F3-T5 · TreeView e Status Bar | F3W-T2 |
+| F3-T6 · Comandos da paleta | F3W-T6 |
+| F3-T7 · Webview | F3W-T2 e F3W-T5 |
+| F3-T8 · Notificações | F3W-T7 |
+| F3-T9 · Testes e roteiro manual | F3W-T10 |
+| F3-T10 · Empacotamento `.vsix` | F3W-T9 (build estático) e F4-T1 (servir pelo Caddy) |
+
+### F3W-T1 · Esqueleto do app web e migração do que se reaproveita `M`
+
+**Objetivo:** `packages/web` de pé, com build e servidor de desenvolvimento, e os módulos reaproveitáveis da extensão já dentro dele, com os testes passando.
+**GDD:** §14.2, §14.10. **ADR:** 0008.
 **Depende de:** F3-T1.
-**Entregáveis:** `packages/extension/{package.json,src/extension.ts,src/services/tokenStore.ts,esbuild.mjs}`, `packages/webview/esbuild.mjs`, `.vscode/launch.json`, `.vscode/tasks.json`, ícone SVG.
+**Entregáveis:** `packages/web/{package.json,vite.config.ts,index.html,tsconfig.json}`, `packages/web/src/{main.tsx,account/,game/,notifications/,ui/,services/}`, remoção de `packages/extension` e `packages/webview`.
 
-- [x] F3-T2.1 `package.json` da extensão: `contributes.viewsContainers.activitybar` (`lords`, ícone), `views` (`lords.tree`), `commands` (todos os `Lords: …` da v0.1, mesmo que ainda sem implementação), `configuration` (`lords.serverUrl`, `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`), `activationEvents` por view e comandos, `engines.vscode ^1.90`.
-- [x] F3-T2.2 Build: esbuild empacota a extensão em `dist/extension.js` (CommonJS, `external: ['vscode']`, `platform: node`) e a Webview em `media/webview.{js,css}` (ESM, Preact); `pnpm dev:ext` em modo watch.
-- [x] F3-T2.3 `extension.ts`: `activate` cria `OutputChannel` "Lords of the Guild", instancia `TokenStore` (SecretStorage), cliente do SDK com `lords.serverUrl`, e registra árvore e comandos com implementações provisórias ("em construção").
-- [x] F3-T2.4 `.vscode/launch.json` (Extension Development Host) e `tasks.json` (watch) funcionando com F5.
-
-**Verificação:** F5 abre o host de desenvolvimento; o ícone aparece na Activity Bar; a árvore mostra "Jogar agora" como item provisório; `Lords: Sobre` mostra a versão do servidor lida de `/v1/version`.
-
-**Pronto quando:** `pnpm build` produz `dist/extension.js` e `media/webview.js`; F5 ativa sem erros no Output.
-
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.1 e §14.10 e MVP-ROADMAP.md F3-T2. Crie o esqueleto da extensão com contributes completos da v0.1, pipeline esbuild para extensão e Webview, SecretStorage e launch.json para F5."
-
-### F3-T3 · Conta: boas-vindas, Jogar agora, GitHub, Código do Reino `L`
-
-**Objetivo:** o fluxo de entrada do GDD §13.9 inteiro.
-**GDD:** §13.9, §14.7.
-**Depende de:** F3-T2.
-**Entregáveis:** `packages/extension/src/account/{accountService,githubLink,recoveryCode}.ts`, rota `welcome` da Webview, comandos de conta, testes dos módulos puros.
-
-- [x] F3-T3.1 `AccountService` com estados `signedOut | anonymous | linked` persistidos (tokens no `SecretStorage`, metadados em `globalState`), eventos de mudança para árvore e status bar.
-- [x] F3-T3.2 Tela de boas-vindas (Webview, rota `welcome`): nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub", "Usar Código do Reino". Na v0.1 não há seleção de dificuldade nem ritmo (v0.2). Envia `timezone` detectado e `lords.vigilHour`.
-- [x] F3-T3.3 Jogar agora → `POST /auth/anonymous` → `POST /games` → abre a aba Feudo. Tempo alvo: menos de 5 s de rede em condições normais.
-- [x] F3-T3.4 GitHub: `vscode.authentication.getSession('github', ['read:user'], { createIfNone: true })` → `POST /auth/github`; em `ACCOUNT_CONFLICT`, QuickPick com duas opções descritas ("Usar o feudo já vinculado ao GitHub (este feudo anônimo será excluído)" / "Manter este feudo e mover o vínculo para ele"); nunca mesclar.
-- [x] F3-T3.5 Código do Reino: `Lords: Gerar Código do Reino` mostra o código em modal com "Copiar" e aviso de exibição única; `Lords: Entrar com Código do Reino` abre `InputBox` com validação de formato. "Sair desta máquina" revoga a sessão e limpa tokens, view, ETag e cursor locais. "Excluir conta" exige confirmação e nome do feudo; explica bloqueio imediato, remoção pelo job após sete dias e retenção dos backups por 14 dias desde sua geração. Após 202, limpa os mesmos dados e volta às boas-vindas; não oferece desfazer. `SESSION_REVOKED` também limpa os dados locais da conta.
-- [x] F3-T3.6 Lembrete único do dia 3 (flag em `globalState`) com botão "Não lembrar mais".
-- [x] F3-T3.7 Testes dos módulos puros (validação do código, máquina de estados, montagem do corpo de criação de partida).
-
-**Verificação:** roteiro manual: criar conta em um perfil do VS Code; em outro perfil (`code --user-data-dir /tmp/lotg-b`), entrar com o código; o mesmo feudo aparece. Repetir com GitHub.
-
-**Pronto quando:** do F5 ao painel Feudo com uma partida nova há exatamente 2 campos e 1 clique.
-
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.9 e §14.7 e MVP-ROADMAP.md F3-T3. Implemente o AccountService, a tela de boas-vindas e os fluxos Jogar agora, GitHub (com conflito) e Código do Reino, mais sair e excluir conta. Use plan mode primeiro."
-
-### F3-T4 · Ciclo de atualização, cache e Relatório de Retorno `M`
-
-**Objetivo:** o estado chega sozinho, sobrevive sem conexão e conta o que aconteceu na ausência.
-**GDD:** §2.3, §13.5 (Relatório de Retorno), §13.9 (sem conexão), §14.10.
-**Depende de:** F3-T3.
-**Entregáveis:** `packages/extension/src/game/{gameSession,connection,returnReport}.ts`, testes com temporizadores falsos.
-
-- [x] F3-T4.1 `GameSession`: ciclo de 30 s com o painel visível, 2 min com ele oculto; `getView` com ETag; `getEvents(after)` com `lastSeq` persistido; eventos `onView`, `onEvents`, `onConnection`. Recibo repetido dispara leitura atual sem reaplicar eventos antigos ou substituir a tela por uma view antiga; consumir eventos novos pelo cursor evita notificações duplicadas.
-- [x] F3-T4.2 Máquina de conexão `online | offline(retryIn) | unauthenticated`; recuo exponencial 5 s → 60 s; ao voltar, sincroniza imediatamente.
-- [x] F3-T4.3 Cache: último `ViewState`, `stateVersion`, ETag, cursor e `lastSeenAt` em `globalState`, separados por servidor, conta e partida; sem conexão, a UI recebe o cache com `connection: offline`. Logout, exclusão e revogação apagam o cache da conta local; falha de autenticação não é tratada como modo offline.
-- [x] F3-T4.4 Relatório de Retorno: ao ativar, se `now − lastSeenAt ≥ 4 h`, busca eventos desde `lastSeq`, monta resumo (produção estimada a partir da diferença de estoques, obras concluídas, recrutas, fome) e abre a rota `today`.
-- [x] F3-T4.5 Testes: cadência com `vi.useFakeTimers`, recuo, cache servido quando o `fetch` falha, limiar de 4 h, reenvio sem regressão de tela/notificação duplicada e limpeza de cache em logout/exclusão/revogação.
+- [ ] F3W-T1.1 Pacote `@lotg/web` com Preact, Vite e `@preact/preset-vite`; `pnpm dev:web` na porta 5173 com proxy de `/v1` para `http://localhost:3000`; `pnpm build` gera `packages/web/dist` com nomes de arquivo com hash.
+- [ ] F3W-T1.2 Mover para `packages/web/src`, sem mudar o comportamento: `account/{accountService,githubLink,recoveryCode,linkReminder}.ts`, `game/{gameSession,connection,returnReport}.ts`, `notifications/policy.ts`, `ui/{treeModel,format}.ts`, `services/store.ts`, e os testes de cada um. Mover os componentes Preact, `state.ts`, `format.ts` e `styles.css` de `packages/webview`.
+- [ ] F3W-T1.3 `services/browserStore.ts`: implementações de `KeyValueStore` e de `TokenStore` sobre `localStorage`, com prefixo `lords.`; falha de armazenamento (modo privado, cota) tratada sem derrubar o app.
+- [ ] F3W-T1.4 Regras de lint: `packages/web` não importa `@lotg/engine`, `@lotg/server`, `fastify`, `pg` nem módulos do Node. Remover as regras e os aliases de `vscode`.
+- [ ] F3W-T1.5 Remover `packages/extension`, `packages/webview`, o editor de mentira dos testes, `tests/client/extension.test.ts`, `.vscode/launch.json`, `@types/vscode` e `@vscode/vsce`. Atualizar `README.md`, `CLAUDE.md`, a CI e o `.gitignore`.
+- [ ] F3W-T1.6 `index.html` com política de conteúdo (CSP) por `<meta>`: `default-src 'self'`, sem `unsafe-inline` e sem `eval`; nenhuma dependência carregada de CDN.
 
 **Verificação:**
 
 ```bash
-pnpm --filter lords-of-the-guild test -- gameSession connection returnReport
+pnpm verify && pnpm build
+pnpm dev:api & pnpm dev:web &   # http://localhost:5173 mostra a página; /v1/health responde pelo proxy
 ```
 
-Manual: derrubar a API (`Ctrl+C` no `dev:api`) com o painel aberto → banner "Sem ligação com o reino" em até 30 s; subir de novo → volta sozinho.
+**Pronto quando:** `pnpm verify` passa com os testes migrados; `curl -s localhost:5173/v1/health` responde `{"status":"ok","db":"ok"}`; `packages/extension` e `packages/webview` não existem mais.
 
-**Pronto quando:** sem rede, o painel mostra o último estado e nenhum comando é enviado ou enfileirado.
+**Prompt sugerido:** "Leia CLAUDE.md, o ADR 0008, GAME_DESIGN.md §14.2 e §14.10 e MVP-ROADMAP.md F3W-T1. Crie packages/web com Vite e Preact, mova os módulos e componentes reaproveitáveis da extensão e da Webview com os seus testes, implemente o armazenamento no navegador e remova os pacotes da extensão. Não mude comportamento nesta tarefa."
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.5, §13.9 e §14.10 e MVP-ROADMAP.md F3-T4. Implemente o GameSession com polling adaptativo, ETag, máquina de conexão com recuo, cache em globalState e o Relatório de Retorno, com testes de temporizador falso."
+### F3W-T2 · Bancada com aparência de editor `L`
 
-### F3-T5 · TreeView e Status Bar `M`
+**Objetivo:** a moldura do app: barra de atividades, barra lateral com a árvore, área central em abas e barra de status, nos três temas.
+**GDD:** §13.1, §13.2, §13.5, §13.7.
+**Depende de:** F3W-T1.
+**Entregáveis:** `packages/web/src/workbench/{Workbench,ActivityBar,SideBar,Tree,EditorTabs,StatusBar}.tsx`, `packages/web/src/theme/{themes.css,theme.ts}`, testes.
 
-**Objetivo:** a navegação lateral e a linha de status do GDD §13.2 e §13.5, restritas à v0.1.
-**GDD:** §13.2, §13.5.
-**Depende de:** F3-T4.
-**Entregáveis:** `packages/extension/src/ui/{treeProvider,statusBar}.ts`, testes de formatação.
+- [ ] F3W-T2.1 Temas escuro, claro e alto contraste como conjuntos de valores para as variáveis `--vscode-*` que `styles.css` já usa; escolha lembrada no navegador; na primeira visita, `prefers-color-scheme`. Nenhum componente com cor fixa (o teste existente continua valendo, agora também para os temas, que são o único lugar com cores).
+- [ ] F3W-T2.2 Árvore lateral renderizada a partir de `buildTree` (`ui/treeModel.ts`): rótulo, descrição, ícone codicon, tooltip, expandir e recolher, ações nos itens (`+`/`−` dos trabalhadores, "Melhorar", "Cancelar"). Clicar em um item só navega; ordens saem dos botões. Teclado no padrão de árvore ARIA: setas, `Home`, `End`, `Enter`.
+- [ ] F3W-T2.3 Área central em abas (Hoje, Feudo, Crônica quando aberta), com a aba ativa refletida na URL (`#/feudo`), para o botão "voltar" e o recarregar da página funcionarem.
+- [ ] F3W-T2.4 Barra de status a partir de `statusBar` (`ui/format.ts`), com a mesma prioridade; contagem regressiva local; clique leva à aba correspondente. Título da aba do navegador com o nome do feudo e o contador de novidades.
+- [ ] F3W-T2.5 Barra de atividades com Feudo, Crônica e Conta, e badge de novidades. Abaixo de 720 px, a barra lateral se recolhe e abre por cima do conteúdo; a 480 px não há rolagem horizontal.
+- [ ] F3W-T2.6 Testes: renderização em texto de cada parte nos estados principais (sem conta, com feudo, sem conexão, com fome) e teste de navegação por teclado da árvore.
 
-- [x] F3-T5.1 Itens: "Hoje em <feudo>" (badge: itens não vistos do relatório), "Feudo: <nome> · <estação>, dia N" com filhos Recursos (estoque e taxa com sinal), Trabalhadores (alocados por edifício com ações inline `+`/`−`), Construções (obra ativa com tempo restante; melhorias disponíveis), Crônica (últimas 5 linhas), Conta (estado e ações), Configurações (abre as settings da extensão).
-- [x] F3-T5.2 Tooltips com o `breakdown` do `ViewState`; descrições truncadas com reticências; atualização com debounce de 500 ms; clique abre a aba correspondente.
-- [x] F3-T5.3 Status bar com prioridade: fome (`$(warning) Fome em Pedra Alta`) > obra ativa (`$(tools) Serraria Nv2 · 00:42`) > padrão (`$(home) Pedra Alta · +15 comida/h`); sem conexão: `$(debug-disconnect) Sem ligação com o reino`; modo discreto: `$(circle-filled) 00:42`. Clique abre o painel. Contagem regressiva local atualizada a cada 30 s (não por segundo, para não distrair).
-- [x] F3-T5.4 Testes das funções puras de formatação (tempo restante, sinal de taxa, prioridade).
+**Verificação:**
 
-**Verificação:** manual com F5: alocar via `+` na árvore muda a taxa imediatamente; concluir uma obra remove o item da status bar.
+```bash
+pnpm --filter @lotg/web test -- workbench theme
+```
 
-**Pronto quando:** toda ação da árvore tem equivalente em comando da paleta e vice-versa.
+Manual: abrir `http://localhost:5173` nos três temas.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.2 e §13.5 e MVP-ROADMAP.md F3-T5. Implemente a TreeView da v0.1 com badges, ações inline e tooltips, e a status bar com prioridades e modo discreto."
+**Pronto quando:** a página, sem conta, mostra a bancada completa e vazia nos três temas; `Tab` percorre barra de atividades, árvore, abas e barra de status nessa ordem, com foco visível.
 
-### F3-T6 · Comandos da paleta e QuickPicks `M`
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.1, §13.2, §13.5 e §13.7 e MVP-ROADMAP.md F3W-T2. Implemente a bancada do app web com aparência de editor, a partir do modelo de árvore e da barra de status que já existem como funções puras. Use plan mode e divida em três sessões: temas e moldura; árvore e barra de status; abas e responsividade."
+
+### F3W-T3 · Conta no navegador: boas-vindas, Jogar agora e Código do Reino `L`
+
+**Objetivo:** o fluxo de entrada do GDD §13.9 no navegador, com a sessão dividida corretamente entre abas.
+**GDD:** §13.9, §14.7, §14.10.
+**Depende de:** F3W-T2.
+**Entregáveis:** `packages/web/src/app/{controller,dialogs}.ts(x)`, `packages/web/src/services/{sessionLock,tabSync}.ts`, aba de boas-vindas, testes.
+
+- [ ] F3W-T3.1 `controller.ts` sem nada do VS Code: junta `AccountService`, `GameSession` e a política de notificações, com a fila de mudanças de conta e as ordens preparadas com `commandId` fixo (como em `controller.prepare` da extensão).
+- [ ] F3W-T3.2 Diálogos próprios do app, acessíveis (foco preso, `Esc` fecha, retorno do foco): confirmação, campo de texto com validação a cada tecla, lista de escolha. Substituem `showWarningMessage`, `showInputBox` e `showQuickPick`.
+- [ ] F3W-T3.3 Aba de boas-vindas: nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub" (F3W-T8) e "Usar Código do Reino". Sem seleção de dificuldade nem ritmo na v0.1. Envia o fuso detectado e a Hora da Vigília das preferências.
+- [ ] F3W-T3.4 Código do Reino: gerar (diálogo com "Copiar" e aviso de exibição única), entrar (campo com a validação de formato que já existe). "Sair desta máquina" e "Excluir conta" com os mesmos textos e confirmações da extensão; a exclusão explica o bloqueio imediato, os sete dias e os 14 dias dos backups, e não oferece desfazer.
+- [ ] F3W-T3.5 Várias abas: a renovação da sessão acontece dentro de `navigator.locks.request('lords.refresh', …)`, relendo os tokens depois de obter o lock; sair, excluir ou perder a sessão em uma aba é percebido pelas outras (evento `storage`) e leva todas às boas-vindas. Sem a Web Locks API, vale a releitura do `TokenStore` que o SDK já faz.
+- [ ] F3W-T3.6 Lembrete único do dia 3 para conta anônima sem código, com "Não lembrar mais"; o texto avisa que limpar os dados de navegação apaga o acesso a uma conta sem vínculo.
+- [ ] F3W-T3.7 Testes: os dos módulos migrados, mais os de `sessionLock` e `tabSync` e os dos diálogos (teclado e foco).
+
+**Verificação:** teste em navegador (F3W-T10): criar conta em um contexto de navegador; em outro, entrar com o código; o mesmo feudo aparece. Duas abas no mesmo contexto por mais de 15 minutos de relógio: nenhuma volta às boas-vindas.
+
+**Pronto quando:** de abrir a página ao painel Feudo com uma partida nova há exatamente 2 campos e 1 clique.
+
+**Prompt sugerido:** "Leia CLAUDE.md, o ADR 0008, GAME_DESIGN.md §13.9 e §14.7 e MVP-ROADMAP.md F3W-T3. Implemente o controlador do app, os diálogos acessíveis, a aba de boas-vindas e os fluxos Jogar agora e Código do Reino, com a sessão dividida entre abas por Web Locks. Use plan mode primeiro."
+
+### F3W-T4 · Ciclo de atualização, cache e Relatório de Retorno no navegador `M`
+
+**Objetivo:** o estado chega sozinho, sobrevive sem conexão e conta o que aconteceu na ausência.
+**GDD:** §2.3, §13.5, §13.9, §14.10.
+**Depende de:** F3W-T3.
+**Entregáveis:** ajustes em `packages/web/src/game/`, `packages/web/src/services/visibility.ts`, testes.
+
+- [ ] F3W-T4.1 `GameSession` ligado à visibilidade da aba (`visibilitychange`): 30 s visível, 2 min em segundo plano; sincroniza na hora ao voltar a ficar visível e quando o navegador avisa que a rede voltou (`online`).
+- [ ] F3W-T4.2 Cache do `ViewState`, versão, ETag, cursor e instante da última leitura no armazenamento do navegador, separado por conta e partida, com a validação de formato ao carregar que já existe. Sair, excluir e perder a sessão apagam os caches da conta.
+- [ ] F3W-T4.3 Relatório de Retorno ao abrir a página depois de 4 horas ou mais: o app abre na aba Hoje; os eventos da ausência não viram notificações avulsas.
+- [ ] F3W-T4.4 Partida arquivada em outra máquina, `426 UPGRADE_REQUIRED` (pede para recarregar a página) e demais problemas do ciclo tratados como na extensão.
+- [ ] F3W-T4.5 Testes com temporizadores falsos, incluindo a troca de visibilidade.
+
+**Verificação:**
+
+```bash
+pnpm --filter @lotg/web test -- gameSession connection returnReport visibility
+```
+
+**Pronto quando:** sem rede, o app mostra o último estado e nenhum comando é enviado ou enfileirado; ao voltar a rede, sincroniza sem recarregar a página.
+
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.5, §13.9 e §14.10 e MVP-ROADMAP.md F3W-T4. Ligue o GameSession à visibilidade da aba e aos eventos de rede do navegador, com o cache no armazenamento local e o Relatório de Retorno."
+
+### F3W-T5 · Abas Feudo e Hoje `M`
+
+**Objetivo:** o painel do GDD §13.3 (subconjunto v0.1) dentro da bancada.
+**GDD:** §13.3, §13.7, §14.12.
+**Depende de:** F3W-T4.
+**Entregáveis:** `packages/web/src/tabs/{Fief,Today,Welcome}.tsx` e os componentes migrados.
+
+- [ ] F3W-T5.1 Ligar os componentes migrados (`ResourcesTable`, `WorkersPanel`, `ConstructionsPanel`, `RecruitPanel`, `ObjectivesPanel`, `ChroniclePanel`, `Today`, banners) diretamente ao controlador, sem a ponte de mensagens da Webview. `protocol/webview.ts` deixa de ter uso e é removido, exceto `ReturnReportSchema`, que fica no protocolo.
+- [ ] F3W-T5.2 Tudo o que já estava nos componentes continua valendo: explicação de cada número ao passar o mouse e ao focar, `aria-live` na tabela de recursos, teclado nas linhas de trabalhadores, custos em chips com o que falta por extenso, contagem regressiva por segundo, modo leitura sem conexão.
+- [ ] F3W-T5.3 Largura mínima de 480 px sem rolagem horizontal, com a barra lateral recolhida.
+
+**Verificação:** teste em navegador: `+` na Fazenda muda a taxa em menos de 1 s; a contagem regressiva termina junto com a conclusão da obra.
+
+**Pronto quando:** nenhuma cor fixa fora de `theme/themes.css` e o painel funciona em 480 px.
+
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.3 e §13.7 e MVP-ROADMAP.md F3W-T5. Ligue os componentes migrados da Webview ao controlador do app, como conteúdo das abas Hoje e Feudo."
+
+### F3W-T6 · Paleta de comandos e atalhos `M`
 
 **Objetivo:** jogar inteiramente pelo teclado.
 **GDD:** §13.6.
-**Depende de:** F3-T5.
-**Entregáveis:** `packages/extension/src/commands/*.ts`.
+**Depende de:** F3W-T5.
+**Entregáveis:** `packages/web/src/palette/{CommandPalette.tsx,commands.ts}`, testes.
 
-- [x] F3-T6.1 `Lords: Abrir painel`, `Lords: Alocar trabalhadores…` (QuickPick de edifícios → `InputBox` com a taxa resultante no texto de validação), `Lords: Construir ou melhorar…` (QuickPick com custo, tempo e `$(check)`/`$(lock)` por acessibilidade), `Lords: Recrutar aldeões…` (`InputBox` 1–5 com vagas no prompt), `Lords: Nova partida` (modal com confirmação; `replaceActive: true`).
-- [x] F3-T6.2 `Lords: Exportar Crônica (Markdown)` abre `chronicle.md` em um editor novo não salvo; `Lords: Sobre` (versão da extensão, do servidor e hash do conteúdo); `Lords: Modo discreto` alterna a configuração.
-- [x] F3-T6.3 Comandos de conta de F3-T3 registrados no mesmo módulo.
-- [x] F3-T6.4 Recusas do motor (`GAME_RULE`) aparecem como `showWarningMessage` com a mensagem em português; erros de rede como `showErrorMessage` com botão "Tentar de novo".
+- [ ] F3W-T6.1 Paleta que abre com `F1` e `Ctrl+K`, com busca por texto, setas, `Enter` e `Esc`; foco preso enquanto aberta. Não usa `Ctrl+Shift+P` nem `Ctrl+P`, reservados pelo navegador.
+- [ ] F3W-T6.2 Os comandos da v0.1 (GDD §13.6), cada um com prefixo "Lords:": ir para o Feudo e para Hoje, alocar trabalhadores (lista de edifícios → campo com a taxa resultante), construir ou melhorar (lista com custo, tempo e cadeado), cancelar e planejar obra, recrutar (com as vagas no texto), renomear o feudo, nova partida (com confirmação), abrir e baixar a Crônica, atualizar agora, modo discreto, silenciar notificações, trocar tema, conta (vincular, Código do Reino, sair, excluir), privacidade e sobre.
+- [ ] F3W-T6.3 Recusas do motor aparecem como aviso com a frase em português; erro de rede, como erro com "Tentar de novo", que reenvia a mesma ordem.
+- [ ] F3W-T6.4 Testes: filtro e navegação da paleta; toda ação da árvore e do painel tem um comando equivalente.
 
-**Verificação:** manual: jogar 10 minutos só com a paleta (sem mouse) e registrar fricções em `docs/manual-test-v0.1.md`.
+**Verificação:** teste em navegador: uma partida inteira dos objetivos 1 a 4 só com o teclado.
 
-**Pronto quando:** cada comando listado em `contributes.commands` tem implementação e aparece com prefixo "Lords:".
+**Pronto quando:** cada comando listado tem implementação e aparece na paleta com o prefixo "Lords:".
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.6 e MVP-ROADMAP.md F3-T6. Implemente todos os comandos da paleta da v0.1 com QuickPicks e InputBoxes informativos e tratamento de recusas e erros de rede."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.6 e MVP-ROADMAP.md F3W-T6. Implemente a paleta de comandos do app, com os comandos da v0.1 reaproveitando a lógica que estava em packages/extension/src/commands."
 
-### F3-T7 · Webview: aba Feudo, Hoje e boas-vindas `L`
-
-**Objetivo:** o painel do GDD §13.3 (subconjunto v0.1), bonito, nativo do tema e navegável por teclado.
-**GDD:** §13.3, §13.7, §14.12.
-**Depende de:** F3-T6.
-**Entregáveis:** `packages/webview/src/{app,bridge,theme}.tsx`, `components/{Header,ResourcesTable,WorkersPanel,ConstructionsPanel,ObjectivesPanel,ChroniclePanel,FamineBanner,OfflineBanner,Welcome,Today}.tsx`, `styles.css`, `packages/extension/src/ui/panel.ts`.
-
-- [x] F3-T7.1 `panel.ts`: `WebviewPanel` único (`retainContextWhenHidden: true`), CSP com nonce, recursos via `asWebviewUri`, ponte de mensagens tipada pelo `@lotg/protocol`, rotas `welcome | today | fief`.
-- [x] F3-T7.2 Tema: só variáveis `--vscode-*` (texto, fundo, bordas, botões, foco, avisos); nenhuma cor fixa; testar em Dark Modern, Light Modern e High Contrast.
-- [x] F3-T7.3 Aba Feudo: cabeçalho (nome, Salão, calendário, população), tabela de recursos (estoque, cap "—", por hora com sinal, tooltip com `breakdown`), trabalhadores com `−`/`+` (teclado: setas, `+`, `-`), construções (ativa com barra e contagem regressiva local por segundo; planejadas; disponíveis com custos em "chips", destacando o que falta), objetivos, Crônica (10 linhas), banners de fome e de conexão.
-- [x] F3-T7.4 Aba Hoje: Relatório de Retorno (F3-T4) e atalhos para as decisões; na v0.1 "decisões pendentes" fica vazia com texto explicativo.
-- [x] F3-T7.5 Acessibilidade: ordem de tabulação lógica, foco visível, `aria-live` para a tabela de recursos (educado), `prefers-reduced-motion`, largura mínima 480 px sem rolagem horizontal, números em pt-BR com `Intl.NumberFormat`.
-- [x] F3-T7.6 Testes das funções de formatação e, opcionalmente, snapshots com `preact-render-to-string` (parte do ecossistema Preact).
-
-**Verificação:** manual nos três temas; `Tab` percorre todos os controles; `+` na Fazenda muda a taxa em menos de 1 s; a contagem regressiva termina junto com a notificação de obra concluída.
-
-**Pronto quando:** nenhuma cor fixa em `styles.css` (`grep -E '#[0-9a-fA-F]{3,6}|rgb\(' retorna vazio`) e o painel funciona em 480 px.
-
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.3, §13.7 e §14.12 e MVP-ROADMAP.md F3-T7. Implemente a Webview em Preact com as rotas welcome, today e fief, só com variáveis de tema do VS Code, navegação por teclado e tooltips. Use plan mode e divida em três sessões: ponte e tema; aba Feudo; Hoje e acessibilidade."
-
-### F3-T8 · Notificações e política `S`
+### F3W-T7 · Notificações e modo discreto `S`
 
 **Objetivo:** avisar o essencial, nunca incomodar.
 **GDD:** §13.5.
-**Depende de:** F3-T7.
-**Entregáveis:** `packages/extension/src/notifications/{policy,notifier}.ts`, testes.
+**Depende de:** F3W-T6.
+**Entregáveis:** `packages/web/src/notifications/{Toasts.tsx,browserNotifications.ts}`, testes.
 
-- [x] F3-T8.1 `policy.ts` (puro): entrada = eventos novos + configuração + silêncio ativo + histórico da última hora; saída = notificações a exibir. `silent` nada; `essential` só `famineStarted` na v0.1; `all` inclui `constructionFinished`, `recruitmentFinished`, `objectiveCompleted`. Máximo 3 por hora; excedente vira badge na árvore.
-- [x] F3-T8.2 `notifier.ts`: `showInformationMessage`/`showWarningMessage` com botões `[Ver]` (abre o painel na aba certa) e `[Silenciar 2h]`; respeita o modo discreto (suprime tudo).
-- [x] F3-T8.3 Testes: limite por hora, silêncio, modo discreto, mapeamento por nível.
-
-**Verificação:**
-
-```bash
-pnpm --filter lords-of-the-guild test -- policy
-```
-
-**Pronto quando:** com `all`, concluir 5 obras em uma hora gera 3 notificações e badge "2".
-
-**Prompt sugerido:** "Leia GAME_DESIGN.md §13.5 e MVP-ROADMAP.md F3-T8. Implemente a política de notificações como módulo puro testado e o notificador com botões Ver e Silenciar 2h."
-
-### F3-T9 · Testes do cliente e roteiro manual `S`
-
-**Objetivo:** cobertura do que é puro e um roteiro reproduzível do que é manual.
-**GDD:** §16.1 (critérios 1 a 12).
-**Depende de:** F3-T8.
-**Entregáveis:** testes faltantes, `docs/manual-test-v0.1.md`.
-
-- [x] F3-T9.1 Cobertura ≥ 80% nos módulos puros da extensão (`account`, `game`, `notifications`, `ui/format`).
-- [x] F3-T9.2 `docs/manual-test-v0.1.md`: um roteiro passo a passo por critério de aceitação (§8 deste arquivo), com pré-condições, passos, resultado esperado e campo para evidência (captura ou saída). Inclui o truque de "segunda máquina" com `code --user-data-dir`.
-
-**Verificação:** executar o roteiro inteiro uma vez contra o servidor local e registrar o resultado.
-
-**Pronto quando:** os 12 critérios têm roteiro e ao menos uma execução registrada.
-
-**Prompt sugerido:** "Leia MVP-ROADMAP.md §6 e F3-T9 e GAME_DESIGN.md §16.1. Complete os testes dos módulos puros da extensão e escreva docs/manual-test-v0.1.md com um roteiro por critério de aceitação."
-
-### F3-T10 · Empacotamento da extensão `S`
-
-**Objetivo:** um `.vsix` instalável, com página de apresentação e política de privacidade.
-**GDD:** §13, §14.14 (privacidade).
-**Depende de:** F3-T9.
-**Entregáveis:** `packages/extension/{README.md,CHANGELOG.md,icon.png}`, `lords-of-the-guild-0.1.0.vsix`.
-
-- [x] F3-T10.1 Ícone 128×128, `README.md` da extensão (o que é, como começar, o parágrafo de privacidade do GDD §14.14, como trocar `lords.serverUrl`), `CHANGELOG.md`.
-- [x] F3-T10.2 `vsce package` sem avisos; `code --install-extension` em um perfil limpo funciona; `lords.serverUrl` padrão aponta para a URL de produção (preenchida após F4-T3; até lá, placeholder documentado).
-- [ ] F3-T10.3 **Decisão sua:** publicar no Marketplace (exige `publisher` e token) ou distribuir o `.vsix` entre o grupo.
+- [ ] F3W-T7.1 Avisos no canto inferior direito, com os botões `[Ver]` e `[Silenciar 2h]`, decididos por `notifications/policy.ts` (sem mudança): `silent`, `essential` (só a fome na v0.1) e `all`; no máximo 3 por hora; o excedente vira badge.
+- [ ] F3W-T7.2 Com a aba em segundo plano, o contador de novidades aparece no título da aba. Notificações do navegador são opcionais: a permissão só é pedida quando o jogador liga a opção nas preferências.
+- [ ] F3W-T7.3 Modo discreto: a barra de status e o título da aba mostram só um contador, e nenhum aviso aparece.
+- [ ] F3W-T7.4 Testes do que é novo (título da aba, permissão pedida só sob demanda).
 
 **Verificação:**
 
 ```bash
-pnpm --filter lords-of-the-guild package && code --install-extension packages/extension/lords-of-the-guild-0.1.0.vsix
+pnpm --filter @lotg/web test -- policy toasts
 ```
 
-**Pronto quando:** a extensão instalada de um `.vsix` em perfil limpo chega ao painel Feudo com Jogar agora.
+**Pronto quando:** com `all`, concluir 5 obras em uma hora gera 3 avisos e badge "2".
 
-**Prompt sugerido:** "Leia MVP-ROADMAP.md F3-T10. Prepare o empacotamento da extensão com vsce: ícone, README com privacidade, CHANGELOG e o .vsix. Não publique no Marketplace; isso é decisão minha."
+**Prompt sugerido:** "Leia GAME_DESIGN.md §13.5 e MVP-ROADMAP.md F3W-T7. Implemente os avisos do app sobre a política de notificações que já existe, o contador no título da aba, as notificações do navegador opcionais e o modo discreto."
+
+### F3W-T8 · Vínculo GitHub pelo navegador `M`
+
+**Decisão sua antes de começar:** registrar um OAuth App no GitHub com *device flow* habilitado e informar o `GITHUB_CLIENT_ID`. Se preferir deixar o GitHub fora da v0.1, esta tarefa sai e o Código do Reino passa a ser a única forma de trocar de máquina (ADR 0008, ponto 2).
+**GDD:** §13.9, §14.5, §14.7.
+**Depende de:** F3W-T3.
+**Entregáveis:** `packages/server/src/auth/githubDevice.ts`, rotas `POST /v1/auth/github/device` e `/device/poll`, schemas em `@lotg/protocol`, métodos no `client-sdk`, diálogo no app, testes.
+
+- [ ] F3W-T8.1 Servidor: as duas rotas repassam a chamada a `${GITHUB_OAUTH_URL}/login/device/code` e `/login/oauth/access_token` com o `GITHUB_CLIENT_ID` e o escopo `read:user`; limite de taxa por IP; sem `GITHUB_CLIENT_ID`, respondem 404 e o app esconde o botão. Nenhum segredo é usado e nada é guardado. `fetch` injetável nos testes, como em `auth/github.ts`.
+- [ ] F3W-T8.2 Protocolo e SDK: corpos e respostas das duas rotas; `client.startGithubDevice()` e `client.pollGithubDevice(deviceCode)`.
+- [ ] F3W-T8.3 App: diálogo que mostra o código, o botão "Copiar" e o link para `github.com/login/device`; consulta no intervalo que o GitHub informar, respeitando `slow_down`; trata expiração e recusa. Com o token, chama `POST /auth/github`; o conflito de conta usa a lista de escolha que já existe (`conflictOptions`).
+- [ ] F3W-T8.4 Testes de integração do servidor (GitHub simulado) e do app (fluxo completo com o servidor de teste). Atualizar a política de privacidade: o token do GitHub passa pelo servidor na ida e não é guardado.
+
+**Verificação:**
+
+```bash
+TEST_DATABASE_URL=… pnpm test:integration -- github
+```
+
+Manual, uma vez, com o OAuth App real: vincular em um navegador e entrar em outro.
+
+**Pronto quando:** vincular em um navegador e "Entrar com GitHub" em outro mostra o mesmo feudo.
+
+**Prompt sugerido:** "Leia CLAUDE.md, o ADR 0008, GAME_DESIGN.md §14.5 e §14.7 e MVP-ROADMAP.md F3W-T8. Implemente o device flow do GitHub: duas rotas de repasse no servidor, os contratos no protocolo e no SDK e o diálogo no app, com GitHub simulado nos testes."
+
+### F3W-T9 · Crônica, preferências, sobre e build de produção `S`
+
+**Objetivo:** fechar as superfícies que faltam e produzir os arquivos estáticos.
+**GDD:** §13.1, §13.6, §14.13, §14.14.
+**Depende de:** F3W-T7.
+**Entregáveis:** `packages/web/src/tabs/{Chronicle,Settings,About}.tsx`, `packages/web/README.md`, alvo `web` no `deploy/Dockerfile`.
+
+- [ ] F3W-T9.1 Aba Crônica: o Markdown de `GET /chronicle.md` exibido como texto formatado (títulos e lista, sem interpretar HTML) e o comando "Baixar Crônica (Markdown)".
+- [ ] F3W-T9.2 Aba de preferências (notificações, modo discreto, tema, Hora da Vigília) e "Sobre" (versão do app, do servidor e hash do conteúdo, lidos de `/v1/version`).
+- [ ] F3W-T9.3 Item "Privacidade" na conta, com o texto do GDD §14.14 ajustado ao navegador (credenciais e cache no armazenamento do navegador; limpar os dados de navegação os apaga).
+- [ ] F3W-T9.4 `pnpm build` gera `packages/web/dist`; alvo `web` no `Dockerfile` que constrói o app e o entrega a uma imagem do Caddy. `README.md` do pacote: como rodar, como testar, estrutura.
+- [ ] F3W-T9.5 Ícone e nome exibido são provisórios até a sua decisão; o app não usa o nome nem o logotipo do Visual Studio Code.
+
+**Verificação:**
+
+```bash
+pnpm build && ls packages/web/dist && docker build -f deploy/Dockerfile --target web -t lotg-web:latest .
+```
+
+**Pronto quando:** os arquivos de `dist` servidos por um servidor estático qualquer, com `/v1` encaminhado para a API, chegam ao painel Feudo com **Jogar agora**.
+
+**Prompt sugerido:** "Leia MVP-ROADMAP.md F3W-T9 e GAME_DESIGN.md §13.6 e §14.14. Implemente as abas Crônica, preferências e sobre, o item de privacidade e o build de produção do app, com o alvo web no Dockerfile."
+
+### F3W-T10 · Testes em navegador real e roteiro manual `M`
+
+**Objetivo:** provar os critérios de aceitação em um navegador de verdade, o que a extensão não permitia.
+**GDD:** §16.1 (critérios 1 a 12), §15.4.
+**Depende de:** F3W-T9 (e F3W-T8, se o GitHub entrar).
+**Entregáveis:** `tests/e2e/*.spec.ts`, `playwright.config.ts`, `pnpm test:e2e`, job de CI, `docs/manual-test-v0.1.md` reescrito.
+
+- [ ] F3W-T10.1 Playwright com Chromium sem interface, subindo a API (com relógio controlável só em ambiente de teste) e o app. Um arquivo por grupo de critérios da §8.
+- [ ] F3W-T10.2 Cenários: primeira abertura e "Jogar agora" com o tempo medido; alocar, construir e recrutar pelo painel, pela árvore e pela paleta; recusas visíveis; obra que termina sozinha; fechar e reabrir com Relatório de Retorno; sem conexão e volta; Código do Reino em outro contexto de navegador; duas abas; sair e excluir conta; partida inteira dos objetivos só pelo teclado.
+- [ ] F3W-T10.3 Temas e acessibilidade: capturas de tela dos três temas guardadas como artefato; verificação automática de contraste e de rótulos ARIA nas telas principais; nada de rolagem horizontal a 480 px.
+- [ ] F3W-T10.4 Cobertura ≥ 80% nos módulos puros de `packages/web`.
+- [ ] F3W-T10.5 `docs/manual-test-v0.1.md` reescrito para o navegador: o que os testes automáticos já provam e o que resta para olhos humanos (aparência dos temas, sensação da paleta, leitura do Relatório de Retorno).
+- [ ] F3W-T10.6 Job `e2e` na CI.
+
+**Verificação:**
+
+```bash
+pnpm dev:up && pnpm test:e2e
+```
+
+**Pronto quando:** os 12 critérios têm teste em navegador ou item no roteiro manual, e `pnpm test:e2e` passa do zero em uma máquina limpa.
+
+**Prompt sugerido:** "Leia MVP-ROADMAP.md §8 e F3W-T10 e GAME_DESIGN.md §16.1. Configure o Playwright, escreva os testes em navegador real para os critérios de aceitação e reescreva o roteiro manual para o que os testes não cobrem."
+
 
 ---
 
 ## 6. Fase 4 — Implantação e operação
 
-**Meta da fase:** o jogo acessível em `https://<domínio>`, com TLS, backup diário testado e procedimento de atualização e reversão.
+**Meta da fase:** o jogo acessível em `https://<domínio>`: o app web em `/` e a API em `/v1`, com TLS, backup diário testado e procedimento de atualização e reversão.
 
 ### F4-T1 · Compose de produção, Caddy e variáveis `M`
 
@@ -999,10 +1069,10 @@ pnpm --filter lords-of-the-guild package && code --install-extension packages/ex
 **Depende de:** F2-T9.
 **Entregáveis:** `deploy/docker-compose.yml`, `deploy/Caddyfile`, `deploy/.env.example` (seção produção), `deploy/README.md`.
 
-- [ ] F4-T1.1 `docker-compose.yml`: `caddy` (`caddy:2`, portas 80/443, volumes `caddy_data` e `caddy_config`, `Caddyfile` montado), `api` (imagem construída no servidor a partir do repositório ou `${API_IMAGE}:${API_IMAGE_TAG}`, `env_file`, `depends_on: db: condition: service_healthy`, `restart: unless-stopped`, logging `json-file` com `max-size 10m` e `max-file 5`), `db` (`postgres:16`, volume `lotg_db`, healthcheck, **sem porta publicada**).
-- [ ] F4-T1.2 `Caddyfile`: `{$PUBLIC_HOST}` com `encode zstd gzip`, `reverse_proxy api:3000`, cabeçalhos `Strict-Transport-Security`, `X-Content-Type-Options nosniff`, `Referrer-Policy no-referrer`; variante local com `tls internal` para ensaio.
+- [ ] F4-T1.1 `docker-compose.yml`: `caddy` (imagem do alvo `web` do `Dockerfile`: Caddy com os arquivos estáticos do app; portas 80/443, volumes `caddy_data` e `caddy_config`, `Caddyfile` montado), `api` (imagem construída no servidor a partir do repositório ou `${API_IMAGE}:${API_IMAGE_TAG}`, `env_file`, `depends_on: db: condition: service_healthy`, `restart: unless-stopped`, logging `json-file` com `max-size 10m` e `max-file 5`), `db` (`postgres:16`, volume `lotg_db`, healthcheck, **sem porta publicada**).
+- [ ] F4-T1.2 `Caddyfile`: `{$PUBLIC_HOST}` com `encode zstd gzip`; `/v1/*` vai para `reverse_proxy api:3000`; o resto serve os arquivos do app, com `index.html` como resposta para qualquer rota desconhecida e cache longo só para os arquivos com hash no nome; `TRUST_PROXY=true` na API; cabeçalho `Content-Security-Policy` igual ao do `index.html`; cabeçalhos `Strict-Transport-Security`, `X-Content-Type-Options nosniff`, `Referrer-Policy no-referrer`; variante local com `tls internal` para ensaio.
 - [ ] F4-T1.3 `deploy/README.md`: os dez passos de implantação (GDD §18.4 expandido), geração de segredos, como ver logs, como entrar no `psql`.
-- [ ] F4-T1.4 Ensaio local: `PUBLIC_HOST=localhost docker compose -f deploy/docker-compose.yml up -d` → `curl -k https://localhost/v1/health` responde.
+- [ ] F4-T1.4 Ensaio local: `PUBLIC_HOST=localhost docker compose -f deploy/docker-compose.yml up -d` → `curl -k https://localhost/v1/health` responde e `https://localhost/` entrega o app; `pnpm test:e2e` passa apontando para esse endereço.
 
 **Verificação:** o ensaio local passa; `docker compose config` valida sem avisos.
 
@@ -1030,14 +1100,14 @@ pnpm --filter lords-of-the-guild package && code --install-extension packages/ex
 
 **Decisões suas antes de começar:** provedor do VPS (Ubuntu 24.04 LTS, 2 vCPU, 2 a 4 GB) e domínio.
 **GDD:** §14.13, §18.4.
-**Depende de:** F4-T2, F3-T10.
+**Depende de:** F4-T2, F3W-T10.
 **Entregáveis:** servidor no ar; `deploy/README.md` com o registro da instalação.
 
 - [ ] F4-T3.1 Registro DNS A para o domínio; usuário não root com `sudo`; chave SSH; `ufw` permitindo só 22, 80 e 443; `unattended-upgrades`.
 - [ ] F4-T3.2 Docker Engine + plugin Compose instalados; `git clone` do repositório em `/opt/lords`; `.env` gerado com `pnpm secrets:gen` (ou `openssl rand`); `PUBLIC_HOST` definido.
 - [ ] F4-T3.3 `docker compose -f deploy/docker-compose.yml up -d --build`; certificado emitido; `/v1/health` 200 em HTTPS.
 - [ ] F4-T3.4 Cron de backup instalado; `docker system prune -af --filter until=168h` semanal.
-- [ ] F4-T3.5 `lords.serverUrl` padrão da extensão atualizado para o domínio; novo `.vsix` gerado (F3-T10).
+- [ ] F4-T3.5 `GITHUB_CLIENT_ID` definido (se o vínculo GitHub entrar) e o endereço de retorno do OAuth App conferido; `PUBLIC_URL` igual ao endereço público.
 
 **Verificação:**
 
@@ -1045,7 +1115,7 @@ pnpm --filter lords-of-the-guild package && code --install-extension packages/ex
 curl -s https://<domínio>/v1/health && curl -s https://<domínio>/v1/version
 ```
 
-Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta.
+Abrir `https://<domínio>` em um navegador limpo, clicar em Jogar agora e ver Pedra Alta.
 
 **Pronto quando:** uma pessoa fora da sua máquina joga pela internet.
 
@@ -1094,7 +1164,7 @@ Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta
 **Depende de:** F4-T5.
 **Entregáveis:** `docs/acceptance-v0.1.md`.
 
-- [ ] F5-T1.1 Executar o roteiro de `docs/manual-test-v0.1.md` contra a produção, dois perfis de VS Code, registrando evidência por critério.
+- [ ] F5-T1.1 Rodar `pnpm test:e2e` contra a produção e executar o roteiro de `docs/manual-test-v0.1.md` em dois navegadores, registrando evidência por critério.
 - [ ] F5-T1.2 Rodar o teste de concorrência e idempotência (F2-T6.7) e o `sim-cli --remote` com 20 bots contra produção por 2 minutos, com p95 registrado.
 - [ ] F5-T1.3 Qualquer critério falho vira item em F5-T3 com prioridade P0.
 
@@ -1107,7 +1177,7 @@ Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta
 **Depende de:** F5-T1.
 **Entregáveis:** `docs/playtest-v0.1.md` com achados priorizados.
 
-- [ ] F5-T2.1 3 a 5 pessoas instalam o `.vsix` e jogam dois dias; formulário curto (o que confundiu, o que faltou, quando sentiu vontade de voltar).
+- [ ] F5-T2.1 3 a 5 pessoas recebem o endereço e jogam dois dias; formulário curto (o que confundiu, o que faltou, quando sentiu vontade de voltar).
 - [ ] F5-T2.2 Consultas agregadas (`deploy/analytics/ops.sql`): sessões por dia, comandos por sessão, tempo até o primeiro comando, proporção de contas que voltaram no dia 2.
 - [ ] F5-T2.3 Achados classificados: P0 (bloqueia), P1 (atrapalha), P2 (melhoria), P3 (v0.2+).
 
@@ -1131,11 +1201,11 @@ Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta
 ### F5-T4 · Documentação, versão e release `S`
 
 **Depende de:** F5-T3.
-**Entregáveis:** `README.md` final, `docs/architecture.md`, índice de ADRs, tag `v0.1.0`, release com `.vsix`.
+**Entregáveis:** `README.md` final, `docs/architecture.md`, índice de ADRs, tag `v0.1.0`, release.
 
 - [ ] F5-T4.1 `README.md` raiz: o que é, como jogar, como desenvolver (comandos da §1.4), como implantar (link para `deploy/README.md`), licença.
 - [ ] F5-T4.2 `docs/architecture.md` com o diagrama do GDD §14.1 atualizado para o que foi construído e a lista de divergências aceitas.
-- [ ] F5-T4.3 `CHANGELOG.md`, tag `v0.1.0`, release no GitHub com o `.vsix` anexado.
+- [ ] F5-T4.3 `CHANGELOG.md`, tag `v0.1.0`, release no GitHub.
 
 **Pronto quando:** um desenvolvedor novo segue o README e chega a `pnpm verify` verde sem perguntar nada.
 
@@ -1159,18 +1229,18 @@ Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta
 
 | # | Critério | Tarefas que o entregam | Como provar |
 |---|---|---|---|
-| 1 | Jogar agora e primeiro comando em menos de 30 s, sem e-mail nem senha | F2-T4, F2-T6, F3-T3, F3-T7 | Cronômetro no roteiro manual |
-| 2 | Alocar um trabalhador muda a taxa imediatamente e reduz os livres | F1-T3, F1-T6, F1-T9, F3-T7 | Teste de unidade + manual |
-| 3 | Não alocar mais que a população nem gastar o que não existe; motivo visível | F1-T7, F3-T6, F3-T7 | Testes de recusa + manual |
+| 1 | Abrir o endereço, Jogar agora e primeiro comando em menos de 30 s, sem instalar nada | F2-T4, F2-T6, F3W-T3, F3W-T5 | Teste em navegador, com o tempo medido |
+| 2 | Alocar um trabalhador muda a taxa imediatamente e reduz os livres | F1-T3, F1-T6, F1-T9, F3W-T5 | Teste de unidade + teste em navegador |
+| 3 | Não alocar mais que a população nem gastar o que não existe; motivo visível | F1-T7, F3W-T5, F3W-T6 | Testes de recusa + teste em navegador |
 | 4 | Melhoria desconta uma vez, ocupa a fila e conclui no tempo | F1-T5, F2-T6 | Testes + evento em `game_events` |
-| 5 | Reabrir após horas simula o intervalo sem duplicar; divisão de intervalo exata | F1-T3, F1-T4, F2-T6, F3-T4 | Teste de propriedade + manual com relógio |
+| 5 | Reabrir a aba após horas simula o intervalo sem duplicar; divisão de intervalo exata | F1-T3, F1-T4, F2-T6, F3W-T4 | Teste de propriedade + teste em navegador com relógio controlado |
 | 6 | Escassez correta em longos períodos, com instante exato na Crônica | F1-T4, F1-T8 | Teste de 30 dias |
 | 7 | Recibo original após reinício/reenvio; UUID conflitante recusado; avanço preservado em recusa; dois clientes não corrompem | F2-T6, F2-T7, F2-T8, F3-T1 | Testes F2-T6.7–10 + `docker compose restart` |
-| 8 | Regras rodam em testes sem VS Code | F1-T1 a F1-T11 | `pnpm --filter @lotg/engine test` |
-| 9 | Tema claro e escuro; navegável por teclado | F3-T5, F3-T6, F3-T7 | Manual nos três temas |
-| 10 | GitHub ou Código do Reino em outra máquina mostra o mesmo feudo | F2-T5, F3-T3 | Manual com dois perfis |
-| 11 | Sem conexão: último estado, explicação, retorno automático | F3-T4, F3-T7 | Manual derrubando a API |
-| 12 | Exclusão bloqueia acesso e limpa cache imediatamente; job remove conta e dependentes a partir de sete dias; backups seguem retenção informada | F2-T4, F2-T5, F2-T7, F3-T3, F3-T4 | Testes de bloqueio em duas instâncias, relógio antes/no prazo, cascatas SQL e limpeza local |
+| 8 | Regras rodam em testes sem navegador nem servidor | F1-T1 a F1-T11 | `pnpm --filter @lotg/engine test` |
+| 9 | Temas claro, escuro e alto contraste; navegável por teclado, inclusive a paleta | F3W-T2, F3W-T5, F3W-T6 | Teste em navegador (teclado, contraste) + olhar humano nas capturas |
+| 10 | GitHub ou Código do Reino em outra máquina mostra o mesmo feudo | F2-T5, F3W-T3, F3W-T8 | Teste em navegador com dois contextos; GitHub real, manual |
+| 11 | Sem conexão: último estado, explicação, retorno automático | F3W-T4, F3W-T5 | Teste em navegador derrubando a API |
+| 12 | Excluir conta bloqueia na hora e remove tudo depois de sete dias | F2-T4, F2-T7, F3W-T3 | Teste de integração + teste em navegador com duas abas |
 
 ---
 
@@ -1206,15 +1276,25 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F2-T8 | 2026-10-01 | `f74b245` | 1 | Cinco cenários de ponta a ponta em `tests/server/`. Carga com 50 bots por 2 min: p95 de 7,8 ms em `/view` e 14,1 ms em `/commands` (metas 50 e 80). Com os bots em rajada sincronizada, as metas não são atingidas (81,6 e 147,4 ms); detalhes em `docs/perf-v0.1.md`. O modo remoto usa `fetch` direto até existir o `client-sdk`. |
 | F2-T9 | 2026-10-01 | `e3dd414` | 1 | Imagem construída com `--no-cache` sobe saudável em 2 s, usuário `node`; 10 bots contra o contêiner sem erros. O servidor vai inteiro em `dist/main.js` (esbuild), sem `node_modules`: o sistema de arquivos tem 235 MB (a base tem 232). O `docker image ls` desta máquina mostra 330 MB, por conta do armazenamento do Docker Desktop. |
 | F3-T1 | 2026-10-01 | `ea260bd` | 1 | 33 testes com `fetch` simulado. 5 chamadas simultâneas com token expirado disparam exatamente 1 `POST /auth/refresh`. O `sim-cli --remote` passou a jogar pelo SDK (10 bots contra a API local, sem erros). |
-| F3-T2 | 2026-10-01 | `ea260bd` | 1 | `pnpm build` produz `dist/extension.js` (CommonJS, 494 kB) e `media/webview.{js,css}`. Uma revisão independente do cliente (subagente, só leitura) apontou 12 defeitos confirmados e 6 riscos, tratados com teste: refresh repetido às cegas dentro das retentativas; duas janelas do VS Code revogando a sessão uma da outra (o SDK agora relê o `TokenStore` antes de renovar; a corrida exata entre dois processos ainda é possível); "Entrar com GitHub" preso nas boas-vindas; partida arquivada em outra máquina nunca revalidada; "Tentar de novo" com `commandId` novo; clique na árvore iniciando obra; painel abrindo sozinho na inicialização; boas-vindas travadas após sair sem conexão; leitura em voo sobrescrevendo a visão de um comando; cache de partidas arquivadas sobrevivendo ao logout; `lords.serverUrl` sobrescrevível por workspace; ciclo em 2 min após trocar de servidor. **Não verificado:** F5 e a ativação em um VS Code real. A ativação foi exercitada por `tests/client/extension.test.ts`, com um editor de mentira contra o servidor real. Entregue no mesmo commit de F3-T3 a F3-T8. |
-| F3-T3 | 2026-10-01 | `ea260bd` | 1 | Do painel de boas-vindas ao Feudo: 2 campos, 1 clique e 2 requisições (testado). GitHub, conflito e Código do Reino testados com o editor de mentira; o login real do GitHub não. Sem seleção de dificuldade nem ritmo. Não há comando para renomear quem governa (o servidor aceita; nenhuma tarefa pede). |
-| F3-T4 | 2026-10-01 | `ea260bd` | 1 | Cadência de 30 s/2 min, recuo de 5 a 60 s, cache por servidor/conta/partida e Relatório de Retorno testados com temporizadores falsos. O relatório não abre o painel sozinho: marca novidades na árvore e na barra de status, e o painel abre na aba Hoje (GDD §13.5); os eventos da ausência não viram notificações avulsas. Sem ligação, nenhum comando é enviado nem enfileirado. O teste manual de derrubar a API com o painel aberto não foi feito. |
-| F3-T5 | 2026-10-01 | `ea260bd` | 1 | Árvore e barra de status são funções puras (`treeModel.ts`, `format.ts`) com teste; toda ação da árvore tem comando na paleta. A contagem regressiva usa horas e minutos (`00:42`) e anda a cada 30 s. |
-| F3-T6 | 2026-10-01 | `ea260bd` | 1 | 23 comandos, todos com prefixo "Lords:" e implementação (um teste compara o manifesto com os registrados). Acrescentei `Cancelar a obra`, `Planejar ou desplanejar`, `Renomear o feudo`, `Atualizar agora`, `Silenciar notificações` e `Privacidade`. Clicar em um item da árvore só abre o painel; as ordens saem dos botões do item. Para o cliente não calcular regras, o `ViewState` ganhou `workers[].perWorkerPerHour` e `constructions.active.refund`. O teste de 10 minutos só com a paleta não foi feito. |
-| F3-T7 | 2026-10-01 | `ea260bd` | 1 | Rotas `welcome`, `today` e `fief` em Preact (29 kB). `styles.css` sem nenhuma cor fixa (teste). CSP com nonce conferida no HTML gerado. Testes por renderização em texto: cliques, teclado, foco e os três temas **não foram verificados**. O protocolo da Webview ganhou `ready`, `playNow`, `action`, `session`, `chronicle` e `report`. |
-| F3-T8 | 2026-10-01 | `ea260bd` | 1 | Com `all`, 5 obras em uma hora geram 3 notificações e badge 2 (testado). Durante o "Silenciar 2h" os eventos viram badge; no modo discreto, nada aparece. |
-| F3-T9 | 2026-10-01 | `5d943a1` | 1 | Módulos puros da extensão com 89% a 100% de linhas. `docs/manual-test-v0.1.md` tem um roteiro por critério. **Pendente:** nenhuma execução manual foi feita; o "Pronto quando" (ao menos uma execução registrada) não foi atingido. |
-| F3-T10 | 2026-10-01 | `5d943a1` | 1 | `.vsix` de 131 kB gerado com um aviso do `vsce`: falta LICENSE. `publisher` (`gustavopals`) e ícone são provisórios; `lords.serverUrl` aponta para `http://localhost:3000` até existir a instância hospedada. **Não verificado:** instalar o `.vsix` em um perfil limpo. F3-T10.3 (publicar ou distribuir) é decisão sua e segue em aberto. |
+| F3-T2 | 2026-10-01 | `ea260bd` | 1 | `pnpm build` produz `dist/extension.js` (CommonJS, 494 kB) e `media/webview.{js,css}`. Uma revisão independente do cliente (subagente, só leitura) apontou 12 defeitos confirmados e 6 riscos, tratados com teste: refresh repetido às cegas dentro das retentativas; duas janelas do VS Code revogando a sessão uma da outra (o SDK agora relê o `TokenStore` antes de renovar; a corrida exata entre dois processos ainda é possível); "Entrar com GitHub" preso nas boas-vindas; partida arquivada em outra máquina nunca revalidada; "Tentar de novo" com `commandId` novo; clique na árvore iniciando obra; painel abrindo sozinho na inicialização; boas-vindas travadas após sair sem conexão; leitura em voo sobrescrevendo a visão de um comando; cache de partidas arquivadas sobrevivendo ao logout; `lords.serverUrl` sobrescrevível por workspace; ciclo em 2 min após trocar de servidor. **Não verificado:** F5 e a ativação em um VS Code real. A ativação foi exercitada por `tests/client/extension.test.ts`, com um editor de mentira contra o servidor real. Entregue no mesmo commit de F3-T3 a F3-T8. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T3 | 2026-10-01 | `ea260bd` | 1 | Do painel de boas-vindas ao Feudo: 2 campos, 1 clique e 2 requisições (testado). GitHub, conflito e Código do Reino testados com o editor de mentira; o login real do GitHub não. Sem seleção de dificuldade nem ritmo. Não há comando para renomear quem governa (o servidor aceita; nenhuma tarefa pede). **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T4 | 2026-10-01 | `ea260bd` | 1 | Cadência de 30 s/2 min, recuo de 5 a 60 s, cache por servidor/conta/partida e Relatório de Retorno testados com temporizadores falsos. O relatório não abre o painel sozinho: marca novidades na árvore e na barra de status, e o painel abre na aba Hoje (GDD §13.5); os eventos da ausência não viram notificações avulsas. Sem ligação, nenhum comando é enviado nem enfileirado. O teste manual de derrubar a API com o painel aberto não foi feito. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T5 | 2026-10-01 | `ea260bd` | 1 | Árvore e barra de status são funções puras (`treeModel.ts`, `format.ts`) com teste; toda ação da árvore tem comando na paleta. A contagem regressiva usa horas e minutos (`00:42`) e anda a cada 30 s. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T6 | 2026-10-01 | `ea260bd` | 1 | 23 comandos, todos com prefixo "Lords:" e implementação (um teste compara o manifesto com os registrados). Acrescentei `Cancelar a obra`, `Planejar ou desplanejar`, `Renomear o feudo`, `Atualizar agora`, `Silenciar notificações` e `Privacidade`. Clicar em um item da árvore só abre o painel; as ordens saem dos botões do item. Para o cliente não calcular regras, o `ViewState` ganhou `workers[].perWorkerPerHour` e `constructions.active.refund`. O teste de 10 minutos só com a paleta não foi feito. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T7 | 2026-10-01 | `ea260bd` | 1 | Rotas `welcome`, `today` e `fief` em Preact (29 kB). `styles.css` sem nenhuma cor fixa (teste). CSP com nonce conferida no HTML gerado. Testes por renderização em texto: cliques, teclado, foco e os três temas **não foram verificados**. O protocolo da Webview ganhou `ready`, `playNow`, `action`, `session`, `chronicle` e `report`. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T8 | 2026-10-01 | `ea260bd` | 1 | Com `all`, 5 obras em uma hora geram 3 notificações e badge 2 (testado). Durante o "Silenciar 2h" os eventos viram badge; no modo discreto, nada aparece. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T9 | 2026-10-01 | `5d943a1` | 1 | Módulos puros da extensão com 89% a 100% de linhas. `docs/manual-test-v0.1.md` tem um roteiro por critério. **Pendente:** nenhuma execução manual foi feita; o "Pronto quando" (ao menos uma execução registrada) não foi atingido. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3-T10 | 2026-10-01 | `5d943a1` | 1 | `.vsix` de 131 kB gerado com um aviso do `vsce`: falta LICENSE. `publisher` (`gustavopals`) e ícone são provisórios; `lords.serverUrl` aponta para `http://localhost:3000` até existir a instância hospedada. **Não verificado:** instalar o `.vsix` em um perfil limpo. F3-T10.3 (publicar ou distribuir) é decisão sua e segue em aberto. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
+| F3W-T1 | | | | |
+| F3W-T2 | | | | |
+| F3W-T3 | | | | |
+| F3W-T4 | | | | |
+| F3W-T5 | | | | |
+| F3W-T6 | | | | |
+| F3W-T7 | | | | |
+| F3W-T8 | | | | |
+| F3W-T9 | | | | |
+| F3W-T10 | | | | |
 | F4-T1 | | | | |
 | F4-T2 | | | | |
 | F4-T3 | | | | |
@@ -1242,7 +1322,11 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | Troca da chave JWT invalida recuperação | Códigos deixam de funcionar após deploy | `RECOVERY_CODE_SECRET` independente e preservado nos segredos operacionais (ADR 0003) |
 | Relógio do servidor errado | Obras concluindo cedo ou tarde | NTP no VPS; teste de sanidade em `/v1/health` comparando com a hora do banco |
 | Vazamento de tokens em logs | `authorization` em `docker logs` | Redação no pino (F2-T2); revisão por `grep` nos logs de teste |
-| CSP da Webview bloqueando scripts | Painel em branco | Nonce por carga, `asWebviewUri`, sem `eval`, testado em F3-T7.1 |
+| CSP do app bloqueando o próprio app | Página em branco no build de produção | CSP testada no build (F3W-T9) e nos testes em navegador; sem estilos nem scripts inline |
+| Tokens ao alcance de um script injetado na página | Dependência ou conteúdo de terceiros executando no app | CSP sem origens externas, nenhuma dependência de CDN, nomes sempre exibidos como texto; rever cookie `HttpOnly` antes de conteúdo gerado por jogadores (ADR 0008, ponto 1) |
+| Duas abas renovando a sessão ao mesmo tempo | Sessão revogada sem o jogador ter feito nada | Web Locks na renovação e releitura do `TokenStore` (F3W-T3.5) |
+| Jogador anônimo limpa os dados do navegador | Feudo inacessível | Lembrete do dia 3 mais insistente no texto; Código do Reino oferecido cedo |
+| O app parecer um produto da Microsoft | Reclamação de marca | Aparência de editor genérico; sem nome, logotipo ou marca do VS Code na interface (ADR 0008, ponto 6) |
 | Perda de dados por volume Docker removido | `docker compose down -v` em produção | Backup diário testado (F4-T2); `README` alerta para nunca usar `-v` em produção |
 | Contexto longo degrada a qualidade do agente | Tarefas `L` em uma sessão só | Dividir por subtarefas; uma tarefa por sessão (§0.3) |
 
@@ -1256,20 +1340,20 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 # Lords of the Guild — instruções do projeto
 
 ## O que é
-Jogo medieval de gerenciamento jogado dentro do VS Code; motor determinístico em TypeScript, servidor Fastify + PostgreSQL autoritativo, extensão como cliente. Especificação: GAME_DESIGN.md (contrato: §14, §16.1). Plano: MVP-ROADMAP.md.
+Jogo medieval de gerenciamento jogado no navegador, com aparência de editor de código; motor determinístico em TypeScript, servidor Fastify + PostgreSQL autoritativo, app web como cliente. Especificação: GAME_DESIGN.md (contrato: §14, §16.1). Plano: MVP-ROADMAP.md.
 
 ## Pacotes
-engine (motor puro) · content (dados + zod) · protocol (Command, ViewState, API) · server (Fastify + Drizzle) · client-sdk · sim-cli · extension (VS Code) · webview (Preact). Regras de dependência: engine/content/protocol não importam vscode, fastify, pg ou node:*.
+engine (motor puro) · content (dados + zod) · protocol (Command, ViewState, API) · server (Fastify + Drizzle) · client-sdk · sim-cli · web (app Preact). Regras de dependência: engine/content/protocol não importam fastify, pg ou node:*; web não importa engine nem server.
 
 ## Comandos
-pnpm dev:up · pnpm dev:api · pnpm dev:ext · pnpm verify (lint + typecheck + test) · pnpm test:integration (precisa de TEST_DATABASE_URL) · pnpm sim -- --seed X --days 7
+pnpm dev:up · pnpm dev:api · pnpm dev:web · pnpm verify (lint + typecheck + test) · pnpm test:integration (precisa de TEST_DATABASE_URL) · pnpm sim -- --seed X --days 7
 
 ## Regras de arquitetura
 1. Nenhuma regra de jogo fora de packages/engine. Nenhum número de jogo fora de packages/content.
 2. O servidor é o relógio; o cliente nunca envia estado ou timestamps.
 3. Recursos em milésimos inteiros; advanceTo por segmentos; invariante de divisão de intervalo é sagrado.
 4. Toda mudança de estado é um comando validado, idempotente por commandId no servidor.
-5. A Webview só exibe ViewState; nunca calcula regras.
+5. O app web só exibe ViewState; nunca calcula regras.
 6. Só as bibliotecas listadas em MVP-ROADMAP.md §1.6. Outra dependência exige ADR aprovado.
 7. Não antecipe mecânicas de versões futuras do GDD, nem "só a estrutura".
 
@@ -1283,7 +1367,7 @@ Identificadores em inglês; textos de jogo em pt-BR, tom de crônica. Testes ao 
 4. Um commit por tarefa (ou por subtarefa em tarefas L).
 
 ## Nunca
-Rodar `docker compose down -v` fora do ambiente de dev; commitar .env; publicar no Marketplace; mesclar estados de contas; usar Alpine como base da imagem.
+Rodar `docker compose down -v` fora do ambiente de dev; commitar .env; carregar scripts de terceiros no app; mesclar estados de contas; usar Alpine como base da imagem.
 ````
 
 ### A.2 Modelo de prompt para abrir uma tarefa

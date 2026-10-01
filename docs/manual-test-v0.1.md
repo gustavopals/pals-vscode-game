@@ -2,6 +2,8 @@
 
 Um roteiro por critério de aceitação do GDD §16.1 (MVP-ROADMAP.md §8). Serve para o que só um VS Code de verdade prova: temas, teclado, foco, tempo de clique.
 
+> **Substituído.** Este roteiro foi escrito para a extensão do VS Code, que saiu do plano ([ADR 0008](decisions/0008-cliente-web-com-aparencia-de-editor.md)). Ele será reescrito para o navegador em F3W-T10; até lá, vale só como referência dos doze critérios.
+>
 > **Estado em 2026-10-01:** nenhum passo deste roteiro foi executado em um VS Code real. A extensão foi exercitada só por testes automatizados, inclusive `tests/client/extension.test.ts`, que a ativa com um editor de mentira contra o servidor real. A coluna "Automático" diz o que esses testes já cobrem; a coluna "Manual" está em branco, à espera da primeira execução.
 
 ## Preparação

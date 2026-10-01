@@ -4,13 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## O que é
 
-**Lords of the Guild** é um jogo medieval de gerenciamento assíncrono jogado dentro do VS Code: motor determinístico em TypeScript, servidor Fastify + PostgreSQL autoritativo, extensão do VS Code como cliente.
+**Lords of the Guild** é um jogo medieval de gerenciamento assíncrono jogado **no navegador, em uma página com a aparência de um editor de código**: motor determinístico em TypeScript, servidor Fastify + PostgreSQL autoritativo, app web como cliente.
 
-- [GAME_DESIGN.md](GAME_DESIGN.md) — GDD documental v0.4. §14 é o **contrato de arquitetura**, §16.1 é o **escopo exato do jogo v0.1**, §18.3 são regras permanentes.
+- [GAME_DESIGN.md](GAME_DESIGN.md) — GDD documental v0.5. §14 é o **contrato de arquitetura**, §16.1 é o **escopo exato do jogo v0.1**, §18.3 são regras permanentes.
 - [MVP-ROADMAP.md](MVP-ROADMAP.md) — plano de execução da v0.1 em fases `F0…F5` e tarefas `F1-T3`, cada uma com subtarefas em caixas de seleção, seção "Verificação" e "Pronto quando". O Registro de Execução (§9) diz o que já foi feito.
 - [Decisões de arquitetura](docs/decisions/README.md) — ADRs. Os contratos dos ADRs 0003–0005 já estão no GDD; segui-los não exige nova aprovação de desvio.
 
-**Estado:** as Fases 0 a 3 estão implementadas: monorepo e Docker, conteúdo e motor da v0.1, `sim-cli`, protocolo, servidor, `client-sdk`, extensão do VS Code e Webview. A extensão **nunca foi aberta em um VS Code de verdade**: foi exercitada por testes, inclusive um que a ativa com um editor de mentira contra o servidor real. O roteiro manual está em [docs/manual-test-v0.1.md](docs/manual-test-v0.1.md), sem nenhuma execução registrada. A próxima tarefa é F4-T1.
+**Estado:** as Fases 0 a 2 estão concluídas (monorepo, Docker, conteúdo, motor, `sim-cli`, protocolo e servidor) e F3-T1 (`client-sdk`) também. **A plataforma do cliente mudou em 2026-10-01** ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)): o jogo deixa de ser uma extensão do VS Code e passa a ser um app web com aparência de editor. A Fase 3 foi replanejada nas tarefas **F3W-T1 a F3W-T10** do roadmap; nenhuma delas foi executada. A próxima tarefa é **F3W-T1**.
+
+**O que ainda está no repositório e vai sair:** `packages/extension` e `packages/webview` (a extensão implementada na primeira execução da Fase 3), `tests/client/extension.test.ts`, o editor de mentira dos testes e `.vscode/launch.json`. Eles continuam compilando e com os testes passando, mas **não receba nem faça melhorias neles**: F3W-T1 migra para `packages/web` o que é reaproveitável (a tabela do ADR 0008 diz o quê) e remove o resto. `docs/manual-test-v0.1.md` foi escrito para o VS Code e será reescrito em F3W-T10.
+
+O ADR 0008 tem seis pontos em que o plano adotou uma opção recomendada e que aguardam confirmação do autor (tokens em `localStorage`, GitHub por *device flow*, remoção da extensão, notificações, novas dependências, marca). Não trate nenhum deles como decidido além do que o roadmap já descreve; F3W-T8 só começa com o `GITHUB_CLIENT_ID` em mãos.
 
 Os dois documentos somam ~2.700 linhas: leia as seções indicadas pela tarefa em vez do arquivo inteiro (ambos têm índice numerado por `§`).
 
@@ -67,7 +71,7 @@ Detalhes que não são óbvios:
 
 ## Pacotes
 
-Monorepo pnpm com oito pacotes (GDD §14.2):
+Monorepo pnpm (GDD §14.2); o plano são sete pacotes, com `web` no lugar de `extension` e `webview`:
 
 | Pacote | Papel |
 |---|---|
@@ -77,8 +81,8 @@ Monorepo pnpm com oito pacotes (GDD §14.2):
 | `@lotg/server` | Fastify + Drizzle/`pg`: auth, partidas, comandos, job de avanço, migrações |
 | `@lotg/client-sdk` | Cliente HTTP tipado (usado pela extensão e pelo `sim-cli`) |
 | `@lotg/sim-cli` | Bots de playtest, em processo ou contra um servidor |
-| `lords-of-the-guild` (`packages/extension`) | VS Code: TreeView, Status Bar, comandos, cache, `SecretStorage` |
-| `@lotg/webview` | UI em Preact |
+| `@lotg/web` (`packages/web`, **a criar em F3W-T1**) | App web em Preact: bancada com aparência de editor, sessão de jogo, cache no navegador |
+| `lords-of-the-guild` (`packages/extension`) e `@lotg/webview` | **Descontinuados** (ADR 0008): saem em F3W-T1 |
 
 Direção das dependências, imposta por `no-restricted-imports` em `eslint.config.js`: `engine`, `content` e `protocol` não importam `vscode`, `fastify`, `pg`, Drizzle nem módulos do Node (com ou sem `node:`); arquivos `*.test.ts` ficam fora dessa regra. `server` e `extension` dependem deles e **nunca um do outro**. A extensão e a Webview não importam o motor.
 
@@ -105,7 +109,9 @@ O [README do servidor](packages/server/README.md) descreve a estrutura e os cont
 - O protocolo valida só a forma dos comandos; faixas e regras são recusadas pelo motor, com frase em português (`422 GAME_RULE`).
 - `Command`, `ViewState` e os códigos de recusa do protocolo têm teste de igualdade de tipos com os do motor: mudar um lado quebra o `pnpm typecheck`.
 
-### Cliente (`packages/client-sdk`, `packages/extension`, `packages/webview`)
+### Cliente (`packages/client-sdk`; `packages/extension` e `packages/webview` até a migração para `packages/web`)
+
+O que está descrito aqui sobre a extensão vale como mapa do que migrar: os módulos sem `vscode` e os componentes Preact vão para `packages/web`; `controller.ts` e `commands/*.ts` são reescritos sem a API do editor.
 
 - **`client-sdk`**: `createClient({ baseUrl, tokenStore, clientVersion, fetch })`. Renova a sessão sozinho em `401 UNAUTHORIZED`, com uma renovação por vez, relendo antes o `TokenStore` (outra janela do VS Code pode já ter renovado); `SESSION_REVOKED` ou refresh recusado limpam o `TokenStore` e chamam `onUnauthenticated`. A rotação nunca é repetida em falha de rede. Leituras e comandos repetem em falha de rede (o comando, com o mesmo `commandId`). A recusa do motor sai como `GameRuleClientError`, com o estado avançado em `details`.
 - **Extensão**: a lógica fica em módulos sem `vscode`, testáveis sozinhos: `account/accountService.ts` (conta nesta máquina), `game/gameSession.ts` (ciclo de 30 s/2 min, cache, conexão, comandos), `notifications/policy.ts`, `ui/treeModel.ts` e `ui/format.ts` (árvore e barra de status como dados). `controller.ts` junta tudo e é a única fonte de estado para árvore, barra de status, painel e comandos; a cola com o editor fica em `ui/treeProvider.ts`, `ui/statusBar.ts`, `ui/panel.ts`, `notifications/notifier.ts` e `commands/*.ts`.

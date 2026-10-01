@@ -1,9 +1,9 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.4 (contratos de comandos, sessões, cache HTTP e exclusão consolidados; escopo do jogo permanece v0.1)\
+> **Versão do documento:** 0.5 (o cliente passa a ser um app web com aparência de editor, em vez de extensão do VS Code; escopo do jogo permanece v0.1)\
 > **Idioma:** português (Brasil)  
-> **Plataforma inicial:** extensão do Visual Studio Code (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
+> **Plataforma inicial:** app web no navegador, com aparência de editor de código (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
 > **Inspirações:** Tribal Wars e OGame (progressão assíncrona), Against the Storm e Frostpunk (pressão das estações), Reigns e King of Dragon Pass (dilemas), Darkest Dungeon (expedições com risco), Into the Breach (combate determinístico e legível), auto-battlers (formação como decisão central).
 
@@ -21,6 +21,7 @@
 - O jogo é **online desde a v0.1**: o progresso vive em um servidor Node.js + PostgreSQL, a conta nasce em um clique e o jogador continua de qualquer máquina. "Online" aqui não significa interação entre jogadores (isso é v1.0): significa servidor autoritativo e progresso persistente (§14).
 - Mudanças da 0.3 em relação à 0.2: §1.1 (pilar 6), §4.3, §5.8, §11.6, §13.1, §13.6, §13.9, §14 inteira, §15.3 a §15.5, §16, §17 e §18.
 - Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão já estão refletidos no `MVP-ROADMAP.md` 1.1; tarefas de implementação continuam pendentes.
+- Mudança da 0.5: o cliente deixa de ser uma extensão do VS Code e passa a ser um **app web com aparência de editor** ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). Mudam §1, §13, §14.1, §14.2, §14.7 (vínculo GitHub), §14.10, §14.12–14.14, §16.1, §17 e §18. Regras de jogo, motor, servidor e contratos da API não mudam, com exceção das duas rotas novas do vínculo GitHub (§14.5).
 
 ### Índice
 
@@ -36,7 +37,7 @@
 10. Exército, formações e combate (mecânica central)
 11. O Cerco do Inverno, a Crônica do Ano e o Legado
 12. Dificuldade, objetivos e tutorial
-13. Interface e experiência no VS Code
+13. Interface e experiência no navegador
 14. Arquitetura online: cliente, servidor, determinismo e dados
 15. Balanceamento, testes de diversão e simulador
 16. Roadmap, escopo por versão e critérios de aceitação
@@ -48,9 +49,9 @@ Apêndices: A (unidades e inimigos), B (cartas do Conselho), C (expedições), D
 
 ## 1. Visão geral e pilares
 
-**Lords of the Guild** é um jogo medieval de fantasia jogado dentro do VS Code. O jogador governa **Pedra Alta**, um feudo pequeno e vulnerável, ao longo de um **ano de jogo que dura uma semana real**. Durante a primavera e o verão ele constrói a economia, recruta heróis, explora um mapa coberto de névoa e repele incursões cada vez maiores. No outono recebe presságios sobre a **Horda** que marcha do norte. No inverno, o feudo enfrenta o **Cerco do Inverno**: três ondas de ataque resolvidas automaticamente com a formação que o jogador preparou. Sobreviva ou não, o ano termina com a **Crônica do Ano** e um novo ano começa, mais difícil e com mais opções.
+**Lords of the Guild** é um jogo medieval de fantasia jogado no navegador, em uma página com a aparência de um editor de código. O jogador governa **Pedra Alta**, um feudo pequeno e vulnerável, ao longo de um **ano de jogo que dura uma semana real**. Durante a primavera e o verão ele constrói a economia, recruta heróis, explora um mapa coberto de névoa e repele incursões cada vez maiores. No outono recebe presságios sobre a **Horda** que marcha do norte. No inverno, o feudo enfrenta o **Cerco do Inverno**: três ondas de ataque resolvidas automaticamente com a formação que o jogador preparou. Sobreviva ou não, o ano termina com a **Crônica do Ano** e um novo ano começa, mais difícil e com mais opções.
 
-O jogo **não é sobre programação**. O VS Code é a interface: árvores de navegação, painéis, tabelas, notificações com botões e comandos. Nenhuma linha de código, nenhum terminal. As sessões duram de 2 a 10 minutos e o mundo continua andando com o editor fechado. O progresso vive em um servidor: a conta nasce com um clique em **Jogar agora**, sem e-mail nem senha, e o jogador continua de qualquer máquina.
+O jogo **não é sobre programação**. A interface imita a bancada de um editor: árvore de navegação na lateral, abas no centro, tabelas, notificações com botões, uma linha na barra de status e uma paleta de comandos. Nenhuma linha de código, nenhum terminal, nada para instalar. As sessões duram de 2 a 10 minutos e o mundo continua andando com a aba fechada. O progresso vive em um servidor: a conta nasce com um clique em **Jogar agora**, sem e-mail nem senha, e o jogador continua de qualquer máquina.
 
 ### 1.1 Pilares de design
 
@@ -58,7 +59,7 @@ O jogo **não é sobre programação**. O VS Code é a interface: árvores de na
 2. **Tempo é o adversário, não o jogador ausente.** O calendário avança sozinho e o inverno chega para todos. Mas a ausência nunca é punida: produção offline respeita o estoque, incursões usam a formação salva, expedições seguem a postura definida. Quem volta encontra um relatório, não um castigo.
 3. **Legível e explicável.** Cada número tem um "por quê" no tooltip. Cada batalha tem um relatório que diz **o que decidiu o resultado**. Nada de dados ocultos sem pista: o que você não sabe, você pode descobrir (vigias, batedores, presságios).
 4. **O inimigo reage a você.** A Horda observa a sua última formação e traz contramedidas. Quem repete a mesma receita perde. Quem engana a Horda com uma formação-isca vence com estilo.
-5. **Interface discreta, nativa do editor.** Parece uma ferramenta do VS Code: temas claro/escuro, teclado, status bar com uma linha, notificações contidas. Jogável no trabalho sem constrangimento.
+5. **Interface discreta, com cara de editor.** Parece uma ferramenta de trabalho aberta em uma aba do navegador: temas claro/escuro, teclado, barra de status com uma linha, notificações contidas. Jogável no trabalho sem constrangimento.
 6. **Online desde o início, social depois.** Cada jogador governa o próprio feudo em um servidor autoritativo, com conta criada em segundos e progresso que o acompanha em qualquer máquina. Alianças e PvP vêm depois, sobre a mesma base (motor determinístico, conteúdo como dados, comandos validados).
 
 ### 1.2 Fantasia do jogador
@@ -163,7 +164,7 @@ Sem lenha no inverno: moral −20 e produção ×0,8 ("frio"). Sem comida: regra
 | Rápido | 3,5 dias | Quem joga muitas vezes por dia; testes |
 | Tranquilo | 14 dias | Quem abre o editor 1 vez por dia |
 
-Implementação: o motor roda em **tempo de jogo**; a extensão converte tempo real em tempo de jogo com um fator `timeScale` (1, 2 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
+Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo real em tempo de jogo com um fator `timeScale` (1, 2 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
 
 ### 4.3 Hora da Vigília `[v0.4]`
 
@@ -655,24 +656,26 @@ Não há tutorial em telas. O tutorial são: os Objetivos, os tooltips em todos 
 
 ---
 
-## 13. Interface e experiência no VS Code
+## 13. Interface e experiência no navegador
 
-O jogo deve parecer uma ferramenta nativa: usa os tokens de tema do VS Code (`--vscode-*`), codicons, fontes do editor, e funciona 100% com mouse **e** 100% com teclado. Nenhum terminal, nenhum arquivo para editar.
+O jogo é uma página única que imita a bancada de um editor de código. Usa as mesmas variáveis de tema de um editor (`--vscode-*`, definidas pelo próprio app para cada tema), ícones do conjunto codicons e fonte de interface do sistema, e funciona 100% com mouse **e** 100% com teclado. Nenhum terminal, nenhum arquivo para editar, nada para instalar. O app não usa o nome nem o logotipo do Visual Studio Code: tem a aparência de um editor, não a marca de um ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)).
 
 ### 13.1 Mapa de superfícies
 
 | Superfície | Uso |
 |---|---|
-| **Activity Bar** | Ícone próprio abre a view "Lords of the Guild" |
-| **Side Bar / TreeView** | Navegação, resumo e **badges** de pendências; ações inline nos itens |
-| **Webview (painel central)** | Um único WebviewPanel com abas internas: Feudo, Mapa, Exército, Guilda, Conselho, Mercado, Crônica |
-| **Status Bar** | Uma linha, uma prioridade: cerco > decisões pendentes > obra > alerta de comida |
-| **Notificações** | Com botões de ação; política configurável (§13.5) |
-| **Command Palette / QuickPick** | Todas as ações principais como comandos `Lords: …`, com QuickPicks para alocar, construir, enviar expedição |
-| **Editor** | Só para abrir a Crônica exportada em Markdown (opcional) |
-| **SecretStorage e autenticação nativa** | Credenciais da conta; login GitHub em um clique pelo provedor embutido do VS Code |
+| **Barra de atividades** (faixa de ícones à esquerda) | Alterna a barra lateral entre o Feudo, a Crônica e a Conta; o ícone do Feudo mostra o badge de novidades |
+| **Barra lateral / árvore** | Navegação, resumo e **badges** de pendências; ações nos itens |
+| **Área central, em abas** | Abas como as de arquivos de um editor: Hoje, Feudo e, nas versões seguintes, Mapa, Exército, Guilda, Conselho e Mercado. A Crônica abre em uma aba própria |
+| **Barra de status** | Uma linha, uma prioridade: cerco > decisões pendentes > obra > alerta de comida |
+| **Notificações** | Avisos no canto inferior direito, com botões de ação; política configurável (§13.5) |
+| **Paleta de comandos** | Abre com `F1` ou `Ctrl+K`. Todas as ações principais como comandos `Lords: …`, com listas de escolha para alocar, construir, enviar expedição |
+| **Título e ícone da aba do navegador** | Nome do feudo e contador de novidades; no modo discreto, só um contador |
+| **Armazenamento do navegador** | Credenciais da sessão, último estado conhecido (modo sem conexão) e preferências |
 
-### 13.2 TreeView
+O navegador reserva alguns atalhos de editor (`Ctrl+Shift+P`, `Ctrl+P`, `Ctrl+W`), por isso a paleta usa `F1` e `Ctrl+K`. Em telas estreitas (menos de 720 px) a barra lateral se recolhe e abre por cima do conteúdo.
+
+### 13.2 Árvore da barra lateral
 
 ```
 LORDS OF THE GUILD
@@ -747,23 +750,26 @@ Risco principal: ala esquerda — lobos superam arqueiros desprotegidos. Sugest�
 
 Interação: clique no posto abre um seletor (tipo + quantidade com slider/teclado); setas movem o foco entre postos; `Enter` edita; arrastar e soltar é opcional. O painel inimigo mostra `?` onde a informação não existe.
 
-### 13.5 Status Bar e notificações
+### 13.5 Barra de status e notificações
 
-- Status Bar (um item, à esquerda): `$(shield) Cerco em 1d 03h · $(bell) 2` → clique abre o painel. Sem pendências: `$(home) Pedra Alta · Muralha 00:42`.
-- **Modo discreto** (comando e configuração): o item vira apenas `$(circle-filled) 2h14` e todas as notificações são suprimidas. Para quem joga no trabalho.
+- Barra de status (um item, à esquerda): `$(shield) Cerco em 1d 03h · $(bell) 2` → clique leva à aba correspondente. Sem pendências: `$(home) Pedra Alta · Muralha 00:42`. O título da aba do navegador repete o essencial (`(2) Pedra Alta`), para ser visto com a aba em segundo plano.
+- **Modo discreto** (comando e configuração): o item vira apenas `$(circle-filled) 2h14`, o título da aba vira só esse contador e todas as notificações são suprimidas. Para quem joga no trabalho.
 - Política de notificações: **Silenciosa** (nada), **Essenciais** (padrão: cerco, incursão, encruzilhada, carta nova, herói capturado), **Todas** (inclui obras e treinos). Limite de 3 notificações por hora; o excedente vira badge.
+- As notificações aparecem dentro do app. Com a aba em segundo plano, o jogador pode **optar** por recebê-las também como notificações do navegador; a permissão só é pedida quando ele liga essa opção. Com a aba fechada nada é entregue na v0.1: quem volta lê o Relatório de Retorno.
 - Toda notificação tem botões: `[Ver]` `[Decidir]` `[Silenciar 2h]`.
-- **Relatório de Retorno:** ao abrir após 4 h ou mais ausente, o painel abre na aba "Hoje" com o resumo.
+- **Relatório de Retorno:** ao abrir após 4 h ou mais ausente, o app abre na aba "Hoje" com o resumo.
 
-### 13.6 Comandos (Command Palette)
+### 13.6 Comandos (paleta de comandos)
 
-`Lords: Abrir painel` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Exportar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação) · `Lords: Baixar cópia da partida (JSON)` · `Lords: Vincular conta ao GitHub` · `Lords: Gerar Código do Reino` · `Lords: Entrar com Código do Reino` · `Lords: Sair desta máquina`.
+`Lords: Ir para o Feudo` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Abrir Crônica` · `Lords: Baixar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Trocar tema` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação) · `Lords: Baixar cópia da partida (JSON)` · `Lords: Vincular conta ao GitHub` · `Lords: Gerar Código do Reino` · `Lords: Entrar com Código do Reino` · `Lords: Sair desta máquina`.
 
-Os QuickPicks permitem jogar inteiramente pelo teclado: `Alocar trabalhadores` mostra cada edifício com `+`/`−` e a taxa resultante em tempo real.
+As listas de escolha permitem jogar inteiramente pelo teclado: `Alocar trabalhadores` mostra cada edifício com `+`/`−` e a taxa resultante em tempo real.
 
 ### 13.7 Acessibilidade e tema
 
-Navegação por teclado em todos os painéis (ordem lógica, foco visível), ARIA nos grids, nada comunicado só por cor (ícones e texto acompanham), contraste conforme o tema ativo, `prefers-reduced-motion` respeitado (animações são zero por padrão), números formatados em pt-BR, textos sem truncamento em larguras a partir de 480 px (painel lateral estreito).
+Navegação por teclado em todas as superfícies (ordem lógica, foco visível, foco preso dentro de diálogos e da paleta), ARIA nos grids, nada comunicado só por cor (ícones e texto acompanham), `prefers-reduced-motion` respeitado (animações são zero por padrão), números formatados em pt-BR, textos sem truncamento em larguras a partir de 480 px.
+
+Três temas, escolhidos pelo jogador e lembrados no navegador: escuro (padrão), claro e alto contraste. Na primeira visita vale `prefers-color-scheme`. Os temas são conjuntos de valores para as variáveis `--vscode-*`; nenhum componente tem cor fixa.
 
 ### 13.8 Som
 
@@ -771,9 +777,9 @@ Nenhum por padrão. Opcional (`[v0.6]`): três sons curtos (carta, encruzilhada,
 
 ### 13.9 Entrada no jogo, conta e conexão `[v0.1]`
 
-Meta: do clique no ícone ao primeiro comando em **menos de 30 segundos**, sem e-mail, senha ou formulário. A conta existe antes de o jogador perceber que criou uma.
+Meta: de abrir o endereço ao primeiro comando em **menos de 30 segundos**, sem instalar nada, sem e-mail, senha ou formulário. A conta existe antes de o jogador perceber que criou uma.
 
-**Primeira abertura (tela de boas-vindas na Webview):**
+**Primeira abertura (aba de boas-vindas):**
 
 ```
 LORDS OF THE GUILD
@@ -789,13 +795,13 @@ Hora da Vigília  [ 20:00 ]   fuso: America/Sao_Paulo (detectado)
 Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código do Reino ]
 ```
 
-- **Jogar agora** cria uma **conta anônima** no servidor e a primeira partida. Nada mais é pedido. As credenciais ficam no `SecretStorage` do VS Code desta máquina.
-- **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` usa o provedor de autenticação **embutido no VS Code** (`vscode.authentication.getSession('github', …)`): um clique, sem senha e sem o jogador cadastrar aplicativo nenhum. Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDR-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outra máquina assume a conta.
-- **Nunca bloquear o jogo** por falta de vínculo. Um lembrete discreto aparece uma vez no dia 3 ("Proteja seu reino: vincule a conta para continuar de outra máquina") e pode ser dispensado para sempre.
-- A TreeView ganha o item `Conta: Gustavo · anônima` (ou `· GitHub`) com as ações "Vincular ao GitHub", "Código do Reino", "Sair desta máquina" e "Excluir conta".
-- **Sem conexão:** a status bar mostra `$(debug-disconnect) Sem ligação com o reino`; o painel exibe o último estado conhecido (cache local) em modo leitura, com comandos desabilitados e uma frase honesta: "O mundo continua andando. Seus comandos voltam quando a ligação voltar." Reconexão com recuo exponencial (5 s → 60 s).
-- **Duas máquinas ao mesmo tempo** funcionam: o servidor aplica cada comando uma vez e o outro cliente recebe o estado novo no próximo ciclo (30 s) ou ao agir.
-- **Trocar de máquina:** instalar a extensão, clicar em "Entrar com GitHub" ou digitar o Código do Reino. O progresso aparece em segundos, porque ele nunca esteve na máquina.
+- **Jogar agora** cria uma **conta anônima** no servidor e a primeira partida. Nada mais é pedido. As credenciais ficam no armazenamento deste navegador.
+- **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` mostra um código curto e abre `github.com/login/device`; o jogador confirma lá e o vínculo se completa sozinho (§14.7). Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDR-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outro navegador assume a conta.
+- **Nunca bloquear o jogo** por falta de vínculo. Um lembrete discreto aparece uma vez no dia 3 ("Proteja seu reino: vincule a conta para continuar de outra máquina") e pode ser dispensado para sempre. O lembrete importa mais no navegador: limpar os dados de navegação apaga a sessão de uma conta anônima sem vínculo.
+- A árvore ganha o item `Conta: Gustavo · anônima` (ou `· GitHub`) com as ações "Vincular ao GitHub", "Código do Reino", "Sair desta máquina" e "Excluir conta".
+- **Sem conexão:** a barra de status mostra `$(debug-disconnect) Sem ligação com o reino`; o app exibe o último estado conhecido (guardado no navegador) em modo leitura, com comandos desabilitados e uma frase honesta: "O mundo continua andando. Seus comandos voltam quando a ligação voltar." Reconexão com recuo exponencial (5 s → 60 s).
+- **Duas abas ou duas máquinas ao mesmo tempo** funcionam: o servidor aplica cada comando uma vez e o outro cliente recebe o estado novo no próximo ciclo (30 s) ou ao agir. Abas do mesmo navegador dividem a mesma sessão; sair em uma sai em todas.
+- **Trocar de máquina:** abrir o endereço, clicar em "Entrar com GitHub" ou digitar o Código do Reino. O progresso aparece em segundos, porque ele nunca esteve na máquina.
 
 ---
 
@@ -804,9 +810,9 @@ Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código
 ### 14.1 Visão geral
 
 ```
-┌──────────────────────────── VS Code (cliente) ────────────────────────────┐
-│  Webview (UI)  ⇄  Extensão (TreeView, Status Bar, comandos, cache,        │
-│                    SecretStorage)                                         │
+┌────────────────────────── Navegador (cliente) ────────────────────────────┐
+│  App web com aparência de editor: barra de atividades, árvore, abas,      │
+│  barra de status, paleta de comandos, cache e credenciais no navegador    │
 │                            │ HTTPS · JSON · /v1 · polling de 30 s          │
 └────────────────────────────┼──────────────────────────────────────────────┘
                              ▼
@@ -823,7 +829,7 @@ Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código
 Princípios:
 
 1. **O servidor é autoritativo e é o relógio.** O cliente envia comandos e recebe um `ViewState`; nunca envia estado, nem timestamps, nem resultados.
-2. **O motor é um só.** `packages/engine` roda no servidor (verdade), no `sim-cli` (balanceamento e carga) e nos testes. A extensão não precisa do motor: só exibe o que recebe.
+2. **O motor é um só.** `packages/engine` roda no servidor (verdade), no `sim-cli` (balanceamento e carga) e nos testes. O app web não precisa do motor: só exibe o que recebe.
 3. **Determinismo permite replay.** Estado inicial + semente + log de comandos com os instantes do servidor reproduzem qualquer partida: depuração, auditoria e antitrapaça de graça.
 4. **Uma queda do servidor não perde nada.** O avanço é preguiçoso e determinístico: o cerco das 20:00 calculado às 23:00, depois de uma indisponibilidade, dá exatamente o mesmo resultado.
 5. **Online não é multiplayer (ainda).** Cada partida pertence a uma conta e não interage com outras até a v1.0. O que é compartilhado desde cedo: a infraestrutura, o ranking de Temporadas (`[v0.5]`) e a comparação de Crônicas.
@@ -839,15 +845,14 @@ lords-of-the-guild/
 │   ├── content/                 # dados do jogo + schemas zod
 │   ├── protocol/                # tipos e schemas zod da API /v1: Command, ViewState, erros (servidor e cliente)
 │   ├── server/                  # Fastify + PostgreSQL: auth, partidas, comandos, job de avanço, migrações
-│   ├── client-sdk/              # cliente HTTP tipado da API (usado pela extensão e pelo sim-cli)
+│   ├── client-sdk/              # cliente HTTP tipado da API (usado pelo app web e pelo sim-cli)
 │   ├── sim-cli/                 # bots de playtest: em processo (engine) ou contra um servidor (carga)
-│   ├── extension/               # VS Code: ativação, TreeView, status bar, notificações, cache, SecretStorage
-│   └── webview/                 # UI: TypeScript + Preact
+│   └── web/                     # app web (Preact): bancada com aparência de editor, sessão de jogo, cache
 ├── deploy/                      # docker-compose.yml, Caddyfile, migrations/, backup.sh, analytics/*.sql
-└── tests/                       # integração servidor↔banco e extensão↔servidor
+└── tests/                       # integração servidor↔banco e app web↔servidor (navegador real)
 ```
 
-`engine`, `content` e `protocol` não importam nada do VS Code nem de servidor. `server` e `extension` dependem deles e nunca um do outro.
+`engine`, `content` e `protocol` não importam nada do navegador nem de servidor. `server` e `web` dependem deles e nunca um do outro. O app web não importa o motor.
 
 ### 14.3 Determinismo (motor)
 
@@ -859,7 +864,7 @@ lords-of-the-guild/
 
 ### 14.4 Conteúdo como dados
 
-Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas e fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, o ciclo de contra-ataques está completo, toda carta tem exatamente uma opção padrão. O servidor expõe os catálogos estáticos em `GET /v1/catalog` com ETag pelo hash do conteúdo; a extensão cacheia.
+Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas e fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, o ciclo de contra-ataques está completo, toda carta tem exatamente uma opção padrão. O servidor expõe os catálogos estáticos em `GET /v1/catalog` com ETag pelo hash do conteúdo; o app guarda em cache.
 
 ### 14.5 Servidor e API
 
@@ -870,7 +875,8 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 | Método e rota | Função | Autenticação |
 |---|---|---|
 | `POST /auth/anonymous` | Cria conta anônima e a primeira sessão. Corpo: `{ displayName }` | — |
-| `POST /auth/github` | Vincula a conta atual ao GitHub ou entra em uma conta já vinculada. Corpo: `{ githubAccessToken }` (obtido pelo VS Code); o servidor valida em `api.github.com/user` e guarda só o `github_id` | opcional |
+| `POST /auth/github/device` · `POST /auth/github/device/poll` | Inicia o *device flow* do GitHub e consulta a sua conclusão. O servidor só repassa a chamada ao GitHub (que não aceita chamadas diretas do navegador), usando o identificador público `GITHUB_CLIENT_ID`; não guarda nada | — |
+| `POST /auth/github` | Vincula a conta atual ao GitHub ou entra em uma conta já vinculada. Corpo: `{ githubAccessToken }` (obtido pelo *device flow*); o servidor valida em `api.github.com/user` e guarda só o `github_id` | opcional |
 | `POST /auth/recovery-code` | Gera ou rotaciona o Código do Reino; devolve em claro **uma vez**; grava só o hash | sessão |
 | `POST /auth/recover` | Entra com o Código do Reino em outra máquina | — |
 | `POST /auth/refresh` | Rotaciona o token na mesma sessão; detecta reuso de qualquer antecessor | refresh |
@@ -891,7 +897,7 @@ Regras:
 - Toda requisição de partida autentica, verifica a propriedade e serializa o acesso à linha antes do avanço. Comando já registrado retorna sua resposta original antes de `advanceTo`; comando novo avança e aplica na mesma transação (§14.8).
 - O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
 - Limites: 60 requisições/min por sessão; 10 criações de conta/h por IP; 5 tentativas de Código do Reino/h por IP; corpo até 64 KB; nomes de 2 a 24 caracteres.
-- Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e a extensão antiga recebe `426 Upgrade Required` com mensagem amigável.
+- Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e um cliente antigo (uma aba aberta há dias, por exemplo) recebe `426 Upgrade Required` com mensagem amigável e a instrução de recarregar a página.
 
 ### 14.6 Banco de dados (PostgreSQL 16)
 
@@ -924,13 +930,13 @@ chronicles   (game_id fk, year int, summary jsonb, score int, result text, creat
 
 ### 14.7 Contas e autenticação
 
-- **Conta anônima** criada no primeiro clique. O servidor devolve `accessToken` (JWT HS256, `sub` = conta, `sid` = sessão, `iss` = `PUBLIC_URL`, validade de até 15 min) e `refreshToken` (32 bytes aleatórios em base64url, guardado como SHA-256 em `refresh_tokens`). A sessão tem validade absoluta de 30 dias desde a criação; rotação não prorroga esse prazo e o JWT nunca ultrapassa `sessions.expires_at`. A extensão guarda ambos no `SecretStorage`.
+- **Conta anônima** criada no primeiro clique. O servidor devolve `accessToken` (JWT HS256, `sub` = conta, `sid` = sessão, `iss` = `PUBLIC_URL`, validade de até 15 min) e `refreshToken` (32 bytes aleatórios em base64url, guardado como SHA-256 em `refresh_tokens`). A sessão tem validade absoluta de 30 dias desde a criação; rotação não prorroga esse prazo e o JWT nunca ultrapassa `sessions.expires_at`. O app web guarda ambos no armazenamento do navegador (`localStorage`), sob uma política de conteúdo estrita (§14.14).
 - **Rotação e reuso:** `POST /auth/refresh` localiza o hash, trava conta e sessão nessa ordem e revalida a conta, a sessão e o token dentro da transação. Token não utilizado: marca `used_at`, insere o sucessor e faz commit antes de responder. Token já utilizado, mesmo após várias rotações: grava `sessions.revoked_at`, faz commit e só então responde `401 SESSION_REVOKED`. Isso invalida todos os refresh tokens e JWTs da mesma família; sessões de outras máquinas continuam válidas. Token desconhecido ou sessão expirada: `401 UNAUTHORIZED`, sem alterar outra sessão.
 - **Revogação sem cache:** toda requisição autenticada consulta conta e sessão no banco após validar o JWT; rejeita conta excluída, sessão revogada ou expirada. Na v0.1 não há cache positivo de autorização. Após o commit de logout, reuso ou exclusão, qualquer nova requisição é recusada também em outra instância da API. Operações que criam sessões ou alteram credenciais revalidam a conta sob lock para não reativar uma conta excluída.
-- **Vínculo GitHub:** o cliente obtém o token pelo provedor nativo do VS Code; o servidor valida em `GET https://api.github.com/user` e associa o `github_id`. O token do GitHub **não é armazenado**. Em outra máquina, o mesmo fluxo devolve a conta existente. Se o `github_id` já pertence a outra conta e esta máquina tem uma conta anônima com progresso, o cliente pergunta qual manter; estados **nunca** são mesclados.
+- **Vínculo GitHub:** o cliente obtém o token pelo *device flow* do GitHub: pede um código ao servidor (`POST /auth/github/device`), mostra-o ao jogador com o endereço `github.com/login/device` e consulta a conclusão (`POST /auth/github/device/poll`). Essas duas rotas só repassam a chamada ao GitHub com o `GITHUB_CLIENT_ID`, têm limite de taxa por IP e não usam nenhum segredo. Com o token em mãos, o cliente chama `POST /auth/github`; o servidor valida em `GET https://api.github.com/user` e associa o `github_id`. O token do GitHub **não é armazenado**. Em outra máquina, o mesmo fluxo devolve a conta existente. Se o `github_id` já pertence a outra conta e esta máquina tem uma conta anônima com progresso, o cliente pergunta qual manter; estados **nunca** são mesclados.
 - **Código do Reino:** 20 caracteres aleatórios uniformes do alfabeto `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (100 bits), exibidos em grupos de 4. Para buscar, remover espaços externos e hífens, converter para maiúsculas e validar exatamente 20 caracteres desse alfabeto. Guardar `HMAC-SHA256(RECOVERY_CODE_SECRET, codigo_normalizado)` em hexadecimal, com chave independente de `JWT_SECRET`, de pelo menos 32 bytes aleatórios. O código aparece em claro uma vez, nunca em logs. Usá-lo cria uma sessão nova; rotacioná-lo invalida somente o código anterior, não as sessões existentes. A troca da chave JWT não muda os códigos; substituir `RECOVERY_CODE_SECRET` invalida os códigos emitidos e exige um procedimento explícito. Decisão: [ADR 0003](docs/decisions/0003-codigo-do-reino-hmac.md).
-- **Sair desta máquina:** revoga só a sessão atual e a extensão apaga seus tokens e cache local da conta. Login por GitHub ou Código do Reino nunca restaura uma conta com `deleted_at` preenchido.
-- **Excluir conta:** `DELETE /me` grava `deleted_at`, revoga todas as sessões, apaga o HMAC de recuperação e arquiva as partidas na mesma transação; responde `202 { deletedAt, purgeAfter }`, com instantes UTC e `purgeAfter = deletedAt + 7 dias`. A partir do commit, a conta fica inacessível por qualquer credencial e ausente das consultas da API e métricas de jogadores ativos; a extensão limpa tokens e cache. A retenção de sete dias é operacional, sem fluxo de desfazer exclusão na v0.1. O job faz hard delete em cascata na primeira execução com `now >= purgeAfter` (normalmente em até uma hora adicional); o banco interno ainda contém os registros até lá. Backups anteriores podem conter cópias até completar sua retenção de 14 dias contados da geração; isso deve constar na política e na confirmação, sem prometer remoção física imediata de todas as cópias.
+- **Sair desta máquina:** revoga só a sessão atual e o app apaga seus tokens e cache local da conta, em todas as abas do navegador. Login por GitHub ou Código do Reino nunca restaura uma conta com `deleted_at` preenchido.
+- **Excluir conta:** `DELETE /me` grava `deleted_at`, revoga todas as sessões, apaga o HMAC de recuperação e arquiva as partidas na mesma transação; responde `202 { deletedAt, purgeAfter }`, com instantes UTC e `purgeAfter = deletedAt + 7 dias`. A partir do commit, a conta fica inacessível por qualquer credencial e ausente das consultas da API e métricas de jogadores ativos; o app limpa tokens e cache. A retenção de sete dias é operacional, sem fluxo de desfazer exclusão na v0.1. O job faz hard delete em cascata na primeira execução com `now >= purgeAfter` (normalmente em até uma hora adicional); o banco interno ainda contém os registros até lá. Backups anteriores podem conter cópias até completar sua retenção de 14 dias contados da geração; isso deve constar na política e na confirmação, sem prometer remoção física imediata de todas as cópias.
 - Nenhum e-mail ou senha obrigatório. Histórico, limites de revogação e exclusão: [ADR 0005](docs/decisions/0005-sessoes-e-exclusao.md).
 
 ### 14.8 Persistência, concorrência e idempotência
@@ -950,13 +956,14 @@ chronicles   (game_id fk, year int, summary jsonb, score int, result text, creat
 - **Avanço preguiçoso** nas leituras de partida e comandos novos (§14.8), mais um **job horário** (`advance-stale-games`) que avança partidas sem estado persistido há mais de 1 h, em lotes de 100 com `FOR UPDATE SKIP LOCKED`. Garante que Crônicas, rankings e eventos existam para quem sumiu e espalha a carga do dia 7.
 - Nenhum temporizador por partida em memória. O processo pode reiniciar a qualquer momento sem efeito no jogo.
 
-### 14.10 Cliente VS Code
+### 14.10 Cliente web
 
-- A extensão usa o `client-sdk`. Com o painel aberto, um ciclo de 30 s chama `GET /view` com ETag e `GET /events?after=` e converte eventos em notificações conforme a política (§13.5). Com o painel fechado, o ciclo cai para 2 min e só atualiza a TreeView e a status bar.
-- Cache do último `ViewState` em `globalState` para exibição sem conexão (§13.9). Comandos nunca ficam em fila local: ou chegam ao servidor ou o jogador é avisado na hora.
-- SDK e extensão seguem o contrato de recibos e ETag da §14.8; após `GAME_RULE`, exibem o estado avançado de `details`. Após logout, exclusão ou sessão revogada, apagam tokens, `ViewState`, ETag e cursor da conta local, evitando exibir progresso privado como se fosse apenas uma falha de rede.
-- Configurações: `lords.serverUrl` (padrão: a instância hospedada; `http://localhost:3000` em desenvolvimento), `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`.
-- A Webview nunca fala com a rede: só troca mensagens tipadas com a extensão (§14.12).
+- O app usa o `client-sdk`. Com a aba do navegador visível, um ciclo de 30 s chama `GET /view` com ETag e `GET /events?after=` e converte eventos em notificações conforme a política (§13.5). Com a aba em segundo plano (`document.visibilityState`), o ciclo cai para 2 min e só atualiza a barra de status, o título da aba e os badges.
+- Cache do último `ViewState` no armazenamento do navegador para exibição sem conexão (§13.9). Comandos nunca ficam em fila local: ou chegam ao servidor ou o jogador é avisado na hora.
+- SDK e app seguem o contrato de recibos e ETag da §14.8; após `GAME_RULE`, exibem o estado avançado de `details`. Após logout, exclusão ou sessão revogada, apagam tokens, `ViewState`, ETag e cursor da conta local, evitando exibir progresso privado como se fosse apenas uma falha de rede.
+- **Várias abas** do mesmo navegador dividem a sessão. Só uma aba renova o refresh token por vez (Web Locks API), e as outras passam a usar o token novo; sair ou perder a sessão em uma aba vale para todas.
+- Preferências guardadas no navegador: notificações (`silent` · `essential` · `all`), modo discreto, tema e Hora da Vigília. O endereço do servidor não é uma preferência: o app fala com a própria origem.
+- O app é servido na mesma origem da API (§14.13); não há CORS.
 
 ### 14.11 Modelo de dados do jogo (conceitual, vive em `games.state`)
 
@@ -1003,9 +1010,9 @@ type GameState = {
 
 Capacidade habitacional, limite de exército e caps de armazenamento são **derivados** dos edifícios em funções puras, nunca persistidos. A Crônica e os eventos ficam fora do `GameState` (tabelas `chronicles` e `game_events`); o motor apenas os **emite** como saída de `advanceTo` e `applyCommand`.
 
-### 14.12 Comunicação Webview ↔ extensão
+### 14.12 Estado do cliente
 
-Mensagens tipadas como uniões discriminadas (`{ type: 'command', command }` / `{ type: 'view', view: ViewState }` / `{ type: 'error', code, message }` / `{ type: 'connection', online: boolean }`). A Webview recebe o `ViewState` já formatado, não o `GameState`. Toda validação acontece no servidor; a extensão só valida forma (zod de `protocol`) para falhar cedo.
+O app é uma página só. O estado da interface é reduzido a partir do que o servidor manda: o `ViewState`, os eventos, o estado da conexão e o da conta. Os componentes recebem o `ViewState` já pronto, não o `GameState`, e nunca calculam regras: um número que a interface precise mostrar e não esteja no `ViewState` é acrescentado no motor. Toda validação acontece no servidor; o app só valida a forma (zod de `protocol`) para falhar cedo.
 
 ### 14.13 Hospedagem e operação
 
@@ -1013,20 +1020,20 @@ Instalação de referência para dezenas a algumas centenas de jogadores: **um V
 
 ```yaml
 services:
-  caddy:   # TLS automático (Let's Encrypt) e proxy reverso para api:3000; cabeçalhos de segurança
+  caddy:   # TLS automático (Let's Encrypt); serve o app web em / e encaminha /v1 para api:3000; cabeçalhos de segurança
   api:     # imagem de packages/server; roda migrações no arranque; stateless (2+ réplicas quando precisar)
   db:      # postgres:16 com volume persistente; pg_dump diário pelo cron do host
 ```
 
-- Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`. Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
+- Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`, `GITHUB_CLIENT_ID` (identificador público do OAuth App usado no *device flow*). Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
 - Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.
 - Atualizar: `docker compose pull && docker compose up -d`. Segundos de indisponibilidade; o avanço preguiçoso cobre.
 - Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos tem como alvo centenas de clientes em polling de 30 s, a confirmar por carga. Antes de milhares: medir custo de avanço, escrita e autorização; avaliar Postgres gerenciado e 2+ réplicas da API. Cache de `ViewState` não pode depender só de `stateVersion`, porque a representação também muda com o tempo (§14.8).
-- Ambiente de desenvolvimento: `docker compose -f deploy/docker-compose.dev.yml up db` e `pnpm dev` no servidor; a extensão aponta `lords.serverUrl` para `http://localhost:3000`.
+- Ambiente de desenvolvimento: `pnpm dev:up`, `pnpm dev:api` e `pnpm dev:web`; o servidor de desenvolvimento do app encaminha `/v1` para `http://localhost:3000`, então também em desenvolvimento o app e a API ficam na mesma origem.
 
 ### 14.14 Segurança e privacidade
 
-HTTPS obrigatório; tokens só no `SecretStorage`; refresh rotativo com histórico completo por sessão e revogação consultada no banco; limites de taxa por IP e por sessão; validação zod de toda entrada (compartilhada com o cliente, que erra cedo, enquanto o servidor nunca confia); corpos limitados; cabeçalhos de segurança no Caddy; dependências auditadas em CI. Dados da conta: nome de exibição, `github_id` opcional, rótulo da máquina, datas de acesso e hashes de credenciais; progresso, comandos e recibos ficam vinculados à conta. Política de privacidade no README e no painel "Conta" deve explicar bloqueio imediato, expurgo após sete dias pelo job e retenção de backups (§14.7). Exclusão pelo painel, com confirmação e limpeza do cache local; não há recuperação da conta excluída na v0.1.
+HTTPS obrigatório; tokens no armazenamento do navegador, protegidos por uma política de conteúdo (CSP) sem `unsafe-inline`, sem `eval` e sem origens externas, e por nenhum script de terceiros na página; refresh rotativo com histórico completo por sessão e revogação consultada no banco; limites de taxa por IP e por sessão; validação zod de toda entrada (compartilhada com o cliente, que erra cedo, enquanto o servidor nunca confia); corpos limitados; cabeçalhos de segurança no Caddy; dependências auditadas em CI. Dados da conta: nome de exibição, `github_id` opcional, rótulo da máquina, datas de acesso e hashes de credenciais; progresso, comandos e recibos ficam vinculados à conta. Política de privacidade no README e no item "Conta" do app deve explicar bloqueio imediato, expurgo após sete dias pelo job e retenção de backups (§14.7). Exclusão pelo app, com confirmação e limpeza do cache local; não há recuperação da conta excluída na v0.1.
 
 ### 14.15 Multiplayer futuro (não construir agora)
 
@@ -1071,7 +1078,7 @@ Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jog
 - **Migração:** estados com `schemaVersion` antigo carregam e migram no servidor.
 - **API e banco:** integração com PostgreSQL real (Docker) cobrindo recibos idênticos após reinício e outros comandos, conflito de UUID com payload diferente, avanço persistido mesmo em recusa, dois clientes concorrentes, ETag alterado sem escrita, reuso após múltiplas rotações, revogação entre instâncias e exclusão em duas etapas (§14.7–14.8).
 - **Carga:** `sim-cli` contra servidor local, com metas de p95.
-- **Integração do cliente:** a extensão contra um servidor local: comandos, ETag, eventos, cache sem conexão.
+- **Integração do cliente:** o app web em um navegador real (sem interface) contra um servidor local: entrada, comandos, ETag, eventos, cache sem conexão, teclado e temas.
 
 ### 15.5 Métricas
 
@@ -1088,14 +1095,14 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | v0.3 | Guilda | Taverna, heróis, expedições com encruzilhadas, Mercado e caravanas, Mestres | "Tenho uma equipe e histórias para contar" |
 | v0.4 | Guerra e Cerco | Quartel, Ferreiro, ferro e armas, Muralha, formações, Conselho de Guerra, Horda adaptativa, presságios, Fortaleza e sabotagem, Cerco, milícia, Crônica do Ano | **A semana completa.** "Passei a semana me preparando e valeu" |
 | v0.5 | Mundo e Legado | Mapa hexagonal, postos avançados, Capela e relíquias, Legado, Votos, anos seguintes, sementes, Temporadas semanais com ranking | "Quero jogar o Ano 2 de outro jeito" |
-| v0.6 | Polimento | Academia, Feitos completos, som opcional, acessibilidade auditada, desempenho, localização en-US | Pronto para o Marketplace |
+| v0.6 | Polimento | Academia, Feitos completos, som opcional, acessibilidade auditada, desempenho, localização en-US | Pronto para divulgação ampla |
 | v1.0 | Multiplayer | Alianças, mercado entre jogadores, PvP, proteção a novatos | Mundo compartilhado |
 
 ### 16.1 Escopo exato da v0.1 — Fundação online
 
 **Implementar:**
 
-- [ ] Extensão com Activity Bar, TreeView, WebviewPanel e Status Bar.
+- [ ] App web com aparência de editor: barra de atividades, árvore lateral, área central em abas, barra de status e paleta de comandos.
 - [ ] Estado inicial reproduzível de Pedra Alta com semente.
 - [ ] Recursos comida, madeira, pedra e ouro; alocação e realocação de aldeões (grátis nesta versão).
 - [ ] Produção e consumo contínuos com `advanceTo` por segmentos, aritmética inteira e invariante de divisão de intervalo testado.
@@ -1107,29 +1114,29 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 - [ ] Objetivos 1–4 da §12.2.
 - [ ] Crônica simples (log de eventos) e Relatório de Retorno após 4 h.
 - [ ] Servidor Fastify + PostgreSQL com migrações, `GET /health`, `GET /version` e Docker Compose para desenvolvimento e produção.
-- [ ] Contas: anônima em um clique, vínculo GitHub pelo provedor nativo do VS Code, Código do Reino, refresh rotativo, sair da máquina e excluir conta.
+- [ ] Contas: anônima em um clique, vínculo GitHub por *device flow*, Código do Reino, refresh rotativo, sair da máquina e excluir conta.
 - [ ] Partidas no servidor: `POST /games`, `GET /view` com ETag, `POST /commands` idempotente e transacional, `GET /events`, job horário de avanço.
-- [ ] Pacotes `protocol` e `client-sdk` compartilhados; a extensão não contém o motor.
+- [ ] Pacotes `protocol` e `client-sdk` compartilhados; o app web não contém o motor.
 - [ ] Tela de boas-vindas (§13.9), cache do último estado e modo sem conexão.
-- [ ] Comandos da Command Palette para abrir painel, alocar, construir, recrutar, reiniciar (com confirmação), vincular conta e gerar Código do Reino.
+- [ ] Paleta de comandos com ir para o Feudo, alocar, construir, recrutar, reiniciar (com confirmação), vincular conta e gerar Código do Reino.
 - [ ] Testes unitários e de propriedade do motor; teste de conteúdo com zod.
 
 **Não implementar:** estações com efeito, cartas, heróis, exército, mapa, mercado, Temporadas, interação entre jogadores, som.
 
 **Critérios de aceitação:**
 
-1. Instalar, clicar em **Jogar agora** e dar o primeiro comando em menos de 30 segundos, sem e-mail, senha ou formulário.
+1. Abrir o endereço, clicar em **Jogar agora** e dar o primeiro comando em menos de 30 segundos, sem instalar nada, sem e-mail, senha ou formulário.
 2. Alocar um trabalhador a mais na Serraria altera a taxa de madeira/h imediatamente e reduz os livres.
 3. Não é possível alocar mais que a população nem gastar o que não existe; o motivo da recusa aparece na UI.
 4. Uma melhoria desconta recursos uma única vez, ocupa a fila e conclui no tempo configurado.
-5. Fechar o VS Code por horas e reabrir mostra o intervalo simulado pelo servidor sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
+5. Fechar a aba por horas e reabrir mostra o intervalo simulado pelo servidor sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
 6. Escassez tratada corretamente em longos períodos offline, com o momento exato registrado na Crônica.
 7. Reiniciar o servidor no meio do dia (`docker compose restart`) não perde nem duplica nada; reenviar o mesmo `commandId` na mesma partida devolve status e corpo originais sem reaplicar, inclusive recusas; payload diferente com o mesmo UUID é recusado. O avanço do mundo persiste mesmo se a ação nova for recusada. Dois clientes na mesma conta não corrompem o estado (§14.8).
-8. Todas as regras rodam em testes sem o VS Code aberto.
-9. O painel respeita tema claro e escuro e é navegável por teclado.
+8. Todas as regras rodam em testes sem navegador nem servidor.
+9. O app tem tema claro, escuro e de alto contraste e é navegável por teclado, inclusive a paleta de comandos.
 10. Vincular ao GitHub ou usar o Código do Reino em outra máquina mostra o mesmo feudo em segundos.
-11. Sem conexão, o painel mostra o último estado conhecido, explica a situação e volta sozinho quando o servidor responde.
-12. Excluir a conta bloqueia imediatamente acesso por JWT, refresh, GitHub e Código do Reino, remove a conta das consultas da API e limpa o cache local. No primeiro job a partir de `deletedAt + 7 dias`, conta, partidas, comandos/recibos, eventos, Crônicas, sessões e hashes de refresh são removidos do banco em cascata. Testes verificam separadamente bloqueio imediato, retenção antes do prazo e expurgo no limite; backups seguem os 14 dias de retenção da §14.7.
+11. Sem conexão, o app mostra o último estado conhecido, explica a situação e volta sozinho quando o servidor responde.
+12. Excluir a conta bloqueia imediatamente acesso por JWT, refresh, GitHub e Código do Reino, remove a conta das consultas da API e limpa o cache local em todas as abas. No primeiro job a partir de `deletedAt + 7 dias`, conta, partidas, comandos/recibos, eventos, Crônicas, sessões e hashes de refresh são removidos do banco em cascata. Testes verificam separadamente bloqueio imediato, retenção antes do prazo e expurgo no limite; backups seguem os 14 dias de retenção da §14.7.
 
 ### 16.2 Critérios de aceitação das versões seguintes (resumo)
 
@@ -1157,9 +1164,10 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | Sem game over; Queda tem custo pesado e Ano 2 de reconstrução | Game over no cerco perdido | Perder a semana inteira afasta; perder metade do feudo e continuar dói o suficiente |
 | Hora da Vigília configurável para o cerco | Cerco em horário fixo relativo à criação | O horário relativo poderia cair às 3 h da manhã |
 | Mapa hexagonal só na v0.5, com tiles abstratos desde a v0.2 | Mapa desde o início | O mapa gráfico é caro; os dados dele são baratos e destravam cartas, expedições e Ameaça antes |
-| Preact permitido na Webview | Vanilla; React/Vue | O editor de formação e a prévia justificam componentes; Preact pesa 3 KB |
+| Preact no app web | Vanilla; React/Vue | O editor de formação e a prévia justificam componentes; Preact pesa 3 KB |
 | **Online desde a v0.1**, servidor autoritativo em Node.js + PostgreSQL | Local primeiro e sincronizar depois; local para sempre | Duas camadas de persistência dobram o trabalho, e um migrador local→nuvem seria um vetor de trapaça; com o motor puro, o servidor é uma camada fina |
-| Conta **anônima em um clique**, vínculo opcional por GitHub (login nativo do VS Code) ou Código do Reino | E-mail e senha; link mágico por e-mail; só GitHub | Zero burocracia para começar, recuperação para quem quiser, nenhum serviço de e-mail para operar e nenhum segredo de OAuth no servidor |
+| Conta **anônima em um clique**, vínculo opcional por GitHub (*device flow*) ou Código do Reino | E-mail e senha; link mágico por e-mail; só GitHub | Zero burocracia para começar, recuperação para quem quiser, nenhum serviço de e-mail para operar e nenhum segredo de OAuth no servidor |
+| **App web com aparência de editor**, em vez de extensão do VS Code | Extensão do VS Code (implementada até a Fase 3 e descartada); os dois clientes em paralelo | O jogo não exige o VS Code nem instalação, e o cliente pode ser testado em um navegador real; a fantasia de "ferramenta de trabalho" se mantém pela aparência ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) |
 | Estado inteiro em JSONB + log de comandos | Tabelas normalizadas por subsistema | O motor é a fonte de verdade e muda a cada versão; JSONB evita migração de esquema a cada mecânica, e o log dá replay e auditoria |
 | Avanço preguiçoso por requisição + job horário | Loop de simulação contínuo no servidor | Custo zero sem ninguém jogando, reinícios sem efeito e o mesmo resultado em qualquer horário de cálculo |
 | Fastify + Drizzle + zod compartilhado | NestJS; Express; Prisma | Menos camadas para um time pequeno ou um agente; validação e tipos vêm do mesmo pacote `protocol` |
@@ -1181,7 +1189,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 - Quantos anos até o conteúdo repetir para um jogador Dedicado? (Meta: 3 anos sem repetir cartas de cadeia.)
 - A Temporada começa na segunda-feira de qual fuso? (Proposta: o fuso do servidor, exibido no painel.)
 - Vale moderar nomes de exibição quando houver ranking público?
-- Oferecer um "modo offline sem conta" (motor dentro da extensão, sem ranking) para quem não quer servidor? Custa pouco graças ao motor puro, mas duplica o caminho de persistência.
+- Oferecer um "modo offline sem conta" (motor dentro do app web, sem ranking) para quem não quer servidor? Custa pouco graças ao motor puro, mas duplica o caminho de persistência.
 
 ### 17.3 Ideias registradas, não priorizadas
 
@@ -1201,14 +1209,14 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 > **Objetivo:** implementar exatamente a §16.1, seguindo a arquitetura da §14.
 >
 > 1. Leia este `GAME_DESIGN.md` por inteiro antes de escrever código. Trate §14 como contrato de arquitetura e §16.1 como escopo.
-> 2. Crie o monorepo (pnpm workspaces) com `packages/engine`, `content`, `protocol`, `server`, `client-sdk`, `sim-cli`, `extension` e `webview`, mais a pasta `deploy/`.
+> 2. Crie o monorepo (pnpm workspaces) com `packages/engine`, `content`, `protocol`, `server`, `client-sdk`, `sim-cli` e `web`, mais a pasta `deploy/`.
 > 3. Implemente primeiro o motor: `GameState`, `createInitialState(seed, settings)`, `advanceTo(state, gameTimeMs)` por segmentos com aritmética inteira, RNG com fluxos nomeados, `applyCommand(state, command)` com validação e motivos de recusa, e a emissão de eventos e linhas de Crônica como saída.
 > 4. Escreva os testes do motor antes da UI e do servidor: produção, consumo, escassez determinística, custos, fila única, gates por Salão, cancelamento, recrutamento e o teste de propriedade do invariante de `advanceTo`.
 > 5. Coloque **todos** os números em `packages/content` com schemas zod validados em teste; defina `Command` e `ViewState` em `packages/protocol`.
 > 6. Implemente o servidor: migrações SQL; `POST /auth/anonymous`, `/auth/github`, `/auth/recovery-code`, `/auth/recover`, `/auth/refresh`, `/auth/logout`; `/me`; `/games`; `/games/:id/view` com ETag; `/games/:id/commands` idempotente em transação com `FOR UPDATE`; `/games/:id/events`; `/health`; `/version`; limites de taxa; e o job `advance-stale-games`. Testes de integração com PostgreSQL em Docker.
-> 7. Implemente o `client-sdk` tipado e a extensão: tela de boas-vindas, `SecretStorage`, TreeView, WebviewPanel com a aba Feudo, Status Bar, comandos, ciclo de 30 s com ETag, cache do último estado e modo sem conexão.
-> 8. Implemente a Webview com tokens de tema do VS Code, navegação por teclado e tooltips explicativos em todos os números.
-> 9. Escreva `deploy/docker-compose.yml` (caddy, api, db), `deploy/docker-compose.dev.yml`, `deploy/backup.sh` e um `README.md` com: instalar, rodar o banco local, rodar o servidor, rodar a extensão com F5, testar, e **implantar em um VPS do zero em dez passos**.
+> 7. Implemente o `client-sdk` tipado e o app web: aba de boas-vindas, credenciais e cache no navegador, árvore lateral, abas Hoje e Feudo, barra de status, paleta de comandos, ciclo de 30 s com ETag e modo sem conexão.
+> 8. Dê ao app a aparência de um editor só com variáveis de tema (`--vscode-*`), três temas, navegação por teclado e tooltips explicativos em todos os números.
+> 9. Escreva `deploy/docker-compose.yml` (caddy, api, db), `deploy/docker-compose.dev.yml`, `deploy/backup.sh` e um `README.md` com: instalar, rodar o banco local, rodar o servidor, rodar o app web, testar, e **implantar em um VPS do zero em dez passos**.
 > 10. Não adicione interação entre jogadores, pagamentos, telemetria de terceiros, som, nem bibliotecas além de TypeScript, esbuild (ou equivalente), Vitest, fast-check, zod, Preact, Fastify, pg, Drizzle, jose e pino. Hashes e HMAC usam `node:crypto` somente no servidor.
 
 ### 18.2 Tarefas seguintes (uma por versão)
@@ -1220,11 +1228,11 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 ### 18.3 Regras permanentes para qualquer tarefa
 
-- Nunca fixar números de demonstração na UI: a Webview exibe o `ViewState` que o motor produz.
+- Nunca fixar números de demonstração na UI: o app exibe o `ViewState` que o motor produz.
 - Nunca mudar uma regra sem atualizar o golden test correspondente e esta especificação.
 - Toda nova mecânica entra com: dados em `content`, validação de comando, evento na Crônica, tooltip explicativo e teste.
 - Conteúdo narrativo (cartas, relatórios, Crônica) em português do Brasil, tom de crônica medieval, frases curtas.
-- Nenhuma regra de jogo no servidor fora do motor, e nenhuma no cliente: o servidor orquestra, o motor decide, a extensão exibe.
+- Nenhuma regra de jogo no servidor fora do motor, e nenhuma no cliente: o servidor orquestra, o motor decide, o app exibe.
 
 ### 18.4 Checklist de implantação (para quem hospeda)
 
@@ -1233,7 +1241,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 3. `docker compose -f deploy/docker-compose.yml up -d`: o Caddy obtém o certificado e a API aplica as migrações.
 4. Conferir `https://<domínio>/v1/health` e `/v1/version`.
 5. Agendar `deploy/backup.sh` no cron do host (diário) e testar uma restauração.
-6. Publicar a extensão (Marketplace ou `.vsix`) com `lords.serverUrl` padrão apontando para o domínio.
+6. O app web é servido pelo próprio Caddy, no mesmo domínio: não há nada a publicar à parte. Registrar o OAuth App do GitHub e definir `GITHUB_CLIENT_ID`.
 7. Atualizar com `docker compose pull && docker compose up -d`; reverter fixando a tag anterior da imagem.
 
 ---

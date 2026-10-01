@@ -17,13 +17,13 @@
 
 <a id="o-jogo"></a>
 
-## Seu próximo reino cabe no VS Code
+## Seu próximo reino cabe em uma aba do navegador
 
-**Lords of the Guild** é um jogo medieval de estratégia e gerenciamento assíncrono, projetado para ser jogado dentro do editor. Você assume Pedra Alta, distribui o trabalho dos aldeões, melhora edifícios e decide como transformar uma pequena vila em um feudo capaz de atravessar o inverno.
+**Lords of the Guild** é um jogo medieval de estratégia e gerenciamento assíncrono, jogado no navegador, em uma página com a aparência de um editor de código. Você assume Pedra Alta, distribui o trabalho dos aldeões, melhora edifícios e decide como transformar uma pequena vila em um feudo capaz de atravessar o inverno.
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para experimentar:** o motor de economia, o simulador local, a API online e a extensão do VS Code estão implementados, com testes automatizados. A extensão ainda não passou pelo roteiro manual em um VS Code real ([docs/manual-test-v0.1.md](docs/manual-test-v0.1.md)); falta também a implantação do servidor. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
+> **Já dá para experimentar:** o motor de economia, o simulador local e a API online estão implementados, com testes automatizados. O cliente está sendo refeito: a primeira versão era uma extensão do VS Code, e o plano mudou para um app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
 
 ### Quatro estações. Uma história para contar.
 
@@ -39,7 +39,7 @@ Esse é o ciclo previsto para a evolução do jogo. A fundação atual implement
 
 ## Veja uma semana acontecer em segundos
 
-O simulador permite conhecer as regras do jogo **sem Docker, servidor ou extensão**. Um bot econômico administra o feudo, e o motor calcula os acontecimentos entre as sessões.
+O simulador permite conhecer as regras do jogo **sem Docker, servidor ou navegador**. Um bot econômico administra o feudo, e o motor calcula os acontecimentos entre as sessões.
 
 Você precisa de **Node.js 22.12+** e **pnpm 9.15.9**, fixado no projeto. Com `nvm` e Corepack disponíveis:
 
@@ -88,7 +88,7 @@ O desafio técnico é fazer o tempo passar de forma consistente: uma hora calcul
 
 ### Um núcleo, dois caminhos de execução
 
-A arquitetura conecta o mesmo motor ao simulador e ao servidor. O núcleo local, a API e o cliente estão implementados; a implantação em um servidor público é a próxima etapa.
+A arquitetura conecta o mesmo motor ao simulador e ao servidor. O núcleo local e a API estão implementados; o app web é a próxima etapa.
 
 ```mermaid
 flowchart LR
@@ -99,19 +99,19 @@ flowchart LR
     subgraph server["Implementado · servidor"]
         API["API · Fastify"] <--> DB[("PostgreSQL")]
     end
-    subgraph client["Implementado · cliente"]
-        UI["Webview · Preact"] <--> Ext["Extensão VS Code"]
-        Ext <--> SDK["SDK HTTP"]
+    subgraph client["Em replanejamento · cliente"]
+        Web["App web · Preact<br/>aparência de editor"] <--> SDK["SDK HTTP"]
     end
     SDK <--> API
     Sim -. "modo remoto" .-> API
     API --> Engine
     classDef ready fill:#173e37,stroke:#6eaf96,color:#fff
     classDef planned fill:#292e3b,stroke:#9aa6bf,color:#fff,stroke-dasharray:5 5
-    class Sim,Engine,Content,API,DB,UI,Ext,SDK ready
+    class Sim,Engine,Content,API,DB,SDK ready
+    class Web planned
 ```
 
-**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, API do VS Code, Preact, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions.
+**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, Preact, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions. **Previsto para o app web:** Vite e testes em navegador real com Playwright.
 
 <details>
 <summary><strong>Explore a organização do monorepo</strong></summary>
@@ -124,8 +124,8 @@ packages/
   protocol/     Base para os contratos da API /v1
   server/       Base para o servidor autoritativo
   client-sdk/   Base para o cliente HTTP tipado
-  extension/    Base para a extensão do VS Code
-  webview/      Base para a interface em Preact
+  extension/    Extensão do VS Code (descontinuada; sai na migração para o app web)
+  webview/      Interface em Preact da extensão (os componentes migram para o app web)
 deploy/         Dockerfile, Compose e configuração de ambiente
 tests/          Estrutura para integração entre pacotes
 docs/decisions/ Decisões de arquitetura e seus motivos
@@ -174,7 +174,7 @@ A API roda no host durante o desenvolvimento ([ADR 0001](docs/decisions/0001-api
 docker compose -f deploy/docker-compose.dev.yml --profile full up -d
 ```
 
-Para abrir a extensão: com a API de pé, `pnpm build` e **F5** no VS Code ("Extensão (Extension Development Host)"); `pnpm dev:ext` recompila a cada alteração. `pnpm --filter lords-of-the-guild package` gera o `.vsix`. A suíte de integração do servidor e da extensão roda contra o `db_test`:
+O app web ainda não existe: o roadmap o descreve nas tarefas F3W-T1 a F3W-T10. A extensão do VS Code da primeira versão continua no repositório até a migração, mas saiu do plano. A suíte de integração do servidor roda contra o `db_test`:
 
 ```bash
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
@@ -195,8 +195,8 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 | **Fundação técnica** — monorepo, ferramentas, Docker e workflow de CI | Implementada |
 | **Motor e playtest local** — economia, construção, população, objetivos e simulador | Implementados |
 | **Servidor online · v0.1** — contas, API e persistência | Implementado |
-| **Cliente · v0.1** — extensão jogável no VS Code | Implementado; roteiro manual pendente |
-| **Implantação · v0.1** — servidor público, backup e operação | Próxima entrega |
+| **Cliente · v0.1** — app web com aparência de editor | Replanejado ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)); próxima entrega |
+| **Implantação · v0.1** — servidor público, backup e operação | Planejada |
 | **Estações e Conselho · v0.2** — decisões sazonais | Planejado |
 | **Guilda · v0.3** — heróis e exploração | Planejado |
 | **Guerra e Cerco · v0.4** — defesa do feudo no inverno | Planejado |
