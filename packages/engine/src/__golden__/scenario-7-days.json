@@ -1,0 +1,2068 @@
+{
+ "orders": [
+  {
+   "hour": 0,
+   "type": "setWorkers",
+   "payload": {
+    "building": "farm",
+    "count": 2
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 0,
+   "type": "startConstruction",
+   "payload": {
+    "building": "housing"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 0,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 3
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 1,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 3
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 1,
+   "type": "setWorkers",
+   "payload": {
+    "building": "quarry",
+    "count": 2
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 1,
+   "type": "setWorkers",
+   "payload": {
+    "building": "goldMine",
+    "count": 1
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 8,
+   "type": "startConstruction",
+   "payload": {
+    "building": "townHall"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 12,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 5
+   },
+   "result": "INSUFFICIENT_RESOURCES"
+  },
+  {
+   "hour": 12,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 3
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 12,
+   "type": "startConstruction",
+   "payload": {
+    "building": "lumberMill"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 12,
+   "type": "planConstruction",
+   "payload": {
+    "building": "farm"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 24,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 4
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 24,
+   "type": "setWorkers",
+   "payload": {
+    "building": "goldMine",
+    "count": 3
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 24,
+   "type": "startConstruction",
+   "payload": {
+    "building": "farm"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 36,
+   "type": "startConstruction",
+   "payload": {
+    "building": "quarry"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 36,
+   "type": "cancelConstruction",
+   "payload": {
+    "building": "quarry"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 36,
+   "type": "startConstruction",
+   "payload": {
+    "building": "housing"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 36,
+   "type": "setWorkers",
+   "payload": {
+    "building": "quarry",
+    "count": 9
+   },
+   "result": "NOT_ENOUGH_VILLAGERS"
+  },
+  {
+   "hour": 48,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 4
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 48,
+   "type": "startConstruction",
+   "payload": {
+    "building": "goldMine"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 48,
+   "type": "renameSettlement",
+   "payload": {
+    "name": "Pedra Alta do Norte"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 60,
+   "type": "setWorkers",
+   "payload": {
+    "building": "quarry",
+    "count": 4
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 60,
+   "type": "startConstruction",
+   "payload": {
+    "building": "townHall"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 72,
+   "type": "setWorkers",
+   "payload": {
+    "building": "farm",
+    "count": 0
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 72,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 6
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 72,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 5
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 72,
+   "type": "startConstruction",
+   "payload": {
+    "building": "housing"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 84,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 5
+   },
+   "result": "INSUFFICIENT_RESOURCES"
+  },
+  {
+   "hour": 84,
+   "type": "startConstruction",
+   "payload": {
+    "building": "quarry"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 108,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 1
+   },
+   "result": "FAMINE"
+  },
+  {
+   "hour": 108,
+   "type": "startConstruction",
+   "payload": {
+    "building": "lumberMill"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 132,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 2
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 132,
+   "type": "setWorkers",
+   "payload": {
+    "building": "farm",
+    "count": 8
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 132,
+   "type": "startConstruction",
+   "payload": {
+    "building": "farm"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 144,
+   "type": "startConstruction",
+   "payload": {
+    "building": "townHall"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 144,
+   "type": "unplanConstruction",
+   "payload": {
+    "building": "farm"
+   },
+   "result": "NOT_PLANNED"
+  },
+  {
+   "hour": 156,
+   "type": "recruitVillagers",
+   "payload": {
+    "quantity": 3
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 156,
+   "type": "startConstruction",
+   "payload": {
+    "building": "goldMine"
+   },
+   "result": "accepted"
+  }
+ ],
+ "days": [
+  {
+   "day": 1,
+   "eventsSoFar": 30,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 86400000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 86400000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta",
+     "resources": {
+      "food": 176000,
+      "wood": 429200,
+      "stone": 125000,
+      "gold": 252000
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 11
+     },
+     "workers": {
+      "farm": 2,
+      "lumberMill": 3,
+      "quarry": 2,
+      "goldMine": 1
+     },
+     "buildings": {
+      "townHall": 2,
+      "farm": 1,
+      "lumberMill": 2,
+      "quarry": 1,
+      "goldMine": 1,
+      "housing": 2
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [
+      {
+       "building": "farm",
+       "targetLevel": 2
+      }
+     ],
+     "recruitmentQueue": [],
+     "famine": null
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 1,
+     "villagersRecruited": 6,
+     "constructionsStarted:townHall": 1,
+     "constructionsStarted:lumberMill": 1
+    }
+   }
+  },
+  {
+   "day": 2,
+   "eventsSoFar": 49,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 172800000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 172800000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta",
+     "resources": {
+      "food": 487666,
+      "wood": 1118800,
+      "stone": 333000,
+      "gold": 494000
+     },
+     "accumulators": {
+      "food": 2400000,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 11
+     },
+     "workers": {
+      "farm": 2,
+      "lumberMill": 4,
+      "quarry": 2,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 2,
+      "farm": 2,
+      "lumberMill": 2,
+      "quarry": 1,
+      "goldMine": 1,
+      "housing": 3
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": null
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 2,
+     "villagersRecruited": 6,
+     "constructionsStarted:townHall": 1,
+     "constructionsStarted:lumberMill": 1,
+     "constructionsStarted:farm": 1,
+     "constructionsStarted:quarry": 1
+    }
+   }
+  },
+  {
+   "day": 3,
+   "eventsSoFar": 71,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 259200000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 259200000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta do Norte",
+     "resources": {
+      "food": 507000,
+      "wood": 1650400,
+      "stone": 433000,
+      "gold": 619280
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 15
+     },
+     "workers": {
+      "farm": 2,
+      "lumberMill": 4,
+      "quarry": 4,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 3,
+      "farm": 2,
+      "lumberMill": 2,
+      "quarry": 1,
+      "goldMine": 2,
+      "housing": 3
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": null
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 2,
+     "villagersRecruited": 10,
+     "constructionsStarted:townHall": 2,
+     "constructionsStarted:lumberMill": 1,
+     "constructionsStarted:farm": 1,
+     "constructionsStarted:quarry": 1,
+     "constructionsStarted:goldMine": 1
+    }
+   }
+  },
+  {
+   "day": 4,
+   "eventsSoFar": 95,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 345600000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 345600000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta do Norte",
+     "resources": {
+      "food": 0,
+      "wood": 2550840,
+      "stone": 844200,
+      "gold": 845640
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 20
+     },
+     "workers": {
+      "farm": 0,
+      "lumberMill": 6,
+      "quarry": 4,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 3,
+      "farm": 2,
+      "lumberMill": 2,
+      "quarry": 2,
+      "goldMine": 2,
+      "housing": 4
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": {
+      "sinceMs": 306360000
+     }
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 3,
+     "villagersRecruited": 15,
+     "constructionsStarted:townHall": 2,
+     "constructionsStarted:lumberMill": 1,
+     "constructionsStarted:farm": 1,
+     "constructionsStarted:quarry": 2,
+     "constructionsStarted:goldMine": 1
+    }
+   }
+  },
+  {
+   "day": 5,
+   "eventsSoFar": 109,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 432000000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 432000000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta do Norte",
+     "resources": {
+      "food": 0,
+      "wood": 3513140,
+      "stone": 1196200,
+      "gold": 1104840
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 20
+     },
+     "workers": {
+      "farm": 0,
+      "lumberMill": 6,
+      "quarry": 4,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 3,
+      "farm": 2,
+      "lumberMill": 3,
+      "quarry": 2,
+      "goldMine": 2,
+      "housing": 4
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": {
+      "sinceMs": 306360000
+     }
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 3,
+     "villagersRecruited": 15,
+     "constructionsStarted:townHall": 2,
+     "constructionsStarted:lumberMill": 2,
+     "constructionsStarted:farm": 1,
+     "constructionsStarted:quarry": 2,
+     "constructionsStarted:goldMine": 1
+    }
+   }
+  },
+  {
+   "day": 6,
+   "eventsSoFar": 125,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 518400000,
+     "yearStartMs": 0,
+     "year": 1
+    },
+    "lastProcessedAt": 518400000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta do Norte",
+     "resources": {
+      "food": 1102000,
+      "wood": 4258740,
+      "stone": 1700200,
+      "gold": 1343240
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 20
+     },
+     "workers": {
+      "farm": 8,
+      "lumberMill": 2,
+      "quarry": 4,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 3,
+      "farm": 3,
+      "lumberMill": 3,
+      "quarry": 2,
+      "goldMine": 2,
+      "housing": 4
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": null
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 3,
+     "villagersRecruited": 15,
+     "constructionsStarted:townHall": 2,
+     "constructionsStarted:lumberMill": 2,
+     "constructionsStarted:farm": 2,
+     "constructionsStarted:quarry": 2,
+     "constructionsStarted:goldMine": 1
+    }
+   }
+  },
+  {
+   "day": 7,
+   "eventsSoFar": 147,
+   "state": {
+    "schemaVersion": 1,
+    "seed": "pedra-alta-golden",
+    "settings": {
+     "settlementName": "Pedra Alta",
+     "timezone": "America/Sao_Paulo",
+     "vigilHourLocal": 20,
+     "capsEnabled": false
+    },
+    "clock": {
+     "gameTimeMs": 604800000,
+     "yearStartMs": 604800000,
+     "year": 2
+    },
+    "lastProcessedAt": 604800000,
+    "rng": {},
+    "settlement": {
+     "name": "Pedra Alta do Norte",
+     "resources": {
+      "food": 3126000,
+      "wood": 4118340,
+      "stone": 1824200,
+      "gold": 1363160
+     },
+     "accumulators": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     },
+     "population": {
+      "villagers": 23
+     },
+     "workers": {
+      "farm": 8,
+      "lumberMill": 2,
+      "quarry": 4,
+      "goldMine": 3
+     },
+     "buildings": {
+      "townHall": 4,
+      "farm": 3,
+      "lumberMill": 3,
+      "quarry": 2,
+      "goldMine": 3,
+      "housing": 4
+     },
+     "constructionQueues": [
+      null
+     ],
+     "planned": [],
+     "recruitmentQueue": [],
+     "famine": null
+    },
+    "objectives": {
+     "active": [],
+     "completed": [
+      "allocateFarmers",
+      "upgradeHousing",
+      "recruitVillagers",
+      "townHallLevel2"
+     ]
+    },
+    "stats": {
+     "constructionsStarted:housing": 3,
+     "villagersRecruited": 18,
+     "constructionsStarted:townHall": 3,
+     "constructionsStarted:lumberMill": 2,
+     "constructionsStarted:farm": 2,
+     "constructionsStarted:quarry": 2,
+     "constructionsStarted:goldMine": 2
+    }
+   }
+  }
+ ],
+ "events": [
+  {
+   "type": "objectiveCompleted",
+   "atMs": 0,
+   "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Aloque 2 aldeões na Fazenda. Recompensa: +20 ouro.",
+   "data": {
+    "objective": "allocateFarmers"
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 0,
+   "text": "No 1º dia da Primavera, os pedreiros começaram a erguer as Habitações ao 2º nível.",
+   "data": {
+    "building": "housing",
+    "level": 2
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 0,
+   "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Inicie a melhoria das Habitações. Recompensa: +30 madeira.",
+   "data": {
+    "objective": "upgradeHousing"
+   }
+  },
+  {
+   "type": "recruitmentStarted",
+   "atMs": 0,
+   "text": "No 1º dia da Primavera, o Salão mandou chamar novos aldeões: 3.",
+   "data": {
+    "quantity": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 240000,
+   "text": "No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.",
+   "data": {
+    "building": "housing",
+    "level": 2
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 1200000,
+   "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 6.",
+   "data": {
+    "villagers": 6
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 2400000,
+   "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 7.",
+   "data": {
+    "villagers": 7
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 3600000,
+   "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 8.",
+   "data": {
+    "villagers": 8
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 3600000,
+   "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida.",
+   "data": {
+    "objective": "recruitVillagers"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 7200000,
+   "text": "Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 2
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 14400000,
+   "text": "Amanhece o 3º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 3
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 21600000,
+   "text": "Amanhece o 4º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 4
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 28800000,
+   "text": "Amanhece o 5º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 5
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 28800000,
+   "text": "No 5º dia da Primavera, os pedreiros começaram a erguer o Salão do Senhor ao 2º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 2
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 29400000,
+   "text": "No 5º dia da Primavera, os pedreiros ergueram o Salão do Senhor ao 2º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 2
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 29400000,
+   "text": "No 5º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: +50 ouro.",
+   "data": {
+    "objective": "townHallLevel2"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 36000000,
+   "text": "Amanhece o 6º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 6
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 43200000,
+   "text": "Amanhece o 7º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 7
+   }
+  },
+  {
+   "type": "recruitmentStarted",
+   "atMs": 43200000,
+   "text": "No 7º dia da Primavera, o Salão mandou chamar novos aldeões: 3.",
+   "data": {
+    "quantity": 3
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 43200000,
+   "text": "No 7º dia da Primavera, os pedreiros começaram a erguer a Serraria ao 2º nível.",
+   "data": {
+    "building": "lumberMill",
+    "level": 2
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 43500000,
+   "text": "No 7º dia da Primavera, os pedreiros ergueram a Serraria ao 2º nível.",
+   "data": {
+    "building": "lumberMill",
+    "level": 2
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 44400000,
+   "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 9.",
+   "data": {
+    "villagers": 9
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 45600000,
+   "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 10.",
+   "data": {
+    "villagers": 10
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 46800000,
+   "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 11.",
+   "data": {
+    "villagers": 11
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 50400000,
+   "text": "Amanhece o 8º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 8
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 57600000,
+   "text": "Amanhece o 9º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 9
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 64800000,
+   "text": "Amanhece o 10º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 10
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 72000000,
+   "text": "Amanhece o 11º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 11
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 79200000,
+   "text": "Amanhece o 12º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 12
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 86400000,
+   "text": "Amanhece o 13º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 13
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 86400000,
+   "text": "No 13º dia da Primavera, os pedreiros começaram a erguer a Fazenda ao 2º nível.",
+   "data": {
+    "building": "farm",
+    "level": 2
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 86700000,
+   "text": "No 13º dia da Primavera, os pedreiros ergueram a Fazenda ao 2º nível.",
+   "data": {
+    "building": "farm",
+    "level": 2
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 93600000,
+   "text": "Amanhece o 14º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 14
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 100800000,
+   "text": "Amanhece o 15º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 15
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 108000000,
+   "text": "Amanhece o 16º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 16
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 115200000,
+   "text": "Amanhece o 17º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 17
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 122400000,
+   "text": "Amanhece o 18º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 18
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 129600000,
+   "text": "Amanhece o 19º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 19
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 129600000,
+   "text": "No 19º dia da Primavera, os pedreiros começaram a erguer a Pedreira ao 2º nível.",
+   "data": {
+    "building": "quarry",
+    "level": 2
+   }
+  },
+  {
+   "type": "constructionCancelled",
+   "atMs": 129600000,
+   "text": "No 19º dia da Primavera, os pedreiros largaram as ferramentas: a Pedreira fica no 1º nível.",
+   "data": {
+    "building": "quarry",
+    "level": 1
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 129600000,
+   "text": "No 19º dia da Primavera, os pedreiros começaram a erguer as Habitações ao 3º nível.",
+   "data": {
+    "building": "housing",
+    "level": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 129960000,
+   "text": "No 19º dia da Primavera, os pedreiros ergueram as Habitações ao 3º nível.",
+   "data": {
+    "building": "housing",
+    "level": 3
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 136800000,
+   "text": "Amanhece o 20º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 20
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 144000000,
+   "text": "Amanhece o 21º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 21
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 151200000,
+   "text": "Amanhece o 22º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 22
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 158400000,
+   "text": "Amanhece o 23º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 23
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 165600000,
+   "text": "Amanhece o 24º dia da Primavera em Pedra Alta.",
+   "data": {
+    "dayOfYear": 24
+   }
+  },
+  {
+   "type": "seasonChanged",
+   "atMs": 172800000,
+   "text": "Chega o Verão a Pedra Alta.",
+   "data": {
+    "season": "summer"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 172800000,
+   "text": "Amanhece o 1º dia do Verão em Pedra Alta.",
+   "data": {
+    "dayOfYear": 25
+   }
+  },
+  {
+   "type": "recruitmentStarted",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, o Salão mandou chamar novos aldeões: 4.",
+   "data": {
+    "quantity": 4
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, os pedreiros começaram a erguer a Mina de Ouro ao 2º nível.",
+   "data": {
+    "building": "goldMine",
+    "level": 2
+   }
+  },
+  {
+   "type": "settlementRenamed",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, o feudo passou a se chamar Pedra Alta do Norte.",
+   "data": {
+    "name": "Pedra Alta do Norte"
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 173280000,
+   "text": "No 1º dia do Verão, os pedreiros ergueram a Mina de Ouro ao 2º nível.",
+   "data": {
+    "building": "goldMine",
+    "level": 2
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 174000000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 12.",
+   "data": {
+    "villagers": 12
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 175200000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 13.",
+   "data": {
+    "villagers": 13
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 176400000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 14.",
+   "data": {
+    "villagers": 14
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 177600000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 15.",
+   "data": {
+    "villagers": 15
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 180000000,
+   "text": "Amanhece o 2º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 26
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 187200000,
+   "text": "Amanhece o 3º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 27
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 194400000,
+   "text": "Amanhece o 4º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 28
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 201600000,
+   "text": "Amanhece o 5º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 29
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 208800000,
+   "text": "Amanhece o 6º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 30
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 216000000,
+   "text": "Amanhece o 7º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 31
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 216000000,
+   "text": "No 7º dia do Verão, os pedreiros começaram a erguer o Salão do Senhor ao 3º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 216900000,
+   "text": "No 7º dia do Verão, os pedreiros ergueram o Salão do Senhor ao 3º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 3
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 223200000,
+   "text": "Amanhece o 8º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 32
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 230400000,
+   "text": "Amanhece o 9º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 33
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 237600000,
+   "text": "Amanhece o 10º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 34
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 244800000,
+   "text": "Amanhece o 11º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 35
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 252000000,
+   "text": "Amanhece o 12º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 36
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 259200000,
+   "text": "Amanhece o 13º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 37
+   }
+  },
+  {
+   "type": "recruitmentStarted",
+   "atMs": 259200000,
+   "text": "No 13º dia do Verão, o Salão mandou chamar novos aldeões: 5.",
+   "data": {
+    "quantity": 5
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 259200000,
+   "text": "No 13º dia do Verão, os pedreiros começaram a erguer as Habitações ao 4º nível.",
+   "data": {
+    "building": "housing",
+    "level": 4
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 259740000,
+   "text": "No 13º dia do Verão, os pedreiros ergueram as Habitações ao 4º nível.",
+   "data": {
+    "building": "housing",
+    "level": 4
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 260400000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 16.",
+   "data": {
+    "villagers": 16
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 261600000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 17.",
+   "data": {
+    "villagers": 17
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 262800000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 18.",
+   "data": {
+    "villagers": 18
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 264000000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 19.",
+   "data": {
+    "villagers": 19
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 265200000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 20.",
+   "data": {
+    "villagers": 20
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 266400000,
+   "text": "Amanhece o 14º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 38
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 273600000,
+   "text": "Amanhece o 15º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 39
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 280800000,
+   "text": "Amanhece o 16º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 40
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 288000000,
+   "text": "Amanhece o 17º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 41
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 295200000,
+   "text": "Amanhece o 18º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 42
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 302400000,
+   "text": "Amanhece o 19º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 43
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 302400000,
+   "text": "No 19º dia do Verão, os pedreiros começaram a erguer a Pedreira ao 2º nível.",
+   "data": {
+    "building": "quarry",
+    "level": 2
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 302760000,
+   "text": "No 19º dia do Verão, os pedreiros ergueram a Pedreira ao 2º nível.",
+   "data": {
+    "building": "quarry",
+    "level": 2
+   }
+  },
+  {
+   "type": "famineStarted",
+   "atMs": 306360000,
+   "text": "No 19º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
+   "data": {}
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 309600000,
+   "text": "Amanhece o 20º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 44
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 316800000,
+   "text": "Amanhece o 21º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 45
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 324000000,
+   "text": "Amanhece o 22º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 46
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 331200000,
+   "text": "Amanhece o 23º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 47
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 338400000,
+   "text": "Amanhece o 24º dia do Verão em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 48
+   }
+  },
+  {
+   "type": "seasonChanged",
+   "atMs": 345600000,
+   "text": "Chega o Outono a Pedra Alta do Norte.",
+   "data": {
+    "season": "autumn"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 345600000,
+   "text": "Amanhece o 1º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 49
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 352800000,
+   "text": "Amanhece o 2º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 50
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 360000000,
+   "text": "Amanhece o 3º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 51
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 367200000,
+   "text": "Amanhece o 4º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 52
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 374400000,
+   "text": "Amanhece o 5º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 53
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 381600000,
+   "text": "Amanhece o 6º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 54
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 388800000,
+   "text": "Amanhece o 7º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 55
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 388800000,
+   "text": "No 7º dia do Outono, os pedreiros começaram a erguer a Serraria ao 3º nível.",
+   "data": {
+    "building": "lumberMill",
+    "level": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 389250000,
+   "text": "No 7º dia do Outono, os pedreiros ergueram a Serraria ao 3º nível.",
+   "data": {
+    "building": "lumberMill",
+    "level": 3
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 396000000,
+   "text": "Amanhece o 8º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 56
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 403200000,
+   "text": "Amanhece o 9º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 57
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 410400000,
+   "text": "Amanhece o 10º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 58
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 417600000,
+   "text": "Amanhece o 11º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 59
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 424800000,
+   "text": "Amanhece o 12º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 60
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 432000000,
+   "text": "Amanhece o 13º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 61
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 439200000,
+   "text": "Amanhece o 14º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 62
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 446400000,
+   "text": "Amanhece o 15º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 63
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 453600000,
+   "text": "Amanhece o 16º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 64
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 460800000,
+   "text": "Amanhece o 17º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 65
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 468000000,
+   "text": "Amanhece o 18º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 66
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 475200000,
+   "text": "Amanhece o 19º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 67
+   }
+  },
+  {
+   "type": "famineEnded",
+   "atMs": 475200000,
+   "text": "No 19º dia do Outono, voltou a haver pão em Pedra Alta do Norte. A fome acabou.",
+   "data": {}
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 475200000,
+   "text": "No 19º dia do Outono, os pedreiros começaram a erguer a Fazenda ao 3º nível.",
+   "data": {
+    "building": "farm",
+    "level": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 475650000,
+   "text": "No 19º dia do Outono, os pedreiros ergueram a Fazenda ao 3º nível.",
+   "data": {
+    "building": "farm",
+    "level": 3
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 482400000,
+   "text": "Amanhece o 20º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 68
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 489600000,
+   "text": "Amanhece o 21º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 69
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 496800000,
+   "text": "Amanhece o 22º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 70
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 504000000,
+   "text": "Amanhece o 23º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 71
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 511200000,
+   "text": "Amanhece o 24º dia do Outono em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 72
+   }
+  },
+  {
+   "type": "seasonChanged",
+   "atMs": 518400000,
+   "text": "Chega o Inverno a Pedra Alta do Norte.",
+   "data": {
+    "season": "winter"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 518400000,
+   "text": "Amanhece o 1º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 73
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 518400000,
+   "text": "No 1º dia do Inverno, os pedreiros começaram a erguer o Salão do Senhor ao 4º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 4
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 519750000,
+   "text": "No 1º dia do Inverno, os pedreiros ergueram o Salão do Senhor ao 4º nível.",
+   "data": {
+    "building": "townHall",
+    "level": 4
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 525600000,
+   "text": "Amanhece o 2º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 74
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 532800000,
+   "text": "Amanhece o 3º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 75
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 540000000,
+   "text": "Amanhece o 4º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 76
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 547200000,
+   "text": "Amanhece o 5º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 77
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 554400000,
+   "text": "Amanhece o 6º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 78
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 561600000,
+   "text": "Amanhece o 7º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 79
+   }
+  },
+  {
+   "type": "recruitmentStarted",
+   "atMs": 561600000,
+   "text": "No 7º dia do Inverno, o Salão mandou chamar novos aldeões: 3.",
+   "data": {
+    "quantity": 3
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 561600000,
+   "text": "No 7º dia do Inverno, os pedreiros começaram a erguer a Mina de Ouro ao 3º nível.",
+   "data": {
+    "building": "goldMine",
+    "level": 3
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 562320000,
+   "text": "No 7º dia do Inverno, os pedreiros ergueram a Mina de Ouro ao 3º nível.",
+   "data": {
+    "building": "goldMine",
+    "level": 3
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 562800000,
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 21.",
+   "data": {
+    "villagers": 21
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 564000000,
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 22.",
+   "data": {
+    "villagers": 22
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 565200000,
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 23.",
+   "data": {
+    "villagers": 23
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 568800000,
+   "text": "Amanhece o 8º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 80
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 576000000,
+   "text": "Amanhece o 9º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 81
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 583200000,
+   "text": "Amanhece o 10º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 82
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 590400000,
+   "text": "Amanhece o 11º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 83
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 597600000,
+   "text": "Amanhece o 12º dia do Inverno em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 84
+   }
+  },
+  {
+   "type": "yearStarted",
+   "atMs": 604800000,
+   "text": "Começa o ano 2 da Casa de Pedra Alta do Norte.",
+   "data": {
+    "year": 2
+   }
+  },
+  {
+   "type": "seasonChanged",
+   "atMs": 604800000,
+   "text": "Chega a Primavera a Pedra Alta do Norte.",
+   "data": {
+    "season": "spring"
+   }
+  },
+  {
+   "type": "dayStarted",
+   "atMs": 604800000,
+   "text": "Amanhece o 1º dia da Primavera em Pedra Alta do Norte.",
+   "data": {
+    "dayOfYear": 1
+   }
+  }
+ ]
+}

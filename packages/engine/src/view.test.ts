@@ -95,6 +95,7 @@ describe('deriveViewState', () => {
       targetLevel: 2,
       durationSeconds: 300,
       affordable: true,
+      blockedCode: null,
       blockedReason: null,
       cost: [
         { resource: 'wood', label: 'Madeira', amount: 100, missing: 0 },
@@ -103,6 +104,7 @@ describe('deriveViewState', () => {
     });
     expect(byBuilding.townHall).toMatchObject({
       affordable: false,
+      blockedCode: 'INSUFFICIENT_RESOURCES',
       blockedReason: 'Faltam 30 madeira e 35 pedra.',
     });
     expect(byBuilding.townHall?.cost).toEqual([

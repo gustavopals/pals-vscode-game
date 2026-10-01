@@ -91,6 +91,7 @@ function upgradeView(state: GameState, building: BuildingId): UpgradeView {
     cost: costView(state, quote.cost),
     durationSeconds: Math.ceil(quote.durationMs / SECOND_MS),
     affordable: Object.keys(quote.missing).length === 0,
+    blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
     planned: state.settlement.planned.some((plan) => plan.building === building),
   };
@@ -107,6 +108,7 @@ function plannedView(state: GameState, building: BuildingId, targetLevel: number
     cost: costs,
     durationSeconds: Math.ceil(upgradeDurationMs(building, targetLevel - 1) / SECOND_MS),
     affordable: costs.every((entry) => entry.missing === 0),
+    blockedCode: null,
     blockedReason: null,
     planned: true,
   };

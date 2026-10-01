@@ -124,7 +124,8 @@ export type UpgradeView = {
   cost: ResourceCostView[];
   durationSeconds: number;
   affordable: boolean;
-  /** Motivo pelo qual a obra não pode começar agora; `null` quando pode. */
+  /** Código e motivo pelo qual a obra não pode começar agora; `null` quando pode. */
+  blockedCode: RejectionCode | null;
   blockedReason: string | null;
   planned: boolean;
 };

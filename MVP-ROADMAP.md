@@ -519,10 +519,10 @@ pnpm --filter @lotg/engine test -- view
 **Depende de:** F1-T9.
 **Entregáveis:** `packages/engine/src/__golden__/scenario-7-days.json`, `packages/engine/src/scenario.test.ts`, `packages/sim-cli/src/{main,bots/economico,report}.ts`.
 
-- [ ] F1-T10.1 Cenário roteirizado de 7 dias (lista de comandos com instantes) para a semente `pedra-alta-golden`; snapshot do estado e dos eventos a cada 24 h.
-- [ ] F1-T10.2 `sim-cli`: `pnpm sim -- --seed <s> --days 7 --strategy economico --sessions-per-day 2`; o bot, a cada "sessão", realoca para maximizar valor ponderado dos recursos, inicia a melhoria mais barata disponível e recruta quando há vaga; emite CSV por hora (recursos, população, níveis, fome) e um resumo.
-- [ ] F1-T10.3 Teste de faixa (CI): com 2 sessões/dia, no dia 7 a população está entre 20 e 40, Salão ≥ Nv3, nenhuma fome; com 1 sessão/dia, sem fome nas primeiras 24 h. Ajustar números em `@lotg/content` se a faixa falhar, nunca no bot.
-- [ ] F1-T10.4 Documentar em `packages/sim-cli/README.md` como interpretar o CSV.
+- [x] F1-T10.1 Cenário roteirizado de 7 dias (lista de comandos com instantes) para a semente `pedra-alta-golden`; snapshot do estado e dos eventos a cada 24 h.
+- [x] F1-T10.2 `sim-cli`: `pnpm sim -- --seed <s> --days 7 --strategy economico --sessions-per-day 2`; o bot, a cada "sessão", realoca para maximizar valor ponderado dos recursos, inicia a melhoria mais barata disponível e recruta quando há vaga; emite CSV por hora (recursos, população, níveis, fome) e um resumo.
+- [x] F1-T10.3 Teste de faixa (CI): com 2 sessões/dia, no dia 7 a população está entre 20 e 40, Salão ≥ Nv3, nenhuma fome; com 1 sessão/dia, sem fome nas primeiras 24 h. Ajustar números em `@lotg/content` se a faixa falhar, nunca no bot.
+- [x] F1-T10.4 Documentar em `packages/sim-cli/README.md` como interpretar o CSV.
 
 **Verificação:**
 
@@ -1194,7 +1194,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F1-T7 | 2026-10-01 | HASH_B | 1 | 17 códigos de recusa, um teste por código; `commands.ts` e `rejections.ts` com 100% de linhas. `setWorkers`, `planConstruction` e `unplanConstruction` não geram evento. |
 | F1-T8 | 2026-10-01 | HASH_B | 1 | Cenário roteirizado conclui os quatro objetivos com +20 ouro, +30 madeira, +40 comida e +50 ouro. Frases fixadas em `__golden__/chronicle-objectives.txt`. "Recrute 3 aldeões" conta os que chegaram, não os encomendados. |
 | F1-T9 | 2026-10-01 | HASH_C | 1 | Golden com três retratos: estado inicial, primeira alocação (2 na Fazenda: comida +15/h) e fim do cenário dos objetivos. `available` lista as seis melhorias; no início, quatro são pagáveis (Salão e Mina de Ouro não cabem nos recursos iniciais do GDD §5.2). `deriveViewState` aceita um instante futuro e avança uma cópia. |
-| F1-T10 | | | | |
+| F1-T10 | 2026-10-01 | HASH_D | 1 | Golden de 7 dias com 38 ordens (5 recusadas de propósito), fome e virada do ano. `sim` com a semente `pedra-alta-golden`: 168 linhas de dados, população 26, Salão Nv3, nenhuma fome; duas execuções com `diff` vazio. As faixas passaram sem ajuste de conteúdo. O CSV sai no stdout (`pnpm -s sim`). O bot termina a semana com ~10.000 de madeira parada: sem caps de estoque (v0.2), o excedente não tem saída. |
 | F1-T11 | | | | |
 | F2-T1 | | | | |
 | F2-T2 | | | | |

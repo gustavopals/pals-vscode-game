@@ -8,8 +8,15 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "sim": "node ../../scripts/pending.mjs F1-T10 \"O simulador\"",
+    "sim": "tsx src/main.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --root ../.. --project unit"
+  },
+  "dependencies": {
+    "@lotg/content": "workspace:*",
+    "@lotg/engine": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
   }
 }

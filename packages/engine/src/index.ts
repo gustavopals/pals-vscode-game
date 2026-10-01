@@ -4,3 +4,26 @@ export { createInitialState } from './state';
 export { nextEventAt } from './timeline';
 export { advanceTo } from './advance';
 export { applyCommand } from './commands';
+export { deriveViewState } from './view';
+export { REJECTION_CODES } from './types';
+export type {
+  BuildingId,
+  Command,
+  CommandResult,
+  CommandType,
+  Construction,
+  GameEvent,
+  GameEventType,
+  GameSettings,
+  GameState,
+  ObjectiveView,
+  PlannedConstruction,
+  ProductionBuildingId,
+  Rejection,
+  RejectionCode,
+  ResourceCostView,
+  ResourceId,
+  SeasonId,
+  UpgradeView,
+  ViewState,
+} from './types';
