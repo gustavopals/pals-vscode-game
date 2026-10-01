@@ -1,7 +1,7 @@
 name: Saúde da produção
 
-# Monitor externo da API (MVP-ROADMAP.md F4-T4): consulta /v1/health e a página do app de fora
-# do servidor. Quando falha, o GitHub avisa por e-mail quem tem as notificações de Actions ligadas
+# Monitor externo (MVP-ROADMAP.md F4-T4): consulta /v1/health, a página do app e a página de
+# apresentação de fora do servidor. Quando falha, o GitHub avisa por e-mail quem tem as notificações de Actions ligadas
 # para o repositório. O agendamento do GitHub não é pontual: o intervalo real fica entre 5 e 15
 # minutos, e ele é suspenso depois de 60 dias sem commits no repositório.
 
@@ -18,10 +18,11 @@ concurrency:
 
 env:
   PUBLIC_URL: https://lords.palsincomehub.com
+  LANDING_URL: https://lordsoftheguild.palsincomehub.com
 
 jobs:
   health:
-    name: /v1/health e app
+    name: /v1/health, app e página de apresentação
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -34,3 +35,10 @@ jobs:
         run: |
           curl --silent --show-error --fail --max-time 10 --retry 2 --retry-delay 10 --retry-all-errors "$PUBLIC_URL/" \
             | grep --quiet '<title>Lords of the Guild</title>'
+      # A página de apresentação é independente do jogo (ADR 0012): é conferida mesmo que os
+      # passos do jogo falhem. O título dela é outro, para os dois sites não se confundirem.
+      - name: Página de apresentação é entregue
+        if: ${{ !cancelled() }}
+        run: |
+          curl --silent --show-error --fail --max-time 10 --retry 2 --retry-delay 10 --retry-all-errors "$LANDING_URL/" \
+            | grep --quiet '<title>Lords of the Guild: parece trabalho, é um feudo</title>'

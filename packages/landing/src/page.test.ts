@@ -1,6 +1,8 @@
 import { buildings, chronicleTemplates } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
+import health from '../../../.github/workflows/health.yml?raw';
+import smoke from '../../../scripts/landing-smoke.sh?raw';
 import notFoundHtml from '../404.html?raw';
 import indexHtml from '../index.html?raw';
 
@@ -96,6 +98,12 @@ describe('index.html', () => {
     expect(title).not.toBe('Lords of the Guild');
   });
 
+  it('o monitor de saúde e a verificação de fumaça procuram exatamente esse título', () => {
+    const title = /<title>[^<]*<\/title>/.exec(html)?.[0] ?? '';
+    expect(health).toContain(`grep --quiet '${title}'`);
+    expect(smoke).toContain(`'${title}'`);
+  });
+
   it('diz em duas vozes o que o jogo é', () => {
     const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(html)?.[1] ?? '';
     expect(text(h1).trim()).toBe('Parece trabalho. É um feudo.');
@@ -124,7 +132,7 @@ describe('index.html', () => {
   it('o interruptor das duas leituras são dois botões de opção com rótulo, um deles marcado', () => {
     const radios = tags(html, 'input').filter((tag) => attribute(tag, 'type') === 'radio');
     expect(radios).toHaveLength(2);
-    expect(new Set(radios.map((radio) => attribute(radio, 'name')))).toEqual(new Set(['leitura']));
+    expect(new Set(radios.map((radio) => attribute(radio, 'name')))).toEqual(new Set(['reading']));
     expect(radios.filter((radio) => /\schecked\b/.test(radio))).toHaveLength(1);
     for (const radio of radios) {
       expect(html).toContain(`<label for="${attribute(radio, 'id')}">`);
@@ -193,7 +201,9 @@ describe('index.html', () => {
 
     it('as pinturas são apresentadas como arte conceitual, e o que ainda não existe, como horizonte', () => {
       expect(prose).toMatch(/arte conceitual de Pedra Alta, gerada por IA/);
-      expect(prose).toMatch(/As pinturas desta página são arte conceitual gerada por IA/);
+      expect(prose).toMatch(/A pintura desta página é arte conceitual gerada por IA/);
+      // As capturas reproduzem os ícones do app, que pedem crédito (CC BY 4.0).
+      expect(prose).toMatch(/Codicons \(licença CC BY 4\.0\)/);
       expect(prose).toMatch(/Nada disso se joga ainda\./);
       expect(prose).toMatch(/não é afiliado a nenhum editor de código/);
     });

@@ -127,7 +127,7 @@ O ensaio foi feito com as 2 contas que existiam em produção, não com as 3 que
 
 ## Operação
 
-**Saúde.** `GET /v1/health` responde `{"status":"ok","db":"ok"}`. O workflow [`health.yml`](../.github/workflows/health.yml) consulta a API e o app de fora do servidor a cada 5 a 15 minutos; quando falha, o GitHub avisa por e-mail quem tem as notificações de Actions ligadas no repositório.
+**Saúde.** `GET /v1/health` responde `{"status":"ok","db":"ok"}`. O workflow [`health.yml`](../.github/workflows/health.yml) consulta a API, o app e a página de apresentação de fora do servidor a cada 5 a 15 minutos; quando falha, o GitHub avisa por e-mail quem tem as notificações de Actions ligadas no repositório.
 
 **Avisos do Coolify.** Em "Notifications", ligar um canal (e-mail, Telegram, Discord…). Já estão marcados para avisar: falha de deploy, falha de backup, contêiner que reinicia em excesso, servidor inalcançável e disco acima de 80% (conferido todo dia às 23:00 UTC). Sem um canal ligado, nenhum desses avisos sai.
 

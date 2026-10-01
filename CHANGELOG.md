@@ -2,6 +2,13 @@
 
 Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e a numeração, o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Alterado
+
+- Página de apresentação: crédito dos ícones Codicons (CC BY 4.0), que aparecem nas capturas do jogo, no rodapé e em `licencas.txt`; ajustes de texto ("Não há e-mail nem senha", legenda da captura, aviso para celular, página de caminho errado); `id` do HTML em inglês; imagem da prévia do link refeita.
+- O monitor de saúde (`health.yml`) passa a consultar também a página de apresentação, e testes amarram o título e o endereço dela ao que o monitor, o deploy e a verificação de fumaça procuram.
+
 ## [0.1.0] — 2026-10-01
 
 "Fundação online": o MVP descrito no [GDD §16.1](GAME_DESIGN.md), no ar em `https://lords.palsincomehub.com`. Tag `v0.1.0`; [release no GitHub](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0).
@@ -55,7 +62,7 @@ O autor jogou a versão em produção, em dois navegadores, gostou e decidiu fec
 **Página de apresentação (`@lotg/landing`)**
 
 - Página estática em domínio próprio, com o botão **Jogar agora** que leva ao jogo ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)): o título em duas vozes ("Parece trabalho. É um feudo."), uma captura real do jogo lida de dois jeitos por um interruptor que é só CSS, e a barra de status da página com o botão sempre à mão.
-- Só diz do jogo o que o jogo diz de si: testes conferem as frases da Crônica citadas contra o conteúdo e barram promessa de duração, preço, multijogador e nome de editor de código. As pinturas aparecem como arte conceitual; as capturas são refeitas por um roteiro (`pnpm capture:landing`).
+- Só diz do jogo o que o jogo diz de si: testes conferem as frases da Crônica citadas contra o conteúdo e barram as formas mais comuns de promessa de duração, preço, multijogador e o nome "Visual Studio Code". As pinturas aparecem como arte conceitual; as capturas são refeitas por um roteiro (`pnpm capture:landing`).
 - Política de conteúdo `default-src 'none'`, letras servidas pela própria página (Grenze Gotisch e Alegreya, SIL OFL), nenhuma medição de audiência.
 
 **Simulador (`@lotg/sim-cli`)**

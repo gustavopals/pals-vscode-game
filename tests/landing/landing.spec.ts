@@ -161,7 +161,7 @@ test.describe('a mesma tela, duas leituras', () => {
     expect(await shown(page, 'dt')).toEqual(passerby);
     expect(await shown(page, 'dd')).toEqual([]);
 
-    await page.locator('label[for="leitura-governa"]').click();
+    await page.locator('label[for="reading-ruler"]').click();
     await expect(governing).toBeChecked();
     expect(await shown(page, 'dt')).toEqual([]);
     expect(await shown(page, 'dd')).toEqual(ruler);
@@ -183,7 +183,7 @@ test.describe('a mesma tela, duas leituras', () => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/');
       await page.evaluate(() => document.fonts.ready);
-      for (const reading of ['leitura-passa', 'leitura-governa']) {
+      for (const reading of ['reading-passerby', 'reading-ruler']) {
         await page.locator(`label[for="${reading}"]`).click();
         const boxes = await page.evaluate(() => {
           const stage = document.querySelector('.stage')?.getBoundingClientRect();
@@ -254,7 +254,7 @@ test.describe('a mesma tela, duas leituras', () => {
       GAME,
     );
     if (!isPhone(page)) {
-      await page.locator('label[for="leitura-governa"]').click();
+      await page.locator('label[for="reading-ruler"]').click();
       await expect(page.locator('.label-table dd')).toBeVisible();
       await expect(page.locator('.label-table dt')).toBeHidden();
     }
@@ -305,7 +305,7 @@ test.describe('em qualquer tela', () => {
   test('tudo o que se lê tem contraste de leitura', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
-    const readings = isPhone(page) ? [null] : ['leitura-passa', 'leitura-governa'];
+    const readings = isPhone(page) ? [null] : ['reading-passerby', 'reading-ruler'];
     for (const reading of readings) {
       if (reading) await page.locator(`label[for="${reading}"]`).click();
       expect(await lowContrast(page), `contraste (${reading ?? 'celular'})`).toEqual([]);
@@ -364,7 +364,7 @@ test.describe('em qualquer tela', () => {
         : [
             'Pular para o conteúdo',
             'Jogar agora',
-            'leitura-passa',
+            'reading-passerby',
             'Jogar agora',
             'licenças',
             'Jogar agora',

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import ci from '../../../.github/workflows/ci.yml?raw';
+import health from '../../../.github/workflows/health.yml?raw';
 import { applySite, DEFAULT_SITE, resolveSite } from './site';
 
 describe('resolveSite', () => {
@@ -45,6 +47,16 @@ describe('resolveSite', () => {
     expect(() => resolveSite({ LOTG_GAME_URL: 'https://exemplo.com/?a=1' })).toThrow(
       /LOTG_GAME_URL/,
     );
+  });
+});
+
+describe('os endereços de produção', () => {
+  it('o deploy e o monitor de saúde conferem a página no mesmo endereço do padrão', () => {
+    // Trocar o endereço da página é trocar aqui, nos dois workflows e no recurso do Coolify.
+    expect(ci).toContain(`LANDING_URL: ${DEFAULT_SITE.siteUrl}\n`);
+    expect(health).toContain(`LANDING_URL: ${DEFAULT_SITE.siteUrl}\n`);
+    expect(ci).toContain(`PUBLIC_URL: ${DEFAULT_SITE.gameUrl}\n`);
+    expect(health).toContain(`PUBLIC_URL: ${DEFAULT_SITE.gameUrl}\n`);
   });
 });
 

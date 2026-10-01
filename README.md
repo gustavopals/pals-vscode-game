@@ -44,6 +44,8 @@ Esse é o ciclo previsto para a evolução do jogo. O MVP implementa economia, o
 2. Escolha o seu nome e o nome do feudo e clique em **Jogar agora**. Não há e-mail, senha nem formulário.
 3. Ponha os aldeões para trabalhar, comece uma obra e feche a aba. O servidor continua a conta; quando você voltar depois de algumas horas, o Relatório de Retorno diz o que aconteceu.
 
+Para mostrar o jogo a quem ainda não joga, há uma página de apresentação: **[lordsoftheguild.palsincomehub.com](https://lordsoftheguild.palsincomehub.com)**.
+
 O que vale saber antes:
 
 - **A interface é uma bancada de editor.** Barra de atividades, árvore lateral, abas, barra de status e paleta de comandos (`F1` ou `Ctrl+K`). Dá para jogar inteiro pelo teclado; há temas claro, escuro e de alto contraste.
@@ -225,7 +227,7 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 
 A produção roda em um servidor com Coolify, em três recursos: PostgreSQL, a API (alvo `runtime` do `deploy/Dockerfile`) e o app (alvo `web`, um Caddy servindo arquivos estáticos). O proxy da plataforma cuida do TLS e manda `/v1` para a API e o resto para o app, na mesma origem ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)). A página de apresentação é um quarto recurso, em domínio próprio (alvo `landing`, [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
-O passo a passo para implantar do zero, atualizar, reverter, fazer backup e restaurar, com o registro dos ensaios já feitos, está em **[deploy/README.md](deploy/README.md)**. Cada `push` no `main` é implantado sozinho pelo job `deploy` da CI, depois de todos os outros jobs passarem; o deploy manual continua valendo.
+O passo a passo para implantar do zero, atualizar, reverter, fazer backup e restaurar, com o registro dos ensaios já feitos, está em **[deploy/README.md](deploy/README.md)**. Cada `push` no `main` é implantado sozinho pelo job `deploy` da CI (API, app e página de apresentação), depois de todos os outros jobs passarem; o deploy manual continua valendo.
 
 </details>
 

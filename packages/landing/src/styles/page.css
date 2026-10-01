@@ -296,12 +296,12 @@ figcaption,
     cursor: pointer;
   }
 
-  .readings > label[for='leitura-passa'] {
+  .readings > label[for='reading-passerby'] {
     font-family: var(--font-office);
     font-size: 1rem;
   }
 
-  .readings > label[for='leitura-governa'] {
+  .readings > label[for='reading-ruler'] {
     /* As duas opções formam uma peça só. */
     margin-left: -2px;
     border-color: var(--gold);
@@ -312,12 +312,12 @@ figcaption,
     line-height: 1;
   }
 
-  #leitura-passa:checked + label {
+  #reading-passerby:checked + label {
     background: var(--office);
     color: var(--night);
   }
 
-  #leitura-governa:checked + label {
+  #reading-ruler:checked + label {
     position: relative;
     background: var(--gold);
     color: var(--night);
@@ -329,7 +329,7 @@ figcaption,
     outline-offset: 3px;
   }
 
-  #leitura-governa:checked ~ .reading-figure .window {
+  #reading-ruler:checked ~ .reading-figure .window {
     border-color: var(--gold);
     box-shadow:
       0 0 0 2px var(--gold),
@@ -388,15 +388,15 @@ figcaption,
     line-height: 1;
   }
 
-  #leitura-governa:checked ~ .reading-figure .label dt {
+  #reading-ruler:checked ~ .reading-figure .label dt {
     display: none;
   }
 
-  #leitura-governa:checked ~ .reading-figure .label dd {
+  #reading-ruler:checked ~ .reading-figure .label dd {
     display: block;
   }
 
-  #leitura-governa:checked ~ .reading-figure .label::before {
+  #reading-ruler:checked ~ .reading-figure .label::before {
     background: var(--gold);
   }
 

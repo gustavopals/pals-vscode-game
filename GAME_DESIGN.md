@@ -856,7 +856,7 @@ lords-of-the-guild/
 └── tests/                       # integração servidor↔banco e app web↔servidor (navegador real)
 ```
 
-`engine`, `content` e `protocol` não importam nada do navegador nem de servidor. `server` e `web` dependem deles e nunca um do outro. O app web não importa o motor. A página de apresentação (`landing`) não faz parte do jogo: não importa pacote nenhum e não fala com a API ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
+`engine`, `content` e `protocol` não importam nada do navegador nem de servidor. `server` e `web` dependem deles e nunca um do outro. O app web não importa o motor. A página de apresentação (`landing`) não faz parte do jogo: não importa pacote nenhum (só os testes dela leem `content`) e não fala com a API ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
 ### 14.3 Determinismo (motor)
 

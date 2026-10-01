@@ -32,7 +32,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Parece trabalho. É um feudo. Ao lado, uma captura do jogo, que tem cara de editor de código."
+      content="Parece trabalho. É um feudo. Abaixo, uma captura do jogo, que tem cara de editor de código."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -64,8 +64,8 @@
     </header>
 
     <main id="conteudo">
-      <section class="hero" aria-labelledby="titulo">
-        <h1 id="titulo">
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title">
           <span class="voice-office">Parece trabalho.</span>
           <span class="voice-fief">É um feudo.</span>
         </h1>
@@ -82,17 +82,17 @@
               Abre o jogo nesta aba. Sem e-mail, sem senha, nada para instalar.
             </p>
             <p class="assurance phone-note">
-              Feito para a tela do computador: no celular o jogo abre, mas ainda não foi conferido.
+              Feito para a tela do computador. No celular o jogo abre, mas ainda não foi testado.
             </p>
           </div>
         </div>
 
-        <div class="readings" role="radiogroup" aria-labelledby="leituras">
-          <p class="readings-title" id="leituras">A mesma tela:</p>
-          <input type="radio" name="leitura" id="leitura-passa" checked />
-          <label for="leitura-passa">Quem passa vê</label>
-          <input type="radio" name="leitura" id="leitura-governa" />
-          <label for="leitura-governa">Quem governa vê</label>
+        <div class="readings" role="radiogroup" aria-labelledby="readings-title">
+          <p class="readings-title" id="readings-title">A mesma tela:</p>
+          <input type="radio" name="reading" id="reading-passerby" checked />
+          <label for="reading-passerby">Quem passa vê</label>
+          <input type="radio" name="reading" id="reading-ruler" />
+          <label for="reading-ruler">Quem governa vê</label>
 
           <figure class="reading-figure">
             <div class="stage">
@@ -107,7 +107,7 @@
                   src="/src/assets/jogo-feudo.webp"
                   width="2080"
                   height="960"
-                  alt="Captura real do jogo, na aba Feudo de Pedra Alta: árvore lateral, tabela de recursos, trabalhadores, uma obra em andamento e a barra de status."
+                  alt="Captura real do jogo, na aba Feudo de Pedra Alta: tabela de recursos, trabalhadores e a barra de status; em telas largas, também a árvore lateral e uma obra em andamento."
                 />
               </picture>
               <p class="reading-heads" aria-hidden="true">
@@ -137,12 +137,14 @@
                 </div>
               </dl>
             </div>
-            <figcaption>Captura real do jogo. A cara dele é esta, de propósito.</figcaption>
+            <figcaption>
+              Captura real do jogo, no tema escuro. A cara dele é esta, de propósito.
+            </figcaption>
           </figure>
         </div>
       </section>
 
-      <section class="seasons" aria-labelledby="estacoes">
+      <section class="seasons" aria-labelledby="seasons-title">
         <figure class="panorama">
           <div class="battlements" aria-hidden="true"></div>
           <div class="panorama-scroll" role="region" aria-label="Pedra Alta nas quatro estações">
@@ -188,7 +190,7 @@
         </figure>
 
         <div class="seasons-text">
-          <h2 id="estacoes">
+          <h2 id="seasons-title">
             <span class="line">Feche a aba.</span> <span class="line">O feudo continua.</span>
           </h2>
           <div class="prose">
@@ -202,8 +204,8 @@
         </div>
       </section>
 
-      <section class="fief" aria-labelledby="feudo">
-        <h2 id="feudo">Um feudo pequeno, com problemas de gente grande.</h2>
+      <section class="fief" aria-labelledby="fief-title">
+        <h2 id="fief-title">Um feudo pequeno, com problemas de gente grande.</h2>
 
         <div class="fief-body">
           <ol class="beats">
@@ -258,14 +260,14 @@
         </div>
       </section>
 
-      <section class="alibi" aria-labelledby="alibi">
-        <h2 id="alibi">Feito para não chamar atenção.</h2>
+      <section class="alibi" aria-labelledby="alibi-title">
+        <h2 id="alibi-title">Feito para não chamar atenção.</h2>
         <ul class="alibi-list">
           <li>Sem som.</li>
           <li>Sem animação.</li>
           <li>Três temas, todos com cara de editor.</li>
           <li>Dá para jogar inteiro pelo teclado.</li>
-          <li>No modo discreto, sobra um contador na barra de status e no título da aba.</li>
+          <li>No modo discreto, a barra de status e o título da aba mostram só um contador.</li>
           <li>Sem anúncios, sem rastreadores, sem scripts de outros sites.</li>
         </ul>
         <p class="alibi-coda">O que você faz na pausa do café é assunto seu.</p>
@@ -282,8 +284,8 @@
         </figure>
       </section>
 
-      <section class="vacancy" aria-labelledby="vaga">
-        <h2 id="vaga">
+      <section class="vacancy" aria-labelledby="vacancy-title">
+        <h2 id="vacancy-title">
           <span class="voice-office">Vaga aberta:</span>
           <span class="voice-fief">senhor ou senhora de Pedra Alta.</span>
         </h2>
@@ -291,8 +293,7 @@
           <div class="prose">
             <p>
               Pedra Alta procura quem a governe nas pausas do café. O botão abre o jogo. Lá você
-              escolhe o seu nome e o nome do feudo e clica em Jogar agora. Não há e-mail, senha nem
-              formulário.
+              escolhe o seu nome e o nome do feudo e clica em Jogar agora. Não há e-mail nem senha.
             </p>
             <p>
               Quer continuar em outro navegador? Gere um Código do Reino e leve o feudo com você.
@@ -314,11 +315,12 @@
     <footer class="colophon">
       <p>Lords of the Guild não é afiliado a nenhum editor de código.</p>
       <p>
-        As pinturas desta página são arte conceitual gerada por IA; as capturas de tela são do jogo.
-        A página não carrega nada de outros sites: sem anúncios, sem rastreadores.
+        A pintura desta página é arte conceitual gerada por IA; as capturas de tela são do jogo. Os
+        ícones que aparecem nelas são os Codicons (licença CC BY 4.0). A página não carrega nada de
+        outros sites: sem anúncios, sem rastreadores.
       </p>
       <p>
-        Letras: Grenze Gotisch e Alegreya, sob a SIL Open Font License (<a href="/licencas.txt"
+        Fontes: Grenze Gotisch e Alegreya, sob a SIL Open Font License (<a href="/licencas.txt"
           >licenças</a
         >).
       </p>

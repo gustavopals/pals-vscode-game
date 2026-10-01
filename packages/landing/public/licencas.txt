@@ -1,7 +1,7 @@
 Lords of the Guild: licenças do que esta página usa
 ===================================================
 
-Letras
+Fontes
 ------
 
 As duas famílias são servidas pela própria página, nos arquivos do subconjunto latino
@@ -16,8 +16,9 @@ família, com o aviso de direitos autorais de cada uma.
 Imagens
 -------
 
-As pinturas de Pedra Alta são arte conceitual gerada por IA para o projeto. As capturas de
-tela são do próprio jogo.
+A pintura de Pedra Alta é arte conceitual gerada por IA para o projeto. As capturas de tela
+são do próprio jogo e mostram os ícones Codicons, sob a licença Creative Commons Atribuição
+4.0 (CC BY 4.0): https://github.com/microsoft/vscode-codicons
 
 
 ==================================== Grenze Gotisch ====================================

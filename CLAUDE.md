@@ -144,8 +144,8 @@ O [README do app](packages/web/README.md) descreve a estrutura. O que orienta qu
 O [README da página](packages/landing/README.md) descreve a estrutura e o [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md), a decisão. O que orienta qualquer mudança:
 
 - É uma página estática, em **domínio próprio**: HTML e CSS escritos à mão e um script pequeno. Sem Preact, sem pacotes do jogo, sem chamadas a servidor. Não divide origem nem armazenamento com o jogo.
-- **Só diz do jogo o que o jogo diz de si.** `src/page.test.ts` confere as linhas da Crônica citadas contra `@lotg/content` e barra promessa de duração de dia ou ano (ADR 0011), viradas de dia (ADR 0007), preço, multijogador, GitHub e nome de editor de código. Nenhum número de regra no texto; o que ainda não existe só aparece no parágrafo "No horizonte", sem data.
-- As pinturas são **arte conceitual gerada por IA** e levam essa legenda; a página abre com uma **captura real do jogo**. As capturas saem de `pnpm capture:landing` (API no ritmo de produção); o roteiro falha se a disposição da tela mudar, porque os rótulos presos à captura têm posição em porcentagem em `src/styles/page.css`.
+- **Só diz do jogo o que o jogo diz de si.** `src/page.test.ts` confere as linhas da Crônica citadas contra `@lotg/content` e barra as formas mais comuns de promessa de duração de dia ou ano (ADR 0011), as viradas de dia (ADR 0007), preço, multijogador, GitHub e o nome "Visual Studio Code"; o que a expressão regular não pega continua proibido. Nenhum número de regra no texto; o que ainda não existe só aparece no parágrafo "No horizonte", sem data.
+- As pinturas são **arte conceitual gerada por IA** e levam essa legenda; a página abre com uma **captura real do jogo**. As capturas saem de `pnpm capture:landing` (API no ritmo de produção), que **só roda à mão**: nada avisa que uma captura ficou velha. O roteiro falha se a disposição da tela mudar, porque os rótulos presos à captura têm posição em porcentagem em `src/styles/page.css`. As capturas mostram os ícones do app (Codicons, CC BY 4.0), e a página dá o crédito no rodapé.
 - Mesma disciplina do app: CSP estrita (`default-src 'none'`), **sem `style="…"` e sem script embutido**, nada de terceiros, nenhuma medição de audiência. Só `src/styles/tokens.css` tem cores; um teste mede o contraste de cada par de texto e fundo.
 - Os endereços do jogo e da página entram no build por `%GAME_URL%` e `%SITE_URL%` (`src/site.ts`, variáveis `LOTG_GAME_URL` e `LOTG_LANDING_URL`); não escreva endereço no HTML.
 - O título da aba da página **não** pode ser igual ao do jogo: o monitor de saúde distingue os dois sites por ele.
@@ -183,7 +183,7 @@ API pública, e nada além dela e dos tipos: `createInitialState`, `nextEventAt`
 
 Uma tarefa do roadmap por sessão; a ordem das fases é obrigatória. Para tarefas `M` e `L`, apresentar o plano e esperar aprovação antes de codar.
 
-1. Rodar os comandos da seção "Verificação" da tarefa e `pnpm verify` (mais `pnpm test:integration` se tocar o servidor, `pnpm test:e2e` se tocar o app web e `pnpm test:e2e:landing` se tocar a página de apresentação) e mostrar a saída. Sem saída de teste, não há tarefa concluída.
+1. Rodar os comandos da seção "Verificação" da tarefa e `pnpm verify` (mais `pnpm test:integration` se tocar o servidor, `pnpm test:e2e` se tocar o app web e `pnpm test:e2e:landing` se tocar a página de apresentação) e mostrar a saída. Se a mudança tocar a aba Feudo, a barra de status ou o modo discreto do app, rodar também `pnpm capture:landing` e refazer as três imagens e o `og.png` da página (packages/landing/README.md). Sem saída de teste, não há tarefa concluída.
 2. Marcar as caixas da tarefa em MVP-ROADMAP.md e preencher a linha no Registro de Execução (§9).
 3. Desvios do GDD → `docs/decisions/NNNN-titulo.md`, aguardando aprovação.
 4. Um commit por tarefa (ou por subtarefa em tarefas `L`).
