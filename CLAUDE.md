@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [MVP-ROADMAP.md](MVP-ROADMAP.md) — plano de execução da v0.1 em fases `F0…F5` e tarefas `F1-T3`, cada uma com subtarefas em caixas de seleção, seção "Verificação" e "Pronto quando". O Registro de Execução (§9) diz o que já foi feito.
 - [Decisões de arquitetura](docs/decisions/README.md) — ADRs. Os contratos dos ADRs 0003–0005 já estão no GDD; segui-los não exige nova aprovação de desvio.
 
-**Estado:** a Fase 0 está concluída: o monorepo, o lint, os testes e o Docker de desenvolvimento existem; os oito pacotes são esqueletos que exportam só uma constante de versão. Nenhuma regra de jogo, rota ou tela foi implementada.
+**Estado:** as Fases 0 e 1 estão concluídas. Existem o monorepo, o Docker de desenvolvimento, o conteúdo da v0.1 (`@lotg/content`), o motor completo da v0.1 (`@lotg/engine`) e o `sim-cli` com o bot econômico. `protocol`, `server`, `client-sdk`, `extension` e `webview` ainda são esqueletos que exportam só uma constante de versão: nenhuma rota ou tela foi implementada. A próxima tarefa é F2-T1.
 
 Os dois documentos somam ~2.700 linhas: leia as seções indicadas pela tarefa em vez do arquivo inteiro (ambos têm índice numerado por `§`).
 
@@ -30,19 +30,25 @@ pnpm typecheck         # tsc --noEmit em todos os pacotes
 pnpm test              # unitários e de conteúdo (Vitest, projeto unit)
 pnpm --filter @lotg/engine test                   # um pacote
 pnpm --filter @lotg/engine test -- construction   # um arquivo de teste (filtro por nome)
+pnpm --filter @lotg/engine test -- --coverage     # cobertura do pacote
+UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test   # regrava os goldens de __golden__/; conferir o diff
 pnpm test:integration  # tests/ e packages/server/test/ contra db_test; exige TEST_DATABASE_URL
 
 pnpm build             # compila os pacotes que têm build (hoje: o servidor, com esbuild)
 pnpm docker:build      # imagem de produção da API (lotg-api:latest, alvo runtime)
 pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
+
+pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico > semana.csv   # bot de playtest; resumo no stderr
 ```
 
-Scripts que já existem mas só avisam a tarefa que os entrega e saem com erro: `pnpm dev:api` (F2-T2), `pnpm db:migrate` (F2-T3), `pnpm dev:ext` (F3-T2), `pnpm sim` (F1-T10). Ao implementar a tarefa, troque o `scripts/pending.mjs` do pacote pelo comando real.
+Scripts que já existem mas só avisam a tarefa que os entrega e saem com erro: `pnpm dev:api` (F2-T2), `pnpm db:migrate` (F2-T3), `pnpm dev:ext` (F3-T2). Ao implementar a tarefa, troque o `scripts/pending.mjs` do pacote pelo comando real.
 
 Detalhes que não são óbvios:
 
 - Os projetos do Vitest ficam em `vitest.config.ts` (`test.projects`: `unit` e `integration`), não em `vitest.workspace.ts`: o Vitest 5 removeu o arquivo de workspace. Sem `TEST_DATABASE_URL`, o projeto `integration` não inclui nenhum arquivo e passa vazio.
 - Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/index.ts`, `moduleResolution: Bundler`); só o que é implantado tem build.
+- Goldens são gravados com `toMatchFileSnapshot` e nunca se regravam sozinhos: só com `UPDATE_GOLDEN=1`. Um golden diferente é uma mudança de regra; ela precisa ser intencional.
+- `@types/node` não está entre as dependências permitidas: o `sim-cli` declara à mão o pouco de `process` que usa (`src/node-env.d.ts`). O [ADR 0006](docs/decisions/0006-types-node.md) propõe liberá-lo e aguarda aprovação; F2-T2 depende dessa resposta.
 - TypeScript está fixado em 6.x porque o `typescript-eslint` ainda não aceita o 7.
 - O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. O `CMD` é `node dist/main.js`, que só passa a existir em F2-T2.
 - A API roda **no host** em desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)); não compartilhar `node_modules` entre host e contêiner. O perfil `--profile full` do compose de dev existe para testar a imagem; `--profile tools` sobe o pgweb (8081).
@@ -87,16 +93,18 @@ Direção das dependências, imposta por `no-restricted-imports` em `eslint.conf
 - **Sessões e recuperação.** Uma família por sessão/máquina, validade absoluta de 30 dias, histórico completo em `refresh_tokens`. Reuso de qualquer antecessor revoga a família com commit antes do 401. Autorização consulta conta/sessão no banco sem cache positivo. Código do Reino usa HMAC-SHA256 com `RECOVERY_CODE_SECRET` independente; detalhes em GDD §14.7 e ADRs 0003/0005.
 - **Exclusão.** Bloqueio imediato, revogação de todas as sessões, limpeza do código de recuperação e arquivamento das partidas em transação; resposta 202 com `deletedAt`/`purgeAfter`. Primeiro job a partir de sete dias remove dependentes em cascata; backups seguem retenção de 14 dias desde a geração. Logout, exclusão e sessão revogada limpam tokens e cache local. Não prometer remoção física imediata nem oferecer desfazer exclusão na v0.1.
 
-### Determinismo do motor (GDD §14.3)
+### Motor (`packages/engine`, GDD §14.3)
 
-API pública (MVP-ROADMAP.md §3): `createInitialState`, `nextEventAt`, `advanceTo`, `applyCommand`, `deriveViewState`.
+API pública, e nada além dela e dos tipos: `createInitialState`, `nextEventAt`, `advanceTo`, `applyCommand`, `deriveViewState`. O [README do motor](packages/engine/README.md) descreve o ciclo, os invariantes e como adicionar um evento.
 
-- Funções puras que nunca mutam a entrada. Sem `Date.now()`, `Math.random()` ou I/O.
-- Tempo de jogo em milissegundos inteiros; `advanceTo` processa a linha do tempo de eventos em ordem, aplicando produção contínua por segmento.
-- Recursos em **milésimos inteiros** com acumulador por recurso (divisão inteira carregando o resto). Nunca `number` fracionário no estado.
-- Invariante testada por propriedade, exata e sem tolerância: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)`.
-- RNG com semente e **fluxos nomeados** (`council`, `market`, `battle:<id>`, …), cada um com estado próprio dentro do `GameState`.
-- Valores deriváveis (capacidade habitacional, caps de armazenamento) são funções puras, nunca persistidos.
+- Funções puras que nunca mutam a entrada: cada chamada clona o estado (JSON puro) e trabalha num rascunho. Sem `Date.now()`, `Math.random()` ou I/O; o ESLint e `purity.test.ts` recusam.
+- `advanceTo` anda trecho a trecho até o próximo evento de `nextEventAt` (fim de obra, chegada de aldeão, virada de dia, comida acabando). Ordem fixa no mesmo instante: obras, aldeões, ano, estação, dia, objetivos, fome (`processEventsAt` em `advance.ts`).
+- Recursos em **milésimos inteiros**; `accumulators` guarda o resto de `taxa × ms` que ainda não completou um milésimo. Fatores do conteúdo são frações (`{ num, den }`) para nenhuma conta usar ponto flutuante. Nunca `number` fracionário no estado.
+- Invariante testada por propriedade, exata e sem tolerância: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)`, no estado e nos eventos.
+- `applyCommand` exige o estado avançado até o instante do comando e lança se não estiver; recusa de regra devolve `{ ok: false, code, message }` sem lançar. Depois de todo comando e de todo instante com eventos rodam `evaluateObjectives` e `settleFamine`.
+- O motor **emite** eventos já com a frase da Crônica (`emit` em `chronicle.ts`, modelos em `@lotg/content`) e não os guarda no estado.
+- Valores deriváveis (capacidade habitacional, aldeões livres, taxas) são funções puras, nunca persistidos.
+- O `GameState` da v0.1 tem o campo `rng`, mas ainda não existe gerador: nenhuma regra da v0.1 sorteia nada. Fluxos nomeados (`council`, `market`, `battle:<id>`, …) entram com a primeira mecânica que sortear.
 
 ## Convenções
 

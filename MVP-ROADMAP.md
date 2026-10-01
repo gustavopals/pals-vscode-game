@@ -544,10 +544,10 @@ Esperado: CSV com 168 linhas; resumo dentro das faixas; golden idêntico.
 **Depende de:** F1-T10.
 **Entregáveis:** `packages/engine/src/index.ts`, `packages/engine/README.md`, `packages/engine/src/purity.test.ts`.
 
-- [ ] F1-T11.1 `index.ts` exporta exatamente a API do contrato da fase e os tipos; nada interno vaza.
-- [ ] F1-T11.2 Teste de pureza: `grep` automatizado por `Date.now`, `Math.random`, `process.`, `require(`, `import .* from 'node:` e `vscode` dentro de `packages/engine/src` (exceto testes); regra de lint equivalente.
-- [ ] F1-T11.3 `README.md` do motor: ciclo `advanceTo → applyCommand → deriveViewState`, invariantes, como adicionar um evento, como atualizar goldens.
-- [ ] F1-T11.4 `pnpm verify` verde; cobertura do motor ≥ 90% de linhas.
+- [x] F1-T11.1 `index.ts` exporta exatamente a API do contrato da fase e os tipos; nada interno vaza.
+- [x] F1-T11.2 Teste de pureza: `grep` automatizado por `Date.now`, `Math.random`, `process.`, `require(`, `import .* from 'node:` e `vscode` dentro de `packages/engine/src` (exceto testes); regra de lint equivalente.
+- [x] F1-T11.3 `README.md` do motor: ciclo `advanceTo → applyCommand → deriveViewState`, invariantes, como adicionar um evento, como atualizar goldens.
+- [x] F1-T11.4 `pnpm verify` verde; cobertura do motor ≥ 90% de linhas.
 
 **Verificação:**
 
@@ -1195,7 +1195,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F1-T8 | 2026-10-01 | HASH_B | 1 | Cenário roteirizado conclui os quatro objetivos com +20 ouro, +30 madeira, +40 comida e +50 ouro. Frases fixadas em `__golden__/chronicle-objectives.txt`. "Recrute 3 aldeões" conta os que chegaram, não os encomendados. |
 | F1-T9 | 2026-10-01 | HASH_C | 1 | Golden com três retratos: estado inicial, primeira alocação (2 na Fazenda: comida +15/h) e fim do cenário dos objetivos. `available` lista as seis melhorias; no início, quatro são pagáveis (Salão e Mina de Ouro não cabem nos recursos iniciais do GDD §5.2). `deriveViewState` aceita um instante futuro e avança uma cópia. |
 | F1-T10 | 2026-10-01 | HASH_D | 1 | Golden de 7 dias com 38 ordens (5 recusadas de propósito), fome e virada do ano. `sim` com a semente `pedra-alta-golden`: 168 linhas de dados, população 26, Salão Nv3, nenhuma fome; duas execuções com `diff` vazio. As faixas passaram sem ajuste de conteúdo. O CSV sai no stdout (`pnpm -s sim`). O bot termina a semana com ~10.000 de madeira parada: sem caps de estoque (v0.2), o excedente não tem saída. |
-| F1-T11 | | | | |
+| F1-T11 | 2026-10-01 | HASH_E | 1 | API pública fechada e conferida por teste; pureza por teste e por lint; cobertura do motor de 99,76% de linhas. Lacunas registradas: (1) a v0.1 não tem gerador de RNG, porque nenhuma regra sorteia (o GDD §18.1 item 3 pede fluxos nomeados; o estado já tem o campo `rng`); (2) ADR 0006 propõe `@types/node` e aguarda aprovação. |
 | F2-T1 | | | | |
 | F2-T2 | | | | |
 | F2-T3 | | | | |

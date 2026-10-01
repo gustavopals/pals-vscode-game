@@ -8,7 +8,7 @@ Jogo medieval de gerenciamento assíncrono jogado dentro do VS Code: um feudo qu
 - Plano de execução da v0.1: [MVP-ROADMAP.md](MVP-ROADMAP.md)
 - Decisões de arquitetura: [docs/decisions](docs/decisions/README.md)
 
-> **Estado:** Fase 0 concluída (repositório, ambiente e Docker). Os pacotes ainda são esqueletos; o jogo começa na Fase 1.
+> **Estado:** Fases 0 e 1 concluídas: repositório, Docker de desenvolvimento, conteúdo e motor da v0.1 e o simulador. Servidor, extensão e Webview ainda são esqueletos (Fases 2 e 3).
 
 ## Pré-requisitos
 
@@ -40,10 +40,12 @@ pnpm verify      # lint + typecheck + testes unitários
 | `pnpm --filter @lotg/engine test` | Testes de um pacote só |
 | `pnpm test:integration` | Testes contra o `db_test`; só roda com `TEST_DATABASE_URL` definido |
 | `pnpm verify` | `lint` + `typecheck` + `test`: a porta de entrada de todo "pronto" |
+| `UPDATE_GOLDEN=1 pnpm test` | Regrava os goldens (`__golden__/`); confira o diff antes de commitar |
+| `pnpm -s sim -- --seed <s> --days 7 --strategy economico` | Bot de playtest: CSV na saída padrão, resumo na saída de erro ([como ler](packages/sim-cli/README.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera os segredos que faltam, sem sobrescrever os existentes |
 | `pnpm docker:build` | Constrói a imagem de produção da API (`lotg-api:latest`) |
 
-Ainda não implementados (avisam a tarefa do roadmap que os entrega): `pnpm dev:api` (F2-T2), `pnpm db:migrate` (F2-T3), `pnpm dev:ext` (F3-T2) e `pnpm sim` (F1-T10).
+Ainda não implementados (avisam a tarefa do roadmap que os entrega): `pnpm dev:api` (F2-T2), `pnpm db:migrate` (F2-T3) e `pnpm dev:ext` (F3-T2).
 
 ## Docker em desenvolvimento
 

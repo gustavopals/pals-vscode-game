@@ -38,6 +38,34 @@ export default tseslint.config(
     },
   },
   {
+    // O motor é determinístico: sem relógio do sistema, sem sorteio sem semente, sem ambiente.
+    files: ['packages/engine/src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Date',
+          property: 'now',
+          message: 'O motor recebe o tempo de jogo por parâmetro.',
+        },
+        {
+          object: 'Math',
+          property: 'random',
+          message: 'Sorteios usam o RNG com semente do estado.',
+        },
+      ],
+      'no-restricted-globals': ['error', 'process', 'require', 'fetch'],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "NewExpression[callee.name='Date']",
+          message: 'O motor recebe o tempo de jogo por parâmetro.',
+        },
+      ],
+    },
+  },
+  {
     // A extensão não contém o motor e nunca depende do servidor: só exibe o ViewState.
     files: ['packages/{extension,webview}/src/**/*.{ts,tsx}'],
     rules: {
