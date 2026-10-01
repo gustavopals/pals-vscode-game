@@ -314,12 +314,12 @@ Regras invioláveis: funções nunca mutam a entrada; nada de `Date.now()`, `Mat
 **Depende de:** F0-T2.
 **Entregáveis:** `packages/content/src/{balance,buildings,objectives,chronicle,index}.ts`, `packages/content/src/schemas.ts`, `packages/content/src/content.test.ts`, `packages/engine/src/types.ts`.
 
-- [ ] F1-T1.1 `balance.ts`: população inicial 5, capacidade por nível (Habitações +5, Salão +5), recursos iniciais 180/120/65/250, taxas base 10/8/5/4 por trabalhador/h, consumo 1 comida/habitante/h, recrutamento (50 comida + 10 ouro, 20 min, fila 5), fatores de custo 1,6 (Salão 1,8) e de tempo 1,5, teto de 8 h, multiplicador de fome 0,75, reembolso de cancelamento 0,8, dia de jogo = 7.200.000 ms, estações 24/24/24/12 dias.
-- [ ] F1-T1.2 `buildings.ts`: `townHall`, `farm`, `lumberMill`, `quarry`, `goldMine`, `housing` com rótulo pt-BR, custo base, tempo base, nível máximo (Salão 8, demais 10), recurso produzido (quando houver), e a regra de gate `nível ≤ nível do Salão + 1`.
-- [ ] F1-T1.3 `objectives.ts`: objetivos 1 a 4 com condição declarativa (`workersAtLeast`, `constructionStarted`, `villagersRecruited`, `buildingLevel`) e recompensa. **Decisão v0.1:** o objetivo 4 ("Salão Nv2") recompensa +50 ouro, porque Celeiro, Armazém e Torre só existem na v0.2; registrar em `docs/decisions/0002-objetivo-4-v01.md`.
-- [ ] F1-T1.4 `chronicle.ts`: modelos de frase para cada tipo de evento da v0.1 (GDD Apêndice E), com placeholders `{dia}`, `{estacao}`, `{edificio}`, `{nivel}`, `{quantidade}`.
-- [ ] F1-T1.5 `schemas.ts` + `content.test.ts`: zod valida tudo; testes garantem custo e tempo positivos, nível máximo ≥ 2, rótulos não vazios, todo tipo de evento com modelo de frase, toda condição de objetivo conhecida.
-- [ ] F1-T1.6 `types.ts` no motor: `GameState` da v0.1 (subconjunto do GDD §14.11: `schemaVersion: 1`, `seed`, `settings`, `clock`, `lastProcessedAt`, `rng`, `settlement` sem campos de versões futuras, `objectives`, `stats`), `GameEvent`, `Command`, `CommandResult`, `RejectionCode`.
+- [x] F1-T1.1 `balance.ts`: população inicial 5, capacidade por nível (Habitações +5, Salão +5), recursos iniciais 180/120/65/250, taxas base 10/8/5/4 por trabalhador/h, consumo 1 comida/habitante/h, recrutamento (50 comida + 10 ouro, 20 min, fila 5), fatores de custo 1,6 (Salão 1,8) e de tempo 1,5, teto de 8 h, multiplicador de fome 0,75, reembolso de cancelamento 0,8, dia de jogo = 7.200.000 ms, estações 24/24/24/12 dias.
+- [x] F1-T1.2 `buildings.ts`: `townHall`, `farm`, `lumberMill`, `quarry`, `goldMine`, `housing` com rótulo pt-BR, custo base, tempo base, nível máximo (Salão 8, demais 10), recurso produzido (quando houver), e a regra de gate `nível ≤ nível do Salão + 1`.
+- [x] F1-T1.3 `objectives.ts`: objetivos 1 a 4 com condição declarativa (`workersAtLeast`, `constructionStarted`, `villagersRecruited`, `buildingLevel`) e recompensa. **Decisão v0.1:** o objetivo 4 ("Salão Nv2") recompensa +50 ouro, porque Celeiro, Armazém e Torre só existem na v0.2; registrar em `docs/decisions/0002-objetivo-4-v01.md`.
+- [x] F1-T1.4 `chronicle.ts`: modelos de frase para cada tipo de evento da v0.1 (GDD Apêndice E), com placeholders `{dia}`, `{estacao}`, `{edificio}`, `{nivel}`, `{quantidade}`.
+- [x] F1-T1.5 `schemas.ts` + `content.test.ts`: zod valida tudo; testes garantem custo e tempo positivos, nível máximo ≥ 2, rótulos não vazios, todo tipo de evento com modelo de frase, toda condição de objetivo conhecida.
+- [x] F1-T1.6 `types.ts` no motor: `GameState` da v0.1 (subconjunto do GDD §14.11: `schemaVersion: 1`, `seed`, `settings`, `clock`, `lastProcessedAt`, `rng`, `settlement` sem campos de versões futuras, `objectives`, `stats`), `GameEvent`, `Command`, `CommandResult`, `RejectionCode`.
 
 **Verificação:**
 
@@ -1185,7 +1185,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F0-T3 | 2026-10-01 | `96ac531` | 1 | Sessão nova (`claude -p`) resumiu motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas sem correção. O `CLAUDE.md` mantém os contratos dos ADRs 0003–0005 além do modelo da §A.1. |
 | F0-T4 | 2026-10-01 | `ea7632d` | 1 | `db` e `db_test` saudáveis em 18 s; `select 1` responde; imagem `runtime` constrói (326 MB, usuário `node`). O `CMD` falha até F2-T2, como previsto. O ignore do build é `deploy/Dockerfile.dockerignore`, e não `deploy/.dockerignore`, porque o contexto é a raiz do repositório. Bancos de dev com senha fixa `lotg`; `POSTGRES_PASSWORD` vale só para o compose de produção. |
 | F0-T5 | 2026-10-01 | `7b379b5` | 1 | Workflow escrito e os comandos dos três jobs rodados localmente com sucesso. **Verificação pendente:** nenhum push foi feito, então os jobs ainda não rodaram no GitHub e o badge não foi conferido. |
-| F1-T1 | | | | |
+| F1-T1 | 2026-10-01 | HASH_A | 1 | Conteúdo da v0.1 com schemas zod (21 testes) e tipos do `GameState`. Fatores guardados como frações inteiras (16/10, 3/2, 3/4) para o motor não usar ponto flutuante. Estado inicial com os 5 aldeões livres: o objetivo 1 é que ensina a alocar. ADR 0002 criado. |
 | F1-T2 | | | | |
 | F1-T3 | | | | |
 | F1-T4 | | | | |
