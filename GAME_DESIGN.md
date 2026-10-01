@@ -1104,7 +1104,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | v0.6 | Polimento | Academia, Feitos completos, som opcional, acessibilidade auditada, desempenho, localização en-US | Pronto para divulgação ampla |
 | v1.0 | Multiplayer | Alianças, mercado entre jogadores, PvP, proteção a novatos | Mundo compartilhado |
 
-**Execução da v0.2:** o [roadmap de Estações e Conselho](docs/roadmap-v0.2.md) detalha as tarefas, a jornada do jogador, os cenários de aceitação e o playtest. A §10 daquele documento reúne decisões ainda abertas (incluindo tempos no ritmo 3×, migração, armazenamento e recuperação); a §12 traz propostas de experiência e cartas. Propostas não alteram as regras deste GDD até a decisão ser registrada. O Apêndice B continua sendo uma amostra de 12 cartas, e não o catálogo completo da meta de 60.
+**Execução da v0.2:** o [roadmap de Estações e Conselho](docs/roadmap-v0.2.md) detalha as tarefas, a jornada do jogador, os cenários de aceitação e o playtest. A §8 daquele documento reúne decisões ainda abertas, cada uma com uma premissa recomendada (incluindo tempos no ritmo 3×, migração, armazenamento e recuperação); a §12 traz propostas de experiência e cartas, e o Apêndice B, os nomes propostos para estado, comandos, eventos e `ViewState`. Propostas não alteram as regras deste GDD até a decisão ser registrada. O Apêndice B continua sendo uma amostra de 12 cartas, e não o catálogo completo da meta de 60.
 
 ### 16.1 Escopo exato da v0.1 — Fundação online
 
