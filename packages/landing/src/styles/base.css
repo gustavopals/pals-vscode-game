@@ -1,0 +1,93 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  text-size-adjust: 100%;
+  /* A barra de status fica presa embaixo: nada com foco se esconde atrás dela. */
+  scroll-padding-bottom: calc(var(--statusbar) + 1.5rem);
+}
+
+body {
+  margin: 0;
+  background: var(--blue);
+  color: var(--ivory);
+  font-family: var(--font-text);
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  /* Cada letra tem um arquivo só: nada de negrito ou itálico inventado pelo navegador. */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+dl,
+dd,
+figure,
+blockquote {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: var(--gutter);
+  z-index: 20;
+  padding: 0.4rem 0.8rem;
+  background: var(--ivory);
+  color: var(--night);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* Quase nada se move nesta página; quem pediu menos movimento não vê nem o botão afundar. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

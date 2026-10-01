@@ -15,6 +15,7 @@
     "dev:logs": "docker compose -f deploy/docker-compose.dev.yml logs -f --tail 100",
     "dev:api": "pnpm --filter @lotg/server dev",
     "dev:web": "pnpm --filter @lotg/web dev",
+    "dev:landing": "pnpm --filter @lotg/landing dev",
     "db:migrate": "pnpm --filter @lotg/server db:migrate",
     "db:psql": "docker compose -f deploy/docker-compose.dev.yml exec db psql -U lotg -d lotg",
     "build": "pnpm -r --if-present build",
@@ -24,11 +25,14 @@
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration --passWithNoTests",
     "test:e2e": "playwright test",
+    "test:e2e:landing": "playwright test --config playwright.landing.config.ts",
+    "capture:landing": "playwright test --config tests/landing/capture/playwright.config.ts",
     "verify": "pnpm lint && pnpm typecheck && pnpm test",
     "sim": "pnpm --silent --filter @lotg/sim-cli sim",
     "secrets:gen": "node scripts/secrets-gen.mjs",
     "docker:build": "docker build -f deploy/Dockerfile --target runtime -t lotg-api:latest .",
-    "docker:build:web": "docker build -f deploy/Dockerfile --target web -t lotg-web:latest ."
+    "docker:build:web": "docker build -f deploy/Dockerfile --target web -t lotg-web:latest .",
+    "docker:build:landing": "docker build -f deploy/Dockerfile --target landing -t lotg-landing:latest ."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

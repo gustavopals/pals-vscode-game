@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # Imagens do jogo. Contexto de build: a raiz do repositório.
-#   docker build -f deploy/Dockerfile --target runtime -t lotg-api:latest .   # a API
-#   docker build -f deploy/Dockerfile --target web -t lotg-web:latest .       # o app web + Caddy
+#   docker build -f deploy/Dockerfile --target runtime -t lotg-api:latest .       # a API
+#   docker build -f deploy/Dockerfile --target web -t lotg-web:latest .           # o app web + Caddy
+#   docker build -f deploy/Dockerfile --target landing -t lotg-landing:latest .   # a página de apresentação + Caddy
 # `runtime` é o último alvo de propósito: é o que sai de um build sem `--target`.
 # Base glibc (bookworm-slim), a mesma em build e runtime; nunca Alpine.
 
@@ -36,10 +37,19 @@ CMD ["pnpm", "--filter", "@lotg/server", "dev"]
 FROM build AS web-build
 RUN pnpm --filter @lotg/web build
 
-# web: o Caddy como servidor de arquivos do app, em HTTP na porta 80 (ADR 0009). Quem termina
-# o TLS e manda /v1 para a API é o proxy da plataforma, na mesma origem (ADR 0008).
+# landing-build: os arquivos estáticos da página de apresentação (packages/landing/dist).
+# Os endereços do jogo e da página têm padrão no pacote (src/site.ts); `--build-arg` os troca.
+FROM build AS landing-build
+ARG LOTG_GAME_URL=""
+ARG LOTG_LANDING_URL=""
+RUN LOTG_GAME_URL="$LOTG_GAME_URL" LOTG_LANDING_URL="$LOTG_LANDING_URL" \
+  pnpm --filter @lotg/landing build
+
+# static: o Caddy como servidor de arquivos, em HTTP na porta 80 (ADR 0009). É a base de `web`
+# e de `landing`, que só acrescentam os arquivos e o Caddyfile de cada um. Quem termina o TLS
+# é o proxy da plataforma.
 # A imagem oficial do Caddy é Alpine; daqui só se aproveita o binário, que é estático.
-FROM debian:bookworm-slim AS web
+FROM debian:bookworm-slim AS static
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates libcap2-bin \
   && rm -rf /var/lib/apt/lists/* \
@@ -51,13 +61,21 @@ RUN setcap cap_net_bind_service=+ep /usr/bin/caddy \
   && chown -R caddy:caddy /data /config
 ENV XDG_DATA_HOME=/data \
     XDG_CONFIG_HOME=/config
-COPY --from=web-build /app/packages/web/dist /srv
-COPY deploy/web.Caddyfile /etc/caddy/Caddyfile
 USER caddy
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --start-interval=2s --retries=3 \
   CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/80"]
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+
+# web: o app. O proxy da plataforma manda /v1 para a API, na mesma origem (ADR 0008).
+FROM static AS web
+COPY --from=web-build /app/packages/web/dist /srv
+COPY deploy/web.Caddyfile /etc/caddy/Caddyfile
+
+# landing: a página de apresentação, em domínio próprio (ADR 0012).
+FROM static AS landing
+COPY --from=landing-build /app/packages/landing/dist /srv
+COPY deploy/landing.Caddyfile /etc/caddy/Caddyfile
 
 # runtime: só o bundle e as migrações; usuário não root. O bundle dispensa node_modules,
 # o que mantém a imagem pouco acima do tamanho da base.

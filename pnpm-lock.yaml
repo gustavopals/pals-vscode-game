@@ -59,6 +59,18 @@ importers:
         specifier: ^4.10.2
         version: 4.10.2
 
+  packages/landing:
+    devDependencies:
+      '@lotg/content':
+        specifier: workspace:*
+        version: link:../content
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+      vite:
+        specifier: ^8.3.2
+        version: 8.3.2(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)
+
   packages/protocol:
     dependencies:
       '@lotg/content':

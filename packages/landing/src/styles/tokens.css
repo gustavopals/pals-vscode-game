@@ -1,0 +1,40 @@
+/*
+ * Cores e letras da página. Este é o único arquivo com valores de cor: as outras folhas usam
+ * as variáveis daqui, e src/styles.test.ts confere isso e o contraste de cada par de texto e
+ * fundo.
+ */
+:root {
+  color-scheme: dark;
+
+  /* O campo da página: o azul dos estandartes de Pedra Alta. */
+  --blue: #1f3a93;
+  /* Sombra chapada sobre o azul, como tinta de xilogravura. */
+  --blue-deep: #14276b;
+  /* O ouro do brasão, o mesmo do destaque do jogo. Sobre o azul, só em letra grande. */
+  --gold: #d9b25f;
+  /* Texto corrido sobre o azul e sobre a noite. */
+  --ivory: #f4ebd3;
+  /* Legendas e texto de apoio sobre o azul e sobre a noite. */
+  --margin: #a9bfef;
+  /* A faixa da Crônica, o rodapé e o texto sobre o ouro e sobre o cinza. */
+  --night: #1f2a38;
+  /* O mundo de quem passa: cinza de escritório. */
+  --office: #e7e9ee;
+  /* Texto de apoio sobre o cinza. */
+  --office-ink: #46505e;
+  /* A barra de status, na cor da barra do jogo. */
+  --status: #2a4a75;
+  --white: #ffffff;
+
+  /* A voz do feudo (títulos), a do cronista (texto) e as do escritório (editor e barra). */
+  --font-fief: 'Grenze Gotisch', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-text: Alegreya, 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-office: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
+  --font-system:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', sans-serif;
+
+  --measure: 34rem;
+  --page: 70rem;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --statusbar: 2.25rem;
+}

@@ -1,0 +1,40 @@
+# Configuração da imagem do alvo `landing` (deploy/Dockerfile): o Caddy só serve os arquivos da
+# página de apresentação, em HTTP na porta 80. O TLS é do proxy da plataforma (ADR 0009 e
+# ADR 0012). A página fica em domínio próprio: não há /v1 nem API nesta origem.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	encode zstd gzip
+	root * /srv
+
+	# A mesma política do index.html, agora como cabeçalho. A página não fala com servidor
+	# nenhum (não há connect-src) e nada vem de fora.
+	header {
+		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		# O Caddy fala HTTP, mas só o proxy da plataforma chega até ele, e o proxy só atende HTTPS.
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	# Arquivos com hash no nome nunca mudam; as páginas são sempre conferidas; o resto (ícone,
+	# imagem da prévia do link, robots.txt) pode ficar uma hora no cache.
+	@hashed path /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	@pages path / *.html
+	header @pages Cache-Control "no-cache"
+	@loose not path /assets/* / *.html
+	header @loose Cache-Control "public, max-age=3600"
+
+	file_server
+
+	# Endereço desconhecido: a página de caminho errado, com o código 404 e sem cache.
+	handle_errors 404 {
+		rewrite * /404.html
+		header Cache-Control "no-cache"
+		file_server
+	}
+}

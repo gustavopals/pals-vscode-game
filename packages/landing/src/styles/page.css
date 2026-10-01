@@ -1,0 +1,809 @@
+/*
+ * A página tem duas vozes. A do escritório (letra de largura fixa, cinza) diz o que se vê de
+ * longe; a do feudo (gótica, ouro) diz o que aquilo é. O resto do texto é do cronista.
+ */
+
+/* ---------- Peças que se repetem ---------- */
+
+.masthead,
+.hero,
+.seasons-text,
+.panorama figcaption,
+.fief,
+.alibi,
+.vacancy,
+.colophon {
+  /* Conteúdo centrado em uma coluna de até --page, com o fundo da seção de ponta a ponta. */
+  padding-inline: max(var(--gutter), calc((100% - var(--page)) / 2));
+}
+
+h2 {
+  font-family: var(--font-fief);
+  font-size: clamp(2.5rem, 6vw, 4.25rem);
+  font-weight: 800;
+  line-height: 0.98;
+  color: var(--gold);
+  text-wrap: balance;
+}
+
+/* Títulos de duas frases quebram entre as frases, nunca no meio de uma. */
+.line {
+  display: inline-block;
+}
+
+.voice-office {
+  display: block;
+  font-family: var(--font-office);
+  font-weight: 400;
+  color: var(--ivory);
+}
+
+.voice-fief {
+  display: block;
+  font-family: var(--font-fief);
+  color: var(--gold);
+}
+
+.prose {
+  display: grid;
+  gap: 0.9em;
+  max-width: var(--measure);
+  font-size: 1.3125rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+figcaption,
+.assurance {
+  color: var(--margin);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* O botão que leva ao jogo: um selo de ouro que afunda sob o dedo. */
+.cta {
+  display: inline-block;
+  padding: 0.55em 1.1em 0.6em;
+  border: 2px solid var(--night);
+  background: var(--gold);
+  box-shadow: 0.375rem 0.375rem 0 var(--blue-deep);
+  color: var(--night);
+  font-family: var(--font-fief);
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    transform 80ms ease-out,
+    box-shadow 80ms ease-out;
+}
+
+.cta:hover {
+  box-shadow: 0.1875rem 0.1875rem 0 var(--blue-deep);
+  transform: translate(0.1875rem, 0.1875rem);
+}
+
+.cta:active {
+  box-shadow: 0 0 0 var(--blue-deep);
+  transform: translate(0.375rem, 0.375rem);
+}
+
+/* ---------- Topo ---------- */
+
+.masthead {
+  padding-top: 1.25rem;
+}
+
+.brand {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------- Herói: o título em duas vozes e a tela lida de dois jeitos ---------- */
+
+.hero {
+  padding-top: clamp(2rem, 5vw, 3.5rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+}
+
+.hero h1 .voice-office {
+  font-size: clamp(1.25rem, 2.4vw, 1.875rem);
+  line-height: 1.2;
+}
+
+.hero h1 .voice-fief {
+  margin-top: 0.1em;
+  /* A gótica tem folga à esquerda: o recuo alinha o É com a linha de cima. */
+  margin-left: -0.03em;
+  font-size: clamp(4.25rem, 16.5vw, 12rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.012em;
+}
+
+.pitch {
+  display: grid;
+  gap: 1.5rem 3rem;
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.lede {
+  max-width: var(--measure);
+  font-size: 1.3125rem;
+  line-height: 1.45;
+}
+
+.action {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: start;
+}
+
+.assurance {
+  max-width: 24rem;
+}
+
+.phone-note {
+  display: none;
+}
+
+.readings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 0;
+  align-items: center;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.reading-figure {
+  flex: 1 0 100%;
+  margin-top: 0.5rem;
+}
+
+.stage {
+  position: relative;
+  /* Os rótulos presos à captura medem-se pela largura dela (unidades cqw), e encolhem junto. */
+  container-type: inline-size;
+}
+
+.window {
+  display: block;
+  border: 1px solid var(--ivory);
+  background: var(--night);
+  box-shadow: 0.625rem 0.625rem 0 var(--blue-deep);
+}
+
+.window img {
+  width: 100%;
+}
+
+.reading-figure figcaption {
+  margin-top: 1.5rem;
+}
+
+/*
+ * Telas estreitas: as duas leituras ficam lado a lado, abaixo da captura, sem interruptor.
+ * A árvore e a obra não aparecem na captura estreita; as linhas delas saem junto.
+ */
+.readings-title,
+.readings > input,
+.readings > label {
+  display: none;
+}
+
+.reading-heads,
+.label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.reading-heads {
+  margin-top: 2rem;
+  color: var(--margin);
+  font-size: 0.875rem;
+}
+
+.reading-heads span:first-child,
+.label dt {
+  font-family: var(--font-office);
+}
+
+.reading-heads span:last-child,
+.label dd {
+  font-family: var(--font-fief);
+  font-weight: 700;
+}
+
+.reading-heads span:last-child {
+  font-size: 1.125rem;
+}
+
+.labels {
+  margin-top: 0.4rem;
+}
+
+.label {
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--margin);
+}
+
+.label dt {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.label dd {
+  color: var(--gold);
+  font-size: 1.4375rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 47.99rem) {
+  .phone-note {
+    display: block;
+  }
+
+  .label-tree,
+  .label-work {
+    display: none;
+  }
+}
+
+/*
+ * Telas largas: os rótulos ficam presos à captura e o interruptor troca a leitura. É só CSS:
+ * dois botões de opção antes da figura. As posições são porcentagens da captura
+ * (src/assets/jogo-feudo.webp, 1040 × 480); se ela for refeita com outra disposição, reveja.
+ * Abaixo de 68rem a captura fica pequena demais para a gótica dos rótulos ser lida.
+ */
+@media (min-width: 60rem) {
+  .pitch {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 68rem) {
+  .readings-title {
+    display: block;
+    margin-right: 1rem;
+    font-family: var(--font-office);
+    font-size: 1rem;
+  }
+
+  .readings > input {
+    /* Fora da vista, mas no caminho do teclado: Tab chega, as setas trocam. */
+    position: absolute;
+    display: block;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  .readings > label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0 1.1rem;
+    border: 2px solid var(--ivory);
+    cursor: pointer;
+  }
+
+  .readings > label[for='leitura-passa'] {
+    font-family: var(--font-office);
+    font-size: 1rem;
+  }
+
+  .readings > label[for='leitura-governa'] {
+    /* As duas opções formam uma peça só. */
+    margin-left: -2px;
+    border-color: var(--gold);
+    color: var(--gold);
+    font-family: var(--font-fief);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  #leitura-passa:checked + label {
+    background: var(--office);
+    color: var(--night);
+  }
+
+  #leitura-governa:checked + label {
+    position: relative;
+    background: var(--gold);
+    color: var(--night);
+  }
+
+  .readings > input:focus-visible + label {
+    position: relative;
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+  #leitura-governa:checked ~ .reading-figure .window {
+    border-color: var(--gold);
+    box-shadow:
+      0 0 0 2px var(--gold),
+      0.625rem 0.625rem 0 var(--blue-deep);
+  }
+
+  .reading-heads {
+    display: none;
+  }
+
+  .labels {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+
+  .label {
+    position: absolute;
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  /* O fio que liga o rótulo ao pedaço da tela de que ele fala. */
+  .label::before {
+    position: absolute;
+    left: 1.4cqw;
+    width: 2px;
+    background: var(--office);
+    content: '';
+  }
+
+  .label dt,
+  .label dd {
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .label dt {
+    padding: 0.3em 0.7em;
+    border: 1px solid var(--night);
+    background: var(--office);
+    color: var(--night);
+    font-size: clamp(0.75rem, 1.25cqw, 0.875rem);
+    line-height: 1.3;
+  }
+
+  .label dd {
+    display: none;
+    /* Uma flâmula: a ponta direita é cortada em rabo de andorinha. */
+    padding: 0.3em 1.15em 0.36em 0.55em;
+    background: var(--gold);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 0.55em) 50%, 100% 100%, 0 100%);
+    color: var(--night);
+    font-size: clamp(1.0625rem, 1.8cqw, 1.3125rem);
+    line-height: 1;
+  }
+
+  #leitura-governa:checked ~ .reading-figure .label dt {
+    display: none;
+  }
+
+  #leitura-governa:checked ~ .reading-figure .label dd {
+    display: block;
+  }
+
+  #leitura-governa:checked ~ .reading-figure .label::before {
+    background: var(--gold);
+  }
+
+  /* Árvore lateral: 4,6% a 33,3% na horizontal, 7% a 69% na vertical. */
+  .label-tree {
+    top: 71.5%;
+    left: 7.5%;
+  }
+
+  .label-tree::before {
+    bottom: 100%;
+    height: 3cqw;
+  }
+
+  /* Tabela de recursos: 35% a 65%, 30% a 57%. */
+  .label-table {
+    top: 22.6%;
+    left: 46%;
+  }
+
+  .label-table::before {
+    top: 100%;
+    height: 0.9cqw;
+  }
+
+  /* Contadores dos trabalhadores: 35% a 65%, 71% a 95%. */
+  .label-steppers {
+    top: 58.6%;
+    left: 50.8%;
+  }
+
+  .label-steppers::before {
+    top: 100%;
+    height: 0.9cqw;
+  }
+
+  /* Obra em andamento: 68% a 98,5%, 30% a 47,5%. */
+  .label-work {
+    top: 22.6%;
+    right: 1.4%;
+  }
+
+  .label-work::before {
+    top: 100%;
+    height: 1.2cqw;
+  }
+
+  /* Barra de status: a faixa de baixo, de 94,8% a 100%. */
+  .label-status {
+    top: 84%;
+    left: 14%;
+  }
+
+  .label-status::before {
+    top: 100%;
+    height: 2.2cqw;
+  }
+}
+
+/* ---------- As estações: a pintura vista por cima das ameias ---------- */
+
+.panorama {
+  position: relative;
+}
+
+.battlements {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 1.75rem;
+  background: repeating-linear-gradient(90deg, var(--blue) 0 1.75rem, transparent 1.75rem 3.5rem);
+}
+
+.panorama-strip img {
+  width: 100%;
+}
+
+.season-names {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding-top: 0.9rem;
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.season-names li {
+  scroll-snap-align: start;
+}
+
+.panorama figcaption {
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  box-sizing: content-box;
+  margin-top: 1.5rem;
+}
+
+.swipe-hint {
+  display: none;
+}
+
+.seasons-text {
+  display: grid;
+  gap: 1.5rem 3rem;
+  padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+}
+
+@media (max-width: 47.99rem) {
+  /* No celular a pintura passa de lado, da Primavera ao Inverno, com o dedo. */
+  .panorama-scroll {
+    overflow: auto hidden;
+    scroll-snap-type: x proximity;
+  }
+
+  .panorama-scroll:focus-visible {
+    /* A faixa vai de ponta a ponta da tela: o anel de foco fica do lado de dentro. */
+    outline-offset: -3px;
+  }
+
+  .panorama-strip {
+    width: calc(clamp(15rem, 55vh, 24rem) * 2.92);
+  }
+
+  .swipe-hint {
+    display: inline;
+    color: var(--ivory);
+  }
+}
+
+@media (min-width: 60rem) {
+  .seasons-text {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    align-items: start;
+  }
+}
+
+/* ---------- O feudo: o que se faz, e a Crônica ---------- */
+
+.fief {
+  padding-top: clamp(3.5rem, 8vw, 6rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  background: var(--night);
+}
+
+.fief-body {
+  display: grid;
+  gap: 3.5rem 4rem;
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.beats {
+  display: grid;
+  gap: 2rem;
+  align-content: start;
+}
+
+.beats h3 {
+  margin-bottom: 0.5rem;
+  color: var(--gold);
+  font-family: var(--font-fief);
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.beats p {
+  max-width: var(--measure);
+}
+
+/*
+ * O fólio: a Crônica composta como uma aba aberta, com a moldura e a sombra da captura do
+ * herói. Não é uma captura; as frases são do jogo.
+ */
+.chronicle {
+  align-self: start;
+  max-width: 44rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--ivory);
+  box-shadow: 0.625rem 0.625rem 0 var(--blue);
+}
+
+.chronicle-title {
+  margin-bottom: 1.25rem;
+  font-family: var(--font-fief);
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.chronicle blockquote {
+  display: grid;
+  gap: 0.6em;
+  font-size: clamp(1.25rem, 1.9vw, 1.4375rem);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+.chronicle p {
+  /* Linha pendurada, como em um anal: a data fica na margem e o resto recua. */
+  padding-left: 1.6em;
+  text-indent: -1.6em;
+}
+
+.chronicle .date {
+  color: var(--gold);
+}
+
+.chronicle figcaption {
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 60rem) {
+  .fief-body {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+/* ---------- O álibi: a única faixa clara, toda na voz do escritório ---------- */
+
+.alibi {
+  padding-top: clamp(3.5rem, 8vw, 6rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+  background: var(--office);
+  color: var(--night);
+  font-family: var(--font-office);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.alibi h2 {
+  color: var(--night);
+}
+
+.alibi :focus-visible {
+  outline-color: var(--status);
+}
+
+.alibi-list {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.alibi-coda {
+  margin-top: 2rem;
+}
+
+.discreet {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+}
+
+.discreet img {
+  /* Na altura de verdade da barra: em tela estreita aparece só o começo, com o contador. */
+  width: 100%;
+  max-width: none;
+  height: 1.5625rem;
+  object-fit: cover;
+  object-position: left center;
+}
+
+.discreet figcaption {
+  margin-top: 0.75rem;
+  color: var(--office-ink);
+  font-size: 0.875rem;
+}
+
+/* ---------- A vaga: o fecho, de novo em duas vozes ---------- */
+
+.vacancy {
+  padding-top: clamp(3.5rem, 8vw, 6rem);
+  padding-bottom: clamp(3.5rem, 8vw, 6rem);
+}
+
+.vacancy h2 .voice-office {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.vacancy h2 .voice-fief {
+  margin-top: 0.12em;
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+}
+
+.horizon {
+  max-width: var(--measure);
+  margin-top: clamp(3rem, 7vw, 5rem);
+  color: var(--margin);
+  font-size: 1.0625rem;
+}
+
+/* ---------- Caminho errado (404.html) ---------- */
+
+.lost {
+  display: grid;
+  gap: 1.75rem;
+  justify-items: start;
+  padding: clamp(2.5rem, 8vw, 6rem) max(var(--gutter), calc((100% - var(--page)) / 2))
+    calc(4rem + var(--statusbar) + env(safe-area-inset-bottom, 0px));
+}
+
+.lost h1 .voice-office {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+}
+
+.lost h1 .voice-fief {
+  margin-top: 0.12em;
+  font-size: clamp(2.75rem, 9vw, 6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* ---------- Cólofon ---------- */
+
+.colophon {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 2.5rem;
+  /* O fim da página fica acima da barra de status, que está presa embaixo. */
+  padding-bottom: calc(3rem + var(--statusbar) + env(safe-area-inset-bottom, 0px));
+  background: var(--night);
+  color: var(--margin);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.colophon p {
+  max-width: 44rem;
+}
+
+.colophon a {
+  color: var(--ivory);
+}
+
+/* ---------- A barra de status da página, com a cor e a letra da barra do jogo ---------- */
+
+.statusbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  gap: 0.9rem;
+  align-items: stretch;
+  min-height: calc(var(--statusbar) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* O azul da barra quase some sobre o azul da página: o filete de ouro a separa. */
+  border-top: 1px solid var(--gold);
+  background: var(--status);
+  color: var(--white);
+  font-family: var(--font-system);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+}
+
+.statusbar-name {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+  align-items: center;
+  padding-left: 0.75rem;
+}
+
+.statusbar-note {
+  flex: 1;
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusbar-cta {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 0 1.1rem;
+  background: var(--gold);
+  color: var(--night);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.statusbar-cta:hover {
+  background: var(--ivory);
+}
+
+.statusbar-cta:focus-visible {
+  outline-color: var(--night);
+  outline-offset: -4px;
+}
+
+@media (pointer: coarse) {
+  /* Com o dedo, o alvo precisa de mais altura do que uma barra de editor tem. */
+  :root {
+    --statusbar: 3rem;
+  }
+
+  .statusbar {
+    font-size: 0.9375rem;
+  }
+}

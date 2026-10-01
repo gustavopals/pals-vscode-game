@@ -33,14 +33,37 @@ const webRestrictions = {
   ],
 };
 
+// A página de apresentação é estática e independente do jogo: nenhum pacote do monorepo,
+// nenhum servidor, nenhum módulo do Node. Os testes podem ler o conteúdo para conferir citações.
+const landingMessage =
+  'A página de apresentação não importa pacotes do jogo, o servidor nem módulos do Node (ADR 0012).';
+const landingRestrictions = {
+  paths: [...serverModules, ...builtinModules].map((name) => ({ name, message: landingMessage })),
+  patterns: [
+    {
+      group: [
+        '@lotg/*',
+        'node:*',
+        'fastify/*',
+        '@fastify/*',
+        'pg/*',
+        'pg-*',
+        'drizzle-orm',
+        'drizzle-orm/*',
+      ],
+      message: landingMessage,
+    },
+  ],
+};
+
 export default tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
       '**/coverage/**',
-      'playwright-report/**',
-      'test-results/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
     ],
   },
   js.configs.recommended,
@@ -91,6 +114,13 @@ export default tseslint.config(
     ignores: ['**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', webRestrictions],
+    },
+  },
+  {
+    files: ['packages/landing/src/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': ['error', landingRestrictions],
     },
   },
   {

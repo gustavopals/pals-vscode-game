@@ -1,0 +1,5 @@
+/* A folha da página: cores e letras, depois a base, depois cada seção na ordem em que aparece. */
+@import './tokens.css';
+@import './fonts.css';
+@import './base.css';
+@import './page.css';

@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Política de conteúdo estrita, como a do jogo: só arquivos desta origem, nenhum script ou
+      estilo embutido, nada de terceiros. A página não fala com servidor nenhum.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="color-scheme" content="dark" />
+    <title>Lords of the Guild: parece trabalho, é um feudo</title>
+    <meta
+      name="description"
+      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código. Nada para instalar, sem e-mail nem senha."
+    />
+    <link rel="canonical" href="%SITE_URL%/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Lords of the Guild" />
+    <meta property="og:title" content="Parece trabalho. É um feudo." />
+    <meta
+      property="og:description"
+      content="Um feudo medieval que você governa nas pausas do café, numa página com cara de editor de código."
+    />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Parece trabalho. É um feudo. Ao lado, uma captura do jogo, que tem cara de editor de código."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/src/fonts/GrenzeGotisch-latin.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/src/fonts/Alegreya-latin.woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+    <header class="masthead">
+      <p class="brand">
+        <img src="/favicon.svg" alt="" width="36" height="36" />
+        Lords of the Guild
+      </p>
+    </header>
+
+    <main id="conteudo">
+      <section class="hero" aria-labelledby="titulo">
+        <h1 id="titulo">
+          <span class="voice-office">Parece trabalho.</span>
+          <span class="voice-fief">É um feudo.</span>
+        </h1>
+
+        <div class="pitch">
+          <p class="lede">
+            Lords of the Guild é um jogo medieval de gestão que roda no navegador. Tem cara de
+            editor de código, mas não tem código. Você governa Pedra Alta nas pausas do café; quem
+            passa atrás da sua cadeira vê abas e uma barra de status.
+          </p>
+          <div class="action">
+            <a class="cta" href="%GAME_URL%">Jogar agora</a>
+            <p class="assurance">
+              Abre o jogo nesta aba. Sem e-mail, sem senha, nada para instalar.
+            </p>
+            <p class="assurance phone-note">
+              Feito para a tela do computador: no celular o jogo abre, mas ainda não foi conferido.
+            </p>
+          </div>
+        </div>
+
+        <div class="readings" role="radiogroup" aria-labelledby="leituras">
+          <p class="readings-title" id="leituras">A mesma tela:</p>
+          <input type="radio" name="leitura" id="leitura-passa" checked />
+          <label for="leitura-passa">Quem passa vê</label>
+          <input type="radio" name="leitura" id="leitura-governa" />
+          <label for="leitura-governa">Quem governa vê</label>
+
+          <figure class="reading-figure">
+            <div class="stage">
+              <picture class="window">
+                <source
+                  media="(max-width: 47.99rem)"
+                  srcset="/src/assets/jogo-feudo-estreito.webp"
+                  width="960"
+                  height="1040"
+                />
+                <img
+                  src="/src/assets/jogo-feudo.webp"
+                  width="2080"
+                  height="960"
+                  alt="Captura real do jogo, na aba Feudo de Pedra Alta: árvore lateral, tabela de recursos, trabalhadores, uma obra em andamento e a barra de status."
+                />
+              </picture>
+              <p class="reading-heads" aria-hidden="true">
+                <span>Quem passa vê</span>
+                <span>Quem governa vê</span>
+              </p>
+              <dl class="labels">
+                <div class="label label-tree">
+                  <dt><span class="sr-only">Quem passa vê: </span>uma árvore de arquivos</dt>
+                  <dd><span class="sr-only">Quem governa vê: </span>o feudo, de cima a baixo</dd>
+                </div>
+                <div class="label label-table">
+                  <dt><span class="sr-only">Quem passa vê: </span>uma tabela qualquer</dt>
+                  <dd><span class="sr-only">Quem governa vê: </span>as despensas</dd>
+                </div>
+                <div class="label label-steppers">
+                  <dt><span class="sr-only">Quem passa vê: </span>uns contadores</dt>
+                  <dd><span class="sr-only">Quem governa vê: </span>quem trabalha onde</dd>
+                </div>
+                <div class="label label-work">
+                  <dt><span class="sr-only">Quem passa vê: </span>uma barra de progresso</dt>
+                  <dd><span class="sr-only">Quem governa vê: </span>os pedreiros na obra</dd>
+                </div>
+                <div class="label label-status">
+                  <dt><span class="sr-only">Quem passa vê: </span>uma barra de status</dt>
+                  <dd><span class="sr-only">Quem governa vê: </span>o que pede atenção agora</dd>
+                </div>
+              </dl>
+            </div>
+            <figcaption>Captura real do jogo. A cara dele é esta, de propósito.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="seasons" aria-labelledby="estacoes">
+        <figure class="panorama">
+          <div class="battlements" aria-hidden="true"></div>
+          <div class="panorama-scroll" role="region" aria-label="Pedra Alta nas quatro estações">
+            <div class="panorama-strip">
+              <picture>
+                <source
+                  type="image/avif"
+                  srcset="
+                    /src/assets/pedra-alta-estacoes-900.avif   900w,
+                    /src/assets/pedra-alta-estacoes-1400.avif 1400w,
+                    /src/assets/pedra-alta-estacoes-2143.avif 2143w
+                  "
+                  sizes="(max-width: 47.99rem) 460px, 100vw"
+                />
+                <img
+                  src="/src/assets/pedra-alta-estacoes-1400.webp"
+                  srcset="
+                    /src/assets/pedra-alta-estacoes-900.webp   900w,
+                    /src/assets/pedra-alta-estacoes-1400.webp 1400w,
+                    /src/assets/pedra-alta-estacoes-2143.webp 2143w
+                  "
+                  sizes="(max-width: 47.99rem) 460px, 100vw"
+                  width="2143"
+                  height="734"
+                  loading="lazy"
+                  decoding="async"
+                  alt="Arte conceitual: o castelo e a vila de Pedra Alta em quatro estações, da primavera florida, à esquerda, ao inverno nevado, à direita."
+                />
+              </picture>
+              <ol class="season-names">
+                <li>Primavera</li>
+                <li>Verão</li>
+                <li>Outono</li>
+                <li>Inverno</li>
+              </ol>
+            </div>
+          </div>
+          <figcaption>
+            <span class="swipe-hint">Arraste para o lado: da Primavera ao Inverno. </span>O pintor
+            exagerou. Isto é arte conceitual de Pedra Alta, gerada por IA; o jogo tem a cara da
+            captura lá em cima. As estações já passam no calendário. Por enquanto, só no calendário.
+          </figcaption>
+        </figure>
+
+        <div class="seasons-text">
+          <h2 id="estacoes">
+            <span class="line">Feche a aba.</span> <span class="line">O feudo continua.</span>
+          </h2>
+          <div class="prose">
+            <p>Uma visita dura de 2 a 10 minutos. Mais que isso é zelo.</p>
+            <p>
+              No resto do tempo, o feudo se vira: as obras terminam, as estações passam e o mundo
+              continua andando com a aba fechada.
+            </p>
+            <p>Quem volta encontra um relatório, não um castigo.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="fief" aria-labelledby="feudo">
+        <h2 id="feudo">Um feudo pequeno, com problemas de gente grande.</h2>
+
+        <div class="fief-body">
+          <ol class="beats">
+            <li>
+              <h3>Você manda.</h3>
+              <p>
+                Põe os aldeões na Fazenda, na Serraria, na Pedreira ou na Mina de Ouro e manda
+                melhorar um edifício. Os pedreiros cuidam de uma obra por vez, e obra leva tempo de
+                verdade.
+              </p>
+            </li>
+            <li>
+              <h3>Você fecha a aba.</h3>
+              <p>
+                A comida entra, a comida sai. Se ela acaba, vem a fome: a produção cai e ninguém se
+                junta a um feudo com fome. É uma pressão, não um fim de jogo.
+              </p>
+            </li>
+            <li>
+              <h3>Você volta.</h3>
+              <p>
+                Depois de algumas horas fora, o Relatório de Retorno conta o que mudou. E a Crônica
+                guarda tudo, uma linha por acontecimento, no tom de quem já viu coisa pior.
+              </p>
+            </li>
+          </ol>
+
+          <figure class="chronicle">
+            <p class="chronicle-title">Crônica de Pedra Alta</p>
+            <blockquote>
+              <p>
+                <span class="date">No 1º dia da Primavera,</span> os pedreiros começaram a erguer as
+                Habitações ao 2º nível.
+              </p>
+              <p>
+                <span class="date">No 1º dia da Primavera,</span> um novo aldeão se juntou ao feudo.
+                Agora são 6.
+              </p>
+              <p>Chega o Verão a Pedra Alta.</p>
+              <p>
+                <span class="date">No 19º dia do Verão,</span> as despensas de Pedra Alta ficaram
+                vazias. A fome começou.
+              </p>
+              <p>
+                <span class="date">No 19º dia do Outono,</span> voltou a haver pão em Pedra Alta. A
+                fome acabou.
+              </p>
+              <p>Começa o ano 2 da Casa de Pedra Alta.</p>
+            </blockquote>
+            <figcaption>Linhas reais da Crônica do jogo.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="alibi" aria-labelledby="alibi">
+        <h2 id="alibi">Feito para não chamar atenção.</h2>
+        <ul class="alibi-list">
+          <li>Sem som.</li>
+          <li>Sem animação.</li>
+          <li>Três temas, todos com cara de editor.</li>
+          <li>Dá para jogar inteiro pelo teclado.</li>
+          <li>No modo discreto, sobra um contador na barra de status e no título da aba.</li>
+          <li>Sem anúncios, sem rastreadores, sem scripts de outros sites.</li>
+        </ul>
+        <p class="alibi-coda">O que você faz na pausa do café é assunto seu.</p>
+        <figure class="discreet">
+          <img
+            src="/src/assets/jogo-discreto-barra.webp"
+            width="2560"
+            height="50"
+            loading="lazy"
+            decoding="async"
+            alt="A barra de status do jogo no modo discreto: só um contador de tempo."
+          />
+          <figcaption>A barra de status do jogo no modo discreto. Captura real.</figcaption>
+        </figure>
+      </section>
+
+      <section class="vacancy" aria-labelledby="vaga">
+        <h2 id="vaga">
+          <span class="voice-office">Vaga aberta:</span>
+          <span class="voice-fief">senhor ou senhora de Pedra Alta.</span>
+        </h2>
+        <div class="pitch">
+          <div class="prose">
+            <p>
+              Pedra Alta procura quem a governe nas pausas do café. O botão abre o jogo. Lá você
+              escolhe o seu nome e o nome do feudo e clica em Jogar agora. Não há e-mail, senha nem
+              formulário.
+            </p>
+            <p>
+              Quer continuar em outro navegador? Gere um Código do Reino e leve o feudo com você.
+            </p>
+          </div>
+          <div class="action">
+            <a class="cta" href="%GAME_URL%">Jogar agora</a>
+            <p class="assurance">Abre o jogo nesta aba.</p>
+          </div>
+        </div>
+        <p class="horizon">
+          No horizonte, sem data: estações com efeito e cartas do Conselho; a Guilda, heróis e
+          expedições; a guerra e o Cerco do Inverno; mapa e legado. Nada disso se joga ainda. Hoje
+          há um feudo, quatro recursos e uma Crônica. Já dá trabalho.
+        </p>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <p>Lords of the Guild não é afiliado a nenhum editor de código.</p>
+      <p>
+        As pinturas desta página são arte conceitual gerada por IA; as capturas de tela são do jogo.
+        A página não carrega nada de outros sites: sem anúncios, sem rastreadores.
+      </p>
+      <p>
+        Letras: Grenze Gotisch e Alegreya, sob a SIL Open Font License (<a href="/licencas.txt"
+          >licenças</a
+        >).
+      </p>
+    </footer>
+
+    <aside class="statusbar" aria-label="Atalho para o jogo">
+      <p class="statusbar-name">
+        <img src="/favicon.svg" alt="" width="16" height="16" />
+        Lords of the Guild
+      </p>
+      <p class="statusbar-note" role="status" data-absence-note></p>
+      <a class="statusbar-cta" href="%GAME_URL%">Jogar agora</a>
+    </aside>
+  </body>
+</html>

@@ -10,6 +10,13 @@
       "problemMatcher": []
     },
     {
+      "label": "lords: página de apresentação (Vite)",
+      "type": "shell",
+      "command": "pnpm dev:landing",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
       "label": "lords: API local",
       "type": "shell",
       "command": "pnpm dev:up && pnpm dev:api",

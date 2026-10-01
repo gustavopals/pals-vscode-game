@@ -1,0 +1,19 @@
+/*
+ * Letras servidas pela própria página (SIL Open Font License; textos em public/licencas.txt).
+ * São os arquivos do subconjunto latino, que cobre o português.
+ */
+@font-face {
+  font-family: 'Grenze Gotisch';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/GrenzeGotisch-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: Alegreya;
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('../fonts/Alegreya-latin.woff2') format('woff2');
+}

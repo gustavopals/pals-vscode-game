@@ -98,20 +98,49 @@ jobs:
             test-results/
           retention-days: 14
 
+  landing:
+    name: landing (Chromium, página de apresentação)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      # Página estática: não precisa da API nem do banco.
+      - run: pnpm test:e2e:landing
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: landing
+          path: |
+            packages/landing/playwright-report/
+            packages/landing/test-results/
+          retention-days: 14
+
   docker:
-    name: docker (alvos runtime e web)
+    name: docker (alvos runtime, web e landing)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f deploy/Dockerfile --target runtime -t lotg-api:ci .
       - run: docker build -f deploy/Dockerfile --target web -t lotg-web:ci .
+      - run: docker build -f deploy/Dockerfile --target landing -t lotg-landing:ci .
+      # A imagem da página responde: cabeçalhos de segurança, cache e a página de caminho errado.
+      - run: |
+          docker run --rm -d --name lotg-landing -p 8080:80 lotg-landing:ci
+          scripts/landing-smoke.sh http://localhost:8080
 
   # Implantação automática (ADR 0009): só em push no main e só depois de todos os jobs acima
   # passarem. Chama a API do Coolify com um token que fica no segredo COOLIFY_DEPLOY_TOKEN
-  # (permissões read e deploy). A API vai primeiro; o app só é trocado com ela saudável.
+  # (permissões read e deploy). A API vai primeiro; o app só é trocado com ela saudável. A página
+  # de apresentação (ADR 0012) vai por último: é independente do jogo e não o derruba.
   deploy:
     name: deploy (Coolify)
-    needs: [verify, integration, e2e, docker]
+    needs: [verify, integration, e2e, landing, docker]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -125,8 +154,12 @@ jobs:
       PUBLIC_URL: https://lords.palsincomehub.com
       API_UUID: bkybag7rv7glgbh9zhv1ysu9
       WEB_UUID: mbixhquvhyrqhduh3bzgoho1
+      LANDING_URL: https://lordsoftheguild.palsincomehub.com
+      LANDING_UUID: d0eskxfxv0vp8x47yhbuvnyf
     steps:
-      - name: Implantar a API e depois o app
+      # Só para ter scripts/landing-smoke.sh; o que vai ao ar é o que o Coolify busca no main.
+      - uses: actions/checkout@v4
+      - name: Implantar a API, o app e a página de apresentação
         run: |
           set -euo pipefail
           coolify() { curl --silent --show-error --fail --max-time 30 -H "Authorization: Bearer $COOLIFY_TOKEN" "$@"; }
@@ -164,3 +197,6 @@ jobs:
           healthy
           curl --silent --show-error --fail --max-time 10 "$PUBLIC_URL/" | grep --quiet '<title>Lords of the Guild</title>'
           echo "No ar: $(curl --silent --max-time 10 "$PUBLIC_URL/v1/version")"
+
+          deploy "página de apresentação" "$LANDING_UUID"
+          scripts/landing-smoke.sh "$LANDING_URL"
