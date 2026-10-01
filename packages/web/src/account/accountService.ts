@@ -107,8 +107,15 @@ export class AccountService {
     if (this.current.kind === 'signedOut') {
       return this.current;
     }
+    const before = this.current;
     const account = await this.deps.client.getMe();
-    await this.set(stateOf(account, await this.activeGameId()));
+    const gameId = await this.activeGameId();
+    // Enquanto o servidor respondia, o jogador pode ter saído ou trocado de conta: a resposta
+    // é da conta antiga e não pode ser gravada por cima.
+    if (this.current !== before) {
+      return this.current;
+    }
+    await this.set(stateOf(account, gameId));
     return this.current;
   }
 

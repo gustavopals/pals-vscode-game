@@ -47,6 +47,9 @@ test.describe('Código do Reino', () => {
     const dialog = page.getByRole('dialog');
     const code = (await dialog.locator('code').innerText()).trim();
     expect(code).toMatch(/^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){4}$/);
+    // Um clique fora não fecha o diálogo: o código só aparece esta vez.
+    await page.mouse.click(5, 5);
+    await expect(dialog.locator('code')).toBeVisible();
     await dialog.getByRole('button', { name: 'Copiar' }).click();
     await expect(dialog.getByRole('button', { name: 'Copiado' })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(code);
@@ -170,9 +173,7 @@ test.describe('várias abas', () => {
     await expect(welcomeTab(second)).toHaveAttribute('aria-selected', 'true');
     await expect(statusBar(second)).toContainText('Lords of the Guild');
     // Nada da conta fica no navegador, nem credenciais nem cache.
-    const left = Object.keys(await stored(second)).filter(
-      (key) => !['lords.preferences', 'lords.linkReminder'].includes(key),
-    );
+    const left = Object.keys(await stored(second)).filter((key) => key !== 'lords.preferences');
     expect(left).toEqual([]);
     // Quem pediu para sair não recebe aviso de "sessão terminou".
     await expect(toasts(first).getByText(/sessão/i)).toHaveCount(0);
@@ -218,6 +219,8 @@ test.describe('excluir a conta', () => {
     await expect(confirm).toContainText('depois de sete dias');
     await expect(confirm).toContainText('até 14 dias');
     await expect(confirm.getByRole('button', { name: /desfazer/i })).toHaveCount(0);
+    // O texto dos prazos é a descrição do diálogo: leitores de tela o leem com o título.
+    await expect(confirm).toHaveAccessibleDescription(/bloqueada na hora.*sete dias/);
     await confirm.getByRole('button', { name: 'Excluir a conta' }).click();
 
     const typed = first.getByRole('dialog');
@@ -232,9 +235,7 @@ test.describe('excluir a conta', () => {
     // A outra aba percebe e também limpa tudo.
     await expect(welcomeTab(second)).toHaveAttribute('aria-selected', 'true');
     for (const page of [first, second]) {
-      const left = Object.keys(await stored(page)).filter(
-        (key) => !['lords.preferences', 'lords.linkReminder'].includes(key),
-      );
+      const left = Object.keys(await stored(page)).filter((key) => key !== 'lords.preferences');
       expect(left).toEqual([]);
     }
 

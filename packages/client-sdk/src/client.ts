@@ -181,7 +181,18 @@ export function createClient(options: ClientOptions) {
 
   // --- Renovação da sessão ---------------------------------------------------
 
-  async function unauthenticated(): Promise<void> {
+  /**
+   * A sessão acabou. `usedAccessToken` é o token da chamada que falhou: se o `TokenStore` já
+   * guarda outro (o jogador entrou em outra conta enquanto a resposta estava em voo, ou outra
+   * aba renovou), a falha é de uma sessão que não é mais a atual, e nada é apagado.
+   */
+  async function unauthenticated(usedAccessToken?: string): Promise<void> {
+    if (usedAccessToken !== undefined) {
+      const current = await tokenStore.get();
+      if (current !== null && current.accessToken !== usedAccessToken) {
+        return;
+      }
+    }
     await tokenStore.clear();
     await options.onUnauthenticated?.();
   }
@@ -263,7 +274,7 @@ export function createClient(options: ClientOptions) {
       }
       if (failure.code !== 'UNAUTHORIZED') {
         // Sessão revogada ou conta excluída: renovar não adianta.
-        await unauthenticated();
+        await unauthenticated(tokens.accessToken);
         throw failure;
       }
       const renewed = await refreshOnce(tokens.accessToken);
@@ -272,7 +283,7 @@ export function createClient(options: ClientOptions) {
       }
       const second = await rawRequest(method, path, { ...request, token: renewed });
       if (second.status === 401 && isApiError(second)) {
-        await unauthenticated();
+        await unauthenticated(renewed);
       }
       return second;
     };

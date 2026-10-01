@@ -23,7 +23,7 @@ const OTHER_GAME_ID = '33333333-3333-4333-8333-333333333333';
 const OTHER_ACCOUNT_ID = '44444444-4444-4444-8444-444444444444';
 
 const ACCOUNT_KEY = 'lords.account:self';
-const REMINDER_KEY = 'lords.linkReminder';
+const REMINDER_KEY = `lords.linkReminder:${ACCOUNT_ID}`;
 const target = { serverKey: 'self', accountId: ACCOUNT_ID, gameId: GAME_ID };
 const VIEW_REQUEST = `GET /games/${GAME_ID}/view`;
 const COMMANDS_REQUEST = `POST /games/${GAME_ID}/commands`;
@@ -1649,6 +1649,82 @@ describe('servidor de uma versão anterior', () => {
     await settle(controller);
     expect(controller.server.status).toBe('ready');
     expect(controller.githubAvailable).toBe(false);
+    controller.dispose();
+  });
+});
+
+describe('achados da revisão independente', () => {
+  it('um 401 que não veio da API (proxy, portal cativo) não desloga nem apaga a conta', async () => {
+    const { controller, api, store, tokenStore } = makeController({ signedIn: true });
+    await controller.start();
+    await settle(controller);
+    // Um proxy no caminho responde 401 com um corpo que não é o erro da API.
+    api.state.failNext.set('/view', { status: 401, body: {} as never });
+    await controller.session.syncNow();
+    await settle(controller);
+
+    expect(controller.account.state.kind).toBe('anonymous');
+    expect(controller.route).toBe('fief');
+    // É tratado como servidor fora do ar: último estado à vista, credenciais e conta intactas.
+    expect(controller.connection.kind).toBe('offline');
+    expect(controller.view).not.toBeNull();
+    expect(await tokenStore.get()).not.toBeNull();
+    expect(store.get('lords.account:self')).toBeDefined();
+    controller.dispose();
+  });
+
+  it('no modo discreto, a recusa de uma ordem do próprio jogador continua visível', async () => {
+    const { controller, api } = makeController({ signedIn: true });
+    await controller.start();
+    await controller.setPreferences({ discreetMode: true });
+    api.refuseNextCommand('Faltam 30 madeira e 35 pedra.');
+    await controller.order('startConstruction', { building: 'townHall' });
+    expect(controller.toasts.map((toast) => toast.text)).toEqual(['Faltam 30 madeira e 35 pedra.']);
+    controller.dispose();
+  });
+
+  it('sair sem rede não mostra erro: as credenciais daqui já sumiram', async () => {
+    const { controller, api, tokenStore } = makeController({ signedIn: true });
+    await controller.start();
+    await settle(controller);
+    api.state.online = false;
+    await controller.attempt(() => controller.signOut());
+    await settle(controller);
+    expect(controller.account.state.kind).toBe('signedOut');
+    expect(await tokenStore.get()).toBeNull();
+    expect(controller.toasts).toEqual([]);
+    controller.dispose();
+  });
+
+  it('a Crônica que chega depois de o jogador sair não aparece para a conta seguinte', async () => {
+    const { controller, api } = makeController({ signedIn: true });
+    await controller.start();
+    await settle(controller);
+    const loading = controller.loadChronicle();
+    // A resposta ainda está em voo quando a partida fecha.
+    controller.session.stop();
+    expect(await loading).toBeNull();
+    expect(controller.chronicleDocument.status).not.toBe('ready');
+    expect(api.state.requests).toContain(`GET /games/${GAME_ID}/chronicle.md`);
+    controller.dispose();
+  });
+
+  it('armazenamento negado pelo navegador: avisa que a conta se perde ao fechar a aba', async () => {
+    const { controller } = makeController({ overrides: { persistentStorage: false } });
+    await controller.start();
+    expect(controller.toasts).toHaveLength(1);
+    expect(controller.toasts[0]?.text).toContain('ao fechar a aba a conta se perde');
+    expect(controller.toasts[0]?.sticky).toBe(true);
+    controller.dispose();
+  });
+
+  it('o lembrete do dia 3 é por conta e some do navegador quando ela sai', async () => {
+    const { controller, store } = makeController({ signedIn: true });
+    await controller.start();
+    await store.update(REMINDER_KEY, true);
+    await controller.signOut();
+    await settle(controller);
+    expect(store.keys().filter((key) => key.startsWith('lords.linkReminder'))).toEqual([]);
     controller.dispose();
   });
 });

@@ -61,6 +61,19 @@ function loadCache(store: KeyValueStore, target: SessionTarget): GameCache | nul
   return cached;
 }
 
+/**
+ * A API disse que a sessão acabou. Um 401 sem o corpo de erro da API (proxy, portal cativo)
+ * não conta: o SDK guarda as credenciais nesse caso, e apagar a conta local aqui deixaria uma
+ * conta anônima sem volta.
+ */
+export function isSessionLoss(error: unknown): boolean {
+  return (
+    error instanceof ApiClientError &&
+    error.status === 401 &&
+    (error.code === 'UNAUTHORIZED' || error.code === 'SESSION_REVOKED')
+  );
+}
+
 /** O comando não foi enviado porque não há ligação com o servidor. Nada fica em fila. */
 export class OfflineError extends Error {
   constructor() {
@@ -191,9 +204,15 @@ export class GameSession {
     if (this.target === null) {
       return Promise.resolve();
     }
-    this.syncing ??= this.cycle().finally(() => {
-      this.syncing = null;
-    });
+    if (this.syncing === null) {
+      const running: Promise<void> = this.cycle().finally(() => {
+        // Só o ciclo corrente se desmarca: o de uma sessão já fechada não apaga o da nova.
+        if (this.syncing === running) {
+          this.syncing = null;
+        }
+      });
+      this.syncing = running;
+    }
     return this.syncing;
   }
 
@@ -217,7 +236,7 @@ export class GameSession {
   }
 
   private handleFailure(error: unknown): void {
-    if (error instanceof NetworkError || this.isServerTrouble(error)) {
+    if (error instanceof NetworkError || (!isSessionLoss(error) && this.isServerTrouble(error))) {
       const attempt =
         this.connectionState.kind === 'offline' ? this.connectionState.attempt + 1 : 1;
       const retryInMs = retryDelayMs(attempt);
@@ -225,7 +244,7 @@ export class GameSession {
       this.schedule(retryInMs);
       return;
     }
-    if (error instanceof ApiClientError && error.status === 401) {
+    if (isSessionLoss(error)) {
       // Não é falta de rede: o cache não deve ser exibido como se fosse.
       this.clearTimer();
       this.setConnection({ kind: 'unauthenticated' });
@@ -238,7 +257,11 @@ export class GameSession {
   }
 
   private isServerTrouble(error: unknown): boolean {
-    return error instanceof ApiClientError && (error.status >= 500 || error.status === 429);
+    if (!(error instanceof ApiClientError)) {
+      return false;
+    }
+    // Um 401 que não veio da API (proxy, portal cativo) é problema de caminho, não de sessão.
+    return error.status >= 500 || error.status === 429 || error.status === 401;
   }
 
   /** Lê a visão (com ETag) e os eventos novos, e grava o cache. */
@@ -335,7 +358,7 @@ export class GameSession {
         }
       } else if (error instanceof NetworkError) {
         this.handleFailure(error);
-      } else if (error instanceof ApiClientError && error.status === 401) {
+      } else if (isSessionLoss(error) || this.isServerTrouble(error)) {
         this.handleFailure(error);
       }
       throw error;

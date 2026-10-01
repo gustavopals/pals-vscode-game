@@ -35,7 +35,8 @@ import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
 
 const CHRONICLE_LINES = 20;
-const REMINDER_KEY = 'lords.linkReminder';
+/** O lembrete do dia 3 é um por conta: outra conta no mesmo navegador recebe o seu. */
+const reminderKey = (accountId: string) => `lords.linkReminder:${accountId}`;
 /** No navegador o servidor é sempre a própria origem: uma chave só. */
 const SERVER_KEY = 'self';
 
@@ -56,6 +57,18 @@ export function describeError(error: unknown): { code: ErrorCode; message: strin
     return { code: error.code, message: error.message };
   }
   return { code: 'INTERNAL', message: error instanceof Error ? error.message : String(error) };
+}
+
+/** UUID v4. `crypto.randomUUID` só existe em contexto seguro; `getRandomValues`, sempre. */
+export function randomUUID(): string {
+  if (typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
+  bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 export type ToastAction = { label: string; run: () => void | Promise<void> };
@@ -85,12 +98,16 @@ export type ControllerOptions = {
   fetch?: typeof fetch;
   /** Exclusão entre abas para a renovação da sessão (`services/sessionLock.ts`). */
   refreshLock?: <T>(task: () => Promise<T>) => Promise<T>;
+  /** Atraso aleatório antes de renovar a sessão, para quando não há Web Locks. */
+  refreshJitterMs?: number;
   validateResponses?: boolean;
   deviceLabel?: string;
   now?: () => number;
   randomUUID?: () => string;
   timezone?: () => string;
   notifier?: BrowserNotifier;
+  /** `false` quando o navegador negou o armazenamento: nada sobrevive ao fechar a aba. */
+  persistentStorage?: boolean;
   /** Escreve no console do navegador; nunca recebe tokens nem códigos. */
   log?: (message: string) => void;
 };
@@ -145,6 +162,7 @@ export class Controller {
       onUnauthenticated: () => this.account.handleUnauthenticated(),
       ...(options.fetch ? { fetch: options.fetch } : {}),
       ...(options.refreshLock ? { refreshLock: options.refreshLock } : {}),
+      ...(options.refreshJitterMs ? { refreshJitterMs: options.refreshJitterMs } : {}),
       validateResponses: options.validateResponses ?? false,
     });
     this.account = new AccountService({
@@ -200,6 +218,13 @@ export class Controller {
     this.previousAccount = this.account.restore();
     this.route = resolveRoute(requested ?? this.defaultRoute(), this.hasGame, this.defaultRoute());
     this.openIfClosable(this.route);
+    if (this.options.persistentStorage === false) {
+      this.toast({
+        kind: 'warning',
+        text: 'Este navegador não deixa o site guardar dados. Dá para jogar, mas ao fechar a aba a conta se perde, a menos que você gere um Código do Reino.',
+        actions: [{ label: 'Entendi', run: () => {} }],
+      });
+    }
     this.changes.emit();
     void this.loadServerInfo();
     await this.openGame();
@@ -383,6 +408,7 @@ export class Controller {
         // parecer só falta de rede.
         this.session.stop();
         await clearAccountCaches(this.options.store, SERVER_KEY, before.accountId);
+        await this.options.store.update(reminderKey(before.accountId), undefined);
       } else if (beforeTarget !== null) {
         // Mesma conta, outra partida: a anterior foi arquivada e o cache dela não serve mais.
         await this.session.clearCache(beforeTarget);
@@ -423,9 +449,14 @@ export class Controller {
     await this.session.start(target);
     if (this.session.connection.kind === 'online') {
       try {
-        this.chronicle = (
-          await this.client.getChronicle(target.gameId, { limit: CHRONICLE_LINES })
-        ).entries;
+        const { entries } = await this.client.getChronicle(target.gameId, {
+          limit: CHRONICLE_LINES,
+        });
+        // A resposta só vale se a partida aberta ainda for a mesma: nada da conta anterior
+        // aparece na seguinte.
+        if (this.session.gameId === target.gameId) {
+          this.chronicle = entries;
+        }
       } catch (error) {
         this.log(`Crônica indisponível: ${describeError(error).message}`);
       }
@@ -501,6 +532,10 @@ export class Controller {
     if (connection.kind === 'unauthenticated') {
       void this.account.handleUnauthenticated();
     }
+    if (connection.kind === 'online' && this.server.status === 'error') {
+      // A consulta de versão falhou na abertura: sem ela o vínculo GitHub ficaria escondido.
+      void this.loadServerInfo();
+    }
     // Os avisos de falta de rede ficam: é com a ligação de volta que o "Tentar de novo" deles
     // consegue reenviar a ordem.
     this.changes.emit();
@@ -536,11 +571,16 @@ export class Controller {
 
   private async maybeRemindToLink(view: ViewState): Promise<void> {
     const { store } = this.options;
-    const handled = store.get<boolean>(REMINDER_KEY) ?? false;
+    const account = this.account.state;
+    if (account.kind === 'signedOut') {
+      return;
+    }
+    const key = reminderKey(account.accountId);
+    const handled = store.get<boolean>(key) ?? false;
     if (!shouldRemindToLink(view, this.account.state, handled) || this.preferences.discreetMode) {
       return;
     }
-    await store.update(REMINDER_KEY, true);
+    await store.update(key, true);
     const actions: ToastAction[] = [];
     if (this.githubAvailable) {
       actions.push({ label: 'Vincular ao GitHub', run: () => this.runCommand('lords.linkGithub') });
@@ -640,7 +680,17 @@ export class Controller {
   /** Sair e excluir são pedidos do jogador: não merecem o aviso de "sessão terminou". */
   signOut(): Promise<void> {
     this.expectedSignOut = true;
-    return this.whileBusy(() => this.account.signOut());
+    return this.whileBusy(async () => {
+      try {
+        await this.account.signOut();
+      } catch (error) {
+        // Sem rede o servidor não foi avisado, mas as credenciais daqui já sumiram: para o
+        // jogador, a saída aconteceu. Não há o que tentar de novo.
+        if (!(error instanceof NetworkError)) {
+          throw error;
+        }
+      }
+    });
   }
 
   async deleteAccount(): Promise<void> {
@@ -664,7 +714,7 @@ export class Controller {
     type: T,
     payload: Extract<Command, { type: T }>['payload'],
   ): () => Promise<void> {
-    const commandId = this.options.randomUUID?.() ?? crypto.randomUUID();
+    const commandId = (this.options.randomUUID ?? randomUUID)();
     const command = { commandId, type, payload } as Command;
     return () => this.send(command);
   }
@@ -747,10 +797,17 @@ export class Controller {
     }
     try {
       const markdown = await this.client.getChronicleMarkdown(gameId);
+      if (this.session.gameId !== gameId) {
+        // O jogador saiu ou trocou de feudo enquanto a Crônica vinha: ela não é mais a dele.
+        return null;
+      }
       this.chronicleDocument = { status: 'ready', value: markdown };
       this.changes.emit();
       return markdown;
     } catch (error) {
+      if (this.session.gameId !== gameId) {
+        return null;
+      }
       this.chronicleDocument = { status: 'error', message: describeError(error).message };
       this.changes.emit();
       return null;

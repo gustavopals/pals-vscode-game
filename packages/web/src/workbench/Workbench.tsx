@@ -132,6 +132,7 @@ export function Workbench(props: {
     chronicle: controller.chronicle,
     unseen: controller.unseen,
     elapsedSeconds: elapsed,
+    githubAvailable: controller.githubAvailable,
   });
 
   const run = (id: string, arg?: unknown) => {

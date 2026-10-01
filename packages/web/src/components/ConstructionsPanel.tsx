@@ -82,6 +82,7 @@ export function ConstructionsPanel(props: {
                   type="button"
                   class="link"
                   disabled={disabled}
+                  aria-label={`Tirar da lista: ${plan.label}`}
                   onClick={() => actions.order('unplanConstruction', { building: plan.building })}
                 >
                   Tirar da lista
@@ -107,6 +108,7 @@ export function ConstructionsPanel(props: {
                 <button
                   type="button"
                   disabled={disabled || blocked}
+                  aria-label={`Melhorar ${upgrade.label}`}
                   onClick={() => actions.order('startConstruction', { building: upgrade.building })}
                 >
                   Melhorar
@@ -116,6 +118,7 @@ export function ConstructionsPanel(props: {
                     type="button"
                     class="link"
                     disabled={disabled}
+                    aria-label={`Planejar ${upgrade.label}`}
                     onClick={() =>
                       actions.order('planConstruction', { building: upgrade.building })
                     }

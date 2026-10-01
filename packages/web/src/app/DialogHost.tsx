@@ -63,9 +63,11 @@ function InfoBody(props: {
   return (
     <>
       <h2 id="dialog-title">{state.title}</h2>
-      {state.paragraphs.map((paragraph, index) => (
-        <p key={index}>{paragraph}</p>
-      ))}
+      <div id="dialog-detail">
+        {state.paragraphs.map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+      </div>
       {state.code === undefined ? null : (
         <div class="dialog-code">
           <code>{state.code}</code>
@@ -116,9 +118,11 @@ function ConfirmBody(props: {
   return (
     <>
       <h2 id="dialog-title">{state.title}</h2>
-      {(state.detail ?? []).map((paragraph, index) => (
-        <p key={index}>{paragraph}</p>
-      ))}
+      <div id="dialog-detail">
+        {(state.detail ?? []).map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+      </div>
       <div class="dialog-actions">
         {/* O foco começa em "Cancelar": Enter sem ler não confirma nada destrutivo. */}
         <button type="button" class="secondary" data-autofocus onClick={() => props.resolve(false)}>
@@ -207,7 +211,9 @@ export function DialogHost(props: {
     <div
       class={pick ? 'backdrop backdrop-top' : 'backdrop'}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        // Um código que só aparece uma vez não se perde por um clique fora do diálogo.
+        const oneTime = state.kind === 'info' && state.code !== undefined;
+        if (event.target === event.currentTarget && !oneTime) {
           dialogs.cancel();
         }
       }}
@@ -220,6 +226,11 @@ export function DialogHost(props: {
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
+        // O foco cai em um botão: sem isto, o leitor de tela pularia o texto que explica a
+        // consequência (sair sem código, prazos da exclusão).
+        aria-describedby={
+          state.kind === 'confirm' || state.kind === 'info' ? 'dialog-detail' : undefined
+        }
       >
         {state.kind === 'confirm' ? <ConfirmBody state={state} resolve={resolve} /> : null}
         {state.kind === 'input' ? <InputBody state={state} resolve={resolve} /> : null}

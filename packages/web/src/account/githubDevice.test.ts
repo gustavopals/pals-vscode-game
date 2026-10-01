@@ -210,3 +210,30 @@ describe('espera da confirmação no GitHub', () => {
     expect(polls).toHaveLength(2);
   });
 });
+
+describe('servidor ocupado durante a espera', () => {
+  it('um 429 ou 5xx em uma consulta só adia a próxima: o código já confirmado não se perde', async () => {
+    const { ApiClientError } = await import('@lotg/client-sdk');
+    const { client, options, sleeps } = setup([
+      new ApiClientError(429, 'RATE_LIMITED', 'Muitas requisições.', undefined),
+      new ApiClientError(500, 'INTERNAL', 'O GitHub não respondeu.', undefined),
+      authorized,
+    ]);
+    await expect(awaitGithubAuthorization(client, start, options)).resolves.toEqual({
+      kind: 'authorized',
+      githubAccessToken: 'gho_teste',
+    });
+    // Depois do aperto, o intervalo sobe para 10 s e não volta a cair.
+    expect(sleeps).toEqual([5_000, 10_000, 10_000]);
+  });
+
+  it('um erro que não é de servidor ocupado sobe para quem chamou', async () => {
+    const { ApiClientError } = await import('@lotg/client-sdk');
+    const { client, options } = setup([
+      new ApiClientError(404, 'NOT_FOUND', 'Vínculo desligado.', undefined),
+    ]);
+    await expect(awaitGithubAuthorization(client, start, options)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+  });
+});

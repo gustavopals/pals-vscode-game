@@ -35,6 +35,8 @@ export type TreeInput = {
   /** Novidades ainda não vistas (Relatório de Retorno e notificações que viraram badge). */
   unseen: number;
   elapsedSeconds: number;
+  /** O servidor tem o vínculo GitHub ligado. Sem isto, "Vincular ao GitHub" não aparece. */
+  githubAvailable?: boolean;
 };
 
 const DESCRIPTION_MAX = 60;
@@ -131,7 +133,7 @@ function chronicleNode(chronicle: GameEvent[]): TreeNode {
   };
 }
 
-function accountNode(account: AccountState): TreeNode {
+function accountNode(account: AccountState, githubAvailable: boolean): TreeNode {
   if (account.kind === 'signedOut') {
     return {
       id: 'account',
@@ -147,7 +149,7 @@ function accountNode(account: AccountState): TreeNode {
     command: { id: command },
   });
   const children: TreeNode[] = [];
-  if (account.kind === 'anonymous') {
+  if (account.kind === 'anonymous' && githubAvailable) {
     children.push(action('github', 'Vincular ao GitHub', 'lords.linkGithub', 'github'));
   }
   children.push(
@@ -194,7 +196,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         icon: 'home',
         command: { id: 'lords.openPanel' },
       },
-      accountNode(account),
+      accountNode(account, input.githubAvailable ?? true),
       settings,
     ];
   }
@@ -227,7 +229,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
       ],
     },
     chronicleNode(input.chronicle),
-    accountNode(account),
+    accountNode(account, input.githubAvailable ?? true),
     settings,
   ];
 }

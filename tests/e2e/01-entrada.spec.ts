@@ -115,6 +115,33 @@ test.describe('primeira abertura', () => {
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  test('o botão "voltar" sai do app: endereço sem aba e redirecionamentos não prendem', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context, '/#/sobre');
+    await expect(page.getByRole('tab', { name: 'Sobre' })).toHaveAttribute('aria-selected', 'true');
+    // Entrar pelo endereço puro: o app põe a aba no endereço sem criar entrada no histórico.
+    await page.goto('about:blank');
+    await page.goto('/');
+    await expect(page).toHaveURL(/#\/boas-vindas$/);
+    await page.goBack();
+    await expect(page).toHaveURL('about:blank');
+
+    // Com feudo, voltar para as boas-vindas redireciona, e o voltar seguinte continua andando.
+    await page.goto('/');
+    await playNow(page);
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await expect(page).toHaveURL(/#\/hoje$/);
+    await page.goBack();
+    await expect(page).toHaveURL(/#\/feudo$/);
+    await page.goBack();
+    // A entrada das boas-vindas vira o Feudo, sem empilhar outra.
+    await expect(page).toHaveURL(/#\/feudo$/);
+    await page.goBack();
+    await expect(page).toHaveURL('about:blank');
+  });
+
   test('as credenciais e o cache ficam só no armazenamento do site, com o prefixo lords.', async ({
     context,
     world,

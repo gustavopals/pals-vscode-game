@@ -1,5 +1,8 @@
-import type { Client } from '@lotg/client-sdk';
+import { ApiClientError, type Client } from '@lotg/client-sdk';
 import type { GithubDeviceStartResponse } from '@lotg/protocol';
+
+/** Intervalo depois de um 429 ou 5xx do nosso servidor. */
+const BUSY_INTERVAL_SECONDS = 10;
 
 export type DeviceOutcome =
   | { kind: 'authorized'; githubAccessToken: string }
@@ -12,8 +15,9 @@ export type DeviceOutcome =
 
 /**
  * Espera o jogador confirmar o código no GitHub, consultando no intervalo que o GitHub pediu.
- * Um `slowDown` aumenta o intervalo; o prazo do código encerra a espera. Uma falha de rede em
- * uma consulta sobe para quem chamou: a tentativa inteira é refeita, com outro código.
+ * Um `slowDown` aumenta o intervalo; o prazo do código encerra a espera. Um servidor ocupado
+ * (429 ou 5xx) em uma consulta só adia a próxima: o jogador pode já ter confirmado o código.
+ * Uma falha de rede sobe para quem chamou: a tentativa inteira é refeita, com outro código.
  */
 export async function awaitGithubAuthorization(
   client: Pick<Client, 'pollGithubDevice'>,
@@ -34,7 +38,16 @@ export async function awaitGithubAuthorization(
     if (options.now() >= deadline) {
       return { kind: 'expired' };
     }
-    const poll = await client.pollGithubDevice(start.deviceCode);
+    let poll;
+    try {
+      poll = await client.pollGithubDevice(start.deviceCode);
+    } catch (error) {
+      if (error instanceof ApiClientError && (error.status === 429 || error.status >= 500)) {
+        intervalSeconds = Math.max(intervalSeconds, BUSY_INTERVAL_SECONDS);
+        continue;
+      }
+      throw error;
+    }
     switch (poll.status) {
       case 'authorized':
         return { kind: 'authorized', githubAccessToken: poll.githubAccessToken };

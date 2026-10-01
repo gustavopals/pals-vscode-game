@@ -213,6 +213,13 @@ test.describe('modo discreto', () => {
     await expect(page.locator('.activity-badge')).toHaveCount(0);
     await expect(page).toHaveTitle(/^\d\d:\d\d$/);
 
+    // Discreto não é mudo para o que o próprio jogador faz: a recusa de uma ordem aparece.
+    await palette(page, 'construir');
+    await page.getByRole('dialog').getByRole('combobox').fill('salão');
+    await page.keyboard.press('Enter');
+    await expect(toasts(page).getByRole('status')).toContainText('Faltam');
+    await toasts(page).getByRole('button', { name: 'Dispensar aviso' }).click();
+
     // A escolha fica lembrada ao recarregar, e pode ser desfeita nas preferências.
     await page.reload();
     await expect(page).toHaveTitle(/^\d\d:\d\d$/);

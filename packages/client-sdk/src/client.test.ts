@@ -196,6 +196,23 @@ describe('renovação da sessão', () => {
     expect(unauthenticatedCount()).toBe(1);
   });
 
+  it('a falha de uma sessão antiga não apaga as credenciais da sessão nova', async () => {
+    // A resposta de uma chamada da conta anterior chega depois de o jogador entrar em outra
+    // conta (ou de outra aba ter renovado): os tokens guardados já não são os que falharam.
+    const state: { store?: ReturnType<typeof setup>['tokenStore'] } = {};
+    const { client, tokenStore, unauthenticatedCount } = setup(async () => {
+      await state.store?.set({ accessToken: 'jwt-da-outra-conta', refreshToken: 'R9' });
+      return revoked;
+    });
+    state.store = tokenStore;
+    await expect(client.getMe()).rejects.toMatchObject({ code: 'SESSION_REVOKED' });
+    expect(await tokenStore.get()).toEqual({
+      accessToken: 'jwt-da-outra-conta',
+      refreshToken: 'R9',
+    });
+    expect(unauthenticatedCount()).toBe(0);
+  });
+
   it('refresh recusado limpa as credenciais e avisa, sem outra tentativa', async () => {
     const { client, callsTo, tokenStore, unauthenticatedCount } = setup((call) =>
       call.path === '/auth/refresh' ? revoked : unauthorized,

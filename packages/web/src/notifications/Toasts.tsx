@@ -1,4 +1,4 @@
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 import type { Toast } from '../app/controller';
 import { Icon } from '../components/shared';
@@ -10,16 +10,22 @@ const ICONS: Record<Toast['kind'], string> = { info: 'info', warning: 'warning',
 
 function ToastItem(props: { toast: Toast; onDismiss: (id: number) => void }) {
   const { toast } = props;
+  // Quem está lendo (mouse em cima, foco dentro) não perde o aviso no meio da frase.
+  const [reading, setReading] = useState(false);
   useEffect(() => {
-    if (toast.sticky) {
+    if (toast.sticky || reading) {
       return;
     }
     const timer = setTimeout(() => props.onDismiss(toast.id), TOAST_TIMEOUT_MS);
     return () => clearTimeout(timer);
-  }, [toast.id, toast.sticky]);
+  }, [toast.id, toast.sticky, reading]);
   return (
     <div
       class={`toast toast-${toast.kind}`}
+      onMouseEnter={() => setReading(true)}
+      onMouseLeave={() => setReading(false)}
+      onFocusIn={() => setReading(true)}
+      onFocusOut={() => setReading(false)}
       // Um erro interrompe o leitor de tela; o resto espera a vez.
       role={toast.kind === 'error' ? 'alert' : 'status'}
     >

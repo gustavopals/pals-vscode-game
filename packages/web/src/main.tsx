@@ -25,7 +25,8 @@ import { useController, Workbench } from './workbench/Workbench';
 
 const NARROW = '(max-width: 720px)';
 
-const { storage } = openStorage(() => window.localStorage);
+const { storage, persistent } = openStorage(() => window.localStorage);
+const locks = (navigator as { locks?: LockManagerLike }).locks;
 const store = browserStore(storage);
 const notificationApi = (window as { Notification?: NotificationApi }).Notification;
 const notifier = browserNotifier(notificationApi);
@@ -38,13 +39,16 @@ const controller = new Controller({
   tokenStore: browserTokenStore(storage),
   fetch: (input, init) => window.fetch(input, init),
   refreshLock: refreshLock(
-    (navigator as { locks?: LockManagerLike }).locks,
+    locks,
     storageSettle(window, {
       setTimeout: (callback, ms) => window.setTimeout(callback, ms),
       clearTimeout: (handle: number) => window.clearTimeout(handle),
     }),
   ),
+  persistentStorage: persistent,
   validateResponses: import.meta.env.DEV,
+  // Sem a Web Locks API, um atraso aleatório reduz a chance de duas abas renovarem juntas.
+  ...(locks === undefined ? { refreshJitterMs: 250 } : {}),
   deviceLabel: deviceLabel(navigator.userAgent),
   notifier,
   log: (message) => console.warn(message),
@@ -115,10 +119,19 @@ function App() {
         browserNotificationsSupported={notifier.supported}
       />
       <Toasts
-        toasts={controller.preferences.discreetMode ? [] : controller.toasts}
+        // No modo discreto o controlador não gera avisos do jogo; o que resta aqui é resposta a
+        // uma ação do próprio jogador (recusa, erro), e isso ele precisa ver.
+        toasts={controller.toasts}
         onDismiss={(id) => controller.dismissToast(id)}
       />
-      <DialogHost dialogs={dialogs} copy={(text) => navigator.clipboard.writeText(text)} />
+      <DialogHost
+        dialogs={dialogs}
+        // Sem contexto seguro não há `navigator.clipboard`: o botão só não muda para "Copiado".
+        copy={(text) =>
+          navigator.clipboard?.writeText(text) ??
+          Promise.reject(new Error('sem área de transferência'))
+        }
+      />
     </>
   );
 }
@@ -126,9 +139,20 @@ function App() {
 // --- O que liga o controlador ao navegador ----------------------------------------
 
 const syncTheme = () => applyTheme(document.documentElement, currentTheme());
+/**
+ * Põe a aba atual no endereço. Uma navegação do jogador cria uma entrada no histórico; uma
+ * correção (endereço sem aba, aba que não existe, "voltar" para uma aba que redireciona)
+ * substitui a entrada, ou o botão "voltar" ficaria preso refazendo o mesmo redirecionamento.
+ */
+let correcting = true;
 const syncHash = () => {
   const hash = formatHash(controller.route);
-  if (window.location.hash !== hash) {
+  if (window.location.hash === hash) {
+    return;
+  }
+  if (correcting) {
+    window.history.replaceState(null, '', hash);
+  } else {
     window.location.hash = hash;
   }
 };
@@ -140,12 +164,15 @@ for (const query of ['(prefers-color-scheme: light)', '(prefers-contrast: more)'
 }
 
 window.addEventListener('hashchange', () => {
+  // O endereço mudou por fora (voltar, avançar, digitado): o que o app ajustar a partir daqui
+  // é correção, não navegação nova.
+  correcting = true;
   const route = parseHash(window.location.hash);
   if (route !== null && route !== controller.route) {
     controller.navigate(route);
-  } else {
-    syncHash();
   }
+  syncHash();
+  correcting = false;
 });
 
 window.addEventListener('keydown', (event) => {
@@ -176,6 +203,7 @@ if (root !== null) {
 
 void started.then(() => {
   syncHash();
+  correcting = false;
   // Só depois da primeira abertura as mudanças de aba passam a mexer no endereço.
   controller.onChange(syncHash);
 });
