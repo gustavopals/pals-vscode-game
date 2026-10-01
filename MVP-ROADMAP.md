@@ -278,9 +278,9 @@ Esperado: `db` e `db_test` com estado `healthy`; `select 1` responde; a imagem c
 **Depende de:** F0-T4.
 **Entregáveis:** `.github/workflows/ci.yml`.
 
-- [ ] F0-T5.1 Job `verify`: checkout, pnpm com cache, `pnpm install --frozen-lockfile`, `pnpm verify`.
-- [ ] F0-T5.2 Job `integration`: serviço `postgres:16` do GitHub Actions, `TEST_DATABASE_URL`, `pnpm test:integration` (passa vazio até a Fase 2).
-- [ ] F0-T5.3 Job `docker`: `docker build` do alvo `runtime` (sem push).
+- [x] F0-T5.1 Job `verify`: checkout, pnpm com cache, `pnpm install --frozen-lockfile`, `pnpm verify`.
+- [x] F0-T5.2 Job `integration`: serviço `postgres:16` do GitHub Actions, `TEST_DATABASE_URL`, `pnpm test:integration` (passa vazio até a Fase 2).
+- [x] F0-T5.3 Job `docker`: `docker build` do alvo `runtime` (sem push).
 
 **Verificação:** primeiro push com os três jobs verdes.
 
@@ -1184,7 +1184,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F0-T2 | 2026-10-01 | HASH_F0-T2 | 1 | `pnpm verify` verde com 8 testes, também em cópia limpa. Vitest 5 removeu `vitest.workspace.ts`: os projetos `unit` e `integration` ficam em `vitest.config.ts`. TypeScript fixado em 6.x (o `typescript-eslint` ainda não aceita o 7). `dev:api`, `db:migrate`, `dev:ext` e `sim` existem e avisam a tarefa que os entrega. |
 | F0-T3 | 2026-10-01 | HASH_F0-T3 | 1 | Sessão nova (`claude -p`) resumiu motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas sem correção. O `CLAUDE.md` mantém os contratos dos ADRs 0003–0005 além do modelo da §A.1. |
 | F0-T4 | 2026-10-01 | HASH_F0-T4 | 1 | `db` e `db_test` saudáveis em 18 s; `select 1` responde; imagem `runtime` constrói (326 MB, usuário `node`). O `CMD` falha até F2-T2, como previsto. O ignore do build é `deploy/Dockerfile.dockerignore`, e não `deploy/.dockerignore`, porque o contexto é a raiz do repositório. Bancos de dev com senha fixa `lotg`; `POSTGRES_PASSWORD` vale só para o compose de produção. |
-| F0-T5 | | | | |
+| F0-T5 | 2026-10-01 | HASH_F0-T5 | 1 | Workflow escrito e os comandos dos três jobs rodados localmente com sucesso. **Verificação pendente:** nenhum push foi feito, então os jobs ainda não rodaram no GitHub e o badge não foi conferido. |
 | F1-T1 | | | | |
 | F1-T2 | | | | |
 | F1-T3 | | | | |
