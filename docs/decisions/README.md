@@ -4,7 +4,7 @@ O GDD define o contrato vigente; o roadmap divide sua implementação em tarefas
 
 | ADR | Decisão | Estado |
 |---|---|---|
-| 0001 | API no host em desenvolvimento | Reservado para F0-T3 |
+| [0001](0001-api-no-host-em-dev.md) | API no host em desenvolvimento | Consolidado em 2026-10-01 (F0-T3) |
 | 0002 | Recompensa do objetivo 4 na v0.1 | Reservado para F1-T1 |
 | [0003](0003-codigo-do-reino-hmac.md) | Código do Reino com HMAC e chave independente | Consolidado em 2026-10-01; implementação pendente |
 | [0004](0004-comandos-e-cache-http.md) | Recibos de comandos, avanço em recusas e cache HTTP | Consolidado em 2026-10-01; implementação pendente |

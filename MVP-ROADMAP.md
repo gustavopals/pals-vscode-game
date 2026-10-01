@@ -236,9 +236,9 @@ Esperado: lint sem erros, typecheck sem erros, 8 testes triviais verdes.
 **Depende de:** F0-T2.
 **Entregáveis:** `CLAUDE.md`, `docs/decisions/0001-api-no-host-em-dev.md`, `docs/decisions/README.md`.
 
-- [ ] F0-T3.1 `CLAUDE.md` com as seções do modelo da §A.1: visão em cinco linhas, mapa de pacotes, comandos, regras de arquitetura, convenções, "nunca faça", ritual de conclusão (`pnpm verify`, marcar roadmap, registro de execução, commit).
-- [ ] F0-T3.2 Usar o índice e modelo existentes em `docs/decisions/README.md` e criar o ADR 0001 registrando a decisão da §1.1 (API no host em dev). Preservar os ADRs 0003–0005 já consolidados nesta revisão.
-- [ ] F0-T3.3 `.claude/settings.json` com permissões para os comandos rotineiros (`pnpm *`, `docker compose *`, `git status/diff/log`) para reduzir confirmações.
+- [x] F0-T3.1 `CLAUDE.md` com as seções do modelo da §A.1: visão em cinco linhas, mapa de pacotes, comandos, regras de arquitetura, convenções, "nunca faça", ritual de conclusão (`pnpm verify`, marcar roadmap, registro de execução, commit).
+- [x] F0-T3.2 Usar o índice e modelo existentes em `docs/decisions/README.md` e criar o ADR 0001 registrando a decisão da §1.1 (API no host em dev). Preservar os ADRs 0003–0005 já consolidados nesta revisão.
+- [x] F0-T3.3 `.claude/settings.json` com permissões para os comandos rotineiros (`pnpm *`, `docker compose *`, `git status/diff/log`) para reduzir confirmações.
 
 **Verificação:** abrir uma sessão nova do Claude Code e pedir "resuma as regras deste projeto"; o resumo deve citar motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas.
 
@@ -1182,7 +1182,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 |---|---|---|---|---|
 | F0-T1 | 2026-10-01 | HASH_F0-T1 | 1 | Docker 29.8, Compose v5.5, Node 22.22.3, pnpm 9.15.9. O default do `nvm` continua em 24 (`nvm alias default 22` não foi executado para não afetar outros projetos): o repositório seleciona o 22 pelo `.nvmrc` (`nvm use`) e o pnpm 9 pelo campo `packageManager`. Extensão Docker do VS Code instalada. |
 | F0-T2 | 2026-10-01 | HASH_F0-T2 | 1 | `pnpm verify` verde com 8 testes, também em cópia limpa. Vitest 5 removeu `vitest.workspace.ts`: os projetos `unit` e `integration` ficam em `vitest.config.ts`. TypeScript fixado em 6.x (o `typescript-eslint` ainda não aceita o 7). `dev:api`, `db:migrate`, `dev:ext` e `sim` existem e avisam a tarefa que os entrega. |
-| F0-T3 | | | | |
+| F0-T3 | 2026-10-01 | HASH_F0-T3 | 1 | Sessão nova (`claude -p`) resumiu motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas sem correção. O `CLAUDE.md` mantém os contratos dos ADRs 0003–0005 além do modelo da §A.1. |
 | F0-T4 | | | | |
 | F0-T5 | | | | |
 | F1-T1 | | | | |
