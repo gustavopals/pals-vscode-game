@@ -92,7 +92,7 @@ export function SettingsTab(props: {
       <fieldset>
         <legend>Hora da Vigília</legend>
         <label>
-          Hora local em que o seu dia de jogo vira
+          Hora local em que você costuma jogar
           <select
             name="vigilHour"
             value={String(preferences.vigilHour)}
@@ -107,7 +107,10 @@ export function SettingsTab(props: {
             ))}
           </select>
         </label>
-        <p class="muted hint">Vale para os feudos fundados a partir de agora.</p>
+        <p class="muted hint">
+          Fica guardada com cada feudo fundado a partir de agora. Ainda não muda nada no jogo: é
+          nessa hora que os grandes acontecimentos das próximas versões vão chegar.
+        </p>
       </fieldset>
     </form>
   );

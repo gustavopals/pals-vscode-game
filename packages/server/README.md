@@ -13,6 +13,16 @@ curl -s localhost:3000/v1/health && curl -s localhost:3000/v1/version
 
 A configuração vem das variáveis de `deploy/.env` ([exemplo comentado](../../deploy/.env.example)) e é validada no arranque: falta ou formato errado derruba o processo com uma mensagem que cita só o nome da variável.
 
+## Ritmo das partidas (`GAME_TIME_SCALE`)
+
+`GAME_TIME_SCALE` é o número de horas de jogo por hora real das partidas **novas** ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)). O padrão é 3; aceita de 0,5 a 10, com casas decimais. Fora da faixa, ou com texto, o servidor não sobe.
+
+- O valor é gravado em `games.time_scale` na criação. Mudar a variável não mexe nas partidas que já existem: cada uma segue no ritmo com que nasceu, em qualquer instância que a leia.
+- O jogador não escolhe o ritmo. `POST /games` ainda aceita `timeScale: 1` no corpo, por compatibilidade, e o ignora; qualquer outro valor é `400 VALIDATION`.
+- O motor continua em tempo de jogo. O servidor converte: tempo de jogo = (agora − `created_at`) × `time_scale`, e o `at` de cada evento é `created_at` + `atMs` ÷ `time_scale`.
+- **A visão sai em tempo real.** Em `GET /view` e na resposta dos comandos (aceitos ou recusados), todo campo em segundos é de segundos reais e toda taxa por hora é por hora real, inclusive nos textos de explicação (`breakdown`). Prazos são arredondados para cima; `depletesInSeconds` e `famine.secondsElapsed`, para baixo. Uma obra anunciada com `durationSeconds: 80` termina 80 segundos reais depois. `atMs` nos eventos e `famine.sinceMs` continuam em milissegundos de jogo.
+- No ritmo 3, o dia de jogo dura 40 minutos reais e a comida inicial, sem ninguém na Fazenda, acaba em 12 horas reais.
+
 ## Testes
 
 ```bash
@@ -22,6 +32,8 @@ TEST_DATABASE_URL=… pnpm test:integration -- games     # um arquivo
 ```
 
 Os testes de integração ficam em `test/` (e os cenários de ponta a ponta em `tests/server/`, na raiz) e rodam contra o PostgreSQL real do `db_test`, um arquivo por vez. Cada arquivo recria o banco com `resetTestDb()`. Os helpers de `test/helpers/app.ts` sobem a API em memória com um relógio controlado (`server.clock.advance(ms)`): nenhum teste espera tempo real. O access token vale 15 minutos desse relógio; depois de avançá-lo, use `renew`.
+
+Os helpers sobem a API com `GAME_TIME_SCALE=1`, porque os cenários foram escritos nos tempos do GDD (dia de 2 horas). O ritmo tem arquivo próprio, `test/pace.test.ts`, que sobe instâncias nos ritmos 1, 3, 0,5 e 7 com `createTestApp({ config: { GAME_TIME_SCALE: '3' } })`.
 
 ## Estrutura
 
@@ -49,6 +61,7 @@ O texto completo está no GDD §14.5–14.9 e nos ADRs 0003–0005. Em resumo:
 - **Autorização** consulta conta e sessão no banco em toda requisição, sem cache. JWT expirado é `UNAUTHORIZED` (o cliente renova); sessão revogada ou conta excluída é `SESSION_REVOKED` (renovar não adianta).
 - **Refresh**: apresentar um token já usado revoga a sessão inteira, com commit antes do 401. Por isso os desfechos de `rotateRefreshToken` saem da transação como valor, não como exceção.
 - **Exclusão** tem duas etapas: `DELETE /me` bloqueia na hora (202); o job remove tudo sete dias depois.
+- **Crônica sem viradas de dia** ([ADR 0007](../../docs/decisions/0007-cronica-sem-viradas-de-dia.md)): `GET /chronicle` e `GET /chronicle.md` trazem uma linha por evento, menos os `dayStarted`. As viradas de estação e de ano ficam, e o filtro `?year=` e o `?limit=` contam só o que entra na Crônica. `GET /events` continua trazendo tudo, inclusive `dayStarted`, e os eventos continuam todos gravados em `game_events`.
 - **Partida arquivada** não avança mais: `/view` e comandos novos respondem `409 CONFLICT`; eventos, Crônica e recibos continuam legíveis.
 
 ## Cuidados que já custaram um defeito
@@ -89,4 +102,4 @@ O app web obtém o token do GitHub por *device flow* (GDD §14.7). O GitHub não
 
 Não há segredo de OAuth, nada é guardado e nada vai para o log. Sem `GITHUB_CLIENT_ID` as duas respondem `404 NOT_FOUND` e `GET /v1/version` informa `features.githubDevice: false`, para o app esconder os botões ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)). Limite por IP: `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP` (padrão 20) para começar e 30 por minuto para consultar. O endereço que o GitHub devolve só é aceito se for do próprio `GITHUB_OAUTH_URL`, porque vira um link na tela do jogador.
 
-Testado só com um GitHub simulado (`test/helpers/github.ts`, `test/githubDevice.test.ts`).
+Na v0.1 o vínculo GitHub fica desligado em produção (sem `GITHUB_CLIENT_ID`). O código continua no repositório, testado só com um GitHub simulado (`test/helpers/github.ts`, `test/githubDevice.test.ts`); nunca foi exercitado contra o GitHub real.

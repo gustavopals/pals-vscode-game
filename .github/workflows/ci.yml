@@ -24,6 +24,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # GDD §14.14: dependências de produção auditadas; falha com vulnerabilidade alta ou crítica.
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm verify
       - run: pnpm build
 

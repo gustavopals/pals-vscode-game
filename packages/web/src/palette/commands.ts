@@ -1,4 +1,4 @@
-import type { AccountConflictDetails, ViewState } from '@lotg/protocol';
+import { type AccountConflictDetails, DisplayNameSchema, type ViewState } from '@lotg/protocol';
 
 import { awaitGithubAuthorization } from '../account/githubDevice';
 import { type ConflictChoice, conflictOptions } from '../account/githubLink';
@@ -43,6 +43,9 @@ export type CommandEnv = {
 
 export const PALETTE_PREFIX = 'Lords: ';
 
+/** A regra dos nomes (de quem governa e do feudo), como o servidor a aplica. */
+export const NAME_RULE = 'De 2 a 24 caracteres.';
+
 export const PRIVACY_PARAGRAPHS = [
   'O servidor guarda o nome de exibição que você escolheu, o identificador do GitHub (só se você vincular), o rótulo deste navegador, as datas de acesso e os hashes das credenciais. O progresso do feudo e as ordens dadas ficam vinculados à conta.',
   'O token do GitHub passa pelo servidor a caminho da validação e não é guardado.',
@@ -77,10 +80,9 @@ export function workersValidation(row: WorkerRow, free: number, input: string): 
   };
 }
 
+// A regra do nome é a do protocolo: o app não repete os limites.
 const nameValidation = (value: string): Validation | null =>
-  value.trim().length >= 2 && value.trim().length <= 24
-    ? null
-    : { message: 'De 2 a 24 caracteres.', severity: 'error' };
+  DisplayNameSchema.safeParse(value).success ? null : { message: NAME_RULE, severity: 'error' };
 
 /** O id do edifício, vindo direto de um comando ou do item da árvore de uma ação inline. */
 function buildingOf(arg: unknown, prefix: string): string | undefined {
@@ -270,10 +272,9 @@ export function createCommands(
     }
     const { recruitment, population } = view;
     const max = recruitment.maxQuantity;
-    const vacancies = population.capacity - population.villagers - population.inTraining;
     const answer = await dialogs.input({
       title: 'Recrutar aldeões',
-      prompt: `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}. Vagas: ${vacancies} de ${population.capacity}.`,
+      prompt: `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}. Vagas: ${population.vacancies} de ${population.capacity}.`,
       placeholder: max > 0 ? `de 1 a ${max}` : 'sem vaga agora',
       value: max > 0 ? '1' : '',
       confirmLabel: 'Recrutar',

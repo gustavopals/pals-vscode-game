@@ -158,8 +158,9 @@ export const CreateGameRequestSchema = z.strictObject({
   settlementName: DisplayNameSchema,
   timezone,
   vigilHourLocal: z.number().int().min(0).max(23),
-  /** Na v0.1 a dificuldade é sempre Senhor e o ritmo é sempre Normal. */
+  /** Na v0.1 a dificuldade é sempre Senhor; o ritmo é o do servidor (ADR 0011). */
   difficulty: z.literal('lord').optional(),
+  /** Aceito por compatibilidade e ignorado: o ritmo é o do servidor (ADR 0011). */
   timeScale: z.literal(1).optional(),
   /** Arquiva a partida ativa, se houver, em vez de recusar com `ACTIVE_GAME_EXISTS`. */
   replaceActive: z.boolean().optional(),

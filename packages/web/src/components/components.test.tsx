@@ -1,4 +1,9 @@
-import type { GameEvent, ReturnReport, ViewState } from '@lotg/protocol';
+import {
+  DisplayNameSchema,
+  type GameEvent,
+  type ReturnReport,
+  type ViewState,
+} from '@lotg/protocol';
 import type { ComponentChild } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
@@ -141,8 +146,79 @@ describe('boas-vindas', () => {
   });
 });
 
+describe('boas-vindas: texto e regra dos nomes', () => {
+  const submit = (page: string) => /<button type="submit"[^>]*>/.exec(page)?.[0] ?? '';
+  // Sem DOM nos testes, o nome de quem governa entra pela conta já existente; o do feudo
+  // começa em "Pedra Alta", que é válido.
+  const submitFor = (displayName: string) => submit(welcome({ account: { displayName } }));
+
+  it('não promete que "cada semana é um ano" (o ritmo é do servidor, ADR 0011)', () => {
+    for (const page of [welcome(), welcome({ account: { displayName: 'Gustavo' } })]) {
+      expect(page).not.toMatch(/cada semana/i);
+      expect(page).not.toMatch(/semana[^.]*\bano\b/i);
+    }
+    expect(welcome()).toContain('o mundo continua andando com a aba fechada');
+  });
+
+  it('diz a regra dos nomes e limita os campos a 24 caracteres', () => {
+    const page = welcome();
+    expect(page).toContain('De 2 a 24 caracteres.');
+    expect(page.match(/<input [^>]*>/g)?.every((tag) => /maxlength="24"/i.test(tag))).toBe(true);
+  });
+
+  it('sem nome de quem governa, não deixa enviar', () => {
+    expect(submit(welcome())).toContain('disabled');
+  });
+
+  it('nome com 1 caractere, com 25 ou só de espaços não deixa enviar', () => {
+    for (const name of ['a', ' a ', 'x'.repeat(25), '   ']) {
+      expect(submitFor(name), JSON.stringify(name)).toContain('disabled');
+    }
+  });
+
+  it('nomes com 2 e com 24 caracteres deixam enviar', () => {
+    for (const name of ['ab', 'x'.repeat(24), `  ${'x'.repeat(24)}  `]) {
+      expect(submitFor(name), JSON.stringify(name)).not.toContain('disabled');
+    }
+  });
+
+  it('aceita exatamente os nomes que o protocolo aceita', () => {
+    for (const name of ['', 'a', 'ab', 'Dona Urraca', 'x'.repeat(24), 'x'.repeat(25), 'a\u0000b']) {
+      expect(!submitFor(name).includes('disabled'), JSON.stringify(name)).toBe(
+        DisplayNameSchema.safeParse(name).success,
+      );
+    }
+  });
+});
+
 describe('aba Feudo', () => {
   const page = fief();
+
+  it('a habitação e o "a caminho" são os números da visão, sem conta no app', () => {
+    // Números que não fecham entre si de propósito: pela conta antiga (aldeões + a caminho)
+    // a habitação seria 7/10.
+    const odd = fief({
+      view: {
+        ...view,
+        population: { ...view.population, villagers: 5, inTraining: 2, housed: 9, vacancies: 1 },
+      },
+    });
+    expect(odd).toContain('Habitação 9/10');
+    expect(odd).not.toContain('Habitação 7/10');
+    expect(odd).toContain('A caminho 2');
+  });
+
+  it('com gente a caminho, a habitação conta quem ainda não chegou', () => {
+    const training = fief({
+      view: {
+        ...view,
+        population: { ...view.population, inTraining: 2, housed: 7, vacancies: 3 },
+      },
+    });
+    expect(training).toContain('Aldeões 5');
+    expect(training).toContain('Habitação 7/10');
+    expect(training).toContain('A caminho 2');
+  });
 
   it('cabeçalho com nome, Salão, calendário e população', () => {
     expect(page).toContain('<h1>Pedra Alta</h1>');

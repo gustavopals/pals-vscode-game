@@ -199,7 +199,7 @@ afterAll(async () => {
 // --- Criação e listagem (F2-T6.1) ---------------------------------------------
 
 describe('criação e listagem de partidas (F2-T6.1)', () => {
-  it('cria a partida com stateVersion "1", dificuldade lord e ritmo 1', async () => {
+  it('cria a partida com stateVersion "1", dificuldade lord e o ritmo do servidor (1 nos testes)', async () => {
     const auth = await signUp(server);
     const reply = await call<CreateGameResponse>(server, 'POST', '/games', {
       token: auth.accessToken,
@@ -265,6 +265,74 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
     expect(stock(reply.body.view, 'wood')).toBe(120);
     expect(stock(reply.body.view, 'stone')).toBe(65);
     expect(stock(reply.body.view, 'gold')).toBe(250);
+  });
+
+  it('population.housed e vacancies: quem está a caminho já ocupa um lugar nas habitações', async () => {
+    const player = await newPlayer(server);
+    const { game } = player;
+    const first = await getView(server, player.token, game.id);
+    expect(first.body.view.population).toMatchObject({
+      villagers: 5,
+      capacity: 10,
+      inTraining: 0,
+      housed: 5,
+      vacancies: 5,
+    });
+
+    // Três aldeões chamados: ninguém chegou ainda, mas os lugares deles já estão ocupados.
+    const recruited = await send<CommandAccepted>(
+      server,
+      player.token,
+      game.id,
+      order('recruitVillagers', { quantity: 3 }),
+    );
+    expect(recruited.status).toBe(200);
+    expect(CommandAcceptedSchema.safeParse(recruited.body).error).toBeUndefined();
+    expect(recruited.body.view.population).toMatchObject({
+      villagers: 5,
+      capacity: 10,
+      inTraining: 3,
+      housed: 8,
+      vacancies: 2,
+    });
+    // Só cabem mais dois: pedir três é recusado, e a visão da recusa traz os mesmos números.
+    const refused = await send<GameRuleError>(
+      server,
+      player.token,
+      game.id,
+      order('recruitVillagers', { quantity: 3 }),
+    );
+    expect(refused.status).toBe(422);
+    expect(refused.body.details.view.population).toMatchObject({ housed: 8, vacancies: 2 });
+    expect(refused.body.details.view.recruitment.maxQuantity).toBeLessThanOrEqual(2);
+
+    // Cada chegada troca um "a caminho" por um morador: ocupados e vagas não mudam.
+    const expected = [
+      { villagers: 6, inTraining: 2 },
+      { villagers: 7, inTraining: 1 },
+      { villagers: 8, inTraining: 0 },
+    ];
+    for (const step of expected) {
+      server.clock.advance(20 * MINUTE);
+      await renew(server, player);
+      const view = await getView(server, player.token, game.id);
+      expect(view.body.view.population).toMatchObject({
+        ...step,
+        capacity: 10,
+        housed: 8,
+        vacancies: 2,
+      });
+    }
+
+    // Habitações no 2º nível: cinco lugares a mais, todos vagos.
+    await send(server, player.token, game.id, order('startConstruction', { building: 'housing' }));
+    server.clock.advance(4 * MINUTE);
+    const grown = await getView(server, player.token, game.id);
+    expect(ViewResponseSchema.safeParse(grown.body).error).toBeUndefined();
+    const { population } = grown.body.view;
+    expect(population).toMatchObject({ villagers: 8, capacity: 15, housed: 8, vacancies: 7 });
+    expect(population.housed + population.vacancies).toBe(population.capacity);
+    expect(population.housed).toBe(population.villagers + population.inTraining);
   });
 
   it('segunda criação sem replaceActive responde 409 ACTIVE_GAME_EXISTS e não cria nada', async () => {
@@ -1858,15 +1926,43 @@ describe('eventos e Crônica (F2-T6.6)', () => {
     }
   });
 
-  it('GET /chronicle.md tem uma linha por evento da partida', async () => {
-    // F2-T6.6: "Markdown com título, ano e uma linha por evento". Todo tipo de evento tem frase
-    // de Crônica, inclusive a virada de dia.
+  it('GET /chronicle.md tem uma linha por evento da partida, menos as viradas de dia', async () => {
+    // F2-T6.6: "Markdown com título, ano e uma linha por evento". O ADR 0007 tirou da Crônica
+    // as viradas de dia, que continuam em GET /events.
     const { player, all } = await seasonedPlayer();
+    expect(all.filter((event) => event.type === 'dayStarted')).toHaveLength(3);
+    const told = all.filter((event) => event.type !== 'dayStarted');
     const reply = await call<string>(server, 'GET', `/games/${player.game.id}/chronicle.md`, {
       token: player.token,
     });
     const items = reply.body.split('\n').filter((line) => line.startsWith('- '));
-    expect(items).toEqual(all.map((event) => `- ${event.text}`));
+    expect(items).toEqual(told.map((event) => `- ${event.text}`));
+    expect(reply.body).not.toContain('Amanhece');
+  });
+
+  it('GET /chronicle traz os mesmos eventos de GET /events, menos as viradas de dia', async () => {
+    const { player, all } = await seasonedPlayer();
+    const told = all.filter((event) => event.type !== 'dayStarted');
+    const full = await call<ChronicleResponse>(
+      server,
+      'GET',
+      `/games/${player.game.id}/chronicle`,
+      { token: player.token },
+    );
+    expect(full.body.entries).toEqual(told);
+    // O limite conta só o que entra na Crônica: as viradas de dia não gastam linhas.
+    const limited = await call<ChronicleResponse>(
+      server,
+      'GET',
+      `/games/${player.game.id}/chronicle?limit=3`,
+      { token: player.token },
+    );
+    expect(limited.body.entries).toEqual(told.slice(-3));
+    expect(limited.body.entries.map((entry) => entry.type)).toEqual([
+      'objectiveCompleted',
+      'constructionFinished',
+      'settlementRenamed',
+    ]);
   });
 
   it('partida sem eventos: listas vazias e Markdown só com o título', async () => {

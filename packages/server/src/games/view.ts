@@ -34,7 +34,9 @@ export async function readView(
   const body = await withGameReading(ctx, accountId, gameId, (reading): ViewResponse => {
     assertActive(reading.game);
     return {
-      view: deriveViewState(reading.state, reading.gameNowMs),
+      view: deriveViewState(reading.state, reading.gameNowMs, {
+        timeScale: Number(reading.game.timeScale),
+      }),
       stateVersion: String(reading.stateVersion),
     };
   });

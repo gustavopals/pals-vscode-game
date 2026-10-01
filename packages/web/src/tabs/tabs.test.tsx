@@ -307,6 +307,19 @@ describe('aba Preferências', () => {
     ]);
   });
 
+  it('Hora da Vigília: o texto não promete efeito que a v0.1 não tem', () => {
+    const markup = render();
+    const start = markup.indexOf('<legend>Hora da Vigília</legend>');
+    expect(start).toBeGreaterThan(-1);
+    const section = markup.slice(start, markup.indexOf('</fieldset>', start));
+    expect(section).toContain('Ainda não muda nada no jogo');
+    expect(section).toContain('Fica guardada com cada feudo fundado a partir de agora');
+    // Nada de dizer que o dia de jogo vira nessa hora: na v0.1 não vira.
+    expect(section).not.toMatch(/dia de jogo/i);
+    expect(section).not.toMatch(/\bvira\b/i);
+    expect(section).not.toContain('Vale para os feudos');
+  });
+
   it('todo campo tem rótulo: nenhum input ou select fica fora de um <label>', () => {
     const markup = render();
     const labelled = tags(markup, /<label>.*?<\/label>/g).join('');

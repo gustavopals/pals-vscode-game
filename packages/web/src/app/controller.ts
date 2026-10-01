@@ -17,7 +17,7 @@ import type {
 } from '@lotg/protocol';
 
 import { type AccountState, AccountService } from '../account/accountService';
-import { shouldRemindToLink } from '../account/linkReminder';
+import { readReminderRecord, shouldRemindToLink } from '../account/linkReminder';
 import type { Connection } from '../game/connection';
 import {
   clearAccountCaches,
@@ -148,6 +148,8 @@ export class Controller {
   private expectedSignOut = false;
   private queue: Promise<void> = Promise.resolve();
   private nextToastId = 1;
+  /** A consulta de versão em andamento: quem depende do que o servidor tem ligado espera por ela. */
+  private serverInfo: Promise<void> = Promise.resolve();
 
   private readonly changes = new Emitter<void>();
   /** Algo mudou: a bancada deve se redesenhar. */
@@ -178,7 +180,7 @@ export class Controller {
     });
     this.subscriptions = [
       this.account.onDidChange((state) => this.enqueue(() => this.accountChanged(state))),
-      this.session.onView((view) => this.viewChanged(view)),
+      this.session.onView(() => this.viewChanged()),
       this.session.onEvents((events) => this.eventsArrived(events)),
       this.session.onConnection((connection) => this.connectionChanged(connection)),
       this.session.onReturnReport((report) => this.reportArrived(report)),
@@ -226,7 +228,7 @@ export class Controller {
       });
     }
     this.changes.emit();
-    void this.loadServerInfo();
+    this.serverInfo = this.loadServerInfo();
     await this.openGame();
     if (this.report !== null) {
       this.route = 'today';
@@ -464,17 +466,20 @@ export class Controller {
     this.changes.emit();
   }
 
-  private viewChanged(view: ViewState): void {
+  private viewChanged(): void {
     this.viewReceivedAt = this.now();
     this.changes.emit();
-    void this.maybeRemindToLink(view);
+    void this.maybeRemindToLink();
   }
 
   private eventsArrived(events: GameEvent[]): void {
-    this.chronicle = [...this.chronicle, ...events]
+    // As viradas de dia provam que o mundo andou, mas não entram na Crônica (ADR 0007).
+    this.chronicle = [...this.chronicle, ...events.filter((event) => event.type !== 'dayStarted')]
       .filter((event, index, all) => all.findIndex((other) => other.seq === event.seq) === index)
       .slice(-CHRONICLE_LINES);
-    if (this.chronicleDocument.status === 'ready') {
+    // Um lote só de viradas de dia não muda a Crônica: não há por que baixá-la de novo.
+    const changesChronicle = events.some((event) => event.type !== 'dayStarted');
+    if (changesChronicle && this.chronicleDocument.status === 'ready') {
       // A Crônica aberta ficou para trás: a próxima visita à aba a lê de novo.
       this.chronicleDocument = { status: 'idle' };
       if (this.route === 'chronicle') {
@@ -555,13 +560,10 @@ export class Controller {
     const { code, message } = describeError(error);
     this.log(`O servidor recusou a leitura da partida: ${code} · ${message}`);
     if (code === 'UPGRADE_REQUIRED') {
+      // O ciclo avisa uma vez só: repetir a cada 30 s seria ruído.
       if (!this.warnedUpgrade) {
         this.warnedUpgrade = true;
-        this.toast({
-          kind: 'warning',
-          text: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
-          actions: [{ label: 'Recarregar', run: () => this.runCommand('lords.reload') }],
-        });
+        this.askToReload();
       }
       return;
     }
@@ -569,18 +571,35 @@ export class Controller {
     void this.revalidateAccount();
   }
 
-  private async maybeRemindToLink(view: ViewState): Promise<void> {
+  /** A aba ficou para trás de uma atualização do servidor: o remédio é recarregar a página. */
+  private askToReload(): void {
+    this.toast({
+      kind: 'warning',
+      text: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
+      actions: [{ label: 'Recarregar', run: () => this.runCommand('lords.reload') }],
+    });
+  }
+
+  private async maybeRemindToLink(): Promise<void> {
     const { store } = this.options;
     const account = this.account.state;
     if (account.kind === 'signedOut') {
       return;
     }
     const key = reminderKey(account.accountId);
-    const handled = store.get<boolean>(key) ?? false;
-    if (!shouldRemindToLink(view, this.account.state, handled) || this.preferences.discreetMode) {
+    let record = readReminderRecord(store.get(key));
+    if (record === null || record.since > this.now()) {
+      // Primeira vez desta conta neste navegador (ou um registro "no futuro", de quando o relógio
+      // do aparelho estava adiantado): o prazo do lembrete começa agora.
+      record = { since: this.now(), shown: record?.shown ?? false };
+      await store.update(key, record);
+    }
+    if (!shouldRemindToLink(record, account, this.now()) || this.preferences.discreetMode) {
       return;
     }
-    await store.update(key, true);
+    await store.update(key, { ...record, shown: true });
+    // O botão do GitHub depende de saber se o servidor tem o vínculo ligado.
+    await this.serverInfo;
     const actions: ToastAction[] = [];
     if (this.githubAvailable) {
       actions.push({ label: 'Vincular ao GitHub', run: () => this.runCommand('lords.linkGithub') });
@@ -629,7 +648,12 @@ export class Controller {
       return true;
     } catch (error) {
       const { code, message } = describeError(error);
-      if (isGameRuleError(error)) {
+      if (code === 'UPGRADE_REQUIRED') {
+        // Uma ordem que não foi aceita sempre tem resposta na tela, mesmo que o aviso do ciclo
+        // já tenha sido dispensado (um aviso igual ao que está à vista só o substitui).
+        this.warnedUpgrade = true;
+        this.askToReload();
+      } else if (isGameRuleError(error)) {
         this.toast({ kind: 'warning', text: message });
       } else if (code === 'NETWORK') {
         this.toast({

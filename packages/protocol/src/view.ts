@@ -79,6 +79,8 @@ export const ViewStateSchema = z.strictObject({
     capacity: z.number(),
     free: z.number(),
     inTraining: z.number(),
+    housed: z.number(),
+    vacancies: z.number(),
     secondsToNextRecruit: z.number().nullable(),
     breakdown: z.string(),
   }),

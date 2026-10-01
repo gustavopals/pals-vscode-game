@@ -88,7 +88,7 @@ export function registerErrorHandling(app: FastifyInstance): void {
     if (sent !== undefined && sent !== String(PROTOCOL_VERSION)) {
       throw new ApiError(
         'UPGRADE_REQUIRED',
-        'Esta versão da extensão não conversa mais com o servidor. Atualize a extensão.',
+        'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
         { protocol: PROTOCOL_VERSION },
       );
     }

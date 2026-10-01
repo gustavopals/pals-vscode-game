@@ -31,9 +31,21 @@ export function formatRemaining(seconds: number): string {
   return `${pad(hours)}:${pad(minutes % 60)}`;
 }
 
-/** Duração por extenso para custos e prazos: "5 min", "1 h 08 min", "8 h". */
+/**
+ * Duração por extenso para custos e prazos: "40 s", "1 min 20 s", "5 min", "1 h 08 min", "8 h".
+ * Abaixo de dez minutos os segundos aparecem: nos ritmos acelerados os prazos deixam de ser
+ * minutos redondos, e "1 min" para uma obra de 1 min 20 s desmentiria a contagem regressiva.
+ * Acima disso arredonda para cima: um prazo nunca é anunciado menor do que é.
+ */
 export function formatDuration(seconds: number): string {
-  const minutes = Math.max(1, Math.round(seconds / 60));
+  const total = Math.max(1, Math.ceil(seconds));
+  if (total < 60) {
+    return `${total} s`;
+  }
+  if (total < 600 && total % 60 !== 0) {
+    return `${Math.floor(total / 60)} min ${String(total % 60).padStart(2, '0')} s`;
+  }
+  const minutes = Math.ceil(total / 60);
   if (minutes < 60) {
     return `${minutes} min`;
   }

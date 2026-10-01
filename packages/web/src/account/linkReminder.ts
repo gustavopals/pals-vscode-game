@@ -1,22 +1,42 @@
-import type { ViewState } from '@lotg/protocol';
-
 import type { AccountState } from './accountService';
 
-/** Dias de jogo em um dia real, no ritmo Normal: o terceiro dia real começa no 25º dia de jogo. */
-const THIRD_REAL_DAY_STARTS_AT_GAME_DAY = 25;
+/** O lembrete aparece no terceiro dia real: 48 horas depois da primeira vez neste navegador. */
+export const REMIND_AFTER_MS = 48 * 60 * 60 * 1000;
+
+/** O que o navegador guarda do lembrete, por conta. */
+export type LinkReminderRecord = {
+  /** Primeira vez em que esta conta abriu um feudo neste navegador, em ms. */
+  since: number;
+  /** O lembrete já apareceu: não aparece de novo. */
+  shown: boolean;
+};
 
 /**
  * O lembrete discreto do dia 3 (GDD §13.9): "Proteja seu reino". Aparece uma única vez, só para
- * quem ainda não tem como recuperar a conta, e pode ser dispensado para sempre.
+ * quem ainda não tem como recuperar a conta. Conta dias reais, e não dias de jogo: o ritmo da
+ * partida não muda quando o jogador precisa ser avisado.
  */
 export function shouldRemindToLink(
-  view: ViewState | null,
+  record: LinkReminderRecord | null,
   account: AccountState,
-  alreadyHandled: boolean,
+  now: number,
 ): boolean {
-  if (alreadyHandled || view === null || account.kind !== 'anonymous' || account.hasRecoveryCode) {
+  if (record === null || record.shown) {
     return false;
   }
-  const { year, dayOfYear } = view.calendar;
-  return year > 1 || dayOfYear >= THIRD_REAL_DAY_STARTS_AT_GAME_DAY;
+  if (account.kind !== 'anonymous' || account.hasRecoveryCode) {
+    return false;
+  }
+  return now - record.since >= REMIND_AFTER_MS;
+}
+
+/** Lê o registro guardado, tolerando o formato antigo (`true` = já mostrado) e lixo. */
+export function readReminderRecord(stored: unknown): LinkReminderRecord | null {
+  if (stored === true) {
+    return { since: 0, shown: true };
+  }
+  const record = stored as Partial<LinkReminderRecord> | null | undefined;
+  return typeof record?.since === 'number' && typeof record.shown === 'boolean'
+    ? { since: record.since, shown: record.shown }
+    : null;
 }

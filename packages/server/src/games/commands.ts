@@ -84,7 +84,7 @@ export async function executeCommand(
 
     const persisted = await persistState(tx, game, state, engineEvents, now);
     const accepted: CommandAccepted = {
-      view: deriveViewState(state, gameNowMs),
+      view: deriveViewState(state, gameNowMs, { timeScale: Number(game.timeScale) }),
       events: persisted.events,
       stateVersion: String(persisted.stateVersion),
       staleView,

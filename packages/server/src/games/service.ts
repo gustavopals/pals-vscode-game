@@ -10,9 +10,11 @@ import type { Tx } from '../db/client';
 import { accounts, type GameRow, games } from '../db/schema';
 import { gameTimeAt, lockGame, persistState, toGameSummary } from './repository';
 
-/** Na v0.1 a dificuldade e o ritmo são fixos; os campos existem e são guardados. */
+/**
+ * Na v0.1 a dificuldade é fixa e o ritmo é o do servidor (`GAME_TIME_SCALE`, ADR 0011): o
+ * jogador ainda não escolhe nenhum dos dois. Os campos existem e são guardados por partida.
+ */
 const DIFFICULTY = 'lord';
-const TIME_SCALE = 1;
 
 export async function listGames(ctx: AppContext, accountId: string): Promise<GameSummary[]> {
   const rows = await ctx.db
@@ -80,7 +82,7 @@ export async function createGame(
         status: 'active',
         seed,
         difficulty: DIFFICULTY,
-        timeScale: String(TIME_SCALE),
+        timeScale: String(ctx.config.gameTimeScale),
         timezone: input.timezone,
         vigilHour: input.vigilHourLocal,
         schemaVersion: state.schemaVersion,

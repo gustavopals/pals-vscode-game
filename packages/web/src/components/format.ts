@@ -24,16 +24,7 @@ export function formatCountdown(seconds: number): string {
     : `${pad(minutes)}:${pad(total % 60)}`;
 }
 
-/** Duração por extenso: "5 min", "1 h 08 min", "8 h". */
-export function formatDuration(seconds: number): string {
-  const minutes = Math.max(1, Math.round(seconds / 60));
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const rest = minutes % 60;
-  const hours = Math.floor(minutes / 60);
-  return rest === 0 ? `${hours} h` : `${hours} h ${String(rest).padStart(2, '0')} min`;
-}
+export { formatDuration } from '../ui/format';
 
 /** Tempo aproximado, para o que não precisa de precisão: "37 h", "4 h", "25 min". */
 export function formatApprox(seconds: number): string {

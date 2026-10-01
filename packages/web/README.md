@@ -36,7 +36,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | Pasta | O que tem |
 |---|---|
 | `src/app/` | `controller.ts`: o estado do app em um lugar só (conta, partida, abas, avisos), sem nada do navegador. `dialogs.ts` e `DialogHost.tsx`: diálogos acessíveis (confirmação, campo com validação, lista de escolha, informação). `router.ts`: abas e `#/feudo` |
-| `src/account/` | Conta neste navegador, Código do Reino, vínculo GitHub (*device flow*), lembrete do dia 3 |
+| `src/account/` | Conta neste navegador, Código do Reino, vínculo GitHub (*device flow*), lembrete "Proteja seu reino" depois de 48 horas reais (`linkReminder.ts`) |
 | `src/game/` | `gameSession.ts`: ciclo de 30 s (2 min em segundo plano), cache para o modo sem conexão, envio de ordens, Relatório de Retorno |
 | `src/notifications/` | `policy.ts` decide o que avisar (no máximo 3 por hora); `Toasts.tsx` desenha; `browserNotifications.ts` é a opção do navegador |
 | `src/palette/` | `commands.ts`: todos os comandos, o único lugar que conversa com o jogador por diálogos. `CommandPalette.tsx`: a paleta (`F1` ou `Ctrl+K`) e as listas de escolha |
@@ -57,7 +57,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 
 ## Limites conhecidos
 
-- O vínculo GitHub só foi exercitado com um GitHub simulado. O fluxo real depende de um OAuth App com *device flow* e do `GITHUB_CLIENT_ID` no servidor; sem ele o app esconde os botões ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)).
+- O vínculo GitHub só foi exercitado com um GitHub simulado. O fluxo real depende de um OAuth App com *device flow* e do `GITHUB_CLIENT_ID` no servidor; sem ele o app esconde os botões. Na v0.1 o vínculo fica desligado em produção, por decisão do autor ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)).
 - Testado só em Chromium. Firefox e Safari não foram abertos.
 - A espera de `storageSettle` é uma proteção contra a leitura atrasada do `localStorage` entre processos do navegador; a corrida em si não foi reproduzida nos testes.
 - Nome, ícone e texto final de privacidade são provisórios.

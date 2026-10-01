@@ -156,6 +156,10 @@ export type ViewState = {
     capacity: number;
     free: number;
     inTraining: number;
+    /** Lugares ocupados nas habitações: quem já mora e quem está a caminho. */
+    housed: number;
+    /** Lugares livres nas habitações. */
+    vacancies: number;
     /** Segundos até o próximo aldeão chegar; `null` sem fila ou com a fila congelada pela fome. */
     secondsToNextRecruit: number | null;
     breakdown: string;

@@ -245,7 +245,7 @@ test.describe('preferências, sobre e privacidade', () => {
     });
     const page = await world.open(context);
     await openSettings(page);
-    await settings(page).getByLabel('Hora local em que o seu dia de jogo vira').selectOption('7');
+    await settings(page).getByLabel('Hora local em que você costuma jogar').selectOption('7');
     await page.getByRole('tab', { name: 'Boas-vindas' }).click();
     await playNow(page);
     expect(created).toEqual({

@@ -126,6 +126,8 @@ export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
         await sleep(Math.min(rest, Math.max(0, deadline - performance.now())));
       }
     }
+    // O bot não deixa a conta para trás: ela fica bloqueada na hora e some no expurgo.
+    await client.deleteMe();
   }
 
   const startedAt = performance.now();

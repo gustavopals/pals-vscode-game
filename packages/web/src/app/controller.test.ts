@@ -1,6 +1,6 @@
 import { ApiClientError, NetworkError } from '@lotg/client-sdk';
 import type { Command, GameEvent, ViewState } from '@lotg/protocol';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cacheKey, type GameCache, OfflineError } from '../game/gameSession';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
@@ -97,11 +97,6 @@ async function serverShows(made: Made, view: ViewState): Promise<void> {
   await made.controller.session.syncNow();
   await settle(made.controller);
 }
-
-const onDay = (dayOfYear: number): ViewState => ({
-  ...goldenView,
-  calendar: { ...goldenView.calendar, dayOfYear },
-});
 
 const cachedAt = (lastSeenAt: number, lastSeq = 0): GameCache => ({
   view: goldenView,
@@ -261,11 +256,28 @@ describe('abertura da página', () => {
 
   it('traz as últimas 20 linhas da Crônica, cada uma só uma vez', async () => {
     const api = fakeApi();
-    api.state.events = Array.from({ length: 25 }, (_, index) => gameEvent(index + 1, 'dayStarted'));
+    api.state.events = Array.from({ length: 25 }, (_, index) =>
+      gameEvent(index + 1, 'constructionFinished'),
+    );
     const { controller } = await opened({ api });
     expect(controller.chronicle.map((event) => event.seq)).toEqual(
       Array.from({ length: 20 }, (_, index) => index + 6),
     );
+  });
+
+  it('as viradas de dia não aparecem na Crônica recente da abertura (ADR 0007)', async () => {
+    const api = fakeApi();
+    api.state.events = [
+      gameEvent(1, 'constructionFinished', 'A Serraria ficou pronta.'),
+      gameEvent(2, 'dayStarted', 'Amanheceu.'),
+      gameEvent(3, 'recruitmentFinished', 'Chegou um aldeão.'),
+      gameEvent(4, 'dayStarted', 'Amanheceu de novo.'),
+    ];
+    const { controller } = await opened({ api });
+    expect(controller.chronicle.map((event) => event.text)).toEqual([
+      'A Serraria ficou pronta.',
+      'Chegou um aldeão.',
+    ]);
   });
 
   it('respeita a aba pedida pelo endereço', async () => {
@@ -679,9 +691,39 @@ describe('avisos de acontecimentos', () => {
 
   it('os eventos novos entram na Crônica recente, mesmo os que não avisam', async () => {
     const made = await opened({ now: () => NOON });
-    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
-    expect(made.controller.chronicle.map((event) => event.text)).toEqual(['Amanheceu.']);
+    // No nível padrão (essencial) a obra concluída não avisa.
+    await deliver(made, gameEvent(1, 'constructionFinished', 'A Serraria ficou pronta.'));
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual([
+      'A Serraria ficou pronta.',
+    ]);
     expect(made.controller.toasts).toEqual([]);
+  });
+
+  it('a virada de dia não entra na Crônica recente (ADR 0007)', async () => {
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    expect(made.controller.chronicle).toEqual([]);
+    expect(made.controller.toasts).toEqual([]);
+
+    // Misturada com outros eventos, só ela fica de fora, e a ordem dos demais se mantém.
+    await deliver(
+      made,
+      gameEvent(2, 'constructionFinished', 'A Serraria ficou pronta.'),
+      gameEvent(3, 'dayStarted', 'Amanheceu de novo.'),
+      gameEvent(4, 'recruitmentFinished', 'Chegou um aldeão.'),
+    );
+    expect(made.controller.chronicle.map((event) => event.seq)).toEqual([2, 4]);
+    expect(made.controller.chronicle.some((event) => event.type === 'dayStarted')).toBe(false);
+  });
+
+  it('a virada de dia fora da Crônica não é pedida de novo ao servidor', async () => {
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    // O evento foi consumido: o próximo que chega é só o novo, uma vez.
+    await deliver(made, gameEvent(2, 'constructionFinished', 'A Serraria ficou pronta.'));
+    await made.controller.session.syncNow();
+    await settle(made.controller);
+    expect(made.controller.chronicle.map((event) => event.seq)).toEqual([2]);
   });
 });
 
@@ -916,12 +958,27 @@ describe('abas e navegação', () => {
     controller.navigate('chronicle');
     await settle(controller);
 
-    api.state.chronicleMarkdown = '# Crônica de Pedra Alta\n\n- Amanheceu.\n';
-    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    api.state.chronicleMarkdown = '# Crônica de Pedra Alta\n\n- Ergueu-se a Fazenda.\n';
+    await deliver(made, gameEvent(1, 'constructionFinished', 'Ergueu-se a Fazenda.'));
     expect(controller.chronicleDocument).toEqual({
       status: 'ready',
-      value: '# Crônica de Pedra Alta\n\n- Amanheceu.\n',
+      value: '# Crônica de Pedra Alta\n\n- Ergueu-se a Fazenda.\n',
     });
+  });
+
+  it('uma virada de dia não faz a Crônica aberta ser baixada de novo', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller, api } = made;
+    controller.navigate('chronicle');
+    await settle(controller);
+    const reads = () =>
+      api.state.requests.filter((request) => request.endsWith('/chronicle.md')).length;
+    const before = reads();
+
+    // As viradas de dia não entram na Crônica (ADR 0007): o texto dela não mudou.
+    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    expect(reads()).toBe(before);
+    expect(controller.chronicleDocument.status).toBe('ready');
   });
 
   it('se a leitura da Crônica falha, a aba mostra o erro em vez de travar', async () => {
@@ -1514,51 +1571,248 @@ describe('servidor atualizado (426 UPGRADE_REQUIRED)', () => {
     expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
     expect(logs.some((line) => line.includes('UPGRADE_REQUIRED'))).toBe(true);
   });
+
+  describe('em uma ordem do jogador', () => {
+    const RELOAD = 'Recarregue a página';
+
+    it('mostra o aviso de recarregar, e não um erro genérico', async () => {
+      const { controller, api } = await opened();
+      const reloads: string[] = [];
+      controller.runCommand = (id) => {
+        reloads.push(id);
+      };
+
+      api.state.failNext.set('/commands', upgrade);
+      const ok = await controller.order('setWorkers', { building: 'farm', count: 2 });
+      await settle(controller);
+
+      expect(ok).toBe(false);
+      expect(controller.toasts).toHaveLength(1);
+      const toast = toastWith(controller, RELOAD);
+      expect(toast).toMatchObject({
+        kind: 'warning',
+        sticky: true,
+        text: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
+      });
+      // Nem a frase crua do servidor, nem um erro, nem "Tentar de novo" (repetir não adianta).
+      expect(toastWith(controller, upgrade.body.message)).toBeUndefined();
+      expect(controller.toasts.filter((entry) => entry.kind === 'error')).toEqual([]);
+      expect(toast?.actions.map((entry) => entry.label)).toEqual(['Recarregar']);
+      await actionOf(toast, 'Recarregar').run();
+      expect(reloads).toEqual(['lords.reload']);
+    });
+
+    it('duas ordens recusadas com 426 dão um aviso só', async () => {
+      const { controller, api } = await opened();
+      api.state.failNext.set('/commands', upgrade);
+      expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(false);
+      api.state.failNext.set('/commands', upgrade);
+      expect(await controller.order('setWorkers', { building: 'farm', count: 1 })).toBe(false);
+      await settle(controller);
+      expect(controller.toasts.filter((entry) => entry.text.includes(RELOAD))).toHaveLength(1);
+      expect(controller.toasts).toHaveLength(1);
+    });
+
+    it('o aviso é um só entre o ciclo e as ordens', async () => {
+      const { controller, api } = await opened();
+      api.state.failNext.set('/view', upgrade);
+      await controller.session.syncNow();
+      await settle(controller);
+      const first = toastWith(controller, RELOAD);
+      expect(first).toBeDefined();
+
+      api.state.failNext.set('/commands', upgrade);
+      expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(false);
+      await settle(controller);
+      // Continua um aviso só: o da ordem substitui o que já estava à vista.
+      expect(controller.toasts).toHaveLength(1);
+      expect(toastWith(controller, RELOAD)).toBeDefined();
+    });
+
+    it('depois de dispensado, uma ordem recusada traz o aviso de volta', async () => {
+      const { controller, api } = await opened();
+      api.state.failNext.set('/view', upgrade);
+      await controller.session.syncNow();
+      await settle(controller);
+      controller.dismissToast(toastWith(controller, RELOAD)?.id ?? -1);
+      expect(controller.toasts).toEqual([]);
+
+      // Uma ordem que não foi aceita nunca some em silêncio.
+      api.state.failNext.set('/commands', upgrade);
+      expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(false);
+      expect(toastWith(controller, RELOAD)).toBeDefined();
+    });
+
+    it('não derruba a sessão nem manda a ordem para uma fila', async () => {
+      const { controller, api } = await opened();
+      api.state.failNext.set('/commands', upgrade);
+      await controller.order('setWorkers', { building: 'farm', count: 2 });
+      await settle(controller);
+      expect(controller.account.state.kind).toBe('anonymous');
+      expect(controller.view).not.toBeNull();
+      expect(controller.route).toBe('fief');
+      expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+      expect(count(api.state.requests, COMMANDS_REQUEST)).toBe(1);
+      expect(api.state.commands).toEqual([]);
+    });
+
+    it('vale também para uma ação que não é ordem ao feudo (attempt)', async () => {
+      const { controller } = make();
+      const ok = await controller.attempt(async () => {
+        throw new ApiClientError(426, 'UPGRADE_REQUIRED', 'Atualize o cliente.', undefined);
+      });
+      expect(ok).toBe(false);
+      expect(controller.toasts).toHaveLength(1);
+      expect(controller.toasts[0]).toMatchObject({ kind: 'warning', sticky: true });
+      expect(controller.toasts[0]?.text).toContain(RELOAD);
+    });
+  });
 });
 
-describe('lembrete do dia 3 ("Proteja seu reino")', () => {
+describe('lembrete "Proteja seu reino" (48 horas reais)', () => {
   const REMINDER = 'Proteja seu reino';
+  const DAY = 24 * HOUR;
+  const REMIND_AFTER = 48 * HOUR;
+  const OTHER_REMINDER_KEY = `lords.linkReminder:${OTHER_ACCOUNT_ID}`;
 
-  async function openedOn(dayOfYear: number, options: MakeOptions = {}): Promise<Made> {
-    const api = options.api ?? fakeApi();
-    api.state.view = onDay(dayOfYear);
-    return opened({ ...options, api });
+  /** O relógio do navegador, que o teste adianta. */
+  let clock = NOON;
+  const now = () => clock;
+  beforeEach(() => {
+    clock = NOON;
+  });
+
+  /** O feudo aberto pela primeira vez neste navegador, ao meio-dia. */
+  const firstOpen = (options: MakeOptions = {}) => opened({ now, ...options });
+
+  /** O tempo real passa e o ciclo traz uma visão nova. */
+  async function later(made: Made, ms: number): Promise<void> {
+    clock += ms;
+    await serverShows(made, made.api.state.view);
   }
 
-  it('aparece quando o calendário chega ao dia 25, para conta anônima sem código', async () => {
-    const made = await openedOn(24);
-    const { controller, store } = made;
-    expect(toastWith(controller, REMINDER)).toBeUndefined();
-    expect(store.get(REMINDER_KEY)).toBeUndefined();
+  /** A página é recarregada: outro controlador, com o mesmo armazenamento do navegador. */
+  async function reopened(made: Made): Promise<Made> {
+    made.controller.dispose();
+    const { store, tokenStore } = made;
+    const again = await opened({ api: made.api, now, overrides: { store, tokenStore } });
+    // `makeController` devolve o armazenamento que ele criou; o que vale aqui é o do navegador.
+    return { ...again, store, tokenStore };
+  }
 
-    await serverShows(made, onDay(25));
+  it('a primeira visão cria o registro com a hora de agora, sem mostrar nada', async () => {
+    const { controller, store } = await firstOpen();
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+  });
+
+  it('não aparece antes de 48 horas, e o prazo não recomeça a cada visão', async () => {
+    const made = await firstOpen();
+    const { controller, store } = made;
+    await later(made, DAY);
+    await later(made, DAY - 1);
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+  });
+
+  it('aparece ao completar 48 horas, para conta anônima sem código', async () => {
+    const made = await firstOpen();
+    const { controller, store } = made;
+    await later(made, REMIND_AFTER - 1);
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+
+    await later(made, 1);
     const toast = toastWith(controller, REMINDER);
     expect(toast).toMatchObject({ kind: 'info', sticky: true });
     // O texto avisa do risco próprio do navegador.
     expect(toast?.text).toContain('limpar os dados de navegação apaga o acesso');
     expect(toast?.actions.map((entry) => entry.label)).toContain('Não lembrar mais');
     expect(toast?.actions.map((entry) => entry.label)).toContain('Gerar Código do Reino');
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: true });
+  });
+
+  it('conta tempo real, e não o calendário do jogo', async () => {
+    // Um feudo já no segundo ano, visto pela primeira vez neste navegador: ainda não é hora.
+    const api = fakeApi();
+    api.state.view = {
+      ...goldenView,
+      calendar: { ...goldenView.calendar, year: 2, dayOfYear: 40 },
+    };
+    const made = await firstOpen({ api });
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+    await later(made, REMIND_AFTER - 1);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+
+    // E no primeiro dia do calendário, passadas as 48 horas, é hora.
+    clock = NOON;
+    const early = await firstOpen();
+    expect(early.api.state.view.calendar).toMatchObject({ year: 1, dayOfYear: 1 });
+    await later(early, REMIND_AFTER);
+    expect(toastWith(early.controller, REMINDER)).toBeDefined();
+  });
+
+  it('o prazo atravessa o recarregar da página', async () => {
+    const first = await firstOpen();
+    clock += DAY;
+    const second = await reopened(first);
+    expect(second.store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+    expect(toastWith(second.controller, REMINDER)).toBeUndefined();
+
+    clock += DAY;
+    const third = await reopened(second);
+    expect(toastWith(third.controller, REMINDER)).toBeDefined();
+    expect(third.store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: true });
   });
 
   it('aparece uma vez só', async () => {
-    const made = await openedOn(25);
+    const made = await firstOpen();
     const { controller, store } = made;
+    await later(made, REMIND_AFTER);
     const toast = toastWith(controller, REMINDER);
     expect(toast).toBeDefined();
-    expect(store.get(REMINDER_KEY)).toBe(true);
 
     controller.dismissToast(toast?.id ?? -1);
-    await serverShows(made, onDay(26));
-    await serverShows(made, onDay(27));
+    await later(made, HOUR);
+    await later(made, 10 * DAY);
     expect(toastWith(controller, REMINDER)).toBeUndefined();
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: true });
+
+    // Nem depois de recarregar a página.
+    const again = await reopened(made);
+    await later(again, DAY);
+    expect(toastWith(again.controller, REMINDER)).toBeUndefined();
+  });
+
+  it('o formato antigo guardado (`true`) é um lembrete que já apareceu', async () => {
+    const made = make({ signedIn: true, now });
+    made.store.data[REMINDER_KEY] = true;
+    await made.controller.start();
+    await settle(made.controller);
+    await later(made, 10 * DAY);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+    // E o registro não vira um prazo novo.
+    expect(made.store.get(REMINDER_KEY)).toBe(true);
+  });
+
+  it('lixo no armazenamento é tratado como primeira vez', async () => {
+    const made = make({ signedIn: true, now });
+    made.store.data[REMINDER_KEY] = { since: 'ontem' };
+    await made.controller.start();
+    await settle(made.controller);
+    expect(made.store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+    await later(made, REMIND_AFTER);
+    expect(toastWith(made.controller, REMINDER)).toBeDefined();
   });
 
   it('os botões levam aos comandos de vincular e de gerar o código', async () => {
-    const { controller } = await openedOn(30);
+    const made = await firstOpen();
+    const { controller } = made;
     const ran: string[] = [];
     controller.runCommand = (id) => {
       ran.push(id);
     };
+    await later(made, REMIND_AFTER);
     const toast = toastWith(controller, REMINDER);
     await actionOf(toast, 'Gerar Código do Reino').run();
     await actionOf(toast, 'Vincular ao GitHub').run();
@@ -1568,30 +1822,35 @@ describe('lembrete do dia 3 ("Proteja seu reino")', () => {
   it('sem o vínculo com o GitHub no servidor, não oferece o que não existe', async () => {
     const api = fakeApi();
     api.state.githubDevice = false;
-    const { controller } = await openedOn(25, { api });
-    const labels = toastWith(controller, REMINDER)?.actions.map((entry) => entry.label);
+    const made = await firstOpen({ api });
+    await later(made, REMIND_AFTER);
+    const labels = toastWith(made.controller, REMINDER)?.actions.map((entry) => entry.label);
     expect(labels).toEqual(['Gerar Código do Reino', 'Não lembrar mais']);
   });
 
   it('não aparece no modo discreto; fica para quando o jogador sair dele', async () => {
-    const api = fakeApi();
-    api.state.view = onDay(25);
-    const made = make({ api, signedIn: true });
-    const { controller } = made;
+    const made = make({ signedIn: true, now });
+    const { controller, store } = made;
     await controller.setPreferences({ discreetMode: true });
     await controller.start();
     await settle(controller);
+    // O prazo corre mesmo no modo discreto.
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+
+    await later(made, REMIND_AFTER + HOUR);
     expect(toastWith(controller, REMINDER)).toBeUndefined();
+    // Não foi dado como mostrado: senão nunca apareceria.
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
 
     await controller.setPreferences({ discreetMode: false });
-    await serverShows(made, onDay(26));
+    await later(made, 60_000);
     expect(toastWith(controller, REMINDER)).toBeDefined();
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: true });
   });
 
   it('quem já tem Código do Reino não é lembrado', async () => {
     const api = fakeApi();
-    api.state.view = onDay(40);
-    const made = make({ api, signedIn: true });
+    const made = make({ api, signedIn: true, now });
     made.store.data[ACCOUNT_KEY] = {
       kind: 'anonymous',
       accountId: ACCOUNT_ID,
@@ -1604,14 +1863,69 @@ describe('lembrete do dia 3 ("Proteja seu reino")', () => {
     }
     await made.controller.start();
     await settle(made.controller);
+    await later(made, 10 * DAY);
     expect(toastWith(made.controller, REMINDER)).toBeUndefined();
   });
 
-  it('a partir do segundo ano também vale', async () => {
+  it('conta vinculada ao GitHub não é lembrada', async () => {
     const api = fakeApi();
-    api.state.view = { ...goldenView, calendar: { ...goldenView.calendar, year: 2, dayOfYear: 1 } };
-    const { controller } = await opened({ api });
-    expect(toastWith(controller, REMINDER)).toBeDefined();
+    const made = make({ api, signedIn: true, now });
+    made.store.data[ACCOUNT_KEY] = {
+      kind: 'linked',
+      accountId: ACCOUNT_ID,
+      displayName: 'Gustavo',
+      hasRecoveryCode: false,
+      gameId: GAME_ID,
+    };
+    if (api.state.account !== null) {
+      api.state.account = { ...api.state.account, linked: { github: true } };
+    }
+    await made.controller.start();
+    await settle(made.controller);
+    expect(made.controller.account.state.kind).toBe('linked');
+    await later(made, 10 * DAY);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+  });
+
+  it('gerar o Código do Reino antes do prazo dispensa o lembrete', async () => {
+    const made = await firstOpen();
+    await later(made, DAY);
+    await made.controller.account.generateRecoveryCode();
+    await settle(made.controller);
+    await later(made, 10 * DAY);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+  });
+
+  it('é por conta: o registro de outra conta neste navegador não vale para esta', async () => {
+    const made = make({ signedIn: true, now });
+    const other = { since: NOON - 30 * DAY, shown: true };
+    made.store.data[OTHER_REMINDER_KEY] = other;
+    await made.controller.start();
+    await settle(made.controller);
+    // Esta conta começa o próprio prazo, e o da outra fica como estava.
+    expect(made.store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+
+    await later(made, REMIND_AFTER);
+    expect(toastWith(made.controller, REMINDER)).toBeDefined();
+    expect(made.store.get(OTHER_REMINDER_KEY)).toEqual(other);
+  });
+
+  it('é por conta: o prazo vencido de outra conta não adianta o desta', async () => {
+    const made = make({ signedIn: true, now });
+    made.store.data[OTHER_REMINDER_KEY] = { since: NOON - 30 * DAY, shown: false };
+    await made.controller.start();
+    await settle(made.controller);
+    await later(made, DAY);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+    expect(made.store.get(OTHER_REMINDER_KEY)).toEqual({ since: NOON - 30 * DAY, shown: false });
+  });
+
+  it('sem conta, nada é guardado', async () => {
+    const { controller, store } = make({ now });
+    await controller.start();
+    await settle(controller);
+    expect(store.keys().filter((key) => key.startsWith('lords.linkReminder'))).toEqual([]);
   });
 });
 
@@ -1719,12 +2033,107 @@ describe('achados da revisão independente', () => {
   });
 
   it('o lembrete do dia 3 é por conta e some do navegador quando ela sai', async () => {
-    const { controller, store } = makeController({ signedIn: true });
+    const { controller, store } = makeController({ signedIn: true, now: () => NOON });
     await controller.start();
-    await store.update(REMINDER_KEY, true);
+    await settle(controller);
+    expect(store.get(REMINDER_KEY)).toEqual({ since: NOON, shown: false });
     await controller.signOut();
     await settle(controller);
     expect(store.keys().filter((key) => key.startsWith('lords.linkReminder'))).toEqual([]);
+    controller.dispose();
+  });
+});
+
+describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
+  it('cache de uma versão anterior do app: a visão é descartada, o cursor não', async () => {
+    const { controller, api, store } = makeController({ signedIn: true });
+    const key = `lords.cache:self:${ACCOUNT_ID}:${GAME_ID}`;
+    // Um cache gravado antes de a visão ganhar campos novos: a forma não confere mais.
+    const { housed: _housed, vacancies: _vacancies, ...oldPopulation } = goldenView.population;
+    void _housed;
+    void _vacancies;
+    await store.update(key, {
+      view: { ...goldenView, population: oldPopulation },
+      stateVersion: '7',
+      etag: 'W/"antigo"',
+      lastSeq: 40,
+      lastSeenAt: Date.now() - 60_000,
+    });
+    api.state.events = Array.from({ length: 42 }, (_, index) =>
+      gameEvent(index + 1, 'constructionFinished'),
+    );
+    await controller.setPreferences({ notifications: 'all' });
+    await controller.start();
+    await settle(controller);
+
+    // Só os dois eventos além do cursor são novidade; os 40 antigos não viram aviso.
+    expect(api.state.requests).toContain(`GET /games/${GAME_ID}/events`);
+    expect(controller.toasts).toHaveLength(2);
+    expect(controller.view?.population.vacancies).toBe(goldenView.population.vacancies);
+    controller.dispose();
+  });
+
+  it('navegador sem cache nenhum: a história da partida não chega como novidade', async () => {
+    const { controller, api } = makeController({ signedIn: true });
+    api.state.events = Array.from({ length: 12 }, (_, index) =>
+      gameEvent(index + 1, 'constructionFinished'),
+    );
+    await controller.setPreferences({ notifications: 'all' });
+    await controller.start();
+    await settle(controller);
+    expect(controller.toasts).toEqual([]);
+    expect(controller.unseen).toBe(0);
+
+    // A partir daí, o que acontecer é novidade.
+    api.state.events.push(gameEvent(13, 'constructionFinished', 'Ergueu-se a Serraria.'));
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(controller.toasts.map((toast) => toast.text)).toEqual(['Ergueu-se a Serraria.']);
+    controller.dispose();
+  });
+
+  it('com uma obra perto do fim, o app lê o servidor quando o prazo vence, sem esperar 30 s', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      const active = {
+        building: 'housing' as const,
+        label: 'Habitações',
+        targetLevel: 2,
+        secondsRemaining: 5,
+        totalSeconds: 80,
+        progressPercent: 90,
+        refund: [],
+      };
+      api.state.view = {
+        ...goldenView,
+        constructions: { ...goldenView.constructions, active },
+      };
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(reads()).toBe(before);
+      // Um segundo depois do prazo, a leitura acontece.
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('lembrete com o registro no futuro (relógio do aparelho estava adiantado) é reancorado', async () => {
+    const now = Date.now();
+    const { controller, store } = makeController({ signedIn: true, now: () => now });
+    const key = `lords.linkReminder:${ACCOUNT_ID}`;
+    await store.update(key, { since: now + 365 * 24 * 3600 * 1000, shown: false });
+    await controller.start();
+    await settle(controller);
+    expect(store.get(key)).toEqual({ since: now, shown: false });
     controller.dispose();
   });
 });

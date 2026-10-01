@@ -1,5 +1,5 @@
 import { memoryTokenStore } from '@lotg/client-sdk';
-import type { ViewState } from '@lotg/protocol';
+import { DisplayNameSchema, type ViewState } from '@lotg/protocol';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AccountState } from '../account/accountService';
@@ -23,6 +23,7 @@ import {
   bindCommands,
   type CommandEnv,
   createCommands,
+  NAME_RULE,
   PALETTE_PREFIX,
   paletteItems,
   PRIVACY_PARAGRAPHS,
@@ -981,12 +982,12 @@ describe('recrutar, renomear e nova partida', () => {
     expect(orders()).toEqual([{ type: 'recruitVillagers', payload: { quantity: 2 } }]);
   });
 
-  it('as vagas descontam quem já está em treino', async () => {
+  it('as vagas são as que vieram na visão, já sem quem está a caminho', async () => {
     const { run, answers, shown } = await setup({
       before: ({ api }) => {
         api.state.view = {
           ...goldenView,
-          population: { ...goldenView.population, inTraining: 2 },
+          population: { ...goldenView.population, inTraining: 2, housed: 7, vacancies: 3 },
           recruitment: { ...goldenView.recruitment, maxQuantity: 3 },
         };
       },
@@ -997,6 +998,31 @@ describe('recrutar, renomear e nova partida', () => {
     expect(input.prompt).toContain('Vagas: 3 de 10');
     expect(input.validate?.('4')?.severity).toBe('error');
     expect(input.validate?.('3')).toBeNull();
+  });
+
+  it('o app não refaz a conta das vagas: mostra o número do servidor', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        // Números que não fecham entre si de propósito: pela conta antiga
+        // (capacidade − aldeões − a caminho) seriam 4 vagas.
+        api.state.view = {
+          ...goldenView,
+          population: {
+            ...goldenView.population,
+            villagers: 5,
+            capacity: 10,
+            inTraining: 1,
+            housed: 9,
+            vacancies: 1,
+          },
+        };
+      },
+    });
+    answers.push(undefined);
+    await run('lords.recruit');
+    const input = shownAs(shown, 0, 'input');
+    expect(input.prompt).toContain('Vagas: 1 de 10.');
+    expect(input.prompt).not.toContain('Vagas: 4');
   });
 
   it('desistir de recrutar não manda nada', async () => {
@@ -1018,6 +1044,33 @@ describe('recrutar, renomear e nova partida', () => {
     expect(input.validate?.('ab')).toBeNull();
     expect(input.validate?.('x'.repeat(24))).toBeNull();
     expect(orders()).toEqual([{ type: 'renameSettlement', payload: { name: 'Vila Nova' } }]);
+  });
+
+  it('a regra dos nomes é a do protocolo (DisplayNameSchema), com a frase do app', async () => {
+    const { run, answers, shown } = await setup();
+    answers.push(undefined);
+    await run('lords.renameSettlement');
+    const validate = shownAs(shown, 0, 'input').validate;
+    const refused = { message: NAME_RULE, severity: 'error' };
+    expect(NAME_RULE).toBe('De 2 a 24 caracteres.');
+    // Um caractere, 25, só espaços, e espaços que não contam para o tamanho.
+    expect(validate?.('a')).toEqual(refused);
+    expect(validate?.('x'.repeat(25))).toEqual(refused);
+    expect(validate?.('')).toEqual(refused);
+    expect(validate?.('      ')).toEqual(refused);
+    expect(validate?.('  a  ')).toEqual(refused);
+    // Os dois limites valem, e os espaços nas pontas não contam.
+    expect(validate?.('ab')).toBeNull();
+    expect(validate?.('x'.repeat(24))).toBeNull();
+    expect(validate?.(`  ${'x'.repeat(24)}  `)).toBeNull();
+    // O que o servidor recusaria por não poder guardar, o app recusa antes.
+    expect(validate?.('Vila\u0000Nova')).toEqual(refused);
+    // O app aceita exatamente o que o protocolo aceita.
+    for (const name of ['a', 'ab', 'Vila Nova', ' x ', 'x'.repeat(24), 'x'.repeat(25), '\t\t\t']) {
+      expect(validate?.(name) === null, JSON.stringify(name)).toBe(
+        DisplayNameSchema.safeParse(name).success,
+      );
+    }
   });
 
   it('o mesmo nome, ou desistir, não manda nada', async () => {
@@ -1049,6 +1102,10 @@ describe('recrutar, renomear e nova partida', () => {
     expect(shown.map((entry) => entry.kind)).toEqual(['confirm', 'input']);
     const input = shownAs(shown, 1, 'input');
     expect(input.validate?.('a')?.severity).toBe('error');
+    expect(input.validate?.('   ')?.severity).toBe('error');
+    expect(input.validate?.('x'.repeat(25))?.severity).toBe('error');
+    expect(input.validate?.('ab')).toBeNull();
+    expect(input.validate?.('x'.repeat(24))).toBeNull();
     expect(input.validate?.('Vila Nova')).toBeNull();
     expect(requested('POST /games')).toBe(1);
     expect(api.state.game?.settlementName).toBe('Vila Nova');

@@ -1,4 +1,5 @@
 import type {
+  ApiError,
   ChronicleResponse,
   CommandAccepted,
   EventsResponse,
@@ -123,18 +124,56 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     });
     const third = await call<ChronicleResponse>(server, 'GET', `${path}?year=3`, { token });
     const all = await call<ChronicleResponse>(server, 'GET', `${path}?limit=500`, { token });
+    const events = await call<EventsResponse>(
+      server,
+      'GET',
+      `/games/${player.game.id}/events?limit=500`,
+      { token },
+    );
 
-    expect(first.body.entries.some((entry) => entry.type === 'yearStarted')).toBe(false);
-    expect(first.body.entries.filter((entry) => entry.type === 'dayStarted')).toHaveLength(83);
+    // GET /events continua trazendo as viradas de dia: 83 no Ano 1 e duas no Ano 2.
+    const days = events.body.events.filter((event) => event.type === 'dayStarted');
+    expect(days).toHaveLength(85);
+    // A Crônica não traz nenhuma (ADR 0007): ficam as viradas de estação e de ano.
+    expect(all.body.entries).toEqual(
+      events.body.events.filter((event) => event.type !== 'dayStarted'),
+    );
+    expect(all.body.entries.map((entry) => [entry.type, entry.text])).toEqual([
+      // Ninguém foi para a Fazenda: a comida acaba na 36ª hora, ainda na Primavera.
+      ['famineStarted', expect.stringContaining('A fome começou.')],
+      ['seasonChanged', 'Chega o Verão a Pedra Alta.'],
+      ['seasonChanged', 'Chega o Outono a Pedra Alta.'],
+      ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
+      ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],
+      ['seasonChanged', 'Chega a Primavera a Pedra Alta.'],
+    ]);
+
+    // O filtro por ano corta nos eventos yearStarted, mesmo sem as viradas de dia no meio.
+    expect(first.body.entries).toEqual(all.body.entries.slice(0, 4));
+    expect(second.body.entries).toEqual(all.body.entries.slice(4));
     expect(second.body.entries[0]).toMatchObject({ type: 'yearStarted', data: { year: 2 } });
     expect(third.body.entries).toEqual([]);
-    expect([...first.body.entries, ...second.body.entries]).toEqual(all.body.entries);
 
     const markdown = await call<string>(server, 'GET', `${path}.md`, { token });
     expect(markdown.body).toContain('## Ano 1');
     expect(markdown.body).toContain('## Ano 2\n\n- Começa o ano 2 da Casa de Pedra Alta.');
-    expect(markdown.body.split('\n').filter((line) => line.startsWith('- '))).toHaveLength(
-      all.body.entries.length,
+    expect(markdown.body).not.toContain('Amanhece');
+    expect(markdown.body.split('\n').filter((line) => line.startsWith('- '))).toEqual(
+      all.body.entries.map((entry) => `- ${entry.text}`),
     );
+  });
+
+  it('cliente de outra versão do protocolo recebe 426 com o aviso de recarregar a página', async () => {
+    const reply = await call<ApiError>(server, 'GET', '/version', {
+      headers: { 'x-lords-protocol': '2' },
+    });
+    expect(reply.status).toBe(426);
+    expect(reply.body).toMatchObject({
+      code: 'UPGRADE_REQUIRED',
+      message: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
+      details: { protocol: 1 },
+    });
+    // O app é uma página: a mensagem não fala mais em extensão.
+    expect(reply.body.message).not.toMatch(/extens/i);
   });
 });

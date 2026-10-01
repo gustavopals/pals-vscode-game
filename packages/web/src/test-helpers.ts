@@ -182,7 +182,10 @@ export function fakeApi() {
       return json({ events, lastSeq: events.at(-1)?.seq ?? after, hasMore: false });
     }
     if (resource === 'chronicle') {
-      return json({ entries: state.events.slice(-20) });
+      // Como no servidor: as viradas de dia não entram na Crônica (ADR 0007).
+      return json({
+        entries: state.events.filter((event) => event.type !== 'dayStarted').slice(-20),
+      });
     }
     if (resource === 'chronicle.md') {
       return new Response(state.chronicleMarkdown, {

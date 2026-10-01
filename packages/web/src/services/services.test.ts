@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { AccountState } from '../account/accountService';
-import { shouldRemindToLink } from '../account/linkReminder';
+import {
+  type LinkReminderRecord,
+  readReminderRecord,
+  REMIND_AFTER_MS,
+  shouldRemindToLink,
+} from '../account/linkReminder';
 import { describeError } from '../app/controller';
 import { OfflineError } from '../game/gameSession';
 import { workersPreview } from '../palette/commands';
@@ -290,25 +295,63 @@ describe('lembrete do dia 3', () => {
     hasRecoveryCode: false,
     gameId: 'p',
   };
-  const onDay = (dayOfYear: number, year = 1): ViewState => ({
-    ...view,
-    calendar: { ...view.calendar, dayOfYear, year },
+  const SINCE = Date.parse('2026-10-01T12:00:00.000Z');
+  const pending: LinkReminderRecord = { since: SINCE, shown: false };
+
+  it('o prazo é de 48 horas reais', () => {
+    expect(REMIND_AFTER_MS).toBe(48 * 60 * 60 * 1000);
   });
 
-  it('aparece a partir do terceiro dia real, só para conta anônima sem código', () => {
-    expect(shouldRemindToLink(onDay(24), anonymous, false)).toBe(false);
-    expect(shouldRemindToLink(onDay(25), anonymous, false)).toBe(true);
-    expect(shouldRemindToLink(onDay(3, 2), anonymous, false)).toBe(true);
+  it('não aparece antes de 48 horas da primeira vez; aparece a partir daí', () => {
+    expect(shouldRemindToLink(pending, anonymous, SINCE)).toBe(false);
+    expect(shouldRemindToLink(pending, anonymous, SINCE + REMIND_AFTER_MS - 1)).toBe(false);
+    expect(shouldRemindToLink(pending, anonymous, SINCE + REMIND_AFTER_MS)).toBe(true);
+    expect(shouldRemindToLink(pending, anonymous, SINCE + 30 * REMIND_AFTER_MS)).toBe(true);
   });
 
-  it('não aparece para quem já pode recuperar a conta, nem duas vezes', () => {
-    expect(shouldRemindToLink(onDay(30), { ...anonymous, hasRecoveryCode: true }, false)).toBe(
+  it('um relógio que andou para trás não adianta o lembrete', () => {
+    expect(shouldRemindToLink(pending, anonymous, SINCE - REMIND_AFTER_MS)).toBe(false);
+  });
+
+  it('não aparece para quem já pode recuperar a conta, nem duas vezes, nem sem registro', () => {
+    const late = SINCE + 2 * REMIND_AFTER_MS;
+    expect(shouldRemindToLink(pending, { ...anonymous, hasRecoveryCode: true }, late)).toBe(false);
+    expect(shouldRemindToLink(pending, { ...anonymous, kind: 'linked' }, late)).toBe(false);
+    expect(shouldRemindToLink(pending, { kind: 'signedOut' }, late)).toBe(false);
+    expect(shouldRemindToLink({ ...pending, shown: true }, anonymous, late)).toBe(false);
+    expect(shouldRemindToLink(null, anonymous, late)).toBe(false);
+  });
+
+  it('lê o registro guardado, sem levar adiante campos estranhos', () => {
+    expect(readReminderRecord({ since: SINCE, shown: false })).toEqual(pending);
+    expect(readReminderRecord({ since: SINCE, shown: true, extra: 1 })).toEqual({
+      since: SINCE,
+      shown: true,
+    });
+  });
+
+  it('o formato antigo (`true`) é um lembrete que já apareceu', () => {
+    const record = readReminderRecord(true);
+    expect(record?.shown).toBe(true);
+    expect(shouldRemindToLink(record, anonymous, SINCE + 30 * REMIND_AFTER_MS)).toBe(false);
+  });
+
+  it('sem nada guardado, ou com lixo, não há registro', () => {
+    for (const stored of [
+      undefined,
+      null,
       false,
-    );
-    expect(shouldRemindToLink(onDay(30), { ...anonymous, kind: 'linked' }, false)).toBe(false);
-    expect(shouldRemindToLink(onDay(30), { kind: 'signedOut' }, false)).toBe(false);
-    expect(shouldRemindToLink(onDay(30), anonymous, true)).toBe(false);
-    expect(shouldRemindToLink(null, anonymous, false)).toBe(false);
+      'true',
+      42,
+      {},
+      [],
+      { since: SINCE },
+      { shown: false },
+      { since: '1', shown: false },
+      { since: SINCE, shown: 'não' },
+    ]) {
+      expect(readReminderRecord(stored), JSON.stringify(stored)).toBeNull();
+    }
   });
 });
 

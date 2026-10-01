@@ -30,7 +30,7 @@ import type {
   UpgradeView,
   ViewState,
 } from './types';
-import { MILLI, positiveEntries, SECOND_MS, secondsUntil } from './units';
+import { MILLI, positiveEntries, SECOND_MS } from './units';
 
 /** Número com vírgula decimal e até duas casas, para os textos de explicação. */
 function decimal(value: number): string {
@@ -54,17 +54,41 @@ function costView(state: GameState, cost: ResourceAmounts, quantity = 1): Resour
   });
 }
 
-/** "4 trabalhadores × 10 × 1,2 (Nv2) = 48/h". */
-function productionBreakdown(state: GameState, building: ProductionBuildingId): string {
+/**
+ * Como o tempo de jogo aparece para o jogador. O motor roda em tempo de jogo; no ritmo `N`, uma
+ * hora real são `N` horas de jogo (GDD §4.2). A interface só fala em tempo real: prazos são
+ * divididos pelo ritmo e taxas "por hora" são multiplicadas por ele.
+ */
+export type ViewOptions = {
+  /** Horas de jogo por hora real. Padrão 1 (ritmo Normal). */
+  readonly timeScale?: number;
+};
+
+/** Segundos reais (arredondados para cima) de uma duração em ms de jogo. */
+function realSecondsCeil(gameMs: number, timeScale: number): number {
+  return Math.max(0, Math.ceil(gameMs / timeScale / SECOND_MS));
+}
+
+function realSecondsFloor(gameMs: number, timeScale: number): number {
+  return Math.max(0, Math.floor(gameMs / timeScale / SECOND_MS));
+}
+
+/** "4 trabalhadores × 10 × 1,2 (Nv2) = 48/h", por hora real. */
+function productionBreakdown(
+  state: GameState,
+  building: ProductionBuildingId,
+  timeScale: number,
+): string {
   const { levelBonus, perWorkerPerHour } = balance.production;
   const { workers, buildings: levels, famine } = state.settlement;
   const level = levels[building];
   const bonus = (levelBonus.den + levelBonus.num * (level - 1)) / levelBonus.den;
   const { num, den } = balance.famine.productionMultiplier;
   const penalty = famine ? ` × ${decimal(num / den)} (fome)` : '';
-  const total = decimal(productionRate(state, building) / MILLI);
+  const total = decimal((productionRate(state, building) * timeScale) / MILLI);
   const hands = plural(workers[building], 'trabalhador', 'trabalhadores');
-  return `${hands} × ${perWorkerPerHour[building]} × ${decimal(bonus)} (Nv${level})${penalty} = ${total}/h`;
+  const perWorker = decimal(perWorkerPerHour[building] * timeScale);
+  return `${hands} × ${perWorker} × ${decimal(bonus)} (Nv${level})${penalty} = ${total}/h`;
 }
 
 function producerOf(resource: ResourceId): ProductionBuildingId {
@@ -75,13 +99,15 @@ function producerOf(resource: ResourceId): ProductionBuildingId {
   return producer;
 }
 
-function resourceBreakdown(state: GameState, resource: ResourceId): string {
+function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: number): string {
   const producer = producerOf(resource);
-  const parts = [`${buildings[producer].label}: ${productionBreakdown(state, producer)}`];
+  const parts = [
+    `${buildings[producer].label}: ${productionBreakdown(state, producer, timeScale)}`,
+  ];
   if (resource === 'food') {
     const { villagers } = state.settlement.population;
-    const perVillager = balance.consumption.foodPerVillagerPerHour;
-    const consumed = decimal(consumptionRate(state) / MILLI);
+    const perVillager = decimal(balance.consumption.foodPerVillagerPerHour * timeScale);
+    const consumed = decimal((consumptionRate(state) * timeScale) / MILLI);
     parts.push(`consumo ${villagers} × ${perVillager} = ${consumed}/h`);
   }
   return parts.join('; ');
@@ -96,7 +122,7 @@ function refundView(building: BuildingId, fromLevel: number) {
   }));
 }
 
-function upgradeView(state: GameState, building: BuildingId): UpgradeView {
+function upgradeView(state: GameState, building: BuildingId, timeScale: number): UpgradeView {
   const quote = upgradeQuote(state, building);
   return {
     building,
@@ -104,7 +130,7 @@ function upgradeView(state: GameState, building: BuildingId): UpgradeView {
     fromLevel: quote.fromLevel,
     targetLevel: quote.targetLevel,
     cost: costView(state, quote.cost),
-    durationSeconds: Math.ceil(quote.durationMs / SECOND_MS),
+    durationSeconds: realSecondsCeil(quote.durationMs, timeScale),
     affordable: Object.keys(quote.missing).length === 0,
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
@@ -112,7 +138,12 @@ function upgradeView(state: GameState, building: BuildingId): UpgradeView {
   };
 }
 
-function plannedView(state: GameState, building: BuildingId, targetLevel: number): UpgradeView {
+function plannedView(
+  state: GameState,
+  building: BuildingId,
+  targetLevel: number,
+  timeScale: number,
+): UpgradeView {
   const cost = upgradeCost(building, targetLevel - 1);
   const costs = costView(state, cost);
   return {
@@ -121,7 +152,7 @@ function plannedView(state: GameState, building: BuildingId, targetLevel: number
     fromLevel: targetLevel - 1,
     targetLevel,
     cost: costs,
-    durationSeconds: Math.ceil(upgradeDurationMs(building, targetLevel - 1) / SECOND_MS),
+    durationSeconds: realSecondsCeil(upgradeDurationMs(building, targetLevel - 1), timeScale),
     affordable: costs.every((entry) => entry.missing === 0),
     blockedCode: null,
     blockedReason: null,
@@ -151,8 +182,18 @@ function objectivesView(state: GameState): ObjectiveView[] {
  * Tudo que a interface precisa, já calculado, com o "por quê" de cada número.
  * A formatação de números para exibição fica com a UI; aqui saem números e textos de explicação.
  * Aceita um instante futuro: avança uma cópia do estado antes de derivar, sem mutar a entrada.
+ * Prazos e taxas saem em tempo real, conforme o ritmo da partida (`options.timeScale`).
  */
-export function deriveViewState(input: GameState, gameTimeMs: number): ViewState {
+export function deriveViewState(
+  input: GameState,
+  gameTimeMs: number,
+  options: ViewOptions = {},
+): ViewState {
+  const timeScale = options.timeScale ?? 1;
+  if (!(timeScale > 0) || !Number.isFinite(timeScale)) {
+    throw new Error(`Ritmo inválido: ${timeScale}.`);
+  }
+  const perRealHour = (milliPerGameHour: number) => (milliPerGameHour * timeScale) / MILLI;
   if (gameTimeMs < input.lastProcessedAt) {
     throw new Error(
       `deriveViewState não volta no tempo: o estado está em ${input.lastProcessedAt} e o pedido é ${gameTimeMs}.`,
@@ -160,6 +201,7 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
   }
   const state = advanceTo(input, gameTimeMs).state;
   const now = state.lastProcessedAt;
+  const until = (gameMs: number) => realSecondsCeil(gameMs - now, timeScale);
   const { settlement } = state;
   const date = calendarAt(now);
   const rates = netRates(state);
@@ -183,18 +225,18 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
       seasonLabel: date.season.label,
       dayOfSeason: date.dayOfSeason,
       dayOfYear: date.dayOfYear,
-      secondsToNextDay: secondsUntil(now, nextDayBoundary(now)),
-      secondsToNextSeason: secondsUntil(now, nextSeasonBoundary(now)),
+      secondsToNextDay: until(nextDayBoundary(now)),
+      secondsToNextSeason: until(nextSeasonBoundary(now)),
     },
     population: {
       villagers,
       capacity,
       free: freeVillagers(state),
       inTraining: settlement.recruitmentQueue.length,
+      housed: capacity - housingVacancy(state),
+      vacancies: housingVacancy(state),
       secondsToNextRecruit:
-        nextRecruit === undefined || settlement.famine
-          ? null
-          : secondsUntil(now, nextRecruit.finishesAtMs),
+        nextRecruit === undefined || settlement.famine ? null : until(nextRecruit.finishesAtMs),
       breakdown: BUILDING_IDS.flatMap((id) => {
         const perLevel = balance.housing.capacityPerLevel[id];
         return perLevel === undefined
@@ -209,10 +251,10 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
       label: balance.resources[id].label,
       stock: Math.floor(settlement.resources[id] / MILLI),
       cap: storageCap(),
-      perHour: Math.round(rates[id] / 100) / 10,
+      perHour: Math.round((rates[id] * timeScale) / 100) / 10,
       depletesInSeconds:
-        id === 'food' && foodRunsOut !== null ? Math.floor(foodRunsOut / SECOND_MS) : null,
-      breakdown: resourceBreakdown(state, id),
+        id === 'food' && foodRunsOut !== null ? realSecondsFloor(foodRunsOut, timeScale) : null,
+      breakdown: resourceBreakdown(state, id, timeScale),
     })),
     workers: PRODUCTION_BUILDING_IDS.map((building) => ({
       building,
@@ -220,9 +262,9 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
       level: settlement.buildings[building],
       resource: buildings[building].produces as ResourceId,
       assigned: settlement.workers[building],
-      grossPerHour: productionRate(state, building) / MILLI,
-      perWorkerPerHour: productionRate(state, building, 1) / MILLI,
-      breakdown: productionBreakdown(state, building),
+      grossPerHour: perRealHour(productionRate(state, building)),
+      perWorkerPerHour: perRealHour(productionRate(state, building, 1)),
+      breakdown: productionBreakdown(state, building, timeScale),
     })),
     constructions: {
       active:
@@ -232,24 +274,24 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
               building: active.building,
               label: buildings[active.building].label,
               targetLevel: active.targetLevel,
-              secondsRemaining: secondsUntil(now, active.finishesAtMs),
-              totalSeconds: Math.ceil((active.finishesAtMs - active.startedAtMs) / SECOND_MS),
+              secondsRemaining: until(active.finishesAtMs),
+              totalSeconds: realSecondsCeil(active.finishesAtMs - active.startedAtMs, timeScale),
               progressPercent: Math.floor(
                 ((now - active.startedAtMs) * 100) / (active.finishesAtMs - active.startedAtMs),
               ),
               refund: refundView(active.building, active.targetLevel - 1),
             },
       planned: settlement.planned.map((plan) =>
-        plannedView(state, plan.building, plan.targetLevel),
+        plannedView(state, plan.building, plan.targetLevel, timeScale),
       ),
       available: BUILDING_IDS.filter(
         (id) =>
           constructionOf(state, id) === null && settlement.buildings[id] < buildings[id].maxLevel,
-      ).map((id) => upgradeView(state, id)),
+      ).map((id) => upgradeView(state, id, timeScale)),
     },
     recruitment: {
       cost: costView(state, recruitCost),
-      secondsPerVillager: Math.ceil(durationMs / SECOND_MS),
+      secondsPerVillager: realSecondsCeil(durationMs, timeScale),
       maxQuantity,
       blockedReason: recruitmentBlock(state, 1)?.message ?? null,
     },
@@ -258,7 +300,7 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
         ? null
         : {
             sinceMs: settlement.famine.sinceMs,
-            secondsElapsed: Math.floor((now - settlement.famine.sinceMs) / SECOND_MS),
+            secondsElapsed: realSecondsFloor(now - settlement.famine.sinceMs, timeScale),
             text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
           },
     objectives: objectivesView(state),

@@ -1,9 +1,11 @@
+import { DisplayNameSchema } from '@lotg/protocol';
 import { useState } from 'preact/hooks';
 
 import type { Actions } from './actions';
 
 const NAME_RULE = 'De 2 a 24 caracteres.';
-const validName = (value: string) => value.trim().length >= 2 && value.trim().length <= 24;
+// A regra do nome é a do protocolo: o app não repete os limites.
+const validName = (value: string) => DisplayNameSchema.safeParse(value).success;
 
 /**
  * Primeira abertura (GDD §13.9): dois campos e um clique. Sem e-mail, sem senha, sem formulário.
@@ -35,8 +37,8 @@ export function Welcome(props: {
     <main class="welcome">
       <h1>Lords of the Guild</h1>
       <p class="lead">
-        Um feudo que você governa nas pausas do café. Cada semana é um ano, e o mundo continua
-        andando com a aba fechada.
+        Um feudo que você governa nas pausas do café. As estações passam, as obras terminam e o
+        mundo continua andando com a aba fechada.
       </p>
       <form onSubmit={submit}>
         {account === null ? (

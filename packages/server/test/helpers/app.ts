@@ -35,6 +35,8 @@ export function testConfig(overrides: Record<string, string> = {}): Config {
     ACCOUNT_CREATE_PER_HOUR_PER_IP: '100000',
     RECOVERY_ATTEMPTS_PER_HOUR_PER_IP: '100000',
     GITHUB_API_URL: 'https://github.test',
+    // Os cenários foram escritos no ritmo Normal do GDD; o ritmo do servidor tem testes à parte.
+    GAME_TIME_SCALE: '1',
     ...overrides,
   });
 }

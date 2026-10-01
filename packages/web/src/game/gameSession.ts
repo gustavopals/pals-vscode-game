@@ -24,6 +24,9 @@ export type GameCache = {
 
 export type SessionTarget = { serverKey: string; accountId: string; gameId: string };
 
+/** Mesmo com um prazo vencendo, o app não lê o servidor mais de uma vez a cada dois segundos. */
+const MIN_POLL_MS = 2000;
+
 /** O cache é separado por servidor, conta e partida: nunca se mostra o feudo de outra conta. */
 export function cacheKey(target: SessionTarget): string {
   return `lords.cache:${target.serverKey}:${target.accountId}:${target.gameId}`;
@@ -50,15 +53,26 @@ export async function clearAccountCaches(
 }
 
 /**
- * Lê o cache e confere a forma da visão. Um cache gravado por uma versão anterior do app,
- * com outro formato de `ViewState`, é descartado em vez de quebrar a árvore e as abas.
+ * Lê o cache e confere a forma da visão. Um cache gravado por uma versão anterior do app, com
+ * outro formato de `ViewState`, perde a visão em vez de quebrar a árvore e as abas, mas o cursor
+ * dos eventos e o instante da última visita continuam valendo: sem eles, a partida inteira
+ * voltaria como "novidade" depois de cada atualização do jogo.
  */
-function loadCache(store: KeyValueStore, target: SessionTarget): GameCache | null {
-  const cached = store.get<GameCache>(cacheKey(target));
-  if (cached === undefined || !ViewStateSchema.safeParse(cached.view).success) {
-    return null;
-  }
-  return cached;
+function loadCache(
+  store: KeyValueStore,
+  target: SessionTarget,
+): { cache: GameCache | null; lastSeq: number | null; lastSeenAt: number | null } {
+  const cached = store.get<Partial<GameCache>>(cacheKey(target));
+  const lastSeq =
+    typeof cached?.lastSeq === 'number' && cached.lastSeq >= 0 ? cached.lastSeq : null;
+  const lastSeenAt = typeof cached?.lastSeenAt === 'number' ? cached.lastSeenAt : null;
+  const valid =
+    cached !== undefined &&
+    lastSeq !== null &&
+    lastSeenAt !== null &&
+    typeof cached.stateVersion === 'string' &&
+    ViewStateSchema.safeParse(cached.view).success;
+  return { cache: valid ? (cached as GameCache) : null, lastSeq, lastSeenAt };
 }
 
 /**
@@ -96,6 +110,10 @@ export class GameSession {
   private generation = 0;
   /** Conta as visões adotadas de comandos: uma leitura iniciada antes não pode sobrescrevê-las. */
   private adoptions = 0;
+  /** Cursor guardado de uma visita anterior, quando a visão do cache não pôde ser aproveitada. */
+  private resumeSeq: number | null = null;
+  /** A primeira leitura de uma partida sem cursor: os eventos dela são história, não novidade. */
+  private seeding = false;
   /** O que se sabia antes desta abertura, enquanto o Relatório de Retorno ainda não saiu. */
   private baseline: { view: ViewState; lastSeenAt: number; events: GameEvent[] } | null = null;
 
@@ -141,7 +159,7 @@ export class GameSession {
    * Relatório de Retorno, e não para notificações uma a uma.
    */
   get catchingUp(): boolean {
-    return this.baseline !== null;
+    return this.baseline !== null || this.seeding;
   }
 
   /**
@@ -151,7 +169,12 @@ export class GameSession {
   async start(target: SessionTarget): Promise<void> {
     this.stop();
     this.target = target;
-    this.cache = loadCache(this.deps.store, target);
+    const stored = loadCache(this.deps.store, target);
+    this.cache = stored.cache;
+    this.resumeSeq = stored.lastSeq;
+    // Sem cursor (navegador novo, cache apagado), a primeira leitura traz a história inteira da
+    // partida: ela põe a Crônica em dia, mas não é novidade para avisar.
+    this.seeding = stored.lastSeq === null;
     if (this.cache !== null) {
       this.viewChanges.emit(this.cache.view);
       if (shouldShowReturnReport(this.cache.lastSeenAt, this.now())) {
@@ -171,6 +194,8 @@ export class GameSession {
     this.cache = null;
     this.syncing = null;
     this.baseline = null;
+    this.resumeSeq = null;
+    this.seeding = false;
     this.setConnection({ kind: 'online' });
   }
 
@@ -226,7 +251,8 @@ export class GameSession {
       }
       this.setConnection({ kind: 'online' });
       this.emitReturnReport();
-      this.schedule(pollIntervalMs(this.visible));
+      this.seeding = false;
+      this.schedule(this.nextPollMs());
     } catch (error) {
       if (generation !== this.generation) {
         return;
@@ -254,6 +280,26 @@ export class GameSession {
     // o que fazer; o ciclo normal segue tentando.
     this.problems.emit(error);
     this.schedule(pollIntervalMs(this.visible));
+  }
+
+  /**
+   * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
+   * visão (obra, aldeão a caminho, virada do dia) vence antes: a contagem regressiva chegaria a
+   * zero e a tela ficaria parada nela. O segundo a mais dá ao servidor tempo de virar o prazo.
+   */
+  private nextPollMs(): number {
+    const poll = pollIntervalMs(this.visible);
+    const view = this.cache?.view;
+    if (!this.visible || view === undefined) {
+      return poll;
+    }
+    const deadlines = [
+      view.constructions.active?.secondsRemaining,
+      view.population.secondsToNextRecruit,
+      view.calendar.secondsToNextDay,
+    ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);
+    const soonest = Math.min(...deadlines, Number.POSITIVE_INFINITY);
+    return Math.max(MIN_POLL_MS, Math.min(poll, (soonest + 1) * 1000));
   }
 
   private isServerTrouble(error: unknown): boolean {
@@ -288,7 +334,7 @@ export class GameSession {
         view: read.view,
         stateVersion: read.stateVersion,
         etag: read.etag,
-        lastSeq: this.cache?.lastSeq ?? 0,
+        lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
         lastSeenAt: this.now(),
       };
       this.viewChanges.emit(read.view);
@@ -376,7 +422,7 @@ export class GameSession {
       stateVersion,
       // O ETag é do corpo de /view; depois de um comando, a próxima leitura vem inteira.
       etag: null,
-      lastSeq: this.cache?.lastSeq ?? 0,
+      lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
       lastSeenAt: this.now(),
     };
     this.viewChanges.emit(view);

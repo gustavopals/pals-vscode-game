@@ -9,7 +9,7 @@ createInitialState(seed: string, settings: GameSettings): GameState
 nextEventAt(state: GameState): number | null
 advanceTo(state: GameState, gameTimeMs: number): { state: GameState; events: GameEvent[] }
 applyCommand(state: GameState, command: Command, gameTimeMs: number): CommandResult
-deriveViewState(state: GameState, gameTimeMs: number): ViewState
+deriveViewState(state: GameState, gameTimeMs: number, options?: { timeScale?: number }): ViewState
 ```
 
 Além delas, o pacote exporta só os tipos e a lista `REJECTION_CODES`. Um teste (`purity.test.ts`) falha se qualquer outra coisa vazar.
@@ -22,7 +22,7 @@ advanceTo(estado, agora)  →  applyCommand(estado avançado, comando, agora)  �
 
 1. **`advanceTo`** leva o estado até um instante de jogo, em milissegundos. Percorre a linha do tempo trecho a trecho: aplica a produção contínua até o próximo evento discreto (`nextEventAt`), processa os eventos daquele instante e repete. Devolve o estado novo e os eventos, cada um já com a frase da Crônica.
 2. **`applyCommand`** é a única outra forma de mudar o estado. Exige o estado já avançado até o instante do comando (`state.lastProcessedAt === gameTimeMs`); violar isso lança erro, porque é falha de quem chamou. Uma recusa de regra nunca lança: devolve `{ ok: false, code, message }`, com a mensagem em português, e não altera nada. O chamador fica com o estado que saiu de `advanceTo` e pode persisti-lo mesmo na recusa.
-3. **`deriveViewState`** calcula tudo que a interface exibe, com a explicação de cada número. Se receber um instante futuro, avança uma cópia antes de derivar.
+3. **`deriveViewState`** calcula tudo que a interface exibe, com a explicação de cada número. Se receber um instante futuro, avança uma cópia antes de derivar. A visão fala em **tempo real**: com `timeScale` (horas de jogo por hora real; padrão 1), os prazos saem em segundos reais, arredondados para cima (`depletesInSeconds` e `famine.secondsElapsed`, para baixo), e as taxas por hora, multiplicadas pelo ritmo, inclusive nos textos de explicação. O resto do motor continua em tempo de jogo ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)).
 
 Nenhuma função muta a entrada.
 

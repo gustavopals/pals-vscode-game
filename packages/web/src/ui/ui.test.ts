@@ -75,7 +75,12 @@ describe('formatação', () => {
     expect(formatDuration(300)).toBe('5 min');
     expect(formatDuration(4080)).toBe('1 h 08 min');
     expect(formatDuration(28_800)).toBe('8 h');
-    expect(formatDuration(10)).toBe('1 min');
+    expect(formatDuration(10)).toBe('10 s');
+    // Nos ritmos acelerados os prazos não são minutos redondos: os segundos aparecem.
+    expect(formatDuration(80)).toBe('1 min 20 s');
+    expect(formatDuration(400)).toBe('6 min 40 s');
+    expect(formatDuration(601)).toBe('11 min');
+    expect(formatDuration(3601)).toBe('1 h 01 min');
     expect(formatCost(initial.recruitment.cost)).toBe('50 comida, 10 ouro');
   });
 

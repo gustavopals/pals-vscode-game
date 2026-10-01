@@ -7,3 +7,7 @@ export type { Summary } from './report';
 export type { Act, Bot } from './bots/types';
 export { formatRemoteReport, runRemote } from './remote';
 export type { EndpointStats, RemoteOptions, RemoteReport } from './remote';
+export { parseCli, USAGE } from './cli';
+export type { CliCommand } from './cli';
+export { formatSmokeReport, runSmoke } from './smoke';
+export type { SmokeCheck, SmokeCleanup, SmokeOptions, SmokeReport } from './smoke';

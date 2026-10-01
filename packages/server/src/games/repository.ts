@@ -1,6 +1,6 @@
 import type { GameEvent as EngineEvent, GameState } from '@lotg/engine';
 import type { GameEvent, GameSummary } from '@lotg/protocol';
-import { and, desc, eq, gt, gte, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, gte, lt, ne, sql } from 'drizzle-orm';
 
 import { notFound } from '../api-error';
 import type { Tx } from '../db/client';
@@ -149,7 +149,8 @@ export async function chronicleRows(
   gameId: string,
   options: { limit?: number | undefined; year?: number | undefined } = {},
 ): Promise<GameEventRow[]> {
-  const conditions = [eq(gameEvents.gameId, gameId)];
+  // As viradas de dia continuam em `GET /events`, mas não entram na Crônica (ADR 0007).
+  const conditions = [eq(gameEvents.gameId, gameId), ne(gameEvents.kind, 'dayStarted')];
   if (options.year !== undefined) {
     const from = await yearStartSeq(tx, gameId, options.year);
     if (from === null) {

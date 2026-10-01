@@ -25,6 +25,11 @@ const EnvSchema = z.object({
   GITHUB_CLIENT_ID: z.string().max(200).default(''),
   GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP: integer(20),
   TRUST_PROXY: flag,
+  // Vazio (`GAME_TIME_SCALE=` no painel) vale como ausente, e não como zero.
+  GAME_TIME_SCALE: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.coerce.number().min(0.5).max(10).default(3),
+  ),
 });
 
 export type Config = {
@@ -51,6 +56,11 @@ export type Config = {
   githubDeviceStartsPerHourPerIp: number;
   /** Confiar em `X-Forwarded-For`. Só atrás do proxy reverso: os limites por IP dependem disso. */
   trustProxy: boolean;
+  /**
+   * Ritmo das partidas novas: horas de jogo por hora real (ADR 0011). Fica gravado em cada
+   * partida na criação; mudar a variável não mexe nas que já existem.
+   */
+  gameTimeScale: number;
   /** Aceitar a semente informada em `POST /games`. Só em ambiente de teste. */
   allowGameSeed: boolean;
 };
@@ -125,6 +135,7 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     githubClientId: values.GITHUB_CLIENT_ID.trim() === '' ? null : values.GITHUB_CLIENT_ID.trim(),
     githubDeviceStartsPerHourPerIp: values.GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP,
     trustProxy: values.TRUST_PROXY,
+    gameTimeScale: values.GAME_TIME_SCALE,
     allowGameSeed: values.NODE_ENV === 'test',
   };
 }

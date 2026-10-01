@@ -23,7 +23,7 @@ export function Header(props: { view: ViewState; elapsed: number }) {
       <p class="population">
         Aldeões {population.villagers} ·{' '}
         <Explained why={population.breakdown}>
-          Habitação {population.villagers + population.inTraining}/{population.capacity}
+          Habitação {population.housed}/{population.capacity}
         </Explained>{' '}
         · Livres {population.free}
         {population.inTraining > 0 ? ` · A caminho ${population.inTraining}` : ''}

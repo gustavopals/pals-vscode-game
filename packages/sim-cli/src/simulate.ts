@@ -25,10 +25,16 @@ export type SimulationOptions = {
   /** Dias reais simulados; no ritmo Normal, 7 dias são um ano de jogo. */
   days: number;
   strategy: StrategyName;
+  /** Sessões por dia real, a intervalos iguais. */
   sessionsPerDay: number;
+  /**
+   * Horas de jogo por hora real (ADR 0011). Padrão 1, o ritmo Normal em que as faixas de
+   * balanceamento são definidas. O servidor cria as partidas no ritmo 3.
+   */
+  timeScale?: number;
 };
 
-/** Retrato do feudo ao fim de uma hora real. */
+/** Retrato do feudo ao fim de uma hora real. As taxas `perHour` são por hora real. */
 export type HourRow = {
   hour: number;
   realDay: number;
@@ -53,8 +59,8 @@ export type SimulationResult = {
   commands: { accepted: number; refused: Record<string, number> };
 };
 
-function rowAt(state: GameState, hour: number): HourRow {
-  const view = deriveViewState(state, state.lastProcessedAt);
+function rowAt(state: GameState, hour: number, timeScale: number): HourRow {
+  const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
     Object.fromEntries(view.resources.map((row) => [row.id, pick(row)])) as Record<ResourceId, T>;
   return {
@@ -76,10 +82,18 @@ function rowAt(state: GameState, hour: number): HourRow {
 
 /**
  * Joga uma partida inteira em processo, só com o motor. As sessões começam na criação da partida
- * e se repetem a intervalos iguais; entre elas o mundo anda sozinho. Uma linha por hora real.
+ * e se repetem a intervalos iguais de tempo real; entre elas o mundo anda sozinho. Uma linha por
+ * hora real. No ritmo `N`, cada hora real são `N` horas de jogo: o bot joga as mesmas sessões por
+ * dia e encontra `N` vezes mais mundo andado entre uma e outra.
  */
 export async function simulate(options: SimulationOptions): Promise<SimulationResult> {
   const { seed, days, sessionsPerDay } = options;
+  const timeScale = options.timeScale ?? 1;
+  if (!Number.isFinite(timeScale) || timeScale <= 0) {
+    throw new Error(`Ritmo inválido: ${timeScale}.`);
+  }
+  /** Instante de jogo de um instante real, os dois em ms desde a criação da partida. */
+  const gameMs = (realMs: number) => Math.round(realMs * timeScale);
   const bot: Bot = strategies[options.strategy];
   let state = createInitialState(seed, {
     settlementName: 'Pedra Alta',
@@ -103,9 +117,10 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     } else {
       commands.refused[result.code] = (commands.refused[result.code] ?? 0) + 1;
     }
-    return deriveViewState(state, state.lastProcessedAt);
+    return deriveViewState(state, state.lastProcessedAt, { timeScale });
   };
 
+  // Daqui em diante os instantes são reais; `gameMs` converte na hora de mover o motor.
   const sessionEveryMs = Math.round((HOURS_PER_REAL_DAY * HOUR_MS) / sessionsPerDay);
   const endMs = days * HOURS_PER_REAL_DAY * HOUR_MS;
   let nextSessionMs = 0;
@@ -113,16 +128,16 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   for (let hour = 1; hour <= days * HOURS_PER_REAL_DAY; hour += 1) {
     const hourEndMs = hour * HOUR_MS;
     while (nextSessionMs < hourEndMs && nextSessionMs < endMs) {
-      const advanced = advanceTo(state, nextSessionMs);
+      const advanced = advanceTo(state, gameMs(nextSessionMs));
       state = advanced.state;
       events.push(...advanced.events);
-      await bot(deriveViewState(state, state.lastProcessedAt), act);
+      await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
-    const advanced = advanceTo(state, hourEndMs);
+    const advanced = advanceTo(state, gameMs(hourEndMs));
     state = advanced.state;
     events.push(...advanced.events);
-    rows.push(rowAt(state, hour));
+    rows.push(rowAt(state, hour, timeScale));
   }
 
   return { options, rows, events, finalState: state, commands };

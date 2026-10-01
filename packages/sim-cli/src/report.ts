@@ -21,7 +21,7 @@ const columns: Array<[string, (row: HourRow) => string | number]> = [
   ['famine', (row) => (row.famine ? 1 : 0)],
 ];
 
-/** CSV com cabeçalho e uma linha por hora real. */
+/** CSV com cabeçalho e uma linha por hora real; as colunas `*_per_hour` são por hora real. */
 export function toCsv(rows: HourRow[]): string {
   const header = columns.map(([name]) => name).join(',');
   const lines = rows.map((row) => columns.map(([, pick]) => pick(row)).join(','));
@@ -54,6 +54,11 @@ export function summarize(result: SimulationResult): Summary {
   };
 }
 
+/** O ritmo com vírgula decimal: `3`, `0,5`. */
+function formatScale(timeScale: number): string {
+  return String(timeScale).replace('.', ',');
+}
+
 export function formatSummary(result: SimulationResult): string {
   const { options, rows, commands } = result;
   const summary = summarize(result);
@@ -66,7 +71,7 @@ export function formatSummary(result: SimulationResult): string {
     .map(([code, count]) => `${code} ${count}`)
     .join(', ');
   return [
-    `Semente ${options.seed} · estratégia ${options.strategy} · ${options.days} dias · ${options.sessionsPerDay} sessões/dia`,
+    `Semente ${options.seed} · estratégia ${options.strategy} · ${options.days} dias · ${options.sessionsPerDay} sessões/dia · ritmo ${formatScale(options.timeScale ?? 1)}×`,
     `População: ${summary.villagers} de ${summary.capacity} vagas`,
     `Níveis: ${levels}`,
     `Estoque: ${stock}`,
