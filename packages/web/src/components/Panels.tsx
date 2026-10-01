@@ -1,15 +1,18 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import type { Actions } from './actions';
-import { formatDuration, formatNumber } from './format';
+import { formatCountdown, formatDuration, formatNumber, remaining } from './format';
 
 export function RecruitPanel(props: {
   recruitment: ViewState['recruitment'];
   population: ViewState['population'];
+  /** Segundos desde que a visão chegou, para a contagem regressiva local. */
+  elapsed: number;
   disabled: boolean;
   actions: Actions;
 }) {
   const { recruitment, population, disabled, actions } = props;
+  const { inTraining, secondsToNextRecruit } = population;
   const cost = recruitment.cost
     .map((entry) => `${formatNumber(entry.amount)} ${entry.label.toLowerCase()}`)
     .join(' e ');
@@ -19,8 +22,24 @@ export function RecruitPanel(props: {
       <h2 id="recruit-title">Recrutar</h2>
       <p class="muted hint">
         Cada aldeão custa {cost} e leva {formatDuration(recruitment.secondsPerVillager)}.
-        {population.inTraining > 0 ? ` ${population.inTraining} a caminho.` : ''}
       </p>
+      {inTraining > 0 ? (
+        <p class="arrivals" role="status">
+          {inTraining} a caminho.{' '}
+          {secondsToNextRecruit === null ? (
+            // Sem prazo com gente a caminho: a fome segura a fila (o servidor é quem diz).
+            <span class="warning">A chegada está parada enquanto durar a fome.</span>
+          ) : (
+            <>
+              {inTraining === 1 ? 'Chega em ' : 'O próximo chega em '}
+              <strong class="num">
+                {formatCountdown(remaining(secondsToNextRecruit, props.elapsed))}
+              </strong>
+              .
+            </>
+          )}
+        </p>
+      ) : null}
       <div class="row">
         <button
           type="button"

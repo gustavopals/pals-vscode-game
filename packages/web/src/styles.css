@@ -344,6 +344,10 @@ progress::-webkit-progress-value {
   grid-column: 1 / -1;
 }
 
+.arrivals {
+  margin-bottom: 6px;
+}
+
 .chips {
   display: flex;
   flex-wrap: wrap;

@@ -43,6 +43,7 @@ export function FiefTab(props: {
           <RecruitPanel
             recruitment={view.recruitment}
             population={view.population}
+            elapsed={elapsed}
             disabled={disabled}
             actions={actions}
           />

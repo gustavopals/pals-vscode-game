@@ -200,6 +200,8 @@ test.describe('governar o feudo', () => {
     await fief(page).getByRole('button', { name: 'Recrutar 1 aldeão' }).click();
     await expect(fief(page).getByText('A caminho 1')).toBeVisible();
     expect(await stock(page, 'Comida')).toBe(130);
+    // O painel diz quanto falta para o aldeão chegar (20 min no ritmo dos testes).
+    await expect(fief(page).getByText(/Chega em (20:00|19:5\d)/)).toBeVisible();
 
     await palette(page, 'recrutar');
     const dialog = page.getByRole('dialog');

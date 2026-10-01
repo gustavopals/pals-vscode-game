@@ -220,6 +220,35 @@ describe('aba Feudo', () => {
     expect(training).toContain('A caminho 2');
   });
 
+  it('com aldeões a caminho, mostra quanto falta para o próximo chegar', () => {
+    const waiting = (inTraining: number, secondsToNextRecruit: number | null, elapsed = 0) =>
+      html(
+        <FiefTab
+          view={{
+            ...view,
+            population: { ...view.population, inTraining, secondsToNextRecruit },
+          }}
+          elapsed={elapsed}
+          online={true}
+          retryInSeconds={null}
+          chronicle={[]}
+          actions={actions}
+        />,
+      );
+    const one = waiting(1, 400);
+    expect(one).toContain('1 a caminho.');
+    expect(one).toMatch(/Chega em <strong class="num">06:40<\/strong>/);
+    expect(one).toContain('(próximo em 06:40)');
+    // A contagem desce com o tempo desde que a visão chegou, sem falar com o servidor.
+    expect(waiting(3, 400, 100)).toMatch(/O próximo chega em <strong class="num">05:00<\/strong>/);
+    // Sem prazo com gente a caminho: a fila está parada pela fome.
+    const frozen = waiting(2, null);
+    expect(frozen).toContain('A chegada está parada enquanto durar a fome.');
+    expect(frozen).not.toContain('próximo em');
+    // Ninguém a caminho: nada disso aparece.
+    expect(page).not.toContain('a caminho.');
+  });
+
   it('cabeçalho com nome, Salão, calendário e população', () => {
     expect(page).toContain('<h1>Pedra Alta</h1>');
     expect(page).toContain('Salão Nv1 · Primavera, dia 1 do Ano 1');

@@ -27,6 +27,12 @@ export function Header(props: { view: ViewState; elapsed: number }) {
         </Explained>{' '}
         · Livres {population.free}
         {population.inTraining > 0 ? ` · A caminho ${population.inTraining}` : ''}
+        {population.inTraining > 0 && population.secondsToNextRecruit !== null ? (
+          <span class="muted">
+            {' '}
+            (próximo em {formatCountdown(remaining(population.secondsToNextRecruit, elapsed))})
+          </span>
+        ) : null}
       </p>
     </header>
   );
