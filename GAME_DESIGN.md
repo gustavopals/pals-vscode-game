@@ -1,7 +1,7 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.3 (0.2 + arquitetura online: conta sem burocracia, servidor Node.js e PostgreSQL)  
+> **Versão do documento:** 0.4 (contratos de comandos, sessões, cache HTTP e exclusão consolidados; escopo do jogo permanece v0.1)\
 > **Idioma:** português (Brasil)  
 > **Plataforma inicial:** extensão do Visual Studio Code (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
@@ -20,6 +20,7 @@
 - Mudanças em relação à v0.1 estão resumidas em §17 ("Decisões desta revisão").
 - O jogo é **online desde a v0.1**: o progresso vive em um servidor Node.js + PostgreSQL, a conta nasce em um clique e o jogador continua de qualquer máquina. "Online" aqui não significa interação entre jogadores (isso é v1.0): significa servidor autoritativo e progresso persistente (§14).
 - Mudanças da 0.3 em relação à 0.2: §1.1 (pilar 6), §4.3, §5.8, §11.6, §13.1, §13.6, §13.9, §14 inteira, §15.3 a §15.5, §16, §17 e §18.
+- Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão já estão refletidos no `MVP-ROADMAP.md` 1.1; tarefas de implementação continuam pendentes.
 
 ### Índice
 
@@ -251,7 +252,7 @@ Efeitos: multiplicador de produção (§5.3); moral ≥ 80 dá 20% de chance di�
 
 ### 5.8 Cálculo offline
 
-A cada requisição de uma partida (visualizar ou comandar), o **servidor** avança o estado de `lastProcessedAt` até o relógio do servidor processando **segmentos entre eventos**: conclusão de obra, recrutamento, virada de dia de jogo, mudança de estação, chegada de expedição, incursão agendada, onda do cerco. Dentro de cada segmento as taxas são constantes. Isso garante que avançar 10 h de uma vez produz o mesmo estado que avançar dez vezes 1 h (§14.3). Um job horário avança partidas sem atividade, para que Crônicas e rankings existam mesmo para quem sumiu (§14.9). O relógio do cliente nunca é fonte de verdade.
+A cada leitura ou comando novo de uma partida, o **servidor** avança o estado de `lastProcessedAt` até o relógio do servidor processando **segmentos entre eventos**: conclusão de obra, recrutamento, virada de dia de jogo, mudança de estação, chegada de expedição, incursão agendada, onda do cerco. Reenvios de comandos já registrados seguem o recibo da §14.8. Dentro de cada segmento as taxas são constantes. Isso garante que avançar 10 h de uma vez produz o mesmo estado que avançar dez vezes 1 h (§14.3). Um job horário avança partidas sem atividade, para que Crônicas e rankings existam mesmo para quem sumiu (§14.9). O relógio do cliente nunca é fonte de verdade.
 
 ### 5.9 Mercado `[v0.3]`
 
@@ -789,7 +790,7 @@ Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código
 ```
 
 - **Jogar agora** cria uma **conta anônima** no servidor e a primeira partida. Nada mais é pedido. As credenciais ficam no `SecretStorage` do VS Code desta máquina.
-- **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` usa o provedor de autenticação **embutido no VS Code** (`vscode.authentication.getSession('github', …)`): um clique, sem senha e sem o jogador cadastrar aplicativo nenhum. Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDRA-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outra máquina assume a conta.
+- **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` usa o provedor de autenticação **embutido no VS Code** (`vscode.authentication.getSession('github', …)`): um clique, sem senha e sem o jogador cadastrar aplicativo nenhum. Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDR-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outra máquina assume a conta.
 - **Nunca bloquear o jogo** por falta de vínculo. Um lembrete discreto aparece uma vez no dia 3 ("Proteja seu reino: vincule a conta para continuar de outra máquina") e pode ser dispensado para sempre.
 - A TreeView ganha o item `Conta: Gustavo · anônima` (ou `· GitHub`) com as ações "Vincular ao GitHub", "Código do Reino", "Sair desta máquina" e "Excluir conta".
 - **Sem conexão:** a status bar mostra `$(debug-disconnect) Sem ligação com o reino`; o painel exibe o último estado conhecido (cache local) em modo leitura, com comandos desabilitados e uma frase honesta: "O mundo continua andando. Seus comandos voltam quando a ligação voltar." Reconexão com recuo exponencial (5 s → 60 s).
@@ -815,8 +816,8 @@ Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código
 │  job horário: avança partidas paradas                                      │
 └────────────────────────────┬──────────────────────────────────────────────┘
                              ▼
-            PostgreSQL 16  (accounts · sessions · games JSONB · commands ·
-                            game_events · chronicles)
+            PostgreSQL 16  (accounts · sessions · refresh_tokens · games JSONB ·
+                            commands · game_events · chronicles)
 ```
 
 Princípios:
@@ -853,7 +854,7 @@ lords-of-the-guild/
 1. **Tempo de jogo** em milissegundos inteiros. `advanceTo(state, t)` processa a **linha do tempo de eventos** (conclusões, viradas de dia, estações, chegadas, incursões, ondas) em ordem, aplicando produção contínua por segmento. Invariante testada por propriedade: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)` para qualquer `t1` intermediário.
 2. **Aritmética inteira** para recursos: estoques em milésimos; a produção por segmento acumula `taxa × ms` em um acumulador por recurso e converte com divisão inteira, carregando o resto. O invariante acima fica **exato**, sem tolerância de ponto flutuante.
 3. **RNG com semente e fluxos nomeados** (`council`, `market`, `omens`, `expedition:<id>`, `battle:<id>`, `horde`), cada fluxo com estado próprio dentro do `GameState`. A ordem de processamento de um subsistema não altera o sorteio de outro. Algoritmo sugerido: xoshiro128** ou mulberry32.
-4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e recusado com um motivo legível, que chega à UI. O servidor sempre chama `advanceTo(agora)` antes de aplicar.
+4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e recusado com um motivo legível, que chega à UI. O servidor chama `advanceTo(agora)` antes de aplicar um comando novo; reenvios retornam o recibo original sem chamar o motor (§14.8).
 5. **Prévia** (Conselho de Guerra) usa o mesmo `resolveBattle` com sementes derivadas de `hash(seed, 'preview', i)`; roda no servidor porque só ele conhece a composição inimiga real por trás da névoa.
 
 ### 14.4 Conteúdo como dados
@@ -862,7 +863,7 @@ Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (t
 
 ### 14.5 Servidor e API
 
-Stack: **Node.js 22 LTS**, **Fastify** (validação por schema, pequeno, rápido), **PostgreSQL 16** via `pg` + **Drizzle ORM** (SQL tipado, migrações em SQL versionadas), **zod** compartilhado via `protocol`, `pino` para logs, `jose` para JWT, `argon2` para hashes. Sem Redis, sem filas, sem framework pesado até uma medição pedir.
+Stack: **Node.js 22 LTS**, **Fastify** (validação por schema, pequeno, rápido), **PostgreSQL 16** via `pg` + **Drizzle ORM** (SQL tipado, migrações em SQL versionadas), **zod** compartilhado via `protocol`, `pino` para logs, `jose` para JWT e `node:crypto` no servidor para aleatoriedade, SHA-256 e HMAC-SHA256. Sem Redis, sem filas, sem framework pesado até uma medição pedir.
 
 Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 
@@ -872,11 +873,12 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 | `POST /auth/github` | Vincula a conta atual ao GitHub ou entra em uma conta já vinculada. Corpo: `{ githubAccessToken }` (obtido pelo VS Code); o servidor valida em `api.github.com/user` e guarda só o `github_id` | opcional |
 | `POST /auth/recovery-code` | Gera ou rotaciona o Código do Reino; devolve em claro **uma vez**; grava só o hash | sessão |
 | `POST /auth/recover` | Entra com o Código do Reino em outra máquina | — |
-| `POST /auth/refresh` · `POST /auth/logout` | Rotação do refresh token · revogação da sessão | refresh |
-| `GET /me` · `PATCH /me` · `DELETE /me` | Perfil · renomear · **excluir a conta e tudo que é dela** | sessão |
+| `POST /auth/refresh` | Rotaciona o token na mesma sessão; detecta reuso de qualquer antecessor | refresh |
+| `POST /auth/logout` | Revoga a sessão desta máquina | sessão |
+| `GET /me` · `PATCH /me` · `DELETE /me` | Perfil · renomear · bloquear a conta imediatamente e agendar exclusão definitiva (§14.7) | sessão |
 | `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`) | sessão |
-| `GET /games/:id/view` | Avança até agora e devolve o `ViewState`. `ETag = stateVersion`; `304` se nada mudou | sessão |
-| `POST /games/:id/commands` | Aplica um comando `{ commandId, type, payload }` e devolve `ViewState` + eventos. Idempotente por `commandId` | sessão |
+| `GET /games/:id/view` | Avança até agora e devolve `{ view, stateVersion }`; ETag da representação completa e `304` apenas se ela não mudou (§14.8) | sessão |
+| `POST /games/:id/commands` | Aplica `{ commandId, type, payload }`; grava status e corpo da resposta para reenvio idempotente na mesma partida (§14.8) | sessão |
 | `GET /games/:id/events?after=<seq>` | Eventos para notificações (obras, encruzilhadas, cartas, incursões, cerco) | sessão |
 | `POST /games/:id/battle-preview` | Conselho de Guerra: 200 simulações com a névoa aplicada | sessão |
 | `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor | sessão |
@@ -886,7 +888,7 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 
 Regras:
 
-- Toda requisição de partida executa `advanceTo(agora_do_servidor)` antes de qualquer outra coisa, dentro da mesma transação do comando.
+- Toda requisição de partida autentica, verifica a propriedade e serializa o acesso à linha antes do avanço. Comando já registrado retorna sua resposta original antes de `advanceTo`; comando novo avança e aplica na mesma transação (§14.8).
 - O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
 - Limites: 60 requisições/min por sessão; 10 criações de conta/h por IP; 5 tentativas de Código do Reino/h por IP; corpo até 64 KB; nomes de 2 a 24 caracteres.
 - Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e a extensão antiga recebe `426 Upgrade Required` com mensagem amigável.
@@ -895,51 +897,64 @@ Regras:
 
 ```sql
 accounts     (id uuid pk, display_name text, github_id text unique null,
-              recovery_code_hash text null, created_at, last_seen_at, deleted_at null)
-sessions     (id uuid pk, account_id fk, refresh_token_hash text unique, device_label text,
+              recovery_code_hash text unique null, created_at, last_seen_at, deleted_at null)
+sessions     (id uuid pk, account_id fk, device_label text,
               created_at, expires_at, revoked_at null)
+refresh_tokens (token_hash text pk, session_id fk, created_at, used_at null)
 games        (id uuid pk, account_id fk, status text,            -- active | archived
               seed text, difficulty text, time_scale numeric, timezone text, vigil_hour smallint,
               schema_version int, state jsonb, state_version bigint,
               last_processed_at timestamptz, created_at, updated_at)
-commands     (id uuid pk,                                         -- = commandId do cliente (idempotência)
-              game_id fk, account_id fk, seq bigint, type text, payload jsonb,
-              server_time timestamptz, result text, error_code text null)
+commands     (game_id fk, id uuid,                              -- id = commandId; escopo: partida
+              account_id fk, seq bigint, type text, payload jsonb, request_hash text,
+              server_time timestamptz, result text, error_code text null,
+              response_status smallint, response_body jsonb,
+              pk (game_id, id), unique (game_id, seq))
 game_events  (game_id fk, seq bigint, at timestamptz, kind text, payload jsonb, pk (game_id, seq))
 chronicles   (game_id fk, year int, summary jsonb, score int, result text, created_at, pk (game_id, year))
 ```
 
 - O `GameState` inteiro fica em `games.state` (JSONB). Colunas espelhadas (`status`, `last_processed_at`, `account_id`) servem às consultas e ao job horário. Crônica e eventos ficam em tabelas próprias para o estado quente permanecer pequeno (meta: menos de 150 KB por partida).
-- `commands` + estado inicial = replay completo. Retenção padrão de 90 dias.
+- `commands` guarda tanto o log para replay quanto o recibo de idempotência: `result` = `accepted | rejected`, `request_hash`, `response_status` e `response_body` são obrigatórios. Na v0.1, esses registros permanecem enquanto a partida existir, inclusive arquivada; não há expurgo por idade que permita executar novamente um UUID antigo. Exclusão da conta remove os recibos em cascata.
+- Cada `sessions.id` identifica uma família de refresh tokens de uma máquina. `refresh_tokens` conserva todos os hashes dessa família até a expiração da sessão ou exclusão da conta; índice único parcial em `session_id where used_at is null` permite no máximo um token não utilizado por família. A validade também depende de `sessions.expires_at`, `revoked_at` e `accounts.deleted_at`.
+- Todas as relações de propriedade usam `ON DELETE CASCADE`: conta → sessões → refresh tokens; conta → partidas → comandos/eventos/Crônicas; conta → comandos. `accounts.recovery_code_hash` permite busca única do HMAC do Código do Reino, nunca do código em claro.
 - **Uma partida ativa por conta** na v0.1. Anos encerrados viram linhas em `chronicles` e a partida segue no mesmo registro (Ano 2, 3…). Começar outra partida arquiva a atual.
 - Migrações versionadas em SQL (`deploy/migrations/0001_init.sql`, …), aplicadas no arranque do servidor com lock de migração.
 - Backup: `pg_dump` diário com retenção de 14 dias (`deploy/backup.sh`); restauração ensaiada em CI a cada versão.
 
 ### 14.7 Contas e autenticação
 
-- **Conta anônima** criada no primeiro clique. O servidor devolve `accessToken` (JWT, 15 min) e `refreshToken` (opaco, 30 dias, rotacionado a cada uso, guardado como hash). A extensão guarda ambos no `SecretStorage`.
+- **Conta anônima** criada no primeiro clique. O servidor devolve `accessToken` (JWT HS256, `sub` = conta, `sid` = sessão, `iss` = `PUBLIC_URL`, validade de até 15 min) e `refreshToken` (32 bytes aleatórios em base64url, guardado como SHA-256 em `refresh_tokens`). A sessão tem validade absoluta de 30 dias desde a criação; rotação não prorroga esse prazo e o JWT nunca ultrapassa `sessions.expires_at`. A extensão guarda ambos no `SecretStorage`.
+- **Rotação e reuso:** `POST /auth/refresh` localiza o hash, trava conta e sessão nessa ordem e revalida a conta, a sessão e o token dentro da transação. Token não utilizado: marca `used_at`, insere o sucessor e faz commit antes de responder. Token já utilizado, mesmo após várias rotações: grava `sessions.revoked_at`, faz commit e só então responde `401 SESSION_REVOKED`. Isso invalida todos os refresh tokens e JWTs da mesma família; sessões de outras máquinas continuam válidas. Token desconhecido ou sessão expirada: `401 UNAUTHORIZED`, sem alterar outra sessão.
+- **Revogação sem cache:** toda requisição autenticada consulta conta e sessão no banco após validar o JWT; rejeita conta excluída, sessão revogada ou expirada. Na v0.1 não há cache positivo de autorização. Após o commit de logout, reuso ou exclusão, qualquer nova requisição é recusada também em outra instância da API. Operações que criam sessões ou alteram credenciais revalidam a conta sob lock para não reativar uma conta excluída.
 - **Vínculo GitHub:** o cliente obtém o token pelo provedor nativo do VS Code; o servidor valida em `GET https://api.github.com/user` e associa o `github_id`. O token do GitHub **não é armazenado**. Em outra máquina, o mesmo fluxo devolve a conta existente. Se o `github_id` já pertence a outra conta e esta máquina tem uma conta anônima com progresso, o cliente pergunta qual manter; estados **nunca** são mesclados.
-- **Código do Reino:** 20 caracteres em grupos de 4, alfabeto sem ambiguidades (sem 0/O nem 1/I), guardado como hash argon2id. Usá-lo cria uma nova sessão; o código continua válido até ser rotacionado.
-- **Sair desta máquina** revoga só a sessão local. **Excluir conta** faz soft delete imediato e hard delete após 7 dias de carência.
-- Nenhum e-mail, senha ou dado pessoal obrigatório. Reuso de um refresh token já rotacionado revoga a família inteira de sessões (sinal de roubo).
+- **Código do Reino:** 20 caracteres aleatórios uniformes do alfabeto `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (100 bits), exibidos em grupos de 4. Para buscar, remover espaços externos e hífens, converter para maiúsculas e validar exatamente 20 caracteres desse alfabeto. Guardar `HMAC-SHA256(RECOVERY_CODE_SECRET, codigo_normalizado)` em hexadecimal, com chave independente de `JWT_SECRET`, de pelo menos 32 bytes aleatórios. O código aparece em claro uma vez, nunca em logs. Usá-lo cria uma sessão nova; rotacioná-lo invalida somente o código anterior, não as sessões existentes. A troca da chave JWT não muda os códigos; substituir `RECOVERY_CODE_SECRET` invalida os códigos emitidos e exige um procedimento explícito. Decisão: [ADR 0003](docs/decisions/0003-codigo-do-reino-hmac.md).
+- **Sair desta máquina:** revoga só a sessão atual e a extensão apaga seus tokens e cache local da conta. Login por GitHub ou Código do Reino nunca restaura uma conta com `deleted_at` preenchido.
+- **Excluir conta:** `DELETE /me` grava `deleted_at`, revoga todas as sessões, apaga o HMAC de recuperação e arquiva as partidas na mesma transação; responde `202 { deletedAt, purgeAfter }`, com instantes UTC e `purgeAfter = deletedAt + 7 dias`. A partir do commit, a conta fica inacessível por qualquer credencial e ausente das consultas da API e métricas de jogadores ativos; a extensão limpa tokens e cache. A retenção de sete dias é operacional, sem fluxo de desfazer exclusão na v0.1. O job faz hard delete em cascata na primeira execução com `now >= purgeAfter` (normalmente em até uma hora adicional); o banco interno ainda contém os registros até lá. Backups anteriores podem conter cópias até completar sua retenção de 14 dias contados da geração; isso deve constar na política e na confirmação, sem prometer remoção física imediata de todas as cópias.
+- Nenhum e-mail ou senha obrigatório. Histórico, limites de revogação e exclusão: [ADR 0005](docs/decisions/0005-sessoes-e-exclusao.md).
 
 ### 14.8 Persistência, concorrência e idempotência
 
-- Cada comando roda em **uma transação**: `SELECT … FOR UPDATE` na linha da partida → `advanceTo(agora)` → `applyCommand` → `UPDATE games SET state, state_version = state_version + 1, last_processed_at` → `INSERT commands` → `INSERT game_events`. Dois clientes da mesma conta nunca aplicam comandos em paralelo sobre o mesmo estado.
-- `commandId` (UUID gerado pelo cliente) tem chave única: um reenvio após timeout devolve o resultado original sem reaplicar.
-- O cliente envia `If-Match: <stateVersion>` opcional. Se o estado mudou desde a última visualização, o servidor ainda aplica o comando (o motor valida contra o estado atual), mas marca `staleView: true` na resposta para a UI avisar: "o estado mudou enquanto você decidia".
+- **Identidade do comando:** chave única `(game_id, commandId)`. Após autenticar e verificar a propriedade, travar a partida com `SELECT … FOR UPDATE` e consultar essa chave. `request_hash` = SHA-256 do JSON canônico de `{ type, payload }` validado (chaves de objetos ordenadas recursivamente, ordem dos arrays preservada); o cabeçalho de versão não participa do hash. Mesma chave e mesmo hash retornam `response_status` e `response_body` originais, com `X-Lords-Replayed: true`, sem avançar, aplicar ou inserir eventos novamente. Mesma chave e outro hash: `409 COMMAND_ID_CONFLICT`, sem efeitos e sem substituir o recibo. Outra conta recebe 404 antes de qualquer consulta ao recibo.
+- **Comando novo:** sob o lock, capturar a versão persistida e o instante do servidor; executar `advanceTo(agora)` e depois `applyCommand` sobre o estado avançado. Persistir estado, `last_processed_at`, incremento único de `state_version`, eventos com sequência por partida e recibo de comando com `seq` crescente na mesma transação. Só enviar a resposta após commit; falha inesperada faz rollback integral, permitindo nova tentativa com o mesmo UUID. Erros de autenticação, formato e propriedade ocorrem antes dessa transação e não geram recibo.
+- **Recusa é um resultado persistido:** se o motor recusa, guardar o estado e os eventos de `advanceTo`, sem os efeitos da ação recusada. Não fazer rollback por erro de regra. Persistir também o recibo `422 { code: 'GAME_RULE', message, details: { code, message, view, events, stateVersion, staleView } }`; `details.code` é a recusa do motor. No sucesso, persistir `200 { view, events, stateVersion, staleView }` com eventos do avanço e do comando. Reenvios conservam inclusive recusas, mesmo que agora existam recursos; uma nova intenção exige outro UUID.
+- **Versão persistida:** `stateVersion` começa em 1 e é uma string decimal na API, representando o `bigint` do banco. Cada escrita do estado incrementa uma vez: comando novo aceito ou recusado, leitura com eventos ou job. Leitura com apenas produção contínua não escreve e mantém a versão. Reenvio e conflito de UUID não a incrementam. Leituras que avançam também usam transação e lock da partida, evitando duplicar eventos com comandos ou jobs concorrentes.
+- **Aviso de desatualização:** o cliente pode enviar `X-Lords-State-Version: <stateVersion>`; se diferir da versão persistida capturada ao obter o lock, `staleView = true`. Sem cabeçalho, `false`; formato inválido, `400 VALIDATION`. É um aviso: o motor valida a ação contra o estado atual. `If-Match` não é usado para esse aviso. O recibo mantém o `staleView` calculado na primeira tentativa.
+- **Cache HTTP de `/view`:** resposta `200 { view, stateVersion }`; ETag fraco `W/"<sha256>"` calculado sobre o JSON canônico desse corpo completo, já derivado no instante da leitura. Autenticar e avançar antes de avaliar `If-None-Match`; representação igual retorna 304 sem corpo, com ETag. Respostas 200/304 usam `Cache-Control: private, no-cache` e `Vary: Authorization`. Produção e contagens regressivas podem mudar o ETag sem mudar `stateVersion`; não se promete 304 só porque nenhum evento foi persistido. Não inserir horário da requisição nem `requestId` nesse corpo. Respostas de autenticação e comandos usam `Cache-Control: no-store`.
+- **Cliente após reenvio:** o SDK expõe o cabeçalho `X-Lords-Replayed` como metadado. A UI não reaplica eventos nem substitui a tela por um recibo antigo; busca `/view` e `/events` a partir do último cursor. `stateVersion` e ETag têm finalidades distintas; o cache local deve ser separado por servidor, conta e partida. Decisões e cenários: [ADR 0004](docs/decisions/0004-comandos-e-cache-http.md).
 - Escrita sempre do estado completo (JSONB inteiro), sem patches parciais. Tamanho do estado e duração de `advanceTo` são medidos; alvo de p95 abaixo de 50 ms por requisição.
 
 ### 14.9 Tempo, relógio e job de avanço
 
 - Relógio do servidor em UTC, com NTP ativo no host. Tempo de jogo = `(agora − yearStart) × timeScale`. A Hora da Vigília é convertida para UTC a partir de `timezone` e `vigil_hour` no momento do agendamento.
-- **Avanço preguiçoso** em toda requisição, mais um **job horário** (`advance-stale-games`) que avança partidas sem requisição há mais de 1 h, em lotes de 100 com `FOR UPDATE SKIP LOCKED`. Garante que Crônicas, rankings e eventos existam para quem sumiu e espalha a carga do dia 7.
+- **Avanço preguiçoso** nas leituras de partida e comandos novos (§14.8), mais um **job horário** (`advance-stale-games`) que avança partidas sem estado persistido há mais de 1 h, em lotes de 100 com `FOR UPDATE SKIP LOCKED`. Garante que Crônicas, rankings e eventos existam para quem sumiu e espalha a carga do dia 7.
 - Nenhum temporizador por partida em memória. O processo pode reiniciar a qualquer momento sem efeito no jogo.
 
 ### 14.10 Cliente VS Code
 
 - A extensão usa o `client-sdk`. Com o painel aberto, um ciclo de 30 s chama `GET /view` com ETag e `GET /events?after=` e converte eventos em notificações conforme a política (§13.5). Com o painel fechado, o ciclo cai para 2 min e só atualiza a TreeView e a status bar.
 - Cache do último `ViewState` em `globalState` para exibição sem conexão (§13.9). Comandos nunca ficam em fila local: ou chegam ao servidor ou o jogador é avisado na hora.
+- SDK e extensão seguem o contrato de recibos e ETag da §14.8; após `GAME_RULE`, exibem o estado avançado de `details`. Após logout, exclusão ou sessão revogada, apagam tokens, `ViewState`, ETag e cursor da conta local, evitando exibir progresso privado como se fosse apenas uma falha de rede.
 - Configurações: `lords.serverUrl` (padrão: a instância hospedada; `http://localhost:3000` em desenvolvimento), `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`.
 - A Webview nunca fala com a rede: só troca mensagens tipadas com a extensão (§14.12).
 
@@ -1003,15 +1018,15 @@ services:
   db:      # postgres:16 com volume persistente; pg_dump diário pelo cron do host
 ```
 
-- Variáveis: `DATABASE_URL`, `JWT_SECRET` (32+ bytes aleatórios), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`. Não há segredo de GitHub: a validação usa o token do próprio usuário.
+- Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`. Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
 - Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.
 - Atualizar: `docker compose pull && docker compose up -d`. Segundos de indisponibilidade; o avanço preguiçoso cobre.
-- Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos atende centenas de clientes em polling de 30 s. Antes de milhares: cache de `ViewState` por `stateVersion`, Postgres gerenciado e 2+ réplicas da API.
+- Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos tem como alvo centenas de clientes em polling de 30 s, a confirmar por carga. Antes de milhares: medir custo de avanço, escrita e autorização; avaliar Postgres gerenciado e 2+ réplicas da API. Cache de `ViewState` não pode depender só de `stateVersion`, porque a representação também muda com o tempo (§14.8).
 - Ambiente de desenvolvimento: `docker compose -f deploy/docker-compose.dev.yml up db` e `pnpm dev` no servidor; a extensão aponta `lords.serverUrl` para `http://localhost:3000`.
 
 ### 14.14 Segurança e privacidade
 
-HTTPS obrigatório; tokens só no `SecretStorage`; refresh rotativo com detecção de reuso; limites de taxa por IP e por sessão; validação zod de toda entrada (compartilhada com o cliente, que erra cedo, enquanto o servidor nunca confia); corpos limitados; cabeçalhos de segurança no Caddy; dependências auditadas em CI. Dados pessoais guardados: o nome de exibição escolhido e, se houver vínculo, o `github_id`. Nada mais. Política de privacidade de um parágrafo no README e no painel "Conta". Exclusão de conta em um clique.
+HTTPS obrigatório; tokens só no `SecretStorage`; refresh rotativo com histórico completo por sessão e revogação consultada no banco; limites de taxa por IP e por sessão; validação zod de toda entrada (compartilhada com o cliente, que erra cedo, enquanto o servidor nunca confia); corpos limitados; cabeçalhos de segurança no Caddy; dependências auditadas em CI. Dados da conta: nome de exibição, `github_id` opcional, rótulo da máquina, datas de acesso e hashes de credenciais; progresso, comandos e recibos ficam vinculados à conta. Política de privacidade no README e no painel "Conta" deve explicar bloqueio imediato, expurgo após sete dias pelo job e retenção de backups (§14.7). Exclusão pelo painel, com confirmação e limpeza do cache local; não há recuperação da conta excluída na v0.1.
 
 ### 14.15 Multiplayer futuro (não construir agora)
 
@@ -1054,7 +1069,7 @@ Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jog
 - **Golden tests:** relatórios de batalha e de expedição para sementes fixas (qualquer mudança de regra é visível no diff).
 - **Conteúdo:** schemas zod em todo JSON; grafos acíclicos; flags consistentes.
 - **Migração:** estados com `schemaVersion` antigo carregam e migram no servidor.
-- **API e banco:** integração com PostgreSQL real (Docker) cobrindo idempotência por `commandId`, dois clientes concorrentes, rotação e reuso de refresh token, exclusão de conta e o job de avanço.
+- **API e banco:** integração com PostgreSQL real (Docker) cobrindo recibos idênticos após reinício e outros comandos, conflito de UUID com payload diferente, avanço persistido mesmo em recusa, dois clientes concorrentes, ETag alterado sem escrita, reuso após múltiplas rotações, revogação entre instâncias e exclusão em duas etapas (§14.7–14.8).
 - **Carga:** `sim-cli` contra servidor local, com metas de p95.
 - **Integração do cliente:** a extensão contra um servidor local: comandos, ETag, eventos, cache sem conexão.
 
@@ -1109,12 +1124,12 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 4. Uma melhoria desconta recursos uma única vez, ocupa a fila e conclui no tempo configurado.
 5. Fechar o VS Code por horas e reabrir mostra o intervalo simulado pelo servidor sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
 6. Escassez tratada corretamente em longos períodos offline, com o momento exato registrado na Crônica.
-7. Reiniciar o servidor no meio do dia (`docker compose restart`) não perde nem duplica nada; reenviar o mesmo `commandId` não aplica duas vezes; dois clientes na mesma conta não corrompem o estado.
+7. Reiniciar o servidor no meio do dia (`docker compose restart`) não perde nem duplica nada; reenviar o mesmo `commandId` na mesma partida devolve status e corpo originais sem reaplicar, inclusive recusas; payload diferente com o mesmo UUID é recusado. O avanço do mundo persiste mesmo se a ação nova for recusada. Dois clientes na mesma conta não corrompem o estado (§14.8).
 8. Todas as regras rodam em testes sem o VS Code aberto.
 9. O painel respeita tema claro e escuro e é navegável por teclado.
 10. Vincular ao GitHub ou usar o Código do Reino em outra máquina mostra o mesmo feudo em segundos.
 11. Sem conexão, o painel mostra o último estado conhecido, explica a situação e volta sozinho quando o servidor responde.
-12. Excluir a conta remove partida, comandos e sessões; o nome não aparece mais em nenhuma consulta.
+12. Excluir a conta bloqueia imediatamente acesso por JWT, refresh, GitHub e Código do Reino, remove a conta das consultas da API e limpa o cache local. No primeiro job a partir de `deletedAt + 7 dias`, conta, partidas, comandos/recibos, eventos, Crônicas, sessões e hashes de refresh são removidos do banco em cascata. Testes verificam separadamente bloqueio imediato, retenção antes do prazo e expurgo no limite; backups seguem os 14 dias de retenção da §14.7.
 
 ### 16.2 Critérios de aceitação das versões seguintes (resumo)
 
@@ -1150,6 +1165,10 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | Fastify + Drizzle + zod compartilhado | NestJS; Express; Prisma | Menos camadas para um time pequeno ou um agente; validação e tipos vêm do mesmo pacote `protocol` |
 | Uma partida ativa por conta; anos sucessivos no mesmo registro | Várias partidas paralelas | Simplifica ranking, cache e a pergunta "qual feudo abrir" |
 | Sem upload de saves locais | Importar JSON do jogador | Qualquer importação seria trapaça gratuita em um jogo com ranking |
+| Recibo completo por comando; recusa preserva o avanço do mundo | Recalcular a resposta no reenvio; rollback de toda recusa | Reenvios após timeout têm resultado estável e não apagam eventos ocorridos na ausência ([ADR 0004](docs/decisions/0004-comandos-e-cache-http.md)) |
+| Histórico de refresh por sessão, sem cache positivo de autorização | Guardar só o token anterior; cache de 60 s | Detectar reuso de qualquer antecessor e bloquear novas requisições após revogação, inclusive entre instâncias ([ADR 0005](docs/decisions/0005-sessoes-e-exclusao.md)) |
+| ETag da resposta; versão persistida em cabeçalho de aviso separado | Usar `stateVersion` como ETag e `If-Match` como aviso | Produção contínua muda a tela sem escrita no banco; cache e aviso de concorrência têm contratos distintos ([ADR 0004](docs/decisions/0004-comandos-e-cache-http.md)) |
+| Código do Reino com HMAC-SHA256 e chave própria | Argon2id; chave derivada do segredo JWT | Busca direta do código aleatório sem acoplar sua validade à troca da chave JWT ([ADR 0003](docs/decisions/0003-codigo-do-reino-hmac.md)) |
 
 ### 17.2 Questões em aberto (não bloqueiam nenhuma versão)
 
@@ -1190,7 +1209,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 > 7. Implemente o `client-sdk` tipado e a extensão: tela de boas-vindas, `SecretStorage`, TreeView, WebviewPanel com a aba Feudo, Status Bar, comandos, ciclo de 30 s com ETag, cache do último estado e modo sem conexão.
 > 8. Implemente a Webview com tokens de tema do VS Code, navegação por teclado e tooltips explicativos em todos os números.
 > 9. Escreva `deploy/docker-compose.yml` (caddy, api, db), `deploy/docker-compose.dev.yml`, `deploy/backup.sh` e um `README.md` com: instalar, rodar o banco local, rodar o servidor, rodar a extensão com F5, testar, e **implantar em um VPS do zero em dez passos**.
-> 10. Não adicione interação entre jogadores, pagamentos, telemetria de terceiros, som, nem bibliotecas além de TypeScript, esbuild (ou equivalente), Vitest, fast-check, zod, Preact, Fastify, pg, Drizzle, jose, pino e argon2.
+> 10. Não adicione interação entre jogadores, pagamentos, telemetria de terceiros, som, nem bibliotecas além de TypeScript, esbuild (ou equivalente), Vitest, fast-check, zod, Preact, Fastify, pg, Drizzle, jose e pino. Hashes e HMAC usam `node:crypto` somente no servidor.
 
 ### 18.2 Tarefas seguintes (uma por versão)
 
@@ -1210,7 +1229,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 ### 18.4 Checklist de implantação (para quem hospeda)
 
 1. VPS com Docker e Docker Compose; domínio apontando para o IP (registro A).
-2. `git clone`; copiar `deploy/.env.example` para `deploy/.env`; gerar `JWT_SECRET` (`openssl rand -base64 48`); definir `PUBLIC_URL` e a senha do PostgreSQL.
+2. `git clone`; copiar `deploy/.env.example` para `deploy/.env`; gerar `JWT_SECRET` e `RECOVERY_CODE_SECRET` independentemente (duas execuções de `openssl rand -base64 48`); definir `PUBLIC_URL` e a senha do PostgreSQL. Guardar a chave de recuperação junto aos segredos operacionais para restauração; nunca regenerá-la em cada deploy.
 3. `docker compose -f deploy/docker-compose.yml up -d`: o Caddy obtém o certificado e a API aplica as migrações.
 4. Conferir `https://<domínio>/v1/health` e `/v1/version`.
 5. Agendar `deploy/backup.sh` no cron do host (diário) e testar uma restauração.

@@ -1,8 +1,8 @@
 # Lords of the Guild — MVP Roadmap (v0.1 "Fundação online")
 
 > **Status:** plano de execução  
-> **Versão do documento:** 1.0  
-> **Base:** [GAME_DESIGN.md](GAME_DESIGN.md) v0.3 (seções §14, §16.1 e §18.1 são o contrato)  
+> **Versão do documento:** 1.1 (contratos de comandos, sessões, cache HTTP e exclusão consolidados)\
+> **Base:** [GAME_DESIGN.md](GAME_DESIGN.md) v0.4 (seções §14, §16.1 e §18.1 são o contrato; versão do jogo: v0.1)\
 > **Forma de trabalho:** desenvolvimento 100% com Claude Code, uma tarefa por sessão, Docker para banco, API e produção  
 > **Idioma:** português (Brasil); identificadores de código em inglês
 
@@ -47,6 +47,8 @@ Estimativa total: **5 a 6 semanas** com uma a duas sessões por dia útil. A ord
 
 Provedor do VPS e domínio (F4-T3), publicação no Marketplace ou distribuição por `.vsix` (F3-T10), nome público do jogo e ícone, política de privacidade final (texto), e qualquer **desvio do GDD**. Desvios são propostos pelo agente em `docs/decisions/` e aprovados por você antes da implementação.
 
+Os ajustes documentais de 2026-10-01 nos pontos 1–3 da revisão estão consolidados no GDD 0.4 e nos [ADRs 0003–0005](docs/decisions/README.md): recibos de comandos e avanço em recusas; histórico de refresh e revogação; ETag, HMAC de recuperação e exclusão em duas etapas. Implementar esses contratos não constitui novo desvio. Nenhuma tarefa de código foi concluída por esta revisão.
+
 ---
 
 ## 1. Decisões de ambiente e convenções
@@ -63,7 +65,7 @@ Provedor do VPS e domínio (F4-T3), publicação no Marketplace ou distribuiçã
 | Testes de integração | No host contra `db_test` em Docker | CI com serviço PostgreSQL |
 | `sim-cli` | No host; modo remoto aponta para a API local | Não roda |
 
-**Por que a API não roda em bind mount no dev:** `argon2` é módulo nativo e `node_modules` do pnpm não pode ser compartilhado entre host e contêiner com bases diferentes (glibc/musl). Rodar a API no host dá hot reload e depurador sem fricção; a imagem Docker é testada no `--profile full` e em produção. Base das imagens: `node:22-bookworm-slim` (glibc), nunca Alpine, pelo mesmo motivo.
+**Por que a API roda no host no dev:** hot reload e depurador diretos, com dependências instaladas no ambiente que as executa. A imagem Docker é testada no `--profile full` e em produção; não compartilhar `node_modules` entre host e contêiner. Mantida a base `node:22-bookworm-slim` para consistência entre build e runtime. Argon2 não é necessário na v0.1: os contratos de credenciais usam `node:crypto` (F2-T4 e F2-T5).
 
 **WSL2:** manter o repositório dentro do sistema de arquivos do Linux (ex.: `/opt/pals-vscode-game` ou `~/dev/...`), nunca em `/mnt/c`, e habilitar a integração do Docker Desktop com a distribuição WSL.
 
@@ -85,6 +87,7 @@ Provedor do VPS e domínio (F4-T3), publicação no Marketplace ou distribuiçã
 | `DATABASE_URL` | API | `postgres://lotg:lotg@localhost:5432/lotg` | Conexão principal |
 | `TEST_DATABASE_URL` | testes | `postgres://lotg:lotg@localhost:5433/lotg_test` | Banco de integração |
 | `JWT_SECRET` | API | gerado por `pnpm secrets:gen` | 32+ bytes aleatórios (base64) |
+| `RECOVERY_CODE_SECRET` | API | gerado por `pnpm secrets:gen` | 32+ bytes aleatórios independentes (base64); decodificados para a chave HMAC dos Códigos do Reino; preservar em deploys e restaurações |
 | `PUBLIC_URL` | API | `http://localhost:3000` | URL pública, usada em logs e `/version` |
 | `LOG_LEVEL` | API | `debug` (prod: `info`) | pino |
 | `RATE_LIMIT_PER_MINUTE` | API | `60` | por sessão |
@@ -116,7 +119,7 @@ Configurações da extensão (em `package.json` → `contributes.configuration`)
 | `pnpm test:integration` | testes do servidor contra `db_test` |
 | `pnpm verify` | `lint` + `typecheck` + `test` (porta de entrada de todo "pronto") |
 | `pnpm sim -- --seed <s> --days 7 --strategy economico` | bot de playtest em processo |
-| `pnpm secrets:gen` | gera `JWT_SECRET` e senha do banco para `.env` |
+| `pnpm secrets:gen` | gera `JWT_SECRET`, `RECOVERY_CODE_SECRET` independente e senha do banco para `.env`; não sobrescreve segredos existentes |
 | `pnpm docker:build` | constrói a imagem de produção da API |
 
 ### 1.5 Estrutura do repositório (alvo ao fim do MVP)
@@ -158,7 +161,7 @@ lords-of-the-guild/                  (= esta pasta)
 
 ### 1.6 Bibliotecas permitidas
 
-Conforme GDD §18.1: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify, `pg`, Drizzle (`drizzle-orm` + `drizzle-kit`), `jose`, `pino`, `argon2`. Consideram-se parte do ecossistema permitido: plugins oficiais `@fastify/*` (`rate-limit`, `sensible`, `under-pressure`), `tsx` (dev), `@types/vscode`, `@vscode/vsce`, ESLint e Prettier. **Qualquer outra dependência exige um ADR em `docs/decisions/` aprovado por você.**
+Conforme GDD §18.1: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fastify, `pg`, Drizzle (`drizzle-orm` + `drizzle-kit`), `jose`, `pino`. Hashes, HMAC e geração de credenciais usam `node:crypto` no servidor; não instalar `argon2`. Consideram-se parte do ecossistema permitido: plugins oficiais `@fastify/*` (`rate-limit`, `sensible`, `under-pressure`), `tsx` (dev), `@types/vscode`, `@vscode/vsce`, ESLint e Prettier. **Qualquer outra dependência exige um ADR em `docs/decisions/` aprovado por você.**
 
 ### 1.7 Convenções de código e Git
 
@@ -234,7 +237,7 @@ Esperado: lint sem erros, typecheck sem erros, 8 testes triviais verdes.
 **Entregáveis:** `CLAUDE.md`, `docs/decisions/0001-api-no-host-em-dev.md`, `docs/decisions/README.md`.
 
 - [ ] F0-T3.1 `CLAUDE.md` com as seções do modelo da §A.1: visão em cinco linhas, mapa de pacotes, comandos, regras de arquitetura, convenções, "nunca faça", ritual de conclusão (`pnpm verify`, marcar roadmap, registro de execução, commit).
-- [ ] F0-T3.2 Modelo de ADR (`docs/decisions/README.md`) e o primeiro ADR registrando a decisão da §1.1 (API no host em dev).
+- [ ] F0-T3.2 Usar o índice e modelo existentes em `docs/decisions/README.md` e criar o ADR 0001 registrando a decisão da §1.1 (API no host em dev). Preservar os ADRs 0003–0005 já consolidados nesta revisão.
 - [ ] F0-T3.3 `.claude/settings.json` com permissões para os comandos rotineiros (`pnpm *`, `docker compose *`, `git status/diff/log`) para reduzir confirmações.
 
 **Verificação:** abrir uma sessão nova do Claude Code e pedir "resuma as regras deste projeto"; o resumo deve citar motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas.
@@ -252,7 +255,7 @@ Esperado: lint sem erros, typecheck sem erros, 8 testes triviais verdes.
 
 - [ ] F0-T4.1 `docker-compose.dev.yml`: serviço `db` (`postgres:16`, `POSTGRES_USER=lotg`, `POSTGRES_DB=lotg`, volume `lotg_db_dev`, healthcheck `pg_isready`), serviço `db_test` (porta 5433, `tmpfs` em `/var/lib/postgresql/data`, `fsync=off` para velocidade), serviço `api` sob `profiles: [full]` construído do `Dockerfile` alvo `runtime` com `DATABASE_URL` apontando para `db`, serviço `pgweb` sob `profiles: [tools]`.
 - [ ] F0-T4.2 `Dockerfile` multi-stage em `node:22-bookworm-slim`: `deps` (corepack + `pnpm fetch` com lockfile), `build` (instala, `pnpm --filter @lotg/server... build`, `pnpm deploy` para pasta isolada), `runtime` (usuário não root, só `dist/`, `node_modules` de produção e `deploy/migrations/`, `HEALTHCHECK` chamando `/v1/health`, `CMD ["node", "dist/main.js"]`). Alvo `dev` opcional com `tsx`.
-- [ ] F0-T4.3 `.env.example` com todas as variáveis da §1.3 e comentários; `pnpm secrets:gen` (script Node de 20 linhas) gera valores fortes.
+- [ ] F0-T4.3 `.env.example` com todas as variáveis da §1.3 e comentários; `pnpm secrets:gen` gera valores fortes e independentes para JWT, recuperação e banco, sem sobrescrever valores existentes. Documentar que trocar a chave de recuperação invalida os códigos já emitidos.
 - [ ] F0-T4.4 Scripts `dev:up`, `dev:down`, `dev:logs`, `db:psql`, `docker:build` no `package.json` raiz; `README.md` atualizado.
 
 **Verificação:**
@@ -453,7 +456,7 @@ pnpm --filter @lotg/engine test -- population
 
 - [ ] F1-T7.1 União discriminada `Command`: `setWorkers`, `startConstruction`, `cancelConstruction`, `planConstruction`, `unplanConstruction`, `recruitVillagers`, `renameSettlement`. Cada comando carrega `commandId` (UUID) para idempotência no servidor.
 - [ ] F1-T7.2 `applyCommand(state, command, nowMs)`: exige `state.lastProcessedAt === nowMs` (o chamador avança antes; violar lança erro de programação), despacha, devolve `{ ok: true, state, events }` ou `{ ok: false, code, message }`. Mensagens em pt-BR vindas de `rejections.ts` (ex.: `INSUFFICIENT_RESOURCES` → "Faltam 40 madeira e 10 pedra").
-- [ ] F1-T7.3 Nenhuma recusa altera o estado; nenhuma recusa lança exceção.
+- [ ] F1-T7.3 Nenhuma recusa de regra altera o estado avançado recebido por `applyCommand` nem lança exceção. O chamador conserva o resultado anterior de `advanceTo`; o servidor o persiste mesmo em recusa (F2-T6), junto aos eventos do avanço.
 - [ ] F1-T7.4 Testes: cada código de recusa tem ao menos um teste; comando desconhecido é recusado (`UNKNOWN_COMMAND`); `renameSettlement` valida 2–24 caracteres.
 
 **Verificação:**
@@ -570,9 +573,9 @@ pnpm verify && pnpm --filter @lotg/engine test -- --coverage
 **Entregáveis:** `packages/protocol/src/{commands,view,api,errors,webview,index}.ts`, testes.
 
 - [ ] F2-T1.1 `commands.ts`: schemas zod de cada comando, com `commandId` UUID; teste de tipo garante que `z.infer<typeof CommandSchema>` é idêntico ao `Command` do motor.
-- [ ] F2-T1.2 `view.ts`: schema do `ViewState`; `api.ts`: corpos e respostas de todos os endpoints da §14.5 do GDD usados na v0.1; `errors.ts`: `ApiErrorSchema { code, message, details? }` e enum de códigos (`VALIDATION`, `UNAUTHORIZED`, `SESSION_REVOKED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `CONFLICT`, `ACCOUNT_CONFLICT`, `ACTIVE_GAME_EXISTS`, `GAME_RULE`, `GITHUB_TOKEN_INVALID`, `UPGRADE_REQUIRED`, `INTERNAL`).
+- [ ] F2-T1.2 `view.ts`: schema do `ViewState`; `api.ts`: corpos e respostas de todos os endpoints da §14.5 do GDD usados na v0.1, incluindo `/view { view, stateVersion }`, comando aceito `{ view, events, stateVersion, staleView }`, recusa `GAME_RULE` com `details { code, message, view, events, stateVersion, staleView }` e exclusão `202 { deletedAt, purgeAfter }`. `stateVersion` é string decimal positiva e datas são UTC ISO 8601. `errors.ts`: `ApiErrorSchema { code, message, details? }` e enum de códigos (`VALIDATION`, `UNAUTHORIZED`, `SESSION_REVOKED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `CONFLICT`, `COMMAND_ID_CONFLICT`, `ACCOUNT_CONFLICT`, `ACTIVE_GAME_EXISTS`, `GAME_RULE`, `GITHUB_TOKEN_INVALID`, `UPGRADE_REQUIRED`, `INTERNAL`).
 - [ ] F2-T1.3 `webview.ts`: mensagens Webview ↔ extensão (`command`, `view`, `error`, `connection`, `navigate`).
-- [ ] F2-T1.4 `PROTOCOL_VERSION = 1`; cabeçalho `X-Lords-Protocol` documentado.
+- [ ] F2-T1.4 `PROTOCOL_VERSION = 1`; documentar `X-Lords-Protocol`, `X-Lords-State-Version` (aviso opcional, sem bloqueio da ação), `X-Lords-Replayed` (metadado de reenvio), ETag e `If-None-Match`. O aviso não usa `If-Match`; recibos mantêm status e corpo originais, com o indicador de reenvio somente no cabeçalho.
 
 **Verificação:**
 
@@ -591,7 +594,7 @@ pnpm --filter @lotg/protocol test && pnpm typecheck
 **Depende de:** F2-T1, F0-T4.
 **Entregáveis:** `packages/server/src/{main,app,config}.ts`, `plugins/{db,errors,ratelimit}.ts`, `routes/{health,version}.ts`, testes.
 
-- [ ] F2-T2.1 `config.ts`: variáveis da §1.3 validadas por zod no arranque; falha rápida com mensagem clara.
+- [ ] F2-T2.1 `config.ts`: variáveis da §1.3 validadas por zod no arranque; falha rápida com mensagem clara. Decodificar `JWT_SECRET` e `RECOVERY_CODE_SECRET` de base64, exigir pelo menos 32 bytes em cada e valores diferentes; nunca imprimir segredos em erros.
 - [ ] F2-T2.2 `app.ts`: `buildApp(deps)` com `pino` (redação de `authorization`, `refreshToken`, `githubAccessToken`, `code`), `requestId`, `@fastify/sensible`, `@fastify/rate-limit` (60/min por sessão ou IP), plugin `db` (Pool do `pg` + Drizzle), handler de erros mapeando `ZodError` → 400 `VALIDATION`, `ApiError` → status próprio, desconhecido → 500 `INTERNAL` com `requestId`.
 - [ ] F2-T2.3 `GET /v1/health` (`{ status: 'ok', db: 'ok' | 'down' }`, 503 se o banco falhar) e `GET /v1/version` (`{ server, protocol, contentHash, builtAt }`).
 - [ ] F2-T2.4 `main.ts`: carrega config, roda migrações (F2-T3), escuta, encerramento gracioso em `SIGTERM`.
@@ -617,8 +620,8 @@ Esperado: `{"status":"ok","db":"ok"}` e a versão.
 **Depende de:** F2-T2.
 **Entregáveis:** `packages/server/src/db/schema.ts`, `drizzle.config.ts`, `deploy/migrations/0001_init.sql`, `packages/server/src/db/migrate.ts`, `packages/server/test/helpers/db.ts`.
 
-- [ ] F2-T3.1 Tabelas `accounts`, `sessions`, `games`, `commands`, `game_events`, `chronicles` conforme o GDD, mais a coluna `sessions.prev_refresh_token_hash` (detecção de reuso) e `accounts.recovery_code_hash` como HMAC (ver F2-T5).
-- [ ] F2-T3.2 Índices: único parcial `games(account_id) where status = 'active'` (uma partida ativa por conta); `games(last_processed_at) where status = 'active'` (job); `commands(game_id, seq)`; `game_events(game_id, seq)`; `sessions(account_id)`; `accounts(github_id)` único; `accounts(deleted_at)`.
+- [ ] F2-T3.1 Sete tabelas do GDD §14.6: `accounts`, `sessions`, `refresh_tokens`, `games`, `commands`, `game_events`, `chronicles`. `refresh_tokens` guarda todos os hashes por sessão, com `created_at` e `used_at`; não usar apenas o token anterior. `commands` inclui `request_hash`, `response_status`, `response_body` obrigatórios, `result` (`accepted | rejected`) e `error_code`; PK `(game_id, id)`. `accounts.recovery_code_hash` guarda HMAC-SHA256. Relações de propriedade com `ON DELETE CASCADE` cobrem também recibos e histórico de refresh.
+- [ ] F2-T3.2 Índices: único parcial `games(account_id) where status = 'active'`; `games(last_processed_at) where status = 'active'`; único `commands(game_id, seq)`; PK `game_events(game_id, seq)`; `sessions(account_id)`; PK `refresh_tokens(token_hash)` e índice `refresh_tokens(session_id)`, mais único parcial em `session_id where used_at is null`; únicos `accounts(github_id)` e `accounts(recovery_code_hash)`; `accounts(deleted_at)`.
 - [ ] F2-T3.3 `drizzle-kit generate` com saída em `deploy/migrations/`; `migrate.ts` aplica no arranque dentro de `pg_advisory_lock(727)`; idempotente.
 - [ ] F2-T3.4 Helper de teste `resetTestDb()` (drop schema + migrar) usando `TEST_DATABASE_URL`; projeto `integration` do Vitest só roda com a variável definida.
 
@@ -629,7 +632,7 @@ pnpm db:migrate && pnpm db:psql -c '\dt'
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
 ```
 
-Esperado: seis tabelas mais a de controle do Drizzle; migração aplicada duas vezes sem erro.
+Esperado: sete tabelas mais a de controle do Drizzle; migração aplicada duas vezes sem erro. Testar unicidade de comando por partida, de sequência e de token não utilizado por sessão; testar cascatas completas.
 
 **Pronto quando:** dois processos rodando `migrate` ao mesmo tempo terminam sem erro (teste com `Promise.all`).
 
@@ -642,11 +645,11 @@ Esperado: seis tabelas mais a de controle do Drizzle; migração aplicada duas v
 **Depende de:** F2-T3.
 **Entregáveis:** `packages/server/src/auth/{tokens,service}.ts`, `routes/auth.ts`, `routes/me.ts`, `plugins/auth.ts`, testes de integração.
 
-- [ ] F2-T4.1 `POST /v1/auth/anonymous { displayName, deviceLabel? }` → cria `accounts` + `sessions`; responde `{ account, accessToken, refreshToken, expiresIn }`. Limite 10/h por IP.
-- [ ] F2-T4.2 Access token: JWT HS256 (`jose`) com `sub` = accountId, `sid` = sessionId, `exp` 15 min, `iss` = `PUBLIC_URL`. Refresh: 32 bytes aleatórios em base64url, armazenado como SHA-256; `POST /v1/auth/refresh` rotaciona (novo token, hash antigo vai para `prev_refresh_token_hash`); apresentar o hash antigo → revoga a sessão e responde 401 `SESSION_REVOKED`.
-- [ ] F2-T4.3 Plugin `auth`: `preHandler` que valida o JWT, carrega `{ accountId, sessionId }`, rejeita contas com `deleted_at` e sessões revogadas (consulta leve com cache de 60 s por `sid`); atualiza `last_seen_at` no máximo a cada 5 min.
-- [ ] F2-T4.4 `POST /v1/auth/logout` (revoga a sessão atual); `GET /v1/me` (`{ id, displayName, linked: { github }, hasRecoveryCode, createdAt }`); `PATCH /v1/me { displayName }`; `DELETE /v1/me` (soft delete, revoga todas as sessões, arquiva partidas; exclusão definitiva pelo job de F2-T7 após 7 dias).
-- [ ] F2-T4.5 Testes de integração: criação, acesso com token, expiração (relógio injetado), rotação, detecção de reuso, logout, exclusão bloqueando acesso, limites de taxa.
+- [ ] F2-T4.1 `POST /v1/auth/anonymous { displayName, deviceLabel? }` → cria `accounts` + `sessions` + primeiro hash em `refresh_tokens` atomicamente; responde `{ account, accessToken, refreshToken, expiresIn }`. Limite 10/h por IP.
+- [ ] F2-T4.2 Access token: JWT HS256 (`jose`) com `sub` = accountId, `sid` = sessionId, `iss` = `PUBLIC_URL`, `exp = min(agora + 15 min, sessão.expires_at)`. Sessão/família por máquina com validade absoluta de 30 dias; refresh de 32 bytes aleatórios em base64url, guardado como SHA-256 em `refresh_tokens`. Na rotação, localizar hash, travar conta → sessão, revalidar; marcar o token como utilizado e inserir o sucessor na mesma transação. Qualquer antecessor utilizado revoga a sessão inteira; fazer commit da revogação **antes** do 401 `SESSION_REVOKED`. Hash desconhecido ou sessão expirada retorna 401 `UNAUTHORIZED`. Conservar todos os hashes até expiração da sessão ou exclusão em cascata.
+- [ ] F2-T4.3 Plugin `auth`: validar JWT, `sub`, `sid`, emissor e expiração; consultar conta/sessão no banco em toda requisição, sem cache positivo de autorização; rejeitar `deleted_at`, `revoked_at`, sessão expirada ou sessão de outra conta. Atualizar `last_seen_at` no máximo a cada 5 min. Novas requisições após commit da revogação falham em qualquer instância. Criação de sessões e alterações de credenciais revalidam a conta sob lock.
+- [ ] F2-T4.4 `POST /v1/auth/logout` autenticado por JWT revoga somente a sessão atual; `GET /v1/me` (`{ id, displayName, linked: { github }, hasRecoveryCode, createdAt }`); `PATCH /v1/me { displayName }`; `DELETE /v1/me` faz soft delete, revoga todas as sessões, limpa o HMAC de recuperação e arquiva partidas atomicamente, respondendo `202 { deletedAt, purgeAfter }` com prazo de sete dias. API e métricas de jogadores ativos filtram contas excluídas; nenhum login as restaura. O job F2-T7 remove fisicamente os dados após o prazo; não implementar desfazer exclusão.
+- [ ] F2-T4.5 Testes de integração com relógio injetado: criação, JWT e expiração absoluta; `R0 → R1 → R2`, reuso de `R0` invalida `R2` e JWT da família, preservando outra sessão; refresh concorrente do mesmo token não deixa dois sucessores válidos e o reuso revoga inclusive o sucessor recém-emitido; rollback em falha de rotação. Testar logout e exclusão com duas instâncias sem esperar 60 s, acesso/refresh após exclusão e limites de taxa. Uma revogação deve continuar gravada apesar da resposta 401. GitHub e Código do Reino serão verificados em F2-T5.4.
 
 **Verificação:**
 
@@ -654,21 +657,21 @@ Esperado: seis tabelas mais a de controle do Drizzle; migração aplicada duas v
 pnpm test:integration -- auth
 ```
 
-**Pronto quando:** o teste de reuso prova que o segundo uso do refresh antigo invalida também o novo.
+**Pronto quando:** reutilizar `R0` após duas rotações revoga `R2` e seus JWTs, inclusive na segunda instância; outra sessão da conta segue válida. Logout e exclusão bloqueiam imediatamente as novas requisições previstas, sem depender de expiração de cache.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.7 e §14.14 e MVP-ROADMAP.md F2-T4. Implemente a conta anônima, JWT com jose, refresh rotativo com detecção de reuso, o plugin de autenticação e as rotas /me, com testes de integração. Nunca logue tokens."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.7 e §14.14, ADR 0005 e MVP-ROADMAP.md F2-T4. Implemente conta anônima, JWT, histórico de refresh por sessão, detecção de reuso após múltiplas rotações, autorização sem cache positivo e exclusão em duas etapas. Teste duas instâncias e confirme que respostas 401 não desfazem a revogação. Nunca logue tokens."
 
 ### F2-T5 · Código do Reino e vínculo GitHub `M`
 
 **Objetivo:** recuperar a conta em outra máquina sem e-mail nem senha.
 **GDD:** §13.9, §14.7.
 **Depende de:** F2-T4.
-**Entregáveis:** `packages/server/src/auth/{recovery,github}.ts`, rotas, testes, `docs/decisions/0003-codigo-do-reino-hmac.md`.
+**Entregáveis:** `packages/server/src/auth/{recovery,github}.ts`, rotas e testes conforme o [ADR 0003 existente](docs/decisions/0003-codigo-do-reino-hmac.md).
 
-- [ ] F2-T5.1 Código do Reino: 20 caracteres do alfabeto `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (sem 0/O/1/I), exibido como `XXXX-XXXX-XXXX-XXXX-XXXX`. Armazenado como **HMAC-SHA256** com chave derivada de `JWT_SECRET`, para permitir busca direta (o código tem 100 bits de entropia, o que torna o hash determinístico seguro). ADR registra o desvio em relação ao argon2id citado no GDD.
-- [ ] F2-T5.2 `POST /v1/auth/recovery-code` (autenticado) gera ou rotaciona e devolve o código em claro **uma vez**; `POST /v1/auth/recover { code, deviceLabel? }` cria uma sessão nova; limite 5/h por IP; aceita entrada com ou sem hífens e em minúsculas.
+- [ ] F2-T5.1 Código do Reino: 20 caracteres aleatórios uniformes do alfabeto `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, exibidos como `XXXX-XXXX-XXXX-XXXX-XXXX`. Normalização: remover espaços externos e hífens, converter para maiúsculas e validar 20 caracteres do alfabeto. Guardar **HMAC-SHA256** hexadecimal do código normalizado usando a chave base64 decodificada `RECOVERY_CODE_SECRET`, independente de `JWT_SECRET`; implementação com `node:crypto` e busca pelo índice único. Gerar outro código na improvável colisão do HMAC. Seguir o contrato do GDD §14.7 e ADR 0003, sem nova decisão pendente.
+- [ ] F2-T5.2 `POST /v1/auth/recovery-code` gera/rotaciona sob lock da conta e devolve o código em claro **uma vez**, com `Cache-Control: no-store`; código anterior deixa de funcionar, sessões existentes permanecem. `POST /v1/auth/recover { code, deviceLabel? }` busca HMAC, revalida a conta sob lock e cria sessão nova; limite 5/h por IP. Código inválido, inexistente ou de conta excluída recebe 401 `UNAUTHORIZED` sem revelar conta; não logar código nem chaves.
 - [ ] F2-T5.3 `POST /v1/auth/github { githubAccessToken, deviceLabel?, resolve? }`: valida em `${GITHUB_API_URL}/user` com `Authorization: Bearer`, `Accept: application/vnd.github+json` e `User-Agent: lords-of-the-guild-server`; guarda só `github_id`. Casos: (a) chamador autenticado e `github_id` livre → vincula; (b) chamador não autenticado e `github_id` conhecido → entra; (c) chamador autenticado com conta anônima e `github_id` de outra conta → 409 `ACCOUNT_CONFLICT` com `details { existingDisplayName, currentHasProgress }`; repetir com `resolve: 'useExisting'` (conta atual recebe soft delete) ou `resolve: 'keepCurrent'` (vínculo migra para a conta atual). Nunca mesclar estados. Token do GitHub inválido → 401 `GITHUB_TOKEN_INVALID`.
-- [ ] F2-T5.4 `fetch` injetável para testar o GitHub sem rede; testes de todos os casos e dos limites.
+- [ ] F2-T5.4 `fetch` injetável para testar o GitHub sem rede; testes de todos os casos e dos limites. Testar normalização do código, rotação invalidando o anterior, sessões preservadas, troca de `JWT_SECRET` sem invalidar o Código do Reino e exclusão bloqueando recuperação e login GitHub. O caso `useExisting` aplica a mesma exclusão transacional de F2-T4.4 à conta descartada.
 
 **Verificação:**
 
@@ -678,7 +681,7 @@ pnpm test:integration -- recovery github
 
 **Pronto quando:** gerar um código, "trocar de máquina" (nova sessão) e recuperar devolve a mesma `accountId`; o código errado 6 vezes seguidas devolve 429.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.9 e §14.7 e MVP-ROADMAP.md F2-T5. Implemente o Código do Reino com HMAC (registre o ADR) e o vínculo GitHub com fetch injetável e os três casos de conflito, com testes de integração."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §13.9 e §14.7, ADR 0003 e MVP-ROADMAP.md F2-T5. Implemente o Código do Reino com HMAC e chave independente, normalização e rotação, e o vínculo GitHub com fetch injetável e os três casos de conflito. Teste também que nenhum fluxo restaura conta excluída."
 
 ### F2-T6 · Partidas: criação, `view` com ETag, comandos transacionais, eventos e Crônica `L`
 
@@ -688,12 +691,15 @@ pnpm test:integration -- recovery github
 **Entregáveis:** `packages/server/src/games/{repository,service,view,commands,events}.ts`, `routes/games.ts`, testes de integração.
 
 - [ ] F2-T6.1 `POST /v1/games { settlementName, timezone, vigilHourLocal, replaceActive? }`: na v0.1, `difficulty = 'lord'` e `timeScale = 1` fixos (campos aceitos e guardados); se já há partida ativa e `replaceActive` não vier → 409 `ACTIVE_GAME_EXISTS`; com `replaceActive` → arquiva a atual. Semente aleatória (ou informada em ambiente de teste). `GET /v1/games` lista.
-- [ ] F2-T6.2 Relógio: `gameNowMs = (now − games.created_at) × time_scale`, em inteiros. Toda rota de partida carrega a linha, verifica a propriedade (404 para outra conta, sem vazar existência) e chama `advanceTo(gameNowMs)`.
-- [ ] F2-T6.3 **Regra de persistência:** `GET /view` só escreve se o avanço produziu eventos (então grava estado, eventos e `state_version + 1` em transação); produção contínua sem evento não gera escrita. Comandos sempre escrevem. `last_processed_at` (coluna) recebe o relógio de parede a cada escrita.
-- [ ] F2-T6.4 `GET /v1/games/:id/view`: `ETag` fraco = SHA-1 do JSON do `ViewState`; `If-None-Match` igual → 304. Resposta inclui `stateVersion`.
-- [ ] F2-T6.5 `POST /v1/games/:id/commands { commandId, type, payload }` em **uma transação**: `SELECT … FOR UPDATE`; se `commandId` já existe → devolve o resultado gravado com `replayed: true`; avança; aplica; recusa do motor → 422 `GAME_RULE` com `details { code, message }` e linha em `commands` com `error_code` (estado intocado); sucesso → grava estado, comando (`seq` crescente), eventos; devolve `{ view, events, stateVersion, staleView }`; `staleView = true` quando `If-Match` difere da versão anterior ao comando.
+- [ ] F2-T6.2 Relógio: `gameNowMs = (now − games.created_at) × time_scale`, em inteiros. Autenticar, verificar propriedade (404 para outra conta, sem consultar recibos dela) e travar a partida em transação. Capturar `now` sob o lock. Leituras e comandos novos chamam `advanceTo`; reenvios e conflitos de UUID retornam antes do avanço.
+- [ ] F2-T6.3 **Regra de persistência:** leituras de partida só escrevem se o avanço produziu eventos; persistir estado e eventos atomicamente sob o lock. Produção contínua sem evento não gera escrita. Cada comando **novo**, aceito ou recusado pelo motor, persiste o estado avançado e o recibo. `state_version` começa em 1 e incrementa uma vez por escrita do estado, também no job; a API o serializa como string decimal. `last_processed_at` recebe o relógio de parede do avanço a cada escrita. Reenvios não escrevem nem incrementam versões/sequências.
+- [ ] F2-T6.4 `GET /v1/games/:id/view` responde `{ view, stateVersion }`. ETag fraco `W/"<sha256>"` do JSON canônico desse corpo completo, com chaves de objetos ordenadas recursivamente e ordem de arrays preservada; autenticar e avançar antes de comparar `If-None-Match`. Igual → 304 sem corpo e com ETag; diferente → 200. Usar `Cache-Control: private, no-cache` e `Vary: Authorization` em ambos. Contagens regressivas e produção podem mudar o ETag sem escrita; não incluir `requestId` ou timestamp da requisição no corpo. ETag não é `stateVersion`.
+- [ ] F2-T6.5 `POST /v1/games/:id/commands { commandId, type, payload }`: sob o lock, buscar `(game_id, commandId)` e comparar `request_hash` (SHA-256 do JSON canônico de `{ type, payload }` validado, sem cabeçalho de versão). Mesmo hash → retornar status/corpo gravados e `X-Lords-Replayed: true`; diferente → 409 `COMMAND_ID_CONFLICT`, sem alterar o recibo. Comando novo: capturar versão anterior, avançar, aplicar e gravar estado, eventos e recibo completo na mesma transação; `seq` único crescente por partida. Sucesso: 200 `{ view, events, stateVersion, staleView }`. Recusa: 422 `GAME_RULE` com `details { code, message, view, events, stateVersion, staleView }`, persistindo estado/eventos do avanço sem efeitos da ação recusada. Commit antes da resposta inclusive na recusa; falha inesperada faz rollback total. `X-Lords-State-Version` opcional determina `staleView` comparando com a versão persistida capturada sob lock, antes do avanço; ausência → false, formato inválido → 400. Usar `Cache-Control: no-store` nas respostas de comandos. Recibos permanecem enquanto a partida existir.
 - [ ] F2-T6.6 `GET /v1/games/:id/events?after=<seq>&limit=100` e `GET /v1/games/:id/chronicle?limit=50` (eventos com frase de Crônica) e `GET /v1/games/:id/chronicle.md` (Markdown com título, ano e uma linha por evento).
-- [ ] F2-T6.7 Testes de integração: fluxo completo (conta → partida → comandos → view → eventos); 404 para outra conta; idempotência (reenvio devolve o mesmo resultado); recusa gravada sem alterar o estado; 304 por ETag; **10 comandos em paralelo** aplicados exatamente uma vez com `seq` 1..10 e estado final igual ao da aplicação sequencial.
+- [ ] F2-T6.7 Testes de integração: fluxo completo (conta → partida → comandos → view → eventos); 404 para outra conta antes da busca de recibo; **10 comandos em paralelo** aplicados exatamente uma vez com `seq` 1..10 e estado final igual ao da aplicação sequencial na ordem gravada. Leituras e comandos concorrentes não duplicam eventos; o job entra nesse teste em F2-T7.4. Falha entre escrita do estado e inserção do recibo faz rollback de tudo.
+- [ ] F2-T6.8 Testar recibos de sucesso e recusa: reenvio concorrente, após reinício e após outros comandos retorna mesmo status/corpo (igualdade estrutural JSON), só muda o cabeçalho de reenvio; nenhum avanço, evento, versão ou `seq` novo. Mesmo UUID com payload diferente retorna conflito; mudança da ordem das chaves ou do cabeçalho de versão não muda a identidade. Testar recibo com mais de 90 dias ainda idempotente.
+- [ ] F2-T6.9 Testar recusa após horas sem acesso com uma obra concluída durante o intervalo: conclusão e produção persistem, ação recusada não desconta nada, recibo 422 contém a nova view e os eventos aparecem uma única vez. Quando recursos passam a bastar, repetir o UUID mantém a recusa original; novo UUID permite reavaliar.
+- [ ] F2-T6.10 Testar ETag: relógio congelado e mesmo corpo → 304; avanço contínuo sem evento muda estoque/tempo restante e ETag → 200 com mesma `stateVersion` e zero `UPDATE`; alteração de versão muda a representação. Validar cabeçalhos, 304 sem corpo e autenticação mesmo quando o ETag coincide. Testar `staleView` com cabeçalho ausente, igual, diferente e malformado.
 
 **Verificação:**
 
@@ -701,9 +707,9 @@ pnpm test:integration -- recovery github
 pnpm test:integration -- games
 ```
 
-**Pronto quando:** o teste de concorrência passa 20 vezes seguidas (`--repeat 20`) e `GET /view` repetido em 10 s sem eventos não gera `UPDATE` (verificar por contador de escritas no teste).
+**Pronto quando:** o teste de concorrência passa 20 vezes seguidas (`--repeat 20`), os cenários F2-T6.8–10 passam e `GET /view` repetido em 10 s sem eventos não gera `UPDATE`, mesmo devolvendo 200 quando a representação muda (verificar contador de escritas).
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.5, §14.8 e §14.9 e MVP-ROADMAP.md F2-T6. Implemente as rotas de partida com avanço preguiçoso, regra de persistência só com eventos, ETag, comandos idempotentes em transação com FOR UPDATE, eventos e crônica. Escreva o teste de concorrência antes da implementação."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.5, §14.8 e §14.9, ADR 0004 e MVP-ROADMAP.md F2-T6. Implemente leituras com persistência quando há eventos, ETag da representação e comandos com recibo completo em transação. Preserve o avanço em recusas e retorne recibos antes de avançar no reenvio. Escreva primeiro os testes de concorrência, reenvio após reinício, conflito de UUID, recusa após avanço e ETag sem escrita."
 
 ### F2-T7 · Job de avanço e exclusão definitiva `M`
 
@@ -714,8 +720,8 @@ pnpm test:integration -- games
 
 - [ ] F2-T7.1 `scheduler.ts`: `setInterval(ADVANCE_JOB_INTERVAL_MS)`; cada execução tenta `pg_try_advisory_lock(7271)` em conexão dedicada; sem o lock, encerra em silêncio (outra réplica está rodando).
 - [ ] F2-T7.2 `advanceStaleGames`: lotes de 100 partidas ativas com `last_processed_at < now − ADVANCE_STALE_AFTER_MS`, `FOR UPDATE SKIP LOCKED`; avança e persiste cada uma (mesma função de F2-T6.3, forçando escrita para atualizar `last_processed_at`); orçamento de 20 s por execução; log com contagem.
-- [ ] F2-T7.3 `purgeAccounts`: hard delete em cascata de contas com `deleted_at < now − 7 dias`.
-- [ ] F2-T7.4 Testes: partida parada é avançada e ganha eventos; partida recente não é tocada; duas instâncias do app → só uma executa; conta excluída há 8 dias desaparece com partidas, comandos e sessões.
+- [ ] F2-T7.3 `purgeAccounts`: na primeira execução com `now >= deleted_at + 7 dias`, hard delete em cascata de conta, sessões, todos os hashes de refresh, partidas, comandos/recibos, eventos e Crônicas. Job horário, inclusive recuperação após indisponibilidade; logs só com contagens. Limpeza de `refresh_tokens` por idade só pode ocorrer quando a sessão inteira já expirou; nunca apagar apenas antecessores de uma sessão ainda válida. Não expurgar recibos de comandos por idade na v0.1.
+- [ ] F2-T7.4 Testes: partida parada é avançada e ganha eventos; partida recente não é tocada; duas instâncias do app → só uma executa; job concorrente com leitura/comando não duplica eventos. Exclusão com relógio injetado: acesso negado imediatamente, registros internos ainda existem antes de sete dias, exatamente no prazo o job remove os registros relacionados à conta nas sete tabelas e uma conta de controle permanece intacta. Reexecução é idempotente; sessão válida mantém histórico de refresh mesmo após várias rotações; sessão expirada pode ter histórico limpo.
 
 **Verificação:**
 
@@ -788,10 +794,10 @@ Esperado: `api` `healthy`; usuário não root.
 
 - [ ] F3-T1.1 `createClient({ baseUrl, tokenStore, fetch, clientVersion })`; `TokenStore` é uma interface (`get/set/clear`) implementada pela extensão com `SecretStorage` e pelo `sim-cli` em memória.
 - [ ] F3-T1.2 Um método por endpoint da v0.1, com tipos do `@lotg/protocol`; respostas validadas por zod em modo dev.
-- [ ] F3-T1.3 401 → refresh **single-flight** (uma renovação por vez, chamadas concorrentes aguardam) → repete a chamada uma vez; `SESSION_REVOKED` ou refresh inválido → `onUnauthenticated()`.
-- [ ] F3-T1.4 `getView(gameId, { etag })` devolve `{ status: 200, view, etag }` ou `{ status: 304 }`; `sendCommand` com `commandId` gerado pelo chamador e retentativa segura (idempotente) em falha de rede; GETs com retentativa exponencial (3 tentativas).
-- [ ] F3-T1.5 Erros: `ApiClientError { status, code, message, details }` e `NetworkError`; cabeçalhos `X-Lords-Protocol` e `X-Lords-Client`.
-- [ ] F3-T1.6 Testes: refresh concorrente, 304, retentativa, mapeamento de erros, `UPGRADE_REQUIRED`.
+- [ ] F3-T1.3 401 `UNAUTHORIZED` em chamada autenticada → refresh **single-flight** (uma renovação por vez) → repete a chamada uma vez. `SESSION_REVOKED` ou refresh inválido chama `onUnauthenticated()` sem tentar outro refresh. A rotação em si não recebe retentativa automática em falha de rede: o token pode já ter sido consumido; mostrar necessidade de nova autenticação se o resultado não puder ser confirmado. Após renovação bem-sucedida, substituir os tokens juntos no `TokenStore`.
+- [ ] F3-T1.4 `getView(gameId, { etag })` devolve `{ status: 200, view, stateVersion, etag }` ou `{ status: 304, etag }`. `sendCommand` conserva `commandId` e payload nas retentativas em falha de rede, aceita versão conhecida via `X-Lords-State-Version` e expõe `X-Lords-Replayed` como metadado `replayed`, fora do corpo original. Após recibo repetido, a sessão de jogo busca view/eventos atuais; nova intenção usa outro UUID. GETs com retentativa exponencial (3 tentativas).
+- [ ] F3-T1.5 Erros: `ApiClientError { status, code, message, details, replayed }` e `NetworkError`; cabeçalhos `X-Lords-Protocol` e `X-Lords-Client`. Tipar `GAME_RULE.details` para que a UI atualize a view avançada e os eventos antes de mostrar a recusa, exceto em recibo repetido, que exige nova leitura.
+- [ ] F3-T1.6 Testes: refresh concorrente e sem retentativa cega, sessão revogada sem refresh, 304, ETag diferente com mesma versão, retentativa com UUID/payload preservados, reenvio de sucesso/422 exposto como metadado, mapeamento de erros e `UPGRADE_REQUIRED`.
 
 **Verificação:**
 
@@ -832,7 +838,7 @@ pnpm --filter @lotg/client-sdk test
 - [ ] F3-T3.2 Tela de boas-vindas (Webview, rota `welcome`): nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub", "Usar Código do Reino". Na v0.1 não há seleção de dificuldade nem ritmo (v0.2). Envia `timezone` detectado e `lords.vigilHour`.
 - [ ] F3-T3.3 Jogar agora → `POST /auth/anonymous` → `POST /games` → abre a aba Feudo. Tempo alvo: menos de 5 s de rede em condições normais.
 - [ ] F3-T3.4 GitHub: `vscode.authentication.getSession('github', ['read:user'], { createIfNone: true })` → `POST /auth/github`; em `ACCOUNT_CONFLICT`, QuickPick com duas opções descritas ("Usar o feudo já vinculado ao GitHub (este feudo anônimo será excluído)" / "Manter este feudo e mover o vínculo para ele"); nunca mesclar.
-- [ ] F3-T3.5 Código do Reino: `Lords: Gerar Código do Reino` mostra o código em uma mensagem modal com botão "Copiar" e aviso de que não será mostrado de novo; `Lords: Entrar com Código do Reino` abre `InputBox` com validação de formato ao digitar. "Sair desta máquina" (logout, limpa segredos, volta às boas-vindas). "Excluir conta" com confirmação modal e digitação do nome do feudo.
+- [ ] F3-T3.5 Código do Reino: `Lords: Gerar Código do Reino` mostra o código em modal com "Copiar" e aviso de exibição única; `Lords: Entrar com Código do Reino` abre `InputBox` com validação de formato. "Sair desta máquina" revoga a sessão e limpa tokens, view, ETag e cursor locais. "Excluir conta" exige confirmação e nome do feudo; explica bloqueio imediato, remoção pelo job após sete dias e retenção dos backups por 14 dias desde sua geração. Após 202, limpa os mesmos dados e volta às boas-vindas; não oferece desfazer. `SESSION_REVOKED` também limpa os dados locais da conta.
 - [ ] F3-T3.6 Lembrete único do dia 3 (flag em `globalState`) com botão "Não lembrar mais".
 - [ ] F3-T3.7 Testes dos módulos puros (validação do código, máquina de estados, montagem do corpo de criação de partida).
 
@@ -849,11 +855,11 @@ pnpm --filter @lotg/client-sdk test
 **Depende de:** F3-T3.
 **Entregáveis:** `packages/extension/src/game/{gameSession,connection,returnReport}.ts`, testes com temporizadores falsos.
 
-- [ ] F3-T4.1 `GameSession`: ciclo de 30 s com o painel visível, 2 min com ele oculto; `getView` com ETag; `getEvents(after)` com `lastSeq` persistido; eventos `onView`, `onEvents`, `onConnection`.
+- [ ] F3-T4.1 `GameSession`: ciclo de 30 s com o painel visível, 2 min com ele oculto; `getView` com ETag; `getEvents(after)` com `lastSeq` persistido; eventos `onView`, `onEvents`, `onConnection`. Recibo repetido dispara leitura atual sem reaplicar eventos antigos ou substituir a tela por uma view antiga; consumir eventos novos pelo cursor evita notificações duplicadas.
 - [ ] F3-T4.2 Máquina de conexão `online | offline(retryIn) | unauthenticated`; recuo exponencial 5 s → 60 s; ao voltar, sincroniza imediatamente.
-- [ ] F3-T4.3 Cache: último `ViewState` e `lastSeenAt` em `globalState`; sem conexão, a UI recebe o cache com `connection: offline`.
+- [ ] F3-T4.3 Cache: último `ViewState`, `stateVersion`, ETag, cursor e `lastSeenAt` em `globalState`, separados por servidor, conta e partida; sem conexão, a UI recebe o cache com `connection: offline`. Logout, exclusão e revogação apagam o cache da conta local; falha de autenticação não é tratada como modo offline.
 - [ ] F3-T4.4 Relatório de Retorno: ao ativar, se `now − lastSeenAt ≥ 4 h`, busca eventos desde `lastSeq`, monta resumo (produção estimada a partir da diferença de estoques, obras concluídas, recrutas, fome) e abre a rota `today`.
-- [ ] F3-T4.5 Testes: cadência com `vi.useFakeTimers`, recuo, cache servido quando o `fetch` falha, limiar de 4 h.
+- [ ] F3-T4.5 Testes: cadência com `vi.useFakeTimers`, recuo, cache servido quando o `fetch` falha, limiar de 4 h, reenvio sem regressão de tela/notificação duplicada e limpeza de cache em logout/exclusão/revogação.
 
 **Verificação:**
 
@@ -1159,12 +1165,12 @@ Instalar o `.vsix` em uma máquina limpa, clicar em Jogar agora e ver Pedra Alta
 | 4 | Melhoria desconta uma vez, ocupa a fila e conclui no tempo | F1-T5, F2-T6 | Testes + evento em `game_events` |
 | 5 | Reabrir após horas simula o intervalo sem duplicar; divisão de intervalo exata | F1-T3, F1-T4, F2-T6, F3-T4 | Teste de propriedade + manual com relógio |
 | 6 | Escassez correta em longos períodos, com instante exato na Crônica | F1-T4, F1-T8 | Teste de 30 dias |
-| 7 | Reiniciar o servidor não perde nem duplica; `commandId` idempotente; dois clientes não corrompem | F2-T6, F2-T7, F2-T8 | Testes de integração + `docker compose restart` |
+| 7 | Recibo original após reinício/reenvio; UUID conflitante recusado; avanço preservado em recusa; dois clientes não corrompem | F2-T6, F2-T7, F2-T8, F3-T1 | Testes F2-T6.7–10 + `docker compose restart` |
 | 8 | Regras rodam em testes sem VS Code | F1-T1 a F1-T11 | `pnpm --filter @lotg/engine test` |
 | 9 | Tema claro e escuro; navegável por teclado | F3-T5, F3-T6, F3-T7 | Manual nos três temas |
 | 10 | GitHub ou Código do Reino em outra máquina mostra o mesmo feudo | F2-T5, F3-T3 | Manual com dois perfis |
 | 11 | Sem conexão: último estado, explicação, retorno automático | F3-T4, F3-T7 | Manual derrubando a API |
-| 12 | Excluir conta remove tudo | F2-T4, F2-T7, F3-T3 | Teste de integração + consulta SQL |
+| 12 | Exclusão bloqueia acesso e limpa cache imediatamente; job remove conta e dependentes a partir de sete dias; backups seguem retenção informada | F2-T4, F2-T5, F2-T7, F3-T3, F3-T4 | Testes de bloqueio em duas instâncias, relógio antes/no prazo, cascatas SQL e limpeza local |
 
 ---
 
@@ -1228,9 +1234,12 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 |---|---|---|
 | Agente antecipa mecânicas de versões futuras ("só a estrutura") | Campos de moral, cartas ou exército no `GameState` da v0.1 | `CLAUDE.md` proíbe; revisão do diff por tarefa; teste de schema do `GameState` v1 |
 | Ponto flutuante quebra o invariante de divisão de intervalo | Teste de propriedade falha esporadicamente | Milésimos inteiros e acumuladores (F1-T3); nunca `number` fracionário no estado |
-| `node_modules` compartilhado entre host e contêiner com módulo nativo (`argon2`) | Erro de binário inválido ao subir a API em Docker | API no host em dev; imagem `bookworm-slim`; sem bind mount de `node_modules` (§1.1) |
+| `node_modules` compartilhado entre host e contêiner | Dependências incompatíveis ao subir a API em Docker | API no host em dev; instalação própria na imagem `bookworm-slim`; sem bind mount de `node_modules` (§1.1) |
 | Escopos do GitHub insuficientes ou token sem `User-Agent` | 401/403 da API do GitHub | `read:user`, cabeçalhos obrigatórios, `fetch` injetável com teste |
-| Polling de muitos clientes escrevendo no banco | Carga de escrita alta sem jogadores agindo | Regra "só escreve com evento" (F2-T6.3); ETag |
+| Polling de muitos clientes escrevendo no banco | Carga de escrita alta sem jogadores agindo | Leituras só persistem quando há eventos (F2-T6.3); ETag evita transferência apenas quando a representação permanece igual |
+| Reenvio recalcula resultado ou duplica eventos | Timeout seguido de resposta diferente ou desconto duplicado | Recibo completo, hash do payload, transação e testes F2-T6.8–9 |
+| Reuso de refresh antigo passa despercebido ou revogação demora | `R0` reutilizado após `R2` sem bloquear a sessão | Histórico por família e autorização sem cache positivo; teste entre instâncias (F2-T4) |
+| Troca da chave JWT invalida recuperação | Códigos deixam de funcionar após deploy | `RECOVERY_CODE_SECRET` independente e preservado nos segredos operacionais (ADR 0003) |
 | Relógio do servidor errado | Obras concluindo cedo ou tarde | NTP no VPS; teste de sanidade em `/v1/health` comparando com a hora do banco |
 | Vazamento de tokens em logs | `authorization` em `docker logs` | Redação no pino (F2-T2); revisão por `grep` nos logs de teste |
 | CSP da Webview bloqueando scripts | Painel em branco | Nonce por carga, `asWebviewUri`, sem `eval`, testado em F3-T7.1 |
