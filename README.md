@@ -249,7 +249,7 @@ O [roadmap do MVP](MVP-ROADMAP.md) detalha tarefas e critérios de aceite, e o [
 
 ## Privacidade
 
-> **Texto provisório.** Descreve o que o código faz hoje (GDD §14.14) e ainda não foi aprovado pelo autor como política de privacidade.
+> Texto aprovado pelo autor em 2026-10-01. Descreve o que o código faz hoje (GDD §14.14).
 
 - **O que o servidor guarda.** O nome de exibição que você escolheu, o rótulo do navegador, as datas de acesso e os hashes das credenciais (nunca o token nem o Código do Reino em claro). O progresso do feudo, as ordens dadas e a Crônica ficam vinculados à conta. O identificador do GitHub só seria guardado com o vínculo, que está desligado na v0.1.
 - **O que fica no navegador.** As credenciais da sessão, as preferências e o último estado do feudo (para o modo sem conexão), no armazenamento local do site. Limpar os dados de navegação os apaga; sem Código do Reino, isso também apaga o acesso à conta.

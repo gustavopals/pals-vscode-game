@@ -60,4 +60,4 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 - O vínculo GitHub só foi exercitado com um GitHub simulado. O fluxo real depende de um OAuth App com *device flow* e do `GITHUB_CLIENT_ID` no servidor; sem ele o app esconde os botões. Na v0.1 o vínculo fica desligado em produção, por decisão do autor ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)).
 - Testado só em Chromium. Firefox e Safari não foram abertos.
 - A espera de `storageSettle` é uma proteção contra a leitura atrasada do `localStorage` entre processos do navegador; a corrida em si não foi reproduzida nos testes.
-- Nome, ícone e texto final de privacidade são provisórios.
+- Nome e ícone são provisórios. O texto de privacidade foi aprovado pelo autor em 2026-10-01.

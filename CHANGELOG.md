@@ -103,4 +103,3 @@ O que a v0.1 faz diferente do desenho original do GDD, por decisão do autor. A 
 - Testado só em Chromium. Firefox, Safari, navegadores de celular e leitores de tela não foram conferidos; os passos manuais de [`docs/manual-test-v0.1.md`](docs/manual-test-v0.1.md) não foram executados.
 - Os backups ficam no mesmo disco do banco. A reversão não foi ensaiada atravessando uma migração.
 - O desempenho foi medido em uma máquina só, com partidas jovens; rajadas sincronizadas ficam acima da meta ([`docs/perf-v0.1.md`](docs/perf-v0.1.md)).
-- O texto de privacidade do README e do app é provisório.
