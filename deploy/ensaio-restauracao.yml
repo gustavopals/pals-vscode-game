@@ -1,0 +1,49 @@
+# Ensaio de restauração no Coolify (MVP-ROADMAP.md F4-T2, ADR 0009). Roda uma vez e termina.
+#
+# Restaura o backup mais recente do banco de produção em um banco DESCARTÁVEL, apaga uma conta,
+# restaura de novo e confere que a conta voltou. Nunca aponte TARGET_URL para o banco de produção:
+# o pg_restore usa --clean e a etapa do meio apaga dados de propósito.
+#
+# Uso: criar no Coolify um recurso "Docker Compose" com este arquivo, no mesmo servidor do banco,
+# e definir TARGET_URL, a URL interna do banco de ensaio
+# (postgres://lotg:<senha>@<uuid>:5432/lotg). O resultado sai nos logs do contêiner, que fica
+# de pé por dez minutos depois de terminar para que eles possam ser lidos.
+# deploy/README.md tem o passo a passo e o registro dos ensaios.
+#
+# A pasta dos backups vai escrita no volume abaixo: o Coolify recusa variáveis na origem de um
+# volume. Ela é /data/coolify/backups/databases/<time>/<nome>-<uuid do banco>; troque-a se o
+# banco de produção for recriado.
+services:
+  restore:
+    image: postgres:16
+    restart: 'no'
+    environment:
+      TARGET_URL: ${TARGET_URL:?}
+    volumes:
+      - /data/coolify/backups/databases/root-team-0/lotg-db-souori0rjddnhdj9wq421tsj:/backups:ro
+    networks:
+      - coolify
+    entrypoint: ['bash', '-euo', 'pipefail', '-c']
+    command:
+      - |
+        # O Coolify só mostra logs de contêiner em execução: esperar dez minutos antes de sair.
+        trap 'echo "ENSAIO fim (código $$?)"; sleep 600' EXIT
+        file=$$(ls -t /backups/*.dmp | head -n 1)
+        count() {
+          psql "$$TARGET_URL" -Atc "select 'contas=' || (select count(*) from accounts) || ' partidas=' || (select count(*) from games)"
+        }
+        restore() {
+          pg_restore --clean --if-exists --no-owner --no-privileges --exit-on-error -d "$$TARGET_URL" "$$file"
+        }
+        echo "ENSAIO backup: $$(basename "$$file") ($$(stat -c %s "$$file") bytes)"
+        restore
+        echo "ENSAIO 1 restaurado: $$(count)"
+        psql "$$TARGET_URL" -qc "delete from accounts where id = (select id from accounts order by created_at limit 1)"
+        echo "ENSAIO 2 uma conta apagada: $$(count)"
+        restore
+        echo "ENSAIO 3 restaurado de novo: $$(count)"
+        echo "ENSAIO concluído"
+
+networks:
+  coolify:
+    external: true

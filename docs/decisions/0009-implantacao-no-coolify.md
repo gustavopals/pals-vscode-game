@@ -1,7 +1,7 @@
 # 0009 — Implantação no Coolify, em três recursos
 
 Data: 2026-10-01\
-Estado: decidido pelo autor em 2026-10-01 (plataforma, domínio e arquitetura); GDD e roadmap ainda não atualizados\
+Estado: decidido pelo autor em 2026-10-01 (plataforma, domínio e arquitetura); implantado no mesmo dia; GDD atualizado, roadmap pendente\
 Escopo: GDD §14.13, §14.14 e §18.4; roadmap §1.1, §1.2, §1.3, F3W-T9.4 e F4-T1 a F4-T5
 
 ## Contexto
@@ -38,15 +38,16 @@ O que muda em relação ao GDD §14.13:
 
 ## Consequências e verificação
 
-Estado em 2026-10-01: `lotg-db` e `lotg-api` criados e no ar a partir do commit `1ef9545`; `GET https://lords.palsincomehub.com/v1/health` responde `{"status":"ok","db":"ok"}` e o primeiro backup manual terminou com sucesso. `/` responde 503 até existir a aplicação `lotg-web`.
+Estado em 2026-10-01: os três recursos estão no ar a partir do commit `42d9256`. `GET https://lords.palsincomehub.com/v1/health` responde `{"status":"ok","db":"ok"}`; em um navegador limpo, **Jogar agora** chega a Pedra Alta. A restauração de um backup foi ensaiada em um banco descartável e a reversão da API para a imagem anterior levou 38 s. O registro dos ensaios está em [`deploy/README.md`](../../deploy/README.md).
 
 Pendências que esta decisão cria:
 
-- **GDD §14.13 e §18.4** descrevem o compose com Caddy; precisam passar a descrever esta instalação (ou apresentá-la ao lado da instalação de referência em VPS, se ela for mantida para quem hospeda por conta própria).
-- **Roadmap.** F4-T1 troca `docker-compose.yml` e o Caddy de borda por um `Caddyfile` só de arquivos estáticos e pela descrição dos três recursos em `deploy/README.md`; F4-T2 vira "agendamento e ensaio de restauração pelo Coolify"; F4-T3 já está em parte cumprida (falta o app e o `GITHUB_CLIENT_ID`); F4-T5 passa a ensaiar o rollback do Coolify. F3W-T9.4 deve escrever o alvo `web` sem `reverse_proxy` e **antes** do alvo `runtime` no `Dockerfile`, ou a API precisa continuar com o alvo fixado (já está).
+- **GDD §14.13 e §18.4** passaram a descrever esta instalação, dizendo o que qualquer outra hospedagem precisa manter (mesma origem, `/v1` inteiro até a API, banco fechado).
+- **Roadmap.** F4-T1 troca `docker-compose.yml` e o Caddy de borda por um `Caddyfile` só de arquivos estáticos e pela descrição dos três recursos em `deploy/README.md`; F4-T2 vira "agendamento e ensaio de restauração pelo Coolify"; F4-T3 já está em parte cumprida (falta o app e o `GITHUB_CLIENT_ID`); F4-T5 passa a ensaiar o rollback do Coolify. F3W-T9.4 escreveu o alvo `web` sem `reverse_proxy`; as duas aplicações têm o alvo de build fixado.
 - **Backup fora do servidor.** Os arquivos ficam no mesmo disco do banco: perder o servidor é perder os dois. Falta um destino S3 no Coolify. Enquanto não houver, a promessa de retenção de 14 dias do GDD §14.7 vale só para falhas que não levem o disco.
 - **Segredos.** `JWT_SECRET`, `RECOVERY_CODE_SECRET` e a senha do banco foram gerados na criação e só existem no Coolify. Uma cópia de `RECOVERY_CODE_SECRET` precisa ser guardada fora dele: sem ela, restaurar o banco em outro lugar invalida todos os Códigos do Reino.
 - **Deploy automático.** O repositório entra como público, sem webhook: cada atualização é disparada à mão (painel, API ou MCP). Um GitHub App no Coolify permitiria deploy a cada `push` no `main`; fica como escolha do autor.
+- **Avisos.** O monitor externo é um workflow agendado do GitHub Actions (`health.yml`), que avisa por e-mail em 5 a 15 minutos, não em 1 minuto como pedia F4-T4. Os avisos do próprio Coolify (backup, deploy, disco, servidor) estão marcados, mas sem canal ligado: por escolha do autor, por ora só o GitHub avisa.
 - **Servidor único.** Coolify, banco, API e app dividem a mesma máquina, hoje também usada para testes. O dimensionamento do GDD (2 vCPU, 2 a 4 GB) continua sendo o piso.
 
 Cenários que provam o contrato: `/v1/health` e `/v1/version` em HTTPS; depois de `lotg-web`, abrir o domínio em navegador limpo, **Jogar agora** e ver Pedra Alta; restaurar um backup em um banco de ensaio e conferir as contagens; publicar uma mudança trivial e revertê-la pelo Coolify em menos de dois minutos.

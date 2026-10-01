@@ -14,6 +14,8 @@
 		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 		X-Content-Type-Options nosniff
 		Referrer-Policy no-referrer
+		# O Caddy fala HTTP, mas só o proxy da plataforma chega até ele, e o proxy só atende HTTPS.
+		Strict-Transport-Security "max-age=31536000"
 	}
 
 	# /v1 é da API. Se uma chamada chegar aqui, a rota do proxy está errada: responder com o

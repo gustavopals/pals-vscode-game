@@ -848,7 +848,7 @@ lords-of-the-guild/
 │   ├── client-sdk/              # cliente HTTP tipado da API (usado pelo app web e pelo sim-cli)
 │   ├── sim-cli/                 # bots de playtest: em processo (engine) ou contra um servidor (carga)
 │   └── web/                     # app web (Preact): bancada com aparência de editor, sessão de jogo, cache
-├── deploy/                      # docker-compose.yml, Caddyfile, migrations/, backup.sh, analytics/*.sql
+├── deploy/                      # Dockerfile, web.Caddyfile, migrations/, docker-compose.dev.yml, analytics/*.sql
 └── tests/                       # integração servidor↔banco e app web↔servidor (navegador real)
 ```
 
@@ -926,7 +926,7 @@ chronicles   (game_id fk, year int, summary jsonb, score int, result text, creat
 - Todas as relações de propriedade usam `ON DELETE CASCADE`: conta → sessões → refresh tokens; conta → partidas → comandos/eventos/Crônicas; conta → comandos. `accounts.recovery_code_hash` permite busca única do HMAC do Código do Reino, nunca do código em claro.
 - **Uma partida ativa por conta** na v0.1. Anos encerrados viram linhas em `chronicles` e a partida segue no mesmo registro (Ano 2, 3…). Começar outra partida arquiva a atual.
 - Migrações versionadas em SQL (`deploy/migrations/0001_init.sql`, …), aplicadas no arranque do servidor com lock de migração.
-- Backup: `pg_dump` diário com retenção de 14 dias (`deploy/backup.sh`); restauração ensaiada em CI a cada versão.
+- Backup: `pg_dump` diário com retenção de 14 dias, agendado na plataforma de hospedagem (§14.13); restauração ensaiada em um banco descartável e registrada em `deploy/README.md`.
 
 ### 14.7 Contas e autenticação
 
@@ -1016,18 +1016,20 @@ O app é uma página só. O estado da interface é reduzido a partir do que o se
 
 ### 14.13 Hospedagem e operação
 
-Instalação de referência para dezenas a algumas centenas de jogadores: **um VPS** (2 vCPU, 2 a 4 GB de RAM, 40 GB de SSD) com Docker Compose:
+Instalação de referência para dezenas a algumas centenas de jogadores: **um servidor** (2 vCPU, 2 a 4 GB de RAM, 40 GB de SSD) com [Coolify](https://coolify.io), em três recursos ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)):
 
 ```yaml
-services:
-  caddy:   # TLS automático (Let's Encrypt); serve o app web em / e encaminha /v1 para api:3000; cabeçalhos de segurança
-  api:     # imagem de packages/server; roda migrações no arranque; stateless (2+ réplicas quando precisar)
-  db:      # postgres:16 com volume persistente; pg_dump diário pelo cron do host
+proxy:     # da plataforma (Traefik): TLS automático (Let's Encrypt), HTTP → HTTPS; /v1 vai para a API e o resto para o app
+lotg-web:  # imagem do alvo web: Caddy servindo os arquivos do app em HTTP, com os cabeçalhos de segurança
+lotg-api:  # imagem do alvo runtime; roda migrações no arranque; stateless (2+ réplicas quando precisar)
+lotg-db:   # postgres:16 com volume persistente e sem porta publicada; pg_dump diário agendado na plataforma
 ```
+
+O contrato não depende do Coolify: qualquer hospedagem serve, desde que o app e a API fiquem na **mesma origem**, a rota `/v1` chegue inteira à API, o banco não seja acessível de fora e `TRUST_PROXY=true` só exista atrás de um proxy.
 
 - Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`, `GITHUB_CLIENT_ID` (identificador público do OAuth App usado no *device flow*). Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
 - Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.
-- Atualizar: `docker compose pull && docker compose up -d`. Segundos de indisponibilidade; o avanço preguiçoso cobre.
+- Atualizar: novo deploy da API e do app a partir do `main`; o contêiner novo só recebe tráfego depois de passar no health check. Reverter: voltar à imagem do deploy anterior (a plataforma guarda as duas últimas); migrações sempre compatíveis com a versão anterior (expandir, depois contrair).
 - Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos tem como alvo centenas de clientes em polling de 30 s, a confirmar por carga. Antes de milhares: medir custo de avanço, escrita e autorização; avaliar Postgres gerenciado e 2+ réplicas da API. Cache de `ViewState` não pode depender só de `stateVersion`, porque a representação também muda com o tempo (§14.8).
 - Ambiente de desenvolvimento: `pnpm dev:up`, `pnpm dev:api` e `pnpm dev:web`; o servidor de desenvolvimento do app encaminha `/v1` para `http://localhost:3000`, então também em desenvolvimento o app e a API ficam na mesma origem.
 
@@ -1236,13 +1238,15 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 ### 18.4 Checklist de implantação (para quem hospeda)
 
-1. VPS com Docker e Docker Compose; domínio apontando para o IP (registro A).
-2. `git clone`; copiar `deploy/.env.example` para `deploy/.env`; gerar `JWT_SECRET` e `RECOVERY_CODE_SECRET` independentemente (duas execuções de `openssl rand -base64 48`); definir `PUBLIC_URL` e a senha do PostgreSQL. Guardar a chave de recuperação junto aos segredos operacionais para restauração; nunca regenerá-la em cada deploy.
-3. `docker compose -f deploy/docker-compose.yml up -d`: o Caddy obtém o certificado e a API aplica as migrações.
-4. Conferir `https://<domínio>/v1/health` e `/v1/version`.
-5. Agendar `deploy/backup.sh` no cron do host (diário) e testar uma restauração.
-6. O app web é servido pelo próprio Caddy, no mesmo domínio: não há nada a publicar à parte. Registrar o OAuth App do GitHub e definir `GITHUB_CLIENT_ID`.
-7. Atualizar com `docker compose pull && docker compose up -d`; reverter fixando a tag anterior da imagem.
+O passo a passo completo e o registro dos ensaios ficam em [`deploy/README.md`](deploy/README.md).
+
+1. Servidor com Coolify; domínio apontando para o IP (registro A).
+2. Criar o banco `lotg-db` (PostgreSQL 16, sem porta publicada) e a aplicação `lotg-api` (alvo `runtime`, rota `https://<domínio>/v1` sem remoção de prefixo). Gerar `JWT_SECRET` e `RECOVERY_CODE_SECRET` independentemente (duas execuções de `openssl rand -base64 48`); definir `DATABASE_URL`, `PUBLIC_URL` e `TRUST_PROXY=true`. Guardar a chave de recuperação junto aos segredos operacionais para restauração; nunca regenerá-la em cada deploy.
+3. Criar a aplicação `lotg-web` (alvo `web`, rota `https://<domínio>`) e fazer o deploy das duas: o proxy obtém o certificado e a API aplica as migrações.
+4. Conferir `https://<domínio>/v1/health` e `/v1/version`; abrir o domínio em um navegador limpo e jogar.
+5. Agendar o backup diário do banco, com retenção de 14 dias, e ensaiar uma restauração em um banco descartável.
+6. Registrar o OAuth App do GitHub e definir `GITHUB_CLIENT_ID` (opcional: vazio deixa o vínculo desligado).
+7. Atualizar com um novo deploy; reverter para a imagem do deploy anterior.
 
 ---
 

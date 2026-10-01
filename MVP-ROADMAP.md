@@ -59,10 +59,10 @@ A mudança de plataforma de 2026-10-01 (extensão do VS Code → app web com apa
 
 | Componente | Desenvolvimento | Produção |
 |---|---|---|
-| PostgreSQL | Docker (`db` na porta 5432 e `db_test` na 5433) | Docker (`db`, volume persistente, backup diário) |
-| API (Fastify) | **No host**, com `tsx watch` e depurador (`pnpm dev:api`); opcionalmente em Docker com `--profile full` para paridade | Docker (imagem multi-stage, não root, healthcheck) |
-| Caddy (TLS) | Não roda | Docker (certificado automático, proxy para `api:3000`) |
-| App web | No host, com o servidor de desenvolvimento do Vite (`pnpm dev:web`, porta 5173), que encaminha `/v1` para a API | Arquivos estáticos servidos pelo Caddy, na mesma origem da API |
+| PostgreSQL | Docker (`db` na porta 5432 e `db_test` na 5433) | Coolify (`lotg-db`, volume persistente, backup diário agendado) |
+| API (Fastify) | **No host**, com `tsx watch` e depurador (`pnpm dev:api`); opcionalmente em Docker com `--profile full` para paridade | Coolify (`lotg-api`: imagem multi-stage, não root, healthcheck) |
+| Proxy (TLS) | Não roda | Traefik do Coolify (certificado automático; `/v1` para a API, o resto para o app; ADR 0009) |
+| App web | No host, com o servidor de desenvolvimento do Vite (`pnpm dev:web`, porta 5173), que encaminha `/v1` para a API | Coolify (`lotg-web`: Caddy servindo os arquivos estáticos em HTTP), na mesma origem da API |
 | Testes unitários | No host (`vitest`) | CI |
 | Testes de integração | No host contra `db_test` em Docker | CI com serviço PostgreSQL |
 | Testes em navegador | No host: Playwright com Chromium sem interface, contra a API e o app locais | CI |
@@ -81,7 +81,7 @@ A mudança de plataforma de 2026-10-01 (extensão do VS Code → app web com apa
 | PostgreSQL dev | 5432 | banco `lotg`, usuário `lotg` |
 | PostgreSQL test | 5433 | banco `lotg_test`, recriado a cada suíte, `tmpfs` |
 | pgweb (opcional, `--profile tools`) | 8081 | inspeção visual do banco |
-| Caddy (produção) | 80 e 443 | redireciona 80 para 443 |
+| Proxy do Coolify (produção) | 80 e 443 | redireciona 80 para 443; a API (3000) e o app (80) só são alcançados por ele |
 
 ### 1.3 Variáveis de ambiente
 
@@ -102,9 +102,7 @@ A mudança de plataforma de 2026-10-01 (extensão do VS Code → app web com apa
 | `GITHUB_API_URL` | API | `https://api.github.com` | sobrescrito nos testes |
 | `GITHUB_CLIENT_ID` | API | vazio (vínculo GitHub desligado) | Identificador público do OAuth App usado no *device flow*; não é segredo |
 | `GITHUB_OAUTH_URL` | API | `https://github.com` | Origem das rotas de *device flow* do GitHub; sobrescrito nos testes |
-| `POSTGRES_PASSWORD` | compose | `lotg` (prod: forte) | senha do banco |
-| `PUBLIC_HOST` | compose prod | — | domínio para o Caddy |
-| `API_IMAGE_TAG` | compose prod | `latest` | tag da imagem publicada |
+| `TRUST_PROXY` | API | `false` (prod: `true`) | confiar em `X-Forwarded-For`; só atrás do proxy |
 
 Preferências do app, guardadas no navegador: notificações (`silent` · `essential` · `all`), modo discreto, tema (`dark` · `light` · `high-contrast`) e Hora da Vigília (0–23, padrão 20). O app fala sempre com a própria origem: não há endereço de servidor para configurar.
 
@@ -146,14 +144,14 @@ lords-of-the-guild/                  (= esta pasta)
 │   ├── manual-test-v0.1.md           # roteiro manual (F3W-T10)
 │   └── architecture.md               # F5-T4
 ├── deploy/
-│   ├── Dockerfile                    # multi-stage: deps → build → runtime
+│   ├── Dockerfile                    # multi-stage: deps → build → web · runtime
 │   ├── docker-compose.dev.yml        # db, db_test, api (profile full), pgweb (profile tools)
-│   ├── docker-compose.yml            # produção: caddy, api, db
-│   ├── Caddyfile
+│   ├── web.Caddyfile                 # servidor de arquivos da imagem web (produção no Coolify, ADR 0009)
+│   ├── README.md                     # implantação, operação e registro dos ensaios
 │   ├── .env.example
 │   ├── migrations/                   # SQL versionado gerado pelo drizzle-kit
-│   ├── backup.sh · restore.sh
-│   └── analytics/                    # consultas SQL agregadas (v0.2+)
+│   ├── ensaio-restauracao.yml        # serviço que ensaia a restauração de um backup
+│   └── analytics/                    # consultas SQL de operação (ops.sql); agregadas de jogo na v0.2+
 ├── packages/
 │   ├── engine/        @lotg/engine      motor puro
 │   ├── content/       @lotg/content     dados + schemas zod
@@ -1063,51 +1061,60 @@ pnpm dev:up && pnpm test:e2e
 
 **Meta da fase:** o jogo acessível em `https://<domínio>`: o app web em `/` e a API em `/v1`, com TLS, backup diário testado e procedimento de atualização e reversão.
 
-### F4-T1 · Compose de produção, Caddy e variáveis `M`
+> **Replanejada em 2026-10-01 pelo [ADR 0009](docs/decisions/0009-implantacao-no-coolify.md):** a hospedagem deixa de ser um VPS com Docker Compose e Caddy na borda e passa a ser o Coolify, em três recursos (`lotg-db`, `lotg-api`, `lotg-web`). As tarefas abaixo mantêm os números e os objetivos; mudam os meios. Não existem `deploy/docker-compose.yml`, `backup.sh` nem `restore.sh`: o proxy, o backup agendado e a reversão são da plataforma.
+
+### F4-T1 · Recursos de produção, rotas e variáveis `M`
 
 **GDD:** §14.13, §14.14.
-**Depende de:** F2-T9.
-**Entregáveis:** `deploy/docker-compose.yml`, `deploy/Caddyfile`, `deploy/.env.example` (seção produção), `deploy/README.md`.
+**Depende de:** F2-T9, F3W-T9.
+**Entregáveis:** os três recursos no Coolify, `deploy/web.Caddyfile`, `deploy/.env.example` (seção produção), `deploy/README.md`.
 
-- [ ] F4-T1.1 `docker-compose.yml`: `caddy` (imagem do alvo `web` do `Dockerfile`: Caddy com os arquivos estáticos do app; portas 80/443, volumes `caddy_data` e `caddy_config`, `Caddyfile` montado), `api` (imagem construída no servidor a partir do repositório ou `${API_IMAGE}:${API_IMAGE_TAG}`, `env_file`, `depends_on: db: condition: service_healthy`, `restart: unless-stopped`, logging `json-file` com `max-size 10m` e `max-file 5`), `db` (`postgres:16`, volume `lotg_db`, healthcheck, **sem porta publicada**).
-- [ ] F4-T1.2 `Caddyfile`: `{$PUBLIC_HOST}` com `encode zstd gzip`; `/v1/*` vai para `reverse_proxy api:3000`; o resto serve os arquivos do app, com `index.html` como resposta para qualquer rota desconhecida e cache longo só para os arquivos com hash no nome; `TRUST_PROXY=true` na API; cabeçalho `Content-Security-Policy` igual ao do `index.html`; cabeçalhos `Strict-Transport-Security`, `X-Content-Type-Options nosniff`, `Referrer-Policy no-referrer`; variante local com `tls internal` para ensaio.
-- [ ] F4-T1.3 `deploy/README.md`: os dez passos de implantação (GDD §18.4 expandido), geração de segredos, como ver logs, como entrar no `psql`.
-- [ ] F4-T1.4 Ensaio local: `PUBLIC_HOST=localhost docker compose -f deploy/docker-compose.yml up -d` → `curl -k https://localhost/v1/health` responde e `https://localhost/` entrega o app; `pnpm test:e2e` passa apontando para esse endereço.
+- [x] F4-T1.1 Recursos: `lotg-db` (`postgres:16`, volume persistente, **sem porta publicada**), `lotg-api` (repositório, `deploy/Dockerfile`, alvo `runtime`, porta 3000) e `lotg-web` (alvo `web`, porta 80), no mesmo projeto e ambiente.
+- [x] F4-T1.2 Rotas e cabeçalhos: o proxy da plataforma termina o TLS e redireciona HTTP para HTTPS; `https://<domínio>/v1` vai para a API **sem remover o prefixo** e o resto para o app; `TRUST_PROXY=true` na API. `web.Caddyfile` responde `index.html` a rotas desconhecidas, dá cache longo só aos arquivos com hash no nome e envia `Content-Security-Policy` igual à do `index.html`, `Strict-Transport-Security`, `X-Content-Type-Options nosniff` e `Referrer-Policy no-referrer`.
+- [x] F4-T1.3 `deploy/README.md`: os dez passos de implantação (GDD §18.4 expandido), geração de segredos, como ver logs, como entrar no `psql`.
+- [x] F4-T1.4 Conferência em produção no lugar do ensaio local: `/v1/health` e `/v1/version` em HTTPS e, em um navegador real, **Jogar agora** até Pedra Alta, sem erro no console e sem requisição a outra origem. `pnpm test:e2e` não roda contra produção: depende das rotas `/__test`, que só existem no servidor de teste.
 
-**Verificação:** o ensaio local passa; `docker compose config` valida sem avisos.
+**Verificação:**
 
-**Pronto quando:** nenhum segredo real está no repositório (`git grep -i secret` só encontra o `.env.example`).
+```bash
+curl -s https://<domínio>/v1/health && curl -s https://<domínio>/v1/version
+curl -sI https://<domínio>/ | grep -i 'content-security-policy\|strict-transport-security'
+```
 
-**Prompt sugerido:** "Leia GAME_DESIGN.md §14.13, §14.14 e §18.4 e MVP-ROADMAP.md F4-T1. Escreva o compose de produção com Caddy, API e Postgres, o Caddyfile e o deploy/README.md com os dez passos. Faça o ensaio local com tls internal."
+**Pronto quando:** nenhum segredo real está no repositório (`git grep -i secret` só encontra nomes de variáveis, nunca valores).
+
+**Prompt sugerido:** "Leia GAME_DESIGN.md §14.13, §14.14 e §18.4, o ADR 0009 e MVP-ROADMAP.md F4-T1. Confira os três recursos no Coolify pelo MCP e pela API, as rotas e os cabeçalhos, e atualize o deploy/README.md."
 
 ### F4-T2 · Backup e restauração `S`
 
 **GDD:** §14.6 (backup).
 **Depende de:** F4-T1.
-**Entregáveis:** `deploy/backup.sh`, `deploy/restore.sh`, seção no `deploy/README.md`.
+**Entregáveis:** agendamento de backup no Coolify, `deploy/ensaio-restauracao.yml`, seção no `deploy/README.md`.
 
-- [ ] F4-T2.1 `backup.sh`: `pg_dump -Fc` via `docker compose exec -T db` para `deploy/backups/lotg-AAAAMMDD-HHMM.dump`; retenção de 14 dias; códigos de saída corretos; linha de cron `0 3 * * *`.
-- [ ] F4-T2.2 `restore.sh <arquivo>`: para a API, `pg_restore --clean --if-exists`, sobe a API, imprime contagens de `accounts` e `games`.
-- [ ] F4-T2.3 Ensaio de restauração contra o compose de dev documentado com data em `deploy/README.md`.
+- [x] F4-T2.1 Backup agendado do `lotg-db`: `pg_dump` em formato custom, `0 3 * * *` (UTC), retenção de 14 dias; falha gera aviso da plataforma.
+- [x] F4-T2.2 `ensaio-restauracao.yml`: serviço que roda uma vez, restaura o backup mais recente com `pg_restore --clean --if-exists` em um banco descartável e imprime as contagens de `accounts` e `games`. O procedimento de restauração em produção está em `deploy/README.md`.
+- [x] F4-T2.3 Ensaio de restauração documentado com data em `deploy/README.md`.
+- [ ] F4-T2.4 Destino S3 para os backups: hoje eles ficam no mesmo disco do banco (decisão e credenciais do autor).
 
-**Verificação:** criar 3 contas no ambiente de ensaio, fazer backup, apagar uma, restaurar, ver 3 contas de novo.
+**Verificação:** restaurar o backup em um banco de ensaio, apagar uma conta, restaurar de novo e ver a conta de volta.
 
 **Pronto quando:** o ensaio de restauração está registrado com data e resultado.
 
-**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T2. Escreva backup.sh e restore.sh para o compose, com retenção de 14 dias, e faça o ensaio de restauração localmente, registrando no deploy/README.md."
+**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T2 e deploy/README.md. Refaça o ensaio de restauração no ambiente `ensaio` do Coolify com deploy/ensaio-restauracao.yml e registre o resultado."
 
-### F4-T3 · Provisionar o VPS e colocar no ar `M`
+### F4-T3 · Colocar no ar `M`
 
-**Decisões suas antes de começar:** provedor do VPS (Ubuntu 24.04 LTS, 2 vCPU, 2 a 4 GB) e domínio.
+**Decisões suas antes de começar:** servidor e domínio (tomadas: Coolify em `app.palsincomehub.com`, jogo em `lords.palsincomehub.com`).
 **GDD:** §14.13, §18.4.
 **Depende de:** F4-T2, F3W-T10.
-**Entregáveis:** servidor no ar; `deploy/README.md` com o registro da instalação.
+**Entregáveis:** jogo no ar; `deploy/README.md` com o registro da instalação.
 
-- [ ] F4-T3.1 Registro DNS A para o domínio; usuário não root com `sudo`; chave SSH; `ufw` permitindo só 22, 80 e 443; `unattended-upgrades`.
-- [ ] F4-T3.2 Docker Engine + plugin Compose instalados; `git clone` do repositório em `/opt/lords`; `.env` gerado com `pnpm secrets:gen` (ou `openssl rand`); `PUBLIC_HOST` definido.
-- [ ] F4-T3.3 `docker compose -f deploy/docker-compose.yml up -d --build`; certificado emitido; `/v1/health` 200 em HTTPS.
-- [ ] F4-T3.4 Cron de backup instalado; `docker system prune -af --filter until=168h` semanal.
-- [ ] F4-T3.5 `GITHUB_CLIENT_ID` definido (se o vínculo GitHub entrar) e o endereço de retorno do OAuth App conferido; `PUBLIC_URL` igual ao endereço público.
+- [x] F4-T3.1 Registro DNS do domínio apontando para o servidor; certificado emitido pelo proxy.
+- [x] F4-T3.2 Variáveis da API definidas no Coolify, com `JWT_SECRET` e `RECOVERY_CODE_SECRET` gerados separadamente e `PUBLIC_URL` igual ao endereço público.
+- [x] F4-T3.3 Deploy dos três recursos; `/v1/health` 200 em HTTPS; migrações aplicadas no arranque.
+- [x] F4-T3.4 Backup agendado; limpeza diária de imagens e contêineres sem uso pela plataforma.
+- [ ] F4-T3.5 `GITHUB_CLIENT_ID` definido e o OAuth App conferido. Por decisão do autor, o vínculo GitHub fica **desligado** por ora (`features.githubDevice: false`).
+- [ ] F4-T3.6 Cópia de `RECOVERY_CODE_SECRET` guardada fora do Coolify (só o autor pode fazer).
 
 **Verificação:**
 
@@ -1119,7 +1126,7 @@ Abrir `https://<domínio>` em um navegador limpo, clicar em Jogar agora e ver Pe
 
 **Pronto quando:** uma pessoa fora da sua máquina joga pela internet.
 
-**Prompt sugerido:** "Leia GAME_DESIGN.md §18.4 e MVP-ROADMAP.md F4-T3. Me guie passo a passo na provisão do VPS (Ubuntu 24.04) e na primeira implantação; gere os comandos, eu executo no servidor e colo as saídas. Não guarde segredos no repositório."
+**Prompt sugerido:** "Leia GAME_DESIGN.md §18.4, o ADR 0009 e MVP-ROADMAP.md F4-T3. Confira a instalação no Coolify, faça o deploy do `main` e o teste em navegador contra o domínio. Não guarde segredos no repositório."
 
 ### F4-T4 · Observabilidade mínima `S`
 
@@ -1127,15 +1134,16 @@ Abrir `https://<domínio>` em um navegador limpo, clicar em Jogar agora e ver Pe
 **Depende de:** F4-T3.
 **Entregáveis:** monitor de disponibilidade configurado, alertas de disco, seção "Operação" no `deploy/README.md`.
 
-- [ ] F4-T4.1 Monitor externo de `GET /v1/health` a cada minuto (serviço gratuito de uptime ou cron em outra máquina) com aviso por e-mail ou mensagem.
-- [ ] F4-T4.2 Cron diário que avisa se o disco passar de 80% ou se o último backup tiver mais de 36 h.
-- [ ] F4-T4.3 Cheat-sheet de operação: `docker compose logs -f api --since 1h`, consultas úteis (`contas por dia`, `partidas ativas`, `comandos por hora`) em `deploy/analytics/ops.sql`.
+- [x] F4-T4.1 Monitor externo de `GET /v1/health` com aviso por e-mail: workflow agendado `.github/workflows/health.yml`. O intervalo real do agendamento do GitHub é de 5 a 15 minutos, não de 1 minuto.
+- [x] F4-T4.2 Avisos da plataforma marcados para disco acima de 80%, falha de backup, falha de deploy e servidor inalcançável.
+- [ ] F4-T4.3 Canal de notificação do Coolify ligado (e-mail, Telegram ou Discord). Por decisão do autor, por ora só o GitHub avisa: sem canal, os avisos de F4-T4.2 não saem.
+- [x] F4-T4.4 Cheat-sheet de operação em `deploy/README.md` e consultas úteis (`contas por dia`, `partidas ativas`, `comandos por hora`) em `deploy/analytics/ops.sql`.
 
-**Verificação:** derrubar a API por 2 minutos gera o alerta e a recuperação.
+**Verificação:** derrubar a API por alguns minutos gera o alerta e a recuperação.
 
 **Pronto quando:** você recebeu um alerta de teste.
 
-**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T4. Configure um monitor de saúde externo, um cron de alerta de disco e backup, e escreva o cheat-sheet de operação com consultas SQL agregadas."
+**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T4 e deploy/README.md. Confira o workflow de saúde, ligue um canal de notificação do Coolify e faça o teste de alerta parando a API."
 
 ### F4-T5 · Atualização, reversão e versão de produção `S`
 
@@ -1143,15 +1151,16 @@ Abrir `https://<domínio>` em um navegador limpo, clicar em Jogar agora e ver Pe
 **Depende de:** F4-T4.
 **Entregáveis:** procedimento em `deploy/README.md`, tags Git.
 
-- [ ] F4-T5.1 Procedimento de release: `git tag v0.1.x`, no servidor `git pull && docker tag lotg-api:latest lotg-api:prev && docker compose build api && docker compose up -d api`; conferir `/v1/version`.
-- [ ] F4-T5.2 Reversão: `docker tag lotg-api:prev lotg-api:latest && docker compose up -d api` em menos de 2 minutos; regra: migrações sempre compatíveis com a versão anterior (expandir, depois contrair).
-- [ ] F4-T5.3 Ensaio: publicar uma mudança trivial, reverter, confirmar.
+- [x] F4-T5.1 Procedimento de atualização: deploy de `lotg-api` e `lotg-web` a partir do `main`; conferir `/v1/version`.
+- [x] F4-T5.2 Reversão para a imagem do deploy anterior pelo rollback do Coolify em menos de 2 minutos; regra: migrações sempre compatíveis com a versão anterior (expandir, depois contrair).
+- [x] F4-T5.3 Ensaio: reverter a API para a versão anterior, confirmar, voltar.
+- [ ] F4-T5.4 `git tag v0.1.x` a cada release (a primeira tag é de F5-T4).
 
 **Verificação:** ensaio de reversão registrado com tempo medido.
 
 **Pronto quando:** a reversão ensaiada levou menos de 2 minutos sem perda de dados.
 
-**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T5. Documente e ensaie o procedimento de atualização e reversão da API em produção, com a regra de migrações compatíveis."
+**Prompt sugerido:** "Leia MVP-ROADMAP.md F4-T5 e deploy/README.md. Ensaie a atualização e a reversão da API no Coolify, medindo o tempo, e registre."
 
 ---
 
@@ -1295,11 +1304,11 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F3W-T8 | 2026-10-01 | `8576c02` | 1 | **Feito sem o `GITHUB_CLIENT_ID`, que é decisão do autor: o fluxo real nunca foi executado.** Testado com GitHub simulado: 12 testes de integração no servidor e, em Chromium, vincular, entrar em outro navegador, conflito de conta, recusa, `slow_down`, código vencido e desistência. Sem a variável, as rotas respondem 404 e o app esconde os botões. Para o app saber disso antes do clique, `GET /version` ganhou `features.githubDevice` ([ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md), proposta). Variáveis novas: `GITHUB_CLIENT_ID`, `GITHUB_OAUTH_URL`, `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP`. |
 | F3W-T9 | 2026-10-01 | `8576c02`, `f9ddf02` | 1 | Abas Crônica, Preferências e Sobre. Alvo `web` construído e servido localmente: 194 MB, usuário não root, `index.html` para rotas desconhecidas, cache longo só em `/assets`. Seguindo o [ADR 0009](docs/decisions/0009-implantacao-no-coolify.md), o Caddy **não** repassa `/v1` nem emite certificado, e `runtime` continua o último alvo; a base é `debian:bookworm-slim` com o binário do Caddy, porque a imagem oficial é Alpine. **Não verificado:** o app atrás do proxy do Coolify. Como a API e o app são publicados em separado, o app trata `/version` sem `features` como vínculo desligado. |
 | F3W-T10 | 2026-10-01 | `42d9256` | 1 | 48 testes em Chromium passam com a política de conteúdo de produção. Uma revisão independente (subagente, só leitura) não achou caminho de injeção nem falha grave, e apontou três defeitos médios e uma dúzia de menores, corrigidos em `ac3f472`: um 401 de proxy apagava a conta local (e uma conta anônima ficava sem volta), o botão "voltar" ficava preso e o modo discreto escondia recusas e erros. **Ficaram sem correção, por escolha:** vagas de habitação calculadas no app (`capacity − villagers − inTraining`) e o "dia 25" do lembrete, que deveriam vir do `ViewState`; botões de fechar dentro do `tablist`; o limite de consultas do device flow é por IP (30 por minuto), apertado para várias pessoas atrás do mesmo NAT; uma aba aberta a noite inteira não recebe Relatório de Retorno, porque continua sincronizando. Módulos puros do app com 88% a 100% de linhas (89% no pacote; os componentes são cobertos pelos testes em navegador). O job `e2e` foi escrito mas **nunca rodou no GitHub**. Só Chromium: Firefox e Safari não foram abertos. O roteiro manual tem a coluna "Manual" inteira por fazer. Nos testes o tempo anda por saltos e cada salto espera o ciclo de atualização; sem isso apareciam corridas que não existem no tempo real. |
-| F4-T1 | | | | |
-| F4-T2 | | | | |
-| F4-T3 | | | | |
-| F4-T4 | | | | |
-| F4-T5 | | | | |
+| F4-T1 | 2026-10-01 | `COMMIT` | 1 | Três recursos no Coolify criados pela API REST (o MCP só lê e faz deploy). `/v1/health` e `/v1/version` respondem em HTTPS; em Chromium, **Jogar agora** chegou a Pedra Alta em 2 s, sem erro no console e só com requisições à própria origem; CSP, `nosniff`, `Referrer-Policy`, cache `immutable` em `/assets` e redirecionamento de HTTP conferidos por `curl`. O health check do Coolify foi desligado nas duas aplicações (exige `curl` ou `wget` na imagem); vale o `HEALTHCHECK` do `Dockerfile`. **Sem ensaio local com `tls internal`** nem `pnpm test:e2e` contra produção: a conferência foi feita no ambiente real. `Strict-Transport-Security` entrou no `web.Caddyfile` neste commit. A senha do primeiro banco apareceu na saída de um comando; o banco, ainda vazio, foi apagado e recriado com outra. |
+| F4-T2 | 2026-10-01 | `COMMIT` | 1 | Backup diário às 03:00 UTC com retenção de 14 dias; duas execuções manuais com sucesso. Ensaio: backup de 20.683 bytes restaurado em um banco descartável (2 contas, 2 partidas), uma conta apagada (1 e 1), restaurado de novo (2 e 2). Feito com as 2 contas de produção, não com 3. A API de importação do Coolify não existe na versão 4.3: o ensaio usa um serviço Compose que monta a pasta de backups. **Pendente:** os backups ficam no mesmo disco do banco (F4-T2.4). |
+| F4-T3 | 2026-10-01 | `COMMIT` | 1 | Commit `42d9256` implantado nos três recursos. Segredos gerados na criação e guardados só no Coolify. **Pendente e só do autor:** copiar `RECOVERY_CODE_SECRET` para fora do Coolify; vínculo GitHub desligado por decisão do autor. O "Pronto quando" (alguém de fora jogar) não foi verificado: só o teste automatizado em navegador. |
+| F4-T4 | 2026-10-01 | `COMMIT` | 1 | Workflow `health.yml` consulta `/v1/health` e a página do app; as duas asserções foram conferidas à mão contra produção. Consultas de `ops.sql` escritas a partir do esquema, **não executadas** em produção (não há acesso ao `psql` pela API). Avisos do Coolify marcados, mas sem canal ligado, por decisão do autor. **Não verificado:** o alerta de teste; o "Pronto quando" não foi atingido. |
+| F4-T5 | 2026-10-01 | `COMMIT` | 1 | Reversão da API de `42d9256` para a imagem de `1ef9545` pela API de rollback: 38 s, com `/v1/health` respondendo durante a troca; volta por deploy normal em 20 s. Os dois commits usam a mesma migração: a reversão atravessando uma migração não foi ensaiada. Nenhuma tag criada (F5-T4). |
 | F5-T1 | | | | |
 | F5-T2 | | | | |
 | F5-T3 | | | | |

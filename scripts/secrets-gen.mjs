@@ -13,8 +13,6 @@ const examplePath = resolve(deployDir, '.env.example');
 const generators = {
   JWT_SECRET: () => randomBytes(48).toString('base64'),
   RECOVERY_CODE_SECRET: () => randomBytes(48).toString('base64'),
-  // Hexadecimal para entrar em uma URL de conexão sem precisar de escape.
-  POSTGRES_PASSWORD: () => randomBytes(24).toString('hex'),
 };
 
 const created = !existsSync(envPath);
