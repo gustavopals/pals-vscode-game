@@ -16,6 +16,14 @@ const unitScope = scope === 'packages' && packageDir ? packageDir : '*';
 
 export default defineConfig({
   test: {
+    // Goldens (`__golden__/`) só são regravados a pedido: UPDATE_GOLDEN=1 pnpm test
+    update: process.env.UPDATE_GOLDEN === '1',
+    coverage: {
+      provider: 'v8',
+      include: [`packages/${unitScope}/src/**/*.{ts,tsx}`],
+      exclude: ['**/*.test.ts', '**/test-helpers.ts', '**/*.d.ts'],
+      reporter: ['text'],
+    },
     projects: [
       {
         test: {

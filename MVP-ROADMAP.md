@@ -340,10 +340,10 @@ Esperado: testes de conteúdo verdes; nenhum número de jogo fora de `packages/c
 **Depende de:** F1-T1.
 **Entregáveis:** `packages/engine/src/{clock,timeline,advance}.ts` e testes.
 
-- [ ] F1-T2.1 `clock.ts`: `dayIndex(ms)`, `seasonOf(dayIndex)` (0–23 primavera, 24–47 verão, 48–71 outono, 72–83 inverno), `dayOfSeason`, `yearOf`, rótulos pt-BR, `nextDayBoundary(ms)`, `nextSeasonBoundary(ms)`. Ano = 84 dias de jogo; ao virar o ano, `clock.year` incrementa e a Crônica registra (sem cerco na v0.1).
-- [ ] F1-T2.2 `timeline.ts`: `nextEventAt(state)` = mínimo entre fim de obra, fim de recrutamento, virada de dia, virada de estação e virada de ano (as fontes de produção e fome entram em F1-T3 e F1-T4).
-- [ ] F1-T2.3 `advance.ts`: laço `while (lastProcessedAt < target)`: `next = min(nextEventAt, target)`; aplica o segmento contínuo (`applyContinuous`, vazio por enquanto); processa eventos cujo instante é `next`; atualiza `lastProcessedAt`. Retorna novo estado e lista de eventos em ordem.
-- [ ] F1-T2.4 Testes: viradas de dia e estação emitem eventos nos instantes exatos; avançar para um instante no passado é no-op; avançar 30 dias de uma vez produz os mesmos eventos que em 720 passos de 1 h.
+- [x] F1-T2.1 `clock.ts`: `dayIndex(ms)`, `seasonOf(dayIndex)` (0–23 primavera, 24–47 verão, 48–71 outono, 72–83 inverno), `dayOfSeason`, `yearOf`, rótulos pt-BR, `nextDayBoundary(ms)`, `nextSeasonBoundary(ms)`. Ano = 84 dias de jogo; ao virar o ano, `clock.year` incrementa e a Crônica registra (sem cerco na v0.1).
+- [x] F1-T2.2 `timeline.ts`: `nextEventAt(state)` = mínimo entre fim de obra, fim de recrutamento, virada de dia, virada de estação e virada de ano (as fontes de produção e fome entram em F1-T3 e F1-T4).
+- [x] F1-T2.3 `advance.ts`: laço `while (lastProcessedAt < target)`: `next = min(nextEventAt, target)`; aplica o segmento contínuo (`applyContinuous`, vazio por enquanto); processa eventos cujo instante é `next`; atualiza `lastProcessedAt`. Retorna novo estado e lista de eventos em ordem.
+- [x] F1-T2.4 Testes: viradas de dia e estação emitem eventos nos instantes exatos; avançar para um instante no passado é no-op; avançar 30 dias de uma vez produz os mesmos eventos que em 720 passos de 1 h.
 
 **Verificação:**
 
@@ -362,11 +362,11 @@ pnpm --filter @lotg/engine test -- clock timeline advance
 **Depende de:** F1-T2.
 **Entregáveis:** `packages/engine/src/economy.ts`, `economy.test.ts`, `economy.property.test.ts`.
 
-- [ ] F1-T3.1 Taxas por edifício em **milésimos por hora**: `trabalhadores × base × 1000 × (10 + 2 × (nível − 1)) / 10`, sem ponto flutuante. Consumo: `habitantes × 1000` comida/h. Taxa líquida por recurso = soma dos fluxos.
-- [ ] F1-T3.2 Acumuladores: `acc[r] += taxa_liquida × duracao_ms`; `delta = trunc(acc[r] / 3_600_000)` (em direção a zero); `acc[r] -= delta × 3_600_000`; estoque += delta. Documentar por que isso torna a divisão de intervalos exata.
-- [ ] F1-T3.3 `GameSettings.capsEnabled = false` na v0.1 (sem limite de estoque; GDD §5.5 é v0.2). Deixar o ponto de corte preparado, sem implementar caps.
-- [ ] F1-T3.4 Testes de unidade: 2 trabalhadores na Fazenda Nv1 com 5 habitantes = +15 comida/h líquida (exemplo do GDD §13.3 adaptado), 1 h produz exatamente 15.000 milésimos; níveis aplicam +20% por nível.
-- [ ] F1-T3.5 Testes de propriedade (fast-check): para quaisquer `t1 < t2 < t3`, `advanceTo(t3)` ≡ `advanceTo(t2)` depois `advanceTo(t3)`, com igualdade **estrita** do estado; recursos nunca negativos; o estado de entrada não é mutado.
+- [x] F1-T3.1 Taxas por edifício em **milésimos por hora**: `trabalhadores × base × 1000 × (10 + 2 × (nível − 1)) / 10`, sem ponto flutuante. Consumo: `habitantes × 1000` comida/h. Taxa líquida por recurso = soma dos fluxos.
+- [x] F1-T3.2 Acumuladores: `acc[r] += taxa_liquida × duracao_ms`; `delta = trunc(acc[r] / 3_600_000)` (em direção a zero); `acc[r] -= delta × 3_600_000`; estoque += delta. Documentar por que isso torna a divisão de intervalos exata.
+- [x] F1-T3.3 `GameSettings.capsEnabled = false` na v0.1 (sem limite de estoque; GDD §5.5 é v0.2). Deixar o ponto de corte preparado, sem implementar caps.
+- [x] F1-T3.4 Testes de unidade: 2 trabalhadores na Fazenda Nv1 com 5 habitantes = +15 comida/h líquida (exemplo do GDD §13.3 adaptado), 1 h produz exatamente 15.000 milésimos; níveis aplicam +20% por nível.
+- [x] F1-T3.5 Testes de propriedade (fast-check): para quaisquer `t1 < t2 < t3`, `advanceTo(t3)` ≡ `advanceTo(t2)` depois `advanceTo(t3)`, com igualdade **estrita** do estado; recursos nunca negativos; o estado de entrada não é mutado.
 
 **Verificação:**
 
@@ -387,10 +387,10 @@ Esperado: propriedade com 500 execuções por teste, sem contraexemplo.
 **Depende de:** F1-T3.
 **Entregáveis:** `packages/engine/src/famine.ts`, ajustes em `timeline.ts` e `economy.ts`, testes.
 
-- [ ] F1-T4.1 `timeline.ts` passa a incluir o **instante de zeramento da comida** como evento: resolver em inteiros o maior `t` com `estoque(t) ≥ 0` dado o acumulador atual e a taxa líquida negativa.
-- [ ] F1-T4.2 Ao zerar: `settlement.famine = { since }`; evento `famineStarted`; a partir daí a produção de **todos** os edifícios é multiplicada por 0,75 (aplicado na taxa em milésimos, sem ponto flutuante: `× 3 / 4`), novas ordens de recrutamento são recusadas (`FAMINE`) e a fila em andamento fica congelada (os `finishesAtMs` são deslocados pela duração da fome ao final dela).
-- [ ] F1-T4.3 Término: no primeiro instante em que a taxa líquida de comida volta a ser positiva (só muda em comandos ou eventos), `famineEnded`, penalidades removidas, fila de recrutamento retomada.
-- [ ] F1-T4.4 Testes: 30 dias offline com consumo maior que produção → fome começa no instante previsto, comida nunca negativa, evento com o instante exato; realocar para a Fazenda encerra a fome; a propriedade de divisão de intervalo continua valendo atravessando a fome.
+- [x] F1-T4.1 `timeline.ts` passa a incluir o **instante de zeramento da comida** como evento: resolver em inteiros o maior `t` com `estoque(t) ≥ 0` dado o acumulador atual e a taxa líquida negativa.
+- [x] F1-T4.2 Ao zerar: `settlement.famine = { since }`; evento `famineStarted`; a partir daí a produção de **todos** os edifícios é multiplicada por 0,75 (aplicado na taxa em milésimos, sem ponto flutuante: `× 3 / 4`), novas ordens de recrutamento são recusadas (`FAMINE`) e a fila em andamento fica congelada (os `finishesAtMs` são deslocados pela duração da fome ao final dela).
+- [x] F1-T4.3 Término: no primeiro instante em que a taxa líquida de comida volta a ser positiva (só muda em comandos ou eventos), `famineEnded`, penalidades removidas, fila de recrutamento retomada.
+- [x] F1-T4.4 Testes: 30 dias offline com consumo maior que produção → fome começa no instante previsto, comida nunca negativa, evento com o instante exato; realocar para a Fazenda encerra a fome; a propriedade de divisão de intervalo continua valendo atravessando a fome.
 
 **Verificação:**
 
@@ -409,11 +409,11 @@ pnpm --filter @lotg/engine test -- famine economy
 **Depende de:** F1-T4.
 **Entregáveis:** `packages/engine/src/construction.ts`, testes.
 
-- [ ] F1-T5.1 Fórmulas: `custo(n→n+1) = arredondar(base × fator^(n−1))` com fator 1,6 (Salão 1,8); `tempo(n→n+1) = mín(8 h, tempo_base × 1,5^(n−1))`. Expor `upgradeQuote(state, building)` (custos, duração, bloqueios) para a UI e os testes.
-- [ ] F1-T5.2 Iniciar: valida fila livre (`QUEUE_BUSY`), edifício não em obra (`ALREADY_UPGRADING`), nível máximo (`MAX_LEVEL`), gate do Salão (`GATE_LOCKED`), recursos (`INSUFFICIENT_RESOURCES`); desconta recursos; registra `finishesAtMs`; evento `constructionStarted`.
-- [ ] F1-T5.3 Concluir (evento da linha do tempo): nível += 1; capacidade habitacional derivada muda imediatamente; evento `constructionFinished` com frase de Crônica.
-- [ ] F1-T5.4 Cancelar: devolve 80% (em milésimos, arredondando para baixo); evento `constructionCancelled`. Planejar e desplanejar: lista `planned` sem efeito econômico.
-- [ ] F1-T5.5 Testes: tabela de custos e tempos dos níveis 1→2 até 4→5 para cada edifício bate com a planilha do GDD §6.2; teto de 8 h; gate; desconto único; conclusão no instante exato; cancelamento devolve 80% e libera a fila.
+- [x] F1-T5.1 Fórmulas: `custo(n→n+1) = arredondar(base × fator^(n−1))` com fator 1,6 (Salão 1,8); `tempo(n→n+1) = mín(8 h, tempo_base × 1,5^(n−1))`. Expor `upgradeQuote(state, building)` (custos, duração, bloqueios) para a UI e os testes.
+- [x] F1-T5.2 Iniciar: valida fila livre (`QUEUE_BUSY`), edifício não em obra (`ALREADY_UPGRADING`), nível máximo (`MAX_LEVEL`), gate do Salão (`GATE_LOCKED`), recursos (`INSUFFICIENT_RESOURCES`); desconta recursos; registra `finishesAtMs`; evento `constructionStarted`.
+- [x] F1-T5.3 Concluir (evento da linha do tempo): nível += 1; capacidade habitacional derivada muda imediatamente; evento `constructionFinished` com frase de Crônica.
+- [x] F1-T5.4 Cancelar: devolve 80% (em milésimos, arredondando para baixo); evento `constructionCancelled`. Planejar e desplanejar: lista `planned` sem efeito econômico.
+- [x] F1-T5.5 Testes: tabela de custos e tempos dos níveis 1→2 até 4→5 para cada edifício bate com a planilha do GDD §6.2; teto de 8 h; gate; desconto único; conclusão no instante exato; cancelamento devolve 80% e libera a fila.
 
 **Verificação:**
 
@@ -432,10 +432,10 @@ pnpm --filter @lotg/engine test -- construction
 **Depende de:** F1-T5.
 **Entregáveis:** `packages/engine/src/population.ts`, testes.
 
-- [ ] F1-T6.1 `setWorkers(building, count)`: `count ≥ 0`, soma ≤ aldeões (`NOT_ENOUGH_VILLAGERS`), edifício produtivo (`INVALID_WORKERS`); efeito imediato nas taxas (reinicia o segmento).
-- [ ] F1-T6.2 `recruitVillagers(quantity)`: 1 a 5 por ordem; fila total ≤ 5 (`RECRUIT_QUEUE_FULL`); `aldeões + em fila + quantidade ≤ capacidade` (`HOUSING_FULL`); custo descontado na ordem; cada aldeão fica pronto 20 min após o anterior; evento `recruitmentFinished` por aldeão (ou agrupado por ordem, decisão do agente, documentada).
-- [ ] F1-T6.3 Capacidade habitacional e aldeões livres são **derivados** (`housingCapacity(state)`, `freeVillagers(state)`), nunca persistidos.
-- [ ] F1-T6.4 Testes: alocação inválida, fila cheia, capacidade, conclusão escalonada, interação com fome (F1-T4).
+- [x] F1-T6.1 `setWorkers(building, count)`: `count ≥ 0`, soma ≤ aldeões (`NOT_ENOUGH_VILLAGERS`), edifício produtivo (`INVALID_WORKERS`); efeito imediato nas taxas (reinicia o segmento).
+- [x] F1-T6.2 `recruitVillagers(quantity)`: 1 a 5 por ordem; fila total ≤ 5 (`RECRUIT_QUEUE_FULL`); `aldeões + em fila + quantidade ≤ capacidade` (`HOUSING_FULL`); custo descontado na ordem; cada aldeão fica pronto 20 min após o anterior; evento `recruitmentFinished` por aldeão (ou agrupado por ordem, decisão do agente, documentada).
+- [x] F1-T6.3 Capacidade habitacional e aldeões livres são **derivados** (`housingCapacity(state)`, `freeVillagers(state)`), nunca persistidos.
+- [x] F1-T6.4 Testes: alocação inválida, fila cheia, capacidade, conclusão escalonada, interação com fome (F1-T4).
 
 **Verificação:**
 
@@ -454,10 +454,10 @@ pnpm --filter @lotg/engine test -- population
 **Depende de:** F1-T6.
 **Entregáveis:** `packages/engine/src/commands.ts`, `rejections.ts`, testes.
 
-- [ ] F1-T7.1 União discriminada `Command`: `setWorkers`, `startConstruction`, `cancelConstruction`, `planConstruction`, `unplanConstruction`, `recruitVillagers`, `renameSettlement`. Cada comando carrega `commandId` (UUID) para idempotência no servidor.
-- [ ] F1-T7.2 `applyCommand(state, command, nowMs)`: exige `state.lastProcessedAt === nowMs` (o chamador avança antes; violar lança erro de programação), despacha, devolve `{ ok: true, state, events }` ou `{ ok: false, code, message }`. Mensagens em pt-BR vindas de `rejections.ts` (ex.: `INSUFFICIENT_RESOURCES` → "Faltam 40 madeira e 10 pedra").
-- [ ] F1-T7.3 Nenhuma recusa de regra altera o estado avançado recebido por `applyCommand` nem lança exceção. O chamador conserva o resultado anterior de `advanceTo`; o servidor o persiste mesmo em recusa (F2-T6), junto aos eventos do avanço.
-- [ ] F1-T7.4 Testes: cada código de recusa tem ao menos um teste; comando desconhecido é recusado (`UNKNOWN_COMMAND`); `renameSettlement` valida 2–24 caracteres.
+- [x] F1-T7.1 União discriminada `Command`: `setWorkers`, `startConstruction`, `cancelConstruction`, `planConstruction`, `unplanConstruction`, `recruitVillagers`, `renameSettlement`. Cada comando carrega `commandId` (UUID) para idempotência no servidor.
+- [x] F1-T7.2 `applyCommand(state, command, nowMs)`: exige `state.lastProcessedAt === nowMs` (o chamador avança antes; violar lança erro de programação), despacha, devolve `{ ok: true, state, events }` ou `{ ok: false, code, message }`. Mensagens em pt-BR vindas de `rejections.ts` (ex.: `INSUFFICIENT_RESOURCES` → "Faltam 40 madeira e 10 pedra").
+- [x] F1-T7.3 Nenhuma recusa de regra altera o estado avançado recebido por `applyCommand` nem lança exceção. O chamador conserva o resultado anterior de `advanceTo`; o servidor o persiste mesmo em recusa (F2-T6), junto aos eventos do avanço.
+- [x] F1-T7.4 Testes: cada código de recusa tem ao menos um teste; comando desconhecido é recusado (`UNKNOWN_COMMAND`); `renameSettlement` valida 2–24 caracteres.
 
 **Verificação:**
 
@@ -476,9 +476,9 @@ pnpm --filter @lotg/engine test -- commands
 **Depende de:** F1-T7.
 **Entregáveis:** `packages/engine/src/{objectives,chronicle}.ts`, testes.
 
-- [ ] F1-T8.1 Avaliação declarativa das condições após cada comando e cada evento; no máximo 3 ativos; concluir um ativa o próximo; recompensa creditada; evento `objectiveCompleted`.
-- [ ] F1-T8.2 `chronicle.ts`: para cada evento, gera a frase pt-BR a partir dos modelos de `@lotg/content` e do calendário ("No 3º dia da Primavera, os pedreiros ergueram a Serraria ao 2º nível."). O motor **emite** a frase dentro do evento; não a guarda no estado.
-- [ ] F1-T8.3 Testes: sequência dos objetivos 1→4 em um cenário roteirizado; frases determinísticas (snapshot).
+- [x] F1-T8.1 Avaliação declarativa das condições após cada comando e cada evento; no máximo 3 ativos; concluir um ativa o próximo; recompensa creditada; evento `objectiveCompleted`.
+- [x] F1-T8.2 `chronicle.ts`: para cada evento, gera a frase pt-BR a partir dos modelos de `@lotg/content` e do calendário ("No 3º dia da Primavera, os pedreiros ergueram a Serraria ao 2º nível."). O motor **emite** a frase dentro do evento; não a guarda no estado.
+- [x] F1-T8.3 Testes: sequência dos objetivos 1→4 em um cenário roteirizado; frases determinísticas (snapshot).
 
 **Verificação:**
 
@@ -1186,13 +1186,13 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F0-T4 | 2026-10-01 | `ea7632d` | 1 | `db` e `db_test` saudáveis em 18 s; `select 1` responde; imagem `runtime` constrói (326 MB, usuário `node`). O `CMD` falha até F2-T2, como previsto. O ignore do build é `deploy/Dockerfile.dockerignore`, e não `deploy/.dockerignore`, porque o contexto é a raiz do repositório. Bancos de dev com senha fixa `lotg`; `POSTGRES_PASSWORD` vale só para o compose de produção. |
 | F0-T5 | 2026-10-01 | `7b379b5` | 1 | Workflow escrito e os comandos dos três jobs rodados localmente com sucesso. **Verificação pendente:** nenhum push foi feito, então os jobs ainda não rodaram no GitHub e o badge não foi conferido. |
 | F1-T1 | 2026-10-01 | HASH_A | 1 | Conteúdo da v0.1 com schemas zod (21 testes) e tipos do `GameState`. Fatores guardados como frações inteiras (16/10, 3/2, 3/4) para o motor não usar ponto flutuante. Estado inicial com os 5 aldeões livres: o objetivo 1 é que ensina a alocar. ADR 0002 criado. |
-| F1-T2 | | | | |
-| F1-T3 | | | | |
-| F1-T4 | | | | |
-| F1-T5 | | | | |
-| F1-T6 | | | | |
-| F1-T7 | | | | |
-| F1-T8 | | | | |
+| F1-T2 | 2026-10-01 | HASH_B | 1 | Relógio, linha do tempo e laço de `advanceTo`. 30 dias de uma vez ≡ 720 passos de 1 h (estado e eventos estritamente iguais). Ordem fixa no mesmo instante: obras, aldeões, ano, estação, dia, objetivos, fome. Entregue no mesmo commit de F1-T3 a F1-T8. |
+| F1-T3 | 2026-10-01 | HASH_B | 1 | Taxas em milésimos/h e acumuladores inteiros com truncamento em direção a zero. Propriedade de divisão de intervalo com 500 execuções e cortes em qualquer milissegundo, sem contraexemplo. |
+| F1-T4 | 2026-10-01 | HASH_B | 1 | Fome como evento da linha do tempo. Teste de 30 dias registra `famineStarted` em 41.657.142 ms, igual à conta feita à mão. O fim usa o saldo de comida já com a penalidade de 0,75. |
+| F1-T5 | 2026-10-01 | HASH_B | 1 | `upgradeQuote`: Serraria 1→2 = 100 madeira, 50 pedra, 300 s; Habitações 2→3 = 128 madeira, 32 pedra, 360 s. Custos por conta inteira, conferidos contra `arredondar(base × fator^(n−1))` em todos os níveis. O teto de 8 h não é alcançado por nenhum edifício da v0.1 (testado direto na fórmula). |
+| F1-T6 | 2026-10-01 | HASH_B | 1 | Recrutar 3 com 1 vaga é recusado com `HOUSING_FULL` sem descontar nada. Decisão: um item de fila e um evento `recruitmentFinished` por aldeão. |
+| F1-T7 | 2026-10-01 | HASH_B | 1 | 17 códigos de recusa, um teste por código; `commands.ts` e `rejections.ts` com 100% de linhas. `setWorkers`, `planConstruction` e `unplanConstruction` não geram evento. |
+| F1-T8 | 2026-10-01 | HASH_B | 1 | Cenário roteirizado conclui os quatro objetivos com +20 ouro, +30 madeira, +40 comida e +50 ouro. Frases fixadas em `__golden__/chronicle-objectives.txt`. "Recrute 3 aldeões" conta os que chegaram, não os encomendados. |
 | F1-T9 | | | | |
 | F1-T10 | | | | |
 | F1-T11 | | | | |

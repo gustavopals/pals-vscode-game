@@ -1,0 +1,164 @@
+import { describe, expect, it } from 'vitest';
+
+import { advanceTo } from './advance';
+import {
+  accept,
+  command,
+  eventsOfType,
+  gameWith,
+  HOUR,
+  MINUTE,
+  newGame,
+  play,
+  refuse,
+} from './test-helpers';
+
+const THIRTY_DAYS = 30 * 24 * HOUR;
+
+describe('início da fome', () => {
+  it('30 dias fora com consumo maior que a produção: a fome começa no instante previsto', () => {
+    // Recrutar 2 aldeões leva a comida de 180 a 80 e o consumo de 5 para 6 (20 min) e 7 (40 min).
+    const start = accept(newGame(), command('recruitVillagers', { quantity: 2 })).state;
+
+    // Conta à mão, em milésimos × ms: 80.000 de comida, 20 min a 5.000/h, 20 min a 6.000/h
+    // e o resto a 7.000/h.
+    const balance = 80_000 * HOUR - 5_000 * 20 * MINUTE - 6_000 * 20 * MINUTE;
+    const expectedAt = 40 * MINUTE + Math.floor(balance / 7_000);
+    expect(expectedAt).toBe(41_657_142);
+
+    const { state, events } = advanceTo(start, THIRTY_DAYS);
+    const famines = eventsOfType(events, 'famineStarted');
+    expect(famines).toHaveLength(1);
+    expect(famines[0]).toMatchObject({ atMs: expectedAt });
+    expect(famines[0]?.text).toBe(
+      'No 6º dia da Primavera, as despensas de Pedra Alta ficaram vazias. A fome começou.',
+    );
+    expect(state.settlement.famine).toEqual({ sinceMs: expectedAt });
+    expect(state.settlement.resources.food).toBe(0);
+    expect(state.settlement.accumulators.food).toBe(0);
+    expect(eventsOfType(events, 'famineEnded')).toEqual([]);
+  });
+
+  it('a comida nunca fica negativa, em nenhum corte do intervalo', () => {
+    let state = newGame();
+    for (let hour = 1; hour <= 100; hour += 1) {
+      state = advanceTo(state, hour * HOUR + 7 * hour).state;
+      expect(state.settlement.resources.food).toBeGreaterThanOrEqual(0);
+    }
+    expect(state.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
+  });
+
+  it('um instante antes ainda não há fome', () => {
+    const { state, events } = advanceTo(newGame(), 36 * HOUR - 1);
+    expect(state.settlement.famine).toBeNull();
+    expect(eventsOfType(events, 'famineStarted')).toEqual([]);
+  });
+
+  it('gastar a última comida com consumo maior que a produção abre a fome na hora', () => {
+    const state = gameWith((draft) => {
+      draft.settlement.resources.food = 50_000;
+    });
+    const result = accept(state, command('recruitVillagers', { quantity: 1 }));
+    expect(result.state.settlement.famine).toEqual({ sinceMs: 0 });
+    expect(result.events.map((event) => event.type)).toEqual([
+      'recruitmentStarted',
+      'famineStarted',
+    ]);
+  });
+});
+
+describe('durante a fome', () => {
+  const starving = advanceTo(
+    gameWith((draft) => {
+      draft.settlement.workers = { farm: 0, lumberMill: 2, quarry: 0, goldMine: 0 };
+    }),
+    36 * HOUR,
+  ).state;
+
+  it('a produção cai para 75%', () => {
+    expect(starving.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
+    const before = starving.settlement.resources.wood;
+    const after = advanceTo(starving, 37 * HOUR).state.settlement.resources.wood;
+    // 2 trabalhadores × 8 × 0,75 = 12 madeira/h.
+    expect(after - before).toBe(12_000);
+  });
+
+  it('novas ordens de recrutamento são recusadas', () => {
+    const fed = gameWith((draft) => {
+      Object.assign(draft, starving);
+      draft.settlement.resources.gold = 500_000;
+    });
+    expect(refuse(fed, command('recruitVillagers', { quantity: 1 })).code).toBe('FAMINE');
+  });
+
+  it('as obras continuam', () => {
+    const building = accept(starving, command('startConstruction', { building: 'housing' })).state;
+    const { state, events } = advanceTo(building, 36 * HOUR + 4 * MINUTE);
+    expect(state.settlement.buildings.housing).toBe(2);
+    expect(eventsOfType(events, 'constructionFinished')).toHaveLength(1);
+  });
+});
+
+describe('fila de recrutamento congelada e fim da fome', () => {
+  // 51 de comida: recrutar 1 aldeão deixa 1, que acaba em 12 min, antes de ele chegar (20 min).
+  const start = accept(
+    gameWith((draft) => {
+      draft.settlement.resources.food = 51_000;
+    }),
+    command('recruitVillagers', { quantity: 1 }),
+  ).state;
+  const famineAt = 12 * MINUTE;
+
+  it('o aldeão em treinamento não chega enquanto durar a fome', () => {
+    const { state, events } = advanceTo(start, 10 * HOUR);
+    expect(state.settlement.famine).toEqual({ sinceMs: famineAt });
+    expect(state.settlement.population.villagers).toBe(5);
+    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 20 * MINUTE }]);
+    expect(eventsOfType(events, 'recruitmentFinished')).toEqual([]);
+  });
+
+  it('realocar para a Fazenda encerra a fome e retoma a fila de onde parou', () => {
+    const endAt = 2 * HOUR + 3 * MINUTE;
+    const { state, events } = play(start, [
+      { at: endAt },
+      command('setWorkers', { building: 'farm', count: 2 }),
+    ]);
+    expect(state.settlement.famine).toBeNull();
+    const ended = eventsOfType(events, 'famineEnded');
+    expect(ended).toHaveLength(1);
+    expect(ended[0]).toMatchObject({ atMs: endAt });
+
+    // Faltavam 8 minutos de treinamento quando a fome começou.
+    const arrivesAt = endAt + 8 * MINUTE;
+    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: arrivesAt }]);
+    const later = advanceTo(state, arrivesAt);
+    expect(later.state.settlement.population.villagers).toBe(6);
+    expect(eventsOfType(later.events, 'recruitmentFinished')[0]).toMatchObject({ atMs: arrivesAt });
+  });
+
+  it('um saldo positivo só com a penalidade ainda mantém a fome', () => {
+    // 1 fazendeiro: 10 × 0,75 = 7,5 contra 5 de consumo encerra; com 7 habitantes não bastaria.
+    const hungry = gameWith((draft) => {
+      draft.settlement.resources.food = 0;
+      draft.settlement.population.villagers = 8;
+      draft.settlement.famine = { sinceMs: 0 };
+    });
+    const one = accept(hungry, command('setWorkers', { building: 'farm', count: 1 }));
+    expect(one.state.settlement.famine).toEqual({ sinceMs: 0 });
+    // 2 fazendeiros: 15 contra 8.
+    const two = accept(one.state, command('setWorkers', { building: 'farm', count: 2 }));
+    expect(two.state.settlement.famine).toBeNull();
+    expect(two.events.map((event) => event.type)).toContain('famineEnded');
+  });
+
+  it('depois da fome a comida volta a acumular sem a penalidade', () => {
+    const { state } = play(start, [
+      { at: HOUR },
+      command('setWorkers', { building: 'farm', count: 2 }),
+      { at: 2 * HOUR },
+    ]);
+    // 2 × 10 − 5 habitantes por 8 min, depois − 6 habitantes pelo resto da hora.
+    const expected = Math.floor((15_000 * 8 * MINUTE + 14_000 * 52 * MINUTE) / HOUR);
+    expect(state.settlement.resources.food).toBe(expected);
+  });
+});
