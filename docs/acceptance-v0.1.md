@@ -26,7 +26,15 @@ Conferido com `gh run list` e `gh run view` em 2026-10-01. Os quatro jobs (`veri
 Os ajustes de fechamento de 2026-10-01 (ritmo 3×, Crônica sem viradas de dia, `housed` e `vacancies`, lembrete por tempo real) **ainda não estavam commitados** quando este quadro foi escrito: a CI acima não os cobre.
 
 - CI verde no commit `1b4e6db` (que inclui os ajustes de fechamento), em 2026-10-01: `verify`, `integration`, `e2e` e `docker`, todos com sucesso: <https://github.com/gustavopals/pals-vscode-game/actions/runs/36905622257>.
-- ☐ por fazer (autor): implantar `lotg-api` e `lotg-web` a partir desse commit e anotar aqui o `builtAt` de `/v1/version` depois do deploy.
+- **API implantada com os ajustes**: `/v1/version` em produção respondeu `builtAt` 2026-10-01T18:29:52Z, posterior ao commit.
+- **App web ainda no build anterior** em 2026-10-01 às 18:35 UTC: `last-modified` de `/` é 17:35:17 GMT e o pacote servido ainda traz os textos antigos. ☐ por fazer (autor): implantar `lotg-web` e conferir de novo.
+
+### Conferências feitas em produção em 2026-10-01, depois do deploy da API
+
+- **Ritmo 3× (ADR 0011)**: uma partida criada pela API veio com `timeScale: 3`; a visão trouxe o próximo dia em 2.400 s, a melhoria das Habitações em 80 s, um aldeão em 400 s e a explicação "consumo 5 × 3 = 15/h". A conta usada foi excluída em seguida (resposta 202).
+- **Concorrência e idempotência (critério 7)**: `pnpm -s sim -- --smoke https://lords.palsincomehub.com` passou nas 4 verificações: 10 ordens em paralelo com estado coerente (7 aceitas, 3 recusadas pelo motor), reenvio com o mesmo recibo, `409 COMMAND_ID_CONFLICT` para o mesmo UUID com outro conteúdo e a mesma recusa no reenvio de uma ordem recusada. A conta criada foi excluída.
+- **Carga pequena**: 5 bots por 2 minutos, ciclo de 5 s: 122 ciclos, 25 comandos aceitos, nenhum erro. p95 de 142 ms em `GET /view` e `GET /events` e de 174 ms em `POST /commands` (máximo de 453 ms, na criação de partida). As cinco contas "Bot N" foram excluídas pelos próprios bots.
+- As sete contas criadas nessas conferências ficam bloqueadas e saem do banco no expurgo de sete dias (2026-10-08).
 
 ### Suítes locais
 
