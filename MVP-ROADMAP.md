@@ -185,10 +185,10 @@ Conforme GDD §18.1: TypeScript, esbuild, Vitest, fast-check, zod, Preact, Fasti
 **Depende de:** nada.
 **Entregáveis:** nenhum arquivo no repositório; checklist cumprida.
 
-- [ ] F0-T1.1 Docker Desktop instalado com integração WSL2 habilitada para a distribuição em uso; `docker run --rm hello-world` funciona dentro do WSL.
-- [ ] F0-T1.2 Node 22 LTS via `nvm` (`nvm install 22 && nvm alias default 22`) e pnpm 9 via `corepack enable && corepack prepare pnpm@latest-9 --activate`.
-- [ ] F0-T1.3 Git configurado (`user.name`, `user.email`); VS Code com extensões ESLint, Prettier e Docker.
-- [ ] F0-T1.4 Repositório fica no sistema de arquivos do WSL (não em `/mnt/c`).
+- [x] F0-T1.1 Docker Desktop instalado com integração WSL2 habilitada para a distribuição em uso; `docker run --rm hello-world` funciona dentro do WSL.
+- [x] F0-T1.2 Node 22 LTS via `nvm` (`nvm install 22 && nvm alias default 22`) e pnpm 9 via `corepack enable && corepack prepare pnpm@latest-9 --activate`.
+- [x] F0-T1.3 Git configurado (`user.name`, `user.email`); VS Code com extensões ESLint, Prettier e Docker.
+- [x] F0-T1.4 Repositório fica no sistema de arquivos do WSL (não em `/mnt/c`).
 
 **Verificação:**
 
@@ -1180,7 +1180,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 
 | Tarefa | Data | Commit | Sessões | Observações e desvios |
 |---|---|---|---|---|
-| F0-T1 | | | | |
+| F0-T1 | 2026-10-01 | HASH_F0-T1 | 1 | Docker 29.8, Compose v5.5, Node 22.22.3, pnpm 9.15.9. O default do `nvm` continua em 24 (`nvm alias default 22` não foi executado para não afetar outros projetos): o repositório seleciona o 22 pelo `.nvmrc` (`nvm use`) e o pnpm 9 pelo campo `packageManager`. Extensão Docker do VS Code instalada. |
 | F0-T2 | | | | |
 | F0-T3 | | | | |
 | F0-T4 | | | | |
