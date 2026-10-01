@@ -78,7 +78,7 @@ function rowAt(state: GameState, hour: number): HourRow {
  * Joga uma partida inteira em processo, só com o motor. As sessões começam na criação da partida
  * e se repetem a intervalos iguais; entre elas o mundo anda sozinho. Uma linha por hora real.
  */
-export function simulate(options: SimulationOptions): SimulationResult {
+export async function simulate(options: SimulationOptions): Promise<SimulationResult> {
   const { seed, days, sessionsPerDay } = options;
   const bot: Bot = strategies[options.strategy];
   let state = createInitialState(seed, {
@@ -92,7 +92,7 @@ export function simulate(options: SimulationOptions): SimulationResult {
   const commands: SimulationResult['commands'] = { accepted: 0, refused: {} };
   let commandCount = 0;
 
-  const act: Act = (type, payload) => {
+  const act: Act = async (type, payload) => {
     commandCount += 1;
     const command = { commandId: `${seed}-${commandCount}`, type, payload } as Command;
     const result = applyCommand(state, command, state.lastProcessedAt);
@@ -116,7 +116,7 @@ export function simulate(options: SimulationOptions): SimulationResult {
       const advanced = advanceTo(state, nextSessionMs);
       state = advanced.state;
       events.push(...advanced.events);
-      bot(deriveViewState(state, state.lastProcessedAt), act);
+      await bot(deriveViewState(state, state.lastProcessedAt), act);
       nextSessionMs += sessionEveryMs;
     }
     const advanced = advanceTo(state, hourEndMs);

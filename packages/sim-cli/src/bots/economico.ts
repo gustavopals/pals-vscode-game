@@ -81,7 +81,7 @@ function share(hands: number, weights: Record<Material, number>): Record<Materia
  * quem ainda está chegando; o resto vai para os materiais, em proporção ao tempo que cada um
  * levaria para cobrir o que as obras pedem.
  */
-function allocate(view: ViewState, act: Act): ViewState {
+async function allocate(view: ViewState, act: Act): Promise<ViewState> {
   const { villagers, inTraining } = view.population;
   const mouths = (villagers + inTraining) * balance.consumption.foodPerVillagerPerHour;
   const farmers = Math.min(
@@ -111,13 +111,13 @@ function allocate(view: ViewState, act: Act): ViewState {
   let current = view;
   for (const row of rows) {
     if (target[row.building] !== row.assigned) {
-      current = act('setWorkers', { building: row.building, count: target[row.building] });
+      current = await act('setWorkers', { building: row.building, count: target[row.building] });
     }
   }
   return current;
 }
 
-function recruit(view: ViewState, act: Act): ViewState {
+async function recruit(view: ViewState, act: Act): Promise<ViewState> {
   const perVillager = (resource: ResourceId) =>
     view.recruitment.cost.find((cost) => cost.resource === resource)?.amount ?? 0;
   const byFood =
@@ -134,7 +134,7 @@ function recruit(view: ViewState, act: Act): ViewState {
 }
 
 /** Inicia a melhoria mais barata entre as que podem começar agora. */
-function build(view: ViewState, act: Act): ViewState {
+async function build(view: ViewState, act: Act): Promise<ViewState> {
   const price = (upgrade: ViewState['constructions']['available'][number]) =>
     upgrade.cost.reduce((sum, cost) => sum + cost.amount, 0);
   const [cheapest] = view.constructions.available
@@ -147,8 +147,8 @@ function build(view: ViewState, act: Act): ViewState {
  * Bot econômico: a cada sessão recruta quando há vaga e comida de sobra, inicia a melhoria mais
  * barata disponível e realoca os aldeões para o que as próximas obras pedem.
  */
-export const economico: Bot = (view, act) => {
-  let current = recruit(view, act);
-  current = build(current, act);
-  allocate(current, act);
+export const economico: Bot = async (view, act) => {
+  let current = await recruit(view, act);
+  current = await build(current, act);
+  await allocate(current, act);
 };

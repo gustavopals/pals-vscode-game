@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { formatSummary, summarize, toCsv } from './report';
 import { simulate } from './simulate';
 
-const twoSessions = simulate({
+const twoSessions = await simulate({
   seed: 'pedra-alta-golden',
   days: 7,
   strategy: 'economico',
@@ -21,8 +21,8 @@ describe('faixa de balanceamento da v0.1 (bot econômico)', () => {
     expect(twoSessions.events.some((event) => event.type === 'famineStarted')).toBe(false);
   });
 
-  it('com 1 sessão por dia: nenhuma fome nas primeiras 24 h', () => {
-    const lazy = simulate({
+  it('com 1 sessão por dia: nenhuma fome nas primeiras 24 h', async () => {
+    const lazy = await simulate({
       seed: 'pedra-alta-golden',
       days: 7,
       strategy: 'economico',
@@ -50,8 +50,8 @@ describe('simulação', () => {
     expect(twoSessions.finalState.lastProcessedAt).toBe(168 * 3_600_000);
   });
 
-  it('a mesma semente produz CSVs idênticos', () => {
-    const again = simulate(twoSessions.options);
+  it('a mesma semente produz CSVs idênticos', async () => {
+    const again = await simulate(twoSessions.options);
     expect(toCsv(again.rows)).toBe(toCsv(twoSessions.rows));
     expect(again.finalState).toStrictEqual(twoSessions.finalState);
   });
@@ -79,8 +79,13 @@ describe('simulação', () => {
     expect(text).toMatch(/Comandos: \d+ aceitos, 0 recusados\n/);
   });
 
-  it('o resumo conta as horas de fome quando o bot não joga o bastante', () => {
-    const abandoned = simulate({ seed: 's', days: 3, strategy: 'economico', sessionsPerDay: 1 });
+  it('o resumo conta as horas de fome quando o bot não joga o bastante', async () => {
+    const abandoned = await simulate({
+      seed: 's',
+      days: 3,
+      strategy: 'economico',
+      sessionsPerDay: 1,
+    });
     const starved = { ...abandoned, rows: abandoned.rows.map((row) => ({ ...row, famine: true })) };
     expect(summarize(starved)).toMatchObject({ famineHours: 72, firstFamineHour: 1 });
     expect(formatSummary(starved)).toContain('Fome: 72 h, a primeira na hora 1');
