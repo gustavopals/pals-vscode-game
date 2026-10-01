@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [MVP-ROADMAP.md](MVP-ROADMAP.md) — plano de execução da v0.1 em fases `F0…F5` e tarefas `F1-T3`, cada uma com subtarefas em caixas de seleção, seção "Verificação" e "Pronto quando". O Registro de Execução (§9) diz o que já foi feito.
 - [Decisões de arquitetura](docs/decisions/README.md) — ADRs. Os contratos dos ADRs 0003–0005 já estão no GDD; segui-los não exige nova aprovação de desvio.
 
-**Estado:** as Fases 0 e 1 estão concluídas. Existem o monorepo, o Docker de desenvolvimento, o conteúdo da v0.1 (`@lotg/content`), o motor completo da v0.1 (`@lotg/engine`) e o `sim-cli` com o bot econômico. `protocol`, `server`, `client-sdk`, `extension` e `webview` ainda são esqueletos que exportam só uma constante de versão: nenhuma rota ou tela foi implementada. A próxima tarefa é F2-T1.
+**Estado:** as Fases 0, 1 e 2 estão concluídas. Existem o monorepo, o Docker de desenvolvimento, o conteúdo e o motor da v0.1, o `sim-cli` (em processo e contra um servidor), os contratos da API (`@lotg/protocol`) e o servidor completo da v0.1 (`@lotg/server`), com cerca de 250 testes de integração. `client-sdk`, `extension` e `webview` ainda são esqueletos que exportam só uma constante de versão. A próxima tarefa é F3-T1.
 
 Os dois documentos somam ~2.700 linhas: leia as seções indicadas pela tarefa em vez do arquivo inteiro (ambos têm índice numerado por `§`).
 
@@ -23,6 +23,10 @@ pnpm install
 pnpm dev:up            # sobe db (5432) e db_test (5433) e espera ficarem saudáveis
 pnpm dev:down          # derruba os contêineres de dev, mantendo os volumes
 pnpm db:psql           # psql no banco de dev; aceita argumentos: pnpm db:psql -c 'select 1'
+pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
+pnpm dev:api           # API no host com tsx watch (lê deploy/.env e aplica as migrações); http://localhost:3000/v1/health
+pnpm db:migrate        # aplica as migrações no banco de dev sem subir a API
+pnpm --filter @lotg/server db:generate -- --name <nome>   # gera o SQL de uma mudança em src/db/schema.ts
 
 pnpm verify            # lint + typecheck + test — porta de entrada de todo "pronto"
 pnpm lint              # ESLint + Prettier (verificação); pnpm format corrige
@@ -32,25 +36,29 @@ pnpm --filter @lotg/engine test                   # um pacote
 pnpm --filter @lotg/engine test -- construction   # um arquivo de teste (filtro por nome)
 pnpm --filter @lotg/engine test -- --coverage     # cobertura do pacote
 UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test   # regrava os goldens de __golden__/; conferir o diff
-pnpm test:integration  # tests/ e packages/server/test/ contra db_test; exige TEST_DATABASE_URL
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration            # tests/ e packages/server/test/ contra o db_test
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- games   # um arquivo de integração
 
-pnpm build             # compila os pacotes que têm build (hoje: o servidor, com esbuild)
+pnpm build             # compila os pacotes que têm build (hoje: o servidor, em um único dist/main.js)
 pnpm docker:build      # imagem de produção da API (lotg-api:latest, alvo runtime)
-pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
 
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico > semana.csv   # bot de playtest; resumo no stderr
+pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2                  # carga contra a API, com p50/p95
 ```
 
-Scripts que já existem mas só avisam a tarefa que os entrega e saem com erro: `pnpm dev:api` (F2-T2), `pnpm db:migrate` (F2-T3), `pnpm dev:ext` (F3-T2). Ao implementar a tarefa, troque o `scripts/pending.mjs` do pacote pelo comando real.
+`pnpm dev:ext` ainda só avisa a tarefa que o entrega (F3-T2) e sai com erro. Ao implementá-la, troque o `scripts/pending.mjs` dos pacotes `extension` e `webview` pelo comando real.
 
 Detalhes que não são óbvios:
 
 - Os projetos do Vitest ficam em `vitest.config.ts` (`test.projects`: `unit` e `integration`), não em `vitest.workspace.ts`: o Vitest 5 removeu o arquivo de workspace. Sem `TEST_DATABASE_URL`, o projeto `integration` não inclui nenhum arquivo e passa vazio.
 - Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/index.ts`, `moduleResolution: Bundler`); só o que é implantado tem build.
 - Goldens são gravados com `toMatchFileSnapshot` e nunca se regravam sozinhos: só com `UPDATE_GOLDEN=1`. Um golden diferente é uma mudança de regra; ela precisa ser intencional.
-- `@types/node` não está entre as dependências permitidas: o `sim-cli` declara à mão o pouco de `process` que usa (`src/node-env.d.ts`). O [ADR 0006](docs/decisions/0006-types-node.md) propõe liberá-lo e aguarda aprovação; F2-T2 depende dessa resposta.
+- Testes de integração rodam um arquivo por vez contra o PostgreSQL real; cada arquivo chama `resetTestDb()`. Os helpers de `packages/server/test/helpers/app.ts` sobem a API em memória com relógio controlado (`server.clock.advance(ms)`). O access token vale 15 minutos desse relógio: depois de avançá-lo, use `renew`. Para rodar duas suítes em paralelo, cada uma precisa do próprio banco (`create database …` no `db_test`).
+- `@types/node` e `@types/pg` foram adotados na Fase 2 sem aprovação explícita ([ADR 0006](docs/decisions/0006-types-node.md)); `engine`, `content` e `protocol` continuam com `types: []`.
+- O [ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md) (tirar as viradas de dia da Crônica) é só uma proposta: até ser aprovado, a Crônica traz uma linha por evento, como diz o roadmap.
 - TypeScript está fixado em 6.x porque o `typescript-eslint` ainda não aceita o 7.
-- O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. O `CMD` é `node dist/main.js`, que só passa a existir em F2-T2.
+- O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. O esbuild empacota o servidor inteiro, com as dependências, em `dist/main.js`: a imagem não tem `node_modules`. Uma dependência nova com binário nativo ou arquivos lidos em tempo de execução precisa ser tratada em `packages/server/esbuild.mjs`.
+- As migrações são geradas pelo drizzle-kit em `deploy/migrations` (`0000_init.sql`, não `0001`) e aplicadas no arranque sob `pg_advisory_lock(727)`.
 - A API roda **no host** em desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)); não compartilhar `node_modules` entre host e contêiner. O perfil `--profile full` do compose de dev existe para testar a imagem; `--profile tools` sobe o pgweb (8081).
 - Os bancos de dev usam sempre `lotg/lotg` e portas só em `127.0.0.1`. Variáveis de ambiente em [deploy/.env.example](deploy/.env.example) e MVP-ROADMAP.md §1.3, incluindo `RECOVERY_CODE_SECRET` independente de `JWT_SECRET`, preservado nos deploys.
 
@@ -83,6 +91,16 @@ Direção das dependências, imposta por `no-restricted-imports` em `eslint.conf
 6. **Não antecipar mecânicas de versões futuras**, nem "só a estrutura". Cada mecânica do GDD tem tag `[v0.x]`; o MVP é exatamente a v0.1 (§16.1). Campos de moral, cartas, heróis, exército, mapa ou mercado no `GameState` da v0.1 são erro. Em contrapartida, não tomar decisões de arquitetura que impeçam as versões seguintes.
 7. Desvios do GDD não são decididos pelo agente: propor em `docs/decisions/NNNN-titulo.md` e aguardar aprovação. Também não são do agente: provedor de VPS e domínio, publicação no Marketplace, nome público e ícone, texto da política de privacidade.
 8. Mudar uma regra exige atualizar o golden test correspondente e o GDD. Toda nova mecânica entra com: dados em `content`, validação de comando com motivo de recusa legível, evento na Crônica, tooltip explicativo e teste.
+
+### Servidor (`packages/server`, GDD §14.5–14.9)
+
+O [README do servidor](packages/server/README.md) descreve a estrutura e os contratos. O que orienta qualquer mudança:
+
+- Rotas validam a forma com os schemas zod de `@lotg/protocol` e chamam serviços; serviços recebem um `AppContext` (`config`, `pool`, `db`, `clock`, `fetch`, `hooks`). Nunca usar `new Date()` ou `Date.now()` para tempo de jogo, expiração ou exclusão: é sempre `ctx.clock()`.
+- Toda leitura e todo comando de partida passam por `lockGame` (`SELECT … FOR UPDATE` filtrado pela conta). Escritas de estado passam por `persistState`, que incrementa `state_version` uma vez e numera os eventos.
+- Quando uma operação precisa de commit antes de responder com erro (reuso de refresh token, recusa do motor), o desfecho sai da transação como valor e o erro é lançado depois: lançar dentro de `db.transaction` desfaz tudo.
+- O protocolo valida só a forma dos comandos; faixas e regras são recusadas pelo motor, com frase em português (`422 GAME_RULE`).
+- `Command`, `ViewState` e os códigos de recusa do protocolo têm teste de igualdade de tipos com os do motor: mudar um lado quebra o `pnpm typecheck`.
 
 ### Contratos do servidor e do cliente (GDD §14.5–14.10)
 

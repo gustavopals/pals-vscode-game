@@ -23,7 +23,7 @@
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para experimentar:** o motor de economia e o simulador local estão implementados, com testes automatizados. A API online, a extensão e a interface são as próximas etapas. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
+> **Já dá para experimentar:** o motor de economia, o simulador local e a API online (contas, partidas e progresso no servidor) estão implementados, com testes automatizados. A extensão e a interface são as próximas etapas. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
 
 ### Quatro estações. Uma história para contar.
 
@@ -84,11 +84,11 @@ O desafio técnico é fazer o tempo passar de forma consistente: uma hora calcul
 | **Economia sem deriva de arredondamento** | Recursos em unidades inteiras de milésimos, com acumuladores. [Implementação](packages/engine/src/economy.ts) e [testes de propriedades com fast-check](packages/engine/src/economy.property.test.ts). |
 | **Balanceamento separado das regras** | Números e textos em `content`, validados por schemas; comportamento em `engine`. [Conteúdo](packages/content/src) e [testes de balanceamento](packages/sim-cli/src/balance.test.ts). |
 | **Partidas reproduzíveis** | Cenário de sete dias e snapshots de referência ajudam a detectar mudanças de comportamento. [Teste de cenário](packages/engine/src/scenario.test.ts). |
-| **Contratos documentados antes da integração** | Autenticação, comandos idempotentes, cache e exclusão de conta têm decisões registradas para orientar a futura API. [ADRs](docs/decisions/README.md). |
+| **Contratos documentados e verificados** | Autenticação, comandos idempotentes, cache e exclusão de conta têm decisões registradas e testes de integração contra PostgreSQL real. [ADRs](docs/decisions/README.md) · [servidor](packages/server/README.md). |
 
 ### Um núcleo, dois caminhos de execução
 
-A arquitetura alvo conecta o mesmo motor ao simulador e ao servidor. O núcleo local está implementado; o caminho online e a interface são as próximas etapas.
+A arquitetura conecta o mesmo motor ao simulador e ao servidor. O núcleo local e a API estão implementados; a extensão e a interface são as próximas etapas.
 
 ```mermaid
 flowchart LR
@@ -96,20 +96,23 @@ flowchart LR
         Sim["Simulador CLI"] --> Engine["Motor determinístico"]
         Engine --> Content["Conteúdo e schemas"]
     end
-    subgraph online["Planejado · experiência online"]
+    subgraph server["Implementado · servidor"]
+        API["API · Fastify"] <--> DB[("PostgreSQL")]
+    end
+    subgraph client["Planejado · cliente"]
         UI["Webview · Preact"] <--> Ext["Extensão VS Code"]
         Ext <--> SDK["SDK HTTP"]
-        SDK <--> API["API · Fastify"]
-        API <--> DB[("PostgreSQL")]
     end
+    SDK <--> API
+    Sim -. "modo remoto" .-> API
     API --> Engine
     classDef ready fill:#173e37,stroke:#6eaf96,color:#fff
     classDef planned fill:#292e3b,stroke:#9aa6bf,color:#fff,stroke-dasharray:5 5
-    class Sim,Engine,Content ready
-    class UI,Ext,SDK,API,DB planned
+    class Sim,Engine,Content,API,DB ready
+    class UI,Ext,SDK planned
 ```
 
-**Base atual:** TypeScript, pnpm workspaces, Zod, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions. **Stack prevista para a experiência online:** Fastify, PostgreSQL, API do VS Code e Preact.
+**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions. **Stack prevista para o cliente:** API do VS Code e Preact.
 
 <details>
 <summary><strong>Explore a organização do monorepo</strong></summary>
@@ -146,8 +149,11 @@ O ESLint impede que `engine`, `content` e `protocol` importem `vscode`, `fastify
 | `pnpm build` | Compila os pacotes que têm build |
 | `pnpm dev:up` / `pnpm dev:down` | Sobe / encerra os bancos locais, preservando volumes |
 | `pnpm dev:logs` | Acompanha os logs dos contêineres |
+| `pnpm dev:api` | Sobe a API no host com recarga automática; aplica as migrações no arranque |
+| `pnpm db:migrate` | Aplica as migrações no banco de dev sem subir a API |
 | `pnpm db:psql` | Abre o PostgreSQL de desenvolvimento |
 | `pnpm test:integration` | Executa testes de integração com `TEST_DATABASE_URL` definido |
+| `pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` | Bots contra a API, com p50 e p95 por endpoint ([resultados](docs/perf-v0.1.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera segredos ausentes, preservando os existentes |
 | `pnpm docker:build` | Constrói a imagem de produção da API |
 
@@ -163,9 +169,17 @@ Para trabalhar com os bancos, instale Docker com Compose v2 e execute `pnpm dev:
 docker compose -f deploy/docker-compose.dev.yml --profile tools up -d pgweb
 ```
 
-A API está prevista para rodar no host durante o desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)). O perfil `full` reserva a porta 3000 para a imagem da API, mas o servidor HTTP ainda não está implementado.
+A API roda no host durante o desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)): `pnpm secrets:gen` cria o `deploy/.env` e `pnpm dev:api` sobe o servidor em `http://localhost:3000/v1/health`. O perfil `full` sobe a mesma API na imagem de produção, na porta 3000:
 
-`pnpm dev:api`, `pnpm db:migrate` e `pnpm dev:ext` ainda são comandos de preparação: informam a tarefa pendente no roadmap. A suíte de integração também aguarda a implementação do servidor.
+```bash
+docker compose -f deploy/docker-compose.dev.yml --profile full up -d
+```
+
+`pnpm dev:ext` ainda é um comando de preparação: informa a tarefa pendente no roadmap. A suíte de integração do servidor roda contra o `db_test`:
+
+```bash
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
+```
 
 Configurações estão em [deploy/.env.example](deploy/.env.example). `JWT_SECRET` e `RECOVERY_CODE_SECRET` são independentes; a rotação do segundo invalidará os Códigos do Reino emitidos. No WSL2, mantenha o repositório no sistema de arquivos Linux. `docker compose down -v` apaga os volumes do banco.
 
@@ -181,7 +195,8 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 | --- | --- |
 | **Fundação técnica** — monorepo, ferramentas, Docker e workflow de CI | Implementada |
 | **Motor e playtest local** — economia, construção, população, objetivos e simulador | Implementados |
-| **MVP online · v0.1** — conta, API, persistência e extensão jogável | Próxima entrega |
+| **Servidor online · v0.1** — contas, API e persistência | Implementado |
+| **Cliente · v0.1** — extensão jogável no VS Code | Próxima entrega |
 | **Estações e Conselho · v0.2** — decisões sazonais | Planejado |
 | **Guilda · v0.3** — heróis e exploração | Planejado |
 | **Guerra e Cerco · v0.4** — defesa do feudo no inverno | Planejado |
