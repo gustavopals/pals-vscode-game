@@ -23,7 +23,7 @@
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para experimentar:** o motor de economia, o simulador local e a API online (contas, partidas e progresso no servidor) estão implementados, com testes automatizados. A extensão e a interface são as próximas etapas. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
+> **Já dá para experimentar:** o motor de economia, o simulador local, a API online e a extensão do VS Code estão implementados, com testes automatizados. A extensão ainda não passou pelo roteiro manual em um VS Code real ([docs/manual-test-v0.1.md](docs/manual-test-v0.1.md)); falta também a implantação do servidor. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
 
 ### Quatro estações. Uma história para contar.
 
@@ -88,7 +88,7 @@ O desafio técnico é fazer o tempo passar de forma consistente: uma hora calcul
 
 ### Um núcleo, dois caminhos de execução
 
-A arquitetura conecta o mesmo motor ao simulador e ao servidor. O núcleo local e a API estão implementados; a extensão e a interface são as próximas etapas.
+A arquitetura conecta o mesmo motor ao simulador e ao servidor. O núcleo local, a API e o cliente estão implementados; a implantação em um servidor público é a próxima etapa.
 
 ```mermaid
 flowchart LR
@@ -99,7 +99,7 @@ flowchart LR
     subgraph server["Implementado · servidor"]
         API["API · Fastify"] <--> DB[("PostgreSQL")]
     end
-    subgraph client["Planejado · cliente"]
+    subgraph client["Implementado · cliente"]
         UI["Webview · Preact"] <--> Ext["Extensão VS Code"]
         Ext <--> SDK["SDK HTTP"]
     end
@@ -108,11 +108,10 @@ flowchart LR
     API --> Engine
     classDef ready fill:#173e37,stroke:#6eaf96,color:#fff
     classDef planned fill:#292e3b,stroke:#9aa6bf,color:#fff,stroke-dasharray:5 5
-    class Sim,Engine,Content,API,DB ready
-    class UI,Ext,SDK planned
+    class Sim,Engine,Content,API,DB,UI,Ext,SDK ready
 ```
 
-**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions. **Stack prevista para o cliente:** API do VS Code e Preact.
+**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, API do VS Code, Preact, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions.
 
 <details>
 <summary><strong>Explore a organização do monorepo</strong></summary>
@@ -175,7 +174,7 @@ A API roda no host durante o desenvolvimento ([ADR 0001](docs/decisions/0001-api
 docker compose -f deploy/docker-compose.dev.yml --profile full up -d
 ```
 
-`pnpm dev:ext` ainda é um comando de preparação: informa a tarefa pendente no roadmap. A suíte de integração do servidor roda contra o `db_test`:
+Para abrir a extensão: com a API de pé, `pnpm build` e **F5** no VS Code ("Extensão (Extension Development Host)"); `pnpm dev:ext` recompila a cada alteração. `pnpm --filter lords-of-the-guild package` gera o `.vsix`. A suíte de integração do servidor e da extensão roda contra o `db_test`:
 
 ```bash
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
@@ -196,7 +195,8 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 | **Fundação técnica** — monorepo, ferramentas, Docker e workflow de CI | Implementada |
 | **Motor e playtest local** — economia, construção, população, objetivos e simulador | Implementados |
 | **Servidor online · v0.1** — contas, API e persistência | Implementado |
-| **Cliente · v0.1** — extensão jogável no VS Code | Próxima entrega |
+| **Cliente · v0.1** — extensão jogável no VS Code | Implementado; roteiro manual pendente |
+| **Implantação · v0.1** — servidor público, backup e operação | Próxima entrega |
 | **Estações e Conselho · v0.2** — decisões sazonais | Planejado |
 | **Guilda · v0.3** — heróis e exploração | Planejado |
 | **Guerra e Cerco · v0.4** — defesa do feudo no inverno | Planejado |

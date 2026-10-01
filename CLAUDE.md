@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [MVP-ROADMAP.md](MVP-ROADMAP.md) — plano de execução da v0.1 em fases `F0…F5` e tarefas `F1-T3`, cada uma com subtarefas em caixas de seleção, seção "Verificação" e "Pronto quando". O Registro de Execução (§9) diz o que já foi feito.
 - [Decisões de arquitetura](docs/decisions/README.md) — ADRs. Os contratos dos ADRs 0003–0005 já estão no GDD; segui-los não exige nova aprovação de desvio.
 
-**Estado:** as Fases 0, 1 e 2 estão concluídas. Existem o monorepo, o Docker de desenvolvimento, o conteúdo e o motor da v0.1, o `sim-cli` (em processo e contra um servidor), os contratos da API (`@lotg/protocol`) e o servidor completo da v0.1 (`@lotg/server`), com cerca de 250 testes de integração. `client-sdk`, `extension` e `webview` ainda são esqueletos que exportam só uma constante de versão. A próxima tarefa é F3-T1.
+**Estado:** as Fases 0 a 3 estão implementadas: monorepo e Docker, conteúdo e motor da v0.1, `sim-cli`, protocolo, servidor, `client-sdk`, extensão do VS Code e Webview. A extensão **nunca foi aberta em um VS Code de verdade**: foi exercitada por testes, inclusive um que a ativa com um editor de mentira contra o servidor real. O roteiro manual está em [docs/manual-test-v0.1.md](docs/manual-test-v0.1.md), sem nenhuma execução registrada. A próxima tarefa é F4-T1.
 
 Os dois documentos somam ~2.700 linhas: leia as seções indicadas pela tarefa em vez do arquivo inteiro (ambos têm índice numerado por `§`).
 
@@ -25,6 +25,8 @@ pnpm dev:down          # derruba os contêineres de dev, mantendo os volumes
 pnpm db:psql           # psql no banco de dev; aceita argumentos: pnpm db:psql -c 'select 1'
 pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
 pnpm dev:api           # API no host com tsx watch (lê deploy/.env e aplica as migrações); http://localhost:3000/v1/health
+pnpm dev:ext           # extensão e Webview em watch; depois F5 abre o Extension Development Host
+pnpm --filter lords-of-the-guild package   # gera packages/extension/lords-of-the-guild-0.1.0.vsix
 pnpm db:migrate        # aplica as migrações no banco de dev sem subir a API
 pnpm --filter @lotg/server db:generate -- --name <nome>   # gera o SQL de uma mudança em src/db/schema.ts
 
@@ -39,14 +41,12 @@ UPDATE_GOLDEN=1 pnpm --filter @lotg/engine test   # regrava os goldens de __gold
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration            # tests/ e packages/server/test/ contra o db_test
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- games   # um arquivo de integração
 
-pnpm build             # compila os pacotes que têm build (hoje: o servidor, em um único dist/main.js)
+pnpm build             # servidor (dist/main.js), Webview (packages/extension/media/webview.*) e extensão (dist/extension.js)
 pnpm docker:build      # imagem de produção da API (lotg-api:latest, alvo runtime)
 
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico > semana.csv   # bot de playtest; resumo no stderr
 pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2                  # carga contra a API, com p50/p95
 ```
-
-`pnpm dev:ext` ainda só avisa a tarefa que o entrega (F3-T2) e sai com erro. Ao implementá-la, troque o `scripts/pending.mjs` dos pacotes `extension` e `webview` pelo comando real.
 
 Detalhes que não são óbvios:
 
@@ -56,6 +56,9 @@ Detalhes que não são óbvios:
 - Testes de integração rodam um arquivo por vez contra o PostgreSQL real; cada arquivo chama `resetTestDb()`. Os helpers de `packages/server/test/helpers/app.ts` sobem a API em memória com relógio controlado (`server.clock.advance(ms)`). O access token vale 15 minutos desse relógio: depois de avançá-lo, use `renew`. Para rodar duas suítes em paralelo, cada uma precisa do próprio banco (`create database …` no `db_test`).
 - `@types/node` e `@types/pg` foram adotados na Fase 2 sem aprovação explícita ([ADR 0006](docs/decisions/0006-types-node.md)); `engine`, `content` e `protocol` continuam com `types: []`.
 - O [ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md) (tirar as viradas de dia da Crônica) é só uma proposta: até ser aprovado, a Crônica traz uma linha por evento, como diz o roadmap.
+- Fora do editor não existe o módulo `vscode`: o Vitest o troca por `packages/extension/test/fake-vscode.ts` (alias em `vitest.config.ts`). `tests/client/extension.test.ts` ativa a extensão inteira com esse substituto contra o servidor real; é projeto `integration` e precisa de `TEST_DATABASE_URL`. O substituto é mais permissivo que o editor: passar nele não prova que funciona no VS Code.
+- Os testes da extensão e da Webview usam como `ViewState` de exemplo o golden do motor, importado por caminho relativo (`../../engine/src/__golden__/view-seed-pedra-alta.json`): importar `@lotg/engine` ali é barrado pelo lint.
+- A extensão é empacotada em CommonJS (`dist/extension.js`) e o `package.json` dela não tem `"type": "module"`: é como o VS Code carrega. A Webview sai em `packages/extension/media/webview.{js,css}` (ignorados pelo git) e é o que vai no `.vsix`, conforme `.vscodeignore`.
 - TypeScript está fixado em 6.x porque o `typescript-eslint` ainda não aceita o 7.
 - O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. O esbuild empacota o servidor inteiro, com as dependências, em `dist/main.js`: a imagem não tem `node_modules`. Uma dependência nova com binário nativo ou arquivos lidos em tempo de execução precisa ser tratada em `packages/server/esbuild.mjs`.
 - As migrações são geradas pelo drizzle-kit em `deploy/migrations` (`0000_init.sql`, não `0001`) e aplicadas no arranque sob `pg_advisory_lock(727)`.
@@ -101,6 +104,19 @@ O [README do servidor](packages/server/README.md) descreve a estrutura e os cont
 - Quando uma operação precisa de commit antes de responder com erro (reuso de refresh token, recusa do motor), o desfecho sai da transação como valor e o erro é lançado depois: lançar dentro de `db.transaction` desfaz tudo.
 - O protocolo valida só a forma dos comandos; faixas e regras são recusadas pelo motor, com frase em português (`422 GAME_RULE`).
 - `Command`, `ViewState` e os códigos de recusa do protocolo têm teste de igualdade de tipos com os do motor: mudar um lado quebra o `pnpm typecheck`.
+
+### Cliente (`packages/client-sdk`, `packages/extension`, `packages/webview`)
+
+- **`client-sdk`**: `createClient({ baseUrl, tokenStore, clientVersion, fetch })`. Renova a sessão sozinho em `401 UNAUTHORIZED`, com uma renovação por vez, relendo antes o `TokenStore` (outra janela do VS Code pode já ter renovado); `SESSION_REVOKED` ou refresh recusado limpam o `TokenStore` e chamam `onUnauthenticated`. A rotação nunca é repetida em falha de rede. Leituras e comandos repetem em falha de rede (o comando, com o mesmo `commandId`). A recusa do motor sai como `GameRuleClientError`, com o estado avançado em `details`.
+- **Extensão**: a lógica fica em módulos sem `vscode`, testáveis sozinhos: `account/accountService.ts` (conta nesta máquina), `game/gameSession.ts` (ciclo de 30 s/2 min, cache, conexão, comandos), `notifications/policy.ts`, `ui/treeModel.ts` e `ui/format.ts` (árvore e barra de status como dados). `controller.ts` junta tudo e é a única fonte de estado para árvore, barra de status, painel e comandos; a cola com o editor fica em `ui/treeProvider.ts`, `ui/statusBar.ts`, `ui/panel.ts`, `notifications/notifier.ts` e `commands/*.ts`.
+- Uma ordem do jogador nasce em `controller.prepare(tipo, payload)`, que fixa o `commandId` e devolve a função de envio: "Tentar de novo" chama a mesma função e reenvia a mesma ordem. Nunca gere outro `commandId` para uma retentativa.
+- Clicar em um item da árvore só abre o painel; ordens saem de botões explícitos (`contextValue` + `menus` no manifesto). No editor real, selecionar um item já dispara o `command` dele.
+- O Relatório de Retorno não abre o painel sozinho e os eventos da ausência não viram notificações (`session.catchingUp`).
+- Números de regra não são escritos no cliente (nem em textos): o que o jogador precisa ver vem no `ViewState` (por exemplo `constructions.active.refund`).
+- As mudanças de conta passam por uma fila no `Controller` (`enqueue`): "Jogar agora" muda a conta duas vezes seguidas e, sem a fila, o tratamento da primeira fecha a sessão que a segunda abriu.
+- Cache em `globalState` com chave por servidor, conta e partida (`cacheKey`); tokens só no `SecretStorage`. Sair, excluir e perder a sessão apagam os dois.
+- **Webview**: `state.ts` é um redutor puro sobre as mensagens da extensão; `app.tsx` e `components/` só exibem. O painel manda `ready`, `command`, `navigate`, `playNow` e `action`, validados pela extensão com `WebviewToExtensionSchema`. Nenhuma conta sobre o jogo é feita no cliente: o que falta no `ViewState` é acrescentado no motor (foi assim com `workers[].perWorkerPerHour`).
+- `styles.css` usa só variáveis `--vscode-*`; um teste falha se aparecer uma cor fixa.
 
 ### Contratos do servidor e do cliente (GDD §14.5–14.10)
 

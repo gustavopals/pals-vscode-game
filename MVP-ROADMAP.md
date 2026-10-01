@@ -792,12 +792,12 @@ Esperado: `api` `healthy`; usuário não root.
 **Depende de:** F2-T9.
 **Entregáveis:** `packages/client-sdk/src/{client,tokens,errors,retry}.ts`, testes com `fetch` simulado.
 
-- [ ] F3-T1.1 `createClient({ baseUrl, tokenStore, fetch, clientVersion })`; `TokenStore` é uma interface (`get/set/clear`) implementada pela extensão com `SecretStorage` e pelo `sim-cli` em memória.
-- [ ] F3-T1.2 Um método por endpoint da v0.1, com tipos do `@lotg/protocol`; respostas validadas por zod em modo dev.
-- [ ] F3-T1.3 401 `UNAUTHORIZED` em chamada autenticada → refresh **single-flight** (uma renovação por vez) → repete a chamada uma vez. `SESSION_REVOKED` ou refresh inválido chama `onUnauthenticated()` sem tentar outro refresh. A rotação em si não recebe retentativa automática em falha de rede: o token pode já ter sido consumido; mostrar necessidade de nova autenticação se o resultado não puder ser confirmado. Após renovação bem-sucedida, substituir os tokens juntos no `TokenStore`.
-- [ ] F3-T1.4 `getView(gameId, { etag })` devolve `{ status: 200, view, stateVersion, etag }` ou `{ status: 304, etag }`. `sendCommand` conserva `commandId` e payload nas retentativas em falha de rede, aceita versão conhecida via `X-Lords-State-Version` e expõe `X-Lords-Replayed` como metadado `replayed`, fora do corpo original. Após recibo repetido, a sessão de jogo busca view/eventos atuais; nova intenção usa outro UUID. GETs com retentativa exponencial (3 tentativas).
-- [ ] F3-T1.5 Erros: `ApiClientError { status, code, message, details, replayed }` e `NetworkError`; cabeçalhos `X-Lords-Protocol` e `X-Lords-Client`. Tipar `GAME_RULE.details` para que a UI atualize a view avançada e os eventos antes de mostrar a recusa, exceto em recibo repetido, que exige nova leitura.
-- [ ] F3-T1.6 Testes: refresh concorrente e sem retentativa cega, sessão revogada sem refresh, 304, ETag diferente com mesma versão, retentativa com UUID/payload preservados, reenvio de sucesso/422 exposto como metadado, mapeamento de erros e `UPGRADE_REQUIRED`.
+- [x] F3-T1.1 `createClient({ baseUrl, tokenStore, fetch, clientVersion })`; `TokenStore` é uma interface (`get/set/clear`) implementada pela extensão com `SecretStorage` e pelo `sim-cli` em memória.
+- [x] F3-T1.2 Um método por endpoint da v0.1, com tipos do `@lotg/protocol`; respostas validadas por zod em modo dev.
+- [x] F3-T1.3 401 `UNAUTHORIZED` em chamada autenticada → refresh **single-flight** (uma renovação por vez) → repete a chamada uma vez. `SESSION_REVOKED` ou refresh inválido chama `onUnauthenticated()` sem tentar outro refresh. A rotação em si não recebe retentativa automática em falha de rede: o token pode já ter sido consumido; mostrar necessidade de nova autenticação se o resultado não puder ser confirmado. Após renovação bem-sucedida, substituir os tokens juntos no `TokenStore`.
+- [x] F3-T1.4 `getView(gameId, { etag })` devolve `{ status: 200, view, stateVersion, etag }` ou `{ status: 304, etag }`. `sendCommand` conserva `commandId` e payload nas retentativas em falha de rede, aceita versão conhecida via `X-Lords-State-Version` e expõe `X-Lords-Replayed` como metadado `replayed`, fora do corpo original. Após recibo repetido, a sessão de jogo busca view/eventos atuais; nova intenção usa outro UUID. GETs com retentativa exponencial (3 tentativas).
+- [x] F3-T1.5 Erros: `ApiClientError { status, code, message, details, replayed }` e `NetworkError`; cabeçalhos `X-Lords-Protocol` e `X-Lords-Client`. Tipar `GAME_RULE.details` para que a UI atualize a view avançada e os eventos antes de mostrar a recusa, exceto em recibo repetido, que exige nova leitura.
+- [x] F3-T1.6 Testes: refresh concorrente e sem retentativa cega, sessão revogada sem refresh, 304, ETag diferente com mesma versão, retentativa com UUID/payload preservados, reenvio de sucesso/422 exposto como metadado, mapeamento de erros e `UPGRADE_REQUIRED`.
 
 **Verificação:**
 
@@ -816,10 +816,10 @@ pnpm --filter @lotg/client-sdk test
 **Depende de:** F3-T1.
 **Entregáveis:** `packages/extension/{package.json,src/extension.ts,src/services/tokenStore.ts,esbuild.mjs}`, `packages/webview/esbuild.mjs`, `.vscode/launch.json`, `.vscode/tasks.json`, ícone SVG.
 
-- [ ] F3-T2.1 `package.json` da extensão: `contributes.viewsContainers.activitybar` (`lords`, ícone), `views` (`lords.tree`), `commands` (todos os `Lords: …` da v0.1, mesmo que ainda sem implementação), `configuration` (`lords.serverUrl`, `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`), `activationEvents` por view e comandos, `engines.vscode ^1.90`.
-- [ ] F3-T2.2 Build: esbuild empacota a extensão em `dist/extension.js` (CommonJS, `external: ['vscode']`, `platform: node`) e a Webview em `media/webview.{js,css}` (ESM, Preact); `pnpm dev:ext` em modo watch.
-- [ ] F3-T2.3 `extension.ts`: `activate` cria `OutputChannel` "Lords of the Guild", instancia `TokenStore` (SecretStorage), cliente do SDK com `lords.serverUrl`, e registra árvore e comandos com implementações provisórias ("em construção").
-- [ ] F3-T2.4 `.vscode/launch.json` (Extension Development Host) e `tasks.json` (watch) funcionando com F5.
+- [x] F3-T2.1 `package.json` da extensão: `contributes.viewsContainers.activitybar` (`lords`, ícone), `views` (`lords.tree`), `commands` (todos os `Lords: …` da v0.1, mesmo que ainda sem implementação), `configuration` (`lords.serverUrl`, `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`), `activationEvents` por view e comandos, `engines.vscode ^1.90`.
+- [x] F3-T2.2 Build: esbuild empacota a extensão em `dist/extension.js` (CommonJS, `external: ['vscode']`, `platform: node`) e a Webview em `media/webview.{js,css}` (ESM, Preact); `pnpm dev:ext` em modo watch.
+- [x] F3-T2.3 `extension.ts`: `activate` cria `OutputChannel` "Lords of the Guild", instancia `TokenStore` (SecretStorage), cliente do SDK com `lords.serverUrl`, e registra árvore e comandos com implementações provisórias ("em construção").
+- [x] F3-T2.4 `.vscode/launch.json` (Extension Development Host) e `tasks.json` (watch) funcionando com F5.
 
 **Verificação:** F5 abre o host de desenvolvimento; o ícone aparece na Activity Bar; a árvore mostra "Jogar agora" como item provisório; `Lords: Sobre` mostra a versão do servidor lida de `/v1/version`.
 
@@ -834,13 +834,13 @@ pnpm --filter @lotg/client-sdk test
 **Depende de:** F3-T2.
 **Entregáveis:** `packages/extension/src/account/{accountService,githubLink,recoveryCode}.ts`, rota `welcome` da Webview, comandos de conta, testes dos módulos puros.
 
-- [ ] F3-T3.1 `AccountService` com estados `signedOut | anonymous | linked` persistidos (tokens no `SecretStorage`, metadados em `globalState`), eventos de mudança para árvore e status bar.
-- [ ] F3-T3.2 Tela de boas-vindas (Webview, rota `welcome`): nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub", "Usar Código do Reino". Na v0.1 não há seleção de dificuldade nem ritmo (v0.2). Envia `timezone` detectado e `lords.vigilHour`.
-- [ ] F3-T3.3 Jogar agora → `POST /auth/anonymous` → `POST /games` → abre a aba Feudo. Tempo alvo: menos de 5 s de rede em condições normais.
-- [ ] F3-T3.4 GitHub: `vscode.authentication.getSession('github', ['read:user'], { createIfNone: true })` → `POST /auth/github`; em `ACCOUNT_CONFLICT`, QuickPick com duas opções descritas ("Usar o feudo já vinculado ao GitHub (este feudo anônimo será excluído)" / "Manter este feudo e mover o vínculo para ele"); nunca mesclar.
-- [ ] F3-T3.5 Código do Reino: `Lords: Gerar Código do Reino` mostra o código em modal com "Copiar" e aviso de exibição única; `Lords: Entrar com Código do Reino` abre `InputBox` com validação de formato. "Sair desta máquina" revoga a sessão e limpa tokens, view, ETag e cursor locais. "Excluir conta" exige confirmação e nome do feudo; explica bloqueio imediato, remoção pelo job após sete dias e retenção dos backups por 14 dias desde sua geração. Após 202, limpa os mesmos dados e volta às boas-vindas; não oferece desfazer. `SESSION_REVOKED` também limpa os dados locais da conta.
-- [ ] F3-T3.6 Lembrete único do dia 3 (flag em `globalState`) com botão "Não lembrar mais".
-- [ ] F3-T3.7 Testes dos módulos puros (validação do código, máquina de estados, montagem do corpo de criação de partida).
+- [x] F3-T3.1 `AccountService` com estados `signedOut | anonymous | linked` persistidos (tokens no `SecretStorage`, metadados em `globalState`), eventos de mudança para árvore e status bar.
+- [x] F3-T3.2 Tela de boas-vindas (Webview, rota `welcome`): nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub", "Usar Código do Reino". Na v0.1 não há seleção de dificuldade nem ritmo (v0.2). Envia `timezone` detectado e `lords.vigilHour`.
+- [x] F3-T3.3 Jogar agora → `POST /auth/anonymous` → `POST /games` → abre a aba Feudo. Tempo alvo: menos de 5 s de rede em condições normais.
+- [x] F3-T3.4 GitHub: `vscode.authentication.getSession('github', ['read:user'], { createIfNone: true })` → `POST /auth/github`; em `ACCOUNT_CONFLICT`, QuickPick com duas opções descritas ("Usar o feudo já vinculado ao GitHub (este feudo anônimo será excluído)" / "Manter este feudo e mover o vínculo para ele"); nunca mesclar.
+- [x] F3-T3.5 Código do Reino: `Lords: Gerar Código do Reino` mostra o código em modal com "Copiar" e aviso de exibição única; `Lords: Entrar com Código do Reino` abre `InputBox` com validação de formato. "Sair desta máquina" revoga a sessão e limpa tokens, view, ETag e cursor locais. "Excluir conta" exige confirmação e nome do feudo; explica bloqueio imediato, remoção pelo job após sete dias e retenção dos backups por 14 dias desde sua geração. Após 202, limpa os mesmos dados e volta às boas-vindas; não oferece desfazer. `SESSION_REVOKED` também limpa os dados locais da conta.
+- [x] F3-T3.6 Lembrete único do dia 3 (flag em `globalState`) com botão "Não lembrar mais".
+- [x] F3-T3.7 Testes dos módulos puros (validação do código, máquina de estados, montagem do corpo de criação de partida).
 
 **Verificação:** roteiro manual: criar conta em um perfil do VS Code; em outro perfil (`code --user-data-dir /tmp/lotg-b`), entrar com o código; o mesmo feudo aparece. Repetir com GitHub.
 
@@ -855,11 +855,11 @@ pnpm --filter @lotg/client-sdk test
 **Depende de:** F3-T3.
 **Entregáveis:** `packages/extension/src/game/{gameSession,connection,returnReport}.ts`, testes com temporizadores falsos.
 
-- [ ] F3-T4.1 `GameSession`: ciclo de 30 s com o painel visível, 2 min com ele oculto; `getView` com ETag; `getEvents(after)` com `lastSeq` persistido; eventos `onView`, `onEvents`, `onConnection`. Recibo repetido dispara leitura atual sem reaplicar eventos antigos ou substituir a tela por uma view antiga; consumir eventos novos pelo cursor evita notificações duplicadas.
-- [ ] F3-T4.2 Máquina de conexão `online | offline(retryIn) | unauthenticated`; recuo exponencial 5 s → 60 s; ao voltar, sincroniza imediatamente.
-- [ ] F3-T4.3 Cache: último `ViewState`, `stateVersion`, ETag, cursor e `lastSeenAt` em `globalState`, separados por servidor, conta e partida; sem conexão, a UI recebe o cache com `connection: offline`. Logout, exclusão e revogação apagam o cache da conta local; falha de autenticação não é tratada como modo offline.
-- [ ] F3-T4.4 Relatório de Retorno: ao ativar, se `now − lastSeenAt ≥ 4 h`, busca eventos desde `lastSeq`, monta resumo (produção estimada a partir da diferença de estoques, obras concluídas, recrutas, fome) e abre a rota `today`.
-- [ ] F3-T4.5 Testes: cadência com `vi.useFakeTimers`, recuo, cache servido quando o `fetch` falha, limiar de 4 h, reenvio sem regressão de tela/notificação duplicada e limpeza de cache em logout/exclusão/revogação.
+- [x] F3-T4.1 `GameSession`: ciclo de 30 s com o painel visível, 2 min com ele oculto; `getView` com ETag; `getEvents(after)` com `lastSeq` persistido; eventos `onView`, `onEvents`, `onConnection`. Recibo repetido dispara leitura atual sem reaplicar eventos antigos ou substituir a tela por uma view antiga; consumir eventos novos pelo cursor evita notificações duplicadas.
+- [x] F3-T4.2 Máquina de conexão `online | offline(retryIn) | unauthenticated`; recuo exponencial 5 s → 60 s; ao voltar, sincroniza imediatamente.
+- [x] F3-T4.3 Cache: último `ViewState`, `stateVersion`, ETag, cursor e `lastSeenAt` em `globalState`, separados por servidor, conta e partida; sem conexão, a UI recebe o cache com `connection: offline`. Logout, exclusão e revogação apagam o cache da conta local; falha de autenticação não é tratada como modo offline.
+- [x] F3-T4.4 Relatório de Retorno: ao ativar, se `now − lastSeenAt ≥ 4 h`, busca eventos desde `lastSeq`, monta resumo (produção estimada a partir da diferença de estoques, obras concluídas, recrutas, fome) e abre a rota `today`.
+- [x] F3-T4.5 Testes: cadência com `vi.useFakeTimers`, recuo, cache servido quando o `fetch` falha, limiar de 4 h, reenvio sem regressão de tela/notificação duplicada e limpeza de cache em logout/exclusão/revogação.
 
 **Verificação:**
 
@@ -880,10 +880,10 @@ Manual: derrubar a API (`Ctrl+C` no `dev:api`) com o painel aberto → banner "S
 **Depende de:** F3-T4.
 **Entregáveis:** `packages/extension/src/ui/{treeProvider,statusBar}.ts`, testes de formatação.
 
-- [ ] F3-T5.1 Itens: "Hoje em <feudo>" (badge: itens não vistos do relatório), "Feudo: <nome> · <estação>, dia N" com filhos Recursos (estoque e taxa com sinal), Trabalhadores (alocados por edifício com ações inline `+`/`−`), Construções (obra ativa com tempo restante; melhorias disponíveis), Crônica (últimas 5 linhas), Conta (estado e ações), Configurações (abre as settings da extensão).
-- [ ] F3-T5.2 Tooltips com o `breakdown` do `ViewState`; descrições truncadas com reticências; atualização com debounce de 500 ms; clique abre a aba correspondente.
-- [ ] F3-T5.3 Status bar com prioridade: fome (`$(warning) Fome em Pedra Alta`) > obra ativa (`$(tools) Serraria Nv2 · 00:42`) > padrão (`$(home) Pedra Alta · +15 comida/h`); sem conexão: `$(debug-disconnect) Sem ligação com o reino`; modo discreto: `$(circle-filled) 00:42`. Clique abre o painel. Contagem regressiva local atualizada a cada 30 s (não por segundo, para não distrair).
-- [ ] F3-T5.4 Testes das funções puras de formatação (tempo restante, sinal de taxa, prioridade).
+- [x] F3-T5.1 Itens: "Hoje em <feudo>" (badge: itens não vistos do relatório), "Feudo: <nome> · <estação>, dia N" com filhos Recursos (estoque e taxa com sinal), Trabalhadores (alocados por edifício com ações inline `+`/`−`), Construções (obra ativa com tempo restante; melhorias disponíveis), Crônica (últimas 5 linhas), Conta (estado e ações), Configurações (abre as settings da extensão).
+- [x] F3-T5.2 Tooltips com o `breakdown` do `ViewState`; descrições truncadas com reticências; atualização com debounce de 500 ms; clique abre a aba correspondente.
+- [x] F3-T5.3 Status bar com prioridade: fome (`$(warning) Fome em Pedra Alta`) > obra ativa (`$(tools) Serraria Nv2 · 00:42`) > padrão (`$(home) Pedra Alta · +15 comida/h`); sem conexão: `$(debug-disconnect) Sem ligação com o reino`; modo discreto: `$(circle-filled) 00:42`. Clique abre o painel. Contagem regressiva local atualizada a cada 30 s (não por segundo, para não distrair).
+- [x] F3-T5.4 Testes das funções puras de formatação (tempo restante, sinal de taxa, prioridade).
 
 **Verificação:** manual com F5: alocar via `+` na árvore muda a taxa imediatamente; concluir uma obra remove o item da status bar.
 
@@ -898,10 +898,10 @@ Manual: derrubar a API (`Ctrl+C` no `dev:api`) com o painel aberto → banner "S
 **Depende de:** F3-T5.
 **Entregáveis:** `packages/extension/src/commands/*.ts`.
 
-- [ ] F3-T6.1 `Lords: Abrir painel`, `Lords: Alocar trabalhadores…` (QuickPick de edifícios → `InputBox` com a taxa resultante no texto de validação), `Lords: Construir ou melhorar…` (QuickPick com custo, tempo e `$(check)`/`$(lock)` por acessibilidade), `Lords: Recrutar aldeões…` (`InputBox` 1–5 com vagas no prompt), `Lords: Nova partida` (modal com confirmação; `replaceActive: true`).
-- [ ] F3-T6.2 `Lords: Exportar Crônica (Markdown)` abre `chronicle.md` em um editor novo não salvo; `Lords: Sobre` (versão da extensão, do servidor e hash do conteúdo); `Lords: Modo discreto` alterna a configuração.
-- [ ] F3-T6.3 Comandos de conta de F3-T3 registrados no mesmo módulo.
-- [ ] F3-T6.4 Recusas do motor (`GAME_RULE`) aparecem como `showWarningMessage` com a mensagem em português; erros de rede como `showErrorMessage` com botão "Tentar de novo".
+- [x] F3-T6.1 `Lords: Abrir painel`, `Lords: Alocar trabalhadores…` (QuickPick de edifícios → `InputBox` com a taxa resultante no texto de validação), `Lords: Construir ou melhorar…` (QuickPick com custo, tempo e `$(check)`/`$(lock)` por acessibilidade), `Lords: Recrutar aldeões…` (`InputBox` 1–5 com vagas no prompt), `Lords: Nova partida` (modal com confirmação; `replaceActive: true`).
+- [x] F3-T6.2 `Lords: Exportar Crônica (Markdown)` abre `chronicle.md` em um editor novo não salvo; `Lords: Sobre` (versão da extensão, do servidor e hash do conteúdo); `Lords: Modo discreto` alterna a configuração.
+- [x] F3-T6.3 Comandos de conta de F3-T3 registrados no mesmo módulo.
+- [x] F3-T6.4 Recusas do motor (`GAME_RULE`) aparecem como `showWarningMessage` com a mensagem em português; erros de rede como `showErrorMessage` com botão "Tentar de novo".
 
 **Verificação:** manual: jogar 10 minutos só com a paleta (sem mouse) e registrar fricções em `docs/manual-test-v0.1.md`.
 
@@ -916,12 +916,12 @@ Manual: derrubar a API (`Ctrl+C` no `dev:api`) com o painel aberto → banner "S
 **Depende de:** F3-T6.
 **Entregáveis:** `packages/webview/src/{app,bridge,theme}.tsx`, `components/{Header,ResourcesTable,WorkersPanel,ConstructionsPanel,ObjectivesPanel,ChroniclePanel,FamineBanner,OfflineBanner,Welcome,Today}.tsx`, `styles.css`, `packages/extension/src/ui/panel.ts`.
 
-- [ ] F3-T7.1 `panel.ts`: `WebviewPanel` único (`retainContextWhenHidden: true`), CSP com nonce, recursos via `asWebviewUri`, ponte de mensagens tipada pelo `@lotg/protocol`, rotas `welcome | today | fief`.
-- [ ] F3-T7.2 Tema: só variáveis `--vscode-*` (texto, fundo, bordas, botões, foco, avisos); nenhuma cor fixa; testar em Dark Modern, Light Modern e High Contrast.
-- [ ] F3-T7.3 Aba Feudo: cabeçalho (nome, Salão, calendário, população), tabela de recursos (estoque, cap "—", por hora com sinal, tooltip com `breakdown`), trabalhadores com `−`/`+` (teclado: setas, `+`, `-`), construções (ativa com barra e contagem regressiva local por segundo; planejadas; disponíveis com custos em "chips", destacando o que falta), objetivos, Crônica (10 linhas), banners de fome e de conexão.
-- [ ] F3-T7.4 Aba Hoje: Relatório de Retorno (F3-T4) e atalhos para as decisões; na v0.1 "decisões pendentes" fica vazia com texto explicativo.
-- [ ] F3-T7.5 Acessibilidade: ordem de tabulação lógica, foco visível, `aria-live` para a tabela de recursos (educado), `prefers-reduced-motion`, largura mínima 480 px sem rolagem horizontal, números em pt-BR com `Intl.NumberFormat`.
-- [ ] F3-T7.6 Testes das funções de formatação e, opcionalmente, snapshots com `preact-render-to-string` (parte do ecossistema Preact).
+- [x] F3-T7.1 `panel.ts`: `WebviewPanel` único (`retainContextWhenHidden: true`), CSP com nonce, recursos via `asWebviewUri`, ponte de mensagens tipada pelo `@lotg/protocol`, rotas `welcome | today | fief`.
+- [x] F3-T7.2 Tema: só variáveis `--vscode-*` (texto, fundo, bordas, botões, foco, avisos); nenhuma cor fixa; testar em Dark Modern, Light Modern e High Contrast.
+- [x] F3-T7.3 Aba Feudo: cabeçalho (nome, Salão, calendário, população), tabela de recursos (estoque, cap "—", por hora com sinal, tooltip com `breakdown`), trabalhadores com `−`/`+` (teclado: setas, `+`, `-`), construções (ativa com barra e contagem regressiva local por segundo; planejadas; disponíveis com custos em "chips", destacando o que falta), objetivos, Crônica (10 linhas), banners de fome e de conexão.
+- [x] F3-T7.4 Aba Hoje: Relatório de Retorno (F3-T4) e atalhos para as decisões; na v0.1 "decisões pendentes" fica vazia com texto explicativo.
+- [x] F3-T7.5 Acessibilidade: ordem de tabulação lógica, foco visível, `aria-live` para a tabela de recursos (educado), `prefers-reduced-motion`, largura mínima 480 px sem rolagem horizontal, números em pt-BR com `Intl.NumberFormat`.
+- [x] F3-T7.6 Testes das funções de formatação e, opcionalmente, snapshots com `preact-render-to-string` (parte do ecossistema Preact).
 
 **Verificação:** manual nos três temas; `Tab` percorre todos os controles; `+` na Fazenda muda a taxa em menos de 1 s; a contagem regressiva termina junto com a notificação de obra concluída.
 
@@ -936,9 +936,9 @@ Manual: derrubar a API (`Ctrl+C` no `dev:api`) com o painel aberto → banner "S
 **Depende de:** F3-T7.
 **Entregáveis:** `packages/extension/src/notifications/{policy,notifier}.ts`, testes.
 
-- [ ] F3-T8.1 `policy.ts` (puro): entrada = eventos novos + configuração + silêncio ativo + histórico da última hora; saída = notificações a exibir. `silent` nada; `essential` só `famineStarted` na v0.1; `all` inclui `constructionFinished`, `recruitmentFinished`, `objectiveCompleted`. Máximo 3 por hora; excedente vira badge na árvore.
-- [ ] F3-T8.2 `notifier.ts`: `showInformationMessage`/`showWarningMessage` com botões `[Ver]` (abre o painel na aba certa) e `[Silenciar 2h]`; respeita o modo discreto (suprime tudo).
-- [ ] F3-T8.3 Testes: limite por hora, silêncio, modo discreto, mapeamento por nível.
+- [x] F3-T8.1 `policy.ts` (puro): entrada = eventos novos + configuração + silêncio ativo + histórico da última hora; saída = notificações a exibir. `silent` nada; `essential` só `famineStarted` na v0.1; `all` inclui `constructionFinished`, `recruitmentFinished`, `objectiveCompleted`. Máximo 3 por hora; excedente vira badge na árvore.
+- [x] F3-T8.2 `notifier.ts`: `showInformationMessage`/`showWarningMessage` com botões `[Ver]` (abre o painel na aba certa) e `[Silenciar 2h]`; respeita o modo discreto (suprime tudo).
+- [x] F3-T8.3 Testes: limite por hora, silêncio, modo discreto, mapeamento por nível.
 
 **Verificação:**
 
@@ -957,8 +957,8 @@ pnpm --filter lords-of-the-guild test -- policy
 **Depende de:** F3-T8.
 **Entregáveis:** testes faltantes, `docs/manual-test-v0.1.md`.
 
-- [ ] F3-T9.1 Cobertura ≥ 80% nos módulos puros da extensão (`account`, `game`, `notifications`, `ui/format`).
-- [ ] F3-T9.2 `docs/manual-test-v0.1.md`: um roteiro passo a passo por critério de aceitação (§8 deste arquivo), com pré-condições, passos, resultado esperado e campo para evidência (captura ou saída). Inclui o truque de "segunda máquina" com `code --user-data-dir`.
+- [x] F3-T9.1 Cobertura ≥ 80% nos módulos puros da extensão (`account`, `game`, `notifications`, `ui/format`).
+- [x] F3-T9.2 `docs/manual-test-v0.1.md`: um roteiro passo a passo por critério de aceitação (§8 deste arquivo), com pré-condições, passos, resultado esperado e campo para evidência (captura ou saída). Inclui o truque de "segunda máquina" com `code --user-data-dir`.
 
 **Verificação:** executar o roteiro inteiro uma vez contra o servidor local e registrar o resultado.
 
@@ -973,8 +973,8 @@ pnpm --filter lords-of-the-guild test -- policy
 **Depende de:** F3-T9.
 **Entregáveis:** `packages/extension/{README.md,CHANGELOG.md,icon.png}`, `lords-of-the-guild-0.1.0.vsix`.
 
-- [ ] F3-T10.1 Ícone 128×128, `README.md` da extensão (o que é, como começar, o parágrafo de privacidade do GDD §14.14, como trocar `lords.serverUrl`), `CHANGELOG.md`.
-- [ ] F3-T10.2 `vsce package` sem avisos; `code --install-extension` em um perfil limpo funciona; `lords.serverUrl` padrão aponta para a URL de produção (preenchida após F4-T3; até lá, placeholder documentado).
+- [x] F3-T10.1 Ícone 128×128, `README.md` da extensão (o que é, como começar, o parágrafo de privacidade do GDD §14.14, como trocar `lords.serverUrl`), `CHANGELOG.md`.
+- [x] F3-T10.2 `vsce package` sem avisos; `code --install-extension` em um perfil limpo funciona; `lords.serverUrl` padrão aponta para a URL de produção (preenchida após F4-T3; até lá, placeholder documentado).
 - [ ] F3-T10.3 **Decisão sua:** publicar no Marketplace (exige `publisher` e token) ou distribuir o `.vsix` entre o grupo.
 
 **Verificação:**
@@ -1205,16 +1205,16 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F2-T7 | 2026-10-01 | `2b20231` | 1 | 42 testes de esquema e jobs (subagente), sem divergências. Jobs testados por chamada direta com relógio injetado. Com `ADVANCE_JOB_INTERVAL_MS=1000` em dev, o agendador real avançou uma partida abandonada 12 vezes em 12 s sem nenhuma requisição; o evento de virada de dia em si (2 h reais) só foi conferido com o relógio injetado. |
 | F2-T8 | 2026-10-01 | `f74b245` | 1 | Cinco cenários de ponta a ponta em `tests/server/`. Carga com 50 bots por 2 min: p95 de 7,8 ms em `/view` e 14,1 ms em `/commands` (metas 50 e 80). Com os bots em rajada sincronizada, as metas não são atingidas (81,6 e 147,4 ms); detalhes em `docs/perf-v0.1.md`. O modo remoto usa `fetch` direto até existir o `client-sdk`. |
 | F2-T9 | 2026-10-01 | `e3dd414` | 1 | Imagem construída com `--no-cache` sobe saudável em 2 s, usuário `node`; 10 bots contra o contêiner sem erros. O servidor vai inteiro em `dist/main.js` (esbuild), sem `node_modules`: o sistema de arquivos tem 235 MB (a base tem 232). O `docker image ls` desta máquina mostra 330 MB, por conta do armazenamento do Docker Desktop. |
-| F3-T1 | | | | |
-| F3-T2 | | | | |
-| F3-T3 | | | | |
-| F3-T4 | | | | |
-| F3-T5 | | | | |
-| F3-T6 | | | | |
-| F3-T7 | | | | |
-| F3-T8 | | | | |
-| F3-T9 | | | | |
-| F3-T10 | | | | |
+| F3-T1 | 2026-10-01 | `ea260bd` | 1 | 33 testes com `fetch` simulado. 5 chamadas simultâneas com token expirado disparam exatamente 1 `POST /auth/refresh`. O `sim-cli --remote` passou a jogar pelo SDK (10 bots contra a API local, sem erros). |
+| F3-T2 | 2026-10-01 | `ea260bd` | 1 | `pnpm build` produz `dist/extension.js` (CommonJS, 494 kB) e `media/webview.{js,css}`. Uma revisão independente do cliente (subagente, só leitura) apontou 12 defeitos confirmados e 6 riscos, tratados com teste: refresh repetido às cegas dentro das retentativas; duas janelas do VS Code revogando a sessão uma da outra (o SDK agora relê o `TokenStore` antes de renovar; a corrida exata entre dois processos ainda é possível); "Entrar com GitHub" preso nas boas-vindas; partida arquivada em outra máquina nunca revalidada; "Tentar de novo" com `commandId` novo; clique na árvore iniciando obra; painel abrindo sozinho na inicialização; boas-vindas travadas após sair sem conexão; leitura em voo sobrescrevendo a visão de um comando; cache de partidas arquivadas sobrevivendo ao logout; `lords.serverUrl` sobrescrevível por workspace; ciclo em 2 min após trocar de servidor. **Não verificado:** F5 e a ativação em um VS Code real. A ativação foi exercitada por `tests/client/extension.test.ts`, com um editor de mentira contra o servidor real. Entregue no mesmo commit de F3-T3 a F3-T8. |
+| F3-T3 | 2026-10-01 | `ea260bd` | 1 | Do painel de boas-vindas ao Feudo: 2 campos, 1 clique e 2 requisições (testado). GitHub, conflito e Código do Reino testados com o editor de mentira; o login real do GitHub não. Sem seleção de dificuldade nem ritmo. Não há comando para renomear quem governa (o servidor aceita; nenhuma tarefa pede). |
+| F3-T4 | 2026-10-01 | `ea260bd` | 1 | Cadência de 30 s/2 min, recuo de 5 a 60 s, cache por servidor/conta/partida e Relatório de Retorno testados com temporizadores falsos. O relatório não abre o painel sozinho: marca novidades na árvore e na barra de status, e o painel abre na aba Hoje (GDD §13.5); os eventos da ausência não viram notificações avulsas. Sem ligação, nenhum comando é enviado nem enfileirado. O teste manual de derrubar a API com o painel aberto não foi feito. |
+| F3-T5 | 2026-10-01 | `ea260bd` | 1 | Árvore e barra de status são funções puras (`treeModel.ts`, `format.ts`) com teste; toda ação da árvore tem comando na paleta. A contagem regressiva usa horas e minutos (`00:42`) e anda a cada 30 s. |
+| F3-T6 | 2026-10-01 | `ea260bd` | 1 | 23 comandos, todos com prefixo "Lords:" e implementação (um teste compara o manifesto com os registrados). Acrescentei `Cancelar a obra`, `Planejar ou desplanejar`, `Renomear o feudo`, `Atualizar agora`, `Silenciar notificações` e `Privacidade`. Clicar em um item da árvore só abre o painel; as ordens saem dos botões do item. Para o cliente não calcular regras, o `ViewState` ganhou `workers[].perWorkerPerHour` e `constructions.active.refund`. O teste de 10 minutos só com a paleta não foi feito. |
+| F3-T7 | 2026-10-01 | `ea260bd` | 1 | Rotas `welcome`, `today` e `fief` em Preact (29 kB). `styles.css` sem nenhuma cor fixa (teste). CSP com nonce conferida no HTML gerado. Testes por renderização em texto: cliques, teclado, foco e os três temas **não foram verificados**. O protocolo da Webview ganhou `ready`, `playNow`, `action`, `session`, `chronicle` e `report`. |
+| F3-T8 | 2026-10-01 | `ea260bd` | 1 | Com `all`, 5 obras em uma hora geram 3 notificações e badge 2 (testado). Durante o "Silenciar 2h" os eventos viram badge; no modo discreto, nada aparece. |
+| F3-T9 | 2026-10-01 | HASH_C | 1 | Módulos puros da extensão com 89% a 100% de linhas. `docs/manual-test-v0.1.md` tem um roteiro por critério. **Pendente:** nenhuma execução manual foi feita; o "Pronto quando" (ao menos uma execução registrada) não foi atingido. |
+| F3-T10 | 2026-10-01 | HASH_C | 1 | `.vsix` de 131 kB gerado com um aviso do `vsce`: falta LICENSE. `publisher` (`gustavopals`) e ícone são provisórios; `lords.serverUrl` aponta para `http://localhost:3000` até existir a instância hospedada. **Não verificado:** instalar o `.vsix` em um perfil limpo. F3-T10.3 (publicar ou distribuir) é decisão sua e segue em aberto. |
 | F4-T1 | | | | |
 | F4-T2 | | | | |
 | F4-T3 | | | | |
