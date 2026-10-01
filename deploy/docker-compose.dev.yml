@@ -1,0 +1,78 @@
+# Ambiente de desenvolvimento (MVP-ROADMAP.md §1.1 e F0-T4).
+# Uso: `pnpm dev:up` sobe só `db` e `db_test`; a API roda no host (`pnpm dev:api`).
+# Credenciais fixas (lotg/lotg) e portas publicadas apenas em 127.0.0.1: nunca usar em produção.
+name: lotg-dev
+
+services:
+  db:
+    image: postgres:16
+    container_name: lotg-db
+    environment:
+      POSTGRES_USER: lotg
+      POSTGRES_PASSWORD: lotg
+      POSTGRES_DB: lotg
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - lotg_db_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lotg -d lotg']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  db_test:
+    image: postgres:16
+    container_name: lotg-db-test
+    environment:
+      POSTGRES_USER: lotg
+      POSTGRES_PASSWORD: lotg
+      POSTGRES_DB: lotg_test
+    # Banco descartável: dados em memória e durabilidade desligada para os testes rodarem rápido.
+    command:
+      ['postgres', '-c', 'fsync=off', '-c', 'synchronous_commit=off', '-c', 'full_page_writes=off']
+    ports:
+      - '127.0.0.1:5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lotg -d lotg_test']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    profiles: [full]
+    image: lotg-api:latest
+    container_name: lotg-api
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      target: runtime
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://lotg:lotg@db:5432/lotg
+      PUBLIC_URL: http://localhost:3000
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pgweb:
+    profiles: [tools]
+    image: sosedoff/pgweb:latest
+    container_name: lotg-pgweb
+    environment:
+      PGWEB_DATABASE_URL: postgres://lotg:lotg@db:5432/lotg?sslmode=disable
+    ports:
+      - '127.0.0.1:8081:8081'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  lotg_db_dev:

@@ -1,0 +1,16 @@
+# O contexto de build é a raiz do repositório; o BuildKit lê este arquivo por estar ao lado
+# do Dockerfile (deploy/Dockerfile → deploy/Dockerfile.dockerignore).
+.git
+.github
+.claude
+.vscode
+**/node_modules
+**/dist
+**/coverage
+**/*.vsix
+**/.env
+**/.env.*
+!**/.env.example
+deploy/backups
+docs
+*.md

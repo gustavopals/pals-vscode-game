@@ -253,10 +253,10 @@ Esperado: lint sem erros, typecheck sem erros, 8 testes triviais verdes.
 **Depende de:** F0-T2.
 **Entregáveis:** `deploy/docker-compose.dev.yml`, `deploy/Dockerfile`, `deploy/.env.example`, `deploy/.dockerignore`, scripts `dev:*` funcionando.
 
-- [ ] F0-T4.1 `docker-compose.dev.yml`: serviço `db` (`postgres:16`, `POSTGRES_USER=lotg`, `POSTGRES_DB=lotg`, volume `lotg_db_dev`, healthcheck `pg_isready`), serviço `db_test` (porta 5433, `tmpfs` em `/var/lib/postgresql/data`, `fsync=off` para velocidade), serviço `api` sob `profiles: [full]` construído do `Dockerfile` alvo `runtime` com `DATABASE_URL` apontando para `db`, serviço `pgweb` sob `profiles: [tools]`.
-- [ ] F0-T4.2 `Dockerfile` multi-stage em `node:22-bookworm-slim`: `deps` (corepack + `pnpm fetch` com lockfile), `build` (instala, `pnpm --filter @lotg/server... build`, `pnpm deploy` para pasta isolada), `runtime` (usuário não root, só `dist/`, `node_modules` de produção e `deploy/migrations/`, `HEALTHCHECK` chamando `/v1/health`, `CMD ["node", "dist/main.js"]`). Alvo `dev` opcional com `tsx`.
-- [ ] F0-T4.3 `.env.example` com todas as variáveis da §1.3 e comentários; `pnpm secrets:gen` gera valores fortes e independentes para JWT, recuperação e banco, sem sobrescrever valores existentes. Documentar que trocar a chave de recuperação invalida os códigos já emitidos.
-- [ ] F0-T4.4 Scripts `dev:up`, `dev:down`, `dev:logs`, `db:psql`, `docker:build` no `package.json` raiz; `README.md` atualizado.
+- [x] F0-T4.1 `docker-compose.dev.yml`: serviço `db` (`postgres:16`, `POSTGRES_USER=lotg`, `POSTGRES_DB=lotg`, volume `lotg_db_dev`, healthcheck `pg_isready`), serviço `db_test` (porta 5433, `tmpfs` em `/var/lib/postgresql/data`, `fsync=off` para velocidade), serviço `api` sob `profiles: [full]` construído do `Dockerfile` alvo `runtime` com `DATABASE_URL` apontando para `db`, serviço `pgweb` sob `profiles: [tools]`.
+- [x] F0-T4.2 `Dockerfile` multi-stage em `node:22-bookworm-slim`: `deps` (corepack + `pnpm fetch` com lockfile), `build` (instala, `pnpm --filter @lotg/server... build`, `pnpm deploy` para pasta isolada), `runtime` (usuário não root, só `dist/`, `node_modules` de produção e `deploy/migrations/`, `HEALTHCHECK` chamando `/v1/health`, `CMD ["node", "dist/main.js"]`). Alvo `dev` opcional com `tsx`.
+- [x] F0-T4.3 `.env.example` com todas as variáveis da §1.3 e comentários; `pnpm secrets:gen` gera valores fortes e independentes para JWT, recuperação e banco, sem sobrescrever valores existentes. Documentar que trocar a chave de recuperação invalida os códigos já emitidos.
+- [x] F0-T4.4 Scripts `dev:up`, `dev:down`, `dev:logs`, `db:psql`, `docker:build` no `package.json` raiz; `README.md` atualizado.
 
 **Verificação:**
 
@@ -1183,7 +1183,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F0-T1 | 2026-10-01 | HASH_F0-T1 | 1 | Docker 29.8, Compose v5.5, Node 22.22.3, pnpm 9.15.9. O default do `nvm` continua em 24 (`nvm alias default 22` não foi executado para não afetar outros projetos): o repositório seleciona o 22 pelo `.nvmrc` (`nvm use`) e o pnpm 9 pelo campo `packageManager`. Extensão Docker do VS Code instalada. |
 | F0-T2 | 2026-10-01 | HASH_F0-T2 | 1 | `pnpm verify` verde com 8 testes, também em cópia limpa. Vitest 5 removeu `vitest.workspace.ts`: os projetos `unit` e `integration` ficam em `vitest.config.ts`. TypeScript fixado em 6.x (o `typescript-eslint` ainda não aceita o 7). `dev:api`, `db:migrate`, `dev:ext` e `sim` existem e avisam a tarefa que os entrega. |
 | F0-T3 | 2026-10-01 | HASH_F0-T3 | 1 | Sessão nova (`claude -p`) resumiu motor puro, conteúdo como dados, `pnpm verify` e bibliotecas permitidas sem correção. O `CLAUDE.md` mantém os contratos dos ADRs 0003–0005 além do modelo da §A.1. |
-| F0-T4 | | | | |
+| F0-T4 | 2026-10-01 | HASH_F0-T4 | 1 | `db` e `db_test` saudáveis em 18 s; `select 1` responde; imagem `runtime` constrói (326 MB, usuário `node`). O `CMD` falha até F2-T2, como previsto. O ignore do build é `deploy/Dockerfile.dockerignore`, e não `deploy/.dockerignore`, porque o contexto é a raiz do repositório. Bancos de dev com senha fixa `lotg`; `POSTGRES_PASSWORD` vale só para o compose de produção. |
 | F0-T5 | | | | |
 | F1-T1 | | | | |
 | F1-T2 | | | | |
