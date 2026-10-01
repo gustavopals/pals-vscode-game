@@ -58,9 +58,11 @@ O vínculo com o GitHub fica desligado enquanto `GITHUB_CLIENT_ID` estiver vazio
 
 ## Atualizar e reverter
 
-**Atualizar.** Com o `main` verde, fazer o deploy de `lotg-api` e de `lotg-web` (botão "Deploy", API ou MCP do Coolify). Não há webhook: nada é implantado sozinho a cada `push`. A troca é por substituição do contêiner depois que o novo passa no health check; conferir `GET /v1/version` (`builtAt` muda).
+**Atualizar.** Um `push` no `main` implanta sozinho: o job `deploy` de [`ci.yml`](../.github/workflows/ci.yml) roda depois que todos os outros jobs do CI passam, pede ao Coolify o deploy de `lotg-api`, espera `/v1/health`, e então o de `lotg-web`. Com o CI vermelho, nada vai ao ar. A troca é por substituição do contêiner depois que o novo passa no health check; conferir `GET /v1/version` (`builtAt` muda).
 
-Quando a mudança toca o protocolo, implantar a API antes do app.
+O job usa o segredo `COOLIFY_DEPLOY_TOKEN` do repositório: um token de API do Coolify com as permissões `read` e `deploy`, e nenhuma outra. Para trocá-lo, criar outro em "Keys & Tokens", rodar `gh secret set COOLIFY_DEPLOY_TOKEN` e apagar o antigo no Coolify.
+
+O deploy manual continua valendo (botão "Deploy", API ou MCP do Coolify), sempre com a API antes do app quando a mudança toca o protocolo. Uma reversão manual dura até o próximo `push` no `main`: para mantê-la, reverter também o commit.
 
 **Reverter.** Na aplicação, aba "Rollback", escolher a imagem do deploy anterior; ou, pela API:
 

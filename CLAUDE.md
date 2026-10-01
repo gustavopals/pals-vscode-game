@@ -175,7 +175,7 @@ Uma tarefa do roadmap por sessão; a ordem das fases é obrigatória. Para taref
 
 - Rodar `docker compose down -v` fora do ambiente de dev: `-v` apaga os volumes do banco.
 - Commitar `.env` ou qualquer segredo; regenerar `RECOVERY_CODE_SECRET` de um ambiente que já emitiu códigos.
-- Publicar ou implantar sem o autor pedir. A API já está em produção no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)), publicada a partir do `main`: o que entra no `main` pode ir ao ar no próximo deploy.
+- Publicar ou implantar sem o autor pedir. O jogo está em produção no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)) e **todo `push` no `main` com o CI verde é implantado sozinho** pelo job `deploy` de `.github/workflows/ci.yml`: dar `push` no `main` é publicar.
 - Usar o nome, o logotipo ou a marca "Visual Studio Code" na interface (ADR 0008, ponto 6).
 - Mesclar estados de contas.
 - Usar Alpine como base da imagem (as bases são `node:22-bookworm-slim` e `debian:bookworm-slim`).

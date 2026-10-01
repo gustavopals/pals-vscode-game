@@ -7,7 +7,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # No main nada é cancelado: um push mais novo não pode interromper um deploy pela metade.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -104,3 +105,62 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -f deploy/Dockerfile --target runtime -t lotg-api:ci .
       - run: docker build -f deploy/Dockerfile --target web -t lotg-web:ci .
+
+  # Implantação automática (ADR 0009): só em push no main e só depois de todos os jobs acima
+  # passarem. Chama a API do Coolify com um token que fica no segredo COOLIFY_DEPLOY_TOKEN
+  # (permissões read e deploy). A API vai primeiro; o app só é trocado com ela saudável.
+  deploy:
+    name: deploy (Coolify)
+    needs: [verify, integration, e2e, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Um deploy de cada vez, e nunca interrompido no meio por um push mais novo.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      COOLIFY_API: https://app.palsincomehub.com/api/v1
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_DEPLOY_TOKEN }}
+      PUBLIC_URL: https://lords.palsincomehub.com
+      API_UUID: bkybag7rv7glgbh9zhv1ysu9
+      WEB_UUID: mbixhquvhyrqhduh3bzgoho1
+    steps:
+      - name: Implantar a API e depois o app
+        run: |
+          set -euo pipefail
+          coolify() { curl --silent --show-error --fail --max-time 30 -H "Authorization: Bearer $COOLIFY_TOKEN" "$@"; }
+
+          deploy() {
+            local name=$1 uuid=$2 id status
+            id=$(coolify -X POST "$COOLIFY_API/deploy?uuid=$uuid" | jq -r '.deployments[0].deployment_uuid')
+            echo "$name: deploy $id na fila"
+            for _ in $(seq 1 90); do
+              status=$(coolify "$COOLIFY_API/deployments/$id" | jq -r '.status')
+              case "$status" in
+                finished) echo "$name: implantado"; return 0 ;;
+                failed | cancelled*) echo "::error::$name: o deploy terminou como $status"; return 1 ;;
+              esac
+              sleep 10
+            done
+            echo "::error::$name: o deploy não terminou em 15 minutos"
+            return 1
+          }
+
+          healthy() {
+            for _ in $(seq 1 30); do
+              if [ "$(curl --silent --max-time 10 "$PUBLIC_URL/v1/health" | jq -r '.status + "/" + .db' 2>/dev/null)" = "ok/ok" ]; then
+                return 0
+              fi
+              sleep 5
+            done
+            echo "::error::/v1/health não respondeu ok depois do deploy"
+            return 1
+          }
+
+          deploy API "$API_UUID"
+          healthy
+          deploy app "$WEB_UUID"
+          healthy
+          curl --silent --show-error --fail --max-time 10 "$PUBLIC_URL/" | grep --quiet '<title>Lords of the Guild</title>'
+          echo "No ar: $(curl --silent --max-time 10 "$PUBLIC_URL/v1/version")"
