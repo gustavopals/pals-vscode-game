@@ -25,7 +25,8 @@ Conferido com `gh run list` e `gh run view` em 2026-10-01. Os quatro jobs (`veri
 
 Os ajustes de fechamento de 2026-10-01 (ritmo 3×, Crônica sem viradas de dia, `housed` e `vacancies`, lembrete por tempo real) **ainda não estavam commitados** quando este quadro foi escrito: a CI acima não os cobre.
 
-- ☐ por fazer (autor): depois do commit e do deploy dos ajustes, anotar aqui o SHA implantado e o endereço da execução verde da CI nesse SHA.
+- CI verde no commit `1b4e6db` (que inclui os ajustes de fechamento), em 2026-10-01: `verify`, `integration`, `e2e` e `docker`, todos com sucesso: <https://github.com/gustavopals/pals-vscode-game/actions/runs/36905622257>.
+- ☐ por fazer (autor): implantar `lotg-api` e `lotg-web` a partir desse commit e anotar aqui o `builtAt` de `/v1/version` depois do deploy.
 
 ### Suítes locais
 
