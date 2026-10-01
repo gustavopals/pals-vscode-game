@@ -2,9 +2,11 @@
 
 Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e a numeração, o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
-## [0.1.0] — não lançada
+## [0.1.0] — 2026-10-01
 
-"Fundação online": o MVP descrito no [GDD §16.1](GAME_DESIGN.md). O código está no `main` e o jogo está no ar em `https://lords.palsincomehub.com`, mas **a versão ainda não foi etiquetada nem publicada como release**: a tag `v0.1.0` e a release no GitHub são atos do autor. Também faltam a verificação dos 12 critérios de aceitação em produção e o playtest de 48 horas (roadmap, Fase 5).
+"Fundação online": o MVP descrito no [GDD §16.1](GAME_DESIGN.md), no ar em `https://lords.palsincomehub.com`. Tag `v0.1.0`; [release no GitHub](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0).
+
+O autor jogou a versão em produção, em dois navegadores, gostou e decidiu fechar o MVP; os 12 critérios de aceitação são dados como aceitos por essa decisão, sem avaliação critério a critério. Não há evidência escrita por critério: [`docs/acceptance-v0.1.md`](docs/acceptance-v0.1.md) diz em que cada aprovação se apoia e o que ninguém verificou. **O playtest de 48 horas com outras pessoas não foi realizado; passou para a v0.2**, como primeira tarefa ([`docs/roadmap-v0.2.md`](docs/roadmap-v0.2.md)).
 
 ### Adicionado
 
@@ -67,6 +69,7 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 - Produção no Coolify em três recursos: banco, API e app na mesma origem, com o proxy da plataforma na borda ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)). A página de apresentação é um quarto recurso, em domínio próprio.
 - Backup diário do banco com retenção de 14 dias; restauração ensaiada em um banco descartável.
 - Reversão da API para a imagem anterior ensaiada.
+- Deploy automático: cada push no `main` é implantado pelo job `deploy` da CI, depois de todos os outros jobs passarem (API, depois o app, depois a página de apresentação). Com a CI vermelha, nada vai ao ar.
 - Monitor de saúde externo (workflow `health.yml`) e consultas agregadas de operação.
 - Procedimentos em [`deploy/README.md`](deploy/README.md).
 
@@ -76,7 +79,8 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 - Faixas de balanceamento conferidas com o bot do simulador.
 - Testes de integração do servidor contra PostgreSQL real, com relógio controlado, incluindo concorrência, idempotência, rotação de sessão e expurgo.
 - Testes em Chromium real (`pnpm test:e2e`) contra a API e o banco de teste, com o app compilado e a política de conteúdo de produção.
-- Workflow de CI com `verify`, integração, navegador e build das duas imagens.
+- Testes em Chromium da página de apresentação (`pnpm test:e2e:landing`), em tela de computador e de celular.
+- Workflow de CI com `verify`, integração, navegador (app e página de apresentação) e build das três imagens.
 
 **Projeto**
 
@@ -96,6 +100,9 @@ O que a v0.1 faz diferente do desenho original do GDD, por decisão do autor. A 
 - A produção roda no Coolify, e não em um VPS com Docker Compose ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
 - `GET /version` informa o que o servidor tem ligado ([ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md)).
 - "Reiniciar partida" é o comando "Nova partida", que arquiva o feudo atual.
+- Há uma página de apresentação em domínio próprio, que o GDD não previa ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
+- **Fechamento sem playtest externo.** O roadmap pedia um playtest de 48 horas com 3 a 5 pessoas antes da versão (F5-T2). Ele não foi realizado: a v0.1 fecha com o playtest do próprio autor, e o playtest com outras pessoas passou para a v0.2.
+- **Aceitação sem evidência por critério.** O roadmap pedia a evidência de cada um dos 12 critérios registrada em produção, em Chromium e em Firefox (F5-T1). Os critérios foram dados como aceitos pela decisão do autor de fechar, sem avaliação um a um, apoiados nos testes automáticos e nas conferências registradas em [`docs/acceptance-v0.1.md`](docs/acceptance-v0.1.md).
 
 ### Limites conhecidos
 
@@ -106,6 +113,9 @@ O que a v0.1 faz diferente do desenho original do GDD, por decisão do autor. A 
 - O Relatório de Retorno só aparece ao abrir a página; uma aba deixada aberta não o recebe. Nada chega com a aba fechada.
 - Uma conta anônima sem Código do Reino se perde se os dados do navegador forem apagados. Não há recuperação de conta excluída.
 - O vínculo GitHub nunca foi testado com o GitHub real.
-- Testado só em Chromium. Firefox, Safari, navegadores de celular e leitores de tela não foram conferidos; os passos manuais de [`docs/manual-test-v0.1.md`](docs/manual-test-v0.1.md) não foram executados.
+- Os testes automáticos rodam só em Chromium. O autor jogou em dois navegadores, sem registrar quais: Firefox não está confirmado. Safari, navegadores de celular e leitores de tela não foram conferidos. Os passos manuais de [`docs/manual-test-v0.1.md`](docs/manual-test-v0.1.md) não têm registro de execução.
+- Não foram verificados em produção: o reinício da API com uma obra em andamento e a aba aberta, a fome e o retorno depois de um período longo de tempo real, e o expurgo de sete dias de uma conta excluída. Esses pontos se apoiam nos testes automáticos.
+- Não houve playtest com outras pessoas antes do fechamento: o ritmo 3× e a clareza da interface só foram avaliados pelo autor.
 - Os backups ficam no mesmo disco do banco. A reversão não foi ensaiada atravessando uma migração.
-- O desempenho foi medido em uma máquina só, com partidas jovens; rajadas sincronizadas ficam acima da meta ([`docs/perf-v0.1.md`](docs/perf-v0.1.md)).
+- Não há registro de cópia de `RECOVERY_CODE_SECRET` fora do Coolify: perder o servidor sem essa cópia invalida todos os Códigos do Reino. Os avisos da plataforma ainda não têm canal ligado.
+- O desempenho foi medido em uma máquina só, com partidas jovens; rajadas sincronizadas ficam acima da meta ([`docs/perf-v0.1.md`](docs/perf-v0.1.md)). Em produção só foi medida uma carga pequena (5 bots por 2 minutos).

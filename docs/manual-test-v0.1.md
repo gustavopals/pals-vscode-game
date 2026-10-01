@@ -2,7 +2,7 @@
 
 O que cada critério de aceitação do GDD §16.1 (MVP-ROADMAP.md §8) já tem de prova automática, e o que ainda pede uma pessoa em um navegador, **em produção**: `https://lords.palsincomehub.com`. A evidência de cada passo é registrada em [acceptance-v0.1.md](acceptance-v0.1.md).
 
-> **Estado em 2026-10-01.** O app web é exercitado por 48 testes em Chromium de verdade (`pnpm test:e2e`), contra a API real e o banco de teste, com o app compilado e a política de conteúdo de produção; o job `e2e` da CI passou nos commits `42d9256` e `79fe1da`. O autor já jogou em produção, em Chromium, mas sem registrar evidência por critério: **a coluna "Manual" abaixo continua inteira por fazer.** Firefox, Safari, celular e leitor de tela não foram abertos. O vínculo com o GitHub fica desligado na v0.1 e só foi testado com um GitHub simulado.
+> **Estado em 2026-10-01.** O app web é exercitado por 48 testes em Chromium de verdade (`pnpm test:e2e`), contra a API real e o banco de teste, com o app compilado e a política de conteúdo de produção; o job `e2e` da CI passou, por último, no commit `d9e014b`. **A v0.1 foi fechada nesta data.** O autor jogou em produção, em dois navegadores (não informou quais), e aprovou; **não há registro passo a passo deste roteiro**: as caixas da coluna "Manual" e de "Só para olhos humanos" continuam desmarcadas porque ninguém anotou o que foi feito em cada uma. Firefox não está confirmado; Safari, celular e leitor de tela não foram abertos. O que cada aprovação tem de base e o que ninguém verificou está em [acceptance-v0.1.md](acceptance-v0.1.md). O vínculo com o GitHub fica desligado na v0.1 e só foi testado com um GitHub simulado.
 
 ## Preparação
 

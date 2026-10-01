@@ -7,7 +7,7 @@
 [![CI](https://github.com/gustavopals/pals-vscode-game/actions/workflows/ci.yml/badge.svg)](https://github.com/gustavopals/pals-vscode-game/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Node.js 22](https://img.shields.io/badge/Node.js-22-417E38?style=flat-square&logo=nodedotjs&logoColor=white)
-![Status: MVP no ar](https://img.shields.io/badge/status-MVP_no_ar-C19A55?style=flat-square)
+[![Versão: v0.1.0](https://img.shields.io/badge/vers%C3%A3o-v0.1.0-C19A55?style=flat-square)](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0)
 ![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-6eaf96?style=flat-square)
 
 [O jogo](#o-jogo) · [Jogue](#jogue) · [Simulador](#experimente) · [Engenharia](#engenharia) · [Roadmap](#roadmap) · [Privacidade](#privacidade) · [Documentação](#documentacao)
@@ -24,7 +24,7 @@
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para jogar:** o MVP (v0.1) está no ar em **[lords.palsincomehub.com](https://lords.palsincomehub.com)**. Motor de economia, simulador local, API online e app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) estão implementados, com testes automatizados, inclusive em navegador real. As imagens deste README continuam sendo **artes conceituais**, criadas com IA para apresentar o universo do jogo: não são capturas da interface.
+> **Já dá para jogar:** o MVP está no ar em **[lords.palsincomehub.com](https://lords.palsincomehub.com)** e foi fechado como [v0.1.0](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0) em 2026-10-01. Motor de economia, simulador local, API online e app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) estão implementados, com testes automatizados, inclusive em navegador real. As imagens deste README continuam sendo **artes conceituais**, criadas com IA para apresentar o universo do jogo: não são capturas da interface.
 
 ### Quatro estações. Uma história para contar.
 
@@ -48,10 +48,10 @@ O que vale saber antes:
 
 - **A interface é uma bancada de editor.** Barra de atividades, árvore lateral, abas, barra de status e paleta de comandos (`F1` ou `Ctrl+K`). Dá para jogar inteiro pelo teclado; há temas claro, escuro e de alto contraste.
 - **O ritmo é 3×.** Uma hora real são três horas de jogo: o dia de jogo dura 40 minutos reais e o ano, 56 horas ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)). Prazos e taxas aparecem sempre em tempo real. A comida também acaba com a aba fechada.
-- **A conta mora neste navegador.** Ela é anônima e fica no armazenamento do site: limpar os dados de navegação apaga o acesso. Para jogar em outro navegador ou outra máquina, gere um **Código do Reino** (paleta: "Lords: Conta: gerar Código do Reino") e guarde-o; no outro navegador, use "Usar Código do Reino", nas boas-vindas,.
+- **A conta mora neste navegador.** Ela é anônima e fica no armazenamento do site: limpar os dados de navegação apaga o acesso. Para jogar em outro navegador ou outra máquina, gere um **Código do Reino** (paleta: "Lords: Conta: gerar Código do Reino") e guarde-o; no outro navegador, use "Usar Código do Reino", nas boas-vindas.
 - **O vínculo com o GitHub está desligado na v0.1.** O código existe, mas só foi testado com um GitHub simulado; por isso o app não mostra esses botões.
 - **Sem conexão**, o app mostra o último estado conhecido em modo leitura e volta sozinho quando o servidor responde. Nenhuma ordem fica guardada para depois.
-- **Testado em Chromium.** Firefox, Safari e navegadores de celular ainda não foram conferidos.
+- **Os testes automáticos rodam em Chromium.** O autor jogou em dois navegadores antes de fechar a versão, sem registrar quais; Safari e navegadores de celular não foram conferidos.
 
 <a id="experimente"></a>
 
@@ -59,7 +59,7 @@ O que vale saber antes:
 
 O simulador permite conhecer as regras do jogo **sem Docker, servidor ou navegador**. Um bot econômico administra o feudo, e o motor calcula os acontecimentos entre as sessões.
 
-Você precisa de **Node.js 22.12+** e **pnpm 9.15.9**, fixado no projeto. Com `nvm` e Corepack disponíveis:
+Você precisa de **Node.js 22.12+** e **pnpm 9.15.9**, fixado no projeto. Com `nvm` e Corepack disponíveis (se o `nvm use` disser que a versão não está instalada, rode `nvm install`):
 
 ```bash
 git clone https://github.com/gustavopals/pals-vscode-game.git
@@ -176,7 +176,7 @@ O ESLint impede que `engine`, `content` e `protocol` importem `fastify`, `pg` ou
 | `pnpm db:psql` | Abre o PostgreSQL de desenvolvimento |
 | `pnpm test:integration` | Executa testes de integração com `TEST_DATABASE_URL` definido |
 | `pnpm test:e2e` | Testes em Chromium contra a API real e o `db_test` (antes: `pnpm dev:up` e `pnpm exec playwright install chromium`) |
-| `pnpm test:e2e:landing` | Testes em Chromium da página de apresentação, em tela de computador e de celular; não precisa da API nem do banco |
+| `pnpm test:e2e:landing` | Testes em Chromium da página de apresentação, em tela de computador e de celular; não precisa da API nem do banco (antes: `pnpm exec playwright install chromium`) |
 | `pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` | Bots contra a API, com p50 e p95 por endpoint ([resultados](docs/perf-v0.1.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera segredos ausentes, preservando os existentes |
 | `pnpm docker:build` / `pnpm docker:build:web` / `pnpm docker:build:landing` | Constrói a imagem de produção da API / do app web / da página de apresentação |
@@ -225,7 +225,7 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 
 A produção roda em um servidor com Coolify, em três recursos: PostgreSQL, a API (alvo `runtime` do `deploy/Dockerfile`) e o app (alvo `web`, um Caddy servindo arquivos estáticos). O proxy da plataforma cuida do TLS e manda `/v1` para a API e o resto para o app, na mesma origem ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)). A página de apresentação é um quarto recurso, em domínio próprio (alvo `landing`, [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
-O passo a passo para implantar do zero, atualizar, reverter, fazer backup e restaurar, com o registro dos ensaios já feitos, está em **[deploy/README.md](deploy/README.md)**. Nada é implantado sozinho a cada `push`: o deploy é um ato manual.
+O passo a passo para implantar do zero, atualizar, reverter, fazer backup e restaurar, com o registro dos ensaios já feitos, está em **[deploy/README.md](deploy/README.md)**. Cada `push` no `main` é implantado sozinho pelo job `deploy` da CI, depois de todos os outros jobs passarem; o deploy manual continua valendo.
 
 </details>
 
@@ -240,13 +240,14 @@ O passo a passo para implantar do zero, atualizar, reverter, fazer backup e rest
 | **Servidor online · v0.1** — contas, API e persistência | Implementado |
 | **Cliente · v0.1** — app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) | Implementado |
 | **Implantação · v0.1** — servidor público, backup e operação ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)) | No ar; backup fora do servidor pendente |
-| **Fechamento · v0.1** — critérios de aceitação em produção, playtest, versão e release | Em andamento |
+| **Fechamento · v0.1** — critérios de aceitação, versão e release | Fechada em 2026-10-01 ([v0.1.0](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0)), com o playtest do autor; o que não foi verificado está na [aceitação](docs/acceptance-v0.1.md) |
+| **Playtest com outras pessoas** — previsto para a v0.1, não realizado | Primeira tarefa da v0.2 |
 | **Estações e Conselho · v0.2** — decisões sazonais | Planejado |
 | **Guilda · v0.3** — heróis e exploração | Planejado |
 | **Guerra e Cerco · v0.4** — defesa do feudo no inverno | Planejado |
 | **Mundo, legado e polimento · v0.5–v0.6** | Planejados |
 
-O [roadmap do MVP](MVP-ROADMAP.md) detalha tarefas e critérios de aceite, e o [registro de mudanças](CHANGELOG.md) resume o que a v0.1 entrega e os seus limites. O [Game Design Document](GAME_DESIGN.md) apresenta a visão completa, incluindo a evolução futura para multiplayer.
+O [roadmap do MVP](MVP-ROADMAP.md) detalha tarefas e critérios de aceite, o [registro de mudanças](CHANGELOG.md) resume o que a v0.1 entrega e os seus limites, e o [roadmap da v0.2](docs/roadmap-v0.2.md) diz o que vem depois. O [Game Design Document](GAME_DESIGN.md) apresenta a visão completa, incluindo a evolução futura para multiplayer.
 
 <a id="privacidade"></a>
 

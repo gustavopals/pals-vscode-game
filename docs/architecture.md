@@ -1,6 +1,6 @@
 # Arquitetura da v0.1
 
-O que foi construído no MVP de Lords of the Guild, como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em 2026-10-01 e aponta para o código.
+O que foi construído no MVP de Lords of the Guild, como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em 2026-10-01, data em que a v0.1 foi fechada (tag `v0.1.0`), e aponta para o código.
 
 Para o detalhe de cada pacote: [motor](../packages/engine/README.md), [servidor](../packages/server/README.md), [app web](../packages/web/README.md), [simulador](../packages/sim-cli/README.md), [página de apresentação](../packages/landing/README.md) e [implantação](../deploy/README.md).
 
@@ -39,6 +39,7 @@ flowchart TB
 
     Monitor["GitHub Actions · health.yml<br/>consulta /v1/health e a página"] -.-> Proxy
     Sim["sim-cli<br/>em processo ou --remote"] -. "carga" .-> Proxy
+    Deploy["GitHub Actions · ci.yml<br/>job deploy, depois da CI verde"] -. "API do Coolify:<br/>API, app, página" .-> coolify
 ```
 
 O que mudou em relação ao desenho original do GDD:
@@ -48,6 +49,7 @@ O que mudou em relação ao desenho original do GDD:
 - App e API ficam na **mesma origem**. Não há CORS, e o app não tem endereço de servidor configurável.
 - `battle-preview` não existe: é da v0.4.
 - Há uma **página de apresentação** em domínio próprio ([ADR 0012](decisions/0012-pagina-de-apresentacao.md)): estática, sem acesso à API nem ao banco. O único caminho dela para o jogo é o link do botão "Jogar agora".
+- A implantação é **automática**: cada push no `main` roda a CI e, com todos os jobs verdes, o job `deploy` pede ao Coolify o deploy da API, espera `/v1/health`, implanta o app e, por último, a página de apresentação ([`ci.yml`](../.github/workflows/ci.yml), [`deploy/README.md`](../deploy/README.md)). O deploy manual continua valendo.
 
 Os princípios do GDD §14.1 valem como estão: o servidor é autoritativo e é o relógio; o motor é um só (servidor, simulador e testes); estado inicial, semente e log de comandos permitem refazer uma partida; o avanço é preguiçoso, então uma queda do servidor não perde nada.
 
@@ -112,6 +114,7 @@ Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/ind
 | Cabeçalhos de segurança do app (CSP, `nosniff`, HSTS) | Caddy da imagem `web` |
 | Apresentação do jogo a quem ainda não joga | `packages/landing`, servida pelo Caddy da imagem `landing`, em outro domínio |
 | Backup do banco | Agendamento do Coolify |
+| Implantação a cada push no `main` | Job `deploy` de `.github/workflows/ci.yml`, pela API do Coolify |
 
 O app não faz conta sobre o jogo. Quando a interface precisou de um número que não estava no `ViewState`, ele foi acrescentado no motor: `workers[].perWorkerPerHour`, `constructions.active.refund`, `population.housed` e `population.vacancies`.
 
@@ -207,6 +210,8 @@ O GDD e o roadmap foram atualizados para refletir as decisões abaixo; a lista s
 | O lembrete "Proteja seu reino" conta 48 horas reais desde a primeira abertura no navegador, e não o 25º dia de jogo | ADR 0011, consequências | Implementado (`account/linkReminder.ts`) |
 | Licença MIT | Decisão do autor em 2026-10-01 | [`LICENSE`](../LICENSE) e campo `license` dos pacotes |
 | Página de apresentação em domínio próprio, em um oitavo pacote e um quarto recurso do Coolify. O GDD não previa nenhuma | [ADR 0012](decisions/0012-pagina-de-apresentacao.md) | Pedida pelo autor e implementada em 2026-10-01. Endereço, letras, título e tom são propostas a confirmar |
+| A v0.1 fechou **sem o playtest de 48 horas com 3 a 5 pessoas** que o roadmap pedia (F5-T2). O playtest foi o do próprio autor | Decisão do autor em 2026-10-01; Registro de Execução, F5-T2 | O playtest com outras pessoas é a primeira tarefa da v0.2 ([roadmap-v0.2.md](roadmap-v0.2.md)). Não existem relatório de playtest nem métrica de retorno |
+| Os 12 critérios de aceitação foram dados como aceitos pela decisão do autor de fechar a v0.1, depois de jogar em produção em dois navegadores, **sem avaliação critério a critério e sem evidência escrita**. O roadmap pedia a evidência registrada, em Chromium e em Firefox (F5-T1) | Decisão do autor em 2026-10-01; [acceptance-v0.1.md](acceptance-v0.1.md) | Cada aceitação se apoia nos testes automáticos e nas conferências em produção registradas; o que ninguém verificou está listado no mesmo documento |
 
 ### 6.2 O que o GDD descreve e a v0.1 não tem
 
@@ -226,7 +231,7 @@ Nenhum destes itens tem tarefa no roadmap do MVP. Ficaram de fora por escopo, e 
 
 ### 6.3 Dívidas técnicas e verificações pendentes
 
-Conferidas no código e nos registros em 2026-10-01. Não são decisões: são coisas a resolver ou a verificar.
+Conferidas no código e nos registros em 2026-10-01. Não são decisões: são coisas a resolver ou a verificar. Atravessam o fechamento da v0.1.
 
 **Código**
 
@@ -257,8 +262,8 @@ Deixaram de ser dívida: as vagas de habitação, que o app calculava, agora vê
 
 | O que não foi verificado | Origem |
 |---|---|
-| Só Chromium. Firefox, Safari e navegadores de celular não foram abertos | Registro, F3W-T10 |
-| A coluna "Manual" do [roteiro manual](manual-test-v0.1.md) não foi executada; leitores de tela não foram usados | Registro, F3W-T10 |
-| `pnpm test:e2e` nunca rodou contra a produção; a conferência em produção foi manual e por `curl` | Registro, F4-T1 |
-| Os ajustes de fechamento (ritmo 3× e os demais) ainda não passaram pela CI no GitHub nem foram implantados quando este documento foi escrito; ver [acceptance-v0.1.md](acceptance-v0.1.md) | Registro, F0-T5 e F3W-T10 |
-| Os 12 critérios de aceitação em produção e o playtest de 48 horas (F5-T1 e F5-T2) ainda não foram feitos | Roadmap, Fase 5 |
+| Os testes automáticos rodam só em Chromium. O autor jogou em dois navegadores, sem dizer quais: Firefox não está confirmado; Safari e navegadores de celular não foram abertos | Registro, F3W-T10 e F5-T1 |
+| A coluna "Manual" do [roteiro manual](manual-test-v0.1.md) não tem registro de execução passo a passo; leitores de tela não foram usados | Registro, F3W-T10 e F5-T1 |
+| Em produção, ninguém verificou: o reinício de `lotg-api` com uma obra em andamento e a aba aberta, a fome e o Relatório de Retorno depois de um período longo de tempo real, e o expurgo de sete dias (as primeiras contas excluídas completam o prazo em 2026-10-08). A aceitação desses critérios se apoia nos testes automáticos | [acceptance-v0.1.md](acceptance-v0.1.md) |
+| `pnpm test:e2e` nunca rodou contra a produção. Lá, as conferências foram manuais, por `curl`, pela fumaça `sim --smoke` e por uma carga de 5 bots por 2 minutos | Registro, F4-T1 e F5-T1 |
+| O playtest de 48 horas com outras pessoas não foi feito | Registro, F5-T2 |
