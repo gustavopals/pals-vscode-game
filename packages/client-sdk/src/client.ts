@@ -21,6 +21,10 @@ import {
   type GameSummary,
   type GithubAuthResponse,
   GithubAuthResponseSchema,
+  type GithubDevicePollResponse,
+  GithubDevicePollResponseSchema,
+  type GithubDeviceStartResponse,
+  GithubDeviceStartResponseSchema,
   HEADERS,
   type HealthResponse,
   HealthResponseSchema,
@@ -41,7 +45,7 @@ export type ClientOptions = {
   /** URL do servidor, sem o `/v1`. */
   baseUrl: string;
   tokenStore: TokenStore;
-  /** Versão do cliente, enviada em `X-Lords-Client` (ex.: `vscode/0.1.0`). */
+  /** Versão do cliente, enviada em `X-Lords-Client` (ex.: `web/0.1.0`). */
   clientVersion: string;
   fetch?: typeof fetch;
   /** A sessão acabou e não há como renová-la: o chamador deve voltar à tela de entrada. */
@@ -54,10 +58,16 @@ export type ClientOptions = {
   retryBaseDelayMs?: number;
   /**
    * Espera aleatória, até este valor, antes de renovar a sessão. Quando vários processos dividem
-   * o mesmo `TokenStore` (duas janelas do VS Code), ela dá tempo de um deles renovar e o outro
+   * o mesmo `TokenStore` (duas abas do navegador), ela dá tempo de um deles renovar e o outro
    * encontrar os tokens novos em vez de apresentar o mesmo refresh token. Padrão: 0.
    */
   refreshJitterMs?: number;
+  /**
+   * Exclusão entre processos para a renovação da sessão. Quando informada, a releitura do
+   * `TokenStore` e a troca do refresh token acontecem dentro dela: só um processo renova por
+   * vez, e os outros encontram os tokens novos. O app web usa a Web Locks API do navegador.
+   */
+  refreshLock?: <T>(task: () => Promise<T>) => Promise<T>;
 };
 
 export type ViewResult =
@@ -104,7 +114,7 @@ function readErrorBody(text: string): ErrorBody | null {
   }
 }
 
-/** Cliente HTTP tipado da API `/v1`. Não depende do VS Code nem do Node além do `fetch`. */
+/** Cliente HTTP tipado da API `/v1`. Não depende de nenhuma plataforma além do `fetch`. */
 export function createClient(options: ClientOptions) {
   const base = `${options.baseUrl.replace(/\/+$/, '')}${API_PREFIX}`;
   const doFetch = options.fetch ?? globalThis.fetch;
@@ -189,41 +199,46 @@ export function createClient(options: ClientOptions) {
       if (jitter > 0) {
         await sleep(Math.floor(Math.random() * jitter));
       }
-      const tokens = await tokenStore.get();
-      if (tokens === null) {
-        await unauthenticated();
-        return null;
-      }
-      // Outro processo com o mesmo TokenStore já renovou: usa os tokens dele. Apresentar de novo
-      // o refresh token antigo seria lido pelo servidor como reuso e revogaria a sessão.
-      if (tokens.accessToken !== staleAccessToken) {
-        return tokens.accessToken;
-      }
-      let response: RawResponse;
-      try {
-        response = await rawRequest('POST', '/auth/refresh', {
-          body: { refreshToken: tokens.refreshToken },
-        });
-      } catch (error) {
-        throw new NetworkError('Sem ligação com o servidor ao renovar a sessão.', {
-          cause: error,
-          retryable: false,
-        });
-      }
-      if (response.status === 200) {
-        const pair = check(TokenPairSchema, parseJson(response.text));
-        await tokenStore.set({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
-        return pair.accessToken;
-      }
-      if (response.status === 401 && isApiError(response)) {
-        await unauthenticated();
-        return null;
-      }
-      throw toError(response);
+      const lock = options.refreshLock ?? (<T>(task: () => Promise<T>) => task());
+      return lock(() => renew(staleAccessToken));
     })().finally(() => {
       refreshing = null;
     });
     return refreshing;
+  }
+
+  async function renew(staleAccessToken: string): Promise<string | null> {
+    const tokens = await tokenStore.get();
+    if (tokens === null) {
+      await unauthenticated();
+      return null;
+    }
+    // Outro processo com o mesmo TokenStore já renovou: usa os tokens dele. Apresentar de novo
+    // o refresh token antigo seria lido pelo servidor como reuso e revogaria a sessão.
+    if (tokens.accessToken !== staleAccessToken) {
+      return tokens.accessToken;
+    }
+    let response: RawResponse;
+    try {
+      response = await rawRequest('POST', '/auth/refresh', {
+        body: { refreshToken: tokens.refreshToken },
+      });
+    } catch (error) {
+      throw new NetworkError('Sem ligação com o servidor ao renovar a sessão.', {
+        cause: error,
+        retryable: false,
+      });
+    }
+    if (response.status === 200) {
+      const pair = check(TokenPairSchema, parseJson(response.text));
+      await tokenStore.set({ accessToken: pair.accessToken, refreshToken: pair.refreshToken });
+      return pair.accessToken;
+    }
+    if (response.status === 401 && isApiError(response)) {
+      await unauthenticated();
+      return null;
+    }
+    throw toError(response);
   }
 
   async function send(method: string, path: string, request: RequestOptions): Promise<RawResponse> {
@@ -322,6 +337,20 @@ export function createClient(options: ClientOptions) {
         await json(GithubAuthResponseSchema, 'POST', '/auth/github', { auth, body: input }),
       );
     },
+
+    /**
+     * Começa o *device flow* do GitHub: devolve o código que o jogador confirma em
+     * `github.com/login/device`. Um servidor sem `GITHUB_CLIENT_ID` responde `404 NOT_FOUND`.
+     */
+    startGithubDevice: (): Promise<GithubDeviceStartResponse> =>
+      json(GithubDeviceStartResponseSchema, 'POST', '/auth/github/device', { auth: false }),
+
+    /** Consulta se o jogador já confirmou. Com `authorized`, o token segue para `github()`. */
+    pollGithubDevice: (deviceCode: string): Promise<GithubDevicePollResponse> =>
+      json(GithubDevicePollResponseSchema, 'POST', '/auth/github/device/poll', {
+        auth: false,
+        body: { deviceCode },
+      }),
 
     createRecoveryCode: async (): Promise<string> => {
       const response = await send('POST', '/auth/recovery-code', { auth: true });

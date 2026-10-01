@@ -1,0 +1,354 @@
+import type { GameEvent, ReturnReport, ViewState } from '@lotg/protocol';
+import type { ComponentChild } from 'preact';
+import { renderToString } from 'preact-render-to-string';
+import { describe, expect, it } from 'vitest';
+
+import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
+import { FiefTab } from '../tabs/Fief';
+import { TodayTab } from '../tabs/Today';
+import type { Actions } from './actions';
+import {
+  formatApprox,
+  formatAway,
+  formatCountdown,
+  formatDuration,
+  formatNumber,
+  formatSigned,
+  remaining,
+} from './format';
+import { Welcome } from './Welcome';
+
+// O CSS é lido como texto pelo Vitest, sem tocar o sistema de arquivos.
+const sheets = import.meta.glob<string>('../**/*.css', {
+  query: '?inline',
+  import: 'default',
+  eager: true,
+});
+const THEMES_FILE = '../theme/themes.css';
+
+const view = golden.afterFirstAllocation as unknown as ViewState;
+const actions: Actions = { order: () => {}, run: () => {}, playNow: () => {} };
+const html = (node: ComponentChild) => renderToString(<>{node}</>);
+
+const fief = (
+  overrides: Partial<{
+    view: ViewState;
+    online: boolean;
+    retryInSeconds: number | null;
+    chronicle: GameEvent[];
+  }> = {},
+) =>
+  html(
+    <FiefTab
+      view={view}
+      elapsed={0}
+      online={true}
+      retryInSeconds={null}
+      chronicle={[]}
+      actions={actions}
+      {...overrides}
+    />,
+  );
+
+const welcome = (
+  overrides: Partial<{
+    account: { displayName: string } | null;
+    busy: boolean;
+    online: boolean;
+    githubAvailable: boolean;
+  }> = {},
+) =>
+  html(
+    <Welcome
+      account={null}
+      busy={false}
+      online={true}
+      githubAvailable={true}
+      actions={actions}
+      {...overrides}
+    />,
+  );
+
+describe('formatação', () => {
+  it('números e taxas em pt-BR', () => {
+    expect(formatNumber(1024)).toBe('1.024');
+    expect(formatNumber(7.5)).toBe('7,5');
+    expect(formatSigned(15)).toBe('+15');
+    expect(formatSigned(-5)).toBe('−5');
+    expect(formatSigned(0)).toBe('0');
+  });
+
+  it('contagem regressiva por segundo', () => {
+    expect(formatCountdown(299)).toBe('04:59');
+    expect(formatCountdown(0)).toBe('00:00');
+    expect(formatCountdown(4050)).toBe('1:07:30');
+    expect(formatCountdown(-3)).toBe('00:00');
+    expect(remaining(300, 1.9)).toBe(299);
+    expect(remaining(300, 999)).toBe(0);
+  });
+
+  it('durações e ausências por extenso', () => {
+    expect(formatDuration(300)).toBe('5 min');
+    expect(formatDuration(4080)).toBe('1 h 08 min');
+    expect(formatDuration(7200)).toBe('2 h');
+    expect(formatApprox(133_200)).toBe('37 h');
+    expect(formatApprox(1500)).toBe('25 min');
+    expect(formatApprox(3 * 86_400)).toBe('3 dias');
+    expect(formatAway(5 * 3600)).toBe('5 horas');
+    expect(formatAway(3600)).toBe('1 hora');
+    expect(formatAway(51 * 3600)).toBe('2 dias e 3 horas');
+    expect(formatAway(24 * 3600)).toBe('1 dia');
+  });
+});
+
+describe('boas-vindas', () => {
+  it('primeira abertura: dois campos e "Jogar agora", mais as duas entradas de outro navegador', () => {
+    const page = welcome();
+    expect(page.match(/<input /g)).toHaveLength(2);
+    expect(page).toContain('Como devemos chamar quem governa?');
+    expect(page).toContain('value="Pedra Alta"');
+    expect(page).toContain('Jogar agora');
+    expect(page).toContain('Entrar com GitHub');
+    expect(page).toContain('Usar Código do Reino');
+    // Nada de dificuldade nem ritmo na v0.1.
+    expect(page).not.toMatch(/Dificuldade|Ritmo|e-mail|senha/i);
+  });
+
+  it('servidor sem o vínculo GitHub ligado: o botão não aparece', () => {
+    const page = welcome({ githubAvailable: false });
+    expect(page).not.toContain('Entrar com GitHub');
+    expect(page).toContain('Usar Código do Reino');
+  });
+
+  it('conta já existente sem feudo só pede o nome do feudo', () => {
+    const page = welcome({ account: { displayName: 'Gustavo' } });
+    expect(page.match(/<input /g)).toHaveLength(1);
+    expect(page).toContain('Fundar o feudo');
+    expect(page).toContain('Bem-vindo de volta, <strong>Gustavo</strong>');
+    expect(page).not.toContain('Entrar com GitHub');
+  });
+
+  it('enquanto a conta é criada, os botões ficam desabilitados', () => {
+    const page = welcome({ busy: true });
+    expect(page).toContain('Abrindo os portões…');
+    expect(page.match(/disabled/g)?.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('sem ligação, explica e não deixa enviar', () => {
+    const page = welcome({ online: false });
+    expect(page).toContain('Sem ligação com o reino.');
+    expect(page).toMatch(/<button type="submit"[^>]*disabled/);
+  });
+});
+
+describe('aba Feudo', () => {
+  const page = fief();
+
+  it('cabeçalho com nome, Salão, calendário e população', () => {
+    expect(page).toContain('<h1>Pedra Alta</h1>');
+    expect(page).toContain('Salão Nv1 · Primavera, dia 1 do Ano 1');
+    expect(page).toContain('Aldeões 5');
+    expect(page).toContain('Habitação 5/10');
+    expect(page).toContain('Livres 3');
+  });
+
+  it('tabela de recursos com cap "—", taxa com sinal e a explicação do número', () => {
+    expect(page).toContain('aria-live="polite"');
+    expect(page).toMatch(
+      /<th scope="row">Comida<\/th><td class="num">180<\/td><td class="num">—<\/td>/,
+    );
+    expect(page).toContain('+15');
+    expect(page).toContain(
+      'data-tip="Fazenda: 2 trabalhadores × 10 × 1 (Nv1) = 20/h; consumo 5 × 1 = 5/h"',
+    );
+    // Para leitores de tela, a explicação acompanha o número em vez de substituí-lo.
+    expect(page).toContain('+15<span class="sr-only"> (Fazenda: 2 trabalhadores');
+  });
+
+  it('trabalhadores com − e +, rotulados para leitores de tela', () => {
+    expect(page).toContain('Trabalhadores (2/5)');
+    expect(page).toContain('aria-label="Pôr mais um trabalhador em Fazenda"');
+    expect(page).toContain('aria-label="Tirar um trabalhador de Serraria"');
+    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 20 por hora"');
+  });
+
+  it('construções com custos em chips e o que falta em texto, não só em cor', () => {
+    expect(page).toContain('Os pedreiros estão livres.');
+    expect(page).toContain('Salão do Senhor Nv1 → Nv2');
+    expect(page).toContain('150 madeira (faltam 30)');
+    expect(page).toContain('Faltam 30 madeira e 35 pedra.');
+    expect(page).toContain('80 madeira');
+  });
+
+  it('obra ativa mostra contagem regressiva, progresso e Cancelar', () => {
+    const building: ViewState = {
+      ...view,
+      constructions: {
+        ...view.constructions,
+        active: {
+          building: 'farm',
+          label: 'Fazenda',
+          targetLevel: 2,
+          secondsRemaining: 180,
+          totalSeconds: 300,
+          progressPercent: 40,
+          refund: [
+            { resource: 'wood', label: 'Madeira', amount: 64 },
+            { resource: 'gold', label: 'Ouro', amount: 32 },
+          ],
+        },
+      },
+    };
+    const active = fief({ view: building });
+    expect(active).toContain('Fazenda → Nv2');
+    expect(active).toContain('03:00');
+    expect(active).toContain('aria-label="Obra 40% concluída"');
+    expect(active).toContain('Cancelar');
+    // O que volta ao cancelar vem do servidor; o app não conhece a regra dos 80%.
+    expect(active).toContain('Cancelar devolve 64 madeira e 32 ouro.');
+  });
+
+  it('objetivos com o porquê e a recompensa; Crônica com as últimas linhas', () => {
+    const line: GameEvent = {
+      seq: 1,
+      type: 'objectiveCompleted',
+      at: '2026-10-01T12:00:00.000Z',
+      atMs: 0,
+      text: 'Cumpriu-se um objetivo.',
+      data: {},
+    };
+    const withChronicle = fief({ chronicle: [line] });
+    expect(withChronicle).toContain('Inicie a melhoria das Habitações');
+    expect(withChronicle).toContain('Recompensa: +30 madeira.');
+    expect(withChronicle).toContain('Cumpriu-se um objetivo.');
+    expect(page).toContain('Ainda não há nada a contar.');
+  });
+
+  it('a fome aparece como aviso, com papel para leitores de tela', () => {
+    const starving = fief({
+      view: {
+        ...view,
+        famine: { sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' },
+      },
+    });
+    expect(starving).toContain('Fome em andamento.');
+    expect(starving).toContain('role="status"');
+    expect(starving).toContain('Fome: a produção cai para 75%.');
+  });
+
+  it('sem ligação: último estado em modo leitura, com todas as ordens desabilitadas', () => {
+    const offline = fief({ online: false, retryInSeconds: 5 });
+    expect(offline).toContain('Sem ligação com o reino.');
+    expect(offline).toContain(
+      'O mundo continua andando. Seus comandos voltam quando a ligação voltar.',
+    );
+    expect(offline).toContain('Nova tentativa em 5 s.');
+    expect(offline).toContain('<h1>Pedra Alta</h1>');
+    // Só "Tentar agora" e a abertura da Crônica seguem ativos.
+    const labels = [...offline.matchAll(/<button(?![^>]*disabled)[^>]*>([^<]*)/g)].map(
+      (match) => match[1],
+    );
+    expect(labels.sort()).toEqual(['Abrir a Crônica', 'Tentar agora']);
+  });
+
+  it('os botões dão ordens novas, com o tipo e o conteúdo certos', () => {
+    // As ordens saem de `actions.order`; aqui só se confere que o painel não tem outro caminho.
+    expect(page).not.toMatch(/<a /);
+    expect(page).not.toContain('<form');
+  });
+});
+
+describe('aba Hoje', () => {
+  const report: ReturnReport = {
+    awaySeconds: 5 * 3600,
+    resources: [{ id: 'food', label: 'Comida', before: 180, after: 255, delta: 75 }],
+    counts: {
+      daysPassed: 2,
+      constructionsFinished: 1,
+      villagersArrived: 3,
+      objectivesCompleted: 1,
+    },
+    famine: 'none',
+    highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
+  };
+  const today = (shown: ReturnReport | null, online = true) =>
+    html(
+      <TodayTab
+        view={view}
+        elapsed={0}
+        online={online}
+        retryInSeconds={null}
+        report={shown}
+        actions={actions}
+      />,
+    );
+
+  it('mostra o Relatório de Retorno e explica as decisões pendentes da v0.1', () => {
+    const page = today(report);
+    expect(page).toContain('Você esteve fora por <strong>5 horas</strong>');
+    expect(page).toContain('+75');
+    expect(page).toContain('Obras concluídas: 1');
+    expect(page).toContain('os pedreiros ergueram as Habitações');
+    expect(page).toContain('Nenhuma por agora.');
+    expect(page).toContain('Marcar como lido');
+    expect(page).toContain('Ir para o feudo');
+  });
+
+  it('sem relatório, diz quando ele aparece; com fome, avisa', () => {
+    expect(today(null)).toContain('Nada de novo desde a sua última visita.');
+    expect(today({ ...report, famine: 'started' })).toContain('a fome começou');
+    expect(today(null, false)).toContain('Sem ligação com o reino.');
+  });
+});
+
+describe('cores', () => {
+  const names = Object.keys(sheets);
+  const component = names.filter((name) => name !== THEMES_FILE);
+
+  it('nenhuma cor fixa fora de theme/themes.css: só variáveis --vscode-*', () => {
+    expect(names).toContain(THEMES_FILE);
+    expect(component.sort()).toEqual(['../styles.css', '../workbench/workbench.css']);
+    for (const name of component) {
+      const styles = sheets[name] ?? '';
+      expect(styles.length, name).toBeGreaterThan(1000);
+      expect(styles, name).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+      expect(styles, name).not.toMatch(/\b(rgb|rgba|hsl|hsla|oklch|color-mix)\(/);
+      const named = /:\s*(white|black|red|green|blue|gray|grey|yellow|orange)\s*[;!]/i;
+      expect(styles, name).not.toMatch(named);
+    }
+    const styles = sheets['../styles.css'] ?? '';
+    expect(styles).toContain('var(--vscode-foreground)');
+    expect(styles).toContain('prefers-reduced-motion');
+    expect(styles).toContain(':focus-visible');
+  });
+
+  it('toda variável usada tem valor nos três temas', () => {
+    const themes = sheets[THEMES_FILE] ?? '';
+    const blocks = {
+      dark: themes.slice(
+        themes.indexOf(":root[data-theme='dark']"),
+        themes.indexOf(":root[data-theme='light']"),
+      ),
+      light: themes.slice(
+        themes.indexOf(":root[data-theme='light']"),
+        themes.indexOf(":root[data-theme='high-contrast']"),
+      ),
+      contrast: themes.slice(themes.indexOf(":root[data-theme='high-contrast']")),
+    };
+    const base = themes.slice(0, themes.indexOf(":root[data-theme='dark']"));
+    const used = new Set<string>();
+    for (const name of component) {
+      // Uma variável com valor reserva (`var(--x, …)`) também precisa existir nos temas.
+      for (const match of (sheets[name] ?? '').matchAll(/var\((--vscode-[A-Za-z-]+)/g)) {
+        used.add(match[1] ?? '');
+      }
+    }
+    expect(used.size).toBeGreaterThan(40);
+    for (const variable of used) {
+      for (const [theme, block] of Object.entries(blocks)) {
+        const defined = block.includes(`${variable}:`) || base.includes(`${variable}:`);
+        expect(defined, `${variable} no tema ${theme}`).toBe(true);
+      }
+    }
+  });
+});

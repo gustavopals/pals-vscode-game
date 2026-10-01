@@ -2,7 +2,7 @@
 export type StoredTokens = { accessToken: string; refreshToken: string };
 
 /**
- * Onde as credenciais ficam. A extensão implementa com o `SecretStorage` do VS Code;
+ * Onde as credenciais ficam. O app web implementa com o armazenamento do navegador;
  * o `sim-cli` e os testes, em memória.
  */
 export type TokenStore = {

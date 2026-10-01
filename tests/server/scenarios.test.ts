@@ -27,7 +27,7 @@ import { resetTestDb } from '../../packages/server/test/helpers/db';
 import { runJobsOnce } from '../../packages/server/src/jobs/scheduler';
 
 // Cenários de ponta a ponta da v0.1 (MVP-ROADMAP.md F2-T8.1): a história de um jogador
-// contada só pela API, como a extensão fará.
+// contada só pela API, como o app web faz.
 
 let server: TestApp;
 

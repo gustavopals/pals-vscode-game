@@ -1,0 +1,1654 @@
+import { ApiClientError, NetworkError } from '@lotg/client-sdk';
+import type { Command, GameEvent, ViewState } from '@lotg/protocol';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { cacheKey, type GameCache, OfflineError } from '../game/gameSession';
+import type { BrowserNotifier } from '../notifications/browserNotifications';
+import { DEFAULT_PREFERENCES, type Preferences } from '../services/preferences';
+import { PREFERENCES_KEY } from '../services/tabSync';
+import {
+  ACCOUNT_ID,
+  fakeApi,
+  GAME_ID,
+  gameEvent,
+  goldenView,
+  makeController,
+  settle,
+} from '../test-helpers';
+import { type Controller, describeError, type Toast, type ToastAction } from './controller';
+
+const HOUR = 3_600_000;
+const NOON = Date.parse('2026-10-01T12:00:00.000Z');
+const OTHER_GAME_ID = '33333333-3333-4333-8333-333333333333';
+const OTHER_ACCOUNT_ID = '44444444-4444-4444-8444-444444444444';
+
+const ACCOUNT_KEY = 'lords.account:self';
+const REMINDER_KEY = 'lords.linkReminder';
+const target = { serverKey: 'self', accountId: ACCOUNT_ID, gameId: GAME_ID };
+const VIEW_REQUEST = `GET /games/${GAME_ID}/view`;
+const COMMANDS_REQUEST = `POST /games/${GAME_ID}/commands`;
+
+const SESSION_ENDED = 'A sessão neste navegador terminou';
+const OFFLINE_ORDER = 'Sua ordem não foi enviada';
+const APP_TITLE = 'Lords of the Guild';
+
+type Made = ReturnType<typeof makeController>;
+type MakeOptions = Parameters<typeof makeController>[0];
+
+const created: Controller[] = [];
+
+/** Um controlador que é encerrado no fim do teste, para o ciclo não ficar rodando. */
+function make(options: MakeOptions = {}): Made {
+  const made = makeController(options);
+  created.push(made.controller);
+  return made;
+}
+
+/** Como um navegador que já jogou: conta guardada, feudo aberto e tudo assentado. */
+async function opened(options: MakeOptions = {}): Promise<Made> {
+  const made = make({ signedIn: true, ...options });
+  await made.controller.start();
+  await settle(made.controller);
+  return made;
+}
+
+/** Só os temporizadores e o relógio são de mentira: `settle` continua funcionando. */
+function useFakeClock(): void {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+  vi.setSystemTime(new Date(NOON));
+}
+
+afterEach(() => {
+  for (const controller of created.splice(0)) {
+    controller.dispose();
+  }
+  vi.useRealTimers();
+});
+
+const count = (requests: string[], request: string) =>
+  requests.filter((entry) => entry === request).length;
+
+/** Os avisos de acontecimentos do jogo: os que têm o botão "Ver". */
+const gameToasts = (controller: Controller): Toast[] =>
+  controller.toasts.filter((toast) => toast.actions.some((entry) => entry.label === 'Ver'));
+
+const toastWith = (controller: Controller, fragment: string): Toast | undefined =>
+  controller.toasts.find((toast) => toast.text.includes(fragment));
+
+function actionOf(toast: Toast | undefined, label: string): ToastAction {
+  const found = toast?.actions.find((entry) => entry.label === label);
+  if (found === undefined) {
+    throw new Error(`O aviso não tem o botão "${label}".`);
+  }
+  return found;
+}
+
+/** Entrega eventos novos pelo caminho de verdade: o servidor os tem e a sessão os busca. */
+async function deliver(made: Made, ...events: GameEvent[]): Promise<void> {
+  made.api.state.events.push(...events);
+  await made.controller.session.syncNow();
+  await settle(made.controller);
+}
+
+/** O servidor passa a mostrar outra visão (a versão muda junto, como numa escrita). */
+async function serverShows(made: Made, view: ViewState): Promise<void> {
+  made.api.state.view = view;
+  made.api.state.stateVersion += 1;
+  await made.controller.session.syncNow();
+  await settle(made.controller);
+}
+
+const onDay = (dayOfYear: number): ViewState => ({
+  ...goldenView,
+  calendar: { ...goldenView.calendar, dayOfYear },
+});
+
+const cachedAt = (lastSeenAt: number, lastSeq = 0): GameCache => ({
+  view: goldenView,
+  stateVersion: '1',
+  etag: null,
+  lastSeq,
+  lastSeenAt,
+});
+
+function fakeNotifier(answer: boolean, supported = true) {
+  const log = { requests: 0, shown: [] as Array<{ title: string; body: string }> };
+  let granted = false;
+  const notifier: BrowserNotifier = {
+    supported,
+    granted: () => granted,
+    request: async () => {
+      log.requests += 1;
+      granted = answer;
+      return answer;
+    },
+    show: (title, body) => {
+      log.shown.push({ title, body });
+    },
+  };
+  return {
+    notifier,
+    log,
+    revoke: () => {
+      granted = false;
+    },
+  };
+}
+
+describe('describeError', () => {
+  it('ordem não enviada por falta de ligação: código NETWORK e a frase da recusa', () => {
+    const described = describeError(new OfflineError());
+    expect(described.code).toBe('NETWORK');
+    expect(described.message).toContain(OFFLINE_ORDER);
+  });
+
+  it('falha de rede: código NETWORK e uma frase do jogo, não a mensagem técnica', () => {
+    const described = describeError(new NetworkError('fetch failed'));
+    expect(described.code).toBe('NETWORK');
+    expect(described.message).toContain('Sem ligação com o reino');
+    expect(described.message).not.toContain('fetch failed');
+  });
+
+  it('erro da API: o código e a frase que o servidor mandou', () => {
+    const error = new ApiClientError(409, 'CONFLICT', 'Partida arquivada.', undefined);
+    expect(describeError(error)).toEqual({ code: 'CONFLICT', message: 'Partida arquivada.' });
+  });
+
+  it('qualquer outra coisa vira INTERNAL com a mensagem disponível', () => {
+    expect(describeError(new Error('quebrou'))).toEqual({ code: 'INTERNAL', message: 'quebrou' });
+    expect(describeError('texto solto')).toEqual({ code: 'INTERNAL', message: 'texto solto' });
+  });
+});
+
+describe('abertura da página', () => {
+  it('sem conta: boas-vindas, e nada é pedido ao servidor em nome de ninguém', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(controller.account.state).toEqual({ kind: 'signedOut' });
+    expect(controller.hasGame).toBe(false);
+    expect(controller.view).toBeNull();
+    expect(controller.tabs).toEqual(['welcome']);
+    // Só a versão do servidor, que é pública.
+    expect(api.state.requests.filter((request) => request !== 'GET /version')).toEqual([]);
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('"Jogar agora": cria a conta, funda o feudo e abre a aba Feudo', async () => {
+    const { controller, api, store } = make();
+    await controller.start();
+    await controller.playNow('Gustavo', 'Vale Verde');
+    await settle(controller);
+
+    expect(controller.route).toBe('fief');
+    expect(controller.account.state).toMatchObject({
+      kind: 'anonymous',
+      accountId: ACCOUNT_ID,
+      displayName: 'Gustavo',
+      gameId: GAME_ID,
+    });
+    expect(controller.hasGame).toBe(true);
+    expect(controller.view?.settlement.name).toBe('Vale Verde');
+    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.busy).toBe(false);
+    // A conta fica guardada neste navegador para a próxima visita.
+    expect(store.get(ACCOUNT_KEY)).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
+    // Do clique ao painel, uma conta e um feudo: nada em dobro.
+    expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(1);
+    expect(count(api.state.requests, 'POST /games')).toBe(1);
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+  });
+
+  it('"Jogar agora" marca a interface como ocupada enquanto corre', async () => {
+    const { controller } = make();
+    await controller.start();
+    const busy: boolean[] = [];
+    controller.onChange(() => busy.push(controller.busy));
+    await controller.playNow('Gustavo', 'Pedra Alta');
+    expect(busy[0]).toBe(true);
+    expect(busy.at(-1)).toBe(false);
+    expect(controller.busy).toBe(false);
+  });
+
+  it('se a fundação do feudo falha, a conta já criada é reaproveitada na nova tentativa', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    api.state.failNext.set('/games', {
+      status: 500,
+      body: { code: 'INTERNAL', message: 'O servidor tropeçou.' },
+    });
+    await expect(controller.playNow('Gustavo', 'Pedra Alta')).rejects.toThrow(
+      'O servidor tropeçou.',
+    );
+    await settle(controller);
+    expect(controller.busy).toBe(false);
+    expect(controller.route).toBe('welcome');
+    expect(controller.account.state).toMatchObject({ kind: 'anonymous', gameId: null });
+
+    await controller.playNow('Gustavo', 'Pedra Alta');
+    await settle(controller);
+    expect(controller.route).toBe('fief');
+    expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(1);
+  });
+
+  it('envia o fuso deste navegador e a Hora da Vigília das preferências', async () => {
+    const { controller } = make();
+    await controller.setPreferences({ vigilHour: 7 });
+    expect(controller.gameDefaults()).toEqual({
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 7,
+    });
+  });
+
+  it('com conta guardada: abre a sessão e cai na aba Feudo', async () => {
+    const { controller, api, store } = await opened();
+    expect(controller.route).toBe('fief');
+    expect(controller.view?.settlement.name).toBe('Pedra Alta');
+    expect(controller.connection).toEqual({ kind: 'online' });
+    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(count(api.state.requests, VIEW_REQUEST)).toBe(1);
+    // Nenhuma conta nova: a guardada foi retomada.
+    expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
+    expect(store.get<GameCache>(cacheKey(target))?.view.settlement.name).toBe('Pedra Alta');
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('anota quando a visão chegou, para a contagem regressiva local', async () => {
+    const { controller } = await opened({ now: () => NOON });
+    expect(controller.viewReceivedAt).toBe(NOON);
+  });
+
+  it('traz as últimas 20 linhas da Crônica, cada uma só uma vez', async () => {
+    const api = fakeApi();
+    api.state.events = Array.from({ length: 25 }, (_, index) => gameEvent(index + 1, 'dayStarted'));
+    const { controller } = await opened({ api });
+    expect(controller.chronicle.map((event) => event.seq)).toEqual(
+      Array.from({ length: 20 }, (_, index) => index + 6),
+    );
+  });
+
+  it('respeita a aba pedida pelo endereço', async () => {
+    const withGame = make({ signedIn: true });
+    await withGame.controller.start('settings');
+    expect(withGame.controller.route).toBe('settings');
+    expect(withGame.controller.tabs).toEqual(['today', 'fief', 'settings']);
+
+    const today = make({ signedIn: true });
+    await today.controller.start('today');
+    expect(today.controller.route).toBe('today');
+
+    const signedOut = make();
+    await signedOut.controller.start('about');
+    expect(signedOut.controller.route).toBe('about');
+    expect(signedOut.controller.tabs).toEqual(['welcome', 'about']);
+  });
+
+  it('sem feudo, as abas do jogo pedidas pelo endereço levam às boas-vindas', async () => {
+    for (const requested of ['today', 'fief', 'chronicle'] as const) {
+      const { controller } = make();
+      await controller.start(requested);
+      expect(controller.route).toBe('welcome');
+      expect(controller.tabs).toEqual(['welcome']);
+    }
+  });
+
+  it('com feudo, o endereço das boas-vindas leva ao Feudo', async () => {
+    const { controller } = make({ signedIn: true });
+    await controller.start('welcome');
+    expect(controller.route).toBe('fief');
+  });
+
+  // Recarregar a página em `#/cronica` (F3W-T2.3) precisa carregar o texto: quem cuida disso
+  // não é só `navigate()`.
+  it('abrir a página direto na Crônica carrega o texto dela', async () => {
+    const { controller } = make({ signedIn: true });
+    await controller.start('chronicle');
+    await settle(controller);
+    expect(controller.route).toBe('chronicle');
+    expect(controller.tabs).toEqual(['today', 'fief', 'chronicle']);
+    expect(controller.chronicleDocument.status).toBe('ready');
+  });
+
+  it('lê a versão do servidor e se o vínculo com o GitHub está ligado', async () => {
+    const on = await opened();
+    expect(on.controller.server.status).toBe('ready');
+    expect(on.controller.githubAvailable).toBe(true);
+
+    const api = fakeApi();
+    api.state.githubDevice = false;
+    const off = await opened({ api });
+    expect(off.controller.githubAvailable).toBe(false);
+  });
+
+  it('a partida arquivada em outro navegador é trocada pela ativa, sem cache da antiga', async () => {
+    const made = await opened();
+    const { controller, api, store } = made;
+    const game = api.state.game;
+    if (game === null) {
+      throw new Error('A API de mentira deveria ter uma partida.');
+    }
+    // Outro navegador fundou um feudo novo: o antigo deixou de existir para o servidor.
+    api.state.game = { ...game, id: OTHER_GAME_ID };
+    await controller.session.syncNow();
+    await settle(controller);
+
+    expect(controller.account.state).toMatchObject({
+      accountId: ACCOUNT_ID,
+      gameId: OTHER_GAME_ID,
+    });
+    expect(controller.session.gameId).toBe(OTHER_GAME_ID);
+    expect(controller.route).toBe('fief');
+    expect(controller.view).not.toBeNull();
+    expect(store.get(cacheKey(target))).toBeUndefined();
+    expect(store.get(cacheKey({ ...target, gameId: OTHER_GAME_ID }))).toBeDefined();
+    // Continua na mesma conta: não é fim de sessão.
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+  });
+});
+
+describe('ordens ao feudo', () => {
+  it('prepare fixa o commandId: enviar duas vezes manda a mesma ordem', async () => {
+    const { controller, api } = await opened();
+    const send = controller.prepare('setWorkers', { building: 'farm', count: 2 });
+    // Preparar não envia nada.
+    expect(api.state.commands).toEqual([]);
+    await send();
+    await send();
+    expect(api.state.commands).toHaveLength(2);
+    expect(api.state.commands[1]).toEqual(api.state.commands[0]);
+    expect(api.state.commands[0]).toEqual({
+      commandId: expect.stringMatching(/^[0-9a-f-]{36}$/) as string,
+      type: 'setWorkers',
+      payload: { building: 'farm', count: 2 },
+    });
+  });
+
+  it('cada intenção nova do jogador tem o seu commandId', async () => {
+    const { controller, api } = await opened();
+    expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(true);
+    expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(true);
+    const ids = api.state.commands.map((command) => command.commandId);
+    expect(ids).toHaveLength(2);
+    expect(ids[0]).not.toBe(ids[1]);
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('uma ordem aceita atualiza a versão do estado guardado', async () => {
+    const { controller } = await opened();
+    const before = controller.session.stateVersion;
+    await controller.order('setWorkers', { building: 'farm', count: 1 });
+    expect(controller.session.stateVersion).not.toBe(before);
+  });
+
+  it('a recusa do motor vira um aviso com a frase do servidor, sem "Tentar de novo"', async () => {
+    const { controller, api } = await opened();
+    api.refuseNextCommand('Faltam 30 de madeira e 35 de pedra.');
+    const ok = await controller.order('setWorkers', { building: 'farm', count: 99 });
+    expect(ok).toBe(false);
+    expect(controller.toasts).toHaveLength(1);
+    expect(controller.toasts[0]).toMatchObject({
+      kind: 'warning',
+      text: 'Faltam 30 de madeira e 35 de pedra.',
+      actions: [],
+      sticky: false,
+    });
+    // A recusa não derruba a ligação nem a sessão.
+    expect(controller.connection).toEqual({ kind: 'online' });
+    expect(controller.route).toBe('fief');
+  });
+
+  it('falha de rede: erro com "Tentar de novo", que reenvia a mesmíssima ordem', async () => {
+    useFakeClock();
+    const api = fakeApi();
+    const bodies: Command[] = [];
+    const recordingFetch: typeof fetch = (input, init) => {
+      if (String(input).endsWith('/commands') && typeof init?.body === 'string') {
+        bodies.push(JSON.parse(init.body) as Command);
+      }
+      return api.fetch(input, init);
+    };
+    const { controller } = await opened({ api, overrides: { fetch: recordingFetch } });
+
+    api.state.online = false;
+    const ordering = controller.order('setWorkers', { building: 'farm', count: 2 });
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(await ordering).toBe(false);
+
+    const toast = toastWith(controller, 'Sem ligação com o reino');
+    expect(toast).toMatchObject({ kind: 'error', sticky: true });
+    const retry = actionOf(toast, 'Tentar de novo');
+    expect(api.state.commands).toEqual([]);
+    const attempts = bodies.length;
+    expect(attempts).toBeGreaterThanOrEqual(1);
+
+    // A ligação volta e o jogador aperta "Tentar de novo".
+    api.state.online = true;
+    controller.handleOnline();
+    await settle(controller);
+    expect(controller.connection).toEqual({ kind: 'online' });
+    await retry.run();
+
+    expect(api.state.commands).toHaveLength(1);
+    expect(bodies).toHaveLength(attempts + 1);
+    // Todas as tentativas, as do SDK e a do botão, levaram a mesma ordem.
+    for (const body of bodies) {
+      expect(body).toEqual(bodies[0]);
+    }
+    expect(api.state.commands[0]).toEqual(bodies[0]);
+  });
+
+  // O aviso de falta de rede fica à vista quando a ligação volta: é só então que o "Tentar de
+  // novo" dele consegue reenviar a ordem (F3W-T6.3).
+  it('o aviso com "Tentar de novo" continua à vista quando a ligação volta', async () => {
+    useFakeClock();
+    const made = await opened();
+    const { controller, api } = made;
+    api.state.online = false;
+    const ordering = controller.order('setWorkers', { building: 'farm', count: 2 });
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(await ordering).toBe(false);
+
+    api.state.online = true;
+    controller.handleOnline();
+    await settle(controller);
+    expect(controller.connection).toEqual({ kind: 'online' });
+
+    const toast = controller.toasts.find((entry) =>
+      entry.actions.some((action) => action.label === 'Tentar de novo'),
+    );
+    expect(toast).toBeDefined();
+    await actionOf(toast, 'Tentar de novo').run();
+    expect(api.state.commands).toHaveLength(1);
+  });
+
+  it('"Tentar de novo" que falha de novo mantém o aviso, com a mesma ordem', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    api.state.online = false;
+    const ordering = controller.order('setWorkers', { building: 'farm', count: 2 });
+    await vi.advanceTimersByTimeAsync(2_000);
+    await ordering;
+
+    // Ainda sem ligação: a nova tentativa é recusada na hora e o botão continua lá.
+    await actionOf(toastWith(controller, 'Sem ligação com o reino'), 'Tentar de novo').run();
+    const again = toastWith(controller, OFFLINE_ORDER);
+    expect(again).toMatchObject({ kind: 'error' });
+    expect(again?.actions.map((entry) => entry.label)).toEqual(['Tentar de novo']);
+    expect(api.state.commands).toEqual([]);
+  });
+
+  it('sem feudo aberto, a ordem é recusada sem tocar a rede', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    await settle(controller);
+    const requests = api.state.requests.length;
+
+    await expect(
+      controller.prepare('setWorkers', { building: 'farm', count: 1 })(),
+    ).rejects.toBeInstanceOf(OfflineError);
+    expect(await controller.order('setWorkers', { building: 'farm', count: 1 })).toBe(false);
+
+    expect(api.state.requests).toHaveLength(requests);
+    expect(api.state.commands).toEqual([]);
+    expect(toastWith(controller, OFFLINE_ORDER)).toMatchObject({ kind: 'error' });
+  });
+
+  it('attempt devolve verdadeiro quando a ação dá certo e não mostra aviso', async () => {
+    const { controller } = make();
+    expect(await controller.attempt(async () => {})).toBe(true);
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('outra falha qualquer vira um erro com a mensagem, sem "Tentar de novo"', async () => {
+    const { controller } = make();
+    const ok = await controller.attempt(async () => {
+      throw new ApiClientError(409, 'CONFLICT', 'A partida foi arquivada.', undefined);
+    });
+    expect(ok).toBe(false);
+    expect(controller.toasts).toHaveLength(1);
+    expect(controller.toasts[0]).toMatchObject({
+      kind: 'error',
+      text: 'A partida foi arquivada.',
+      actions: [],
+    });
+  });
+});
+
+describe('avisos de acontecimentos', () => {
+  it('com "todas", 5 obras em uma hora dão 3 avisos e badge 2', async () => {
+    let clock = NOON;
+    const made = await opened({ now: () => clock });
+    const { controller } = made;
+    await controller.setPreferences({ notifications: 'all' });
+
+    for (let seq = 1; seq <= 5; seq += 1) {
+      await deliver(made, gameEvent(seq, 'constructionFinished', `Obra ${seq} concluída.`));
+      clock += 10 * 60_000;
+    }
+
+    expect(gameToasts(controller).map((toast) => toast.text)).toEqual([
+      'Obra 1 concluída.',
+      'Obra 2 concluída.',
+      'Obra 3 concluída.',
+    ]);
+    for (const toast of gameToasts(controller)) {
+      expect(toast.actions.map((entry) => entry.label)).toEqual(['Ver', 'Silenciar 2h']);
+      expect(toast.kind).toBe('info');
+      expect(toast.sticky).toBe(true);
+    }
+    expect(controller.unseen).toBe(2);
+    expect(controller.statusInput(0).pending).toBe(2);
+  });
+
+  it('as 5 chegando de uma vez dão o mesmo resultado', async () => {
+    const made = await opened({ now: () => NOON });
+    await made.controller.setPreferences({ notifications: 'all' });
+    await deliver(
+      made,
+      ...[1, 2, 3, 4, 5].map((seq) => gameEvent(seq, 'constructionFinished', `Obra ${seq}.`)),
+    );
+    expect(gameToasts(made.controller)).toHaveLength(3);
+    expect(made.controller.unseen).toBe(2);
+  });
+
+  it('passada uma hora, os avisos voltam a aparecer', async () => {
+    let clock = NOON;
+    const made = await opened({ now: () => clock });
+    const { controller } = made;
+    await controller.setPreferences({ notifications: 'all' });
+    await deliver(
+      made,
+      ...[1, 2, 3, 4].map((seq) => gameEvent(seq, 'constructionFinished', `Obra ${seq}.`)),
+    );
+    expect(toastWith(controller, 'Obra 4.')).toBeUndefined();
+
+    clock += HOUR + 1;
+    await deliver(made, gameEvent(5, 'constructionFinished', 'Obra 5.'));
+    expect(toastWith(controller, 'Obra 5.')).toBeDefined();
+  });
+
+  it('um evento nunca é avisado duas vezes', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    const [toast] = gameToasts(controller);
+    expect(toast).toBeDefined();
+    controller.dismissToast(toast?.id ?? -1);
+
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(gameToasts(controller)).toEqual([]);
+  });
+
+  it('no nível padrão (essencial) só a fome avisa, como alerta', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    expect(controller.preferences.notifications).toBe('essential');
+    await deliver(
+      made,
+      gameEvent(1, 'constructionFinished', 'A serraria ficou pronta.'),
+      gameEvent(2, 'dayStarted', 'Amanheceu.'),
+      gameEvent(3, 'famineStarted', 'A fome chegou a Pedra Alta.'),
+      gameEvent(4, 'objectiveCompleted', 'Objetivo cumprido.'),
+    );
+    expect(gameToasts(controller)).toHaveLength(1);
+    expect(gameToasts(controller)[0]).toMatchObject({
+      kind: 'warning',
+      text: 'A fome chegou a Pedra Alta.',
+    });
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('no nível silencioso nada aparece, nem como badge', async () => {
+    const made = await opened({ now: () => NOON });
+    await made.controller.setPreferences({ notifications: 'silent' });
+    await deliver(
+      made,
+      gameEvent(1, 'famineStarted', 'A fome chegou.'),
+      gameEvent(2, 'constructionFinished', 'Obra concluída.'),
+    );
+    expect(made.controller.toasts).toEqual([]);
+    expect(made.controller.unseen).toBe(0);
+  });
+
+  it('no modo discreto nada aparece, nem com "todas"', async () => {
+    const made = await opened({ now: () => NOON });
+    await made.controller.setPreferences({ notifications: 'all', discreetMode: true });
+    await deliver(
+      made,
+      gameEvent(1, 'famineStarted', 'A fome chegou.'),
+      gameEvent(2, 'constructionFinished', 'Obra concluída.'),
+    );
+    expect(made.controller.toasts).toEqual([]);
+    expect(made.controller.unseen).toBe(0);
+  });
+
+  it('ligar o modo discreto tira da vista os avisos que já estavam lá', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    expect(gameToasts(controller)).toHaveLength(1);
+    await controller.setPreferences({ discreetMode: true });
+    expect(gameToasts(controller)).toEqual([]);
+  });
+
+  it('"Silenciar 2h" cala os avisos, guarda o prazo e o resto vira badge', async () => {
+    let clock = NOON;
+    const made = await opened({ now: () => clock });
+    const { controller, store } = made;
+    await controller.setPreferences({ notifications: 'all' });
+    await deliver(made, gameEvent(1, 'constructionFinished', 'Obra 1.'));
+
+    await actionOf(toastWith(controller, 'Obra 1.'), 'Silenciar 2h').run();
+    await settle(controller);
+    // Os avisos do jogo à vista somem junto.
+    expect(gameToasts(controller)).toEqual([]);
+    expect(controller.preferences.mutedUntil).toBe(NOON + 2 * HOUR);
+    expect(store.get<Preferences>(PREFERENCES_KEY)?.mutedUntil).toBe(NOON + 2 * HOUR);
+
+    clock = NOON + HOUR;
+    await deliver(
+      made,
+      gameEvent(2, 'constructionFinished', 'Obra 2.'),
+      gameEvent(3, 'famineStarted', 'A fome chegou.'),
+    );
+    expect(gameToasts(controller)).toEqual([]);
+    expect(controller.unseen).toBe(2);
+
+    // Passadas as duas horas, os avisos voltam.
+    clock = NOON + 2 * HOUR + 1;
+    await deliver(made, gameEvent(4, 'constructionFinished', 'Obra 4.'));
+    expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['Obra 4.']);
+  });
+
+  it('"Ver" leva ao Feudo e zera as novidades', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await controller.setPreferences({ notifications: 'all' });
+    controller.navigate('settings');
+    await deliver(
+      made,
+      ...[1, 2, 3, 4].map((seq) => gameEvent(seq, 'constructionFinished', `Obra ${seq}.`)),
+    );
+    expect(controller.unseen).toBe(1);
+    await actionOf(gameToasts(controller)[0], 'Ver').run();
+    expect(controller.route).toBe('fief');
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('os eventos novos entram na Crônica recente, mesmo os que não avisam', async () => {
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual(['Amanheceu.']);
+    expect(made.controller.toasts).toEqual([]);
+  });
+});
+
+describe('avisos (toasts)', () => {
+  it('avisos sem botão somem sozinhos; com botão, esperam o jogador', () => {
+    const { controller } = make();
+    controller.toast({ kind: 'info', text: 'Sem botão.' });
+    controller.toast({ kind: 'info', text: 'Com botão.', actions: [{ label: 'Ok', run() {} }] });
+    expect(controller.toasts.map((toast) => toast.sticky)).toEqual([false, true]);
+  });
+
+  it('um aviso igual a um que já está à vista o substitui', () => {
+    const { controller } = make();
+    const first = controller.toast({ kind: 'warning', text: 'Faltam 30 de madeira.' });
+    controller.toast({ kind: 'info', text: 'Outro.' });
+    const second = controller.toast({ kind: 'warning', text: 'Faltam 30 de madeira.' });
+    expect(second).not.toBe(first);
+    expect(controller.toasts.map((toast) => toast.text)).toEqual([
+      'Outro.',
+      'Faltam 30 de madeira.',
+    ]);
+  });
+
+  it('ficam à vista no máximo quatro, os mais novos', () => {
+    const { controller } = make();
+    for (let index = 1; index <= 6; index += 1) {
+      controller.toast({ kind: 'info', text: `Aviso ${index}.` });
+    }
+    expect(controller.toasts.map((toast) => toast.text)).toEqual([
+      'Aviso 3.',
+      'Aviso 4.',
+      'Aviso 5.',
+      'Aviso 6.',
+    ]);
+  });
+
+  it('dispensar tira só o aviso pedido e avisa a bancada uma vez', () => {
+    const { controller } = make();
+    const first = controller.toast({ kind: 'info', text: 'Um.' });
+    controller.toast({ kind: 'info', text: 'Dois.' });
+    let changes = 0;
+    controller.onChange(() => {
+      changes += 1;
+    });
+    controller.dismissToast(first);
+    expect(controller.toasts.map((toast) => toast.text)).toEqual(['Dois.']);
+    expect(changes).toBe(1);
+    // Dispensar de novo (o tempo do aviso acabou junto com o clique) não muda nada.
+    controller.dismissToast(first);
+    expect(changes).toBe(1);
+  });
+});
+
+describe('Relatório de Retorno', () => {
+  async function returning(hoursAway: number, events: GameEvent[] = [], requested = null) {
+    const api = fakeApi();
+    api.state.events = events;
+    const made = make({ api, signedIn: true, now: () => NOON });
+    made.store.data[cacheKey(target)] = cachedAt(NOON - hoursAway * HOUR);
+    await made.controller.setPreferences({ notifications: 'all' });
+    await made.controller.start(requested);
+    await settle(made.controller);
+    return made;
+  }
+
+  it('depois de 4 horas ou mais fora, o app abre na aba Hoje com o relatório', async () => {
+    const { controller } = await returning(4);
+    expect(controller.report).not.toBeNull();
+    expect(controller.report?.awaySeconds).toBe(4 * 3600);
+    expect(controller.route).toBe('today');
+    expect(controller.defaultRoute()).toBe('today');
+  });
+
+  it('vale a aba Hoje mesmo com outra aba pedida pelo endereço', async () => {
+    const made = make({ signedIn: true, now: () => NOON });
+    made.store.data[cacheKey(target)] = cachedAt(NOON - 9 * HOUR);
+    await made.controller.start('fief');
+    expect(made.controller.report).not.toBeNull();
+    expect(made.controller.route).toBe('today');
+  });
+
+  it('com menos de 4 horas, não há relatório e o app abre no Feudo', async () => {
+    const { controller } = await returning(3.9);
+    expect(controller.report).toBeNull();
+    expect(controller.route).toBe('fief');
+  });
+
+  it('na primeira visita (sem nada guardado) não há relatório', async () => {
+    const { controller } = await opened({ now: () => NOON });
+    expect(controller.report).toBeNull();
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('os eventos da ausência vão para o relatório, e não viram avisos um a um', async () => {
+    const made = await returning(6, [
+      gameEvent(1, 'constructionFinished', 'A serraria ficou pronta.'),
+      gameEvent(2, 'dayStarted', 'Amanheceu.'),
+      gameEvent(3, 'famineStarted', 'A fome chegou a Pedra Alta.'),
+      gameEvent(4, 'recruitmentFinished', 'Um aldeão chegou.'),
+    ]);
+    const { controller } = made;
+    expect(gameToasts(controller)).toEqual([]);
+    expect(controller.report?.highlights).toEqual([
+      'A serraria ficou pronta.',
+      'A fome chegou a Pedra Alta.',
+      'Um aldeão chegou.',
+    ]);
+    expect(controller.report?.counts).toMatchObject({
+      daysPassed: 1,
+      constructionsFinished: 1,
+      villagersArrived: 1,
+    });
+    // As novidades contam no badge e no título.
+    expect(controller.unseen).toBe(3);
+    expect(controller.title(0).startsWith('(3) ')).toBe(true);
+
+    // Posta em dia a ausência, o que chegar depois volta a avisar normalmente.
+    await deliver(made, gameEvent(5, 'constructionFinished', 'A fazenda ficou pronta.'));
+    expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fazenda ficou pronta.']);
+  });
+
+  it('numa ausência curta, os eventos avisam normalmente', async () => {
+    const { controller } = await returning(1, [gameEvent(1, 'famineStarted', 'A fome chegou.')]);
+    expect(controller.report).toBeNull();
+    expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fome chegou.']);
+  });
+
+  it('markSeen fecha o relatório e zera as novidades', async () => {
+    const { controller } = await returning(6, [gameEvent(1, 'constructionFinished', 'Pronta.')]);
+    expect(controller.unseen).toBe(1);
+    let changes = 0;
+    controller.onChange(() => {
+      changes += 1;
+    });
+    controller.markSeen();
+    expect(controller.report).toBeNull();
+    expect(controller.unseen).toBe(0);
+    expect(controller.defaultRoute()).toBe('fief');
+    expect(changes).toBe(1);
+    // Sem nada para marcar, a bancada não é redesenhada à toa.
+    controller.markSeen();
+    expect(changes).toBe(1);
+  });
+
+  it('ir ao Feudo zera o badge, mas o relatório continua na aba Hoje até ser lido', async () => {
+    const { controller } = await returning(6, [gameEvent(1, 'constructionFinished', 'Pronta.')]);
+    controller.navigate('fief');
+    expect(controller.unseen).toBe(0);
+    expect(controller.report).not.toBeNull();
+  });
+
+  it('abas que não são do feudo não contam como ter visto as novidades', async () => {
+    const { controller } = await returning(6, [gameEvent(1, 'constructionFinished', 'Pronta.')]);
+    controller.navigate('settings');
+    controller.navigate('about');
+    expect(controller.unseen).toBe(1);
+    controller.navigate('today');
+    expect(controller.unseen).toBe(0);
+  });
+});
+
+describe('título da aba do navegador', () => {
+  it('sem conta, só o nome do app', async () => {
+    const { controller } = make();
+    await controller.start();
+    expect(controller.title(0)).toBe(APP_TITLE);
+  });
+
+  it('com feudo, o nome dele na frente', async () => {
+    const { controller } = await opened();
+    expect(controller.title(0)).toBe(`Pedra Alta · ${APP_TITLE}`);
+    expect(controller.statusInput(12)).toMatchObject({
+      signedIn: true,
+      discreetMode: false,
+      elapsedSeconds: 12,
+      pending: 0,
+      connection: { kind: 'online' },
+    });
+  });
+
+  it('com novidades, o contador entre parênteses; visto o Feudo, ele some', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await controller.setPreferences({ notifications: 'all' });
+    controller.navigate('settings');
+    await deliver(
+      made,
+      ...[1, 2, 3, 4, 5].map((seq) => gameEvent(seq, 'constructionFinished', `Obra ${seq}.`)),
+    );
+    expect(controller.title(0)).toBe(`(2) Pedra Alta · ${APP_TITLE}`);
+    controller.navigate('fief');
+    expect(controller.title(0)).toBe(`Pedra Alta · ${APP_TITLE}`);
+  });
+
+  it('no modo discreto, só um contador: nem o nome do feudo nem o do jogo', async () => {
+    const { controller } = await opened();
+    await controller.setPreferences({ discreetMode: true });
+    const title = controller.title(0);
+    expect(title).toMatch(/^(\d{2}:\d{2}|\d+d \d{2}h)$/);
+    expect(title).not.toContain('Pedra Alta');
+    expect(title).not.toContain('Lords');
+  });
+
+  it('depois de sair, volta a ser só o nome do app', async () => {
+    const { controller } = await opened();
+    await controller.signOut();
+    expect(controller.title(0)).toBe(APP_TITLE);
+  });
+});
+
+describe('abas e navegação', () => {
+  it('abrir a Crônica cria uma aba que pode ser fechada e carrega o texto', async () => {
+    const { controller, api } = await opened();
+    controller.navigate('chronicle');
+    expect(controller.route).toBe('chronicle');
+    expect(controller.tabs).toEqual(['today', 'fief', 'chronicle']);
+    expect(controller.chronicleDocument).toEqual({ status: 'loading' });
+    await settle(controller);
+    expect(controller.chronicleDocument).toEqual({
+      status: 'ready',
+      value: api.state.chronicleMarkdown,
+    });
+
+    controller.closeTab('chronicle');
+    expect(controller.route).toBe('fief');
+    expect(controller.tabs).toEqual(['today', 'fief']);
+  });
+
+  it('a Crônica aberta é lida de novo quando chegam eventos', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller, api } = made;
+    controller.navigate('chronicle');
+    await settle(controller);
+
+    api.state.chronicleMarkdown = '# Crônica de Pedra Alta\n\n- Amanheceu.\n';
+    await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
+    expect(controller.chronicleDocument).toEqual({
+      status: 'ready',
+      value: '# Crônica de Pedra Alta\n\n- Amanheceu.\n',
+    });
+  });
+
+  it('se a leitura da Crônica falha, a aba mostra o erro em vez de travar', async () => {
+    const { controller, api } = await opened();
+    api.state.failNext.set('chronicle.md', {
+      status: 409,
+      body: { code: 'CONFLICT', message: 'A partida foi arquivada.' },
+    });
+    controller.navigate('chronicle');
+    await settle(controller);
+    expect(controller.chronicleDocument).toEqual({
+      status: 'error',
+      message: 'A partida foi arquivada.',
+    });
+    // Tentar de novo (o botão da aba) lê do servidor outra vez.
+    expect(await controller.loadChronicle()).toBe(api.state.chronicleMarkdown);
+    expect(controller.chronicleDocument.status).toBe('ready');
+  });
+
+  it('abrir a mesma aba duas vezes não a duplica', async () => {
+    const { controller } = await opened();
+    controller.navigate('settings');
+    controller.navigate('fief');
+    controller.navigate('settings');
+    expect(controller.tabs).toEqual(['today', 'fief', 'settings']);
+  });
+
+  it('fechar uma aba que não é a ativa não muda de aba', async () => {
+    const { controller } = await opened();
+    controller.navigate('settings');
+    controller.navigate('about');
+    controller.closeTab('settings');
+    expect(controller.route).toBe('about');
+    expect(controller.tabs).toEqual(['today', 'fief', 'about']);
+  });
+
+  it('as abas fixas não fecham', async () => {
+    const { controller } = await opened();
+    let changes = 0;
+    controller.onChange(() => {
+      changes += 1;
+    });
+    controller.closeTab('fief');
+    controller.closeTab('today');
+    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.route).toBe('fief');
+    expect(changes).toBe(0);
+  });
+
+  it('sem feudo: só as boas-vindas, mais Preferências e Sobre quando abertas', async () => {
+    const { controller } = make();
+    await controller.start();
+    expect(controller.tabs).toEqual(['welcome']);
+
+    controller.navigate('chronicle');
+    expect(controller.route).toBe('welcome');
+    expect(controller.tabs).toEqual(['welcome']);
+
+    controller.navigate('settings');
+    controller.navigate('about');
+    expect(controller.tabs).toEqual(['welcome', 'settings', 'about']);
+    controller.closeTab('about');
+    expect(controller.route).toBe('welcome');
+  });
+
+  it('com feudo, pedir as boas-vindas leva à aba padrão', async () => {
+    const { controller } = await opened();
+    controller.navigate('settings');
+    controller.navigate('welcome');
+    expect(controller.route).toBe('fief');
+  });
+
+  it('navegar avisa a bancada para se redesenhar', async () => {
+    const { controller } = await opened();
+    let changes = 0;
+    controller.onChange(() => {
+      changes += 1;
+    });
+    controller.navigate('today');
+    expect(changes).toBe(1);
+  });
+});
+
+describe('conta', () => {
+  it('sair apaga os caches da conta, volta às boas-vindas e não avisa de sessão perdida', async () => {
+    const { controller, api, store, tokenStore } = await opened();
+    const otherAccount = cacheKey({ ...target, accountId: OTHER_ACCOUNT_ID });
+    // Uma partida arquivada da mesma conta e o feudo de outra conta neste navegador.
+    store.data[cacheKey({ ...target, gameId: OTHER_GAME_ID })] = cachedAt(NOON);
+    store.data[otherAccount] = cachedAt(NOON);
+    controller.navigate('chronicle');
+    await settle(controller);
+
+    await controller.signOut();
+    await settle(controller);
+
+    expect(store.keys().filter((key) => key.startsWith('lords.cache:'))).toEqual([otherAccount]);
+    expect(store.get(ACCOUNT_KEY)).toBeUndefined();
+    expect(await tokenStore.get()).toBeNull();
+    expect(controller.account.state).toEqual({ kind: 'signedOut' });
+    expect(controller.route).toBe('welcome');
+    expect(controller.tabs).toEqual(['welcome']);
+    expect(controller.view).toBeNull();
+    expect(controller.session.gameId).toBeNull();
+    expect(controller.chronicle).toEqual([]);
+    expect(controller.chronicleDocument).toEqual({ status: 'idle' });
+    expect(controller.busy).toBe(false);
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+    expect(count(api.state.requests, 'POST /auth/logout')).toBe(1);
+  });
+
+  it('depois de sair, o ciclo de atualização para', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    await controller.signOut();
+    await settle(controller);
+    const requests = api.state.requests.length;
+    await vi.advanceTimersByTimeAsync(10 * 60_000);
+    expect(api.state.requests).toHaveLength(requests);
+  });
+
+  it('sessão perdida no servidor: boas-vindas COM o aviso, e os caches apagados', async () => {
+    const { controller, api, store, tokenStore } = await opened();
+    expect(store.get(cacheKey(target))).toBeDefined();
+
+    // A sessão foi revogada: toda leitura autenticada passa a responder 401 SESSION_REVOKED.
+    api.state.account = null;
+    await controller.session.syncNow();
+    await settle(controller);
+
+    expect(controller.route).toBe('welcome');
+    expect(controller.account.state).toEqual({ kind: 'signedOut' });
+    expect(toastWith(controller, SESSION_ENDED)).toMatchObject({ kind: 'warning' });
+    expect(store.keys().filter((key) => key.startsWith('lords.cache:'))).toEqual([]);
+    expect(store.get(ACCOUNT_KEY)).toBeUndefined();
+    expect(await tokenStore.get()).toBeNull();
+    // Nada do feudo fica à vista como se fosse só falta de rede.
+    expect(controller.view).toBeNull();
+    expect(controller.title(0)).toBe(APP_TITLE);
+  });
+
+  it('sessão perdida ao dar uma ordem tem o mesmo desfecho', async () => {
+    const { controller, api, store } = await opened();
+    api.state.account = null;
+    expect(await controller.order('setWorkers', { building: 'farm', count: 1 })).toBe(false);
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(toastWith(controller, SESSION_ENDED)).toBeDefined();
+    expect(store.keys().filter((key) => key.startsWith('lords.cache:'))).toEqual([]);
+    expect(api.state.commands).toEqual([]);
+  });
+
+  it('excluir a conta: boas-vindas, caches apagados e nenhum aviso de sessão perdida', async () => {
+    const { controller, api, store, tokenStore } = await opened();
+    await controller.deleteAccount();
+    await settle(controller);
+
+    expect(count(api.state.requests, 'DELETE /me')).toBe(1);
+    expect(controller.route).toBe('welcome');
+    expect(controller.account.state).toEqual({ kind: 'signedOut' });
+    expect(store.keys().filter((key) => key.startsWith('lords.cache:'))).toEqual([]);
+    expect(store.get(ACCOUNT_KEY)).toBeUndefined();
+    expect(await tokenStore.get()).toBeNull();
+    expect(controller.view).toBeNull();
+    expect(controller.busy).toBe(false);
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+  });
+
+  it('se a exclusão falha, a conta continua e uma sessão perdida depois volta a avisar', async () => {
+    const { controller, api } = await opened();
+    api.state.failNext.set('/me', {
+      status: 500,
+      body: { code: 'INTERNAL', message: 'O servidor tropeçou.' },
+    });
+    await expect(controller.deleteAccount()).rejects.toThrow('O servidor tropeçou.');
+    await settle(controller);
+    expect(controller.account.state).toMatchObject({ kind: 'anonymous', gameId: GAME_ID });
+    expect(controller.route).toBe('fief');
+    expect(controller.busy).toBe(false);
+
+    api.state.account = null;
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(toastWith(controller, SESSION_ENDED)).toBeDefined();
+  });
+
+  it('depois de sair, "Jogar agora" de novo abre um feudo e uma sessão perdida avisa', async () => {
+    const { controller, api } = await opened();
+    await controller.signOut();
+    await controller.playNow('Gustavo', 'Pedra Alta');
+    await settle(controller);
+    expect(controller.route).toBe('fief');
+
+    api.state.account = null;
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(toastWith(controller, SESSION_ENDED)).toBeDefined();
+  });
+});
+
+describe('outras abas do navegador', () => {
+  it('outra aba saiu: esta volta às boas-vindas junto, sem o aviso de sessão perdida', async () => {
+    const { controller, store, tokenStore } = await opened();
+    // O que a outra aba fez no armazenamento compartilhado.
+    delete store.data[ACCOUNT_KEY];
+    await tokenStore.clear();
+
+    controller.handleTabChange({ kind: 'signedOut' });
+    await settle(controller);
+
+    expect(controller.route).toBe('welcome');
+    expect(controller.account.state).toEqual({ kind: 'signedOut' });
+    expect(controller.view).toBeNull();
+    expect(store.keys().filter((key) => key.startsWith('lords.cache:'))).toEqual([]);
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+  });
+
+  // Sair em outra aba apaga duas chaves e gera dois eventos `storage`; o segundo encontra esta
+  // aba já sem conta e não pode deixar a marca de "saída esperada" ligada.
+  it('depois de outra aba sair, uma sessão perdida mais tarde ainda merece o aviso', async () => {
+    const { controller, api, store, tokenStore } = await opened();
+    delete store.data[ACCOUNT_KEY];
+    await tokenStore.clear();
+    // Um evento `storage` por chave apagada.
+    controller.handleTabChange({ kind: 'signedOut' });
+    await settle(controller);
+    controller.handleTabChange({ kind: 'signedOut' });
+    await settle(controller);
+
+    await controller.playNow('Gustavo', 'Pedra Alta');
+    await settle(controller);
+    expect(controller.route).toBe('fief');
+
+    api.state.account = null;
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(toastWith(controller, SESSION_ENDED)).toBeDefined();
+  });
+
+  it('outra aba entrou em uma conta: esta a adota e abre o feudo', async () => {
+    const { controller, api, store, tokenStore } = make();
+    await controller.start();
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+
+    // A outra aba fez "Jogar agora": conta, tokens e partida estão no armazenamento comum.
+    api.seed('Gustavo', 'Pedra Alta');
+    await tokenStore.set({ accessToken: 'acesso', refreshToken: 'renovacao' });
+    store.data[ACCOUNT_KEY] = {
+      kind: 'anonymous',
+      accountId: ACCOUNT_ID,
+      displayName: 'Gustavo',
+      hasRecoveryCode: false,
+      gameId: GAME_ID,
+    };
+    controller.handleTabChange({ kind: 'account' });
+    await settle(controller);
+
+    expect(controller.account.state).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
+    expect(controller.route).toBe('fief');
+    expect(controller.view?.settlement.name).toBe('Pedra Alta');
+    expect(controller.tabs).toEqual(['today', 'fief']);
+    // Adotar não cria conta nem funda feudo de novo.
+    expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
+    expect(count(api.state.requests, 'POST /games')).toBe(0);
+  });
+
+  it('um aviso de conta sem mudança nenhuma não reabre a sessão', async () => {
+    const { controller, api } = await opened();
+    const requests = api.state.requests.length;
+    controller.handleTabChange({ kind: 'account' });
+    await settle(controller);
+    expect(api.state.requests).toHaveLength(requests);
+    expect(controller.route).toBe('fief');
+  });
+
+  it('outra aba mudou as preferências: esta as relê do armazenamento', async () => {
+    const { controller, store } = await opened();
+    let changes = 0;
+    controller.onChange(() => {
+      changes += 1;
+    });
+    store.data[PREFERENCES_KEY] = {
+      ...DEFAULT_PREFERENCES,
+      discreetMode: true,
+      notifications: 'silent',
+      theme: 'light',
+    };
+    controller.handleTabChange({ kind: 'preferences' });
+    expect(controller.preferences).toMatchObject({
+      discreetMode: true,
+      notifications: 'silent',
+      theme: 'light',
+    });
+    expect(changes).toBe(1);
+    expect(controller.statusInput(0).discreetMode).toBe(true);
+  });
+});
+
+describe('preferências', () => {
+  it('começam no padrão e são guardadas neste navegador', async () => {
+    const { controller, store } = make();
+    expect(controller.preferences).toEqual(DEFAULT_PREFERENCES);
+    await controller.setPreferences({ theme: 'high-contrast', vigilHour: 6 });
+    expect(controller.preferences).toEqual({
+      ...DEFAULT_PREFERENCES,
+      theme: 'high-contrast',
+      vigilHour: 6,
+    });
+    expect(store.get(PREFERENCES_KEY)).toEqual(controller.preferences);
+  });
+});
+
+describe('visibilidade da aba e rede', () => {
+  it('30 s com a aba à vista, 2 min em segundo plano, e sincroniza ao voltar', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    const views = () => count(api.state.requests, VIEW_REQUEST);
+    expect(views()).toBe(1);
+
+    // À vista: uma leitura a cada 30 s.
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(views()).toBe(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(views()).toBe(2);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(views()).toBe(3);
+
+    // Em segundo plano: só de 2 em 2 minutos.
+    controller.setVisible(false);
+    expect(controller.visible).toBe(false);
+    await vi.advanceTimersByTimeAsync(119_000);
+    expect(views()).toBe(3);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(views()).toBe(4);
+
+    // De volta à vista: sincroniza na hora e retoma os 30 s.
+    controller.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(views()).toBe(5);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(views()).toBe(6);
+  });
+
+  it('uma página aberta já em segundo plano começa no ritmo de 2 min', async () => {
+    useFakeClock();
+    const { controller, api } = make({ signedIn: true });
+    controller.setVisible(false);
+    await controller.start();
+    await settle(controller);
+    const views = () => count(api.state.requests, VIEW_REQUEST);
+    expect(views()).toBe(1);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(views()).toBe(1);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(views()).toBe(2);
+  });
+
+  it('sem ligação: a última visão fica à vista e as ordens falham sem entrar em fila', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    const view = controller.view;
+
+    api.state.online = false;
+    const syncing = controller.session.syncNow();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await syncing;
+
+    expect(controller.connection.kind).toBe('offline');
+    expect(controller.view).toEqual(view);
+    expect(controller.route).toBe('fief');
+    // Falta de rede não é fim de sessão.
+    expect(controller.account.state.kind).toBe('anonymous');
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+
+    const posts = count(api.state.requests, COMMANDS_REQUEST);
+    expect(await controller.order('setWorkers', { building: 'farm', count: 2 })).toBe(false);
+    expect(toastWith(controller, OFFLINE_ORDER)).toMatchObject({ kind: 'error' });
+    // A ordem nem saiu do navegador.
+    expect(count(api.state.requests, COMMANDS_REQUEST)).toBe(posts);
+    expect(api.state.commands).toEqual([]);
+
+    // A ligação volta: nada é enviado sozinho.
+    api.state.online = true;
+    await vi.advanceTimersByTimeAsync(5_000);
+    await settle(controller);
+    expect(controller.connection).toEqual({ kind: 'online' });
+    expect(api.state.commands).toEqual([]);
+    expect(count(api.state.requests, COMMANDS_REQUEST)).toBe(posts);
+  });
+
+  it('o aviso do navegador de que a rede voltou sincroniza na hora', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    api.state.online = false;
+    const syncing = controller.session.syncNow();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await syncing;
+    expect(controller.connection.kind).toBe('offline');
+
+    api.state.online = true;
+    const views = count(api.state.requests, VIEW_REQUEST);
+    controller.handleOnline();
+    // Nenhum temporizador avança: não esperou os 5 s do recuo.
+    await settle(controller);
+    expect(count(api.state.requests, VIEW_REQUEST)).toBe(views + 1);
+    expect(controller.connection).toEqual({ kind: 'online' });
+  });
+
+  it('página aberta sem rede: mostra o feudo guardado; quando a rede volta, põe tudo em dia', async () => {
+    useFakeClock();
+    const api = fakeApi();
+    const made = make({ api, signedIn: true });
+    const { controller, store } = made;
+    store.data[cacheKey(target)] = cachedAt(NOON - HOUR);
+    api.state.online = false;
+
+    const starting = controller.start();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await starting;
+    await settle(controller);
+
+    expect(controller.route).toBe('fief');
+    expect(controller.view?.settlement.name).toBe('Pedra Alta');
+    expect(controller.connection.kind).toBe('offline');
+    expect(controller.server.status).toBe('error');
+    expect(controller.githubAvailable).toBe(false);
+    expect(controller.account.state.kind).toBe('anonymous');
+
+    api.state.online = true;
+    controller.handleOnline();
+    await settle(controller);
+    expect(controller.connection).toEqual({ kind: 'online' });
+    expect(controller.server.status).toBe('ready');
+  });
+});
+
+describe('notificações do navegador', () => {
+  it('a permissão só é pedida quando o jogador liga a opção', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    const { controller, store } = made;
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    expect(log.requests).toBe(0);
+
+    expect(await controller.setBrowserNotifications(true)).toBe(true);
+    expect(log.requests).toBe(1);
+    expect(controller.preferences.browserNotifications).toBe(true);
+    expect(store.get<Preferences>(PREFERENCES_KEY)?.browserNotifications).toBe(true);
+    expect(controller.toasts.filter((toast) => toast.text.includes('permissão'))).toEqual([]);
+  });
+
+  it('permissão negada: a opção continua desligada e um aviso explica', async () => {
+    const { notifier, log } = fakeNotifier(false);
+    const { controller, store } = await opened({ overrides: { notifier } });
+    expect(await controller.setBrowserNotifications(true)).toBe(false);
+    expect(log.requests).toBe(1);
+    expect(controller.preferences.browserNotifications).toBe(false);
+    expect(store.get<Preferences>(PREFERENCES_KEY)?.browserNotifications).toBe(false);
+    expect(toastWith(controller, 'não deu permissão')).toMatchObject({ kind: 'warning' });
+  });
+
+  it('navegador sem notificações: continua desligada, com outro aviso, sem pedir nada', async () => {
+    const { notifier, log } = fakeNotifier(true, false);
+    const unsupported = await opened({ overrides: { notifier } });
+    expect(await unsupported.controller.setBrowserNotifications(true)).toBe(false);
+    expect(log.requests).toBe(0);
+    expect(unsupported.controller.preferences.browserNotifications).toBe(false);
+    expect(toastWith(unsupported.controller, 'não tem notificações')).toMatchObject({
+      kind: 'warning',
+    });
+
+    const absent = await opened();
+    expect(await absent.controller.setBrowserNotifications(true)).toBe(false);
+    expect(toastWith(absent.controller, 'não tem notificações')).toBeDefined();
+  });
+
+  it('desligar não pede permissão nem mostra aviso', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const { controller } = await opened({ overrides: { notifier } });
+    await controller.setBrowserNotifications(true);
+    expect(await controller.setBrowserNotifications(false)).toBe(true);
+    expect(log.requests).toBe(1);
+    expect(controller.preferences.browserNotifications).toBe(false);
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('ligada e com a aba em segundo plano, o aviso também sai pelo navegador e conta no título', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    const { controller } = made;
+    await controller.setBrowserNotifications(true);
+    controller.setVisible(false);
+
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou a Pedra Alta.'));
+    expect(log.shown).toEqual([{ title: 'Pedra Alta', body: 'A fome chegou a Pedra Alta.' }]);
+    expect(gameToasts(controller)).toHaveLength(1);
+    expect(controller.unseen).toBe(1);
+    expect(controller.title(0)).toBe(`(1) Pedra Alta · ${APP_TITLE}`);
+  });
+
+  it('com a aba à vista, o aviso fica só na página', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    await made.controller.setBrowserNotifications(true);
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    expect(gameToasts(made.controller)).toHaveLength(1);
+    expect(log.shown).toEqual([]);
+    expect(made.controller.unseen).toBe(0);
+  });
+
+  it('com a opção desligada, a aba em segundo plano só ganha o contador no título', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    made.controller.setVisible(false);
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    expect(log.shown).toEqual([]);
+    expect(log.requests).toBe(0);
+    expect(made.controller.title(0)).toBe(`(1) Pedra Alta · ${APP_TITLE}`);
+  });
+
+  it('se o jogador retirou a permissão no navegador, nada é exibido por ele', async () => {
+    const { notifier, log, revoke } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    await made.controller.setBrowserNotifications(true);
+    revoke();
+    made.controller.setVisible(false);
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou.'));
+    expect(log.shown).toEqual([]);
+  });
+
+  it('o que a política não mostra também não sai pelo navegador', async () => {
+    const { notifier, log } = fakeNotifier(true);
+    const made = await opened({ now: () => NOON, overrides: { notifier } });
+    const { controller } = made;
+    await controller.setBrowserNotifications(true);
+    controller.setVisible(false);
+
+    // Nível essencial: a obra não avisa.
+    await deliver(made, gameEvent(1, 'constructionFinished', 'Obra concluída.'));
+    expect(log.shown).toEqual([]);
+
+    // Modo discreto: nem a fome.
+    await controller.setPreferences({ discreetMode: true });
+    await deliver(made, gameEvent(2, 'famineStarted', 'A fome chegou.'));
+    expect(log.shown).toEqual([]);
+  });
+});
+
+describe('servidor atualizado (426 UPGRADE_REQUIRED)', () => {
+  const upgrade = {
+    status: 426,
+    body: { code: 'UPGRADE_REQUIRED', message: 'Atualize o cliente.' },
+  };
+
+  it('pede para recarregar a página, uma única vez', async () => {
+    const { controller, api } = await opened();
+    const reloads: string[] = [];
+    controller.runCommand = (id) => {
+      reloads.push(id);
+    };
+
+    api.state.failNext.set('/view', upgrade);
+    await controller.session.syncNow();
+    await settle(controller);
+
+    const toast = toastWith(controller, 'Recarregue a página');
+    expect(toast).toMatchObject({ kind: 'warning', sticky: true });
+    await actionOf(toast, 'Recarregar').run();
+    expect(reloads).toEqual(['lords.reload']);
+
+    // O jogador dispensou o aviso; o ciclo seguinte recebe 426 de novo e não insiste.
+    controller.dismissToast(toast?.id ?? -1);
+    api.state.failNext.set('/view', upgrade);
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(toastWith(controller, 'Recarregue a página')).toBeUndefined();
+  });
+
+  it('não derruba a sessão: a conta e a última visão continuam', async () => {
+    const { controller, api, logs } = await opened();
+    api.state.failNext.set('/view', upgrade);
+    await controller.session.syncNow();
+    await settle(controller);
+    expect(controller.account.state.kind).toBe('anonymous');
+    expect(controller.view).not.toBeNull();
+    expect(controller.route).toBe('fief');
+    expect(toastWith(controller, SESSION_ENDED)).toBeUndefined();
+    expect(logs.some((line) => line.includes('UPGRADE_REQUIRED'))).toBe(true);
+  });
+});
+
+describe('lembrete do dia 3 ("Proteja seu reino")', () => {
+  const REMINDER = 'Proteja seu reino';
+
+  async function openedOn(dayOfYear: number, options: MakeOptions = {}): Promise<Made> {
+    const api = options.api ?? fakeApi();
+    api.state.view = onDay(dayOfYear);
+    return opened({ ...options, api });
+  }
+
+  it('aparece quando o calendário chega ao dia 25, para conta anônima sem código', async () => {
+    const made = await openedOn(24);
+    const { controller, store } = made;
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+    expect(store.get(REMINDER_KEY)).toBeUndefined();
+
+    await serverShows(made, onDay(25));
+    const toast = toastWith(controller, REMINDER);
+    expect(toast).toMatchObject({ kind: 'info', sticky: true });
+    // O texto avisa do risco próprio do navegador.
+    expect(toast?.text).toContain('limpar os dados de navegação apaga o acesso');
+    expect(toast?.actions.map((entry) => entry.label)).toContain('Não lembrar mais');
+    expect(toast?.actions.map((entry) => entry.label)).toContain('Gerar Código do Reino');
+  });
+
+  it('aparece uma vez só', async () => {
+    const made = await openedOn(25);
+    const { controller, store } = made;
+    const toast = toastWith(controller, REMINDER);
+    expect(toast).toBeDefined();
+    expect(store.get(REMINDER_KEY)).toBe(true);
+
+    controller.dismissToast(toast?.id ?? -1);
+    await serverShows(made, onDay(26));
+    await serverShows(made, onDay(27));
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+  });
+
+  it('os botões levam aos comandos de vincular e de gerar o código', async () => {
+    const { controller } = await openedOn(30);
+    const ran: string[] = [];
+    controller.runCommand = (id) => {
+      ran.push(id);
+    };
+    const toast = toastWith(controller, REMINDER);
+    await actionOf(toast, 'Gerar Código do Reino').run();
+    await actionOf(toast, 'Vincular ao GitHub').run();
+    expect(ran).toEqual(['lords.generateRecoveryCode', 'lords.linkGithub']);
+  });
+
+  it('sem o vínculo com o GitHub no servidor, não oferece o que não existe', async () => {
+    const api = fakeApi();
+    api.state.githubDevice = false;
+    const { controller } = await openedOn(25, { api });
+    const labels = toastWith(controller, REMINDER)?.actions.map((entry) => entry.label);
+    expect(labels).toEqual(['Gerar Código do Reino', 'Não lembrar mais']);
+  });
+
+  it('não aparece no modo discreto; fica para quando o jogador sair dele', async () => {
+    const api = fakeApi();
+    api.state.view = onDay(25);
+    const made = make({ api, signedIn: true });
+    const { controller } = made;
+    await controller.setPreferences({ discreetMode: true });
+    await controller.start();
+    await settle(controller);
+    expect(toastWith(controller, REMINDER)).toBeUndefined();
+
+    await controller.setPreferences({ discreetMode: false });
+    await serverShows(made, onDay(26));
+    expect(toastWith(controller, REMINDER)).toBeDefined();
+  });
+
+  it('quem já tem Código do Reino não é lembrado', async () => {
+    const api = fakeApi();
+    api.state.view = onDay(40);
+    const made = make({ api, signedIn: true });
+    made.store.data[ACCOUNT_KEY] = {
+      kind: 'anonymous',
+      accountId: ACCOUNT_ID,
+      displayName: 'Gustavo',
+      hasRecoveryCode: true,
+      gameId: GAME_ID,
+    };
+    if (api.state.account !== null) {
+      api.state.account = { ...api.state.account, hasRecoveryCode: true };
+    }
+    await made.controller.start();
+    await settle(made.controller);
+    expect(toastWith(made.controller, REMINDER)).toBeUndefined();
+  });
+
+  it('a partir do segundo ano também vale', async () => {
+    const api = fakeApi();
+    api.state.view = { ...goldenView, calendar: { ...goldenView.calendar, year: 2, dayOfYear: 1 } };
+    const { controller } = await opened({ api });
+    expect(toastWith(controller, REMINDER)).toBeDefined();
+  });
+});
+
+describe('encerramento', () => {
+  it('dispose para o ciclo e deixa de ouvir a sessão', async () => {
+    useFakeClock();
+    const { controller, api } = await opened();
+    controller.dispose();
+    const requests = api.state.requests.length;
+    await vi.advanceTimersByTimeAsync(10 * 60_000);
+    expect(api.state.requests).toHaveLength(requests);
+  });
+});
+
+describe('servidor de uma versão anterior', () => {
+  it('sem `features` em /version, o vínculo GitHub fica desligado e nada quebra', async () => {
+    const api = fakeApi();
+    const legacy: typeof fetch = async (input, init) => {
+      if (String(input).endsWith('/v1/version')) {
+        // A API publicada antes do device flow não informava o que tinha ligado.
+        return Response.json({
+          server: '0.1.0',
+          protocol: 1,
+          contentHash: '0123456789abcdef',
+          builtAt: '2026-10-01T12:00:00.000Z',
+        });
+      }
+      return api.fetch(input, init);
+    };
+    const { controller } = makeController({
+      api,
+      overrides: { fetch: legacy, validateResponses: false },
+    });
+    await controller.start();
+    await settle(controller);
+    expect(controller.server.status).toBe('ready');
+    expect(controller.githubAvailable).toBe(false);
+    controller.dispose();
+  });
+});

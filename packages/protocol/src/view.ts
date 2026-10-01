@@ -62,7 +62,7 @@ const ObjectiveSchema = z.strictObject({
   progress: z.strictObject({ current: z.number(), target: z.number() }),
 });
 
-/** Tudo que a interface exibe. A Webview recebe isto pronto e não calcula regras (GDD §14.5). */
+/** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
 export const ViewStateSchema = z.strictObject({
   settlement: z.strictObject({ name: z.string(), townHallLevel: z.number() }),
   calendar: z.strictObject({

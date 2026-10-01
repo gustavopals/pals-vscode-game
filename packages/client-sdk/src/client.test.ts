@@ -231,7 +231,7 @@ describe('renovação da sessão', () => {
   });
 
   it('se outro processo já renovou, usa os tokens dele em vez de apresentar o antigo', async () => {
-    // Duas janelas do VS Code dividem o SecretStorage. A outra janela renovou primeiro.
+    // Duas abas do navegador dividem o mesmo armazenamento. A outra aba renovou primeiro.
     const { client, callsTo, tokenStore } = setup((call) =>
       call.headers.authorization === 'Bearer jwt-da-outra-janela'
         ? { status: 200, body: account }
@@ -445,7 +445,7 @@ describe('erros', () => {
   it('servidor de outra versão do protocolo responde UPGRADE_REQUIRED', async () => {
     const { client } = setup(() => ({
       status: 426,
-      body: { code: 'UPGRADE_REQUIRED', message: 'Atualize a extensão.', details: { protocol: 2 } },
+      body: { code: 'UPGRADE_REQUIRED', message: 'Recarregue a página.', details: { protocol: 2 } },
     }));
     await expect(client.version()).rejects.toMatchObject({ status: 426, code: 'UPGRADE_REQUIRED' });
   });

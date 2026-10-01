@@ -1,6 +1,6 @@
 # @lotg/engine
 
-O motor de Lords of the Guild: funções puras e determinísticas que decidem tudo o que acontece no feudo. Roda igual no servidor (a verdade), no `sim-cli` (balanceamento) e nos testes. Não conhece banco, rede, relógio do sistema nem VS Code.
+O motor de Lords of the Guild: funções puras e determinísticas que decidem tudo o que acontece no feudo. Roda igual no servidor (a verdade), no `sim-cli` (balanceamento) e nos testes. Não conhece banco, rede, relógio do sistema nem navegador.
 
 ## API pública
 

@@ -18,7 +18,10 @@ import {
   CreateGameRequestSchema,
   DeleteMeResponseSchema,
   EventsQuerySchema,
-  ExtensionToWebviewSchema,
+  GithubDevicePollRequestSchema,
+  GithubDevicePollResponseSchema,
+  GithubDeviceStartResponseSchema,
+  ReturnReportSchema,
   type GameEvent,
   GameRuleErrorSchema,
   GithubAuthResponseSchema,
@@ -28,7 +31,6 @@ import {
   type ViewState,
   ViewResponseSchema,
   ViewStateSchema,
-  WebviewToExtensionSchema,
 } from './index';
 
 const uuid = '0b2f7d0e-6f0a-4c35-9f43-6f5a0c1d2e3f';
@@ -245,70 +247,54 @@ describe('contratos da API', () => {
   });
 });
 
-describe('mensagens da Webview', () => {
-  it('a Webview manda prontidão, comandos, navegação, "Jogar agora" e ações conhecidas', () => {
-    const order = { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 1 } };
-    const accepted = [
-      { type: 'ready' },
-      { type: 'command', command: order },
-      { type: 'navigate', route: 'fief' },
-      { type: 'playNow', displayName: 'Gustavo', settlementName: 'Pedra Alta' },
-      { type: 'action', action: 'signInGithub' },
-    ];
-    for (const message of accepted) {
-      expect(WebviewToExtensionSchema.safeParse(message).success).toBe(true);
-    }
-    const refused = [
-      { type: 'fetch', url: 'https://x' },
-      { type: 'action', action: 'deleteAccount' },
-      { type: 'playNow', displayName: 'G', settlementName: 'Pedra Alta' },
-      { type: 'command', command: { ...order, commandId: 'x' } },
-    ];
-    for (const message of refused) {
-      expect(WebviewToExtensionSchema.safeParse(message).success).toBe(false);
-    }
+describe('Relatório de Retorno e device flow', () => {
+  it('o relatório tem estoques, contagens, fome e destaques', () => {
+    const report = {
+      awaySeconds: 18_000,
+      resources: [{ id: 'food', label: 'Comida', before: 180, after: 240, delta: 60 }],
+      counts: {
+        daysPassed: 2,
+        constructionsFinished: 1,
+        villagersArrived: 3,
+        objectivesCompleted: 1,
+      },
+      famine: 'none',
+      highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
+    };
+    expect(ReturnReportSchema.safeParse(report).error).toBeUndefined();
+    expect(ReturnReportSchema.safeParse({ ...report, famine: 'talvez' }).success).toBe(false);
+    expect(ReturnReportSchema.safeParse({ ...report, extra: 1 }).success).toBe(false);
   });
 
-  it('a extensão manda view, erro, conexão, navegação, sessão, Crônica e relatório', () => {
+  it('a consulta do device flow tem cinco desfechos e nada além deles', () => {
     const accepted = [
-      { type: 'connection', online: false, retryInSeconds: 5 },
-      { type: 'connection', online: true },
-      { type: 'error', code: 'GAME_RULE', message: 'Faltam 15 pedra.' },
-      { type: 'error', code: 'NETWORK', message: 'Sem ligação com o reino.' },
-      { type: 'navigate', route: 'today' },
-      {
-        type: 'session',
-        session: {
-          account: { displayName: 'Gustavo', kind: 'anonymous' },
-          hasGame: true,
-          defaults: { displayName: 'Gustavo', settlementName: 'Pedra Alta' },
-          busy: false,
-        },
-      },
-      { type: 'chronicle', entries: [] },
-      { type: 'report', report: null },
-      {
-        type: 'report',
-        report: {
-          awaySeconds: 18_000,
-          resources: [{ id: 'food', label: 'Comida', before: 180, after: 240, delta: 60 }],
-          counts: {
-            daysPassed: 2,
-            constructionsFinished: 1,
-            villagersArrived: 3,
-            objectivesCompleted: 1,
-          },
-          famine: 'none',
-          highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
-        },
-      },
+      { status: 'authorized', githubAccessToken: 'gho_x' },
+      { status: 'pending' },
+      { status: 'slowDown', intervalSeconds: 10 },
+      { status: 'expired' },
+      { status: 'denied' },
     ];
-    for (const message of accepted) {
-      expect(ExtensionToWebviewSchema.safeParse(message).error).toBeUndefined();
+    for (const body of accepted) {
+      expect(GithubDevicePollResponseSchema.safeParse(body).error).toBeUndefined();
     }
-    expect(ExtensionToWebviewSchema.safeParse({ type: 'navigate', route: 'map' }).success).toBe(
-      false,
-    );
+    for (const body of [
+      { status: 'authorized' },
+      { status: 'pending', githubAccessToken: 'gho_x' },
+      { status: 'slowDown' },
+      { status: 'error' },
+    ]) {
+      expect(GithubDevicePollResponseSchema.safeParse(body).success).toBe(false);
+    }
+    expect(
+      GithubDeviceStartResponseSchema.safeParse({
+        deviceCode: 'd',
+        userCode: 'WDJB-MJHT',
+        verificationUri: 'https://github.com/login/device',
+        expiresInSeconds: 900,
+        intervalSeconds: 5,
+      }).error,
+    ).toBeUndefined();
+    expect(GithubDevicePollRequestSchema.safeParse({ deviceCode: '' }).success).toBe(false);
   });
 });
 

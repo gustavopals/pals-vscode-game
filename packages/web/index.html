@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Política de conteúdo estrita (ADR 0008): só arquivos desta origem, nenhum script ou estilo
+      embutido, nenhum eval, nada de CDN. As credenciais ficam no armazenamento do navegador;
+      esta política é o que as protege de scripts de terceiros.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="description" content="Um feudo medieval que você governa nas pausas do café." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Lords of the Guild</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

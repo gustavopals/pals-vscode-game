@@ -100,6 +100,38 @@ export const GithubAuthResponseSchema = z.strictObject({
 });
 export type GithubAuthResponse = z.infer<typeof GithubAuthResponseSchema>;
 
+/**
+ * *Device flow* do GitHub (GDD §14.7). O navegador não pode chamar o GitHub direto; o servidor
+ * só repassa as duas chamadas, com o `GITHUB_CLIENT_ID`, e não guarda nada.
+ */
+export const GithubDeviceStartResponseSchema = z.strictObject({
+  /** Segredo desta tentativa: volta em cada consulta e nunca é mostrado ao jogador. */
+  deviceCode: z.string().min(1).max(256),
+  /** O código que o jogador digita no GitHub. */
+  userCode: z.string().min(1).max(64),
+  verificationUri: z.url(),
+  expiresInSeconds: z.number().int().positive(),
+  /** Intervalo mínimo entre consultas. */
+  intervalSeconds: z.number().int().positive(),
+});
+export type GithubDeviceStartResponse = z.infer<typeof GithubDeviceStartResponseSchema>;
+
+export const GithubDevicePollRequestSchema = z.strictObject({
+  deviceCode: z.string().min(1).max(256),
+});
+export type GithubDevicePollRequest = z.infer<typeof GithubDevicePollRequestSchema>;
+
+export const GithubDevicePollResponseSchema = z.discriminatedUnion('status', [
+  /** O jogador confirmou: o token segue para `POST /auth/github`. */
+  z.strictObject({ status: z.literal('authorized'), githubAccessToken: z.string().min(1) }),
+  z.strictObject({ status: z.literal('pending') }),
+  /** Consultas rápidas demais: passar a esperar `intervalSeconds` entre elas. */
+  z.strictObject({ status: z.literal('slowDown'), intervalSeconds: z.number().int().positive() }),
+  z.strictObject({ status: z.literal('expired') }),
+  z.strictObject({ status: z.literal('denied') }),
+]);
+export type GithubDevicePollResponse = z.infer<typeof GithubDevicePollResponseSchema>;
+
 export const UpdateMeRequestSchema = z.strictObject({ displayName: DisplayNameSchema });
 export type UpdateMeRequest = z.infer<typeof UpdateMeRequestSchema>;
 
@@ -202,5 +234,10 @@ export const VersionResponseSchema = z.strictObject({
   protocol: z.number().int(),
   contentHash: z.string(),
   builtAt: z.string(),
+  /** O que este servidor tem ligado, para o cliente não oferecer o que não funciona. */
+  features: z.strictObject({
+    /** Há `GITHUB_CLIENT_ID`: as rotas `/auth/github/device` respondem. */
+    githubDevice: z.boolean(),
+  }),
 });
 export type VersionResponse = z.infer<typeof VersionResponseSchema>;

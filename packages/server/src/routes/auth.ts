@@ -1,6 +1,7 @@
 import {
   AnonymousRequestSchema,
   GithubAuthRequestSchema,
+  GithubDevicePollRequestSchema,
   type RecoveryCodeResponse,
   RecoverRequestSchema,
   RefreshRequestSchema,
@@ -8,6 +9,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 
 import { fetchGithubId } from '../auth/github';
+import { pollGithubDevice, startGithubDevice } from '../auth/githubDevice';
 import {
   createAnonymousAccount,
   linkOrSignInWithGithub,
@@ -60,6 +62,25 @@ export function registerAuthRoutes(app: FastifyInstance, ctx: AppContext): void 
     async (request) => {
       const body = RecoverRequestSchema.parse(request.body);
       return recoverAccount(ctx, body);
+    },
+  );
+
+  // Device flow do GitHub: o servidor só repassa as chamadas (GDD §14.7).
+  app.post(
+    '/auth/github/device',
+    {
+      config: perIpLimit('github-device', ctx.config.githubDeviceStartsPerHourPerIp, '1 hour'),
+    },
+    async () => startGithubDevice(ctx),
+  );
+
+  app.post(
+    '/auth/github/device/poll',
+    // O GitHub pede 5 s entre consultas: 30 por minuto é folga para uma tentativa por IP.
+    { config: perIpLimit('github-device-poll', 30, '1 minute') },
+    async (request) => {
+      const body = GithubDevicePollRequestSchema.parse(request.body);
+      return pollGithubDevice(ctx, body.deviceCode);
     },
   );
 

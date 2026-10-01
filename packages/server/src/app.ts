@@ -83,7 +83,7 @@ export async function buildApp(deps: AppDeps) {
   await app.register(
     async (api) => {
       registerHealthRoutes(api, ctx);
-      registerVersionRoutes(api);
+      registerVersionRoutes(api, ctx);
       registerAuthRoutes(api, ctx);
       registerMeRoutes(api, ctx);
       registerGameRoutes(api, ctx);

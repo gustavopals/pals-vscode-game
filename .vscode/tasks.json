@@ -2,16 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "lords: build da extensão e da Webview",
+      "label": "lords: app web (Vite)",
       "type": "shell",
-      "command": "pnpm --filter @lotg/webview build && pnpm --filter lords-of-the-guild build",
-      "group": "build",
-      "problemMatcher": []
-    },
-    {
-      "label": "lords: watch da extensão e da Webview",
-      "type": "shell",
-      "command": "pnpm dev:ext",
+      "command": "pnpm dev:web",
       "isBackground": true,
       "group": "build",
       "problemMatcher": []

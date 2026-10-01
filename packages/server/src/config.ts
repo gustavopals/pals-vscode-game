@@ -21,6 +21,9 @@ const EnvSchema = z.object({
   ADVANCE_JOB_INTERVAL_MS: integer(3_600_000),
   ADVANCE_STALE_AFTER_MS: integer(3_600_000, 0),
   GITHUB_API_URL: z.url().default('https://api.github.com'),
+  GITHUB_OAUTH_URL: z.url().default('https://github.com'),
+  GITHUB_CLIENT_ID: z.string().max(200).default(''),
+  GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP: integer(20),
   TRUST_PROXY: flag,
 });
 
@@ -41,6 +44,11 @@ export type Config = {
   advanceJobIntervalMs: number;
   advanceStaleAfterMs: number;
   githubApiUrl: string;
+  /** Origem das rotas de *device flow* do GitHub. */
+  githubOauthUrl: string;
+  /** Identificador público do OAuth App; `null` deixa o vínculo GitHub pelo navegador desligado. */
+  githubClientId: string | null;
+  githubDeviceStartsPerHourPerIp: number;
   /** Confiar em `X-Forwarded-For`. Só atrás do proxy reverso: os limites por IP dependem disso. */
   trustProxy: boolean;
   /** Aceitar a semente informada em `POST /games`. Só em ambiente de teste. */
@@ -113,6 +121,9 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     advanceJobIntervalMs: values.ADVANCE_JOB_INTERVAL_MS,
     advanceStaleAfterMs: values.ADVANCE_STALE_AFTER_MS,
     githubApiUrl: values.GITHUB_API_URL.replace(/\/+$/, ''),
+    githubOauthUrl: values.GITHUB_OAUTH_URL.replace(/\/+$/, ''),
+    githubClientId: values.GITHUB_CLIENT_ID.trim() === '' ? null : values.GITHUB_CLIENT_ID.trim(),
+    githubDeviceStartsPerHourPerIp: values.GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP,
     trustProxy: values.TRUST_PROXY,
     allowGameSeed: values.NODE_ENV === 'test',
   };

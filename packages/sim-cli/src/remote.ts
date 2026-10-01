@@ -44,7 +44,7 @@ function endpointLabel(method: string, url: string): string {
   return `${method} ${path === '' ? '/games' : path}`;
 }
 
-/** Bots de carga: cada um cria conta e partida e joga pelo `client-sdk`, como a extensão faz. */
+/** Bots de carga: cada um cria conta e partida e joga pelo `client-sdk`, como o app web faz. */
 export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
   const bot: Bot = strategies[options.strategy];
   const timings: Record<string, number[]> = {};

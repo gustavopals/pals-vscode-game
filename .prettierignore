@@ -2,7 +2,8 @@
 *.md
 pnpm-lock.yaml
 dist/
-packages/extension/media/webview.*
+playwright-report/
+test-results/
 coverage/
 deploy/backups/
 deploy/migrations/

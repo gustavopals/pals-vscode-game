@@ -3,17 +3,32 @@ import { builtinModules } from 'node:module';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-// GDD §14.2: engine, content e protocol não importam nada do VS Code, do servidor nem do Node.
-const serverAndEditorModules = ['vscode', 'fastify', 'pg'];
+// GDD §14.2: engine, content e protocol não importam nada do servidor nem do Node.
+const serverModules = ['fastify', 'pg'];
 const purePackageRestrictions = {
-  paths: [...serverAndEditorModules, ...builtinModules].map((name) => ({
+  paths: [...serverModules, ...builtinModules].map((name) => ({
     name,
-    message: 'engine, content e protocol são puros: sem VS Code, servidor ou Node (GDD §14.2).',
+    message: 'engine, content e protocol são puros: sem servidor nem Node (GDD §14.2).',
   })),
   patterns: [
     {
       group: ['node:*', 'fastify/*', '@fastify/*', 'pg/*', 'pg-*', 'drizzle-orm', 'drizzle-orm/*'],
-      message: 'engine, content e protocol são puros: sem VS Code, servidor ou Node (GDD §14.2).',
+      message: 'engine, content e protocol são puros: sem servidor nem Node (GDD §14.2).',
+    },
+  ],
+};
+
+// O app web roda no navegador e só exibe o ViewState: sem motor, sem servidor, sem Node.
+const webMessage = 'O app web não importa o motor, o servidor nem módulos do Node (GDD §14.2).';
+const webRestrictions = {
+  paths: ['@lotg/engine', '@lotg/server', ...serverModules, ...builtinModules].map((name) => ({
+    name,
+    message: webMessage,
+  })),
+  patterns: [
+    {
+      group: ['node:*', 'fastify/*', '@fastify/*', 'pg/*', 'pg-*', 'drizzle-orm', 'drizzle-orm/*'],
+      message: webMessage,
     },
   ],
 };
@@ -24,7 +39,8 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/dist/**',
       '**/coverage/**',
-      'packages/extension/media/webview.*',
+      'playwright-report/**',
+      'test-results/**',
     ],
   },
   js.configs.recommended,
@@ -71,18 +87,10 @@ export default tseslint.config(
     },
   },
   {
-    // A extensão não contém o motor e nunca depende do servidor: só exibe o ViewState.
-    files: ['packages/{extension,webview}/src/**/*.{ts,tsx}'],
+    files: ['packages/web/src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: ['@lotg/engine', '@lotg/server', 'fastify', 'pg'].map((name) => ({
-            name,
-            message: 'A extensão e a Webview não importam o motor nem o servidor (GDD §14.2).',
-          })),
-        },
-      ],
+      'no-restricted-imports': ['error', webRestrictions],
     },
   },
   {
@@ -91,10 +99,12 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          paths: ['vscode', 'lords-of-the-guild', '@lotg/webview'].map((name) => ({
-            name,
-            message: 'O servidor nunca depende da extensão nem do VS Code (GDD §14.2).',
-          })),
+          paths: [
+            {
+              name: '@lotg/web',
+              message: 'O servidor nunca depende do app web (GDD §14.2).',
+            },
+          ],
         },
       ],
     },

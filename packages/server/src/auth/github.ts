@@ -2,7 +2,7 @@ import { ApiError } from '../api-error';
 import type { AppContext } from '../context';
 
 /**
- * Valida o token do GitHub obtido pelo VS Code e devolve o `github_id`. O token não é guardado
+ * Valida o token do GitHub obtido pelo cliente e devolve o `github_id`. O token não é guardado
  * nem registrado em log; do GitHub o servidor só conserva esse identificador.
  */
 export async function fetchGithubId(ctx: AppContext, githubAccessToken: string): Promise<string> {

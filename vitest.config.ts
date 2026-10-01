@@ -15,8 +15,6 @@ const [scope, packageDir] = relative(rootDir, process.cwd()).split(sep);
 const unitScope = scope === 'packages' && packageDir ? packageDir : '*';
 
 export default defineConfig({
-  // Fora do editor não existe o módulo `vscode`: os testes usam um substituto mínimo.
-  resolve: { alias: { vscode: `${rootDir}packages/extension/test/fake-vscode.ts` } },
   test: {
     // Goldens (`__golden__/`) só são regravados a pedido: UPDATE_GOLDEN=1 pnpm test
     update: process.env.UPDATE_GOLDEN === '1',
@@ -32,7 +30,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          // O teste de tema da Webview lê a folha de estilo de verdade.
+          // O teste de cores do app web lê as folhas de estilo de verdade.
           css: true,
           include: [`packages/${unitScope}/src/**/*.test.{ts,tsx}`],
         },

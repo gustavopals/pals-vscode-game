@@ -33,5 +33,5 @@ export * from './commands';
 export * from './view';
 export * from './errors';
 export * from './api';
-export * from './webview';
+export * from './report';
 export { canonicalJson } from './canonical';

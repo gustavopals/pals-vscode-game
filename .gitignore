@@ -6,9 +6,11 @@ pnpm-debug.log*
 
 # Saídas de build
 dist/
-packages/extension/media/webview.*
-*.vsix
 coverage/
+
+# Testes em navegador (Playwright)
+playwright-report/
+test-results/
 
 # Segredos e dados locais
 .env

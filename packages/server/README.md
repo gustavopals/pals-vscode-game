@@ -29,7 +29,7 @@ Os testes de integração ficam em `test/` (e os cenários de ponta a ponta em `
 |---|---|
 | `src/app.ts`, `main.ts`, `config.ts` | Montagem do Fastify, arranque e configuração |
 | `src/plugins/` | Formato de erros, limites de taxa, autorização (`requireIdentity`), saúde do banco |
-| `src/auth/` | Tokens (JWT e refresh), sessões, exclusão, Código do Reino, GitHub |
+| `src/auth/` | Tokens (JWT e refresh), sessões, exclusão, Código do Reino, GitHub (validação do token e repasse do *device flow*) |
 | `src/games/` | Lock e persistência (`repository`), criação e leitura (`service`), `/view` e ETag, comandos com recibo, eventos e Crônica |
 | `src/jobs/` | Avanço de partidas paradas, expurgo de contas, agendador com advisory lock |
 | `src/db/` | Esquema Drizzle e migrador |
@@ -79,3 +79,14 @@ O servidor aplica as migrações pendentes no arranque, dentro de `pg_advisory_l
 ## Build e imagem
 
 `pnpm --filter @lotg/server build` empacota tudo em `dist/main.js` com esbuild: o servidor, os pacotes `@lotg/*` e as dependências de produção. A imagem (`pnpm docker:build`) leva só esse arquivo e as migrações, sem `node_modules`, e roda como usuário `node`.
+
+## Vínculo GitHub pelo navegador
+
+O app web obtém o token do GitHub por *device flow* (GDD §14.7). O GitHub não aceita essas chamadas direto do navegador, então duas rotas só as repassam, com o `GITHUB_CLIENT_ID` (público) e o escopo `read:user`:
+
+- `POST /v1/auth/github/device` → `${GITHUB_OAUTH_URL}/login/device/code`
+- `POST /v1/auth/github/device/poll` → `${GITHUB_OAUTH_URL}/login/oauth/access_token`
+
+Não há segredo de OAuth, nada é guardado e nada vai para o log. Sem `GITHUB_CLIENT_ID` as duas respondem `404 NOT_FOUND` e `GET /v1/version` informa `features.githubDevice: false`, para o app esconder os botões ([ADR 0010](../../docs/decisions/0010-version-informa-o-que-esta-ligado.md)). Limite por IP: `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP` (padrão 20) para começar e 30 por minuto para consultar. O endereço que o GitHub devolve só é aceito se for do próprio `GITHUB_OAUTH_URL`, porque vira um link na tela do jogador.
+
+Testado só com um GitHub simulado (`test/helpers/github.ts`, `test/githubDevice.test.ts`).

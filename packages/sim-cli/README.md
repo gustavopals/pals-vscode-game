@@ -1,6 +1,6 @@
 # @lotg/sim-cli
 
-Bots de playtest que jogam partidas inteiras em segundos, só com o motor (`@lotg/engine`), sem servidor nem VS Code. É por aqui que os números de `@lotg/content` são conferidos e corrigidos (GDD §15.3).
+Bots de playtest que jogam partidas inteiras em segundos, só com o motor (`@lotg/engine`), sem servidor nem navegador. É por aqui que os números de `@lotg/content` são conferidos e corrigidos (GDD §15.3).
 
 ## Uso
 
@@ -60,15 +60,15 @@ Quando uma faixa falhar, ajuste os números em `@lotg/content`, nunca o bot.
 pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2 --poll-ms 2000
 ```
 
-Cada bot cria uma conta anônima e uma partida e joga pela API com o `client-sdk`, como a extensão: `GET /view` com `If-None-Match`, `GET /events?after=` e as ordens do bot. O relatório traz chamadas, p50, p95 e máximo por endpoint, e o comando sai com erro se houver respostas 5xx ou 429.
+Cada bot cria uma conta anônima e uma partida e joga pela API com o `client-sdk`, como o app web: `GET /view` com `If-None-Match`, `GET /events?after=` e as ordens do bot. O relatório traz chamadas, p50, p95 e máximo por endpoint, e o comando sai com erro se houver respostas 5xx ou 429.
 
 | Opção | Padrão | Significado |
 |---|---|---|
 | `--remote` | — | URL do servidor, sem o `/v1` |
 | `--bots` | `50` | Jogadores simultâneos |
 | `--minutes` | `2` | Duração |
-| `--poll-ms` | `2000` | Intervalo do ciclo de cada bot (a extensão usa 30.000) |
+| `--poll-ms` | `2000` | Intervalo do ciclo de cada bot (o app web usa 30.000) |
 
 Com os limites de taxa reais (60 requisições por minuto por sessão, 10 contas por hora por IP), use poucos bots e `--poll-ms 5000` ou mais. Para um teste de carga, suba a API com `RATE_LIMIT_PER_MINUTE` e `ACCOUNT_CREATE_PER_HOUR_PER_IP` altos. Os resultados registrados estão em [docs/perf-v0.1.md](../../docs/perf-v0.1.md).
 
-O modo remoto joga pelo `@lotg/client-sdk`, o mesmo cliente HTTP que a extensão usa.
+O modo remoto joga pelo `@lotg/client-sdk`, o mesmo cliente HTTP que o app web usa.
