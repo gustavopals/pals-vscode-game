@@ -126,3 +126,7 @@ As consultas de [`analytics/ops.sql`](analytics/ops.sql) dão contas por dia, jo
 **Segredos.** Ficam só no Coolify. Trocar `JWT_SECRET` derruba as sessões abertas e nada mais. Trocar `PUBLIC_URL` também: ela é o emissor dos tokens. `RECOVERY_CODE_SECRET` não se troca.
 
 **Teste de alerta.** Parar `lotg-api` por alguns minutos deve fazer o workflow de saúde falhar e o GitHub enviar o e-mail; ao iniciar de novo, a execução seguinte volta a passar.
+
+| Data       | O que foi feito                                                                 | Resultado |
+| ---------- | ------------------------------------------------------------------------------- | --------- |
+| 2026-10-01 | `lotg-api` parada por cerca de 2 minutos (17:36 a 17:38 UTC), com o workflow disparado à mão antes, durante e depois | passou, falhou (`/v1/health` respondeu 404, vindo do app) e passou de novo; a chegada do e-mail do GitHub não foi conferida |
