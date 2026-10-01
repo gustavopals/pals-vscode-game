@@ -497,10 +497,10 @@ pnpm --filter @lotg/engine test -- objectives chronicle
 **Depende de:** F1-T8.
 **Entregáveis:** `packages/engine/src/view.ts`, `view.test.ts`, `__golden__/view-seed-pedra-alta.json`.
 
-- [ ] F1-T9.1 Estrutura: `settlement`, `calendar` (ano, estação, dia da estação, segundos até a próxima virada), `population` (aldeões, capacidade, livres, em treinamento), `resources[]` (id, rótulo, estoque em unidades, `cap: null`, `perHour` líquido com uma casa decimal, `breakdown` textual), `workers[]` (edifício, nível, alocados, bruto/h, `breakdown`), `constructions` (`active` com segundos restantes e progresso, `planned[]`, `available[]` com custos, duração, `affordable` e `blockedReason`), `famine`, `objectives[]`, `pendingDecisions: []`.
-- [ ] F1-T9.2 `breakdown` segue o formato do GDD §13.3: "4 trabalhadores × 10 × 1,2 (Nv2) = 48/h; consumo 18 × 1 = 18/h".
-- [ ] F1-T9.3 Formatação numérica fica **fora** do motor (a UI usa `Intl`); o motor entrega números e textos de explicação.
-- [ ] F1-T9.4 Golden test: `ViewState` do estado inicial e após o cenário de F1-T8, comparado a arquivo em `__golden__/` (atualizável com `UPDATE_GOLDEN=1`).
+- [x] F1-T9.1 Estrutura: `settlement`, `calendar` (ano, estação, dia da estação, segundos até a próxima virada), `population` (aldeões, capacidade, livres, em treinamento), `resources[]` (id, rótulo, estoque em unidades, `cap: null`, `perHour` líquido com uma casa decimal, `breakdown` textual), `workers[]` (edifício, nível, alocados, bruto/h, `breakdown`), `constructions` (`active` com segundos restantes e progresso, `planned[]`, `available[]` com custos, duração, `affordable` e `blockedReason`), `famine`, `objectives[]`, `pendingDecisions: []`.
+- [x] F1-T9.2 `breakdown` segue o formato do GDD §13.3: "4 trabalhadores × 10 × 1,2 (Nv2) = 48/h; consumo 18 × 1 = 18/h".
+- [x] F1-T9.3 Formatação numérica fica **fora** do motor (a UI usa `Intl`); o motor entrega números e textos de explicação.
+- [x] F1-T9.4 Golden test: `ViewState` do estado inicial e após o cenário de F1-T8, comparado a arquivo em `__golden__/` (atualizável com `UPDATE_GOLDEN=1`).
 
 **Verificação:**
 
@@ -1193,7 +1193,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F1-T6 | 2026-10-01 | HASH_B | 1 | Recrutar 3 com 1 vaga é recusado com `HOUSING_FULL` sem descontar nada. Decisão: um item de fila e um evento `recruitmentFinished` por aldeão. |
 | F1-T7 | 2026-10-01 | HASH_B | 1 | 17 códigos de recusa, um teste por código; `commands.ts` e `rejections.ts` com 100% de linhas. `setWorkers`, `planConstruction` e `unplanConstruction` não geram evento. |
 | F1-T8 | 2026-10-01 | HASH_B | 1 | Cenário roteirizado conclui os quatro objetivos com +20 ouro, +30 madeira, +40 comida e +50 ouro. Frases fixadas em `__golden__/chronicle-objectives.txt`. "Recrute 3 aldeões" conta os que chegaram, não os encomendados. |
-| F1-T9 | | | | |
+| F1-T9 | 2026-10-01 | HASH_C | 1 | Golden com três retratos: estado inicial, primeira alocação (2 na Fazenda: comida +15/h) e fim do cenário dos objetivos. `available` lista as seis melhorias; no início, quatro são pagáveis (Salão e Mina de Ouro não cabem nos recursos iniciais do GDD §5.2). `deriveViewState` aceita um instante futuro e avança uma cópia. |
 | F1-T10 | | | | |
 | F1-T11 | | | | |
 | F2-T1 | | | | |

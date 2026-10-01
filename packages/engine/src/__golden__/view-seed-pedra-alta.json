@@ -1,0 +1,957 @@
+{
+  "initial": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 1
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 1,
+      "dayOfYear": 1,
+      "secondsToNextDay": 7200,
+      "secondsToNextSeason": 172800
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 10,
+      "free": 5,
+      "inTraining": 0,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 180,
+        "cap": null,
+        "perHour": -5,
+        "depletesInSeconds": 129600,
+        "breakdown": "Fazenda: 0 trabalhadores × 10 × 1 (Nv1) = 0/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 120,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 65,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 250,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) = 0/h"
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "affordable": false,
+          "blockedReason": "Faltam 30 madeira e 35 pedra.",
+          "planned": false
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 480,
+          "affordable": false,
+          "blockedReason": "Faltam 15 pedra.",
+          "planned": false
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "maxQuantity": 5,
+      "blockedReason": null
+    },
+    "famine": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 3
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "afterFirstAllocation": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 1
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 1,
+      "dayOfYear": 1,
+      "secondsToNextDay": 7200,
+      "secondsToNextSeason": 172800
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 10,
+      "free": 3,
+      "inTraining": 0,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 180,
+        "cap": null,
+        "perHour": 15,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) = 20/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 120,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 65,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 270,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 2,
+        "grossPerHour": 20,
+        "breakdown": "2 trabalhadores × 10 × 1 (Nv1) = 20/h"
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "affordable": false,
+          "blockedReason": "Faltam 30 madeira e 35 pedra.",
+          "planned": false
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 480,
+          "affordable": false,
+          "blockedReason": "Faltam 15 pedra.",
+          "planned": false
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "affordable": true,
+          "blockedReason": null,
+          "planned": false
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "maxQuantity": 5,
+      "blockedReason": null
+    },
+    "famine": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro",
+        "status": "active",
+        "progress": {
+          "current": 1,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "afterObjectivesScenario": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 2
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 4,
+      "dayOfYear": 4,
+      "secondsToNextDay": 6600,
+      "secondsToNextSeason": 150600
+    },
+    "population": {
+      "villagers": 8,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 146,
+        "cap": null,
+        "perHour": 12,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) = 20/h; consumo 8 × 1 = 8/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 44,
+        "cap": null,
+        "perHour": 24,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 3 trabalhadores × 8 × 1 (Nv1) = 24/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 22,
+        "cap": null,
+        "perHour": 15,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 3 trabalhadores × 5 × 1 (Nv1) = 15/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 190,
+        "cap": null,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 2,
+        "grossPerHour": 20,
+        "breakdown": "2 trabalhadores × 10 × 1 (Nv1) = 20/h"
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 3,
+        "grossPerHour": 24,
+        "breakdown": "3 trabalhadores × 8 × 1 (Nv1) = 24/h"
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 3,
+        "grossPerHour": 15,
+        "breakdown": "3 trabalhadores × 5 × 1 (Nv1) = 15/h"
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 270,
+              "missing": 226
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 180,
+              "missing": 158
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 180,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "affordable": false,
+          "blockedReason": "Faltam 226 madeira e 158 pedra.",
+          "planned": false
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 36
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": false,
+          "blockedReason": "Faltam 36 madeira.",
+          "planned": false
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 56
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 28
+            }
+          ],
+          "durationSeconds": 300,
+          "affordable": false,
+          "blockedReason": "Faltam 56 madeira e 28 pedra.",
+          "planned": false
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 76
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "affordable": false,
+          "blockedReason": "Faltam 76 madeira.",
+          "planned": false
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 76
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 58
+            }
+          ],
+          "durationSeconds": 480,
+          "affordable": false,
+          "blockedReason": "Faltam 76 madeira e 58 pedra.",
+          "planned": false
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 128,
+              "missing": 84
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 32,
+              "missing": 10
+            }
+          ],
+          "durationSeconds": 360,
+          "affordable": false,
+          "blockedReason": "Faltam 84 madeira e 10 pedra.",
+          "planned": false
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "maxQuantity": 5,
+      "blockedReason": null
+    },
+    "famine": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  }
+}
