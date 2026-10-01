@@ -22,7 +22,7 @@
 - Mudanças da 0.3 em relação à 0.2: §1.1 (pilar 6), §4.3, §5.8, §11.6, §13.1, §13.6, §13.9, §14 inteira, §15.3 a §15.5, §16, §17 e §18.
 - Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão estão refletidos no `MVP-ROADMAP.md` desde a versão 1.1 e foram implementados na Fase 2 (servidor) e na Fase 3 (cliente).
 - Mudança da 0.5: o cliente deixa de ser uma extensão do VS Code e passa a ser um **app web com aparência de editor** ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). Mudam §1, §13, §14.1, §14.2, §14.7 (vínculo GitHub), §14.10, §14.12–14.14, §16.1, §17 e §18. Regras de jogo, motor, servidor e contratos da API não mudam, com exceção das duas rotas novas do vínculo GitHub (§14.5).
-- Mudanças da 0.6 (correções de fato, sem regra nova): nota sobre o ritmo do MVP em §4.2 ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)); versões dos comandos em §13.6; `GET /catalog`, `GET /version` e a Crônica em §14.5 ([ADRs 0007 e 0010](docs/decisions/README.md)); `GAME_TIME_SCALE` em §14.13; ritmo, hospedagem e critério 7 em §16.1 ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
+- Mudanças da 0.6 (correções de fato, sem regra nova): nota sobre o ritmo do MVP em §4.2 ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)); versões dos comandos em §13.6; `GET /catalog`, `GET /version` e a Crônica em §14.5 ([ADRs 0007 e 0010](docs/decisions/README.md)); `GAME_TIME_SCALE` em §14.13; ritmo, hospedagem e critério 7 em §16.1 ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)); a página de apresentação citada em §14.2 e §14.13 ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
 ### Índice
 
@@ -850,12 +850,13 @@ lords-of-the-guild/
 │   ├── server/                  # Fastify + PostgreSQL: auth, partidas, comandos, job de avanço, migrações
 │   ├── client-sdk/              # cliente HTTP tipado da API (usado pelo app web e pelo sim-cli)
 │   ├── sim-cli/                 # bots de playtest: em processo (engine) ou contra um servidor (carga)
-│   └── web/                     # app web (Preact): bancada com aparência de editor, sessão de jogo, cache
+│   ├── web/                     # app web (Preact): bancada com aparência de editor, sessão de jogo, cache
+│   └── landing/                 # página de apresentação, estática e em domínio próprio (ADR 0012)
 ├── deploy/                      # Dockerfile, web.Caddyfile, migrations/, docker-compose.dev.yml, analytics/*.sql
 └── tests/                       # integração servidor↔banco e app web↔servidor (navegador real)
 ```
 
-`engine`, `content` e `protocol` não importam nada do navegador nem de servidor. `server` e `web` dependem deles e nunca um do outro. O app web não importa o motor.
+`engine`, `content` e `protocol` não importam nada do navegador nem de servidor. `server` e `web` dependem deles e nunca um do outro. O app web não importa o motor. A página de apresentação (`landing`) não faz parte do jogo: não importa pacote nenhum e não fala com a API ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
 ### 14.3 Determinismo (motor)
 
@@ -1028,7 +1029,7 @@ lotg-api:  # imagem do alvo runtime; roda migrações no arranque; stateless (2+
 lotg-db:   # postgres:16 com volume persistente e sem porta publicada; pg_dump diário agendado na plataforma
 ```
 
-O contrato não depende do Coolify: qualquer hospedagem serve, desde que o app e a API fiquem na **mesma origem**, a rota `/v1` chegue inteira à API, o banco não seja acessível de fora e `TRUST_PROXY=true` só exista atrás de um proxy.
+O contrato não depende do Coolify: qualquer hospedagem serve, desde que o app e a API fiquem na **mesma origem**, a rota `/v1` chegue inteira à API, o banco não seja acessível de fora e `TRUST_PROXY=true` só exista atrás de um proxy. A página de apresentação fica fora desse contrato: é um quarto recurso (`lotg-landing`, imagem do alvo `landing`), em **outra origem**, sem acesso à API nem ao banco ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
 - Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`, `GAME_TIME_SCALE` (ritmo das partidas novas, §4.2), `GITHUB_CLIENT_ID` (identificador público do OAuth App usado no *device flow*; vazio deixa o vínculo desligado, como na v0.1 em produção). Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
 - Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.

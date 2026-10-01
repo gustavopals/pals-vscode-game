@@ -2,7 +2,7 @@
 
 O que foi construído no MVP de Lords of the Guild, como as peças se encaixam e onde a implementação se afasta do [Game Design Document](../GAME_DESIGN.md). O GDD §14 continua sendo o contrato; este documento descreve o estado real em 2026-10-01 e aponta para o código.
 
-Para o detalhe de cada pacote: [motor](../packages/engine/README.md), [servidor](../packages/server/README.md), [app web](../packages/web/README.md), [simulador](../packages/sim-cli/README.md) e [implantação](../deploy/README.md).
+Para o detalhe de cada pacote: [motor](../packages/engine/README.md), [servidor](../packages/server/README.md), [app web](../packages/web/README.md), [simulador](../packages/sim-cli/README.md), [página de apresentação](../packages/landing/README.md) e [implantação](../deploy/README.md).
 
 ## 1. Visão geral
 
@@ -27,9 +27,11 @@ flowchart TB
         Engine["engine + content<br/>(empacotados dentro da API)"]
         DB[("lotg-db · PostgreSQL 16<br/>accounts · sessions · refresh_tokens<br/>games (JSONB) · commands · game_events · chronicles")]
         Backup["Backup agendado<br/>pg_dump diário, 14 dias"]
+        Landing["lotg-landing · Caddy<br/>página de apresentação<br/>em outro domínio"]
 
         Proxy -- "/ (tudo o que não é /v1)" --> Web
         Proxy -- "/v1, com o prefixo inteiro" --> API
+        Proxy -- "domínio da página" --> Landing
         API --> Engine
         API --> DB
         DB -.-> Backup
@@ -45,6 +47,7 @@ O que mudou em relação ao desenho original do GDD:
 - A borda é o **proxy do Coolify**. O Caddy não termina TLS nem encaminha `/v1`: só serve os arquivos do app, dentro da imagem `web` ([ADR 0009](decisions/0009-implantacao-no-coolify.md), [`deploy/web.Caddyfile`](../deploy/web.Caddyfile)).
 - App e API ficam na **mesma origem**. Não há CORS, e o app não tem endereço de servidor configurável.
 - `battle-preview` não existe: é da v0.4.
+- Há uma **página de apresentação** em domínio próprio ([ADR 0012](decisions/0012-pagina-de-apresentacao.md)): estática, sem acesso à API nem ao banco. O único caminho dela para o jogo é o link do botão "Jogar agora".
 
 Os princípios do GDD §14.1 valem como estão: o servidor é autoritativo e é o relógio; o motor é um só (servidor, simulador e testes); estado inicial, semente e log de comandos permitem refazer uma partida; o avanço é preguiçoso, então uma queda do servidor não perde nada.
 
@@ -59,6 +62,7 @@ flowchart LR
     sdk["client-sdk<br/>cliente HTTP"]
     web["web<br/>app Preact"]
     sim["sim-cli<br/>bots"]
+    landing["landing<br/>página estática"]
 
     engine --> content
     protocol --> content
@@ -73,6 +77,7 @@ flowchart LR
     sim --> content
     sim --> sdk
     sim --> protocol
+    landing -. "só em teste" .-> content
 ```
 
 A seta aponta para o que é importado. As regras, impostas por `no-restricted-imports` em [`eslint.config.js`](../eslint.config.js):
@@ -80,9 +85,10 @@ A seta aponta para o que é importado. As regras, impostas por `no-restricted-im
 - `engine`, `content` e `protocol` não importam `fastify`, `pg`, Drizzle nem módulos do Node. Arquivos de teste ficam fora da regra.
 - `server` e `web` nunca importam um ao outro.
 - `web` não importa o motor: só exibe o `ViewState` que recebe.
+- `landing` não importa pacote nenhum do jogo. Só os testes dela leem `content`, para conferir as frases da Crônica que a página cita.
 - `protocol` depende do motor apenas como dependência de desenvolvimento: um teste de igualdade de tipos faz o `pnpm typecheck` quebrar se `Command`, `ViewState` ou os códigos de recusa divergirem entre os dois.
 
-Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/index.ts`). Só o que é implantado tem build: o servidor (um único `dist/main.js`, com esbuild) e o app (`packages/web/dist`, com Vite).
+Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/index.ts`). Só o que é implantado tem build: o servidor (um único `dist/main.js`, com esbuild), o app (`packages/web/dist`, com Vite) e a página de apresentação (`packages/landing/dist`, com Vite).
 
 ## 3. Onde fica cada responsabilidade
 
@@ -104,6 +110,7 @@ Os pacotes são consumidos como fonte TypeScript (`exports` aponta para `src/ind
 | Credenciais e cache no navegador, sincronização entre abas | `packages/web/src/services` (`localStorage`, Web Locks, evento `storage`) |
 | TLS, redirecionamento, rotas por caminho | Proxy do Coolify |
 | Cabeçalhos de segurança do app (CSP, `nosniff`, HSTS) | Caddy da imagem `web` |
+| Apresentação do jogo a quem ainda não joga | `packages/landing`, servida pelo Caddy da imagem `landing`, em outro domínio |
 | Backup do banco | Agendamento do Coolify |
 
 O app não faz conta sobre o jogo. Quando a interface precisou de um número que não estava no `ViewState`, ele foi acrescentado no motor: `workers[].perWorkerPerHour`, `constructions.active.refund`, `population.housed` e `population.vacancies`.
@@ -199,6 +206,7 @@ O GDD e o roadmap foram atualizados para refletir as decisões abaixo; a lista s
 | O vínculo GitHub fica **desligado** na v0.1. O critério de aceitação 10 fecha pelo Código do Reino | ADR 0008, ponto 2; Registro de Execução, F3W-T8 e F4-T3 | O código existe (rotas de *device flow*, app, testes) e só foi exercitado com um GitHub simulado. **Nunca foi testado com o GitHub real.** Sem `GITHUB_CLIENT_ID`, as rotas respondem 404 e o app esconde os botões |
 | O lembrete "Proteja seu reino" conta 48 horas reais desde a primeira abertura no navegador, e não o 25º dia de jogo | ADR 0011, consequências | Implementado (`account/linkReminder.ts`) |
 | Licença MIT | Decisão do autor em 2026-10-01 | [`LICENSE`](../LICENSE) e campo `license` dos pacotes |
+| Página de apresentação em domínio próprio, em um oitavo pacote e um quarto recurso do Coolify. O GDD não previa nenhuma | [ADR 0012](decisions/0012-pagina-de-apresentacao.md) | Pedida pelo autor e implementada em 2026-10-01. Endereço, letras, título e tom são propostas a confirmar |
 
 ### 6.2 O que o GDD descreve e a v0.1 não tem
 

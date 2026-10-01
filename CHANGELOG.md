@@ -50,6 +50,12 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 - Lembrete "Proteja seu reino" 48 horas depois da primeira vez no navegador, para quem ainda não tem Código do Reino.
 - Política de conteúdo estrita: só arquivos da própria origem, nenhum script ou estilo embutido, nada de terceiros.
 
+**Página de apresentação (`@lotg/landing`)**
+
+- Página estática em domínio próprio, com o botão **Jogar agora** que leva ao jogo ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)): o título em duas vozes ("Parece trabalho. É um feudo."), uma captura real do jogo lida de dois jeitos por um interruptor que é só CSS, e a barra de status da página com o botão sempre à mão.
+- Só diz do jogo o que o jogo diz de si: testes conferem as frases da Crônica citadas contra o conteúdo e barram promessa de duração, preço, multijogador e nome de editor de código. As pinturas aparecem como arte conceitual; as capturas são refeitas por um roteiro (`pnpm capture:landing`).
+- Política de conteúdo `default-src 'none'`, letras servidas pela própria página (Grenze Gotisch e Alegreya, SIL OFL), nenhuma medição de audiência.
+
 **Simulador (`@lotg/sim-cli`)**
 
 - Bot econômico que joga partidas inteiras só com o motor e gera um CSV com um retrato por hora; a mesma semente reproduz o mesmo arquivo.
@@ -57,8 +63,8 @@ Todas as mudanças relevantes de Lords of the Guild ficam registradas aqui. O fo
 
 **Implantação e operação**
 
-- Uma imagem para a API (alvo `runtime`, um único arquivo empacotado, sem `node_modules`) e outra para o app (alvo `web`, Caddy servindo arquivos estáticos com os cabeçalhos de segurança).
-- Produção no Coolify em três recursos: banco, API e app na mesma origem, com o proxy da plataforma na borda ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
+- Uma imagem para a API (alvo `runtime`, um único arquivo empacotado, sem `node_modules`), outra para o app (alvo `web`, Caddy servindo arquivos estáticos com os cabeçalhos de segurança) e outra para a página de apresentação (alvo `landing`, sobre a mesma base do Caddy).
+- Produção no Coolify em três recursos: banco, API e app na mesma origem, com o proxy da plataforma na borda ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)). A página de apresentação é um quarto recurso, em domínio próprio.
 - Backup diário do banco com retenção de 14 dias; restauração ensaiada em um banco descartável.
 - Reversão da API para a imagem anterior ensaiada.
 - Monitor de saúde externo (workflow `health.yml`) e consultas agregadas de operação.

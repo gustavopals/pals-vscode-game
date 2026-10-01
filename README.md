@@ -146,7 +146,8 @@ packages/
   server/       Servidor autoritativo: contas, partidas, comandos, jobs e migrações
   client-sdk/   Cliente HTTP tipado, usado pelo app web e pelo simulador
   web/          App web em Preact: bancada com aparência de editor
-deploy/         Dockerfile (API e app), Caddyfile, migrações, Compose de desenvolvimento
+  landing/      Página de apresentação: HTML e CSS estáticos, em domínio próprio
+deploy/         Dockerfile (API, app e página de apresentação), Caddyfiles, migrações, Compose de desenvolvimento
 tests/          Cenários do servidor e testes em navegador (e2e)
 docs/           Arquitetura, decisões (ADRs), roteiro manual e medição de desempenho
 ```
@@ -165,18 +166,20 @@ O ESLint impede que `engine`, `content` e `protocol` importem `fastify`, `pg` ou
 | `pnpm --filter @lotg/engine test` | Executa apenas os testes do motor |
 | `pnpm typecheck` | Confere os tipos em todos os pacotes |
 | `pnpm lint` / `pnpm format` | Verifica / aplica a formatação do código |
-| `pnpm build` | Compila os pacotes que têm build (servidor e app web) |
+| `pnpm build` | Compila os pacotes que têm build (servidor, app web e página de apresentação) |
 | `pnpm dev:up` / `pnpm dev:down` | Sobe / encerra os bancos locais, preservando volumes |
 | `pnpm dev:logs` | Acompanha os logs dos contêineres |
 | `pnpm dev:api` | Sobe a API no host com recarga automática; aplica as migrações no arranque |
 | `pnpm dev:web` | Sobe o app web em `http://localhost:5173`, com `/v1` repassado para a API |
+| `pnpm dev:landing` | Sobe a página de apresentação em `http://localhost:5174` ([como ela é feita](packages/landing/README.md)) |
 | `pnpm db:migrate` | Aplica as migrações no banco de dev sem subir a API |
 | `pnpm db:psql` | Abre o PostgreSQL de desenvolvimento |
 | `pnpm test:integration` | Executa testes de integração com `TEST_DATABASE_URL` definido |
 | `pnpm test:e2e` | Testes em Chromium contra a API real e o `db_test` (antes: `pnpm dev:up` e `pnpm exec playwright install chromium`) |
+| `pnpm test:e2e:landing` | Testes em Chromium da página de apresentação, em tela de computador e de celular; não precisa da API nem do banco |
 | `pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` | Bots contra a API, com p50 e p95 por endpoint ([resultados](docs/perf-v0.1.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera segredos ausentes, preservando os existentes |
-| `pnpm docker:build` / `pnpm docker:build:web` | Constrói a imagem de produção da API / do app web |
+| `pnpm docker:build` / `pnpm docker:build:web` / `pnpm docker:build:landing` | Constrói a imagem de produção da API / do app web / da página de apresentação |
 
 Para chegar ao jogo rodando na sua máquina, com Docker e Compose v2 instalados:
 
@@ -220,7 +223,7 @@ Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 p
 <details>
 <summary><strong>Implantação</strong></summary>
 
-A produção roda em um servidor com Coolify, em três recursos: PostgreSQL, a API (alvo `runtime` do `deploy/Dockerfile`) e o app (alvo `web`, um Caddy servindo arquivos estáticos). O proxy da plataforma cuida do TLS e manda `/v1` para a API e o resto para o app, na mesma origem ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
+A produção roda em um servidor com Coolify, em três recursos: PostgreSQL, a API (alvo `runtime` do `deploy/Dockerfile`) e o app (alvo `web`, um Caddy servindo arquivos estáticos). O proxy da plataforma cuida do TLS e manda `/v1` para a API e o resto para o app, na mesma origem ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)). A página de apresentação é um quarto recurso, em domínio próprio (alvo `landing`, [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
 
 O passo a passo para implantar do zero, atualizar, reverter, fazer backup e restaurar, com o registro dos ensaios já feitos, está em **[deploy/README.md](deploy/README.md)**. Nada é implantado sozinho a cada `push`: o deploy é um ato manual.
 

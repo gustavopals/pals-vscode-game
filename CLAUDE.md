@@ -10,9 +10,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [MVP-ROADMAP.md](MVP-ROADMAP.md) — plano de execução da v0.1 em fases `F0…F5` e tarefas `F1-T3`, cada uma com subtarefas em caixas de seleção, seção "Verificação" e "Pronto quando". O Registro de Execução (§9) diz o que já foi feito.
 - [Decisões de arquitetura](docs/decisions/README.md) — ADRs. Os contratos dos ADRs 0003–0005 já estão no GDD; segui-los não exige nova aprovação de desvio.
 
-**Estado:** as Fases 0 a 3 estão concluídas: monorepo, Docker, conteúdo, motor, `sim-cli`, protocolo, servidor, `client-sdk` e o app web (`packages/web`, tarefas F3W-T1 a F3W-T10). A extensão do VS Code da primeira execução da Fase 3 foi removida ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)); o histórico do Git a preserva. A **Fase 4** (implantação) está feita no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)): o jogo está no ar em `https://lords.palsincomehub.com`, com banco, API e app em três recursos; [deploy/README.md](deploy/README.md) descreve a instalação, a operação e os ensaios de restauração e de reversão. O Registro de Execução dá as cinco tarefas da Fase 4 como executadas; ficaram pendentes, todas dependentes do autor: cópia de `RECOVERY_CODE_SECRET` fora do Coolify, destino S3 para os backups, canal de notificação do Coolify e a confirmação de que o e-mail de alerta do GitHub chega. Depois da Fase 4 entraram os ajustes de fechamento (linha "Pós-F4" do Registro): ritmo 3× ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)), Crônica sem viradas de dia, `housed` e `vacancies` no `ViewState` e o lembrete por tempo real. A próxima fase é a **Fase 5** (fechamento do MVP), começando por F5-T1: [docs/acceptance-v0.1.md](docs/acceptance-v0.1.md) tem o quadro dos 12 critérios, com a prova em produção ainda por fazer, e [docs/manual-test-v0.1.md](docs/manual-test-v0.1.md) o roteiro.
+**Estado:** as Fases 0 a 3 estão concluídas: monorepo, Docker, conteúdo, motor, `sim-cli`, protocolo, servidor, `client-sdk` e o app web (`packages/web`, tarefas F3W-T1 a F3W-T10). A extensão do VS Code da primeira execução da Fase 3 foi removida ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)); o histórico do Git a preserva. A **Fase 4** (implantação) está feita no Coolify ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)): o jogo está no ar em `https://lords.palsincomehub.com`, com banco, API e app em três recursos; [deploy/README.md](deploy/README.md) descreve a instalação, a operação e os ensaios de restauração e de reversão. O Registro de Execução dá as cinco tarefas da Fase 4 como executadas; ficaram pendentes, todas dependentes do autor: cópia de `RECOVERY_CODE_SECRET` fora do Coolify, destino S3 para os backups, canal de notificação do Coolify e a confirmação de que o e-mail de alerta do GitHub chega. Depois da Fase 4 entraram os ajustes de fechamento (linha "Pós-F4" do Registro): ritmo 3× ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)), Crônica sem viradas de dia, `housed` e `vacancies` no `ViewState` e o lembrete por tempo real. A próxima fase é a **Fase 5** (fechamento do MVP), começando por F5-T1: [docs/acceptance-v0.1.md](docs/acceptance-v0.1.md) tem o quadro dos 12 critérios, com a prova em produção ainda por fazer, e [docs/manual-test-v0.1.md](docs/manual-test-v0.1.md) o roteiro. Fora do roadmap, a pedido do autor, existe a **página de apresentação** do jogo ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)): `packages/landing`, uma página estática em domínio próprio, publicada como um quarto recurso do Coolify.
 
-Decisões do autor em 2026-10-01: aprovados os ADRs 0006 (`@types/node` e `@types/pg`), 0007 (Crônica sem viradas de dia, já implementado), 0008 (os seis pontos: tokens em `localStorage`, GitHub por *device flow*, remoção da extensão, notificações, novas dependências, marca) e 0010 (`features` em `GET /version`); ritmo 3× no MVP (ADR 0011); licença MIT. **O vínculo GitHub fica desligado na v0.1**: o código do *device flow* continua, testado só com um GitHub simulado, a produção roda sem `GITHUB_CLIENT_ID` e o critério de aceitação 10 fecha pelo Código do Reino. Não ligue o vínculo nem remova o código sem o autor pedir.
+Decisões do autor em 2026-10-01: aprovados os ADRs 0006 (`@types/node` e `@types/pg`), 0007 (Crônica sem viradas de dia, já implementado), 0008 (os seis pontos: tokens em `localStorage`, GitHub por *device flow*, remoção da extensão, notificações, novas dependências, marca) e 0010 (`features` em `GET /version`); ritmo 3× no MVP (ADR 0011); licença MIT. **O vínculo GitHub fica desligado na v0.1**: o código do *device flow* continua, testado só com um GitHub simulado, a produção roda sem `GITHUB_CLIENT_ID` e o critério de aceitação 10 fecha pelo Código do Reino. Não ligue o vínculo nem remova o código sem o autor pedir. Pendentes de confirmação do autor: os oito pontos do ADR 0012 (endereço, letras, título e tom da página de apresentação, entre outros).
 
 Os dois documentos somam ~2.800 linhas: leia as seções indicadas pela tarefa em vez do arquivo inteiro (ambos têm índice numerado por `§`).
 
@@ -28,6 +28,7 @@ pnpm db:psql           # psql no banco de dev; aceita argumentos: pnpm db:psql -
 pnpm secrets:gen       # cria deploy/.env e gera os segredos vazios, sem sobrescrever os existentes
 pnpm dev:api           # API no host com tsx watch (lê deploy/.env e aplica as migrações); http://localhost:3000/v1/health
 pnpm dev:web           # app web com o Vite em http://localhost:5173; /v1 é repassado para a API (LOTG_API_URL troca o destino)
+pnpm dev:landing       # página de apresentação com o Vite em http://localhost:5174 (não precisa da API)
 pnpm db:migrate        # aplica as migrações no banco de dev sem subir a API
 pnpm --filter @lotg/server db:generate -- --name <nome>   # gera o SQL de uma mudança em src/db/schema.ts
 
@@ -43,11 +44,15 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- games   # um arquivo de integração
 pnpm test:e2e                              # Playwright: app compilado + API real + db_test, em Chromium (precisa de pnpm dev:up)
 pnpm test:e2e 04-conta -g "duas abas"      # um arquivo e um teste; --headed ou --ui para ver o navegador
+pnpm test:e2e:landing                      # Playwright: a página de apresentação compilada, em tela de computador e de celular; sem API nem banco
+pnpm capture:landing                       # refaz as capturas do jogo que a página de apresentação mostra (usa o db_test)
 pnpm exec playwright install chromium      # uma vez por máquina
 
-pnpm build             # servidor (packages/server/dist/main.js) e app web (packages/web/dist)
+pnpm build             # servidor (packages/server/dist/main.js), app web (packages/web/dist) e página de apresentação (packages/landing/dist)
 pnpm docker:build      # imagem de produção da API (lotg-api:latest, alvo runtime)
 pnpm docker:build:web  # imagem do app web (lotg-web:latest, alvo web: Caddy servindo o dist na porta 80)
+pnpm docker:build:landing   # imagem da página de apresentação (lotg-landing:latest, alvo landing)
+scripts/landing-smoke.sh http://localhost:8080   # a página servida pelo Caddy: cabeçalhos, cache e o 404 (também serve para a produção)
 
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico > semana.csv   # bot de playtest; resumo no stderr
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --time-scale 3 > semana-3x.csv      # o mesmo bot no ritmo do servidor; dias e sessões continuam em tempo real
@@ -69,14 +74,14 @@ Detalhes que não são óbvios:
 - Nos testes em navegador o tempo anda por saltos: `world.passTime(ms, ...páginas)` adianta o servidor e o relógio de cada página e **espera o ciclo de atualização terminar**. Saltar de novo com uma leitura em voo, ou logo depois de um clique sem esperar o resultado na tela, cria corridas que não existem no tempo de verdade.
 - O servidor de desenvolvimento do Vite afrouxa a CSP (`style-src 'unsafe-inline'`, WebSocket); a política estrita de `packages/web/index.html` só vale no build. Por isso os testes em navegador usam o build.
 - TypeScript está fixado em 6.x porque o `typescript-eslint` ainda não aceita o 7.
-- O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. `runtime` é o último alvo do `Dockerfile` de propósito (é o que sai sem `--target`); o alvo `web` usa `debian:bookworm-slim` com o binário do Caddy copiado da imagem oficial, que é Alpine. O esbuild empacota o servidor inteiro, com as dependências, em `dist/main.js`: a imagem não tem `node_modules`. Uma dependência nova com binário nativo ou arquivos lidos em tempo de execução precisa ser tratada em `packages/server/esbuild.mjs`.
+- O build da imagem usa a raiz do repositório como contexto; o ignore é `deploy/Dockerfile.dockerignore`. `runtime` é o último alvo do `Dockerfile` de propósito (é o que sai sem `--target`); os alvos `web` e `landing` saem da base `static`, que é `debian:bookworm-slim` com o binário do Caddy copiado da imagem oficial, que é Alpine. O esbuild empacota o servidor inteiro, com as dependências, em `dist/main.js`: a imagem não tem `node_modules`. Uma dependência nova com binário nativo ou arquivos lidos em tempo de execução precisa ser tratada em `packages/server/esbuild.mjs`.
 - As migrações são geradas pelo drizzle-kit em `deploy/migrations` (`0000_init.sql`, não `0001`) e aplicadas no arranque sob `pg_advisory_lock(727)`.
 - A API roda **no host** em desenvolvimento ([ADR 0001](docs/decisions/0001-api-no-host-em-dev.md)); não compartilhar `node_modules` entre host e contêiner. O perfil `--profile full` do compose de dev existe para testar a imagem; `--profile tools` sobe o pgweb (8081).
 - Os bancos de dev usam sempre `lotg/lotg` e portas só em `127.0.0.1`. Variáveis de ambiente em [deploy/.env.example](deploy/.env.example) e MVP-ROADMAP.md §1.3, incluindo `RECOVERY_CODE_SECRET` independente de `JWT_SECRET`, preservado nos deploys.
 
 ## Pacotes
 
-Monorepo pnpm (GDD §14.2), sete pacotes:
+Monorepo pnpm (GDD §14.2), oito pacotes:
 
 | Pacote | Papel |
 |---|---|
@@ -87,8 +92,9 @@ Monorepo pnpm (GDD §14.2), sete pacotes:
 | `@lotg/client-sdk` | Cliente HTTP tipado (usado pelo app web e pelo `sim-cli`) |
 | `@lotg/sim-cli` | Bots de playtest, em processo ou contra um servidor |
 | `@lotg/web` | App web em Preact e Vite: bancada com aparência de editor, sessão de jogo, cache no navegador |
+| `@lotg/landing` | Página de apresentação: HTML e CSS estáticos compilados pelo Vite, em domínio próprio, com o botão que leva ao jogo |
 
-Direção das dependências, imposta por `no-restricted-imports` em `eslint.config.js`: `engine`, `content` e `protocol` não importam `fastify`, `pg`, Drizzle nem módulos do Node (com ou sem `node:`); arquivos `*.test.ts` ficam fora dessa regra. `server` e `web` dependem deles e **nunca um do outro**. O app web não importa o motor, o servidor nem módulos do Node.
+Direção das dependências, imposta por `no-restricted-imports` em `eslint.config.js`: `engine`, `content` e `protocol` não importam `fastify`, `pg`, Drizzle nem módulos do Node (com ou sem `node:`); arquivos `*.test.ts` ficam fora dessa regra. `server` e `web` dependem deles e **nunca um do outro**. O app web não importa o motor, o servidor nem módulos do Node. A página de apresentação não importa pacote nenhum do jogo; só os testes dela leem `@lotg/content`, para conferir as frases que a página cita.
 
 ## Regras de arquitetura
 
@@ -133,6 +139,17 @@ O [README do app](packages/web/README.md) descreve a estrutura. O que orienta qu
 - Foco e teclado dos diálogos e da árvore usam `useLayoutEffect`: com `useEffect` o foco chega um quadro depois, e quem digita rápido (ou um teste) escapa do diálogo.
 - `controller.start()` é chamado **antes** do primeiro `render`: a parte síncrona restaura a conta e o cache, e a página recarregada já nasce no feudo.
 
+### Página de apresentação (`packages/landing`)
+
+O [README da página](packages/landing/README.md) descreve a estrutura e o [ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md), a decisão. O que orienta qualquer mudança:
+
+- É uma página estática, em **domínio próprio**: HTML e CSS escritos à mão e um script pequeno. Sem Preact, sem pacotes do jogo, sem chamadas a servidor. Não divide origem nem armazenamento com o jogo.
+- **Só diz do jogo o que o jogo diz de si.** `src/page.test.ts` confere as linhas da Crônica citadas contra `@lotg/content` e barra promessa de duração de dia ou ano (ADR 0011), viradas de dia (ADR 0007), preço, multijogador, GitHub e nome de editor de código. Nenhum número de regra no texto; o que ainda não existe só aparece no parágrafo "No horizonte", sem data.
+- As pinturas são **arte conceitual gerada por IA** e levam essa legenda; a página abre com uma **captura real do jogo**. As capturas saem de `pnpm capture:landing` (API no ritmo de produção); o roteiro falha se a disposição da tela mudar, porque os rótulos presos à captura têm posição em porcentagem em `src/styles/page.css`.
+- Mesma disciplina do app: CSP estrita (`default-src 'none'`), **sem `style="…"` e sem script embutido**, nada de terceiros, nenhuma medição de audiência. Só `src/styles/tokens.css` tem cores; um teste mede o contraste de cada par de texto e fundo.
+- Os endereços do jogo e da página entram no build por `%GAME_URL%` e `%SITE_URL%` (`src/site.ts`, variáveis `LOTG_GAME_URL` e `LOTG_LANDING_URL`); não escreva endereço no HTML.
+- O título da aba da página **não** pode ser igual ao do jogo: o monitor de saúde distingue os dois sites por ele.
+
 ### Contratos do servidor e do cliente (GDD §14.5–14.10)
 
 - **Avanço preguiçoso.** Leituras e comandos novos autenticam, verificam propriedade e travam a partida antes de `advanceTo(agora)`. Reenvios retornam o recibo antes de avançar. Um job (`advance-stale-games`) avança partidas sem estado persistido há mais de 1 h; não há temporizador por partida em memória.
@@ -166,7 +183,7 @@ API pública, e nada além dela e dos tipos: `createInitialState`, `nextEventAt`
 
 Uma tarefa do roadmap por sessão; a ordem das fases é obrigatória. Para tarefas `M` e `L`, apresentar o plano e esperar aprovação antes de codar.
 
-1. Rodar os comandos da seção "Verificação" da tarefa e `pnpm verify` (mais `pnpm test:integration` se tocar o servidor, e `pnpm test:e2e` se tocar o app web) e mostrar a saída. Sem saída de teste, não há tarefa concluída.
+1. Rodar os comandos da seção "Verificação" da tarefa e `pnpm verify` (mais `pnpm test:integration` se tocar o servidor, `pnpm test:e2e` se tocar o app web e `pnpm test:e2e:landing` se tocar a página de apresentação) e mostrar a saída. Sem saída de teste, não há tarefa concluída.
 2. Marcar as caixas da tarefa em MVP-ROADMAP.md e preencher a linha no Registro de Execução (§9).
 3. Desvios do GDD → `docs/decisions/NNNN-titulo.md`, aguardando aprovação.
 4. Um commit por tarefa (ou por subtarefa em tarefas `L`).

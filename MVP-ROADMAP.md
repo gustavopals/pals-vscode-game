@@ -78,6 +78,7 @@ A mudança de plataforma de 2026-10-01 (extensão do VS Code → app web com apa
 |---|---|---|
 | API | 3000 | `http://localhost:3000/v1/health` |
 | App web (dev) | 5173 | `http://localhost:5173`; encaminha `/v1` para a API |
+| Página de apresentação (dev) | 5174 | `http://localhost:5174`; página estática, sem API |
 | PostgreSQL dev | 5432 | banco `lotg`, usuário `lotg` |
 | PostgreSQL test | 5433 | banco `lotg_test`, recriado a cada suíte, `tmpfs` |
 | pgweb (opcional, `--profile tools`) | 8081 | inspeção visual do banco |
@@ -115,6 +116,7 @@ Preferências do app, guardadas no navegador: notificações (`silent` · `essen
 | `pnpm dev:down` | derruba os contêineres de dev (mantém volumes) |
 | `pnpm dev:api` | `pnpm --filter @lotg/server dev` (tsx watch) |
 | `pnpm dev:web` | servidor de desenvolvimento do app web (Vite, porta 5173, com proxy de `/v1`) |
+| `pnpm dev:landing` | servidor de desenvolvimento da página de apresentação (Vite, porta 5174) |
 | `pnpm db:migrate` | aplica migrações no banco de dev |
 | `pnpm db:psql` | abre `psql` no contêiner `db` |
 | `pnpm build` | compila todos os pacotes |
@@ -123,6 +125,8 @@ Preferências do app, guardadas no navegador: notificações (`silent` · `essen
 | `pnpm test` | testes unitários e de conteúdo (Vitest) |
 | `pnpm test:integration` | testes do servidor contra `db_test` |
 | `pnpm test:e2e` | testes do app em um navegador real (Playwright), contra a API e o app locais |
+| `pnpm test:e2e:landing` | testes da página de apresentação em um navegador real, sem API nem banco |
+| `pnpm capture:landing` | refaz as capturas do jogo que a página de apresentação mostra |
 | `pnpm verify` | `lint` + `typecheck` + `test` (porta de entrada de todo "pronto") |
 | `pnpm sim -- --seed <s> --days 7 --strategy economico` | bot de playtest em processo |
 | `pnpm secrets:gen` | gera `JWT_SECRET`, `RECOVERY_CODE_SECRET` independente e senha do banco para `.env`; não sobrescreve segredos existentes |
@@ -148,6 +152,7 @@ lords-of-the-guild/                  (= esta pasta)
 │   ├── Dockerfile                    # multi-stage: deps → build → web · runtime
 │   ├── docker-compose.dev.yml        # db, db_test, api (profile full), pgweb (profile tools)
 │   ├── web.Caddyfile                 # servidor de arquivos da imagem web (produção no Coolify, ADR 0009)
+│   ├── landing.Caddyfile             # servidor de arquivos da imagem landing (ADR 0012)
 │   ├── README.md                     # implantação, operação e registro dos ensaios
 │   ├── .env.example
 │   ├── migrations/                   # SQL versionado gerado pelo drizzle-kit
@@ -160,7 +165,8 @@ lords-of-the-guild/                  (= esta pasta)
 │   ├── server/        @lotg/server      Fastify + Drizzle
 │   ├── client-sdk/    @lotg/client-sdk  cliente HTTP tipado
 │   ├── sim-cli/       @lotg/sim-cli     bots de playtest
-│   └── web/           @lotg/web         app web (Preact): bancada, sessão de jogo, cache
+│   ├── web/           @lotg/web         app web (Preact): bancada, sessão de jogo, cache
+│   └── landing/       @lotg/landing     página de apresentação (estática), fora do escopo do MVP (ADR 0012)
 └── tests/                            # integração entre pacotes (servidor↔banco) e e2e do app em navegador real
 ```
 
@@ -1311,6 +1317,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F4-T4 | 2026-10-01 | `f2167c5` | 1 | Workflow `health.yml` consulta `/v1/health` e a página do app; as duas asserções foram conferidas à mão contra produção. Consultas de `ops.sql` escritas a partir do esquema, **não executadas** em produção (não há acesso ao `psql` pela API). Avisos do Coolify marcados, mas sem canal ligado, por decisão do autor. Teste de alerta: com a API parada por cerca de 2 minutos, o workflow passou antes, falhou durante e passou depois. **Não verificado:** a chegada do e-mail do GitHub ao autor (o "Pronto quando") e o disparo pelo agendamento, só o manual. |
 | F4-T5 | 2026-10-01 | `f2167c5` | 1 | Reversão da API de `42d9256` para a imagem de `1ef9545` pela API de rollback: 38 s, com `/v1/health` respondendo durante a troca; volta por deploy normal em 20 s. Os dois commits usam a mesma migração: a reversão atravessando uma migração não foi ensaiada. Nenhuma tag criada (F5-T4). |
 | Pós-F4 · ajustes de fechamento | 2026-10-01 | `8ac6b56` | 1 | Fora das tarefas numeradas, depois de o autor jogar em produção. **Ritmo 3×** nas partidas novas ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)): `GAME_TIME_SCALE` no servidor (padrão 3), gravado por partida; `deriveViewState` recebe o ritmo e devolve prazos e taxas em tempo real; os testes de integração e em navegador seguem no ritmo 1; as partidas antigas continuam no ritmo 1. **Crônica sem viradas de dia** ([ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md), aprovado): filtro em `chronicleRows` e na Crônica recente do app; `GET /events` não muda. `ViewState.population` ganhou `housed` e `vacancies`, e o app deixou de fazer essa conta. O lembrete "Proteja seu reino" conta 48 horas reais desde a primeira abertura da conta no navegador. Nomes validados no app com o `DisplayNameSchema` do protocolo; a mensagem do 426 pede para recarregar a página, também em uma ordem. **Decisões do autor:** licença MIT; vínculo GitHub desligado na v0.1 (o critério 10 fecha pelo Código do Reino); ADRs 0006, 0007, 0008 (os seis pontos) e 0010 aprovados. **Não verificado nesta linha:** o deploy destas mudanças; em 2026-10-01 às 17:54 UTC, `/v1/version` de produção informava `builtAt` 17:35 UTC, anterior a elas. |
+| Fora do roadmap · página de apresentação | 2026-10-01 | | 1 | Pedida pelo autor, sem tarefa no roadmap ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)). Pacote `@lotg/landing`: página estática em domínio próprio, com HTML e CSS escritos à mão, um script pequeno e nenhum pacote do jogo. Conceito escolhido por um painel (quatro propostas independentes e a do agente, três revisores; a do agente ficou em último): título em duas vozes, "Parece trabalho. É um feudo.", e uma captura real do jogo lida de dois jeitos por um interruptor que é só CSS. As capturas são feitas no ritmo de produção por `pnpm capture:landing`, que falha se a disposição da tela mudar. Alvos `landing-build` e `landing` no `Dockerfile`; `web` e `landing` passaram a sair de uma base comum (`static`), e a imagem `web` foi reconstruída e conferida (`index.html` para rotas desconhecidas, 404 em `/v1`, mesmos cabeçalhos). Medido: 70 testes de unidade e 37 em Chromium (tela de computador e de celular); imagem de 197 MB; página inteira com cerca de 350 kB em tela de computador e 290 kB no celular. **Não verificado:** Firefox e Safari; a passagem de `LOTG_GAME_URL` e `LOTG_LANDING_URL` como variáveis de build do Coolify (a instalação usa os padrões). **A confirmar pelo autor:** os oito pontos do ADR 0012 (endereço, letras, título e tom, uso das artes, aviso de celular, monitor, GDD). |
 | F5-T1 | | | | |
 | F5-T2 | | | | |
 | F5-T3 | | | | |

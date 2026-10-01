@@ -1,19 +1,21 @@
 # Implantação e operação
 
-O jogo roda em um servidor com [Coolify](https://coolify.io), em três recursos ([ADR 0009](../docs/decisions/0009-implantacao-no-coolify.md)). O app e a API dividem o mesmo domínio: não há CORS.
+O jogo roda em um servidor com [Coolify](https://coolify.io), em três recursos ([ADR 0009](../docs/decisions/0009-implantacao-no-coolify.md)). O app e a API dividem o mesmo domínio: não há CORS. A página de apresentação é um quarto recurso, em domínio próprio ([ADR 0012](../docs/decisions/0012-pagina-de-apresentacao.md)): não fala com a API nem com o banco, e o jogo não depende dela.
 
 | Recurso      | O que é                                                    | Rota pública          |
 | ------------ | ---------------------------------------------------------- | --------------------- |
 | `lotg-db`    | PostgreSQL 16, volume persistente, sem porta publicada     | nenhuma               |
 | `lotg-api`   | `deploy/Dockerfile`, alvo `runtime`, porta 3000            | `https://<domínio>/v1` |
 | `lotg-web`   | `deploy/Dockerfile`, alvo `web` (Caddy servindo o app), 80 | `https://<domínio>`   |
+| `lotg-landing` | `deploy/Dockerfile`, alvo `landing` (Caddy servindo a página de apresentação), 80 | `https://<domínio da página>` |
 
 O proxy do Coolify (Traefik) emite o certificado, redireciona HTTP para HTTPS e separa as rotas pelo caminho. A API aplica as migrações de `deploy/migrations` ao subir.
 
 Arquivos desta pasta:
 
-- `Dockerfile` e `Dockerfile.dockerignore`: as duas imagens. O contexto de build é a raiz do repositório.
+- `Dockerfile` e `Dockerfile.dockerignore`: as três imagens (API, app e página de apresentação). O contexto de build é a raiz do repositório.
 - `web.Caddyfile`: o servidor de arquivos da imagem `web` e os cabeçalhos de segurança do app.
+- `landing.Caddyfile`: o servidor de arquivos da imagem `landing`, com os cabeçalhos de segurança, o cache e a página de caminho errado.
 - `migrations/`: SQL gerado pelo drizzle-kit.
 - `ensaio-restauracao.yml`: o serviço que ensaia a restauração de um backup.
 - `analytics/ops.sql`: consultas de operação.
@@ -24,6 +26,7 @@ Arquivos desta pasta:
 | Item                 | Valor                                                             |
 | -------------------- | ----------------------------------------------------------------- |
 | Endereço do jogo     | `https://lords.palsincomehub.com`                                 |
+| Página de apresentação | `https://lordsoftheguild.palsincomehub.com`                     |
 | Painel do Coolify    | `https://app.palsincomehub.com` (Coolify 4.3)                     |
 | Projeto e ambiente   | "Lords of the Guild", `production`                                |
 | Servidor             | `localhost` (o mesmo em que o Coolify roda)                       |
@@ -54,11 +57,26 @@ Os dez passos, para refazer a instalação em outro servidor com Coolify.
 
 Pela API do Coolify (`/api/v1`), o alvo de build só é aceito em um `PATCH` depois da criação, e a remoção de prefixo é o campo `is_stripprefix_enabled`.
 
+### Página de apresentação
+
+Um recurso à parte, que pode ser criado ou removido sem tocar no jogo.
+
+1. **DNS.** Um registro A do domínio da página para o IP do servidor (na instalação atual, o registro curinga do domínio já aponta para ele).
+2. **Recurso.** Outro recurso do mesmo repositório, branch `main`, build pack "Dockerfile", diretório base `/`, Dockerfile em `/deploy/Dockerfile`, alvo de build `landing`, porta `80`, domínio `https://<domínio da página>`, com o health check do Coolify desligado (vale o `HEALTHCHECK` do `Dockerfile`).
+3. **Endereços.** A página leva ao endereço do jogo e usa o próprio endereço na prévia do link. Os da instalação atual são o padrão do pacote (`packages/landing/src/site.ts`). Em outra instalação, definir `LOTG_GAME_URL` e `LOTG_LANDING_URL` como variáveis de build do recurso: o `Dockerfile` as recebe como `ARG`. A instalação atual usa os padrões; a passagem dessas variáveis pelo Coolify não foi exercitada.
+4. **Deploy e conferência.** Fazer o deploy e conferir de fora:
+
+   ```bash
+   scripts/landing-smoke.sh https://<domínio da página>
+   ```
+
+   O roteiro confere a página, os cabeçalhos de segurança, o cache e o 404. Depois, abrir a página e clicar em **Jogar agora**: o botão leva ao jogo.
+
 O vínculo com o GitHub fica desligado enquanto `GITHUB_CLIENT_ID` estiver vazio. Para ligar: registrar um OAuth App no GitHub com "Device Flow" habilitado, pôr o identificador na variável e fazer o deploy da API. `GET /v1/version` passa a responder `features.githubDevice: true`.
 
 ## Atualizar e reverter
 
-**Atualizar.** Um `push` no `main` implanta sozinho: o job `deploy` de [`ci.yml`](../.github/workflows/ci.yml) roda depois que todos os outros jobs do CI passam, pede ao Coolify o deploy de `lotg-api`, espera `/v1/health`, e então o de `lotg-web`. Com o CI vermelho, nada vai ao ar. A troca é por substituição do contêiner depois que o novo passa no health check; conferir `GET /v1/version` (`builtAt` muda).
+**Atualizar.** Um `push` no `main` implanta sozinho: o job `deploy` de [`ci.yml`](../.github/workflows/ci.yml) roda depois que todos os outros jobs do CI passam, pede ao Coolify o deploy de `lotg-api`, espera `/v1/health`, e então o de `lotg-web`; por último vai o de `lotg-landing`, conferido com `scripts/landing-smoke.sh`. Com o CI vermelho, nada vai ao ar. A troca é por substituição do contêiner depois que o novo passa no health check; conferir `GET /v1/version` (`builtAt` muda).
 
 O job usa o segredo `COOLIFY_DEPLOY_TOKEN` do repositório: um token de API do Coolify com as permissões `read` e `deploy`, e nenhuma outra. Para trocá-lo, criar outro em "Keys & Tokens", rodar `gh secret set COOLIFY_DEPLOY_TOKEN` e apagar o antigo no Coolify.
 
