@@ -10,7 +10,13 @@ import {
 
 import { advanceTo } from './advance';
 import { calendarAt, nextDayBoundary, nextSeasonBoundary } from './clock';
-import { constructionOf, upgradeCost, upgradeDurationMs, upgradeQuote } from './construction';
+import {
+  cancelRefund,
+  constructionOf,
+  upgradeCost,
+  upgradeDurationMs,
+  upgradeQuote,
+} from './construction';
 import { consumptionRate, foodRunsOutIn, netRates, productionRate, storageCap } from './economy';
 import { describeReward, objectiveProgress } from './objectives';
 import { freeVillagers, housingCapacity, housingVacancy, recruitmentBlock } from './population';
@@ -79,6 +85,15 @@ function resourceBreakdown(state: GameState, resource: ResourceId): string {
     parts.push(`consumo ${villagers} × ${perVillager} = ${consumed}/h`);
   }
   return parts.join('; ');
+}
+
+function refundView(building: BuildingId, fromLevel: number) {
+  const refund = cancelRefund(building, fromLevel);
+  return RESOURCE_IDS.filter((resource) => refund[resource] > 0).map((resource) => ({
+    resource,
+    label: balance.resources[resource].label,
+    amount: refund[resource] / MILLI,
+  }));
 }
 
 function upgradeView(state: GameState, building: BuildingId): UpgradeView {
@@ -206,6 +221,7 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
       resource: buildings[building].produces as ResourceId,
       assigned: settlement.workers[building],
       grossPerHour: productionRate(state, building) / MILLI,
+      perWorkerPerHour: productionRate(state, building, 1) / MILLI,
       breakdown: productionBreakdown(state, building),
     })),
     constructions: {
@@ -221,6 +237,7 @@ export function deriveViewState(input: GameState, gameTimeMs: number): ViewState
               progressPercent: Math.floor(
                 ((now - active.startedAtMs) * 100) / (active.finishesAtMs - active.startedAtMs),
               ),
+              refund: refundView(active.building, active.targetLevel - 1),
             },
       planned: settlement.planned.map((plan) =>
         plannedView(state, plan.building, plan.targetLevel),

@@ -73,6 +73,7 @@ describe('deriveViewState', () => {
       level: 2,
       assigned: 4,
       grossPerHour: 48,
+      perWorkerPerHour: 12,
       breakdown: '4 trabalhadores × 10 × 1,2 (Nv2) = 48/h',
     });
     expect(derived.workers[1]?.breakdown).toBe('0 trabalhadores × 8 × 1 (Nv1) = 0/h');
@@ -130,6 +131,11 @@ describe('deriveViewState', () => {
       secondsRemaining: 180,
       totalSeconds: 300,
       progressPercent: 40,
+      // 80% de 80 madeira e 40 ouro.
+      refund: [
+        { resource: 'wood', label: 'Madeira', amount: 64 },
+        { resource: 'gold', label: 'Ouro', amount: 32 },
+      ],
     });
     expect(derived.constructions.available.map((entry) => entry.building)).not.toContain('farm');
     expect(derived.constructions.available[0]?.blockedReason).toBe(

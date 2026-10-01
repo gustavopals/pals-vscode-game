@@ -10,5 +10,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --root ../.. --project unit"
+  },
+  "dependencies": {
+    "@lotg/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4"
   }
 }

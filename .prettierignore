@@ -2,7 +2,7 @@
 *.md
 pnpm-lock.yaml
 dist/
-media/
+packages/extension/media/webview.*
 coverage/
 deploy/backups/
 deploy/migrations/

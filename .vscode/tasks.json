@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "lords: build da extensão e da Webview",
+      "type": "shell",
+      "command": "pnpm --filter @lotg/webview build && pnpm --filter lords-of-the-guild build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "lords: watch da extensão e da Webview",
+      "type": "shell",
+      "command": "pnpm dev:ext",
+      "isBackground": true,
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "lords: API local",
+      "type": "shell",
+      "command": "pnpm dev:up && pnpm dev:api",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

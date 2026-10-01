@@ -2,18 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-import type {
-  AuthResponse,
-  Command,
-  CommandAccepted,
-  CreateGameResponse,
-  EventsResponse,
-  GameRuleError,
-  TokenPair,
-  ViewResponse,
-  ViewState,
-} from '@lotg/protocol';
-import { HEADERS, PROTOCOL_VERSION } from '@lotg/protocol';
+import { createClient, isGameRuleError, memoryTokenStore } from '@lotg/client-sdk';
+import type { Command, ViewState } from '@lotg/protocol';
 
 import type { Act, Bot } from './bots/types';
 import { strategies, type StrategyName } from './simulate';
@@ -40,8 +30,6 @@ export type RemoteReport = {
   endpoints: Record<string, EndpointStats>;
 };
 
-type Reply<T> = { status: number; body: T; headers: Headers };
-
 function percentile(sorted: number[], fraction: number): number {
   if (sorted.length === 0) {
     return 0;
@@ -50,144 +38,85 @@ function percentile(sorted: number[], fraction: number): number {
   return Math.round((sorted[Math.max(0, index)] ?? 0) * 10) / 10;
 }
 
-/** Bots de carga: cada um cria conta e partida e joga pela API, como a extensão faria. */
+/** Rótulo de um endpoint para o relatório: o método e a rota, sem ids nem parâmetros. */
+function endpointLabel(method: string, url: string): string {
+  const path = new URL(url).pathname.replace(/^\/v1/, '').replace(/\/games\/[0-9a-f-]{36}/, '');
+  return `${method} ${path === '' ? '/games' : path}`;
+}
+
+/** Bots de carga: cada um cria conta e partida e joga pelo `client-sdk`, como a extensão faz. */
 export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
-  const api = `${options.baseUrl.replace(/\/+$/, '')}/v1`;
   const bot: Bot = strategies[options.strategy];
   const timings: Record<string, number[]> = {};
   const errors: Record<string, number> = {};
   const totals = { cycles: 0, accepted: 0, refused: 0 };
 
-  async function request<T>(
-    label: string,
-    method: string,
-    path: string,
-    init: { token?: string; body?: unknown; headers?: Record<string, string> } = {},
-  ): Promise<Reply<T>> {
-    const headers: Record<string, string> = {
-      [HEADERS.protocol]: String(PROTOCOL_VERSION),
-      [HEADERS.client]: 'sim-cli',
-      ...init.headers,
-    };
-    if (init.token !== undefined) {
-      headers.authorization = `Bearer ${init.token}`;
-    }
-    if (init.body !== undefined) {
-      headers['content-type'] = 'application/json';
-    }
+  // O SDK usa este fetch: é aqui que cada chamada é cronometrada.
+  const timedFetch: typeof fetch = async (input, init) => {
+    const label = endpointLabel(init?.method ?? 'GET', String(input));
     const startedAt = performance.now();
-    const response = await fetch(`${api}${path}`, {
-      method,
-      headers,
-      ...(init.body !== undefined ? { body: JSON.stringify(init.body) } : {}),
-    });
+    const response = await fetch(input, init);
+    // O corpo é lido aqui para o tempo incluir a resposta inteira.
     const text = await response.text();
     (timings[label] ??= []).push(performance.now() - startedAt);
     if (response.status >= 500 || response.status === 429) {
       errors[`${label} ${response.status}`] = (errors[`${label} ${response.status}`] ?? 0) + 1;
     }
-    return {
+    return new Response(response.status === 204 || response.status === 304 ? null : text, {
       status: response.status,
-      body: (text === '' ? null : JSON.parse(text)) as T,
       headers: response.headers,
-    };
-  }
+    });
+  };
 
   async function runBot(index: number, deadline: number): Promise<void> {
     // Clientes reais não fazem polling no mesmo instante: cada bot começa em um ponto do ciclo.
     await sleep((index / options.bots) * options.pollMs);
-    const signUp = await request<AuthResponse>('POST /auth/anonymous', 'POST', '/auth/anonymous', {
-      body: { displayName: `Bot ${index + 1}`, deviceLabel: 'sim-cli' },
+    const client = createClient({
+      baseUrl: options.baseUrl,
+      tokenStore: memoryTokenStore(),
+      clientVersion: 'sim-cli/0.1.0',
+      fetch: timedFetch,
+      retryAttempts: 1,
     });
-    if (signUp.status !== 201) {
-      throw new Error(`Bot ${index + 1} não conseguiu criar a conta (${signUp.status}).`);
-    }
-    let tokens: TokenPair = signUp.body;
-    const created = await request<CreateGameResponse>('POST /games', 'POST', '/games', {
-      token: tokens.accessToken,
-      body: { settlementName: `Feudo ${index + 1}`, timezone: 'UTC', vigilHourLocal: 20 },
+    await client.signUpAnonymous({ displayName: `Bot ${index + 1}`, deviceLabel: 'sim-cli' });
+    const game = await client.createGame({
+      settlementName: `Feudo ${index + 1}`,
+      timezone: 'UTC',
+      vigilHourLocal: 20,
     });
-    if (created.status !== 201) {
-      throw new Error(`Bot ${index + 1} não conseguiu criar a partida (${created.status}).`);
-    }
-    const gameId = created.body.game.id;
     let view: ViewState | null = null;
     let stateVersion: string | null = null;
     let etag: string | null = null;
     let lastSeq = 0;
 
-    const refresh = async () => {
-      const renewed = await request<TokenPair>('POST /auth/refresh', 'POST', '/auth/refresh', {
-        body: { refreshToken: tokens.refreshToken },
-      });
-      if (renewed.status === 200) {
-        tokens = renewed.body;
-      }
-    };
-
     const act: Act = async (type, payload) => {
       const command = { commandId: randomUUID(), type, payload } as Command;
-      const reply = await request<CommandAccepted | GameRuleError>(
-        'POST /commands',
-        'POST',
-        `/games/${gameId}/commands`,
-        {
-          token: tokens.accessToken,
-          body: command,
-          ...(stateVersion !== null ? { headers: { [HEADERS.stateVersion]: stateVersion } } : {}),
-        },
-      );
-      // Na recusa do motor, o corpo também traz o estado avançado: o bot segue a partir dele.
-      const outcome =
-        reply.status === 200
-          ? (reply.body as CommandAccepted)
-          : reply.status === 422
-            ? (reply.body as GameRuleError).details
-            : null;
-      if (reply.status === 200) {
+      try {
+        const result = await client.sendCommand(game.id, command, { stateVersion });
         totals.accepted += 1;
-      } else if (reply.status === 422) {
+        view = result.view;
+        stateVersion = result.stateVersion;
+      } catch (error) {
+        if (!isGameRuleError(error)) {
+          throw error;
+        }
+        // Na recusa do motor, os detalhes trazem o estado avançado: o bot segue a partir dele.
         totals.refused += 1;
-      }
-      if (outcome !== null) {
-        view = outcome.view;
-        stateVersion = outcome.stateVersion;
-      }
-      if (view === null) {
-        throw new Error(`Comando sem resposta utilizável (${reply.status}).`);
+        view = error.details.view;
+        stateVersion = error.details.stateVersion;
       }
       return view;
     };
 
     while (performance.now() < deadline) {
       const cycleStartedAt = performance.now();
-      const read: Reply<ViewResponse> = await request<ViewResponse>(
-        'GET /view',
-        'GET',
-        `/games/${gameId}/view`,
-        {
-          token: tokens.accessToken,
-          ...(etag !== null ? { headers: { 'if-none-match': etag } } : {}),
-        },
-      );
-      if (read.status === 401) {
-        await refresh();
-        continue;
-      }
+      const read = await client.getView(game.id, { etag });
       if (read.status === 200) {
-        view = read.body.view;
-        stateVersion = read.body.stateVersion;
-        etag = read.headers.get('etag');
+        view = read.view;
+        stateVersion = read.stateVersion;
       }
-      const events = await request<EventsResponse>(
-        'GET /events',
-        'GET',
-        `/games/${gameId}/events?after=${lastSeq}`,
-        { token: tokens.accessToken },
-      );
-      if (events.status === 200) {
-        lastSeq = events.body.lastSeq;
-      }
+      etag = read.etag;
+      lastSeq = (await client.getEvents(game.id, lastSeq)).lastSeq;
       if (view !== null) {
         await bot(view, act);
       }

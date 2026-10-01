@@ -60,7 +60,7 @@ Quando uma faixa falhar, ajuste os números em `@lotg/content`, nunca o bot.
 pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2 --poll-ms 2000
 ```
 
-Cada bot cria uma conta anônima e uma partida e joga pela API, como a extensão: `GET /view` com `If-None-Match`, `GET /events?after=` e as ordens do bot. O relatório traz chamadas, p50, p95 e máximo por endpoint, e o comando sai com erro se houver respostas 5xx ou 429.
+Cada bot cria uma conta anônima e uma partida e joga pela API com o `client-sdk`, como a extensão: `GET /view` com `If-None-Match`, `GET /events?after=` e as ordens do bot. O relatório traz chamadas, p50, p95 e máximo por endpoint, e o comando sai com erro se houver respostas 5xx ou 429.
 
 | Opção | Padrão | Significado |
 |---|---|---|
@@ -71,4 +71,4 @@ Cada bot cria uma conta anônima e uma partida e joga pela API, como a extensão
 
 Com os limites de taxa reais (60 requisições por minuto por sessão, 10 contas por hora por IP), use poucos bots e `--poll-ms 5000` ou mais. Para um teste de carga, suba a API com `RATE_LIMIT_PER_MINUTE` e `ACCOUNT_CREATE_PER_HOUR_PER_IP` altos. Os resultados registrados estão em [docs/perf-v0.1.md](../../docs/perf-v0.1.md).
 
-O modo remoto fala com a API direto por `fetch`; passará a usar o `client-sdk` quando ele existir (F3-T1).
+O modo remoto joga pelo `@lotg/client-sdk`, o mesmo cliente HTTP que a extensão usa.

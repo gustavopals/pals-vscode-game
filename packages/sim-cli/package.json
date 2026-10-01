@@ -13,6 +13,7 @@
     "test": "vitest run --root ../.. --project unit"
   },
   "dependencies": {
+    "@lotg/client-sdk": "workspace:*",
     "@lotg/content": "workspace:*",
     "@lotg/engine": "workspace:*",
     "@lotg/protocol": "workspace:*"

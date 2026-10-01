@@ -7,13 +7,15 @@ import { HOUR_MS, MILLI, scaleDown } from './units';
  * Produção bruta de um edifício, em milésimos por hora, sempre inteira:
  * trabalhadores × taxa base × 1000 × (10 + 2 × (nível − 1)) / 10, vezes 3/4 durante a fome.
  */
-export function productionRate(state: GameState, building: ProductionBuildingId): number {
+export function productionRate(
+  state: GameState,
+  building: ProductionBuildingId,
+  workers = state.settlement.workers[building],
+): number {
   const { levelBonus, perWorkerPerHour } = balance.production;
-  const { buildings: levels, workers, famine } = state.settlement;
+  const { buildings: levels, famine } = state.settlement;
   const bonus = levelBonus.den + levelBonus.num * (levels[building] - 1);
-  const rate = Math.floor(
-    (workers[building] * perWorkerPerHour[building] * MILLI * bonus) / levelBonus.den,
-  );
+  const rate = Math.floor((workers * perWorkerPerHour[building] * MILLI * bonus) / levelBonus.den);
   return famine ? scaleDown(rate, balance.famine.productionMultiplier) : rate;
 }
 

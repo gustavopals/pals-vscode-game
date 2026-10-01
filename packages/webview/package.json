@@ -4,12 +4,18 @@
   "private": true,
   "description": "Lords of the Guild: Interface da Webview",
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "scripts": {
-    "dev": "node ../../scripts/pending.mjs F3-T2 \"O build em watch da Webview\"",
+    "build": "node esbuild.mjs",
+    "dev": "node esbuild.mjs --watch",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --root ../.. --project unit"
+  },
+  "dependencies": {
+    "@lotg/protocol": "workspace:*",
+    "preact": "^11.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "preact-render-to-string": "^6.8.0"
   }
 }

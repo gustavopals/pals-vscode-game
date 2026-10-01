@@ -179,6 +179,8 @@ export type ViewState = {
     resource: ResourceId;
     assigned: number;
     grossPerHour: number;
+    /** Quanto cada trabalhador produz por hora neste edifício agora, já com nível e fome. */
+    perWorkerPerHour: number;
     breakdown: string;
   }>;
   constructions: {
@@ -189,6 +191,8 @@ export type ViewState = {
       secondsRemaining: number;
       totalSeconds: number;
       progressPercent: number;
+      /** O que volta ao estoque se a obra for cancelada agora, em unidades. */
+      refund: Array<{ resource: ResourceId; label: string; amount: number }>;
     };
     planned: UpgradeView[];
     available: UpgradeView[];

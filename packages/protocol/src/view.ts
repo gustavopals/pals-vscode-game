@@ -101,6 +101,7 @@ export const ViewStateSchema = z.strictObject({
       resource: resourceId,
       assigned: z.number(),
       grossPerHour: z.number(),
+      perWorkerPerHour: z.number(),
       breakdown: z.string(),
     }),
   ),
@@ -113,6 +114,9 @@ export const ViewStateSchema = z.strictObject({
         secondsRemaining: z.number(),
         totalSeconds: z.number(),
         progressPercent: z.number(),
+        refund: z.array(
+          z.strictObject({ resource: resourceId, label: z.string(), amount: z.number() }),
+        ),
       })
       .nullable(),
     planned: z.array(UpgradeSchema),

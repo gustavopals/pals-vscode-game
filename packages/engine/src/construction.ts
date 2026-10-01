@@ -9,7 +9,14 @@ import {
 
 import { emit } from './chronicle';
 import { reject } from './rejections';
-import type { BuildingId, Construction, GameEvent, GameState, Rejection } from './types';
+import type {
+  BuildingId,
+  Construction,
+  GameEvent,
+  GameState,
+  Rejection,
+  ResourceId,
+} from './types';
 import { MILLI, positiveEntries, scaleDown } from './units';
 
 export function isBuildingId(value: unknown): value is BuildingId {
@@ -196,6 +203,19 @@ export function finishConstructions(draft: GameState, atMs: number, events: Game
   });
 }
 
+/** O que volta, em milésimos, ao cancelar a obra que parte de `fromLevel`: 80% do que foi pago. */
+export function cancelRefund(building: BuildingId, fromLevel: number): Record<ResourceId, number> {
+  const paid = upgradeCost(building, fromLevel);
+  const refundOf = (resource: ResourceId) =>
+    scaleDown((paid[resource] ?? 0) * MILLI, balance.construction.cancelRefund);
+  return {
+    food: refundOf('food'),
+    wood: refundOf('wood'),
+    stone: refundOf('stone'),
+    gold: refundOf('gold'),
+  };
+}
+
 /** Cancela a obra de um edifício e devolve 80% do que foi pago, arredondando para baixo. */
 export function cancelConstruction(
   draft: GameState,
@@ -212,10 +232,9 @@ export function cancelConstruction(
     return reject('NOT_IN_CONSTRUCTION', { label: sentenceCase(buildingWithArticle(building)) });
   }
   const level = settlement.buildings[building];
-  const paid = upgradeCost(building, level);
+  const refund = cancelRefund(building, level);
   for (const resource of RESOURCE_IDS) {
-    const refund = scaleDown((paid[resource] ?? 0) * MILLI, balance.construction.cancelRefund);
-    settlement.resources[resource] += refund;
+    settlement.resources[resource] += refund[resource];
   }
   settlement.constructionQueues[index] = null;
   emit(

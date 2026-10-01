@@ -20,7 +20,12 @@ const purePackageRestrictions = {
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/media/**', '**/coverage/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/coverage/**',
+      'packages/extension/media/webview.*',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

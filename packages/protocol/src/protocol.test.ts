@@ -246,25 +246,66 @@ describe('contratos da API', () => {
 });
 
 describe('mensagens da Webview', () => {
-  it('a Webview só manda comandos e navegação', () => {
+  it('a Webview manda prontidão, comandos, navegação, "Jogar agora" e ações conhecidas', () => {
     const order = { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 1 } };
-    expect(WebviewToExtensionSchema.safeParse({ type: 'command', command: order }).success).toBe(
-      true,
-    );
-    expect(WebviewToExtensionSchema.safeParse({ type: 'navigate', route: 'fief' }).success).toBe(
-      true,
-    );
-    expect(WebviewToExtensionSchema.safeParse({ type: 'fetch', url: 'https://x' }).success).toBe(
-      false,
-    );
+    const accepted = [
+      { type: 'ready' },
+      { type: 'command', command: order },
+      { type: 'navigate', route: 'fief' },
+      { type: 'playNow', displayName: 'Gustavo', settlementName: 'Pedra Alta' },
+      { type: 'action', action: 'signInGithub' },
+    ];
+    for (const message of accepted) {
+      expect(WebviewToExtensionSchema.safeParse(message).success).toBe(true);
+    }
+    const refused = [
+      { type: 'fetch', url: 'https://x' },
+      { type: 'action', action: 'deleteAccount' },
+      { type: 'playNow', displayName: 'G', settlementName: 'Pedra Alta' },
+      { type: 'command', command: { ...order, commandId: 'x' } },
+    ];
+    for (const message of refused) {
+      expect(WebviewToExtensionSchema.safeParse(message).success).toBe(false);
+    }
   });
 
-  it('a extensão manda view, erro, conexão e navegação', () => {
-    expect(ExtensionToWebviewSchema.safeParse({ type: 'connection', online: false }).success).toBe(
-      true,
-    );
-    const failure = { type: 'error', code: 'GAME_RULE', message: 'Faltam 15 pedra.' };
-    expect(ExtensionToWebviewSchema.safeParse(failure).success).toBe(true);
+  it('a extensão manda view, erro, conexão, navegação, sessão, Crônica e relatório', () => {
+    const accepted = [
+      { type: 'connection', online: false, retryInSeconds: 5 },
+      { type: 'connection', online: true },
+      { type: 'error', code: 'GAME_RULE', message: 'Faltam 15 pedra.' },
+      { type: 'error', code: 'NETWORK', message: 'Sem ligação com o reino.' },
+      { type: 'navigate', route: 'today' },
+      {
+        type: 'session',
+        session: {
+          account: { displayName: 'Gustavo', kind: 'anonymous' },
+          hasGame: true,
+          defaults: { displayName: 'Gustavo', settlementName: 'Pedra Alta' },
+          busy: false,
+        },
+      },
+      { type: 'chronicle', entries: [] },
+      { type: 'report', report: null },
+      {
+        type: 'report',
+        report: {
+          awaySeconds: 18_000,
+          resources: [{ id: 'food', label: 'Comida', before: 180, after: 240, delta: 60 }],
+          counts: {
+            daysPassed: 2,
+            constructionsFinished: 1,
+            villagersArrived: 3,
+            objectivesCompleted: 1,
+          },
+          famine: 'none',
+          highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
+        },
+      },
+    ];
+    for (const message of accepted) {
+      expect(ExtensionToWebviewSchema.safeParse(message).error).toBeUndefined();
+    }
     expect(ExtensionToWebviewSchema.safeParse({ type: 'navigate', route: 'map' }).success).toBe(
       false,
     );

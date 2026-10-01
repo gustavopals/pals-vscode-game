@@ -6,7 +6,7 @@ pnpm-debug.log*
 
 # Saídas de build
 dist/
-packages/extension/media/
+packages/extension/media/webview.*
 *.vsix
 coverage/
 
