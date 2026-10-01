@@ -2,6 +2,7 @@
   "name": "@lotg/web",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Lords of the Guild: app web com aparência de editor",
   "type": "module",
   "scripts": {

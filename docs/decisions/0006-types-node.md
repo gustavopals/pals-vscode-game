@@ -1,7 +1,7 @@
 # 0006 — `@types/node` e `@types/pg` como dependências de desenvolvimento
 
 Data: 2026-10-01\
-Estado: adotada na Fase 2 sem aprovação explícita (ver "Como foi adotada"); reversível\
+Estado: aprovada pelo autor em 2026-10-01 (tinha sido adotada na Fase 2 sem aprovação explícita; ver "Como foi adotada")\
 Escopo: roadmap §1.6; F1-T10, F2-T2 em diante, F3-T2
 
 ## Contexto
@@ -17,6 +17,8 @@ Permitir `@types/node` (linha 22, a mesma do runtime) como dependência de desen
 ## Como foi adotada
 
 A proposta ficou aguardando aprovação ao fim da Fase 1. O pedido seguinte foi implementar a Fase 2, sem resposta direta a este ADR. Como o servidor não compila sem os tipos do Node, a Fase 2 foi implementada com `@types/node` e `@types/pg`, e `packages/sim-cli/src/node-env.d.ts` foi removido. Se a decisão for outra, a reversão é trocar as duas dependências por declarações manuais; nenhum código de produção depende delas.
+
+O autor aprovou a decisão em 2026-10-01, como está.
 
 ## Consequências e verificação
 

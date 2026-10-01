@@ -1,7 +1,7 @@
 # 0007 — Crônica sem as viradas de dia
 
 Data: 2026-10-01\
-Estado: proposta (aguardando aprovação)\
+Estado: aprovada pelo autor em 2026-10-01 e implementada no mesmo dia\
 Escopo: GDD §11.4, §13.2 e Apêndice E; roadmap F1-T2, F2-T6.6, F3-T5 e F3-T7
 
 ## Contexto
@@ -10,7 +10,7 @@ O roadmap pede que a virada de dia de jogo emita um evento (F1-T2.4) e que `GET 
 
 O GDD descreve a Crônica como a recompensa emocional do ano ("precisa ser bom de ler", §9.4; narrativa gerada a partir do log, §11.4) e a TreeView mostra a última linha dela (§13.2). Com as viradas de dia, essa última linha quase sempre será um amanhecer.
 
-## Decisão proposta
+## Decisão
 
 Manter o evento `dayStarted` (ele continua saindo em `GET /events`, serve ao Relatório de Retorno e prova que o mundo andou), mas deixá-lo fora das duas leituras da Crônica: `GET /chronicle` e `GET /chronicle.md`. Viradas de estação e de ano continuam na Crônica.
 
@@ -18,6 +18,8 @@ O filtro fica no servidor, em `chronicleRows` (`packages/server/src/games/reposi
 
 ## Consequências e verificação
 
-O roadmap F2-T6.6 passaria a dizer "uma linha por evento, exceto as viradas de dia". O teste "GET /chronicle.md tem uma linha por evento da partida", em `packages/server/test/games.test.ts`, foi escrito a partir do texto atual e precisa acompanhar a mudança.
+O roadmap F2-T6.6 passa a dizer "uma linha por evento, exceto as viradas de dia". O teste da Crônica em Markdown, em `packages/server/test/games.test.ts`, foi escrito a partir do texto antigo e acompanha a mudança.
 
-Uma primeira versão do servidor já aplicava esse filtro por conta própria; ele foi removido para a implementação seguir a documentação enquanto esta proposta não é aprovada.
+Uma primeira versão do servidor já aplicava esse filtro por conta própria; ele foi removido para a implementação seguir a documentação enquanto a proposta aguardava aprovação.
+
+**Depois da aprovação (2026-10-01).** O filtro voltou a `chronicleRows`: `GET /chronicle` e `GET /chronicle.md` não trazem `dayStarted`; `GET /events` continua trazendo. No app, a Crônica recente da aba Hoje também deixa as viradas de dia de fora (`eventsArrived` em `packages/web/src/app/controller.ts`).

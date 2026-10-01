@@ -1,7 +1,7 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.5 (o cliente passa a ser um app web com aparência de editor, em vez de extensão do VS Code; escopo do jogo permanece v0.1)\
+> **Versão do documento:** 0.6 (correções de fato depois da implantação: ritmo 3× nas partidas novas do MVP, Crônica sem viradas de dia, `features` em `GET /version`, produção no Coolify; escopo do jogo permanece v0.1)\
 > **Idioma:** português (Brasil)  
 > **Plataforma inicial:** app web no navegador, com aparência de editor de código (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
@@ -20,8 +20,9 @@
 - Mudanças em relação à v0.1 estão resumidas em §17 ("Decisões desta revisão").
 - O jogo é **online desde a v0.1**: o progresso vive em um servidor Node.js + PostgreSQL, a conta nasce em um clique e o jogador continua de qualquer máquina. "Online" aqui não significa interação entre jogadores (isso é v1.0): significa servidor autoritativo e progresso persistente (§14).
 - Mudanças da 0.3 em relação à 0.2: §1.1 (pilar 6), §4.3, §5.8, §11.6, §13.1, §13.6, §13.9, §14 inteira, §15.3 a §15.5, §16, §17 e §18.
-- Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão já estão refletidos no `MVP-ROADMAP.md` 1.1; tarefas de implementação continuam pendentes.
+- Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão estão refletidos no `MVP-ROADMAP.md` desde a versão 1.1 e foram implementados na Fase 2 (servidor) e na Fase 3 (cliente).
 - Mudança da 0.5: o cliente deixa de ser uma extensão do VS Code e passa a ser um **app web com aparência de editor** ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). Mudam §1, §13, §14.1, §14.2, §14.7 (vínculo GitHub), §14.10, §14.12–14.14, §16.1, §17 e §18. Regras de jogo, motor, servidor e contratos da API não mudam, com exceção das duas rotas novas do vínculo GitHub (§14.5).
+- Mudanças da 0.6 (correções de fato, sem regra nova): nota sobre o ritmo do MVP em §4.2 ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)); versões dos comandos em §13.6; `GET /catalog`, `GET /version` e a Crônica em §14.5 ([ADRs 0007 e 0010](docs/decisions/README.md)); `GAME_TIME_SCALE` em §14.13; ritmo, hospedagem e critério 7 em §16.1 ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
 
 ### Índice
 
@@ -165,6 +166,8 @@ Sem lenha no inverno: moral −20 e produção ×0,8 ("frio"). Sem comida: regra
 | Tranquilo | 14 dias | Quem abre o editor 1 vez por dia |
 
 Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo real em tempo de jogo com um fator `timeScale` (1, 2 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
+
+> **Ritmo do MVP (v0.1, [ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)).** As partidas novas nascem com `timeScale` 3: o dia de jogo dura 40 minutos reais e o ano, 56 horas. O fator vem da configuração do servidor (`GAME_TIME_SCALE`, de 0,5 a 10, padrão 3), fica gravado na partida ao criá-la e não muda nas que já existem. O motor continua em tempo de jogo, com os números deste documento; o `ViewState` mostra prazos e taxas em tempo real. A escolha do ritmo pelo jogador continua na v0.2.
 
 ### 4.3 Hora da Vigília `[v0.4]`
 
@@ -761,7 +764,7 @@ Interação: clique no posto abre um seletor (tipo + quantidade com slider/tecla
 
 ### 13.6 Comandos (paleta de comandos)
 
-`Lords: Ir para o Feudo` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Abrir Crônica` · `Lords: Baixar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Trocar tema` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação) · `Lords: Baixar cópia da partida (JSON)` · `Lords: Vincular conta ao GitHub` · `Lords: Gerar Código do Reino` · `Lords: Entrar com Código do Reino` · `Lords: Sair desta máquina`.
+`Lords: Ir para o Feudo` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Abrir Crônica` · `Lords: Baixar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Trocar tema` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação; na v0.1 é o próprio `Lords: Nova partida`, que arquiva o feudo atual e começa outro) · `Lords: Baixar cópia da partida (JSON)` (depois da v0.1: não há rota para isso) · `Lords: Vincular conta ao GitHub` · `Lords: Gerar Código do Reino` · `Lords: Entrar com Código do Reino` · `Lords: Sair desta máquina`.
 
 As listas de escolha permitem jogar inteiramente pelo teclado: `Alocar trabalhadores` mostra cada edifício com `+`/`−` e a taxa resultante em tempo real.
 
@@ -882,20 +885,20 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 | `POST /auth/refresh` | Rotaciona o token na mesma sessão; detecta reuso de qualquer antecessor | refresh |
 | `POST /auth/logout` | Revoga a sessão desta máquina | sessão |
 | `GET /me` · `PATCH /me` · `DELETE /me` | Perfil · renomear · bloquear a conta imediatamente e agendar exclusão definitiva (§14.7) | sessão |
-| `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`) | sessão |
+| `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`). Na v0.1 o ritmo é o do servidor e o `timeScale` enviado é ignorado (§4.2) | sessão |
 | `GET /games/:id/view` | Avança até agora e devolve `{ view, stateVersion }`; ETag da representação completa e `304` apenas se ela não mudou (§14.8) | sessão |
 | `POST /games/:id/commands` | Aplica `{ commandId, type, payload }`; grava status e corpo da resposta para reenvio idempotente na mesma partida (§14.8) | sessão |
 | `GET /games/:id/events?after=<seq>` | Eventos para notificações (obras, encruzilhadas, cartas, incursões, cerco) | sessão |
 | `POST /games/:id/battle-preview` | Conselho de Guerra: 200 simulações com a névoa aplicada | sessão |
-| `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor | sessão |
-| `GET /catalog` | Catálogos estáticos de conteúdo (ETag) | — |
-| `GET /health` · `GET /version` | Saúde (inclui o banco) · versão do servidor e hash do conteúdo | — |
+| `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor. As viradas de dia não entram na Crônica; continuam em `GET /events` ([ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md)) | sessão |
+| `GET /catalog` | Catálogos estáticos de conteúdo (ETag). Não existe na v0.1 (o `ViewState` já traz tudo o que o app exibe) e nenhuma tarefa do MVP a pede; fica para depois da v0.1 | — |
+| `GET /health` · `GET /version` | Saúde (inclui o banco) · versão do servidor, hash do conteúdo e o que está ligado (`features.githubDevice`, verdadeiro quando há `GITHUB_CLIENT_ID`; [ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md)) | — |
 | `GET /seasons/current` · `GET /leaderboard?season=` | Temporada da semana e ranking `[v0.5]` | — |
 
 Regras:
 
 - Toda requisição de partida autentica, verifica a propriedade e serializa o acesso à linha antes do avanço. Comando já registrado retorna sua resposta original antes de `advanceTo`; comando novo avança e aplica na mesma transação (§14.8).
-- O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
+- O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). Prazos e taxas saem em tempo real, já convertidos pelo ritmo da partida (§4.2). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
 - Limites: 60 requisições/min por sessão; 10 criações de conta/h por IP; 5 tentativas de Código do Reino/h por IP; corpo até 64 KB; nomes de 2 a 24 caracteres.
 - Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e um cliente antigo (uma aba aberta há dias, por exemplo) recebe `426 Upgrade Required` com mensagem amigável e a instrução de recarregar a página.
 
@@ -1027,7 +1030,7 @@ lotg-db:   # postgres:16 com volume persistente e sem porta publicada; pg_dump d
 
 O contrato não depende do Coolify: qualquer hospedagem serve, desde que o app e a API fiquem na **mesma origem**, a rota `/v1` chegue inteira à API, o banco não seja acessível de fora e `TRUST_PROXY=true` só exista atrás de um proxy.
 
-- Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`, `GITHUB_CLIENT_ID` (identificador público do OAuth App usado no *device flow*). Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
+- Variáveis: `DATABASE_URL`, `JWT_SECRET` e `RECOVERY_CODE_SECRET` (cada um com 32+ bytes aleatórios independentes), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`, `GAME_TIME_SCALE` (ritmo das partidas novas, §4.2), `GITHUB_CLIENT_ID` (identificador público do OAuth App usado no *device flow*; vazio deixa o vínculo desligado, como na v0.1 em produção). Não há segredo de GitHub: a validação usa o token do próprio usuário. Preservar a chave de recuperação nas atualizações e restaurações.
 - Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.
 - Atualizar: novo deploy da API e do app a partir do `main`; o contêiner novo só recebe tráfego depois de passar no health check. Reverter: voltar à imagem do deploy anterior (a plataforma guarda as duas últimas); migrações sempre compatíveis com a versão anterior (expandir, depois contrair).
 - Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos tem como alvo centenas de clientes em polling de 30 s, a confirmar por carga. Antes de milhares: medir custo de avanço, escrita e autorização; avaliar Postgres gerenciado e 2+ réplicas da API. Cache de `ViewState` não pode depender só de `stateVersion`, porque a representação também muda com o tempo (§14.8).
@@ -1108,15 +1111,15 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 - [ ] Estado inicial reproduzível de Pedra Alta com semente.
 - [ ] Recursos comida, madeira, pedra e ouro; alocação e realocação de aldeões (grátis nesta versão).
 - [ ] Produção e consumo contínuos com `advanceTo` por segmentos, aritmética inteira e invariante de divisão de intervalo testado.
-- [ ] Calendário: estação e dia de jogo visíveis (sem efeitos de estação ainda); `timeScale` fixo em 1.
+- [ ] Calendário: estação e dia de jogo visíveis (sem efeitos de estação ainda); `timeScale` definido pelo servidor, 3 nas partidas novas (§4.2, [ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)), sem escolha pelo jogador.
 - [ ] Salão do Senhor, Fazenda, Serraria, Pedreira, Mina, Habitações com níveis, custos e tempos vindos de `content`.
 - [ ] Uma fila de obra ativa, planejamento visual, cancelamento com devolução de 80%.
 - [ ] Recrutamento com limite habitacional, custo e fila.
 - [ ] Escassez determinística (§5.6, sem abandono de aldeões).
 - [ ] Objetivos 1–4 da §12.2.
 - [ ] Crônica simples (log de eventos) e Relatório de Retorno após 4 h.
-- [ ] Servidor Fastify + PostgreSQL com migrações, `GET /health`, `GET /version` e Docker Compose para desenvolvimento e produção.
-- [ ] Contas: anônima em um clique, vínculo GitHub por *device flow*, Código do Reino, refresh rotativo, sair da máquina e excluir conta.
+- [ ] Servidor Fastify + PostgreSQL com migrações, `GET /health`, `GET /version`, Docker Compose para desenvolvimento e produção no Coolify (§14.13, [ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)).
+- [ ] Contas: anônima em um clique, vínculo GitHub por *device flow*, Código do Reino, refresh rotativo, sair da máquina e excluir conta. Na v0.1 o vínculo GitHub fica desligado em produção e o critério 10 fecha pelo Código do Reino (ADR 0008, ponto 2).
 - [ ] Partidas no servidor: `POST /games`, `GET /view` com ETag, `POST /commands` idempotente e transacional, `GET /events`, job horário de avanço.
 - [ ] Pacotes `protocol` e `client-sdk` compartilhados; o app web não contém o motor.
 - [ ] Tela de boas-vindas (§13.9), cache do último estado e modo sem conexão.
@@ -1133,7 +1136,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 4. Uma melhoria desconta recursos uma única vez, ocupa a fila e conclui no tempo configurado.
 5. Fechar a aba por horas e reabrir mostra o intervalo simulado pelo servidor sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
 6. Escassez tratada corretamente em longos períodos offline, com o momento exato registrado na Crônica.
-7. Reiniciar o servidor no meio do dia (`docker compose restart`) não perde nem duplica nada; reenviar o mesmo `commandId` na mesma partida devolve status e corpo originais sem reaplicar, inclusive recusas; payload diferente com o mesmo UUID é recusado. O avanço do mundo persiste mesmo se a ação nova for recusada. Dois clientes na mesma conta não corrompem o estado (§14.8).
+7. Reiniciar o servidor no meio do dia (reiniciar a API na plataforma de hospedagem; hoje, o recurso `lotg-api` no Coolify) não perde nem duplica nada; reenviar o mesmo `commandId` na mesma partida devolve status e corpo originais sem reaplicar, inclusive recusas; payload diferente com o mesmo UUID é recusado. O avanço do mundo persiste mesmo se a ação nova for recusada. Dois clientes na mesma conta não corrompem o estado (§14.8).
 8. Todas as regras rodam em testes sem navegador nem servidor.
 9. O app tem tema claro, escuro e de alto contraste e é navegável por teclado, inclusive a paleta de comandos.
 10. Vincular ao GitHub ou usar o Código do Reino em outra máquina mostra o mesmo feudo em segundos.

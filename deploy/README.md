@@ -39,7 +39,7 @@ Os dez passos, para refazer a instalação em outro servidor com Coolify.
 3. **Banco.** Novo recurso PostgreSQL, imagem `postgres:16`, usuário e banco `lotg`, senha gerada, **sem** "Make it publicly available". Iniciar e copiar a URL interna.
 4. **API.** Novo recurso a partir do repositório público, branch `main`, build pack "Dockerfile", diretório base `/`, Dockerfile em `/deploy/Dockerfile`, alvo de build `runtime`, porta `3000`, domínio `https://<domínio>/v1`.
 5. **Rota da API.** Em "Advanced", desligar **Strip Prefixes**: a API espera receber `/v1/...` inteiro. Desligar também o **health check do Coolify**: ele precisa de `curl` ou `wget` dentro da imagem, que não tem nenhum dos dois. Fica valendo o `HEALTHCHECK` do `Dockerfile`.
-6. **Variáveis da API.** As da seção "Produção" de [`.env.example`](.env.example). `JWT_SECRET` e `RECOVERY_CODE_SECRET` saem de duas execuções de `openssl rand -base64 48`.
+6. **Variáveis da API.** As da seção "Produção" de [`.env.example`](.env.example). `GAME_TIME_SCALE`, o ritmo das partidas novas (ADR 0011), não está nessa lista e não precisa ser definida: sem ela vale o padrão 3. Aceita de 0,5 a 10 e não muda as partidas que já existem. `JWT_SECRET` e `RECOVERY_CODE_SECRET` saem de duas execuções de `openssl rand -base64 48`.
 7. **Cópia da chave de recuperação.** Guardar `RECOVERY_CODE_SECRET` fora do Coolify, junto aos segredos operacionais. Nunca gerar outra para um ambiente que já emitiu Códigos do Reino: todos deixariam de valer.
 8. **App.** Outro recurso do mesmo repositório, alvo de build `web`, porta `80`, domínio `https://<domínio>`, sem variáveis e com o health check do Coolify desligado.
 9. **Deploy e conferência.** Fazer o deploy dos dois e conferir:
@@ -121,7 +121,7 @@ O ensaio foi feito com as 2 contas que existiam em produção, não com as 3 que
 psql -U lotg lotg
 ```
 
-As consultas de [`analytics/ops.sql`](analytics/ops.sql) dão contas por dia, jogadores ativos, partidas por situação, atraso do job de avanço, comandos por hora e tamanho do banco. Todas são agregadas.
+As consultas de [`analytics/ops.sql`](analytics/ops.sql) dão contas por dia, jogadores ativos, partidas por situação, atraso do job de avanço, comandos por hora (aceitos e recusados) e tamanho do banco. O fim do arquivo traz as métricas do playtest (F5-T2.2): sessões por dia, comandos por sessão, tempo até o primeiro comando e retorno no dia 2. Como as leituras não ficam gravadas, uma sessão ali é uma sequência de comandos da mesma partida sem intervalo maior que 30 minutos; as contas de bot ficam de fora e há uma linha comentada para tirar a conta do autor. Todas são agregadas.
 
 **Segredos.** Ficam só no Coolify. Trocar `JWT_SECRET` derruba as sessões abertas e nada mais. Trocar `PUBLIC_URL` também: ela é o emissor dos tokens. `RECOVERY_CODE_SECRET` não se troca.
 

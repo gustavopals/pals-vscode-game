@@ -1,7 +1,7 @@
 # 0010 — `GET /version` informa o que o servidor tem ligado
 
 Data: 2026-10-01\
-Estado: **proposta**, já implementada em F3W-T8; aguardando aprovação\
+Estado: aprovada pelo autor em 2026-10-01; implementada em F3W-T8\
 Escopo: GDD §14.5 (`GET /version`) e §14.7 (vínculo GitHub); roadmap F3W-T8.1
 
 ## Contexto

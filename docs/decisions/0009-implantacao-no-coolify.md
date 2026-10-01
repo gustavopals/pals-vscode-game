@@ -1,7 +1,7 @@
 # 0009 — Implantação no Coolify, em três recursos
 
 Data: 2026-10-01\
-Estado: decidido pelo autor em 2026-10-01 (plataforma, domínio e arquitetura); implantado no mesmo dia; GDD atualizado, roadmap pendente\
+Estado: decidido pelo autor em 2026-10-01 (plataforma, domínio e arquitetura); implantado no mesmo dia; GDD (§14.13 e §18.4) e roadmap (§1.1 a §1.3 e Fase 4) atualizados\
 Escopo: GDD §14.13, §14.14 e §18.4; roadmap §1.1, §1.2, §1.3, F3W-T9.4 e F4-T1 a F4-T5
 
 ## Contexto
@@ -43,7 +43,7 @@ Estado em 2026-10-01: os três recursos estão no ar a partir do commit `42d9256
 Pendências que esta decisão cria:
 
 - **GDD §14.13 e §18.4** passaram a descrever esta instalação, dizendo o que qualquer outra hospedagem precisa manter (mesma origem, `/v1` inteiro até a API, banco fechado).
-- **Roadmap.** F4-T1 troca `docker-compose.yml` e o Caddy de borda por um `Caddyfile` só de arquivos estáticos e pela descrição dos três recursos em `deploy/README.md`; F4-T2 vira "agendamento e ensaio de restauração pelo Coolify"; F4-T3 já está em parte cumprida (falta o app e o `GITHUB_CLIENT_ID`); F4-T5 passa a ensaiar o rollback do Coolify. F3W-T9.4 escreveu o alvo `web` sem `reverse_proxy`; as duas aplicações têm o alvo de build fixado.
+- **Roadmap.** F4-T1 troca `docker-compose.yml` e o Caddy de borda por um `Caddyfile` só de arquivos estáticos e pela descrição dos três recursos em `deploy/README.md`; F4-T2 vira "agendamento e ensaio de restauração pelo Coolify"; F4-T3 já está em parte cumprida (falta o app e o `GITHUB_CLIENT_ID`); F4-T5 passa a ensaiar o rollback do Coolify. F3W-T9.4 escreveu o alvo `web` sem `reverse_proxy`; as duas aplicações têm o alvo de build fixado. (Depois: a Fase 4 do roadmap foi reescrita nesses termos e está registrada como executada no commit `f2167c5`; o `GITHUB_CLIENT_ID` segue vazio por decisão do autor, com o vínculo GitHub desligado na v0.1.)
 - **Backup fora do servidor.** Os arquivos ficam no mesmo disco do banco: perder o servidor é perder os dois. Falta um destino S3 no Coolify. Enquanto não houver, a promessa de retenção de 14 dias do GDD §14.7 vale só para falhas que não levem o disco.
 - **Segredos.** `JWT_SECRET`, `RECOVERY_CODE_SECRET` e a senha do banco foram gerados na criação e só existem no Coolify. Uma cópia de `RECOVERY_CODE_SECRET` precisa ser guardada fora dele: sem ela, restaurar o banco em outro lugar invalida todos os Códigos do Reino.
 - **Deploy automático.** O repositório entra como público, sem webhook: cada atualização é disparada à mão (painel, API ou MCP). Um GitHub App no Coolify permitiria deploy a cada `push` no `main`; fica como escolha do autor.

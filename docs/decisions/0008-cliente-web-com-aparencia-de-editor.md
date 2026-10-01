@@ -1,7 +1,7 @@
 # 0008 — Cliente web com aparência de editor, em vez de extensão do VS Code
 
 Data: 2026-10-01\
-Estado: decidida pelo autor (mudança de plataforma); as escolhas da seção "Pontos a confirmar" são propostas\
+Estado: decidida pelo autor (mudança de plataforma); os seis pontos da seção "Pontos a confirmar" foram confirmados pelo autor em 2026-10-01, o ponto 2 com a observação de que o vínculo GitHub fica desligado na v0.1\
 Escopo: GDD §1, §13, §14.1, §14.2, §14.5, §14.7, §14.10, §14.12–14.14, §16.1, §17 e §18; roadmap §1, Fase 3, Fase 4 e Fase 5
 
 ## Contexto
@@ -41,6 +41,8 @@ O autor decidiu mudar a plataforma: o jogo passa a ser jogado **no navegador**, 
 Nada mais muda na API `/v1`.
 
 ## Pontos a confirmar
+
+> **Confirmados pelo autor em 2026-10-01**, os seis, na opção da coluna "Recomendação adotada no plano". Sobre o ponto 2: o *device flow* é o desenho aprovado e o código continua no repositório, testado só com um GitHub simulado; na v0.1 o vínculo GitHub fica **desligado** em produção (sem `GITHUB_CLIENT_ID`), e o critério de aceitação 10 fecha pelo Código do Reino.
 
 São escolhas que a mudança de plataforma obriga a fazer. O plano revisado adota a opção recomendada em cada uma; trocar qualquer uma delas é uma alteração localizada.
 
