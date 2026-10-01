@@ -2,7 +2,7 @@
 
 O que cada critério de aceitação do GDD §16.1 (MVP-ROADMAP.md §8) já tem de prova automática, e o que ainda pede olhos humanos em um navegador.
 
-> **Estado em 2026-10-01.** O app web foi exercitado por 47 testes em Chromium de verdade (`pnpm test:e2e`), contra a API real e o banco de teste, com o app compilado e a política de conteúdo de produção. **Nenhum passo da coluna "Manual" foi executado por uma pessoa.** Também não foram abertos Firefox nem Safari, nem o vínculo com o GitHub de verdade.
+> **Estado em 2026-10-01.** O app web foi exercitado por 48 testes em Chromium de verdade (`pnpm test:e2e`), contra a API real e o banco de teste, com o app compilado e a política de conteúdo de produção. **Nenhum passo da coluna "Manual" foi executado por uma pessoa.** Também não foram abertos Firefox nem Safari, nem o vínculo com o GitHub de verdade.
 
 ## Preparação
 

@@ -840,12 +840,12 @@ Executadas em 2026-10-01 para a extensão do VS Code e substituídas pelas taref
 **Depende de:** F3-T1.
 **Entregáveis:** `packages/web/{package.json,vite.config.ts,index.html,tsconfig.json}`, `packages/web/src/{main.tsx,account/,game/,notifications/,ui/,services/}`, remoção de `packages/extension` e `packages/webview`.
 
-- [ ] F3W-T1.1 Pacote `@lotg/web` com Preact, Vite e `@preact/preset-vite`; `pnpm dev:web` na porta 5173 com proxy de `/v1` para `http://localhost:3000`; `pnpm build` gera `packages/web/dist` com nomes de arquivo com hash.
-- [ ] F3W-T1.2 Mover para `packages/web/src`, sem mudar o comportamento: `account/{accountService,githubLink,recoveryCode,linkReminder}.ts`, `game/{gameSession,connection,returnReport}.ts`, `notifications/policy.ts`, `ui/{treeModel,format}.ts`, `services/store.ts`, e os testes de cada um. Mover os componentes Preact, `state.ts`, `format.ts` e `styles.css` de `packages/webview`.
-- [ ] F3W-T1.3 `services/browserStore.ts`: implementações de `KeyValueStore` e de `TokenStore` sobre `localStorage`, com prefixo `lords.`; falha de armazenamento (modo privado, cota) tratada sem derrubar o app.
-- [ ] F3W-T1.4 Regras de lint: `packages/web` não importa `@lotg/engine`, `@lotg/server`, `fastify`, `pg` nem módulos do Node. Remover as regras e os aliases de `vscode`.
-- [ ] F3W-T1.5 Remover `packages/extension`, `packages/webview`, o editor de mentira dos testes, `tests/client/extension.test.ts`, `.vscode/launch.json`, `@types/vscode` e `@vscode/vsce`. Atualizar `README.md`, `CLAUDE.md`, a CI e o `.gitignore`.
-- [ ] F3W-T1.6 `index.html` com política de conteúdo (CSP) por `<meta>`: `default-src 'self'`, sem `unsafe-inline` e sem `eval`; nenhuma dependência carregada de CDN.
+- [x] F3W-T1.1 Pacote `@lotg/web` com Preact, Vite e `@preact/preset-vite`; `pnpm dev:web` na porta 5173 com proxy de `/v1` para `http://localhost:3000`; `pnpm build` gera `packages/web/dist` com nomes de arquivo com hash.
+- [x] F3W-T1.2 Mover para `packages/web/src`, sem mudar o comportamento: `account/{accountService,githubLink,recoveryCode,linkReminder}.ts`, `game/{gameSession,connection,returnReport}.ts`, `notifications/policy.ts`, `ui/{treeModel,format}.ts`, `services/store.ts`, e os testes de cada um. Mover os componentes Preact, `state.ts`, `format.ts` e `styles.css` de `packages/webview`.
+- [x] F3W-T1.3 `services/browserStore.ts`: implementações de `KeyValueStore` e de `TokenStore` sobre `localStorage`, com prefixo `lords.`; falha de armazenamento (modo privado, cota) tratada sem derrubar o app.
+- [x] F3W-T1.4 Regras de lint: `packages/web` não importa `@lotg/engine`, `@lotg/server`, `fastify`, `pg` nem módulos do Node. Remover as regras e os aliases de `vscode`.
+- [x] F3W-T1.5 Remover `packages/extension`, `packages/webview`, o editor de mentira dos testes, `tests/client/extension.test.ts`, `.vscode/launch.json`, `@types/vscode` e `@vscode/vsce`. Atualizar `README.md`, `CLAUDE.md`, a CI e o `.gitignore`.
+- [x] F3W-T1.6 `index.html` com política de conteúdo (CSP) por `<meta>`: `default-src 'self'`, sem `unsafe-inline` e sem `eval`; nenhuma dependência carregada de CDN.
 
 **Verificação:**
 
@@ -865,12 +865,12 @@ pnpm dev:api & pnpm dev:web &   # http://localhost:5173 mostra a página; /v1/he
 **Depende de:** F3W-T1.
 **Entregáveis:** `packages/web/src/workbench/{Workbench,ActivityBar,SideBar,Tree,EditorTabs,StatusBar}.tsx`, `packages/web/src/theme/{themes.css,theme.ts}`, testes.
 
-- [ ] F3W-T2.1 Temas escuro, claro e alto contraste como conjuntos de valores para as variáveis `--vscode-*` que `styles.css` já usa; escolha lembrada no navegador; na primeira visita, `prefers-color-scheme`. Nenhum componente com cor fixa (o teste existente continua valendo, agora também para os temas, que são o único lugar com cores).
-- [ ] F3W-T2.2 Árvore lateral renderizada a partir de `buildTree` (`ui/treeModel.ts`): rótulo, descrição, ícone codicon, tooltip, expandir e recolher, ações nos itens (`+`/`−` dos trabalhadores, "Melhorar", "Cancelar"). Clicar em um item só navega; ordens saem dos botões. Teclado no padrão de árvore ARIA: setas, `Home`, `End`, `Enter`.
-- [ ] F3W-T2.3 Área central em abas (Hoje, Feudo, Crônica quando aberta), com a aba ativa refletida na URL (`#/feudo`), para o botão "voltar" e o recarregar da página funcionarem.
-- [ ] F3W-T2.4 Barra de status a partir de `statusBar` (`ui/format.ts`), com a mesma prioridade; contagem regressiva local; clique leva à aba correspondente. Título da aba do navegador com o nome do feudo e o contador de novidades.
-- [ ] F3W-T2.5 Barra de atividades com Feudo, Crônica e Conta, e badge de novidades. Abaixo de 720 px, a barra lateral se recolhe e abre por cima do conteúdo; a 480 px não há rolagem horizontal.
-- [ ] F3W-T2.6 Testes: renderização em texto de cada parte nos estados principais (sem conta, com feudo, sem conexão, com fome) e teste de navegação por teclado da árvore.
+- [x] F3W-T2.1 Temas escuro, claro e alto contraste como conjuntos de valores para as variáveis `--vscode-*` que `styles.css` já usa; escolha lembrada no navegador; na primeira visita, `prefers-color-scheme`. Nenhum componente com cor fixa (o teste existente continua valendo, agora também para os temas, que são o único lugar com cores).
+- [x] F3W-T2.2 Árvore lateral renderizada a partir de `buildTree` (`ui/treeModel.ts`): rótulo, descrição, ícone codicon, tooltip, expandir e recolher, ações nos itens (`+`/`−` dos trabalhadores, "Melhorar", "Cancelar"). Clicar em um item só navega; ordens saem dos botões. Teclado no padrão de árvore ARIA: setas, `Home`, `End`, `Enter`.
+- [x] F3W-T2.3 Área central em abas (Hoje, Feudo, Crônica quando aberta), com a aba ativa refletida na URL (`#/feudo`), para o botão "voltar" e o recarregar da página funcionarem.
+- [x] F3W-T2.4 Barra de status a partir de `statusBar` (`ui/format.ts`), com a mesma prioridade; contagem regressiva local; clique leva à aba correspondente. Título da aba do navegador com o nome do feudo e o contador de novidades.
+- [x] F3W-T2.5 Barra de atividades com Feudo, Crônica e Conta, e badge de novidades. Abaixo de 720 px, a barra lateral se recolhe e abre por cima do conteúdo; a 480 px não há rolagem horizontal.
+- [x] F3W-T2.6 Testes: renderização em texto de cada parte nos estados principais (sem conta, com feudo, sem conexão, com fome) e teste de navegação por teclado da árvore.
 
 **Verificação:**
 
@@ -891,13 +891,13 @@ Manual: abrir `http://localhost:5173` nos três temas.
 **Depende de:** F3W-T2.
 **Entregáveis:** `packages/web/src/app/{controller,dialogs}.ts(x)`, `packages/web/src/services/{sessionLock,tabSync}.ts`, aba de boas-vindas, testes.
 
-- [ ] F3W-T3.1 `controller.ts` sem nada do VS Code: junta `AccountService`, `GameSession` e a política de notificações, com a fila de mudanças de conta e as ordens preparadas com `commandId` fixo (como em `controller.prepare` da extensão).
-- [ ] F3W-T3.2 Diálogos próprios do app, acessíveis (foco preso, `Esc` fecha, retorno do foco): confirmação, campo de texto com validação a cada tecla, lista de escolha. Substituem `showWarningMessage`, `showInputBox` e `showQuickPick`.
-- [ ] F3W-T3.3 Aba de boas-vindas: nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub" (F3W-T8) e "Usar Código do Reino". Sem seleção de dificuldade nem ritmo na v0.1. Envia o fuso detectado e a Hora da Vigília das preferências.
-- [ ] F3W-T3.4 Código do Reino: gerar (diálogo com "Copiar" e aviso de exibição única), entrar (campo com a validação de formato que já existe). "Sair desta máquina" e "Excluir conta" com os mesmos textos e confirmações da extensão; a exclusão explica o bloqueio imediato, os sete dias e os 14 dias dos backups, e não oferece desfazer.
-- [ ] F3W-T3.5 Várias abas: a renovação da sessão acontece dentro de `navigator.locks.request('lords.refresh', …)`, relendo os tokens depois de obter o lock; sair, excluir ou perder a sessão em uma aba é percebido pelas outras (evento `storage`) e leva todas às boas-vindas. Sem a Web Locks API, vale a releitura do `TokenStore` que o SDK já faz.
-- [ ] F3W-T3.6 Lembrete único do dia 3 para conta anônima sem código, com "Não lembrar mais"; o texto avisa que limpar os dados de navegação apaga o acesso a uma conta sem vínculo.
-- [ ] F3W-T3.7 Testes: os dos módulos migrados, mais os de `sessionLock` e `tabSync` e os dos diálogos (teclado e foco).
+- [x] F3W-T3.1 `controller.ts` sem nada do VS Code: junta `AccountService`, `GameSession` e a política de notificações, com a fila de mudanças de conta e as ordens preparadas com `commandId` fixo (como em `controller.prepare` da extensão).
+- [x] F3W-T3.2 Diálogos próprios do app, acessíveis (foco preso, `Esc` fecha, retorno do foco): confirmação, campo de texto com validação a cada tecla, lista de escolha. Substituem `showWarningMessage`, `showInputBox` e `showQuickPick`.
+- [x] F3W-T3.3 Aba de boas-vindas: nome de quem governa, nome do feudo (sugestão "Pedra Alta"), **Jogar agora**, "Entrar com GitHub" (F3W-T8) e "Usar Código do Reino". Sem seleção de dificuldade nem ritmo na v0.1. Envia o fuso detectado e a Hora da Vigília das preferências.
+- [x] F3W-T3.4 Código do Reino: gerar (diálogo com "Copiar" e aviso de exibição única), entrar (campo com a validação de formato que já existe). "Sair desta máquina" e "Excluir conta" com os mesmos textos e confirmações da extensão; a exclusão explica o bloqueio imediato, os sete dias e os 14 dias dos backups, e não oferece desfazer.
+- [x] F3W-T3.5 Várias abas: a renovação da sessão acontece dentro de `navigator.locks.request('lords.refresh', …)`, relendo os tokens depois de obter o lock; sair, excluir ou perder a sessão em uma aba é percebido pelas outras (evento `storage`) e leva todas às boas-vindas. Sem a Web Locks API, vale a releitura do `TokenStore` que o SDK já faz.
+- [x] F3W-T3.6 Lembrete único do dia 3 para conta anônima sem código, com "Não lembrar mais"; o texto avisa que limpar os dados de navegação apaga o acesso a uma conta sem vínculo.
+- [x] F3W-T3.7 Testes: os dos módulos migrados, mais os de `sessionLock` e `tabSync` e os dos diálogos (teclado e foco).
 
 **Verificação:** teste em navegador (F3W-T10): criar conta em um contexto de navegador; em outro, entrar com o código; o mesmo feudo aparece. Duas abas no mesmo contexto por mais de 15 minutos de relógio: nenhuma volta às boas-vindas.
 
@@ -912,11 +912,11 @@ Manual: abrir `http://localhost:5173` nos três temas.
 **Depende de:** F3W-T3.
 **Entregáveis:** ajustes em `packages/web/src/game/`, `packages/web/src/services/visibility.ts`, testes.
 
-- [ ] F3W-T4.1 `GameSession` ligado à visibilidade da aba (`visibilitychange`): 30 s visível, 2 min em segundo plano; sincroniza na hora ao voltar a ficar visível e quando o navegador avisa que a rede voltou (`online`).
-- [ ] F3W-T4.2 Cache do `ViewState`, versão, ETag, cursor e instante da última leitura no armazenamento do navegador, separado por conta e partida, com a validação de formato ao carregar que já existe. Sair, excluir e perder a sessão apagam os caches da conta.
-- [ ] F3W-T4.3 Relatório de Retorno ao abrir a página depois de 4 horas ou mais: o app abre na aba Hoje; os eventos da ausência não viram notificações avulsas.
-- [ ] F3W-T4.4 Partida arquivada em outra máquina, `426 UPGRADE_REQUIRED` (pede para recarregar a página) e demais problemas do ciclo tratados como na extensão.
-- [ ] F3W-T4.5 Testes com temporizadores falsos, incluindo a troca de visibilidade.
+- [x] F3W-T4.1 `GameSession` ligado à visibilidade da aba (`visibilitychange`): 30 s visível, 2 min em segundo plano; sincroniza na hora ao voltar a ficar visível e quando o navegador avisa que a rede voltou (`online`).
+- [x] F3W-T4.2 Cache do `ViewState`, versão, ETag, cursor e instante da última leitura no armazenamento do navegador, separado por conta e partida, com a validação de formato ao carregar que já existe. Sair, excluir e perder a sessão apagam os caches da conta.
+- [x] F3W-T4.3 Relatório de Retorno ao abrir a página depois de 4 horas ou mais: o app abre na aba Hoje; os eventos da ausência não viram notificações avulsas.
+- [x] F3W-T4.4 Partida arquivada em outra máquina, `426 UPGRADE_REQUIRED` (pede para recarregar a página) e demais problemas do ciclo tratados como na extensão.
+- [x] F3W-T4.5 Testes com temporizadores falsos, incluindo a troca de visibilidade.
 
 **Verificação:**
 
@@ -935,9 +935,9 @@ pnpm --filter @lotg/web test -- gameSession connection returnReport visibility
 **Depende de:** F3W-T4.
 **Entregáveis:** `packages/web/src/tabs/{Fief,Today,Welcome}.tsx` e os componentes migrados.
 
-- [ ] F3W-T5.1 Ligar os componentes migrados (`ResourcesTable`, `WorkersPanel`, `ConstructionsPanel`, `RecruitPanel`, `ObjectivesPanel`, `ChroniclePanel`, `Today`, banners) diretamente ao controlador, sem a ponte de mensagens da Webview. `protocol/webview.ts` deixa de ter uso e é removido, exceto `ReturnReportSchema`, que fica no protocolo.
-- [ ] F3W-T5.2 Tudo o que já estava nos componentes continua valendo: explicação de cada número ao passar o mouse e ao focar, `aria-live` na tabela de recursos, teclado nas linhas de trabalhadores, custos em chips com o que falta por extenso, contagem regressiva por segundo, modo leitura sem conexão.
-- [ ] F3W-T5.3 Largura mínima de 480 px sem rolagem horizontal, com a barra lateral recolhida.
+- [x] F3W-T5.1 Ligar os componentes migrados (`ResourcesTable`, `WorkersPanel`, `ConstructionsPanel`, `RecruitPanel`, `ObjectivesPanel`, `ChroniclePanel`, `Today`, banners) diretamente ao controlador, sem a ponte de mensagens da Webview. `protocol/webview.ts` deixa de ter uso e é removido, exceto `ReturnReportSchema`, que fica no protocolo.
+- [x] F3W-T5.2 Tudo o que já estava nos componentes continua valendo: explicação de cada número ao passar o mouse e ao focar, `aria-live` na tabela de recursos, teclado nas linhas de trabalhadores, custos em chips com o que falta por extenso, contagem regressiva por segundo, modo leitura sem conexão.
+- [x] F3W-T5.3 Largura mínima de 480 px sem rolagem horizontal, com a barra lateral recolhida.
 
 **Verificação:** teste em navegador: `+` na Fazenda muda a taxa em menos de 1 s; a contagem regressiva termina junto com a conclusão da obra.
 
@@ -952,10 +952,10 @@ pnpm --filter @lotg/web test -- gameSession connection returnReport visibility
 **Depende de:** F3W-T5.
 **Entregáveis:** `packages/web/src/palette/{CommandPalette.tsx,commands.ts}`, testes.
 
-- [ ] F3W-T6.1 Paleta que abre com `F1` e `Ctrl+K`, com busca por texto, setas, `Enter` e `Esc`; foco preso enquanto aberta. Não usa `Ctrl+Shift+P` nem `Ctrl+P`, reservados pelo navegador.
-- [ ] F3W-T6.2 Os comandos da v0.1 (GDD §13.6), cada um com prefixo "Lords:": ir para o Feudo e para Hoje, alocar trabalhadores (lista de edifícios → campo com a taxa resultante), construir ou melhorar (lista com custo, tempo e cadeado), cancelar e planejar obra, recrutar (com as vagas no texto), renomear o feudo, nova partida (com confirmação), abrir e baixar a Crônica, atualizar agora, modo discreto, silenciar notificações, trocar tema, conta (vincular, Código do Reino, sair, excluir), privacidade e sobre.
-- [ ] F3W-T6.3 Recusas do motor aparecem como aviso com a frase em português; erro de rede, como erro com "Tentar de novo", que reenvia a mesma ordem.
-- [ ] F3W-T6.4 Testes: filtro e navegação da paleta; toda ação da árvore e do painel tem um comando equivalente.
+- [x] F3W-T6.1 Paleta que abre com `F1` e `Ctrl+K`, com busca por texto, setas, `Enter` e `Esc`; foco preso enquanto aberta. Não usa `Ctrl+Shift+P` nem `Ctrl+P`, reservados pelo navegador.
+- [x] F3W-T6.2 Os comandos da v0.1 (GDD §13.6), cada um com prefixo "Lords:": ir para o Feudo e para Hoje, alocar trabalhadores (lista de edifícios → campo com a taxa resultante), construir ou melhorar (lista com custo, tempo e cadeado), cancelar e planejar obra, recrutar (com as vagas no texto), renomear o feudo, nova partida (com confirmação), abrir e baixar a Crônica, atualizar agora, modo discreto, silenciar notificações, trocar tema, conta (vincular, Código do Reino, sair, excluir), privacidade e sobre.
+- [x] F3W-T6.3 Recusas do motor aparecem como aviso com a frase em português; erro de rede, como erro com "Tentar de novo", que reenvia a mesma ordem.
+- [x] F3W-T6.4 Testes: filtro e navegação da paleta; toda ação da árvore e do painel tem um comando equivalente.
 
 **Verificação:** teste em navegador: uma partida inteira dos objetivos 1 a 4 só com o teclado.
 
@@ -970,10 +970,10 @@ pnpm --filter @lotg/web test -- gameSession connection returnReport visibility
 **Depende de:** F3W-T6.
 **Entregáveis:** `packages/web/src/notifications/{Toasts.tsx,browserNotifications.ts}`, testes.
 
-- [ ] F3W-T7.1 Avisos no canto inferior direito, com os botões `[Ver]` e `[Silenciar 2h]`, decididos por `notifications/policy.ts` (sem mudança): `silent`, `essential` (só a fome na v0.1) e `all`; no máximo 3 por hora; o excedente vira badge.
-- [ ] F3W-T7.2 Com a aba em segundo plano, o contador de novidades aparece no título da aba. Notificações do navegador são opcionais: a permissão só é pedida quando o jogador liga a opção nas preferências.
-- [ ] F3W-T7.3 Modo discreto: a barra de status e o título da aba mostram só um contador, e nenhum aviso aparece.
-- [ ] F3W-T7.4 Testes do que é novo (título da aba, permissão pedida só sob demanda).
+- [x] F3W-T7.1 Avisos no canto inferior direito, com os botões `[Ver]` e `[Silenciar 2h]`, decididos por `notifications/policy.ts` (sem mudança): `silent`, `essential` (só a fome na v0.1) e `all`; no máximo 3 por hora; o excedente vira badge.
+- [x] F3W-T7.2 Com a aba em segundo plano, o contador de novidades aparece no título da aba. Notificações do navegador são opcionais: a permissão só é pedida quando o jogador liga a opção nas preferências.
+- [x] F3W-T7.3 Modo discreto: a barra de status e o título da aba mostram só um contador, e nenhum aviso aparece.
+- [x] F3W-T7.4 Testes do que é novo (título da aba, permissão pedida só sob demanda).
 
 **Verificação:**
 
@@ -992,10 +992,10 @@ pnpm --filter @lotg/web test -- policy toasts
 **Depende de:** F3W-T3.
 **Entregáveis:** `packages/server/src/auth/githubDevice.ts`, rotas `POST /v1/auth/github/device` e `/device/poll`, schemas em `@lotg/protocol`, métodos no `client-sdk`, diálogo no app, testes.
 
-- [ ] F3W-T8.1 Servidor: as duas rotas repassam a chamada a `${GITHUB_OAUTH_URL}/login/device/code` e `/login/oauth/access_token` com o `GITHUB_CLIENT_ID` e o escopo `read:user`; limite de taxa por IP; sem `GITHUB_CLIENT_ID`, respondem 404 e o app esconde o botão. Nenhum segredo é usado e nada é guardado. `fetch` injetável nos testes, como em `auth/github.ts`.
-- [ ] F3W-T8.2 Protocolo e SDK: corpos e respostas das duas rotas; `client.startGithubDevice()` e `client.pollGithubDevice(deviceCode)`.
-- [ ] F3W-T8.3 App: diálogo que mostra o código, o botão "Copiar" e o link para `github.com/login/device`; consulta no intervalo que o GitHub informar, respeitando `slow_down`; trata expiração e recusa. Com o token, chama `POST /auth/github`; o conflito de conta usa a lista de escolha que já existe (`conflictOptions`).
-- [ ] F3W-T8.4 Testes de integração do servidor (GitHub simulado) e do app (fluxo completo com o servidor de teste). Atualizar a política de privacidade: o token do GitHub passa pelo servidor na ida e não é guardado.
+- [x] F3W-T8.1 Servidor: as duas rotas repassam a chamada a `${GITHUB_OAUTH_URL}/login/device/code` e `/login/oauth/access_token` com o `GITHUB_CLIENT_ID` e o escopo `read:user`; limite de taxa por IP; sem `GITHUB_CLIENT_ID`, respondem 404 e o app esconde o botão. Nenhum segredo é usado e nada é guardado. `fetch` injetável nos testes, como em `auth/github.ts`.
+- [x] F3W-T8.2 Protocolo e SDK: corpos e respostas das duas rotas; `client.startGithubDevice()` e `client.pollGithubDevice(deviceCode)`.
+- [x] F3W-T8.3 App: diálogo que mostra o código, o botão "Copiar" e o link para `github.com/login/device`; consulta no intervalo que o GitHub informar, respeitando `slow_down`; trata expiração e recusa. Com o token, chama `POST /auth/github`; o conflito de conta usa a lista de escolha que já existe (`conflictOptions`).
+- [x] F3W-T8.4 Testes de integração do servidor (GitHub simulado) e do app (fluxo completo com o servidor de teste). Atualizar a política de privacidade: o token do GitHub passa pelo servidor na ida e não é guardado.
 
 **Verificação:**
 
@@ -1016,11 +1016,11 @@ Manual, uma vez, com o OAuth App real: vincular em um navegador e entrar em outr
 **Depende de:** F3W-T7.
 **Entregáveis:** `packages/web/src/tabs/{Chronicle,Settings,About}.tsx`, `packages/web/README.md`, alvo `web` no `deploy/Dockerfile`.
 
-- [ ] F3W-T9.1 Aba Crônica: o Markdown de `GET /chronicle.md` exibido como texto formatado (títulos e lista, sem interpretar HTML) e o comando "Baixar Crônica (Markdown)".
-- [ ] F3W-T9.2 Aba de preferências (notificações, modo discreto, tema, Hora da Vigília) e "Sobre" (versão do app, do servidor e hash do conteúdo, lidos de `/v1/version`).
-- [ ] F3W-T9.3 Item "Privacidade" na conta, com o texto do GDD §14.14 ajustado ao navegador (credenciais e cache no armazenamento do navegador; limpar os dados de navegação os apaga).
-- [ ] F3W-T9.4 `pnpm build` gera `packages/web/dist`; alvo `web` no `Dockerfile` que constrói o app e o entrega a uma imagem do Caddy. `README.md` do pacote: como rodar, como testar, estrutura.
-- [ ] F3W-T9.5 Ícone e nome exibido são provisórios até a sua decisão; o app não usa o nome nem o logotipo do Visual Studio Code.
+- [x] F3W-T9.1 Aba Crônica: o Markdown de `GET /chronicle.md` exibido como texto formatado (títulos e lista, sem interpretar HTML) e o comando "Baixar Crônica (Markdown)".
+- [x] F3W-T9.2 Aba de preferências (notificações, modo discreto, tema, Hora da Vigília) e "Sobre" (versão do app, do servidor e hash do conteúdo, lidos de `/v1/version`).
+- [x] F3W-T9.3 Item "Privacidade" na conta, com o texto do GDD §14.14 ajustado ao navegador (credenciais e cache no armazenamento do navegador; limpar os dados de navegação os apaga).
+- [x] F3W-T9.4 `pnpm build` gera `packages/web/dist`; alvo `web` no `Dockerfile` que constrói o app e o entrega a uma imagem do Caddy. `README.md` do pacote: como rodar, como testar, estrutura.
+- [x] F3W-T9.5 Ícone e nome exibido são provisórios até a sua decisão; o app não usa o nome nem o logotipo do Visual Studio Code.
 
 **Verificação:**
 
@@ -1039,12 +1039,12 @@ pnpm build && ls packages/web/dist && docker build -f deploy/Dockerfile --target
 **Depende de:** F3W-T9 (e F3W-T8, se o GitHub entrar).
 **Entregáveis:** `tests/e2e/*.spec.ts`, `playwright.config.ts`, `pnpm test:e2e`, job de CI, `docs/manual-test-v0.1.md` reescrito.
 
-- [ ] F3W-T10.1 Playwright com Chromium sem interface, subindo a API (com relógio controlável só em ambiente de teste) e o app. Um arquivo por grupo de critérios da §8.
-- [ ] F3W-T10.2 Cenários: primeira abertura e "Jogar agora" com o tempo medido; alocar, construir e recrutar pelo painel, pela árvore e pela paleta; recusas visíveis; obra que termina sozinha; fechar e reabrir com Relatório de Retorno; sem conexão e volta; Código do Reino em outro contexto de navegador; duas abas; sair e excluir conta; partida inteira dos objetivos só pelo teclado.
-- [ ] F3W-T10.3 Temas e acessibilidade: capturas de tela dos três temas guardadas como artefato; verificação automática de contraste e de rótulos ARIA nas telas principais; nada de rolagem horizontal a 480 px.
-- [ ] F3W-T10.4 Cobertura ≥ 80% nos módulos puros de `packages/web`.
-- [ ] F3W-T10.5 `docs/manual-test-v0.1.md` reescrito para o navegador: o que os testes automáticos já provam e o que resta para olhos humanos (aparência dos temas, sensação da paleta, leitura do Relatório de Retorno).
-- [ ] F3W-T10.6 Job `e2e` na CI.
+- [x] F3W-T10.1 Playwright com Chromium sem interface, subindo a API (com relógio controlável só em ambiente de teste) e o app. Um arquivo por grupo de critérios da §8.
+- [x] F3W-T10.2 Cenários: primeira abertura e "Jogar agora" com o tempo medido; alocar, construir e recrutar pelo painel, pela árvore e pela paleta; recusas visíveis; obra que termina sozinha; fechar e reabrir com Relatório de Retorno; sem conexão e volta; Código do Reino em outro contexto de navegador; duas abas; sair e excluir conta; partida inteira dos objetivos só pelo teclado.
+- [x] F3W-T10.3 Temas e acessibilidade: capturas de tela dos três temas guardadas como artefato; verificação automática de contraste e de rótulos ARIA nas telas principais; nada de rolagem horizontal a 480 px.
+- [x] F3W-T10.4 Cobertura ≥ 80% nos módulos puros de `packages/web`.
+- [x] F3W-T10.5 `docs/manual-test-v0.1.md` reescrito para o navegador: o que os testes automáticos já provam e o que resta para olhos humanos (aparência dos temas, sensação da paleta, leitura do Relatório de Retorno).
+- [x] F3W-T10.6 Job `e2e` na CI.
 
 **Verificação:**
 
@@ -1285,16 +1285,16 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | F3-T8 | 2026-10-01 | `ea260bd` | 1 | Com `all`, 5 obras em uma hora geram 3 notificações e badge 2 (testado). Durante o "Silenciar 2h" os eventos viram badge; no modo discreto, nada aparece. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
 | F3-T9 | 2026-10-01 | `5d943a1` | 1 | Módulos puros da extensão com 89% a 100% de linhas. `docs/manual-test-v0.1.md` tem um roteiro por critério. **Pendente:** nenhuma execução manual foi feita; o "Pronto quando" (ao menos uma execução registrada) não foi atingido. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
 | F3-T10 | 2026-10-01 | `5d943a1` | 1 | `.vsix` de 131 kB gerado com um aviso do `vsce`: falta LICENSE. `publisher` (`gustavopals`) e ícone são provisórios; `lords.serverUrl` aponta para `http://localhost:3000` até existir a instância hospedada. **Não verificado:** instalar o `.vsix` em um perfil limpo. F3-T10.3 (publicar ou distribuir) é decisão sua e segue em aberto. **Substituída pelo ADR 0008** (cliente web); o trabalho reaproveitável migra em F3W-T1. |
-| F3W-T1 | | | | |
-| F3W-T2 | | | | |
-| F3W-T3 | | | | |
-| F3W-T4 | | | | |
-| F3W-T5 | | | | |
-| F3W-T6 | | | | |
-| F3W-T7 | | | | |
-| F3W-T8 | | | | |
-| F3W-T9 | | | | |
-| F3W-T10 | | | | |
+| F3W-T1 | 2026-10-01 | `8576c02` | 1 | `pnpm verify` e `pnpm build` passam; `curl localhost:5173/v1/health` responde pelo repasse do Vite. `packages/extension` e `packages/webview` saíram. Os componentes já entraram ligados a um objeto `Actions`, e não à ponte de mensagens: `state.ts` (o redutor de mensagens da Webview) não foi migrado, e o que ele fazia está em `app/controller.ts` e `app/router.ts`. No servidor de desenvolvimento a CSP é afrouxada (o Vite injeta estilos); a estrita vale no build, que é o que os testes em navegador usam. Commit único de F3W-T1 a T8: o código depende um do outro e do mesmo lockfile. |
+| F3W-T2 | 2026-10-01 | `8576c02` | 1 | Bancada nos três temas, com paleta própria (não é a do VS Code) e contraste ≥ 4,5:1 conferido por teste de unidade e, com as cores computadas, em Chromium. `Tab` passa por atividades, árvore, abas, conteúdo e barra de status, nessa ordem. A barra de atividades filtra a árvore (Feudo, Crônica, Conta). Dois defeitos achados em navegador e corrigidos: o foco da árvore chegava um quadro depois (`useLayoutEffect`), e recarregar a página mostrava as boas-vindas por um instante e roubava o foco (o controlador agora restaura a conta antes do primeiro desenho). |
+| F3W-T3 | 2026-10-01 | `8576c02` | 1 | Dois campos e um clique até o Feudo, com duas requisições (testado). Diálogos com foco preso, `Esc` e retorno do foco; um teste em navegador mostrou que `Esc` falhava se pressionado antes do primeiro quadro, e o tratamento passou para o documento. Web Locks: uma renovação por rodada com duas abas, por 80 minutos de relógio. Dentro do lock a aba espera até 200 ms pela gravação da outra (`storageSettle`): é proteção contra a leitura atrasada do `localStorage` entre processos, que **não** foi reproduzida. O SDK ganhou a opção `refreshLock`. |
+| F3W-T4 | 2026-10-01 | `8576c02` | 1 | Sem rede: último estado em modo leitura, nenhuma ordem enviada nem guardada, volta sem recarregar (testado derrubando a API no navegador). Relatório de Retorno abre em Hoje depois de 5 h, com +75 de comida exatamente uma vez. Defeito achado e corrigido: fechar a aba logo depois de uma ordem deixava o cache no passado (o cache agora é gravado antes de buscar os eventos). `426` pede para recarregar a página, uma vez. |
+| F3W-T5 | 2026-10-01 | `8576c02` | 1 | `+` na Serraria muda a taxa em menos de 1 s (testado). `protocol/webview.ts` removido; `ReturnReportSchema` foi para `protocol/report.ts`. Nenhuma cor fora de `theme/themes.css` e nenhum `style=` (a CSP barraria). A 480 px e a 720 px não há rolagem horizontal. |
+| F3W-T6 | 2026-10-01 | `8576c02` | 1 | 26 comandos na paleta, todos com "Lords:"; a partida dos objetivos 1 a 4 foi jogada só pelo teclado em Chromium. "Reiniciar partida" do GDD §13.6 é o comando "Nova partida" (com confirmação). **Fora da v0.1:** "Baixar cópia da partida (JSON)", que o GDD §13.6 lista mas o roadmap não, e para o qual não há rota. Três defeitos achados pelos testes de unidade (escritos por subagentes) e corrigidos: o aviso com "Tentar de novo" sumia quando a rede voltava, `−` em edifício vazio mandava uma ordem sem efeito, e uma falha síncrona de um comando estourava em quem clicou. |
+| F3W-T7 | 2026-10-01 | `8576c02` | 1 | Com `all`, 5 obras em uma hora geram 3 avisos e badge 2 (teste de unidade); em Chromium, aviso com Ver e Silenciar 2h, contador no título com a aba em segundo plano e permissão de notificação pedida só ao ligar a opção. Avisos mostrados com a aba em segundo plano também contam no título. Nada chega com a aba fechada. |
+| F3W-T8 | 2026-10-01 | `8576c02` | 1 | **Feito sem o `GITHUB_CLIENT_ID`, que é decisão do autor: o fluxo real nunca foi executado.** Testado com GitHub simulado: 12 testes de integração no servidor e, em Chromium, vincular, entrar em outro navegador, conflito de conta, recusa, `slow_down`, código vencido e desistência. Sem a variável, as rotas respondem 404 e o app esconde os botões. Para o app saber disso antes do clique, `GET /version` ganhou `features.githubDevice` ([ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md), proposta). Variáveis novas: `GITHUB_CLIENT_ID`, `GITHUB_OAUTH_URL`, `GITHUB_DEVICE_STARTS_PER_HOUR_PER_IP`. |
+| F3W-T9 | 2026-10-01 | `8576c02`, `f9ddf02` | 1 | Abas Crônica, Preferências e Sobre. Alvo `web` construído e servido localmente: 194 MB, usuário não root, `index.html` para rotas desconhecidas, cache longo só em `/assets`. Seguindo o [ADR 0009](docs/decisions/0009-implantacao-no-coolify.md), o Caddy **não** repassa `/v1` nem emite certificado, e `runtime` continua o último alvo; a base é `debian:bookworm-slim` com o binário do Caddy, porque a imagem oficial é Alpine. **Não verificado:** o app atrás do proxy do Coolify. Como a API e o app são publicados em separado, o app trata `/version` sem `features` como vínculo desligado. |
+| F3W-T10 | 2026-10-01 | `42d9256` | 1 | 48 testes em Chromium passam com a política de conteúdo de produção. Uma revisão independente (subagente, só leitura) não achou caminho de injeção nem falha grave, e apontou três defeitos médios e uma dúzia de menores, corrigidos em `ac3f472`: um 401 de proxy apagava a conta local (e uma conta anônima ficava sem volta), o botão "voltar" ficava preso e o modo discreto escondia recusas e erros. **Ficaram sem correção, por escolha:** vagas de habitação calculadas no app (`capacity − villagers − inTraining`) e o "dia 25" do lembrete, que deveriam vir do `ViewState`; botões de fechar dentro do `tablist`; o limite de consultas do device flow é por IP (30 por minuto), apertado para várias pessoas atrás do mesmo NAT; uma aba aberta a noite inteira não recebe Relatório de Retorno, porque continua sincronizando. Módulos puros do app com 88% a 100% de linhas (89% no pacote; os componentes são cobertos pelos testes em navegador). O job `e2e` foi escrito mas **nunca rodou no GitHub**. Só Chromium: Firefox e Safari não foram abertos. O roteiro manual tem a coluna "Manual" inteira por fazer. Nos testes o tempo anda por saltos e cada salto espera o ciclo de atualização; sem isso apareciam corridas que não existem no tempo real. |
 | F4-T1 | | | | |
 | F4-T2 | | | | |
 | F4-T3 | | | | |

@@ -23,7 +23,7 @@
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para experimentar:** o motor de economia, o simulador local e a API online estão implementados, com testes automatizados. O cliente está sendo refeito: a primeira versão era uma extensão do VS Code, e o plano mudou para um app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
+> **Já dá para experimentar:** o motor de economia, o simulador local, a API online e o app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) estão implementados, com testes automatizados, inclusive em navegador real. As imagens deste README são **artes conceituais**, criadas com IA para apresentar o universo do jogo.
 
 ### Quatro estações. Uma história para contar.
 
@@ -99,7 +99,7 @@ flowchart LR
     subgraph server["Implementado · servidor"]
         API["API · Fastify"] <--> DB[("PostgreSQL")]
     end
-    subgraph client["Em replanejamento · cliente"]
+    subgraph client["Cliente"]
         Web["App web · Preact<br/>aparência de editor"] <--> SDK["SDK HTTP"]
     end
     SDK <--> API
@@ -107,11 +107,10 @@ flowchart LR
     API --> Engine
     classDef ready fill:#173e37,stroke:#6eaf96,color:#fff
     classDef planned fill:#292e3b,stroke:#9aa6bf,color:#fff,stroke-dasharray:5 5
-    class Sim,Engine,Content,API,DB,SDK ready
-    class Web planned
+    class Sim,Engine,Content,API,DB,SDK,Web ready
 ```
 
-**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, Preact, Vitest, fast-check, ESLint, Prettier, Docker e workflow de GitHub Actions. **Previsto para o app web:** Vite e testes em navegador real com Playwright.
+**Base atual:** TypeScript, pnpm workspaces, Zod, Fastify, PostgreSQL com Drizzle, Preact, Vite, Vitest, fast-check, Playwright (testes em navegador real), ESLint, Prettier, Docker e workflow de GitHub Actions.
 
 <details>
 <summary><strong>Explore a organização do monorepo</strong></summary>
@@ -124,14 +123,13 @@ packages/
   protocol/     Base para os contratos da API /v1
   server/       Base para o servidor autoritativo
   client-sdk/   Base para o cliente HTTP tipado
-  extension/    Extensão do VS Code (descontinuada; sai na migração para o app web)
-  webview/      Interface em Preact da extensão (os componentes migram para o app web)
+  web/          App web em Preact: bancada com aparência de editor
 deploy/         Dockerfile, Compose e configuração de ambiente
-tests/          Estrutura para integração entre pacotes
+tests/          Integração entre pacotes e testes em navegador (e2e)
 docs/decisions/ Decisões de arquitetura e seus motivos
 ```
 
-O ESLint impede que `engine`, `content` e `protocol` importem `vscode`, `fastify`, `pg` ou módulos do Node, preservando a independência do núcleo.
+O ESLint impede que `engine`, `content` e `protocol` importem `fastify`, `pg` ou módulos do Node, preservando a independência do núcleo; o app web não importa o motor nem o servidor.
 
 </details>
 
@@ -149,12 +147,14 @@ O ESLint impede que `engine`, `content` e `protocol` importem `vscode`, `fastify
 | `pnpm dev:up` / `pnpm dev:down` | Sobe / encerra os bancos locais, preservando volumes |
 | `pnpm dev:logs` | Acompanha os logs dos contêineres |
 | `pnpm dev:api` | Sobe a API no host com recarga automática; aplica as migrações no arranque |
+| `pnpm dev:web` | Sobe o app web em `http://localhost:5173`, com `/v1` repassado para a API |
 | `pnpm db:migrate` | Aplica as migrações no banco de dev sem subir a API |
 | `pnpm db:psql` | Abre o PostgreSQL de desenvolvimento |
 | `pnpm test:integration` | Executa testes de integração com `TEST_DATABASE_URL` definido |
+| `pnpm test:e2e` | Testes em Chromium contra a API real e o `db_test` (antes: `pnpm dev:up` e `pnpm exec playwright install chromium`) |
 | `pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` | Bots contra a API, com p50 e p95 por endpoint ([resultados](docs/perf-v0.1.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera segredos ausentes, preservando os existentes |
-| `pnpm docker:build` | Constrói a imagem de produção da API |
+| `pnpm docker:build` / `pnpm docker:build:web` | Constrói a imagem de produção da API / do app web |
 
 Para trabalhar com os bancos, instale Docker com Compose v2 e execute `pnpm dev:up`. O [Compose de desenvolvimento](deploy/docker-compose.dev.yml) publica as portas somente em `127.0.0.1`:
 
@@ -174,7 +174,7 @@ A API roda no host durante o desenvolvimento ([ADR 0001](docs/decisions/0001-api
 docker compose -f deploy/docker-compose.dev.yml --profile full up -d
 ```
 
-O app web ainda não existe: o roadmap o descreve nas tarefas F3W-T1 a F3W-T10. A extensão do VS Code da primeira versão continua no repositório até a migração, mas saiu do plano. A suíte de integração do servidor roda contra o `db_test`:
+Com a API de pé, `pnpm dev:web` abre o jogo em `http://localhost:5173` ([como o app é organizado](packages/web/README.md)). A suíte de integração do servidor roda contra o `db_test`:
 
 ```bash
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
