@@ -27,7 +27,7 @@ Os ajustes de fechamento de 2026-10-01 (ritmo 3×, Crônica sem viradas de dia, 
 
 - CI verde no commit `1b4e6db` (que inclui os ajustes de fechamento), em 2026-10-01: `verify`, `integration`, `e2e` e `docker`, todos com sucesso: <https://github.com/gustavopals/pals-vscode-game/actions/runs/36905622257>.
 - **API implantada com os ajustes**: `/v1/version` em produção respondeu `builtAt` 2026-10-01T18:29:52Z, posterior ao commit.
-- **App web ainda no build anterior** em 2026-10-01 às 18:35 UTC: `last-modified` de `/` é 17:35:17 GMT e o pacote servido ainda traz os textos antigos. ☐ por fazer (autor): implantar `lotg-web` e conferir de novo.
+- **App web implantado com os ajustes**: `last-modified` de `/` passou a 2026-10-01 18:30:44 GMT e o pacote servido traz os textos novos. Aberto em Chromium sem interface: boas-vindas com o texto novo, botão do GitHub oculto (vínculo desligado) e nenhum erro no console.
 
 ### Conferências feitas em produção em 2026-10-01, depois do deploy da API
 
