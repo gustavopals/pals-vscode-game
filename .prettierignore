@@ -7,3 +7,4 @@ coverage/
 deploy/backups/
 deploy/migrations/
 __golden__/
+.vitest/

@@ -14,9 +14,11 @@
   },
   "dependencies": {
     "@lotg/content": "workspace:*",
-    "@lotg/engine": "workspace:*"
+    "@lotg/engine": "workspace:*",
+    "@lotg/protocol": "workspace:*"
   },
   "devDependencies": {
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "@types/node": "^22.20.4"
   }
 }

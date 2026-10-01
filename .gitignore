@@ -21,3 +21,6 @@ deploy/backups/
 
 # Sistema
 .DS_Store
+
+# Relatórios de execuções locais do Vitest
+.vitest/

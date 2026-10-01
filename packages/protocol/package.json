@@ -10,5 +10,12 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --root ../.. --project unit"
+  },
+  "dependencies": {
+    "@lotg/content": "workspace:*",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@lotg/engine": "workspace:*"
   }
 }
