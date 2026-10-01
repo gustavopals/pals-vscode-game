@@ -1,0 +1,9 @@
+# Especificação e documentos escritos à mão: não reformatar.
+*.md
+pnpm-lock.yaml
+dist/
+media/
+coverage/
+deploy/backups/
+deploy/migrations/
+__golden__/

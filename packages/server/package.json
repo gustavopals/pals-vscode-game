@@ -1,0 +1,23 @@
+{
+  "name": "@lotg/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lords of the Guild: Servidor autoritativo",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "node ../../scripts/pending.mjs F2-T2 \"O servidor de desenvolvimento\"",
+    "db:migrate": "node ../../scripts/pending.mjs F2-T3 \"O migrador do banco\"",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outdir=dist",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --root ../.. --project unit"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

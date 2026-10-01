@@ -1,0 +1,15 @@
+{
+  "name": "@lotg/sim-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lords of the Guild: Bots de playtest",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "sim": "node ../../scripts/pending.mjs F1-T10 \"O simulador\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --root ../.. --project unit"
+  }
+}

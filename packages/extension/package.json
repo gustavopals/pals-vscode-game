@@ -1,0 +1,15 @@
+{
+  "name": "lords-of-the-guild",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lords of the Guild: Extensão do VS Code",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "node ../../scripts/pending.mjs F3-T2 \"O build em watch da extensão\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --root ../.. --project unit"
+  }
+}

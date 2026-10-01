@@ -1,0 +1,14 @@
+{
+  "name": "@lotg/client-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lords of the Guild: Cliente HTTP tipado",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --root ../.. --project unit"
+  }
+}

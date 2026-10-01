@@ -1,0 +1,23 @@
+# Node
+node_modules/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+
+# Saídas de build
+dist/
+packages/extension/media/
+*.vsix
+coverage/
+
+# Segredos e dados locais
+.env
+.env.*
+!.env.example
+deploy/backups/
+
+# Claude Code: configurações locais da máquina
+.claude/settings.local.json
+
+# Sistema
+.DS_Store

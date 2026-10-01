@@ -209,13 +209,13 @@ Esperado: Docker 24+, Compose v2, Node v22.x, pnpm 9.x.
 **Depende de:** F0-T1.
 **Entregáveis:** `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `vitest.workspace.ts`, `eslint.config.js`, `.prettierrc`, `.editorconfig`, `.gitignore`, `.nvmrc`, `packages/*/package.json`, `packages/*/tsconfig.json`, `packages/*/src/index.ts`, um teste trivial por pacote.
 
-- [ ] F0-T2.1 `git init` (se a pasta ainda não for um repositório); `.gitignore` para Node, dist, `.env`, `*.vsix`, `coverage`, `deploy/backups/`.
-- [ ] F0-T2.2 `pnpm-workspace.yaml` com `packages/*`; `package.json` raiz com os scripts da §1.4 (os de Docker podem apontar para arquivos que F0-T4 criará).
-- [ ] F0-T2.3 `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `target ES2022`, `module ESNext`, `moduleResolution Bundler`, `isolatedModules`. Cada pacote estende a base.
-- [ ] F0-T2.4 Pacotes `@lotg/engine`, `@lotg/content`, `@lotg/protocol`, `@lotg/server`, `@lotg/client-sdk`, `@lotg/sim-cli`, `@lotg/webview` e `lords-of-the-guild` (extensão), cada um com `src/index.ts` exportando uma constante de versão e um `*.test.ts` trivial.
-- [ ] F0-T2.5 ESLint flat config (TypeScript, regras de importação: `engine`/`content`/`protocol` não podem importar `vscode`, `fastify`, `pg`, `node:*`) e Prettier.
-- [ ] F0-T2.6 `vitest.workspace.ts` com projetos `unit` (todos os pacotes) e `integration` (`tests/` e `packages/server/test/`), este último só rodando com `TEST_DATABASE_URL` definido.
-- [ ] F0-T2.7 `README.md` inicial com os comandos da §1.4.
+- [x] F0-T2.1 `git init` (se a pasta ainda não for um repositório); `.gitignore` para Node, dist, `.env`, `*.vsix`, `coverage`, `deploy/backups/`.
+- [x] F0-T2.2 `pnpm-workspace.yaml` com `packages/*`; `package.json` raiz com os scripts da §1.4 (os de Docker podem apontar para arquivos que F0-T4 criará).
+- [x] F0-T2.3 `tsconfig.base.json`: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `target ES2022`, `module ESNext`, `moduleResolution Bundler`, `isolatedModules`. Cada pacote estende a base.
+- [x] F0-T2.4 Pacotes `@lotg/engine`, `@lotg/content`, `@lotg/protocol`, `@lotg/server`, `@lotg/client-sdk`, `@lotg/sim-cli`, `@lotg/webview` e `lords-of-the-guild` (extensão), cada um com `src/index.ts` exportando uma constante de versão e um `*.test.ts` trivial.
+- [x] F0-T2.5 ESLint flat config (TypeScript, regras de importação: `engine`/`content`/`protocol` não podem importar `vscode`, `fastify`, `pg`, `node:*`) e Prettier.
+- [x] F0-T2.6 `vitest.workspace.ts` com projetos `unit` (todos os pacotes) e `integration` (`tests/` e `packages/server/test/`), este último só rodando com `TEST_DATABASE_URL` definido.
+- [x] F0-T2.7 `README.md` inicial com os comandos da §1.4.
 
 **Verificação:**
 
@@ -1181,7 +1181,7 @@ Preencher ao fechar cada tarefa (o agente faz isso no ritual da §0.3).
 | Tarefa | Data | Commit | Sessões | Observações e desvios |
 |---|---|---|---|---|
 | F0-T1 | 2026-10-01 | HASH_F0-T1 | 1 | Docker 29.8, Compose v5.5, Node 22.22.3, pnpm 9.15.9. O default do `nvm` continua em 24 (`nvm alias default 22` não foi executado para não afetar outros projetos): o repositório seleciona o 22 pelo `.nvmrc` (`nvm use`) e o pnpm 9 pelo campo `packageManager`. Extensão Docker do VS Code instalada. |
-| F0-T2 | | | | |
+| F0-T2 | 2026-10-01 | HASH_F0-T2 | 1 | `pnpm verify` verde com 8 testes, também em cópia limpa. Vitest 5 removeu `vitest.workspace.ts`: os projetos `unit` e `integration` ficam em `vitest.config.ts`. TypeScript fixado em 6.x (o `typescript-eslint` ainda não aceita o 7). `dev:api`, `db:migrate`, `dev:ext` e `sim` existem e avisam a tarefa que os entrega. |
 | F0-T3 | | | | |
 | F0-T4 | | | | |
 | F0-T5 | | | | |
