@@ -1,9 +1,9 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.2 (reescrita e expansão da v0.1)  
+> **Versão do documento:** 0.3 (0.2 + arquitetura online: conta sem burocracia, servidor Node.js e PostgreSQL)  
 > **Idioma:** português (Brasil)  
-> **Plataforma inicial:** extensão do Visual Studio Code (VS Code)  
+> **Plataforma inicial:** extensão do Visual Studio Code (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
 > **Inspirações:** Tribal Wars e OGame (progressão assíncrona), Against the Storm e Frostpunk (pressão das estações), Reigns e King of Dragon Pass (dilemas), Darkest Dungeon (expedições com risco), Into the Breach (combate determinístico e legível), auto-battlers (formação como decisão central).
 
@@ -15,9 +15,11 @@
 
 - Cada mecânica traz a **tag de versão** em que entra no jogo: `[v0.1]`, `[v0.2]`, `[v0.3]`, `[v0.4]`, `[v0.5]`, `[v0.6]`. Um agente implementando a `v0.2` deve ignorar tudo com tag maior, mas **não pode tomar decisões de arquitetura que impeçam** as versões seguintes (ver §14).
 - A **semana completa de diversão** descrita em §2 fica pronta a partir da `v0.4`. As versões anteriores são incrementos jogáveis, cada um com seus próprios critérios de aceitação (§16).
-- **Todos os números** deste documento são parâmetros iniciais de balanceamento. Vivem em arquivos de conteúdo/configuração (§14.3), nunca espalhados pela interface ou pelo motor.
+- **Todos os números** deste documento são parâmetros iniciais de balanceamento. Vivem em arquivos de conteúdo/configuração (§14.4), nunca espalhados pela interface ou pelo motor.
 - Nomes de jogo em português; identificadores de código em inglês (`townHall`, `lumberMill`, `siegeWave`).
 - Mudanças em relação à v0.1 estão resumidas em §17 ("Decisões desta revisão").
+- O jogo é **online desde a v0.1**: o progresso vive em um servidor Node.js + PostgreSQL, a conta nasce em um clique e o jogador continua de qualquer máquina. "Online" aqui não significa interação entre jogadores (isso é v1.0): significa servidor autoritativo e progresso persistente (§14).
+- Mudanças da 0.3 em relação à 0.2: §1.1 (pilar 6), §4.3, §5.8, §11.6, §13.1, §13.6, §13.9, §14 inteira, §15.3 a §15.5, §16, §17 e §18.
 
 ### Índice
 
@@ -34,7 +36,7 @@
 11. O Cerco do Inverno, a Crônica do Ano e o Legado
 12. Dificuldade, objetivos e tutorial
 13. Interface e experiência no VS Code
-14. Arquitetura, determinismo e dados
+14. Arquitetura online: cliente, servidor, determinismo e dados
 15. Balanceamento, testes de diversão e simulador
 16. Roadmap, escopo por versão e critérios de aceitação
 17. Decisões desta revisão e questões em aberto
@@ -47,7 +49,7 @@ Apêndices: A (unidades e inimigos), B (cartas do Conselho), C (expedições), D
 
 **Lords of the Guild** é um jogo medieval de fantasia jogado dentro do VS Code. O jogador governa **Pedra Alta**, um feudo pequeno e vulnerável, ao longo de um **ano de jogo que dura uma semana real**. Durante a primavera e o verão ele constrói a economia, recruta heróis, explora um mapa coberto de névoa e repele incursões cada vez maiores. No outono recebe presságios sobre a **Horda** que marcha do norte. No inverno, o feudo enfrenta o **Cerco do Inverno**: três ondas de ataque resolvidas automaticamente com a formação que o jogador preparou. Sobreviva ou não, o ano termina com a **Crônica do Ano** e um novo ano começa, mais difícil e com mais opções.
 
-O jogo **não é sobre programação**. O VS Code é a interface: árvores de navegação, painéis, tabelas, notificações com botões e comandos. Nenhuma linha de código, nenhum terminal. As sessões duram de 2 a 10 minutos e o mundo continua andando com o editor fechado.
+O jogo **não é sobre programação**. O VS Code é a interface: árvores de navegação, painéis, tabelas, notificações com botões e comandos. Nenhuma linha de código, nenhum terminal. As sessões duram de 2 a 10 minutos e o mundo continua andando com o editor fechado. O progresso vive em um servidor: a conta nasce com um clique em **Jogar agora**, sem e-mail nem senha, e o jogador continua de qualquer máquina.
 
 ### 1.1 Pilares de design
 
@@ -56,7 +58,7 @@ O jogo **não é sobre programação**. O VS Code é a interface: árvores de na
 3. **Legível e explicável.** Cada número tem um "por quê" no tooltip. Cada batalha tem um relatório que diz **o que decidiu o resultado**. Nada de dados ocultos sem pista: o que você não sabe, você pode descobrir (vigias, batedores, presságios).
 4. **O inimigo reage a você.** A Horda observa a sua última formação e traz contramedidas. Quem repete a mesma receita perde. Quem engana a Horda com uma formação-isca vence com estilo.
 5. **Interface discreta, nativa do editor.** Parece uma ferramenta do VS Code: temas claro/escuro, teclado, status bar com uma linha, notificações contidas. Jogável no trabalho sem constrangimento.
-6. **Começar simples, pensar grande.** Single-player local primeiro. A arquitetura (motor determinístico, conteúdo como dados, comandos validados) prepara multiplayer sem construí-lo agora.
+6. **Online desde o início, social depois.** Cada jogador governa o próprio feudo em um servidor autoritativo, com conta criada em segundos e progresso que o acompanha em qualquer máquina. Alianças e PvP vêm depois, sobre a mesma base (motor determinístico, conteúdo como dados, comandos validados).
 
 ### 1.2 Fantasia do jogador
 
@@ -166,6 +168,8 @@ Implementação: o motor roda em **tempo de jogo**; a extensão converte tempo r
 
 Eventos que merecem presença (cerco, incursão forte do dia 6) acontecem na **Hora da Vigília**, horário local configurado pelo jogador (padrão 20:00). O cerco começa na primeira Hora da Vigília que caia pelo menos 6 h após o início do inverno; se não houver nenhuma, começa 12 h após o início do inverno. Estar presente **não é obrigatório**: tudo se resolve com o Plano de Batalha salvo (§10.8).
 
+O cliente envia o fuso horário IANA do jogador (ex.: `America/Sao_Paulo`) e a hora local escolhida; o servidor converte para o instante UTC ao agendar. Mudar de fuso durante o ano não move um cerco já agendado.
+
 ---
 
 ## 5. Economia: recursos, população, moral e armazenamento
@@ -247,7 +251,7 @@ Efeitos: multiplicador de produção (§5.3); moral ≥ 80 dá 20% de chance di�
 
 ### 5.8 Cálculo offline
 
-Ao abrir a extensão ou antes de qualquer comando, o motor avança de `lastProcessedAt` até agora processando **segmentos entre eventos**: conclusão de obra, recrutamento, virada de dia de jogo, mudança de estação, chegada de expedição, incursão agendada. Dentro de cada segmento as taxas são constantes. Isso garante que avançar 10 h de uma vez produz o mesmo estado que avançar dez vezes 1 h (§14.2). Nunca usar timers que só rodam com o editor aberto como fonte de verdade.
+A cada requisição de uma partida (visualizar ou comandar), o **servidor** avança o estado de `lastProcessedAt` até o relógio do servidor processando **segmentos entre eventos**: conclusão de obra, recrutamento, virada de dia de jogo, mudança de estação, chegada de expedição, incursão agendada, onda do cerco. Dentro de cada segmento as taxas são constantes. Isso garante que avançar 10 h de uma vez produz o mesmo estado que avançar dez vezes 1 h (§14.3). Um job horário avança partidas sem atividade, para que Crônicas e rankings existam mesmo para quem sumiu (§14.9). O relógio do cliente nunca é fonte de verdade.
 
 ### 5.9 Mercado `[v0.3]`
 
@@ -419,7 +423,7 @@ Planejada → Em viagem → [Nó] → … → Na Encruzilhada (aguarda jogador) 
 
 - Cada nó dura de 10 a 45 min. A duração total aparece antes do envio.
 - **Encruzilhada:** a expedição para e notifica ("Sua equipe chegou a uma bifurcação"). O jogador escolhe no painel da Guilda. Se não responder em **6 h**, a **Postura** da expedição decide: **Cautelosa** (opção segura), **Equilibrada** (melhor valor esperado), **Ousada** (maior recompensa). A Postura é escolhida no envio.
-- **Resolução de nó:** `poder_da_equipe = Σ (ataque + defesa + vida/10) × modificadores de classe/traço/equipamento`. Compara-se com a `dificuldade` do nó: razão ≥ 1,3 → Sucesso Pleno; ≥ 1,0 → Sucesso; ≥ 0,7 → Revés (ferimento leve, saque parcial); abaixo → Desastre (ferimento grave ou captura, saque perdido). Um fator de sorte de ±15% vem do RNG com semente (§14.2). Traços deslocam a razão (Corajoso +10% em Ousada, etc.).
+- **Resolução de nó:** `poder_da_equipe = Σ (ataque + defesa + vida/10) × modificadores de classe/traço/equipamento`. Compara-se com a `dificuldade` do nó: razão ≥ 1,3 → Sucesso Pleno; ≥ 1,0 → Sucesso; ≥ 0,7 → Revés (ferimento leve, saque parcial); abaixo → Desastre (ferimento grave ou captura, saque perdido). Um fator de sorte de ±15% vem do RNG com semente (§14.3). Traços deslocam a razão (Corajoso +10% em Ousada, etc.).
 - **Recompensas:** recursos, equipamentos, relíquias, **plantas** (blueprints que desbloqueiam edifícios antes do nível do Salão), recrutas, revelação de tiles, presságios, XP.
 - Guilda Nv1 permite 1 expedição simultânea; Nv2–3 permitem 2; Nv4–5 permitem 3.
 
@@ -602,6 +606,10 @@ Após o cerco até o fim do inverno: reparos com desconto, luto (moral −10 por
 - **Semente da partida:** toda partida tem uma semente visível. Duas partidas com a mesma semente e o mesmo ritmo têm o mesmo mapa, as mesmas cartas elegíveis e a mesma Horda base. Permite "desafios da semana" entre amigos sem servidor.
 
 
+### 11.6 Temporadas: a semana compartilhada `[v0.5]`
+
+Com o progresso no servidor, o calendário pode ser **compartilhado**. Toda segunda-feira o servidor abre uma **Temporada**: semente única, mesmo mapa, mesmas cartas elegíveis e mesma Horda base para todos; entrada aberta até terça-feira. Quem entra joga um ano normal, mas a Crônica do Ano vai para um **ranking da semana** (pontuação, resultado do cerco, Feitos), e as Crônicas podem ser lidas por quem está na mesma Temporada. Fora da Temporada, a partida individual continua como sempre. Não há interação entre feudos: é a mesma prova, não a mesma arena.
+
 ---
 
 ## 12. Dificuldade, objetivos e tutorial
@@ -661,6 +669,7 @@ O jogo deve parecer uma ferramenta nativa: usa os tokens de tema do VS Code (`--
 | **Notificações** | Com botões de ação; política configurável (§13.5) |
 | **Command Palette / QuickPick** | Todas as ações principais como comandos `Lords: …`, com QuickPicks para alocar, construir, enviar expedição |
 | **Editor** | Só para abrir a Crônica exportada em Markdown (opcional) |
+| **SecretStorage e autenticação nativa** | Credenciais da conta; login GitHub em um clique pelo provedor embutido do VS Code |
 
 ### 13.2 TreeView
 
@@ -747,7 +756,7 @@ Interação: clique no posto abre um seletor (tipo + quantidade com slider/tecla
 
 ### 13.6 Comandos (Command Palette)
 
-`Lords: Abrir painel` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Exportar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação) · `Lords: Exportar/Importar partida`.
+`Lords: Abrir painel` · `Lords: Alocar trabalhadores…` · `Lords: Construir ou melhorar…` · `Lords: Recrutar aldeões…` · `Lords: Enviar expedição…` · `Lords: Decidir carta do Conselho` · `Lords: Editar formação de defesa` · `Lords: Simular batalha` · `Lords: Exportar Crônica (Markdown)` · `Lords: Modo discreto` · `Lords: Nova partida…` · `Lords: Reiniciar partida` (com confirmação) · `Lords: Baixar cópia da partida (JSON)` · `Lords: Vincular conta ao GitHub` · `Lords: Gerar Código do Reino` · `Lords: Entrar com Código do Reino` · `Lords: Sair desta máquina`.
 
 Os QuickPicks permitem jogar inteiramente pelo teclado: `Alocar trabalhadores` mostra cada edifício com `+`/`−` e a taxa resultante em tempo real.
 
@@ -759,52 +768,182 @@ Navegação por teclado em todos os painéis (ordem lógica, foco visível), ARI
 
 Nenhum por padrão. Opcional (`[v0.6]`): três sons curtos (carta, encruzilhada, cerco), desativados até o jogador ligar.
 
+### 13.9 Entrada no jogo, conta e conexão `[v0.1]`
+
+Meta: do clique no ícone ao primeiro comando em **menos de 30 segundos**, sem e-mail, senha ou formulário. A conta existe antes de o jogador perceber que criou uma.
+
+**Primeira abertura (tela de boas-vindas na Webview):**
+
+```
+LORDS OF THE GUILD
+
+Como devemos chamar quem governa?    [ Gustavo           ]
+Nome do feudo                         [ Pedra Alta        ]   (sugerido, editável)
+Dificuldade   (•) Senhor   ( ) Camponês   ( ) Rei de Ferro
+Ritmo         (•) Normal: um ano em 7 dias   ( ) Rápido   ( ) Tranquilo
+Hora da Vigília  [ 20:00 ]   fuso: America/Sao_Paulo (detectado)
+
+                        [ Jogar agora ]
+
+Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código do Reino ]
+```
+
+- **Jogar agora** cria uma **conta anônima** no servidor e a primeira partida. Nada mais é pedido. As credenciais ficam no `SecretStorage` do VS Code desta máquina.
+- **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` usa o provedor de autenticação **embutido no VS Code** (`vscode.authentication.getSession('github', …)`): um clique, sem senha e sem o jogador cadastrar aplicativo nenhum. Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDRA-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outra máquina assume a conta.
+- **Nunca bloquear o jogo** por falta de vínculo. Um lembrete discreto aparece uma vez no dia 3 ("Proteja seu reino: vincule a conta para continuar de outra máquina") e pode ser dispensado para sempre.
+- A TreeView ganha o item `Conta: Gustavo · anônima` (ou `· GitHub`) com as ações "Vincular ao GitHub", "Código do Reino", "Sair desta máquina" e "Excluir conta".
+- **Sem conexão:** a status bar mostra `$(debug-disconnect) Sem ligação com o reino`; o painel exibe o último estado conhecido (cache local) em modo leitura, com comandos desabilitados e uma frase honesta: "O mundo continua andando. Seus comandos voltam quando a ligação voltar." Reconexão com recuo exponencial (5 s → 60 s).
+- **Duas máquinas ao mesmo tempo** funcionam: o servidor aplica cada comando uma vez e o outro cliente recebe o estado novo no próximo ciclo (30 s) ou ao agir.
+- **Trocar de máquina:** instalar a extensão, clicar em "Entrar com GitHub" ou digitar o Código do Reino. O progresso aparece em segundos, porque ele nunca esteve na máquina.
+
 ---
 
-## 14. Arquitetura, determinismo e dados
+## 14. Arquitetura online: cliente, servidor, determinismo e dados
 
-### 14.1 Pacotes
+### 14.1 Visão geral
+
+```
+┌──────────────────────────── VS Code (cliente) ────────────────────────────┐
+│  Webview (UI)  ⇄  Extensão (TreeView, Status Bar, comandos, cache,        │
+│                    SecretStorage)                                         │
+│                            │ HTTPS · JSON · /v1 · polling de 30 s          │
+└────────────────────────────┼──────────────────────────────────────────────┘
+                             ▼
+┌──────────────────── Servidor Node.js 22 (Fastify) ────────────────────────┐
+│  auth · games · commands · view · events · battle-preview · chronicle      │
+│  usa packages/engine + packages/content (o mesmo código do sim-cli)        │
+│  job horário: avança partidas paradas                                      │
+└────────────────────────────┬──────────────────────────────────────────────┘
+                             ▼
+            PostgreSQL 16  (accounts · sessions · games JSONB · commands ·
+                            game_events · chronicles)
+```
+
+Princípios:
+
+1. **O servidor é autoritativo e é o relógio.** O cliente envia comandos e recebe um `ViewState`; nunca envia estado, nem timestamps, nem resultados.
+2. **O motor é um só.** `packages/engine` roda no servidor (verdade), no `sim-cli` (balanceamento e carga) e nos testes. A extensão não precisa do motor: só exibe o que recebe.
+3. **Determinismo permite replay.** Estado inicial + semente + log de comandos com os instantes do servidor reproduzem qualquer partida: depuração, auditoria e antitrapaça de graça.
+4. **Uma queda do servidor não perde nada.** O avanço é preguiçoso e determinístico: o cerco das 20:00 calculado às 23:00, depois de uma indisponibilidade, dá exatamente o mesmo resultado.
+5. **Online não é multiplayer (ainda).** Cada partida pertence a uma conta e não interage com outras até a v1.0. O que é compartilhado desde cedo: a infraestrutura, o ranking de Temporadas (`[v0.5]`) e a comparação de Crônicas.
+
+### 14.2 Pacotes
 
 ```
 lords-of-the-guild/
-├── package.json                 # workspaces
+├── package.json                 # workspaces (pnpm)
 ├── GAME_DESIGN.md
 ├── packages/
-│   ├── engine/                  # motor puro em TypeScript: estado, comandos, advanceTo, batalha, expedições, RNG
-│   ├── content/                 # dados: balance, buildings, units, enemies, cards, missions, omens, chronicle (+ schemas zod)
-│   ├── sim-cli/                 # simulador headless e bots de playtest (§15.3)
-│   ├── extension/               # VS Code: ativação, TreeView, status bar, notificações, persistência, scheduler
-│   └── webview/                 # UI: TypeScript + Preact (permitido pelo tamanho; nada além disso)
-└── tests/                       # testes de integração extensão↔motor
+│   ├── engine/                  # motor puro: estado, comandos, advanceTo, batalha, expedições, RNG
+│   ├── content/                 # dados do jogo + schemas zod
+│   ├── protocol/                # tipos e schemas zod da API /v1: Command, ViewState, erros (servidor e cliente)
+│   ├── server/                  # Fastify + PostgreSQL: auth, partidas, comandos, job de avanço, migrações
+│   ├── client-sdk/              # cliente HTTP tipado da API (usado pela extensão e pelo sim-cli)
+│   ├── sim-cli/                 # bots de playtest: em processo (engine) ou contra um servidor (carga)
+│   ├── extension/               # VS Code: ativação, TreeView, status bar, notificações, cache, SecretStorage
+│   └── webview/                 # UI: TypeScript + Preact
+├── deploy/                      # docker-compose.yml, Caddyfile, migrations/, backup.sh, analytics/*.sql
+└── tests/                       # integração servidor↔banco e extensão↔servidor
 ```
 
-`engine` e `content` **não importam nada do VS Code**. A `extension` traduz tempo real em tempo de jogo, persiste e exibe. A `webview` só envia comandos e renderiza o estado recebido.
+`engine`, `content` e `protocol` não importam nada do VS Code nem de servidor. `server` e `extension` dependem deles e nunca um do outro.
 
-### 14.2 Determinismo
+### 14.3 Determinismo (motor)
 
-1. **Tempo de jogo** em milissegundos inteiros. `advanceTo(state, t)` processa a **linha do tempo de eventos** (conclusões, viradas de dia, estações, chegadas, incursões) em ordem, aplicando produção contínua por segmento. Invariante testada por propriedade: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)` para qualquer `t1` intermediário.
-2. **Aritmética inteira** para recursos: estoques em milésimos; produção por segmento acumula `taxa × ms` em um acumulador por recurso e converte com divisão inteira, carregando o resto. Isso torna o invariante acima **exato**, sem tolerância de ponto flutuante.
+1. **Tempo de jogo** em milissegundos inteiros. `advanceTo(state, t)` processa a **linha do tempo de eventos** (conclusões, viradas de dia, estações, chegadas, incursões, ondas) em ordem, aplicando produção contínua por segmento. Invariante testada por propriedade: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)` para qualquer `t1` intermediário.
+2. **Aritmética inteira** para recursos: estoques em milésimos; a produção por segmento acumula `taxa × ms` em um acumulador por recurso e converte com divisão inteira, carregando o resto. O invariante acima fica **exato**, sem tolerância de ponto flutuante.
 3. **RNG com semente e fluxos nomeados** (`council`, `market`, `omens`, `expedition:<id>`, `battle:<id>`, `horde`), cada fluxo com estado próprio dentro do `GameState`. A ordem de processamento de um subsistema não altera o sorteio de outro. Algoritmo sugerido: xoshiro128** ou mulberry32.
-4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e rejeitado com um motivo legível, que a UI mostra. Antes de qualquer comando, `advanceTo(agora)`.
-5. **Prévia** (Conselho de Guerra) usa o mesmo `resolveBattle` com sementes derivadas de `hash(seed, 'preview', i)`.
+4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e recusado com um motivo legível, que chega à UI. O servidor sempre chama `advanceTo(agora)` antes de aplicar.
+5. **Prévia** (Conselho de Guerra) usa o mesmo `resolveBattle` com sementes derivadas de `hash(seed, 'preview', i)`; roda no servidor porque só ele conhece a composição inimiga real por trás da névoa.
 
-### 14.3 Conteúdo como dados
+### 14.4 Conteúdo como dados
 
-Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas, fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, ciclo de contra-ataques está completo, toda carta tem exatamente uma opção padrão.
+Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas e fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, o ciclo de contra-ataques está completo, toda carta tem exatamente uma opção padrão. O servidor expõe os catálogos estáticos em `GET /v1/catalog` com ETag pelo hash do conteúdo; a extensão cacheia.
 
-### 14.4 Persistência
+### 14.5 Servidor e API
 
-- Arquivo JSON em `context.globalStorageUri` (`save.json` + `save.bak` rotativo), não `globalState`, porque o estado cresce (mapa, Crônica, histórico da Horda). `globalState` guarda só preferências.
-- Salvar após cada comando e a cada 60 s com o editor aberto. Escrita atômica (arquivo temporário + rename).
-- `schemaVersion` com **migrações encadeadas** (`migrate_1_to_2`, …). Testes carregam saves de versões antigas.
-- Crônica limitada a 2.000 linhas por ano; anos anteriores ficam resumidos.
-- Exportar/Importar partida (JSON) para suporte, backup e desafios por semente.
+Stack: **Node.js 22 LTS**, **Fastify** (validação por schema, pequeno, rápido), **PostgreSQL 16** via `pg` + **Drizzle ORM** (SQL tipado, migrações em SQL versionadas), **zod** compartilhado via `protocol`, `pino` para logs, `jose` para JWT, `argon2` para hashes. Sem Redis, sem filas, sem framework pesado até uma medição pedir.
 
-### 14.5 Scheduler na extensão
+Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 
-Com o editor aberto, um `setInterval` de 30 s chama `advanceTo(agora)`, difunde o estado para a Webview e a TreeView e converte eventos do motor em notificações conforme a política. Com o editor fechado, nada roda; a próxima abertura faz o catch-up. O motor devolve eventos ("obra concluída", "encruzilhada", "cerco em 1 h") e a extensão decide o que mostrar.
+| Método e rota | Função | Autenticação |
+|---|---|---|
+| `POST /auth/anonymous` | Cria conta anônima e a primeira sessão. Corpo: `{ displayName }` | — |
+| `POST /auth/github` | Vincula a conta atual ao GitHub ou entra em uma conta já vinculada. Corpo: `{ githubAccessToken }` (obtido pelo VS Code); o servidor valida em `api.github.com/user` e guarda só o `github_id` | opcional |
+| `POST /auth/recovery-code` | Gera ou rotaciona o Código do Reino; devolve em claro **uma vez**; grava só o hash | sessão |
+| `POST /auth/recover` | Entra com o Código do Reino em outra máquina | — |
+| `POST /auth/refresh` · `POST /auth/logout` | Rotação do refresh token · revogação da sessão | refresh |
+| `GET /me` · `PATCH /me` · `DELETE /me` | Perfil · renomear · **excluir a conta e tudo que é dela** | sessão |
+| `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`) | sessão |
+| `GET /games/:id/view` | Avança até agora e devolve o `ViewState`. `ETag = stateVersion`; `304` se nada mudou | sessão |
+| `POST /games/:id/commands` | Aplica um comando `{ commandId, type, payload }` e devolve `ViewState` + eventos. Idempotente por `commandId` | sessão |
+| `GET /games/:id/events?after=<seq>` | Eventos para notificações (obras, encruzilhadas, cartas, incursões, cerco) | sessão |
+| `POST /games/:id/battle-preview` | Conselho de Guerra: 200 simulações com a névoa aplicada | sessão |
+| `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor | sessão |
+| `GET /catalog` | Catálogos estáticos de conteúdo (ETag) | — |
+| `GET /health` · `GET /version` | Saúde (inclui o banco) · versão do servidor e hash do conteúdo | — |
+| `GET /seasons/current` · `GET /leaderboard?season=` | Temporada da semana e ranking `[v0.5]` | — |
 
-### 14.6 Modelo de dados (conceitual)
+Regras:
+
+- Toda requisição de partida executa `advanceTo(agora_do_servidor)` antes de qualquer outra coisa, dentro da mesma transação do comando.
+- O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
+- Limites: 60 requisições/min por sessão; 10 criações de conta/h por IP; 5 tentativas de Código do Reino/h por IP; corpo até 64 KB; nomes de 2 a 24 caracteres.
+- Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e a extensão antiga recebe `426 Upgrade Required` com mensagem amigável.
+
+### 14.6 Banco de dados (PostgreSQL 16)
+
+```sql
+accounts     (id uuid pk, display_name text, github_id text unique null,
+              recovery_code_hash text null, created_at, last_seen_at, deleted_at null)
+sessions     (id uuid pk, account_id fk, refresh_token_hash text unique, device_label text,
+              created_at, expires_at, revoked_at null)
+games        (id uuid pk, account_id fk, status text,            -- active | archived
+              seed text, difficulty text, time_scale numeric, timezone text, vigil_hour smallint,
+              schema_version int, state jsonb, state_version bigint,
+              last_processed_at timestamptz, created_at, updated_at)
+commands     (id uuid pk,                                         -- = commandId do cliente (idempotência)
+              game_id fk, account_id fk, seq bigint, type text, payload jsonb,
+              server_time timestamptz, result text, error_code text null)
+game_events  (game_id fk, seq bigint, at timestamptz, kind text, payload jsonb, pk (game_id, seq))
+chronicles   (game_id fk, year int, summary jsonb, score int, result text, created_at, pk (game_id, year))
+```
+
+- O `GameState` inteiro fica em `games.state` (JSONB). Colunas espelhadas (`status`, `last_processed_at`, `account_id`) servem às consultas e ao job horário. Crônica e eventos ficam em tabelas próprias para o estado quente permanecer pequeno (meta: menos de 150 KB por partida).
+- `commands` + estado inicial = replay completo. Retenção padrão de 90 dias.
+- **Uma partida ativa por conta** na v0.1. Anos encerrados viram linhas em `chronicles` e a partida segue no mesmo registro (Ano 2, 3…). Começar outra partida arquiva a atual.
+- Migrações versionadas em SQL (`deploy/migrations/0001_init.sql`, …), aplicadas no arranque do servidor com lock de migração.
+- Backup: `pg_dump` diário com retenção de 14 dias (`deploy/backup.sh`); restauração ensaiada em CI a cada versão.
+
+### 14.7 Contas e autenticação
+
+- **Conta anônima** criada no primeiro clique. O servidor devolve `accessToken` (JWT, 15 min) e `refreshToken` (opaco, 30 dias, rotacionado a cada uso, guardado como hash). A extensão guarda ambos no `SecretStorage`.
+- **Vínculo GitHub:** o cliente obtém o token pelo provedor nativo do VS Code; o servidor valida em `GET https://api.github.com/user` e associa o `github_id`. O token do GitHub **não é armazenado**. Em outra máquina, o mesmo fluxo devolve a conta existente. Se o `github_id` já pertence a outra conta e esta máquina tem uma conta anônima com progresso, o cliente pergunta qual manter; estados **nunca** são mesclados.
+- **Código do Reino:** 20 caracteres em grupos de 4, alfabeto sem ambiguidades (sem 0/O nem 1/I), guardado como hash argon2id. Usá-lo cria uma nova sessão; o código continua válido até ser rotacionado.
+- **Sair desta máquina** revoga só a sessão local. **Excluir conta** faz soft delete imediato e hard delete após 7 dias de carência.
+- Nenhum e-mail, senha ou dado pessoal obrigatório. Reuso de um refresh token já rotacionado revoga a família inteira de sessões (sinal de roubo).
+
+### 14.8 Persistência, concorrência e idempotência
+
+- Cada comando roda em **uma transação**: `SELECT … FOR UPDATE` na linha da partida → `advanceTo(agora)` → `applyCommand` → `UPDATE games SET state, state_version = state_version + 1, last_processed_at` → `INSERT commands` → `INSERT game_events`. Dois clientes da mesma conta nunca aplicam comandos em paralelo sobre o mesmo estado.
+- `commandId` (UUID gerado pelo cliente) tem chave única: um reenvio após timeout devolve o resultado original sem reaplicar.
+- O cliente envia `If-Match: <stateVersion>` opcional. Se o estado mudou desde a última visualização, o servidor ainda aplica o comando (o motor valida contra o estado atual), mas marca `staleView: true` na resposta para a UI avisar: "o estado mudou enquanto você decidia".
+- Escrita sempre do estado completo (JSONB inteiro), sem patches parciais. Tamanho do estado e duração de `advanceTo` são medidos; alvo de p95 abaixo de 50 ms por requisição.
+
+### 14.9 Tempo, relógio e job de avanço
+
+- Relógio do servidor em UTC, com NTP ativo no host. Tempo de jogo = `(agora − yearStart) × timeScale`. A Hora da Vigília é convertida para UTC a partir de `timezone` e `vigil_hour` no momento do agendamento.
+- **Avanço preguiçoso** em toda requisição, mais um **job horário** (`advance-stale-games`) que avança partidas sem requisição há mais de 1 h, em lotes de 100 com `FOR UPDATE SKIP LOCKED`. Garante que Crônicas, rankings e eventos existam para quem sumiu e espalha a carga do dia 7.
+- Nenhum temporizador por partida em memória. O processo pode reiniciar a qualquer momento sem efeito no jogo.
+
+### 14.10 Cliente VS Code
+
+- A extensão usa o `client-sdk`. Com o painel aberto, um ciclo de 30 s chama `GET /view` com ETag e `GET /events?after=` e converte eventos em notificações conforme a política (§13.5). Com o painel fechado, o ciclo cai para 2 min e só atualiza a TreeView e a status bar.
+- Cache do último `ViewState` em `globalState` para exibição sem conexão (§13.9). Comandos nunca ficam em fila local: ou chegam ao servidor ou o jogador é avisado na hora.
+- Configurações: `lords.serverUrl` (padrão: a instância hospedada; `http://localhost:3000` em desenvolvimento), `lords.notifications`, `lords.discreetMode`, `lords.vigilHour`.
+- A Webview nunca fala com a rede: só troca mensagens tipadas com a extensão (§14.12).
+
+### 14.11 Modelo de dados do jogo (conceitual, vive em `games.state`)
 
 ```ts
 type Resource = 'food' | 'wood' | 'stone' | 'gold' | 'iron' | 'weapons';
@@ -815,6 +954,7 @@ type Wing = 'left' | 'center' | 'right'; type Row = 'front' | 'back';
 type GameState = {
   schemaVersion: number;
   seed: string; difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 1 | 2 | 0.5;
+  settings: { timezone: string; vigilHourLocal: number };
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
   rng: Record<string, number[]>;                             // estado por fluxo
@@ -822,7 +962,6 @@ type GameState = {
     name: string; moral: number;
     resources: Record<Resource, number>;                     // milésimos
     accumulators: Record<Resource, number>;
-    caps: Record<Resource, number | null>;
     population: { villagers: number; soldiers: number; recruitsInTraining: number };
     workers: Record<Building, number>;
     craftExperience: Record<Building, number>;
@@ -842,21 +981,41 @@ type GameState = {
   horde: { memory: Array<Record<UnitType, number>>; scheduledRaids: Array<{ atMs: number; kind: 'scripted' | 'threat' | 'siegeWave'; wave?: 1 | 2 | 3; composition?: EnemyComposition }>; sabotages: number; omens: Omen[] };
   market: { prices: Record<Exclude<Resource, 'gold' | 'weapons'>, number>; tradedToday: Record<Resource, number>; caravans: Caravan[] };
   objectives: { active: string[]; completed: string[] };
-  chronicle: Array<{ atMs: number; kind: string; text: string; data?: unknown }>;
   legacy: { points: number; unlocked: string[]; vows: string[] };
   stats: Record<string, number>;
 };
 ```
 
-Capacidade habitacional, limite de exército e caps de armazenamento são **derivados** dos edifícios em funções puras, nunca persistidos.
+Capacidade habitacional, limite de exército e caps de armazenamento são **derivados** dos edifícios em funções puras, nunca persistidos. A Crônica e os eventos ficam fora do `GameState` (tabelas `chronicles` e `game_events`); o motor apenas os **emite** como saída de `advanceTo` e `applyCommand`.
 
-### 14.7 Comunicação Webview ↔ extensão
+### 14.12 Comunicação Webview ↔ extensão
 
-Mensagens tipadas como uniões discriminadas (`{ type: 'command', command: Command }` / `{ type: 'state', state: ViewState }` / `{ type: 'error', reason }`). A Webview recebe um **ViewState** derivado (já com taxas, tempos restantes e textos formatados), não o `GameState` bruto. Toda validação acontece no motor.
+Mensagens tipadas como uniões discriminadas (`{ type: 'command', command }` / `{ type: 'view', view: ViewState }` / `{ type: 'error', code, message }` / `{ type: 'connection', online: boolean }`). A Webview recebe o `ViewState` já formatado, não o `GameState`. Toda validação acontece no servidor; a extensão só valida forma (zod de `protocol`) para falhar cedo.
 
-### 14.8 Multiplayer futuro (não construir agora)
+### 14.13 Hospedagem e operação
 
-Backend Node.js (NestJS ou Fastify) com PostgreSQL; simulação e validação de comandos **no servidor**, reusando o pacote `engine` sem alterações; idempotência por `commandId`; autenticação; o cliente VS Code vira um "terminal" do mesmo motor. A separação `engine`/`extension` existe para isso. Alianças e PvP só depois de economia, combate e proteção de contas estáveis.
+Instalação de referência para dezenas a algumas centenas de jogadores: **um VPS** (2 vCPU, 2 a 4 GB de RAM, 40 GB de SSD) com Docker Compose:
+
+```yaml
+services:
+  caddy:   # TLS automático (Let's Encrypt) e proxy reverso para api:3000; cabeçalhos de segurança
+  api:     # imagem de packages/server; roda migrações no arranque; stateless (2+ réplicas quando precisar)
+  db:      # postgres:16 com volume persistente; pg_dump diário pelo cron do host
+```
+
+- Variáveis: `DATABASE_URL`, `JWT_SECRET` (32+ bytes aleatórios), `PUBLIC_URL`, `RATE_LIMIT_*`, `LOG_LEVEL`. Não há segredo de GitHub: a validação usa o token do próprio usuário.
+- Logs JSON (pino) via `docker logs` ou Loki; `GET /health` consultado por um monitor externo a cada minuto.
+- Atualizar: `docker compose pull && docker compose up -d`. Segundos de indisponibilidade; o avanço preguiçoso cobre.
+- Dimensionamento: um processo Node com `GET /view` de 100 KB e `advanceTo` de poucos milissegundos atende centenas de clientes em polling de 30 s. Antes de milhares: cache de `ViewState` por `stateVersion`, Postgres gerenciado e 2+ réplicas da API.
+- Ambiente de desenvolvimento: `docker compose -f deploy/docker-compose.dev.yml up db` e `pnpm dev` no servidor; a extensão aponta `lords.serverUrl` para `http://localhost:3000`.
+
+### 14.14 Segurança e privacidade
+
+HTTPS obrigatório; tokens só no `SecretStorage`; refresh rotativo com detecção de reuso; limites de taxa por IP e por sessão; validação zod de toda entrada (compartilhada com o cliente, que erra cedo, enquanto o servidor nunca confia); corpos limitados; cabeçalhos de segurança no Caddy; dependências auditadas em CI. Dados pessoais guardados: o nome de exibição escolhido e, se houver vínculo, o `github_id`. Nada mais. Política de privacidade de um parágrafo no README e no painel "Conta". Exclusão de conta em um clique.
+
+### 14.15 Multiplayer futuro (não construir agora)
+
+A base já é um servidor autoritativo com motor compartilhado. Alianças, mercado entre jogadores e PvP acrescentam **comandos que afetam duas partidas** (transação sobre duas linhas, travadas em ordem determinística por `game_id`) e um canal de eventos entre contas. Nada disso exige refazer o que está aqui. Regras já decididas: proteção a novatos (sem PvP no primeiro ano), janelas de ataque na Hora da Vigília do defensor e registro completo de operações (a tabela `commands` já existe).
 
 ---
 
@@ -886,7 +1045,7 @@ Outras metas: população 30–40 no dia 7 (Regular); primeiro herói no dia 2; 
 
 ### 15.3 Simulador headless (`sim-cli`)
 
-Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jogam anos inteiros em segundos, emitindo CSV com recursos, população, exército, resultado do cerco e Legado por semente. Um teste de CI roda 50 sementes por perfil e falha se as metas da §15.2 saírem da faixa. É assim que os números deste documento serão corrigidos, não por achismo.
+Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jogam anos inteiros em segundos, emitindo CSV com recursos, população, exército, resultado do cerco e Legado por semente. Um teste de CI roda 50 sementes por perfil e falha se as metas da §15.2 saírem da faixa. É assim que os números deste documento serão corrigidos, não por achismo. Os mesmos bots rodam contra um servidor local pelo `client-sdk` para teste de carga (ex.: 300 bots em polling de 30 s) e de regressão da API.
 
 ### 15.4 Testes automatizados
 
@@ -894,12 +1053,14 @@ Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jog
 - **Propriedade (fast-check):** invariante de `advanceTo` por segmentos; recursos nunca negativos nem acima do cap; nenhum comando duplica recursos.
 - **Golden tests:** relatórios de batalha e de expedição para sementes fixas (qualquer mudança de regra é visível no diff).
 - **Conteúdo:** schemas zod em todo JSON; grafos acíclicos; flags consistentes.
-- **Migração:** saves antigos carregam.
-- **Integração:** comandos da extensão disparam o motor e atualizam o ViewState.
+- **Migração:** estados com `schemaVersion` antigo carregam e migram no servidor.
+- **API e banco:** integração com PostgreSQL real (Docker) cobrindo idempotência por `commandId`, dois clientes concorrentes, rotação e reuso de refresh token, exclusão de conta e o job de avanço.
+- **Carga:** `sim-cli` contra servidor local, com metas de p95.
+- **Integração do cliente:** a extensão contra um servidor local: comandos, ETag, eventos, cache sem conexão.
 
-### 15.5 Métricas locais (opt-in)
+### 15.5 Métricas
 
-Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, duração, decisões por sessão, dia do primeiro herói, resultado do cerco) visíveis na aba Crônica, para o próprio jogador e para playtests.
+O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões por dia, decisões por sessão, dia do primeiro herói, resultado do cerco por perfil, abandono por dia da semana) saem de consultas SQL em `deploy/analytics/*.sql`, sempre agregadas e sem nome de jogador. O jogador vê as próprias estatísticas na aba Crônica. Nada é enviado a terceiros e não há SDK de telemetria no cliente.
 
 ---
 
@@ -907,15 +1068,15 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 
 | Versão | Nome | Entrega | O que o jogador sente |
 |---|---|---|---|
-| v0.1 | Fundação | Economia, construção, trabalhadores, offline, calendário visível, Objetivos básicos, Crônica simples | "Minha aldeia cresce enquanto trabalho" |
+| v0.1 | Fundação online | Servidor Node.js + PostgreSQL, conta em um clique, vínculo GitHub e Código do Reino, economia, construção, trabalhadores, avanço no servidor, calendário visível, Objetivos básicos, Crônica simples | "Minha aldeia cresce enquanto trabalho, de qualquer máquina" |
 | v0.2 | Estações e Conselho | Estações, armazenamento, moral, troca de ofício, cartas e cadeias, Torre de Vigia, Paliçada, lobos, dificuldade, ritmo | "O mundo muda e me pede decisões" |
 | v0.3 | Guilda | Taverna, heróis, expedições com encruzilhadas, Mercado e caravanas, Mestres | "Tenho uma equipe e histórias para contar" |
 | v0.4 | Guerra e Cerco | Quartel, Ferreiro, ferro e armas, Muralha, formações, Conselho de Guerra, Horda adaptativa, presságios, Fortaleza e sabotagem, Cerco, milícia, Crônica do Ano | **A semana completa.** "Passei a semana me preparando e valeu" |
-| v0.5 | Mundo e Legado | Mapa hexagonal, postos avançados, Capela e relíquias, Legado, Votos, anos seguintes, sementes | "Quero jogar o Ano 2 de outro jeito" |
+| v0.5 | Mundo e Legado | Mapa hexagonal, postos avançados, Capela e relíquias, Legado, Votos, anos seguintes, sementes, Temporadas semanais com ranking | "Quero jogar o Ano 2 de outro jeito" |
 | v0.6 | Polimento | Academia, Feitos completos, som opcional, acessibilidade auditada, desempenho, localização en-US | Pronto para o Marketplace |
-| v1.0 | Multiplayer | Contas, alianças, economia compartilhada, PvP | Mundo persistente |
+| v1.0 | Multiplayer | Alianças, mercado entre jogadores, PvP, proteção a novatos | Mundo compartilhado |
 
-### 16.1 Escopo exato da v0.1 — Fundação
+### 16.1 Escopo exato da v0.1 — Fundação online
 
 **Implementar:**
 
@@ -930,30 +1091,37 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 - [ ] Escassez determinística (§5.6, sem abandono de aldeões).
 - [ ] Objetivos 1–4 da §12.2.
 - [ ] Crônica simples (log de eventos) e Relatório de Retorno após 4 h.
-- [ ] Persistência em `globalStorageUri` com `schemaVersion` e `save.bak`.
-- [ ] Comandos da Command Palette para abrir painel, alocar, construir, recrutar e reiniciar (com confirmação).
+- [ ] Servidor Fastify + PostgreSQL com migrações, `GET /health`, `GET /version` e Docker Compose para desenvolvimento e produção.
+- [ ] Contas: anônima em um clique, vínculo GitHub pelo provedor nativo do VS Code, Código do Reino, refresh rotativo, sair da máquina e excluir conta.
+- [ ] Partidas no servidor: `POST /games`, `GET /view` com ETag, `POST /commands` idempotente e transacional, `GET /events`, job horário de avanço.
+- [ ] Pacotes `protocol` e `client-sdk` compartilhados; a extensão não contém o motor.
+- [ ] Tela de boas-vindas (§13.9), cache do último estado e modo sem conexão.
+- [ ] Comandos da Command Palette para abrir painel, alocar, construir, recrutar, reiniciar (com confirmação), vincular conta e gerar Código do Reino.
 - [ ] Testes unitários e de propriedade do motor; teste de conteúdo com zod.
 
-**Não implementar:** estações com efeito, cartas, heróis, exército, mapa, mercado, multiplayer, som.
+**Não implementar:** estações com efeito, cartas, heróis, exército, mapa, mercado, Temporadas, interação entre jogadores, som.
 
 **Critérios de aceitação:**
 
-1. Instalar, abrir o painel e encontrar uma partida nova sem configuração.
+1. Instalar, clicar em **Jogar agora** e dar o primeiro comando em menos de 30 segundos, sem e-mail, senha ou formulário.
 2. Alocar um trabalhador a mais na Serraria altera a taxa de madeira/h imediatamente e reduz os livres.
 3. Não é possível alocar mais que a população nem gastar o que não existe; o motivo da recusa aparece na UI.
 4. Uma melhoria desconta recursos uma única vez, ocupa a fila e conclui no tempo configurado.
-5. Fechar e reabrir o VS Code depois de horas simula o intervalo sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
+5. Fechar o VS Code por horas e reabrir mostra o intervalo simulado pelo servidor sem duplicar progresso; `advanceTo` por partes dá o mesmo resultado que de uma vez (teste de propriedade).
 6. Escassez tratada corretamente em longos períodos offline, com o momento exato registrado na Crônica.
-7. Salvar e recarregar não duplica nada; o reset só acontece após confirmação.
+7. Reiniciar o servidor no meio do dia (`docker compose restart`) não perde nem duplica nada; reenviar o mesmo `commandId` não aplica duas vezes; dois clientes na mesma conta não corrompem o estado.
 8. Todas as regras rodam em testes sem o VS Code aberto.
 9. O painel respeita tema claro e escuro e é navegável por teclado.
+10. Vincular ao GitHub ou usar o Código do Reino em outra máquina mostra o mesmo feudo em segundos.
+11. Sem conexão, o painel mostra o último estado conhecido, explica a situação e volta sozinho quando o servidor responde.
+12. Excluir a conta remove partida, comandos e sessões; o nome não aparece mais em nenhuma consulta.
 
 ### 16.2 Critérios de aceitação das versões seguintes (resumo)
 
 - **v0.2:** o estoque para no cap e o painel mostra "cheio em"; uma carta aparece a cada 8 h e expira em 24 h com a opção padrão; uma cadeia de 3 cartas funciona ponta a ponta; a incursão de lobos do dia 2 acontece offline e aparece no Relatório; a troca de ofício reduz a produção por 2 h; dificuldade e ritmo são escolhidos na criação.
 - **v0.3:** o primeiro herói chega pela carta do dia 2; uma expedição para na encruzilhada, notifica, e após 6 h sem resposta segue a Postura; o relatório narra nó a nó; o Mercado respeita o volume diário; uma caravana pode ser emboscada.
 - **v0.4:** uma formação salva defende offline; a prévia e a batalha real usam o mesmo código (golden test); a Horda altera a composição em resposta à última formação (teste determinístico); o cerco ocorre na Hora da Vigília com 3 ondas e Plano de Batalha; a Crônica do Ano é gerada e exportável em Markdown; o perfil Regular do `sim-cli` fica em 65–80% de Vitória.
-- **v0.5:** mapa hexagonal com névoa em 3 estados; posto avançado produz; Legado e Votos aplicados ao Ano 2; duas partidas com a mesma semente geram o mesmo mapa e as mesmas cartas elegíveis.
+- **v0.5:** mapa hexagonal com névoa em 3 estados; posto avançado produz; Legado e Votos aplicados ao Ano 2; duas partidas com a mesma semente geram o mesmo mapa e as mesmas cartas elegíveis; uma Temporada abre toda segunda-feira, aceita entradas até terça e publica o ranking ao fim da semana.
 
 ---
 
@@ -975,7 +1143,13 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 | Hora da Vigília configurável para o cerco | Cerco em horário fixo relativo à criação | O horário relativo poderia cair às 3 h da manhã |
 | Mapa hexagonal só na v0.5, com tiles abstratos desde a v0.2 | Mapa desde o início | O mapa gráfico é caro; os dados dele são baratos e destravam cartas, expedições e Ameaça antes |
 | Preact permitido na Webview | Vanilla; React/Vue | O editor de formação e a prévia justificam componentes; Preact pesa 3 KB |
-| Salvar em arquivo (`globalStorageUri`) desde a v0.1 | `globalState` | Evita migração dolorosa quando mapa e Crônica crescerem |
+| **Online desde a v0.1**, servidor autoritativo em Node.js + PostgreSQL | Local primeiro e sincronizar depois; local para sempre | Duas camadas de persistência dobram o trabalho, e um migrador local→nuvem seria um vetor de trapaça; com o motor puro, o servidor é uma camada fina |
+| Conta **anônima em um clique**, vínculo opcional por GitHub (login nativo do VS Code) ou Código do Reino | E-mail e senha; link mágico por e-mail; só GitHub | Zero burocracia para começar, recuperação para quem quiser, nenhum serviço de e-mail para operar e nenhum segredo de OAuth no servidor |
+| Estado inteiro em JSONB + log de comandos | Tabelas normalizadas por subsistema | O motor é a fonte de verdade e muda a cada versão; JSONB evita migração de esquema a cada mecânica, e o log dá replay e auditoria |
+| Avanço preguiçoso por requisição + job horário | Loop de simulação contínuo no servidor | Custo zero sem ninguém jogando, reinícios sem efeito e o mesmo resultado em qualquer horário de cálculo |
+| Fastify + Drizzle + zod compartilhado | NestJS; Express; Prisma | Menos camadas para um time pequeno ou um agente; validação e tipos vêm do mesmo pacote `protocol` |
+| Uma partida ativa por conta; anos sucessivos no mesmo registro | Várias partidas paralelas | Simplifica ranking, cache e a pergunta "qual feudo abrir" |
+| Sem upload de saves locais | Importar JSON do jogador | Qualquer importação seria trapaça gratuita em um jogo com ranking |
 
 ### 17.2 Questões em aberto (não bloqueiam nenhuma versão)
 
@@ -986,6 +1160,9 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 - Mundo apenas humano ou com facções e raças a partir do Legado?
 - No multiplayer, o cerco é compartilhado por aliança (defender juntos) ou individual?
 - Quantos anos até o conteúdo repetir para um jogador Dedicado? (Meta: 3 anos sem repetir cartas de cadeia.)
+- A Temporada começa na segunda-feira de qual fuso? (Proposta: o fuso do servidor, exibido no painel.)
+- Vale moderar nomes de exibição quando houver ranking público?
+- Oferecer um "modo offline sem conta" (motor dentro da extensão, sem ranking) para quem não quer servidor? Custa pouco graças ao motor puro, mas duplica o caminho de persistência.
 
 ### 17.3 Ideias registradas, não priorizadas
 
@@ -1002,24 +1179,25 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 
 ### 18.1 Primeira tarefa — v0.1 Fundação
 
-> **Objetivo:** implementar exatamente a §16.1, preparando a arquitetura da §14.
+> **Objetivo:** implementar exatamente a §16.1, seguindo a arquitetura da §14.
 >
 > 1. Leia este `GAME_DESIGN.md` por inteiro antes de escrever código. Trate §14 como contrato de arquitetura e §16.1 como escopo.
-> 2. Crie o monorepo com `packages/engine`, `packages/content`, `packages/extension`, `packages/webview` e `packages/sim-cli` (este último com um bot trivial que só aloca trabalhadores, para validar o pipeline).
-> 3. Implemente primeiro o motor: `GameState`, `createInitialState(seed)`, `advanceTo(state, gameTimeMs)` por segmentos com aritmética inteira, RNG com fluxos nomeados, `applyCommand(state, command)` com validação e motivos de recusa.
-> 4. Escreva os testes do motor antes da UI: produção, consumo, escassez determinística, custos, fila única, gates por Salão, cancelamento, recrutamento, e o teste de propriedade do invariante de `advanceTo`.
-> 5. Coloque **todos** os números em `packages/content` com schemas zod validados em teste.
-> 6. Implemente a extensão: ativação, TreeView, WebviewPanel com a aba Feudo, Status Bar, comandos, persistência em arquivo com `schemaVersion` e `save.bak`, scheduler de 30 s, Relatório de Retorno.
-> 7. Implemente a Webview com tokens de tema do VS Code, navegação por teclado e tooltips explicativos em todos os números.
-> 8. Documente no `README.md`: instalar, compilar, rodar com F5 (Extension Development Host), testar, e como rodar o `sim-cli`.
-> 9. Não adicione multiplayer, autenticação, telemetria, som, nem bibliotecas além de TypeScript, esbuild (ou equivalente), Vitest, fast-check, zod e Preact.
+> 2. Crie o monorepo (pnpm workspaces) com `packages/engine`, `content`, `protocol`, `server`, `client-sdk`, `sim-cli`, `extension` e `webview`, mais a pasta `deploy/`.
+> 3. Implemente primeiro o motor: `GameState`, `createInitialState(seed, settings)`, `advanceTo(state, gameTimeMs)` por segmentos com aritmética inteira, RNG com fluxos nomeados, `applyCommand(state, command)` com validação e motivos de recusa, e a emissão de eventos e linhas de Crônica como saída.
+> 4. Escreva os testes do motor antes da UI e do servidor: produção, consumo, escassez determinística, custos, fila única, gates por Salão, cancelamento, recrutamento e o teste de propriedade do invariante de `advanceTo`.
+> 5. Coloque **todos** os números em `packages/content` com schemas zod validados em teste; defina `Command` e `ViewState` em `packages/protocol`.
+> 6. Implemente o servidor: migrações SQL; `POST /auth/anonymous`, `/auth/github`, `/auth/recovery-code`, `/auth/recover`, `/auth/refresh`, `/auth/logout`; `/me`; `/games`; `/games/:id/view` com ETag; `/games/:id/commands` idempotente em transação com `FOR UPDATE`; `/games/:id/events`; `/health`; `/version`; limites de taxa; e o job `advance-stale-games`. Testes de integração com PostgreSQL em Docker.
+> 7. Implemente o `client-sdk` tipado e a extensão: tela de boas-vindas, `SecretStorage`, TreeView, WebviewPanel com a aba Feudo, Status Bar, comandos, ciclo de 30 s com ETag, cache do último estado e modo sem conexão.
+> 8. Implemente a Webview com tokens de tema do VS Code, navegação por teclado e tooltips explicativos em todos os números.
+> 9. Escreva `deploy/docker-compose.yml` (caddy, api, db), `deploy/docker-compose.dev.yml`, `deploy/backup.sh` e um `README.md` com: instalar, rodar o banco local, rodar o servidor, rodar a extensão com F5, testar, e **implantar em um VPS do zero em dez passos**.
+> 10. Não adicione interação entre jogadores, pagamentos, telemetria de terceiros, som, nem bibliotecas além de TypeScript, esbuild (ou equivalente), Vitest, fast-check, zod, Preact, Fastify, pg, Drizzle, jose, pino e argon2.
 
 ### 18.2 Tarefas seguintes (uma por versão)
 
 - **v0.2:** §4, §5.4–5.7, §6 (Celeiro, Armazém, Torre, Paliçada), §7 com as 60 cartas do Apêndice B como ponto de partida, §8.2 (lobos e Ameaça com tiles abstratos), §12.1. Critérios em §16.2.
 - **v0.3:** §9 completo, §5.9. Grafos de expedição com 3 variantes por modelo.
 - **v0.4:** §10, §11.1–11.4, §8.3, §9.5. `sim-cli` com os quatro perfis e teste de faixa da §15.2.
-- **v0.5:** §8.1, §11.5, Capela e relíquias.
+- **v0.5:** §8.1, §11.5, §11.6 (Temporadas e ranking), Capela e relíquias.
 
 ### 18.3 Regras permanentes para qualquer tarefa
 
@@ -1027,6 +1205,17 @@ Sem telemetria por padrão. Opcionalmente, estatísticas locais (sessões/dia, d
 - Nunca mudar uma regra sem atualizar o golden test correspondente e esta especificação.
 - Toda nova mecânica entra com: dados em `content`, validação de comando, evento na Crônica, tooltip explicativo e teste.
 - Conteúdo narrativo (cartas, relatórios, Crônica) em português do Brasil, tom de crônica medieval, frases curtas.
+- Nenhuma regra de jogo no servidor fora do motor, e nenhuma no cliente: o servidor orquestra, o motor decide, a extensão exibe.
+
+### 18.4 Checklist de implantação (para quem hospeda)
+
+1. VPS com Docker e Docker Compose; domínio apontando para o IP (registro A).
+2. `git clone`; copiar `deploy/.env.example` para `deploy/.env`; gerar `JWT_SECRET` (`openssl rand -base64 48`); definir `PUBLIC_URL` e a senha do PostgreSQL.
+3. `docker compose -f deploy/docker-compose.yml up -d`: o Caddy obtém o certificado e a API aplica as migrações.
+4. Conferir `https://<domínio>/v1/health` e `/v1/version`.
+5. Agendar `deploy/backup.sh` no cron do host (diário) e testar uma restauração.
+6. Publicar a extensão (Marketplace ou `.vsix`) com `lords.serverUrl` padrão apontando para o domínio.
+7. Atualizar com `docker compose pull && docker compose up -d`; reverter fixando a tag anterior da imagem.
 
 ---
 
@@ -1133,3 +1322,8 @@ Postura Cautelosa escolhe N3c; Equilibrada N3b; Ousada N3a. O relatório cita qu
 | Crônica | Log narrativo; a Crônica do Ano fecha o ciclo |
 | Legado / Votos | Meta-progressão permanente / modificadores de dificuldade escolhidos |
 | Semente | Valor que determina mapa, cartas elegíveis e Horda base |
+| Conta anônima | Conta criada no primeiro clique, sem e-mail nem senha; vinculável depois |
+| Código do Reino | Código de recuperação mostrado uma vez, usado para assumir a conta em outra máquina |
+| Comando | Única forma de alterar o estado: validado e aplicado pelo servidor, idempotente por `commandId` |
+| ViewState | Estado derivado e formatado que o servidor devolve para exibição; nunca contém a composição inimiga real |
+| Temporada | Semana compartilhada com semente única e ranking, sem interação entre feudos |
