@@ -28,6 +28,8 @@ export type {
   Range,
   WindowId,
 } from './matrix';
+export { formatCoverage, measureCoverage } from './coverage';
+export type { Coverage } from './coverage';
 export { bandFor, cellKey, checkBand, SLACK } from './bands';
 export type { Band, CellKey } from './bands';
 export { formatPerf, PERF_SCENARIOS, runPerf } from './perf';

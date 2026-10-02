@@ -313,41 +313,127 @@ export const recrutar: Policy = {
 
 type CardOption = ViewState['council']['pending'][number]['options'][number];
 
-/** O preço de uma opção de carta para quem escolhe a mais barata: a soma do que ela custa. */
+/**
+ * Quanto do estoque uma opção de carta pode levar: o bot só paga a opção cujo custo cabe três
+ * vezes em cada recurso que ela pede. É a folga de quem gasta com o povo o que sobra, e nunca
+ * o que as obras, a mesa e a lareira esperam.
+ */
+const CARD_SPEND_SHARE = 3;
+
+/** O preço de uma opção de carta: a soma do que ela custa. */
 function optionPrice(option: CardOption): number {
   return option.cost.reduce((sum, cost) => sum + cost.amount, 0);
 }
 
 /**
- * Responde a toda carta do Conselho que está na mesa com a opção mais barata entre as que o
- * feudo alcança e pode pagar agora (`locked` e `affordable`, como a tela mostra); no empate, a
- * primeira da carta. Se a resposta abre lugar para outra carta (uma continuação que esperava),
- * responde a ela também.
+ * O que a próxima obra do feudo pede de um recurso: a mais barata entre as que só esperam
+ * recurso ou fila, que é a que o bot inicia primeiro (`obra mais barata`). Zero sem nenhuma.
+ */
+function nextUpgradeNeeds(view: ViewState, resource: ResourceId): number {
+  const [next] = view.constructions.available
+    .filter((upgrade) => reachable(upgrade) && upgrade.blockedCode !== 'ALREADY_UPGRADING')
+    .sort((a, b) => price(a) - price(b));
+  return next?.cost.find((cost) => cost.resource === resource)?.amount ?? 0;
+}
+
+/**
+ * A opção cabe com folga: cada recurso do custo está entrando (o saldo por hora é positivo: o
+ * que se gasta volta), o estoque é ao menos o triplo do custo, e o que sobra depois de pagar
+ * ainda cobre o que já tem dono: a próxima obra, a reserva de comida do recrutamento e a
+ * madeira que a lareira vai queimar (a conta da lenha da visão). Com fome, a comida não vai
+ * para carta nenhuma.
+ */
+function affordsWithSlack(view: ViewState, option: CardOption): boolean {
+  return option.cost.every(({ resource, amount }) => {
+    const row = view.resources.find((entry) => entry.id === resource);
+    const stock = row?.stock ?? 0;
+    const left = stock - amount;
+    if (row === undefined || row.perHour <= 0) {
+      return false;
+    }
+    if (stock < CARD_SPEND_SHARE * amount || left < nextUpgradeNeeds(view, resource)) {
+      return false;
+    }
+    if (resource === 'food') {
+      return left >= FOOD_RESERVE && view.famine === null;
+    }
+    return resource !== 'wood' || left >= firewoodReserve(view);
+  });
+}
+
+type PendingCardView = ViewState['council']['pending'][number];
+
+/**
+ * Responde, uma a uma, às cartas que estão na mesa, com a opção que `choose` apontar; se a
+ * resposta abre lugar para outra carta (uma continuação que esperava), responde a ela também.
+ * Cada carta é tentada uma vez por sessão: uma recusa não vira laço.
+ */
+async function answerPending(
+  view: ViewState,
+  act: Act,
+  choose: (view: ViewState, card: PendingCardView) => CardOption | undefined,
+): Promise<ViewState> {
+  let current = view;
+  const tried = new Set<string>();
+  for (;;) {
+    const card = current.council.pending.find((entry) => !tried.has(entry.instanceId));
+    if (card === undefined) {
+      return current;
+    }
+    tried.add(card.instanceId);
+    const chosen = choose(current, card);
+    if (chosen !== undefined) {
+      current = await act('answerCard', { instanceId: card.instanceId, optionId: chosen.id });
+    }
+  }
+}
+
+/** As opções que o feudo alcança e pode pagar agora (`locked` e `affordable`, como a tela mostra). */
+function withinReach(card: PendingCardView): CardOption[] {
+  return card.options.filter((option) => !option.locked && option.affordable);
+}
+
+/**
+ * A primeira opção sem custo da carta: a que não gasta nem arrisca. No conteúdo as opções sem
+ * custo vêm depois das pagas, e a mais dura vem por último.
+ */
+function firstFree(card: PendingCardView): CardOption | undefined {
+  return withinReach(card).find((option) => option.cost.length === 0);
+}
+
+/**
+ * Responde a toda carta do Conselho que está na mesa, como quem investe no povo o que sobra:
  *
- * É a política mais simples que usa a mecânica: toda carta tem ao menos uma opção sem custo (a
- * que o conselho aplicaria sozinho), então o bot nunca gasta com o Conselho e nunca deixa uma
- * carta expirar. Ele não lê a pista nem pesa a consequência: quem joga melhor que isso é uma
- * política nova, quando o catálogo de cartas estiver fechado (roadmap da v0.2, V2D-T2).
+ * - entre as opções pagas que o feudo alcança (`locked` e `affordable`, como a tela mostra) e
+ *   que cabem com folga (`affordsWithSlack`: o recurso está entrando, o estoque é o triplo do
+ *   custo, e pagar não tira o material da próxima obra, a comida dos recrutas nem a lenha do
+ *   inverno), a **mais cara**; no empate, a primeira da carta;
+ * - sem nenhuma, a primeira opção sem custo da carta, que é a que não arrisca nada.
+ *
+ * O bot nunca deixa uma carta expirar e percorre as cadeias quando tem folga. Ele não lê a
+ * pista nem a frase da consequência: decide pelo custo e pelo estoque, e por isso não distingue
+ * uma festa de um conserto. Uma política que pese a consequência conhecida precisaria dela em
+ * números na visão, que hoje a traz só em texto (`effectsText`).
  */
 export const responderCartas: Policy = {
   name: 'responder a carta',
-  run: async (view, act) => {
-    let current = view;
-    const tried = new Set<string>();
-    for (;;) {
-      const card = current.council.pending.find((entry) => !tried.has(entry.instanceId));
-      if (card === undefined) {
-        return current;
-      }
-      tried.add(card.instanceId);
-      const [cheapest] = card.options
-        .filter((option) => !option.locked && option.affordable)
-        .sort((a, b) => optionPrice(a) - optionPrice(b));
-      if (cheapest !== undefined) {
-        current = await act('answerCard', { instanceId: card.instanceId, optionId: cheapest.id });
-      }
-    }
-  },
+  run: (view, act) =>
+    answerPending(view, act, (current, card) => {
+      const [investment] = withinReach(card)
+        .filter((option) => option.cost.length > 0 && affordsWithSlack(current, option))
+        .sort((a, b) => optionPrice(b) - optionPrice(a));
+      return investment ?? firstFree(card);
+    }),
+};
+
+/**
+ * Responde a toda carta do Conselho com a primeira opção sem custo: a de quem decide o mínimo.
+ * Nunca paga nada e nunca deixa uma carta expirar; por isso também nunca abre uma cadeia que
+ * começa por uma opção paga.
+ */
+export const responderCartasSemGastar: Policy = {
+  name: 'responder a carta sem gastar',
+  run: (view, act) => answerPending(view, act, (_current, card) => firstFree(card)),
 };
 
 /**

@@ -47,6 +47,22 @@ O que a tabela acima deixava em aberto e o código precisava ter. Foi decidido p
 | Dois ritmos, o mesmo mundo | Deixa de valer quando uma carta **expira**: o prazo é de tempo real, então cai em instantes de jogo diferentes em cada ritmo. Enquanto as cartas são respondidas nos mesmos instantes de jogo, os dois mundos coincidem | É consequência direta da decisão 1 |
 | Qual cabeçalho diz o protocolo | `X-Lords-Protocol` (o número), que o servidor já comparava desde a v0.1; `X-Lords-Client` continua dizendo só qual app e de que versão | O texto acima fala em `X-Lords-Client`; o mecanismo que existia, e que o app já trata, é o do número do protocolo |
 
+### Detalhes fechados na curadoria do primeiro lote de cartas (V2D-T2, 2026-10-02)
+
+O que as decisões 7, 9 e 21 deixavam em aberto e o lote precisava ter. Foi decidido pelo agente, sem o autor, e **aguarda confirmação** como o resto deste ADR. Tudo é conteúdo: reverter um item é editar as cartas em `packages/content/src/cards/` e regravar os goldens. As fichas, a cobertura medida e os limites estão em [content-v0.2.md](../content-v0.2.md).
+
+| Assunto | O que foi aplicado | Por quê |
+|---|---|---|
+| Quantas cartas estão no jogo | **18 das 21**: as cadeias "O Celeiro Comum" e "A Ponte do Degelo" e as 12 avulsas. "A Promessa da Paliçada" está escrita no inventário e entra com a Paliçada (V2E-T2) | A cadeia confere a obra pela opção trancada por edifício, e o edifício ainda não existe |
+| Opção automática em Camponês e em Senhor (decisão 9) | Nas cartas do sorteio, **nunca tira recurso nem moral, nem depois**. Rei de Ferro fica com a mais dura das que não têm custo. Em uma continuação, a conta de uma escolha do senhor pode custar moral sem resposta | GDD §15.1, item 5 ("faltar nunca destrói nada fora de Rei de Ferro"). Com −5 de moral na opção automática, uma carta que expirava no meio de uma fome levava a moral de 28 a 23 e abria o sorteio de quem vai embora |
+| Camponês e Senhor | **Decidem igual em todas as cartas do lote**: cada carta tem no máximo duas opções sem custo, e a outra é a dura | Consequência da linha de cima com o limite de três opções por carta. A tabela do GDD §12.1 distingue as três dificuldades; no lote 1 só Rei de Ferro se distingue |
+| Cartas recorrentes | Quatro avulsas (`masonsMeal`, `sawmillRest`, `neighborsWatch`, `moreMouths`), sem estação nem edifício, peso 1. A mesma não sai duas vezes seguidas: cada uma grava a flag `routine.<carta>` em todas as opções e apaga as das outras três | O ano tem 21 audiências e o lote tem 10 cartas de uma vez por ano no sorteio. A ronda é feita só com flags: nenhuma regra nova no motor |
+| Prazos das cadeias | Continuação em **2 dias de jogo** (4 quando a carta dá um prazo); moral das cadeias por **3 dias** | A história anda no mesmo dia real, e quem responde logo soma a moral de duas cartas. O exemplo da §12.2 do roadmap dizia 3 dias e 1 dia |
+| Moral 80 | Uma festa de +20 por 2 dias ("A colheita de todos") e caminhos de cadeia que somam +20. Efeitos de cartas diferentes se somam | A base e a comida guardada dão 60 (GDD §5.7); sem +20 o colono atraído pela fama do feudo nunca seria visto |
+| Temas que pediam efeito que o motor não tem | "Mais bocas à mesa" não dá aldeão (os viajantes pagam com trabalho e seguem); "A mesa dos aprendizes" não dá experiência do ofício (rende madeira e pedra depois); "Um teto antes do frio" não é promessa com prazo | "O que uma carta pode fazer nesta versão" (acima) é uma lista fechada. A promessa com prazo está na cadeia da Paliçada |
+| Custos | Fixos, de 15 a 150 unidades, em qualquer estágio do feudo | É o que o efeito `resources` permite. Custo proporcional ao estoque seria um efeito novo |
+| Ordem das opções | Primeiro as pagas ou trancadas; depois a que o conselho aplica em Senhor; por último a de Rei de Ferro | Quem lê de cima para baixo vê primeiro o que pode comprar; e a primeira opção sem custo é sempre a que não arrisca |
+
 ### Compatibilidade
 
 O `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 não sabe ler. O protocolo sobe para **2** e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a um `X-Lords-Client` anterior. O cache local de uma versão anterior é descartado.
@@ -56,4 +72,5 @@ O `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 nã
 - O GDD foi corrigido em §6.1, §7.1, §8.2 e §12.2 com os números aplicados.
 - Critérios 2, 3 e 4 da §16.2: cenário no motor nas três dificuldades, a cadeia "O Celeiro Comum" de ponta a ponta nas duas ramificações, e a incursão de lobos com o jogador fora, por integração e em navegador.
 - A mesma incursão com Torre 0/1/2 e Paliçada 0/1/2 (matriz QA-10) prova que aviso e proteção têm efeito real.
+- As duas cadeias do jogo são percorridas de ponta a ponta, em todas as ramificações e nas três dificuldades, em `packages/engine/src/council.chains.test.ts`; o golden de 7 dias passa pelas duas.
 - **O que o autor precisa confirmar**, incluindo o texto das 21 cartas, está em [pendencias-v0.2.md](../pendencias-v0.2.md).

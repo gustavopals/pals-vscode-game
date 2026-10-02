@@ -142,21 +142,29 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     expect(all.body.entries).toEqual(
       events.body.events.filter((event) => event.type !== 'dayStarted'),
     );
-    expect(all.body.entries.map((entry) => [entry.type, entry.text])).toEqual([
-      // O Conselho pede audiência no 5º e no 9º dia, e ninguém responde. 24 h reais depois de
-      // cada carta, o conselho decide sozinho: manda o povo desentulhar o poço (e a moral paga
-      // por um dia) e reparte o pão com os pedreiros.
-      ['cardDrawn', expect.stringContaining('pediu audiência: O poço entulhado.')],
+    const story = all.body.entries.map((entry) => [entry.type, entry.text]);
+    // O Conselho pede audiência a cada 4 dias de jogo, e ninguém responde: a mesa enche com
+    // duas cartas, e cada uma espera 24 h reais (12 dias de jogo) até o conselho decidir
+    // sozinho. Nenhuma dessas decisões custa nada ao feudo: quem falta só perde a oportunidade.
+    const cards = story.filter(([type]) => `${type}`.startsWith('card'));
+    expect(cards.filter(([type]) => type === 'cardDrawn')).toHaveLength(11);
+    expect(cards.filter(([type]) => type === 'cardExpired')).toHaveLength(10);
+    expect(cards.slice(0, 3)).toEqual([
+      ['cardDrawn', expect.stringContaining('pediu audiência: Sementes para o próximo campo.')],
       ['cardDrawn', expect.stringContaining('pediu audiência: A refeição dos pedreiros.')],
-      ['cardExpired', expect.stringContaining('sem palavra do senhor, o conselho de Pedra Alta')],
-      ['moraleBandChanged', expect.stringContaining('o povo de Pedra Alta anda inquieto')],
-      ['moraleBandChanged', expect.stringContaining('O povo está contente')],
-      // Ninguém foi para a Fazenda: a comida acaba na 36ª hora, ainda na Primavera. A moral
-      // cai na virada seguinte e de novo dois dias depois; na 48ª hora, com 12 h de fome, um
-      // aldeão parte e outro deserta. Ficam três, o piso, e ninguém mais sai.
+      ['cardExpired', expect.stringContaining('sem palavra do senhor, o campo novo de Pedra Alta')],
+    ]);
+    for (const expired of all.body.entries.filter((entry) => entry.type === 'cardExpired')) {
+      expect(Object.keys(expired.data).filter((key) => /^(spent|lost)_/.test(key))).toEqual([]);
+      expect(Number(expired.data.morale ?? 0)).toBeGreaterThanOrEqual(0);
+    }
+    // Sem as cartas, a história do feudo abandonado. Ninguém foi para a Fazenda: a comida
+    // acaba na 36ª hora, ainda na Primavera. A moral cai na virada seguinte e de novo dois dias
+    // depois; na 48ª hora, com 12 h de fome, um aldeão parte e outro deserta. Ficam três, o
+    // piso, e ninguém mais sai.
+    expect(story.filter(([type]) => !`${type}`.startsWith('card'))).toEqual([
       ['famineStarted', expect.stringContaining('A fome começou.')],
       ['moraleBandChanged', expect.stringContaining('o povo de Pedra Alta anda inquieto')],
-      ['cardExpired', expect.stringContaining('sem palavra do senhor, os pedreiros')],
       ['moraleBandChanged', expect.stringContaining('perdeu a esperança')],
       ['seasonChanged', 'Chega o Verão a Pedra Alta.'],
       ['villagerLeft', expect.stringContaining('deixou Pedra Alta')],
@@ -165,13 +173,13 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
       ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],
       ['seasonChanged', 'Chega a Primavera a Pedra Alta.'],
-      // Ano novo, lista das cartas vistas zerada: o Conselho volta a ter assunto.
-      ['cardDrawn', expect.stringContaining('pediu audiência: ')],
     ]);
 
     // O filtro por ano corta nos eventos yearStarted, mesmo sem as viradas de dia no meio.
-    expect(first.body.entries).toEqual(all.body.entries.slice(0, 14));
-    expect(second.body.entries).toEqual(all.body.entries.slice(14));
+    const newYear = all.body.entries.findIndex((entry) => entry.type === 'yearStarted');
+    expect(newYear).toBeGreaterThan(20);
+    expect(first.body.entries).toEqual(all.body.entries.slice(0, newYear));
+    expect(second.body.entries).toEqual(all.body.entries.slice(newYear));
     expect(second.body.entries[0]).toMatchObject({ type: 'yearStarted', data: { year: 2 } });
     expect(third.body.entries).toEqual([]);
 

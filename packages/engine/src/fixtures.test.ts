@@ -299,7 +299,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(council.scheduled).toEqual([
       {
         cardId: 'commonGranaryOutcome',
-        atMs: 50 * DAY + 7 * MINUTE,
+        atMs: 48 * DAY + 7 * MINUTE,
         previousCardId: 'commonGranaryShare',
         previousOptionId: 'reserve',
         previousInstanceId: 'commonGranaryShare-3',

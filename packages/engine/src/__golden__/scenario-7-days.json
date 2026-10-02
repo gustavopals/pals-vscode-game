@@ -62,15 +62,6 @@
   },
   {
    "hour": 13,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "collapsedWell-1",
-    "optionId": "wait"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 13,
    "type": "recruitVillagers",
    "payload": {
     "quantity": 5
@@ -98,6 +89,15 @@
    "type": "planConstruction",
    "payload": {
     "building": "farm"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 24,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "thawBridgePlea-2",
+    "optionId": "timber"
    },
    "result": "accepted"
   },
@@ -146,6 +146,15 @@
   },
   {
    "hour": 36,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "thawBridgeSlab-3",
+    "optionId": "piers"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 36,
    "type": "startConstruction",
    "payload": {
     "building": "quarry"
@@ -176,6 +185,15 @@
     "count": 9
    },
    "result": "NOT_ENOUGH_VILLAGERS"
+  },
+  {
+   "hour": 48,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "thawBridgeCrossing-5",
+    "optionId": "feast"
+   },
+   "result": "accepted"
   },
   {
    "hour": 48,
@@ -211,15 +229,6 @@
   },
   {
    "hour": 60,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "commonGranaryPlanks-3",
-    "optionId": "cede"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 60,
    "type": "setWorkers",
    "payload": {
     "building": "quarry",
@@ -232,15 +241,6 @@
    "type": "startConstruction",
    "payload": {
     "building": "townHall"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 72,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "commonGranaryShare-4",
-    "optionId": "reserve"
    },
    "result": "accepted"
   },
@@ -280,15 +280,6 @@
   },
   {
    "hour": 84,
-   "type": "answerCard",
-   "payload": {
-    "instanceId": "commonGranaryOutcome-5",
-    "optionId": "leave"
-   },
-   "result": "accepted"
-  },
-  {
-   "hour": 84,
    "type": "recruitVillagers",
    "payload": {
     "quantity": 5
@@ -300,6 +291,15 @@
    "type": "startConstruction",
    "payload": {
     "building": "quarry"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 108,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "collapsedWell-9",
+    "optionId": "wait"
    },
    "result": "accepted"
   },
@@ -339,6 +339,15 @@
   },
   {
    "hour": 120,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "commonGranaryPlanks-11",
+    "optionId": "cede"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 120,
    "type": "startConstruction",
    "payload": {
     "building": "granary"
@@ -350,6 +359,15 @@
    "type": "planConstruction",
    "payload": {
     "building": "lumberMill"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 132,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "commonGranaryShare-12",
+    "optionId": "reserve"
    },
    "result": "accepted"
   },
@@ -367,6 +385,15 @@
    "payload": {
     "building": "lumberMill",
     "autoStart": true
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 144,
+   "type": "answerCard",
+   "payload": {
+    "instanceId": "commonGranaryOutcome-13",
+    "optionId": "leave"
    },
    "result": "accepted"
   },
@@ -474,7 +501,7 @@
  "days": [
   {
    "day": 1,
-   "eventsSoFar": 38,
+   "eventsSoFar": 34,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -503,10 +530,10 @@
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
-      "food": 168384,
-      "wood": 442702,
-      "stone": 150684,
-      "gold": 184272
+      "food": 173732,
+      "wood": 449120,
+      "stone": 132912,
+      "gold": 185164
      },
      "accumulators": {
       "food": 0,
@@ -572,8 +599,15 @@
     "council": {
      "pending": [
       {
-       "instanceId": "masonsMeal-2",
-       "cardId": "masonsMeal",
+       "instanceId": "neighborsWatch-1",
+       "cardId": "neighborsWatch",
+       "drawnAtMs": 28800000,
+       "expiresAtMs": 115200000,
+       "origin": null
+      },
+      {
+       "instanceId": "thawBridgePlea-2",
+       "cardId": "thawBridgePlea",
        "drawnAtMs": 57600000,
        "expiresAtMs": 144000000,
        "origin": null
@@ -581,8 +615,8 @@
      ],
      "flags": {},
      "seenThisYear": [
-      "collapsedWell",
-      "masonsMeal"
+      "neighborsWatch",
+      "thawBridgePlea"
      ],
      "nextDrawAtMs": 115200000,
      "scheduled": [],
@@ -602,17 +636,16 @@
      "constructionsStarted:housing": 1,
      "villagersRecruited": 8,
      "cardsDrawn": 2,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn:neighborsWatch": 1,
      "constructionsStarted:townHall": 1,
-     "cardsAnswered": 1,
      "constructionsStarted:lumberMill": 1,
-     "cardsDrawn:masonsMeal": 1
+     "cardsDrawn:thawBridgePlea": 1
     }
    }
   },
   {
    "day": 2,
-   "eventsSoFar": 69,
+   "eventsSoFar": 71,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -632,10 +665,10 @@
     "lastProcessedAt": 172800000,
     "rng": {
      "council": [
-      1674983000,
-      3939294600,
-      2593089345,
-      300506819
+      2566108435,
+      328567953,
+      1625440537,
+      739925977
      ]
     },
     "settlement": {
@@ -643,8 +676,8 @@
      "resources": {
       "food": 500000,
       "wood": 900000,
-      "stone": 398584,
-      "gold": 455840
+      "stone": 352912,
+      "gold": 458832
      },
      "accumulators": {
       "food": 1500000,
@@ -680,8 +713,8 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 698,
-      "wood": 354,
+      "food": 92,
+      "wood": 498,
       "stone": 0,
       "gold": 0
      },
@@ -702,17 +735,44 @@
      "moraleEffects": []
     },
     "council": {
-     "pending": [],
-     "flags": {},
+     "pending": [
+      {
+       "instanceId": "springSeeds-4",
+       "cardId": "springSeeds",
+       "drawnAtMs": 144000000,
+       "expiresAtMs": 230400000,
+       "origin": null
+      },
+      {
+       "instanceId": "thawBridgeCrossing-5",
+       "cardId": "thawBridgeCrossing",
+       "drawnAtMs": 144000000,
+       "expiresAtMs": 230400000,
+       "origin": {
+        "cardId": "thawBridgeSlab",
+        "optionId": "piers",
+        "instanceId": "thawBridgeSlab-3"
+       }
+      }
+     ],
+     "flags": {
+      "thawBridge.open": true,
+      "thawBridge.timber": true,
+      "routine.neighborsWatch": true,
+      "thawBridge.piers": true
+     },
      "seenThisYear": [
-      "collapsedWell",
-      "masonsMeal"
+      "neighborsWatch",
+      "thawBridgePlea",
+      "thawBridgeSlab",
+      "springSeeds",
+      "thawBridgeCrossing"
      ],
      "nextDrawAtMs": 201600000,
      "scheduled": [],
      "delayed": [],
      "expired": [
-      "masonsMeal-2"
+      "neighborsWatch-1"
      ]
     },
     "objectives": {
@@ -727,24 +787,27 @@
     "stats": {
      "constructionsStarted:housing": 2,
      "villagersRecruited": 8,
-     "cardsDrawn": 2,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 5,
+     "cardsDrawn:neighborsWatch": 1,
      "constructionsStarted:townHall": 1,
-     "cardsAnswered": 1,
      "constructionsStarted:lumberMill": 1,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 2,
      "constructionsStarted:farm": 1,
      "constructionsStarted:quarry": 2,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 220698,
      "cardsExpired": 1,
-     "wasted_wood": 158354
+     "wasted_food": 321092,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 131498
     }
    }
   },
   {
    "day": 3,
-   "eventsSoFar": 111,
+   "eventsSoFar": 114,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -764,19 +827,19 @@
     "lastProcessedAt": 259200000,
     "rng": {
      "council": [
-      2566108435,
-      328567953,
-      1625440537,
-      739925977
+      845307708,
+      2683357386,
+      2089125457,
+      4056628392
      ]
     },
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 674727,
+      "food": 642527,
       "wood": 900000,
-      "stone": 715736,
-      "gold": 703043
+      "stone": 672752,
+      "gold": 710715
      },
      "accumulators": {
       "food": 2700000,
@@ -812,8 +875,8 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 698,
-      "wood": 432,
+      "food": 92,
+      "wood": 926,
       "stone": 0,
       "gold": 0
      },
@@ -836,32 +899,39 @@
     "council": {
      "pending": [
       {
-       "instanceId": "commonGranaryShare-4",
-       "cardId": "commonGranaryShare",
-       "drawnAtMs": 237600000,
-       "expiresAtMs": 324000000,
-       "origin": {
-        "cardId": "commonGranaryPlanks",
-        "optionId": "cede",
-        "instanceId": "commonGranaryPlanks-3"
-       }
+       "instanceId": "moreMouths-6",
+       "cardId": "moreMouths",
+       "drawnAtMs": 201600000,
+       "expiresAtMs": 288000000,
+       "origin": null
+      },
+      {
+       "instanceId": "apprenticesTable-7",
+       "cardId": "apprenticesTable",
+       "drawnAtMs": 259200000,
+       "expiresAtMs": 345600000,
+       "origin": null
       }
      ],
      "flags": {
-      "commonGranary.open": true,
-      "commonGranary.supported": true
+      "routine.neighborsWatch": true,
+      "thawBridge.piers": true
      },
      "seenThisYear": [
-      "collapsedWell",
-      "masonsMeal",
-      "commonGranaryPlanks",
-      "commonGranaryShare"
+      "neighborsWatch",
+      "thawBridgePlea",
+      "thawBridgeSlab",
+      "springSeeds",
+      "thawBridgeCrossing",
+      "moreMouths",
+      "apprenticesTable"
      ],
      "nextDrawAtMs": 288000000,
      "scheduled": [],
      "delayed": [],
      "expired": [
-      "masonsMeal-2"
+      "neighborsWatch-1",
+      "springSeeds-4"
      ]
     },
     "objectives": {
@@ -876,28 +946,31 @@
     "stats": {
      "constructionsStarted:housing": 2,
      "villagersRecruited": 12,
-     "cardsDrawn": 4,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 7,
+     "cardsDrawn:neighborsWatch": 1,
      "constructionsStarted:townHall": 2,
-     "cardsAnswered": 2,
      "constructionsStarted:lumberMill": 1,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 3,
      "constructionsStarted:farm": 1,
      "constructionsStarted:quarry": 2,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 220698,
-     "cardsExpired": 1,
-     "wasted_wood": 1002432,
+     "cardsExpired": 2,
+     "wasted_food": 321092,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 1029926,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
-     "cardsDrawn:commonGranaryPlanks": 1,
-     "cardsDrawn:commonGranaryShare": 1
+     "cardsDrawn:moreMouths": 1,
+     "cardsDrawn:apprenticesTable": 1
     }
    }
   },
   {
    "day": 4,
-   "eventsSoFar": 153,
+   "eventsSoFar": 156,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -917,10 +990,10 @@
     "lastProcessedAt": 345600000,
     "rng": {
      "council": [
-      2566108435,
-      328567953,
-      1625440537,
-      739925977
+      1549380446,
+      3507949991,
+      2943765869,
+      3752006513
      ]
     },
     "settlement": {
@@ -929,13 +1002,13 @@
       "food": 0,
       "wood": 900000,
       "stone": 900000,
-      "gold": 1033136
+      "gold": 1030214
      },
      "accumulators": {
       "food": 0,
-      "wood": 3183408,
-      "stone": 754990,
-      "gold": 42480
+      "wood": 2592360,
+      "stone": 917675,
+      "gold": 696600
      },
      "population": {
       "villagers": 22
@@ -963,13 +1036,13 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 329519086
+      "sinceMs": 324249995
      },
      "cold": null,
      "wasted": {
-      "food": 698,
-      "wood": 520,
-      "stone": 745,
+      "food": 92,
+      "wood": 285,
+      "stone": 72,
       "gold": 0
      },
      "craftExperience": {
@@ -989,22 +1062,36 @@
      "moraleEffects": []
     },
     "council": {
-     "pending": [],
+     "pending": [
+      {
+       "instanceId": "neighborsWatch-8",
+       "cardId": "neighborsWatch",
+       "drawnAtMs": 316800000,
+       "expiresAtMs": 403200000,
+       "origin": null
+      }
+     ],
      "flags": {
-      "commonGranary.gifted": true
+      "thawBridge.piers": true,
+      "routine.moreMouths": true
      },
      "seenThisYear": [
-      "collapsedWell",
-      "masonsMeal",
-      "commonGranaryPlanks",
-      "commonGranaryShare",
-      "commonGranaryOutcome"
+      "neighborsWatch",
+      "thawBridgePlea",
+      "thawBridgeSlab",
+      "springSeeds",
+      "thawBridgeCrossing",
+      "moreMouths",
+      "apprenticesTable"
      ],
      "nextDrawAtMs": 374400000,
      "scheduled": [],
      "delayed": [],
      "expired": [
-      "masonsMeal-2"
+      "neighborsWatch-1",
+      "springSeeds-4",
+      "moreMouths-6",
+      "apprenticesTable-7"
      ]
     },
     "objectives": {
@@ -1019,30 +1106,32 @@
     "stats": {
      "constructionsStarted:housing": 3,
      "villagersRecruited": 17,
-     "cardsDrawn": 5,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 8,
+     "cardsDrawn:neighborsWatch": 2,
      "constructionsStarted:townHall": 2,
-     "cardsAnswered": 4,
      "constructionsStarted:lumberMill": 1,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 3,
      "constructionsStarted:farm": 1,
      "constructionsStarted:quarry": 3,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 220698,
-     "cardsExpired": 1,
-     "wasted_wood": 2544520,
+     "cardsExpired": 4,
+     "wasted_food": 321092,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 2523285,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
-     "cardsDrawn:commonGranaryPlanks": 1,
-     "cardsDrawn:commonGranaryShare": 1,
-     "cardsDrawn:commonGranaryOutcome": 1,
-     "wasted_stone": 648745
+     "cardsDrawn:moreMouths": 1,
+     "cardsDrawn:apprenticesTable": 1,
+     "wasted_stone": 582072
     }
    }
   },
   {
    "day": 5,
-   "eventsSoFar": 187,
+   "eventsSoFar": 196,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -1062,10 +1151,10 @@
     "lastProcessedAt": 432000000,
     "rng": {
      "council": [
-      2566108435,
-      328567953,
-      1625440537,
-      739925977
+      254088279,
+      2199138813,
+      2636224978,
+      936507135
      ],
      "morale": [
       3881588205,
@@ -1080,13 +1169,13 @@
       "food": 900000,
       "wood": 900000,
       "stone": 900000,
-      "gold": 1437448
+      "gold": 1430410
      },
      "accumulators": {
       "food": 0,
-      "wood": 1833408,
-      "stone": 754990,
-      "gold": 42480
+      "wood": 1242360,
+      "stone": 917675,
+      "gold": 696600
      },
      "population": {
       "villagers": 19
@@ -1116,9 +1205,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 194,
-      "wood": 982,
-      "stone": 459,
+      "food": 580,
+      "wood": 923,
+      "stone": 506,
       "gold": 0
      },
      "craftExperience": {
@@ -1138,22 +1227,47 @@
      "moraleEffects": []
     },
     "council": {
-     "pending": [],
+     "pending": [
+      {
+       "instanceId": "roofBeforeCold-10",
+       "cardId": "roofBeforeCold",
+       "drawnAtMs": 403200000,
+       "expiresAtMs": 489600000,
+       "origin": null
+      },
+      {
+       "instanceId": "commonGranaryPlanks-11",
+       "cardId": "commonGranaryPlanks",
+       "drawnAtMs": 432000000,
+       "expiresAtMs": 518400000,
+       "origin": null
+      }
+     ],
      "flags": {
-      "commonGranary.gifted": true
+      "thawBridge.piers": true,
+      "routine.neighborsWatch": true
      },
      "seenThisYear": [
+      "neighborsWatch",
+      "thawBridgePlea",
+      "thawBridgeSlab",
+      "springSeeds",
+      "thawBridgeCrossing",
+      "moreMouths",
+      "apprenticesTable",
       "collapsedWell",
-      "masonsMeal",
-      "commonGranaryPlanks",
-      "commonGranaryShare",
-      "commonGranaryOutcome"
+      "roofBeforeCold",
+      "commonGranaryPlanks"
      ],
      "nextDrawAtMs": 460800000,
      "scheduled": [],
      "delayed": [],
      "expired": [
-      "masonsMeal-2"
+      "neighborsWatch-1",
+      "springSeeds-4",
+      "moreMouths-6",
+      "apprenticesTable-7",
+      "neighborsWatch-8"
      ]
     },
     "objectives": {
@@ -1168,30 +1282,35 @@
     "stats": {
      "constructionsStarted:housing": 3,
      "villagersRecruited": 17,
-     "cardsDrawn": 5,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 11,
+     "cardsDrawn:neighborsWatch": 2,
      "constructionsStarted:townHall": 2,
-     "cardsAnswered": 4,
      "constructionsStarted:lumberMill": 2,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 4,
      "constructionsStarted:farm": 1,
      "constructionsStarted:quarry": 3,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 527194,
-     "cardsExpired": 1,
-     "wasted_wood": 3307982,
+     "cardsExpired": 5,
+     "wasted_food": 601580,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 3280923,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
-     "cardsDrawn:commonGranaryPlanks": 1,
-     "cardsDrawn:commonGranaryShare": 1,
-     "cardsDrawn:commonGranaryOutcome": 1,
-     "wasted_stone": 1283459
+     "cardsDrawn:moreMouths": 1,
+     "cardsDrawn:apprenticesTable": 1,
+     "wasted_stone": 1229506,
+     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn:roofBeforeCold": 1,
+     "cardsDrawn:commonGranaryPlanks": 1
     }
    }
   },
   {
    "day": 6,
-   "eventsSoFar": 223,
+   "eventsSoFar": 238,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -1211,10 +1330,10 @@
     "lastProcessedAt": 518400000,
     "rng": {
      "council": [
-      2566108435,
-      328567953,
-      1625440537,
-      739925977
+      3152073557,
+      286309496,
+      3127342981,
+      775427494
      ],
      "morale": [
       3881588205,
@@ -1229,13 +1348,13 @@
       "food": 1500000,
       "wood": 900000,
       "stone": 900000,
-      "gold": 1892352
+      "gold": 1888404
      },
      "accumulators": {
       "food": 3150000,
-      "wood": 1833408,
-      "stone": 754990,
-      "gold": 42480
+      "wood": 1242360,
+      "stone": 917675,
+      "gold": 696600
      },
      "population": {
       "villagers": 19
@@ -1265,9 +1384,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 702,
-      "wood": 857,
-      "stone": 739,
+      "food": 606,
+      "wood": 166,
+      "stone": 246,
       "gold": 0
      },
      "craftExperience": {
@@ -1287,22 +1406,58 @@
      "moraleEffects": []
     },
     "council": {
-     "pending": [],
+     "pending": [
+      {
+       "instanceId": "commonGranaryOutcome-13",
+       "cardId": "commonGranaryOutcome",
+       "drawnAtMs": 489600000,
+       "expiresAtMs": 576000000,
+       "origin": {
+        "cardId": "commonGranaryShare",
+        "optionId": "reserve",
+        "instanceId": "commonGranaryShare-12"
+       }
+      },
+      {
+       "instanceId": "masonsMeal-14",
+       "cardId": "masonsMeal",
+       "drawnAtMs": 518400000,
+       "expiresAtMs": 604800000,
+       "origin": null
+      }
+     ],
      "flags": {
-      "commonGranary.gifted": true
+      "thawBridge.piers": true,
+      "routine.neighborsWatch": true,
+      "commonGranary.open": true,
+      "commonGranary.supported": true,
+      "commonGranary.reserved": true
      },
      "seenThisYear": [
+      "neighborsWatch",
+      "thawBridgePlea",
+      "thawBridgeSlab",
+      "springSeeds",
+      "thawBridgeCrossing",
+      "moreMouths",
+      "apprenticesTable",
       "collapsedWell",
-      "masonsMeal",
+      "roofBeforeCold",
       "commonGranaryPlanks",
       "commonGranaryShare",
-      "commonGranaryOutcome"
+      "commonGranaryOutcome",
+      "masonsMeal"
      ],
      "nextDrawAtMs": 547200000,
      "scheduled": [],
      "delayed": [],
      "expired": [
-      "masonsMeal-2"
+      "neighborsWatch-1",
+      "springSeeds-4",
+      "moreMouths-6",
+      "apprenticesTable-7",
+      "neighborsWatch-8",
+      "roofBeforeCold-10"
      ]
     },
     "objectives": {
@@ -1317,30 +1472,38 @@
     "stats": {
      "constructionsStarted:housing": 3,
      "villagersRecruited": 17,
-     "cardsDrawn": 5,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 14,
+     "cardsDrawn:neighborsWatch": 2,
      "constructionsStarted:townHall": 2,
-     "cardsAnswered": 4,
      "constructionsStarted:lumberMill": 3,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 6,
      "constructionsStarted:farm": 2,
      "constructionsStarted:quarry": 3,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 3354702,
-     "cardsExpired": 1,
-     "wasted_wood": 3452857,
+     "cardsExpired": 6,
+     "wasted_food": 3449606,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 3390166,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 2,
+     "cardsDrawn:moreMouths": 1,
+     "cardsDrawn:apprenticesTable": 1,
+     "wasted_stone": 1896246,
+     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn:roofBeforeCold": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
-     "wasted_stone": 1944739
+     "cardsDrawn:masonsMeal": 1
     }
    }
   },
   {
    "day": 7,
-   "eventsSoFar": 268,
+   "eventsSoFar": 285,
    "state": {
     "schemaVersion": 8,
     "seed": "pedra-alta-golden",
@@ -1360,10 +1523,10 @@
     "lastProcessedAt": 604800000,
     "rng": {
      "council": [
-      2809947739,
-      3951327387,
-      3540571658,
-      2124038652
+      2227731083,
+      278337704,
+      553604304,
+      1162801657
      ],
      "morale": [
       3881588205,
@@ -1378,13 +1541,13 @@
       "food": 1500000,
       "wood": 52009,
       "stone": 799907,
-      "gold": 1880480
+      "gold": 1889549
      },
      "accumulators": {
-      "food": 1111152,
+      "food": 2728125,
       "wood": 0,
-      "stone": 39774,
-      "gold": 844460
+      "stone": 1080800,
+      "gold": 1796688
      },
      "population": {
       "villagers": 22
@@ -1414,9 +1577,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 202,
-      "wood": 857,
-      "stone": 360,
+      "food": 270,
+      "wood": 166,
+      "stone": 108,
       "gold": 0
      },
      "craftExperience": {
@@ -1438,23 +1601,25 @@
     "council": {
      "pending": [
       {
-       "instanceId": "commonGranaryPlanks-6",
-       "cardId": "commonGranaryPlanks",
-       "drawnAtMs": 604800000,
-       "expiresAtMs": 691200000,
+       "instanceId": "sawmillRest-15",
+       "cardId": "sawmillRest",
+       "drawnAtMs": 547200000,
+       "expiresAtMs": 633600000,
        "origin": null
       }
      ],
      "flags": {
-      "commonGranary.gifted": true
+      "thawBridge.piers": true,
+      "commonGranary.gifted": true,
+      "routine.masonsMeal": true
      },
-     "seenThisYear": [
-      "commonGranaryPlanks"
-     ],
+     "seenThisYear": [],
      "nextDrawAtMs": 633600000,
      "scheduled": [],
      "delayed": [],
-     "expired": []
+     "expired": [
+      "masonsMeal-14"
+     ]
     },
     "objectives": {
      "active": [],
@@ -1468,24 +1633,33 @@
     "stats": {
      "constructionsStarted:housing": 4,
      "villagersRecruited": 20,
-     "cardsDrawn": 6,
-     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn": 15,
+     "cardsDrawn:neighborsWatch": 2,
      "constructionsStarted:townHall": 3,
-     "cardsAnswered": 4,
      "constructionsStarted:lumberMill": 3,
-     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:thawBridgePlea": 1,
+     "cardsAnswered": 7,
      "constructionsStarted:farm": 2,
      "constructionsStarted:quarry": 4,
+     "cardsDrawn:thawBridgeSlab": 1,
      "constructionsStarted:warehouse": 1,
-     "wasted_food": 3983202,
-     "cardsExpired": 1,
-     "wasted_wood": 3452857,
+     "cardsExpired": 7,
+     "wasted_food": 4117270,
+     "cardsDrawn:springSeeds": 1,
+     "cardsDrawn:thawBridgeCrossing": 1,
+     "wasted_wood": 3390166,
      "constructionsStarted:goldMine": 2,
      "constructionsStarted:granary": 2,
-     "cardsDrawn:commonGranaryPlanks": 2,
+     "cardsDrawn:moreMouths": 1,
+     "cardsDrawn:apprenticesTable": 1,
+     "wasted_stone": 2199108,
+     "cardsDrawn:collapsedWell": 1,
+     "cardsDrawn:roofBeforeCold": 1,
+     "cardsDrawn:commonGranaryPlanks": 1,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
-     "wasted_stone": 2225360
+     "cardsDrawn:masonsMeal": 1,
+     "cardsDrawn:sawmillRest": 1
     }
    }
   }
@@ -1607,10 +1781,10 @@
   {
    "type": "cardDrawn",
    "atMs": 28800000,
-   "text": "No 5º dia da Primavera, o conselho de Pedra Alta pediu audiência: O poço entulhado.",
+   "text": "No 5º dia da Primavera, o conselho de Pedra Alta pediu audiência: Vigília entre vizinhos.",
    "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-1",
+    "cardId": "neighborsWatch",
+    "instanceId": "neighborsWatch-1",
     "source": "draw"
    }
   },
@@ -1657,16 +1831,6 @@
    "text": "Amanhece o 7º dia da Primavera em Pedra Alta.",
    "data": {
     "dayOfYear": 7
-   }
-  },
-  {
-   "type": "cardAnswered",
-   "atMs": 46800000,
-   "text": "No 7º dia da Primavera, o senhor de Pedra Alta deixou o poço como estava. O povo seguiu descendo ao riacho.",
-   "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-1",
-    "optionId": "wait"
    }
   },
   {
@@ -1758,24 +1922,11 @@
   {
    "type": "cardDrawn",
    "atMs": 57600000,
-   "text": "No 9º dia da Primavera, o conselho de Pedra Alta pediu audiência: A refeição dos pedreiros.",
+   "text": "No 9º dia da Primavera, o conselho de Pedra Alta pediu audiência: A ponte que o degelo levou.",
    "data": {
-    "cardId": "masonsMeal",
-    "instanceId": "masonsMeal-2",
+    "cardId": "thawBridgePlea",
+    "instanceId": "thawBridgePlea-2",
     "source": "draw"
-   }
-  },
-  {
-   "type": "cardEffectApplied",
-   "atMs": 57600000,
-   "text": "No 9º dia da Primavera, o poço de Pedra Alta desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.",
-   "data": {
-    "cardId": "collapsedWell",
-    "instanceId": "collapsedWell-1",
-    "optionId": "wait",
-    "gained_stone": 20,
-    "morale": -10,
-    "moraleDays": 2
    }
   },
   {
@@ -1784,17 +1935,6 @@
    "text": "Amanhece o 10º dia da Primavera em Pedra Alta.",
    "data": {
     "dayOfYear": 10
-   }
-  },
-  {
-   "type": "moraleBandChanged",
-   "atMs": 64800000,
-   "text": "No 10º dia da Primavera, o povo de Pedra Alta anda inquieto. Há resmungos junto ao poço.",
-   "data": {
-    "morale": 40,
-    "band": "restless",
-    "previousMorale": 50,
-    "previousBand": "content"
    }
   },
   {
@@ -1814,22 +1954,24 @@
    }
   },
   {
-   "type": "moraleBandChanged",
-   "atMs": 79200000,
-   "text": "No 12º dia da Primavera, os resmungos cessaram em Pedra Alta. O povo está contente.",
-   "data": {
-    "morale": 50,
-    "band": "content",
-    "previousMorale": 40,
-    "previousBand": "restless"
-   }
-  },
-  {
    "type": "dayStarted",
    "atMs": 86400000,
    "text": "Amanhece o 13º dia da Primavera em Pedra Alta.",
    "data": {
     "dayOfYear": 13
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 86400000,
+   "text": "No 13º dia da Primavera, o senhor de Pedra Alta cedeu vigas das obras para a ponte do riacho. Os lavradores as levaram no ombro até a margem.",
+   "data": {
+    "cardId": "thawBridgePlea",
+    "instanceId": "thawBridgePlea-2",
+    "optionId": "timber",
+    "spent_wood": 40,
+    "morale": 5,
+    "moraleDays": 3
    }
   },
   {
@@ -1889,6 +2031,19 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 100800000,
+   "text": "No 15º dia da Primavera, as vigas cedidas pelo senhor de Pedra Alta pararam no meio do riacho, e o conselho voltou ao assunto: A laje no leito do riacho.",
+   "data": {
+    "cardId": "thawBridgeSlab",
+    "instanceId": "thawBridgeSlab-3",
+    "source": "continuation",
+    "previousCardId": "thawBridgePlea",
+    "previousOptionId": "timber",
+    "previousInstanceId": "thawBridgePlea-2"
+   }
+  },
+  {
    "type": "constructionStarted",
    "atMs": 100800000,
    "text": "No 15º dia da Primavera, os pedreiros começaram a levantar o Armazém em Pedra Alta.",
@@ -1925,6 +2080,17 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 115200000,
+   "text": "No 17º dia da Primavera, sem palavra do senhor, os vizinhos de Pedra Alta revezaram a vigília no escuro, cada qual com o seu cajado. Nada sumiu dos currais.",
+   "data": {
+    "cardId": "neighborsWatch",
+    "instanceId": "neighborsWatch-1",
+    "optionId": "vigil",
+    "difficulty": "lord"
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 122400000,
    "text": "Amanhece o 18º dia da Primavera em Pedra Alta.",
@@ -1938,6 +2104,17 @@
    "text": "Amanhece o 19º dia da Primavera em Pedra Alta.",
    "data": {
     "dayOfYear": 19
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 129600000,
+   "text": "No 19º dia da Primavera, o senhor de Pedra Alta mandou assentar pilares de pedra sobre a laje do riacho. A ponte há de ver muitos degelos.",
+   "data": {
+    "cardId": "thawBridgeSlab",
+    "instanceId": "thawBridgeSlab-3",
+    "optionId": "piers",
+    "spent_stone": 30
    }
   },
   {
@@ -1992,7 +2169,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 140962000,
+   "atMs": 139411557,
    "text": "No 20º dia da Primavera, a Despensa de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.",
    "data": {
     "resource": "food",
@@ -2004,9 +2181,9 @@
   {
    "type": "storageWasted",
    "atMs": 144000000,
-   "text": "No 20º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 20 de comida.",
+   "text": "No 20º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 30 de comida.",
    "data": {
-    "wasted_food": 20
+    "wasted_food": 30
    }
   },
   {
@@ -2018,14 +2195,26 @@
    }
   },
   {
-   "type": "cardExpired",
+   "type": "cardDrawn",
    "atMs": 144000000,
-   "text": "No 21º dia da Primavera, sem palavra do senhor, os pedreiros de Pedra Alta repartiram o pão que havia e voltaram à obra.",
+   "text": "No 21º dia da Primavera, o conselho de Pedra Alta pediu audiência: Sementes para o próximo campo.",
    "data": {
-    "cardId": "masonsMeal",
-    "instanceId": "masonsMeal-2",
-    "optionId": "bread",
-    "difficulty": "lord"
+    "cardId": "springSeeds",
+    "instanceId": "springSeeds-4",
+    "source": "draw"
+   }
+  },
+  {
+   "type": "cardDrawn",
+   "atMs": 144000000,
+   "text": "No 21º dia da Primavera, a ponte de Pedra Alta ficou pronta sobre os pilares de pedra que o senhor mandou assentar: A passagem volta a servir.",
+   "data": {
+    "cardId": "thawBridgeCrossing",
+    "instanceId": "thawBridgeCrossing-5",
+    "source": "continuation",
+    "previousCardId": "thawBridgeSlab",
+    "previousOptionId": "piers",
+    "previousInstanceId": "thawBridgeSlab-3"
    }
   },
   {
@@ -2061,8 +2250,19 @@
    }
   },
   {
+   "type": "cardEffectApplied",
+   "atMs": 158400000,
+   "text": "No 23º dia da Primavera, a primeira carroça carregada cruzou a ponte de pedra de Pedra Alta. O grão do campo de lá chegou inteiro.",
+   "data": {
+    "cardId": "thawBridgeSlab",
+    "instanceId": "thawBridgeSlab-3",
+    "optionId": "piers",
+    "lost_food": 90
+   }
+  },
+  {
    "type": "storageFilled",
-   "atMs": 161682500,
+   "atMs": 163579557,
    "text": "No 23º dia da Primavera, o Armazém de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -2074,10 +2274,10 @@
   {
    "type": "storageWasted",
    "atMs": 165600000,
-   "text": "No 23º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 50 de comida e 55 de madeira.",
+   "text": "No 23º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 140 de comida e 28 de madeira.",
    "data": {
-    "wasted_food": 50,
-    "wasted_wood": 55
+    "wasted_food": 140,
+    "wasted_wood": 28
    }
   },
   {
@@ -2091,9 +2291,9 @@
   {
    "type": "storageWasted",
    "atMs": 172800000,
-   "text": "No 24º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 51 de comida e 103 de madeira.",
+   "text": "No 24º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 52 de comida e 103 de madeira.",
    "data": {
-    "wasted_food": 51,
+    "wasted_food": 52,
     "wasted_wood": 103
    }
   },
@@ -2111,6 +2311,19 @@
    "text": "Amanhece o 1º dia do Verão em Pedra Alta.",
    "data": {
     "dayOfYear": 25
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 172800000,
+   "text": "No 1º dia do Verão, o senhor de Pedra Alta abriu a passagem do riacho com pão, música e a primeira travessia a pé enxuto. Dançou-se nas duas margens.",
+   "data": {
+    "cardId": "thawBridgeCrossing",
+    "instanceId": "thawBridgeCrossing-5",
+    "optionId": "feast",
+    "spent_food": 40,
+    "morale": 15,
+    "moraleDays": 3
    }
   },
   {
@@ -2229,7 +2442,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 180034945,
+   "atMs": 180032507,
    "text": "No 2º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -2241,9 +2454,9 @@
   {
    "type": "storageWasted",
    "atMs": 187200000,
-   "text": "No 2º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 114 de madeira.",
+   "text": "No 2º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 123 de madeira.",
    "data": {
-    "wasted_wood": 114
+    "wasted_wood": 123
    }
   },
   {
@@ -2284,7 +2497,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 197233398,
+   "atMs": 196533485,
    "text": "No 4º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -2296,9 +2509,9 @@
   {
    "type": "storageWasted",
    "atMs": 201600000,
-   "text": "No 4º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 70 de madeira.",
+   "text": "No 4º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 87 de madeira.",
    "data": {
-    "wasted_wood": 70
+    "wasted_wood": 87
    }
   },
   {
@@ -2312,19 +2525,19 @@
   {
    "type": "cardDrawn",
    "atMs": 201600000,
-   "text": "No 5º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Tábuas para as reservas.",
+   "text": "No 5º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Mais bocas à mesa.",
    "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-3",
+    "cardId": "moreMouths",
+    "instanceId": "moreMouths-6",
     "source": "draw"
    }
   },
   {
    "type": "storageWasted",
    "atMs": 208800000,
-   "text": "No 5º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
+   "text": "No 5º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 115 de madeira.",
    "data": {
-    "wasted_wood": 120
+    "wasted_wood": 115
    }
   },
   {
@@ -2338,9 +2551,9 @@
   {
    "type": "storageWasted",
    "atMs": 216000000,
-   "text": "No 6º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira.",
+   "text": "No 6º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
    "data": {
-    "wasted_wood": 121
+    "wasted_wood": 120
    }
   },
   {
@@ -2349,19 +2562,6 @@
    "text": "Amanhece o 7º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 31
-   }
-  },
-  {
-   "type": "cardAnswered",
-   "atMs": 216000000,
-   "text": "No 7º dia do Verão, o senhor de Pedra Alta do Norte cedeu madeira das obras ao celeiro. Os moradores pregaram tábuas até o anoitecer.",
-   "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-3",
-    "optionId": "cede",
-    "spent_wood": 40,
-    "morale": 5,
-    "moraleDays": 2
    }
   },
   {
@@ -2402,8 +2602,19 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 230400000,
+   "text": "No 9º dia do Verão, sem palavra do senhor, o campo novo de Pedra Alta do Norte ficou em pousio. A semente fica para outro ano.",
+   "data": {
+    "cardId": "springSeeds",
+    "instanceId": "springSeeds-4",
+    "optionId": "fallow",
+    "difficulty": "lord"
+   }
+  },
+  {
    "type": "storageFilled",
-   "atMs": 234251087,
+   "atMs": 232125242,
    "text": "No 9º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -2415,9 +2626,9 @@
   {
    "type": "storageWasted",
    "atMs": 237600000,
-   "text": "No 9º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 57 de madeira.",
+   "text": "No 9º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 92 de madeira.",
    "data": {
-    "wasted_wood": 57
+    "wasted_wood": 92
    }
   },
   {
@@ -2429,24 +2640,11 @@
    }
   },
   {
-   "type": "cardDrawn",
-   "atMs": 237600000,
-   "text": "No 10º dia do Verão, a madeira cedida ao celeiro de Pedra Alta do Norte virou prateleira, e o conselho voltou ao assunto: A vez de repartir.",
-   "data": {
-    "cardId": "commonGranaryShare",
-    "instanceId": "commonGranaryShare-4",
-    "source": "continuation",
-    "previousCardId": "commonGranaryPlanks",
-    "previousOptionId": "cede",
-    "previousInstanceId": "commonGranaryPlanks-3"
-   }
-  },
-  {
    "type": "storageWasted",
    "atMs": 244800000,
-   "text": "No 10º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira.",
+   "text": "No 10º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
    "data": {
-    "wasted_wood": 121
+    "wasted_wood": 120
    }
   },
   {
@@ -2460,9 +2658,9 @@
   {
    "type": "storageWasted",
    "atMs": 252000000,
-   "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
+   "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira.",
    "data": {
-    "wasted_wood": 120
+    "wasted_wood": 121
    }
   },
   {
@@ -2476,9 +2674,9 @@
   {
    "type": "storageWasted",
    "atMs": 259200000,
-   "text": "No 12º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira.",
+   "text": "No 12º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira.",
    "data": {
-    "wasted_wood": 121
+    "wasted_wood": 120
    }
   },
   {
@@ -2490,13 +2688,13 @@
    }
   },
   {
-   "type": "cardAnswered",
+   "type": "cardDrawn",
    "atMs": 259200000,
-   "text": "No 13º dia do Verão, o senhor de Pedra Alta do Norte mandou guardar cada saco para o frio. Não houve festa nem queixa.",
+   "text": "No 13º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: A mesa dos aprendizes.",
    "data": {
-    "cardId": "commonGranaryShare",
-    "instanceId": "commonGranaryShare-4",
-    "optionId": "reserve"
+    "cardId": "apprenticesTable",
+    "instanceId": "apprenticesTable-7",
+    "source": "draw"
    }
   },
   {
@@ -2607,9 +2805,9 @@
   {
    "type": "storageWasted",
    "atMs": 280800000,
-   "text": "No 15º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 172 de madeira.",
+   "text": "No 15º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 173 de madeira.",
    "data": {
-    "wasted_wood": 172
+    "wasted_wood": 173
    }
   },
   {
@@ -2621,21 +2819,8 @@
    }
   },
   {
-   "type": "cardDrawn",
-   "atMs": 280800000,
-   "text": "No 16º dia do Verão, o saco guardado para o frio seguia fechado em Pedra Alta do Norte, e as famílias vieram ao conselho: O que ficou da escolha.",
-   "data": {
-    "cardId": "commonGranaryOutcome",
-    "instanceId": "commonGranaryOutcome-5",
-    "source": "continuation",
-    "previousCardId": "commonGranaryShare",
-    "previousOptionId": "reserve",
-    "previousInstanceId": "commonGranaryShare-4"
-   }
-  },
-  {
    "type": "storageFilled",
-   "atMs": 282445031,
+   "atMs": 286757807,
    "text": "No 16º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -2647,10 +2832,10 @@
   {
    "type": "storageWasted",
    "atMs": 288000000,
-   "text": "No 16º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 172 de madeira e 55 de pedra.",
+   "text": "No 16º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 172 de madeira e 12 de pedra.",
    "data": {
     "wasted_wood": 172,
-    "wasted_stone": 55
+    "wasted_stone": 12
    }
   },
   {
@@ -2662,11 +2847,22 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 288000000,
+   "text": "No 17º dia do Verão, ninguém em Pedra Alta do Norte abriu o portão aos viajantes. Eles seguiram estrada sem olhar para trás.",
+   "data": {
+    "cardId": "moreMouths",
+    "instanceId": "moreMouths-6",
+    "optionId": "close",
+    "difficulty": "lord"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 295200000,
-   "text": "No 17º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 173 de madeira e 72 de pedra.",
+   "text": "No 17º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 172 de madeira e 72 de pedra.",
    "data": {
-    "wasted_wood": 173,
+    "wasted_wood": 172,
     "wasted_stone": 72
    }
   },
@@ -2693,18 +2889,6 @@
    "text": "Amanhece o 19º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 43
-   }
-  },
-  {
-   "type": "cardAnswered",
-   "atMs": 302400000,
-   "text": "No 19º dia do Verão, o senhor de Pedra Alta do Norte deixou a colheita com quem a plantou. Falou-se disso em cada casa.",
-   "data": {
-    "cardId": "commonGranaryOutcome",
-    "instanceId": "commonGranaryOutcome-5",
-    "optionId": "leave",
-    "morale": 10,
-    "moraleDays": 2
    }
   },
   {
@@ -2745,7 +2929,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 310387362,
+   "atMs": 310426725,
    "text": "No 20º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -2757,10 +2941,10 @@
   {
    "type": "storageWasted",
    "atMs": 316800000,
-   "text": "No 20º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 161 de madeira e 88 de pedra.",
+   "text": "No 20º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 153 de madeira e 84 de pedra.",
    "data": {
-    "wasted_wood": 161,
-    "wasted_stone": 88
+    "wasted_wood": 153,
+    "wasted_stone": 84
    }
   },
   {
@@ -2772,12 +2956,22 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 316800000,
+   "text": "No 21º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Vigília entre vizinhos.",
+   "data": {
+    "cardId": "neighborsWatch",
+    "instanceId": "neighborsWatch-8",
+    "source": "draw"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 324000000,
-   "text": "No 21º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 181 de madeira e 88 de pedra.",
+   "text": "No 21º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 172 de madeira e 84 de pedra.",
    "data": {
-    "wasted_wood": 181,
-    "wasted_stone": 88
+    "wasted_wood": 172,
+    "wasted_stone": 84
    }
   },
   {
@@ -2790,17 +2984,17 @@
   },
   {
    "type": "famineStarted",
-   "atMs": 329519086,
+   "atMs": 324249995,
    "text": "No 22º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
    "data": {}
   },
   {
    "type": "storageWasted",
    "atMs": 331200000,
-   "text": "No 22º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 162 de madeira e 79 de pedra.",
+   "text": "No 22º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 131 de madeira e 63 de pedra.",
    "data": {
-    "wasted_wood": 162,
-    "wasted_stone": 79
+    "wasted_wood": 131,
+    "wasted_stone": 63
    }
   },
   {
@@ -2825,10 +3019,10 @@
   {
    "type": "storageWasted",
    "atMs": 338400000,
-   "text": "No 23º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 116 de madeira e 56 de pedra.",
+   "text": "No 23º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 116 de madeira e 57 de pedra.",
    "data": {
     "wasted_wood": 116,
-    "wasted_stone": 56
+    "wasted_stone": 57
    }
   },
   {
@@ -2865,6 +3059,17 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 345600000,
+   "text": "No 1º dia do Outono, sem palavra do senhor, os rapazes de Pedra Alta do Norte ficaram aprendendo de longe. Os velhos seguiram no trabalho, com plateia.",
+   "data": {
+    "cardId": "apprenticesTable",
+    "instanceId": "apprenticesTable-7",
+    "optionId": "watch",
+    "difficulty": "lord"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 352800000,
    "text": "No 1º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 99 de madeira e 48 de pedra.",
@@ -2895,10 +3100,10 @@
   {
    "type": "storageWasted",
    "atMs": 360000000,
-   "text": "No 2º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 98 de madeira e 48 de pedra.",
+   "text": "No 2º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 97 de madeira e 47 de pedra.",
    "data": {
-    "wasted_wood": 98,
-    "wasted_stone": 48
+    "wasted_wood": 97,
+    "wasted_stone": 47
    }
   },
   {
@@ -2912,9 +3117,9 @@
   {
    "type": "storageWasted",
    "atMs": 367200000,
-   "text": "No 3º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 96 de madeira e 47 de pedra.",
+   "text": "No 3º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 97 de madeira e 47 de pedra.",
    "data": {
-    "wasted_wood": 96,
+    "wasted_wood": 97,
     "wasted_stone": 47
    }
   },
@@ -2929,9 +3134,9 @@
   {
    "type": "storageWasted",
    "atMs": 374400000,
-   "text": "No 4º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 96 de madeira e 46 de pedra.",
+   "text": "No 4º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 95 de madeira e 46 de pedra.",
    "data": {
-    "wasted_wood": 96,
+    "wasted_wood": 95,
     "wasted_stone": 46
    }
   },
@@ -2953,11 +3158,21 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 374400000,
+   "text": "No 5º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: O poço entulhado.",
+   "data": {
+    "cardId": "collapsedWell",
+    "instanceId": "collapsedWell-9",
+    "source": "draw"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 381600000,
-   "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 94 de madeira e 46 de pedra.",
+   "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 95 de madeira e 46 de pedra.",
    "data": {
-    "wasted_wood": 94,
+    "wasted_wood": 95,
     "wasted_stone": 46
    }
   },
@@ -2981,10 +3196,10 @@
   {
    "type": "storageWasted",
    "atMs": 388800000,
-   "text": "No 6º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 93 de madeira e 45 de pedra.",
+   "text": "No 6º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 93 de madeira e 46 de pedra.",
    "data": {
     "wasted_wood": 93,
-    "wasted_stone": 45
+    "wasted_stone": 46
    }
   },
   {
@@ -3002,6 +3217,16 @@
    "data": {
     "villagers": 19,
     "morale": 14
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 388800000,
+   "text": "No 7º dia do Outono, o senhor de Pedra Alta do Norte deixou o poço como estava. O povo seguiu descendo ao riacho.",
+   "data": {
+    "cardId": "collapsedWell",
+    "instanceId": "collapsedWell-9",
+    "optionId": "wait"
    }
   },
   {
@@ -3051,7 +3276,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 398008068,
+   "atMs": 398008063,
    "text": "No 8º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -3063,9 +3288,9 @@
   {
    "type": "storageWasted",
    "atMs": 403200000,
-   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 53 de pedra.",
+   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 52 de pedra.",
    "data": {
-    "wasted_stone": 53
+    "wasted_stone": 52
    }
   },
   {
@@ -3077,8 +3302,42 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 403200000,
+   "text": "No 9º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Um teto antes do frio.",
+   "data": {
+    "cardId": "roofBeforeCold",
+    "instanceId": "roofBeforeCold-10",
+    "source": "draw"
+   }
+  },
+  {
+   "type": "cardExpired",
+   "atMs": 403200000,
+   "text": "No 9º dia do Outono, sem palavra do senhor, os vizinhos de Pedra Alta do Norte revezaram a vigília no escuro, cada qual com o seu cajado. Nada sumiu dos currais.",
+   "data": {
+    "cardId": "neighborsWatch",
+    "instanceId": "neighborsWatch-8",
+    "optionId": "vigil",
+    "difficulty": "lord"
+   }
+  },
+  {
+   "type": "cardEffectApplied",
+   "atMs": 403200000,
+   "text": "No 9º dia do Outono, o poço de Pedra Alta do Norte desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.",
+   "data": {
+    "cardId": "collapsedWell",
+    "instanceId": "collapsedWell-9",
+    "optionId": "wait",
+    "lost_stone": 20,
+    "morale": -10,
+    "moraleDays": 2
+   }
+  },
+  {
    "type": "storageFilled",
-   "atMs": 409928921,
+   "atMs": 409928941,
    "text": "No 9º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -3090,10 +3349,10 @@
   {
    "type": "storageWasted",
    "atMs": 410400000,
-   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 4 de madeira e 73 de pedra.",
+   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 4 de madeira e 93 de pedra.",
    "data": {
     "wasted_wood": 4,
-    "wasted_stone": 73
+    "wasted_stone": 93
    }
   },
   {
@@ -3107,10 +3366,10 @@
   {
    "type": "storageWasted",
    "atMs": 417600000,
-   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 61 de madeira e 76 de pedra.",
+   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 58 de madeira e 73 de pedra.",
    "data": {
-    "wasted_wood": 61,
-    "wasted_stone": 76
+    "wasted_wood": 58,
+    "wasted_stone": 73
    }
   },
   {
@@ -3123,7 +3382,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 422770986,
+   "atMs": 423489844,
    "text": "No 11º dia do Outono, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
    "data": {
     "resource": "food",
@@ -3135,11 +3394,11 @@
   {
    "type": "storageWasted",
    "atMs": 424800000,
-   "text": "No 11º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 67 de comida, 61 de madeira e 77 de pedra.",
+   "text": "No 11º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 40 de comida, 58 de madeira e 73 de pedra.",
    "data": {
-    "wasted_food": 67,
-    "wasted_wood": 61,
-    "wasted_stone": 77
+    "wasted_food": 40,
+    "wasted_wood": 58,
+    "wasted_stone": 73
    }
   },
   {
@@ -3166,6 +3425,29 @@
    "text": "Amanhece o 13º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 61
+   }
+  },
+  {
+   "type": "cardDrawn",
+   "atMs": 432000000,
+   "text": "No 13º dia do Outono, o conselho de Pedra Alta do Norte pediu audiência: Tábuas para as reservas.",
+   "data": {
+    "cardId": "commonGranaryPlanks",
+    "instanceId": "commonGranaryPlanks-11",
+    "source": "draw"
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 432000000,
+   "text": "No 13º dia do Outono, o senhor de Pedra Alta do Norte cedeu madeira das obras ao celeiro. Os moradores pregaram tábuas até o anoitecer.",
+   "data": {
+    "cardId": "commonGranaryPlanks",
+    "instanceId": "commonGranaryPlanks-11",
+    "optionId": "cede",
+    "spent_wood": 40,
+    "morale": 5,
+    "moraleDays": 3
    }
   },
   {
@@ -3206,7 +3488,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 444056496,
+   "atMs": 443943550,
    "text": "No 14º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -3218,9 +3500,9 @@
   {
    "type": "storageWasted",
    "atMs": 446400000,
-   "text": "No 14º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 25 de pedra.",
+   "text": "No 14º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 27 de pedra.",
    "data": {
-    "wasted_stone": 25
+    "wasted_stone": 27
    }
   },
   {
@@ -3232,8 +3514,21 @@
    }
   },
   {
+   "type": "cardDrawn",
+   "atMs": 446400000,
+   "text": "No 15º dia do Outono, a madeira cedida ao celeiro de Pedra Alta do Norte virou prateleira, e o conselho voltou ao assunto: A vez de repartir.",
+   "data": {
+    "cardId": "commonGranaryShare",
+    "instanceId": "commonGranaryShare-12",
+    "source": "continuation",
+    "previousCardId": "commonGranaryPlanks",
+    "previousOptionId": "cede",
+    "previousInstanceId": "commonGranaryPlanks-11"
+   }
+  },
+  {
    "type": "storageFilled",
-   "atMs": 450482633,
+   "atMs": 450183404,
    "text": "No 15º dia do Outono, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
    "data": {
     "resource": "food",
@@ -3245,10 +3540,10 @@
   {
    "type": "storageWasted",
    "atMs": 453600000,
-   "text": "No 15º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 108 de comida e 76 de pedra.",
+   "text": "No 15º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 122 de comida e 78 de pedra.",
    "data": {
-    "wasted_food": 108,
-    "wasted_stone": 76
+    "wasted_food": 122,
+    "wasted_stone": 78
    }
   },
   {
@@ -3262,10 +3557,10 @@
   {
    "type": "storageWasted",
    "atMs": 460800000,
-   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 252 de comida e 77 de pedra.",
+   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 259 de comida e 78 de pedra.",
    "data": {
-    "wasted_food": 252,
-    "wasted_stone": 77
+    "wasted_food": 259,
+    "wasted_stone": 78
    }
   },
   {
@@ -3278,7 +3573,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 462141228,
+   "atMs": 466336538,
    "text": "No 17º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -3290,11 +3585,11 @@
   {
    "type": "storageWasted",
    "atMs": 468000000,
-   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 256 de comida, 50 de madeira e 76 de pedra.",
+   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 256 de comida, 15 de madeira e 77 de pedra.",
    "data": {
     "wasted_food": 256,
-    "wasted_wood": 50,
-    "wasted_stone": 76
+    "wasted_wood": 15,
+    "wasted_stone": 77
    }
   },
   {
@@ -3308,11 +3603,11 @@
   {
    "type": "storageWasted",
    "atMs": 475200000,
-   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 259 de comida, 61 de madeira e 77 de pedra.",
+   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 258 de comida, 61 de madeira e 76 de pedra.",
    "data": {
-    "wasted_food": 259,
+    "wasted_food": 258,
     "wasted_wood": 61,
-    "wasted_stone": 77
+    "wasted_stone": 76
    }
   },
   {
@@ -3321,6 +3616,16 @@
    "text": "Amanhece o 19º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 67
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 475200000,
+   "text": "No 19º dia do Outono, o senhor de Pedra Alta do Norte mandou guardar cada saco para o frio. Não houve festa nem queixa.",
+   "data": {
+    "cardId": "commonGranaryShare",
+    "instanceId": "commonGranaryShare-12",
+    "optionId": "reserve"
    }
   },
   {
@@ -3366,10 +3671,10 @@
   {
    "type": "storageWasted",
    "atMs": 482400000,
-   "text": "No 19º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 308 de comida e 4 de pedra.",
+   "text": "No 19º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 309 de comida e 5 de pedra.",
    "data": {
-    "wasted_food": 308,
-    "wasted_stone": 4
+    "wasted_food": 309,
+    "wasted_stone": 5
    }
   },
   {
@@ -3382,7 +3687,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 487706449,
+   "atMs": 487706444,
    "text": "No 20º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -3409,12 +3714,36 @@
    }
   },
   {
+   "type": "cardExpired",
+   "atMs": 489600000,
+   "text": "No 21º dia do Outono, sem palavra do senhor, o conselho de Pedra Alta do Norte abrigou no salão as duas famílias do palheiro. Dormiram secas, entre os bancos do conselho.",
+   "data": {
+    "cardId": "roofBeforeCold",
+    "instanceId": "roofBeforeCold-10",
+    "optionId": "hall",
+    "difficulty": "lord"
+   }
+  },
+  {
+   "type": "cardDrawn",
+   "atMs": 489600000,
+   "text": "No 21º dia do Outono, o saco guardado para o frio seguia fechado em Pedra Alta do Norte, e as famílias vieram ao conselho: O que ficou da escolha.",
+   "data": {
+    "cardId": "commonGranaryOutcome",
+    "instanceId": "commonGranaryOutcome-13",
+    "source": "continuation",
+    "previousCardId": "commonGranaryShare",
+    "previousOptionId": "reserve",
+    "previousInstanceId": "commonGranaryShare-12"
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 496800000,
-   "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 319 de comida e 77 de pedra.",
+   "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 319 de comida e 76 de pedra.",
    "data": {
     "wasted_food": 319,
-    "wasted_stone": 77
+    "wasted_stone": 76
    }
   },
   {
@@ -3428,10 +3757,10 @@
   {
    "type": "storageWasted",
    "atMs": 504000000,
-   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 323 de comida e 76 de pedra.",
+   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 323 de comida e 77 de pedra.",
    "data": {
     "wasted_food": 323,
-    "wasted_stone": 76
+    "wasted_stone": 77
    }
   },
   {
@@ -3445,10 +3774,10 @@
   {
    "type": "storageWasted",
    "atMs": 511200000,
-   "text": "No 23º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 326 de comida e 77 de pedra.",
+   "text": "No 23º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 326 de comida e 76 de pedra.",
    "data": {
     "wasted_food": 326,
-    "wasted_stone": 77
+    "wasted_stone": 76
    }
   },
   {
@@ -3461,7 +3790,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 514901013,
+   "atMs": 514901030,
    "text": "No 24º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -3473,11 +3802,11 @@
   {
    "type": "storageWasted",
    "atMs": 518400000,
-   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 330 de comida, 34 de madeira e 76 de pedra.",
+   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 330 de comida, 34 de madeira e 77 de pedra.",
    "data": {
     "wasted_food": 330,
     "wasted_wood": 34,
-    "wasted_stone": 76
+    "wasted_stone": 77
    }
   },
   {
@@ -3494,6 +3823,28 @@
    "text": "Amanhece o 1º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 73
+   }
+  },
+  {
+   "type": "cardDrawn",
+   "atMs": 518400000,
+   "text": "No 1º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: A refeição dos pedreiros.",
+   "data": {
+    "cardId": "masonsMeal",
+    "instanceId": "masonsMeal-14",
+    "source": "draw"
+   }
+  },
+  {
+   "type": "cardAnswered",
+   "atMs": 518400000,
+   "text": "No 1º dia do Inverno, o senhor de Pedra Alta do Norte deixou a colheita com quem a plantou. Falou-se disso em cada casa.",
+   "data": {
+    "cardId": "commonGranaryOutcome",
+    "instanceId": "commonGranaryOutcome-13",
+    "optionId": "leave",
+    "morale": 10,
+    "moraleDays": 3
    }
   },
   {
@@ -3536,9 +3887,9 @@
   {
    "type": "storageWasted",
    "atMs": 532800000,
-   "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 77 de comida.",
+   "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 83 de comida.",
    "data": {
-    "wasted_food": 77
+    "wasted_food": 83
    }
   },
   {
@@ -3552,9 +3903,9 @@
   {
    "type": "storageWasted",
    "atMs": 540000000,
-   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 79 de comida.",
+   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de comida.",
    "data": {
-    "wasted_food": 79
+    "wasted_food": 84
    }
   },
   {
@@ -3608,9 +3959,9 @@
   {
    "type": "storageWasted",
    "atMs": 547200000,
-   "text": "No 4º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 80 de comida.",
+   "text": "No 4º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 85 de comida.",
    "data": {
-    "wasted_food": 80
+    "wasted_food": 85
    }
   },
   {
@@ -3622,17 +3973,21 @@
    }
   },
   {
-   "type": "coldStarted",
-   "atMs": 551180656,
-   "text": "No 5º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta do Norte. O frio entrou nas casas.",
-   "data": {}
+   "type": "cardDrawn",
+   "atMs": 547200000,
+   "text": "No 5º dia do Inverno, o conselho de Pedra Alta do Norte pediu audiência: A serraria e o descanso.",
+   "data": {
+    "cardId": "sawmillRest",
+    "instanceId": "sawmillRest-15",
+    "source": "draw"
+   }
   },
   {
    "type": "storageWasted",
    "atMs": 554400000,
-   "text": "No 5º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 70 de comida.",
+   "text": "No 5º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 81 de comida.",
    "data": {
-    "wasted_food": 70
+    "wasted_food": 81
    }
   },
   {
@@ -3644,22 +3999,17 @@
    }
   },
   {
-   "type": "moraleBandChanged",
-   "atMs": 554400000,
-   "text": "No 6º dia do Inverno, o povo de Pedra Alta do Norte anda inquieto. Há resmungos junto ao poço.",
-   "data": {
-    "morale": 40,
-    "band": "restless",
-    "previousMorale": 60,
-    "previousBand": "content"
-   }
+   "type": "coldStarted",
+   "atMs": 555215625,
+   "text": "No 6º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta do Norte. O frio entrou nas casas.",
+   "data": {}
   },
   {
    "type": "storageWasted",
    "atMs": 561600000,
-   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 49 de comida.",
+   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 61 de comida.",
    "data": {
-    "wasted_food": 49
+    "wasted_food": 61
    }
   },
   {
@@ -3668,6 +4018,17 @@
    "text": "Amanhece o 7º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 79
+   }
+  },
+  {
+   "type": "moraleBandChanged",
+   "atMs": 561600000,
+   "text": "No 7º dia do Inverno, o povo de Pedra Alta do Norte anda inquieto. Há resmungos junto ao poço.",
+   "data": {
+    "morale": 40,
+    "band": "restless",
+    "previousMorale": 60,
+    "previousBand": "content"
    }
   },
   {
@@ -3697,16 +4058,8 @@
    }
   },
   {
-   "type": "recruitmentFinished",
-   "atMs": 565200000,
-   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 22.",
-   "data": {
-    "villagers": 22
-   }
-  },
-  {
    "type": "storageFilled",
-   "atMs": 567280404,
+   "atMs": 564114634,
    "text": "No 7º dia do Inverno, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -3716,11 +4069,19 @@
    }
   },
   {
+   "type": "recruitmentFinished",
+   "atMs": 565200000,
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 22.",
+   "data": {
+    "villagers": 22
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 568800000,
-   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 11 de pedra.",
+   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 33 de pedra.",
    "data": {
-    "wasted_stone": 11
+    "wasted_stone": 33
    }
   },
   {
@@ -3765,7 +4126,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 585665389,
+   "atMs": 585665317,
    "text": "No 10º dia do Inverno, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
    "data": {
     "resource": "food",
@@ -3780,7 +4141,7 @@
    "text": "No 10º dia do Inverno, as lareiras voltaram a arder em Pedra Alta do Norte. O frio passou.",
    "data": {
     "reason": "firewood",
-    "sinceMs": 551180656
+    "sinceMs": 555215625
    }
   },
   {
@@ -3882,13 +4243,14 @@
    }
   },
   {
-   "type": "cardDrawn",
+   "type": "cardExpired",
    "atMs": 604800000,
-   "text": "No 1º dia da Primavera, o conselho de Pedra Alta do Norte pediu audiência: Tábuas para as reservas.",
+   "text": "No 1º dia da Primavera, sem palavra do senhor, os pedreiros de Pedra Alta do Norte repartiram o pão que havia e voltaram à obra.",
    "data": {
-    "cardId": "commonGranaryPlanks",
-    "instanceId": "commonGranaryPlanks-6",
-    "source": "draw"
+    "cardId": "masonsMeal",
+    "instanceId": "masonsMeal-14",
+    "optionId": "bread",
+    "difficulty": "lord"
    }
   }
  ]

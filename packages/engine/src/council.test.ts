@@ -1038,7 +1038,7 @@ describe('o Conselho na visão', () => {
             affordable: false,
             locked: false,
             lockedReason: null,
-            effectsText: '−30 pedra; +5 de moral por 2 dias de jogo (4 h)',
+            effectsText: '−30 pedra; +10 de moral por 3 dias de jogo (6 h)',
             hint: 'Mureta bem assentada dura mais que a queixa.',
           },
           {
@@ -1048,8 +1048,8 @@ describe('o Conselho na visão', () => {
             affordable: true,
             locked: false,
             lockedReason: null,
-            effectsText: '−5 de moral por 1 dia de jogo (2 h)',
-            hint: 'Braço cansado resmunga, mas a água volta.',
+            effectsText: 'Sem custo e sem efeito imediato.',
+            hint: 'Sem pedra nova, a mureta fica como der. A água volta, e é só.',
           },
           {
             id: 'wait',
@@ -1082,9 +1082,7 @@ describe('o Conselho na visão', () => {
     const [shown] = deriveViewState(state, 36 * HOUR).council.pending;
     // 36 h de jogo no ritmo 3 são 12 h reais: metade do prazo.
     expect(shown?.expiresInSeconds).toBe(12 * 3600);
-    expect(shown?.options[0]?.effectsText).toBe(
-      '−30 pedra; +5 de moral por 2 dias de jogo (1 h 20 min)',
-    );
+    expect(shown?.options[0]?.effectsText).toBe('−30 pedra; +10 de moral por 3 dias de jogo (2 h)');
   });
 
   it('a opção trancada diz o que falta; o ganho que não cabe avisa antes da escolha', () => {
@@ -1165,16 +1163,12 @@ describe('o Conselho na visão', () => {
     // A cadeia do jogo em andamento, um efeito escondido à espera e o gerador já usado.
     let state = advanceTo(fed('lord', 1, 'segredo'), 5 * DAY).state;
     expect(state.rng.council).toHaveLength(4);
-    const quietOption: Record<string, string> = {
-      collapsedWell: 'dig',
-      masonsMeal: 'bread',
-      commonGranaryPlanks: 'keep',
-    };
     const choose = (instanceId: string, optionId: string) => {
       state = accept(state, command('answerCard', { instanceId, optionId })).state;
     };
-    for (const pending of [...state.council.pending]) {
-      choose(pending.instanceId, quietOption[pending.cardId] ?? '');
+    // O que o sorteio pôs na mesa sai com a opção que o conselho aplicaria sozinho.
+    for (const pending of deriveViewState(state, state.lastProcessedAt).council.pending) {
+      choose(pending.instanceId, pending.defaultOptionId);
     }
     const well = dealt(state, 'collapsedWell');
     state = well.state;
@@ -1184,13 +1178,14 @@ describe('o Conselho na visão', () => {
     choose(granary.instanceId, 'cede');
     expect(state.council.delayed).toHaveLength(1);
     expect(state.council.scheduled).toHaveLength(1);
-    expect(Object.keys(state.council.flags)).toEqual([
-      'commonGranary.open',
-      'commonGranary.supported',
-    ]);
+    expect(Object.keys(state.council.flags)).toEqual(
+      expect.arrayContaining(['commonGranary.open', 'commonGranary.supported']),
+    );
     const shown = JSON.stringify(deriveViewState(state, state.lastProcessedAt));
     for (const secret of [
       'commonGranary',
+      'thawBridge',
+      'routine',
       'desabou',
       'cantaria',
       'flags',
@@ -1203,108 +1198,5 @@ describe('o Conselho na visão', () => {
     ]) {
       expect(shown, secret).not.toContain(secret);
     }
-  });
-});
-
-describe('a cadeia do jogo, de ponta a ponta', () => {
-  /** Responde à carta `cardId` que está na mesa e devolve o estado e os eventos. */
-  const choose = (state: GameState, cardId: string, optionId: string) => {
-    const pending = state.council.pending.find((entry) => entry.cardId === cardId);
-    if (pending === undefined) {
-      throw new Error(`A carta ${cardId} não está na mesa.`);
-    }
-    return accept(state, command('answerCard', { instanceId: pending.instanceId, optionId }));
-  };
-  const granaryFeud = () => {
-    const state = fed();
-    state.settlement.resources = { food: 300_000, wood: 300_000, stone: 100_000, gold: 100_000 };
-    // Só a cadeia fala: as avulsas já saíram neste ano.
-    state.council.seenThisYear = ['collapsedWell', 'masonsMeal'];
-    return state;
-  };
-
-  it('ceder a madeira, partilhar a comida e receber a contribuição: três cartas e a história ligada', () => {
-    let state = advanceTo(granaryFeud(), INTERVAL).state;
-    expect(state.council.pending.map((entry) => entry.cardId)).toEqual(['commonGranaryPlanks']);
-
-    const first = choose(state, 'commonGranaryPlanks', 'cede');
-    expect(first.events[0]?.text).toBe(
-      'No 5º dia da Primavera, o senhor de Pedra Alta cedeu madeira das obras ao celeiro. Os moradores pregaram tábuas até o anoitecer.',
-    );
-    expect(first.events[0]?.data).toMatchObject({ spent_wood: 40, morale: 5, moraleDays: 2 });
-
-    // Três dias de jogo depois, a continuação, com a frase que lembra a madeira cedida.
-    const second = advanceTo(first.state, INTERVAL + 3 * DAY);
-    const arrival = drawn(second.events)[0];
-    expect(arrival).toMatchObject({
-      atMs: INTERVAL + 3 * DAY,
-      text: 'No 8º dia da Primavera, a madeira cedida ao celeiro de Pedra Alta virou prateleira, e o conselho voltou ao assunto: A vez de repartir.',
-      data: {
-        cardId: 'commonGranaryShare',
-        source: 'continuation',
-        previousCardId: 'commonGranaryPlanks',
-        previousOptionId: 'cede',
-      },
-    });
-    state = second.state;
-    const [continued] = deriveViewState(state, state.lastProcessedAt).council.pending;
-    expect(continued?.text).toContain('a madeira que o senhor cedeu');
-    expect(continued?.followsFrom?.text).toBe(
-      'A história continua: em "Tábuas para as reservas", a decisão foi ceder a madeira.',
-    );
-
-    const shared = choose(state, 'commonGranaryShare', 'share');
-    expect(shared.events[0]?.data).toMatchObject({ spent_food: 30, morale: 10, moraleDays: 2 });
-
-    const third = advanceTo(shared.state, INTERVAL + 6 * DAY);
-    expect(drawn(third.events).at(-1)?.text).toBe(
-      'No 11º dia da Primavera, quem comeu à mesa comum de Pedra Alta voltou com sacos às costas: O que ficou da escolha.',
-    );
-    const end = choose(third.state, 'commonGranaryOutcome', 'accept');
-    expect(end.events[0]?.data).toMatchObject({ gained_food: 40 });
-    expect(end.state.council.flags).toEqual({ 'commonGranary.stocked': true });
-    expect(end.state.council.scheduled).toEqual([]);
-    // A primeira carta já saiu neste ano: só volta no ano seguinte.
-    expect(end.state.council.seenThisYear).toContain('commonGranaryPlanks');
-  });
-
-  it('conservar as reservas encerra o ramo: nenhuma continuação, nenhuma flag', () => {
-    const state = advanceTo(granaryFeud(), INTERVAL).state;
-    const kept = choose(state, 'commonGranaryPlanks', 'keep');
-    expect(kept.events[0]?.data).toEqual({
-      cardId: 'commonGranaryPlanks',
-      instanceId: 'commonGranaryPlanks-1',
-      optionId: 'keep',
-    });
-    expect(kept.state.council.scheduled).toEqual([]);
-    expect(kept.state.council.flags).toEqual({});
-    expect(cardEvents(advanceTo(kept.state, 40 * DAY).events)).toEqual([]);
-  });
-
-  it('ninguém responde: a primeira expira sem mexer em nada, e a cadeia não começa', () => {
-    const { state, events } = advanceTo(granaryFeud(), INTERVAL + 24 * HOUR);
-    expect(eventsOfType(events, 'cardExpired')[0]).toMatchObject({
-      text: 'No 17º dia da Primavera, o conselho de Pedra Alta esperou em vão pelo senhor e não mexeu nas reservas. O celeiro segue escorado com o que havia.',
-      data: { cardId: 'commonGranaryPlanks', optionId: 'keep' },
-    });
-    expect(state.council.flags).toEqual({});
-    expect(state.council.scheduled).toEqual([]);
-  });
-
-  it('pagar e depois sumir: as duas continuações expiram, e o desfecho fecha a cadeia sozinho', () => {
-    const first = choose(advanceTo(granaryFeud(), INTERVAL).state, 'commonGranaryPlanks', 'pay');
-    expect(first.events[0]?.data).toMatchObject({ spent_gold: 30 });
-    const { state, events } = advanceTo(first.state, 60 * DAY);
-    expect(
-      cardEvents(events).map((event) => [event.type, event.data.cardId, event.data.optionId]),
-    ).toEqual([
-      ['cardDrawn', 'commonGranaryShare', undefined],
-      ['cardExpired', 'commonGranaryShare', 'reserve'],
-      ['cardDrawn', 'commonGranaryOutcome', undefined],
-      ['cardExpired', 'commonGranaryOutcome', 'accept'],
-    ]);
-    expect(drawn(events)[0]?.text).toContain('o carpinteiro pago pelo senhor');
-    expect(drawn(events)[1]?.text).toContain('o saco guardado para o frio seguia fechado');
-    expect(state.council.flags).toEqual({ 'commonGranary.stocked': true });
   });
 });

@@ -17,10 +17,10 @@
  "lastProcessedAt": 604800000,
  "rng": {
   "council": [
-   2809947739,
-   3951327387,
-   3540571658,
-   2124038652
+   2227731083,
+   278337704,
+   553604304,
+   1162801657
   ],
   "morale": [
    3881588205,
@@ -35,13 +35,13 @@
    "food": 1500000,
    "wood": 52009,
    "stone": 799907,
-   "gold": 1880480
+   "gold": 1889549
   },
   "accumulators": {
-   "food": 1111152,
+   "food": 2728125,
    "wood": 0,
-   "stone": 39774,
-   "gold": 844460
+   "stone": 1080800,
+   "gold": 1796688
   },
   "population": {
    "villagers": 22
@@ -71,9 +71,9 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 202,
-   "wood": 857,
-   "stone": 360,
+   "food": 270,
+   "wood": 166,
+   "stone": 108,
    "gold": 0
   },
   "craftExperience": {
@@ -95,23 +95,25 @@
  "council": {
   "pending": [
    {
-    "instanceId": "commonGranaryPlanks-6",
-    "cardId": "commonGranaryPlanks",
-    "drawnAtMs": 604800000,
-    "expiresAtMs": 691200000,
+    "instanceId": "sawmillRest-15",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 547200000,
+    "expiresAtMs": 633600000,
     "origin": null
    }
   ],
   "flags": {
-   "commonGranary.gifted": true
+   "thawBridge.piers": true,
+   "commonGranary.gifted": true,
+   "routine.masonsMeal": true
   },
-  "seenThisYear": [
-   "commonGranaryPlanks"
-  ],
+  "seenThisYear": [],
   "nextDrawAtMs": 633600000,
   "scheduled": [],
   "delayed": [],
-  "expired": []
+  "expired": [
+   "masonsMeal-14"
+  ]
  },
  "objectives": {
   "active": [],
@@ -125,23 +127,32 @@
  "stats": {
   "constructionsStarted:housing": 4,
   "villagersRecruited": 20,
-  "cardsDrawn": 6,
-  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn": 15,
+  "cardsDrawn:neighborsWatch": 2,
   "constructionsStarted:townHall": 3,
-  "cardsAnswered": 4,
   "constructionsStarted:lumberMill": 3,
-  "cardsDrawn:masonsMeal": 1,
+  "cardsDrawn:thawBridgePlea": 1,
+  "cardsAnswered": 7,
   "constructionsStarted:farm": 2,
   "constructionsStarted:quarry": 4,
+  "cardsDrawn:thawBridgeSlab": 1,
   "constructionsStarted:warehouse": 1,
-  "wasted_food": 3983202,
-  "cardsExpired": 1,
-  "wasted_wood": 3452857,
+  "cardsExpired": 7,
+  "wasted_food": 4117270,
+  "cardsDrawn:springSeeds": 1,
+  "cardsDrawn:thawBridgeCrossing": 1,
+  "wasted_wood": 3390166,
   "constructionsStarted:goldMine": 2,
   "constructionsStarted:granary": 2,
-  "cardsDrawn:commonGranaryPlanks": 2,
+  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:apprenticesTable": 1,
+  "wasted_stone": 2199108,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:roofBeforeCold": 1,
+  "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
   "cardsDrawn:commonGranaryOutcome": 1,
-  "wasted_stone": 2225360
+  "cardsDrawn:masonsMeal": 1,
+  "cardsDrawn:sawmillRest": 1
  }
 }

@@ -120,14 +120,30 @@ describe('Conselho: o catálogo', () => {
     expect(CouncilCatalogSchema.safeParse(councilCards).error).toBeUndefined();
   });
 
-  it('tem a cadeia "O Celeiro Comum" inteira e duas avulsas, nesta ordem', () => {
+  it('tem 18 das 21 cartas do primeiro lote: duas cadeias de 3 e as 12 avulsas, nesta ordem', () => {
+    // A terceira cadeia, "A Promessa da Paliçada", está em docs/content-v0.2.md e entra aqui com
+    // a Paliçada (roadmap da v0.2, V2E-T2).
     expect(councilCards.map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
       ['commonGranaryOutcome', 'O que ficou da escolha'],
+      ['thawBridgePlea', 'A ponte que o degelo levou'],
+      ['thawBridgeSlab', 'A laje no leito do riacho'],
+      ['thawBridgeCrossing', 'A passagem volta a servir'],
       ['collapsedWell', 'O poço entulhado'],
       ['masonsMeal', 'A refeição dos pedreiros'],
+      ['sawmillRest', 'A serraria e o descanso'],
+      ['neighborsWatch', 'Vigília entre vizinhos'],
+      ['moreMouths', 'Mais bocas à mesa'],
+      ['springSeeds', 'Sementes para o próximo campo'],
+      ['springNews', 'A notícia da primavera'],
+      ['apprenticesTable', 'A mesa dos aprendizes'],
+      ['fullGranary', 'O celeiro quase cheio'],
+      ['dampFirewood', 'Lenha ainda úmida'],
+      ['roofBeforeCold', 'Um teto antes do frio'],
+      ['harvestFeast', 'A colheita de todos'],
     ]);
+    expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
 
   it('ids únicos, e toda opção com id único dentro da carta', () => {
@@ -189,9 +205,13 @@ describe('Conselho: o catálogo', () => {
     for (const entry of councilCards.filter((candidate) => candidate.weight === 0)) {
       expect(scheduled, entry.id).toContain(entry.id);
     }
-    // E o sorteio tem o que tirar em um feudo recém-fundado: cartas com peso e sem requisito.
+    // E o sorteio tem o que tirar em um feudo recém-fundado: cartas com peso que não pedem
+    // estação, edifício, dia nem moral (as recorrentes só pedem a vez delas na ronda).
     expect(
-      councilCards.filter((entry) => entry.weight > 0 && entry.requires === undefined).length,
+      councilCards.filter(
+        (entry) =>
+          entry.weight > 0 && Object.keys(entry.requires ?? {}).every((key) => key === 'notFlags'),
+      ).length,
     ).toBeGreaterThanOrEqual(2);
   });
 
@@ -208,11 +228,27 @@ describe('Conselho: o catálogo', () => {
     }
   });
 
-  it('nenhum texto fala de herói, Mercado, ferro, exército ou combate', () => {
-    const future = /\b(her[óo]i|her[óo]is|mercado|ferro|ex[ée]rcito|combate|batalha|soldado)/iu;
+  it('nenhum texto fala de herói, Mercado, ferro, exército, combate, mapa ou edifício de versão futura', () => {
+    const future =
+      /\b(her[óo]i|her[óo]is|mercado|mercador|ferro|ferreiro|ex[ée]rcito|combate|batalha|soldado|espada|arqueiro|mapa|expedi[çc]|rel[íi]quia|guilda|taverna|quartel|muralha|horda|cerco)/iu;
     for (const entry of councilCards) {
       for (const text of textsOf(entry)) {
         expect(text, entry.id).not.toMatch(future);
+      }
+    }
+  });
+
+  it('nome de flag não é texto de interface: nenhuma frase traz um identificador com ponto', () => {
+    const flags = councilCards
+      .flatMap(effectsOf)
+      .flatMap((effect) => (effect.type === 'setFlag' ? [effect.flag] : []));
+    expect(flags.length).toBeGreaterThan(0);
+    for (const entry of councilCards) {
+      for (const text of textsOf(entry)) {
+        expect(text, entry.id).not.toMatch(/\p{L}\.\p{L}/u);
+        for (const flag of flags) {
+          expect(text, entry.id).not.toContain(flag.split('.')[0] as string);
+        }
       }
     }
   });
@@ -283,6 +319,334 @@ describe('Conselho: o catálogo', () => {
   });
 });
 
+/** O que uma lista de efeitos faz que o jogador vê antes de escolher: recursos e moral. */
+const known = (list: readonly CouncilEffect[]) => {
+  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0 };
+  for (const effect of list) {
+    if (effect.type === 'resources') {
+      for (const [resource, amount] of Object.entries(effect.amounts)) {
+        total[resource as keyof typeof total] += amount;
+      }
+    } else if (effect.type === 'morale') {
+      // Pontos de moral vezes dias: serve para comparar "+5 por 3 dias" com "+10 por 2".
+      total.morale += effect.amount * effect.durationDays;
+    }
+  }
+  return total;
+};
+const schedules = (option: CouncilCard['options'][number]) =>
+  option.effects.some((effect) => effect.type === 'scheduleCard');
+const isFree = (option: CouncilCard['options'][number]) =>
+  option.cost === undefined && option.requires === undefined;
+
+describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)', () => {
+  it('toda carta que o sorteio tira tem ao menos uma opção com custo ou com requisito: há sempre algo a pesar', () => {
+    for (const entry of councilCards.filter((candidate) => candidate.weight > 0)) {
+      expect(
+        entry.options.some((option) => !isFree(option)),
+        entry.id,
+      ).toBe(true);
+    }
+  });
+
+  it('entre duas opções sem custo, nenhuma é melhor em tudo o que a tela mostra', () => {
+    for (const entry of councilCards) {
+      const free = entry.options.filter(isFree);
+      for (const better of free) {
+        for (const worse of free) {
+          // A opção que esconde um efeito ou leva a história adiante não se compara só pelo
+          // que mostra: a pista diz que há mais.
+          if (better === worse || better.hidden !== undefined || schedules(better)) {
+            continue;
+          }
+          const a = known(better.effects);
+          const b = known(worse.effects);
+          const keys = Object.keys(a) as Array<keyof typeof a>;
+          const dominates =
+            keys.every((key) => a[key] >= b[key]) &&
+            keys.some((key) => a[key] > b[key]) &&
+            worse.hidden === undefined &&
+            !schedules(worse);
+          expect(dominates, `${entry.id}: ${better.id} domina ${worse.id}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('toda opção paga dá algo que a opção sem custo não dá: um efeito maior, uma pista ou a continuação', () => {
+    for (const entry of councilCards) {
+      for (const paid of entry.options.filter((option) => option.cost !== undefined)) {
+        const gain = known(paid.effects);
+        const keys = Object.keys(gain) as Array<keyof typeof gain>;
+        // A opção sem custo que esconde um efeito fica de fora: o que a paga oferece pode ser
+        // justamente não correr o risco que a pista anuncia.
+        for (const free of entry.options.filter(
+          (option) => isFree(option) && option.hidden === undefined,
+        )) {
+          const other = known(free.effects);
+          const offers =
+            paid.hidden !== undefined ||
+            schedules(paid) ||
+            keys.some((key) => gain[key] > other[key]);
+          expect(offers, `${entry.id}: ${paid.id} não oferece nada além de ${free.id}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('o custo nunca passa do que um feudo recém-fundado guarda: 500 por recurso (GDD §5.2)', () => {
+    for (const entry of councilCards) {
+      for (const option of entry.options) {
+        for (const amount of Object.values({ ...option.cost, ...option.requires?.resources })) {
+          expect(amount, `${entry.id}/${option.id}`).toBeLessThanOrEqual(
+            balance.storage.baseCapacity,
+          );
+        }
+      }
+    }
+  });
+});
+
+describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
+  it('em Camponês e em Senhor, a opção que o conselho aplica sozinho nunca tira recurso, nem depois', () => {
+    for (const entry of councilCards) {
+      for (const difficulty of ['peasant', 'lord'] as const) {
+        const option = entry.options.find(
+          (candidate) => candidate.id === entry.autoResolve[difficulty],
+        );
+        const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
+        for (const effect of all) {
+          if (effect.type === 'resources') {
+            for (const amount of Object.values(effect.amounts)) {
+              expect(amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('em Camponês e em Senhor, uma carta que o sorteio traz e ninguém responde também não tira moral', () => {
+    // Quem não responde perde a oportunidade, e só: o feudo fica como estaria sem a carta, ou
+    // melhor. É o que deixa uma carta expirar no meio de uma fome sem empurrar ninguém embora.
+    // Vale para as cartas do sorteio: a continuação de uma cadeia só chega porque o senhor (ou,
+    // em Rei de Ferro, o conselho) escolheu algo antes, e a consequência dessa escolha pode
+    // custar moral mesmo sem resposta.
+    for (const entry of councilCards) {
+      for (const difficulty of ['peasant', 'lord'] as const) {
+        const option = entry.options.find(
+          (candidate) => candidate.id === entry.autoResolve[difficulty],
+        );
+        const all = [...(option?.effects ?? []), ...(option?.hidden?.effects ?? [])];
+        for (const effect of all) {
+          if (effect.type === 'morale' && entry.weight > 0) {
+            expect(effect.amount, `${entry.id}/${difficulty}`).toBeGreaterThan(0);
+          }
+        }
+      }
+    }
+    // Em uma continuação o conselho, sozinho, só tira moral quando não há outro caminho sem
+    // custo: é a conta de uma promessa que o senhor fez e não cumpriu.
+    const continuations = councilCards.filter((entry) => entry.weight === 0);
+    expect(continuations.length).toBeGreaterThan(0);
+    for (const entry of continuations) {
+      const option = entry.options.find((candidate) => candidate.id === entry.autoResolve.lord);
+      const onlyWay = entry.options.filter(isFree).length === 1;
+      if (!onlyWay) {
+        expect(known(option?.effects ?? []).morale, entry.id).toBeGreaterThanOrEqual(0);
+      }
+      expect(option?.hidden, entry.id).toBeUndefined();
+    }
+  });
+
+  it('em Camponês e em Senhor, a opção automática de uma carta recorrente não mexe em nada', () => {
+    // Uma recorrente pode expirar várias vezes por ano com o senhor fora: não pode pingar
+    // prêmio nem castigo. A exceção é Rei de Ferro, que fica com a opção mais dura.
+    for (const entry of councilCards.filter((candidate) => candidate.recurring === true)) {
+      for (const difficulty of ['peasant', 'lord'] as const) {
+        const option = entry.options.find(
+          (candidate) => candidate.id === entry.autoResolve[difficulty],
+        );
+        expect(option?.hidden, entry.id).toBeUndefined();
+        expect(known(option?.effects ?? []), entry.id).toEqual({
+          food: 0,
+          wood: 0,
+          stone: 0,
+          gold: 0,
+          morale: 0,
+        });
+      }
+    }
+  });
+
+  it('em Rei de Ferro a opção automática é a mais dura das que não têm custo, quando há duas', () => {
+    const harsher = councilCards.filter(
+      (entry) => entry.autoResolve.ironKing !== entry.autoResolve.lord,
+    );
+    // Onde só há uma opção sem custo, as três dificuldades decidem igual.
+    expect(harsher.length).toBeGreaterThanOrEqual(6);
+    for (const entry of councilCards) {
+      const free = entry.options.filter(isFree);
+      expect(new Set(Object.values(entry.autoResolve)).size, entry.id).toBeLessThanOrEqual(
+        free.length,
+      );
+    }
+  });
+});
+
+describe('Conselho: a ordem das opções na carta', () => {
+  it('primeiro as pagas ou trancadas; depois a que o conselho aplica sozinho em Senhor; por último, a mais dura', () => {
+    // É a ordem em que a tela mostra: quem lê de cima para baixo vê o que custa (ou pede um
+    // edifício), depois o que não custa nem arrisca, e por fim o que não custa e cobra de outro
+    // jeito.
+    for (const entry of councilCards) {
+      const kinds = entry.options.map((option) => (isFree(option) ? 'free' : 'paid'));
+      expect(kinds.join(','), entry.id).toMatch(/^(paid,)*free(,free)*$/);
+      const free = entry.options.filter(isFree);
+      expect(free[0]?.id, entry.id).toBe(entry.autoResolve.lord);
+      expect(entry.autoResolve.peasant, entry.id).toBe(entry.autoResolve.lord);
+      if (entry.autoResolve.ironKing !== entry.autoResolve.lord) {
+        expect(free[1]?.id, entry.id).toBe(entry.autoResolve.ironKing);
+      }
+    }
+  });
+});
+
+describe('Conselho: os números das cartas ficam em uma faixa que a tela explica bem', () => {
+  it('moral de 5 a 20 pontos, por 1 a 4 dias de jogo', () => {
+    for (const effect of councilCards.flatMap(effectsOf)) {
+      if (effect.type === 'morale') {
+        expect(Math.abs(effect.amount)).toBeGreaterThanOrEqual(5);
+        expect(Math.abs(effect.amount)).toBeLessThanOrEqual(20);
+        expect(Math.abs(effect.amount) % 5).toBe(0);
+        expect(effect.durationDays).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  it('a continuação de uma cadeia chega de 2 a 4 dias de jogo depois; o efeito escondido, em 2 a 5', () => {
+    for (const entry of councilCards) {
+      for (const option of entry.options) {
+        for (const effect of option.effects) {
+          if (effect.type === 'scheduleCard') {
+            // Dois dias quando a história só continua; até quatro quando a carta dá um prazo.
+            expect(effect.afterDays, `${entry.id}/${option.id}`).toBeGreaterThanOrEqual(2);
+            expect(effect.afterDays, `${entry.id}/${option.id}`).toBeLessThanOrEqual(4);
+          }
+        }
+        if (option.hidden !== undefined) {
+          expect(option.hidden.afterDays, `${entry.id}/${option.id}`).toBeGreaterThanOrEqual(2);
+          expect(option.hidden.afterDays, `${entry.id}/${option.id}`).toBeLessThanOrEqual(5);
+          // O que acontece depois nunca agenda carta nem mexe em flag: é só a consequência.
+          for (const effect of option.hidden.effects) {
+            expect(['resources', 'morale']).toContain(effect.type);
+          }
+        }
+      }
+    }
+  });
+
+  it('a moral chega a 80 só com as cartas: há festa de +20 e caminhos que somam +20', () => {
+    // A base (50) e a comida guardada (+10) dão 60 (GDD §5.7): o colono atraído pela fama do
+    // feudo depende de +20 em efeitos temporários.
+    const need = balance.morale.arrival.minMorale - 60;
+    const single = councilCards
+      .flatMap((entry) => entry.options.flatMap((option) => option.effects))
+      .filter((effect) => effect.type === 'morale' && effect.amount >= need);
+    expect(single.length).toBeGreaterThanOrEqual(1);
+    // E as duas cadeias têm um caminho que soma +20 com a continuação: cada continuação chega
+    // em 2 dias e o efeito anterior dura 3.
+    const peak = (first: string, second: string) => {
+      const best = (id: string) =>
+        Math.max(
+          ...card(id).options.flatMap((option) =>
+            option.effects.flatMap((effect) =>
+              effect.type === 'morale' && effect.durationDays >= 3 ? [effect.amount] : [0],
+            ),
+          ),
+        );
+      return best(first) + best(second);
+    };
+    expect(peak('commonGranaryShare', 'commonGranaryOutcome')).toBeGreaterThanOrEqual(need);
+    expect(peak('thawBridgePlea', 'thawBridgeCrossing')).toBeGreaterThanOrEqual(need);
+  });
+});
+
+describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)', () => {
+  const recurring = councilCards.filter((entry) => entry.recurring === true);
+  const yearDays = balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
+
+  it('o ano tem 21 audiências e só 10 cartas de uma vez por ano: quem cobre o resto são as recorrentes', () => {
+    expect(yearDays / balance.council.drawIntervalDays).toBe(21);
+    const once = councilCards.filter((entry) => entry.weight > 0 && entry.recurring !== true);
+    expect(once.map((entry) => entry.id)).toEqual([
+      'commonGranaryPlanks',
+      'thawBridgePlea',
+      'collapsedWell',
+      'springSeeds',
+      'springNews',
+      'apprenticesTable',
+      'fullGranary',
+      'dampFirewood',
+      'roofBeforeCold',
+      'harvestFeast',
+    ]);
+  });
+
+  it('quatro recorrentes, sem estação, edifício, dia mínimo nem faixa de moral: valem do 1º dia ao inverno', () => {
+    expect(recurring.map((entry) => entry.id)).toEqual([
+      'masonsMeal',
+      'sawmillRest',
+      'neighborsWatch',
+      'moreMouths',
+    ]);
+    for (const entry of recurring) {
+      expect(entry.requires, entry.id).toEqual({ notFlags: [`routine.${entry.id}`] });
+      expect(entry.weight, entry.id).toBe(1);
+    }
+  });
+
+  it('a mesma recorrente não vem duas vezes seguidas: cada opção grava a flag dela e apaga as das outras', () => {
+    for (const entry of recurring) {
+      const others = recurring
+        .filter((other) => other !== entry)
+        .map((other) => `routine.${other.id}`);
+      for (const option of entry.options) {
+        const set = option.effects.flatMap((effect) =>
+          effect.type === 'setFlag' ? [effect.flag] : [],
+        );
+        const cleared = option.effects.flatMap((effect) =>
+          effect.type === 'clearFlag' ? [effect.flag] : [],
+        );
+        expect(set, `${entry.id}/${option.id}`).toEqual([`routine.${entry.id}`]);
+        expect(cleared, `${entry.id}/${option.id}`).toEqual(others);
+      }
+    }
+    // Com uma delas travada pela ronda, sobram três: é o piso de qualquer audiência.
+    expect(recurring.length - 1).toBeGreaterThanOrEqual(3);
+  });
+
+  it('em cada estação um feudo recém-fundado tem ao menos 5 cartas ao alcance do sorteio, e as de peso maior são as da estação', () => {
+    for (const season of balance.calendar.seasons) {
+      const eligible = councilCards.filter(
+        (entry) =>
+          entry.weight > 0 &&
+          (entry.requires?.seasons === undefined || entry.requires.seasons.includes(season.id)) &&
+          entry.requires?.buildings === undefined,
+      );
+      expect(eligible.length, season.id).toBeGreaterThanOrEqual(5);
+      const seasonal = eligible.filter((entry) => entry.requires?.seasons !== undefined);
+      for (const entry of seasonal) {
+        expect(entry.weight, entry.id).toBeGreaterThanOrEqual(3);
+      }
+    }
+    // A primavera, o verão e o outono têm cartas só deles; o inverno vive das de sempre.
+    const only = (season: string) =>
+      councilCards.filter((entry) => entry.requires?.seasons?.includes(season as never)).length;
+    expect([only('spring'), only('summer'), only('autumn'), only('winter')]).toEqual([3, 3, 5, 0]);
+  });
+});
+
 describe('Conselho: "O Celeiro Comum"', () => {
   it('só a primeira carta é sorteada, com o Celeiro erguido e a cadeia fechada', () => {
     expect(card('commonGranaryPlanks').weight).toBeGreaterThan(0);
@@ -294,16 +658,16 @@ describe('Conselho: "O Celeiro Comum"', () => {
     expect(card('commonGranaryOutcome').weight).toBe(0);
   });
 
-  it('aceitar leva à segunda carta em 3 dias, por dois caminhos; recusar encerra o ramo', () => {
+  it('aceitar leva à segunda carta em 2 dias, por dois caminhos; recusar encerra o ramo', () => {
     const [cede, pay, keep] = card('commonGranaryPlanks').options;
     for (const option of [cede, pay]) {
       expect(option?.effects).toContainEqual({
         type: 'scheduleCard',
         cardId: 'commonGranaryShare',
-        afterDays: 3,
+        afterDays: 2,
       });
       expect(option?.effects).toContainEqual({ type: 'setFlag', flag: 'commonGranary.open' });
-      expect(option?.effects).toContainEqual({ type: 'morale', amount: 5, durationDays: 2 });
+      expect(option?.effects).toContainEqual({ type: 'morale', amount: 5, durationDays: 3 });
     }
     expect(cede?.cost).toEqual({ wood: 40 });
     expect(pay?.cost).toEqual({ gold: 30 });
@@ -317,7 +681,7 @@ describe('Conselho: "O Celeiro Comum"', () => {
       expect(option.effects).toContainEqual({
         type: 'scheduleCard',
         cardId: 'commonGranaryOutcome',
-        afterDays: 3,
+        afterDays: 2,
       });
     }
     expect(share.options.map((option) => option.cost)).toEqual([{ food: 30 }, undefined]);
@@ -333,9 +697,13 @@ describe('Conselho: "O Celeiro Comum"', () => {
       'commonGranary.shared',
       'commonGranary.reserved',
     ]);
+    const ending = { accept: 'commonGranary.stocked', leave: 'commonGranary.gifted' } as const;
     for (const option of outcome.options) {
       const cleared = option.effects.flatMap((effect) =>
         effect.type === 'clearFlag' ? [effect.flag] : [],
+      );
+      const other = Object.values(ending).find(
+        (flag) => flag !== ending[option.id as keyof typeof ending],
       );
       expect(cleared).toEqual([
         'commonGranary.open',
@@ -343,11 +711,91 @@ describe('Conselho: "O Celeiro Comum"', () => {
         'commonGranary.paid',
         'commonGranary.shared',
         'commonGranary.reserved',
+        other,
       ]);
+      expect(option.effects).toContainEqual({
+        type: 'setFlag',
+        flag: ending[option.id as keyof typeof ending],
+      });
       expect(option.cost).toBeUndefined();
       expect(option.effects.some((effect) => effect.type === 'scheduleCard')).toBe(false);
     }
     expect(outcome.options[0]?.effects[0]).toEqual({ type: 'resources', amounts: { food: 40 } });
+  });
+
+  it('quando volta em outro ano, a primeira carta lembra como a cadeia terminou', () => {
+    expect(card('commonGranaryPlanks').variants?.map((variant) => variant.flag)).toEqual([
+      'commonGranary.gifted',
+      'commonGranary.stocked',
+    ]);
+  });
+});
+
+describe('Conselho: "A Ponte do Degelo"', () => {
+  it('só a primeira carta é sorteada, na primavera e no verão, sem cadeia aberta nem ponte de pedra', () => {
+    expect(card('thawBridgePlea').weight).toBeGreaterThan(0);
+    expect(card('thawBridgePlea').requires).toEqual({
+      seasons: ['spring', 'summer'],
+      notFlags: ['thawBridge.open', 'thawBridge.piers'],
+    });
+    expect(card('thawBridgeSlab').weight).toBe(0);
+    expect(card('thawBridgeCrossing').weight).toBe(0);
+  });
+
+  it('madeira ou ouro começam a obra; adiar encerra o ramo sem custo nenhum', () => {
+    const [timber, hire, postpone] = card('thawBridgePlea').options;
+    expect(timber?.cost).toEqual({ wood: 40 });
+    expect(hire?.cost).toEqual({ gold: 40 });
+    for (const option of [timber, hire]) {
+      expect(option?.effects).toContainEqual({
+        type: 'scheduleCard',
+        cardId: 'thawBridgeSlab',
+        afterDays: 2,
+      });
+      expect(option?.effects).toContainEqual({ type: 'setFlag', flag: 'thawBridge.open' });
+    }
+    expect(postpone?.effects).toEqual([]);
+    expect(postpone?.hidden).toBeUndefined();
+  });
+
+  it('no meio: a pedra e a pinguela levam ao desfecho; largar devolve madeira e fecha a cadeia', () => {
+    const [piers, plank, abandon] = card('thawBridgeSlab').options;
+    expect(piers?.cost).toEqual({ stone: 30 });
+    expect(piers?.hidden?.effects).toEqual([{ type: 'resources', amounts: { food: 90 } }]);
+    for (const option of [piers, plank]) {
+      expect(option?.effects).toContainEqual({
+        type: 'scheduleCard',
+        cardId: 'thawBridgeCrossing',
+        afterDays: 2,
+      });
+    }
+    expect(plank?.cost).toBeUndefined();
+    expect(abandon?.effects.some((effect) => effect.type === 'scheduleCard')).toBe(false);
+    expect(abandon?.effects).toContainEqual({ type: 'clearFlag', flag: 'thawBridge.open' });
+    expect(abandon?.effects).toContainEqual({ type: 'resources', amounts: { wood: 30 } });
+    expect(card('thawBridgeSlab').variants?.map((variant) => variant.flag)).toEqual([
+      'thawBridge.timber',
+      'thawBridge.hired',
+    ]);
+  });
+
+  it('o desfecho fecha a cadeia e guarda que travessia o feudo tem: a de pedra não volta a cair', () => {
+    const crossing = card('thawBridgeCrossing');
+    expect(crossing.variants?.map((variant) => variant.flag)).toEqual([
+      'thawBridge.piers',
+      'thawBridge.plank',
+    ]);
+    for (const option of crossing.options) {
+      const cleared = option.effects.flatMap((effect) =>
+        effect.type === 'clearFlag' ? [effect.flag] : [],
+      );
+      expect(cleared).toEqual(['thawBridge.open', 'thawBridge.timber', 'thawBridge.hired']);
+      expect(option.effects.some((effect) => effect.type === 'scheduleCard')).toBe(false);
+    }
+    // A pinguela fica gravada, e a primeira carta a lembra no ano seguinte.
+    expect(card('thawBridgePlea').variants?.map((variant) => variant.flag)).toEqual([
+      'thawBridge.plank',
+    ]);
   });
 });
 

@@ -17,10 +17,10 @@
  "lastProcessedAt": 1246380777,
  "rng": {
   "council": [
-   3325803149,
-   3078535333,
-   212555218,
-   2929578594
+   2208430229,
+   3562850890,
+   2386877647,
+   2121368419
   ]
  },
  "settlement": {
@@ -71,8 +71,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 10205,
-   "wood": 5096,
+   "food": 10055,
+   "wood": 5684,
    "stone": 0,
    "gold": 0
   },
@@ -95,23 +95,24 @@
  "council": {
   "pending": [
    {
-    "instanceId": "masonsMeal-5",
-    "cardId": "masonsMeal",
-    "drawnAtMs": 1209600000,
-    "expiresAtMs": 1468800000,
+    "instanceId": "sawmillRest-9",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 1180800000,
+    "expiresAtMs": 1440000000,
     "origin": null
    },
    {
-    "instanceId": "collapsedWell-6",
+    "instanceId": "collapsedWell-10",
     "cardId": "collapsedWell",
-    "drawnAtMs": 1238400000,
-    "expiresAtMs": 1497600000,
+    "drawnAtMs": 1209600000,
+    "expiresAtMs": 1468800000,
     "origin": null
    }
   ],
-  "flags": {},
+  "flags": {
+   "routine.neighborsWatch": true
+  },
   "seenThisYear": [
-   "masonsMeal",
    "collapsedWell"
   ],
   "nextDrawAtMs": 1267200000,
@@ -131,11 +132,16 @@
  },
  "stats": {
   "constructionsStarted:housing": 1,
-  "cardsDrawn": 6,
-  "cardsDrawn:masonsMeal": 3,
-  "wasted_food": 12533205,
-  "cardsDrawn:collapsedWell": 3,
-  "wasted_wood": 6840096,
-  "cardsExpired": 4
+  "cardsDrawn": 10,
+  "cardsDrawn:springNews": 1,
+  "wasted_food": 12539055,
+  "cardsDrawn:thawBridgePlea": 2,
+  "wasted_wood": 6843684,
+  "cardsExpired": 8,
+  "cardsDrawn:sawmillRest": 2,
+  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:neighborsWatch": 1,
+  "cardsDrawn:collapsedWell": 2,
+  "cardsDrawn:apprenticesTable": 1
  }
 }

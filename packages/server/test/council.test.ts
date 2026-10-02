@@ -26,6 +26,7 @@ import {
   renew,
   send,
   signUp,
+  startGame,
   type TestApp,
 } from './helpers/app';
 import { resetTestDb } from './helpers/db';
@@ -43,6 +44,8 @@ const AUDIENCE = 4 * DAY;
 const REPLAYED = 'x-lords-replayed';
 const PROTOCOL = 'x-lords-protocol';
 const CARD_EVENTS = ['cardDrawn', 'cardAnswered', 'cardExpired', 'cardEffectApplied'];
+/** A semente em que a primeira carta de um feudo recém-fundado é "O poço entulhado". */
+const WELL_FIRST_SEED = 'pedra-alta-teste-16';
 
 /** Instância no ritmo Normal do GDD. */
 let normal: TestApp;
@@ -179,6 +182,8 @@ describe('a carta chega na cadência, em tempo real', () => {
     const reader = await newPlayer(fast);
     const sleeper = await newPlayer(fast);
     // 30 h reais no ritmo Rápido são 90 h de jogo: a 1ª carta chega com 8 h e expira com 80 h.
+    // Com a mesa cheia, as audiências do caminho são puladas; a das 88 h já encontra o lugar
+    // que a 1ª deixou, e traz carta antes de a 2ª expirar no mesmo instante.
     fast.clock.advance(30 * HOUR);
     await runJobsOnce(fast.ctx);
     await renew(fast, reader);
@@ -194,12 +199,13 @@ describe('a carta chega na cadência, em tempo real', () => {
       ['cardDrawn', 8],
       ['cardDrawn', 16],
       ['cardExpired', 80],
+      ['cardDrawn', 88],
       ['cardExpired', 88],
     ]);
     // O jogo de novo, e de novo: nada se repete.
     await runJobsOnce(fast.ctx);
     await viewOf(fast, sleeper, sleeper.game.id);
-    expect(cardsOnly(await eventsOf(fast, sleeper, sleeper.game.id))).toHaveLength(4);
+    expect(cardsOnly(await eventsOf(fast, sleeper, sleeper.game.id))).toHaveLength(5);
   });
 });
 
@@ -430,13 +436,16 @@ describe('a carta que expira', () => {
 
 describe('o que a opção esconde', () => {
   it('não sai na resposta da ordem nem na visão; vira evento e linha da Crônica quando acontece', async () => {
-    // As duas avulsas chegam nas duas primeiras audiências: uma delas é o poço entulhado.
-    const who = await newPlayer(normal);
-    await wait(normal, who, 2 * AUDIENCE);
+    // Uma semente escolhida pela primeira carta que tira: o poço entulhado. O catálogo é
+    // conteúdo; quando a ordem do sorteio mudar, é preciso procurar outra.
+    const auth = await signUp(normal);
+    const game = await startGame(normal, auth.accessToken, { seed: WELL_FIRST_SEED });
+    const who = { token: auth.accessToken, refreshToken: auth.refreshToken, game };
+    await wait(normal, who, AUDIENCE);
     const view = await viewOf(normal, who, who.game.id);
     const well = view.council.pending.find((entry) => entry.title === 'O poço entulhado');
     if (well === undefined) {
-      throw new Error('O teste esperava o poço entulhado entre as duas primeiras cartas.');
+      throw new Error('O teste esperava o poço entulhado na primeira audiência.');
     }
     const wait_ = well.options.find((option) => option.label === 'Deixar para depois');
     expect(wait_).toMatchObject({
@@ -454,7 +463,8 @@ describe('o que a opção esconde', () => {
     expect(answered.status).toBe(200);
     expect(answered.body.events.map((event) => event.type)).toEqual(['cardAnswered']);
     // Nem a resposta, nem a visão, nem os eventos dizem o que vem.
-    const secret = /desabou|cantaria|commonGranary|flags|delayed|scheduled|hidden/;
+    const secret =
+      /desabou|cantaria|commonGranary|thawBridge|routine|flags|delayed|scheduled|hidden/;
     expect(JSON.stringify(answered.body)).not.toMatch(secret);
     await wait(normal, who, DAY);
     const between = await viewOf(normal, who, who.game.id);
@@ -470,8 +480,8 @@ describe('o que a opção esconde', () => {
     );
     expect(applied).toHaveLength(1);
     expect(applied[0]).toMatchObject({
-      atMs: 2 * AUDIENCE + 2 * DAY,
-      text: 'No 11º dia da Primavera, o poço de Pedra Alta desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.',
+      atMs: AUDIENCE + 2 * DAY,
+      text: 'No 7º dia da Primavera, o poço de Pedra Alta desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.',
       data: { instanceId: well.instanceId, gained_stone: 20, morale: -10, moraleDays: 2 },
     });
     expect(stock(after, 'stone')).toBe(stone + 20);

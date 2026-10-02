@@ -17,24 +17,24 @@
  "lastProcessedAt": 255781234,
  "rng": {
   "council": [
-   68034720,
-   3572878321,
-   3673010077,
-   2204866070
+   1401978183,
+   169231564,
+   896822589,
+   4075764412
   ]
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
    "food": 720000,
-   "wood": 241264,
-   "stone": 300167,
+   "wood": 241204,
+   "stone": 301009,
    "gold": 170000
   },
   "accumulators": {
-   "food": 2318200,
-   "wood": 1473144,
-   "stone": 324432,
+   "food": 714000,
+   "wood": 717280,
+   "stone": 1124150,
    "gold": 0
   },
   "population": {
@@ -70,8 +70,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 23684,
-   "wood": 25306,
+   "food": 22241,
+   "wood": 24058,
    "stone": 0,
    "gold": 0
   },
@@ -88,24 +88,42 @@
    "goldMine": 0
   },
   "adaptation": [],
-  "morale": 60,
-  "moraleEffects": []
+  "morale": 50,
+  "moraleEffects": [
+   {
+    "id": "card:collapsedWell-3:later",
+    "label": "Carta: O poço entulhado",
+    "amount": -10,
+    "untilMs": 259200000
+   }
+  ]
  },
  "council": {
-  "pending": [],
-  "flags": {},
+  "pending": [
+   {
+    "instanceId": "commonGranaryPlanks-4",
+    "cardId": "commonGranaryPlanks",
+    "drawnAtMs": 172800000,
+    "expiresAtMs": 259200000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "routine.masonsMeal": true
+  },
   "seenThisYear": [
-   "collapsedWell",
+   "thawBridgePlea",
    "masonsMeal",
+   "collapsedWell",
    "commonGranaryPlanks"
   ],
   "nextDrawAtMs": 259200000,
   "scheduled": [],
   "delayed": [],
   "expired": [
-   "collapsedWell-1",
+   "thawBridgePlea-1",
    "masonsMeal-2",
-   "commonGranaryPlanks-3"
+   "collapsedWell-3"
   ]
  },
  "objectives": {
@@ -119,14 +137,15 @@
   ]
  },
  "stats": {
-  "cardsDrawn": 3,
-  "cardsDrawn:collapsedWell": 1,
-  "wasted_food": 1074684,
+  "cardsDrawn": 4,
+  "cardsDrawn:thawBridgePlea": 1,
+  "wasted_food": 1079241,
   "cardsDrawn:masonsMeal": 1,
-  "wasted_wood": 881306,
+  "wasted_wood": 884058,
   "constructionsStarted:townHall": 1,
   "constructionsStarted:granary": 1,
   "cardsExpired": 3,
+  "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:commonGranaryPlanks": 1,
   "constructionsStarted:warehouse": 1
  }

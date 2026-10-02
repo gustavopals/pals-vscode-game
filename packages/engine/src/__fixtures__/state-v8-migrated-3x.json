@@ -124,13 +124,13 @@
   "wasted_wood": 1743911,
   "wasted_stone": 714526,
   "cardsDrawn": 1,
-  "cardsDrawn:collapsedWell": 1
+  "cardsDrawn:neighborsWatch": 1
  },
  "council": {
   "pending": [
    {
-    "instanceId": "collapsedWell-1",
-    "cardId": "collapsedWell",
+    "instanceId": "neighborsWatch-1",
+    "cardId": "neighborsWatch",
     "drawnAtMs": 1843200000,
     "expiresAtMs": 2102400000,
     "origin": null
@@ -138,7 +138,7 @@
   ],
   "flags": {},
   "seenThisYear": [
-   "collapsedWell"
+   "neighborsWatch"
   ],
   "nextDrawAtMs": 1872000000,
   "scheduled": [],

@@ -17,16 +17,16 @@
  "lastProcessedAt": 148380000,
  "rng": {
   "council": [
-   1989848763,
-   3501224745,
-   606353197,
-   2524776570
+   811062760,
+   2182015679,
+   844680086,
+   1809488438
   ],
   "morale": [
-   1072291952,
-   2253665365,
-   3145566891,
-   3095441531
+   815722598,
+   1705788158,
+   3546711757,
+   1792758504
   ]
  },
  "settlement": {
@@ -34,7 +34,7 @@
   "resources": {
    "food": 0,
    "wood": 500000,
-   "stone": 439931,
+   "stone": 440383,
    "gold": 240000
   },
   "accumulators": {
@@ -78,7 +78,7 @@
   "cold": null,
   "wasted": {
    "food": 0,
-   "wood": 8226,
+   "wood": 7734,
    "stone": 0,
    "gold": 0
   },
@@ -96,28 +96,30 @@
   },
   "adaptation": [],
   "morale": 16,
-  "moraleEffects": [
-   {
-    "id": "card:collapsedWell-2",
-    "label": "Carta: O poço entulhado",
-    "amount": -5,
-    "untilMs": 151200000
-   }
-  ]
+  "moraleEffects": []
  },
  "council": {
-  "pending": [],
+  "pending": [
+   {
+    "instanceId": "sawmillRest-3",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 144000000,
+    "expiresAtMs": 230400000,
+    "origin": null
+   }
+  ],
   "flags": {},
   "seenThisYear": [
-   "masonsMeal",
-   "collapsedWell"
+   "springNews",
+   "thawBridgePlea",
+   "sawmillRest"
   ],
   "nextDrawAtMs": 172800000,
   "scheduled": [],
   "delayed": [],
   "expired": [
-   "masonsMeal-1",
-   "collapsedWell-2"
+   "springNews-1",
+   "thawBridgePlea-2"
   ]
  },
  "objectives": {
@@ -132,10 +134,11 @@
  },
  "stats": {
   "constructionsStarted:housing": 1,
-  "cardsDrawn": 2,
-  "cardsDrawn:masonsMeal": 1,
-  "cardsDrawn:collapsedWell": 1,
-  "wasted_wood": 453226,
-  "cardsExpired": 2
+  "cardsDrawn": 3,
+  "cardsDrawn:springNews": 1,
+  "cardsDrawn:thawBridgePlea": 1,
+  "wasted_wood": 466734,
+  "cardsExpired": 2,
+  "cardsDrawn:sawmillRest": 1
  }
 }
