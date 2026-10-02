@@ -1,18 +1,20 @@
 import type { APIRequestContext, Page } from '@playwright/test';
 
 import {
-  API,
   applyTheme,
+  type Card,
   expect,
   fief,
+  gameEvents,
   HOUR,
   lowContrast,
   MINUTE,
   overflow,
   palette,
+  pendingCards,
   playNow,
+  type ServerEvent,
   statusBar,
-  stored,
   test,
   THEMES,
   toasts,
@@ -28,68 +30,6 @@ import {
 // Leem do servidor a carta que está na mesa e conferem que a tela mostra exatamente o que ele
 // mandou. A opção automática nunca tem custo nem requisito, e é a que os testes escolhem quando
 // precisam de uma resposta que sempre pode ser dada.
-
-type Option = {
-  id: string;
-  label: string;
-  affordable: boolean;
-  locked: boolean;
-  effectsText: string;
-  hint: string;
-};
-type Card = {
-  instanceId: string;
-  title: string;
-  text: string;
-  expiresInSeconds: number;
-  defaultOptionId: string;
-  defaultOptionLabel: string;
-  expiryNote: string;
-  options: Option[];
-};
-type Event = {
-  seq: number;
-  type: string;
-  /** Instante do evento em tempo de jogo. */
-  atMs: number;
-  text: string;
-  data: Record<string, string | number>;
-};
-
-/** As credenciais e a partida que a página guardou: para ler do servidor o que ela deve mostrar. */
-async function session(page: Page) {
-  const saved = await stored(page);
-  const tokens = JSON.parse(saved['lords.tokens'] ?? '{}') as { accessToken: string };
-  const account = JSON.parse(saved['lords.account:self'] ?? '{}') as { gameId: string };
-  return {
-    url: `${API}/v1/games/${account.gameId}`,
-    headers: { authorization: `Bearer ${tokens.accessToken}` },
-  };
-}
-
-/** As cartas à espera, como o servidor as mostra agora. */
-async function pendingCards(page: Page, request: APIRequestContext): Promise<Card[]> {
-  const { url, headers } = await session(page);
-  const response = await request.get(`${url}/view`, { headers });
-  expect(response.ok(), 'leitura da visão').toBe(true);
-  const body = (await response.json()) as { view: { council: { pending: Card[] } } };
-  return body.view.council.pending;
-}
-
-/** Todos os eventos da partida, na ordem em que aconteceram. */
-async function gameEvents(page: Page, request: APIRequestContext): Promise<Event[]> {
-  const { url, headers } = await session(page);
-  const events: Event[] = [];
-  for (let after = 0, more = true; more;) {
-    const response = await request.get(`${url}/events?after=${after}`, { headers });
-    expect(response.ok(), 'leitura dos eventos').toBe(true);
-    const page = (await response.json()) as { events: Event[]; lastSeq: number; hasMore: boolean };
-    events.push(...page.events);
-    after = page.lastSeq;
-    more = page.hasMore;
-  }
-  return events;
-}
 
 /**
  * O prazo de uma carta recém-chegada: 24 horas de relógio. A tela arredonda para baixo, e a
@@ -505,7 +445,7 @@ test.describe('conselho', () => {
     const events = await gameEvents(page, request);
     const mine = events.filter((event) => event.data.instanceId === card.instanceId);
     expect(mine.map((event) => event.type)).toEqual(['cardDrawn', 'cardExpired']);
-    const [drawn, expired] = mine as [Event, Event];
+    const [drawn, expired] = mine as [ServerEvent, ServerEvent];
     expect(expired.data.optionId).toBe(card.defaultOptionId);
     // 24 horas de relógio entre a chegada e a expiração (no ritmo Normal, 24 horas de jogo).
     expect(expired.atMs - drawn.atMs).toBe(24 * HOUR);

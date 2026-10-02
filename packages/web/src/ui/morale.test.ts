@@ -170,7 +170,7 @@ describe('moral: o Relatório de Retorno', () => {
     expect(moraleSince(content)).toBe('Moral 60 (Contente).');
   });
 
-  it('quem chegou sozinho e quem se foi, cada frase com o seu porquê', () => {
+  it('quem chegou e quem se foi: uma frase por motivo, cada uma com o seu porquê', () => {
     const counts = (patch: Partial<ReturnReport['counts']>): ReturnReport['counts'] => ({
       daysPassed: 3,
       constructionsFinished: 0,
@@ -178,28 +178,35 @@ describe('moral: o Relatório de Retorno', () => {
       objectivesCompleted: 0,
       ...patch,
     });
-    // Os recrutados não entram aqui: têm a sua linha nas contagens.
-    expect(peopleMoved(counts({}))).toEqual({ gained: [], lost: [] });
+    const nobody = { recruits: null, settlers: null, left: null, deserted: null };
+    expect(peopleMoved(counts({ villagersArrived: 0 }))).toEqual(nobody);
     expect(
-      peopleMoved(counts({ settlersArrived: 0, villagersLeft: 0, villagersDeserted: 0 })),
-    ).toEqual({ gained: [], lost: [] });
-    expect(peopleMoved(counts({ settlersArrived: 1 }))).toEqual({
-      gained: ['Chegou 1 colono sem ninguém chamar: a moral alta atrai gente.'],
-      lost: [],
+      peopleMoved(
+        counts({ villagersArrived: 0, settlersArrived: 0, villagersLeft: 0, villagersDeserted: 0 }),
+      ),
+    ).toEqual(nobody);
+    // Os recrutados e os colonos são gente diferente: uns foram chamados, os outros vieram sós.
+    expect(peopleMoved(counts({ villagersArrived: 1, settlersArrived: 1 }))).toEqual({
+      ...nobody,
+      recruits: 'Chegou 1 recruta que o Salão mandou chamar.',
+      settlers: 'Chegou 1 colono sem ninguém chamar: a moral alta atrai gente.',
     });
-    expect(peopleMoved(counts({ settlersArrived: 2 })).gained).toEqual([
-      'Chegaram 2 colonos sem ninguém chamar: a moral alta atrai gente.',
-    ]);
-    expect(peopleMoved(counts({ villagersLeft: 1, villagersDeserted: 2 }))).toEqual({
-      gained: [],
-      lost: [
-        'Partiu 1 aldeão: a moral estava baixa.',
-        'Desertaram 2 aldeões: a fome durou demais.',
-      ],
+    expect(peopleMoved(counts({ villagersArrived: 3, settlersArrived: 2 }))).toMatchObject({
+      recruits: 'Chegaram 3 recrutas que o Salão mandou chamar.',
+      settlers: 'Chegaram 2 colonos sem ninguém chamar: a moral alta atrai gente.',
     });
-    expect(peopleMoved(counts({ villagersLeft: 3, villagersDeserted: 1 })).lost).toEqual([
-      'Partiram 3 aldeões: a moral estava baixa.',
-      'Desertou 1 aldeão: a fome durou demais.',
-    ]);
+    expect(
+      peopleMoved(counts({ villagersArrived: 0, villagersLeft: 1, villagersDeserted: 2 })),
+    ).toEqual({
+      ...nobody,
+      left: 'Partiu 1 aldeão: a moral estava baixa.',
+      deserted: 'Desertaram 2 aldeões: a fome durou demais.',
+    });
+    expect(
+      peopleMoved(counts({ villagersArrived: 0, villagersLeft: 3, villagersDeserted: 1 })),
+    ).toMatchObject({
+      left: 'Partiram 3 aldeões: a moral estava baixa.',
+      deserted: 'Desertou 1 aldeão: a fome durou demais.',
+    });
   });
 });

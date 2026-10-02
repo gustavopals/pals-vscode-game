@@ -7,6 +7,21 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value);
 }
 
+/** Quanto tempo o jogador ficou fora: "5 horas", "2 dias e 3 horas". */
+export function formatAway(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const days = Math.floor(hours / 24);
+  const plural = (value: number, one: string, many: string) =>
+    `${value} ${value === 1 ? one : many}`;
+  if (days === 0) {
+    return plural(Math.max(1, hours), 'hora', 'horas');
+  }
+  const rest = hours % 24;
+  return rest === 0
+    ? plural(days, 'dia', 'dias')
+    : `${plural(days, 'dia', 'dias')} e ${plural(rest, 'hora', 'horas')}`;
+}
+
 /** Taxa com sinal: "+15/h", "−5/h", "0/h". */
 export function formatRate(perHour: number): string {
   if (perHour === 0) {

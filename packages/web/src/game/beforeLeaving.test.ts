@@ -19,7 +19,13 @@ import {
   withResource,
   withUpgrade,
 } from '../test-helpers';
-import { beforeLeaving, type LeavingItem, MAX_LEAVING_ITEMS } from './beforeLeaving';
+import {
+  beforeLeaving,
+  type LeavingItem,
+  leavingItems,
+  MAX_LEAVING_ITEMS,
+  storageCommand,
+} from './beforeLeaving';
 
 const HOUR = 3600;
 
@@ -539,6 +545,36 @@ describe('antes de partir', () => {
     ]);
     // O sexto, os aldeões livres, ficou de fora: é o menos urgente.
     expect(worst.population.free).toBeGreaterThan(0);
+    // A lista inteira, sem o limite, é de onde o Relatório de Retorno tira as ações dele.
+    expect(ids(leavingItems(worst))).toEqual([...ids(items), 'idle']);
+    // O que o relatório já trouxe com o mesmo botão não se repete, e não ocupa uma das cinco
+    // linhas: o que estava de fora entra.
+    expect(ids(beforeLeaving(worst, ['queue']))).toEqual([
+      'food',
+      'firewood',
+      'storage:granary',
+      'storage:warehouse',
+      'idle',
+    ]);
+    expect(ids(beforeLeaving(initialView, ['queue', 'idle']))).toEqual([]);
+    expect(ids(beforeLeaving(initialView, ['card:x']))).toEqual(['queue', 'idle']);
+  });
+
+  it('o botão de um depósito: a obra, quando nada a trava; senão, o caminho para o aviso dele', () => {
+    const see = { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
+    // Antes do Salão Nv2 o Celeiro nem é oferecido sem bloqueio.
+    expect(storageCommand(initialView, 'granary')).toEqual(see);
+    const able = withUpgrade(unlockedView, 'granary', { blockedReason: null });
+    expect(storageCommand(able, 'granary')).toEqual({
+      id: 'lords.build',
+      arg: 'granary',
+      label: 'Construir Celeiro',
+    });
+    // Com a obra do depósito já em curso, não há o que pedir de novo.
+    const underway = withQueues(able, [
+      activeConstruction({ building: 'granary', label: 'Celeiro' }),
+    ]);
+    expect(storageCommand(underway, 'granary')).toEqual(see);
   });
 
   it('todo item tem uma ação', () => {

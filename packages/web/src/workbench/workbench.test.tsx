@@ -1194,7 +1194,7 @@ describe('Workbench', () => {
       const markup = render(controller);
       // Árvore: a linha Hoje, a linha Conselho e uma linha por carta, com o botão "Decidir".
       expect(sidebar(markup)).toContain('● 2 decisões pendentes');
-      expect(sidebar(markup)).toContain('2 cartas pendentes (expira em 23 h)');
+      expect(sidebar(markup)).toContain('2 cartas pendentes (expira em 22 h)');
       expect(sidebar(markup)).toContain('A refeição dos pedreiros');
       expect(sidebar(markup)).toMatch(
         /<button[^>]*aria-label="Decidir: A vez de repartir"[^>]*>Decidir<\/button>/,
@@ -1205,7 +1205,7 @@ describe('Workbench', () => {
       expect(markup).toMatch(/aria-label="Feudo: 2 decisões pendentes"/);
       expect(markup).toMatch(/class="activity-badge"[^>]*>2<\/span>/);
       // Barra de status: as decisões no topo da prioridade.
-      expect(markup).toContain('2 decisões pendentes · expira em 23 h');
+      expect(markup).toContain('2 decisões pendentes · expira em 22 h');
       expect(markup).toContain('codicon-law');
       expect(controller.title(0)).toBe('(2) Pedra Alta · Lords of the Guild');
     });

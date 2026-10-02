@@ -146,7 +146,7 @@ describe('próxima audiência', () => {
 
 describe('resumo para a árvore', () => {
   it('quantas cartas esperam e o prazo da que vence primeiro', () => {
-    expect(councilSummary(councilView, 0)).toBe('2 cartas pendentes (expira em 23 h)');
+    expect(councilSummary(councilView, 0)).toBe('2 cartas pendentes (expira em 22 h)');
     const view = withCards(goldenView, [
       { ...shareCard, expiresInSeconds: 20 * HOUR },
       { ...mealCard, expiresInSeconds: 12 * HOUR },

@@ -46,7 +46,7 @@ import { loadPreferences, type Preferences, savePreferences } from '../services/
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
 import { cardNotice } from '../ui/council';
-import { documentTitle, type StatusBarInput } from '../ui/format';
+import { documentTitle, formatAway, type StatusBarInput } from '../ui/format';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
 
@@ -233,6 +233,7 @@ export class Controller {
       this.session.onEvents((events) => this.eventsArrived(events)),
       this.session.onConnection((connection) => this.connectionChanged(connection)),
       this.session.onReturnReport((report) => this.reportArrived(report)),
+      this.session.onReturnWhileOpen((report) => this.reportArrivedWhileOpen(report)),
       this.session.onProblem((error) => this.problemArrived(error)),
     ];
   }
@@ -802,6 +803,28 @@ export class Controller {
     // Depois de uma ausência longa, o app abre na aba Hoje.
     if (this.hasGame) {
       this.route = 'today';
+    }
+    this.changes.emit();
+  }
+
+  /**
+   * O jogador voltou a uma aba que ficou aberta e fora de vista por 4 horas ou mais (V2D-T4.4):
+   * o relatório fica na aba Hoje, com os três blocos. Aqui a aba em que ele estava não muda
+   * debaixo do cursor (ao reabrir a página não há onde ele estivesse; aqui há): um aviso diz que
+   * o relatório existe e leva até ele. No modo discreto, nada do jogo vai para a tela, e a
+   * marca na aba Hoje basta.
+   */
+  private reportArrivedWhileOpen(report: ReturnReport): void {
+    this.report = report;
+    // Os avisos que viraram contador com a aba fora de vista falam dos mesmos acontecimentos.
+    this.unseen = Math.max(this.unseen, report.highlights.length);
+    if (this.hasGame && this.route !== 'today' && !this.preferences.discreetMode) {
+      this.toast({
+        kind: 'info',
+        icon: 'home',
+        text: `Você esteve fora por ${formatAway(report.awaySeconds)}. O Relatório de Retorno espera na aba Hoje.`,
+        actions: [{ label: 'Ver', run: () => this.navigate('today') }],
+      });
     }
     this.changes.emit();
   }

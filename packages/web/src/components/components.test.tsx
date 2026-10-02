@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { NewGameOptions } from '../game/newGame';
+import { buildReturnReport } from '../game/returnReport';
 import { FiefTab } from '../tabs/Fief';
 import { TodayTab } from '../tabs/Today';
 import {
@@ -20,12 +21,16 @@ import {
   councilView,
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
+  goldenView,
   impoverishedView,
   initialView,
+  mealCard,
   proudView,
   queuesView,
+  shareCard,
   unlockedView,
   winterWith,
+  withCards,
   withFoodAhead,
   withPlanned,
   withQueues,
@@ -1885,7 +1890,37 @@ describe('aba Hoje', () => {
     },
     famine: 'none',
     highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
+    blocks: {
+      prospered: [
+        {
+          text: 'No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.',
+          topic: 'construction',
+        },
+        { text: 'Chegaram 3 recrutas que o Salão mandou chamar.', topic: 'people' },
+      ],
+      cost: [],
+      pending: [],
+    },
   };
+  /** Um feudo sem nada a preparar: ninguém livre e uma obra que começa sozinha. */
+  const calm = withPlanned(unlockedView, [
+    {
+      building: 'farm',
+      autoStart: true,
+      waiting: { reason: 'resources', text: 'espera 59 de madeira', etaSeconds: 7200 },
+    },
+  ]);
+  /** O texto sem as marcas; cada título, parágrafo, linha e botão é um trecho à parte. */
+  const plain = (page: string) =>
+    page
+      .replace(/<\/(h2|h3|p|li|button|summary)>/g, ' ')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&quot;/g, '"')
+      .replace(/\s+/g, ' ')
+      .trim();
+  /** Um bloco do relatório, do título ao fim dele. */
+  const reportBlock = (page: string, id: 'prospered' | 'cost' | 'pending') =>
+    new RegExp(`<section class="report-block report-${id}".*?</section>`).exec(page)?.[0] ?? '';
   const today = (shown: ReturnReport | null, online = true) =>
     html(
       <TodayTab
@@ -1919,16 +1954,219 @@ describe('aba Hoje', () => {
     click(props?.children, label);
   };
 
-  it('mostra o Relatório de Retorno e, sem decisões à espera, diz quando o conselho volta', () => {
+  it('mostra o Relatório de Retorno: o tempo fora, os três blocos, a conta dos estoques e a Crônica da ausência', () => {
     const page = today(report);
     expect(page).toContain('Você esteve fora por <strong>5 horas</strong>');
+    expect(page).toContain('O mundo andou 2 dias de jogo.');
+    // Os três blocos, nesta ordem, antes da tabela.
+    expect([...page.matchAll(/<h3 id="([a-z]+)-title">/g)].map((match) => match[1])).toEqual([
+      'prospered',
+      'cost',
+      'pending',
+      'stock',
+    ]);
     expect(page).toContain('+75');
-    expect(page).toContain('Obras concluídas: 1');
-    expect(page).toContain('os pedreiros ergueram as Habitações');
-    expect(page).toContain('Nenhuma por agora. Próxima audiência em 8 h.');
-    expect(page).toContain('Ver o Conselho');
     expect(page).toContain('Marcar como lido');
     expect(page).toContain('Ir para o feudo');
+    // As linhas da Crônica da ausência ficam recolhidas: os blocos são o que se lê primeiro.
+    expect(page).toMatch(
+      /<details class="report-chronicle"><summary>A Crônica da ausência \(1 linha\)<\/summary><ul class="chronicle"><li>No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível\.<\/li><\/ul><\/details>/,
+    );
+    expect(today({ ...report, highlights: [] })).not.toContain('<details');
+    expect(today({ ...report, highlights: ['uma', 'duas'] })).toContain(
+      'A Crônica da ausência (2 linhas)',
+    );
+  });
+
+  describe('os três blocos (V2D-T4)', () => {
+    const shown = (current: ViewState, patch: Partial<ReturnReport> = {}, online = true) =>
+      html(
+        <Today report={{ ...report, ...patch }} view={current} actions={actions} online={online} />,
+      );
+
+    it('"O feudo prosperou": o título com o ícone e a contagem, e uma linha por boa notícia', () => {
+      const block = reportBlock(shown(calm), 'prospered');
+      expect(plain(block)).toBe(
+        'O feudo prosperou (2) ' +
+          'No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível. ' +
+          'Chegaram 3 recrutas que o Salão mandou chamar.',
+      );
+      expect(block).toContain('codicon-pass');
+      // Boa notícia não pede ação: são linhas de texto, sem botão.
+      expect(block.match(/<li class="report-line">/g)).toHaveLength(2);
+      expect(block).not.toContain('<button');
+    });
+
+    it('um bloco vazio também é notícia: cada um diz o que não houve', () => {
+      const page = shown(calm, { blocks: { prospered: [], cost: [], pending: [] } });
+      expect(plain(reportBlock(page, 'prospered'))).toBe(
+        'O feudo prosperou Nenhuma obra terminou e ninguém chegou desta vez.',
+      );
+      expect(plain(reportBlock(page, 'cost'))).toBe(
+        'O que exigiu um preço Nada: a sua ausência não custou nada ao feudo.',
+      );
+      // Sem nada a decidir, o bloco diz quando o conselho volta a se reunir.
+      expect(plain(reportBlock(page, 'pending'))).toBe(
+        'Você ainda pode decidir Nada espera a sua decisão agora. Próxima audiência em 1 h 50 min. Ver o Conselho',
+      );
+      // Um relatório sem os blocos (de quem não os preenche) é desenhado do mesmo jeito.
+      const bare = { ...report };
+      delete bare.blocks;
+      const old = html(<Today report={bare} view={calm} actions={actions} />);
+      expect(plain(reportBlock(old, 'cost'))).toBe(plain(reportBlock(page, 'cost')));
+    });
+
+    const price: ReturnReport['blocks'] = {
+      prospered: [],
+      cost: [
+        {
+          text: 'Despensa sem espaço: 120 de comida foram ao chão.',
+          topic: 'storage:granary',
+          severity: 'warning',
+          action: { command: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' },
+        },
+        {
+          text: 'No 2º dia da Primavera, sem palavra do senhor, o conselho mandou guardar cada saco.',
+          topic: 'council',
+          severity: 'warning',
+          action: { command: 'lords.openPanel', arg: 'council', label: 'Ver o Conselho' },
+        },
+        {
+          text: 'Desertaram 2 aldeões: a fome durou demais.',
+          topic: 'food',
+          severity: 'warning',
+          action: { command: 'lords.allocateWorkers', arg: 'farm', label: 'Alocar na Fazenda' },
+        },
+      ],
+      pending: [],
+    };
+
+    it('"O que exigiu um preço": cada perda com o porquê e o botão da próxima ação', () => {
+      const block = reportBlock(shown(calm, { blocks: price }), 'cost');
+      expect(plain(block)).toBe(
+        'O que exigiu um preço (3) ' +
+          'Atenção: Despensa sem espaço: 120 de comida foram ao chão. Ver os depósitos ' +
+          'Atenção: No 2º dia da Primavera, sem palavra do senhor, o conselho mandou guardar cada saco. Ver o Conselho ' +
+          'Atenção: Desertaram 2 aldeões: a fome durou demais. Alocar na Fazenda',
+      );
+      // A perda nunca é dita só pela cor: ícone, palavra para leitores de tela e frase.
+      expect(block.match(/class="leaving-item leaving-warning"/g)).toHaveLength(3);
+      expect(block.match(/<span class="sr-only">Atenção: <\/span>/g)).toHaveLength(3);
+      // O botão é descrito pela frase do item: há mais de um botão igual na aba.
+      expect(block).toContain(
+        '<p id="cost-item-2"><span class="codicon codicon-warning" aria-hidden="true"></span> ',
+      );
+      expect(block).toContain(
+        '<button type="button" class="secondary" aria-describedby="cost-item-2">Alocar na Fazenda</button>',
+      );
+    });
+
+    it('o botão de uma perda acompanha o feudo de agora, não o do instante em que o relatório saiu', () => {
+      // Com o Celeiro ao alcance, o botão do depósito é a obra; com uma carta à espera, o do
+      // conselho diz isso.
+      const able = withCards(withUpgrade(calm, 'granary', { blockedReason: null }), [mealCard]);
+      const block = reportBlock(shown(able, { blocks: price }), 'cost');
+      expect(
+        [...block.matchAll(/<button[^>]*>([^<]*)<\/button>/g)].map((match) => match[1]),
+      ).toEqual(['Construir Celeiro', 'Decidir a carta à espera', 'Alocar na Fazenda']);
+    });
+
+    it('cada botão executa o comando do item; sem ligação, só o que navega continua valendo', () => {
+      const ran: Array<[string, unknown]> = [];
+      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+      const element = (
+        <Today report={{ ...report, blocks: price }} view={calm} actions={recording} />
+      );
+      click(element, 'Ver os depósitos');
+      click(element, 'Alocar na Fazenda');
+      click(element, 'Marcar como lido');
+      expect(ran).toEqual([
+        ['lords.openPanel', 'fief'],
+        ['lords.allocateWorkers', 'farm'],
+        ['lords.markRead', undefined],
+      ]);
+      const offline = reportBlock(shown(calm, { blocks: price }, false), 'cost');
+      expect(offline).toContain(
+        'aria-describedby="cost-item-2" disabled>Alocar na Fazenda</button>',
+      );
+      expect(offline).toContain('aria-describedby="cost-item-0">Ver os depósitos</button>');
+      expect(plain(shown(calm, { blocks: price }, false))).toContain(
+        'Sem ligação com o reino: as cartas, os prazos e os botões são os do último estado conhecido do feudo.',
+      );
+      expect(shown(calm, { blocks: price })).not.toContain('os botões são os do último estado');
+    });
+
+    it('"Você ainda pode decidir": as cartas com o prazo e "Decidir", depois as obras e os aldeões livres', () => {
+      const waiting = withCards(initialView, [shareCard, mealCard]);
+      const block = reportBlock(shown(waiting), 'pending');
+      expect(plain(block)).toBe(
+        'Você ainda pode decidir (4) ' +
+          `Conselho: “A vez de repartir” · expira em 22 h. ${shareCard.followsFrom?.text} Decidir ` +
+          'Conselho: “A refeição dos pedreiros” · expira em 23 h. Decidir ' +
+          'Sugestão: Os pedreiros estão livres e nenhuma obra começa sozinha. Planejar obras ' +
+          'Sugestão: 5 aldeões livres, sem ofício. Alocar trabalhadores',
+      );
+      // A carta com prazo folgado leva o ícone do conselho, sem palavra de urgência.
+      expect(block.match(/codicon-law/g)).toHaveLength(3);
+      expect(block.match(/codicon-info/g)).toHaveLength(2);
+      // Com o relatório à vista, as cartas estão nele: a seção à parte não se repete.
+      expect(shown(waiting)).not.toContain('id="decisions-title"');
+      expect(shown(waiting)).not.toContain('Nada espera a sua decisão');
+    });
+
+    it('o prazo de uma carta desce com o relógio da página; perto do fim, ganha o sinal de aviso', () => {
+      const waiting = withCards(calm, [mealCard]);
+      const late = html(
+        <Today report={report} view={waiting} actions={actions} elapsed={18 * 3600} />,
+      );
+      const block = reportBlock(late, 'pending');
+      expect(plain(block)).toBe(
+        'Você ainda pode decidir (1) Atenção: Conselho: “A refeição dos pedreiros” · expira em 5 h. Decidir',
+      );
+      expect(block).toContain('class="leaving-item leaving-warning"');
+    });
+
+    it('"Decidir" leva à aba do Conselho, onde a carta se lê inteira', () => {
+      const ran: Array<[string, unknown]> = [];
+      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+      click(
+        <Today report={report} view={withCards(calm, [mealCard])} actions={recording} />,
+        'Decidir',
+      );
+      expect(ran).toEqual([['lords.openPanel', 'council']]);
+    });
+
+    it('a ausência montada de eventos: cada um no seu bloco, na aba', () => {
+      let seq = 0;
+      const event = (type: GameEvent['type'], text: string, data: GameEvent['data'] = {}) =>
+        ({ seq: (seq += 1), type, at: '2026-10-01T12:00:00.000Z', atMs: seq, text, data }) as const;
+      const built = buildReturnReport(
+        calm,
+        withCards(calm, [shareCard]),
+        [
+          event('constructionAutoStarted', 'Os pedreiros começaram sozinhos a erguer a Fazenda.'),
+          event('storageWasted', 'Foi ao chão.', { wasted_food: 96 }),
+          event('cardExpired', 'O conselho decidiu sozinho: repartir o pão.'),
+          event('cardDrawn', 'O conselho voltou ao assunto: A vez de repartir.'),
+        ],
+        6 * 3600_000,
+      );
+      const page = html(
+        <Today report={built} view={withCards(calm, [shareCard])} actions={actions} />,
+      );
+      expect(plain(reportBlock(page, 'prospered'))).toBe(
+        'O feudo prosperou (1) Os pedreiros começaram sozinhos a erguer a Fazenda.',
+      );
+      expect(plain(reportBlock(page, 'cost'))).toBe(
+        'O que exigiu um preço (2) ' +
+          'Atenção: Despensa sem espaço: 96 de comida foram ao chão. Ver os depósitos ' +
+          'Atenção: O conselho decidiu sozinho: repartir o pão. Decidir a carta à espera',
+      );
+      expect(plain(reportBlock(page, 'pending'))).toContain('Conselho: “A vez de repartir”');
+      // O fecho diário do desperdício dá o número, e não vira linha em lugar nenhum.
+      expect(page).not.toContain('Foi ao chão.');
+      expect(page).toContain('A Crônica da ausência (3 linhas)');
+    });
   });
 
   it('sem estoques a comparar, diz por quê e mostra o resto do relatório', () => {
@@ -1936,7 +2174,7 @@ describe('aba Hoje', () => {
     expect(page).toContain('Você esteve fora por <strong>5 horas</strong>');
     expect(page).toContain('O jogo foi atualizado desde a sua última visita');
     expect(page).not.toContain('<table');
-    expect(page).toContain('Obras concluídas: 1');
+    expect(page).toContain('O feudo prosperou (2)');
     expect(page).toContain('os pedreiros ergueram as Habitações');
     // Com estoques, a frase não aparece.
     expect(today(report)).not.toContain('O jogo foi atualizado');
@@ -2078,42 +2316,21 @@ describe('aba Hoje', () => {
       expect(cells(old, 'Comida')).toEqual(['180', '+330,2', '−150', '+14,8', '−120', '255']);
     });
 
-    it('a linha de desperdício: o total de cada recurso, onde ele fica e o caminho para resolver', () => {
-      const line = /<p class="waste" role="status">.*?<\/p>/.exec(page)?.[0] ?? '';
-      // Os nomes dos lugares são os da visão de agora (Despensa e Pátio, sem os edifícios).
-      expect(text(line)).toBe(
-        'Foram ao chão, por falta de espaço: 120 de comida (Despensa) e 76 de madeira (Pátio). ' +
-          'Ampliar o depósito ou gastar o que sobra estanca a perda. Ver os depósitos',
-      );
-      // Ícone e texto: a perda não é dita só pela cor.
-      expect(line).toContain('codicon-warning');
-      expect(page.match(/class="waste"/g)).toHaveLength(1);
-    });
-
-    it('um recurso só perdido: a frase não ganha "e"', () => {
-      const one = today({
-        ...ledger,
-        resources: ledger.resources.map((row) => (row.id === 'food' ? { ...row, wasted: 0 } : row)),
-      });
-      expect(text(one)).toContain('Foram ao chão, por falta de espaço: 76 de madeira (Pátio).');
-    });
-
-    it('sem desperdício, a linha não aparece', () => {
-      const none = today({
-        ...ledger,
-        resources: ledger.resources.map((row) => ({ ...row, wasted: 0 })),
-      });
-      expect(none).not.toContain('class="waste"');
-      expect(none).not.toContain('Foram ao chão');
+    it('o que foi ao chão fica na coluna Perdido; quem diz onde e o que fazer é o bloco do preço', () => {
+      // A linha solta abaixo da tabela saiu: o depósito, o total e o botão estão em "O que
+      // exigiu um preço", montado dos mesmos números (`buildReturnReport`).
+      expect(page).not.toContain('class="waste"');
+      expect(page).not.toContain('Foram ao chão, por falta de espaço');
       // Um relatório sem as parcelas (montado por uma versão anterior) mostra a variação.
       expect(cells(today(report), 'Comida')).toEqual(['180', '+75', '—', '—', '—', '255']);
     });
 
-    it('"Ver os depósitos" leva ao feudo, onde o aviso do depósito tem o botão', () => {
-      const ran: Array<[string, unknown]> = [];
-      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
-      click(<Today report={ledger} view={view} actions={recording} />, 'Ver os depósitos');
-      expect(ran).toEqual([['lords.openPanel', 'fief']]);
+    it('a tabela tem título e fica abaixo dos três blocos', () => {
+      expect(page).toContain('<table class="resources report" aria-labelledby="stock-title">');
+      expect(text(/<h3 id="stock-title">.*?<\/h3>/.exec(page)?.[0] ?? '')).toBe(
+        'O saldo dos estoques',
+      );
+      expect(page.indexOf('id="pending-title"')).toBeLessThan(page.indexOf('id="stock-title"'));
     });
   });
 
@@ -2132,24 +2349,33 @@ describe('aba Hoje', () => {
     const content = { value: 60, band: 'content', bandLabel: 'Contente' } as const;
     const desperate = { value: 0, band: 'desperate', bandLabel: 'Desesperado' } as const;
 
-    it('a moral que caiu diz de onde veio, quem se foi e por quê, e o que fazer', () => {
-      const page = shown(impoverishedView, {
-        counts: { ...report.counts, settlersArrived: 0, villagersLeft: 1, villagersDeserted: 2 },
-        morale: { ...desperate, before: content },
-      });
+    it('a moral que caiu diz de onde veio e o que fazer; quem se foi está no bloco do preço', () => {
+      const events = (['villagerLeft', 'villagerDeserted', 'villagerDeserted'] as const).map(
+        (type, index): GameEvent => ({
+          seq: index + 1,
+          type,
+          at: '2026-10-01T12:00:00.000Z',
+          atMs: index,
+          text: type,
+          data: {},
+        }),
+      );
+      const built = buildReturnReport(coldView, impoverishedView, events, 30 * 3600_000);
+      const page = html(<Today report={built} view={impoverishedView} actions={actions} />);
       expect(text(block(page))).toBe(
         'Moral 0 (Desesperado): caiu de 60 (Contente). ' +
-          'Partiu 1 aldeão: a moral estava baixa. Desertaram 2 aldeões: a fome durou demais. ' +
           // O conselho é o da visão de agora, na frase do servidor.
           'O que mais pesa é a fome (−62). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte. ' +
           'Ver a moral',
       );
-      // A perda é anunciada a leitores de tela e não depende da cor: tem ícone e frase.
-      expect(block(page)).toContain(
-        '<p class="warning" role="status"><span class="codicon codicon-sign-out"',
-      );
       expect(block(page)).toContain('codicon-thumbsdown');
       expect(block(page)).toContain('<button type="button" class="link">Ver a moral</button>');
+      // Quem se foi, somado, cada frase com o porquê e o botão da saída.
+      const cost = plain(reportBlock(page, 'cost'));
+      expect(cost).toContain('Atenção: Partiu 1 aldeão: a moral estava baixa. Ver a moral');
+      expect(cost).toContain(
+        'Atenção: Desertaram 2 aldeões: a fome durou demais. Alocar na Fazenda',
+      );
     });
 
     it('"Ver a moral" leva ao feudo, onde o painel abre a conta termo a termo', () => {
@@ -2167,20 +2393,24 @@ describe('aba Hoje', () => {
     });
 
     it('o colono que veio sozinho é boa notícia, e a moral que subiu não pede conselho', () => {
-      const page = shown(initialView, {
-        counts: { ...report.counts, settlersArrived: 1, villagersLeft: 0, villagersDeserted: 0 },
-        morale: { value: 80, band: 'proud', bandLabel: 'Orgulhoso', before: content },
-      });
-      expect(text(block(page))).toBe(
-        'Moral 80 (Orgulhoso): subiu de 60 (Contente). ' +
-          'Chegou 1 colono sem ninguém chamar: a moral alta atrai gente.',
-      );
+      const arrival: GameEvent = {
+        seq: 1,
+        type: 'villagerArrived',
+        at: '2026-10-01T12:00:00.000Z',
+        atMs: 1,
+        text: 'Um colono bateu ao portão.',
+        data: {},
+      };
+      const built = buildReturnReport(goldenView, proudView, [arrival], 30 * 3600_000);
+      const page = html(<Today report={built} view={proudView} actions={actions} />);
+      expect(text(block(page))).toBe('Moral 80 (Orgulhoso): subiu de 50 (Contente).');
       expect(block(page)).toContain('codicon-star-full');
-      expect(block(page)).toContain('codicon-person-add');
       expect(block(page)).not.toContain('class="warning"');
       expect(block(page)).not.toContain('Ver a moral');
-      // Os recrutados continuam na linha das contagens, com outro nome.
-      expect(text(page)).toContain('Recrutas que chegaram: 3');
+      // O colono está em "O feudo prosperou", com o porquê; não é perda nem pede ação.
+      expect(plain(reportBlock(page, 'prospered'))).toBe(
+        'O feudo prosperou (1) Chegou 1 colono sem ninguém chamar: a moral alta atrai gente.',
+      );
     });
 
     it('sem perda nem queda, mas com algo pesando na conta de agora, o conselho aparece', () => {
@@ -2204,9 +2434,9 @@ describe('aba Hoje', () => {
     });
   });
 
-  it('sem relatório, diz quando ele aparece; com fome, avisa', () => {
+  it('sem relatório, diz quando ele aparece; sem ligação, avisa', () => {
     expect(today(null)).toContain('Nada de novo desde a sua última visita.');
-    expect(today({ ...report, famine: 'started' })).toContain('a fome começou');
+    expect(today(null)).not.toContain('report-block');
     expect(today(null, false)).toContain('Sem ligação com o reino.');
   });
 
@@ -2237,15 +2467,49 @@ describe('aba Hoje', () => {
       const order = (page: string) =>
         [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
       expect(order(shown(initialView))).toEqual(['leaving', 'report', 'decisions']);
-      // Depois de uma ausência: o que aconteceu, o que espera resposta, o que preparar (GDD §2.3).
-      expect(order(shown(initialView, report))).toEqual(['report', 'decisions', 'leaving']);
+      // Depois de uma ausência: o que aconteceu e o que espera resposta (os blocos do
+      // relatório), depois o que preparar (GDD §2.3).
+      expect(order(shown(initialView, report))).toEqual(['report', 'leaving']);
     });
 
     it('com carta à espera, as decisões pendentes passam na frente de "Antes de partir"', () => {
       const order = (page: string) =>
         [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
       expect(order(shown(councilView))).toEqual(['decisions', 'leaving', 'report']);
-      expect(order(shown(councilView, report))).toEqual(['report', 'decisions', 'leaving']);
+      // Com o relatório, as cartas estão no bloco "Você ainda pode decidir", acima de tudo.
+      const page = shown(councilView, report);
+      expect(order(page)).toEqual(['report', 'leaving']);
+      expect(page.indexOf('A vez de repartir')).toBeLessThan(page.indexOf('id="leaving-title"'));
+    });
+
+    it('com o relatório à vista, não repete o que "Você ainda pode decidir" já traz com botão', () => {
+      // As obras que não começam sozinhas e os aldeões livres estão no terceiro bloco.
+      const covered = shown(initialView, report);
+      expect(items(covered)).toEqual([]);
+      expect(text(section(covered))).toBe(
+        'Antes de partir O que há a preparar já está no relatório, com o botão que resolve.',
+      );
+      // E não afirma que o feudo está pronto: há o que fazer, só que mais acima.
+      expect(section(covered)).not.toContain('O feudo está preparado');
+      expect(
+        covered.match(/Os pedreiros estão livres e nenhuma obra começa sozinha\./g),
+      ).toHaveLength(1);
+      // O que está acontecendo agora (a fome, o frio, o depósito que segue cheio) continua
+      // aqui, mesmo que o relatório conte a perda da ausência: são coisas diferentes.
+      const hungry = shown(impoverishedView, {
+        ...report,
+        blocks: {
+          prospered: [],
+          cost: [{ text: 'A fome começou.', topic: 'food', severity: 'warning' }],
+          pending: [],
+        },
+      });
+      expect(items(hungry).map((item) => text(item))).toEqual([
+        'Urgente: A fome já dura 40 h: saldo de comida de −3/h. Alocar na Fazenda',
+        expect.stringContaining('O frio já dura 4 h'),
+      ]);
+      // Sem relatório, a lista é a inteira.
+      expect(items(shown(initialView))).toHaveLength(2);
     });
 
     it('uma linha por item, com a frase e o botão que resolve', () => {

@@ -2,6 +2,34 @@ import { MORALE_BAND_IDS, RESOURCE_IDS } from '@lotg/content';
 import { z } from 'zod';
 
 /**
+ * Um item de um bloco do Relatório de Retorno: uma frase pronta e, quando há o que fazer, a
+ * próxima ação. A frase é a da Crônica do evento, ou uma soma do que os eventos trazem; a ação
+ * é um comando do app (`palette/commands.ts`), com o rótulo do botão.
+ */
+export const ReturnReportItemSchema = z.strictObject({
+  text: z.string(),
+  /**
+   * O assunto do item: `food`, `firewood`, `storage:<edifício>`, `morale`, `council`,
+   * `card:<ocorrência>`, `queue`, `idle`… É por ele que o app refaz a ação com a visão de
+   * agora (a obra que resolvia já começou, a carta já foi respondida) e não repete, em "Antes
+   * de partir", o que o relatório já disse.
+   */
+  topic: z.string().optional(),
+  /** A urgência, quando o item pede ação: nunca dita só pela cor (ícone e palavra). */
+  severity: z.enum(['danger', 'warning', 'info']).optional(),
+  action: z
+    .strictObject({
+      /** Um comando do app: "lords.build", "lords.openPanel". */
+      command: z.string(),
+      arg: z.string().optional(),
+      /** O rótulo do botão: "Ampliar Celeiro". */
+      label: z.string(),
+    })
+    .optional(),
+});
+export type ReturnReportItem = z.infer<typeof ReturnReportItemSchema>;
+
+/**
  * Relatório de Retorno: o que aconteceu enquanto o jogador esteve fora (GDD §2.3). É montado
  * pelo cliente, a partir da visão guardada, da visão atual e dos eventos da ausência.
  */
@@ -72,5 +100,20 @@ export const ReturnReportSchema = z.strictObject({
   famine: z.enum(['none', 'started', 'ended', 'ongoing']),
   /** Frases da Crônica dos fatos notáveis, da mais antiga para a mais nova. */
   highlights: z.array(z.string()),
+  /**
+   * A ausência em três blocos, para ser lida de uma vez (roadmap da v0.2, V2D-T4): o que o feudo
+   * ganhou sozinho, o que a ausência custou (cada item com a próxima ação) e o que ainda espera
+   * uma decisão. É só agrupamento do que os eventos e a visão trazem: nenhuma regra de jogo. Os
+   * dois primeiros são da ausência; `pending` e as ações são da visão do instante em que o
+   * relatório foi montado, e quem o mostra os refaz com a visão de agora. Opcional, como as
+   * parcelas e a moral: um relatório sem os blocos continua valendo.
+   */
+  blocks: z
+    .strictObject({
+      prospered: z.array(ReturnReportItemSchema),
+      cost: z.array(ReturnReportItemSchema),
+      pending: z.array(ReturnReportItemSchema),
+    })
+    .optional(),
 });
 export type ReturnReport = z.infer<typeof ReturnReportSchema>;

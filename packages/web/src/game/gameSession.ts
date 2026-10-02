@@ -2,6 +2,7 @@ import { ApiClientError, type Client, isGameRuleError, NetworkError } from '@lot
 import {
   type Command,
   type GameEvent,
+  GameEventSchema,
   PROTOCOL_VERSION,
   type ReturnReport,
   type ViewState,
@@ -25,6 +26,14 @@ const VIEW_FORMAT = 2;
  */
 export const CACHE_VERSION = `${PROTOCOL_VERSION}.${VIEW_FORMAT}`;
 
+/**
+ * Uma ausência com a aba aberta (roadmap da v0.2, V2D-T4.4): a aba saiu de vista em `since` e
+ * o ciclo continuou lendo o servidor em segundo plano. `view` é a visão que correspondia ao
+ * cursor naquele instante (`null` se não havia nenhuma) e `events`, o que chegou desde então. É
+ * de onde sai o Relatório de Retorno de quem volta a uma aba que nunca fechou.
+ */
+export type Away = { since: number; view: ViewState | null; events: GameEvent[] };
+
 /** O que fica guardado no navegador para exibir o feudo sem conexão. */
 export type GameCache = {
   /** `CACHE_VERSION` de quem gravou. */
@@ -45,6 +54,18 @@ export type GameCache = {
   behind?: ViewState | null;
   /** Última vez em que o estado foi lido do servidor, em ms. */
   lastSeenAt: number;
+  /**
+   * Só existe enquanto a aba está fora de vista. Vai para o cache porque o navegador pode
+   * descartar uma aba em segundo plano e recarregá-la na volta: sem isto, a última leitura em
+   * segundo plano passaria por "última visita", e a noite inteira sumiria do relatório.
+   */
+  away?: Away;
+  /**
+   * Última vez em que uma aba **à vista** gravou este cache. As abas do mesmo navegador dividem
+   * o cache: se outra esteve à vista depois de esta sair de vista, o jogador não esteve fora, e
+   * a ausência desta não vira relatório.
+   */
+  attendedAt?: number;
   /**
    * A virada de estação que o aviso de uma hora antes já anunciou ("1:winter"): como o cursor
    * dos eventos, evita avisar duas vezes a mesma coisa, mesmo recarregando a página.
@@ -104,8 +125,16 @@ function loadCache(
   lastSeq: number | null;
   lastSeenAt: number | null;
   seasonWarned: string | null;
+  away: Away | null;
 } {
-  const cached = store.get<Partial<GameCache>>(cacheKey(target));
+  const stored = store.get<Partial<GameCache>>(cacheKey(target));
+  // A ausência com a aba aberta é lida à parte e não fica no cache em memória: quem a regrava é
+  // a sessão, enquanto ela durar. Como o cursor, vale mesmo quando a visão é descartada. Se uma
+  // aba esteve à vista depois de ela começar, o jogador não esteve fora: não vale.
+  const left = loadAway(stored?.away);
+  const away = left !== null && attendedAtOf(stored) <= left.since ? left : null;
+  const cached = stored === undefined ? undefined : { ...stored };
+  delete cached?.away;
   // Como o cursor, a marca do aviso de estação vale mesmo quando a visão é descartada.
   const seasonWarned = typeof cached?.seasonWarned === 'string' ? cached.seasonWarned : null;
   const lastSeq =
@@ -119,11 +148,11 @@ function loadCache(
     typeof cached.stateVersion === 'string' &&
     ViewStateSchema.safeParse(cached.view).success;
   if (!valid) {
-    return { cache: null, reportBase: null, lastSeq, lastSeenAt, seasonWarned };
+    return { cache: null, reportBase: null, lastSeq, lastSeenAt, seasonWarned, away };
   }
   const cache = cached as GameCache;
   if (cache.behind === undefined) {
-    return { cache, reportBase: cache.view, lastSeq, lastSeenAt, seasonWarned };
+    return { cache, reportBase: cache.view, lastSeq, lastSeenAt, seasonWarned, away };
   }
   // A visão guardada está à frente do cursor. A base em outro formato vira "nenhuma", também
   // na memória: é o que o relatório pode usar.
@@ -135,6 +164,33 @@ function loadCache(
     lastSeq,
     lastSeenAt,
     seasonWarned,
+    away,
+  };
+}
+
+/** Última vez em que uma aba à vista gravou o cache; 0 se nenhuma gravou. */
+function attendedAtOf(stored: Partial<GameCache> | undefined): number {
+  return typeof stored?.attendedAt === 'number' ? stored.attendedAt : 0;
+}
+
+/**
+ * A ausência com a aba aberta que o cache guardou, conferida: o instante e os eventos têm de ter
+ * a forma certa, ou ela não vale. A visão em outro formato vira "nenhuma", como a do relatório
+ * comum: a ausência é a mesma, só não há estoques a comparar.
+ */
+function loadAway(stored: unknown): Away | null {
+  if (typeof stored !== 'object' || stored === null) {
+    return null;
+  }
+  const { since, view, events } = stored as Partial<Away>;
+  const parsed = GameEventSchema.array().safeParse(events);
+  if (typeof since !== 'number' || !parsed.success) {
+    return null;
+  }
+  return {
+    since,
+    view: ViewStateSchema.safeParse(view).success ? (view as ViewState) : null,
+    events: parsed.data,
   };
 }
 
@@ -196,17 +252,28 @@ export class GameSession {
    */
   private baseline: { view: ViewState | null; lastSeenAt: number; events: GameEvent[] } | null =
     null;
+  /** A aba está fora de vista: desde quando, e o que chegou desde então. Ver `Away`. */
+  private away: Away | null = null;
+  /** O relatório que está para sair é o de uma aba que ficou aberta, e não o de uma reabertura. */
+  private stayedOpen = false;
 
   private readonly viewChanges = new Emitter<ViewState>();
   private readonly eventBatches = new Emitter<GameEvent[]>();
   private readonly connectionChanges = new Emitter<Connection>();
   private readonly reports = new Emitter<ReturnReport>();
+  private readonly openTabReports = new Emitter<ReturnReport>();
   private readonly problems = new Emitter<unknown>();
   readonly onView = this.viewChanges.on;
   /** Eventos novos, cada um entregue uma única vez. */
   readonly onEvents = this.eventBatches.on;
   readonly onConnection = this.connectionChanges.on;
   readonly onReturnReport = this.reports.on;
+  /**
+   * O Relatório de Retorno de quem voltou a uma aba que ficou aberta e fora de vista por 4 horas
+   * ou mais. Sai à parte do de quem reabre a página: aqui o jogador já estava em uma aba do app,
+   * e quem escuta decide se o leva à aba Hoje ou só avisa.
+   */
+  readonly onReturnWhileOpen = this.openTabReports.on;
   /** O servidor recusou o ciclo por algo que não é rede nem sessão (partida arquivada, 426…). */
   readonly onProblem = this.problems.on;
 
@@ -284,7 +351,18 @@ export class GameSession {
     // foi descartada: quem volta horas depois de uma atualização do jogo também tem a ausência
     // posta em dia de uma vez, e não em avisos avulsos. Sem cursor não há ausência a contar: a
     // primeira leitura traz a história inteira.
-    if (
+    if (stored.lastSeq !== null && stored.away !== null) {
+      // A página anterior terminou com a aba fora de vista (o navegador a descartou, ou ela foi
+      // recarregada): a ausência começou quando a aba saiu de vista, e não na última leitura em
+      // segundo plano, e os eventos dela já estão guardados.
+      if (!this.visible) {
+        // Esta página também nasceu fora de vista: a ausência continua.
+        this.away = stored.away;
+      } else if (shouldShowReturnReport(stored.away.since, this.now())) {
+        const { view, since, events } = stored.away;
+        this.baseline = { view, lastSeenAt: since, events: [...events] };
+      }
+    } else if (
       stored.lastSeq !== null &&
       stored.lastSeenAt !== null &&
       shouldShowReturnReport(stored.lastSeenAt, this.now())
@@ -304,6 +382,8 @@ export class GameSession {
     this.cache = null;
     this.syncing = null;
     this.baseline = null;
+    this.away = null;
+    this.stayedOpen = false;
     this.resumeSeq = null;
     this.seeding = false;
     this.fresh = false;
@@ -321,12 +401,27 @@ export class GameSession {
     }
   }
 
-  /** A aba do navegador ficou à vista ou em segundo plano: muda a cadência do ciclo. */
+  /**
+   * A aba do navegador ficou à vista ou em segundo plano: muda a cadência do ciclo.
+   *
+   * Sair de vista também começa a contar uma ausência (`Away`): o ciclo continua em segundo
+   * plano, e o que chega vai sendo guardado. Na volta, com 4 horas ou mais fora de vista, essa
+   * ausência vira Relatório de Retorno (`onReturnWhileOpen`), como a de quem fechou a aba; com
+   * menos, é esquecida. Uma aba que ficou **à vista** o tempo todo não tem como saber que o
+   * jogador saiu: essa não recebe relatório.
+   */
   setVisible(visible: boolean): void {
     if (this.visible === visible) {
       return;
     }
     this.visible = visible;
+    if (this.target !== null) {
+      if (!visible) {
+        this.leave(this.target);
+      } else {
+        this.comeBack(this.target);
+      }
+    }
     if (this.target !== null && this.connectionState.kind === 'online') {
       if (visible) {
         void this.syncNow();
@@ -334,6 +429,38 @@ export class GameSession {
         this.schedule(pollIntervalMs(false));
       }
     }
+  }
+
+  /** A aba saiu de vista: guarda o que se sabe agora, de onde o relatório da volta vai partir. */
+  private leave(target: SessionTarget): void {
+    // Com um relatório ainda por sair (a abertura sem ligação), a ausência em curso é a dele.
+    if (this.cache === null || this.away !== null || this.baseline !== null) {
+      return;
+    }
+    this.away = { since: this.now(), view: this.viewOfCursor(), events: [] };
+    void this.persist(target);
+  }
+
+  /** A aba voltou à vista: depois de 4 horas ou mais, a ausência vira Relatório de Retorno. */
+  private comeBack(target: SessionTarget): void {
+    const { away } = this;
+    if (away === null) {
+      return;
+    }
+    this.away = null;
+    // Outra aba deste navegador esteve à vista nesse meio-tempo: o jogador não esteve fora.
+    const attended = attendedAtOf(this.deps.store.get<Partial<GameCache>>(cacheKey(target)));
+    if (
+      this.baseline === null &&
+      attended <= away.since &&
+      shouldShowReturnReport(away.since, this.now())
+    ) {
+      // Sai depois da próxima leitura bem-sucedida, com o que ela ainda trouxer.
+      this.baseline = { view: away.view, lastSeenAt: away.since, events: away.events };
+      this.stayedOpen = true;
+    }
+    // O cache deixa de dizer que a aba está fora de vista, mesmo que a leitura a seguir falhe.
+    void this.persist(target);
   }
 
   /** Sincroniza agora e reagenda o ciclo. Chamadas simultâneas compartilham a mesma leitura. */
@@ -492,6 +619,8 @@ export class GameSession {
   private deliver(fresh: GameEvent[]): void {
     if (fresh.length > 0) {
       this.baseline?.events.push(...fresh);
+      // Com a aba fora de vista, o que chega também fica guardado para o relatório da volta.
+      this.away?.events.push(...fresh);
       this.eventBatches.emit(fresh);
     }
   }
@@ -531,9 +660,17 @@ export class GameSession {
 
   private async persist(target: SessionTarget): Promise<void> {
     if (this.target === target && this.cache !== null) {
-      await this.deps.store.update(cacheKey(target), {
+      const key = cacheKey(target);
+      // À vista, esta aba é quem está sendo olhada agora. Fora de vista, vale o que outra aba
+      // tiver gravado: as abas dividem o cache, e esta não pode apagar a marca da outra.
+      const attendedAt = this.visible
+        ? this.now()
+        : attendedAtOf(this.deps.store.get<Partial<GameCache>>(key));
+      await this.deps.store.update(key, {
         ...this.cache,
         ...(this.seasonMark === null ? {} : { seasonWarned: this.seasonMark }),
+        ...(this.away === null ? {} : { away: this.away }),
+        ...(attendedAt === 0 ? {} : { attendedAt }),
       });
     }
   }
@@ -630,7 +767,9 @@ export class GameSession {
       return;
     }
     this.baseline = null;
-    this.reports.emit(
+    const { stayedOpen } = this;
+    this.stayedOpen = false;
+    (stayedOpen ? this.openTabReports : this.reports).emit(
       buildReturnReport(
         baseline.view,
         cache.view,

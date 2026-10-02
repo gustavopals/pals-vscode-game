@@ -5,12 +5,16 @@ import {
   applyTheme,
   expect,
   fief,
+  gameEvents,
   HOUR,
   lowContrast,
   MINUTE,
   overflow,
+  palette,
+  pendingCards,
   playNow,
   resourceRow,
+  session,
   statusBar,
   stock,
   stored,
@@ -19,6 +23,15 @@ import {
   toasts,
   tree,
 } from './helpers';
+
+/** Um bloco do Relatório de Retorno na aba Hoje, pelo título dele (o título leva a contagem). */
+const reportBlock = (
+  page: Page,
+  title: 'O feudo prosperou' | 'O que exigiu um preço' | 'Você ainda pode decidir',
+) =>
+  page
+    .getByRole('tabpanel', { name: 'Hoje' })
+    .getByRole('region', { name: new RegExp(`^${title}`) });
 
 // Critérios 5 e 11 (GDD §16.1): reabrir depois de horas mostra o intervalo simulado pelo
 // servidor, sem duplicar progresso; sem conexão, o app mostra o último estado, explica a
@@ -54,7 +67,16 @@ test.describe('fechar e reabrir', () => {
     const today = page.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 2 dias de jogo/)).toBeVisible();
-    await expect(today.getByText('Obras concluídas: 1')).toBeVisible();
+    // A obra concluída está em "O feudo prosperou", com a frase da Crônica.
+    await expect(
+      reportBlock(page, 'O feudo prosperou')
+        .getByRole('listitem')
+        .filter({ hasText: /Habitações/ }),
+    ).toHaveText(/os pedreiros ergueram as Habitações ao 2º nível\.$/);
+    // Nada se perdeu: o bloco do preço diz isso, em vez de sumir.
+    await expect(reportBlock(page, 'O que exigiu um preço')).toContainText(
+      'Nada: a sua ausência não custou nada ao feudo.',
+    );
     // Na primavera, 2 fazendeiros rendem 24/h e 5 aldeões comem 5/h. Nas duas primeiras horas os
     // dois ainda se adaptam e rendem metade (+7/h). Na primeira virada do dia a moral sobe a 60,
     // pela comida guardada, e a produção ganha 5%: +20,5/h, e um pouco mais a cada dia de
@@ -69,7 +91,11 @@ test.describe('fechar e reabrir', () => {
     await expect(morale.getByRole('status')).toHaveCount(0);
     await expect(morale.getByRole('button', { name: 'Ver a moral' })).toHaveCount(0);
     await expect(today.getByRole('row', { name: /^Ouro/ })).toContainText(String(goldBefore));
-    await expect(today.getByRole('listitem').filter({ hasText: /Habitações/ })).toBeVisible();
+    // As linhas da Crônica da ausência ficam recolhidas, para quem quiser ler tudo.
+    const lines = today.getByRole('group').filter({ hasText: 'A Crônica da ausência' });
+    await expect(lines.getByRole('listitem')).toHaveCount(0);
+    await lines.getByText(/A Crônica da ausência \(\d+ linhas?\)/).click();
+    await expect(lines.getByRole('listitem').filter({ hasText: /Habitações/ })).toBeVisible();
 
     // As novidades da ausência não viram avisos avulsos: ficam no relatório e no contador.
     await expect(toasts(page).getByRole('status')).toHaveCount(0);
@@ -88,6 +114,343 @@ test.describe('fechar e reabrir', () => {
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
     expect(await stock(page, 'Comida')).toBe(foodBefore + 75);
+  });
+
+  // V2D-T4 (GDD §2.3 e §15.1, item 5): quem volta lê a ausência em três blocos e encontra uma
+  // ação em cada perda. O conselho está em recesso, e as duas cartas são postas na mesa pelo
+  // teste: o que acontece com elas (a resposta, a expiração, a continuação) é o motor de verdade.
+  test('três blocos: o que prosperou, o que custou com a próxima ação e o que ainda se pode decidir; na Crônica, a escolha que voltou', async ({
+    context,
+    request,
+    world,
+  }) => {
+    test.setTimeout(90_000);
+    const first = await world.open(context);
+    await playNow(first);
+    // Quatro na Fazenda e um na Serraria: a comida enche a Despensa e a madeira paga as obras.
+    const farm = fief(first).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1]) {
+      await farm.click();
+      await expect(fief(first).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    await fief(first).getByRole('button', { name: 'Pôr mais um trabalhador em Serraria' }).click();
+    await expect(fief(first).getByText('Livres 0')).toBeVisible();
+    // Sete horas com a aba à vista: a Despensa chega perto do limite, sem nada ir ao chão ainda.
+    await world.passTime(7 * HOUR, first);
+    expect(await stock(first, 'Comida')).toBeLessThan(500);
+    expect(await stock(first, 'Comida')).toBeGreaterThan(400);
+
+    // Duas cartas na mesa: uma com um dia de prazo, outra que vence em uma hora.
+    await world.control('council-deal', { cardId: 'commonGranaryPlanks' });
+    await world.control('council-deal', { cardId: 'masonsMeal', expiresInMs: HOUR });
+    await world.passTime(MINUTE, first);
+    const dealt = await pendingCards(first, request);
+    const planks = dealt.find((card) => card.instanceId.startsWith('commonGranaryPlanks-'));
+    const meal = dealt.find((card) => card.instanceId.startsWith('masonsMeal-'));
+    if (planks === undefined || meal === undefined) {
+      throw new Error('As duas cartas não chegaram à mesa.');
+    }
+    // A primeira é respondida antes de sair, com a opção que faz o conselho voltar ao assunto.
+    const paid = planks.options.find((option) => option.id === 'pay');
+    await first.getByRole('tab', { name: /^Conselho/ }).click();
+    await first
+      .getByRole('tabpanel', { name: 'Conselho' })
+      .getByRole('article', { name: planks.title })
+      .getByRole('button', { name: paid?.label ?? '', exact: true })
+      .click();
+    await expect(
+      first
+        .getByRole('tabpanel', { name: 'Conselho' })
+        .getByRole('article', { name: planks.title }),
+    ).toHaveCount(0);
+
+    // As Habitações em obra, e a Fazenda planejada para começar sozinha quando os pedreiros
+    // ficarem livres.
+    await first.getByRole('tab', { name: 'Feudo' }).click();
+    await fief(first)
+      .getByRole('listitem')
+      .filter({ hasText: 'Habitações Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(first).locator('.active-construction')).toContainText('Habitações → Nv2');
+    await palette(first, 'planejar obras');
+    const dialog = first.getByRole('dialog');
+    await dialog.getByRole('combobox').fill('fazenda');
+    await first.keyboard.press('Enter');
+    await expect(dialog.getByRole('option').first()).toContainText(
+      'Iniciar quando houver recursos',
+    );
+    await expect(dialog.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
+    await first.keyboard.press('Enter');
+    await expect(
+      fief(first).getByRole('list', { name: 'Planejadas' }).locator('> li'),
+    ).toContainText(['Fazenda']);
+    await first.close();
+
+    // Seis horas fora. As Habitações ficam prontas, a Fazenda começa sozinha e termina, a carta
+    // sem resposta expira, a Despensa enche e a produção vai ao chão, e a escolha feita antes de
+    // sair volta como outra carta.
+    await world.passTime(6 * HOUR);
+    const page = await world.open(context);
+    const today = page.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(today.getByText('Você esteve fora por 6 horas.')).toBeVisible();
+    await expect(today.getByText(/O mundo andou 3 dias de jogo/)).toBeVisible();
+
+    // O que o servidor conta da partida: é com as frases dele que a tela é conferida.
+    const events = await gameEvents(page, request);
+    const one = (type: string, matches: (data: Record<string, string | number>) => boolean) => {
+      const found = events.filter((event) => event.type === type && matches(event.data));
+      expect(found, type).toHaveLength(1);
+      return found[0] as (typeof events)[number];
+    };
+    const answered = one('cardAnswered', (data) => data.instanceId === planks.instanceId);
+    const expired = one('cardExpired', (data) => data.instanceId === meal.instanceId);
+    const returned = one('cardDrawn', (data) => data.previousInstanceId === planks.instanceId);
+    expect(returned.data).toMatchObject({
+      source: 'continuation',
+      previousCardId: 'commonGranaryPlanks',
+      previousOptionId: 'pay',
+    });
+    const [share] = await pendingCards(page, request);
+    expect(share?.instanceId).toBe(returned.data.instanceId);
+    expect(share?.followsFrom?.title).toBe(planks.title);
+
+    // Os três blocos, nesta ordem, antes da conta dos estoques.
+    await expect(today.getByRole('heading', { level: 3 })).toHaveText([
+      /O feudo prosperou \(\d+\)$/,
+      /O que exigiu um preço \(2\)$/,
+      /Você ainda pode decidir \(\d+\)$/,
+      'O saldo dos estoques',
+    ]);
+
+    // 1. O feudo prosperou: as obras, com a planejada que começou sozinha, na ordem em que
+    // aconteceram. Boa notícia não tem botão.
+    const prospered = reportBlock(page, 'O feudo prosperou');
+    await expect(prospered.getByRole('listitem').filter({ hasText: /pedreiros/ })).toHaveText([
+      /os pedreiros ergueram as Habitações ao 2º nível\.$/,
+      /os pedreiros começaram sozinhos a erguer a Fazenda ao 2º nível\.$/,
+      /os pedreiros ergueram a Fazenda ao 2º nível\.$/,
+    ]);
+    await expect(prospered.getByRole('button')).toHaveCount(0);
+
+    // 2. O que exigiu um preço: a carta que o conselho decidiu sozinho, com o que ele fez, e o
+    // que foi ao chão, somado. Cada perda com o botão da próxima ação.
+    const cost = reportBlock(page, 'O que exigiu um preço');
+    await expect(cost.getByRole('listitem')).toHaveCount(2);
+    const lostCard = cost.getByRole('listitem').filter({ hasText: expired.text });
+    await expect(lostCard).toContainText('Atenção:');
+    await expect(lostCard.locator('.codicon-warning')).toBeVisible();
+    await expect(lostCard.getByRole('button', { name: 'Decidir a carta à espera' })).toBeVisible();
+    const waste = cost.getByRole('listitem').filter({ hasText: 'Despensa sem espaço' });
+    await expect(waste).toContainText(/Despensa sem espaço: \d+ de comida foram ao chão\./);
+    // O número é o da coluna Perdido da tabela, logo abaixo: uma conta só.
+    const wasted = /: (\d+) de comida/.exec(await waste.innerText())?.[1] ?? '';
+    expect(Number(wasted)).toBeGreaterThan(100);
+    await expect(
+      today
+        .getByRole('row', { name: /^Comida/ })
+        .getByRole('cell')
+        .nth(4),
+    ).toHaveText(`−${wasted}`);
+    // O fecho diário do desperdício dá o número e não vira linha.
+    await expect(today.getByText(/não coube nos depósitos/)).toHaveCount(0);
+    // O Celeiro ainda pede o Salão no nível 2: o botão leva ao aviso do depósito, que explica.
+    const deposits = waste.getByRole('button', { name: 'Ver os depósitos' });
+    await expect(deposits).toHaveAccessibleDescription(/Despensa sem espaço/);
+
+    // 3. Você ainda pode decidir: a carta que a escolha trouxe de volta, com o prazo e a frase
+    // do servidor que lembra a decisão. Ela chegou há duas horas: restam 22 das 24.
+    const pending = reportBlock(page, 'Você ainda pode decidir');
+    const back = pending.getByRole('listitem').filter({ hasText: share?.title ?? '' });
+    await expect(back).toContainText(/Conselho: “.+” · expira em 2[12] h\./);
+    await expect(back).toContainText(share?.followsFrom?.text ?? '');
+    await expect(back.getByRole('button', { name: 'Decidir' })).toHaveAccessibleDescription(
+      new RegExp(share?.title ?? ''),
+    );
+    // Com o relatório à vista, as cartas estão nele: a seção à parte não se repete. "Antes de
+    // partir" fica com o que está acontecendo agora (a Despensa segue cheia) e não diz de novo o
+    // que o terceiro bloco já trouxe com botão.
+    await expect(today.getByRole('heading', { level: 2 })).toHaveText([
+      'Relatório de Retorno',
+      'Antes de partir',
+    ]);
+    const leaving = today.getByRole('region', { name: 'Antes de partir' });
+    await expect(leaving.getByRole('listitem')).toHaveText([
+      /Despensa no limite: [\d,]+\/h de comida vão ao chão\./,
+    ]);
+    await expect(pending.getByText('nenhuma obra começa sozinha')).toHaveCount(1);
+    await expect(today.getByText('nenhuma obra começa sozinha')).toHaveCount(1);
+
+    // As novidades não viraram avisos avulsos, nem a carta que voltou.
+    await expect(toasts(page).getByRole('status')).toHaveCount(0);
+
+    // Legível nos três temas, sem recarregar (recarregar leva o relatório), e em 720 px.
+    for (let turn = 1; turn <= THEMES.length; turn += 1) {
+      await palette(page, 'trocar tema');
+      await expect(toasts(page).getByText(/^Tema: /)).toHaveCount(turn);
+      const theme = await page.locator('html').getAttribute('data-theme');
+      await expect(cost.getByRole('listitem')).toHaveCount(2);
+      expect(await lowContrast(page), `contraste nos três blocos, tema ${theme}`).toEqual([]);
+    }
+    await page.setViewportSize({ width: 720, height: 800 });
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // Outra leitura do servidor não duplica nada: os eventos são entregues uma vez, pelo cursor.
+    await world.passTime(MINUTE, page);
+    await expect(cost.getByRole('listitem')).toHaveCount(2);
+    await expect(prospered.getByRole('listitem').filter({ hasText: /pedreiros/ })).toHaveCount(3);
+
+    // Pelo teclado: "Decidir" leva à carta, e a resposta sai dali.
+    await back.getByRole('button', { name: 'Decidir' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('tab', { name: /^Conselho/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    const letter = page
+      .getByRole('tabpanel', { name: 'Conselho' })
+      .getByRole('article', { name: share?.title ?? '' });
+    await expect(letter).toContainText(share?.followsFrom?.text ?? '');
+    await letter
+      .getByRole('button', { name: share?.defaultOptionLabel ?? '', exact: true })
+      .click();
+    await expect(letter).toHaveCount(0);
+    // De volta à aba Hoje: a carta respondida saiu do bloco, o que aconteceu na ausência
+    // continua lá, e o botão da carta perdida acompanha o feudo de agora.
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await expect(pending.getByRole('listitem').filter({ hasText: share?.title ?? '' })).toHaveCount(
+      0,
+    );
+    await expect(lostCard.getByRole('button', { name: 'Ver o Conselho' })).toBeVisible();
+    await expect(cost.getByRole('listitem')).toHaveCount(2);
+
+    // "Ver os depósitos" leva ao feudo, onde o aviso do depósito diz o que fazer.
+    await deposits.click();
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(fief(page).locator('.storage-notes')).toContainText('Despensa cheia:');
+
+    // Na Crônica, a linha da continuação cita a escolha que a trouxe, e o botão leva à linha
+    // dela, sem reler as dezenas de entradas do meio.
+    await palette(page, 'abrir crônica');
+    const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
+    const continuation = chronicle.getByRole('listitem').filter({ hasText: returned.text });
+    await expect(continuation).toHaveText(
+      `${returned.text} Sua escolha voltou: “${answered.text}”`,
+    );
+    const choice = chronicle.getByRole('listitem').filter({ hasText: answered.text }).first();
+    await expect(choice).toHaveText(answered.text);
+    await expect(choice).not.toBeFocused();
+    await continuation.getByRole('button', { name: 'Sua escolha voltou' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(choice).toBeFocused();
+    await expect(choice).toBeInViewport();
+    // A linha em que a página parou fica marcada, também para quem veio pelo teclado.
+    expect(await choice.evaluate((line) => getComputedStyle(line).outlineStyle)).not.toBe('none');
+    for (const theme of THEMES) {
+      await applyTheme(page, theme);
+      await expect(continuation).toBeVisible();
+      expect(await lowContrast(page), `contraste na Crônica, tema ${theme}`).toEqual([]);
+    }
+    await page.setViewportSize({ width: 720, height: 800 });
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // O Markdown, que é o que se baixa, mantém a ligação em texto: a nota recuada sob a linha.
+    const { url, headers } = await session(page);
+    const markdown = await (await request.get(`${url}/chronicle.md`, { headers })).text();
+    expect(markdown).toContain(
+      `\n- ${returned.text}\n  - Sua escolha voltou: “${answered.text}”\n`,
+    );
+    // E continua sendo uma linha por evento da Crônica: a nota não é um item da lista.
+    expect(markdown.split('\n').filter((line) => line === `- ${answered.text}`)).toHaveLength(1);
+
+    // Recarregar não traz o relatório de volta nem soma nada de novo.
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await page.reload();
+    await expect(
+      page.getByRole('tabpanel', { name: 'Hoje' }).getByText('Nada de novo desde a sua última'),
+    ).toBeVisible();
+  });
+
+  // V2D-T4.4: quem deixa a aba aberta em segundo plano e volta horas depois também lê a
+  // ausência em blocos. O app não troca de aba debaixo do cursor: avisa, e o relatório espera
+  // na aba Hoje. (A aba que ficou à vista o tempo todo não tem como saber que o jogador saiu.)
+  test('a aba deixada aberta em segundo plano por horas: na volta, um aviso leva ao relatório, com os blocos, na aba Hoje', async ({
+    context,
+    world,
+  }) => {
+    const hide = (target: Page, hidden: boolean) =>
+      target.evaluate((value) => {
+        Object.defineProperty(document, 'visibilityState', {
+          value: value ? 'hidden' : 'visible',
+          configurable: true,
+        });
+        Object.defineProperty(document, 'hidden', { value, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+      }, hidden);
+    const page = await world.open(context);
+    await playNow(page);
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Habitações Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Habitações → Nv2');
+
+    // Menos de quatro horas fora de vista: a volta não traz relatório nenhum.
+    await hide(page, true);
+    await world.passTime(3 * HOUR, page);
+    await hide(page, false);
+    await expect(fief(page).getByText('Habitações Nv2 → Nv3')).toBeVisible();
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    const today = page.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(today.getByText('Nada de novo desde a sua última visita.')).toBeVisible();
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+
+    // Cinco horas fora de vista. Na volta, a aba continua sendo a do Feudo, e um aviso diz
+    // que o relatório existe.
+    await fief(page).getByRole('button', { name: 'Recrutar 1 aldeão' }).click();
+    await expect(fief(page).getByText(/a caminho\. Chega em/)).toBeVisible();
+    await hide(page, true);
+    await world.passTime(5 * HOUR, page);
+    await hide(page, false);
+    const pointer = toasts(page).getByRole('status').filter({ hasText: 'Relatório de Retorno' });
+    await expect(pointer).toHaveText(
+      /Você esteve fora por 5 horas\. O Relatório de Retorno espera na aba Hoje\./,
+    );
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByRole('tab', { name: 'Hoje' }).getByLabel('há novidades')).toBeVisible();
+    await pointer.getByRole('button', { name: 'Ver' }).click();
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
+    // O aldeão que chegou em segundo plano está no bloco, uma vez só.
+    await expect(
+      reportBlock(page, 'O feudo prosperou')
+        .getByRole('listitem')
+        .filter({ hasText: /recruta/ }),
+    ).toHaveText('Chegou 1 recruta que o Salão mandou chamar.');
+    await expect(reportBlock(page, 'O que exigiu um preço')).toBeVisible();
+    await expect(reportBlock(page, 'Você ainda pode decidir')).toBeVisible();
+    await today.getByRole('button', { name: 'Marcar como lido' }).click();
+    await expect(today.getByText('Nada de novo desde a sua última visita.')).toBeVisible();
+
+    // A aba descartada pelo navegador em segundo plano e recarregada na volta: a ausência conta
+    // desde que ela saiu de vista, e não desde a última leitura que fez sozinha.
+    await hide(page, true);
+    await world.passTime(6 * HOUR, page);
+    await page.reload();
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(
+      page.getByRole('tabpanel', { name: 'Hoje' }).getByText('Você esteve fora por 6 horas.'),
+    ).toBeVisible();
+    // Recarregar de novo não a traz de volta (o endereço ainda é o da aba Hoje).
+    await page.reload();
+    await expect(
+      page.getByRole('tabpanel', { name: 'Hoje' }).getByText('Nada de novo desde a sua última'),
+    ).toBeVisible();
   });
 
   test('reabrir depois de pouco tempo não gera relatório e abre no Feudo', async ({
@@ -429,8 +792,14 @@ test.describe('antes de partir', () => {
     await expect(back.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
     await expect(today(back).getByRole('heading', { level: 2 })).toHaveText([
       'Relatório de Retorno',
-      'Decisões pendentes',
       'Antes de partir',
+    ]);
+    // O que espera decisão é o terceiro bloco do relatório, acima de "Antes de partir".
+    await expect(today(back).getByRole('heading', { level: 3 })).toHaveText([
+      /O feudo prosperou/,
+      /O que exigiu um preço/,
+      /Você ainda pode decidir/,
+      'O saldo dos estoques',
     ]);
     await expect(today(back).getByText('Você esteve fora por 5 horas.')).toBeVisible();
     // Cinco lavradores por cinco horas: agora é a Despensa que está para encher, e o item do
@@ -441,7 +810,16 @@ test.describe('antes de partir', () => {
     await expect(
       items(back).first().getByRole('button', { name: 'Ver os depósitos' }),
     ).toBeVisible();
-    await expect(items(back).filter({ hasText: 'nenhuma obra começa sozinha' })).toHaveCount(1);
+    // As obras que não começam sozinhas estão em "Você ainda pode decidir", uma vez só na aba:
+    // "Antes de partir" não repete o que o relatório já trouxe com o botão.
+    await expect(
+      reportBlock(back, 'Você ainda pode decidir')
+        .getByRole('listitem')
+        .filter({ hasText: 'nenhuma obra começa sozinha' })
+        .getByRole('button', { name: 'Planejar obras' }),
+    ).toBeVisible();
+    await expect(items(back).filter({ hasText: 'nenhuma obra começa sozinha' })).toHaveCount(0);
+    await expect(today(back).getByText('nenhuma obra começa sozinha')).toHaveCount(1);
   });
 });
 

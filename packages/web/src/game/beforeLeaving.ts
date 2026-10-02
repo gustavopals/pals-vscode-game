@@ -53,7 +53,7 @@ const urgency = (seconds: number): LeavingSeverity =>
   seconds < FULL_SOON_SECONDS ? 'danger' : 'warning';
 
 /** O comando que leva ao edifício que produz `resource`: "Alocar na Fazenda". */
-function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'] {
+export function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'] {
   const producer = view.workers.find((row) => row.resource === resource);
   return producer === undefined
     ? { id: 'lords.allocateWorkers', label: 'Alocar trabalhadores' }
@@ -221,13 +221,34 @@ function firewoodItem(view: ViewState): LeavingItem | null {
   };
 }
 
+type StorageBuilding = NonNullable<Row['storageBuilding']>;
+
+/**
+ * O que o botão de um depósito faz: erguer ou ampliar o edifício, quando a obra é oferecida e
+ * nada a trava. Com a obra travada (falta recurso, falta o Salão) ou já em curso, o botão leva ao
+ * feudo: é lá que o aviso do depósito traz o custo, o prazo e o motivo.
+ */
+export function storageCommand(view: ViewState, building: StorageBuilding): LeavingItem['command'] {
+  const underway = busyQueues(view.constructions).some((queue) => queue.building === building);
+  const upgrade = underway
+    ? undefined
+    : view.constructions.available.find((entry) => entry.building === building);
+  return upgrade !== undefined && upgrade.blockedReason === null
+    ? {
+        id: 'lords.build',
+        arg: building,
+        label: `${isNewBuilding(upgrade) ? 'Construir' : 'Ampliar'} ${upgrade.label}`,
+      }
+    : { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
+}
+
 /**
  * Um item por depósito que está cheio e perdendo, ou a menos de uma ausência comum de encher.
  * A madeira e a pedra dividem o Armazém: um item, um botão. Com a obra do depósito em curso e
  * pronta antes de ele encher, o jogador já fez o que havia a fazer: nada a dizer.
  */
 function storageItems(view: ViewState): LeavingItem[] {
-  const groups = new Map<NonNullable<Row['storageBuilding']>, Row[]>();
+  const groups = new Map<StorageBuilding, Row[]>();
   for (const row of view.resources) {
     if (row.storageBuilding !== null && (isWasting(row) || fillsSoon(row))) {
       groups.set(row.storageBuilding, [...(groups.get(row.storageBuilding) ?? []), row]);
@@ -266,24 +287,11 @@ function storageItems(view: ViewState): LeavingItem[] {
         `A obra de ${underway.label} termina em ${formatApprox(underway.secondsRemaining)}.`,
       );
     }
-    const upgrade =
-      underway === undefined
-        ? view.constructions.available.find((entry) => entry.building === building)
-        : undefined;
     items.push({
       id: `storage:${building}`,
       severity: 'warning',
       text: sentences.join(' '),
-      // Com a obra travada (falta recurso, falta o Salão) ou já em curso, o botão leva ao feudo:
-      // é lá que o aviso do depósito traz o custo, o prazo e o motivo.
-      command:
-        upgrade !== undefined && upgrade.blockedReason === null
-          ? {
-              id: 'lords.build',
-              arg: building,
-              label: `${isNewBuilding(upgrade) ? 'Construir' : 'Ampliar'} ${upgrade.label}`,
-            }
-          : { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' },
+      command: storageCommand(view, building),
     });
   }
   return items;
@@ -367,18 +375,27 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * O que preparar antes de sair, em até cinco itens, nesta ordem: a comida, a lenha, os depósitos
- * que enchem, as obras que não começam sozinhas e os aldeões livres. Lista vazia: o feudo está
- * preparado para a ausência.
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a comida, a lenha, os depósitos
+ * que enchem, as obras que não começam sozinhas e os aldeões livres. O Relatório de Retorno tira
+ * daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
-export function beforeLeaving(view: ViewState): LeavingItem[] {
+export function leavingItems(view: ViewState): LeavingItem[] {
   return [
     foodItem(view),
     firewoodItem(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
-  ]
-    .filter((item) => item !== null)
+  ].filter((item) => item !== null);
+}
+
+/**
+ * O que preparar antes de sair, em até cinco itens, na ordem de `leavingItems`. Lista vazia: o
+ * feudo está preparado para a ausência. `skip` são os assuntos que o Relatório de Retorno, logo
+ * acima, já trouxe com o mesmo botão: a aba não diz duas vezes a mesma coisa.
+ */
+export function beforeLeaving(view: ViewState, skip: readonly string[] = []): LeavingItem[] {
+  return leavingItems(view)
+    .filter((item) => !skip.includes(item.id))
     .slice(0, MAX_LEAVING_ITEMS);
 }

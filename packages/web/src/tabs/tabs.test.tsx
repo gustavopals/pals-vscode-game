@@ -23,6 +23,9 @@ const hasAttribute = (tag: string, name: string) => new RegExp(`\\s${name}(=|\\s
 const inputs = (markup: string, name: string) =>
   tags(markup, /<input[^>]*>/g).filter((tag) => attribute(tag, 'name') === name);
 
+/** As linhas de uma Crônica que só tem esta lista: a posição de cada uma é a ordem. */
+const lines = (...texts: string[]) => texts.map((text, index) => ({ n: index + 1, text }));
+
 describe('Markdown da Crônica (parseChronicle)', () => {
   it('lê o título, os anos e as linhas de cada ano', () => {
     const markdown = [
@@ -43,26 +46,30 @@ describe('Markdown da Crônica (parseChronicle)', () => {
       { kind: 'heading', text: 'Ano 1' },
       {
         kind: 'list',
-        items: ['A Fazenda chegou ao nível 2.', 'Três aldeões se juntaram ao feudo.'],
+        items: [
+          { n: 1, text: 'A Fazenda chegou ao nível 2.' },
+          { n: 2, text: 'Três aldeões se juntaram ao feudo.' },
+        ],
       },
       { kind: 'heading', text: 'Ano 2' },
-      { kind: 'list', items: ['A fome começou.'] },
+      // A posição conta o documento inteiro, não a lista: é a âncora da linha.
+      { kind: 'list', items: [{ n: 3, text: 'A fome começou.' }] },
     ]);
   });
 
   it('itens seguidos formam uma lista só, mesmo com linhas em branco entre eles', () => {
     expect(parseChronicle('- um\n- dois\n\n- três')).toEqual([
-      { kind: 'list', items: ['um', 'dois', 'três'] },
+      { kind: 'list', items: lines('um', 'dois', 'três') },
     ]);
   });
 
   it('um título ou parágrafo entre itens separa as listas', () => {
     expect(parseChronicle('- um\n## Ano 2\n- dois\ntexto solto\n- três')).toEqual([
-      { kind: 'list', items: ['um'] },
+      { kind: 'list', items: [{ n: 1, text: 'um' }] },
       { kind: 'heading', text: 'Ano 2' },
-      { kind: 'list', items: ['dois'] },
+      { kind: 'list', items: [{ n: 2, text: 'dois' }] },
       { kind: 'paragraph', text: 'texto solto' },
-      { kind: 'list', items: ['três'] },
+      { kind: 'list', items: [{ n: 3, text: 'três' }] },
     ]);
   });
 
@@ -81,7 +88,7 @@ describe('Markdown da Crônica (parseChronicle)', () => {
     expect(parseChronicle('\n\n   \n\t\n')).toEqual([]);
     expect(parseChronicle('\n\n  # Título  \n\n\n   - item   \n\n')).toEqual([
       { kind: 'title', text: 'Título' },
-      { kind: 'list', items: ['item'] },
+      { kind: 'list', items: lines('item') },
     ]);
   });
 
@@ -89,7 +96,7 @@ describe('Markdown da Crônica (parseChronicle)', () => {
     expect(parseChronicle('# Crônica\r\n\r\n## Ano 1\r\n\r\n- um\r\n- dois\r\n')).toEqual([
       { kind: 'title', text: 'Crônica' },
       { kind: 'heading', text: 'Ano 1' },
-      { kind: 'list', items: ['um', 'dois'] },
+      { kind: 'list', items: lines('um', 'dois') },
     ]);
   });
 
@@ -105,9 +112,100 @@ describe('Markdown da Crônica (parseChronicle)', () => {
 
   it('HTML no conteúdo continua sendo só texto', () => {
     expect(parseChronicle('- <b>forte</b>\n<script>alert(1)</script>')).toEqual([
-      { kind: 'list', items: ['<b>forte</b>'] },
+      { kind: 'list', items: lines('<b>forte</b>') },
       { kind: 'paragraph', text: '<script>alert(1)</script>' },
     ]);
+  });
+
+  describe('"Sua escolha voltou" (V2D-T4.3)', () => {
+    const answered = 'No 3º dia da Primavera, o senhor de Pedra Alta cedeu madeira ao celeiro.';
+    const returned = 'No 5º dia da Primavera, o conselho voltou ao assunto: A vez de repartir.';
+    const chronicle = [
+      '# Crônica de Pedra Alta',
+      '',
+      '## Ano 1',
+      '',
+      '- No 2º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.',
+      `- ${answered}`,
+      '- No 4º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 6.',
+      `- ${returned}`,
+      `  - Sua escolha voltou: “${answered}”`,
+      '- No 6º dia da Primavera, o feudo inteiro comeu à mesma mesa.',
+      '',
+    ].join('\n');
+
+    it('a nota recuada liga a continuação à linha da escolha, e não vira linha da Crônica', () => {
+      const [, , list] = parseChronicle(chronicle);
+      expect(list).toEqual({
+        kind: 'list',
+        items: [
+          expect.objectContaining({ n: 1 }),
+          { n: 2, text: answered },
+          expect.objectContaining({ n: 3 }),
+          {
+            n: 4,
+            text: returned,
+            echo: { label: 'Sua escolha voltou', quote: answered, target: 2 },
+          },
+          // A linha seguinte continua a contagem: a nota não ocupou posição.
+          { n: 5, text: 'No 6º dia da Primavera, o feudo inteiro comeu à mesma mesa.' },
+        ],
+      });
+    });
+
+    it('o rótulo é o do servidor: o app não escreve quem escolheu', () => {
+      const expired = 'Sem palavra do senhor, o conselho guardou as reservas.';
+      const [list] = parseChronicle(
+        `- ${expired}\n- ${returned}\n  - A decisão do conselho voltou: “${expired}”\n`,
+      );
+      expect(list).toMatchObject({
+        items: [
+          { n: 1 },
+          { n: 2, echo: { label: 'A decisão do conselho voltou', quote: expired, target: 1 } },
+        ],
+      });
+    });
+
+    it('com a mesma frase duas vezes, liga à mais recente antes da continuação', () => {
+      const [list] = parseChronicle(
+        `- ${answered}\n- outra coisa\n- ${answered}\n- ${returned}\n  - Sua escolha voltou: “${answered}”\n- ${answered}\n`,
+      );
+      expect(list).toMatchObject({ items: [{}, {}, {}, { n: 4, echo: { target: 3 } }, { n: 5 }] });
+    });
+
+    it('a frase citada pode ter aspas e dois-pontos: vale a nota inteira', () => {
+      const quoted = 'O senhor decidiu sobre "Tábuas para as reservas": “ceder” a madeira.';
+      const [list] = parseChronicle(
+        `- ${quoted}\n- ${returned}\n  - Sua escolha voltou: “${quoted}”`,
+      );
+      expect(list).toMatchObject({
+        items: [{}, { echo: { label: 'Sua escolha voltou', quote: quoted, target: 1 } }],
+      });
+    });
+
+    it('sem a linha citada no texto, a nota fica, sem destino', () => {
+      const [list] = parseChronicle(`- ${returned}\n  - Sua escolha voltou: “${answered}”`);
+      expect(list).toEqual({
+        kind: 'list',
+        items: [
+          {
+            n: 1,
+            text: returned,
+            echo: { label: 'Sua escolha voltou', quote: answered, target: null },
+          },
+        ],
+      });
+    });
+
+    it('um item recuado que não é uma citação continua sendo uma linha', () => {
+      expect(parseChronicle('- um\n  - dois\n  - três: sem aspas')).toEqual([
+        { kind: 'list', items: lines('um', 'dois', 'três: sem aspas') },
+      ]);
+      // Sem linha acima dela, a nota não tem de quem ser: fica como texto.
+      expect(parseChronicle('  - Sua escolha voltou: “x”')).toEqual([
+        { kind: 'list', items: lines('Sua escolha voltou: “x”') },
+      ]);
+    });
   });
 });
 
@@ -139,8 +237,10 @@ describe('aba Crônica', () => {
     expect(markup).toMatch(/<button[^>]*>Baixar Crônica \(Markdown\)<\/button>/);
     expect(markup).toContain('<h1>Crônica de Pedra Alta</h1>');
     expect(markup).toContain('<h2>Ano 1</h2>');
+    // Cada linha tem a sua âncora; o foco só chega a ela por "Sua escolha voltou", não pelo Tab.
     expect(markup).toContain(
-      '<ul><li>A Fazenda chegou ao nível 2.</li><li>Chegou um aldeão.</li></ul>',
+      '<ul><li id="cronica-1" tabindex="-1">A Fazenda chegou ao nível 2.</li>' +
+        '<li id="cronica-2" tabindex="-1">Chegou um aldeão.</li></ul>',
     );
     // A sintaxe do Markdown não aparece crua.
     expect(markup).not.toContain('## ');
@@ -155,6 +255,60 @@ describe('aba Crônica', () => {
     expect(markup).toMatch(/<p[^>]*>Ainda não há nada a contar\.<\/p>/);
     expect(markup).not.toContain('*');
     expect(markup).not.toContain('<ul>');
+  });
+
+  describe('"Sua escolha voltou" (V2D-T4.3)', () => {
+    const answered = 'No 3º dia da Primavera, o senhor cedeu madeira ao celeiro.';
+    const value = [
+      '# Crônica de Pedra Alta',
+      '',
+      '## Ano 1',
+      '',
+      `- ${answered}`,
+      '- No 4º dia da Primavera, um novo aldeão se juntou ao feudo.',
+      '- No 5º dia da Primavera, o conselho voltou ao assunto: A vez de repartir.',
+      `  - Sua escolha voltou: “${answered}”`,
+      '',
+    ].join('\n');
+    const text = (markup: string) => markup.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+
+    it('a continuação traz a escolha citada logo abaixo, com o botão que leva à linha dela', () => {
+      const markup = render({ status: 'ready', value });
+      const line = /<li id="cronica-3"[^>]*>.*?<\/li>/.exec(markup)?.[0] ?? '';
+      expect(text(line)).toBe(
+        'No 5º dia da Primavera, o conselho voltou ao assunto: A vez de repartir. ' +
+          `Sua escolha voltou: “${answered}”`,
+      );
+      // A ligação não é dita só pelo ícone: o botão tem nome e diz o que faz.
+      expect(line).toContain('codicon-history');
+      expect(line).toMatch(
+        /<button type="button" class="link" title="Ir à linha dessa escolha">Sua escolha voltou<\/button>/,
+      );
+      // A linha da escolha é a âncora: existe uma só, e é a primeira.
+      expect(tags(markup, /<li id="cronica-1"[^>]*>/g)).toHaveLength(1);
+      expect(markup).toContain(`<li id="cronica-1" tabindex="-1">${answered}</li>`);
+      // A nota não virou uma linha a mais.
+      expect(tags(markup, /<li /g)).toHaveLength(3);
+      expect(markup).not.toContain('- Sua escolha');
+    });
+
+    it('sem a linha da escolha no texto, a nota fica como texto, sem botão morto', () => {
+      const markup = render({
+        status: 'ready',
+        value: `- O conselho voltou ao assunto.\n  - Sua escolha voltou: “${answered}”\n`,
+      });
+      expect(text(markup)).toContain(`Sua escolha voltou: “${answered}”`);
+      expect(tags(markup, /<button[^>]*class="link"[^>]*>/g)).toEqual([]);
+    });
+
+    it('HTML na frase citada também é só texto', () => {
+      const markup = render({
+        status: 'ready',
+        value: '- <b>x</b>\n- volta\n  - Sua escolha voltou: “<b>x</b>”\n',
+      });
+      expect(markup).not.toContain('<b>');
+      expect(markup).toContain('“&lt;b>x&lt;/b>”');
+    });
   });
 
   it('HTML no texto da Crônica sai escapado, nunca como marcação', () => {

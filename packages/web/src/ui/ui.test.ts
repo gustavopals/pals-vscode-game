@@ -407,18 +407,18 @@ describe('barra de status', () => {
     it('as decisões pendentes passam na frente de tudo, com o prazo da que vence primeiro', () => {
       const hungry: ViewState = { ...filling, famine: starving.famine };
       const result = statusBar({ ...base, view: deciding(hungry, 2), pending: 3 });
-      expect(result.text).toBe('$(law) 2 decisões pendentes · expira em 23 h · $(bell) 3');
+      expect(result.text).toBe('$(law) 2 decisões pendentes · expira em 22 h · $(bell) 3');
       // A explicação diz o título e o prazo de cada carta, e onde elas esperam.
       expect(result.tooltip).toBe(
-        'Pedra Alta: "A vez de repartir" expira em 23 h; "A refeição dos pedreiros" expira em 23 h. As cartas esperam na aba Conselho.',
+        'Pedra Alta: "A vez de repartir" expira em 22 h; "A refeição dos pedreiros" expira em 23 h. As cartas esperam na aba Conselho.',
       );
       // O clique leva à aba do Conselho, onde a carta se lê inteira.
       expect(result.target).toBe('council');
       expect(result.alarm).toBeUndefined();
       const one = statusBar({ ...base, view: deciding(farmers, 1) });
-      expect(one.text).toBe('$(law) 1 decisão pendente · expira em 23 h');
+      expect(one.text).toBe('$(law) 1 decisão pendente · expira em 22 h');
       expect(one.tooltip).toBe(
-        'Pedra Alta: "A vez de repartir" expira em 23 h. A carta espera na aba Conselho.',
+        'Pedra Alta: "A vez de repartir" expira em 22 h. A carta espera na aba Conselho.',
       );
     });
 

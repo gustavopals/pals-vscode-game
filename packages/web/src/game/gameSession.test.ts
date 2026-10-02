@@ -19,6 +19,7 @@ import {
   GameSession,
   OfflineError,
 } from './gameSession';
+import { pendingItems } from './returnReport';
 
 const view = golden.initial as unknown as ViewState;
 /** Um cache gravado agora por esta versão do app. */
@@ -761,6 +762,12 @@ describe('cache', () => {
           morale: { value: 50, band: 'content', bandLabel: 'Contente' },
           famine: 'none',
           highlights: ['evento 4'],
+          // Os três blocos saem do mesmo jeito: o que aconteceu, e o que a visão nova pede.
+          blocks: {
+            prospered: [{ text: 'evento 4', topic: 'construction' }],
+            cost: [],
+            pending: pendingItems(view),
+          },
         },
       ]);
     });
@@ -877,6 +884,217 @@ describe('Relatório de Retorno', () => {
     expect(seen.reports[0]?.counts.constructionsFinished).toBe(1);
     expect(seen.reports[0]?.awaySeconds).toBe(8 * 3600 + 5);
     expect(session.catchingUp).toBe(false);
+  });
+});
+
+describe('Relatório de Retorno: a aba que ficou aberta (V2D-T4.4)', () => {
+  /** A sessão aberta e à vista, com o que se escuta de cada relatório. */
+  async function openTab(cached?: GameCache) {
+    const context = setup(cached);
+    const whileOpen: ReturnReport[] = [];
+    context.session.onReturnWhileOpen((report) => whileOpen.push(report));
+    context.session.setVisible(true);
+    await context.session.start(target);
+    return { ...context, whileOpen };
+  }
+  const stored = (store: ReturnType<typeof setup>['store']) =>
+    store.get<GameCache>(cacheKey(target));
+
+  it('fora de vista por 4 horas ou mais: na volta, a ausência inteira vira relatório, uma vez só', async () => {
+    const { session, state, seen, whileOpen, store } = await openTab();
+    session.setVisible(false);
+    await vi.advanceTimersByTimeAsync(0);
+    // O cache passa a dizer desde quando a aba está fora de vista, e de que visão partiu.
+    expect(stored(store)?.away).toEqual({ since: Date.now(), view, events: [] });
+
+    // Em segundo plano o ciclo continua, de 2 em 2 minutos: os eventos chegam e são entregues.
+    state.events = [event(1, 'constructionFinished')];
+    await vi.advanceTimersByTimeAsync(2 * HOUR);
+    state.events.push(event(2, 'dayStarted'), event(3, 'cardExpired'));
+    state.view = laterView;
+    state.etag = 'W/"b"';
+    await vi.advanceTimersByTimeAsync(3 * HOUR);
+    expect(seen.events.flat().map((entry) => entry.seq)).toEqual([1, 2, 3]);
+    expect(session.catchingUp).toBe(false);
+    expect(stored(store)?.away?.events.map((entry) => entry.seq)).toEqual([1, 2, 3]);
+    expect(whileOpen).toEqual([]);
+
+    // O jogador volta: o que chegar nesta leitura entra no relatório, e não em aviso avulso.
+    state.events.push(event(4, 'objectiveCompleted'));
+    const catchingUp: boolean[] = [];
+    session.onEvents(() => catchingUp.push(session.catchingUp));
+    session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(catchingUp).toEqual([true]);
+    expect(session.catchingUp).toBe(false);
+
+    expect(whileOpen).toHaveLength(1);
+    // Não é o relatório de quem reabriu a página: sai pelo outro caminho.
+    expect(seen.reports).toEqual([]);
+    const [report] = whileOpen;
+    expect(report?.awaySeconds).toBe(5 * 3600);
+    // Cada evento uma vez, dos que chegaram em segundo plano ao desta leitura.
+    expect(report?.highlights).toEqual(['evento 1', 'evento 3', 'evento 4']);
+    expect(report?.counts).toMatchObject({ daysPassed: 1, constructionsFinished: 1 });
+    expect(report?.blocks?.prospered.map((item) => item.text)).toEqual(['evento 1', 'evento 4']);
+    expect(report?.blocks?.cost.map((item) => item.text)).toEqual(['evento 3']);
+    // Os estoques partem da visão de quando a aba saiu de vista.
+    expect(report?.resources.find((row) => row.id === 'food')).toMatchObject({
+      before: 180,
+      after: 148,
+    });
+    // E a ausência acabou: o cache não a guarda mais, e ela não volta numa segunda vez.
+    expect(stored(store)?.away).toBeUndefined();
+    session.setVisible(false);
+    session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(whileOpen).toHaveLength(1);
+  });
+
+  it('com menos de 4 horas fora de vista, nada: os eventos já foram entregues um a um', async () => {
+    const { session, state, seen, whileOpen, store } = await openTab();
+    session.setVisible(false);
+    state.events = [event(1, 'constructionFinished')];
+    await vi.advanceTimersByTimeAsync(4 * HOUR - 1000);
+    session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(whileOpen).toEqual([]);
+    expect(seen.reports).toEqual([]);
+    expect(seen.events.flat()).toHaveLength(1);
+    expect(stored(store)?.away).toBeUndefined();
+  });
+
+  it('a aba que ficou à vista o tempo todo não recebe relatório: não há como saber que o jogador saiu', async () => {
+    const { state, seen, whileOpen } = await openTab();
+    state.events = [event(1, 'constructionFinished')];
+    await vi.advanceTimersByTimeAsync(9 * HOUR);
+    expect(whileOpen).toEqual([]);
+    expect(seen.reports).toEqual([]);
+  });
+
+  it('sem ligação na volta, o relatório espera a leitura e não repete o que já tinha chegado', async () => {
+    const { session, state, whileOpen } = await openTab();
+    session.setVisible(false);
+    state.events = [event(1, 'constructionFinished')];
+    await vi.advanceTimersByTimeAsync(5 * HOUR);
+    state.fail = new NetworkError('fora');
+    session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(session.connection.kind).toBe('offline');
+    expect(whileOpen).toEqual([]);
+    expect(session.catchingUp).toBe(true);
+
+    // A ligação volta: a leitura dos eventos parte do cursor, que já passou pelo evento 1.
+    state.fail = null;
+    state.events.push(event(2, 'cardExpired'));
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(state.lastAfter).toBe(1);
+    expect(whileOpen).toHaveLength(1);
+    expect(whileOpen[0]?.highlights).toEqual(['evento 1', 'evento 2']);
+    expect(whileOpen[0]?.awaySeconds).toBe(5 * 3600 + 5);
+  });
+
+  it('a aba descartada em segundo plano e recarregada na volta: o relatório parte de quando ela saiu de vista', async () => {
+    const first = await openTab();
+    first.session.setVisible(false);
+    first.state.events = [event(1, 'constructionFinished'), event(2, 'dayStarted')];
+    await vi.advanceTimersByTimeAsync(5 * HOUR);
+    // A última leitura em segundo plano foi há instantes: sem a marca, pareceria "última visita".
+    const cached = stored(first.store);
+    expect(Date.now() - (cached?.lastSeenAt ?? 0)).toBeLessThan(3 * 60_000);
+    expect(cached?.away?.since).toBe(Date.now() - 5 * HOUR);
+    first.session.stop();
+
+    // A página recarregada, à vista: é uma reabertura como as outras, com a ausência inteira.
+    const reloaded = setup(cached);
+    reloaded.state.events = [...first.state.events, event(3, 'cardExpired')];
+    reloaded.state.view = laterView;
+    reloaded.state.etag = 'W/"b"';
+    reloaded.session.setVisible(true);
+    await reloaded.session.start(target);
+    expect(reloaded.seen.reports).toHaveLength(1);
+    const [report] = reloaded.seen.reports;
+    expect(report?.awaySeconds).toBe(5 * 3600);
+    expect(report?.highlights).toEqual(['evento 1', 'evento 3']);
+    expect(report?.counts.daysPassed).toBe(1);
+    expect(report?.resources.find((row) => row.id === 'food')).toMatchObject({ before: 180 });
+    expect(stored(reloaded.store)?.away).toBeUndefined();
+    // Recarregar de novo não traz o relatório de volta.
+    const again = setup(stored(reloaded.store));
+    again.session.setVisible(true);
+    await again.session.start(target);
+    expect(again.seen.reports).toEqual([]);
+  });
+
+  it('recarregada antes das 4 horas, não há relatório; a marca some do cache', async () => {
+    const first = await openTab();
+    first.session.setVisible(false);
+    await vi.advanceTimersByTimeAsync(HOUR);
+    const cached = stored(first.store);
+    expect(cached?.away).toBeDefined();
+    first.session.stop();
+    const reloaded = setup(cached);
+    reloaded.session.setVisible(true);
+    await reloaded.session.start(target);
+    expect(reloaded.seen.reports).toEqual([]);
+    expect(stored(reloaded.store)?.away).toBeUndefined();
+  });
+
+  it('outra aba do mesmo navegador esteve à vista: o jogador não esteve fora, e não há relatório', async () => {
+    const hidden = await openTab();
+    hidden.session.setVisible(false);
+    await vi.advanceTimersByTimeAsync(3 * HOUR);
+    // A outra aba divide o cache e o grava enquanto está à vista.
+    const other = new GameSession({
+      client: fakeServer().client,
+      store: hidden.store,
+      now: () => Date.now(),
+    });
+    other.setVisible(true);
+    await other.start(target);
+    expect(stored(hidden.store)?.attendedAt).toBe(Date.now());
+    other.stop();
+    // A aba escondida continua lendo em segundo plano e não apaga a marca da outra.
+    await vi.advanceTimersByTimeAsync(2 * HOUR);
+    expect(stored(hidden.store)?.attendedAt).toBe(Date.now() - 2 * HOUR);
+    expect(stored(hidden.store)?.away).toBeDefined();
+
+    hidden.session.setVisible(true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(hidden.whileOpen).toEqual([]);
+    // Nem na página recarregada: a marca de quem esteve à vista é posterior à saída.
+    const cached = {
+      ...stored(hidden.store),
+      away: { since: Date.now() - 5 * HOUR, view, events: [] },
+    };
+    const reloaded = setup(cached as GameCache);
+    reloaded.session.setVisible(true);
+    await reloaded.session.start(target);
+    expect(reloaded.seen.reports).toEqual([]);
+  });
+
+  it('uma marca de ausência estragada no cache é ignorada, sem quebrar a abertura', async () => {
+    for (const away of [
+      'ontem',
+      { since: 'cedo', view, events: [] },
+      { since: Date.now() - 6 * HOUR, view, events: [{ seq: 'um' }] },
+    ]) {
+      const broken = setup({ ...cachedNow(), away } as unknown as GameCache);
+      broken.session.setVisible(true);
+      await broken.session.start(target);
+      expect(broken.seen.reports).toEqual([]);
+      expect(broken.session.view).toEqual(view);
+    }
+    // A visão de base em outro formato vira "nenhuma": o relatório sai sem a tabela de estoques.
+    const noBase = setup({
+      ...cachedNow(),
+      away: { since: Date.now() - 6 * HOUR, view: { velha: true }, events: [] },
+    } as unknown as GameCache);
+    noBase.session.setVisible(true);
+    await noBase.session.start(target);
+    expect(noBase.seen.reports).toHaveLength(1);
+    expect(noBase.seen.reports[0]?.resources).toEqual([]);
+    expect(noBase.seen.reports[0]?.awaySeconds).toBe(6 * 3600);
   });
 });
 

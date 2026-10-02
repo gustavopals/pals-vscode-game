@@ -775,12 +775,17 @@ test.describe('armazenamento', () => {
       /^−32[2-6]$/,
       '900',
     ]);
-    const waste = today.locator('.waste');
+    // A perda está em "O que exigiu um preço", em uma linha só, com o botão da próxima ação.
+    const waste = today
+      .getByRole('region', { name: /^O que exigiu um preço/ })
+      .getByRole('listitem')
+      .filter({ hasText: 'sem espaço' });
     await expect(waste).toHaveCount(1);
-    await expect(waste).toContainText(
-      /Foram ao chão, por falta de espaço: 32[2-6] de comida \(Celeiro\)\./,
-    );
-    await expect(today.getByRole('listitem').filter({ hasText: /foi ao chão/ })).toHaveCount(0);
+    await expect(waste).toContainText(/Celeiro sem espaço: 32[2-6] de comida foram ao chão\./);
+    // O fecho diário do desperdício não vira linha: nesta ausência não houve outra coisa, e a
+    // Crônica da ausência nem aparece.
+    await expect(today.getByText(/não coube nos depósitos/)).toHaveCount(0);
+    await expect(today.getByText(/A Crônica da ausência/)).toHaveCount(0);
     await waste.getByRole('button', { name: 'Ver os depósitos' }).click();
     await expect(back.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
     await expect(fief(back).locator('.storage-notes')).toContainText('Celeiro cheio:');
@@ -935,7 +940,9 @@ test.describe('filas de obras e planejadas', () => {
     const back = await world.open(context);
     const today = back.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 6 horas.')).toBeVisible();
-    const started = today.getByRole('listitem').filter({ hasText: 'começaram sozinhos' });
+    // Estão em "O feudo prosperou": o feudo trabalhou sem o senhor.
+    const prospered = today.getByRole('region', { name: /^O feudo prosperou/ });
+    const started = prospered.getByRole('listitem').filter({ hasText: 'começaram sozinhos' });
     await expect(started).toHaveText([
       /com as reservas cheias, os pedreiros começaram sozinhos a erguer a Fazenda ao 2º nível\.$/,
       /com as reservas cheias, os pedreiros começaram sozinhos a erguer a Serraria ao 2º nível\.$/,
@@ -949,7 +956,8 @@ test.describe('filas de obras e planejadas', () => {
     await expect(spent('Madeira')).toHaveText('−180');
     await expect(spent('Pedra')).toHaveText('−50');
     await expect(spent('Ouro')).toHaveText('−40');
-    await expect(today.getByText(/Obras concluídas: 3/)).toBeVisible();
+    // As três obras concluídas: as Habitações e as duas que começaram sozinhas.
+    await expect(prospered.getByRole('listitem').filter({ hasText: 'ergueram' })).toHaveCount(3);
 
     // No feudo: a lista de planejadas esvaziou, os edifícios subiram e a Crônica conta as duas.
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
@@ -1299,10 +1307,16 @@ test.describe('moral', () => {
     const report = today.locator('.morale-report');
     await expect(report).toContainText('Moral 16 (Desesperado): caiu de 28 (Inquieto).');
     await expect(report.locator('.codicon-thumbsdown')).toBeVisible();
-    // Quem partiu e quem desertou depende da sorte; os dois somam dois, e cada frase diz o porquê.
-    await expect(report.getByRole('status')).toContainText(
+    // Quem partiu e quem desertou depende da sorte; os dois somam dois. Estão em "O que exigiu
+    // um preço", somados, cada frase com o porquê e o botão da saída.
+    const cost = today.getByRole('region', { name: /^O que exigiu um preço/ });
+    const gone = cost.getByRole('listitem').filter({
+      hasText: /a moral estava baixa\.|a fome durou demais\./,
+    });
+    await expect(gone.first()).toContainText(
       /(Partiu 1 aldeão|Partiram 2 aldeões): a moral estava baixa\.|(Desertou 1 aldeão|Desertaram 2 aldeões): a fome durou demais\./,
     );
+    await expect(gone.first().getByRole('button')).toHaveText(/Ver a moral|Alocar na Fazenda/);
     await expect(report).toContainText(
       // O conselho fala da conta da próxima virada: mais um dia inteiro de fome.
       'O que mais pesa é a fome (−36). Ponha mais gente na Fazenda',
@@ -1310,6 +1324,8 @@ test.describe('moral', () => {
     await expect(today.getByRole('listitem').filter({ hasText: 'perdeu a esperança' })).toHaveCount(
       1,
     );
+    // Um a um, com quem foi, eles estão na Crônica da ausência, recolhida abaixo dos blocos.
+    await today.getByText(/A Crônica da ausência/).click();
     await expect(
       today.getByRole('listitem').filter({ hasText: /juntou a trouxa|fugiu da fome/ }),
     ).toHaveCount(2);

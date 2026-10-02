@@ -1467,6 +1467,100 @@ describe('Relatório de Retorno', () => {
     expect(controller.report?.highlights).toEqual(['O frio entrou nas casas.', 'O frio passou.']);
   });
 
+  describe('a aba que ficou aberta e fora de vista (V2D-T4.4)', () => {
+    /** O feudo aberto e à vista; `clock.now` é o relógio, que o teste adianta. */
+    async function leftOpen(preferences: Partial<Preferences> = {}) {
+      const clock = { now: NOON };
+      const made = await opened({ now: () => clock.now });
+      await made.controller.setPreferences({ notifications: 'all', ...preferences });
+      return { ...made, clock };
+    }
+    const pointer = (controller: Controller) => toastWith(controller, 'Relatório de Retorno');
+
+    it('na volta, o relatório está na aba Hoje e um aviso leva até ele, sem trocar de aba sozinho', async () => {
+      const made = await leftOpen();
+      const { controller, clock } = made;
+      expect(controller.route).toBe('fief');
+      controller.setVisible(false);
+      // Em segundo plano, o que acontece é entregue como sempre: aviso e contador.
+      clock.now += 2 * HOUR;
+      await deliver(made, gameEvent(1, 'constructionFinished', 'A serraria ficou pronta.'));
+      expect(controller.unseen).toBe(1);
+      expect(controller.report).toBeNull();
+
+      clock.now += 3 * HOUR;
+      made.api.state.events.push(
+        gameEvent(2, 'dayStarted', 'Amanheceu.'),
+        gameEvent(3, 'cardExpired', 'O conselho decidiu sozinho.'),
+      );
+      controller.setVisible(true);
+      await settle(controller);
+
+      expect(controller.report?.awaySeconds).toBe(5 * 3600);
+      expect(controller.report?.highlights).toEqual([
+        'A serraria ficou pronta.',
+        'O conselho decidiu sozinho.',
+      ]);
+      expect(controller.report?.blocks?.prospered.map((item) => item.text)).toEqual([
+        'A serraria ficou pronta.',
+      ]);
+      expect(controller.report?.blocks?.cost.map((item) => item.text)).toEqual([
+        'O conselho decidiu sozinho.',
+      ]);
+      // O contador não soma duas vezes o que já tinha virado aviso em segundo plano.
+      expect(controller.unseen).toBe(2);
+      // O que chegou na leitura da volta foi para o relatório, e não para um aviso avulso.
+      expect(gameToasts(controller).map((toast) => toast.text)).not.toContain(
+        'O conselho decidiu sozinho.',
+      );
+      // A aba em que o jogador estava continua sendo a dele.
+      expect(controller.route).toBe('fief');
+      expect(pointer(controller)?.text).toBe(
+        'Você esteve fora por 5 horas. O Relatório de Retorno espera na aba Hoje.',
+      );
+      void actionOf(pointer(controller), 'Ver').run();
+      expect(controller.route).toBe('today');
+      // Lido, o relatório some, e não volta ao sair de vista e voltar em seguida.
+      controller.markSeen();
+      controller.setVisible(false);
+      controller.setVisible(true);
+      await settle(controller);
+      expect(controller.report).toBeNull();
+    });
+
+    it('com menos de 4 horas fora de vista, nada muda: nem relatório, nem aviso', async () => {
+      const made = await leftOpen();
+      made.controller.setVisible(false);
+      made.clock.now += 3 * HOUR;
+      made.controller.setVisible(true);
+      await settle(made.controller);
+      expect(made.controller.report).toBeNull();
+      expect(pointer(made.controller)).toBeUndefined();
+    });
+
+    it('quem já está na aba Hoje vê o relatório aparecer, sem aviso', async () => {
+      const made = await leftOpen();
+      made.controller.navigate('today');
+      made.controller.setVisible(false);
+      made.clock.now += 6 * HOUR;
+      made.controller.setVisible(true);
+      await settle(made.controller);
+      expect(made.controller.report?.awaySeconds).toBe(6 * 3600);
+      expect(pointer(made.controller)).toBeUndefined();
+    });
+
+    it('no modo discreto, o relatório fica na aba Hoje e nenhum aviso aparece', async () => {
+      const made = await leftOpen({ discreetMode: true });
+      made.controller.setVisible(false);
+      made.clock.now += 6 * HOUR;
+      made.controller.setVisible(true);
+      await settle(made.controller);
+      expect(made.controller.report).not.toBeNull();
+      expect(made.controller.toasts).toEqual([]);
+      expect(made.controller.route).toBe('fief');
+    });
+  });
+
   describe('na primeira abertura depois de uma atualização do jogo', () => {
     // O cache como a versão anterior do app o gravou: sem marca, e a visão em outro formato.
     const {

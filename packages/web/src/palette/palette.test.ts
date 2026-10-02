@@ -1507,7 +1507,7 @@ describe('decidir carta do Conselho (GDD §7 e §13.6)', () => {
     const cards = shownAs(shown, 0, 'pick');
     expect(cards.title).toBe('Decidir carta do Conselho');
     expect(cards.items.map((item) => [item.label, item.description])).toEqual([
-      ['A vez de repartir', 'expira em 23 h'],
+      ['A vez de repartir', 'expira em 22 h'],
       ['A refeição dos pedreiros', 'expira em 23 h'],
     ]);
     expect(cards.items[1]?.detail).toBe(mealCard.text);

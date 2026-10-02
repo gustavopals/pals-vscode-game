@@ -556,9 +556,58 @@ progress::-webkit-progress-value {
   margin-top: 2px;
 }
 
-/* A linha do que foi ao chão, no Relatório de Retorno. */
-.waste {
-  margin: 6px 0;
+/*
+ * Os três blocos do Relatório de Retorno: o título com o ícone e a contagem, e uma linha por
+ * item. O que pede ação tem o desenho dos itens de "Antes de partir"; o que só conta uma boa
+ * notícia é uma linha de texto, como na Crônica.
+ */
+.report-block {
+  margin-top: 14px;
+}
+
+.report-block > h3 {
+  margin: 0 0 4px;
+  font-size: 1em;
+  color: var(--vscode-foreground);
+}
+
+.report-prospered > h3 > .codicon {
+  color: var(--vscode-notificationsInfoIcon-foreground);
+}
+
+.report-cost > h3 > .codicon {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.report-pending > h3 > .codicon {
+  color: var(--vscode-descriptionForeground);
+}
+
+.report-line {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.report-note {
+  margin-top: 14px;
+}
+
+/* As linhas da Crônica da ausência ficam recolhidas: os blocos são o que se lê primeiro. */
+.report-chronicle {
+  margin-top: 10px;
+}
+
+.report-chronicle > summary {
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+}
+
+.report-chronicle > .chronicle {
+  margin-top: 4px;
+}
+
+.report-end {
+  margin-top: 10px;
 }
 
 .arrivals {
@@ -1003,6 +1052,25 @@ progress::-webkit-progress-value {
 .document li {
   padding: 3px 0 3px 14px;
   border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+/*
+ * A linha a que "Sua escolha voltou" leva recebe o foco pelo botão, não pelo Tab: o contorno
+ * aparece também para quem clicou, senão não se vê aonde a página foi.
+ */
+.document li:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* A escolha que trouxe a carta, logo abaixo da linha dela: uma citação, em tom de nota. */
+.chronicle-echo {
+  display: block;
+  margin-top: 2px;
+  padding-left: 12px;
+  border-left: 2px solid var(--vscode-panel-border);
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.92em;
 }
 
 .settings {

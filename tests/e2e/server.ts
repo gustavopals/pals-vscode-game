@@ -81,6 +81,44 @@ control.post('/__test/council-recess', async () => {
   return { ok: true };
 });
 
+/**
+ * Põe uma carta do catálogo na mesa do Conselho de todos os feudos, agora, com o prazo pedido
+ * (24 horas de relógio, se nenhum for dado). Com o conselho em recesso, é como um teste escolhe
+ * qual carta está à espera: o sorteio depende da semente e do catálogo, que cresce. A carta entra
+ * como chegaria do sorteio, sem escolha anterior; daí em diante o motor cuida dela: a resposta,
+ * a expiração e a continuação que a opção marcar são as de verdade. Só não há a linha da
+ * chegada na Crônica, porque nenhum evento foi emitido.
+ */
+control.post('/__test/council-deal', async (request) => {
+  const { cardId, expiresInMs = 24 * 3_600_000 } = request.body as {
+    cardId: string;
+    expiresInMs?: number;
+  };
+  const games = await pool.query<{ id: string; created_at: Date; time_scale: string }>(
+    'select id, created_at, time_scale from games',
+  );
+  for (const game of games.rows) {
+    const scale = Number(game.time_scale);
+    // O instante de agora em tempo de jogo, como o servidor o calcula, e o prazo convertido.
+    const nowMs = Math.floor((clock().getTime() - game.created_at.getTime()) * scale);
+    const card = {
+      instanceId: `${cardId}-posta-${nowMs}`,
+      cardId,
+      drawnAtMs: nowMs,
+      expiresAtMs: nowMs + Math.round(expiresInMs * scale),
+      origin: null,
+    };
+    await pool.query(
+      `update games
+          set state = jsonb_set(state, '{council,pending}',
+                                (state -> 'council' -> 'pending') || $2::jsonb)
+        where id = $1`,
+      [game.id, JSON.stringify([card])],
+    );
+  }
+  return { ok: true };
+});
+
 /** Encerra no servidor todas as sessões, como uma revogação por reuso de refresh token. */
 control.post('/__test/revoke-sessions', async () => {
   await pool.query('update sessions set revoked_at = $1 where revoked_at is null', [clock()]);

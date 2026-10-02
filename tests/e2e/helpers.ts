@@ -1,4 +1,10 @@
-import { type BrowserContext, expect, type Page, test as base } from '@playwright/test';
+import {
+  type APIRequestContext,
+  type BrowserContext,
+  expect,
+  type Page,
+  test as base,
+} from '@playwright/test';
 
 export const API = 'http://127.0.0.1:3100';
 /** A semente dos feudos fundados com o conselho convocado: as mesmas cartas a cada execução. */
@@ -176,6 +182,77 @@ export const stored = (page: Page) =>
         .map((key) => [key, localStorage.getItem(key)]),
     ),
   );
+
+// O que o servidor diz do Conselho e da Crônica: os testes leem dele a carta que está na mesa e
+// os eventos da partida, e conferem que a tela mostra exatamente o que ele mandou.
+
+export type CardOption = {
+  id: string;
+  label: string;
+  affordable: boolean;
+  locked: boolean;
+  effectsText: string;
+  hint: string;
+};
+export type Card = {
+  instanceId: string;
+  title: string;
+  text: string;
+  expiresInSeconds: number;
+  defaultOptionId: string;
+  defaultOptionLabel: string;
+  expiryNote: string;
+  /** A escolha que trouxe a carta, quando ela é a continuação de outra. */
+  followsFrom: { title: string; optionLabel: string; text: string } | null;
+  options: CardOption[];
+};
+export type ServerEvent = {
+  seq: number;
+  type: string;
+  /** Instante do evento em tempo de jogo. */
+  atMs: number;
+  text: string;
+  data: Record<string, string | number>;
+};
+
+/** As credenciais e a partida que a página guardou: para ler do servidor o que ela deve mostrar. */
+export async function session(page: Page) {
+  const saved = await stored(page);
+  const tokens = JSON.parse(saved['lords.tokens'] ?? '{}') as { accessToken: string };
+  const account = JSON.parse(saved['lords.account:self'] ?? '{}') as { gameId: string };
+  return {
+    url: `${API}/v1/games/${account.gameId}`,
+    headers: { authorization: `Bearer ${tokens.accessToken}` },
+  };
+}
+
+/** As cartas à espera, como o servidor as mostra agora. */
+export async function pendingCards(page: Page, request: APIRequestContext): Promise<Card[]> {
+  const { url, headers } = await session(page);
+  const response = await request.get(`${url}/view`, { headers });
+  expect(response.ok(), 'leitura da visão').toBe(true);
+  const body = (await response.json()) as { view: { council: { pending: Card[] } } };
+  return body.view.council.pending;
+}
+
+/** Todos os eventos da partida, na ordem em que aconteceram. */
+export async function gameEvents(page: Page, request: APIRequestContext): Promise<ServerEvent[]> {
+  const { url, headers } = await session(page);
+  const events: ServerEvent[] = [];
+  for (let after = 0, more = true; more;) {
+    const response = await request.get(`${url}/events?after=${after}`, { headers });
+    expect(response.ok(), 'leitura dos eventos').toBe(true);
+    const page = (await response.json()) as {
+      events: ServerEvent[];
+      lastSeq: number;
+      hasMore: boolean;
+    };
+    events.push(...page.events);
+    after = page.lastSeq;
+    more = page.hasMore;
+  }
+  return events;
+}
 
 /** Os três temas do app (GDD §13.7). */
 export const THEMES = ['dark', 'light', 'high-contrast'] as const;
