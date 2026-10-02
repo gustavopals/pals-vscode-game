@@ -27,6 +27,7 @@ describe('endereço da aba (hash)', () => {
     expect(new Set(hashes).size).toBe(ROUTES.length);
     expect(formatHash('fief')).toBe('#/feudo');
     expect(formatHash('today')).toBe('#/hoje');
+    expect(formatHash('council')).toBe('#/conselho');
     expect(formatHash('chronicle')).toBe('#/cronica');
     expect(formatHash('settings')).toBe('#/preferencias');
     expect(formatHash('about')).toBe('#/sobre');
@@ -38,6 +39,7 @@ describe('endereço da aba (hash)', () => {
     expect(parseHash('feudo')).toBe('fief');
     expect(parseHash('#/feudo/')).toBe('fief');
     expect(parseHash('#/hoje//')).toBe('today');
+    expect(parseHash('#/conselho')).toBe('council');
   });
 
   it('endereço vazio ou desconhecido não é aba nenhuma', () => {
@@ -48,6 +50,7 @@ describe('endereço da aba (hash)', () => {
     expect(parseHash('#/feudo/obras')).toBeNull();
     // O nome interno da aba não é endereço.
     expect(parseHash('#/fief')).toBeNull();
+    expect(parseHash('#/council')).toBeNull();
     expect(parseHash('#/feudos')).toBeNull();
   });
 
@@ -78,7 +81,7 @@ describe('resolveRoute', () => {
   });
 
   it('com feudo, qualquer outra aba abre como pedida', () => {
-    const others: Route[] = ['today', 'fief', 'chronicle', 'settings', 'about'];
+    const others: Route[] = ['today', 'fief', 'council', 'chronicle', 'settings', 'about'];
     for (const route of others) {
       expect(resolveRoute(route, true, 'fief')).toBe(route);
     }
@@ -90,19 +93,20 @@ describe('visibleTabs', () => {
     expect(visibleTabs(false, [])).toEqual(['welcome']);
   });
 
-  it('com feudo, Hoje e Feudo estão sempre lá, nessa ordem', () => {
-    expect(visibleTabs(true, [])).toEqual(['today', 'fief']);
+  it('com feudo, Hoje, Feudo e Conselho estão sempre lá, nessa ordem', () => {
+    expect(visibleTabs(true, [])).toEqual(['today', 'fief', 'council']);
   });
 
   it('as abas abertas vêm depois das fixas, em ordem estável', () => {
     expect(visibleTabs(true, ['about', 'chronicle', 'settings'])).toEqual([
       'today',
       'fief',
+      'council',
       'chronicle',
       'settings',
       'about',
     ]);
-    expect(visibleTabs(true, ['settings'])).toEqual(['today', 'fief', 'settings']);
+    expect(visibleTabs(true, ['settings'])).toEqual(['today', 'fief', 'council', 'settings']);
   });
 
   it('sem feudo, a Crônica aberta não aparece; Preferências e Sobre, sim', () => {
@@ -114,12 +118,17 @@ describe('visibleTabs', () => {
   });
 
   it('uma aba fixa na lista de abertas não aparece duas vezes', () => {
-    expect(visibleTabs(true, ['fief', 'today'])).toEqual(['today', 'fief']);
+    expect(visibleTabs(true, ['fief', 'today', 'council'])).toEqual(['today', 'fief', 'council']);
     expect(visibleTabs(false, ['welcome'])).toEqual(['welcome']);
   });
 
   it('só Crônica, Preferências e Sobre podem ser fechadas', () => {
     expect([...CLOSABLE_ROUTES].sort()).toEqual(['about', 'chronicle', 'settings']);
-    expect([...GAME_ROUTES].sort()).toEqual(['chronicle', 'fief', 'today']);
+    expect([...GAME_ROUTES].sort()).toEqual(['chronicle', 'council', 'fief', 'today']);
+  });
+
+  it('sem feudo, o Conselho não aparece nem abre: é aba do jogo', () => {
+    expect(visibleTabs(false, [])).not.toContain('council');
+    expect(resolveRoute('council', false, 'welcome')).toBe('welcome');
   });
 });

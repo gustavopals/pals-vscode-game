@@ -152,6 +152,45 @@ export function withUpgrade(
  */
 export const craftsView = golden.crafts as unknown as ViewState;
 
+/**
+ * A mesa do conselho cheia (GDD §7), no ritmo Rápido: "A vez de repartir", continuação de
+ * "Tábuas para as reservas", e "A refeição dos pedreiros", as duas com quase um dia de prazo.
+ */
+export const councilView = golden.councilTable as unknown as ViewState;
+
+type CouncilCardRow = ViewState['council']['pending'][number];
+
+/** As duas cartas de `councilView`, na ordem em que chegaram. */
+export const [shareCard, mealCard] = councilView.council.pending as [
+  CouncilCardRow,
+  CouncilCardRow,
+];
+
+/**
+ * A mesma visão com estas cartas na mesa, e as decisões pendentes de acordo, do prazo mais curto
+ * ao mais longo, como o motor as ordena. `council` troca o resto do Conselho (a próxima
+ * audiência, a nota). Quem sorteia e tranca é o motor; aqui as cartas são postas à mão para o
+ * app mostrar cada caso.
+ */
+export function withCards(
+  view: ViewState,
+  pending: CouncilCardRow[],
+  council: Partial<Omit<ViewState['council'], 'pending'>> = {},
+): ViewState {
+  return {
+    ...view,
+    council: { ...view.council, ...council, pending },
+    pendingDecisions: pending
+      .map((card) => ({
+        kind: 'card' as const,
+        id: card.instanceId,
+        title: card.title,
+        expiresInSeconds: card.expiresInSeconds,
+      }))
+      .sort((a, b) => a.expiresInSeconds - b.expiresInSeconds),
+  };
+}
+
 type Constructions = ViewState['constructions'];
 type QueueRow = Constructions['queues'][number];
 type PlannedRow = Constructions['planned'][number];
@@ -594,7 +633,16 @@ export function scriptedDialogs() {
     },
     pick: async <T>(options: PickOptions<T>) => {
       shown.push({ kind: 'pick', ...options } as (typeof shown)[number]);
-      const answer = next();
+      let answer = next();
+      // Uma função é o que acontece com a lista aberta (a carta expira, outra aba responde): ela
+      // roda antes da escolha e devolve a resposta do jogador.
+      if (typeof answer === 'function') {
+        answer = await (answer as (shown: PickOptions<T>) => unknown)(options);
+      }
+      // A lista fechada pelo sinal é desistência, como no `DialogService`.
+      if (options.signal?.aborted === true) {
+        return undefined;
+      }
       // Um número escolhe o item pela posição; qualquer outra coisa é o próprio valor.
       return (typeof answer === 'number' ? options.items[answer]?.value : answer) as T | undefined;
     },

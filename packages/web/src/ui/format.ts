@@ -323,7 +323,7 @@ export type StatusBarOutput = {
   text: string;
   tooltip: string;
   /** A aba a que o clique leva; sem ela, vale a aba em que o app abriria. */
-  target?: 'today' | 'fief';
+  target?: 'today' | 'fief' | 'council';
   /** Fome ou frio: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
@@ -356,24 +356,52 @@ function mostPressingStorage(view: ViewState): ResourceRow | null {
     );
 }
 
+/** "1 decisão pendente", "2 decisões pendentes". */
+export function pendingDecisionsLabel(count: number): string {
+  return `${count} ${count === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
+}
+
+/**
+ * O prazo de uma decisão, em tempo real: "expira em 14 h", "expira em 25 min". O prazo já vem do
+ * servidor em horas de relógio, em qualquer ritmo; aqui só se desconta o tempo desde a leitura.
+ * É o mesmo texto na aba do Conselho, na árvore, na aba Hoje e na barra de status.
+ */
+export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): string {
+  const left = remainingNow(secondsAtReceipt, elapsedSeconds);
+  return left <= 0 ? 'prazo encerrado' : `expira em ${formatApprox(left)}`;
+}
+
 /**
  * O assunto de maior prioridade do feudo (GDD §13.5): decisões pendentes > fome e frio >
  * depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de comida. A fome e
  * o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os
  * dois. Com duas obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
+ *
+ * As decisões pendentes são as cartas do Conselho: a linha diz quantas esperam e o prazo da que
+ * vence primeiro (a lista já vem do prazo mais curto ao mais longo), a explicação dá o título e
+ * o prazo de cada uma, e o clique leva à aba do Conselho. No título da aba do navegador elas
+ * entram no contador, e não como assunto: "(1) Pedra Alta".
  */
 function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   const name = view.settlement.name;
-  const decisions = view.pendingDecisions.length;
-  if (decisions > 0) {
-    const pending = `${decisions} ${decisions === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
+  const decisions = view.pendingDecisions;
+  const soonest = decisions[0];
+  if (soonest !== undefined) {
+    const pending = pendingDecisionsLabel(decisions.length);
+    const each = decisions.map(
+      (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
+    );
     return {
       bar: {
-        text: `$(law) ${pending}`,
-        tooltip: `${name}: ${pending}. Elas esperam na aba Hoje.`,
-        target: 'today',
+        text: `$(law) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        tooltip:
+          `${name}: ${each.join('; ')}. ` +
+          (decisions.length === 1
+            ? 'A carta espera na aba Conselho.'
+            : 'As cartas esperam na aba Conselho.'),
+        target: 'council',
       },
-      title: `${pending} · ${name}`,
+      title: null,
     };
   }
   const cold = view.winter?.cold ?? null;
@@ -512,9 +540,10 @@ const APP_TITLE = 'Lords of the Guild';
 
 /**
  * O título da aba do navegador: é o que se vê com a aba em segundo plano. Na frente, quantas
- * novidades esperam; depois, o mesmo assunto que toma a barra de status (decisões pendentes,
- * fome e frio, depósito a encher, obra) e o nome do feudo. Sem ligação o estado guardado pode
- * estar velho: fica só o nome. No modo discreto, só um contador.
+ * coisas esperam o jogador: as novidades e as decisões pendentes, somadas ("(1) Pedra Alta").
+ * Depois, o mesmo assunto que toma a barra de status (fome e frio, depósito a encher, obra) e o
+ * nome do feudo. Sem ligação o estado guardado pode estar velho: fica só o nome, e as decisões
+ * dele não entram no contador. No modo discreto, só um contador de tempo.
  */
 export function documentTitle(input: StatusBarInput): string {
   if (!input.signedIn || input.view === null) {
@@ -523,9 +552,10 @@ export function documentTitle(input: StatusBarInput): string {
   if (input.discreetMode) {
     return stripIcons(statusBar(input).text);
   }
-  const news = input.pending > 0 ? `(${input.pending}) ` : '';
+  const online = input.connection.kind === 'online';
+  const waiting = input.pending + (online ? input.view.pendingDecisions.length : 0);
+  const news = waiting > 0 ? `(${waiting}) ` : '';
   const name = input.view.settlement.name;
-  const topic =
-    input.connection.kind === 'online' ? statusTopic(input.view, input.elapsedSeconds).title : null;
+  const topic = online ? statusTopic(input.view, input.elapsedSeconds).title : null;
   return `${news}${topic ?? name} · ${APP_TITLE}`;
 }

@@ -396,9 +396,9 @@ export class GameSession {
 
   /**
    * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
-   * visão (obra, planejada à espera, fim de adaptação, aldeão a caminho, virada do dia) vence
-   * antes: a contagem regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais
-   * dá ao servidor tempo de virar o prazo.
+   * visão (obra, planejada à espera, fim de adaptação, aldeão a caminho, virada do dia, carta do
+   * Conselho que expira, próxima audiência) vence antes: a contagem regressiva chegaria a zero e
+   * a tela ficaria parada nela. O segundo a mais dá ao servidor tempo de virar o prazo.
    */
   private nextPollMs(): number {
     const poll = pollIntervalMs(this.visible);
@@ -416,6 +416,10 @@ export class GameSession {
       ...view.workers.map((row) => row.adaptingCohorts[0]?.endsInSeconds),
       view.population.secondsToNextRecruit,
       view.calendar.secondsToNextDay,
+      // O prazo de cada carta do Conselho (é quando ela sai da mesa e a Crônica conta o que o
+      // conselho fez) e a próxima audiência, que pode trazer outra.
+      ...view.council.pending.map((card) => card.expiresInSeconds),
+      view.council.nextAudienceInSeconds,
     ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);
     const soonest = Math.min(...deadlines, Number.POSITIVE_INFINITY);
     return Math.max(MIN_POLL_MS, Math.min(poll, (soonest + 1) * 1000));

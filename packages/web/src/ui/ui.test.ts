@@ -13,8 +13,12 @@ import {
   impoverishedView,
   proudView,
   queuesView,
+  councilView,
+  mealCard,
+  shareCard,
   unlockedView,
   winterWith,
+  withCards,
   withFoodAhead,
   withPlanned,
   withQueues,
@@ -345,11 +349,9 @@ describe('barra de status', () => {
   describe('prioridade: decisões > fome e frio > depósito a encher > obra', () => {
     /** A madeira a três horas de encher o Pátio, com uma obra em curso. */
     const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
-    /** `pendingDecisions` só ganha conteúdo com o Conselho; a barra só precisa de quantas são. */
-    const deciding = (view: ViewState, count: number): ViewState => ({
-      ...view,
-      pendingDecisions: Array.from({ length: count }) as ViewState['pendingDecisions'],
-    });
+    /** A mesma visão com as primeiras `count` cartas da mesa cheia à espera de resposta. */
+    const deciding = (view: ViewState, count: number): ViewState =>
+      withCards(view, councilView.council.pending.slice(0, count));
 
     it('o depósito a menos de 8 h de encher passa na frente da obra, e o clique leva ao feudo', () => {
       const result = statusBar({ ...base, view: filling, pending: 1 });
@@ -402,15 +404,38 @@ describe('barra de status', () => {
       });
     });
 
-    it('as decisões pendentes passam na frente de tudo, e o clique leva à aba Hoje', () => {
+    it('as decisões pendentes passam na frente de tudo, com o prazo da que vence primeiro', () => {
       const hungry: ViewState = { ...filling, famine: starving.famine };
       const result = statusBar({ ...base, view: deciding(hungry, 2), pending: 3 });
-      expect(result.text).toBe('$(law) 2 decisões pendentes · $(bell) 3');
-      expect(result.tooltip).toBe('Pedra Alta: 2 decisões pendentes. Elas esperam na aba Hoje.');
-      expect(result.target).toBe('today');
+      expect(result.text).toBe('$(law) 2 decisões pendentes · expira em 23 h · $(bell) 3');
+      // A explicação diz o título e o prazo de cada carta, e onde elas esperam.
+      expect(result.tooltip).toBe(
+        'Pedra Alta: "A vez de repartir" expira em 23 h; "A refeição dos pedreiros" expira em 23 h. As cartas esperam na aba Conselho.',
+      );
+      // O clique leva à aba do Conselho, onde a carta se lê inteira.
+      expect(result.target).toBe('council');
       expect(result.alarm).toBeUndefined();
-      expect(statusBar({ ...base, view: deciding(farmers, 1) }).text).toBe(
-        '$(law) 1 decisão pendente',
+      const one = statusBar({ ...base, view: deciding(farmers, 1) });
+      expect(one.text).toBe('$(law) 1 decisão pendente · expira em 23 h');
+      expect(one.tooltip).toBe(
+        'Pedra Alta: "A vez de repartir" expira em 23 h. A carta espera na aba Conselho.',
+      );
+    });
+
+    it('o prazo da decisão desce com o relógio da página e é o da carta que vence primeiro', () => {
+      // A mesa na ordem contrária: a visão traz as decisões do prazo mais curto ao mais longo.
+      const [first, second] = councilView.council.pending;
+      const view = withCards(farmers, [
+        { ...(second ?? mealCard), expiresInSeconds: 20 * 3600 },
+        { ...(first ?? shareCard), expiresInSeconds: 3 * 3600 },
+      ]);
+      expect(statusBar({ ...base, view }).text).toBe('$(law) 2 decisões pendentes · expira em 3 h');
+      expect(statusBar({ ...base, view, elapsedSeconds: 2 * 3600 + 35 * 60 }).text).toBe(
+        '$(law) 2 decisões pendentes · expira em 25 min',
+      );
+      // Com o prazo vencido no relógio desta página, a linha não promete tempo que não há.
+      expect(statusBar({ ...base, view, elapsedSeconds: 3 * 3600 }).text).toBe(
+        '$(law) 2 decisões pendentes · prazo encerrado',
       );
     });
 
@@ -450,8 +475,21 @@ describe('barra de status', () => {
         expect(title({ ...coldView, famine: starving.famine })).toBe(
           `Fome e frio em Pedra Alta · ${APP}`,
         );
-        expect(title(deciding(starving, 2), { pending: 4 })).toBe(
-          `(4) 2 decisões pendentes · Pedra Alta · ${APP}`,
+      });
+
+      it('as decisões pendentes entram no contador, com as novidades: "(1) Pedra Alta"', () => {
+        expect(title(deciding(farmers, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 2))).toBe(`(2) Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 1), { pending: 2 })).toBe(`(3) Pedra Alta · ${APP}`);
+        // Com carta à espera, o assunto do título é o contador, mesmo com fome ou obra.
+        expect(title(deciding(starving, 2), { pending: 4 })).toBe(`(6) Pedra Alta · ${APP}`);
+        expect(title(deciding(building, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+      });
+
+      it('sem ligação, a carta do estado guardado não entra no contador do título', () => {
+        expect(title(deciding(farmers, 2), { connection: offline })).toBe(`Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 2), { connection: offline, pending: 1 })).toBe(
+          `(1) Pedra Alta · ${APP}`,
         );
       });
 
@@ -520,6 +558,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
     ]);
   });
@@ -556,6 +595,20 @@ describe('árvore', () => {
       });
     });
 
+    it('as decisões pendentes passam na frente de tudo, com as novidades ao lado', () => {
+      expect(today({ view: councilView })?.description).toBe('● 2 decisões pendentes');
+      expect(today({ view: withCards(initial, [mealCard]) })?.description).toBe(
+        '● 1 decisão pendente',
+      );
+      expect(today({ view: councilView, unseen: 3 })?.description).toBe(
+        '● 2 decisões pendentes · 3 novidades',
+      );
+      // Sem ligação a carta é a do estado guardado, e pode já ter saído da mesa: não é anunciada.
+      expect(today({ view: councilView, connection: offline })?.description).toBe(
+        'sem ligação com o reino',
+      );
+    });
+
     it('as novidades e a falta de ligação passam na frente', () => {
       expect(today({ view: initial, unseen: 2 })?.description).toBe('● 2 novidades');
       expect(today({ view: initial, connection: offline })?.description).toBe(
@@ -581,6 +634,65 @@ describe('árvore', () => {
         'Antes de partir, pelo último estado conhecido (sem ligação com o reino):',
       );
       expect(today({ view: impoverishedView })?.tooltip?.split('\n')[0]).toBe('Antes de partir:');
+    });
+  });
+
+  describe('Conselho (GDD §13.2)', () => {
+    const council = (view: ViewState, elapsedSeconds = 0) =>
+      find(buildTree({ ...input, view, elapsedSeconds }), 'council');
+
+    it('sem cartas, diz quando é a próxima audiência; a explicação traz a regra do servidor', () => {
+      const node = council(farmers);
+      expect(node).toMatchObject({
+        label: 'Conselho',
+        description: 'próxima audiência em 8 h',
+        icon: 'law',
+        command: { id: 'lords.openPanel', args: ['council'] },
+      });
+      expect(node?.children).toEqual([]);
+      expect(node?.tooltip).toBe(
+        [farmers.council.rulesText, 'Próxima audiência em 8 h.'].join('\n'),
+      );
+      // O prazo desce com o relógio da página.
+      expect(council(farmers, 7 * 3600 + 30 * 60)?.description).toBe('próxima audiência em 30 min');
+    });
+
+    it('sem assunto para o feudo como ele está, não promete carta', () => {
+      const node = council(autumnView);
+      expect(node?.description).toBe('sem assunto por agora');
+      expect(node?.tooltip).toContain(
+        'O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.',
+      );
+    });
+
+    it('com cartas: quantas esperam e o prazo da que vence primeiro', () => {
+      expect(council(withCards(farmers, [mealCard]))?.description).toBe(
+        '1 carta pendente (expira em 23 h)',
+      );
+      const node = council(
+        withCards(farmers, [
+          { ...shareCard, expiresInSeconds: 20 * 3600 },
+          { ...mealCard, expiresInSeconds: 14 * 3600 },
+        ]),
+      );
+      expect(node?.description).toBe('2 cartas pendentes (expira em 14 h)');
+      expect(council(councilView)?.tooltip).toContain('Com 2 cartas à espera');
+    });
+
+    it('cada carta é uma linha, com o prazo, o texto na explicação e o botão que decide', () => {
+      const node = council(councilView);
+      expect(node?.children?.map((card) => card.id)).toEqual([
+        'card:commonGranaryShare-3',
+        'card:masonsMeal-4',
+      ]);
+      expect(node?.children?.[1]).toMatchObject({
+        label: 'A refeição dos pedreiros',
+        description: 'expira em 23 h',
+        contextValue: 'lords.card',
+        // O clique só navega: a carta se lê na aba do Conselho.
+        command: { id: 'lords.openPanel', args: ['council'] },
+      });
+      expect(node?.children?.[1]?.tooltip).toBe([mealCard.text, mealCard.expiryNote].join('\n'));
     });
   });
 
@@ -1016,6 +1128,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
     ]);
   });
@@ -1045,6 +1158,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
       'hearth',
     ]);

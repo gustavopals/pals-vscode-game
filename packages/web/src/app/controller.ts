@@ -23,6 +23,7 @@ import type { Connection } from '../game/connection';
 import {
   clearAccountCaches,
   GameSession,
+  isSessionLoss,
   OfflineError,
   type SessionTarget,
 } from '../game/gameSession';
@@ -33,6 +34,7 @@ import {
   decideNotice,
   decideNotifications,
   eventIcon,
+  isDecision,
   isEssential,
   isSeasonTurn,
   MUTE_DURATION_MS,
@@ -43,6 +45,7 @@ import {
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
+import { cardNotice } from '../ui/council';
 import { documentTitle, type StatusBarInput } from '../ui/format';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
@@ -98,6 +101,8 @@ export type Toast = {
   actions: ToastAction[];
   /** Avisos sem botões somem sozinhos; os com botões esperam o jogador. */
   sticky: boolean;
+  /** Um aviso do jogo (um acontecimento do feudo): "Silenciar 2h" o tira da tela com os outros. */
+  game?: true;
 };
 
 /** Um documento carregado sob demanda (Crônica, dados do servidor). */
@@ -163,6 +168,11 @@ export class Controller {
   visible = true;
   /** Executa um comando da paleta pelo id. Ligado por `palette/commands.ts`. */
   runCommand: (id: string, ...args: unknown[]) => void = () => {};
+  /**
+   * As cartas do Conselho com uma resposta a caminho do servidor (pelo `instanceId`): enquanto
+   * ela não volta, os botões da carta ficam desabilitados e um segundo clique não vira ordem.
+   */
+  answering: ReadonlySet<string> = new Set();
 
   private notificationHistory: number[] = [];
   /**
@@ -173,6 +183,12 @@ export class Controller {
   private seasonChanges = new Map<string, string[]>();
   /** O aviso de uma hora antes que está à vista: sai de cena quando a estação vira. */
   private seasonToast: { id: number; key: string } | null = null;
+  /**
+   * Os avisos de carta nova que estão à vista, pelo `instanceId`: quando a carta sai da mesa
+   * (respondida aqui ou em outra aba, ou expirada), "Decidir" deixou de fazer sentido e o aviso
+   * sai de cena.
+   */
+  private cardToasts = new Map<string, number>();
   private previousAccount: AccountState = { kind: 'signedOut' };
   private subscriptions: Array<() => void> = [];
   private warnedUpgrade = false;
@@ -399,6 +415,10 @@ export class Controller {
     if (route === 'today' || route === 'fief') {
       this.unseen = 0;
     }
+    if (route === 'council') {
+      // Na aba do Conselho as cartas estão à vista: os avisos que as anunciavam saem da frente.
+      this.dropCardToasts(() => true);
+    }
     if (route === 'chronicle') {
       void this.loadChronicle();
     }
@@ -472,6 +492,8 @@ export class Controller {
       this.unseen = 0;
       this.seasonChanges.clear();
       this.dropSeasonToast();
+      this.dropCardToasts(() => true);
+      this.answering = new Set();
       await this.openGame();
     }
     if (state.kind === 'signedOut') {
@@ -526,6 +548,9 @@ export class Controller {
     if (view !== null) {
       const { id, changes } = view.calendar.nextSeason;
       this.seasonChanges.set(id, changes);
+      // A carta que já não espera resposta leva embora o aviso que a anunciou.
+      const pending = new Set(view.pendingDecisions.map((decision) => decision.id));
+      this.dropCardToasts((instanceId) => !pending.has(instanceId));
     }
     this.changes.emit();
     this.warnOfSeasonAhead();
@@ -575,7 +600,7 @@ export class Controller {
       icon: SEASON_ICON,
       text: notice.text,
       details: notice.details,
-      see: 'today',
+      action: { label: 'Ver', route: 'today' },
     });
     this.seasonToast = { id, key: notice.key };
   }
@@ -584,6 +609,16 @@ export class Controller {
     if (this.seasonToast !== null) {
       this.dismissToast(this.seasonToast.id);
       this.seasonToast = null;
+    }
+  }
+
+  /** Tira de cena os avisos de carta nova das cartas que `gone` aponta. */
+  private dropCardToasts(gone: (instanceId: string) => boolean): void {
+    for (const [instanceId, toastId] of [...this.cardToasts]) {
+      if (gone(instanceId)) {
+        this.cardToasts.delete(instanceId);
+        this.dismissToast(toastId);
+      }
     }
   }
 
@@ -602,6 +637,8 @@ export class Controller {
         void this.loadChronicle();
       }
     }
+
+    this.tellOwnAnswers(events);
 
     if (this.session.catchingUp) {
       // Eventos de uma ausência longa: quem os conta é o Relatório de Retorno, de uma vez só.
@@ -626,8 +663,30 @@ export class Controller {
     this.changes.emit();
   }
 
+  /**
+   * O desfecho de uma carta que o jogador acabou de responder nesta aba: a frase da Crônica que
+   * a escolha escreveu aparece na hora, por alguns segundos. Não é notificação (não tem botões,
+   * não conta no limite por hora nem depende do nível escolhido): é a resposta à ação dele, como
+   * a recusa de uma ordem. A resposta dada em outra aba não avisa aqui; a carta só some. No modo
+   * discreto, nada do jogo vai para a tela.
+   */
+  private tellOwnAnswers(events: GameEvent[]): void {
+    if (this.preferences.discreetMode) {
+      return;
+    }
+    for (const event of events) {
+      if (event.type === 'cardAnswered' && this.answering.has(String(event.data.instanceId))) {
+        this.toast({ kind: 'info', icon: eventIcon(event), text: event.text });
+      }
+    }
+  }
+
   /** Um evento que a política liberou vira aviso, com a frase da Crônica que veio nele. */
   private notify(event: GameEvent): void {
+    if (isDecision(event)) {
+      this.notifyCard(event);
+      return;
+    }
     // A virada de estação repete o que muda, como o aviso de uma hora antes.
     const details = isSeasonTurn(event)
       ? seasonArrival(event, this.seasonChanges.get(String(event.data.season)), this.view)
@@ -637,29 +696,66 @@ export class Controller {
       icon: eventIcon(event),
       text: event.text,
       details,
-      see: 'fief',
+      action: { label: 'Ver', route: 'fief' },
     });
   }
 
   /**
-   * Um aviso do jogo: no canto da página, com "Ver" e "Silenciar 2h", e, com a aba em segundo
-   * plano, no contador do título e (se o jogador pediu) pelo navegador.
+   * "Nova carta do Conselho: <título>", com o prazo, o que o conselho faz sozinho e o botão
+   * "Decidir", que leva à aba do Conselho (GDD §13.5). A carta é a da visão, que chega antes dos
+   * eventos: se ela já não está na mesa (foi respondida em outra aba, ou o prazo acabou antes
+   * de esta página ler), não há o que decidir e o aviso não sai. Também não sai para quem já está
+   * na aba do Conselho, com ela à vista. O aviso não entra no contador de novidades: enquanto a
+   * carta espera, quem a conta é o contador de decisões pendentes.
+   */
+  private notifyCard(event: GameEvent): void {
+    const card = this.view?.council.pending.find(
+      (entry) => entry.instanceId === event.data.instanceId,
+    );
+    if (card === undefined) {
+      return;
+    }
+    if (this.visible && this.route === 'council') {
+      // O jogador está olhando a mesa do conselho: a carta apareceu na frente dele, e um aviso
+      // por cima dela só atrapalharia a leitura.
+      return;
+    }
+    const id = this.announce({
+      kind: 'info',
+      icon: eventIcon(event),
+      ...cardNotice(card),
+      action: { label: 'Decidir', route: 'council' },
+      counted: false,
+    });
+    this.cardToasts.set(card.instanceId, id);
+  }
+
+  /**
+   * Um aviso do jogo: no canto da página, com o botão que leva ao assunto ("Ver" ou "Decidir")
+   * e "Silenciar 2h", e, com a aba em segundo plano, no contador do título e (se o jogador
+   * pediu) pelo navegador.
    */
   private announce(notice: {
     kind: Toast['kind'];
     icon: string | undefined;
     text: string;
     details: string[];
-    /** A aba a que "Ver" leva. */
-    see: 'today' | 'fief';
+    /** O botão do aviso e a aba a que ele leva. */
+    action: { label: string; route: 'today' | 'fief' | 'council' };
+    /**
+     * O aviso entra no contador de novidades com a aba em segundo plano. A carta nova não entra:
+     * ela já é contada como decisão pendente.
+     */
+    counted?: boolean;
   }): number {
     const id = this.toast({
       kind: notice.kind,
       icon: notice.icon,
       text: notice.text,
       details: notice.details,
+      game: true,
       actions: [
-        { label: 'Ver', run: () => this.navigate(notice.see) },
+        { label: notice.action.label, run: () => this.navigate(notice.action.route) },
         {
           label: 'Silenciar 2h',
           run: () => {
@@ -670,7 +766,9 @@ export class Controller {
     });
     if (!this.visible) {
       // Com a aba em segundo plano, o que avisa é o contador no título.
-      this.unseen += 1;
+      if (notice.counted !== false) {
+        this.unseen += 1;
+      }
       const notifier = this.options.notifier;
       if (this.preferences.browserNotifications && notifier?.granted()) {
         notifier.show(
@@ -727,7 +825,7 @@ export class Controller {
   private askToReload(): void {
     this.toast({
       kind: 'warning',
-      text: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
+      text: 'Há uma versão nova do jogo. Recarregue a página.',
       actions: [{ label: 'Recarregar', run: () => this.runCommand('lords.reload') }],
     });
   }
@@ -776,6 +874,8 @@ export class Controller {
     actions?: ToastAction[];
     icon?: string | undefined;
     details?: string[];
+    /** Um aviso do jogo: sai de cena com "Silenciar 2h". */
+    game?: boolean;
   }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
@@ -791,6 +891,7 @@ export class Controller {
         ...(details.length === 0 ? {} : { details }),
         actions,
         sticky: actions.length > 0,
+        ...(input.game === true ? { game: true as const } : {}),
       },
     ].slice(-4);
     this.changes.emit();
@@ -951,6 +1052,55 @@ export class Controller {
     return this.attempt(this.prepare(type, payload as never));
   }
 
+  /**
+   * Responde uma carta do Conselho (GDD §7). É o único caminho da resposta: o painel, a árvore e
+   * a paleta chegam aqui por `lords.answerCard`. O `commandId` nasce uma vez, em `prepare`, e
+   * "Tentar de novo", depois de uma falha de rede, reenvia a mesma ordem: a carta não é paga
+   * nem resolvida duas vezes. Enquanto a resposta não volta, a carta fica em `answering` e um
+   * segundo clique nela não vira ordem. A recusa do servidor (carta expirada, já respondida em
+   * outra aba, opção trancada, falta de recursos) vira aviso com a frase dele, e a visão que
+   * veio na recusa toma a tela: a carta que saiu da mesa some.
+   */
+  async answerCard(instanceId: string, optionId: string): Promise<boolean> {
+    if (this.answering.has(instanceId)) {
+      return false;
+    }
+    const send = this.prepare('answerCard', { instanceId, optionId });
+    let answered = false;
+    const attempted = await this.attempt(async () => {
+      answered = false;
+      this.setAnswering(instanceId, true);
+      try {
+        await send();
+        answered = true;
+      } catch (error) {
+        if (!isSessionLoss(error)) {
+          throw error;
+        }
+        // A sessão acabou com a resposta a caminho. Quem cuida da conta já avisa que ela
+        // terminou; aqui se diz o que foi feito da ordem, que nunca some em silêncio.
+        this.toast({
+          kind: 'warning',
+          text: 'A sessão terminou antes de a resposta chegar ao conselho. A carta continua à espera: entre de novo para decidir.',
+        });
+      } finally {
+        this.setAnswering(instanceId, false);
+      }
+    });
+    return attempted && answered;
+  }
+
+  private setAnswering(instanceId: string, busy: boolean): void {
+    const next = new Set(this.answering);
+    if (busy) {
+      next.add(instanceId);
+    } else {
+      next.delete(instanceId);
+    }
+    this.answering = next;
+    this.changes.emit();
+  }
+
   /** O jogador leu o Relatório de Retorno. */
   markSeen(): void {
     if (this.unseen !== 0 || this.report !== null) {
@@ -996,7 +1146,8 @@ export class Controller {
 
   muteNotifications(): Promise<void> {
     // Os avisos do jogo à vista somem junto: foi isso que o jogador pediu.
-    this.toasts = this.toasts.filter((toast) => !toast.actions.some((a) => a.label === 'Ver'));
+    this.toasts = this.toasts.filter((toast) => toast.game !== true);
+    this.cardToasts.clear();
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
   }
 

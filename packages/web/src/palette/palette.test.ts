@@ -14,15 +14,19 @@ import {
   autumnView,
   catalogFixture,
   coldView,
+  councilView,
   craftsView,
   fakeApi,
   gameEvent,
   goldenView,
   unlockedView,
   makeController,
+  mealCard,
   queuesView,
   scriptedDialogs,
   settle,
+  shareCard,
+  withCards,
   withPlanned,
   withQueues,
 } from '../test-helpers';
@@ -32,6 +36,7 @@ import { isPaletteShortcut, openPalette, QuickPick } from './CommandPalette';
 import {
   type AppCommand,
   bindCommands,
+  cardRequest,
   type CommandEnv,
   createCommands,
   NAME_RULE,
@@ -213,6 +218,19 @@ describe('lista de escolha (QuickPick)', () => {
     for (const item of items) {
       expect(markup).toContain(item.detail);
     }
+  });
+  it('o texto para ler antes de escolher fica acima do campo, e é o que descreve o diálogo', () => {
+    const reading = ['A boca do poço cedeu durante a noite.', 'Expira em 23 h.'];
+    const markup = renderToString(
+      h(QuickPick, { title: 'Carta', items, detail: reading, onPick: () => {} }),
+    );
+    expect(markup).toContain(
+      '<div class="quickpick-reading" id="dialog-detail"><p>A boca do poço cedeu durante a noite.</p><p>Expira em 23 h.</p></div>',
+    );
+    expect(markup.indexOf('quickpick-reading')).toBeGreaterThan(markup.indexOf('quickpick-title'));
+    expect(markup.indexOf('quickpick-reading')).toBeLessThan(markup.indexOf('<input'));
+    // Sem texto, a lista é a de sempre.
+    expect(draw()).not.toContain('quickpick-reading');
   });
 });
 
@@ -436,6 +454,8 @@ describe('toda ação da interface tem um comando', () => {
     tree(building, account()),
     // Duas filas ocupadas e planejadas automáticas e manuais.
     tree(queuesView, account()),
+    // A mesa do conselho cheia: uma linha por carta, com o botão "Decidir".
+    tree(councilView, account()),
     tree(goldenView, account({ kind: 'linked', hasRecoveryCode: true })),
     tree(null, account()),
     tree(null, account({ gameId: null })),
@@ -465,6 +485,7 @@ describe('toda ação da interface tem um comando', () => {
       ),
     );
     expect([...used].sort()).toEqual([
+      'lords.answerCard',
       'lords.build',
       'lords.cancelConstruction',
       'lords.toggleAutoStart',
@@ -486,6 +507,7 @@ describe('toda ação da interface tem um comando', () => {
       'lords.activeConstruction',
       'lords.plannedAuto',
       'lords.plannedManual',
+      'lords.card',
       'lords.linkReminder',
     ]);
     const scanned = Object.entries(sources).filter(
@@ -537,6 +559,9 @@ describe('toda ação da interface tem um comando', () => {
       // V2C-T5 (GDD §6.3): a marca "iniciar quando houver recursos" também tem comando.
       ['lords.toggleAutoStart', /início automático/],
       ['lords.recruit', /^Recrutar aldeões/],
+      // V2D-T3 (GDD §13.6): a carta do Conselho se decide também pela paleta.
+      ['lords.answerCard', /^Decidir carta do Conselho$/],
+      ['lords.openCouncil', /^Ir para o Conselho/],
       ['lords.renameSettlement', /Renomear o feudo/],
       ['lords.newGame', /^Nova partida/],
       ['lords.openChronicle', /^Abrir a? ?Crônica/],
@@ -584,6 +609,13 @@ describe('controller.runCommand', () => {
     expect(controller.route).toBe('today');
     controller.runCommand('lords.openPanel', 'fief');
     expect(controller.route).toBe('fief');
+    // A barra de status e a árvore levam ao Conselho pelo mesmo comando.
+    controller.runCommand('lords.openPanel', 'council');
+    expect(controller.route).toBe('council');
+    controller.runCommand('lords.openPanel', 'mercado');
+    expect(controller.route).toBe('fief');
+    controller.runCommand('lords.openCouncil');
+    expect(controller.route).toBe('council');
   });
 
   it('um id desconhecido não faz nada e não quebra', async () => {
@@ -1409,6 +1441,324 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
       { type: 'setAutoStart', payload: { building: 'farm', autoStart: true, targetLevel: 2 } },
     ]);
     expect(api.state.commands[0]?.commandId).toBe('00000000-0000-4000-8000-000000000001');
+  });
+});
+
+describe('decidir carta do Conselho (GDD §7 e §13.6)', () => {
+  const seated = (view: ViewState) => ({
+    before: ({ api }: ReturnType<typeof makeController>) => void (api.state.view = view),
+  });
+  const oneCard = withCards(goldenView, [mealCard]);
+  const answer = (instanceId: string, optionId: string) => ({
+    type: 'answerCard',
+    payload: { instanceId, optionId },
+  });
+  const toastTexts = (controller: Controller) => controller.toasts.map((toast) => toast.text);
+
+  it('pela paleta, com uma carta: a lista das opções traz o texto da carta, o prazo e o que acontece sem resposta', async () => {
+    const { run, answers, shown, orders } = await setup(seated(oneCard));
+    answers.push('feast');
+    await run('lords.answerCard');
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['pick']);
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.title).toBe('Carta do Conselho: A refeição dos pedreiros');
+    expect(pick.detail).toEqual([
+      mealCard.text,
+      'Expira em 23 h. Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.',
+    ]);
+    expect(pick.items.map((item) => item.label)).toEqual([
+      'Servir a refeição',
+      'Repartir o pão do dia',
+      'Mandar voltar ao trabalho',
+    ]);
+    // O custo e a consequência conhecida ao lado do verbo; a pista, logo abaixo.
+    expect(pick.items[0]).toMatchObject({
+      icon: 'check',
+      description: '−40 comida; +10 de moral por 2 dias de jogo (1 h 20 min)',
+      detail: 'Barriga cheia, ânimo alto.',
+      value: 'feast',
+    });
+    expect(pick.items[2]?.description).toBe(
+      '+15 pedra; −5 de moral por 2 dias de jogo (1 h 20 min)',
+    );
+    expect(orders()).toEqual([answer('masonsMeal-4', 'feast')]);
+  });
+
+  it('o que já vem marcado é a opção que o conselho aplicaria sozinho: Enter sem ler não gasta', async () => {
+    const { run, answers, shown } = await setup(seated(oneCard));
+    answers.push(undefined);
+    await run('lords.answerCard');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.selected).toBe(1);
+    expect(pick.items[1]).toMatchObject({
+      label: 'Repartir o pão do dia',
+      description: 'Sem custo e sem efeito imediato.',
+      detail: 'Nem festa, nem queixa. É o que o conselho faz sozinho, se o prazo acabar.',
+    });
+    // Só ela leva a marca.
+    expect(pick.items.filter((item) => item.detail?.includes('faz sozinho'))).toHaveLength(1);
+  });
+
+  it('com duas cartas, pergunta qual, com o prazo e o texto de cada uma, e depois a opção', async () => {
+    const { run, answers, shown, orders } = await setup(seated(councilView));
+    answers.push(1, 'refuse');
+    await run('lords.answerCard');
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['pick', 'pick']);
+    const cards = shownAs(shown, 0, 'pick');
+    expect(cards.title).toBe('Decidir carta do Conselho');
+    expect(cards.items.map((item) => [item.label, item.description])).toEqual([
+      ['A vez de repartir', 'expira em 23 h'],
+      ['A refeição dos pedreiros', 'expira em 23 h'],
+    ]);
+    expect(cards.items[1]?.detail).toBe(mealCard.text);
+    expect(shownAs(shown, 1, 'pick').title).toBe('Carta do Conselho: A refeição dos pedreiros');
+    expect(orders()).toEqual([answer('masonsMeal-4', 'refuse')]);
+  });
+
+  it('a continuação diz de onde a história vem, antes do texto da carta', async () => {
+    const { run, answers, shown } = await setup(seated(councilView));
+    answers.push(0, undefined);
+    await run('lords.answerCard');
+    expect(shownAs(shown, 1, 'pick').detail?.slice(0, 2)).toEqual([
+      'A história continua: em "Tábuas para as reservas", a decisão foi ceder a madeira.',
+      shareCard.text,
+    ]);
+  });
+
+  it('desistir na lista das cartas ou na das opções não envia nada', async () => {
+    const first = await setup(seated(councilView));
+    first.answers.push(undefined);
+    await first.run('lords.answerCard');
+    expect(first.shown).toHaveLength(1);
+    expect(first.orders()).toEqual([]);
+
+    const second = await setup(seated(councilView));
+    second.answers.push(0, undefined);
+    await second.run('lords.answerCard');
+    expect(second.shown).toHaveLength(2);
+    expect(second.orders()).toEqual([]);
+    expect(second.controller.toasts).toEqual([]);
+  });
+
+  it('"Decidir" em uma linha da árvore abre as opções daquela carta, sem perguntar qual', async () => {
+    const { run, answers, shown, orders } = await setup(seated(councilView));
+    answers.push('share');
+    await run('lords.answerCard', { id: 'card:commonGranaryShare-3', label: 'A vez de repartir' });
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['pick']);
+    expect(shownAs(shown, 0, 'pick').title).toBe('Carta do Conselho: A vez de repartir');
+    expect(orders()).toEqual([answer('commonGranaryShare-3', 'share')]);
+  });
+
+  it('o painel manda a carta e a opção do botão clicado: nenhum diálogo, a mesma ordem', async () => {
+    const { run, shown, orders, controller } = await setup(seated(councilView));
+    await run('lords.answerCard', { instanceId: 'masonsMeal-4', optionId: 'bread' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([answer('masonsMeal-4', 'bread')]);
+    // Pelo controlador, como a árvore e o painel chamam.
+    controller.runCommand('lords.answerCard', {
+      instanceId: 'commonGranaryShare-3',
+      optionId: 'reserve',
+    });
+    await settle(controller);
+    expect(orders()).toEqual([
+      answer('masonsMeal-4', 'bread'),
+      answer('commonGranaryShare-3', 'reserve'),
+    ]);
+  });
+
+  it('painel, árvore e paleta mandam a mesma ordem, cada uma com o seu commandId', async () => {
+    const { run, answers, api } = await setup(seated(councilView));
+    answers.push('bread', 1, 'bread');
+    await run('lords.answerCard', { instanceId: 'masonsMeal-4', optionId: 'bread' });
+    await run('lords.answerCard', { id: 'card:masonsMeal-4' });
+    await run('lords.answerCard');
+    expect(api.state.commands.map(({ type, payload }) => ({ type, payload }))).toEqual([
+      answer('masonsMeal-4', 'bread'),
+      answer('masonsMeal-4', 'bread'),
+      answer('masonsMeal-4', 'bread'),
+    ]);
+    expect(new Set(api.state.commands.map((command) => command.commandId)).size).toBe(3);
+  });
+
+  it('opção trancada ou sem recursos: a lista mostra o requisito ou o que falta, com ícone', async () => {
+    const blocked = withCards(goldenView, [
+      {
+        ...mealCard,
+        options: mealCard.options.map((option) =>
+          option.id === 'feast'
+            ? { ...option, locked: true, lockedReason: 'Requer 100 de comida em estoque.' }
+            : option.id === 'refuse'
+              ? {
+                  ...option,
+                  affordable: false,
+                  cost: [{ resource: 'gold' as const, label: 'Ouro', amount: 20, missing: 8 }],
+                }
+              : option,
+        ),
+      },
+    ]);
+    const { run, answers, shown, orders, api, controller } = await setup(seated(blocked));
+    answers.push('feast');
+    api.refuseNextCommand('Servir a refeição requer 100 de comida em estoque.', 'OPTION_LOCKED');
+    await run('lords.answerCard');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.items.map((item) => item.icon)).toEqual(['lock', 'check', 'warning']);
+    expect(pick.items[0]?.detail).toBe(
+      'Requer 100 de comida em estoque. Barriga cheia, ânimo alto.',
+    );
+    expect(pick.items[2]?.detail).toBe(
+      'Faltam 8 de ouro. A tarde rende mais pedra, e a obra guarda a mágoa.',
+    );
+    // Mesmo trancada, a escolha segue: quem recusa é o servidor, com o motivo de agora.
+    expect(orders()).toEqual([]);
+    expect(api.state.requests.filter((entry) => entry.endsWith('/commands'))).toHaveLength(1);
+    expect(toastTexts(controller)).toEqual(['Servir a refeição requer 100 de comida em estoque.']);
+  });
+
+  it('sem cartas, diz que o conselho não tem nada a tratar e quando volta a se reunir', async () => {
+    const { run, shown, orders, controller } = await setup();
+    await run('lords.answerCard');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([]);
+    expect(controller.toasts).toHaveLength(1);
+    expect(controller.toasts[0]).toMatchObject({
+      kind: 'info',
+      text: 'O conselho não tem nada a tratar agora. Próxima audiência em 8 h.',
+    });
+    await controller.toasts[0]?.actions.find((action) => action.label === 'Ver o Conselho')?.run();
+    expect(controller.route).toBe('council');
+  });
+
+  it('a linha da árvore de uma carta que já saiu da mesa avisa e não abre lista nenhuma', async () => {
+    const { run, shown, orders, controller } = await setup(seated(oneCard));
+    await run('lords.answerCard', { id: 'card:collapsedWell-9' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([]);
+    expect(toastTexts(controller)).toEqual([
+      'Esta carta já não espera resposta: foi respondida, ou o prazo acabou.',
+    ]);
+  });
+
+  describe('a carta sai da mesa com a lista aberta: a tela avisa e fecha sem enviar', () => {
+    /** Um relógio que o teste adianta. */
+    const clock = () => {
+      let now = Date.parse('2026-10-01T12:00:00.000Z');
+      return { now: () => now, advance: (ms: number) => void (now += ms) };
+    };
+
+    it('o prazo acabou: diz que o conselho decidiu sozinho', async () => {
+      const time = clock();
+      const { run, answers, shown, orders, api, controller } = await setup({
+        ...seated(oneCard),
+        now: time.now,
+      });
+      answers.push(async () => {
+        // Com a lista aberta, o prazo da carta acaba e a leitura seguinte a tira da mesa.
+        time.advance((mealCard.expiresInSeconds + 1) * 1000);
+        api.state.view = goldenView;
+        api.state.stateVersion += 1;
+        await controller.session.syncNow();
+        return 'feast';
+      });
+      await run('lords.answerCard');
+      expect(shown).toHaveLength(1);
+      expect(shownAs(shown, 0, 'pick').signal?.aborted).toBe(true);
+      expect(orders()).toEqual([]);
+      expect(api.state.requests.filter((entry) => entry.endsWith('/commands'))).toEqual([]);
+      expect(controller.toasts).toHaveLength(1);
+      expect(controller.toasts[0]).toMatchObject({
+        kind: 'warning',
+        text: 'O prazo de "A refeição dos pedreiros" acabou antes da sua resposta, e o conselho decidiu sozinho. Nada foi enviado: a Crônica conta o que ele fez.',
+      });
+    });
+
+    it('outra aba respondeu: diz isso, e não que o prazo acabou', async () => {
+      const time = clock();
+      const { run, answers, orders, api, controller } = await setup({
+        ...seated(councilView),
+        now: time.now,
+      });
+      answers.push(async () => {
+        time.advance(60_000);
+        api.state.view = withCards(councilView, [shareCard]);
+        api.state.stateVersion += 1;
+        await controller.session.syncNow();
+        return 'feast';
+      });
+      await run('lords.answerCard', { id: 'card:masonsMeal-4' });
+      expect(orders()).toEqual([]);
+      expect(toastTexts(controller)).toEqual([
+        '"A refeição dos pedreiros" saiu da mesa antes da sua resposta: foi respondida em outra aba ou em outro navegador. Nada foi enviado.',
+      ]);
+    });
+
+    it('a outra carta que sai da mesa não fecha a lista desta', async () => {
+      const { run, answers, shown, orders, api, controller } = await setup(seated(councilView));
+      answers.push(async () => {
+        api.state.view = withCards(councilView, [mealCard]);
+        api.state.stateVersion += 1;
+        await controller.session.syncNow();
+        return 'feast';
+      });
+      await run('lords.answerCard', { id: 'card:masonsMeal-4' });
+      expect(shownAs(shown, 0, 'pick').signal?.aborted).toBe(false);
+      expect(orders()).toEqual([answer('masonsMeal-4', 'feast')]);
+    });
+
+    it('a sessão terminou: nada é enviado, e a tela diz por quê', async () => {
+      const { run, answers, orders, controller } = await setup(seated(oneCard));
+      answers.push(async () => {
+        await controller.account.handleUnauthenticated();
+        await settle(controller);
+        return 'feast';
+      });
+      await run('lords.answerCard');
+      expect(orders()).toEqual([]);
+      expect(toastTexts(controller)).toContain(
+        'A sessão terminou com "A refeição dos pedreiros" aberta: nada foi enviado ao conselho. Entre de novo para decidir.',
+      );
+    });
+
+    it('a carta escolhida na lista das cartas já tinha saído da mesa: avisa e não pergunta a opção', async () => {
+      const { run, answers, shown, orders, api, controller } = await setup(seated(councilView));
+      answers.push(async () => {
+        api.state.view = withCards(councilView, [shareCard]);
+        api.state.stateVersion += 1;
+        await controller.session.syncNow();
+        return mealCard;
+      });
+      await run('lords.answerCard');
+      expect(shown).toHaveLength(1);
+      expect(orders()).toEqual([]);
+      expect(toastTexts(controller)).toEqual([
+        '"A refeição dos pedreiros" saiu da mesa antes da sua resposta: foi respondida em outra aba ou em outro navegador. Nada foi enviado.',
+      ]);
+    });
+
+    it('depois de fechada a lista, o comando não fica ouvindo o controlador', async () => {
+      const { run, answers, controller, api } = await setup(seated(oneCard));
+      answers.push(undefined);
+      await run('lords.answerCard');
+      // A carta some depois: nenhum aviso atrasado.
+      api.state.view = goldenView;
+      api.state.stateVersion += 1;
+      await controller.session.syncNow();
+      await settle(controller);
+      expect(controller.toasts).toEqual([]);
+    });
+  });
+
+  it('o argumento do comando: o painel manda os dois, a árvore a linha, a paleta nada', () => {
+    expect(cardRequest({ instanceId: 'a-1', optionId: 'x' })).toEqual({
+      instanceId: 'a-1',
+      optionId: 'x',
+    });
+    expect(cardRequest({ instanceId: 'a-1' })).toEqual({ instanceId: 'a-1' });
+    expect(cardRequest({ id: 'card:a-1', label: 'A' })).toEqual({ instanceId: 'a-1' });
+    expect(cardRequest({ id: 'worker:farm' })).toEqual({});
+    expect(cardRequest(undefined)).toEqual({});
+    expect(cardRequest('a-1')).toEqual({});
+    expect(cardRequest({ instanceId: 3, optionId: 'x' })).toEqual({});
   });
 });
 

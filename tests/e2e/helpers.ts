@@ -1,6 +1,8 @@
 import { type BrowserContext, expect, type Page, test as base } from '@playwright/test';
 
 export const API = 'http://127.0.0.1:3100';
+/** A semente dos feudos fundados com o conselho convocado: as mesmas cartas a cada execução. */
+const COUNCIL_SEED = 'conselho-e2e';
 export const HOUR = 3_600_000;
 export const MINUTE = 60_000;
 
@@ -23,6 +25,13 @@ export type World = {
   passTime(ms: number, ...pages: Page[]): Promise<void>;
   /** Como `passTime`, sem esperar o ciclo: para páginas sem sessão ou sem rede. */
   jump(ms: number, ...pages: Page[]): Promise<void>;
+  /**
+   * Convoca o Conselho: os feudos fundados daqui em diante recebem cartas (a primeira, 8 horas
+   * depois da fundação no ritmo Normal) e nascem todos da mesma semente, para o sorteio tirar as
+   * mesmas cartas a cada execução. Sem isto o conselho fica em recesso: os cenários que não são
+   * sobre ele não dependem de qual carta saiu. Chame antes de fundar o feudo.
+   */
+  conveneCouncil(): void;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -37,12 +46,46 @@ export const test = base.extend<{ world: World }>({
         return response.json() as Promise<unknown>;
       };
       await control('reset');
+      let councilInSession = false;
+      const watched = new WeakSet<BrowserContext>();
+      /**
+       * Fica entre a página e `POST /v1/games`. Com o conselho em recesso (o padrão), manda o
+       * servidor adiar o sorteio do feudo recém-fundado antes de a resposta chegar à página; com
+       * ele convocado, acrescenta a semente fixa ao pedido (o servidor de teste a aceita).
+       */
+      const watchFoundings = async (context: BrowserContext) => {
+        if (watched.has(context)) {
+          return;
+        }
+        watched.add(context);
+        await context.route('**/v1/games', async (route) => {
+          const request = route.request();
+          if (request.method() !== 'POST') {
+            await route.fallback();
+            return;
+          }
+          if (councilInSession) {
+            const body = request.postDataJSON() as Record<string, unknown>;
+            await route.continue({ postData: JSON.stringify({ ...body, seed: COUNCIL_SEED }) });
+            return;
+          }
+          const response = await route.fetch();
+          if (response.ok()) {
+            await control('council-recess');
+          }
+          await route.fulfill({ response });
+        });
+      };
       const world: World = {
         offsetMs: 0,
         problems: [],
         control,
+        conveneCouncil: () => {
+          councilInSession = true;
+        },
         github: (action, data = {}) => control('github', { action, ...data }),
         open: async (context, path = '/') => {
+          await watchFoundings(context);
           const page = await context.newPage();
           watch(page, world.problems);
           await page.clock.install({ time: new Date(Date.now() + world.offsetMs) });

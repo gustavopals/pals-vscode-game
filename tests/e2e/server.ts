@@ -64,6 +64,23 @@ control.post('/__test/advance', async (request) => {
 
 control.post('/__test/jobs', async () => runJobsOnce(ctx));
 
+/**
+ * Põe o Conselho de todos os feudos em recesso: a próxima audiência vai para um futuro que
+ * teste nenhum alcança. As cartas chegam por sorteio, de 8 em 8 horas no ritmo Normal, e mexem
+ * na moral, nos avisos e na barra de status; os cenários que não são sobre o Conselho não podem
+ * depender de qual carta a semente tirou. Quem funda o feudo pela página chama isto antes de a
+ * resposta chegar a ela (`helpers.ts`), a menos que o teste tenha convocado o conselho. Só o
+ * instante do próximo sorteio muda; o resto do estado é o que o motor criou.
+ */
+const RECESS_UNTIL_GAME_MS = 100 * 365 * 24 * 3_600_000;
+control.post('/__test/council-recess', async () => {
+  await pool.query(
+    `update games set state = jsonb_set(state, '{council,nextDrawAtMs}', to_jsonb($1::bigint))`,
+    [RECESS_UNTIL_GAME_MS],
+  );
+  return { ok: true };
+});
+
 /** Encerra no servidor todas as sessões, como uma revogação por reuso de refresh token. */
 control.post('/__test/revoke-sessions', async () => {
   await pool.query('update sessions set revoked_at = $1 where revoked_at is null', [clock()]);

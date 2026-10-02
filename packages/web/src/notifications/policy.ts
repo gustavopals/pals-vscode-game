@@ -1,5 +1,6 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
+import { COUNCIL_ICON } from '../ui/council';
 import { formatDuration } from '../ui/format';
 import { bandIcon } from '../ui/morale';
 
@@ -30,6 +31,13 @@ const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded'];
  * no nível "Essenciais", mas sem o tom de alarme. O aviso de uma hora antes é `seasonAhead`.
  */
 const SEASON_TURN: GameEvent['type'] = 'seasonChanged';
+/**
+ * Uma carta nova do Conselho (GDD §13.5): espera uma decisão do jogador, com prazo. Chega no
+ * nível "Essenciais", sem o tom de alarme: nada se quebrou, o feudo pede uma resposta. O aviso
+ * leva o botão "Decidir", e a carta não entra no contador de novidades: enquanto espera, quem a
+ * conta é o contador de decisões pendentes, que vem da visão.
+ */
+const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
@@ -48,6 +56,10 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'villagerArrived',
   // A mudança de faixa da moral só cai aqui quando o evento não diz o sentido; ver `wanted`.
   'moraleBandChanged',
+  // O prazo de uma carta acabou e o conselho decidiu sozinho: a frase diz o que foi feito.
+  'cardExpired',
+  // O que uma opção escondia aconteceu: é quando o jogador descobre a consequência da escolha.
+  'cardEffectApplied',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -63,6 +75,12 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   villagerDeserted: 'sign-out',
   // A estação que chega: o calendário, igual ao do aviso de uma hora antes.
   seasonChanged: SEASON_ICON,
+  // Tudo o que vem do Conselho leva o ícone dele: a carta nova, a resposta, a que expirou e o
+  // efeito tardio.
+  cardDrawn: COUNCIL_ICON,
+  cardAnswered: COUNCIL_ICON,
+  cardExpired: COUNCIL_ICON,
+  cardEffectApplied: COUNCIL_ICON,
 };
 
 export type PolicyInput = {
@@ -85,7 +103,10 @@ export type PolicyInput = {
 export type PolicyOutput = {
   /** Eventos que viram notificação agora. */
   show: GameEvent[];
-  /** Eventos que mereciam notificação, mas ficaram só como badge na árvore. */
+  /**
+   * Eventos que mereciam notificação, mas ficaram só como badge na árvore. Uma carta nova não
+   * conta aqui: ela já é contada como decisão pendente enquanto espera.
+   */
   badge: number;
   history: number[];
 };
@@ -134,6 +155,11 @@ export function isSeasonTurn(event: GameEvent): boolean {
   return event.type === SEASON_TURN;
 }
 
+/** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */
+export function isDecision(event: GameEvent): boolean {
+  return DECISIONS.includes(event.type);
+}
+
 function wanted(
   event: GameEvent,
   level: NotificationLevel,
@@ -147,14 +173,26 @@ function wanted(
     return season === undefined || season === null || event.data.season === season;
   }
   return (
-    isEssential(event) || isRelief(event) || (level === 'all' && INFORMATIVE.includes(event.type))
+    isEssential(event) ||
+    isRelief(event) ||
+    isDecision(event) ||
+    (level === 'all' && INFORMATIVE.includes(event.type))
   );
 }
 
-/** Com pouco espaço: primeiro os alarmes, depois os alívios e a virada de estação, depois o resto. */
+/**
+ * Com pouco espaço: primeiro os alarmes; depois as cartas novas, os alívios e a virada de
+ * estação; depois o resto.
+ */
 function rank(event: GameEvent): number {
-  return isEssential(event) ? 0 : isRelief(event) || isSeasonTurn(event) ? 1 : 2;
+  if (isEssential(event)) {
+    return 0;
+  }
+  return isDecision(event) || isRelief(event) || isSeasonTurn(event) ? 1 : 2;
 }
+
+/** Quantos eventos sem aviso viram badge de novidade: as cartas novas ficam de fora. */
+const badgeCount = (events: GameEvent[]) => events.filter((event) => !isDecision(event)).length;
 
 /**
  * Decide o que notificar (GDD §13.5): avisar o essencial, nunca incomodar. No máximo 3 por
@@ -168,7 +206,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
     return { show: [], badge: 0, history };
   }
   if (input.mutedUntil !== null && input.now < input.mutedUntil) {
-    return { show: [], badge: candidates.length, history };
+    return { show: [], badge: badgeCount(candidates), history };
   }
   // Com pouco espaço, o essencial passa na frente. A ordenação é estável: dentro de cada grupo
   // vale a ordem em que as coisas aconteceram.
@@ -177,7 +215,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   const show = ordered.slice(0, room);
   return {
     show,
-    badge: ordered.length - show.length,
+    badge: badgeCount(ordered.slice(room)),
     history: [...history, ...show.map(() => input.now)],
   };
 }

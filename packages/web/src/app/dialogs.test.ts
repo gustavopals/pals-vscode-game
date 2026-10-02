@@ -208,6 +208,68 @@ describe('campo de texto e lista de escolha', () => {
   });
 });
 
+describe('lista que fecha sozinha (signal)', () => {
+  const items = [
+    { label: 'Ceder a pedra', value: 'repair' },
+    { label: 'Deixar para depois', value: 'wait' },
+  ];
+
+  it('quando o sinal dispara, a lista fecha como desistência e sai da tela', async () => {
+    const { dialogs, seen } = setup();
+    const gone = new AbortController();
+    const chosen = dialogs.pick({ title: 'Carta', items, signal: gone.signal });
+    expect(dialogs.current?.state.kind).toBe('pick');
+    const before = seen.changes;
+    gone.abort();
+    expect(await chosen).toBeUndefined();
+    expect(dialogs.current).toBeNull();
+    expect(seen.changes).toBe(before + 1);
+  });
+
+  it('um sinal já disparado nem abre a lista', async () => {
+    const { dialogs, seen } = setup();
+    const gone = new AbortController();
+    gone.abort();
+    expect(await dialogs.pick({ title: 'Carta', items, signal: gone.signal })).toBeUndefined();
+    expect(dialogs.current).toBeNull();
+    expect(seen.changes).toBe(0);
+  });
+
+  it('o sinal que dispara depois da escolha não mexe na resposta nem no diálogo seguinte', async () => {
+    const { dialogs } = setup();
+    const gone = new AbortController();
+    const chosen = dialogs.pick({ title: 'Carta', items, signal: gone.signal });
+    dialogs.resolve(currentId(dialogs), 'repair');
+    const next = dialogs.confirm({ title: 'Outro diálogo', confirmLabel: 'Sim' });
+    gone.abort();
+    expect(await chosen).toBe('repair');
+    // O diálogo seguinte continua à vista.
+    expect(dialogs.current?.state.kind).toBe('confirm');
+    dialogs.resolve(currentId(dialogs), true);
+    expect(await next).toBe(true);
+  });
+
+  it('o sinal fecha a lista dele mesmo que ela espere na fila, atrás de outro diálogo', async () => {
+    const { dialogs } = setup();
+    const gone = new AbortController();
+    const first = dialogs.confirm({ title: 'Primeiro', confirmLabel: 'Sim' });
+    const chosen = dialogs.pick({ title: 'Carta', items, signal: gone.signal });
+    gone.abort();
+    expect(await chosen).toBeUndefined();
+    expect(dialogs.current?.state.kind).toBe('confirm');
+    dialogs.cancel();
+    expect(await first).toBe(false);
+    expect(dialogs.current).toBeNull();
+  });
+
+  it('o texto para ler antes de escolher acompanha o diálogo', () => {
+    const { dialogs } = setup();
+    void dialogs.pick({ title: 'Carta', items, detail: ['A boca do poço cedeu.'], selected: 1 });
+    const state = dialogs.current?.state;
+    expect(state).toMatchObject({ kind: 'pick', detail: ['A boca do poço cedeu.'], selected: 1 });
+  });
+});
+
 describe('diálogo de informação', () => {
   it('fica aberto até close(), e closed resolve quando fecha', async () => {
     const { dialogs } = setup();

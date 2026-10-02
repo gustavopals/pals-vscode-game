@@ -232,7 +232,11 @@ export function DialogHost(props: {
         // O foco cai em um botão: sem isto, o leitor de tela pularia o texto que explica a
         // consequência (sair sem código, prazos da exclusão).
         aria-describedby={
-          state.kind === 'confirm' || state.kind === 'info' ? 'dialog-detail' : undefined
+          state.kind === 'confirm' ||
+          state.kind === 'info' ||
+          (state.kind === 'pick' && state.detail !== undefined)
+            ? 'dialog-detail'
+            : undefined
         }
       >
         {state.kind === 'confirm' ? <ConfirmBody state={state} resolve={resolve} /> : null}
@@ -244,6 +248,7 @@ export function DialogHost(props: {
           <QuickPick
             title={state.title}
             placeholder={state.placeholder}
+            detail={state.detail}
             items={state.items}
             selected={state.selected}
             onPick={resolve}

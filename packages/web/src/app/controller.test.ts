@@ -366,7 +366,7 @@ describe('abertura da página', () => {
     });
     expect(controller.hasGame).toBe(true);
     expect(controller.view?.settlement.name).toBe('Vale Verde');
-    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council']);
     expect(controller.busy).toBe(false);
     // A conta fica guardada neste navegador para a próxima visita.
     expect(store.get(ACCOUNT_KEY)).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
@@ -449,7 +449,7 @@ describe('abertura da página', () => {
     expect(controller.route).toBe('fief');
     expect(controller.view?.settlement.name).toBe('Pedra Alta');
     expect(controller.connection).toEqual({ kind: 'online' });
-    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council']);
     expect(count(api.state.requests, VIEW_REQUEST)).toBe(1);
     // Nenhuma conta nova: a guardada foi retomada.
     expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
@@ -492,7 +492,7 @@ describe('abertura da página', () => {
     const withGame = make({ signedIn: true });
     await withGame.controller.start('settings');
     expect(withGame.controller.route).toBe('settings');
-    expect(withGame.controller.tabs).toEqual(['today', 'fief', 'settings']);
+    expect(withGame.controller.tabs).toEqual(['today', 'fief', 'council', 'settings']);
 
     const today = make({ signedIn: true });
     await today.controller.start('today');
@@ -526,7 +526,7 @@ describe('abertura da página', () => {
     await controller.start('chronicle');
     await settle(controller);
     expect(controller.route).toBe('chronicle');
-    expect(controller.tabs).toEqual(['today', 'fief', 'chronicle']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'chronicle']);
     expect(controller.chronicleDocument.status).toBe('ready');
   });
 
@@ -1635,7 +1635,7 @@ describe('abas e navegação', () => {
     const { controller, api } = await opened();
     controller.navigate('chronicle');
     expect(controller.route).toBe('chronicle');
-    expect(controller.tabs).toEqual(['today', 'fief', 'chronicle']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'chronicle']);
     expect(controller.chronicleDocument).toEqual({ status: 'loading' });
     await settle(controller);
     expect(controller.chronicleDocument).toEqual({
@@ -1645,7 +1645,7 @@ describe('abas e navegação', () => {
 
     controller.closeTab('chronicle');
     expect(controller.route).toBe('fief');
-    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council']);
   });
 
   it('a Crônica aberta é lida de novo quando chegam eventos', async () => {
@@ -1699,7 +1699,7 @@ describe('abas e navegação', () => {
     controller.navigate('settings');
     controller.navigate('fief');
     controller.navigate('settings');
-    expect(controller.tabs).toEqual(['today', 'fief', 'settings']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'settings']);
   });
 
   it('fechar uma aba que não é a ativa não muda de aba', async () => {
@@ -1708,7 +1708,7 @@ describe('abas e navegação', () => {
     controller.navigate('about');
     controller.closeTab('settings');
     expect(controller.route).toBe('about');
-    expect(controller.tabs).toEqual(['today', 'fief', 'about']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council', 'about']);
   });
 
   it('as abas fixas não fecham', async () => {
@@ -1719,7 +1719,7 @@ describe('abas e navegação', () => {
     });
     controller.closeTab('fief');
     controller.closeTab('today');
-    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council']);
     expect(controller.route).toBe('fief');
     expect(changes).toBe(0);
   });
@@ -1938,7 +1938,7 @@ describe('outras abas do navegador', () => {
     expect(controller.account.state).toMatchObject({ accountId: ACCOUNT_ID, gameId: GAME_ID });
     expect(controller.route).toBe('fief');
     expect(controller.view?.settlement.name).toBe('Pedra Alta');
-    expect(controller.tabs).toEqual(['today', 'fief']);
+    expect(controller.tabs).toEqual(['today', 'fief', 'council']);
     // Adotar não cria conta nem funda feudo de novo.
     expect(count(api.state.requests, 'POST /auth/anonymous')).toBe(0);
     expect(count(api.state.requests, 'POST /games')).toBe(0);
@@ -2288,7 +2288,7 @@ describe('servidor atualizado (426 UPGRADE_REQUIRED)', () => {
       expect(toast).toMatchObject({
         kind: 'warning',
         sticky: true,
-        text: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
+        text: 'Há uma versão nova do jogo. Recarregue a página.',
       });
       // Nem a frase crua do servidor, nem um erro, nem "Tentar de novo" (repetir não adianta).
       expect(toastWith(controller, upgrade.body.message)).toBeUndefined();

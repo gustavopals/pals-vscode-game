@@ -60,6 +60,9 @@ export function rowActions(node: TreeNode): RowAction[] {
           command: 'lords.toggleAutoStart',
         },
       ];
+    case 'lords.card':
+      // A carta se lê na aba do Conselho (o clique na linha); o botão abre a lista das opções.
+      return [{ label: `Decidir: ${node.label}`, text: 'Decidir', command: 'lords.answerCard' }];
     default:
       return [];
   }

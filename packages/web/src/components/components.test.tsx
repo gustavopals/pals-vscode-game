@@ -17,6 +17,7 @@ import {
   autumnView,
   catalogFixture,
   coldView,
+  councilView,
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
@@ -1918,13 +1919,14 @@ describe('aba Hoje', () => {
     click(props?.children, label);
   };
 
-  it('mostra o Relatório de Retorno e explica as decisões pendentes da v0.1', () => {
+  it('mostra o Relatório de Retorno e, sem decisões à espera, diz quando o conselho volta', () => {
     const page = today(report);
     expect(page).toContain('Você esteve fora por <strong>5 horas</strong>');
     expect(page).toContain('+75');
     expect(page).toContain('Obras concluídas: 1');
     expect(page).toContain('os pedreiros ergueram as Habitações');
-    expect(page).toContain('Nenhuma por agora.');
+    expect(page).toContain('Nenhuma por agora. Próxima audiência em 8 h.');
+    expect(page).toContain('Ver o Conselho');
     expect(page).toContain('Marcar como lido');
     expect(page).toContain('Ir para o feudo');
   });
@@ -2235,7 +2237,15 @@ describe('aba Hoje', () => {
       const order = (page: string) =>
         [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
       expect(order(shown(initialView))).toEqual(['leaving', 'report', 'decisions']);
-      expect(order(shown(initialView, report))).toEqual(['report', 'leaving', 'decisions']);
+      // Depois de uma ausência: o que aconteceu, o que espera resposta, o que preparar (GDD §2.3).
+      expect(order(shown(initialView, report))).toEqual(['report', 'decisions', 'leaving']);
+    });
+
+    it('com carta à espera, as decisões pendentes passam na frente de "Antes de partir"', () => {
+      const order = (page: string) =>
+        [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
+      expect(order(shown(councilView))).toEqual(['decisions', 'leaving', 'report']);
+      expect(order(shown(councilView, report))).toEqual(['report', 'decisions', 'leaving']);
     });
 
     it('uma linha por item, com a frase e o botão que resolve', () => {

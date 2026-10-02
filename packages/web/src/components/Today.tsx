@@ -1,6 +1,7 @@
 import type { ReturnReport, ViewState } from '@lotg/protocol';
 
 import { beforeLeaving, type LeavingSeverity } from '../game/beforeLeaving';
+import { cardDeadline, expiresSoon, nextAudience } from '../ui/council';
 import { joinList } from '../ui/format';
 import { moraleBurdened, moraleIcon, moraleSince, peopleMoved } from '../ui/morale';
 import type { Actions } from './actions';
@@ -179,9 +180,82 @@ function BeforeLeaving(props: { view: ViewState; online: boolean; actions: Actio
 }
 
 /**
- * Aba "Hoje": o Relatório de Retorno, o que preparar antes de sair e as decisões pendentes
- * (GDD §2.3). Quem volta de uma ausência lê primeiro o que aconteceu; sem relatório, "Antes de
- * partir" abre a aba.
+ * "Decisões pendentes" (GDD §2.3, passo 2, e §13.3): uma linha por carta do Conselho à espera,
+ * da que vence primeiro à que vence por último (é a ordem em que a visão as traz), com o prazo
+ * em tempo real e o botão "Decidir", que leva à aba do Conselho, onde a carta se lê inteira. O
+ * prazo que acaba antes de uma ausência comum ganha o sinal de aviso, com ícone e palavra.
+ *
+ * Sem nenhuma, a seção diz quando o conselho volta a se reunir, na frase do servidor. Sem
+ * ligação, avisa que as cartas e os prazos são os do último estado conhecido.
+ */
+function PendingDecisions(props: {
+  view: ViewState;
+  elapsed: number;
+  online: boolean;
+  actions: Actions;
+}) {
+  const { view, elapsed } = props;
+  const decisions = view.pendingDecisions;
+  return (
+    <section aria-labelledby="decisions-title">
+      <h2 id="decisions-title">
+        Decisões pendentes{decisions.length === 0 ? '' : ` (${decisions.length})`}
+      </h2>
+      {decisions.length === 0 ? (
+        <p class="muted">
+          Nenhuma por agora. {nextAudience(view.council, elapsed)}{' '}
+          <button
+            type="button"
+            class="link"
+            onClick={() => props.actions.run('lords.openPanel', 'council')}
+          >
+            Ver o Conselho
+          </button>
+        </p>
+      ) : (
+        <>
+          {props.online ? null : (
+            <p class="muted hint">
+              Sem ligação com o reino: as cartas e os prazos são os do último estado conhecido do
+              feudo.
+            </p>
+          )}
+          <ul class="decisions">
+            {decisions.map((decision) => {
+              const soon = expiresSoon(decision, elapsed);
+              return (
+                <li
+                  key={decision.id}
+                  class={soon ? 'leaving-item leaving-warning' : 'leaving-item leaving-info'}
+                >
+                  <p>
+                    <Icon name={soon ? 'warning' : 'law'} />{' '}
+                    {soon ? <span class="sr-only">Atenção: </span> : null}
+                    Conselho: “{decision.title}” ·{' '}
+                    <span class="decision-deadline">{cardDeadline(decision, elapsed)}</span>
+                  </p>
+                  <button
+                    type="button"
+                    aria-label={`Decidir: ${decision.title}`}
+                    onClick={() => props.actions.run('lords.openPanel', 'council')}
+                  >
+                    Decidir
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Aba "Hoje": o Relatório de Retorno, as decisões pendentes e o que preparar antes de sair
+ * (GDD §2.3). Quem volta de uma ausência lê primeiro o que aconteceu, depois decide o que
+ * espera resposta. Sem relatório, as decisões pendentes abrem a aba; sem nenhuma, "Antes de
+ * partir".
  */
 export function Today(props: {
   report: ReturnReport | null;
@@ -189,13 +263,25 @@ export function Today(props: {
   actions: Actions;
   /** Há ligação com o servidor; sem ela, os botões que dão ordens ficam desabilitados. */
   online?: boolean;
+  /** Segundos desde que a visão chegou: os prazos das cartas descem com o relógio da página. */
+  elapsed?: number;
 }) {
   const { report } = props;
-  const leaving = (
-    <BeforeLeaving view={props.view} online={props.online ?? true} actions={props.actions} />
+  const online = props.online ?? true;
+  const leaving = <BeforeLeaving view={props.view} online={online} actions={props.actions} />;
+  const decisions = (
+    <PendingDecisions
+      view={props.view}
+      elapsed={props.elapsed ?? 0}
+      online={online}
+      actions={props.actions}
+    />
   );
+  // Uma decisão com prazo passa na frente do que preparar; a seção vazia fica no fim.
+  const waiting = props.view.pendingDecisions.length > 0;
   return (
     <div class="today">
+      {report === null && waiting ? decisions : null}
       {report === null ? leaving : null}
       <section aria-labelledby="report-title">
         <h2 id="report-title">Relatório de Retorno</h2>
@@ -305,14 +391,9 @@ export function Today(props: {
           </>
         )}
       </section>
+      {report === null ? null : decisions}
       {report === null ? null : leaving}
-      <section aria-labelledby="decisions-title">
-        <h2 id="decisions-title">Decisões pendentes</h2>
-        <p class="muted">
-          Nenhuma por agora. Cartas do Conselho e encruzilhadas de expedições aparecerão aqui nas
-          próximas versões.
-        </p>
-      </section>
+      {report === null && !waiting ? decisions : null}
       <button
         type="button"
         class="primary"

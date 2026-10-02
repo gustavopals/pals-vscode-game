@@ -13,6 +13,7 @@ import {
   decideNotice,
   decideNotifications,
   eventIcon,
+  isDecision,
   isEssential,
   isRelief,
   isSeasonTurn,
@@ -251,6 +252,93 @@ describe('política de notificações', () => {
       ]);
       expect(result.show[1]).toBe(events[2]);
       expect(result.badge).toBe(2);
+    });
+  });
+
+  describe('Conselho (GDD §13.5: "carta nova" é essencial)', () => {
+    const council = [
+      event('cardDrawn', 1),
+      event('cardAnswered', 2),
+      event('cardExpired', 3),
+      event('cardEffectApplied', 4),
+    ];
+
+    it('a carta nova avisa no nível padrão, sem tom de alarme e com o ícone do Conselho', () => {
+      const result = decideNotifications(input({ level: 'essential', events: council }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['cardDrawn']);
+      const drawn = event('cardDrawn');
+      expect(isDecision(drawn)).toBe(true);
+      expect(isEssential(drawn)).toBe(false);
+      expect(isRelief(drawn)).toBe(false);
+      expect(eventIcon(drawn)).toBe('law');
+    });
+
+    it('a resposta do próprio jogador nunca avisa', () => {
+      for (const level of ['essential', 'all'] as const) {
+        const shown = decideNotifications(input({ level, events: council })).show;
+        expect(shown.map((entry) => entry.type)).not.toContain('cardAnswered');
+      }
+    });
+
+    it('a carta que expirou e o efeito que veio depois são notícia em "todas"', () => {
+      const result = decideNotifications(input({ level: 'all', events: council }));
+      expect(result.show.map((entry) => entry.type)).toEqual([
+        'cardDrawn',
+        'cardExpired',
+        'cardEffectApplied',
+      ]);
+      expect(eventIcon(event('cardExpired'))).toBe('law');
+      expect(eventIcon(event('cardEffectApplied'))).toBe('law');
+      expect(isDecision(event('cardExpired'))).toBe(false);
+    });
+
+    it('nos níveis silencioso e discreto, nada', () => {
+      expect(decideNotifications(input({ level: 'silent', events: council })).show).toEqual([]);
+      expect(
+        decideNotifications(input({ level: 'all', discreetMode: true, events: council })),
+      ).toMatchObject({ show: [], badge: 0 });
+    });
+
+    it('a carta nova nunca vira badge de novidade: quem a conta é a decisão pendente', () => {
+      // Durante o silêncio de 2 horas, a obra vira badge e a carta, não.
+      const muted = decideNotifications(
+        input({
+          level: 'all',
+          mutedUntil: now + HOUR,
+          events: [event('cardDrawn', 1), event('constructionFinished', 2)],
+        }),
+      );
+      expect(muted).toMatchObject({ show: [], badge: 1 });
+      // Com as três da hora já exibidas, o mesmo.
+      const full = decideNotifications(
+        input({
+          level: 'all',
+          history: [now - 1000, now - 2000, now - 3000],
+          events: [event('cardDrawn', 1), event('constructionFinished', 2)],
+        }),
+      );
+      expect(full).toMatchObject({ show: [], badge: 1 });
+      expect(
+        decideNotifications(
+          input({ history: [now - 1000, now - 2000, now - 3000], events: [event('cardDrawn')] }),
+        ).badge,
+      ).toBe(0);
+    });
+
+    it('com pouco espaço: o alarme, depois a carta nova, depois o resto', () => {
+      const result = decideNotifications(
+        input({
+          level: 'all',
+          history: [now - 1000],
+          events: [
+            event('constructionFinished', 1),
+            event('cardDrawn', 2),
+            event('famineStarted', 3),
+          ],
+        }),
+      );
+      expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'cardDrawn']);
+      expect(result.badge).toBe(1);
     });
   });
 

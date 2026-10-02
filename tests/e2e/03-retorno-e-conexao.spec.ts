@@ -421,15 +421,16 @@ test.describe('antes de partir', () => {
     await expect(leaving(page)).not.toContainText('sem ofício');
     await expect(items(page)).toHaveCount(1);
 
-    // Quem volta de uma ausência lê primeiro o que aconteceu: a seção vem logo abaixo do relatório.
+    // Quem volta de uma ausência lê primeiro o que aconteceu, depois o que espera uma decisão
+    // (GDD §2.3): a seção vem abaixo do relatório e das decisões pendentes.
     await page.close();
     await world.passTime(5 * HOUR);
     const back = await world.open(context);
     await expect(back.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
     await expect(today(back).getByRole('heading', { level: 2 })).toHaveText([
       'Relatório de Retorno',
-      'Antes de partir',
       'Decisões pendentes',
+      'Antes de partir',
     ]);
     await expect(today(back).getByText('Você esteve fora por 5 horas.')).toBeVisible();
     // Cinco lavradores por cinco horas: agora é a Despensa que está para encher, e o item do

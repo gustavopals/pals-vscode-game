@@ -685,7 +685,10 @@ describe('cache', () => {
     });
 
     it('a visão em forma válida, mas com outra marca (ou sem marca), também é descartada', async () => {
-      for (const version of [undefined, '1.1', `${PROTOCOL_VERSION + 1}.2`, 2]) {
+      // '1.2' é a marca do app do protocolo 1, de antes do Conselho: a visão dele não tinha
+      // cartas nem decisões pendentes, e o cache dele é descartado pela marca (protocolo 2).
+      expect(CACHE_VERSION).not.toBe('1.2');
+      for (const version of [undefined, '1.1', '1.2', `${PROTOCOL_VERSION + 1}.2`, 2]) {
         const stale = { ...cachedNow(), ...(version === undefined ? {} : { version }) };
         if (version === undefined) {
           delete (stale as Partial<GameCache>).version;

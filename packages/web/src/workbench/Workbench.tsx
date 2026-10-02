@@ -10,6 +10,7 @@ import { difficultyDescription } from '../game/newGame';
 import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
 import { ChronicleTab } from '../tabs/Chronicle';
+import { CouncilTab } from '../tabs/Council';
 import { FiefTab } from '../tabs/Fief';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
@@ -86,6 +87,7 @@ function TabContent(props: {
       return <ChronicleTab document={controller.chronicleDocument} actions={actions} />;
     case 'today':
     case 'fief':
+    case 'council':
       if (view === null) {
         return (
           <main class="loading">
@@ -96,6 +98,19 @@ function TabContent(props: {
                 : 'Ainda não há um estado guardado neste navegador.'}
             </p>
           </main>
+        );
+      }
+      if (route === 'council') {
+        return (
+          <CouncilTab
+            view={view}
+            elapsed={elapsed}
+            online={online}
+            retryInSeconds={retryInSeconds}
+            answering={controller.answering}
+            chronicle={controller.chronicle}
+            actions={actions}
+          />
         );
       }
       return route === 'today' ? (
@@ -140,6 +155,9 @@ export function Workbench(props: {
   const account = controller.account.state;
   const signedIn = account.kind !== 'signedOut';
   const title = controller.title(elapsed);
+  // As decisões à espera: sem ligação a visão é a guardada, e as cartas dela não são anunciadas.
+  const decisions =
+    controller.connection.kind === 'online' ? (controller.view?.pendingDecisions.length ?? 0) : 0;
 
   useEffect(() => {
     document.title = title;
@@ -173,6 +191,7 @@ export function Workbench(props: {
         active={activity}
         sidebarOpen={sidebarOpen}
         unseen={controller.preferences.discreetMode ? 0 : controller.unseen}
+        decisions={controller.preferences.discreetMode ? 0 : decisions}
         onSelect={(next) => {
           setSidebarOpen(next === activity ? !sidebarOpen : true);
           setActivity(next);
@@ -192,6 +211,7 @@ export function Workbench(props: {
           tabs={controller.tabs}
           active={controller.route}
           hasNews={controller.report !== null}
+          pendingCards={controller.view?.council.pending.length ?? 0}
           onSelect={(route) => controller.navigate(route)}
           onClose={(route) => controller.closeTab(route)}
         />

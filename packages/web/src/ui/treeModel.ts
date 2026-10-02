@@ -4,6 +4,13 @@ import type { AccountState } from '../account/accountService';
 import { beforeLeaving } from '../game/beforeLeaving';
 import type { Connection } from '../game/connection';
 import {
+  COUNCIL_ICON,
+  councilSummary,
+  deadlineAlert,
+  nextAudience,
+  pendingDecisionsLabel,
+} from './council';
+import {
   busyQueues,
   capExplanation,
   capitalize,
@@ -309,6 +316,35 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
   };
 }
 
+/**
+ * O Conselho (GDD §13.2): "1 carta pendente (expira em 14 h)" e uma linha por carta à espera,
+ * com o prazo de cada uma. A explicação da linha é a regra em uma frase e quando vem a próxima
+ * audiência, nas frases do servidor; a de cada carta, a situação e o que o conselho faz sozinho.
+ * O clique leva à aba do Conselho, onde a carta se lê inteira; a resposta sai do botão da linha.
+ */
+function councilNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { council } = view;
+  return {
+    id: 'council',
+    label: 'Conselho',
+    description: councilSummary(view, elapsedSeconds),
+    tooltip: [council.rulesText, nextAudience(council, elapsedSeconds)].join('\n'),
+    icon: COUNCIL_ICON,
+    expanded: true,
+    command: { id: 'lords.openPanel', args: ['council'] },
+    children: council.pending.map((card) => ({
+      // A ocorrência vai no id: "Decidir" sabe de qual linha veio.
+      id: `card:${card.instanceId}`,
+      label: card.title,
+      description: deadlineAlert(card, elapsedSeconds),
+      tooltip: [card.text, card.expiryNote].join('\n'),
+      icon: 'mail',
+      contextValue: 'lords.card',
+      command: { id: 'lords.openPanel', args: ['council'] },
+    })),
+  };
+}
+
 function chronicleNode(chronicle: GameEvent[]): TreeNode {
   const last = chronicle.slice(-5).reverse();
   return {
@@ -400,13 +436,23 @@ export function buildTree(input: TreeInput): TreeNode[] {
   // é mais que sugestão, o sinal de alerta. O clique leva à aba Hoje, onde estão os botões.
   const leaving = beforeLeaving(view);
   const pressing = leaving.some((item) => item.severity !== 'info');
+  // As decisões pendentes passam na frente (GDD §13.2: "● 2 decisões"), com as novidades ao lado.
+  // Sem ligação a visão é a guardada, e a carta dela pode já ter saído da mesa: não é anunciada.
+  const waiting = [
+    ...(view.pendingDecisions.length > 0 && !offline
+      ? [pendingDecisionsLabel(view.pendingDecisions.length)]
+      : []),
+    ...(input.unseen > 0
+      ? [`${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`]
+      : []),
+  ];
   return [
     {
       id: 'today',
       label: `Hoje em ${settlement.name}`,
       description:
-        input.unseen > 0
-          ? `● ${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`
+        waiting.length > 0
+          ? `● ${waiting.join(' · ')}`
           : offline
             ? 'sem ligação com o reino'
             : leaving.length === 0
@@ -445,6 +491,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         resourcesNode(view),
         workersNode(view),
         constructionsNode(view, input.elapsedSeconds),
+        councilNode(view, input.elapsedSeconds),
         moraleNode(view, input.elapsedSeconds),
         ...hearthNode(view),
       ],
