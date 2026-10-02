@@ -1869,7 +1869,9 @@ describe('aba Hoje', () => {
           after: 255,
           delta: 75,
           spent: 150,
+          // Uma recompensa de +40 cortada no limite: 14,8 entraram e 25,2 foram ao chão.
           received: 14.8,
+          cut: 25.2,
           wasted: 120,
           produced: 210.2,
         },
@@ -1926,11 +1928,15 @@ describe('aba Hoje', () => {
       // A produção é o que o feudo rendeu: o que entrou no estoque (390) mais o que não coube
       // (76). A perda aparece como perda, com sinal, e a conta fecha na linha.
       expect(cells(page, 'Madeira')).toEqual(['320', '+466', '−240', '+30', '−76', '500']);
-      expect(cells(page, 'Comida')).toEqual(['180', '+330,2', '−150', '+14,8', '−120', '255']);
+      // A recompensa aparece inteira em Recebido (+40), e o que ela perdeu (25,2) está no
+      // Perdido, com o que a produção deixou no chão (94,8): não é produção que não houve.
+      expect(cells(page, 'Comida')).toEqual(['180', '+305', '−150', '+40', '−120', '255']);
       // O que não houve fica como traço, e não como zero a ser lido.
       expect(cells(page, 'Pedra')).toEqual(['200', '+44', '−80', '—', '—', '164']);
       expect(cells(page, 'Ouro')).toEqual(['270', '−8', '—', '—', '—', '262']);
-      expect(text(page)).toContain('Perdido é o que não coube no depósito e foi ao chão.');
+      expect(text(page)).toContain(
+        'Perdido é o que não coube no depósito e foi ao chão, da produção ou de uma recompensa.',
+      );
       // Antes + produção − gasto + recebido − perdido = agora, em toda linha.
       const number = (cell: string | undefined) =>
         cell === '—'
@@ -1941,6 +1947,39 @@ describe('aba Hoje', () => {
         const after = rest.pop() ?? 0;
         expect((before ?? 0) + rest.reduce((sum, value) => sum + value, 0)).toBeCloseTo(after, 6);
       }
+    });
+
+    it('a recompensa cortada no limite não é produção: Recebido a mostra inteira, e Perdido, o corte', () => {
+      // A Despensa cheia e ninguém na Fazenda: o feudo só consumiu (38,8). A recompensa de +40
+      // deixou 4,8 no estoque; 35,2 não couberam.
+      const cut = today({
+        ...report,
+        resources: [
+          {
+            id: 'food',
+            label: 'Comida',
+            before: 500,
+            after: 466,
+            delta: -34,
+            spent: 0,
+            received: 4.8,
+            cut: 35.2,
+            wasted: 35.2,
+            produced: -38.8,
+          },
+        ],
+      });
+      expect(cells(cut, 'Comida')).toEqual(['500', '−38,8', '—', '+40', '−35,2', '466']);
+      // Um relatório sem o corte à parte (eventos de antes dele) continua fechando a conta.
+      const old = today({
+        ...report,
+        resources: ledger.resources.map((row) => {
+          const earlier = { ...row };
+          delete earlier.cut;
+          return earlier;
+        }),
+      });
+      expect(cells(old, 'Comida')).toEqual(['180', '+330,2', '−150', '+14,8', '−120', '255']);
     });
 
     it('a linha de desperdício: o total de cada recurso, onde ele fica e o caminho para resolver', () => {

@@ -1353,6 +1353,67 @@ describe('Relatório de Retorno', () => {
       expect(row(report, 'gold')?.wasted).toBe(0);
     });
 
+    it('a recompensa cortada no limite: o evento diz o que não coube, e o corte não vira produção', () => {
+      // A Despensa cheia (500) e ninguém na Fazenda: em cinco horas o feudo comeu 38,8. No meio
+      // do caminho um objetivo rendeu +40 de comida: couberam 4,8, e 35,2 foram ao chão. O fecho
+      // do dia relatou as 35 unidades inteiras.
+      const full = stocks(farmers, { food: { stock: 500 } });
+      const later = stocks(farmers, { food: { stock: 466 } });
+      const cut = buildReturnReport(
+        full,
+        later,
+        [
+          event(
+            'objectiveCompleted',
+            { objective: 'recruitVillagers', gained_food: 4.8, lost_food: 35.2 },
+            'Cumpriu-se um objetivo. Recompensa: +40 comida.',
+          ),
+          event('dayStarted'),
+          event('storageWasted', { wasted_food: 35 }),
+        ],
+        5 * HOUR,
+      );
+      expect(row(cut, 'food')).toEqual({
+        id: 'food',
+        label: 'Comida',
+        before: 500,
+        after: 466,
+        delta: -34,
+        spent: 0,
+        // O que entrou no estoque e, à parte, o que a recompensa perdeu.
+        received: 4.8,
+        cut: 35.2,
+        // O perdido nunca é menos que o corte: o fecho do dia só conta unidades inteiras.
+        wasted: 35.2,
+        produced: -38.8,
+      });
+      expect(ReturnReportSchema.safeParse(cut).success).toBe(true);
+      // A devolução de um cancelamento cortada no limite conta do mesmo jeito.
+      const refund = buildReturnReport(
+        stocks(farmers, { wood: { stock: 470 } }),
+        stocks(farmers, { wood: { stock: 500, wastedToday: 34 } }),
+        [
+          event('constructionCancelled', {
+            building: 'housing',
+            level: 1,
+            gained_wood: 30,
+            lost_wood: 34,
+            gained_stone: 16,
+          }),
+        ],
+        4 * HOUR,
+      );
+      expect(row(refund, 'wood')).toMatchObject({
+        delta: 30,
+        received: 30,
+        cut: 34,
+        wasted: 34,
+        produced: 0,
+      });
+      // Eventos de antes desta chave (ou ganhos que couberam inteiros): nenhum corte.
+      expect(row(report, 'food')?.cut).toBe(0);
+    });
+
     it('sem virada de dia na ausência, o desperdício ainda aparece: vem do contador da visão', () => {
       const short = buildReturnReport(before, after, [], 4 * HOUR);
       expect(row(short, 'wood')?.wasted).toBe(4);

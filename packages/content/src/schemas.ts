@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { CHRONICLE_PLACEHOLDERS, EVENT_TYPES, foundingTemplates } from './chronicle';
+import {
+  CHRONICLE_PLACEHOLDERS,
+  cutRewardTemplates,
+  EVENT_TYPES,
+  foundingTemplates,
+} from './chronicle';
 import {
   BUILDING_IDS,
   MORALE_BAND_IDS,
@@ -262,6 +267,11 @@ export const ChronicleTemplatesSchema = z.strictObject(
 /** As frases da obra que ergue um edifício do zero: só para eventos que existem. */
 export const FoundingTemplatesSchema = z.strictObject(
   Object.fromEntries(Object.keys(foundingTemplates).map((type) => [type, chronicleTemplate])),
+);
+
+/** As frases da recompensa cortada no limite do depósito: só para eventos que existem. */
+export const CutRewardTemplatesSchema = z.strictObject(
+  Object.fromEntries(Object.keys(cutRewardTemplates).map((type) => [type, chronicleTemplate])),
 );
 
 /**

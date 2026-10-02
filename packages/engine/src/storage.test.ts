@@ -501,7 +501,17 @@ describe('ganhos discretos cortados no limite', () => {
       'objectiveCompleted',
       'storageFilled',
     ]);
-    expect(atArrival[1]?.data).toEqual({ objective: 'recruitVillagers', gained_food: 14.8 });
+    // O evento diz o que entrou e o que não coube: é o que separa, no Relatório de Retorno, a
+    // recompensa cortada da produção que foi ao chão.
+    expect(atArrival[1]?.data).toEqual({
+      objective: 'recruitVillagers',
+      gained_food: 14.8,
+      lost_food: 25.2,
+    });
+    // A linha da Crônica promete a recompensa inteira e diz o que se perdeu dela.
+    expect(atArrival[1]?.text).toBe(
+      'No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida. Faltou lugar no depósito, e foi ao chão: 25,2 de comida.',
+    );
     // O corte entra na conta do dia.
     const day = advanceTo(state, DAY);
     expect(eventsOfType(day.events, 'storageWasted')[0]?.data).toEqual({ wasted_food: 25 });
@@ -524,7 +534,11 @@ describe('ganhos discretos cortados no limite', () => {
       'storageFilled',
     ]);
     // Desceu 4 em 48 min; dos 40 da recompensa cabem 4.
-    expect(direct.events[1]?.data).toEqual({ objective: 'recruitVillagers', gained_food: 4 });
+    expect(direct.events[1]?.data).toEqual({
+      objective: 'recruitVillagers',
+      gained_food: 4,
+      lost_food: 36,
+    });
     expect(direct.state.stats.wasted_food).toBe(36_000);
     for (const cut of [1, 30 * MINUTE, 48 * MINUTE - 1, 48 * MINUTE, 48 * MINUTE + 1]) {
       const half = advanceTo(start, cut);
@@ -542,10 +556,12 @@ describe('ganhos discretos cortados no limite', () => {
     // 120 − 80 da obra + 30 da recompensa.
     expect(state.settlement.resources.wood).toBe(70_000);
     expect(state.stats.wasted_wood).toBeUndefined();
-    expect(eventsOfType(events, 'objectiveCompleted')[0]?.data).toEqual({
-      objective: 'upgradeHousing',
-      gained_wood: 30,
-    });
+    const [completed] = eventsOfType(events, 'objectiveCompleted');
+    expect(completed?.data).toEqual({ objective: 'upgradeHousing', gained_wood: 30 });
+    // Sem corte, a linha da Crônica é a de sempre.
+    expect(completed?.text).toBe(
+      'No 1º dia da Primavera, cumpriu-se um objetivo: Inicie a melhoria das Habitações. Recompensa: +30 madeira.',
+    );
   });
 
   it('recompensa em ouro entra inteira, com o ouro que houver', () => {
@@ -580,6 +596,7 @@ describe('ganhos discretos cortados no limite', () => {
       building: 'housing',
       level: 1,
       gained_wood: 30,
+      lost_wood: 34,
       gained_stone: 16,
     });
   });
@@ -596,7 +613,12 @@ describe('ganhos discretos cortados no limite', () => {
     expect(state.settlement.resources.wood).toBe(500_000);
     expect(state.stats.wasted_wood).toBe(64_000);
     expect(types(events)).toEqual(['constructionCancelled']);
-    expect(events[0]?.data).toEqual({ building: 'housing', level: 1, gained_stone: 16 });
+    expect(events[0]?.data).toEqual({
+      building: 'housing',
+      level: 1,
+      lost_wood: 64,
+      gained_stone: 16,
+    });
   });
 
   it('com folga, a devolução volta inteira', () => {

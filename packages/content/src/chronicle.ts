@@ -189,3 +189,13 @@ export const foundingTemplates = {
     'No {dia}º dia {daEstacao}, os pedreiros largaram as ferramentas: {edificio} ficou só nos alicerces.',
 } as const satisfies Partial<Record<GameEventType, string>>;
 export type FoundingEventType = keyof typeof foundingTemplates;
+
+/**
+ * A recompensa que não coube inteira no depósito (GDD §5.5) é o mesmo evento com outra frase:
+ * a linha promete a recompensa inteira e diz o que foi ao chão. {perda} é a lista do que se
+ * perdeu ("25,2 de comida") e entra depois dos dois pontos, como no fecho do dia.
+ */
+export const cutRewardTemplates = {
+  objectiveCompleted:
+    'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}. Faltou lugar no depósito, e foi ao chão: {perda}.',
+} as const satisfies Partial<Record<GameEventType, string>>;

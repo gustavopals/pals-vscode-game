@@ -287,6 +287,45 @@ describe('o desperdício do dia (ADR 0015)', () => {
   });
 });
 
+describe('a recompensa cortada no limite do depósito', () => {
+  it('o evento diz o que entrou e o que não coube, e a Crônica, o que foi ao chão', async () => {
+    const who = await player(normal);
+    // Todos na Fazenda e dois recrutas já chamados: falta um para o objetivo dos três aldeões.
+    await accepted(normal, who, order('setWorkers', { building: 'farm', count: 5 }));
+    await accepted(normal, who, order('recruitVillagers', { quantity: 2 }));
+    // Doze horas depois a Despensa está cheia (500 de comida).
+    await wait(normal, who, 12 * HOUR);
+    expect(resource(await viewOf(normal, who), 'food')).toMatchObject({ stock: 500, full: true });
+    // O terceiro recruta custa 50 de comida e chega em 16 min (primavera): a Fazenda repõe
+    // parte, e os +40 da recompensa já não cabem inteiros.
+    await accepted(normal, who, order('recruitVillagers', { quantity: 1 }));
+    await wait(normal, who, 20 * MINUTE);
+
+    const events = await eventsOf(normal, who);
+    const reward = events.find(
+      (event) => event.type === 'objectiveCompleted' && event.data.objective === 'recruitVillagers',
+    );
+    const gained = Number(reward?.data.gained_food);
+    const lost = Number(reward?.data.lost_food);
+    expect(lost).toBeGreaterThan(0);
+    expect(gained).toBeGreaterThan(0);
+    // O que entrou mais o que não coube é a recompensa inteira.
+    expect(gained + lost).toBeCloseTo(40, 6);
+    expect(reward?.text).toMatch(
+      /^No \d+º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões\. Recompensa: \+40 comida\. Faltou lugar no depósito, e foi ao chão: [\d,]+ de comida\.$/,
+    );
+    // A linha da Crônica é a mesma frase.
+    const chronicle = await chronicleOf(normal, who);
+    expect(chronicle.map((event) => event.text)).toContain(reward?.text);
+    // A recompensa que coube inteira não ganha a chave nem a frase.
+    const whole = events.find(
+      (event) => event.type === 'objectiveCompleted' && event.data.objective === 'allocateFarmers',
+    );
+    expect(whole?.data).toEqual({ objective: 'allocateFarmers', gained_gold: 20 });
+    expect(whole?.text).not.toContain('Faltou lugar');
+  });
+});
+
 describe('obra que não cabe no depósito, e o Armazém que a destrava', () => {
   it('em Rei de Ferro o Salão no nível 3 pede o Armazém; construído, a obra volta a só faltar recurso', async () => {
     const who = await player(normal, 'ironKing');

@@ -22,6 +22,7 @@ export {
   chronicleTemplates,
   coldReliefs,
   craftGuilds,
+  cutRewardTemplates,
   EVENT_TYPES,
   foundingTemplates,
   idleVillager,

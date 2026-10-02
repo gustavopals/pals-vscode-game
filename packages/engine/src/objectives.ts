@@ -1,13 +1,15 @@
 import {
   balance,
+  cutRewardTemplates,
   type ObjectiveCondition,
   type ObjectiveDef,
   objectives,
-  RESOURCE_IDS,
+  type ResourceAmounts,
 } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { joinList } from './format';
+import { amountsData } from './construction';
+import { decimal, joinList } from './format';
 import { grantResources } from './storage';
 import type { GameEvent, GameState } from './types';
 import { MILLI, positiveEntries } from './units';
@@ -41,6 +43,15 @@ export function describeReward({ reward, rewardText }: ObjectiveDef): string {
   return joinList(rewardText === undefined ? parts : [...parts, rewardText]);
 }
 
+/** O que não coube de uma recompensa, com a fração: "25,2 de comida". */
+function describeCut(lost: ResourceAmounts): string {
+  return joinList(
+    positiveEntries(lost).map(
+      ([id, amount]) => `${decimal(amount, 3)} de ${balance.resources[id].label.toLowerCase()}`,
+    ),
+  );
+}
+
 /**
  * Conclui os objetivos ativos já cumpridos, credita a recompensa e revela os seguintes.
  * Roda depois de cada comando e de cada evento; nunca há mais de três ativos. Devolve se
@@ -62,21 +73,32 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
       }
       tracker.active = tracker.active.filter((id) => id !== objective.id);
       tracker.completed.push(objective.id);
-      // A recompensa é um ganho discreto: entra o que cabe no depósito (GDD §5.5).
+      // A recompensa é um ganho discreto: entra o que cabe no depósito (GDD §5.5). O evento
+      // diz o que entrou e o que não coube, e a linha da Crônica, o que foi ao chão.
       const stored = grantResources(draft, objective.reward);
-      const gained = Object.fromEntries(
-        RESOURCE_IDS.filter((id) => stored[id] > 0).map((id) => [
-          `gained_${id}`,
-          stored[id] / MILLI,
-        ]),
-      );
+      const gained: ResourceAmounts = {};
+      const lost: ResourceAmounts = {};
+      for (const [resource, amount] of positiveEntries(objective.reward)) {
+        if (stored[resource] > 0) {
+          gained[resource] = stored[resource] / MILLI;
+        }
+        if (stored[resource] < amount * MILLI) {
+          lost[resource] = (amount * MILLI - stored[resource]) / MILLI;
+        }
+      }
+      const cut = positiveEntries(lost).length > 0;
       emit(
         events,
         draft,
         atMs,
         'objectiveCompleted',
-        { objective: objective.id, ...gained },
-        { objetivo: objective.title, recompensa: describeReward(objective) },
+        { objective: objective.id, ...amountsData('gained', gained), ...amountsData('lost', lost) },
+        {
+          objetivo: objective.title,
+          recompensa: describeReward(objective),
+          ...(cut ? { perda: describeCut(lost) } : {}),
+        },
+        cut ? cutRewardTemplates.objectiveCompleted : undefined,
       );
       completedSomething = true;
     }

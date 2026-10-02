@@ -336,9 +336,13 @@ export function startConstruction(
  * Totais de um evento, em unidades, com uma chave por recurso: `spent_wood`, `gained_gold`. É
  * com eles que o Relatório de Retorno separa o que foi produzido do que foi gasto, recebido e
  * perdido, sem refazer conta nenhuma.
+ *
+ * `lost` é a parte de um ganho discreto (recompensa, devolução) que não coube no depósito: ela
+ * também entra no desperdício do dia (`storageWasted`), e é esta chave que diz ao relatório que
+ * aquele desperdício não foi produção.
  */
 export function amountsData(
-  prefix: 'spent' | 'gained',
+  prefix: 'spent' | 'gained' | 'lost',
   amounts: ResourceAmounts,
 ): Record<string, number> {
   return Object.fromEntries(
@@ -406,10 +410,14 @@ export function cancelConstruction(
   const level = settlement.buildings[building];
   const refund = cancelRefund(building, level);
   const gained: ResourceAmounts = {};
+  const lost: ResourceAmounts = {};
   for (const resource of RESOURCE_IDS) {
     const stored = storeResource(draft, resource, refund[resource]);
     if (stored > 0) {
       gained[resource] = stored / MILLI;
+    }
+    if (stored < refund[resource]) {
+      lost[resource] = (refund[resource] - stored) / MILLI;
     }
   }
   settlement.constructionQueues[index] = null;
@@ -418,7 +426,7 @@ export function cancelConstruction(
     draft,
     nowMs,
     'constructionCancelled',
-    { building, level, ...amountsData('gained', gained) },
+    { building, level, ...amountsData('gained', gained), ...amountsData('lost', lost) },
     { edificio: buildingWithArticle(building), nivel: level },
     isFounding(level) ? foundingTemplates.constructionCancelled : undefined,
   );

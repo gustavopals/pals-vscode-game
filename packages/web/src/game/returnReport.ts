@@ -49,9 +49,14 @@ function moraleLevel(view: ViewState) {
  *
  * - `spent`: o que foi pago (`spent_<recurso>`);
  * - `received`: o que entrou por recompensa e devolução (`gained_<recurso>`);
+ * - `cut`: o que essas recompensas e devoluções perderam por não caber no depósito
+ *   (`lost_<recurso>`, no evento do próprio ganho). Quem mostra o relatório soma `cut` a
+ *   `received` para dizer a recompensa inteira, e o tira do perdido para saber quanto dele foi
+ *   produção que não coube;
  * - `wasted`: o que foi ao chão. Os fechos diários (`storageWasted`, um por dia de jogo, com
  *   unidades inteiras) mais o que a visão de agora ainda não relatou (`wastedToday`), menos o
- *   que a visão de antes já contava como perdido: o primeiro fecho da ausência inclui essa parte;
+ *   que a visão de antes já contava como perdido: o primeiro fecho da ausência inclui essa
+ *   parte. Nunca menos que `cut`: os fechos contam unidades inteiras, e o corte vem com a fração;
  * - `produced`: o saldo da produção e do consumo, que é a variação mais o gasto menos o recebido.
  *
  * A população que a moral e a fome moveram é contada pelos eventos, e a moral é a das duas
@@ -87,8 +92,9 @@ export function buildReturnReport(
             const delta = row.stock - stockBefore;
             const spent = total(events, `spent_${row.id}`);
             const received = total(events, `gained_${row.id}`);
+            const cut = total(events, `lost_${row.id}`);
             const wasted = Math.max(
-              0,
+              cut,
               tidy(
                 total(events, `wasted_${row.id}`) + row.wastedToday - (previous?.wastedToday ?? 0),
               ),
@@ -101,6 +107,7 @@ export function buildReturnReport(
               delta,
               spent,
               received,
+              cut,
               wasted,
               produced: tidy(delta + spent - received),
             };

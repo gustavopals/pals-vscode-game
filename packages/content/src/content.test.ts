@@ -7,6 +7,7 @@ import {
   chronicleTemplates,
   coldReliefs,
   craftGuilds,
+  cutRewardTemplates,
   DIFFICULTY_IDS,
   EVENT_TYPES,
   foundingTemplates,
@@ -25,6 +26,7 @@ import {
   BuildingsSchema,
   ChronicleTemplatesSchema,
   CraftGuildsSchema,
+  CutRewardTemplatesSchema,
   FoundingTemplatesSchema,
   IdleVillagerSchema,
   MoraleBandTemplatesSchema,
@@ -767,6 +769,17 @@ describe('Crônica', () => {
     }
     expect(chronicleTemplates.buildingFounded).toContain('{edificio}');
     expect(chronicleTemplates.buildingFounded).not.toContain('{nivel}');
+  });
+
+  it('a recompensa cortada no limite do depósito tem frase própria, com o que foi ao chão', () => {
+    expect(CutRewardTemplatesSchema.safeParse(cutRewardTemplates).error).toBeUndefined();
+    expect(Object.keys(cutRewardTemplates)).toEqual(['objectiveCompleted']);
+    const template = cutRewardTemplates.objectiveCompleted;
+    // É a linha de sempre, e mais uma frase: a recompensa prometida continua lá.
+    expect(template.startsWith(chronicleTemplates.objectiveCompleted)).toBe(true);
+    expect(template).toContain('{recompensa}');
+    // A lista entra depois dos dois pontos, como no fecho do dia: não depende de quanto nem de quê.
+    expect(template.endsWith(': {perda}.')).toBe(true);
   });
 
   it('a obra que começa sozinha diz que ninguém a mandou começar, e não repete a frase da ordem', () => {

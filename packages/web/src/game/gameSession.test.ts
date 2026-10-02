@@ -956,6 +956,7 @@ describe('Relatório de Retorno: a visão guardada à frente do cursor', () => {
       delta: 60,
       spent: 0,
       received: 0,
+      cut: 0,
       wasted: 0,
       produced: 60,
     });

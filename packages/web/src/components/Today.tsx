@@ -240,10 +240,14 @@ export function Today(props: {
                   <tbody>
                     {report.resources.map((row) => {
                       const wasted = row.wasted ?? 0;
+                      // O que uma recompensa ou uma devolução perdeu por não caber: entra em
+                      // Recebido, que mostra o ganho inteiro, e já está no Perdido.
+                      const cut = row.cut ?? 0;
                       // O que o feudo rendeu, já descontado o consumo: o que entrou no estoque
-                      // mais o que não coube. Assim a perda aparece como perda, e não como
-                      // produção que não houve.
-                      const yielded = tidy((row.produced ?? row.delta) + wasted);
+                      // mais a produção que não coube. Assim a perda aparece como perda, e não
+                      // como produção que não houve; e o corte de uma recompensa, que nunca foi
+                      // produção, não entra aqui.
+                      const yielded = tidy((row.produced ?? row.delta) + Math.max(0, wasted - cut));
                       return (
                         <tr key={row.id}>
                           <th scope="row">{row.label}</th>
@@ -252,7 +256,7 @@ export function Today(props: {
                             {formatSigned(yielded)}
                           </td>
                           <td class="num">{part(row.spent ?? 0, -1)}</td>
-                          <td class="num">{part(row.received ?? 0, 1)}</td>
+                          <td class="num">{part(tidy((row.received ?? 0) + cut), 1)}</td>
                           <td class={`num ${wasted > 0 ? 'warning' : ''}`}>{part(wasted, -1)}</td>
                           <td class="num">{formatNumber(row.after)}</td>
                         </tr>
@@ -262,7 +266,8 @@ export function Today(props: {
                 </table>
                 <p class="muted hint">
                   Produção já desconta o que o feudo consumiu. Gasto e recebido vêm das ordens e dos
-                  acontecimentos da ausência. Perdido é o que não coube no depósito e foi ao chão.
+                  acontecimentos da ausência. Perdido é o que não coube no depósito e foi ao chão,
+                  da produção ou de uma recompensa.
                 </p>
                 <WasteLine rows={report.resources} view={props.view} actions={props.actions} />
               </>

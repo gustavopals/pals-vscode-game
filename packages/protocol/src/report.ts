@@ -30,6 +30,13 @@ export const ReturnReportSchema = z.strictObject({
       received: z.number().optional(),
       wasted: z.number().optional(),
       produced: z.number().optional(),
+      /**
+       * A parte das recompensas e devoluções que não coube no depósito (`lost_<recurso>`, nos
+       * eventos do próprio ganho). Não está em `received`, que é só o que entrou, e **está** em
+       * `wasted`: é o que diz, dentro do perdido, o que não foi produção. Opcional, como os
+       * outros.
+       */
+      cut: z.number().optional(),
     }),
   ),
   counts: z.strictObject({
