@@ -148,22 +148,44 @@ describe('os três blocos: cada tipo de evento no bloco certo', () => {
     expect(blocks.prospered).toEqual([]);
   });
 
-  it('a recompensa que o depósito cortou: a frase da carta e, logo depois, quanto foi ao chão', () => {
+  it('a recompensa que o depósito cortou: a boa notícia em "prosperou", e o corte na linha do depósito', () => {
+    // A frase de "Sementes para o próximo campo", como o conteúdo a escreve: ela conta a colheita
+    // e não fala de perda. Com a Despensa no limite (o estado comum do feudo), uma unidade fica
+    // de fora, e quem diz isso é a linha do depósito, com o botão dela.
+    const harvest =
+      'No 9º dia da Primavera, o campo novo de Pedra Alta deu a primeira colheita. O grão cedido voltou dobrado.';
     const blocks = blocksOf(calm, calm, [
-      event('cardEffectApplied', 'A dádiva das famílias não coube no celeiro.', {
-        gained_food: 10,
-        lost_food: 30,
-      }),
+      event('cardEffectApplied', harvest, { gained_food: 79, lost_food: 1 }),
       event('constructionFinished', 'Os pedreiros ergueram a Serraria ao 2º nível.'),
       event('cardExpired', 'O conselho decidiu sozinho.'),
     ]);
+    expect(blocks.prospered.map((item) => [item.text, item.topic])).toEqual([
+      [harvest, 'council'],
+      ['Os pedreiros ergueram a Serraria ao 2º nível.', 'construction'],
+    ]);
+    expect(blocks.prospered[0]?.severity).toBeUndefined();
     expect(blocks.cost.map((item) => [item.text, item.topic])).toEqual([
-      ['A dádiva das famílias não coube no celeiro.', 'council'],
       // O corte de uma recompensa é perda como a da produção: entra na linha do depósito, que
       // fica onde a perda aconteceu.
-      ['Despensa sem espaço: 30 de comida foram ao chão.', 'storage:granary'],
+      ['Despensa sem espaço: 1 de comida foi ao chão.', 'storage:granary'],
       ['O conselho decidiu sozinho.', 'council'],
     ]);
+  });
+
+  it('o efeito escondido que tirou do estoque ou da moral é preço, mesmo com um ganho junto', () => {
+    const blocks = blocksOf(calm, calm, [
+      event('cardEffectApplied', 'O poço de Pedra Alta desabou de vez.', { spent_stone: 15 }),
+      event('cardEffectApplied', 'Os viajantes seguiram viagem resmungando.', {
+        gained_wood: 20,
+        morale: -5,
+        moraleDays: 2,
+      }),
+    ]);
+    expect(blocks.cost.map((item) => item.text)).toEqual([
+      'O poço de Pedra Alta desabou de vez.',
+      'Os viajantes seguiram viagem resmungando.',
+    ]);
+    expect(blocks.prospered).toEqual([]);
   });
 
   it('a gente entra somada: uma linha por motivo, e não uma por aldeão', () => {

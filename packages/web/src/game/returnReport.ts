@@ -153,13 +153,17 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
   return [...cards, ...works];
 }
 
-/** O efeito escondido de uma carta tirou algo do feudo: estoque, um ganho cortado, moral. */
+/**
+ * O efeito escondido de uma carta tirou algo do feudo: estoque (`spent_`) ou moral. A parte de um
+ * ganho que o depósito cortou (`lost_`) não conta: a boa notícia continua boa, e o corte já sai
+ * na linha do depósito, com o botão que resolve. Com a Despensa no limite, que é o estado comum
+ * do feudo, contar o corte mandaria toda colheita de carta para "O que exigiu um preço".
+ */
 function tookSomething(event: GameEvent): boolean {
   return Object.entries(event.data).some(
     ([key, value]) =>
       typeof value === 'number' &&
-      ((value > 0 && (key.startsWith('spent_') || key.startsWith('lost_'))) ||
-        (key === 'morale' && value < 0)),
+      ((value > 0 && key.startsWith('spent_')) || (key === 'morale' && value < 0)),
   );
 }
 
