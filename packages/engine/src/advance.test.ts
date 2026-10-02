@@ -1,3 +1,4 @@
+import { objectives } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -189,9 +190,12 @@ describe('advanceTo', () => {
         null,
       ];
       settlement.recruitmentQueue = [{ finishesAtMs: YEAR_MS }];
+      // Só o do Salão está por cumprir: os outros já foram, e nenhum é revelado no caminho.
       draft.objectives = {
         active: ['townHallLevel2'],
-        completed: ['allocateFarmers', 'upgradeHousing', 'recruitVillagers'],
+        completed: objectives
+          .map((objective) => objective.id)
+          .filter((id) => id !== 'townHallLevel2'),
       };
     });
     const { state, events } = advanceTo(start, YEAR_MS);

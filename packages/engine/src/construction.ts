@@ -476,6 +476,16 @@ function nextPlannableLevel(state: GameState, building: BuildingId): number {
 }
 
 /**
+ * Conta as vezes em que o jogador marcou uma planejada para começar sozinha (GDD §12.2, "Deixe
+ * uma obra marcada para começar sozinha"). A marca conta mesmo quando a obra começa na mesma
+ * ordem e já sai da lista: é a ferramenta que o objetivo ensina, não a espera.
+ */
+function notePlanMarkedAuto(draft: GameState): void {
+  const { stats } = draft;
+  stats.plansMarkedAuto = (stats.plansMarkedAuto ?? 0) + 1;
+}
+
+/**
  * Põe uma melhoria no fim da lista de planejadas. Planejar não gasta nada. Com `autoStart`, a
  * obra começa sozinha no primeiro instante em que puder (`planned.ts`); sem ele, espera a ordem
  * do jogador, como na v0.1.
@@ -514,6 +524,9 @@ export function planConstruction(
     return reject('STALE_LEVEL', { label: ofBuilding(building), level: targetLevel });
   }
   draft.settlement.planned.push({ building, targetLevel, autoStart: autoStart === true });
+  if (autoStart === true) {
+    notePlanMarkedAuto(draft);
+  }
   return null;
 }
 
@@ -537,6 +550,10 @@ export function setAutoStart(
   }
   if (askedLevel !== undefined && askedLevel !== plan.targetLevel) {
     return reject('STALE_LEVEL', { label: ofBuilding(building), level: plan.targetLevel });
+  }
+  // Marcar de novo a que já era automática não é marcar outra vez.
+  if (autoStart === true && !plan.autoStart) {
+    notePlanMarkedAuto(draft);
   }
   plan.autoStart = autoStart === true;
   return null;

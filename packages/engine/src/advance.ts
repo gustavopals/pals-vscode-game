@@ -15,10 +15,12 @@ import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { turnHorde } from './hordeTurn';
 import { turnMorale } from './moraleTurn';
+import { hasUnsettledObjectives } from './objectives';
 import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { announceRaids, recoverInjured, settleRaids } from './raids';
 import { settleScarcity } from './scarcity';
+import { turnSeasonWatch } from './seasonWatch';
 import { cloneState } from './state';
 import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
@@ -44,6 +46,8 @@ function processCalendar(
     turnCouncilYear(draft, atMs);
   }
   if (isSeasonBoundary(atMs)) {
+    // A estação que acabou entra na conta das atravessadas sem frio, e a nova começa a dela.
+    turnSeasonWatch(draft, atMs);
     emit(
       events,
       draft,
@@ -163,8 +167,11 @@ export function advanceWith(
   // exemplo): ela começa aqui, e não no primeiro instante em que alguém olhar.
   // E para o aviso da Torre: uma partida migrada com a incursão do roteiro já dentro da
   // antecedência da Torre recebe o alarme aqui, na fronteira, e não em um instante repetido.
+  // E para os objetivos: quando a lista do conteúdo cresce, a partida que já tinha cumprido
+  // todos recebe os novos aqui, e o que ela já fez (a Torre erguida, a carta respondida) conta
+  // neste instante, com a recompensa e a linha na Crônica.
   announceRaids(draft, draft.lastProcessedAt, events);
-  if (hasStartablePlan(draft)) {
+  if (hasStartablePlan(draft) || hasUnsettledObjectives(draft)) {
     settlePlanned(draft, draft.lastProcessedAt, events);
   }
   settleScarcity(draft, draft.lastProcessedAt, events);

@@ -377,24 +377,65 @@ export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('constructionStarted'), building: buildingId }),
   z.strictObject({ type: z.literal('villagersRecruited'), count: positiveInt }),
   z.strictObject({ type: z.literal('buildingLevel'), building: buildingId, level: positiveInt }),
+  z.strictObject({
+    type: z.literal('anyBuildingLevel'),
+    // Com um edifício só, a condição é `buildingLevel`.
+    buildings: z
+      .array(buildingId)
+      .min(2)
+      .refine((list) => new Set(list).size === list.length, 'edifício repetido'),
+    level: positiveInt,
+  }),
+  z.strictObject({ type: z.literal('cardAnswered'), count: positiveInt }),
+  z.strictObject({ type: z.literal('plannedAutoStart') }),
+  z.strictObject({
+    type: z.literal('seasonSurvived'),
+    season: z.enum(SEASON_IDS),
+    count: positiveInt,
+  }),
 ]);
 
 export const ObjectiveSchema = z
   .strictObject({
     id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
-    title: label,
-    hint: label,
+    // O título é a ação, sem ponto: entra na Crônica depois de "cumpriu-se um objetivo:".
+    title: label.regex(/^\p{Lu}.*[^.]$/u),
+    // O porquê é uma frase inteira: a tela a põe ao lado da recompensa.
+    hint: label.regex(/^\p{Lu}.*\.$/u),
     condition: ObjectiveConditionSchema,
     reward: z.partialRecord(resourceId, positiveInt),
+    // A moral de um objetivo é sempre um prêmio. O nome entra na conta da moral como um termo:
+    // maiúscula, sem ponto.
+    morale: z
+      .strictObject({
+        amount: positiveInt,
+        durationDays: positiveInt,
+        label: label.regex(/^\p{Lu}[^.{}]*$/u),
+      })
+      .optional(),
     // Entra depois de "Recompensa:" e ao lado de "+20 ouro": minúscula, sem ponto final.
     rewardText: label.regex(/^\p{Ll}.*[^.]$/u).optional(),
   })
   .refine(
-    (objective) => Object.keys(objective.reward).length > 0 || objective.rewardText !== undefined,
+    (objective) =>
+      Object.keys(objective.reward).length > 0 ||
+      objective.morale !== undefined ||
+      objective.rewardText !== undefined,
     'objetivo sem recompensa',
   );
 
-export const ObjectivesSchema = z.array(ObjectiveSchema).min(1);
+export const ObjectivesSchema = z
+  .array(ObjectiveSchema)
+  .min(1)
+  .refine(
+    (list) => new Set(list.map((objective) => objective.id)).size === list.length,
+    'id de objetivo repetido',
+  )
+  // O nome do termo é o que distingue um efeito do outro na conta da moral.
+  .refine((list) => {
+    const labels = list.flatMap((objective) => objective.morale?.label ?? []);
+    return new Set(labels).size === labels.length;
+  }, 'dois objetivos com o mesmo nome de efeito de moral');
 
 const placeholderPattern = /\{([^}]*)\}/g;
 const knownPlaceholders: readonly string[] = CHRONICLE_PLACEHOLDERS;

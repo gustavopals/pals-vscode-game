@@ -10,6 +10,7 @@ import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
 import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
 import { MILLI } from './units';
+import { deriveViewState } from './view';
 
 export const HOUR = 3_600_000;
 export const MINUTE = 60_000;
@@ -287,7 +288,7 @@ export function play(
   return { state, events };
 }
 
-/** Roteiro que cumpre os quatro objetivos da v0.1, na ordem. */
+/** Roteiro que cumpre os quatro primeiros objetivos (os da v0.1), na ordem. */
 export function objectivesScenario() {
   return play(newGame('pedra-alta'), [
     command('setWorkers', { building: 'farm', count: 2 }),
@@ -300,6 +301,60 @@ export function objectivesScenario() {
     command('startConstruction', { building: 'townHall' }),
     { at: 6 * HOUR + 10 * MINUTE },
   ]);
+}
+
+/**
+ * A resposta de quem joga pela tela: a carta que chegou primeiro à mesa e, dela, a primeira
+ * opção que o feudo pode pagar e não está trancada. Só lê a visão, como o app.
+ */
+export function answerFirstCard(state: GameState): Command {
+  const [card] = deriveViewState(state, state.lastProcessedAt).council.pending;
+  const option = card?.options.find((entry) => entry.affordable && !entry.locked);
+  if (card === undefined || option === undefined) {
+    throw new Error('O roteiro esperava uma carta do Conselho na mesa, com uma opção ao alcance.');
+  }
+  return command('answerCard', { instanceId: card.instanceId, optionId: option.id });
+}
+
+/**
+ * Roteiro que cumpre os seis objetivos da v0.2, na ordem, a partir de um feudo que cumpriu os
+ * quatro primeiros no 4º dia da primavera (`objectivesScenario`, ou o retrato da v0.1 migrado):
+ * a Torre de Vigia, a resposta à primeira carta, o Celeiro, o Salão marcado para subir sozinho,
+ * a Paliçada (que pede o Salão no nível 3) e o inverno atravessado com a Serraria cheia de
+ * gente. O Conselho e a Horda ficam como o jogo os deixa: as cartas sem resposta expiram, e os
+ * lobos vêm.
+ */
+export function laterObjectivesScenario(start: GameState): {
+  state: GameState;
+  events: GameEvent[];
+} {
+  const tower = play(start, [
+    { at: 14 * HOUR },
+    command('startConstruction', { building: 'watchtower' }),
+    // A primeira carta de um feudo migrado só chega depois da fronteira: às 16 h já chegou.
+    { at: 17 * HOUR },
+  ]);
+  const rest = play(tower.state, [
+    answerFirstCard(tower.state),
+    { at: 21 * HOUR },
+    command('startConstruction', { building: 'granary' }),
+    { at: 21 * HOUR + 10 * MINUTE },
+    // O Salão ainda não pode subir: a obra fica na lista e começa quando houver com quê.
+    command('planConstruction', { building: 'townHall', autoStart: true }),
+    command('setWorkers', { building: 'quarry', count: 2 }),
+    command('setWorkers', { building: 'goldMine', count: 1 }),
+    { at: SUMMER },
+    command('startConstruction', { building: 'palisade' }),
+    { at: YEAR },
+  ]);
+  return { state: rest.state, events: [...tower.events, ...rest.events] };
+}
+
+/** Roteiro que cumpre os dez objetivos da v0.2, na ordem, em uma partida nova: um ano de jogo. */
+export function allObjectivesScenario(): { state: GameState; events: GameEvent[] } {
+  const first = objectivesScenario();
+  const later = laterObjectivesScenario(first.state);
+  return { state: later.state, events: [...first.events, ...later.events] };
 }
 
 /**

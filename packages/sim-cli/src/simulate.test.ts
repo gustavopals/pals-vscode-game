@@ -60,7 +60,7 @@ const HEADER =
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
-  'threat,wolf_losses,raids_suffered,raids_repelled,villagers_injured';
+  'threat,wolf_losses,raids_suffered,raids_repelled,villagers_injured,objectives_done';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -121,8 +121,10 @@ describe('CSV de uma partida', () => {
       'raids_suffered',
       'raids_repelled',
       'villagers_injured',
+      'objectives_done',
     ]);
-    // Com a incursão de lobos (V2E-T3) a última coluna reservada passou a ser medida.
+    // Com a incursão de lobos (V2E-T3) a última coluna reservada passou a ser medida; a dos
+    // objetivos (V2E-T4) já nasceu medida.
     expect(RESERVED_COLUMNS).toEqual([]);
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
@@ -566,8 +568,29 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Paliçada, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
+      'Políticas: erguer a Paliçada, seguir os objetivos, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
     );
+  });
+
+  it('diz quantos Objetivos do Senhor o bot concluiu e a hora do último', async () => {
+    // Um ano de jogo no ritmo 1: o bot econômico percorre a sequência inteira, e o último a
+    // cair é o do inverno sem frio, na virada para a primavera (a hora 168).
+    const summary = summarize(twoSessions);
+    expect(summary.objectives).toEqual({ done: 10, total: objectives.length, allDoneAtHour: 168 });
+    expect(formatSummary(twoSessions)).toContain(
+      'Objetivos: 10 de 10 concluídos, o último na hora 168\n',
+    );
+    // A coluna do CSV é a conta acumulada, hora a hora, e nunca volta atrás.
+    const done = twoSessions.rows.map((row) => row.objectives);
+    expect(done[0]).toBeGreaterThanOrEqual(2);
+    expect(done[done.length - 1]).toBe(10);
+    expect(done.every((count, index) => index === 0 || count >= (done[index - 1] ?? 0))).toBe(true);
+    // Dois dias reais não bastam: falta o que o Salão no nível 3 e o inverno trazem.
+    const twoDays = await simulate({ ...twoSessions.options, days: 2 });
+    const short = summarize(twoDays);
+    expect(short.objectives.allDoneAtHour).toBeNull();
+    expect(short.objectives.done).toBeLessThan(10);
+    expect(formatSummary(twoDays)).toMatch(/Objetivos: \d de 10 concluídos\n/);
   });
 
   it('traz os sinais de tédio: fila ociosa, aldeões sem ofício e excedente parado', () => {

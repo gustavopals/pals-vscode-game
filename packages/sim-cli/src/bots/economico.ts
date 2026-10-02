@@ -9,13 +9,15 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartas,
+  seguirObjetivos,
 } from './policies';
 import { type Bot, botOf, type Policy } from './types';
 
 /**
  * Bot econômico: a cada sessão ergue (ou melhora) a Paliçada se os vigias dizem que há risco de
- * incursão, ergue (ou melhora) a Torre de Vigia se o estoque paga o dobro do custo, inicia a
- * melhoria mais barata disponível, amplia o depósito que está cheio ou perto de
+ * incursão, dá o passo que cada Objetivo do Senhor ativo pede (é assim que a Torre de Vigia, o
+ * primeiro depósito e a Paliçada saem cedo), melhora a Torre de Vigia se o estoque paga o
+ * dobro do custo, inicia a melhoria mais barata disponível, amplia o depósito que está cheio ou perto de
  * encher, deixa planejadas as obras que não puderam começar, recruta
  * quando há vaga e comida de sobra, responde às cartas do Conselho que encontra na mesa (paga a
  * opção mais cara que cabe com folga no que sobrou; sem folga, fica com a que não custa nem
@@ -26,7 +28,11 @@ import { type Bot, botOf, type Policy } from './types';
  * A Paliçada vem na frente de tudo: é a defesa, e só entra quando a Ameaça que a Torre mostra
  * passou do limiar das incursões (sem Torre o bot não sabe de nada, e não a ergue).
  *
- * A Torre vem na frente das outras obras porque só começa com folga: nas visitas em que o
+ * Os objetivos vêm logo depois: são o tutorial do jogo, e quem os segue recebe cada ferramenta
+ * na ordem em que ela ajuda. A obra de um objetivo que não pode começar fica planejada como
+ * automática.
+ *
+ * A Torre, fora do objetivo dela, vem na frente das outras obras porque só começa com folga: nas visitas em que o
  * estoque não paga o dobro, a fila é da obra mais barata, como sempre. Com uma fila só, a obra
  * que ficou para trás entra na lista das automáticas e começa quando a Torre terminar.
  *
@@ -35,6 +41,7 @@ import { type Bot, botOf, type Policy } from './types';
  */
 export const economicoPolicies: readonly Policy[] = [
   erguerPalicada,
+  seguirObjetivos,
   erguerTorre,
   obraMaisBarata,
   ampliarEstoque,

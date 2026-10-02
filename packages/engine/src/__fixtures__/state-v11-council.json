@@ -165,7 +165,13 @@
    "allocateFarmers",
    "upgradeHousing",
    "recruitVillagers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
   ]
  },
  "stats": {
@@ -177,6 +183,7 @@
   "wasted_food": 1421418,
   "cardsDrawn:masonsMeal": 1,
   "raids_suffered": 8,
+  "coldSpellsThisSeason": 0,
   "wasted_wood": 149647,
   "cardsExpired": 1
  }

@@ -688,6 +688,93 @@ export const planejarAutomaticas: Policy = {
   },
 };
 
+type Objective = ViewState['objectives'][number];
+
+/**
+ * O passo de um objetivo ativo que o bot dá agora, lendo só o que o objetivo diz de si na visão
+ * (`target`, `progress`): o bot não conhece objetivo nenhum pelo id.
+ *
+ * - **Um ofício** (`workers`): manda para lá os aldeões livres que faltam, se houver.
+ * - **Um edifício** (`building`): inicia a obra se ela pode começar agora e não gasta a madeira
+ *   da lareira; senão, deixa a obra planejada como automática, e ela começa sozinha quando o
+ *   recurso, a fila ou o nível do Salão que falta chegarem. É o que faz a Torre de Vigia
+ *   começar no instante em que o Salão a libera, e não na visita seguinte. No teto, não há o
+ *   que planejar.
+ * - **A lista de planejadas** (`planned`): se nenhuma obra da lista começa sozinha, planeja como
+ *   automática a mais barata das que ainda não estão lá.
+ * - **O recrutamento, o Conselho e a estação**: são de `recrutar`, `responder às cartas` e
+ *   `guardar lenha`, que já fazem o que o objetivo pede.
+ */
+async function pursue(view: ViewState, objective: Objective, act: Act): Promise<ViewState> {
+  const { target, progress } = objective;
+  const woodIsSafe = firewoodReserve(view) === 0;
+  if (target.kind === 'workers') {
+    const row = view.workers.find((entry) => entry.building === target.building);
+    const short = progress.target - progress.current;
+    return row !== undefined && short > 0 && view.population.free >= short
+      ? act('setWorkers', { building: target.building, count: row.assigned + short })
+      : view;
+  }
+  if (target.kind === 'building') {
+    const { building } = target;
+    const upgrade = view.constructions.available.find((entry) => entry.building === building);
+    if (upgrade === undefined || upgrade.blockedCode === 'MAX_LEVEL') {
+      return view;
+    }
+    if (upgrade.blockedCode === null) {
+      return keepsFirewood(view, upgrade) ? act('startConstruction', { building }) : view;
+    }
+    // Uma obra que começa sozinha não pergunta pela lenha: a que gasta madeira só é marcada
+    // quando a lareira não depende do estoque, como em `planejar automáticas`.
+    return !upgrade.planned && (woodIsSafe || !costsWood(upgrade))
+      ? act('planConstruction', { building, autoStart: true, targetLevel: upgrade.targetLevel })
+      : view;
+  }
+  if (target.kind === 'planned') {
+    if (view.constructions.planned.some((plan) => plan.autoStart)) {
+      return view;
+    }
+    const [cheapest] = view.constructions.available
+      .filter((upgrade) => !upgrade.planned && !deadEnd(upgrade))
+      .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
+      .sort((a, b) => price(a) - price(b));
+    return cheapest === undefined
+      ? view
+      : act('planConstruction', {
+          building: cheapest.building,
+          autoStart: true,
+          targetLevel: cheapest.targetLevel,
+        });
+  }
+  return view;
+}
+
+/**
+ * Segue os Objetivos do Senhor (GDD §12.2), como o jogador que lê a lista no painel: para cada
+ * objetivo ativo, na ordem em que a visão os mostra, dá o passo que ele pede (`pursue`). É o que
+ * faz o bot erguer a Torre de Vigia, um depósito e a Paliçada quando o objetivo os aponta, e
+ * não só quando sobra estoque ou a Ameaça aperta.
+ *
+ * Cada passo é conferido com a visão que o anterior deixou: a obra de um objetivo ocupa a fila,
+ * e a do seguinte fica planejada. Nos bots ela vem depois de `erguer a Paliçada` (a defesa
+ * diante de um risco conhecido passa na frente) e antes das outras obras.
+ */
+export const seguirObjetivos: Policy = {
+  name: 'seguir os objetivos',
+  run: async (view, act) => {
+    let current = view;
+    for (const { id } of view.objectives) {
+      const objective = current.objectives.find(
+        (entry) => entry.id === id && entry.status === 'active',
+      );
+      if (objective !== undefined) {
+        current = await pursue(current, objective, act);
+      }
+    }
+    return current;
+  },
+};
+
 /** O material que maximiza `score`; no empate, o primeiro na ordem de `MATERIALS`. */
 function pick(score: (material: Material) => number): Material {
   return MATERIALS.reduce((best, material) => (score(material) > score(best) ? material : best));

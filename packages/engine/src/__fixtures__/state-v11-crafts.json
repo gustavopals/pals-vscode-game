@@ -156,7 +156,13 @@
    "allocateFarmers",
    "upgradeHousing",
    "recruitVillagers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
   ]
  },
  "stats": {}

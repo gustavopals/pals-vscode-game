@@ -78,6 +78,15 @@ const named = (name: string) => {
   return found;
 };
 
+/**
+ * Os eventos de uma fronteira, menos os objetivos concluídos. A lista de objetivos cresceu sem
+ * mexer na forma do estado (V2E-T4): a partida que chega de uma versão antiga recebe os novos
+ * na fronteira, e o que ela já fez (o Celeiro erguido, a Torre, a carta respondida) conta ali.
+ * Isso não é obra do passo de migração que cada bloco confere.
+ */
+const withoutObjectives = (events: GameEvent[]) =>
+  events.filter((event) => event.type !== 'objectiveCompleted');
+
 /** FNV-1a de 32 bits do texto do arquivo: o bastante para notar um retrato antigo editado. */
 function fingerprint(text: string): string {
   let hash = 0x811c9dc5;
@@ -1676,7 +1685,7 @@ describe('versão 9 → 10', () => {
     (fixture) => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
-      expect(atBoundary.events).toEqual([]);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
       expect(atBoundary.state.rng).toEqual(state.rng);
       expect(atBoundary.state.council).toEqual(state.council);
       const { defense } = deriveViewState(state, state.lastProcessedAt).threat;
@@ -1819,7 +1828,7 @@ describe('versão 10 → 11', () => {
     (fixture) => {
       const state = migrated(fixture);
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
-      expect(atBoundary.events).toEqual([]);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
       expect(atBoundary.state.rng).toEqual(state.rng);
       expect(atBoundary.state.settlement.injured).toEqual([]);
       expect(atBoundary.state.horde).toEqual(state.horde);

@@ -5,6 +5,7 @@ import type {
   ApiError,
   Command,
   CommandAccepted,
+  EventsResponse,
   GameRuleError,
   ListGamesResponse,
   ViewResponse,
@@ -448,6 +449,66 @@ describe('uma partida gravada na versão 1', () => {
     expect(row.stateVersion).toBe(13);
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
     expect(row.state.settlement.workers).toMatchObject({ farm: 2, lumberMill: 3, quarry: 3 });
+  });
+
+  it('quem concluiu os quatro objetivos na v0.1 recebe os da v0.2, sem prêmio repetido (QA-01)', async () => {
+    // O retrato da v0.1 com os quatro objetivos concluídos: o quarto pagou +50 ouro na época.
+    const before = v1State('objectives');
+    expect(before.objectives.active).toEqual([]);
+    expect(before.objectives.completed).toHaveLength(4);
+    const game = await insertGame(server, before, { timeScale: 3, stateVersion: 5 });
+    // Um minuto depois: a fronteira é acomodada antes de o tempo andar.
+    server.clock.advance(60_000);
+
+    const reply = await getView(server, game);
+    expect(reply.status).toBe(200);
+    expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+    const { view } = reply.body;
+    expect(view.objectives.map((objective) => [objective.id, objective.status])).toEqual([
+      ['allocateFarmers', 'completed'],
+      ['upgradeHousing', 'completed'],
+      ['recruitVillagers', 'completed'],
+      ['townHallLevel2', 'completed'],
+      ['buildWatchtower', 'active'],
+      ['answerFirstCard', 'active'],
+      ['buildGranaryOrWarehouse', 'active'],
+    ]);
+    // O ouro é o da v0.1, e o Salão no nível 2 já libera as obras dos objetivos novos.
+    expect(stock(view, 'gold')).toBe(190);
+    const tower = view.objectives.find((objective) => objective.id === 'buildWatchtower');
+    expect(tower).toMatchObject({
+      reward: '+40 pedra',
+      target: { kind: 'building', building: 'watchtower' },
+    });
+    expect(tower?.missing).toMatch(/^Faltam .*\.$/);
+    // No ritmo 3, um dia de jogo são 40 minutos de quem joga.
+    expect(view.objectives.find((objective) => objective.id === 'answerFirstCard')?.reward).toBe(
+      '+10 de moral por 1 dia de jogo (40 min)',
+    );
+
+    const row = await rowOf(server, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    expect(row.state.objectives).toEqual({
+      active: ['buildWatchtower', 'answerFirstCard', 'buildGranaryOrWarehouse'],
+      completed: before.objectives.completed,
+    });
+    // Nenhum objetivo foi concluído de novo: a Crônica não ganhou linha de recompensa.
+    const events = await call<EventsResponse>(server, 'GET', `/games/${game.id}/events?after=0`, {
+      token: game.token,
+    });
+    expect(events.status).toBe(200);
+    expect(events.body.events.filter((event) => event.type === 'objectiveCompleted')).toEqual([]);
+
+    // A primeira ordem depois da migração não paga nada outra vez.
+    const renamed = await send<CommandAccepted>(
+      server,
+      game.token,
+      game.id,
+      order('renameSettlement', { name: 'Pedra Nova' }),
+    );
+    expect(renamed.status).toBe(200);
+    expect(renamed.body.events.map((event) => event.type)).toEqual(['settlementRenamed']);
+    expect(stock(renamed.body.view, 'gold')).toBe(190);
   });
 
   it('uma ordem recusada como primeiro contato também deixa a migração gravada', async () => {

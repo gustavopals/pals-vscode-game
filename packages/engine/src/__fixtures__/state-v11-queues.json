@@ -157,7 +157,8 @@
  "objectives": {
   "active": [
    "upgradeHousing",
-   "recruitVillagers"
+   "recruitVillagers",
+   "buildWatchtower"
   ],
   "completed": [
    "allocateFarmers",
@@ -166,6 +167,7 @@
  },
  "stats": {
   "constructionsStarted:lumberMill": 1,
-  "constructionsStarted:goldMine": 1
+  "constructionsStarted:goldMine": 1,
+  "plansMarkedAuto": 2
  }
 }

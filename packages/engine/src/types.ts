@@ -467,13 +467,41 @@ export type ActiveConstructionView = {
   refund: Array<{ resource: ResourceId; label: string; amount: number; lost: number }>;
 };
 
+/**
+ * Onde um objetivo se cumpre: o ofício, o edifício, o recrutamento, o Conselho, a lista de obras
+ * planejadas ou uma estação. É o que deixa a interface levar o jogador até lá sem conhecer
+ * objetivo nenhum pelo id.
+ */
+export type ObjectiveTarget =
+  | { kind: 'workers'; building: ProductionBuildingId }
+  | { kind: 'building'; building: BuildingId }
+  | { kind: 'recruitment' }
+  | { kind: 'council' }
+  | { kind: 'planned' }
+  | { kind: 'season'; season: SeasonId };
+
+/** Um Objetivo do Senhor (GDD §12.2): a ação, o porquê, a recompensa e o que falta. */
 export type ObjectiveView = {
   id: string;
+  /** A ação, no imperativo e sem ponto: "Construa a Torre de Vigia". */
   title: string;
+  /** O porquê, em uma frase: é ele que ensina. */
   hint: string;
+  /**
+   * A recompensa, sem ponto: "+40 pedra"; "+10 de moral por 1 dia de jogo (40 min)", com o
+   * prazo de quem joga entre parênteses; "desbloqueia o Celeiro, o Armazém e a Torre de Vigia".
+   */
   reward: string;
   status: 'active' | 'completed';
   progress: { current: number; target: number };
+  /**
+   * O que falta agora, em uma frase pronta: "Melhore antes o Salão do Senhor para o nível 2.";
+   * "Faltam 40 pedra."; "Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer."
+   * `null` no objetivo concluído e naquele a que só falta uma ordem que o jogador já pode dar.
+   */
+  missing: string | null;
+  /** Onde ele se cumpre. No de vários edifícios, o que está mais perto de ficar pronto. */
+  target: ObjectiveTarget;
 };
 
 /**

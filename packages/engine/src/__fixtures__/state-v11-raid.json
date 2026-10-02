@@ -28,7 +28,7 @@
   "resources": {
    "food": 455396,
    "wood": 454325,
-   "stone": 65000,
+   "stone": 105000,
    "gold": 270000
   },
   "accumulators": {
@@ -143,11 +143,13 @@
  "objectives": {
   "active": [
    "upgradeHousing",
-   "recruitVillagers"
+   "recruitVillagers",
+   "answerFirstCard"
   ],
   "completed": [
    "allocateFarmers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower"
   ]
  },
  "stats": {

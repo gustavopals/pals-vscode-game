@@ -2,7 +2,6 @@ import {
   balance,
   BUILDING_IDS,
   buildings,
-  objectives,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
 } from '@lotg/content';
@@ -33,7 +32,7 @@ import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, durationText, plural } from './format';
 import { moraleAt } from './morale';
 import { moraleView, recruitmentMoraleNote } from './moraleView';
-import { describeReward, objectiveProgress } from './objectives';
+import { objectivesView } from './objectivesView';
 import { paceLabel } from './pace';
 import { planCost } from './planned';
 import { plannedWaiting, queuesNote } from './plannedView';
@@ -63,7 +62,6 @@ import type {
   BuildingId,
   Construction,
   GameState,
-  ObjectiveView,
   PlannedConstruction,
   PlannedUpgradeView,
   ProductionBuildingId,
@@ -241,24 +239,6 @@ function activeView(
     ),
     refund: refundView(state, slot.building, slot.targetLevel - 1),
   };
-}
-
-function objectivesView(state: GameState): ObjectiveView[] {
-  const { active, completed } = state.objectives;
-  return objectives
-    .filter((objective) => active.includes(objective.id) || completed.includes(objective.id))
-    .map((objective) => {
-      const { current, target } = objectiveProgress(state, objective.condition);
-      const done = completed.includes(objective.id);
-      return {
-        id: objective.id,
-        title: objective.title,
-        hint: objective.hint,
-        reward: describeReward(objective),
-        status: done ? 'completed' : 'active',
-        progress: { current: done ? target : Math.min(current, target), target },
-      };
-    });
 }
 
 /** "à Serraria", "ao Salão do Senhor": para onde o ferido volta. */
@@ -460,7 +440,7 @@ export function deriveViewState(
     famine: famineView(state, timeScale, outlook),
     morale: moraleView(state, atTurn, timeScale, outlook),
     winter: winterView(state, firewood),
-    objectives: objectivesView(state),
+    objectives: objectivesView(state, timeScale),
     ...councilView(state, timeScale),
     threat: threatView(state, timeScale),
   };

@@ -23,7 +23,7 @@ export type {
 export { buildings } from './buildings';
 export type { BuildingDef } from './buildings';
 export { objectives, OBJECTIVE_CONDITION_TYPES } from './objectives';
-export type { ObjectiveCondition, ObjectiveDef } from './objectives';
+export type { ObjectiveCondition, ObjectiveDef, ObjectiveMoraleReward } from './objectives';
 export {
   CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,

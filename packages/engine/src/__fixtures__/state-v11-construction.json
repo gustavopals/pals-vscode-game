@@ -154,7 +154,8 @@
  "objectives": {
   "active": [
    "recruitVillagers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower"
   ],
   "completed": [
    "allocateFarmers",
