@@ -1,4 +1,4 @@
-import { DIFFICULTY_IDS } from '@lotg/content';
+import { BUILDING_IDS, DIFFICULTY_IDS, RESOURCE_IDS } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
@@ -15,7 +15,8 @@ import {
 } from './migrations';
 import { natural, type Shape } from './migrations/shape';
 import { v1ToV2 } from './migrations/v1';
-import { stateV2 } from './migrations/v2';
+import { stateV2, v2ToV3 } from './migrations/v2';
+import { stateV3 } from './migrations/v3';
 import { command, gameAt, HOUR, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
@@ -90,6 +91,15 @@ const FROZEN: Record<string, string> = {
   'state-v2-objectives.json': '9518b31a',
   'state-v2-peasant-3x.json': 'a50a387f',
   'state-v2-week-scripted.json': '213bb8f1',
+  'state-v3-cold.json': 'c2397ba1',
+  'state-v3-construction.json': '375a9be6',
+  'state-v3-famine.json': '005f938d',
+  'state-v3-fresh.json': '95f85d30',
+  'state-v3-iron-king-half.json': '47fd3521',
+  'state-v3-migrated-3x.json': 'c9b2677f',
+  'state-v3-objectives.json': '74abbb8f',
+  'state-v3-peasant-3x.json': '448f9116',
+  'state-v3-week-scripted.json': 'd1b11263',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -117,6 +127,8 @@ const buildingIds: BuildingId[] = [
   'quarry',
   'goldMine',
   'housing',
+  'granary',
+  'warehouse',
 ];
 
 describe('a lista de passos', () => {
@@ -179,6 +191,12 @@ describe('a forma da versão atual', () => {
     ['a fronteira ausente', (state) => delete state.migratedAtMs],
     ['o frio ausente', (state) => delete state.settlement.cold],
     ['um frio sem data', (state) => (state.settlement.cold = {})],
+    ['o Celeiro ausente', (state) => delete state.settlement.buildings.granary],
+    ['um edifício que o motor não conhece', (state) => (state.settlement.buildings.tower = 1)],
+    ['o desperdício ausente', (state) => delete state.settlement.wasted],
+    ['um desperdício negativo', (state) => (state.settlement.wasted.food = -1)],
+    ['o desperdício de um recurso a menos', (state) => delete state.settlement.wasted.gold],
+    ['o número da versão 3', (state) => (state.schemaVersion = 3)],
     ['o número da versão 2', (state) => (state.schemaVersion = 2)],
     ['o número da versão anterior', (state) => (state.schemaVersion = 1)],
     ['um resto de produção ausente', (state) => delete state.settlement.accumulators.wood],
@@ -236,6 +254,21 @@ describe('a forma da versão atual', () => {
     for (const difficulty of DIFFICULTY_IDS) {
       const state = { ...newGame(), settings: { ...newGame().settings, difficulty } };
       expect(currentShape(state, '')).toBeNull();
+    }
+  });
+
+  it('conhece os mesmos edifícios e recursos que o conteúdo', () => {
+    const state = newGame();
+    expect(Object.keys(state.settlement.buildings)).toEqual([...BUILDING_IDS]);
+    expect(Object.keys(state.settlement.wasted)).toEqual([...RESOURCE_IDS]);
+    // Uma obra e uma planejada de cada edifício do conteúdo cabem na forma.
+    for (const building of BUILDING_IDS) {
+      const busy = JSON.parse(JSON.stringify(state)) as Draft;
+      busy.settlement.constructionQueues = [
+        { building, targetLevel: 1, startedAtMs: 0, finishesAtMs: 1 },
+      ];
+      busy.settlement.planned = [{ building, targetLevel: 2 }];
+      expect(currentShape(busy, ''), building).toBeNull();
     }
   });
 });
@@ -447,6 +480,8 @@ describe('versão 1 → 2', () => {
 describe('versão 2 → 3', () => {
   const version2 = fixtures.filter((fixture) => fixture.version === 2);
   const WINTER_DAY_4 = (72 + 3) * 2 * HOUR;
+  // Só até a versão 3: o que as estações mudaram, sem o que as versões seguintes acrescentaram.
+  const seasons: MigrationChain = { steps: [v1ToV2, v2ToV3], shape: stateV3 };
 
   /**
    * Um estado como a versão 2 o gravava, parado no 4º dia do inverno, em cima de uma virada de
@@ -456,6 +491,9 @@ describe('versão 2 → 3', () => {
     const old = JSON.parse(JSON.stringify(gameAt(WINTER_DAY_4))) as Draft;
     old.schemaVersion = 2;
     delete old.settlement.cold;
+    delete old.settlement.wasted;
+    delete old.settlement.buildings.granary;
+    delete old.settlement.buildings.warehouse;
     old.settlement.workers.farm = 5;
     old.settlement.resources.food = 500_000;
     old.settlement.resources.wood = wood;
@@ -464,7 +502,11 @@ describe('versão 2 → 3', () => {
 
   it.each(version2)('$name: só acrescenta o frio, fechado', (fixture) => {
     const before = read(fixture) as unknown as GameState;
-    const after = migrated(fixture);
+    const after = migrateWith(
+      read(fixture),
+      { timeScale: fixture.timeScale },
+      seasons,
+    ) as unknown as GameState;
     expect(after.schemaVersion).toBe(3);
     expect(after.settlement.cold).toBeNull();
     // O resto é o estado antigo, campo por campo: estoque, restos de produção, prazos de obra
@@ -536,6 +578,136 @@ describe('versão 2 → 3', () => {
     const old = version2InWinter(100_000);
     const state = migrateState(old, { timeScale: 1 });
     expect(advanceTo(state, WINTER_DAY_4 + 1).events).toEqual([]);
+  });
+});
+
+describe('versão 3 → 4', () => {
+  const version3 = fixtures.filter((fixture) => fixture.version === 3);
+  const milli = (state: GameState, resource: 'food' | 'wood' | 'stone') =>
+    state.settlement.resources[resource];
+
+  it.each(version3)(
+    '$name: só acrescenta o Celeiro e o Armazém no nível 0 e o desperdício zerado',
+    (fixture) => {
+      const before = read(fixture) as unknown as GameState;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(4);
+      expect(after.settlement.buildings).toStrictEqual({
+        ...before.settlement.buildings,
+        granary: 0,
+        warehouse: 0,
+      });
+      expect(after.settlement.wasted).toStrictEqual({ food: 0, wood: 0, stone: 0, gold: 0 });
+      // O resto é o estado antigo, campo por campo: estoque (mesmo acima do limite), restos de
+      // produção, obras, planejadas, fome, frio, objetivos e contadores.
+      expect(after.settlement).toStrictEqual({
+        ...before.settlement,
+        buildings: after.settlement.buildings,
+        wasted: after.settlement.wasted,
+      });
+      expect({ ...after, schemaVersion: 3, settlement: before.settlement }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      expect(Object.keys(after.stats).filter((key) => key.startsWith('wasted_'))).toEqual([]);
+    },
+  );
+
+  it.each(version3)(
+    '$name: nada acontece na fronteira, nem "encheu" de estoque herdado',
+    (fixture) => {
+      const state = migrated(fixture);
+      const { events } = advanceTo(state, state.lastProcessedAt + 1);
+      expect(events.filter((event) => event.type.startsWith('storage'))).toEqual([]);
+    },
+  );
+
+  it('estoque acima do limite fica, não recebe produção e pode ser gasto (ADR 0013, decisão 4)', () => {
+    // O feudo que veio da v0.1 pelo ritmo 3: dezenas de milhares de madeira e de pedra.
+    const fixture = named('state-v3-migrated-3x.json');
+    const before = read(fixture) as unknown as GameState;
+    const state = migrated(fixture);
+    expect(state.settlement.resources).toEqual(before.settlement.resources);
+    expect(milli(state, 'wood')).toBeGreaterThan(10_000_000);
+    expect(milli(state, 'stone')).toBeGreaterThan(5_000_000);
+
+    const view = deriveViewState(state, state.lastProcessedAt);
+    const wood = view.resources.find((row) => row.id === 'wood');
+    expect(wood).toMatchObject({ cap: 500, full: true, fullInSeconds: null });
+    expect(wood?.stock).toBe(Math.floor(milli(state, 'wood') / 1000));
+    expect(wood?.fullNote).toMatch(/^Pátio cheio: .*Construa o Armazém ou gaste madeira\.$/);
+
+    // Um dia de jogo depois: o estoque não cresceu, e o que a Serraria fez foi ao chão.
+    const day = 2 * HOUR;
+    const later = advanceTo(state, state.lastProcessedAt + day);
+    expect(milli(later.state, 'wood')).toBeLessThanOrEqual(milli(state, 'wood'));
+    expect(milli(later.state, 'stone')).toBeLessThanOrEqual(milli(state, 'stone'));
+    expect(later.state.stats.wasted_wood).toBeGreaterThan(0);
+    expect(later.events.filter((event) => event.type === 'storageFilled')).toEqual([]);
+    expect(later.events.filter((event) => event.type === 'storageWasted').length).toBe(1);
+
+    // E o que já estava lá paga o Armazém, que nenhum limite de 500 deixaria juntar depois.
+    const free = advanceTo(state, state.settlement.constructionQueues[0]?.finishesAtMs ?? 0).state;
+    const built = applyCommand(
+      free,
+      command('startConstruction', { building: 'warehouse' }),
+      free.lastProcessedAt,
+    );
+    expect(built.ok).toBe(true);
+    if (built.ok) {
+      expect(milli(built.state, 'wood')).toBe(milli(free, 'wood') - 160_000);
+    }
+  });
+
+  it('quem já concluiu o objetivo 4 não ganha nem perde nada, e pode construir', () => {
+    const fixture = named('state-v3-objectives.json');
+    const before = read(fixture) as unknown as GameState;
+    const state = migrated(fixture);
+    expect(state.objectives).toEqual(before.objectives);
+    expect(state.objectives.completed).toContain('townHallLevel2');
+    // O ouro é o que a v0.1 deixou, com os +50 da recompensa antiga.
+    expect(state.settlement.resources.gold).toBe(before.settlement.resources.gold);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.objectives.find((entry) => entry.id === 'townHallLevel2')).toMatchObject({
+      status: 'completed',
+      reward: 'desbloqueia o Celeiro e o Armazém',
+    });
+    const storage = view.constructions.available.filter((entry) => entry.fromLevel === 0);
+    expect(storage.map((entry) => entry.building)).toEqual(['granary', 'warehouse']);
+    for (const entry of storage) {
+      expect(entry.blockedCode).not.toBe('GATE_LOCKED');
+    }
+    // Nenhuma linha de objetivo se repete depois da migração.
+    const { events } = advanceTo(state, state.lastProcessedAt + 30 * DAY_REAL);
+    expect(events.filter((event) => event.type === 'objectiveCompleted')).toEqual([]);
+  });
+
+  it('quem ainda não concluiu o objetivo 4 conclui pela regra nova: sem ouro, com o desbloqueio', () => {
+    const state = migrated(named('state-v3-fresh.json'));
+    expect(state.objectives.completed).toEqual([]);
+    const ahead = { ...state, settlement: { ...state.settlement } };
+    ahead.settlement.buildings = { ...state.settlement.buildings, townHall: 2 };
+    const result = applyCommand(
+      ahead,
+      command('setWorkers', { building: 'farm', count: 2 }),
+      ahead.lastProcessedAt,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.state.objectives.completed).toEqual(['allocateFarmers', 'townHallLevel2']);
+      // Só os +20 do primeiro objetivo.
+      expect(result.state.settlement.resources.gold).toBe(state.settlement.resources.gold + 20_000);
+    }
+  });
+
+  it('partida no frio ou na fome continua no frio ou na fome, com o estoque que tinha', () => {
+    for (const name of ['state-v3-cold.json', 'state-v3-famine.json']) {
+      const before = read(named(name)) as unknown as GameState;
+      const after = migrated(named(name));
+      expect(after.settlement.cold, name).toEqual(before.settlement.cold);
+      expect(after.settlement.famine, name).toEqual(before.settlement.famine);
+      expect(after.settlement.recruitmentQueue, name).toEqual(before.settlement.recruitmentQueue);
+    }
   });
 });
 

@@ -1,4 +1,11 @@
-import { balance, buildings, chronicleTemplates, DIFFICULTY_IDS, objectives } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  chronicleTemplates,
+  DIFFICULTY_IDS,
+  foundingTemplates,
+  objectives,
+} from '@lotg/content';
 import type {
   Command as EngineCommand,
   GameEvent as EngineEvent,
@@ -14,6 +21,7 @@ import {
   ApiErrorSchema,
   canonicalJson,
   CatalogResponseSchema,
+  CHRONICLE_HIDDEN_EVENT_TYPES,
   contentHash,
   type Command,
   CommandAcceptedSchema,
@@ -200,6 +208,110 @@ describe('ViewStateSchema', () => {
     expect(ViewStateSchema.safeParse(extra).success).toBe(false);
     const noText = { ...view, winter: { ...view.winter, cold: { secondsElapsed: 1 } } };
     expect(ViewStateSchema.safeParse(noText).success).toBe(false);
+  });
+
+  it('aceita o armazenamento: limite, "cheio em", desperdício, obra do depósito e devolução cortada', () => {
+    // Dois lenhadores e dois fazendeiros: a madeira enche o Pátio no segundo dia real.
+    let state = createInitialState('pedra-alta', { ...settings, difficulty: 'ironKing' });
+    const order = (type: Command['type'], payload: unknown) => {
+      const result = applyCommand(
+        state,
+        { commandId: uuid, type, payload } as Command,
+        state.lastProcessedAt,
+      );
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      return result.events;
+    };
+    order('setWorkers', { building: 'farm', count: 2 });
+    order('setWorkers', { building: 'lumberMill', count: 2 });
+    order('setWorkers', { building: 'quarry', count: 1 });
+    const rising = deriveViewState(state, 0, { timeScale: 3 });
+    expect(ViewStateSchema.safeParse(rising).error).toBeUndefined();
+    const wood = rising.resources.find((row) => row.id === 'wood');
+    // Rei de Ferro: 400. Faltam 280 a 16 por hora de jogo, vistos no ritmo 3.
+    expect(wood).toMatchObject({
+      cap: 400,
+      capBreakdown: '500 iniciais × 0,8 (Rei de Ferro) = 400',
+      storageBuilding: 'warehouse',
+      storageLabel: 'Pátio',
+      full: false,
+      fullInSeconds: 21_000,
+      fullNote: null,
+      wastingPerHour: 0,
+      wastedToday: 0,
+    });
+
+    const events: EngineEvent[] = [];
+    const advanced = advanceTo(state, 30 * 3_600_000);
+    state = advanced.state;
+    events.push(...advanced.events);
+    const full = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 });
+    expect(ViewStateSchema.safeParse(full).error).toBeUndefined();
+    expect(full.resources.find((row) => row.id === 'wood')).toMatchObject({
+      full: true,
+      fullInSeconds: null,
+      wastingPerHour: 48,
+    });
+    expect(full.resources.find((row) => row.id === 'gold')).toMatchObject({
+      cap: null,
+      storageBuilding: null,
+      full: false,
+    });
+
+    // O Salão no nível 2 e o Armazém em obra: a devolução do cancelamento sai com o corte.
+    events.push(...order('startConstruction', { building: 'townHall' }));
+    const hall = advanceTo(state, 31 * 3_600_000);
+    state = hall.state;
+    events.push(...hall.events, ...order('startConstruction', { building: 'warehouse' }));
+    const building = deriveViewState(state, state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(building).error).toBeUndefined();
+    expect(building.constructions.active?.refund).toEqual([
+      { resource: 'wood', label: 'Madeira', amount: 128, lost: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 64, lost: 0 },
+    ]);
+    // A devolução sem o campo do que se perde não é do contrato.
+    const withoutLost = { resource: 'wood', label: 'Madeira', amount: 128 };
+    expect(
+      ViewStateSchema.safeParse({
+        ...building,
+        constructions: {
+          ...building.constructions,
+          active: { ...building.constructions.active, refund: [withoutLost] },
+        },
+      }).success,
+    ).toBe(false);
+    const done = advanceTo(state, 40 * 3_600_000);
+    events.push(...done.events);
+
+    // Os eventos novos passam pelo contrato de evento da API, com os totais em `data`.
+    const seen = new Set(events.map((event) => event.type));
+    for (const type of ['storageFilled', 'storageWasted', 'buildingFounded'] as const) {
+      expect(seen, type).toContain(type);
+    }
+    for (const [index, event] of events.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+    }
+    const wasted = events.find((event) => event.type === 'storageWasted');
+    expect(Object.keys(wasted?.data ?? {}).every((key) => key.startsWith('wasted_'))).toBe(true);
+    const started = events.find(
+      (event) => event.type === 'constructionStarted' && event.data.building === 'warehouse',
+    );
+    expect(started?.data).toEqual({
+      building: 'warehouse',
+      level: 1,
+      spent_wood: 160,
+      spent_stone: 80,
+    });
+  });
+
+  it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual(['dayStarted', 'storageWasted']);
+    // O estoque que encheu é notícia: continua na Crônica.
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('storageFilled');
   });
 
   it('recusa campos a mais: o cliente nunca recebe o que não está no contrato', () => {
@@ -425,6 +537,30 @@ describe('Relatório de Retorno e device flow', () => {
       highlights: ['No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.'],
     };
     expect(ReturnReportSchema.safeParse(report).error).toBeUndefined();
+    // A variação de estoque pode vir separada em gasto, recebido, perdido e produzido.
+    const split = {
+      ...report,
+      resources: [
+        {
+          id: 'wood',
+          label: 'Madeira',
+          before: 120,
+          after: 500,
+          delta: 380,
+          spent: 160,
+          received: 30,
+          wasted: 96,
+          produced: 510,
+        },
+      ],
+    };
+    expect(ReturnReportSchema.safeParse(split).error).toBeUndefined();
+    expect(
+      ReturnReportSchema.safeParse({
+        ...report,
+        resources: [{ ...split.resources[0], wasted: 'muito' }],
+      }).success,
+    ).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, famine: 'talvez' }).success).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, extra: 1 }).success).toBe(false);
   });
@@ -490,7 +626,9 @@ describe('contentHash', () => {
       return '0123456789abcdef'.repeat(4);
     });
     expect(hash).toBe('0123456789abcdef');
-    expect(hashed).toEqual([canonicalJson({ balance, buildings, objectives, chronicleTemplates })]);
+    expect(hashed).toEqual([
+      canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
+    ]);
   });
 
   it('o que é resumido traz os números e os textos do conteúdo', () => {
@@ -504,8 +642,11 @@ describe('contentHash', () => {
       'balance',
       'buildings',
       'chronicleTemplates',
+      'foundingTemplates',
       'objectives',
     ]);
+    // O armazenamento é conteúdo: mexer em um limite muda o hash.
+    expect(hashed).toContain(`"baseCapacity":${balance.storage.baseCapacity}`);
     expect(hashed).toContain(balance.difficulties.lord.description);
     expect(hashed).toContain(`"dayMs":${balance.calendar.dayMs}`);
   });

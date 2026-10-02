@@ -27,7 +27,6 @@ import {
   producerOf,
   productionFactors,
   productionRate,
-  storageCap,
   woodRunsOutIn,
 } from './economy';
 import { decimal, plural } from './format';
@@ -48,6 +47,8 @@ import {
   seasonEffectsText,
   winterView,
 } from './seasonView';
+import { storable } from './storage';
+import { storageEffect, storageRow } from './storageView';
 import type {
   BuildingId,
   GameState,
@@ -131,13 +132,21 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   return parts.join('; ');
 }
 
-function refundView(building: BuildingId, fromLevel: number) {
+/**
+ * O que o cancelamento devolve agora, já com o limite do depósito: `amount` entra no estoque e
+ * `lost` é o que não cabe e se perde.
+ */
+function refundView(state: GameState, building: BuildingId, fromLevel: number) {
   const refund = cancelRefund(building, fromLevel);
-  return RESOURCE_IDS.filter((resource) => refund[resource] > 0).map((resource) => ({
-    resource,
-    label: balance.resources[resource].label,
-    amount: refund[resource] / MILLI,
-  }));
+  return RESOURCE_IDS.filter((resource) => refund[resource] > 0).map((resource) => {
+    const stored = storable(state, resource, refund[resource]);
+    return {
+      resource,
+      label: balance.resources[resource].label,
+      amount: stored / MILLI,
+      lost: (refund[resource] - stored) / MILLI,
+    };
+  });
 }
 
 /**
@@ -165,6 +174,7 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
     planned: state.settlement.planned.some((plan) => plan.building === building),
+    effect: storageEffect(state, building, quote.targetLevel),
   };
 }
 
@@ -191,6 +201,7 @@ function plannedView(
     blockedCode: null,
     blockedReason: null,
     planned: true,
+    effect: storageEffect(state, building, targetLevel),
   };
 }
 
@@ -205,7 +216,7 @@ function objectivesView(state: GameState): ObjectiveView[] {
         id: objective.id,
         title: objective.title,
         hint: objective.hint,
-        reward: describeReward(objective.reward),
+        reward: describeReward(objective),
         status: done ? 'completed' : 'active',
         progress: { current: done ? target : Math.min(current, target), target },
       };
@@ -304,7 +315,7 @@ export function deriveViewState(
         id,
         label: balance.resources[id].label,
         stock: Math.floor(settlement.resources[id] / MILLI),
-        cap: storageCap(),
+        ...storageRow(state, id, rates, timeScale),
         perHour: Math.round((rates[id] * timeScale) / 100) / 10,
         depletesInSeconds: runsOut === null ? null : realSecondsFloor(runsOut, timeScale),
         breakdown: resourceBreakdown(state, id, timeScale),
@@ -333,7 +344,7 @@ export function deriveViewState(
               progressPercent: Math.floor(
                 ((now - active.startedAtMs) * 100) / (active.finishesAtMs - active.startedAtMs),
               ),
-              refund: refundView(active.building, active.targetLevel - 1),
+              refund: refundView(state, active.building, active.targetLevel - 1),
             },
       planned: settlement.planned.map((plan) =>
         plannedView(state, plan.building, plan.targetLevel, timeScale),

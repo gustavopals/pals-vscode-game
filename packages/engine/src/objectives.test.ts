@@ -80,7 +80,7 @@ describe('objetivos', () => {
     expect(state.objectives.active).toEqual(['upgradeHousing', 'recruitVillagers']);
   });
 
-  it('o cenário roteirizado conclui os quatro, com +20 ouro, +30 madeira, +40 comida e +50 ouro', () => {
+  it('o cenário roteirizado conclui os quatro, com +20 ouro, +30 madeira, +40 comida e o desbloqueio', () => {
     const { state, events } = objectivesScenario();
     expect(state.objectives).toEqual({
       active: [],
@@ -92,7 +92,7 @@ describe('objetivos', () => {
       '+20 ouro.',
       '+30 madeira.',
       '+40 comida.',
-      '+50 ouro.',
+      'desbloqueia o Celeiro e o Armazém.',
     ]);
     expect(state.settlement.buildings.townHall).toBe(2);
   });
@@ -109,8 +109,19 @@ describe('objetivos', () => {
     ]);
   });
 
-  it('descreve recompensas com mais de um recurso', () => {
-    expect(describeReward({ gold: 20 })).toBe('+20 ouro');
-    expect(describeReward({ gold: 20, wood: 30 })).toBe('+30 madeira e +20 ouro');
+  it('descreve recompensas com mais de um recurso, e a que não é recurso', () => {
+    const [first] = objectives;
+    if (first === undefined) {
+      throw new Error('O conteúdo não tem objetivos.');
+    }
+    const reward = (changed: Partial<typeof first>) => describeReward({ ...first, ...changed });
+    expect(reward({ reward: { gold: 20 } })).toBe('+20 ouro');
+    expect(reward({ reward: { gold: 20, wood: 30 } })).toBe('+30 madeira e +20 ouro');
+    expect(reward({ reward: {}, rewardText: 'desbloqueia o Celeiro' })).toBe(
+      'desbloqueia o Celeiro',
+    );
+    expect(reward({ reward: { gold: 20 }, rewardText: 'desbloqueia o Celeiro' })).toBe(
+      '+20 ouro e desbloqueia o Celeiro',
+    );
   });
 });

@@ -10,6 +10,10 @@ export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
 );
 export type SurplusResource = (typeof SURPLUS_RESOURCES)[number];
 
+/** Os recursos em que se mede o desperdício: os que têm limite de estoque (GDD §5.5). */
+export const WASTE_RESOURCES = ['food', 'wood', 'stone'] as const satisfies readonly ResourceId[];
+export type WasteResource = (typeof WASTE_RESOURCES)[number];
+
 /**
  * As colunas das mecânicas da v0.2, na ordem fixa em que fecham o cabeçalho dos dois CSVs: o de
  * uma partida (hora a hora) e o da matriz (uma linha por partida). O cabeçalho já existe, para
@@ -42,6 +46,9 @@ const MEASURED_COLUMNS: Partial<
     { hour: (row: HourRow) => string | number; run: (summary: Summary) => string | number }
   >
 > = {
+  wasted_food: { hour: (row) => row.wasted.food, run: (summary) => summary.wasted.food },
+  wasted_wood: { hour: (row) => row.wasted.wood, run: (summary) => summary.wasted.wood },
+  wasted_stone: { hour: (row) => row.wasted.stone, run: (summary) => summary.wasted.stone },
   cold: { hour: (row) => (row.cold ? 1 : 0), run: (summary) => summary.coldHours },
 };
 
@@ -140,6 +147,10 @@ export type Summary = {
   freePerHour: number;
   /** Excedente parado: o estoque final de cada material, em unidades. Nunca somado. */
   surplus: Record<SurplusResource, number>;
+  /** Desperdício da partida inteira: o que não coube no depósito, em unidades, por recurso. */
+  wasted: Record<WasteResource, number>;
+  /** Horas com ao menos um depósito cheio e perdendo produção. */
+  wasteHours: number;
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -174,6 +185,11 @@ export function summarize(result: SimulationResult): Summary {
       SurplusResource,
       number
     >,
+    wasted: Object.fromEntries(WASTE_RESOURCES.map((id) => [id, last?.wasted[id] ?? 0])) as Record<
+      WasteResource,
+      number
+    >,
+    wasteHours: rows.filter((row) => row.wasting).length,
     stock,
   };
 }
@@ -213,8 +229,9 @@ export function formatSummary(result: SimulationResult): string {
     `Fila ociosa: ${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`,
     `Aldeões sem ofício: ${summary.freeVillagerHours} aldeão-horas (${formatDecimal(summary.freePerHour)} por hora)`,
     `Excedente parado: ${SURPLUS_RESOURCES.map((id) => `${id} ${summary.surplus[id]}`).join(', ')}`,
+    `Desperdício: ${WASTE_RESOURCES.map((id) => `${id} ${summary.wasted[id]}`).join(', ')} (${summary.wasteHours} h com depósito cheio perdendo produção)`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
-    'Sem medida até as Fases C a E: desperdício por recurso, moral, cartas do Conselho, perdas por lobos',
+    'Sem medida até as Fases C a E: moral, cartas do Conselho, perdas por lobos',
     '',
   ].join('\n');
 }

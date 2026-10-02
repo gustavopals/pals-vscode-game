@@ -5,3 +5,5 @@
 604800000	yearStarted	Começa o ano 2 da Casa de Pedra Alta.
 604800000	seasonChanged	Chega a Primavera a Pedra Alta.
 604800000	coldEnded	No 1º dia da Primavera, o gelo cedeu em Pedra Alta. O frio passou.
+611707429	storageFilled	No 1º dia da Primavera, o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.
+612000000	storageWasted	No 1º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 10 de comida.

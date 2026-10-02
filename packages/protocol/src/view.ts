@@ -21,6 +21,7 @@ export const REJECTION_CODES = [
   'QUEUE_BUSY',
   'MAX_LEVEL',
   'GATE_LOCKED',
+  'EXCEEDS_STORAGE',
   'INSUFFICIENT_RESOURCES',
   'NOT_IN_CONSTRUCTION',
   'ALREADY_PLANNED',
@@ -54,6 +55,8 @@ const UpgradeSchema = z.strictObject({
   blockedCode: RejectionCodeSchema.nullable(),
   blockedReason: z.string().nullable(),
   planned: z.boolean(),
+  /** O que a obra muda, ao lado do custo: "Capacidade de comida: 500 → 900."; `null` sem frase. */
+  effect: z.string().nullable(),
 });
 
 const ObjectiveSchema = z.strictObject({
@@ -126,7 +129,30 @@ export const ViewStateSchema = z.strictObject({
       id: resourceId,
       label: z.string(),
       stock: z.number(),
+      /** Limite do estoque, em unidades; `null` para o que não tem limite (o ouro). */
       cap: z.number().nullable(),
+      /** De onde vem o limite: "500 iniciais", "Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200". */
+      capBreakdown: z.string().nullable(),
+      /** O edifício que amplia o limite deste recurso; `null` sem limite. */
+      storageBuilding: buildingId.nullable(),
+      /** Onde o recurso fica hoje: "Celeiro", ou "Despensa" antes de ele existir. */
+      storageLabel: z.string().nullable(),
+      /** O estoque está no limite, ou acima dele (partida que veio de antes dos limites). */
+      full: z.boolean(),
+      /**
+       * Segundos reais até encher; `null` quando não está subindo, quando já está cheio e
+       * quando o enchimento cai depois de algo que muda a taxa (`fullNote` diz o quê).
+       */
+      fullInSeconds: z.number().nullable(),
+      /**
+       * Frase pronta sobre o limite: cheio, o que se perde por hora e o que fazer; enchendo só
+       * depois de a taxa mudar, "Não enche antes da virada para o Outono."; `null` no resto.
+       */
+      fullNote: z.string().nullable(),
+      /** Quanto deixa de entrar por hora real com o estoque cheio; 0 quando nada se perde. */
+      wastingPerHour: z.number(),
+      /** Unidades inteiras perdidas desde o último relato da Crônica (a virada do dia). */
+      wastedToday: z.number(),
       perHour: z.number(),
       depletesInSeconds: z.number().nullable(),
       breakdown: z.string(),
@@ -153,8 +179,14 @@ export const ViewStateSchema = z.strictObject({
         secondsRemaining: z.number(),
         totalSeconds: z.number(),
         progressPercent: z.number(),
+        /** `amount` volta ao estoque; `lost` não cabe no depósito e se perde. */
         refund: z.array(
-          z.strictObject({ resource: resourceId, label: z.string(), amount: z.number() }),
+          z.strictObject({
+            resource: resourceId,
+            label: z.string(),
+            amount: z.number(),
+            lost: z.number(),
+          }),
         ),
       })
       .nullable(),
@@ -184,6 +216,16 @@ export const ViewStateSchema = z.strictObject({
   pendingDecisions: z.array(z.never()),
 });
 export type ViewState = z.infer<typeof ViewStateSchema>;
+
+/**
+ * Eventos que existem, saem em `GET /events` e servem ao Relatório de Retorno, mas não são
+ * linhas da Crônica: a virada de dia (ADR 0007) e o fecho diário do desperdício (ADR 0015). O
+ * servidor os deixa fora de `GET /chronicle` e de `/chronicle.md`; o app, da Crônica recente.
+ */
+export const CHRONICLE_HIDDEN_EVENT_TYPES = [
+  'dayStarted',
+  'storageWasted',
+] as const satisfies ReadonlyArray<(typeof EVENT_TYPES)[number]>;
 
 /** Evento de jogo como a API o entrega: com a sequência na partida e o instante real (UTC). */
 export const GameEventSchema = z.strictObject({

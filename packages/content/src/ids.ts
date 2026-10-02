@@ -8,6 +8,8 @@ export const BUILDING_IDS = [
   'quarry',
   'goldMine',
   'housing',
+  'granary',
+  'warehouse',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 

@@ -16,6 +16,8 @@ const buildingIds: BuildingId[] = [
   'quarry',
   'goldMine',
   'housing',
+  'granary',
+  'warehouse',
 ];
 
 const scenario = fc.record({

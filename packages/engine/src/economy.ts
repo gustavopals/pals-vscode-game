@@ -8,6 +8,7 @@ import {
 } from '@lotg/content';
 
 import { seasonAt } from './clock';
+import { storeResource } from './storage';
 import type { GameState, ProductionBuildingId, ResourceId } from './types';
 import { HOUR_MS, MILLI } from './units';
 
@@ -129,14 +130,6 @@ export function netRates(state: GameState): Record<ResourceId, number> {
 }
 
 /**
- * Limite de estoque de um recurso. Ainda não há limite: o Celeiro e o Armazém chegam com a
- * mecânica de armazenamento e entram por aqui.
- */
-export function storageCap(): number | null {
-  return null;
-}
-
-/**
  * Aplica um trecho de produção e consumo contínuos, com taxas constantes.
  *
  * Cada recurso acumula `taxa × duração` (milésimos × ms) e só a parte inteira de
@@ -146,6 +139,11 @@ export function storageCap(): number | null {
  * dá o mesmo quociente e o mesmo resto nos dois caminhos. Vale também quando o resto guardado
  * tem o sinal contrário ao da taxa (a madeira, que sobe no outono e desce no inverno): o resto
  * é sempre menor que um milésimo, então o primeiro quociente depois da troca de sinal é zero.
+ *
+ * O que sobe passa pelo armazenamento (`storeResource`): entra o que cabe até o limite e o
+ * resto é desperdício contado. A conta do resto é a mesma com ou sem limite, e cortar no limite
+ * é associativo, então a divisão de intervalo continua exata no estoque e no desperdício. O que
+ * desce, desce direto: um estoque acima do limite pode ser consumido.
  */
 export function applyContinuous(draft: GameState, durationMs: number): void {
   if (durationMs <= 0) {
@@ -165,7 +163,11 @@ export function applyContinuous(draft: GameState, durationMs: number): void {
     const total = accumulators[id] + rates[id] * durationMs;
     const delta = Math.trunc(total / HOUR_MS);
     accumulators[id] = total - delta * HOUR_MS;
-    resources[id] += delta;
+    if (delta > 0) {
+      storeResource(draft, id, delta);
+    } else {
+      resources[id] += delta;
+    }
   }
 }
 

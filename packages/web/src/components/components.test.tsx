@@ -381,10 +381,13 @@ describe('aba Feudo', () => {
     expect(page).toContain('Livres 3');
   });
 
-  it('tabela de recursos com cap "—", taxa com sinal e a explicação do número', () => {
+  it('tabela de recursos com o limite ("—" para o ouro), taxa com sinal e a explicação do número', () => {
     expect(page).toContain('aria-live="polite"');
     expect(page).toMatch(
-      /<th scope="row">Comida<\/th><td class="num">180<\/td><td class="num">—<\/td>/,
+      /<th scope="row">Comida<\/th><td class="num">180<\/td><td class="num">500<\/td>/,
+    );
+    expect(page).toMatch(
+      /<th scope="row">Ouro<\/th><td class="num">270<\/td><td class="num">—<\/td>/,
     );
     expect(page).toContain('+19');
     expect(page).toContain(
@@ -422,8 +425,8 @@ describe('aba Feudo', () => {
           totalSeconds: 300,
           progressPercent: 40,
           refund: [
-            { resource: 'wood', label: 'Madeira', amount: 64 },
-            { resource: 'gold', label: 'Ouro', amount: 32 },
+            { resource: 'wood', label: 'Madeira', amount: 64, lost: 0 },
+            { resource: 'gold', label: 'Ouro', amount: 32, lost: 0 },
           ],
         },
       },

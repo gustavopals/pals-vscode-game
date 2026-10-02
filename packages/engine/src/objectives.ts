@@ -1,9 +1,16 @@
-import { balance, type ObjectiveCondition, objectives, type ResourceAmounts } from '@lotg/content';
+import {
+  balance,
+  type ObjectiveCondition,
+  type ObjectiveDef,
+  objectives,
+  RESOURCE_IDS,
+} from '@lotg/content';
 
 import { emit } from './chronicle';
-import { grantResources } from './construction';
+import { joinList } from './format';
+import { grantResources } from './storage';
 import type { GameEvent, GameState } from './types';
-import { positiveEntries } from './units';
+import { MILLI, positiveEntries } from './units';
 
 /** Quanto falta para cumprir uma condição: o objetivo está cumprido quando `current ≥ target`. */
 export function objectiveProgress(
@@ -23,11 +30,15 @@ export function objectiveProgress(
   }
 }
 
-/** "+20 ouro", "+20 ouro e +30 madeira". */
-export function describeReward(reward: ResourceAmounts): string {
-  return positiveEntries(reward)
-    .map(([id, amount]) => `+${amount} ${balance.resources[id].label.toLowerCase()}`)
-    .join(' e ');
+/**
+ * "+20 ouro", "+20 ouro e +30 madeira"; para a recompensa que não é recurso, o texto do
+ * conteúdo: "desbloqueia o Celeiro e o Armazém".
+ */
+export function describeReward({ reward, rewardText }: ObjectiveDef): string {
+  const parts = positiveEntries(reward).map(
+    ([id, amount]) => `+${amount} ${balance.resources[id].label.toLowerCase()}`,
+  );
+  return joinList(rewardText === undefined ? parts : [...parts, rewardText]);
 }
 
 /**
@@ -49,15 +60,21 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
       }
       tracker.active = tracker.active.filter((id) => id !== objective.id);
       tracker.completed.push(objective.id);
-      grantResources(draft, objective.reward);
-      const reward = describeReward(objective.reward);
+      // A recompensa é um ganho discreto: entra o que cabe no depósito (GDD §5.5).
+      const stored = grantResources(draft, objective.reward);
+      const gained = Object.fromEntries(
+        RESOURCE_IDS.filter((id) => stored[id] > 0).map((id) => [
+          `gained_${id}`,
+          stored[id] / MILLI,
+        ]),
+      );
       emit(
         events,
         draft,
         atMs,
         'objectiveCompleted',
-        { objective: objective.id },
-        { objetivo: objective.title, recompensa: reward },
+        { objective: objective.id, ...gained },
+        { objetivo: objective.title, recompensa: describeReward(objective) },
       );
       completedSomething = true;
     }

@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 
-import { balance, buildings, chronicleTemplates, objectives } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  chronicleTemplates,
+  foundingTemplates,
+  objectives,
+} from '@lotg/content';
 import {
   applyCommand,
   type Command,
@@ -35,7 +41,7 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,famine,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,wolf_losses';
 
@@ -84,9 +90,14 @@ describe('CSV de uma partida', () => {
   it('as colunas das mecânicas fecham o cabeçalho; as que ninguém mede ainda saem vazias', () => {
     expect(HEADER.endsWith(MECHANIC_COLUMN_NAMES.join(','))).toBe(true);
     const reserved: string[] = RESERVED_COLUMNS.map((column) => column.name);
-    expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual(['cold']);
+    expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual([
+      'wasted_food',
+      'wasted_wood',
+      'wasted_stone',
+      'cold',
+    ]);
     expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(
-      new Set(['V2C-T2', 'V2C-T4', 'V2D-T1', 'V2E-T3']),
+      new Set(['V2C-T4', 'V2D-T1', 'V2E-T3']),
     );
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
@@ -97,7 +108,38 @@ describe('CSV de uma partida', () => {
         expect(cells[header.indexOf(name)], name).toBe('');
       }
       expect(cells[header.indexOf('cold')]).toMatch(/^[01]$/);
+      for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone']) {
+        expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
+      }
     }
+  });
+
+  it('as colunas de desperdício são acumuladas e batem com o que o motor contou', () => {
+    for (const id of ['food', 'wood', 'stone'] as const) {
+      const column = twoSessions.rows.map((row) => row.wasted[id]);
+      expect(column, id).toEqual([...column].sort((a, b) => a - b));
+      // O que os eventos relataram mais o que a visão mostra como pendente é o total do motor,
+      // em unidades inteiras.
+      expect(column[167], id).toBe(
+        Math.floor((twoSessions.finalState.stats[`wasted_${id}`] ?? 0) / 1000),
+      );
+    }
+    // O ouro não tem limite: nada se perde.
+    expect(twoSessions.rows.every((row) => row.wasted.gold === 0)).toBe(true);
+    const summary = summarize(twoSessions);
+    expect(summary.wasted).toEqual({
+      food: twoSessions.rows[167]?.wasted.food,
+      wood: twoSessions.rows[167]?.wasted.wood,
+      stone: twoSessions.rows[167]?.wasted.stone,
+    });
+    // A madeira do bot enche o Pátio e vai ao chão: é o que os limites puseram no lugar do
+    // excedente parado.
+    expect(summary.wasted.wood).toBeGreaterThan(1000);
+    expect(summary.wasteHours).toBe(twoSessions.rows.filter((row) => row.wasting).length);
+    expect(summary.wasteHours).toBeGreaterThan(0);
+    expect(formatSummary(twoSessions)).toContain(
+      `Desperdício: food ${summary.wasted.food}, wood ${summary.wasted.wood}, stone ${summary.wasted.stone} (${summary.wasteHours} h com depósito cheio perdendo produção)\n`,
+    );
   });
 
   it('a coluna `cold` marca as horas em que o feudo passa frio', async () => {
@@ -225,7 +267,9 @@ describe('resumo de uma partida', () => {
     // A conta do `contentHash` de `GET /v1/version`: SHA-256 do JSON canônico, 16 caracteres.
     expect(IDENTITY.contentHash).toBe(
       createHash('sha256')
-        .update(canonicalJson({ balance, buildings, objectives, chronicleTemplates }))
+        .update(
+          canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
+        )
         .digest('hex')
         .slice(0, 16),
     );
@@ -236,7 +280,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: recrutar, obra mais barata, alocar por demanda, guardar lenha',
+      'Políticas: recrutar, obra mais barata, ampliar o estoque, alocar por demanda, guardar lenha',
     );
   });
 
@@ -255,7 +299,13 @@ describe('resumo de uma partida', () => {
       stone: summary.stock.stone,
       gold: summary.stock.gold,
     });
-    expect(text).toContain('Sem medida até as Fases C a E: desperdício por recurso');
+    expect(text).toContain('Sem medida até as Fases C a E: moral, cartas do Conselho');
+    // O excedente parado dos materiais com limite nunca passa do limite.
+    const view = deriveViewState(twoSessions.finalState, twoSessions.finalState.lastProcessedAt);
+    for (const id of ['wood', 'stone'] as const) {
+      const cap = view.resources.find((row) => row.id === id)?.cap ?? 0;
+      expect(summary.surplus[id], id).toBeLessThanOrEqual(cap);
+    }
   });
 
   it('conta as horas de fome quando o bot não joga o bastante', async () => {

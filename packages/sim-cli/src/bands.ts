@@ -45,7 +45,7 @@ function measured(
 /**
  * Linha de base medida: dificuldade Senhor, 50 sementes por célula. As faixas saem daqui, pela
  * regra de `SLACK`. A rodada completa, com data e identificação, está em docs/balance-v0.2.md
- * (a última é a da seção 3, depois das estações com efeito, V2C-T1).
+ * (a última é a da seção 4, depois do armazenamento, V2C-T2).
  *
  * Estes números NÃO são metas aprovadas pelo autor: são o jogo como ele está, postos como
  * guarda de regressão (ADR 0013, decisão 5). Quando uma mecânica muda a economia de propósito,
@@ -56,24 +56,24 @@ function measured(
 // Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro
 // parados.
 const MEASURED: Partial<Record<CellKey, Baseline>> = {
-  'week/3/preguicoso': measured([20, 20], 2, 0, 0, 17434, 7523, 4970),
-  'week/3/regular': measured([35, 35], 3, 0, 0, 39064, 16155, 6972),
-  'week/3/dedicado': measured([55, 55], 5, 0, 0, 81313, 33418, 12478),
-  'week/1/preguicoso': measured([20, 20], 2, 0, 0, 5370, 2242, 2073),
-  'week/1/regular': measured([34, 34], 3, 0, 0, 9735, 4196, 1808),
-  'week/1/dedicado': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
-  'week/0.5/preguicoso': measured([12, 12], 2, 0, 0, 2650, 1160, 770),
-  'week/0.5/regular': measured([18, 18], 3, 0, 0, 2150, 949, 552),
-  'week/0.5/dedicado': measured([20, 20], 4, 0, 0, 783, 460, 345),
-  'year/3/preguicoso': measured([15, 15], 1, 0, 0, 5286, 469, 418),
-  'year/3/regular': measured([15, 15], 1, 0, 0, 5748, 1545, 1669),
-  'year/3/dedicado': measured([25, 25], 2, 0, 0, 8420, 2807, 1591),
-  'year/1/preguicoso': measured([20, 20], 2, 0, 0, 5370, 2242, 2073),
-  'year/1/regular': measured([34, 34], 3, 0, 0, 9735, 4196, 1808),
-  'year/1/dedicado': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
-  'year/0.5/preguicoso': measured([16, 16], 3, 0, 0, 4915, 3104, 2100),
-  'year/0.5/regular': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
-  'year/0.5/dedicado': measured([46, 46], 7, 0, 0, 820, 1130, 398),
+  'week/3/preguicoso': measured([20, 20], 2, 0, 0, 500, 500, 4920),
+  'week/3/regular': measured([35, 35], 3, 0, 0, 500, 500, 1169),
+  'week/3/dedicado': measured([55, 55], 5, 0, 0, 900, 900, 1732),
+  'week/1/preguicoso': measured([20, 20], 2, 0, 0, 500, 500, 2023),
+  'week/1/regular': measured([34, 34], 3, 0, 0, 500, 500, 425),
+  'week/1/dedicado': measured([40, 40], 5, 0, 0, 900, 900, 836),
+  'week/0.5/preguicoso': measured([12, 12], 2, 0, 0, 500, 500, 720),
+  'week/0.5/regular': measured([18, 18], 3, 0, 0, 500, 500, 189),
+  'week/0.5/dedicado': measured([22, 22], 4, 0, 0, 1143, 646, 123),
+  'year/3/preguicoso': measured([15, 15], 1, 0, 0, 500, 469, 418),
+  'year/3/regular': measured([15, 15], 1, 0, 0, 500, 420, 397),
+  'year/3/dedicado': measured([25, 25], 2, 0, 0, 500, 500, 317),
+  'year/1/preguicoso': measured([20, 20], 2, 0, 0, 500, 500, 2023),
+  'year/1/regular': measured([34, 34], 3, 0, 0, 500, 500, 425),
+  'year/1/dedicado': measured([40, 40], 5, 0, 0, 900, 900, 836),
+  'year/0.5/preguicoso': measured([16, 16], 3, 0, 0, 500, 500, 2050),
+  'year/0.5/regular': measured([40, 40], 5, 0, 0, 900, 900, 836),
+  'year/0.5/dedicado': measured([44, 44], 6, 0, 0, 3244, 2137, 1235),
 };
 
 /** A folga entre o que foi medido e o que a faixa aceita. Pequena e explícita. */

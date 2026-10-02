@@ -31,8 +31,8 @@ const building: ViewState = {
       totalSeconds: 3000,
       progressPercent: 16,
       refund: [
-        { resource: 'wood', label: 'Madeira', amount: 80 },
-        { resource: 'stone', label: 'Pedra', amount: 40 },
+        { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
+        { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
       ],
     },
   },

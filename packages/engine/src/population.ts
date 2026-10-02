@@ -5,6 +5,7 @@ import { seasonAt } from './clock';
 import { missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import type { GameEvent, GameState, ProductionBuildingId, Rejection } from './types';
+import { positiveEntries } from './units';
 
 /** Capacidade habitacional: derivada dos níveis do Salão e das Habitações, nunca persistida. */
 export function housingCapacity(state: GameState): number {
@@ -112,7 +113,17 @@ export function recruitVillagers(
   for (let index = 1; index <= wanted; index += 1) {
     recruitmentQueue.push({ finishesAtMs: startsAt + index * durationMs });
   }
-  emit(events, draft, nowMs, 'recruitmentStarted', { quantity: wanted }, { quantidade: wanted });
+  const spent = Object.fromEntries(
+    positiveEntries(cost).map(([resource, amount]) => [`spent_${resource}`, amount * wanted]),
+  );
+  emit(
+    events,
+    draft,
+    nowMs,
+    'recruitmentStarted',
+    { quantity: wanted, ...spent },
+    { quantidade: wanted },
+  );
   return null;
 }
 

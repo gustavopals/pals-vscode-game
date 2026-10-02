@@ -16,6 +16,7 @@ import {
   HOUR,
   MINUTE,
   play,
+  roomy,
   WINTER,
   YEAR,
 } from './test-helpers';
@@ -218,6 +219,8 @@ describe('fim do frio', () => {
     const autumn = gameAt(WINTER - HOUR, (draft) => {
       draft.settlement.workers.farm = 5;
       draft.settlement.resources.wood = 0;
+      // Com o Celeiro, a comida do inverno inteiro tem onde ficar.
+      roomy(draft);
     });
     const { state, events } = advanceTo(autumn, YEAR + HOUR);
     expect(eventsOfType(events, 'coldStarted').map((event) => event.atMs)).toEqual([WINTER]);

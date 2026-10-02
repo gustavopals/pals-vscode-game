@@ -12,6 +12,7 @@ import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
+import { announceFilled, fullStores } from './storage';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 
 function renameSettlement(
@@ -73,11 +74,14 @@ export function applyCommand(state: GameState, command: Command, nowMs: number):
   }
   const draft = cloneState(state);
   const events: GameEvent[] = [];
+  const wasFull = fullStores(draft);
   const rejection = dispatch(draft, command, nowMs, events);
   if (rejection !== null) {
     return { ok: false, code: rejection.code, message: rejection.message };
   }
   evaluateObjectives(draft, nowMs, events);
   settleScarcity(draft, nowMs, events);
+  // Uma recompensa ou uma devolução pode encher um depósito: a linha sai uma vez por episódio.
+  announceFilled(draft, nowMs, events, wasFull);
   return { ok: true, state: draft, events };
 }

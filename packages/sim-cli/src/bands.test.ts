@@ -30,6 +30,8 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     freeVillagerHours: 252,
     freePerHour: 1.5,
     surplus: { wood: 10_017, stone: 4_190, gold: 1_637 },
+    wasted: { food: 0, wood: 0, stone: 0 },
+    wasteHours: 0,
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -99,13 +101,14 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3: 35 aldeões, Salão Nv3, 39.064 de madeira parada.
+    // Regular, 7 dias reais, ritmo 3: 35 aldeões, Salão Nv3, o Pátio cheio (500 de madeira e
+    // 500 de pedra) e 1.169 de ouro parado.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
       villagers: { min: 31, max: 39 },
       townHallMin: 3,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 41_018, stone: 16_963, gold: 7_321 },
+      surplusMax: { wood: 525, stone: 525, gold: 1_228 },
     });
   });
 

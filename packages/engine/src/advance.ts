@@ -13,6 +13,7 @@ import { evaluateObjectives } from './objectives';
 import { finishRecruitments } from './population';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
+import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
 
@@ -20,6 +21,8 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
   if (!isDayBoundary(atMs)) {
     return;
   }
+  // O fecho do dia que acabou vem antes de o novo amanhecer.
+  reportWaste(draft, atMs, events);
   const date = calendarAt(atMs);
   if (isYearBoundary(atMs)) {
     draft.clock.year = yearOf(atMs);
@@ -44,7 +47,9 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam, virada de ano, de estação e de dia, objetivos e, por fim, fome e frio.
+ * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação e o dia),
+ * objetivos e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo,
+ * por `advanceWith` e por `applyCommand` (`announceFilled`).
  */
 export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
   finishConstructions(draft, atMs, events);
@@ -76,10 +81,14 @@ export function advanceWith(
   settleScarcity(draft, draft.lastProcessedAt, events);
   while (draft.lastProcessedAt < gameTimeMs) {
     const next = Math.min(nextEventAt(draft) ?? gameTimeMs, gameTimeMs);
+    // Cheio antes do trecho e ainda cheio depois dele: o episódio é o mesmo (`announceFilled`).
+    const wasFull = fullStores(draft);
     applyContinuous(draft, next - draft.lastProcessedAt);
+    const stillFull = wasFull.filter((resource) => isStorageFull(draft, resource));
     draft.lastProcessedAt = next;
     draft.clock.gameTimeMs = next;
     processEvents(draft, next, events);
+    announceFilled(draft, next, events, stillFull);
   }
   return { state: draft, events };
 }

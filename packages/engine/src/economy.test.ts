@@ -11,7 +11,6 @@ import {
   producedBy,
   productionFactors,
   productionRate,
-  storageCap,
   woodRunsOutIn,
 } from './economy';
 import { cloneState } from './state';
@@ -80,10 +79,6 @@ describe('taxas', () => {
     expect(productionRate(gameAt(SPRING, edit), 'lumberMill')).toBe(6_000);
     expect(productionRate(gameAt(SPRING, edit), 'quarry')).toBe(3_750);
     expect(productionRate(gameAt(SUMMER, edit), 'goldMine')).toBe(3_000);
-  });
-
-  it('ainda não há limite de estoque', () => {
-    expect(storageCap()).toBeNull();
   });
 });
 

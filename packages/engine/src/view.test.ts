@@ -59,9 +59,9 @@ describe('deriveViewState', () => {
       'Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas',
     );
     expect(initial.resources.map((row) => [row.id, row.stock, row.cap, row.perHour])).toEqual([
-      ['food', 180, null, -5],
-      ['wood', 120, null, 0],
-      ['stone', 65, null, 0],
+      ['food', 180, 500, -5],
+      ['wood', 120, 500, 0],
+      ['stone', 65, 500, 0],
       ['gold', 250, null, 0],
     ]);
     expect(initial.resources[0]?.depletesInSeconds).toBe(36 * 3600);
@@ -110,6 +110,8 @@ describe('deriveViewState', () => {
       'quarry',
       'goldMine',
       'housing',
+      'granary',
+      'warehouse',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -156,8 +158,8 @@ describe('deriveViewState', () => {
       progressPercent: 40,
       // 80% de 80 madeira e 40 ouro.
       refund: [
-        { resource: 'wood', label: 'Madeira', amount: 64 },
-        { resource: 'gold', label: 'Ouro', amount: 32 },
+        { resource: 'wood', label: 'Madeira', amount: 64, lost: 0 },
+        { resource: 'gold', label: 'Ouro', amount: 32, lost: 0 },
       ],
     });
     expect(derived.constructions.available.map((entry) => entry.building)).not.toContain('farm');
@@ -184,7 +186,9 @@ describe('deriveViewState', () => {
       },
     ]);
     const other = accept(newGame(), command('planConstruction', { building: 'housing' })).state;
-    expect(view(other).constructions.available.at(-1)).toMatchObject({ planned: true });
+    expect(
+      view(other).constructions.available.find((entry) => entry.building === 'housing'),
+    ).toMatchObject({ planned: true });
     expect(view(other).constructions.planned[0]).toMatchObject({ affordable: true });
   });
 

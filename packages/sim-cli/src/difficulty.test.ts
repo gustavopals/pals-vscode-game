@@ -27,6 +27,25 @@ describe('dificuldade da simulação', () => {
     expect(result.finalState.settings.difficulty).toBe(difficulty);
   });
 
+  it.each([
+    ['peasant', 625],
+    ['lord', 500],
+    ['ironKing', 400],
+  ] as const)(
+    '%s: o estoque de madeira para no limite da dificuldade (%i)',
+    async (difficulty, cap) => {
+      // Três dias reais com o bot econômico: ninguém ergueu o Armazém, e a madeira encheu o Pátio.
+      const result = await simulate({ ...base, days: 3, difficulty });
+      const last = result.rows.at(-1);
+      expect(last?.levels.warehouse).toBe(0);
+      expect(Math.max(...result.rows.map((row) => row.stock.wood))).toBe(cap);
+      expect(result.rows.every((row) => row.stock.wood <= cap && row.stock.stone <= cap)).toBe(
+        true,
+      );
+      expect(last?.wasted.wood).toBeGreaterThan(0);
+    },
+  );
+
   it('o resumo diz a dificuldade e o ritmo como o jogo os mostra ao jogador', async () => {
     const result = await simulate({ ...base, difficulty: 'ironKing', timeScale: 3 });
     const lines = formatSummary(result).split('\n');

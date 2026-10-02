@@ -1,4 +1,10 @@
-import type { FirewoodView, ProductionBuildingId, ResourceId, ViewState } from '@lotg/engine';
+import type {
+  BuildingId,
+  FirewoodView,
+  ProductionBuildingId,
+  ResourceId,
+  ViewState,
+} from '@lotg/engine';
 
 import type { Policy } from './types';
 
@@ -20,6 +26,11 @@ const FOOD_RESERVE = 60;
 const SPARE_MOUTHS = 2;
 /** Pesos usados quando nenhuma obra está esperando recurso. */
 const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food'>, number> = { wood: 3, stone: 2, gold: 1 };
+/**
+ * Com quantas horas reais de antecedência o bot amplia um depósito que vai encher: o tempo de
+ * uma noite fora, que é quando a produção iria para o chão sem ninguém ver.
+ */
+const STORAGE_HORIZON_HOURS = 8;
 /** Folga para o arredondamento das taxas da visão (uma casa decimal) não pedir um braço a mais. */
 const EPSILON = 1e-9;
 
@@ -41,9 +52,17 @@ function workplace(view: ViewState, resource: ResourceId): Workplace {
   return row;
 }
 
-/** Uma obra que o jogador ainda pode vir a iniciar: não chegou ao teto nem espera o Salão. */
+/**
+ * Uma obra que o jogador ainda pode vir a iniciar só juntando recurso: não chegou ao teto, não
+ * espera o Salão e o custo cabe no depósito. A que não cabe só destrava ampliando o depósito, e
+ * juntar para ela seria mandar braços produzir o que vai para o chão.
+ */
 function reachable(upgrade: Upgrade): boolean {
-  return upgrade.blockedCode !== 'GATE_LOCKED' && upgrade.blockedCode !== 'MAX_LEVEL';
+  return (
+    upgrade.blockedCode !== 'GATE_LOCKED' &&
+    upgrade.blockedCode !== 'MAX_LEVEL' &&
+    upgrade.blockedCode !== 'EXCEEDS_STORAGE'
+  );
 }
 
 /** O que um trabalhador rende no edifício, por hora, como a visão mostra agora. */
@@ -152,24 +171,94 @@ function firewoodReserve(view: ViewState): number {
   return firewood === null ? 0 : Math.max(0, firewood.winterTotal - firewood.winterProduction);
 }
 
+/** A obra não gasta a madeira da lareira: o estoque continua cobrindo a reserva de lenha. */
+function keepsFirewood(view: ViewState, upgrade: Upgrade): boolean {
+  const spare = stockOf(view, 'wood') - firewoodReserve(view);
+  return upgrade.cost.every((cost) => cost.resource !== 'wood' || cost.amount <= spare);
+}
+
 /**
  * Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não
  * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
- * lenha fica para depois.
+ * lenha fica para depois. Os depósitos (Celeiro e Armazém) ficam de fora: eles não são um fim,
+ * e quem decide quando valem a obra é `ampliar o estoque`.
  */
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
   run: async (view, act) => {
     const price = (upgrade: Upgrade) => upgrade.cost.reduce((sum, cost) => sum + cost.amount, 0);
-    const spare = stockOf(view, 'wood') - firewoodReserve(view);
-    const keepsFirewood = (upgrade: Upgrade) =>
-      upgrade.cost.every((cost) => cost.resource !== 'wood' || cost.amount <= spare);
+    const depots = new Set(view.resources.map((row) => row.storageBuilding));
     const [cheapest] = view.constructions.available
-      .filter((upgrade) => upgrade.blockedCode === null && keepsFirewood(upgrade))
+      .filter((upgrade) => !depots.has(upgrade.building))
+      .filter((upgrade) => upgrade.blockedCode === null && keepsFirewood(view, upgrade))
       .sort((a, b) => price(a) - price(b));
     return cheapest === undefined
       ? view
       : act('startConstruction', { building: cheapest.building });
+  },
+};
+
+/** Faixas de urgência de um depósito: cada uma acima de qualquer valor da seguinte. */
+const URGENT = { blocksUpgrade: 3e9, wasting: 2e9, fillingSoon: 1e9 } as const;
+
+/**
+ * Os depósitos que valem uma obra agora, do mais urgente ao menos: o que trava uma obra cujo
+ * custo não cabe no limite (é o que segura o progresso), o que já está cheio e perdendo
+ * produção (o que perde mais primeiro) e o que enche em menos de 8 horas reais (o que enche
+ * antes primeiro). Tudo lido da visão: o limite, o "cheio em" e o edifício que amplia cada
+ * recurso.
+ */
+function storageWanted(view: ViewState): BuildingId[] {
+  const wanted: Array<{ building: BuildingId; urgency: number }> = [];
+  for (const upgrade of view.constructions.available) {
+    if (upgrade.blockedCode !== 'EXCEEDS_STORAGE') {
+      continue;
+    }
+    for (const cost of upgrade.cost) {
+      const row = view.resources.find((entry) => entry.id === cost.resource);
+      if (row?.storageBuilding != null && row.cap !== null && cost.amount > row.cap) {
+        wanted.push({ building: row.storageBuilding, urgency: URGENT.blocksUpgrade });
+      }
+    }
+  }
+  for (const row of view.resources) {
+    if (row.storageBuilding === null) {
+      continue;
+    }
+    if (row.full && row.wastingPerHour > 0) {
+      wanted.push({ building: row.storageBuilding, urgency: URGENT.wasting + row.wastingPerHour });
+    } else if (row.fullInSeconds !== null && row.fullInSeconds < STORAGE_HORIZON_HOURS * 3600) {
+      wanted.push({
+        building: row.storageBuilding,
+        urgency: URGENT.fillingSoon - row.fullInSeconds,
+      });
+    }
+  }
+  const ordered = wanted.sort((a, b) => b.urgency - a.urgency).map((entry) => entry.building);
+  return [...new Set(ordered)];
+}
+
+/**
+ * Amplia o estoque: constrói ou melhora o depósito (Celeiro ou Armazém) do recurso que está
+ * cheio, que enche em menos de 8 horas reais ou cujo limite trava uma obra. Uma obra por
+ * sessão, a mais urgente das que podem começar agora; se nenhuma pode (falta recurso, o Salão
+ * ainda não libera, a fila está ocupada), não dá ordem, e a alocação das outras políticas junta
+ * o que falta. Como `obra mais barata`, não gasta a madeira da lareira.
+ *
+ * Nos bots ela vem **depois** de `obra mais barata`: com uma fila só, o depósito fica com a
+ * sessão em que nenhuma outra obra pôde começar. É quando ele rende: destrava a obra que não
+ * cabia e guarda o que a espera produz.
+ */
+export const ampliarEstoque: Policy = {
+  name: 'ampliar o estoque',
+  run: async (view, act) => {
+    for (const building of storageWanted(view)) {
+      const upgrade = view.constructions.available.find((entry) => entry.building === building);
+      if (upgrade !== undefined && upgrade.blockedCode === null && keepsFirewood(view, upgrade)) {
+        return act('startConstruction', { building });
+      }
+    }
+    return view;
   },
 };
 
