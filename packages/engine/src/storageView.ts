@@ -1,11 +1,12 @@
-import { balance, type BuildingId, buildings, type Ratio } from '@lotg/content';
+import { balance, type BuildingId, buildings, craftGuilds, type Ratio } from '@lotg/content';
 
 import { nextSeasonBoundary, seasonAfter, seasonAt, seasonWithArticle } from './clock';
 import { buildingWithArticle, constructionOf, upgradeQuote } from './construction';
 import { type CraftForecast, type CraftOutlook, inMs } from './craftProjection';
 import { producerOf } from './economy';
-import { decimal, joinList, thousands } from './format';
+import { decimal, joinList, sentenceCase, thousands } from './format';
 import { planCost } from './planned';
+import { recruitmentBlock } from './population';
 import {
   fillsIn,
   isStorageFull,
@@ -148,12 +149,40 @@ function fillsWithCraft(
   );
 }
 
+/** "a", "a ou b", "a, b ou c": as saídas de um aviso, lado a lado. */
+function joinOr(options: readonly string[]): string {
+  return options.length <= 1
+    ? options.join('')
+    : `${options.slice(0, -1).join(', ')} ou ${options[options.length - 1]}`;
+}
+
+/**
+ * Como dar destino ao que sobra de `resource`, sem contar a obra do depósito: cada saída é uma
+ * ordem que o jogador sabe dar, em minúscula e sem ponto. O que alguma obra custa (madeira,
+ * pedra) se gasta em obras: "gaste madeira". O que nenhuma obra custa (a comida) só sai pelo
+ * recrutamento, e só quando uma ordem cabe agora (há vaga, fila e o resto do custo); a saída que
+ * está sempre à mão é tirar gente do ofício que o produz, e trocar o que iria ao chão por outro
+ * recurso. Mandar "gastar comida" seria pedir uma ação que nenhum botão tem.
+ */
+function spendOptions(state: GameState, resource: ResourceId): string[] {
+  const name = lower(resource);
+  if (Object.values(buildings).some((def) => (def.baseCost[resource] ?? 0) > 0)) {
+    return [`gaste ${name}`];
+  }
+  const options: string[] = [];
+  if ((balance.recruitment.cost[resource] ?? 0) > 0 && recruitmentBlock(state, 1) === null) {
+    options.push('recrute aldeões');
+  }
+  options.push(`ponha parte d${craftGuilds[producerOf(resource)].artisans} em outro ofício`);
+  return options;
+}
+
 /**
  * O que dizer de um estoque cheio. Com saldo positivo: o que vai ao chão por hora e o que
- * fazer, ampliar o depósito (o botão está na lista de obras) ou gastar; se o depósito ainda
- * espera o Salão, a frase diz isso em vez de mandar construí-lo. Com o estoque acima do
- * limite e sem saldo (partida que veio de antes dos limites): por que nada entra. No limite
- * exato e sem perda, não há o que dizer.
+ * fazer, ampliar o depósito (o botão está na lista de obras) ou dar destino ao que sobra
+ * (`spendOptions`); se o depósito ainda espera o Salão, a frase diz isso em vez de mandar
+ * construí-lo. Com o estoque acima do limite e sem saldo (partida que veio de antes dos
+ * limites): por que nada entra. No limite exato e sem perda, não há o que dizer.
  */
 function fullNote(
   state: GameState,
@@ -175,17 +204,18 @@ function fullNote(
   }
   const level = state.settlement.buildings[store.building];
   const quote = upgradeQuote(state, store.building);
+  const spend = spendOptions(state, resource);
   let remedy: string;
   if (constructionOf(state, store.building) !== null) {
     remedy = `A obra ${ofBuilding(store.building)} já vai abrir espaço.`;
   } else if (level >= buildings[store.building].maxLevel) {
-    remedy = `Gaste ${name}.`;
+    remedy = `${sentenceCase(joinOr(spend))}.`;
   } else if (quote.blocked?.code === 'GATE_LOCKED') {
     // O depósito ainda não pode ser erguido: a frase diz o que o libera, e o que fazer até lá.
-    remedy = `${quote.blocked.message} Até lá, gaste ${name}.`;
+    remedy = `${quote.blocked.message} Até lá, ${joinOr(spend)}.`;
   } else {
     const verb = level === 0 ? 'Construa' : 'Amplie';
-    remedy = `${verb} ${buildingWithArticle(store.building)} ou gaste ${name}.`;
+    remedy = `${joinOr([`${verb} ${buildingWithArticle(store.building)}`, ...spend])}.`;
   }
   return `${title}: ${decimal(wastingPerHour)}/h de ${name} indo ao chão. ${remedy}`;
 }

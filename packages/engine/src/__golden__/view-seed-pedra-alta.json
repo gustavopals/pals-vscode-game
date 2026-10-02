@@ -4767,7 +4767,7 @@
         "storageLabel": "Despensa",
         "full": true,
         "fullInSeconds": null,
-        "fullNote": "Despensa cheia: 64,8/h de comida indo ao chão. Construa o Celeiro ou gaste comida.",
+        "fullNote": "Despensa cheia: 64,8/h de comida indo ao chão. Construa o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.",
         "wastingPerHour": 64.8,
         "wastedToday": 40,
         "perHour": 64.8,

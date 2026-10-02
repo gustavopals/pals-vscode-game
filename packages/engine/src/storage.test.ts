@@ -1077,13 +1077,15 @@ describe('a visão do armazenamento', () => {
     expect(row(underway, 'wood').fullNote).toBe(
       'Pátio cheio: 24/h de madeira indo ao chão. A obra do Armazém já vai abrir espaço.',
     );
+    // A comida não paga obra nenhuma: quem a gasta é o recrutamento. A frase diz isso, e a
+    // outra saída que está sempre à mão, em vez de mandar "gastar comida".
     const pantry = gameAt(SPRING, (draft) => {
       draft.settlement.buildings.townHall = 2;
       draft.settlement.workers.farm = 5;
       draft.settlement.resources.food = 500_000;
     });
     expect(row(pantry, 'food').fullNote).toBe(
-      'Despensa cheia: 55/h de comida indo ao chão. Construa o Celeiro ou gaste comida.',
+      'Despensa cheia: 55/h de comida indo ao chão. Construa o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.',
     );
     // Com o Salão no nível 1 o depósito ainda não pode ser erguido: a frase diz o que o
     // libera, em vez de mandar construir o que a lista de obras recusaria.
@@ -1093,6 +1095,94 @@ describe('a visão do armazenamento', () => {
     expect(row(early, 'wood').fullNote).toBe(
       'Pátio cheio: 24/h de madeira indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, gaste madeira.',
     );
+  });
+
+  describe('a despensa cheia antes de o Celeiro existir', () => {
+    /**
+     * Verão, o Salão ainda no nível 1 (o Celeiro pede o nível 2): 10 habitantes nas 10 vagas,
+     * seis deles na Fazenda, e a despensa no limite.
+     */
+    const packed = (edit: (draft: GameState) => void = () => {}) =>
+      gameAt(SUMMER + 2 * DAY, (draft) => {
+        const { settlement } = draft;
+        settlement.population.villagers = 10;
+        settlement.workers = { farm: 6, lumberMill: 2, quarry: 1, goldMine: 1 };
+        settlement.resources = { ...settlement.resources, food: 500_000 };
+        edit(draft);
+      });
+    const viewOf = (state: GameState) => deriveViewState(state, state.lastProcessedAt);
+
+    it('com as casas cheias não há como gastar comida: a frase aponta os lavradores', () => {
+      const state = packed();
+      expect(viewOf(state).recruitment).toMatchObject({
+        maxQuantity: 0,
+        blockedReason: 'Não há vaga nas Habitações. Melhore as Habitações ou o Salão.',
+      });
+      const granary = viewOf(state).constructions.available.find(
+        (entry) => entry.building === 'granary',
+      );
+      expect(granary?.blockedCode).toBe('GATE_LOCKED');
+      expect(row(state, 'food')).toMatchObject({
+        full: true,
+        wastingPerHour: 50,
+        fullNote:
+          'Despensa cheia: 50/h de comida indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, ponha parte dos lavradores em outro ofício.',
+      });
+    });
+
+    it('com vaga nas casas e ouro para a ordem, recrutar também é saída', () => {
+      const state = packed((draft) => {
+        draft.settlement.population.villagers = 8;
+        draft.settlement.workers = { farm: 6, lumberMill: 1, quarry: 0, goldMine: 1 };
+        draft.settlement.resources.gold = 30_000;
+      });
+      expect(viewOf(state).recruitment.blockedReason).toBeNull();
+      expect(row(state, 'food').fullNote).toBe(
+        'Despensa cheia: 52/h de comida indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, recrute aldeões ou ponha parte dos lavradores em outro ofício.',
+      );
+      // Sem ouro para a ordem, recrutar não é saída agora.
+      const broke = packed((draft) => {
+        draft.settlement.population.villagers = 8;
+        draft.settlement.workers = { farm: 6, lumberMill: 1, quarry: 0, goldMine: 1 };
+        draft.settlement.resources.gold = 0;
+      });
+      expect(row(broke, 'food').fullNote).toBe(
+        'Despensa cheia: 52/h de comida indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, ponha parte dos lavradores em outro ofício.',
+      );
+    });
+
+    it('nenhuma frase da comida manda "gastar comida", em nenhuma situação do depósito', () => {
+      for (const townHall of [1, 2]) {
+        for (const granary of [0, 1, buildings.granary.maxLevel]) {
+          for (const villagers of [8, 10]) {
+            const state = packed((draft) => {
+              draft.settlement.buildings.townHall = townHall;
+              draft.settlement.buildings.granary = granary;
+              draft.settlement.population.villagers = villagers;
+              draft.settlement.workers = { farm: 6, lumberMill: 1, quarry: 0, goldMine: 1 };
+              draft.settlement.resources.food = 9_000_000;
+              draft.settlement.resources.gold = 30_000;
+            });
+            const note = row(state, 'food').fullNote;
+            expect(note).not.toBeNull();
+            expect(note).not.toMatch(/gaste comida/i);
+            expect(note).toMatch(/ponha parte dos lavradores em outro ofício\.$/i);
+          }
+        }
+      }
+      // Com o Celeiro no teto, sobram as duas saídas que não são obra.
+      const maxed = packed((draft) => {
+        draft.settlement.buildings.townHall = 2;
+        draft.settlement.buildings.granary = buildings.granary.maxLevel;
+        draft.settlement.population.villagers = 8;
+        draft.settlement.workers = { farm: 6, lumberMill: 1, quarry: 0, goldMine: 1 };
+        draft.settlement.resources.food = 9_000_000;
+        draft.settlement.resources.gold = 30_000;
+      });
+      expect(row(maxed, 'food').fullNote).toMatch(
+        /^Celeiro cheio: [\d,]+\/h de comida indo ao chão\. Recrute aldeões ou ponha parte dos lavradores em outro ofício\.$/,
+      );
+    });
   });
 
   it('o desperdício ainda não relatado aparece, e some na virada do dia', () => {

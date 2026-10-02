@@ -738,7 +738,7 @@ test.describe('armazenamento', () => {
     );
     await expect(notes).toHaveCount(1);
     await expect(notes).toContainText(
-      'Celeiro cheio: 64/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
+      'Celeiro cheio: 64/h de comida indo ao chão. Amplie o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.',
     );
     await expect(notes).toContainText('Capacidade de comida: 900 → 1.500.');
     // A ampliação custa mais do que há: o botão espera, com o que falta escrito.

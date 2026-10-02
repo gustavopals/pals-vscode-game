@@ -554,9 +554,10 @@ export type ViewState = {
     fullInSeconds: number | null;
     /**
      * O que os números do limite não dizem, pronto para exibir. Cheio: o que se perde por hora e
-     * o que fazer ("Celeiro cheio: 12/h de comida vão ao chão. Amplie o Celeiro ou gaste
-     * comida."). Enchendo, mas só depois de a taxa mudar: "Não enche antes da virada para o
-     * Outono." `null` no resto do tempo.
+     * o que fazer ("Armazém cheio: 12/h de madeira indo ao chão. Amplie o Armazém ou gaste
+     * madeira."; para a comida, que nenhuma obra custa, "…recrute aldeões ou ponha parte dos
+     * lavradores em outro ofício."). Enchendo, mas só depois de a taxa mudar: "Não enche antes
+     * da virada para o Outono." `null` no resto do tempo.
      */
     fullNote: string | null;
     /** Quanto deixa de entrar por hora real com o estoque cheio; 0 quando nada se perde. */

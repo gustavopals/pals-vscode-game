@@ -1005,7 +1005,8 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
         perHour: 31,
         full: true,
         fullInSeconds: null,
-        fullNote: 'Celeiro cheio: 31/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
+        fullNote:
+          'Celeiro cheio: 31/h de comida indo ao chão. Amplie o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.',
         wastingPerHour: 31,
       },
     );
