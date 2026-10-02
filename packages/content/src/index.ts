@@ -13,6 +13,8 @@ export type {
   SeasonDef,
   SeasonEffects,
   StorageDef,
+  ThreatDef,
+  WatchtowerLevelDef,
 } from './balance';
 export { buildings } from './buildings';
 export type { BuildingDef } from './buildings';
@@ -28,6 +30,7 @@ export {
   foundingTemplates,
   idleVillager,
   moraleBandTemplates,
+  threatMarkTemplates,
 } from './chronicle';
 export type {
   ChroniclePlaceholder,
@@ -47,3 +50,5 @@ export type {
   CouncilOptionRequires,
 } from './council';
 export { councilCards } from './cards';
+export { enemies, startingTiles, tileTypes } from './tiles';
+export type { EnemyDef, TileTypeDef } from './tiles';

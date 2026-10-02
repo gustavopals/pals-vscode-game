@@ -286,6 +286,17 @@ function atPace(view: ViewState, pace: number): ViewState {
       ...decision,
       expiresInSeconds: deadline(decision.expiresInSeconds),
     })),
+    // A Ameaça é a mesma; a próxima subida e a chegada de uma incursão são prazos.
+    threat: view.threat.known
+      ? {
+          ...view.threat,
+          nextRiseInSeconds: up(view.threat.nextRiseInSeconds),
+          incoming:
+            view.threat.incoming === null
+              ? null
+              : { ...view.threat.incoming, inSeconds: up(view.threat.incoming.inSeconds) },
+        }
+      : view.threat,
     winter:
       view.winter === null
         ? null
@@ -364,6 +375,23 @@ function withoutRateTexts(view: ViewState): ViewState {
         ...card,
         options: card.options.map((option) => ({ ...option, effectsText: '' })),
       })),
+    },
+    // As frases da Torre de Vigia citam a antecedência do aviso em tempo real, e a tendência
+    // da Ameaça, quanto dura um dia de jogo: os números são conferidos, as frases, por extenso
+    // em `threat.test.ts`.
+    constructions: {
+      ...view.constructions,
+      available: view.constructions.available.map((entry) =>
+        entry.building === 'watchtower' ? { ...entry, effect: '' } : entry,
+      ),
+      planned: view.constructions.planned.map((entry) =>
+        entry.building === 'watchtower' ? { ...entry, effect: '' } : entry,
+      ),
+    },
+    threat: {
+      ...view.threat,
+      watchtower: { ...view.threat.watchtower, text: '', next: '' },
+      ...(view.threat.known ? { trend: '' } : {}),
     },
   };
 }

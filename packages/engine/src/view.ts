@@ -57,6 +57,7 @@ import {
 } from './seasonView';
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
+import { threatView, watchtowerEffect } from './threatView';
 import type {
   ActiveConstructionView,
   BuildingId,
@@ -156,6 +157,22 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
     : constructionDurationNote(calendarAt(now).season);
 }
 
+/**
+ * O que a obra muda, para ficar ao lado do custo: a capacidade de um depósito, o que a Torre de
+ * Vigia passa a ver. `null` nos edifícios cujo efeito já está em outro lugar da tela.
+ */
+function upgradeEffect(
+  state: GameState,
+  building: BuildingId,
+  targetLevel: number,
+  timeScale: number,
+): string | null {
+  return (
+    storageEffect(state, building, targetLevel) ??
+    watchtowerEffect(building, targetLevel, timeScale)
+  );
+}
+
 function upgradeView(state: GameState, building: BuildingId, timeScale: number): UpgradeView {
   const quote = upgradeQuote(state, building);
   return {
@@ -170,7 +187,7 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
     planned: state.settlement.planned.some((plan) => plan.building === building),
-    effect: storageEffect(state, building, quote.targetLevel),
+    effect: upgradeEffect(state, building, quote.targetLevel, timeScale),
   };
 }
 
@@ -198,7 +215,7 @@ function plannedView(
     blockedCode: null,
     blockedReason: null,
     planned: true,
-    effect: storageEffect(state, building, targetLevel),
+    effect: upgradeEffect(state, building, targetLevel, timeScale),
     autoStart: plan.autoStart,
     waiting: plannedWaiting(state, plan, rates, timeScale, forecast),
   };
@@ -406,5 +423,6 @@ export function deriveViewState(
     winter: winterView(state, firewood),
     objectives: objectivesView(state),
     ...councilView(state, timeScale),
+    threat: threatView(state, timeScale),
   };
 }

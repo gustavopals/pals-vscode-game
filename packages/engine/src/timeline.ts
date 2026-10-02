@@ -19,8 +19,8 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
 
 /**
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
- * virada de dia (que cobre estação, ano, a contagem da experiência do ofício e o sorteio do
- * Conselho), uma carta que expira, um efeito escondido de carta, uma continuação que chega, o
+ * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
+ * Conselho e a subida da Ameaça), uma carta que expira, um efeito escondido de carta, uma continuação que chega, o
  * fim da adaptação de quem trocou de ofício, o momento em que a comida acaba, aquele em que a madeira
  * acaba na lareira, aquele em que um estoque chega ao limite ou aquele em que uma planejada
  * automática junta o custo. Nunca devolve um instante anterior a `lastProcessedAt`.

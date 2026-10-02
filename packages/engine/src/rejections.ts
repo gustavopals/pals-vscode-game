@@ -16,6 +16,8 @@ type RejectionParams = {
   capacity?: number;
   /** O que fazer para a recusa deixar de valer, sem ponto final. */
   remedy?: string;
+  /** Uma frase inteira a mais, depois da recusa: o porquê de um teto que é só desta versão. */
+  note?: string | undefined;
 };
 
 /** "40 madeira e 10 pedra". */
@@ -49,7 +51,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   QUEUE_BUSY: () => 'Os pedreiros já estão ocupados: não há fila de obras livre.',
   // A fila que existe está ocupada e a segunda ainda não abriu: a frase diz o que a abre.
   QUEUE_LOCKED: () => `Os pedreiros já estão ocupados com outra obra. ${SECOND_QUEUE_OPENS}`,
-  MAX_LEVEL: ({ label }) => `${label} já está no nível máximo.`,
+  // `note` é a frase do conteúdo para o teto que é só desta versão do jogo (a Torre de Vigia).
+  MAX_LEVEL: ({ label, note }) =>
+    `${label} já está no nível máximo.${note === undefined ? '' : ` ${note}`}`,
   // `label` é o edifício que falta melhorar, com artigo; quase sempre, o Salão.
   GATE_LOCKED: ({ label = `${townHall.article} ${townHall.label}`, level }) =>
     `Melhore antes ${label} para o nível ${level}.`,

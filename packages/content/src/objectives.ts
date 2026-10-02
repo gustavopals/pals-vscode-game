@@ -35,7 +35,7 @@ export type ObjectiveDef = {
 // GDD §12.2, objetivos 1 a 4, na ordem em que são revelados.
 // O objetivo 4 recompensa o desbloqueio, como no GDD: na v0.1 dava +50 ouro, porque os edifícios
 // ainda não existiam (ADR 0002). Quem libera a obra é o Salão no nível 2 (`requires`, em
-// buildings.ts), que é a própria condição do objetivo; a Torre de Vigia entra na frase com ela.
+// buildings.ts), que é a própria condição do objetivo.
 export const objectives: readonly ObjectiveDef[] = [
   {
     id: 'allocateFarmers',
@@ -64,6 +64,6 @@ export const objectives: readonly ObjectiveDef[] = [
     hint: 'O Salão dita até onde os outros edifícios podem crescer.',
     condition: { type: 'buildingLevel', building: 'townHall', level: 2 },
     reward: {},
-    rewardText: 'desbloqueia o Celeiro e o Armazém',
+    rewardText: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
   },
 ];

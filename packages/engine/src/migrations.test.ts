@@ -2,8 +2,11 @@ import {
   balance,
   BUILDING_IDS,
   DIFFICULTY_IDS,
+  ENEMY_IDS,
   PRODUCTION_BUILDING_IDS,
+  RAID_SIZE_IDS,
   RESOURCE_IDS,
+  TILE_TYPE_IDS,
 } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
@@ -26,7 +29,8 @@ import { stateV3, v3ToV4 } from './migrations/v3';
 import { stateV4, v4ToV5 } from './migrations/v4';
 import { stateV5, v5ToV6 } from './migrations/v5';
 import { stateV6, v6ToV7 } from './migrations/v6';
-import { stateV7 } from './migrations/v7';
+import { stateV7, v7ToV8 } from './migrations/v7';
+import { stateV8 } from './migrations/v8';
 import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
@@ -156,6 +160,21 @@ const FROZEN: Record<string, string> = {
   'state-v7-queues.json': '3ad142cf',
   'state-v7-storage.json': 'bc10045e',
   'state-v7-week-scripted.json': '677e26d8',
+  'state-v8-cold.json': '82fc9306',
+  'state-v8-construction.json': '99f12e83',
+  'state-v8-council-hidden.json': '1a535819',
+  'state-v8-council.json': '93a652f8',
+  'state-v8-crafts.json': '9ae18ac2',
+  'state-v8-famine.json': '233af930',
+  'state-v8-fresh.json': '2f43314a',
+  'state-v8-iron-king-half.json': 'a55298d0',
+  'state-v8-migrated-3x.json': '979a0cb4',
+  'state-v8-morale.json': 'ae198ba9',
+  'state-v8-objectives.json': 'e8227458',
+  'state-v8-peasant-3x.json': '07e4480d',
+  'state-v8-queues.json': '4ed2538f',
+  'state-v8-storage.json': 'b4be1be4',
+  'state-v8-week-scripted.json': '94561e71',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -164,10 +183,11 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 /**
  * Caminhos das chaves de estrutura fixa de um estado, tendo uma partida nova como referência:
  * só desce onde a partida nova também tem um objeto. Listas, campos que nascem `null` e os
- * objetos de chaves livres (`rng`, `stats`, `council.flags`) contam como um campo só.
+ * objetos de chaves livres (`rng`, `stats`, `council.flags`, `map.tiles`) contam como um campo só.
  */
 function fixedKeys(value: unknown, reference: unknown = value, path = ''): string[] {
-  const freeKeys = path === 'rng' || path === 'stats' || path === 'council.flags';
+  const freeKeys =
+    path === 'rng' || path === 'stats' || path === 'council.flags' || path === 'map.tiles';
   if (!isObject(value) || !isObject(reference) || freeKeys) {
     return [];
   }
@@ -186,6 +206,7 @@ const buildingIds: BuildingId[] = [
   'housing',
   'granary',
   'warehouse',
+  'watchtower',
 ];
 
 describe('a lista de passos', () => {
@@ -274,6 +295,43 @@ describe('a forma da versão atual', () => {
         (state.council.delayed = [{ instanceId: 'alms-1', cardId: 'alms', optionId: 'bless' }]),
     ],
     ['uma carta expirada que não é texto', (state) => (state.council.expired = [7])],
+    ['a Torre de Vigia ausente', (state) => delete state.settlement.buildings.watchtower],
+    ['o mapa ausente', (state) => delete state.map],
+    ['o mapa sem a Ameaça', (state) => delete state.map.threat],
+    ['uma Ameaça negativa', (state) => (state.map.threat = -5)],
+    ['uma Ameaça quebrada', (state) => (state.map.threat = 12.5)],
+    ['o mapa com um campo a mais', (state) => (state.map.radius = 3)],
+    [
+      'um tile de um tipo que o motor não conhece',
+      (state) => (state.map.tiles.camp = { type: 'raiderCamp', threatActive: true }),
+    ],
+    [
+      'um tile sem dizer se a ameaça está ativa',
+      (state) => (state.map.tiles.wolfDen = { type: 'wolfDen' }),
+    ],
+    ['as incursões ausentes', (state) => delete state.horde],
+    ['a Horda com um campo a mais', (state) => (state.horde.memory = [])],
+    [
+      'uma incursão sem tamanho',
+      (state) =>
+        (state.horde.scheduledRaids = [
+          { id: 'threat-1', atMs: 7_200_000, kind: 'threat', enemy: 'wolves', announcedAtMs: null },
+        ]),
+    ],
+    [
+      'uma incursão de um inimigo que o motor não conhece',
+      (state) =>
+        (state.horde.scheduledRaids = [
+          {
+            id: 'threat-1',
+            atMs: 7_200_000,
+            kind: 'threat',
+            enemy: 'raiders',
+            size: 'light',
+            announcedAtMs: null,
+          },
+        ]),
+    ],
     ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
     ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
     ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
@@ -411,6 +469,43 @@ describe('a forma da versão atual', () => {
       expired: ['alms-0'],
     };
     expect(currentShape(state, '')).toBeNull();
+  });
+
+  it('conhece os mesmos tiles, inimigos e tamanhos de incursão que o conteúdo', () => {
+    for (const type of TILE_TYPE_IDS) {
+      const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+      state.map.tiles = { a: { type, threatActive: true }, b: { type, threatActive: false } };
+      state.map.threat = 100;
+      expect(currentShape(state, ''), type).toBeNull();
+    }
+    for (const enemy of ENEMY_IDS) {
+      for (const size of RAID_SIZE_IDS) {
+        const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+        state.horde.scheduledRaids = [
+          {
+            id: 'scripted-1',
+            atMs: 108_000_000,
+            kind: 'scripted',
+            enemy,
+            size,
+            announcedAtMs: null,
+          },
+          {
+            id: 'threat-2',
+            atMs: 129_600_000,
+            kind: 'threat',
+            enemy,
+            size,
+            announcedAtMs: 126_000_000,
+          },
+        ];
+        expect(currentShape(state, ''), `${enemy}/${size}`).toBeNull();
+      }
+    }
+    // Um mapa sem tile nenhum também é um mapa.
+    const empty = JSON.parse(JSON.stringify(newGame())) as Draft;
+    empty.map.tiles = {};
+    expect(currentShape(empty, '')).toBeNull();
   });
 
   it('conhece os mesmos edifícios produtivos que o conteúdo, e recusa uma coorte vazia', () => {
@@ -663,8 +758,11 @@ describe('versão 2 → 3', () => {
     delete old.settlement.morale;
     delete old.settlement.moraleEffects;
     delete old.council;
+    delete old.map;
+    delete old.horde;
     delete old.settlement.buildings.granary;
     delete old.settlement.buildings.warehouse;
+    delete old.settlement.buildings.watchtower;
     old.settlement.workers.farm = 5;
     old.settlement.resources.food = 500_000;
     old.settlement.resources.wood = wood;
@@ -847,10 +945,10 @@ describe('versão 3 → 4', () => {
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(view.objectives.find((entry) => entry.id === 'townHallLevel2')).toMatchObject({
       status: 'completed',
-      reward: 'desbloqueia o Celeiro e o Armazém',
+      reward: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
     });
     const storage = view.constructions.available.filter((entry) => entry.fromLevel === 0);
-    expect(storage.map((entry) => entry.building)).toEqual(['granary', 'warehouse']);
+    expect(storage.map((entry) => entry.building)).toEqual(['granary', 'warehouse', 'watchtower']);
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
     }
@@ -1224,6 +1322,12 @@ describe('versão 7 → 8', () => {
   /** A primeira virada de dia a partir de `fronteira + intervalo`. */
   const firstAudience = (boundaryMs: number) => Math.ceil((boundaryMs + INTERVAL) / DAY) * DAY;
 
+  // Só até a versão 8: o que o Conselho mudou, sem o que as versões seguintes acrescentaram.
+  const council: MigrationChain = {
+    steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6, v6ToV7, v7ToV8],
+    shape: stateV8,
+  };
+
   it('a cadência escrita no passo é a do conteúdo de hoje', () => {
     expect(INTERVAL).toBe(balance.council.drawIntervalDays * balance.calendar.dayMs);
     expect(DAY).toBe(balance.calendar.dayMs);
@@ -1234,7 +1338,11 @@ describe('versão 7 → 8', () => {
 
   it.each(version7)('$name: só acrescenta o Conselho, vazio', (fixture) => {
     const before = read(fixture) as unknown as GameState;
-    const after = migrated(fixture);
+    const after = migrateWith(
+      read(fixture),
+      { timeScale: fixture.timeScale },
+      council,
+    ) as unknown as GameState;
     expect(after.schemaVersion).toBe(8);
     expect(after.council).toStrictEqual({
       pending: [],
@@ -1321,6 +1429,108 @@ describe('versão 7 → 8', () => {
     // entre isso e mais um dia de jogo (40 min).
     expect(view.council.nextCardInSeconds).toBeGreaterThanOrEqual(9600);
     expect(view.council.nextCardInSeconds).toBeLessThan(9600 + 2400);
+  });
+});
+
+describe('versão 8 → 9', () => {
+  const version8 = fixtures.filter((fixture) => fixture.version === 8);
+  const DAY = 2 * HOUR;
+  const nextDay = (state: GameState) => (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY;
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v8-fresh.json'));
+    expect(fresh.map).toEqual(newGame().map);
+    expect(fresh.horde).toEqual(newGame().horde);
+    expect(fresh.settlement.buildings).toEqual(newGame().settlement.buildings);
+    expect(Object.keys(fresh.settlement.buildings)).toEqual([...BUILDING_IDS]);
+  });
+
+  it.each(version8)(
+    '$name: só acrescenta a Torre no nível 0, o covil ativo, a Ameaça em zero e nenhuma incursão',
+    (fixture) => {
+      const before = read(fixture) as unknown as GameState;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(9);
+      expect(after.map).toStrictEqual({
+        tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
+        threat: 0,
+      });
+      expect(after.horde).toStrictEqual({ scheduledRaids: [] });
+      expect(after.settlement.buildings).toStrictEqual({
+        ...before.settlement.buildings,
+        watchtower: 0,
+      });
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo ou sorteio muda.
+      const rest: Partial<GameState> = { ...after };
+      delete rest.map;
+      delete rest.horde;
+      expect({ ...rest, schemaVersion: 8, settlement: before.settlement }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      expect({ ...after.settlement, buildings: before.settlement.buildings }).toStrictEqual(
+        before.settlement,
+      );
+    },
+  );
+
+  it.each(version8)(
+    '$name: a Ameaça conta a partir da fronteira e sobe na primeira virada de dia depois dela',
+    (fixture) => {
+      const state = migrated(fixture);
+      const turn = nextDay(state);
+      // Nada acontece na fronteira: nenhuma linha, nenhum sorteio, a Ameaça parada em zero.
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type === 'threatRose')).toEqual([]);
+      expect(atBoundary.state.rng).toEqual(state.rng);
+      expect(advanceTo(state, turn - 1).state.map.threat).toBe(0);
+      // Na primeira virada sobe o que a visão de quem tivesse a Torre prometeria.
+      const first = advanceTo(state, turn).state.map.threat;
+      expect([5, 8]).toContain(first);
+      expect(advanceTo(state, turn + DAY).state.map.threat).toBeGreaterThan(first);
+    },
+  );
+
+  it('uma ausência longa antes da migração não soma Ameaça nenhuma', () => {
+    // O feudo do bot, encontrado no ano 4: a ausência inteira foi simulada sem a Ameaça.
+    const state = migrated(named('state-v8-migrated-3x.json'));
+    expect(state.clock.year).toBeGreaterThan(1);
+    expect(state.map.threat).toBe(0);
+    expect(state.horde.scheduledRaids).toEqual([]);
+  });
+
+  it('a visão de uma partida recém-migrada não mostra a Ameaça: ninguém tinha a Torre', () => {
+    for (const fixture of version8) {
+      const state = migrated(fixture);
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.threat.known, fixture.name).toBe(false);
+      expect(view.threat.incoming).toBeNull();
+      expect(view.threat.watchtower.level).toBe(0);
+    }
+  });
+
+  it('quem já tinha o Salão no nível 2 pode erguer a Torre logo depois da migração', () => {
+    const state = migrated(named('state-v8-week-scripted.json'));
+    expect(state.settlement.buildings.townHall).toBeGreaterThanOrEqual(2);
+    const tower = deriveViewState(state, state.lastProcessedAt).constructions.available.find(
+      (entry) => entry.building === 'watchtower',
+    );
+    expect(tower).toMatchObject({ fromLevel: 0, targetLevel: 1 });
+    expect(tower?.blockedCode).not.toBe('GATE_LOCKED');
+  });
+
+  it('quem ergue a Torre depois da migração vê a Ameaça que subiu desde a fronteira', () => {
+    const migratedState = migrated(named('state-v8-fresh.json'));
+    const rich = JSON.parse(JSON.stringify(migratedState)) as GameState;
+    rich.settlement.buildings.townHall = 2;
+    rich.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
+    const started = applyCommand(rich, command('startConstruction', { building: 'watchtower' }), 0);
+    expect(started.ok).toBe(true);
+    if (!started.ok) {
+      return;
+    }
+    const view = deriveViewState(started.state, 3 * DAY + 5 * MINUTE);
+    expect(view.threat).toMatchObject({ known: true, level: 15, nextLevel: 20 });
   });
 });
 

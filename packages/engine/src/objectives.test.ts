@@ -92,7 +92,7 @@ describe('objetivos', () => {
       '+20 ouro.',
       '+30 madeira.',
       '+40 comida.',
-      'desbloqueia o Celeiro e o Armazém.',
+      'desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     ]);
     expect(state.settlement.buildings.townHall).toBe(2);
   });

@@ -1112,6 +1112,7 @@ describe('a visão do armazenamento', () => {
           housing: 8,
           granary: 8,
           warehouse: 8,
+          watchtower: 2,
         };
         edit(draft);
         draft.settlement.resources.wood = storageCapacity(draft, 'wood') ?? 0;
@@ -1412,6 +1413,9 @@ describe('a visão do armazenamento', () => {
       housing: null,
       granary: 'Capacidade de comida: 500 → 900.',
       warehouse: 'Capacidade de madeira e de pedra: 500 → 900 cada.',
+      // A Torre de Vigia também diz o que dá (threat.test.ts).
+      watchtower:
+        'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
     });
     const iron = gameWith((draft) => {
       draft.settings.difficulty = 'ironKing';
@@ -1426,7 +1430,10 @@ describe('a visão do armazenamento', () => {
 
   it('o Celeiro e o Armazém aparecem na lista de obras desde o começo, com o motivo do bloqueio', () => {
     const available = deriveViewState(newGame(), 0).constructions.available;
-    expect(available.filter((entry) => entry.fromLevel === 0)).toMatchObject([
+    const depots = available.filter(
+      (entry) => entry.fromLevel === 0 && entry.building !== 'watchtower',
+    );
+    expect(depots).toMatchObject([
       {
         building: 'granary',
         label: 'Celeiro',
@@ -1455,12 +1462,12 @@ describe('objetivo 4: a recompensa é o desbloqueio', () => {
     const [completed] = eventsOfType(events, 'objectiveCompleted');
     expect(completed?.data).toEqual({ objective: 'townHallLevel2' });
     expect(completed?.text).toBe(
-      'No 1º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: desbloqueia o Celeiro e o Armazém.',
+      'No 1º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     );
     const view = deriveViewState(state, 0);
     expect(view.objectives.find((entry) => entry.id === 'townHallLevel2')).toMatchObject({
       status: 'completed',
-      reward: 'desbloqueia o Celeiro e o Armazém',
+      reward: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
     });
     // E o que a frase promete é verdade: as duas obras deixam de estar presas ao Salão.
     const blocked = Object.fromEntries(
@@ -1861,6 +1868,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       housing: 9,
       granary: 8,
       warehouse: 8,
+      watchtower: 2,
     });
     expect(unreachable('peasant')).toEqual([
       'farm 10',
@@ -1877,8 +1885,13 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       goldMine: 8,
       housing: 8,
     };
-    expect(ceilings('lord')).toEqual({ ...stuckAtSeven, granary: 8, warehouse: 8 });
-    expect(ceilings('ironKing')).toEqual({ ...stuckAtSeven, granary: 7, warehouse: 7 });
+    expect(ceilings('lord')).toEqual({ ...stuckAtSeven, granary: 8, warehouse: 8, watchtower: 2 });
+    expect(ceilings('ironKing')).toEqual({
+      ...stuckAtSeven,
+      granary: 7,
+      warehouse: 7,
+      watchtower: 2,
+    });
     const beyondSeven = [
       'townHall 8',
       'farm 9–10',

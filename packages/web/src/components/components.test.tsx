@@ -1200,7 +1200,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
 
   it('o objetivo do Salão diz o que ele libera', () => {
     expect(fief({ view: unlockedView })).toContain(
-      'Recompensa: desbloqueia o Celeiro e o Armazém.',
+      'Recompensa: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     );
   });
 });

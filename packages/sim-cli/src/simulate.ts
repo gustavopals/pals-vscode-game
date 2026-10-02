@@ -101,6 +101,11 @@ export type HourRow = {
   /** Idem, contando só as obras que o jogador deixou planejadas. */
   plannedIdle: boolean;
   /**
+   * A Ameaça ao fim da hora, de 0 a 100, **lida do estado**: o simulador mede o mundo, e a
+   * visão só a mostra a quem tem a Torre de Vigia. O bot continua sem vê-la.
+   */
+  threat: number;
+  /**
    * O Conselho até aqui, contado dos eventos: as cartas que chegaram (por sorteio ou como
    * continuação), as que o bot respondeu e as que expiraram sem resposta.
    */
@@ -224,6 +229,7 @@ function rowAt(
     ),
     exhausted: nothingLeftToBuild(view),
     ...idleQueue(view),
+    threat: state.map.threat,
     cards: { ...cards },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },

@@ -137,12 +137,15 @@ describe('advanceTo', () => {
     }
   });
 
-  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, ofício, Conselho, objetivo, fome e frio', () => {
+  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, ofício, Conselho, Ameaça, objetivo, fome e frio', () => {
     // Tudo marcado para a virada do ano: uma obra e um recruta que terminam nela, um ofício que
     // a virada do dia leva ao máximo, um mineiro que termina a adaptação, uma audiência do
-    // Conselho, uma carta cujo prazo acaba, um efeito escondido que acontece, um objetivo que a
-    // obra cumpre, a comida que acaba e o frio que o degelo encerra.
+    // Conselho, a Ameaça que cruza os 40 diante da Torre de Vigia, uma carta cujo prazo acaba,
+    // um efeito escondido que acontece, um objetivo que a obra cumpre, a comida que acaba e o
+    // frio que o degelo encerra.
     const start = gameAt(YEAR_MS - HOUR, (draft) => {
+      draft.map.threat = 35;
+      draft.settlement.buildings.watchtower = 1;
       draft.council.nextDrawAtMs = YEAR_MS;
       draft.council.pending = [
         {
@@ -186,9 +189,11 @@ describe('advanceTo', () => {
       'seasonChanged',
       'dayStarted',
       'craftMastered',
-      // O Conselho: o sorteio é da virada do dia; depois dela, a carta que expira e o efeito
-      // escondido que acontece. O sorteio viu a carta antiga ainda na mesa.
+      // O Conselho: o sorteio é da virada do dia, e a Ameaça sobe logo depois dele; depois da
+      // virada, a carta que expira e o efeito escondido que acontece. O sorteio viu a carta
+      // antiga ainda na mesa.
       'cardDrawn',
+      'threatRose',
       'cardExpired',
       'cardEffectApplied',
       'objectiveCompleted',
@@ -198,6 +203,7 @@ describe('advanceTo', () => {
     expect(events.every((event) => event.atMs === YEAR_MS)).toBe(true);
     expect(state.council.pending.map((entry) => entry.drawnAtMs)).toEqual([YEAR_MS]);
     expect(state.council.delayed).toEqual([]);
+    expect(state.map.threat).toBe(40);
     // A experiência foi contada com o mineiro ainda em adaptação, e já no ano que começa; a
     // adaptação terminou no mesmo instante, sem linha na Crônica.
     expect(state.settlement.craftExperience.goldMine).toBe(100);

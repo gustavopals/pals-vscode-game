@@ -34,7 +34,7 @@ export function objectiveProgress(
 
 /**
  * "+20 ouro", "+20 ouro e +30 madeira"; para a recompensa que não é recurso, o texto do
- * conteúdo: "desbloqueia o Celeiro e o Armazém".
+ * conteúdo: "desbloqueia o Celeiro, o Armazém e a Torre de Vigia".
  */
 export function describeReward({ reward, rewardText }: ObjectiveDef): string {
   const parts = positiveEntries(reward).map(

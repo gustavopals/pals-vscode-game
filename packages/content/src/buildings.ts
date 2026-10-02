@@ -19,11 +19,17 @@ export type BuildingDef = {
    * começar. Vale além da regra geral de nunca passar do nível do Salão mais um.
    */
   readonly requires: Partial<Record<BuildingId, number>>;
+  /**
+   * O que a recusa diz, além de "já está no nível máximo", de um edifício cujo teto é o desta
+   * versão do jogo e não o do GDD: uma frase inteira, sem prometer data.
+   */
+  readonly maxLevelNote?: string;
 };
 
 const MINUTE_MS = 60_000;
 
-// GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5).
+// GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5) e a Torre
+// de Vigia (§8.2). O que cada nível da Torre dá está em `balance.threat.watchtowerLevels`.
 export const buildings: Record<BuildingId, BuildingDef> = {
   townHall: {
     label: 'Salão do Senhor',
@@ -104,5 +110,18 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     maxLevel: 8,
     produces: null,
     requires: { townHall: 2 },
+  },
+  // Vai até o nível 2 nesta versão (ADR 0014, decisão 11): cada nível vendido muda algo que o
+  // jogador vê. Os níveis 3 a 5 do GDD entram com as versões que os usam.
+  watchtower: {
+    label: 'Torre de Vigia',
+    article: 'a',
+    baseCost: { wood: 120, stone: 120, gold: 50 },
+    baseDurationMs: 12 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 2,
+    produces: null,
+    requires: { townHall: 2 },
+    maxLevelNote: 'Os níveis seguintes chegam em versões futuras do jogo.',
   },
 };

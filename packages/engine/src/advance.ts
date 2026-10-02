@@ -18,6 +18,7 @@ import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
+import { turnThreat } from './threat';
 import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
@@ -58,6 +59,8 @@ function processCalendar(
   turnMorale(draft, atMs, events);
   // E, com a moral do dia já calculada (ela é um dos requisitos das cartas), o sorteio do Conselho.
   drawCard(draft, atMs, events, catalog);
+  // Por último a Ameaça: sobe com os tiles ativos e com a estação do dia que acabou.
+  turnThreat(draft, atMs, events);
 }
 
 /** Processa, sobre o rascunho, os eventos discretos de um instante. */
@@ -66,12 +69,12 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
  * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação, o dia, a
- * experiência do ofício, a moral: recálculo, sorteios e deserção, e o sorteio do Conselho), as
- * cartas do Conselho que expiram, os efeitos escondidos que acontecem e as continuações que
- * chegam (`settleCouncil`), fim de adaptação de quem trocou de ofício, início automático das
- * planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao outro)
- * e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
- * `advanceWith` e por `applyCommand` (`announceFilled`).
+ * experiência do ofício, a moral: recálculo, sorteios e deserção, o sorteio do Conselho e a
+ * subida da Ameaça), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e
+ * as continuações que chegam (`settleCouncil`), fim de adaptação de quem trocou de ofício,
+ * início automático das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um
+ * der motivo ao outro) e, por fim, fome e frio. Os estoques que encheram são registrados
+ * depois de tudo, por `advanceWith` e por `applyCommand` (`announceFilled`).
  *
  * `catalog` são as cartas do Conselho: o jogo usa as do conteúdo; outro catálogo só existe em
  * teste (`processEventsWith`).

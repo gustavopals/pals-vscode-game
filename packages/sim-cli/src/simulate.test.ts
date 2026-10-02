@@ -7,10 +7,14 @@ import {
   coldReliefs,
   councilCards,
   craftGuilds,
+  enemies,
   foundingTemplates,
   idleVillager,
   moraleBandTemplates,
   objectives,
+  startingTiles,
+  threatMarkTemplates,
+  tileTypes,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -48,9 +52,10 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,famine,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
-  'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,wolf_losses';
+  'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
+  'threat,wolf_losses';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -106,6 +111,7 @@ describe('CSV de uma partida', () => {
       'cards_seen',
       'cards_answered',
       'cards_expired',
+      'threat',
     ]);
     expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(new Set(['V2E-T3']));
     const header = HEADER.split(',');
@@ -243,6 +249,7 @@ describe('CSV de uma partida', () => {
       ['townHall4', 'Salão Nv4'],
       ['granary', 'Celeiro'],
       ['warehouse', 'Armazém'],
+      ['watchtower', 'Torre de Vigia'],
     ]);
     // A hora de um marco é a primeira linha em que o edifício aparece no nível.
     for (const { id, building, level } of MILESTONES) {
@@ -260,8 +267,14 @@ describe('CSV de uma partida', () => {
     );
     expect(summary.autoStarted).toBeGreaterThan(10);
     expect(formatSummary(twoSessions)).toMatch(
-      /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+ · \d+ obras começaram sozinhas · /,
+      /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+, Torre de Vigia na hora \d+ · \d+ obras começaram sozinhas · /,
     );
+    // A Ameaça é medida no estado, com ou sem Torre; a linha diz se o jogador chegou a vê-la.
+    expect(summary.threat).toEqual({ final: 100, max: 100, watchtower: 2 });
+    expect(formatSummary(twoSessions)).toContain(
+      `Ameaça: 100 no fim (máxima 100) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
+    );
+    expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 5, 5, 10]);
     expect(formatSummary(twoSessions)).toContain(
       `População: ${summary.villagers} de ${summary.capacity} vagas (mínima ${summary.villagersMin})\n`,
     );
@@ -515,6 +528,10 @@ describe('resumo de uma partida', () => {
             moraleBandTemplates,
             idleVillager,
             councilCards,
+            tileTypes,
+            startingTiles,
+            enemies,
+            threatMarkTemplates,
           }),
         )
         .digest('hex')
@@ -527,7 +544,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
+      'Políticas: erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
     );
   });
 
