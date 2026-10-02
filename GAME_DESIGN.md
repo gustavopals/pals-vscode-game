@@ -1,7 +1,7 @@
 # Lords of the Guild — Game Design Document (GDD)
 
 > **Status:** design consolidado / base para desenvolvimento com agentes de código (Codex, Claude Code)  
-> **Versão do documento:** 0.6 (correções de fato depois da implantação: ritmo 3× nas partidas novas do MVP, Crônica sem viradas de dia, `features` em `GET /version`, produção no Coolify; escopo do jogo permanece v0.1)\
+> **Versão do documento:** 0.7 (as regras da v0.2 passam a dizer o que os ADRs 0013 e 0014 fixaram: leitura dos tempos, ritmos, estações, armazenamento, moral, filas, Conselho, Ameaça e lobos; decisões aplicadas por delegação do autor, aguardando confirmação)\
 > **Idioma:** português (Brasil)  
 > **Plataforma inicial:** app web no navegador, com aparência de editor de código (cliente) + servidor Node.js com PostgreSQL (contas e progresso online)  
 > **Gênero:** estratégia e gerenciamento medieval assíncrono, com RPG de guilda e batalhas táticas por formação  
@@ -23,6 +23,7 @@
 - Mudanças documentais da 0.4: §14.5–14.10 e critérios de §16.1; decisões registradas em [ADRs 0003–0005](docs/decisions/README.md). Os contratos desta revisão estão refletidos no `MVP-ROADMAP.md` desde a versão 1.1 e foram implementados na Fase 2 (servidor) e na Fase 3 (cliente).
 - Mudança da 0.5: o cliente deixa de ser uma extensão do VS Code e passa a ser um **app web com aparência de editor** ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)). Mudam §1, §13, §14.1, §14.2, §14.7 (vínculo GitHub), §14.10, §14.12–14.14, §16.1, §17 e §18. Regras de jogo, motor, servidor e contratos da API não mudam, com exceção das duas rotas novas do vínculo GitHub (§14.5).
 - Mudanças da 0.6 (correções de fato, sem regra nova): nota sobre o ritmo do MVP em §4.2 ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)); versões dos comandos em §13.6; `GET /catalog`, `GET /version` e a Crônica em §14.5 ([ADRs 0007 e 0010](docs/decisions/README.md)); `GAME_TIME_SCALE` em §14.13; ritmo, hospedagem e critério 7 em §16.1 ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)); a página de apresentação citada em §14.2 e §14.13 ([ADR 0012](docs/decisions/0012-pagina-de-apresentacao.md)).
+- Mudanças da 0.7 (as regras da v0.2, fechadas nos ADRs [0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md)): §4.1 (estações como fatores de duração, lenha e frio), §4.2 (ritmos e leitura dos tempos), §5.3 (fatores da produção), §5.4 (troca de ofício), §5.5 (caps), §5.6 (deserção e piso de população), §5.7 (moral), §6.1 (Torre e Paliçada até o nível 2), §6.3 (segunda fila e início automático), §7, §7.1 e §7.2 (cadência, expiração, opção automática, lote de cartas), §8.2 (Ameaça e lobos), §12.1 e §12.2 (dificuldades e objetivos 5 a 10), §13.9 (boas-vindas), §14.5 (`GET /catalog`, `POST /games`, protocolo 2) e §16.2 (critérios da v0.2), com os ajustes de frase que decorrem delas em §14.4, §14.11, §15.2, §15.4, §16 e §18.2. As decisões foram **aplicadas por delegação do autor em 2026-10-01**, com a premissa recomendada de cada uma, e **aguardam a confirmação dele**, decisão a decisão, em [docs/pendencias-v0.2.md](docs/pendencias-v0.2.md): uma resposta diferente muda o conteúdo, o golden e este documento no mesmo commit.
 
 ### Índice
 
@@ -150,24 +151,36 @@ Jogadores mais ativos chegam aos desbloqueios antes (gate por nível do Salão),
 
 | Estação | Comida | Madeira | Pedra | Ouro | Outros efeitos |
 |---|---:|---:|---:|---:|---|
-| Primavera | ×1,2 | ×1,0 | ×1,0 | ×1,0 | Recrutamento de aldeões 20% mais rápido |
-| Verão | ×1,0 | ×1,15 | ×1,15 | ×1,0 | Expedições 15% mais rápidas |
-| Outono | ×1,3 | ×1,0 | ×1,0 | ×1,1 | Colheita; presságios; preço da comida sobe 30% |
-| Inverno | ×0,4 | ×0,8 | ×0,8 | ×1,0 | **Lenha:** 0,5 madeira por habitante/h; obras 50% mais lentas; cerco |
+| Primavera | ×1,2 | ×1,0 | ×1,0 | ×1,0 | Recrutamento de aldeões **ordenado** na primavera dura ×0,8 |
+| Verão | ×1,0 | ×1,15 | ×1,15 | ×1,0 | Expedições 15% mais rápidas `[v0.3]` |
+| Outono | ×1,3 | ×1,0 | ×1,0 | ×1,1 | Colheita; Ameaça +3 por dia de jogo (§8.2); presságios `[v0.4]`; preço da comida sobe 30% `[v0.3]` |
+| Inverno | ×0,4 | ×0,8 | ×0,8 | ×1,0 | **Lenha:** 0,5 madeira por habitante por hora de jogo; obras **iniciadas** no inverno duram ×1,5; cerco `[v0.4]` |
 
-Sem lenha no inverno: moral −20 e produção ×0,8 ("frio"). Sem comida: regras de escassez (§5.6).
+Os multiplicadores de produção valem a partir do instante exato da virada de estação. Os efeitos sobre prazos são **fatores de duração fixados no início** ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 13):
+
+- Uma obra **iniciada** no inverno dura ×1,5. As que já estavam em curso na virada mantêm o prazo com que começaram, e uma obra iniciada no inverno não encurta quando a primavera chega.
+- Um recrutamento **ordenado** na primavera dura ×0,8. O que foi ordenado em outra estação mantém o prazo.
+- Nenhum prazo é recalculado na virada de estação: a linha do tempo fica simples e a divisão de intervalo continua exata (§14.3).
+
+**Lenha e frio.** No inverno a madeira tem um consumo contínuo de 0,5 por habitante por hora de jogo, somado ao saldo da madeira como o consumo de comida é somado ao da comida. No **instante exato** em que a madeira acaba abre o **frio**: produção ×0,8 em todos os recursos e moral −20 (termo da §5.7). O frio termina quando volta a haver madeira (ou saldo positivo de madeira) e sempre na virada para a primavera. O começo e o fim do frio são registrados na Crônica. Sem comida: regras de escassez (§5.6).
 
 ### 4.2 Ritmos `[v0.2]`
 
-| Ritmo | Duração do ano | Para quem |
-|---|---|---|
-| Normal | 7 dias | Padrão: uma semana, um ano |
-| Rápido | 3,5 dias | Quem joga muitas vezes por dia; testes |
-| Tranquilo | 14 dias | Quem abre o editor 1 vez por dia |
+| Ritmo | `timeScale` | Duração do ano | Dia de jogo | Para quem |
+|---|---:|---|---|---|
+| Rápido (**recomendado**) | 3 | 56 horas ("um ano em 56 horas") | 40 min reais | Quem joga várias vezes por dia e quer ver o inverno nesta semana |
+| Normal | 1 | 7 dias ("um ano em 7 dias") | 2 h reais | Uma semana, um ano: o ritmo em que os números deste documento estão escritos |
+| Tranquilo | 0,5 | 14 dias ("um ano em 14 dias") | 4 h reais | Quem abre o jogo 1 vez por dia |
 
-Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo real em tempo de jogo com um fator `timeScale` (1, 2 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
+O ritmo de 2× das versões anteriores deste documento saiu da lista: ninguém jogou nele, e a produção roda no 3× desde o MVP ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 2).
 
-> **Ritmo do MVP (v0.1, [ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)).** As partidas novas nascem com `timeScale` 3: o dia de jogo dura 40 minutos reais e o ano, 56 horas. O fator vem da configuração do servidor (`GAME_TIME_SCALE`, de 0,5 a 10, padrão 3), fica gravado na partida ao criá-la e não muda nas que já existem. O motor continua em tempo de jogo, com os números deste documento; o `ViewState` mostra prazos e taxas em tempo real. A escolha do ritmo pelo jogador continua na v0.2.
+Implementação: o motor roda em **tempo de jogo**; o servidor converte tempo real em tempo de jogo com um fator `timeScale` (3, 1 ou 0,5). Todos os valores deste documento estão no ritmo Normal. O ritmo é escolhido na criação da partida e não muda durante o ano.
+
+**Como os tempos deste documento se leem fora do ritmo Normal** (ADR 0013, decisão 1). Todo prazo de regra é **tempo de jogo** e escala com o ritmo: a adaptação de ofício (1 dia de jogo, §5.4), a fome antes da deserção (12 h de jogo, §5.6), os efeitos de moral "por N dias" (dias de jogo, §5.7), a cadência do Conselho (4 dias de jogo, §7.1), a duração de obras e de recrutamento. O que este documento escreve como "2 h" de uma regra dessas são 2 h reais no ritmo Normal e 40 min no Rápido. A **única** regra em tempo real desta versão é a expiração da carta do Conselho: 24 h reais em qualquer ritmo (§7.1), porque é a única janela que depende de uma pessoa responder. No conteúdo, constantes em tempo de jogo terminam em `Ms` e as de tempo real, em `RealMs`; o motor só conhece tempo de jogo, e um prazo real é convertido com `settings.timeScale` no instante em que nasce.
+
+**De onde vem o padrão** (ADR 0013, decisão 2a). O corpo de `POST /games` sem `timeScale` usa `GAME_TIME_SCALE`, a configuração do servidor (3 em produção, 1 nos testes); sem `difficulty`, usa `lord`. Com os campos, valem os valores enviados, que têm de estar entre os do conteúdo (`400 VALIDATION` se não estiverem). As opções das boas-vindas (rótulos, descrições e padrões) chegam ao app por `GET /v1/catalog` (§14.5): o app não escreve número de regra.
+
+> **Histórico: o ritmo do MVP (v0.1, [ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)).** Na v0.1 o jogador não escolhia o ritmo: as partidas novas nasciam com `timeScale` 3 (dia de jogo de 40 minutos reais, ano de 56 horas), vindo da configuração do servidor (`GAME_TIME_SCALE`, de 0,5 a 10, padrão 3) e gravado na partida ao criá-la. Essas partidas continuam no ritmo em que nasceram. O motor sempre esteve em tempo de jogo, com os números deste documento, e o `ViewState` mostra prazos e taxas em tempo real. Com a escolha do ritmo na v0.2, `GAME_TIME_SCALE` passa a ser só o padrão de quem não escolhe.
 
 ### 4.3 Hora da Vigília `[v0.4]`
 
@@ -207,18 +220,25 @@ Comida, madeira, pedra e ferro têm **capacidade de armazenamento** (§5.5). Our
 ### 5.3 Fórmulas
 
 ```
-produção/h (por edifício) = trabalhadores × taxa_base × bônus_nível × estação × moral × mestria
+produção/h (por edifício) = trabalhadores × taxa_base × bônus_nível × estação × moral × mestria × fome × frio
+trabalhadores              = adaptados + em_adaptação × 0,5                 [v0.2, ver 5.4]
 bônus_nível                = 1 + 0,20 × (nível − 1)
-moral (multiplicador)      = 0,75 + 0,5 × (moral / 100)          → moral 50 = ×1,0 ; 100 = ×1,25 ; 0 = ×0,75
+estação                    = fator da tabela da §4.1                        [v0.2]
+moral (multiplicador)      = 0,75 + 0,5 × (moral / 100) = (150 + moral) / 200   → moral 50 = ×1,0 ; 100 = ×1,25 ; 0 = ×0,75   [v0.2]
 mestria                    = 1 + 0,30 × (experiência_do_ofício / 100)   [v0.2, ver 5.4]
+fome                       = 0,75 enquanto há fome (§5.6) ; senão 1
+frio                       = 0,8 enquanto há frio (§4.1) ; senão 1          [v0.2]
 comida líquida/h           = produção − habitantes × 1 − soldados × 1,5
+madeira líquida/h          = produção − habitantes × 0,5 no inverno (lenha, §4.1)   [v0.2]
 ```
+
+`[v0.2]` A produção de um edifício é **uma conta só**, em frações, com **um arredondamento para baixo no fim**: a ordem dos fatores não muda o resultado, e cada fator aparece na explicação do número ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 13a).
 
 ### 5.4 Trabalhadores
 
 - Cada aldeão é **habitante** e pode ser **trabalhador** em um edifício produtivo, **recruta** em treinamento ou **soldado** (soldados não produzem e comem mais). Heróis **não** contam como população.
 - `[v0.1]` Realocar é imediato e gratuito.
-- `[v0.2]` **Troca de ofício:** trabalhadores recém-realocados produzem 50% por 1 dia de jogo (2 h). Cada edifício produtivo acumula **experiência do ofício** (0 – 100): +4 por dia de jogo com ao menos metade dos postos ocupados, −8 por dia de jogo vazio. Bônus máximo +30%. Efeito desejado: especializar compensa; ficar trocando a toda hora custa.
+- `[v0.2]` **Troca de ofício:** trabalhadores recém-realocados produzem 50% por **1 dia de jogo**. O prazo é tempo de jogo e escala com o ritmo (§4.2): 2 h reais no Normal, 40 min no Rápido. Cada edifício produtivo acumula **experiência do ofício** (0 – 100), contada na virada de cada dia de jogo: +4 por dia de jogo **ocupado**, −8 por dia de jogo vazio. Conta como ocupado no dia o edifício que, na virada, tem ao menos `nível` trabalhadores (um por nível do edifício). **Não há limite de postos** por edifício: "metade dos postos", das versões anteriores deste documento, deu lugar a esse critério ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 13). Bônus máximo +30% (mestria, §5.3). Efeito desejado: especializar compensa; ficar trocando a toda hora custa.
 - `[v0.3]` **Mestres:** aldeões nomeados e raros (cartas, expedições) que ocupam um posto e dão +15% ao edifício.
 
 ### 5.5 Armazenamento `[v0.2]`
@@ -226,14 +246,26 @@ comida líquida/h           = produção − habitantes × 1 − soldados × 1,5
 | Edifício | Capacidade nível 1 | Por nível adicional |
 |---|---:|---:|
 | Celeiro (comida) | 900 | +600 |
-| Armazém (madeira, pedra, ferro — cada) | 900 | +600 |
+| Armazém (madeira e pedra — cada; ferro a partir da `[v0.4]`) | 900 | +600 |
 
-Produção acima do limite é perdida e gera a linha "Celeiro cheio: 120 comida desperdiçadas" no Relatório. O painel mostra **"cheio em 7 h"** para que o jogador planeje a próxima sessão. Limites tornam o progresso offline previsível e impedem acúmulo infinito.
+```
+cap = máx(500, capacidade do edifício) × fator da dificuldade        (em milésimos, arredondado para baixo)
+```
+
+Os 500 são a capacidade inicial de cada recurso (§5.2), que vale enquanto o edifício não existe; o fator da dificuldade é ×1,25, ×1,0 ou ×0,8 (§12.1). O ouro não tem cap. Contrato ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 4 e 17):
+
+- Produção acima do cap é **desperdício contado**: o estoque para no cap e o que deixou de entrar soma no total do dia. Há um evento de desperdício por dia de jogo, com os totais por recurso, e é ele que gera a linha "Celeiro cheio: 120 comida desperdiçadas" no Relatório.
+- Ganhos discretos (recompensa de objetivo, devolução de cancelamento, efeito de carta) são cortados no cap, e o corte também é contado.
+- **Estoque herdado:** em uma partida migrada da v0.1, o estoque que já estava acima do cap **fica**; só deixa de receber produção enquanto estiver acima. Nada é cortado na migração.
+- O painel mostra **"cheio em 7 h"** para que o jogador planeje a próxima sessão.
+
+Limites tornam o progresso offline previsível e impedem acúmulo infinito.
 
 ### 5.6 Escassez
 
-- Recursos nunca ficam negativos. Se a comida não cobre um intervalo, aplica-se só o disponível, registra-se o **momento exato** em que acabou (determinístico) e a partir dali: recrutamento e treinamento pausam, produção ×0,75, moral −2 por dia de jogo faminto.
-- `[v0.2]` Após 12 h de fome contínua, 1 aldeão abandona o feudo por dia de jogo (não em dificuldade Camponês).
+- Recursos nunca ficam negativos. Se a comida não cobre um intervalo, aplica-se só o disponível, registra-se o **momento exato** em que acabou (determinístico) e a partir dali: recrutamento e treinamento pausam, produção ×0,75, moral −2 por dia de jogo inteiro de fome contínua (somado ao −20 da fome, §5.7).
+- `[v0.2]` Após **12 h de jogo** de fome contínua (6 dias de jogo: 12 h reais no ritmo Normal, 4 h no Rápido), 1 aldeão deserta por dia de jogo (não na dificuldade Camponês).
+- `[v0.2]` **Piso de 3 aldeões:** nenhuma partida ou deserção leva a população abaixo de 3, seja por fome, seja por moral baixa (§5.7). É a proteção mínima, e visível, contra a espiral de fome, frio, moral e lobos ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 19).
 - A fome **não** destrói edifícios nem heróis. É uma pressão, não um game over.
 
 ### 5.7 Moral `[v0.2]`
@@ -242,17 +274,21 @@ Moral vai de 0 a 100 e é recalculada na virada de cada dia de jogo:
 
 ```
 moral = 50
-      + 10 se o estoque de comida cobre 24 h  |  −20 se há fome
+      + 10 se o estoque de comida cobre 24 h de jogo
+      − 20 se há fome, mais −2 por dia de jogo inteiro de fome contínua
       − 10 se população ≥ capacidade habitacional
-      + 5 × nível da Taverna
-      + 15 durante festival (dura 1 dia real)
-      + 10 × relíquias de moral
-      − 10 por incursão sofrida com perdas nos últimos 2 dias reais
-      + ajustes de cartas (duram o que a carta disser)
+      − 20 se há frio (§4.1)
+      − 10 por 2 dias de jogo depois de uma incursão sofrida com perdas (§8.2)
+      + ajustes de cartas (duram os dias de jogo que a carta disser)
+      + 5 × nível da Taverna                                     [v0.3]
+      + 15 durante festival (dura 24 h de jogo)                  [v0.3]
+      + 10 × relíquias de moral                                  [v0.5]
       → limitar entre 0 e 100
 ```
 
-Efeitos: multiplicador de produção (§5.3); moral ≥ 80 dá 20% de chance diária de um colono gratuito chegar (se houver vaga); moral ≤ 25 dá 20% de chance diária de um aldeão partir. Faixas exibidas: Desesperado (0–24), Inquieto (25–49), Contente (50–74), Orgulhoso (75–100).
+Os termos sem tag são os da v0.2 ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 19); todos os prazos são de jogo e escalam com o ritmo (§4.2). O frio abre e fecha em instantes exatos, mas o termo dele, como os outros, só entra na moral na virada seguinte.
+
+Efeitos: multiplicador de produção (§5.3), `(150 + moral) / 200`. Na virada do dia, depois do recálculo: moral ≥ 80 dá 20% de chance de um colono gratuito chegar (se houver vaga); moral ≤ 25 dá 20% de chance de um aldeão partir, respeitado o piso de 3 aldeões (§5.6). Faixas exibidas: Desesperado (0–24), Inquieto (25–49), Contente (50–74), Orgulhoso (75–100).
 
 ### 5.8 Cálculo offline
 
@@ -280,8 +316,8 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Habitações | — | 10 | +5 de capacidade por nível | v0.1 |
 | Celeiro | Salão 2 | 8 | Capacidade de comida | v0.2 |
 | Armazém | Salão 2 | 8 | Capacidade de madeira, pedra e ferro | v0.2 |
-| Torre de Vigia | Salão 2 | 5 | Revela mapa (raio 1 + nível/2); aviso prévio de incursão; presságios mais claros; a partir do Nv3 dispara contra inimigos (§10.4) | v0.2 |
-| Paliçada / Muralha | Salão 3 | 6 | HP de muralha em batalha: Nv1–2 Paliçada (madeira), Nv3–4 Muralha de Pedra, Nv5–6 Baluarte | v0.2 (Nv1–2) / v0.4 |
+| Torre de Vigia | Salão 2 | 5 (2 na v0.2) | **Na v0.2:** Nv1 mostra a Ameaça com a explicação e avisa de uma incursão 1 h de jogo antes; Nv2 avisa 2 h de jogo antes e diz o tamanho (§8.2). **Depois:** revela mapa (raio 1 + nível/2) `[v0.5]`; presságios mais claros e, a partir do Nv3, dispara contra inimigos (§10.4) `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
+| Paliçada / Muralha | Salão 3 | 6 (2 na v0.2) | **Na v0.2:** Paliçada Nv1 segura as incursões leves (sem perda nem ferido) e corta pela metade a perda de uma média, com 1 ferido; Nv2 segura também as médias (§8.2). **Depois:** HP de muralha em batalha: Nv1–2 Paliçada (madeira), Nv3–4 Muralha de Pedra, Nv5–6 Baluarte `[v0.4]` | v0.2 (Nv1–2) / v0.4 |
 | Taverna | Salão 3 | 5 | +5 moral por nível; rotação diária de heróis para contratar; festivais | v0.3 |
 | Mercado | Salão 3 | 5 | Comércio; caravanas a partir do Nv2 | v0.3 |
 | Guilda dos Aventureiros | Salão 3 | 5 | Expedições; expedições simultâneas = 1 + nível/2 (arredondado para baixo); gestão de equipamentos | v0.3 |
@@ -292,6 +328,8 @@ A cada leitura ou comando novo de uma partida, o **servidor** avança o estado d
 | Academia | Salão 6 | 5 | Pesquisas (árvore curta, §17.3) | v0.6 |
 
 Regra de gate: um edifício nunca pode ultrapassar `nível do Salão + 1`.
+
+`[v0.2]` Torre de Vigia e Paliçada vão **até o nível 2** nesta versão: cada nível vendido muda algo que o jogador vê, e os níveis seguintes entram com as versões que os usam ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 11).
 
 ### 6.2 Custos e tempos
 
@@ -325,7 +363,7 @@ O limite de 8 h garante que **nenhuma obra exige mais que uma noite**.
 ### 6.3 Regras de construção
 
 - `[v0.1]` Uma fila com uma obra ativa. Outras melhorias podem ser **planejadas** (ficam na lista com custo visível) mas não começam sozinhas.
-- `[v0.2]` Salão Nv4 abre uma segunda fila. Planejadas podem ser marcadas como **"iniciar quando houver recursos"** (começam automaticamente na virada de segmento em que os recursos existirem, na ordem da lista).
+- `[v0.2]` Salão Nv4 abre uma segunda fila. Planejadas podem ser marcadas como **"iniciar quando houver recursos"**. As automáticas são tentadas **na ordem da lista, pulando as bloqueadas** (uma planejada que não pode começar não segura as seguintes), em três ocasiões: depois de todo comando; depois de todo evento que muda recursos ou filas; e no instante em que a produção passa a cobrir o custo, que é um evento da linha do tempo (§5.8). Uma planejada só espera por recursos se o custo couber no cap (§5.5). Com essa regra o resultado offline não depende de como o intervalo foi dividido ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 18). As planejadas de uma partida migrada da v0.1 continuam manuais.
 - Custos são descontados ao iniciar; o efeito vale só ao concluir. Cancelar devolve 80% dos recursos.
 - Não é possível melhorar o mesmo edifício em duas filas ao mesmo tempo, nem iniciar sem recursos ou pré-requisitos.
 - `[v0.4]` Obras de **reparo** (muralha e torres danificadas) custam 50% da pedra do nível atual e levam 15 min por 25% de HP; têm prioridade na fila.
@@ -336,17 +374,23 @@ O limite de 8 h garante que **nenhuma obra exige mais que uma noite**.
 
 ## 7. Conselho do Feudo: cartas, dilemas e cadeias narrativas `[v0.2]`
 
-O Conselho é o motor de **narrativa e variedade diária**. A cada 4 dias de jogo (8 h reais) o jogador recebe uma **carta**: uma situação com 2 ou 3 opções, cada uma com custos e consequências claras, algumas com efeitos adiados ou sigilosos ("há rumores de que…").
+O Conselho é o motor de **narrativa e variedade diária**. A cada 4 dias de jogo (8 h reais no ritmo Normal; 2 h 40 no Rápido) o jogador recebe uma **carta**: uma situação com 2 ou 3 opções, cada uma com custos e consequências claras, algumas com efeitos adiados ou sigilosos ("há rumores de que…").
 
 ### 7.1 Regras
 
-- Máximo de **2 cartas pendentes**. Com 2 pendentes, novas cartas não são sorteadas (o tempo "congela" para o Conselho, não para o mundo).
-- Uma carta **expira em 24 h reais**; ao expirar, aplica-se a opção marcada como padrão (sempre a mais conservadora).
-- Sorteio ponderado entre cartas **elegíveis**: estação, dia mínimo, edifícios existentes, nível do Salão, faixa de moral e **flags** (marcadores narrativos deixados por cartas anteriores). Cartas roteirizadas (ex.: a que entrega o primeiro herói) têm data fixa e furam o sorteio.
-- Cada carta aparece **no máximo uma vez por ano**, exceto as marcadas como recorrentes (impostos, mercador).
-- **Cadeias:** uma carta pode gravar uma flag que habilita uma continuação dias depois. Meta: 5 cadeias de 2–3 cartas no primeiro ano ("O Mercador Misterioso", "O Lobo Branco", "A Filha do Ferreiro", "Os Refugiados", "O Cobrador do Rei").
+Prazos, ordem e conteúdo da v0.2 estão fechados no [ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md) (decisões 1, 7, 8, 9, 18 e 20).
+
+- **Cadência:** um sorteio a cada **4 dias de jogo**. A cadência é **ancorada**: o instante do próximo sorteio avança de intervalo em intervalo (`nextDrawAtMs += intervalo`) sempre, e não a partir da última resposta do jogador.
+- Máximo de **2 cartas pendentes**. Com 2 pendentes, o sorteio daquele instante é **pulado** e o seguinte acontece no próximo instante da cadência: cartas não se acumulam, e o resultado offline não depende de como o intervalo foi dividido.
+- Uma carta **expira em 24 h reais, em qualquer ritmo**: o prazo é convertido para tempo de jogo no instante do sorteio (`expiresAtMs = instante do sorteio + 24 h × timeScale`). É o único prazo de tempo real desta versão (§4.2). Ao expirar, aplica-se a **opção automática da dificuldade**, marcada na própria carta (`autoResolve`, §7.2 e §12.1); as opções marcadas não têm custo nem requisito. A expiração é resolvida **antes** de um comando no mesmo instante: a resposta que chega junto é recusada com `CARD_EXPIRED`.
+- Sorteio ponderado entre cartas **elegíveis**: estação, dia mínimo, edifícios existentes, nível do Salão, faixa de moral e **flags** (marcadores narrativos deixados por cartas anteriores). Cartas roteirizadas (ex.: a que entrega o primeiro herói) têm data fixa e furam o sorteio. Na v0.2 **nenhuma carta é roteirizada**: a que entrega o primeiro herói fica para a `[v0.3]`.
+- Cada carta aparece **no máximo uma vez por ano**, exceto as marcadas como recorrentes (impostos, mercador). Na **virada de ano**, a lista das cartas vistas no ano (`seenThisYear`) zera; flags, cartas pendentes, continuações agendadas, efeitos em curso, obras e recursos continuam: a história não se apaga nem dobra recompensas.
+- **Cadeias:** uma carta pode gravar uma flag que habilita uma continuação dias depois. Uma continuação agendada tem **prioridade** sobre o sorteio e não é bloqueada por ele: chega no primeiro instante, a partir do prazo dela, em que houver menos de 2 pendentes. Meta: 5 cadeias de 2–3 cartas no primeiro ano ("O Mercador Misterioso", "O Lobo Branco", "A Filha do Ferreiro", "Os Refugiados", "O Cobrador do Rei").
+- Efeitos "por N dias" contam **dias de jogo**.
+- `[v0.2]` **O que uma carta pode fazer nesta versão.** Efeitos: recursos (ganho cortado no cap, com o corte contado, §5.5), moral com duração em dias de jogo, gravar e apagar flag, agendar outra carta. Requisitos: estação, dia mínimo, edifícios, flags, faixa de moral. Efeitos ocultos têm sempre uma pista e viram evento no instante em que acontecem; nunca saem no `ViewState`. Ficam fora: herói, traço, unidades, mapa, Mercado, ferro, combate.
+- `[v0.2]` **Lote de cartas:** a v0.2 entrega o primeiro lote, de **21 cartas** (3 cadeias de 3 cartas e 12 avulsas), inventariado em `docs/content-v0.2.md`. As cartas foram escritas pelo agente e estão no jogo como rascunho: a aprovação carta a carta pelo autor está pendente ([docs/pendencias-v0.2.md](docs/pendencias-v0.2.md)). A **meta de 60 cartas** do primeiro ano (§7.2) está mantida e fica para o lote seguinte.
 - Toda opção deve ser **a melhor em algum contexto**. Se uma opção é sempre dominante, a carta está mal escrita.
-- Traços de heróis (§9.2) e edifícios podem **abrir opções extras** ("Negociar — requer herói Carismático").
+- Traços de heróis (§9.2) `[v0.3]` e edifícios podem **abrir opções extras** ("Negociar — requer herói Carismático").
 
 ### 7.2 Estrutura de dados (conceitual)
 
@@ -361,17 +405,20 @@ type CouncilCard = {
     seasons?: Season[]; minDay?: number; buildings?: Partial<Record<Building, number>>;
     flags?: string[]; notFlags?: string[]; moralRange?: [number, number]; heroTrait?: HeroTrait;
   };
-  scripted?: { atGameDay: number };  // fura o sorteio
+  scripted?: { atGameDay: number };  // fura o sorteio (nenhuma carta da v0.2 usa)
+  autoResolve: { peasant: string; lord: string; ironKing: string };  // id da opção aplicada ao expirar, por dificuldade
   options: Array<{
-    id: string; label: string; isDefault?: boolean;
+    id: string; label: string;
     requires?: { heroTrait?: HeroTrait; building?: Building; resources?: Partial<Record<Resource, number>> };
     effects: Effect[];               // recursos, moral (com duração), flags, spawnEvent (adiado), reveal, addHero, addUnits…
-    hiddenEffects?: Effect[];        // revelados só no relatório, após a escolha
+    hiddenEffects?: Effect[];        // sempre com uma pista; viram evento no instante em que acontecem
   }>;
 };
 ```
 
-Exemplos completos no Apêndice B. Meta de conteúdo para o primeiro ano: **60 cartas** (incluindo as 5 cadeias e 6 roteirizadas).
+`autoResolve` substitui a antiga marca de opção padrão (`isDefault`): cada carta diz, **editorialmente**, qual opção vale ao expirar em cada dificuldade (§12.1). As três opções indicadas existem na carta e não têm custo nem requisito, para que a expiração nunca cobre o que o jogador não tem. O motor não calcula "melhor" nem "pior" ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 9). Na v0.2, `Effect` é só o que a §7.1 lista; `heroTrait`, `reveal`, `addHero` e `addUnits` são de versões futuras.
+
+Exemplos completos no Apêndice B. Meta de conteúdo para o primeiro ano: **60 cartas** (incluindo as 5 cadeias e 6 roteirizadas); a v0.2 entrega o primeiro lote, de 21 (§7.1).
 
 ---
 
@@ -389,12 +436,17 @@ Até a `v0.5`, o mapa gráfico não existe: tiles de ameaça e destinos de exped
 
 ### 8.2 Ameaça e incursões `[v0.2 lobos]` `[v0.4 completo]`
 
-- **Ameaça** (0–100) é exibida na Torre de Vigia. Sobe +5 por dia de jogo para cada tile de ameaça ativo (covil, acampamento) e +3 por dia de jogo no outono. Cai −30 ao limpar um tile e −10 ao repelir uma incursão.
-- **Incursões roteirizadas** (sempre acontecem, ritmo Normal): lobos no dia 2 (leve), saqueadores no dia 3 (fraca), dia 4 (média), **ensaio do cerco** no dia 6 (forte, na Hora da Vigília).
-- **Incursões por Ameaça:** a cada virada de dia de jogo, chance de incursão = `máx(0, Ameaça − 40) %`. Tamanho proporcional à Ameaça e à estação.
-- A Torre de Vigia dá **aviso prévio**: 1 h por nível. O aviso diz o que os vigias conseguem ver (quanto mais nível, mais detalhes de composição).
-- Incursões usam a **Formação de Defesa ativa**. Sem exército e sem paliçada, lobos e saqueadores levam até 15% de comida e madeira e ferem 1 aldeão (moral −10). Com paliçada e sem exército, a paliçada absorve o ataque leve; ataques médios ou mais causam dano à paliçada.
-- Repelir incursões dá experiência aos heróis-comandantes e **informação**: o relatório mostra a composição inimiga completa, alimentando a leitura da Horda (§10.6).
+Os números da v0.2 estão fechados no [ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md) (decisões 10, 11 e 20). Todos os prazos abaixo são tempo de jogo e escalam com o ritmo (§4.2).
+
+- **Ameaça** (0–100) **só é visível com a Torre de Vigia**. Sobe +5 por dia de jogo para cada tile de ameaça ativo (covil, acampamento) e +3 por dia de jogo no outono. Cai **−10 em toda incursão**, repelida ou sofrida, e −30 ao limpar um tile `[v0.3]`. Na v0.2 o único tile de ameaça é o Covil de Lobos, ativo desde o dia 1; não há como limpá-lo nesta versão.
+- **Incursões roteirizadas** (sempre acontecem; dias reais do ritmo Normal): lobos no dia 2 (leve) `[v0.2]`; saqueadores no dia 3 (fraca), dia 4 (média) e **ensaio do cerco** no dia 6 (forte, na Hora da Vigília) `[v0.4]`.
+- `[v0.2]` **Os lobos do ano 1:** os **uivos** soam no início do **dia 10** de jogo do ano 1, como prenúncio, sem informação. A incursão roteirizada, leve, acontece no início do **dia 16** de jogo do ano 1 (30 h de jogo: o segundo dia real no ritmo Normal, 10 h reais no Rápido). Só acontece no ano 1, e só em partidas que ainda não passaram desse instante (uma partida migrada da v0.1 depois dele não a recebe).
+- **Incursões por Ameaça** `[v0.2]`: a cada virada de dia de jogo, chance de incursão = `máx(0, Ameaça − 40) %`. Tamanho: **leve** com a Ameaça abaixo de 60, **média** a partir de 60. A incursão sorteada fica marcada para **6 h de jogo** depois, e há no máximo uma incursão marcada por vez. Elas continuam nos anos seguintes. `[v0.4]` O tamanho passa a ser proporcional à Ameaça e à estação.
+- A Torre de Vigia dá **aviso prévio**: **1 h de jogo por nível**. Nv1 avisa 1 h de jogo antes; Nv2 avisa 2 h de jogo antes e diz o tamanho. Sem Torre não há aviso. O aviso diz o que os vigias conseguem ver (quanto mais nível, mais detalhes de composição `[v0.4]`).
+- `[v0.2]` **Perdas, exatas:** uma incursão **leve** leva **10%** da comida e da madeira e fere **1** aldeão; uma **média** leva **15%** e fere **2**. Um ferido não trabalha por **1 dia de jogo** e depois volta. Uma incursão com perdas tira **10 de moral por 2 dias de jogo** (§5.7).
+- `[v0.2]` **Paliçada:** Nv1 segura as incursões leves (sem perda nem ferido); contra uma média, Nv1 corta a perda pela **metade** e fica 1 ferido; Nv2 segura também as médias.
+- `[v0.4]` Incursões usam a **Formação de Defesa ativa**; saqueadores entram no jogo, e ataques médios ou mais causam dano à paliçada.
+- `[v0.4]` Repelir incursões dá experiência aos heróis-comandantes e **informação**: o relatório mostra a composição inimiga completa, alimentando a leitura da Horda (§10.6).
 
 ### 8.3 Fortaleza da Horda `[v0.4]`
 
@@ -621,37 +673,41 @@ Com o progresso no servidor, o calendário pode ser **compartilhado**. Toda segu
 
 ### 12.1 Dificuldades `[v0.2]`
 
-| | Camponês | Senhor (padrão) | Rei de Ferro |
-|---|---|---|---|
-| Tamanho das ondas | ×0,7 | ×1,0 | ×1,3 |
-| Astúcia da Horda | 0,3 | 0,5 | 0,8 |
-| Fome faz aldeões partirem | Não | Sim | Sim |
-| Heróis podem morrer | Não | Não (captura) | **Sim** |
-| Capacidade de armazenamento | ×1,25 | ×1,0 | ×0,8 |
-| Cartas: opção padrão ao expirar | Sempre a melhor | Conservadora | Pior |
-| Legado | ×0,5 | ×1,0 | ×1,5 |
+| | Camponês (`peasant`) | Senhor (`lord`, padrão) | Rei de Ferro (`ironKing`) | Versão |
+|---|---|---|---|---|
+| Tamanho das ondas | ×0,7 | ×1,0 | ×1,3 | v0.4 |
+| Astúcia da Horda | 0,3 | 0,5 | 0,8 | v0.4 |
+| Fome faz aldeões partirem (§5.6) | Não | Sim | Sim | **v0.2** |
+| Heróis podem morrer | Não | Não (captura) | **Sim** | v0.3 |
+| Capacidade de armazenamento (§5.5) | ×1,25 | ×1,0 | ×0,8 | **v0.2** |
+| Cartas: opção automática ao expirar (§7.1) | Sempre a melhor | Conservadora | Pior | **v0.2** |
+| Legado | ×0,5 | ×1,0 | ×1,5 | v0.5 |
+
+A v0.2 usa **três linhas**: capacidade de armazenamento, deserção por fome e a opção automática das cartas ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 19a); as outras entram com as mecânicas das suas versões. Na linha das cartas, "melhor", "conservadora" e "pior" são a orientação de quem escreve: a opção de cada dificuldade é **marcada em cada carta** (`autoResolve`, §7.2), sempre sem custo nem requisito, e o motor não a calcula ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 9). A dificuldade é escolhida na criação da partida (§13.9); sem escolha, vale Senhor (§4.2).
 
 ### 12.2 Objetivos do Senhor (tutorial vivo) `[v0.1 básico]` `[v0.2 completo]`
 
-Uma lista curta de objetivos sempre visível no painel, com recompensas pequenas e texto que **ensina o porquê**. Nunca mais de 3 ativos; concluir um revela o próximo. Os primeiros 15 cobrem os dias 1–3:
+Uma lista curta de objetivos sempre visível no painel, com recompensas pequenas e texto que **ensina o porquê**. Nunca mais de 3 ativos; concluir um revela o próximo. A sequência da v0.2 tem 10 objetivos; os de 1 a 4 são os da v0.1 e não mudam de ID:
 
 1. Aloque 2 aldeões na Fazenda ("comida é o que mantém todo o resto") → +20 ouro
 2. Inicie a melhoria das Habitações → +30 madeira
 3. Recrute 3 aldeões → +40 comida
 4. Alcance Salão Nv2 → desbloqueio: Celeiro, Armazém, Torre de Vigia
-5. Construa a Torre de Vigia ("ver o inimigo é metade da batalha") → revela 6 tiles
-6. Responda à primeira carta do Conselho → +10 moral
-7. Contrate ou acolha o primeiro herói → equipamento comum
-8. Envie uma Patrulha → +50 ouro
-9. Construa a Paliçada → +100 madeira
-10. Alcance Salão Nv4 → desbloqueio: Quartel, Ferreiro
-11. Treine 10 soldados → 1 arma
-12. Salve uma Formação de Defesa → presságio gratuito
-13. Simule uma batalha no Conselho de Guerra → +20 ouro
-14. Repila uma incursão → +XP para o comandante
-15. Explore um tile de Ruínas → item incomum
+5. Construa a Torre de Vigia ("ver o inimigo é metade da batalha") → +40 pedra (`buildWatchtower`)
+6. Responda à primeira carta do Conselho → +10 moral por 1 dia de jogo (`answerFirstCard`)
+7. Construa o Celeiro ou o Armazém ("amplie o estoque antes que a produção vá para o chão") → +60 madeira (`buildGranaryOrWarehouse`)
+8. Deixe uma obra marcada para começar sozinha → +30 ouro (`planAutoStart`)
+9. Construa a Paliçada → +100 madeira (`buildPalisade`)
+10. Atravesse o inverno sem passar frio → +15 moral por 1 dia de jogo (`surviveWinterWithoutCold`)
 
-Depois do 15º, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez") e **anuais** (Feitos, Apêndice E).
+Os objetivos 5 a 10 são os da v0.2 ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 12): cada um ensina uma ferramenta nova quando ela resolve um problema que o jogador já sentiu, e nenhum depende de herói ou de soldado. O objetivo 4 volta a recompensar o desbloqueio (na v0.1 dava +50 ouro, [ADR 0002](docs/decisions/0002-objetivo-4-v01.md)).
+
+Os demais objetivos que este documento listava entre os primeiros 15 saem da sequência da v0.2, sem deixar buraco na lista exibida, e voltam com as versões que os tornam possíveis:
+
+- `[v0.3]` Contrate ou acolha o primeiro herói → equipamento comum · Envie uma Patrulha → +50 ouro · Explore um tile de Ruínas → item incomum
+- `[v0.4]` Alcance Salão Nv4 → desbloqueio: Quartel, Ferreiro · Treine 10 soldados → 1 arma · Salve uma Formação de Defesa → presságio gratuito · Simule uma batalha no Conselho de Guerra → +20 ouro · Repila uma incursão → +XP para o comandante
+
+Depois da sequência inicial, os objetivos passam a ser **sazonais** (outono: "Estoque 1.000 comida", "Sabote a Horda uma vez") e **anuais** (Feitos, Apêndice E).
 
 ### 12.3 Tutorial
 
@@ -790,7 +846,9 @@ LORDS OF THE GUILD
 Como devemos chamar quem governa?    [ Gustavo           ]
 Nome do feudo                         [ Pedra Alta        ]   (sugerido, editável)
 Dificuldade   (•) Senhor   ( ) Camponês   ( ) Rei de Ferro
-Ritmo         (•) Normal: um ano em 7 dias   ( ) Rápido   ( ) Tranquilo
+Ritmo         (•) Rápido: um ano em 56 horas (recomendado)
+              ( ) Normal: um ano em 7 dias
+              ( ) Tranquilo: um ano em 14 dias
 Hora da Vigília  [ 20:00 ]   fuso: America/Sao_Paulo (detectado)
 
                         [ Jogar agora ]
@@ -799,6 +857,7 @@ Já governa um feudo em outra máquina?   [ Entrar com GitHub ]   [ Usar Código
 ```
 
 - **Jogar agora** cria uma **conta anônima** no servidor e a primeira partida. Nada mais é pedido. As credenciais ficam no armazenamento deste navegador.
+- `[v0.2]` **Dificuldade e ritmo** são escolhidos aqui e ficam gravados na partida. As opções, com rótulo, descrição e a marca de qual é o padrão, vêm de `GET /v1/catalog` (§14.5): o app não escreve número de regra. Os ritmos são os três da §4.2, com o Rápido como recomendado; a dificuldade padrão é Senhor (§12.1). Quem não mexe em nada joga com os padrões, e **Jogar agora** continua a um clique.
 - **Vincular conta (opcional, a qualquer momento):** `Lords: Vincular conta ao GitHub` mostra um código curto e abre `github.com/login/device`; o jogador confirma lá e o vínculo se completa sozinho (§14.7). Alternativa sem GitHub: `Lords: Gerar Código do Reino` mostra um código de recuperação (ex.: `PEDR-7F3A-K9QD-M2XW-4HTB`) **uma única vez**; quem digitar o código em outro navegador assume a conta.
 - **Nunca bloquear o jogo** por falta de vínculo. Um lembrete discreto aparece uma vez no dia 3 ("Proteja seu reino: vincule a conta para continuar de outra máquina") e pode ser dispensado para sempre. O lembrete importa mais no navegador: limpar os dados de navegação apaga a sessão de uma conta anônima sem vínculo.
 - A árvore ganha o item `Conta: Gustavo · anônima` (ou `· GitHub`) com as ações "Vincular ao GitHub", "Código do Reino", "Sair desta máquina" e "Excluir conta".
@@ -868,7 +927,7 @@ lords-of-the-guild/
 
 ### 14.4 Conteúdo como dados
 
-Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas e fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, o ciclo de contra-ataques está completo, toda carta tem exatamente uma opção padrão. O servidor expõe os catálogos estáticos em `GET /v1/catalog` com ETag pelo hash do conteúdo; o app guarda em cache.
+Tudo que é número ou texto de jogo vive em `packages/content`: `balance.ts` (taxas e fórmulas parametrizadas), `buildings.ts`, `units.ts`, `enemies.ts`, `cards/*.json`, `missions/*.json`, `omens.json`, `chronicle/*.json`, `objectives.json`, `achievements.json`. Schemas **zod** validam todo o conteúdo em teste: flags referenciadas existem, grafos de expedição são acíclicos e têm saída, o ciclo de contra-ataques está completo, toda carta marca uma opção automática por dificuldade, sem custo nem requisito (§7.2). O servidor expõe os catálogos estáticos em `GET /v1/catalog` com ETag pelo hash do conteúdo; o app guarda em cache.
 
 ### 14.5 Servidor e API
 
@@ -886,13 +945,13 @@ Endpoints (`/v1`, JSON; erros no formato `{ code, message, details? }`):
 | `POST /auth/refresh` | Rotaciona o token na mesma sessão; detecta reuso de qualquer antecessor | refresh |
 | `POST /auth/logout` | Revoga a sessão desta máquina | sessão |
 | `GET /me` · `PATCH /me` · `DELETE /me` | Perfil · renomear · bloquear a conta imediatamente e agendar exclusão definitiva (§14.7) | sessão |
-| `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`). Na v0.1 o ritmo é o do servidor e o `timeScale` enviado é ignorado (§4.2) | sessão |
+| `GET /games` · `POST /games` | Lista partidas · cria uma (`{ settlementName, difficulty, timeScale, vigilHourLocal, timezone, vows? }`). A partir da v0.2, `difficulty` e `timeScale` valem como enviados e têm de estar entre os valores do conteúdo (`400 VALIDATION` se não estiverem); sem `timeScale`, vale `GAME_TIME_SCALE`, e sem `difficulty`, `lord` (§4.2). Na v0.1 o ritmo era o do servidor e o `timeScale` enviado era ignorado | sessão |
 | `GET /games/:id/view` | Avança até agora e devolve `{ view, stateVersion }`; ETag da representação completa e `304` apenas se ela não mudou (§14.8) | sessão |
 | `POST /games/:id/commands` | Aplica `{ commandId, type, payload }`; grava status e corpo da resposta para reenvio idempotente na mesma partida (§14.8) | sessão |
 | `GET /games/:id/events?after=<seq>` | Eventos para notificações (obras, encruzilhadas, cartas, incursões, cerco) | sessão |
 | `POST /games/:id/battle-preview` | Conselho de Guerra: 200 simulações com a névoa aplicada | sessão |
 | `GET /games/:id/chronicle?year=` · `GET /games/:id/chronicle.md` | Crônica estruturada · Markdown pronto para abrir no editor. As viradas de dia não entram na Crônica; continuam em `GET /events` ([ADR 0007](docs/decisions/0007-cronica-sem-viradas-de-dia.md)) | sessão |
-| `GET /catalog` | Catálogos estáticos de conteúdo (ETag). Não existe na v0.1 (o `ViewState` já traz tudo o que o app exibe) e nenhuma tarefa do MVP a pede; fica para depois da v0.1 | — |
+| `GET /catalog` | Catálogos estáticos de conteúdo (ETag). **Passa a existir na v0.2**, com as opções de nova partida: dificuldades e ritmos, cada um com rótulo, descrição e a marca de qual é o padrão ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 2a). Não existia na v0.1, em que o `ViewState` já trazia tudo o que o app exibia | — |
 | `GET /health` · `GET /version` | Saúde (inclui o banco) · versão do servidor, hash do conteúdo e o que está ligado (`features.githubDevice`, verdadeiro quando há `GITHUB_CLIENT_ID`; [ADR 0010](docs/decisions/0010-version-informa-o-que-esta-ligado.md)) | — |
 | `GET /seasons/current` · `GET /leaderboard?season=` | Temporada da semana e ranking `[v0.5]` | — |
 
@@ -901,7 +960,7 @@ Regras:
 - Toda requisição de partida autentica, verifica a propriedade e serializa o acesso à linha antes do avanço. Comando já registrado retorna sua resposta original antes de `advanceTo`; comando novo avança e aplica na mesma transação (§14.8).
 - O `ViewState` é **derivado** e autossuficiente para exibição (taxas, tempos restantes em segundos, textos). Prazos e taxas saem em tempo real, já convertidos pelo ritmo da partida (§4.2). A névoa é aplicada no servidor: o cliente nunca recebe a composição inimiga real.
 - Limites: 60 requisições/min por sessão; 10 criações de conta/h por IP; 5 tentativas de Código do Reino/h por IP; corpo até 64 KB; nomes de 2 a 24 caracteres.
-- Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e um cliente antigo (uma aba aberta há dias, por exemplo) recebe `426 Upgrade Required` com mensagem amigável e a instrução de recarregar a página.
+- Versionamento: `/v1` estável; mudanças incompatíveis vão para `/v2` e um cliente antigo (uma aba aberta há dias, por exemplo) recebe `426 Upgrade Required` com mensagem amigável e a instrução de recarregar a página. Na v0.2 o `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 não sabe ler: a versão do protocolo sobe para **2** e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a um `X-Lords-Client` anterior; o cache local de uma versão anterior é descartado ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md)).
 
 ### 14.6 Banco de dados (PostgreSQL 16)
 
@@ -979,7 +1038,7 @@ type Wing = 'left' | 'center' | 'right'; type Row = 'front' | 'back';
 
 type GameState = {
   schemaVersion: number;
-  seed: string; difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 1 | 2 | 0.5;
+  seed: string; difficulty: 'peasant' | 'lord' | 'ironKing'; timeScale: 3 | 1 | 0.5;
   settings: { timezone: string; vigilHourLocal: number };
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
@@ -1069,7 +1128,7 @@ A base já é um servidor autoritativo com motor compartilhado. Alianças, merca
 | Dedicado | 4+ sessões/dia, finta e sabotagens | 90%+ de Vitória, 50%+ Gloriosa |
 | Regular em Rei de Ferro | 2 sessões/dia | 35–50% de Vitória |
 
-Outras metas: população 30–40 no dia 7 (Regular); primeiro herói no dia 2; primeira formação salva no dia 3; nenhum recurso acima do cap por mais de 8 h para o perfil Regular.
+Outras metas: população 30–40 no dia 7 (Regular); primeiro herói no dia 2; primeira formação salva no dia 3; nenhum recurso desperdiçando no cap por mais de 8 h de jogo contínuas para o perfil Regular (depois de limitado, o estoque nunca fica "acima do cap": a medida é o tempo desperdiçando, [ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 17). Na v0.2 as faixas do simulador existem por ritmo, e as medições ficam em [docs/balance-v0.2.md](docs/balance-v0.2.md).
 
 ### 15.3 Simulador headless (`sim-cli`)
 
@@ -1081,7 +1140,7 @@ Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jog
 - **Propriedade (fast-check):** invariante de `advanceTo` por segmentos; recursos nunca negativos nem acima do cap; nenhum comando duplica recursos.
 - **Golden tests:** relatórios de batalha e de expedição para sementes fixas (qualquer mudança de regra é visível no diff).
 - **Conteúdo:** schemas zod em todo JSON; grafos acíclicos; flags consistentes.
-- **Migração:** estados com `schemaVersion` antigo carregam e migram no servidor.
+- **Migração:** estados com `schemaVersion` antigo carregam e migram no servidor. Da v0.1 para a v0.2 a migração **preserva tudo** e grava `migratedAtMs` como fronteira das regras novas: estoque acima do cap fica e só deixa de receber produção; a moral nasce em 50 e é recalculada na virada seguinte; todos os trabalhadores já estão adaptados e a experiência do ofício começa em 0; as planejadas antigas continuam manuais; a primeira carta e a Ameaça contam a partir da migração ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4).
 - **API e banco:** integração com PostgreSQL real (Docker) cobrindo recibos idênticos após reinício e outros comandos, conflito de UUID com payload diferente, avanço persistido mesmo em recusa, dois clientes concorrentes, ETag alterado sem escrita, reuso após múltiplas rotações, revogação entre instâncias e exclusão em duas etapas (§14.7–14.8).
 - **Carga:** `sim-cli` contra servidor local, com metas de p95.
 - **Integração do cliente:** o app web em um navegador real (sem interface) contra um servidor local: entrada, comandos, ETag, eventos, cache sem conexão, teclado e temas.
@@ -1104,7 +1163,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 | v0.6 | Polimento | Academia, Feitos completos, som opcional, acessibilidade auditada, desempenho, localização en-US | Pronto para divulgação ampla |
 | v1.0 | Multiplayer | Alianças, mercado entre jogadores, PvP, proteção a novatos | Mundo compartilhado |
 
-**Execução da v0.2:** o [roadmap de Estações e Conselho](docs/roadmap-v0.2.md) detalha as tarefas, a jornada do jogador, os cenários de aceitação e o playtest. A §8 daquele documento reúne decisões ainda abertas, cada uma com uma premissa recomendada (incluindo tempos no ritmo 3×, migração, armazenamento e recuperação); a §12 traz propostas de experiência e cartas, e o Apêndice B, os nomes propostos para estado, comandos, eventos e `ViewState`. Propostas não alteram as regras deste GDD até a decisão ser registrada. O Apêndice B continua sendo uma amostra de 12 cartas, e não o catálogo completo da meta de 60.
+**Execução da v0.2:** o [roadmap de Estações e Conselho](docs/roadmap-v0.2.md) detalha as tarefas, a jornada do jogador, os cenários de aceitação e o playtest. A §8 daquele documento reúne as decisões de regra, cada uma com uma premissa recomendada (incluindo tempos no ritmo 3×, migração, armazenamento e recuperação). As premissas foram **aplicadas por delegação do autor em 2026-10-01**, registradas nos ADRs [0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md) e trazidas a este GDD na versão 0.7; aguardam a confirmação do autor em [docs/pendencias-v0.2.md](docs/pendencias-v0.2.md). A §12 traz propostas de experiência e cartas, e o Apêndice B, os nomes propostos para estado, comandos, eventos e `ViewState`. Propostas não alteram as regras deste GDD até a decisão ser registrada. O Apêndice B continua sendo uma amostra de 12 cartas, e não o catálogo completo da meta de 60.
 
 ### 16.1 Escopo exato da v0.1 — Fundação online
 
@@ -1148,7 +1207,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 ### 16.2 Critérios de aceitação das versões seguintes (resumo)
 
-- **v0.2:** o estoque para no cap e o painel mostra "cheio em"; uma carta aparece a cada 8 h e expira em 24 h com a opção padrão; uma cadeia de 3 cartas funciona ponta a ponta; a incursão de lobos do dia 2 acontece offline e aparece no Relatório; a troca de ofício reduz a produção por 2 h; dificuldade e ritmo são escolhidos na criação.
+- **v0.2:** o estoque para no cap e o painel mostra "cheio em"; uma carta aparece a cada 4 dias de jogo (8 h reais no ritmo Normal) e expira em 24 h reais, em qualquer ritmo, com a opção automática da dificuldade; uma cadeia de 3 cartas funciona ponta a ponta; a incursão de lobos do dia 16 de jogo do ano 1 (o dia real 2 no ritmo Normal) acontece offline e aparece no Relatório; a troca de ofício reduz a produção por 1 dia de jogo (2 h reais no ritmo Normal); dificuldade e ritmo são escolhidos na criação. Os tempos se leem como na §4.2: tudo em tempo de jogo, escalando com o ritmo, menos a expiração da carta ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 1; [ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 1). "O estoque para no cap" vale para comida, madeira e pedra, não para o ouro nem para o estoque herdado de uma partida migrada (§5.5).
 - **v0.3:** o primeiro herói chega pela carta do dia 2; uma expedição para na encruzilhada, notifica, e após 6 h sem resposta segue a Postura; o relatório narra nó a nó; o Mercado respeita o volume diário; uma caravana pode ser emboscada.
 - **v0.4:** uma formação salva defende offline; a prévia e a batalha real usam o mesmo código (golden test); a Horda altera a composição em resposta à última formação (teste determinístico); o cerco ocorre na Hora da Vigília com 3 ondas e Plano de Batalha; a Crônica do Ano é gerada e exportável em Markdown; o perfil Regular do `sim-cli` fica em 65–80% de Vitória.
 - **v0.5:** mapa hexagonal com névoa em 3 estados; posto avançado produz; Legado e Votos aplicados ao Ano 2; duas partidas com a mesma semente geram o mesmo mapa e as mesmas cartas elegíveis; uma Temporada abre toda segunda-feira, aceita entradas até terça e publica o ranking ao fim da semana.
@@ -1229,7 +1288,7 @@ O servidor já guarda comandos e eventos. Métricas de balanceamento (sessões p
 
 ### 18.2 Tarefas seguintes (uma por versão)
 
-- **v0.2:** §4, §5.4–5.7, §6 (Celeiro, Armazém, Torre, Paliçada), §7 com as 60 cartas do Apêndice B como ponto de partida, §8.2 (lobos e Ameaça com tiles abstratos), §12.1. Critérios em §16.2.
+- **v0.2:** §4, §5.4–5.7, §6 (Celeiro, Armazém, Torre, Paliçada), §7 com o primeiro lote de 21 cartas (a meta de 60 e o Apêndice B continuam como ponto de partida dos lotes seguintes), §8.2 (lobos e Ameaça com tiles abstratos), §12.1 e §12.2 (objetivos 5 a 10). Critérios em §16.2; regras fechadas nos ADRs 0013 e 0014; execução no [roadmap da v0.2](docs/roadmap-v0.2.md).
 - **v0.3:** §9 completo, §5.9. Grafos de expedição com 3 variantes por modelo.
 - **v0.4:** §10, §11.1–11.4, §8.3, §9.5. `sim-cli` com os quatro perfis e teste de faixa da §15.2.
 - **v0.5:** §8.1, §11.5, §11.6 (Temporadas e ranking), Capela e relíquias.
