@@ -239,20 +239,208 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
     expect(rows[0]?.seed.length).toBeGreaterThan(0);
   });
 
-  it('aceita e guarda os campos difficulty e timeScale da v0.1', async () => {
-    const auth = await signUp(server);
-    const reply = await call<CreateGameResponse>(server, 'POST', '/games', {
-      token: auth.accessToken,
-      body: {
+  it('sem escolha no corpo, a visão mostra os padrões: Senhor e o ritmo do servidor', async () => {
+    const player = await newPlayer(server);
+    const reply = await getView(server, player.token, player.game.id);
+    expect(reply.body.view.settlement).toEqual({
+      name: 'Pedra Alta',
+      townHallLevel: 1,
+      difficulty: 'lord',
+      difficultyLabel: 'Senhor',
+      paceLabel: 'Normal: um ano em 7 dias',
+    });
+    const { rows } = await server.pool.query<{ settings: Record<string, unknown> }>(
+      "select state -> 'settings' as settings from games where id = $1",
+      [player.game.id],
+    );
+    expect(rows[0]?.settings).toMatchObject({ difficulty: 'lord', timeScale: 1 });
+  });
+
+  // Dificuldade e ritmo escolhidos na criação (V2B-T3; ADR 0013, decisões 2, 2a e 19a).
+  const DIFFICULTIES = [
+    ['peasant', 'Camponês'],
+    ['lord', 'Senhor'],
+    ['ironKing', 'Rei de Ferro'],
+  ] as const;
+  const PACES = [
+    [3, 'Rápido: um ano em 56 horas'],
+    [1, 'Normal: um ano em 7 dias'],
+    [0.5, 'Tranquilo: um ano em 14 dias'],
+  ] as const;
+  const COMBINATIONS = DIFFICULTIES.flatMap(([difficulty, difficultyLabel]) =>
+    PACES.map(([timeScale, paceLabel]) => ({ difficulty, difficultyLabel, timeScale, paceLabel })),
+  );
+
+  it.each(COMBINATIONS)(
+    'cria com $difficulty no ritmo $timeScale: resposta, linha, estado e visão dizem o mesmo',
+    async ({ difficulty, difficultyLabel, timeScale, paceLabel }) => {
+      const auth = await signUp(server);
+      const reply = await call<CreateGameResponse>(server, 'POST', '/games', {
+        token: auth.accessToken,
+        body: {
+          settlementName: 'Vale Fundo',
+          timezone: 'UTC',
+          vigilHourLocal: 0,
+          difficulty,
+          timeScale,
+        },
+      });
+      expect(reply.status).toBe(201);
+      expect(GameSummarySchema.safeParse(reply.body.game).error).toBeUndefined();
+      expect(reply.body.game).toMatchObject({ difficulty, timeScale, vigilHourLocal: 0 });
+
+      // A coluna e o estado guardam a mesma escolha.
+      const { rows } = await server.pool.query<{
+        difficulty: string;
+        time_scale: string;
+        settings: Record<string, unknown>;
+      }>(
+        "select difficulty, time_scale, state -> 'settings' as settings from games where id = $1",
+        [reply.body.game.id],
+      );
+      expect(rows[0]?.difficulty).toBe(difficulty);
+      expect(Number(rows[0]?.time_scale)).toBe(timeScale);
+      expect(rows[0]?.settings).toEqual({
         settlementName: 'Vale Fundo',
         timezone: 'UTC',
         vigilHourLocal: 0,
-        difficulty: 'lord',
-        timeScale: 1,
+        difficulty,
+        timeScale,
+      });
+
+      const listed = await call<ListGamesResponse>(server, 'GET', '/games', {
+        token: auth.accessToken,
+      });
+      expect(listed.body.games).toEqual([reply.body.game]);
+
+      // A visão mostra a escolha e já fala no tempo real desse ritmo: o dia de jogo tem 2 h.
+      const view = await getView(server, auth.accessToken, reply.body.game.id);
+      expect(ViewResponseSchema.safeParse(view.body).error).toBeUndefined();
+      expect(view.body.view.settlement).toEqual({
+        name: 'Vale Fundo',
+        townHallLevel: 1,
+        difficulty,
+        difficultyLabel,
+        paceLabel,
+      });
+      expect(view.body.view.calendar.secondsToNextDay).toBe(7200 / timeScale);
+      expect(view.body.view.recruitment.secondsPerVillager).toBe(1200 / timeScale);
+      // Nesta versão a dificuldade ainda não muda o feudo inicial.
+      expect(view.body.view.population).toMatchObject({ villagers: 5, free: 5 });
+      expect(stock(view.body.view, 'food')).toBe(180);
+    },
+  );
+
+  it('duas partidas com ritmos diferentes mostram prazos diferentes para a mesma obra', async () => {
+    const create = async (timeScale: number) => {
+      const auth = await signUp(server);
+      const game = await startGame(server, auth.accessToken, { timeScale });
+      const started = await send<CommandAccepted>(
+        server,
+        auth.accessToken,
+        game.id,
+        order('startConstruction', { building: 'housing' }),
+      );
+      expect(started.status).toBe(200);
+      return started.body.view.constructions.active?.secondsRemaining;
+    };
+    // A melhoria das Habitações leva 4 min de jogo.
+    expect(await create(3)).toBe(80);
+    expect(await create(1)).toBe(240);
+    expect(await create(0.5)).toBe(480);
+  });
+
+  it('só a dificuldade no corpo: o ritmo é o do servidor; só o ritmo: a dificuldade é Senhor', async () => {
+    const hard = await signUp(server);
+    const onlyDifficulty = await startGame(server, hard.accessToken, { difficulty: 'ironKing' });
+    expect(onlyDifficulty).toMatchObject({ difficulty: 'ironKing', timeScale: 1 });
+
+    const calm = await signUp(server);
+    const onlyPace = await startGame(server, calm.accessToken, { timeScale: 0.5 });
+    expect(onlyPace).toMatchObject({ difficulty: 'lord', timeScale: 0.5 });
+  });
+
+  it.each([
+    ['difficulty', 'normal'],
+    ['difficulty', 'LORD'],
+    ['difficulty', ''],
+    ['difficulty', null],
+    ['difficulty', 2],
+    // O 2× saiu da lista; 7 é um GAME_TIME_SCALE aceito pelo servidor, mas não é oferecido.
+    ['timeScale', 2],
+    ['timeScale', 7],
+    ['timeScale', 0],
+    ['timeScale', -1],
+    ['timeScale', '3'],
+    ['timeScale', null],
+  ])('%s: %j no corpo é 400 VALIDATION e não cria partida', async (field, value) => {
+    const auth = await signUp(server);
+    const reply = await call<ApiError>(server, 'POST', '/games', {
+      token: auth.accessToken,
+      body: { settlementName: 'Vale Fundo', timezone: 'UTC', vigilHourLocal: 20, [field]: value },
+    });
+    expect(reply.status).toBe(400);
+    expect(reply.body.code).toBe('VALIDATION');
+    expect((reply.body.details as { issues: Array<{ path: string }> }).issues[0]?.path).toBe(field);
+    const listed = await call<ListGamesResponse>(server, 'GET', '/games', {
+      token: auth.accessToken,
+    });
+    expect(listed.body.games).toEqual([]);
+  });
+
+  it('uma escolha inválida junto com replaceActive não arquiva a partida que existe', async () => {
+    const player = await newPlayer(server);
+    const reply = await call<ApiError>(server, 'POST', '/games', {
+      token: player.token,
+      body: {
+        settlementName: 'Pedra Nova',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        replaceActive: true,
+        timeScale: 2,
       },
     });
-    expect(reply.status).toBe(201);
-    expect(reply.body.game).toMatchObject({ difficulty: 'lord', timeScale: 1, vigilHourLocal: 0 });
+    expect(reply.status).toBe(400);
+    const listed = await call<ListGamesResponse>(server, 'GET', '/games', { token: player.token });
+    expect(listed.body.games).toEqual([player.game]);
+  });
+
+  it('a partida antiga fica como nasceu quando o dono começa outra com outras escolhas', async () => {
+    const player = await newPlayer(server);
+    const before = await server.pool.query<{
+      difficulty: string;
+      time_scale: string;
+      state: unknown;
+    }>('select difficulty, time_scale, state from games where id = $1', [player.game.id]);
+    const replaced = await call<CreateGameResponse>(server, 'POST', '/games', {
+      token: player.token,
+      body: {
+        settlementName: 'Pedra Nova',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        replaceActive: true,
+        difficulty: 'peasant',
+        timeScale: 3,
+      },
+    });
+    expect(replaced.status).toBe(201);
+    expect(replaced.body.game).toMatchObject({ difficulty: 'peasant', timeScale: 3 });
+
+    const after = await server.pool.query<{
+      difficulty: string;
+      time_scale: string;
+      state: unknown;
+    }>('select difficulty, time_scale, state from games where id = $1', [player.game.id]);
+    expect(after.rows).toEqual(before.rows);
+    const listed = await call<ListGamesResponse>(server, 'GET', '/games', { token: player.token });
+    expect(
+      listed.body.games
+        .map((game) => [game.settlementName, game.status, game.difficulty, game.timeScale])
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    ).toEqual([
+      ['Pedra Alta', 'archived', 'lord', 1],
+      ['Pedra Nova', 'active', 'peasant', 3],
+    ]);
   });
 
   it('a partida nova começa com 5 aldeões livres e o estoque inicial', async () => {

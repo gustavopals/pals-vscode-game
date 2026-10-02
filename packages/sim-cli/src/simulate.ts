@@ -5,6 +5,7 @@ import {
   type Command,
   createInitialState,
   deriveViewState,
+  type DifficultyId,
   type GameEvent,
   type GameState,
   type ResourceId,
@@ -32,6 +33,8 @@ export type SimulationOptions = {
    * balanceamento são definidas. O servidor cria as partidas no ritmo 3.
    */
   timeScale?: number;
+  /** Dificuldade da partida (GDD §12.1). Padrão `lord`, a de quem não escolhe. */
+  difficulty?: DifficultyId;
 };
 
 /** Retrato do feudo ao fim de uma hora real. As taxas `perHour` são por hora real. */
@@ -57,6 +60,8 @@ export type SimulationResult = {
   events: GameEvent[];
   finalState: GameState;
   commands: { accepted: number; refused: Record<string, number> };
+  /** Dificuldade e ritmo como a visão os mostra ao jogador. */
+  game: { difficultyLabel: string; paceLabel: string };
 };
 
 function rowAt(state: GameState, hour: number, timeScale: number): HourRow {
@@ -99,9 +104,10 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
     vigilHourLocal: 20,
-    difficulty: 'lord',
+    difficulty: options.difficulty ?? 'lord',
     timeScale,
   });
+  const { difficultyLabel, paceLabel } = deriveViewState(state, 0, { timeScale }).settlement;
   const events: GameEvent[] = [];
   const rows: HourRow[] = [];
   const commands: SimulationResult['commands'] = { accepted: 0, refused: {} };
@@ -141,5 +147,12 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     rows.push(rowAt(state, hour, timeScale));
   }
 
-  return { options, rows, events, finalState: state, commands };
+  return {
+    options,
+    rows,
+    events,
+    finalState: state,
+    commands,
+    game: { difficultyLabel, paceLabel },
+  };
 }

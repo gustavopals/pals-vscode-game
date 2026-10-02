@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { parseCli, USAGE } from './cli';
 
 describe('linha de comando: modo em processo', () => {
-  it('só com a semente, usa os padrões: 7 dias, 2 sessões, ritmo 1', () => {
+  it('só com a semente, usa os padrões: 7 dias, 2 sessões, ritmo 1, Senhor', () => {
     expect(parseCli(['--seed', 'pedra-alta'])).toEqual({
       mode: 'simulate',
       options: {
@@ -12,15 +12,24 @@ describe('linha de comando: modo em processo', () => {
         strategy: 'economico',
         sessionsPerDay: 2,
         timeScale: 1,
+        difficulty: 'lord',
       },
     });
   });
 
   it('ignora o separador que o pnpm repassa e lê todas as opções', () => {
-    const args = '-- --seed s --days 3 --strategy economico --sessions-per-day 4 --time-scale 3';
+    const args =
+      '-- --seed s --days 3 --strategy economico --sessions-per-day 4 --time-scale 3 --difficulty peasant';
     expect(parseCli(args.split(' '))).toEqual({
       mode: 'simulate',
-      options: { seed: 's', days: 3, strategy: 'economico', sessionsPerDay: 4, timeScale: 3 },
+      options: {
+        seed: 's',
+        days: 3,
+        strategy: 'economico',
+        sessionsPerDay: 4,
+        timeScale: 3,
+        difficulty: 'peasant',
+      },
     });
   });
 

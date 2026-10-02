@@ -57,8 +57,10 @@ export type Config = {
   /** Confiar em `X-Forwarded-For`. Só atrás do proxy reverso: os limites por IP dependem disso. */
   trustProxy: boolean;
   /**
-   * Ritmo das partidas novas: horas de jogo por hora real (ADR 0011). Fica gravado em cada
-   * partida na criação; mudar a variável não mexe nas que já existem.
+   * Ritmo padrão das partidas novas: horas de jogo por hora real. Vale quando `POST /games` não
+   * traz `timeScale` e é o que as boas-vindas trazem marcado, se for um dos ritmos oferecidos
+   * (ADR 0013, decisão 2a). Fica gravado em cada partida na criação; mudar a variável não mexe
+   * nas que já existem.
    */
   gameTimeScale: number;
   /** Aceitar a semente informada em `POST /games`. Só em ambiente de teste. */

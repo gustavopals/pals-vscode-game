@@ -1,5 +1,6 @@
 import {
   BUILDING_IDS,
+  DIFFICULTY_IDS,
   EVENT_TYPES,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
@@ -64,7 +65,15 @@ const ObjectiveSchema = z.strictObject({
 
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
 export const ViewStateSchema = z.strictObject({
-  settlement: z.strictObject({ name: z.string(), townHallLevel: z.number() }),
+  settlement: z.strictObject({
+    name: z.string(),
+    townHallLevel: z.number(),
+    /** Escolhida na criação da partida; não muda durante o ano. */
+    difficulty: z.enum(DIFFICULTY_IDS),
+    difficultyLabel: z.string(),
+    /** O ritmo da partida, pronto para exibir: "Rápido: um ano em 56 horas". */
+    paceLabel: z.string(),
+  }),
   calendar: z.strictObject({
     year: z.number(),
     season: z.enum(SEASON_IDS),

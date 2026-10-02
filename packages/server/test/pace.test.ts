@@ -33,13 +33,20 @@ import {
 } from './helpers/app';
 import { resetTestDb } from './helpers/db';
 
-// Ritmo das partidas (ADR 0011): o servidor grava GAME_TIME_SCALE em cada partida nova, o motor
+// Ritmo das partidas (ADR 0011; ADR 0013, decisão 2a): sem escolha no corpo de POST /games, o
+// servidor grava GAME_TIME_SCALE na partida nova; com `timeScale`, vale o escolhido. O motor
 // segue em tempo de jogo e a visão sai em tempo real. Os números de jogo usados aqui são os do
 // GDD no ritmo Normal: melhoria das Habitações em 4 min, aldeão em 20 min, dia de 2 h, 180 de
 // comida inicial, 10 de comida por fazendeiro por hora e 1 de consumo por aldeão por hora.
 
 const SECOND = 1000;
 const PACE = 3;
+/** O rótulo que a visão mostra em cada ritmo oferecido (GDD §4.2). */
+const PACE_LABELS: Record<number, string> = {
+  3: 'Rápido: um ano em 56 horas',
+  1: 'Normal: um ano em 7 dias',
+  0.5: 'Tranquilo: um ano em 14 dias',
+};
 
 /** Instância no ritmo Normal do GDD, para comparar. */
 let normal: TestApp;
@@ -145,6 +152,7 @@ function atPace(view: ViewState, pace: number): ViewState {
   const { active } = view.constructions;
   return {
     ...view,
+    settlement: { ...view.settlement, paceLabel: PACE_LABELS[pace] ?? '' },
     calendar: {
       ...view.calendar,
       secondsToNextDay: up(view.calendar.secondsToNextDay),
@@ -230,7 +238,7 @@ describe('ritmo das partidas novas (ADR 0011)', () => {
     expect(slow.game.timeScale).toBe(1);
   });
 
-  it('"timeScale: 1" no corpo é aceito e ignorado: vale o ritmo do servidor', async () => {
+  it('o ritmo escolhido no corpo vale mais que o do servidor (ADR 0013, decisão 2a)', async () => {
     const auth = await signUp(fast);
     const reply = await call<CreateGameResponse>(fast, 'POST', '/games', {
       token: auth.accessToken,
@@ -242,15 +250,22 @@ describe('ritmo das partidas novas (ADR 0011)', () => {
       },
     });
     expect(reply.status).toBe(201);
-    expect(reply.body.game.timeScale).toBe(3);
-    const { rows } = await fast.pool.query<{ time_scale: string }>(
-      'select time_scale from games where id = $1',
+    expect(reply.body.game.timeScale).toBe(1);
+    const { rows } = await fast.pool.query<{ time_scale: string; state_scale: number }>(
+      "select time_scale, (state -> 'settings' ->> 'timeScale')::float as state_scale from games where id = $1",
       [reply.body.game.id],
     );
-    expect(Number(rows[0]?.time_scale)).toBe(3);
+    expect(Number(rows[0]?.time_scale)).toBe(1);
+    expect(rows[0]?.state_scale).toBe(1);
+    // E a partida anda no ritmo escolhido: o dia de jogo dura 2 h reais, não 40 min.
+    const view = await call<ViewResponse>(fast, 'GET', `/games/${reply.body.game.id}/view`, {
+      token: auth.accessToken,
+    });
+    expect(view.body.view.calendar.secondsToNextDay).toBe(7200);
+    expect(view.body.view.settlement.paceLabel).toBe('Normal: um ano em 7 dias');
   });
 
-  it.each([3, 2, 0.5, 0, '1', null])(
+  it.each([2, 7, 0, '1', null])(
     'timeScale: %j no corpo é 400 VALIDATION e não cria partida',
     async (timeScale) => {
       const auth = await signUp(fast);
@@ -697,6 +712,7 @@ describe('ritmos que não são 3', () => {
       const player = await newPlayer(server);
       expect(player.game.timeScale).toBe(0.5);
       const view = await viewOf(server, player);
+      expect(view.settlement.paceLabel).toBe('Tranquilo: um ano em 14 dias');
       expect(view.calendar.secondsToNextDay).toBe(4 * 3600);
       expect(resource(view, 'food')).toMatchObject({ perHour: -2.5, depletesInSeconds: 72 * 3600 });
       expect(worker(view, 'farm').perWorkerPerHour).toBe(5);
@@ -718,8 +734,13 @@ describe('ritmos que não são 3', () => {
     const server = await createTestApp({ config: { GAME_TIME_SCALE: '7' } });
     try {
       const player = await newPlayer(server);
+      // O 7 não está entre os ritmos oferecidos: a partida nasce nele mesmo assim (é o padrão
+      // deste servidor) e a visão dá um rótulo honesto, sem o nome de nenhum dos oferecidos.
+      expect(player.game.timeScale).toBe(7);
+      const first = await viewOf(server, player);
+      expect(first.settlement.paceLabel).toBe('Ritmo 7×: um ano em 1 dia');
       // 240 s de jogo ÷ 7 = 34,29 s reais: a visão anuncia 35.
-      const announced = upgradeOf(await viewOf(server, player), 'housing').durationSeconds;
+      const announced = upgradeOf(first, 'housing').durationSeconds;
       expect(announced).toBe(35);
       const started = await accepted(
         server,

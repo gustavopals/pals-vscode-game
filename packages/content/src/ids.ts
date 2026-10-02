@@ -17,7 +17,7 @@ export type ProductionBuildingId = (typeof PRODUCTION_BUILDING_IDS)[number];
 export const SEASON_IDS = ['spring', 'summer', 'autumn', 'winter'] as const;
 export type SeasonId = (typeof SEASON_IDS)[number];
 
-/** Dificuldades do GDD §12.1. Os fatores de cada uma chegam com as mecânicas que os usam. */
+/** Dificuldades do GDD §12.1, da mais branda à mais dura. Os fatores estão em `balance.difficulties`. */
 export const DIFFICULTY_IDS = ['peasant', 'lord', 'ironKing'] as const;
 export type DifficultyId = (typeof DIFFICULTY_IDS)[number];
 

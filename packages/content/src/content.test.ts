@@ -52,8 +52,127 @@ describe('schemas do conteúdo', () => {
 });
 
 describe('dificuldades', () => {
+  const { difficulties } = balance;
+  const factor = (id: (typeof DIFFICULTY_IDS)[number]) =>
+    difficulties[id].storageCapacity.num / difficulties[id].storageCapacity.den;
+
   it('são as três do GDD §12.1, da mais branda à mais dura', () => {
     expect(DIFFICULTY_IDS).toEqual(['peasant', 'lord', 'ironKing']);
+    expect(Object.keys(difficulties)).toEqual([...DIFFICULTY_IDS]);
+    expect(DIFFICULTY_IDS.map((id) => difficulties[id].label)).toEqual([
+      'Camponês',
+      'Senhor',
+      'Rei de Ferro',
+    ]);
+  });
+
+  it('os fatores da v0.2 são os do GDD §12.1 (ADR 0013, decisão 19a)', () => {
+    expect(difficulties.peasant.storageCapacity).toEqual({ num: 5, den: 4 });
+    expect(difficulties.lord.storageCapacity).toEqual({ num: 1, den: 1 });
+    expect(difficulties.ironKing.storageCapacity).toEqual({ num: 4, den: 5 });
+    expect(DIFFICULTY_IDS.map((id) => difficulties[id].famineDesertion)).toEqual([
+      false,
+      true,
+      true,
+    ]);
+    // Da mais branda à mais dura, a capacidade nunca cresce.
+    expect(factor('peasant')).toBeGreaterThan(factor('lord'));
+    expect(factor('lord')).toBeGreaterThan(factor('ironKing'));
+  });
+
+  it('só uma é a recomendada, e é Senhor: a que vale para quem não escolhe', () => {
+    expect(DIFFICULTY_IDS.filter((id) => difficulties[id].recommended)).toEqual(['lord']);
+  });
+
+  it('a frase de cada uma diz o que muda nesta versão, com o número do fator', () => {
+    for (const id of DIFFICULTY_IDS) {
+      const { description, famineDesertion } = difficulties[id];
+      // Uma frase só, que fala das três linhas da v0.2: armazenamento, fome e Conselho.
+      expect(description.endsWith('.'), id).toBe(true);
+      expect(description.slice(0, -1), id).not.toContain('.');
+      expect(description, id).toContain('Conselho');
+      expect(description, id).toContain('fome');
+      expect(description.includes('ninguém deserta por fome'), id).toBe(!famineDesertion);
+      // O percentual escrito é o do fator: mudar um sem o outro quebra aqui.
+      const percent = Math.round(Math.abs(factor(id) - 1) * 100);
+      if (percent === 0) {
+        expect(description, id).not.toMatch(/\d/);
+      } else {
+        const direction = factor(id) > 1 ? 'a mais' : 'a menos';
+        expect(description, id).toContain(`${percent}% ${direction}`);
+      }
+    }
+  });
+
+  it('o schema recusa uma dificuldade a menos, um campo a mais e duas recomendadas', () => {
+    const missing = { peasant: difficulties.peasant, lord: difficulties.lord };
+    expect(BalanceSchema.safeParse({ ...balance, difficulties: missing }).success).toBe(false);
+    const extra = { ...difficulties, lord: { ...difficulties.lord, waveSize: 1 } };
+    expect(BalanceSchema.safeParse({ ...balance, difficulties: extra }).success).toBe(false);
+    const two = { ...difficulties, peasant: { ...difficulties.peasant, recommended: true } };
+    expect(BalanceSchema.safeParse({ ...balance, difficulties: two }).success).toBe(false);
+  });
+});
+
+describe('ritmos', () => {
+  const { paces, calendar } = balance;
+  const HOUR_MS = 3_600_000;
+  const yearMs = calendar.seasons.reduce((sum, season) => sum + season.days, 0) * calendar.dayMs;
+
+  /** "um ano em 56 horas" ou "um ano em 7 dias", pela conta: ano de jogo ÷ ritmo. */
+  function yearInRealTime(timeScale: number): string {
+    const hours = yearMs / timeScale / HOUR_MS;
+    return hours % 24 === 0 ? `um ano em ${hours / 24} dias` : `um ano em ${hours} horas`;
+  }
+
+  it('são os três do ADR 0013, decisão 2: Rápido, Normal e Tranquilo', () => {
+    expect(paces.map((pace) => [pace.timeScale, pace.label])).toEqual([
+      [3, 'Rápido'],
+      [1, 'Normal'],
+      [0.5, 'Tranquilo'],
+    ]);
+  });
+
+  it('só um é o recomendado, e é o Rápido', () => {
+    expect(paces.filter((pace) => pace.recommended).map((pace) => pace.timeScale)).toEqual([3]);
+  });
+
+  it('a descrição em tempo real bate com a conta: ano de jogo ÷ ritmo', () => {
+    expect(paces.map((pace) => pace.description)).toEqual([
+      'um ano em 56 horas',
+      'um ano em 7 dias',
+      'um ano em 14 dias',
+    ]);
+    for (const pace of paces) {
+      expect(pace.description, pace.label).toBe(yearInRealTime(pace.timeScale));
+    }
+  });
+
+  it('em todo ritmo oferecido o dia de jogo dura um número inteiro de minutos reais', () => {
+    for (const pace of paces) {
+      expect(Number.isInteger(calendar.dayMs / pace.timeScale / 60_000), pace.label).toBe(true);
+    }
+  });
+
+  it('cada ritmo diz para quem é, em uma frase sem números', () => {
+    for (const pace of paces) {
+      expect(pace.hint.endsWith('.'), pace.label).toBe(true);
+      expect(pace.hint, pace.label).not.toMatch(/\d/);
+    }
+    expect(new Set(paces.map((pace) => pace.hint)).size).toBe(paces.length);
+  });
+
+  it('o schema recusa ritmo repetido, ritmo que não é positivo e lista sem recomendado', () => {
+    const [fast, ...others] = paces;
+    if (fast === undefined) {
+      throw new Error('O conteúdo não tem ritmos.');
+    }
+    const parse = (list: unknown) => BalanceSchema.safeParse({ ...balance, paces: list }).success;
+    expect(parse([fast, fast, ...others])).toBe(false);
+    expect(parse([{ ...fast, timeScale: 0 }, ...others])).toBe(false);
+    expect(parse([{ ...fast, recommended: false }, ...others])).toBe(false);
+    expect(parse(paces.map((pace) => ({ ...pace, recommended: true })))).toBe(false);
+    expect(parse([])).toBe(false);
   });
 });
 

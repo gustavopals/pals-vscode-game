@@ -96,6 +96,87 @@ describe('cabeçalhos e sessão', () => {
     expect(calls[0]?.headers.authorization).toBeUndefined();
   });
 
+  it('o catálogo é lido sem credencial e repete em falha de rede', async () => {
+    const catalog = {
+      contentHash: '0123456789abcdef',
+      newGame: {
+        difficulties: [
+          {
+            id: 'lord',
+            label: 'Senhor',
+            description: 'O feudo como foi pensado.',
+            recommended: true,
+          },
+        ],
+        paces: [
+          {
+            timeScale: 3,
+            label: 'Rápido',
+            description: 'um ano em 56 horas',
+            hint: 'Para quem volta várias vezes ao dia.',
+            recommended: true,
+          },
+        ],
+        defaults: { difficulty: 'lord', timeScale: 3 },
+      },
+    };
+    let attempts = 0;
+    const { client, calls } = setup(() => {
+      attempts += 1;
+      return attempts < 2 ? 'network' : { status: 200, body: catalog };
+    }, null);
+    expect(await client.catalog()).toEqual(catalog);
+    expect(calls.map((call) => [call.method, call.path])).toEqual([
+      ['GET', '/catalog'],
+      ['GET', '/catalog'],
+    ]);
+    expect(calls[1]?.headers.authorization).toBeUndefined();
+    expect(calls[1]?.headers['x-lords-protocol']).toBe('1');
+  });
+
+  it('com validação ligada, um catálogo fora do contrato é recusado', async () => {
+    const broken = { contentHash: 'x', newGame: { difficulties: [], paces: [], defaults: {} } };
+    const client = createClient({
+      baseUrl: 'http://servidor',
+      tokenStore: memoryTokenStore(null),
+      clientVersion: 't',
+      fetch: (async () => new Response(JSON.stringify(broken), { status: 200 })) as typeof fetch,
+      validateResponses: true,
+    });
+    await expect(client.catalog()).rejects.toThrow();
+  });
+
+  it('criar partida envia a dificuldade e o ritmo escolhidos, como vieram', async () => {
+    const summary = {
+      id: gameId,
+      status: 'active',
+      settlementName: 'Pedra Alta',
+      difficulty: 'ironKing',
+      timeScale: 0.5,
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+      stateVersion: '1',
+      createdAt: '2026-10-01T12:00:00.000Z',
+    };
+    const { client, calls } = setup(() => ({ status: 201, body: { game: summary } }));
+    const input = {
+      settlementName: 'Pedra Alta',
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+      difficulty: 'ironKing' as const,
+      timeScale: 0.5,
+    };
+    expect(await client.createGame(input)).toEqual(summary);
+    expect(calls[0]).toMatchObject({ method: 'POST', path: '/games', body: input });
+    // Sem escolha, nenhum dos dois campos vai no corpo: o servidor aplica os padrões.
+    await client.createGame({ settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 });
+    expect(calls[1]?.body).toEqual({
+      settlementName: 'Pedra Alta',
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+    });
+  });
+
   it('"Jogar agora" guarda os dois tokens juntos', async () => {
     const { client, tokenStore, calls } = setup(
       () => ({

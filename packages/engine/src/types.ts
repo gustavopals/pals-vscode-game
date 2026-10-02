@@ -159,7 +159,16 @@ export type ObjectiveView = {
 
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
-  settlement: { name: string; townHallLevel: number };
+  settlement: {
+    name: string;
+    townHallLevel: number;
+    /** Escolhida na criação da partida; não muda durante o ano (GDD §12.1). */
+    difficulty: DifficultyId;
+    /** "Senhor". */
+    difficultyLabel: string;
+    /** O ritmo da partida, pronto para exibir: "Rápido: um ano em 56 horas" (GDD §4.2). */
+    paceLabel: string;
+  };
   calendar: {
     year: number;
     season: SeasonId;

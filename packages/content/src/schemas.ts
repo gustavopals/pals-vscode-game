@@ -20,6 +20,25 @@ const ratio = z.strictObject({ num: positiveInt, den: positiveInt });
 const perResource = <T extends z.ZodType>(value: T) =>
   z.strictObject({ food: value, wood: value, stone: value, gold: value });
 
+const exactlyOneRecommended = (items: ReadonlyArray<{ recommended: boolean }>) =>
+  items.filter((item) => item.recommended).length === 1;
+
+const difficulty = z.strictObject({
+  label,
+  description: label,
+  recommended: z.boolean(),
+  storageCapacity: ratio,
+  famineDesertion: z.boolean(),
+});
+
+const pace = z.strictObject({
+  timeScale: z.number().positive(),
+  label,
+  description: label,
+  hint: label,
+  recommended: z.boolean(),
+});
+
 export const BalanceSchema = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
@@ -69,6 +88,20 @@ export const BalanceSchema = z.strictObject({
   }),
   settlement: z.strictObject({ nameMinLength: positiveInt, nameMaxLength: positiveInt }),
   objectives: z.strictObject({ maxActive: positiveInt }),
+  difficulties: z
+    .strictObject({ peasant: difficulty, lord: difficulty, ironKing: difficulty })
+    .refine(
+      (difficulties) => exactlyOneRecommended(Object.values(difficulties)),
+      'exatamente uma dificuldade recomendada',
+    ),
+  paces: z
+    .array(pace)
+    .min(1)
+    .refine(exactlyOneRecommended, 'exatamente um ritmo recomendado')
+    .refine(
+      (paces) => new Set(paces.map((entry) => entry.timeScale)).size === paces.length,
+      'ritmos repetidos',
+    ),
 });
 
 export const BuildingSchema = z.strictObject({

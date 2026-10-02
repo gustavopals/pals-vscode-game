@@ -6,6 +6,8 @@ import {
   type ApiErrorCode,
   type AuthResponse,
   AuthResponseSchema,
+  type CatalogResponse,
+  CatalogResponseSchema,
   type ChronicleResponse,
   ChronicleResponseSchema,
   type Command,
@@ -323,6 +325,12 @@ export function createClient(options: ClientOptions) {
     health: (): Promise<HealthResponse> => get(HealthResponseSchema, '/health', false),
     version: (): Promise<VersionResponse> => get(VersionResponseSchema, '/version', false),
 
+    /**
+     * As opções de nova partida (dificuldades e ritmos, com rótulo, frase e os padrões), sem
+     * sessão. É de onde as boas-vindas tiram o que mostram: o cliente não escreve nenhuma delas.
+     */
+    catalog: (): Promise<CatalogResponse> => get(CatalogResponseSchema, '/catalog', false),
+
     /** Cria a conta anônima e guarda a sessão. É o "Jogar agora". */
     signUpAnonymous: async (input: {
       displayName: string;
@@ -398,6 +406,10 @@ export function createClient(options: ClientOptions) {
     listGames: async (): Promise<GameSummary[]> =>
       (await get(ListGamesResponseSchema, '/games')).games,
 
+    /**
+     * Cria a partida. `difficulty` e `timeScale` são opcionais e, quando vão, têm de ser opções
+     * do catálogo; sem eles o servidor usa os padrões que o catálogo anuncia.
+     */
     createGame: async (input: CreateGameRequest): Promise<GameSummary> =>
       (await json(CreateGameResponseSchema, 'POST', '/games', { auth: true, body: input })).game,
 

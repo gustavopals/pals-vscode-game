@@ -13,16 +13,41 @@ curl -s localhost:3000/v1/health && curl -s localhost:3000/v1/version
 
 A configuração vem das variáveis de `deploy/.env` ([exemplo comentado](../../deploy/.env.example)) e é validada no arranque: falta ou formato errado derruba o processo com uma mensagem que cita só o nome da variável.
 
-## Ritmo das partidas (`GAME_TIME_SCALE`)
+## Dificuldade e ritmo das partidas
 
-`GAME_TIME_SCALE` é o número de horas de jogo por hora real das partidas **novas** ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)). O padrão é 3; aceita de 0,5 a 10, com casas decimais. Fora da faixa, ou com texto, o servidor não sobe.
+O jogador escolhe a dificuldade e o ritmo ao criar a partida ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 2, 2a e 19a). Os dois ficam gravados e não mudam mais.
 
-- O valor é gravado em `games.time_scale` na criação. Mudar a variável não mexe nas partidas que já existem: cada uma segue no ritmo com que nasceu, em qualquer instância que a leia.
-- O jogador não escolhe o ritmo. `POST /games` ainda aceita `timeScale: 1` no corpo, por compatibilidade, e o ignora; qualquer outro valor é `400 VALIDATION`.
-- O ritmo também fica dentro do estado (`state.settings.timeScale`), de onde o motor o lê: na criação, é o mesmo valor da coluna; em uma partida da v0.1, a migração o copia da coluna.
+- **`POST /games`** aceita `difficulty` (`peasant`, `lord`, `ironKing`) e `timeScale` (um dos ritmos de `balance.paces`: 3, 1 ou 0,5). Um valor fora dessas listas é `400 VALIDATION`, com o campo em `details.issues`, e nada é criado nem arquivado. Quem valida é o schema do protocolo, que lê as listas de `@lotg/content`.
+- **Sem os campos**, valem os padrões: a dificuldade recomendada do conteúdo (Senhor) e o ritmo do servidor, `GAME_TIME_SCALE`. É o caminho do app da v0.1 e do simulador.
+- **`GAME_TIME_SCALE`** é só esse padrão: horas de jogo por hora real de quem não escolhe. O padrão da variável é 3; aceita de 0,5 a 10, com casas decimais, e fora da faixa, ou com texto, o servidor não sobe. Ela pode valer um ritmo que o jogo não oferece (7, por exemplo): a partida criada sem `timeScale` nasce nele mesmo assim, mas ninguém consegue pedi-lo no corpo.
+- Os dois valores são gravados na linha (`games.difficulty`, `games.time_scale`) e dentro do estado (`state.settings`), sempre iguais; o motor lê os do estado. Mudar a variável, ou criar outra partida, não mexe nas que já existem: cada uma segue como nasceu, em qualquer instância que a leia. Em uma partida da v0.1, a migração copia o ritmo da coluna e grava `lord`.
 - O motor continua em tempo de jogo. O servidor converte: tempo de jogo = (agora − `created_at`) × `time_scale`, e o `at` de cada evento é `created_at` + `atMs` ÷ `time_scale`.
 - **A visão sai em tempo real.** Em `GET /view` e na resposta dos comandos (aceitos ou recusados), todo campo em segundos é de segundos reais e toda taxa por hora é por hora real, inclusive nos textos de explicação (`breakdown`). Prazos são arredondados para cima; `depletesInSeconds` e `famine.secondsElapsed`, para baixo. Uma obra anunciada com `durationSeconds: 80` termina 80 segundos reais depois. `atMs` nos eventos e `famine.sinceMs` continuam em milissegundos de jogo.
+- A visão diz qual é a partida: `settlement.difficulty`, `settlement.difficultyLabel` ("Senhor") e `settlement.paceLabel` ("Rápido: um ano em 56 horas"). Um ritmo fora da lista sai como "Ritmo 7×: um ano em 1 dia".
 - No ritmo 3, o dia de jogo dura 40 minutos reais e a comida inicial, sem ninguém na Fazenda, acaba em 12 horas reais.
+
+### `GET /v1/catalog`
+
+As opções de nova partida, para as boas-vindas do app, que não importa `@lotg/content` (GDD §14.5). Sem autenticação, no limite geral de requisições, como `/version`.
+
+```jsonc
+{
+  "contentHash": "…",                    // o mesmo de GET /version
+  "newGame": {
+    "difficulties": [                     // da mais branda à mais dura
+      { "id": "lord", "label": "Senhor", "description": "O feudo como foi pensado: …", "recommended": true }
+    ],
+    "paces": [                            // na ordem em que as boas-vindas os mostram
+      { "timeScale": 3, "label": "Rápido", "description": "um ano em 56 horas", "hint": "Para quem volta várias vezes ao dia …", "recommended": true }
+    ],
+    "defaults": { "difficulty": "lord", "timeScale": 3 }
+  }
+}
+```
+
+- `recommended` é a marca do conteúdo. `defaults` é o que as boas-vindas trazem marcado: a dificuldade recomendada e `GAME_TIME_SCALE`, quando ele é um dos ritmos oferecidos; se não for, o ritmo recomendado. Por isso os testes, que rodam com `GAME_TIME_SCALE=1`, veem `defaults.timeScale: 1` e `recommended` no ritmo 3.
+- Os fatores de regra de cada dificuldade (`storageCapacity`, `famineDesertion`) **não** saem no catálogo: o app mostra a frase, e quem aplica o fator é o motor.
+- O corpo é montado uma vez, no arranque (`src/catalog.ts`). O **ETag** é fraco e é o SHA-256 do corpo inteiro: muda com o conteúdo (o corpo leva o `contentHash`) e também quando o ritmo padrão muda. `If-None-Match` igual devolve `304` sem corpo; `cache-control: no-cache` faz o navegador perguntar antes de reusar.
 
 ## Testes
 
@@ -34,13 +59,14 @@ TEST_DATABASE_URL=… pnpm test:integration -- games     # um arquivo
 
 Os testes de integração ficam em `test/` (e os cenários de ponta a ponta em `tests/server/`, na raiz) e rodam contra o PostgreSQL real do `db_test`, um arquivo por vez. Cada arquivo recria o banco com `resetTestDb()`. Os helpers de `test/helpers/app.ts` sobem a API em memória com um relógio controlado (`server.clock.advance(ms)`): nenhum teste espera tempo real. O access token vale 15 minutos desse relógio; depois de avançá-lo, use `renew`.
 
-Os helpers sobem a API com `GAME_TIME_SCALE=1`, porque os cenários foram escritos nos tempos do GDD (dia de 2 horas). O ritmo tem arquivo próprio, `test/pace.test.ts`, que sobe instâncias nos ritmos 1, 3, 0,5 e 7 com `createTestApp({ config: { GAME_TIME_SCALE: '3' } })`.
+Os helpers sobem a API com `GAME_TIME_SCALE=1`, porque os cenários foram escritos nos tempos do GDD (dia de 2 horas). O ritmo tem arquivo próprio, `test/pace.test.ts`, que sobe instâncias nos ritmos 1, 3, 0,5 e 7 com `createTestApp({ config: { GAME_TIME_SCALE: '3' } })`. A escolha na criação (as nove combinações, os valores inválidos, os padrões e a partida antiga intacta) está em `test/games.test.ts`; o catálogo, em `test/catalog.test.ts` e, sem banco, em `src/catalog.test.ts`. Para criar uma partida de teste em outro ritmo ou dificuldade: `startGame(server, token, { timeScale: 3, difficulty: 'ironKing' })`.
 
 ## Estrutura
 
 | Pasta | Conteúdo |
 |---|---|
 | `src/app.ts`, `main.ts`, `config.ts` | Montagem do Fastify, arranque e configuração |
+| `src/catalog.ts`, `version.ts` | Corpo de `GET /catalog` (opções de nova partida e padrões) e de `GET /version` (hash do conteúdo) |
 | `src/plugins/` | Formato de erros, limites de taxa, autorização (`requireIdentity`), saúde do banco |
 | `src/auth/` | Tokens (JWT e refresh), sessões, exclusão, Código do Reino, GitHub (validação do token e repasse do *device flow*) |
 | `src/games/` | Lock, migração do estado e persistência (`repository`), criação e leitura (`service`), `/view` e ETag, comandos com recibo, eventos e Crônica |
@@ -99,7 +125,7 @@ Os testes ficam em `test/games-migration.test.ts`: gravam linhas com `schema_ver
 
 ## Limitações conhecidas
 
-- `GET /v1/catalog` (GDD §14.5) ainda não existe; nenhuma tarefa do roadmap o pede.
+- `GET /v1/catalog` só traz as opções de nova partida. Os outros catálogos do GDD §14.5 (edifícios, cartas) não saem por ele: o `ViewState` já leva o que o app exibe.
 - Se o relógio do servidor andar para trás, o jogo não regride (o tempo de jogo nunca volta), mas `commands.server_time` guarda o instante regredido. Um replay só pelo log usaria esse instante.
 
 ## Migrações

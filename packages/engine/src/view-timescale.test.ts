@@ -191,7 +191,12 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
   });
 
   it('o que não é prazo nem taxa não muda com o ritmo', () => {
-    expect(real.settlement).toEqual(game.settlement);
+    // No feudo, só o rótulo do ritmo acompanha o ritmo pedido.
+    expect(game.settlement.paceLabel).toBe('Normal: um ano em 7 dias');
+    expect(real.settlement).toEqual({
+      ...game.settlement,
+      paceLabel: 'Rápido: um ano em 56 horas',
+    });
     expect(real.objectives).toEqual(game.objectives);
     expect(real.pendingDecisions).toEqual(game.pendingDecisions);
     expect(real.resources.map((row) => [row.id, row.stock, row.cap])).toEqual(

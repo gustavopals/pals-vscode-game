@@ -72,6 +72,7 @@ export function formatSummary(result: SimulationResult): string {
     .join(', ');
   return [
     `Semente ${options.seed} · estratégia ${options.strategy} · ${options.days} dias · ${options.sessionsPerDay} sessões/dia · ritmo ${formatScale(options.timeScale ?? 1)}×`,
+    `Partida: ${result.game.difficultyLabel} · ${result.game.paceLabel}`,
     `População: ${summary.villagers} de ${summary.capacity} vagas`,
     `Níveis: ${levels}`,
     `Estoque: ${stock}`,

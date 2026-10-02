@@ -18,6 +18,7 @@ pnpm -s sim -- --seed pedra-alta-golden --days 7 --time-scale 3 > semana-3x.csv
 | `--strategy` | `economico` | Bot que joga as sessões |
 | `--sessions-per-day` | `2` | Sessões por dia real, a intervalos iguais, a primeira na criação da partida |
 | `--time-scale` | `1` | Ritmo: horas de jogo por hora real. Qualquer número positivo (`3`, `0.5`) |
+| `--difficulty` | `lord` | Dificuldade da partida: `peasant`, `lord` ou `ironKing`. Fica gravada no estado; os fatores dela passam a valer com as mecânicas da v0.2 |
 
 O CSV sai na saída padrão e o resumo na saída de erro; use `pnpm -s` para o pnpm não misturar o próprio cabeçalho ao CSV. A mesma semente e as mesmas opções produzem sempre o mesmo arquivo.
 
@@ -30,7 +31,7 @@ Com `--time-scale N`, o que é do jogador continua em tempo real e o que é do m
 - `--days` e `--sessions-per-day` são dias reais e sessões por dia real. Entre duas sessões passam `N` vezes mais horas de jogo.
 - O bot recebe a visão como o app a recebe: prazos em segundos reais e taxas por hora real (`deriveViewState` com `{ timeScale }`).
 - O CSV continua com uma linha por hora real, e as colunas `*_per_hour` são por hora real. O calendário (`year`, `season`, `day_of_season`) é o de jogo: no ritmo 3, um dia de jogo dura 40 minutos reais.
-- O resumo diz o ritmo na primeira linha, e as horas de fome são horas reais.
+- O resumo diz o ritmo na primeira linha, e as horas de fome são horas reais. A segunda linha diz a partida como o jogo a mostra ao jogador, lida do `ViewState`: `Partida: Senhor · Rápido: um ano em 56 horas` (um ritmo que o jogo não oferece sai como `Ritmo 2×: um ano em 3 dias e 12 horas`).
 
 O ritmo não muda as regras: 3 dias no ritmo 3 com 3 sessões por dia terminam exatamente no mesmo estado de jogo que 9 dias no ritmo 1 com 1 sessão por dia, porque as sessões caem nos mesmos instantes de jogo. `src/timescale.test.ts` confere essa igualdade no estado, nos eventos e linha a linha.
 

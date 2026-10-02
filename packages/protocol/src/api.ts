@@ -1,3 +1,4 @@
+import { balance, DIFFICULTY_IDS } from '@lotg/content';
 import { z } from 'zod';
 
 import { CommandSchema } from './commands';
@@ -154,14 +155,25 @@ export const GameSummarySchema = z.strictObject({
 });
 export type GameSummary = z.infer<typeof GameSummarySchema>;
 
+/** Uma das dificuldades do conteúdo (GDD §12.1). */
+export const DifficultySchema = z.enum(DIFFICULTY_IDS);
+
+/** Um dos ritmos que o conteúdo oferece (GDD §4.2): horas de jogo por hora real. */
+export const PaceTimeScaleSchema = z
+  .number()
+  .refine(
+    (value) => balance.paces.some((pace) => pace.timeScale === value),
+    'ritmo fora dos oferecidos',
+  );
+
 export const CreateGameRequestSchema = z.strictObject({
   settlementName: DisplayNameSchema,
   timezone,
   vigilHourLocal: z.number().int().min(0).max(23),
-  /** Na v0.1 a dificuldade é sempre Senhor; o ritmo é o do servidor (ADR 0011). */
-  difficulty: z.literal('lord').optional(),
-  /** Aceito por compatibilidade e ignorado: o ritmo é o do servidor (ADR 0011). */
-  timeScale: z.literal(1).optional(),
+  /** Fica gravada na partida e não muda durante o ano. Sem ela, vale a recomendada (Senhor). */
+  difficulty: DifficultySchema.optional(),
+  /** Fica gravado na partida e não muda durante o ano. Sem ele, vale o padrão do servidor. */
+  timeScale: PaceTimeScaleSchema.optional(),
   /** Arquiva a partida ativa, se houver, em vez de recusar com `ACTIVE_GAME_EXISTS`. */
   replaceActive: z.boolean().optional(),
   /** Semente fixa. Só é aceita por servidores em ambiente de teste. */
@@ -220,6 +232,59 @@ export type ChronicleQuery = z.infer<typeof ChronicleQuerySchema>;
 /** As últimas linhas da Crônica, da mais antiga para a mais recente. */
 export const ChronicleResponseSchema = z.strictObject({ entries: z.array(GameEventSchema) });
 export type ChronicleResponse = z.infer<typeof ChronicleResponseSchema>;
+
+// --- Catálogo ---------------------------------------------------------------
+
+/**
+ * Corpo de `GET /v1/catalog`: o que o app precisa do conteúdo e que não vem no `ViewState`. Na
+ * v0.2, as opções de nova partida (GDD §13.9). Os fatores de regra de cada dificuldade não saem
+ * daqui: o app mostra a frase, e quem aplica o fator é o motor.
+ */
+export const CatalogResponseSchema = z
+  .strictObject({
+    /** O mesmo de `GET /version`: muda quando qualquer número ou texto do conteúdo muda. */
+    contentHash: z.string(),
+    newGame: z.strictObject({
+      /** Da mais branda à mais dura. */
+      difficulties: z
+        .array(
+          z.strictObject({
+            id: DifficultySchema,
+            label: z.string(),
+            /** Uma frase sobre o que a dificuldade muda nesta versão. */
+            description: z.string(),
+            recommended: z.boolean(),
+          }),
+        )
+        .min(1),
+      /** Na ordem em que as boas-vindas os mostram. */
+      paces: z
+        .array(
+          z.strictObject({
+            timeScale: z.number().positive(),
+            label: z.string(),
+            /** Quanto dura o ano em tempo real: "um ano em 56 horas". */
+            description: z.string(),
+            /** Para quem é este ritmo, em uma frase. */
+            hint: z.string(),
+            recommended: z.boolean(),
+          }),
+        )
+        .min(1),
+      /**
+       * O que as boas-vindas trazem marcado: a dificuldade recomendada e o ritmo padrão do
+       * servidor, quando ele é um dos oferecidos (senão, o ritmo recomendado).
+       */
+      defaults: z.strictObject({ difficulty: DifficultySchema, timeScale: z.number().positive() }),
+    }),
+  })
+  .refine(
+    ({ newGame }) =>
+      newGame.difficulties.some((entry) => entry.id === newGame.defaults.difficulty) &&
+      newGame.paces.some((entry) => entry.timeScale === newGame.defaults.timeScale),
+    'os padrões têm de estar entre as opções',
+  );
+export type CatalogResponse = z.infer<typeof CatalogResponseSchema>;
 
 // --- Serviço ----------------------------------------------------------------
 

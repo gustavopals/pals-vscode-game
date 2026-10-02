@@ -13,7 +13,7 @@ applyCommand(state: GameState, command: Command, gameTimeMs: number): CommandRes
 deriveViewState(state: GameState, gameTimeMs: number, options?: { timeScale?: number }): ViewState
 ```
 
-`GameSettings` é `{ settlementName, timezone, vigilHourLocal, difficulty, timeScale }`: a dificuldade (`peasant`, `lord`, `ironKing`) e o ritmo ficam gravados no estado e não mudam durante o ano.
+`GameSettings` é `{ settlementName, timezone, vigilHourLocal, difficulty, timeScale }`: a dificuldade (`peasant`, `lord`, `ironKing`) e o ritmo ficam gravados no estado e não mudam durante o ano. A visão os devolve prontos para exibir, em `settlement`: `difficulty`, `difficultyLabel` ("Senhor") e `paceLabel` ("Rápido: um ano em 56 horas").
 
 Além delas, o pacote exporta só os tipos, a lista `REJECTION_CODES`, `CURRENT_SCHEMA_VERSION` e a classe `StateMigrationError`. Um teste (`purity.test.ts`) falha se qualquer outra coisa vazar.
 
@@ -26,6 +26,8 @@ advanceTo(estado, agora)  →  applyCommand(estado avançado, comando, agora)  �
 1. **`advanceTo`** leva o estado até um instante de jogo, em milissegundos. Percorre a linha do tempo trecho a trecho: aplica a produção contínua até o próximo evento discreto (`nextEventAt`), processa os eventos daquele instante e repete. Devolve o estado novo e os eventos, cada um já com a frase da Crônica.
 2. **`applyCommand`** é a única outra forma de mudar o estado. Exige o estado já avançado até o instante do comando (`state.lastProcessedAt === gameTimeMs`); violar isso lança erro, porque é falha de quem chamou. Uma recusa de regra nunca lança: devolve `{ ok: false, code, message }`, com a mensagem em português, e não altera nada. O chamador fica com o estado que saiu de `advanceTo` e pode persisti-lo mesmo na recusa.
 3. **`deriveViewState`** calcula tudo que a interface exibe, com a explicação de cada número. Se receber um instante futuro, avança uma cópia antes de derivar. A visão fala em **tempo real**: no ritmo da partida (`state.settings.timeScale`, horas de jogo por hora real), os prazos saem em segundos reais, arredondados para cima (`depletesInSeconds` e `famine.secondsElapsed`, para baixo), e as taxas por hora, multiplicadas pelo ritmo, inclusive nos textos de explicação. `options.timeScale` só serve para ver o mesmo estado em outro ritmo (o simulador e os testes usam). O resto do motor continua em tempo de jogo ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)).
+
+   `settlement.paceLabel` acompanha o ritmo em que a visão foi escrita (`src/pace.ts`). Para um ritmo de `balance.paces`, é o rótulo e a descrição do conteúdo. Para qualquer outro (uma partida da v0.1 criada com outro `GAME_TIME_SCALE`), é um rótulo calculado, sem o nome de nenhum dos oferecidos: "Ritmo 7×: um ano em 1 dia", pela conta ano de jogo ÷ ritmo, com "cerca de" quando a frase arredonda. Um teste confere que essa conta dá, para cada ritmo oferecido, a frase que o conteúdo escreve.
 
 Antes de tudo isso, quem carrega um estado gravado passa por **`migrateState`** (ver "Versões do estado e migração").
 
@@ -134,4 +136,4 @@ Mudar uma regra exige atualizar o golden correspondente e o GDD (GDD §18.3).
 
 O gerador de sorteios existe (ver "Sorteios"), mas nenhuma regra o usa ainda: os fluxos `council`, `morale` e `horde` ganham o primeiro sorteio com o Conselho, a moral e as incursões por Ameaça (roadmap da v0.2, V2D-T1, V2C-T4 e V2E-T3). Até lá, `rng` continua vazio em toda partida.
 
-A dificuldade está no estado e ainda não muda nenhuma regra: os fatores dela chegam com o armazenamento, a fome com deserção e o Conselho.
+A dificuldade está no estado e aparece na visão, mas ainda não muda nenhuma regra. Os fatores já estão em `balance.difficulties` (`storageCapacity`, `famineDesertion`) e passam a valer com o armazenamento (V2C-T2) e a deserção por fome (V2C-T4); a opção automática do Conselho é marcada em cada carta (V2D-T1).

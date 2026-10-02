@@ -19,7 +19,13 @@ const farmers = accept(newGame(), command('setWorkers', { building: 'farm', coun
 describe('deriveViewState', () => {
   it('estado inicial: 5 aldeões livres, 10 vagas e nada em andamento', () => {
     const initial = view(newGame());
-    expect(initial.settlement).toEqual({ name: 'Pedra Alta', townHallLevel: 1 });
+    expect(initial.settlement).toEqual({
+      name: 'Pedra Alta',
+      townHallLevel: 1,
+      difficulty: 'lord',
+      difficultyLabel: 'Senhor',
+      paceLabel: 'Normal: um ano em 7 dias',
+    });
     expect(initial.calendar).toEqual({
       year: 1,
       season: 'spring',

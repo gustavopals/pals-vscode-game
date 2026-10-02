@@ -2,7 +2,10 @@
   "initial": {
     "settlement": {
       "name": "Pedra Alta",
-      "townHallLevel": 1
+      "townHallLevel": 1,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
     },
     "calendar": {
       "year": 1,
@@ -325,7 +328,10 @@
   "afterFirstAllocation": {
     "settlement": {
       "name": "Pedra Alta",
-      "townHallLevel": 1
+      "townHallLevel": 1,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
     },
     "calendar": {
       "year": 1,
@@ -659,7 +665,10 @@
   "afterObjectivesScenario": {
     "settlement": {
       "name": "Pedra Alta",
-      "townHallLevel": 2
+      "townHallLevel": 2,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
     },
     "calendar": {
       "year": 1,

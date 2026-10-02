@@ -11,6 +11,7 @@ import { createDb } from './db/client';
 import { registerErrorHandling } from './plugins/errors';
 import { registerRateLimit } from './plugins/ratelimit';
 import { registerAuthRoutes } from './routes/auth';
+import { registerCatalogRoutes } from './routes/catalog';
 import { registerGameRoutes } from './routes/games';
 import { registerHealthRoutes } from './routes/health';
 import { registerMeRoutes } from './routes/me';
@@ -84,6 +85,7 @@ export async function buildApp(deps: AppDeps) {
     async (api) => {
       registerHealthRoutes(api, ctx);
       registerVersionRoutes(api, ctx);
+      registerCatalogRoutes(api, ctx);
       registerAuthRoutes(api, ctx);
       registerMeRoutes(api, ctx);
       registerGameRoutes(api, ctx);

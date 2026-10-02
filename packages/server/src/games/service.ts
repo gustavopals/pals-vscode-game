@@ -5,17 +5,11 @@ import type { CreateGameRequest, GameSummary } from '@lotg/protocol';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { ApiError, sessionRevoked } from '../api-error';
+import { defaultDifficulty } from '../catalog';
 import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
 import { accounts, games } from '../db/schema';
 import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
-
-/**
- * A dificuldade ainda é fixa e o ritmo é o do servidor (`GAME_TIME_SCALE`, ADR 0011): o jogador
- * ainda não escolhe nenhum dos dois. Os dois ficam gravados na linha da partida e, desde a
- * versão 2 do estado, também dentro dele (`settings`), de onde o motor os lê.
- */
-const DIFFICULTY = 'lord';
 
 export async function listGames(ctx: AppContext, accountId: string): Promise<GameSummary[]> {
   const rows = await ctx.db
@@ -29,6 +23,11 @@ export async function listGames(ctx: AppContext, accountId: string): Promise<Gam
 /**
  * `POST /games`. Uma partida ativa por conta: com uma já ativa, recusa com `ACTIVE_GAME_EXISTS`,
  * a não ser que venha `replaceActive`, que arquiva a atual.
+ *
+ * Dificuldade e ritmo são os do corpo, que o protocolo já conferiu contra o conteúdo. Sem eles
+ * (o app da v0.1, o simulador), valem a dificuldade recomendada e o ritmo do servidor,
+ * `GAME_TIME_SCALE` (ADR 0013, decisão 2a). Os dois são gravados na linha da partida e dentro do
+ * estado (`settings`), sempre com o mesmo valor, e não mudam mais.
  */
 export async function createGame(
   ctx: AppContext,
@@ -69,12 +68,14 @@ export async function createGame(
       ctx.config.allowGameSeed && input.seed !== undefined
         ? input.seed
         : randomBytes(12).toString('hex');
+    const difficulty = input.difficulty ?? defaultDifficulty();
+    const timeScale = input.timeScale ?? ctx.config.gameTimeScale;
     const state = createInitialState(seed, {
       settlementName: input.settlementName,
       timezone: input.timezone,
       vigilHourLocal: input.vigilHourLocal,
-      difficulty: DIFFICULTY,
-      timeScale: ctx.config.gameTimeScale,
+      difficulty,
+      timeScale,
     });
     const [row] = await tx
       .insert(games)
@@ -83,8 +84,8 @@ export async function createGame(
         accountId,
         status: 'active',
         seed,
-        difficulty: DIFFICULTY,
-        timeScale: String(ctx.config.gameTimeScale),
+        difficulty,
+        timeScale: String(timeScale),
         timezone: input.timezone,
         vigilHour: input.vigilHourLocal,
         schemaVersion: state.schemaVersion,

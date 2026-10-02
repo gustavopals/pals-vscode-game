@@ -1,3 +1,4 @@
+import { balance, DIFFICULTY_IDS } from '@lotg/content';
 import type {
   Command as EngineCommand,
   GameEvent as EngineEvent,
@@ -12,6 +13,7 @@ import {
   API_ERROR_STATUS,
   ApiErrorSchema,
   canonicalJson,
+  CatalogResponseSchema,
   type Command,
   CommandAcceptedSchema,
   CommandSchema,
@@ -214,10 +216,75 @@ describe('contratos da API', () => {
     );
     expect(CreateGameRequestSchema.safeParse({ ...body, vigilHourLocal: 24 }).success).toBe(false);
     expect(CreateGameRequestSchema.safeParse({ ...body, settlementName: 'A' }).success).toBe(false);
-    expect(CreateGameRequestSchema.safeParse({ ...body, difficulty: 'ironKing' }).success).toBe(
+  });
+
+  it('criação de partida: a dificuldade é uma das três do conteúdo, ou nenhuma', () => {
+    const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    for (const difficulty of DIFFICULTY_IDS) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, difficulty }).data?.difficulty).toBe(
+        difficulty,
+      );
+    }
+    expect(CreateGameRequestSchema.safeParse(body).data).not.toHaveProperty('difficulty');
+    for (const difficulty of ['normal', 'Lord', 'LORD', '', null, 1, ['lord']]) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, difficulty }).success).toBe(false);
+    }
+  });
+
+  it('criação de partida: o ritmo é um dos oferecidos pelo conteúdo, ou nenhum', () => {
+    const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    expect(balance.paces.map((pace) => pace.timeScale)).toEqual([3, 1, 0.5]);
+    for (const { timeScale } of balance.paces) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, timeScale }).data?.timeScale).toBe(
+        timeScale,
+      );
+    }
+    expect(CreateGameRequestSchema.safeParse(body).data).not.toHaveProperty('timeScale');
+    // O 2× saiu da lista (ADR 0013, decisão 2); 7 é um GAME_TIME_SCALE válido, mas não é oferecido.
+    for (const timeScale of [2, 7, 0, -1, 0.25, 3.0001, '3', null, Number.NaN, [3]]) {
+      expect(CreateGameRequestSchema.safeParse({ ...body, timeScale }).success).toBe(false);
+    }
+  });
+
+  it('/catalog responde as opções de nova partida, com os padrões entre elas', () => {
+    const catalog = {
+      contentHash: '0123456789abcdef',
+      newGame: {
+        difficulties: DIFFICULTY_IDS.map((id) => ({
+          id,
+          label: balance.difficulties[id].label,
+          description: balance.difficulties[id].description,
+          recommended: balance.difficulties[id].recommended,
+        })),
+        paces: balance.paces.map(({ timeScale, label, description, hint, recommended }) => ({
+          timeScale,
+          label,
+          description,
+          hint,
+          recommended,
+        })),
+        defaults: { difficulty: 'lord', timeScale: 3 },
+      },
+    };
+    expect(CatalogResponseSchema.safeParse(catalog).error).toBeUndefined();
+
+    const { newGame } = catalog;
+    const withNewGame = (change: object) => ({ ...catalog, newGame: { ...newGame, ...change } });
+    // Um padrão que não está entre as opções deixaria as boas-vindas sem nada marcado.
+    for (const defaults of [
+      { difficulty: 'lord', timeScale: 2 },
+      { difficulty: 'normal', timeScale: 3 },
+      { difficulty: 'lord' },
+    ]) {
+      expect(CatalogResponseSchema.safeParse(withNewGame({ defaults })).success).toBe(false);
+    }
+    expect(CatalogResponseSchema.safeParse(withNewGame({ paces: [] })).success).toBe(false);
+    expect(CatalogResponseSchema.safeParse(withNewGame({ difficulties: [] })).success).toBe(false);
+    // Nenhum fator de regra sai no catálogo: só o que as boas-vindas mostram.
+    const leaking = newGame.difficulties.map((entry) => ({ ...entry, storageCapacity: 1 }));
+    expect(CatalogResponseSchema.safeParse(withNewGame({ difficulties: leaking })).success).toBe(
       false,
     );
-    expect(CreateGameRequestSchema.safeParse({ ...body, timeScale: 2 }).success).toBe(false);
   });
 
   it('a resposta do GitHub traz os tokens só quando nasce uma sessão', () => {

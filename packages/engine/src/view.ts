@@ -18,7 +18,9 @@ import {
   upgradeQuote,
 } from './construction';
 import { consumptionRate, foodRunsOutIn, netRates, productionRate, storageCap } from './economy';
+import { decimal, plural } from './format';
 import { describeReward, objectiveProgress } from './objectives';
+import { paceLabel } from './pace';
 import { freeVillagers, housingCapacity, housingVacancy, recruitmentBlock } from './population';
 import type {
   BuildingId,
@@ -31,15 +33,6 @@ import type {
   ViewState,
 } from './types';
 import { assertTimeScale, MILLI, positiveEntries, SECOND_MS } from './units';
-
-/** Número com vírgula decimal e até duas casas, para os textos de explicação. */
-function decimal(value: number): string {
-  return String(Math.round(value * 100) / 100).replace('.', ',');
-}
-
-function plural(count: number, singular: string, pluralForm: string): string {
-  return `${count} ${count === 1 ? singular : pluralForm}`;
-}
 
 function costView(state: GameState, cost: ResourceAmounts, quantity = 1): ResourceCostView[] {
   return positiveEntries(cost).map(([resource, amount]) => {
@@ -217,7 +210,14 @@ export function deriveViewState(
   );
 
   return {
-    settlement: { name: settlement.name, townHallLevel: settlement.buildings.townHall },
+    settlement: {
+      name: settlement.name,
+      townHallLevel: settlement.buildings.townHall,
+      difficulty: state.settings.difficulty,
+      difficultyLabel: balance.difficulties[state.settings.difficulty].label,
+      // O rótulo é o do ritmo em que os prazos desta visão foram escritos.
+      paceLabel: paceLabel(timeScale),
+    },
     calendar: {
       year: date.year,
       season: date.season.id,

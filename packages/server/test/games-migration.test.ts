@@ -284,6 +284,12 @@ describe('uma partida gravada na versão 1', () => {
 
     const { view } = reply.body;
     expect(view.settlement.name).toBe('Pedra Alta');
+    // A partida da v0.1 aparece como o que sempre foi: Senhor, no ritmo em que nasceu.
+    expect(view.settlement).toMatchObject({
+      difficulty: 'lord',
+      difficultyLabel: 'Senhor',
+      paceLabel: 'Rápido: um ano em 56 horas',
+    });
     expect(stock(view, 'gold')).toBe(250);
     expect(view.population.villagers).toBe(5);
     expect(view.constructions.planned.map((plan) => plan.building)).toEqual(['farm', 'lumberMill']);
@@ -291,6 +297,26 @@ describe('uma partida gravada na versão 1', () => {
     // faltam 38 segundos reais (37,56 arredondados para cima).
     expect(view.constructions.active).toMatchObject({ building: 'housing', targetLevel: 2 });
     expect(view.constructions.active?.secondsRemaining).toBe(38);
+  });
+
+  it('em um ritmo que o jogo não oferece mais, segue nele, com um rótulo honesto', async () => {
+    // O 2× saiu da lista (ADR 0013, decisão 2), mas uma partida criada nele não muda.
+    const before = v1State('fresh');
+    const game = await insertGame(server, before, { timeScale: 2 });
+    const reply = await getView(server, game);
+    expect(reply.status).toBe(200);
+    expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+    expect(reply.body.view.settlement).toMatchObject({
+      difficulty: 'lord',
+      difficultyLabel: 'Senhor',
+      paceLabel: 'Ritmo 2×: um ano em 3 dias e 12 horas',
+    });
+    // O dia de jogo de 2 h dura 1 h real no ritmo 2.
+    const { calendar } = reply.body.view;
+    expect(calendar.secondsToNextDay).toBe(Math.ceil((7_200_000 - before.lastProcessedAt) / 2000));
+    const row = await rowOf(server, game.id);
+    expect(row).toMatchObject({ timeScale: 2, difficulty: 'lord' });
+    expect(row.state.settings).toMatchObject({ timeScale: 2, difficulty: 'lord' });
   });
 
   it('a leitura seguinte não migra nem escreve de novo', async () => {

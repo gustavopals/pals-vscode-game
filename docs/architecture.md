@@ -169,7 +169,7 @@ Há três relógios, e cada um tem um dono.
 tempo de jogo = (agora − criação da partida) × time_scale
 ```
 
-`games.time_scale` é gravado na criação a partir de `GAME_TIME_SCALE` (padrão 3, de 0,5 a 10) e não muda depois ([ADR 0011](decisions/0011-ritmo-3x-no-mvp.md)). O tempo de jogo nunca anda para trás: se o relógio do servidor regredir, vale o último instante processado. O avanço é **preguiçoso**: acontece nas leituras e nos comandos. Um job avança as partidas sem estado persistido há mais de uma hora, em lotes de 100; não existe temporizador por partida em memória, e o processo pode reiniciar a qualquer momento.
+`games.time_scale` é gravado na criação e não muda depois: é o ritmo que o jogador escolheu entre os oferecidos (3, 1 ou 0,5) ou, sem escolha, o `GAME_TIME_SCALE` do servidor (padrão 3, de 0,5 a 10) ([ADR 0011](decisions/0011-ritmo-3x-no-mvp.md); [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 2 e 2a). O mesmo valor fica em `state.settings.timeScale`, de onde o motor o lê. O tempo de jogo nunca anda para trás: se o relógio do servidor regredir, vale o último instante processado. O avanço é **preguiçoso**: acontece nas leituras e nos comandos. Um job avança as partidas sem estado persistido há mais de uma hora, em lotes de 100; não existe temporizador por partida em memória, e o processo pode reiniciar a qualquer momento.
 
 **Visão em tempo real (interface).** `deriveViewState(state, gameTimeMs, { timeScale })` entrega tudo já convertido para o relógio do jogador:
 
@@ -181,7 +181,7 @@ tempo de jogo = (agora − criação da partida) × time_scale
 | Textos de explicação (`breakdown`) | Escritos com os números já por hora real |
 | Estoques, custos, níveis, calendário | Sem conversão |
 
-No ritmo 3, um dia de jogo dura 40 minutos reais e o ano, 56 horas. O app não sabe qual é o ritmo e não faz nenhuma conversão. O que ele faz com o tempo:
+No ritmo 3, um dia de jogo dura 40 minutos reais e o ano, 56 horas. O app não faz nenhuma conversão: do ritmo, ele só recebe o rótulo pronto (`settlement.paceLabel`) e, nas boas-vindas, as opções de `GET /catalog`. O que ele faz com o tempo:
 
 - Ciclo de 30 s com a aba visível (2 min em segundo plano): `GET /view` com ETag e `GET /events?after=`. O ETag é o SHA-256 do corpo `{ view, stateVersion }` e muda com o tempo mesmo sem escrita no banco.
 - Entre dois ciclos, as contagens regressivas andam no relógio do navegador a partir da última visão recebida.
@@ -219,7 +219,7 @@ Nenhum destes itens tem tarefa no roadmap do MVP. Ficaram de fora por escopo, e 
 
 | Item | Sustentação | Estado |
 |---|---|---|
-| `GET /catalog` (GDD §14.5) | Registro, F2-T2; [README do servidor](../packages/server/README.md) | Não implementado. O `ViewState` já traz o que o app exibe |
+| `GET /catalog` (GDD §14.5) | Registro, F2-T2; [README do servidor](../packages/server/README.md) | Não existia na v0.1. Implementado na v0.2 (V2B-T3) só com as opções de nova partida; o `ViewState` continua trazendo o resto do que o app exibe |
 | "Baixar cópia da partida (JSON)" (GDD §13.6) | Registro, F3W-T6 | Não implementado: não há rota nem comando. Existe "Baixar Crônica (Markdown)" |
 | "Reiniciar partida" (GDD §13.6) | Registro, F3W-T6 | Entregue como "Nova partida", com confirmação: arquiva o feudo atual e começa outro |
 | Gerador de números aleatórios com fluxos nomeados (GDD §14.3 e §18.1) | Registro, F1-T11; [README do motor](../packages/engine/README.md) | Não existe. O estado tem o campo `rng`, vazio: nenhuma regra da v0.1 sorteia. Entra com a primeira mecânica que sortear |
