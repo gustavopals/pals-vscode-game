@@ -16,6 +16,7 @@ import {
   fakeApi,
   gameEvent,
   goldenView,
+  unlockedView,
   makeController,
   scriptedDialogs,
   settle,
@@ -489,6 +490,7 @@ describe('toda ação da interface tem um comando', () => {
     const notCommands = new Set([
       'lords.worker',
       'lords.upgrade',
+      'lords.newBuilding',
       'lords.blockedUpgrade',
       'lords.activeConstruction',
       'lords.linkReminder',
@@ -954,6 +956,55 @@ describe('construir, cancelar e planejar', () => {
     expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'housing' } }]);
   });
 
+  it('o Celeiro e o Armazém entram na lista como "Construir", com o que a obra muda', async () => {
+    const { run, answers, shown } = await setup();
+    answers.push(undefined);
+    await run('lords.build');
+    const byLabel = new Map(shownAs(shown, 0, 'pick').items.map((item) => [item.label, item]));
+    // Antes do Salão Nv2: cadeado, e o detalhe traz o efeito e o que libera a obra.
+    expect(byLabel.get('Construir: Celeiro')).toMatchObject({
+      icon: 'lock',
+      description: '160 madeira, 80 pedra · 10 min',
+      detail: 'Capacidade de comida: 500 → 900. Melhore antes o Salão do Senhor para o nível 2.',
+      value: 'granary',
+    });
+    expect(byLabel.get('Construir: Armazém')?.detail).toBe(
+      'Capacidade de madeira e de pedra: 500 → 900 cada. Melhore antes o Salão do Senhor para o nível 2.',
+    );
+    expect([...byLabel.keys()].some((label) => label.includes('Nv0'))).toBe(false);
+  });
+
+  it('o botão do aviso de depósito cheio manda o edifício: a obra começa sem abrir a lista', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = unlockedView;
+      },
+    });
+    await run('lords.build', 'warehouse');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'warehouse' } }]);
+  });
+
+  it('"Construir" em um item da árvore começa a obra do edifício novo', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = unlockedView;
+      },
+    });
+    await run('lords.build', { id: 'construction:granary', label: 'Construir: Celeiro' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'granary' } }]);
+  });
+
+  it('um custo que não cabe no depósito é recusado com a frase do servidor', async () => {
+    const reason =
+      'A obra pede 875 de madeira e o Pátio só guarda 500: construa o Armazém primeiro.';
+    const { run, api, controller } = await setup();
+    api.refuseNextCommand(reason);
+    await run('lords.build', 'townHall');
+    expect(controller.toasts).toMatchObject([{ kind: 'warning', text: reason }]);
+  });
+
   it('desistir da lista não manda nada', async () => {
     const { run, answers, orders } = await setup();
     answers.push(undefined);
@@ -976,6 +1027,31 @@ describe('construir, cancelar e planejar', () => {
     expect(confirm.confirmLabel).toBe('Cancelar a obra');
     expect(confirm.cancelLabel).toBe('Manter a obra');
     expect(orders()).toEqual([{ type: 'cancelConstruction', payload: { building: 'lumberMill' } }]);
+  });
+
+  it('cancelar com o depósito perto do limite diz quanto da devolução se perderia', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        api.state.view = {
+          ...building,
+          constructions: {
+            ...building.constructions,
+            active: building.constructions.active && {
+              ...building.constructions.active,
+              refund: [
+                { resource: 'wood', label: 'Madeira', amount: 30, lost: 50 },
+                { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+              ],
+            },
+          },
+        };
+      },
+    });
+    answers.push(false);
+    await run('lords.cancelConstruction');
+    expect(shownAs(shown, 0, 'confirm').detail).toEqual([
+      'Voltam 30 madeira, 40 pedra. Não cabem no depósito e se perderiam: 50 madeira.',
+    ]);
   });
 
   it('sem confirmar, a obra continua', async () => {

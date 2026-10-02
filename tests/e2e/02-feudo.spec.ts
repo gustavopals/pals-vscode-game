@@ -100,14 +100,18 @@ test.describe('governar o feudo', () => {
 
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(fief(page).getByText('Trabalhadores (3/5)')).toBeVisible();
-    await expect(resourceRow(page, 'Pedra')).toContainText('crescendo');
+    // A pedra passa a subir 15 por hora: a tendência já diz em quanto tempo o Pátio enche.
+    await expect(resourceRow(page, 'Pedra')).toContainText('+15');
+    await expect(resourceRow(page, 'Pedra')).toContainText('cheio em 29 h');
   });
 
   test('recusas do servidor aparecem com o motivo em português', async ({ context, world }) => {
     const page = await world.open(context);
     await playNow(page);
     // O Salão está bloqueado por falta de recursos: o botão do painel nem se oferece…
-    const townHall = fief(page).getByRole('listitem').filter({ hasText: 'Salão do Senhor' });
+    const townHall = fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Salão do Senhor Nv1 → Nv2' });
     await expect(townHall.getByRole('button', { name: 'Melhorar' })).toBeDisabled();
     await expect(townHall).toContainText('Faltam 30 madeira e 35 pedra.');
     await expect(townHall).toContainText('150 madeira (faltam 30)');
@@ -115,8 +119,12 @@ test.describe('governar o feudo', () => {
     // …e pela paleta a ordem segue, e é o servidor que recusa, com o motivo atual.
     await palette(page, 'construir');
     const list = page.getByRole('dialog');
-    await expect(list.getByRole('option').filter({ hasText: 'Salão do Senhor' })).toContainText(
-      'Faltam 30 madeira e 35 pedra.',
+    await expect(
+      list.getByRole('option').filter({ hasText: 'Salão do Senhor Nv1 → Nv2' }),
+    ).toContainText('Faltam 30 madeira e 35 pedra.');
+    // O Celeiro entra na lista como obra nova, com o que muda e o que o libera.
+    await expect(list.getByRole('option').filter({ hasText: 'Construir: Celeiro' })).toContainText(
+      'Capacidade de comida: 500 → 900. Melhore antes o Salão do Senhor para o nível 2.',
     );
     await list.getByRole('combobox').fill('salão');
     await page.keyboard.press('Enter');
@@ -406,8 +414,9 @@ test.describe('estações, lenha e frio', () => {
       await plus.click();
       await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
     }
-    const foodRate = resourceRow(page, 'Comida').locator('.explained');
-    const woodRate = resourceRow(page, 'Madeira').locator('.explained');
+    // A taxa é a terceira célula da linha; o limite, na segunda, tem a sua própria explicação.
+    const foodRate = resourceRow(page, 'Comida').getByRole('cell').nth(2).locator('.explained');
+    const woodRate = resourceRow(page, 'Madeira').getByRole('cell').nth(2).locator('.explained');
 
     // Primavera: o cabeçalho diz o que a estação muda e a explicação da taxa traz o fator.
     await expect(
@@ -541,5 +550,168 @@ test.describe('estações, lenha e frio', () => {
     );
     await expect(hearth).toContainText('Lareira: 2,5 de madeira por hora');
     await expect(resourceRow(page, 'Madeira')).toContainText('crescendo');
+  });
+});
+
+// V2C-T2 (GDD §5.5, critério 1 da §16.2): o estoque para no limite, o painel diz "cheio em" com
+// a saída ao lado, e o que não coube é desperdício contado, que o Relatório de Retorno soma.
+
+test.describe('armazenamento', () => {
+  test('a Despensa enche: "cheio em" aparece com o alerta e a obra ao lado, e some ao construir o Celeiro; cheio, diz o que se perde e o relatório soma', async ({
+    context,
+    world,
+  }) => {
+    test.setTimeout(60_000);
+    const page = await world.open(context);
+    await playNow(page);
+    const step = async (label: string, free: number) => {
+      await fief(page).getByRole('button', { name: label }).click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    };
+    const food = resourceRow(page, 'Comida');
+    const notes = fief(page).locator('.storage-notes').getByRole('listitem');
+    const construct = fief(page)
+      .getByRole('listitem')
+      .filter({ has: page.getByRole('button', { name: 'Construir Celeiro' }) });
+
+    // O Celeiro já está na lista, em "Construir", esperando o Salão: o motivo vem escrito.
+    await expect(fief(page).getByRole('heading', { name: 'Construir', level: 3 })).toBeVisible();
+    await expect(construct).toContainText('Capacidade de comida: 500 → 900.');
+    await expect(construct).toContainText('Melhore antes o Salão do Senhor para o nível 2.');
+    await expect(construct.getByRole('button', { name: 'Construir Celeiro' })).toBeDisabled();
+    // O limite de cada recurso tem explicação; o ouro não tem limite.
+    await expect(food.getByRole('cell').nth(1)).toHaveText(/^500/);
+    expect((await explanation(food.locator('.explained').first())).text).toBe(
+      'Despensa: 500 iniciais',
+    );
+    await expect(resourceRow(page, 'Ouro').getByRole('cell').nth(1)).toHaveText('—');
+
+    // Doze horas de Serraria e de Pedreira pagam o Salão e ainda deixam o Celeiro pago.
+    for (const free of [4, 3]) {
+      await step('Pôr mais um trabalhador em Serraria', free);
+    }
+    for (const free of [2, 1, 0]) {
+      await step('Pôr mais um trabalhador em Pedreira', free);
+    }
+    // Longe de encher, a previsão aparece sem alarme e sem aviso.
+    await expect(resourceRow(page, 'Madeira')).toContainText('cheio em 23 h');
+    await expect(resourceRow(page, 'Madeira').locator('.codicon-warning')).toHaveCount(0);
+    await expect(notes).toHaveCount(0);
+    await world.passTime(12 * HOUR, page);
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Salão do Senhor Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Salão do Senhor → Nv2');
+    await world.passTime(11 * MINUTE, page);
+    await expect(fief(page).getByText(/Salão Nv2 ·/)).toBeVisible();
+    await expect(construct.getByRole('button', { name: 'Construir Celeiro' })).toBeEnabled();
+    await expect(construct).not.toContainText('Melhore antes');
+
+    // Todos para a Fazenda: a comida passa a subir 55 por hora, e a Despensa enche em menos de
+    // uma ausência. O alerta é ícone e texto, na tabela e na árvore, com a saída ao lado.
+    for (const free of [1, 2]) {
+      await step('Tirar um trabalhador de Serraria', free);
+    }
+    for (const free of [3, 4, 5]) {
+      await step('Tirar um trabalhador de Pedreira', free);
+    }
+    for (const free of [4, 3, 2, 1, 0]) {
+      await step('Pôr mais um trabalhador em Fazenda', free);
+    }
+    await expect(food).toContainText('+55');
+    await expect(food).toContainText('cheio em 6 h');
+    await expect(food.locator('.codicon-warning')).toBeVisible();
+    await expect(tree(page).locator('[data-node="resource:food"]')).toContainText(
+      /\d+\/500 ⚠ cheio em 6 h/,
+    );
+    await expect(tree(page).locator('[data-node="resources"]')).toContainText(
+      'comida ⚠ cheio em 6 h',
+    );
+    await expect(notes).toHaveCount(1);
+    await expect(notes).toContainText('Despensa: comida no limite de 500 em 6 h.');
+    // Custo e benefício lado a lado, e o botão que ordena a obra.
+    await expect(notes).toContainText(
+      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 900.',
+    );
+    await notes.getByRole('button', { name: 'Construir Celeiro' }).click();
+
+    // A obra começou: "cheio em" some na hora, e a tendência explica por quê.
+    await expect(fief(page).locator('.active-construction')).toContainText('Celeiro → Nv1');
+    await expect(food).not.toContainText('cheio em');
+    await expect(food).toContainText('crescendo');
+    await expect(notes).toHaveCount(0);
+    expect((await explanation(food.locator('.explained').last())).text).toBe(
+      'Não enche antes do fim da obra do Celeiro.',
+    );
+    await expect(tree(page).locator('[data-node="resource:food"]')).not.toContainText('cheio');
+
+    // O Celeiro de pé: o limite sobe para 900, e a previsão volta sem alarme.
+    await world.passTime(11 * MINUTE, page);
+    await expect(fief(page).getByText('Os pedreiros estão livres.')).toBeVisible();
+    await expect(food.getByRole('cell').nth(1)).toHaveText(/^900/);
+    expect((await explanation(food.locator('.explained').first())).text).toBe('Celeiro Nv1: 900');
+    await expect(food).toContainText(/cheio em 1[34] h/);
+    await expect(food.locator('.codicon-warning')).toHaveCount(0);
+    await expect(notes).toHaveCount(0);
+    await expect(fief(page).getByText(/ergueu-se o Celeiro em Pedra Alta/)).toBeVisible();
+    // O edifício erguido sai da lista "Construir" e passa a ser melhoria.
+    await expect(fief(page).getByText('Celeiro Nv1 → Nv2')).toBeVisible();
+
+    // Quinze horas depois o Celeiro encheu: a tela diz quanto vai ao chão e o que fazer.
+    await world.passTime(15 * HOUR, page);
+    expect(await stock(page, 'Comida')).toBe(900);
+    await expect(food).toContainText('cheio: a produção está se perdendo');
+    await expect(food.locator('.codicon-warning')).toBeVisible();
+    // A taxa continua sendo o saldo da produção; o estoque é que não sobe mais.
+    await expect(food).toContainText('+55');
+    await expect(notes).toHaveCount(1);
+    await expect(notes).toContainText(
+      'Celeiro cheio: 55/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
+    );
+    await expect(notes).toContainText('Capacidade de comida: 900 → 1.500.');
+    // A ampliação custa mais do que há: o botão espera, com o que falta escrito.
+    await expect(notes.getByRole('button', { name: 'Ampliar Celeiro' })).toBeDisabled();
+    await expect(notes).toContainText(/Faltam \d+ madeira e \d+ pedra\./);
+    await expect(tree(page).locator('[data-node="resource:food"]')).toContainText(
+      '900/900 ⚠ cheio, perde 55/h',
+    );
+    await expect(fief(page).getByText(/o Celeiro de Pedra Alta encheu/)).toBeVisible();
+    // O fecho diário do desperdício não é linha da Crônica.
+    await expect(fief(page).getByText(/foi ao chão/)).toHaveCount(0);
+
+    // Em 720 px o aviso e o botão cabem, sem rolagem horizontal.
+    await page.setViewportSize({ width: 720, height: 800 });
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await expect(notes.getByRole('button', { name: 'Ampliar Celeiro' })).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // Cinco horas fora com o Celeiro cheio: o relatório soma o que foi ao chão em uma linha só.
+    await page.close();
+    await world.passTime(5 * HOUR);
+    const back = await world.open(context);
+    const today = back.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
+    const row = today.getByRole('row', { name: /^Comida/ });
+    // O estoque não saiu de 900: o que a Fazenda rendeu em cinco horas, 55 por hora, não coube.
+    await expect(row.getByRole('cell')).toHaveText([
+      '900',
+      /^\+27[4-6]$/,
+      '—',
+      '—',
+      /^−27[4-6]$/,
+      '900',
+    ]);
+    const waste = today.locator('.waste');
+    await expect(waste).toHaveCount(1);
+    await expect(waste).toContainText(
+      /Foram ao chão, por falta de espaço: 27[4-6] de comida \(Celeiro\)\./,
+    );
+    await expect(today.getByRole('listitem').filter({ hasText: /foi ao chão/ })).toHaveCount(0);
+    await waste.getByRole('button', { name: 'Ver os depósitos' }).click();
+    await expect(back.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(fief(back).locator('.storage-notes')).toContainText('Celeiro cheio:');
   });
 });

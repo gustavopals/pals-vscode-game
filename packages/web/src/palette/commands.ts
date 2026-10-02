@@ -21,7 +21,9 @@ import {
   formatDuration,
   formatNumber,
   formatRemaining,
+  refundSentence,
   remainingNow,
+  upgradeName,
 } from '../ui/format';
 import type { TreeNode } from '../ui/treeModel';
 
@@ -211,9 +213,12 @@ export function createCommands(
         items: available.map((upgrade) => ({
           // Cadeado: está bloqueada, e o detalhe diz por quê.
           icon: upgrade.blockedReason === null ? 'check' : 'lock',
-          label: `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`,
+          label: upgradeName(upgrade),
           description: `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`,
-          detail: upgrade.blockedReason ?? 'Pode começar agora.',
+          // O que a obra muda fica ao lado do custo, antes do que a impede (ou de "pode começar").
+          detail: [upgrade.effect, upgrade.blockedReason ?? 'Pode começar agora.']
+            .filter((line) => line !== null)
+            .join(' '),
           value: upgrade.building,
         })),
       });
@@ -236,7 +241,8 @@ export function createCommands(
     }
     const confirmed = await dialogs.confirm({
       title: `Cancelar a obra de ${active.label}?`,
-      detail: [`Voltam ${formatCost(active.refund)}.`],
+      // O que entra no estoque e, com o depósito perto do limite, o que se perderia.
+      detail: [refundSentence(active.refund, 'Voltam')],
       confirmLabel: 'Cancelar a obra',
       cancelLabel: 'Manter a obra',
     });
@@ -268,6 +274,7 @@ export function createCommands(
           icon: 'add',
           label: `Planejar: ${upgrade.label} → Nv${upgrade.targetLevel}`,
           description: `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`,
+          ...(upgrade.effect === null ? {} : { detail: upgrade.effect }),
           value: { building: upgrade.building, unplan: false },
         })),
     ];

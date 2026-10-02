@@ -966,6 +966,24 @@ describe('avisos de acontecimentos', () => {
     expect(made.controller.chronicle.some((event) => event.type === 'dayStarted')).toBe(false);
   });
 
+  it('o fecho diário do desperdício não entra na Crônica recente (ADR 0015)', async () => {
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'storageWasted', 'A produção não coube e foi ao chão.'));
+    expect(made.controller.chronicle).toEqual([]);
+    expect(made.controller.toasts).toEqual([]);
+    // O depósito que encheu é linha da Crônica; o fecho de cada dia, não.
+    await deliver(
+      made,
+      gameEvent(2, 'storageFilled', 'O Pátio encheu.'),
+      gameEvent(3, 'storageWasted', 'Foi ao chão de novo.'),
+      gameEvent(4, 'buildingFounded', 'Ergueu-se o Armazém.'),
+    );
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual([
+      'O Pátio encheu.',
+      'Ergueu-se o Armazém.',
+    ]);
+  });
+
   it('a virada de dia fora da Crônica não é pedida de novo ao servidor', async () => {
     const made = await opened({ now: () => NOON });
     await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));

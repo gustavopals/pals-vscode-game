@@ -12,7 +12,16 @@ import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { NewGameOptions } from '../game/newGame';
 import { FiefTab } from '../tabs/Fief';
 import { TodayTab } from '../tabs/Today';
-import { autumnView, catalogFixture, coldView, winterWith } from '../test-helpers';
+import {
+  autumnView,
+  catalogFixture,
+  coldView,
+  initialView,
+  unlockedView,
+  winterWith,
+  withResource,
+  withUpgrade,
+} from '../test-helpers';
 import type { Actions } from './actions';
 import {
   formatApprox,
@@ -23,6 +32,8 @@ import {
   formatSigned,
   remaining,
 } from './format';
+import { ResourcesTable } from './ResourcesTable';
+import { Today } from './Today';
 import { Welcome } from './Welcome';
 
 // O CSS é lido como texto pelo Vitest, sem tocar o sistema de arquivos.
@@ -384,8 +395,10 @@ describe('aba Feudo', () => {
 
   it('tabela de recursos com o limite ("—" para o ouro), taxa com sinal e a explicação do número', () => {
     expect(page).toContain('aria-live="polite"');
-    expect(page).toMatch(
-      /<th scope="row">Comida<\/th><td class="num">180<\/td><td class="num">500<\/td>/,
+    // O limite é um número com explicação: onde o recurso fica e de onde vem a capacidade.
+    expect(page).toContain(
+      '<th scope="row">Comida</th><td class="num">180</td><td class="num">' +
+        '<span class="explained" tabindex="0" data-tip="Despensa: 500 iniciais">500',
     );
     expect(page).toMatch(
       /<th scope="row">Ouro<\/th><td class="num">270<\/td><td class="num">—<\/td>/,
@@ -713,7 +726,7 @@ describe('aba Feudo: estações, lenha e frio', () => {
   it('as obras dizem, uma vez só, por que o prazo é maior no inverno', () => {
     const note = 'No Inverno, o prazo de uma obra iniciada agora é × 1,5.';
     expect(cold.split(note)).toHaveLength(2);
-    expect(cold).toContain(`<p class="muted hint">${note}</p>`);
+    expect(cold).toContain(`<p class="muted hint construction-note">${note}</p>`);
     // O prazo já é o de quem começa agora: 675 s, e não os 450 s do outono.
     expect(cold).toContain('Fazenda Nv2 → Nv3<span class="muted"> · 12 min</span>');
     expect(autumn).toContain('Fazenda Nv2 → Nv3<span class="muted"> · 7 min 30 s</span>');
@@ -743,6 +756,346 @@ describe('aba Feudo: estações, lenha e frio', () => {
     expect(page).toContain('Frio em andamento.');
     expect(page).toContain('Faltam 149 de madeira');
     expect(page).toContain('Inverno: comida × 0,4');
+  });
+});
+
+describe('aba Feudo: armazenamento (GDD §5.5)', () => {
+  const text = (page: string) =>
+    page
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const row = (page: string, label: string) =>
+    new RegExp(`<tr><th scope="row">${label}</th>.*?</tr>`).exec(page)?.[0] ?? '';
+  /** Os avisos de depósito, logo abaixo da tabela: um por edifício. */
+  const notes = (page: string) =>
+    /<ul class="storage-notes">(.*?)<\/ul>/.exec(page)?.[1]?.match(/<li .*?<\/li>/g) ?? [];
+  const buttons = (markup: string) => markup.match(/<button[^>]*>[^<]*<\/button>/g) ?? [];
+
+  /** A comida a quatro horas de encher a Despensa, antes de o Salão liberar o Celeiro. */
+  const soon = withResource(view, 'food', { stock: 412, perHour: 22, fullInSeconds: 14_400 });
+  /** O Pátio cheio de madeira e de pedra, com o Armazém pronto para ser erguido. */
+  const affordable = withUpgrade(unlockedView, 'warehouse', {
+    affordable: true,
+    blockedCode: null,
+    blockedReason: null,
+    cost: [
+      { resource: 'wood', label: 'Madeira', amount: 160, missing: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 80, missing: 0 },
+    ],
+  });
+  const woodFull = withResource(affordable, 'wood', {
+    stock: 500,
+    perHour: 72,
+    full: true,
+    fullInSeconds: null,
+    fullNote: 'Pátio cheio: 72/h de madeira indo ao chão. Construa o Armazém ou gaste madeira.',
+    wastingPerHour: 72,
+    wastedToday: 24,
+  });
+  const bothFull = withResource(woodFull, 'stone', {
+    stock: 500,
+    perHour: 15,
+    full: true,
+    fullInSeconds: null,
+    fullNote: 'Pátio cheio: 15/h de pedra indo ao chão. Construa o Armazém ou gaste pedra.',
+    wastingPerHour: 15,
+    wastedToday: 0,
+  });
+
+  it('longe de encher, a tendência diz "cheio em" sem alarme e sem aviso', () => {
+    const page = fief();
+    // 60.632 s no golden: quase 17 horas.
+    expect(row(page, 'Comida')).toContain('<span class="muted">cheio em 16 h</span>');
+    expect(row(page, 'Comida')).not.toContain('codicon-warning');
+    expect(page).not.toContain('storage-notes');
+  });
+
+  it('a menos de 8 h de encher, o destaque é ícone e texto, e a saída fica ao lado', () => {
+    const page = fief({ view: soon });
+    expect(row(page, 'Comida')).toContain(
+      '<span class="warning"><span class="codicon codicon-warning" aria-hidden="true"></span> cheio em 4 h</span>',
+    );
+    const [note, ...others] = notes(page);
+    expect(others).toEqual([]);
+    expect(text(note ?? '')).toContain('Despensa: comida no limite de 500 em 4 h.');
+    // Custo e benefício lado a lado: o que a obra pede, quanto leva e o que ela muda.
+    expect(text(note ?? '')).toContain(
+      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 900.',
+    );
+    // O Celeiro ainda espera o Salão: o botão está lá, desabilitado, com o motivo do servidor.
+    expect(text(note ?? '')).toContain('Melhore antes o Salão do Senhor para o nível 2.');
+    expect(buttons(note ?? '')).toEqual([
+      '<button type="button" disabled>Construir Celeiro</button>',
+    ]);
+    // Exatamente 8 horas não é "antes de uma ausência acabar": sem destaque.
+    const calm = fief({ view: withResource(view, 'food', { fullInSeconds: 8 * 3600 }) });
+    expect(row(calm, 'Comida')).toContain('<span class="muted">cheio em 8 h</span>');
+    expect(calm).not.toContain('storage-notes');
+  });
+
+  it('cheio: diz que a produção está se perdendo, quanto, o que fazer, e põe o botão ao lado', () => {
+    const page = fief({ view: woodFull });
+    expect(text(row(page, 'Madeira'))).toContain('cheio: a produção está se perdendo');
+    expect(row(page, 'Madeira')).toContain('codicon-warning');
+    // A taxa continua sendo o saldo da produção; o que se perde vem na frase do servidor.
+    expect(row(page, 'Madeira')).toContain('+72');
+    const [note] = notes(page);
+    expect(text(note ?? '')).toContain(
+      'Pátio cheio: 72/h de madeira indo ao chão. Construa o Armazém ou gaste madeira. Hoje já se perderam 24.',
+    );
+    expect(text(note ?? '')).toContain(
+      '160 madeira, 80 pedra · 10 min · Capacidade de madeira e de pedra: 500 → 900 cada.',
+    );
+    expect(buttons(note ?? '')).toEqual(['<button type="button">Construir Armazém</button>']);
+  });
+
+  it('a madeira e a pedra dividem o Armazém: um aviso, as duas frases, um botão', () => {
+    const page = fief({ view: bothFull });
+    const found = notes(page);
+    expect(found).toHaveLength(1);
+    expect(text(found[0] ?? '')).toContain('72/h de madeira indo ao chão');
+    expect(text(found[0] ?? '')).toContain('15/h de pedra indo ao chão');
+    expect(buttons(found[0] ?? '')).toHaveLength(1);
+    // Sem perda anotada no dia, a frase do servidor vai sozinha.
+    expect(text(found[0] ?? '')).not.toContain('Hoje já se perderam 0');
+  });
+
+  it('o botão do aviso pede a obra pelo comando de construir, com o edifício do recurso', () => {
+    const ran: Array<[string, unknown]> = [];
+    const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+    type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+    // Percorre a árvore de componentes (sem ganchos) e clica em todos os botões habilitados.
+    const click = (node: unknown): void => {
+      if (Array.isArray(node)) {
+        node.forEach(click);
+        return;
+      }
+      if (typeof node !== 'object' || node === null) {
+        return;
+      }
+      const { type, props } = node as VNodeLike;
+      if (typeof type === 'function') {
+        click((type as (props: unknown) => unknown)(props));
+        return;
+      }
+      if (type === 'button' && typeof props?.onClick === 'function' && props.disabled !== true) {
+        (props.onClick as () => void)();
+      }
+      click(props?.children);
+    };
+    click(<ResourcesTable view={bothFull} disabled={false} actions={recording} />);
+    expect(ran).toEqual([['lords.build', 'warehouse']]);
+    // Sem ligação, nem esse botão manda nada.
+    ran.length = 0;
+    click(<ResourcesTable view={bothFull} disabled={true} actions={recording} />);
+    expect(ran).toEqual([]);
+    expect(buttons(notes(fief({ view: bothFull, online: false }))[0] ?? '')).toEqual([
+      '<button type="button" disabled>Construir Armazém</button>',
+    ]);
+  });
+
+  it('com o depósito já erguido, o botão é "Ampliar"; sem recursos, diz o que falta', () => {
+    const built = withResource(
+      withUpgrade(unlockedView, 'granary', { fromLevel: 1, targetLevel: 2 }),
+      'food',
+      {
+        stock: 900,
+        cap: 900,
+        capBreakdown: 'Celeiro Nv1: 900',
+        storageLabel: 'Celeiro',
+        perHour: 31,
+        full: true,
+        fullInSeconds: null,
+        fullNote: 'Celeiro cheio: 31/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
+        wastingPerHour: 31,
+      },
+    );
+    const page = fief({ view: built });
+    // O nome do lugar não se repete na explicação do limite.
+    expect(row(page, 'Comida')).toContain('data-tip="Celeiro Nv1: 900"');
+    const [note] = notes(page);
+    expect(buttons(note ?? '')).toEqual([
+      '<button type="button" disabled>Ampliar Celeiro</button>',
+    ]);
+    expect(text(note ?? '')).toContain('Faltam 116 madeira e 58 pedra.');
+  });
+
+  it('com a obra do depósito em andamento, o aviso fica e o botão some', () => {
+    const building: ViewState = {
+      ...withResource(woodFull, 'wood', {
+        fullNote:
+          'Pátio cheio: 72/h de madeira indo ao chão. A obra do Armazém já vai abrir espaço.',
+      }),
+      constructions: {
+        ...woodFull.constructions,
+        available: woodFull.constructions.available.filter(
+          (upgrade) => upgrade.building !== 'warehouse',
+        ),
+      },
+    };
+    const [note] = notes(fief({ view: building }));
+    expect(text(note ?? '')).toContain('A obra do Armazém já vai abrir espaço.');
+    expect(buttons(note ?? '')).toEqual([]);
+  });
+
+  it('antes do Salão Nv2, a frase do servidor já diz o que trava: o motivo não se repete', () => {
+    const locked = withResource(view, 'wood', {
+      stock: 500,
+      perHour: 24,
+      full: true,
+      fullNote:
+        'Pátio cheio: 24/h de madeira indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, gaste madeira.',
+      wastingPerHour: 24,
+    });
+    const [note] = notes(fief({ view: locked }));
+    expect(text(note ?? '').split('Melhore antes o Salão do Senhor para o nível 2.')).toHaveLength(
+      2,
+    );
+    expect(buttons(note ?? '')).toEqual([
+      '<button type="button" disabled>Construir Armazém</button>',
+    ]);
+  });
+
+  it('estoque herdado acima do limite: "cheio", com a explicação de por que nada entra', () => {
+    const inherited = withResource(view, 'wood', {
+      stock: 640,
+      perHour: 0,
+      full: true,
+      fullNote:
+        'Pátio cheio: há mais madeira do que cabe, e nada entra até o estoque baixar de 500.',
+    });
+    const page = fief({ view: inherited });
+    expect(row(page, 'Madeira')).toContain(
+      'data-tip="Pátio cheio: há mais madeira do que cabe, e nada entra até o estoque baixar de 500."',
+    );
+    expect(text(row(page, 'Madeira'))).not.toContain('a produção está se perdendo');
+    expect(text(notes(page)[0] ?? '')).toContain('nada entra até o estoque baixar de 500');
+    // No limite exato e sem nada a entrar não há frase: só "cheio".
+    const still = fief({ view: withResource(view, 'wood', { stock: 500, full: true }) });
+    expect(row(still, 'Madeira')).toContain('<span class="muted">cheio</span>');
+    expect(still).not.toContain('storage-notes');
+  });
+
+  it('subindo sem previsão de encher, "crescendo" explica por quê', () => {
+    const autumn = fief({ view: autumnView });
+    expect(row(autumn, 'Comida')).toContain(
+      'data-tip="Não enche antes da virada para o Inverno.">crescendo',
+    );
+    expect(row(autumn, 'Comida')).toContain('data-tip="Celeiro Nv3: 2.100">2.100');
+    expect(autumn).not.toContain('storage-notes');
+    // O ouro não tem limite: cresce, e não há o que explicar.
+    expect(row(autumn, 'Ouro')).toContain('<span class="muted">crescendo</span>');
+  });
+
+  it('o que acaba passa na frente do que enche', () => {
+    const page = fief({
+      view: withResource(initialView, 'food', { full: true, fullNote: null }),
+    });
+    expect(text(row(page, 'Comida'))).toContain('acaba em 36 h');
+    expect(text(row(page, 'Comida'))).not.toContain('cheio');
+  });
+
+  it('o Celeiro e o Armazém aparecem em "Construir", com o que mudam e o motivo do bloqueio', () => {
+    const construct = (page: string) => page.split('<h3>Construir</h3>')[1] ?? '';
+    const locked = fief();
+    expect(locked).toContain('<h3>Melhorar</h3>');
+    const lockedList = text(construct(locked));
+    expect(lockedList).toContain('Celeiro · 10 min');
+    expect(lockedList).toContain('Capacidade de comida: 500 → 900.');
+    expect(lockedList).toContain('Capacidade de madeira e de pedra: 500 → 900 cada.');
+    expect(lockedList).toContain('Melhore antes o Salão do Senhor para o nível 2.');
+    // Nada de "Nv0": o que não existe se constrói.
+    expect(locked).not.toContain('Nv0');
+    expect(construct(locked)).toContain(
+      'disabled aria-label="Construir Celeiro">Construir</button>',
+    );
+    expect(construct(locked)).toContain('aria-label="Planejar Armazém"');
+    // Os edifícios que já existem continuam em "Melhorar", e os novos não entram lá.
+    const improve = locked.split('<h3>Melhorar</h3>')[1]?.split('<h3>Construir</h3>')[0] ?? '';
+    expect(improve).toContain('aria-label="Melhorar Fazenda"');
+    expect(improve).not.toContain('Celeiro');
+
+    // Liberado e pago: o botão se oferece.
+    const open = construct(fief({ view: affordable }));
+    expect(open).toMatch(
+      /<button type="button" aria-label="Construir Armazém">Construir<\/button>/,
+    );
+    // Liberado e sem recursos: o que falta, em texto.
+    expect(text(construct(fief({ view: unlockedView })))).toContain(
+      'Faltam 116 madeira e 58 pedra.',
+    );
+  });
+
+  it('um custo que não cabe no depósito mostra o motivo que veio do servidor', () => {
+    const reason =
+      'A obra pede 875 de madeira e o Pátio só guarda 500: construa o Armazém primeiro.';
+    const page = fief({
+      view: withUpgrade(view, 'townHall', {
+        blockedCode: 'EXCEEDS_STORAGE',
+        blockedReason: reason,
+      }),
+    });
+    expect(page).toContain(`<span class="blocked">${reason}</span>`);
+    expect(page).toContain('disabled aria-label="Melhorar Salão do Senhor"');
+  });
+
+  it('uma obra planejada do que ainda não existe também não fala em "Nv0"', () => {
+    const granary = unlockedView.constructions.available.find(
+      (upgrade) => upgrade.building === 'granary',
+    );
+    const planned: ViewState = {
+      ...unlockedView,
+      constructions: {
+        ...unlockedView.constructions,
+        planned: granary === undefined ? [] : [{ ...granary, planned: true }],
+      },
+    };
+    const page = fief({ view: planned });
+    expect(page).toContain('<span class="upgrade-name">Construir: Celeiro</span>');
+    expect(page).not.toContain('Nv0');
+  });
+
+  it('cancelar perto do limite: diz o que volta e o que se perderia', () => {
+    const active = (refund: NonNullable<ViewState['constructions']['active']>['refund']) =>
+      fief({
+        view: {
+          ...view,
+          constructions: {
+            ...view.constructions,
+            active: {
+              building: 'lumberMill',
+              label: 'Serraria',
+              targetLevel: 2,
+              secondsRemaining: 180,
+              totalSeconds: 300,
+              progressPercent: 40,
+              refund,
+            },
+          },
+        },
+      });
+    const tight = active([
+      { resource: 'wood', label: 'Madeira', amount: 30, lost: 34 },
+      { resource: 'stone', label: 'Pedra', amount: 16, lost: 0 },
+    ]);
+    expect(tight).toContain(
+      'Cancelar devolve 30 madeira e 16 pedra. Não cabem no depósito e se perderiam: 34 madeira.',
+    );
+    expect(tight).toContain(
+      'title="Devolve 30 madeira e 16 pedra. Não cabem no depósito e se perderiam: 34 madeira."',
+    );
+    // Depósito cheio: nada entra, e a tela diz isso em vez de "devolve 0".
+    const none = active([{ resource: 'wood', label: 'Madeira', amount: 0, lost: 64 }]);
+    expect(none).toContain(
+      'Nada volta ao estoque. Não cabem no depósito e se perderiam: 64 madeira.',
+    );
+  });
+
+  it('o objetivo do Salão diz o que ele libera', () => {
+    expect(fief({ view: unlockedView })).toContain(
+      'Recompensa: desbloqueia o Celeiro e o Armazém.',
+    );
   });
 });
 
@@ -792,6 +1145,160 @@ describe('aba Hoje', () => {
     // Com estoques, a frase não aparece.
     expect(today(report)).not.toContain('O jogo foi atualizado');
     expect(today(report)).toContain('<table');
+  });
+
+  describe('produção, gasto e perda', () => {
+    const text = (page: string) =>
+      page
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const cells = (page: string, label: string) =>
+      [
+        ...(
+          new RegExp(`<tr><th scope="row">${label}</th>(.*?)</tr>`).exec(page)?.[1] ?? ''
+        ).matchAll(/<td[^>]*>([^<]*)<\/td>/g),
+      ].map((match) => match[1]);
+    const ledger: ReturnReport = {
+      ...report,
+      resources: [
+        {
+          id: 'food',
+          label: 'Comida',
+          before: 180,
+          after: 255,
+          delta: 75,
+          spent: 150,
+          received: 14.8,
+          wasted: 120,
+          produced: 210.2,
+        },
+        {
+          id: 'wood',
+          label: 'Madeira',
+          before: 320,
+          after: 500,
+          delta: 180,
+          spent: 240,
+          received: 30,
+          wasted: 76,
+          produced: 390,
+        },
+        {
+          id: 'stone',
+          label: 'Pedra',
+          before: 200,
+          after: 164,
+          delta: -36,
+          spent: 80,
+          received: 0,
+          wasted: 0,
+          produced: 44,
+        },
+        {
+          id: 'gold',
+          label: 'Ouro',
+          before: 270,
+          after: 262,
+          delta: -8,
+          spent: 0,
+          received: 0,
+          wasted: 0,
+          produced: -8,
+        },
+      ],
+    };
+    const page = today(ledger);
+
+    it('a tabela abre a conta: antes, produção, gasto, recebido, perdido e agora', () => {
+      const headers = [...page.matchAll(/<th scope="col"[^>]*>([^<]*)<\/th>/g)].map(
+        (match) => match[1],
+      );
+      expect(headers).toEqual([
+        'Recurso',
+        'Antes',
+        'Produção',
+        'Gasto',
+        'Recebido',
+        'Perdido',
+        'Agora',
+      ]);
+      // A produção é o que o feudo rendeu: o que entrou no estoque (390) mais o que não coube
+      // (76). A perda aparece como perda, com sinal, e a conta fecha na linha.
+      expect(cells(page, 'Madeira')).toEqual(['320', '+466', '−240', '+30', '−76', '500']);
+      expect(cells(page, 'Comida')).toEqual(['180', '+330,2', '−150', '+14,8', '−120', '255']);
+      // O que não houve fica como traço, e não como zero a ser lido.
+      expect(cells(page, 'Pedra')).toEqual(['200', '+44', '−80', '—', '—', '164']);
+      expect(cells(page, 'Ouro')).toEqual(['270', '−8', '—', '—', '—', '262']);
+      expect(text(page)).toContain('Perdido é o que não coube no depósito e foi ao chão.');
+      // Antes + produção − gasto + recebido − perdido = agora, em toda linha.
+      const number = (cell: string | undefined) =>
+        cell === '—'
+          ? 0
+          : Number((cell ?? '').replace('−', '-').replace('+', '').replace(',', '.'));
+      for (const label of ['Comida', 'Madeira', 'Pedra', 'Ouro']) {
+        const [before, ...rest] = cells(page, label).map(number);
+        const after = rest.pop() ?? 0;
+        expect((before ?? 0) + rest.reduce((sum, value) => sum + value, 0)).toBeCloseTo(after, 6);
+      }
+    });
+
+    it('a linha de desperdício: o total de cada recurso, onde ele fica e o caminho para resolver', () => {
+      const line = /<p class="waste" role="status">.*?<\/p>/.exec(page)?.[0] ?? '';
+      // Os nomes dos lugares são os da visão de agora (Despensa e Pátio, sem os edifícios).
+      expect(text(line)).toBe(
+        'Foram ao chão, por falta de espaço: 120 de comida (Despensa) e 76 de madeira (Pátio). ' +
+          'Ampliar o depósito ou gastar o que sobra estanca a perda. Ver os depósitos',
+      );
+      // Ícone e texto: a perda não é dita só pela cor.
+      expect(line).toContain('codicon-warning');
+      expect(page.match(/class="waste"/g)).toHaveLength(1);
+    });
+
+    it('um recurso só perdido: a frase não ganha "e"', () => {
+      const one = today({
+        ...ledger,
+        resources: ledger.resources.map((row) => (row.id === 'food' ? { ...row, wasted: 0 } : row)),
+      });
+      expect(text(one)).toContain('Foram ao chão, por falta de espaço: 76 de madeira (Pátio).');
+    });
+
+    it('sem desperdício, a linha não aparece', () => {
+      const none = today({
+        ...ledger,
+        resources: ledger.resources.map((row) => ({ ...row, wasted: 0 })),
+      });
+      expect(none).not.toContain('class="waste"');
+      expect(none).not.toContain('Foram ao chão');
+      // Um relatório sem as parcelas (montado por uma versão anterior) mostra a variação.
+      expect(cells(today(report), 'Comida')).toEqual(['180', '+75', '—', '—', '—', '255']);
+    });
+
+    it('"Ver os depósitos" leva ao feudo, onde o aviso do depósito tem o botão', () => {
+      const ran: Array<[string, unknown]> = [];
+      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+      type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+      const click = (node: unknown, label: string): void => {
+        if (Array.isArray(node)) {
+          node.forEach((child) => click(child, label));
+          return;
+        }
+        if (typeof node !== 'object' || node === null) {
+          return;
+        }
+        const { type, props } = node as VNodeLike;
+        if (typeof type === 'function') {
+          click((type as (props: unknown) => unknown)(props), label);
+          return;
+        }
+        if (type === 'button' && props?.children === label) {
+          (props.onClick as () => void)();
+        }
+        click(props?.children, label);
+      };
+      click(<Today report={ledger} view={view} actions={recording} />, 'Ver os depósitos');
+      expect(ran).toEqual([['lords.openPanel', 'fief']]);
+    });
   });
 
   it('sem relatório, diz quando ele aparece; com fome, avisa', () => {

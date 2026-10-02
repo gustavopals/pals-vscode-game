@@ -262,6 +262,8 @@ table.resources td.num {
 table.resources thead th {
   font-size: 0.85em;
   color: var(--vscode-descriptionForeground);
+  /* Uma frase longa na última coluna não quebra os títulos das outras. */
+  white-space: nowrap;
 }
 
 ul,
@@ -358,6 +360,43 @@ progress::-webkit-progress-value {
 
 .upgrade .blocked {
   grid-column: 1 / -1;
+}
+
+/* O que a obra muda (a capacidade de um depósito), logo abaixo do custo. */
+.upgrade-effect {
+  grid-column: 1;
+  font-size: 0.92em;
+}
+
+/* A nota do prazo da estação vale para as duas listas e fica acima delas. */
+.construction-note {
+  margin: 10px 0 0;
+}
+
+/*
+ * Os depósitos que pedem atenção, logo abaixo da tabela de recursos: a frase, o custo da saída e
+ * o botão que a ordena. Em tela estreita o botão desce para a linha de baixo.
+ */
+.storage-notes {
+  margin-top: 8px;
+}
+
+.storage-note {
+  margin-top: 6px;
+}
+
+.storage-note > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.storage-terms {
+  font-size: 0.92em;
+}
+
+/* A linha do que foi ao chão, no Relatório de Retorno. */
+.waste {
+  margin: 6px 0;
 }
 
 .arrivals {

@@ -1,11 +1,20 @@
-import type { GameEvent, ViewState } from '@lotg/protocol';
+import { type GameEvent, ReturnReportSchema, type ViewState } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { AccountState } from '../account/accountService';
-import { buildReturnReport, shouldShowReturnReport } from '../game/returnReport';
-import { autumnView, coldView, winterWith } from '../test-helpers';
+import { buildReturnReport, isChronicleEvent, shouldShowReturnReport } from '../game/returnReport';
 import {
+  autumnView,
+  coldView,
+  unlockedView,
+  winterWith,
+  withResource,
+  withUpgrade,
+} from '../test-helpers';
+import {
+  capExplanation,
+  fillsSoon,
   firewoodRunsOutIn,
   formatApprox,
   formatCost,
@@ -13,10 +22,15 @@ import {
   formatNumber,
   formatRate,
   formatRemaining,
+  FULL_SOON_SECONDS,
+  refundParts,
+  refundSentence,
   remainingNow,
   runsOutIn,
   statusBar,
+  storageAlert,
   truncate,
+  upgradeName,
 } from './format';
 import { buildTree, type TreeNode } from './treeModel';
 
@@ -290,8 +304,149 @@ describe('árvore', () => {
 
   it('recursos mostram estoque e taxa com sinal; o tooltip explica o número', () => {
     const food = find(buildTree(input), 'resource:food');
-    expect(food).toMatchObject({ label: 'Comida', description: '180 (+19/h)' });
+    // O estoque sobre o limite e a taxa.
+    expect(food).toMatchObject({ label: 'Comida', description: '180/500 (+19/h)' });
     expect(food?.tooltip).toContain('2 trabalhadores × 10');
+    // O ouro não tem limite: só o estoque e a taxa.
+    expect(find(buildTree(input), 'resource:gold')?.description).toBe('270 (0/h)');
+  });
+
+  describe('armazenamento (GDD §5.5 e §13.2)', () => {
+    const soon = withResource(farmers, 'food', {
+      stock: 412,
+      perHour: 22,
+      fullInSeconds: 14_400,
+    });
+    const note = 'Pátio cheio: 72/h de madeira indo ao chão. Construa o Armazém ou gaste madeira.';
+    const wasting = withResource(unlockedView, 'wood', {
+      stock: 500,
+      perHour: 72,
+      full: true,
+      fullInSeconds: null,
+      fullNote: note,
+      wastingPerHour: 72,
+    });
+
+    it('longe de encher, a árvore não fala do limite: a previsão distante fica na tabela', () => {
+      const tree = buildTree({ ...input, view: farmers });
+      // 60.632 s no golden: quase 17 horas, mais do que uma ausência comum.
+      expect(farmers.resources[0]?.fullInSeconds).toBe(60_632);
+      expect(find(tree, 'resource:food')?.description).toBe('180/500 (+19/h)');
+      expect(find(tree, 'resources')?.description).toBeUndefined();
+    });
+
+    it('a menos de 8 h de encher, o alerta aparece na linha do recurso e na de "Recursos"', () => {
+      const tree = buildTree({ ...input, view: soon });
+      // O alerta toma o lugar da taxa, para caber na barra lateral (GDD §13.2).
+      expect(find(tree, 'resource:food')?.description).toBe('412/500 ⚠ cheio em 4 h');
+      // Com o grupo recolhido, a linha de cima continua dizendo o que importa.
+      expect(find(tree, 'resources')?.description).toBe('comida ⚠ cheio em 4 h');
+      expect(fillsSoon(soon.resources[0] as ViewState['resources'][number])).toBe(true);
+      expect(FULL_SOON_SECONDS).toBe(8 * 3600);
+    });
+
+    it('cheio e perdendo: diz quanto vai ao chão, e a explicação traz a frase do servidor', () => {
+      const tree = buildTree({ ...input, view: wasting });
+      const wood = find(tree, 'resource:wood');
+      expect(wood?.description).toBe('500/500 ⚠ cheio, perde 72/h');
+      expect(wood?.tooltip?.split('\n').slice(1)).toEqual(['Pátio: 500 iniciais', note]);
+      expect(find(tree, 'resources')?.description).toBe('madeira ⚠ cheio, perde 72/h');
+      // Dois recursos pedindo atenção: os dois na linha de cima.
+      const both = withResource(wasting, 'food', { fullInSeconds: 3600 });
+      expect(find(buildTree({ ...input, view: both }), 'resources')?.description).toBe(
+        'comida ⚠ cheio em 1 h · madeira ⚠ cheio, perde 72/h',
+      );
+    });
+
+    it('no limite sem nada a entrar: "cheio", sem alarme', () => {
+      const still = withResource(farmers, 'wood', { stock: 500, full: true });
+      const tree = buildTree({ ...input, view: still });
+      expect(find(tree, 'resource:wood')?.description).toBe('500/500 (0/h) · cheio');
+      expect(find(tree, 'resources')?.description).toBeUndefined();
+    });
+
+    it('o texto do alerta: cheio perdendo, cheio, cheio em (com e sem destaque) e nada', () => {
+      const wood = (patch: Partial<ViewState['resources'][number]>) =>
+        ({ ...farmers.resources[1], ...patch }) as ViewState['resources'][number];
+      expect(storageAlert(wood({ full: true, wastingPerHour: 7.5 }))).toBe('⚠ cheio, perde 7,5/h');
+      expect(storageAlert(wood({ full: true }))).toBe('cheio');
+      expect(storageAlert(wood({ fullInSeconds: 8 * 3600 - 1 }))).toBe('⚠ cheio em 7 h');
+      expect(storageAlert(wood({ fullInSeconds: 8 * 3600 }))).toBe('cheio em 8 h');
+      expect(storageAlert(wood({ fullInSeconds: 3 * 86_400 }))).toBe('cheio em 3 dias');
+      expect(storageAlert(wood({}))).toBeNull();
+      // O ouro não tem limite nem lugar: nada a explicar.
+      expect(capExplanation(farmers.resources[3] as ViewState['resources'][number])).toBeNull();
+      expect(capExplanation(wood({}))).toBe('Pátio: 500 iniciais');
+      expect(
+        capExplanation(wood({ storageLabel: 'Armazém', capBreakdown: 'Armazém Nv2: 1.500' })),
+      ).toBe('Armazém Nv2: 1.500');
+    });
+
+    it('o Celeiro e o Armazém ainda por erguer aparecem como "Construir", com o que mudam', () => {
+      // Antes do Salão Nv2: bloqueados, com o motivo.
+      const locked = find(buildTree({ ...input, view: farmers }), 'construction:granary');
+      expect(locked).toMatchObject({
+        label: 'Construir: Celeiro',
+        description: '160 madeira, 80 pedra · 10 min',
+        icon: 'lock',
+        contextValue: 'lords.blockedUpgrade',
+      });
+      expect(locked?.tooltip).toBe(
+        [
+          '160 madeira, 80 pedra · 10 min',
+          'Capacidade de comida: 500 → 900.',
+          'Melhore antes o Salão do Senhor para o nível 2.',
+        ].join('\n'),
+      );
+      // Liberado e pago: a linha ganha o botão "Construir".
+      const open = withUpgrade(unlockedView, 'warehouse', {
+        affordable: true,
+        blockedCode: null,
+        blockedReason: null,
+      });
+      expect(find(buildTree({ ...input, view: open }), 'construction:warehouse')).toMatchObject({
+        label: 'Construir: Armazém',
+        icon: 'check',
+        contextValue: 'lords.newBuilding',
+      });
+      expect(upgradeName({ label: 'Celeiro', fromLevel: 1, targetLevel: 2 })).toBe(
+        'Celeiro Nv1 → Nv2',
+      );
+    });
+
+    it('a obra em andamento diz o que o cancelamento devolve e o que se perderia', () => {
+      const tight: ViewState = {
+        ...building,
+        constructions: {
+          ...building.constructions,
+          active: building.constructions.active && {
+            ...building.constructions.active,
+            refund: [
+              { resource: 'wood', label: 'Madeira', amount: 30, lost: 50 },
+              { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+            ],
+          },
+        },
+      };
+      expect(find(buildTree({ ...input, view: tight }), 'construction:active')?.tooltip).toContain(
+        'Cancelar devolve 30 madeira, 40 pedra. Não cabem no depósito e se perderiam: 50 madeira.',
+      );
+      expect(refundParts([{ resource: 'wood', label: 'Madeira', amount: 0, lost: 64 }])).toEqual({
+        back: null,
+        lost: '64 madeira',
+      });
+      expect(refundSentence([], 'Voltam')).toBe('Nada volta ao estoque.');
+      // Nas frases do painel, a lista fecha com "e".
+      const three = [
+        { resource: 'wood', label: 'Madeira', amount: 120, lost: 0 },
+        { resource: 'stone', label: 'Pedra', amount: 80, lost: 0 },
+        { resource: 'gold', label: 'Ouro', amount: 80, lost: 0 },
+      ] as const;
+      expect(refundSentence(three, 'Cancelar devolve', 'sentence')).toBe(
+        'Cancelar devolve 120 madeira, 80 pedra e 80 ouro.',
+      );
+      expect(refundSentence(three, 'Voltam')).toBe('Voltam 120 madeira, 80 pedra, 80 ouro.');
+    });
   });
 
   it('trabalhadores têm ações inline de mais e menos', () => {
@@ -402,8 +557,13 @@ describe('árvore', () => {
 
   it('as taxas da árvore trazem o fator da estação na explicação', () => {
     const tree = buildTree({ ...input, view: autumnView });
+    // A conta da taxa, de onde vem o limite e por que não há previsão de encher.
     expect(find(tree, 'resource:food')?.tooltip).toBe(
-      'Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h',
+      [
+        'Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h',
+        'Celeiro Nv3: 2.100',
+        'Não enche antes da virada para o Inverno.',
+      ].join('\n'),
     );
     expect(find(tree, 'worker:goldMine')?.tooltip).toBe(
       '3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h',
@@ -430,7 +590,7 @@ describe('árvore', () => {
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
     expect(find(tree, 'resource:wood')).toMatchObject({
-      description: '90 (−9/h) · acaba em 10 h',
+      description: '90/900 (−9/h) · acaba em 10 h',
     });
     expect(find(tree, 'resource:wood')?.tooltip).toContain('−9/h (lenha de 18 habitantes)');
   });
@@ -440,7 +600,7 @@ describe('árvore', () => {
     const tree = buildTree({ ...input, view: enough });
     expect(find(tree, 'hearth')?.description).toBe('9/h de madeira');
     expect(find(tree, 'hearth')?.tooltip).toContain('O estoque e a Serraria dão conta.');
-    expect(find(tree, 'resource:wood')?.description).toBe('900 (−9/h)');
+    expect(find(tree, 'resource:wood')?.description).toBe('900/900 (−9/h)');
   });
 
   it('com frio, o feudo avisa com ícone e texto próprios, diferentes dos da fome', () => {
@@ -460,7 +620,7 @@ describe('árvore', () => {
 
   it('um estoque que está acabando diz em quanto tempo', () => {
     expect(find(buildTree({ ...input, view: initial }), 'resource:food')?.description).toBe(
-      '180 (−5/h) · acaba em 36 h',
+      '180/500 (−5/h) · acaba em 36 h',
     );
   });
 
@@ -521,6 +681,148 @@ describe('Relatório de Retorno', () => {
     expect(buildReturnReport(null, farmers, [event('dayStarted')], HOUR)).toMatchObject({
       resources: [],
       counts: { daysPassed: 1 },
+    });
+  });
+
+  describe('produção, gasto e perda (GDD §5.5)', () => {
+    let seq = 0;
+    const event = (
+      type: GameEvent['type'],
+      data: GameEvent['data'] = {},
+      text: string = type,
+    ): GameEvent => ({
+      seq: (seq += 1),
+      type,
+      at: '2026-10-01T12:00:00.000Z',
+      atMs: 0,
+      text,
+      data,
+    });
+    const stocks = (view: ViewState, patch: Partial<Record<string, Partial<Row>>>): ViewState => ({
+      ...view,
+      resources: view.resources.map((row) => ({ ...row, ...patch[row.id] })),
+    });
+    type Row = ViewState['resources'][number];
+    const row = (report: ReturnType<typeof buildReturnReport>, id: Row['id']) =>
+      report.resources.find((entry) => entry.id === id);
+
+    // A ausência: uma obra paga, três aldeões recrutados, uma obra cancelada, um objetivo com a
+    // recompensa cortada no limite, o Pátio cheio por dois dias e o Celeiro erguido.
+    const before = stocks(farmers, {
+      food: { stock: 180 },
+      wood: { stock: 320, wastedToday: 5 },
+      stone: { stock: 200 },
+      gold: { stock: 270 },
+    });
+    const after = stocks(farmers, {
+      food: { stock: 255 },
+      wood: { stock: 500, wastedToday: 9 },
+      stone: { stock: 164 },
+      gold: { stock: 300 },
+    });
+    const events = [
+      event('dayStarted'),
+      event('constructionStarted', {
+        building: 'granary',
+        level: 1,
+        spent_wood: 160,
+        spent_stone: 80,
+      }),
+      event('recruitmentStarted', { quantity: 3, spent_food: 150, spent_gold: 30 }),
+      event('constructionStarted', { building: 'farm', level: 2, spent_wood: 80, spent_gold: 40 }),
+      event('constructionCancelled', {
+        building: 'farm',
+        level: 2,
+        gained_wood: 30,
+        gained_gold: 32,
+      }),
+      event('objectiveCompleted', { objective: 'recruitVillagers', gained_food: 14.8 }),
+      event(
+        'storageFilled',
+        { resource: 'wood', building: 'warehouse', level: 0, cap: 500 },
+        'O Pátio encheu.',
+      ),
+      event('storageWasted', { wasted_wood: 48 }, 'Foi ao chão: 48 de madeira.'),
+      event('dayStarted'),
+      event('storageWasted', { wasted_wood: 24, wasted_stone: 20 }, 'Foi ao chão de novo.'),
+      event('buildingFounded', { building: 'granary', level: 1 }, 'Ergueu-se o Celeiro.'),
+      event('constructionFinished', { building: 'housing', level: 2 }, 'As Habitações cresceram.'),
+    ];
+    const report = buildReturnReport(before, after, events, 6 * HOUR);
+
+    it('gasto e recebido são a soma dos totais que os eventos trazem', () => {
+      expect(row(report, 'wood')).toMatchObject({ spent: 240, received: 30 });
+      expect(row(report, 'stone')).toMatchObject({ spent: 80, received: 0 });
+      expect(row(report, 'food')).toMatchObject({ spent: 150, received: 14.8 });
+      expect(row(report, 'gold')).toMatchObject({ spent: 70, received: 32 });
+    });
+
+    it('a produção é a variação mais o gasto menos o recebido: a variação sozinha mentiria', () => {
+      // Madeira: 320 → 500 parece +180, mas o feudo pagou 240 e recebeu 30 de volta.
+      expect(row(report, 'wood')).toMatchObject({ delta: 180, produced: 390 });
+      // Pedra: 200 → 164 parece perda; foram 80 de obra e +44 de produção.
+      expect(row(report, 'stone')).toMatchObject({ delta: -36, produced: 44 });
+      // A recompensa cortada no limite vem fracionária do motor: uma casa, sem ruído.
+      expect(row(report, 'food')).toMatchObject({ delta: 75, produced: 210.2 });
+      expect(row(report, 'gold')).toMatchObject({ delta: 30, produced: 68 });
+      for (const entry of report.resources) {
+        expect(
+          entry.before + (entry.produced ?? 0) - (entry.spent ?? 0) + (entry.received ?? 0),
+        ).toBeCloseTo(entry.after, 6);
+      }
+    });
+
+    it('o desperdício é o total dos fechos diários, mais o que a visão ainda não relatou', () => {
+      // 48 + 24 dos dois fechos, mais 9 ainda por relatar, menos os 5 que a visão de antes já
+      // contava (o primeiro fecho da ausência os inclui).
+      expect(row(report, 'wood')?.wasted).toBe(76);
+      expect(row(report, 'stone')?.wasted).toBe(20);
+      expect(row(report, 'food')?.wasted).toBe(0);
+      // O ouro não tem limite: nada se perde.
+      expect(row(report, 'gold')?.wasted).toBe(0);
+    });
+
+    it('sem virada de dia na ausência, o desperdício ainda aparece: vem do contador da visão', () => {
+      const short = buildReturnReport(before, after, [], 4 * HOUR);
+      expect(row(short, 'wood')?.wasted).toBe(4);
+      expect(row(short, 'stone')?.wasted).toBe(0);
+    });
+
+    it('trinta dias cheios são trinta fechos e um total só: nenhuma linha por dia no relatório', () => {
+      const month = Array.from({ length: 30 }, () =>
+        event('storageWasted', { wasted_food: 120 }, 'A produção não coube e foi ao chão.'),
+      );
+      const long = buildReturnReport(farmers, farmers, month, 60 * HOUR);
+      expect(row(long, 'food')?.wasted).toBe(3600);
+      expect(long.highlights).toEqual([]);
+    });
+
+    it('a lista do que ler deixa de fora a virada de dia e o fecho do desperdício', () => {
+      expect(report.highlights).toEqual([
+        'constructionStarted',
+        'recruitmentStarted',
+        'constructionStarted',
+        'constructionCancelled',
+        'objectiveCompleted',
+        'O Pátio encheu.',
+        'Ergueu-se o Celeiro.',
+        'As Habitações cresceram.',
+      ]);
+      expect(events.filter((entry) => !isChronicleEvent(entry)).map((entry) => entry.type)).toEqual(
+        ['dayStarted', 'storageWasted', 'dayStarted', 'storageWasted'],
+      );
+    });
+
+    it('um edifício erguido do zero conta como obra concluída', () => {
+      expect(report.counts).toMatchObject({ daysPassed: 2, constructionsFinished: 2 });
+    });
+
+    it('sem visão anterior não há linhas, e por isso nenhum número inventado', () => {
+      expect(buildReturnReport(null, after, events, 6 * HOUR).resources).toEqual([]);
+    });
+
+    it('o relatório montado passa no schema do protocolo', () => {
+      expect(ReturnReportSchema.safeParse(report).success).toBe(true);
     });
   });
 });

@@ -264,6 +264,19 @@ describe('ações das linhas (rowActions)', () => {
     expect(rowActions(nodeById(nodes, 'construction:goldMine'))).toEqual([]);
   });
 
+  it('o que ainda não existe tem "Construir", com o nome da linha como rótulo', () => {
+    const fresh: TreeNode = {
+      id: 'construction:granary',
+      label: 'Construir: Celeiro',
+      contextValue: 'lords.newBuilding',
+    };
+    expect(rowActions(fresh)).toEqual([
+      { label: 'Construir: Celeiro', text: 'Construir', command: 'lords.build' },
+    ]);
+    // No golden o Celeiro ainda espera o Salão: bloqueado, sem botão.
+    expect(rowActions(nodeById(nodes, 'construction:granary'))).toEqual([]);
+  });
+
   it('a obra em andamento tem "Cancelar"', () => {
     expect(rowActions(nodeById(nodes, 'construction:active'))).toMatchObject([
       { text: 'Cancelar', command: 'lords.cancelConstruction' },
@@ -343,13 +356,16 @@ describe('Tree', () => {
     expect(markup).toContain('Hoje em Pedra Alta');
     expect(markup).toContain('Feudo: Pedra Alta');
     expect(markup).toContain('Primavera, dia 1');
-    expect(markup).toContain('180 (+19/h)');
+    expect(markup).toContain('180/500 (+19/h)');
     expect(markup).toContain('2/5 alocados · 3 livres');
     expect(markup).toContain('codicon codicon-shield');
     expect(markup).toContain('codicon codicon-chevron-down');
     expect(markup).toContain('codicon codicon-chevron-right');
     const food = treeItems(markup).find((item) => attribute(item, 'data-node') === 'resource:food');
-    expect(attribute(food ?? '', 'title')).toBe(goldenView.resources[0]?.breakdown);
+    // A conta da taxa e, na linha de baixo, de onde vem o limite.
+    expect(attribute(food ?? '', 'title')).toBe(
+      `${goldenView.resources[0]?.breakdown}\nDespensa: 500 iniciais`,
+    );
   });
 
   it('as ordens saem de botões rotulados dentro das linhas', () => {

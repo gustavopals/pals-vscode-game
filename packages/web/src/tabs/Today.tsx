@@ -24,7 +24,7 @@ export function TodayTab(props: {
       />
       <FamineBanner famine={props.view.famine} />
       <ColdBanner winter={props.view.winter} />
-      <Today report={props.report} actions={props.actions} />
+      <Today report={props.report} view={props.view} actions={props.actions} />
     </div>
   );
 }

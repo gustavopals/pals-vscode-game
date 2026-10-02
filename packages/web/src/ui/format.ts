@@ -98,6 +98,125 @@ export function runsOutIn(view: ViewState, row: ResourceRow): number | null {
   return row.depletesInSeconds;
 }
 
+/**
+ * Abaixo disto, "cheio em" ganha destaque. É uma escolha de apresentação, não uma regra: é o
+ * tamanho de uma ausência comum (GDD §2.3: nada exige voltar antes de 8 h), e o prazo já vem do
+ * servidor em horas de relógio. Quem fica fora por menos do que isso não perde nada.
+ */
+export const FULL_SOON_SECONDS = 8 * 3600;
+
+/** O depósito enche antes de uma ausência comum acabar: vale o destaque e a ação ao lado. */
+export function fillsSoon(row: ResourceRow): boolean {
+  return row.fullInSeconds !== null && row.fullInSeconds < FULL_SOON_SECONDS;
+}
+
+/** O depósito está cheio e a produção está indo ao chão. */
+export function isWasting(row: ResourceRow): boolean {
+  return row.full && row.wastingPerHour > 0;
+}
+
+/**
+ * O limite de um recurso em poucas palavras, para a árvore (GDD §13.2): "⚠ cheio, perde 72/h",
+ * "⚠ cheio em 4 h", "cheio em 37 h". O sinal acompanha o texto, nunca o substitui.
+ * `null` quando não há o que dizer (sem limite, ou sem previsão de encher).
+ */
+export function storageAlert(row: ResourceRow): string | null {
+  if (isWasting(row)) {
+    return `⚠ cheio, perde ${formatNumber(row.wastingPerHour)}/h`;
+  }
+  if (row.full) {
+    return 'cheio';
+  }
+  if (row.fullInSeconds === null) {
+    return null;
+  }
+  return `${fillsSoon(row) ? '⚠ ' : ''}cheio em ${formatApprox(row.fullInSeconds)}`;
+}
+
+/**
+ * De onde vem o limite, com o nome do lugar onde o recurso fica: "Despensa: 500 iniciais",
+ * "Celeiro Nv2: 1.500". Os dois textos vêm do servidor; aqui só se evita dizer o nome duas vezes.
+ */
+export function capExplanation(row: ResourceRow): string | null {
+  const { capBreakdown, storageLabel } = row;
+  if (capBreakdown === null) {
+    return null;
+  }
+  return storageLabel === null || capBreakdown.startsWith(storageLabel)
+    ? capBreakdown
+    : `${storageLabel}: ${capBreakdown}`;
+}
+
+type UpgradeRow = ViewState['constructions']['available'][number];
+
+/** O edifício ainda não existe: a obra é erguê-lo, não melhorá-lo. */
+export function isNewBuilding(upgrade: Pick<UpgradeRow, 'fromLevel'>): boolean {
+  return upgrade.fromLevel === 0;
+}
+
+/** O nome de uma obra: "Fazenda Nv1 → Nv2" ou, para o que ainda não existe, "Construir: Celeiro". */
+export function upgradeName(
+  upgrade: Pick<UpgradeRow, 'label' | 'fromLevel' | 'targetLevel'>,
+): string {
+  return isNewBuilding(upgrade)
+    ? `Construir: ${upgrade.label}`
+    : `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`;
+}
+
+type RefundRow = NonNullable<ViewState['constructions']['active']>['refund'][number];
+
+/** "a", "a e b", "a, b e c". */
+export function joinList(items: readonly string[]): string {
+  return items.length <= 1
+    ? items.join('')
+    : `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`;
+}
+
+/** Como uma lista curta é escrita: "a, b, c" (árvore e diálogos) ou "a, b e c" (frases do painel). */
+type ListStyle = 'commas' | 'sentence';
+
+/**
+ * O que o cancelamento de uma obra devolve, em duas partes: o que entra no estoque e o que não
+ * cabe no depósito e se perderia. Cada parte é `null` quando não há nada a dizer. Os números são
+ * os do servidor (GDD §5.5): o app não conhece a regra da devolução nem a dos limites.
+ */
+export function refundParts(
+  refund: readonly RefundRow[],
+  style: ListStyle = 'commas',
+): { back: string | null; lost: string | null } {
+  const list = (entries: ReadonlyArray<{ amount: number; label: string }>) => {
+    const items = entries.map(
+      (entry) => `${formatNumber(entry.amount)} ${entry.label.toLowerCase()}`,
+    );
+    if (items.length === 0) {
+      return null;
+    }
+    return style === 'commas' ? items.join(', ') : joinList(items);
+  };
+  return {
+    back: list(refund.filter((entry) => entry.amount > 0)),
+    lost: list(
+      refund
+        .filter((entry) => entry.lost > 0)
+        .map((entry) => ({ amount: entry.lost, label: entry.label })),
+    ),
+  };
+}
+
+/**
+ * A devolução por extenso: "Cancelar devolve 30 madeira, 16 pedra. Não cabem no depósito e se
+ * perderiam: 34 madeira." A abertura muda com o lugar ("Cancelar devolve", "Voltam", "Devolve").
+ */
+export function refundSentence(
+  refund: readonly RefundRow[],
+  lead: string,
+  style: ListStyle = 'commas',
+): string {
+  const { back, lost } = refundParts(refund, style);
+  const first = back === null ? 'Nada volta ao estoque.' : `${lead} ${back}.`;
+  return lost === null ? first : `${first} Não cabem no depósito e se perderiam: ${lost}.`;
+}
+
 /** Em quanto tempo a lareira fica sem lenha; `null` fora do inverno, no frio ou com lenha que basta. */
 export function firewoodRunsOutIn(view: ViewState): number | null {
   const wood = view.resources.find((row) => row.id === 'wood');

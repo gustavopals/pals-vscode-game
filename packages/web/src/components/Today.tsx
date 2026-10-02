@@ -1,7 +1,9 @@
-import type { ReturnReport } from '@lotg/protocol';
+import type { ReturnReport, ViewState } from '@lotg/protocol';
 
+import { joinList } from '../ui/format';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
+import { Icon } from './shared';
 
 const FAMINE_TEXT: Record<ReturnReport['famine'], string | null> = {
   none: null,
@@ -10,8 +12,56 @@ const FAMINE_TEXT: Record<ReturnReport['famine'], string | null> = {
   ended: 'Houve fome na sua ausência, mas ela já acabou.',
 };
 
+type ReportRow = ReturnReport['resources'][number];
+
+/** Uma casa decimal: a soma de duas parcelas não mostra ruído de ponto flutuante. */
+const tidy = (value: number) => Math.round(value * 10) / 10;
+
+/** Uma parcela da conta: o número com sinal, ou um traço quando não houve nada. */
+const part = (value: number, sign: 1 | -1) => (value === 0 ? '—' : formatSigned(sign * value));
+
+/** "120 de comida (Despensa), 48 de madeira (Pátio) e 20 de pedra (Pátio)". */
+function wasteList(rows: ReportRow[], view: ViewState): string {
+  const items = rows.map((row) => {
+    // Onde o recurso fica hoje, com o nome que o servidor dá: Despensa, Celeiro, Pátio, Armazém.
+    const place = view.resources.find((entry) => entry.id === row.id)?.storageLabel ?? null;
+    return (
+      `${formatNumber(row.wasted ?? 0)} de ${row.label.toLowerCase()}` +
+      (place === null ? '' : ` (${place})`)
+    );
+  });
+  return joinList(items);
+}
+
+/**
+ * O que foi ao chão na ausência, em uma linha só, com o total de cada recurso (os fechos diários
+ * do servidor somados, nunca uma linha por dia) e o caminho para resolver: no feudo, o aviso do
+ * depósito traz o botão que o ergue ou amplia.
+ */
+function WasteLine(props: { rows: ReportRow[]; view: ViewState; actions: Actions }) {
+  const wasted = props.rows.filter((row) => (row.wasted ?? 0) > 0);
+  if (wasted.length === 0) {
+    return null;
+  }
+  return (
+    <p class="waste" role="status">
+      <span class="warning">
+        <Icon name="warning" /> Foram ao chão, por falta de espaço: {wasteList(wasted, props.view)}.
+      </span>{' '}
+      Ampliar o depósito ou gastar o que sobra estanca a perda.{' '}
+      <button
+        type="button"
+        class="link"
+        onClick={() => props.actions.run('lords.openPanel', 'fief')}
+      >
+        Ver os depósitos
+      </button>
+    </p>
+  );
+}
+
 /** Aba "Hoje": o Relatório de Retorno e as decisões pendentes (GDD §2.3). */
-export function Today(props: { report: ReturnReport | null; actions: Actions }) {
+export function Today(props: { report: ReturnReport | null; view: ViewState; actions: Actions }) {
   const { report } = props;
   return (
     <div class="today">
@@ -40,34 +90,64 @@ export function Today(props: { report: ReturnReport | null; actions: Actions }) 
                 os estoques: conta só o que aconteceu enquanto você esteve fora.
               </p>
             ) : (
-              <table class="resources">
-                <thead>
-                  <tr>
-                    <th scope="col">Recurso</th>
-                    <th scope="col" class="num">
-                      Antes
-                    </th>
-                    <th scope="col" class="num">
-                      Agora
-                    </th>
-                    <th scope="col" class="num">
-                      Mudança
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.resources.map((row) => (
-                    <tr key={row.id}>
-                      <th scope="row">{row.label}</th>
-                      <td class="num">{formatNumber(row.before)}</td>
-                      <td class="num">{formatNumber(row.after)}</td>
-                      <td class={`num ${row.delta < 0 ? 'negative' : ''}`}>
-                        {formatSigned(row.delta)}
-                      </td>
+              <>
+                {/*
+                 * A variação de estoque não é produção: a conta fica aberta, parcela por parcela.
+                 * Antes + produção − gasto + recebido − perdido = agora.
+                 */}
+                <table class="resources report">
+                  <thead>
+                    <tr>
+                      <th scope="col">Recurso</th>
+                      <th scope="col" class="num">
+                        Antes
+                      </th>
+                      <th scope="col" class="num">
+                        Produção
+                      </th>
+                      <th scope="col" class="num">
+                        Gasto
+                      </th>
+                      <th scope="col" class="num">
+                        Recebido
+                      </th>
+                      <th scope="col" class="num">
+                        Perdido
+                      </th>
+                      <th scope="col" class="num">
+                        Agora
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {report.resources.map((row) => {
+                      const wasted = row.wasted ?? 0;
+                      // O que o feudo rendeu, já descontado o consumo: o que entrou no estoque
+                      // mais o que não coube. Assim a perda aparece como perda, e não como
+                      // produção que não houve.
+                      const yielded = tidy((row.produced ?? row.delta) + wasted);
+                      return (
+                        <tr key={row.id}>
+                          <th scope="row">{row.label}</th>
+                          <td class="num">{formatNumber(row.before)}</td>
+                          <td class={`num ${yielded < 0 ? 'negative' : ''}`}>
+                            {formatSigned(yielded)}
+                          </td>
+                          <td class="num">{part(row.spent ?? 0, -1)}</td>
+                          <td class="num">{part(row.received ?? 0, 1)}</td>
+                          <td class={`num ${wasted > 0 ? 'warning' : ''}`}>{part(wasted, -1)}</td>
+                          <td class="num">{formatNumber(row.after)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <p class="muted hint">
+                  Produção já desconta o que o feudo consumiu. Gasto e recebido vêm das ordens e dos
+                  acontecimentos da ausência. Perdido é o que não coube no depósito e foi ao chão.
+                </p>
+                <WasteLine rows={report.resources} view={props.view} actions={props.actions} />
+              </>
             )}
             <p class="muted">
               Obras concluídas: {report.counts.constructionsFinished} · Aldeões que chegaram:{' '}

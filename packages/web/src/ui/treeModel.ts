@@ -3,6 +3,8 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import type { AccountState } from '../account/accountService';
 import type { Connection } from '../game/connection';
 import {
+  capExplanation,
+  fillsSoon,
   firewoodRunsOutIn,
   formatApprox,
   formatCost,
@@ -10,9 +12,14 @@ import {
   formatNumber,
   formatRate,
   formatRemaining,
+  isNewBuilding,
+  isWasting,
+  refundSentence,
   remainingNow,
   runsOutIn,
+  storageAlert,
   truncate,
+  upgradeName,
 } from './format';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
@@ -44,24 +51,56 @@ export type TreeInput = {
 
 const DESCRIPTION_MAX = 60;
 
+type ResourceRow = ViewState['resources'][number];
+
+/** "655/900" para o que tem limite, "318" para o ouro. */
+const stockOverCap = (row: ResourceRow) =>
+  row.cap === null
+    ? formatNumber(row.stock)
+    : `${formatNumber(row.stock)}/${formatNumber(row.cap)}`;
+
+/**
+ * O que a linha de um recurso diz depois do nome (GDD §13.2). Em regra, o estoque sobre o limite
+ * e a taxa: "412/1.500 (+29/h)". Com o depósito cheio e perdendo produção, ou a menos de uma
+ * ausência de encher, o alerta toma o lugar da taxa, para caber na barra lateral: "655/900 ⚠
+ * cheio em 4 h". A previsão distante fica na tabela do painel; a árvore só fala do que é urgente.
+ */
+function resourceLine(view: ViewState, row: ResourceRow): string {
+  if (isWasting(row) || fillsSoon(row)) {
+    return `${stockOverCap(row)} ${storageAlert(row) ?? ''}`;
+  }
+  const runsOut = runsOutIn(view, row);
+  return (
+    `${stockOverCap(row)} (${formatRate(row.perHour)})` +
+    (runsOut === null ? '' : ` · acaba em ${formatApprox(runsOut)}`) +
+    (row.full ? ' · cheio' : '')
+  );
+}
+
+/**
+ * Os recursos. O depósito que pede atenção repete o alerta na linha "Recursos", que assim
+ * continua dizendo o que importa com o grupo recolhido: "madeira ⚠ cheio em 4 h".
+ */
 function resourcesNode(view: ViewState): TreeNode {
+  const alerts = view.resources
+    .filter((row) => isWasting(row) || fillsSoon(row))
+    .map((row) => `${row.label.toLowerCase()} ${storageAlert(row) ?? ''}`);
   return {
     id: 'resources',
     label: 'Recursos',
+    ...(alerts.length > 0 ? { description: alerts.join(' · ') } : {}),
     icon: 'package',
     expanded: true,
-    children: view.resources.map((row) => {
-      const runsOut = runsOutIn(view, row);
-      return {
-        id: `resource:${row.id}`,
-        label: row.label,
-        description:
-          `${formatNumber(row.stock)} (${formatRate(row.perHour)})` +
-          (runsOut === null ? '' : ` · acaba em ${formatApprox(runsOut)}`),
-        tooltip: row.breakdown,
-        command: { id: 'lords.openPanel', args: ['fief'] },
-      };
-    }),
+    children: view.resources.map((row) => ({
+      id: `resource:${row.id}`,
+      label: row.label,
+      description: resourceLine(view, row),
+      // A conta da taxa, de onde vem o limite e, se houver, o que o servidor diz do depósito.
+      tooltip: [row.breakdown, capExplanation(row), row.fullNote]
+        .filter((line) => line !== null)
+        .join('\n'),
+      command: { id: 'lords.openPanel', args: ['fief'] },
+    })),
   };
 }
 
@@ -120,7 +159,7 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
       id: 'construction:active',
       label: `${active.label} → Nv${active.targetLevel}`,
       description: remaining,
-      tooltip: `Em obras. Termina em ${remaining}. Cancelar devolve ${formatCost(active.refund)}.`,
+      tooltip: `Em obras. Termina em ${remaining}. ${refundSentence(active.refund, 'Cancelar devolve')}`,
       icon: 'tools',
       contextValue: 'lords.activeConstruction',
       command: { id: 'lords.openPanel', args: ['fief'] },
@@ -130,15 +169,21 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
     const terms = `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`;
     children.push({
       id: `construction:${upgrade.building}`,
-      label: `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`,
+      label: upgradeName(upgrade),
       description: truncate(terms, DESCRIPTION_MAX),
-      // O custo e o prazo, por que o prazo é esse nesta estação e, se houver, o que impede a obra.
-      tooltip: [terms, upgrade.durationNote, upgrade.blockedReason]
+      // O custo e o prazo, o que a obra muda, por que o prazo é esse nesta estação e, se houver,
+      // o que impede a obra.
+      tooltip: [terms, upgrade.effect, upgrade.durationNote, upgrade.blockedReason]
         .filter((line) => line !== null)
         .join('\n'),
       icon: upgrade.blockedReason === null ? 'check' : 'lock',
       // O clique só navega: começar a obra é uma ação explícita, no botão do item.
-      contextValue: upgrade.blockedReason === null ? 'lords.upgrade' : 'lords.blockedUpgrade',
+      contextValue:
+        upgrade.blockedReason !== null
+          ? 'lords.blockedUpgrade'
+          : isNewBuilding(upgrade)
+            ? 'lords.newBuilding'
+            : 'lords.upgrade',
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
   }

@@ -16,8 +16,12 @@ const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
+  // Um edifício erguido do zero (Celeiro, Armazém) sai com este tipo, no lugar do anterior.
+  'buildingFounded',
   'recruitmentFinished',
   'objectiveCompleted',
+  // O depósito encheu: nada se quebra, mas a produção passa a ir ao chão. Uma vez por episódio.
+  'storageFilled',
 ];
 /** O ícone próprio de um aviso; sem entrada aqui, vale o do tom (aviso ou informação). */
 const ICONS: Partial<Record<GameEvent['type'], string>> = {

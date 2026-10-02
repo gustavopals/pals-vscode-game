@@ -35,7 +35,7 @@ export function FiefTab(props: {
       <FirewoodNote view={view} />
       <div class="fief">
         <div class="column">
-          <ResourcesTable view={view} />
+          <ResourcesTable view={view} disabled={disabled} actions={actions} />
           <WorkersPanel
             workers={view.workers}
             population={view.population}

@@ -1,12 +1,13 @@
 import { memoryTokenStore, type TokenStore } from '@lotg/client-sdk';
-import type {
-  Account,
-  CatalogResponse,
-  Command,
-  CreateGameRequest,
-  GameEvent,
-  GameSummary,
-  ViewState,
+import {
+  type Account,
+  type CatalogResponse,
+  CHRONICLE_HIDDEN_EVENT_TYPES,
+  type Command,
+  type CreateGameRequest,
+  type GameEvent,
+  type GameSummary,
+  type ViewState,
 } from '@lotg/protocol';
 
 import golden from '../../engine/src/__golden__/view-seed-pedra-alta.json';
@@ -63,6 +64,47 @@ export function winterWith(firewood: {
         ? { ...row, stock: firewood.stock, depletesInSeconds: firewood.depletesInSeconds }
         : row,
     ),
+  };
+}
+
+/**
+ * O feudo com o Salão do Senhor no nível 2: o Celeiro e o Armazém já podem ser erguidos, e só
+ * faltam recursos para isso.
+ */
+export const unlockedView = golden.afterObjectivesScenario as unknown as ViewState;
+
+type ResourceRow = ViewState['resources'][number];
+type UpgradeRow = ViewState['constructions']['available'][number];
+
+/**
+ * A mesma visão com campos de um recurso trocados. Limite, "cheio em" e desperdício são contas
+ * do motor; aqui os números são postos à mão para o app mostrar cada caso.
+ */
+export function withResource(
+  view: ViewState,
+  id: ResourceRow['id'],
+  patch: Partial<ResourceRow>,
+): ViewState {
+  return {
+    ...view,
+    resources: view.resources.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+  };
+}
+
+/** A mesma visão com campos de uma obra disponível trocados (bloqueio, custo, efeito). */
+export function withUpgrade(
+  view: ViewState,
+  building: UpgradeRow['building'],
+  patch: Partial<UpgradeRow>,
+): ViewState {
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      available: view.constructions.available.map((upgrade) =>
+        upgrade.building === building ? { ...upgrade, ...patch } : upgrade,
+      ),
+    },
   };
 }
 
@@ -304,9 +346,14 @@ export function fakeApi() {
       return json({ events, lastSeq: events.at(-1)?.seq ?? after, hasMore: false });
     }
     if (resource === 'chronicle') {
-      // Como no servidor: as viradas de dia não entram na Crônica (ADR 0007).
+      // Como no servidor: as viradas de dia e o fecho diário do desperdício não entram na
+      // Crônica (ADRs 0007 e 0015).
       return json({
-        entries: state.events.filter((event) => event.type !== 'dayStarted').slice(-20),
+        entries: state.events
+          .filter(
+            (event) => !(CHRONICLE_HIDDEN_EVENT_TYPES as readonly string[]).includes(event.type),
+          )
+          .slice(-20),
       });
     }
     if (resource === 'chronicle.md') {

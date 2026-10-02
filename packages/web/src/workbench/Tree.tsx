@@ -26,6 +26,9 @@ export function rowActions(node: TreeNode): RowAction[] {
       ];
     case 'lords.upgrade':
       return [{ label: `Melhorar: ${node.label}`, text: 'Melhorar', command: 'lords.build' }];
+    case 'lords.newBuilding':
+      // O edifício ainda não existe: a linha já se chama "Construir: Celeiro".
+      return [{ label: node.label, text: 'Construir', command: 'lords.build' }];
     case 'lords.activeConstruction':
       return [
         {

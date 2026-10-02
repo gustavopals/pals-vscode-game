@@ -48,7 +48,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | `src/services/` | `browserStore.ts` (`localStorage` com prefixo `lords.`, tolerante a falha), `sessionLock.ts` (Web Locks na renovação da sessão), `tabSync.ts` (evento `storage`), `visibility.ts`, `preferences.ts` |
 | `src/workbench/` | A bancada: `ActivityBar`, `SideBar`, `Tree` (padrão ARIA, `treeNav.ts`), `EditorTabs`, `StatusBar` |
 | `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Sobre |
-| `src/components/` | Os painéis do feudo (recursos, trabalhadores, construções, recrutamento, objetivos), os avisos do painel (`Banners.tsx`: sem ligação, fome, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
+| `src/components/` | Os painéis do feudo (recursos com os avisos de depósito, trabalhadores, construções, recrutamento, objetivos), os avisos do painel (`Banners.tsx`: sem ligação, fome, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
 | `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
 
@@ -75,6 +75,21 @@ Tudo vem pronto no `ViewState`; o app não escreve fator, taxa nem prazo.
 - **Prazos da estação**: `durationNote` das obras aparece uma vez acima da lista de disponíveis, uma vez na lista da paleta e na explicação de cada obra na árvore; o do recrutamento, ao lado do prazo, no painel e na paleta.
 - **A explicação de um número** (`.explained`) fica por cima dos avisos do canto. O aviso de frio ou de fome não some sozinho, e antes cobria a ponta da explicação em telas estreitas.
 - Os prazos aproximados ("acaba em 14 h", "Inverno em 4 h", "frio há 50 min") não descem com o relógio local: o cabeçalho, a tabela e a árvore mostram o mesmo número, que muda a cada leitura do servidor.
+
+## Armazenamento: limite, "cheio em" e desperdício (GDD §5.5)
+
+O limite, a previsão, o que se perde e a frase do que fazer vêm prontos em `resources[]` do `ViewState`. O app não conhece capacidade, fator de dificuldade nem regra de corte.
+
+- **Tabela de recursos** (`components/ResourcesTable.tsx`): as colunas Estoque e Cap do GDD §13.3; o limite é um número com explicação (`capExplanation`: "Despensa: 500 iniciais", "Celeiro Nv2: 1.500"). A tendência diz, nesta ordem: "acaba em", "cheio: a produção está se perdendo", "cheio", "cheio em 6 h", "crescendo", "caindo", "em falta", "estável". "Crescendo" sem previsão de encher e "cheio" acima do limite levam a frase do servidor como explicação (`fullNote`).
+- **O destaque de "cheio em"** é ícone e texto, abaixo de 8 horas (`FULL_SOON_SECONDS`, em `ui/format.ts`). É escolha de apresentação, não regra: o tamanho de uma ausência comum (GDD §2.3). O prazo já vem em horas de relógio.
+- **A saída ao lado** (`StorageNotes`, abaixo da tabela): cada depósito cheio, ou a menos de 8 h de encher, ganha um aviso com a frase, o custo, o prazo e o efeito da obra (`constructions.available[].effect`) e o botão "Construir Celeiro" ou "Ampliar Armazém", que chama `lords.build` com o `storageBuilding` do recurso. A madeira e a pedra dividem o Armazém: um aviso, um botão. Bloqueada, a obra deixa o botão desabilitado, com o motivo; com a obra do depósito em andamento, o botão some. Não é região viva nem `role="note"`.
+- **Árvore** (`ui/treeModel.ts`): "655/900 (+55/h)" em cada recurso. Com o depósito cheio e perdendo, ou a menos de 8 h de encher, o alerta toma o lugar da taxa ("655/900 ⚠ cheio em 4 h", "900/900 ⚠ cheio, perde 55/h") e se repete na linha "Recursos". A previsão distante fica só na tabela: a barra lateral é estreita.
+- **Construir e melhorar** (`ConstructionsPanel.tsx`): uma obra com `fromLevel` 0 é um edifício que ainda não existe. Ela fica na lista "Construir", o botão diz "Construir" e o nome nunca fala em "Nv0" (`upgradeName`: "Construir: Celeiro" na árvore, na paleta e nas planejadas). As outras ficam em "Melhorar". O que a obra muda aparece abaixo do custo.
+- **Cancelar uma obra** diz o que volta e o que se perderia (`refundSentence`, com `refund[].amount` e `lost`), no painel, na árvore e na confirmação.
+- **Relatório de Retorno** (`game/returnReport.ts`, `components/Today.tsx`): a tabela abre a conta de cada recurso, `antes + produção − gasto + recebido − perdido = agora`. Gasto, recebido e perdido são somas dos totais que os eventos trazem em `data` (`spent_*`, `gained_*`, `wasted_*`). O perdido soma os fechos diários (`storageWasted`) e a diferença do contador `wastedToday` entre a visão guardada e a de agora, e por isso aparece mesmo sem virada de dia na ausência. A coluna Produção mostra o que o feudo rendeu, descontado o consumo: `produced` (o que entrou no estoque, como o protocolo define) mais o perdido. Abaixo da tabela, uma linha só com o total que foi ao chão e o botão "Ver os depósitos". Os fechos diários não entram na lista de frases.
+- **Crônica recente**: `isChronicleEvent` usa `CHRONICLE_HIDDEN_EVENT_TYPES` do protocolo (viradas de dia e fechos do desperdício ficam fora).
+- **Avisos**: `storageFilled` e `buildingFounded` avisam no nível "Todas"; nenhum dos dois é alarme.
+- **Sem a visão guardada** (cache de outra versão do app), o relatório não tem linhas de estoque e, por isso, não tem a linha de desperdício daquela ausência.
 
 ## Cache e versões
 

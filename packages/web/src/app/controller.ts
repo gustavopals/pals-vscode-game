@@ -27,6 +27,7 @@ import {
   type SessionTarget,
 } from '../game/gameSession';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
+import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
   decideNotifications,
@@ -509,12 +510,13 @@ export class Controller {
   }
 
   private eventsArrived(events: GameEvent[]): void {
-    // As viradas de dia provam que o mundo andou, mas não entram na Crônica (ADR 0007).
-    this.chronicle = [...this.chronicle, ...events.filter((event) => event.type !== 'dayStarted')]
+    // As viradas de dia provam que o mundo andou e o fecho diário do desperdício dá o total ao
+    // Relatório, mas nenhum dos dois é linha da Crônica (ADRs 0007 e 0015).
+    this.chronicle = [...this.chronicle, ...events.filter(isChronicleEvent)]
       .filter((event, index, all) => all.findIndex((other) => other.seq === event.seq) === index)
       .slice(-CHRONICLE_LINES);
-    // Um lote só de viradas de dia não muda a Crônica: não há por que baixá-la de novo.
-    const changesChronicle = events.some((event) => event.type !== 'dayStarted');
+    // Um lote só desses eventos não muda a Crônica: não há por que baixá-la de novo.
+    const changesChronicle = events.some(isChronicleEvent);
     if (changesChronicle && this.chronicleDocument.status === 'ready') {
       // A Crônica aberta ficou para trás: a próxima visita à aba a lê de novo.
       this.chronicleDocument = { status: 'idle' };

@@ -65,6 +65,20 @@ describe('política de notificações', () => {
     expect(result.badge).toBe(0);
   });
 
+  it('o depósito que enche e o edifício erguido avisam em "todas"; o fecho do desperdício, nunca', () => {
+    const events = [
+      event('storageFilled', 1),
+      event('storageWasted', 2),
+      event('buildingFounded', 3),
+      event('dayStarted', 4),
+    ];
+    const all = decideNotifications(input({ level: 'all', events }));
+    expect(all.show.map((entry) => entry.type)).toEqual(['storageFilled', 'buildingFounded']);
+    // Nada disso é alarme: no nível padrão não interrompe ninguém.
+    expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+    expect(isEssential(event('storageFilled'))).toBe(false);
+  });
+
   it('o começo é alarme, o fim é alívio, e o frio tem o seu próprio ícone', () => {
     expect(isEssential(event('coldStarted'))).toBe(true);
     expect(isEssential(event('famineStarted'))).toBe(true);
