@@ -269,9 +269,18 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   };
 }
 
-function unplan(draft: GameState, building: BuildingId): void {
+/**
+ * Tira da lista a planejada de um edifício. Com `upToLevel`, só a que leva o edifício até esse
+ * nível: é o que uma obra iniciada cumpre. A planejada do nível **seguinte** fica onde está e
+ * passa a esperar o fim dessa obra, inclusive quando a obra é a que foi cancelada e alguém
+ * iniciou de novo (GDD §6.3).
+ */
+function unplan(draft: GameState, building: BuildingId, upToLevel?: number): void {
   const { settlement } = draft;
-  settlement.planned = settlement.planned.filter((plan) => plan.building !== building);
+  settlement.planned = settlement.planned.filter(
+    (plan) =>
+      plan.building !== building || (upToLevel !== undefined && plan.targetLevel > upToLevel),
+  );
 }
 
 /**
@@ -301,7 +310,7 @@ export function startConstruction(
     startedAtMs: nowMs,
     finishesAtMs: nowMs + quote.durationMs,
   };
-  unplan(draft, building);
+  unplan(draft, building, quote.targetLevel);
   const stat = `constructionsStarted:${building}`;
   stats[stat] = (stats[stat] ?? 0) + 1;
   const type = by === 'autoStart' ? 'constructionAutoStarted' : 'constructionStarted';

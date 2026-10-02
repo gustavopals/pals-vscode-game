@@ -673,9 +673,53 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
       etaSeconds: null,
     });
     expect(autoStarted(advanceTo(state, 30 * HOUR).events)).toEqual([]);
-    // Iniciada a obra que faltava, a planejada volta a esperar o fim dela.
-    const resumed = accept(state, command('startConstruction', { building: 'farm' })).state;
-    expect(resumed.settlement.planned).toEqual([]);
+  });
+
+  it('a obra cancelada, iniciada de novo: a planejada do nível seguinte continua e começa no fim dela', () => {
+    const start = lumberCamp(400_000, (draft) => {
+      draft.settlement.buildings.townHall = 2;
+    });
+    const { state: resumed } = play(start, [
+      command('startConstruction', { building: 'farm' }),
+      auto('farm'),
+      command('cancelConstruction', { building: 'farm' }),
+      command('startConstruction', { building: 'farm' }),
+    ]);
+    // Iniciar a obra do nível 2 não leva junto a planejada do nível 3: ela volta a esperar.
+    expect(resumed.settlement.planned).toEqual([
+      { building: 'farm', targetLevel: 3, autoStart: true },
+    ]);
+    expect(waitingOf(resumed, 'farm')).toEqual({
+      reason: 'upgrading',
+      text: 'espera a obra da Fazenda terminar',
+      etaSeconds: 300,
+    });
+    const { state, events } = advanceTo(resumed, 10 * HOUR);
+    expect(
+      events
+        .filter((event) => event.data.building === 'farm')
+        .map((event) => [event.type, event.data.level]),
+    ).toEqual([
+      ['constructionFinished', 2],
+      ['constructionAutoStarted', 3],
+      ['constructionFinished', 3],
+    ]);
+    // Fazenda 2 → 3: 128 de madeira e 64 de ouro, pagos uma vez só.
+    expect(autoStarted(events).map((event) => event.data)).toEqual([
+      { building: 'farm', level: 3, spent_wood: 128, spent_gold: 64 },
+    ]);
+    expect(state.settlement.buildings.farm).toBe(3);
+    expect(state.settlement.planned).toEqual([]);
+  });
+
+  it('a planejada do próprio nível sai da lista quando a obra é iniciada à mão', () => {
+    const start = lumberCamp(400_000);
+    const { state } = play(start, [
+      command('planConstruction', { building: 'farm' }),
+      command('startConstruction', { building: 'farm' }),
+    ]);
+    expect(state.settlement.planned).toEqual([]);
+    expect(queueOf(state)).toEqual(['farm', null]);
   });
 
   it('o nível do Salão: a planejada começa no instante em que a obra dele termina', () => {
