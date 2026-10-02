@@ -853,6 +853,45 @@ describe('avisos de acontecimentos', () => {
     expect(controller.unseen).toBe(0);
   });
 
+  it('a moral que desce de faixa e a gente que se vai avisam no nível padrão, como alerta; a que sobe, como alívio', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    expect(controller.preferences.notifications).toBe('essential');
+    const fell = {
+      ...gameEvent(1, 'moraleBandChanged', 'O povo de Pedra Alta anda inquieto.'),
+      data: { morale: 30, band: 'restless', previousMorale: 60, previousBand: 'content' },
+    };
+    const deserted = {
+      ...gameEvent(2, 'villagerDeserted', 'Um lavrador fugiu da fome de Pedra Alta.'),
+      data: { villagers: 4, morale: 30, building: 'farm' },
+    };
+    // O colono que chega é boa notícia: no nível padrão não interrompe ninguém.
+    await deliver(made, fell, deserted, gameEvent(3, 'villagerArrived', 'Um colono chegou.'));
+    expect(gameToasts(controller)).toHaveLength(2);
+    // O ícone da mudança de faixa é o da faixa nova; o texto é a frase da Crônica.
+    expect(toastWith(controller, 'anda inquieto')).toMatchObject({
+      kind: 'warning',
+      icon: 'comment-discussion',
+      sticky: true,
+    });
+    expect(toastWith(controller, 'fugiu da fome')).toMatchObject({
+      kind: 'warning',
+      icon: 'sign-out',
+      sticky: true,
+    });
+
+    const rose = {
+      ...gameEvent(4, 'moraleBandChanged', 'Os resmungos cessaram. O povo está contente.'),
+      data: { morale: 50, band: 'content', previousMorale: 30, previousBand: 'restless' },
+    };
+    await deliver(made, rose);
+    expect(toastWith(controller, 'Os resmungos cessaram')).toMatchObject({
+      kind: 'info',
+      icon: 'smiley',
+    });
+    expect(controller.unseen).toBe(0);
+  });
+
   it('a fome continua com o ícone do tom, e o fim dela também avisa', async () => {
     const made = await opened({ now: () => NOON });
     const { controller } = made;

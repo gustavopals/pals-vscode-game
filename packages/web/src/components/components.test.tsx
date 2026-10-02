@@ -18,7 +18,9 @@ import {
   catalogFixture,
   coldView,
   craftsView,
+  impoverishedView,
   initialView,
+  proudView,
   queuesView,
   unlockedView,
   winterWith,
@@ -28,6 +30,7 @@ import {
   withUpgrade,
 } from '../test-helpers';
 import type { Actions } from './actions';
+import { FamineBanner } from './Banners';
 import { ConstructionsPanel } from './ConstructionsPanel';
 import {
   formatApprox,
@@ -38,6 +41,7 @@ import {
   formatSigned,
   remaining,
 } from './format';
+import { MoralePanel } from './Panels';
 import { ResourcesTable } from './ResourcesTable';
 import { Today } from './Today';
 import { Welcome } from './Welcome';
@@ -571,11 +575,12 @@ describe('aba Feudo: estações, lenha e frio', () => {
   });
 
   it('no frio, a explicação traz o inverno, o frio e a lenha, termo a termo', () => {
+    // A moral entra como mais um fator, com o número dela (GDD §5.7).
     const wood =
-      'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)';
+      'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)';
     expect(cold).toContain(`data-tip="${wood}"`);
     expect(cold).toContain(
-      'data-tip="10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h"',
+      'data-tip="10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 42,74/h"',
     );
     expect(row(cold, 'Madeira')).toContain('−9<span class="sr-only">');
     expect(row(cold, 'Madeira')).toContain('class="num negative"');
@@ -812,8 +817,9 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
 
   it('longe de encher, a tendência diz "cheio em" sem alarme e sem aviso', () => {
     const page = fief();
-    // 61.634 s no golden: pouco mais de 17 horas, já contando o fim da adaptação.
-    expect(row(page, 'Comida')).toContain('<span class="muted">cheio em 17 h</span>');
+    // 58.599 s no golden: pouco mais de 16 horas, já contando o fim da adaptação e a moral que
+    // sobe na virada do dia.
+    expect(row(page, 'Comida')).toContain('<span class="muted">cheio em 16 h</span>');
     expect(row(page, 'Comida')).not.toContain('codicon-warning');
     expect(page).not.toContain('storage-notes');
   });
@@ -1485,6 +1491,267 @@ describe('aba Feudo: troca de ofício e experiência (GDD §5.3 e §5.4)', () =>
   });
 });
 
+describe('aba Feudo: moral (GDD §5.7)', () => {
+  /** O texto de um trecho sem as marcas e sem o que só os leitores de tela leem. */
+  const text = (page: string) =>
+    page
+      .replace(/<span class="sr-only">.*?<\/span>/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  /** A linha da moral no cabeçalho. */
+  const headline = (page: string) => /<p class="morale">.*?<\/p>/.exec(page)?.[0] ?? '';
+  /** O painel "Moral". */
+  const panel = (page: string) =>
+    /<section aria-labelledby="morale-title">.*?<\/section>/.exec(page)?.[0] ?? '';
+  /** As linhas da conta, como o jogador as lê: "+10 Comida guardada para 24 h". */
+  const terms = (page: string) =>
+    [
+      ...(/<ul class="morale-terms"[^>]*>(.*?)<\/ul>/.exec(page)?.[1] ?? '').matchAll(
+        /<li[^>]*>(.*?)<\/li>/g,
+      ),
+    ].map((match) => text((match[1] ?? '').replace(/<\/span><span>/g, '</span> <span>')));
+  const withMorale = (base: ViewState, patch: Partial<ViewState['morale']>): ViewState => ({
+    ...base,
+    morale: { ...base.morale, ...patch },
+  });
+
+  const fresh = fief({ view: initialView });
+  const cold = fief({ view: coldView });
+  const poor = fief({ view: impoverishedView });
+  const proud = fief({ view: proudView });
+
+  it('o cabeçalho mostra a moral e a faixa, com o ícone da faixa e o que ela faz com a produção', () => {
+    expect(text(headline(fresh))).toBe(
+      'Moral 50 (Contente): não mexe na produção · na virada do dia, sobe para 60',
+    );
+    expect(headline(fresh)).toContain('codicon-smiley');
+    expect(text(headline(proud))).toBe('Moral 80 (Orgulhoso): produção × 1,15');
+    expect(headline(proud)).toContain('codicon-star-full');
+    expect(text(headline(poor))).toBe('Moral 0 (Desesperado): produção × 0,75');
+    expect(headline(poor)).toContain('codicon-thumbsdown');
+    // A faixa nunca é dita só pelo ícone: o nome dela está sempre no texto.
+    for (const page of [fresh, cold, poor, proud]) {
+      expect(text(headline(page))).toMatch(
+        /^Moral \d+ \((Desesperado|Inquieto|Contente|Orgulhoso)\)/,
+      );
+    }
+  });
+
+  it('a moral que vai cair diz para onde, com seta e verbo, não só com cor', () => {
+    expect(text(headline(cold))).toBe(
+      'Moral 60 (Contente): produção × 1,05 · na virada do dia, cai para 40 (Inquieto)',
+    );
+    expect(headline(cold)).toContain(
+      '<span class="warning"> · <span class="codicon codicon-arrow-down" aria-hidden="true"></span> na virada do dia, cai para 40 (Inquieto)</span>',
+    );
+    // A que sobe não é alarme: seta para cima, sem o tom de aviso.
+    expect(headline(fresh)).toContain(
+      '<span class="muted"> · <span class="codicon codicon-arrow-up"',
+    );
+    // A que fica onde está não anuncia nada.
+    expect(text(headline(poor))).not.toContain('na virada do dia');
+    // O ícone só ganha o tom de aviso quando a moral está tirando produção.
+    expect(headline(poor)).toContain(
+      '<span class="warning"><span class="codicon codicon-thumbsdown"',
+    );
+    expect(headline(cold)).not.toContain(
+      '<span class="warning"><span class="codicon codicon-smiley"',
+    );
+  });
+
+  it('a explicação do número é a conta da próxima virada, com o prazo e o que fazer', () => {
+    const why =
+      'Moral 60 (Contente): produção × 1,05. ' +
+      'A moral só muda na virada do dia: na próxima, cai de 60 para 40 (Inquieto). ' +
+      'A conta dessa virada, daqui a 30 min: 50 (base) + 10 (comida guardada para 24 h) − 20 (frio) = 40. ' +
+      'O que mais pesa é o frio (−20). Ponha gente na Serraria: com lenha na lareira o frio passa, e a moral sobe na virada seguinte.';
+    expect(headline(cold)).toContain(`data-tip="${why}"`);
+    // Vai junto do número para leitores de tela e pode ser alcançada pelo teclado.
+    expect(headline(cold)).toContain(`<span class="sr-only"> (${why})</span>`);
+    expect(headline(cold)).toContain('<span class="explained" tabindex="0"');
+    // O prazo desce com o relógio da página.
+    expect(headline(fief({ view: coldView, elapsed: 20 * 60 }))).toContain('daqui a 10 min:');
+  });
+
+  it('o painel abre a conta termo a termo, com o total e a faixa da próxima virada', () => {
+    expect(terms(cold)).toEqual([
+      '50 Base',
+      '+10 Comida guardada para 24 h',
+      '−20 Frio',
+      '= 40 Inquieto, na próxima virada do dia',
+    ]);
+    expect(terms(fresh)).toEqual([
+      '50 Base',
+      '+10 Comida guardada para 24 h',
+      '= 60 Contente, na próxima virada do dia',
+    ]);
+    expect(panel(cold)).toContain(
+      '<ul class="morale-terms" aria-label="A conta da próxima virada do dia">',
+    );
+    // O que pesa tem o sinal de menos no texto; a cor só acompanha.
+    expect(panel(cold)).toContain('<span class="num negative">−20</span>');
+    expect(panel(cold)).toContain('<span class="num">+10</span>');
+    // O total explica-se pela conta em uma linha, que é a do servidor.
+    expect(panel(cold)).toContain(
+      'data-tip="50 (base) + 10 (comida guardada para 24 h) − 20 (frio) = 40"',
+    );
+  });
+
+  it('diz o que a moral faz agora e, à parte, quando e para onde ela muda', () => {
+    expect(text(panel(cold))).toContain('Moral 60 (Contente): produção × 1,05.');
+    expect(text(panel(cold))).toContain(
+      'A moral só muda na virada do dia: na próxima, cai de 60 para 40 (Inquieto). Faltam 30:00.',
+    );
+    // A contagem desce com o relógio da página, sem falar com o servidor.
+    const later = html(<MoralePanel morale={coldView.morale} elapsed={61} />);
+    expect(text(later)).toContain('Faltam 28:59.');
+    expect(text(panel(poor))).toContain('na próxima, continua em 0. Faltam 1:40:00.');
+  });
+
+  it('a soma que passa do limite mostra o limite: o total é o da visão, não uma soma do app', () => {
+    expect(terms(poor)).toEqual([
+      '50 Base',
+      '−20 Fome',
+      '−42 21 dias inteiros de fome',
+      '−20 Frio',
+      '= 0 Desesperado, na próxima virada do dia',
+    ]);
+    expect(panel(poor)).toContain('= −32; a moral não desce de 0"');
+  });
+
+  it('com algo pesando, o conselho do servidor vem com o sinal de aviso', () => {
+    const advice = /<p class="morale-advice">.*?<\/p>/.exec(panel(cold))?.[0] ?? '';
+    expect(advice).toContain('<span class="warning"><span class="codicon codicon-warning"');
+    expect(text(advice)).toBe(
+      'O que mais pesa é o frio (−20). Ponha gente na Serraria: com lenha na lareira o frio passa, e a moral sobe na virada seguinte.',
+    );
+    expect(text(panel(poor))).toContain(
+      'O que mais pesa é a fome (−62). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.',
+    );
+    // A frase é a do servidor: o app não escreve conselho nenhum.
+    const other = fief({
+      view: withMorale(coldView, { advice: 'Conselho que só o servidor dá.' }),
+    });
+    expect(text(panel(other))).toContain('Conselho que só o servidor dá.');
+    expect(text(panel(other))).not.toContain('Ponha gente na Serraria');
+  });
+
+  it('sem nada pesando, o conselho é uma dica (o bônus da comida), e não se repete', () => {
+    const page = fief({ view: unlockedView });
+    const advice = /<p class="morale-advice">.*?<\/p>/.exec(panel(page))?.[0] ?? '';
+    expect(advice).toContain('<span class="muted"><span class="codicon codicon-lightbulb"');
+    expect(advice).not.toContain('codicon-warning');
+    const hint =
+      'Com 192 de comida guardada (o que 8 habitantes comem em 24 h), a moral ganha 10. Faltam 44.';
+    expect(text(advice)).toBe(hint);
+    expect(panel(page).split(hint)).toHaveLength(2);
+    // Sem conselho, não há linha de conselho; a comida guardada continua explicada.
+    expect(panel(fresh)).not.toContain('morale-advice');
+    expect(text(panel(fresh))).toContain(
+      'Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10.',
+    );
+  });
+
+  it('o que as viradas fazem com o povo vem nas frases do servidor', () => {
+    expect(panel(proud)).toContain(
+      '<ul class="morale-notes"><li>Com a moral em 80 ou mais e vaga nas casas, cada virada do dia tem 20% de chance de trazer um colono.</li></ul>',
+    );
+    expect(panel(poor)).toContain(
+      '<li>Restam 3 aldeões: com 3 ou menos, ninguém mais parte nem deserta.</li>',
+    );
+    expect(panel(fresh)).not.toContain('morale-notes');
+  });
+
+  it('um efeito passageiro entra na conta com o nome dele e diz quando acaba', () => {
+    expect(terms(proud)).toEqual([
+      '50 Base',
+      '+30 Festa da colheita',
+      '= 80 Orgulhoso, na próxima virada do dia',
+    ]);
+    expect(text(panel(proud))).toContain(
+      'Passageiro: festa da colheita (+30), por mais 9 h 23 min.',
+    );
+    expect(text(html(<MoralePanel morale={proudView.morale} elapsed={23 * 60} />))).toContain(
+      'por mais 9 h.',
+    );
+    expect(panel(fresh)).not.toContain('Passageiro:');
+  });
+
+  it('em outro ritmo, os prazos e as frases são os que a visão traz: o app não converte nada', () => {
+    const fast = fief({
+      view: withMorale(initialView, {
+        nextUpdateInSeconds: 2400,
+        terms: [
+          { id: 'base', label: 'Base', amount: 50 },
+          { id: 'foodReserve', label: 'Comida guardada para 8 h', amount: 10 },
+        ],
+        breakdown: '50 (base) + 10 (comida guardada para 8 h) = 60',
+      }),
+    });
+    expect(terms(fast)[1]).toBe('+10 Comida guardada para 8 h');
+    expect(text(panel(fast))).toContain('Faltam 40:00.');
+    expect(headline(fast)).toContain(
+      'daqui a 40 min: 50 (base) + 10 (comida guardada para 8 h) = 60.',
+    );
+    expect(fast).not.toContain('guardada para 24 h)');
+  });
+
+  it('recrutar mostra o que a ordem custa à moral, ao lado do custo em recursos', () => {
+    const recruit =
+      /<section aria-labelledby="recruit-title">.*?<\/section>/.exec(fresh)?.[0] ?? '';
+    expect(text(recruit)).toContain(
+      'Cada aldeão custa 50 comida e 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8. ' +
+        'Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4.',
+    );
+    // Vem antes dos botões: o custo é lido antes do clique.
+    expect(recruit.indexOf('recruit-morale')).toBeLessThan(recruit.indexOf('<button'));
+    // Sem custo para a moral, a linha não aparece.
+    expect(cold).not.toContain('recruit-morale');
+  });
+
+  it('na fome, um segundo aviso diz o que as viradas vão fazer com o povo, fora da região viva', () => {
+    const notes = [
+      'Depois de 12 h de fome, um aldeão deserta a cada virada do dia. Faltam 3 h 40 min para o primeiro.',
+      'Com a moral em 25 ou menos, cada virada do dia tem 20% de chance de levar um aldeão embora.',
+    ];
+    const page = html(
+      <FamineBanner
+        famine={{ sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' }}
+        notes={notes}
+      />,
+    );
+    const banners = page.match(/<div class="banner[^"]*" role="[a-z]+">.*?<\/div><\/div>/g) ?? [];
+    expect(banners).toHaveLength(2);
+    // O alarme é região viva e não muda a cada leitura.
+    expect(banners[0]).toContain('role="status"');
+    expect(text(banners[0] ?? '')).toBe(
+      'Fome em andamento. Fome: a produção cai para 75%. Ponha aldeões na Fazenda.',
+    );
+    // O prazo da deserção muda a cada leitura: um leitor de tela não o repete sozinho.
+    expect(banners[1]).toContain('role="note"');
+    expect(text(banners[1] ?? '')).toBe(`O povo e a fome. ${notes.join(' ')}`);
+    // No feudo empobrecido, o aviso diz que o piso segura os últimos.
+    expect(text(poor)).toContain(
+      'O povo e a fome. Restam 3 aldeões: com 3 ou menos, ninguém mais parte nem deserta.',
+    );
+    // Sem fome, nenhum dos dois; com fome e sem frases, só o alarme.
+    expect(proud).not.toContain('O povo e a fome.');
+    expect(
+      html(<FamineBanner famine={{ sinceMs: 0, secondsElapsed: 10, text: 'Fome.' }} notes={[]} />),
+    ).not.toContain('O povo e a fome.');
+  });
+
+  it('a explicação de cada taxa traz o fator da moral, com o número dela', () => {
+    expect(proud).toContain(
+      'data-tip="6 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 1,15 (moral 80) = 87,77/h"',
+    );
+    expect(poor).toContain('× 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h');
+    // Com a moral que não mexe na produção, o fator não aparece.
+    expect(fresh).not.toContain('(moral 50)');
+  });
+});
+
 describe('aba Hoje', () => {
   const report: ReturnReport = {
     awaySeconds: 5 * 3600,
@@ -1509,6 +1776,27 @@ describe('aba Hoje', () => {
         actions={actions}
       />,
     );
+
+  type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+  /** Aciona o botão com este texto, percorrendo a árvore de elementos sem um navegador. */
+  const click = (node: unknown, label: string): void => {
+    if (Array.isArray(node)) {
+      node.forEach((child) => click(child, label));
+      return;
+    }
+    if (typeof node !== 'object' || node === null) {
+      return;
+    }
+    const { type, props } = node as VNodeLike;
+    if (typeof type === 'function') {
+      click((type as (props: unknown) => unknown)(props), label);
+      return;
+    }
+    if (type === 'button' && props?.children === label) {
+      (props.onClick as () => void)();
+    }
+    click(props?.children, label);
+  };
 
   it('mostra o Relatório de Retorno e explica as decisões pendentes da v0.1', () => {
     const page = today(report);
@@ -1663,27 +1951,95 @@ describe('aba Hoje', () => {
     it('"Ver os depósitos" leva ao feudo, onde o aviso do depósito tem o botão', () => {
       const ran: Array<[string, unknown]> = [];
       const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
-      type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
-      const click = (node: unknown, label: string): void => {
-        if (Array.isArray(node)) {
-          node.forEach((child) => click(child, label));
-          return;
-        }
-        if (typeof node !== 'object' || node === null) {
-          return;
-        }
-        const { type, props } = node as VNodeLike;
-        if (typeof type === 'function') {
-          click((type as (props: unknown) => unknown)(props), label);
-          return;
-        }
-        if (type === 'button' && props?.children === label) {
-          (props.onClick as () => void)();
-        }
-        click(props?.children, label);
-      };
       click(<Today report={ledger} view={view} actions={recording} />, 'Ver os depósitos');
       expect(ran).toEqual([['lords.openPanel', 'fief']]);
+    });
+  });
+
+  describe('moral e gente (GDD §5.6 e §5.7)', () => {
+    /** O texto sem as marcas; cada parágrafo é uma frase à parte. */
+    const text = (page: string) =>
+      page
+        .replace(/<\/p>/g, ' ')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    /** O trecho do relatório que fala da moral e de quem chegou ou se foi. */
+    const block = (page: string) => /<div class="morale-report">.*?<\/div>/.exec(page)?.[0] ?? '';
+    const shown = (current: ViewState, patch: Partial<ReturnReport>) =>
+      html(<Today report={{ ...report, ...patch }} view={current} actions={actions} />);
+    const content = { value: 60, band: 'content', bandLabel: 'Contente' } as const;
+    const desperate = { value: 0, band: 'desperate', bandLabel: 'Desesperado' } as const;
+
+    it('a moral que caiu diz de onde veio, quem se foi e por quê, e o que fazer', () => {
+      const page = shown(impoverishedView, {
+        counts: { ...report.counts, settlersArrived: 0, villagersLeft: 1, villagersDeserted: 2 },
+        morale: { ...desperate, before: content },
+      });
+      expect(text(block(page))).toBe(
+        'Moral 0 (Desesperado): caiu de 60 (Contente). ' +
+          'Partiu 1 aldeão: a moral estava baixa. Desertaram 2 aldeões: a fome durou demais. ' +
+          // O conselho é o da visão de agora, na frase do servidor.
+          'O que mais pesa é a fome (−62). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte. ' +
+          'Ver a moral',
+      );
+      // A perda é anunciada a leitores de tela e não depende da cor: tem ícone e frase.
+      expect(block(page)).toContain(
+        '<p class="warning" role="status"><span class="codicon codicon-sign-out"',
+      );
+      expect(block(page)).toContain('codicon-thumbsdown');
+      expect(block(page)).toContain('<button type="button" class="link">Ver a moral</button>');
+    });
+
+    it('"Ver a moral" leva ao feudo, onde o painel abre a conta termo a termo', () => {
+      const ran: Array<[string, unknown]> = [];
+      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+      click(
+        <Today
+          report={{ ...report, morale: { ...desperate, before: content } }}
+          view={impoverishedView}
+          actions={recording}
+        />,
+        'Ver a moral',
+      );
+      expect(ran).toEqual([['lords.openPanel', 'fief']]);
+    });
+
+    it('o colono que veio sozinho é boa notícia, e a moral que subiu não pede conselho', () => {
+      const page = shown(initialView, {
+        counts: { ...report.counts, settlersArrived: 1, villagersLeft: 0, villagersDeserted: 0 },
+        morale: { value: 80, band: 'proud', bandLabel: 'Orgulhoso', before: content },
+      });
+      expect(text(block(page))).toBe(
+        'Moral 80 (Orgulhoso): subiu de 60 (Contente). ' +
+          'Chegou 1 colono sem ninguém chamar: a moral alta atrai gente.',
+      );
+      expect(block(page)).toContain('codicon-star-full');
+      expect(block(page)).toContain('codicon-person-add');
+      expect(block(page)).not.toContain('class="warning"');
+      expect(block(page)).not.toContain('Ver a moral');
+      // Os recrutados continuam na linha das contagens, com outro nome.
+      expect(text(page)).toContain('Recrutas que chegaram: 3');
+    });
+
+    it('sem perda nem queda, mas com algo pesando na conta de agora, o conselho aparece', () => {
+      const page = shown(coldView, { morale: { ...content, before: content } });
+      expect(text(block(page))).toBe(
+        'Moral 60 (Contente), como na sua última visita. ' +
+          'O que mais pesa é o frio (−20). Ponha gente na Serraria: com lenha na lareira o frio passa, e a moral sobe na virada seguinte. ' +
+          'Ver a moral',
+      );
+    });
+
+    it('a dica do bônus da comida não vira conselho do relatório: fica no painel do feudo', () => {
+      const page = shown(unlockedView, {
+        morale: { value: 50, band: 'content', bandLabel: 'Contente' },
+      });
+      expect(text(block(page))).toBe('Moral 50 (Contente).');
+    });
+
+    it('um relatório sem a moral (de quem não a preenche) não ganha o trecho', () => {
+      expect(today(report)).not.toContain('morale-report');
     });
   });
 

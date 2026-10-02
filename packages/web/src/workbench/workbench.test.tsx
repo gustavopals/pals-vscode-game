@@ -106,6 +106,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'worker:quarry',
       'worker:goldMine',
       'constructions',
+      'morale',
       'chronicle',
       'account',
       'settings',
@@ -127,7 +128,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 3 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 4 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
   });
 
@@ -453,6 +454,19 @@ describe('Tree', () => {
     expect(attribute(hearth, 'title')).toContain('Frio: sem lenha');
     expect(markup).toContain('sem lenha · frio há 50 min');
     expect(rowActions({ id: 'hearth', label: 'Lareira' })).toEqual([]);
+  });
+
+  it('a moral é uma linha do feudo, com o ícone da faixa, o número e a explicação do servidor', () => {
+    const markup = render(tree({ view: coldView }));
+    const morale = tags(markup, /<div[^>]*data-node="morale"[^>]*>/g)[0] ?? '';
+    expect(attribute(morale, 'role')).toBe('treeitem');
+    // A faixa vai por extenso ao lado do ícone, e a queda leva o sinal e o verbo.
+    expect(markup).toContain('codicon codicon-smiley');
+    expect(markup).toContain('60 (Contente) · ⚠ cai para 40 (Inquieto)');
+    expect(attribute(morale, 'title')).toContain('Moral 60 (Contente): produção × 1,05.');
+    expect(attribute(morale, 'title')).toContain('O que mais pesa é o frio (−20).');
+    // Não há ordem a dar na moral: a linha só navega.
+    expect(rowActions({ id: 'morale', label: 'Moral' })).toEqual([]);
   });
 
   it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {

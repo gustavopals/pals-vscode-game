@@ -30,6 +30,11 @@ export const autumnView = golden.autumnBeforeWinter as unknown as ViewState;
 /** O inverno sem madeira nenhuma: o frio. */
 export const coldView = golden.winterCold as unknown as ViewState;
 
+/** O feudo empobrecido (GDD §5.7): fome longa, frio, moral 0 e os 3 aldeões que o piso segura. */
+export const impoverishedView = golden.impoverished as unknown as ViewState;
+/** O feudo orgulhoso: moral 80 por um efeito passageiro, com colono a caminho de chegar. */
+export const proudView = golden.proud as unknown as ViewState;
+
 /**
  * O mesmo inverno com a lareira acesa: `stock` de madeira no estoque, `missing` faltando para
  * chegar à primavera e `depletesInSeconds` para a madeira acabar. O motor é quem faz essas

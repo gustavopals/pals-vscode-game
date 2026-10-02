@@ -52,12 +52,18 @@ test.describe('fechar e reabrir', () => {
     await expect(today.getByText(/O mundo andou 2 dias de jogo/)).toBeVisible();
     await expect(today.getByText('Obras concluídas: 1')).toBeVisible();
     // Na primavera, 2 fazendeiros rendem 24/h e 5 aldeões comem 5/h. Nas duas primeiras horas os
-    // dois ainda se adaptam e rendem metade (+7/h); depois, +19/h e um pouco mais a cada dia de
-    // experiência do ofício: 14 + 38,6 + 19,6 = +72, exatamente uma vez.
+    // dois ainda se adaptam e rendem metade (+7/h). Na primeira virada do dia a moral sobe a 60,
+    // pela comida guardada, e a produção ganha 5%: +20,5/h, e um pouco mais a cada dia de
+    // experiência do ofício. 14 + 41 + 20,8 = +75, exatamente uma vez.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 72));
-    await expect(food).toContainText('+72');
+    await expect(food).toContainText(String(foodBefore + 75));
+    await expect(food).toContainText('+75');
+    // O relatório diz a moral de agora e de onde ela veio; sem perda nem peso, não há conselho.
+    const morale = today.locator('.morale-report');
+    await expect(morale).toContainText('Moral 60 (Contente): subiu de 50 (Contente).');
+    await expect(morale.getByRole('status')).toHaveCount(0);
+    await expect(morale.getByRole('button', { name: 'Ver a moral' })).toHaveCount(0);
     await expect(today.getByRole('row', { name: /^Ouro/ })).toContainText(String(goldBefore));
     await expect(today.getByRole('listitem').filter({ hasText: /Habitações/ })).toBeVisible();
 
@@ -71,13 +77,13 @@ test.describe('fechar e reabrir', () => {
     await expect(page).toHaveTitle('Pedra Alta · Lords of the Guild');
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 72);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 75);
     await expect(fief(page).getByText('Habitações Nv2 → Nv3')).toBeVisible();
 
     // Recarregar de novo não soma nada: o progresso não se duplica.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 72);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 75);
   });
 
   test('reabrir depois de pouco tempo não gera relatório e abre no Feudo', async ({
@@ -406,20 +412,29 @@ test.describe('no ritmo da produção', () => {
     const today = page.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 7 dias de jogo/)).toBeVisible();
-    // 40 min de relógio a +21/h (a adaptação) e, depois, de +57,9/h a +63/h, um degrau a cada dia
-    // de experiência: nem os +72 do ritmo Normal, nem o triplo disso de converter duas vezes.
+    // 40 min de relógio a +21/h (a adaptação) e, depois, de +61,5/h a +66,9/h, um degrau a cada dia
+    // de experiência, já com a moral em 60 desde a primeira virada: nem os +75 do ritmo Normal,
+    // nem o triplo disso de converter duas vezes.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 275));
-    await expect(food).toContainText('+275');
+    await expect(food).toContainText(String(foodBefore + 291));
+    await expect(food).toContainText('+291');
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 275);
-    await expect(resourceRow(page, 'Comida')).toContainText('+63');
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
+    await expect(resourceRow(page, 'Comida')).toContainText('+66,9');
+    // A moral também fala em relógio: a comida guardada é a de 8 horas (as 24 h de jogo), e a
+    // virada do dia que a recalcula vem em menos de 40 minutos. São os números da API.
+    const morale = fief(page).getByRole('region', { name: 'Moral' });
+    const served = (await views.latest()).morale;
+    expect(served.nextUpdateInSeconds).toBeLessThanOrEqual(2400);
+    expect(served.terms.map((term) => term.label)).toContain('Comida guardada para 8 h');
+    await expect(morale).toContainText('Comida guardada para 8 h');
+    await expect(morale).toContainText(/Faltam [0-3]\d:\d\d\./);
     // Recarregar não soma de novo.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 275);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
   });
 
   test('ritmo Rápido: a lareira do inverno queima por hora de relógio, e a tela escreve o número da API', async ({

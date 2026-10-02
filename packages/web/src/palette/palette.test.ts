@@ -931,14 +931,16 @@ describe('prazos que a estação muda', () => {
     spring.answers.push(undefined);
     await spring.run('lords.recruit');
     expect(shownAs(spring.shown, 0, 'input').prompt).toBe(
-      'Cada aldeão custa 50 comida, 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8. Vagas: 5 de 10.',
+      'Cada aldeão custa 50 comida, 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8. Vagas: 5 de 10. ' +
+        // O que a ordem custa à moral vem junto do custo em recursos, na frase do servidor.
+        'Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4.',
     );
 
     const autumn = await inSeason(autumnView);
     autumn.answers.push(undefined);
     await autumn.run('lords.recruit');
     expect(shownAs(autumn.shown, 0, 'input').prompt).toBe(
-      'Cada aldeão custa 50 comida, 10 ouro e leva 20 min. Vagas: 12 de 30.',
+      'Cada aldeão custa 50 comida, 10 ouro e leva 20 min. Vagas: 12 de 30. Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral.',
     );
   });
 });

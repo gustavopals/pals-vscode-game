@@ -1,6 +1,7 @@
 import type { ReturnReport, ViewState } from '@lotg/protocol';
 
 import { joinList } from '../ui/format';
+import { moraleBurdened, moraleIcon, moraleSince, peopleMoved } from '../ui/morale';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
 import { Icon } from './shared';
@@ -57,6 +58,55 @@ function WasteLine(props: { rows: ReportRow[]; view: ViewState; actions: Actions
         Ver os depósitos
       </button>
     </p>
+  );
+}
+
+/**
+ * A moral e a gente no Relatório de Retorno (GDD §5.6 e §5.7): a faixa em que o feudo está e de
+ * onde ela veio, quem chegou sozinho, quem partiu e quem desertou, cada perda com o seu porquê.
+ * Quando houve perda, a moral caiu ou algo ainda pesa nela, o conselho do servidor (o que mais
+ * pesa e o que fazer) vem junto, com o caminho para a conta inteira: nenhuma perda fica sem saída.
+ */
+function MoraleReport(props: { report: ReturnReport; view: ViewState; actions: Actions }) {
+  const { morale, counts } = props.report;
+  if (morale === undefined) {
+    return null;
+  }
+  const { gained, lost } = peopleMoved(counts);
+  const fell = morale.before !== undefined && morale.value < morale.before.value;
+  const { advice } = props.view.morale;
+  const advise = advice !== null && (lost.length > 0 || fell || moraleBurdened(props.view.morale));
+  return (
+    <div class="morale-report">
+      <p>
+        <span class={fell ? 'warning' : undefined}>
+          <Icon name={moraleIcon(morale.band)} />
+        </span>{' '}
+        {moraleSince(morale)}
+      </p>
+      {gained.map((line) => (
+        <p key={line}>
+          <Icon name="person-add" /> {line}
+        </p>
+      ))}
+      {lost.length > 0 ? (
+        <p class="warning" role="status">
+          <Icon name="sign-out" /> {lost.join(' ')}
+        </p>
+      ) : null}
+      {advise ? (
+        <p>
+          {advice}{' '}
+          <button
+            type="button"
+            class="link"
+            onClick={() => props.actions.run('lords.openPanel', 'fief')}
+          >
+            Ver a moral
+          </button>
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -149,8 +199,9 @@ export function Today(props: { report: ReturnReport | null; view: ViewState; act
                 <WasteLine rows={report.resources} view={props.view} actions={props.actions} />
               </>
             )}
+            <MoraleReport report={report} view={props.view} actions={props.actions} />
             <p class="muted">
-              Obras concluídas: {report.counts.constructionsFinished} · Aldeões que chegaram:{' '}
+              Obras concluídas: {report.counts.constructionsFinished} · Recrutas que chegaram:{' '}
               {report.counts.villagersArrived} · Objetivos cumpridos:{' '}
               {report.counts.objectivesCompleted}
             </p>

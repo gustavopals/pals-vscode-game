@@ -4,7 +4,7 @@ import type { Actions } from '../components/actions';
 import { ColdBanner, FamineBanner, FirewoodNote, OfflineBanner } from '../components/Banners';
 import { ConstructionsPanel } from '../components/ConstructionsPanel';
 import { Header } from '../components/Header';
-import { ChroniclePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
+import { ChroniclePanel, MoralePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
 import { ResourcesTable } from '../components/ResourcesTable';
 import { WorkersPanel } from '../components/WorkersPanel';
 
@@ -30,7 +30,7 @@ export function FiefTab(props: {
         retryInSeconds={props.retryInSeconds}
         actions={actions}
       />
-      <FamineBanner famine={view.famine} />
+      <FamineBanner famine={view.famine} notes={view.morale.notes} />
       <ColdBanner winter={view.winter} />
       <FirewoodNote view={view} />
       <div class="fief">
@@ -44,6 +44,7 @@ export function FiefTab(props: {
             disabled={disabled}
             actions={actions}
           />
+          <MoralePanel morale={view.morale} elapsed={elapsed} />
           <RecruitPanel
             recruitment={view.recruitment}
             population={view.population}

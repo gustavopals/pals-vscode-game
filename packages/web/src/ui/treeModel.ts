@@ -24,6 +24,7 @@ import {
   truncate,
   upgradeName,
 } from './format';
+import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
 import { experienceSummary, nextWorkerGain } from './workers';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
@@ -110,6 +111,23 @@ function resourcesNode(view: ViewState): TreeNode {
         .join('\n'),
       command: { id: 'lords.openPanel', args: ['fief'] },
     })),
+  };
+}
+
+/**
+ * A moral (GDD §5.7): o número e a faixa, com o ícone da faixa, e para onde a próxima virada do
+ * dia a leva. A explicação é a do servidor: o que ela faz agora, a conta da virada, o conselho e
+ * o que as viradas fazem com o povo.
+ */
+function moraleNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { morale } = view;
+  return {
+    id: 'morale',
+    label: 'Moral',
+    description: moraleTreeLine(morale),
+    tooltip: [...moraleLines(morale, elapsedSeconds), ...morale.notes].join('\n'),
+    icon: moraleIcon(morale.band),
+    command: { id: 'lords.openPanel', args: ['fief'] },
   };
 }
 
@@ -406,6 +424,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         resourcesNode(view),
         workersNode(view),
         constructionsNode(view, input.elapsedSeconds),
+        moraleNode(view, input.elapsedSeconds),
         ...hearthNode(view),
       ],
     },

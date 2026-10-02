@@ -4,17 +4,34 @@ import type { Actions } from './actions';
 import { formatApprox } from './format';
 import { Icon } from './shared';
 
-export function FamineBanner(props: { famine: ViewState['famine'] }) {
+/**
+ * A fome. Além do que ela custa agora, um segundo aviso diz o que as próximas viradas do dia vão
+ * fazer com o povo (`notes`, as frases de `morale.notes`: em quanto tempo alguém deserta, a
+ * chance de alguém partir, o piso que segura os últimos), para a perda ser anunciada antes de
+ * acontecer. Esse segundo aviso não é região viva: os prazos dele mudam a cada leitura do
+ * servidor, e um leitor de tela não deve repeti-los sozinho.
+ */
+export function FamineBanner(props: { famine: ViewState['famine']; notes?: readonly string[] }) {
   if (props.famine === null) {
     return null;
   }
+  const notes = props.notes ?? [];
   return (
-    <div class="banner banner-warning" role="status">
-      <div>
-        <Icon name="warning" /> <strong>Fome em andamento.</strong> {props.famine.text} Ponha
-        aldeões na Fazenda.
+    <>
+      <div class="banner banner-warning" role="status">
+        <div>
+          <Icon name="warning" /> <strong>Fome em andamento.</strong> {props.famine.text} Ponha
+          aldeões na Fazenda.
+        </div>
       </div>
-    </div>
+      {notes.length > 0 ? (
+        <div class="banner banner-warning" role="note">
+          <div>
+            <Icon name="organization" /> <strong>O povo e a fome.</strong> {notes.join(' ')}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

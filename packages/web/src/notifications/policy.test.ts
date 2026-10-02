@@ -1,7 +1,14 @@
 import type { GameEvent } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
-import { decideNotifications, eventIcon, isEssential, isRelief, type PolicyInput } from './policy';
+import {
+  decideNotifications,
+  eventIcon,
+  isEssential,
+  isRelief,
+  moraleBandDirection,
+  type PolicyInput,
+} from './policy';
 
 const HOUR = 3_600_000;
 const now = Date.parse('2026-10-01T12:00:00.000Z');
@@ -124,6 +131,109 @@ describe('política de notificações', () => {
     // A fome fica com o ícone do tom: o frio não se confunde com ela.
     expect(eventIcon(event('famineStarted'))).toBeUndefined();
     expect(eventIcon(event('famineEnded'))).toBeUndefined();
+  });
+
+  describe('moral e gente que chega ou se vai (GDD §5.6 e §5.7)', () => {
+    /** A mudança de faixa como o servidor a manda: a moral e a faixa de antes e de agora. */
+    const band = (
+      seq: number,
+      from: { morale: number; band: string },
+      to: { morale: number; band: string },
+    ): GameEvent => ({
+      ...event('moraleBandChanged', seq),
+      data: { ...to, previousMorale: from.morale, previousBand: from.band },
+    });
+    const content = { morale: 60, band: 'content' };
+    const restless = { morale: 30, band: 'restless' };
+    const proud = { morale: 80, band: 'proud' };
+    const fell = band(1, content, restless);
+    const rose = band(2, restless, content);
+
+    it('o sentido da mudança de faixa sai dos números do evento', () => {
+      expect(moraleBandDirection(fell)).toBe('fell');
+      expect(moraleBandDirection(rose)).toBe('rose');
+      // Sem os números, ou em outro evento, não há sentido a dizer.
+      expect(moraleBandDirection(event('moraleBandChanged'))).toBeNull();
+      expect(moraleBandDirection({ ...fell, type: 'dayStarted' })).toBeNull();
+      expect(moraleBandDirection(band(3, content, content))).toBeNull();
+    });
+
+    it('quem parte e quem deserta são alarmes: chegam no nível padrão, com tom de aviso', () => {
+      const events = [event('villagerLeft', 1), event('villagerDeserted', 2)];
+      const result = decideNotifications(input({ level: 'essential', events }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['villagerLeft', 'villagerDeserted']);
+      for (const entry of events) {
+        expect(isEssential(entry)).toBe(true);
+        expect(isRelief(entry)).toBe(false);
+        // A perda tem ícone próprio: não se confunde com a fome que a causou.
+        expect(eventIcon(entry)).toBe('sign-out');
+      }
+    });
+
+    it('a moral que desce de faixa é alarme; a que sobe é o alívio dele', () => {
+      expect(isEssential(fell)).toBe(true);
+      expect(isRelief(fell)).toBe(false);
+      expect(isEssential(rose)).toBe(false);
+      expect(isRelief(rose)).toBe(true);
+      // Os dois chegam no nível padrão; a queda passa na frente.
+      const result = decideNotifications(input({ level: 'essential', events: [rose, fell] }));
+      expect(result.show).toEqual([fell, rose]);
+      // Descer de "Orgulhoso" para "Contente" também é descer.
+      expect(isEssential(band(4, proud, content))).toBe(true);
+      expect(isRelief(band(5, content, proud))).toBe(true);
+    });
+
+    it('a mudança de faixa leva o ícone da faixa nova, o mesmo do cabeçalho', () => {
+      expect(eventIcon(fell)).toBe('comment-discussion');
+      expect(eventIcon(rose)).toBe('smiley');
+      expect(eventIcon(band(6, content, proud))).toBe('star-full');
+      expect(eventIcon(band(7, restless, { morale: 20, band: 'desperate' }))).toBe('thumbsdown');
+      // Uma faixa que o app não conhece fica com o ícone do tom.
+      expect(eventIcon(band(8, content, { morale: 10, band: 'outra' }))).toBeUndefined();
+    });
+
+    it('sem o sentido, a mudança de faixa é só notícia: aparece em "todas"', () => {
+      const unknown = event('moraleBandChanged', 9);
+      expect(isEssential(unknown)).toBe(false);
+      expect(isRelief(unknown)).toBe(false);
+      expect(decideNotifications(input({ level: 'essential', events: [unknown] })).show).toEqual(
+        [],
+      );
+      expect(decideNotifications(input({ level: 'all', events: [unknown] })).show).toEqual([
+        unknown,
+      ]);
+    });
+
+    it('o colono que chega sozinho é boa notícia: avisa em "todas", como um recrutado', () => {
+      const settler = event('villagerArrived', 10);
+      expect(isEssential(settler)).toBe(false);
+      expect(isRelief(settler)).toBe(false);
+      expect(eventIcon(settler)).toBe('person-add');
+      expect(decideNotifications(input({ level: 'essential', events: [settler] })).show).toEqual(
+        [],
+      );
+      expect(decideNotifications(input({ level: 'all', events: [settler] })).show).toEqual([
+        settler,
+      ]);
+    });
+
+    it('com pouco espaço, a fome, a queda da moral e a deserção passam na frente da boa notícia', () => {
+      const events = [
+        event('villagerArrived', 1),
+        event('famineStarted', 2),
+        band(3, content, restless),
+        event('villagerDeserted', 4),
+        band(5, restless, content),
+      ];
+      const result = decideNotifications(input({ level: 'all', events }));
+      expect(result.show.map((entry) => entry.type)).toEqual([
+        'famineStarted',
+        'moraleBandChanged',
+        'villagerDeserted',
+      ]);
+      expect(result.show[1]).toBe(events[2]);
+      expect(result.badge).toBe(2);
+    });
   });
 
   it('todas: inclui obras, aldeões e objetivos, mas nunca a virada de dia', () => {

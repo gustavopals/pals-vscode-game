@@ -642,7 +642,12 @@ describe('cache', () => {
             constructionsFinished: 1,
             villagersArrived: 0,
             objectivesCompleted: 0,
+            settlersArrived: 0,
+            villagersLeft: 0,
+            villagersDeserted: 0,
           },
+          // A moral de agora vem da visão nova; a de antes não existe para comparar.
+          morale: { value: 50, band: 'content', bandLabel: 'Contente' },
           famine: 'none',
           highlights: ['evento 4'],
         },

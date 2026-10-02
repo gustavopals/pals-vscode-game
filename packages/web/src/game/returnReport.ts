@@ -33,6 +33,12 @@ function total(events: GameEvent[], key: string): number {
   );
 }
 
+/** O número e a faixa da moral de uma visão, como o relatório os guarda. */
+function moraleLevel(view: ViewState) {
+  const { value, band, bandLabel } = view.morale;
+  return { value, band, bandLabel };
+}
+
 /**
  * Resume o que aconteceu na ausência: quanto cada estoque mudou entre a última visita e agora
  * e o que os eventos contam. Só soma e conta o que o servidor mandou; nenhuma regra de jogo.
@@ -47,6 +53,9 @@ function total(events: GameEvent[], key: string): number {
  *   unidades inteiras) mais o que a visão de agora ainda não relatou (`wastedToday`), menos o
  *   que a visão de antes já contava como perdido: o primeiro fecho da ausência inclui essa parte;
  * - `produced`: o saldo da produção e do consumo, que é a variação mais o gasto menos o recebido.
+ *
+ * A população que a moral e a fome moveram é contada pelos eventos, e a moral é a das duas
+ * visões: o relatório diz a faixa em que o feudo está e de onde ela veio.
  *
  * Sem a visão da última visita (`before` nula: o cache era de outra versão do app), o relatório
  * sai sem as linhas de estoque. Repetir o estoque de agora como "antes" diria que nada mudou.
@@ -102,6 +111,16 @@ export function buildReturnReport(
       constructionsFinished: count('constructionFinished', 'buildingFounded'),
       villagersArrived: count('recruitmentFinished'),
       objectivesCompleted: count('objectiveCompleted'),
+      // A gente que a moral e a fome moveram (GDD §5.6 e §5.7), separada dos recrutados: o
+      // colono que veio sozinho, o aldeão que partiu e o que desertou.
+      settlersArrived: count('villagerArrived'),
+      villagersLeft: count('villagerLeft'),
+      villagersDeserted: count('villagerDeserted'),
+    },
+    // A moral na volta e a da última visita, quando há a visão guardada para comparar.
+    morale: {
+      ...moraleLevel(after),
+      ...(before === null ? {} : { before: moraleLevel(before) }),
     },
     famine,
     // A lista é do que vale a pena ler: a virada de dia entra só como número, e o fecho diário

@@ -9,6 +9,8 @@ import {
   autumnView,
   coldView,
   craftsView,
+  impoverishedView,
+  proudView,
   queuesView,
   unlockedView,
   winterWith,
@@ -253,7 +255,7 @@ describe('barra de status', () => {
 
   it('inverno com a lareira acesa não toma a barra', () => {
     const lit = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
-    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +22,7 comida/h');
+    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +24,7 comida/h');
   });
 
   it('sem ligação passa na frente de tudo', () => {
@@ -335,6 +337,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'morale',
     ]);
   });
 
@@ -367,8 +370,8 @@ describe('árvore', () => {
 
     it('longe de encher, a árvore não fala do limite: a previsão distante fica na tabela', () => {
       const tree = buildTree({ ...input, view: farmers });
-      // 61.634 s no golden: 17 horas, mais do que uma ausência comum.
-      expect(farmers.resources[0]?.fullInSeconds).toBe(61_634);
+      // 58.599 s no golden: 16 horas, mais do que uma ausência comum.
+      expect(farmers.resources[0]?.fullInSeconds).toBe(58_599);
       expect(find(tree, 'resource:food')?.description).toBe('180/500 (+7/h)');
       expect(find(tree, 'resources')?.description).toBeUndefined();
     });
@@ -770,6 +773,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'morale',
     ]);
   });
 
@@ -798,6 +802,7 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'morale',
       'hearth',
     ]);
     expect(find(tree, 'hearth')).toMatchObject({
@@ -812,6 +817,48 @@ describe('árvore', () => {
       description: '90/900 (−9/h) · acaba em 10 h',
     });
     expect(find(tree, 'resource:wood')?.tooltip).toContain('−9/h (lenha de 18 habitantes)');
+  });
+
+  describe('moral (GDD §5.7)', () => {
+    it('a linha "Moral" diz o número e a faixa, com o ícone da faixa; o clique só navega', () => {
+      const tree = buildTree({ ...input, view: initial });
+      expect(find(tree, 'morale')).toMatchObject({
+        label: 'Moral',
+        description: '50 (Contente) · sobe para 60',
+        icon: 'smiley',
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      });
+      expect(find(tree, 'morale')?.contextValue).toBeUndefined();
+      expect(find(buildTree({ ...input, view: proudView }), 'morale')).toMatchObject({
+        description: '80 (Orgulhoso)',
+        icon: 'star-full',
+      });
+      expect(find(buildTree({ ...input, view: impoverishedView }), 'morale')).toMatchObject({
+        description: '0 (Desesperado)',
+        icon: 'thumbsdown',
+      });
+    });
+
+    it('a moral que vai cair leva o alerta, com a faixa a que desce', () => {
+      const tree = buildTree({ ...input, view: coldView });
+      expect(find(tree, 'morale')?.description).toBe('60 (Contente) · ⚠ cai para 40 (Inquieto)');
+    });
+
+    it('a explicação é a do servidor, uma frase por linha: o fator, a virada, a conta, o conselho e o povo', () => {
+      const tree = buildTree({ ...input, view: impoverishedView, elapsedSeconds: 600 });
+      expect(find(tree, 'morale')?.tooltip?.split('\n')).toEqual([
+        'Moral 0 (Desesperado): produção × 0,75.',
+        'A moral só muda na virada do dia: na próxima, continua em 0.',
+        // O prazo desconta o tempo desde a leitura: 1 h 40 min menos 10 min.
+        'A conta dessa virada, daqui a 1 h 30 min: 50 (base) − 20 (fome) − 42 (21 dias inteiros de fome) − 20 (frio) = −32; a moral não desce de 0.',
+        'O que mais pesa é a fome (−62). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.',
+        'Restam 3 aldeões: com 3 ou menos, ninguém mais parte nem deserta.',
+      ]);
+      // Sem conselho e sem frases do povo, a explicação acaba na conta.
+      expect(
+        find(buildTree({ ...input, view: initial }), 'morale')?.tooltip?.split('\n'),
+      ).toHaveLength(3);
+    });
   });
 
   it('com lenha para o resto do inverno, a árvore não anuncia um fim que não vem', () => {
@@ -900,6 +947,75 @@ describe('Relatório de Retorno', () => {
     expect(buildReturnReport(null, farmers, [event('dayStarted')], HOUR)).toMatchObject({
       resources: [],
       counts: { daysPassed: 1 },
+    });
+  });
+
+  describe('moral e gente (GDD §5.6 e §5.7)', () => {
+    let seq = 0;
+    const event = (type: GameEvent['type'], text: string = type): GameEvent => ({
+      seq: (seq += 1),
+      type,
+      at: '2026-10-01T12:00:00.000Z',
+      atMs: 0,
+      text,
+      data: {},
+    });
+
+    it('conta, pelos eventos, os colonos que chegaram, quem partiu e quem desertou', () => {
+      const events = [
+        event('dayStarted'),
+        event('villagerArrived', 'Um colono bateu ao portão.'),
+        event('recruitmentFinished'),
+        event('villagerLeft', 'Um lenhador juntou a trouxa.'),
+        event('villagerDeserted', 'Um aldeão sem ofício fugiu da fome.'),
+        event('villagerDeserted', 'Um lavrador fugiu da fome.'),
+        event('moraleBandChanged', 'O povo anda inquieto.'),
+      ];
+      const report = buildReturnReport(coldView, impoverishedView, events, 30 * HOUR);
+      expect(report.counts).toMatchObject({
+        settlersArrived: 1,
+        villagersLeft: 1,
+        villagersDeserted: 2,
+        // Os recrutados continuam na sua contagem: o colono não entra nela.
+        villagersArrived: 1,
+      });
+      // Todos são linhas da Crônica: entram na lista do que ler, na ordem em que aconteceram.
+      expect(report.highlights).toEqual([
+        'Um colono bateu ao portão.',
+        'recruitmentFinished',
+        'Um lenhador juntou a trouxa.',
+        'Um aldeão sem ofício fugiu da fome.',
+        'Um lavrador fugiu da fome.',
+        'O povo anda inquieto.',
+      ]);
+      expect(ReturnReportSchema.safeParse(report).success).toBe(true);
+    });
+
+    it('diz a moral de agora e a da última visita, com as faixas que a visão traz', () => {
+      const report = buildReturnReport(coldView, impoverishedView, [], 30 * HOUR);
+      expect(report.morale).toEqual({
+        value: 0,
+        band: 'desperate',
+        bandLabel: 'Desesperado',
+        before: { value: 60, band: 'content', bandLabel: 'Contente' },
+      });
+      expect(buildReturnReport(farmers, proudView, [], 30 * HOUR).morale).toEqual({
+        value: 80,
+        band: 'proud',
+        bandLabel: 'Orgulhoso',
+        before: { value: 50, band: 'content', bandLabel: 'Contente' },
+      });
+    });
+
+    it('sem a visão guardada, só a moral de agora; sem eventos, as contagens são zero', () => {
+      const report = buildReturnReport(null, proudView, [], 5 * HOUR);
+      expect(report.morale).toEqual({ value: 80, band: 'proud', bandLabel: 'Orgulhoso' });
+      expect(report.counts).toMatchObject({
+        settlersArrived: 0,
+        villagersLeft: 0,
+        villagersDeserted: 0,
+      });
+      expect(ReturnReportSchema.safeParse(report).success).toBe(true);
     });
   });
 

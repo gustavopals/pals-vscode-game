@@ -435,6 +435,8 @@ export function createCommands(
         `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}.`,
         recruitment.durationNote,
         `Vagas: ${population.vacancies} de ${population.capacity}.`,
+        // O que chamar gente agora custa à moral, como o servidor disse.
+        recruitment.moraleNote,
       ]
         .filter((line) => line !== null)
         .join(' '),
