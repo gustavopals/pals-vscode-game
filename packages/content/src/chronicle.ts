@@ -1,4 +1,4 @@
-import type { ProductionBuildingId } from './ids';
+import type { MoraleBandId, ProductionBuildingId } from './ids';
 
 export const EVENT_TYPES = [
   'dayStarted',
@@ -18,6 +18,10 @@ export const EVENT_TYPES = [
   'storageFilled',
   'storageWasted',
   'craftMastered',
+  'moraleBandChanged',
+  'villagerArrived',
+  'villagerLeft',
+  'villagerDeserted',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -32,6 +36,8 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {perda} o que se perdeu: "120 de comida e 40 de madeira"
  * {artifices} quem trabalha no edifício: "os lenhadores" · {feito} o que se diz de quem domina o
  * ofício: as duas frases vêm de `craftGuilds`
+ * {moral} a faixa da moral, em minúscula: "inquieto"
+ * {aldeao} quem partiu: "um lenhador" (de `craftGuilds`) ou "um aldeão sem ofício"
  */
 export const CHRONICLE_PLACEHOLDERS = [
   'dia',
@@ -51,6 +57,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'perda',
   'artifices',
   'feito',
+  'moral',
+  'aldeao',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -86,6 +94,18 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, a produção de {feudo} não coube nos depósitos e foi ao chão: {perda}.',
   // A experiência do ofício chegou ao máximo (GDD §5.4): uma vez por edifício e por ano.
   craftMastered: 'No {dia}º dia {daEstacao}, {artifices} de {feudo} dominaram o ofício: {feito}.',
+  // A faixa da moral mudou (GDD §5.7). Cada faixa tem a sua frase, para quem sobe e para quem
+  // desce, em `moraleBandTemplates`; esta só vale para uma faixa que ainda não tenha a dela.
+  moraleBandChanged: 'No {dia}º dia {daEstacao}, o ânimo de {feudo} mudou: o povo está {moral}.',
+  // Moral alta e vaga nas casas: um colono chega sem ninguém o chamar.
+  villagerArrived:
+    'No {dia}º dia {daEstacao}, um colono bateu ao portão, atraído pela fama de {feudo}. Agora são {quantidade}.',
+  // Moral baixa: alguém vai embora.
+  villagerLeft:
+    'No {dia}º dia {daEstacao}, {aldeao} juntou a trouxa e deixou {feudo}: o povo anda sem ânimo. Restam {quantidade}.',
+  // Fome longa: alguém foge (GDD §5.6).
+  villagerDeserted:
+    'No {dia}º dia {daEstacao}, {aldeao} fugiu da fome de {feudo} na calada da noite. Restam {quantidade}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -103,17 +123,57 @@ export type ColdRelief = keyof typeof coldReliefs;
 
 /**
  * Quem trabalha em cada edifício produtivo, e o que a Crônica diz deles quando dominam o ofício:
- * entram em {artifices} e {feito} no modelo de `craftMastered`. As duas frases ficam no meio de
- * outra: minúscula, sem ponto.
+ * entram em {artifices} e {feito} no modelo de `craftMastered`. `artisan` é um deles, para a
+ * linha de quem parte ({aldeao}). As frases ficam no meio de outra: minúscula, sem ponto.
  */
 export const craftGuilds: Record<
   ProductionBuildingId,
-  { readonly artisans: string; readonly feat: string }
+  { readonly artisans: string; readonly artisan: string; readonly feat: string }
 > = {
-  farm: { artisans: 'os lavradores', feat: 'já não há sulco torto nos campos' },
-  lumberMill: { artisans: 'os lenhadores', feat: 'já nenhum machado erra o golpe' },
-  quarry: { artisans: 'os canteiros', feat: 'a rocha agora se parte onde eles querem' },
-  goldMine: { artisans: 'os mineiros', feat: 'já nenhum veio lhes escapa' },
+  farm: {
+    artisans: 'os lavradores',
+    artisan: 'um lavrador',
+    feat: 'já não há sulco torto nos campos',
+  },
+  lumberMill: {
+    artisans: 'os lenhadores',
+    artisan: 'um lenhador',
+    feat: 'já nenhum machado erra o golpe',
+  },
+  quarry: {
+    artisans: 'os canteiros',
+    artisan: 'um canteiro',
+    feat: 'a rocha agora se parte onde eles querem',
+  },
+  goldMine: { artisans: 'os mineiros', artisan: 'um mineiro', feat: 'já nenhum veio lhes escapa' },
+};
+
+/** Quem parte sem ter ofício: entra em {aldeao} como os de `craftGuilds`. */
+export const idleVillager = 'um aldeão sem ofício';
+
+/**
+ * A mudança de faixa da moral é o mesmo evento com uma frase por faixa de chegada e por
+ * sentido: `rose` para quem subiu até ela, `fell` para quem desceu. A faixa mais baixa não tem
+ * `rose` e a mais alta não tem `fell`: ninguém chega a elas por esse lado.
+ */
+export const moraleBandTemplates: Record<
+  MoraleBandId,
+  { readonly rose?: string; readonly fell?: string }
+> = {
+  desperate: {
+    fell: 'No {dia}º dia {daEstacao}, o povo de {feudo} perdeu a esperança. Já se fala em ir embora.',
+  },
+  restless: {
+    rose: 'No {dia}º dia {daEstacao}, o pior passou em {feudo}, mas o povo ainda anda inquieto.',
+    fell: 'No {dia}º dia {daEstacao}, o povo de {feudo} anda inquieto. Há resmungos junto ao poço.',
+  },
+  content: {
+    rose: 'No {dia}º dia {daEstacao}, os resmungos cessaram em {feudo}. O povo está contente.',
+    fell: 'No {dia}º dia {daEstacao}, o orgulho de {feudo} arrefeceu. O povo segue contente, e só.',
+  },
+  proud: {
+    rose: 'No {dia}º dia {daEstacao}, o povo de {feudo} anda de cabeça erguida. Fala-se do feudo nas estradas.',
+  },
 };
 
 /**

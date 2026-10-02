@@ -52,12 +52,15 @@ describe('pureza do motor', () => {
     // Só `advanceTo` sorteia, em eventos com hora marcada. A visão, as ordens, as recusas, a
     // linha do tempo, o estado inicial e a migração nunca: uma leitura não pode rerrolar nada.
     const neverDraw =
-      /^\.\/(view|seasonView|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
         './view.ts',
         './seasonView.ts',
+        './moraleView.ts',
+        './morale.ts',
+        './craftProjection.ts',
         './commands.ts',
         './rejections.ts',
         './timeline.ts',

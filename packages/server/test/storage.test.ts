@@ -175,11 +175,12 @@ describe('o limite na visão, em tempo real', () => {
     );
     // 120 de madeira: faltam 380. Os três lenhadores, recém-chegados, rendem 12 por hora de jogo
     // no primeiro dia e 24 depois, com a experiência que a Serraria ganha a cada virada
-    // (× 1,012, × 1,024...). A conta dá 58.129.928 ms de jogo, no 9º dia; no relógio do
-    // jogador, um terço disso: 5 h 22 min 57 s. Por ora a Serraria rende 36 por hora real.
-    const FILLS_AT = 58_129_928;
+    // (× 1,012, × 1,024...) e a moral que a primeira virada leva a 60 (× 1,05). A conta dá
+    // 55.790.775 ms de jogo, no 8º dia; no relógio do jogador, um terço disso: 5 h 09 min
+    // 57 s. Por ora a Serraria rende 36 por hora real.
+    const FILLS_AT = 55_790_775;
     const fillsInSeconds = Math.ceil(FILLS_AT / PACE / SECOND);
-    expect(fillsInSeconds).toBe(19_377);
+    expect(fillsInSeconds).toBe(18_597);
     expect(resource(first.view, 'wood')).toMatchObject({
       cap: 500,
       full: false,
@@ -199,18 +200,18 @@ describe('o limite na visão, em tempo real', () => {
       stock: 500,
       full: true,
       fullInSeconds: null,
-      // 24 × 1,096 (32 de experiência) por hora de jogo, vistos por hora real.
-      wastingPerHour: 78.9,
+      // 24 × 1,084 (28 de experiência) × 1,05 (moral 60) por hora de jogo, vistos por hora real.
+      wastingPerHour: 81.9,
       // O Salão ainda está no nível 1: a frase diz o que libera o Armazém.
       fullNote:
-        'Pátio cheio: 78,9/h de madeira indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, gaste madeira.',
+        'Pátio cheio: 81,9/h de madeira indo ao chão. Melhore antes o Salão do Senhor para o nível 2. Até lá, gaste madeira.',
     });
     const filled = (await eventsOf(fast, who)).filter((event) => event.type === 'storageFilled');
     expect(filled).toHaveLength(1);
     // O instante do evento é de jogo; o instante real é o da criação mais um terço dele.
     expect(filled[0]).toMatchObject({
       atMs: FILLS_AT,
-      text: 'No 9º dia da Primavera, o Pátio de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.',
+      text: 'No 8º dia da Primavera, o Pátio de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.',
       data: { resource: 'wood', building: 'warehouse', level: 0, cap: 500 },
     });
     expect(new Date(filled[0]?.at ?? 0).getTime()).toBe(
@@ -224,24 +225,25 @@ describe('o desperdício do dia (ADR 0015)', () => {
     const who = await player(normal);
     await accepted(normal, who, order('setWorkers', { building: 'farm', count: 1 }));
     await accepted(normal, who, order('setWorkers', { building: 'lumberMill', count: 3 }));
-    // Os lenhadores rendem metade no primeiro dia de jogo e ganham experiência a cada virada: o
-    // Pátio enche às 16 h 08 min 50 s, no 9º dia de jogo, que vira às 18 h. Dois dias cheios
-    // depois: 22 h.
+    // Os lenhadores rendem metade no primeiro dia de jogo, ganham experiência a cada virada e,
+    // com a moral em 60, rendem 5% a mais: o Pátio enche às 15 h 29 min 51 s, no 8º dia de
+    // jogo, que vira às 16 h. Três dias cheios depois: 22 h.
     await wait(normal, who, 22 * HOUR);
     const view = await viewOf(normal, who);
     expect(resource(view, 'wood')).toMatchObject({ stock: 500, full: true, wastedToday: 0 });
 
     const events = await eventsOf(normal, who);
     const wasted = events.filter((event) => event.type === 'storageWasted');
-    // O resto do dia em que encheu (48,7 de madeira, a 26,3 por hora) e dois dias inteiros, a
-    // 26,6 e 26,9 por hora; a fração de cada fecho passa para o seguinte.
+    // O resto do dia em que encheu (13,7 de madeira, a 27,3 por hora) e três dias inteiros, a
+    // 27,6, 27,9 e 28,2 por hora; a fração de cada fecho passa para o seguinte.
     expect(wasted.map((event) => [event.atMs / HOUR, event.data])).toEqual([
-      [18, { wasted_wood: 48 }],
-      [20, { wasted_wood: 53 }],
-      [22, { wasted_wood: 54 }],
+      [16, { wasted_wood: 13 }],
+      [18, { wasted_wood: 55 }],
+      [20, { wasted_wood: 56 }],
+      [22, { wasted_wood: 57 }],
     ]);
     expect(wasted[1]?.text).toBe(
-      'No 10º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 53 de madeira.',
+      'No 9º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 55 de madeira.',
     );
     expect(events.filter((event) => event.type === 'storageFilled')).toHaveLength(1);
 
@@ -268,9 +270,10 @@ describe('o desperdício do dia (ADR 0015)', () => {
       `select kind from game_events where game_id = $1 and kind like 'storage%' order by seq`,
       [who.game.id],
     );
-    // Encheu às 16 h 08 min: os fechos das 18 h e das 20 h.
+    // Encheu às 15 h 29 min: os fechos das 16 h, das 18 h e das 20 h.
     expect(rows.map((row) => row.kind)).toEqual([
       'storageFilled',
+      'storageWasted',
       'storageWasted',
       'storageWasted',
     ]);
@@ -279,8 +282,8 @@ describe('o desperdício do dia (ADR 0015)', () => {
     await viewOf(normal, who);
     await viewOf(normal, who);
     const wasted = (await eventsOf(normal, who)).filter((event) => event.type === 'storageWasted');
-    expect(wasted.map((event) => event.atMs / HOUR)).toEqual([18, 20]);
-    expect(new Set(wasted.map((event) => event.seq)).size).toBe(2);
+    expect(wasted.map((event) => event.atMs / HOUR)).toEqual([16, 18, 20]);
+    expect(new Set(wasted.map((event) => event.seq)).size).toBe(3);
   });
 });
 

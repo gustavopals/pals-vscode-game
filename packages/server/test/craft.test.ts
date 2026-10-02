@@ -139,7 +139,10 @@ describe.each([
       experience: 4,
       masteryBonusPercent: 1.2,
     });
-    expect(rowOf(done, 'lumberMill').grossPerHour).toBeCloseTo(16 * 1.012 * pace, 9);
+    // E a moral, com a comida guardada, foi a 60 na mesma virada: 16 × 1,012 × 1,05 = 17,0016,
+    // 17,001 por hora de jogo depois do único arredondamento.
+    expect(rowOf(done, 'lumberMill').grossPerHour).toBeCloseTo(17.001 * pace, 9);
+    expect(done.morale).toMatchObject({ value: 60, multiplierPercent: 105 });
     // A madeira do período: 16 unidades em um dia de jogo, e não 32.
     expect(done.resources.find((row) => row.id === 'wood')?.stock).toBe(120 + 16);
     // O fim da adaptação não deixou evento nenhum além da virada do dia.
@@ -242,10 +245,11 @@ describe('experiência do ofício com o jogador fora', () => {
       experienceNote:
         'Ofício dominado: 30% a mais de produção. Só se perde se ninguém trabalhar na Serraria.',
     });
-    // 2 lenhadores × 8 × 1,3 (mestria) × 1,15 (o verão já chegou) por hora de jogo, vistos por
-    // hora real.
+    // 2 lenhadores × 8 × 1,3 (mestria) × 1,15 (o verão já chegou) × 1,05 (a moral em 60, com a
+    // comida guardada) por hora de jogo, vistos por hora real.
     expect(view.calendar.season).toBe('summer');
-    expect(rowOf(view, 'lumberMill').grossPerHour).toBeCloseTo(16 * 1.3 * 1.15 * PACE, 9);
+    expect(view.morale.value).toBe(60);
+    expect(rowOf(view, 'lumberMill').grossPerHour).toBeCloseTo(16 * 1.3 * 1.15 * 1.05 * PACE, 9);
     // A Pedreira, sem ninguém, não ganhou nada.
     expect(rowOf(view, 'quarry')).toMatchObject({ experience: 0, experienceTrend: 'steady' });
 

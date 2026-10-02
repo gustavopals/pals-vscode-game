@@ -1,0 +1,110 @@
+{
+ "schemaVersion": 7,
+ "seed": "pedra-alta",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 211020000,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 211020000,
+ "rng": {
+  "morale": [
+   3925594445,
+   4049943271,
+   510311956,
+   1931225812
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 500000,
+   "wood": 500000,
+   "stone": 500000,
+   "gold": 294284
+  },
+  "accumulators": {
+   "food": 960000,
+   "wood": 960000,
+   "stone": 2520000,
+   "gold": 2160000
+  },
+  "population": {
+   "villagers": 23
+  },
+  "workers": {
+   "farm": 6,
+   "lumberMill": 6,
+   "quarry": 5,
+   "goldMine": 3
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 2,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 3,
+   "granary": 0,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 40548,
+   "wood": 41728,
+   "stone": 21689,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 20,
+   "lumberMill": 20,
+   "quarry": 20,
+   "goldMine": 20
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 80,
+  "moraleEffects": [
+   {
+    "id": "teste:festa",
+    "label": "festa da colheita",
+    "amount": 30,
+    "untilMs": 237600000
+   }
+  ]
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "wasted_food": 529548,
+  "wasted_wood": 463728,
+  "wasted_stone": 45689
+ }
+}

@@ -7,6 +7,8 @@ import {
   coldReliefs,
   craftGuilds,
   foundingTemplates,
+  idleVillager,
+  moraleBandTemplates,
   objectives,
 } from '@lotg/content';
 import {
@@ -97,9 +99,10 @@ describe('CSV de uma partida', () => {
       'wasted_wood',
       'wasted_stone',
       'cold',
+      'morale',
     ]);
     expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(
-      new Set(['V2C-T4', 'V2D-T1', 'V2E-T3']),
+      new Set(['V2D-T1', 'V2E-T3']),
     );
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
@@ -110,6 +113,9 @@ describe('CSV de uma partida', () => {
         expect(cells[header.indexOf(name)], name).toBe('');
       }
       expect(cells[header.indexOf('cold')]).toMatch(/^[01]$/);
+      // A moral daquela hora, de 0 a 100.
+      expect(Number(cells[header.indexOf('morale')])).toBeGreaterThanOrEqual(0);
+      expect(Number(cells[header.indexOf('morale')])).toBeLessThanOrEqual(100);
       for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
@@ -370,6 +376,8 @@ describe('resumo de uma partida', () => {
             foundingTemplates,
             coldReliefs,
             craftGuilds,
+            moraleBandTemplates,
+            idleVillager,
           }),
         )
         .digest('hex')
@@ -401,13 +409,50 @@ describe('resumo de uma partida', () => {
       stone: summary.stock.stone,
       gold: summary.stock.gold,
     });
-    expect(text).toContain('Sem medida até as Fases C a E: moral, cartas do Conselho');
+    expect(text).toContain('Sem medida até as Fases D e E: cartas do Conselho');
     // O excedente parado dos materiais com limite nunca passa do limite.
     const view = deriveViewState(twoSessions.finalState, twoSessions.finalState.lastProcessedAt);
     for (const id of ['wood', 'stone'] as const) {
       const cap = view.resources.find((row) => row.id === id)?.cap ?? 0;
       expect(summary.surplus[id], id).toBeLessThanOrEqual(cap);
     }
+  });
+
+  it('diz a moral: a do fim, a menor e, quando há, as horas de moral baixa e quem foi embora', async () => {
+    // O bot econômico cuida do feudo: a moral nasce em 50, chega a 60 quando a despensa
+    // guarda a comida de 24 h de jogo, e o pior que ela conhece são as casas cheias (40).
+    const cared = summarize(twoSessions);
+    const morales = twoSessions.rows.map((row) => row.morale);
+    expect(morales[0]).toBe(50);
+    expect(Math.max(...morales)).toBe(60);
+    expect(cared.morale).toBe(morales[167]);
+    expect(cared.moraleMin).toBe(Math.min(...morales));
+    expect(cared.moraleMin).toBeGreaterThanOrEqual(40);
+    expect(cared.lowMoraleHours).toBe(
+      twoSessions.rows.filter((row) => row.moraleBand === 'restless').length,
+    );
+    expect(cared).toMatchObject({ settlersArrived: 0, villagersLeft: 0, villagersDeserted: 0 });
+    expect(formatSummary(twoSessions)).toMatch(/\nMoral: \d+ no fim, mínima \d+[^\n]*\n/);
+
+    // Um feudo em que ninguém dá ordem nenhuma, no ritmo 3: a fome chega em 12 h reais, a
+    // moral despenca, e os aldeões vão embora até o piso de três.
+    const abandoned = await simulate({
+      seed: 'pedra-alta-golden',
+      days: 3,
+      strategy: 'economico',
+      sessionsPerDay: 1,
+      timeScale: 3,
+      bot: async () => {},
+    });
+    const summary = summarize(abandoned);
+    expect(summary).toMatchObject({ villagers: 3, morale: 0, moraleMin: 0 });
+    expect(summary.villagersLeft + summary.villagersDeserted).toBe(2);
+    expect(summary.villagersDeserted).toBeGreaterThanOrEqual(1);
+    expect(summary.lowMoraleHours).toBeGreaterThan(48);
+    expect(abandoned.rows[71]).toMatchObject({ morale: 0, moraleBand: 'desperate', villagers: 3 });
+    expect(formatSummary(abandoned)).toContain(
+      `Moral: 0 no fim, mínima 0 (${summary.lowMoraleHours} h com o povo inquieto ou desesperado) · colonos 0, partidas ${summary.villagersLeft}, deserções ${summary.villagersDeserted}\n`,
+    );
   });
 
   it('conta as horas de fome quando o bot não joga o bastante', async () => {

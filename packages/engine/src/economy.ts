@@ -36,16 +36,27 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'mastery' | 'season' | 'famine' | 'cold';
+  id: 'level' | 'mastery' | 'season' | 'morale' | 'famine' | 'cold';
   ratio: Ratio;
   label: string;
 };
 
 /**
+ * O fator da moral na produção, em fração exata (GDD §5.3): `base + perPoint × moral`. Com 3/4
+ * e 1/200, é `(150 + moral) / 200`: × 0,75 com a moral em zero, × 1 em 50 e × 1,25 em 100.
+ */
+export function moraleRatio(morale: number): Ratio {
+  const { base, perPoint } = balance.morale.multiplier;
+  return {
+    num: base.num * perPoint.den + perPoint.num * morale * base.den,
+    den: base.den * perPoint.den,
+  };
+}
+
+/**
  * Os fatores que multiplicam a produção de um edifício agora, na ordem em que a explicação os
- * mostra: nível, mestria, estação, fome e frio (GDD §5.3). É **a** lista: `productionRate`
- * multiplica todos e a visão escreve um termo para cada um. Um fator novo (a moral) entra aqui
- * e aparece nos dois lugares.
+ * mostra: nível, mestria, estação, moral, fome e frio (GDD §5.3). É **a** lista:
+ * `productionRate` multiplica todos e a visão escreve um termo para cada um.
  *
  * `season` permite perguntar "e se fosse a outra estação?": é como a visão faz a conta da lenha
  * do inverno que ainda não chegou.
@@ -56,7 +67,7 @@ export function productionFactors(
   season: SeasonDef = seasonAt(state.lastProcessedAt),
 ): ProductionFactor[] {
   const { levelBonus } = balance.production;
-  const { buildings: levels, famine, cold, craftExperience } = state.settlement;
+  const { buildings: levels, famine, cold, craftExperience, morale } = state.settlement;
   const level = levels[building];
   const experience = craftExperience[building];
   const factors: ProductionFactor[] = [
@@ -71,6 +82,7 @@ export function productionFactors(
       ratio: season.effects.production[producedBy(building)],
       label: season.label.toLowerCase(),
     },
+    { id: 'morale', ratio: moraleRatio(morale), label: `moral ${morale}` },
   ];
   if (famine) {
     factors.push({ id: 'famine', ratio: balance.famine.productionMultiplier, label: 'fome' });
@@ -103,7 +115,7 @@ export function effectiveWorkers(hands: Hands): Ratio {
  * Produção bruta de um edifício, em milésimos por hora de jogo. É uma conta só, em frações, com
  * **um** arredondamento para baixo no fim (ADR 0013, decisão 13a):
  * trabalhadores (os em adaptação valem a fração) × taxa base × 1000 × nível × mestria × estação
- * × fome × frio. A ordem dos fatores não muda o resultado. A fração é simplificada a cada
+ * × moral × fome × frio. A ordem dos fatores não muda o resultado. A fração é simplificada a cada
  * fator, só para os números da conta ficarem pequenos: o quociente é o mesmo.
  *
  * `hands` permite perguntar "e com outros braços?": um trabalhador adaptado, um recém-chegado.

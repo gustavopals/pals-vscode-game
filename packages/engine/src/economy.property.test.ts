@@ -4,9 +4,18 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { calendarAt } from './clock';
 import { applyCommand } from './commands';
-import { assignedWorkers } from './population';
+import { addMoraleEffect } from './morale';
+import { assignedWorkers, housingVacancy } from './population';
 import { command, DAY, gameAt, HOUR, MINUTE, newGame, WINTER, YEAR } from './test-helpers';
-import type { BuildingId, Command, GameEvent, GameState, ProductionBuildingId } from './types';
+import { deriveViewState } from './view';
+import type {
+  BuildingId,
+  Command,
+  DifficultyId,
+  GameEvent,
+  GameState,
+  ProductionBuildingId,
+} from './types';
 
 const DAY_REAL = 24 * HOUR;
 
@@ -387,6 +396,185 @@ describe('invariante de divisão de intervalo', () => {
     expect(seen.splitCohorts).toBeGreaterThan(50);
     expect(seen.mastered).toBeGreaterThan(30);
     expect(seen.lost).toBeGreaterThan(50);
+  });
+
+  it('vale com a moral no caminho: sorteios reais de chegada e de partida, deserção por fome e efeitos que vencem', () => {
+    // É a primeira prova com sorteios de uma regra do jogo (e não do cenário sintético de
+    // `random.property.test.ts`). O feudo começa em um instante qualquer de dois anos, com uma
+    // semente qualquer, gente, casas, comida e madeira sorteadas, muitas vezes já com fome, e
+    // com efeitos temporários que empurram a moral para os dois lados: para cima dos 80, onde
+    // se sorteia a chegada de um colono, e para baixo dos 25, onde se sorteia a partida.
+    const difficulties: DifficultyId[] = ['peasant', 'lord', 'ironKing'];
+    const plan = fc.record({
+      seed: fc.string({ minLength: 1, maxLength: 12 }),
+      startMs: fc.nat(2 * YEAR),
+      difficulty: fc.constantFrom(...difficulties),
+      villagers: fc.integer({ min: 3, max: 24 }),
+      housing: fc.integer({ min: 1, max: 6 }),
+      workers: fc.tuple(fc.nat(8), fc.nat(8), fc.nat(8), fc.nat(8)),
+      food: fc.oneof(fc.constant(0), fc.nat(60_000), fc.nat(900_000)),
+      wood: fc.oneof(fc.constant(0), fc.nat(300_000)),
+      morale: fc.nat(100),
+      famineAgoMs: fc.option(fc.nat(20 * HOUR)),
+      effects: fc.array(
+        fc.record({
+          amount: fc.integer({ min: -45, max: 45 }).filter((amount) => amount !== 0),
+          lastsMs: fc.integer({ min: 1, max: 12 * DAY }),
+        }),
+        { maxLength: 3 },
+      ),
+      cuts: fc.array(fc.integer({ min: 1, max: 120 * HOUR }), { minLength: 2, maxLength: 5 }),
+    });
+    const seen = { arrived: 0, left: 0, deserted: 0, bands: 0, expired: 0, drew: 0 };
+    const population = ['villagerArrived', 'villagerLeft', 'villagerDeserted'];
+    fc.assert(
+      fc.property(plan, (scenario) => {
+        let state = gameAt(scenario.startMs, (draft) => {
+          const { settlement } = draft;
+          draft.seed = scenario.seed;
+          draft.settings.difficulty = scenario.difficulty;
+          settlement.population.villagers = scenario.villagers;
+          settlement.buildings.housing = scenario.housing;
+          settlement.buildings.granary = 2;
+          settlement.resources.food = scenario.food;
+          settlement.resources.wood = scenario.wood;
+          settlement.morale = scenario.morale;
+          if (scenario.food === 0 && scenario.famineAgoMs !== null) {
+            settlement.famine = { sinceMs: Math.max(0, scenario.startMs - scenario.famineAgoMs) };
+          }
+          scenario.effects.forEach((effect, index) => {
+            addMoraleEffect(draft, {
+              id: `teste:${index}`,
+              label: `efeito ${index}`,
+              amount: effect.amount,
+              untilMs: scenario.startMs + effect.lastsMs,
+            });
+          });
+        });
+        crafts.forEach((building, index) => {
+          const order = command('setWorkers', {
+            building,
+            count: scenario.workers[index] as number,
+          });
+          const result = applyCommand(state, order, state.lastProcessedAt);
+          if (result.ok) {
+            state = result.state;
+          }
+        });
+        const start = state;
+        const frozen = JSON.stringify(start);
+        const instants = [...new Set(scenario.cuts)]
+          .sort((a, b) => a - b)
+          .map((cut) => scenario.startMs + cut);
+        const end = instants[instants.length - 1] as number;
+
+        // A visão promete, termo a termo, a moral que a próxima virada entrega, e olhar não
+        // sorteia nem muda nada.
+        const promised = deriveViewState(start, start.lastProcessedAt).morale;
+        const turn = (Math.floor(start.lastProcessedAt / DAY) + 1) * DAY;
+        expect(advanceTo(start, turn).state.settlement.morale).toBe(promised.next.value);
+        const sum = promised.terms.reduce((total, term) => total + term.amount, 0);
+        expect(Math.max(0, Math.min(100, sum))).toBe(promised.next.value);
+        expect(JSON.stringify(start)).toBe(frozen);
+
+        const direct = advanceTo(start, end);
+        let stepped = start;
+        const events: GameEvent[] = [];
+        for (const instant of instants) {
+          const result = advanceTo(stepped, instant);
+          stepped = result.state;
+          events.push(...result.events);
+          expectNoNegativeResources(stepped);
+          expectCraftInvariants(stepped);
+          const { settlement } = stepped;
+          // A moral é um inteiro de 0 a 100, e o piso de 3 aldeões nunca é furado.
+          expect(Number.isInteger(settlement.morale)).toBe(true);
+          expect(settlement.morale).toBeGreaterThanOrEqual(0);
+          expect(settlement.morale).toBeLessThanOrEqual(100);
+          expect(settlement.population.villagers).toBeGreaterThanOrEqual(3);
+          // Nenhum efeito vencido antes da última virada fica na lista.
+          const lastTurn = Math.floor(stepped.lastProcessedAt / DAY) * DAY;
+          for (const effect of settlement.moraleEffects) {
+            expect(effect.untilMs).toBeGreaterThanOrEqual(Math.min(lastTurn, scenario.startMs));
+          }
+        }
+        // O estado inteiro coincide, e com ele o gerador: quem avançou aos pedaços sorteou igual.
+        expect(stepped).toStrictEqual(direct.state);
+        expect(stepped.rng).toStrictEqual(direct.state.rng);
+        expect(events).toStrictEqual(direct.events);
+        expect(JSON.stringify(start)).toBe(frozen);
+
+        // Só o fluxo da moral anda, e quem chega, parte ou deserta o faz em uma virada de dia.
+        expect(Object.keys(direct.state.rng).filter((stream) => stream !== 'morale')).toEqual([]);
+        for (const event of direct.events) {
+          if (population.includes(event.type) || event.type === 'moraleBandChanged') {
+            expect(event.atMs % DAY).toBe(0);
+          }
+        }
+        const count = (type: GameEvent['type']) =>
+          direct.events.filter((event) => event.type === type).length;
+        // A população final é a inicial com quem chegou e sem quem saiu (ninguém foi recrutado).
+        expect(direct.state.settlement.population.villagers).toBe(
+          start.settlement.population.villagers +
+            count('villagerArrived') -
+            count('villagerLeft') -
+            count('villagerDeserted'),
+        );
+        if (scenario.difficulty === 'peasant') {
+          expect(count('villagerDeserted')).toBe(0);
+        }
+        // Ninguém chega para onde não há vaga.
+        expect(housingVacancy(direct.state)).toBeGreaterThanOrEqual(
+          Math.min(0, housingVacancy(start)),
+        );
+
+        seen.arrived += count('villagerArrived');
+        seen.left += count('villagerLeft');
+        seen.deserted += count('villagerDeserted');
+        seen.bands += count('moraleBandChanged');
+        seen.expired +=
+          start.settlement.moraleEffects.length - direct.state.settlement.moraleEffects.length;
+        seen.drew += direct.state.rng.morale === undefined ? 0 : 1;
+      }),
+      { numRuns: 500 },
+    );
+    // O gerador passa mesmo pelo que o teste diz atravessar.
+    expect(seen.drew).toBeGreaterThan(150);
+    expect(seen.arrived).toBeGreaterThan(30);
+    expect(seen.left).toBeGreaterThan(100);
+    expect(seen.deserted).toBeGreaterThan(100);
+    expect(seen.bands).toBeGreaterThan(300);
+    expect(seen.expired).toBeGreaterThan(200);
+  });
+
+  it('vale atravessando a virada em que a moral sorteia, com o corte em qualquer milissegundo', () => {
+    // O feudo abandonado: a fome abre às 36 h, a moral cai a 24 na 21ª virada (42 h) e dali em
+    // diante cada virada sorteia uma partida; às 48 h começa a deserção.
+    const start = advanceTo(newGame('pedra-alta'), 40 * HOUR).state;
+    const end = 60 * HOUR;
+    const direct = advanceTo(start, end);
+    expect(direct.state.rng.morale).toBeDefined();
+    expect(direct.events.filter((event) => event.type === 'villagerDeserted')).not.toEqual([]);
+    fc.assert(
+      fc.property(fc.integer({ min: 40 * HOUR + 1, max: end - 1 }), (cut) => {
+        const half = advanceTo(start, cut);
+        const split = advanceTo(half.state, end);
+        expect(split.state).toStrictEqual(direct.state);
+        expect([...half.events, ...split.events]).toStrictEqual(direct.events);
+      }),
+      { numRuns: 300 },
+    );
+    // E em cima de cada virada do caminho, um milissegundo antes e um depois.
+    for (let turn = 42 * HOUR; turn < end; turn += DAY) {
+      for (const cut of [turn - 1, turn, turn + 1]) {
+        const half = advanceTo(start, cut);
+        const split = advanceTo(half.state, end);
+        expect(split.state).toStrictEqual(direct.state);
+        expect([...half.events, ...split.events]).toStrictEqual(direct.events);
+        // Parar em cima da virada e avançar de novo para o mesmo instante não sorteia de novo.
+        expect(advanceTo(half.state, cut).state).toBe(half.state);
+      }
+    }
   });
 
   it('vale atravessando o fim de uma adaptação, com o corte em qualquer milissegundo', () => {

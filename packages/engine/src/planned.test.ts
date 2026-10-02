@@ -6,6 +6,7 @@ import {
   accept,
   command,
   eventsOfType,
+  FED_MORALE,
   gameAt,
   gameWith,
   HOUR,
@@ -17,6 +18,7 @@ import {
   refuse,
   SPRING,
   WINTER,
+  withMorale,
 } from './test-helpers';
 import { nextAutoStartAt, nextEventAt } from './timeline';
 import type { BuildingId, GameEvent, GameState } from './types';
@@ -26,7 +28,8 @@ import { deriveViewState } from './view';
  * Primavera, objetivos cumpridos, cinco lenhadores (40 de madeira por hora) e nada mais
  * produzindo: comida, pedra e ouro de sobra, madeira a escolher. O custo que falta é a madeira.
  * Os lenhadores são veteranos sem experiência: a Serraria, ocupada, ganha 4 a cada virada de
- * dia, e a taxa passa a 40,48 no segundo dia de jogo, 40,96 no terceiro, e assim por diante.
+ * dia, e a primeira virada leva a moral a 60 (há comida guardada): a taxa passa a 40,48 × 1,05
+ * = 42,504 no segundo dia de jogo, 40,96 × 1,05 = 43,008 no terceiro, e assim por diante.
  */
 function lumberCamp(wood: number, edit: (draft: GameState) => void = () => {}): GameState {
   return gameAt(SPRING, (draft) => {
@@ -396,9 +399,9 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
   });
 
   describe('a ordem da lista', () => {
-    // Os 150 de madeira do Salão, contados do zero a partir das 2 h: 80,96 no segundo dia de
-    // jogo (40,48 por hora) e os 69,04 que faltam no terceiro, a 40,96 por hora.
-    const TOWN_HALL_AT = 4 * HOUR + Math.ceil((69_040 * HOUR) / 40_960);
+    // Os 150 de madeira do Salão, contados do zero a partir das 2 h: 85,008 no segundo dia de
+    // jogo (42,504 por hora) e os 64,992 que faltam no terceiro, a 43,008 por hora.
+    const TOWN_HALL_AT = 4 * HOUR + Math.ceil((64_992 * HOUR) / 43_008);
 
     it('planejada cara atrás de uma barata: a barata começa primeiro e a cara espera a conta de novo', () => {
       // Habitações: 80 de madeira. Salão: 150. Do zero, a 40 por hora no primeiro dia.
@@ -453,13 +456,13 @@ describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
       expect(queueOf(state)).toEqual(['farm', null]);
       expect(state.settlement.resources.wood).toBe(20_000);
       // A Pedreira espera os 100 que faltam e entra na fila que estiver livre: 80 chegam no
-      // primeiro dia de jogo (40 por hora) e os outros 20 no segundo, a 40,48 por hora.
-      const startsAt = 2 * HOUR + Math.ceil((20_000 * HOUR) / 40_480);
+      // primeiro dia de jogo (40 por hora) e os outros 20 no segundo, a 42,504 por hora.
+      const startsAt = 2 * HOUR + Math.ceil((20_000 * HOUR) / 42_504);
       const later = advanceTo(state, 3 * HOUR);
       expect(autoStarted(later.events)).toMatchObject([
         { atMs: startsAt, data: { building: 'quarry', spent_wood: 120 } },
       ]);
-      expect(later.state.settlement.resources.wood).toBe(20_000 + 80_000 + 40_480 - 120_000);
+      expect(later.state.settlement.resources.wood).toBe(20_000 + 80_000 + 42_504 - 120_000);
     });
 
     it('com madeira para as duas, as duas começam no mesmo instante, na ordem da lista', () => {
@@ -976,15 +979,16 @@ describe('o que a planejada espera (planWait)', () => {
   });
 
   it('o prazo da espera conta com a adaptação que termina e a experiência que sobe', () => {
-    // Cinco lenhadores recém-chegados, do zero: 20 por hora no primeiro dia de jogo, 40,48 no
-    // segundo. As Habitações pedem 80 de madeira: 40 chegam em 2 h e os outros 40 depois.
+    // Cinco lenhadores recém-chegados, do zero: 20 por hora no primeiro dia de jogo, 42,504 no
+    // segundo (adaptados, com 4 de experiência e a moral em 60). As Habitações pedem 80 de
+    // madeira: 40 chegam em 2 h e os outros 40 depois.
     const camp = play(
       lumberCamp(0, (draft) => {
         draft.settlement.workers.lumberMill = 0;
       }),
       [command('setWorkers', { building: 'lumberMill', count: 5 }), auto('housing')],
     ).state;
-    const startsAt = 2 * HOUR + Math.ceil((40_000 * HOUR) / 40_480);
+    const startsAt = 2 * HOUR + Math.ceil((40_000 * HOUR) / 42_504);
     expect(waitingOf(camp, 'housing')).toEqual({
       reason: 'resources',
       text: 'espera 80 de madeira',
@@ -1010,9 +1014,12 @@ describe('o que a planejada espera (planWait)', () => {
       fullNote: 'Não enche antes do início da obra da Serraria.',
     });
     // Sem a planejada, a previsão é a de sempre: 500, a 40 por hora no primeiro dia e um pouco
-    // mais a cada virada, com a experiência da Serraria. Menos que as 12 h 30 min da taxa de hoje.
+    // mais a cada virada, com a experiência da Serraria e a moral que a primeira virada leva a
+    // 60. Menos que as 12 h 30 min da taxa de hoje.
     const idle = deriveViewState(lumberCamp(0), 0).resources.find((row) => row.id === 'wood');
-    const fillsAt = reachedAt(SPRING, 500_000, (day) => 40 * masteryOnDay(day));
+    const fillsAt = reachedAt(SPRING, 500_000, (day) =>
+      withMorale(40 * masteryOnDay(day), day === 0 ? 50 : FED_MORALE),
+    );
     expect(fillsAt).toBeLessThan(12.5 * HOUR);
     expect(idle).toMatchObject({ fullInSeconds: Math.ceil(fillsAt / 1000), fullNote: null });
   });

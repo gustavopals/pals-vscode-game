@@ -1,9 +1,13 @@
 518400000	seasonChanged	Chega o Inverno a Pedra Alta.
 542400000	coldStarted	No 4º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
+547200000	moraleBandChanged	No 5º dia do Inverno, o povo de Pedra Alta anda inquieto. Há resmungos junto ao poço.
 563400000	coldEnded	No 7º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.
-590786000	coldStarted	No 11º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
+568800000	moraleBandChanged	No 8º dia do Inverno, os resmungos cessaram em Pedra Alta. O povo está contente.
+590989200	coldStarted	No 11º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
+597600000	moraleBandChanged	No 12º dia do Inverno, o povo de Pedra Alta anda inquieto. Há resmungos junto ao poço.
 604800000	yearStarted	Começa o ano 2 da Casa de Pedra Alta.
 604800000	seasonChanged	Chega a Primavera a Pedra Alta.
+604800000	moraleBandChanged	No 1º dia da Primavera, os resmungos cessaram em Pedra Alta. O povo está contente.
 604800000	coldEnded	No 1º dia da Primavera, o gelo cedeu em Pedra Alta. O frio passou.
-609205259	storageFilled	No 1º dia da Primavera, o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.
-612000000	storageWasted	No 1º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 116 de comida.
+608094977	storageFilled	No 1º dia da Primavera, o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.
+612000000	storageWasted	No 1º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 172 de comida.

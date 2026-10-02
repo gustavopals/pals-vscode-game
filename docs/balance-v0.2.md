@@ -907,3 +907,202 @@ As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/s
 - **A experiência chega ao teto cedo em todo perfil**, então a matriz quase não mede a escolha "especializar ou espalhar": mede o custo de trocar. Se os +30% em 25 dias de jogo são muito ou pouco é pergunta para o playtest e para V2C-T7.
 - **As comparações das seções 6.3 e 6.4 (coluna do meio) foram medidas com uma semente ou antes do código final**; enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado.
 - As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).
+
+## 7. Moral (V2C-T4)
+
+Tarefa V2C-T4. A moral vai de 0 a 100, é recalculada na virada de cada dia de jogo e entra na produção como `(150 + moral) / 200`: 50 mais 10 com comida guardada para 24 h de jogo, menos 20 com fome (e 2 por dia inteiro de fome), menos 10 com as casas cheias, menos 20 com frio. Com 80 ou mais, 20% de chance de um colono chegar por virada; com 25 ou menos, 20% de um aldeão partir; depois de 12 h de jogo de fome, um aldeão deserta por virada (não em Camponês), nunca abaixo de 3 (GDD §5.6 e §5.7; [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 1, 19 e 19a). Os números novos são os de `balance.morale`; **nenhum custo, taxa base, prazo de obra ou limite mudou**.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o da tarefa V2C-T4 (`git log --grep V2C-T4`) |
+| Identificação | Motor 0.1.0 · estado v7 · conteúdo 3acde0478685be9d |
+| Dificuldade | Senhor (`lord`) |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, Node 24.19.0 |
+
+### 7.1 Perfis e o que mudou no bot
+
+Os mesmos três perfis e as mesmas listas de políticas da seção 5.1. Mudou uma política, `recrutar`, dos dois bots: **com 20 aldeões ou mais, ela deixa uma cama vazia nas Habitações.** Com as casas cheias a moral perde 10 pontos, que são 5% da produção de todos os ofícios; em um feudo desse tamanho isso custa mais do que o último par de braços rende. Abaixo de 20 aldeões o bot continua enchendo as casas. A seção 7.3 mede essa mudança à parte da mecânica, e mede as duas que **não** entraram.
+
+O simulador passou a medir a moral: a coluna `morale` do CSV (a moral de cada hora; no CSV da matriz, a menor da partida) e, nas tabelas, "Moral mínima", "Moral baixa (h)" (as horas com o povo inquieto ou desesperado) e "Foram embora" (os aldeões que partiram ou desertaram).
+
+### 7.2 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
+```
+
+900 linhas no CSV e 750 partidas distintas, como antes; a rodada leva cerca de 12 s.
+
+#### Tabela 1: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 33 | 7 | 0 | 0 | 50 | 0 | 0 | 103 | 672 | 3.900 | 3.900 | 4.660 | 14.680 | 27.617 | 12.429 | 131 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 72 | 7 | 0 | 0 | 50 | 0 | 0 | 40 | 804 | 5.100 | 5.100 | 37.628 | 22.682 | 135.052 | 44.655 | 120 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 74 | 7 | 0 | 0 | 50 | 0 | 0 | 14 | 414 | 5.100 | 5.100 | 64.707 | 8.799 | 242.145 | 108.902 | 116 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 33 | 6 | 0 | 0 | 50 | 0 | 0 | 62 | 664 | 692 | 713 | 1.637 | 0 | 1.147 | 0 | 23 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 66 | 7 | 0 | 0 | 40 | 2 | 0 | 59 | 711 | 4.500 | 4.106 | 2.000 | 199 | 8.879 | 0 | 20 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 74 | 7 | 0 | 0 | 40 | 2 | 0 | 69 | 393 | 5.100 | 5.100 | 5.716 | 0 | 30.744 | 5.472 | 40 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 14 | 4 | 0 | 0 | 50 | 0 | 0 | 55 | 212 | 70 | 188 | 231 | 0 | 144 | 0 | 7 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 54 | 6 | 0 | 0 | 40 | 4 | 0 | 61 | 534 | 753 | 952 | 652 | 0 | 1.111 | 42 | 5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 61 | 6 | 0 | 0 | 50 | 0 | 0 | 78 | 305 | 813 | 920 | 180 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 29 a 37 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.095 | ≤ 4.095 | ≤ 4.893 | 0 |
+| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 39.510 | 0 |
+| Rápido 3× | Dedicado | 66 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 67.943 | 0 |
+| Normal 1× | Preguiçoso | 29 a 37 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 727 | ≤ 749 | ≤ 1.719 | 0 |
+| Normal 1× | Regular | 59 a 73 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.725 | ≤ 4.312 | ≤ 2.100 | 0 |
+| Normal 1× | Dedicado | 66 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 6.002 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 12 a 16 | ≥ 4 | ≤ 0 | ≤ 0 | ≤ 74 | ≤ 198 | ≤ 243 | 0 |
+| Tranquilo 0,5× | Regular | 48 a 60 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 791 | ≤ 1.000 | ≤ 685 | 0 |
+| Tranquilo 0,5× | Dedicado | 54 a 68 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 854 | ≤ 966 | ≤ 189 | 0 |
+
+#### Tabela 2: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 13 | 3 | 0 | 0 | 50 | 0 | 0 | 21 | 176 | 513 | 531 | 160 | 79 | 5.091 | 0 | 36 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 27 | 5 | 0 | 0 | 50 | 0 | 0 | 13 | 244 | 780 | 1.234 | 1.155 | 1.642 | 1.534 | 43 | 20 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 52 | 7 | 0 | 0 | 50 | 0 | 0 | 13 | 262 | 815 | 1.672 | 477 | 1.059 | 1.566 | 0 | 12 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 33 | 6 | 0 | 0 | 50 | 0 | 0 | 62 | 664 | 692 | 713 | 1.637 | 0 | 1.147 | 0 | 23 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 66 | 7 | 0 | 0 | 40 | 2 | 0 | 59 | 711 | 4.500 | 4.106 | 2.000 | 199 | 8.879 | 0 | 20 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 74 | 7 | 0 | 0 | 40 | 2 | 0 | 69 | 393 | 5.100 | 5.100 | 5.716 | 0 | 30.744 | 5.472 | 40 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 23 | 6 | 0 | 0 | 50 | 0 | 0 | 187 | 425 | 1.029 | 1.279 | 977 | 0 | 340 | 0 | 9 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 74 | 7 | 0 | 0 | 40 | 4 | 0 | 158 | 746 | 5.100 | 5.100 | 5.772 | 291 | 32.127 | 4.741 | 82 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 74 | 7 | 0 | 0 | 50 | 0 | 0 | 217 | 367 | 5.100 | 4.525 | 8.053 | 122 | 36.574 | 6.489 | 91 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 11 a 15 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 539 | ≤ 558 | ≤ 168 | 0 |
+| Rápido 3× | Regular | 24 a 30 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 819 | ≤ 1.296 | ≤ 1.213 | 0 |
+| Rápido 3× | Dedicado | 46 a 58 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 856 | ≤ 1.756 | ≤ 501 | 0 |
+| Normal 1× | Preguiçoso | 29 a 37 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 727 | ≤ 749 | ≤ 1.719 | 0 |
+| Normal 1× | Regular | 59 a 73 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.725 | ≤ 4.312 | ≤ 2.100 | 0 |
+| Normal 1× | Dedicado | 66 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 6.002 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 20 a 26 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 1.081 | ≤ 1.343 | ≤ 1.026 | 0 |
+| Tranquilo 0,5× | Regular | 66 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 6.061 | 0 |
+| Tranquilo 0,5× | Dedicado | 66 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 4.752 | ≤ 8.456 | 0 |
+
+Todas as 900 partidas ficam dentro das faixas novas, e nenhum bot teve ordem recusada. Nenhuma passa fome nem frio, e **nenhuma perde um aldeão**: a menor moral de toda a matriz é 40 (as casas cheias sem a comida guardada), longe dos 25 em que alguém parte.
+
+### 7.3 O bot diante da moral: o que entrou e o que foi medido e não entrou
+
+Três sementes por linha (`pedra-alta-001` a `003`, iguais entre si: nenhuma destas partidas chega a sortear). "Moral" é a média das amostras de cada hora; "Materiais por hora" é a média, hora a hora, do saldo de madeira, pedra e ouro somados, por hora real: é só um termômetro de quanto o feudo produz, não uma grandeza do jogo.
+
+**A cama vazia (entrou).** O `recrutar` de antes contra o de agora:
+
+| Janela | Ritmo | Perfil | População (antes → agora) | Moral média | Materiais por hora |
+|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Dedicado | 75 → 74 | 55 → 60 | 2.923 → 3.017 (+3%) |
+| 7 dias | Normal 1× | Dedicado | 75 → 74 | 46 → 53 | 750 → 789 (+5%) |
+| 7 dias | Tranquilo 0,5× | Regular | 55 → 54 | 50 → 50 | 154 → 158 (+3%) |
+| Ano | Tranquilo 0,5× | Regular | 75 → 74 | 46 → 53 | 371 → 395 (+6%) |
+| Ano | Tranquilo 0,5× | Dedicado | 75 → 74 | 48 → 53 | 390 → 418 (+7%) |
+
+Nas outras doze células o feudo não chega a encher as casas com 20 aldeões ou mais, e nada muda. Onde muda, um aldeão a menos compra de 3% a 7% de produção.
+
+**Guardar a despensa no recrutamento (não entrou).** A variante: o recrutamento só gasta a comida que sobra depois da reserva de 24 h de jogo, já contando as bocas novas (quando a reserva cabe no depósito).
+
+| Janela | Ritmo | Perfil | População (sem → com a reserva) | Salão |
+|---|---|---|---|---|
+| 7 dias | Rápido 3× | Regular | 72 → 68 | 7 → 7 |
+| 7 dias | Normal 1× | Preguiçoso | 33 → **18** | 6 → 5 |
+| 7 dias | Tranquilo 0,5× | Regular | 55 → **37** | 6 → 5 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 61 → **38** | 6 → 5 |
+| Ano | Rápido 3× | Dedicado | 52 → 47 | 7 → 6 |
+| Ano | Tranquilo 0,5× | Preguiçoso | 23 → 17 | 6 → 4 |
+
+A reserva pede 24 de comida por habitante, e cada recruta custa 50: com ela, cada aldeão novo passa a pedir 74. Os 5% de produção que a moral devolve não pagam o crescimento perdido. Guardar a reserva só com 20 aldeões ou mais ainda custa (Regular do Tranquilo: 54 → 40 aldeões em 7 dias). As variantes mais brandas (guardar só a reserva que já está feita, ou só quando os recrutas a mais não chegam a 5% da população) ficam iguais à cama vazia em quinze das dezessete células medidas e um pouco piores em duas (Regular do ritmo Normal: 491 → 479 de materiais por hora).
+
+**Um lavrador a mais para encher a despensa (não entrou).** Com 20 aldeões ou mais e a reserva por fazer, a alocação punha um lavrador além da conta:
+
+| Janela | Ritmo | Perfil | Materiais por hora (sem → com) | População |
+|---|---|---|---|---|
+| 7 dias | Normal 1× | Dedicado | 789 → 758 | 74 → 74 |
+| 7 dias | Tranquilo 0,5× | Regular | 158 → 153 | 54 → 54 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 184 → 187 | 61 → 64 |
+| Ano | Tranquilo 0,5× | Regular | 395 → 391 | 74 → 74 |
+| Ano | Tranquilo 0,5× | Dedicado | 418 → 427 | 74 → 74 |
+
+Melhor em duas células, pior em três, por pouco nos dois sentidos: não justifica uma política a mais.
+
+**O que isso diz do jogo.** A comida guardada é o termo da moral que o jogador controla de graça só quando o feudo para de crescer: enquanto há cama vazia, a comida rende mais como recruta do que como bônus. No ritmo Rápido os bots chegam ao teto das casas cedo e vivem com a moral em 60; nos ritmos lentos vivem em 50. É uma escolha de verdade (crescer agora ou produzir 5% a mais), e a tela mostra os dois lados: quanto falta para a reserva e o que ela vale.
+
+### 7.4 O feudo abandonado
+
+A mecânica quase não aparece na matriz, porque os bots cuidam da comida. Ela é para quem não cuida. Uma partida nova em que ninguém dá ordem nenhuma (`simulate({ ..., bot: async () => {} })`), semente `pedra-alta-001`, em horas reais desde a criação:
+
+| Dificuldade | Ritmo | A fome começa | Inquieto | Desesperado | Primeiro a ir embora | No piso (3 aldeões) |
+|---|---|---|---|---|---|---|
+| Senhor | Rápido 3× | 12 h | 12 h 40 | 14 h | 16 h (deserção) | 16 h 40 |
+| Senhor | Normal 1× | 36 h | 38 h | 42 h | 48 h (deserção) | 50 h |
+| Senhor | Tranquilo 0,5× | 72 h | 76 h | 84 h | 96 h (deserção) | 100 h |
+| Camponês | Rápido 3× | 12 h | 12 h 40 | 14 h | 28 h (partida, por sorteio) | 29 h 20 |
+| Camponês | Normal 1× | 36 h | 38 h | 42 h | 84 h (partida, por sorteio) | 88 h |
+| Camponês | Tranquilo 0,5× | 72 h | 76 h | 84 h | 168 h (partida, por sorteio) | 176 h |
+
+- **É aqui que a semente passa a mudar a partida.** Nas 50 sementes, no ritmo Rápido e em Senhor, os dois aldeões que o feudo novo pode perder saem assim: em 16 sementes os dois desertam; em 26, um parte (pela moral baixa) e um deserta; em 8, os dois partem antes de a deserção começar. O resultado é o mesmo (três aldeões); o caminho muda.
+- **O feudo novo perde no máximo dois aldeões**, porque nasce com cinco e o piso é três. Um feudo de 22 aldeões deixado sem lavradores perde 19, entre deserções e partidas, em 32 horas de jogo: no ritmo Rápido, pouco menos de 11 horas reais. **A deserção é rápida para quem dorme com o feudo faminto**: a fome que começa quando o jogador sai leva 4 horas reais de carência no ritmo Rápido e, daí em diante, um aldeão a cada 40 minutos. É a regra do GDD §5.6, ao pé da letra; se é dura demais para o ritmo recomendado, a decisão é do autor (a dúvida vai no relatório desta tarefa, para as pendências da v0.2).
+- **Sempre há caminho de volta.** No piso, com fome, frio e a moral em zero, dois lavradores e um lenhador tiram o feudo da fome e do frio em um dia de jogo (o teste "feudo empobrecido", em `packages/engine/src/morale.test.ts`, joga a sequência em Senhor e em Rei de Ferro; um teste de conteúdo confere que três lavradores adaptados sempre rendem mais do que três bocas comem). Nenhum estado sem saída foi encontrado.
+
+### 7.5 O que mudou em relação à seção 6, e por quê
+
+População e Salão ao fim dos 7 dias reais: a seção 6, esta rodada só com a mecânica (o bot de antes) e esta rodada inteira (com a cama vazia):
+
+| Ritmo | Perfil | Seção 6 | Só a mecânica | Com a cama vazia (a linha de base) |
+|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 33 · Salão 7 | 33 · Salão 7 | 33 · Salão 7 |
+| Rápido 3× | Regular | 72 · Salão 7 | 72 · Salão 7 | 72 · Salão 7 |
+| Rápido 3× | Dedicado | 75 · Salão 7 | 75 · Salão 7 | 74 · Salão 7 |
+| Normal 1× | Preguiçoso | 33 · Salão 6 | 33 · Salão 6 | 33 · Salão 6 |
+| Normal 1× | Regular | 68 · Salão 7 | 66 · Salão 7 | 66 · Salão 7 |
+| Normal 1× | Dedicado | 75 · Salão 7 | 75 · Salão 7 | 74 · Salão 7 |
+| Tranquilo 0,5× | Preguiçoso | 14 · Salão 4 | 14 · Salão 4 | 14 · Salão 4 |
+| Tranquilo 0,5× | Regular | 55 · Salão 6 | 55 · Salão 6 | 54 · Salão 6 |
+| Tranquilo 0,5× | Dedicado | 61 · Salão 6 | 61 · Salão 6 | 61 · Salão 6 |
+
+- **A população quase não muda.** A moral põe de −5% a +5% na produção de quem joga razoavelmente (40 a 60), e o crescimento é limitado pelas casas e pela comida, não pelos materiais. O Regular do ritmo Normal termina com 66 no lugar de 68: os 5% a mais mudam o instante de cada obra, e a semana fecha dois recrutas antes.
+- **O excedente parado cresce onde o feudo ainda não bateu no teto do depósito**, porque a produção é maior e não há mais em que gastá-la: a pedra parada do Regular no ritmo Normal vai de 1.280 para 4.106, a madeira do Regular no Tranquilo de 277 para 753, o ouro do Dedicado no Rápido de 60.781 para 64.707. É o mesmo sinal de tédio das rodadas anteriores (falta em que gastar), um pouco maior. As cartas do Conselho (Fase D) e a Paliçada (Fase E) são os gastos previstos.
+- **A fila ociosa sobe no ritmo Rápido** (30 h → 40 h no Regular): com 5% a mais de produção o feudo chega ao Salão 7 e aos edifícios no nível máximo antes, e sobra semana sem obra possível.
+- **Ninguém passa fome nem frio, e ninguém perde gente**, em nenhuma célula. A "Moral baixa" de 2 a 4 horas em quatro células é o povo inquieto com as casas cheias e a despensa gasta em recrutas: 40, sem risco de partida.
+- **Sem os ajustes temporários a moral não passa de 60.** A faixa Orgulhoso (75 ou mais) e o colono atraído pela fama (80 ou mais) só existem com os +10 e +15 dos objetivos 6 e 10 (V2E-T4) e com as cartas do Conselho (V2D-T1). Até lá, nenhuma partida, de bot ou de gente, sorteia a chegada de um colono.
+
+### 7.6 As outras dificuldades (uma semente, sem faixa)
+
+`pnpm -s sim -- --matrix --seeds 1 --difficulty peasant` e `--difficulty ironKing`. 7 dias reais, perfil Regular:
+
+| Dificuldade | Ritmo | População | Salão | Moral mínima | Moral baixa (h) | Foram embora | Recusas |
+|---|---|---|---|---|---|---|---|
+| Camponês | Rápido 3× | 72 | 8 | 50 | 0 | 0 | 0 |
+| Camponês | Normal 1× | 68 | 7 | 40 | 2 | 0 | 0 |
+| Camponês | Tranquilo 0,5× | 54 | 6 | 40 | 4 | 0 | 0 |
+| Senhor | Rápido 3× | 72 | 7 | 50 | 0 | 0 | 0 |
+| Senhor | Normal 1× | 66 | 7 | 40 | 2 | 0 | 0 |
+| Senhor | Tranquilo 0,5× | 54 | 6 | 40 | 4 | 0 | 0 |
+| Rei de Ferro | Rápido 3× | 72 | 7 | 50 | 0 | 0 | 0 |
+| Rei de Ferro | Normal 1× | 69 | 7 | 40 | 2 | 0 | 0 |
+| Rei de Ferro | Tranquilo 0,5× | 54 | 6 | 40 | 4 | 0 | 0 |
+
+A deserção por fome, a linha da dificuldade que esta tarefa liga, não aparece: nenhum bot passa fome. A diferença entre Camponês e as outras está na seção 7.4.
+
+### 7.7 Faixas
+
+As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/sim-cli/src/bands.ts`, traz a linha de base desta rodada (a coluna da direita da seção 7.5). A moral mínima, as horas de moral baixa e os aldeões que foram embora são medidos e relatados, sem faixa: com zero horas de fome e de frio cobradas, nenhuma partida chega à moral que leva gente embora. A fila ociosa, os aldeões sem ofício, o desperdício e as horas desperdiçando continuam medidos e sem faixa.
+
+### 7.8 Limites desta medição
+
+- **A matriz não exercita a parte dura da mecânica.** Nenhum bot deixa a moral cair a 25, então a partida, a deserção e o piso só são medidos na seção 7.4, com um feudo sem ordens. Não há um perfil "jogador que some dois dias e volta": é o que o playtest (V2A-T1) e a rodada de balanceamento (V2C-T7) precisam olhar.
+- **A chegada de colonos não é medida**: sem cartas nem objetivos novos a moral não chega a 80.
+- **As 50 sementes continuam dando o mesmo resultado na matriz**: a moral só sorteia com 80 ou mais ou com 25 ou menos. A lista de sementes passa a trabalhar com o Conselho (V2D-T1).
+- **As comparações da seção 7.3 foram medidas com três sementes e com variantes do bot que não estão no código** (um `recrutar` e uma alocação de teste, por `simulate({ ..., bot })`); só a cama vazia ficou. "Materiais por hora" soma três recursos de valor diferente: serve para comparar a mesma partida com e sem uma política, não para comparar perfis.
+- **O limite de 20 aldeões da cama vazia é do bot**, não do jogo: é onde um par de braços (5% de um feudo de 20) empata com os 10 pontos de moral. Um jogador pode preferir outra conta.
+- As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).

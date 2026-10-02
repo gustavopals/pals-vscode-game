@@ -49,7 +49,12 @@ describe('advanceTo', () => {
   it('emite a virada de estação no instante exato, antes do amanhecer do dia', () => {
     const { events } = advanceTo(newGame(), 24 * DAY_MS);
     const atBoundary = events.filter((event) => event.atMs === 24 * DAY_MS);
-    expect(atBoundary.map((event) => event.type)).toEqual(['seasonChanged', 'dayStarted']);
+    // Ninguém cuidou do feudo: depois do amanhecer vem a moral, e a fome de 12 h leva um aldeão.
+    expect(atBoundary.map((event) => event.type)).toEqual([
+      'seasonChanged',
+      'dayStarted',
+      'villagerDeserted',
+    ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');
     expect(eventsOfType(events, 'seasonChanged')).toHaveLength(1);

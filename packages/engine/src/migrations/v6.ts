@@ -1,4 +1,5 @@
 import { exactObject, listOf, literal, natural, oneOf, positive, type Shape } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { settlementV5Fields, stateV5Fields } from './v5';
 
 // Os identificadores ficam escritos aqui, como nas outras versões: a forma de uma versão não
@@ -13,8 +14,7 @@ const each = (keys: readonly string[], shape: Shape) =>
  * (V2C-T3). Entram `settlement.craftExperience` e `settlement.craftMasteredYear`, um número por
  * edifício produtivo, e `settlement.adaptation`, as coortes de quem ainda se adapta.
  *
- * Quem subir `schemaVersion` para 7 acrescenta aqui o passo `v6ToV7`, com esta forma como
- * entrada, e escreve a forma nova em `v7.ts`.
+ * O passo que sai daqui é o `v6ToV7`, abaixo; a forma da versão 7 está em `v7.ts`.
  */
 export const settlementV6Fields: Readonly<Record<string, Shape>> = {
   ...settlementV5Fields,
@@ -33,3 +33,33 @@ export const stateV6Fields: Readonly<Record<string, Shape>> = {
 };
 
 export const stateV6: Shape = exactObject(stateV6Fields);
+
+/** A moral com que uma partida antiga entra na mecânica: a base do GDD §5.7. */
+const MORALE_BASE_V7 = 50;
+
+/**
+ * Versão 6 → 7: a moral (V2C-T4; ADR 0013, decisões 4 e 19).
+ *
+ * - `settlement.morale` entra em 50, a base: **a produção de ninguém muda na fronteira** (com
+ *   50 o fator é × 1). A moral é recalculada na primeira virada de dia depois dela, com a
+ *   comida, as casas, a fome e o frio que a partida tiver naquele instante.
+ * - `settlement.moraleEffects` entra vazia: nenhum efeito temporário existia antes.
+ *
+ * Nada mais muda: nenhum prazo, nenhum estoque, nenhum aldeão. Uma partida encontrada com fome
+ * antiga conta a fome desde quando ela começou (`famine.sinceMs` já estava no estado): se já
+ * dura mais do que o prazo da deserção, o primeiro aldeão deserta na primeira virada de dia
+ * depois da fronteira, e não antes. O passo não cria prazo nenhum.
+ */
+export const v6ToV7: MigrationStep = {
+  from: 6,
+  summary: 'moral em 50, sem efeitos temporários',
+  shape: stateV6,
+  migrate(state) {
+    const settlement = state.settlement as StoredState;
+    return {
+      ...state,
+      schemaVersion: 7,
+      settlement: { ...settlement, morale: MORALE_BASE_V7, moraleEffects: [] },
+    };
+  },
+};

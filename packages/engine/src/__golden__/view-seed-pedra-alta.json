@@ -445,9 +445,49 @@
       "secondsPerVillager": 960,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": "Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4."
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 7200,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": null,
     "objectives": [
       {
@@ -535,7 +575,7 @@
         "storageBuilding": "granary",
         "storageLabel": "Despensa",
         "full": false,
-        "fullInSeconds": 61634,
+        "fullInSeconds": 58599,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -937,9 +977,49 @@
       "secondsPerVillager": 960,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": "Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4."
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 7200,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": null,
     "objectives": [
       {
@@ -1038,7 +1118,7 @@
         "storageBuilding": "granary",
         "storageLabel": "Despensa",
         "full": false,
-        "fullInSeconds": 69823,
+        "fullInSeconds": 66270,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -1055,7 +1135,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 66053,
+        "fullInSeconds": 63660,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -1072,7 +1152,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 105409,
+        "fullInSeconds": 101313,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -1435,9 +1515,44 @@
       "secondsPerVillager": 960,
       "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": null
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        }
+      ],
+      "breakdown": "50 (base) = 50",
+      "nextUpdateInSeconds": 6600,
+      "next": {
+        "value": 50,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 100
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 50.",
+      "advice": "Com 192 de comida guardada (o que 8 habitantes comem em 24 h), a moral ganha 10. Faltam 44.",
+      "foodReserve": {
+        "covered": false,
+        "holdsAtNextTurn": false,
+        "needed": 192,
+        "missing": 44,
+        "bonus": 10,
+        "text": "Com 192 de comida guardada (o que 8 habitantes comem em 24 h), a moral ganha 10. Faltam 44."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": null,
     "objectives": [
       {
@@ -1942,9 +2057,49 @@
       "secondsPerVillager": 1200,
       "durationNote": null,
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 7200,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 432,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (432 para 18 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": null,
     "objectives": [
       {
@@ -2039,7 +2194,7 @@
       {
         "id": "food",
         "label": "Comida",
-        "stock": 1426,
+        "stock": 1461,
         "cap": 2100,
         "capBreakdown": "Celeiro Nv3: 2.100",
         "storageBuilding": "granary",
@@ -2049,9 +2204,9 @@
         "fullNote": "Não enche antes da virada para a Primavera.",
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 22.7,
+        "perHour": 24.7,
         "depletesInSeconds": null,
-        "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h; consumo 18 × 1 = 18/h"
+        "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 42,74/h; consumo 18 × 1 = 18/h"
       },
       {
         "id": "wood",
@@ -2068,12 +2223,12 @@
         "wastedToday": 0,
         "perHour": -9,
         "depletesInSeconds": null,
-        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)"
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)"
       },
       {
         "id": "stone",
         "label": "Pedra",
-        "stock": 563,
+        "stock": 573,
         "cap": 900,
         "capBreakdown": "Armazém Nv1: 900",
         "storageBuilding": "warehouse",
@@ -2083,14 +2238,14 @@
         "fullNote": "Não enche antes da virada para a Primavera.",
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 17,
+        "perHour": 17.8,
         "depletesInSeconds": null,
-        "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 0,8 (frio) = 16,96/h"
+        "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 17,81/h"
       },
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 564,
+        "stock": 570,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -2100,9 +2255,9 @@
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 10.2,
+        "perHour": 10.7,
         "depletesInSeconds": null,
-        "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (frio) = 10,18/h"
+        "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) × 0,8 (frio) = 10,68/h"
       }
     ],
     "workersRules": {
@@ -2120,10 +2275,10 @@
         "level": 2,
         "resource": "food",
         "assigned": 10,
-        "grossPerHour": 40.704,
-        "perWorkerPerHour": 4.07,
-        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h",
-        "perNewWorkerPerHour": 2.035,
+        "grossPerHour": 42.739,
+        "perWorkerPerHour": 4.273,
+        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 42,74/h",
+        "perNewWorkerPerHour": 2.136,
         "experience": 20,
         "masteryBonusPercent": 6,
         "occupiedFrom": 2,
@@ -2140,9 +2295,9 @@
         "resource": "wood",
         "assigned": 0,
         "grossPerHour": 0,
-        "perWorkerPerHour": 5.12,
-        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h",
-        "perNewWorkerPerHour": 2.56,
+        "perWorkerPerHour": 5.376,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 2.688,
         "experience": 0,
         "masteryBonusPercent": 0,
         "occupiedFrom": 1,
@@ -2158,10 +2313,10 @@
         "level": 1,
         "resource": "stone",
         "assigned": 5,
-        "grossPerHour": 16.96,
-        "perWorkerPerHour": 3.392,
-        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 0,8 (frio) = 16,96/h",
-        "perNewWorkerPerHour": 1.696,
+        "grossPerHour": 17.808,
+        "perWorkerPerHour": 3.561,
+        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 17,81/h",
+        "perNewWorkerPerHour": 1.78,
         "experience": 20,
         "masteryBonusPercent": 6,
         "occupiedFrom": 1,
@@ -2177,10 +2332,10 @@
         "level": 1,
         "resource": "gold",
         "assigned": 3,
-        "grossPerHour": 10.176,
-        "perWorkerPerHour": 3.392,
-        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (frio) = 10,18/h",
-        "perNewWorkerPerHour": 1.696,
+        "grossPerHour": 10.684,
+        "perWorkerPerHour": 3.561,
+        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,05 (moral 60) × 0,8 (frio) = 10,68/h",
+        "perNewWorkerPerHour": 1.78,
         "experience": 20,
         "masteryBonusPercent": 6,
         "occupiedFrom": 1,
@@ -2442,9 +2597,54 @@
       "secondsPerVillager": 1200,
       "durationNote": null,
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": null
     },
     "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        },
+        {
+          "id": "cold",
+          "label": "Frio",
+          "amount": -20
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) − 20 (frio) = 40",
+      "nextUpdateInSeconds": 1800,
+      "next": {
+        "value": 40,
+        "band": "restless",
+        "bandLabel": "Inquieto",
+        "multiplierPercent": 95
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, cai de 60 para 40 (Inquieto).",
+      "advice": "O que mais pesa é o frio (−20). Ponha gente na Serraria: com lenha na lareira o frio passa, e a moral sobe na virada seguinte.",
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 432,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (432 para 18 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": {
       "firewoodPerHour": 9,
       "firewood": {
@@ -2557,7 +2757,7 @@
         "storageBuilding": "granary",
         "storageLabel": "Celeiro",
         "full": false,
-        "fullInSeconds": 17657,
+        "fullInSeconds": 17006,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -2591,7 +2791,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 38141,
+        "fullInSeconds": 36663,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -3136,9 +3336,49 @@
       "secondsPerVillager": 1200,
       "durationNote": null,
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": "Chamar mais de 1 aldeão agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4."
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 7080,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 480,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (480 para 20 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
     "winter": null,
     "objectives": [
       {
@@ -3219,7 +3459,7 @@
         "firewood": {
           "perHour": 6,
           "winterTotal": 144,
-          "winterProduction": 798,
+          "winterProduction": 838,
           "stock": 436,
           "missing": 0,
           "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
@@ -3246,7 +3486,7 @@
         "storageBuilding": "granary",
         "storageLabel": "Celeiro",
         "full": false,
-        "fullInSeconds": 50743,
+        "fullInSeconds": 48171,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -3263,7 +3503,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Armazém",
         "full": false,
-        "fullInSeconds": 92004,
+        "fullInSeconds": 87731,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -3653,9 +3893,1165 @@
       "secondsPerVillager": 1200,
       "durationNote": null,
       "maxQuantity": 5,
-      "blockedReason": null
+      "blockedReason": null,
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
     },
     "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 2280,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 288,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (288 para 12 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro e o Armazém",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "impoverished": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 1,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "winter",
+      "seasonLabel": "Inverno",
+      "dayOfSeason": 3,
+      "dayOfYear": 75,
+      "secondsToNextDay": 6000,
+      "secondsToNextSeason": 70800,
+      "seasonEffects": "Inverno: comida × 0,4; madeira e pedra × 0,8; obras iniciadas com prazo × 1,5; a lareira queima 0,5 de madeira por habitante por hora.",
+      "nextSeason": {
+        "id": "spring",
+        "label": "Primavera",
+        "secondsUntil": 70800,
+        "changes": [
+          "A produção de comida passa de × 0,4 para × 1,2.",
+          "A produção de madeira e pedra passa de × 0,8 para × 1.",
+          "O prazo de um recrutamento ordenado na Primavera é × 0,8.",
+          "As obras voltam ao prazo de sempre.",
+          "Ninguém queima mais lenha: o frio, se houver, passa."
+        ],
+        "firewood": null
+      }
+    },
+    "population": {
+      "villagers": 3,
+      "capacity": 10,
+      "free": 3,
+      "inTraining": 0,
+      "housed": 3,
+      "vacancies": 7,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": -3,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 0 trabalhadores × 10 × 1 (Nv1) × 0,4 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h; consumo 3 × 1 = 3/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": -1.5,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h; −1,5/h (lenha de 3 habitantes)"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 0,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) × 0,8 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 0,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 1.8,
+        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) × 0,4 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 0.9,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 2.88,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 1.44,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 1.8,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) × 0,8 (inverno) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 0.9,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 1.8,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) × 0,75 (moral 0) × 0,75 (fome) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 0.9,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 150
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 100
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 100,
+              "missing": 100
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 150 madeira, 100 pedra e 100 ouro.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 80
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 40
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 80 madeira e 40 ouro.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 100
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 50
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 100 madeira e 50 pedra.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 120
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 30
+            }
+          ],
+          "durationSeconds": 540,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 120 madeira e 30 ouro.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 120
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 80
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 120 madeira e 80 pedra.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 80
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 20
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 80 madeira e 20 pedra.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 160
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 80
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 160
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 80
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 50
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 10
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": "Ninguém se junta a um feudo com fome. Ponha comida na mesa primeiro.",
+      "moraleNote": null
+    },
+    "famine": {
+      "sinceMs": 388800000,
+      "secondsElapsed": 145200,
+      "text": "Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar."
+    },
+    "morale": {
+      "value": 0,
+      "band": "desperate",
+      "bandLabel": "Desesperado",
+      "multiplierPercent": 75,
+      "text": "Moral 0 (Desesperado): produção × 0,75.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "famine",
+          "label": "Fome",
+          "amount": -20
+        },
+        {
+          "id": "famineDays",
+          "label": "21 dias inteiros de fome",
+          "amount": -42
+        },
+        {
+          "id": "cold",
+          "label": "Frio",
+          "amount": -20
+        }
+      ],
+      "breakdown": "50 (base) − 20 (fome) − 42 (21 dias inteiros de fome) − 20 (frio) = −32; a moral não desce de 0",
+      "nextUpdateInSeconds": 6000,
+      "next": {
+        "value": 0,
+        "band": "desperate",
+        "bandLabel": "Desesperado",
+        "multiplierPercent": 75
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 0.",
+      "advice": "O que mais pesa é a fome (−62). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.",
+      "foodReserve": {
+        "covered": false,
+        "holdsAtNextTurn": false,
+        "needed": 72,
+        "missing": 72,
+        "bonus": 10,
+        "text": "Com 72 de comida guardada (o que 3 habitantes comem em 24 h), a moral ganha 10. Faltam 72."
+      },
+      "notes": [
+        "Restam 3 aldeões: com 3 ou menos, ninguém mais parte nem deserta."
+      ],
+      "effects": []
+    },
+    "winter": {
+      "firewoodPerHour": 1.5,
+      "firewood": {
+        "perHour": 1.5,
+        "winterTotal": 30,
+        "winterProduction": 0,
+        "stock": 0,
+        "missing": 30,
+        "text": "Até a Primavera a lareira ainda queima 30 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 30 de madeira."
+      },
+      "cold": {
+        "secondsElapsed": 15600,
+        "text": "Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 1,5/h e a Serraria entrega 0/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 30 de madeira para atravessar o resto do Inverno."
+      }
+    },
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro e o Armazém",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "proud": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 2,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "summer",
+      "seasonLabel": "Verão",
+      "dayOfSeason": 6,
+      "dayOfYear": 30,
+      "secondsToNextDay": 4980,
+      "secondsToNextSeason": 134580,
+      "seasonEffects": "Verão: madeira e pedra × 1,15.",
+      "nextSeason": {
+        "id": "autumn",
+        "label": "Outono",
+        "secondsUntil": 134580,
+        "changes": [
+          "A produção de comida passa de × 1 para × 1,3.",
+          "A produção de madeira e pedra passa de × 1,15 para × 1.",
+          "A produção de ouro passa de × 1 para × 1,1."
+        ],
+        "firewood": null
+      }
+    },
+    "population": {
+      "villagers": 23,
+      "capacity": 25,
+      "free": 3,
+      "inTraining": 0,
+      "housed": 23,
+      "vacancies": 2,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv3 × 5 = 25 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 500,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": true,
+        "fullInSeconds": null,
+        "fullNote": "Despensa cheia: 64,8/h de comida indo ao chão. Construa o Celeiro ou gaste comida.",
+        "wastingPerHour": 64.8,
+        "wastedToday": 40,
+        "perHour": 64.8,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 6 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 1,15 (moral 80) = 87,77/h; consumo 23 × 1 = 23/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 500,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": true,
+        "fullInSeconds": null,
+        "fullNote": "Pátio cheio: 67,3/h de madeira indo ao chão. Construa o Armazém ou gaste madeira.",
+        "wastingPerHour": 67.3,
+        "wastedToday": 41,
+        "perHour": 67.3,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 6 trabalhadores × 8 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (verão) × 1,15 (moral 80) = 67,29/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 500,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": true,
+        "fullInSeconds": null,
+        "fullNote": "Pátio cheio: 35/h de pedra indo ao chão. Construa o Armazém ou gaste pedra.",
+        "wastingPerHour": 35,
+        "wastedToday": 21,
+        "perHour": 35,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (verão) × 1,15 (moral 80) = 35,05/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 294,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 14.6,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (moral 80) = 14,63/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 2,
+        "resource": "food",
+        "assigned": 6,
+        "grossPerHour": 87.768,
+        "perWorkerPerHour": 14.628,
+        "breakdown": "6 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 1,15 (moral 80) = 87,77/h",
+        "perNewWorkerPerHour": 7.314,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 2,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 6,
+        "grossPerHour": 67.288,
+        "perWorkerPerHour": 11.214,
+        "breakdown": "6 trabalhadores × 8 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (verão) × 1,15 (moral 80) = 67,29/h",
+        "perNewWorkerPerHour": 5.607,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 5,
+        "grossPerHour": 35.046,
+        "perWorkerPerHour": 7.009,
+        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (verão) × 1,15 (moral 80) = 35,05/h",
+        "perNewWorkerPerHour": 3.504,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 3,
+        "grossPerHour": 14.628,
+        "perWorkerPerHour": 4.876,
+        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 1,15 (moral 80) = 14,63/h",
+        "perNewWorkerPerHour": 2.438,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 270,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 180,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 128,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 64,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 205,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 51,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 540,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "durationNote": null,
+      "maxQuantity": 2,
+      "blockedReason": null,
+      "moraleNote": "Com as casas cheias a moral perde 10: para evitar, chame até 1."
+    },
+    "famine": null,
+    "morale": {
+      "value": 80,
+      "band": "proud",
+      "bandLabel": "Orgulhoso",
+      "multiplierPercent": 115,
+      "text": "Moral 80 (Orgulhoso): produção × 1,15.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "effect",
+          "label": "festa da colheita",
+          "amount": 30
+        }
+      ],
+      "breakdown": "50 (base) + 30 (festa da colheita) = 80",
+      "nextUpdateInSeconds": 4980,
+      "next": {
+        "value": 80,
+        "band": "proud",
+        "bandLabel": "Orgulhoso",
+        "multiplierPercent": 115
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 80.",
+      "advice": "Com 552 de comida guardada (o que 23 habitantes comem em 24 h), a moral ganha 10. Faltam 52. A Despensa só guarda 500: construa o Celeiro.",
+      "foodReserve": {
+        "covered": false,
+        "holdsAtNextTurn": false,
+        "needed": 552,
+        "missing": 52,
+        "bonus": 10,
+        "text": "Com 552 de comida guardada (o que 23 habitantes comem em 24 h), a moral ganha 10. Faltam 52. A Despensa só guarda 500: construa o Celeiro."
+      },
+      "notes": [
+        "Com a moral em 80 ou mais e vaga nas casas, cada virada do dia tem 20% de chance de trazer um colono."
+      ],
+      "effects": [
+        {
+          "label": "festa da colheita",
+          "amount": 30,
+          "endsInSeconds": 33780
+        }
+      ]
+    },
     "winter": null,
     "objectives": [
       {

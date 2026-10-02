@@ -1,7 +1,13 @@
 import { z } from 'zod';
 
 import { CHRONICLE_PLACEHOLDERS, EVENT_TYPES, foundingTemplates } from './chronicle';
-import { BUILDING_IDS, PRODUCTION_BUILDING_IDS, RESOURCE_IDS, SEASON_IDS } from './ids';
+import {
+  BUILDING_IDS,
+  MORALE_BAND_IDS,
+  PRODUCTION_BUILDING_IDS,
+  RESOURCE_IDS,
+  SEASON_IDS,
+} from './ids';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
 const positiveInt = z.number().int().positive();
@@ -46,6 +52,49 @@ const storageBuilding = z.strictObject({
   perLevel: positiveInt,
   unbuilt: z.strictObject({ label, article: z.enum(['o', 'a']) }),
 });
+
+const negativeInt = z.number().int().negative();
+/** Uma chance: de zero a um. */
+const chance = ratio.refine(({ num, den }) => num <= den, 'chance maior que 1');
+
+const morale = z
+  .strictObject({
+    base: z.number().int().nonnegative(),
+    foodReserve: z.strictObject({ coverMs: positiveInt, bonus: positiveInt }),
+    famine: negativeInt,
+    faminePerDay: negativeInt,
+    housingFull: negativeInt,
+    cold: negativeInt,
+    multiplier: z.strictObject({ base: ratio, perPoint: ratio }),
+    // Uma faixa por id, na ordem, cada uma acima da anterior: juntas cobrem de 0 ao máximo.
+    bands: z
+      .array(
+        z.strictObject({ id: z.enum(MORALE_BAND_IDS), max: z.number().int().nonnegative(), label }),
+      )
+      .length(MORALE_BAND_IDS.length)
+      .refine(
+        (bands) => bands.every((band, index) => band.id === MORALE_BAND_IDS[index]),
+        'faixas fora da ordem',
+      )
+      .refine(
+        (bands) =>
+          bands.every((band, index) => index === 0 || band.max > (bands[index - 1]?.max ?? 0)),
+        'faixas que não sobem',
+      ),
+    arrival: z.strictObject({ minMorale: positiveInt, chance }),
+    departure: z.strictObject({ maxMorale: z.number().int().nonnegative(), chance }),
+    famineDesertionAfterMs: positiveInt,
+    populationFloor: positiveInt,
+  })
+  .refine(
+    ({ base, bands }) => base <= (bands[bands.length - 1]?.max ?? 0),
+    'moral base acima do máximo',
+  )
+  // Quem pode ganhar um colono não pode perder um aldeão na mesma virada.
+  .refine(
+    ({ arrival, departure }) => departure.maxMorale < arrival.minMorale,
+    'partida e chegada na mesma moral',
+  );
 
 const pace = z.strictObject({
   timeScale: z.number().positive(),
@@ -109,6 +158,7 @@ export const BalanceSchema = z.strictObject({
     masteryBonus: ratio,
     occupiedWorkersPerLevel: positiveInt,
   }),
+  morale,
   winter: z.strictObject({ cold: z.strictObject({ productionMultiplier: ratio }) }),
   calendar: z.strictObject({
     dayMs: positiveInt,
@@ -223,7 +273,20 @@ export const CraftGuildsSchema = z.strictObject(
   Object.fromEntries(
     PRODUCTION_BUILDING_IDS.map((id) => [
       id,
-      z.strictObject({ artisans: midSentence, feat: midSentence }),
+      z.strictObject({ artisans: midSentence, artisan: midSentence, feat: midSentence }),
+    ]),
+  ),
+);
+
+/** Quem parte sem ofício: entra no meio da frase, como os de `craftGuilds`. */
+export const IdleVillagerSchema = midSentence;
+
+/** As frases da mudança de faixa da moral: uma por faixa de chegada e por sentido. */
+export const MoraleBandTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    MORALE_BAND_IDS.map((id) => [
+      id,
+      z.strictObject({ rose: chronicleTemplate.optional(), fell: chronicleTemplate.optional() }),
     ]),
   ),
 );

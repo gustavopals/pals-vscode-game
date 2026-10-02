@@ -3,6 +3,7 @@ import { balance, type Ratio, RESOURCE_IDS, type SeasonDef } from '@lotg/content
 import {
   DAY_MS,
   inSeason,
+  nextDayBoundary,
   nextSeasonBoundary,
   ofSeason,
   seasonAfter,
@@ -143,6 +144,10 @@ type FirewoodCount = {
  * O que `building` entrega de `fromMs` a `toMs`, em milésimos × ms por hora, com os fatores de
  * `season` e os trabalhadores de agora. Quem ainda se adapta rende a fração só até o fim da
  * adaptação: a conta é feita trecho a trecho, cortando em cada leva que termina no caminho.
+ *
+ * A moral também corta a conta: até a próxima virada do dia vale a de agora, e dali em diante
+ * `nextMorale`, a que essa virada vai calcular se nada mudar. No frio é ela que pesa: a conta
+ * da lenha não promete a madeira que a moral mais baixa não vai entregar.
  */
 function producedBetween(
   state: GameState,
@@ -150,16 +155,27 @@ function producedBetween(
   season: SeasonDef,
   fromMs: number,
   toMs: number,
+  nextMorale: number,
 ): number {
+  const turn = nextDayBoundary(state.lastProcessedAt);
+  const afterTurn: GameState = {
+    ...state,
+    settlement: { ...state.settlement, morale: nextMorale },
+  };
   const ends = state.settlement.adaptation
     .filter((cohort) => cohort.building === building)
-    .map((cohort) => cohort.untilMs)
-    .filter((untilMs) => untilMs > fromMs && untilMs < toMs);
-  const cuts = [fromMs, ...[...new Set(ends)].sort((a, b) => a - b), toMs];
+    .map((cohort) => cohort.untilMs);
+  const inside = [...ends, turn].filter((cut) => cut > fromMs && cut < toMs);
+  const cuts = [fromMs, ...[...new Set(inside)].sort((a, b) => a - b), toMs];
   let total = 0;
   for (let index = 0; index + 1 < cuts.length; index += 1) {
     const start = cuts[index] as number;
-    const rate = productionRate(state, building, handsAt(state, building, start), season);
+    const rate = productionRate(
+      start >= turn ? afterTurn : state,
+      building,
+      handsAt(state, building, start),
+      season,
+    );
     total += rate * ((cuts[index + 1] as number) - start);
   }
   return total;
@@ -177,12 +193,13 @@ function countFirewood(
   fromMs: number,
   toMs: number,
   timeScale: number,
+  nextMorale: number,
 ): FirewoodCount {
   const producer = producerOf('wood');
   const burned = firewoodRate(state, season);
   const winterTotal = Math.ceil((burned * (toMs - fromMs)) / HOUR_MS / MILLI);
   const winterProduction = Math.floor(
-    producedBetween(state, producer, season, fromMs, toMs) / HOUR_MS / MILLI,
+    producedBetween(state, producer, season, fromMs, toMs, nextMorale) / HOUR_MS / MILLI,
   );
   const stock = Math.floor(state.settlement.resources.wood / MILLI);
   return {
@@ -208,15 +225,27 @@ function firewoodSums({ numbers, lumberMill }: FirewoodCount): string {
 
 /**
  * A previsão da lenha da próxima estação, quando ela queima madeira: o inverno inteiro, visto
- * de antes. `null` quando a próxima estação não queima nada.
+ * de antes. `null` quando a próxima estação não queima nada. `nextMorale` é a moral que a
+ * próxima virada do dia vai calcular: é com ela que a Serraria rende dali em diante.
  */
-export function firewoodForecast(state: GameState, timeScale: number): FirewoodView | null {
+export function firewoodForecast(
+  state: GameState,
+  timeScale: number,
+  nextMorale: number,
+): FirewoodView | null {
   const next = seasonAfter(seasonAt(state.lastProcessedAt));
   if (next.effects.firewoodPerVillagerPerHour.num === 0) {
     return null;
   }
   const starts = nextSeasonBoundary(state.lastProcessedAt);
-  const count = countFirewood(state, next, starts, starts + next.days * DAY_MS, timeScale);
+  const count = countFirewood(
+    state,
+    next,
+    starts,
+    starts + next.days * DAY_MS,
+    timeScale,
+    nextMorale,
+  );
   const wood = balance.resources.wood.label.toLowerCase();
   const people = plural(count.villagers, 'habitante', 'habitantes');
   return {
@@ -238,6 +267,7 @@ function realSecondsFloor(gameMs: number, timeScale: number): number {
 export function winterView(
   state: GameState,
   timeScale: number,
+  nextMorale: number,
 ): {
   firewoodPerHour: number;
   firewood: FirewoodView;
@@ -249,7 +279,7 @@ export function winterView(
     return null;
   }
   const next = seasonAfter(season);
-  const count = countFirewood(state, season, now, nextSeasonBoundary(now), timeScale);
+  const count = countFirewood(state, season, now, nextSeasonBoundary(now), timeScale, nextMorale);
   const { numbers } = count;
   const wood = balance.resources.wood.label.toLowerCase();
   const firewood: FirewoodView = {

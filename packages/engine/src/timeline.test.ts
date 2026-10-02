@@ -165,8 +165,8 @@ describe('nextEventAt', () => {
 
     it('a previsão é refeita a cada trecho: a virada de estação muda a taxa, e o instante acompanha', () => {
       // A uma hora do verão, faltando 100 de madeira: 40 na última hora da primavera e 60 no
-      // verão, a 46,552 por hora (× 1,15 da estação e × 1,012 dos 4 de experiência que a
-      // Serraria ganha na mesma virada).
+      // verão, a 48,879 por hora (× 1,15 da estação, × 1,012 dos 4 de experiência que a
+      // Serraria ganha na mesma virada e × 1,05 da moral, que a virada leva a 60).
       const start = gameAt(24 * DAY - HOUR, (draft) => {
         draft.settlement.workers.lumberMill = 5;
         draft.settlement.resources = { food: 500_000, wood: 0, stone: 400_000, gold: 400_000 };
@@ -176,7 +176,7 @@ describe('nextEventAt', () => {
       expect(nextAutoStartAt(state)).toBe(24 * DAY - HOUR + 150 * MINUTE);
       expect(nextEventAt(state)).toBe(24 * DAY);
       const summer = advanceTo(state, 24 * DAY).state;
-      const expected = 24 * DAY + Math.ceil((60_000 * HOUR) / 46_552);
+      const expected = 24 * DAY + Math.ceil((60_000 * HOUR) / 48_879);
       expect(nextAutoStartAt(summer)).toBe(expected);
       const { events } = advanceTo(state, 24 * DAY + 2 * HOUR);
       expect(

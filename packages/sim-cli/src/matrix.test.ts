@@ -146,7 +146,7 @@ describe('relatório da matriz', () => {
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
-    expect(lines[1]).toBe("  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37781),");
+    expect(lines[1]).toBe("  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628),");
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -219,23 +219,26 @@ describe('CSV da matriz', () => {
     expect(lines[1]?.startsWith('week,3,preguicoso,preguicoso,1,lord,pedra-alta-001,168,3,')).toBe(
       true,
     );
-    // As colunas das mecânicas: o desperdício por recurso e o frio são medidos (o total e as
-    // horas da partida); as outras saem vazias até a tarefa de cada uma.
+    // As colunas das mecânicas: o desperdício por recurso, o frio e a moral são medidos (o
+    // total, as horas e a menor moral da partida); as outras saem vazias até a tarefa de cada
+    // uma.
     const header = (lines[0] ?? '').split(',');
     for (const line of lines.slice(1)) {
       const cells = line.split(',');
       for (const { name } of RESERVED_COLUMNS) {
         expect(cells[header.indexOf(name)], name).toBe('');
       }
-      for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone', 'cold']) {
+      for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone', 'cold', 'morale']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
     }
   });
 
-  it('a semente não muda o resultado enquanto nenhuma regra sorteia', () => {
-    // Quando o Conselho e a moral passarem a sortear, este teste cai e a lista de 50 sementes
-    // começa a trabalhar: troque-o por um que confira que as sementes divergem.
+  it('a semente ainda não muda o resultado: os bots não chegam à moral que sorteia', () => {
+    // A moral já sorteia, mas só com 80 ou mais (o colono) ou com 25 ou menos (a partida), e
+    // os feudos dos bots vivem entre 40 e 60. Quando o Conselho passar a sortear (ou um bot
+    // deixar a moral cair), este teste cai e a lista de 50 sementes começa a trabalhar:
+    // troque-o por um que confira que as sementes divergem.
     const withoutSeed = new Set(
       lines.slice(1).map((line) =>
         line

@@ -8,7 +8,7 @@ import {
   RESOURCE_IDS,
 } from '@lotg/content';
 
-import { advanceTo } from './advance';
+import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './clock';
 import {
   cancelRefund,
@@ -30,6 +30,8 @@ import {
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, plural } from './format';
+import { moraleAt } from './morale';
+import { moraleView, recruitmentMoraleNote } from './moraleView';
 import { describeReward, objectiveProgress } from './objectives';
 import { paceLabel } from './pace';
 import { planCost } from './planned';
@@ -95,8 +97,8 @@ function realSecondsFloor(gameMs: number, timeScale: number): number {
 }
 
 /**
- * "4 trabalhadores × 10 × 1,2 (Nv2) × 1,12 (mestria 40) × 1,3 (outono) = 69,89/h", por hora
- * real: um termo para cada fator da conta de `productionRate`. O nível aparece sempre; os
+ * "4 trabalhadores × 10 × 1,2 (Nv2) × 1,12 (mestria 40) × 1,3 (outono) × 1,05 (moral 60) =
+ * 73,38/h", por hora real: um termo para cada fator da conta de `productionRate`. O nível aparece sempre; os
  * outros, só quando mexem. Com gente em adaptação, o primeiro termo diz quantos são, até quando
  * e por quantos contam (`handsClause`).
  */
@@ -278,7 +280,8 @@ export function deriveViewState(
   const rates = netRates(state);
   const capacity = housingCapacity(state);
   const { villagers } = settlement.population;
-  // "Acaba em" conta com o que o ofício muda sozinho: quem ainda se adapta vai render inteiro.
+  // "Acaba em" conta com o que o ofício e a moral mudam sozinhos: quem ainda se adapta vai
+  // render inteiro, e a próxima virada do dia recalcula a moral.
   const forecast = craftForecast(state);
   const outlook = craftOutlook(forecast);
   const runsOutIn: Partial<Record<ResourceId, number | null>> = {
@@ -286,6 +289,10 @@ export function deriveViewState(
     wood: outlook.woodRunsOutIn,
   };
   const nextSeason = seasonAfter(date.season);
+  // O feudo como a próxima virada do dia vai encontrá-lo, e a moral que ela vai calcular: a
+  // conta da moral e a da lenha saem daqui.
+  const atTurn = stateAtNextMoraleTurn(state);
+  const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
 
   // Uma entrada por fila aberta; a fila que o Salão ainda não abriu não aparece.
   const queues = Array.from({ length: queuesUnlocked(state) }, (_, index) => {
@@ -322,7 +329,7 @@ export function deriveViewState(
         label: nextSeason.label,
         secondsUntil: until(nextSeasonBoundary(now)),
         changes: seasonChanges(date.season, nextSeason, timeScale),
-        firewood: firewoodForecast(state, timeScale),
+        firewood: firewoodForecast(state, timeScale, nextMorale),
       },
     },
     population: {
@@ -386,6 +393,8 @@ export function deriveViewState(
       durationNote: recruitmentDurationNote(date.season),
       maxQuantity,
       blockedReason: recruitmentBlock(state, 1)?.message ?? null,
+      // Na fome ninguém se junta ao feudo: não há ordem cujo custo mostrar.
+      moraleNote: settlement.famine === null ? recruitmentMoraleNote(state, maxQuantity) : null,
     },
     famine:
       settlement.famine === null
@@ -395,7 +404,8 @@ export function deriveViewState(
             secondsElapsed: realSecondsFloor(now - settlement.famine.sinceMs, timeScale),
             text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
           },
-    winter: winterView(state, timeScale),
+    morale: moraleView(state, atTurn, timeScale),
+    winter: winterView(state, timeScale, nextMorale),
     objectives: objectivesView(state),
     pendingDecisions: [],
   };

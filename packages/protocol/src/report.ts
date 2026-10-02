@@ -1,4 +1,4 @@
-import { RESOURCE_IDS } from '@lotg/content';
+import { MORALE_BAND_IDS, RESOURCE_IDS } from '@lotg/content';
 import { z } from 'zod';
 
 /**
@@ -37,7 +37,31 @@ export const ReturnReportSchema = z.strictObject({
     constructionsFinished: z.number().int().nonnegative(),
     villagersArrived: z.number().int().nonnegative(),
     objectivesCompleted: z.number().int().nonnegative(),
+    /**
+     * A população que a moral e a fome moveram, pelos eventos da ausência: colonos que
+     * chegaram sozinhos (`villagerArrived`), aldeões que partiram com a moral baixa
+     * (`villagerLeft`) e os que desertaram na fome longa (`villagerDeserted`). Opcionais: quem
+     * monta o relatório os preenche quando conhece esses eventos. `villagersArrived`, acima,
+     * continua sendo o dos recrutados.
+     */
+    settlersArrived: z.number().int().nonnegative().optional(),
+    villagersLeft: z.number().int().nonnegative().optional(),
+    villagersDeserted: z.number().int().nonnegative().optional(),
   }),
+  /**
+   * A moral na volta (a da visão atual) e a da última visita, quando o cliente a tem: o
+   * Relatório diz a faixa em que o feudo está e se ela mudou. Opcional, como as contagens.
+   */
+  morale: z
+    .strictObject({
+      value: z.number(),
+      band: z.enum(MORALE_BAND_IDS),
+      bandLabel: z.string(),
+      before: z
+        .strictObject({ value: z.number(), band: z.enum(MORALE_BAND_IDS), bandLabel: z.string() })
+        .optional(),
+    })
+    .optional(),
   famine: z.enum(['none', 'started', 'ended', 'ongoing']),
   /** Frases da Crônica dos fatos notáveis, da mais antiga para a mais nova. */
   highlights: z.array(z.string()),
