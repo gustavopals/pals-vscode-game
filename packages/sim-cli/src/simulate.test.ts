@@ -337,11 +337,12 @@ describe('partida de controle: as mesmas planejadas, manuais', () => {
       },
       () => view,
     );
-    await act('planConstruction', { building: 'farm', autoStart: true });
-    await act('setAutoStart', { building: 'farm', autoStart: true });
+    await act('planConstruction', { building: 'farm', autoStart: true, targetLevel: 2 });
+    await act('setAutoStart', { building: 'farm', autoStart: true, targetLevel: 2 });
     await act('startConstruction', { building: 'farm' });
     expect(seen).toEqual([
-      ['planConstruction', { building: 'farm' }],
+      // Só a marca sai: o nível que a visão mostrou segue com a ordem.
+      ['planConstruction', { building: 'farm', targetLevel: 2 }],
       ['startConstruction', { building: 'farm' }],
     ]);
   });

@@ -77,8 +77,18 @@ describe('CommandSchema', () => {
     { commandId: uuid, type: 'cancelConstruction', payload: { building: 'housing' } },
     { commandId: uuid, type: 'planConstruction', payload: { building: 'quarry' } },
     { commandId: uuid, type: 'planConstruction', payload: { building: 'quarry', autoStart: true } },
+    {
+      commandId: uuid,
+      type: 'planConstruction',
+      payload: { building: 'quarry', autoStart: true, targetLevel: 2 },
+    },
     { commandId: uuid, type: 'unplanConstruction', payload: { building: 'quarry' } },
     { commandId: uuid, type: 'setAutoStart', payload: { building: 'quarry', autoStart: false } },
+    {
+      commandId: uuid,
+      type: 'setAutoStart',
+      payload: { building: 'quarry', autoStart: true, targetLevel: 3 },
+    },
     { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 3 } },
     { commandId: uuid, type: 'renameSettlement', payload: { name: 'Vau Alto' } },
   ];
@@ -123,6 +133,26 @@ describe('CommandSchema', () => {
     [
       'marca de automática que não é booleana',
       { commandId: uuid, type: 'planConstruction', payload: { building: 'farm', autoStart: 1 } },
+    ],
+    [
+      'nível-alvo que não é inteiro',
+      {
+        commandId: uuid,
+        type: 'planConstruction',
+        payload: { building: 'farm', targetLevel: 2.5 },
+      },
+    ],
+    [
+      'nível-alvo zero',
+      {
+        commandId: uuid,
+        type: 'setAutoStart',
+        payload: { building: 'farm', autoStart: true, targetLevel: 0 },
+      },
+    ],
+    [
+      'nível-alvo em uma ordem que não o conhece',
+      { commandId: uuid, type: 'startConstruction', payload: { building: 'farm', targetLevel: 2 } },
     ],
     [
       'setAutoStart sem dizer se marca ou desmarca',

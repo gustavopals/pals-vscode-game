@@ -62,6 +62,12 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   NOT_IN_CONSTRUCTION: ({ label }) => `${label} não está em obras.`,
   ALREADY_PLANNED: ({ label }) => `${label} já está na lista de obras planejadas.`,
   NOT_PLANNED: ({ label }) => `${label} não está na lista de obras planejadas.`,
+  // A ordem dizia um nível e a obra da vez já é outra (a tela estava atrasada, ou outra aba
+  // passou na frente). `label` é o edifício com "de": "das Habitações"; `level`, o nível de agora.
+  STALE_LEVEL: ({ label = 'desse edifício', level }) =>
+    `Essa ordem ficou para trás: a obra ${label} agora é ${
+      level === undefined ? 'a de outro nível' : `a do nível ${level}`
+    }. Confira a lista e peça de novo.`,
   INVALID_QUANTITY: () => `Recrute de 1 a ${maxPerOrder} aldeões por ordem.`,
   FAMINE: () => 'Ninguém se junta a um feudo com fome. Ponha comida na mesa primeiro.',
   RECRUIT_QUEUE_FULL: ({ count = 0 }) =>

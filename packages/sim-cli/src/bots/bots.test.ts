@@ -1017,7 +1017,8 @@ describe('política "planejar automáticas"', () => {
   };
   const plan = (building: BuildingId) => ({
     type: 'planConstruction',
-    payload: { building, autoStart: true },
+    // O bot manda o nível que a visão mostrou, como o app.
+    payload: { building, autoStart: true, targetLevel: 2 },
   });
 
   it('planeja como automáticas as obras que não puderam começar, da mais barata à mais cara', async () => {
@@ -1076,7 +1077,7 @@ describe('política "planejar automáticas"', () => {
     );
     expect(await decide(view)).toEqual([
       // A da lista que gasta madeira perde a marca; a que não gasta continua automática.
-      { type: 'setAutoStart', payload: { building: 'housing', autoStart: false } },
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: false, targetLevel: 2 } },
       // Das novas, só a que não gasta madeira.
       plan('goldMine'),
     ]);
@@ -1090,7 +1091,7 @@ describe('política "planejar automáticas"', () => {
       forecast(300, 400, 20),
     );
     expect(await decide(view)).toEqual([
-      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true, targetLevel: 2 } },
       plan('quarry'),
     ]);
   });

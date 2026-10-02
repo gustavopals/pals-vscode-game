@@ -33,6 +33,12 @@ export function buildingWithArticle(building: BuildingId): string {
   return `${def.article} ${def.label}`;
 }
 
+/** "da Serraria", "do Armazém", "das Habitações". */
+export function ofBuilding(building: BuildingId): string {
+  const def = buildings[building];
+  return `d${def.article} ${def.label}`;
+}
+
 /** arredondar(valor × fator^passos), só com inteiros. */
 function growRounded(value: number, factor: Ratio, steps: number): number {
   const num = value * factor.num ** steps;
@@ -429,11 +435,19 @@ function nextPlannableLevel(state: GameState, building: BuildingId): number {
  * Põe uma melhoria no fim da lista de planejadas. Planejar não gasta nada. Com `autoStart`, a
  * obra começa sozinha no primeiro instante em que puder (`planned.ts`); sem ele, espera a ordem
  * do jogador, como na v0.1.
+ *
+ * `askedLevel` é o nível que a tela mostrava a quem deu a ordem. Sem ele, a ordem vale para a
+ * obra que for a da vez. Com ele, só vale se essa obra ainda é a daquele nível: duas abas com a
+ * visão velha (ou a ordem repetida antes de a resposta chegar) pedem a mesma obra, e a segunda
+ * não pode virar a planejada do nível seguinte, que como automática seria paga sem ninguém ter
+ * pedido. A recusa diz o que aconteceu com a obra pedida: já começou, já chegou ao teto, ou já
+ * é a de outro nível.
  */
 export function planConstruction(
   draft: GameState,
   building: unknown,
   autoStart: unknown,
+  askedLevel?: unknown,
 ): Rejection | null {
   if (!isBuildingId(building)) {
     return reject('INVALID_BUILDING');
@@ -443,18 +457,32 @@ export function planConstruction(
     return reject('ALREADY_PLANNED', { label });
   }
   const targetLevel = nextPlannableLevel(draft, building);
+  if (askedLevel !== undefined && askedLevel !== targetLevel) {
+    const underway = constructionOf(draft, building);
+    if (underway !== null && typeof askedLevel === 'number' && askedLevel <= underway.targetLevel) {
+      return reject('ALREADY_UPGRADING', { label });
+    }
+  }
   if (targetLevel > buildings[building].maxLevel) {
     return reject('MAX_LEVEL', { label });
+  }
+  if (askedLevel !== undefined && askedLevel !== targetLevel) {
+    return reject('STALE_LEVEL', { label: ofBuilding(building), level: targetLevel });
   }
   draft.settlement.planned.push({ building, targetLevel, autoStart: autoStart === true });
   return null;
 }
 
-/** Marca ou desmarca "iniciar quando houver recursos" em uma planejada, sem tirá-la do lugar. */
+/**
+ * Marca ou desmarca "iniciar quando houver recursos" em uma planejada, sem tirá-la do lugar.
+ * Com `askedLevel`, só a planejada daquele nível: a marca dada com a tela atrasada não vai para
+ * a planejada de outro nível que entrou no lugar.
+ */
 export function setAutoStart(
   draft: GameState,
   building: unknown,
   autoStart: unknown,
+  askedLevel?: unknown,
 ): Rejection | null {
   if (!isBuildingId(building)) {
     return reject('INVALID_BUILDING');
@@ -462,6 +490,9 @@ export function setAutoStart(
   const plan = draft.settlement.planned.find((entry) => entry.building === building);
   if (plan === undefined) {
     return reject('NOT_PLANNED', { label: sentenceCase(buildingWithArticle(building)) });
+  }
+  if (askedLevel !== undefined && askedLevel !== plan.targetLevel) {
+    return reject('STALE_LEVEL', { label: ofBuilding(building), level: plan.targetLevel });
   }
   plan.autoStart = autoStart === true;
   return null;

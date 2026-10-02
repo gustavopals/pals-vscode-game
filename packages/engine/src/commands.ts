@@ -48,11 +48,11 @@ function dispatch(
     case 'cancelConstruction':
       return cancelConstruction(draft, payload.building, nowMs, events);
     case 'planConstruction':
-      return planConstruction(draft, payload.building, payload.autoStart);
+      return planConstruction(draft, payload.building, payload.autoStart, payload.targetLevel);
     case 'unplanConstruction':
       return unplanConstruction(draft, payload.building);
     case 'setAutoStart':
-      return setAutoStart(draft, payload.building, payload.autoStart);
+      return setAutoStart(draft, payload.building, payload.autoStart, payload.targetLevel);
     case 'recruitVillagers':
       return recruitVillagers(draft, payload.quantity, nowMs, events);
     case 'renameSettlement':

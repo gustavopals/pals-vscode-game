@@ -285,6 +285,103 @@ describe('planejar e marcar como automática', () => {
   });
 });
 
+describe('a ordem que diz o nível (duas abas, tela atrasada)', () => {
+  // Habitações no nível 1, com recurso e fila para a obra do nível 2 começar na hora.
+  const ready = () => lumberCamp(300_000);
+  const planLevel = (building: BuildingId, targetLevel: number, autoStart = true) =>
+    command('planConstruction', { building, autoStart, targetLevel });
+
+  it('com o nível que a tela mostrava, a ordem vale como sempre', () => {
+    const { state, events } = accept(ready(), planLevel('housing', 2));
+    expect(autoStarted(events)).toMatchObject([{ data: { building: 'housing', level: 2 } }]);
+    expect(state.settlement.planned).toEqual([]);
+    const manual = accept(ready(), planLevel('housing', 2, false)).state;
+    expect(manual.settlement.planned).toEqual([
+      { building: 'housing', targetLevel: 2, autoStart: false },
+    ]);
+  });
+
+  it('a mesma ordem repetida por outra aba não planeja o nível seguinte: a obra pedida já começou', () => {
+    const first = accept(ready(), planLevel('housing', 2));
+    const wood = first.state.settlement.resources.wood;
+    expect(refuse(first.state, planLevel('housing', 2))).toEqual({
+      code: 'ALREADY_UPGRADING',
+      message: 'As Habitações já está em obras.',
+    });
+    // Nada ficou na lista: a obra do nível 2 termina e a do nível 3 não começa sozinha.
+    const { state, events } = advanceTo(first.state, first.state.lastProcessedAt + 10 * HOUR);
+    expect(autoStarted(events)).toEqual([]);
+    expect(state.settlement.buildings.housing).toBe(2);
+    expect(state.settlement.resources.wood).toBeGreaterThanOrEqual(wood);
+  });
+
+  it('sem o nível, a ordem repetida planeja o nível seguinte, como sempre fez', () => {
+    const { state } = play(ready(), [auto('housing'), auto('housing')]);
+    expect(state.settlement.planned).toEqual([
+      { building: 'housing', targetLevel: 3, autoStart: true },
+    ]);
+  });
+
+  it('a obra pedida já terminou: a recusa diz qual é a obra de agora', () => {
+    const built = play(ready(), [planLevel('housing', 2), { at: SPRING + HOUR }]).state;
+    expect(built.settlement.buildings.housing).toBe(2);
+    expect(refuse(built, planLevel('housing', 2))).toEqual({
+      code: 'STALE_LEVEL',
+      message:
+        'Essa ordem ficou para trás: a obra das Habitações agora é a do nível 3. Confira a lista e peça de novo.',
+    });
+    expect(accept(built, planLevel('housing', 3, false)).state.settlement.planned).toEqual([
+      { building: 'housing', targetLevel: 3, autoStart: false },
+    ]);
+  });
+
+  it('planejar o nível seguinte ao da obra em curso continua valendo, dito o nível certo', () => {
+    const { state } = play(ready(), [planLevel('housing', 2), planLevel('housing', 3)]);
+    expect(state.settlement.planned).toEqual([
+      { building: 'housing', targetLevel: 3, autoStart: true },
+    ]);
+  });
+
+  it('no teto, a ordem atrasada ouve que o edifício já está no nível máximo', () => {
+    const maxed = lumberCamp(0, (draft) => {
+      draft.settlement.buildings.farm = 10;
+    });
+    expect(refuse(maxed, planLevel('farm', 10)).code).toBe('MAX_LEVEL');
+  });
+
+  it('setAutoStart com o nível: marca a planejada que a tela mostrava, e só ela', () => {
+    const planned = accept(lumberCamp(0), command('planConstruction', { building: 'farm' })).state;
+    const mark = (targetLevel: number) =>
+      command('setAutoStart', { building: 'farm', autoStart: true, targetLevel });
+    expect(accept(planned, mark(2)).state.settlement.planned).toEqual([
+      { building: 'farm', targetLevel: 2, autoStart: true },
+    ]);
+    // A outra aba iniciou a obra do nível 2 e planejou a do 3: a marca era para a do 2.
+    const moved = play(lumberCamp(300_000), [
+      command('startConstruction', { building: 'farm' }),
+      command('planConstruction', { building: 'farm' }),
+    ]).state;
+    expect(refuse(moved, mark(2))).toEqual({
+      code: 'STALE_LEVEL',
+      message:
+        'Essa ordem ficou para trás: a obra da Fazenda agora é a do nível 3. Confira a lista e peça de novo.',
+    });
+    expect(moved.settlement.planned).toEqual([
+      { building: 'farm', targetLevel: 3, autoStart: false },
+    ]);
+    // Sem planejada nenhuma, a recusa continua sendo a de sempre.
+    expect(refuse(lumberCamp(0), mark(2)).code).toBe('NOT_PLANNED');
+  });
+
+  it('o motor não confia no payload: nível que não é o da vez é recusado, seja o que for', () => {
+    const odd = command('planConstruction', {
+      building: 'farm',
+      targetLevel: '2' as unknown as number,
+    });
+    expect(refuse(lumberCamp(0), odd).code).toBe('STALE_LEVEL');
+  });
+});
+
 describe('início automático (GDD §6.3; ADR 0013, decisão 18)', () => {
   it('com recurso e fila na hora da ordem, a planejada automática começa ali mesmo', () => {
     const { state, events } = accept(lumberCamp(300_000), auto('lumberMill'));

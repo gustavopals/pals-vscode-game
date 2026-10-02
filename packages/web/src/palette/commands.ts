@@ -372,7 +372,13 @@ export function createCommands(
     }
     const autoStart = await askAutoStart(picked.upgrade);
     if (autoStart !== undefined) {
-      await controller.order('planConstruction', { building: picked.building, autoStart });
+      // A ordem leva o nível que a lista mostrou: se outra aba passou na frente, o servidor
+      // recusa em vez de planejar (e, na automática, pagar) o nível seguinte.
+      await controller.order('planConstruction', {
+        building: picked.building,
+        autoStart,
+        targetLevel: picked.upgrade.targetLevel,
+      });
     }
   };
 
@@ -418,6 +424,7 @@ export function createCommands(
       await controller.order('setAutoStart', {
         building: plan.building,
         autoStart: !plan.autoStart,
+        targetLevel: plan.targetLevel,
       });
     }
   };

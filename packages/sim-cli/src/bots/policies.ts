@@ -312,7 +312,11 @@ export const planejarAutomaticas: Policy = {
     for (const plan of view.constructions.planned) {
       const wanted = woodIsSafe || !costsWood(plan);
       if (plan.autoStart !== wanted) {
-        current = await act('setAutoStart', { building: plan.building, autoStart: wanted });
+        current = await act('setAutoStart', {
+          building: plan.building,
+          autoStart: wanted,
+          targetLevel: plan.targetLevel,
+        });
       }
     }
     const depots = new Set(current.resources.map((row) => row.storageBuilding));
@@ -327,7 +331,12 @@ export const planejarAutomaticas: Policy = {
       .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
       .sort((a, b) => rank(a) - rank(b) || price(a) - price(b));
     for (const upgrade of waiting) {
-      current = await act('planConstruction', { building: upgrade.building, autoStart: true });
+      // Como o app, a ordem diz o nível que a visão mostrou.
+      current = await act('planConstruction', {
+        building: upgrade.building,
+        autoStart: true,
+        targetLevel: upgrade.targetLevel,
+      });
     }
     return current;
   },

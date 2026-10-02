@@ -58,7 +58,12 @@ function UpgradeItem(props: { upgrade: Upgrade; disabled: boolean; actions: Acti
             class="link"
             disabled={disabled}
             aria-label={`Planejar ${upgrade.label}`}
-            onClick={() => actions.order('planConstruction', { building: upgrade.building })}
+            onClick={() =>
+              actions.order('planConstruction', {
+                building: upgrade.building,
+                targetLevel: upgrade.targetLevel,
+              })
+            }
           >
             Planejar
           </button>
@@ -174,7 +179,11 @@ function PlannedItem(props: { plan: Plan; elapsed: number; disabled: boolean; ac
           aria-label={`Iniciar quando houver recursos: ${plan.label}`}
           onClick={(event) => {
             event.preventDefault();
-            actions.order('setAutoStart', { building: plan.building, autoStart: !plan.autoStart });
+            actions.order('setAutoStart', {
+              building: plan.building,
+              autoStart: !plan.autoStart,
+              targetLevel: plan.targetLevel,
+            });
           }}
         />
         Iniciar quando houver recursos

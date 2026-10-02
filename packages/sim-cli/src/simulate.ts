@@ -135,7 +135,12 @@ export function withManualPlans(act: Act, current: () => ViewState): Act {
       return current();
     }
     if (type === 'planConstruction') {
-      return pass(type, { building: (payload as { building: BuildingId }).building });
+      // Só a marca sai; o resto da ordem (o edifício, o nível que a visão mostrou) segue igual.
+      const plan = payload as Extract<Command, { type: 'planConstruction' }>['payload'];
+      return pass(type, {
+        building: plan.building,
+        ...(plan.targetLevel === undefined ? {} : { targetLevel: plan.targetLevel }),
+      });
     }
     return pass(type, payload);
   };

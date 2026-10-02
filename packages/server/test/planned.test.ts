@@ -280,6 +280,133 @@ describe('a marca de automática passa pelo recibo', () => {
   });
 });
 
+describe('duas abas com a tela atrasada: a ordem diz o nível que a tela mostrava', () => {
+  const STATE_VERSION = 'x-lords-state-version';
+
+  it('planejar como automática duas vezes, com UUIDs diferentes, não paga o nível seguinte', async () => {
+    const who = await newPlayer(normal);
+    // As duas abas leram a mesma visão: Habitações → Nv2, livre para começar.
+    const before = await call<ViewResponse>(normal, 'GET', `/games/${who.game.id}/view`, {
+      token: who.token,
+    });
+    const offered = before.body.view.constructions.available.find(
+      (entry) => entry.building === 'housing',
+    );
+    expect(offered).toMatchObject({ targetLevel: 2, blockedCode: null });
+    const seen = { [STATE_VERSION]: before.body.stateVersion };
+    const plan = () =>
+      order('planConstruction', { building: 'housing', autoStart: true, targetLevel: 2 });
+
+    // Aba A: a obra começa na hora, paga uma vez (80 de madeira e 20 de pedra).
+    const first = await send<CommandAccepted>(normal, who.token, who.game.id, plan(), seen);
+    expect(first.status, JSON.stringify(first.body)).toBe(200);
+    expect(autoStarted(first.body.events)).toMatchObject([
+      { data: { building: 'housing', level: 2, spent_wood: 80, spent_stone: 20 } },
+    ]);
+    // Dos 120 de madeira saem 80, e o objetivo das Habitações devolve 30.
+    expect(stock(first.body.view, 'wood')).toBe(70);
+
+    // Aba B: a mesma intenção, outro UUID, a mesma visão velha. A obra pedida já começou.
+    const second = await send<GameRuleError>(normal, who.token, who.game.id, plan(), seen);
+    expect(second.status, JSON.stringify(second.body)).toBe(422);
+    const message = 'As Habitações já está em obras.';
+    expect(second.body).toMatchObject({
+      code: 'GAME_RULE',
+      message,
+      details: { code: 'ALREADY_UPGRADING', message, staleView: true },
+    });
+    expect(second.body.details.view.constructions.planned).toEqual([]);
+
+    // Com gente na madeira e na pedra, o nível 3 (128 e 32) caberia no bolso: e não começa.
+    await accepted(normal, who, order('setWorkers', { building: 'lumberMill', count: 3 }));
+    await accepted(normal, who, order('setWorkers', { building: 'quarry', count: 2 }));
+    await wait(normal, who, 12 * HOUR);
+    const view = await viewOf(normal, who);
+    expect(view.constructions.queues).toEqual([null]);
+    expect(
+      view.constructions.available.find((entry) => entry.building === 'housing'),
+    ).toMatchObject({ fromLevel: 2, targetLevel: 3 });
+    expect(stock(view, 'wood')).toBeGreaterThanOrEqual(128);
+    expect(stock(view, 'stone')).toBeGreaterThanOrEqual(32);
+    expect(view.constructions.planned).toEqual([]);
+    expect(autoStarted(await eventsOf(normal, who))).toHaveLength(1);
+  });
+
+  it('a obra pedida já terminou: a recusa diz qual é a obra de agora', async () => {
+    const who = await newPlayer(normal);
+    await accepted(
+      normal,
+      who,
+      order('planConstruction', { building: 'housing', autoStart: true, targetLevel: 2 }),
+    );
+    await wait(normal, who, HOUR);
+    const late = await send<GameRuleError>(
+      normal,
+      who.token,
+      who.game.id,
+      order('planConstruction', { building: 'housing', autoStart: true, targetLevel: 2 }),
+    );
+    expect(late.status).toBe(422);
+    const message =
+      'Essa ordem ficou para trás: a obra das Habitações agora é a do nível 3. Confira a lista e peça de novo.';
+    expect(late.body).toMatchObject({ details: { code: 'STALE_LEVEL', message } });
+    expect(late.body.details.view.constructions.planned).toEqual([]);
+  });
+
+  it('setAutoStart com a tela atrasada não marca a planejada de outro nível', async () => {
+    const who = await newPlayer(normal);
+    // A aba velha mostra a planejada manual das Habitações → Nv2.
+    await accepted(normal, who, order('planConstruction', { building: 'housing', targetLevel: 2 }));
+    // A outra aba inicia essa obra e planeja a seguinte, manual.
+    await accepted(normal, who, order('startConstruction', { building: 'housing' }));
+    const next = await accepted(
+      normal,
+      who,
+      order('planConstruction', { building: 'housing', targetLevel: 3 }),
+    );
+    expect(next.view.constructions.planned).toMatchObject([
+      { building: 'housing', targetLevel: 3, autoStart: false },
+    ]);
+
+    const late = await send<GameRuleError>(
+      normal,
+      who.token,
+      who.game.id,
+      order('setAutoStart', { building: 'housing', autoStart: true, targetLevel: 2 }),
+    );
+    expect(late.status).toBe(422);
+    expect(late.body.details.code).toBe('STALE_LEVEL');
+    expect((await viewOf(normal, who)).constructions.planned).toMatchObject([
+      { building: 'housing', targetLevel: 3, autoStart: false },
+    ]);
+    // Com o nível que a lista mostra agora, a marca entra.
+    const marked = await accepted(
+      normal,
+      who,
+      order('setAutoStart', { building: 'housing', autoStart: true, targetLevel: 3 }),
+    );
+    expect(marked.view.constructions.planned).toMatchObject([
+      { building: 'housing', targetLevel: 3, autoStart: true },
+    ]);
+  });
+
+  it('a forma é do protocolo: nível que não é inteiro positivo é 400', async () => {
+    const who = await newPlayer(normal);
+    for (const targetLevel of [0, 1.5, '2', null]) {
+      const reply = await call<ApiError>(normal, 'POST', `/games/${who.game.id}/commands`, {
+        token: who.token,
+        body: {
+          ...order('planConstruction', { building: 'farm' }),
+          payload: { building: 'farm', targetLevel },
+        },
+      });
+      expect(reply.status, JSON.stringify(targetLevel)).toBe(400);
+      expect(reply.body.code).toBe('VALIDATION');
+    }
+    expect((await viewOf(normal, who)).constructions.planned).toEqual([]);
+  });
+});
+
 describe('recusas', () => {
   it('a segunda obra com o Salão abaixo do nível 4 diz o que abre a segunda fila', async () => {
     const who = await newPlayer(normal);

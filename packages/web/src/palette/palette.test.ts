@@ -1148,8 +1148,9 @@ describe('construir, cancelar e planejar', () => {
       ['Só deixar na lista', false],
     ]);
     expect(question.items[1]?.detail).toBe('A obra espera a sua ordem, com o custo à vista.');
+    // A ordem leva o nível que a lista mostrou: a tela atrasada não planeja outro nível.
     expect(orders()).toEqual([
-      { type: 'planConstruction', payload: { building: 'farm', autoStart: false } },
+      { type: 'planConstruction', payload: { building: 'farm', autoStart: false, targetLevel: 2 } },
     ]);
   });
 
@@ -1158,7 +1159,7 @@ describe('construir, cancelar e planejar', () => {
     answers.push(1, 0);
     await run('lords.planConstruction');
     expect(orders()).toEqual([
-      { type: 'planConstruction', payload: { building: 'farm', autoStart: true } },
+      { type: 'planConstruction', payload: { building: 'farm', autoStart: true, targetLevel: 2 } },
     ]);
   });
 
@@ -1319,7 +1320,7 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
       /^Hoje começa sozinha\. Espera 15 de ouro: em 1 h 5[01] min\.$/,
     );
     expect(orders()).toEqual([
-      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true, targetLevel: 2 } },
     ]);
   });
 
@@ -1328,7 +1329,7 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
     answers.push(2);
     await run('lords.toggleAutoStart');
     expect(orders()).toEqual([
-      { type: 'setAutoStart', payload: { building: 'farm', autoStart: false } },
+      { type: 'setAutoStart', payload: { building: 'farm', autoStart: false, targetLevel: 2 } },
     ]);
   });
 
@@ -1338,8 +1339,8 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
     await run('lords.toggleAutoStart', { id: 'planned:quarry', label: 'Pedreira → Nv6' });
     expect(shown).toEqual([]);
     expect(orders()).toEqual([
-      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
-      { type: 'setAutoStart', payload: { building: 'quarry', autoStart: false } },
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true, targetLevel: 2 } },
+      { type: 'setAutoStart', payload: { building: 'quarry', autoStart: false, targetLevel: 6 } },
     ]);
   });
 
@@ -1377,6 +1378,15 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
     ]);
   });
 
+  it('a marca dada com a tela atrasada é recusada com a frase do servidor', async () => {
+    const { run, api, controller } = await setup(queued);
+    const refusal =
+      'Essa ordem ficou para trás: a obra da Fazenda agora é a do nível 3. Confira a lista e peça de novo.';
+    api.refuseNextCommand(refusal, 'STALE_LEVEL');
+    await run('lords.toggleAutoStart', { id: 'planned:farm', label: 'Fazenda → Nv2' });
+    expect(controller.toasts).toMatchObject([{ kind: 'warning', text: refusal }]);
+  });
+
   it('a marca é uma ordem como as outras: "Tentar de novo" reenvia o mesmo commandId', async () => {
     const { run, api, controller } = await setup({
       before: ({ api: fake }) => {
@@ -1396,7 +1406,7 @@ describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
     await retry?.run();
     await settle(controller);
     expect(api.state.commands).toMatchObject([
-      { type: 'setAutoStart', payload: { building: 'farm', autoStart: true } },
+      { type: 'setAutoStart', payload: { building: 'farm', autoStart: true, targetLevel: 2 } },
     ]);
     expect(api.state.commands[0]?.commandId).toBe('00000000-0000-4000-8000-000000000001');
   });

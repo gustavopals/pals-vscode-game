@@ -1275,8 +1275,8 @@ describe('aba Feudo: filas de obras e planejadas (GDD §6.3)', () => {
     expect(press('Iniciar quando houver recursos: Fazenda')).toBe(true);
     expect(press('Tirar da lista: Pedreira')).toBe(true);
     expect(orders).toEqual([
-      ['setAutoStart', { building: 'housing', autoStart: true }],
-      ['setAutoStart', { building: 'farm', autoStart: false }],
+      ['setAutoStart', { building: 'housing', autoStart: true, targetLevel: 2 }],
+      ['setAutoStart', { building: 'farm', autoStart: false, targetLevel: 2 }],
       ['unplanConstruction', { building: 'quarry' }],
     ]);
   });
@@ -1300,6 +1300,12 @@ describe('aba Feudo: filas de obras e planejadas (GDD §6.3)', () => {
     const page = fief({ view: withPlanned(view, [{ building: 'farm', autoStart: true }]) });
     expect(page).not.toContain('aria-label="Planejar Fazenda"');
     expect(page).toContain('aria-label="Planejar Serraria"');
+  });
+
+  it('"Planejar" manda o nível que a linha mostra: a tela atrasada não planeja outro', () => {
+    const { orders, press } = ordering(view);
+    expect(press('Planejar Fazenda')).toBe(true);
+    expect(orders).toEqual([['planConstruction', { building: 'farm', targetLevel: 2 }]]);
   });
 });
 

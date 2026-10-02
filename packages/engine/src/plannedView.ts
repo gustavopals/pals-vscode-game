@@ -1,6 +1,12 @@
 import { balance, type BuildingId, buildings } from '@lotg/content';
 
-import { buildingWithArticle, constructionOf, isFounding, queuesUnlocked } from './construction';
+import {
+  buildingWithArticle,
+  constructionOf,
+  isFounding,
+  ofBuilding,
+  queuesUnlocked,
+} from './construction';
 import { type CraftForecast, inMs } from './craftProjection';
 import { flowRate, producerOf } from './economy';
 import { coversIn, type PlanWait, planWait } from './planned';
@@ -10,9 +16,6 @@ import type { GameState, PlannedConstruction, PlannedWaitingView, ResourceId } f
 import { MILLI, positiveEntries, SECOND_MS } from './units';
 
 const lower = (resource: ResourceId) => balance.resources[resource].label.toLowerCase();
-/** "do Armazém", "da Serraria", "das Habitações". */
-const ofBuilding = (building: BuildingId) =>
-  `d${buildings[building].article} ${buildings[building].label}`;
 /** "melhore-o", "amplie-a": o pronome do edifício de que a frase acabou de falar. */
 const it = (building: BuildingId) => `-${buildings[building].article}`;
 

@@ -5,6 +5,12 @@ import { isStorableText, UNSTORABLE } from './text';
 
 const commandId = z.uuid();
 const building = z.enum(BUILDING_IDS);
+/**
+ * O nível que a tela mostrava quando a ordem foi dada. Opcional: quem não manda aceita a obra
+ * que for a da vez. Com ele, duas abas com a visão velha não planejam (nem pagam) um nível que
+ * ninguém pediu: o motor recusa a ordem que ficou para trás.
+ */
+const targetLevel = z.number().int().min(1).max(1_000).optional();
 
 // O protocolo só valida a forma. Faixas e regras (quantos aldeões, quais níveis) são do motor,
 // que recusa com um motivo legível em português (GDD §14.12).
@@ -29,7 +35,7 @@ export const CancelConstructionCommandSchema = command(
 export const PlanConstructionCommandSchema = command(
   'planConstruction',
   // `autoStart` marca a planejada como "iniciar quando houver recursos"; sem ele, é manual.
-  z.strictObject({ building, autoStart: z.boolean().optional() }),
+  z.strictObject({ building, autoStart: z.boolean().optional(), targetLevel }),
 );
 export const UnplanConstructionCommandSchema = command(
   'unplanConstruction',
@@ -37,7 +43,7 @@ export const UnplanConstructionCommandSchema = command(
 );
 export const SetAutoStartCommandSchema = command(
   'setAutoStart',
-  z.strictObject({ building, autoStart: z.boolean() }),
+  z.strictObject({ building, autoStart: z.boolean(), targetLevel }),
 );
 export const RecruitVillagersCommandSchema = command(
   'recruitVillagers',

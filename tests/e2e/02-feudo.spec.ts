@@ -861,7 +861,7 @@ test.describe('filas de obras e planejadas', () => {
     await expect(lumberMark).toBeChecked();
     expect(commands.at(-1)).toEqual({
       type: 'setAutoStart',
-      payload: { building: 'lumberMill', autoStart: true },
+      payload: { building: 'lumberMill', autoStart: true, targetLevel: 2 },
     });
 
     // Pela paleta, "Planejar obras" pergunta se a obra começa sozinha; Enter aceita a marca.
@@ -881,7 +881,7 @@ test.describe('filas de obras e planejadas', () => {
     await expect(planned).toHaveCount(2);
     expect(commands.at(-1)).toEqual({
       type: 'planConstruction',
-      payload: { building: 'farm', autoStart: true },
+      payload: { building: 'farm', autoStart: true, targetLevel: 2 },
     });
     await expect(
       planned.nth(1).getByRole('checkbox', { name: 'Iniciar quando houver recursos: Fazenda' }),

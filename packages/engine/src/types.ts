@@ -183,14 +183,23 @@ export type Command =
   | {
       commandId: string;
       type: 'planConstruction';
-      /** `autoStart` marca a planejada como "iniciar quando houver recursos"; sem ele, manual. */
-      payload: { building: BuildingId; autoStart?: boolean | undefined };
+      /**
+       * `autoStart` marca a planejada como "iniciar quando houver recursos"; sem ele, manual.
+       * `targetLevel` é o nível que a tela mostrava ao jogador: se a obra a planejar já não é a
+       * desse nível (outra aba passou na frente), a ordem é recusada em vez de valer para outro.
+       */
+      payload: {
+        building: BuildingId;
+        autoStart?: boolean | undefined;
+        targetLevel?: number | undefined;
+      };
     }
   | { commandId: string; type: 'unplanConstruction'; payload: { building: BuildingId } }
   | {
       commandId: string;
       type: 'setAutoStart';
-      payload: { building: BuildingId; autoStart: boolean };
+      /** `targetLevel`, como em `planConstruction`: o nível da planejada que a tela mostrava. */
+      payload: { building: BuildingId; autoStart: boolean; targetLevel?: number | undefined };
     }
   | { commandId: string; type: 'recruitVillagers'; payload: { quantity: number } }
   | { commandId: string; type: 'renameSettlement'; payload: { name: string } };
@@ -212,6 +221,7 @@ export const REJECTION_CODES = [
   'NOT_IN_CONSTRUCTION',
   'ALREADY_PLANNED',
   'NOT_PLANNED',
+  'STALE_LEVEL',
   'INVALID_QUANTITY',
   'FAMINE',
   'RECRUIT_QUEUE_FULL',

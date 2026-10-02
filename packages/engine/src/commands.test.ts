@@ -137,6 +137,8 @@ describe('catálogo de recusas', () => {
     NOT_IN_CONSTRUCTION: [rich, command('cancelConstruction', { building: 'farm' })],
     ALREADY_PLANNED: [planned, command('planConstruction', { building: 'farm' })],
     NOT_PLANNED: [rich, command('unplanConstruction', { building: 'farm' })],
+    // A ordem dizia o nível 5, e a próxima obra da Fazenda é a do nível 2.
+    STALE_LEVEL: [rich, command('planConstruction', { building: 'farm', targetLevel: 5 })],
     INVALID_QUANTITY: [rich, command('recruitVillagers', { quantity: 0 })],
     FAMINE: [starving, command('recruitVillagers', { quantity: 1 })],
     RECRUIT_QUEUE_FULL: [queued, command('recruitVillagers', { quantity: 1 })],
