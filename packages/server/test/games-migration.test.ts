@@ -17,9 +17,11 @@ import {
 } from '@lotg/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { lockGame, persistState } from '../src/games/repository';
 import { advanceStaleGames } from '../src/jobs/advanceStaleGames';
 import {
   call,
+  countRows,
   createTestApp,
   DAY,
   fakeClock,
@@ -700,6 +702,136 @@ describe('estado que este servidor não sabe ler', () => {
     });
     expect(view.status).toBe(500);
     expect(view.body.code).toBe('INTERNAL');
+    expect(await rowOf(server, game.id)).toEqual(before);
+  });
+
+  /** Uma partida já na versão atual, gravada pelo próprio servidor, e o estado dela. */
+  async function currentGame(app: TestApp): Promise<{ game: OldGame; state: StoredState }> {
+    const game = await insertGame(app, v1State('construction'));
+    expect((await getView(app, game)).status).toBe(200);
+    const row = await rowOf(app, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    return { game, state: row.state };
+  }
+
+  const overwrite = (app: TestApp, game: OldGame, state: unknown) =>
+    app.pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+
+  // O número da versão não é salvo-conduto (GDD §15.4): um estado que diz ser da versão atual
+  // e não tem a forma dela é recusado como o de qualquer outra, e nunca regravado.
+  it.each<[string, (state: StoredState) => void]>([
+    [
+      'sem um campo',
+      (state) => {
+        // Sem a recusa, a madeira virava `NaN` no primeiro avanço e `null` no banco.
+        state.settlement.workers.lumberMill = 3;
+        delete (state.settlement as Record<string, unknown>).accumulators;
+      },
+    ],
+    [
+      'com um estoque nulo',
+      (state) => {
+        (state.settlement.resources as Record<string, unknown>).wood = null;
+      },
+    ],
+    [
+      'com um campo de uma mecânica que não existe',
+      (state) => {
+        (state.settlement as Record<string, unknown>).morale = 50;
+      },
+    ],
+    [
+      'sem o ritmo',
+      (state) => {
+        delete state.settings.timeScale;
+      },
+    ],
+  ])('versão atual %s: 500 em tudo, e a linha fica como estava', async (_, damage) => {
+    const { game, state } = await currentGame(server);
+    damage(state);
+    await overwrite(server, game, state);
+    const before = await rowOf(server, game.id);
+    server.clock.advance(5 * HOUR);
+    await renew(server, game);
+
+    const view = await call<ApiError>(server, 'GET', `/games/${game.id}/view`, {
+      token: game.token,
+    });
+    expect(view.status).toBe(500);
+    expect(view.body.code).toBe('INTERNAL');
+    const command = await send<ApiError>(
+      server,
+      game.token,
+      game.id,
+      order('setWorkers', { building: 'farm', count: 0 }),
+    );
+    expect(command.status).toBe(500);
+    const events = await call<ApiError>(server, 'GET', `/games/${game.id}/events?after=0`, {
+      token: game.token,
+    });
+    expect(events.status).toBe(500);
+
+    expect(await rowOf(server, game.id)).toEqual(before);
+    expect(await countRows(server.pool, 'commands', `game_id = '${game.id}'`)).toBe(0);
+  });
+
+  it('versão atual fora da forma: o job conta a falha e não grava por cima', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const { game, state } = await currentGame(app);
+      delete (state.settlement as Record<string, unknown>).accumulators;
+      await overwrite(app, game, state);
+      const before = await rowOf(app, game.id);
+      clock.advance(3 * HOUR);
+
+      expect(await advanceStaleGames(app.ctx)).toMatchObject({ advanced: 0, failed: 1 });
+      expect(await rowOf(app, game.id)).toEqual(before);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('ritmo do estado diferente do da linha: 500, e a linha fica como estava', async () => {
+    // O servidor converte o relógio pela coluna e o motor converte prazos reais pelo estado:
+    // os dois têm de ser o mesmo número.
+    const { game } = await currentGame(server);
+    await server.pool.query(`update games set time_scale = '3' where id = $1`, [game.id]);
+    const before = await rowOf(server, game.id);
+    expect(before.state.settings.timeScale).toBe(1);
+
+    const view = await call<ApiError>(server, 'GET', `/games/${game.id}/view`, {
+      token: game.token,
+    });
+    expect(view.status).toBe(500);
+    expect(view.body.code).toBe('INTERNAL');
+    const command = await send<ApiError>(
+      server,
+      game.token,
+      game.id,
+      order('setWorkers', { building: 'farm', count: 0 }),
+    );
+    expect(command.status).toBe(500);
+    expect(await rowOf(server, game.id)).toEqual(before);
+  });
+
+  it('o servidor não grava um estado que ele mesmo não leria de volta', async () => {
+    // Um defeito de regra que produza `NaN` não pode chegar ao banco: lá ele viraria `null`, e
+    // a partida ficaria ilegível com o último estado bom já apagado.
+    const { game } = await currentGame(server);
+    const before = await rowOf(server, game.id);
+
+    const write = server.ctx.db.transaction(async (tx) => {
+      const locked = await lockGame(tx, game.accountId, game.id);
+      const broken = JSON.parse(JSON.stringify(locked.state)) as typeof locked.state;
+      broken.settlement.resources.wood = Number.NaN;
+      await persistState(tx, locked, broken, [], server.clock.now());
+    });
+    await expect(write).rejects.toThrow(/settlement\.resources\.wood/);
     expect(await rowOf(server, game.id)).toEqual(before);
   });
 

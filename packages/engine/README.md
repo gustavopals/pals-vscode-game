@@ -79,8 +79,9 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
-- É **idempotente**: um estado que já está na versão atual volta como veio, o mesmo objeto. Ele não é revalidado a cada leitura.
-- **Recusa o que não conhece** com `StateMigrationError`: `reason: 'future'` para uma versão mais nova que a do motor (uma imagem antiga diante de um banco já migrado) e `'invalid'` para um JSON que não tem a forma da versão que declara. A mensagem cita o caminho do campo e o tipo encontrado, nunca o valor: ela vai para o log, e o estado tem o nome que o jogador deu ao feudo. Quem chamou não deve gravar nada por cima.
+- É **idempotente**: um estado que já está na versão atual volta como veio, o mesmo objeto.
+- **Confere toda leitura**, inclusive a de um estado que já diz ser da versão atual: o número da versão não é salvo-conduto. Um campo a menos viraria `NaN` no primeiro avanço e `null` no banco; a conferência custa cerca de 1,5 µs no estado do cenário de 7 dias.
+- **Recusa o que não conhece** com `StateMigrationError`: `reason: 'future'` para uma versão mais nova que a do motor (uma imagem antiga diante de um banco já migrado) e `'invalid'` para um JSON que não tem a forma da versão que declara, seja ela antiga ou a atual. A mensagem cita o caminho do campo e o tipo encontrado, nunca o valor: ela vai para o log, e o estado tem o nome que o jogador deu ao feudo. Quem chamou não deve gravar nada por cima.
 
 | Versão | Entrou com | O que mudou em relação à anterior |
 |---|---|---|

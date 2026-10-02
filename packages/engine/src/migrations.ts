@@ -74,6 +74,16 @@ export function migrateWith(
     );
   }
   if (version === current) {
+    // O número da versão não é salvo-conduto: um estado que diz ser da versão atual é conferido
+    // como o de qualquer outra. Sem isto, um campo a menos virava `NaN` no primeiro avanço e
+    // `null` no banco. A conferência só lê; o estado bom volta como veio, o mesmo objeto.
+    const found = chain.shape(stored, '');
+    if (found !== null) {
+      throw new StateMigrationError(
+        'invalid',
+        `O estado diz ser da versão ${current}, mas não tem a forma dela (${found}).`,
+      );
+    }
     return stored as StoredState;
   }
   // Uma cópia só, no começo: daqui em diante os passos podem reaproveitar pedaços à vontade.
@@ -110,12 +120,13 @@ export function migrateWith(
 /**
  * Leva um estado gravado, de qualquer versão conhecida, até a versão atual. Função pura: não
  * altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. Um estado que já
- * está na versão atual volta como veio (o mesmo objeto), então migrar duas vezes é migrar uma.
+ * está na versão atual é conferido contra a forma dela e volta como veio (o mesmo objeto),
+ * então migrar duas vezes é migrar uma.
  *
  * Os passos rodam em sequência (1 → 2 → 3 …) e cada um confere, antes de mexer, a forma exata
  * da versão de que parte; o resultado do último é conferido contra a forma da versão atual.
- * Forma inesperada ou versão mais nova que a do motor lançam `StateMigrationError`; a mensagem
- * cita o caminho do campo, nunca o valor.
+ * Forma inesperada, **em qualquer versão, inclusive a atual**, ou versão mais nova que a do
+ * motor lançam `StateMigrationError`; a mensagem cita o caminho do campo, nunca o valor.
  */
 export function migrateState(stored: unknown, context: MigrationContext): GameState {
   return migrateWith(stored, context, {

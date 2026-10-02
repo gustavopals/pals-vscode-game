@@ -1,4 +1,9 @@
-import { type GameEvent as EngineEvent, type GameState, migrateState } from '@lotg/engine';
+import {
+  type GameEvent as EngineEvent,
+  type GameState,
+  migrateState,
+  StateMigrationError,
+} from '@lotg/engine';
 import type { GameEvent, GameSummary } from '@lotg/protocol';
 import { and, desc, eq, gt, gte, lt, ne, sql } from 'drizzle-orm';
 
@@ -20,15 +25,43 @@ export type LoadedGame = Omit<GameRow, 'state'> & {
  * Leva o estado gravado até a versão do motor (GDD §15.4). Só é chamada com a linha travada.
  *
  * Um estado de versão **mais nova** que a do motor, ou que não tem a forma da versão que
- * declara, faz `migrateState` lançar `StateMigrationError`: a requisição termina em 500 e a
- * transação é desfeita, sem nada gravado por cima. É o que protege o banco quando alguém volta
- * a imagem da API para antes de uma migração (deploy/README.md, "Reverter depois de uma
- * migração de estado").
+ * declara (a atual inclusive: ela é conferida a cada leitura), faz `migrateState` lançar
+ * `StateMigrationError`: a requisição termina em 500 e a transação é desfeita, sem nada gravado
+ * por cima. É o que protege o banco quando alguém volta a imagem da API para antes de uma
+ * migração (deploy/README.md, "Reverter depois de uma migração de estado").
+ *
+ * O ritmo existe em dois lugares, e os dois têm de ser o mesmo número: o servidor converte o
+ * relógio de parede pela coluna `time_scale`, e o motor converte prazos de tempo real pelo
+ * `settings.timeScale` do estado. Se divergirem, a partida é recusada do mesmo jeito.
  */
 export function loadGame(row: GameRow): LoadedGame {
-  const state = migrateState(row.state, { timeScale: Number(row.timeScale) });
+  const timeScale = Number(row.timeScale);
+  const state = migrateState(row.state, { timeScale });
+  if (state.settings.timeScale !== timeScale) {
+    throw new StateMigrationError(
+      'invalid',
+      'O ritmo gravado no estado (settings.timeScale) não é o da linha da partida (games.time_scale).',
+    );
+  }
   const stored: unknown = row.state;
   return { ...row, state, migratedFrom: state === stored ? null : row.state.schemaVersion };
+}
+
+/**
+ * O que vai para `games.state` tem de ser o que `loadGame` aceitaria de volta. A conferência é
+ * feita sobre o JSON, que é o que o banco guarda: um `NaN` de um defeito de regra viraria `null`
+ * lá dentro, e a partida ficaria ilegível com o último estado bom já apagado. Lançar aqui
+ * desfaz a transação e deixa a linha como estava.
+ */
+function assertStorable(state: GameState, game: LoadedGame): void {
+  const timeScale = Number(game.timeScale);
+  const stored = migrateState(JSON.parse(JSON.stringify(state)), { timeScale });
+  if (stored.settings.timeScale !== timeScale) {
+    throw new StateMigrationError(
+      'invalid',
+      'O estado a gravar mudou o ritmo da partida (settings.timeScale), que é imutável.',
+    );
+  }
 }
 
 /**
@@ -93,7 +126,8 @@ export async function nextCommandSeq(tx: Tx, gameId: string): Promise<number> {
  * Escreve o estado completo e os eventos, sob o lock da partida, e incrementa `state_version`
  * exatamente uma vez. `last_processed_at` recebe o relógio de parede do avanço. O estado que
  * chega aqui já está na versão do motor: se a linha guardava uma versão anterior, é esta escrita
- * que grava a migração, junto com `schema_version`.
+ * que grava a migração, junto com `schema_version`. Um estado fora da forma da versão atual não
+ * é gravado: `assertStorable` lança antes de qualquer escrita.
  */
 export async function persistState(
   tx: Tx,
@@ -102,6 +136,7 @@ export async function persistState(
   events: EngineEvent[],
   now: Date,
 ): Promise<{ stateVersion: number; events: GameEvent[] }> {
+  assertStorable(state, game);
   let inserted: GameEventRow[] = [];
   if (events.length > 0) {
     const firstSeq = (await lastEventSeq(tx, game.id)) + 1;

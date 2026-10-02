@@ -158,17 +158,61 @@ describe('a forma da versão atual', () => {
     }
   });
 
-  it.each([
-    ['um campo que o motor não escreve', (state: Draft) => (state.settlement.morale = 50)],
-    ['a chave de limite da versão 1', (state: Draft) => (state.settings.capsEnabled = false)],
-    ['uma dificuldade desconhecida', (state: Draft) => (state.settings.difficulty = 'normal')],
-    ['um ritmo zero', (state: Draft) => (state.settings.timeScale = 0)],
-    ['a fronteira ausente', (state: Draft) => delete state.migratedAtMs],
-    ['o número da versão anterior', (state: Draft) => (state.schemaVersion = 1)],
-  ])('recusa %s', (_, damage) => {
+  const damages: Array<[string, (state: Draft) => unknown]> = [
+    ['um campo que o motor não escreve', (state) => (state.settlement.morale = 50)],
+    ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
+    ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
+    ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
+    ['o ritmo ausente', (state) => delete state.settings.timeScale],
+    ['a fronteira ausente', (state) => delete state.migratedAtMs],
+    ['o número da versão anterior', (state) => (state.schemaVersion = 1)],
+    ['um resto de produção ausente', (state) => delete state.settlement.accumulators.wood],
+    ['um estoque negativo', (state) => (state.settlement.resources.stone = -1)],
+    // É no que um `NaN` vira depois de passar pelo banco: JSON não tem `NaN`.
+    ['um estoque nulo', (state) => (state.settlement.resources.wood = null)],
+  ];
+
+  it.each(damages)('recusa %s', (_, damage) => {
     const state = JSON.parse(JSON.stringify(newGame())) as Draft;
     damage(state);
     expect(currentShape(state, '')).not.toBeNull();
+  });
+
+  // O estado que declara a versão atual é conferido como o de qualquer outra: o número da
+  // versão não é salvo-conduto (GDD §15.4).
+  it.each(damages)('`migrateState` recusa %s, sem tocar na entrada', (_, damage) => {
+    const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+    damage(state);
+    const copy = JSON.parse(JSON.stringify(state)) as unknown;
+    let caught: unknown;
+    try {
+      migrateState(state, { timeScale: 1 });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(StateMigrationError);
+    expect((caught as StateMigrationError).reason).toBe('invalid');
+    expect(state).toEqual(copy);
+  });
+
+  it('o que o motor calcularia a partir de um estado sem um campo nunca chega a existir', () => {
+    // Sem a recusa, este estado avançava, a madeira virava `NaN` e o banco gravava `null`.
+    const stored = JSON.parse(JSON.stringify(newGame())) as Draft;
+    stored.settlement.workers.lumberMill = 3;
+    delete stored.settlement.accumulators.wood;
+    expect(() => migrateState(stored, { timeScale: 1 })).toThrow(
+      /versão 2, mas não tem a forma dela \(settlement\.accumulators\.wood: campo ausente\)/,
+    );
+  });
+
+  it('a mensagem de um estado atual fora da forma não cita o que o jogador escreveu', () => {
+    const stored = JSON.parse(JSON.stringify(newGame())) as Draft;
+    stored.settlement.name = 'Nome Que Não Vai Para o Log';
+    stored.settings.vigilHourLocal = 'vinte';
+    expect(() => migrateState(stored, { timeScale: 1 })).toThrow(
+      /settings\.vigilHourLocal: esperado inteiro a partir de zero, veio texto/,
+    );
+    expect(() => migrateState(stored, { timeScale: 1 })).not.toThrow(/Nome Que/);
   });
 
   it('conhece as mesmas dificuldades que o conteúdo', () => {
