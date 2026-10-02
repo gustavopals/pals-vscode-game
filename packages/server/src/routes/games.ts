@@ -1,7 +1,6 @@
 import {
   ChronicleQuerySchema,
   CommandRequestSchema,
-  CreateGameRequestSchema,
   type CreateGameResponse,
   EventsQuerySchema,
   HEADERS,
@@ -12,6 +11,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 
 import { ApiError, notFound } from '../api-error';
+import { OfferedGameRequestSchema } from '../catalog';
 import type { AppContext } from '../context';
 import { executeCommand } from '../games/commands';
 import { listEvents, readChronicle, readChronicleMarkdown } from '../games/events';
@@ -51,7 +51,7 @@ export function registerGameRoutes(app: FastifyInstance, ctx: AppContext): void 
 
   app.post('/games', async (request, reply) => {
     const identity = await requireIdentity(ctx, request);
-    const input = CreateGameRequestSchema.parse(request.body);
+    const input = OfferedGameRequestSchema.parse(request.body);
     const body: CreateGameResponse = { game: await createGame(ctx, identity.accountId, input) };
     return reply.status(201).send(body);
   });

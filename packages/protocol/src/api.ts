@@ -1,4 +1,4 @@
-import { balance, DIFFICULTY_IDS } from '@lotg/content';
+import { DIFFICULTY_IDS } from '@lotg/content';
 import { z } from 'zod';
 
 import { CommandSchema } from './commands';
@@ -158,13 +158,14 @@ export type GameSummary = z.infer<typeof GameSummarySchema>;
 /** Uma das dificuldades do conteúdo (GDD §12.1). */
 export const DifficultySchema = z.enum(DIFFICULTY_IDS);
 
-/** Um dos ritmos que o conteúdo oferece (GDD §4.2): horas de jogo por hora real. */
-export const PaceTimeScaleSchema = z
-  .number()
-  .refine(
-    (value) => balance.paces.some((pace) => pace.timeScale === value),
-    'ritmo fora dos oferecidos',
-  );
+/**
+ * O ritmo pedido para a partida (GDD §4.2): horas de jogo por hora real. Aqui só a forma. Quais
+ * ritmos o jogo oferece é conteúdo (`balance.paces`), e quem confere é o servidor, que recusa
+ * os outros com o mesmo `400 VALIDATION`. Este módulo não pode ler `balance`: o app importa os
+ * schemas daqui, e um uso de `balance` em tempo de execução leva a tabela inteira de números
+ * do jogo para dentro do JavaScript servido ao navegador.
+ */
+export const PaceTimeScaleSchema = z.number().positive();
 
 export const CreateGameRequestSchema = z.strictObject({
   settlementName: DisplayNameSchema,
@@ -172,7 +173,10 @@ export const CreateGameRequestSchema = z.strictObject({
   vigilHourLocal: z.number().int().min(0).max(23),
   /** Fica gravada na partida e não muda durante o ano. Sem ela, vale a recomendada (Senhor). */
   difficulty: DifficultySchema.optional(),
-  /** Fica gravado na partida e não muda durante o ano. Sem ele, vale o padrão do servidor. */
+  /**
+   * Fica gravado na partida e não muda durante o ano. Sem ele, vale o padrão do servidor. Tem
+   * de ser um dos ritmos de `GET /catalog`: o servidor recusa os outros.
+   */
   timeScale: PaceTimeScaleSchema.optional(),
   /** Arquiva a partida ativa, se houver, em vez de recusar com `ACTIVE_GAME_EXISTS`. */
   replaceActive: z.boolean().optional(),

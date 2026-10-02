@@ -232,18 +232,46 @@ describe('contratos da API', () => {
     }
   });
 
-  it('criação de partida: o ritmo é um dos oferecidos pelo conteúdo, ou nenhum', () => {
+  it('criação de partida: o ritmo é um número positivo, ou nenhum', () => {
     const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
-    expect(balance.paces.map((pace) => pace.timeScale)).toEqual([3, 1, 0.5]);
     for (const { timeScale } of balance.paces) {
       expect(CreateGameRequestSchema.safeParse({ ...body, timeScale }).data?.timeScale).toBe(
         timeScale,
       );
     }
     expect(CreateGameRequestSchema.safeParse(body).data).not.toHaveProperty('timeScale');
-    // O 2× saiu da lista (ADR 0013, decisão 2); 7 é um GAME_TIME_SCALE válido, mas não é oferecido.
-    for (const timeScale of [2, 7, 0, -1, 0.25, 3.0001, '3', null, Number.NaN, [3]]) {
+    for (const timeScale of [0, -1, '3', null, Number.NaN, Number.POSITIVE_INFINITY, [3]]) {
       expect(CreateGameRequestSchema.safeParse({ ...body, timeScale }).success).toBe(false);
+    }
+    // Quais ritmos o jogo oferece é conteúdo, e quem confere é o servidor: este pacote vai para
+    // o navegador junto com o app e não pode levar `balance` com ele.
+    expect(CreateGameRequestSchema.safeParse({ ...body, timeScale: 2 }).success).toBe(true);
+  });
+
+  it('nenhum módulo do protocolo que o app carrega lê números do conteúdo', () => {
+    // `contentHash.ts` lê o conteúdo inteiro de propósito e só é chamado pelo servidor e pelo
+    // simulador; o build do app o descarta (packages/web/src/bundle.test.ts confere o pacote).
+    const files = import.meta.glob<string>('./*.ts', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    });
+    const sources = Object.entries(files).filter(
+      ([file]) => !file.endsWith('.test.ts') && file !== './contentHash.ts',
+    );
+    expect(sources.map(([file]) => file)).toEqual(
+      expect.arrayContaining(['./api.ts', './commands.ts', './view.ts']),
+    );
+    for (const [file, source] of sources) {
+      const imported = [...source.matchAll(/import\s+\{([^}]*)\}\s+from\s+'@lotg\/content'/g)]
+        .flatMap((match) => (match[1] ?? '').split(','))
+        .map((name) => name.trim())
+        .filter((name) => name !== '' && !name.startsWith('type '));
+      expect(
+        imported.filter((name) => !/^[A-Z_]+_IDS$/.test(name) && name !== 'EVENT_TYPES'),
+        file,
+      ).toEqual([]);
+      expect(source, file).not.toMatch(/import\s+\*\s+as\s+\w+\s+from\s+'@lotg\/content'/);
     }
   });
 

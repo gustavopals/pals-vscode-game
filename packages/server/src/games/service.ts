@@ -24,10 +24,11 @@ export async function listGames(ctx: AppContext, accountId: string): Promise<Gam
  * `POST /games`. Uma partida ativa por conta: com uma já ativa, recusa com `ACTIVE_GAME_EXISTS`,
  * a não ser que venha `replaceActive`, que arquiva a atual.
  *
- * Dificuldade e ritmo são os do corpo, que o protocolo já conferiu contra o conteúdo. Sem eles
- * (o app da v0.1, o simulador), valem a dificuldade recomendada e o ritmo do servidor,
- * `GAME_TIME_SCALE` (ADR 0013, decisão 2a). Os dois são gravados na linha da partida e dentro do
- * estado (`settings`), sempre com o mesmo valor, e não mudam mais.
+ * Dificuldade e ritmo são os do corpo, que a rota já conferiu contra o conteúdo: a dificuldade
+ * pelo schema do protocolo, o ritmo por `OfferedGameRequestSchema`. Sem eles (o app da v0.1, o
+ * simulador), valem a dificuldade recomendada e o ritmo do servidor, `GAME_TIME_SCALE` (ADR
+ * 0013, decisão 2a). Os dois são gravados na linha da partida e dentro do estado (`settings`),
+ * sempre com o mesmo valor, e não mudam mais.
  */
 export async function createGame(
   ctx: AppContext,

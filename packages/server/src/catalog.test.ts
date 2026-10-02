@@ -4,9 +4,41 @@ import type { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { type App, buildApp } from './app';
-import { catalogInfo, defaultDifficulty } from './catalog';
+import { catalogInfo, defaultDifficulty, OfferedGameRequestSchema } from './catalog';
 import { loadConfig } from './config';
 import { CONTENT_HASH } from './version';
+
+describe('OfferedGameRequestSchema', () => {
+  const body = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+
+  it('aceita cada ritmo que o conteúdo oferece, e a falta dele', () => {
+    expect(balance.paces.map((pace) => pace.timeScale)).toEqual([3, 1, 0.5]);
+    for (const { timeScale } of balance.paces) {
+      expect(OfferedGameRequestSchema.parse({ ...body, timeScale }).timeScale).toBe(timeScale);
+    }
+    expect(OfferedGameRequestSchema.parse(body)).not.toHaveProperty('timeScale');
+  });
+
+  // O 2× saiu da lista (ADR 0013, decisão 2); 7 é um GAME_TIME_SCALE válido, mas não é oferecido.
+  it.each([2, 7, 0.25, 3.0001, 0, -1, '3', null, Number.NaN, [3]])(
+    'recusa o ritmo %j, apontando o campo',
+    (timeScale) => {
+      const parsed = OfferedGameRequestSchema.safeParse({ ...body, timeScale });
+      expect(parsed.success).toBe(false);
+      // Zero e negativos são recusados duas vezes, pela forma e pela lista: sempre no campo.
+      expect([...new Set(parsed.error?.issues.map((issue) => issue.path.join('.')))]).toEqual([
+        'timeScale',
+      ]);
+    },
+  );
+
+  it('continua recusando o que o protocolo recusa', () => {
+    expect(OfferedGameRequestSchema.safeParse({ ...body, difficulty: 'normal' }).success).toBe(
+      false,
+    );
+    expect(OfferedGameRequestSchema.safeParse({ ...body, extra: 1 }).success).toBe(false);
+  });
+});
 
 describe('catalogInfo', () => {
   it('traz as três dificuldades e os três ritmos do conteúdo, na ordem dele', () => {

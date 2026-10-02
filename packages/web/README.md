@@ -34,6 +34,8 @@ Os testes em navegador rodam com o servidor de teste no ritmo Normal, o dos temp
 
 O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho relativo (`../../engine/src/__golden__/view-seed-pedra-alta.json`).
 
+`src/bundle.test.ts` compila o app de verdade (em memória, sem gravar `dist`) e confere que o JavaScript servido não leva número nem frase de `@lotg/content`: do conteúdo só entram as listas de identificadores que os schemas do protocolo usam. O que mantém o resto de fora é o descarte de código sem uso do build, e basta um módulo de `@lotg/protocol` que o app carrega ler `balance` em tempo de execução para a tabela inteira ir junto. Conteúdo novo que não pode chegar ao jogador antes da hora (efeitos de cartas, composição de incursões) fica coberto pelo mesmo teste, desde que seja exportado por `@lotg/content`.
+
 ## Estrutura
 
 | Pasta | O que tem |

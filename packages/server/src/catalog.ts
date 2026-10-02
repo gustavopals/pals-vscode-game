@@ -1,5 +1,5 @@
 import { balance, DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
-import type { CatalogResponse } from '@lotg/protocol';
+import { type CatalogResponse, CreateGameRequestSchema } from '@lotg/protocol';
 
 import type { Config } from './config';
 import { CONTENT_HASH } from './version';
@@ -54,3 +54,16 @@ export function catalogInfo(config: Pick<Config, 'gameTimeScale'>): CatalogRespo
     },
   };
 }
+
+/**
+ * O corpo de `POST /games` como o servidor o aceita. A forma é a do protocolo; o ritmo, quando
+ * vem, tem de ser um dos que o conteúdo oferece (GDD §4.2; ADR 0013, decisão 2). A conferência
+ * fica aqui, e não no protocolo, porque o app importa os schemas de lá: ler `balance` naquele
+ * módulo levaria os números do jogo para o navegador. A recusa sai como a de forma:
+ * `400 VALIDATION`, com `timeScale` em `details.issues`.
+ */
+export const OfferedGameRequestSchema = CreateGameRequestSchema.refine(
+  (body) =>
+    body.timeScale === undefined || balance.paces.some((pace) => pace.timeScale === body.timeScale),
+  { path: ['timeScale'], message: 'ritmo fora dos oferecidos' },
+);
