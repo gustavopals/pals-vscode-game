@@ -515,6 +515,7 @@ describe('ganhos discretos cortados no limite', () => {
       draft.settlement.resources.wood = wood;
       draft.settlement.constructionQueues = [
         { building: 'housing', targetLevel: 2, startedAtMs: 0, finishesAtMs: DAY },
+        null,
       ];
     });
 
@@ -651,6 +652,7 @@ describe('construir o Celeiro e o Armazém', () => {
     expect(started.state.settlement.resources).toMatchObject({ wood: 290_000, stone: 220_000 });
     expect(started.state.settlement.constructionQueues).toEqual([
       { building: 'granary', targetLevel: 1, startedAtMs: 0, finishesAtMs: 10 * MINUTE },
+      null,
     ]);
     expect(started.events).toEqual([
       {
@@ -723,7 +725,9 @@ describe('construir o Celeiro e o Armazém', () => {
 
   it('planejar a construção guarda o nível 1 e mostra o custo base', () => {
     const { state } = accept(newGame(), command('planConstruction', { building: 'granary' }));
-    expect(state.settlement.planned).toEqual([{ building: 'granary', targetLevel: 1 }]);
+    expect(state.settlement.planned).toEqual([
+      { building: 'granary', targetLevel: 1, autoStart: false },
+    ]);
     expect(deriveViewState(state, 0).constructions.planned[0]).toMatchObject({
       building: 'granary',
       fromLevel: 0,
@@ -857,9 +861,20 @@ describe('custo que não cabe no depósito', () => {
   });
 
   it('as outras recusas vêm antes: fila ocupada e Salão continuam mandando', () => {
+    // Com o Salão no nível 4 as filas são duas: a recusa da fila só vem com as duas ocupadas.
+    const oneBusy = hall(4, (draft) => {
+      draft.settlement.constructionQueues = [
+        { building: 'farm', targetLevel: 2, startedAtMs: 0, finishesAtMs: HOUR },
+        null,
+      ];
+    });
+    expect(refuse(oneBusy, command('startConstruction', { building: 'townHall' })).code).toBe(
+      'EXCEEDS_STORAGE',
+    );
     const busy = hall(4, (draft) => {
       draft.settlement.constructionQueues = [
         { building: 'farm', targetLevel: 2, startedAtMs: 0, finishesAtMs: HOUR },
+        { building: 'quarry', targetLevel: 2, startedAtMs: 0, finishesAtMs: HOUR },
       ];
     });
     expect(refuse(busy, command('startConstruction', { building: 'townHall' })).code).toBe(
@@ -974,6 +989,7 @@ describe('a visão do armazenamento', () => {
     const underway = full((draft) => {
       draft.settlement.constructionQueues = [
         { building: 'warehouse', targetLevel: 1, startedAtMs: 0, finishesAtMs: HOUR },
+        null,
       ];
     });
     expect(row(underway, 'wood').fullNote).toBe(
@@ -1039,6 +1055,7 @@ describe('a visão do armazenamento', () => {
         woodcutters(3, (draft) => {
           draft.settlement.constructionQueues = [
             { building: id, targetLevel: 2, startedAtMs: 0, finishesAtMs: HOUR },
+            null,
           ];
         });
       expect(row(building('lumberMill'), 'wood')).toMatchObject({

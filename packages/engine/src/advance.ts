@@ -9,7 +9,7 @@ import {
 } from './clock';
 import { finishConstructions } from './construction';
 import { applyContinuous } from './economy';
-import { evaluateObjectives } from './objectives';
+import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
@@ -47,15 +47,16 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação e o dia),
- * objetivos e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo,
- * por `advanceWith` e por `applyCommand` (`announceFilled`).
+ * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação e o dia), início
+ * automático das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der
+ * motivo ao outro) e, por fim, fome e frio. Os estoques que encheram são registrados depois de
+ * tudo, por `advanceWith` e por `applyCommand` (`announceFilled`).
  */
 export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   processCalendar(draft, atMs, events);
-  evaluateObjectives(draft, atMs, events);
+  settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }
 
@@ -77,7 +78,12 @@ export function advanceWith(
   // Um estado em repouso já passou por aqui e nada muda. Um estado que acabou de ser migrado
   // pode não estar em repouso pelas regras novas (inverno sem madeira, por exemplo): a fome e o
   // frio abrem ou fecham na fronteira, com a linha na Crônica, antes de o tempo andar. Sem isto
-  // o próximo evento seria "agora" e o mesmo instante seria processado duas vezes.
+  // o próximo evento seria "agora" e o mesmo instante seria processado duas vezes. O mesmo vale
+  // para uma planejada automática que já pode começar (um custo que o conteúdo baixou, por
+  // exemplo): ela começa aqui, e não no primeiro instante em que alguém olhar.
+  if (hasStartablePlan(draft)) {
+    settlePlanned(draft, draft.lastProcessedAt, events);
+  }
   settleScarcity(draft, draft.lastProcessedAt, events);
   while (draft.lastProcessedAt < gameTimeMs) {
     const next = Math.min(nextEventAt(draft) ?? gameTimeMs, gameTimeMs);

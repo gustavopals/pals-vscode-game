@@ -28,7 +28,7 @@ import {
   summarize,
   toCsv,
 } from './report';
-import { idleQueue, simulate } from './simulate';
+import { idleQueue, simulate, withManualPlans } from './simulate';
 
 const twoSessions = await simulate({
   seed: 'pedra-alta-golden',
@@ -132,9 +132,9 @@ describe('CSV de uma partida', () => {
       wood: twoSessions.rows[167]?.wasted.wood,
       stone: twoSessions.rows[167]?.wasted.stone,
     });
-    // A madeira do bot enche o Pátio e vai ao chão: é o que os limites puseram no lugar do
-    // excedente parado.
-    expect(summary.wasted.wood).toBeGreaterThan(1000);
+    // Antes de o Armazém ficar de pé, a madeira do bot enche o Pátio e vai ao chão: é o que os
+    // limites puseram no lugar do excedente parado.
+    expect(summary.wasted.wood).toBeGreaterThan(0);
     expect(summary.wasteHours).toBe(twoSessions.rows.filter((row) => row.wasting).length);
     expect(summary.wasteHours).toBeGreaterThan(0);
     expect(formatSummary(twoSessions)).toContain(
@@ -224,6 +224,29 @@ describe('fila ociosa', () => {
     expect(signals(building)).toEqual({ queueIdle: false, plannedIdle: false });
   });
 
+  it('com a segunda fila aberta e vazia, uma obra em curso não desfaz a ociosidade', () => {
+    const fresh = createInitialState('fila', settings);
+    const hall4: GameState = {
+      ...fresh,
+      settlement: {
+        ...fresh.settlement,
+        buildings: { ...fresh.settlement.buildings, townHall: 4 },
+        resources: { food: 500_000, wood: 500_000, stone: 500_000, gold: 500_000 },
+      },
+    };
+    const one = order(hall4, 'startConstruction', { building: 'farm' });
+    expect(signals(one)).toEqual({ queueIdle: true, plannedIdle: false });
+    const both = order(one, 'startConstruction', { building: 'quarry' });
+    expect(signals(both)).toEqual({ queueIdle: false, plannedIdle: false });
+  });
+
+  it('uma planejada automática que pode começar não fica na lista: a fila planejada nunca é ociosa', () => {
+    const fresh = createInitialState('fila', settings);
+    const started = order(fresh, 'planConstruction', { building: 'farm', autoStart: true });
+    expect(started.settlement.planned).toEqual([]);
+    expect(signals(started).plannedIdle).toBe(false);
+  });
+
   it('sem estoque para obra nenhuma, a fila livre não é ociosa: não havia o que iniciar', () => {
     const fresh = createInitialState('fila', settings);
     const broke: GameState = {
@@ -244,6 +267,75 @@ describe('fila ociosa', () => {
       twoSessions.rows.reduce((sum, row) => sum + row.free, 0),
     );
     expect(summary.freePerHour).toBe(Math.round((summary.freeVillagerHours * 10) / 168) / 10);
+  });
+});
+
+describe('partida de controle: as mesmas planejadas, manuais', () => {
+  const lazy = {
+    seed: 'pedra-alta-001',
+    days: 7,
+    strategy: 'preguicoso',
+    sessionsPerDay: 1,
+  } as const;
+
+  it('o bot dá as mesmas ordens de planejar, e nenhuma obra começa sozinha', async () => {
+    const control = await simulate({ ...lazy, manualPlans: true });
+    expect(control.events.filter((event) => event.type === 'constructionAutoStarted')).toEqual([]);
+    expect(control.finalState.settlement.planned.length).toBeGreaterThan(0);
+    expect(control.finalState.settlement.planned.every((plan) => !plan.autoStart)).toBe(true);
+    expect(control.commands.refused).toEqual({});
+  });
+
+  it('com o início automático a fila planejada deixa de ficar ociosa, e a fila ociosa cai', async () => {
+    const auto = summarize(await simulate(lazy));
+    const control = summarize(await simulate({ ...lazy, manualPlans: true }));
+    // O jogador de uma visita por dia: as planejadas que podiam começar esperavam a visita.
+    expect(control.plannedIdleHours).toBeGreaterThan(100);
+    expect(auto.plannedIdleHours).toBe(0);
+    expect(auto.queueIdleHours).toBeLessThan(control.queueIdleHours / 2);
+    // E o feudo anda mais: as obras não esperaram por ele.
+    expect(auto.townHall).toBeGreaterThan(control.townHall);
+  });
+
+  it('o resumo põe as duas medidas lado a lado', async () => {
+    const auto = await simulate(lazy);
+    const control = await simulate({ ...lazy, manualPlans: true });
+    const text = formatSummary(auto, control);
+    const idle = (summary: ReturnType<typeof summarize>) =>
+      `${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`;
+    expect(text).toContain(
+      `Fila ociosa: ${idle(summarize(auto))}\nSem o início automático (as mesmas planejadas, manuais): ${idle(summarize(control))}\n`,
+    );
+    // Sem a partida de controle, a linha não aparece.
+    expect(formatSummary(auto)).not.toContain('Sem o início automático');
+  });
+
+  it('withManualPlans tira a marca de `planConstruction` e não repassa `setAutoStart`', async () => {
+    const seen: Array<[string, unknown]> = [];
+    const view = deriveViewState(
+      createInitialState('controle', {
+        settlementName: 'Pedra Alta',
+        timezone: 'UTC',
+        vigilHourLocal: 20,
+        difficulty: 'lord',
+        timeScale: 1,
+      }),
+      0,
+    );
+    const act = withManualPlans(
+      async (type, payload) => {
+        seen.push([type, payload]);
+        return view;
+      },
+      () => view,
+    );
+    await act('planConstruction', { building: 'farm', autoStart: true });
+    await act('setAutoStart', { building: 'farm', autoStart: true });
+    await act('startConstruction', { building: 'farm' });
+    expect(seen).toEqual([
+      ['planConstruction', { building: 'farm' }],
+      ['startConstruction', { building: 'farm' }],
+    ]);
   });
 });
 
@@ -280,7 +372,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: recrutar, obra mais barata, ampliar o estoque, alocar por demanda, guardar lenha',
+      'Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha',
     );
   });
 

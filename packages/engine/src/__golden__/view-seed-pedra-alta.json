@@ -152,6 +152,11 @@
     ],
     "constructions": {
       "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
       "planned": [],
       "available": [
         {
@@ -590,6 +595,11 @@
     ],
     "constructions": {
       "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
       "planned": [],
       "available": [
         {
@@ -1039,6 +1049,11 @@
     ],
     "constructions": {
       "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
       "planned": [],
       "available": [
         {
@@ -1497,6 +1512,11 @@
     ],
     "constructions": {
       "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
       "planned": [],
       "available": [
         {
@@ -1948,6 +1968,11 @@
     ],
     "constructions": {
       "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
       "planned": [],
       "available": [
         {
@@ -2210,6 +2235,642 @@
         "text": "Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 0/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 149 de madeira para atravessar o resto do Inverno."
       }
     },
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro e o Armazém",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "queuesAndPlans": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 4,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "summer",
+      "seasonLabel": "Verão",
+      "dayOfSeason": 4,
+      "dayOfYear": 28,
+      "secondsToNextDay": 7080,
+      "secondsToNextSeason": 151080,
+      "seasonEffects": "Verão: madeira e pedra × 1,15.",
+      "nextSeason": {
+        "id": "autumn",
+        "label": "Outono",
+        "secondsUntil": 151080,
+        "changes": [
+          "A produção de comida passa de × 1 para × 1,3.",
+          "A produção de madeira e pedra passa de × 1,15 para × 1.",
+          "A produção de ouro passa de × 1 para × 1,1."
+        ],
+        "firewood": null
+      }
+    },
+    "population": {
+      "villagers": 20,
+      "capacity": 25,
+      "free": 2,
+      "inTraining": 0,
+      "housed": 20,
+      "vacancies": 5,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 602,
+        "cap": 900,
+        "capBreakdown": "Celeiro Nv1: 900",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": 17880,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 60,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 8 trabalhadores × 10 × 1 (Nv1) = 80/h; consumo 20 × 1 = 20/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 201,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes do fim da obra da Serraria.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 46,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 5 trabalhadores × 8 × 1 (Nv1) × 1,15 (verão) = 46/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 171,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 38141,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 31.1,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 3 trabalhadores × 5 × 1,8 (Nv5) × 1,15 (verão) = 31,05/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 25,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 8,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) = 8/h"
+      }
+    ],
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 8,
+        "grossPerHour": 80,
+        "perWorkerPerHour": 10,
+        "breakdown": "8 trabalhadores × 10 × 1 (Nv1) = 80/h"
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 5,
+        "grossPerHour": 46,
+        "perWorkerPerHour": 9.2,
+        "breakdown": "5 trabalhadores × 8 × 1 (Nv1) × 1,15 (verão) = 46/h"
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 5,
+        "resource": "stone",
+        "assigned": 3,
+        "grossPerHour": 31.05,
+        "perWorkerPerHour": 10.35,
+        "breakdown": "3 trabalhadores × 5 × 1,8 (Nv5) × 1,15 (verão) = 31,05/h"
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 8,
+        "perWorkerPerHour": 4,
+        "breakdown": "2 trabalhadores × 4 × 1 (Nv1) = 8/h"
+      }
+    ],
+    "constructions": {
+      "active": {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "targetLevel": 2,
+        "secondsRemaining": 180,
+        "totalSeconds": 300,
+        "progressPercent": 40,
+        "refund": [
+          {
+            "resource": "wood",
+            "label": "Madeira",
+            "amount": 80,
+            "lost": 0
+          },
+          {
+            "resource": "stone",
+            "label": "Pedra",
+            "amount": 40,
+            "lost": 0
+          }
+        ]
+      },
+      "queues": [
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "targetLevel": 2,
+          "secondsRemaining": 180,
+          "totalSeconds": 300,
+          "progressPercent": 40,
+          "refund": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "lost": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 40,
+              "lost": 0
+            }
+          ]
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "targetLevel": 2,
+          "secondsRemaining": 360,
+          "totalSeconds": 480,
+          "progressPercent": 25,
+          "refund": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 96,
+              "lost": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 64,
+              "lost": 0
+            }
+          ]
+        }
+      ],
+      "queuesUnlocked": 2,
+      "queuesNote": null,
+      "planned": [
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": true,
+          "effect": null,
+          "autoStart": true,
+          "waiting": {
+            "reason": "upgrading",
+            "text": "espera a obra da Serraria terminar",
+            "etaSeconds": 180
+          }
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": true,
+          "effect": null,
+          "autoStart": false,
+          "waiting": {
+            "reason": "queue",
+            "text": "espera os pedreiros terminarem outra obra",
+            "etaSeconds": 180
+          }
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": true,
+          "effect": null,
+          "autoStart": true,
+          "waiting": {
+            "reason": "resources",
+            "text": "espera 15 de ouro",
+            "etaSeconds": 6630
+          }
+        },
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 875,
+              "missing": 674
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 583,
+              "missing": 412
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 583,
+              "missing": 558
+            }
+          ],
+          "durationSeconds": 2025,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": true,
+          "effect": null,
+          "autoStart": true,
+          "waiting": {
+            "reason": "capacity",
+            "text": "não cabe no Pátio: construa o Armazém",
+            "etaSeconds": null
+          }
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 5,
+          "targetLevel": 6,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 786,
+              "missing": 585
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 197,
+              "missing": 172
+            }
+          ],
+          "durationSeconds": 1823,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": true,
+          "effect": null,
+          "autoStart": true,
+          "waiting": {
+            "reason": "gate",
+            "text": "espera o Salão do Senhor chegar ao nível 5: melhore-o",
+            "etaSeconds": null
+          }
+        }
+      ],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 875,
+              "missing": 674
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 583,
+              "missing": 412
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 583,
+              "missing": 558
+            }
+          ],
+          "durationSeconds": 2025,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": true,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": true,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 5,
+          "targetLevel": 6,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 786,
+              "missing": 585
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 197,
+              "missing": 172
+            }
+          ],
+          "durationSeconds": 1823,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": true,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": true,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 256,
+              "missing": 55
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 128,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Capacidade de comida: 900 → 1.500."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null
+    },
+    "famine": null,
+    "winter": null,
     "objectives": [
       {
         "id": "allocateFarmers",

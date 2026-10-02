@@ -274,6 +274,7 @@ describe('fim do frio', () => {
     building.settlement.resources.food = 900_000;
     building.settlement.constructionQueues = [
       { building: 'farm', targetLevel: 2, startedAtMs: WINTER, finishesAtMs: WINTER + 7 * HOUR },
+      null,
     ];
     const now = WINTER + 3 * HOUR;
     const cancelled = accept(building, command('cancelConstruction', { building: 'farm' }));
@@ -305,6 +306,7 @@ describe('fim do frio', () => {
           startedAtMs: state.lastProcessedAt,
           finishesAtMs: YEAR + DAY,
         },
+        null,
       ];
       const result = play(state, [
         command('cancelConstruction', { building: 'quarry' }),

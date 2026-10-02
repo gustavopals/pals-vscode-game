@@ -109,7 +109,10 @@ export type Balance = {
     readonly timeFactor: Ratio;
     readonly maxDurationMs: number;
     readonly cancelRefund: Ratio;
+    /** Quantas filas de obras o feudo pode ter. A primeira existe desde o começo (GDD §6.3). */
     readonly queues: number;
+    /** O nível do Salão que abre a segunda fila. */
+    readonly secondQueueTownHallLevel: number;
     /** Um edifício nunca ultrapassa o nível do Salão mais este valor. */
     readonly gateLevelsAboveTownHall: number;
   };
@@ -169,7 +172,9 @@ export const balance: Balance = {
     timeFactor: { num: 3, den: 2 },
     maxDurationMs: 8 * HOUR_MS,
     cancelRefund: { num: 8, den: 10 },
-    queues: 1,
+    // GDD §6.1 e §6.3 (ADR 0013, decisão 18): o Salão no nível 4 abre a segunda fila.
+    queues: 2,
+    secondQueueTownHallLevel: 4,
     gateLevelsAboveTownHall: 1,
   },
   // GDD §5.2 e §5.5 (ADR 0013, decisão 17).

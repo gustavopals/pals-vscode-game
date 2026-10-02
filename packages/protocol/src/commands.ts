@@ -28,11 +28,16 @@ export const CancelConstructionCommandSchema = command(
 );
 export const PlanConstructionCommandSchema = command(
   'planConstruction',
-  z.strictObject({ building }),
+  // `autoStart` marca a planejada como "iniciar quando houver recursos"; sem ele, é manual.
+  z.strictObject({ building, autoStart: z.boolean().optional() }),
 );
 export const UnplanConstructionCommandSchema = command(
   'unplanConstruction',
   z.strictObject({ building }),
+);
+export const SetAutoStartCommandSchema = command(
+  'setAutoStart',
+  z.strictObject({ building, autoStart: z.boolean() }),
 );
 export const RecruitVillagersCommandSchema = command(
   'recruitVillagers',
@@ -50,6 +55,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   CancelConstructionCommandSchema,
   PlanConstructionCommandSchema,
   UnplanConstructionCommandSchema,
+  SetAutoStartCommandSchema,
   RecruitVillagersCommandSchema,
   RenameSettlementCommandSchema,
 ]);

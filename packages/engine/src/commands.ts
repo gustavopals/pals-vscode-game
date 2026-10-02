@@ -4,10 +4,11 @@ import { emit } from './chronicle';
 import {
   cancelConstruction,
   planConstruction,
+  setAutoStart,
   startConstruction,
   unplanConstruction,
 } from './construction';
-import { evaluateObjectives } from './objectives';
+import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
@@ -47,9 +48,11 @@ function dispatch(
     case 'cancelConstruction':
       return cancelConstruction(draft, payload.building, nowMs, events);
     case 'planConstruction':
-      return planConstruction(draft, payload.building);
+      return planConstruction(draft, payload.building, payload.autoStart);
     case 'unplanConstruction':
       return unplanConstruction(draft, payload.building);
+    case 'setAutoStart':
+      return setAutoStart(draft, payload.building, payload.autoStart);
     case 'recruitVillagers':
       return recruitVillagers(draft, payload.quantity, nowMs, events);
     case 'renameSettlement':
@@ -79,7 +82,9 @@ export function applyCommand(state: GameState, command: Command, nowMs: number):
   if (rejection !== null) {
     return { ok: false, code: rejection.code, message: rejection.message };
   }
-  evaluateObjectives(draft, nowMs, events);
+  // Toda ordem pode liberar uma planejada automática (um cancelamento devolve recurso e fila,
+  // uma recompensa paga um custo): a lista é conferida aqui, junto com os objetivos.
+  settlePlanned(draft, nowMs, events);
   settleScarcity(draft, nowMs, events);
   // Uma recompensa ou uma devolução pode encher um depósito: a linha sai uma vez por episódio.
   announceFilled(draft, nowMs, events, wasFull);

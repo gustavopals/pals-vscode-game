@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { GameState } from '@lotg/engine';
+import type { Command, GameState } from '@lotg/engine';
 
+import { economico } from './bots/economico';
+import type { Act, Bot } from './bots/types';
 import { formatSummary, summarize, toCsv } from './report';
 import { simulate, type SimulationOptions } from './simulate';
 
@@ -21,11 +23,43 @@ const base: SimulationOptions = {
 
 // 3 dias reais no ritmo 3 são 9 dias reais no ritmo 1: 216 h de jogo. Com 3 sessões por dia no
 // ritmo 3 e 1 por dia no ritmo 1, as sessões caem nos mesmos instantes de jogo (a cada 24 h).
-const fast = await simulate({ ...base, timeScale: 3 });
-const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1 });
+//
+// O que tem de coincidir é o jogo: as mesmas ordens, nos mesmos instantes de jogo, dão o mesmo
+// feudo em qualquer ritmo. O bot decide em tempo real (o depósito que "enche em menos de 8 horas
+// reais" é outro no ritmo 3), e por isso a partida do ritmo 1 não pergunta de novo ao bot: ela
+// repete, sessão a sessão, as ordens que ele deu no ritmo 3.
+type Order = { type: Command['type']; payload: Command['payload'] };
+type LooseAct = (type: Order['type'], payload: Order['payload']) => ReturnType<Act>;
+const sessions: Order[][] = [];
+const recording: Bot = async (view, act) => {
+  const orders: Order[] = [];
+  sessions.push(orders);
+  const noted: LooseAct = (type, payload) => {
+    orders.push({ type, payload });
+    return (act as LooseAct)(type, payload);
+  };
+  await economico(view, noted as Act);
+};
+let replayed = 0;
+const replaying: Bot = async (_view, act) => {
+  const orders = sessions[replayed] ?? [];
+  replayed += 1;
+  for (const order of orders) {
+    await (act as LooseAct)(order.type, order.payload);
+  }
+};
+const fast = await simulate({ ...base, timeScale: 3, bot: recording });
+const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1, bot: replaying });
 
 describe('simulação no ritmo 3', () => {
   it('3 dias no ritmo 3 terminam no mesmo estado de jogo que 9 dias no ritmo 1', () => {
+    // Nove sessões em cada partida, com as mesmas ordens; e há obras que começaram sozinhas no
+    // caminho, nos mesmos instantes de jogo nos dois ritmos.
+    expect(sessions).toHaveLength(9);
+    expect(replayed).toBe(9);
+    expect(
+      fast.events.filter((event) => event.type === 'constructionAutoStarted').length,
+    ).toBeGreaterThan(3);
     expect(fast.finalState.lastProcessedAt).toBe(216 * HOUR_MS);
     expect(fast.finalState.settings.timeScale).toBe(3);
     expect(normal.finalState.settings.timeScale).toBe(1);
@@ -70,7 +104,8 @@ describe('simulação no ritmo 3', () => {
   });
 
   it('é determinística: a mesma semente e o mesmo ritmo dão o mesmo CSV', async () => {
-    const again = await simulate(fast.options);
+    // O gravador do roteiro não muda nada: o bot econômico, sozinho, joga a mesma partida.
+    const again = await simulate({ ...base, timeScale: 3 });
     expect(toCsv(again.rows)).toBe(toCsv(fast.rows));
     expect(again.finalState).toStrictEqual(fast.finalState);
     expect(again.events).toStrictEqual(fast.events);

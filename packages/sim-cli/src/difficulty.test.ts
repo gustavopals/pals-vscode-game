@@ -1,6 +1,8 @@
 import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
+import { alocarPorDemanda } from './bots/policies';
+import { botOf } from './bots/types';
 import { parseCli } from './cli';
 import { formatSummary } from './report';
 import { simulate } from './simulate';
@@ -34,8 +36,14 @@ describe('dificuldade da simulação', () => {
   ] as const)(
     '%s: o estoque de madeira para no limite da dificuldade (%i)',
     async (difficulty, cap) => {
-      // Três dias reais com o bot econômico: ninguém ergueu o Armazém, e a madeira encheu o Pátio.
-      const result = await simulate({ ...base, days: 3, difficulty });
+      // Três dias reais de um bot que só aloca os aldeões e não inicia obra nenhuma: ninguém
+      // ergue o Armazém, e a madeira enche o Pátio.
+      const result = await simulate({
+        ...base,
+        days: 3,
+        difficulty,
+        bot: botOf([alocarPorDemanda]),
+      });
       const last = result.rows.at(-1);
       expect(last?.levels.warehouse).toBe(0);
       expect(Math.max(...result.rows.map((row) => row.stock.wood))).toBe(cap);

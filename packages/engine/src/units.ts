@@ -40,8 +40,12 @@ export function secondsUntil(fromMs: number, toMs: number): number {
 
 /** Recursos com quantidade positiva, na ordem canônica. */
 export function positiveEntries(amounts: ResourceAmounts): Array<[ResourceId, number]> {
-  return RESOURCE_IDS.flatMap((id): Array<[ResourceId, number]> => {
+  const entries: Array<[ResourceId, number]> = [];
+  for (const id of RESOURCE_IDS) {
     const amount = amounts[id] ?? 0;
-    return amount > 0 ? [[id, amount]] : [];
-  });
+    if (amount > 0) {
+      entries.push([id, amount]);
+    }
+  }
+  return entries;
 }

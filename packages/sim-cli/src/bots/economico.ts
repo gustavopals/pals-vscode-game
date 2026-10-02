@@ -3,6 +3,7 @@ import {
   ampliarEstoque,
   guardarLenha,
   obraMaisBarata,
+  planejarAutomaticas,
   recrutar,
 } from './policies';
 import { botOf, type Policy } from './types';
@@ -14,9 +15,10 @@ import { botOf, type Policy } from './types';
  * reforça a Serraria até a conta da lenha fechar.
  */
 export const economicoPolicies: readonly Policy[] = [
-  recrutar,
   obraMaisBarata,
   ampliarEstoque,
+  planejarAutomaticas,
+  recrutar,
   alocarPorDemanda,
   guardarLenha,
 ];

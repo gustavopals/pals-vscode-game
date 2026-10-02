@@ -132,6 +132,7 @@ describe('iniciar', () => {
     expect(state.settlement.resources).toMatchObject({ wood: 40_000, gold: 210_000 });
     expect(state.settlement.constructionQueues).toEqual([
       { building: 'farm', targetLevel: 2, startedAtMs: 0, finishesAtMs: 5 * MINUTE },
+      null,
     ]);
     expect(state.settlement.buildings.farm).toBe(1);
     expect(events).toHaveLength(1);
@@ -145,11 +146,12 @@ describe('iniciar', () => {
     expect(later.settlement.resources).toMatchObject({ wood: 40_000, gold: 210_000 });
   });
 
-  it('recusa com a fila ocupada', () => {
+  it('recusa com a fila ocupada, e diz o que abre a segunda', () => {
     const busy = accept(rich, command('startConstruction', { building: 'farm' })).state;
     expect(refuse(busy, command('startConstruction', { building: 'quarry' }))).toEqual({
-      code: 'QUEUE_BUSY',
-      message: 'Os pedreiros já estão ocupados com outra obra.',
+      code: 'QUEUE_LOCKED',
+      message:
+        'Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.',
     });
   });
 
@@ -207,7 +209,7 @@ describe('concluir', () => {
 
     const { state, events } = advanceTo(before.state, 4 * MINUTE);
     expect(state.settlement.buildings.housing).toBe(2);
-    expect(state.settlement.constructionQueues).toEqual([null]);
+    expect(state.settlement.constructionQueues).toEqual([null, null]);
     const [finished] = eventsOfType(events, 'constructionFinished');
     expect(finished).toMatchObject({ atMs: 4 * MINUTE, data: { building: 'housing', level: 2 } });
     expect(finished?.text).toBe(
@@ -250,6 +252,7 @@ describe('obras e estações (GDD §4.1)', () => {
         startedAtMs: WINTER,
         finishesAtMs: WINTER + 6 * MINUTE,
       },
+      null,
     ]);
     const before = advanceTo(started.state, WINTER + 6 * MINUTE - 1);
     expect(before.state.settlement.buildings.housing).toBe(1);
@@ -314,7 +317,7 @@ describe('cancelar', () => {
     );
     // Pagou 120 madeira e 30 ouro; voltam 96 e 24.
     expect(state.settlement.resources).toMatchObject({ wood: 96_000, gold: 244_000 });
-    expect(state.settlement.constructionQueues).toEqual([null]);
+    expect(state.settlement.constructionQueues).toEqual([null, null]);
     expect(state.settlement.buildings.quarry).toBe(1);
     expect(events[0]).toMatchObject({
       type: 'constructionCancelled',
@@ -354,18 +357,26 @@ describe('planejar', () => {
       newGame(),
       command('planConstruction', { building: 'townHall' }),
     );
-    expect(state.settlement.planned).toEqual([{ building: 'townHall', targetLevel: 2 }]);
+    expect(state.settlement.planned).toEqual([
+      { building: 'townHall', targetLevel: 2, autoStart: false },
+    ]);
     expect(state.settlement.resources).toEqual(newGame().settlement.resources);
-    expect(state.settlement.constructionQueues).toEqual([null]);
+    expect(state.settlement.constructionQueues).toEqual([null, null]);
     expect(events).toEqual([]);
-    // Não começa sozinha na v0.1.
-    expect(advanceTo(state, 24 * HOUR).state.settlement.buildings.townHall).toBe(1);
+    // Sem a marca de automática, a planejada espera a ordem do jogador, por mais que sobre.
+    const later = gameWith((draft) => {
+      Object.assign(draft.settlement, rich.settlement);
+      draft.settlement.planned = state.settlement.planned;
+    });
+    expect(advanceTo(later, 24 * HOUR).state.settlement.buildings.townHall).toBe(1);
   });
 
   it('planeja o nível seguinte ao da obra em andamento', () => {
     const started = accept(newGame(), command('startConstruction', { building: 'farm' })).state;
     const { state } = accept(started, command('planConstruction', { building: 'farm' }));
-    expect(state.settlement.planned).toEqual([{ building: 'farm', targetLevel: 3 }]);
+    expect(state.settlement.planned).toEqual([
+      { building: 'farm', targetLevel: 3, autoStart: false },
+    ]);
   });
 
   it('recusa plano repetido, acima do nível máximo ou de edifício inexistente', () => {

@@ -1,4 +1,4 @@
-import { BUILDING_IDS, DIFFICULTY_IDS, RESOURCE_IDS } from '@lotg/content';
+import { balance, BUILDING_IDS, DIFFICULTY_IDS, RESOURCE_IDS } from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
@@ -16,8 +16,9 @@ import {
 import { natural, type Shape } from './migrations/shape';
 import { v1ToV2 } from './migrations/v1';
 import { stateV2, v2ToV3 } from './migrations/v2';
-import { stateV3 } from './migrations/v3';
-import { command, gameAt, HOUR, newGame, runWeekScenario } from './test-helpers';
+import { stateV3, v3ToV4 } from './migrations/v3';
+import { stateV4 } from './migrations/v4';
+import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
 import { REJECTION_CODES } from './types';
@@ -100,6 +101,16 @@ const FROZEN: Record<string, string> = {
   'state-v3-objectives.json': '74abbb8f',
   'state-v3-peasant-3x.json': '448f9116',
   'state-v3-week-scripted.json': 'd1b11263',
+  'state-v4-cold.json': 'd2f0aeaa',
+  'state-v4-construction.json': '30a24d04',
+  'state-v4-famine.json': 'b5c4e8f5',
+  'state-v4-fresh.json': '40ca4e90',
+  'state-v4-iron-king-half.json': '89f84fdf',
+  'state-v4-migrated-3x.json': '6b80c224',
+  'state-v4-objectives.json': '35daec40',
+  'state-v4-peasant-3x.json': 'a2f70389',
+  'state-v4-storage.json': '797741c0',
+  'state-v4-week-scripted.json': '7911107c',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -196,6 +207,16 @@ describe('a forma da versão atual', () => {
     ['o desperdício ausente', (state) => delete state.settlement.wasted],
     ['um desperdício negativo', (state) => (state.settlement.wasted.food = -1)],
     ['o desperdício de um recurso a menos', (state) => delete state.settlement.wasted.gold],
+    ['uma fila de obras só', (state) => state.settlement.constructionQueues.pop()],
+    ['uma fila de obras a mais', (state) => state.settlement.constructionQueues.push(null)],
+    [
+      'uma planejada sem dizer se é automática',
+      (state) => (state.settlement.planned = [{ building: 'farm', targetLevel: 2 }]),
+    ],
+    [
+      'uma planejada com a marca que não é sim nem não',
+      (state) => (state.settlement.planned = [{ building: 'farm', targetLevel: 2, autoStart: 1 }]),
+    ],
     ['o número da versão 3', (state) => (state.schemaVersion = 3)],
     ['o número da versão 2', (state) => (state.schemaVersion = 2)],
     ['o número da versão anterior', (state) => (state.schemaVersion = 1)],
@@ -261,13 +282,17 @@ describe('a forma da versão atual', () => {
     const state = newGame();
     expect(Object.keys(state.settlement.buildings)).toEqual([...BUILDING_IDS]);
     expect(Object.keys(state.settlement.wasted)).toEqual([...RESOURCE_IDS]);
-    // Uma obra e uma planejada de cada edifício do conteúdo cabem na forma.
+    // As filas do estado são as do conteúdo, abertas ou não.
+    expect(state.settlement.constructionQueues).toHaveLength(balance.construction.queues);
+    // Uma obra em cada fila e uma planejada de cada edifício do conteúdo cabem na forma.
     for (const building of BUILDING_IDS) {
       const busy = JSON.parse(JSON.stringify(state)) as Draft;
-      busy.settlement.constructionQueues = [
-        { building, targetLevel: 1, startedAtMs: 0, finishesAtMs: 1 },
+      const work = { building, targetLevel: 1, startedAtMs: 0, finishesAtMs: 1 };
+      busy.settlement.constructionQueues = [work, work];
+      busy.settlement.planned = [
+        { building, targetLevel: 2, autoStart: true },
+        { building, targetLevel: 3, autoStart: false },
       ];
-      busy.settlement.planned = [{ building, targetLevel: 2 }];
       expect(currentShape(busy, ''), building).toBeNull();
     }
   });
@@ -524,7 +549,7 @@ describe('versão 2 → 3', () => {
     const fixture = named('state-v2-construction.json');
     const before = read(fixture) as unknown as GameState;
     const after = migrated(fixture);
-    expect(after.settlement.constructionQueues).toEqual(before.settlement.constructionQueues);
+    expect(after.settlement.constructionQueues[0]).toEqual(before.settlement.constructionQueues[0]);
     expect(after.settlement.recruitmentQueue).toEqual([
       { finishesAtMs: 1_200_000 },
       { finishesAtMs: 2_400_000 },
@@ -585,12 +610,18 @@ describe('versão 3 → 4', () => {
   const version3 = fixtures.filter((fixture) => fixture.version === 3);
   const milli = (state: GameState, resource: 'food' | 'wood' | 'stone') =>
     state.settlement.resources[resource];
+  // Só até a versão 4: o que o armazenamento mudou, sem o que as versões seguintes acrescentaram.
+  const storage: MigrationChain = { steps: [v1ToV2, v2ToV3, v3ToV4], shape: stateV4 };
 
   it.each(version3)(
     '$name: só acrescenta o Celeiro e o Armazém no nível 0 e o desperdício zerado',
     (fixture) => {
       const before = read(fixture) as unknown as GameState;
-      const after = migrated(fixture);
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        storage,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(4);
       expect(after.settlement.buildings).toStrictEqual({
         ...before.settlement.buildings,
@@ -708,6 +739,124 @@ describe('versão 3 → 4', () => {
       expect(after.settlement.famine, name).toEqual(before.settlement.famine);
       expect(after.settlement.recruitmentQueue, name).toEqual(before.settlement.recruitmentQueue);
     }
+  });
+});
+
+describe('versão 4 → 5', () => {
+  const version4 = fixtures.filter((fixture) => fixture.version === 4);
+  const autoStarts = (events: Array<{ type: string }>) =>
+    events.filter((event) => event.type === 'constructionAutoStarted');
+
+  it.each(version4)(
+    '$name: só acrescenta a segunda fila, vazia, e marca as planejadas como manuais',
+    (fixture) => {
+      const before = read(fixture) as unknown as GameState;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(5);
+      // A obra em curso continua onde estava, e a segunda fila nasce livre.
+      expect(before.settlement.constructionQueues).toHaveLength(1);
+      expect(after.settlement.constructionQueues).toStrictEqual([
+        ...before.settlement.constructionQueues,
+        null,
+      ]);
+      // As planejadas ficam na mesma ordem, com o mesmo nível, todas manuais (ADR 0013, decisão 4).
+      expect(after.settlement.planned).toStrictEqual(
+        before.settlement.planned.map((plan) => ({ ...plan, autoStart: false })),
+      );
+      // O resto é o estado antigo, campo por campo.
+      expect(after.settlement).toStrictEqual({
+        ...before.settlement,
+        constructionQueues: after.settlement.constructionQueues,
+        planned: after.settlement.planned,
+      });
+      expect({ ...after, schemaVersion: 4, settlement: before.settlement }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version4)(
+    '$name: nenhuma obra começa sozinha por causa da migração, nem na fronteira nem depois',
+    (fixture) => {
+      const state = migrated(fixture);
+      expect(autoStarts(advanceTo(state, state.lastProcessedAt + 1).events)).toEqual([]);
+      const month = advanceTo(state, state.lastProcessedAt + 30 * DAY_REAL);
+      expect(autoStarts(month.events)).toEqual([]);
+      // As planejadas continuam na lista, esperando a ordem.
+      expect(month.state.settlement.planned).toEqual(state.settlement.planned);
+    },
+  );
+
+  it('quem já tinha o Salão no nível 4 ganha a segunda fila na fronteira, e a usa quando quiser', () => {
+    // O feudo que veio da v0.1: Salão 4, a Serraria em obra, a Fazenda planejada e estoque de sobra.
+    const state = migrated(named('state-v4-migrated-3x.json'));
+    expect(state.settlement.buildings.townHall).toBe(4);
+    expect(state.settlement.constructionQueues.map((slot) => slot?.building ?? null)).toEqual([
+      'lumberMill',
+      null,
+    ]);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.constructions.queuesUnlocked).toBe(2);
+    expect(view.constructions.queues.map((entry) => entry?.building ?? null)).toEqual([
+      'lumberMill',
+      null,
+    ]);
+    expect(view.constructions.queuesNote).toBeNull();
+    // A planejada antiga é manual e já pode começar: não espera nada, só a ordem.
+    expect(view.constructions.planned).toMatchObject([
+      { building: 'farm', targetLevel: 5, autoStart: false, waiting: null },
+    ]);
+
+    // A ordem do jogador põe a Fazenda na segunda fila, com a Serraria ainda em obra.
+    const started = applyCommand(
+      state,
+      command('startConstruction', { building: 'farm' }),
+      state.lastProcessedAt,
+    );
+    expect(started.ok).toBe(true);
+    if (started.ok) {
+      expect(
+        started.state.settlement.constructionQueues.map((slot) => slot?.building ?? null),
+      ).toEqual(['lumberMill', 'farm']);
+      expect(started.events.map((event) => event.type)).toEqual(['constructionStarted']);
+    }
+  });
+
+  it('marcar a planejada antiga como automática é uma ordem do jogador, e vale na hora', () => {
+    const state = migrated(named('state-v4-migrated-3x.json'));
+    const marked = applyCommand(
+      state,
+      command('setAutoStart', { building: 'farm', autoStart: true }),
+      state.lastProcessedAt,
+    );
+    expect(marked.ok).toBe(true);
+    if (marked.ok) {
+      // Havia recurso e fila: a obra começa no instante da ordem, e sai da lista.
+      expect(marked.events.map((event) => event.type)).toEqual(['constructionAutoStarted']);
+      expect(marked.state.settlement.planned).toEqual([]);
+      expect(marked.state.settlement.constructionQueues[1]?.building).toBe('farm');
+    }
+  });
+
+  it('com o Salão abaixo do nível 4 a segunda fila existe no estado, fechada', () => {
+    const state = migrated(named('state-v4-construction.json'));
+    expect(state.settlement.constructionQueues).toHaveLength(2);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.constructions.queuesUnlocked).toBe(1);
+    expect(view.constructions.queues).toHaveLength(1);
+    expect(view.constructions.queuesNote).toBe('A segunda fila abre com o Salão do Senhor Nv4.');
+    const refused = applyCommand(
+      state,
+      command('startConstruction', { building: 'farm' }),
+      state.lastProcessedAt,
+    );
+    expect(refused).toMatchObject({ ok: false, code: 'QUEUE_LOCKED' });
+    // A obra em curso termina na hora marcada, como antes.
+    const { events } = advanceTo(state, 4 * MINUTE);
+    expect(
+      events.filter((event) => event.type === 'constructionFinished').map((event) => event.atMs),
+    ).toEqual([4 * MINUTE]);
   });
 });
 

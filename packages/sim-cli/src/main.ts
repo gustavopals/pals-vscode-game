@@ -37,8 +37,10 @@ async function main(): Promise<void> {
   }
 
   const result = await simulate(command.options);
+  // A mesma partida com as planejadas manuais: o resumo compara a fila ociosa das duas.
+  const control = await simulate({ ...command.options, manualPlans: true });
   process.stdout.write(toCsv(result.rows));
-  process.stderr.write(formatSummary(result));
+  process.stderr.write(formatSummary(result, control));
 }
 
 main().catch((error: unknown) => {

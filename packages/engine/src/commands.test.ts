@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { describeAmounts, reject } from './rejections';
-import { accept, apply, command, gameWith, HOUR, newGame, refuse } from './test-helpers';
+import { accept, apply, command, gameWith, HOUR, newGame, play, refuse } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
 describe('applyCommand', () => {
@@ -81,6 +81,17 @@ describe('catálogo de recusas', () => {
     draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
   });
   const building = accept(rich, command('startConstruction', { building: 'farm' })).state;
+  // Com o Salão no nível 4 as duas filas estão abertas, e as duas têm obra.
+  const bothBusy = play(
+    gameWith((draft) => {
+      Object.assign(draft.settlement, rich.settlement);
+      draft.settlement.buildings = { ...draft.settlement.buildings, townHall: 4 };
+    }),
+    [
+      command('startConstruction', { building: 'farm' }),
+      command('startConstruction', { building: 'quarry' }),
+    ],
+  ).state;
   const planned = accept(rich, command('planConstruction', { building: 'farm' })).state;
   const starving = gameWith((draft) => {
     draft.settlement.resources.food = 0;
@@ -117,7 +128,8 @@ describe('catálogo de recusas', () => {
     INVALID_WORKERS: [rich, command('setWorkers', { building: 'farm', count: -2 })],
     NOT_ENOUGH_VILLAGERS: [rich, command('setWorkers', { building: 'farm', count: 6 })],
     ALREADY_UPGRADING: [building, command('startConstruction', { building: 'farm' })],
-    QUEUE_BUSY: [building, command('startConstruction', { building: 'housing' })],
+    QUEUE_BUSY: [bothBusy, command('startConstruction', { building: 'housing' })],
+    QUEUE_LOCKED: [building, command('startConstruction', { building: 'housing' })],
     MAX_LEVEL: [maxed, command('startConstruction', { building: 'townHall' })],
     GATE_LOCKED: [gated, command('startConstruction', { building: 'quarry' })],
     EXCEEDS_STORAGE: [hoarder, command('startConstruction', { building: 'townHall' })],

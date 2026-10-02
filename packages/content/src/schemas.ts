@@ -84,7 +84,9 @@ export const BalanceSchema = z.strictObject({
     timeFactor: ratio,
     maxDurationMs: positiveInt,
     cancelRefund: ratio,
-    queues: positiveInt,
+    // Só a segunda fila tem regra de abertura: uma terceira pediria outro número.
+    queues: positiveInt.max(2),
+    secondQueueTownHallLevel: positiveInt,
     gateLevelsAboveTownHall: z.number().int().nonnegative(),
   }),
   storage: z

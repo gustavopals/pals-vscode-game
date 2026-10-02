@@ -130,6 +130,27 @@ export function netRates(state: GameState): Record<ResourceId, number> {
 }
 
 /**
+ * A taxa com que o estoque de um recurso anda de fato em um trecho, em milésimos por hora: o
+ * saldo líquido, ou zero quando a escassez o segura. Na fome a comida fica em zero, porque só se
+ * consome o que existe (GDD §5.6); no frio, a madeira (GDD §4.1). É a taxa de `applyContinuous`
+ * e a de toda previsão que precisa bater com ele no milissegundo.
+ */
+export function flowRate(
+  state: GameState,
+  resource: ResourceId,
+  rates: Record<ResourceId, number>,
+): number {
+  const { famine, cold } = state.settlement;
+  if (resource === 'food' && famine && rates.food <= 0) {
+    return 0;
+  }
+  if (resource === 'wood' && cold && rates.wood <= 0) {
+    return 0;
+  }
+  return rates[resource];
+}
+
+/**
  * Aplica um trecho de produção e consumo contínuos, com taxas constantes.
  *
  * Cada recurso acumula `taxa × duração` (milésimos × ms) e só a parte inteira de
@@ -149,18 +170,14 @@ export function applyContinuous(draft: GameState, durationMs: number): void {
   if (durationMs <= 0) {
     return;
   }
-  const { resources, accumulators, famine, cold } = draft.settlement;
+  const { resources, accumulators } = draft.settlement;
   const rates = netRates(draft);
   for (const id of RESOURCE_IDS) {
-    // Na fome a comida fica em zero: só se consome o que existe (GDD §5.6).
-    if (id === 'food' && famine && rates.food <= 0) {
+    const rate = flowRate(draft, id, rates);
+    if (rate === 0) {
       continue;
     }
-    // No frio a madeira fica em zero: só se queima o que existe (GDD §4.1).
-    if (id === 'wood' && cold && rates.wood <= 0) {
-      continue;
-    }
-    const total = accumulators[id] + rates[id] * durationMs;
+    const total = accumulators[id] + rate * durationMs;
     const delta = Math.trunc(total / HOUR_MS);
     accumulators[id] = total - delta * HOUR_MS;
     if (delta > 0) {

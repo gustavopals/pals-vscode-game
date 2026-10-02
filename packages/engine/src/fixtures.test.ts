@@ -93,6 +93,31 @@ const scenarios: Record<string, () => GameState> = {
       { at: 71 * HOUR + 3 * MINUTE + 1_234 },
     ]).state,
 
+  // Filas e planejadas: o Salão no nível 4 com as duas filas ocupadas, e três planejadas na
+  // lista: uma automática que espera a obra anterior do mesmo edifício, uma manual e uma
+  // automática que espera recurso. No ritmo Rápido, no meio de um trecho de produção.
+  queues: () =>
+    play(
+      (() => {
+        const start = createInitialState('fixture-queues', { ...settings, timeScale: 3 });
+        start.settlement.buildings.townHall = 4;
+        start.settlement.buildings.warehouse = 2;
+        start.settlement.resources = { food: 400_000, wood: 420_000, stone: 300_000, gold: 90_000 };
+        return start;
+      })(),
+      [
+        command('setWorkers', { building: 'farm', count: 2 }),
+        command('setWorkers', { building: 'lumberMill', count: 2 }),
+        command('setWorkers', { building: 'goldMine', count: 1 }),
+        command('startConstruction', { building: 'lumberMill' }),
+        command('startConstruction', { building: 'goldMine' }),
+        command('planConstruction', { building: 'lumberMill', autoStart: true }),
+        command('planConstruction', { building: 'housing' }),
+        command('planConstruction', { building: 'townHall', autoStart: true }),
+        { at: 3 * MINUTE + 4_567 },
+      ],
+    ).state,
+
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
 
@@ -198,6 +223,21 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('storage').stats.wasted_wood).toBeGreaterThan(0);
     expect(of('storage').settlement.wasted.food).toBeGreaterThan(0);
     expect(of('storage').settlement.wasted.food).toBeLessThan(of('storage').stats.wasted_food ?? 0);
+    // As filas e as planejadas: as duas filas com obra, e na lista uma automática de um
+    // edifício que está em obras, uma manual e uma automática de outro edifício.
+    const queues = of('queues').settlement;
+    expect(queues.constructionQueues.map((slot) => slot?.building ?? null)).toEqual([
+      'lumberMill',
+      'goldMine',
+    ]);
+    expect(queues.planned).toEqual([
+      { building: 'lumberMill', targetLevel: 3, autoStart: true },
+      { building: 'housing', targetLevel: 2, autoStart: false },
+      { building: 'townHall', targetLevel: 5, autoStart: true },
+    ]);
+    for (const state of Object.values(built)) {
+      expect(state.settlement.constructionQueues).toHaveLength(2);
+    }
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 

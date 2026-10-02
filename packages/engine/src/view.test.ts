@@ -10,6 +10,7 @@ import {
   MINUTE,
   newGame,
   objectivesScenario,
+  queuesScenario,
   winterColdScenario,
 } from './test-helpers';
 import type { GameState } from './types';
@@ -163,9 +164,11 @@ describe('deriveViewState', () => {
       ],
     });
     expect(derived.constructions.available.map((entry) => entry.building)).not.toContain('farm');
-    expect(derived.constructions.available[0]?.blockedReason).toBe(
-      'Os pedreiros já estão ocupados com outra obra.',
-    );
+    expect(derived.constructions.available[0]).toMatchObject({
+      blockedCode: 'QUEUE_LOCKED',
+      blockedReason:
+        'Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.',
+    });
   });
 
   it('mostra as obras planejadas com o custo do nível planejado', () => {
@@ -266,6 +269,9 @@ describe('golden do ViewState', () => {
       // As estações: o outono de quem ainda não guardou lenha e o inverno de quem ficou sem ela.
       autumnBeforeWinter: view(autumnScenario()),
       winterCold: view(winterColdScenario()),
+      // As duas filas ocupadas e uma planejada para cada espera: obra anterior, fila, recurso,
+      // depósito e Salão.
+      queuesAndPlans: view(queuesScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

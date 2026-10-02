@@ -3,6 +3,7 @@ export const EVENT_TYPES = [
   'seasonChanged',
   'yearStarted',
   'constructionStarted',
+  'constructionAutoStarted',
   'constructionFinished',
   'constructionCancelled',
   'buildingFounded',
@@ -53,6 +54,9 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   yearStarted: 'Começa o ano {ano} da Casa de {feudo}.',
   constructionStarted:
     'No {dia}º dia {daEstacao}, os pedreiros começaram a erguer {edificio} ao {nivel}º nível.',
+  // A planejada marcada "iniciar quando houver recursos", iniciada pelo motor (GDD §6.3).
+  constructionAutoStarted:
+    'No {dia}º dia {daEstacao}, com as reservas cheias, os pedreiros começaram sozinhos a erguer {edificio} ao {nivel}º nível.',
   constructionFinished:
     'No {dia}º dia {daEstacao}, os pedreiros ergueram {edificio} ao {nivel}º nível.',
   constructionCancelled:
@@ -95,6 +99,8 @@ export type ColdRelief = keyof typeof coldReliefs;
 export const foundingTemplates = {
   constructionStarted:
     'No {dia}º dia {daEstacao}, os pedreiros começaram a levantar {edificio} em {feudo}.',
+  constructionAutoStarted:
+    'No {dia}º dia {daEstacao}, com as reservas cheias, os pedreiros começaram sozinhos a levantar {edificio} em {feudo}.',
   constructionCancelled:
     'No {dia}º dia {daEstacao}, os pedreiros largaram as ferramentas: {edificio} ficou só nos alicerces.',
 } as const satisfies Partial<Record<GameEventType, string>>;

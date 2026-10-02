@@ -31,6 +31,9 @@ const { nameMinLength, nameMaxLength } = balance.settlement;
 const { maxPerOrder, maxQueue } = balance.recruitment;
 const { townHall } = buildings;
 
+/** "A segunda fila abre com o Salão do Senhor Nv4.": o que destrava a fila que falta. */
+export const SECOND_QUEUE_OPENS = `A segunda fila abre com ${townHall.article} ${townHall.label} Nv${balance.construction.secondQueueTownHallLevel}.`;
+
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   UNKNOWN_COMMAND: () => 'O feudo não conhece essa ordem.',
@@ -42,7 +45,10 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       ? 'Só há 1 aldeão livre para esse ofício.'
       : `Só há ${count} aldeões livres para esse ofício.`,
   ALREADY_UPGRADING: ({ label }) => `${label} já está em obras.`,
-  QUEUE_BUSY: () => 'Os pedreiros já estão ocupados com outra obra.',
+  // Todas as filas abertas têm obra, e não há mais fila para abrir.
+  QUEUE_BUSY: () => 'Os pedreiros já estão ocupados: não há fila de obras livre.',
+  // A fila que existe está ocupada e a segunda ainda não abriu: a frase diz o que a abre.
+  QUEUE_LOCKED: () => `Os pedreiros já estão ocupados com outra obra. ${SECOND_QUEUE_OPENS}`,
   MAX_LEVEL: ({ label }) => `${label} já está no nível máximo.`,
   // `label` é o edifício que falta melhorar, com artigo; quase sempre, o Salão.
   GATE_LOCKED: ({ label = `${townHall.article} ${townHall.label}`, level }) =>

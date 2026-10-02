@@ -12,7 +12,7 @@ import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { sentenceCase } from './format';
 import { reject } from './rejections';
-import { costBeyondStorage, storagePlace, storeResource } from './storage';
+import { type BeyondStorage, costBeyondStorage, storagePlace, storeResource } from './storage';
 import type {
   BuildingId,
   Construction,
@@ -116,6 +116,27 @@ export function constructionOf(state: GameState, building: BuildingId): Construc
   return state.settlement.constructionQueues.find((slot) => slot?.building === building) ?? null;
 }
 
+/**
+ * Quantas filas de obras o feudo tem abertas: a primeira existe desde o começo, e a segunda
+ * abre quando o Salão chega ao nível de `secondQueueTownHallLevel` (GDD §6.3). Derivado do nível
+ * do Salão, nunca guardado: a fila abre no instante exato em que a obra do Salão termina.
+ */
+export function queuesUnlocked(state: GameState): number {
+  const { queues, secondQueueTownHallLevel } = balance.construction;
+  return state.settlement.buildings.townHall >= secondQueueTownHallLevel ? queues : 1;
+}
+
+/** A primeira fila aberta e livre, na ordem; `-1` quando todas as abertas têm obra. */
+export function freeQueue(state: GameState): number {
+  const open = queuesUnlocked(state);
+  for (let index = 0; index < open; index += 1) {
+    if ((state.settlement.constructionQueues[index] ?? null) === null) {
+      return index;
+    }
+  }
+  return -1;
+}
+
 export type UpgradeQuote = {
   building: BuildingId;
   fromLevel: number;
@@ -151,11 +172,11 @@ function unmetRequirement(
  * guarda e o que fazer. Quando o próprio depósito é a obra, ou ele já está no nível máximo, não
  * há o que ampliar, e a frase diz isso.
  */
-function storageRejection(state: GameState, building: BuildingId, cost: ResourceAmounts) {
-  const beyond = costBeyondStorage(state, cost);
-  if (beyond === null) {
-    return null;
-  }
+function storageRejection(
+  state: GameState,
+  building: BuildingId,
+  beyond: BeyondStorage,
+): Rejection {
   const place = storagePlace(state, beyond.resource);
   const storeLevel = state.settlement.buildings[beyond.building];
   const canGrow = beyond.building !== building && storeLevel < buildings[beyond.building].maxLevel;
@@ -169,7 +190,41 @@ function storageRejection(state: GameState, building: BuildingId, cost: Resource
   });
 }
 
-/** Orçamento da próxima melhoria de um edifício: custos, duração e bloqueios. */
+/**
+ * O nível de outro edifício que falta para uma obra chegar a `targetLevel`: o pré-requisito do
+ * catálogo ou, para tudo menos o Salão, a regra de nunca passar do nível dele mais um. `null`
+ * quando não falta nenhum.
+ */
+export function gateRequirement(
+  state: GameState,
+  building: BuildingId,
+  targetLevel: number,
+): { building: BuildingId; level: number } | null {
+  const { gateLevelsAboveTownHall } = balance.construction;
+  const requirement = unmetRequirement(state, building);
+  if (requirement !== null) {
+    return requirement;
+  }
+  return building !== 'townHall' &&
+    targetLevel > state.settlement.buildings.townHall + gateLevelsAboveTownHall
+    ? { building: 'townHall', level: targetLevel - gateLevelsAboveTownHall }
+    : null;
+}
+
+/** A recusa de uma obra sem fila livre: diz o que abre a segunda fila enquanto ela não abriu. */
+function queueRejection(state: GameState): Rejection {
+  return reject(
+    queuesUnlocked(state) < balance.construction.queues ? 'QUEUE_LOCKED' : 'QUEUE_BUSY',
+  );
+}
+
+/**
+ * Orçamento da próxima melhoria de um edifício: custos, duração e o motivo pelo qual ela não
+ * pode começar agora. Quando há mais de um motivo, sai o primeiro nesta ordem, que é a do que o
+ * jogador resolve antes: o edifício já em obras, a fila, o teto, o nível de outro edifício, o
+ * depósito e, por último, o recurso. As planejadas olham os mesmos motivos em outra ordem
+ * (`planWait`, em `planned.ts`), com os mesmos testes.
+ */
 export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuote {
   const { settlement } = state;
   const def = buildings[building];
@@ -177,32 +232,30 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   const targetLevel = fromLevel + 1;
   const cost = upgradeCost(building, fromLevel);
   const missing = missingResources(state, cost) ?? {};
-  const label = sentenceCase(buildingWithArticle(building));
-  const gate = settlement.buildings.townHall + balance.construction.gateLevelsAboveTownHall;
-  const requirement = unmetRequirement(state, building);
+  const label = () => sentenceCase(buildingWithArticle(building));
 
   let blocked: Rejection | null;
   if (constructionOf(state, building) !== null) {
-    blocked = reject('ALREADY_UPGRADING', { label });
-  } else if (!settlement.constructionQueues.includes(null)) {
-    blocked = reject('QUEUE_BUSY');
+    blocked = reject('ALREADY_UPGRADING', { label: label() });
+  } else if (freeQueue(state) === -1) {
+    blocked = queueRejection(state);
   } else if (fromLevel >= def.maxLevel) {
-    blocked = reject('MAX_LEVEL', { label });
-  } else if (requirement !== null) {
-    blocked = reject('GATE_LOCKED', {
-      label: buildingWithArticle(requirement.building),
-      level: requirement.level,
-    });
-  } else if (building !== 'townHall' && targetLevel > gate) {
-    blocked = reject('GATE_LOCKED', {
-      label: buildingWithArticle('townHall'),
-      level: targetLevel - balance.construction.gateLevelsAboveTownHall,
-    });
+    blocked = reject('MAX_LEVEL', { label: label() });
   } else {
+    const requirement = gateRequirement(state, building, targetLevel);
     // Falta recurso: ou ele nunca vai caber no depósito (e esperar não adianta), ou é só esperar.
-    blocked =
-      storageRejection(state, building, cost) ??
-      (Object.keys(missing).length > 0 ? reject('INSUFFICIENT_RESOURCES', { missing }) : null);
+    const beyond = requirement === null ? costBeyondStorage(state, cost) : null;
+    if (requirement !== null) {
+      blocked = reject('GATE_LOCKED', {
+        label: buildingWithArticle(requirement.building),
+        level: requirement.level,
+      });
+    } else if (beyond !== null) {
+      blocked = storageRejection(state, building, beyond);
+    } else {
+      blocked =
+        Object.keys(missing).length > 0 ? reject('INSUFFICIENT_RESOURCES', { missing }) : null;
+    }
   }
 
   return {
@@ -221,12 +274,17 @@ function unplan(draft: GameState, building: BuildingId): void {
   settlement.planned = settlement.planned.filter((plan) => plan.building !== building);
 }
 
-/** Inicia uma melhoria: desconta o custo uma única vez e ocupa a fila. */
+/**
+ * Inicia uma melhoria: desconta o custo uma única vez e ocupa a primeira fila livre. `by` diz
+ * quem a iniciou: o jogador, com uma ordem, ou o motor, que encontrou uma planejada automática
+ * pronta para começar. A obra é a mesma; muda o evento (`constructionAutoStarted`) e a frase.
+ */
 export function startConstruction(
   draft: GameState,
   building: unknown,
   nowMs: number,
   events: GameEvent[],
+  by: 'order' | 'autoStart' = 'order',
 ): Rejection | null {
   if (!isBuildingId(building)) {
     return reject('INVALID_BUILDING');
@@ -237,7 +295,7 @@ export function startConstruction(
   }
   const { settlement, stats } = draft;
   payResources(draft, quote.cost);
-  settlement.constructionQueues[settlement.constructionQueues.indexOf(null)] = {
+  settlement.constructionQueues[freeQueue(draft)] = {
     building,
     targetLevel: quote.targetLevel,
     startedAtMs: nowMs,
@@ -246,14 +304,15 @@ export function startConstruction(
   unplan(draft, building);
   const stat = `constructionsStarted:${building}`;
   stats[stat] = (stats[stat] ?? 0) + 1;
+  const type = by === 'autoStart' ? 'constructionAutoStarted' : 'constructionStarted';
   emit(
     events,
     draft,
     nowMs,
-    'constructionStarted',
+    type,
     { building, level: quote.targetLevel, ...amountsData('spent', quote.cost) },
     { edificio: buildingWithArticle(building), nivel: quote.targetLevel },
-    isFounding(quote.fromLevel) ? foundingTemplates.constructionStarted : undefined,
+    isFounding(quote.fromLevel) ? foundingTemplates[type] : undefined,
   );
   return null;
 }
@@ -357,8 +416,16 @@ function nextPlannableLevel(state: GameState, building: BuildingId): number {
   return (underway?.targetLevel ?? state.settlement.buildings[building]) + 1;
 }
 
-/** Põe uma melhoria na lista de planejadas. Não gasta nada nem começa sozinha na v0.1. */
-export function planConstruction(draft: GameState, building: unknown): Rejection | null {
+/**
+ * Põe uma melhoria no fim da lista de planejadas. Planejar não gasta nada. Com `autoStart`, a
+ * obra começa sozinha no primeiro instante em que puder (`planned.ts`); sem ele, espera a ordem
+ * do jogador, como na v0.1.
+ */
+export function planConstruction(
+  draft: GameState,
+  building: unknown,
+  autoStart: unknown,
+): Rejection | null {
   if (!isBuildingId(building)) {
     return reject('INVALID_BUILDING');
   }
@@ -370,7 +437,24 @@ export function planConstruction(draft: GameState, building: unknown): Rejection
   if (targetLevel > buildings[building].maxLevel) {
     return reject('MAX_LEVEL', { label });
   }
-  draft.settlement.planned.push({ building, targetLevel });
+  draft.settlement.planned.push({ building, targetLevel, autoStart: autoStart === true });
+  return null;
+}
+
+/** Marca ou desmarca "iniciar quando houver recursos" em uma planejada, sem tirá-la do lugar. */
+export function setAutoStart(
+  draft: GameState,
+  building: unknown,
+  autoStart: unknown,
+): Rejection | null {
+  if (!isBuildingId(building)) {
+    return reject('INVALID_BUILDING');
+  }
+  const plan = draft.settlement.planned.find((entry) => entry.building === building);
+  if (plan === undefined) {
+    return reject('NOT_PLANNED', { label: sentenceCase(buildingWithArticle(building)) });
+  }
+  plan.autoStart = autoStart === true;
   return null;
 }
 

@@ -4,6 +4,7 @@ import {
   guardarLenha,
   obraMaisBarata,
   ocuparLivres,
+  planejarAutomaticas,
   recrutar,
 } from './policies';
 import { botOf, type Policy } from './types';
@@ -16,9 +17,10 @@ import { botOf, type Policy } from './types';
  * inverno à vista, a lenha que falta.
  */
 export const preguicosoPolicies: readonly Policy[] = [
-  recrutar,
   obraMaisBarata,
   ampliarEstoque,
+  planejarAutomaticas,
+  recrutar,
   comidaPrimeiro,
   ocuparLivres,
   guardarLenha,
