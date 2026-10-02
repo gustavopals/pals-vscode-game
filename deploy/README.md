@@ -108,14 +108,14 @@ Medido em 2026-10-01 com o motor da tag `v0.1.0` (extraído com `git archive` pa
 
 **Antes de um deploy que sobe a versão do estado** (o commit muda `CURRENT_SCHEMA_VERSION` em `packages/engine/src/migrations.ts`):
 
-1. Conferir que o backup da madrugada existe e anotar o nome do arquivo; se o deploy for longe das 03:00 UTC, disparar um backup manual na página do `lotg-db` (aba "Backups") e esperar terminar. É o único ponto de retorno.
+1. Conferir que o backup da madrugada existe e anotar o nome do arquivo; se o deploy for longe das 03:00 UTC, disparar um backup manual na página do `lotg-db` (aba "Backups") e esperar terminar. É o único ponto de retorno, e é um ponto de retorno **caro**: restaurá-lo tira do jogo quem jogou depois dele ("O que a restauração custa a quem joga"). Quanto mais perto do deploy for o backup, menos gente ele atinge.
 2. Conferir que há uma cópia do backup **fora do servidor** e que `RECOVERY_CODE_SECRET` está guardado fora do Coolify (as duas pendências da seção "Operação").
 3. Anotar o SHA que está no ar (`GET /v1/version`, `builtAt`, e a lista de `rollback-images`).
 
 **Se o deploy que migrou der errado**, há dois caminhos, nesta ordem de preferência:
 
 1. **Avançar.** Corrigir o defeito e publicar uma imagem nova, que entenda a versão de estado que já está no banco. Ninguém perde nada. Enquanto a correção não sai, se o defeito for grave, **parar** `lotg-api` (o app fica sem conexão, mostrando o último retrato que guardou, e não aceita ordens) é melhor do que deixar o defeito ou uma imagem antiga escrevendo.
-2. **Restaurar o backup anterior ao deploy** e só então voltar a imagem. Parar `lotg-api`; restaurar como em "Backup e restauração"; fazer o rollback da imagem para o SHA anotado; iniciar `lotg-api`; conferir `/v1/health`, `/v1/version` e, com `analytics/ops.sql`, as contagens. **Perde-se tudo o que foi jogado desde o backup**: ordens, eventos, contas e partidas criadas depois dele. Como o tempo de jogo é calculado a partir de `created_at`, as partidas restauradas alcançam o presente sozinhas na primeira leitura; o que se perde são as decisões dos jogadores, não o tempo.
+2. **Restaurar o backup anterior ao deploy** e só então voltar a imagem. Parar `lotg-api`; restaurar como em "Backup e restauração"; fazer o rollback da imagem para o SHA anotado; iniciar `lotg-api`; conferir `/v1/health`, `/v1/version` e, com `analytics/ops.sql`, as contagens. **Perde-se tudo o que foi jogado desde o backup**: ordens, eventos, contas e partidas criadas depois dele. **E quem abriu o jogo depois do backup perde a sessão**: o navegador guarda um refresh token que o banco restaurado nunca viu, a primeira renovação responde `401` e o app apaga a conta local. Para uma conta anônima sem Código do Reino anterior ao backup, isso é **perder o feudo**, que é justamente o que este procedimento existe para evitar. Leia "O que a restauração custa a quem joga", em "Backup e restauração", antes de escolher este caminho: ele é o último recurso. Como o tempo de jogo é calculado a partir de `created_at`, as partidas restauradas alcançam o presente sozinhas na primeira leitura: o tempo não se perde; as decisões e, para muitos, o acesso, sim.
 
 O que **não** fazer: voltar a imagem sem restaurar o backup e deixá-la rodando. Com uma imagem a partir da V2B-T1 o resultado é um jogo fora do ar (reversível: basta avançar de novo); com uma imagem anterior, é corrupção que nenhum backup posterior conserta.
 
@@ -150,7 +150,42 @@ Falta, antes de a primeira migração de estado ir para a produção: fazer o en
 
 Os backups estão **no mesmo disco do banco**. Para sobreviver à perda do servidor, cadastrar um armazenamento S3 no Coolify e marcá-lo no agendamento.
 
-**Restaurar em produção.** Parar `lotg-api`; na página do `lotg-db`, "Import Backup", apontar o arquivo `.dmp` do servidor e usar o comando `pg_restore --clean --if-exists --no-owner -U lotg -d lotg`; iniciar `lotg-api`; conferir `/v1/health` e as contagens de `analytics/ops.sql`. A variável `RECOVERY_CODE_SECRET` precisa ser a mesma de quando o backup foi feito.
+**Restaurar em produção.** Parar `lotg-api`; na página do `lotg-db`, "Import Backup", apontar o arquivo `.dmp` do servidor e usar o comando `pg_restore --clean --if-exists --no-owner -U lotg -d lotg`; iniciar `lotg-api`; conferir `/v1/health` e as contagens de `analytics/ops.sql`. A variável `RECOVERY_CODE_SECRET` precisa ser a mesma de quando o backup foi feito. **Restaurar em produção tira do jogo quem jogou depois do backup**: leia a seção seguinte antes.
+
+### O que a restauração custa a quem joga
+
+A restauração devolve o banco, linha por linha, ao instante do backup. Além das ordens, dos eventos, das contas e das partidas posteriores, isso tem efeitos que não são óbvios. Todos estão provados em `packages/server/test/restore.test.ts`, com backup e restauração simulados no banco de teste:
+
+- **Quem abriu o jogo depois do backup perde a sessão.** O refresh token gira a cada renovação (o access token vale 15 minutos) e o banco só guarda o hash dos tokens que ele mesmo emitiu. O navegador de quem jogou depois do backup guarda um sucessor que o banco restaurado nunca viu: na primeira renovação a API responde `401 UNAUTHORIZED`, e o app apaga tokens, conta e cache. A conta e a partida continuam no banco, intactas, e ninguém mais consegue entrar nelas.
+- **O único caminho de volta é o Código do Reino gerado antes do backup.** Um código gerado depois some com a restauração. Com o vínculo GitHub desligado, a conta anônima que não tinha código antes do backup **perde o feudo**. O backup é diário e quem joga abre o jogo todo dia: na prática, isso atinge quase todo jogador ativo.
+- **Quem não abriu o jogo desde o backup não nota nada**: o token que o navegador guarda é o que o backup conhece.
+- **Exclusões e saídas são desfeitas.** Uma conta excluída depois do backup volta a existir, com a sessão e o Código do Reino valendo de novo. Uma sessão encerrada em "Sair desta máquina", ou revogada por reuso de token, depois do backup, volta a valer.
+
+Por isso, em toda restauração em produção:
+
+1. **Antes**, com `lotg-api` já parada, anotar as contas excluídas depois do backup:
+
+   ```sql
+   select id, deleted_at from accounts where deleted_at > '<instante do backup, em UTC>';
+   ```
+
+2. **Depois** de restaurar e antes de iniciar `lotg-api`, refazer a exclusão de cada uma, com o `deleted_at` anotado (é ele que conta os sete dias do expurgo). São as mesmas escritas de `DELETE /me`:
+
+   ```sql
+   begin;
+   update accounts set deleted_at = '<deleted_at anotado>', recovery_code_hash = null, github_id = null where id = '<id>';
+   update sessions set revoked_at = now() where account_id = '<id>' and revoked_at is null;
+   update games set status = 'archived', updated_at = now() where account_id = '<id>' and status = 'active';
+   commit;
+   ```
+
+   Se o backup tiver mais de sete dias, guardar também a lista inteira (`select id from accounts;`): uma conta que o backup tem e o banco de antes não tinha mais já havia sido expurgada, e é apagada de novo com `delete from accounts where id = '<id>';`, que leva partidas, comandos, eventos e sessões em cascata.
+
+3. Avisar os jogadores, pelo canal que houver, de que quem jogou depois do instante do backup vai precisar do Código do Reino para entrar.
+
+Os passos 1 e 2 ainda não foram ensaiados no ambiente `ensaio`.
+
+**Preservar as sessões: possível, ainda não adotado.** Guardar as tabelas `sessions` e `refresh_tokens` do banco atual antes do `pg_restore` e reimportá-las depois (só as de contas que o backup tem) devolve o acesso a quem jogou depois do backup e mantém as saídas e as revogações posteriores; as ordens dadas depois do backup se perdem do mesmo jeito. O teste "reimportar as sessões do banco de antes da restauração…" mostra que funciona no banco de teste. **Não está no procedimento**: nunca foi ensaiado com `pg_dump` e `pg_restore` de verdade, e põe as sessões de um banco ao lado das contas de outro, o que mexe no contrato de sessão do [ADR 0005](../docs/decisions/0005-sessoes-e-exclusao.md). A decisão é do autor.
 
 **Ensaiar.** O ensaio usa um banco descartável e nunca toca o de produção:
 
