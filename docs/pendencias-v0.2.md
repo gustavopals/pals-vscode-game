@@ -5,6 +5,7 @@
 ## 1. O mais importante
 
 - **Nada foi publicado.** Todos os commits estão no `main` **local**. `git push` no `main` implanta em produção, então não foi feito. Antes de publicar: jogar em desenvolvimento, fazer o backup externo e copiar o `RECOVERY_CODE_SECRET` (item 3), e ensaiar a reversão.
+- **A primeira publicação vai em dois passos, não em um `push` só.** A produção roda a `v0.1.0`, que não confere a versão do estado. Durante a troca de contêiner ela ainda atende partidas que a imagem nova já migrou, e depois da troca ela é a única imagem de reversão guardada. Com um `push` só, o estado iria direto para uma versão com regras novas e a `v0.1.0` gravaria por cima dele com as regras antigas, sem aviso. O caminho seguro: publicar primeiro só a Fase B (estado na versão 2, que não muda regra), esperar a migração terminar e só então publicar o resto. Os comandos estão em [deploy/README.md](../deploy/README.md), "A primeira publicação da v0.2 vai em dois passos". O plano original (§0.8 do roadmap) tinha essa proteção de graça, porque a Fase B iria para a produção sozinha; a decisão 3 a tirou.
 - **As regras da v0.2 são as premissas recomendadas do roadmap (§8)**, registradas nos ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md) como "aplicadas por delegação". Nenhuma foi respondida pelo autor. A seção 2 lista cada uma para confirmar ou trocar.
 - **Para jogar:** `pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web` e abrir `http://localhost:5173`.
 
@@ -38,10 +39,10 @@
 | Playtest de 48 h da v0.1 com 3 a 5 pessoas | Precisa de pessoas e de acesso ao banco de produção | V2A-T1 |
 | Playtest da v0.2 | Idem, depois de publicar | V2F-T3 |
 | Backup externo e cópia do `RECOVERY_CODE_SECRET` fora do Coolify | Sem acesso à produção; **fazer antes de a migração de estado chegar lá** | decisão 14 |
-| Ensaio da reversão atravessando uma migração, em produção ou em banco descartável do Coolify | Idem | V2B-T1.6 |
+| Ensaio da reversão atravessando uma migração, em produção ou em banco descartável do Coolify, incluindo a janela da troca de contêiner e os dois passos da primeira publicação | Idem | V2B-T1.6 |
 | Jogar cada fase e aprovar | O roadmap pede o autor jogando antes da fase seguinte; não aconteceu | V2C-T7.5, V2D-T5.4, V2E-T5.3 |
 | Aprovar as 21 cartas, uma a uma | Curadoria é do autor | V2D-T2 |
-| `git push`, tag `v0.2.0` e release | Publicar é do autor | V2F-T4.5 |
+| `git push` **em dois passos** (primeiro só a Fase B, depois o resto), tag `v0.2.0` e release | Publicar é do autor; em um passo só, a imagem da `v0.1.0` grava por cima de partidas já migradas (deploy/README.md) | V2F-T4.5 |
 | Os oito pontos do ADR 0012 e o vínculo GitHub | Já eram pendências | decisões 15 e 16 |
 
 ## 4. Dúvidas levantadas durante a implementação

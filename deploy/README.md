@@ -106,8 +106,11 @@ Desde a v0.2 existe um segundo tipo de migração, que **não** segue a regra ac
 
 Medido em 2026-10-01 com o motor da tag `v0.1.0` (extraído com `git archive` para uma pasta temporária) diante de cinco estados da versão 2: ele avançou 30 dias, aceitou comandos, derivou a visão e devolveu o estado ainda com `schemaVersion: 2`, `migratedAtMs` e `settings` intactos, **idêntico** ao que o motor novo produz. Ou seja: atravessar **só** a migração 1 → 2 não estraga nada, porque a versão 2 não mudou nenhuma regra, e o servidor da v0.1 grava de volta o número de versão que leu. Isso vale para esse passo e para nenhum outro: da versão 3 em diante o estado carrega campos com regra, e a imagem da `v0.1.0` os atropelaria. **Não use a imagem da `v0.1.0` como destino de reversão depois que uma versão de estado maior que 2 tiver ido ao ar.**
 
+**A troca de contêiner é uma reversão de alguns segundos.** Em todo deploy as duas imagens convivem: o contêiner novo sobe, roda o job `advance-stale-games` logo no arranque, **antes** de abrir a porta (`main.ts` inicia o agendador e só depois chama `listen`), e regrava na versão nova todas as partidas paradas há mais de uma hora, enquanto o contêiner antigo ainda atende quem joga, até o novo passar no health check. Quem volta ao feudo nessa janela tem a partida, já migrada, lida pelo contêiner antigo. O que acontece é o que a tabela acima diz da imagem antiga: se ela é da V2B-T1 em diante, um `500` passageiro e nada gravado; se é a da `v0.1.0`, ela simula com as regras antigas e grava por cima. Por isso a regra vale para a imagem **que está no ar** na hora do deploy, e não só para a que se escolhe em uma reversão.
+
 **Antes de um deploy que sobe a versão do estado** (o commit muda `CURRENT_SCHEMA_VERSION` em `packages/engine/src/migrations.ts`):
 
+0. Conferir que a imagem **que está no ar** já confere a versão do estado, isto é, que ela é da V2B-T1 em diante. Se a produção ainda roda a `v0.1.0`, o deploy é o da próxima seção, em dois passos.
 1. Conferir que o backup da madrugada existe e anotar o nome do arquivo; se o deploy for longe das 03:00 UTC, disparar um backup manual na página do `lotg-db` (aba "Backups") e esperar terminar. É o único ponto de retorno, e é um ponto de retorno **caro**: restaurá-lo tira do jogo quem jogou depois dele ("O que a restauração custa a quem joga"). Quanto mais perto do deploy for o backup, menos gente ele atinge.
 2. Conferir que há uma cópia do backup **fora do servidor** e que `RECOVERY_CODE_SECRET` está guardado fora do Coolify (as duas pendências da seção "Operação").
 3. Anotar o SHA que está no ar (`GET /v1/version`, `builtAt`, e a lista de `rollback-images`).
@@ -124,6 +127,40 @@ Para saber em que versão as partidas estão:
 ```sql
 select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
 ```
+
+### A primeira publicação da v0.2 vai em dois passos
+
+A produção roda a imagem da `v0.1.0`, que não confere a versão do estado, e a v0.2 inteira foi escrita no `main` local, sem publicar nada ([ADR 0013](../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 3). Um `push` só, com tudo, levaria a produção da `v0.1.0` direto para um estado de versão maior que 2, e isso junta os dois casos que esta seção manda evitar:
+
+- **Na janela da troca**, o contêiner da `v0.1.0` atende partidas que o contêiner novo acabou de migrar para uma versão com regras novas, e grava por cima delas com as regras antigas. É a linha "corrupção silenciosa" da tabela, sem ninguém ter pedido reversão nenhuma.
+- **Depois da troca**, as duas imagens que o Coolify guarda são a nova e a da `v0.1.0`: o único destino de reversão disponível é justamente o proibido.
+
+O plano original do roadmap (§0.8) evitava isso sem dizer: a Fase B ia para a produção sozinha, antes das mecânicas. Com tudo no `main` local, a proteção precisa ser um passo do procedimento.
+
+**Passo 1: publicar só a Fase B.** Ela leva o estado para a versão 2, que não muda nenhuma regra (medido acima: o motor da `v0.1.0` diante de um estado da versão 2 produz o mesmo que o motor novo), e põe no ar a primeira imagem que confere a versão.
+
+```bash
+# O commit que sobe o estado para a versão 3; o pai dele é o último em que a versão ainda é 2.
+git log --reverse --format='%h %s' -S'CURRENT_SCHEMA_VERSION = 3' -- packages/engine/src/migrations.ts | head -1
+git show <sha>~1:packages/engine/src/migrations.ts | grep 'CURRENT_SCHEMA_VERSION ='   # tem de dizer 2
+git push origin <sha>~1:main
+```
+
+Antes do `push`, os passos 1 a 3 de "Antes de um deploy que sobe a versão do estado". Se depois do último commit da Fase B houver correções dela misturadas com as fases seguintes, o pai do commit acima já as inclui até ali; as que vierem depois vão no passo 2.
+
+**Entre os passos: esperar a migração terminar.** Conferir `GET /v1/version` (`builtAt` novo), esperar pouco mais de uma hora (o job alcança as partidas ativas paradas há mais de uma hora; as outras são migradas quando o dono as abre) e conferir que não sobrou partida ativa na versão 1:
+
+```sql
+select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
+```
+
+As arquivadas ficam na versão em que estavam: não avançam nem são regravadas, e são migradas só em memória quando lidas.
+
+**Passo 2: publicar o resto** (`git push origin main`), de novo com os passos 0 a 3. A partir daqui o contêiner antigo de qualquer troca e a imagem de reversão de qualquer deploy já recusam uma versão futura: na janela da troca, quem volta a uma partida recém-migrada vê um erro passageiro, e nada é gravado.
+
+**Se for mesmo um `push` só:** parar `lotg-api` antes do deploy (o app fica sem conexão, com o último retrato, e não aceita ordens), para que nenhum contêiner da `v0.1.0` esteja de pé enquanto o novo migra; e, até o deploy seguinte empurrar a imagem da `v0.1.0` para fora das duas guardadas, **não usar a aba "Rollback" da API**: se o deploy der errado, só valem "avançar" ou "restaurar o backup" de cima, e o segundo exige uma imagem que entenda o estado restaurado. Este caminho não foi ensaiado: não foi conferido se um deploy do Coolify com a aplicação parada sobe o contêiner novo sem religar o antigo.
+
+Nada disto foi exercitado com imagens; entra no ensaio que falta (abaixo).
 
 ### Ensaios de reversão
 
@@ -142,7 +179,7 @@ Os dois commits usam a mesma migração (`0000_init`); a reversão ainda não fo
 | 2026-10-01 | Diante de um estado de versão mais nova, a API responde 500 em leitura, comando e eventos, o job conta a falha, e a linha fica idêntica (mesmo `xmin`) | idem |
 | 2026-10-01 | O motor da tag `v0.1.0` não confere a versão e, diante de estados da versão 2, produz o mesmo resultado que o motor novo | Roteiro descartável com o motor extraído por `git archive v0.1.0` |
 
-Falta, antes de a primeira migração de estado ir para a produção: fazer o ensaio de verdade no ambiente `ensaio` (restaurar um backup de produção no banco descartável, subir a imagem nova, conferir a contagem por `schema_version`, voltar a imagem, observar, restaurar de novo) e registrar a linha aqui.
+Falta, antes de a primeira migração de estado ir para a produção: fazer o ensaio de verdade no ambiente `ensaio` (restaurar um backup de produção no banco descartável, subir a imagem nova, conferir a contagem por `schema_version`, voltar a imagem, observar, restaurar de novo) e registrar a linha aqui. O ensaio inclui a **janela da troca** e os dois passos da primeira publicação: partir da imagem da `v0.1.0`, publicar a da Fase B com uma partida parada há mais de uma hora, abrir essa partida pelo contêiner antigo enquanto o novo sobe, e conferir que o estado gravado é o mesmo que o motor novo produziria; depois repetir a troca da Fase B para a imagem seguinte e observar o `500` passageiro, sem escrita.
 
 ## Backup e restauração
 
