@@ -448,20 +448,25 @@ test.describe('telas estreitas', () => {
     ]) {
       const size = `${viewport.width} × ${viewport.height}`;
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await content.evaluate((el) => el.scrollTo(0, 0));
-      const atTop = await measure();
-      expect(atTop.sticky, size).toBe(viewport.sticky);
-      if (atTop.sticky) {
-        expect(atTop.header / atTop.content, size).toBeLessThanOrEqual(0.25);
-      }
-      // Rolando o painel até o fim: preso, o cabeçalho continua no alto; solto, saiu da frente.
-      await content.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-      const atBottom = await measure();
-      if (viewport.sticky) {
-        expect(atBottom.top, size).toBe(0);
-      } else {
-        expect(atBottom.top + atBottom.header, size).toBeLessThanOrEqual(0);
-      }
+      // Ao mudar de tamanho a bancada se redesenha (nos 720 px a barra lateral recolhe ou
+      // volta), e por um instante a área da aba não tem medida nem rola: as medidas são
+      // tentadas de novo até a tela assentar.
+      await expect(async () => {
+        await content.evaluate((el) => el.scrollTo(0, 0));
+        const atTop = await measure();
+        expect(atTop.sticky, size).toBe(viewport.sticky);
+        if (atTop.sticky) {
+          expect(atTop.header / atTop.content, size).toBeLessThanOrEqual(0.25);
+        }
+        // Rolando o painel até o fim: preso, o cabeçalho continua no alto; solto, saiu da frente.
+        await content.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+        const atBottom = await measure();
+        if (viewport.sticky) {
+          expect(atBottom.top, size).toBe(0);
+        } else {
+          expect(atBottom.top + atBottom.header, size).toBeLessThanOrEqual(0);
+        }
+      }).toPass({ timeout: 3_000 });
       expect(await overflow(page), size).toEqual({ page: 0, content: 0 });
     }
   });
