@@ -13,6 +13,7 @@ import {
   newGame,
   objectivesScenario,
   play,
+  proudScenario,
   runWeekScenario,
   settings,
 } from './test-helpers';
@@ -128,6 +129,10 @@ const scenarios: Record<string, () => GameState> = {
     return advanceTo(state, state.lastProcessedAt + 7 * MINUTE + 2_345).state;
   },
 
+  // Moral: o feudo orgulhoso, com um efeito temporário ainda na lista, a moral longe da base
+  // e o fluxo de sorteios `morale` já usado. No meio de um dia de jogo.
+  morale: () => proudScenario(),
+
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
 
@@ -206,6 +211,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       Object.entries(scenarios).map(([name, build]) => [name, build()]),
     ) as Record<keyof typeof scenarios, GameState>;
     const of = (name: string) => built[name] as GameState;
+    const all0 = () => Object.values(built);
 
     expect(of('fresh').lastProcessedAt).toBe(0);
     expect(of('construction').settlement.constructionQueues.some((slot) => slot !== null)).toBe(
@@ -265,6 +271,17 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(crafts.workers.quarry).toBeLessThan(crafts.buildings.quarry);
     // E, nos outros cenários, a experiência que os dias de jogo foram deixando.
     expect(of('week-scripted').settlement.craftExperience.farm).toBeGreaterThan(0);
+    // A moral: um efeito temporário na lista, a moral acima da base e o fluxo `morale` com os
+    // quatro inteiros dele; e, no cenário da fome, a moral no chão e gente a menos.
+    const proud = of('morale');
+    expect(proud.settlement.moraleEffects).toEqual([
+      { id: 'teste:festa', label: 'festa da colheita', amount: 30, untilMs: (24 + 9) * DAY },
+    ]);
+    expect(proud.settlement.morale).toBe(80);
+    expect(proud.rng.morale).toHaveLength(4);
+    expect(of('famine').settlement.morale).toBeLessThan(25);
+    expect(of('famine').settlement.population.villagers).toBeLessThan(5);
+    expect(new Set(all0().map((state) => state.settlement.morale)).size).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 

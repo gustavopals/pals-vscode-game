@@ -10,6 +10,10 @@ import {
   DIFFICULTY_IDS,
   EVENT_TYPES,
   foundingTemplates,
+  idleVillager,
+  MORALE_BAND_IDS,
+  MORALE_TERM_IDS,
+  moraleBandTemplates,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
@@ -22,6 +26,8 @@ import {
   ChronicleTemplatesSchema,
   CraftGuildsSchema,
   FoundingTemplatesSchema,
+  IdleVillagerSchema,
+  MoraleBandTemplatesSchema,
   ObjectivesSchema,
 } from './schemas';
 
@@ -458,7 +464,7 @@ describe('balanceamento', () => {
   it('as frações permitem taxas inteiras em milésimos', () => {
     // O motor calcula taxas em milésimos por hora, em uma conta só com um arredondamento no
     // fim. Com nível, estação, fome e frio, todos juntos, nenhuma taxa é truncada: o
-    // arredondamento só age com a mestria (e com a moral, quando entrar).
+    // arredondamento só age com a mestria e com a moral.
     const { levelBonus, perWorkerPerHour } = balance.production;
     const famine = balance.famine.productionMultiplier;
     const cold = balance.winter.cold.productionMultiplier;
@@ -564,6 +570,124 @@ describe('ofícios (GDD §5.4)', () => {
       Object.entries(balance).filter(([key]) => key !== 'craft'),
     );
     expect(BalanceSchema.safeParse(withoutCraft).success).toBe(false);
+  });
+});
+
+describe('moral (GDD §5.6 e §5.7)', () => {
+  const { morale } = balance;
+  const withMorale = (change: Partial<typeof morale>) =>
+    BalanceSchema.safeParse({ ...balance, morale: { ...morale, ...change } }).success;
+  const top = morale.bands[morale.bands.length - 1]?.max ?? 0;
+
+  it('os termos são os do ADR 0013, decisão 19', () => {
+    expect(morale.base).toBe(50);
+    expect(morale.foodReserve).toEqual({ coverMs: 24 * 3_600_000, bonus: 10 });
+    expect(morale.famine).toBe(-20);
+    expect(morale.faminePerDay).toBe(-2);
+    expect(morale.housingFull).toBe(-10);
+    expect(morale.cold).toBe(-20);
+    expect(MORALE_TERM_IDS).toEqual([
+      'base',
+      'foodReserve',
+      'famine',
+      'famineDays',
+      'housingFull',
+      'cold',
+      'effect',
+    ]);
+  });
+
+  it('o fator na produção é (150 + moral) / 200: × 0,75 no zero, × 1 na base e × 1,25 no máximo', () => {
+    const { base, perPoint } = morale.multiplier;
+    const factor = (value: number) =>
+      (base.num * perPoint.den + perPoint.num * value * base.den) / (base.den * perPoint.den);
+    expect(factor(0)).toBe(0.75);
+    expect(factor(morale.base)).toBe(1);
+    expect(factor(top)).toBe(1.25);
+    expect(factor(68)).toBe((150 + 68) / 200);
+  });
+
+  it('as faixas são as quatro do GDD e cobrem de 0 a 100 sem buraco', () => {
+    expect(morale.bands).toEqual([
+      { id: 'desperate', max: 24, label: 'Desesperado' },
+      { id: 'restless', max: 49, label: 'Inquieto' },
+      { id: 'content', max: 74, label: 'Contente' },
+      { id: 'proud', max: 100, label: 'Orgulhoso' },
+    ]);
+    expect(morale.bands.map((band) => band.id)).toEqual([...MORALE_BAND_IDS]);
+    expect(top).toBe(100);
+    // A base é "Contente": um feudo sem nada de bom nem de ruim não tem do que reclamar.
+    expect(morale.bands.find((band) => morale.base <= band.max)?.id).toBe('content');
+  });
+
+  it('colono com 80 ou mais, partida com 25 ou menos, as duas com 20% de chance por virada', () => {
+    expect(morale.arrival).toEqual({ minMorale: 80, chance: { num: 1, den: 5 } });
+    expect(morale.departure).toEqual({ maxMorale: 25, chance: { num: 1, den: 5 } });
+    // Nenhuma moral faz as duas coisas no mesmo dia.
+    expect(morale.departure.maxMorale).toBeLessThan(morale.arrival.minMorale);
+  });
+
+  it('a fome longa faz desertar depois de 12 h de jogo, e o piso é de 3 aldeões', () => {
+    expect(morale.famineDesertionAfterMs).toBe(12 * 3_600_000);
+    expect(morale.populationFloor).toBe(3);
+    // O feudo nasce acima do piso: a proteção não é o estado inicial.
+    expect(balance.initial.villagers).toBeGreaterThan(morale.populationFloor);
+    // Só Camponês fica de fora da deserção (GDD §12.1).
+    expect(DIFFICULTY_IDS.filter((id) => !balance.difficulties[id].famineDesertion)).toEqual([
+      'peasant',
+    ]);
+  });
+
+  it('os prazos são dias de jogo inteiros, e em todo ritmo um número inteiro de minutos reais', () => {
+    // A moral só muda na virada do dia: um prazo que não fecha em dias valeria o dia seguinte.
+    for (const ms of [morale.foodReserve.coverMs, morale.famineDesertionAfterMs]) {
+      expect(ms % balance.calendar.dayMs).toBe(0);
+      for (const pace of balance.paces) {
+        expect((ms / pace.timeScale) % 60_000, pace.label).toBe(0);
+      }
+    }
+  });
+
+  it('no piso, com a pior produção possível, a Fazenda ainda alimenta o feudo: há caminho de volta', () => {
+    // Inverno, fome, frio, moral zero, nível 1 e nenhuma experiência: é o fundo do poço. Se
+    // três lavradores adaptados não rendessem mais do que três bocas comem, o feudo
+    // empobrecido não teria saída (roadmap V2C-T4.6).
+    const { base } = morale.multiplier;
+    const worst = balance.calendar.seasons.reduce(
+      (lowest, season) => {
+        const { num, den } = season.effects.production.food;
+        return num * lowest.den < lowest.num * den ? { num, den } : lowest;
+      },
+      { num: 1, den: 1 },
+    );
+    const famine = balance.famine.productionMultiplier;
+    const cold = balance.winter.cold.productionMultiplier;
+    const perWorker =
+      (balance.production.perWorkerPerHour.farm * worst.num * famine.num * cold.num * base.num) /
+      (worst.den * famine.den * cold.den * base.den);
+    expect(perWorker).toBeGreaterThan(balance.consumption.foodPerVillagerPerHour);
+  });
+
+  it('o schema recusa termo com o sinal trocado, faixas fora de ordem e chance acima de 1', () => {
+    expect(withMorale({})).toBe(true);
+    expect(withMorale({ famine: 20 })).toBe(false);
+    expect(withMorale({ faminePerDay: 0 })).toBe(false);
+    expect(withMorale({ housingFull: 10 })).toBe(false);
+    expect(withMorale({ cold: 0 })).toBe(false);
+    expect(withMorale({ foodReserve: { coverMs: 0, bonus: 10 } })).toBe(false);
+    expect(withMorale({ foodReserve: { coverMs: 3_600_000, bonus: -10 } })).toBe(false);
+    expect(withMorale({ bands: morale.bands.slice(1) })).toBe(false);
+    expect(withMorale({ bands: [...morale.bands].reverse() })).toBe(false);
+    expect(withMorale({ bands: morale.bands.map((band) => ({ ...band, max: 50 })) })).toBe(false);
+    expect(withMorale({ base: 101 })).toBe(false);
+    expect(withMorale({ arrival: { minMorale: 80, chance: { num: 6, den: 5 } } })).toBe(false);
+    expect(withMorale({ departure: { maxMorale: 80, chance: { num: 1, den: 5 } } })).toBe(false);
+    expect(withMorale({ populationFloor: 0 })).toBe(false);
+    expect(withMorale({ famineDesertionAfterMs: 0 })).toBe(false);
+    const withoutMorale = Object.fromEntries(
+      Object.entries(balance).filter(([key]) => key !== 'morale'),
+    );
+    expect(BalanceSchema.safeParse(withoutMorale).success).toBe(false);
   });
 });
 
@@ -708,7 +832,9 @@ describe('Crônica', () => {
     expect(guilds.map((guild) => guild.artisans)).not.toContain('os pedreiros');
     // As frases entram no meio de outra: o schema recusa maiúscula, ponto e marcador.
     const broken = (guild: { artisans: string; feat: string }) =>
-      CraftGuildsSchema.safeParse({ ...craftGuilds, farm: guild }).success;
+      CraftGuildsSchema.safeParse({ ...craftGuilds, farm: { artisan: 'um lavrador', ...guild } })
+        .success;
+    expect(broken({ artisans: 'os lavradores', feat: 'colhem bem' })).toBe(true);
     expect(broken({ artisans: 'Os lavradores', feat: 'colhem bem' })).toBe(false);
     expect(broken({ artisans: 'os lavradores', feat: 'colhem bem.' })).toBe(false);
     expect(broken({ artisans: 'os lavradores', feat: 'colhem em {feudo}' })).toBe(false);
@@ -716,5 +842,61 @@ describe('Crônica', () => {
       Object.entries(craftGuilds).filter(([building]) => building !== 'farm'),
     );
     expect(CraftGuildsSchema.safeParse(missing).success).toBe(false);
+  });
+
+  it('a mudança de faixa da moral tem uma frase por faixa e por sentido, com sabor', () => {
+    expect(EVENT_TYPES).toContain('moraleBandChanged');
+    expect(MoraleBandTemplatesSchema.safeParse(moraleBandTemplates).error).toBeUndefined();
+    expect(Object.keys(moraleBandTemplates)).toEqual([...MORALE_BAND_IDS]);
+    const lowest = MORALE_BAND_IDS[0];
+    const highest = MORALE_BAND_IDS[MORALE_BAND_IDS.length - 1];
+    const phrases: string[] = [];
+    for (const id of MORALE_BAND_IDS) {
+      const { rose, fell } = moraleBandTemplates[id];
+      // Ninguém sobe até a faixa mais baixa nem desce até a mais alta.
+      expect(rose === undefined, id).toBe(id === lowest);
+      expect(fell === undefined, id).toBe(id === highest);
+      for (const phrase of [rose, fell]) {
+        if (phrase !== undefined) {
+          phrases.push(phrase);
+          expect(phrase, id).toContain('{feudo}');
+          expect(phrase.startsWith('No {dia}º dia {daEstacao}, '), id).toBe(true);
+          // Nenhuma soa a planilha: a moral não aparece em número.
+          expect(phrase, id).not.toMatch(/\d|moral|faixa/i);
+        }
+      }
+    }
+    expect(new Set(phrases).size).toBe(phrases.length);
+    expect(moraleBandTemplates.restless.fell).toContain('o povo de {feudo} anda inquieto');
+    // A frase de reserva diz a faixa em minúscula, no meio da frase.
+    expect(chronicleTemplates.moraleBandChanged).toContain('{moral}');
+    expect(
+      MoraleBandTemplatesSchema.safeParse({
+        ...moraleBandTemplates,
+        proud: { rose: 'O povo de {reino} canta.' },
+      }).success,
+    ).toBe(false);
+  });
+
+  it('quem chega e quem parte: o colono, a partida e a deserção dizem o porquê e quantos ficam', () => {
+    for (const type of ['villagerArrived', 'villagerLeft', 'villagerDeserted'] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type]).toContain('{quantidade}');
+      expect(chronicleTemplates[type]).toContain('{feudo}');
+    }
+    expect(chronicleTemplates.villagerArrived).toContain('fama de {feudo}');
+    expect(chronicleTemplates.villagerArrived).toContain('colono');
+    // Quem parte tem ofício (ou não tem nenhum): a frase diz quem foi.
+    expect(chronicleTemplates.villagerLeft).toContain('{aldeao}');
+    expect(chronicleTemplates.villagerDeserted).toContain('{aldeao}');
+    // A partida é pelo ânimo; a deserção, pela fome. As duas não se confundem.
+    expect(chronicleTemplates.villagerLeft).not.toMatch(/fome/);
+    expect(chronicleTemplates.villagerDeserted).toContain('fome');
+    expect(IdleVillagerSchema.safeParse(idleVillager).success).toBe(true);
+    const leavers = [idleVillager, ...Object.values(craftGuilds).map((guild) => guild.artisan)];
+    expect(new Set(leavers).size).toBe(leavers.length);
+    for (const leaver of leavers) {
+      expect(leaver.startsWith('um ')).toBe(true);
+    }
   });
 });

@@ -1,4 +1,10 @@
-import { BUILDING_IDS, RESOURCE_IDS, type ResourceId } from '@lotg/content';
+import {
+  BUILDING_IDS,
+  type GameEventType,
+  type MoraleBandId,
+  RESOURCE_IDS,
+  type ResourceId,
+} from '@lotg/content';
 
 import { strategyPolicies } from './bots';
 import { identityLine } from './identity';
@@ -9,6 +15,9 @@ export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
   (id): id is Exclude<ResourceId, 'food'> => id !== 'food',
 );
 export type SurplusResource = (typeof SURPLUS_RESOURCES)[number];
+
+/** As faixas da moral em que o povo reclama: é nelas que se contam as horas de moral baixa. */
+const LOW_MORALE_BANDS: readonly MoraleBandId[] = ['desperate', 'restless'];
 
 /** Os recursos em que se mede o desperdício: os que têm limite de estoque (GDD §5.5). */
 export const WASTE_RESOURCES = ['food', 'wood', 'stone'] as const satisfies readonly ResourceId[];
@@ -28,7 +37,11 @@ const MECHANIC_COLUMNS = [
     task: 'V2C-T1',
     meaning: '`1` se o feudo passa frio naquela hora; na matriz, as horas de frio da partida',
   },
-  { name: 'morale', task: 'V2C-T4', meaning: 'Moral do feudo, de 0 a 100' },
+  {
+    name: 'morale',
+    task: 'V2C-T4',
+    meaning: 'Moral do feudo naquela hora, de 0 a 100; na matriz, a menor moral da partida',
+  },
   { name: 'cards_seen', task: 'V2D-T1', meaning: 'Cartas do Conselho recebidas, acumuladas' },
   { name: 'cards_answered', task: 'V2D-T1', meaning: 'Cartas respondidas pelo bot, acumuladas' },
   { name: 'cards_expired', task: 'V2D-T1', meaning: 'Cartas que expiraram, acumuladas' },
@@ -50,6 +63,9 @@ const MEASURED_COLUMNS: Partial<
   wasted_wood: { hour: (row) => row.wasted.wood, run: (summary) => summary.wasted.wood },
   wasted_stone: { hour: (row) => row.wasted.stone, run: (summary) => summary.wasted.stone },
   cold: { hour: (row) => (row.cold ? 1 : 0), run: (summary) => summary.coldHours },
+  // No CSV de uma partida, a moral daquela hora; no da matriz, a menor da partida: é a que diz
+  // se o feudo chegou perto de perder gente.
+  morale: { hour: (row) => row.morale, run: (summary) => summary.moraleMin },
 };
 
 /**
@@ -134,6 +150,17 @@ export type Summary = {
   /** Horas com o feudo passando frio: a lenha acabou no inverno. */
   coldHours: number;
   firstColdHour: number | null;
+  /** A moral no fim da partida, de 0 a 100. */
+  morale: number;
+  /** A menor moral que o feudo teve, entre as amostras de cada hora. */
+  moraleMin: number;
+  /** Horas com a moral nas duas faixas de baixo: o povo inquieto ou desesperado. */
+  lowMoraleHours: number;
+  /** Colonos que chegaram sozinhos, atraídos pela moral alta. */
+  settlersArrived: number;
+  /** Aldeões que foram embora: os que partiram com a moral baixa e os que desertaram na fome. */
+  villagersLeft: number;
+  villagersDeserted: number;
   commandsAccepted: number;
   commandsRefused: number;
   refusedByCode: Record<string, number>;
@@ -160,6 +187,9 @@ export function summarize(result: SimulationResult): Summary {
   const last = rows[rows.length - 1];
   const hungry = rows.filter((row) => row.famine);
   const freezing = rows.filter((row) => row.cold);
+  const uneasy = rows.filter((row) => LOW_MORALE_BANDS.includes(row.moraleBand));
+  const happened = (type: GameEventType) =>
+    result.events.filter((event) => event.type === type).length;
   const freeVillagerHours = rows.reduce((sum, row) => sum + row.free, 0);
   const stock = Object.fromEntries(RESOURCE_IDS.map((id) => [id, last?.stock[id] ?? 0])) as Record<
     ResourceId,
@@ -174,6 +204,12 @@ export function summarize(result: SimulationResult): Summary {
     firstFamineHour: hungry[0]?.hour ?? null,
     coldHours: freezing.length,
     firstColdHour: freezing[0]?.hour ?? null,
+    morale: last?.morale ?? 0,
+    moraleMin: rows.reduce((lowest, row) => Math.min(lowest, row.morale), last?.morale ?? 0),
+    lowMoraleHours: uneasy.length,
+    settlersArrived: happened('villagerArrived'),
+    villagersLeft: happened('villagerLeft'),
+    villagersDeserted: happened('villagerDeserted'),
     commandsAccepted: result.commands.accepted,
     commandsRefused: total(result.commands.refused),
     refusedByCode: { ...result.commands.refused },
@@ -202,6 +238,23 @@ export function formatDecimal(value: number): string {
 /** "35 h com obra que podia começar (0 h com obra planejada)". */
 function idleLine(summary: Summary): string {
   return `${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`;
+}
+
+/**
+ * "Moral: 60 no fim, mínima 40 (12 h com o povo inquieto ou desesperado) · 1 colono, 0
+ * partidas, 2 deserções". As horas e a população movida só aparecem quando há o que contar.
+ */
+function moraleLine(summary: Summary): string {
+  const low =
+    summary.lowMoraleHours === 0
+      ? ''
+      : ` (${summary.lowMoraleHours} h com o povo inquieto ou desesperado)`;
+  const moved = summary.settlersArrived + summary.villagersLeft + summary.villagersDeserted;
+  const people =
+    moved === 0
+      ? ''
+      : ` · colonos ${summary.settlersArrived}, partidas ${summary.villagersLeft}, deserções ${summary.villagersDeserted}`;
+  return `Moral: ${summary.morale} no fim, mínima ${summary.moraleMin}${low}${people}`;
 }
 
 /**
@@ -235,6 +288,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     summary.coldHours === 0
       ? 'Frio: nenhum'
       : `Frio: ${summary.coldHours} h, a primeira na hora ${summary.firstColdHour}`,
+    moraleLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []
@@ -245,7 +299,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `Excedente parado: ${SURPLUS_RESOURCES.map((id) => `${id} ${summary.surplus[id]}`).join(', ')}`,
     `Desperdício: ${WASTE_RESOURCES.map((id) => `${id} ${summary.wasted[id]}`).join(', ')} (${summary.wasteHours} h com depósito cheio perdendo produção)`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
-    'Sem medida até as Fases C a E: moral, cartas do Conselho, perdas por lobos',
+    'Sem medida até as Fases D e E: cartas do Conselho, perdas por lobos',
     '',
   ].join('\n');
 }

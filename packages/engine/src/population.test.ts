@@ -146,7 +146,9 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
     const done = advanceTo(state, 30 * MINUTE + DAY);
     expect(cohorts(done.state)).toEqual([]);
     expect(handsOf(done.state, 'quarry')).toEqual({ adapted: 1, adapting: 0 });
-    expect(productionRate(done.state, 'quarry')).toBe(8_000);
+    // Inteiro, e com a moral que a virada das 2 h levou a 60 (os lavradores enchem a despensa):
+    // 1 × 5 × 1,6 × 1,05.
+    expect(productionRate(done.state, 'quarry')).toBe(8_400);
   });
 
   it('a troca reduz a produção à metade por exatamente 2 h de jogo (critério 5 da §16.2)', () => {
@@ -215,9 +217,10 @@ describe('troca de ofício (GDD §5.4; ADR 0013, decisões 1 e 13)', () => {
     const end = 4 * HOUR + 30 * MINUTE;
     const direct = advanceTo(second, end);
     // 1 h com dois pela metade (12,8), 1 h com três pela metade (19,2), 1 h com dois inteiros e
-    // um pela metade (32) e 1 h com os três inteiros (38,4).
+    // um pela metade (32) e 1 h com os três inteiros (38,4). Às 2 h, no meio da segunda hora,
+    // a virada do dia leva a moral a 60: dali em diante tudo rende × 1,05.
     expect(direct.state.settlement.resources.wood).toBe(
-      120_000 + 12_800 + 19_200 + 32_000 + 38_400,
+      120_000 + 12_800 + (9_600 + 10_080) + 33_600 + 40_320,
     );
     expect(cohorts(direct.state)).toEqual([]);
     for (const cut of [

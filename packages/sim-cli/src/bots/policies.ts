@@ -22,6 +22,12 @@ import type { Policy } from './types';
 
 /** Comida que o recrutamento não gasta: uma folga para a noite. */
 const FOOD_RESERVE = 60;
+/**
+ * A partir de quantos aldeões o bot deixa uma cama vazia nas Habitações. Com as casas cheias a
+ * moral cai, e com ela a produção de todo mundo; em um feudo deste tamanho isso pesa mais do
+ * que um aldeão a mais. Abaixo disso, cada par de braços rende mais do que a moral tira.
+ */
+const SPARE_BED_FROM = 20;
 /** Bocas a mais que a alocação por demanda alimenta, de folga. */
 const SPARE_MOUTHS = 2;
 /** Pesos usados quando nenhuma obra está esperando recurso. */
@@ -143,7 +149,11 @@ function share(hands: number, weights: Record<Material, number>): Record<Materia
   return result;
 }
 
-/** Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida. */
+/**
+ * Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida. Com gente
+ * bastante, deixa uma cama vazia nas Habitações: com as casas cheias a moral cai (a visão
+ * mostra o termo), e a queda custa a todos os ofícios mais do que o último par de braços rende.
+ */
 export const recrutar: Policy = {
   name: 'recrutar',
   run: async (view, act) => {
@@ -157,10 +167,9 @@ export const recrutar: Policy = {
       perVillager('gold') === 0
         ? Infinity
         : Math.floor(stockOf(view, 'gold') / perVillager('gold'));
-    const quantity = Math.min(view.recruitment.maxQuantity, byFood, byGold);
-    if (view.recruitment.blockedReason !== null && quantity < 1) {
-      return view;
-    }
+    const { villagers, vacancies } = view.population;
+    const beds = villagers >= SPARE_BED_FROM ? vacancies - 1 : vacancies;
+    const quantity = Math.min(view.recruitment.maxQuantity, byFood, byGold, beds);
     return quantity >= 1 ? act('recruitVillagers', { quantity }) : view;
   },
 };

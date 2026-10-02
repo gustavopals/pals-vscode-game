@@ -2,12 +2,23 @@ import type {
   BuildingId,
   DifficultyId,
   GameEventType,
+  MoraleBandId,
+  MoraleTermId,
   ProductionBuildingId,
   ResourceId,
   SeasonId,
 } from '@lotg/content';
 
-export type { BuildingId, DifficultyId, GameEventType, ProductionBuildingId, ResourceId, SeasonId };
+export type {
+  BuildingId,
+  DifficultyId,
+  GameEventType,
+  MoraleBandId,
+  MoraleTermId,
+  ProductionBuildingId,
+  ResourceId,
+  SeasonId,
+};
 
 /** Escolhas feitas na criação da partida. Dificuldade e ritmo não mudam durante o ano. */
 export type GameSettings = {
@@ -47,6 +58,19 @@ export type AdaptationCohort = {
 };
 
 /**
+ * Um efeito temporário sobre a moral (GDD §5.7): quanto soma ou tira, com que nome aparece na
+ * explicação e até quando vale. Entra na conta de toda virada de dia até `untilMs`, inclusive.
+ */
+export type MoraleEffect = {
+  /** Quem o criou: gravar de novo o mesmo `id` troca o efeito, não o soma. */
+  id: string;
+  /** Como o termo aparece na explicação: "carta: Tábuas para as reservas". */
+  label: string;
+  amount: number;
+  untilMs: number;
+};
+
+/**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
@@ -55,7 +79,7 @@ export type AdaptationCohort = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 6;
+  schemaVersion: 7;
   seed: string;
   settings: GameSettings;
   /**
@@ -122,6 +146,18 @@ export type GameState = {
      * é um evento da linha do tempo. Quem não está em coorte nenhuma já é adaptado.
      */
     adaptation: AdaptationCohort[];
+    /**
+     * A moral do feudo, de 0 a 100 (GDD §5.7). Só muda na virada de cada dia de jogo, quando é
+     * recalculada do zero com as condições daquele instante; entre uma virada e outra é o
+     * número que entra na produção.
+     */
+    morale: number;
+    /**
+     * Efeitos temporários sobre a moral, na ordem em que foram gravados: cartas do Conselho,
+     * incursões e objetivos escrevem aqui. Cada um entra como um termo na conta da virada do
+     * dia enquanto não vence, e sai da lista na primeira virada em que já não conta.
+     */
+    moraleEffects: MoraleEffect[];
   };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -304,6 +340,89 @@ export type FirewoodView = {
   text: string;
 };
 
+/** O que a moral vale: o número, a faixa e o fator que ela põe na produção. */
+export type MoraleLevelView = {
+  /** De 0 a 100. */
+  value: number;
+  band: MoraleBandId;
+  /** "Inquieto". */
+  bandLabel: string;
+  /**
+   * O fator da moral na produção, em centésimos: 109 é "produção × 1,09"; 75, "× 0,75". Tem
+   * meia unidade com a moral ímpar (51 dá 100,5).
+   */
+  multiplierPercent: number;
+};
+
+/**
+ * A moral do feudo (GDD §5.7). Ela só muda na virada do dia: `value` é a que está valendo
+ * desde a última virada, e `terms`, a conta que a **próxima** virada vai fazer se nada mudar
+ * até lá. Quando as duas não coincidem (a fome começou há pouco, a despensa encheu), `next` e
+ * `nextText` dizem para onde a moral vai, antes de ela ir.
+ */
+export type MoraleView = {
+  /** De 0 a 100: a moral que vale desde a última virada do dia. */
+  value: number;
+  band: MoraleBandId;
+  bandLabel: string;
+  /** O fator da moral na produção agora, em centésimos (ver `MoraleLevelView`). */
+  multiplierPercent: number;
+  /** "Moral 68 (Contente): produção × 1,09." */
+  text: string;
+  /**
+   * Os termos da conta que a próxima virada vai fazer se nenhuma ordem chegar antes, a começar
+   * pela base: já contam com o que acontece até lá (a comida que o consumo leva, o aldeão que
+   * chega, a fome que abre). A soma deles, limitada a 0–100, é `next.value`. Um termo só
+   * aparece quando vale: sem fome, não há termo de fome.
+   */
+  terms: Array<{ id: MoraleTermId; label: string; amount: number }>;
+  /** A mesma conta em uma linha: "50 (base) + 10 (comida guardada para 8 h) − 10 (casas cheias) = 50". */
+  breakdown: string;
+  /** Segundos reais até a próxima virada do dia, quando a moral é recalculada. */
+  nextUpdateInSeconds: number;
+  /** O que a próxima virada faz da moral, se nada mudar até lá. */
+  next: MoraleLevelView;
+  /**
+   * "A moral só muda na virada do dia: na próxima, cai de 60 para 30 (Inquieto)." Quando nada
+   * muda: "A moral só muda na virada do dia: na próxima, continua em 60."
+   */
+  nextText: string;
+  /**
+   * O que fazer: o termo que mais pesa na conta e a ação que o tira dela. Sem nada pesando,
+   * diz como ganhar o bônus da comida guardada, se ele falta. `null` quando não há o que
+   * melhorar por ação do jogador.
+   */
+  advice: string | null;
+  /**
+   * A comida guardada que vale o bônus: quanto é preciso ter e quanto falta **agora**, em
+   * unidades. `holdsAtNextTurn` diz se a próxima virada do dia vai encontrá-la (é ela que
+   * decide o bônus): o consumo pode levá-la antes, e a produção pode completá-la.
+   */
+  foodReserve: {
+    covered: boolean;
+    holdsAtNextTurn: boolean;
+    /** Comida que cobre o prazo do bônus com os habitantes de agora. */
+    needed: number;
+    /** Quanto falta no estoque; 0 quando já cobre. */
+    missing: number;
+    /** O bônus, em pontos de moral. */
+    bonus: number;
+    /** "Com 120 de comida guardada (o que 5 habitantes comem em 8 h), a moral ganha 10." */
+    text: string;
+  };
+  /**
+   * O que a moral e a fome longa fazem com a população nas viradas do dia, em frases prontas:
+   * a chance de um colono chegar, a de um aldeão partir, a deserção por fome e o piso. Vazio
+   * quando nada disso está em jogo.
+   */
+  notes: string[];
+  /**
+   * Efeitos temporários que a moral carrega ou vai carregar (cartas, incursões, objetivos).
+   * `endsInSeconds` são os segundos reais até a virada do dia em que o efeito sai da conta.
+   */
+  effects: Array<{ label: string; amount: number; endsInSeconds: number }>;
+};
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -476,8 +595,16 @@ export type ViewState = {
     /** Quantos aldeões cabem em uma nova ordem agora. */
     maxQuantity: number;
     blockedReason: string | null;
+    /**
+     * O que uma ordem de recrutamento dada agora custa à moral, ao lado do custo em recursos:
+     * "Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias
+     * a moral perde 10: para evitar, chame até 4." `null` quando recrutar não mexe na moral, ou
+     * quando não dá para recrutar.
+     */
+    moraleNote: string | null;
   };
   famine: null | { sinceMs: number; secondsElapsed: number; text: string };
+  morale: MoraleView;
   /**
    * A estação da lenha: `null` fora dela. `cold` é o frio, aberto quando a madeira acabou; o
    * texto diz o que ele custa, quanto falta e o que fazer.

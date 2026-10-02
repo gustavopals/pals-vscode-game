@@ -93,8 +93,10 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     const later = await call<ViewResponse>(server, 'GET', `/games/${game.id}/view`, { token });
     expect(later.body.view.calendar.dayOfSeason).toBe(2);
     // Os dois lavradores renderam metade nas duas horas da adaptação (+7 por hora). Agora,
-    // adaptados e com os 4 de experiência da virada do dia: 24 × 1,012 − 5.
-    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 194, perHour: 19.3 });
+    // adaptados, com os 4 de experiência da virada do dia e a moral em 60 (a comida guardada):
+    // 24 × 1,012 × 1,05 − 5.
+    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 194, perHour: 20.5 });
+    expect(later.body.view.morale).toMatchObject({ value: 60, bandLabel: 'Contente' });
 
     const events = await call<EventsResponse>(server, 'GET', `/games/${game.id}/events`, { token });
     expect(EventsResponseSchema.safeParse(events.body).error).toBeUndefined();
@@ -141,9 +143,15 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       events.body.events.filter((event) => event.type !== 'dayStarted'),
     );
     expect(all.body.entries.map((entry) => [entry.type, entry.text])).toEqual([
-      // Ninguém foi para a Fazenda: a comida acaba na 36ª hora, ainda na Primavera.
+      // Ninguém foi para a Fazenda: a comida acaba na 36ª hora, ainda na Primavera. A moral
+      // cai na virada seguinte e de novo dois dias depois; na 48ª hora, com 12 h de fome, um
+      // aldeão parte e outro deserta. Ficam três, o piso, e ninguém mais sai.
       ['famineStarted', expect.stringContaining('A fome começou.')],
+      ['moraleBandChanged', expect.stringContaining('o povo de Pedra Alta anda inquieto')],
+      ['moraleBandChanged', expect.stringContaining('perdeu a esperança')],
       ['seasonChanged', 'Chega o Verão a Pedra Alta.'],
+      ['villagerLeft', expect.stringContaining('deixou Pedra Alta')],
+      ['villagerDeserted', expect.stringContaining('fugiu da fome de Pedra Alta')],
       ['seasonChanged', 'Chega o Outono a Pedra Alta.'],
       ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
       ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],
@@ -151,8 +159,8 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     ]);
 
     // O filtro por ano corta nos eventos yearStarted, mesmo sem as viradas de dia no meio.
-    expect(first.body.entries).toEqual(all.body.entries.slice(0, 4));
-    expect(second.body.entries).toEqual(all.body.entries.slice(4));
+    expect(first.body.entries).toEqual(all.body.entries.slice(0, 8));
+    expect(second.body.entries).toEqual(all.body.entries.slice(8));
     expect(second.body.entries[0]).toMatchObject({ type: 'yearStarted', data: { year: 2 } });
     expect(third.body.entries).toEqual([]);
 

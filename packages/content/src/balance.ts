@@ -1,6 +1,7 @@
 import type {
   BuildingId,
   DifficultyId,
+  MoraleBandId,
   ProductionBuildingId,
   Ratio,
   ResourceAmounts,
@@ -94,6 +95,45 @@ export type CraftDef = {
   readonly occupiedWorkersPerLevel: number;
 };
 
+/** Uma faixa da moral: vale até `max`, inclusive, a partir do `max` da faixa anterior mais um. */
+export type MoraleBandDef = {
+  readonly id: MoraleBandId;
+  readonly max: number;
+  /** "Inquieto": como o cabeçalho a mostra. */
+  readonly label: string;
+};
+
+/**
+ * Moral (GDD §5.6 e §5.7; ADR 0013, decisões 1 e 19). Vai de 0 ao `max` da última faixa e só
+ * muda na virada de cada dia de jogo: `base` mais os termos, limitada. Os prazos são tempo de
+ * jogo e escalam com o ritmo.
+ */
+export type MoraleDef = {
+  readonly base: number;
+  /** A comida guardada: o estoque que cobre `coverMs` de consumo dos habitantes vale `bonus`. */
+  readonly foodReserve: { readonly coverMs: number; readonly bonus: number };
+  /** Com fome. */
+  readonly famine: number;
+  /** A mais, por dia de jogo inteiro de fome contínua. */
+  readonly faminePerDay: number;
+  /** Com tantos habitantes quantas vagas, ou mais. */
+  readonly housingFull: number;
+  /** Com frio (GDD §4.1). */
+  readonly cold: number;
+  /** O fator da moral na produção: `base + perPoint × moral`. Com 3/4 e 1/200, (150 + moral) / 200. */
+  readonly multiplier: { readonly base: Ratio; readonly perPoint: Ratio };
+  /** Da mais baixa à mais alta; o `max` da última é o máximo da moral. */
+  readonly bands: readonly MoraleBandDef[];
+  /** Na virada do dia, com a moral em `minMorale` ou mais e vaga nas casas: a chance de um colono chegar. */
+  readonly arrival: { readonly minMorale: number; readonly chance: Ratio };
+  /** Na virada do dia, com a moral em `maxMorale` ou menos: a chance de um aldeão partir. */
+  readonly departure: { readonly maxMorale: number; readonly chance: Ratio };
+  /** Fome contínua, em tempo de jogo, a partir da qual um aldeão deserta a cada virada de dia. */
+  readonly famineDesertionAfterMs: number;
+  /** Nenhuma partida nem deserção deixa o feudo com menos aldeões do que isto. */
+  readonly populationFloor: number;
+};
+
 /** Um ritmo que o jogador pode escolher ao criar a partida (GDD §4.2). */
 export type PaceDef = {
   /** Horas de jogo por hora real. */
@@ -150,6 +190,7 @@ export type Balance = {
   };
   readonly famine: { readonly productionMultiplier: Ratio };
   readonly craft: CraftDef;
+  readonly morale: MoraleDef;
   /** O frio: sem lenha em uma estação que a queima, a produção de todo o feudo cai (GDD §4.1). */
   readonly winter: { readonly cold: { readonly productionMultiplier: Ratio } };
   readonly calendar: { readonly dayMs: number; readonly seasons: readonly SeasonDef[] };
@@ -230,6 +271,27 @@ export const balance: Balance = {
     maxExperience: 100,
     masteryBonus: { num: 3, den: 10 },
     occupiedWorkersPerLevel: 1,
+  },
+  // GDD §5.6 e §5.7 (ADR 0013, decisões 1 e 19). 24 h de jogo de comida são 12 dias de jogo; a
+  // deserção começa com 12 h de jogo de fome, que são 6. O teste de conteúdo confere as contas.
+  morale: {
+    base: 50,
+    foodReserve: { coverMs: 24 * HOUR_MS, bonus: 10 },
+    famine: -20,
+    faminePerDay: -2,
+    housingFull: -10,
+    cold: -20,
+    multiplier: { base: { num: 3, den: 4 }, perPoint: { num: 1, den: 200 } },
+    bands: [
+      { id: 'desperate', max: 24, label: 'Desesperado' },
+      { id: 'restless', max: 49, label: 'Inquieto' },
+      { id: 'content', max: 74, label: 'Contente' },
+      { id: 'proud', max: 100, label: 'Orgulhoso' },
+    ],
+    arrival: { minMorale: 80, chance: { num: 1, den: 5 } },
+    departure: { maxMorale: 25, chance: { num: 1, den: 5 } },
+    famineDesertionAfterMs: 12 * HOUR_MS,
+    populationFloor: 3,
   },
   winter: { cold: { productionMultiplier: { num: 4, den: 5 } } },
   // GDD §4.1: a tabela de efeitos das estações, em frações.

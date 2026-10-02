@@ -28,6 +28,11 @@ describe('cenário golden de 7 dias', () => {
       'objectiveCompleted',
       'famineStarted',
       'famineEnded',
+      'coldStarted',
+      'coldEnded',
+      'moraleBandChanged',
+      'villagerDeserted',
+      'craftMastered',
       'seasonChanged',
       'yearStarted',
       'settlementRenamed',
@@ -55,6 +60,16 @@ describe('cenário golden de 7 dias', () => {
       starts.some((event, index) => starts[index + 1]?.atMs === event.atMs && event.atMs > 0),
     ).toBe(true);
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
+    // A moral: a fome a derruba em duas faixas, três aldeões desertam antes de o senhor voltar
+    // à Fazenda, e ela se refaz; no inverno, o frio a derruba de novo e ela volta.
+    const bands = events
+      .filter((event) => event.type === 'moraleBandChanged')
+      .map((event) => event.data.band);
+    expect(bands).toEqual(['restless', 'desperate', 'content', 'restless', 'content']);
+    expect(events.filter((event) => event.type === 'villagerDeserted')).toHaveLength(3);
+    // Com a moral em 25 ou menos houve sorteio de partida a cada virada: o fluxo andou.
+    expect(state.rng.morale).toHaveLength(4);
+    expect(state.settlement.morale).toBe(60);
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
     expect(state.objectives.active).toEqual([]);

@@ -1,0 +1,112 @@
+{
+ "schemaVersion": 7,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 604800000,
+  "yearStartMs": 604800000,
+  "year": 2
+ },
+ "lastProcessedAt": 604800000,
+ "rng": {
+  "morale": [
+   3881588205,
+   3039749652,
+   1225820957,
+   2933432022
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta do Norte",
+  "resources": {
+   "food": 1500000,
+   "wood": 52009,
+   "stone": 799906,
+   "gold": 1875092
+  },
+  "accumulators": {
+   "food": 813852,
+   "wood": 0,
+   "stone": 3001159,
+   "gold": 1790880
+  },
+  "population": {
+   "villagers": 22
+  },
+  "workers": {
+   "farm": 8,
+   "lumberMill": 6,
+   "quarry": 4,
+   "goldMine": 3
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 3,
+   "lumberMill": 4,
+   "quarry": 4,
+   "goldMine": 3,
+   "housing": 5,
+   "granary": 2,
+   "warehouse": 1
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 550,
+   "wood": 262,
+   "stone": 144,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 64,
+   "quarry": 100,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 4,
+  "villagersRecruited": 20,
+  "constructionsStarted:townHall": 3,
+  "constructionsStarted:lumberMill": 3,
+  "constructionsStarted:farm": 2,
+  "constructionsStarted:quarry": 4,
+  "constructionsStarted:warehouse": 1,
+  "wasted_food": 3988550,
+  "wasted_wood": 3473262,
+  "constructionsStarted:goldMine": 2,
+  "constructionsStarted:granary": 2,
+  "wasted_stone": 2194144
+ }
+}

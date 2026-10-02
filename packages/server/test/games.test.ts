@@ -1692,9 +1692,9 @@ describe('recusa após horas sem acesso (F2-T6.9)', () => {
     expect(advanced.calendar.dayOfSeason).toBe(3);
     // 2 aldeões na Fazenda (10/h cada, × 1,2 na primavera) menos o consumo de 5 aldeões
     // (1/h cada). Recém-chegados, rendem metade no primeiro dia de jogo: +7/h por 2 h. Depois,
-    // +19/h mais a experiência que a Fazenda ganha a cada virada (× 1,012 e × 1,024):
-    // 14 + 38,576 + 19,576.
-    expect(stock(advanced, 'food')).toBe(stock(base, 'food') + 72);
+    // +19/h mais a experiência que a Fazenda ganha a cada virada (× 1,012 e × 1,024) e a moral,
+    // que a primeira virada leva a 60 (× 1,05): 14 + 41,004 + 20,804.
+    expect(stock(advanced, 'food')).toBe(stock(base, 'food') + 75);
     // A ação recusada não descontou nada.
     expect(stock(advanced, 'wood')).toBe(stock(base, 'wood'));
     expect(stock(advanced, 'stone')).toBe(stock(base, 'stone'));
@@ -2229,8 +2229,9 @@ describe('relógio da partida (F2-T6.2)', () => {
     expect(reopened.status).toBe(200);
     // A partir de 180: +7 de comida por hora nas duas primeiras horas (os lavradores acabaram
     // de chegar e rendem metade) e +19 depois, com a experiência que a Fazenda ganha a cada
-    // virada de dia (× 1,012 e × 1,024): 14 + 38,576 + 39,152.
-    expect(stock(reopened.body.view, 'food')).toBe(271);
+    // virada de dia (× 1,012 e × 1,024) e a moral que a primeira virada leva a 60 (× 1,05):
+    // 14 + 41,004 + 41,608.
+    expect(stock(reopened.body.view, 'food')).toBe(276);
     expect(reopened.body.view.calendar.dayOfSeason).toBe(4);
     const events = await getEvents(server, player.token, game.id);
     expect(events.body.events.filter((event) => event.type === 'dayStarted')).toHaveLength(3);
@@ -2246,8 +2247,9 @@ describe('relógio da partida (F2-T6.2)', () => {
     server.clock.advance(HOUR);
     await renew(server, player);
     const later = await getView(server, player.token, game.id);
-    // Mais uma hora, já com 12 de experiência na Fazenda: 24 × 1,036 − 5 = 19,864.
-    expect(stock(later.body.view, 'food')).toBe(291);
+    // Mais uma hora, já com 12 de experiência na Fazenda e a moral em 60:
+    // 24 × 1,036 × 1,05 − 5 = 21,107.
+    expect(stock(later.body.view, 'food')).toBe(297);
     expect(later.body.view.calendar.dayOfSeason).toBe(4);
     expect(await eventRows(server, game.id)).toHaveLength(before.events.length);
   });

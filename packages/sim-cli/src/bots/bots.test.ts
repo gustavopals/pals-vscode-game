@@ -166,6 +166,70 @@ describe('um bot é uma lista de políticas', () => {
   });
 });
 
+describe('política "recrutar" e a moral', () => {
+  /** Um feudo com comida e ouro de sobra, `villagers` habitantes e `vacancies` camas livres. */
+  const housed = (villagers: number, vacancies: number): ViewState => {
+    const view = freshView();
+    return {
+      ...view,
+      population: { ...view.population, villagers, vacancies, capacity: villagers + vacancies },
+      recruitment: { ...view.recruitment, maxQuantity: Math.min(5, vacancies) },
+      resources: view.resources.map((row) =>
+        row.id === 'food' || row.id === 'gold' ? { ...row, stock: 2_000 } : row,
+      ),
+    };
+  };
+  const recruited = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    await recrutar.run(view, act);
+    return orders;
+  };
+
+  it('em um feudo pequeno enche as casas: cada par de braços rende mais do que a moral tira', async () => {
+    expect(await recruited(housed(12, 3))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 3 } },
+    ]);
+    expect(await recruited(housed(19, 1))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 1 } },
+    ]);
+  });
+
+  it('com 20 aldeões ou mais deixa uma cama vazia: as casas cheias derrubam a moral de todos', async () => {
+    expect(await recruited(housed(22, 3))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 2 } },
+    ]);
+    // A última cama fica vazia: nenhuma ordem.
+    expect(await recruited(housed(24, 1))).toEqual([]);
+    // Com muitas camas, a ordem é a de sempre: o limite por ordem.
+    expect(await recruited(housed(40, 9))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 5 } },
+    ]);
+  });
+
+  it('continua guardando a reserva de comida e respeitando o ouro', async () => {
+    const poor = (food: number, gold: number): ViewState => {
+      const view = housed(22, 5);
+      return {
+        ...view,
+        resources: view.resources.map((row) => {
+          if (row.id === 'food') {
+            return { ...row, stock: food };
+          }
+          return row.id === 'gold' ? { ...row, stock: gold } : row;
+        }),
+      };
+    };
+    // 50 de comida e 10 de ouro por aldeão; 60 de comida ficam na despensa.
+    expect(await recruited(poor(170, 500))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 2 } },
+    ]);
+    expect(await recruited(poor(2_000, 15))).toEqual([
+      { type: 'recruitVillagers', payload: { quantity: 1 } },
+    ]);
+    expect(await recruited(poor(100, 500))).toEqual([]);
+  });
+});
+
 describe('política "comida primeiro"', () => {
   it('põe na fazenda só os braços que a comida pede', async () => {
     const view = freshView();
@@ -1161,7 +1225,8 @@ describe('os bots jogando contra o motor', () => {
       // Três aldeões a mais, e ninguém na fazenda: a comida acaba com oito bocas no feudo.
       await feudo.act('recruitVillagers', { quantity: 3 });
       expect(feudo.refused).toEqual([]);
-      feudo.pass(72);
+      // Dez horas de jogo: a fome já dura umas cinco, e ainda não levou ninguém embora.
+      feudo.pass(10);
       expect(feudo.view().famine).not.toBeNull();
       expect(feudo.view().population.villagers).toBe(8);
       await alocarPorDemanda.run(feudo.view(), feudo.act);
@@ -1286,6 +1351,35 @@ describe('os bots jogando contra o motor', () => {
         expect(row.experience, row.building).toBeGreaterThan(0);
         expect(row.experienceTrend, row.building).not.toBe('falling');
       }
+    },
+  );
+
+  it.each(['economico', 'preguicoso'] as const)(
+    'o %s, visitando duas vezes por dia no ritmo 3, não deixa a moral cair nem perde ninguém',
+    async (strategy) => {
+      const feudo = game(3);
+      const morales: number[] = [];
+      for (let visit = 0; visit < 14; visit += 1) {
+        await strategies[strategy](feudo.view(), feudo.act);
+        // 12 horas reais entre as visitas: 36 de jogo, 18 viradas de dia.
+        for (let hour = 0; hour < 36; hour += 2) {
+          feudo.pass(2);
+          morales.push(feudo.view().morale.value);
+        }
+        // O bot deixa uma cama vazia quando o feudo é grande: as casas não ficam cheias.
+        const { villagers, capacity } = feudo.view().population;
+        if (villagers >= 20) {
+          expect(villagers).toBeLessThan(capacity);
+        }
+      }
+      expect(feudo.refused).toEqual([]);
+      // A moral nunca sai das faixas de cima: o pior dia é o de casas cheias sem comida guardada.
+      expect(Math.min(...morales)).toBeGreaterThanOrEqual(40);
+      expect(Math.max(...morales)).toBe(60);
+      // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
+      const late = morales.slice(-90);
+      expect(late.filter((value) => value === 60).length).toBeGreaterThan(80);
+      expect(feudo.view().population.villagers).toBeGreaterThan(20);
     },
   );
 

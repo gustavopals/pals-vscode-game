@@ -4,12 +4,14 @@ import {
   isDayBoundary,
   isSeasonBoundary,
   isYearBoundary,
+  nextDayBoundary,
   seasonWithArticle,
   yearOf,
 } from './clock';
 import { finishConstructions } from './construction';
 import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
+import { turnMorale } from './moraleTurn';
 import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { settleScarcity } from './scarcity';
@@ -43,6 +45,8 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
   emit(events, draft, atMs, 'dayStarted', { dayOfYear: date.dayOfYear });
   // O dia virou: cada ofício conta a experiência com quem está no edifício agora.
   tallyCraftExperience(draft, atMs, events);
+  // Depois a moral: o recálculo, os sorteios de chegada e de partida e a deserção por fome.
+  turnMorale(draft, atMs, events);
 }
 
 /** Processa, sobre o rascunho, os eventos discretos de um instante. */
@@ -50,10 +54,10 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação, o dia e a
- * experiência do ofício), fim de adaptação de quem trocou de ofício, início automático das
- * planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao outro)
- * e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
+ * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação, o dia, a
+ * experiência do ofício e a moral: recálculo, sorteios e deserção), fim de adaptação de quem
+ * trocou de ofício, início automático das planejadas, objetivos (`settlePlanned`, que repete os
+ * dois enquanto um der motivo ao outro) e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
  */
 export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
@@ -63,6 +67,29 @@ export function processEventsAt(draft: GameState, atMs: number, events: GameEven
   finishAdaptations(draft, atMs);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
+}
+
+/**
+ * O estado como a moral da próxima virada do dia vai encontrá-lo, se nenhuma ordem chegar
+ * antes: tudo o que acontece até lá e, na própria virada, o que vem antes da moral na ordem do
+ * instante e mexe na conta dela (as obras que terminam e os aldeões que chegam). É o que a
+ * visão usa para dizer, termo a termo, para onde a moral vai.
+ *
+ * Não sorteia nada: os sorteios são da virada, e ela não é processada aqui. O resultado só
+ * serve à visão; o calendário dele não foi virado.
+ */
+export function stateAtNextMoraleTurn(state: GameState): GameState {
+  const turn = nextDayBoundary(state.lastProcessedAt);
+  // Um milissegundo antes da virada o estado está em repouso e o próximo evento é ela mesma:
+  // o último milissegundo é um trecho de taxas constantes, como em `advanceWith`.
+  const draft = cloneState(advanceTo(state, turn - 1).state);
+  applyContinuous(draft, turn - draft.lastProcessedAt);
+  draft.lastProcessedAt = turn;
+  draft.clock.gameTimeMs = turn;
+  const unused: GameEvent[] = [];
+  finishConstructions(draft, turn, unused);
+  finishRecruitments(draft, turn, unused);
+  return draft;
 }
 
 /**

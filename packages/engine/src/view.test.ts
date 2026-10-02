@@ -9,9 +9,11 @@ import {
   DAY,
   gameWith,
   HOUR,
+  impoverishedScenario,
   MINUTE,
   newGame,
   objectivesScenario,
+  proudScenario,
   queuesScenario,
   winterColdScenario,
 } from './test-helpers';
@@ -82,11 +84,11 @@ describe('deriveViewState', () => {
     );
   });
 
-  it('adaptados, um dia de jogo depois, rendem +19,3/h: os 24 de sempre e 4 de experiência', () => {
+  it('adaptados, um dia de jogo depois, rendem +20,5/h: os 24 de sempre, 4 de experiência e a moral em 60', () => {
     const food = deriveViewState(farmers, DAY).resources[0];
-    expect(food).toMatchObject({ id: 'food', perHour: 19.3, depletesInSeconds: null });
+    expect(food).toMatchObject({ id: 'food', perHour: 20.5, depletesInSeconds: null });
     expect(food?.breakdown).toBe(
-      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,012 (mestria 4) × 1,2 (primavera) = 24,29/h; consumo 5 × 1 = 5/h',
+      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,012 (mestria 4) × 1,2 (primavera) × 1,05 (moral 60) = 25,5/h; consumo 5 × 1 = 5/h',
     );
   });
 
@@ -216,6 +218,10 @@ describe('deriveViewState', () => {
       durationNote: 'Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.',
       maxQuantity: 5,
       blockedReason: null,
+      // 180 de comida para 5 bocas: qualquer recruta gasta a reserva de 24 h; e cinco enchem
+      // as casas.
+      moraleNote:
+        'Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4.',
     });
     const queued = accept(newGame(), command('recruitVillagers', { quantity: 3 })).state;
     const derived = deriveViewState(queued, 5 * MINUTE);
@@ -473,13 +479,15 @@ describe('ofícios na visão (GDD §5.4)', () => {
     const at = (minutes: number) =>
       deriveViewState(state, state.lastProcessedAt + minutes * MINUTE).workers[0];
     expect(at(37)).toMatchObject({ adapting: 2, adaptationEndsInSeconds: 60 });
-    // No fim da adaptação veio também a virada do dia: 4 de experiência a mais.
+    // No fim da adaptação veio também a virada do dia: 4 de experiência a mais, e a moral,
+    // com a comida guardada, em 60.
     expect(at(38)).toMatchObject({
       adapting: 0,
       adaptationEndsInSeconds: null,
       adaptingCohorts: [],
       experience: 44,
-      breakdown: '4 trabalhadores × 10 × 1,4 (Nv3) × 1,132 (mestria 44) × 1,3 (outono) = 82,41/h',
+      breakdown:
+        '4 trabalhadores × 10 × 1,4 (Nv3) × 1,132 (mestria 44) × 1,3 (outono) × 1,05 (moral 60) = 86,53/h',
     });
   });
 });
@@ -498,6 +506,10 @@ describe('golden do ViewState', () => {
       queuesAndPlans: view(queuesScenario()),
       // Um ofício em cada situação: em adaptação, dominado, com gente de menos e vazio.
       crafts: view(craftScenario()),
+      // A moral nos dois extremos: o feudo empobrecido (fome, frio, moral zero, no piso de 3
+      // aldeões) e o feudo orgulhoso, com um efeito temporário e a chance do colono.
+      impoverished: view(impoverishedScenario()),
+      proud: view(proudScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

@@ -20,7 +20,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -49,6 +49,9 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       craftMasteredYear: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
       adaptation: [],
+      // A moral nasce na base e é recalculada na primeira virada de dia (GDD §5.7).
+      morale: balance.morale.base,
+      moraleEffects: [],
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

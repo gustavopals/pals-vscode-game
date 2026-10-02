@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 6;
+const CURRENT = 7;
 
 type StoredState = {
   schemaVersion: number;
@@ -99,6 +99,9 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
     craftMasteredYear: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
     adaptation: [],
+    // A moral (V2C-T4): a base, sem efeito temporário nenhum.
+    morale: 50,
+    moraleEffects: [],
   };
 }
 
@@ -861,7 +864,7 @@ describe('estado que este servidor não sabe ler', () => {
     [
       'com um campo de uma mecânica que não existe',
       (state) => {
-        (state.settlement as Record<string, unknown>).morale = 50;
+        (state.settlement as Record<string, unknown>).mood = 50;
       },
     ],
     [

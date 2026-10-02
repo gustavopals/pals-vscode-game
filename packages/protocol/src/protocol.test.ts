@@ -6,6 +6,8 @@ import {
   craftGuilds,
   DIFFICULTY_IDS,
   foundingTemplates,
+  idleVillager,
+  moraleBandTemplates,
   objectives,
 } from '@lotg/content';
 import type {
@@ -248,15 +250,16 @@ describe('ViewStateSchema', () => {
     expect(ViewStateSchema.safeParse(rising).error).toBeUndefined();
     const wood = rising.resources.find((row) => row.id === 'wood');
     // Rei de Ferro: 400. Faltam 280: os dois lenhadores, recém-chegados, rendem 8 por hora de
-    // jogo no primeiro dia e 16 depois, com a experiência que sobe a cada virada. A previsão
-    // conta tudo isso: 63.604.380 ms de jogo, vistos no ritmo 3.
+    // jogo no primeiro dia e 16 depois, com a experiência que sobe a cada virada e a moral que
+    // a primeira virada leva a 60. A previsão conta tudo isso: 61.024.810 ms de jogo, vistos
+    // no ritmo 3.
     expect(wood).toMatchObject({
       cap: 400,
       capBreakdown: '500 iniciais × 0,8 (Rei de Ferro) = 400',
       storageBuilding: 'warehouse',
       storageLabel: 'Pátio',
       full: false,
-      fullInSeconds: 21_202,
+      fullInSeconds: 20_342,
       fullNote: null,
       wastingPerHour: 0,
       wastedToday: 0,
@@ -268,12 +271,13 @@ describe('ViewStateSchema', () => {
     events.push(...advanced.events);
     const full = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 });
     expect(ViewStateSchema.safeParse(full).error).toBeUndefined();
-    // 30 horas de jogo são 15 viradas de dia: a Serraria tem 60 de experiência (× 1,18), e os
-    // dois lenhadores perdem 16 × 1,18 por hora de jogo, 56,6 por hora real.
+    // 30 horas de jogo são 15 viradas de dia: a Serraria tem 60 de experiência (× 1,18), a
+    // moral está em 60 (× 1,05), e os dois lenhadores perdem 16 × 1,18 × 1,05 por hora de
+    // jogo, 59,5 por hora real.
     expect(full.resources.find((row) => row.id === 'wood')).toMatchObject({
       full: true,
       fullInSeconds: null,
-      wastingPerHour: 56.6,
+      wastingPerHour: 59.5,
     });
     expect(full.resources.find((row) => row.id === 'gold')).toMatchObject({
       cap: null,
@@ -364,9 +368,9 @@ describe('ViewStateSchema', () => {
       ]),
     ).toEqual([
       // 50 de madeira: os três lenhadores, recém-chegados, rendem 12 por hora de jogo no
-      // primeiro dia (24 de madeira) e 24,288 depois. São 11.053.755 ms de jogo, vistos no
-      // ritmo 3: 3.685 segundos reais.
-      ['quarry', true, { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 3685 }],
+      // primeiro dia (24 de madeira) e 25,502 depois (com 4 de experiência e a moral em 60).
+      // São 10.870.301 ms de jogo, vistos no ritmo 3: 3.624 segundos reais.
+      ['quarry', true, { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 3624 }],
       // A Fazenda é manual e também espera madeira: 10 a 12 por hora de jogo, 1.000 segundos reais.
       ['farm', false, { reason: 'resources', text: 'espera 10 de madeira', etaSeconds: 1000 }],
     ]);
@@ -405,7 +409,7 @@ describe('ViewStateSchema', () => {
     const started = events.find((event) => event.type === 'constructionAutoStarted');
     // No instante que a visão anunciou.
     expect(started).toMatchObject({
-      atMs: 11_053_755,
+      atMs: 10_870_301,
       data: { building: 'quarry', level: 2, spent_wood: 120, spent_gold: 30 },
     });
     for (const [index, event] of events.entries()) {
@@ -499,6 +503,96 @@ describe('ViewStateSchema', () => {
       adaptationEndsInSeconds: null,
       experienceTrend: 'steady',
     });
+  });
+
+  it('aceita a moral: a conta termo a termo, a próxima virada, a dica e quem chega e parte', () => {
+    const start = createInitialState('pedra-alta', { ...settings, timeScale: 3 });
+    const view = deriveViewState(start, 0);
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    // No ritmo 3 a virada do dia é em 40 min reais e a reserva de 24 h de jogo são 8 h.
+    expect(view.morale).toMatchObject({
+      value: 50,
+      band: 'content',
+      bandLabel: 'Contente',
+      multiplierPercent: 100,
+      nextUpdateInSeconds: 2400,
+      terms: [
+        { id: 'base', label: 'Base', amount: 50 },
+        { id: 'foodReserve', label: 'Comida guardada para 8 h', amount: 10 },
+      ],
+      next: { value: 60, band: 'content', bandLabel: 'Contente', multiplierPercent: 105 },
+      advice: null,
+      notes: [],
+      effects: [],
+    });
+    // O que recrutar custa à moral vem ao lado do custo em recursos, pronto.
+    expect(view.recruitment.moraleNote).toBe(
+      'Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4.',
+    );
+    const withRecruitment = (changed: object) => ({
+      ...view,
+      recruitment: { ...view.recruitment, ...changed },
+    });
+    expect(ViewStateSchema.safeParse(withRecruitment({ moraleNote: null })).success).toBe(true);
+    expect(ViewStateSchema.safeParse(withRecruitment({ moraleNote: 10 })).success).toBe(false);
+
+    // Sem a moral, com uma faixa ou um termo desconhecido, ou com um campo a mais: fora do
+    // contrato. A dica pode faltar (`null`); o resto, não.
+    const withoutMorale = Object.fromEntries(
+      Object.entries(view).filter(([key]) => key !== 'morale'),
+    );
+    expect(ViewStateSchema.safeParse(withoutMorale).success).toBe(false);
+    const withMorale = (changed: object) => ({ ...view, morale: { ...view.morale, ...changed } });
+    expect(ViewStateSchema.safeParse(withMorale({})).success).toBe(true);
+    expect(
+      ViewStateSchema.safeParse(withMorale({ advice: 'Ponha gente na Fazenda.' })).success,
+    ).toBe(true);
+    expect(ViewStateSchema.safeParse(withMorale({ band: 'furious' })).success).toBe(false);
+    expect(
+      ViewStateSchema.safeParse(
+        withMorale({ terms: [{ id: 'tavern', label: 'Taverna', amount: 5 }] }),
+      ).success,
+    ).toBe(false);
+    expect(
+      ViewStateSchema.safeParse(withMorale({ next: { ...view.morale.next, band: undefined } }))
+        .success,
+    ).toBe(false);
+    expect(
+      ViewStateSchema.safeParse(
+        withMorale({ effects: [{ label: 'festa', amount: 5, endsInSeconds: 600, id: 'x' }] }),
+      ).success,
+    ).toBe(false);
+    // O estado do gerador nunca faz parte da visão.
+    expect(ViewStateSchema.safeParse(withMorale({ rng: [1, 2, 3, 4] })).success).toBe(false);
+
+    // O feudo abandonado: a fome, a moral que despenca e quem vai embora. Tudo o que o motor
+    // emite passa pelo contrato do evento, e a visão de cada momento, pelo da visão.
+    const abandoned = advanceTo(start, 40 * 2 * 3_600_000);
+    const moraleTypes = ['moraleBandChanged', 'villagerLeft', 'villagerDeserted'];
+    const emitted = abandoned.events.filter((event) => moraleTypes.includes(event.type));
+    expect(new Set(emitted.map((event) => event.type))).toEqual(new Set(moraleTypes));
+    for (const [index, event] of emitted.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-02T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+      // São notícia: linhas da Crônica.
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    expect(
+      GameEventSchema.safeParse({
+        seq: 1,
+        type: 'villagerArrived',
+        at: '2026-10-02T12:00:00.000Z',
+        atMs: 7_200_000,
+        text: 'No 2º dia da Primavera, um colono bateu ao portão, atraído pela fama de Pedra Alta. Agora são 6.',
+        data: { villagers: 6, morale: 80 },
+      }).error,
+    ).toBeUndefined();
+    const after = deriveViewState(abandoned.state, abandoned.state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
+    expect(after.morale).toMatchObject({ value: 0, band: 'desperate', multiplierPercent: 75 });
+    expect(after.morale.terms.map((term) => term.id)).toEqual(['base', 'famine', 'famineDays']);
+    expect(after.morale.advice).toContain('Fazenda');
+    expect(after.population.villagers).toBe(3);
   });
 
   it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
@@ -756,6 +850,35 @@ describe('Relatório de Retorno e device flow', () => {
     ).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, famine: 'talvez' }).success).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, extra: 1 }).success).toBe(false);
+    // A moral e quem ela moveu são opcionais: o relatório de antes continua valendo, e o novo
+    // diz a faixa de agora, a de antes e quantos chegaram, partiram e desertaram.
+    const withMorale = {
+      ...report,
+      counts: { ...report.counts, settlersArrived: 1, villagersLeft: 2, villagersDeserted: 3 },
+      morale: {
+        value: 24,
+        band: 'desperate',
+        bandLabel: 'Desesperado',
+        before: { value: 60, band: 'content', bandLabel: 'Contente' },
+      },
+    };
+    expect(ReturnReportSchema.safeParse(withMorale).error).toBeUndefined();
+    expect(
+      ReturnReportSchema.safeParse({
+        ...report,
+        morale: { value: 60, band: 'content', bandLabel: 'Contente' },
+      }).error,
+    ).toBeUndefined();
+    expect(
+      ReturnReportSchema.safeParse({ ...withMorale, morale: { ...withMorale.morale, band: 'x' } })
+        .success,
+    ).toBe(false);
+    expect(
+      ReturnReportSchema.safeParse({
+        ...withMorale,
+        counts: { ...withMorale.counts, villagersLeft: -1 },
+      }).success,
+    ).toBe(false);
   });
 
   it('a consulta do device flow tem cinco desfechos e nada além deles', () => {
@@ -828,6 +951,8 @@ describe('contentHash', () => {
         foundingTemplates,
         coldReliefs,
         craftGuilds,
+        moraleBandTemplates,
+        idleVillager,
       }),
     ]);
   });
@@ -846,12 +971,18 @@ describe('contentHash', () => {
       'coldReliefs',
       'craftGuilds',
       'foundingTemplates',
+      'idleVillager',
+      'moraleBandTemplates',
       'objectives',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
     expect(hashed).toContain(coldReliefs.thaw);
     expect(hashed).toContain(`"adaptationMs":${balance.craft.adaptationMs}`);
+    // A moral também: os números dela, a frase de cada faixa e quem parte sem ofício.
+    expect(hashed).toContain(`"populationFloor":${balance.morale.populationFloor}`);
+    expect(hashed).toContain(moraleBandTemplates.restless.fell ?? '');
+    expect(hashed).toContain(idleVillager);
     // O armazenamento é conteúdo: mexer em um limite muda o hash.
     expect(hashed).toContain(`"baseCapacity":${balance.storage.baseCapacity}`);
     expect(hashed).toContain(balance.difficulties.lord.description);

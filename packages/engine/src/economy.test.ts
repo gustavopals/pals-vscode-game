@@ -23,12 +23,14 @@ import {
   DAY,
   eventsOfType,
   experienced,
+  FED_MORALE,
   gameAt,
   gameWith,
   HOUR,
   MINUTE,
   newGame,
   play,
+  spirited,
   SPRING,
   SUMMER,
   WINTER,
@@ -166,7 +168,7 @@ describe('estações (GDD §4.1)', () => {
     });
   });
 
-  it('é uma conta só: nível, mestria, estação, fome e frio multiplicados e um arredondamento no fim', () => {
+  it('é uma conta só: nível, mestria, estação, moral, fome e frio multiplicados e um arredondamento no fim', () => {
     const state = oneEach(WINTER, (draft) => {
       draft.settlement.workers.farm = 7;
       draft.settlement.population.villagers = 10;
@@ -180,6 +182,8 @@ describe('estações (GDD §4.1)', () => {
       { id: 'level', ratio: { num: 14, den: 10 }, label: 'Nv3' },
       { id: 'mastery', ratio: { num: 1000, den: 1000 }, label: 'mestria 0' },
       { id: 'season', ratio: { num: 2, den: 5 }, label: 'inverno' },
+      // Com a moral na base o fator é 1: está na lista e não muda a conta.
+      { id: 'morale', ratio: { num: 800, den: 800 }, label: 'moral 50' },
       { id: 'famine', ratio: { num: 3, den: 4 }, label: 'fome' },
       { id: 'cold', ratio: { num: 4, den: 5 }, label: 'frio' },
     ]);
@@ -193,8 +197,8 @@ describe('estações (GDD §4.1)', () => {
   it('a taxa é o piso da fração exata, em qualquer combinação de fatores', () => {
     // Confere contra a conta em inteiros grandes: a ordem dos fatores não importa e nada é
     // arredondado no meio do caminho.
-    // A experiência e a adaptação entram na mesma conta: a mestria é um fator e quem se adapta
-    // vale meio trabalhador.
+    // A experiência, a adaptação e a moral entram na mesma conta: a mestria e a moral são
+    // fatores e quem se adapta vale meio trabalhador.
     for (const season of [SPRING, SUMMER, AUTUMN, WINTER]) {
       for (const famine of [false, true]) {
         for (const cold of [false, true]) {
@@ -203,7 +207,9 @@ describe('estações (GDD §4.1)', () => {
               const workers = 1 + ((level * 7) % 13);
               const adapting = (level * 5) % (workers + 1);
               const experience = (level * 37 + workers * 11) % 101;
+              const morale = (level * 13 + workers * 29) % 101;
               const state = gameAt(season, (draft) => {
+                draft.settlement.morale = morale;
                 draft.settlement.population.villagers = 20;
                 draft.settlement.workers[building] = workers;
                 draft.settlement.buildings[building] = level;
@@ -241,15 +247,19 @@ describe('estações (GDD §4.1)', () => {
     expect(before.events.filter((event) => event.type === 'seasonChanged')).toEqual([]);
 
     // A virada da estação é também uma virada de dia: os quatro ofícios, ocupados, ganham 4 de
-    // experiência no mesmo instante.
+    // experiência no mesmo instante, e a moral, com a comida guardada, vai a 60.
+    const turned = (draft: GameState) => {
+      experienced(4)(draft);
+      spirited(FED_MORALE)(draft);
+    };
     const at = advanceTo(before.state, SUMMER);
-    expect(netRates(at.state)).toEqual(netRates(oneEach(SUMMER, experienced(4))));
+    expect(netRates(at.state)).toEqual(netRates(oneEach(SUMMER, turned)));
     expect(at.events.filter((event) => event.type === 'seasonChanged')).toMatchObject([
       { atMs: SUMMER, data: { season: 'summer' } },
     ]);
 
     const after = advanceTo(at.state, SUMMER + 1);
-    expect(netRates(after.state)).toEqual(netRates(oneEach(SUMMER, experienced(4))));
+    expect(netRates(after.state)).toEqual(netRates(oneEach(SUMMER, turned)));
     expect(after.events).toEqual([]);
   });
 
@@ -257,12 +267,13 @@ describe('estações (GDD §4.1)', () => {
     const start = oneEach(SUMMER - HOUR);
     const { resources } = advanceTo(start, SUMMER + HOUR).state.settlement;
     // Primavera: +8 comida, +8 madeira, +5 pedra, +4 ouro. Verão: 10, 9,2, 5,75 e 4 de
-    // produção, cada uma × 1,012 (os 4 de experiência ganhos na virada), menos 4 de consumo.
+    // produção, cada uma × 1,012 (os 4 de experiência ganhos na virada) × 1,05 (a moral, que a
+    // mesma virada leva a 60), para baixo, menos 4 de consumo.
     expect(resources).toEqual({
-      food: 180_000 + 8_000 + 10_120 - 4_000,
-      wood: 120_000 + 8_000 + 9_310,
-      stone: 65_000 + 5_000 + 5_819,
-      gold: 250_000 + 4_000 + 4_048,
+      food: 180_000 + 8_000 + 10_626 - 4_000,
+      wood: 120_000 + 8_000 + 9_775,
+      stone: 65_000 + 5_000 + 6_109,
+      gold: 250_000 + 4_000 + 4_250,
     });
     // E o mesmo com o intervalo cortado em qualquer lugar, inclusive em cima da virada.
     for (const cut of [SUMMER - HOUR + 1, SUMMER - 1, SUMMER, SUMMER + 1, SUMMER + HOUR - 1]) {

@@ -8,6 +8,7 @@ import {
   type DifficultyId,
   type GameEvent,
   type GameState,
+  type MoraleBandId,
   type ResourceId,
   type SeasonId,
   type ViewState,
@@ -74,6 +75,9 @@ export type HourRow = {
   famine: boolean;
   /** O feudo passa frio: é inverno e a madeira da lareira acabou. */
   cold: boolean;
+  /** A moral do feudo naquela hora, de 0 a 100, e a faixa dela, como a visão as mostra. */
+  morale: number;
+  moraleBand: MoraleBandId;
   /**
    * Desperdício acumulado de cada recurso, em unidades: o que os eventos `storageWasted` já
    * relataram mais o que a visão mostra como ainda não relatado (`wastedToday`).
@@ -175,6 +179,8 @@ function rowAt(
     levels: { ...state.settlement.buildings },
     famine: view.famine !== null,
     cold: view.winter !== null && view.winter.cold !== null,
+    morale: view.morale.value,
+    moraleBand: view.morale.band,
     wasted: byResource((row) => reportedWaste[row.id] + row.wastedToday),
     wasting: view.resources.some((row) => row.wastingPerHour > 0),
     ...idleQueue(view),

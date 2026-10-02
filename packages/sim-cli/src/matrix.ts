@@ -93,6 +93,11 @@ export type CellMeasure = {
   townHall: Range;
   famineHours: Range;
   coldHours: Range;
+  /** A menor moral de cada partida, e as horas com ela nas faixas de baixo. */
+  moraleMin: Range;
+  lowMoraleHours: Range;
+  /** Aldeões que foram embora (partidas e deserções), por partida. */
+  villagersLost: Range;
   queueIdleHours: Range;
   plannedIdleHours: Range;
   freeVillagerHours: Range;
@@ -147,6 +152,9 @@ function measureOf(summaries: Summary[]): CellMeasure {
     townHall: range((summary) => summary.townHall),
     famineHours: range((summary) => summary.famineHours),
     coldHours: range((summary) => summary.coldHours),
+    moraleMin: range((summary) => summary.moraleMin),
+    lowMoraleHours: range((summary) => summary.lowMoraleHours),
+    villagersLost: range((summary) => summary.villagersLeft + summary.villagersDeserted),
     queueIdleHours: range((summary) => summary.queueIdleHours),
     plannedIdleHours: range((summary) => summary.plannedIdleHours),
     freeVillagerHours: range((summary) => summary.freeVillagerHours),
@@ -331,6 +339,9 @@ export function formatMatrix(result: MatrixResult): string {
         'Salão',
         'Fome (h)',
         'Frio (h)',
+        'Moral mínima',
+        'Moral baixa (h)',
+        'Foram embora',
         'Fila ociosa (h)',
         'Sem ofício (aldeão-h)',
         ...SURPLUS_RESOURCES.map(surplusTitle),
@@ -347,6 +358,9 @@ export function formatMatrix(result: MatrixResult): string {
         formatRange(cell.measure.townHall),
         formatRange(cell.measure.famineHours),
         formatRange(cell.measure.coldHours),
+        formatRange(cell.measure.moraleMin),
+        formatRange(cell.measure.lowMoraleHours),
+        formatRange(cell.measure.villagersLost),
         formatRange(cell.measure.queueIdleHours),
         formatRange(cell.measure.freeVillagerHours),
         ...SURPLUS_RESOURCES.map((id) => formatRange(cell.measure.surplus[id])),
@@ -409,7 +423,7 @@ export function formatMatrix(result: MatrixResult): string {
     '',
     `${identityLine()} · dificuldade ${result.difficultyLabel} (${result.difficulty}) · ${seedsLine(result.seeds)}`,
     '',
-    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção.',
+    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção. "Moral mínima" é a menor moral de cada partida; "Moral baixa", as horas com o povo inquieto ou desesperado; "Foram embora", os aldeões que partiram ou desertaram.',
     '',
     sections.join('\n\n'),
     '',

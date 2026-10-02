@@ -37,10 +37,10 @@ const PACE = 3;
 /**
  * O instante de jogo em que a Pedreira de `leaveQuarryPlanned` começa sozinha: faltam 50 de
  * madeira. Os três lenhadores, recém-chegados, rendem metade no primeiro dia de jogo (12 por
- * hora: 24 de madeira em 2 h) e, adaptados e com 4 de experiência, 24,288 por hora: os 26 que
- * faltam chegam 3.853.755 ms depois.
+ * hora: 24 de madeira em 2 h) e, adaptados, com 4 de experiência e a moral em 60, 25,502 por
+ * hora (24 × 1,012 × 1,05): os 26 que faltam chegam 3.670.301 ms depois.
  */
-const QUARRY_STARTS_AT = 2 * HOUR + Math.ceil((26_000 * HOUR) / 24_288);
+const QUARRY_STARTS_AT = 2 * HOUR + Math.ceil((26_000 * HOUR) / 25_502);
 const REPLAYED = 'x-lords-replayed';
 
 /** Instância no ritmo Normal do GDD. */
@@ -126,13 +126,14 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
           building: 'quarry',
           targetLevel: 2,
           autoStart: true,
-          // O prazo conta com a adaptação dos lenhadores: 3 h 04 min 14 s, arredondados para cima.
-          waiting: { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 11_054 },
+          // O prazo conta com a adaptação dos lenhadores e com a moral da próxima virada:
+          // 3 h 01 min 11 s, arredondados para cima.
+          waiting: { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 10_871 },
         },
       ],
     });
 
-    expect(QUARRY_STARTS_AT).toBe(11_053_755);
+    expect(QUARRY_STARTS_AT).toBe(10_870_301);
 
     // Seis horas fora. A Pedreira começou sozinha às 3 h 04 min e já terminou.
     await wait(normal, who, 6 * HOUR);
@@ -172,7 +173,7 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
     const planned = await leaveQuarryPlanned(fast, who);
     // A visão fala em tempo real: o mesmo instante de jogo, visto em um terço do tempo.
     const etaSeconds = Math.ceil(QUARRY_STARTS_AT / PACE / SECOND);
-    expect(etaSeconds).toBe(3685);
+    expect(etaSeconds).toBe(3624);
     expect(planned.view.constructions.planned[0]?.waiting).toEqual({
       reason: 'resources',
       text: 'espera 50 de madeira',
@@ -186,7 +187,7 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
     const [started] = autoStarted(await eventsOf(fast, who));
     expect(started).toMatchObject({ atMs: QUARRY_STARTS_AT, data: { building: 'quarry' } });
     expect(new Date(started?.at ?? 0).getTime()).toBe(
-      new Date(who.game.createdAt).getTime() + QUARRY_STARTS_AT / PACE,
+      new Date(who.game.createdAt).getTime() + Math.round(QUARRY_STARTS_AT / PACE),
     );
   });
 

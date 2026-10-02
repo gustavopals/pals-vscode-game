@@ -115,7 +115,8 @@ describe('fila de recrutamento congelada e fim da fome', () => {
   const famineAt = 12 * MINUTE;
 
   it('o aldeão em treinamento não chega enquanto durar a fome', () => {
-    const { state, events } = advanceTo(start, 10 * HOUR);
+    // Seis horas: a moral cai a 26 em três viradas, e ainda ninguém parte por causa dela.
+    const { state, events } = advanceTo(start, 6 * HOUR);
     expect(state.settlement.famine).toEqual({ sinceMs: famineAt });
     expect(state.settlement.population.villagers).toBe(5);
     expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 16 * MINUTE }]);

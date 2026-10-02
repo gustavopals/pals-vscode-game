@@ -1,6 +1,6 @@
 import { PRODUCTION_BUILDING_IDS } from '@lotg/content';
 
-import { isDayBoundary, nextDayBoundary } from './clock';
+import { DAYS_PER_YEAR, isDayBoundary, nextDayBoundary } from './clock';
 import {
   experienceChange,
   finishAdaptations,
@@ -8,6 +8,7 @@ import {
   tallyCraftExperience,
 } from './craft';
 import { applyContinuous, foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { moraleAt } from './morale';
 import { nextAutoStart } from './planned';
 import type { GameState, PlannedConstruction, ResourceId } from './types';
 
@@ -35,8 +36,25 @@ function craftSettled(state: GameState): boolean {
 }
 
 /**
- * Uma cópia do estado só no que a projeção altera: estoques, restos, desperdício, contadores e
- * o ofício. O resto (obras, planejadas, relógio) é compartilhado e ninguém aqui o toca.
+ * A próxima virada do dia não mexe na moral: com as condições deste estado, a conta dá o que
+ * ela já vale. A comida guardada que enche ou acaba mais adiante não entra aqui: a projeção
+ * confere de novo a cada virada por que passa, e para de olhar quando a moral se acomoda.
+ */
+function moraleSettled(state: GameState, atMs: number): boolean {
+  return moraleAt(state, nextDayBoundary(atMs)) === state.settlement.morale;
+}
+
+/**
+ * Até onde a projeção anda, em trechos: dois anos de jogo de viradas. O ofício se acomoda em
+ * semanas e a moral, em dias; o limite só existe para a visão nunca depender de uma conta que
+ * não termina.
+ */
+const MAX_STRETCHES = 2 * DAYS_PER_YEAR;
+
+/**
+ * Uma cópia do estado só no que a projeção altera: estoques, restos, desperdício, contadores,
+ * o ofício e a moral (um número, que a cópia rasa já separa). O resto (obras, planejadas,
+ * relógio) é compartilhado e ninguém aqui o toca.
  */
 function fork(state: GameState): GameState {
   const { settlement } = state;
@@ -56,11 +74,12 @@ function fork(state: GameState): GameState {
 }
 
 /**
- * Os trechos em que o ofício, sozinho, muda as taxas: a cada virada de dia a experiência dos
- * edifícios sobe ou cai, e quem trocou de ofício passa a render inteiro quando a adaptação
- * termina. É a conta de `advanceTo`, trecho a trecho, sobre cópias, só com a produção contínua
- * e esses dois eventos. O relógio das cópias não anda: a estação é a de agora, e nada mais
- * acontece nelas (nem obras, nem aldeões, nem ordens).
+ * Os trechos em que o ofício e a moral, sozinhos, mudam as taxas: a cada virada de dia a
+ * experiência dos edifícios sobe ou cai e a moral é recalculada, e quem trocou de ofício passa
+ * a render inteiro quando a adaptação termina. É a conta de `advanceTo`, trecho a trecho, sobre
+ * cópias, só com a produção contínua e esses eventos. O relógio das cópias não anda: a estação
+ * é a de agora, e nada mais acontece nelas (nem obras, nem aldeões, nem ordens, nem sorteios:
+ * a previsão não conta com o colono que pode chegar nem com o aldeão que pode partir).
  */
 function stretchesOf(state: GameState): Stretch[] {
   const stretches: Stretch[] = [];
@@ -68,7 +87,8 @@ function stretchesOf(state: GameState): Stretch[] {
   let at = state.lastProcessedAt;
   for (;;) {
     const rates = netRates(current);
-    if (craftSettled(current)) {
+    const settled = craftSettled(current) && moraleSettled(current, at);
+    if (settled || stretches.length + 1 >= MAX_STRETCHES) {
       stretches.push({ atMs: at, state: current, rates, untilMs: Infinity });
       return stretches;
     }
@@ -88,6 +108,7 @@ function stretchesOf(state: GameState): Stretch[] {
     applyContinuous(next, step - at);
     if (isDayBoundary(step)) {
       tallyCraftExperience(next, step, []);
+      next.settlement.morale = moraleAt(next, step);
     }
     finishAdaptations(next, step);
     current = next;

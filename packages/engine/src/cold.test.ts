@@ -202,10 +202,13 @@ describe('fim do frio', () => {
   it('termina sempre na virada para a primavera, depois do amanhecer', () => {
     const { state, events } = advanceTo(freezing, YEAR);
     expect(state.settlement.cold).toBeNull();
+    // A moral é recalculada antes de o frio fechar, e já não o conta: o povo, inquieto desde a
+    // primeira virada do inverno, volta a ficar contente no mesmo instante em que o gelo cede.
     expect(types(events.filter((event) => event.atMs === YEAR))).toEqual([
       'yearStarted',
       'seasonChanged',
       'dayStarted',
+      'moraleBandChanged',
       'coldEnded',
     ]);
     const [ended] = eventsOfType(events, 'coldEnded');
@@ -227,23 +230,31 @@ describe('fim do frio', () => {
     expect(state.settlement.cold).toBeNull();
     expect(state.settlement.resources.wood).toBe(0);
     // Uma hora de outono (5 × 13 − 5). Doze dias de inverno com frio, de 2 h cada um, e a cada
-    // virada a Fazenda ganha 4 de experiência: 5 × 10 × 0,4 × 0,8 × mestria − 5 por hora. E uma
-    // hora de primavera, já com 52 de experiência: 5 × 12 × 1,156 − 5.
+    // virada a Fazenda ganha 4 de experiência: 5 × 10 × 0,4 × 0,8 × mestria × moral − 5 por
+    // hora. A moral é 60 no primeiro dia (a virada do inverno a calculou antes de o frio abrir,
+    // com a comida guardada) e 40 nos outros onze (o frio pesa 20). E uma hora de primavera, já
+    // com 52 de experiência e a moral de volta a 60: 5 × 12 × 1,156 × 1,05 − 5.
     const winterDays = Array.from({ length: 12 }, (_, index) => {
       const experience = 4 * (index + 1);
-      return 2 * ((16_000 * (1000 + 3 * experience)) / 1000 - 5_000);
+      const morale = index === 0 ? 60 : 40;
+      const farm = Math.floor((16_000 * (1000 + 3 * experience) * (150 + morale)) / 200_000);
+      return 2 * (farm - 5_000);
     });
     expect(state.settlement.craftExperience.farm).toBe(52);
+    expect(state.settlement.morale).toBe(60);
     expect(state.settlement.resources.food).toBe(
-      180_000 + 60_000 + winterDays.reduce((sum, day) => sum + day, 0) + 64_360,
+      180_000 + 60_000 + winterDays.reduce((sum, day) => sum + day, 0) + (72_828 - 5_000),
     );
   });
 
   it('termina quando o saldo de madeira volta a ser positivo, já com a penalidade', () => {
     // Um lenhador recém-chegado rende, no frio, 8 × 0,8 × 0,8 × metade = 2,56: mais que os 2,5
-    // da lenha.
+    // da lenha. A conta é com a moral na base: a virada das 2 h, com o frio, a tinha levado a
+    // 40, e com ela (× 0,95) um lenhador só não bastaria.
+    const calm = cloneState(freezing);
+    calm.settlement.morale = 50;
     const { state, events } = accept(
-      accept(freezing, command('setWorkers', { building: 'farm', count: 4 })).state,
+      accept(calm, command('setWorkers', { building: 'farm', count: 4 })).state,
       command('setWorkers', { building: 'lumberMill', count: 1 }),
     );
     expect(state.settlement.cold).toBeNull();
@@ -255,10 +266,11 @@ describe('fim do frio', () => {
     expect(events[0]?.text).toBe(
       'No 2º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.',
     );
-    // Sem o frio ele rende 3,2: o saldo passa a +0,7. Um dia de jogo depois, adaptado e com os
-    // 4 de experiência da virada, rende 6,4 × 1,012.
+    // Sem o frio ele rende 3,2: o saldo passa a +0,7. Um dia de jogo depois, adaptado, com os
+    // 4 de experiência da virada e a moral em 60 (sem frio e com comida guardada), rende
+    // 6,4 × 1,012 × 1,05.
     expect(netRates(state).wood).toBe(700);
-    expect(netRates(advanceTo(state, WINTER + 3 * HOUR + DAY).state).wood).toBe(6_476 - 2_500);
+    expect(netRates(advanceTo(state, WINTER + 3 * HOUR + DAY).state).wood).toBe(6_800 - 2_500);
   });
 
   it('um saldo positivo só sem a penalidade ainda mantém o frio', () => {
@@ -419,8 +431,10 @@ describe('fome e frio no mesmo instante', () => {
   });
 
   it('o fim do frio que devolve a comida à Fazenda encerra a fome no mesmo instante', () => {
-    // 5 fazendeiros no inverno: 20 de comida. Com fome e frio, 12, para 13 bocas. Sem o frio,
-    // 15: a virada para a primavera encerra os dois de uma vez.
+    // 5 fazendeiros no inverno: 20 de comida. Com fome e frio, 12, para 13 bocas. A virada
+    // para a primavera tira o frio e triplica a colheita: os dois acabam de uma vez. Antes
+    // deles vem a moral, que depois de doze dias de fome leva gente embora; aqui só importa a
+    // ordem do calendário e do fim da escassez.
     const start = gameAt(YEAR - HOUR, (draft) => {
       draft.settlement.population.villagers = 13;
       draft.settlement.workers.farm = 5;
@@ -430,13 +444,17 @@ describe('fome e frio no mesmo instante', () => {
       draft.settlement.cold = { sinceMs: WINTER };
     });
     const { state, events } = advanceTo(start, YEAR);
-    expect(types(events)).toEqual([
+    const moraleTypes = ['moraleBandChanged', 'villagerLeft', 'villagerDeserted'];
+    expect(types(events.filter((event) => !moraleTypes.includes(event.type)))).toEqual([
       'yearStarted',
       'seasonChanged',
       'dayStarted',
       'famineEnded',
       'coldEnded',
     ]);
+    expect(types(events).indexOf('villagerDeserted')).toBeLessThan(
+      types(events).indexOf('famineEnded'),
+    );
     expect(state.settlement.famine).toBeNull();
     expect(state.settlement.cold).toBeNull();
   });

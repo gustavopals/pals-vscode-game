@@ -3,6 +3,7 @@ import { buildings, objectives } from '@lotg/content';
 import { advanceTo, advanceWith, processEventsAt } from './advance';
 import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
+import { addMoraleEffect } from './morale';
 import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
 import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
@@ -83,6 +84,28 @@ export function experienced(experience: number): (draft: GameState) => void {
  */
 export function masteryOnDay(day: number): number {
   return 1000 + 3 * Math.min(100, 4 * day);
+}
+
+/**
+ * A moral de um feudo com comida guardada e vaga nas casas, da primeira virada de dia em
+ * diante: a base e o bônus da reserva. Antes dela, todo feudo novo está na base (50).
+ */
+export const FED_MORALE = 60;
+
+/**
+ * Uma taxa, em milésimos por hora, com o fator da moral: × (150 + moral) / 200, para baixo.
+ * Só vale como a conta do motor quando `rate` é a taxa exata sem a moral (um inteiro que não
+ * foi arredondado): o motor arredonda uma vez, no fim.
+ */
+export function withMorale(rate: number, morale: number): number {
+  return Math.floor((rate * (150 + morale)) / 200);
+}
+
+/** Põe a moral do feudo em um valor: para comparar taxas depois de uma virada, que a recalcula. */
+export function spirited(morale: number): (draft: GameState) => void {
+  return (draft) => {
+    draft.settlement.morale = morale;
+  };
 }
 
 /**
@@ -261,6 +284,55 @@ export function craftScenario(): GameState {
   ]).state;
 }
 
+/**
+ * O feudo empobrecido (roadmap V2C-T4.6): 3º dia do inverno, 3 aldeões sem ofício, nem comida
+ * nem madeira, fome há 20 dias de jogo, frio desde a virada da estação e moral zero. É o fundo
+ * do poço: o piso de 3 aldeões segura a população, e a saída é pôr gente na Fazenda e na
+ * Serraria.
+ */
+export function impoverishedScenario(difficulty: GameSettings['difficulty'] = 'lord'): GameState {
+  return gameAt(WINTER + 2 * DAY + 20 * MINUTE, (draft) => {
+    const { settlement } = draft;
+    draft.settings.difficulty = difficulty;
+    settlement.population.villagers = 3;
+    settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
+    settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
+    settlement.famine = { sinceMs: WINTER - 18 * DAY };
+    settlement.cold = { sinceMs: WINTER };
+    settlement.morale = 0;
+  });
+}
+
+/**
+ * Um feudo orgulhoso, no 6º dia do verão: 22 habitantes em 25 vagas, todos os ofícios com
+ * gente, e dois efeitos temporários de moral gravados no começo do verão, como os que as cartas
+ * do Conselho e as incursões vão gravar: +30 por nove dias de jogo e −10 por dois. A moral foi
+ * 70 nos dois primeiros dias e 80 dali em diante, e a cada virada com 80 o fluxo `morale`
+ * sorteia a chegada de um colono. O efeito de −10 já saiu da lista.
+ */
+export function proudScenario(): GameState {
+  const start = gameAt(SUMMER, (draft) => {
+    const { settlement } = draft;
+    settlement.population.villagers = 22;
+    settlement.workers = { farm: 6, lumberMill: 6, quarry: 5, goldMine: 3 };
+    settlement.buildings = { ...settlement.buildings, townHall: 2, housing: 3, farm: 2 };
+    settlement.resources = { food: 400_000, wood: 300_000, stone: 200_000, gold: 150_000 };
+    addMoraleEffect(draft, {
+      id: 'teste:festa',
+      label: 'festa da colheita',
+      amount: 30,
+      untilMs: SUMMER + 9 * DAY,
+    });
+    addMoraleEffect(draft, {
+      id: 'teste:incursao',
+      label: 'incursão sofrida',
+      amount: -10,
+      untilMs: SUMMER + 2 * DAY,
+    });
+  });
+  return advanceTo(start, SUMMER + 5 * DAY + 37 * MINUTE).state;
+}
+
 export function eventsOfType(events: GameEvent[], type: GameEvent['type']): GameEvent[] {
   return events.filter((event) => event.type === type);
 }
@@ -303,31 +375,34 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [52, command('startConstruction', { building: 'granary' })],
   [60, command('setWorkers', { building: 'quarry', count: 4 })],
   [60, command('startConstruction', { building: 'townHall' })],
-  // Dia 4: o senhor tira todos da Fazenda e gasta a comida em recrutas. A fome vem.
+  // Dia 4: o senhor tira todos da Fazenda e gasta a comida em recrutas. A fome vem, e com ela
+  // a moral cai: inquieto na virada seguinte, desesperado três dias de jogo depois.
   [72, command('setWorkers', { building: 'farm', count: 0 })],
   [72, command('setWorkers', { building: 'lumberMill', count: 6 })],
   [72, command('recruitVillagers', { quantity: 5 })],
   [72, command('startConstruction', { building: 'housing' })],
   [84, command('recruitVillagers', { quantity: 5 })],
   [84, command('startConstruction', { building: 'quarry' })],
-  // Dia 5: ordens dadas com o feudo faminto.
+  // Dia 5: ordens dadas com o feudo faminto. A fome já dura mais de 12 h de jogo: a moral
+  // despencou e três aldeões desertaram. De volta à Fazenda; a fome acaba.
   [108, command('recruitVillagers', { quantity: 1 })],
   [108, command('startConstruction', { building: 'lumberMill' })],
+  [108, command('setWorkers', { building: 'lumberMill', count: 2 })],
+  [108, command('setWorkers', { building: 'farm', count: 8 })],
   [120, command('startConstruction', { building: 'granary' })],
   // A Serraria entra na lista como manual, e na visita seguinte ganha a marca de automática.
   [120, command('planConstruction', { building: 'lumberMill' })],
-  // Dia 6: de volta à Fazenda; a fome acaba.
-  [132, command('setWorkers', { building: 'lumberMill', count: 2 })],
-  [132, command('setWorkers', { building: 'farm', count: 8 })],
+  // Dia 6: a despensa se refaz, e a moral com ela.
   [132, command('startConstruction', { building: 'farm' })],
   [132, command('setAutoStart', { building: 'lumberMill', autoStart: true })],
   // Dia 7: o inverno. As obras levam a madeira do Armazém e o senhor tira os lenhadores: a
-  // lareira apaga, o frio entra, e os lenhadores voltam antes da virada do ano.
+  // lareira apaga, o frio entra (e o povo fica inquieto de novo), e os lenhadores voltam antes
+  // da virada do ano.
   [144, command('startConstruction', { building: 'townHall' })],
   // Com o Salão ainda no nível 3, a segunda obra é recusada, e a recusa diz o que abre a fila.
   [144, command('startConstruction', { building: 'housing' })],
   [144, command('unplanConstruction', { building: 'farm' })],
-  [144, command('setWorkers', { building: 'lumberMill', count: 6 })],
+  [144, command('setWorkers', { building: 'lumberMill', count: 4 })],
   [150, command('setWorkers', { building: 'lumberMill', count: 0 })],
   [150, command('startConstruction', { building: 'housing' })],
   // O Salão chegou ao nível 4: a segunda fila está aberta, e a Pedreira entra nela. Para a

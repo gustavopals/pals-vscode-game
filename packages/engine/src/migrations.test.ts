@@ -24,7 +24,8 @@ import { v1ToV2 } from './migrations/v1';
 import { stateV2, v2ToV3 } from './migrations/v2';
 import { stateV3, v3ToV4 } from './migrations/v3';
 import { stateV4, v4ToV5 } from './migrations/v4';
-import { stateV5 } from './migrations/v5';
+import { stateV5, v5ToV6 } from './migrations/v5';
+import { stateV6 } from './migrations/v6';
 import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
@@ -129,6 +130,18 @@ const FROZEN: Record<string, string> = {
   'state-v5-queues.json': '3d4361bc',
   'state-v5-storage.json': '745791ce',
   'state-v5-week-scripted.json': '57b9a3e9',
+  'state-v6-cold.json': '8e9a4432',
+  'state-v6-construction.json': '0eec000d',
+  'state-v6-crafts.json': 'd8a4f6e3',
+  'state-v6-famine.json': '89581f3f',
+  'state-v6-fresh.json': 'f0d72bce',
+  'state-v6-iron-king-half.json': '9bc5fe78',
+  'state-v6-migrated-3x.json': '0e9ac73c',
+  'state-v6-objectives.json': '0f2384ec',
+  'state-v6-peasant-3x.json': 'ea7f6e08',
+  'state-v6-queues.json': '64954a3f',
+  'state-v6-storage.json': '7bd72034',
+  'state-v6-week-scripted.json': 'eae7e998',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -212,7 +225,22 @@ describe('a forma da versão atual', () => {
   });
 
   const damages: Array<[string, (state: Draft) => unknown]> = [
-    ['um campo que o motor não escreve', (state) => (state.settlement.morale = 50)],
+    ['um campo que o motor não escreve', (state) => (state.settlement.mood = 50)],
+    ['a moral ausente', (state) => delete state.settlement.morale],
+    ['uma moral negativa', (state) => (state.settlement.morale = -1)],
+    ['uma moral quebrada', (state) => (state.settlement.morale = 49.5)],
+    ['os efeitos de moral ausentes', (state) => delete state.settlement.moraleEffects],
+    [
+      'um efeito de moral sem prazo',
+      (state) => (state.settlement.moraleEffects = [{ id: 'a', label: 'b', amount: 5 }]),
+    ],
+    [
+      'um efeito de moral com um campo a mais',
+      (state) =>
+        (state.settlement.moraleEffects = [
+          { id: 'a', label: 'b', amount: 5, untilMs: 7_200_000, kind: 'morale' },
+        ]),
+    ],
     ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
     ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
     ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
@@ -562,6 +590,8 @@ describe('versão 2 → 3', () => {
     delete old.settlement.craftExperience;
     delete old.settlement.craftMasteredYear;
     delete old.settlement.adaptation;
+    delete old.settlement.morale;
+    delete old.settlement.moraleEffects;
     delete old.settlement.buildings.granary;
     delete old.settlement.buildings.warehouse;
     old.settlement.workers.farm = 5;
@@ -914,12 +944,21 @@ describe('versão 4 → 5', () => {
 describe('versão 5 → 6', () => {
   const version5 = fixtures.filter((fixture) => fixture.version === 5);
   const NOBODY = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
+  // Só até a versão 6: o que o ofício mudou, sem o que as versões seguintes acrescentaram.
+  const crafts: MigrationChain = {
+    steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6],
+    shape: stateV6,
+  };
 
   it.each(version5)(
     '$name: só acrescenta a experiência em zero e a lista de adaptação vazia',
     (fixture) => {
       const before = read(fixture) as unknown as GameState;
-      const after = migrated(fixture);
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        crafts,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(6);
       expect(after.settlement.craftExperience).toStrictEqual(NOBODY);
       expect(after.settlement.craftMasteredYear).toStrictEqual(NOBODY);
@@ -995,6 +1034,105 @@ describe('versão 5 → 6', () => {
         adaptationEndsInSeconds: 40 * 60,
       });
     }
+  });
+});
+
+describe('versão 6 → 7', () => {
+  const version6 = fixtures.filter((fixture) => fixture.version === 6);
+  const DAY = 2 * HOUR;
+  const nextDay = (state: GameState) => (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY;
+  const moraleTypes = ['moraleBandChanged', 'villagerArrived', 'villagerLeft', 'villagerDeserted'];
+
+  it.each(version6)('$name: só acrescenta a moral em 50 e a lista de efeitos vazia', (fixture) => {
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(7);
+    expect(after.settlement.morale).toBe(50);
+    expect(after.settlement.moraleEffects).toStrictEqual([]);
+    // O resto é o estado antigo, campo por campo: nenhum aldeão, estoque ou prazo muda.
+    expect(after.settlement).toStrictEqual({
+      ...before.settlement,
+      morale: 50,
+      moraleEffects: [],
+    });
+    expect({ ...after, schemaVersion: 6, settlement: before.settlement }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it.each(version6)(
+    '$name: a produção de ninguém muda na fronteira, e nada acontece nela',
+    (fixture) => {
+      const state = migrated(fixture);
+      const view = deriveViewState(state, state.lastProcessedAt);
+      // Com 50 o fator da moral é × 1: a taxa é a que a versão anterior deixou.
+      expect(view.morale).toMatchObject({ value: 50, band: 'content', multiplierPercent: 100 });
+      for (const row of view.workers) {
+        expect(row.breakdown).not.toContain('moral');
+      }
+      // Um instante depois da fronteira: nenhuma linha de moral, nenhum sorteio, ninguém a menos.
+      const { state: after, events } = advanceTo(state, state.lastProcessedAt + 1);
+      expect(events.filter((event) => moraleTypes.includes(event.type))).toEqual([]);
+      expect(after.rng).toEqual(state.rng);
+      expect(after.settlement.morale).toBe(50);
+      expect(after.settlement.population).toEqual(state.settlement.population);
+    },
+  );
+
+  it.each(version6)(
+    '$name: a moral é recalculada na primeira virada de dia depois da fronteira',
+    (fixture) => {
+      const state = migrated(fixture);
+      const turn = nextDay(state);
+      expect(advanceTo(state, turn - 1).state.settlement.morale).toBe(50);
+      // A visão diz antes para onde a moral vai, e a virada confirma.
+      const promised = deriveViewState(state, turn - 1).morale.next.value;
+      expect(advanceTo(state, turn).state.settlement.morale).toBe(promised);
+    },
+  );
+
+  it('uma partida bem cuidada sobe para 60 na primeira virada: a comida guardada já estava lá', () => {
+    // O feudo que veio da v0.1, no ritmo da produção, com estoque alto.
+    const state = migrated(named('state-v6-migrated-3x.json'));
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.morale.terms.map((term) => term.id)).toContain('foodReserve');
+    expect(view.morale.terms.map((term) => term.id)).not.toContain('famine');
+    const after = advanceTo(state, nextDay(state));
+    expect(after.state.settlement.morale).toBe(view.morale.next.value);
+    expect(after.state.settlement.morale).toBeGreaterThanOrEqual(50);
+  });
+
+  it('fome antiga: o prazo da deserção conta de quando ela começou, e ninguém deserta antes da primeira virada', () => {
+    // A partida foi encontrada com fome há mais de 12 h de jogo. Nas regras antigas ninguém
+    // desertava; nas novas, o primeiro aldeão vai embora na primeira virada depois da fronteira.
+    const state = migrated(named('state-v6-famine.json'));
+    const { famine, population } = state.settlement;
+    expect(famine).not.toBeNull();
+    expect(state.lastProcessedAt - (famine?.sinceMs ?? 0)).toBeGreaterThan(12 * HOUR);
+    const turn = nextDay(state);
+    const before = advanceTo(state, turn - 1);
+    expect(before.events.filter((event) => moraleTypes.includes(event.type))).toEqual([]);
+    expect(before.state.settlement.population).toEqual(population);
+    const { state: after, events } = advanceTo(state, turn);
+    const deserted = events.filter((event) => event.type === 'villagerDeserted');
+    expect(deserted.map((event) => event.atMs)).toEqual([turn]);
+    expect(after.settlement.population.villagers).toBeLessThan(population.villagers);
+    // E a divisão de intervalo continua exata a partir da fronteira, com sorteios no caminho.
+    const end = turn + 40 * DAY;
+    const direct = advanceTo(state, end);
+    const first = advanceTo(state, turn + 7 * HOUR + 13);
+    const second = advanceTo(first.state, end);
+    expect(second.state).toStrictEqual(direct.state);
+    expect([...first.events, ...second.events]).toStrictEqual(direct.events);
+  });
+
+  it('em Camponês a fome antiga não faz ninguém desertar', () => {
+    const stored = read(named('state-v6-famine.json')) as Draft;
+    stored.settings.difficulty = 'peasant';
+    const state = migrateState(stored, { timeScale: 1 });
+    const { events } = advanceTo(state, nextDay(state) + 10 * DAY);
+    expect(events.filter((event) => event.type === 'villagerDeserted')).toEqual([]);
   });
 });
 

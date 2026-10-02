@@ -5,6 +5,8 @@ import {
   coldReliefs,
   craftGuilds,
   foundingTemplates,
+  idleVillager,
+  moraleBandTemplates,
   objectives,
 } from '@lotg/content';
 
@@ -21,7 +23,8 @@ import { canonicalJson } from './canonical';
  */
 /**
  * O que entra no resumo: todos os números e todos os textos de jogo. As frases que só entram
- * dentro de outras (o alívio do frio, os ofícios) também contam: mudá-las muda o que o jogador lê.
+ * dentro de outras (o alívio do frio, os ofícios, quem parte sem ofício) e as frases de cada
+ * faixa da moral também contam: mudá-las muda o que o jogador lê.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -32,6 +35,8 @@ function hashedContent(): Record<string, unknown> {
     foundingTemplates,
     coldReliefs,
     craftGuilds,
+    moraleBandTemplates,
+    idleVillager,
   };
 }
 

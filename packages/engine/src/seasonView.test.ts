@@ -131,18 +131,22 @@ describe('calendário: a próxima estação', () => {
   it('a previsão conta a Serraria com o rendimento do inverno, e some quando ela dá conta', () => {
     const state = autumnScenario();
     state.settlement.workers = { farm: 10, lumberMill: 1, quarry: 4, goldMine: 3 };
-    // Um lenhador no inverno rende 8 × 0,8 = 6,4 por hora: 153,6 em 24 horas, para baixo.
+    state.settlement.resources.wood = 50_000;
+    // Um lenhador no inverno rende 8 × 0,8 = 6,4 por hora, e a conta usa a moral que a próxima
+    // virada vai calcular (60, com a comida guardada): 6,72 por hora, 161,28 em 24 horas, para
+    // baixo.
+    expect(view(state).morale.next.value).toBe(60);
     expect(view(state).calendar.nextSeason.firewood).toEqual({
       perHour: 9,
       winterTotal: 216,
-      winterProduction: 153,
-      stock: 60,
-      missing: 3,
-      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 153 e há 60 em estoque: faltam 3 de madeira.',
+      winterProduction: 161,
+      stock: 50,
+      missing: 5,
+      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 161 e há 50 em estoque: faltam 5 de madeira.',
     });
     state.settlement.workers = { farm: 10, lumberMill: 2, quarry: 3, goldMine: 3 };
     expect(view(state).calendar.nextSeason.firewood).toMatchObject({
-      winterProduction: 307,
+      winterProduction: 322,
       missing: 0,
       text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. O estoque e a Serraria dão conta.',
     });
@@ -266,10 +270,18 @@ describe('inverno na visão', () => {
     for (const row of cold.workers) {
       expect(row.breakdown).toContain('× 0,8 (frio)');
     }
-    // A Fazenda, ocupada, ganhou 4 de experiência em cada uma das cinco viradas do caminho.
+    // A Fazenda, ocupada, ganhou 4 de experiência em cada uma das cinco viradas do caminho, e
+    // a moral ainda é a da última virada, antes do frio: 60.
     expect(cold.workers[0]?.breakdown).toBe(
-      '10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h',
+      '10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 42,74/h',
     );
+    // O frio só entra na moral na próxima virada, e a visão avisa antes.
+    expect(cold.morale).toMatchObject({
+      value: 60,
+      next: { value: 40, band: 'restless' },
+      breakdown: '50 (base) + 10 (comida guardada para 24 h) − 20 (frio) = 40',
+      nextText: 'A moral só muda na virada do dia: na próxima, cai de 60 para 40 (Inquieto).',
+    });
     expect(cold.famine).toBeNull();
   });
 
@@ -281,7 +293,7 @@ describe('inverno na visão', () => {
     expect(cold.winter?.cold?.secondsElapsed).toBe(1000);
     expect(cold.winter?.cold?.text).toContain('A lareira pede 27/h e a Serraria entrega 0/h');
     expect(cold.workers[0]?.breakdown).toBe(
-      '10 trabalhadores × 30 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 122,11/h',
+      '10 trabalhadores × 30 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 128,22/h',
     );
     // Um instante quebrado arredonda para baixo, como a fome.
     const state = winterColdScenario();
@@ -301,17 +313,20 @@ describe('inverno na visão', () => {
       accept(state, command('setWorkers', { building: 'quarry', count: 4 })).state,
       command('setWorkers', { building: 'lumberMill', count: 1 }),
     ).state;
-    // Um lenhador recém-chegado, no frio: 8 × 0,8 × 0,8 × metade = 2,56, contra 9 de lenha.
+    // Um lenhador recém-chegado, no frio, com a moral ainda em 60: 8 × 0,8 × 0,8 × metade ×
+    // 1,05 = 2,688, contra 9 de lenha.
     expect(moved.settlement.cold).not.toBeNull();
-    // Até a primavera faltam 16 h 30 min: 2 h pela metade (5,12) e 14 h 30 min a 5,12 por hora
-    // (74,24). A conta da lenha já sabe que a adaptação termina: repõe 79 dos 149.
+    // Até a primavera faltam 16 h 30 min. A conta da lenha já sabe que a adaptação termina e
+    // que a próxima virada, daqui a 30 min, leva a moral a 40 (o frio): 30 min a 2,688, 1 h 30
+    // pela metade com a moral nova (2,432) e 14 h 30 min a 4,864. São 1,344 + 3,648 + 70,528:
+    // repõe 75 dos 149.
     expect(view(moved).winter?.firewood).toMatchObject({
       winterTotal: 149,
-      winterProduction: 79,
-      missing: 70,
+      winterProduction: 75,
+      missing: 74,
     });
     expect(view(moved).winter?.cold?.text).toBe(
-      'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 2,56/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 70 de madeira para atravessar o resto do Inverno.',
+      'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 2,69/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 74 de madeira para atravessar o resto do Inverno.',
     );
   });
 });

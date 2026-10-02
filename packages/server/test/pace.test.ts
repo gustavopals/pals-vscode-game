@@ -234,6 +234,15 @@ function atPace(view: ViewState, pace: number): ViewState {
       view.famine === null
         ? null
         : { ...view.famine, secondsElapsed: down(view.famine.secondsElapsed) },
+    // A moral é a mesma; os prazos dela (a próxima virada, o fim de um efeito) são prazos.
+    morale: {
+      ...view.morale,
+      nextUpdateInSeconds: up(view.morale.nextUpdateInSeconds),
+      effects: view.morale.effects.map((effect) => ({
+        ...effect,
+        endsInSeconds: up(effect.endsInSeconds),
+      })),
+    },
     winter:
       view.winter === null
         ? null
@@ -284,6 +293,16 @@ function withoutRateTexts(view: ViewState): ViewState {
     workers: view.workers.map((entry) => ({ ...entry, breakdown: '' })),
     // A frase da troca de ofício diz o prazo da adaptação em tempo real.
     workersRules: { ...view.workersRules, adaptationText: '' },
+    // As frases da moral citam prazos em tempo real (a comida guardada "para 8 h", a deserção
+    // "depois de 4 h de fome"): os números e as faixas são conferidos, os textos, por extenso.
+    morale: {
+      ...view.morale,
+      terms: view.morale.terms.map((term) => ({ ...term, label: '' })),
+      breakdown: '',
+      advice: view.morale.advice === null ? null : '',
+      foodReserve: { ...view.morale.foodReserve, text: '' },
+      notes: view.morale.notes.map(() => ''),
+    },
     winter:
       view.winter === null || view.winter.cold === null
         ? view.winter
@@ -549,10 +568,23 @@ describe('a visão fala em tempo real', () => {
 
     // Por hora de jogo, na primavera: os dois lavradores, recém-chegados, rendem metade no
     // primeiro dia de jogo (12 − 5 de consumo = +7). No ritmo 1 passou uma hora de jogo. No
-    // ritmo 3 passaram três: duas a +7 e uma já com os lavradores adaptados e 4 de experiência
-    // (2 × 10 × 1,2 × 1,012 − 5 = +19,288 por hora de jogo, +57,9 por hora real).
+    // ritmo 3 passaram três: duas a +7 e uma já com os lavradores adaptados, 4 de experiência
+    // e a moral em 60 (2 × 10 × 1,2 × 1,012 × 1,05 − 5 = +20,502 por hora de jogo, +61,5 por
+    // hora real).
     expect(resource(normalView, 'food')).toMatchObject({ stock: 187, perHour: 7 });
-    expect(resource(fastView, 'food')).toMatchObject({ stock: 213, perHour: 57.9 });
+    expect(resource(fastView, 'food')).toMatchObject({ stock: 214, perHour: 61.5 });
+    // A moral fala em tempo real: a virada em 20 min, a comida guardada "para 8 h".
+    expect(normalView.morale).toMatchObject({ value: 50, nextUpdateInSeconds: 3600 });
+    expect(normalView.morale.terms[1]?.label).toBe('Comida guardada para 24 h');
+    expect(fastView.morale).toMatchObject({
+      value: 60,
+      multiplierPercent: 105,
+      nextUpdateInSeconds: 1200,
+      breakdown: '50 (base) + 10 (comida guardada para 8 h) = 60',
+    });
+    expect(fastView.morale.foodReserve.text).toBe(
+      'Há comida guardada para 8 h (120 para 5 habitantes): a moral ganha 10.',
+    );
     expect(normalView.workers[0]).toMatchObject({ adapting: 2, adaptationEndsInSeconds: 3600 });
     expect(fastView.workers[0]).toMatchObject({ adapting: 0, experience: 4 });
     // Uma hora real são três horas de jogo: o dia de 2 h já virou uma vez.
@@ -886,13 +918,14 @@ describe('as estações no relógio real (V2C-T1)', () => {
     expect(winter.winter?.cold?.text).toContain('A lareira pede 7,5/h e a Serraria entrega 0/h');
     expect(resource(winter, 'wood')).toMatchObject({ stock: 0, perHour: -7.5 });
     expect(resource(winter, 'wood').breakdown).toBe(
-      'Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −7,5/h (lenha de 5 habitantes)',
+      'Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 0,8 (inverno) × 1,05 (moral 60) × 0,8 (frio) = 0/h; −7,5/h (lenha de 5 habitantes)',
     );
     // Inverno com frio: 5 × 30 × 0,4 × 0,8 = 48 por hora real, × 1,3 do ofício, dominado em
-    // três estações de Fazenda ocupada.
+    // três estações de Fazenda ocupada, × 1,05 da moral: a virada que trouxe o inverno a
+    // calculou antes de o frio abrir, e o frio só pesa nela na virada seguinte.
     expect(worker(winter, 'farm')).toMatchObject({
-      grossPerHour: 62.4,
-      perWorkerPerHour: 12.48,
+      grossPerHour: 65.52,
+      perWorkerPerHour: 13.104,
       experience: 100,
     });
     // A obra iniciada agora leva × 1,5, e a visão diz por quê.
@@ -910,14 +943,20 @@ describe('as estações no relógio real (V2C-T1)', () => {
       text: 'No 1º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.',
     });
 
-    // Uma hora real de frio depois, o senhor manda um aldeão para a Serraria: a lareira volta.
+    // Uma hora real de frio depois, o senhor manda dois aldeões para a Serraria: a lareira
+    // volta. Um só já não bastaria: o dia virou com o frio aberto, a moral caiu de 60 para 40, e
+    // um lenhador recém-chegado rende 8 × 0,8 × 0,8 × metade × 0,95 = 2,43, menos que os 2,5
+    // da lenha.
     await wait(fast, player, HOUR);
-    expect((await viewOf(fast, player)).winter?.cold?.secondsElapsed).toBe(3600);
-    await accepted(fast, player, order('setWorkers', { building: 'farm', count: 4 }));
+    const cold = await viewOf(fast, player);
+    expect(cold.winter?.cold?.secondsElapsed).toBe(3600);
+    expect(cold.morale).toMatchObject({ value: 40, band: 'restless', bandLabel: 'Inquieto' });
+    expect(cold.morale.advice).toContain('O que mais pesa é o frio (−20)');
+    await accepted(fast, player, order('setWorkers', { building: 'farm', count: 3 }));
     const warmed = await accepted(
       fast,
       player,
-      order('setWorkers', { building: 'lumberMill', count: 1 }),
+      order('setWorkers', { building: 'lumberMill', count: 2 }),
     );
     expect(warmed.events.map((event) => event.type)).toEqual(['coldEnded']);
     expect(warmed.events[0]).toMatchObject({
@@ -926,9 +965,12 @@ describe('as estações no relógio real (V2C-T1)', () => {
       data: { reason: 'firewood', sinceMs: WINTER },
     });
     expect(warmed.view.winter).toMatchObject({ firewoodPerHour: 7.5, cold: null });
-    // Sem o frio, o lenhador recém-chegado rende metade: 8 × 0,8 × 0,5 = 3,2 por hora de jogo,
-    // menos 2,5 de lenha; por hora real, o triplo. Com o frio seriam 2,56: ainda acima da lenha.
-    expect(resource(warmed.view, 'wood').perHour).toBe(2.1);
+    // Sem o frio, os dois lenhadores recém-chegados rendem metade, ainda com a moral em 40:
+    // 2 × 8 × 0,8 × 0,5 × 0,95 = 6,08 por hora de jogo, menos 2,5 de lenha; por hora real, o
+    // triplo. Com o frio seriam 4,86: ainda acima da lenha.
+    expect(resource(warmed.view, 'wood').perHour).toBe(10.7);
+    // A moral só se refaz na virada: a visão diz que ela volta a 60.
+    expect(warmed.view.morale).toMatchObject({ value: 40, next: { value: 60, band: 'content' } });
 
     // A Crônica conta o frio como contou a fome: começo e fim, cada um uma vez.
     const chronicle = await chronicleOf(fast, player);

@@ -2,6 +2,8 @@ import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   EVENT_TYPES,
+  MORALE_BAND_IDS,
+  MORALE_TERM_IDS,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
@@ -123,6 +125,57 @@ const FirewoodSchema = z.strictObject({
   /** Quanto falta guardar; 0 quando o estoque e a Serraria cobrem. */
   missing: z.number(),
   text: z.string(),
+});
+
+/** O que uma moral vale: o número, a faixa e o fator que ela põe na produção. */
+const MoraleLevelSchema = z.strictObject({
+  /** De 0 a 100. */
+  value: z.number(),
+  band: z.enum(MORALE_BAND_IDS),
+  /** "Inquieto". */
+  bandLabel: z.string(),
+  /** O fator na produção, em centésimos: 109 é "produção × 1,09"; pode ter meia unidade. */
+  multiplierPercent: z.number(),
+});
+
+/**
+ * A moral do feudo (GDD §5.7). Ela só muda na virada do dia: `value` é a que vale desde a
+ * última virada, e `terms`, a conta que a **próxima** virada vai fazer se nenhuma ordem chegar
+ * antes. Quando as duas não coincidem, `next` e `nextText` dizem para onde a moral vai.
+ */
+const MoraleSchema = MoraleLevelSchema.extend({
+  /** "Moral 68 (Contente): produção × 1,09." */
+  text: z.string(),
+  /** Os termos da conta da próxima virada, a começar pela base; somam `next.value` antes do limite. */
+  terms: z.array(
+    z.strictObject({ id: z.enum(MORALE_TERM_IDS), label: z.string(), amount: z.number() }),
+  ),
+  /** A mesma conta em uma linha: "50 (base) + 10 (comida guardada para 8 h) = 60". */
+  breakdown: z.string(),
+  /** Segundos reais até a próxima virada do dia, quando a moral é recalculada. */
+  nextUpdateInSeconds: z.number(),
+  /** O que a próxima virada faz da moral, se nada mudar até lá. */
+  next: MoraleLevelSchema,
+  /** "A moral só muda na virada do dia: na próxima, cai de 60 para 30 (Inquieto)." */
+  nextText: z.string(),
+  /** O que mais pesa na conta e o que fazer; `null` quando não há o que melhorar. */
+  advice: z.string().nullable(),
+  /** A comida guardada que vale o bônus: quanto é preciso ter e quanto falta, em unidades. */
+  foodReserve: z.strictObject({
+    covered: z.boolean(),
+    /** A próxima virada do dia vai encontrar a reserva: é ela que decide o bônus. */
+    holdsAtNextTurn: z.boolean(),
+    needed: z.number(),
+    missing: z.number(),
+    bonus: z.number(),
+    text: z.string(),
+  }),
+  /** O que a moral e a fome longa fazem com a população nas viradas: frases prontas. */
+  notes: z.array(z.string()),
+  /** Efeitos temporários que a moral carrega; `endsInSeconds` é quando saem da conta. */
+  effects: z.array(
+    z.strictObject({ label: z.string(), amount: z.number(), endsInSeconds: z.number() }),
+  ),
 });
 
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
@@ -269,10 +322,13 @@ export const ViewStateSchema = z.strictObject({
     durationNote: z.string().nullable(),
     maxQuantity: z.number(),
     blockedReason: z.string().nullable(),
+    /** O que recrutar agora custa à moral (a comida guardada, as casas cheias); `null` sem custo. */
+    moraleNote: z.string().nullable(),
   }),
   famine: z
     .strictObject({ sinceMs: z.number(), secondsElapsed: z.number(), text: z.string() })
     .nullable(),
+  morale: MoraleSchema,
   /** A estação da lenha; `null` fora dela. `cold` é o frio, aberto quando a madeira acabou. */
   winter: z
     .strictObject({

@@ -6,6 +6,8 @@ export type {
   Balance,
   CraftDef,
   DifficultyDef,
+  MoraleBandDef,
+  MoraleDef,
   PaceDef,
   SeasonDef,
   SeasonEffects,
@@ -22,6 +24,8 @@ export {
   craftGuilds,
   EVENT_TYPES,
   foundingTemplates,
+  idleVillager,
+  moraleBandTemplates,
 } from './chronicle';
 export type {
   ChroniclePlaceholder,
