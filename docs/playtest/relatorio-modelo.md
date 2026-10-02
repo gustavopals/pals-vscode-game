@@ -39,11 +39,19 @@ Consultas do bloco "Métricas do playtest" de [`deploy/analytics/ops.sql`](../..
 | | |
 |---|---|
 | Rodadas em (data e hora) | |
-| Filtro de período aplicado à CTE `jogadores` | |
-| Conta do autor fora das métricas? | |
+| Janela de criação das contas (`playtest_inicio` e `playtest_fim` do bloco "Filtro do playtest") | |
+| Conta do autor fora das métricas? (`conta_do_autor`) | |
 | Contas "Bot …" fora das métricas? | Sim (já é o padrão das consultas) |
 
 O que estas métricas **não** veem: leituras não ficam gravadas, então uma visita sem nenhuma ordem não conta como sessão nem como retorno. As proporções são um piso.
+
+### 3.0 Filtro em vigor
+
+*A consulta "Filtro em vigor", rodada depois das três linhas `\set`. Não mostra o identificador da conta do autor. `conta_do_autor_informada` verdadeiro com `conta_do_autor_existe` falso quer dizer identificador errado.*
+
+```
+(saída)
+```
 
 ### 3.1 Sessões por dia
 
