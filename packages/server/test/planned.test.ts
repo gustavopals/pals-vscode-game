@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
 import type {
   ApiError,
   ChronicleResponse,
@@ -22,6 +25,7 @@ import {
   type Player,
   renew,
   send,
+  signUp,
   type TestApp,
 } from './helpers/app';
 import { resetTestDb } from './helpers/db';
@@ -457,5 +461,242 @@ describe('recusas', () => {
       expect(reply.body.code).toBe('VALIDATION');
     }
     expect((await viewOf(normal, who)).constructions.planned).toEqual([]);
+  });
+});
+
+describe('duas filas abertas: o Salão no nível 4', () => {
+  // O retrato `queues` do motor (ritmo 3): o Salão no nível 4, a Serraria e a Mina de Ouro em
+  // obras, e três planejadas: a Serraria de novo, automática; as Habitações, manuais; e o Salão,
+  // automático, à espera de recurso. Madeira 200, pedra 170, ouro 110; o estado parou aos
+  // 184.567 ms de jogo, a obra da Serraria acaba aos 300.000 e a da Mina, aos 480.000.
+  const QUEUES_STATE = readFileSync(
+    new URL('../../engine/src/__fixtures__/state-v7-queues.json', import.meta.url),
+    'utf8',
+  );
+  const SAVED_AT = 184_567;
+  const LUMBER_MILL_ENDS_AT = 300_000;
+  const QUEUE_BUSY = 'Os pedreiros já estão ocupados: não há fila de obras livre.';
+
+  /** Grava a partida do retrato como o servidor a deixou, com o relógio de jogo onde ela parou. */
+  async function queuesPlayer(server: TestApp): Promise<Player> {
+    const auth = await signUp(server, 'Senhor das Filas');
+    const state = JSON.parse(QUEUES_STATE) as {
+      seed: string;
+      schemaVersion: number;
+      lastProcessedAt: number;
+    };
+    expect(state.lastProcessedAt).toBe(SAVED_AT);
+    const now = server.clock.now().getTime();
+    const id = randomUUID();
+    const createdAt = new Date(now - Math.floor(SAVED_AT / PACE));
+    await server.pool.query(
+      `insert into games (id, account_id, status, seed, difficulty, time_scale, timezone, vigil_hour,
+                          schema_version, state, state_version, last_processed_at, created_at, updated_at)
+       values ($1, $2, 'active', $3, 'lord', $4, 'America/Sao_Paulo', 20, $5, $6::jsonb, 1, $7, $8, $7)`,
+      [
+        id,
+        auth.account.id,
+        state.seed,
+        String(PACE),
+        state.schemaVersion,
+        QUEUES_STATE,
+        new Date(now),
+        createdAt,
+      ],
+    );
+    return {
+      auth,
+      accountId: auth.account.id,
+      token: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      game: { id, createdAt: createdAt.toISOString() } as Player['game'],
+    };
+  }
+
+  const inQueues = (view: ViewState) =>
+    view.constructions.queues.map((slot) => (slot === null ? null : slot.building));
+
+  it('com as duas ocupadas, a terceira obra é recusada; cancelar uma libera os pedreiros para a planejada automática', async () => {
+    const who = await queuesPlayer(fast);
+    const view = await viewOf(fast, who);
+    expect(view.constructions).toMatchObject({
+      queuesUnlocked: 2,
+      queuesNote: null,
+      active: { building: 'lumberMill', targetLevel: 2 },
+      queues: [
+        // (300.000 − 184.567) ms de jogo no ritmo 3: 38,5 s reais, arredondados para cima.
+        { building: 'lumberMill', targetLevel: 2, secondsRemaining: 39 },
+        { building: 'goldMine', targetLevel: 2, secondsRemaining: 99 },
+      ],
+      planned: [
+        {
+          building: 'lumberMill',
+          targetLevel: 3,
+          autoStart: true,
+          waiting: { reason: 'upgrading' },
+        },
+        // Tem recurso; só faltam os pedreiros, e a primeira fila a vagar é a da Serraria.
+        { building: 'housing', autoStart: false, waiting: { reason: 'queue', etaSeconds: 39 } },
+        { building: 'townHall', autoStart: true, waiting: { reason: 'resources' } },
+      ],
+    });
+    expect(view.constructions.queues).toHaveLength(2);
+    expect(view.constructions.available.find((entry) => entry.building === 'farm')).toMatchObject({
+      affordable: true,
+      blockedCode: 'QUEUE_BUSY',
+      blockedReason: QUEUE_BUSY,
+    });
+
+    // A terceira obra: há recurso, não há fila. A recusa não fala em abrir a segunda fila.
+    const third = order('startConstruction', { building: 'farm' });
+    const refused = await send<GameRuleError>(fast, who.token, who.game.id, third);
+    expect(refused.status).toBe(422);
+    expect(refused.body).toMatchObject({
+      code: 'GAME_RULE',
+      message: QUEUE_BUSY,
+      details: { code: 'QUEUE_BUSY', message: QUEUE_BUSY },
+    });
+    expect(inQueues(refused.body.details.view)).toEqual(['lumberMill', 'goldMine']);
+    const refusedAgain = await send<GameRuleError>(fast, who.token, who.game.id, third);
+    expect(refusedAgain.status).toBe(422);
+    expect(refusedAgain.headers[REPLAYED]).toBe('true');
+    expect(refusedAgain.body).toEqual(refused.body);
+
+    // As Habitações viram automáticas: com as duas filas ocupadas, esperam os pedreiros.
+    const marked = await accepted(
+      fast,
+      who,
+      order('setAutoStart', { building: 'housing', autoStart: true }),
+    );
+    expect(marked.events).toEqual([]);
+    expect(stock(marked.view, 'wood')).toBe(200);
+
+    // Cancelar a Mina devolve 80% (96 de madeira e 64 de pedra) e, na mesma ordem, a fila que
+    // vagou é das Habitações (80 e 20). A Serraria Nv3 continua esperando a obra dela.
+    const cancel = order('cancelConstruction', { building: 'goldMine' });
+    const cancelled = await send<CommandAccepted>(fast, who.token, who.game.id, cancel);
+    expect(cancelled.status, JSON.stringify(cancelled.body)).toBe(200);
+    expect(cancelled.body.events.map((event) => [event.type, event.atMs, event.data])).toEqual([
+      [
+        'constructionCancelled',
+        SAVED_AT,
+        { building: 'goldMine', level: 1, gained_wood: 96, gained_stone: 64 },
+      ],
+      [
+        'constructionAutoStarted',
+        SAVED_AT,
+        { building: 'housing', level: 2, spent_wood: 80, spent_stone: 20 },
+      ],
+      ['objectiveCompleted', SAVED_AT, { objective: 'upgradeHousing', gained_wood: 30 }],
+    ]);
+    expect(inQueues(cancelled.body.view)).toEqual(['lumberMill', 'housing']);
+    expect(stock(cancelled.body.view, 'wood')).toBe(200 + 96 - 80 + 30);
+    expect(stock(cancelled.body.view, 'stone')).toBe(170 + 64 - 20);
+    expect(cancelled.body.view.constructions.planned.map((plan) => plan.building)).toEqual([
+      'lumberMill',
+      'townHall',
+    ]);
+
+    // Reenviado, o cancelamento é o recibo: nada é devolvido nem pago outra vez.
+    const cancelledAgain = await send<CommandAccepted>(fast, who.token, who.game.id, cancel);
+    expect(cancelledAgain.status).toBe(200);
+    expect(cancelledAgain.headers[REPLAYED]).toBe('true');
+    expect(cancelledAgain.body).toEqual(cancelled.body);
+    const after = await viewOf(fast, who);
+    expect(stock(after, 'wood')).toBe(246);
+    expect(inQueues(after)).toEqual(['lumberMill', 'housing']);
+
+    // 39 s reais depois a Serraria chega ao nível 2 e, no mesmo instante de jogo, a planejada
+    // do nível 3 (160 de madeira e 80 de pedra) ocupa a fila que ela deixou.
+    await wait(fast, who, 39 * SECOND);
+    const events = await eventsOf(fast, who);
+    expect(events.slice(3).map((event) => [event.type, event.atMs, event.data])).toEqual([
+      ['constructionFinished', LUMBER_MILL_ENDS_AT, { building: 'lumberMill', level: 2 }],
+      [
+        'constructionAutoStarted',
+        LUMBER_MILL_ENDS_AT,
+        { building: 'lumberMill', level: 3, spent_wood: 160, spent_stone: 80 },
+      ],
+    ]);
+    const later = await viewOf(fast, who);
+    expect(later.constructions.queues).toMatchObject([
+      { building: 'lumberMill', targetLevel: 3 },
+      { building: 'housing', targetLevel: 2 },
+    ]);
+    expect(later.constructions.planned).toMatchObject([
+      { building: 'townHall', targetLevel: 5, autoStart: true, waiting: { reason: 'resources' } },
+    ]);
+    expect(
+      await countRows(
+        fast.pool,
+        'game_events',
+        `game_id = '${who.game.id}' and kind = 'constructionAutoStarted'`,
+      ),
+    ).toBe(2);
+  });
+
+  it('com as duas livres, duas ordens começam, a terceira é recusada, e cada reenvio devolve o recibo', async () => {
+    const who = await queuesPlayer(fast);
+    // As duas obras do retrato são canceladas: voltam 80 + 96 de madeira e 40 + 64 de pedra.
+    await accepted(fast, who, order('cancelConstruction', { building: 'lumberMill' }));
+    const freed = await accepted(fast, who, order('cancelConstruction', { building: 'goldMine' }));
+    expect(freed.view.constructions.queues).toEqual([null, null]);
+    expect(freed.view.constructions.active).toBeNull();
+    expect(stock(freed.view, 'wood')).toBe(376);
+    // Com fila livre, nenhuma automática começa: a Serraria Nv3 espera a obra do nível 2, que
+    // ninguém iniciou de novo, e o Salão espera recurso. As Habitações são manuais.
+    expect(freed.events.map((event) => event.type)).toEqual(['constructionCancelled']);
+    expect(freed.view.constructions.planned).toMatchObject([
+      { building: 'lumberMill', targetLevel: 3, waiting: { reason: 'upgrading' } },
+      { building: 'housing', autoStart: false, waiting: null },
+      { building: 'townHall', waiting: { reason: 'resources' } },
+    ]);
+
+    const farm = order('startConstruction', { building: 'farm' });
+    const quarry = order('startConstruction', { building: 'quarry' });
+    const housing = order('startConstruction', { building: 'housing' });
+    const first = await send<CommandAccepted>(fast, who.token, who.game.id, farm);
+    expect(first.status, JSON.stringify(first.body)).toBe(200);
+    expect(inQueues(first.body.view)).toEqual(['farm', null]);
+    const second = await send<CommandAccepted>(fast, who.token, who.game.id, quarry);
+    expect(second.status, JSON.stringify(second.body)).toBe(200);
+    expect(inQueues(second.body.view)).toEqual(['farm', 'quarry']);
+    expect(second.body.view.constructions.active).toMatchObject({ building: 'farm' });
+    // Fazenda: 80 de madeira e 40 de ouro. Pedreira: 120 e 30.
+    expect(stock(second.body.view, 'wood')).toBe(376 - 80 - 120);
+    expect(stock(second.body.view, 'gold')).toBe(110 - 40 - 30);
+    const third = await send<GameRuleError>(fast, who.token, who.game.id, housing);
+    expect(third.status).toBe(422);
+    expect(third.body).toMatchObject({ details: { code: 'QUEUE_BUSY', message: QUEUE_BUSY } });
+
+    // Duplo clique, resposta atrasada: cada ordem reenviada devolve o que respondeu antes.
+    for (const [command, reply] of [
+      [farm, first],
+      [quarry, second],
+      [housing, third],
+    ] as const) {
+      const again = await send(fast, who.token, who.game.id, command);
+      expect(again.status).toBe(reply.status);
+      expect(again.headers[REPLAYED]).toBe('true');
+      expect(again.body).toEqual(reply.body);
+    }
+    const view = await viewOf(fast, who);
+    expect(inQueues(view)).toEqual(['farm', 'quarry']);
+    expect(stock(view, 'wood')).toBe(176);
+    expect(stock(view, 'gold')).toBe(40);
+    expect(
+      (await eventsOf(fast, who)).filter((event) => event.type === 'constructionStarted'),
+    ).toHaveLength(2);
+
+    // No ritmo 3 a Fazenda leva 100 s reais e a Pedreira, 120. Um segundo a mais: `created_at`
+    // é arredondado ao milissegundo real, e o relógio de jogo fica 1 ms atrás do retrato.
+    await wait(fast, who, 121 * SECOND);
+    const done = await viewOf(fast, who);
+    expect(done.constructions.queues).toEqual([null, null]);
+    expect(done.workers.find((row) => row.building === 'farm')?.level).toBe(2);
+    expect(done.workers.find((row) => row.building === 'quarry')?.level).toBe(2);
+    // A terceira, agora, começa.
+    const late = await accepted(fast, who, order('startConstruction', { building: 'housing' }));
+    expect(inQueues(late.view)).toEqual(['housing', null]);
   });
 });
