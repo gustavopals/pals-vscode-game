@@ -51,11 +51,15 @@ describe('advanceTo', () => {
     const atBoundary = events.filter((event) => event.atMs === 24 * DAY_MS);
     // Ninguém cuidou do feudo: depois do amanhecer vem a moral, e a fome de 12 h leva um aldeão.
     // A virada do 25º dia é também uma audiência do Conselho, e o sorteio vem depois da moral.
+    // Por último chegam os lobos que a Ameaça marcou três viradas antes: uma matilha grande.
     expect(atBoundary.map((event) => event.type)).toEqual([
       'seasonChanged',
       'dayStarted',
       'villagerDeserted',
       'cardDrawn',
+      'raidSuffered',
+      'villagerInjured',
+      'villagerInjured',
     ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');
@@ -121,12 +125,21 @@ describe('advanceTo', () => {
       'winter',
       'spring',
     ]);
-    // 20 de madeira depois da obra, 5 habitantes: 8 horas de lareira em cada inverno.
+    // 20 de madeira depois da obra, 5 habitantes: seriam 8 horas de lareira no primeiro inverno.
+    // Os lobos levam uma parte da madeira a cada incursão, e a lareira apaga antes disso; no
+    // segundo inverno já não há madeira nenhuma, e o frio abre na virada.
     const winter = 72 * DAY_MS;
-    expect(eventsOfType(atOnce.events, 'coldStarted').map((event) => event.atMs)).toEqual([
-      winter + 8 * HOUR,
-      YEAR_MS + winter,
-    ]);
+    const [firstCold, secondCold, ...moreCold] = eventsOfType(atOnce.events, 'coldStarted').map(
+      (event) => event.atMs,
+    );
+    expect(firstCold).toBeGreaterThan(winter);
+    expect(firstCold).toBeLessThan(winter + 8 * HOUR);
+    expect(secondCold).toBe(YEAR_MS + winter);
+    expect(moreCold).toEqual([]);
+    // O caminho passa pelas incursões: a do roteiro e as que a Ameaça sorteia, com feridos que
+    // largam o ofício e voltam.
+    expect(eventsOfType(atOnce.events, 'raidSuffered').length).toBeGreaterThan(20);
+    expect(eventsOfType(atOnce.events, 'villagerRecovered').length).toBeGreaterThan(20);
     expect(eventsOfType(atOnce.events, 'coldEnded').map((event) => event.atMs)).toEqual([
       YEAR_MS,
       2 * YEAR_MS,

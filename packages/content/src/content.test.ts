@@ -14,6 +14,8 @@ import {
   EVENT_TYPES,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
   moraleBandTemplates,
@@ -21,6 +23,8 @@ import {
   objectives,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
+  raidSizes,
+  raidTemplates,
   RESOURCE_IDS,
   SEASON_IDS,
   startingTiles,
@@ -37,8 +41,12 @@ import {
   EnemiesSchema,
   FoundingTemplatesSchema,
   IdleVillagerSchema,
+  InjuredLossSchema,
+  InjuryTemplatesSchema,
   MoraleBandTemplatesSchema,
   ObjectivesSchema,
+  RaidSizesSchema,
+  RaidTemplatesSchema,
   StartingTilesSchema,
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
@@ -337,6 +345,8 @@ describe('edifícios', () => {
       ['warehouse', 8],
       // 5 no GDD; 2 nesta versão (ADR 0014, decisão 11).
       ['watchtower', 2],
+      // 6 no GDD, contando a Muralha de Pedra e o Baluarte; 2 nesta versão.
+      ['palisade', 2],
     ]);
   });
 
@@ -386,13 +396,33 @@ describe('edifícios', () => {
     }
   });
 
-  it('só a Torre tem um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
+  it('a Paliçada nasce no nível 0, pede o Salão no nível 3 e vai até o nível 2 (GDD §6.1 e §6.2)', () => {
+    const palisade = buildings.palisade;
+    expect(palisade.label).toBe('Paliçada');
+    expect(palisade.article).toBe('a');
+    expect(palisade.initialLevel).toBe(0);
+    expect(palisade.maxLevel).toBe(2);
+    expect(palisade.requires).toEqual({ townHall: 3 });
+    expect(palisade.baseCost).toEqual({ wood: 200, stone: 50 });
+    expect(palisade.baseDurationMs).toBe(20 * 60_000);
+    expect(palisade.produces).toBeNull();
+    // A construção e a melhoria (× 1,6) cabem no que o Pátio guarda antes de haver Armazém.
+    const { num, den } = balance.construction.costFactor;
+    for (const amount of Object.values(palisade.baseCost)) {
+      expect(Math.round((amount * num) / den)).toBeLessThanOrEqual(balance.storage.baseCapacity);
+    }
+  });
+
+  it('só a Torre e a Paliçada têm um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
     const noted = BUILDING_IDS.filter((id) => buildings[id].maxLevelNote !== undefined);
-    expect(noted).toEqual(['watchtower']);
+    expect(noted).toEqual(['watchtower', 'palisade']);
     expect(buildings.watchtower.maxLevelNote).toBe(
       'Os níveis seguintes chegam em versões futuras do jogo.',
     );
-    expect(buildings.watchtower.maxLevelNote).not.toMatch(/\d|v0|breve|semana|mês/);
+    expect(buildings.palisade.maxLevelNote).toBe('A Muralha de Pedra chega em uma versão futura.');
+    for (const id of noted) {
+      expect(buildings[id].maxLevelNote, id).not.toMatch(/\d|v0|breve|semana|mês/);
+    }
     const parse = (maxLevelNote: string) =>
       BuildingsSchema.safeParse({
         ...buildings,
@@ -403,7 +433,7 @@ describe('edifícios', () => {
     expect(parse('Os níveis seguintes chegam depois')).toBe(false);
   });
 
-  it('os edifícios são os oito de antes e a Torre de Vigia', () => {
+  it('os edifícios são os oito de antes, a Torre de Vigia e a Paliçada', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -414,11 +444,12 @@ describe('edifícios', () => {
       'granary',
       'warehouse',
       'watchtower',
+      'palisade',
     ]);
   });
 });
 
-describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', () => {
+describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10 e 11)', () => {
   const { threat, calendar } = balance;
   const HOUR = 3_600_000;
 
@@ -449,6 +480,20 @@ describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', ()
     ]);
     // Um item por nível que a Torre pode ter nesta versão.
     expect(threat.watchtowerLevels).toHaveLength(buildings.watchtower.maxLevel);
+  });
+
+  it('a Paliçada segura as incursões leves no nível 1 e também as médias no nível 2; maior que isso, passa a metade', () => {
+    expect(threat.palisadeLevels).toEqual([{ absorbs: 'light' }, { absorbs: 'medium' }]);
+    // Um item por nível que a Paliçada pode ter nesta versão, e o último segura o maior tamanho.
+    expect(threat.palisadeLevels).toHaveLength(buildings.palisade.maxLevel);
+    expect(threat.palisadeLevels.at(-1)?.absorbs).toBe(RAID_SIZE_IDS.at(-1));
+    expect(threat.palisadeBreach).toEqual({ num: 1, den: 2 });
+  });
+
+  it('os tamanhos de incursão têm um nome geral, no plural, para a frase da Paliçada', () => {
+    expect(RaidSizesSchema.safeParse(raidSizes).error).toBeUndefined();
+    expect(raidSizes).toEqual({ light: { plural: 'leves' }, medium: { plural: 'médios' } });
+    expect(Object.keys(raidSizes)).toEqual([...RAID_SIZE_IDS]);
   });
 
   it('em todo ritmo oferecido o aviso da Torre dura um número inteiro de minutos reais', () => {
@@ -517,11 +562,170 @@ describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', ()
       }),
     ).toBe(false);
     expect(parse({ raidLeadMs: 1 * HOUR })).toBe(false);
+    // A Paliçada: cada nível segura mais que o anterior, e o que passa é sempre uma parte.
+    expect(parse({ palisadeLevels: [] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'medium' }, { absorbs: 'light' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'light' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'heavy' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'light', hp: 600 }] })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 1, den: 1 } })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 0, den: 2 } })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 1, den: 4 } })).toBe(true);
+    expect(RaidSizesSchema.safeParse({ ...raidSizes, light: { plural: 'Leves.' } }).success).toBe(
+      false,
+    );
     expect(ThreatMarkTemplatesSchema.safeParse({ 40: 'Uivos em {castelo}.' }).success).toBe(false);
     expect(ThreatMarkTemplatesSchema.safeParse({ alta: 'Uivos em {feudo}.' }).success).toBe(false);
     expect(StartingTilesSchema.safeParse([...startingTiles, ...startingTiles]).success).toBe(false);
     expect(
       TileTypesSchema.safeParse({ wolfDen: { ...tileTypes.wolfDen, enemy: 'bandits' } }).success,
+    ).toBe(false);
+  });
+});
+
+describe('incursões (GDD §8.2 e §5.7; ADR 0014, decisões 10 e 20)', () => {
+  const { raids, threat, calendar } = balance;
+
+  it('a do roteiro: lobos, leve, no início do 16º dia de jogo do ano 1, com os uivos no 10º', () => {
+    expect(raids.scripted).toEqual([
+      { id: 'wolvesYear1', enemy: 'wolves', size: 'light', atGameDay: 16, howlAtGameDay: 10 },
+    ]);
+    const [wolves] = raids.scripted;
+    // 30 h de jogo: o segundo dia real no ritmo Normal, 10 h reais no Rápido.
+    expect(((wolves?.atGameDay ?? 0) - 1) * calendar.dayMs).toBe(30 * 3_600_000);
+    // Cabe no ano 1, e o prenúncio vem antes.
+    const daysPerYear = calendar.seasons.reduce((sum, season) => sum + season.days, 0);
+    for (const raid of raids.scripted) {
+      expect(raid.atGameDay).toBeLessThanOrEqual(daysPerYear);
+      expect(raid.howlAtGameDay).toBeLessThan(raid.atGameDay);
+    }
+  });
+
+  it('a leve leva 10% da comida e da madeira e fere 1; a média leva 15% e fere 2', () => {
+    expect(Object.keys(raids.damage)).toEqual([...ENEMY_IDS]);
+    expect(raids.damage.wolves).toEqual({
+      light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
+      medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
+    });
+  });
+
+  it('o ferido fica de cama um dia de jogo, e a moral perde 10 por 2 dias de jogo', () => {
+    expect(raids.injuryMs).toBe(calendar.dayMs);
+    expect(raids.moraleOnLosses).toBe(-10);
+    expect(raids.moraleLossDays).toBe(2);
+    expect(raids.moraleLabel).toBe('Incursão sofrida');
+  });
+
+  it('toda incursão chega em uma virada de dia, e o ferido sara em outra', () => {
+    // É o que impede a previsão da moral (que para antes da virada) de adiantar uma incursão
+    // que os vigias ainda não avistaram.
+    expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
+    expect(raids.injuryMs % calendar.dayMs).toBe(0);
+  });
+
+  it('a metade que passa pela Paliçada pequena fere ao menos um aldeão na média', () => {
+    const { num, den } = threat.palisadeBreach;
+    expect(Math.floor((raids.damage.wolves.medium.injuries * num) / den)).toBe(1);
+  });
+
+  it('entre duas incursões o ferido sara e a moral se refaz: o prazo delas é maior', () => {
+    // No máximo uma incursão marcada por vez, e a seguinte só é sorteada depois: uma incursão
+    // nunca encontra os feridos da anterior.
+    expect(threat.raidLeadMs).toBeGreaterThan(raids.injuryMs);
+    expect(threat.raidLeadMs).toBeGreaterThan(raids.moraleLossDays * calendar.dayMs);
+  });
+
+  it('as frases dos lobos contam o aviso, a defesa e o que teria mudado o desfecho', () => {
+    expect(RaidTemplatesSchema.safeParse(raidTemplates).error).toBeUndefined();
+    expect(Object.keys(raidTemplates)).toEqual([...ENEMY_IDS]);
+    const { howl, announced, arrival, outcome, advice } = raidTemplates.wolves;
+    // O prenúncio não tem informação nenhuma: nem número, nem tamanho.
+    for (const phrase of Object.values(howl)) {
+      expect(phrase).toContain('uivos');
+      expect(phrase).not.toMatch(/\{(ameaca|bando|quantidade)\}/);
+    }
+    expect(howl.unwatched).toContain('Sem quem vigie');
+    expect(howl.watched).toContain('vigias');
+    // Quem não distingue o tamanho não o diz.
+    expect(announced.warned).not.toContain('{bando}');
+    expect(arrival.unwarned).not.toContain('{bando}');
+    expect(arrival.warned).not.toContain('{bando}');
+    expect(arrival.unwarned).not.toContain('vigias');
+    expect(arrival.warned).toContain('vigias');
+    expect(arrival.sized).toContain('vigias');
+    // A linha de quem perdeu diz o que teria evitado a perda.
+    expect(outcome.held).toContain('Recuaram diante da paliçada');
+    expect(advice.build).toBe('Uma paliçada os teria detido.');
+    expect(advice.upgrade).toContain('os teria detido');
+    const phrases = [
+      ...Object.values(howl),
+      ...Object.values(announced),
+      ...Object.values(arrival),
+      ...Object.values(outcome),
+      ...Object.values(advice),
+    ];
+    expect(new Set(phrases).size).toBe(phrases.length);
+  });
+
+  it('quem se fere e quem sara têm frase com ofício e sem ofício', () => {
+    expect(InjuryTemplatesSchema.safeParse(injuryTemplates).error).toBeUndefined();
+    expect(Object.keys(injuryTemplates)).toEqual(['villagerInjured', 'villagerRecovered']);
+    expect(injuryTemplates.villagerInjured.worker).toContain('Larga o ofício');
+    expect(injuryTemplates.villagerRecovered.worker).toContain('voltou ao ofício');
+    expect(injuryTemplates.villagerRecovered.idle).not.toContain('ofício');
+    expect(InjuredLossSchema.safeParse(injuredLoss).error).toBeUndefined();
+    expect(injuredLoss).toEqual({ one: 'um aldeão ferido', many: '{quantidade} aldeões feridos' });
+  });
+
+  it('o schema recusa o roteiro fora de ordem, o estrago que encolhe e a frase sem o que promete', () => {
+    const parse = (changed: object) =>
+      BalanceSchema.safeParse({ ...balance, raids: { ...raids, ...changed } }).success;
+    const [wolves] = raids.scripted;
+    expect(parse({})).toBe(true);
+    expect(parse({ scripted: [] })).toBe(true);
+    expect(parse({ scripted: [{ ...wolves, howlAtGameDay: 16 }] })).toBe(false);
+    expect(parse({ scripted: [{ ...wolves, enemy: 'bandits' }] })).toBe(false);
+    expect(parse({ scripted: [wolves, wolves] })).toBe(false);
+    expect(parse({ scripted: [wolves, { ...wolves, id: 'wolvesAgain' }] })).toBe(false);
+    const { light, medium } = raids.damage.wolves;
+    expect(parse({ damage: { wolves: { light: medium, medium: light } } })).toBe(false);
+    expect(parse({ damage: { wolves: { light } } })).toBe(false);
+    expect(
+      parse({ damage: { wolves: { light: { ...light, lossRatio: { num: 1, den: 1 } }, medium } } }),
+    ).toBe(false);
+    expect(parse({ damage: { wolves: { light: { ...light, resources: [] }, medium } } })).toBe(
+      false,
+    );
+    expect(parse({ damage: { wolves: { light: { ...light, injuries: 0 }, medium } } })).toBe(false);
+    expect(parse({ injuryMs: 0 })).toBe(false);
+    expect(parse({ moraleOnLosses: 10 })).toBe(false);
+    expect(parse({ moraleLossDays: 0 })).toBe(false);
+    expect(parse({ moraleLabel: 'incursão sofrida.' })).toBe(false);
+
+    const wolvesPhrases = raidTemplates.wolves;
+    const phrases = (changed: object) =>
+      RaidTemplatesSchema.safeParse({ wolves: { ...wolvesPhrases, ...changed } }).success;
+    expect(phrases({})).toBe(true);
+    expect(
+      phrases({
+        announced: { ...wolvesPhrases.announced, sized: 'No {dia}º dia {daEstacao}, lobos.' },
+      }),
+    ).toBe(false);
+    expect(phrases({ outcome: { ...wolvesPhrases.outcome, open: 'Nada os deteve.' } })).toBe(false);
+    expect(phrases({ outcome: { ...wolvesPhrases.outcome, held: 'recuaram.' } })).toBe(false);
+    expect(
+      phrases({
+        advice: { ...wolvesPhrases.advice, upgrade: 'Uma paliçada maior os teria detido.' },
+      }),
+    ).toBe(false);
+    expect(
+      phrases({ arrival: { ...wolvesPhrases.arrival, unwarned: 'Os lobos chegaram a {feudo}.' } }),
+    ).toBe(false);
+    expect(
+      InjuryTemplatesSchema.safeParse({
+        ...injuryTemplates,
+        villagerInjured: { worker: 'No {dia}º dia {daEstacao}, alguém se feriu.', idle: 'x' },
+      }).success,
     ).toBe(false);
   });
 });

@@ -10,8 +10,12 @@ import {
   enemies,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   moraleBandTemplates,
   objectives,
+  raidSizes,
+  raidTemplates,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -52,10 +56,11 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,famine,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,' +
+  'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
-  'threat,wolf_losses';
+  'threat,wolf_losses,raids_suffered,raids_repelled,villagers_injured';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -99,7 +104,7 @@ describe('CSV de uma partida', () => {
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
   });
 
-  it('as colunas das mecânicas fecham o cabeçalho; as que ninguém mede ainda saem vazias', () => {
+  it('as colunas das mecânicas fecham o cabeçalho, e todas as da v0.2 já são medidas', () => {
     expect(HEADER.endsWith(MECHANIC_COLUMN_NAMES.join(','))).toBe(true);
     const reserved: string[] = RESERVED_COLUMNS.map((column) => column.name);
     expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual([
@@ -112,8 +117,13 @@ describe('CSV de uma partida', () => {
       'cards_answered',
       'cards_expired',
       'threat',
+      'wolf_losses',
+      'raids_suffered',
+      'raids_repelled',
+      'villagers_injured',
     ]);
-    expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(new Set(['V2E-T3']));
+    // Com a incursão de lobos (V2E-T3) a última coluna reservada passou a ser medida.
+    expect(RESERVED_COLUMNS).toEqual([]);
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
     for (const line of lines) {
@@ -127,6 +137,9 @@ describe('CSV de uma partida', () => {
       expect(Number(cells[header.indexOf('morale')])).toBeGreaterThanOrEqual(0);
       expect(Number(cells[header.indexOf('morale')])).toBeLessThanOrEqual(100);
       for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone']) {
+        expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
+      }
+      for (const name of ['wolf_losses', 'raids_suffered', 'raids_repelled', 'villagers_injured']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
       for (const name of ['cards_seen', 'cards_answered', 'cards_expired']) {
@@ -250,6 +263,7 @@ describe('CSV de uma partida', () => {
       ['granary', 'Celeiro'],
       ['warehouse', 'Armazém'],
       ['watchtower', 'Torre de Vigia'],
+      ['palisade', 'Paliçada'],
     ]);
     // A hora de um marco é a primeira linha em que o edifício aparece no nível.
     for (const { id, building, level } of MILESTONES) {
@@ -267,12 +281,13 @@ describe('CSV de uma partida', () => {
     );
     expect(summary.autoStarted).toBeGreaterThan(10);
     expect(formatSummary(twoSessions)).toMatch(
-      /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+, Torre de Vigia na hora \d+ · \d+ obras começaram sozinhas · /,
+      /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+, Torre de Vigia na hora \d+, Paliçada na hora \d+ · \d+ obras começaram sozinhas · /,
     );
     // A Ameaça é medida no estado, com ou sem Torre; a linha diz se o jogador chegou a vê-la.
-    expect(summary.threat).toEqual({ final: 100, max: 100, watchtower: 2 });
+    // Ela chega ao máximo e cai 10 a cada incursão: o ano acaba logo depois de uma.
+    expect(summary.threat).toEqual({ final: 90, max: 100, watchtower: 2 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 100 no fim (máxima 100) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 90 no fim (máxima 100) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
     );
     expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 5, 5, 10]);
     expect(formatSummary(twoSessions)).toContain(
@@ -448,7 +463,10 @@ describe('partida de controle: as mesmas planejadas, manuais', () => {
     // O jogador de uma visita por dia: as planejadas que podiam começar esperavam a visita.
     expect(control.plannedIdleHours).toBeGreaterThan(100);
     expect(auto.plannedIdleHours).toBe(0);
-    expect(auto.queueIdleHours).toBeLessThan(control.queueIdleHours / 2);
+    // Não chega à metade: desde que o Salão alcança o nível 3 a Paliçada é uma obra que podia
+    // começar e que o bot ainda não ergue (a política dela entra com a incursão de lobos,
+    // V2E-T3), e a fila conta como ociosa nessas horas, com ou sem o início automático.
+    expect(auto.queueIdleHours).toBeLessThan((control.queueIdleHours * 2) / 3);
     // E o feudo anda mais: as obras não esperaram por ele.
     expect(auto.townHall).toBeGreaterThan(control.townHall);
   });
@@ -531,7 +549,11 @@ describe('resumo de uma partida', () => {
             tileTypes,
             startingTiles,
             enemies,
+            raidSizes,
             threatMarkTemplates,
+            raidTemplates,
+            injuryTemplates,
+            injuredLoss,
           }),
         )
         .digest('hex')
@@ -544,7 +566,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
+      'Políticas: erguer a Paliçada, erguer a Torre, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
     );
   });
 
@@ -563,13 +585,70 @@ describe('resumo de uma partida', () => {
       stone: summary.stock.stone,
       gold: summary.stock.gold,
     });
-    expect(text).toContain('Sem medida até a Fase E: perdas por lobos');
+    expect(text).not.toContain('Sem medida');
     // O excedente parado dos materiais com limite nunca passa do limite.
     const view = deriveViewState(twoSessions.finalState, twoSessions.finalState.lastProcessedAt);
     for (const id of ['wood', 'stone'] as const) {
       const cap = view.resources.find((row) => row.id === id)?.cap ?? 0;
       expect(summary.surplus[id], id).toBeLessThanOrEqual(cap);
     }
+  });
+
+  it('mede os lobos: as incursões, o que levaram, os feridos e a Paliçada que o bot ergueu', async () => {
+    const summary = summarize(twoSessions);
+    const count = (type: string) =>
+      twoSessions.events.filter((event) => event.type === type).length;
+    const sum = (key: string) =>
+      twoSessions.events
+        .filter((event) => event.type === 'raidSuffered')
+        .reduce((total, event) => total + Number(event.data[key] ?? 0), 0);
+    expect(summary.raids).toEqual({
+      suffered: count('raidSuffered'),
+      repelled: count('raidRepelled'),
+      announced: count('raidAnnounced'),
+      injured: count('villagerInjured'),
+      lost: {
+        food: Math.round(sum('raided_food')),
+        wood: Math.round(sum('raided_wood')),
+        stone: 0,
+        gold: 0,
+      },
+      losses: Math.round(sum('raided_food') + sum('raided_wood')),
+      palisade: 2,
+    });
+    // A do roteiro e as da Ameaça: o bot sofre as primeiras e, com a Paliçada, repele o resto.
+    expect(summary.raids.suffered).toBeGreaterThan(0);
+    expect(summary.raids.repelled).toBeGreaterThan(0);
+    expect(summary.raids.losses).toBeGreaterThan(0);
+    expect(summary.milestones.palisade).toBeGreaterThan(summary.milestones.watchtower ?? 0);
+    // Depois de erguida a Paliçada no nível 2, nenhuma incursão leva nada.
+    const lastLoss = twoSessions.events.filter((event) => event.type === 'raidSuffered').at(-1);
+    const walled = twoSessions.rows.find((row) => row.levels.palisade >= 2);
+    expect(walled).toBeDefined();
+    expect((lastLoss?.atMs ?? 0) / 3_600_000).toBeLessThanOrEqual(walled?.hour ?? 0);
+    expect(formatSummary(twoSessions)).toContain(
+      `Lobos: ${summary.raids.suffered} incursões sofridas, ${summary.raids.repelled} repelidas (${summary.raids.announced} anunciadas pela Torre) · ` +
+        `levaram food ${summary.raids.lost.food}, wood ${summary.raids.lost.wood} · ${summary.raids.injured} feridos · ` +
+        `Paliçada Nv2, erguida na hora ${summary.milestones.palisade}\n`,
+    );
+    // As colunas do CSV são as mesmas contas, acumuladas hora a hora: nunca diminuem.
+    const last = twoSessions.rows[167];
+    expect(last?.raids.suffered).toBe(summary.raids.suffered);
+    twoSessions.rows.forEach((row, index) => {
+      const before = twoSessions.rows[index - 1];
+      if (before !== undefined) {
+        expect(row.raids.suffered).toBeGreaterThanOrEqual(before.raids.suffered);
+        expect(row.raids.lost.wood).toBeGreaterThanOrEqual(before.raids.lost.wood);
+      }
+    });
+    // Um feudo que ninguém toca: sem Torre nem Paliçada, só perde.
+    const idle = summarize(
+      await simulate({ ...twoSessions.options, days: 2, bot: async () => {} }),
+    );
+    expect(idle.raids).toMatchObject({ repelled: 0, announced: 0, palisade: 0 });
+    expect(idle.raids.suffered).toBeGreaterThan(0);
+    const untouched = await simulate({ ...twoSessions.options, days: 1, bot: async () => {} });
+    expect(formatSummary(untouched)).toContain('Lobos: nenhuma incursão · sem Paliçada\n');
   });
 
   it('diz a moral: a do fim, a menor e, quando há, as horas de moral baixa e quem foi embora', async () => {

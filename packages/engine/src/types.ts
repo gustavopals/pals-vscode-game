@@ -130,12 +130,12 @@ export type MapTile = {
 };
 
 /**
- * Uma incursão marcada (GDD §8.2). Nada a marca nesta versão do estado: quem sorteia, anuncia e
- * resolve é a incursão de lobos (V2E-T3). A forma já está aqui porque a visão sabe mostrá-la
- * através da Torre de Vigia.
+ * Uma incursão marcada (GDD §8.2). A do roteiro nasce com a partida; as outras são sorteadas
+ * pela Ameaça, na virada do dia. Há no máximo uma sorteada por vez, e nenhuma é sorteada
+ * enquanto houver outra marcada. Sai da lista no instante em que é resolvida.
  */
 export type ScheduledRaid = {
-  /** A ocorrência: "threat-3", "scripted-1". */
+  /** A ocorrência: o id do roteiro ("wolvesYear1") ou "threat-3", pela ordem das incursões da partida. */
   id: string;
   /** Quando ela chega, em tempo de jogo. */
   atMs: number;
@@ -143,8 +143,22 @@ export type ScheduledRaid = {
   kind: 'scripted' | 'threat';
   enemy: EnemyId;
   size: RaidSizeId;
-  /** O instante em que a Torre avisou; `null` enquanto ninguém avisou. */
+  /**
+   * O instante em que os vigias da Torre deram o alarme; `null` enquanto ninguém avisou. Quem
+   * chega ao fim sem aviso entra na Crônica como quem ninguém viu vir.
+   */
   announcedAtMs: number | null;
+};
+
+/**
+ * Um aldeão ferido em uma incursão (GDD §8.2): não trabalha até `untilMs` e depois volta ao
+ * ofício que tinha. Continua morando e comendo no feudo.
+ */
+export type InjuredVillager = {
+  /** O instante de jogo em que ele sara: é um evento da linha do tempo. */
+  untilMs: number;
+  /** O edifício de onde ele saiu, e para onde volta já adaptado; `null` para quem não tinha ofício. */
+  building: ProductionBuildingId | null;
 };
 
 /**
@@ -156,7 +170,7 @@ export type ScheduledRaid = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 9;
+  schemaVersion: 11;
   seed: string;
   settings: GameSettings;
   /**
@@ -238,6 +252,12 @@ export type GameState = {
      * dia enquanto não vence, e sai da lista na primeira virada em que já não conta.
      */
     moraleEffects: MoraleEffect[];
+    /**
+     * Os feridos das incursões, em ordem de quem sara primeiro (GDD §8.2). Contam como
+     * habitantes (moram e comem), mas não como braços: a soma dos trabalhadores nunca passa
+     * dos habitantes que não estão feridos.
+     */
+    injured: InjuredVillager[];
   };
   /**
    * O Conselho do Feudo (GDD §7; ADR 0014). Os efeitos temporários de moral que as cartas
@@ -271,7 +291,7 @@ export type GameState = {
    * na visão de quem tem a Torre de Vigia.
    */
   map: { tiles: Record<string, MapTile>; threat: number };
-  /** As incursões marcadas, em ordem de chegada. Vazio até a incursão de lobos (V2E-T3). */
+  /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
   horde: { scheduledRaids: ScheduledRaid[] };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -388,8 +408,9 @@ export type UpgradeView = {
   planned: boolean;
   /**
    * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900."; "Mostra a
-   * Ameaça com a explicação e avisa de uma incursão 20 min antes." Os edifícios de armazenamento
-   * e a Torre de Vigia trazem a frase; nos outros é `null`.
+   * Ameaça com a explicação e avisa de uma incursão 20 min antes."; "Segura ataques leves, sem
+   * perda nem ferido; os médios passam, mas com metade do estrago." Os edifícios de
+   * armazenamento, a Torre de Vigia e a Paliçada trazem a frase; nos outros é `null`.
    */
   effect: string | null;
 };
@@ -687,11 +708,27 @@ export type ThreatWatchtowerView = {
   next: string | null;
 };
 
-/** O que protege o feudo de um ataque hoje. Sem Paliçada, nada. */
+/**
+ * O que protege o feudo de um ataque hoje, e o que a próxima obra da Paliçada mudaria. Sai nas
+ * duas formas da Ameaça: só depende do nível da Paliçada, que o jogador conhece. O custo e o
+ * botão da obra estão em `constructions.available`.
+ */
 export type ThreatDefenseView = {
+  /** O edifício da Paliçada: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: BuildingId;
+  /** 0 enquanto não foi construída. */
   palisadeLevel: number;
-  /** "Sem Paliçada, nada segura um ataque." */
+  /**
+   * "Sem Paliçada, nada segura um ataque."; "Paliçada Nv1: segura ataques leves, sem perda nem
+   * ferido; os médios passam, mas com metade do estrago."
+   */
   text: string;
+  /**
+   * O que a próxima obra da Paliçada muda: "Paliçada Nv2: passa a segurar também os ataques
+   * médios, sem perda nem ferido."; `null` com a Paliçada no teto desta versão (`text` diz o
+   * que vem depois).
+   */
+  next: string | null;
 };
 
 /** Uma incursão que os vigias já avistaram. Só existe para quem tem a Torre de Vigia. */
@@ -705,6 +742,22 @@ export type ThreatIncomingView = {
   sizeText: string | null;
   /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo anda na tela: fica em `inSeconds`. */
   text: string;
+  /**
+   * O que este ataque custa a um feudo sem defesa, com os números do conteúdo e o estoque de
+   * agora: "Uma matilha pequena leva 10% da comida e da madeira (hoje, 32 e 30) e fere 1
+   * aldeão por 40 min." Sem o tamanho à vista, diz os dois extremos. É o custo ao lado do que
+   * a Paliçada faz (`defenseText`).
+   */
+  costText: string;
+  /**
+   * O que a Paliçada faz a esta incursão: "A Paliçada Nv1 segura este ataque: sem perda nem
+   * ferido."; "Sem Paliçada, nada segura este ataque." Enquanto a Torre não distingue o
+   * tamanho, a frase vale para qualquer um ("…se ele for dos leves; se for dos médios, ele
+   * passa, mas com metade do estrago") e não o revela. Com a obra da Paliçada em curso, conta
+   * o nível com que o ataque vai encontrá-la ("A Paliçada Nv1, que fica pronta a tempo, …") ou
+   * avisa que não dá tempo ("A obra em curso só termina depois dele.").
+   */
+  defenseText: string;
 };
 
 /**
@@ -743,6 +796,25 @@ export type ThreatView =
       sources: string[];
       /** Os tiles de ameaça conhecidos, em lista (GDD §8.1): o mapa gráfico é de outra versão. */
       tiles: Array<{ id: string; label: string; active: boolean }>;
+      /**
+       * A chance, em %, de a próxima virada do dia marcar uma incursão, com a Ameaça que essa
+       * virada vai dar: o que ela passa do limiar. 0 enquanto não passa, e com uma incursão já
+       * à vista (só há uma a caminho por vez).
+       */
+      raidChancePercent: number;
+      /**
+       * A regra das incursões, em frases prontas e no ritmo da partida: "Na próxima virada do
+       * dia, a chance de os vigias perderem o sono é de 25% (a Ameaça menos 40)…". Diz também o
+       * tamanho que a Ameaça de agora traz e que toda incursão a faz cair.
+       */
+      raidRisk: string;
+      /**
+       * O que cada tamanho de incursão custa a um feudo sem defesa, um por linha, e o que fica
+       * depois: "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.";
+       * "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas
+       * tira 10 da moral por 2 dias de jogo (1 h 20 min)."
+       */
+      raidCosts: string[];
       /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
       incoming: ThreatIncomingView | null;
       watchtower: ThreatWatchtowerView;
@@ -809,6 +881,18 @@ export type ViewState = {
     vacancies: number;
     /** Segundos até o próximo aldeão chegar; `null` sem fila ou com a fila congelada pela fome. */
     secondsToNextRecruit: number | null;
+    /**
+     * Aldeões feridos em uma incursão (GDD §8.2): moram e comem no feudo, mas não trabalham até
+     * sarar. Não entram em `free`.
+     */
+    injured: number;
+    /** Segundos reais até o próximo ferido sarar; `null` sem feridos. */
+    secondsToNextRecovery: number | null;
+    /**
+     * "1 aldeão ferido na incursão: não trabalha até sarar, em 40 min, e então volta à
+     * Serraria."; `null` sem feridos.
+     */
+    injuredNote: string | null;
     breakdown: string;
   };
   resources: Array<{
@@ -910,6 +994,11 @@ export type ViewState = {
     adaptationEndsInSeconds: number | null;
     /** As levas em adaptação, da que termina antes à que termina depois. */
     adaptingCohorts: Array<{ count: number; endsInSeconds: number }>;
+    /**
+     * Feridos que saíram deste edifício e voltam a ele ao sarar, já adaptados (GDD §8.2). Não
+     * estão em `assigned`: a ordem de trabalhadores não os conta nem os tira.
+     */
+    injured: number;
   }>;
   constructions: {
     /** Atalho para a primeira obra em curso, na ordem das filas; `null` sem nenhuma. */

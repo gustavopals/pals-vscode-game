@@ -250,10 +250,11 @@ describe('o desperdício do dia (ADR 0015)', () => {
     // A Crônica conta que o depósito encheu, e não repete o fecho de cada dia.
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual(['dayStarted', 'storageWasted']);
     const chronicle = await chronicleOf(normal, who);
-    // (As cartas do Conselho também são linhas da Crônica; aqui só interessa o depósito.)
-    expect(chronicle.map((event) => event.type).filter((type) => !type.startsWith('card'))).toEqual(
-      ['storageFilled'],
-    );
+    // (As cartas do Conselho e os uivos dos lobos também são linhas da Crônica; aqui só
+    // interessa o depósito.)
+    expect(
+      chronicle.map((event) => event.type).filter((type) => type.startsWith('storage')),
+    ).toEqual(['storageFilled']);
     const markdown = await call<string>(normal, 'GET', `/games/${who.game.id}/chronicle.md`, {
       token: who.token,
     });

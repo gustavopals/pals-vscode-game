@@ -1,6 +1,7 @@
 import { balance, craftGuilds, PRODUCTION_BUILDING_IDS, type Ratio } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { nextDayBoundary } from './clock';
 import type { GameEvent, GameState, ProductionBuildingId } from './types';
 
 /**
@@ -125,8 +126,11 @@ export function occupiedFrom(state: GameState, building: ProductionBuildingId): 
  */
 export type Occupancy = 'occupied' | 'short' | 'empty';
 
-export function occupancyOf(state: GameState, building: ProductionBuildingId): Occupancy {
-  const workers = state.settlement.workers[building];
+export function occupancyOf(
+  state: GameState,
+  building: ProductionBuildingId,
+  workers: number = state.settlement.workers[building],
+): Occupancy {
   if (workers === 0) {
     return 'empty';
   }
@@ -134,13 +138,32 @@ export function occupancyOf(state: GameState, building: ProductionBuildingId): O
 }
 
 /**
- * O que a próxima virada do dia faz com a experiência de `building`, se nada mudar até lá: o
- * ganho, a perda (negativa) ou zero, já com os limites de 0 e do máximo.
+ * Os trabalhadores com que a próxima virada do dia vai encontrar `building`, se nenhuma ordem
+ * chegar antes: os de agora e os feridos que saram até lá e voltam a ele (GDD §8.2). É com
+ * eles que a visão diz para onde a experiência vai: o ferido que volta a tempo não deixa o
+ * ofício se perder.
  */
-export function experienceChange(state: GameState, building: ProductionBuildingId): number {
+export function workersAtNextTurn(state: GameState, building: ProductionBuildingId): number {
+  const turn = nextDayBoundary(state.lastProcessedAt);
+  const returning = state.settlement.injured.filter(
+    (hurt) => hurt.building === building && hurt.untilMs <= turn,
+  ).length;
+  return state.settlement.workers[building] + returning;
+}
+
+/**
+ * O que uma virada do dia faz com a experiência de `building` com `workers` trabalhadores nele:
+ * o ganho, a perda (negativa) ou zero, já com os limites de 0 e do máximo. Sem `workers`, vale
+ * quem está no edifício agora: é a conta da própria virada.
+ */
+export function experienceChange(
+  state: GameState,
+  building: ProductionBuildingId,
+  workers?: number,
+): number {
   const { experiencePerDay, experienceLossPerDay, maxExperience } = balance.craft;
   const experience = state.settlement.craftExperience[building];
-  const occupancy = occupancyOf(state, building);
+  const occupancy = occupancyOf(state, building, workers);
   if (occupancy === 'occupied') {
     return Math.min(experiencePerDay, maxExperience - experience);
   }

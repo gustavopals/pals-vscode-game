@@ -42,3 +42,18 @@ export const enemies: Record<EnemyId, EnemyDef> = {
     sizes: { light: 'uma matilha pequena', medium: 'uma matilha grande' },
   },
 };
+
+/**
+ * Como as frases chamam cada tamanho de incursão quando falam de ataques em geral, sem dizer de
+ * quem: "segura ataques leves", "os médios ainda custam metade". O que os vigias dizem de um
+ * bando que avistaram é de cada inimigo (`enemies`).
+ */
+export type RaidSizeDef = {
+  /** No plural e em minúscula, para depois de "ataques": "leves". */
+  readonly plural: string;
+};
+
+export const raidSizes: Record<RaidSizeId, RaidSizeDef> = {
+  light: { plural: 'leves' },
+  medium: { plural: 'médios' },
+};

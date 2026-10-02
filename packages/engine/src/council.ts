@@ -11,7 +11,7 @@ import {
 
 import { emit } from './chronicle';
 import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
-import { amountsData, missingResources, payResources } from './construction';
+import { amountsData, constructionOf, missingResources, payResources } from './construction';
 import { thousands } from './format';
 import { addMoraleEffect } from './morale';
 import { reject } from './rejections';
@@ -54,8 +54,18 @@ export function optionOf(card: CouncilCard, optionId: unknown): CouncilOption | 
   return card.options.find((option) => option.id === optionId) ?? null;
 }
 
-/** A opção que o conselho aplica sozinho quando a carta expira, na dificuldade da partida. */
+/**
+ * A opção que o conselho aplica sozinho quando a carta expira: a da dificuldade da partida ou,
+ * se a carta marca uma opção com requisito para este caso (`autoResolveIfUnlocked`) e o feudo
+ * tem agora o que ela exige, essa. É como a Paliçada erguida cumpre a promessa sem o senhor na
+ * sala. A visão usa a mesma conta para dizer o que acontece se ninguém responder: com a obra
+ * pronta, a resposta muda no mesmo instante.
+ */
 export function defaultOption(state: GameState, card: CouncilCard): CouncilOption | null {
+  const unlocked = optionOf(card, card.autoResolveIfUnlocked);
+  if (unlocked !== null && optionLock(state, unlocked) === null) {
+    return unlocked;
+  }
   return optionOf(card, card.autoResolve[state.settings.difficulty]);
 }
 
@@ -550,8 +560,9 @@ export function nextCouncilEventAt(state: GameState): number | null {
 }
 
 /**
- * O que tranca uma opção, em um pedaço de frase: "requer o Celeiro". `null` quando o feudo tem
- * o que ela exige. O custo não entra aqui: quem não pode pagar vê o que falta, não uma tranca.
+ * O que tranca uma opção, em um pedaço de frase: "requer o Celeiro"; com a obra do edifício em
+ * curso, "requer a Paliçada, que ainda está em obras". `null` quando o feudo tem o que ela
+ * exige. O custo não entra aqui: quem não pode pagar vê o que falta, não uma tranca.
  */
 export function optionLock(state: GameState, option: CouncilOption): string | null {
   const { requires } = option;
@@ -561,7 +572,10 @@ export function optionLock(state: GameState, option: CouncilOption): string | nu
   const { settlement } = state;
   if (requires.building !== undefined && settlement.buildings[requires.building] < 1) {
     const def = buildings[requires.building];
-    return `requer ${def.article} ${def.label}`;
+    // Com a obra em curso a frase diz que falta pouco: quem já mandou erguer sabe o que esperar.
+    return constructionOf(state, requires.building) === null
+      ? `requer ${def.article} ${def.label}`
+      : `requer ${def.article} ${def.label}, que ainda está em obras`;
   }
   const short = positiveEntries(requires.resources ?? {}).find(
     ([resource, amount]) => settlement.resources[resource] < amount * MILLI,

@@ -16,6 +16,7 @@ import {
   MINUTE,
   newGame,
   play,
+  quietHorde,
   refuse,
   roomy,
 } from './test-helpers';
@@ -49,7 +50,8 @@ describe('início da fome', () => {
   });
 
   it('a comida nunca fica negativa, em nenhum corte do intervalo', () => {
-    let state = newGame();
+    // Com a Horda calada: os lobos do roteiro levariam comida às 30 h e adiantariam a fome.
+    let state = gameWith(quietHorde);
     for (let hour = 1; hour <= 100; hour += 1) {
       state = advanceTo(state, hour * HOUR + 7 * hour).state;
       expect(state.settlement.resources.food).toBeGreaterThanOrEqual(0);
@@ -58,7 +60,7 @@ describe('início da fome', () => {
   });
 
   it('um instante antes ainda não há fome', () => {
-    const { state, events } = advanceTo(newGame(), 36 * HOUR - 1);
+    const { state, events } = advanceTo(gameWith(quietHorde), 36 * HOUR - 1);
     expect(state.settlement.famine).toBeNull();
     expect(eventsOfType(events, 'famineStarted')).toEqual([]);
   });
@@ -82,6 +84,7 @@ describe('durante a fome', () => {
       draft.settlement.workers = { farm: 0, lumberMill: 2, quarry: 0, goldMine: 0 };
       // Com o Armazém, a madeira das 36 horas tem onde ficar.
       roomy(draft);
+      quietHorde(draft);
     }),
     36 * HOUR,
   ).state;

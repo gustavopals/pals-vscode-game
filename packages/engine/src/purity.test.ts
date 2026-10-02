@@ -52,9 +52,12 @@ describe('pureza do motor', () => {
     // Só `advanceTo` sorteia, em eventos com hora marcada. A visão, as ordens, as recusas, a
     // linha do tempo, o estado inicial e a migração nunca: uma leitura não pode rerrolar nada.
     // No Conselho, o sorteio mora em `councilTurn.ts`; `council.ts` (a resposta, a expiração,
-    // os efeitos) e `councilView.ts` ficam do lado de quem não sorteia.
+    // os efeitos) e `councilView.ts` ficam do lado de quem não sorteia. Na Ameaça, mora em
+    // `hordeTurn.ts`; `threat.ts` (a subida e a Paliçada), `raids.ts` (o aviso, a resolução e
+    // os feridos, que a linha do tempo, o estado inicial e as previsões da visão também usam)
+    // e `threatView.ts` ficam do lado de quem não sorteia.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -68,12 +71,20 @@ describe('pureza do motor', () => {
         './commands.ts',
         './rejections.ts',
         './timeline.ts',
+        './threat.ts',
+        './threatView.ts',
+        './raids.ts',
       ]),
     );
     const offenders = guarded
       .filter(([, text]) => /from '(\.\.?\/)+random'/.test(text))
       .map(([path]) => path);
     expect(offenders).toEqual([]);
+    // E quem sorteia na Ameaça é só a virada do dia.
+    const draws = sources
+      .filter(([, text]) => /from '(\.\.?\/)+random'/.test(text))
+      .map(([path]) => path);
+    expect(draws).toEqual(expect.arrayContaining(['./hordeTurn.ts']));
   });
 });
 

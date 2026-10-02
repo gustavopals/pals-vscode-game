@@ -56,6 +56,55 @@ describe('nextEventAt', () => {
     expect(nextEventAt(state)).toBe(WINTER + (2 * HOUR) / 5);
   });
 
+  it('considera a incursão marcada, o aviso da Torre de Vigia e o ferido que sara', () => {
+    // Uma incursão marcada para o meio de um dia de verão (no jogo elas caem em viradas).
+    const at = 30 * DAY;
+    const arrival = at + 90 * MINUTE;
+    const hunted = (watchtower: number, edit: (draft: GameState) => void = () => {}) =>
+      gameAt(at, (draft) => {
+        draft.settlement.workers.farm = 5;
+        draft.settlement.buildings.townHall = 2;
+        draft.settlement.buildings.watchtower = watchtower;
+        draft.horde.scheduledRaids = [
+          {
+            id: 'threat-1',
+            atMs: arrival,
+            kind: 'threat',
+            enemy: 'wolves',
+            size: 'light',
+            announcedAtMs: null,
+          },
+        ];
+        edit(draft);
+      });
+    // Sem Torre não há aviso: o próximo evento é a chegada dos lobos.
+    expect(nextEventAt(hunted(0))).toBe(arrival);
+    // Com a Torre no nível 1, o aviso soa 1 h de jogo antes; depois dele, só a chegada.
+    expect(nextEventAt(hunted(1))).toBe(arrival - HOUR);
+    const announced = advanceTo(hunted(1), arrival - HOUR).state;
+    expect(announced.horde.scheduledRaids[0]?.announcedAtMs).toBe(arrival - HOUR);
+    expect(nextEventAt(announced)).toBe(arrival);
+    // O aviso do nível 2 (2 h antes) já teria passado: não é um instante por vir. Quem o dá é
+    // o primeiro avanço, no instante em que o estado está.
+    expect(nextEventAt(hunted(2))).toBe(arrival);
+    expect(advanceTo(hunted(2), at + 1).events.map((event) => event.type)).toEqual([
+      'raidAnnounced',
+    ]);
+    // O ferido sara um dia de jogo depois do ataque: o instante entra na linha do tempo.
+    const hit = advanceTo(hunted(0), arrival).state;
+    expect(hit.settlement.injured).toEqual([{ untilMs: arrival + DAY, building: 'farm' }]);
+    expect(nextEventAt(hit)).toBe(31 * DAY);
+    expect(nextEventAt(advanceTo(hit, 31 * DAY).state)).toBe(arrival + DAY);
+    // Um prazo que já passou (um estado montado à mão) não vira um instante repetido.
+    const stale = hunted(0, (draft) => {
+      draft.horde.scheduledRaids = [];
+      draft.settlement.workers.farm = 4;
+      draft.settlement.injured = [{ untilMs: at - HOUR, building: 'farm' }];
+    });
+    expect(nextEventAt(stale)).toBe(31 * DAY);
+    expect(advanceTo(stale, 31 * DAY).state.settlement.injured).toEqual([]);
+  });
+
   it('fora do inverno a madeira não queima: o próximo evento é a virada de dia', () => {
     const state = gameWith((draft) => {
       draft.settlement.workers.farm = 2;

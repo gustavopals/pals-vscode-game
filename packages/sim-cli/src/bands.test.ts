@@ -50,11 +50,21 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       granary: null,
       warehouse: null,
       watchtower: null,
+      palisade: null,
     },
     exhaustedAtHour: null,
     autoStarted: 0,
     cards: { drawn: 2, continuations: 0, answered: 2, expired: 0, hidden: 0 },
     threat: { final: 100, max: 100, watchtower: 0 },
+    raids: {
+      suffered: 3,
+      repelled: 0,
+      announced: 0,
+      injured: 5,
+      lost: { food: 120, wood: 90, stone: 0, gold: 0 },
+      losses: 210,
+      palisade: 0,
+    },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -137,17 +147,17 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3, em Senhor: de 72 a 74 aldeões conforme a semente, Salão
-    // Nv7, até 5.100 de madeira e de pedra no Armazém, até 164.535 de ouro parado (com as obras
-    // esgotadas o bot manda todo mundo para a Mina) e até 30 h de jogo seguidas com um recurso
-    // indo ao chão.
+    // Regular, 7 dias reais, ritmo 3, em Senhor: de 72 a 75 aldeões conforme a semente, Salão
+    // Nv7, até 4.782 de madeira e 5.100 de pedra no Armazém, até 162.453 de ouro parado (com as
+    // obras esgotadas o bot manda todo mundo para a Mina) e até 33 h de jogo seguidas com um
+    // recurso indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 64, max: 82 },
+      villagers: { min: 64, max: 83 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_355, stone: 5_355, gold: 172_762 },
-      wasteStreakMax: 32,
+      surplusMax: { wood: 5_022, stone: 5_355, gold: 170_576 },
+      wasteStreakMax: 35,
     });
   });
 

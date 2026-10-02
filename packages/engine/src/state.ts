@@ -7,6 +7,7 @@ import {
   startingTiles,
 } from '@lotg/content';
 
+import { scriptedRaidsAfter } from './raids';
 import type { BuildingId, GameSettings, GameState } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
 
@@ -21,13 +22,14 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
-  // O Celeiro, o Armazém e a Torre de Vigia nascem no nível 0: ainda não foram construídos.
+  // O Celeiro, o Armazém, a Torre de Vigia e a Paliçada nascem no nível 0: ainda não foram
+  // construídos.
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 9,
+    schemaVersion: 11,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -59,6 +61,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       // A moral nasce na base e é recalculada na primeira virada de dia (GDD §5.7).
       morale: balance.morale.base,
       moraleEffects: [],
+      injured: [],
     },
     council: {
       pending: [],
@@ -80,7 +83,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       ),
       threat: 0,
     },
-    horde: { scheduledRaids: [] },
+    // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
+    horde: { scheduledRaids: scriptedRaidsAfter(0) },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),
       completed: [],

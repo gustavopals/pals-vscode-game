@@ -117,6 +117,13 @@ export type CouncilCard = {
    * por quem escreve a carta; as três existem e não têm custo nem requisito.
    */
   readonly autoResolve: Record<DifficultyId, string>;
+  /**
+   * A opção com requisito que o conselho aplica quando a carta expira **e o feudo já tem o que
+   * ela exige**, em qualquer dificuldade, no lugar da de `autoResolve`: a promessa que a obra já
+   * cumpriu se cumpre mesmo sem o senhor na sala, e a Crônica não diz o contrário do que o
+   * feudo vê. Não tem custo. Sem o requisito, vale `autoResolve`.
+   */
+  readonly autoResolveIfUnlocked?: string;
   /** Duas ou três. */
   readonly options: readonly CouncilOption[];
   readonly variants?: readonly CouncilCardVariant[];

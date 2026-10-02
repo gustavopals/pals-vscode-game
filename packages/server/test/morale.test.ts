@@ -19,6 +19,7 @@ import {
   HOUR,
   MINUTE,
   newPlayer,
+  quietHorde,
   order,
   type Player,
   renew,
@@ -167,6 +168,9 @@ describe('a moral na visão, em tempo real', () => {
 describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
   it('no ritmo Rápido, em 16 h reais o feudo está no piso, e a visão diz o porquê e o que fazer', async () => {
     const who = await newPlayer(fast);
+    // Só a fome e a moral: os lobos do roteiro levariam comida às 30 h de jogo e adiantariam
+    // a fome (as incursões pela API estão em `raids.test.ts`).
+    await quietHorde(fast, who.game.id);
     const created = new Date(who.game.createdAt).getTime();
     // 37 h de jogo: a fome abriu às 36 h, e a moral ainda é a da última virada.
     await wait(fast, who, (37 * HOUR) / PACE);
@@ -373,8 +377,8 @@ describe('uma partida gravada antes da moral (versão 6 do estado)', () => {
       expect(row.breakdown).not.toContain('moral');
     }
     const row = await rowOf(normal, game.id);
-    expect(row.schema_version).toBe(9);
-    expect(row.state.schemaVersion).toBe(9);
+    expect(row.schema_version).toBe(11);
+    expect(row.state.schemaVersion).toBe(11);
     expect(row.state.settlement).toMatchObject({ morale: 50, moraleEffects: [] });
     expect(row.state.settlement.population).toEqual(before.settlement.population);
     expect(moraleOnly(await eventsOf(normal, game, game.id))).toEqual([]);

@@ -28,8 +28,10 @@ export type BuildingDef = {
 
 const MINUTE_MS = 60_000;
 
-// GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5) e a Torre
-// de Vigia (§8.2). O que cada nível da Torre dá está em `balance.threat.watchtowerLevels`.
+// GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5), a Torre
+// de Vigia e a Paliçada (§8.2). O que cada nível da Torre dá está em
+// `balance.threat.watchtowerLevels`; o que cada nível da Paliçada segura, em
+// `balance.threat.palisadeLevels`.
 export const buildings: Record<BuildingId, BuildingDef> = {
   townHall: {
     label: 'Salão do Senhor',
@@ -123,5 +125,18 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 2 },
     maxLevelNote: 'Os níveis seguintes chegam em versões futuras do jogo.',
+  },
+  // Também até o nível 2 nesta versão (ADR 0014, decisão 11). Do nível 3 em diante o GDD a
+  // chama de Muralha de Pedra, com alas, dano e reparo: entra com a versão que traz os cercos.
+  palisade: {
+    label: 'Paliçada',
+    article: 'a',
+    baseCost: { wood: 200, stone: 50 },
+    baseDurationMs: 20 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 2,
+    produces: null,
+    requires: { townHall: 3 },
+    maxLevelNote: 'A Muralha de Pedra chega em uma versão futura.',
   },
 };

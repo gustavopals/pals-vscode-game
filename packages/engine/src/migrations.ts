@@ -8,14 +8,16 @@ import { v5ToV6 } from './migrations/v5';
 import { v6ToV7 } from './migrations/v6';
 import { v7ToV8 } from './migrations/v7';
 import { v8ToV9 } from './migrations/v8';
-import { stateV9 } from './migrations/v9';
+import { v9ToV10 } from './migrations/v9';
+import { v10ToV11 } from './migrations/v10';
+import { stateV11 } from './migrations/v11';
 import type { GameState } from './types';
 import { assertTimeScale } from './units';
 
 export type { MigrationContext } from './migrations/step';
 
 /** A versão do `GameState` que este motor escreve e sabe simular. */
-export const CURRENT_SCHEMA_VERSION = 9 satisfies GameState['schemaVersion'];
+export const CURRENT_SCHEMA_VERSION = 11 satisfies GameState['schemaVersion'];
 
 /**
  * Um passo por versão, em ordem: o de índice `n` parte da versão `n + 1`. Cada tarefa que muda
@@ -30,10 +32,12 @@ export const migrationSteps: readonly MigrationStep[] = [
   v6ToV7,
   v7ToV8,
   v8ToV9,
+  v9ToV10,
+  v10ToV11,
 ];
 
 /** A forma exata do estado na versão atual: é a entrada do próximo passo que alguém escrever. */
-export const currentShape: Shape = stateV9;
+export const currentShape: Shape = stateV11;
 
 /**
  * Uma cadeia de migração: os passos, em ordem, e a forma da versão a que o último leva (a de

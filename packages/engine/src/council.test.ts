@@ -27,6 +27,7 @@ import {
   HOUR,
   MINUTE,
   newGame,
+  quietHorde,
   refuse,
   settings,
   SUMMER,
@@ -50,9 +51,13 @@ const only = (...ids: string[]): Catalog => ids.map(card);
 const vespers: CouncilCard = { ...card('alms'), id: 'vespers', title: 'Vésperas', recurring: true };
 const matins: CouncilCard = { ...vespers, id: 'matins', title: 'Matinas' };
 
-/** Um feudo que se sustenta: três na Fazenda e os depósitos largos, para a fome não entrar na conta. */
+/**
+ * Um feudo que se sustenta: três na Fazenda e os depósitos largos, para a fome não entrar na
+ * conta, e a Horda calada, para os lobos também não.
+ */
 function fed(difficulty: DifficultyId = 'lord', timeScale = 1, seed = 'pedra-alta'): GameState {
   const state = createInitialState(seed, { ...settings, difficulty, timeScale });
+  quietHorde(state);
   state.settlement.workers.farm = 3;
   state.settlement.buildings.granary = 3;
   state.settlement.buildings.warehouse = 3;
@@ -512,6 +517,97 @@ describe('expiração', () => {
     expect(atFourth.map((event) => event.type)).toEqual(['dayStarted', 'cardExpired']);
     expect(state.council.pending).toHaveLength(1);
     expect(state.council.nextDrawAtMs).toBe(5 * INTERVAL);
+  });
+
+  describe('a opção marcada para o feudo que já tem o que ela exige (`autoResolveIfUnlocked`)', () => {
+    // O pedágio com a opção de regatear marcada: só regateia quem tem o Celeiro.
+    const kept: Catalog = [
+      { ...card('toll'), autoResolveIfUnlocked: 'haggle' },
+      card('tollReturn'),
+    ];
+    const without = (state: GameState) => {
+      state.settlement.buildings.granary = 0;
+      return state;
+    };
+
+    it('passa pelo schema do conteúdo', () => {
+      expect(CouncilCatalogSchema.safeParse(kept).error).toBeUndefined();
+    });
+
+    it.each(DIFFICULTY_IDS)(
+      'em %s: com o requisito, o conselho aplica a opção marcada; sem ele, a da dificuldade',
+      (difficulty) => {
+        const ready = dealt(fed(difficulty), 'toll', kept).state;
+        const met = advanceWithCards(ready, 24 * HOUR, kept);
+        expect(eventsOfType(met.events, 'cardExpired')[0]).toMatchObject({
+          atMs: 24 * HOUR,
+          data: { cardId: 'toll', optionId: 'haggle', difficulty, gained_gold: 10 },
+          text: 'No 13º dia da Primavera, o conselho de Pedra Alta esperou em vão pelo senhor e decidiu sozinho sobre "Pedágio na ponte": regatear com grão.',
+        });
+        // A opção marcada não agenda a volta do barqueiro: a cadeia não continua.
+        expect(met.state.council.scheduled).toEqual([]);
+
+        const lacking = dealt(without(fed(difficulty)), 'toll', kept).state;
+        const unmet = advanceWithCards(lacking, 24 * HOUR, kept);
+        expect(eventsOfType(unmet.events, 'cardExpired')[0]?.data).toMatchObject({
+          optionId: 'refuse',
+        });
+        expect(unmet.state.council.scheduled.map((entry) => entry.cardId)).toEqual(['tollReturn']);
+      },
+    );
+
+    it('sem a marca, o requisito cumprido não muda nada: vale a opção da dificuldade', () => {
+      const { state: waiting } = dealt(fed(), 'toll', testCards);
+      const { events } = advanceWithCards(waiting, 24 * HOUR, testCards);
+      expect(eventsOfType(events, 'cardExpired')[0]?.data).toMatchObject({ optionId: 'refuse' });
+    });
+
+    it('vale o feudo do instante em que a carta expira: a obra que termina na hora conta; um milissegundo depois, não', () => {
+      const building = (finishesAtMs: number) => {
+        const state = without(fed());
+        state.settlement.buildings.townHall = 2;
+        state.settlement.constructionQueues[0] = {
+          building: 'granary',
+          targetLevel: 1,
+          startedAtMs: 0,
+          finishesAtMs,
+        };
+        return dealt(state, 'toll', kept).state;
+      };
+      const onTime = advanceWithCards(building(24 * HOUR), 24 * HOUR, kept);
+      expect(onTime.events.map((event) => event.type)).toEqual(
+        expect.arrayContaining(['buildingFounded', 'cardExpired']),
+      );
+      const types = onTime.events.map((event) => event.type);
+      expect(types.indexOf('buildingFounded')).toBeLessThan(types.indexOf('cardExpired'));
+      expect(eventsOfType(onTime.events, 'cardExpired')[0]?.data.optionId).toBe('haggle');
+      const late = advanceWithCards(building(24 * HOUR + 1), 24 * HOUR, kept);
+      expect(eventsOfType(late.events, 'cardExpired')[0]?.data.optionId).toBe('refuse');
+    });
+
+    it('a visão diz o que o conselho faria agora, e muda quando o requisito chega', () => {
+      const lacking = dealt(without(fed()), 'toll', kept).state;
+      expect(councilView(lacking, 1, kept).council.pending[0]).toMatchObject({
+        defaultOptionId: 'refuse',
+        defaultOptionLabel: 'Recusar o pedágio',
+      });
+      const ready = dealt(fed(), 'toll', kept).state;
+      expect(councilView(ready, 1, kept).council.pending[0]).toMatchObject({
+        defaultOptionId: 'haggle',
+        defaultOptionLabel: 'Regatear com grão',
+      });
+    });
+
+    it('avançar de uma vez ou aos pedaços dá o mesmo estado e os mesmos eventos', () => {
+      const ready = dealt(fed(), 'toll', kept).state;
+      const direct = advanceWithCards(ready, 30 * HOUR, kept);
+      for (const cut of [HOUR, 24 * HOUR - 1, 24 * HOUR, 24 * HOUR + 1]) {
+        const first = advanceWithCards(ready, cut, kept);
+        const second = advanceWithCards(first.state, 30 * HOUR, kept);
+        expect(second.state, `corte em ${cut}`).toEqual(direct.state);
+        expect([...first.events, ...second.events], `corte em ${cut}`).toEqual(direct.events);
+      }
+    });
   });
 
   it('uma carta que o catálogo já não tem sai da mesa sem efeito e sem linha', () => {

@@ -22,6 +22,7 @@ import {
   JWT_SECRET,
   MINUTE,
   newPlayer,
+  quietHorde,
   order,
   type Player,
   RECOVERY_CODE_SECRET,
@@ -199,12 +200,17 @@ function atPace(view: ViewState, pace: number): ViewState {
                 view.calendar.nextFirewoodSeason.firewood,
             },
     },
+    // Os feridos são os mesmos; o prazo até o primeiro sarar é um prazo como os outros.
     population: {
       ...view.population,
       secondsToNextRecruit:
         view.population.secondsToNextRecruit === null
           ? null
           : up(view.population.secondsToNextRecruit),
+      secondsToNextRecovery:
+        view.population.secondsToNextRecovery === null
+          ? null
+          : up(view.population.secondsToNextRecovery),
     },
     resources: view.resources.map((entry) => ({
       ...entry,
@@ -388,11 +394,24 @@ function withoutRateTexts(view: ViewState): ViewState {
         entry.building === 'watchtower' ? { ...entry, effect: '' } : entry,
       ),
     },
-    threat: {
-      ...view.threat,
-      watchtower: { ...view.threat.watchtower, text: '', next: '' },
-      ...(view.threat.known ? { trend: '' } : {}),
+    // A frase dos feridos diz em quanto tempo real eles saram.
+    population: {
+      ...view.population,
+      injuredNote: view.population.injuredNote === null ? null : '',
     },
+    // As frases das incursões citam prazos em tempo real: quando a marcada chega, quanto dura
+    // um ferimento. Os números são conferidos; as frases, por extenso em `raids.test.ts`.
+    threat: view.threat.known
+      ? {
+          ...view.threat,
+          watchtower: { ...view.threat.watchtower, text: '', next: '' },
+          trend: '',
+          raidRisk: '',
+          raidCosts: [],
+          incoming:
+            view.threat.incoming === null ? null : { ...view.threat.incoming, costText: '' },
+        }
+      : { ...view.threat, watchtower: { ...view.threat.watchtower, text: '', next: '' } },
   };
 }
 
@@ -805,6 +824,9 @@ describe('o que a visão anuncia acontece no relógio real', () => {
 
   it('sem fazendeiros, a comida inicial acaba em 12 horas reais, com o instante exato na Crônica', async () => {
     const player = await newPlayer(fast);
+    // O prazo anunciado é o de quem não é atacado no caminho: os lobos do roteiro levariam
+    // comida às 10 h reais, e a previsão não conta com o que os vigias não viram.
+    await quietHorde(fast, player.game.id);
     const start = await viewOf(fast, player);
     expect(resource(start, 'food').depletesInSeconds).toBe(12 * 3600);
 
@@ -973,6 +995,8 @@ describe('as estações no relógio real (V2C-T1)', () => {
 
   it('no ritmo 3, o inverno chega em 48 horas reais; sem madeira, o frio abre na virada e a Crônica o registra', async () => {
     const player = await newPlayer(fast);
+    // Só as estações: sem os lobos, que feririam lavradores e mexeriam na moral.
+    await quietHorde(fast, player.game.id);
     const created = createdAtMs(player);
     // Todos na Fazenda (a comida sobra o ano inteiro) e a madeira inteira em uma obra: a
     // Pedreira custa 120 de madeira, tudo o que o feudo tem.
@@ -1132,10 +1156,27 @@ describe('as estações no relógio real (V2C-T1)', () => {
         .map(({ type, atMs, text, data }) => ({ type, atMs, text, data }));
     const fastStory = story(await eventsOf(fast, quick));
     expect(fastStory).toEqual(story(await eventsOf(normal, slow)));
-    expect(fastStory.filter((event) => event.type.startsWith('cold'))).toMatchObject([
-      { type: 'coldStarted', atMs: WINTER + 16 * HOUR },
+    // 40 de madeira dariam 16 horas de jogo de lareira; os lobos, que passam pelo feudo o ano
+    // inteiro, levam uma parte a cada incursão, e o frio vem antes disso, no mesmo instante de
+    // jogo nos dois ritmos.
+    const cold = fastStory.filter((event) => event.type.startsWith('cold'));
+    expect(cold).toMatchObject([
+      { type: 'coldStarted' },
       { type: 'coldEnded', atMs: YEAR, data: { reason: 'thaw' } },
     ]);
+    expect(cold[0]?.atMs).toBeGreaterThan(WINTER);
+    expect(cold[0]?.atMs).toBeLessThan(WINTER + 16 * HOUR);
+    // As incursões são tempo de jogo: os uivos, a do roteiro e as que a Ameaça sorteia caem
+    // nos mesmos instantes, com as mesmas perdas e os mesmos feridos, nos dois ritmos.
+    const raids = fastStory.filter((event) =>
+      /^(wolvesHowl|raid|villager(Injured|Recovered))/.test(event.type),
+    );
+    expect(raids.filter((event) => event.type === 'raidSuffered').length).toBeGreaterThan(5);
+    expect(raids[0]).toMatchObject({ type: 'wolvesHowl', atMs: 9 * DAY });
+    expect(raids.find((event) => event.type === 'raidSuffered')).toMatchObject({
+      atMs: 15 * DAY,
+      data: { raidId: 'wolvesYear1', size: 'light' },
+    });
   });
 });
 

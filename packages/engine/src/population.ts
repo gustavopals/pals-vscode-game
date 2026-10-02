@@ -21,9 +21,18 @@ export function assignedWorkers(state: GameState): number {
   return PRODUCTION_BUILDING_IDS.reduce((sum, id) => sum + state.settlement.workers[id], 0);
 }
 
-/** Aldeões sem ofício: derivado, nunca persistido. */
+/**
+ * Os habitantes que podem trabalhar: todos, menos os feridos das incursões (GDD §8.2). O ferido
+ * mora e come no feudo, mas não é braço de ofício nenhum até sarar.
+ */
+export function ableVillagers(state: GameState): number {
+  const { population, injured } = state.settlement;
+  return population.villagers - injured.length;
+}
+
+/** Aldeões sem ofício e em condição de trabalhar: derivado, nunca persistido. */
 export function freeVillagers(state: GameState): number {
-  return state.settlement.population.villagers - assignedWorkers(state);
+  return ableVillagers(state) - assignedWorkers(state);
 }
 
 /** Vagas ainda não ocupadas nem reservadas por quem está em treinamento. */
@@ -67,18 +76,24 @@ export function setWorkers(
 }
 
 /**
- * Garante que a soma dos trabalhadores não passa dos habitantes: quando a população cai (um
- * aldeão parte, deserta ou se fere), quem falta sai do ofício, um a um, do edifício com mais
- * gente (no empate, o primeiro na ordem do conteúdo) e, dentro dele, primeiro de quem ainda
- * está em adaptação. Devolve quantos saíram de cada edifício; vazio quando ninguém precisava
- * sair. Quem tira gente do feudo chama isto logo depois.
+ * Garante que a soma dos trabalhadores não passa dos habitantes que podem trabalhar: quando eles
+ * diminuem (um aldeão parte, deserta ou se fere), quem falta sai do ofício, um a um, do edifício
+ * com mais gente (no empate, o primeiro na ordem do conteúdo) e, dentro dele, primeiro de quem
+ * ainda está em adaptação. Devolve quantos saíram de cada edifício; vazio quando ninguém
+ * precisava sair. Quem tira gente do feudo, ou do trabalho, chama isto logo depois.
+ *
+ * Se o feudo ficou com menos habitantes do que feridos, quem partiu foi um ferido: o que
+ * sararia por último sai da lista, e ninguém volta a um ofício no lugar de quem já não está.
  */
 export function releaseExcessWorkers(
   draft: GameState,
 ): Partial<Record<ProductionBuildingId, number>> {
-  const { workers, population } = draft.settlement;
+  const { workers, population, injured } = draft.settlement;
+  while (injured.length > population.villagers) {
+    injured.pop();
+  }
   const released: Partial<Record<ProductionBuildingId, number>> = {};
-  for (let excess = assignedWorkers(draft) - population.villagers; excess > 0; excess -= 1) {
+  for (let excess = assignedWorkers(draft) - ableVillagers(draft); excess > 0; excess -= 1) {
     const fullest = PRODUCTION_BUILDING_IDS.reduce((best, id) =>
       workers[id] > workers[best] ? id : best,
     );

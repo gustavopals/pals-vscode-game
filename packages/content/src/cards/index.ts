@@ -1,6 +1,11 @@
 import type { CouncilCard } from '../council';
 import { commonGranaryOutcome, commonGranaryPlanks, commonGranaryShare } from './commonGranary';
 import {
+  palisadePromiseDeadline,
+  palisadePromisePlea,
+  palisadePromiseReckoning,
+} from './palisadePromise';
+import {
   apprenticesTable,
   collapsedWell,
   dampFirewood,
@@ -22,9 +27,9 @@ import { thawBridgeCrossing, thawBridgePlea, thawBridgeSlab } from './thawBridge
  * carta nova entra no fim da cadeia dela, e cadeia nova, antes das avulsas ou depois delas, mas
  * nunca no meio de outra.
  *
- * São 18 das 21 cartas do primeiro lote (docs/content-v0.2.md): as duas cadeias que só pedem o
- * que a v0.2 já tem e as doze avulsas. A terceira cadeia, "A Promessa da Paliçada", está escrita
- * no inventário e entra aqui com o edifício dela (roadmap da v0.2, V2E-T2), antes das avulsas.
+ * São as 21 cartas do primeiro lote (docs/content-v0.2.md): as três cadeias e as doze avulsas.
+ * A terceira cadeia, "A Promessa da Paliçada", entrou com o edifício dela (roadmap da v0.2,
+ * V2E-T2), antes das avulsas: só sai com o Salão no nível 3, que é o que libera a Paliçada.
  *
  * A lista é escrita carta a carta, sem espalhamento (`...`): assim o build do app, que só usa
  * as listas de identificadores do conteúdo, descarta as cartas inteiras.
@@ -36,6 +41,9 @@ export const councilCards: readonly CouncilCard[] = [
   thawBridgePlea,
   thawBridgeSlab,
   thawBridgeCrossing,
+  palisadePromisePlea,
+  palisadePromiseDeadline,
+  palisadePromiseReckoning,
   collapsedWell,
   masonsMeal,
   sawmillRest,

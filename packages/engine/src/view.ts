@@ -30,7 +30,7 @@ import { costView } from './costView';
 import { councilView } from './councilView';
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
-import { decimal, plural } from './format';
+import { decimal, durationText, plural } from './format';
 import { moraleAt } from './morale';
 import { moraleView, recruitmentMoraleNote } from './moraleView';
 import { describeReward, objectiveProgress } from './objectives';
@@ -57,7 +57,7 @@ import {
 } from './seasonView';
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
-import { threatView, watchtowerEffect } from './threatView';
+import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
   ActiveConstructionView,
   BuildingId,
@@ -159,7 +159,8 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
 
 /**
  * O que a obra muda, para ficar ao lado do custo: a capacidade de um depósito, o que a Torre de
- * Vigia passa a ver. `null` nos edifícios cujo efeito já está em outro lugar da tela.
+ * Vigia passa a ver, o que a Paliçada passa a segurar. `null` nos edifícios cujo efeito já está
+ * em outro lugar da tela.
  */
 function upgradeEffect(
   state: GameState,
@@ -169,7 +170,8 @@ function upgradeEffect(
 ): string | null {
   return (
     storageEffect(state, building, targetLevel) ??
-    watchtowerEffect(building, targetLevel, timeScale)
+    watchtowerEffect(building, targetLevel, timeScale) ??
+    palisadeEffect(building, targetLevel)
   );
 }
 
@@ -257,6 +259,42 @@ function objectivesView(state: GameState): ObjectiveView[] {
         progress: { current: done ? target : Math.min(current, target), target },
       };
     });
+}
+
+/** "à Serraria", "ao Salão do Senhor": para onde o ferido volta. */
+function toBuilding(building: BuildingId): string {
+  const { article, label } = buildings[building];
+  return `${article.startsWith('a') ? `à${article.slice(1)}` : `a${article}`} ${label}`;
+}
+
+/**
+ * Os feridos das incursões na visão (GDD §8.2): quantos são, quando o primeiro sara e a frase
+ * que diz o que isso muda. Quem tinha ofício volta a ele sozinho: não é preciso mexer em nada.
+ */
+function injuredView(
+  state: GameState,
+  timeScale: number,
+): Pick<ViewState['population'], 'injured' | 'secondsToNextRecovery' | 'injuredNote'> {
+  const { injured } = state.settlement;
+  const [first] = injured;
+  if (first === undefined) {
+    return { injured: 0, secondsToNextRecovery: null, injuredNote: null };
+  }
+  const seconds = realSecondsCeil(first.untilMs - state.lastProcessedAt, timeScale);
+  const wait = durationText(seconds);
+  const together = injured.every((hurt) => hurt.untilMs === first.untilMs);
+  let note: string;
+  if (injured.length === 1) {
+    const back = first.building === null ? '' : `, e então volta ${toBuilding(first.building)}`;
+    note = `1 aldeão ferido na incursão: não trabalha até sarar, em ${wait}${back}.`;
+  } else {
+    const heal = together ? `Saram em ${wait}` : `O primeiro sara em ${wait}`;
+    const back = injured.some((hurt) => hurt.building !== null)
+      ? '; quem tinha ofício volta a ele sozinho'
+      : '';
+    note = `${injured.length} aldeões feridos na incursão: não trabalham até sarar. ${heal}${back}.`;
+  }
+  return { injured: injured.length, secondsToNextRecovery: seconds, injuredNote: note };
 }
 
 /**
@@ -363,6 +401,7 @@ export function deriveViewState(
       vacancies: housingVacancy(state),
       secondsToNextRecruit:
         nextRecruit === undefined || settlement.famine ? null : until(nextRecruit.finishesAtMs),
+      ...injuredView(state, timeScale),
       breakdown: BUILDING_IDS.flatMap((id) => {
         const perLevel = balance.housing.capacityPerLevel[id];
         return perLevel === undefined

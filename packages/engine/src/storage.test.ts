@@ -1113,6 +1113,7 @@ describe('a visão do armazenamento', () => {
           granary: 8,
           warehouse: 8,
           watchtower: 2,
+          palisade: 2,
         };
         edit(draft);
         draft.settlement.resources.wood = storageCapacity(draft, 'wood') ?? 0;
@@ -1416,6 +1417,9 @@ describe('a visão do armazenamento', () => {
       // A Torre de Vigia também diz o que dá (threat.test.ts).
       watchtower:
         'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+      // E a Paliçada, o que segura (palisade.test.ts).
+      palisade:
+        'Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
     });
     const iron = gameWith((draft) => {
       draft.settings.difficulty = 'ironKing';
@@ -1431,7 +1435,8 @@ describe('a visão do armazenamento', () => {
   it('o Celeiro e o Armazém aparecem na lista de obras desde o começo, com o motivo do bloqueio', () => {
     const available = deriveViewState(newGame(), 0).constructions.available;
     const depots = available.filter(
-      (entry) => entry.fromLevel === 0 && entry.building !== 'watchtower',
+      (entry) =>
+        entry.fromLevel === 0 && entry.building !== 'watchtower' && entry.building !== 'palisade',
     );
     expect(depots).toMatchObject([
       {
@@ -1869,6 +1874,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       granary: 8,
       warehouse: 8,
       watchtower: 2,
+      palisade: 2,
     });
     expect(unreachable('peasant')).toEqual([
       'farm 10',
@@ -1885,12 +1891,19 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       goldMine: 8,
       housing: 8,
     };
-    expect(ceilings('lord')).toEqual({ ...stuckAtSeven, granary: 8, warehouse: 8, watchtower: 2 });
+    expect(ceilings('lord')).toEqual({
+      ...stuckAtSeven,
+      granary: 8,
+      warehouse: 8,
+      watchtower: 2,
+      palisade: 2,
+    });
     expect(ceilings('ironKing')).toEqual({
       ...stuckAtSeven,
       granary: 7,
       warehouse: 7,
       watchtower: 2,
+      palisade: 2,
     });
     const beyondSeven = [
       'townHall 8',

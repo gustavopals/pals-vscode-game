@@ -5,6 +5,7 @@ import {
   cutRewardTemplates,
   EVENT_TYPES,
   foundingTemplates,
+  injuryTemplates,
 } from './chronicle';
 import { COUNCIL_EFFECT_TYPES } from './council';
 import {
@@ -139,6 +140,23 @@ const threat = z
           }),
         'nível da Torre que avisa menos que o anterior',
       ),
+    // Cada nível da Paliçada segura um tamanho maior que o anterior.
+    palisadeLevels: z
+      .array(z.strictObject({ absorbs: z.enum(RAID_SIZE_IDS) }))
+      .min(1)
+      .refine(
+        (levels) =>
+          levels.every((level, index) => {
+            const previous = levels[index - 1];
+            return (
+              previous === undefined ||
+              RAID_SIZE_IDS.indexOf(level.absorbs) > RAID_SIZE_IDS.indexOf(previous.absorbs)
+            );
+          }),
+        'nível da Paliçada que não segura mais que o anterior',
+      ),
+    // O que passa por uma Paliçada pequena demais é uma parte do estrago, nunca ele inteiro.
+    palisadeBreach: ratio.refine(({ num, den }) => num < den, 'a Paliçada não segura nada'),
   })
   .refine(
     ({ max, chronicleMarks }) => chronicleMarks.every((mark) => mark <= max),
@@ -155,6 +173,69 @@ const threat = z
       watchtowerLevels.every((level) => level.warningMs <= raidLeadMs),
     'aviso da Torre maior que o prazo da incursão',
   );
+
+const raidDamage = z.strictObject({
+  // Uma incursão leva uma parte do estoque, nunca ele inteiro.
+  lossRatio: ratio.refine(({ num, den }) => num < den, 'a incursão leva o estoque inteiro'),
+  resources: z
+    .array(resourceId)
+    .min(1)
+    .refine((resources) => new Set(resources).size === resources.length, 'recurso repetido'),
+  injuries: positiveInt,
+});
+
+/** As incursões: a do roteiro, o estrago de cada tamanho e o que fica depois (GDD §8.2). */
+const raids = z.strictObject({
+  scripted: z
+    .array(
+      z
+        .strictObject({
+          id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+          enemy: z.enum(ENEMY_IDS),
+          size: z.enum(RAID_SIZE_IDS),
+          atGameDay: positiveInt,
+          howlAtGameDay: positiveInt,
+        })
+        // O prenúncio vem antes do que ele anuncia.
+        .refine((raid) => raid.howlAtGameDay < raid.atGameDay, 'uivos depois da incursão'),
+    )
+    .refine(
+      (scripted) => new Set(scripted.map((raid) => raid.id)).size === scripted.length,
+      'incursões do roteiro com o mesmo id',
+    )
+    // No máximo uma incursão marcada por vez: o roteiro não marca duas para o mesmo dia.
+    .refine(
+      (scripted) => new Set(scripted.map((raid) => raid.atGameDay)).size === scripted.length,
+      'duas incursões do roteiro no mesmo dia',
+    ),
+  damage: z.strictObject(
+    Object.fromEntries(
+      ENEMY_IDS.map((enemy) => [
+        enemy,
+        z
+          .strictObject(Object.fromEntries(RAID_SIZE_IDS.map((size) => [size, raidDamage])))
+          // Um tamanho maior nunca custa menos que o anterior.
+          .refine((sizes) => {
+            const ordered = RAID_SIZE_IDS.map((size) => sizes[size] as z.infer<typeof raidDamage>);
+            return ordered.every((damage, index) => {
+              const previous = ordered[index - 1];
+              return (
+                previous === undefined ||
+                (damage.injuries >= previous.injuries &&
+                  damage.lossRatio.num * previous.lossRatio.den >=
+                    previous.lossRatio.num * damage.lossRatio.den)
+              );
+            });
+          }, 'incursão maior que custa menos que a menor'),
+      ]),
+    ),
+  ),
+  injuryMs: positiveInt,
+  moraleOnLosses: z.number().int().negative(),
+  moraleLossDays: positiveInt,
+  // Entra na conta da moral como o nome de um termo: maiúscula, sem ponto.
+  moraleLabel: label.regex(/^\p{Lu}[^.{}]*$/u),
+});
 
 const pace = z.strictObject({
   timeScale: z.number().positive(),
@@ -256,6 +337,7 @@ export const BalanceSchema = z.strictObject({
     expiryRealMs: positiveInt,
   }),
   threat,
+  raids,
 });
 
 export const BuildingSchema = z
@@ -283,6 +365,7 @@ export const BuildingsSchema = z.strictObject({
   granary: BuildingSchema,
   warehouse: BuildingSchema,
   watchtower: BuildingSchema,
+  palisade: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -371,6 +454,63 @@ export const ThreatMarkTemplatesSchema = z.record(
   chronicleTemplate,
 );
 
+/**
+ * As frases das incursões, por inimigo. As que abrem a linha levam a data; as que vêm depois
+ * (o desfecho e o conselho) são frases inteiras, com maiúscula e ponto, e não repetem a data.
+ */
+const datedTemplate = chronicleTemplate.regex(/^No \{dia\}º dia \{daEstacao\}, .*\.$/);
+const followingSentence = chronicleTemplate
+  .regex(/^\p{Lu}.*\.$/u)
+  .refine((template) => !template.includes('{dia}'), 'frase de continuação com data');
+export const RaidTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    ENEMY_IDS.map((enemy) => [
+      enemy,
+      z.strictObject({
+        howl: z.strictObject({ unwatched: datedTemplate, watched: datedTemplate }),
+        announced: z.strictObject({
+          warned: datedTemplate,
+          // O aviso que distingue o tamanho o diz.
+          sized: datedTemplate.refine((template) => template.includes('{bando}'), 'sem {bando}'),
+        }),
+        arrival: z.strictObject({
+          unwarned: datedTemplate,
+          warned: datedTemplate,
+          sized: datedTemplate.refine((template) => template.includes('{bando}'), 'sem {bando}'),
+        }),
+        outcome: z.strictObject({
+          held: followingSentence,
+          // A incursão que passa diz o que custou.
+          breached: followingSentence.refine((t) => t.includes('{perda}'), 'sem {perda}'),
+          open: followingSentence.refine((t) => t.includes('{perda}'), 'sem {perda}'),
+          emptyHanded: followingSentence,
+        }),
+        advice: z.strictObject({
+          build: followingSentence,
+          upgrade: followingSentence.refine((t) => t.includes('{nivel}'), 'sem {nivel}'),
+        }),
+      }),
+    ]),
+  ),
+);
+
+/** As frases de quem se fere e de quem sara: com ofício e sem ofício, todas com {aldeao}. */
+const injuryTemplate = datedTemplate.refine((t) => t.includes('{aldeao}'), 'sem {aldeao}');
+export const InjuryTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    Object.keys(injuryTemplates).map((type) => [
+      type,
+      z.strictObject({ worker: injuryTemplate, idle: injuryTemplate }),
+    ]),
+  ),
+);
+
+/** O que um ataque custa em gente: entra no fim de uma lista, em minúscula e sem ponto. */
+export const InjuredLossSchema = z.strictObject({
+  one: label.regex(/^\p{Ll}[^.{}]*$/u),
+  many: label.regex(/^\{quantidade\} \p{Ll}[^.{}]*$/u),
+});
+
 /** Os tipos de tile: rótulo, artigo e o inimigo que mora nele. */
 export const TileTypesSchema = z.strictObject(
   Object.fromEntries(
@@ -406,6 +546,11 @@ export const EnemiesSchema = z.strictObject(
       }),
     ]),
   ),
+);
+
+/** Os tamanhos de incursão, como as frases os chamam em geral: no plural e em minúscula. */
+export const RaidSizesSchema = z.strictObject(
+  Object.fromEntries(RAID_SIZE_IDS.map((size) => [size, z.strictObject({ plural: midSentence })])),
 );
 
 const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
@@ -500,6 +645,7 @@ export const CouncilCardSchema = z
         typeof identifier
       >,
     ),
+    autoResolveIfUnlocked: identifier.optional(),
     options: z.array(CouncilOptionSchema).min(2).max(3),
     variants: z
       .array(
@@ -532,6 +678,21 @@ export const CouncilCardSchema = z
         context.addIssue({
           code: 'custom',
           message: 'opção automática com custo ou requisito',
+          path,
+        });
+      }
+    }
+    // A que o conselho aplica quando o feudo já tem o que ela exige: existe, exige algo (sem
+    // requisito ela seria só mais uma automática) e também não cobra nada.
+    if (card.autoResolveIfUnlocked !== undefined) {
+      const option = card.options.find((entry) => entry.id === card.autoResolveIfUnlocked);
+      const path = ['autoResolveIfUnlocked'];
+      if (option === undefined) {
+        context.addIssue({ code: 'custom', message: 'opção automática inexistente', path });
+      } else if (option.requires === undefined || option.cost !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: 'opção automática destrancada sem requisito ou com custo',
           path,
         });
       }

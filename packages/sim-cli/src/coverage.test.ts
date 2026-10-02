@@ -32,6 +32,15 @@ if (process.env.SHOW_COVERAGE !== undefined) {
 
 const drawable = councilCards.filter((card) => card.weight > 0).map((card) => card.id);
 
+/**
+ * As duas continuações de "A Promessa da Paliçada" só chegam a quem promete, e o bot nunca
+ * promete: a carta não tem opção paga para ele pesar, e sem ela o bot fica com a primeira opção
+ * sem custo, que é explicar que não é hora (ou mostrar a obra, se a Paliçada já existir). Ele
+ * não lê a pista nem a consequência (docs/content-v0.2.md, seção 6). A cadeia inteira é
+ * percorrida em `packages/engine/src/council.chains.test.ts`.
+ */
+const neverOpened = ['palisadePromiseDeadline', 'palisadePromiseReckoning'];
+
 describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
   it('são 21 audiências por ano, nos dois ritmos', () => {
     expect(normal.runs).toBe(50);
@@ -81,7 +90,12 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
   it('todas as cartas do catálogo aparecem em alguma partida, as continuações também', () => {
     for (const coverage of [normal, fast]) {
       for (const row of coverage.byCard) {
-        expect(row.runs, row.cardId).toBeGreaterThan(0);
+        if (neverOpened.includes(row.cardId)) {
+          // No dia em que um bot aprender a prometer, estas duas passam a aparecer.
+          expect(row.runs, row.cardId).toBe(0);
+        } else {
+          expect(row.runs, row.cardId).toBeGreaterThan(0);
+        }
       }
     }
     // As que o sorteio tira saem em boa parte das sementes do ritmo Normal.

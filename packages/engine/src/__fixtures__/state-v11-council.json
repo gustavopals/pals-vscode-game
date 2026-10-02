@@ -1,0 +1,183 @@
+{
+ "schemaVersion": 11,
+ "seed": "fixture-council-623",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 340201234,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 340201234,
+ "rng": {
+  "council": [
+   1914069544,
+   2465930559,
+   1572033635,
+   1838027134
+  ],
+  "horde": [
+   2230303645,
+   2280538892,
+   1829634301,
+   2111673367
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 769327,
+   "wood": 431283,
+   "stone": 85000,
+   "gold": 725447
+  },
+  "accumulators": {
+   "food": 3474100,
+   "wood": 1096572,
+   "stone": 0,
+   "gold": 3137640
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 1,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 418,
+   "wood": 647,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 0,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [
+   {
+    "id": "raid",
+    "label": "Incursão sofrida",
+    "amount": -10,
+    "untilMs": 352800000
+   }
+  ],
+  "injured": [
+   {
+    "untilMs": 345600000,
+    "building": "farm"
+   },
+   {
+    "untilMs": 345600000,
+    "building": "farm"
+   }
+  ]
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "masonsMeal-4",
+    "cardId": "masonsMeal",
+    "drawnAtMs": 86400000,
+    "expiresAtMs": 345600000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "commonGranary.open": true,
+   "commonGranary.supported": true,
+   "commonGranary.reserved": true
+  },
+  "seenThisYear": [
+   "collapsedWell",
+   "commonGranaryPlanks",
+   "commonGranaryShare",
+   "masonsMeal"
+  ],
+  "nextDrawAtMs": 345600000,
+  "scheduled": [
+   {
+    "cardId": "commonGranaryOutcome",
+    "atMs": 346020000,
+    "previousCardId": "commonGranaryShare",
+    "previousOptionId": "reserve",
+    "previousInstanceId": "commonGranaryShare-3"
+   }
+  ],
+  "delayed": [],
+  "expired": [
+   "commonGranaryShare-3"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 90
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 4,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsAnswered": 2,
+  "cardsDrawn:commonGranaryPlanks": 1,
+  "cardsDrawn:commonGranaryShare": 1,
+  "wasted_food": 1421418,
+  "cardsDrawn:masonsMeal": 1,
+  "raids_suffered": 8,
+  "wasted_wood": 149647,
+  "cardsExpired": 1
+ }
+}

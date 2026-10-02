@@ -20,6 +20,7 @@ import {
   ampliarEstoque,
   comidaPrimeiro,
   DEFAULT_AWAY_HOURS,
+  erguerPalicada,
   erguerTorre,
   guardarLenha,
   nothingLeftToBuild,
@@ -154,12 +155,13 @@ describe('um bot é uma lista de políticas', () => {
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
     // As obras antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
-    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. A Torre de Vigia
-    // vem na frente das outras obras, e só com folga: sem ela, a fila é das obras que rendem. O
-    // Conselho vem
-    // depois dos dois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico
-    // investe com folga; o preguiçoso responde sem gastar.
+    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. A Paliçada vem na
+    // frente de tudo, e só quando os vigias dizem que há risco. A Torre de Vigia vem na frente
+    // das outras obras, e só com folga: sem ela, a fila é das obras que rendem. O Conselho vem
+    // depois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico investe
+    // com folga; o preguiçoso responde sem gastar.
     expect(strategyPolicies.economico).toEqual([
+      erguerPalicada,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
@@ -170,6 +172,7 @@ describe('um bot é uma lista de políticas', () => {
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
+      erguerPalicada,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
@@ -188,6 +191,7 @@ describe('um bot é uma lista de políticas', () => {
       obraMaisBarata,
       ampliarEstoque,
       erguerTorre,
+      erguerPalicada,
       planejarAutomaticas,
       alocarPorDemanda,
       comidaPrimeiro,
@@ -201,6 +205,7 @@ describe('um bot é uma lista de políticas', () => {
       'obra mais barata',
       'ampliar o estoque',
       'erguer a Torre',
+      'erguer a Paliçada',
       'planejar automáticas',
       'alocar por demanda',
       'comida primeiro',
@@ -1407,6 +1412,180 @@ describe('política "erguer a Torre"', () => {
   });
 });
 
+describe('política "erguer a Paliçada"', () => {
+  type Upgrade = ViewState['constructions']['available'][number];
+  /** A obra da Paliçada como a lista a mostra: 200 de madeira e 50 de pedra. */
+  const palisade = (
+    blockedCode: Upgrade['blockedCode'] = null,
+    more: Partial<Upgrade> = {},
+  ): Upgrade => ({
+    ...upgrade('palisade', {}, blockedCode),
+    fromLevel: 0,
+    targetLevel: 1,
+    cost: [
+      { resource: 'wood', label: 'Madeira', amount: 200, missing: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 50, missing: 0 },
+    ],
+    ...more,
+  });
+  /** A visão de quem tem a Torre: a Ameaça conhecida, com a chance que a visão anuncia. */
+  const watched = (
+    raidChancePercent: number,
+    incoming: Extract<ViewState['threat'], { known: true }>['incoming'] = null,
+    available: Upgrade[] = [palisade()],
+  ): ViewState => {
+    const view = withUpgrades(freshView(), available);
+    return {
+      ...view,
+      threat: {
+        known: true,
+        text: 'Ameaça 50 de 100.',
+        level: 50,
+        max: 100,
+        risePerDay: 5,
+        nextLevel: 55,
+        nextRiseInSeconds: 3600,
+        trend: 'Sobe 5 a cada dia de jogo.',
+        sources: ['+5/dia: Covil de Lobos'],
+        tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
+        raidChancePercent,
+        raidRisk: 'A regra das incursões.',
+        raidCosts: [],
+        incoming,
+        watchtower: { ...view.threat.watchtower, level: 1 },
+        defense: view.threat.defense,
+      },
+    };
+  };
+  const wolves = {
+    enemy: 'wolves' as const,
+    enemyLabel: 'Lobos',
+    inSeconds: 1200,
+    sizeText: null,
+    text: 'Lobos a caminho.',
+    costText: 'O que custa.',
+    defenseText: 'Sem Paliçada, nada segura este ataque.',
+  };
+  const decide = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    const after = await erguerPalicada.run(view, act);
+    return { orders, untouched: after === view };
+  };
+  const build = { type: 'startConstruction', payload: { building: 'palisade' } };
+
+  it('sem a Torre o bot não sabe de nada, como o jogador: não ergue', async () => {
+    const blind = withUpgrades(freshView(), [palisade()]);
+    expect(blind.threat.known).toBe(false);
+    expect(blind.threat.defense).toMatchObject({ building: 'palisade', palisadeLevel: 0 });
+    expect(await decide(blind)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('com a Ameaça conhecida abaixo do limiar das incursões, espera', async () => {
+    expect(await decide(watched(0))).toEqual({ orders: [], untouched: true });
+  });
+
+  it('quando a visão diz que a próxima virada pode marcar uma incursão, ergue, sem pedir folga', async () => {
+    // O estoque paga o custo uma vez só: para a Torre não bastaria; para a Paliçada, basta.
+    const view = withStock(watched(5), { wood: 200, stone: 50 });
+    expect((await decide(view)).orders).toEqual([build]);
+  });
+
+  it('com os lobos à vista, ergue mesmo com a chance em zero (só há uma incursão por vez)', async () => {
+    const view = withStock(watched(0, wolves), { wood: 200, stone: 50 });
+    expect((await decide(view)).orders).toEqual([build]);
+  });
+
+  it('sem recurso ou sem fila, deixa a obra planejada como automática, uma vez', async () => {
+    for (const code of ['INSUFFICIENT_RESOURCES', 'QUEUE_LOCKED', 'QUEUE_BUSY'] as const) {
+      const view = watched(20, null, [palisade(code)]);
+      expect((await decide(view)).orders, code).toEqual([
+        {
+          type: 'planConstruction',
+          payload: { building: 'palisade', autoStart: true, targetLevel: 1 },
+        },
+      ]);
+      // Já planejada: não repete a ordem.
+      const planned = watched(20, null, [palisade(code, { planned: true })]);
+      expect(await decide(planned), code).toEqual({ orders: [], untouched: true });
+    }
+  });
+
+  it('presa ao Salão ou no teto, não há o que fazer', async () => {
+    for (const code of ['GATE_LOCKED', 'MAX_LEVEL'] as const) {
+      expect(await decide(watched(30, null, [palisade(code)])), code).toEqual({
+        orders: [],
+        untouched: true,
+      });
+    }
+    // No teto desta versão a Paliçada sai da lista de obras.
+    expect(await decide(watched(30, null, [upgrade('farm', {}, null)]))).toEqual({
+      orders: [],
+      untouched: true,
+    });
+  });
+
+  it('melhora a Paliçada pela mesma regra: o nível 2 é o que segura os ataques médios', async () => {
+    const second = palisade(null, {
+      fromLevel: 1,
+      targetLevel: 2,
+      cost: [
+        { resource: 'wood', label: 'Madeira', amount: 320, missing: 0 },
+        { resource: 'stone', label: 'Pedra', amount: 80, missing: 0 },
+      ],
+    });
+    const view = withStock(watched(55, null, [second]), { wood: 320, stone: 80 });
+    expect((await decide(view)).orders).toEqual([build]);
+  });
+
+  it('não gasta a madeira da lareira', async () => {
+    const view = withStock(watched(20), { wood: 400, stone: 100 });
+    const winterAhead: ViewState = {
+      ...view,
+      calendar: {
+        ...view.calendar,
+        nextSeason: {
+          ...view.calendar.nextSeason,
+          id: 'winter',
+          firewood: {
+            perHour: 9,
+            winterTotal: 500,
+            winterProduction: 200,
+            stock: 400,
+            gathered: 0,
+            reserved: 0,
+            missing: 0,
+            text: 'A conta da lenha.',
+          },
+        },
+      },
+    };
+    // A reserva é 300: com 400 em estoque sobram 100, e a Paliçada pede 200.
+    expect(await decide(winterAhead)).toEqual({ orders: [], untouched: true });
+    expect((await decide(withStock(winterAhead, { wood: 500 }))).orders).toEqual([build]);
+    // E, à espera de recurso, não a deixa automática: ela começaria sem olhar a lareira.
+    const waiting = {
+      ...winterAhead,
+      constructions: watched(20, null, [palisade('INSUFFICIENT_RESOURCES')]).constructions,
+    };
+    expect(await decide(waiting)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('"obra mais barata" e "planejar automáticas" deixam a Paliçada para esta política', async () => {
+    const farm: Upgrade = {
+      ...upgrade('farm', {}, null),
+      cost: [{ resource: 'wood', label: 'Madeira', amount: 400, missing: 0 }],
+    };
+    const view = withStock(withUpgrades(freshView(), [palisade(), farm]), { wood: 500 });
+    const cheapest = recorder(view);
+    await obraMaisBarata.run(view, cheapest.act);
+    expect(cheapest.orders).toEqual([{ type: 'startConstruction', payload: { building: 'farm' } }]);
+    const waiting = withUpgrades(freshView(), [palisade('INSUFFICIENT_RESOURCES')]);
+    const planner = recorder(waiting);
+    await planejarAutomaticas.run(waiting, planner.act);
+    expect(planner.orders).toEqual([]);
+  });
+});
+
 describe('política "obra mais barata" com o inverno à vista', () => {
   const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
     perHour: 9,
@@ -1847,10 +2026,12 @@ describe('os bots jogando contra o motor', () => {
     expect(wood?.storageLabel).toBe('Armazém');
     expect(wood?.cap).toBeGreaterThan(500);
     expect(view.settlement.townHallLevel).toBeGreaterThanOrEqual(5);
+    // A ordem pode ter sido a de iniciar ou a de deixar planejada como automática, conforme o
+    // estoque da visita em que o bot quis o Armazém.
     expect(
       feudo.orders.filter(
         (order) =>
-          order.type === 'startConstruction' &&
+          (order.type === 'startConstruction' || order.type === 'planConstruction') &&
           (order.payload as { building: string }).building === 'warehouse',
       ).length,
     ).toBeGreaterThanOrEqual(1);

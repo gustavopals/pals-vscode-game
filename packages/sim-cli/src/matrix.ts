@@ -129,6 +129,19 @@ export type CellMeasure = {
   wasteStreak: Record<WasteResource, Range>;
   /** A do pior recurso de cada partida: é a que a faixa e a meta do GDD §15.2 olham. */
   wasteStreakWorst: Range;
+  /**
+   * As incursões de cada partida (GDD §8.2): as sofridas, as repelidas, as que a Torre anunciou,
+   * os feridos, a comida e a madeira que os lobos levaram, e a Ameaça no fim.
+   */
+  raids: {
+    suffered: Range;
+    repelled: Range;
+    announced: Range;
+    injured: Range;
+    lostFood: Range;
+    lostWood: Range;
+    threatFinal: Range;
+  };
 };
 
 export type MatrixCell = {
@@ -214,6 +227,15 @@ function measureOf(summaries: Summary[]): CellMeasure {
       WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasteStreakGameHours[id])]),
     ) as Record<WasteResource, Range>,
     wasteStreakWorst: range((summary) => worstWasteStreak(summary).gameHours),
+    raids: {
+      suffered: range((summary) => summary.raids.suffered),
+      repelled: range((summary) => summary.raids.repelled),
+      announced: range((summary) => summary.raids.announced),
+      injured: range((summary) => summary.raids.injured),
+      lostFood: range((summary) => summary.raids.lost.food),
+      lostWood: range((summary) => summary.raids.lost.wood),
+      threatFinal: range((summary) => summary.threat.final),
+    },
   };
 }
 
@@ -540,10 +562,35 @@ export function formatMatrix(result: MatrixResult): string {
         ...WASTE_RESOURCES.map((id) => formatHoursRange(cell.measure.wasteStreak[id])),
       ]),
     );
+    const raids = table(
+      [
+        'Ritmo',
+        'Perfil',
+        'Incursões sofridas',
+        'Incursões repelidas',
+        'Anunciadas pela Torre',
+        'Feridos',
+        'Comida levada',
+        'Madeira levada',
+        'Ameaça no fim',
+      ],
+      cells.map((cell) => [
+        cell.paceLabel,
+        profileOf(cell),
+        formatRange(cell.measure.raids.suffered),
+        formatRange(cell.measure.raids.repelled),
+        formatRange(cell.measure.raids.announced),
+        formatRange(cell.measure.raids.injured),
+        formatRange(cell.measure.raids.lostFood),
+        formatRange(cell.measure.raids.lostWood),
+        formatRange(cell.measure.raids.threatFinal),
+      ]),
+    );
     return [
       `## ${window.label}\n\n${measures}${bands}`,
       `### Progresso: ${window.label.toLowerCase()}\n\n${progress}`,
       `### Desperdício por recurso: ${window.label.toLowerCase()}\n\n${waste}`,
+      `### Lobos: ${window.label.toLowerCase()}\n\n${raids}`,
     ].join('\n\n');
   });
 
