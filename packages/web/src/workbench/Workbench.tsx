@@ -108,7 +108,7 @@ function TabContent(props: {
             online={online}
             retryInSeconds={retryInSeconds}
             answering={controller.answering}
-            chronicle={controller.chronicle}
+            record={controller.councilLog}
             actions={actions}
           />
         );

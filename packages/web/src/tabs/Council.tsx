@@ -1,11 +1,18 @@
-import type { GameEvent, ViewState } from '@lotg/protocol';
+import type { ViewState } from '@lotg/protocol';
 
 import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
 import { CouncilCard } from '../components/CouncilCard';
 import { Header } from '../components/Header';
 import { Icon } from '../components/shared';
-import { councilRecord, nextAudience, pendingCards, stockLine } from '../ui/council';
+import {
+  type CouncilLog,
+  councilRecord,
+  councilRecordEmpty,
+  nextAudience,
+  pendingCards,
+  stockLine,
+} from '../ui/council';
 
 /**
  * A aba do Conselho (GDD §7 e §13.1): as cartas à espera, uma embaixo da outra, cada uma com as
@@ -14,7 +21,9 @@ import { councilRecord, nextAudience, pendingCards, stockLine } from '../ui/coun
  *
  * Cada estado tem a sua frase: sem cartas, com a mesa cheia (a frase é a do servidor: o conselho
  * espera uma resposta antes de trazer outra), sem ligação (modo leitura, pelo último estado
- * conhecido) e sem assunto para o feudo como ele está. Recebe o `ViewState` pronto e só o exibe.
+ * conhecido) e sem assunto para o feudo como ele está. O registro também: vazio, fora do trecho
+ * da Crônica que foi lido e leitura que falhou (`councilRecordEmpty`). Recebe o `ViewState`
+ * pronto e só o exibe.
  */
 export function CouncilTab(props: {
   view: ViewState;
@@ -23,14 +32,20 @@ export function CouncilTab(props: {
   retryInSeconds: number | null;
   /** As cartas com resposta a caminho do servidor, pelo `instanceId`. */
   answering: ReadonlySet<string>;
-  /** As últimas linhas da Crônica, da mais antiga para a mais nova. */
-  chronicle: GameEvent[];
+  /** O que o conselho registrou na Crônica (`controller.councilLog`). */
+  record: CouncilLog;
   actions: Actions;
 }) {
   const { view, elapsed, actions } = props;
   const { council } = view;
   const count = council.pending.length;
-  const record = councilRecord(props.chronicle);
+  const record = councilRecord(props.record.lines);
+  const empty = record.length === 0 ? councilRecordEmpty(props.record, props.online) : null;
+  const openChronicle = (
+    <button type="button" class="link" onClick={() => actions.run('lords.openChronicle')}>
+      Abrir a Crônica inteira
+    </button>
+  );
   return (
     <div class="panel">
       <Header view={view} elapsed={elapsed} />
@@ -81,11 +96,11 @@ export function CouncilTab(props: {
         </section>
         <section aria-labelledby="council-record-title">
           <h2 id="council-record-title">O que o conselho registrou</h2>
-          {record.length === 0 ? (
-            <p class="muted">
-              Nada ainda. As cartas que chegam, o que você decide e o que vem depois de cada escolha
-              ficam registrados aqui e na Crônica.
-            </p>
+          {empty !== null ? (
+            <>
+              <p class="muted">{empty.text}</p>
+              {empty.chronicle ? openChronicle : null}
+            </>
           ) : (
             <>
               {/* A linha nova (a resposta que acabou de ser dada) é lida por leitores de tela. */}
@@ -94,9 +109,7 @@ export function CouncilTab(props: {
                   <li key={event.seq}>{event.text}</li>
                 ))}
               </ul>
-              <button type="button" class="link" onClick={() => actions.run('lords.openChronicle')}>
-                Abrir a Crônica inteira
-              </button>
+              {openChronicle}
             </>
           )}
         </section>

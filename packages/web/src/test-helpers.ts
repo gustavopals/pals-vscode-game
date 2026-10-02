@@ -595,13 +595,14 @@ export function fakeApi() {
     }
     if (resource === 'chronicle') {
       // Como no servidor: as viradas de dia e o fecho diário do desperdício não entram na
-      // Crônica (ADRs 0007 e 0015).
+      // Crônica (ADRs 0007 e 0015), e vêm as últimas `limit` linhas (50 sem o parâmetro).
+      const limit = Number(url.searchParams.get('limit') ?? 50);
       return json({
         entries: state.events
           .filter(
             (event) => !(CHRONICLE_HIDDEN_EVENT_TYPES as readonly string[]).includes(event.type),
           )
-          .slice(-20),
+          .slice(-limit),
       });
     }
     if (resource === 'chronicle.md') {

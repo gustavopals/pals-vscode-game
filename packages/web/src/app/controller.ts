@@ -50,14 +50,36 @@ import {
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
-import { cardNotice } from '../ui/council';
+import {
+  cardNotice,
+  COUNCIL_RECORD_LINES,
+  type CouncilLog,
+  EMPTY_COUNCIL_LOG,
+  isCouncilEvent,
+} from '../ui/council';
 import { documentTitle, formatAway, type StatusBarInput } from '../ui/format';
 import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
 import { THREAT_SECTION } from '../ui/threat';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
 
+/** As linhas da Crônica recente (painel do feudo e árvore). */
 const CHRONICLE_LINES = 20;
+/**
+ * Quantas linhas do fim da Crônica a abertura lê. As 20 da Crônica recente saem delas, e o que o
+ * conselho registrou é procurado nelas todas: uma carta espera 24 h na mesa, e nesse tempo a
+ * Crônica escreve bem mais que 20 linhas.
+ */
+const CHRONICLE_LOOKBACK = 200;
+
+/** Junta duas listas de eventos sem repetir nenhum, na ordem da Crônica. */
+function mergeBySeq(...lists: GameEvent[][]): GameEvent[] {
+  const bySeq = new Map<number, GameEvent>();
+  for (const event of lists.flat()) {
+    bySeq.set(event.seq, event);
+  }
+  return [...bySeq.values()].sort((a, b) => a.seq - b.seq);
+}
 /** O lembrete do dia 3 é um por conta: outra conta no mesmo navegador recebe o seu. */
 const reminderKey = (accountId: string) => `lords.linkReminder:${accountId}`;
 /** No navegador o servidor é sempre a própria origem: uma chave só. */
@@ -156,6 +178,8 @@ export class Controller {
   /** Abas que o jogador abriu (Crônica, Preferências, Sobre). */
   opened: Route[] = [];
   chronicle: GameEvent[] = [];
+  /** O que o conselho registrou na Crônica, para a aba do Conselho (`CouncilLog`). */
+  councilLog: CouncilLog = EMPTY_COUNCIL_LOG;
   report: ReturnReport | null = null;
   /** Novidades ainda não vistas: destaques do Relatório de Retorno e avisos que viraram badge. */
   unseen = 0;
@@ -437,6 +461,7 @@ export class Controller {
     if (route === 'council') {
       // Na aba do Conselho as cartas estão à vista: os avisos que as anunciavam saem da frente.
       this.dropCardToasts(() => true);
+      this.retryCouncilLog();
     }
     if (route === 'chronicle') {
       void this.loadChronicle();
@@ -506,6 +531,7 @@ export class Controller {
         await this.session.clearCache(beforeTarget);
       }
       this.chronicle = [];
+      this.councilLog = EMPTY_COUNCIL_LOG;
       this.chronicleDocument = { status: 'idle' };
       this.report = null;
       this.unseen = 0;
@@ -547,20 +573,55 @@ export class Controller {
     this.session.setVisible(this.visible);
     await this.session.start(target);
     if (this.session.connection.kind === 'online') {
-      try {
-        const { entries } = await this.client.getChronicle(target.gameId, {
-          limit: CHRONICLE_LINES,
-        });
-        // A resposta só vale se a partida aberta ainda for a mesma: nada da conta anterior
-        // aparece na seguinte.
-        if (this.session.gameId === target.gameId) {
-          this.chronicle = entries;
-        }
-      } catch (error) {
-        this.log(`Crônica indisponível: ${describeError(error).message}`);
-      }
+      await this.loadRecentChronicle();
     }
     this.changes.emit();
+  }
+
+  /**
+   * Lê o fim da Crônica: a Crônica recente e, num trecho maior, o que o conselho registrou
+   * (`CHRONICLE_LOOKBACK`). Sem ligação na abertura, ou com a leitura falhando, a aba do Conselho
+   * diz isso, em vez de "Nada ainda"; a leitura se repete quando a ligação volta e quando a aba
+   * do Conselho é aberta.
+   */
+  private async loadRecentChronicle(): Promise<void> {
+    const gameId = this.session.gameId;
+    if (gameId === null || this.councilLog.status === 'loading') {
+      return;
+    }
+    this.councilLog = { ...this.councilLog, status: 'loading' };
+    try {
+      const { entries } = await this.client.getChronicle(gameId, { limit: CHRONICLE_LOOKBACK });
+      // A resposta só vale se a partida aberta ainda for a mesma: nada da conta anterior
+      // aparece na seguinte.
+      if (this.session.gameId !== gameId) {
+        return;
+      }
+      // Os eventos que chegaram enquanto a leitura vinha ficam: a lista é a soma das duas.
+      this.chronicle = mergeBySeq(entries, this.chronicle).slice(-CHRONICLE_LINES);
+      this.councilLog = {
+        status: 'ready',
+        lines: mergeBySeq(entries.filter(isCouncilEvent), this.councilLog.lines).slice(
+          -COUNCIL_RECORD_LINES,
+        ),
+        complete: entries.length < CHRONICLE_LOOKBACK,
+      };
+    } catch (error) {
+      if (this.session.gameId !== gameId) {
+        return;
+      }
+      this.log(`Crônica indisponível: ${describeError(error).message}`);
+      this.councilLog = { ...this.councilLog, status: 'error' };
+    }
+    this.changes.emit();
+  }
+
+  /** O registro do conselho ainda não foi lido, ou a leitura falhou: vale tentar de novo. */
+  private retryCouncilLog(): void {
+    const { status } = this.councilLog;
+    if ((status === 'idle' || status === 'error') && this.connection.kind === 'online') {
+      void this.loadRecentChronicle();
+    }
   }
 
   private viewChanged(): void {
@@ -667,6 +728,15 @@ export class Controller {
     this.chronicle = [...this.chronicle, ...events.filter(isChronicleEvent)]
       .filter((event, index, all) => all.findIndex((other) => other.seq === event.seq) === index)
       .slice(-CHRONICLE_LINES);
+    const council = events.filter(isCouncilEvent);
+    if (council.length > 0) {
+      // O registro do conselho tem a sua própria conta: as linhas dele não saem com as 20 da
+      // Crônica recente.
+      this.councilLog = {
+        ...this.councilLog,
+        lines: mergeBySeq(this.councilLog.lines, council).slice(-COUNCIL_RECORD_LINES),
+      };
+    }
     // Um lote só desses eventos não muda a Crônica: não há por que baixá-la de novo.
     const changesChronicle = events.some(isChronicleEvent);
     if (changesChronicle && this.chronicleDocument.status === 'ready') {
@@ -935,6 +1005,8 @@ export class Controller {
     if (connection.kind === 'online' && this.catalog.status === 'error') {
       void this.loadCatalog();
     }
+    // A página abriu sem ligação, ou a leitura da Crônica falhou: a aba do Conselho espera ela.
+    this.retryCouncilLog();
     // Os avisos de falta de rede ficam: é com a ligação de volta que o "Tentar de novo" deles
     // consegue reenviar a ordem.
     this.changes.emit();

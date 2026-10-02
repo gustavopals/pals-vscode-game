@@ -202,14 +202,77 @@ const COUNCIL_EVENTS: ReadonlyArray<GameEvent['type']> = [
   'cardEffectApplied',
 ];
 
+/** Uma linha da Crônica que fala das cartas. */
+export function isCouncilEvent(event: GameEvent): boolean {
+  return COUNCIL_EVENTS.includes(event.type);
+}
+
+/** Quantas linhas do conselho a aba mostra. */
+export const COUNCIL_RECORD_LINES = 6;
+
+/**
+ * O que o conselho registrou, como o controlador o guarda: as linhas da Crônica sobre as cartas,
+ * da mais antiga para a mais nova, e como foi a leitura que as procurou. A procura vai além da
+ * Crônica recente: uma carta espera 24 h na mesa, e nesse tempo a Crônica escreve bem mais que
+ * as 20 linhas dela (obras, recrutas, feridos, marcas da Ameaça).
+ */
+export type CouncilLog = {
+  /** `idle`: ainda não lida (a página abriu sem ligação); `error`: a leitura falhou. */
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  lines: GameEvent[];
+  /**
+   * A leitura chegou ao começo da Crônica. Sem linha nenhuma, só assim é verdade que o conselho
+   * ainda não registrou nada.
+   */
+  complete: boolean;
+};
+
+export const EMPTY_COUNCIL_LOG: CouncilLog = { status: 'idle', lines: [], complete: false };
+
 /**
  * O que o conselho registrou, da linha mais nova para a mais antiga: as frases da Crônica que
  * falam das cartas (a que chegou, o que o senhor decidiu, o que o conselho fez sozinho e o que
  * veio depois de uma escolha). É onde a resposta dada há um instante aparece contada.
  */
-export function councilRecord(chronicle: readonly GameEvent[], max = 6): GameEvent[] {
-  return chronicle
-    .filter((event) => COUNCIL_EVENTS.includes(event.type))
-    .slice(-max)
-    .reverse();
+export function councilRecord(
+  chronicle: readonly GameEvent[],
+  max = COUNCIL_RECORD_LINES,
+): GameEvent[] {
+  return chronicle.filter(isCouncilEvent).slice(-max).reverse();
+}
+
+/**
+ * A frase da seção "O que o conselho registrou" quando ela não tem linha a mostrar. Vazio, fora
+ * do trecho lido e leitura que falhou são coisas diferentes, e cada uma tem a sua frase: "Nada
+ * ainda" só quando a leitura chegou ao começo da Crônica. `chronicle` diz se a seção oferece a
+ * Crônica inteira, onde está o que a leitura não alcançou.
+ */
+export function councilRecordEmpty(
+  log: CouncilLog,
+  online: boolean,
+): { text: string; chronicle: boolean } {
+  if (log.status === 'ready') {
+    return log.complete
+      ? {
+          text: 'Nada ainda. As cartas que chegam, o que você decide e o que vem depois de cada escolha ficam registrados aqui e na Crônica.',
+          chronicle: false,
+        }
+      : {
+          text: 'As linhas mais recentes da Crônica não falam do conselho. O que ele registrou antes está na Crônica inteira.',
+          chronicle: true,
+        };
+  }
+  if (log.status === 'error') {
+    return {
+      text: 'Não deu para ler agora o que o conselho registrou. Está tudo na Crônica inteira.',
+      chronicle: true,
+    };
+  }
+  if (!online) {
+    return {
+      text: 'Sem ligação com o reino: o que o conselho registrou vem da Crônica, que é lida com a ligação.',
+      chronicle: false,
+    };
+  }
+  return { text: 'Lendo o que o conselho registrou…', chronicle: false };
 }

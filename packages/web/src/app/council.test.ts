@@ -1,8 +1,11 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { CACHE_VERSION, cacheKey, type GameCache } from '../game/gameSession';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
+import { councilRecord, councilRecordEmpty } from '../ui/council';
 import {
+  ACCOUNT_ID,
   councilView,
   type FakeApi,
   fakeApi,
@@ -23,6 +26,7 @@ import type { Controller, Toast, ToastAction } from './controller';
  */
 
 const COMMANDS_REQUEST = `POST /games/${GAME_ID}/commands`;
+const TARGET = { serverKey: 'self', accountId: ACCOUNT_ID, gameId: GAME_ID };
 const NEW_CARD = 'Nova carta do Conselho';
 const APP_TITLE = 'Lords of the Guild';
 /** Meio-dia em UTC: 9:00 no fuso do controlador de teste (America/Sao_Paulo). */
@@ -602,5 +606,130 @@ describe('a leitura seguinte acontece quando um prazo do Conselho vence', () => 
     expect(reads(made)).toBe(before);
     await vi.advanceTimersByTimeAsync(1_500);
     expect(reads(made)).toBe(before + 1);
+  });
+});
+
+describe('o que o conselho registrou (aba Conselho)', () => {
+  const answered = (seq: number): GameEvent => ({
+    ...gameEvent(seq, 'cardAnswered', 'O senhor de Pedra Alta mandou servir caldo aos pedreiros.'),
+    data: { cardId: 'masonsMeal', instanceId: 'masonsMeal-4', optionId: 'feast' },
+  });
+  /** `count` linhas da Crônica que não falam do conselho, a partir da sequência `from`. */
+  const works = (from: number, count: number): GameEvent[] =>
+    Array.from({ length: count }, (_, index) =>
+      gameEvent(from + index, 'constructionFinished', `Obra ${from + index} concluída.`),
+    );
+  /** A seção como a aba a escreve: as linhas, da mais nova para a mais antiga, ou a frase. */
+  const section = (controller: Controller) =>
+    councilRecord(controller.councilLog.lines).length > 0
+      ? councilRecord(controller.councilLog.lines).map((event) => event.text)
+      : councilRecordEmpty(controller.councilLog, controller.connection.kind === 'online').text;
+
+  /**
+   * A página recarregada por quem já jogou: o cache guarda o cursor no último evento, e nada da
+   * história volta por `GET /events`. O que o conselho registrou só vem da Crônica.
+   */
+  async function reopened(history: GameEvent[], prepare: (api: FakeApi) => void = () => {}) {
+    const api = fakeApi();
+    api.state.view = councilView;
+    api.state.events = history;
+    prepare(api);
+    const made = makeController({ signedIn: true, api });
+    created.push(made.controller);
+    made.store.data[cacheKey(TARGET)] = {
+      version: CACHE_VERSION,
+      view: councilView,
+      stateVersion: '1',
+      etag: null,
+      lastSeq: history.at(-1)?.seq ?? 0,
+      lastSeenAt: Date.now(),
+    } satisfies GameCache;
+    return made;
+  }
+
+  it('as linhas das cartas que saíram das 20 da Crônica recente continuam no registro', async () => {
+    // Uma carta respondida e, depois, vinte obras: a Crônica recente só tem as obras.
+    const made = await reopened([drawn(1), answered(2), ...works(3, 20)]);
+    await made.controller.start();
+    await settle(made.controller);
+    const { controller } = made;
+    expect(controller.chronicle.map((event) => event.seq)).toEqual(
+      works(3, 20).map((event) => event.seq),
+    );
+    expect(section(controller)).toEqual([
+      'O senhor de Pedra Alta mandou servir caldo aos pedreiros.',
+      `O conselho pediu audiência: ${mealCard.title}.`,
+    ]);
+    expect(controller.councilLog).toMatchObject({ status: 'ready', complete: true });
+  });
+
+  it('as linhas que chegam depois entram no registro sem empurrar as antigas para fora', async () => {
+    const made = await reopened([drawn(1), ...works(2, 5)]);
+    await made.controller.start();
+    await settle(made.controller);
+    await serverShows(made, councilView, ...works(7, 25), answered(32));
+    expect(made.controller.chronicle).toHaveLength(20);
+    expect(councilRecord(made.controller.councilLog.lines).map((event) => event.seq)).toEqual([
+      32, 1,
+    ]);
+  });
+
+  it('com as linhas do conselho além do trecho lido, a seção não diz "Nada ainda": aponta a Crônica', async () => {
+    const made = await reopened([drawn(1), answered(2), ...works(3, 300)]);
+    await made.controller.start();
+    await settle(made.controller);
+    expect(made.controller.councilLog).toMatchObject({
+      status: 'ready',
+      lines: [],
+      complete: false,
+    });
+    expect(section(made.controller)).toBe(
+      'As linhas mais recentes da Crônica não falam do conselho. O que ele registrou antes está na Crônica inteira.',
+    );
+  });
+
+  it('a Crônica que não carregou não vira "Nada ainda", e a aba do Conselho lê de novo', async () => {
+    const made = await reopened([drawn(1), answered(2)], (api) => {
+      api.state.failNext.set('/chronicle', {
+        status: 500,
+        body: { code: 'INTERNAL', message: 'O servidor tropeçou.' },
+      });
+    });
+    await made.controller.start();
+    await settle(made.controller);
+    const { controller } = made;
+    expect(controller.councilLog.status).toBe('error');
+    expect(section(controller)).toBe(
+      'Não deu para ler agora o que o conselho registrou. Está tudo na Crônica inteira.',
+    );
+
+    controller.navigate('council');
+    await settle(controller);
+    expect(controller.councilLog).toMatchObject({ status: 'ready', complete: true });
+    expect(section(controller)).toHaveLength(2);
+  });
+
+  it('sem ligação na abertura, o registro é lido quando a ligação volta', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    const made = await reopened([drawn(1), answered(2)], (api) => {
+      api.state.online = false;
+    });
+    const starting = made.controller.start();
+    // O SDK tenta de novo algumas vezes antes de desistir.
+    await vi.advanceTimersByTimeAsync(10_000);
+    await starting;
+    expect(made.controller.connection.kind).toBe('offline');
+    expect(made.controller.councilLog.status).toBe('idle');
+    expect(section(made.controller)).toBe(
+      'Sem ligação com o reino: o que o conselho registrou vem da Crônica, que é lida com a ligação.',
+    );
+
+    made.api.state.online = true;
+    made.controller.handleOnline();
+    await vi.advanceTimersByTimeAsync(0);
+    await settle(made.controller);
+    expect(made.controller.connection.kind).toBe('online');
+    expect(made.controller.councilLog).toMatchObject({ status: 'ready', complete: true });
+    expect(section(made.controller)).toHaveLength(2);
   });
 });

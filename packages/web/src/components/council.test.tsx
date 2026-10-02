@@ -4,6 +4,7 @@ import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
 
 import { CouncilTab } from '../tabs/Council';
+import type { CouncilLog } from '../ui/council';
 import {
   autumnView,
   councilView,
@@ -236,13 +237,19 @@ describe('CouncilCard', () => {
 });
 
 describe('aba Conselho', () => {
+  /** O registro lido até o começo da Crônica: sem linha, o conselho não registrou nada mesmo. */
+  const readAll = (lines: GameEvent[] = []): CouncilLog => ({
+    status: 'ready',
+    lines,
+    complete: true,
+  });
   const tab = (
     overrides: Partial<{
       view: ViewState;
       elapsed: number;
       online: boolean;
       answering: ReadonlySet<string>;
-      chronicle: GameEvent[];
+      record: CouncilLog;
       actions: Actions;
     }> = {},
   ) => (
@@ -252,7 +259,7 @@ describe('aba Conselho', () => {
       online={true}
       retryInSeconds={null}
       answering={new Set()}
-      chronicle={[]}
+      record={readAll()}
       actions={actions}
       {...overrides}
     />
@@ -332,7 +339,7 @@ describe('aba Conselho', () => {
       gameEvent(2, 'constructionFinished', 'Os pedreiros ergueram a Fazenda.'),
       gameEvent(3, 'cardAnswered', 'O senhor cedeu pedra para o poço da praça.'),
     ];
-    const markup = html(tab({ view: goldenView, chronicle }));
+    const markup = html(tab({ view: goldenView, record: readAll(chronicle) }));
     const record = /<ul class="chronicle" aria-live="polite">(.*?)<\/ul>/.exec(markup)?.[1] ?? '';
     expect(record.match(/<li>[^<]*<\/li>/g)).toEqual([
       '<li>O senhor cedeu pedra para o poço da praça.</li>',
@@ -343,6 +350,46 @@ describe('aba Conselho', () => {
     // Sem nenhuma linha, a seção diz o que vai aparecer ali.
     expect(text(html(tab({ view: goldenView })))).toContain(
       'O que o conselho registrou Nada ainda.',
+    );
+  });
+
+  it('o registro sem linha diz por quê: "Nada ainda" só quando a leitura chegou ao começo da Crônica', () => {
+    const section = (record: CouncilLog, online = true) =>
+      text(
+        /<section aria-labelledby="council-record-title">.*?<\/section>/.exec(
+          html(tab({ record, online })),
+        )?.[0] ?? '',
+      );
+    // As linhas do conselho ficaram antes do trecho lido: o que ele registrou está na Crônica.
+    const beyond = section({ status: 'ready', lines: [], complete: false });
+    expect(beyond).toBe(
+      'O que o conselho registrou As linhas mais recentes da Crônica não falam do conselho. O que ele registrou antes está na Crônica inteira. Abrir a Crônica inteira',
+    );
+    // A leitura falhou: a seção não afirma que não há nada.
+    const failed = section({ status: 'error', lines: [], complete: false });
+    expect(failed).toBe(
+      'O que o conselho registrou Não deu para ler agora o que o conselho registrou. Está tudo na Crônica inteira. Abrir a Crônica inteira',
+    );
+    // A página abriu sem ligação: a Crônica não foi lida.
+    expect(section({ status: 'idle', lines: [], complete: false }, false)).toBe(
+      'O que o conselho registrou Sem ligação com o reino: o que o conselho registrou vem da Crônica, que é lida com a ligação.',
+    );
+    expect(section({ status: 'loading', lines: [], complete: false })).toBe(
+      'O que o conselho registrou Lendo o que o conselho registrou…',
+    );
+    const unread: CouncilLog[] = [
+      { status: 'ready', lines: [], complete: false },
+      { status: 'error', lines: [], complete: false },
+      { status: 'idle', lines: [], complete: false },
+      { status: 'loading', lines: [], complete: false },
+    ];
+    for (const record of unread) {
+      expect(section(record)).not.toContain('Nada ainda');
+    }
+    // Com linhas, elas aparecem, venha a leitura como vier.
+    const line = gameEvent(30, 'cardAnswered', 'O senhor cedeu pedra para o poço da praça.');
+    expect(section({ status: 'error', lines: [line], complete: false })).toBe(
+      'O que o conselho registrou O senhor cedeu pedra para o poço da praça. Abrir a Crônica inteira',
     );
   });
 
