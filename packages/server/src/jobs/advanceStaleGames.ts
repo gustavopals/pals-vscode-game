@@ -4,11 +4,27 @@ import { and, eq, lt, notInArray } from 'drizzle-orm';
 import type { AppContext } from '../context';
 import { games } from '../db/schema';
 import { gameTimeAt, loadGame, persistState } from '../games/repository';
+import { safeError } from '../safe-error';
 
 const BATCH_SIZE = 100;
 const BUDGET_MS = 20_000;
 
-export type AdvanceReport = { advanced: number; events: number; failed: number };
+/** A causa de uma falha, no que pode ir para o log: nome e mensagem, já sem dados de partida. */
+export type FailureCause = { name: string; message: string; code?: string };
+
+export type AdvanceReport = {
+  advanced: number;
+  events: number;
+  failed: number;
+  /** Só existe quando `failed > 0`: a causa da primeira falha da rodada. */
+  firstFailure?: FailureCause;
+};
+
+/** `safeError` sem a pilha: a causa cabe no relatório da rodada. */
+export function failureCause(error: unknown): FailureCause {
+  const { name, message, code } = safeError(error);
+  return { name, message, ...(code !== undefined ? { code } : {}) };
+}
 
 /**
  * Avança as partidas ativas sem estado persistido há mais de `ADVANCE_STALE_AFTER_MS`, em lotes
@@ -20,6 +36,11 @@ export type AdvanceReport = { advanced: number; events: number; failed: number }
  * É também o job que migra o estado de quem não voltou: a linha travada passa por `loadGame`
  * e a escrita do avanço grava a versão nova. Um estado que o motor não sabe ler (versão mais
  * nova, forma inesperada) conta como falha e fica intocado.
+ *
+ * Uma partida que falha nunca é escrita, então `last_processed_at` não anda e ela fica para
+ * sempre na cabeça da fila. Por isso a rodada segue enquanto o lote trouxer avanço **ou falha
+ * nova**: as que falharam saem das consultas seguintes, e as partidas boas que vêm depois de
+ * lotes inteiros de ilegíveis (o banco de depois de uma reversão de imagem) são alcançadas.
  */
 export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport> {
   const startedAt = Date.now();
@@ -42,6 +63,7 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
       .limit(BATCH_SIZE);
 
     let progressed = 0;
+    let failedNow = 0;
     for (const { id } of candidates) {
       try {
         const events = await ctx.db.transaction(async (tx) => {
@@ -72,13 +94,17 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
           report.events += events;
           progressed += 1;
         }
-      } catch {
+      } catch (error) {
         report.failed += 1;
+        failedNow += 1;
         failedIds.push(id);
+        // Só a primeira causa: depois de uma reversão de imagem todas falham pelo mesmo motivo.
+        report.firstFailure ??= failureCause(error);
       }
     }
-    // Nada avançou neste lote (tudo travado por outros, ou já em dia): a rodada terminou.
-    if (candidates.length < BATCH_SIZE || progressed === 0) {
+    // Lote incompleto: a fila acabou. Lote sem avanço nem falha nova (tudo travado por outros,
+    // ou já em dia): a próxima consulta traria as mesmas linhas.
+    if (candidates.length < BATCH_SIZE || (progressed === 0 && failedNow === 0)) {
       break;
     }
   }

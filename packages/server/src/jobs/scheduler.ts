@@ -2,7 +2,7 @@ import type { FastifyBaseLogger } from 'fastify';
 
 import type { AppContext } from '../context';
 import { safeError } from '../safe-error';
-import { advanceStaleGames } from './advanceStaleGames';
+import { type AdvanceReport, advanceStaleGames, failureCause } from './advanceStaleGames';
 import { purgeAccounts } from './purgeAccounts';
 
 /** Chave do advisory lock dos jobs: só uma réplica da API executa cada rodada. */
@@ -18,6 +18,11 @@ export type JobsReport =
       failed: number;
       purgedAccounts: number;
       expiredSessions: number;
+      /**
+       * Só existe quando o avanço de alguma partida falhou: a causa da primeira falha, já sem
+       * dados de conta ou de partida. Sem ela, o log só diria quantas falharam.
+       */
+      firstFailure?: AdvanceReport['firstFailure'];
     };
 
 /**
@@ -37,10 +42,11 @@ export async function runJobsOnce(ctx: AppContext): Promise<JobsReport> {
     try {
       // As duas etapas são independentes: uma falha no avanço não pode adiar o expurgo de uma
       // conta cujo prazo de sete dias já venceu, nem o contrário.
-      const advance = await advanceStaleGames(ctx).catch(() => ({
+      const advance = await advanceStaleGames(ctx).catch((error: unknown): AdvanceReport => ({
         advanced: 0,
         events: 0,
         failed: 1,
+        firstFailure: failureCause(error),
       }));
       const purge = await purgeAccounts(ctx).catch(() => null);
       return {
@@ -50,6 +56,7 @@ export async function runJobsOnce(ctx: AppContext): Promise<JobsReport> {
         failed: advance.failed + (purge === null ? 1 : 0),
         purgedAccounts: purge?.accounts ?? 0,
         expiredSessions: purge?.sessions ?? 0,
+        ...(advance.firstFailure !== undefined ? { firstFailure: advance.firstFailure } : {}),
       };
     } finally {
       await client.query('select pg_advisory_unlock($1)', [JOBS_LOCK]);
@@ -75,7 +82,8 @@ export function startScheduler(
     }
     running = runJobsOnce(ctx)
       .then((report) => {
-        // Só contagens: nenhum dado de conta ou de partida vai para o log.
+        // Contagens e, se uma partida falhou, a causa da primeira (`failureCause`): nenhum
+        // dado de conta ou de partida vai para o log.
         if (report.ran && report.failed > 0) {
           log.error({ jobs: report }, 'jobs executados com falhas');
         } else if (report.ran) {

@@ -19,6 +19,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { lockGame, persistState } from '../src/games/repository';
 import { advanceStaleGames } from '../src/jobs/advanceStaleGames';
+import { runJobsOnce } from '../src/jobs/scheduler';
 import {
   call,
   countRows,
@@ -686,6 +687,100 @@ describe('estado que este servidor não sabe ler', () => {
       expect(report).toMatchObject({ advanced: 1, failed: 1 });
       expect(await rowOf(app, future.id)).toEqual(before);
       expect((await rowOf(app, old.id)).schemaVersion).toBe(CURRENT);
+    } finally {
+      await app.close();
+    }
+  });
+
+  /** Grava `count` partidas ativas com o mesmo estado, uma por conta, paradas há `staleForMs`. */
+  async function insertMany(
+    app: TestApp,
+    state: StoredState,
+    count: number,
+    staleForMs: number,
+  ): Promise<void> {
+    const now = app.clock.now().getTime();
+    await app.pool.query(
+      `with owners as (
+         insert into accounts (id, display_name, created_at, last_seen_at)
+         select gen_random_uuid(), 'Senhor ' || n, $1, $1 from generate_series(1, $2::int) as n
+         returning id
+       )
+       insert into games (id, account_id, status, seed, difficulty, time_scale, timezone, vigil_hour,
+                          schema_version, state, state_version, last_processed_at, created_at, updated_at)
+       select gen_random_uuid(), id, 'active', $3, 'lord', '1', 'America/Sao_Paulo', 20,
+              $4, $5::jsonb, 7, $6, $7, $6
+         from owners`,
+      [
+        new Date(now),
+        count,
+        state.seed,
+        state.schemaVersion,
+        JSON.stringify(state),
+        new Date(now - staleForMs),
+        new Date(now - state.lastProcessedAt),
+      ],
+    );
+  }
+
+  it('o job passa por lotes inteiros de partidas ilegíveis e avança as que vêm depois', async () => {
+    // É o banco de depois de uma reversão de imagem: as partidas migradas ficam para sempre na
+    // cabeça da fila (nunca são escritas, então `last_processed_at` não anda), e são mais de
+    // dois lotes de 100. A partida saudável, mais recente, vem depois de todas.
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      await insertMany(app, futureState(), 201, 10 * HOUR);
+      const old = await insertGame(app, v1State('fresh'), { staleForMs: 5 * HOUR });
+      clock.advance(3 * HOUR);
+
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 201 });
+      expect((await rowOf(app, old.id)).schemaVersion).toBe(CURRENT);
+      expect(await countRows(app.pool, 'games', `schema_version = ${CURRENT + 1}`)).toBe(201);
+      expect(await countRows(app.pool, 'games', 'state_version <> 7')).toBe(1);
+
+      // Na rodada seguinte as ilegíveis falham de novo, e uma partida nova não fica para trás.
+      const late = await insertGame(app, v1State('construction'), { timeScale: 3 });
+      clock.advance(2 * HOUR);
+      expect(await advanceStaleGames(app.ctx)).toMatchObject({ advanced: 2, failed: 201 });
+      expect((await rowOf(app, late.id)).schemaVersion).toBe(CURRENT);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('o job diz a causa da primeira falha, sem nada do que o jogador escreveu', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const state = futureState();
+      state.settlement.name = 'Nome Que Não Vai Para o Log';
+      await insertGame(app, state);
+      await insertGame(app, v1State('fresh'));
+      clock.advance(3 * HOUR);
+
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 1 });
+      expect(report.firstFailure).toEqual({
+        name: 'StateMigrationError',
+        message: expect.stringContaining(
+          `está na versão ${CURRENT + 1} e este motor só conhece até a ${CURRENT}`,
+        ) as string,
+      });
+      expect(JSON.stringify(report)).not.toContain('Nome Que');
+
+      // O relatório da rodada inteira leva a causa adiante: é o que vai para o log.
+      clock.advance(2 * HOUR);
+      const round = await runJobsOnce(app.ctx);
+      expect(round).toMatchObject({
+        ran: true,
+        failed: 1,
+        firstFailure: { name: 'StateMigrationError' },
+      });
+      expect(JSON.stringify(round)).not.toContain('Nome Que');
     } finally {
       await app.close();
     }
