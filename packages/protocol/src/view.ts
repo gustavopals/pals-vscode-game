@@ -109,13 +109,35 @@ const ActiveConstructionSchema = z.strictObject({
   ),
 });
 
+/**
+ * Onde um objetivo se cumpre: é para lá que a interface leva quem quer cumpri-lo, sem conhecer
+ * objetivo nenhum pelo id.
+ */
+const ObjectiveTargetSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('workers'), building: z.enum(PRODUCTION_BUILDING_IDS) }),
+  z.strictObject({ kind: z.literal('building'), building: buildingId }),
+  z.strictObject({ kind: z.literal('recruitment') }),
+  z.strictObject({ kind: z.literal('council') }),
+  z.strictObject({ kind: z.literal('planned') }),
+  z.strictObject({ kind: z.literal('season'), season: z.enum(SEASON_IDS) }),
+]);
+
 const ObjectiveSchema = z.strictObject({
   id: z.string(),
+  /** A ação, sem ponto: "Construa a Torre de Vigia". */
   title: z.string(),
+  /** O porquê, em uma frase. */
   hint: z.string(),
+  /** A recompensa, sem ponto: "+40 pedra"; "+10 de moral por 1 dia de jogo (40 min)". */
   reward: z.string(),
   status: z.enum(['active', 'completed']),
   progress: z.strictObject({ current: z.number(), target: z.number() }),
+  /**
+   * O que falta agora, em uma frase pronta; `null` no objetivo concluído e naquele a que só
+   * falta uma ordem que o jogador já pode dar.
+   */
+  missing: z.string().nullable(),
+  target: ObjectiveTargetSchema,
 });
 
 /**

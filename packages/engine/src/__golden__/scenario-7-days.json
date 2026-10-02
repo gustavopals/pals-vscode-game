@@ -715,7 +715,11 @@
      ]
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "buildWatchtower",
+      "answerFirstCard",
+      "buildGranaryOrWarehouse"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
@@ -736,7 +740,7 @@
   },
   {
    "day": 2,
-   "eventsSoFar": 88,
+   "eventsSoFar": 92,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -772,9 +776,9 @@
      "name": "Pedra Alta",
      "resources": {
       "food": 476172,
-      "wood": 651596,
-      "stone": 365582,
-      "gold": 402968
+      "wood": 697832,
+      "stone": 406970,
+      "gold": 434356
      },
      "accumulators": {
       "food": 1500000,
@@ -812,7 +816,7 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 144,
+      "food": 690,
       "wood": 0,
       "stone": 0,
       "gold": 0
@@ -895,12 +899,19 @@
      "scheduledRaids": []
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "buildPalisade",
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse"
      ]
     },
     "stats": {
@@ -913,6 +924,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 2,
      "constructionsStarted:farm": 1,
+     "plansMarkedAuto": 1,
      "constructionsStarted:quarry": 2,
      "constructionsStarted:watchtower": 1,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -921,13 +933,14 @@
      "cardsExpired": 1,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 159144
+     "wasted_food": 161690,
+     "coldSpellsThisSeason": 0
     }
    }
   },
   {
    "day": 3,
-   "eventsSoFar": 148,
+   "eventsSoFar": 153,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -964,8 +977,8 @@
      "resources": {
       "food": 399984,
       "wood": 765000,
-      "stone": 895008,
-      "gold": 636169
+      "stone": 900000,
+      "gold": 667557
      },
      "accumulators": {
       "food": 2700000,
@@ -1003,9 +1016,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 144,
-      "wood": 106,
-      "stone": 0,
+      "food": 690,
+      "wood": 407,
+      "stone": 396,
       "gold": 0
      },
      "craftExperience": {
@@ -1093,12 +1106,19 @@
      "scheduledRaids": []
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "buildPalisade",
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse"
      ]
     },
     "stats": {
@@ -1111,6 +1131,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 4,
      "constructionsStarted:farm": 1,
+     "plansMarkedAuto": 1,
      "constructionsStarted:quarry": 2,
      "constructionsStarted:watchtower": 1,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -1119,19 +1140,21 @@
      "cardsExpired": 2,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 159144,
+     "wasted_food": 161690,
+     "coldSpellsThisSeason": 0,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "cardsDrawn:moreMouths": 1,
-     "wasted_wood": 337106,
+     "wasted_wood": 376407,
      "cardsDrawn:palisadePromisePlea": 1,
+     "wasted_stone": 36396,
      "cardsDrawn:fullGranary": 1
     }
    }
   },
   {
    "day": 4,
-   "eventsSoFar": 211,
+   "eventsSoFar": 217,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -1175,7 +1198,7 @@
       "food": 0,
       "wood": 900000,
       "stone": 900000,
-      "gold": 884797
+      "gold": 916185
      },
      "accumulators": {
       "food": 0,
@@ -1215,9 +1238,9 @@
      },
      "cold": null,
      "wasted": {
-      "food": 144,
-      "wood": 470,
-      "stone": 925,
+      "food": 690,
+      "wood": 771,
+      "stone": 313,
       "gold": 0
      },
      "craftExperience": {
@@ -1302,12 +1325,19 @@
      ]
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse",
+      "buildPalisade"
      ]
     },
     "stats": {
@@ -1320,6 +1350,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 6,
      "constructionsStarted:farm": 1,
+     "plansMarkedAuto": 1,
      "constructionsStarted:quarry": 3,
      "constructionsStarted:watchtower": 1,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -1328,23 +1359,25 @@
      "cardsExpired": 3,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 159144,
+     "wasted_food": 161690,
+     "coldSpellsThisSeason": 0,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "cardsDrawn:moreMouths": 1,
-     "wasted_wood": 1034470,
+     "wasted_wood": 1173771,
      "cardsDrawn:palisadePromisePlea": 1,
+     "wasted_stone": 646313,
      "cardsDrawn:fullGranary": 1,
-     "wasted_stone": 604925,
      "constructionsStarted:palisade": 1,
      "cardsDrawn:palisadePromiseDeadline": 1,
-     "cardsDrawn:commonGranaryPlanks": 1
+     "cardsDrawn:commonGranaryPlanks": 1,
+     "seasonsSurvived:summer": 1
     }
    }
   },
   {
    "day": 5,
-   "eventsSoFar": 255,
+   "eventsSoFar": 261,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -1388,7 +1421,7 @@
       "food": 900000,
       "wood": 873292,
       "stone": 900000,
-      "gold": 1293061
+      "gold": 1324449
      },
      "accumulators": {
       "food": 1200000,
@@ -1426,9 +1459,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 604,
-      "wood": 470,
-      "stone": 714,
+      "food": 150,
+      "wood": 771,
+      "stone": 102,
       "gold": 0
      },
      "craftExperience": {
@@ -1521,12 +1554,19 @@
      ]
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse",
+      "buildPalisade"
      ]
     },
     "stats": {
@@ -1539,6 +1579,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 7,
      "constructionsStarted:farm": 1,
+     "plansMarkedAuto": 1,
      "constructionsStarted:quarry": 3,
      "constructionsStarted:watchtower": 2,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -1547,17 +1588,19 @@
      "cardsExpired": 3,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 1842604,
+     "wasted_food": 1845150,
+     "coldSpellsThisSeason": 0,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 1,
      "cardsDrawn:moreMouths": 1,
-     "wasted_wood": 1034470,
+     "wasted_wood": 1173771,
      "cardsDrawn:palisadePromisePlea": 1,
+     "wasted_stone": 1175102,
      "cardsDrawn:fullGranary": 1,
-     "wasted_stone": 1133714,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:palisadePromiseDeadline": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
+     "seasonsSurvived:summer": 1,
      "raids_repelled": 3,
      "cardsDrawn:apprenticesTable": 1,
      "cardsDrawn:commonGranaryShare": 1
@@ -1566,7 +1609,7 @@
   },
   {
    "day": 6,
-   "eventsSoFar": 303,
+   "eventsSoFar": 309,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -1610,7 +1653,7 @@
       "food": 1500000,
       "wood": 900000,
       "stone": 900000,
-      "gold": 1754145
+      "gold": 1785533
      },
      "accumulators": {
       "food": 3450000,
@@ -1648,9 +1691,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 765,
-      "wood": 621,
-      "stone": 914,
+      "food": 311,
+      "wood": 922,
+      "stone": 302,
       "gold": 0
      },
      "craftExperience": {
@@ -1741,12 +1784,19 @@
      ]
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse",
+      "buildPalisade"
      ]
     },
     "stats": {
@@ -1759,6 +1809,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 9,
      "constructionsStarted:farm": 2,
+     "plansMarkedAuto": 2,
      "constructionsStarted:quarry": 3,
      "constructionsStarted:watchtower": 2,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -1767,28 +1818,31 @@
      "cardsExpired": 4,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 4986765,
+     "wasted_food": 4989311,
+     "coldSpellsThisSeason": 0,
      "constructionsStarted:goldMine": 1,
      "constructionsStarted:granary": 2,
      "cardsDrawn:moreMouths": 1,
-     "wasted_wood": 1162621,
+     "wasted_wood": 1301922,
      "cardsDrawn:palisadePromisePlea": 1,
+     "wasted_stone": 1847302,
      "cardsDrawn:fullGranary": 1,
-     "wasted_stone": 1805914,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:palisadePromiseDeadline": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
+     "seasonsSurvived:summer": 1,
      "raids_repelled": 6,
      "cardsDrawn:apprenticesTable": 1,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
+     "seasonsSurvived:autumn": 1,
      "cardsDrawn:sawmillRest": 1
     }
    }
   },
   {
    "day": 7,
-   "eventsSoFar": 356,
+   "eventsSoFar": 362,
    "state": {
     "schemaVersion": 11,
     "seed": "pedra-alta-golden",
@@ -1832,7 +1886,7 @@
       "food": 1500000,
       "wood": 49509,
       "stone": 798770,
-      "gold": 1740377
+      "gold": 1771765
      },
      "accumulators": {
       "food": 2326530,
@@ -1870,9 +1924,9 @@
      "famine": null,
      "cold": null,
      "wasted": {
-      "food": 73,
-      "wood": 621,
-      "stone": 489,
+      "food": 619,
+      "wood": 922,
+      "stone": 877,
       "gold": 0
      },
      "craftExperience": {
@@ -1931,12 +1985,19 @@
      "scheduledRaids": []
     },
     "objectives": {
-     "active": [],
+     "active": [
+      "surviveWinterWithoutCold"
+     ],
      "completed": [
       "allocateFarmers",
       "upgradeHousing",
       "recruitVillagers",
-      "townHallLevel2"
+      "townHallLevel2",
+      "answerFirstCard",
+      "planAutoStart",
+      "buildWatchtower",
+      "buildGranaryOrWarehouse",
+      "buildPalisade"
      ]
     },
     "stats": {
@@ -1949,6 +2010,7 @@
      "cardsDrawn:thawBridgePlea": 1,
      "cardsAnswered": 9,
      "constructionsStarted:farm": 2,
+     "plansMarkedAuto": 3,
      "constructionsStarted:quarry": 4,
      "constructionsStarted:watchtower": 2,
      "cardsDrawn:thawBridgeSlab": 1,
@@ -1957,21 +2019,24 @@
      "cardsExpired": 6,
      "cardsDrawn:springSeeds": 1,
      "cardsDrawn:thawBridgeCrossing": 1,
-     "wasted_food": 5616073,
+     "wasted_food": 5618619,
+     "coldSpellsThisSeason": 0,
      "constructionsStarted:goldMine": 2,
      "constructionsStarted:granary": 2,
      "cardsDrawn:moreMouths": 1,
-     "wasted_wood": 1162621,
+     "wasted_wood": 1301922,
      "cardsDrawn:palisadePromisePlea": 1,
+     "wasted_stone": 2125877,
      "cardsDrawn:fullGranary": 1,
-     "wasted_stone": 2084489,
      "constructionsStarted:palisade": 2,
      "cardsDrawn:palisadePromiseDeadline": 1,
      "cardsDrawn:commonGranaryPlanks": 1,
+     "seasonsSurvived:summer": 1,
      "raids_repelled": 9,
      "cardsDrawn:apprenticesTable": 1,
      "cardsDrawn:commonGranaryShare": 1,
      "cardsDrawn:commonGranaryOutcome": 1,
+     "seasonsSurvived:autumn": 1,
      "cardsDrawn:sawmillRest": 1,
      "cardsDrawn:collapsedWell": 1
     }
@@ -2298,6 +2363,16 @@
    }
   },
   {
+   "type": "objectiveCompleted",
+   "atMs": 86400000,
+   "text": "No 13º dia da Primavera, cumpriu-se um objetivo: Responda à primeira carta do Conselho. Recompensa: +10 de moral por 1 dia de jogo.",
+   "data": {
+    "objective": "answerFirstCard",
+    "morale": 10,
+    "moraleDays": 1
+   }
+  },
+  {
    "type": "constructionStarted",
    "atMs": 86400000,
    "text": "No 13º dia da Primavera, os pedreiros começaram a erguer a Fazenda ao 2º nível.",
@@ -2306,6 +2381,15 @@
     "level": 2,
     "spent_wood": 80,
     "spent_gold": 40
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 86400000,
+   "text": "No 13º dia da Primavera, cumpriu-se um objetivo: Deixe uma obra marcada para começar sozinha. Recompensa: +30 ouro.",
+   "data": {
+    "objective": "planAutoStart",
+    "gained_gold": 30
    }
   },
   {
@@ -2356,6 +2440,15 @@
    "data": {
     "building": "watchtower",
     "level": 1
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 90720000,
+   "text": "No 13º dia da Primavera, cumpriu-se um objetivo: Construa a Torre de Vigia. Recompensa: +40 pedra.",
+   "data": {
+    "objective": "buildWatchtower",
+    "gained_stone": 40
    }
   },
   {
@@ -2418,7 +2511,7 @@
   {
    "type": "raidSuffered",
    "atMs": 108000000,
-   "text": "No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 29,8 de comida, 34,9 de madeira e um aldeão ferido. Uma paliçada os teria detido.",
+   "text": "No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 30,2 de comida, 35,3 de madeira e um aldeão ferido. Uma paliçada os teria detido.",
    "data": {
     "raidId": "wolvesYear1",
     "enemy": "wolves",
@@ -2427,8 +2520,8 @@
     "palisadeLevel": 0,
     "threat": 65,
     "previousThreat": 75,
-    "raided_food": 29.837,
-    "raided_wood": 34.894,
+    "raided_food": 30.17,
+    "raided_wood": 35.337,
     "injured": 1,
     "palisadeLevelNeeded": 1
    }
@@ -2460,6 +2553,15 @@
    "data": {
     "building": "warehouse",
     "level": 1
+   }
+  },
+  {
+   "type": "objectiveCompleted",
+   "atMs": 108600000,
+   "text": "No 16º dia da Primavera, cumpriu-se um objetivo: Construa o Celeiro ou o Armazém. Recompensa: +60 madeira.",
+   "data": {
+    "objective": "buildGranaryOrWarehouse",
+    "gained_wood": 60
    }
   },
   {
@@ -2589,7 +2691,7 @@
   {
    "type": "raidSuffered",
    "atMs": 136800000,
-   "text": "No 20º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 66,9 de comida, 54,4 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
+   "text": "No 20º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 67,3 de comida, 64 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
    "data": {
     "raidId": "threat-2",
     "enemy": "wolves",
@@ -2598,8 +2700,8 @@
     "palisadeLevel": 0,
     "threat": 75,
     "previousThreat": 85,
-    "raided_food": 66.863,
-    "raided_wood": 54.39,
+    "raided_food": 67.312,
+    "raided_wood": 63.989,
     "injured": 2,
     "palisadeLevelNeeded": 2
    }
@@ -2683,7 +2785,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 155480527,
+   "atMs": 155083008,
    "text": "No 22º dia da Primavera, a Despensa de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.",
    "data": {
     "resource": "food",
@@ -2695,9 +2797,9 @@
   {
    "type": "storageWasted",
    "atMs": 158400000,
-   "text": "No 22º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 18 de comida.",
+   "text": "No 22º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 21 de comida.",
    "data": {
-    "wasted_food": 18
+    "wasted_food": 21
    }
   },
   {
@@ -2732,9 +2834,9 @@
   {
    "type": "storageWasted",
    "atMs": 165600000,
-   "text": "No 23º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 141 de comida.",
+   "text": "No 23º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 140 de comida.",
    "data": {
-    "wasted_food": 141
+    "wasted_food": 140
    }
   },
   {
@@ -2748,7 +2850,7 @@
   {
    "type": "raidSuffered",
    "atMs": 165600000,
-   "text": "No 24º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 75 de comida, 101,4 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
+   "text": "No 24º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 75 de comida, 109,5 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
    "data": {
     "raidId": "threat-3",
     "enemy": "wolves",
@@ -2758,7 +2860,7 @@
     "threat": 85,
     "previousThreat": 95,
     "raided_food": 75,
-    "raided_wood": 101.368,
+    "raided_wood": 109.528,
     "injured": 2,
     "palisadeLevelNeeded": 2
    }
@@ -3011,7 +3113,7 @@
   {
    "type": "raidSuffered",
    "atMs": 201600000,
-   "text": "No 5º dia do Verão, os lobos que os vigias tinham avistado chegaram a Pedra Alta do Norte. Nada os deteve: o ataque custou 54,5 de comida, 127,5 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
+   "text": "No 5º dia do Verão, os lobos que os vigias tinham avistado chegaram a Pedra Alta do Norte. Nada os deteve: o ataque custou 54,5 de comida, 134,4 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.",
    "data": {
     "raidId": "threat-4",
     "enemy": "wolves",
@@ -3021,7 +3123,7 @@
     "threat": 90,
     "previousThreat": 100,
     "raided_food": 54.517,
-    "raided_wood": 127.483,
+    "raided_wood": 134.418,
     "injured": 2,
     "palisadeLevelNeeded": 2
    }
@@ -3081,7 +3183,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 212943875,
+   "atMs": 210349607,
    "text": "No 6º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
    "data": {
     "resource": "wood",
@@ -3093,9 +3195,9 @@
   {
    "type": "storageWasted",
    "atMs": 216000000,
-   "text": "No 6º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 46 de madeira.",
+   "text": "No 6º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 85 de madeira.",
    "data": {
-    "wasted_wood": 46
+    "wasted_wood": 85
    }
   },
   {
@@ -3280,9 +3382,9 @@
   {
    "type": "storageWasted",
    "atMs": 244800000,
-   "text": "No 10º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 55 de madeira.",
+   "text": "No 10º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 56 de madeira.",
    "data": {
-    "wasted_wood": 55
+    "wasted_wood": 56
    }
   },
   {
@@ -3307,9 +3409,9 @@
   {
    "type": "storageWasted",
    "atMs": 252000000,
-   "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 115 de madeira.",
+   "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 114 de madeira.",
    "data": {
-    "wasted_wood": 115
+    "wasted_wood": 114
    }
   },
   {
@@ -3331,11 +3433,23 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 255722071,
+   "text": "No 12º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
+   "data": {
+    "resource": "stone",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
    "type": "storageWasted",
    "atMs": 259200000,
-   "text": "No 12º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira.",
+   "text": "No 12º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 121 de madeira e 36 de pedra.",
    "data": {
-    "wasted_wood": 121
+    "wasted_wood": 121,
+    "wasted_stone": 36
    }
   },
   {
@@ -3468,7 +3582,7 @@
   },
   {
    "type": "storageFilled",
-   "atMs": 264550356,
+   "atMs": 264073337,
    "text": "No 13º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
    "data": {
     "resource": "stone",
@@ -3504,9 +3618,9 @@
   {
    "type": "storageWasted",
    "atMs": 266400000,
-   "text": "No 13º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 19 de pedra.",
+   "text": "No 13º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 24 de pedra.",
    "data": {
-    "wasted_stone": 19
+    "wasted_stone": 24
    }
   },
   {
@@ -3554,6 +3668,26 @@
    }
   },
   {
+   "type": "objectiveCompleted",
+   "atMs": 274800000,
+   "text": "No 15º dia do Verão, cumpriu-se um objetivo: Construa a Paliçada. Recompensa: +100 madeira.",
+   "data": {
+    "objective": "buildPalisade",
+    "gained_wood": 100
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 278494618,
+   "text": "No 15º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
    "type": "storageFilled",
    "atMs": 278616669,
    "text": "No 15º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
@@ -3567,9 +3701,10 @@
   {
    "type": "storageWasted",
    "atMs": 280800000,
-   "text": "No 15º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 21 de pedra.",
+   "text": "No 15º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 55 de madeira e 22 de pedra.",
    "data": {
-    "wasted_stone": 21
+    "wasted_wood": 55,
+    "wasted_stone": 22
    }
   },
   {
@@ -3581,17 +3716,6 @@
    }
   },
   {
-   "type": "storageFilled",
-   "atMs": 282585936,
-   "text": "No 16º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
-   "data": {
-    "resource": "wood",
-    "building": "warehouse",
-    "level": 1,
-    "cap": 900
-   }
-  },
-  {
    "type": "famineStarted",
    "atMs": 284561140,
    "text": "No 16º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
@@ -3600,10 +3724,10 @@
   {
    "type": "storageWasted",
    "atMs": 288000000,
-   "text": "No 16º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 114 de madeira e 67 de pedra.",
+   "text": "No 16º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 159 de madeira e 66 de pedra.",
    "data": {
-    "wasted_wood": 114,
-    "wasted_stone": 67
+    "wasted_wood": 159,
+    "wasted_stone": 66
    }
   },
   {
@@ -3641,10 +3765,10 @@
   {
    "type": "storageWasted",
    "atMs": 295200000,
-   "text": "No 17º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 116 de madeira e 48 de pedra.",
+   "text": "No 17º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 117 de madeira e 49 de pedra.",
    "data": {
-    "wasted_wood": 116,
-    "wasted_stone": 48
+    "wasted_wood": 117,
+    "wasted_stone": 49
    }
   },
   {
@@ -3668,10 +3792,10 @@
   {
    "type": "storageWasted",
    "atMs": 302400000,
-   "text": "No 18º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 115 de madeira e 48 de pedra.",
+   "text": "No 18º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 115 de madeira e 47 de pedra.",
    "data": {
     "wasted_wood": 115,
-    "wasted_stone": 48
+    "wasted_stone": 47
    }
   },
   {
@@ -3804,10 +3928,10 @@
   {
    "type": "storageWasted",
    "atMs": 324000000,
-   "text": "No 21º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de madeira e 55 de pedra.",
+   "text": "No 21º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de madeira e 56 de pedra.",
    "data": {
     "wasted_wood": 84,
-    "wasted_stone": 55
+    "wasted_stone": 56
    }
   },
   {
@@ -3821,10 +3945,10 @@
   {
    "type": "storageWasted",
    "atMs": 331200000,
-   "text": "No 22º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 120 de madeira e 59 de pedra.",
+   "text": "No 22º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 119 de madeira e 58 de pedra.",
    "data": {
-    "wasted_wood": 120,
-    "wasted_stone": 59
+    "wasted_wood": 119,
+    "wasted_stone": 58
    }
   },
   {
@@ -3868,10 +3992,10 @@
   {
    "type": "storageWasted",
    "atMs": 338400000,
-   "text": "No 23º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 108 de madeira e 52 de pedra.",
+   "text": "No 23º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 109 de madeira e 53 de pedra.",
    "data": {
-    "wasted_wood": 108,
-    "wasted_stone": 52
+    "wasted_wood": 109,
+    "wasted_stone": 53
    }
   },
   {
@@ -3939,9 +4063,9 @@
   {
    "type": "storageWasted",
    "atMs": 345600000,
-   "text": "No 24º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 40 de madeira e 52 de pedra.",
+   "text": "No 24º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 39 de madeira e 52 de pedra.",
    "data": {
-    "wasted_wood": 40,
+    "wasted_wood": 39,
     "wasted_stone": 52
    }
   },
@@ -4131,9 +4255,9 @@
   {
    "type": "storageWasted",
    "atMs": 381600000,
-   "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 69 de pedra.",
+   "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 68 de pedra.",
    "data": {
-    "wasted_stone": 69
+    "wasted_stone": 68
    }
   },
   {
@@ -4158,10 +4282,10 @@
   {
    "type": "storageWasted",
    "atMs": 388800000,
-   "text": "No 6º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 200 de comida e 76 de pedra.",
+   "text": "No 6º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 201 de comida e 77 de pedra.",
    "data": {
-    "wasted_food": 200,
-    "wasted_stone": 76
+    "wasted_food": 201,
+    "wasted_stone": 77
    }
   },
   {
@@ -4248,9 +4372,9 @@
   {
    "type": "storageWasted",
    "atMs": 396000000,
-   "text": "No 7º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 195 de comida.",
+   "text": "No 7º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 194 de comida.",
    "data": {
-    "wasted_food": 195
+    "wasted_food": 194
    }
   },
   {
@@ -4289,10 +4413,10 @@
   {
    "type": "storageWasted",
    "atMs": 403200000,
-   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 254 de comida e 75 de pedra.",
+   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 254 de comida e 74 de pedra.",
    "data": {
     "wasted_food": 254,
-    "wasted_stone": 75
+    "wasted_stone": 74
    }
   },
   {
@@ -4319,9 +4443,9 @@
   {
    "type": "storageWasted",
    "atMs": 410400000,
-   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 257 de comida e 78 de pedra.",
+   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 258 de comida e 78 de pedra.",
    "data": {
-    "wasted_food": 257,
+    "wasted_food": 258,
     "wasted_stone": 78
    }
   },
@@ -4336,10 +4460,10 @@
   {
    "type": "storageWasted",
    "atMs": 417600000,
-   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 261 de comida e 78 de pedra.",
+   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 260 de comida e 79 de pedra.",
    "data": {
-    "wasted_food": 261,
-    "wasted_stone": 78
+    "wasted_food": 260,
+    "wasted_stone": 79
    }
   },
   {
@@ -4364,10 +4488,10 @@
   {
    "type": "storageWasted",
    "atMs": 424800000,
-   "text": "No 11º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 256 de comida e 77 de pedra.",
+   "text": "No 11º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 257 de comida e 76 de pedra.",
    "data": {
-    "wasted_food": 256,
-    "wasted_stone": 77
+    "wasted_food": 257,
+    "wasted_stone": 76
    }
   },
   {
@@ -4395,10 +4519,10 @@
   {
    "type": "storageWasted",
    "atMs": 432000000,
-   "text": "No 12º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 260 de comida e 76 de pedra.",
+   "text": "No 12º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 260 de comida e 77 de pedra.",
    "data": {
     "wasted_food": 260,
-    "wasted_stone": 76
+    "wasted_stone": 77
    }
   },
   {
@@ -4469,9 +4593,9 @@
   {
    "type": "storageWasted",
    "atMs": 446400000,
-   "text": "No 14º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 25 de pedra.",
+   "text": "No 14º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 24 de pedra.",
    "data": {
-    "wasted_stone": 25
+    "wasted_stone": 24
    }
   },
   {
@@ -4551,9 +4675,9 @@
   {
    "type": "storageWasted",
    "atMs": 460800000,
-   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 273 de comida e 76 de pedra.",
+   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 272 de comida e 76 de pedra.",
    "data": {
-    "wasted_food": 273,
+    "wasted_food": 272,
     "wasted_stone": 76
    }
   },
@@ -4590,11 +4714,11 @@
   {
    "type": "storageWasted",
    "atMs": 468000000,
-   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 275 de comida, 23 de madeira e 76 de pedra.",
+   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 276 de comida, 23 de madeira e 77 de pedra.",
    "data": {
-    "wasted_food": 275,
+    "wasted_food": 276,
     "wasted_wood": 23,
-    "wasted_stone": 76
+    "wasted_stone": 77
    }
   },
   {
@@ -4608,11 +4732,11 @@
   {
    "type": "storageWasted",
    "atMs": 475200000,
-   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 279 de comida, 61 de madeira e 77 de pedra.",
+   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 279 de comida, 61 de madeira e 76 de pedra.",
    "data": {
     "wasted_food": 279,
     "wasted_wood": 61,
-    "wasted_stone": 77
+    "wasted_stone": 76
    }
   },
   {
@@ -4731,10 +4855,10 @@
   {
    "type": "storageWasted",
    "atMs": 489600000,
-   "text": "No 20º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 357 de comida e 23 de pedra.",
+   "text": "No 20º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 357 de comida e 24 de pedra.",
    "data": {
     "wasted_food": 357,
-    "wasted_stone": 23
+    "wasted_stone": 24
    }
   },
   {
@@ -4775,10 +4899,10 @@
   {
    "type": "storageWasted",
    "atMs": 504000000,
-   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 365 de comida e 81 de pedra.",
+   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 365 de comida e 80 de pedra.",
    "data": {
     "wasted_food": 365,
-    "wasted_stone": 81
+    "wasted_stone": 80
    }
   },
   {
@@ -4845,11 +4969,11 @@
   {
    "type": "storageWasted",
    "atMs": 518400000,
-   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 354 de comida, 44 de madeira e 76 de pedra.",
+   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 354 de comida, 44 de madeira e 77 de pedra.",
    "data": {
     "wasted_food": 354,
     "wasted_wood": 44,
-    "wasted_stone": 76
+    "wasted_stone": 77
    }
   },
   {
@@ -4902,9 +5026,9 @@
   {
    "type": "storageWasted",
    "atMs": 525600000,
-   "text": "No 1º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 83 de comida.",
+   "text": "No 1º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 82 de comida.",
    "data": {
-    "wasted_food": 83
+    "wasted_food": 82
    }
   },
   {
@@ -4945,9 +5069,9 @@
   {
    "type": "storageWasted",
    "atMs": 540000000,
-   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 82 de comida.",
+   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 83 de comida.",
    "data": {
-    "wasted_food": 82
+    "wasted_food": 83
    }
   },
   {
@@ -5064,9 +5188,9 @@
   {
    "type": "storageWasted",
    "atMs": 561600000,
-   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 49 de comida.",
+   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 48 de comida.",
    "data": {
-    "wasted_food": 49
+    "wasted_food": 48
    }
   },
   {
@@ -5125,9 +5249,9 @@
   {
    "type": "storageWasted",
    "atMs": 568800000,
-   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 8 de pedra.",
+   "text": "No 7º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 7 de pedra.",
    "data": {
-    "wasted_stone": 8
+    "wasted_stone": 7
    }
   },
   {
@@ -5152,9 +5276,9 @@
   {
    "type": "storageWasted",
    "atMs": 576000000,
-   "text": "No 8º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 50 de pedra.",
+   "text": "No 8º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 51 de pedra.",
    "data": {
-    "wasted_stone": 50
+    "wasted_stone": 51
    }
   },
   {
@@ -5193,9 +5317,9 @@
   {
    "type": "storageWasted",
    "atMs": 583200000,
-   "text": "No 9º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 51 de pedra.",
+   "text": "No 9º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 50 de pedra.",
    "data": {
-    "wasted_stone": 51
+    "wasted_stone": 50
    }
   },
   {
@@ -5229,9 +5353,9 @@
   {
    "type": "storageWasted",
    "atMs": 590400000,
-   "text": "No 10º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 33 de comida e 57 de pedra.",
+   "text": "No 10º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 34 de comida e 57 de pedra.",
    "data": {
-    "wasted_food": 33,
+    "wasted_food": 34,
     "wasted_stone": 57
    }
   },
@@ -5305,9 +5429,9 @@
   {
    "type": "storageWasted",
    "atMs": 604800000,
-   "text": "No 12º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 77 de comida e 43 de pedra.",
+   "text": "No 12º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 76 de comida e 43 de pedra.",
    "data": {
-    "wasted_food": 77,
+    "wasted_food": 76,
     "wasted_stone": 43
    }
   },

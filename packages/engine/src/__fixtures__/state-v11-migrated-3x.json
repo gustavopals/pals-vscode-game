@@ -107,7 +107,11 @@
   "injured": []
  },
  "objectives": {
-  "active": [],
+  "active": [
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse"
+  ],
   "completed": [
    "upgradeHousing",
    "allocateFarmers",

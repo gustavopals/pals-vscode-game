@@ -113,7 +113,11 @@
   ]
  },
  "objectives": {
-  "active": [],
+  "active": [
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse"
+  ],
   "completed": [
    "allocateFarmers",
    "upgradeHousing",

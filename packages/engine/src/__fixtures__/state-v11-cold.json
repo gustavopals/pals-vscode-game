@@ -193,11 +193,14 @@
   "raids_suffered": 14,
   "cardsExpired": 8,
   "cardsDrawn:neighborsWatch": 2,
+  "coldSpellsThisSeason": 1,
   "cardsDrawn:moreMouths": 1,
   "cardsDrawn:masonsMeal": 1,
   "cardsDrawn:thawBridgePlea": 1,
+  "seasonsSurvived:summer": 1,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:harvestFeast": 1,
-  "cardsDrawn:roofBeforeCold": 1
+  "cardsDrawn:roofBeforeCold": 1,
+  "seasonsSurvived:autumn": 1
  }
 }

@@ -1062,11 +1062,33 @@ describe('objetivos', () => {
     }
   });
 
-  it('as recompensas são +20 ouro, +30 madeira, +40 comida e o desbloqueio do que o Salão libera', () => {
+  it('os dez da v0.2 saem nesta ordem, e os ids de 1 a 4 são os da v0.1', () => {
+    // O id fica gravado em cada partida (`objectives.active` e `completed`): nunca se troca.
+    expect(objectives.map((objective) => objective.id)).toEqual([
+      'allocateFarmers',
+      'upgradeHousing',
+      'recruitVillagers',
+      'townHallLevel2',
+      'buildWatchtower',
+      'answerFirstCard',
+      'buildGranaryOrWarehouse',
+      'planAutoStart',
+      'buildPalisade',
+      'surviveWinterWithoutCold',
+    ]);
+  });
+
+  it('as recompensas são as do GDD §12.2: recurso, o desbloqueio do Salão ou moral por um dia', () => {
     expect(objectives.map((objective) => objective.reward)).toEqual([
       { gold: 20 },
       { wood: 30 },
       { food: 40 },
+      {},
+      { stone: 40 },
+      {},
+      { wood: 60 },
+      { gold: 30 },
+      { wood: 100 },
       {},
     ]);
     expect(objectives.map((objective) => objective.rewardText)).toEqual([
@@ -1074,7 +1096,78 @@ describe('objetivos', () => {
       undefined,
       undefined,
       'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
     ]);
+    expect(
+      Object.fromEntries(
+        objectives.flatMap(({ id, morale }) =>
+          morale === undefined ? [] : [[id, [morale.amount, morale.durationDays]]],
+        ),
+      ),
+    ).toEqual({ answerFirstCard: [10, 1], surviveWinterWithoutCold: [15, 1] });
+  });
+
+  it('as condições da v0.2: a Torre, a carta, um dos depósitos, a obra automática, a Paliçada e o inverno', () => {
+    const condition = (id: string) =>
+      objectives.find((objective) => objective.id === id)?.condition;
+    expect(condition('buildWatchtower')).toEqual({
+      type: 'buildingLevel',
+      building: 'watchtower',
+      level: 1,
+    });
+    expect(condition('answerFirstCard')).toEqual({ type: 'cardAnswered', count: 1 });
+    expect(condition('buildGranaryOrWarehouse')).toEqual({
+      type: 'anyBuildingLevel',
+      buildings: ['granary', 'warehouse'],
+      level: 1,
+    });
+    expect(condition('planAutoStart')).toEqual({ type: 'plannedAutoStart' });
+    expect(condition('buildPalisade')).toEqual({
+      type: 'buildingLevel',
+      building: 'palisade',
+      level: 1,
+    });
+    expect(condition('surviveWinterWithoutCold')).toEqual({
+      type: 'seasonSurvived',
+      season: 'winter',
+      count: 1,
+    });
+  });
+
+  it('o objetivo do inverno é o da estação que queima lenha: só nela o feudo passa frio', () => {
+    const burning = balance.calendar.seasons
+      .filter((season) => season.effects.firewoodPerVillagerPerHour.num > 0)
+      .map((season) => season.id);
+    expect(burning).toEqual(['winter']);
+  });
+
+  it('nenhum objetivo pede edifício que o feudo não possa erguer', () => {
+    for (const { id, condition } of objectives) {
+      const asked =
+        condition.type === 'anyBuildingLevel'
+          ? condition.buildings.map((building) => ({ building, level: condition.level }))
+          : condition.type === 'buildingLevel'
+            ? [{ building: condition.building, level: condition.level }]
+            : [];
+      for (const { building, level } of asked) {
+        expect(level, id).toBeLessThanOrEqual(buildings[building].maxLevel);
+        expect(level, id).toBeGreaterThan(buildings[building].initialLevel);
+      }
+    }
+  });
+
+  it('todo objetivo traz a ação, o porquê e a recompensa', () => {
+    for (const objective of objectives) {
+      // O título é a ordem, no imperativo e sem ponto; o porquê é uma frase curta.
+      expect(objective.title, objective.id).toMatch(/^\p{Lu}\p{Ll}+ .*[^.]$/u);
+      expect(objective.hint, objective.id).toMatch(/^\p{Lu}.*\.$/u);
+      expect(objective.hint.length, objective.id).toBeLessThanOrEqual(90);
+    }
   });
 
   it('o objetivo 4 promete o que o Salão no nível 2 libera, e só isso', () => {
@@ -1100,6 +1193,79 @@ describe('objetivos', () => {
     expect(parse({ rewardText: 'Desbloqueia o Celeiro' })).toBe(false);
     expect(parse({ rewardText: 'desbloqueia o Celeiro.' })).toBe(false);
     expect(parse({ reward: { gold: 0 } })).toBe(false);
+  });
+
+  it('o schema aceita a recompensa em moral e recusa a que tira moral, a sem prazo e a sem nome', () => {
+    const [first] = objectives;
+    if (first === undefined) {
+      throw new Error('O conteúdo não tem objetivos.');
+    }
+    const morale = { amount: 10, durationDays: 1, label: 'Inverno sem frio' };
+    const parse = (changed: object) =>
+      ObjectivesSchema.safeParse([{ ...first, reward: {}, ...changed }]).success;
+    expect(parse({ morale })).toBe(true);
+    expect(parse({ morale, reward: { gold: 20 } })).toBe(true);
+    expect(parse({ morale: { ...morale, amount: -10 } })).toBe(false);
+    expect(parse({ morale: { ...morale, amount: 0 } })).toBe(false);
+    expect(parse({ morale: { ...morale, durationDays: 0 } })).toBe(false);
+    expect(parse({ morale: { ...morale, label: '' } })).toBe(false);
+    expect(parse({ morale: { ...morale, label: 'Inverno sem frio.' } })).toBe(false);
+    expect(parse({ morale: { amount: 10, durationDays: 1 } })).toBe(false);
+  });
+
+  it('o schema recusa id repetido, título com ponto e porquê sem ponto', () => {
+    const [first, second] = objectives;
+    if (first === undefined || second === undefined) {
+      throw new Error('O conteúdo não tem dois objetivos.');
+    }
+    expect(ObjectivesSchema.safeParse([first, second]).success).toBe(true);
+    expect(ObjectivesSchema.safeParse([first, { ...second, id: first.id }]).success).toBe(false);
+    expect(ObjectivesSchema.safeParse([{ ...first, title: `${first.title}.` }]).success).toBe(
+      false,
+    );
+    expect(ObjectivesSchema.safeParse([{ ...first, hint: 'comida mantém o resto' }]).success).toBe(
+      false,
+    );
+    const morale = { amount: 10, durationDays: 1, label: 'Inverno sem frio' };
+    expect(
+      ObjectivesSchema.safeParse([
+        { ...first, morale },
+        { ...second, morale },
+      ]).success,
+    ).toBe(false);
+  });
+
+  it('o schema confere cada condição nova', () => {
+    const [first] = objectives;
+    if (first === undefined) {
+      throw new Error('O conteúdo não tem objetivos.');
+    }
+    const parse = (condition: object) =>
+      ObjectivesSchema.safeParse([{ ...first, condition }]).success;
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'warehouse'], level: 1 })).toBe(
+      true,
+    );
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary'], level: 1 })).toBe(false);
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'granary'], level: 1 })).toBe(
+      false,
+    );
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'barracks'], level: 1 })).toBe(
+      false,
+    );
+    expect(parse({ type: 'anyBuildingLevel', buildings: ['granary', 'warehouse'], level: 0 })).toBe(
+      false,
+    );
+    expect(parse({ type: 'cardAnswered', count: 1 })).toBe(true);
+    expect(parse({ type: 'cardAnswered', count: 0 })).toBe(false);
+    expect(parse({ type: 'cardAnswered' })).toBe(false);
+    expect(parse({ type: 'plannedAutoStart' })).toBe(true);
+    expect(parse({ type: 'plannedAutoStart', count: 1 })).toBe(false);
+    expect(parse({ type: 'seasonSurvived', season: 'winter', count: 1 })).toBe(true);
+    expect(parse({ type: 'seasonSurvived', season: 'monsoon', count: 1 })).toBe(false);
+    expect(parse({ type: 'seasonSurvived', season: 'winter' })).toBe(false);
+    // Herói, patrulha e soldado ficam para as versões deles: não há condição que os peça.
+    expect(parse({ type: 'heroHired' })).toBe(false);
+    expect(parse({ type: 'soldiersTrained', count: 10 })).toBe(false);
   });
 });
 

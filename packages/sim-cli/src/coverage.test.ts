@@ -120,8 +120,11 @@ describe('cobertura do Conselho em 50 sementes, um ano de jogo', () => {
     }
     expect(normal.perRun.continuations.max).toBeGreaterThanOrEqual(4);
     // No ritmo Rápido a ponte sai cedo, com o feudo ainda sem folga: poucas partidas a pagam.
+    // Desde os objetivos da v0.2 (V2E-T4) a folga do começo vai para a Torre de Vigia e para o
+    // primeiro depósito, que o objetivo pede: a cadeia do Celeiro Comum é aberta em 19 das 50
+    // sementes (eram 20 ou mais).
     expect(runsOf(fast, 'thawBridgeSlab')).toBeGreaterThan(0);
-    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(20);
+    expect(runsOf(fast, 'commonGranaryShare')).toBeGreaterThanOrEqual(15);
   });
 
   it('o relatório sai em tabelas, com uma linha por carta', () => {

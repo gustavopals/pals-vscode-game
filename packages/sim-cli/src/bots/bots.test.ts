@@ -30,6 +30,7 @@ import {
   recrutar,
   responderCartas,
   responderCartasSemGastar,
+  seguirObjetivos,
 } from './policies';
 import { type Act, botOf, type Policy } from './types';
 
@@ -156,12 +157,14 @@ describe('um bot é uma lista de políticas', () => {
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
     // As obras antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
     // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. A Paliçada vem na
-    // frente de tudo, e só quando os vigias dizem que há risco. A Torre de Vigia vem na frente
+    // frente de tudo, e só quando os vigias dizem que há risco. Depois, os Objetivos do
+    // Senhor: o passo que cada um pede. A Torre de Vigia, fora do objetivo dela, vem na frente
     // das outras obras, e só com folga: sem ela, a fila é das obras que rendem. O Conselho vem
     // depois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico investe
     // com folga; o preguiçoso responde sem gastar.
     expect(strategyPolicies.economico).toEqual([
       erguerPalicada,
+      seguirObjetivos,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
@@ -173,6 +176,7 @@ describe('um bot é uma lista de políticas', () => {
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
       erguerPalicada,
+      seguirObjetivos,
       erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
@@ -192,6 +196,7 @@ describe('um bot é uma lista de políticas', () => {
       ampliarEstoque,
       erguerTorre,
       erguerPalicada,
+      seguirObjetivos,
       planejarAutomaticas,
       alocarPorDemanda,
       comidaPrimeiro,
@@ -206,6 +211,7 @@ describe('um bot é uma lista de políticas', () => {
       'ampliar o estoque',
       'erguer a Torre',
       'erguer a Paliçada',
+      'seguir os objetivos',
       'planejar automáticas',
       'alocar por demanda',
       'comida primeiro',
@@ -1586,6 +1592,149 @@ describe('política "erguer a Paliçada"', () => {
   });
 });
 
+describe('política "seguir os objetivos"', () => {
+  type Objective = ViewState['objectives'][number];
+
+  /** Um objetivo ativo, como a visão o mostra: o bot só lê `status`, `progress` e `target`. */
+  function objective(
+    id: string,
+    target: Objective['target'],
+    progress: Objective['progress'] = { current: 0, target: 1 },
+  ): Objective {
+    return {
+      id,
+      title: id,
+      hint: 'Porque sim.',
+      reward: '+1 ouro',
+      status: 'active',
+      progress,
+      missing: null,
+      target,
+    };
+  }
+
+  const withObjectives = (view: ViewState, objectives: Objective[]): ViewState => ({
+    ...view,
+    objectives,
+  });
+
+  const decide = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    await seguirObjetivos.run(view, act);
+    return orders;
+  };
+
+  const ready = (building: BuildingId) => upgrade(building, {}, null);
+
+  it('no feudo recém-criado: manda dois aldeões para a Fazenda e inicia a obra das Habitações', async () => {
+    // Os três primeiros objetivos de verdade. O do recrutamento é da política `recrutar`.
+    const view = freshView();
+    expect(view.objectives.map((entry) => entry.target.kind)).toEqual([
+      'workers',
+      'building',
+      'recruitment',
+    ]);
+    expect(await decide(view)).toEqual([
+      { type: 'setWorkers', payload: { building: 'farm', count: 2 } },
+      { type: 'startConstruction', payload: { building: 'housing' } },
+    ]);
+  });
+
+  it('um ofício: completa o que falta com os aldeões livres; sem livres que bastem, não dá ordem', async () => {
+    const short = objective(
+      'farmers',
+      { kind: 'workers', building: 'farm' },
+      { current: 1, target: 3 },
+    );
+    const one = withObjectives(withWorkers(freshView(), { farm: 1 }), [short]);
+    expect(await decide(one)).toEqual([
+      { type: 'setWorkers', payload: { building: 'farm', count: 3 } },
+    ]);
+    const busy = withObjectives(withWorkers(freshView(), { farm: 1, quarry: 3 }), [short]);
+    expect(busy.population.free).toBe(1);
+    expect(await decide(busy)).toEqual([]);
+  });
+
+  it('um edifício: inicia a obra que pode começar; a que não pode fica planejada como automática', async () => {
+    const tower = objective('tower', { kind: 'building', building: 'watchtower' });
+    const can = withObjectives(withUpgrades(freshView(), [ready('watchtower')]), [tower]);
+    expect(await decide(can)).toEqual([
+      { type: 'startConstruction', payload: { building: 'watchtower' } },
+    ]);
+    const plan = {
+      type: 'planConstruction',
+      payload: { building: 'watchtower', autoStart: true, targetLevel: 2 },
+    };
+    for (const code of ['INSUFFICIENT_RESOURCES', 'QUEUE_LOCKED', 'GATE_LOCKED'] as const) {
+      const blocked = withUpgrades(freshView(), [upgrade('watchtower', { stone: 40 }, code)]);
+      expect(await decide(withObjectives(blocked, [tower])), code).toEqual([plan]);
+    }
+  });
+
+  it('um edifício: no teto, já planejado, em obras ou fora da lista, não dá ordem', async () => {
+    const tower = objective('tower', { kind: 'building', building: 'watchtower' });
+    const atMax = withUpgrades(freshView(), [upgrade('watchtower', {}, 'MAX_LEVEL')]);
+    expect(await decide(withObjectives(atMax, [tower]))).toEqual([]);
+    const planned = withUpgrades(freshView(), [
+      { ...upgrade('watchtower', { stone: 40 }), planned: true },
+    ]);
+    expect(await decide(withObjectives(planned, [tower]))).toEqual([]);
+    // Em obras, o edifício sai da lista do que pode ser iniciado.
+    expect(await decide(withObjectives(withUpgrades(freshView(), []), [tower]))).toEqual([]);
+  });
+
+  it('a lista de planejadas: marca como automática a obra mais barata; com uma já marcada, nada', async () => {
+    const auto = objective('auto', { kind: 'planned' });
+    const view = withObjectives(
+      withUpgrades(freshView(), [
+        upgrade('townHall', { wood: 200, stone: 100 }),
+        upgrade('quarry', { wood: 20 }),
+        upgrade('farm', {}, 'MAX_LEVEL'),
+      ]),
+      [auto],
+    );
+    expect(await decide(view)).toEqual([
+      {
+        type: 'planConstruction',
+        payload: { building: 'quarry', autoStart: true, targetLevel: 2 },
+      },
+    ]);
+    const marked: ViewState = {
+      ...view,
+      constructions: {
+        ...view.constructions,
+        planned: [
+          { ...upgrade('housing', { wood: 10 }), planned: true, autoStart: true, waiting: null },
+        ],
+      },
+    };
+    expect(await decide(marked)).toEqual([]);
+  });
+
+  it('o recrutamento, o Conselho e a estação ficam com as políticas deles', async () => {
+    const view = withObjectives(withUpgrades(freshView(), [ready('housing')]), [
+      objective('recruit', { kind: 'recruitment' }, { current: 0, target: 3 }),
+      objective('card', { kind: 'council' }),
+      objective('winter', { kind: 'season', season: 'winter' }),
+    ]);
+    expect(await decide(view)).toEqual([]);
+  });
+
+  it('objetivo concluído não pede nada, e o bot nunca olha o id', async () => {
+    const done: Objective = {
+      ...objective('buildWatchtower', { kind: 'building', building: 'watchtower' }),
+      status: 'completed',
+    };
+    const view = withObjectives(withUpgrades(freshView(), [ready('watchtower')]), [done]);
+    expect(await decide(view)).toEqual([]);
+    // O mesmo alvo com um id que o jogo não tem: a ordem é a mesma.
+    const unknown = objective('xyz', { kind: 'building', building: 'watchtower' });
+    expect(await decide(withObjectives(view, [unknown]))).toEqual([
+      { type: 'startConstruction', payload: { building: 'watchtower' } },
+    ]);
+  });
+});
+
 describe('política "obra mais barata" com o inverno à vista', () => {
   const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
     perHour: 9,
@@ -1862,13 +2011,66 @@ describe('os bots jogando contra o motor', () => {
       expect(view.threat.known).toBe(true);
       expect(view.threat.watchtower.next).toBeNull();
       expect(levels[0]).toBe(0);
-      expect(
-        feudo.orders.filter(
-          (order) =>
-            order.type === 'startConstruction' &&
-            (order.payload as { building: string }).building === 'watchtower',
-        ),
-      ).toHaveLength(2);
+      // Uma ordem por nível. O primeiro é o do objetivo: a Torre fica planejada como automática
+      // antes de o Salão a liberar, e começa sozinha. O segundo é o de `erguer a Torre`, com
+      // folga no estoque.
+      const forTower = feudo.orders.filter(
+        (order) => (order.payload as { building?: string }).building === 'watchtower',
+      );
+      expect(forTower.map((order) => order.type)).toEqual([
+        'planConstruction',
+        'startConstruction',
+      ]);
+      expect(forTower[0]?.payload).toEqual({
+        building: 'watchtower',
+        autoStart: true,
+        targetLevel: 1,
+      });
+    },
+  );
+
+  it.each([
+    ['economico', 1],
+    ['economico', 3],
+    ['economico', 0.5],
+    ['preguicoso', 1],
+    ['preguicoso', 3],
+  ] as const)(
+    'o %s, no ritmo %d, percorre a sequência inteira dos objetivos em um ano de jogo, na ordem',
+    async (strategy, timeScale) => {
+      const feudo = game(timeScale);
+      const sessionsPerDay = strategy === 'economico' ? 2 : 1;
+      const bot = botFor(strategy, sessionsPerDay);
+      const betweenVisits = (24 / sessionsPerDay) * timeScale;
+      const done = () =>
+        feudo
+          .view()
+          .objectives.filter((entry) => entry.status === 'completed')
+          .map((entry) => entry.id);
+      const order: string[] = [];
+      // Um ano de jogo são 168 horas de jogo.
+      for (let hours = 0; hours < 168; hours += betweenVisits) {
+        await bot(feudo.view(), feudo.act);
+        feudo.pass(betweenVisits);
+        const view = feudo.view();
+        // Nunca mais de três ativos, e a visão nunca mostra objetivo escondido.
+        expect(
+          view.objectives.filter((entry) => entry.status === 'active').length,
+        ).toBeLessThanOrEqual(3);
+        for (const id of done()) {
+          if (!order.includes(id)) {
+            order.push(id);
+          }
+        }
+      }
+      expect(feudo.refused).toEqual([]);
+      // A visão os lista na ordem da sequência: todos concluídos na virada do ano.
+      const all = feudo.view().objectives;
+      expect(all).toHaveLength(10);
+      expect(all.every((entry) => entry.status === 'completed')).toBe(true);
+      expect(all[all.length - 1]?.target).toEqual({ kind: 'season', season: 'winter' });
+      // O último a cair é o do inverno, na virada para a primavera.
+      expect(order[order.length - 1]).toBe(all[all.length - 1]?.id);
     },
   );
 
@@ -2116,11 +2318,12 @@ describe('os bots jogando contra o motor', () => {
       expect(Math.min(...morales)).toBeGreaterThanOrEqual(40);
       // 60 é o teto sem o Conselho (GDD §5.7). Com as cartas que o econômico paga quando tem
       // folga, o feudo fica orgulhoso e chega aos 80 que atraem um colono. O preguiçoso responde
-      // sem gastar: só passa da base com o que uma carta dá de graça.
+      // sem gastar: só passa da base com o que uma carta dá de graça e com o prêmio de um
+      // objetivo. O maior é o do inverno sem frio: +15 por um dia de jogo, 75.
       if (strategy === 'economico') {
         expect(Math.max(...morales)).toBeGreaterThanOrEqual(80);
       } else {
-        expect(Math.max(...morales)).toBeLessThanOrEqual(70);
+        expect(Math.max(...morales)).toBeLessThanOrEqual(75);
       }
       // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
       const late = morales.slice(-90);

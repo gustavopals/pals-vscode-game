@@ -109,6 +109,9 @@ export type CellMeasure = {
   exhaustedAtHour: OptionalRange;
   /** Obras que começaram sozinhas, entre as visitas. */
   autoStarted: Range;
+  /** Objetivos do Senhor concluídos, e a hora real em que a sequência inteira ficou cumprida. */
+  objectivesDone: Range;
+  objectivesAllDoneAtHour: OptionalRange;
   famineHours: Range;
   coldHours: Range;
   /** A menor moral de cada partida, e as horas com ela nas faixas de baixo. */
@@ -204,6 +207,8 @@ function measureOf(summaries: Summary[]): CellMeasure {
     ),
     exhaustedAtHour: optional((summary) => summary.exhaustedAtHour),
     autoStarted: range((summary) => summary.autoStarted),
+    objectivesDone: range((summary) => summary.objectives.done),
+    objectivesAllDoneAtHour: optional((summary) => summary.objectives.allDoneAtHour),
     famineHours: range((summary) => summary.famineHours),
     coldHours: range((summary) => summary.coldHours),
     moraleMin: range((summary) => summary.moraleMin),
@@ -538,6 +543,8 @@ export function formatMatrix(result: MatrixResult): string {
         'Fim das obras (h)',
         'Obras que começaram sozinhas',
         'População mínima',
+        'Objetivos concluídos',
+        'Último objetivo (h)',
       ],
       cells.map((cell) => [
         cell.paceLabel,
@@ -546,6 +553,8 @@ export function formatMatrix(result: MatrixResult): string {
         formatOptional(cell.measure.exhaustedAtHour),
         formatRange(cell.measure.autoStarted),
         formatRange(cell.measure.villagersMin),
+        formatRange(cell.measure.objectivesDone),
+        formatOptional(cell.measure.objectivesAllDoneAtHour),
       ]),
     );
     const waste = table(
@@ -690,6 +699,7 @@ const runColumns: Array<[string, (run: MatrixRun, difficulty: DifficultyId) => s
   ]),
   ['exhausted_hour', (run) => run.summary.exhaustedAtHour ?? ''],
   ['auto_started', (run) => run.summary.autoStarted],
+  ['objectives_done_hour', (run) => run.summary.objectives.allDoneAtHour ?? ''],
   ['villagers_lost', (run) => run.summary.villagersLeft + run.summary.villagersDeserted],
   ...RESOURCE_IDS.map((id): [string, (run: MatrixRun) => number] => [
     id,

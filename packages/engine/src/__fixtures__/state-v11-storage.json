@@ -159,7 +159,8 @@
  "objectives": {
   "active": [
    "upgradeHousing",
-   "recruitVillagers"
+   "recruitVillagers",
+   "buildWatchtower"
   ],
   "completed": [
    "allocateFarmers",
@@ -177,6 +178,7 @@
   "raids_suffered": 5,
   "cardsExpired": 3,
   "cardsDrawn:collapsedWell": 1,
+  "coldSpellsThisSeason": 0,
   "cardsDrawn:commonGranaryPlanks": 1,
   "constructionsStarted:warehouse": 1
  }

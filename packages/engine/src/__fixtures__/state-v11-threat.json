@@ -28,7 +28,7 @@
   "resources": {
    "food": 500000,
    "wood": 88000,
-   "stone": 279539,
+   "stone": 308589,
    "gold": 90000
   },
   "accumulators": {
@@ -74,7 +74,7 @@
   "wasted": {
    "food": 14614,
    "wood": 0,
-   "stone": 0,
+   "stone": 3950,
    "gold": 0
   },
   "craftExperience": {
@@ -145,11 +145,13 @@
  "objectives": {
   "active": [
    "upgradeHousing",
-   "recruitVillagers"
+   "recruitVillagers",
+   "answerFirstCard"
   ],
   "completed": [
    "allocateFarmers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower"
   ]
  },
  "stats": {
@@ -157,6 +159,7 @@
   "wasted_food": 497614,
   "cardsDrawn": 2,
   "cardsDrawn:springNews": 1,
-  "cardsDrawn:collapsedWell": 1
+  "cardsDrawn:collapsedWell": 1,
+  "wasted_stone": 10950
  }
 }

@@ -285,6 +285,8 @@ describe('deriveViewState', () => {
         reward: '+20 ouro',
         status: 'completed',
         progress: { current: 2, target: 2 },
+        missing: null,
+        target: { kind: 'workers', building: 'farm' },
       },
       expect.objectContaining({ id: 'upgradeHousing', status: 'active' }),
       expect.objectContaining({ id: 'recruitVillagers', progress: { current: 2, target: 3 } }),

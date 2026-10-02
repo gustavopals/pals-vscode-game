@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { HOUR, runWeekScenario as runScenario } from './test-helpers';
+import { HOUR, MINUTE, runWeekScenario as runScenario } from './test-helpers';
 import { deriveViewState } from './view';
 
 const DAY_REAL = 24 * HOUR;
@@ -172,7 +172,7 @@ describe('cenário golden de 7 dias', () => {
         (event) => event.atMs === hour * HOUR && /^raid(Suffered|Repelled)$/.test(event.type),
       )?.text;
     expect(told(30)).toBe(
-      'No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 29,8 de comida, 34,9 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
+      'No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Nada os deteve: o ataque custou 30,2 de comida, 35,3 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
     );
     expect(told(84)).toBe(
       'No 19º dia do Verão, os lobos que os vigias tinham avistado chegaram a Pedra Alta do Norte. A paliçada lhes quebrou o ímpeto, mas não os deteve: o ataque custou 67,5 de madeira e um aldeão ferido. Uma paliçada no nível 2 os teria detido.',
@@ -393,7 +393,33 @@ describe('cenário golden de 7 dias', () => {
     expect(state.stats).toMatchObject({ cardsDrawn: 16, cardsAnswered: 9, cardsExpired: 6 });
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
-    expect(state.objectives.active).toEqual([]);
+    // Os Objetivos do Senhor: nove dos dez, cada um quando o roteiro faz o que ele pede. Com o
+    // Salão no nível 2 (8 h 10 min) aparecem a Torre, a carta e o depósito. A primeira resposta
+    // ao Conselho e a Pedreira marcada para começar sozinha são da visita das 24 h; a Torre
+    // fica pronta às 25 h 12 min, o Armazém às 30 h 10 min e a Paliçada às 76 h 20 min. O do
+    // inverno fica por cumprir: este inverno teve frio.
+    expect(
+      events
+        .filter((event) => event.type === 'objectiveCompleted')
+        .map((event) => [event.atMs / MINUTE, event.data.objective]),
+    ).toEqual([
+      [0, 'allocateFarmers'],
+      [0, 'upgradeHousing'],
+      [48, 'recruitVillagers'],
+      [8 * 60 + 10, 'townHallLevel2'],
+      [24 * 60, 'answerFirstCard'],
+      [24 * 60, 'planAutoStart'],
+      [25 * 60 + 12, 'buildWatchtower'],
+      [30 * 60 + 10, 'buildGranaryOrWarehouse'],
+      [76 * 60 + 20, 'buildPalisade'],
+    ]);
+    expect(state.objectives.active).toEqual(['surviveWinterWithoutCold']);
+    expect(state.stats['seasonsSurvived:winter']).toBeUndefined();
+    expect(state.stats).toMatchObject({
+      'seasonsSurvived:summer': 1,
+      'seasonsSurvived:autumn': 1,
+      coldSpellsThisSeason: 0,
+    });
     expect(deriveViewState(state, state.lastProcessedAt).settlement.name).toBe(
       'Pedra Alta do Norte',
     );

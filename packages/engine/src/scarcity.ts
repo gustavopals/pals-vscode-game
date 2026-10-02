@@ -3,6 +3,7 @@ import { coldReliefs } from '@lotg/content';
 import { emit } from './chronicle';
 import { burnsFirewood, stepCold } from './cold';
 import { stepFamine } from './famine';
+import { noteColdStarted } from './seasonWatch';
 import type { GameEvent, GameState } from './types';
 
 /**
@@ -72,6 +73,8 @@ export function settleScarcity(draft: GameState, atMs: number, events: GameEvent
       );
     }
   } else if (settlement.cold !== null) {
+    // É o frio que a Crônica conta que tira da estação o "sem passar frio" (GDD §12.2).
+    noteColdStarted(draft);
     emit(events, draft, atMs, 'coldStarted');
   }
 }

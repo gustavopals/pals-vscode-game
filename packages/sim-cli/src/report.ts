@@ -5,6 +5,7 @@ import {
   buildings,
   type GameEventType,
   type MoraleBandId,
+  objectives,
   RESOURCE_IDS,
   type ResourceId,
 } from '@lotg/content';
@@ -173,6 +174,11 @@ const MECHANIC_COLUMNS = [
     task: 'V2E-T3',
     meaning: 'Aldeões feridos em incursões, acumulados',
   },
+  {
+    name: 'objectives_done',
+    task: 'V2E-T4',
+    meaning: 'Objetivos do Senhor concluídos, acumulados',
+  },
 ] as const;
 type MechanicColumn = (typeof MECHANIC_COLUMNS)[number]['name'];
 
@@ -208,6 +214,8 @@ const MEASURED_COLUMNS: Partial<
   raids_suffered: { hour: (row) => row.raids.suffered, run: (summary) => summary.raids.suffered },
   raids_repelled: { hour: (row) => row.raids.repelled, run: (summary) => summary.raids.repelled },
   villagers_injured: { hour: (row) => row.raids.injured, run: (summary) => summary.raids.injured },
+  // Os Objetivos do Senhor, lidos da visão: os concluídos até a hora, e os da partida na matriz.
+  objectives_done: { hour: (row) => row.objectives, run: (summary) => summary.objectives.done },
 };
 
 /** O que as incursões levaram, somados os recursos, em unidades inteiras. */
@@ -373,6 +381,11 @@ export type Summary = {
     losses: number;
     palisade: number;
   };
+  /**
+   * Os Objetivos do Senhor (GDD §12.2), lidos da visão: quantos o bot concluiu, de quantos a
+   * sequência tem, e a hora real em que concluiu o último; `null` se ficou algum por cumprir.
+   */
+  objectives: { done: number; total: number; allDoneAtHour: number | null };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -461,6 +474,11 @@ export function summarize(result: SimulationResult): Summary {
       losses: last === undefined ? 0 : raidLosses(last.raids),
       palisade: last?.levels.palisade ?? 0,
     },
+    objectives: {
+      done: last?.objectives ?? 0,
+      total: objectives.length,
+      allDoneAtHour: rows.find((row) => row.objectives >= objectives.length)?.hour ?? null,
+    },
     stock,
   };
 }
@@ -548,6 +566,16 @@ function raidsLine({ raids, milestones }: Summary): string {
 }
 
 /**
+ * "Objetivos: 10 de 10 concluídos, o último na hora 168"; com algum por cumprir, "Objetivos: 9
+ * de 10 concluídos". É o tutorial do jogo: o bot que o percorre inteiro passou por todas as
+ * ferramentas da versão.
+ */
+function objectivesLine({ objectives: tally }: Summary): string {
+  const done = `Objetivos: ${tally.done} de ${tally.total} concluídos`;
+  return tally.allDoneAtHour === null ? done : `${done}, o último na hora ${tally.allDoneAtHour}`;
+}
+
+/**
  * "Progresso: Salão Nv2 na hora 3, Salão Nv3 na hora 9, Salão Nv4 na hora 20, Celeiro na hora
  * 30, Armazém não alcançado · 46 obras começaram sozinhas · as obras acabaram na hora 113: nada
  * mais a construir". As horas são reais, desde a fundação.
@@ -597,6 +625,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `População: ${summary.villagers} de ${summary.capacity} vagas (mínima ${summary.villagersMin})`,
     `Níveis: ${levels}`,
     progressLine(summary),
+    objectivesLine(summary),
     `Estoque: ${stock}`,
     summary.famineHours === 0
       ? 'Fome: nenhuma'

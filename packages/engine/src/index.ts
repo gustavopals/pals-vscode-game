@@ -37,6 +37,7 @@ export type {
   MoraleLevelView,
   MoraleTermId,
   MoraleView,
+  ObjectiveTarget,
   ObjectiveView,
   PendingDecisionView,
   PlannedConstruction,

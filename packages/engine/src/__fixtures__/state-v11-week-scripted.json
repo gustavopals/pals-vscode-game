@@ -41,7 +41,7 @@
    "food": 1500000,
    "wood": 49509,
    "stone": 798770,
-   "gold": 1740377
+   "gold": 1771765
   },
   "accumulators": {
    "food": 2326530,
@@ -79,9 +79,9 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 73,
-   "wood": 621,
-   "stone": 489,
+   "food": 619,
+   "wood": 922,
+   "stone": 877,
    "gold": 0
   },
   "craftExperience": {
@@ -140,12 +140,19 @@
   "scheduledRaids": []
  },
  "objectives": {
-  "active": [],
+  "active": [
+   "surviveWinterWithoutCold"
+  ],
   "completed": [
    "allocateFarmers",
    "upgradeHousing",
    "recruitVillagers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "answerFirstCard",
+   "planAutoStart",
+   "buildWatchtower",
+   "buildGranaryOrWarehouse",
+   "buildPalisade"
   ]
  },
  "stats": {
@@ -158,6 +165,7 @@
   "cardsDrawn:thawBridgePlea": 1,
   "cardsAnswered": 9,
   "constructionsStarted:farm": 2,
+  "plansMarkedAuto": 3,
   "constructionsStarted:quarry": 4,
   "constructionsStarted:watchtower": 2,
   "cardsDrawn:thawBridgeSlab": 1,
@@ -166,21 +174,24 @@
   "cardsExpired": 6,
   "cardsDrawn:springSeeds": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5616073,
+  "wasted_food": 5618619,
+  "coldSpellsThisSeason": 0,
   "constructionsStarted:goldMine": 2,
   "constructionsStarted:granary": 2,
   "cardsDrawn:moreMouths": 1,
-  "wasted_wood": 1162621,
+  "wasted_wood": 1301922,
   "cardsDrawn:palisadePromisePlea": 1,
+  "wasted_stone": 2125877,
   "cardsDrawn:fullGranary": 1,
-  "wasted_stone": 2084489,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:palisadePromiseDeadline": 1,
   "cardsDrawn:commonGranaryPlanks": 1,
+  "seasonsSurvived:summer": 1,
   "raids_repelled": 9,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:commonGranaryShare": 1,
   "cardsDrawn:commonGranaryOutcome": 1,
+  "seasonsSurvived:autumn": 1,
   "cardsDrawn:sawmillRest": 1,
   "cardsDrawn:collapsedWell": 1
  }

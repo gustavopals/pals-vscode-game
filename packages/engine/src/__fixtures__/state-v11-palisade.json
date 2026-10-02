@@ -148,7 +148,8 @@
  "objectives": {
   "active": [
    "upgradeHousing",
-   "recruitVillagers"
+   "recruitVillagers",
+   "buildWatchtower"
   ],
   "completed": [
    "allocateFarmers",

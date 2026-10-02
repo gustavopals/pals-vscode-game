@@ -115,6 +115,8 @@ export type HourRow = {
    * feriram e o que os lobos levaram de cada recurso, em unidades (`raided_<recurso>`).
    */
   raids: RaidCounts;
+  /** Objetivos do Senhor concluídos até aqui, como a visão os mostra (GDD §12.2). */
+  objectives: number;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -263,6 +265,7 @@ function rowAt(
     threat: state.map.threat,
     cards: { ...cards },
     raids: { ...raids, lost: { ...raids.lost } },
+    objectives: view.objectives.filter((objective) => objective.status === 'completed').length,
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };

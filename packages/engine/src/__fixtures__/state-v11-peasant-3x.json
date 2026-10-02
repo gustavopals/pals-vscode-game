@@ -160,7 +160,8 @@
  "objectives": {
   "active": [
    "recruitVillagers",
-   "townHallLevel2"
+   "townHallLevel2",
+   "buildWatchtower"
   ],
   "completed": [
    "allocateFarmers",
@@ -175,11 +176,16 @@
   "cardsDrawn:thawBridgePlea": 2,
   "raids_suffered": 34,
   "wasted_wood": 3640626,
+  "coldSpellsThisSeason": 0,
   "cardsExpired": 8,
   "cardsDrawn:sawmillRest": 2,
+  "seasonsSurvived:summer": 2,
   "cardsDrawn:moreMouths": 1,
+  "seasonsSurvived:autumn": 2,
+  "seasonsSurvived:winter": 2,
   "cardsDrawn:neighborsWatch": 1,
   "cardsDrawn:collapsedWell": 2,
+  "seasonsSurvived:spring": 1,
   "cardsDrawn:apprenticesTable": 1
  }
 }

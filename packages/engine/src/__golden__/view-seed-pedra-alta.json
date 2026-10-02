@@ -582,6 +582,11 @@
         "progress": {
           "current": 0,
           "target": 2
+        },
+        "missing": "Faltam 2 aldeões na Fazenda.",
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -593,6 +598,11 @@
         "progress": {
           "current": 0,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -604,6 +614,10 @@
         "progress": {
           "current": 0,
           "target": 3
+        },
+        "missing": "Falta recrutar 3 aldeões.",
+        "target": {
+          "kind": "recruitment"
         }
       }
     ],
@@ -1227,6 +1241,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -1238,6 +1257,11 @@
         "progress": {
           "current": 0,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -1249,6 +1273,10 @@
         "progress": {
           "current": 0,
           "target": 3
+        },
+        "missing": "Falta recrutar 3 aldeões.",
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -1260,6 +1288,11 @@
         "progress": {
           "current": 1,
           "target": 2
+        },
+        "missing": "Faltam 30 madeira e 35 pedra.",
+        "target": {
+          "kind": "building",
+          "building": "townHall"
         }
       }
     ],
@@ -1873,6 +1906,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -1884,6 +1922,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -1895,6 +1938,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -1906,6 +1953,58 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 1
+        },
+        "missing": "Faltam 99 madeira e 112 pedra.",
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 1
+        },
+        "missing": "Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer.",
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "active",
+        "progress": {
+          "current": 0,
+          "target": 1
+        },
+        "missing": "Faltam 139 madeira e 72 pedra.",
+        "target": {
+          "kind": "building",
+          "building": "granary"
         }
       }
     ],
@@ -2535,6 +2634,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -2546,6 +2650,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -2557,6 +2666,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -2568,6 +2681,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -3196,6 +3408,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -3207,6 +3424,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -3218,6 +3440,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -3229,6 +3455,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -4029,6 +4354,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -4040,6 +4370,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -4051,6 +4386,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -4062,6 +4401,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -4701,6 +5139,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -4712,6 +5155,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -4723,6 +5171,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -4734,6 +5186,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -5369,6 +5920,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -5380,6 +5936,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -5391,6 +5952,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -5402,6 +5967,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -6028,6 +6692,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -6039,6 +6708,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -6050,6 +6724,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -6061,6 +6739,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -6679,6 +7456,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -6690,6 +7472,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -6701,6 +7488,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -6712,6 +7503,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "warehouse"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -7447,6 +8337,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -7458,6 +8353,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -7469,6 +8369,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -7480,6 +8384,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -8100,6 +9103,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -8111,6 +9119,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -8122,6 +9135,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -8133,6 +9150,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -8805,6 +9921,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -8816,6 +9937,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -8827,6 +9953,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -8838,6 +9968,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -9458,6 +10687,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -9469,6 +10703,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -9480,6 +10719,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -9491,6 +10734,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
@@ -10141,6 +11483,11 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
         }
       },
       {
@@ -10152,6 +11499,11 @@
         "progress": {
           "current": 1,
           "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
         }
       },
       {
@@ -10163,6 +11515,10 @@
         "progress": {
           "current": 3,
           "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
         }
       },
       {
@@ -10174,6 +11530,105 @@
         "progress": {
           "current": 2,
           "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
         }
       }
     ],
