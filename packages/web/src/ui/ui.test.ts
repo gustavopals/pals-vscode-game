@@ -23,6 +23,7 @@ import {
   busyQueues,
   capExplanation,
   capitalize,
+  documentTitle,
   fillsSoon,
   firewoodRunsOutIn,
   formatApprox,
@@ -39,11 +40,13 @@ import {
   runsOutIn,
   soonestConstruction,
   statusBar,
+  type StatusBarInput,
   storageAlert,
+  storageNotice,
   truncate,
   upgradeName,
 } from './format';
-import { buildTree, type TreeNode } from './treeModel';
+import { buildTree, type TreeInput, type TreeNode } from './treeModel';
 
 const initial = golden.initial as unknown as ViewState;
 const farmers = golden.afterFirstAllocation as unknown as ViewState;
@@ -209,18 +212,20 @@ describe('barra de status', () => {
   });
 
   it('com duas obras em curso, mostra a que termina primeiro e conta a outra', () => {
-    const result = statusBar({ ...base, view: queuesView });
+    // No golden o Celeiro enche em menos de 8 h, o que passaria na frente das obras.
+    const twoQueues = withResource(queuesView, 'food', { fullInSeconds: null });
+    const result = statusBar({ ...base, view: twoQueues });
     expect(result.text).toBe('$(tools) Serraria Nv2 · 00:03 · +1 obra');
     expect(result.tooltip).toBe('Pedra Alta: 2 obras em andamento');
     // A ordem das filas não importa: vale o prazo. Aqui a segunda fila termina antes.
-    const [first, second] = queuesView.constructions.queues;
-    const swapped = withQueues(queuesView, [second ?? null, first ?? null]);
+    const [first, second] = twoQueues.constructions.queues;
+    const swapped = withQueues(twoQueues, [second ?? null, first ?? null]);
     expect(statusBar({ ...base, view: swapped }).text).toBe(
       '$(tools) Serraria Nv2 · 00:03 · +1 obra',
     );
     expect(soonestConstruction(swapped.constructions)?.building).toBe('lumberMill');
     // Com a primeira fila livre, a obra da segunda é a que aparece, sem "+1".
-    const onlySecond = withQueues(queuesView, [null, second ?? null]);
+    const onlySecond = withQueues(twoQueues, [null, second ?? null]);
     expect(statusBar({ ...base, view: onlySecond }).text).toBe('$(tools) Mina de Ouro Nv2 · 00:06');
     expect(busyQueues(onlySecond.constructions).map((queue) => queue.building)).toEqual([
       'goldMine',
@@ -286,6 +291,134 @@ describe('barra de status', () => {
       '$(home) Pedra Alta · +7 comida/h · $(bell) 2',
     );
   });
+
+  describe('prioridade: decisões > fome e frio > depósito a encher > obra', () => {
+    /** A madeira a três horas de encher o Pátio, com uma obra em curso. */
+    const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
+    /** `pendingDecisions` só ganha conteúdo com o Conselho; a barra só precisa de quantas são. */
+    const deciding = (view: ViewState, count: number): ViewState => ({
+      ...view,
+      pendingDecisions: Array.from({ length: count }) as ViewState['pendingDecisions'],
+    });
+
+    it('o depósito a menos de 8 h de encher passa na frente da obra, e o clique leva ao feudo', () => {
+      const result = statusBar({ ...base, view: filling, pending: 1 });
+      expect(result.text).toBe('$(archive) Madeira: cheio em 3 h · $(bell) 1');
+      expect(result.tooltip).toBe('Pátio: madeira no limite de 500 em 3 h.');
+      expect(result.target).toBe('fief');
+      expect(result.alarm).toBeUndefined();
+      // No golden das duas filas o Celeiro enche em menos de cinco horas.
+      expect(statusBar({ ...base, view: queuesView }).text).toBe('$(archive) Comida: cheio em 4 h');
+    });
+
+    it('a 8 h ou mais de encher, a obra continua na linha', () => {
+      const later = withResource(building, 'wood', { perHour: 24, fullInSeconds: 8 * 3600 });
+      expect(statusBar({ ...base, view: later }).text).toBe('$(tools) Serraria Nv2 · 00:42');
+    });
+
+    it('cheio e perdendo: a linha fala do que mais se perde, e a explicação, de todos', () => {
+      const result = statusBar({ ...base, view: proudView });
+      expect(result.text).toBe('$(archive) Madeira: cheio, perde 67,3/h');
+      expect(result.tooltip).toBe(
+        proudView.resources
+          .map(storageNotice)
+          .filter((line) => line !== null)
+          .join(' '),
+      );
+      expect(result.tooltip).toContain('Despensa cheia: 64,8/h de comida indo ao chão.');
+      expect(result.tooltip).toContain('Pátio cheio: 35/h de pedra indo ao chão.');
+      // O que já se perde passa na frente do que ainda vai encher.
+      const mixed = withResource(proudView, 'wood', {
+        full: false,
+        wastingPerHour: 0,
+        fullNote: null,
+        fullInSeconds: 600,
+      });
+      expect(statusBar({ ...base, view: mixed }).text).toBe(
+        '$(archive) Comida: cheio, perde 64,8/h',
+      );
+    });
+
+    it('a fome e o frio passam na frente do depósito', () => {
+      const hungry: ViewState = { ...filling, famine: starving.famine };
+      expect(statusBar({ ...base, view: hungry })).toMatchObject({
+        text: '$(warning) Fome em Pedra Alta',
+        alarm: true,
+      });
+      const frozen = withResource(coldView, 'stone', { fullInSeconds: 1800 });
+      expect(statusBar({ ...base, view: frozen })).toMatchObject({
+        text: '$(flame) Frio em Pedra Alta',
+        alarm: true,
+      });
+    });
+
+    it('as decisões pendentes passam na frente de tudo, e o clique leva à aba Hoje', () => {
+      const hungry: ViewState = { ...filling, famine: starving.famine };
+      const result = statusBar({ ...base, view: deciding(hungry, 2), pending: 3 });
+      expect(result.text).toBe('$(law) 2 decisões pendentes · $(bell) 3');
+      expect(result.tooltip).toBe('Pedra Alta: 2 decisões pendentes. Elas esperam na aba Hoje.');
+      expect(result.target).toBe('today');
+      expect(result.alarm).toBeUndefined();
+      expect(statusBar({ ...base, view: deciding(farmers, 1) }).text).toBe(
+        '$(law) 1 decisão pendente',
+      );
+    });
+
+    it('sem ligação e no modo discreto, nada disso aparece', () => {
+      const urgent = deciding(filling, 2);
+      expect(statusBar({ ...base, view: urgent, connection: offline }).text).toBe(
+        '$(debug-disconnect) Sem ligação com o reino',
+      );
+      const discreet = statusBar({ ...base, view: urgent, discreetMode: true });
+      expect(discreet.text).toBe('$(circle-filled) 00:42');
+      expect(discreet.target).toBeUndefined();
+    });
+
+    describe('título da aba do navegador', () => {
+      const APP = 'Lords of the Guild';
+      const title = (view: ViewState | null, overrides: Partial<StatusBarInput> = {}) =>
+        documentTitle({ ...base, view, ...overrides });
+
+      it('sem conta ou sem feudo, só o nome do jogo', () => {
+        expect(title(null)).toBe(APP);
+        expect(title(farmers, { signedIn: false })).toBe(APP);
+      });
+
+      it('sem nada a destacar, o nome do feudo, com as novidades na frente', () => {
+        expect(title(farmers)).toBe(`Pedra Alta · ${APP}`);
+        expect(title(farmers, { pending: 2 })).toBe(`(2) Pedra Alta · ${APP}`);
+      });
+
+      it('repete o assunto da barra de status, na mesma prioridade', () => {
+        expect(title(building)).toBe(`Serraria Nv2 · 00:42 · Pedra Alta · ${APP}`);
+        expect(title(building, { elapsedSeconds: 600 })).toBe(
+          `Serraria Nv2 · 00:32 · Pedra Alta · ${APP}`,
+        );
+        expect(title(filling)).toBe(`Madeira: cheio em 3 h · Pedra Alta · ${APP}`);
+        expect(title(starving)).toBe(`Fome em Pedra Alta · ${APP}`);
+        expect(title(coldView, { pending: 1 })).toBe(`(1) Frio em Pedra Alta · ${APP}`);
+        expect(title({ ...coldView, famine: starving.famine })).toBe(
+          `Fome e frio em Pedra Alta · ${APP}`,
+        );
+        expect(title(deciding(starving, 2), { pending: 4 })).toBe(
+          `(4) 2 decisões pendentes · Pedra Alta · ${APP}`,
+        );
+      });
+
+      it('com duas obras, o título fica com a que termina primeiro, sem contar a outra', () => {
+        const twoQueues = withResource(queuesView, 'food', { fullInSeconds: null });
+        expect(title(twoQueues)).toBe(`Serraria Nv2 · 00:03 · Pedra Alta · ${APP}`);
+      });
+
+      it('sem ligação o estado guardado pode estar velho: fica só o nome do feudo', () => {
+        expect(title(starving, { connection: offline })).toBe(`Pedra Alta · ${APP}`);
+      });
+
+      it('no modo discreto, só o contador', () => {
+        expect(title(deciding(starving, 2), { discreetMode: true, pending: 4 })).toBe('00:42');
+      });
+    });
+  });
 });
 
 describe('árvore', () => {
@@ -339,6 +472,46 @@ describe('árvore', () => {
       'constructions',
       'morale',
     ]);
+  });
+
+  describe('"Hoje": o que há a preparar antes de sair (GDD §2.3)', () => {
+    const today = (overrides: Partial<TreeInput>) => buildTree({ ...input, ...overrides })[0];
+
+    it('diz quantos itens "Antes de partir" tem, e a explicação os lista', () => {
+      // No feudo recém-fundado: planejar uma obra e dar ofício aos cinco. Nada urgente.
+      expect(today({ view: initial })).toMatchObject({
+        description: '2 a preparar',
+        tooltip:
+          'Antes de partir:\nOs pedreiros estão livres e nenhuma obra começa sozinha.\n5 aldeões livres, sem ofício.',
+      });
+    });
+
+    it('com algo que acaba ou enche, o sinal de alerta acompanha o número', () => {
+      expect(today({ view: proudView })?.description).toBe('⚠ 4 a preparar');
+      expect(today({ view: impoverishedView })?.description).toBe('⚠ 4 a preparar');
+      expect(today({ view: impoverishedView })?.tooltip).toContain('A fome já dura 40 h');
+    });
+
+    it('sem nada a preparar, diz que o feudo está pronto', () => {
+      const ready = withPlanned(unlockedView, [
+        {
+          building: 'farm',
+          autoStart: true,
+          waiting: { reason: 'resources', text: 'espera 59 de madeira', etaSeconds: 7200 },
+        },
+      ]);
+      expect(today({ view: ready })).toMatchObject({
+        description: 'pronto para a ausência',
+        tooltip: 'O feudo está preparado para a sua ausência.',
+      });
+    });
+
+    it('as novidades e a falta de ligação passam na frente', () => {
+      expect(today({ view: initial, unseen: 2 })?.description).toBe('● 2 novidades');
+      expect(today({ view: initial, connection: offline })?.description).toBe(
+        'sem ligação com o reino',
+      );
+    });
   });
 
   it('recursos mostram estoque e taxa com sinal; o tooltip explica o número', () => {

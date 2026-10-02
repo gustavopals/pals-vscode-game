@@ -1,10 +1,11 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 
 import {
   expect,
   fief,
   HOUR,
   MINUTE,
+  overflow,
   palette,
   playNow,
   resourceRow,
@@ -435,15 +436,6 @@ const shown = (target: Locator) =>
     return (copy.textContent ?? '').replace(/\s+/g, ' ').trim();
   });
 
-const overflow = (page: Page) =>
-  page.evaluate(() => {
-    const content = document.querySelector('.editor-content');
-    return {
-      page: document.documentElement.scrollWidth - window.innerWidth,
-      content: content === null ? 0 : content.scrollWidth - content.clientWidth,
-    };
-  });
-
 test.describe('estações, lenha e frio', () => {
   test('o ano passa: o fator da estação nas explicações, a conta da lenha no outono e, sem madeira no inverno, o frio', async ({
     context,
@@ -484,6 +476,14 @@ test.describe('estações, lenha e frio', () => {
     await world.passTime(97 * HOUR, page);
     await expect(fief(page).getByText(/Outono, dia 1 do Ano 1/)).toBeVisible();
     await expect(fief(page).getByText('Outono: comida × 1,3; ouro × 1,1.')).toBeVisible();
+    // O salto trouxe duas viradas, e só a da estação que vale agora vira aviso (V2C-T6). Como a
+    // página nunca viu o outono como a próxima estação, o aviso diz o que ele muda.
+    const seasons = toasts(page)
+      .getByRole('status')
+      .filter({ hasText: /^Chega / });
+    await expect(seasons).toHaveCount(1);
+    await expect(seasons).toContainText('Chega o Outono a Pedra Alta.');
+    await expect(seasons.getByRole('listitem')).toHaveText(['Outono: comida × 1,3; ouro × 1,1.']);
     const autumn = await explanation(foodRate);
     // Quarenta e oito dias de trabalho: os lavradores dominaram o ofício, e a mestria entra na
     // conta. Com a comida guardada, a moral está em 60 e é mais um fator (GDD §5.7).
@@ -540,7 +540,15 @@ test.describe('estações, lenha e frio', () => {
     await expect(lit).toContainText('Lareira');
     await expect(lit).toContainText(/2,5\/h de madeira · acaba em 1[45] h/);
     await expect(statusBar(page)).not.toContainText('Frio');
-    await expect(toasts(page).getByRole('status').filter({ hasText: /frio/i })).toHaveCount(0);
+    // A virada avisa o que muda, com as frases que a visão trazia quando o inverno era a
+    // próxima estação (V2C-T6); o alarme do frio ainda não tocou.
+    const winterCame = toasts(page).getByRole('status').filter({ hasText: 'Chega o Inverno' });
+    await expect(winterCame.getByRole('listitem').last()).toHaveText(
+      'A lareira passa a queimar 0,5 de madeira por habitante por hora; sem madeira, vem o frio.',
+    );
+    await expect(
+      toasts(page).getByRole('status').filter({ hasText: 'O frio entrou nas casas' }),
+    ).toHaveCount(0);
 
     // Dezesseis horas depois a última acha queimou: o frio.
     await world.passTime(16 * HOUR, page);

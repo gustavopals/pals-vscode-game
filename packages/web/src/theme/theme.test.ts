@@ -300,6 +300,14 @@ describe('themes.css', () => {
     ['texto de aviso no editor', 'editorWarning-foreground', 'editor-background'],
     ['texto de aviso em cartões', 'editorWarning-foreground', 'editorWidget-background'],
     ['texto de erro no editor', 'editorError-foreground', 'editor-background'],
+    // Os ícones de "Antes de partir": urgente e sugestão em cada item; o do feudo preparado.
+    ['ícone de erro em cartões', 'editorError-foreground', 'editorWidget-background'],
+    [
+      'ícone de informação em cartões',
+      'notificationsInfoIcon-foreground',
+      'editorWidget-background',
+    ],
+    ['ícone de informação no editor', 'notificationsInfoIcon-foreground', 'editor-background'],
     ['campo de texto', 'input-foreground', 'input-background'],
     ['texto de exemplo do campo', 'input-placeholderForeground', 'input-background'],
     ['campo com validação de erro', 'input-foreground', 'inputValidation-errorBackground'],

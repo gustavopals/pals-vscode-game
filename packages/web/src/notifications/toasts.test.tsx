@@ -66,6 +66,29 @@ describe('avisos no canto (Toasts)', () => {
     expect(render([toast()])).toContain('<span>A Fazenda chegou ao nível 2.</span>');
   });
 
+  it('as frases que detalham o aviso viram uma lista, uma por linha, antes dos botões', () => {
+    const markup = render([
+      toast({
+        icon: 'calendar',
+        text: 'Verão à vista: chega em 1 h.',
+        details: [
+          'A produção de comida passa de × 1,2 para × 1.',
+          'O recrutamento volta ao prazo de sempre.',
+        ],
+        actions: [{ label: 'Ver', run: noop }],
+        sticky: true,
+      }),
+    ]);
+    expect(markup).toContain(
+      '<ul class="toast-details"><li>A produção de comida passa de × 1,2 para × 1.</li><li>O recrutamento volta ao prazo de sempre.</li></ul>',
+    );
+    expect(markup.indexOf('toast-details')).toBeGreaterThan(markup.indexOf('Verão à vista'));
+    expect(markup.indexOf('toast-details')).toBeLessThan(markup.indexOf('toast-actions'));
+    // Sem frases, não há lista vazia.
+    expect(render([toast()])).not.toContain('toast-details');
+    expect(render([toast({ details: [] })])).not.toContain('toast-details');
+  });
+
   it('todo aviso pode ser dispensado por um botão com rótulo acessível', () => {
     const markup = render([toast(), toast({ id: 2, kind: 'error', text: 'Falhou.' })]);
     const dismiss = tags(markup, /<button[^>]*aria-label="Dispensar aviso"[^>]*>/g);

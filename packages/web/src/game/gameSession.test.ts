@@ -448,6 +448,81 @@ describe('cache', () => {
     });
   });
 
+  describe('a visão é de agora, ou do que estava guardado', () => {
+    it('a que vem do cache não é de agora; a primeira leitura do servidor é', async () => {
+      const { session, state } = setup(cachedNow());
+      const live: boolean[] = [];
+      session.onView(() => live.push(session.live));
+      state.etag = 'W/"b"';
+      await session.start(target);
+      expect(live).toEqual([false, true]);
+    });
+
+    it('sem ligação, a visão guardada continua sendo só a guardada', async () => {
+      const { session, state } = setup(cachedNow());
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(session.view).not.toBeNull();
+      expect(session.live).toBe(false);
+    });
+
+    it('a visão que vem na resposta de uma ordem é de agora; fechar a partida esquece', async () => {
+      const { session, state } = setup(cachedNow());
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      state.fail = null;
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(session.connection.kind).toBe('online');
+      await session.send(order);
+      expect(session.live).toBe(true);
+      session.stop();
+      expect(session.live).toBe(false);
+    });
+  });
+
+  describe('a virada de estação já anunciada', () => {
+    it('começa sem marca, e o cache não ganha o campo à toa', async () => {
+      const { session, store } = setup();
+      await session.start(target);
+      expect(session.seasonWarned).toBeNull();
+      expect(store.get<GameCache>(cacheKey(target))).not.toHaveProperty('seasonWarned');
+    });
+
+    it('a marca é gravada com o cache e sobrevive às leituras seguintes', async () => {
+      const { session, store, state } = setup();
+      await session.start(target);
+      await session.markSeasonWarned('1:summer');
+      expect(session.seasonWarned).toBe('1:summer');
+      expect(store.get<GameCache>(cacheKey(target))?.seasonWarned).toBe('1:summer');
+      state.etag = 'W/"b"';
+      await session.syncNow();
+      await session.send(order);
+      expect(store.get<GameCache>(cacheKey(target))?.seasonWarned).toBe('1:summer');
+    });
+
+    it('recarregar a página a encontra; outra partida, não', async () => {
+      const first = setup();
+      await first.session.start(target);
+      await first.session.markSeasonWarned('1:summer');
+      const reopened = new GameSession({ client: first.client, store: first.store });
+      await reopened.start(target);
+      expect(reopened.seasonWarned).toBe('1:summer');
+      await reopened.start({ ...target, gameId: 'partida-2' });
+      expect(reopened.seasonWarned).toBeNull();
+      reopened.stop();
+    });
+
+    it('vale mesmo quando a visão guardada é descartada por ser de outra versão do app', async () => {
+      const { session } = setup({
+        ...cachedNow(),
+        version: 'outra',
+        seasonWarned: '1:winter',
+      });
+      await session.start(target);
+      expect(session.seasonWarned).toBe('1:winter');
+    });
+  });
+
   it('a marca de versão junta o protocolo e o formato da visão', () => {
     expect(CACHE_VERSION).toBe(`${PROTOCOL_VERSION}.2`);
   });

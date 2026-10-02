@@ -5,7 +5,7 @@ import { ColdBanner, FamineBanner, OfflineBanner } from '../components/Banners';
 import { Header } from '../components/Header';
 import { Today } from '../components/Today';
 
-/** A aba Hoje: o Relatório de Retorno e as decisões pendentes (GDD §2.3). */
+/** A aba Hoje: o Relatório de Retorno, "Antes de partir" e as decisões pendentes (GDD §2.3). */
 export function TodayTab(props: {
   view: ViewState;
   elapsed: number;
@@ -24,7 +24,12 @@ export function TodayTab(props: {
       />
       <FamineBanner famine={props.view.famine} notes={props.view.morale.notes} />
       <ColdBanner winter={props.view.winter} />
-      <Today report={props.report} view={props.view} actions={props.actions} />
+      <Today
+        report={props.report}
+        view={props.view}
+        online={props.online}
+        actions={props.actions}
+      />
     </div>
   );
 }

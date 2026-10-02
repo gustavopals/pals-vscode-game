@@ -36,6 +36,11 @@ export type GameCache = {
   lastSeq: number;
   /** Última vez em que o estado foi lido do servidor, em ms. */
   lastSeenAt: number;
+  /**
+   * A virada de estação que o aviso de uma hora antes já anunciou ("1:winter"): como o cursor
+   * dos eventos, evita avisar duas vezes a mesma coisa, mesmo recarregando a página.
+   */
+  seasonWarned?: string | null;
 };
 
 export type SessionTarget = { serverKey: string; accountId: string; gameId: string };
@@ -80,8 +85,15 @@ export async function clearAccountCaches(
 function loadCache(
   store: KeyValueStore,
   target: SessionTarget,
-): { cache: GameCache | null; lastSeq: number | null; lastSeenAt: number | null } {
+): {
+  cache: GameCache | null;
+  lastSeq: number | null;
+  lastSeenAt: number | null;
+  seasonWarned: string | null;
+} {
   const cached = store.get<Partial<GameCache>>(cacheKey(target));
+  // Como o cursor, a marca do aviso de estação vale mesmo quando a visão é descartada.
+  const seasonWarned = typeof cached?.seasonWarned === 'string' ? cached.seasonWarned : null;
   const lastSeq =
     typeof cached?.lastSeq === 'number' && cached.lastSeq >= 0 ? cached.lastSeq : null;
   const lastSeenAt = typeof cached?.lastSeenAt === 'number' ? cached.lastSeenAt : null;
@@ -92,7 +104,7 @@ function loadCache(
     lastSeenAt !== null &&
     typeof cached.stateVersion === 'string' &&
     ViewStateSchema.safeParse(cached.view).success;
-  return { cache: valid ? (cached as GameCache) : null, lastSeq, lastSeenAt };
+  return { cache: valid ? (cached as GameCache) : null, lastSeq, lastSeenAt, seasonWarned };
 }
 
 /**
@@ -134,6 +146,10 @@ export class GameSession {
   private resumeSeq: number | null = null;
   /** A primeira leitura de uma partida sem cursor: os eventos dela são história, não novidade. */
   private seeding = false;
+  /** A visão à vista veio do servidor nesta abertura, e não do que estava guardado. */
+  private fresh = false;
+  /** A virada de estação já anunciada pelo aviso de uma hora antes; ver `GameCache`. */
+  private seasonMark: string | null = null;
   /**
    * O que se sabia antes desta abertura, enquanto o Relatório de Retorno ainda não saiu. `view`
    * é nula quando a visão guardada era de outra versão do app: a ausência é a mesma, só não há
@@ -188,6 +204,27 @@ export class GameSession {
   }
 
   /**
+   * A visão à vista foi lida do servidor nesta abertura da partida. A que vem do cache pode ter
+   * horas: serve para desenhar o feudo, mas não para anunciar um prazo como se fosse de agora.
+   */
+  get live(): boolean {
+    return this.fresh;
+  }
+
+  /** A virada de estação que o aviso de uma hora antes já anunciou ("1:winter"), ou `null`. */
+  get seasonWarned(): string | null {
+    return this.seasonMark;
+  }
+
+  /** Anota a virada anunciada e grava: recarregar a página não repete o aviso. */
+  async markSeasonWarned(key: string): Promise<void> {
+    this.seasonMark = key;
+    if (this.target !== null) {
+      await this.persist(this.target);
+    }
+  }
+
+  /**
    * Abre a partida: mostra na hora o último estado conhecido e sincroniza em seguida. Se o
    * jogador ficou 4 horas ou mais fora, a primeira sincronização gera o Relatório de Retorno.
    */
@@ -196,6 +233,7 @@ export class GameSession {
     this.target = target;
     const stored = loadCache(this.deps.store, target);
     this.cache = stored.cache;
+    this.seasonMark = stored.seasonWarned;
     this.resumeSeq = stored.lastSeq;
     // Sem cursor (navegador novo, cache apagado), a primeira leitura traz a história inteira da
     // partida: ela põe a Crônica em dia, mas não é novidade para avisar.
@@ -233,6 +271,8 @@ export class GameSession {
     this.baseline = null;
     this.resumeSeq = null;
     this.seeding = false;
+    this.fresh = false;
+    this.seasonMark = null;
     this.setConnection({ kind: 'online' });
   }
 
@@ -382,6 +422,7 @@ export class GameSession {
         lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
         lastSeenAt: this.now(),
       };
+      this.fresh = true;
       this.viewChanges.emit(read.view);
       // Grava já: se a aba fechar antes de os eventos chegarem, a visão nova não se perde.
       await this.persist(target);
@@ -416,7 +457,10 @@ export class GameSession {
 
   private async persist(target: SessionTarget): Promise<void> {
     if (this.target === target && this.cache !== null) {
-      await this.deps.store.update(cacheKey(target), this.cache);
+      await this.deps.store.update(cacheKey(target), {
+        ...this.cache,
+        ...(this.seasonMark === null ? {} : { seasonWarned: this.seasonMark }),
+      });
     }
   }
 
@@ -471,6 +515,7 @@ export class GameSession {
       lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
       lastSeenAt: this.now(),
     };
+    this.fresh = true;
     this.viewChanges.emit(view);
     // Grava já: fechar a aba logo depois de uma ordem não pode deixar o cache no passado.
     await this.persist(target);

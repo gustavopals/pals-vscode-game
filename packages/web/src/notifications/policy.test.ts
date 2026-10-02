@@ -1,13 +1,19 @@
-import type { GameEvent } from '@lotg/protocol';
+import type { GameEvent, ViewState } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
+import { autumnView, coldView, craftsView, initialView } from '../test-helpers';
 import {
+  decideNotice,
   decideNotifications,
   eventIcon,
   isEssential,
   isRelief,
+  isSeasonTurn,
   moraleBandDirection,
   type PolicyInput,
+  SEASON_WARNING_SECONDS,
+  seasonAhead,
+  seasonArrival,
 } from './policy';
 
 const HOUR = 3_600_000;
@@ -68,7 +74,12 @@ describe('política de notificações', () => {
         ],
       }),
     );
-    expect(result.show.map((entry) => entry.type)).toEqual(['coldStarted', 'coldEnded']);
+    // A virada de estação também chega neste nível (ver "aviso de estação", mais abaixo).
+    expect(result.show.map((entry) => entry.type)).toEqual([
+      'coldStarted',
+      'seasonChanged',
+      'coldEnded',
+    ]);
     expect(result.badge).toBe(0);
   });
 
@@ -333,5 +344,183 @@ describe('política de notificações', () => {
       input({ events: [event('dayStarted')], history: [now - 2 * HOUR, now - 60_000] }),
     );
     expect(result).toEqual({ show: [], badge: 0, history: [now - 60_000] });
+  });
+  describe('aviso de estação (GDD §13.5)', () => {
+    const turn = (season: string, seq = 1): GameEvent => ({
+      ...event('seasonChanged', seq),
+      text: 'Chega o Inverno a Pedra Alta.',
+      data: { season },
+    });
+    /** O outono do golden, com a virada para o inverno a `seconds` de distância. */
+    const autumnAt = (seconds: number): ViewState => ({
+      ...autumnView,
+      calendar: {
+        ...autumnView.calendar,
+        secondsToNextSeason: seconds,
+        nextSeason: { ...autumnView.calendar.nextSeason, secondsUntil: seconds },
+      },
+    });
+
+    describe('uma hora antes', () => {
+      it('a mais de uma hora da virada, nada', () => {
+        expect(seasonAhead(autumnAt(SEASON_WARNING_SECONDS + 1))).toBeNull();
+        // O golden está a quatro horas do inverno.
+        expect(seasonAhead(autumnView)).toBeNull();
+        expect(seasonAhead(initialView)).toBeNull();
+      });
+
+      it('a uma hora ou menos: a estação, o prazo e uma frase para cada coisa que muda', () => {
+        const notice = seasonAhead(autumnAt(SEASON_WARNING_SECONDS));
+        expect(notice?.text).toBe('Inverno à vista: chega em 1 h.');
+        // As frases são as do servidor, na ordem dele.
+        expect(notice?.details.slice(0, 5)).toEqual(autumnView.calendar.nextSeason.changes);
+        expect(notice?.details[0]).toBe('A produção de comida passa de × 1,3 para × 0,4.');
+        expect(seasonAhead(autumnAt(25 * 60))?.text).toBe('Inverno à vista: chega em 25 min.');
+      });
+
+      it('com o instante e o fuso, diz também a hora do relógio em que a estação vira', () => {
+        // O aviso fica na tela até ser dispensado: "em 25 min" envelhece, a hora não.
+        const at = (timeZone: string) => seasonAhead(autumnAt(25 * 60), { now, timeZone })?.text;
+        expect(at('UTC')).toBe('Inverno à vista: chega em 25 min, às 12:25.');
+        expect(at('America/Sao_Paulo')).toBe('Inverno à vista: chega em 25 min, às 09:25.');
+        // A virada depois da meia-noite.
+        expect(
+          seasonAhead(autumnAt(3600), { now: now + 11 * HOUR + 30 * 60_000, timeZone: 'UTC' })
+            ?.text,
+        ).toBe('Inverno à vista: chega em 1 h, às 00:30.');
+        // Um fuso que o navegador não conhece não derruba o aviso: sai sem a hora.
+        expect(at('Lua/Mar da Tranquilidade')).toBe('Inverno à vista: chega em 25 min.');
+      });
+
+      it('com lenha que não chega, o aviso ganha tom de alerta e a conta do servidor', () => {
+        const notice = seasonAhead(autumnAt(1800));
+        expect(notice?.kind).toBe('warning');
+        expect(notice?.details.at(-1)).toBe(
+          'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+        );
+        expect(notice?.details).toHaveLength(6);
+      });
+
+      it('com lenha que basta, ou em estação que não queima lenha, é só notícia', () => {
+        const enough: ViewState = {
+          ...craftsView,
+          calendar: {
+            ...craftsView.calendar,
+            nextSeason: { ...craftsView.calendar.nextSeason, secondsUntil: 600 },
+          },
+        };
+        const notice = seasonAhead(enough);
+        expect(notice?.kind).toBe('info');
+        expect(notice?.details).toEqual(craftsView.calendar.nextSeason.changes);
+        const spring: ViewState = {
+          ...coldView,
+          calendar: {
+            ...coldView.calendar,
+            nextSeason: { ...coldView.calendar.nextSeason, secondsUntil: 3000 },
+          },
+        };
+        expect(seasonAhead(spring)).toMatchObject({
+          kind: 'info',
+          text: 'Primavera à vista: chega em 50 min.',
+          details: coldView.calendar.nextSeason.changes,
+        });
+      });
+
+      it('não prevê sorteio nem promete proteção: só o que o servidor escreveu', () => {
+        const notice = seasonAhead(autumnAt(1800));
+        const said = [notice?.text, ...(notice?.details ?? [])].join(' ');
+        expect(said).not.toMatch(/sorte|chance|talvez|proteg|garant|a salvo/i);
+      });
+
+      it('a chave diz o ano e a estação anunciada: um aviso por virada', () => {
+        expect(seasonAhead(autumnAt(1800))?.key).toBe('1:winter');
+        expect(seasonAhead(autumnAt(60))?.key).toBe('1:winter');
+        const nextYear: ViewState = {
+          ...autumnAt(1800),
+          calendar: { ...autumnAt(1800).calendar, year: 2 },
+        };
+        expect(seasonAhead(nextYear)?.key).toBe('2:winter');
+      });
+    });
+
+    describe('o aviso avulso (o de uma hora antes) segue a mesma política dos eventos', () => {
+      // Os mesmos dados da política dos eventos; a lista de eventos, vazia, não entra na conta.
+      const state = (overrides: Partial<PolicyInput> = {}) => input(overrides);
+
+      it('é essencial: aparece no nível padrão e em "todas"', () => {
+        expect(decideNotice(state())).toEqual({ outcome: 'show', history: [now] });
+        expect(decideNotice(state({ level: 'all' })).outcome).toBe('show');
+      });
+
+      it('no nível silencioso e no modo discreto, nada, nem contador', () => {
+        expect(decideNotice(state({ level: 'silent' }))).toEqual({ outcome: 'skip', history: [] });
+        expect(decideNotice(state({ discreetMode: true })).outcome).toBe('skip');
+      });
+
+      it('durante o silêncio de 2 horas vira contador', () => {
+        expect(decideNotice(state({ mutedUntil: now + 60_000 }))).toEqual({
+          outcome: 'badge',
+          history: [],
+        });
+      });
+
+      it('conta no limite de 3 por hora, e o excedente vira contador', () => {
+        const full = [now - 1000, now - 2000, now - 3000];
+        expect(decideNotice(state({ history: full }))).toEqual({ outcome: 'badge', history: full });
+        const old = [now - HOUR - 1, now - 1000];
+        expect(decideNotice(state({ history: old }))).toEqual({
+          outcome: 'show',
+          history: [now - 1000, now],
+        });
+      });
+    });
+
+    describe('na virada', () => {
+      it('a virada de estação é notícia para todos, sem tom de alarme, com o ícone do calendário', () => {
+        const arrival = turn('winter');
+        expect(isSeasonTurn(arrival)).toBe(true);
+        expect(isEssential(arrival)).toBe(false);
+        expect(eventIcon(arrival)).toBe('calendar');
+        const result = decideNotifications(input({ level: 'essential', events: [arrival] }));
+        expect(result.show).toEqual([arrival]);
+        expect(decideNotifications(input({ level: 'silent', events: [arrival] })).show).toEqual([]);
+      });
+
+      it('com pouco espaço, o alarme passa na frente da virada, e a virada, do resto', () => {
+        const events = [
+          event('constructionFinished', 1),
+          turn('winter', 2),
+          event('coldStarted', 3),
+        ];
+        const result = decideNotifications(input({ level: 'all', events, history: [now - 1000] }));
+        expect(result.show.map((entry) => entry.type)).toEqual(['coldStarted', 'seasonChanged']);
+        expect(result.badge).toBe(1);
+      });
+
+      it('só avisa da estação que está valendo: a que já passou não é novidade', () => {
+        // Um salto longo com a aba ao fundo traz duas viradas de uma vez.
+        const events = [turn('summer', 1), turn('autumn', 2)];
+        const result = decideNotifications(input({ level: 'essential', events, season: 'autumn' }));
+        expect(result.show).toEqual([events[1]]);
+        expect(result.badge).toBe(0);
+        // Sem saber a estação de agora, as duas passam.
+        expect(decideNotifications(input({ events })).show).toHaveLength(2);
+      });
+
+      it('repete as frases do que muda, guardadas de quando a estação ainda era a próxima', () => {
+        const remembered = autumnView.calendar.nextSeason.changes;
+        expect(seasonArrival(turn('winter'), remembered, coldView)).toEqual(remembered);
+      });
+
+      it('sem as frases guardadas, diz o que a estação de agora muda', () => {
+        expect(seasonArrival(turn('winter'), undefined, coldView)).toEqual([
+          coldView.calendar.seasonEffects,
+        ]);
+        expect(coldView.calendar.seasonEffects).toMatch(/^Inverno: comida × 0,4/);
+        // Se a visão já é de outra estação, o aviso fica só com a frase da Crônica.
+        expect(seasonArrival(turn('winter'), undefined, autumnView)).toEqual([]);
+        expect(seasonArrival(turn('winter'), undefined, null)).toEqual([]);
+      });
+    });
   });
 });

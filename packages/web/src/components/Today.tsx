@@ -1,5 +1,6 @@
 import type { ReturnReport, ViewState } from '@lotg/protocol';
 
+import { beforeLeaving, type LeavingSeverity } from '../game/beforeLeaving';
 import { joinList } from '../ui/format';
 import { moraleBurdened, moraleIcon, moraleSince, peopleMoved } from '../ui/morale';
 import type { Actions } from './actions';
@@ -110,11 +111,78 @@ function MoraleReport(props: { report: ReturnReport; view: ViewState; actions: A
   );
 }
 
-/** Aba "Hoje": o Relatório de Retorno e as decisões pendentes (GDD §2.3). */
-export function Today(props: { report: ReturnReport | null; view: ViewState; actions: Actions }) {
+/**
+ * A urgência de um item de "Antes de partir" nunca é dita só pela cor: cada grau tem o seu
+ * ícone e, para quem não vê o ícone, uma palavra antes da frase.
+ */
+const SEVERITY: Record<LeavingSeverity, { icon: string; word: string }> = {
+  danger: { icon: 'error', word: 'Urgente' },
+  warning: { icon: 'warning', word: 'Atenção' },
+  info: { icon: 'info', word: 'Sugestão' },
+};
+
+/**
+ * "Antes de partir" (GDD §2.3, passo 4): em até cinco linhas, o que vale resolver antes de
+ * fechar a aba, cada uma com o botão que resolve. Quem escolhe os itens e escreve as frases é
+ * `beforeLeaving`, só com o que o servidor mandou; aqui eles são desenhados. Sem ligação, os
+ * botões que dão ordens ficam desabilitados, como no feudo; o que só navega continua valendo.
+ */
+function BeforeLeaving(props: { view: ViewState; online: boolean; actions: Actions }) {
+  const items = beforeLeaving(props.view);
+  return (
+    <section aria-labelledby="leaving-title">
+      <h2 id="leaving-title">Antes de partir</h2>
+      {items.length === 0 ? (
+        <p class="leaving-ready">
+          <Icon name="pass" /> O feudo está preparado para a sua ausência.
+        </p>
+      ) : (
+        <>
+          <p class="muted hint">O que vale resolver antes de sair, do mais urgente ao menos.</p>
+          <ul class="leaving">
+            {items.map((item) => (
+              <li key={item.id} class={`leaving-item leaving-${item.severity}`}>
+                <p>
+                  <Icon name={SEVERITY[item.severity].icon} />{' '}
+                  <span class="sr-only">{SEVERITY[item.severity].word}: </span>
+                  {item.text}
+                </p>
+                <button
+                  type="button"
+                  class="secondary"
+                  disabled={!props.online && item.command.id !== 'lords.openPanel'}
+                  onClick={() => props.actions.run(item.command.id, item.command.arg)}
+                >
+                  {item.command.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Aba "Hoje": o Relatório de Retorno, o que preparar antes de sair e as decisões pendentes
+ * (GDD §2.3). Quem volta de uma ausência lê primeiro o que aconteceu; sem relatório, "Antes de
+ * partir" abre a aba.
+ */
+export function Today(props: {
+  report: ReturnReport | null;
+  view: ViewState;
+  actions: Actions;
+  /** Há ligação com o servidor; sem ela, os botões que dão ordens ficam desabilitados. */
+  online?: boolean;
+}) {
   const { report } = props;
+  const leaving = (
+    <BeforeLeaving view={props.view} online={props.online ?? true} actions={props.actions} />
+  );
   return (
     <div class="today">
+      {report === null ? leaving : null}
       <section aria-labelledby="report-title">
         <h2 id="report-title">Relatório de Retorno</h2>
         {report === null ? (
@@ -218,6 +286,7 @@ export function Today(props: { report: ReturnReport | null; view: ViewState; act
           </>
         )}
       </section>
+      {report === null ? null : leaving}
       <section aria-labelledby="decisions-title">
         <h2 id="decisions-title">Decisões pendentes</h2>
         <p class="muted">

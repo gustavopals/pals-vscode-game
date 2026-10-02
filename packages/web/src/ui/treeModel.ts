@@ -1,6 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import type { AccountState } from '../account/accountService';
+import { beforeLeaving } from '../game/beforeLeaving';
 import type { Connection } from '../game/connection';
 import {
   busyQueues,
@@ -393,6 +394,10 @@ export function buildTree(input: TreeInput): TreeNode[] {
   const { calendar, settlement } = view;
   const cold = view.winter?.cold ?? null;
   const offline = input.connection.kind === 'offline';
+  // O que "Antes de partir" tem a dizer, para quem está em outra aba: quantos itens e, se algum
+  // é mais que sugestão, o sinal de alerta. O clique leva à aba Hoje, onde estão os botões.
+  const leaving = beforeLeaving(view);
+  const pressing = leaving.some((item) => item.severity !== 'info');
   return [
     {
       id: 'today',
@@ -402,7 +407,13 @@ export function buildTree(input: TreeInput): TreeNode[] {
           ? `● ${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`
           : offline
             ? 'sem ligação com o reino'
-            : '',
+            : leaving.length === 0
+              ? 'pronto para a ausência'
+              : `${pressing ? '⚠ ' : ''}${leaving.length} a preparar`,
+      tooltip:
+        leaving.length === 0
+          ? 'O feudo está preparado para a sua ausência.'
+          : ['Antes de partir:', ...leaving.map((item) => item.text)].join('\n'),
       icon: offline ? 'debug-disconnect' : 'home',
       command: { id: 'lords.openPanel', args: ['today'] },
     },

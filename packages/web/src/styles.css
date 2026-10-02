@@ -744,6 +744,55 @@ progress::-webkit-progress-value {
   margin-top: 20px;
 }
 
+/*
+ * "Antes de partir": uma linha por item, a frase de um lado e o botão que resolve do outro. Em
+ * tela estreita o botão desce para a linha de baixo. A urgência é dita pelo ícone e pela
+ * palavra que o acompanha; a cor do ícone e o fio à esquerda só reforçam.
+ */
+.leaving-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-left-width: 3px;
+  border-radius: 2px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.leaving-item > p {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.leaving-danger {
+  border-left-color: var(--vscode-editorError-foreground);
+}
+
+.leaving-danger .codicon {
+  color: var(--vscode-editorError-foreground);
+}
+
+.leaving-warning {
+  border-left-color: var(--vscode-editorWarning-foreground);
+}
+
+.leaving-warning .codicon {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.leaving-info {
+  border-left-color: var(--vscode-notificationsInfoIcon-foreground);
+}
+
+.leaving-info .codicon,
+.leaving-ready .codicon {
+  color: var(--vscode-notificationsInfoIcon-foreground);
+}
+
 /* --- Movimento ------------------------------------------------------------ */
 
 /* Não há animações. Se alguma for acrescentada, quem pediu menos movimento não a vê. */

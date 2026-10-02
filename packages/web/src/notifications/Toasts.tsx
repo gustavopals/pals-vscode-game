@@ -40,6 +40,14 @@ function ToastItem(props: { toast: Toast; onDismiss: (id: number) => void }) {
       >
         <Icon name="close" />
       </button>
+      {/* O que detalha o aviso, uma frase por linha: o que muda na virada de estação. */}
+      {toast.details !== undefined && toast.details.length > 0 ? (
+        <ul class="toast-details">
+          {toast.details.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      ) : null}
       {toast.actions.length > 0 ? (
         <div class="toast-actions">
           {toast.actions.map((action) => (

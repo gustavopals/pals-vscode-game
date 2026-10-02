@@ -17,6 +17,7 @@ import {
   queuesView,
   settle,
   withQueues,
+  withResource,
 } from '../test-helpers';
 import { statusBar, type StatusBarInput } from '../ui/format';
 import { buildTree, type TreeNode } from '../ui/treeModel';
@@ -809,6 +810,26 @@ describe('StatusBar', () => {
     expect(mainText(both)).toBe('Fome e frio em Pedra Alta');
   });
 
+  it('o depósito a encher toma a linha sem o destaque de aviso, e o clique leva ao feudo', () => {
+    const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
+    const markup = render({ view: filling });
+    expect(mainText(markup)).toBe('Madeira: cheio em 3 h');
+    expect(markup).toContain('codicon codicon-archive');
+    expect(attribute(main(markup), 'class')).toBe('status-main');
+    expect(attribute(main(markup), 'title')).toBe('Pátio: madeira no limite de 500 em 3 h.');
+    // O clique manda o comando com a aba do assunto.
+    const ran: Array<[string, unknown]> = [];
+    const bar = StatusBar({
+      input: input({ view: filling }),
+      muted: false,
+      onCommand: (id, arg) => ran.push([id, arg]),
+    });
+    const group = (bar.props as { children: Array<{ props: { children: unknown } }> }).children[0];
+    const button = group?.props.children as { props: { onClick: () => void } };
+    button.props.onClick();
+    expect(ran).toEqual([['lords.openPanel', 'fief']]);
+  });
+
   it('sem ligação passa na frente da fome e ganha o seu próprio destaque', () => {
     const markup = render({ view: starving, connection: offline });
     expect(attribute(main(markup), 'class')).toContain('status-offline');
@@ -1054,8 +1075,8 @@ describe('Workbench', () => {
     expect(markup).toMatch(/<button[^>]*class="status-main status-warning"/);
     expect(markup).toContain('Frio em Pedra Alta');
     expect(markup).not.toContain('Fome em Pedra Alta');
-    // O título da aba do navegador não muda com o frio: é o nome do feudo.
-    expect(made.controller.title(0)).toBe('Pedra Alta · Lords of the Guild');
+    // O título da aba do navegador repete o assunto da barra: é o que se vê com a aba ao fundo.
+    expect(made.controller.title(0)).toBe('Frio em Pedra Alta · Lords of the Guild');
     // A aba Hoje leva o mesmo aviso.
     made.controller.navigate('today');
     expect(panel(render(made.controller))).toContain('Frio em andamento.');

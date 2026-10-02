@@ -2048,6 +2048,123 @@ describe('aba Hoje', () => {
     expect(today({ ...report, famine: 'started' })).toContain('a fome começou');
     expect(today(null, false)).toContain('Sem ligação com o reino.');
   });
+
+  describe('antes de partir (GDD §2.3)', () => {
+    /** O texto sem as marcas; cada título, parágrafo e botão é um trecho à parte. */
+    const text = (page: string) =>
+      page
+        .replace(/<\/(h2|p|button)>/g, ' ')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    /** A seção inteira, do título ao fim dela. */
+    const section = (page: string) =>
+      /<section aria-labelledby="leaving-title">.*?<\/section>/.exec(page)?.[0] ?? '';
+    const items = (page: string) => section(page).match(/<li .*?<\/li>/g) ?? [];
+    const shown = (current: ViewState, shownReport: ReturnReport | null = null, online = true) =>
+      html(<Today report={shownReport} view={current} actions={actions} online={online} />);
+    /** Um feudo sem nada a preparar: ninguém livre e uma obra que começa sozinha. */
+    const ready = withPlanned(unlockedView, [
+      {
+        building: 'farm',
+        autoStart: true,
+        waiting: { reason: 'resources', text: 'espera 59 de madeira', etaSeconds: 7200 },
+      },
+    ]);
+
+    it('sem relatório, a seção abre a aba; com relatório, vem logo abaixo dele', () => {
+      const order = (page: string) =>
+        [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
+      expect(order(shown(initialView))).toEqual(['leaving', 'report', 'decisions']);
+      expect(order(shown(initialView, report))).toEqual(['report', 'leaving', 'decisions']);
+    });
+
+    it('uma linha por item, com a frase e o botão que resolve', () => {
+      const page = shown(initialView);
+      expect(text(section(page))).toBe(
+        'Antes de partir O que vale resolver antes de sair, do mais urgente ao menos. ' +
+          'Sugestão: Os pedreiros estão livres e nenhuma obra começa sozinha. Planejar obras ' +
+          'Sugestão: 5 aldeões livres, sem ofício. Alocar trabalhadores',
+      );
+      expect(items(page)).toHaveLength(2);
+      expect(items(page)[0]).toContain(
+        '<button type="button" class="secondary">Planejar obras</button>',
+      );
+    });
+
+    it('a urgência tem ícone e palavra: não depende da cor', () => {
+      const [famine, cold] = items(shown(impoverishedView));
+      expect(famine).toContain('class="leaving-item leaving-danger"');
+      expect(famine).toContain('codicon-error');
+      expect(famine).toContain('<span class="sr-only">Urgente: </span>');
+      expect(text(famine ?? '')).toBe(
+        'Urgente: A fome já dura 40 h: saldo de comida de −3/h. Alocar na Fazenda',
+      );
+      expect(text(cold ?? '')).toContain('O frio já dura 4 h');
+      const [storage] = items(shown(proudView));
+      expect(storage).toContain('class="leaving-item leaving-warning"');
+      expect(storage).toContain('codicon-warning');
+      expect(storage).toContain('<span class="sr-only">Atenção: </span>');
+      expect(items(shown(initialView))[0]).toContain('codicon-info');
+    });
+
+    it('cada botão executa o comando do item, com o edifício certo', () => {
+      const ran: Array<[string, unknown]> = [];
+      const recording: Actions = { ...actions, run: (id, arg) => ran.push([id, arg]) };
+      const press = (current: ViewState, label: string) =>
+        click(<Today report={null} view={current} actions={recording} />, label);
+      press(impoverishedView, 'Alocar na Fazenda');
+      press(impoverishedView, 'Alocar na Serraria');
+      press(proudView, 'Construir Celeiro');
+      press(initialView, 'Planejar obras');
+      press(initialView, 'Alocar trabalhadores');
+      expect(ran).toEqual([
+        ['lords.allocateWorkers', 'farm'],
+        ['lords.allocateWorkers', 'lumberMill'],
+        ['lords.build', 'granary'],
+        ['lords.planConstruction', undefined],
+        ['lords.allocateWorkers', undefined],
+      ]);
+    });
+
+    it('sem nada a preparar, diz que o feudo está pronto para a ausência', () => {
+      const page = shown(ready);
+      expect(text(section(page))).toBe(
+        'Antes de partir O feudo está preparado para a sua ausência.',
+      );
+      expect(section(page)).toContain('codicon-pass');
+      expect(section(page)).not.toContain('<ul');
+      expect(section(page)).not.toContain('<button');
+    });
+
+    it('nunca mais de cinco linhas', () => {
+      const crowded = withResource(
+        { ...impoverishedView, resources: proudView.resources },
+        'food',
+        { perHour: -3 },
+      );
+      expect(items(shown(crowded))).toHaveLength(5);
+    });
+
+    it('sem ligação, os botões que dão ordens ficam desabilitados; o que navega continua', () => {
+      const offline = items(shown(impoverishedView, null, false));
+      expect(offline[0]).toContain(
+        '<button type="button" class="secondary" disabled>Alocar na Fazenda</button>',
+      );
+      // No feudo empobrecido não há Celeiro a erguer ainda: o botão do depósito leva ao feudo.
+      const storage = items(
+        shown(withResource(impoverishedView, 'stone', { fullInSeconds: 3600 }), null, false),
+      ).find((item) => item.includes('Ver os depósitos'));
+      expect(storage).toContain(
+        '<button type="button" class="secondary">Ver os depósitos</button>',
+      );
+    });
+
+    it('a aba Hoje passa o estado da ligação adiante', () => {
+      expect(section(today(null, false))).toContain('disabled');
+      expect(section(today(null))).not.toContain('disabled');
+    });
+  });
 });
 
 describe('cores', () => {

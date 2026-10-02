@@ -7,6 +7,7 @@ import {
   isNewBuilding,
   isWasting,
   runsOutIn,
+  storageNotice,
 } from '../ui/format';
 import type { Actions } from './actions';
 import { formatApprox, formatDuration, formatNumber, formatSigned } from './format';
@@ -71,22 +72,6 @@ function Trend(props: { view: ViewState; row: Row }) {
   return <span class="muted">estável</span>;
 }
 
-/** O que dizer de um recurso cujo depósito pede atenção; `null` para os outros. */
-function storageLine(row: Row): string | null {
-  if (row.full && row.fullNote !== null) {
-    // Cheio: a frase do servidor diz quanto vai ao chão por hora e o que fazer. O que já se
-    // perdeu desde a última virada do dia vem ao lado, para a perda ter tamanho.
-    return row.wastedToday > 0
-      ? `${row.fullNote} Hoje já se perderam ${formatNumber(row.wastedToday)}.`
-      : row.fullNote;
-  }
-  if (fillsSoon(row) && row.fullInSeconds !== null && row.cap !== null) {
-    const place = row.storageLabel ?? row.label;
-    return `${place}: ${row.label.toLowerCase()} no limite de ${formatNumber(row.cap)} em ${formatApprox(row.fullInSeconds)}.`;
-  }
-  return null;
-}
-
 /**
  * Os depósitos que pedem atenção, logo abaixo da tabela, cada um com a saída ao lado: o botão
  * que ergue ou amplia o Celeiro ou o Armazém, com o custo, o prazo e o que a obra muda. Um
@@ -97,7 +82,7 @@ function StorageNotes(props: { view: ViewState; disabled: boolean; actions: Acti
   const { view, disabled, actions } = props;
   const groups = new Map<string, { lines: string[]; upgrade: Upgrade | null }>();
   for (const row of view.resources) {
-    const line = storageLine(row);
+    const line = storageNotice(row);
     if (line === null || row.storageBuilding === null) {
       continue;
     }

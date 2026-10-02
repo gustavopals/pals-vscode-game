@@ -134,6 +134,25 @@ export function storageAlert(row: ResourceRow): string | null {
 }
 
 /**
+ * O que dizer, em uma frase, de um recurso cujo depósito pede atenção; `null` para os outros.
+ * Cheio, a frase é a do servidor (quanto vai ao chão por hora e o que fazer), com o que já se
+ * perdeu desde a última virada do dia ao lado, para a perda ter tamanho. A menos de uma ausência
+ * comum de encher, o lugar, o limite e o prazo.
+ */
+export function storageNotice(row: ResourceRow): string | null {
+  if (row.full && row.fullNote !== null) {
+    return row.wastedToday > 0
+      ? `${row.fullNote} Hoje já se perderam ${formatNumber(row.wastedToday)}.`
+      : row.fullNote;
+  }
+  if (fillsSoon(row) && row.fullInSeconds !== null && row.cap !== null) {
+    const place = row.storageLabel ?? row.label;
+    return `${place}: ${row.label.toLowerCase()} no limite de ${formatNumber(row.cap)} em ${formatApprox(row.fullInSeconds)}.`;
+  }
+  return null;
+}
+
+/**
  * De onde vem o limite, com o nome do lugar onde o recurso fica: "Despensa: 500 iniciais",
  * "Celeiro Nv2: 1.500". Os dois textos vêm do servidor; aqui só se evita dizer o nome duas vezes.
  */
@@ -275,29 +294,144 @@ export type StatusBarInput = {
   pending: number;
 };
 
-export type StatusBarOutput = { text: string; tooltip: string };
+export type StatusBarOutput = {
+  text: string;
+  tooltip: string;
+  /** A aba a que o clique leva; sem ela, vale a aba em que o app abriria. */
+  target?: 'today' | 'fief';
+  /** Fome ou frio: a linha ganha o destaque de aviso. */
+  alarm?: boolean;
+};
+
+/** O assunto que toma a barra de status, e como ele aparece no título da aba do navegador. */
+type StatusTopic = {
+  /** A linha da barra, ainda sem o contador de novidades. */
+  bar: StatusBarOutput;
+  /** O mesmo assunto sem ícones, para o título da aba; `null` quando só há o nome do feudo. */
+  title: string | null;
+};
 
 /**
- * A linha da barra de status: uma linha, uma prioridade (GDD §13.5).
- * Sem ligação > fome e frio > obra em andamento > produção de comida. A fome e o frio têm cada
- * um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os dois. Com duas
- * obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
+ * O depósito que mais pede atenção: o que já está cheio e perde mais por hora; sem nenhum
+ * perdendo, o que enche primeiro, se for antes de uma ausência comum (`FULL_SOON_SECONDS`).
+ */
+function mostPressingStorage(view: ViewState): ResourceRow | null {
+  const wasting = view.resources.filter(isWasting);
+  if (wasting.length > 0) {
+    return wasting.reduce((worst, row) =>
+      row.wastingPerHour > worst.wastingPerHour ? row : worst,
+    );
+  }
+  return view.resources
+    .filter(fillsSoon)
+    .reduce<ResourceRow | null>(
+      (soonest, row) =>
+        soonest === null || (row.fullInSeconds ?? 0) < (soonest.fullInSeconds ?? 0) ? row : soonest,
+      null,
+    );
+}
+
+/**
+ * O assunto de maior prioridade do feudo (GDD §13.5): decisões pendentes > fome e frio >
+ * depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de comida. A fome e
+ * o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os
+ * dois. Com duas obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
+ */
+function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
+  const name = view.settlement.name;
+  const decisions = view.pendingDecisions.length;
+  if (decisions > 0) {
+    const pending = `${decisions} ${decisions === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
+    return {
+      bar: {
+        text: `$(law) ${pending}`,
+        tooltip: `${name}: ${pending}. Elas esperam na aba Hoje.`,
+        target: 'today',
+      },
+      title: `${pending} · ${name}`,
+    };
+  }
+  const cold = view.winter?.cold ?? null;
+  if (view.famine !== null && cold !== null) {
+    return {
+      bar: {
+        text: `$(warning) Fome e frio em ${name}`,
+        tooltip: `${view.famine.text} ${cold.text}`,
+        alarm: true,
+      },
+      title: `Fome e frio em ${name}`,
+    };
+  }
+  if (view.famine !== null) {
+    return {
+      bar: { text: `$(warning) Fome em ${name}`, tooltip: view.famine.text, alarm: true },
+      title: `Fome em ${name}`,
+    };
+  }
+  if (cold !== null) {
+    return {
+      bar: { text: `$(flame) Frio em ${name}`, tooltip: cold.text, alarm: true },
+      title: `Frio em ${name}`,
+    };
+  }
+  const storage = mostPressingStorage(view);
+  if (storage !== null) {
+    const state = isWasting(storage)
+      ? `cheio, perde ${formatNumber(storage.wastingPerHour)}/h`
+      : `cheio em ${formatApprox(storage.fullInSeconds ?? 0)}`;
+    // A explicação fala de todos os depósitos em alerta, não só do que tomou a linha.
+    const notices = view.resources.map(storageNotice).filter((line) => line !== null);
+    return {
+      bar: {
+        text: `$(archive) ${storage.label}: ${state}`,
+        tooltip: notices.length > 0 ? notices.join(' ') : `${name}: ${storage.label} ${state}`,
+        target: 'fief',
+      },
+      title: `${storage.label}: ${state} · ${name}`,
+    };
+  }
+  // Com duas filas, a linha fala da obra que termina primeiro e conta as outras.
+  const active = soonestConstruction(view.constructions);
+  if (active !== null) {
+    const others = busyQueues(view.constructions).length - 1;
+    const remaining = formatRemaining(remainingNow(active.secondsRemaining, elapsedSeconds));
+    const work = `${active.label} Nv${active.targetLevel} · ${remaining}`;
+    return {
+      bar: {
+        text: `$(tools) ${work}${others > 0 ? ` · +${others} ${others === 1 ? 'obra' : 'obras'}` : ''}`,
+        tooltip:
+          others > 0 ? `${name}: ${others + 1} obras em andamento` : `${name}: obra em andamento`,
+      },
+      title: `${work} · ${name}`,
+    };
+  }
+  const food = view.resources.find((row) => row.id === 'food');
+  const rate =
+    food === undefined ? '' : ` · ${formatRate(food.perHour).replace('/h', '')} comida/h`;
+  return {
+    bar: { text: `$(home) ${name}${rate}`, tooltip: food?.breakdown ?? name },
+    title: null,
+  };
+}
+
+/**
+ * A linha da barra de status: uma linha, uma prioridade (GDD §13.5). Sem ligação passa na frente
+ * de tudo; depois vale o assunto de `statusTopic`, com o contador de novidades ao lado. No modo
+ * discreto, só um contador.
  */
 export function statusBar(input: StatusBarInput): StatusBarOutput {
   const { view, connection } = input;
   if (!input.signedIn || connection.kind === 'unauthenticated') {
     return { text: '$(home) Lords of the Guild', tooltip: 'Jogar agora' };
   }
-  // Com duas filas, a linha fala da obra que termina primeiro e conta as outras.
-  const active = view === null ? null : soonestConstruction(view.constructions);
-  const others = view === null ? 0 : busyQueues(view.constructions).length - 1;
-  const remaining =
-    active === null ? null : remainingNow(active.secondsRemaining, input.elapsedSeconds);
-
   if (input.discreetMode) {
-    // Só um contador: quem olha por cima do ombro não vê um jogo.
-    const seconds =
-      remaining ?? remainingNow(view?.calendar.secondsToNextDay ?? 0, input.elapsedSeconds);
+    // Só um contador: quem olha por cima do ombro não vê um jogo. É o da obra que termina
+    // primeiro ou, sem obra, o da próxima virada do dia.
+    const active = view === null ? null : soonestConstruction(view.constructions);
+    const seconds = remainingNow(
+      active?.secondsRemaining ?? view?.calendar.secondsToNextDay ?? 0,
+      input.elapsedSeconds,
+    );
     return {
       text: `$(circle-filled) ${formatRemaining(seconds)}`,
       tooltip: 'Lords of the Guild · modo discreto',
@@ -312,38 +446,9 @@ export function statusBar(input: StatusBarInput): StatusBarOutput {
   if (view === null) {
     return { text: '$(home) Lords of the Guild', tooltip: 'Abrir o feudo' };
   }
-  const name = view.settlement.name;
+  const { bar } = statusTopic(view, input.elapsedSeconds);
   const bell = input.pending > 0 ? ` · $(bell) ${input.pending}` : '';
-  const cold = view.winter?.cold ?? null;
-  if (view.famine !== null && cold !== null) {
-    return {
-      text: `$(warning) Fome e frio em ${name}${bell}`,
-      tooltip: `${view.famine.text} ${cold.text}`,
-    };
-  }
-  if (view.famine !== null) {
-    return {
-      text: `$(warning) Fome em ${name}${bell}`,
-      tooltip: view.famine.text,
-    };
-  }
-  if (cold !== null) {
-    return { text: `$(flame) Frio em ${name}${bell}`, tooltip: cold.text };
-  }
-  if (active !== null && remaining !== null) {
-    return {
-      text:
-        `$(tools) ${active.label} Nv${active.targetLevel} · ${formatRemaining(remaining)}` +
-        (others > 0 ? ` · +${others} ${others === 1 ? 'obra' : 'obras'}` : '') +
-        bell,
-      tooltip:
-        others > 0 ? `${name}: ${others + 1} obras em andamento` : `${name}: obra em andamento`,
-    };
-  }
-  const food = view.resources.find((row) => row.id === 'food');
-  const rate =
-    food === undefined ? '' : ` · ${formatRate(food.perHour).replace('/h', '')} comida/h`;
-  return { text: `$(home) ${name}${rate}${bell}`, tooltip: food?.breakdown ?? name };
+  return { ...bar, text: `${bar.text}${bell}` };
 }
 
 export type TextPart = { icon: string } | { text: string };
@@ -381,8 +486,10 @@ export function stripIcons(text: string): string {
 const APP_TITLE = 'Lords of the Guild';
 
 /**
- * O título da aba do navegador: o nome do feudo e, na frente, quantas novidades esperam. É o
- * que se vê com a aba em segundo plano. No modo discreto, só um contador.
+ * O título da aba do navegador: é o que se vê com a aba em segundo plano. Na frente, quantas
+ * novidades esperam; depois, o mesmo assunto que toma a barra de status (decisões pendentes,
+ * fome e frio, depósito a encher, obra) e o nome do feudo. Sem ligação o estado guardado pode
+ * estar velho: fica só o nome. No modo discreto, só um contador.
  */
 export function documentTitle(input: StatusBarInput): string {
   if (!input.signedIn || input.view === null) {
@@ -392,5 +499,8 @@ export function documentTitle(input: StatusBarInput): string {
     return stripIcons(statusBar(input).text);
   }
   const news = input.pending > 0 ? `(${input.pending}) ` : '';
-  return `${news}${input.view.settlement.name} · ${APP_TITLE}`;
+  const name = input.view.settlement.name;
+  const topic =
+    input.connection.kind === 'online' ? statusTopic(input.view, input.elapsedSeconds).title : null;
+  return `${news}${topic ?? name} · ${APP_TITLE}`;
 }
