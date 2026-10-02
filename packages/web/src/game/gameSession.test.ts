@@ -477,16 +477,17 @@ describe('cache', () => {
       ...oldSettlement
     } = view.settlement;
     void [_difficulty, _difficultyLabel, _paceLabel];
-    const fromV01 = {
+    // É uma função: o relógio de mentira só vale dentro de cada teste.
+    const fromV01 = () => ({
       view: { ...view, settlement: oldSettlement },
       stateVersion: '7',
       etag: 'W/"v01"',
       lastSeq: 3,
       lastSeenAt: Date.now() - 5 * HOUR,
-    };
+    });
 
     it('o cache da v0.1 não é exibido: sem rede, a tela não mostra uma visão de outro formato', async () => {
-      const { session, state, seen } = setup(fromV01 as unknown as GameCache);
+      const { session, state, seen } = setup(fromV01() as unknown as GameCache);
       state.fail = new NetworkError('fora');
       await session.start(target);
       expect(session.view).toBeNull();
@@ -517,7 +518,7 @@ describe('cache', () => {
     });
 
     it('o cursor dos eventos sobrevive: a partida não volta inteira como novidade', async () => {
-      const { session, state, seen, store } = setup(fromV01 as unknown as GameCache);
+      const { session, state, seen, store } = setup(fromV01() as unknown as GameCache);
       state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
       await session.start(target);
       // A leitura pediu só o que veio depois do cursor guardado pela versão anterior.
@@ -535,8 +536,63 @@ describe('cache', () => {
       expect(session.view).toEqual(view);
     });
 
-    it('sem a visão antiga não há Relatório de Retorno a comparar, mesmo depois de horas fora', async () => {
-      const { session, seen } = setup(fromV01 as unknown as GameCache);
+    it('depois de horas fora, a ausência é posta em dia: relatório sem comparação de estoques', async () => {
+      const { session, state, seen } = setup(fromV01() as unknown as GameCache);
+      state.events = [
+        event(1),
+        event(2, 'constructionFinished'),
+        event(3),
+        event(4, 'constructionFinished'),
+        event(5),
+      ];
+      const catchingUp: boolean[] = [];
+      session.onEvents(() => catchingUp.push(session.catchingUp));
+      await session.start(target);
+      // Os eventos da ausência chegam com a sessão ainda pondo a ausência em dia.
+      expect(catchingUp).toEqual([true]);
+      expect(session.catchingUp).toBe(false);
+      // Sem a visão antiga não há o que comparar: o relatório conta o que aconteceu, e só.
+      expect(seen.reports).toEqual([
+        {
+          awaySeconds: 5 * 3600,
+          resources: [],
+          counts: {
+            daysPassed: 1,
+            constructionsFinished: 1,
+            villagersArrived: 0,
+            objectivesCompleted: 0,
+          },
+          famine: 'none',
+          highlights: ['evento 4'],
+        },
+      ]);
+    });
+
+    it('sem ligação na abertura, o relatório espera a primeira leitura', async () => {
+      const { session, state, seen } = setup(fromV01() as unknown as GameCache);
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(seen.reports).toEqual([]);
+      expect(session.catchingUp).toBe(true);
+      state.fail = null;
+      await session.syncNow();
+      expect(seen.reports).toHaveLength(1);
+      expect(session.catchingUp).toBe(false);
+    });
+
+    it('com menos de 4 horas fora, não há relatório', async () => {
+      const recent = { ...fromV01(), lastSeenAt: Date.now() - HOUR };
+      const { session, seen } = setup(recent as unknown as GameCache);
+      await session.start(target);
+      expect(session.catchingUp).toBe(false);
+      expect(seen.reports).toEqual([]);
+    });
+
+    it('sem cursor guardado não há relatório: a primeira leitura traz a história inteira', async () => {
+      const { lastSeq: _lastSeq, ...noCursor } = fromV01();
+      void _lastSeq;
+      const { session, state, seen } = setup(noCursor as unknown as GameCache);
+      state.events = [event(1, 'constructionFinished'), event(2, 'constructionFinished')];
       await session.start(target);
       expect(seen.reports).toEqual([]);
     });

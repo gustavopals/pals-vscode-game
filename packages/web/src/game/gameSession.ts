@@ -72,8 +72,10 @@ export async function clearAccountCaches(
  * Lê o cache e confere a marca de versão e a forma da visão. Um cache gravado por outra versão
  * do app (marca diferente ou ausente, ou outro formato de `ViewState`) perde a visão em vez de
  * quebrar a árvore e as abas, mas o cursor dos eventos e o instante da última visita continuam
- * valendo: sem eles, a partida inteira voltaria como "novidade" depois de cada atualização do
- * jogo. A primeira leitura do servidor grava por cima, já com a marca atual.
+ * valendo: sem o cursor, a partida inteira voltaria como "novidade" depois de cada atualização
+ * do jogo; sem o instante, quem volta depois de horas não teria Relatório de Retorno e receberia
+ * a ausência em avisos avulsos. A primeira leitura do servidor grava por cima, já com a marca
+ * atual.
  */
 function loadCache(
   store: KeyValueStore,
@@ -132,8 +134,13 @@ export class GameSession {
   private resumeSeq: number | null = null;
   /** A primeira leitura de uma partida sem cursor: os eventos dela são história, não novidade. */
   private seeding = false;
-  /** O que se sabia antes desta abertura, enquanto o Relatório de Retorno ainda não saiu. */
-  private baseline: { view: ViewState; lastSeenAt: number; events: GameEvent[] } | null = null;
+  /**
+   * O que se sabia antes desta abertura, enquanto o Relatório de Retorno ainda não saiu. `view`
+   * é nula quando a visão guardada era de outra versão do app: a ausência é a mesma, só não há
+   * estoques a comparar.
+   */
+  private baseline: { view: ViewState | null; lastSeenAt: number; events: GameEvent[] } | null =
+    null;
 
   private readonly viewChanges = new Emitter<ViewState>();
   private readonly eventBatches = new Emitter<GameEvent[]>();
@@ -195,11 +202,23 @@ export class GameSession {
     this.seeding = stored.lastSeq === null;
     if (this.cache !== null) {
       this.viewChanges.emit(this.cache.view);
-      if (shouldShowReturnReport(this.cache.lastSeenAt, this.now())) {
-        // Fica guardado até a primeira leitura bem-sucedida, mesmo que ela só venha depois de
-        // a ligação voltar.
-        this.baseline = { view: this.cache.view, lastSeenAt: this.cache.lastSeenAt, events: [] };
-      }
+    }
+    // A ausência se mede pelo instante e pelo cursor guardados, que valem mesmo quando a visão
+    // foi descartada: quem volta horas depois de uma atualização do jogo também tem a ausência
+    // posta em dia de uma vez, e não em avisos avulsos. Sem cursor não há ausência a contar: a
+    // primeira leitura traz a história inteira.
+    if (
+      stored.lastSeq !== null &&
+      stored.lastSeenAt !== null &&
+      shouldShowReturnReport(stored.lastSeenAt, this.now())
+    ) {
+      // Fica guardado até a primeira leitura bem-sucedida, mesmo que ela só venha depois de
+      // a ligação voltar.
+      this.baseline = {
+        view: this.cache?.view ?? null,
+        lastSeenAt: stored.lastSeenAt,
+        events: [],
+      };
     }
     await this.syncNow();
   }

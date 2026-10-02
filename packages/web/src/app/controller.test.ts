@@ -1047,6 +1047,80 @@ describe('Relatório de Retorno', () => {
     expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fazenda ficou pronta.']);
   });
 
+  describe('na primeira abertura depois de uma atualização do jogo', () => {
+    // O cache como a versão anterior do app o gravou: sem marca, e a visão em outro formato.
+    const {
+      difficulty: _difficulty,
+      difficultyLabel: _difficultyLabel,
+      paceLabel: _paceLabel,
+      ...oldSettlement
+    } = goldenView.settlement;
+    void [_difficulty, _difficultyLabel, _paceLabel];
+    const fromOlderApp = (lastSeenAt: number) => ({
+      view: { ...goldenView, settlement: oldSettlement },
+      stateVersion: '7',
+      etag: null,
+      lastSeq: 3,
+      lastSeenAt,
+    });
+    const history = [
+      gameEvent(1, 'constructionFinished', 'Obra antiga.'),
+      gameEvent(2, 'dayStarted', 'Amanheceu.'),
+      gameEvent(3, 'recruitmentFinished', 'Aldeão antigo.'),
+      gameEvent(4, 'constructionFinished', 'A serraria ficou pronta.'),
+      gameEvent(5, 'famineStarted', 'A fome chegou ao feudo.'),
+      gameEvent(6, 'dayStarted', 'Amanheceu de novo.'),
+      gameEvent(7, 'recruitmentFinished', 'Um aldeão chegou.'),
+    ];
+    async function updated(hoursAway: number, level: 'all' | 'padrão' = 'all') {
+      const api = fakeApi();
+      api.state.events = [...history];
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = fromOlderApp(NOON - hoursAway * HOUR);
+      if (level === 'all') {
+        await made.controller.setPreferences({ notifications: 'all' });
+      }
+      await made.controller.start();
+      await settle(made.controller);
+      return made;
+    }
+
+    it.each(['all', 'padrão'] as const)(
+      'quem ficou horas fora cai na aba Hoje, sem avisos avulsos (avisos: %s)',
+      async (level) => {
+        const made = await updated(9, level);
+        const { controller } = made;
+        expect(gameToasts(controller)).toEqual([]);
+        expect(controller.route).toBe('today');
+        // O relatório conta a ausência pelo que veio depois do cursor guardado. Sem a visão
+        // antiga não há estoques a comparar, e ele não inventa uma comparação.
+        expect(controller.report).toMatchObject({
+          awaySeconds: 9 * 3600,
+          resources: [],
+          counts: { daysPassed: 1, constructionsFinished: 1, villagersArrived: 1 },
+          highlights: ['A serraria ficou pronta.', 'A fome chegou ao feudo.', 'Um aldeão chegou.'],
+        });
+        expect(controller.unseen).toBe(3);
+
+        // Posta em dia a ausência, o que chegar depois volta a avisar normalmente.
+        await deliver(made, gameEvent(8, 'famineStarted', 'A fome voltou.'));
+        expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fome voltou.']);
+      },
+    );
+
+    it('quem saiu há pouco segue como em qualquer ausência curta: Feudo e avisos', async () => {
+      const { controller } = await updated(1);
+      expect(controller.report).toBeNull();
+      expect(controller.route).toBe('fief');
+      // Só o que veio depois do cursor guardado, com o essencial na frente.
+      expect(gameToasts(controller).map((toast) => toast.text)).toEqual([
+        'A fome chegou ao feudo.',
+        'A serraria ficou pronta.',
+        'Um aldeão chegou.',
+      ]);
+    });
+  });
+
   it('numa ausência curta, os eventos avisam normalmente', async () => {
     const { controller } = await returning(1, [gameEvent(1, 'famineStarted', 'A fome chegou.')]);
     expect(controller.report).toBeNull();

@@ -523,6 +523,18 @@ describe('aba Hoje', () => {
     expect(page).toContain('Ir para o feudo');
   });
 
+  it('sem estoques a comparar, diz por quê e mostra o resto do relatório', () => {
+    const page = today({ ...report, resources: [] });
+    expect(page).toContain('Você esteve fora por <strong>5 horas</strong>');
+    expect(page).toContain('O jogo foi atualizado desde a sua última visita');
+    expect(page).not.toContain('<table');
+    expect(page).toContain('Obras concluídas: 1');
+    expect(page).toContain('os pedreiros ergueram as Habitações');
+    // Com estoques, a frase não aparece.
+    expect(today(report)).not.toContain('O jogo foi atualizado');
+    expect(today(report)).toContain('<table');
+  });
+
   it('sem relatório, diz quando ele aparece; com fome, avisa', () => {
     expect(today(null)).toContain('Nada de novo desde a sua última visita.');
     expect(today({ ...report, famine: 'started' })).toContain('a fome começou');

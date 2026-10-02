@@ -34,34 +34,41 @@ export function Today(props: { report: ReturnReport | null; actions: Actions }) 
                 {FAMINE_TEXT[report.famine]}
               </p>
             ) : null}
-            <table class="resources">
-              <thead>
-                <tr>
-                  <th scope="col">Recurso</th>
-                  <th scope="col" class="num">
-                    Antes
-                  </th>
-                  <th scope="col" class="num">
-                    Agora
-                  </th>
-                  <th scope="col" class="num">
-                    Mudança
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.resources.map((row) => (
-                  <tr key={row.id}>
-                    <th scope="row">{row.label}</th>
-                    <td class="num">{formatNumber(row.before)}</td>
-                    <td class="num">{formatNumber(row.after)}</td>
-                    <td class={`num ${row.delta < 0 ? 'negative' : ''}`}>
-                      {formatSigned(row.delta)}
-                    </td>
+            {report.resources.length === 0 ? (
+              <p class="muted">
+                O jogo foi atualizado desde a sua última visita. Desta vez o relatório não compara
+                os estoques: conta só o que aconteceu enquanto você esteve fora.
+              </p>
+            ) : (
+              <table class="resources">
+                <thead>
+                  <tr>
+                    <th scope="col">Recurso</th>
+                    <th scope="col" class="num">
+                      Antes
+                    </th>
+                    <th scope="col" class="num">
+                      Agora
+                    </th>
+                    <th scope="col" class="num">
+                      Mudança
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {report.resources.map((row) => (
+                    <tr key={row.id}>
+                      <th scope="row">{row.label}</th>
+                      <td class="num">{formatNumber(row.before)}</td>
+                      <td class="num">{formatNumber(row.after)}</td>
+                      <td class={`num ${row.delta < 0 ? 'negative' : ''}`}>
+                        {formatSigned(row.delta)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             <p class="muted">
               Obras concluídas: {report.counts.constructionsFinished} · Aldeões que chegaram:{' '}
               {report.counts.villagersArrived} · Objetivos cumpridos:{' '}

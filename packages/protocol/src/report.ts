@@ -7,7 +7,10 @@ import { z } from 'zod';
  */
 export const ReturnReportSchema = z.strictObject({
   awaySeconds: z.number().int().nonnegative(),
-  /** Diferença de estoque entre a última visita e agora, em unidades. */
+  /**
+   * Diferença de estoque entre a última visita e agora, em unidades. Vazia quando o cliente não
+   * tem a visão da última visita para comparar (o cache era de outra versão do app).
+   */
   resources: z.array(
     z.strictObject({
       id: z.enum(RESOURCE_IDS),

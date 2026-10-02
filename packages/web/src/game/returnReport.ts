@@ -10,6 +10,9 @@ export function shouldShowReturnReport(lastSeenAt: number | null, now: number): 
 /**
  * Resume o que aconteceu na ausência: quanto cada estoque mudou entre a última visita e agora
  * e o que os eventos contam. Só soma e conta o que o servidor mandou; nenhuma regra de jogo.
+ *
+ * Sem a visão da última visita (`before` nula: o cache era de outra versão do app), o relatório
+ * sai sem as linhas de estoque. Repetir o estoque de agora como "antes" diria que nada mudou.
  */
 export function buildReturnReport(
   before: ViewState | null,
@@ -28,16 +31,20 @@ export function buildReturnReport(
   }
   return {
     awaySeconds: Math.max(0, Math.floor(awayMs / 1000)),
-    resources: after.resources.map((row) => {
-      const previous = before?.resources.find((entry) => entry.id === row.id)?.stock ?? row.stock;
-      return {
-        id: row.id,
-        label: row.label,
-        before: previous,
-        after: row.stock,
-        delta: row.stock - previous,
-      };
-    }),
+    resources:
+      before === null
+        ? []
+        : after.resources.map((row) => {
+            const previous =
+              before.resources.find((entry) => entry.id === row.id)?.stock ?? row.stock;
+            return {
+              id: row.id,
+              label: row.label,
+              before: previous,
+              after: row.stock,
+              delta: row.stock - previous,
+            };
+          }),
     counts: {
       daysPassed: count('dayStarted'),
       constructionsFinished: count('constructionFinished'),

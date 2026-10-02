@@ -333,7 +333,10 @@ describe('Relatório de Retorno', () => {
     );
     expect(buildReturnReport(starving, starving, [], HOUR).famine).toBe('ongoing');
     expect(buildReturnReport(starving, farmers, [event('famineEnded')], HOUR).famine).toBe('ended');
-    // Sem visão anterior, não inventa diferença.
-    expect(buildReturnReport(null, farmers, [], HOUR).resources[0]).toMatchObject({ delta: 0 });
+    // Sem visão anterior não há o que comparar: nenhuma linha, em vez de "nada mudou".
+    expect(buildReturnReport(null, farmers, [event('dayStarted')], HOUR)).toMatchObject({
+      resources: [],
+      counts: { daysPassed: 1 },
+    });
   });
 });

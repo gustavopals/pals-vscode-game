@@ -63,7 +63,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 
 ## Cache e versões
 
-O cache de cada partida (`lords.cache:<servidor>:<conta>:<partida>`) guarda `version`, que é `CACHE_VERSION` de `game/gameSession.ts`: o protocolo e o formato da visão (`VIEW_FORMAT`). Ao abrir, a visão só é exibida se a marca for a desta versão **e** a visão passar no `ViewStateSchema`; senão ela é descartada, e o cursor dos eventos e o instante da última visita são mantidos (sem eles a partida inteira voltaria como novidade). A primeira leitura do servidor grava por cima. Suba `VIEW_FORMAT` quando um campo do `ViewState` mudar de sentido sem mudar de forma; mudança de forma o schema já pega, e mudança de protocolo muda a marca sozinha.
+O cache de cada partida (`lords.cache:<servidor>:<conta>:<partida>`) guarda `version`, que é `CACHE_VERSION` de `game/gameSession.ts`: o protocolo e o formato da visão (`VIEW_FORMAT`). Ao abrir, a visão só é exibida se a marca for a desta versão **e** a visão passar no `ViewStateSchema`; senão ela é descartada, e o cursor dos eventos e o instante da última visita são mantidos. Sem o cursor, a partida inteira voltaria como novidade. Com o instante, quem volta 4 h ou mais depois de uma atualização do jogo é tratado como em qualquer ausência longa: abre na aba Hoje, os eventos da ausência não viram avisos avulsos, e o Relatório de Retorno sai sem a tabela de estoques (não há visão antiga a comparar), dizendo por quê. A primeira leitura do servidor grava por cima. Suba `VIEW_FORMAT` quando um campo do `ViewState` mudar de sentido sem mudar de forma; mudança de forma o schema já pega, e mudança de protocolo muda a marca sozinha.
 
 ## O que é próprio do navegador
 
