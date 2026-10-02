@@ -3,6 +3,7 @@ import {
   buildings,
   chronicleTemplates,
   coldReliefs,
+  councilCards,
   craftGuilds,
   DIFFICULTY_IDS,
   foundingTemplates,
@@ -983,6 +984,7 @@ describe('contentHash', () => {
         craftGuilds,
         moraleBandTemplates,
         idleVillager,
+        councilCards,
       }),
     ]);
   });
@@ -999,6 +1001,7 @@ describe('contentHash', () => {
       'buildings',
       'chronicleTemplates',
       'coldReliefs',
+      'councilCards',
       'craftGuilds',
       'foundingTemplates',
       'idleVillager',
@@ -1017,5 +1020,9 @@ describe('contentHash', () => {
     expect(hashed).toContain(`"baseCapacity":${balance.storage.baseCapacity}`);
     expect(hashed).toContain(balance.difficulties.lord.description);
     expect(hashed).toContain(`"dayMs":${balance.calendar.dayMs}`);
+    // As cartas do Conselho também: o texto, a pista de uma opção e a cadência.
+    expect(hashed).toContain(councilCards[0]?.text ?? 'falta a carta');
+    expect(hashed).toContain(councilCards[0]?.options[0]?.hint ?? 'falta a opção');
+    expect(hashed).toContain(`"drawIntervalDays":${balance.council.drawIntervalDays}`);
   });
 });

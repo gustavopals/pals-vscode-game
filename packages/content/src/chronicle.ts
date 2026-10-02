@@ -22,6 +22,10 @@ export const EVENT_TYPES = [
   'villagerArrived',
   'villagerLeft',
   'villagerDeserted',
+  'cardDrawn',
+  'cardAnswered',
+  'cardExpired',
+  'cardEffectApplied',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -38,6 +42,8 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * ofício: as duas frases vêm de `craftGuilds`
  * {moral} a faixa da moral, em minúscula: "inquieto"
  * {aldeao} quem partiu: "um lenhador" (de `craftGuilds`) ou "um aldeão sem ofício"
+ * {carta} o título de uma carta do Conselho: "Tábuas para as reservas"
+ * {opcao} a opção escolhida, em minúscula, para o meio da frase: "conservar as reservas"
  */
 export const CHRONICLE_PLACEHOLDERS = [
   'dia',
@@ -59,6 +65,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'feito',
   'moral',
   'aldeao',
+  'carta',
+  'opcao',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -106,6 +114,17 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   // Fome longa: alguém foge (GDD §5.6).
   villagerDeserted:
     'No {dia}º dia {daEstacao}, {aldeao} fugiu da fome de {feudo} na calada da noite. Restam {quantidade}.',
+  // O Conselho do Feudo (GDD §7). Estas são as frases gerais: cada carta pode trazer a sua para
+  // a chegada (`arrival`), cada opção traz a da escolha (`chronicle`) e pode trazer a da
+  // expiração (`expiredChronicle`), e o efeito que só aparece depois traz a dele (`hidden`).
+  cardDrawn: 'No {dia}º dia {daEstacao}, o conselho de {feudo} pediu audiência: {carta}.',
+  cardAnswered: 'No {dia}º dia {daEstacao}, o senhor de {feudo} decidiu sobre "{carta}": {opcao}.',
+  // A carta expirou sem resposta: a frase diz qual e o que o conselho fez.
+  cardExpired:
+    'No {dia}º dia {daEstacao}, o conselho de {feudo} esperou em vão pelo senhor e decidiu sozinho sobre "{carta}": {opcao}.',
+  // O efeito que a opção escondia: é aqui que o jogador o descobre.
+  cardEffectApplied:
+    'No {dia}º dia {daEstacao}, uma decisão antiga do conselho de {feudo} mostrou a que veio: {carta}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',

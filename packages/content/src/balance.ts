@@ -146,6 +146,20 @@ export type PaceDef = {
   readonly recommended: boolean;
 };
 
+/**
+ * O Conselho do Feudo (GDD §7.1; ADR 0014, decisões 1 e 18). A cadência é tempo de jogo e escala
+ * com o ritmo; o prazo de resposta é o único prazo de **tempo real** desta versão (`…RealMs`):
+ * o motor o converte com o ritmo da partida no instante em que a carta chega.
+ */
+export type CouncilDef = {
+  /** Dias de jogo entre um sorteio e o seguinte. A cadência é ancorada: anda sempre, sorteie ou não. */
+  readonly drawIntervalDays: number;
+  /** Quantas cartas podem esperar resposta ao mesmo tempo. */
+  readonly maxPending: number;
+  /** Quanto uma carta espera pela resposta, em tempo real, em qualquer ritmo. */
+  readonly expiryRealMs: number;
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -199,6 +213,7 @@ export type Balance = {
   readonly difficulties: Record<DifficultyId, DifficultyDef>;
   /** Na ordem em que as boas-vindas os mostram. */
   readonly paces: readonly PaceDef[];
+  readonly council: CouncilDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -418,4 +433,11 @@ export const balance: Balance = {
       recommended: false,
     },
   ],
+  // GDD §7.1 (ADR 0014, decisões 1 e 18): um sorteio a cada 4 dias de jogo, no máximo 2 cartas
+  // à espera, e 24 h reais para responder, em qualquer ritmo.
+  council: {
+    drawIntervalDays: 4,
+    maxPending: 2,
+    expiryRealMs: 24 * HOUR_MS,
+  },
 };

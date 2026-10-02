@@ -6,8 +6,10 @@ import {
   EVENT_TYPES,
   foundingTemplates,
 } from './chronicle';
+import { COUNCIL_EFFECT_TYPES } from './council';
 import {
   BUILDING_IDS,
+  DIFFICULTY_IDS,
   MORALE_BAND_IDS,
   PRODUCTION_BUILDING_IDS,
   RESOURCE_IDS,
@@ -195,6 +197,11 @@ export const BalanceSchema = z.strictObject({
       (paces) => new Set(paces.map((entry) => entry.timeScale)).size === paces.length,
       'ritmos repetidos',
     ),
+  council: z.strictObject({
+    drawIntervalDays: positiveInt,
+    maxPending: positiveInt,
+    expiryRealMs: positiveInt,
+  }),
 });
 
 export const BuildingSchema = z
@@ -301,4 +308,196 @@ export const MoraleBandTemplatesSchema = z.strictObject(
   ),
 );
 
-export { EVENT_TYPES, OBJECTIVE_CONDITION_TYPES };
+const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
+/** Uma flag: identificadores separados por ponto, o primeiro sendo a cadeia: `commonGranary.open`. */
+const flag = z.string().regex(/^[a-z][A-Za-z0-9]*(\.[a-z][A-Za-z0-9]*)+$/);
+const nonZeroInt = z
+  .number()
+  .int()
+  .refine((value) => value !== 0, 'zero não é efeito');
+
+export const CouncilEffectSchema = z.discriminatedUnion('type', [
+  z.strictObject({
+    type: z.literal('resources'),
+    amounts: z
+      .partialRecord(resourceId, nonZeroInt)
+      .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso'),
+  }),
+  z.strictObject({ type: z.literal('morale'), amount: nonZeroInt, durationDays: positiveInt }),
+  z.strictObject({ type: z.literal('setFlag'), flag }),
+  z.strictObject({ type: z.literal('clearFlag'), flag }),
+  z.strictObject({ type: z.literal('scheduleCard'), cardId: identifier, afterDays: positiveInt }),
+]);
+
+const effects = z
+  .array(CouncilEffectSchema)
+  // Dois efeitos de moral na mesma lista seriam um só com a soma, e a explicação diria dois.
+  .refine(
+    (list) => list.filter((effect) => effect.type === 'morale').length <= 1,
+    'mais de um efeito de moral na mesma lista',
+  );
+
+/** Uma frase de pista ou de situação: começa em maiúscula e termina com ponto. */
+const sentence = label.regex(/^\p{Lu}.*[.!?]$/su);
+const sentenceCount = (text: string) => text.split(/[.!?]+(?:\s+|$)/u).filter(Boolean).length;
+
+export const CouncilOptionSchema = z.strictObject({
+  id: identifier,
+  // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
+  // dizendo o mesmo número.
+  label: label.regex(
+    /^\p{Lu}\p{Ll}*(?:ar|er|ir|or|ôr)(?:\s[^\d.]*)?$/u,
+    'verbo no infinitivo, sem números',
+  ),
+  requires: z
+    .strictObject({ building: buildingId.optional(), resources: resourceAmounts.optional() })
+    .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
+    .optional(),
+  cost: resourceAmounts.optional(),
+  effects,
+  hint: sentence,
+  hidden: z
+    .strictObject({
+      afterDays: positiveInt,
+      effects: effects.min(1),
+      chronicle: chronicleTemplate,
+    })
+    .optional(),
+  chronicle: chronicleTemplate,
+  expiredChronicle: chronicleTemplate.optional(),
+});
+
+const moralRange = z
+  .tuple([z.number().int().nonnegative(), z.number().int().nonnegative()])
+  .refine(([min, max]) => min <= max, 'faixa de moral invertida');
+
+export const CouncilCardSchema = z
+  .strictObject({
+    id: identifier,
+    title: label,
+    // De 2 a 4 frases, no tom da Crônica (GDD Apêndice B).
+    text: sentence.refine((text) => {
+      const count = sentenceCount(text);
+      return count >= 2 && count <= 4;
+    }, 'a situação tem de 2 a 4 frases'),
+    weight: z.number().int().nonnegative(),
+    recurring: z.boolean().optional(),
+    requires: z
+      .strictObject({
+        seasons: z.array(z.enum(SEASON_IDS)).min(1).optional(),
+        minDay: positiveInt.optional(),
+        buildings: z.partialRecord(buildingId, positiveInt).optional(),
+        flags: z.array(flag).min(1).optional(),
+        notFlags: z.array(flag).min(1).optional(),
+        moralRange: moralRange.optional(),
+      })
+      .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
+      .optional(),
+    scripted: z.strictObject({ atGameDay: positiveInt }).optional(),
+    autoResolve: z.strictObject(
+      Object.fromEntries(DIFFICULTY_IDS.map((id) => [id, identifier])) as Record<
+        (typeof DIFFICULTY_IDS)[number],
+        typeof identifier
+      >,
+    ),
+    options: z.array(CouncilOptionSchema).min(2).max(3),
+    variants: z
+      .array(
+        z.strictObject({
+          flag,
+          text: sentence.refine((text) => {
+            const count = sentenceCount(text);
+            return count >= 2 && count <= 4;
+          }, 'a situação tem de 2 a 4 frases'),
+          arrival: chronicleTemplate.optional(),
+        }),
+      )
+      .min(1)
+      .optional(),
+    arrival: chronicleTemplate.optional(),
+  })
+  .superRefine((card, context) => {
+    const ids = card.options.map((option) => option.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({ code: 'custom', message: 'opções com o mesmo id', path: ['options'] });
+    }
+    // A opção que o conselho aplica sozinho existe e não cobra nada: a expiração nunca tira do
+    // jogador o que ele não tem (ADR 0014, decisão 9).
+    for (const difficulty of DIFFICULTY_IDS) {
+      const option = card.options.find((entry) => entry.id === card.autoResolve[difficulty]);
+      const path = ['autoResolve', difficulty];
+      if (option === undefined) {
+        context.addIssue({ code: 'custom', message: 'opção automática inexistente', path });
+      } else if (option.cost !== undefined || option.requires !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: 'opção automática com custo ou requisito',
+          path,
+        });
+      }
+    }
+  });
+
+/**
+ * O catálogo inteiro: além de cada carta, o que só se vê olhando todas. Ids únicos; toda flag
+ * exigida, proibida, lembrada ou apagada tem quem a grave; toda continuação aponta para uma
+ * carta que existe; e toda carta de peso zero tem como chegar (uma continuação ou um roteiro).
+ */
+export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((cards, context) => {
+  const ids = cards.map((card) => card.id);
+  ids.forEach((id, index) => {
+    if (ids.indexOf(id) !== index) {
+      context.addIssue({ code: 'custom', message: `carta repetida: ${id}`, path: [index, 'id'] });
+    }
+  });
+  const everyEffect = cards.flatMap((card) =>
+    card.options.flatMap((option) => [...option.effects, ...(option.hidden?.effects ?? [])]),
+  );
+  const written = new Set(
+    everyEffect.flatMap((effect) => (effect.type === 'setFlag' ? [effect.flag] : [])),
+  );
+  const scheduled = new Set(
+    everyEffect.flatMap((effect) => (effect.type === 'scheduleCard' ? [effect.cardId] : [])),
+  );
+  cards.forEach((card, index) => {
+    const read = [
+      ...(card.requires?.flags ?? []),
+      ...(card.requires?.notFlags ?? []),
+      ...(card.variants ?? []).map((variant) => variant.flag),
+      ...card.options.flatMap((option) =>
+        [...option.effects, ...(option.hidden?.effects ?? [])].flatMap((effect) =>
+          effect.type === 'clearFlag' ? [effect.flag] : [],
+        ),
+      ),
+    ];
+    for (const name of read) {
+      if (!written.has(name)) {
+        context.addIssue({
+          code: 'custom',
+          message: `flag que ninguém grava: ${name}`,
+          path: [index],
+        });
+      }
+    }
+    for (const option of card.options) {
+      for (const effect of [...option.effects, ...(option.hidden?.effects ?? [])]) {
+        if (effect.type === 'scheduleCard' && !ids.includes(effect.cardId)) {
+          context.addIssue({
+            code: 'custom',
+            message: `continuação para uma carta que não existe: ${effect.cardId}`,
+            path: [index, 'options'],
+          });
+        }
+      }
+    }
+    if (card.weight === 0 && card.scripted === undefined && !scheduled.has(card.id)) {
+      context.addIssue({
+        code: 'custom',
+        message: `carta sem peso e sem quem a agende: ${card.id}`,
+        path: [index, 'weight'],
+      });
+    }
+  });
+});
+
+export { COUNCIL_EFFECT_TYPES, EVENT_TYPES, OBJECTIVE_CONDITION_TYPES };

@@ -5,6 +5,7 @@ import {
   buildings,
   chronicleTemplates,
   coldReliefs,
+  councilCards,
   craftGuilds,
   foundingTemplates,
   idleVillager,
@@ -473,6 +474,7 @@ describe('resumo de uma partida', () => {
             craftGuilds,
             moraleBandTemplates,
             idleVillager,
+            councilCards,
           }),
         )
         .digest('hex')

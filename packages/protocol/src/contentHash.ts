@@ -3,6 +3,7 @@ import {
   buildings,
   chronicleTemplates,
   coldReliefs,
+  councilCards,
   craftGuilds,
   foundingTemplates,
   idleVillager,
@@ -24,7 +25,9 @@ import { canonicalJson } from './canonical';
 /**
  * O que entra no resumo: todos os números e todos os textos de jogo. As frases que só entram
  * dentro de outras (o alívio do frio, os ofícios, quem parte sem ofício) e as frases de cada
- * faixa da moral também contam: mudá-las muda o que o jogador lê.
+ * faixa da moral também contam: mudá-las muda o que o jogador lê. As cartas do Conselho
+ * entram inteiras: texto, opções, custos, efeitos (os escondidos também) e a ordem do catálogo,
+ * que faz parte do sorteio.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -37,6 +40,7 @@ function hashedContent(): Record<string, unknown> {
     craftGuilds,
     moraleBandTemplates,
     idleVillager,
+    councilCards,
   };
 }
 

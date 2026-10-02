@@ -4,6 +4,7 @@ export * from './ids';
 export { balance } from './balance';
 export type {
   Balance,
+  CouncilDef,
   CraftDef,
   DifficultyDef,
   MoraleBandDef,
@@ -34,3 +35,15 @@ export type {
   FoundingEventType,
   GameEventType,
 } from './chronicle';
+export { COUNCIL_EFFECT_TYPES } from './council';
+export type {
+  CouncilCard,
+  CouncilCardRequires,
+  CouncilCardVariant,
+  CouncilEffect,
+  CouncilEffectType,
+  CouncilHiddenOutcome,
+  CouncilOption,
+  CouncilOptionRequires,
+} from './council';
+export { councilCards } from './cards';
