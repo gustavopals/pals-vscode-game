@@ -7,6 +7,7 @@ import {
   HOUR,
   lowContrast,
   MINUTE,
+  overflow,
   playNow,
   statusBar,
   test,
@@ -390,6 +391,81 @@ test.describe('temas', () => {
 });
 
 test.describe('telas estreitas', () => {
+  /**
+   * O cabeçalho da aba Feudo fica preso no alto enquanto o painel rola. No inverno, com o frio e
+   * a moral em queda, ele tem todas as linhas que pode ter; em janela baixa ou estreita, preso,
+   * tomaria um terço da área da aba. A medida: preso, nunca passa de um quarto dela; onde
+   * passaria, ele rola com o conteúdo.
+   */
+  test('no inverno e com a moral em queda, o cabeçalho preso não toma mais de um quarto da aba; em janela baixa ou estreita, ele rola com o conteúdo', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    // A melhoria da Fazenda leva 80 das 120 de madeira: as 40 que sobram queimam em 16 h.
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toBeVisible();
+    // 144 h até o inverno e mais 17: o frio abriu há uma hora, e a próxima virada leva a moral.
+    await world.passTime(161 * HOUR, page);
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    const header = fief(page).locator('.header');
+    await expect(header).toContainText(/Inverno, dia \d+ do Ano 1/);
+    await expect(header.locator('.hearth')).toContainText('sem lenha, frio há');
+    await expect(header.locator('.morale')).toContainText('na virada do dia, cai para');
+
+    const content = page.locator('.editor-content');
+    const measure = () =>
+      page.evaluate(() => {
+        const head = document.querySelector('.header');
+        const area = document.querySelector('.editor-content');
+        if (head === null || area === null) {
+          throw new Error('A aba Feudo não tem cabeçalho.');
+        }
+        return {
+          sticky: getComputedStyle(head).position === 'sticky',
+          header: head.getBoundingClientRect().height,
+          content: area.clientHeight,
+          top: head.getBoundingClientRect().top - area.getBoundingClientRect().top,
+        };
+      });
+    for (const viewport of [
+      { width: 480, height: 800, sticky: false },
+      { width: 720, height: 480, sticky: false },
+      { width: 720, height: 700, sticky: true },
+      { width: 1000, height: 700, sticky: true },
+      { width: 1280, height: 560, sticky: false },
+      { width: 1280, height: 720, sticky: true },
+    ]) {
+      const size = `${viewport.width} × ${viewport.height}`;
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await content.evaluate((el) => el.scrollTo(0, 0));
+      const atTop = await measure();
+      expect(atTop.sticky, size).toBe(viewport.sticky);
+      if (atTop.sticky) {
+        expect(atTop.header / atTop.content, size).toBeLessThanOrEqual(0.25);
+      }
+      // Rolando o painel até o fim: preso, o cabeçalho continua no alto; solto, saiu da frente.
+      await content.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+      const atBottom = await measure();
+      if (viewport.sticky) {
+        expect(atBottom.top, size).toBe(0);
+      } else {
+        expect(atBottom.top + atBottom.header, size).toBeLessThanOrEqual(0);
+      }
+      expect(await overflow(page), size).toEqual({ page: 0, content: 0 });
+    }
+  });
+
   for (const width of [480, 720]) {
     test(`a ${width} px: barra lateral recolhida, sem rolagem horizontal, e o feudo é jogável`, async ({
       browser,

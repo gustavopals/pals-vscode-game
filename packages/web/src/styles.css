@@ -166,12 +166,28 @@ select {
 /* --- Cabeçalho e abas ----------------------------------------------------- */
 
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   padding-top: 14px;
   background: var(--vscode-editor-background);
   border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+/*
+ * O cabeçalho fica preso no alto enquanto o painel rola, mas só onde isso custa pouco. No
+ * inverno, com o frio e a moral em queda, ele tem todas as linhas que pode ter; em janela baixa,
+ * ou estreita (onde as linhas quebram), preso ele tomaria um terço da área da aba. A regra:
+ * preso, nunca passa de um quarto dela; onde passaria, rola com o conteúdo. As medidas são da
+ * janela com a barra lateral aberta, que é quando a aba é mais estreita: linhas inteiras a
+ * partir de 1200 px de largura, uma linha quebrada de 900 a 1199 px e, com a barra recolhida,
+ * de 600 a 720 px. Abaixo disso quebram mais linhas, e ele nunca fica preso.
+ */
+@media (min-width: 1200px) and (min-height: 580px),
+  (min-width: 900px) and (min-height: 650px),
+  (min-width: 600px) and (max-width: 720px) and (min-height: 650px) {
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
 }
 
 /*
