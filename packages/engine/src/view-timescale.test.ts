@@ -5,6 +5,7 @@ import {
   accept,
   autumnScenario,
   command,
+  craftScenario,
   gameWith,
   HOUR,
   MINUTE,
@@ -71,25 +72,34 @@ const written = (text: string | undefined) => Number((text ?? '').replace(',', '
 
 /**
  * Lê "4 trabalhadores × 30 × 1,2 (Nv2) × 1,3 (outono) × 0,75 (fome) = 140,4/h": os braços, a taxa
- * base, um termo por fator e o total.
+ * base, um termo por fator e o total. Com gente em adaptação, o primeiro termo é "4
+ * trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3)".
  */
 function readProduction(text: string) {
   const match =
-    /^(\d+) trabalhador(?:es)? × ([\d,]+)((?: × [\d,]+ \([^)]+\))+) = ([\d,]+)\/h$/.exec(text);
+    /^(\d+) trabalhador(?:es)?(?: \((\d+) em adaptação por (?:até )?([^,]+), valendo metade: contam? como ([\d,]+)\))? × ([\d,]+)((?: × [\d,]+ \([^)]+\))+) = ([\d,]+)\/h$/.exec(
+      text,
+    );
   if (match === null) {
     throw new Error(`Explicação de produção fora do formato: ${text}`);
   }
-  const factors = [...(match[3] ?? '').matchAll(/ × ([\d,]+) \(([^)]+)\)/g)].map((factor) => ({
+  const factors = [...(match[6] ?? '').matchAll(/ × ([\d,]+) \(([^)]+)\)/g)].map((factor) => ({
     value: written(factor[1]),
     label: factor[2] ?? '',
   }));
+  const hands = Number(match[1]);
   return {
-    hands: Number(match[1]),
-    perWorker: written(match[2]),
+    hands,
+    /** Quantos deles estão em adaptação, e até quando, como a frase diz. */
+    adapting: match[2] === undefined ? 0 : Number(match[2]),
+    adaptingFor: match[3] ?? null,
+    /** Por quantos trabalhadores adaptados os braços contam: é o que multiplica. */
+    counted: match[4] === undefined ? hands : written(match[4]),
+    perWorker: written(match[5]),
     factors,
     /** Todos os fatores multiplicados. */
     multiplier: factors.reduce((product, factor) => product * factor.value, 1),
-    total: written(match[4]),
+    total: written(match[7]),
   };
 }
 
@@ -331,6 +341,7 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
     ['objetivos', objectivesScenario().state, 7 * HOUR],
     ['outono', autumnScenario(), autumnScenario().lastProcessedAt],
     ['inverno com frio', winterColdScenario(), winterColdScenario().lastProcessedAt],
+    ['ofícios', craftScenario(), craftScenario().lastProcessedAt],
   ];
   const scenarios = states.flatMap(([name, state, at]) =>
     [1, 3, 0.5, 2].map((timeScale): [string, number, GameState, number] => [
@@ -348,6 +359,9 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
       for (const row of derived.workers) {
         const text = readProduction(row.breakdown);
         expect(text.hands).toBe(row.assigned);
+        // Quem está em adaptação aparece no primeiro termo, valendo metade.
+        expect(text.adapting).toBe(row.adapting);
+        expect(text.counted).toBe(row.assigned - row.adapting / 2);
         expect(text.total).toBeCloseTo(row.grossPerHour, 2);
         // O nível vem sempre e vem primeiro; nenhum fator escrito é neutro, fora ele.
         expect(text.factors[0]?.label).toBe(`Nv${row.level}`);
@@ -355,7 +369,7 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
           expect(factor.value).not.toBe(1);
         }
         // Os fatores escritos, multiplicados, dão o total escrito.
-        expect(text.hands * text.perWorker * text.multiplier).toBeCloseTo(text.total, 1);
+        expect(text.counted * text.perWorker * text.multiplier).toBeCloseTo(text.total, 1);
         // "Por trabalhador × fatores" é o que a visão diz que um trabalhador rende agora.
         expect(text.perWorker * text.multiplier).toBeCloseTo(row.perWorkerPerHour, 1);
         const resource = derived.resources.find((entry) => entry.id === row.resource);
@@ -469,10 +483,19 @@ describe('deriveViewState no ritmo 0,5', () => {
     });
     expect(slow.recruitment.secondsPerVillager).toBe(1920);
     expect(slow.calendar).toMatchObject({ secondsToNextDay: 14_160 });
-    expect(slow.workers[0]).toMatchObject({ grossPerHour: 12, perWorkerPerHour: 6 });
-    expect(foodOf(slow)).toMatchObject({ perHour: 9.5, depletesInSeconds: null });
+    // Os dois lavradores chegaram há 2 minutos de jogo: rendem metade por mais 118, que no
+    // ritmo 0,5 são 3 h 56 min reais.
+    expect(slow.workers[0]).toMatchObject({
+      grossPerHour: 6,
+      perWorkerPerHour: 6,
+      perNewWorkerPerHour: 3,
+      adapting: 2,
+      adaptationEndsInSeconds: 236 * 60,
+    });
+    expect(slow.workersRules.adaptationSeconds).toBe(4 * 3600);
+    expect(foodOf(slow)).toMatchObject({ perHour: 3.5, depletesInSeconds: null });
     expect(foodOf(slow).breakdown).toBe(
-      'Fazenda: 2 trabalhadores × 5 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 0,5 = 2,5/h',
+      'Fazenda: 2 trabalhadores (2 em adaptação por 3 h 56 min, valendo metade: contam como 1) × 5 × 1 (Nv1) × 1,2 (primavera) = 6/h; consumo 5 × 0,5 = 2,5/h',
     );
     expect(foodOf(deriveViewState(newGame(), 0, { timeScale: 0.5 })).depletesInSeconds).toBe(
       72 * 3600,

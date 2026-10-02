@@ -89,11 +89,21 @@ describe('primeira hora de um jogador novo', () => {
     expect(view.population).toMatchObject({ villagers: 8, free: 0, inTraining: 0 });
     expect(view.objectives.filter((objective) => objective.status === 'completed')).toHaveLength(3);
     expect(view.constructions.planned.map((plan) => plan.building)).toEqual(['townHall']);
+    // Todos acabaram de ganhar ofício e rendem metade por um dia de jogo (2 h no ritmo 1): os
+    // lavradores, 12 contra 8 bocas; os lenhadores, 12; os canteiros, 7,5.
     expect(view.resources.map((row) => [row.id, row.perHour])).toEqual([
-      ['food', 16],
-      ['wood', 24],
-      ['stone', 15],
+      ['food', 4],
+      ['wood', 12],
+      ['stone', 7.5],
       ['gold', 0],
+    ]);
+    expect(
+      view.workers.map((row) => [row.building, row.adapting, row.adaptationEndsInSeconds]),
+    ).toEqual([
+      ['farm', 2, 3600],
+      ['lumberMill', 3, 7200],
+      ['quarry', 3, 7200],
+      ['goldMine', 0, null],
     ]);
     // Seis comandos e uma leitura com eventos (a dos 20 minutos): cada escrita incrementou a
     // versão uma vez. Os eventos do fim da hora foram persistidos pelo comando seguinte.

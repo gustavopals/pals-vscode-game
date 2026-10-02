@@ -2,9 +2,10 @@ import { balance, type BuildingId, buildings, type Ratio } from '@lotg/content';
 
 import { nextSeasonBoundary, seasonAfter, seasonAt, seasonWithArticle } from './clock';
 import { buildingWithArticle, constructionOf, upgradeQuote } from './construction';
-import { foodRunsOutIn, producerOf, woodRunsOutIn } from './economy';
+import { type CraftForecast, type CraftOutlook, inMs } from './craftProjection';
+import { producerOf } from './economy';
 import { decimal, joinList, thousands } from './format';
-import { nextAutoStart, planCost } from './planned';
+import { planCost } from './planned';
 import {
   fillsIn,
   isStorageFull,
@@ -67,13 +68,15 @@ type RateChange = { atMs: number; before: string };
  * O próximo instante marcado em que o saldo de `resource` (ou o limite dele, ou o próprio
  * estoque) muda: a virada de estação, o fim de uma obra que mexe na produção ou no depósito, a
  * chegada de um aldeão, a comida ou a lenha acabando, e a planejada automática que vai começar
- * sozinha e levar o recurso. A previsão de "cheio em" só vale até ele: depois, a conta é outra,
+ * sozinha e levar o recurso. O que o ofício muda sozinho (a experiência que sobe a cada virada
+ * do dia, a adaptação que termina) não é um desses instantes: todas as contas daqui já o levam
+ * (`craftForecast`). A previsão de "cheio em" só vale até ele: depois, a conta é outra,
  * e a visão não adivinha (roadmap da v0.2, V2C-T2.4).
  */
 function nextRateChange(
   state: GameState,
   resource: ResourceId,
-  rates: Record<ResourceId, number>,
+  outlook: CraftOutlook,
 ): RateChange | null {
   const now = state.lastProcessedAt;
   const { settlement } = state;
@@ -108,16 +111,15 @@ function nextRateChange(
   if (recruit !== undefined && !settlement.famine && eats) {
     changes.push({ atMs: recruit.finishesAtMs, before: 'da chegada do próximo aldeão' });
   }
-  const foodRunsOut = foodRunsOutIn(state, rates);
-  if (foodRunsOut !== null) {
-    changes.push({ atMs: now + foodRunsOut, before: 'de a comida acabar' });
+  // Os três prazos abaixo já contam com o que o ofício muda sozinho no caminho (`outlook`).
+  if (outlook.foodRunsOutIn !== null) {
+    changes.push({ atMs: now + outlook.foodRunsOutIn, before: 'de a comida acabar' });
   }
-  const woodRunsOut = woodRunsOutIn(state, rates);
-  if (woodRunsOut !== null) {
-    changes.push({ atMs: now + woodRunsOut, before: 'de a lenha acabar' });
+  if (outlook.woodRunsOutIn !== null) {
+    changes.push({ atMs: now + outlook.woodRunsOutIn, before: 'de a lenha acabar' });
   }
   // A próxima obra que começa sozinha paga o custo com o que está juntando.
-  const autoStart = nextAutoStart(state, rates);
+  const { autoStart } = outlook;
   if (autoStart !== null && (planCost(autoStart.plan)[resource] ?? 0) > 0) {
     changes.push({
       atMs: now + autoStart.inMs,
@@ -127,6 +129,22 @@ function nextRateChange(
   return changes.reduce<RateChange | null>(
     (first, change) => (first === null || change.atMs < first.atMs ? change : first),
     null,
+  );
+}
+
+/**
+ * Em quantos ms de jogo o estoque de `resource` enche, contando o que o ofício muda sozinho no
+ * caminho (`craftForecast`). `null` quando o estoque não está subindo, ou quando não enche até
+ * `untilMs`: o próximo instante que muda a taxa por outro motivo.
+ */
+function fillsWithCraft(
+  forecast: CraftForecast,
+  resource: ResourceId,
+  untilMs: number,
+): number | null {
+  return (
+    forecast.find((state, rates) => inMs(fillsIn(state, resource, rates[resource])), untilMs)
+      ?.inMs ?? null
   );
 }
 
@@ -181,6 +199,8 @@ export function storageRow(
   resource: ResourceId,
   rates: Record<ResourceId, number>,
   timeScale: number,
+  forecast: CraftForecast,
+  outlook: CraftOutlook,
 ): StorageRow {
   const cap = storageCapacity(state, resource);
   const store = storeOf(resource);
@@ -201,9 +221,11 @@ export function storageRow(
   const rate = rates[resource];
   // Mesmo arredondamento de `perHour`: uma casa decimal, por hora real.
   const wastingPerHour = full && rate > 0 ? Math.round((rate * timeScale) / 100) / 10 : 0;
-  const fills = fillsIn(state, resource, rate);
-  const change = fills === null ? null : nextRateChange(state, resource, rates);
-  const beyond = fills !== null && change !== null && state.lastProcessedAt + fills > change.atMs;
+  const rising = fillsIn(state, resource, rate) !== null;
+  const change = rising ? nextRateChange(state, resource, outlook) : null;
+  const fills = rising ? fillsWithCraft(forecast, resource, change?.atMs ?? Infinity) : null;
+  // Subindo, mas não enche antes de a taxa mudar por outro motivo: a visão não adivinha.
+  const beyond = rising && fills === null && change !== null;
   let note: string | null = null;
   if (full) {
     note = fullNote(state, resource, wastingPerHour, cap);

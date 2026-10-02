@@ -99,6 +99,16 @@ export const BalanceSchema = z.strictObject({
       return new Set(stored).size === stored.length;
     }, 'um recurso guardado por dois edifícios'),
   famine: z.strictObject({ productionMultiplier: ratio }),
+  craft: z.strictObject({
+    adaptationMs: positiveInt,
+    // Quem está em adaptação nunca vale mais que um trabalhador adaptado.
+    adaptationMultiplier: ratio.refine(({ num, den }) => num <= den, 'adaptação que rende mais'),
+    experiencePerDay: positiveInt,
+    experienceLossPerDay: positiveInt,
+    maxExperience: positiveInt,
+    masteryBonus: ratio,
+    occupiedWorkersPerLevel: positiveInt,
+  }),
   winter: z.strictObject({ cold: z.strictObject({ productionMultiplier: ratio }) }),
   calendar: z.strictObject({
     dayMs: positiveInt,
@@ -202,6 +212,20 @@ export const ChronicleTemplatesSchema = z.strictObject(
 /** As frases da obra que ergue um edifício do zero: só para eventos que existem. */
 export const FoundingTemplatesSchema = z.strictObject(
   Object.fromEntries(Object.keys(foundingTemplates).map((type) => [type, chronicleTemplate])),
+);
+
+/**
+ * Quem trabalha em cada edifício produtivo e o que se diz deles: os dois entram no meio de uma
+ * frase, em minúscula e sem ponto.
+ */
+const midSentence = label.regex(/^\p{Ll}[^.{}]*$/u);
+export const CraftGuildsSchema = z.strictObject(
+  Object.fromEntries(
+    PRODUCTION_BUILDING_IDS.map((id) => [
+      id,
+      z.strictObject({ artisans: midSentence, feat: midSentence }),
+    ]),
+  ),
 );
 
 export { EVENT_TYPES, OBJECTIVE_CONDITION_TYPES };

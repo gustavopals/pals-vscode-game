@@ -200,6 +200,24 @@ export const ViewStateSchema = z.strictObject({
       breakdown: z.string(),
     }),
   ),
+  /**
+   * As regras da troca de ofício e da experiência, em frases prontas e no ritmo da partida: é o
+   * que a lista de alocação mostra antes de o jogador confirmar.
+   */
+  workersRules: z.strictObject({
+    /** Quanto dura a adaptação de quem trocar de ofício agora, em segundos reais. */
+    adaptationSeconds: z.number(),
+    /** "Quem troca de ofício produz metade por 40 min." */
+    adaptationText: z.string(),
+    /** "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação." */
+    removalText: z.string(),
+    /** A regra da experiência do ofício e da mestria, em uma frase. */
+    experienceText: z.string(),
+    /** O máximo da experiência do ofício: o fim da barra. */
+    experienceMax: z.number(),
+    /** O bônus de produção com a experiência no máximo, em pontos percentuais. */
+    masteryMaxBonusPercent: z.number(),
+  }),
   workers: z.array(
     z.strictObject({
       building: z.enum(PRODUCTION_BUILDING_IDS),
@@ -208,8 +226,27 @@ export const ViewStateSchema = z.strictObject({
       resource: resourceId,
       assigned: z.number(),
       grossPerHour: z.number(),
+      /** O que um trabalhador adaptado rende por hora real neste edifício agora. */
       perWorkerPerHour: z.number(),
+      /** O que rende por hora real um trabalhador que chegar agora, enquanto se adapta. */
+      perNewWorkerPerHour: z.number(),
       breakdown: z.string(),
+      /** Experiência do ofício, de 0 a `workersRules.experienceMax`. */
+      experience: z.number(),
+      /** O que a experiência acrescenta à produção agora, em pontos percentuais. */
+      masteryBonusPercent: z.number(),
+      /** Com quantos trabalhadores o edifício conta como ocupado na virada do dia. */
+      occupiedFrom: z.number(),
+      /** Para onde a experiência vai na próxima virada do dia, se nada mudar. */
+      experienceTrend: z.enum(['rising', 'steady', 'falling']),
+      /** O porquê da tendência e o que fazer, em uma frase pronta. */
+      experienceNote: z.string(),
+      /** Quantos dos trabalhadores ainda estão em adaptação. */
+      adapting: z.number(),
+      /** Segundos reais até o último deles terminar a adaptação; `null` sem ninguém. */
+      adaptationEndsInSeconds: z.number().nullable(),
+      /** As levas em adaptação, da que termina antes à que termina depois. */
+      adaptingCohorts: z.array(z.strictObject({ count: z.number(), endsInSeconds: z.number() })),
     }),
   ),
   constructions: z.strictObject({

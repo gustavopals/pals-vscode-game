@@ -108,6 +108,14 @@
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -117,7 +125,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 12,
-        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h"
+        "breakdown": "0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "lumberMill",
@@ -127,7 +144,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 8,
-        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -137,7 +163,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 5,
-        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -147,7 +182,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 4,
-        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -491,13 +535,13 @@
         "storageBuilding": "granary",
         "storageLabel": "Despensa",
         "full": false,
-        "fullInSeconds": 60632,
+        "fullInSeconds": 61634,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 19,
+        "perHour": 7,
         "depletesInSeconds": null,
-        "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h"
+        "breakdown": "Fazenda: 2 trabalhadores (2 em adaptação por 2 h, valendo metade: contam como 1) × 10 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 1 = 5/h"
       },
       {
         "id": "wood",
@@ -551,6 +595,14 @@
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -558,9 +610,23 @@
         "level": 1,
         "resource": "food",
         "assigned": 2,
-        "grossPerHour": 24,
+        "grossPerHour": 12,
         "perWorkerPerHour": 12,
-        "breakdown": "2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h"
+        "breakdown": "2 trabalhadores (2 em adaptação por 2 h, valendo metade: contam como 1) × 10 × 1 (Nv1) × 1,2 (primavera) = 12/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 2,
+        "adaptationEndsInSeconds": 7200,
+        "adaptingCohorts": [
+          {
+            "count": 2,
+            "endsInSeconds": 7200
+          }
+        ]
       },
       {
         "building": "lumberMill",
@@ -570,7 +636,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 8,
-        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -580,7 +655,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 5,
-        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -590,7 +674,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 4,
-        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -939,53 +1032,53 @@
       {
         "id": "food",
         "label": "Comida",
-        "stock": 170,
+        "stock": 148,
         "cap": 500,
         "capBreakdown": "500 iniciais",
         "storageBuilding": "granary",
         "storageLabel": "Despensa",
         "full": false,
-        "fullInSeconds": 74190,
+        "fullInSeconds": 69823,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 16,
+        "perHour": 16.9,
         "depletesInSeconds": null,
-        "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 8 × 1 = 8/h"
+        "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,036 (mestria 12) × 1,2 (primavera) = 24,86/h; consumo 8 × 1 = 8/h"
       },
       {
         "id": "wood",
         "label": "Madeira",
-        "stock": 44,
+        "stock": 21,
         "cap": 500,
         "capBreakdown": "500 iniciais",
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 68400,
+        "fullInSeconds": 66053,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 24,
+        "perHour": 24.9,
         "depletesInSeconds": null,
-        "breakdown": "Serraria: 3 trabalhadores × 8 × 1 (Nv1) = 24/h"
+        "breakdown": "Serraria: 3 trabalhadores × 8 × 1 (Nv1) × 1,036 (mestria 12) = 24,86/h"
       },
       {
         "id": "stone",
         "label": "Pedra",
-        "stock": 22,
+        "stock": 8,
         "cap": 500,
         "capBreakdown": "500 iniciais",
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 114600,
+        "fullInSeconds": 105409,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 15,
+        "perHour": 15.5,
         "depletesInSeconds": null,
-        "breakdown": "Pedreira: 3 trabalhadores × 5 × 1 (Nv1) = 15/h"
+        "breakdown": "Pedreira: 3 trabalhadores × 5 × 1 (Nv1) × 1,036 (mestria 12) = 15,54/h"
       },
       {
         "id": "gold",
@@ -1005,6 +1098,14 @@
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -1012,9 +1113,18 @@
         "level": 1,
         "resource": "food",
         "assigned": 2,
-        "grossPerHour": 24,
-        "perWorkerPerHour": 12,
-        "breakdown": "2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h"
+        "grossPerHour": 24.864,
+        "perWorkerPerHour": 12.432,
+        "breakdown": "2 trabalhadores × 10 × 1 (Nv1) × 1,036 (mestria 12) × 1,2 (primavera) = 24,86/h",
+        "perNewWorkerPerHour": 6.216,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "lumberMill",
@@ -1022,9 +1132,18 @@
         "level": 1,
         "resource": "wood",
         "assigned": 3,
-        "grossPerHour": 24,
-        "perWorkerPerHour": 8,
-        "breakdown": "3 trabalhadores × 8 × 1 (Nv1) = 24/h"
+        "grossPerHour": 24.864,
+        "perWorkerPerHour": 8.288,
+        "breakdown": "3 trabalhadores × 8 × 1 (Nv1) × 1,036 (mestria 12) = 24,86/h",
+        "perNewWorkerPerHour": 4.144,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -1032,9 +1151,18 @@
         "level": 1,
         "resource": "stone",
         "assigned": 3,
-        "grossPerHour": 15,
-        "perWorkerPerHour": 5,
-        "breakdown": "3 trabalhadores × 5 × 1 (Nv1) = 15/h"
+        "grossPerHour": 15.54,
+        "perWorkerPerHour": 5.18,
+        "breakdown": "3 trabalhadores × 5 × 1 (Nv1) × 1,036 (mestria 12) = 15,54/h",
+        "perNewWorkerPerHour": 2.59,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -1044,7 +1172,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 4,
-        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -1066,13 +1203,13 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 270,
-              "missing": 226
+              "missing": 249
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 180,
-              "missing": 158
+              "missing": 172
             },
             {
               "resource": "gold",
@@ -1085,7 +1222,7 @@
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 226 madeira, 158 pedra e 40 ouro.",
+          "blockedReason": "Faltam 249 madeira, 172 pedra e 40 ouro.",
           "planned": false,
           "effect": null
         },
@@ -1099,7 +1236,7 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 80,
-              "missing": 36
+              "missing": 59
             },
             {
               "resource": "gold",
@@ -1112,7 +1249,7 @@
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 36 madeira.",
+          "blockedReason": "Faltam 59 madeira.",
           "planned": false,
           "effect": null
         },
@@ -1126,20 +1263,20 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 100,
-              "missing": 56
+              "missing": 79
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 50,
-              "missing": 28
+              "missing": 42
             }
           ],
           "durationSeconds": 300,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 56 madeira e 28 pedra.",
+          "blockedReason": "Faltam 79 madeira e 42 pedra.",
           "planned": false,
           "effect": null
         },
@@ -1153,7 +1290,7 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 120,
-              "missing": 76
+              "missing": 99
             },
             {
               "resource": "gold",
@@ -1166,7 +1303,7 @@
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 76 madeira.",
+          "blockedReason": "Faltam 99 madeira.",
           "planned": false,
           "effect": null
         },
@@ -1180,20 +1317,20 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 120,
-              "missing": 76
+              "missing": 99
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 80,
-              "missing": 58
+              "missing": 72
             }
           ],
           "durationSeconds": 480,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 76 madeira e 58 pedra.",
+          "blockedReason": "Faltam 99 madeira e 72 pedra.",
           "planned": false,
           "effect": null
         },
@@ -1207,20 +1344,20 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 128,
-              "missing": 84
+              "missing": 107
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 32,
-              "missing": 10
+              "missing": 24
             }
           ],
           "durationSeconds": 360,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 84 madeira e 10 pedra.",
+          "blockedReason": "Faltam 107 madeira e 24 pedra.",
           "planned": false,
           "effect": null
         },
@@ -1234,20 +1371,20 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 160,
-              "missing": 116
+              "missing": 139
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 80,
-              "missing": 58
+              "missing": 72
             }
           ],
           "durationSeconds": 600,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 116 madeira e 58 pedra.",
+          "blockedReason": "Faltam 139 madeira e 72 pedra.",
           "planned": false,
           "effect": "Capacidade de comida: 500 → 900."
         },
@@ -1261,20 +1398,20 @@
               "resource": "wood",
               "label": "Madeira",
               "amount": 160,
-              "missing": 116
+              "missing": 139
             },
             {
               "resource": "stone",
               "label": "Pedra",
               "amount": 80,
-              "missing": 58
+              "missing": 72
             }
           ],
           "durationSeconds": 600,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 116 madeira e 58 pedra.",
+          "blockedReason": "Faltam 139 madeira e 72 pedra.",
           "planned": false,
           "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
         }
@@ -1468,6 +1605,14 @@
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -1477,7 +1622,16 @@
         "assigned": 10,
         "grossPerHour": 156,
         "perWorkerPerHour": 15.6,
-        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h"
+        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h",
+        "perNewWorkerPerHour": 7.8,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 2,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "lumberMill",
@@ -1487,7 +1641,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 8,
-        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h"
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -1497,7 +1660,16 @@
         "assigned": 5,
         "grossPerHour": 25,
         "perWorkerPerHour": 5,
-        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) = 25/h"
+        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) = 25/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -1507,7 +1679,16 @@
         "assigned": 3,
         "grossPerHour": 13.2,
         "perWorkerPerHour": 4.4,
-        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h"
+        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h",
+        "perNewWorkerPerHour": 2.2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -1858,7 +2039,7 @@
       {
         "id": "food",
         "label": "Comida",
-        "stock": 1409,
+        "stock": 1426,
         "cap": 2100,
         "capBreakdown": "Celeiro Nv3: 2.100",
         "storageBuilding": "granary",
@@ -1868,9 +2049,9 @@
         "fullNote": "Não enche antes da virada para a Primavera.",
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 20.4,
+        "perHour": 22.7,
         "depletesInSeconds": null,
-        "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h; consumo 18 × 1 = 18/h"
+        "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h; consumo 18 × 1 = 18/h"
       },
       {
         "id": "wood",
@@ -1892,7 +2073,7 @@
       {
         "id": "stone",
         "label": "Pedra",
-        "stock": 556,
+        "stock": 563,
         "cap": 900,
         "capBreakdown": "Armazém Nv1: 900",
         "storageBuilding": "warehouse",
@@ -1902,14 +2083,14 @@
         "fullNote": "Não enche antes da virada para a Primavera.",
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 16,
+        "perHour": 17,
         "depletesInSeconds": null,
-        "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 16/h"
+        "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 0,8 (frio) = 16,96/h"
       },
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 560,
+        "stock": 564,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -1919,11 +2100,19 @@
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
-        "perHour": 9.6,
+        "perHour": 10.2,
         "depletesInSeconds": null,
-        "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 0,8 (frio) = 9,6/h"
+        "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (frio) = 10,18/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -1931,9 +2120,18 @@
         "level": 2,
         "resource": "food",
         "assigned": 10,
-        "grossPerHour": 38.4,
-        "perWorkerPerHour": 3.84,
-        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h"
+        "grossPerHour": 40.704,
+        "perWorkerPerHour": 4.07,
+        "breakdown": "10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h",
+        "perNewWorkerPerHour": 2.035,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 2,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "lumberMill",
@@ -1943,7 +2141,16 @@
         "assigned": 0,
         "grossPerHour": 0,
         "perWorkerPerHour": 5.12,
-        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h"
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h",
+        "perNewWorkerPerHour": 2.56,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -1951,9 +2158,18 @@
         "level": 1,
         "resource": "stone",
         "assigned": 5,
-        "grossPerHour": 16,
-        "perWorkerPerHour": 3.2,
-        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 16/h"
+        "grossPerHour": 16.96,
+        "perWorkerPerHour": 3.392,
+        "breakdown": "5 trabalhadores × 5 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (inverno) × 0,8 (frio) = 16,96/h",
+        "perNewWorkerPerHour": 1.696,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -1961,9 +2177,18 @@
         "level": 1,
         "resource": "gold",
         "assigned": 3,
-        "grossPerHour": 9.6,
-        "perWorkerPerHour": 3.2,
-        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 0,8 (frio) = 9,6/h"
+        "grossPerHour": 10.176,
+        "perWorkerPerHour": 3.392,
+        "breakdown": "3 trabalhadores × 4 × 1 (Nv1) × 1,06 (mestria 20) × 0,8 (frio) = 10,18/h",
+        "perNewWorkerPerHour": 1.696,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -2332,7 +2557,7 @@
         "storageBuilding": "granary",
         "storageLabel": "Celeiro",
         "full": false,
-        "fullInSeconds": 17880,
+        "fullInSeconds": 17657,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -2392,6 +2617,14 @@
         "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) = 8/h"
       }
     ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
     "workers": [
       {
         "building": "farm",
@@ -2401,7 +2634,16 @@
         "assigned": 8,
         "grossPerHour": 80,
         "perWorkerPerHour": 10,
-        "breakdown": "8 trabalhadores × 10 × 1 (Nv1) = 80/h"
+        "breakdown": "8 trabalhadores × 10 × 1 (Nv1) = 80/h",
+        "perNewWorkerPerHour": 5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "lumberMill",
@@ -2411,7 +2653,16 @@
         "assigned": 5,
         "grossPerHour": 46,
         "perWorkerPerHour": 9.2,
-        "breakdown": "5 trabalhadores × 8 × 1 (Nv1) × 1,15 (verão) = 46/h"
+        "breakdown": "5 trabalhadores × 8 × 1 (Nv1) × 1,15 (verão) = 46/h",
+        "perNewWorkerPerHour": 4.6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "quarry",
@@ -2421,7 +2672,16 @@
         "assigned": 3,
         "grossPerHour": 31.05,
         "perWorkerPerHour": 10.35,
-        "breakdown": "3 trabalhadores × 5 × 1,8 (Nv5) × 1,15 (verão) = 31,05/h"
+        "breakdown": "3 trabalhadores × 5 × 1,8 (Nv5) × 1,15 (verão) = 31,05/h",
+        "perNewWorkerPerHour": 5.175,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 5,
+        "experienceTrend": "steady",
+        "experienceNote": "A experiência não sobe: a Pedreira no nível 5 pede ao menos 5 trabalhadores (faltam 2).",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       },
       {
         "building": "goldMine",
@@ -2431,7 +2691,16 @@
         "assigned": 2,
         "grossPerHour": 8,
         "perWorkerPerHour": 4,
-        "breakdown": "2 trabalhadores × 4 × 1 (Nv1) = 8/h"
+        "breakdown": "2 trabalhadores × 4 × 1 (Nv1) = 8/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
       }
     ],
     "constructions": {
@@ -2846,6 +3115,523 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 1200,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null
+    },
+    "famine": null,
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro e o Armazém",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "pendingDecisions": []
+  },
+  "crafts": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "autumn",
+      "seasonLabel": "Outono",
+      "dayOfSeason": 4,
+      "dayOfYear": 52,
+      "secondsToNextDay": 2280,
+      "secondsToNextSeason": 146280,
+      "seasonEffects": "Outono: comida × 1,3; ouro × 1,1.",
+      "nextSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 146280,
+        "changes": [
+          "A produção de comida passa de × 1,3 para × 0,4.",
+          "A produção de madeira e pedra passa de × 1 para × 0,8.",
+          "A produção de ouro passa de × 1,1 para × 1.",
+          "O prazo de uma obra iniciada no Inverno é × 1,5.",
+          "A lareira passa a queimar 0,5 de madeira por habitante por hora; sem madeira, vem o frio."
+        ],
+        "firewood": {
+          "perHour": 6,
+          "winterTotal": 144,
+          "winterProduction": 798,
+          "stock": 436,
+          "missing": 0,
+          "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 12,
+      "capacity": 25,
+      "free": 2,
+      "inTraining": 0,
+      "housed": 12,
+      "vacancies": 13,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 487,
+        "cap": 1500,
+        "capBreakdown": "Celeiro Nv2: 1.500",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": 50743,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 49.2,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 4 trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 61,15/h; consumo 12 × 1 = 12/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 436,
+        "cap": 1500,
+        "capBreakdown": "Armazém Nv2: 1.500",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": 92004,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 41.6,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 4 trabalhadores × 8 × 1 (Nv1) × 1,3 (mestria 100) = 41,6/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 251,
+        "cap": 1500,
+        "capBreakdown": "Armazém Nv2: 1.500",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Inverno.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 11.1,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 2 trabalhadores (1 em adaptação por 1 h 38 min, valendo metade: contam como 1,5) × 5 × 1,4 (Nv3) × 1,06 (mestria 20) = 11,13/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 310,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) × 1,048 (mestria 16) × 1,1 (outono) = 0/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 3,
+        "resource": "food",
+        "assigned": 4,
+        "grossPerHour": 61.152,
+        "perWorkerPerHour": 20.384,
+        "breakdown": "4 trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 61,15/h",
+        "perNewWorkerPerHour": 10.192,
+        "experience": 40,
+        "masteryBonusPercent": 12,
+        "occupiedFrom": 3,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 3 trabalhadores.",
+        "adapting": 2,
+        "adaptationEndsInSeconds": 2280,
+        "adaptingCohorts": [
+          {
+            "count": 2,
+            "endsInSeconds": 2280
+          }
+        ]
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 4,
+        "grossPerHour": 41.6,
+        "perWorkerPerHour": 10.4,
+        "breakdown": "4 trabalhadores × 8 × 1 (Nv1) × 1,3 (mestria 100) = 41,6/h",
+        "perNewWorkerPerHour": 5.2,
+        "experience": 100,
+        "masteryBonusPercent": 30,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ofício dominado: 30% a mais de produção. Só se perde se ninguém trabalhar na Serraria.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 3,
+        "resource": "stone",
+        "assigned": 2,
+        "grossPerHour": 11.13,
+        "perWorkerPerHour": 7.42,
+        "breakdown": "2 trabalhadores (1 em adaptação por 1 h 38 min, valendo metade: contam como 1,5) × 5 × 1,4 (Nv3) × 1,06 (mestria 20) = 11,13/h",
+        "perNewWorkerPerHour": 3.71,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 3,
+        "experienceTrend": "steady",
+        "experienceNote": "A experiência não sobe: a Pedreira no nível 3 pede ao menos 3 trabalhadores (falta 1).",
+        "adapting": 1,
+        "adaptationEndsInSeconds": 5880,
+        "adaptingCohorts": [
+          {
+            "count": 1,
+            "endsInSeconds": 5880
+          }
+        ]
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 4.611,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) × 1,048 (mestria 16) × 1,1 (outono) = 0/h",
+        "perNewWorkerPerHour": 2.305,
+        "experience": 16,
+        "masteryBonusPercent": 4.8,
+        "occupiedFrom": 1,
+        "experienceTrend": "falling",
+        "experienceNote": "Sem ninguém na Mina de Ouro, o ofício se perde: 8 de experiência a menos a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 50
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 73
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 14
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 50 madeira, 73 pedra e 14 ouro.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 205,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 102,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 675,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 307,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 77,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 810,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 128,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 32,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.500 → 2.100."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 1.500 → 2.100 cada."
         }
       ]
     },

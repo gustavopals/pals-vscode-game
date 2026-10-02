@@ -6,6 +6,7 @@ import {
   buildings,
   chronicleTemplates,
   coldReliefs,
+  craftGuilds,
   DIFFICULTY_IDS,
   EVENT_TYPES,
   foundingTemplates,
@@ -19,6 +20,7 @@ import {
   BalanceSchema,
   BuildingsSchema,
   ChronicleTemplatesSchema,
+  CraftGuildsSchema,
   FoundingTemplatesSchema,
   ObjectivesSchema,
 } from './schemas';
@@ -455,8 +457,8 @@ describe('balanceamento', () => {
 
   it('as frações permitem taxas inteiras em milésimos', () => {
     // O motor calcula taxas em milésimos por hora, em uma conta só com um arredondamento no
-    // fim. Com os fatores de hoje (nível, estação, fome e frio, todos juntos) nenhuma taxa é
-    // truncada: o arredondamento só vai agir quando a moral e a mestria entrarem.
+    // fim. Com nível, estação, fome e frio, todos juntos, nenhuma taxa é truncada: o
+    // arredondamento só age com a mestria (e com a moral, quando entrar).
     const { levelBonus, perWorkerPerHour } = balance.production;
     const famine = balance.famine.productionMultiplier;
     const cold = balance.winter.cold.productionMultiplier;
@@ -512,6 +514,56 @@ describe('balanceamento', () => {
     expect(withQueues(2)).toBe(true);
     expect(withQueues(3)).toBe(false);
     expect(withQueues(0)).toBe(false);
+  });
+});
+
+describe('ofícios (GDD §5.4)', () => {
+  const { craft } = balance;
+  const withCraft = (change: Partial<typeof craft>) =>
+    BalanceSchema.safeParse({ ...balance, craft: { ...craft, ...change } }).success;
+
+  it('quem troca de ofício produz metade por um dia de jogo (ADR 0013, decisões 1 e 13)', () => {
+    expect(craft.adaptationMultiplier).toEqual({ num: 1, den: 2 });
+    expect(craft.adaptationMs).toBe(balance.calendar.dayMs);
+  });
+
+  it('em todo ritmo oferecido a adaptação dura um número inteiro de minutos reais', () => {
+    // É o prazo que a tela anuncia antes da troca: "produz metade por 40 min".
+    for (const pace of balance.paces) {
+      expect((craft.adaptationMs / pace.timeScale) % 60_000, pace.label).toBe(0);
+    }
+  });
+
+  it('a experiência vai de 0 a 100: +4 por dia ocupado, −8 por dia vazio, mestria de +30%', () => {
+    expect(craft.experiencePerDay).toBe(4);
+    expect(craft.experienceLossPerDay).toBe(8);
+    expect(craft.maxExperience).toBe(100);
+    expect(craft.masteryBonus).toEqual({ num: 3, den: 10 });
+    // Perder é mais rápido que ganhar: largar um ofício custa mais do que um dia de volta.
+    expect(craft.experienceLossPerDay).toBeGreaterThan(craft.experiencePerDay);
+    // O máximo se alcança em um número inteiro de dias, sem sobra cortada no último.
+    expect(craft.maxExperience % craft.experiencePerDay).toBe(0);
+  });
+
+  it('ocupado é um trabalhador por nível do edifício; não há limite de postos', () => {
+    expect(craft.occupiedWorkersPerLevel).toBe(1);
+    expect(Object.keys(craft)).not.toContain('maxWorkers');
+  });
+
+  it('o schema recusa adaptação que rende mais que o ofício, prazo zero e experiência parada', () => {
+    expect(withCraft({})).toBe(true);
+    expect(withCraft({ adaptationMultiplier: { num: 1, den: 1 } })).toBe(true);
+    expect(withCraft({ adaptationMultiplier: { num: 3, den: 2 } })).toBe(false);
+    expect(withCraft({ adaptationMultiplier: { num: 0, den: 2 } })).toBe(false);
+    expect(withCraft({ adaptationMs: 0 })).toBe(false);
+    expect(withCraft({ experiencePerDay: 0 })).toBe(false);
+    expect(withCraft({ experienceLossPerDay: -8 })).toBe(false);
+    expect(withCraft({ maxExperience: 0 })).toBe(false);
+    expect(withCraft({ occupiedWorkersPerLevel: 0 })).toBe(false);
+    const withoutCraft = Object.fromEntries(
+      Object.entries(balance).filter(([key]) => key !== 'craft'),
+    );
+    expect(BalanceSchema.safeParse(withoutCraft).success).toBe(false);
   });
 });
 
@@ -640,5 +692,29 @@ describe('Crônica', () => {
       expect(relief).not.toMatch(/[.{}]/);
     }
     expect(coldReliefs.firewood).not.toBe(coldReliefs.thaw);
+  });
+
+  it('o ofício dominado diz quem o domina e o que se diz deles, um ofício de cada vez', () => {
+    expect(EVENT_TYPES).toContain('craftMastered');
+    expect(chronicleTemplates.craftMastered).toContain('{artifices}');
+    expect(chronicleTemplates.craftMastered).toContain('{feito}');
+    expect(chronicleTemplates.craftMastered).toContain('{feudo}');
+    expect(CraftGuildsSchema.safeParse(craftGuilds).error).toBeUndefined();
+    expect(Object.keys(craftGuilds)).toEqual([...PRODUCTION_BUILDING_IDS]);
+    const guilds = Object.values(craftGuilds);
+    expect(new Set(guilds.map((guild) => guild.artisans)).size).toBe(guilds.length);
+    expect(new Set(guilds.map((guild) => guild.feat)).size).toBe(guilds.length);
+    // "Os pedreiros" já são os da obra: quem tira pedra tem outro nome.
+    expect(guilds.map((guild) => guild.artisans)).not.toContain('os pedreiros');
+    // As frases entram no meio de outra: o schema recusa maiúscula, ponto e marcador.
+    const broken = (guild: { artisans: string; feat: string }) =>
+      CraftGuildsSchema.safeParse({ ...craftGuilds, farm: guild }).success;
+    expect(broken({ artisans: 'Os lavradores', feat: 'colhem bem' })).toBe(false);
+    expect(broken({ artisans: 'os lavradores', feat: 'colhem bem.' })).toBe(false);
+    expect(broken({ artisans: 'os lavradores', feat: 'colhem em {feudo}' })).toBe(false);
+    const missing = Object.fromEntries(
+      Object.entries(craftGuilds).filter(([building]) => building !== 'farm'),
+    );
+    expect(CraftGuildsSchema.safeParse(missing).success).toBe(false);
   });
 });

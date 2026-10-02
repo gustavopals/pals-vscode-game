@@ -71,6 +71,29 @@ export type StorageDef = {
   readonly unbuilt: { readonly label: string; readonly article: 'o' | 'a' };
 };
 
+/**
+ * Troca de ofício e experiência do ofício (GDD §5.4; ADR 0013, decisões 1 e 13). Os prazos são
+ * tempo de jogo e escalam com o ritmo.
+ */
+export type CraftDef = {
+  /** Quanto dura a adaptação de quem acabou de chegar a um edifício, em tempo de jogo. */
+  readonly adaptationMs: number;
+  /** Quanto de um trabalhador adaptado vale quem ainda está em adaptação: 1/2 é metade. */
+  readonly adaptationMultiplier: Ratio;
+  /** Experiência que um edifício ocupado ganha a cada virada de dia de jogo. */
+  readonly experiencePerDay: number;
+  /** Experiência que um edifício vazio perde a cada virada de dia de jogo. */
+  readonly experienceLossPerDay: number;
+  readonly maxExperience: number;
+  /** A mestria: o bônus de produção com a experiência no máximo. 3/10 é +30%. */
+  readonly masteryBonus: Ratio;
+  /**
+   * Trabalhadores por nível do edifício para ele contar como ocupado na virada do dia: com 1,
+   * a Serraria no nível 3 pede 3. Não é um limite de postos: cabem quantos o senhor mandar.
+   */
+  readonly occupiedWorkersPerLevel: number;
+};
+
 /** Um ritmo que o jogador pode escolher ao criar a partida (GDD §4.2). */
 export type PaceDef = {
   /** Horas de jogo por hora real. */
@@ -126,6 +149,7 @@ export type Balance = {
     readonly buildings: Partial<Record<BuildingId, StorageDef>>;
   };
   readonly famine: { readonly productionMultiplier: Ratio };
+  readonly craft: CraftDef;
   /** O frio: sem lenha em uma estação que a queima, a produção de todo o feudo cai (GDD §4.1). */
   readonly winter: { readonly cold: { readonly productionMultiplier: Ratio } };
   readonly calendar: { readonly dayMs: number; readonly seasons: readonly SeasonDef[] };
@@ -196,6 +220,17 @@ export const balance: Balance = {
     },
   },
   famine: { productionMultiplier: { num: 3, den: 4 } },
+  // GDD §5.3 e §5.4 (ADR 0013, decisões 1 e 13). A adaptação dura um dia de jogo: o teste de
+  // conteúdo confere contra `calendar.dayMs`.
+  craft: {
+    adaptationMs: 2 * HOUR_MS,
+    adaptationMultiplier: { num: 1, den: 2 },
+    experiencePerDay: 4,
+    experienceLossPerDay: 8,
+    maxExperience: 100,
+    masteryBonus: { num: 3, den: 10 },
+    occupiedWorkersPerLevel: 1,
+  },
   winter: { cold: { productionMultiplier: { num: 4, den: 5 } } },
   // GDD §4.1: a tabela de efeitos das estações, em frações.
   calendar: {

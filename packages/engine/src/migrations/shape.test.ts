@@ -8,6 +8,7 @@ import {
   natural,
   nullable,
   oneOf,
+  positive,
   positiveNumber,
   recordOf,
   text,
@@ -17,6 +18,7 @@ describe('guardas de forma', () => {
   it.each([
     ['integer', integer, [0, -3, 9_007_199_254_740_991], [1.5, '1', null, Number.NaN, 2 ** 53]],
     ['natural', natural, [0, 7], [-1, 0.5, '0', undefined]],
+    ['positive', positive, [1, 7], [0, -1, 0.5, '1', null]],
     ['positiveNumber', positiveNumber, [0.5, 1, 3], [0, -1, Number.POSITIVE_INFINITY, '3', null]],
     ['text', text, ['', 'Pedra Alta'], [0, null, [], {}]],
     ['literal(false)', literal(false), [false], [true, 0, null, 'false']],

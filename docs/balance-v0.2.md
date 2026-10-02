@@ -762,3 +762,148 @@ As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/s
 - **O bot continua sem reagir ao depósito cheio na alocação** (seção 4.8) e não lê a espera das planejadas: `ocupar os livres` e `alocar por demanda` repartem os braços pelo que falta às obras **disponíveis**, não pelo que a lista diz que espera.
 - **As comparações das seções 5.3 e 5.5 foram medidas com uma semente.** Enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado; a ordem "recrutar primeiro" da seção 5.5 não está no código, e para repeti-la é preciso trocar a ordem das políticas à mão (`simulate({ ..., bot })`).
 - As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).
+
+## 6. Troca de ofício e experiência do ofício (V2C-T3)
+
+Tarefa V2C-T3. Quem troca de ofício rende metade por um dia de jogo, e cada edifício produtivo acumula experiência: +4 a cada virada de dia com ao menos um trabalhador por nível, −8 com o edifício vazio, até 100, que valem +30% de produção (GDD §5.3 e §5.4; [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 1, 13 e 13a). Os números novos são os de `balance.craft`; **nenhum custo, taxa base, prazo de obra ou limite mudou**.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o da tarefa V2C-T3 (`git log --grep V2C-T3`) |
+| Identificação | Motor 0.1.0 · estado v6 · conteúdo 438b14e769ef8bf7 |
+| Dificuldade | Senhor (`lord`) |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, Node 24.19.0 |
+
+### 6.1 Perfis e o que mudou no bot
+
+Os mesmos três perfis e as mesmas listas de políticas da seção 5.1. A política que mudou é `alocar por demanda`, do bot `economico` (perfis Regular e Dedicado); o `preguicoso` não mudou. Foram **duas mudanças**, e esta rodada mede cada uma para elas não se confundirem:
+
+1. **Não trocar todo mundo de ofício a cada visita** (é o que a tarefa pede do bot). Até aqui a política refazia a alocação inteira a cada sessão. Agora quem está sem ofício vai para onde mais falta gente; entre os materiais, alguém só troca de ofício quando a falta do destino levaria mais de duas adaptações para ser coberta com os braços que ele já tem; quem cede braços continua ocupado (fica com o que o nível do edifício pede); e cada material recebe primeiro o que precisa para contar como ocupado. Tudo lido da visão: `workersRules.adaptationSeconds`, `workers[].occupiedFrom`, `grossPerHour`.
+2. **Plantar para crescer.** Com vaga nas Habitações, a fazenda fica com um lavrador a mais do que a conta de alimentar pede (menos quando a despensa está cheia e a comida vai ao chão). Sem isso o bot vivia da folga de duas bocas e do arredondamento da conta, e o crescimento dependia de quantos lavradores o arredondamento dava: com a experiência do ofício um lavrador passou a bastar onde eram dois, e a sobra de comida sumiu (seção 6.4).
+
+### 6.2 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
+```
+
+900 linhas no CSV e 750 partidas distintas, como antes; a rodada leva cerca de 11 s (os feudos ficaram maiores, e a visão projeta o que o ofício muda nas previsões).
+
+#### Tabela 1: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 33 | 7 | 0 | 0 | 98 | 672 | 3.900 | 3.900 | 4.147 | 13.318 | 24.786 | 11.083 | 128 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 72 | 7 | 0 | 0 | 30 | 804 | 5.100 | 5.100 | 37.781 | 20.830 | 105.299 | 49.710 | 114 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 75 | 7 | 0 | 0 | 20 | 420 | 5.100 | 5.100 | 60.781 | 9.185 | 232.942 | 102.377 | 112 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 33 | 6 | 0 | 0 | 56 | 664 | 176 | 529 | 1.419 | 0 | 1.092 | 0 | 22 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 68 | 7 | 0 | 0 | 48 | 734 | 4.500 | 1.280 | 2.087 | 0 | 5.008 | 190 | 16 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 75 | 7 | 0 | 0 | 105 | 401 | 5.100 | 5.100 | 9.018 | 0 | 33.760 | 11.966 | 46 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 14 | 4 | 0 | 0 | 52 | 212 | 56 | 183 | 230 | 0 | 140 | 0 | 6 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 55 | 6 | 0 | 0 | 61 | 550 | 277 | 837 | 165 | 0 | 231 | 67 | 2 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 61 | 6 | 0 | 0 | 77 | 306 | 838 | 922 | 212 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 29 a 37 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.095 | ≤ 4.095 | ≤ 4.355 | 0 |
+| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 39.671 | 0 |
+| Rápido 3× | Dedicado | 67 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 63.821 | 0 |
+| Normal 1× | Preguiçoso | 29 a 37 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 185 | ≤ 556 | ≤ 1.490 | 0 |
+| Normal 1× | Regular | 61 a 75 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.725 | ≤ 1.344 | ≤ 2.192 | 0 |
+| Normal 1× | Dedicado | 67 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 9.469 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 12 a 16 | ≥ 4 | ≤ 0 | ≤ 0 | ≤ 59 | ≤ 193 | ≤ 242 | 0 |
+| Tranquilo 0,5× | Regular | 49 a 61 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 291 | ≤ 879 | ≤ 174 | 0 |
+| Tranquilo 0,5× | Dedicado | 54 a 68 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 880 | ≤ 969 | ≤ 223 | 0 |
+
+#### Tabela 2: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 13 | 3 | 0 | 0 | 20 | 176 | 458 | 461 | 139 | 40 | 4.781 | 0 | 35 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 27 | 5 | 0 | 0 | 11 | 244 | 66 | 645 | 627 | 3.004 | 879 | 0 | 24 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 52 | 7 | 0 | 0 | 15 | 262 | 1.157 | 519 | 1.022 | 687 | 1.088 | 46 | 9 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 33 | 6 | 0 | 0 | 56 | 664 | 176 | 529 | 1.419 | 0 | 1.092 | 0 | 22 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 68 | 7 | 0 | 0 | 48 | 734 | 4.500 | 1.280 | 2.087 | 0 | 5.008 | 190 | 16 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 75 | 7 | 0 | 0 | 105 | 401 | 5.100 | 5.100 | 9.018 | 0 | 33.760 | 11.966 | 46 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 23 | 6 | 0 | 0 | 188 | 425 | 1.018 | 1.273 | 975 | 0 | 332 | 0 | 8 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 75 | 7 | 0 | 0 | 221 | 762 | 5.100 | 5.100 | 9.169 | 0 | 37.705 | 9.748 | 95 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 75 | 7 | 0 | 0 | 238 | 374 | 5.100 | 5.100 | 5.923 | 0 | 41.591 | 15.927 | 103 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 11 a 15 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 481 | ≤ 485 | ≤ 146 | 0 |
+| Rápido 3× | Regular | 24 a 30 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 70 | ≤ 678 | ≤ 659 | 0 |
+| Rápido 3× | Dedicado | 46 a 58 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 1.215 | ≤ 545 | ≤ 1.074 | 0 |
+| Normal 1× | Preguiçoso | 29 a 37 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 185 | ≤ 556 | ≤ 1.490 | 0 |
+| Normal 1× | Regular | 61 a 75 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.725 | ≤ 1.344 | ≤ 2.192 | 0 |
+| Normal 1× | Dedicado | 67 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 9.469 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 20 a 26 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 1.069 | ≤ 1.337 | ≤ 1.024 | 0 |
+| Tranquilo 0,5× | Regular | 67 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 9.628 | 0 |
+| Tranquilo 0,5× | Dedicado | 67 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 6.220 | 0 |
+
+Todas as 900 partidas ficam dentro das faixas novas, e nenhum bot teve ordem recusada. Nenhuma passa fome nem frio.
+
+### 6.3 Trocar menos de ofício: a política antiga contra a nova, nas regras novas
+
+Semente `pedra-alta-001`, 7 dias reais, bot econômico com a alocação antiga (refaz tudo a cada visita) e com a nova (as duas mudanças da seção 6.1). "Trocas" são os trabalhadores que chegaram a um edifício vindos de outro, somados nas visitas da semana; "braços-visita" é a soma da população em cada visita, para dar a medida.
+
+| Ritmo | Sessões por dia | Alocação | População | Salão | Trocas de ofício | Braços-visita | Experiência final (Fazenda / Serraria / Pedreira / Mina) | Ouro parado |
+|---|---:|---|---:|---:|---:|---:|---|---:|
+| Rápido 3× | 2 | antiga | 66 | 7 | 53 | 432 | 0 / 100 / 100 / 100 | 18.592 |
+| Rápido 3× | 2 | nova | 72 | 7 | **5** | 486 | 100 / 100 / 100 / 100 | 37.781 |
+| Rápido 3× | 4 | antiga | 75 | 7 | 194 | 1.381 | 72 / 100 / 100 / 100 | 36.852 |
+| Rápido 3× | 4 | nova | 75 | 7 | **26** | 1.533 | 84 / 100 / 100 / 100 | 60.781 |
+| Normal 1× | 2 | antiga | 46 | 6 | 70 | 296 | 0 / 100 / 100 / 76 | 1.719 |
+| Normal 1× | 2 | nova | 68 | 7 | **27** | 446 | 92 / 100 / 100 / 100 | 2.087 |
+| Normal 1× | 4 | antiga | 47 | 7 | 42 | 644 | 0 / 100 / 100 / 100 | 547 |
+| Normal 1× | 4 | nova | 75 | 7 | 42 | 1.340 | 84 / 100 / 100 / 100 | 9.018 |
+| Tranquilo 0,5× | 2 | antiga | 22 | 4 | 4 | 165 | 0 / 100 / 100 / 100 | 391 |
+| Tranquilo 0,5× | 2 | nova | 55 | 6 | 13 | 351 | 88 / 100 / 100 / 100 | 165 |
+| Tranquilo 0,5× | 4 | antiga | 15 | 4 | 17 | 319 | 0 / 100 / 100 / 84 | 305 |
+| Tranquilo 0,5× | 4 | nova | 61 | 6 | 19 | 793 | 76 / 100 / 100 / 100 | 212 |
+
+- **No ritmo Rápido as trocas caem a um décimo** (53 → 5 com duas visitas por dia, 194 → 26 com quatro), com o feudo maior. Nos outros ritmos o feudo novo é duas a quatro vezes maior e troca o mesmo tanto ou menos por braço.
+- **A experiência chega a 100 em todos os ofícios dos materiais em qualquer perfil**: 25 dias de jogo ocupados bastam, e são 17 horas reais no ritmo Rápido, 50 no Normal e 100 no Tranquilo. O teto é alcançado cedo; a Fazenda é a exceção, porque sobe de nível e passa a pedir mais lavradores do que o feudo precisa para comer.
+
+### 6.4 O que mudou em relação à seção 5, e por quê
+
+População e Salão ao fim dos 7 dias reais: a seção 5, esta rodada só com a mecânica e a primeira mudança do bot (trocar menos de ofício), e esta rodada inteira (com o lavrador a mais):
+
+| Ritmo | Perfil | Seção 5 | Só a mecânica e "trocar menos" | Com "plantar para crescer" (a linha de base) |
+|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 33 · Salão 6 | 33 · Salão 7 | 33 · Salão 7 |
+| Rápido 3× | Regular | 64 · Salão 7 | 70 · Salão 7 | 72 · Salão 7 |
+| Rápido 3× | Dedicado | 75 · Salão 7 | 75 · Salão 7 | 75 · Salão 7 |
+| Normal 1× | Preguiçoso | 30 · Salão 5 | 33 · Salão 6 | 33 · Salão 6 |
+| Normal 1× | Regular | 45 · Salão 6 | 46 · Salão 7 | **68 · Salão 7** |
+| Normal 1× | Dedicado | 45 · Salão 6 | 48 · Salão 7 | **75 · Salão 7** |
+| Tranquilo 0,5× | Preguiçoso | 13 · Salão 4 | 14 · Salão 4 | 14 · Salão 4 |
+| Tranquilo 0,5× | Regular | 22 · Salão 4 | 22 · Salão 4 | **55 · Salão 6** |
+| Tranquilo 0,5× | Dedicado | 22 · Salão 4 | **15** · Salão 4 | **61 · Salão 6** |
+
+- **A mecânica, sozinha, acelera pouco e para todos**: um nível de Salão a mais em quatro células, de zero a seis aldeões a mais. O que se perde na adaptação (metade da produção de quem chega, por um dia de jogo) é menos do que os +30% da mestria devolvem em uma semana. O Preguiçoso, que nunca trocou ninguém de ofício à toa, só ganha.
+- **O perfil Dedicado no ritmo Tranquilo caía de 22 para 15 aldeões só com a mecânica**, e no ano de jogo de 45 para 23. Não era o jogo: era o bot. Com a Fazenda rendendo mais, um lavrador passou a bastar onde eram dois, a sobra de comida ficou só nas duas bocas de folga (+1,5 de comida por hora real) e o recrutamento, que custa 50 de comida, passou a acontecer uma vez a cada sete visitas. Jogando mais vezes, o bot crescia menos: um sinal falso, que mandaria o balanceamento procurar um defeito onde ele não está.
+- **Com o lavrador a mais, o bot econômico cresce muito mais em todos os ritmos lentos**: de 45 para 68 aldeões no Regular do ritmo Normal, de 22 para 55 no Tranquilo. **É a mudança do bot, e não a mecânica, que explica esse salto**, e ele diz uma coisa do jogo que as rodadas anteriores escondiam: **a comida é a moeda do crescimento, e quem planta para recrutar enche as Habitações**. No ritmo Normal o Dedicado chega a 75 aldeões (o teto das Habitações e do Salão no nível 7) em uma semana, e no Tranquilo o Regular e o Dedicado chegam lá no ano de jogo. A meta do GDD §15.2 ("população 30–40 no dia 7", Regular, ritmo Normal) fica ainda mais para trás: 68. Vai ao autor em V2C-T7, junto com o teto do Salão (seção 5.4).
+- **O ouro parado dobra no ritmo Rápido** (9 mil → 38 mil no Regular, 27 mil → 61 mil no Dedicado): o bot agora mantém a Mina ocupada para a experiência não se perder, a Mina dominada rende 30% a mais e o ouro não tem onde ser gasto depois que o feudo chega ao teto. Era um sinal de tédio; ficou maior. As cartas do Conselho (Fase D) e a Paliçada (Fase E) são os gastos previstos.
+- **A madeira e a pedra no chão crescem no ritmo Rápido** (90 mil → 105 mil de madeira no Regular; 143 mil → 233 mil no Dedicado), pelo mesmo motivo: produção 30% maior, sem obra que a gaste depois do Salão 7.
+- **Ninguém passa fome nem frio**, em nenhuma célula.
+
+### 6.5 Faixas
+
+As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/sim-cli/src/bands.ts`, traz a linha de base desta rodada (a coluna da direita da seção 6.4). A fila ociosa, os aldeões sem ofício, o desperdício e as horas desperdiçando continuam medidos e sem faixa.
+
+### 6.6 Limites desta medição
+
+- **A linha de base mistura a mecânica e uma mudança do bot.** A coluna do meio da seção 6.4 separa as duas, mas foi medida uma vez, antes de a segunda mudança entrar no código: para repeti-la é preciso tirar o lavrador a mais de `alocarPorDemanda` à mão. O mesmo vale para a "alocação antiga" da seção 6.3.
+- **O bot ocupa todo ofício, precise dele ou não**: põe na Mina os trabalhadores que o nível dela pede mesmo com o ouro sobrando. Um jogador talvez deixe a Mina com menos gente; o ouro parado desta rodada é o teto.
+- **O bot não usa a experiência para escolher onde pôr os braços** (não prefere o ofício dominado) e não segura uma troca até a virada do dia. Ele só evita a troca que não se paga.
+- **A experiência chega ao teto cedo em todo perfil**, então a matriz quase não mede a escolha "especializar ou espalhar": mede o custo de trocar. Se os +30% em 25 dias de jogo são muito ou pouco é pergunta para o playtest e para V2C-T7.
+- **As comparações das seções 6.3 e 6.4 (coluna do meio) foram medidas com uma semente ou antes do código final**; enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado.
+- As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).

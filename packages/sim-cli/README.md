@@ -53,16 +53,20 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 | `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora, sem contar os depósitos (Celeiro e Armazém), que são de `ampliar o estoque`. Com o inverno à vista, não começa a obra que gastaria a madeira da lareira: a reserva é o que a visão diz que o inverno queima menos o que a Serraria repõe |
 | `ampliar o estoque` | Constrói ou melhora o depósito que vale a obra agora, do mais urgente ao menos: o que trava uma obra cujo custo não cabe no limite (`EXCEEDS_STORAGE`), o que está cheio e perdendo produção (`resources[].full` e `wastingPerHour`) e o que enche em menos de 8 horas reais (`fullInSeconds`). O edifício de cada recurso vem de `resources[].storageBuilding`. Como vem depois de `obra mais barata` e a fila é uma só, o depósito fica com a sessão em que nenhuma outra obra pôde começar; não gasta a madeira da lareira |
 | `planejar automáticas` | Planeja como automáticas ("iniciar quando houver recursos") as obras que a visita não iniciou, para elas começarem sozinhas quando houver fila e recurso: primeiro o depósito que `ampliar o estoque` queria, depois as outras, da mais barata à mais cara, que é a ordem em que o motor as tenta. Entram também as que esperam o Salão ou um depósito maior (começam quando destravar); ficam de fora a obra que chegou ao teto e os depósitos que ninguém pediu. Uma obra que começa sozinha não pergunta pela lenha: enquanto a conta da visão diz que a lareira depende do estoque (o inverno queima mais do que a Serraria repõe), o bot desmarca as planejadas que gastam madeira (`setAutoStart`) e não planeja outras; quando a conta fecha, marca de novo |
-| `alocar por demanda` | Realoca todos os aldeões: fazendeiros o bastante para alimentar o feudo (contando quem ainda está chegando e duas bocas de folga) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem |
+| `alocar por demanda` | Reparte os aldeões sem trocar ninguém de ofício à toa. Na fazenda, quem alimenta o feudo (contando quem ainda está chegando e duas bocas de folga) e, enquanto há vaga nas Habitações e a despensa não está cheia, um lavrador a mais: é a sobra de comida que paga os recrutas. Um fazendeiro além da conta fica onde está. Nos materiais, cada edifício recebe primeiro o que pede para contar como ocupado (`workers[].occupiedFrom`: é o que faz a experiência do ofício subir) e o resto vai em proporção ao tempo que cada um levaria para cobrir o que as obras pedem. Quem está sem ofício vai para onde mais falta gente; quem já trabalha só troca de ofício quando a falta do destino levaria mais de duas adaptações (`workersRules.adaptationSeconds`) para ser coberta com os braços que ele já tem, e quem cede braços continua ocupado |
 | `comida primeiro` | Põe na fazenda os braços que faltam para a comida não cair, contando quem está chegando; nunca tira ninguém de lá. Sem livres, busca em quem tem mais gente |
 | `ocupar os livres` | Manda todos os aldeões sem ofício, em uma ordem só, para o material que mais demoraria a cobrir o que falta às obras; se nada falta, para o ofício com menos gente |
 | `guardar lenha` | Quando a conta da lenha da visão diz que falta madeira (no outono, `calendar.nextSeason.firewood`; no inverno, `winter.firewood`), manda para a Serraria os braços que cobrem a falta até a estação virar: primeiro os livres, depois quem está nos outros materiais; nunca tira ninguém da fazenda. Sem falta, não dá ordem |
 
 Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem ofício até a seguinte.
 
-**Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As estações (V2C-T1) trouxeram `guardar lenha`, o armazenamento (V2C-T2), `ampliar o estoque`, e a segunda fila com o início automático (V2C-T5), `planejar automáticas`; as tarefas seguintes preveem "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
+**Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As estações (V2C-T1) trouxeram `guardar lenha`, o armazenamento (V2C-T2), `ampliar o estoque`, e a segunda fila com o início automático (V2C-T5), `planejar automáticas`. A troca de ofício (V2C-T3) não trouxe uma política nova: mudou `alocar por demanda`, que era quem trocava todo mundo de ofício a cada visita; as tarefas seguintes preveem "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
 
 **As obras vêm antes do recrutamento** (desde V2C-T5). Até V2C-T2 o bot recrutava primeiro, e a comida gasta em aldeões escondia dele o aviso que o jogador vê ao chegar: "Despensa cheia: comida indo ao chão. Construa o Celeiro". Com a comida abaixo do limite e um aldeão a caminho, a visão não promete "cheio em", e `ampliar o estoque` nunca pedia o Celeiro: em sete dias no ritmo 3 o Armazém chegava ao nível 8 e o Celeiro ficava no 0. Enquanto o feudo crescia devagar isso não custava nada. Com as obras começando sozinhas ele cresce depressa, e o perfil Regular no ritmo 3 chegava ao terceiro inverno com 58 aldeões e a Despensa de 500: **6 horas reais de fome**. Olhando o painel antes de recrutar, o bot ergue o Celeiro e a fome some (a medição das duas ordens está em [docs/balance-v0.2.md](../../docs/balance-v0.2.md), seção 5.5).
+
+**Trocar de ofício custa, e o bot econômico deixou de refazer a alocação a cada visita** (desde V2C-T3). Quem chega a um edifício rende metade por um dia de jogo, e um edifício vazio perde a experiência do ofício. Com a política antiga nas regras novas, o Regular do ritmo 3 trocava 53 trabalhadores de ofício em uma semana e o Dedicado, 194; com a nova, 5 e 26, e todos os ofícios dos materiais chegam à experiência máxima. O bot faz a conta dos fazendeiros com o que um lavrador rende adaptado (`perWorkerPerHour`): logo depois de uma troca a comida pode cair por um dia de jogo, até a adaptação terminar. O `preguicoso` não mudou: ele nunca tirou ninguém do lugar sem necessidade.
+
+**O bot econômico planta para crescer** (desde V2C-T3). Até aqui ele vivia da folga de duas bocas e do arredondamento da conta dos fazendeiros, e quanto sobrava para recrutar era sorte. Com a experiência do ofício um lavrador passou a bastar onde eram dois, a sobra sumiu, e o perfil Dedicado no ritmo 0,5 caía de 22 para 15 aldeões: jogar mais vezes dava um feudo menor. Com um lavrador a mais enquanto há vaga, o mesmo perfil chega a 61, e o Regular do ritmo 1 vai de 45 a 68. Foi uma mudança de bot, medida à parte da mecânica em [docs/balance-v0.2.md](../../docs/balance-v0.2.md), seção 6.4, para o salto não ser lido como efeito da regra.
 
 **O depósito, para os bots, é meio e não fim.** Estoque além do custo da próxima obra não compra nada: os bots erguem o depósito quando ele trava uma obra, quando está cheio e perdendo produção ou quando enche em menos de uma noite, e depois da obra mais barata. Até V2C-T2, com uma fila só e uma obra por visita, isso era raro (só o Dedicado chegava ao Armazém em uma semana); com as planejadas automáticas o depósito que não pôde começar na visita fica na lista e começa sozinho, e todos os perfis passam a ter Celeiro e Armazém. A produção que não cabe continua indo ao chão, e a matriz mede quanto. Uma primeira versão da política ampliava o depósito **antes** da obra mais barata; a cada visita havia um depósito enchendo, a fila ia para ele, e o Regular terminava a semana com o Salão um nível abaixo e nove aldeões a menos. A medição das duas ordens está em [docs/balance-v0.2.md](../../docs/balance-v0.2.md), seção 4.
 
@@ -106,19 +110,19 @@ O resumo, na saída de erro, traz:
 ```text
 Semente pedra-alta-golden · estratégia economico · 7 dias · 2 sessões/dia · ritmo 3×
 Partida: Senhor · Rápido: um ano em 56 horas
-Motor 0.1.0 · estado v5 · conteúdo 525e602065de69c7
+Motor 0.1.0 · estado v6 · conteúdo 438b14e769ef8bf7
 Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha
-População: 64 de 75 vagas
-Níveis: townHall 7, farm 8, lumberMill 8, quarry 8, goldMine 8, housing 8, granary 6, warehouse 8
-Estoque: food 2194, wood 5100, stone 5100, gold 9409
+População: 72 de 75 vagas
+Níveis: townHall 7, farm 8, lumberMill 8, quarry 8, goldMine 8, housing 8, granary 8, warehouse 8
+Estoque: food 4570, wood 5100, stone 5100, gold 37781
 Fome: nenhuma
 Frio: nenhum
-Fila ociosa: 123 h com obra que podia começar (0 h com obra planejada)
+Fila ociosa: 30 h com obra que podia começar (0 h com obra planejada)
 Sem o início automático (as mesmas planejadas, manuais): 168 h com obra que podia começar (168 h com obra planejada)
-Aldeões sem ofício: 708 aldeão-horas (4,2 por hora)
-Excedente parado: wood 5100, stone 5100, gold 9409
-Desperdício: food 2719, wood 90447, stone 20890 (87 h com depósito cheio perdendo produção)
-Comandos: 119 aceitos, 0 recusados
+Aldeões sem ofício: 804 aldeão-horas (4,8 por hora)
+Excedente parado: wood 5100, stone 5100, gold 37781
+Desperdício: food 20830, wood 105299, stone 49710 (114 h com depósito cheio perdendo produção)
+Comandos: 120 aceitos, 0 recusados
 Sem medida até as Fases C a E: moral, cartas do Conselho, perdas por lobos
 ```
 
@@ -131,7 +135,7 @@ Sem medida até as Fases C a E: moral, cartas do Conselho, perdas por lobos
 ## Matriz de balanceamento
 
 ```bash
-pnpm -s sim -- --matrix > matriz.csv 2> matriz.md   # as 50 sementes; cerca de 7 s
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md   # as 50 sementes; cerca de 11 s
 pnpm -s sim -- --matrix --seeds 5 > /dev/null       # só as 5 primeiras: uma olhada rápida
 ```
 
@@ -159,7 +163,7 @@ Enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado; a li
 | Excedente parado de madeira, de pedra e de ouro | No máximo o maior estoque final medido, com 5% de folga. Só tem teto: sobrar menos nunca é problema |
 | Ordens recusadas | Nenhuma |
 
-`src/balance.test.ts` joga a matriz inteira a cada `pnpm test` (750 partidas distintas, cerca de 10 s desde que as obras começam sozinhas: as partidas têm mais ordens e mais eventos) e falha se alguma sair da faixa, dizendo a célula, o problema com os dois números e em quantas sementes ele apareceu. A fila ociosa e os aldeões sem ofício são medidos e relatados, mas ainda não têm faixa.
+`src/balance.test.ts` joga a matriz inteira a cada `pnpm test` (750 partidas distintas, cerca de 15 s desde a troca de ofício: os feudos ficaram maiores e a visão projeta o que o ofício muda nas previsões) e falha se alguma sair da faixa, dizendo a célula, o problema com os dois números e em quantas sementes ele apareceu. A fila ociosa e os aldeões sem ofício são medidos e relatados, mas ainda não têm faixa.
 
 **Estes limites são o jogo como ele está, não metas aprovadas pelo autor** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5): servem de guarda de regressão até o autor apertá-los. Quando uma faixa falhar:
 

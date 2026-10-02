@@ -3,6 +3,7 @@ import { balance, BUILDING_IDS, PRODUCTION_BUILDING_IDS, type SeasonDef } from '
 import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { missingResources, payResources } from './construction';
+import { beginAdaptation, leaveAdaptation } from './craft';
 import { reject } from './rejections';
 import type { GameEvent, GameState, ProductionBuildingId, Rejection } from './types';
 import { positiveEntries } from './units';
@@ -35,8 +36,17 @@ export function isProductionBuilding(value: unknown): value is ProductionBuildin
   return (PRODUCTION_BUILDING_IDS as readonly unknown[]).includes(value);
 }
 
-/** Define quantos aldeões trabalham em um edifício. Imediato e gratuito na v0.1. */
-export function setWorkers(draft: GameState, building: unknown, count: unknown): Rejection | null {
+/**
+ * Define quantos aldeões trabalham em um edifício. A ordem vale na hora, mas a troca de ofício
+ * custa (GDD §5.4): quem chega entra em adaptação e rende uma fração por um dia de jogo; quem
+ * sai, sai primeiro das levas mais novas. Pedir o número que já está lá não muda nada.
+ */
+export function setWorkers(
+  draft: GameState,
+  building: unknown,
+  count: unknown,
+  nowMs: number,
+): Rejection | null {
   if (!isProductionBuilding(building) || !Number.isInteger(count) || (count as number) < 0) {
     return reject('INVALID_WORKERS');
   }
@@ -46,8 +56,37 @@ export function setWorkers(draft: GameState, building: unknown, count: unknown):
   if (wanted > available) {
     return reject('NOT_ENOUGH_VILLAGERS', { count: available });
   }
+  const arriving = wanted - workers[building];
   workers[building] = wanted;
+  if (arriving > 0) {
+    beginAdaptation(draft, building, arriving, nowMs);
+  } else if (arriving < 0) {
+    leaveAdaptation(draft, building, -arriving);
+  }
   return null;
+}
+
+/**
+ * Garante que a soma dos trabalhadores não passa dos habitantes: quando a população cai (um
+ * aldeão parte, deserta ou se fere), quem falta sai do ofício, um a um, do edifício com mais
+ * gente (no empate, o primeiro na ordem do conteúdo) e, dentro dele, primeiro de quem ainda
+ * está em adaptação. Devolve quantos saíram de cada edifício; vazio quando ninguém precisava
+ * sair. Quem tira gente do feudo chama isto logo depois.
+ */
+export function releaseExcessWorkers(
+  draft: GameState,
+): Partial<Record<ProductionBuildingId, number>> {
+  const { workers, population } = draft.settlement;
+  const released: Partial<Record<ProductionBuildingId, number>> = {};
+  for (let excess = assignedWorkers(draft) - population.villagers; excess > 0; excess -= 1) {
+    const fullest = PRODUCTION_BUILDING_IDS.reduce((best, id) =>
+      workers[id] > workers[best] ? id : best,
+    );
+    workers[fullest] -= 1;
+    leaveAdaptation(draft, fullest, 1);
+    released[fullest] = (released[fullest] ?? 0) + 1;
+  }
+  return released;
 }
 
 /** Motivo pelo qual uma ordem de `quantity` aldeões seria recusada agora; `null` se seria aceita. */

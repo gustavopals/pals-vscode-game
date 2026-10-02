@@ -1,10 +1,12 @@
 import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
+import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
 import {
   command,
+  craftScenario,
   DAY,
   HOUR,
   MINUTE,
@@ -117,6 +119,14 @@ const scenarios: Record<string, () => GameState> = {
         { at: 3 * MINUTE + 4_567 },
       ],
     ).state,
+
+  // Ofícios: um edifício com gente em adaptação e experiência pela metade, outro dominado (com
+  // o ano em que foi), outro com gente de menos e uma leva mais nova, e outro vazio, perdendo
+  // a experiência. No meio de um dia de jogo e de um trecho de produção.
+  crafts: () => {
+    const state = craftScenario();
+    return advanceTo(state, state.lastProcessedAt + 7 * MINUTE + 2_345).state;
+  },
 
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
@@ -238,6 +248,23 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     for (const state of Object.values(built)) {
       expect(state.settlement.constructionQueues).toHaveLength(2);
     }
+    // Os ofícios: duas coortes em edifícios diferentes, em ordem de término, experiência em
+    // quatro valores diferentes (um deles o máximo, outro com gente de menos) e o ano de uma
+    // mestria gravado.
+    const crafts = of('crafts').settlement;
+    expect(crafts.adaptation.map((cohort) => [cohort.building, cohort.count])).toEqual([
+      ['farm', 2],
+      ['quarry', 1],
+    ]);
+    expect(crafts.adaptation.every((cohort) => cohort.untilMs > of('crafts').lastProcessedAt)).toBe(
+      true,
+    );
+    expect(crafts.craftExperience).toEqual({ farm: 40, lumberMill: 100, quarry: 20, goldMine: 16 });
+    expect(crafts.craftMasteredYear).toEqual({ farm: 0, lumberMill: 1, quarry: 0, goldMine: 0 });
+    expect(crafts.workers.goldMine).toBe(0);
+    expect(crafts.workers.quarry).toBeLessThan(crafts.buildings.quarry);
+    // E, nos outros cenários, a experiência que os dias de jogo foram deixando.
+    expect(of('week-scripted').settlement.craftExperience.farm).toBeGreaterThan(0);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 

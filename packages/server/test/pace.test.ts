@@ -188,10 +188,22 @@ function atPace(view: ViewState, pace: number): ViewState {
       fullInSeconds: entry.fullInSeconds === null ? null : up(entry.fullInSeconds),
       wastingPerHour: scaled(entry.wastingPerHour),
     })),
+    // O prazo da adaptação de quem troca de ofício é um prazo como os outros.
+    workersRules: {
+      ...view.workersRules,
+      adaptationSeconds: up(view.workersRules.adaptationSeconds),
+    },
     workers: view.workers.map((entry) => ({
       ...entry,
       grossPerHour: scaled(entry.grossPerHour),
       perWorkerPerHour: scaled(entry.perWorkerPerHour),
+      perNewWorkerPerHour: scaled(entry.perNewWorkerPerHour),
+      adaptationEndsInSeconds:
+        entry.adaptationEndsInSeconds === null ? null : up(entry.adaptationEndsInSeconds),
+      adaptingCohorts: entry.adaptingCohorts.map((cohort) => ({
+        ...cohort,
+        endsInSeconds: up(cohort.endsInSeconds),
+      })),
     })),
     constructions: {
       ...view.constructions,
@@ -270,6 +282,8 @@ function withoutRateTexts(view: ViewState): ViewState {
       fullNote: entry.wastingPerHour > 0 ? '' : entry.fullNote,
     })),
     workers: view.workers.map((entry) => ({ ...entry, breakdown: '' })),
+    // A frase da troca de ofício diz o prazo da adaptação em tempo real.
+    workersRules: { ...view.workersRules, adaptationText: '' },
     winter:
       view.winter === null || view.winter.cold === null
         ? view.winter
@@ -447,15 +461,28 @@ describe('a visão fala em tempo real', () => {
       progressPercent: 0,
     });
     expect(fastReply.view.population.secondsToNextRecruit).toBe(320);
+    // Os dois lavradores acabaram de chegar: rendem metade por um dia de jogo, 40 minutos reais.
     expect(resource(fastReply.view, 'food')).toMatchObject({
-      perHour: 57,
+      perHour: 21,
       breakdown:
-        'Fazenda: 2 trabalhadores × 30 × 1 (Nv1) × 1,2 (primavera) = 72/h; consumo 5 × 3 = 15/h',
+        'Fazenda: 2 trabalhadores (2 em adaptação por 40 min, valendo metade: contam como 1) × 30 × 1 (Nv1) × 1,2 (primavera) = 36/h; consumo 5 × 3 = 15/h',
     });
     expect(worker(fastReply.view, 'farm')).toMatchObject({
-      grossPerHour: 72,
+      grossPerHour: 36,
       perWorkerPerHour: 36,
-      breakdown: '2 trabalhadores × 30 × 1 (Nv1) × 1,2 (primavera) = 72/h',
+      perNewWorkerPerHour: 18,
+      adapting: 2,
+      adaptationEndsInSeconds: 2400,
+      breakdown:
+        '2 trabalhadores (2 em adaptação por 40 min, valendo metade: contam como 1) × 30 × 1 (Nv1) × 1,2 (primavera) = 36/h',
+    });
+    expect(fastReply.view.workersRules).toMatchObject({
+      adaptationSeconds: 2400,
+      adaptationText: 'Quem troca de ofício produz metade por 40 min.',
+    });
+    expect(normalReply.view.workersRules).toMatchObject({
+      adaptationSeconds: 7200,
+      adaptationText: 'Quem troca de ofício produz metade por 2 h.',
     });
 
     // Instantes de jogo: 3 min (obra a 75%), 15 min 57 s (aldeão a 3 s de jogo de chegar),
@@ -489,7 +516,8 @@ describe('a visão fala em tempo real', () => {
         const fastOrder = await accepted(fast, quick, command());
         const normalOrder = await accepted(normal, slow, command());
         expectSameWorld(fastOrder.view, normalOrder.view);
-        expect(resource(fastOrder.view, 'wood').perHour).toBe(72);
+        // Três lenhadores recém-chegados: metade de 24 por hora de jogo, vistos no ritmo 3.
+        expect(resource(fastOrder.view, 'wood').perHour).toBe(36);
       }
     }
 
@@ -519,9 +547,14 @@ describe('a visão fala em tempo real', () => {
     const fastView = await viewOf(fast, quick);
     const normalView = await viewOf(normal, slow);
 
-    // Por hora de jogo, na primavera: 2 × 10 × 1,2 de produção − 5 de consumo = +19.
-    expect(resource(normalView, 'food')).toMatchObject({ stock: 199, perHour: 19 });
-    expect(resource(fastView, 'food')).toMatchObject({ stock: 237, perHour: 57 });
+    // Por hora de jogo, na primavera: os dois lavradores, recém-chegados, rendem metade no
+    // primeiro dia de jogo (12 − 5 de consumo = +7). No ritmo 1 passou uma hora de jogo. No
+    // ritmo 3 passaram três: duas a +7 e uma já com os lavradores adaptados e 4 de experiência
+    // (2 × 10 × 1,2 × 1,012 − 5 = +19,288 por hora de jogo, +57,9 por hora real).
+    expect(resource(normalView, 'food')).toMatchObject({ stock: 187, perHour: 7 });
+    expect(resource(fastView, 'food')).toMatchObject({ stock: 213, perHour: 57.9 });
+    expect(normalView.workers[0]).toMatchObject({ adapting: 2, adaptationEndsInSeconds: 3600 });
+    expect(fastView.workers[0]).toMatchObject({ adapting: 0, experience: 4 });
     // Uma hora real são três horas de jogo: o dia de 2 h já virou uma vez.
     expect(normalView.calendar).toMatchObject({ dayOfSeason: 1, secondsToNextDay: 3600 });
     expect(fastView.calendar).toMatchObject({ dayOfSeason: 2, secondsToNextDay: 1200 });
@@ -743,7 +776,9 @@ describe('mudar GAME_TIME_SCALE não mexe nas partidas que já existem', () => {
         player,
         order('setWorkers', { building: 'farm', count: 2 }),
       );
-      expect(resource(ordered.view, 'food').perHour).toBe(19);
+      // Dois lavradores recém-chegados, no ritmo 1: 12 − 5 por hora, por 2 h reais.
+      expect(resource(ordered.view, 'food').perHour).toBe(7);
+      expect(ordered.view.workersRules.adaptationSeconds).toBe(7200);
       await accepted(after, player, order('startConstruction', { building: 'housing' }));
 
       // 80 s depois (o prazo do ritmo 3) a obra não terminou: o prazo dela é de 240 s.
@@ -752,10 +787,11 @@ describe('mudar GAME_TIME_SCALE não mexe nas partidas que já existem', () => {
       before.clock.advance(160 * SECOND);
       expect((await viewOf(after, player)).constructions.active).toBeNull();
 
-      // Uma hora real depois da criação: uma hora de jogo, +19 de comida, ainda no 1º dia.
+      // Uma hora real depois da criação: uma hora de jogo, +7 de comida (os lavradores ainda
+      // se adaptam, por 2 h reais neste ritmo), ainda no 1º dia.
       await wait(after, player, HOUR - 240 * SECOND);
       const later = await viewOf(after, player);
-      expect(resource(later, 'food')).toMatchObject({ stock: 199, perHour: 19 });
+      expect(resource(later, 'food')).toMatchObject({ stock: 187, perHour: 7 });
       expect(later.calendar).toMatchObject({ dayOfSeason: 1, secondsToNextDay: 3600 });
       expect(later).toEqual(await viewOf(before, player));
 
@@ -852,8 +888,13 @@ describe('as estações no relógio real (V2C-T1)', () => {
     expect(resource(winter, 'wood').breakdown).toBe(
       'Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −7,5/h (lenha de 5 habitantes)',
     );
-    // Inverno com frio: 5 × 30 × 0,4 × 0,8 = 48 por hora real.
-    expect(worker(winter, 'farm')).toMatchObject({ grossPerHour: 48, perWorkerPerHour: 9.6 });
+    // Inverno com frio: 5 × 30 × 0,4 × 0,8 = 48 por hora real, × 1,3 do ofício, dominado em
+    // três estações de Fazenda ocupada.
+    expect(worker(winter, 'farm')).toMatchObject({
+      grossPerHour: 62.4,
+      perWorkerPerHour: 12.48,
+      experience: 100,
+    });
     // A obra iniciada agora leva × 1,5, e a visão diz por quê.
     expect(upgradeOf(winter, 'housing')).toMatchObject({
       durationSeconds: 120,
@@ -885,8 +926,9 @@ describe('as estações no relógio real (V2C-T1)', () => {
       data: { reason: 'firewood', sinceMs: WINTER },
     });
     expect(warmed.view.winter).toMatchObject({ firewoodPerHour: 7.5, cold: null });
-    // Sem o frio: 8 × 0,8 = 6,4 por hora de jogo, menos 2,5 de lenha; por hora real, o triplo.
-    expect(resource(warmed.view, 'wood').perHour).toBe(11.7);
+    // Sem o frio, o lenhador recém-chegado rende metade: 8 × 0,8 × 0,5 = 3,2 por hora de jogo,
+    // menos 2,5 de lenha; por hora real, o triplo. Com o frio seriam 2,56: ainda acima da lenha.
+    expect(resource(warmed.view, 'wood').perHour).toBe(2.1);
 
     // A Crônica conta o frio como contou a fome: começo e fim, cada um uma vez.
     const chronicle = await chronicleOf(fast, player);

@@ -5,6 +5,8 @@ import {
   accept,
   autumnScenario,
   command,
+  craftScenario,
+  DAY,
   gameWith,
   HOUR,
   MINUTE,
@@ -72,11 +74,19 @@ describe('deriveViewState', () => {
     expect(initial.pendingDecisions).toEqual([]);
   });
 
-  it('com 2 trabalhadores na Fazenda e 5 habitantes, a comida rende +19/h líquida na primavera', () => {
+  it('com 2 lavradores recém-chegados e 5 habitantes, a comida rende +7/h na primavera', () => {
     const food = view(farmers).resources[0];
-    expect(food).toMatchObject({ id: 'food', perHour: 19, depletesInSeconds: null });
+    expect(food).toMatchObject({ id: 'food', perHour: 7, depletesInSeconds: null });
     expect(food?.breakdown).toBe(
-      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h',
+      'Fazenda: 2 trabalhadores (2 em adaptação por 2 h, valendo metade: contam como 1) × 10 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 1 = 5/h',
+    );
+  });
+
+  it('adaptados, um dia de jogo depois, rendem +19,3/h: os 24 de sempre e 4 de experiência', () => {
+    const food = deriveViewState(farmers, DAY).resources[0];
+    expect(food).toMatchObject({ id: 'food', perHour: 19.3, depletesInSeconds: null });
+    expect(food?.breakdown).toBe(
+      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,012 (mestria 4) × 1,2 (primavera) = 24,29/h; consumo 5 × 1 = 5/h',
     );
   });
 
@@ -252,11 +262,225 @@ describe('deriveViewState', () => {
   it('avança sozinho até o instante pedido, sem mutar a entrada, e não volta no tempo', () => {
     const before = JSON.stringify(farmers);
     const derived = deriveViewState(farmers, 2 * HOUR);
-    expect(derived.resources[0]?.stock).toBe(218);
+    // Dois lavradores em adaptação: 12 − 5 = +7 por hora.
+    expect(derived.resources[0]?.stock).toBe(194);
     expect(derived.calendar).toMatchObject({ dayOfSeason: 2, secondsToNextDay: 7200 });
     expect(JSON.stringify(farmers)).toBe(before);
     expect(derived).toEqual(view(advanceTo(farmers, 2 * HOUR).state));
     expect(() => deriveViewState(advanceTo(farmers, HOUR).state, 0)).toThrow(/não volta no tempo/);
+  });
+});
+
+describe('ofícios na visão (GDD §5.4)', () => {
+  const rowOf = (state: GameState, building: string, timeScale?: number) => {
+    const derived = deriveViewState(
+      state,
+      state.lastProcessedAt,
+      timeScale === undefined ? {} : { timeScale },
+    );
+    const found = derived.workers.find((row) => row.building === building);
+    if (found === undefined) {
+      throw new Error(`A visão não tem ${building}.`);
+    }
+    return found;
+  };
+
+  it('as regras chegam em frases prontas, antes de qualquer troca', () => {
+    expect(view(newGame()).workersRules).toEqual({
+      adaptationSeconds: 7200,
+      adaptationText: 'Quem troca de ofício produz metade por 2 h.',
+      removalText: 'Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.',
+      experienceText:
+        'A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.',
+      experienceMax: 100,
+      masteryMaxBonusPercent: 30,
+    });
+  });
+
+  it('o prazo da adaptação sai no ritmo da partida: 40 min no Rápido, 4 h no Tranquilo', () => {
+    const rules = (timeScale: number) => deriveViewState(newGame(), 0, { timeScale }).workersRules;
+    expect(rules(3)).toMatchObject({
+      adaptationSeconds: 2400,
+      adaptationText: 'Quem troca de ofício produz metade por 40 min.',
+    });
+    expect(rules(0.5)).toMatchObject({
+      adaptationSeconds: 14_400,
+      adaptationText: 'Quem troca de ofício produz metade por 4 h.',
+    });
+    // A regra da experiência não fala em tempo real: conta viradas de dia.
+    expect(rules(3).experienceText).toBe(rules(1).experienceText);
+  });
+
+  it('um feudo novo: ninguém trabalha, nenhuma experiência, e a frase diz como começar', () => {
+    expect(rowOf(newGame(), 'lumberMill')).toMatchObject({
+      assigned: 0,
+      grossPerHour: 0,
+      perWorkerPerHour: 8,
+      perNewWorkerPerHour: 4,
+      experience: 0,
+      masteryBonusPercent: 0,
+      occupiedFrom: 1,
+      experienceTrend: 'steady',
+      experienceNote:
+        'Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.',
+      adapting: 0,
+      adaptationEndsInSeconds: null,
+      adaptingCohorts: [],
+    });
+  });
+
+  it('a Fazenda em adaptação: quantos, até quando, por quantos contam e o que rendem', () => {
+    expect(rowOf(craftScenario(), 'farm')).toEqual({
+      building: 'farm',
+      label: 'Fazenda',
+      level: 3,
+      resource: 'food',
+      assigned: 4,
+      // 3 × 10 × 1,4 × 1,12 × 1,3.
+      grossPerHour: 61.152,
+      perWorkerPerHour: 20.384,
+      perNewWorkerPerHour: 10.192,
+      breakdown:
+        '4 trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 61,15/h',
+      experience: 40,
+      masteryBonusPercent: 12,
+      occupiedFrom: 3,
+      experienceTrend: 'rising',
+      experienceNote:
+        'A experiência sobe 4 a cada virada do dia enquanto houver ao menos 3 trabalhadores.',
+      adapting: 2,
+      adaptationEndsInSeconds: 38 * 60,
+      adaptingCohorts: [{ count: 2, endsInSeconds: 38 * 60 }],
+    });
+  });
+
+  it('a Serraria dominada: 30% a mais, e o que a faria perder a mão', () => {
+    expect(rowOf(craftScenario(), 'lumberMill')).toMatchObject({
+      assigned: 4,
+      grossPerHour: 41.6,
+      breakdown: '4 trabalhadores × 8 × 1 (Nv1) × 1,3 (mestria 100) = 41,6/h',
+      experience: 100,
+      masteryBonusPercent: 30,
+      experienceTrend: 'steady',
+      experienceNote:
+        'Ofício dominado: 30% a mais de produção. Só se perde se ninguém trabalhar na Serraria.',
+      adapting: 0,
+      adaptationEndsInSeconds: null,
+    });
+  });
+
+  it('a Pedreira com gente de menos: a experiência não sobe, e a frase diz quantos faltam', () => {
+    expect(rowOf(craftScenario(), 'quarry')).toMatchObject({
+      level: 3,
+      assigned: 2,
+      // 1,5 × 5 × 1,4 × 1,06.
+      grossPerHour: 11.13,
+      breakdown:
+        '2 trabalhadores (1 em adaptação por 1 h 38 min, valendo metade: contam como 1,5) × 5 × 1,4 (Nv3) × 1,06 (mestria 20) = 11,13/h',
+      experience: 20,
+      masteryBonusPercent: 6,
+      occupiedFrom: 3,
+      experienceTrend: 'steady',
+      experienceNote:
+        'A experiência não sobe: a Pedreira no nível 3 pede ao menos 3 trabalhadores (falta 1).',
+      adapting: 1,
+      adaptationEndsInSeconds: 98 * 60,
+    });
+  });
+
+  it('a Mina vazia: o ofício se perde, e a frase diz quanto', () => {
+    expect(rowOf(craftScenario(), 'goldMine')).toMatchObject({
+      assigned: 0,
+      grossPerHour: 0,
+      // O que um mineiro renderia: 4 × 1,048 × 1,1; chegando agora, a metade.
+      perWorkerPerHour: 4.611,
+      perNewWorkerPerHour: 2.305,
+      breakdown: '0 trabalhadores × 4 × 1 (Nv1) × 1,048 (mestria 16) × 1,1 (outono) = 0/h',
+      experience: 16,
+      masteryBonusPercent: 4.8,
+      experienceTrend: 'falling',
+      experienceNote:
+        'Sem ninguém na Mina de Ouro, o ofício se perde: 8 de experiência a menos a cada virada do dia.',
+    });
+  });
+
+  it('duas levas no mesmo edifício: a visão lista as duas e a frase dá o prazo da última', () => {
+    const later = accept(
+      craftScenario(),
+      command('setWorkers', { building: 'farm', count: 6 }),
+    ).state;
+    expect(rowOf(later, 'farm')).toMatchObject({
+      assigned: 6,
+      adapting: 4,
+      adaptationEndsInSeconds: 7200,
+      adaptingCohorts: [
+        { count: 2, endsInSeconds: 38 * 60 },
+        { count: 2, endsInSeconds: 7200 },
+      ],
+      breakdown:
+        '6 trabalhadores (4 em adaptação por até 2 h, valendo metade: contam como 4) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 81,54/h',
+    });
+    // No ritmo 3 os mesmos prazos, em tempo real: 12 min 40 s e 40 min.
+    expect(rowOf(later, 'farm', 3)).toMatchObject({
+      adaptationEndsInSeconds: 2400,
+      adaptingCohorts: [
+        { count: 2, endsInSeconds: 760 },
+        { count: 2, endsInSeconds: 2400 },
+      ],
+    });
+    expect(rowOf(later, 'farm', 3).breakdown).toContain('(4 em adaptação por até 40 min,');
+  });
+
+  it('"acaba em" conta com quem ainda se adapta: o alarme não toca à toa', () => {
+    // Dez bocas e um lavrador recém-chegado na Fazenda Nv2: 7,2 por hora agora, contra 10 de
+    // consumo; adaptado, 14,4. Com 180 de comida, o saldo vira antes de a despensa esvaziar.
+    const hired = accept(
+      gameWith((draft) => {
+        draft.settlement.population.villagers = 10;
+        draft.settlement.buildings.farm = 2;
+      }),
+      command('setWorkers', { building: 'farm', count: 1 }),
+    ).state;
+    const food = view(hired).resources[0];
+    expect(food).toMatchObject({ perHour: -2.8, depletesInSeconds: null });
+    // Com tão pouca comida que ela acaba antes de a adaptação terminar, o alarme toca, e na hora
+    // certa: 2 de comida a 2,8 por hora.
+    const poor = accept(
+      gameWith((draft) => {
+        draft.settlement.population.villagers = 10;
+        draft.settlement.buildings.farm = 2;
+        draft.settlement.resources.food = 2_000;
+      }),
+      command('setWorkers', { building: 'farm', count: 1 }),
+    ).state;
+    const depletes = view(poor).resources[0]?.depletesInSeconds;
+    expect(depletes).toBe(Math.floor((2_000 * 3600) / 2_800));
+    const famine = advanceTo(poor, ((depletes ?? 0) + 1) * 1000).events.find(
+      (event) => event.type === 'famineStarted',
+    );
+    expect(Math.floor((famine?.atMs ?? 0) / 1000)).toBe(depletes);
+  });
+
+  it('um só trabalhador, em adaptação: a frase fica no singular', () => {
+    const one = accept(newGame(), command('setWorkers', { building: 'quarry', count: 1 })).state;
+    expect(rowOf(one, 'quarry').breakdown).toBe(
+      '1 trabalhador (1 em adaptação por 2 h, valendo metade: conta como 0,5) × 5 × 1 (Nv1) = 2,5/h',
+    );
+  });
+
+  it('a contagem regressiva da adaptação anda com o relógio e some no fim', () => {
+    const state = craftScenario();
+    const at = (minutes: number) =>
+      deriveViewState(state, state.lastProcessedAt + minutes * MINUTE).workers[0];
+    expect(at(37)).toMatchObject({ adapting: 2, adaptationEndsInSeconds: 60 });
+    // No fim da adaptação veio também a virada do dia: 4 de experiência a mais.
+    expect(at(38)).toMatchObject({
+      adapting: 0,
+      adaptationEndsInSeconds: null,
+      adaptingCohorts: [],
+      experience: 44,
+      breakdown: '4 trabalhadores × 10 × 1,4 (Nv3) × 1,132 (mestria 44) × 1,3 (outono) = 82,41/h',
+    });
   });
 });
 
@@ -272,6 +496,8 @@ describe('golden do ViewState', () => {
       // As duas filas ocupadas e uma planejada para cada espera: obra anterior, fila, recurso,
       // depósito e Salão.
       queuesAndPlans: view(queuesScenario()),
+      // Um ofício em cada situação: em adaptação, dominado, com gente de menos e vazio.
+      crafts: view(craftScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

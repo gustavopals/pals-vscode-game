@@ -34,6 +34,14 @@ export function scaleDown(value: number, ratio: Ratio): number {
   return Math.floor((value * ratio.num) / ratio.den);
 }
 
+/**
+ * Segundos reais (arredondados para cima) de uma duração em ms de jogo, no ritmo `timeScale`:
+ * é como todo prazo chega à visão.
+ */
+export function realSecondsCeil(gameMs: number, timeScale: number): number {
+  return Math.max(0, Math.ceil(gameMs / timeScale / SECOND_MS));
+}
+
 export function secondsUntil(fromMs: number, toMs: number): number {
   return Math.max(0, Math.ceil((toMs - fromMs) / SECOND_MS));
 }

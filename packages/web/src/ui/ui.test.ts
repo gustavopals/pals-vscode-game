@@ -190,7 +190,7 @@ describe('barra de status', () => {
   });
 
   it('padrão: o feudo e a comida por hora', () => {
-    expect(statusBar({ ...base, view: farmers }).text).toBe('$(home) Pedra Alta · +19 comida/h');
+    expect(statusBar({ ...base, view: farmers }).text).toBe('$(home) Pedra Alta · +7 comida/h');
     expect(statusBar({ ...base, view: initial }).text).toBe('$(home) Pedra Alta · −5 comida/h');
   });
 
@@ -252,7 +252,7 @@ describe('barra de status', () => {
 
   it('inverno com a lareira acesa não toma a barra', () => {
     const lit = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
-    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +20,4 comida/h');
+    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +22,7 comida/h');
   });
 
   it('sem ligação passa na frente de tudo', () => {
@@ -280,7 +280,7 @@ describe('barra de status', () => {
 
   it('mostra as novidades pendentes', () => {
     expect(statusBar({ ...base, view: farmers, pending: 2 }).text).toBe(
-      '$(home) Pedra Alta · +19 comida/h · $(bell) 2',
+      '$(home) Pedra Alta · +7 comida/h · $(bell) 2',
     );
   });
 });
@@ -340,8 +340,10 @@ describe('árvore', () => {
   it('recursos mostram estoque e taxa com sinal; o tooltip explica o número', () => {
     const food = find(buildTree(input), 'resource:food');
     // O estoque sobre o limite e a taxa.
-    expect(food).toMatchObject({ label: 'Comida', description: '180/500 (+19/h)' });
-    expect(food?.tooltip).toContain('2 trabalhadores × 10');
+    expect(food).toMatchObject({ label: 'Comida', description: '180/500 (+7/h)' });
+    // Os dois lavradores acabaram de chegar: a explicação diz que rendem metade (V2C-T3).
+    expect(food?.tooltip).toContain('2 trabalhadores (2 em adaptação por 2 h');
+    expect(food?.tooltip).toContain('× 10 × 1 (Nv1)');
     // O ouro não tem limite: só o estoque e a taxa.
     expect(find(buildTree(input), 'resource:gold')?.description).toBe('270 (0/h)');
   });
@@ -364,9 +366,9 @@ describe('árvore', () => {
 
     it('longe de encher, a árvore não fala do limite: a previsão distante fica na tabela', () => {
       const tree = buildTree({ ...input, view: farmers });
-      // 60.632 s no golden: quase 17 horas, mais do que uma ausência comum.
-      expect(farmers.resources[0]?.fullInSeconds).toBe(60_632);
-      expect(find(tree, 'resource:food')?.description).toBe('180/500 (+19/h)');
+      // 61.634 s no golden: 17 horas, mais do que uma ausência comum.
+      expect(farmers.resources[0]?.fullInSeconds).toBe(61_634);
+      expect(find(tree, 'resource:food')?.description).toBe('180/500 (+7/h)');
       expect(find(tree, 'resources')?.description).toBeUndefined();
     });
 
@@ -484,7 +486,7 @@ describe('árvore', () => {
     expect(find(tree, 'workers')?.description).toBe('2/5 alocados · 3 livres');
     expect(find(tree, 'worker:farm')).toMatchObject({
       label: 'Fazenda Nv1',
-      description: '2 · 24/h',
+      description: '2 · 12/h',
       contextValue: 'lords.worker',
       // O clique só abre o painel; quem aloca são os botões + e − do item.
       command: { id: 'lords.openPanel', args: ['fief'] },

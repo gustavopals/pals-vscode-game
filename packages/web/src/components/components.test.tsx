@@ -408,19 +408,20 @@ describe('aba Feudo', () => {
     expect(page).toMatch(
       /<th scope="row">Ouro<\/th><td class="num">270<\/td><td class="num">—<\/td>/,
     );
-    expect(page).toContain('+19');
+    // Os dois lavradores acabaram de chegar: rendem metade enquanto se adaptam (V2C-T3).
+    expect(page).toContain('+7');
     expect(page).toContain(
-      'data-tip="Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h"',
+      'data-tip="Fazenda: 2 trabalhadores (2 em adaptação por 2 h, valendo metade: contam como 1) × 10 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 1 = 5/h"',
     );
     // Para leitores de tela, a explicação acompanha o número em vez de substituí-lo.
-    expect(page).toContain('+19<span class="sr-only"> (Fazenda: 2 trabalhadores');
+    expect(page).toContain('+7<span class="sr-only"> (Fazenda: 2 trabalhadores');
   });
 
   it('trabalhadores com − e +, rotulados para leitores de tela', () => {
     expect(page).toContain('Trabalhadores (2/5)');
     expect(page).toContain('aria-label="Pôr mais um trabalhador em Fazenda"');
     expect(page).toContain('aria-label="Tirar um trabalhador de Serraria"');
-    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 24 por hora"');
+    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 12 por hora"');
   });
 
   it('construções com custos em chips e o que falta em texto, não só em cor', () => {
@@ -569,7 +570,7 @@ describe('aba Feudo: estações, lenha e frio', () => {
       'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)';
     expect(cold).toContain(`data-tip="${wood}"`);
     expect(cold).toContain(
-      'data-tip="10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h"',
+      'data-tip="10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h"',
     );
     expect(row(cold, 'Madeira')).toContain('−9<span class="sr-only">');
     expect(row(cold, 'Madeira')).toContain('class="num negative"');
@@ -806,8 +807,8 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
 
   it('longe de encher, a tendência diz "cheio em" sem alarme e sem aviso', () => {
     const page = fief();
-    // 60.632 s no golden: quase 17 horas.
-    expect(row(page, 'Comida')).toContain('<span class="muted">cheio em 16 h</span>');
+    // 61.634 s no golden: pouco mais de 17 horas, já contando o fim da adaptação.
+    expect(row(page, 'Comida')).toContain('<span class="muted">cheio em 17 h</span>');
     expect(row(page, 'Comida')).not.toContain('codicon-warning');
     expect(page).not.toContain('storage-notes');
   });
@@ -919,7 +920,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(buttons(note ?? '')).toEqual([
       '<button type="button" disabled>Ampliar Celeiro</button>',
     ]);
-    expect(text(note ?? '')).toContain('Faltam 116 madeira e 58 pedra.');
+    expect(text(note ?? '')).toContain('Faltam 139 madeira e 72 pedra.');
   });
 
   it('com a obra do depósito em andamento, o aviso fica e o botão some', () => {
@@ -1024,7 +1025,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     );
     // Liberado e sem recursos: o que falta, em texto.
     expect(text(construct(fief({ view: unlockedView })))).toContain(
-      'Faltam 116 madeira e 58 pedra.',
+      'Faltam 139 madeira e 72 pedra.',
     );
   });
 

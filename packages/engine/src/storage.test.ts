@@ -16,9 +16,11 @@ import {
   gameAt,
   gameWith,
   HOUR,
+  masteryOnDay,
   MINUTE,
   newGame,
   play,
+  reachedAt,
   refuse,
   SPRING,
   SUMMER,
@@ -139,13 +141,21 @@ describe('capacidade (GDD §5.5)', () => {
 });
 
 describe('o instante em que o estoque enche', () => {
-  // 120 de madeira e 3 lenhadores a 8 por hora: faltam 380, que chegam em 15 h 50 min.
-  const FILLS_AT = 15 * HOUR + 50 * MINUTE;
+  // 120 de madeira e 3 lenhadores a 8 por hora: faltam 380, que a 24 por hora chegariam em
+  // 15 h 50 min. A Serraria, ocupada, ganha 4 de experiência a cada virada de dia (× 1,012,
+  // × 1,024...), e os 380 chegam um pouco antes: no 8º dia de jogo, com 15 h 13 min.
+  const FILLS_AT = reachedAt(SPRING, 380_000, (day) => 24 * masteryOnDay(day));
+
+  it('a conta do instante, com a experiência que sobe a cada dia', () => {
+    expect(FILLS_AT).toBe(54_814_761);
+    expect(Math.floor(FILLS_AT / DAY)).toBe(7);
+  });
 
   it('é um evento da linha do tempo, no milissegundo exato', () => {
     const start = woodcutters(3);
-    expect(fillsIn(start, 'wood', netRates(start).wood)).toBe(FILLS_AT);
-    expect(storageFillsIn(start, netRates(start))).toBe(FILLS_AT);
+    // Com a taxa de agora a conta dá 15 h 50 min: a linha do tempo a refaz a cada trecho.
+    expect(fillsIn(start, 'wood', netRates(start).wood)).toBe(15 * HOUR + 50 * MINUTE);
+    expect(storageFillsIn(start, netRates(start))).toBe(15 * HOUR + 50 * MINUTE);
 
     const before = advanceTo(start, FILLS_AT - 1);
     expect(before.state.settlement.resources.wood).toBe(499_999);
@@ -273,14 +283,26 @@ describe('desperdício contado', () => {
       Array.from({ length: 30 }, (_, index) => (index + 1) * DAY),
     );
     expect(eventsOfType(events, 'storageFilled')).toEqual([]);
-    // 24 dias de primavera a 48 por dia e 6 de verão a 55,2 (× 1,15).
-    expect(state.stats.wasted_wood).toBe(24 * 48_000 + 6 * 55_200);
-    expect(wasted.slice(0, 24).every((event) => event.data.wasted_wood === 48)).toBe(true);
+    // 24 dias de primavera a 24 por hora e 6 de verão a 27,6 (× 1,15), cada dia com a mestria
+    // dele: a Serraria, ocupada, ganha 4 de experiência por virada, até 100 no 26º dia.
+    const perDay = Array.from({ length: 30 }, (_, day) => {
+      const rate = 24 * masteryOnDay(day);
+      return 2 * (day < 24 ? rate : Math.floor((rate * 115) / 100));
+    });
+    expect(perDay.slice(0, 2)).toEqual([48_000, 48_576]);
+    expect(perDay.slice(24)).toEqual([71_096, 71_760, 71_760, 71_760, 71_760, 71_760]);
+    expect(state.stats.wasted_wood).toBe(perDay.reduce((sum, day) => sum + day, 0));
     // A fração de unidade não some: passa para o dia seguinte e fecha a conta.
-    expect(wasted.slice(24).map((event) => event.data.wasted_wood)).toEqual([
-      55, 55, 55, 55, 56, 55,
-    ]);
-    expect(state.settlement.wasted.wood).toBe(200);
+    let pending = 0;
+    const units = perDay.map((day) => {
+      pending += day;
+      const whole = Math.floor(pending / 1000);
+      pending -= whole * 1000;
+      return whole;
+    });
+    expect(units.slice(0, 4)).toEqual([48, 48, 49, 50]);
+    expect(wasted.map((event) => event.data.wasted_wood)).toEqual(units);
+    expect(state.settlement.wasted.wood).toBe(pending);
     expectWasteAccounted(state, events);
   });
 
@@ -309,11 +331,13 @@ describe('desperdício contado', () => {
     expect(eventsOfType(turned.events, 'storageWasted')).toEqual([]);
     expect(turned.state.settlement.wasted.food).toBe(500);
     expect(turned.state.stats.wasted_food).toBe(500);
+    // No dia seguinte a Fazenda já tem 4 de experiência: 12 × 1,012 − 11 = 1,144 por hora. Com
+    // o meio que esperava, 2,788: duas unidades na linha e o resto de novo à espera.
     const next = advanceTo(turned.state, 2 * DAY);
     expect(eventsOfType(next.events, 'storageWasted').map((event) => event.data)).toEqual([
       { wasted_food: 2 },
     ]);
-    expect(next.state.settlement.wasted.food).toBe(500);
+    expect(next.state.settlement.wasted.food).toBe(788);
   });
 
   it('dois depósitos cheios no mesmo dia: uma linha só, com os dois recursos', () => {
@@ -354,7 +378,12 @@ describe('desperdício contado', () => {
       draft.settlement.resources.gold = 9_000_000;
     });
     const { state, events } = advanceTo(start, 30 * DAY);
-    expect(state.settlement.resources.gold).toBe(9_000_000 + 16_000 * 60);
+    // 4 mineiros a 16 por hora, 2 h por dia, cada dia com a mestria dele.
+    const mined = Array.from({ length: 30 }, (_, day) => 2 * 16 * masteryOnDay(day));
+    expect(state.settlement.resources.gold).toBe(
+      9_000_000 + mined.reduce((sum, day) => sum + day, 0),
+    );
+    expect(state.settlement.craftExperience.goldMine).toBe(100);
     expect(storageEvents(events)).toEqual([]);
     expect(state.stats.wasted_gold).toBeUndefined();
     expect(row(state, 'gold')).toMatchObject({
@@ -402,9 +431,9 @@ describe('limite com consumo contínuo (comida)', () => {
       command('setWorkers', { building: 'farm', count: 5 }),
       { at: 3 * HOUR },
     ]);
-    // Faltam 5 a 55 por hora: 1/11 de hora, arredondado para cima em milissegundos.
+    // Cinco lavradores recém-chegados rendem metade, 30: faltam 5 a 25 por hora, 1/5 de hora.
     expect(eventsOfType(again.events, 'storageFilled').map((event) => event.atMs)).toEqual([
-      2 * HOUR + Math.ceil((5_000 * HOUR) / 55_000),
+      2 * HOUR + Math.ceil((5_000 * HOUR) / 25_000),
     ]);
   });
 
@@ -758,10 +787,13 @@ describe('construir o Celeiro e o Armazém', () => {
     // Sem a obra, no mesmo instante, a Despensa enche.
     const without = advanceTo(start, 10 * MINUTE);
     expect(types(without.events)).toEqual(['storageFilled']);
-    // E o Celeiro novo enche mais tarde, no limite dele: faltam 400 a 18 por hora.
+    // E o Celeiro novo enche mais tarde, no limite dele: faltam 400, a 18 por hora no primeiro
+    // dia e um pouco mais a cada virada, com a experiência da Fazenda (24 × mestria − 6).
+    const fillsAt = reachedAt(10 * MINUTE, 400_000, (day) => 24 * masteryOnDay(day) - 6_000);
+    expect(fillsAt).toBeLessThan(10 * MINUTE + Math.ceil((400_000 * HOUR) / 18_000));
     const later = advanceTo(state, 30 * HOUR);
     expect(eventsOfType(later.events, 'storageFilled')).toMatchObject([
-      { atMs: 10 * MINUTE + Math.ceil((400_000 * HOUR) / 18_000), data: { cap: 900, level: 1 } },
+      { atMs: fillsAt, data: { cap: 900, level: 1 } },
     ]);
   });
 
@@ -925,21 +957,23 @@ describe('a visão do armazenamento', () => {
 
   it('"cheio em" sai em segundos reais, no ritmo da partida', () => {
     const start = woodcutters(3);
-    // 15 h 50 min de jogo.
+    // 15 h 13 min 34,761 s de jogo: já com a experiência que a Serraria ganha no caminho.
+    const fillsAt = reachedAt(SPRING, 380_000, (day) => 24 * masteryOnDay(day));
     expect(row(start, 'wood')).toMatchObject({
       full: false,
-      fullInSeconds: 57_000,
+      fullInSeconds: Math.ceil(fillsAt / 1000),
       fullNote: null,
     });
-    expect(row(start, 'wood', 3).fullInSeconds).toBe(19_000);
-    expect(row(start, 'wood', 0.5).fullInSeconds).toBe(114_000);
+    expect(row(start, 'wood').fullInSeconds).toBe(54_815);
+    expect(row(start, 'wood', 3).fullInSeconds).toBe(Math.ceil(fillsAt / 3 / 1000));
+    expect(row(start, 'wood', 0.5).fullInSeconds).toBe(Math.ceil((fillsAt * 2) / 1000));
     // O ritmo gravado na partida vale sem ninguém informar.
     const fast = woodcutters(3, (draft) => {
       draft.settings.timeScale = 3;
     });
-    expect(row(fast, 'wood').fullInSeconds).toBe(19_000);
+    expect(row(fast, 'wood').fullInSeconds).toBe(Math.ceil(fillsAt / 3 / 1000));
     // Arredonda para cima: faltando um milissegundo de jogo, ainda falta um segundo.
-    const almost = advanceTo(start, 15 * HOUR + 50 * MINUTE - 1).state;
+    const almost = advanceTo(start, fillsAt - 1).state;
     expect(row(almost, 'wood').fullInSeconds).toBe(1);
   });
 
@@ -1068,10 +1102,10 @@ describe('a visão do armazenamento', () => {
       });
       // Uma obra que não mexe na madeira nem no depósito dela não interrompe a previsão.
       expect(row(building('housing'), 'wood')).toMatchObject({
-        fullInSeconds: 57_000,
+        fullInSeconds: 54_815,
         fullNote: null,
       });
-      expect(row(building('granary'), 'wood').fullInSeconds).toBe(57_000);
+      expect(row(building('granary'), 'wood').fullInSeconds).toBe(54_815);
     });
 
     it('a chegada de um aldeão, para a comida', () => {
@@ -1088,7 +1122,7 @@ describe('a visão do armazenamento', () => {
       const lumber = woodcutters(3, (draft) => {
         draft.settlement.recruitmentQueue = [{ finishesAtMs: HOUR }];
       });
-      expect(row(lumber, 'wood').fullInSeconds).toBe(57_000);
+      expect(row(lumber, 'wood').fullInSeconds).toBe(54_815);
     });
 
     it('a comida acabando: a fome corta toda a produção', () => {
@@ -1115,13 +1149,40 @@ describe('a visão do armazenamento', () => {
       });
     });
 
-    it('a previsão bate com o que acontece', () => {
+    it('a previsão bate com o que acontece, com a experiência subindo no caminho', () => {
       const start = woodcutters(3);
       const seconds = row(start, 'wood').fullInSeconds ?? 0;
       const { events } = advanceTo(start, seconds * 1000);
-      expect(eventsOfType(events, 'storageFilled').map((event) => event.atMs)).toEqual([
-        seconds * 1000,
-      ]);
+      const filledAt = eventsOfType(events, 'storageFilled').map((event) => event.atMs);
+      expect(filledAt).toHaveLength(1);
+      // Ao segundo: a visão arredonda o milissegundo exato para cima.
+      expect(Math.ceil((filledAt[0] ?? 0) / 1000)).toBe(seconds);
+      expect(eventsOfType(advanceTo(start, (seconds - 1) * 1000).events, 'storageFilled')).toEqual(
+        [],
+      );
+    });
+
+    it('a previsão bate com o que acontece, com gente em adaptação no caminho', () => {
+      // Quatro lenhadores recém-chegados: metade no primeiro dia de jogo, inteiros depois.
+      const start = accept(
+        woodcutters(0),
+        command('setWorkers', { building: 'lumberMill', count: 4 }),
+      ).state;
+      const fillsAt = reachedAt(SPRING, 380_000, (day) =>
+        day === 0 ? 16_000 : 32 * masteryOnDay(day),
+      );
+      const seconds = row(start, 'wood').fullInSeconds;
+      expect(seconds).toBe(Math.ceil(fillsAt / 1000));
+      const { events } = advanceTo(start, fillsAt);
+      expect(eventsOfType(events, 'storageFilled').map((event) => event.atMs)).toEqual([fillsAt]);
+      // Com a taxa de agora, sem contar o fim da adaptação, a conta daria quase o dobro.
+      expect(fillsAt).toBeLessThan(fillsIn(start, 'wood', netRates(start).wood) ?? 0);
+    });
+
+    it('a previsão não promete o que a experiência sozinha não entrega', () => {
+      // Ninguém na Serraria: a madeira não sobe, com ou sem ofício.
+      expect(row(woodcutters(0), 'wood').fullInSeconds).toBeNull();
+      expect(row(woodcutters(0), 'wood').fullNote).toBeNull();
     });
   });
 

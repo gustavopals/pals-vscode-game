@@ -20,7 +20,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -46,6 +46,9 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       famine: null,
       cold: null,
       wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+      craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
+      craftMasteredYear: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
+      adaptation: [],
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),
