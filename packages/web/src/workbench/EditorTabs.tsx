@@ -1,5 +1,6 @@
 import { CLOSABLE_ROUTES, ROUTE_ICONS, ROUTE_LABELS, type Route } from '../app/router';
 import { Icon } from '../components/shared';
+import { pendingCards } from '../ui/council';
 
 /** As abas da área central. `Tab` chega à aba ativa; as setas trocam de aba. */
 export function EditorTabs(props: {
@@ -7,10 +8,16 @@ export function EditorTabs(props: {
   active: Route;
   /** Há um Relatório de Retorno por ler: a aba Hoje ganha um ponto. */
   hasNews: boolean;
+  /**
+   * Cartas à espera de resposta: a aba do Conselho ganha o número, dito por extenso a quem não
+   * o vê.
+   */
+  pendingCards?: number;
   onSelect: (route: Route) => void;
   onClose: (route: Route) => void;
 }) {
   const { tabs, active } = props;
+  const cards = props.pendingCards ?? 0;
   const onKeyDown = (event: KeyboardEvent) => {
     const index = tabs.indexOf(active);
     const move = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
@@ -50,6 +57,11 @@ export function EditorTabs(props: {
               {ROUTE_LABELS[route]}
               {route === 'today' && props.hasNews ? (
                 <span class="dot" role="img" aria-label="há novidades" />
+              ) : null}
+              {route === 'council' && cards > 0 ? (
+                <span class="tab-count" role="img" aria-label={pendingCards(cards)}>
+                  {cards}
+                </span>
               ) : null}
             </button>
             {CLOSABLE_ROUTES.includes(route) ? (

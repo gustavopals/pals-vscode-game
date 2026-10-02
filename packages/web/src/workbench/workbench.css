@@ -301,6 +301,19 @@ body,
   background: var(--vscode-notificationsInfoIcon-foreground);
 }
 
+/* Quantas cartas esperam, na aba do Conselho: um número pequeno, com rótulo por extenso. */
+.tab-count {
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  outline: 1px solid var(--vscode-contrastBorder);
+  color: var(--vscode-badge-foreground);
+  background: var(--vscode-badge-background);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+
 .editor-content {
   flex: 1;
   min-height: 0;
@@ -478,6 +491,20 @@ input::placeholder {
   padding: 2px 4px 6px;
   color: var(--vscode-descriptionForeground);
   font-size: 0.92em;
+}
+
+/*
+ * O que se lê antes de escolher (a situação de uma carta do Conselho), acima do campo de busca.
+ * Rola por conta própria: um texto longo não empurra a lista para fora da tela.
+ */
+.quickpick-reading {
+  max-height: 32vh;
+  padding: 2px 4px 6px;
+  overflow: hidden auto;
+}
+
+.quickpick-reading p {
+  margin: 0 0 6px;
 }
 
 .quickpick-list {

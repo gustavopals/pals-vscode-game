@@ -155,31 +155,41 @@ const counted = (count: number, one: string, many: string) =>
   `${formatNumber(count)} ${count === 1 ? one : many}`;
 
 /**
- * Quem chegou e quem se foi na ausência, pelos eventos, cada frase com o seu porquê. As chegadas
- * são dos colonos que vieram sozinhos; os recrutados continuam na linha das contagens.
+ * Quem chegou e quem se foi na ausência, pelas contagens dos eventos: uma frase por motivo, cada
+ * uma com o seu porquê, ou `null` quando ninguém se moveu por ele. O Relatório de Retorno põe as
+ * chegadas em "O feudo prosperou" e as perdas em "O que exigiu um preço": seis deserções são uma
+ * linha, não seis.
  */
-export function peopleMoved(counts: ReturnReport['counts']): { gained: string[]; lost: string[] } {
+export function peopleMoved(counts: ReturnReport['counts']): {
+  /** Os recrutados que chegaram: quem o Salão mandou chamar. */
+  recruits: string | null;
+  /** Os colonos que vieram sozinhos, atraídos pela moral alta. */
+  settlers: string | null;
+  /** Quem partiu com a moral baixa. */
+  left: string | null;
+  /** Quem desertou na fome longa. */
+  deserted: string | null;
+} {
+  const recruits = counts.villagersArrived;
   const settlers = counts.settlersArrived ?? 0;
   const left = counts.villagersLeft ?? 0;
   const deserted = counts.villagersDeserted ?? 0;
   return {
-    gained:
+    recruits:
+      recruits > 0
+        ? `${recruits === 1 ? 'Chegou' : 'Chegaram'} ${counted(recruits, 'recruta', 'recrutas')} que o Salão mandou chamar.`
+        : null,
+    settlers:
       settlers > 0
-        ? [
-            `${settlers === 1 ? 'Chegou' : 'Chegaram'} ${counted(settlers, 'colono', 'colonos')} sem ninguém chamar: a moral alta atrai gente.`,
-          ]
-        : [],
-    lost: [
-      ...(left > 0
-        ? [
-            `${left === 1 ? 'Partiu' : 'Partiram'} ${counted(left, 'aldeão', 'aldeões')}: a moral estava baixa.`,
-          ]
-        : []),
-      ...(deserted > 0
-        ? [
-            `${deserted === 1 ? 'Desertou' : 'Desertaram'} ${counted(deserted, 'aldeão', 'aldeões')}: a fome durou demais.`,
-          ]
-        : []),
-    ],
+        ? `${settlers === 1 ? 'Chegou' : 'Chegaram'} ${counted(settlers, 'colono', 'colonos')} sem ninguém chamar: a moral alta atrai gente.`
+        : null,
+    left:
+      left > 0
+        ? `${left === 1 ? 'Partiu' : 'Partiram'} ${counted(left, 'aldeão', 'aldeões')}: a moral estava baixa.`
+        : null,
+    deserted:
+      deserted > 0
+        ? `${deserted === 1 ? 'Desertou' : 'Desertaram'} ${counted(deserted, 'aldeão', 'aldeões')}: a fome durou demais.`
+        : null,
   };
 }

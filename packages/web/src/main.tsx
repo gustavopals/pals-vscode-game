@@ -75,6 +75,15 @@ const commands = createCommands(controller, dialogs, {
   sleep: (ms) => new Promise((done) => setTimeout(done, ms)),
   currentTheme,
   openPalette: () => void showPalette(),
+  reveal: (elementId) => {
+    // A aba pedida só é desenhada depois deste comando: a seção existe no quadro seguinte.
+    requestAnimationFrame(() => {
+      const section = document.getElementById(elementId);
+      // No meio da tela: o cabeçalho preso do feudo não fica por cima do título.
+      section?.scrollIntoView({ block: 'center' });
+      section?.focus({ preventScroll: true });
+    });
+  },
 });
 bindCommands(controller, commands);
 

@@ -7,6 +7,21 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value);
 }
 
+/** Quanto tempo o jogador ficou fora: "5 horas", "2 dias e 3 horas". */
+export function formatAway(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const days = Math.floor(hours / 24);
+  const plural = (value: number, one: string, many: string) =>
+    `${value} ${value === 1 ? one : many}`;
+  if (days === 0) {
+    return plural(Math.max(1, hours), 'hora', 'horas');
+  }
+  const rest = hours % 24;
+  return rest === 0
+    ? plural(days, 'dia', 'dias')
+    : `${plural(days, 'dia', 'dias')} e ${plural(rest, 'hora', 'horas')}`;
+}
+
 /** Taxa com sinal: "+15/h", "−5/h", "0/h". */
 export function formatRate(perHour: number): string {
   if (perHour === 0) {
@@ -322,8 +337,11 @@ export type StatusBarInput = {
 export type StatusBarOutput = {
   text: string;
   tooltip: string;
-  /** A aba a que o clique leva; sem ela, vale a aba em que o app abriria. */
-  target?: 'today' | 'fief';
+  /**
+   * A aba a que o clique leva (um argumento de `lords.openPanel`); sem ela, vale a aba em que o
+   * app abriria. `threat` é o painel da Ameaça, na aba Feudo: a página e o foco vão até ele.
+   */
+  target?: 'today' | 'fief' | 'council' | 'threat';
   /** Fome ou frio: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
@@ -356,24 +374,74 @@ function mostPressingStorage(view: ViewState): ResourceRow | null {
     );
 }
 
+/** "1 decisão pendente", "2 decisões pendentes". */
+export function pendingDecisionsLabel(count: number): string {
+  return `${count} ${count === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
+}
+
 /**
- * O assunto de maior prioridade do feudo (GDD §13.5): decisões pendentes > fome e frio >
- * depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de comida. A fome e
- * o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os
- * dois. Com duas obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
+ * O prazo de uma decisão, em tempo real: "expira em 14 h", "expira em 25 min". O prazo já vem do
+ * servidor em horas de relógio, em qualquer ritmo; aqui só se desconta o tempo desde a leitura.
+ * É o mesmo texto na aba do Conselho, na árvore, na aba Hoje e na barra de status.
+ */
+export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): string {
+  const left = remainingNow(secondsAtReceipt, elapsedSeconds);
+  return left <= 0 ? 'prazo encerrado' : `expira em ${formatApprox(left)}`;
+}
+
+/**
+ * O assunto de maior prioridade do feudo (GDD §13.5): incursão a caminho > decisões pendentes >
+ * fome e frio > depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de
+ * comida. A fome e o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a
+ * explicação traz os dois. Com duas obras em curso, aparece a que termina primeiro, e a outra
+ * entra como "+1 obra".
+ *
+ * A incursão que os vigias avistaram passa na frente de tudo (o exemplo do GDD para esta linha é
+ * "Cerco em 1d 03h"): é o único assunto com prazo curto que se resolve sozinho, no máximo a
+ * antecedência que a Torre dá, e foi para vê-lo antes que o jogador a ergueu. Uma carta espera um
+ * dia; a fome e o frio duram horas e têm o aviso deles no alto das abas, que continua lá. Quando
+ * o ataque chega, a linha volta ao assunto que estava. Não leva o destaque de alarme: a mesma
+ * linha anuncia o ataque que a Paliçada vai segurar, e o app não sabe qual é qual; quem diz é a
+ * explicação, com o que o ataque custa e o que a defesa faz a ele, nas frases do servidor.
+ *
+ * As decisões pendentes são as cartas do Conselho: a linha diz quantas esperam e o prazo da que
+ * vence primeiro (a lista já vem do prazo mais curto ao mais longo), a explicação dá o título e
+ * o prazo de cada uma, e o clique leva à aba do Conselho. No título da aba do navegador elas
+ * entram no contador, e não como assunto: "(1) Pedra Alta".
  */
 function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   const name = view.settlement.name;
-  const decisions = view.pendingDecisions.length;
-  if (decisions > 0) {
-    const pending = `${decisions} ${decisions === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
+  const { incoming } = view.threat;
+  if (incoming !== null) {
+    const due = `${incoming.enemyLabel} em ${formatApprox(remainingNow(incoming.inSeconds, elapsedSeconds))}`;
     return {
       bar: {
-        text: `$(law) ${pending}`,
-        tooltip: `${name}: ${pending}. Elas esperam na aba Hoje.`,
-        target: 'today',
+        text: `$(megaphone) ${due}`,
+        tooltip: `${name}: ${incoming.text} ${incoming.costText} ${incoming.defenseText}`,
+        // O painel da Ameaça (`THREAT_SECTION`, em `ui/threat.ts`): é onde está a obra da defesa.
+        target: 'threat',
       },
-      title: `${pending} · ${name}`,
+      title: `${due} · ${name}`,
+    };
+  }
+  const decisions = view.pendingDecisions;
+  const soonest = decisions[0];
+  if (soonest !== undefined) {
+    const pending = pendingDecisionsLabel(decisions.length);
+    const each = decisions.map(
+      (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
+    );
+    return {
+      bar: {
+        text: `$(law) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        tooltip:
+          `${name}: ${each.join('; ')}. ` +
+          (decisions.length === 1
+            ? 'A carta espera na aba Conselho.'
+            : 'As cartas esperam na aba Conselho.'),
+        target: 'council',
+      },
+      title: null,
     };
   }
   const cold = view.winter?.cold ?? null;
@@ -441,8 +509,9 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
 
 /**
  * A linha da barra de status: uma linha, uma prioridade (GDD §13.5). Sem ligação passa na frente
- * de tudo; depois vale o assunto de `statusTopic`, com o contador de novidades ao lado. No modo
- * discreto, só um contador.
+ * de tudo (o estado guardado pode estar velho, e a incursão dele pode já ter passado); depois
+ * vale o assunto de `statusTopic`, com o contador de novidades ao lado. No modo discreto, só um
+ * contador.
  */
 export function statusBar(input: StatusBarInput): StatusBarOutput {
   const { view, connection } = input;
@@ -512,9 +581,10 @@ const APP_TITLE = 'Lords of the Guild';
 
 /**
  * O título da aba do navegador: é o que se vê com a aba em segundo plano. Na frente, quantas
- * novidades esperam; depois, o mesmo assunto que toma a barra de status (decisões pendentes,
- * fome e frio, depósito a encher, obra) e o nome do feudo. Sem ligação o estado guardado pode
- * estar velho: fica só o nome. No modo discreto, só um contador.
+ * coisas esperam o jogador: as novidades e as decisões pendentes, somadas ("(1) Pedra Alta").
+ * Depois, o mesmo assunto que toma a barra de status (fome e frio, depósito a encher, obra) e o
+ * nome do feudo. Sem ligação o estado guardado pode estar velho: fica só o nome, e as decisões
+ * dele não entram no contador. No modo discreto, só um contador de tempo.
  */
 export function documentTitle(input: StatusBarInput): string {
   if (!input.signedIn || input.view === null) {
@@ -523,9 +593,10 @@ export function documentTitle(input: StatusBarInput): string {
   if (input.discreetMode) {
     return stripIcons(statusBar(input).text);
   }
-  const news = input.pending > 0 ? `(${input.pending}) ` : '';
+  const online = input.connection.kind === 'online';
+  const waiting = input.pending + (online ? input.view.pendingDecisions.length : 0);
+  const news = waiting > 0 ? `(${waiting}) ` : '';
   const name = input.view.settlement.name;
-  const topic =
-    input.connection.kind === 'online' ? statusTopic(input.view, input.elapsedSeconds).title : null;
+  const topic = online ? statusTopic(input.view, input.elapsedSeconds).title : null;
   return `${news}${topic ?? name} · ${APP_TITLE}`;
 }

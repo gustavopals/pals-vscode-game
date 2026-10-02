@@ -1,9 +1,17 @@
 /** As abas da área central. */
-export const ROUTES = ['welcome', 'today', 'fief', 'chronicle', 'settings', 'about'] as const;
+export const ROUTES = [
+  'welcome',
+  'today',
+  'fief',
+  'council',
+  'chronicle',
+  'settings',
+  'about',
+] as const;
 export type Route = (typeof ROUTES)[number];
 
 /** Abas que só existem com um feudo aberto. */
-export const GAME_ROUTES: readonly Route[] = ['today', 'fief', 'chronicle'];
+export const GAME_ROUTES: readonly Route[] = ['today', 'fief', 'council', 'chronicle'];
 /** Abas que o jogador abre e fecha; as outras estão sempre lá. */
 export const CLOSABLE_ROUTES: readonly Route[] = ['chronicle', 'settings', 'about'];
 
@@ -11,6 +19,7 @@ const PATHS: Record<Route, string> = {
   welcome: 'boas-vindas',
   today: 'hoje',
   fief: 'feudo',
+  council: 'conselho',
   chronicle: 'cronica',
   settings: 'preferencias',
   about: 'sobre',
@@ -20,6 +29,7 @@ export const ROUTE_LABELS: Record<Route, string> = {
   welcome: 'Boas-vindas',
   today: 'Hoje',
   fief: 'Feudo',
+  council: 'Conselho',
   chronicle: 'Crônica',
   settings: 'Preferências',
   about: 'Sobre',
@@ -29,6 +39,7 @@ export const ROUTE_ICONS: Record<Route, string> = {
   welcome: 'home',
   today: 'calendar',
   fief: 'shield',
+  council: 'law',
   chronicle: 'book',
   settings: 'gear',
   about: 'info',
@@ -58,9 +69,12 @@ export function resolveRoute(requested: Route, hasGame: boolean, fallback: Route
   return requested;
 }
 
-/** As abas à vista, na ordem: as fixas e depois as que o jogador abriu. */
+/**
+ * As abas à vista, na ordem: as fixas e depois as que o jogador abriu. O Conselho é fixo como o
+ * feudo: é onde as cartas esperam, e o jogador não precisa lembrar de abri-lo.
+ */
 export function visibleTabs(hasGame: boolean, opened: readonly Route[]): Route[] {
-  const fixed: Route[] = hasGame ? ['today', 'fief'] : ['welcome'];
+  const fixed: Route[] = hasGame ? ['today', 'fief', 'council'] : ['welcome'];
   const extra = CLOSABLE_ROUTES.filter(
     (route) => opened.includes(route) && (hasGame || !GAME_ROUTES.includes(route)),
   );

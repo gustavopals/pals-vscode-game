@@ -1,10 +1,14 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { INJURED_ICON } from '../ui/threat';
 import {
   adaptationLine,
+  employed,
   experienceNeedsAttention,
   experienceSummary,
   experienceTrendWord,
+  injuredCount,
+  injuredLine,
   isMastered,
   nextWorkerGain,
   workersCount,
@@ -61,6 +65,7 @@ function rowLabel(row: Row, rules: Rules): string {
   return [
     `${row.label} nível ${row.level}: ${workersCount(row.assigned)}, ${formatNumber(row.grossPerHour)} por hora`,
     row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+    row.injured > 0 ? injuredCount(row.injured) : null,
     isMastered(row, rules)
       ? 'ofício dominado'
       : `experiência ${formatNumber(row.experience)} de ${formatNumber(rules.experienceMax)}${trend === null ? '' : `, ${trend}`}`,
@@ -103,14 +108,25 @@ export function WorkersPanel(props: {
   return (
     <section aria-labelledby="workers-title">
       <h2 id="workers-title">
-        Trabalhadores ({population.villagers - population.free}/{population.villagers})
+        Trabalhadores ({employed(population)}/{population.villagers})
       </h2>
       <p class="muted hint">
-        {population.free === 0
-          ? 'Todos têm ofício.'
-          : `${population.free} ${population.free === 1 ? 'aldeão livre' : 'aldeões livres'}.`}{' '}
+        {population.free > 0
+          ? `${population.free} ${population.free === 1 ? 'aldeão livre' : 'aldeões livres'}.`
+          : population.injured > 0
+            ? 'Quem pode trabalhar tem ofício.'
+            : 'Todos têm ofício.'}{' '}
         Use + e − no teclado.
       </p>
+      {/*
+        Os feridos de uma incursão: não trabalham nem estão livres. A frase é a do servidor, com
+        o prazo e a volta ao ofício; a contagem regressiva fica no cabeçalho.
+      */}
+      {population.injured > 0 && population.injuredNote !== null ? (
+        <p class="injured-note">
+          <Icon name={INJURED_ICON} /> {population.injuredNote}
+        </p>
+      ) : null}
       {/* O custo da troca fica à vista antes de qualquer clique: as duas frases são do servidor. */}
       <p class="muted hint craft-rules">
         {rules.adaptationText} {rules.removalText}
@@ -118,6 +134,7 @@ export function WorkersPanel(props: {
       <ul class="workers">
         {workers.map((row) => {
           const adapting = adaptationLine(row, elapsed, formatCountdown);
+          const injured = injuredLine(row);
           const gainId = `worker-gain-${row.building}`;
           return (
             <li
@@ -166,6 +183,11 @@ export function WorkersPanel(props: {
                 <span class="worker-adapting">
                   <Icon name="history" /> {adapting}, rendendo{' '}
                   {formatNumber(row.perNewWorkerPerHour)}/h cada
+                </span>
+              )}
+              {injured === null ? null : (
+                <span class="worker-injured">
+                  <Icon name={INJURED_ICON} /> {injured}
                 </span>
               )}
               {experienceNeedsAttention(row, rules) ? (

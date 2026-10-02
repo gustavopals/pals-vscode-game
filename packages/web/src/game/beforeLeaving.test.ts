@@ -9,8 +9,12 @@ import {
   FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
   initialView,
+  palisadeRaisedView,
   proudView,
   queuesView,
+  raidAftermathView,
+  threatIncomingView,
+  threatWatchedView,
   unlockedView,
   winterWith,
   withFoodAhead,
@@ -19,7 +23,14 @@ import {
   withResource,
   withUpgrade,
 } from '../test-helpers';
-import { beforeLeaving, type LeavingItem, MAX_LEAVING_ITEMS } from './beforeLeaving';
+import {
+  beforeLeaving,
+  defenseCommand,
+  type LeavingItem,
+  leavingItems,
+  MAX_LEAVING_ITEMS,
+  storageCommand,
+} from './beforeLeaving';
 
 const HOUR = 3600;
 
@@ -503,6 +514,72 @@ describe('antes de partir', () => {
     });
   });
 
+  describe('a incursão que os vigias avistaram (GDD §8.2)', () => {
+    // Leva à aba Feudo, com a página e o foco no painel da Ameaça.
+    const SEE = { id: 'lords.openPanel', arg: 'threat', label: 'Ver a defesa' };
+
+    it('abre a lista: o aviso, o prazo e o que a Paliçada faz a este ataque, nas frases do servidor', () => {
+      const [first] = beforeLeaving(threatIncomingView);
+      expect(first).toEqual({
+        id: 'raid',
+        severity: 'warning',
+        text: 'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min. Sem Paliçada, nada segura este ataque.',
+        // O Salão ainda está no nível 2 e a Torre no teto: nenhuma das duas obras pode começar.
+        command: SEE,
+      });
+    });
+
+    it('com a obra da Paliçada liberada, o botão é ela', () => {
+      const [first] = beforeLeaving(palisadeRaisedView);
+      expect(first).toMatchObject({
+        id: 'raid',
+        text: 'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min. A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago.',
+        command: { id: 'lords.build', arg: 'palisade', label: 'Melhorar Paliçada' },
+      });
+    });
+
+    it('sem incursão à vista não há item: com a Torre e sem ela', () => {
+      for (const view of [threatWatchedView, raidAftermathView, initialView, craftsView]) {
+        expect(ids(leavingItems(view))).not.toContain('raid');
+      }
+    });
+
+    describe('o botão da defesa', () => {
+      it('a Paliçada primeiro, quando a obra dela pode começar: é o que muda o desfecho', () => {
+        // Sem Torre e com o Salão no nível 3, as duas obras estão liberadas.
+        expect(defenseCommand(craftsView)).toEqual({
+          id: 'lords.build',
+          arg: 'palisade',
+          label: 'Construir Paliçada',
+        });
+      });
+
+      it('com a Paliçada travada, a Torre de Vigia: o próximo ataque é visto antes', () => {
+        expect(defenseCommand(threatWatchedView)).toEqual({
+          id: 'lords.build',
+          arg: 'watchtower',
+          label: 'Melhorar Torre de Vigia',
+        });
+        const noTower = withUpgrade(craftsView, 'palisade', {
+          blockedReason: 'Faltam 80 madeira.',
+        });
+        expect(defenseCommand(noTower)).toEqual({
+          id: 'lords.build',
+          arg: 'watchtower',
+          label: 'Construir Torre de Vigia',
+        });
+      });
+
+      it('com as duas travadas, ou com a Paliçada já em obras, o caminho para o painel da Ameaça', () => {
+        expect(defenseCommand(initialView)).toEqual(SEE);
+        const underway = withQueues(craftsView, [
+          activeConstruction({ building: 'palisade', label: 'Paliçada', targetLevel: 1 }),
+        ]);
+        expect(defenseCommand(underway)).toEqual(SEE);
+      });
+    });
+  });
+
   it('o feudo recém-fundado: planejar uma obra e dar ofício aos cinco', () => {
     // A comida dura 36 horas: ainda não é assunto.
     expect(ids(beforeLeaving(initialView))).toEqual(['queue', 'idle']);
@@ -539,6 +616,36 @@ describe('antes de partir', () => {
     ]);
     // O sexto, os aldeões livres, ficou de fora: é o menos urgente.
     expect(worst.population.free).toBeGreaterThan(0);
+    // A lista inteira, sem o limite, é de onde o Relatório de Retorno tira as ações dele.
+    expect(ids(leavingItems(worst))).toEqual([...ids(items), 'idle']);
+    // O que o relatório já trouxe com o mesmo botão não se repete, e não ocupa uma das cinco
+    // linhas: o que estava de fora entra.
+    expect(ids(beforeLeaving(worst, ['queue']))).toEqual([
+      'food',
+      'firewood',
+      'storage:granary',
+      'storage:warehouse',
+      'idle',
+    ]);
+    expect(ids(beforeLeaving(initialView, ['queue', 'idle']))).toEqual([]);
+    expect(ids(beforeLeaving(initialView, ['card:x']))).toEqual(['queue', 'idle']);
+  });
+
+  it('o botão de um depósito: a obra, quando nada a trava; senão, o caminho para o aviso dele', () => {
+    const see = { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
+    // Antes do Salão Nv2 o Celeiro nem é oferecido sem bloqueio.
+    expect(storageCommand(initialView, 'granary')).toEqual(see);
+    const able = withUpgrade(unlockedView, 'granary', { blockedReason: null });
+    expect(storageCommand(able, 'granary')).toEqual({
+      id: 'lords.build',
+      arg: 'granary',
+      label: 'Construir Celeiro',
+    });
+    // Com a obra do depósito já em curso, não há o que pedir de novo.
+    const underway = withQueues(able, [
+      activeConstruction({ building: 'granary', label: 'Celeiro' }),
+    ]);
+    expect(storageCommand(underway, 'granary')).toEqual(see);
   });
 
   it('todo item tem uma ação', () => {
@@ -549,6 +656,9 @@ describe('antes de partir', () => {
       coldView,
       autumnView,
       queuesView,
+      threatIncomingView,
+      palisadeRaisedView,
+      raidAftermathView,
     ]) {
       for (const item of beforeLeaving(view)) {
         expect(item.command.label).not.toBe('');

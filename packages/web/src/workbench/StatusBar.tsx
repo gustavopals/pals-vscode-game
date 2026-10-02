@@ -44,7 +44,7 @@ export function StatusBar(props: {
           class={`status-main${tone}`}
           title={status.tooltip}
           onClick={() =>
-            // O assunto da linha diz a aba: as decisões esperam em Hoje; o depósito, no feudo.
+            // O assunto da linha diz a aba: as cartas esperam no Conselho; o depósito, no feudo.
             props.onCommand(input.signedIn ? 'lords.openPanel' : 'lords.playNow', status.target)
           }
         >

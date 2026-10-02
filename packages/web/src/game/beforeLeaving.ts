@@ -17,6 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
+import { palisadeWork, THREAT_SECTION, watchtowerWork } from '../ui/threat';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -53,7 +54,7 @@ const urgency = (seconds: number): LeavingSeverity =>
   seconds < FULL_SOON_SECONDS ? 'danger' : 'warning';
 
 /** O comando que leva ao edifício que produz `resource`: "Alocar na Fazenda". */
-function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'] {
+export function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'] {
   const producer = view.workers.find((row) => row.resource === resource);
   return producer === undefined
     ? { id: 'lords.allocateWorkers', label: 'Alocar trabalhadores' }
@@ -221,13 +222,34 @@ function firewoodItem(view: ViewState): LeavingItem | null {
   };
 }
 
+type StorageBuilding = NonNullable<Row['storageBuilding']>;
+
+/**
+ * O que o botão de um depósito faz: erguer ou ampliar o edifício, quando a obra é oferecida e
+ * nada a trava. Com a obra travada (falta recurso, falta o Salão) ou já em curso, o botão leva ao
+ * feudo: é lá que o aviso do depósito traz o custo, o prazo e o motivo.
+ */
+export function storageCommand(view: ViewState, building: StorageBuilding): LeavingItem['command'] {
+  const underway = busyQueues(view.constructions).some((queue) => queue.building === building);
+  const upgrade = underway
+    ? undefined
+    : view.constructions.available.find((entry) => entry.building === building);
+  return upgrade !== undefined && upgrade.blockedReason === null
+    ? {
+        id: 'lords.build',
+        arg: building,
+        label: `${isNewBuilding(upgrade) ? 'Construir' : 'Ampliar'} ${upgrade.label}`,
+      }
+    : { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
+}
+
 /**
  * Um item por depósito que está cheio e perdendo, ou a menos de uma ausência comum de encher.
  * A madeira e a pedra dividem o Armazém: um item, um botão. Com a obra do depósito em curso e
  * pronta antes de ele encher, o jogador já fez o que havia a fazer: nada a dizer.
  */
 function storageItems(view: ViewState): LeavingItem[] {
-  const groups = new Map<NonNullable<Row['storageBuilding']>, Row[]>();
+  const groups = new Map<StorageBuilding, Row[]>();
   for (const row of view.resources) {
     if (row.storageBuilding !== null && (isWasting(row) || fillsSoon(row))) {
       groups.set(row.storageBuilding, [...(groups.get(row.storageBuilding) ?? []), row]);
@@ -266,24 +288,11 @@ function storageItems(view: ViewState): LeavingItem[] {
         `A obra de ${underway.label} termina em ${formatApprox(underway.secondsRemaining)}.`,
       );
     }
-    const upgrade =
-      underway === undefined
-        ? view.constructions.available.find((entry) => entry.building === building)
-        : undefined;
     items.push({
       id: `storage:${building}`,
       severity: 'warning',
       text: sentences.join(' '),
-      // Com a obra travada (falta recurso, falta o Salão) ou já em curso, o botão leva ao feudo:
-      // é lá que o aviso do depósito traz o custo, o prazo e o motivo.
-      command:
-        upgrade !== undefined && upgrade.blockedReason === null
-          ? {
-              id: 'lords.build',
-              arg: building,
-              label: `${isNewBuilding(upgrade) ? 'Construir' : 'Ampliar'} ${upgrade.label}`,
-            }
-          : { id: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' },
+      command: storageCommand(view, building),
     });
   }
   return items;
@@ -352,6 +361,50 @@ function queueItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * O que fazer a respeito de um ataque, pelo que a visão diz das duas obras da Ameaça (GDD §8.2 e
+ * §12.3): a Paliçada, quando a obra dela pode começar agora, porque é ela que muda o desfecho;
+ * sem isso, a Torre de Vigia, que faz o próximo ataque ser visto antes; e, se nenhuma das duas
+ * pode ser ordenada (em curso, travada, no teto desta versão), o caminho para o painel da Ameaça,
+ * onde estão o custo e o motivo: o botão leva a página e o foco até ele. É o botão do item de
+ * "Antes de partir" e o da incursão sofrida no Relatório de Retorno.
+ */
+export function defenseCommand(view: ViewState): LeavingItem['command'] {
+  const fence = palisadeWork(view);
+  // Com a Paliçada em obras, o que havia a fazer está feito: resta ver se ela fica pronta a tempo.
+  const works = fence.kind === 'underway' ? [] : [fence, watchtowerWork(view)];
+  for (const work of works) {
+    if (work.kind === 'available' && work.upgrade.blockedReason === null) {
+      const { upgrade } = work;
+      return {
+        id: 'lords.build',
+        arg: upgrade.building,
+        label: `${isNewBuilding(upgrade) ? 'Construir' : 'Melhorar'} ${upgrade.label}`,
+      };
+    }
+  }
+  return { id: 'lords.openPanel', arg: THREAT_SECTION, label: 'Ver a defesa' };
+}
+
+/**
+ * A incursão que os vigias avistaram: chega antes de qualquer ausência, e por isso abre a lista.
+ * A frase é a do servidor (o aviso e o que a Paliçada faz a este ataque), com o prazo; o botão é
+ * o da defesa. Só existe para quem tem a Torre de Vigia: sem ela a visão não traz incursão
+ * nenhuma, e a lista não inventa uma.
+ */
+function raidItem(view: ViewState): LeavingItem | null {
+  const { incoming } = view.threat;
+  if (incoming === null) {
+    return null;
+  }
+  return {
+    id: 'raid',
+    severity: 'warning',
+    text: `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}. ${incoming.defenseText}`,
+    command: defenseCommand(view),
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -367,18 +420,28 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * O que preparar antes de sair, em até cinco itens, nesta ordem: a comida, a lenha, os depósitos
- * que enchem, as obras que não começam sozinhas e os aldeões livres. Lista vazia: o feudo está
- * preparado para a ausência.
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista, a comida, a
+ * lenha, os depósitos que enchem, as obras que não começam sozinhas e os aldeões livres. O
+ * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
-export function beforeLeaving(view: ViewState): LeavingItem[] {
+export function leavingItems(view: ViewState): LeavingItem[] {
   return [
+    raidItem(view),
     foodItem(view),
     firewoodItem(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
-  ]
-    .filter((item) => item !== null)
+  ].filter((item) => item !== null);
+}
+
+/**
+ * O que preparar antes de sair, em até cinco itens, na ordem de `leavingItems`. Lista vazia: o
+ * feudo está preparado para a ausência. `skip` são os assuntos que o Relatório de Retorno, logo
+ * acima, já trouxe com o mesmo botão: a aba não diz duas vezes a mesma coisa.
+ */
+export function beforeLeaving(view: ViewState, skip: readonly string[] = []): LeavingItem[] {
+  return leavingItems(view)
+    .filter((item) => !skip.includes(item.id))
     .slice(0, MAX_LEAVING_ITEMS);
 }

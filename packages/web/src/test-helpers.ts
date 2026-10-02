@@ -152,6 +152,66 @@ export function withUpgrade(
  */
 export const craftsView = golden.crafts as unknown as ViewState;
 
+/**
+ * A mesa do conselho cheia (GDD §7), no ritmo Rápido: "A vez de repartir", continuação de
+ * "Tábuas para as reservas", e "A refeição dos pedreiros", as duas com quase um dia de prazo.
+ */
+export const councilView = golden.councilTable as unknown as ViewState;
+
+type CouncilCardRow = ViewState['council']['pending'][number];
+
+/** As duas cartas de `councilView`, na ordem em que chegaram. */
+export const [shareCard, mealCard] = councilView.council.pending as [
+  CouncilCardRow,
+  CouncilCardRow,
+];
+
+/**
+ * A mesma visão com estas cartas na mesa, e as decisões pendentes de acordo, do prazo mais curto
+ * ao mais longo, como o motor as ordena. `council` troca o resto do Conselho (a próxima
+ * audiência, a nota). Quem sorteia e tranca é o motor; aqui as cartas são postas à mão para o
+ * app mostrar cada caso.
+ */
+export function withCards(
+  view: ViewState,
+  pending: CouncilCardRow[],
+  council: Partial<Omit<ViewState['council'], 'pending'>> = {},
+): ViewState {
+  return {
+    ...view,
+    council: { ...view.council, ...council, pending },
+    pendingDecisions: pending
+      .map((card) => ({
+        kind: 'card' as const,
+        id: card.instanceId,
+        title: card.title,
+        expiresInSeconds: card.expiresInSeconds,
+      }))
+      .sort((a, b) => a.expiresInSeconds - b.expiresInSeconds),
+  };
+}
+
+/**
+ * A Torre de Vigia no nível 1, no outono e no ritmo Rápido (GDD §8.2): a Ameaça à vista, com a
+ * tendência, as origens e o Covil de Lobos. Todas as outras visões do golden são de feudos sem
+ * Torre, e trazem a Ameaça na forma fechada da névoa (`known: false`).
+ */
+export const threatWatchedView = golden.threatWatched as unknown as ViewState;
+/** A Torre no nível 2, o teto desta versão, com uma incursão à vista e o tamanho dela. */
+export const threatIncomingView = golden.threatIncoming as unknown as ViewState;
+/**
+ * Logo depois de uma incursão média sem Paliçada (GDD §8.2): dois feridos, um da Fazenda e um da
+ * Serraria, que saram em 20 minutos; a moral com o termo "Incursão sofrida"; a Ameaça dez pontos
+ * abaixo, já com chance de marcar outra incursão; a Torre no nível 1 e o Salão no nível 2, e por
+ * isso a obra da Paliçada ainda travada.
+ */
+export const raidAftermathView = golden.raidAftermath as unknown as ViewState;
+/**
+ * A mesma incursão à vista de `threatIncomingView`, com o Salão no nível 3 e a Paliçada no
+ * nível 1: ela não segura um ataque médio, e a obra do nível 2 está liberada.
+ */
+export const palisadeRaisedView = golden.palisadeRaised as unknown as ViewState;
+
 type Constructions = ViewState['constructions'];
 type QueueRow = Constructions['queues'][number];
 type PlannedRow = Constructions['planned'][number];
@@ -226,6 +286,75 @@ export function withPlanned(
     },
   };
 }
+
+type ObjectiveRow = ViewState['objectives'][number];
+
+/**
+ * A mesma visão com campos de um objetivo trocados (o que falta, o progresso, onde se cumpre).
+ * Quem decide o que falta é o motor; aqui a frase é posta à mão para o app mostrar cada caso.
+ */
+export function withObjective(
+  view: ViewState,
+  id: string,
+  patch: Partial<ObjectiveRow>,
+): ViewState {
+  if (!view.objectives.some((objective) => objective.id === id)) {
+    throw new Error(`A visão não traz o objetivo ${id}.`);
+  }
+  return {
+    ...view,
+    objectives: view.objectives.map((objective) =>
+      objective.id === id ? { ...objective, ...patch } : objective,
+    ),
+  };
+}
+
+/**
+ * Os três últimos objetivos da v0.2 em aberto, depois dos sete primeiros cumpridos: marcar uma
+ * obra para começar sozinha (só falta a ordem), a Paliçada (travada pelo Salão) e o inverno sem
+ * frio (o que falta é a estação chegar). As frases são as que o motor escreve.
+ */
+export const lateObjectivesView: ViewState = {
+  ...unlockedView,
+  objectives: [
+    ...unlockedView.objectives.map((objective) => ({
+      ...objective,
+      status: 'completed' as const,
+      progress: { current: objective.progress.target, target: objective.progress.target },
+      missing: null,
+    })),
+    {
+      id: 'planAutoStart',
+      title: 'Deixe uma obra marcada para começar sozinha',
+      hint: 'A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.',
+      reward: '+30 ouro',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: null,
+      target: { kind: 'planned' },
+    },
+    {
+      id: 'buildPalisade',
+      title: 'Construa a Paliçada',
+      hint: 'Estaca firme faz o lobo recuar de barriga vazia.',
+      reward: '+100 madeira',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: 'Melhore antes o Salão do Senhor para o nível 3.',
+      target: { kind: 'building', building: 'palisade' },
+    },
+    {
+      id: 'surviveWinterWithoutCold',
+      title: 'Atravesse o inverno sem passar frio',
+      hint: 'A lareira queima madeira o inverno inteiro: guarde lenha no outono.',
+      reward: '+15 de moral por 1 dia de jogo (2 h)',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: 'Falta o Inverno chegar e passar sem frio.',
+      target: { kind: 'season', season: 'winter' },
+    },
+  ],
+};
 
 export const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 export const GAME_ID = '22222222-2222-4222-8222-222222222222';
@@ -594,7 +723,16 @@ export function scriptedDialogs() {
     },
     pick: async <T>(options: PickOptions<T>) => {
       shown.push({ kind: 'pick', ...options } as (typeof shown)[number]);
-      const answer = next();
+      let answer = next();
+      // Uma função é o que acontece com a lista aberta (a carta expira, outra aba responde): ela
+      // roda antes da escolha e devolve a resposta do jogador.
+      if (typeof answer === 'function') {
+        answer = await (answer as (shown: PickOptions<T>) => unknown)(options);
+      }
+      // A lista fechada pelo sinal é desistência, como no `DialogService`.
+      if (options.signal?.aborted === true) {
+        return undefined;
+      }
       // Um número escolhe o item pela posição; qualquer outra coisa é o próprio valor.
       return (typeof answer === 'number' ? options.items[answer]?.value : answer) as T | undefined;
     },

@@ -4,6 +4,13 @@ import type { AccountState } from '../account/accountService';
 import { beforeLeaving } from '../game/beforeLeaving';
 import type { Connection } from '../game/connection';
 import {
+  COUNCIL_ICON,
+  councilSummary,
+  deadlineAlert,
+  nextAudience,
+  pendingDecisionsLabel,
+} from './council';
+import {
   busyQueues,
   capExplanation,
   capitalize,
@@ -27,7 +34,19 @@ import {
   upgradeName,
 } from './format';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
-import { experienceSummary, nextWorkerGain } from './workers';
+import {
+  activeObjectives,
+  completedObjectives,
+  noActiveObjectives,
+  OBJECTIVE_DONE_ICON,
+  OBJECTIVE_ICON,
+  objectiveAction,
+  objectiveLines,
+  objectivesSummary,
+  objectiveTreeLine,
+} from './objectives';
+import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
+import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
 export type TreeNode = {
@@ -44,6 +63,16 @@ export type TreeNode = {
    * botão na dica dele, para o custo estar à vista antes do clique.
    */
   actionHints?: Record<string, string>;
+  /**
+   * O nome do botão de uma ordem, por id do comando, quando ele não sai do rótulo da linha: o
+   * botão da linha "Ameaça" ergue a Torre de Vigia, e é isso que ele diz.
+   */
+  actionLabels?: Record<string, string>;
+  /**
+   * O botão da linha, quando a ordem não sai do tipo dela (`contextValue`): cada objetivo leva o
+   * comando que o cumpre, com o argumento, o nome por extenso e a palavra curta do botão.
+   */
+  action?: { command: string; arg?: string; label: string; text: string };
   children?: TreeNode[];
   expanded?: boolean;
 };
@@ -135,6 +164,39 @@ function moraleNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * A Ameaça (GDD §8.2 e §13.2): "46 · Covil de Lobos" para quem tem a Torre de Vigia; sem ela,
+ * "desconhecida", porque o número nem chega do servidor. A explicação é a do painel, frase a
+ * frase. O clique só navega, e o foco fica na árvore, como nas outras linhas: quem anda por ela
+ * com as setas não é levado embora. Quando uma das duas obras da Ameaça pode começar agora, a
+ * linha ganha o botão que a ordena, com o custo na dica: sem a Torre, a Torre (a saída da névoa
+ * fica ao lado dela); com ela, a Paliçada, que é o que muda o desfecho do próximo ataque.
+ */
+function threatNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { threat } = view;
+  const work = threatRowWork(view);
+  return {
+    id: 'threat',
+    label: 'Ameaça',
+    description: threatTreeLine(view, elapsedSeconds),
+    tooltip: threatLines(view, elapsedSeconds).join('\n'),
+    icon: threatIcon(threat),
+    ...(work === null
+      ? {}
+      : {
+          contextValue: isNewBuilding(work) ? 'lords.threatBuild' : 'lords.threatUpgrade',
+          // "Construir: Paliçada" para o que ainda não existe; "Melhorar: Paliçada Nv1 → Nv2".
+          actionLabels: {
+            'lords.build': isNewBuilding(work)
+              ? upgradeName(work)
+              : `Melhorar: ${upgradeName(work)}`,
+          },
+          actionHints: { 'lords.build': workTerms(work) },
+        }),
+    command: { id: 'lords.openPanel', args: ['fief'] },
+  };
+}
+
+/**
  * A lareira, só no inverno: quanto queima por hora e em quanto tempo a lenha acaba; no frio, há
  * quanto tempo ele dura. A explicação é a conta da lenha (ou a do frio), como veio do servidor.
  */
@@ -168,13 +230,21 @@ function hearthNode(view: ViewState): TreeNode[] {
  * à vista antes do "+", que o repete na própria dica.
  */
 function workersNode(view: ViewState): TreeNode {
-  const { villagers, free } = view.population;
+  const { villagers, free, injured, injuredNote } = view.population;
   const rules = view.workersRules;
   return {
     id: 'workers',
     label: 'Trabalhadores',
-    description: `${villagers - free}/${villagers} alocados · ${free} ${free === 1 ? 'livre' : 'livres'}`,
-    tooltip: [rules.adaptationText, rules.removalText, rules.experienceText].join('\n'),
+    // Os feridos de uma incursão não trabalham nem estão livres: têm a sua parcela, por extenso.
+    description:
+      `${employed(view.population)}/${villagers} alocados · ${free} ${free === 1 ? 'livre' : 'livres'}` +
+      (injured > 0 ? ` · ${injuredCount(injured)}` : ''),
+    tooltip: [
+      ...(injuredNote === null ? [] : [injuredNote]),
+      rules.adaptationText,
+      rules.removalText,
+      rules.experienceText,
+    ].join('\n'),
     icon: 'organization',
     expanded: true,
     children: view.workers.map((row) => {
@@ -185,6 +255,7 @@ function workersNode(view: ViewState): TreeNode {
         description: [
           `${row.assigned} · ${formatNumber(row.grossPerHour)}/h`,
           row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+          row.injured > 0 ? injuredCount(row.injured) : null,
           row.experienceTrend === 'falling' ? '⚠ o ofício se perde' : null,
         ]
           .filter((part) => part !== null)
@@ -309,6 +380,87 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
   };
 }
 
+/**
+ * O Conselho (GDD §13.2): "1 carta pendente (expira em 14 h)" e uma linha por carta à espera,
+ * com o prazo de cada uma. A explicação da linha é a regra em uma frase e quando vem a próxima
+ * audiência, nas frases do servidor; a de cada carta, a situação e o que o conselho faz sozinho.
+ * O clique leva à aba do Conselho, onde a carta se lê inteira; a resposta sai do botão da linha.
+ */
+function councilNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { council } = view;
+  return {
+    id: 'council',
+    label: 'Conselho',
+    description: councilSummary(view, elapsedSeconds),
+    tooltip: [council.rulesText, nextAudience(council, elapsedSeconds)].join('\n'),
+    icon: COUNCIL_ICON,
+    expanded: true,
+    command: { id: 'lords.openPanel', args: ['council'] },
+    children: council.pending.map((card) => ({
+      // A ocorrência vai no id: "Decidir" sabe de qual linha veio.
+      id: `card:${card.instanceId}`,
+      label: card.title,
+      description: deadlineAlert(card, elapsedSeconds),
+      tooltip: [card.text, card.expiryNote].join('\n'),
+      icon: 'mail',
+      contextValue: 'lords.card',
+      command: { id: 'lords.openPanel', args: ['council'] },
+    })),
+  };
+}
+
+/**
+ * Os Objetivos do Senhor (GDD §12.2): "3 em aberto · 4 cumpridos" e uma linha por objetivo em
+ * aberto, com o progresso e a recompensa. A explicação de cada linha é o porquê, a recompensa e o
+ * que falta agora, nas frases do servidor. O clique só navega; o botão da linha é o comando que
+ * leva a cumprir o objetivo (alocar, construir, recrutar, decidir, planejar), com o custo da obra
+ * na dica. Os cumpridos não ganham linha, só a contagem e os títulos na explicação do grupo: a
+ * barra lateral é estreita, e a lista inteira está no painel.
+ */
+function objectivesNode(view: ViewState): TreeNode {
+  const active = activeObjectives(view);
+  const done = completedObjectives(view);
+  return {
+    id: 'objectives',
+    label: 'Objetivos',
+    description: objectivesSummary(view),
+    tooltip: [
+      ...(active.length === 0 ? [noActiveObjectives(view)] : []),
+      ...(done.length === 0
+        ? []
+        : [`Cumpridos: ${done.map((objective) => objective.title).join('; ')}.`]),
+    ].join('\n'),
+    icon: active.length === 0 ? OBJECTIVE_DONE_ICON : OBJECTIVE_ICON,
+    expanded: true,
+    command: { id: 'lords.openPanel', args: ['fief'] },
+    children: active.map((objective) => {
+      const action = objectiveAction(view, objective);
+      return {
+        id: `objective:${objective.id}`,
+        label: objective.title,
+        description: objectiveTreeLine(objective),
+        tooltip: objectiveLines(view, objective).join('\n'),
+        icon: OBJECTIVE_ICON,
+        // O clique só navega: a ordem sai do botão da linha.
+        command: { id: 'lords.openPanel', args: ['fief'] },
+        ...(action === null
+          ? {}
+          : {
+              action: {
+                command: action.command,
+                ...(action.arg === undefined ? {} : { arg: action.arg }),
+                label: `${action.label}: ${objective.title}`,
+                text: action.text,
+              },
+              ...(action.terms === undefined
+                ? {}
+                : { actionHints: { [action.command]: action.terms } }),
+            }),
+      };
+    }),
+  };
+}
+
 function chronicleNode(chronicle: GameEvent[]): TreeNode {
   const last = chronicle.slice(-5).reverse();
   return {
@@ -395,18 +547,29 @@ export function buildTree(input: TreeInput): TreeNode[] {
   }
   const { calendar, settlement } = view;
   const cold = view.winter?.cold ?? null;
+  const { incoming } = view.threat;
   const offline = input.connection.kind === 'offline';
   // O que "Antes de partir" tem a dizer, para quem está em outra aba: quantos itens e, se algum
   // é mais que sugestão, o sinal de alerta. O clique leva à aba Hoje, onde estão os botões.
   const leaving = beforeLeaving(view);
   const pressing = leaving.some((item) => item.severity !== 'info');
+  // As decisões pendentes passam na frente (GDD §13.2: "● 2 decisões"), com as novidades ao lado.
+  // Sem ligação a visão é a guardada, e a carta dela pode já ter saído da mesa: não é anunciada.
+  const waiting = [
+    ...(view.pendingDecisions.length > 0 && !offline
+      ? [pendingDecisionsLabel(view.pendingDecisions.length)]
+      : []),
+    ...(input.unseen > 0
+      ? [`${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`]
+      : []),
+  ];
   return [
     {
       id: 'today',
       label: `Hoje em ${settlement.name}`,
       description:
-        input.unseen > 0
-          ? `● ${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`
+        waiting.length > 0
+          ? `● ${waiting.join(' · ')}`
           : offline
             ? 'sem ligação com o reino'
             : leaving.length === 0
@@ -430,12 +593,14 @@ export function buildTree(input: TreeInput): TreeNode[] {
     {
       id: 'fief',
       label: `Feudo: ${settlement.name}`,
-      // A fome e o frio aparecem por extenso e com ícone próprio: nada é dito só pela cor.
+      // A fome, o frio e a incursão que os vigias avistaram aparecem por extenso: nada é dito
+      // só pela cor, e a linha continua dizendo o que importa com o feudo recolhido.
       description:
         `${calendar.seasonLabel}, dia ${calendar.dayOfSeason}` +
         (view.famine ? ' · fome' : '') +
-        (cold ? ' · frio' : ''),
-      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text]
+        (cold ? ' · frio' : '') +
+        (incoming ? ' · incursão a caminho' : ''),
+      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text, incoming?.text]
         .filter((line) => line !== undefined)
         .join('\n'),
       icon: view.famine ? 'warning' : cold ? 'flame' : 'shield',
@@ -445,8 +610,11 @@ export function buildTree(input: TreeInput): TreeNode[] {
         resourcesNode(view),
         workersNode(view),
         constructionsNode(view, input.elapsedSeconds),
+        councilNode(view, input.elapsedSeconds),
         moraleNode(view, input.elapsedSeconds),
+        threatNode(view, input.elapsedSeconds),
         ...hearthNode(view),
+        objectivesNode(view),
       ],
     },
     chronicleNode(input.chronicle),

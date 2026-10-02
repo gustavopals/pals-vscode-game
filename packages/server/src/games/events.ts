@@ -1,6 +1,7 @@
 import type { ChronicleResponse, EventsResponse } from '@lotg/protocol';
 
 import type { AppContext } from '../context';
+import { chronicleMarkdown } from './chronicleMarkdown';
 import { chronicleRows, eventsAfter, toApiEvent } from './repository';
 import { withGameReading } from './service';
 
@@ -34,24 +35,16 @@ export async function readChronicle(
   }));
 }
 
-/** `GET /games/:id/chronicle.md`: a Crônica inteira, pronta para abrir no editor. */
+/**
+ * `GET /games/:id/chronicle.md`: a Crônica inteira, pronta para abrir no editor. A carta que
+ * continua outra leva a nota "Sua escolha voltou" (`chronicleMarkdown`).
+ */
 export async function readChronicleMarkdown(
   ctx: AppContext,
   accountId: string,
   gameId: string,
 ): Promise<string> {
-  return withGameReading(ctx, accountId, gameId, async (reading, tx) => {
-    const rows = await chronicleRows(tx, reading.game.id);
-    const lines = [`# Crônica de ${reading.state.settlement.name}`, '', '## Ano 1', ''];
-    if (rows.length === 0) {
-      lines.push('*Ainda não há nada a contar.*');
-    }
-    for (const row of rows) {
-      if (row.kind === 'yearStarted') {
-        lines.push('', `## Ano ${row.payload.data.year}`, '');
-      }
-      lines.push(`- ${row.payload.text}`);
-    }
-    return `${lines.join('\n')}\n`;
-  });
+  return withGameReading(ctx, accountId, gameId, async (reading, tx) =>
+    chronicleMarkdown(reading.state.settlement.name, await chronicleRows(tx, reading.game.id)),
+  );
 }

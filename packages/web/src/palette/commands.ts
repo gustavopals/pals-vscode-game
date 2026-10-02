@@ -17,6 +17,13 @@ import {
 import { nextTheme, THEME_LABELS } from '../theme/theme';
 import type { ThemeId } from '../services/preferences';
 import {
+  cardDeadline,
+  cardSecondsLeft,
+  type CouncilCard,
+  nextAudience,
+  optionBlock,
+} from '../ui/council';
+import {
   busyQueues,
   capitalize,
   formatCost,
@@ -28,8 +35,15 @@ import {
   remainingNow,
   upgradeName,
 } from '../ui/format';
+import {
+  CONSTRUCTIONS_ANCHOR,
+  CONSTRUCTIONS_SECTION,
+  OBJECTIVES_ANCHOR,
+  OBJECTIVES_SECTION,
+} from '../ui/objectives';
+import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
-import { allocationMessage, nextWorkerGain, workersCount } from '../ui/workers';
+import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
 
 type WorkerRow = ViewState['workers'][number];
 type WorkersRules = ViewState['workersRules'];
@@ -56,6 +70,22 @@ export type CommandEnv = {
   /** O tema em uso agora (a escolha ou o do sistema). */
   currentTheme(): ThemeId;
   openPalette(): void;
+  /**
+   * Leva a página e o foco ao elemento com este id, depois de a aba à vista ser desenhada: é
+   * como "Ver a defesa" chega ao painel da Ameaça, que fica abaixo da dobra da aba Feudo, e como
+   * o botão de um objetivo chega às construções ou à lista dos objetivos.
+   */
+  reveal(elementId: string): void;
+};
+
+/**
+ * As seções a que `lords.openPanel` leva a página e o foco, além das abas: o argumento, a aba em
+ * que a seção fica e a âncora dela.
+ */
+const SECTIONS: Record<string, { route: Route; anchor: string }> = {
+  [THREAT_SECTION]: { route: 'fief', anchor: THREAT_ANCHOR },
+  [OBJECTIVES_SECTION]: { route: 'fief', anchor: OBJECTIVES_ANCHOR },
+  [CONSTRUCTIONS_SECTION]: { route: 'fief', anchor: CONSTRUCTIONS_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';
@@ -105,6 +135,34 @@ export function workersValidation(
 const nameValidation = (value: string): Validation | null =>
   DisplayNameSchema.safeParse(value).success ? null : { message: NAME_RULE, severity: 'error' };
 
+/** O prefixo do id da linha de uma carta na árvore (`ui/treeModel.ts`). */
+const CARD_NODE = 'card:';
+/** O id da linha "Ameaça" da árvore: o botão dela ordena a obra da Torre de Vigia ou a da Paliçada. */
+const THREAT_NODE = 'threat';
+
+/**
+ * A carta e a opção que quem chamou `lords.answerCard` já escolheu: o painel manda as duas
+ * (`{ instanceId, optionId }`); a árvore, a linha da carta (`card:<instanceId>`); a paleta, nada.
+ */
+export function cardRequest(arg: unknown): { instanceId?: string; optionId?: string } {
+  if (typeof arg !== 'object' || arg === null) {
+    return {};
+  }
+  const { id, instanceId, optionId } = arg as Record<string, unknown>;
+  if (typeof instanceId === 'string') {
+    return { instanceId, ...(typeof optionId === 'string' ? { optionId } : {}) };
+  }
+  return typeof id === 'string' && id.startsWith(CARD_NODE)
+    ? { instanceId: id.slice(CARD_NODE.length) }
+    : {};
+}
+
+/**
+ * Folga, em ms, para dizer que uma carta sumiu porque o prazo acabou: o relógio desta página
+ * conta o prazo a partir de quando a visão chegou, e o servidor, de quando a montou.
+ */
+const EXPIRY_SLACK_MS = 10_000;
+
 /** O id do edifício, vindo direto de um comando ou do item da árvore de uma ação inline. */
 function buildingOf(arg: unknown, prefix: string): string | undefined {
   if (typeof arg === 'string') {
@@ -142,16 +200,21 @@ export function createCommands(
   };
 
   // A lista já mostra o custo da troca: a regra, na frase do servidor, e o que um trabalhador a
-  // mais rende em cada edifício, agora e depois da adaptação.
+  // mais rende em cada edifício, agora e depois da adaptação. Os feridos de uma incursão não
+  // estão livres para uma ordem: a lista diz quantos são e de que ofício saíram.
   const pickWorker = (view: ViewState) =>
     dialogs.pick<WorkerRow>({
       title: 'Alocar trabalhadores',
-      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}. ${view.workersRules.adaptationText}`,
+      placeholder:
+        `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}` +
+        `${view.population.injured > 0 ? ` · ${injuredCount(view.population.injured)}` : ''}. ` +
+        view.workersRules.adaptationText,
       items: view.workers.map((row) => ({
         label: `${row.label} Nv${row.level}`,
         description: [
           `${workersCount(row.assigned)} · ${formatNumber(row.grossPerHour)}/h`,
           row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+          row.injured > 0 ? injuredCount(row.injured) : null,
         ]
           .filter((part) => part !== null)
           .join(' · '),
@@ -216,7 +279,12 @@ export function createCommands(
     }
     const { available } = view.constructions;
     const busy = busyQueues(view.constructions);
-    const requested = buildingOf(arg, 'construction:');
+    // Vindo da linha "Ameaça" da árvore, a obra é a que a linha oferece: sem a Torre de Vigia,
+    // a Torre (é o que tira a névoa); com ela, a Paliçada.
+    const requested =
+      (arg as TreeNode | undefined)?.id === THREAT_NODE
+        ? threatRowWork(view)?.building
+        : buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
       // Uma ou duas obras em curso (GDD §6.3): a lista diz quais são e quando terminam.
@@ -462,6 +530,161 @@ export function createCommands(
     });
     if (answer !== undefined) {
       await controller.order('recruitVillagers', { quantity: Number(answer) });
+    }
+  };
+
+  // --- Conselho ------------------------------------------------------------------
+
+  /** A carta ainda espera resposta na visão de agora. */
+  const stillPending = (card: CouncilCard) =>
+    controller.view?.council.pending.some((entry) => entry.instanceId === card.instanceId) === true;
+
+  /**
+   * A carta saiu da mesa com a lista aberta, ou a sessão acabou: nada é enviado, e a tela diz
+   * por quê. Cada caso tem a sua frase: o prazo que acabou (`expiresAt` é o instante, no relógio
+   * desta página, em que o prazo dela vence), a resposta dada em outro lugar e a sessão encerrada.
+   */
+  const explainGone = (card: CouncilCard, expiresAt: number) => {
+    if (controller.account.state.kind === 'signedOut' || controller.view === null) {
+      controller.toast({
+        kind: 'warning',
+        text: `A sessão terminou com "${card.title}" aberta: nada foi enviado ao conselho. Entre de novo para decidir.`,
+      });
+      return;
+    }
+    const expired = controller.now() >= expiresAt - EXPIRY_SLACK_MS;
+    controller.toast({
+      kind: 'warning',
+      text: expired
+        ? `O prazo de "${card.title}" acabou antes da sua resposta, e o conselho decidiu sozinho. Nada foi enviado: a Crônica conta o que ele fez.`
+        : `"${card.title}" saiu da mesa antes da sua resposta: foi respondida em outra aba ou em outro navegador. Nada foi enviado.`,
+      actions: [{ label: 'Ver o Conselho', run: () => controller.navigate('council') }],
+    });
+  };
+
+  /**
+   * A lista das opções de uma carta, para quem decide pelo teclado: o texto da carta no alto, com
+   * o prazo e o que o conselho faz sozinho, e cada opção com o custo e a consequência conhecida,
+   * a pista e, se houver, o que a impede. O que já vem marcado é a opção que o conselho aplicaria
+   * sem resposta, que nunca custa nada: `Enter` sem ler não gasta. A lista fecha sozinha, sem
+   * enviar nada, se a carta sair da mesa com ela aberta. `null` é "nada a enviar".
+   */
+  const pickOption = async (card: CouncilCard): Promise<string | null> => {
+    const expiresAt = controller.now() + cardSecondsLeft(card, elapsed()) * 1000;
+    const gone = new AbortController();
+    const stop = controller.onChange(() => {
+      if (!stillPending(card)) {
+        gone.abort();
+      }
+    });
+    try {
+      const optionId = await dialogs.pick<string>({
+        title: `Carta do Conselho: ${card.title}`,
+        placeholder: 'O que você decide?',
+        detail: [
+          ...(card.followsFrom === null ? [] : [card.followsFrom.text]),
+          card.text,
+          `${capitalize(cardDeadline(card, elapsed()))}. ${card.expiryNote}`,
+        ],
+        items: card.options.map((option) => {
+          const block = optionBlock(option);
+          return {
+            // Cadeado ou alerta: a opção não pode ser escolhida agora, e o detalhe diz por quê.
+            icon: block === null ? 'check' : block.kind === 'locked' ? 'lock' : 'warning',
+            label: option.label,
+            description: option.effectsText,
+            detail: [
+              block?.text,
+              option.hint,
+              option.id === card.defaultOptionId
+                ? 'É o que o conselho faz sozinho, se o prazo acabar.'
+                : null,
+            ]
+              .filter((line) => line !== null && line !== undefined)
+              .join(' '),
+            value: option.id,
+          };
+        }),
+        selected: Math.max(
+          0,
+          card.options.findIndex((option) => option.id === card.defaultOptionId),
+        ),
+        signal: gone.signal,
+      });
+      if (gone.signal.aborted || (optionId !== undefined && !stillPending(card))) {
+        explainGone(card, expiresAt);
+        return null;
+      }
+      return optionId ?? null;
+    } finally {
+      stop();
+    }
+  };
+
+  /**
+   * "Decidir carta do Conselho": o único caminho da resposta (GDD §13.6). O painel já mostrou a
+   * carta inteira e manda a carta e a opção do botão clicado; a árvore manda a carta da linha, e
+   * a lista pergunta a opção; a paleta pergunta a carta (quando há mais de uma) e depois a opção.
+   * Mesmo trancada ou sem recursos, a opção escolhida segue: quem recusa é o servidor, com o
+   * motivo atualizado.
+   */
+  const answerCard = async (arg?: unknown) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const request = cardRequest(arg);
+    if (request.instanceId !== undefined && request.optionId !== undefined) {
+      await controller.answerCard(request.instanceId, request.optionId);
+      return;
+    }
+    const { pending } = view.council;
+    if (pending.length === 0) {
+      controller.toast({
+        kind: 'info',
+        text: `O conselho não tem nada a tratar agora. ${nextAudience(view.council, elapsed())}`,
+        actions: [{ label: 'Ver o Conselho', run: () => controller.navigate('council') }],
+      });
+      return;
+    }
+    let card = pending.find((entry) => entry.instanceId === request.instanceId);
+    if (card === undefined && request.instanceId !== undefined) {
+      // A linha da árvore era de uma carta que já saiu da mesa.
+      controller.toast({
+        kind: 'warning',
+        text: 'Esta carta já não espera resposta: foi respondida, ou o prazo acabou.',
+        actions: [{ label: 'Ver o Conselho', run: () => controller.navigate('council') }],
+      });
+      return;
+    }
+    if (card === undefined) {
+      const opened = controller.now();
+      const since = elapsed();
+      card =
+        pending.length === 1
+          ? pending[0]
+          : await dialogs.pick<CouncilCard>({
+              title: 'Decidir carta do Conselho',
+              placeholder: 'Qual carta?',
+              items: pending.map((entry) => ({
+                icon: 'law',
+                label: entry.title,
+                description: cardDeadline(entry, since),
+                detail: entry.text,
+                value: entry,
+              })),
+            });
+      if (card !== undefined && !stillPending(card)) {
+        explainGone(card, opened + cardSecondsLeft(card, since) * 1000);
+        return;
+      }
+    }
+    if (card === undefined) {
+      return;
+    }
+    const optionId = await pickOption(card);
+    if (optionId !== null) {
+      await controller.answerCard(card.instanceId, optionId);
     }
   };
 
@@ -883,6 +1106,20 @@ export function createCommands(
     },
     { id: 'lords.recruit', title: 'Recrutar aldeões', palette: true, when: hasGame, run: recruit },
     {
+      id: 'lords.answerCard',
+      title: 'Decidir carta do Conselho',
+      palette: true,
+      when: hasGame,
+      run: answerCard,
+    },
+    {
+      id: 'lords.openCouncil',
+      title: 'Ir para o Conselho',
+      palette: true,
+      when: hasGame,
+      run: go('council'),
+    },
+    {
       id: 'lords.renameSettlement',
       title: 'Renomear o feudo',
       palette: true,
@@ -988,7 +1225,16 @@ export function createCommands(
     { id: 'lords.about', title: 'Sobre', palette: true, run: go('about') },
     // Usados pela árvore, pela barra de status e pelos avisos; não aparecem na paleta.
     hidden('lords.openPanel', (arg) => {
-      controller.navigate(arg === 'today' || arg === 'fief' ? arg : controller.defaultRoute());
+      const section = typeof arg === 'string' ? SECTIONS[arg] : undefined;
+      if (section !== undefined) {
+        // Uma seção de uma aba: a aba abre, e a página e o foco vão até a seção.
+        controller.navigate(section.route);
+        env.reveal(section.anchor);
+        return;
+      }
+      controller.navigate(
+        arg === 'today' || arg === 'fief' || arg === 'council' ? arg : controller.defaultRoute(),
+      );
     }),
     hidden('lords.workersIncrease', step(1)),
     hidden('lords.workersDecrease', step(-1)),

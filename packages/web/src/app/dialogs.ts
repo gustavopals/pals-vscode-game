@@ -40,6 +40,16 @@ export type PickOptions<T> = {
    * escolhe. Sem isto, o primeiro.
    */
   selected?: number;
+  /**
+   * O que ler antes de escolher, em parágrafos, acima do campo de busca: a situação de uma carta
+   * do Conselho, com o prazo e o que acontece sem resposta.
+   */
+  detail?: string[];
+  /**
+   * Fecha a lista sozinha, como desistência, quando o sinal dispara: o que ela oferecia deixou
+   * de existir com ela aberta (a carta expirou, ou foi respondida em outra aba).
+   */
+  signal?: AbortSignal;
 };
 
 export type InfoOptions = {
@@ -133,7 +143,14 @@ export class DialogService implements Dialogs {
   }
 
   pick<T>(options: PickOptions<T>): Promise<T | undefined> {
-    return this.open<T | undefined>({ kind: 'pick', ...options } as DialogState).result;
+    const { signal } = options;
+    if (signal?.aborted === true) {
+      return Promise.resolve(undefined);
+    }
+    const { id, result } = this.open<T | undefined>({ kind: 'pick', ...options } as DialogState);
+    // Fechar um diálogo que já fechou não faz nada: o sinal pode disparar depois da escolha.
+    signal?.addEventListener('abort', () => this.resolve(id, undefined), { once: true });
+    return result;
   }
 
   info(options: InfoOptions): InfoHandle {

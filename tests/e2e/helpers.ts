@@ -1,6 +1,18 @@
-import { type BrowserContext, expect, type Page, test as base } from '@playwright/test';
+import {
+  type APIRequestContext,
+  type BrowserContext,
+  expect,
+  type Page,
+  type Request,
+  type Response,
+  test as base,
+} from '@playwright/test';
+
+import type { ViewState } from '../../packages/protocol/src/view';
 
 export const API = 'http://127.0.0.1:3100';
+/** A semente dos feudos fundados com o conselho convocado: as mesmas cartas a cada execução. */
+const COUNCIL_SEED = 'conselho-e2e';
 export const HOUR = 3_600_000;
 export const MINUTE = 60_000;
 
@@ -19,10 +31,35 @@ export type World = {
    * Adianta o servidor e as páginas dadas, e espera cada página terminar o ciclo de atualização
    * que o salto dispara. Sem essa espera, um segundo salto pegaria a leitura ainda em voo, o
    * que no tempo de verdade não acontece.
+   *
+   * Antes de saltar, espera as chamadas que cada página ainda tem em voo (a leitura dos eventos
+   * que segue uma ordem, por exemplo: o resultado da ordem aparece na tela antes de ela
+   * terminar). E só conta como ciclo o que a página pediu depois do salto: a resposta de uma
+   * leitura anterior não diz que a página já viu o tempo passar, nem que renovou a sessão.
    */
   passTime(ms: number, ...pages: Page[]): Promise<void>;
   /** Como `passTime`, sem esperar o ciclo: para páginas sem sessão ou sem rede. */
   jump(ms: number, ...pages: Page[]): Promise<void>;
+  /**
+   * Convoca o Conselho: os feudos fundados daqui em diante recebem cartas (a primeira, 8 horas
+   * depois da fundação no ritmo Normal) e nascem todos da mesma semente, para o sorteio tirar as
+   * mesmas cartas a cada execução. Sem isto o conselho fica em recesso: os cenários que não são
+   * sobre ele não dependem de qual carta saiu. Chame antes de fundar o feudo.
+   */
+  conveneCouncil(): void;
+  /**
+   * Solta os lobos: os feudos fundados daqui em diante recebem os uivos na hora 18 de jogo e a
+   * incursão do roteiro na hora 30 (no ritmo Normal), e as incursões por Ameaça depois dela.
+   * Sem isto a Horda fica calada: os cenários que não são sobre a incursão não perdem estoque,
+   * braços nem moral para ela. Chame antes de fundar o feudo.
+   */
+  wolvesRoam(): void;
+  /**
+   * Põe um edifício do feudo em um nível, sem obra (`/__test/raise`): a Torre de Vigia ou a
+   * Paliçada de pé antes da hora dos lobos, ou o Salão do Senhor no nível que libera a obra de
+   * uma delas.
+   */
+  raise(building: 'watchtower' | 'palisade' | 'townHall', level: number): Promise<void>;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -37,14 +74,71 @@ export const test = base.extend<{ world: World }>({
         return response.json() as Promise<unknown>;
       };
       await control('reset');
+      let councilInSession = false;
+      let wolvesRoaming = false;
+      const watched = new WeakSet<BrowserContext>();
+      /**
+       * Fica entre a página e `POST /v1/games`. Com o conselho em recesso (o padrão), manda o
+       * servidor adiar o sorteio do feudo recém-fundado antes de a resposta chegar à página; com
+       * ele convocado, acrescenta a semente fixa ao pedido (o servidor de teste a aceita). Com a
+       * Horda calada (o padrão), manda o servidor tirar os lobos do caminho, também antes de a
+       * resposta chegar.
+       */
+      const watchFoundings = async (context: BrowserContext) => {
+        if (watched.has(context)) {
+          return;
+        }
+        watched.add(context);
+        await context.route('**/v1/games', async (route) => {
+          const request = route.request();
+          if (request.method() !== 'POST') {
+            await route.fallback();
+            return;
+          }
+          const seeded = councilInSession
+            ? {
+                postData: JSON.stringify({
+                  ...(request.postDataJSON() as Record<string, unknown>),
+                  seed: COUNCIL_SEED,
+                }),
+              }
+            : {};
+          if (councilInSession && wolvesRoaming) {
+            // Nada a mudar no feudo recém-fundado: o pedido segue, só com a semente.
+            await route.continue(seeded);
+            return;
+          }
+          const response = await route.fetch(seeded);
+          if (response.ok()) {
+            if (!councilInSession) {
+              await control('council-recess');
+            }
+            if (!wolvesRoaming) {
+              await control('horde-quiet');
+            }
+          }
+          await route.fulfill({ response });
+        });
+      };
       const world: World = {
         offsetMs: 0,
         problems: [],
         control,
+        conveneCouncil: () => {
+          councilInSession = true;
+        },
+        wolvesRoam: () => {
+          wolvesRoaming = true;
+        },
+        raise: async (building, level) => {
+          await control('raise', { building, level });
+        },
         github: (action, data = {}) => control('github', { action, ...data }),
         open: async (context, path = '/') => {
+          await watchFoundings(context);
           const page = await context.newPage();
           watch(page, world.problems);
+          inFlight(page);
           await page.clock.install({ time: new Date(Date.now() + world.offsetMs) });
           await page.goto(path);
           return page;
@@ -55,14 +149,17 @@ export const test = base.extend<{ world: World }>({
           await Promise.all(pages.map((page) => page.clock.fastForward(ms)));
         },
         passTime: async (ms, ...pages) => {
-          // Todo ciclo termina lendo os eventos novos.
-          const synced = pages.map((page) =>
-            page.waitForResponse(
-              (response) => /\/games\/[^/]+\/events/.test(response.url()) && response.ok(),
-            ),
-          );
-          await world.jump(ms, ...pages);
-          await Promise.all(synced);
+          await Promise.all(pages.map((page) => atRest(page, 'antes do salto')));
+          const cycles = pages.map(nextCycle);
+          await control('advance', { ms });
+          world.offsetMs += ms;
+          // Daqui em diante o servidor já está no instante novo: o que a página pedir é do salto.
+          for (const cycle of cycles) {
+            cycle.arm();
+          }
+          await Promise.all(pages.map((page) => page.clock.fastForward(ms)));
+          await Promise.all(cycles.map((cycle) => cycle.done));
+          await Promise.all(pages.map((page) => atRest(page, 'depois do ciclo')));
         },
       };
       await use(world);
@@ -82,6 +179,95 @@ function watch(page: Page, problems: string[]): void {
       problems.push(`CSP: ${text}`);
     }
   });
+}
+
+/** As chamadas à API que cada página fez e que ainda não terminaram. */
+const flights = new WeakMap<Page, Set<Request>>();
+
+/** Passa a acompanhar as chamadas de uma página à API; devolve as que estão em voo. */
+function inFlight(page: Page): Set<Request> {
+  const known = flights.get(page);
+  if (known !== undefined) {
+    return known;
+  }
+  const pending = new Set<Request>();
+  flights.set(page, pending);
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.startsWith('/v1/')) {
+      pending.add(request);
+    }
+  });
+  page.on('requestfinished', (request) => pending.delete(request));
+  page.on('requestfailed', (request) => pending.delete(request));
+  return pending;
+}
+
+/** Espera a página não ter chamada nenhuma à API em voo. */
+async function atRest(page: Page, when: string): Promise<void> {
+  const pending = inFlight(page);
+  await expect
+    .poll(() => [...pending].map((request) => `${request.method()} ${request.url()}`), {
+      message: `chamadas em voo ${when}`,
+      intervals: [5, 10, 25, 50, 100],
+    })
+    .toEqual([]);
+}
+
+/**
+ * O ciclo de atualização que um salto dispara em uma página: ela lê a visão e, em seguida, os
+ * eventos novos. Só conta o que a página pede depois de `arm()`, e a leitura dos eventos só
+ * conta se foi pedida depois da leitura da visão. A resposta de uma leitura que já estava em voo
+ * (a dos eventos que segue uma ordem) não é o ciclo: quem saísse daqui por ela encontraria a
+ * página ainda com o access token antigo, que o salto fez vencer.
+ */
+function nextCycle(page: Page): { arm(): void; done: Promise<void> } {
+  const views = new WeakSet<Request>();
+  const events = new WeakSet<Request>();
+  let armed = false;
+  let viewAsked = false;
+  let viewRead = false;
+  let eventsRead = false;
+  let finish = (): void => undefined;
+  const onRequest = (request: Request) => {
+    if (!armed) {
+      return;
+    }
+    const path = new URL(request.url()).pathname;
+    if (/\/games\/[^/]+\/view$/.test(path)) {
+      views.add(request);
+      viewAsked = true;
+    } else if (viewAsked && /\/games\/[^/]+\/events$/.test(path)) {
+      events.add(request);
+    }
+  };
+  const onResponse = (response: Response) => {
+    const request = response.request();
+    if (views.has(request) && response.status() < 400) {
+      // 200, ou 304 quando nada mudou. O 401 do token vencido não conta: a página renova a
+      // sessão e pede de novo.
+      viewRead = true;
+    } else if (events.has(request) && response.ok()) {
+      eventsRead = true;
+    }
+    if (viewRead && eventsRead) {
+      finish();
+    }
+  };
+  const done = new Promise<void>((resolve) => {
+    finish = () => {
+      page.off('request', onRequest);
+      page.off('response', onResponse);
+      resolve();
+    };
+  });
+  page.on('request', onRequest);
+  page.on('response', onResponse);
+  return {
+    arm: () => {
+      armed = true;
+    },
+    done,
+  };
 }
 
 export { expect };
@@ -133,6 +319,115 @@ export const stored = (page: Page) =>
         .map((key) => [key, localStorage.getItem(key)]),
     ),
   );
+
+// O que o servidor diz do Conselho e da Crônica: os testes leem dele a carta que está na mesa e
+// os eventos da partida, e conferem que a tela mostra exatamente o que ele mandou.
+
+export type CardOption = {
+  id: string;
+  label: string;
+  affordable: boolean;
+  locked: boolean;
+  effectsText: string;
+  hint: string;
+};
+export type Card = {
+  instanceId: string;
+  title: string;
+  text: string;
+  expiresInSeconds: number;
+  defaultOptionId: string;
+  defaultOptionLabel: string;
+  expiryNote: string;
+  /** A escolha que trouxe a carta, quando ela é a continuação de outra. */
+  followsFrom: { title: string; optionLabel: string; text: string } | null;
+  options: CardOption[];
+};
+export type ServerEvent = {
+  seq: number;
+  type: string;
+  /** Instante do evento em tempo de jogo. */
+  atMs: number;
+  text: string;
+  data: Record<string, string | number>;
+};
+
+/** As credenciais e a partida que a página guardou: para ler do servidor o que ela deve mostrar. */
+export async function session(page: Page) {
+  const saved = await stored(page);
+  const tokens = JSON.parse(saved['lords.tokens'] ?? '{}') as { accessToken: string };
+  const account = JSON.parse(saved['lords.account:self'] ?? '{}') as { gameId: string };
+  return {
+    url: `${API}/v1/games/${account.gameId}`,
+    headers: { authorization: `Bearer ${tokens.accessToken}` },
+  };
+}
+
+/** As cartas à espera, como o servidor as mostra agora. */
+export async function pendingCards(page: Page, request: APIRequestContext): Promise<Card[]> {
+  const { url, headers } = await session(page);
+  const response = await request.get(`${url}/view`, { headers });
+  expect(response.status(), 'leitura da visão').toBe(200);
+  const body = (await response.json()) as { view: { council: { pending: Card[] } } };
+  return body.view.council.pending;
+}
+
+/**
+ * A Ameaça como o servidor a manda (GDD §8.2). Sem a Torre de Vigia a resposta só tem a frase da
+ * névoa, a Torre e a defesa; o número, a tendência, as origens e os tiles só existem com ela.
+ */
+export type ServerThreat = {
+  known: boolean;
+  text: string;
+  level?: number;
+  max?: number;
+  risePerDay?: number;
+  nextLevel?: number;
+  nextRiseInSeconds?: number;
+  trend?: string;
+  sources?: string[];
+  tiles?: Array<{ id: string; label: string; active: boolean }>;
+  incoming: unknown;
+  watchtower: { building: string; level: number; text: string; next: string | null };
+  defense: { palisadeLevel: number; text: string };
+};
+
+/** O corpo de `GET /view` do feudo da página, lido agora, na forma que quem chama espera. */
+async function readView<View>(page: Page, request: APIRequestContext): Promise<View> {
+  const { url, headers } = await session(page);
+  const response = await request.get(`${url}/view`, { headers });
+  expect(response.status(), 'leitura da visão').toBe(200);
+  const body = (await response.json()) as { view: View };
+  return body.view;
+}
+
+/** A visão inteira do feudo da página, como o servidor a manda agora. */
+export const serverView = (page: Page, request: APIRequestContext) =>
+  readView<ViewState>(page, request);
+
+/** A Ameaça do feudo da página, como o servidor a mostra agora. */
+export async function serverThreat(page: Page, request: APIRequestContext): Promise<ServerThreat> {
+  return (await readView<{ threat: ServerThreat }>(page, request)).threat;
+}
+
+/** Todos os eventos da partida, na ordem em que aconteceram. */
+export async function gameEvents(page: Page, request: APIRequestContext): Promise<ServerEvent[]> {
+  const { url, headers } = await session(page);
+  const events: ServerEvent[] = [];
+  for (let after = 0, more = true; more;) {
+    const response = await request.get(`${url}/events?after=${after}`, { headers });
+    expect(response.status(), 'leitura dos eventos').toBe(200);
+    const page = (await response.json()) as {
+      events: ServerEvent[];
+      lastSeq: number;
+      hasMore: boolean;
+    };
+    events.push(...page.events);
+    after = page.lastSeq;
+    more = page.hasMore;
+  }
+  return events;
+}
 
 /** Os três temas do app (GDD §13.7). */
 export const THEMES = ['dark', 'light', 'high-contrast'] as const;

@@ -1370,6 +1370,42 @@ describe('Relatório de Retorno e device flow', () => {
         counts: { ...withMorale.counts, villagersLeft: -1 },
       }).success,
     ).toBe(false);
+    // Os três blocos (V2D-T4) também são opcionais. Um item é uma frase; a ação, o assunto e a
+    // urgência só vêm quando há o que fazer.
+    const blocks = {
+      prospered: [{ text: 'No 1º dia da Primavera, os pedreiros ergueram as Habitações.' }],
+      cost: [
+        {
+          text: 'Despensa sem espaço: 120 de comida foram ao chão.',
+          topic: 'storage:granary',
+          severity: 'warning',
+          action: { command: 'lords.build', arg: 'granary', label: 'Construir Celeiro' },
+        },
+      ],
+      pending: [
+        {
+          text: 'Conselho: “A vez de repartir” · expira em 22 h.',
+          topic: 'card:commonGranaryShare-3',
+          severity: 'info',
+          action: { command: 'lords.openPanel', arg: 'council', label: 'Decidir' },
+        },
+        { text: '2 aldeões livres, sem ofício.', action: { command: 'x', label: 'Alocar' } },
+      ],
+    };
+    expect(ReturnReportSchema.safeParse({ ...report, blocks }).error).toBeUndefined();
+    expect(ReturnReportSchema.safeParse({ ...report, blocks: { prospered: [] } }).success).toBe(
+      false,
+    );
+    for (const item of [
+      { topic: 'food' },
+      { text: 'x', severity: 'grave' },
+      { text: 'x', action: { command: 'lords.build' } },
+      { text: 'x', extra: 1 },
+    ]) {
+      expect(
+        ReturnReportSchema.safeParse({ ...report, blocks: { ...blocks, cost: [item] } }).success,
+      ).toBe(false);
+    }
   });
 
   it('a consulta do device flow tem cinco desfechos e nada além deles', () => {

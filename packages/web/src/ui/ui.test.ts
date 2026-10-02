@@ -11,10 +11,19 @@ import {
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
+  lateObjectivesView,
   proudView,
   queuesView,
+  councilView,
+  mealCard,
+  palisadeRaisedView,
+  raidAftermathView,
+  shareCard,
+  threatIncomingView,
+  threatWatchedView,
   unlockedView,
   winterWith,
+  withCards,
   withFoodAhead,
   withPlanned,
   withQueues,
@@ -49,6 +58,7 @@ import {
   truncate,
   upgradeName,
 } from './format';
+import { THREAT_SECTION } from './threat';
 import { buildTree, type TreeInput, type TreeNode } from './treeModel';
 
 const initial = golden.initial as unknown as ViewState;
@@ -345,11 +355,9 @@ describe('barra de status', () => {
   describe('prioridade: decisões > fome e frio > depósito a encher > obra', () => {
     /** A madeira a três horas de encher o Pátio, com uma obra em curso. */
     const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
-    /** `pendingDecisions` só ganha conteúdo com o Conselho; a barra só precisa de quantas são. */
-    const deciding = (view: ViewState, count: number): ViewState => ({
-      ...view,
-      pendingDecisions: Array.from({ length: count }) as ViewState['pendingDecisions'],
-    });
+    /** A mesma visão com as primeiras `count` cartas da mesa cheia à espera de resposta. */
+    const deciding = (view: ViewState, count: number): ViewState =>
+      withCards(view, councilView.council.pending.slice(0, count));
 
     it('o depósito a menos de 8 h de encher passa na frente da obra, e o clique leva ao feudo', () => {
       const result = statusBar({ ...base, view: filling, pending: 1 });
@@ -402,15 +410,38 @@ describe('barra de status', () => {
       });
     });
 
-    it('as decisões pendentes passam na frente de tudo, e o clique leva à aba Hoje', () => {
+    it('as decisões pendentes passam na frente de tudo, com o prazo da que vence primeiro', () => {
       const hungry: ViewState = { ...filling, famine: starving.famine };
       const result = statusBar({ ...base, view: deciding(hungry, 2), pending: 3 });
-      expect(result.text).toBe('$(law) 2 decisões pendentes · $(bell) 3');
-      expect(result.tooltip).toBe('Pedra Alta: 2 decisões pendentes. Elas esperam na aba Hoje.');
-      expect(result.target).toBe('today');
+      expect(result.text).toBe('$(law) 2 decisões pendentes · expira em 22 h · $(bell) 3');
+      // A explicação diz o título e o prazo de cada carta, e onde elas esperam.
+      expect(result.tooltip).toBe(
+        'Pedra Alta: "A vez de repartir" expira em 22 h; "A refeição dos pedreiros" expira em 23 h. As cartas esperam na aba Conselho.',
+      );
+      // O clique leva à aba do Conselho, onde a carta se lê inteira.
+      expect(result.target).toBe('council');
       expect(result.alarm).toBeUndefined();
-      expect(statusBar({ ...base, view: deciding(farmers, 1) }).text).toBe(
-        '$(law) 1 decisão pendente',
+      const one = statusBar({ ...base, view: deciding(farmers, 1) });
+      expect(one.text).toBe('$(law) 1 decisão pendente · expira em 22 h');
+      expect(one.tooltip).toBe(
+        'Pedra Alta: "A vez de repartir" expira em 22 h. A carta espera na aba Conselho.',
+      );
+    });
+
+    it('o prazo da decisão desce com o relógio da página e é o da carta que vence primeiro', () => {
+      // A mesa na ordem contrária: a visão traz as decisões do prazo mais curto ao mais longo.
+      const [first, second] = councilView.council.pending;
+      const view = withCards(farmers, [
+        { ...(second ?? mealCard), expiresInSeconds: 20 * 3600 },
+        { ...(first ?? shareCard), expiresInSeconds: 3 * 3600 },
+      ]);
+      expect(statusBar({ ...base, view }).text).toBe('$(law) 2 decisões pendentes · expira em 3 h');
+      expect(statusBar({ ...base, view, elapsedSeconds: 2 * 3600 + 35 * 60 }).text).toBe(
+        '$(law) 2 decisões pendentes · expira em 25 min',
+      );
+      // Com o prazo vencido no relógio desta página, a linha não promete tempo que não há.
+      expect(statusBar({ ...base, view, elapsedSeconds: 3 * 3600 }).text).toBe(
+        '$(law) 2 decisões pendentes · prazo encerrado',
       );
     });
 
@@ -422,6 +453,73 @@ describe('barra de status', () => {
       const discreet = statusBar({ ...base, view: urgent, discreetMode: true });
       expect(discreet.text).toBe('$(circle-filled) 00:42');
       expect(discreet.target).toBeUndefined();
+    });
+
+    describe('a incursão que os vigias avistaram passa na frente de tudo (GDD §8.2 e §13.5)', () => {
+      it('"Lobos em 16 min", com o ícone da incursão; a explicação traz o custo e a defesa, e o clique leva ao painel da Ameaça', () => {
+        const result = statusBar({ ...base, view: threatIncomingView, pending: 1 });
+        expect(result.text).toBe('$(megaphone) Lobos em 16 min · $(bell) 1');
+        expect(result.tooltip).toBe(
+          'Pedra Alta: Lobos a caminho. Os vigias contam uma matilha grande. Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar. Sem Paliçada, nada segura este ataque.',
+        );
+        // O clique leva ao painel da Ameaça, onde a obra da defesa está ao lado do aviso.
+        expect(result.target).toBe(THREAT_SECTION);
+        // Sem o destaque de alarme: a mesma linha anuncia o ataque que a Paliçada segura.
+        expect(result.alarm).toBeUndefined();
+        expect(statusBar({ ...base, view: palisadeRaisedView }).tooltip).toContain(
+          'A Paliçada Nv1 não segura um ataque deste tamanho',
+        );
+      });
+
+      it('o prazo desce com o relógio da página', () => {
+        expect(statusBar({ ...base, view: threatIncomingView, elapsedSeconds: 600 }).text).toBe(
+          '$(megaphone) Lobos em 6 min',
+        );
+        expect(statusBar({ ...base, view: threatIncomingView, elapsedSeconds: 9999 }).text).toBe(
+          '$(megaphone) Lobos em 1 min',
+        );
+      });
+
+      it('passa na frente das decisões pendentes, da fome, do frio, do depósito e da obra', () => {
+        // O golden da incursão já tem a Despensa cheia e perdendo: sem os lobos, a linha é dela.
+        expect(statusBar({ ...base, view: threatWatchedView }).text).toMatch(/^\$\(archive\) /);
+        const crowded: ViewState = {
+          ...deciding(withQueues(threatIncomingView, [activeConstruction()]), 2),
+          famine: starving.famine,
+          winter: coldView.winter,
+        };
+        expect(statusBar({ ...base, view: crowded }).text).toBe('$(megaphone) Lobos em 16 min');
+        // Quando o ataque chega, a linha volta ao assunto que estava: as cartas à espera.
+        const after: ViewState = { ...crowded, threat: threatWatchedView.threat };
+        expect(statusBar({ ...base, view: after }).text).toMatch(/^\$\(law\) 2 decisões pendentes/);
+      });
+
+      it('sem a Torre a visão não traz incursão nenhuma, e a linha não inventa uma', () => {
+        expect(statusBar({ ...base, view: building }).text).toBe('$(tools) Serraria Nv2 · 00:42');
+      });
+
+      it('sem ligação e no modo discreto, nada da incursão aparece', () => {
+        expect(statusBar({ ...base, view: threatIncomingView, connection: offline }).text).toBe(
+          '$(debug-disconnect) Sem ligação com o reino',
+        );
+        expect(statusBar({ ...base, view: threatIncomingView, discreetMode: true }).text).toMatch(
+          /^\$\(circle-filled\) \d\d:\d\d$/,
+        );
+      });
+
+      it('o título da aba do navegador repete o assunto, com as decisões no contador', () => {
+        const APP = 'Lords of the Guild';
+        expect(documentTitle({ ...base, view: threatIncomingView })).toBe(
+          `Lobos em 16 min · Pedra Alta · ${APP}`,
+        );
+        expect(documentTitle({ ...base, view: deciding(threatIncomingView, 1), pending: 1 })).toBe(
+          `(2) Lobos em 16 min · Pedra Alta · ${APP}`,
+        );
+        // Sem ligação o estado guardado pode estar velho: o ataque dele pode já ter passado.
+        expect(documentTitle({ ...base, view: threatIncomingView, connection: offline })).toBe(
+          `Pedra Alta · ${APP}`,
+        );
+      });
     });
 
     describe('título da aba do navegador', () => {
@@ -450,8 +548,21 @@ describe('barra de status', () => {
         expect(title({ ...coldView, famine: starving.famine })).toBe(
           `Fome e frio em Pedra Alta · ${APP}`,
         );
-        expect(title(deciding(starving, 2), { pending: 4 })).toBe(
-          `(4) 2 decisões pendentes · Pedra Alta · ${APP}`,
+      });
+
+      it('as decisões pendentes entram no contador, com as novidades: "(1) Pedra Alta"', () => {
+        expect(title(deciding(farmers, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 2))).toBe(`(2) Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 1), { pending: 2 })).toBe(`(3) Pedra Alta · ${APP}`);
+        // Com carta à espera, o assunto do título é o contador, mesmo com fome ou obra.
+        expect(title(deciding(starving, 2), { pending: 4 })).toBe(`(6) Pedra Alta · ${APP}`);
+        expect(title(deciding(building, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+      });
+
+      it('sem ligação, a carta do estado guardado não entra no contador do título', () => {
+        expect(title(deciding(farmers, 2), { connection: offline })).toBe(`Pedra Alta · ${APP}`);
+        expect(title(deciding(farmers, 2), { connection: offline, pending: 1 })).toBe(
+          `(1) Pedra Alta · ${APP}`,
         );
       });
 
@@ -520,7 +631,10 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
+      'threat',
+      'objectives',
     ]);
   });
 
@@ -556,6 +670,20 @@ describe('árvore', () => {
       });
     });
 
+    it('as decisões pendentes passam na frente de tudo, com as novidades ao lado', () => {
+      expect(today({ view: councilView })?.description).toBe('● 2 decisões pendentes');
+      expect(today({ view: withCards(initial, [mealCard]) })?.description).toBe(
+        '● 1 decisão pendente',
+      );
+      expect(today({ view: councilView, unseen: 3 })?.description).toBe(
+        '● 2 decisões pendentes · 3 novidades',
+      );
+      // Sem ligação a carta é a do estado guardado, e pode já ter saído da mesa: não é anunciada.
+      expect(today({ view: councilView, connection: offline })?.description).toBe(
+        'sem ligação com o reino',
+      );
+    });
+
     it('as novidades e a falta de ligação passam na frente', () => {
       expect(today({ view: initial, unseen: 2 })?.description).toBe('● 2 novidades');
       expect(today({ view: initial, connection: offline })?.description).toBe(
@@ -581,6 +709,65 @@ describe('árvore', () => {
         'Antes de partir, pelo último estado conhecido (sem ligação com o reino):',
       );
       expect(today({ view: impoverishedView })?.tooltip?.split('\n')[0]).toBe('Antes de partir:');
+    });
+  });
+
+  describe('Conselho (GDD §13.2)', () => {
+    const council = (view: ViewState, elapsedSeconds = 0) =>
+      find(buildTree({ ...input, view, elapsedSeconds }), 'council');
+
+    it('sem cartas, diz quando é a próxima audiência; a explicação traz a regra do servidor', () => {
+      const node = council(farmers);
+      expect(node).toMatchObject({
+        label: 'Conselho',
+        description: 'próxima audiência em 8 h',
+        icon: 'law',
+        command: { id: 'lords.openPanel', args: ['council'] },
+      });
+      expect(node?.children).toEqual([]);
+      expect(node?.tooltip).toBe(
+        [farmers.council.rulesText, 'Próxima audiência em 8 h.'].join('\n'),
+      );
+      // O prazo desce com o relógio da página.
+      expect(council(farmers, 7 * 3600 + 30 * 60)?.description).toBe('próxima audiência em 30 min');
+    });
+
+    it('sem assunto para o feudo como ele está, não promete carta', () => {
+      const node = council(autumnView);
+      expect(node?.description).toBe('sem assunto por agora');
+      expect(node?.tooltip).toContain(
+        'O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.',
+      );
+    });
+
+    it('com cartas: quantas esperam e o prazo da que vence primeiro', () => {
+      expect(council(withCards(farmers, [mealCard]))?.description).toBe(
+        '1 carta pendente (expira em 23 h)',
+      );
+      const node = council(
+        withCards(farmers, [
+          { ...shareCard, expiresInSeconds: 20 * 3600 },
+          { ...mealCard, expiresInSeconds: 14 * 3600 },
+        ]),
+      );
+      expect(node?.description).toBe('2 cartas pendentes (expira em 14 h)');
+      expect(council(councilView)?.tooltip).toContain('Com 2 cartas à espera');
+    });
+
+    it('cada carta é uma linha, com o prazo, o texto na explicação e o botão que decide', () => {
+      const node = council(councilView);
+      expect(node?.children?.map((card) => card.id)).toEqual([
+        'card:commonGranaryShare-3',
+        'card:masonsMeal-4',
+      ]);
+      expect(node?.children?.[1]).toMatchObject({
+        label: 'A refeição dos pedreiros',
+        description: 'expira em 23 h',
+        contextValue: 'lords.card',
+        // O clique só navega: a carta se lê na aba do Conselho.
+        command: { id: 'lords.openPanel', args: ['council'] },
+      });
+      expect(node?.children?.[1]?.tooltip).toBe([mealCard.text, mealCard.expiryNote].join('\n'));
     });
   });
 
@@ -786,6 +973,46 @@ describe('árvore', () => {
         rules.removalText,
         rules.experienceText,
       ]);
+    });
+  });
+
+  describe('incursão e feridos (GDD §8.2)', () => {
+    it('a linha do feudo diz que há uma incursão a caminho, por extenso, e a explicação traz o aviso', () => {
+      const fief = buildTree({ ...input, view: threatIncomingView })[1];
+      expect(fief?.description).toBe('Outono, dia 5 · incursão a caminho');
+      expect(fief?.tooltip?.split('\n')).toContain(
+        'Lobos a caminho. Os vigias contam uma matilha grande.',
+      );
+      expect(buildTree({ ...input, view: threatWatchedView })[1]?.description).toBe(
+        'Outono, dia 5',
+      );
+    });
+
+    it('a linha "Hoje" conta o ataque entre o que há a preparar', () => {
+      const today = buildTree({ ...input, view: threatIncomingView })[0];
+      expect(today?.description).toBe('⚠ 4 a preparar');
+      expect(today?.tooltip?.split('\n')[1]).toBe(
+        'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min. Sem Paliçada, nada segura este ataque.',
+      );
+    });
+
+    it('os feridos têm a sua parcela na linha "Trabalhadores" e a marca em cada ofício', () => {
+      const tree = buildTree({ ...input, view: raidAftermathView });
+      // Doze aldeões: dez com ofício, nenhum livre, dois feridos.
+      expect(find(tree, 'workers')?.description).toBe('10/12 alocados · 0 livres · 2 feridos');
+      expect(find(tree, 'workers')?.tooltip?.split('\n')[0]).toBe(
+        '2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.',
+      );
+      expect(
+        ['farm', 'lumberMill', 'quarry', 'goldMine'].map(
+          (building) => find(tree, `worker:${building}`)?.description,
+        ),
+      ).toEqual(['3 · 152,7/h · 1 ferido', '3 · 78,3/h · 1 ferido', '2 · 32,6/h', '2 · 28,7/h']);
+    });
+
+    it('sem feridos a linha fica como sempre foi', () => {
+      const tree = buildTree({ ...input, view: threatWatchedView });
+      expect(find(tree, 'workers')?.description).toBe('12/12 alocados · 0 livres');
     });
   });
 
@@ -1016,7 +1243,10 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
+      'threat',
+      'objectives',
     ]);
   });
 
@@ -1045,8 +1275,11 @@ describe('árvore', () => {
       'resources',
       'workers',
       'constructions',
+      'council',
       'morale',
+      'threat',
       'hearth',
+      'objectives',
     ]);
     expect(find(tree, 'hearth')).toMatchObject({
       label: 'Lareira',
@@ -1165,6 +1398,97 @@ describe('árvore', () => {
     expect(find(buildTree({ ...input, view: farmers }), 'construction:farm')?.tooltip).toBe(
       '80 madeira, 40 ouro · 5 min',
     );
+  });
+
+  describe('objetivos (GDD §12.2)', () => {
+    it('a linha "Objetivos" conta os em aberto e os cumpridos, e abre com uma linha por objetivo', () => {
+      const tree = buildTree({ ...input, view: unlockedView });
+      const node = find(tree, 'objectives');
+      expect(node).toMatchObject({
+        label: 'Objetivos',
+        description: '3 em aberto · 4 cumpridos',
+        icon: 'target',
+        expanded: true,
+        // O clique só navega, como em toda linha.
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      });
+      // Os cumpridos não ganham linha: ficam na explicação do grupo, pelo título.
+      expect(node?.tooltip).toBe(
+        'Cumpridos: Aloque 2 aldeões na Fazenda; Inicie a melhoria das Habitações; ' +
+          'Recrute 3 aldeões; Alcance o Salão do Senhor Nv2.',
+      );
+      expect(node?.children?.map((child) => child.id)).toEqual([
+        'objective:buildWatchtower',
+        'objective:answerFirstCard',
+        'objective:buildGranaryOrWarehouse',
+      ]);
+    });
+
+    it('cada objetivo diz o progresso e a recompensa; a explicação traz o porquê e o que falta', () => {
+      const start = buildTree({ ...input, view: initial });
+      expect(find(start, 'objectives')?.description).toBe('3 em aberto');
+      expect(find(start, 'objective:allocateFarmers')).toMatchObject({
+        label: 'Aloque 2 aldeões na Fazenda',
+        description: '0/2 · +20 ouro',
+        tooltip: [
+          'Comida é o que mantém todo o resto.',
+          'Recompensa: +20 ouro.',
+          'Faltam 2 aldeões na Fazenda.',
+        ].join('\n'),
+        icon: 'target',
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      });
+      // A recompensa de moral, como o servidor a escreveu, com o prazo de relógio.
+      const tree = buildTree({ ...input, view: unlockedView });
+      expect(find(tree, 'objective:answerFirstCard')).toMatchObject({
+        label: 'Responda à primeira carta do Conselho',
+        description: '+10 de moral por 1 dia de jogo (2 h)',
+        tooltip: [
+          'Quem se cala deixa o conselho decidir em seu lugar.',
+          'Recompensa: +10 de moral por 1 dia de jogo (2 h).',
+          'Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer.',
+        ].join('\n'),
+      });
+    });
+
+    it('o botão da linha é o comando que leva a cumprir o objetivo, com o custo da obra na dica', () => {
+      const start = buildTree({ ...input, view: initial });
+      const housing = find(start, 'objective:upgradeHousing');
+      expect(housing?.action).toEqual({
+        command: 'lords.build',
+        arg: 'housing',
+        label: 'Melhorar Habitações: Inicie a melhoria das Habitações',
+        text: 'Melhorar',
+      });
+      expect(housing?.actionHints).toEqual({ 'lords.build': '80 madeira, 20 pedra · 4 min' });
+      expect(housing?.tooltip?.split('\n').at(-1)).toBe(
+        'Pode começar agora: 80 madeira, 20 pedra · 4 min.',
+      );
+      // A obra travada: o botão só leva às construções, e não há custo a anunciar.
+      const tower = find(buildTree({ ...input, view: unlockedView }), 'objective:buildWatchtower');
+      expect(tower?.action).toEqual({
+        command: 'lords.openPanel',
+        arg: 'constructions',
+        label: 'Ver as obras: Construa a Torre de Vigia',
+        text: 'Ver',
+      });
+      expect(tower?.actionHints).toBeUndefined();
+      // O inverno: nada a ordenar.
+      const winter = find(
+        buildTree({ ...input, view: lateObjectivesView }),
+        'objective:surviveWinterWithoutCold',
+      );
+      expect(winter?.action).toBeUndefined();
+      expect(winter?.description).toBe('+15 de moral por 1 dia de jogo (2 h)');
+    });
+
+    it('com tudo cumprido, a linha fica sem filhos, com o visto e a frase que não promete nada', () => {
+      const node = find(buildTree({ ...input, view: autumnView }), 'objectives');
+      expect(node).toMatchObject({ description: '10 cumpridos', icon: 'pass', children: [] });
+      expect(node?.tooltip?.split('\n')[0]).toBe(
+        'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
+      );
+    });
   });
 
   it('conta sem partida carregada oferece abrir o painel', () => {
@@ -1410,6 +1734,7 @@ describe('Relatório de Retorno', () => {
         cut: 35.2,
         // O perdido nunca é menos que o corte: o fecho do dia só conta unidades inteiras.
         wasted: 35.2,
+        raided: 0,
         produced: -38.8,
       });
       expect(ReturnReportSchema.safeParse(cut).success).toBe(true);

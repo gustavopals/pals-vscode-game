@@ -7,17 +7,27 @@ import {
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
   initialView,
+  palisadeRaisedView,
+  raidAftermathView,
+  threatIncomingView,
+  threatWatchedView,
   withFoodAhead,
 } from '../test-helpers';
 import {
   decideNotice,
   decideNotifications,
   eventIcon,
+  isDecision,
   isEssential,
+  isRaidAlarm,
+  isRaidOutcome,
   isRelief,
   isSeasonTurn,
+  isWatchReport,
   moraleBandDirection,
   type PolicyInput,
+  raidAftermath,
+  raidAhead,
   SEASON_WARNING_SECONDS,
   seasonAhead,
   seasonArrival,
@@ -113,6 +123,41 @@ describe('política de notificações', () => {
     expect(isRelief(event('craftMastered'))).toBe(false);
     // É uma conquista: sai com a estrela, não com o ícone de um aviso qualquer.
     expect(eventIcon(event('craftMastered'))).toBe('star-full');
+  });
+
+  it('vários objetivos cumpridos no mesmo lote são um aviso só: o primeiro fala por todos', () => {
+    // O que o feudo já tinha feito conta de uma vez quando o objetivo aparece, e concluir um
+    // revela o seguinte: cinco eventos não gastam os três avisos da hora.
+    const events = [
+      event('objectiveCompleted', 1),
+      event('constructionFinished', 2),
+      event('objectiveCompleted', 3),
+      event('objectiveCompleted', 4),
+      event('buildingFounded', 5),
+      event('objectiveCompleted', 6),
+    ];
+    const all = decideNotifications(input({ level: 'all', events }));
+    expect(all.show.map((entry) => entry.seq)).toEqual([1, 2, 5]);
+    // Os outros objetivos não viram aviso nem novidade a contar: já foram ditos.
+    expect(all.badge).toBe(0);
+    expect(all.history).toHaveLength(3);
+    // Sem espaço para o aviso, os objetivos do lote contam como uma novidade só.
+    const full = decideNotifications(input({ level: 'all', events, history: [now, now, now] }));
+    expect(full.show).toEqual([]);
+    expect(full.badge).toBe(3);
+    // No nível padrão continuam não interrompendo.
+    expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+    // Em lotes diferentes, cada objetivo é a sua notícia.
+    const first = decideNotifications(
+      input({ level: 'all', events: [event('objectiveCompleted', 1)] }),
+    );
+    const second = decideNotifications(
+      input({ level: 'all', events: [event('objectiveCompleted', 2)], history: first.history }),
+    );
+    expect(second.show.map((entry) => entry.seq)).toEqual([2]);
+    // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
+    expect(eventIcon(event('objectiveCompleted'))).toBe('pass');
+    expect(isEssential(event('objectiveCompleted'))).toBe(false);
   });
 
   it('a obra que começou sozinha avisa em "todas", como o fim de uma obra; a ordenada pelo jogador, não', () => {
@@ -251,6 +296,308 @@ describe('política de notificações', () => {
       ]);
       expect(result.show[1]).toBe(events[2]);
       expect(result.badge).toBe(2);
+    });
+  });
+
+  describe('Conselho (GDD §13.5: "carta nova" é essencial)', () => {
+    const council = [
+      event('cardDrawn', 1),
+      event('cardAnswered', 2),
+      event('cardExpired', 3),
+      event('cardEffectApplied', 4),
+    ];
+
+    it('a carta nova avisa no nível padrão, sem tom de alarme e com o ícone do Conselho', () => {
+      const result = decideNotifications(input({ level: 'essential', events: council }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['cardDrawn']);
+      const drawn = event('cardDrawn');
+      expect(isDecision(drawn)).toBe(true);
+      expect(isEssential(drawn)).toBe(false);
+      expect(isRelief(drawn)).toBe(false);
+      expect(eventIcon(drawn)).toBe('law');
+    });
+
+    it('a resposta do próprio jogador nunca avisa', () => {
+      for (const level of ['essential', 'all'] as const) {
+        const shown = decideNotifications(input({ level, events: council })).show;
+        expect(shown.map((entry) => entry.type)).not.toContain('cardAnswered');
+      }
+    });
+
+    it('a carta que expirou e o efeito que veio depois são notícia em "todas"', () => {
+      const result = decideNotifications(input({ level: 'all', events: council }));
+      expect(result.show.map((entry) => entry.type)).toEqual([
+        'cardDrawn',
+        'cardExpired',
+        'cardEffectApplied',
+      ]);
+      expect(eventIcon(event('cardExpired'))).toBe('law');
+      expect(eventIcon(event('cardEffectApplied'))).toBe('law');
+      expect(isDecision(event('cardExpired'))).toBe(false);
+    });
+
+    it('nos níveis silencioso e discreto, nada', () => {
+      expect(decideNotifications(input({ level: 'silent', events: council })).show).toEqual([]);
+      expect(
+        decideNotifications(input({ level: 'all', discreetMode: true, events: council })),
+      ).toMatchObject({ show: [], badge: 0 });
+    });
+
+    it('a carta nova nunca vira badge de novidade: quem a conta é a decisão pendente', () => {
+      // Durante o silêncio de 2 horas, a obra vira badge e a carta, não.
+      const muted = decideNotifications(
+        input({
+          level: 'all',
+          mutedUntil: now + HOUR,
+          events: [event('cardDrawn', 1), event('constructionFinished', 2)],
+        }),
+      );
+      expect(muted).toMatchObject({ show: [], badge: 1 });
+      // Com as três da hora já exibidas, o mesmo.
+      const full = decideNotifications(
+        input({
+          level: 'all',
+          history: [now - 1000, now - 2000, now - 3000],
+          events: [event('cardDrawn', 1), event('constructionFinished', 2)],
+        }),
+      );
+      expect(full).toMatchObject({ show: [], badge: 1 });
+      expect(
+        decideNotifications(
+          input({ history: [now - 1000, now - 2000, now - 3000], events: [event('cardDrawn')] }),
+        ).badge,
+      ).toBe(0);
+    });
+
+    it('com pouco espaço: o alarme, depois a carta nova, depois o resto', () => {
+      const result = decideNotifications(
+        input({
+          level: 'all',
+          history: [now - 1000],
+          events: [
+            event('constructionFinished', 1),
+            event('cardDrawn', 2),
+            event('famineStarted', 3),
+          ],
+        }),
+      );
+      expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'cardDrawn']);
+      expect(result.badge).toBe(1);
+    });
+  });
+
+  describe('o relato dos vigias (GDD §8.2): a Ameaça cruzou uma marca', () => {
+    const rose: GameEvent = {
+      ...event('threatRose', 9),
+      text: 'No 9º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
+      data: { threat: 40, previousThreat: 35, mark: 40 },
+    };
+
+    it('avisa no nível padrão, sem tom de alarme, com o olho da Ameaça', () => {
+      expect(isWatchReport(rose)).toBe(true);
+      expect(isEssential(rose)).toBe(false);
+      expect(isRelief(rose)).toBe(false);
+      expect(isDecision(rose)).toBe(false);
+      expect(eventIcon(rose)).toBe('eye');
+      for (const level of ['essential', 'all'] as const) {
+        expect(decideNotifications(input({ level, events: [rose] })).show).toEqual([rose]);
+      }
+    });
+
+    it('no nível silencioso e no modo discreto, nada; no silêncio de 2 horas, vira contador', () => {
+      expect(decideNotifications(input({ level: 'silent', events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ discreetMode: true, events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ mutedUntil: now + HOUR, events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 1,
+      });
+    });
+
+    it('com pouco espaço: o alarme na frente, o relato dos vigias antes do resto', () => {
+      const events = [event('constructionFinished', 1), rose, event('famineStarted', 10)];
+      const result = decideNotifications(input({ level: 'all', events, history: [now - 1000] }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'threatRose']);
+      expect(result.badge).toBe(1);
+    });
+
+    it('os outros eventos não são relato dos vigias', () => {
+      for (const type of ['famineStarted', 'seasonChanged', 'cardDrawn', 'dayStarted'] as const) {
+        expect(isWatchReport(event(type))).toBe(false);
+      }
+    });
+  });
+
+  describe('a incursão (GDD §8.2 e §13.5): os uivos, o alarme dos vigias e o desfecho', () => {
+    const howl = (watched: 0 | 1): GameEvent => ({
+      ...event('wolvesHowl', 20),
+      text: 'No 10º dia da Primavera, ouviram-se uivos na mata ao redor de Pedra Alta. Sem quem vigie, ninguém sabe quantos são.',
+      data: { enemy: 'wolves', watched },
+    });
+    const announced: GameEvent = {
+      ...event('raidAnnounced', 30),
+      text: 'No 15º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Contam uma matilha pequena.',
+      data: { raidId: 'wolvesYear1', enemy: 'wolves', warning: 'sized', size: 'light' },
+    };
+    const suffered: GameEvent = {
+      ...event('raidSuffered', 40),
+      text: 'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Nada os deteve: o ataque custou 30 de comida, 12 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
+      data: {
+        raidId: 'wolvesYear1',
+        enemy: 'wolves',
+        size: 'light',
+        warning: 'unwarned',
+        palisadeLevel: 0,
+        injured: 1,
+        raided_food: 30,
+        raided_wood: 12,
+        palisadeLevelNeeded: 1,
+      },
+    };
+    const repelled: GameEvent = {
+      ...event('raidRepelled', 41),
+      text: 'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
+      data: {
+        raidId: 'wolvesYear1',
+        enemy: 'wolves',
+        size: 'light',
+        warning: 'unwarned',
+        palisadeLevel: 1,
+      },
+    };
+    const injured: GameEvent = {
+      ...event('villagerInjured', 42),
+      data: { raidId: 'wolvesYear1', injured: 1, building: 'lumberMill' },
+    };
+    const recovered: GameEvent = {
+      ...event('villagerRecovered', 50),
+      data: { injured: 0, building: 'lumberMill' },
+    };
+
+    it('o alarme dos vigias e o ataque sofrido são alarmes: nível padrão, tom de aviso, o ícone da incursão', () => {
+      for (const raid of [announced, suffered]) {
+        expect(isEssential(raid)).toBe(true);
+        expect(isRelief(raid)).toBe(false);
+        expect(eventIcon(raid)).toBe('megaphone');
+        for (const level of ['essential', 'all'] as const) {
+          expect(decideNotifications(input({ level, events: [raid] })).show).toEqual([raid]);
+        }
+      }
+      expect(isRaidAlarm(announced)).toBe(true);
+      expect(isRaidAlarm(suffered)).toBe(false);
+      expect(isRaidOutcome(suffered)).toBe(true);
+      expect(isRaidOutcome(announced)).toBe(false);
+    });
+
+    it('o ataque que a paliçada deteve é o alívio: mesmo nível, sem tom de alarme, com o escudo', () => {
+      expect(isRelief(repelled)).toBe(true);
+      expect(isEssential(repelled)).toBe(false);
+      expect(isRaidOutcome(repelled)).toBe(true);
+      expect(eventIcon(repelled)).toBe('shield');
+      expect(decideNotifications(input({ events: [repelled] })).show).toEqual([repelled]);
+    });
+
+    it('os uivos são um prenúncio: nível padrão, sem alarme, com o olho de quem tem ou não tem vigias', () => {
+      for (const watched of [0, 1] as const) {
+        const heard = howl(watched);
+        expect(isWatchReport(heard)).toBe(true);
+        expect(isEssential(heard)).toBe(false);
+        expect(isRelief(heard)).toBe(false);
+        expect(decideNotifications(input({ events: [heard] })).show).toEqual([heard]);
+      }
+      expect(eventIcon(howl(0))).toBe('eye-closed');
+      expect(eventIcon(howl(1))).toBe('eye');
+    });
+
+    it('quem se fere e quem sara não vira aviso: o ataque já contou, e o painel mostra', () => {
+      for (const level of ['essential', 'all'] as const) {
+        expect(decideNotifications(input({ level, events: [injured, recovered] }))).toMatchObject({
+          show: [],
+          badge: 0,
+        });
+      }
+    });
+
+    it('no nível silencioso e no modo discreto, nada; no silêncio de 2 horas, vira contador', () => {
+      const events = [howl(1), announced];
+      expect(decideNotifications(input({ level: 'silent', events }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ discreetMode: true, events }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ mutedUntil: now + HOUR, events }))).toMatchObject({
+        show: [],
+        badge: 2,
+      });
+    });
+
+    it('o alarme de uma incursão que o mesmo lote já resolve não sai: quem fala é o desfecho', () => {
+      // A aba ficou ao fundo e leu tarde: o aviso e o ataque chegam juntos.
+      for (const outcome of [suffered, repelled]) {
+        const result = decideNotifications(input({ events: [announced, outcome] }));
+        expect(result.show).toEqual([outcome]);
+        expect(result.badge).toBe(0);
+      }
+      // O alarme de outra incursão, ainda a caminho, continua valendo.
+      const other = { ...announced, data: { ...announced.data, raidId: 'threat-9' } };
+      expect(
+        decideNotifications(input({ events: [other, suffered] })).show.map((entry) => entry.type),
+      ).toEqual(['raidAnnounced', 'raidSuffered']);
+    });
+
+    it('com pouco espaço: os alarmes da incursão na frente, os uivos e o alívio antes do resto', () => {
+      // O alarme é de outra incursão, ainda a caminho: a que recuou já passou.
+      const other = { ...announced, data: { ...announced.data, raidId: 'threat-9' } };
+      const events = [event('constructionFinished', 1), howl(0), repelled, other];
+      const result = decideNotifications(input({ level: 'all', events, history: [now - 1000] }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['raidAnnounced', 'wolvesHowl']);
+      expect(result.badge).toBe(2);
+    });
+
+    describe('o que o alarme diz além da frase da Crônica', () => {
+      it('quando o ataque chega, com a hora do relógio, o que ele custa e o que a Paliçada faz a ele', () => {
+        expect(
+          raidAhead(threatIncomingView, { now: Date.UTC(2026, 9, 2, 20, 0), timeZone: 'UTC' }),
+        ).toEqual([
+          'Chegada em 16 min, às 20:15.',
+          'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
+          'Sem Paliçada, nada segura este ataque.',
+        ]);
+        // No fuso de quem joga.
+        expect(
+          raidAhead(threatIncomingView, {
+            now: Date.UTC(2026, 9, 2, 20, 0),
+            timeZone: 'America/Sao_Paulo',
+          })[0],
+        ).toBe('Chegada em 16 min, às 17:15.');
+        // Sem o relógio, só o prazo.
+        expect(raidAhead(threatIncomingView)[0]).toBe('Chegada em 16 min.');
+        expect(raidAhead(palisadeRaisedView)[2]).toBe(
+          'A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago.',
+        );
+      });
+
+      it('sem incursão à vista na visão (ou sem visão), nada: o app não inventa prazo', () => {
+        expect(raidAhead(threatWatchedView)).toEqual([]);
+        expect(raidAhead(initialView)).toEqual([]);
+        expect(raidAhead(null)).toEqual([]);
+      });
+    });
+
+    it('o ataque sofrido diz quem ficou ferido e quando sara, na frase do servidor', () => {
+      expect(raidAftermath(raidAftermathView)).toEqual([
+        '2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.',
+      ]);
+      expect(raidAftermath(threatWatchedView)).toEqual([]);
+      expect(raidAftermath(null)).toEqual([]);
     });
   });
 

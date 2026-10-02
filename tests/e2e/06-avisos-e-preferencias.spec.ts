@@ -114,6 +114,46 @@ test.describe('avisos', () => {
     await expect(toasts(page).getByRole('status').filter({ hasText: /alde/i })).toBeVisible();
   });
 
+  // V2E-T4 (GDD §12.2): o que o feudo já fez conta no instante em que o objetivo aparece. Com o
+  // Salão já no nível 2, cumprir o primeiro objetivo revela o do Salão, que se cumpre na mesma
+  // hora: são dois acontecimentos na resposta de uma ordem, e um aviso só.
+  test('com "Todos", os objetivos cumpridos de uma vez viram um aviso só, e "Ver" leva à lista deles', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    await world.raise('townHall', 2);
+    await openSettings(page);
+    await settings(page).getByRole('radio', { name: /Todos/ }).check();
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await palette(page, 'alocar');
+    await page.keyboard.type('fazenda');
+    await page.keyboard.press('Enter');
+    await page.keyboard.type('2');
+    await page.keyboard.press('Enter');
+
+    const notices = toasts(page)
+      .getByRole('status')
+      .filter({ hasText: /objetivo/i });
+    await expect(notices).toHaveCount(1);
+    await expect(notices).toContainText('2 objetivos cumpridos.');
+    // Uma linha para cada um, com a recompensa como a lista dos objetivos a diz.
+    await expect(notices.getByRole('listitem')).toHaveText([
+      'Aloque 2 aldeões na Fazenda: +20 ouro.',
+      'Alcance o Salão do Senhor Nv2: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+    ]);
+    // "Ver" leva à lista dos objetivos, no feudo, onde os seguintes acabaram de aparecer.
+    await notices.getByRole('button', { name: 'Ver' }).click();
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    const objectives = fief(page).getByRole('region', { name: 'Objetivos' });
+    await expect(objectives.getByRole('heading', { name: 'Objetivos' })).toBeFocused();
+    await expect(objectives.getByRole('heading', { name: 'Objetivos' })).toBeInViewport();
+    await expect(objectives.getByText('Cumpridos (2)')).toBeVisible();
+    await expect(objectives.locator('li.objective')).toHaveCount(3);
+    await expect(notices).toHaveCount(0);
+  });
+
   test('a fome avisa mesmo no nível padrão, e toma a barra de status', async ({
     context,
     world,

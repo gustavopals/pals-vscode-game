@@ -43,6 +43,8 @@ export async function openPalette(dialogs: Dialogs, commands: AppCommand[]): Pro
 export function QuickPick(props: {
   title: string;
   placeholder?: string | undefined;
+  /** O que ler antes de escolher, em parágrafos, acima do campo de busca. */
+  detail?: string[] | undefined;
   items: PickItem<unknown>[];
   /** Posição do item que já vem marcado. Digitar na busca volta a marcar o primeiro. */
   selected?: number | undefined;
@@ -78,6 +80,14 @@ export function QuickPick(props: {
       <div class="quickpick-title" id="dialog-title">
         {props.title}
       </div>
+      {props.detail === undefined ? null : (
+        // O texto que se lê antes de escolher: o diálogo o usa como descrição (`aria-describedby`).
+        <div class="quickpick-reading" id="dialog-detail">
+          {props.detail.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
+        </div>
+      )}
       <input
         type="text"
         role="combobox"

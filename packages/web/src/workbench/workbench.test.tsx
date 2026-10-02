@@ -11,17 +11,25 @@ import type { Connection } from '../game/connection';
 import {
   activeConstruction,
   coldView,
+  councilView,
+  craftsView,
   gameEvent,
+  mealCard,
   goldenView,
+  lateObjectivesView,
   makeController,
+  palisadeRaisedView,
   queuesView,
+  raidAftermathView,
   settle,
+  threatIncomingView,
+  threatWatchedView,
   withQueues,
   withResource,
 } from '../test-helpers';
 import { statusBar, type StatusBarInput } from '../ui/format';
 import { buildTree, type TreeNode } from '../ui/treeModel';
-import { type Activity, ActivityBar } from './ActivityBar';
+import { type Activity, ActivityBar, badgeLabel } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
 import { nodesFor, SideBar } from './SideBar';
 import { StatusBar } from './StatusBar';
@@ -112,7 +120,14 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'worker:quarry',
       'worker:goldMine',
       'constructions',
+      'council',
       'morale',
+      'threat',
+      // Os objetivos em aberto ficam à vista: são o tutorial vivo.
+      'objectives',
+      'objective:upgradeHousing',
+      'objective:recruitVillagers',
+      'objective:townHallLevel2',
       'chronicle',
       'account',
       'settings',
@@ -125,6 +140,13 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     // Construções e Conta têm filhos, mas começam fechadas.
     expect(byId.get('constructions')).toMatchObject({ expandable: true, expanded: false });
     expect(byId.get('account')).toMatchObject({ expandable: true, expanded: false });
+    // O Conselho sem cartas não tem o que abrir; com cartas, já vem aberto.
+    expect(byId.get('council')).toMatchObject({ depth: 1, expandable: false });
+    const seated = new Map(
+      flattenTree(tree({ view: councilView }), {}).map((row) => [row.node.id, row]),
+    );
+    expect(seated.get('council')).toMatchObject({ expandable: true, expanded: true });
+    expect(seated.get('card:masonsMeal-4')).toMatchObject({ depth: 2, parentId: 'council' });
     // Sem linhas na Crônica não há o que abrir.
     expect(byId.get('chronicle')).toMatchObject({ expandable: false, expanded: false });
   });
@@ -134,7 +156,8 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 4 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 7 });
+    expect(byId.get('objective:recruitVillagers')).toMatchObject({ position: 2, setSize: 3 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
   });
 
@@ -335,19 +358,77 @@ describe('ações das linhas (rowActions)', () => {
     ]);
   });
 
+  it('a carta do Conselho tem "Decidir", com o título dela no rótulo', () => {
+    const seated = tree({ view: councilView });
+    expect(rowActions(nodeById(seated, 'card:masonsMeal-4'))).toEqual([
+      {
+        label: 'Decidir: A refeição dos pedreiros',
+        text: 'Decidir',
+        command: 'lords.answerCard',
+      },
+    ]);
+    // A linha "Conselho" só navega.
+    expect(rowActions(nodeById(seated, 'council'))).toEqual([]);
+  });
+
+  it('a linha de um objetivo traz o botão que leva a cumpri-lo, com o argumento do comando', () => {
+    // Obra que pode começar: o botão a ordena, e a dica dele diz o custo e o prazo.
+    const housing = nodeById(nodes, 'objective:upgradeHousing');
+    expect(rowActions(housing)).toEqual([
+      {
+        command: 'lords.build',
+        arg: 'housing',
+        label: 'Melhorar Habitações: Inicie a melhoria das Habitações',
+        text: 'Melhorar',
+      },
+    ]);
+    expect(actionTitle(housing, rowActions(housing)[0] ?? { label: '', command: '' })).toBe(
+      'Melhorar Habitações: Inicie a melhoria das Habitações (80 madeira, 20 pedra · 4 min)',
+    );
+    // Obra travada: o botão só leva às construções, onde estão o custo e o motivo.
+    expect(rowActions(nodeById(nodes, 'objective:townHallLevel2'))).toEqual([
+      {
+        command: 'lords.openPanel',
+        arg: 'constructions',
+        label: 'Ver as obras: Alcance o Salão do Senhor Nv2',
+        text: 'Ver',
+      },
+    ]);
+    // Sem argumento: o comando abre o seu próprio diálogo.
+    expect(rowActions(nodeById(nodes, 'objective:recruitVillagers'))).toEqual([
+      { command: 'lords.recruit', label: 'Recrutar aldeões: Recrute 3 aldeões', text: 'Recrutar' },
+    ]);
+    // O inverno não tem o que ordenar: a linha fica sem botão.
+    const late = tree({ view: lateObjectivesView });
+    expect(rowActions(nodeById(late, 'objective:surviveWinterWithoutCold'))).toEqual([]);
+    expect(rowActions(nodeById(late, 'objective:planAutoStart'))).toMatchObject([
+      { command: 'lords.planConstruction', text: 'Planejar' },
+    ]);
+  });
+
   it('nenhuma outra linha dá ordens: clicar só navega', () => {
     const withActions = everyNode(nodes)
       .filter((node) => rowActions(node).length > 0)
       .map((node) => node.id);
     const allowed = (id: string) =>
       id.startsWith('worker:') ||
+      // O botão de um objetivo é o comando que leva a cumpri-lo; o clique na linha só navega.
+      id.startsWith('objective:') ||
       id === 'active:lumberMill' ||
       building.constructions.available.some(
         (upgrade) => upgrade.blockedReason === null && id === `construction:${upgrade.building}`,
       );
     expect(withActions.length).toBeGreaterThan(0);
     expect(withActions.filter((id) => !allowed(id))).toEqual([]);
-    for (const id of ['today', 'fief', 'resources', 'resource:food', 'chronicle', 'settings']) {
+    for (const id of [
+      'today',
+      'fief',
+      'resources',
+      'resource:food',
+      'objectives',
+      'chronicle',
+      'settings',
+    ]) {
       expect(rowActions(nodeById(nodes, id))).toEqual([]);
     }
     expect(rowActions(nodeById(nodes, 'account:delete'))).toEqual([]);
@@ -363,10 +444,17 @@ describe('ações das linhas (rowActions)', () => {
       'lords.planConstruction',
       'lords.recruit',
       'lords.allocateWorkers',
+      'lords.answerCard',
     ];
-    const clicks = [...everyNode(nodes), ...everyNode(tree({ view: queuesView }))]
-      .filter((node) => /^(worker|construction|active|planned):/.test(node.id))
+    const clicks = [
+      ...everyNode(nodes),
+      ...everyNode(tree({ view: queuesView })),
+      ...everyNode(tree({ view: councilView })),
+    ]
+      .filter((node) => /^(worker|construction|active|planned|card):/.test(node.id))
       .map((node) => node.command?.id);
+    // As duas cartas da mesa cheia estão entre as linhas conferidas.
+    expect(clicks.filter((id) => id === 'lords.openPanel').length).toBeGreaterThanOrEqual(2);
     expect(clicks.length).toBeGreaterThan(0);
     expect(clicks.filter((id) => id !== undefined && orders.includes(id))).toEqual([]);
   });
@@ -425,8 +513,8 @@ describe('Tree', () => {
   it('as ordens saem de botões rotulados dentro das linhas', () => {
     const markup = render(tree());
     const found = buttons(markup);
-    // Quatro edifícios com − e +; Construções começa fechada.
-    expect(found).toHaveLength(goldenView.workers.length * 2);
+    // Quatro edifícios com − e +, e um botão por objetivo em aberto; Construções começa fechada.
+    expect(found).toHaveLength(goldenView.workers.length * 2 + 3);
     expect(found.map((button) => attribute(button, 'aria-label'))).toContain(
       'Pôr mais um trabalhador em Fazenda Nv1',
     );
@@ -473,6 +561,77 @@ describe('Tree', () => {
     expect(attribute(morale, 'title')).toContain('O que mais pesa é o frio (−20).');
     // Não há ordem a dar na moral: a linha só navega.
     expect(rowActions({ id: 'morale', label: 'Moral' })).toEqual([]);
+  });
+
+  it('a Ameaça é uma linha do feudo: sem a Torre, a névoa; com a obra liberada, o botão que a ergue', () => {
+    // Antes do Salão Nv2 a obra está travada: a linha só navega, e a explicação diz o motivo.
+    const gated = render(tree());
+    const row = (markup: string) => tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
+    expect(attribute(row(gated), 'role')).toBe('treeitem');
+    expect(gated).toContain('codicon codicon-eye-closed');
+    expect(gated).toContain('desconhecida · sem Torre de Vigia');
+    expect(attribute(row(gated), 'title')).toContain(
+      'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
+    );
+    expect(attribute(row(gated), 'title')).toContain(
+      'Melhore antes o Salão do Senhor para o nível 2.',
+    );
+    expect(rowActions(nodeById(tree(), 'threat'))).toEqual([]);
+
+    // Com o Salão no nível 2 e o estoque pago, a saída da névoa fica na própria linha.
+    const open = tree({ view: craftsView });
+    expect(rowActions(nodeById(open, 'threat'))).toEqual([
+      { label: 'Construir: Torre de Vigia', text: 'Construir', command: 'lords.build' },
+    ]);
+    const button = buttons(render(open)).find(
+      (tag) => attribute(tag, 'aria-label') === 'Construir: Torre de Vigia',
+    );
+    // O custo está à vista antes do clique, na dica do botão.
+    expect(attribute(button ?? '', 'title')).toBe(
+      'Construir: Torre de Vigia (120 madeira, 120 pedra, 50 ouro · 12 min)',
+    );
+    // Sem ligação, o botão não dá ordem.
+    const readOnly = buttons(render(open, true)).find(
+      (tag) => attribute(tag, 'aria-label') === 'Construir: Torre de Vigia',
+    );
+    expect(hasAttribute(readOnly ?? '', 'disabled')).toBe(true);
+  });
+
+  it('com a Torre, a linha da Ameaça traz o número e o que ronda, com o olho aberto, e só navega', () => {
+    const watched = tree({ view: threatWatchedView });
+    const markup = render(watched);
+    expect(markup).toContain('46 · Covil de Lobos');
+    expect(markup).toContain('codicon codicon-eye"');
+    expect(markup).not.toContain('codicon codicon-eye-closed');
+    expect(rowActions(nodeById(watched, 'threat'))).toEqual([]);
+    const row = tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
+    expect(attribute(row, 'title')).toContain('+5/dia: Covil de Lobos');
+  });
+
+  it('com a Torre e a obra da Paliçada liberada, o botão da linha da Ameaça ordena a defesa', () => {
+    const raised = tree({ view: palisadeRaisedView });
+    // A Paliçada já existe: o botão diz "Melhorar", com o nome da obra para quem não vê a linha.
+    expect(rowActions(nodeById(raised, 'threat'))).toEqual([
+      { label: 'Melhorar: Paliçada Nv1 → Nv2', text: 'Melhorar', command: 'lords.build' },
+    ]);
+    const markup = render(raised);
+    // A linha diz o ataque que vem, com sinal e texto.
+    expect(markup).toContain('46 · ⚠ Lobos em 16 min');
+    const button = buttons(markup).find(
+      (tag) => attribute(tag, 'aria-label') === 'Melhorar: Paliçada Nv1 → Nv2',
+    );
+    // O custo está à vista antes do clique, na dica do botão.
+    expect(attribute(button ?? '', 'title')).toBe(
+      'Melhorar: Paliçada Nv1 → Nv2 (320 madeira, 80 pedra · 10 min)',
+    );
+    // Com a Paliçada à espera do Salão Nv3 a linha só navega.
+    expect(rowActions(nodeById(tree({ view: threatIncomingView }), 'threat'))).toEqual([]);
+  });
+
+  it('os feridos de uma incursão aparecem na linha dos trabalhadores e na de cada ofício', () => {
+    const markup = render(tree({ view: raidAftermathView }));
+    expect(markup).toContain('10/12 alocados · 0 livres · 2 feridos');
+    expect(markup).toContain('3 · 152,7/h · 1 ferido');
   });
 
   it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {
@@ -603,7 +762,12 @@ describe('SideBar', () => {
 
 describe('ActivityBar', () => {
   const render = (
-    overrides: Partial<{ active: Activity; sidebarOpen: boolean; unseen: number }> = {},
+    overrides: Partial<{
+      active: Activity;
+      sidebarOpen: boolean;
+      unseen: number;
+      decisions: number;
+    }> = {},
   ) =>
     html(
       <ActivityBar
@@ -648,6 +812,16 @@ describe('ActivityBar', () => {
     expect(tags(two, /class="activity-badge"/g)).toHaveLength(1);
   });
 
+  it('as decisões pendentes entram no badge do Feudo, ditas por extenso antes das novidades', () => {
+    const one = render({ decisions: 1 });
+    expect(labels(one)[0]).toBe('Feudo: 1 decisão pendente');
+    expect(one).toMatch(/class="activity-badge"[^>]*>1<\/span>/);
+    const both = render({ decisions: 2, unseen: 3 });
+    expect(labels(both)[0]).toBe('Feudo: 2 decisões pendentes e 3 novidades');
+    expect(both).toMatch(/class="activity-badge"[^>]*>5<\/span>/);
+    expect(badgeLabel(0, 0)).toBe('');
+  });
+
   it('sem novidades não há badge; acima de 99 o badge encurta e o rótulo diz o total', () => {
     expect(render()).not.toContain('activity-badge');
     const many = render({ unseen: 150 });
@@ -657,7 +831,14 @@ describe('ActivityBar', () => {
 });
 
 describe('EditorTabs', () => {
-  const render = (overrides: Partial<{ tabs: Route[]; active: Route; hasNews: boolean }> = {}) =>
+  const render = (
+    overrides: Partial<{
+      tabs: Route[];
+      active: Route;
+      hasNews: boolean;
+      pendingCards: number;
+    }> = {},
+  ) =>
     html(
       <EditorTabs
         tabs={['today', 'fief', 'chronicle', 'settings']}
@@ -724,6 +905,19 @@ describe('EditorTabs', () => {
     // O ponto fica dentro da aba Hoje, antes da aba Feudo.
     expect(markup.indexOf('class="dot"')).toBeGreaterThan(markup.indexOf('id="tab-today"'));
     expect(markup.indexOf('class="dot"')).toBeLessThan(markup.indexOf('id="tab-fief"'));
+  });
+
+  it('com cartas à espera, a aba do Conselho ganha o número, com texto para leitores de tela', () => {
+    const tabs: Route[] = ['today', 'fief', 'council'];
+    expect(render({ tabs })).not.toContain('tab-count');
+    const one = render({ tabs, pendingCards: 1 });
+    expect(one).toMatch(
+      /<span[^>]*class="tab-count"[^>]*aria-label="1 carta pendente"[^>]*>1<\/span>/,
+    );
+    expect(one.indexOf('tab-count')).toBeGreaterThan(one.indexOf('id="tab-council"'));
+    expect(render({ tabs, pendingCards: 2 })).toMatch(/aria-label="2 cartas pendentes"[^>]*>2</);
+    // O número não depende só da cor: tem rótulo. E sem a aba do Conselho não há onde pô-lo.
+    expect(render({ pendingCards: 2 })).not.toContain('tab-count');
   });
 
   it('sem a aba Hoje (sem conta), as novidades não desenham ponto nenhum', () => {
@@ -957,14 +1151,20 @@ describe('Workbench', () => {
     expect(markup).not.toContain('activity-badge');
   });
 
-  it('com feudo: árvore, abas Hoje e Feudo, painel do Feudo e barra de status', async () => {
+  it('com feudo: árvore, abas Hoje, Feudo e Conselho, painel do Feudo e barra de status', async () => {
     const { controller } = await open({ signedIn: true });
     const markup = render(controller);
     expectOrder(markup);
     expect(sidebar(markup)).toContain('role="tree"');
     expect(sidebar(markup)).toContain('Feudo: Pedra Alta');
     const tabs = tags(markup, /<button[^>]*role="tab"[^>]*>/g);
-    expect(tabs.map((tab) => attribute(tab, 'id'))).toEqual(['tab-today', 'tab-fief']);
+    expect(tabs.map((tab) => attribute(tab, 'id'))).toEqual([
+      'tab-today',
+      'tab-fief',
+      'tab-council',
+    ]);
+    // Sem carta à espera, a aba do Conselho não leva número.
+    expect(markup).not.toContain('tab-count');
     // O painel é rotulado pela aba ativa, e só ela está selecionada.
     const labelledBy = /role="tabpanel"[^>]*aria-labelledby="([^"]+)"/.exec(markup)?.[1];
     expect(labelledBy).toBe('tab-fief');
@@ -1106,6 +1306,89 @@ describe('Workbench', () => {
     const discreet = render(controller);
     expect(discreet).not.toContain('activity-badge');
     expect(discreet).not.toContain('novidades"');
+  });
+
+  describe('com carta do Conselho à espera (GDD §13.1 a §13.5)', () => {
+    const seated = async () => {
+      const made = makeController({ signedIn: true });
+      controllers.push(made.controller);
+      made.api.state.view = councilView;
+      await made.controller.start();
+      await settle(made.controller);
+      return made;
+    };
+
+    it('todas as superfícies a mostram: árvore, aba, badge do Feudo e barra de status', async () => {
+      const { controller } = await seated();
+      const markup = render(controller);
+      // Árvore: a linha Hoje, a linha Conselho e uma linha por carta, com o botão "Decidir".
+      expect(sidebar(markup)).toContain('● 2 decisões pendentes');
+      expect(sidebar(markup)).toContain('2 cartas pendentes (expira em 22 h)');
+      expect(sidebar(markup)).toContain('A refeição dos pedreiros');
+      expect(sidebar(markup)).toMatch(
+        /<button[^>]*aria-label="Decidir: A vez de repartir"[^>]*>Decidir<\/button>/,
+      );
+      // Aba do Conselho: o número, dito por extenso.
+      expect(markup).toMatch(/class="tab-count"[^>]*aria-label="2 cartas pendentes"[^>]*>2</);
+      // Badge do ícone do Feudo.
+      expect(markup).toMatch(/aria-label="Feudo: 2 decisões pendentes"/);
+      expect(markup).toMatch(/class="activity-badge"[^>]*>2<\/span>/);
+      // Barra de status: as decisões no topo da prioridade.
+      expect(markup).toContain('2 decisões pendentes · expira em 22 h');
+      expect(markup).toContain('codicon-law');
+      expect(controller.title(0)).toBe('(2) Pedra Alta · Lords of the Guild');
+    });
+
+    it('a aba do Conselho mostra as cartas inteiras, e a aba Hoje as lista em "Decisões pendentes"', async () => {
+      const { controller } = await seated();
+      controller.navigate('council');
+      const council = panel(render(controller));
+      expect(council).toContain('aria-labelledby="tab-council"');
+      expect(council).toContain('Conselho do Feudo · 2 cartas pendentes');
+      expect(council).toContain(mealCard.text);
+      expect(council).toMatch(/<button[^>]*class="card-choice"[^>]*>Servir a refeição<\/button>/);
+      controller.navigate('today');
+      const today = panel(render(controller));
+      expect(today).toContain('Decisões pendentes (2)');
+      expect(today).toContain('Conselho: “A refeição dos pedreiros”');
+    });
+
+    it('no modo discreto fica só o contador: nem badge, nem carta na barra, nem no título', async () => {
+      const { controller } = await seated();
+      await controller.setPreferences({ discreetMode: true });
+      const discreet = render(controller);
+      expect(discreet).not.toContain('activity-badge');
+      expect(discreet).not.toContain('decisões pendentes"');
+      const bar = discreet.slice(discreet.indexOf('<footer'));
+      expect(bar).toContain('codicon-circle-filled');
+      expect(bar).not.toContain('decis');
+      expect(bar).not.toContain('codicon-law');
+      expect(controller.title(0)).toMatch(/^\d{2}:\d{2}$/);
+    });
+
+    it('sem ligação, a carta do estado guardado se lê, mas não se responde nem é anunciada', async () => {
+      const { controller, api } = await seated();
+      api.state.online = false;
+      await controller.session.syncNow();
+      await settle(controller);
+      controller.navigate('council');
+      const markup = render(controller);
+      const council = panel(markup);
+      expect(council).toContain('Sem ligação com o reino: as cartas e os prazos são os do último');
+      expect(council).toContain(mealCard.text);
+      const choices = buttons(council).filter((tag) => attribute(tag, 'class') === 'card-choice');
+      expect(choices.length).toBeGreaterThan(0);
+      expect(choices.every((tag) => hasAttribute(tag, 'disabled'))).toBe(true);
+      // O botão "Decidir" da árvore também fica desabilitado.
+      const decide = buttons(sidebar(markup)).filter((tag) =>
+        (attribute(tag, 'aria-label') ?? '').startsWith('Decidir:'),
+      );
+      expect(decide).toHaveLength(2);
+      expect(decide.every((tag) => hasAttribute(tag, 'disabled'))).toBe(true);
+      // O badge e o título não anunciam uma carta que pode já ter saído da mesa.
+      expect(markup).not.toContain('activity-badge');
+      expect(controller.title(0)).toBe('Pedra Alta · Lords of the Guild');
+    });
   });
 
   it('em nenhum estado a bancada usa o nome do Visual Studio Code', async () => {

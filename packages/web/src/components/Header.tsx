@@ -10,6 +10,7 @@ import {
   moraleTitle,
   moraleTrend,
 } from '../ui/morale';
+import { INJURED_ICON } from '../ui/threat';
 import { formatApprox, formatCountdown, formatNumber, remaining } from './format';
 import { Explained, Icon } from './shared';
 
@@ -74,6 +75,32 @@ function Morale(props: { morale: ViewState['morale']; elapsed: number }) {
   );
 }
 
+/**
+ * Os feridos de uma incursão (GDD §8.2), ao lado da população: quantos são, com a frase do
+ * servidor como explicação (não trabalham até sarar; quem tinha ofício volta a ele sozinho), e a
+ * contagem regressiva do próximo a sarar. Têm ícone e palavra próprios: nada é dito só pela cor.
+ */
+function Injured(props: { population: ViewState['population']; elapsed: number }) {
+  const { injured, injuredNote, secondsToNextRecovery } = props.population;
+  if (injured <= 0) {
+    return null;
+  }
+  const label = `Feridos ${injured}`;
+  return (
+    <span class="population-injured">
+      {' '}
+      · <Icon name={INJURED_ICON} />{' '}
+      {injuredNote === null ? label : <Explained why={injuredNote}>{label}</Explained>}
+      {secondsToNextRecovery === null ? null : (
+        <span class="muted">
+          {' '}
+          (o próximo sara em {formatCountdown(remaining(secondsToNextRecovery, props.elapsed))})
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** O cabeçalho da aba Feudo: nome, calendário, o que a estação muda, população e moral. */
 export function Header(props: { view: ViewState; elapsed: number }) {
   const { view, elapsed } = props;
@@ -107,6 +134,7 @@ export function Header(props: { view: ViewState; elapsed: number }) {
             (próximo em {formatCountdown(remaining(population.secondsToNextRecruit, elapsed))})
           </span>
         ) : null}
+        <Injured population={population} elapsed={elapsed} />
       </p>
       <Morale morale={view.morale} elapsed={elapsed} />
     </header>
