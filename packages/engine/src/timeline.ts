@@ -1,4 +1,5 @@
 import { nextDayBoundary } from './clock';
+import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
 import { foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { autoStartsIn } from './planned';
@@ -18,8 +19,9 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
 
 /**
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
- * virada de dia (que cobre estação, ano e a contagem da experiência do ofício), o fim da
- * adaptação de quem trocou de ofício, o momento em que a comida acaba, aquele em que a madeira
+ * virada de dia (que cobre estação, ano, a contagem da experiência do ofício e o sorteio do
+ * Conselho), uma carta que expira, um efeito escondido de carta, uma continuação que chega, o
+ * fim da adaptação de quem trocou de ofício, o momento em que a comida acaba, aquele em que a madeira
  * acaba na lareira, aquele em que um estoque chega ao limite ou aquele em que uma planejada
  * automática junta o custo. Nunca devolve um instante anterior a `lastProcessedAt`.
  */
@@ -42,6 +44,12 @@ export function nextEventAt(state: GameState): number | null {
   const adaptationEnds = nextAdaptationEndAt(state);
   if (adaptationEnds !== null) {
     candidates.push(adaptationEnds);
+  }
+  // O Conselho: uma carta que expira, um efeito escondido que acontece, uma continuação que
+  // chega. O sorteio é da virada do dia, que já está na lista.
+  const council = nextCouncilEventAt(state);
+  if (council !== null) {
+    candidates.push(council);
   }
   const rates = netRates(state);
   const foodRunsOut = foodRunsOutIn(state, rates);

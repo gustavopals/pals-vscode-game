@@ -54,6 +54,19 @@ export const RenameSettlementCommandSchema = command(
   z.strictObject({ name: z.string().max(200).refine(isStorableText, UNSTORABLE) }),
 );
 
+/**
+ * A resposta a uma carta do Conselho. `instanceId` é a ocorrência que a tela mostrava
+ * (`council.pending[].instanceId`) e `optionId`, a opção escolhida. O protocolo só confere que
+ * são textos de tamanho razoável; se a carta ainda está na mesa e se a opção existe é com o motor.
+ */
+export const AnswerCardCommandSchema = command(
+  'answerCard',
+  z.strictObject({
+    instanceId: z.string().min(1).max(120).refine(isStorableText, UNSTORABLE),
+    optionId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -64,6 +77,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   SetAutoStartCommandSchema,
   RecruitVillagersCommandSchema,
   RenameSettlementCommandSchema,
+  AnswerCardCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

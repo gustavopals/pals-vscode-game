@@ -5,6 +5,7 @@ import {
   accept,
   autumnScenario,
   command,
+  councilScenario,
   craftScenario,
   DAY,
   gameWith,
@@ -529,6 +530,9 @@ describe('golden do ViewState', () => {
       // aldeões) e o feudo orgulhoso, com um efeito temporário e a chance do colono.
       impoverished: view(impoverishedScenario()),
       proud: view(proudScenario()),
+      // O Conselho com a mesa cheia, no ritmo Rápido: uma continuação que lembra a escolha
+      // anterior e uma avulsa com uma opção trancada. A próxima audiência não traz carta.
+      councilTable: view(councilScenario(12 * DAY + 20 * MINUTE)),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

@@ -7,7 +7,17 @@ import { applyCommand } from './commands';
 import { foodCoversConsumption, woodCoversFirewood } from './economy';
 import { addMoraleEffect } from './morale';
 import { assignedWorkers, housingVacancy } from './population';
-import { command, DAY, gameAt, HOUR, MINUTE, newGame, WINTER, YEAR } from './test-helpers';
+import {
+  command,
+  councilInSession,
+  DAY,
+  gameAt,
+  HOUR,
+  MINUTE,
+  newGame,
+  WINTER,
+  YEAR,
+} from './test-helpers';
 import { deriveViewState } from './view';
 import type {
   BuildingId,
@@ -150,11 +160,20 @@ describe('invariante de divisão de intervalo', () => {
       recruit: fc.nat(5),
       cuts: fc.array(fc.integer({ min: 1, max: 200 * HOUR }), { minLength: 2, maxLength: 4 }),
     });
-    const seen = { coldStarted: 0, coldEnded: 0, famineStarted: 0, seasonChanged: 0 };
+    const seen = {
+      coldStarted: 0,
+      coldEnded: 0,
+      famineStarted: 0,
+      seasonChanged: 0,
+      cardDrawn: 0,
+      cardExpired: 0,
+    };
     fc.assert(
       fc.property(seasonal, (plan) => {
         let state = gameAt(plan.startMs, (draft) => {
           const { settlement } = draft;
+          // Com o Conselho em sessão: as cartas do jogo chegam e expiram no meio do frio e da fome.
+          councilInSession(draft);
           settlement.population.villagers = plan.villagers;
           settlement.buildings.townHall = 6;
           settlement.buildings.housing = 6;
@@ -227,6 +246,8 @@ describe('invariante de divisão de intervalo', () => {
     expect(seen.coldStarted).toBeGreaterThan(20);
     expect(seen.coldEnded).toBeGreaterThan(20);
     expect(seen.famineStarted).toBeGreaterThan(20);
+    expect(seen.cardDrawn).toBeGreaterThan(200);
+    expect(seen.cardExpired).toBeGreaterThan(100);
   });
 
   it('vale atravessando o início do frio, com o corte em qualquer milissegundo', () => {

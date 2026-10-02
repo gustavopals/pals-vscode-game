@@ -35,6 +35,10 @@ export const REJECTION_CODES = [
   'RECRUIT_QUEUE_FULL',
   'HOUSING_FULL',
   'INVALID_NAME',
+  'CARD_NOT_PENDING',
+  'CARD_EXPIRED',
+  'INVALID_OPTION',
+  'OPTION_LOCKED',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -199,6 +203,79 @@ const MoraleSchema = MoraleLevelSchema.extend({
   effects: z.array(
     z.strictObject({ label: z.string(), amount: z.number(), endsInSeconds: z.number() }),
   ),
+});
+
+/** Uma opção de uma carta do Conselho: o custo e a consequência conhecida, lado a lado. */
+const CouncilOptionSchema = z.strictObject({
+  id: z.string(),
+  /** "Ceder a madeira". */
+  label: z.string(),
+  /** O que a opção cobra, com o que falta de cada recurso; vazio quando não custa nada. */
+  cost: z.array(ResourceCostSchema),
+  /** O estoque paga o custo agora. */
+  affordable: z.boolean(),
+  /** A opção exige algo que o feudo não tem (um edifício, um estoque mínimo). */
+  locked: z.boolean(),
+  /** "Requer o Celeiro."; `null` quando não está trancada. */
+  lockedReason: z.string().nullable(),
+  /**
+   * O custo e a consequência conhecida, em uma frase pronta: "−40 madeira; +5 de moral por 2 dias
+   * de jogo (1 h 20 min)". O que a opção esconde não sai em lugar nenhum da visão: só a pista.
+   */
+  effectsText: z.string(),
+  /** A pista do que pode vir depois. */
+  hint: z.string(),
+});
+
+/** Uma carta do Conselho à espera de resposta. */
+const CouncilCardSchema = z.strictObject({
+  /** O que `answerCard` recebe: a ocorrência, não o modelo. */
+  instanceId: z.string(),
+  title: z.string(),
+  /** A situação, já na variante que lembra a escolha anterior, quando há. */
+  text: z.string(),
+  /** Segundos reais até o conselho decidir sozinho. */
+  expiresInSeconds: z.number(),
+  /** A opção que o conselho aplica se o prazo acabar, na dificuldade desta partida. */
+  defaultOptionId: z.string(),
+  defaultOptionLabel: z.string(),
+  /** "Sem resposta até o fim do prazo, o conselho decide sozinho: conservar as reservas." */
+  expiryNote: z.string(),
+  /**
+   * De onde a história vem, quando a carta é a continuação de outra: a carta anterior, a opção
+   * aplicada nela e a frase pronta; `null` na carta que veio do sorteio.
+   */
+  followsFrom: z
+    .strictObject({ title: z.string(), optionLabel: z.string(), text: z.string() })
+    .nullable(),
+  options: z.array(CouncilOptionSchema),
+});
+
+/** O Conselho do Feudo (GDD §7). Flags e efeitos escondidos nunca saem do servidor. */
+const CouncilSchema = z.strictObject({
+  /** As cartas à espera, na ordem em que chegaram. */
+  pending: z.array(CouncilCardSchema),
+  /**
+   * Segundos reais até a próxima audiência, se ela puder trazer carta; `null` quando não pode
+   * (a mesa cheia, ou nenhum assunto para o feudo como ele está: `note` diz qual).
+   */
+  nextCardInSeconds: z.number().nullable(),
+  /** Na próxima audiência a mesa ainda vai estar cheia, se nenhuma carta for respondida. */
+  blockedByPending: z.boolean(),
+  /** Segundos reais até a próxima audiência, traga ela carta ou não. */
+  nextAudienceInSeconds: z.number(),
+  /** Por que a próxima audiência não traz carta, e o que fazer; `null` quando ela pode trazer. */
+  note: z.string().nullable(),
+  /** As regras em uma frase, no ritmo da partida: a cadência, o limite e o prazo de resposta. */
+  rulesText: z.string(),
+});
+
+/** Uma decisão à espera do jogador: hoje, só as cartas do Conselho. `id` é o `instanceId`. */
+const PendingDecisionSchema = z.strictObject({
+  kind: z.literal('card'),
+  id: z.string(),
+  title: z.string(),
+  expiresInSeconds: z.number(),
 });
 
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
@@ -391,7 +468,12 @@ export const ViewStateSchema = z.strictObject({
     })
     .nullable(),
   objectives: z.array(ObjectiveSchema),
-  pendingDecisions: z.array(z.never()),
+  council: CouncilSchema,
+  /**
+   * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
+   * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`.
+   */
+  pendingDecisions: z.array(PendingDecisionSchema),
 });
 export type ViewState = z.infer<typeof ViewStateSchema>;
 

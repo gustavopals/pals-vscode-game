@@ -9,6 +9,8 @@ import {
   yearOf,
 } from './clock';
 import { finishConstructions } from './construction';
+import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council';
+import { drawCard } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { turnMorale } from './moraleTurn';
@@ -20,7 +22,12 @@ import { announceFilled, fullStores, isStorageFull, reportWaste } from './storag
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
 
-function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): void {
+function processCalendar(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  catalog: Catalog,
+): void {
   if (!isDayBoundary(atMs)) {
     return;
   }
@@ -31,6 +38,8 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
     draft.clock.year = yearOf(atMs);
     draft.clock.yearStartMs = atMs;
     emit(events, draft, atMs, 'yearStarted', { year: date.year });
+    // O Conselho esquece as cartas vistas no ano que acabou; o resto da história continua.
+    turnCouncilYear(draft, atMs);
   }
   if (isSeasonBoundary(atMs)) {
     emit(
@@ -47,6 +56,8 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
   tallyCraftExperience(draft, atMs, events);
   // Depois a moral: o recálculo, os sorteios de chegada e de partida e a deserção por fome.
   turnMorale(draft, atMs, events);
+  // E, com a moral do dia já calculada (ela é um dos requisitos das cartas), o sorteio do Conselho.
+  drawCard(draft, atMs, events, catalog);
 }
 
 /** Processa, sobre o rascunho, os eventos discretos de um instante. */
@@ -55,18 +66,34 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
  * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação, o dia, a
- * experiência do ofício e a moral: recálculo, sorteios e deserção), fim de adaptação de quem
- * trocou de ofício, início automático das planejadas, objetivos (`settlePlanned`, que repete os
- * dois enquanto um der motivo ao outro) e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
+ * experiência do ofício, a moral: recálculo, sorteios e deserção, e o sorteio do Conselho), as
+ * cartas do Conselho que expiram, os efeitos escondidos que acontecem e as continuações que
+ * chegam (`settleCouncil`), fim de adaptação de quem trocou de ofício, início automático das
+ * planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao outro)
+ * e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
+ *
+ * `catalog` são as cartas do Conselho: o jogo usa as do conteúdo; outro catálogo só existe em
+ * teste (`processEventsWith`).
  */
-export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
+export function processEventsAt(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  catalog: Catalog = CATALOG,
+): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
-  processCalendar(draft, atMs, events);
+  processCalendar(draft, atMs, events, catalog);
+  settleCouncil(draft, atMs, events, catalog);
   finishAdaptations(draft, atMs);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
+}
+
+/** O processador de eventos do jogo com outro catálogo de cartas: só para os testes do Conselho. */
+export function processEventsWith(catalog: Catalog): EventProcessor {
+  return (draft, atMs, events) => processEventsAt(draft, atMs, events, catalog);
 }
 
 /**

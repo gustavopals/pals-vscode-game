@@ -9,10 +9,19 @@ import { simulate, type SimulationOptions } from './simulate';
 
 const HOUR_MS = 3_600_000;
 
-/** O estado sem o ritmo gravado nele: o que tem de coincidir entre duas partidas de ritmos diferentes. */
+/**
+ * O estado sem o que depende do ritmo: o que tem de coincidir entre duas partidas de ritmos
+ * diferentes. São duas coisas: o ritmo gravado nele e o prazo de resposta das cartas do
+ * Conselho, que é de tempo real (24 h em qualquer ritmo) e por isso cai em outro instante de
+ * jogo. Enquanto as cartas são respondidas nos mesmos instantes, o resto do feudo coincide.
+ */
 const world = (state: GameState) => ({
   ...state,
   settings: { ...state.settings, timeScale: null },
+  council: {
+    ...state.council,
+    pending: state.council.pending.map((card) => ({ ...card, expiresAtMs: null })),
+  },
 });
 const base: SimulationOptions = {
   seed: 'pedra-alta-golden',

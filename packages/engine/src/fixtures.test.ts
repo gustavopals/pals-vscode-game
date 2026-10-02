@@ -6,6 +6,7 @@ import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
 import {
   command,
+  councilScenario,
   craftScenario,
   DAY,
   HOUR,
@@ -132,6 +133,15 @@ const scenarios: Record<string, () => GameState> = {
   // Moral: o feudo orgulhoso, com um efeito temporário ainda na lista, a moral longe da base
   // e o fluxo de sorteios `morale` já usado. No meio de um dia de jogo.
   morale: () => proudScenario(),
+
+  // O Conselho no fim de uma cadeia que ninguém acompanhou, no ritmo Rápido: uma carta na mesa,
+  // o desfecho agendado como continuação, uma carta expirada no ano, três flags e o fluxo de
+  // sorteios `council` já usado. No meio de um dia de jogo.
+  council: () => councilScenario(47 * DAY + 30 * MINUTE + 1_234),
+
+  // O Conselho logo depois de uma escolha que esconde um efeito: a mesa vazia e o efeito à
+  // espera da virada de dia dele.
+  'council-hidden': () => councilScenario(5 * DAY + 13 * MINUTE + 4_321),
 
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
@@ -282,6 +292,36 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('famine').settlement.morale).toBeLessThan(25);
     expect(of('famine').settlement.population.villagers).toBeLessThan(5);
     expect(new Set(all0().map((state) => state.settlement.morale)).size).toBeGreaterThan(2);
+    // O Conselho: cada lista do estado dele com alguma coisa dentro, em um cenário ou em outro.
+    const council = of('council').council;
+    expect(council.pending.map((entry) => entry.cardId)).toEqual(['masonsMeal']);
+    expect(council.pending[0]?.expiresAtMs).toBeGreaterThan(of('council').lastProcessedAt);
+    expect(council.scheduled).toEqual([
+      {
+        cardId: 'commonGranaryOutcome',
+        atMs: 50 * DAY + 7 * MINUTE,
+        previousCardId: 'commonGranaryShare',
+        previousOptionId: 'reserve',
+        previousInstanceId: 'commonGranaryShare-3',
+      },
+    ]);
+    expect(council.expired).toEqual(['commonGranaryShare-3']);
+    expect(Object.keys(council.flags)).toEqual([
+      'commonGranary.open',
+      'commonGranary.supported',
+      'commonGranary.reserved',
+    ]);
+    expect(council.seenThisYear).toHaveLength(4);
+    expect(council.nextDrawAtMs).toBe(48 * DAY);
+    expect(of('council').rng.council).toHaveLength(4);
+    expect(of('council').stats).toMatchObject({ cardsDrawn: 4, cardsAnswered: 2, cardsExpired: 1 });
+    const hidden = of('council-hidden').council;
+    expect(hidden.pending).toEqual([]);
+    expect(hidden.delayed).toEqual([
+      { atMs: 6 * DAY, instanceId: 'collapsedWell-1', cardId: 'collapsedWell', optionId: 'wait' },
+    ]);
+    // E o cenário de 7 dias passou pelo Conselho de ponta a ponta.
+    expect(of('week-scripted').stats.cardsDrawn).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 

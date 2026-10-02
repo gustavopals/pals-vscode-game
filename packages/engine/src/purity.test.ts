@@ -51,8 +51,10 @@ describe('pureza do motor', () => {
   it('quem mostra, recusa, agenda ou carrega o estado não importa o gerador de sorteios', () => {
     // Só `advanceTo` sorteia, em eventos com hora marcada. A visão, as ordens, as recusas, a
     // linha do tempo, o estado inicial e a migração nunca: uma leitura não pode rerrolar nada.
+    // No Conselho, o sorteio mora em `councilTurn.ts`; `council.ts` (a resposta, a expiração,
+    // os efeitos) e `councilView.ts` ficam do lado de quem não sorteia.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -60,6 +62,8 @@ describe('pureza do motor', () => {
         './seasonView.ts',
         './moraleView.ts',
         './morale.ts',
+        './council.ts',
+        './councilView.ts',
         './craftProjection.ts',
         './commands.ts',
         './rejections.ts',

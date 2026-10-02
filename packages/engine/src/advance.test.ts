@@ -64,7 +64,8 @@ describe('advanceTo', () => {
     const { state, events } = advanceTo(newGame(), YEAR_MS);
     expect(state.clock).toEqual({ gameTimeMs: YEAR_MS, yearStartMs: YEAR_MS, year: 2 });
     const atBoundary = events.filter((event) => event.atMs === YEAR_MS);
-    expect(atBoundary.map((event) => event.type)).toEqual([
+    // Depois do amanhecer vem o Conselho: a virada do ano é também uma audiência.
+    expect(atBoundary.map((event) => event.type).slice(0, 3)).toEqual([
       'yearStarted',
       'seasonChanged',
       'dayStarted',
@@ -134,11 +135,26 @@ describe('advanceTo', () => {
     }
   });
 
-  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, ofício, objetivo, fome e frio', () => {
+  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, ofício, Conselho, objetivo, fome e frio', () => {
     // Tudo marcado para a virada do ano: uma obra e um recruta que terminam nela, um ofício que
-    // a virada do dia leva ao máximo, um mineiro que termina a adaptação, um objetivo que a
+    // a virada do dia leva ao máximo, um mineiro que termina a adaptação, uma audiência do
+    // Conselho, uma carta cujo prazo acaba, um efeito escondido que acontece, um objetivo que a
     // obra cumpre, a comida que acaba e o frio que o degelo encerra.
     const start = gameAt(YEAR_MS - HOUR, (draft) => {
+      draft.council.nextDrawAtMs = YEAR_MS;
+      draft.council.pending = [
+        {
+          instanceId: 'masonsMeal-1',
+          cardId: 'masonsMeal',
+          drawnAtMs: YEAR_MS - 12 * DAY_MS,
+          expiresAtMs: YEAR_MS,
+          origin: null,
+        },
+      ];
+      draft.council.delayed = [
+        { atMs: YEAR_MS, instanceId: 'collapsedWell-2', cardId: 'collapsedWell', optionId: 'wait' },
+      ];
+      draft.stats.cardsDrawn = 2;
       const { settlement } = draft;
       settlement.resources = { food: 5_000, wood: 0, stone: 0, gold: 0 };
       settlement.workers.goldMine = 1;
@@ -168,11 +184,18 @@ describe('advanceTo', () => {
       'seasonChanged',
       'dayStarted',
       'craftMastered',
+      // O Conselho: o sorteio é da virada do dia; depois dela, a carta que expira e o efeito
+      // escondido que acontece. O sorteio viu a carta antiga ainda na mesa.
+      'cardDrawn',
+      'cardExpired',
+      'cardEffectApplied',
       'objectiveCompleted',
       'famineStarted',
       'coldEnded',
     ]);
     expect(events.every((event) => event.atMs === YEAR_MS)).toBe(true);
+    expect(state.council.pending.map((entry) => entry.drawnAtMs)).toEqual([YEAR_MS]);
+    expect(state.council.delayed).toEqual([]);
     // A experiência foi contada com o mineiro ainda em adaptação, e já no ano que começa; a
     // adaptação terminou no mesmo instante, sem linha na Crônica.
     expect(state.settlement.craftExperience.goldMine).toBe(100);

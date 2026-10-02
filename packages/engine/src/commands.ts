@@ -8,6 +8,7 @@ import {
   startConstruction,
   unplanConstruction,
 } from './construction';
+import { answerCard } from './council';
 import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
@@ -57,6 +58,8 @@ function dispatch(
       return recruitVillagers(draft, payload.quantity, nowMs, events);
     case 'renameSettlement':
       return renameSettlement(draft, payload.name, nowMs, events);
+    case 'answerCard':
+      return answerCard(draft, payload.instanceId, payload.optionId, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

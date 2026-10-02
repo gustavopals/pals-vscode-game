@@ -47,7 +47,7 @@ describe('esqueleto do servidor', () => {
 
   it('GET /v1/version informa servidor, protocolo e hash do conteúdo', async () => {
     const response = await app.inject({ url: '/v1/version' });
-    expect(response.json()).toMatchObject({ server: '0.1.0', protocol: 1 });
+    expect(response.json()).toMatchObject({ server: '0.1.0', protocol: 2 });
     expect(response.json().contentHash).toMatch(/^[0-9a-f]{16}$/);
     expect(Number.isNaN(Date.parse(response.json().builtAt))).toBe(false);
   });
@@ -98,10 +98,15 @@ describe('esqueleto do servidor', () => {
   });
 
   it('cliente de outra versão do protocolo recebe 426 com mensagem amigável', async () => {
-    const response = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '2' } });
+    // O app do protocolo 1 (a aba aberta desde antes do Conselho) não sabe ler as cartas.
+    const response = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '1' } });
     expect(response.statusCode).toBe(426);
-    expect(response.json()).toMatchObject({ code: 'UPGRADE_REQUIRED', details: { protocol: 1 } });
-    const same = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '1' } });
+    expect(response.json()).toMatchObject({
+      code: 'UPGRADE_REQUIRED',
+      message: 'Há uma versão nova do jogo. Recarregue a página.',
+      details: { protocol: 2 },
+    });
+    const same = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '2' } });
     expect(same.statusCode).toBe(200);
   });
 

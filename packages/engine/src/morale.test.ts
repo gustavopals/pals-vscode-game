@@ -26,6 +26,7 @@ import {
   newGame,
   play,
   proudScenario,
+  quietGame,
   settings,
   SUMMER,
   WINTER,
@@ -325,7 +326,8 @@ describe('a moral na produção (GDD §5.3)', () => {
 
 describe('faixas na Crônica', () => {
   it('só a mudança de faixa vira linha, com a frase do sentido', () => {
-    const { events } = advanceTo(newGame(), 22 * DAY - 1);
+    // Sem o Conselho: uma carta que expira mexe na moral, e aqui só a fome fala.
+    const { events } = advanceTo(quietGame(), 22 * DAY - 1);
     const changes = eventsOfType(events, 'moraleBandChanged');
     expect(changes.map((event) => [event.atMs / DAY, event.data])).toEqual([
       // A fome abriu na 18ª virada; a 19ª conta −20 e um dia inteiro.
@@ -1007,7 +1009,8 @@ describe('feudo empobrecido (roadmap V2C-T4.6): há caminho de volta', () => {
     expect(state.settlement.population.villagers).toBe(3);
     expect(eventsOfType(events, 'villagerLeft')).toEqual([]);
     expect(eventsOfType(events, 'villagerDeserted')).toEqual([]);
-    expect(state.rng).toEqual({});
+    // No piso ninguém parte: o fluxo da moral nem chegou a nascer.
+    expect(state.rng.morale).toBeUndefined();
     // Um ano depois, as mesmas duas ordens ainda resolvem.
     const late = play(state, [
       command('setWorkers', { building: 'farm', count: 2 }),

@@ -1,0 +1,147 @@
+{
+ "schemaVersion": 8,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 604800000,
+  "yearStartMs": 604800000,
+  "year": 2
+ },
+ "lastProcessedAt": 604800000,
+ "rng": {
+  "council": [
+   2809947739,
+   3951327387,
+   3540571658,
+   2124038652
+  ],
+  "morale": [
+   3881588205,
+   3039749652,
+   1225820957,
+   2933432022
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta do Norte",
+  "resources": {
+   "food": 1500000,
+   "wood": 52009,
+   "stone": 799907,
+   "gold": 1880480
+  },
+  "accumulators": {
+   "food": 1111152,
+   "wood": 0,
+   "stone": 39774,
+   "gold": 844460
+  },
+  "population": {
+   "villagers": 22
+  },
+  "workers": {
+   "farm": 8,
+   "lumberMill": 6,
+   "quarry": 4,
+   "goldMine": 3
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 3,
+   "lumberMill": 4,
+   "quarry": 4,
+   "goldMine": 3,
+   "housing": 5,
+   "granary": 2,
+   "warehouse": 1
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 202,
+   "wood": 857,
+   "stone": 360,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 64,
+   "quarry": 100,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": []
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "commonGranaryPlanks-6",
+    "cardId": "commonGranaryPlanks",
+    "drawnAtMs": 604800000,
+    "expiresAtMs": 691200000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "commonGranary.gifted": true
+  },
+  "seenThisYear": [
+   "commonGranaryPlanks"
+  ],
+  "nextDrawAtMs": 633600000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 4,
+  "villagersRecruited": 20,
+  "cardsDrawn": 6,
+  "cardsDrawn:collapsedWell": 1,
+  "constructionsStarted:townHall": 3,
+  "cardsAnswered": 4,
+  "constructionsStarted:lumberMill": 3,
+  "cardsDrawn:masonsMeal": 1,
+  "constructionsStarted:farm": 2,
+  "constructionsStarted:quarry": 4,
+  "constructionsStarted:warehouse": 1,
+  "wasted_food": 3983202,
+  "cardsExpired": 1,
+  "wasted_wood": 3452857,
+  "constructionsStarted:goldMine": 2,
+  "constructionsStarted:granary": 2,
+  "cardsDrawn:commonGranaryPlanks": 2,
+  "cardsDrawn:commonGranaryShare": 1,
+  "cardsDrawn:commonGranaryOutcome": 1,
+  "wasted_stone": 2225360
+ }
+}

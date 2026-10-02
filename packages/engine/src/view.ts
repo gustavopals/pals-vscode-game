@@ -4,7 +4,6 @@ import {
   buildings,
   objectives,
   PRODUCTION_BUILDING_IDS,
-  type ResourceAmounts,
   RESOURCE_IDS,
 } from '@lotg/content';
 
@@ -27,6 +26,8 @@ import {
   productionFactors,
   productionRate,
 } from './economy';
+import { costView } from './costView';
+import { councilView } from './councilView';
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, plural } from './format';
@@ -65,25 +66,11 @@ import type {
   PlannedConstruction,
   PlannedUpgradeView,
   ProductionBuildingId,
-  ResourceCostView,
   ResourceId,
   UpgradeView,
   ViewState,
 } from './types';
-import { assertTimeScale, MILLI, positiveEntries, realSecondsCeil, SECOND_MS } from './units';
-
-function costView(state: GameState, cost: ResourceAmounts, quantity = 1): ResourceCostView[] {
-  return positiveEntries(cost).map(([resource, amount]) => {
-    const total = amount * quantity;
-    const shortfall = total * MILLI - state.settlement.resources[resource];
-    return {
-      resource,
-      label: balance.resources[resource].label,
-      amount: total,
-      missing: shortfall > 0 ? Math.ceil(shortfall / MILLI) : 0,
-    };
-  });
-}
+import { assertTimeScale, MILLI, realSecondsCeil, SECOND_MS } from './units';
 
 /**
  * Como o tempo de jogo aparece para o jogador. O motor roda em tempo de jogo; no ritmo `N`, uma
@@ -418,6 +405,6 @@ export function deriveViewState(
     morale: moraleView(state, atTurn, timeScale, outlook),
     winter: winterView(state, firewood),
     objectives: objectivesView(state),
-    pendingDecisions: [],
+    ...councilView(state, timeScale),
   };
 }

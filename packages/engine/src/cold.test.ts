@@ -22,6 +22,7 @@ import {
   HOUR,
   MINUTE,
   play,
+  quiet,
   roomy,
   WINTER,
   YEAR,
@@ -370,7 +371,8 @@ describe('Crônica do inverno', () => {
     // inverno: o frio chega no 4º dia; no 6º o senhor manda três para a Serraria, mas
     // recém-chegados eles rendem metade (7,68 por hora, contra 9 de lenha): a lareira só volta
     // um dia de jogo depois, quando pegam o ofício. No 9º ele os tira de novo.
-    const { events } = play(autumnScenario(), [
+    // Sem o Conselho: esta é a Crônica do frio, e as cartas têm a delas.
+    const { events } = play(quiet(autumnScenario()), [
       { at: WINTER + 5 * DAY + 30 * MINUTE },
       command('setWorkers', { building: 'quarry', count: 2 }),
       command('setWorkers', { building: 'lumberMill', count: 3 }),

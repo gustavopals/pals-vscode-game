@@ -148,7 +148,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.448 | ≤ 5.355 | ≤ 164.525 | ≤ 19 | 0 |',
+      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.448 | ≤ 5.355 | ≤ 164.489 | ≤ 19 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -168,7 +168,7 @@ describe('relatório da matriz', () => {
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0,5 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 18 | 0 | 0 | ≤ 8 | **acima** |',
       '| Um ano de jogo | Normal 1× | Regular | 0 | 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 2 | 0,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 1,5 | 0,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -178,7 +178,7 @@ describe('relatório da matriz', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 72], 7, 0, 0, 4236, 5100, 156690, 18),",
+      "  'week/3/regular': measured([72, 72], 7, 0, 0, 4236, 5100, 156656, 18),",
     );
   });
 
@@ -315,11 +315,12 @@ describe('CSV da matriz', () => {
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
   });
 
-  it('a semente ainda não muda o resultado: os bots não chegam à moral que sorteia', () => {
-    // A moral já sorteia, mas só com 80 ou mais (o colono) ou com 25 ou menos (a partida), e
-    // os feudos dos bots vivem entre 40 e 60. Quando o Conselho passar a sortear (ou um bot
-    // deixar a moral cair), este teste cai e a lista de 50 sementes começa a trabalhar:
-    // troque-o por um que confira que as sementes divergem.
+  it('a semente muda o resultado: o Conselho sorteia, e as 50 sementes trabalham', () => {
+    // Até a Fase C nada do que os bots alcançam sorteava (a moral só sorteia com 80 ou mais, ou
+    // com 25 ou menos), e as partidas de uma célula eram todas iguais. Com o Conselho, a carta
+    // que chega primeiro depende da semente, e a resposta do bot mexe um pouco no feudo: há
+    // mais resultados diferentes do que células, e nenhuma célula tem tantos quanto sementes
+    // (as cartas de hoje são poucas e pesam pouco).
     const withoutSeed = new Set(
       lines.slice(1).map((line) =>
         line
@@ -328,6 +329,7 @@ describe('CSV da matriz', () => {
           .join(','),
       ),
     );
-    expect(withoutSeed.size).toBe(matrix.cells.length);
+    expect(withoutSeed.size).toBeGreaterThan(matrix.cells.length);
+    expect(withoutSeed.size).toBeLessThanOrEqual(lines.length - 1);
   });
 });

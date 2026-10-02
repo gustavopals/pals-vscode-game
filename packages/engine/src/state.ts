@@ -20,7 +20,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -52,6 +52,16 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       // A moral nasce na base e é recalculada na primeira virada de dia (GDD §5.7).
       morale: balance.morale.base,
       moraleEffects: [],
+    },
+    council: {
+      pending: [],
+      flags: {},
+      seenThisYear: [],
+      // A primeira audiência do Conselho é um intervalo depois da fundação (GDD §7.1).
+      nextDrawAtMs: balance.council.drawIntervalDays * balance.calendar.dayMs,
+      scheduled: [],
+      delayed: [],
+      expired: [],
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

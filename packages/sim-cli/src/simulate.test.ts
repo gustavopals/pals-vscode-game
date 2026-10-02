@@ -103,10 +103,11 @@ describe('CSV de uma partida', () => {
       'wasted_stone',
       'cold',
       'morale',
+      'cards_seen',
+      'cards_answered',
+      'cards_expired',
     ]);
-    expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(
-      new Set(['V2D-T1', 'V2E-T3']),
-    );
+    expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(new Set(['V2E-T3']));
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
     for (const line of lines) {
@@ -122,7 +123,42 @@ describe('CSV de uma partida', () => {
       for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
+      for (const name of ['cards_seen', 'cards_answered', 'cards_expired']) {
+        expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
+      }
     }
+  });
+
+  it('as colunas do Conselho são acumuladas e batem com os eventos da partida', () => {
+    const header = HEADER.split(',');
+    const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
+    const column = (name: string) =>
+      lines.map((line) => Number(line.split(',')[header.indexOf(name)]));
+    const count = (type: string) =>
+      twoSessions.events.filter((event) => event.type === type).length;
+    for (const [name, type] of [
+      ['cards_seen', 'cardDrawn'],
+      ['cards_answered', 'cardAnswered'],
+      ['cards_expired', 'cardExpired'],
+    ] as const) {
+      const values = column(name);
+      // Nunca diminui, e a última linha é o total da partida.
+      expect(values).toEqual([...values].sort((a, b) => a - b));
+      expect(values[values.length - 1], name).toBe(count(type));
+    }
+    // A primeira audiência é no 5º dia de jogo: 8 h reais no ritmo Normal.
+    expect(column('cards_seen').slice(0, 8)).toEqual([0, 0, 0, 0, 0, 0, 0, 1]);
+    // O bot econômico responde a toda carta na visita seguinte: nenhuma expira. Só fica sem
+    // resposta a que chegou depois da última visita (aqui, a da virada do ano, na última hora).
+    const summary = summarize(twoSessions);
+    expect(summary.cards.drawn).toBeGreaterThanOrEqual(2);
+    expect(summary.cards.expired).toBe(0);
+    expect(summary.cards.answered).toBe(
+      summary.cards.drawn - twoSessions.finalState.council.pending.length,
+    );
+    expect(formatSummary(twoSessions)).toMatch(
+      /\nConselho: \d+ cartas · \d+ respondidas, 0 expiradas · 0 efeitos escondidos\n/,
+    );
   });
 
   it('as colunas de desperdício são acumuladas e batem com o que o motor contou', async () => {
@@ -487,7 +523,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha',
+      'Políticas: responder a carta, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha',
     );
   });
 
@@ -506,7 +542,7 @@ describe('resumo de uma partida', () => {
       stone: summary.stock.stone,
       gold: summary.stock.gold,
     });
-    expect(text).toContain('Sem medida até as Fases D e E: cartas do Conselho');
+    expect(text).toContain('Sem medida até a Fase E: perdas por lobos');
     // O excedente parado dos materiais com limite nunca passa do limite.
     const view = deriveViewState(twoSessions.finalState, twoSessions.finalState.lastProcessedAt);
     for (const id of ['wood', 'stone'] as const) {

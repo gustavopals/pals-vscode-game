@@ -26,6 +26,7 @@ import {
   ocuparLivres,
   planejarAutomaticas,
   recrutar,
+  responderCartas,
 } from './policies';
 import { type Act, botOf, type Policy } from './types';
 
@@ -150,9 +151,11 @@ describe('um bot é uma lista de políticas', () => {
   });
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
-    // As obras vêm antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
-    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões.
+    // O Conselho primeiro: a carta na mesa tem prazo. Depois, as obras antes do recrutamento: o
+    // bot olha o painel como o encontrou, com o depósito cheio e a produção indo ao chão, antes
+    // de gastar a comida em aldeões.
     expect(strategyPolicies.economico).toEqual([
+      responderCartas,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
@@ -161,6 +164,7 @@ describe('um bot é uma lista de políticas', () => {
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
+      responderCartas,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
@@ -171,6 +175,7 @@ describe('um bot é uma lista de políticas', () => {
     ]);
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
     const names = [
+      responderCartas,
       recrutar,
       obraMaisBarata,
       ampliarEstoque,
@@ -181,6 +186,7 @@ describe('um bot é uma lista de políticas', () => {
       guardarLenha,
     ].map((policy) => policy.name);
     expect(names).toEqual([
+      'responder a carta',
       'recrutar',
       'obra mais barata',
       'ampliar o estoque',
@@ -1770,6 +1776,144 @@ describe('os bots jogando contra o motor', () => {
     feudo.pass(2);
     expect(feudo.view().famine).toBeNull();
     expect(feudo.view().resources.find((row) => row.id === 'food')?.perHour).toBeGreaterThan(0);
+  });
+});
+
+describe('política "responder a carta"', () => {
+  type Card = ViewState['council']['pending'][number];
+  type Option = Card['options'][number];
+
+  const option = (id: string, changes: Partial<Option> = {}): Option => ({
+    id,
+    label: id,
+    cost: [],
+    affordable: true,
+    locked: false,
+    lockedReason: null,
+    effectsText: 'Sem custo e sem efeito imediato.',
+    hint: 'Uma pista.',
+    ...changes,
+  });
+  const costing = (resource: ResourceId, amount: number, missing = 0) => ({
+    cost: [{ resource, label: resource, amount, missing }],
+    affordable: missing === 0,
+  });
+  const card = (instanceId: string, options: Option[]): Card => ({
+    instanceId,
+    title: `Carta ${instanceId}`,
+    text: 'Uma situação. O conselho espera.',
+    expiresInSeconds: 3600,
+    defaultOptionId: options[options.length - 1]?.id ?? '',
+    defaultOptionLabel: 'Esperar',
+    expiryNote: 'Sem resposta até o fim do prazo, o conselho decide sozinho: esperar.',
+    followsFrom: null,
+    options,
+  });
+  const withCards = (cards: Card[]): ViewState => ({
+    ...freshView(),
+    council: { ...freshView().council, pending: cards },
+  });
+
+  it('sem carta na mesa, não dá ordem nenhuma', async () => {
+    const view = freshView();
+    const { act, orders } = recorder(view);
+    expect(await responderCartas.run(view, act)).toBe(view);
+    expect(orders).toEqual([]);
+  });
+
+  it('escolhe a opção mais barata que pode pagar; no empate, a primeira da carta', async () => {
+    const view = withCards([
+      card('poço-1', [option('pedra', costing('stone', 30)), option('cavar'), option('esperar')]),
+      card('festa-2', [
+        option('banquete', costing('food', 40)),
+        option('moeda', costing('gold', 5)),
+      ]),
+    ]);
+    const { act, orders } = recorder(view);
+    await responderCartas.run(view, act);
+    expect(orders).toEqual([
+      { type: 'answerCard', payload: { instanceId: 'poço-1', optionId: 'cavar' } },
+      { type: 'answerCard', payload: { instanceId: 'festa-2', optionId: 'moeda' } },
+    ]);
+  });
+
+  it('não tenta a opção trancada nem a que o estoque não paga, por mais barata que seja', async () => {
+    const view = withCards([
+      card('ponte-1', [
+        option('regatear', { locked: true, lockedReason: 'Requer o Celeiro.' }),
+        option('fiado', costing('gold', 1, 1)),
+        option('pagar', costing('gold', 20)),
+      ]),
+    ]);
+    const { act, orders } = recorder(view);
+    await responderCartas.run(view, act);
+    expect(orders).toEqual([
+      { type: 'answerCard', payload: { instanceId: 'ponte-1', optionId: 'pagar' } },
+    ]);
+    // Sem nenhuma opção ao alcance, a carta fica na mesa: o conselho decide quando o prazo acabar.
+    const stuck = withCards([card('ponte-2', [option('pagar', costing('gold', 500, 250))])]);
+    const quiet = recorder(stuck);
+    await responderCartas.run(stuck, quiet.act);
+    expect(quiet.orders).toEqual([]);
+  });
+
+  it('responde também à continuação que chega no lugar da carta respondida', async () => {
+    const first = withCards([card('tábuas-1', [option('ceder')])]);
+    const second = withCards([card('repartir-2', [option('guardar')])]);
+    const done = withCards([]);
+    const orders: Order[] = [];
+    const act: Act = async (type, payload) => {
+      orders.push({ type, payload });
+      return orders.length === 1 ? second : done;
+    };
+    expect(await responderCartas.run(first, act)).toBe(done);
+    expect(orders.map((order) => order.payload)).toEqual([
+      { instanceId: 'tábuas-1', optionId: 'ceder' },
+      { instanceId: 'repartir-2', optionId: 'guardar' },
+    ]);
+  });
+
+  it('uma recusa não vira laço: cada carta é tentada uma vez por sessão', async () => {
+    const view = withCards([card('poço-1', [option('cavar')])]);
+    const { act, orders } = recorder(view);
+    await responderCartas.run(view, act);
+    expect(orders).toHaveLength(1);
+  });
+
+  it('no motor, o bot responde a toda carta que encontra e nenhuma expira', async () => {
+    let state = createInitialState('cartas-do-bot', {
+      settlementName: 'Pedra Alta',
+      timezone: 'UTC',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 3,
+    });
+    const answered: string[] = [];
+    const events: string[] = [];
+    // Uma visita a cada 8 h reais, por 3 dias: o ritmo de quem joga três vezes por dia.
+    for (let hour = 8; hour <= 72; hour += 8) {
+      const advanced = advanceTo(state, hour * HOUR_MS * 3);
+      state = advanced.state;
+      events.push(...advanced.events.map((event) => event.type));
+      const act: Act = async (type, payload) => {
+        const result = applyCommand(
+          state,
+          { commandId: `bot-${hour}-${answered.length}`, type, payload } as Command,
+          state.lastProcessedAt,
+        );
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+          state = result.state;
+          answered.push((payload as { instanceId: string }).instanceId);
+        }
+        return deriveViewState(state, state.lastProcessedAt);
+      };
+      await responderCartas.run(deriveViewState(state, state.lastProcessedAt), act);
+      expect(state.council.pending).toEqual([]);
+    }
+    expect(answered.length).toBeGreaterThanOrEqual(2);
+    expect(events.filter((type) => type === 'cardDrawn')).toHaveLength(answered.length);
+    expect(events).not.toContain('cardExpired');
   });
 });
 

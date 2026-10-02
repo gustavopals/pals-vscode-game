@@ -1,0 +1,128 @@
+{
+ "schemaVersion": 8,
+ "seed": "fixture-cold",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 537544321,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 537544321,
+ "rng": {
+  "council": [
+   1039358943,
+   410384349,
+   95122169,
+   669291490
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 451493,
+   "wood": 0,
+   "stone": 65000,
+   "gold": 230000
+  },
+  "accumulators": {
+   "food": 2577960,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 5,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 2,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [
+   {
+    "finishesAtMs": 538380000
+   }
+  ],
+  "famine": null,
+  "cold": {
+   "sinceMs": 518400000
+  },
+  "wasted": {
+   "food": 18398,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 40,
+  "moraleEffects": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [
+   "collapsedWell",
+   "masonsMeal"
+  ],
+  "nextDrawAtMs": 547200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "collapsedWell-1",
+   "masonsMeal-2"
+  ]
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ],
+  "completed": [
+   "allocateFarmers"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:quarry": 1,
+  "wasted_food": 9946398,
+  "cardsDrawn": 2,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:masonsMeal": 1,
+  "cardsExpired": 2
+ }
+}

@@ -79,6 +79,20 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       ? 'Não há vaga nas Habitações. Melhore as Habitações ou o Salão.'
       : `Só há vaga para mais ${count} nas Habitações.`,
   INVALID_NAME: () => `O nome do feudo deve ter de ${nameMinLength} a ${nameMaxLength} caracteres.`,
+  // O Conselho (GDD §7.1). A carta saiu da mesa: foi respondida (em outra aba, por exemplo).
+  CARD_NOT_PENDING: () =>
+    'Essa carta já saiu da mesa do conselho: a decisão sobre ela já foi tomada.',
+  // O prazo acabou e o conselho aplicou a opção da dificuldade: a Crônica diz qual.
+  CARD_EXPIRED: () =>
+    'O prazo dessa carta acabou e o conselho decidiu sozinho. A Crônica conta o que foi feito.',
+  // `label` é o título da carta.
+  INVALID_OPTION: ({ label }) =>
+    label === undefined
+      ? 'Essa carta não tem essa opção.'
+      : `A carta "${label}" não tem essa opção.`,
+  // `remedy` é o que a opção exige, sem ponto: "requer o Celeiro".
+  OPTION_LOCKED: ({ remedy = 'falta o que ela exige' }) =>
+    `Essa opção ainda está fora do alcance do feudo: ${remedy}.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

@@ -138,7 +138,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Normal e Tranquilo; no Rápido, não', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Normal e Tranquilo; no Rápido, não (e, em Rei de Ferro, o Normal passa por uma hora)', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -161,13 +161,26 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       'year/1/regular',
       'year/0.5/regular',
     ]);
-    // Nas outras dificuldades é igual: dentro nos ritmos Normal e Tranquilo, acima no Rápido.
-    for (const difficulty of ['peasant', 'ironKing'] as const) {
-      const overThere = wasteGoalCells(others[difficulty].cells)
-        .filter(({ met }) => !met)
-        .map(({ cell }) => cell.key);
-      expect(overThere, difficulty).toEqual(['week/3/regular', 'year/3/regular']);
-    }
+    // Em Camponês é igual: dentro nos ritmos Normal e Tranquilo, acima no Rápido.
+    const overIn = (difficulty: 'peasant' | 'ironKing') =>
+      Object.fromEntries(
+        wasteGoalCells(others[difficulty].cells)
+          .filter(({ met }) => !met)
+          .map(({ cell, gameHours }) => [cell.key, gameHours]),
+      );
+    expect(Object.keys(overIn('peasant'))).toEqual(['week/3/regular', 'year/3/regular']);
+    // Em Rei de Ferro, desde o Conselho (V2D-T1), o ritmo Normal passa da meta por uma hora de
+    // jogo em metade das sementes: a carta que chega primeiro muda de um dia a virada em que a
+    // moral cai 5 pontos, o caminho de obras do bot se desloca, e com o Armazém 20% menor a
+    // madeira fica 9 h de jogo seguidas no limite. Não é uma carta que desperdiça: é o caminho
+    // do bot, que agora varia com a semente. Fica à vista aqui e em docs/balance-v0.2.md
+    // (seção 10) até o balanceamento da versão (V2F-T1) decidir o que fazer.
+    expect(overIn('ironKing')).toEqual({
+      'week/3/regular': 24,
+      'week/1/regular': 9,
+      'year/3/regular': 24,
+      'year/1/regular': 9,
+    });
   });
 
   it('o excedente parado de madeira caiu em relação à v0.1, em todo ritmo', () => {

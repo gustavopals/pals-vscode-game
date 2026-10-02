@@ -44,7 +44,7 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     expect(health.status).toBe(200);
     expect(health.body).toEqual({ status: 'ok', db: 'ok' });
     const version = await call<VersionResponse>(server, 'GET', '/version');
-    expect(version.body).toMatchObject({ server: '0.1.0', protocol: 1 });
+    expect(version.body).toMatchObject({ server: '0.1.0', protocol: 2 });
     expect(version.body.contentHash).toMatch(/^[0-9a-f]{16}$/);
   });
 
@@ -143,11 +143,20 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       events.body.events.filter((event) => event.type !== 'dayStarted'),
     );
     expect(all.body.entries.map((entry) => [entry.type, entry.text])).toEqual([
+      // O Conselho pede audiência no 5º e no 9º dia, e ninguém responde. 24 h reais depois de
+      // cada carta, o conselho decide sozinho: manda o povo desentulhar o poço (e a moral paga
+      // por um dia) e reparte o pão com os pedreiros.
+      ['cardDrawn', expect.stringContaining('pediu audiência: O poço entulhado.')],
+      ['cardDrawn', expect.stringContaining('pediu audiência: A refeição dos pedreiros.')],
+      ['cardExpired', expect.stringContaining('sem palavra do senhor, o conselho de Pedra Alta')],
+      ['moraleBandChanged', expect.stringContaining('o povo de Pedra Alta anda inquieto')],
+      ['moraleBandChanged', expect.stringContaining('O povo está contente')],
       // Ninguém foi para a Fazenda: a comida acaba na 36ª hora, ainda na Primavera. A moral
       // cai na virada seguinte e de novo dois dias depois; na 48ª hora, com 12 h de fome, um
       // aldeão parte e outro deserta. Ficam três, o piso, e ninguém mais sai.
       ['famineStarted', expect.stringContaining('A fome começou.')],
       ['moraleBandChanged', expect.stringContaining('o povo de Pedra Alta anda inquieto')],
+      ['cardExpired', expect.stringContaining('sem palavra do senhor, os pedreiros')],
       ['moraleBandChanged', expect.stringContaining('perdeu a esperança')],
       ['seasonChanged', 'Chega o Verão a Pedra Alta.'],
       ['villagerLeft', expect.stringContaining('deixou Pedra Alta')],
@@ -156,11 +165,13 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
       ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],
       ['seasonChanged', 'Chega a Primavera a Pedra Alta.'],
+      // Ano novo, lista das cartas vistas zerada: o Conselho volta a ter assunto.
+      ['cardDrawn', expect.stringContaining('pediu audiência: ')],
     ]);
 
     // O filtro por ano corta nos eventos yearStarted, mesmo sem as viradas de dia no meio.
-    expect(first.body.entries).toEqual(all.body.entries.slice(0, 8));
-    expect(second.body.entries).toEqual(all.body.entries.slice(8));
+    expect(first.body.entries).toEqual(all.body.entries.slice(0, 14));
+    expect(second.body.entries).toEqual(all.body.entries.slice(14));
     expect(second.body.entries[0]).toMatchObject({ type: 'yearStarted', data: { year: 2 } });
     expect(third.body.entries).toEqual([]);
 
@@ -175,13 +186,13 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
 
   it('cliente de outra versão do protocolo recebe 426 com o aviso de recarregar a página', async () => {
     const reply = await call<ApiError>(server, 'GET', '/version', {
-      headers: { 'x-lords-protocol': '2' },
+      headers: { 'x-lords-protocol': '1' },
     });
     expect(reply.status).toBe(426);
     expect(reply.body).toMatchObject({
       code: 'UPGRADE_REQUIRED',
-      message: 'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
-      details: { protocol: 1 },
+      message: 'Há uma versão nova do jogo. Recarregue a página.',
+      details: { protocol: 2 },
     });
     // O app é uma página: a mensagem não fala mais em extensão.
     expect(reply.body.message).not.toMatch(/extens/i);

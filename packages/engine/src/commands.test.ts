@@ -3,7 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { describeAmounts, reject } from './rejections';
-import { accept, apply, command, gameWith, HOUR, newGame, play, refuse } from './test-helpers';
+import {
+  accept,
+  apply,
+  command,
+  dealt,
+  gameWith,
+  HOUR,
+  newGame,
+  play,
+  refuse,
+} from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
 describe('applyCommand', () => {
@@ -119,6 +129,24 @@ describe('catálogo de recusas', () => {
     Object.assign(draft.settlement, rich.settlement);
     draft.settlement.population = { villagers: 10 };
   });
+  // O Conselho: uma carta na mesa, uma que expirou e uma opção que o feudo ainda não alcança
+  // (a refeição dos pedreiros pede folga na despensa).
+  const well = dealt(rich, 'collapsedWell');
+  const lapsed = gameWith((draft) => {
+    draft.council.expired = ['collapsedWell-1'];
+  });
+  const hungry = dealt(
+    gameWith((draft) => {
+      draft.settlement.resources.food = 60_000;
+    }),
+    'masonsMeal',
+  );
+  const broke = dealt(
+    gameWith((draft) => {
+      draft.settlement.resources.stone = 0;
+    }),
+    'collapsedWell',
+  );
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
@@ -144,7 +172,32 @@ describe('catálogo de recusas', () => {
     RECRUIT_QUEUE_FULL: [queued, command('recruitVillagers', { quantity: 1 })],
     HOUSING_FULL: [crowded, command('recruitVillagers', { quantity: 1 })],
     INVALID_NAME: [rich, command('renameSettlement', { name: '' })],
+    CARD_NOT_PENDING: [
+      rich,
+      command('answerCard', { instanceId: 'collapsedWell-1', optionId: 'dig' }),
+    ],
+    CARD_EXPIRED: [
+      lapsed,
+      command('answerCard', { instanceId: 'collapsedWell-1', optionId: 'dig' }),
+    ],
+    INVALID_OPTION: [
+      well.state,
+      command('answerCard', { instanceId: well.instanceId, optionId: 'flee' }),
+    ],
+    OPTION_LOCKED: [
+      hungry.state,
+      command('answerCard', { instanceId: hungry.instanceId, optionId: 'feast' }),
+    ],
   };
+
+  it('uma opção que o estoque não paga é recusada com o que falta', () => {
+    expect(
+      refuse(
+        broke.state,
+        command('answerCard', { instanceId: broke.instanceId, optionId: 'repair' }),
+      ),
+    ).toEqual({ code: 'INSUFFICIENT_RESOURCES', message: 'Faltam 30 pedra.' });
+  });
 
   it.each(REJECTION_CODES)('%s', (code) => {
     const [state, order] = scenarios[code];

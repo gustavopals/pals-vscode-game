@@ -25,7 +25,8 @@ import { stateV2, v2ToV3 } from './migrations/v2';
 import { stateV3, v3ToV4 } from './migrations/v3';
 import { stateV4, v4ToV5 } from './migrations/v4';
 import { stateV5, v5ToV6 } from './migrations/v5';
-import { stateV6 } from './migrations/v6';
+import { stateV6, v6ToV7 } from './migrations/v6';
+import { stateV7 } from './migrations/v7';
 import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
@@ -142,6 +143,19 @@ const FROZEN: Record<string, string> = {
   'state-v6-queues.json': '64954a3f',
   'state-v6-storage.json': '7bd72034',
   'state-v6-week-scripted.json': 'eae7e998',
+  'state-v7-cold.json': 'efcc9093',
+  'state-v7-construction.json': '48882d8b',
+  'state-v7-crafts.json': '9af45677',
+  'state-v7-famine.json': 'b012f471',
+  'state-v7-fresh.json': 'aeaa9bee',
+  'state-v7-iron-king-half.json': '5c6a7804',
+  'state-v7-migrated-3x.json': 'a13b9048',
+  'state-v7-morale.json': '1d89febd',
+  'state-v7-objectives.json': 'ee0efd88',
+  'state-v7-peasant-3x.json': 'e5b676c6',
+  'state-v7-queues.json': '3ad142cf',
+  'state-v7-storage.json': 'bc10045e',
+  'state-v7-week-scripted.json': '677e26d8',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -150,10 +164,11 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 /**
  * Caminhos das chaves de estrutura fixa de um estado, tendo uma partida nova como referência:
  * só desce onde a partida nova também tem um objeto. Listas, campos que nascem `null` e os
- * objetos de chaves livres (`rng`, `stats`) contam como um campo só.
+ * objetos de chaves livres (`rng`, `stats`, `council.flags`) contam como um campo só.
  */
 function fixedKeys(value: unknown, reference: unknown = value, path = ''): string[] {
-  if (!isObject(value) || !isObject(reference) || path === 'rng' || path === 'stats') {
+  const freeKeys = path === 'rng' || path === 'stats' || path === 'council.flags';
+  if (!isObject(value) || !isObject(reference) || freeKeys) {
     return [];
   }
   return Object.entries(value).flatMap(([key, child]) => {
@@ -241,6 +256,24 @@ describe('a forma da versão atual', () => {
           { id: 'a', label: 'b', amount: 5, untilMs: 7_200_000, kind: 'morale' },
         ]),
     ],
+    ['o Conselho ausente', (state) => delete state.council],
+    ['o Conselho sem a próxima audiência', (state) => delete state.council.nextDrawAtMs],
+    ['o Conselho com um campo a mais', (state) => (state.council.effects = [])],
+    ['uma flag que não vale `true`', (state) => (state.council.flags = { 'toll.paid': 1 })],
+    [
+      'uma carta na mesa sem prazo',
+      (state) => (state.council.pending = [{ instanceId: 'alms-1', cardId: 'alms', drawnAtMs: 0 }]),
+    ],
+    [
+      'uma continuação sem a escolha que a agendou',
+      (state) => (state.council.scheduled = [{ cardId: 'alms', atMs: 7_200_000 }]),
+    ],
+    [
+      'um efeito escondido sem instante',
+      (state) =>
+        (state.council.delayed = [{ instanceId: 'alms-1', cardId: 'alms', optionId: 'bless' }]),
+    ],
+    ['uma carta expirada que não é texto', (state) => (state.council.expired = [7])],
     ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
     ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
     ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
@@ -341,6 +374,43 @@ describe('a forma da versão atual', () => {
       ];
       expect(currentShape(busy, ''), building).toBeNull();
     }
+  });
+
+  it('aceita o Conselho com cartas na mesa, flags, continuações, efeitos à espera e expiradas', () => {
+    const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+    state.council = {
+      pending: [
+        {
+          instanceId: 'alms-1',
+          cardId: 'alms',
+          drawnAtMs: 0,
+          expiresAtMs: 86_400_000,
+          origin: null,
+        },
+        {
+          instanceId: 'toll-2',
+          cardId: 'toll',
+          drawnAtMs: 7,
+          expiresAtMs: 86_400_007,
+          origin: null,
+        },
+      ],
+      flags: { 'toll.paid': true, 'commonGranary.open': true },
+      seenThisYear: ['alms', 'toll'],
+      nextDrawAtMs: 28_800_000,
+      scheduled: [
+        {
+          cardId: 'tollReturn',
+          atMs: 14_400_000,
+          previousCardId: 'toll',
+          previousOptionId: 'pay',
+          previousInstanceId: 'toll-2',
+        },
+      ],
+      delayed: [{ atMs: 14_400_000, instanceId: 'toll-2', cardId: 'toll', optionId: 'refuse' }],
+      expired: ['alms-0'],
+    };
+    expect(currentShape(state, '')).toBeNull();
   });
 
   it('conhece os mesmos edifícios produtivos que o conteúdo, e recusa uma coorte vazia', () => {
@@ -592,6 +662,7 @@ describe('versão 2 → 3', () => {
     delete old.settlement.adaptation;
     delete old.settlement.morale;
     delete old.settlement.moraleEffects;
+    delete old.council;
     delete old.settlement.buildings.granary;
     delete old.settlement.buildings.warehouse;
     old.settlement.workers.farm = 5;
@@ -1042,10 +1113,19 @@ describe('versão 6 → 7', () => {
   const DAY = 2 * HOUR;
   const nextDay = (state: GameState) => (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY;
   const moraleTypes = ['moraleBandChanged', 'villagerArrived', 'villagerLeft', 'villagerDeserted'];
+  // Só até a versão 7: o que a moral mudou, sem o que as versões seguintes acrescentaram.
+  const morale: MigrationChain = {
+    steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6, v6ToV7],
+    shape: stateV7,
+  };
 
   it.each(version6)('$name: só acrescenta a moral em 50 e a lista de efeitos vazia', (fixture) => {
     const before = read(fixture) as unknown as GameState;
-    const after = migrated(fixture);
+    const after = migrateWith(
+      read(fixture),
+      { timeScale: fixture.timeScale },
+      morale,
+    ) as unknown as GameState;
     expect(after.schemaVersion).toBe(7);
     expect(after.settlement.morale).toBe(50);
     expect(after.settlement.moraleEffects).toStrictEqual([]);
@@ -1136,11 +1216,119 @@ describe('versão 6 → 7', () => {
   });
 });
 
+describe('versão 7 → 8', () => {
+  const version7 = fixtures.filter((fixture) => fixture.version === 7);
+  const DAY = 2 * HOUR;
+  const INTERVAL = 4 * DAY;
+  const cardTypes = ['cardDrawn', 'cardAnswered', 'cardExpired', 'cardEffectApplied'];
+  /** A primeira virada de dia a partir de `fronteira + intervalo`. */
+  const firstAudience = (boundaryMs: number) => Math.ceil((boundaryMs + INTERVAL) / DAY) * DAY;
+
+  it('a cadência escrita no passo é a do conteúdo de hoje', () => {
+    expect(INTERVAL).toBe(balance.council.drawIntervalDays * balance.calendar.dayMs);
+    expect(DAY).toBe(balance.calendar.dayMs);
+    // Uma partida encontrada no instante zero recebe a mesma primeira audiência de uma nova.
+    const fresh = migrated(named('state-v7-fresh.json'));
+    expect(fresh.council).toEqual(newGame().council);
+  });
+
+  it.each(version7)('$name: só acrescenta o Conselho, vazio', (fixture) => {
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(8);
+    expect(after.council).toStrictEqual({
+      pending: [],
+      flags: {},
+      seenThisYear: [],
+      nextDrawAtMs: firstAudience(before.lastProcessedAt),
+      scheduled: [],
+      delayed: [],
+      expired: [],
+    });
+    // O resto é o estado antigo, campo por campo: nenhum estoque, prazo ou sorteio muda.
+    const rest: Partial<GameState> = { ...after };
+    delete rest.council;
+    expect({ ...rest, schemaVersion: 7 }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it.each(version7)(
+    '$name: a primeira carta conta a partir da fronteira, e cai em uma virada de dia',
+    (fixture) => {
+      const state = migrated(fixture);
+      const boundary = state.lastProcessedAt;
+      const { nextDrawAtMs } = state.council;
+      expect(nextDrawAtMs % DAY).toBe(0);
+      // Nunca antes de um intervalo inteiro, nunca mais de um dia de jogo depois dele.
+      expect(nextDrawAtMs).toBeGreaterThanOrEqual(boundary + INTERVAL);
+      expect(nextDrawAtMs).toBeLessThan(boundary + INTERVAL + DAY);
+
+      // Nada do Conselho acontece na fronteira nem antes da primeira audiência.
+      const atBoundary = advanceTo(state, boundary + 1);
+      expect(atBoundary.events.filter((event) => cardTypes.includes(event.type))).toEqual([]);
+      expect(atBoundary.state.rng).toEqual(state.rng);
+      const before = advanceTo(state, nextDrawAtMs - 1);
+      expect(before.events.filter((event) => cardTypes.includes(event.type))).toEqual([]);
+      expect(before.state.rng.council).toBeUndefined();
+
+      // Na primeira audiência chega a primeira carta (há sempre uma avulsa sem requisito), e a
+      // cadência segue de intervalo em intervalo.
+      const { state: after, events } = advanceTo(state, nextDrawAtMs);
+      const drawn = events.filter((event) => event.type === 'cardDrawn');
+      expect(drawn.map((event) => event.atMs)).toEqual([nextDrawAtMs]);
+      expect(after.council.pending).toHaveLength(1);
+      expect(after.council.nextDrawAtMs).toBe(nextDrawAtMs + INTERVAL);
+      // O prazo de resposta são 24 h reais no ritmo da partida.
+      expect(after.council.pending[0]?.expiresAtMs).toBe(
+        nextDrawAtMs + 24 * HOUR * state.settings.timeScale,
+      );
+    },
+  );
+
+  it('uma ausência longa antes da migração não gera carta nenhuma', () => {
+    // O feudo do bot, encontrado no ano 4: a ausência inteira foi simulada sem o Conselho.
+    const state = migrated(named('state-v7-migrated-3x.json'));
+    expect(state.clock.year).toBeGreaterThan(1);
+    expect(state.stats.cardsDrawn).toBeUndefined();
+    expect(state.council.seenThisYear).toEqual([]);
+  });
+
+  it('partida sem fronteira e partida migrada há tempos: o prazo fica depois de onde ela está', () => {
+    // Nascida na versão 7, no ano 3, sem fronteira; e migrada da v0.1, com a fronteira antiga
+    // bem atrás. Nas duas a primeira audiência conta do instante desta migração.
+    for (const name of ['state-v7-peasant-3x.json', 'state-v7-migrated-3x.json']) {
+      const before = read(named(name)) as unknown as GameState;
+      const after = migrated(named(name));
+      expect(after.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(after.council.nextDrawAtMs).toBe(firstAudience(before.lastProcessedAt));
+      expect(after.council.nextDrawAtMs).toBeGreaterThan(after.lastProcessedAt);
+    }
+    expect(
+      (read(named('state-v7-peasant-3x.json')) as unknown as GameState).migratedAtMs,
+    ).toBeNull();
+    const old = read(named('state-v7-migrated-3x.json')) as unknown as GameState;
+    expect(old.migratedAtMs ?? 0).toBeLessThan(old.lastProcessedAt - DAY);
+  });
+
+  it('a visão de uma partida recém-migrada diz quando vem a primeira carta', () => {
+    const state = migrated(named('state-v7-migrated-3x.json'));
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(view.council.pending).toEqual([]);
+    expect(view.pendingDecisions).toEqual([]);
+    // No ritmo 3, a cadência de 4 dias de jogo são 2 h 40 min reais; a primeira audiência vem
+    // entre isso e mais um dia de jogo (40 min).
+    expect(view.council.nextCardInSeconds).toBeGreaterThanOrEqual(9600);
+    expect(view.council.nextCardInSeconds).toBeLessThan(9600 + 2400);
+  });
+});
+
 describe('a fronteira é de cada passo', () => {
   // A v0.2 chega à produção em mais de uma publicação, e cada uma migra as partidas em um
   // instante diferente. Este passo ainda não existe: é o próximo que alguém vai escrever, com a
-  // conta que o roadmap pede para a primeira carta do Conselho (V2D-T1.2): o primeiro prazo de
-  // uma mecânica nova conta a partir da fronteira **deste** passo.
+  // mesma conta que o passo do Conselho faz para a primeira carta (`v7ToV8`): o primeiro prazo
+  // de uma mecânica nova conta a partir da fronteira **deste** passo.
   const NEXT = CURRENT_SCHEMA_VERSION + 1;
   const INTERVAL = 8 * HOUR;
   const nextShape: Shape = (value, path) => {

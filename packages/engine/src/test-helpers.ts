@@ -1,8 +1,9 @@
-import { buildings, objectives } from '@lotg/content';
+import { buildings, councilCards, objectives } from '@lotg/content';
 
-import { advanceTo, advanceWith, processEventsAt } from './advance';
+import { advanceTo, advanceWith, processEventsAt, processEventsWith } from './advance';
 import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
+import { cardOf, CATALOG, type Catalog, deliverCard, DRAW_INTERVAL_MS } from './council';
 import { addMoraleEffect } from './morale';
 import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
@@ -40,8 +41,10 @@ export function gameWith(edit: (draft: GameState) => void): GameState {
 
 /**
  * Um feudo posto direto em um instante do calendário, sem simular o caminho até lá: para os
- * cenários de estação. O relógio fica coerente com `lastProcessedAt`, e os objetivos já estão
- * todos cumpridos, para nenhuma recompensa cair no meio da conta.
+ * cenários de estação. O relógio fica coerente com `lastProcessedAt`, os objetivos já estão
+ * todos cumpridos, para nenhuma recompensa cair no meio da conta, e o Conselho está calado
+ * (`quietCouncil`), para nenhuma carta cair no meio dos eventos. O cenário que quer o Conselho
+ * chama `councilInSession` no `edit`.
  */
 export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}): GameState {
   return gameWith((draft) => {
@@ -50,8 +53,70 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     draft.clock.year = Math.floor(atMs / YEAR) + 1;
     draft.clock.yearStartMs = Math.floor(atMs / YEAR) * YEAR;
     draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
+    quietCouncil(draft);
     edit(draft);
   });
+}
+
+/**
+ * O Conselho de um feudo fundado no instante zero que chegou até aqui jogando: a próxima
+ * audiência é a primeira da cadência depois de agora. Chame depois de pôr o relógio no lugar.
+ */
+export function councilInSession(draft: GameState): void {
+  draft.council.nextDrawAtMs =
+    (Math.floor(draft.lastProcessedAt / DRAW_INTERVAL_MS) + 1) * DRAW_INTERVAL_MS;
+}
+
+/**
+ * O Conselho em sessão e sem assunto: a audiência cai na cadência de sempre, mas todas as cartas
+ * do jogo já saíram neste ano, e nenhuma chega. É o Conselho dos cenários que servem de retrato
+ * de outra mecânica (as estações, as filas, os ofícios, a moral): a visão deles traz o Conselho
+ * como ele é, sem carta na mesa para tomar a frente da tela.
+ */
+export function councilWithoutNews(draft: GameState): void {
+  councilInSession(draft);
+  draft.council.seenThisYear = councilCards.map((card) => card.id);
+}
+
+/**
+ * O Conselho calado: a próxima audiência fica para daqui a mil anos de jogo. Para os cenários
+ * que contam os eventos de outra mecânica, um a um, e não querem carta nenhuma no meio. Serve
+ * de `edit` em `gameWith` e `gameAt`, ou dentro de um.
+ */
+export function quietCouncil(draft: GameState): void {
+  draft.council.nextDrawAtMs = 1000 * YEAR;
+}
+
+/** Uma cópia do estado com o Conselho calado (`quietCouncil`). */
+export function quiet(state: GameState): GameState {
+  const draft = cloneState(state);
+  quietCouncil(draft);
+  return draft;
+}
+
+/** Uma partida nova com o Conselho calado (`quietCouncil`). */
+export function quietGame(seed = 'pedra-alta'): GameState {
+  const draft = cloneState(newGame(seed));
+  quietCouncil(draft);
+  return draft;
+}
+
+/**
+ * O mesmo feudo com uma carta do Conselho posta na mesa agora, sem esperar o sorteio: para os
+ * cenários de resposta, de expiração e de visão. Devolve o estado e a ocorrência.
+ */
+export function dealt(
+  state: GameState,
+  cardId: string,
+  catalog: Catalog = CATALOG,
+): { state: GameState; instanceId: string } {
+  const card = cardOf(catalog, cardId);
+  if (card === null) {
+    throw new Error(`Carta desconhecida no teste: ${cardId}.`);
+  }
+  const draft = cloneState(state);
+  const { instanceId } = deliverCard(draft, card, draft.lastProcessedAt, [], { source: 'draw' });
+  return { state: draft, instanceId };
 }
 
 /**
@@ -203,6 +268,7 @@ export function objectivesScenario() {
 export function autumnScenario(): GameState {
   return gameAt(AUTUMN + 22 * DAY, (draft) => {
     const { settlement } = draft;
+    councilWithoutNews(draft);
     settlement.population.villagers = 18;
     settlement.workers = { farm: 10, lumberMill: 0, quarry: 5, goldMine: 3 };
     settlement.buildings = {
@@ -234,6 +300,7 @@ export function winterColdScenario(): GameState {
 export function queuesScenario(): GameState {
   const start = gameAt(SUMMER + 3 * DAY, (draft) => {
     const { settlement } = draft;
+    councilWithoutNews(draft);
     settlement.population.villagers = 20;
     settlement.workers = { farm: 8, lumberMill: 5, quarry: 3, goldMine: 2 };
     settlement.buildings = { ...settlement.buildings, townHall: 4, quarry: 5, granary: 1 };
@@ -261,6 +328,7 @@ export function queuesScenario(): GameState {
 export function craftScenario(): GameState {
   const start = gameAt(AUTUMN + 3 * DAY, (draft) => {
     const { settlement } = draft;
+    councilWithoutNews(draft);
     settlement.population.villagers = 12;
     settlement.workers = { farm: 2, lumberMill: 4, quarry: 1, goldMine: 0 };
     settlement.buildings = {
@@ -293,6 +361,7 @@ export function craftScenario(): GameState {
 export function impoverishedScenario(difficulty: GameSettings['difficulty'] = 'lord'): GameState {
   return gameAt(WINTER + 2 * DAY + 20 * MINUTE, (draft) => {
     const { settlement } = draft;
+    councilWithoutNews(draft);
     draft.settings.difficulty = difficulty;
     settlement.population.villagers = 3;
     settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
@@ -313,6 +382,7 @@ export function impoverishedScenario(difficulty: GameSettings['difficulty'] = 'l
 export function proudScenario(): GameState {
   const start = gameAt(SUMMER, (draft) => {
     const { settlement } = draft;
+    councilWithoutNews(draft);
     settlement.population.villagers = 22;
     settlement.workers = { farm: 6, lumberMill: 6, quarry: 5, goldMine: 3 };
     settlement.buildings = { ...settlement.buildings, townHall: 2, housing: 3, farm: 2 };
@@ -333,11 +403,81 @@ export function proudScenario(): GameState {
   return advanceTo(start, SUMMER + 5 * DAY + 37 * MINUTE).state;
 }
 
+/**
+ * O que o senhor do cenário responde a cada carta do jogo; a que não está aqui fica na mesa até
+ * expirar. O poço fica para depois (a opção que esconde um efeito) e a madeira é cedida ao
+ * celeiro (a opção que abre a cadeia).
+ */
+const councilAnswers: Readonly<Record<string, string>> = {
+  collapsedWell: 'wait',
+  commonGranaryPlanks: 'cede',
+};
+
+/** Responde, com as cartas do jogo, a toda carta da mesa para a qual `answers` tem resposta. */
+function answerCards(
+  state: GameState,
+  answers: Readonly<Record<string, string>>,
+  events: GameEvent[] = [],
+): GameState {
+  let current = state;
+  for (const pending of state.council.pending) {
+    const optionId = answers[pending.cardId];
+    if (optionId !== undefined) {
+      const result = accept(
+        current,
+        command('answerCard', { instanceId: pending.instanceId, optionId }),
+      );
+      current = result.state;
+      events.push(...result.events);
+    }
+  }
+  return current;
+}
+
+/**
+ * O Conselho em uso, com as cartas do jogo e no ritmo Rápido: um feudo com o Celeiro erguido,
+ * visitado uma vez por dia de jogo (aos 7 minutos do dia) por um senhor que responde a duas
+ * cartas e deixa as outras expirarem. Com a semente `fixture-council`:
+ *
+ * - dia 5: "O poço entulhado" chega; ele deixa para depois (um efeito escondido para o dia 7);
+ * - dia 9: "Tábuas para as reservas"; ele cede a madeira, e a cadeia começa;
+ * - dia 12: "A vez de repartir" chega como continuação; dia 13, "A refeição dos pedreiros": a
+ *   mesa fica cheia, e ninguém responde;
+ * - dia 48: a continuação expira (o conselho guarda o grão) e agenda o desfecho; dia 49, a
+ *   refeição expira; dia 51, chega "O que ficou da escolha".
+ */
+export function councilScenario(untilMs: number): GameState {
+  let state = createInitialState('fixture-council', { ...settings, timeScale: 3 });
+  state.settlement.buildings = { ...state.settlement.buildings, townHall: 2, granary: 1 };
+  state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 0, goldMine: 1 };
+  state.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
+  for (let visit = DAY + 7 * MINUTE; visit < untilMs; visit += DAY) {
+    state = answerCards(advanceTo(state, visit).state, councilAnswers);
+  }
+  return advanceTo(state, untilMs).state;
+}
+
 export function eventsOfType(events: GameEvent[], type: GameEvent['type']): GameEvent[] {
   return events.filter((event) => event.type === type);
 }
 
 const DAY_REAL = 24 * HOUR;
+
+/**
+ * O que o senhor do cenário de 7 dias responde ao Conselho, a cada visita: deixa o poço para
+ * depois (o efeito escondido aparece dias adiante), cede a madeira ao celeiro, guarda o grão
+ * para o inverno e deixa a colheita com as famílias. À refeição dos pedreiros ele não responde:
+ * o prazo acaba e o conselho decide sozinho.
+ */
+const weekAnswers: Readonly<Record<string, string>> = {
+  collapsedWell: 'wait',
+  commonGranaryPlanks: 'cede',
+  commonGranaryShare: 'reserve',
+  commonGranaryOutcome: 'leave',
+};
+
+/** As horas reais em que o senhor do cenário passa pelo feudo e olha a mesa do conselho. */
+const WEEK_VISITS = [13, 24, 36, 48, 60, 72, 84, 108, 120, 132, 144, 150, 156, 163];
 
 /** Sete dias reais de um jogador de duas sessões por dia: ordens com os seus instantes. */
 const weekScript = (): Array<[hour: number, order: Command]> => [
@@ -430,6 +570,7 @@ export function runWeekScenario() {
   };
 
   const script = weekScript();
+  const visited = new Set<number>();
   let cursor = 0;
   for (let day = 1; day <= 7; day += 1) {
     for (; cursor < script.length; cursor += 1) {
@@ -438,6 +579,32 @@ export function runWeekScenario() {
         break;
       }
       advance(hour * HOUR);
+      // Antes das ordens de cada visita, o senhor responde às cartas que encontra na mesa.
+      if (WEEK_VISITS.includes(hour) && !visited.has(hour)) {
+        visited.add(hour);
+        for (const pending of state.council.pending) {
+          const optionId = weekAnswers[pending.cardId];
+          if (optionId === undefined) {
+            continue;
+          }
+          const payload = { instanceId: pending.instanceId, optionId };
+          const answered = applyCommand(
+            state,
+            command('answerCard', payload),
+            state.lastProcessedAt,
+          );
+          if (answered.ok) {
+            state = answered.state;
+            events.push(...answered.events);
+          }
+          orders.push({
+            hour,
+            type: 'answerCard',
+            payload,
+            result: answered.ok ? 'accepted' : answered.code,
+          });
+        }
+      }
       const result = applyCommand(state, order, state.lastProcessedAt);
       if (result.ok) {
         state = result.state;
@@ -511,4 +678,197 @@ export function advanceWithDailyDraws(
     }
     processEventsAt(draft, atMs, events);
   });
+}
+
+/**
+ * Um catálogo de cartas de mentira, para os testes do Conselho não dependerem das cartas do
+ * jogo, que são conteúdo e mudam. Passa pelo mesmo schema do conteúdo (`council.test.ts`
+ * confere) e tem uma carta para cada coisa que o motor precisa provar:
+ *
+ * - `alms`: três opções sem custo, uma para cada dificuldade (ganho, nada, moral que cai).
+ * - `toll`: uma opção paga que grava flag e agenda a continuação; uma trancada por edifício; e
+ *   a automática, que esconde um efeito para duas viradas depois e também agenda a continuação.
+ * - `tollReturn`: só chega como continuação; o texto lembra quem pagou; o ganho não cabe no
+ *   depósito de um feudo novo.
+ * - `fair`: recorrente, só no verão.
+ * - `granaryFeast`: pede o Celeiro, o 30º dia de jogo, moral de 50 a 100 e a ponte sem pedágio pago.
+ */
+const told = (what: string) => `No {dia}º dia {daEstacao}, ${what} em {feudo}.`;
+
+export const testCards: Catalog = [
+  {
+    id: 'alms',
+    title: 'Esmola à porta',
+    text: 'Um mendigo bate à porta do salão. O conselho quer saber o que fazer.',
+    weight: 2,
+    autoResolve: { peasant: 'bless', lord: 'ignore', ironKing: 'curse' },
+    options: [
+      {
+        id: 'bless',
+        label: 'Abençoar o mendigo',
+        effects: [{ type: 'resources', amounts: { food: 20 } }],
+        hint: 'Quem abençoa costuma receber.',
+        chronicle: told('o senhor abençoou o mendigo'),
+        expiredChronicle: told('o conselho abençoou o mendigo sem esperar pelo senhor'),
+      },
+      {
+        id: 'ignore',
+        label: 'Ignorar a batida',
+        effects: [],
+        hint: 'Porta fechada não custa nada.',
+        chronicle: told('o senhor deixou a porta fechada'),
+      },
+      {
+        id: 'curse',
+        label: 'Enxotar o mendigo',
+        effects: [{ type: 'morale', amount: -5, durationDays: 2 }],
+        hint: 'O povo vê tudo.',
+        chronicle: told('o senhor enxotou o mendigo'),
+        expiredChronicle: told('o conselho enxotou o mendigo sem esperar pelo senhor'),
+      },
+    ],
+  },
+  {
+    id: 'toll',
+    title: 'Pedágio na ponte',
+    text: 'O barqueiro cobra pedágio na ponte velha. O conselho quer saber se o feudo paga.',
+    weight: 1,
+    autoResolve: { peasant: 'refuse', lord: 'refuse', ironKing: 'refuse' },
+    options: [
+      {
+        id: 'pay',
+        label: 'Pagar o pedágio',
+        cost: { gold: 20 },
+        effects: [
+          { type: 'morale', amount: 5, durationDays: 1 },
+          { type: 'setFlag', flag: 'toll.paid' },
+          { type: 'scheduleCard', cardId: 'tollReturn', afterDays: 2 },
+        ],
+        hint: 'O barqueiro tem boa memória.',
+        chronicle: told('o senhor pagou o pedágio da ponte'),
+      },
+      {
+        id: 'haggle',
+        label: 'Regatear com grão',
+        requires: { building: 'granary' },
+        effects: [{ type: 'resources', amounts: { gold: 10 } }],
+        hint: 'Só regateia quem tem celeiro.',
+        chronicle: told('o senhor regateou o pedágio com grão'),
+      },
+      {
+        id: 'refuse',
+        label: 'Recusar o pedágio',
+        effects: [{ type: 'scheduleCard', cardId: 'tollReturn', afterDays: 2 }],
+        hint: 'Dizem que o barqueiro não esquece.',
+        hidden: {
+          afterDays: 2,
+          effects: [
+            { type: 'resources', amounts: { wood: -30 } },
+            { type: 'morale', amount: -10, durationDays: 1 },
+          ],
+          chronicle: told('o barqueiro cortou as cordas da ponte'),
+        },
+        chronicle: told('o senhor recusou o pedágio da ponte'),
+      },
+    ],
+  },
+  {
+    id: 'tollReturn',
+    title: 'O barqueiro volta',
+    text: 'O barqueiro voltou à ponte. O conselho quer saber como recebê-lo.',
+    weight: 0,
+    variants: [
+      {
+        flag: 'toll.paid',
+        text: 'O barqueiro que o senhor pagou voltou com madeira de presente. O conselho quer saber como recebê-lo.',
+        arrival: told('o barqueiro pago voltou com um presente: {carta}'),
+      },
+    ],
+    autoResolve: { peasant: 'thank', lord: 'dismiss', ironKing: 'dismiss' },
+    options: [
+      {
+        id: 'thank',
+        label: 'Agradecer o presente',
+        effects: [
+          { type: 'resources', amounts: { wood: 450 } },
+          { type: 'clearFlag', flag: 'toll.paid' },
+        ],
+        hint: 'O que não couber no pátio se perde.',
+        chronicle: told('o senhor agradeceu ao barqueiro'),
+        expiredChronicle: told('o conselho agradeceu ao barqueiro'),
+      },
+      {
+        id: 'dismiss',
+        label: 'Dispensar o barqueiro',
+        effects: [{ type: 'clearFlag', flag: 'toll.paid' }],
+        hint: 'Nada se ganha, nada se perde.',
+        chronicle: told('o senhor dispensou o barqueiro'),
+      },
+    ],
+  },
+  {
+    id: 'fair',
+    title: 'Feira de verão',
+    text: 'Os mascates pedem licença para armar a feira. O conselho quer saber se há festa.',
+    weight: 1,
+    recurring: true,
+    requires: { seasons: ['summer'] },
+    autoResolve: { peasant: 'skip', lord: 'skip', ironKing: 'skip' },
+    options: [
+      {
+        id: 'hold',
+        label: 'Armar a feira',
+        cost: { food: 10 },
+        effects: [{ type: 'morale', amount: 5, durationDays: 1 }],
+        hint: 'Feira alegra.',
+        chronicle: told('houve feira'),
+      },
+      {
+        id: 'skip',
+        label: 'Dispensar a feira',
+        effects: [],
+        hint: 'Fica para outra vez.',
+        chronicle: told('não houve feira'),
+      },
+    ],
+  },
+  {
+    id: 'granaryFeast',
+    title: 'Festa do celeiro',
+    text: 'O celeiro está cheio e o povo quer festa. O conselho quer saber se abre os sacos.',
+    weight: 1,
+    requires: {
+      minDay: 30,
+      buildings: { granary: 1 },
+      notFlags: ['toll.paid'],
+      moralRange: [50, 100],
+    },
+    autoResolve: { peasant: 'keep', lord: 'keep', ironKing: 'keep' },
+    options: [
+      {
+        id: 'open',
+        label: 'Abrir os sacos',
+        cost: { food: 30 },
+        effects: [{ type: 'morale', amount: 10, durationDays: 2 }],
+        hint: 'Festa custa grão.',
+        chronicle: told('abriram-se os sacos do celeiro'),
+      },
+      {
+        id: 'keep',
+        label: 'Guardar o grão',
+        effects: [],
+        hint: 'Grão guardado não faz festa.',
+        chronicle: told('o grão ficou guardado'),
+      },
+    ],
+  },
+];
+
+/** `advanceTo` com outro catálogo de cartas: o mesmo laço do jogo, com as cartas de mentira. */
+export function advanceWithCards(
+  state: GameState,
+  gameTimeMs: number,
+  catalog: Catalog = testCards,
+): { state: GameState; events: GameEvent[] } {
+  return advanceWith(state, gameTimeMs, processEventsWith(catalog));
 }

@@ -1,4 +1,4 @@
-import type { Command, ViewState } from '@lotg/protocol';
+import { type Command, PROTOCOL_VERSION, type ViewState } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { createClient } from './client';
@@ -84,7 +84,7 @@ describe('cabeçalhos e sessão', () => {
     await client.getMe();
     expect(calls[0]).toMatchObject({ method: 'GET', path: '/me' });
     expect(calls[0]?.headers).toMatchObject({
-      'x-lords-protocol': '1',
+      'x-lords-protocol': String(PROTOCOL_VERSION),
       'x-lords-client': 'teste/0.1.0',
       authorization: 'Bearer jwt-velho',
     });
@@ -131,7 +131,9 @@ describe('cabeçalhos e sessão', () => {
       ['GET', '/catalog'],
     ]);
     expect(calls[1]?.headers.authorization).toBeUndefined();
-    expect(calls[1]?.headers['x-lords-protocol']).toBe('1');
+    expect(calls[1]?.headers['x-lords-protocol']).toBe(String(PROTOCOL_VERSION));
+    // O protocolo 2 é o do Conselho: é o número que diz ao servidor que o app sabe ler cartas.
+    expect(PROTOCOL_VERSION).toBe(2);
   });
 
   it('com validação ligada, um catálogo fora do contrato é recusado', async () => {
@@ -504,6 +506,36 @@ describe('sendCommand', () => {
     });
   });
 
+  it('a resposta a uma carta é uma ordem como as outras: vai inteira e a recusa volta com o código', async () => {
+    const answer: Command = {
+      commandId: '22222222-2222-4222-8222-222222222222',
+      type: 'answerCard',
+      payload: { instanceId: 'collapsedWell-3', optionId: 'repair' },
+    };
+    const details = {
+      code: 'CARD_EXPIRED',
+      message:
+        'O prazo dessa carta acabou e o conselho decidiu sozinho. A Crônica conta o que foi feito.',
+      view,
+      events: [],
+      stateVersion: '9',
+      staleView: true,
+    };
+    const { client, calls } = setup(() => ({
+      status: 422,
+      body: { code: 'GAME_RULE', message: details.message, details },
+    }));
+    const failure = await client.sendCommand(gameId, answer).catch((error: unknown) => error);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ method: 'POST', path: `/games/${gameId}/commands` });
+    expect(calls[0]?.body).toEqual(answer);
+    expect(isGameRuleError(failure)).toBe(true);
+    if (isGameRuleError(failure)) {
+      expect(failure.details.code).toBe('CARD_EXPIRED');
+      expect(failure.message).toBe(details.message);
+    }
+  });
+
   it('uma recusa não é repetida', async () => {
     const { client, calls } = setup(() => ({
       status: 409,
@@ -543,9 +575,17 @@ describe('erros', () => {
   it('servidor de outra versão do protocolo responde UPGRADE_REQUIRED', async () => {
     const { client } = setup(() => ({
       status: 426,
-      body: { code: 'UPGRADE_REQUIRED', message: 'Recarregue a página.', details: { protocol: 2 } },
+      body: {
+        code: 'UPGRADE_REQUIRED',
+        message: 'Há uma versão nova do jogo. Recarregue a página.',
+        details: { protocol: 3 },
+      },
     }));
-    await expect(client.version()).rejects.toMatchObject({ status: 426, code: 'UPGRADE_REQUIRED' });
+    await expect(client.version()).rejects.toMatchObject({
+      status: 426,
+      code: 'UPGRADE_REQUIRED',
+      message: 'Há uma versão nova do jogo. Recarregue a página.',
+    });
   });
 
   it('limite de taxa chega como RATE_LIMITED e não é repetido', async () => {

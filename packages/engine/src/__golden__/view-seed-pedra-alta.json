@@ -540,6 +540,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 28800,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 28800,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "afterFirstAllocation": {
@@ -1104,6 +1112,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 28800,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 28800,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "afterObjectivesScenario": {
@@ -1658,6 +1674,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 6600,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 6600,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "autumnBeforeWinter": {
@@ -2228,6 +2252,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 14400,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "winterCold": {
@@ -2797,6 +2829,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 1800,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "queuesAndPlans": {
@@ -3538,6 +3578,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 7080,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "crafts": {
@@ -4118,6 +4166,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 2280,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "impoverished": {
@@ -4694,6 +4750,14 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 13200,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
   },
   "proud": {
@@ -5261,6 +5325,687 @@
         }
       }
     ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 19380,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
     "pendingDecisions": []
+  },
+  "councilTable": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 2,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Rápido: um ano em 56 horas"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 13,
+      "dayOfYear": 13,
+      "secondsToNextDay": 2000,
+      "secondsToNextSeason": 28400,
+      "seasonEffects": "Primavera: comida × 1,2; recrutamento com prazo × 0,8.",
+      "nextSeason": {
+        "id": "summer",
+        "label": "Verão",
+        "secondsUntil": 28400,
+        "changes": [
+          "A produção de comida passa de × 1,2 para × 1.",
+          "A produção de madeira e pedra passa de × 1 para × 1,15.",
+          "O recrutamento volta ao prazo de sempre."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": 106.7,
+          "stockAtTurn": 900,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +106,72/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 143600,
+        "firewood": {
+          "perHour": 7.5,
+          "winterTotal": 60,
+          "winterProduction": 184,
+          "stock": 296,
+          "gathered": 204,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 15,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 10,
+      "secondsToNextRecruit": null,
+      "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv1 × 5 = 15 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 900,
+        "cap": 900,
+        "capBreakdown": "Celeiro Nv1: 900",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": true,
+        "fullInSeconds": null,
+        "fullNote": "Celeiro cheio: 114,7/h de comida indo ao chão. Amplie o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.",
+        "wastingPerHour": 114.7,
+        "wastedToday": 13,
+        "perHour": 114.7,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 30 × 1 (Nv1) × 1,144 (mestria 48) × 1,2 (primavera) × 1,05 (moral 60) = 129,73/h; consumo 5 × 3 = 15/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 296,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 24222,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 28.8,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 1 trabalhador × 24 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 28,83/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 85,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 15 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 358,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 14.4,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 1 trabalhador × 12 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 14,41/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 2400,
+      "adaptationText": "Quem troca de ofício produz metade por 40 min.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 129.729,
+        "perWorkerPerHour": 43.242,
+        "breakdown": "3 trabalhadores × 30 × 1 (Nv1) × 1,144 (mestria 48) × 1,2 (primavera) × 1,05 (moral 60) = 129,73/h",
+        "perNewWorkerPerHour": 21.621,
+        "experience": 48,
+        "masteryBonusPercent": 14.4,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 1,
+        "grossPerHour": 28.827,
+        "perWorkerPerHour": 28.827,
+        "breakdown": "1 trabalhador × 24 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 28,83/h",
+        "perNewWorkerPerHour": 14.412,
+        "experience": 48,
+        "masteryBonusPercent": 14.4,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 15.75,
+        "breakdown": "0 trabalhadores × 15 × 1 (Nv1) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 7.875,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 1,
+        "grossPerHour": 14.412,
+        "perWorkerPerHour": 14.412,
+        "breakdown": "1 trabalhador × 12 × 1 (Nv1) × 1,144 (mestria 48) × 1,05 (moral 60) = 14,41/h",
+        "perNewWorkerPerHour": 7.206,
+        "experience": 48,
+        "masteryBonusPercent": 14.4,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": []
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 270,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 180,
+              "missing": 95
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 180,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 95 pedra.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 120,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 160,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 80,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 256,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 128,
+              "missing": 43
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 43 pedra.",
+          "planned": false,
+          "effect": "Capacidade de comida: 900 → 1.500."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 320,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 8 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 8 h) = 60",
+      "nextUpdateInSeconds": 2000,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 60.",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 8 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro e o Armazém",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "council": {
+      "pending": [
+        {
+          "instanceId": "commonGranaryShare-3",
+          "title": "A vez de repartir",
+          "text": "As prateleiras feitas com a madeira que o senhor cedeu já seguram a carga. Algumas famílias pedem uma refeição em comum para estreá-las; outras preferem guardar cada saco para o frio. O conselho quer saber que exemplo o senhor dá.",
+          "expiresInSeconds": 83740,
+          "defaultOptionId": "reserve",
+          "defaultOptionLabel": "Guardar para o inverno",
+          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: guardar para o inverno.",
+          "followsFrom": {
+            "title": "Tábuas para as reservas",
+            "optionLabel": "Ceder a madeira",
+            "text": "A história continua: em \"Tábuas para as reservas\", a decisão foi ceder a madeira."
+          },
+          "options": [
+            {
+              "id": "share",
+              "label": "Partilhar a comida",
+              "cost": [
+                {
+                  "resource": "food",
+                  "label": "Comida",
+                  "amount": 30,
+                  "missing": 0
+                }
+              ],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "−30 comida; +10 de moral por 2 dias de jogo (1 h 20 min)",
+              "hint": "Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar."
+            },
+            {
+              "id": "reserve",
+              "label": "Guardar para o inverno",
+              "cost": [],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "Sem custo e sem efeito imediato.",
+              "hint": "Ninguém festeja, mas o frio respeita celeiro cheio."
+            }
+          ]
+        },
+        {
+          "instanceId": "masonsMeal-4",
+          "title": "A refeição dos pedreiros",
+          "text": "Os pedreiros largaram as ferramentas ao meio-dia. Pedem uma refeição quente antes de voltar à obra, e dizem que de barriga cheia o braço rende. A despensa é a mesma que alimenta o resto do feudo.",
+          "expiresInSeconds": 86000,
+          "defaultOptionId": "bread",
+          "defaultOptionLabel": "Repartir o pão do dia",
+          "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.",
+          "followsFrom": null,
+          "options": [
+            {
+              "id": "feast",
+              "label": "Servir a refeição",
+              "cost": [
+                {
+                  "resource": "food",
+                  "label": "Comida",
+                  "amount": 40,
+                  "missing": 0
+                }
+              ],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "−40 comida; +10 de moral por 2 dias de jogo (1 h 20 min)",
+              "hint": "Barriga cheia, ânimo alto."
+            },
+            {
+              "id": "bread",
+              "label": "Repartir o pão do dia",
+              "cost": [],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "Sem custo e sem efeito imediato.",
+              "hint": "Nem festa, nem queixa."
+            },
+            {
+              "id": "refuse",
+              "label": "Mandar voltar ao trabalho",
+              "cost": [],
+              "affordable": true,
+              "locked": false,
+              "lockedReason": null,
+              "effectsText": "+15 pedra; −5 de moral por 2 dias de jogo (1 h 20 min)",
+              "hint": "A tarde rende mais pedra, e a obra guarda a mágoa."
+            }
+          ]
+        }
+      ],
+      "nextCardInSeconds": null,
+      "blockedByPending": true,
+      "nextAudienceInSeconds": 9200,
+      "note": "Com 2 cartas à espera, o conselho não traz outra: responda uma antes da próxima audiência para ela trazer novidade.",
+      "rulesText": "O conselho pede audiência a cada 2 h 40 min e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [
+      {
+        "kind": "card",
+        "id": "commonGranaryShare-3",
+        "title": "A vez de repartir",
+        "expiresInSeconds": 83740
+      },
+      {
+        "kind": "card",
+        "id": "masonsMeal-4",
+        "title": "A refeição dos pedreiros",
+        "expiresInSeconds": 86000
+      }
+    ]
   }
 }

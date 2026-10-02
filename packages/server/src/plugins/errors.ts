@@ -82,15 +82,15 @@ export function registerErrorHandling(app: FastifyInstance): void {
     void reply.status(404).send(body);
   });
 
-  // Um cliente de outra versão do protocolo recebe uma mensagem amigável em vez de erros estranhos.
+  // Um cliente de outra versão do protocolo recebe uma mensagem amigável em vez de erros
+  // estranhos. O caso de todo dia é a aba aberta desde antes de uma publicação: desde o
+  // protocolo 2 a visão traz as cartas do Conselho, que o app antigo não sabe ler (ADR 0014).
   app.addHook('onRequest', async (request) => {
     const sent = request.headers[HEADERS.protocol];
     if (sent !== undefined && sent !== String(PROTOCOL_VERSION)) {
-      throw new ApiError(
-        'UPGRADE_REQUIRED',
-        'O jogo foi atualizado no servidor. Recarregue a página para continuar.',
-        { protocol: PROTOCOL_VERSION },
-      );
+      throw new ApiError('UPGRADE_REQUIRED', 'Há uma versão nova do jogo. Recarregue a página.', {
+        protocol: PROTOCOL_VERSION,
+      });
     }
   });
 

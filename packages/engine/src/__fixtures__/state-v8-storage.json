@@ -1,0 +1,133 @@
+{
+ "schemaVersion": 8,
+ "seed": "fixture-storage",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "ironKing",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 255781234,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 255781234,
+ "rng": {
+  "council": [
+   68034720,
+   3572878321,
+   3673010077,
+   2204866070
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 720000,
+   "wood": 241264,
+   "stone": 300167,
+   "gold": 170000
+  },
+  "accumulators": {
+   "food": 2318200,
+   "wood": 1473144,
+   "stone": 324432,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 2,
+   "lumberMill": 2,
+   "quarry": 1,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 1,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   {
+    "building": "warehouse",
+    "targetLevel": 1,
+    "startedAtMs": 255600000,
+    "finishesAtMs": 256200000
+   },
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 23684,
+   "wood": 25306,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 100,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [
+   "collapsedWell",
+   "masonsMeal",
+   "commonGranaryPlanks"
+  ],
+  "nextDrawAtMs": 259200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "collapsedWell-1",
+   "masonsMeal-2",
+   "commonGranaryPlanks-3"
+  ]
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 3,
+  "cardsDrawn:collapsedWell": 1,
+  "wasted_food": 1074684,
+  "cardsDrawn:masonsMeal": 1,
+  "wasted_wood": 881306,
+  "constructionsStarted:townHall": 1,
+  "constructionsStarted:granary": 1,
+  "cardsExpired": 3,
+  "cardsDrawn:commonGranaryPlanks": 1,
+  "constructionsStarted:warehouse": 1
+ }
+}

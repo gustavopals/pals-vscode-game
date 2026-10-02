@@ -70,6 +70,49 @@ export type MoraleEffect = {
   untilMs: number;
 };
 
+/** Uma carta do Conselho à espera de resposta (GDD §7.1). */
+export type PendingCard = {
+  /**
+   * A ocorrência, não o modelo: a mesma carta em outro ano (ou uma recorrente) tem outro
+   * `instanceId`. É o id da carta e a ordem de chegada dela na partida: "collapsedWell-3".
+   */
+  instanceId: string;
+  cardId: string;
+  drawnAtMs: number;
+  /**
+   * Quando o conselho decide sozinho. O prazo é de tempo real (24 h) e foi convertido para
+   * tempo de jogo, com o ritmo da partida, no instante em que a carta chegou.
+   */
+  expiresAtMs: number;
+  /**
+   * A escolha que trouxe esta carta, quando ela é a continuação de outra; `null` na que veio do
+   * sorteio. É o que deixa a tela dizer de onde a história vem.
+   */
+  origin: { cardId: string; optionId: string; instanceId: string } | null;
+};
+
+/** Uma continuação agendada: a carta que uma escolha anterior marcou para chegar depois. */
+export type ScheduledCard = {
+  cardId: string;
+  /** A partir de quando ela pode chegar; chega no primeiro instante com vaga entre as pendentes. */
+  atMs: number;
+  /** A escolha que a agendou: é o que liga as duas linhas na Crônica. */
+  previousCardId: string;
+  previousOptionId: string;
+  previousInstanceId: string;
+};
+
+/**
+ * O efeito escondido de uma opção já escolhida, à espera do instante dele. Só guarda quem o
+ * deixou: o efeito em si é lido do conteúdo quando acontece.
+ */
+export type DelayedCardEffect = {
+  atMs: number;
+  instanceId: string;
+  cardId: string;
+  optionId: string;
+};
+
 /**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
@@ -79,7 +122,7 @@ export type MoraleEffect = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 7;
+  schemaVersion: 8;
   seed: string;
   settings: GameSettings;
   /**
@@ -159,6 +202,32 @@ export type GameState = {
      */
     moraleEffects: MoraleEffect[];
   };
+  /**
+   * O Conselho do Feudo (GDD §7; ADR 0014). Os efeitos temporários de moral que as cartas
+   * deixam não ficam aqui: vão para `settlement.moraleEffects`, com os das outras mecânicas.
+   */
+  council: {
+    /** As cartas à espera de resposta, na ordem em que chegaram; no máximo `maxPending`. */
+    pending: PendingCard[];
+    /** Marcadores narrativos gravados pelas cartas. Atravessam os anos e nunca saem na visão. */
+    flags: Record<string, true>;
+    /** As cartas que já chegaram neste ano de jogo: só as recorrentes saem de novo. Zera na virada do ano. */
+    seenThisYear: string[];
+    /**
+     * O próximo sorteio. A cadência é ancorada: anda de intervalo em intervalo, sempre, haja
+     * ou não carta sorteada. Cai sempre em uma virada de dia de jogo.
+     */
+    nextDrawAtMs: number;
+    /** As continuações agendadas, em ordem de prazo. */
+    scheduled: ScheduledCard[];
+    /** Os efeitos escondidos que ainda vão acontecer, em ordem de instante. */
+    delayed: DelayedCardEffect[];
+    /**
+     * As ocorrências que expiraram neste ano de jogo: é o que deixa a recusa de uma resposta
+     * atrasada dizer que o prazo acabou, e não só que a carta saiu da mesa.
+     */
+    expired: string[];
+  };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
 };
@@ -202,7 +271,13 @@ export type Command =
       payload: { building: BuildingId; autoStart: boolean; targetLevel?: number | undefined };
     }
   | { commandId: string; type: 'recruitVillagers'; payload: { quantity: number } }
-  | { commandId: string; type: 'renameSettlement'; payload: { name: string } };
+  | { commandId: string; type: 'renameSettlement'; payload: { name: string } }
+  | {
+      commandId: string;
+      type: 'answerCard';
+      /** `instanceId` é a ocorrência que a tela mostrava; `optionId`, a opção escolhida. */
+      payload: { instanceId: string; optionId: string };
+    };
 
 export type CommandType = Command['type'];
 
@@ -227,6 +302,10 @@ export const REJECTION_CODES = [
   'RECRUIT_QUEUE_FULL',
   'HOUSING_FULL',
   'INVALID_NAME',
+  'CARD_NOT_PENDING',
+  'CARD_EXPIRED',
+  'INVALID_OPTION',
+  'OPTION_LOCKED',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -467,6 +546,83 @@ export type MoraleView = {
   effects: Array<{ label: string; amount: number; endsInSeconds: number }>;
 };
 
+/** Uma opção de uma carta do Conselho, com o custo e a consequência conhecida lado a lado. */
+export type CouncilOptionView = {
+  id: string;
+  /** "Ceder a madeira". */
+  label: string;
+  /** O que a opção cobra, com o que falta de cada recurso; vazio quando não custa nada. */
+  cost: ResourceCostView[];
+  /** O estoque paga o custo agora. */
+  affordable: boolean;
+  /** A opção exige algo que o feudo não tem (um edifício, um estoque mínimo). */
+  locked: boolean;
+  /** "Requer o Celeiro."; `null` quando não está trancada. */
+  lockedReason: string | null;
+  /**
+   * O custo e a consequência **conhecida**, em uma frase pronta: "−40 madeira; +5 de moral por 2
+   * dias de jogo (1 h 20 min)". O que a opção esconde não aparece aqui nem em lugar nenhum da
+   * visão: só a pista, em `hint`.
+   */
+  effectsText: string;
+  /** A pista do que pode vir depois. */
+  hint: string;
+};
+
+/** Uma carta do Conselho à espera de resposta. */
+export type CouncilCardView = {
+  /** O que `answerCard` recebe: a ocorrência, não o modelo. */
+  instanceId: string;
+  title: string;
+  /** A situação, já na variante que lembra a escolha anterior, quando há. */
+  text: string;
+  /** Segundos reais até o conselho decidir sozinho. */
+  expiresInSeconds: number;
+  /** A opção que o conselho aplica se o prazo acabar, na dificuldade desta partida. */
+  defaultOptionId: string;
+  defaultOptionLabel: string;
+  /** "Sem resposta até o fim do prazo, o conselho decide sozinho: conservar as reservas." */
+  expiryNote: string;
+  /**
+   * De onde a história vem, quando a carta é a continuação de outra: a carta anterior, a opção
+   * que foi aplicada nela (pelo senhor ou, sem resposta, pelo conselho) e a frase pronta. `null`
+   * na carta que veio do sorteio.
+   */
+  followsFrom: { title: string; optionLabel: string; text: string } | null;
+  options: CouncilOptionView[];
+};
+
+/** O Conselho do Feudo na visão (GDD §7). Flags e efeitos escondidos nunca saem daqui. */
+export type CouncilView = {
+  /** As cartas à espera, na ordem em que chegaram. */
+  pending: CouncilCardView[];
+  /**
+   * Segundos reais até a próxima audiência, **se ela puder trazer carta**. `null` quando não
+   * pode: as pendentes ocupam a mesa (`blockedByPending`) ou o conselho não tem assunto para o
+   * feudo como ele está (`note` diz qual dos dois).
+   */
+  nextCardInSeconds: number | null;
+  /**
+   * Na próxima audiência a mesa ainda vai estar cheia, se nenhuma carta for respondida até lá:
+   * o sorteio daquele instante é pulado.
+   */
+  blockedByPending: boolean;
+  /** Segundos reais até a próxima audiência, traga ela carta ou não. */
+  nextAudienceInSeconds: number;
+  /** Por que a próxima audiência não traz carta, e o que fazer; `null` quando ela pode trazer. */
+  note: string | null;
+  /** As regras em uma frase, no ritmo da partida: a cadência, o limite e o prazo de resposta. */
+  rulesText: string;
+};
+
+/** Uma decisão à espera do jogador: hoje, só as cartas do Conselho. `id` é o `instanceId`. */
+export type PendingDecisionView = {
+  kind: 'card';
+  id: string;
+  title: string;
+  expiresInSeconds: number;
+};
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -694,6 +850,11 @@ export type ViewState = {
     };
   };
   objectives: ObjectiveView[];
-  /** Vazio na v0.1: cartas e encruzilhadas chegam nas versões seguintes. */
-  pendingDecisions: never[];
+  council: CouncilView;
+  /**
+   * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
+   * Conselho. É o resumo para a barra de status, a árvore e os avisos; a carta inteira está em
+   * `council.pending`.
+   */
+  pendingDecisions: PendingDecisionView[];
 };

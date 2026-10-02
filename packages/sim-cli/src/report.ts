@@ -168,6 +168,10 @@ const MEASURED_COLUMNS: Partial<
   // No CSV de uma partida, a moral daquela hora; no da matriz, a menor da partida: é a que diz
   // se o feudo chegou perto de perder gente.
   morale: { hour: (row) => row.morale, run: (summary) => summary.moraleMin },
+  // O Conselho, contado dos eventos: acumulado até a hora, e o total da partida na matriz.
+  cards_seen: { hour: (row) => row.cards.seen, run: (summary) => summary.cards.drawn },
+  cards_answered: { hour: (row) => row.cards.answered, run: (summary) => summary.cards.answered },
+  cards_expired: { hour: (row) => row.cards.expired, run: (summary) => summary.cards.expired },
 };
 
 /**
@@ -298,6 +302,17 @@ export type Summary = {
   exhaustedAtHour: number | null;
   /** Obras que começaram sozinhas, entre as visitas: as planejadas automáticas (GDD §6.3). */
   autoStarted: number;
+  /**
+   * O Conselho (GDD §7): cartas que chegaram (e, delas, as que vieram como continuação de uma
+   * escolha), as que o bot respondeu, as que expiraram e os efeitos escondidos que aconteceram.
+   */
+  cards: {
+    drawn: number;
+    continuations: number;
+    answered: number;
+    expired: number;
+    hidden: number;
+  };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -361,6 +376,15 @@ export function summarize(result: SimulationResult): Summary {
     ),
     exhaustedAtHour: exhaustedSince(rows),
     autoStarted: happened('constructionAutoStarted'),
+    cards: {
+      drawn: happened('cardDrawn'),
+      continuations: result.events.filter(
+        (event) => event.type === 'cardDrawn' && event.data.source === 'continuation',
+      ).length,
+      answered: happened('cardAnswered'),
+      expired: happened('cardExpired'),
+      hidden: happened('cardEffectApplied'),
+    },
     stock,
   };
 }
@@ -390,6 +414,27 @@ function moraleLine(summary: Summary): string {
       ? ''
       : ` · colonos ${summary.settlersArrived}, partidas ${summary.villagersLeft}, deserções ${summary.villagersDeserted}`;
   return `Moral: ${summary.morale} no fim, mínima ${summary.moraleMin}${low}${people}`;
+}
+
+/**
+ * "Conselho: 6 cartas (2 continuações) · 5 respondidas, 1 expirada · 1 efeito escondido". Sem
+ * carta nenhuma, diz isso: é o sinal de um catálogo sem assunto para aquele feudo.
+ */
+function councilLine({ cards }: Summary): string {
+  if (cards.drawn === 0) {
+    return 'Conselho: nenhuma carta chegou';
+  }
+  const plural = (count: number, one: string, many: string) =>
+    `${count} ${count === 1 ? one : many}`;
+  const chained =
+    cards.continuations === 0
+      ? ''
+      : ` (${plural(cards.continuations, 'continuação', 'continuações')})`;
+  return [
+    `Conselho: ${plural(cards.drawn, 'carta', 'cartas')}${chained}`,
+    `${plural(cards.answered, 'respondida', 'respondidas')}, ${plural(cards.expired, 'expirada', 'expiradas')}`,
+    plural(cards.hidden, 'efeito escondido', 'efeitos escondidos'),
+  ].join(' · ');
 }
 
 /**
@@ -450,6 +495,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
       ? 'Frio: nenhum'
       : `Frio: ${summary.coldHours} h, a primeira na hora ${summary.firstColdHour}`,
     moraleLine(summary),
+    councilLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []
@@ -462,7 +508,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `Da produção de cada recurso, foi ao chão: ${wastedPercentText(summary)}`,
     `Maior sequência desperdiçando, em horas de jogo: ${WASTE_RESOURCES.map((id) => `${id} ${formatDecimal(summary.wasteStreakGameHours[id])}`).join(', ')} (meta do GDD §15.2 para ${WASTE_STREAK_GOAL.sessionsPerDay} sessões por dia: até ${WASTE_STREAK_GOAL.gameHours})`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
-    'Sem medida até as Fases D e E: cartas do Conselho, perdas por lobos',
+    'Sem medida até a Fase E: perdas por lobos',
     '',
   ].join('\n');
 }

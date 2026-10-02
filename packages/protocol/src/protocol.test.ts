@@ -92,6 +92,11 @@ describe('CommandSchema', () => {
     },
     { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 3 } },
     { commandId: uuid, type: 'renameSettlement', payload: { name: 'Vau Alto' } },
+    {
+      commandId: uuid,
+      type: 'answerCard',
+      payload: { instanceId: 'collapsedWell-3', optionId: 'repair' },
+    },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -162,6 +167,42 @@ describe('CommandSchema', () => {
     [
       'setAutoStart de um edifício inexistente',
       { commandId: uuid, type: 'setAutoStart', payload: { building: 'keep', autoStart: true } },
+    ],
+    [
+      'resposta a uma carta sem dizer a opção',
+      { commandId: uuid, type: 'answerCard', payload: { instanceId: 'collapsedWell-3' } },
+    ],
+    [
+      'resposta a uma carta sem dizer qual',
+      { commandId: uuid, type: 'answerCard', payload: { instanceId: '', optionId: 'repair' } },
+    ],
+    [
+      'resposta com a carta que não é texto',
+      { commandId: uuid, type: 'answerCard', payload: { instanceId: 3, optionId: 'repair' } },
+    ],
+    [
+      'resposta com uma opção grande demais',
+      {
+        commandId: uuid,
+        type: 'answerCard',
+        payload: { instanceId: 'collapsedWell-3', optionId: 'x'.repeat(61) },
+      },
+    ],
+    [
+      'resposta com caractere de controle',
+      {
+        commandId: uuid,
+        type: 'answerCard',
+        payload: { instanceId: 'collapsedWell-3\u0000', optionId: 'repair' },
+      },
+    ],
+    [
+      'resposta com um campo a mais',
+      {
+        commandId: uuid,
+        type: 'answerCard',
+        payload: { instanceId: 'collapsedWell-3', optionId: 'repair', gold: 100 },
+      },
     ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);
@@ -240,6 +281,87 @@ describe('ViewStateSchema', () => {
       const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
       expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
     }
+  });
+
+  it('aceita o Conselho: cartas na mesa, a resposta, a expiração e os eventos delas', () => {
+    // Uma partida nova no ritmo Rápido: a primeira carta chega com 8 h de jogo, a segunda com
+    // 16 h, e a mesa fica cheia. Sem resposta, expiram 72 h de jogo depois de chegar.
+    let state = createInitialState('pedra-alta', { ...settings, timeScale: 3 });
+    const events: EngineEvent[] = [];
+    const advance = (hour: number) => {
+      const advanced = advanceTo(state, hour * 3_600_000);
+      state = advanced.state;
+      events.push(...advanced.events);
+      return deriveViewState(state, state.lastProcessedAt);
+    };
+    expect(advance(1)).toMatchObject({ council: { pending: [] }, pendingDecisions: [] });
+
+    const full = advance(17);
+    expect(ViewStateSchema.safeParse(full).error).toBeUndefined();
+    expect(full.council.pending).toHaveLength(2);
+    expect(full.council).toMatchObject({ blockedByPending: true, nextCardInSeconds: null });
+    expect(full.pendingDecisions.map((entry) => entry.kind)).toEqual(['card', 'card']);
+    const [first] = full.council.pending;
+    expect(first?.options.length).toBeGreaterThanOrEqual(2);
+
+    // A resposta é uma ordem como as outras, com a ocorrência e a opção que a visão mostrou.
+    const order = {
+      commandId: uuid,
+      type: 'answerCard',
+      payload: { instanceId: first?.instanceId ?? '', optionId: first?.defaultOptionId ?? '' },
+    } as const;
+    expect(CommandSchema.safeParse(order).error).toBeUndefined();
+    const answered = applyCommand(state, order, state.lastProcessedAt);
+    if (!answered.ok) {
+      throw new Error(answered.message);
+    }
+    state = answered.state;
+    events.push(...answered.events);
+    // A outra fica sem resposta e expira.
+    expect(ViewStateSchema.safeParse(advance(100)).error).toBeUndefined();
+
+    const cards = events.filter((event) => event.type.startsWith('card'));
+    expect(new Set(cards.map((event) => event.type))).toEqual(
+      new Set(['cardDrawn', 'cardAnswered', 'cardExpired']),
+    );
+    for (const [index, event] of cards.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+    }
+  });
+
+  it('recusa um campo a mais no Conselho e uma decisão pendente de um tipo que não existe', () => {
+    const state = advanceTo(createInitialState('pedra-alta', settings), 9 * 3_600_000).state;
+    const view = deriveViewState(state, state.lastProcessedAt);
+    const [card] = view.council.pending;
+    if (card === undefined) {
+      throw new Error('O teste esperava uma carta na mesa.');
+    }
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    const parses = (changed: object) => ViewStateSchema.safeParse({ ...view, ...changed }).success;
+    // O que o servidor nunca manda: flags, o efeito escondido de uma opção, o gerador.
+    expect(parses({ council: { ...view.council, flags: {} } })).toBe(false);
+    const leaking = { ...card, options: card.options.map((option) => ({ ...option, hidden: {} })) };
+    expect(parses({ council: { ...view.council, pending: [leaking] } })).toBe(false);
+    expect(parses({ council: { ...view.council, pending: [{ ...card, cardId: 'x' }] } })).toBe(
+      false,
+    );
+    expect(parses({ council: { ...view.council, nextAudienceInSeconds: null } })).toBe(false);
+    // De onde a carta vem é um objeto fechado ou nada: nunca o id de uma flag.
+    const from = { title: 'x', optionLabel: 'y', text: 'z' };
+    const following = (followsFrom: unknown) =>
+      parses({ council: { ...view.council, pending: [{ ...card, followsFrom }] } });
+    expect(following(from)).toBe(true);
+    expect(following({ ...from, flag: 'commonGranary.open' })).toBe(false);
+    expect(
+      parses({
+        pendingDecisions: [{ kind: 'crossroads', id: 'x', title: 'y', expiresInSeconds: 1 }],
+      }),
+    ).toBe(false);
+    expect(parses({ pendingDecisions: [] })).toBe(true);
+    const without: Partial<typeof view> = { ...view };
+    delete without.council;
+    expect(ViewStateSchema.safeParse(without).success).toBe(false);
   });
 
   it('recusa um campo a mais na conta da lenha e no frio', () => {
@@ -836,7 +958,7 @@ describe('contratos da API', () => {
     expect(API_ERROR_STATUS.COMMAND_ID_CONFLICT).toBe(409);
     expect(API_ERROR_STATUS.SESSION_REVOKED).toBe(401);
     expect(API_ERROR_STATUS.UPGRADE_REQUIRED).toBe(426);
-    expect(PROTOCOL_VERSION).toBe(1);
+    expect(PROTOCOL_VERSION).toBe(2);
   });
 });
 

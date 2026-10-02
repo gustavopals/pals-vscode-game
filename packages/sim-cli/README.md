@@ -46,11 +46,12 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 
 | Bot | Políticas, na ordem | Quem ele imita |
 |---|---|---|
-| `economico` | `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `alocar por demanda`, `guardar lenha` | Quem cuida do feudo a cada visita, reequilibra os ofícios e deixa o feudo arrumado para o tempo que vai passar fora |
-| `preguicoso` | `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `comida primeiro`, `ocupar os livres`, `guardar lenha` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
+| `economico` | `responder a carta`, `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `alocar por demanda`, `guardar lenha` | Quem cuida do feudo a cada visita, reequilibra os ofícios e deixa o feudo arrumado para o tempo que vai passar fora |
+| `preguicoso` | `responder a carta`, `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `comida primeiro`, `ocupar os livres`, `guardar lenha` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
 
 | Política | O que faz |
 |---|---|
+| `responder a carta` | Responde a toda carta do Conselho que está na mesa (`council.pending`) com a opção mais barata entre as que o feudo alcança e pode pagar (`locked` e `affordable`, como a tela mostra); no empate, a primeira da carta. Se a resposta deixa entrar uma continuação, responde a ela também. Como toda carta tem ao menos uma opção sem custo, o bot nunca gasta com o Conselho e nunca deixa uma carta expirar; ele não lê a pista nem pesa a consequência conhecida. É a política mais simples que usa a mecânica: uma melhor vem com o catálogo de cartas fechado (V2D-T2) |
 | `recrutar` | Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida. Com 20 aldeões ou mais, deixa uma cama vazia nas Habitações: com as casas cheias a moral cai (`morale.terms`), e a queda custa a todos os ofícios mais do que o último par de braços rende |
 | `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora, sem contar os depósitos (Celeiro e Armazém), que são de `ampliar o estoque`. Com o inverno à vista, não começa a obra que gastaria a madeira da lareira: a reserva é o que a visão diz que o inverno queima menos o que a Serraria repõe |
 | `ampliar o estoque` | Constrói ou melhora o depósito que vale a obra agora, do mais urgente ao menos: o que trava uma obra cujo custo não cabe no limite (`EXCEEDS_STORAGE`), o que está cheio e perdendo produção (`resources[].full` e `wastingPerHour`) e o que enche em menos de 8 horas reais (`fullInSeconds`). O edifício de cada recurso vem de `resources[].storageBuilding`. Como vem depois de `obra mais barata` e a fila é uma só, o depósito fica com a sessão em que nenhuma outra obra pôde começar; não gasta a madeira da lareira |
@@ -115,7 +116,7 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `wasted_food`, `wasted_wood`, `wasted_stone` | **Medidas desde V2C-T2.** O que não coube no depósito, por recurso, em unidades e acumulado (o ouro não tem limite): o que os eventos `storageWasted` relataram mais o que a visão mostra como ainda não relatado (`wastedToday`). No CSV da matriz, o total da partida | V2C-T2 |
 | `cold` | **Medida desde V2C-T1.** No CSV de uma partida, `1` se o feudo passa frio naquela hora; no da matriz, as horas de frio da partida | V2C-T1 |
 | `morale` | **Medida desde V2C-T4.** No CSV de uma partida, a moral do feudo naquela hora, de 0 a 100; no da matriz, a menor moral da partida | V2C-T4 |
-| `cards_seen`, `cards_answered`, `cards_expired` | Cartas do Conselho recebidas, respondidas e expiradas, acumuladas | V2D-T1 |
+| `cards_seen`, `cards_answered`, `cards_expired` | **Medidas desde V2D-T1.** Cartas do Conselho que chegaram (por sorteio ou como continuação), que o bot respondeu e que expiraram sem resposta, contadas dos eventos e acumuladas; no CSV da matriz, o total da partida | V2D-T1 |
 | `wolf_losses` | Perdas em incursões de lobos, acumuladas | V2E-T3 |
 
 O resumo, na saída de erro, traz:
@@ -123,24 +124,25 @@ O resumo, na saída de erro, traz:
 ```text
 Semente pedra-alta-golden · estratégia economico · 7 dias · 2 sessões/dia · ritmo 3×
 Partida: Senhor · Rápido: um ano em 56 horas
-Motor 0.1.0 · estado v7 · conteúdo 3acde0478685be9d
-Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha
+Motor 0.1.0 · estado v8 · conteúdo eaeb187eb982c4b4
+Políticas: responder a carta, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha
 População: 72 de 75 vagas (mínima 7)
 Níveis: townHall 7, farm 8, lumberMill 8, quarry 8, goldMine 8, housing 8, granary 6, warehouse 8
 Progresso: Salão Nv2 na hora 11, Salão Nv3 na hora 22, Salão Nv4 na hora 36, Celeiro na hora 25, Armazém na hora 26 · 46 obras começaram sozinhas · as obras acabaram na hora 113: nada mais a construir
-Estoque: food 2477, wood 4236, stone 5100, gold 156690
+Estoque: food 2473, wood 4236, stone 5100, gold 156651
 Fome: nenhuma
 Frio: nenhum
-Moral: 60 no fim, mínima 50
+Moral: 60 no fim, mínima 45 (1 h com o povo inquieto ou desesperado)
+Conselho: 10 cartas · 9 respondidas, 0 expiradas · 0 efeitos escondidos
 Fila ociosa: 110 h com obra que podia começar (0 h com obra planejada)
 Sem o início automático (as mesmas planejadas, manuais): 168 h com obra que podia começar (168 h com obra planejada)
 Aldeões sem ofício: 804 aldeão-horas (4,8 por hora)
-Excedente parado: wood 4236, stone 5100, gold 156690
-Desperdício: food 1494, wood 1181, stone 391 (20 h com depósito cheio perdendo produção)
+Excedente parado: wood 4236, stone 5100, gold 156651
+Desperdício: food 1489, wood 1166, stone 384 (20 h com depósito cheio perdendo produção)
 Da produção de cada recurso, foi ao chão: food 5%, wood 2%, stone 2%
 Maior sequência desperdiçando, em horas de jogo: food 18, wood 9, stone 12 (meta do GDD §15.2 para 2 sessões por dia: até 8)
-Comandos: 133 aceitos, 0 recusados
-Sem medida até as Fases D e E: cartas do Conselho, perdas por lobos
+Comandos: 142 aceitos, 0 recusados
+Sem medida até a Fase E: perdas por lobos
 ```
 
 - A terceira linha **identifica o jogo medido**: versão do motor, versão do estado e `contentHash`, o mesmo de `GET /v1/version` (os dois saem de `contentHash`, em `@lotg/protocol`). Dois resumos só se comparam número a número quando essa linha é igual.
@@ -176,7 +178,7 @@ O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, seme
 
 O comando sai com código 1 se alguma partida ficar fora da faixa. **As três dificuldades têm faixa** desde a rodada de balanceamento da Fase C (V2C-T7): `--difficulty peasant` e `--difficulty ironKing` conferem as partidas contra a linha de base da própria dificuldade.
 
-A moral já sorteia, mas só com 80 ou mais (o colono) ou com 25 ou menos (a partida), e os feudos dos bots vivem entre 40 e 60: as 50 sementes continuam dando o mesmo resultado. A lista passa a trabalhar com o Conselho, e um teste avisa quando isso acontecer.
+**As sementes trabalham desde o Conselho (V2D-T1).** A moral só sorteia com 80 ou mais (o colono) ou com 25 ou menos (a partida), e os feudos dos bots vivem entre 35 e 60; até a Fase C, por isso, as 50 sementes davam a mesma partida. Com o Conselho, a carta que chega em cada audiência depende da semente, e as células passaram a ter faixa de verdade ("67 a 68", "0 a 9"). Um teste confere que as sementes divergem (`matrix.test.ts`).
 
 ### Faixas
 
@@ -193,14 +195,14 @@ A moral já sorteia, mas só com 80 ou mais (o colono) ou com 25 ou menos (a par
 | Maior sequência desperdiçando um recurso (o pior da partida), em horas de jogo | No máximo o maior valor medido, com 5% de folga. É guarda de regressão, não a meta: a meta de 8 h do perfil Regular é conferida à parte (`wasteGoalCells`, em `src/matrix.ts`), e `balance.test.ts` guarda, célula a célula, quais a cumprem (as dos ritmos Normal e Tranquilo) e quais ainda passam dela e por quanto (as do ritmo Rápido) |
 | Ordens recusadas | Nenhuma |
 
-`src/balance.test.ts` joga a cada `pnpm test` a matriz inteira de Senhor (750 partidas distintas) e as de Camponês e de Rei de Ferro com as 3 primeiras sementes (enquanto nenhum bot chega a sortear, todas as sementes dão a mesma partida; as 50 das outras duas rodam pelo comando). São cerca de 35 s, o arquivo mais lento da suíte de unidade. Ele falha se alguma partida sair da faixa, dizendo a célula, o problema com os dois números e em quantas sementes ele apareceu. Cobra também, em cada dificuldade, zero horas de fome e de frio e o caminho de compras até o Salão no nível 4, o Celeiro e o Armazém. A fila ociosa, os aldeões sem ofício, o fim das obras e a parte da produção perdida são medidos e relatados, sem faixa.
+`src/balance.test.ts` joga a cada `pnpm test` a matriz inteira de Senhor (750 partidas distintas) e as de Camponês e de Rei de Ferro com as 3 primeiras sementes (as 50 das outras duas rodam pelo comando). Desde o Conselho (V2D-T1) a semente muda a partida: a carta que chega primeiro depende dela, e a resposta do bot desloca um pouco o caminho de obras. As cartas de hoje são poucas e pesam pouco, então a diferença entre sementes é pequena na maioria das células, e grande em algumas (o caminho do bot bifurca). São cerca de 35 s, o arquivo mais lento da suíte de unidade. Ele falha se alguma partida sair da faixa, dizendo a célula, o problema com os dois números e em quantas sementes ele apareceu. Cobra também, em cada dificuldade, zero horas de fome e de frio e o caminho de compras até o Salão no nível 4, o Celeiro e o Armazém. A fila ociosa, os aldeões sem ofício, o fim das obras e a parte da produção perdida são medidos e relatados, sem faixa.
 
 **Estes limites são o jogo como ele está, não metas aprovadas pelo autor** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5): servem de guarda de regressão até o autor apertá-los. Quando uma faixa falhar:
 
 1. Se a mudança **não** pretendia mexer na economia, é uma regressão: ajuste os números em `@lotg/content`, nunca o bot.
 2. Se a mudança é uma mecânica que muda a economia de propósito, a linha de base é regravada de propósito, como um golden: rode `pnpm -s sim -- --matrix` em cada dificuldade, confira o que mudou e por quê, copie o bloco "Linha de base medida nesta rodada" de cada uma para `MEASURED` e registre a rodada, com as tabelas, em `docs/balance-v0.2.md`. Nada regrava a linha de base sozinho.
 
-A matriz já pesa na suíte. Se passar a incomodar, o primeiro corte é nas sementes de Senhor (hoje as 50 dão a mesma partida); a matriz completa continua saindo pelo comando.
+A matriz já pesa na suíte. Se passar a incomodar, o primeiro corte é nas sementes de Senhor; a matriz completa continua saindo pelo comando.
 
 ## Desempenho do motor em ausências longas
 

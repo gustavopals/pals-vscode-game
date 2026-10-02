@@ -36,6 +36,10 @@ describe('cenário golden de 7 dias', () => {
       'seasonChanged',
       'yearStarted',
       'settlementRenamed',
+      'cardDrawn',
+      'cardAnswered',
+      'cardExpired',
+      'cardEffectApplied',
     ]) {
       expect(types).toContain(type);
     }
@@ -65,11 +69,56 @@ describe('cenário golden de 7 dias', () => {
     const bands = events
       .filter((event) => event.type === 'moraleBandChanged')
       .map((event) => event.data.band);
-    expect(bands).toEqual(['restless', 'desperate', 'content', 'restless', 'content']);
+    // (As duas primeiras mudanças são do poço que o senhor deixou para depois: ver adiante.)
+    expect(bands).toEqual([
+      'restless',
+      'content',
+      'restless',
+      'desperate',
+      'content',
+      'restless',
+      'content',
+    ]);
     expect(events.filter((event) => event.type === 'villagerDeserted')).toHaveLength(3);
     // Com a moral em 25 ou menos houve sorteio de partida a cada virada: o fluxo andou.
     expect(state.rng.morale).toHaveLength(4);
     expect(state.settlement.morale).toBe(60);
+    // O Conselho, de ponta a ponta. A primeira audiência é no 5º dia de jogo (8 h): o poço
+    // entulhado, que o senhor deixa para depois; o que a opção escondia acontece na 2ª virada
+    // de dia seguinte e derruba a moral por dois dias. A refeição dos pedreiros fica sem
+    // resposta e expira 24 h reais depois de chegar. Com o Celeiro erguido vem a cadeia: as
+    // tábuas, a vez de repartir e o desfecho, cada continuação três dias de jogo depois da
+    // escolha e ligada a ela. Na virada do ano a lista das cartas vistas zera, e as tábuas
+    // voltam.
+    const cards = events.filter((event) => event.type.startsWith('card'));
+    expect(
+      cards.map((event) => [event.atMs / HOUR, event.type, event.data.cardId, event.data.optionId]),
+    ).toEqual([
+      [8, 'cardDrawn', 'collapsedWell', undefined],
+      [13, 'cardAnswered', 'collapsedWell', 'wait'],
+      [16, 'cardDrawn', 'masonsMeal', undefined],
+      [16, 'cardEffectApplied', 'collapsedWell', 'wait'],
+      [40, 'cardExpired', 'masonsMeal', 'bread'],
+      [56, 'cardDrawn', 'commonGranaryPlanks', undefined],
+      [60, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
+      [66, 'cardDrawn', 'commonGranaryShare', undefined],
+      [72, 'cardAnswered', 'commonGranaryShare', 'reserve'],
+      [78, 'cardDrawn', 'commonGranaryOutcome', undefined],
+      [84, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
+      [168, 'cardDrawn', 'commonGranaryPlanks', undefined],
+    ]);
+    const continuations = cards.filter((event) => event.data.source === 'continuation');
+    expect(continuations.map((event) => event.data.previousInstanceId)).toEqual([
+      'commonGranaryPlanks-3',
+      'commonGranaryShare-4',
+    ]);
+    expect(
+      orders.filter((order) => order.type === 'answerCard').map((order) => order.result),
+    ).toEqual(['accepted', 'accepted', 'accepted', 'accepted']);
+    expect(state.rng.council).toHaveLength(4);
+    expect(state.council.flags).toEqual({ 'commonGranary.gifted': true });
+    expect(state.council.seenThisYear).toEqual(['commonGranaryPlanks']);
+    expect(state.stats).toMatchObject({ cardsDrawn: 6, cardsAnswered: 4, cardsExpired: 1 });
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
     expect(state.objectives.active).toEqual([]);

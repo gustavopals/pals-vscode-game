@@ -100,6 +100,11 @@ export type HourRow = {
   queueIdle: boolean;
   /** Idem, contando só as obras que o jogador deixou planejadas. */
   plannedIdle: boolean;
+  /**
+   * O Conselho até aqui, contado dos eventos: as cartas que chegaram (por sorteio ou como
+   * continuação), as que o bot respondeu e as que expiraram sem resposta.
+   */
+  cards: CardCounts;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -117,6 +122,7 @@ export type SimulationResult = {
 };
 
 type CommandCounts = { accepted: number; refused: Record<string, number> };
+export type CardCounts = { seen: number; answered: number; expired: number };
 
 /**
  * A fila de obras parada à toa, como o jogador a veria no painel: há ao menos uma obra que
@@ -170,12 +176,26 @@ function addReportedWaste(reported: Record<ResourceId, number>, events: GameEven
   }
 }
 
+/** Conta, dos eventos, as cartas do Conselho que chegaram, foram respondidas e expiraram. */
+function addCards(cards: CardCounts, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type === 'cardDrawn') {
+      cards.seen += 1;
+    } else if (event.type === 'cardAnswered') {
+      cards.answered += 1;
+    } else if (event.type === 'cardExpired') {
+      cards.expired += 1;
+    }
+  }
+}
+
 function rowAt(
   state: GameState,
   hour: number,
   timeScale: number,
   commands: CommandCounts,
   reportedWaste: Record<ResourceId, number>,
+  cards: CardCounts,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -204,6 +224,7 @@ function rowAt(
     ),
     exhausted: nothingLeftToBuild(view),
     ...idleQueue(view),
+    cards: { ...cards },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };
@@ -245,6 +266,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const rows: HourRow[] = [];
   const commands: CommandCounts = { accepted: 0, refused: {} };
   const reportedWaste: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
+  const cards: CardCounts = { seen: 0, answered: 0, expired: 0 };
   let commandCount = 0;
 
   const order: Act = async (type, payload) => {
@@ -254,6 +276,8 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     if (result.ok) {
       state = result.state;
       events.push(...result.events);
+      // A resposta a uma carta, e a continuação que ela deixa entrar na mesa.
+      addCards(cards, result.events);
       commands.accepted += 1;
     } else {
       commands.refused[result.code] = (commands.refused[result.code] ?? 0) + 1;
@@ -276,6 +300,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       state = advanced.state;
       events.push(...advanced.events);
       addReportedWaste(reportedWaste, advanced.events);
+      addCards(cards, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
@@ -283,7 +308,8 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     state = advanced.state;
     events.push(...advanced.events);
     addReportedWaste(reportedWaste, advanced.events);
-    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste));
+    addCards(cards, advanced.events);
+    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards));
   }
 
   return {

@@ -311,6 +311,45 @@ export const recrutar: Policy = {
   },
 };
 
+type CardOption = ViewState['council']['pending'][number]['options'][number];
+
+/** O preço de uma opção de carta para quem escolhe a mais barata: a soma do que ela custa. */
+function optionPrice(option: CardOption): number {
+  return option.cost.reduce((sum, cost) => sum + cost.amount, 0);
+}
+
+/**
+ * Responde a toda carta do Conselho que está na mesa com a opção mais barata entre as que o
+ * feudo alcança e pode pagar agora (`locked` e `affordable`, como a tela mostra); no empate, a
+ * primeira da carta. Se a resposta abre lugar para outra carta (uma continuação que esperava),
+ * responde a ela também.
+ *
+ * É a política mais simples que usa a mecânica: toda carta tem ao menos uma opção sem custo (a
+ * que o conselho aplicaria sozinho), então o bot nunca gasta com o Conselho e nunca deixa uma
+ * carta expirar. Ele não lê a pista nem pesa a consequência: quem joga melhor que isso é uma
+ * política nova, quando o catálogo de cartas estiver fechado (roadmap da v0.2, V2D-T2).
+ */
+export const responderCartas: Policy = {
+  name: 'responder a carta',
+  run: async (view, act) => {
+    let current = view;
+    const tried = new Set<string>();
+    for (;;) {
+      const card = current.council.pending.find((entry) => !tried.has(entry.instanceId));
+      if (card === undefined) {
+        return current;
+      }
+      tried.add(card.instanceId);
+      const [cheapest] = card.options
+        .filter((option) => !option.locked && option.affordable)
+        .sort((a, b) => optionPrice(a) - optionPrice(b));
+      if (cheapest !== undefined) {
+        current = await act('answerCard', { instanceId: card.instanceId, optionId: cheapest.id });
+      }
+    }
+  },
+};
+
 /**
  * A conta da lenha que a visão traz: no inverno, o que falta queimar até a primavera; no
  * outono, a previsão do inverno inteiro. `null` quando nenhuma das duas existe.

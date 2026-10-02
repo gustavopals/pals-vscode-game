@@ -152,6 +152,9 @@ function atPace(view: ViewState, pace: number): ViewState {
   const down = (seconds: number) => Math.floor(seconds / pace);
   // As taxas da visão têm até três casas (milésimos); o produto em ponto flutuante é limpo aqui.
   const scaled = (rate: number) => Math.round(rate * pace * 1000) / 1000;
+  // O que resta das 24 h reais de uma carta, vista no outro ritmo no mesmo instante de jogo.
+  const CARD_DEADLINE = 24 * 3600;
+  const deadline = (seconds: number) => CARD_DEADLINE - down(CARD_DEADLINE - seconds);
   const underway = (work: ViewState['constructions']['active']) =>
     work === null
       ? null
@@ -266,6 +269,23 @@ function atPace(view: ViewState, pace: number): ViewState {
         endsInSeconds: up(effect.endsInSeconds),
       })),
     },
+    // O Conselho: a cadência é tempo de jogo, e o prazo até a audiência, um prazo como os
+    // outros. O prazo de resposta de uma carta é o único de tempo real (24 h em qualquer
+    // ritmo): no mesmo instante de jogo, o que já se gastou dele é que se divide.
+    council: {
+      ...view.council,
+      nextCardInSeconds:
+        view.council.nextCardInSeconds === null ? null : up(view.council.nextCardInSeconds),
+      nextAudienceInSeconds: up(view.council.nextAudienceInSeconds),
+      pending: view.council.pending.map((card) => ({
+        ...card,
+        expiresInSeconds: deadline(card.expiresInSeconds),
+      })),
+    },
+    pendingDecisions: view.pendingDecisions.map((decision) => ({
+      ...decision,
+      expiresInSeconds: deadline(decision.expiresInSeconds),
+    })),
     winter:
       view.winter === null
         ? null
@@ -335,6 +355,16 @@ function withoutRateTexts(view: ViewState): ViewState {
       view.winter === null || view.winter.cold === null
         ? view.winter
         : { ...view.winter, cold: { ...view.winter.cold, text: '' } },
+    // As regras do Conselho citam a cadência em tempo real, e o efeito de uma opção, quanto
+    // dura a moral dela: os números são conferidos, as frases, por extenso em `council.test.ts`.
+    council: {
+      ...view.council,
+      rulesText: '',
+      pending: view.council.pending.map((card) => ({
+        ...card,
+        options: card.options.map((option) => ({ ...option, effectsText: '' })),
+      })),
+    },
   };
 }
 
@@ -755,7 +785,10 @@ describe('o que a visão anuncia acontece no relógio real', () => {
     const almost = await viewOf(fast, player);
     expect(almost.famine).toBeNull();
     expect(resource(almost, 'food')).toMatchObject({ perHour: -15, depletesInSeconds: 1 });
-    expect((await chronicleOf(fast, player)).map((entry) => entry.type)).toEqual([]);
+    // Até aqui a Crônica só tem as audiências do Conselho, que não são assunto deste teste.
+    const withoutCards = (entries: Array<{ type: string }>) =>
+      entries.filter((entry) => !entry.type.startsWith('card'));
+    expect(withoutCards(await chronicleOf(fast, player))).toEqual([]);
 
     fast.clock.advance(SECOND);
     const hungry = await viewOf(fast, player);
@@ -763,7 +796,7 @@ describe('o que a visão anuncia acontece no relógio real', () => {
     expect(resource(hungry, 'food')).toMatchObject({ stock: 0, depletesInSeconds: null });
 
     const exact = new Date(createdAtMs(player) + 12 * HOUR).toISOString();
-    const chronicle = await chronicleOf(fast, player);
+    const chronicle = withoutCards(await chronicleOf(fast, player));
     expect(chronicle).toHaveLength(1);
     expect(chronicle[0]).toMatchObject({
       type: 'famineStarted',
@@ -1039,13 +1072,29 @@ describe('as estações no relógio real (V2C-T1)', () => {
       await accepted(server, player, order('setWorkers', { building: 'quarry', count: 1 }));
       await accepted(server, player, order('startConstruction', { building: 'farm' }));
     }
+    // As duas primeiras audiências do Conselho (4 e 8 dias de jogo): os dois senhores respondem
+    // na hora, com a opção que o conselho aplicaria sozinho. Sem isso os mundos se separam, e
+    // é de propósito: o prazo de resposta é de tempo real (24 h em qualquer ritmo), então uma
+    // carta sem resposta expira em instantes de jogo diferentes em cada ritmo.
+    const audiences = [4 * DAY, 8 * DAY];
     // 40 de madeira e 5 habitantes: a lenha dura 16 horas de jogo de inverno.
     const instants = [WINTER - DAY, WINTER + 7 * HOUR + 1234 * SECOND, WINTER + 17 * HOUR, YEAR];
     let gameNow = 0;
-    for (const instant of instants) {
+    for (const instant of [...audiences, ...instants]) {
       await wait(fast, quick, (instant - gameNow) / PACE);
       await wait(normal, slow, instant - gameNow);
       gameNow = instant;
+      if (audiences.includes(instant)) {
+        for (const [server, player] of [
+          [fast, quick],
+          [normal, slow],
+        ] as const) {
+          for (const card of (await viewOf(server, player)).council.pending) {
+            const { instanceId, defaultOptionId: optionId } = card;
+            await accepted(server, player, order('answerCard', { instanceId, optionId }));
+          }
+        }
+      }
       expectSameWorld(await viewOf(fast, quick), await viewOf(normal, slow));
     }
     const story = (events: GameEvent[]) =>

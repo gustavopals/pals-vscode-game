@@ -1,0 +1,141 @@
+{
+ "schemaVersion": 8,
+ "seed": "fixture-famine",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 148380000,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 148380000,
+ "rng": {
+  "council": [
+   1989848763,
+   3501224745,
+   606353197,
+   2524776570
+  ],
+  "morale": [
+   1072291952,
+   2253665365,
+   3145566891,
+   3095441531
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 0,
+   "wood": 500000,
+   "stone": 439931,
+   "gold": 240000
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 3300000,
+   "stone": 1620000,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 3
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 1,
+   "quarry": 2,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [
+   {
+    "finishesAtMs": 94200000
+   }
+  ],
+  "famine": {
+   "sinceMs": 93600000
+  },
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 8226,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 80,
+   "quarry": 80,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 16,
+  "moraleEffects": [
+   {
+    "id": "card:collapsedWell-2",
+    "label": "Carta: O poço entulhado",
+    "amount": -5,
+    "untilMs": 151200000
+   }
+  ]
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [
+   "masonsMeal",
+   "collapsedWell"
+  ],
+  "nextDrawAtMs": 172800000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "masonsMeal-1",
+   "collapsedWell-2"
+  ]
+ },
+ "objectives": {
+  "active": [
+   "allocateFarmers",
+   "recruitVillagers",
+   "townHallLevel2"
+  ],
+  "completed": [
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "cardsDrawn": 2,
+  "cardsDrawn:masonsMeal": 1,
+  "cardsDrawn:collapsedWell": 1,
+  "wasted_wood": 453226,
+  "cardsExpired": 2
+ }
+}

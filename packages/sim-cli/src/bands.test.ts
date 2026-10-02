@@ -46,6 +46,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     milestones: { townHall2: 20, townHall3: 60, townHall4: null, granary: null, warehouse: null },
     exhaustedAtHour: null,
     autoStarted: 0,
+    cards: { drawn: 2, continuations: 0, answered: 2, expired: 0, hidden: 0 },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -129,14 +130,14 @@ describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
     // Regular, 7 dias reais, ritmo 3, em Senhor: 72 aldeões, Salão Nv7, 4.236 de madeira e
-    // 5.100 de pedra no Armazém, 156.690 de ouro parado (com as obras esgotadas o bot manda
+    // 5.100 de pedra no Armazém, 156.656 de ouro parado (com as obras esgotadas o bot manda
     // todo mundo para a Mina) e 18 h de jogo seguidas com a comida indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
       villagers: { min: 64, max: 80 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 4_448, stone: 5_355, gold: 164_525 },
+      surplusMax: { wood: 4_448, stone: 5_355, gold: 164_489 },
       wasteStreakMax: 19,
     });
   });

@@ -27,6 +27,26 @@ Segundo lote das decisões da §8 do [roadmap da v0.2](../roadmap-v0.2.md): Cons
 
 Efeitos: recursos (ganho cortado no cap, com o corte contado), moral com duração em dias de jogo, gravar e apagar flag, agendar outra carta. Requisitos: estação, dia mínimo, edifícios, flags, faixa de moral. Efeitos ocultos têm sempre uma pista e viram evento no instante em que acontecem; nunca saem no `ViewState`. Ficam fora: herói, traço, unidades, mapa, Mercado, ferro, combate.
 
+### Detalhes fechados na implementação do motor do Conselho (V2D-T1, 2026-10-02)
+
+O que a tabela acima deixava em aberto e o código precisava ter. Foi decidido pelo agente, sem o autor, e **aguarda confirmação** como o resto deste ADR; cada item pode ser revertido no conteúdo e no motor.
+
+| Assunto | O que foi aplicado | Por quê |
+|---|---|---|
+| Em que instante é o sorteio | Na **virada do dia de jogo**, depois do recálculo da moral (a ordem do ADR 0013). Em uma partida nova a cadência (4 dias) cai sempre em viradas de dia | A faixa de moral é requisito de carta; e com o sorteio só em viradas, a previsão da visão (que para um milissegundo antes da virada) nunca sorteia |
+| Partida migrada | `nextDrawAtMs` é a **primeira virada de dia a partir de** `fronteira + intervalo`, e não `fronteira + intervalo` exato: até um dia de jogo a mais (40 min reais no Rápido) | Manter todo sorteio em uma virada de dia, também nas partidas que a migração encontra no meio de um dia |
+| Sorteio e expiração na mesma virada | O sorteio vem **antes**: a carta que expira ali ainda ocupa o lugar. No ritmo Normal uma carta sem resposta expira exatamente em cima da 3ª audiência seguinte, e essa audiência é pulada | É a ordem do ADR 0013 (a virada do dia, depois as expirações) |
+| Prioridade da continuação | Uma continuação com o prazo vencido **reserva** o lugar dela: o sorteio da mesma virada só tira carta se sobrar outro | "Tem prioridade sobre o sorteio" (decisão 18) |
+| Quando o efeito oculto acontece | Cada opção diz em quantas **viradas de dia** (`hidden.afterDays`, de 1 em diante) e traz a frase da Crônica desse dia. Nunca no mesmo instante da escolha | "Vira evento no instante em que acontece": o jogador o descobre depois, na Crônica e no Relatório de Retorno; e, caindo em uma virada, a previsão da moral não o adianta |
+| `CARD_EXPIRED` e `CARD_NOT_PENDING` | O estado guarda as ocorrências que expiraram **no ano de jogo corrente**; a resposta a uma delas recebe `CARD_EXPIRED`. Depois da virada do ano, ou para uma carta já respondida, `CARD_NOT_PENDING` | A recusa precisa dizer o porquê sem o estado guardar a história inteira |
+| A mesma carta duas vezes | Uma carta que está na mesa ou agendada não é sorteada de novo, nem a recorrente | Duas ocorrências iguais lado a lado confundem |
+| Opção trancada | `requires` de uma opção: um edifício que tem de existir, ou um estoque mínimo que ela não gasta. A recusa é `OPTION_LOCKED`, com o que falta | GDD §7.1 ("edifícios podem abrir opções extras"), sem herói |
+| Dia mínimo (`minDay`) | É o dia de jogo do feudo **desde a fundação** (o primeiro é 1), não o dia do ano | Serve para "não antes de o jogador ter visto X" |
+| Carta roteirizada | O motor a entrega na primeira audiência a partir do dia dela, uma vez por partida, na frente das sorteadas. Nenhuma carta usa | Decisão 8: o motor aceita, o catálogo não usa |
+| Carta que o catálogo já não tem | Sai da mesa (ou da lista de agendadas) sem efeito e sem linha | O conteúdo pode mudar com a carta pendente |
+| Dois ritmos, o mesmo mundo | Deixa de valer quando uma carta **expira**: o prazo é de tempo real, então cai em instantes de jogo diferentes em cada ritmo. Enquanto as cartas são respondidas nos mesmos instantes de jogo, os dois mundos coincidem | É consequência direta da decisão 1 |
+| Qual cabeçalho diz o protocolo | `X-Lords-Protocol` (o número), que o servidor já comparava desde a v0.1; `X-Lords-Client` continua dizendo só qual app e de que versão | O texto acima fala em `X-Lords-Client`; o mecanismo que existia, e que o app já trata, é o do número do protocolo |
+
 ### Compatibilidade
 
 O `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 não sabe ler. O protocolo sobe para **2** e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a um `X-Lords-Client` anterior. O cache local de uma versão anterior é descartado.

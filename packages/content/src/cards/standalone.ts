@@ -67,6 +67,8 @@ export const masonsMeal: CouncilCard = {
     {
       id: 'feast',
       label: 'Servir a refeição',
+      // O cozinheiro só abre a despensa quando há folga: a refeição não pode trazer a fome.
+      requires: { resources: { food: 100 } },
       cost: { food: 40 },
       effects: [{ type: 'morale', amount: 10, durationDays: 2 }],
       hint: 'Barriga cheia, ânimo alto.',

@@ -3,8 +3,13 @@ export const PROTOCOL_PACKAGE_VERSION = '0.1.0';
 /**
  * Versão do protocolo `/v1`. O cliente a envia em `X-Lords-Protocol`; um servidor que não a
  * atende responde `426 UPGRADE_REQUIRED`.
+ *
+ * - **1:** a v0.1 e a economia da v0.2 (o `ViewState` só cresceu por adição).
+ * - **2:** o Conselho do Feudo (ADR 0014). `pendingDecisions` deixou de ser sempre vazio e o
+ *   `ViewState` ganhou `council`: o app da versão 1 recusa a visão inteira ao ver uma carta, e
+ *   por isso recebe o 426 com a instrução de recarregar a página, em vez de quebrar.
  */
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 
 export const API_PREFIX = '/v1';
 
