@@ -35,3 +35,4 @@ export * from './errors';
 export * from './api';
 export * from './report';
 export { canonicalJson } from './canonical';
+export { contentHash } from './contentHash';

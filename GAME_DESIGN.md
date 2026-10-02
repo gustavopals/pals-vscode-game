@@ -1136,6 +1136,8 @@ Outras metas: população 30–40 no dia 7 (Regular); primeiro herói no dia 2; 
 
 Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jogam anos inteiros em segundos, emitindo CSV com recursos, população, exército, resultado do cerco e Legado por semente. Um teste de CI roda 50 sementes por perfil e falha se as metas da §15.2 saírem da faixa. É assim que os números deste documento serão corrigidos, não por achismo. Os mesmos bots rodam contra um servidor local pelo `client-sdk` para teste de carga (ex.: 300 bots em polling de 30 s) e de regressão da API.
 
+**Na v0.2** existem o `econômico` e o `preguiçoso`. Um bot é uma lista de políticas ("recrutar", "obra mais barata", "comida primeiro"), e cada mecânica nova entra como uma política a mais; uma política só lê o `ViewState`, como o jogador. A matriz de balanceamento (`pnpm -s sim -- --matrix`) joga três perfis de visita (1, 2 e 4 sessões por dia real) em cada ritmo oferecido (§4.2), com 50 sementes fixas, em duas janelas que não se misturam: 7 dias reais e um ano de jogo completo. Ela roda inteira na CI. Enquanto o autor não fixa metas por ritmo, as faixas são o valor medido com uma folga explícita, inclusive um teto de excedente parado por material, e os sinais de tédio (fila de obras ociosa, aldeões sem ofício, excedente parado) saem em todo relatório ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5; [docs/balance-v0.2.md](docs/balance-v0.2.md)).
+
 ### 15.4 Testes automatizados
 
 - **Unitários:** produção, consumo, custos, gates, filas, escassez, moral, cartas, expedições, batalha (tabelas de contra-ataque, muralha, flanco, moral).
