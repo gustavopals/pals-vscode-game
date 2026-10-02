@@ -20,6 +20,7 @@ import {
   newGame,
   play,
   quietCouncil,
+  raidInSightScenario,
   refuse,
   SUMMER,
   WINTER,
@@ -949,6 +950,75 @@ describe('a visão de quem tem a Torre: a chance, o custo e o que fazer', () => 
     expect(deriveViewState(hidden, hidden.lastProcessedAt)).toEqual(
       deriveViewState(none, none.lastProcessedAt),
     );
+  });
+
+  describe('a previsão da próxima virada conta a incursão à vista (achado 2 da revisão)', () => {
+    // Antes, com os lobos a 10 min, o painel dizia "vai de 70 para 75" e a virada entregava 65:
+    // a previsão ignorava a incursão que a própria tela mostrava logo ao lado.
+    const TURN_AT = SUMMER + 3 * DAY;
+    const rise = rules.perActiveTilePerDay;
+    /** A Torre no nível `tower` e uma incursão marcada para a virada, 30 min de jogo antes dela. */
+    const sighted = (tower: number, threat: number, size: Size = 'light') =>
+      watched(threat, (draft) => {
+        draft.lastProcessedAt = TURN_AT - 30 * MINUTE;
+        draft.clock.gameTimeMs = TURN_AT - 30 * MINUTE;
+        draft.settlement.buildings.watchtower = tower;
+        draft.horde.scheduledRaids = [raid(TURN_AT, size)];
+      });
+
+    it.each([1, 2])(
+      'Torre Nv%i: o que a visão promete para a virada da incursão, a virada cumpre',
+      (tower) => {
+        for (const threat of [0, 10, 37, 55, 70, 98, 100]) {
+          for (const size of RAID_SIZE_IDS) {
+            const state = sighted(tower, threat, size);
+            const promised = known(state, 3);
+            expect(promised.incoming, `${tower}/${threat}`).not.toBeNull();
+            const after = advanceTo(state, TURN_AT).state.map.threat;
+            expect(after, `Torre ${tower}, Ameaça ${threat}`).toBe(promised.nextLevel);
+            // A subida continua sendo a da virada, e é ela que a tela anuncia com a contagem.
+            expect(promised.risePerDay).toBe(Math.min(rules.max, threat + rise) - threat);
+          }
+        }
+      },
+    );
+
+    it('a frase conta a subida e a queda; no máximo, a queda; perto do zero, até zero', () => {
+      expect(known(sighted(1, 70))).toMatchObject({
+        level: 70,
+        risePerDay: rise,
+        nextLevel: 70 + rise - rules.raidDrop,
+        trend: `Sobe ${rise} a cada dia de jogo (2 h), e a incursão à vista a faz cair ${rules.raidDrop}: na próxima virada, vai de 70 para ${70 + rise - rules.raidDrop}.`,
+      });
+      expect(known(sighted(2, 100))).toMatchObject({
+        risePerDay: 0,
+        nextLevel: 100 - rules.raidDrop,
+        trend: `Está no máximo, e a incursão à vista a faz cair ${rules.raidDrop}: na próxima virada, vai de 100 para ${100 - rules.raidDrop}.`,
+      });
+      expect(known(sighted(1, 0))).toMatchObject({
+        nextLevel: 0,
+        trend: `Sobe ${rise} a cada dia de jogo (2 h), e a incursão à vista a faz cair até zero: na próxima virada, vai de 0 para 0.`,
+      });
+    });
+
+    it('a incursão que os vigias ainda não viram não entra na previsão', () => {
+      // A Torre Nv1 avisa 1 h antes: 90 min antes da virada, a incursão está fora da vista.
+      const early = sighted(1, 70);
+      early.lastProcessedAt = TURN_AT - 90 * MINUTE;
+      early.clock.gameTimeMs = TURN_AT - 90 * MINUTE;
+      const promised = known(early);
+      expect(promised.incoming).toBeNull();
+      expect(promised.nextLevel).toBe(70 + rise);
+      expect(promised.trend).not.toContain('incursão');
+    });
+
+    it('no retrato montado à mão, com a incursão antes da virada, ela cai primeiro e a virada sobe depois', () => {
+      const state = raidInSightScenario();
+      const promised = known(state, 3);
+      expect(promised.incoming).not.toBeNull();
+      const turn = (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY;
+      expect(advanceTo(state, turn).state.map.threat).toBe(promised.nextLevel);
+    });
   });
 });
 

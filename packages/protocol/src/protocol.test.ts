@@ -455,8 +455,11 @@ describe('ViewStateSchema', () => {
       level: 70,
       max: 100,
       risePerDay: 5,
-      nextLevel: 75,
+      // A virada das 30 h sobe 5 e traz os lobos à vista, que a derrubam em 10.
+      nextLevel: 65,
       nextRiseInSeconds: 7200,
+      trend:
+        'Sobe 5 a cada dia de jogo (2 h), e a incursão à vista a faz cair 10: na próxima virada, vai de 70 para 65.',
       sources: ['+5/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
       raidChancePercent: 0,

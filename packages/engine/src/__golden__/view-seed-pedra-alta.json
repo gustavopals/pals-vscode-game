@@ -9267,9 +9267,9 @@
       "level": 46,
       "max": 100,
       "risePerDay": 8,
-      "nextLevel": 54,
+      "nextLevel": 44,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54.",
+      "trend": "Sobe 8 a cada dia de jogo (40 min), e a incursão à vista a faz cair 10: na próxima virada, vai de 46 para 44.",
       "sources": [
         "+5/dia: Covil de Lobos",
         "+3/dia: outono"
@@ -10851,9 +10851,9 @@
       "level": 46,
       "max": 100,
       "risePerDay": 8,
-      "nextLevel": 54,
+      "nextLevel": 44,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54.",
+      "trend": "Sobe 8 a cada dia de jogo (40 min), e a incursão à vista a faz cair 10: na próxima virada, vai de 46 para 44.",
       "sources": [
         "+5/dia: Covil de Lobos",
         "+3/dia: outono"

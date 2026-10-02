@@ -814,7 +814,10 @@ export type ThreatView =
       max: number;
       /** Quanto a próxima virada do dia soma, já com o limite: 0 com a Ameaça no máximo. */
       risePerDay: number;
-      /** A Ameaça depois da próxima virada do dia, se nada mudar. */
+      /**
+       * A Ameaça depois da próxima virada do dia: a subida e, com uma incursão à vista que chega
+       * até lá, a queda dela. A incursão que os vigias ainda não viram não entra.
+       */
       nextLevel: number;
       /** Segundos reais até a próxima virada do dia, quando a Ameaça sobe. */
       nextRiseInSeconds: number;
