@@ -34,6 +34,15 @@ export type GameCache = {
   etag: string | null;
   /** Cursor dos eventos já entregues: evita notificar duas vezes o mesmo acontecimento. */
   lastSeq: number;
+  /**
+   * Só existe enquanto `view` está **à frente do cursor**: a visão chegou (de uma leitura ou da
+   * resposta de uma ordem) e os eventos que levam até ela ainda não foram lidos. Guarda a última
+   * visão que correspondia a `lastSeq`, ou `null` se não há nenhuma. É de onde o Relatório de
+   * Retorno parte: comparar `view` com os eventos desde `lastSeq` contaria duas vezes o que ela
+   * já traz (o custo de uma obra, descontado do estoque e somado de novo como gasto). Some
+   * quando os eventos são lidos e a visão e o cursor voltam a andar juntos.
+   */
+  behind?: ViewState | null;
   /** Última vez em que o estado foi lido do servidor, em ms. */
   lastSeenAt: number;
   /**
@@ -81,12 +90,17 @@ export async function clearAccountCaches(
  * do jogo; sem o instante, quem volta depois de horas não teria Relatório de Retorno e receberia
  * a ausência em avisos avulsos. A primeira leitura do servidor grava por cima, já com a marca
  * atual.
+ *
+ * `reportBase` é a visão de onde o Relatório de Retorno parte: a que corresponde ao cursor. Em
+ * regra é a própria visão guardada; quando ela ficou à frente do cursor (`behind`), é a que foi
+ * guardada ao lado, e `null` se não há nenhuma que sirva.
  */
 function loadCache(
   store: KeyValueStore,
   target: SessionTarget,
 ): {
   cache: GameCache | null;
+  reportBase: ViewState | null;
   lastSeq: number | null;
   lastSeenAt: number | null;
   seasonWarned: string | null;
@@ -104,7 +118,31 @@ function loadCache(
     lastSeenAt !== null &&
     typeof cached.stateVersion === 'string' &&
     ViewStateSchema.safeParse(cached.view).success;
-  return { cache: valid ? (cached as GameCache) : null, lastSeq, lastSeenAt, seasonWarned };
+  if (!valid) {
+    return { cache: null, reportBase: null, lastSeq, lastSeenAt, seasonWarned };
+  }
+  const cache = cached as GameCache;
+  if (cache.behind === undefined) {
+    return { cache, reportBase: cache.view, lastSeq, lastSeenAt, seasonWarned };
+  }
+  // A visão guardada está à frente do cursor. A base em outro formato vira "nenhuma", também
+  // na memória: é o que o relatório pode usar.
+  const behind = ViewStateSchema.safeParse(cache.behind);
+  const reportBase = behind.success ? cache.behind : null;
+  return {
+    cache: { ...cache, behind: reportBase },
+    reportBase,
+    lastSeq,
+    lastSeenAt,
+    seasonWarned,
+  };
+}
+
+/** O mesmo cache com a visão e o cursor andando juntos: sem a base guardada ao lado. */
+function settled(cache: GameCache): GameCache {
+  const next = { ...cache };
+  delete next.behind;
+  return next;
 }
 
 /**
@@ -152,8 +190,9 @@ export class GameSession {
   private seasonMark: string | null = null;
   /**
    * O que se sabia antes desta abertura, enquanto o Relatório de Retorno ainda não saiu. `view`
-   * é nula quando a visão guardada era de outra versão do app: a ausência é a mesma, só não há
-   * estoques a comparar.
+   * é a visão que corresponde ao cursor guardado (`loadCache`). É nula quando não há nenhuma: a
+   * visão guardada era de outra versão do app, ou estava à frente do cursor sem outra que
+   * servisse. A ausência é a mesma, só não há estoques a comparar.
    */
   private baseline: { view: ViewState | null; lastSeenAt: number; events: GameEvent[] } | null =
     null;
@@ -252,11 +291,7 @@ export class GameSession {
     ) {
       // Fica guardado até a primeira leitura bem-sucedida, mesmo que ela só venha depois de
       // a ligação voltar.
-      this.baseline = {
-        view: this.cache?.view ?? null,
-        lastSeenAt: stored.lastSeenAt,
-        events: [],
-      };
+      this.baseline = { view: stored.reportBase, lastSeenAt: stored.lastSeenAt, events: [] };
     }
     await this.syncNow();
   }
@@ -421,10 +456,13 @@ export class GameSession {
         etag: read.etag,
         lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
         lastSeenAt: this.now(),
+        // A visão nova chega antes dos eventos que levam até ela.
+        behind: this.viewOfCursor(),
       };
       this.fresh = true;
       this.viewChanges.emit(read.view);
-      // Grava já: se a aba fechar antes de os eventos chegarem, a visão nova não se perde.
+      // Grava já: se a aba fechar antes de os eventos chegarem, a visão nova não se perde. A
+      // que corresponde ao cursor vai junto (`behind`), para o Relatório de Retorno.
       await this.persist(target);
     } else if (this.cache !== null) {
       this.cache = { ...this.cache, etag: read.etag ?? this.cache.etag, lastSeenAt: this.now() };
@@ -433,25 +471,57 @@ export class GameSession {
     await this.persist(target);
   }
 
+  /**
+   * A visão que corresponde ao cursor de agora, para guardar ao lado de uma visão nova que
+   * chega antes dos eventos (`GameCache.behind`). Com a visão e o cursor andando juntos, é a
+   * própria visão guardada; se ela já estava à frente, a base continua a mesma; sem visão
+   * nenhuma (primeira leitura, cache de outra versão), não há.
+   */
+  private viewOfCursor(): ViewState | null {
+    if (this.cache === null) {
+      return null;
+    }
+    return this.cache.behind === undefined ? this.cache.view : this.cache.behind;
+  }
+
+  /** Entrega eventos novos, uma única vez: ao Relatório de Retorno pendente e a quem escuta. */
+  private deliver(fresh: GameEvent[]): void {
+    if (fresh.length > 0) {
+      this.baseline?.events.push(...fresh);
+      this.eventBatches.emit(fresh);
+    }
+  }
+
+  /**
+   * Lê os eventos além do cursor. Quando a leitura chega ao fim, a visão e o cursor voltam a
+   * andar juntos: a base guardada ao lado (`behind`) não é mais precisa.
+   */
   private async pullEvents(target: SessionTarget): Promise<void> {
     if (this.cache === null) {
       return;
     }
     const fresh: GameEvent[] = [];
     let hasMore = true;
-    while (hasMore && this.target === target && this.cache !== null) {
-      const page = await this.deps.client.getEvents(target.gameId, this.cache.lastSeq);
-      if (this.target !== target || this.cache === null) {
-        return;
+    try {
+      while (hasMore && this.target === target && this.cache !== null) {
+        const page = await this.deps.client.getEvents(target.gameId, this.cache.lastSeq);
+        if (this.target !== target || this.cache === null) {
+          return;
+        }
+        // Só o que está além do cursor: um evento nunca é entregue duas vezes.
+        fresh.push(...page.events.filter((event) => event.seq > (this.cache?.lastSeq ?? 0)));
+        this.cache = { ...this.cache, lastSeq: Math.max(this.cache.lastSeq, page.lastSeq) };
+        hasMore = page.hasMore;
       }
-      // Só o que está além do cursor: um evento nunca é entregue duas vezes.
-      fresh.push(...page.events.filter((event) => event.seq > (this.cache?.lastSeq ?? 0)));
-      this.cache = { ...this.cache, lastSeq: Math.max(this.cache.lastSeq, page.lastSeq) };
-      hasMore = page.hasMore;
-    }
-    if (fresh.length > 0) {
-      this.baseline?.events.push(...fresh);
-      this.eventBatches.emit(fresh);
+      if (this.target === target && this.cache !== null) {
+        this.cache = settled(this.cache);
+      }
+    } finally {
+      // Uma página que falha não desfaz as anteriores: o cursor já andou por elas, e os eventos
+      // delas são entregues agora, ou nunca seriam. Com a partida fechada no meio, nada sai.
+      if (this.target === target && this.cache !== null) {
+        this.deliver(fresh);
+      }
     }
   }
 
@@ -483,13 +553,14 @@ export class GameSession {
         await this.syncNow();
         return;
       }
-      await this.adopt(target, result.view, result.stateVersion);
+      await this.adopt(target, result.view, result.stateVersion, result.events);
     } catch (error) {
       if (isGameRuleError(error)) {
         if (error.replayed) {
           await this.syncNow();
         } else {
-          await this.adopt(target, error.details.view, error.details.stateVersion);
+          const { view, stateVersion, events } = error.details;
+          await this.adopt(target, view, stateVersion, events);
         }
       } else if (error instanceof NetworkError) {
         this.handleFailure(error);
@@ -500,23 +571,44 @@ export class GameSession {
     }
   }
 
-  /** Adota a visão que veio na resposta de um comando e busca os eventos pelo cursor. */
-  private async adopt(target: SessionTarget, view: ViewState, stateVersion: string): Promise<void> {
+  /**
+   * Adota a visão que veio na resposta de um comando e busca os eventos pelo cursor.
+   *
+   * A resposta traz os eventos que levaram o mundo até essa visão (o avanço e a própria ordem).
+   * Quando eles começam logo depois do cursor, são entregues daqui mesmo, e o cursor anda junto
+   * com a visão, na mesma gravação: fechar a aba em seguida deixa um cache coerente. Quando há
+   * um salto (outra aba ou o servidor agiram antes e esta sessão ainda não leu), o cursor fica
+   * onde está e a visão que lhe corresponde vai guardada ao lado, até a leitura dos eventos.
+   */
+  private async adopt(
+    target: SessionTarget,
+    view: ViewState,
+    stateVersion: string,
+    events: readonly GameEvent[],
+  ): Promise<void> {
     if (this.target !== target) {
       return;
     }
     this.adoptions += 1;
+    const cursor = this.cache?.lastSeq ?? this.resumeSeq ?? 0;
+    const fresh = [...events].sort((a, b) => a.seq - b.seq);
+    const inOrder = fresh.every((entry, index) => entry.seq === cursor + 1 + index);
+    const follows = fresh.length > 0 && inOrder;
     this.cache = {
       version: CACHE_VERSION,
       view,
       stateVersion,
       // O ETag é do corpo de /view; depois de um comando, a próxima leitura vem inteira.
       etag: null,
-      lastSeq: this.cache?.lastSeq ?? this.resumeSeq ?? 0,
+      lastSeq: follows ? cursor + fresh.length : cursor,
       lastSeenAt: this.now(),
+      ...(follows ? {} : { behind: this.viewOfCursor() }),
     };
     this.fresh = true;
     this.viewChanges.emit(view);
+    if (follows) {
+      this.deliver(fresh);
+    }
     // Grava já: fechar a aba logo depois de uma ordem não pode deixar o cache no passado.
     await this.persist(target);
     try {

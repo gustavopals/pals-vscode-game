@@ -57,6 +57,8 @@ function fakeServer() {
     etag: 'W/"a"',
     events: [] as GameEvent[],
     fail: null as Error | null,
+    /** Só a leitura dos eventos falha: a visão chega, o cursor não anda. */
+    failEvents: null as Error | null,
     calls: { view: 0, events: 0, commands: 0 },
     lastEtagSent: undefined as string | null | undefined,
     lastAfter: -1,
@@ -81,8 +83,8 @@ function fakeServer() {
     getEvents: async (_gameId: string, after = 0) => {
       state.calls.events += 1;
       state.lastAfter = after;
-      if (state.fail) {
-        throw state.fail;
+      if (state.fail ?? state.failEvents) {
+        throw state.fail ?? state.failEvents;
       }
       const fresh = state.events.filter((entry) => entry.seq > after);
       return { events: fresh, lastSeq: fresh.at(-1)?.seq ?? after, hasMore: false };
@@ -193,6 +195,37 @@ describe('eventos', () => {
     await session.syncNow();
     expect(seen.events[1]).toEqual([event(3, 'constructionFinished')]);
     expect(store.get<GameCache>(cacheKey(target))?.lastSeq).toBe(3);
+  });
+
+  it('uma página de eventos que falha não leva as anteriores: o cursor andou, e elas são entregues', async () => {
+    const { session, state, seen, client, store } = setup();
+    await session.start(target);
+    state.events = [event(1), event(2), event(3), event(4)];
+    state.etag = 'W/"b"';
+    // Duas páginas de dois eventos; a segunda leitura cai.
+    let reads = 0;
+    client.getEvents = async (_gameId: string, after = 0) => {
+      reads += 1;
+      if (reads === 2) {
+        throw new NetworkError('fora');
+      }
+      const page = state.events.filter((entry) => entry.seq > after).slice(0, 2);
+      return {
+        events: page,
+        lastSeq: page.at(-1)?.seq ?? after,
+        hasMore: (page.at(-1)?.seq ?? after) < 4,
+      };
+    };
+    await vi.advanceTimersByTimeAsync(pollIntervalMs(false));
+    expect(session.connection.kind).toBe('offline');
+    expect(seen.events).toEqual([[event(1), event(2)]]);
+    // A ligação volta: o resto chega, e nada se repete.
+    await vi.advanceTimersByTimeAsync(retryDelayMs(1));
+    expect(seen.events).toEqual([
+      [event(1), event(2)],
+      [event(3), event(4)],
+    ]);
+    expect(store.get<GameCache>(cacheKey(target))?.lastSeq).toBe(4);
   });
 
   it('o cursor sobrevive ao reinício do editor', async () => {
@@ -841,5 +874,249 @@ describe('Relatório de Retorno', () => {
     expect(seen.reports[0]?.counts.constructionsFinished).toBe(1);
     expect(seen.reports[0]?.awaySeconds).toBe(8 * 3600 + 5);
     expect(session.catchingUp).toBe(false);
+  });
+});
+
+describe('Relatório de Retorno: a visão guardada à frente do cursor', () => {
+  /** A visão inicial com outro estoque de madeira. */
+  const withWood = (stock: number): ViewState => ({
+    ...view,
+    resources: view.resources.map((row) => (row.id === 'wood' ? { ...row, stock } : row)),
+  });
+  const started = (seq: number, type: GameEvent['type'] = 'constructionStarted'): GameEvent => ({
+    ...event(seq, type),
+    text: 'Começou a obra da Serraria.',
+    data: { building: 'lumberMill', level: 2, spent_wood: 80 },
+  });
+  const woodOf = (report: ReturnReport | undefined) =>
+    report?.resources.find((row) => row.id === 'wood');
+  const stored = (store: ReturnType<typeof setup>['store']) =>
+    store.get<GameCache>(cacheKey(target));
+
+  /** Reabre a partida em outra sessão, com o mesmo servidor e o mesmo navegador. */
+  function reopen(server: ReturnType<typeof setup>) {
+    const session = new GameSession({
+      client: server.client,
+      store: server.store,
+      now: () => Date.now(),
+    });
+    const reports: ReturnReport[] = [];
+    const events: GameEvent[][] = [];
+    session.onReturnReport((report) => reports.push(report));
+    session.onEvents((batch) => events.push(batch));
+    return { session, reports, events };
+  }
+
+  /** Cinco horas de ausência: o feudo produziu 60 de madeira e um dia virou. */
+  async function fiveHoursLater(server: ReturnType<typeof setup>, wood: number, seq: number) {
+    await vi.advanceTimersByTimeAsync(5 * HOUR);
+    server.state.failEvents = null;
+    server.state.view = withWood(wood);
+    server.state.etag = 'W/"volta"';
+    server.state.events.push(event(seq, 'dayStarted'));
+  }
+
+  it('a ordem dada antes de sair, com a leitura dos eventos falhando: o gasto dela não é da ausência', async () => {
+    const first = setup();
+    const { state } = first;
+    state.view = withWood(100);
+    await first.session.start(target);
+    // A resposta da ordem traz a visão já com o custo pago e o evento que o conta.
+    state.command = async () => {
+      state.events.push(started(1));
+      state.view = withWood(20);
+      state.etag = 'W/"b"';
+      return {
+        view: withWood(20),
+        events: [started(1)],
+        stateVersion: '2',
+        staleView: false,
+        replayed: false,
+      };
+    };
+    state.failEvents = new NetworkError('fora');
+    await first.session.send(order);
+    // O evento veio na resposta, logo depois do cursor: é entregue dali, uma vez, e o cursor
+    // anda junto com a visão.
+    expect(first.seen.events).toEqual([[started(1)]]);
+    expect(stored(first.store)).toMatchObject({ view: withWood(20), lastSeq: 1 });
+    expect(stored(first.store)).not.toHaveProperty('behind');
+    first.session.stop();
+
+    await fiveHoursLater(first, 80, 2);
+    const back = reopen(first);
+    await back.session.start(target);
+    expect(state.lastAfter).toBe(1);
+    expect(back.reports).toHaveLength(1);
+    expect(woodOf(back.reports[0])).toEqual({
+      id: 'wood',
+      label: 'Madeira',
+      before: 20,
+      after: 80,
+      delta: 60,
+      spent: 0,
+      received: 0,
+      wasted: 0,
+      produced: 60,
+    });
+    // A ordem não reaparece como novidade.
+    expect(back.reports[0]?.highlights).toEqual([]);
+    expect(back.events.flat().map((entry) => entry.seq)).toEqual([2]);
+  });
+
+  it('a recusa do motor também traz eventos: o cursor anda com a visão avançada', async () => {
+    const first = setup();
+    const { state } = first;
+    state.view = withWood(100);
+    await first.session.start(target);
+    // O mundo avançou até a ordem: uma planejada começou sozinha e pagou 80 de madeira.
+    state.command = async () => {
+      state.events.push(started(1, 'constructionAutoStarted'));
+      state.view = withWood(20);
+      state.etag = 'W/"b"';
+      throw new GameRuleClientError(
+        'Os pedreiros já estão ocupados com outra obra.',
+        {
+          code: 'QUEUE_LOCKED',
+          message: 'Os pedreiros já estão ocupados com outra obra.',
+          view: withWood(20),
+          events: [started(1, 'constructionAutoStarted')],
+          stateVersion: '2',
+          staleView: false,
+        },
+        false,
+      );
+    };
+    state.failEvents = new NetworkError('fora');
+    await expect(first.session.send(order)).rejects.toThrow('ocupados');
+    expect(stored(first.store)).toMatchObject({ view: withWood(20), lastSeq: 1 });
+    first.session.stop();
+
+    await fiveHoursLater(first, 80, 2);
+    const back = reopen(first);
+    await back.session.start(target);
+    expect(woodOf(back.reports[0])).toMatchObject({
+      before: 20,
+      delta: 60,
+      spent: 0,
+      produced: 60,
+    });
+  });
+
+  it('a leitura do ciclo que traz a visão e perde os eventos: o relatório parte da visão que o cursor conhece', async () => {
+    const first = setup();
+    const { state } = first;
+    state.view = withWood(100);
+    await first.session.start(target);
+    // Na leitura seguinte uma planejada já começou sozinha; a leitura dos eventos falha.
+    state.events.push(started(1, 'constructionAutoStarted'));
+    state.view = withWood(20);
+    state.etag = 'W/"b"';
+    state.failEvents = new NetworkError('fora');
+    await vi.advanceTimersByTimeAsync(pollIntervalMs(false));
+    // A tela mostra a visão nova, e é ela que fica guardada para o modo sem ligação; ao lado
+    // vai a visão que corresponde ao cursor.
+    expect(first.session.view).toEqual(withWood(20));
+    expect(stored(first.store)).toMatchObject({
+      view: withWood(20),
+      lastSeq: 0,
+      behind: withWood(100),
+    });
+    first.session.stop();
+
+    await fiveHoursLater(first, 80, 2);
+    const back = reopen(first);
+    await back.session.start(target);
+    // 100 → 80: a obra pagou 80 e o feudo produziu 60. Nada contado duas vezes.
+    expect(woodOf(back.reports[0])).toMatchObject({
+      before: 100,
+      after: 80,
+      delta: -20,
+      spent: 80,
+      produced: 60,
+    });
+    expect(back.reports[0]?.highlights).toEqual(['Começou a obra da Serraria.']);
+    // Com os eventos lidos, a visão e o cursor voltam a andar juntos.
+    expect(stored(first.store)).toMatchObject({ view: withWood(80), lastSeq: 2 });
+    expect(stored(first.store)).not.toHaveProperty('behind');
+  });
+
+  it('a resposta da ordem com um salto no cursor: outra aba agiu antes, e a conta continua fechando', async () => {
+    const first = setup();
+    const { state } = first;
+    state.view = withWood(100);
+    await first.session.start(target);
+    // Outra aba cumpriu um objetivo (+30 de madeira, evento 1) que esta ainda não leu.
+    const reward: GameEvent = {
+      ...event(1, 'objectiveCompleted'),
+      text: 'Cumpriu-se um objetivo.',
+      data: { objective: 'upgradeHousing', gained_wood: 30 },
+    };
+    state.command = async () => {
+      state.events.push(reward, started(2));
+      state.view = withWood(50);
+      state.etag = 'W/"b"';
+      return {
+        view: withWood(50),
+        events: [started(2)],
+        stateVersion: '3',
+        staleView: true,
+        replayed: false,
+      };
+    };
+    state.failEvents = new NetworkError('fora');
+    await first.session.send(order);
+    // O evento 1 não veio na resposta: o cursor não pode pular por cima dele.
+    expect(first.seen.events).toEqual([]);
+    expect(stored(first.store)).toMatchObject({
+      view: withWood(50),
+      lastSeq: 0,
+      behind: withWood(100),
+    });
+    first.session.stop();
+
+    await fiveHoursLater(first, 110, 3);
+    const back = reopen(first);
+    await back.session.start(target);
+    expect(woodOf(back.reports[0])).toMatchObject({
+      before: 100,
+      after: 110,
+      delta: 10,
+      spent: 80,
+      received: 30,
+      produced: 60,
+    });
+    expect(back.events.flat().map((entry) => entry.seq)).toEqual([1, 2, 3]);
+  });
+
+  it('sem visão que corresponda ao cursor, o relatório sai sem as linhas de estoque', async () => {
+    // O cache de outra versão do app perdeu a visão e guardou o cursor; a primeira leitura
+    // trouxe a visão nova e perdeu os eventos.
+    const first = setup({ ...cachedNow(), version: 'antiga', lastSeq: 4 });
+    const { state } = first;
+    state.view = withWood(20);
+    state.failEvents = new NetworkError('fora');
+    await first.session.start(target);
+    expect(stored(first.store)).toMatchObject({ view: withWood(20), lastSeq: 4, behind: null });
+    first.session.stop();
+
+    await fiveHoursLater(first, 80, 5);
+    const back = reopen(first);
+    await back.session.start(target);
+    expect(back.reports).toHaveLength(1);
+    expect(back.reports[0]?.resources).toEqual([]);
+    expect(back.reports[0]?.counts.daysPassed).toBe(1);
+  });
+
+  it('uma visão de base em outro formato não é usada: o relatório sai sem as linhas de estoque', async () => {
+    const first = setup({
+      ...cachedNow(),
+      lastSeenAt: Date.now() - 5 * HOUR,
+      behind: { settlement: { name: 'Pedra Alta' } } as unknown as ViewState,
+    });
+    first.state.view = withWood(80);
+    first.state.etag = 'W/"volta"';
+    await first.session.start(target);
+    expect(first.seen.reports[0]?.resources).toEqual([]);
   });
 });
