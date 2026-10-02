@@ -185,7 +185,7 @@ No ritmo 3, um dia de jogo dura 40 minutos reais e o ano, 56 horas. O app não f
 
 - Ciclo de 30 s com a aba visível (2 min em segundo plano): `GET /view` com ETag e `GET /events?after=`. O ETag é o SHA-256 do corpo `{ view, stateVersion }` e muda com o tempo mesmo sem escrita no banco.
 - Entre dois ciclos, as contagens regressivas andam no relógio do navegador a partir da última visão recebida.
-- O Relatório de Retorno compara o cache com a primeira leitura depois de 4 horas reais sem abrir a página.
+- O Relatório de Retorno compara o cache com a primeira leitura depois de 4 horas reais sem abrir a página. Desde a v0.2 (V2D-T4), a aba que ficou aberta e **fora de vista** por 4 horas ou mais também o recebe, na volta (ver 6.2).
 - O lembrete "Proteja seu reino" conta 48 horas reais desde a primeira vez da conta no navegador.
 
 Os testes de integração e os testes em navegador rodam com `GAME_TIME_SCALE=1`, porque foram escritos nos minutos de jogo do GDD. O ritmo 3 tem testes próprios no motor e no servidor.
@@ -222,10 +222,10 @@ Nenhum destes itens tem tarefa no roadmap do MVP. Ficaram de fora por escopo, e 
 | `GET /catalog` (GDD §14.5) | Registro, F2-T2; [README do servidor](../packages/server/README.md) | Não existia na v0.1. Implementado na v0.2 (V2B-T3) só com as opções de nova partida; o `ViewState` continua trazendo o resto do que o app exibe |
 | "Baixar cópia da partida (JSON)" (GDD §13.6) | Registro, F3W-T6 | Não implementado: não há rota nem comando. Existe "Baixar Crônica (Markdown)" |
 | "Reiniciar partida" (GDD §13.6) | Registro, F3W-T6 | Entregue como "Nova partida", com confirmação: arquiva o feudo atual e começa outro |
-| Gerador de números aleatórios com fluxos nomeados (GDD §14.3 e §18.1) | Registro, F1-T11; [README do motor](../packages/engine/README.md) | Não existe. O estado tem o campo `rng`, vazio: nenhuma regra da v0.1 sorteia. Entra com a primeira mecânica que sortear |
+| Gerador de números aleatórios com fluxos nomeados (GDD §14.3 e §18.1) | Registro, F1-T11; [README do motor](../packages/engine/README.md) | Na v0.1 não existia: o estado tinha o campo `rng`, vazio, e nenhuma regra sorteava. **Resolvido na v0.2 (V2B-T2):** `random.ts`, com os fluxos `council`, `morale` e `horde`; a moral, o Conselho e as incursões sorteiam |
 | Migração de estados por `schemaVersion` (GDD §15.4) | `packages/engine/src/types.ts` (`schemaVersion: 1`) | Na v0.1 não existia código de migração: só havia a versão 1. **Resolvido na v0.2 (V2B-T1):** `migrateState` no motor e migração ao travar a partida no servidor; ver os READMEs do [motor](../packages/engine/README.md) e do [servidor](../packages/server/README.md) |
-| Relatório de Retorno para quem deixou a aba aberta (GDD §13.5 fala em "ao abrir") | Registro, F3W-T10 | Só é montado ao **abrir a página** depois de 4 h. Uma aba aberta a noite inteira continua sincronizando e não recebe relatório |
-| Escolha de dificuldade e de ritmo pelo jogador | Registro, F3-T3; `games/service.ts` | A dificuldade é fixa (`lord`) e o ritmo é o do servidor. `POST /games` aceita `timeScale: 1` por compatibilidade e o ignora |
+| Relatório de Retorno para quem deixou a aba aberta (GDD §13.5 fala em "ao abrir") | Registro, F3W-T10 | Na v0.1 só era montado ao **abrir a página** depois de 4 h. **Na v0.2 (V2D-T4.4 e V2E-T3.6):** a aba que ficou aberta e fora de vista por 4 h ou mais conta a ausência desde que saiu de vista e, na volta, mostra um aviso que leva ao relatório na aba Hoje (o app não troca de aba sozinho). **Limite que continua:** a aba que ficou **à vista** o tempo todo (em um segundo monitor, a noite inteira) não tem como saber que o jogador saiu: recebe os avisos e as linhas da Crônica de cada acontecimento (uma incursão, por exemplo), mas não o relatório. Detalhes no [README do app](../packages/web/README.md), "A aba que ficou aberta" |
+| Escolha de dificuldade e de ritmo pelo jogador | Registro, F3-T3; `games/service.ts` | Na v0.1 a dificuldade era fixa (`lord`) e o ritmo, o do servidor. **Resolvido na v0.2 (V2B-T3):** `POST /games` aceita `difficulty` e `timeScale`, e as boas-vindas oferecem as opções de `GET /catalog` |
 | Hora da Vigília com efeito | `packages/web/src/tabs/Settings.tsx` | É guardada com a partida e não muda nada no jogo; o texto das Preferências diz isso |
 | Notificações com a aba fechada | Registro, F3W-T7 | Nada chega com a aba fechada. Com a aba em segundo plano, o título conta as novidades |
 
