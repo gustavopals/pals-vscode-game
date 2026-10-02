@@ -969,7 +969,7 @@ describe('construir, cancelar e planejar', () => {
       ...goldenView,
       constructions: {
         ...goldenView.constructions,
-        planned: [{ ...farm, planned: true }],
+        planned: [{ ...farm, planned: true, autoStart: false, waiting: null }],
         available: goldenView.constructions.available.map((upgrade) =>
           upgrade.building === 'farm' ? { ...upgrade, planned: true } : upgrade,
         ),

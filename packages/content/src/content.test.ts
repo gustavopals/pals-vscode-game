@@ -492,6 +492,27 @@ describe('balanceamento', () => {
     const { num, den } = balance.construction.cancelRefund;
     expect(num).toBeLessThanOrEqual(den);
   });
+
+  it('são duas filas de obras, e a segunda abre com o Salão no nível 4 (GDD §6.1 e §6.3)', () => {
+    const { queues, secondQueueTownHallLevel } = balance.construction;
+    expect(queues).toBe(2);
+    expect(secondQueueTownHallLevel).toBe(4);
+    // O nível que abre a fila é um nível a que o Salão chega depois de nascer.
+    expect(secondQueueTownHallLevel).toBeGreaterThan(buildings.townHall.initialLevel);
+    expect(secondQueueTownHallLevel).toBeLessThanOrEqual(buildings.townHall.maxLevel);
+  });
+
+  it('o schema recusa uma terceira fila, que não teria regra de abertura', () => {
+    const withQueues = (queues: number) =>
+      BalanceSchema.safeParse({
+        ...balance,
+        construction: { ...balance.construction, queues },
+      }).success;
+    expect(withQueues(1)).toBe(true);
+    expect(withQueues(2)).toBe(true);
+    expect(withQueues(3)).toBe(false);
+    expect(withQueues(0)).toBe(false);
+  });
 });
 
 describe('objetivos', () => {
@@ -559,6 +580,7 @@ describe('Crônica', () => {
     expect(FoundingTemplatesSchema.safeParse(foundingTemplates).error).toBeUndefined();
     expect(Object.keys(foundingTemplates)).toEqual([
       'constructionStarted',
+      'constructionAutoStarted',
       'constructionCancelled',
     ]);
     for (const [type, template] of Object.entries(foundingTemplates)) {
@@ -569,6 +591,24 @@ describe('Crônica', () => {
     }
     expect(chronicleTemplates.buildingFounded).toContain('{edificio}');
     expect(chronicleTemplates.buildingFounded).not.toContain('{nivel}');
+  });
+
+  it('a obra que começa sozinha diz que ninguém a mandou começar, e não repete a frase da ordem', () => {
+    for (const template of [
+      chronicleTemplates.constructionAutoStarted,
+      foundingTemplates.constructionAutoStarted,
+    ]) {
+      expect(template).toContain('sozinhos');
+      expect(template).toContain('com as reservas cheias');
+      expect(template).toContain('{edificio}');
+    }
+    expect(chronicleTemplates.constructionAutoStarted).toContain('{nivel}');
+    expect(chronicleTemplates.constructionAutoStarted).not.toBe(
+      chronicleTemplates.constructionStarted,
+    );
+    expect(foundingTemplates.constructionAutoStarted).not.toBe(
+      foundingTemplates.constructionStarted,
+    );
   });
 
   it('o depósito cheio diz qual e de quê; o desperdício do dia diz quanto foi ao chão', () => {

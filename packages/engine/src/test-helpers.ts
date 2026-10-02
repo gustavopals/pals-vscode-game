@@ -155,6 +155,32 @@ export function winterColdScenario(): GameState {
   return advanceTo(autumnScenario(), WINTER + 3 * DAY + 90 * MINUTE).state;
 }
 
+/**
+ * Verão, o Salão no nível 4 e as duas filas ocupadas (a Serraria e a Mina de Ouro, há dois
+ * minutos). Na lista, uma planejada para cada espera que a visão sabe dizer: a Serraria de novo
+ * (a obra anterior dela), as Habitações, manuais (só a fila), a Fazenda (15 de ouro que a Mina
+ * junta), o Salão (875 de madeira não cabem no Pátio) e a Pedreira (pede o Salão no nível 5).
+ */
+export function queuesScenario(): GameState {
+  const start = gameAt(SUMMER + 3 * DAY, (draft) => {
+    const { settlement } = draft;
+    settlement.population.villagers = 20;
+    settlement.workers = { farm: 8, lumberMill: 5, quarry: 3, goldMine: 2 };
+    settlement.buildings = { ...settlement.buildings, townHall: 4, quarry: 5, granary: 1 };
+    settlement.resources = { food: 600_000, wood: 420_000, stone: 300_000, gold: 25_000 };
+  });
+  return play(start, [
+    command('startConstruction', { building: 'lumberMill' }),
+    command('startConstruction', { building: 'goldMine' }),
+    command('planConstruction', { building: 'lumberMill', autoStart: true }),
+    command('planConstruction', { building: 'housing' }),
+    command('planConstruction', { building: 'farm', autoStart: true }),
+    command('planConstruction', { building: 'townHall', autoStart: true }),
+    command('planConstruction', { building: 'quarry', autoStart: true }),
+    { at: start.lastProcessedAt + 2 * MINUTE },
+  ]).state;
+}
+
 export function eventsOfType(events: GameEvent[], type: GameEvent['type']): GameEvent[] {
   return events.filter((event) => event.type === type);
 }
@@ -179,6 +205,8 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [24, command('setWorkers', { building: 'lumberMill', count: 4 })],
   [24, command('setWorkers', { building: 'goldMine', count: 3 })],
   [24, command('startConstruction', { building: 'farm' })],
+  // A Pedreira fica planejada como automática: começa sozinha assim que houver fila e recurso.
+  [24, command('planConstruction', { building: 'quarry', autoStart: true })],
   // O Salão no nível 2 liberou os depósitos: o Armazém, antes que a madeira vá para o chão.
   [28, command('startConstruction', { building: 'warehouse' })],
   [36, command('startConstruction', { building: 'quarry' })],
@@ -203,18 +231,30 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [108, command('recruitVillagers', { quantity: 1 })],
   [108, command('startConstruction', { building: 'lumberMill' })],
   [120, command('startConstruction', { building: 'granary' })],
+  // A Serraria entra na lista como manual, e na visita seguinte ganha a marca de automática.
+  [120, command('planConstruction', { building: 'lumberMill' })],
   // Dia 6: de volta à Fazenda; a fome acaba.
   [132, command('setWorkers', { building: 'lumberMill', count: 2 })],
   [132, command('setWorkers', { building: 'farm', count: 8 })],
   [132, command('startConstruction', { building: 'farm' })],
+  [132, command('setAutoStart', { building: 'lumberMill', autoStart: true })],
   // Dia 7: o inverno. As obras levam a madeira do Armazém e o senhor tira os lenhadores: a
   // lareira apaga, o frio entra, e os lenhadores voltam antes da virada do ano.
   [144, command('startConstruction', { building: 'townHall' })],
+  // Com o Salão ainda no nível 3, a segunda obra é recusada, e a recusa diz o que abre a fila.
+  [144, command('startConstruction', { building: 'housing' })],
   [144, command('unplanConstruction', { building: 'farm' })],
+  [144, command('setWorkers', { building: 'lumberMill', count: 6 })],
   [150, command('setWorkers', { building: 'lumberMill', count: 0 })],
   [150, command('startConstruction', { building: 'housing' })],
+  // O Salão chegou ao nível 4: a segunda fila está aberta, e a Pedreira entra nela. Para a
+  // Fazenda não há terceira fila.
+  [150, command('startConstruction', { building: 'quarry' })],
+  [150, command('startConstruction', { building: 'farm' })],
   [156, command('recruitVillagers', { quantity: 3 })],
   [156, command('startConstruction', { building: 'goldMine' })],
+  // Sem madeira para a Mina agora: fica planejada, e começa sozinha quando a madeira chegar.
+  [156, command('planConstruction', { building: 'goldMine', autoStart: true })],
   [162, command('setWorkers', { building: 'lumberMill', count: 6 })],
 ];
 

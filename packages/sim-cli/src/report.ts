@@ -199,7 +199,16 @@ export function formatDecimal(value: number): string {
   return String(value).replace('.', ',');
 }
 
-export function formatSummary(result: SimulationResult): string {
+/** "35 h com obra que podia começar (0 h com obra planejada)". */
+function idleLine(summary: Summary): string {
+  return `${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`;
+}
+
+/**
+ * O resumo de uma partida. Com `control`, a mesma partida jogada com as planejadas manuais
+ * (`manualPlans`), a linha da fila ociosa ganha a comparação: o que o início automático mudou.
+ */
+export function formatSummary(result: SimulationResult, control?: SimulationResult): string {
   const { options, rows, commands } = result;
   const summary = summarize(result);
   const last = rows[rows.length - 1];
@@ -226,7 +235,12 @@ export function formatSummary(result: SimulationResult): string {
     summary.coldHours === 0
       ? 'Frio: nenhum'
       : `Frio: ${summary.coldHours} h, a primeira na hora ${summary.firstColdHour}`,
-    `Fila ociosa: ${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`,
+    `Fila ociosa: ${idleLine(summary)}`,
+    ...(control === undefined
+      ? []
+      : [
+          `Sem o início automático (as mesmas planejadas, manuais): ${idleLine(summarize(control))}`,
+        ]),
     `Aldeões sem ofício: ${summary.freeVillagerHours} aldeão-horas (${formatDecimal(summary.freePerHour)} por hora)`,
     `Excedente parado: ${SURPLUS_RESOURCES.map((id) => `${id} ${summary.surplus[id]}`).join(', ')}`,
     `Desperdício: ${WASTE_RESOURCES.map((id) => `${id} ${summary.wasted[id]}`).join(', ')} (${summary.wasteHours} h com depósito cheio perdendo produção)`,

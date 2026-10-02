@@ -40,6 +40,18 @@ export type SimulationOptions = {
   timeScale?: number;
   /** Dificuldade da partida (GDD §12.1). Padrão `lord`, a de quem não escolhe. */
   difficulty?: DifficultyId;
+  /**
+   * Partida de controle: o mesmo bot, mas as obras que ele planeja entram como manuais e nenhuma
+   * começa sozinha, como antes do início automático (V2C-T5). Serve para medir o que o início
+   * automático muda; o resumo de uma partida traz as duas medidas lado a lado.
+   */
+  manualPlans?: boolean;
+  /**
+   * Um bot no lugar do de `strategy`: para medir uma variação (um bot sem uma política) e para
+   * os testes que precisam das mesmas ordens em duas partidas. O resumo continua dizendo o
+   * nome de `strategy`.
+   */
+  bot?: Bot;
 };
 
 /**
@@ -92,18 +104,38 @@ export type SimulationResult = {
 type CommandCounts = { accepted: number; refused: Record<string, number> };
 
 /**
- * A fila de obras parada à toa, como o jogador a veria no painel: está livre e há ao menos uma
- * obra que poderia começar agora (`queueIdle`), ou ao menos uma das que ele planejou
- * (`plannedIdle`). É um dos sinais de tédio do simulador: o jogo tinha o que fazer e esperou
- * a próxima visita.
+ * A fila de obras parada à toa, como o jogador a veria no painel: há ao menos uma obra que
+ * poderia começar agora (`queueIdle`), ou ao menos uma das que ele planejou (`plannedIdle`). Uma
+ * obra só "pode começar" com fila livre, então vale também para a segunda fila: com uma obra em
+ * curso e a outra fila aberta e vazia, a fila está ociosa. É um dos sinais de tédio do
+ * simulador: o jogo tinha o que fazer e esperou a próxima visita.
  */
 export function idleQueue(view: ViewState): { queueIdle: boolean; plannedIdle: boolean } {
-  const { active, available } = view.constructions;
-  const startable = available.filter((upgrade) => upgrade.blockedCode === null);
+  const startable = view.constructions.available.filter((upgrade) => upgrade.blockedCode === null);
   return {
-    queueIdle: active === null && startable.length > 0,
-    plannedIdle: active === null && startable.some((upgrade) => upgrade.planned),
+    queueIdle: startable.length > 0,
+    plannedIdle: startable.some((upgrade) => upgrade.planned),
   };
+}
+
+/**
+ * O `act` da partida de controle: o bot dá as mesmas ordens, mas uma planejada nunca entra como
+ * automática. `planConstruction` perde a marca e `setAutoStart` não chega ao motor.
+ */
+export function withManualPlans(act: Act, current: () => ViewState): Act {
+  // O tipo de `Act` amarra o payload ao tipo da ordem; aqui a ordem só é repassada.
+  type Loose = (type: Command['type'], payload: Command['payload']) => Promise<ViewState>;
+  const pass = act as Loose;
+  const manual: Loose = async (type, payload) => {
+    if (type === 'setAutoStart') {
+      return current();
+    }
+    if (type === 'planConstruction') {
+      return pass(type, { building: (payload as { building: BuildingId }).building });
+    }
+    return pass(type, payload);
+  };
+  return manual as Act;
 }
 
 /** Soma, por recurso, o que os eventos de desperdício relataram (`wasted_<recurso>`). */
@@ -174,7 +206,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   }
   /** Instante de jogo de um instante real, os dois em ms desde a criação da partida. */
   const gameMs = (realMs: number) => Math.round(realMs * timeScale);
-  const bot: Bot = strategies[options.strategy];
+  const bot: Bot = options.bot ?? strategies[options.strategy];
   let state = createInitialState(seed, {
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
@@ -189,7 +221,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const reportedWaste: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
   let commandCount = 0;
 
-  const act: Act = async (type, payload) => {
+  const order: Act = async (type, payload) => {
     commandCount += 1;
     const command = { commandId: `${seed}-${commandCount}`, type, payload } as Command;
     const result = applyCommand(state, command, state.lastProcessedAt);
@@ -202,6 +234,9 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     }
     return deriveViewState(state, state.lastProcessedAt, { timeScale });
   };
+  const act = options.manualPlans
+    ? withManualPlans(order, () => deriveViewState(state, state.lastProcessedAt, { timeScale }))
+    : order;
 
   // Daqui em diante os instantes são reais; `gameMs` converte na hora de mover o motor.
   const sessionEveryMs = Math.round((HOURS_PER_REAL_DAY * HOUR_MS) / sessionsPerDay);

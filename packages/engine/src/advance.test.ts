@@ -143,6 +143,7 @@ describe('advanceTo', () => {
           startedAtMs: YEAR_MS - HOUR,
           finishesAtMs: YEAR_MS,
         },
+        null,
       ];
       settlement.recruitmentQueue = [{ finishesAtMs: YEAR_MS }];
       draft.objectives = {

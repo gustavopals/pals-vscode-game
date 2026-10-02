@@ -13,7 +13,7 @@ import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './
 import {
   cancelRefund,
   constructionOf,
-  upgradeCost,
+  queuesUnlocked,
   upgradeDurationAt,
   upgradeDurationMs,
   upgradeQuote,
@@ -32,6 +32,8 @@ import {
 import { decimal, plural } from './format';
 import { describeReward, objectiveProgress } from './objectives';
 import { paceLabel } from './pace';
+import { planCost } from './planned';
+import { plannedWaiting, queuesNote } from './plannedView';
 import {
   freeVillagers,
   housingCapacity,
@@ -50,9 +52,13 @@ import {
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
 import type {
+  ActiveConstructionView,
   BuildingId,
+  Construction,
   GameState,
   ObjectiveView,
+  PlannedConstruction,
+  PlannedUpgradeView,
   ProductionBuildingId,
   ResourceCostView,
   ResourceId,
@@ -180,12 +186,12 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
 
 function plannedView(
   state: GameState,
-  building: BuildingId,
-  targetLevel: number,
+  plan: PlannedConstruction,
+  rates: Record<ResourceId, number>,
   timeScale: number,
-): UpgradeView {
-  const cost = upgradeCost(building, targetLevel - 1);
-  const costs = costView(state, cost);
+): PlannedUpgradeView {
+  const { building, targetLevel } = plan;
+  const costs = costView(state, planCost(plan));
   return {
     building,
     label: buildings[building].label,
@@ -202,6 +208,28 @@ function plannedView(
     blockedReason: null,
     planned: true,
     effect: storageEffect(state, building, targetLevel),
+    autoStart: plan.autoStart,
+    waiting: plannedWaiting(state, plan, rates, timeScale),
+  };
+}
+
+/** Uma obra em curso, como a fila a mostra: prazo, andamento e o que o cancelamento devolve. */
+function activeView(
+  state: GameState,
+  slot: Construction,
+  timeScale: number,
+): ActiveConstructionView {
+  const now = state.lastProcessedAt;
+  return {
+    building: slot.building,
+    label: buildings[slot.building].label,
+    targetLevel: slot.targetLevel,
+    secondsRemaining: realSecondsCeil(slot.finishesAtMs - now, timeScale),
+    totalSeconds: realSecondsCeil(slot.finishesAtMs - slot.startedAtMs, timeScale),
+    progressPercent: Math.floor(
+      ((now - slot.startedAtMs) * 100) / (slot.finishesAtMs - slot.startedAtMs),
+    ),
+    refund: refundView(state, slot.building, slot.targetLevel - 1),
   };
 }
 
@@ -257,7 +285,11 @@ export function deriveViewState(
   };
   const nextSeason = seasonAfter(date.season);
 
-  const active = settlement.constructionQueues.find((slot) => slot !== null) ?? null;
+  // Uma entrada por fila aberta; a fila que o Salão ainda não abriu não aparece.
+  const queues = Array.from({ length: queuesUnlocked(state) }, (_, index) => {
+    const slot = settlement.constructionQueues[index] ?? null;
+    return slot === null ? null : activeView(state, slot, timeScale);
+  });
   const nextRecruit = settlement.recruitmentQueue[0];
   const { cost: recruitCost, maxPerOrder, maxQueue } = balance.recruitment;
   const maxQuantity = Math.max(
@@ -332,23 +364,11 @@ export function deriveViewState(
       breakdown: productionBreakdown(state, building, timeScale),
     })),
     constructions: {
-      active:
-        active === null
-          ? null
-          : {
-              building: active.building,
-              label: buildings[active.building].label,
-              targetLevel: active.targetLevel,
-              secondsRemaining: until(active.finishesAtMs),
-              totalSeconds: realSecondsCeil(active.finishesAtMs - active.startedAtMs, timeScale),
-              progressPercent: Math.floor(
-                ((now - active.startedAtMs) * 100) / (active.finishesAtMs - active.startedAtMs),
-              ),
-              refund: refundView(state, active.building, active.targetLevel - 1),
-            },
-      planned: settlement.planned.map((plan) =>
-        plannedView(state, plan.building, plan.targetLevel, timeScale),
-      ),
+      active: queues.find((entry) => entry !== null) ?? null,
+      queues,
+      queuesUnlocked: queues.length,
+      queuesNote: queuesNote(state),
+      planned: settlement.planned.map((plan) => plannedView(state, plan, rates, timeScale)),
       available: BUILDING_IDS.filter(
         (id) =>
           constructionOf(state, id) === null && settlement.buildings[id] < buildings[id].maxLevel,

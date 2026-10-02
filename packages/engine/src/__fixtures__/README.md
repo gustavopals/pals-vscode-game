@@ -12,6 +12,7 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 | `famine` | Fome aberta, com um aldeão na fila de recrutamento congelada |
 | `cold` | A partir da versão 3: frio aberto desde a virada para o inverno, madeira em zero, sem fome, um aldeão a caminho |
 | `storage` | A partir da versão 4: Rei de Ferro com o Celeiro erguido e cheio (720 de comida), o Armazém em obra, desperdício no total (`stats.wasted_*`) e no contador que a Crônica ainda não relatou (`settlement.wasted`) |
+| `queues` | A partir da versão 5: o Salão no nível 4 com as duas filas ocupadas (a Serraria e a Mina de Ouro) e três planejadas na lista: a Serraria de novo, automática, esperando a obra anterior dela; as Habitações, manuais; e o Salão, automático, esperando recurso. No ritmo 3, no meio de um trecho |
 | `objectives` | Os quatro primeiros objetivos concluídos |
 | `week-scripted` | O cenário roteirizado de 7 dias (o golden do motor): ano 2, feudo renomeado |
 | `week-bot-3x` | Só na versão 1: o bot econômico do simulador, 7 dias reais no ritmo 3 (ano 4, estoque alto) |
@@ -19,7 +20,7 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 | `iron-king-half` | A partir da versão 2: Rei de Ferro no ritmo 0,5 (o único não inteiro), com obra, planejada e recruta, no meio de um trecho |
 | `peasant-3x` | A partir da versão 2: Camponês no ritmo 3, nascido na versão (`migratedAtMs: null`) e já no ano 3 |
 
-`cold` cobre o que as estações com efeito (V2C-T1) puseram no estado: o frio aberto, que o passo seguinte precisa encontrar. `storage` cobre o que o armazenamento (V2C-T2) pôs: depósitos com nível, uma obra de depósito em curso e os dois contadores de desperdício. Os três últimos cobrem o que a fundação da v0.2 pôs no estado e que os passos seguintes leem: a fronteira, o ritmo e a dificuldade. `fixtures.test.ts` exige que os cenários tenham uma fronteira antiga, uma partida sem fronteira no ano 3, os ritmos 1, 3 e 0,5 e as três dificuldades.
+`cold` cobre o que as estações com efeito (V2C-T1) puseram no estado: o frio aberto, que o passo seguinte precisa encontrar. `storage` cobre o que o armazenamento (V2C-T2) pôs: depósitos com nível, uma obra de depósito em curso e os dois contadores de desperdício. `queues` cobre o que a segunda fila e o início automático (V2C-T5) puseram: as duas posições de fila ocupadas e a marca `autoStart` nas planejadas, ligada e desligada. Os três últimos cobrem o que a fundação da v0.2 pôs no estado e que os passos seguintes leem: a fronteira, o ritmo e a dificuldade. `fixtures.test.ts` exige que os cenários tenham uma fronteira antiga, uma partida sem fronteira no ano 3, os ritmos 1, 3 e 0,5 e as três dificuldades.
 
 Os retratos da versão 1 foram gerados com o motor da v0.1 (commit `9b1d3e8`, o mesmo motor da tag `v0.1.0`) antes de o tipo mudar. Nomes e sementes são de teste: nenhum veio de uma conta real.
 

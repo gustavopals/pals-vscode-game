@@ -177,6 +177,11 @@ function keepsFirewood(view: ViewState, upgrade: Upgrade): boolean {
   return upgrade.cost.every((cost) => cost.resource !== 'wood' || cost.amount <= spare);
 }
 
+/** O preço de uma obra para quem escolhe a mais barata: a soma do que ela custa. */
+function price(upgrade: Upgrade): number {
+  return upgrade.cost.reduce((sum, cost) => sum + cost.amount, 0);
+}
+
 /**
  * Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não
  * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
@@ -186,7 +191,6 @@ function keepsFirewood(view: ViewState, upgrade: Upgrade): boolean {
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
   run: async (view, act) => {
-    const price = (upgrade: Upgrade) => upgrade.cost.reduce((sum, cost) => sum + cost.amount, 0);
     const depots = new Set(view.resources.map((row) => row.storageBuilding));
     const [cheapest] = view.constructions.available
       .filter((upgrade) => !depots.has(upgrade.building))
@@ -259,6 +263,53 @@ export const ampliarEstoque: Policy = {
       }
     }
     return view;
+  },
+};
+
+/** A obra gasta madeira: é a que pode deixar a lareira sem lenha. */
+function costsWood(upgrade: Upgrade): boolean {
+  return upgrade.cost.some((cost) => cost.resource === 'wood' && cost.amount > 0);
+}
+
+/**
+ * Planeja como automáticas ("iniciar quando houver recursos") as obras que não puderam começar
+ * nesta visita: assim elas começam sozinhas quando a fila ficar livre e o estoque chegar ao
+ * custo, em vez de esperar a visita seguinte. É o caminho de sempre do bot, adiantado: primeiro
+ * o depósito que `ampliar o estoque` queria e não pôde iniciar, depois as outras obras, da mais
+ * barata à mais cara, que é a ordem em que o motor as tenta. Os depósitos que ninguém pediu
+ * ficam de fora, como em `obra mais barata`, e a obra que já chegou ao teto também.
+ *
+ * Uma obra que começa sozinha não pergunta pela lenha. Por isso, enquanto a conta da visão diz
+ * que a lareira depende do estoque (a Serraria não repõe o que o inverno queima), o bot não
+ * deixa automática nenhuma obra que gaste madeira: desmarca as que estão na lista e não planeja
+ * outras. Quando a conta fecha, marca de novo.
+ */
+export const planejarAutomaticas: Policy = {
+  name: 'planejar automáticas',
+  run: async (view, act) => {
+    let current = view;
+    const woodIsSafe = firewoodReserve(view) === 0;
+    for (const plan of view.constructions.planned) {
+      const wanted = woodIsSafe || !costsWood(plan);
+      if (plan.autoStart !== wanted) {
+        current = await act('setAutoStart', { building: plan.building, autoStart: wanted });
+      }
+    }
+    const depots = new Set(current.resources.map((row) => row.storageBuilding));
+    const wantedDepots = storageWanted(current);
+    const rank = (upgrade: Upgrade) => {
+      const urgency = wantedDepots.indexOf(upgrade.building);
+      return urgency === -1 ? wantedDepots.length : urgency;
+    };
+    const waiting = current.constructions.available
+      .filter((upgrade) => !upgrade.planned && upgrade.blockedCode !== 'MAX_LEVEL')
+      .filter((upgrade) => !depots.has(upgrade.building) || wantedDepots.includes(upgrade.building))
+      .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
+      .sort((a, b) => rank(a) - rank(b) || price(a) - price(b));
+    for (const upgrade of waiting) {
+      current = await act('planConstruction', { building: upgrade.building, autoStart: true });
+    }
+    return current;
   },
 };
 

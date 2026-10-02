@@ -19,6 +19,7 @@ export const REJECTION_CODES = [
   'NOT_ENOUGH_VILLAGERS',
   'ALREADY_UPGRADING',
   'QUEUE_BUSY',
+  'QUEUE_LOCKED',
   'MAX_LEVEL',
   'GATE_LOCKED',
   'EXCEEDS_STORAGE',
@@ -57,6 +58,47 @@ const UpgradeSchema = z.strictObject({
   planned: z.boolean(),
   /** O que a obra muda, ao lado do custo: "Capacidade de comida: 500 → 900."; `null` sem frase. */
   effect: z.string().nullable(),
+});
+
+/** Por que uma obra planejada ainda não começou, e em quanto tempo a espera acaba. */
+const PlannedWaitingSchema = z.strictObject({
+  /**
+   * `upgrading`: o edifício tem outra obra antes desta. `gate`: falta o nível de outro edifício.
+   * `capacity`: o custo não cabe no depósito. `resources`: falta recurso que a produção ainda
+   * junta. `queue`: os pedreiros estão ocupados.
+   */
+  reason: z.enum(['queue', 'resources', 'capacity', 'gate', 'upgrading']),
+  /** "espera 120 de madeira"; "não cabe no Armazém: amplie-o". Minúscula, sem ponto final. */
+  text: z.string(),
+  /** Segundos reais até a espera acabar, com as taxas de agora; `null` quando esperar não resolve. */
+  etaSeconds: z.number().nullable(),
+});
+
+/** Uma obra planejada: o orçamento, se é automática e o que ela espera. */
+const PlannedUpgradeSchema = UpgradeSchema.extend({
+  /** Marcada "iniciar quando houver recursos": o motor a inicia sozinho assim que puder. */
+  autoStart: z.boolean(),
+  /** O que a obra espera para começar; `null` quando já pode ser iniciada (só nas manuais). */
+  waiting: PlannedWaitingSchema.nullable(),
+});
+
+/** Uma obra em curso em uma das filas. */
+const ActiveConstructionSchema = z.strictObject({
+  building: buildingId,
+  label: z.string(),
+  targetLevel: z.number(),
+  secondsRemaining: z.number(),
+  totalSeconds: z.number(),
+  progressPercent: z.number(),
+  /** `amount` volta ao estoque; `lost` não cabe no depósito e se perde. */
+  refund: z.array(
+    z.strictObject({
+      resource: resourceId,
+      label: z.string(),
+      amount: z.number(),
+      lost: z.number(),
+    }),
+  ),
 });
 
 const ObjectiveSchema = z.strictObject({
@@ -171,26 +213,16 @@ export const ViewStateSchema = z.strictObject({
     }),
   ),
   constructions: z.strictObject({
-    active: z
-      .strictObject({
-        building: buildingId,
-        label: z.string(),
-        targetLevel: z.number(),
-        secondsRemaining: z.number(),
-        totalSeconds: z.number(),
-        progressPercent: z.number(),
-        /** `amount` volta ao estoque; `lost` não cabe no depósito e se perde. */
-        refund: z.array(
-          z.strictObject({
-            resource: resourceId,
-            label: z.string(),
-            amount: z.number(),
-            lost: z.number(),
-          }),
-        ),
-      })
-      .nullable(),
-    planned: z.array(UpgradeSchema),
+    /** Atalho para a primeira obra em curso, na ordem das filas; `null` sem nenhuma. */
+    active: ActiveConstructionSchema.nullable(),
+    /** Uma entrada por fila aberta, na ordem: a obra em curso, ou `null` se a fila está livre. */
+    queues: z.array(ActiveConstructionSchema.nullable()),
+    /** Quantas filas de obras o feudo tem abertas agora. */
+    queuesUnlocked: z.number(),
+    /** O que abre a próxima fila, em uma frase; `null` quando todas já estão abertas. */
+    queuesNote: z.string().nullable(),
+    /** As planejadas, na ordem da lista: é a ordem em que as automáticas são tentadas. */
+    planned: z.array(PlannedUpgradeSchema),
     available: z.array(UpgradeSchema),
   }),
   recruitment: z.strictObject({

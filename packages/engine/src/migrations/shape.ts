@@ -54,6 +54,9 @@ export const positiveNumber: Shape = (value, path) =>
 export const text: Shape = (value, path) =>
   typeof value === 'string' ? null : problem(path, 'texto', value);
 
+export const boolean: Shape = (value, path) =>
+  typeof value === 'boolean' ? null : problem(path, 'booleano', value);
+
 /** Exatamente um valor. */
 export function literal(expected: string | number | boolean | null): Shape {
   return (value, path) =>
@@ -85,6 +88,15 @@ export function listOf(item: Shape): Shape {
     }
     return null;
   };
+}
+
+/** Lista com exatamente `length` itens: as filas de obras, que são sempre as mesmas posições. */
+export function listOfLength(length: number, item: Shape): Shape {
+  const list = listOf(item);
+  return (value, path) =>
+    Array.isArray(value) && value.length !== length
+      ? `${path === '' ? 'estado' : path}: esperada lista de ${length} itens, veio de ${value.length}`
+      : list(value, path);
 }
 
 /** Objeto com chaves livres e valores de uma forma só (`stats`, `rng`). */

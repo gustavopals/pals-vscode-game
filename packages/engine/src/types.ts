@@ -29,7 +29,15 @@ export type Construction = {
   finishesAtMs: number;
 };
 
-export type PlannedConstruction = { building: BuildingId; targetLevel: number };
+/**
+ * Uma obra planejada. Com `autoStart`, é uma planejada "iniciar quando houver recursos": o motor
+ * a inicia sozinho no primeiro instante em que ela puder começar (GDD §6.3).
+ */
+export type PlannedConstruction = {
+  building: BuildingId;
+  targetLevel: number;
+  autoStart: boolean;
+};
 
 /**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
@@ -40,7 +48,7 @@ export type PlannedConstruction = { building: BuildingId; targetLevel: number };
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 4;
+  schemaVersion: 5;
   seed: string;
   settings: GameSettings;
   /**
@@ -67,8 +75,13 @@ export type GameState = {
     workers: Record<ProductionBuildingId, number>;
     /** Nível de cada edifício; 0 é "ainda não construído" (o Celeiro e o Armazém nascem assim). */
     buildings: Record<BuildingId, number>;
-    /** Uma posição por fila de obra; `null` é fila livre. A v0.1 tem uma fila. */
+    /**
+     * Uma posição por fila de obra, sempre `balance.construction.queues` delas; `null` é fila
+     * livre. A segunda só recebe obra depois que o Salão chega ao nível que a abre (GDD §6.3):
+     * quantas estão abertas é derivado do nível do Salão, nunca guardado.
+     */
     constructionQueues: Array<Construction | null>;
+    /** As obras planejadas, na ordem em que o jogador as pôs: é a ordem do início automático. */
     planned: PlannedConstruction[];
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
     recruitmentQueue: Array<{ finishesAtMs: number }>;
@@ -107,8 +120,18 @@ export type Command =
     }
   | { commandId: string; type: 'startConstruction'; payload: { building: BuildingId } }
   | { commandId: string; type: 'cancelConstruction'; payload: { building: BuildingId } }
-  | { commandId: string; type: 'planConstruction'; payload: { building: BuildingId } }
+  | {
+      commandId: string;
+      type: 'planConstruction';
+      /** `autoStart` marca a planejada como "iniciar quando houver recursos"; sem ele, manual. */
+      payload: { building: BuildingId; autoStart?: boolean | undefined };
+    }
   | { commandId: string; type: 'unplanConstruction'; payload: { building: BuildingId } }
+  | {
+      commandId: string;
+      type: 'setAutoStart';
+      payload: { building: BuildingId; autoStart: boolean };
+    }
   | { commandId: string; type: 'recruitVillagers'; payload: { quantity: number } }
   | { commandId: string; type: 'renameSettlement'; payload: { name: string } };
 
@@ -121,6 +144,7 @@ export const REJECTION_CODES = [
   'NOT_ENOUGH_VILLAGERS',
   'ALREADY_UPGRADING',
   'QUEUE_BUSY',
+  'QUEUE_LOCKED',
   'MAX_LEVEL',
   'GATE_LOCKED',
   'EXCEEDS_STORAGE',
@@ -173,6 +197,58 @@ export type UpgradeView = {
    * edifícios de armazenamento trazem a frase; nos outros é `null`.
    */
   effect: string | null;
+};
+
+/**
+ * Por que uma obra planejada ainda não começou, e quando a espera acaba. A frase vem pronta e
+ * sem o prazo, que anda sozinho na tela: a interface mostra `text` e, quando há `etaSeconds`,
+ * acrescenta ": em 2 h 10 min".
+ */
+export type PlannedWaitingView = {
+  /**
+   * `upgrading`: o edifício tem outra obra antes desta. `gate`: falta o nível de outro
+   * edifício (quase sempre, o Salão). `capacity`: o custo não cabe no depósito. `resources`:
+   * falta recurso que a produção ainda junta. `queue`: os pedreiros estão ocupados.
+   */
+  reason: 'queue' | 'resources' | 'capacity' | 'gate' | 'upgrading';
+  /** "espera 120 de madeira"; "não cabe no Armazém: amplie-o". Minúscula, sem ponto final. */
+  text: string;
+  /**
+   * Segundos reais até a espera acabar, com as taxas de agora; `null` quando esperar não
+   * resolve (é preciso uma ordem do jogador) ou quando não há como prever.
+   */
+  etaSeconds: number | null;
+};
+
+type PlannedExtras = {
+  /** Marcada "iniciar quando houver recursos": o motor a inicia sozinho assim que puder. */
+  autoStart: boolean;
+  /** O que a obra espera para começar; `null` quando já pode ser iniciada (só nas manuais). */
+  waiting: PlannedWaitingView | null;
+};
+
+/**
+ * Uma obra planejada, na ordem da lista: o orçamento dela, como o de qualquer obra, e mais se é
+ * automática e o que ela espera. É um objeto só (e não uma interseção de dois), para ser o
+ * mesmo tipo que o protocolo infere do schema.
+ */
+export type PlannedUpgradeView = {
+  [Key in keyof (UpgradeView & PlannedExtras)]: (UpgradeView & PlannedExtras)[Key];
+};
+
+/** Uma obra em curso em uma das filas. */
+export type ActiveConstructionView = {
+  building: BuildingId;
+  label: string;
+  targetLevel: number;
+  secondsRemaining: number;
+  totalSeconds: number;
+  progressPercent: number;
+  /**
+   * O que volta ao estoque se a obra for cancelada agora, em unidades: `amount` é o que
+   * entra e `lost`, o que não cabe no depósito e se perde.
+   */
+  refund: Array<{ resource: ResourceId; label: string; amount: number; lost: number }>;
 };
 
 export type ObjectiveView = {
@@ -307,20 +383,19 @@ export type ViewState = {
     breakdown: string;
   }>;
   constructions: {
-    active: null | {
-      building: BuildingId;
-      label: string;
-      targetLevel: number;
-      secondsRemaining: number;
-      totalSeconds: number;
-      progressPercent: number;
-      /**
-       * O que volta ao estoque se a obra for cancelada agora, em unidades: `amount` é o que
-       * entra e `lost`, o que não cabe no depósito e se perde.
-       */
-      refund: Array<{ resource: ResourceId; label: string; amount: number; lost: number }>;
-    };
-    planned: UpgradeView[];
+    /** Atalho para a primeira obra em curso, na ordem das filas; `null` sem nenhuma. */
+    active: ActiveConstructionView | null;
+    /** Uma entrada por fila **aberta**, na ordem: a obra em curso, ou `null` se a fila está livre. */
+    queues: Array<ActiveConstructionView | null>;
+    /** Quantas filas de obras o feudo tem abertas agora. */
+    queuesUnlocked: number;
+    /**
+     * O que abre a próxima fila: "A segunda fila de obras abre com o Salão do Senhor no nível
+     * 4." `null` quando todas já estão abertas.
+     */
+    queuesNote: string | null;
+    /** As planejadas, na ordem da lista: é a ordem em que as automáticas são tentadas. */
+    planned: PlannedUpgradeView[];
     available: UpgradeView[];
   };
   recruitment: {

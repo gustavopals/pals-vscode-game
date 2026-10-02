@@ -4,6 +4,7 @@ import { nextSeasonBoundary, seasonAfter, seasonAt, seasonWithArticle } from './
 import { buildingWithArticle, constructionOf, upgradeQuote } from './construction';
 import { foodRunsOutIn, producerOf, woodRunsOutIn } from './economy';
 import { decimal, joinList, thousands } from './format';
+import { nextAutoStart, planCost } from './planned';
 import {
   fillsIn,
   isStorageFull,
@@ -63,9 +64,10 @@ function capBreakdown(state: GameState, resource: ResourceId): string | null {
 type RateChange = { atMs: number; before: string };
 
 /**
- * O próximo instante marcado em que o saldo de `resource` (ou o limite dele) muda: a virada de
- * estação, o fim de uma obra que mexe na produção ou no depósito, a chegada de um aldeão, a
- * comida ou a lenha acabando. A previsão de "cheio em" só vale até ele: depois, a taxa é outra,
+ * O próximo instante marcado em que o saldo de `resource` (ou o limite dele, ou o próprio
+ * estoque) muda: a virada de estação, o fim de uma obra que mexe na produção ou no depósito, a
+ * chegada de um aldeão, a comida ou a lenha acabando, e a planejada automática que vai começar
+ * sozinha e levar o recurso. A previsão de "cheio em" só vale até ele: depois, a conta é outra,
  * e a visão não adivinha (roadmap da v0.2, V2C-T2.4).
  */
 function nextRateChange(
@@ -113,6 +115,14 @@ function nextRateChange(
   const woodRunsOut = woodRunsOutIn(state, rates);
   if (woodRunsOut !== null) {
     changes.push({ atMs: now + woodRunsOut, before: 'de a lenha acabar' });
+  }
+  // A próxima obra que começa sozinha paga o custo com o que está juntando.
+  const autoStart = nextAutoStart(state, rates);
+  if (autoStart !== null && (planCost(autoStart.plan)[resource] ?? 0) > 0) {
+    changes.push({
+      atMs: now + autoStart.inMs,
+      before: `do início da obra ${ofBuilding(autoStart.plan.building)}`,
+    });
   }
   return changes.reduce<RateChange | null>(
     (first, change) => (first === null || change.atMs < first.atMs ? change : first),

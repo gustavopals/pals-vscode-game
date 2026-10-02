@@ -21,6 +21,7 @@ import {
   guardarLenha,
   obraMaisBarata,
   ocuparLivres,
+  planejarAutomaticas,
   recrutar,
 } from './policies';
 import { type Act, botOf, type Policy } from './types';
@@ -115,17 +116,21 @@ describe('um bot é uma lista de políticas', () => {
   });
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
+    // As obras vêm antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
+    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões.
     expect(strategyPolicies.economico).toEqual([
-      recrutar,
       obraMaisBarata,
       ampliarEstoque,
+      planejarAutomaticas,
+      recrutar,
       alocarPorDemanda,
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
-      recrutar,
       obraMaisBarata,
       ampliarEstoque,
+      planejarAutomaticas,
+      recrutar,
       comidaPrimeiro,
       ocuparLivres,
       guardarLenha,
@@ -135,6 +140,7 @@ describe('um bot é uma lista de políticas', () => {
       recrutar,
       obraMaisBarata,
       ampliarEstoque,
+      planejarAutomaticas,
       alocarPorDemanda,
       comidaPrimeiro,
       ocuparLivres,
@@ -144,6 +150,7 @@ describe('um bot é uma lista de políticas', () => {
       'recrutar',
       'obra mais barata',
       'ampliar o estoque',
+      'planejar automáticas',
       'alocar por demanda',
       'comida primeiro',
       'ocupar os livres',
@@ -725,6 +732,146 @@ describe('política "obra mais barata" com o inverno à vista', () => {
   });
 });
 
+describe('política "planejar automáticas"', () => {
+  type Upgrade = ViewState['constructions']['available'][number];
+  type Planned = ViewState['constructions']['planned'][number];
+  const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
+    perHour: 9,
+    winterTotal,
+    winterProduction,
+    stock,
+    missing: Math.max(0, winterTotal - winterProduction - stock),
+    text: 'A conta da lenha.',
+  });
+  /** O outono com a conta da lenha: a reserva é o que o inverno queima menos o que a Serraria repõe. */
+  const inAutumn = (view: ViewState, firewood: ReturnType<typeof forecast>): ViewState => ({
+    ...view,
+    calendar: {
+      ...view.calendar,
+      nextSeason: { ...view.calendar.nextSeason, id: 'winter', firewood },
+    },
+  });
+  /** Uma obra que custa `wood` de madeira e não pôde começar. */
+  const waiting = (
+    building: BuildingId,
+    wood: number,
+    blockedCode: Upgrade['blockedCode'] = 'INSUFFICIENT_RESOURCES',
+  ): Upgrade => ({
+    ...upgrade(building, {}, blockedCode),
+    cost: [{ resource: 'wood', label: 'Madeira', amount: wood, missing: wood }],
+  });
+  const stoneOnly = (building: BuildingId): Upgrade => ({
+    ...upgrade(building, {}, 'QUEUE_LOCKED'),
+    cost: [{ resource: 'stone', label: 'Pedra', amount: 50, missing: 0 }],
+  });
+  const inList = (entry: Upgrade, autoStart: boolean): Planned => ({
+    ...entry,
+    planned: true,
+    autoStart,
+    waiting: { reason: 'resources', text: 'espera madeira', etaSeconds: null },
+  });
+  const withPlanned = (view: ViewState, planned: Planned[]): ViewState => ({
+    ...view,
+    constructions: {
+      ...view.constructions,
+      planned,
+      available: [
+        ...planned.map((entry): Upgrade => ({ ...upgrade(entry.building, {}), planned: true })),
+        ...view.constructions.available,
+      ],
+    },
+  });
+  const decide = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    await planejarAutomaticas.run(view, act);
+    return orders;
+  };
+  const plan = (building: BuildingId) => ({
+    type: 'planConstruction',
+    payload: { building, autoStart: true },
+  });
+
+  it('planeja como automáticas as obras que não puderam começar, da mais barata à mais cara', async () => {
+    const view = withUpgrades(freshView(), [
+      waiting('townHall', 150),
+      waiting('housing', 80, 'QUEUE_LOCKED'),
+      waiting('quarry', 120),
+    ]);
+    expect(await decide(view)).toEqual([plan('housing'), plan('quarry'), plan('townHall')]);
+  });
+
+  it('a obra que espera o Salão ou um depósito maior também entra: começa quando destravar', async () => {
+    const view = withUpgrades(freshView(), [
+      waiting('farm', 128, 'GATE_LOCKED'),
+      waiting('townHall', 875, 'EXCEEDS_STORAGE'),
+    ]);
+    expect(await decide(view)).toEqual([plan('farm'), plan('townHall')]);
+  });
+
+  it('a obra que podia começar e ficou para trás entra também: com fila, começa na hora', async () => {
+    // Duas obras cabiam no estoque e a visita só iniciou uma: a outra não espera a próxima.
+    const view = withUpgrades(freshView(), [waiting('housing', 80, null)]);
+    expect(await decide(view)).toEqual([plan('housing')]);
+  });
+
+  it('não planeja de novo o que já está na lista, nem a obra que chegou ao teto', async () => {
+    const view = withPlanned(
+      withUpgrades(freshView(), [waiting('quarry', 120), waiting('goldMine', 120, 'MAX_LEVEL')]),
+      [inList(waiting('housing', 80), true)],
+    );
+    expect(await decide(view)).toEqual([plan('quarry')]);
+  });
+
+  it('os depósitos só entram quando valem a obra, e entram na frente', async () => {
+    const depots = [waiting('granary', 160, 'QUEUE_LOCKED'), waiting('warehouse', 160)];
+    const idle = withUpgrades(freshView(), [waiting('housing', 80), ...depots]);
+    expect(await decide(idle)).toEqual([plan('housing')]);
+    // A madeira cheia e indo ao chão: o Armazém vale a obra, e é o primeiro da lista.
+    const wasting: ViewState = {
+      ...idle,
+      resources: idle.resources.map((row) =>
+        row.id === 'wood' ? { ...row, full: true, wastingPerHour: 24 } : row,
+      ),
+    };
+    expect(await decide(wasting)).toEqual([plan('warehouse'), plan('housing')]);
+  });
+
+  it('com a lareira dependendo do estoque, nenhuma obra que gaste madeira fica automática', async () => {
+    // O inverno queima 300 e a Serraria repõe 100: a lareira precisa de 200 do estoque.
+    const view = inAutumn(
+      withPlanned(withUpgrades(freshView(), [waiting('quarry', 120), stoneOnly('goldMine')]), [
+        inList(waiting('housing', 80), true),
+        inList(stoneOnly('farm'), true),
+      ]),
+      forecast(300, 100, 500),
+    );
+    expect(await decide(view)).toEqual([
+      // A da lista que gasta madeira perde a marca; a que não gasta continua automática.
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: false } },
+      // Das novas, só a que não gasta madeira.
+      plan('goldMine'),
+    ]);
+  });
+
+  it('quando a Serraria sozinha cobre a lareira, marca de novo o que tinha desmarcado', async () => {
+    const view = inAutumn(
+      withPlanned(withUpgrades(freshView(), [waiting('quarry', 120)]), [
+        inList(waiting('housing', 80), false),
+      ]),
+      forecast(300, 400, 20),
+    );
+    expect(await decide(view)).toEqual([
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
+      plan('quarry'),
+    ]);
+  });
+
+  it('com tudo planejado e marcado, não dá ordem nenhuma', async () => {
+    const view = withPlanned(withUpgrades(freshView(), []), [inList(waiting('housing', 80), true)]);
+    expect(await decide(view)).toEqual([]);
+  });
+});
+
 describe('os bots jogando contra o motor', () => {
   /** Uma partida de verdade, com um `act` que aplica a ordem no motor e anota a resposta. */
   function game(timeScale: number) {
@@ -781,18 +928,64 @@ describe('os bots jogando contra o motor', () => {
     },
   );
 
-  it('o preguiçoso dá poucas ordens por visita: no máximo uma obra e um recrutamento', async () => {
+  it('o preguiçoso dá poucas ordens por visita: uma obra, um depósito, um recrutamento e a lista', async () => {
     const feudo = game(1);
+    const of = (session: Order[], type: Command['type']) =>
+      session.filter((order) => order.type === type);
     for (let visit = 0; visit < 7; visit += 1) {
       const before = feudo.orders.length;
       await strategies.preguicoso(feudo.view(), feudo.act);
       const session = feudo.orders.slice(before);
-      expect(session.filter((order) => order.type === 'startConstruction').length).toBeLessThan(2);
-      expect(session.filter((order) => order.type === 'recruitVillagers').length).toBeLessThan(2);
-      expect(session.length).toBeLessThanOrEqual(6);
+      // No máximo a obra mais barata e um depósito, iniciados por ordem.
+      expect(of(session, 'startConstruction').length).toBeLessThanOrEqual(2);
+      expect(of(session, 'recruitVillagers').length).toBeLessThan(2);
+      // A lista de planejadas: cada edifício entra uma vez, e ninguém é desplanejado.
+      const planned = of(session, 'planConstruction').map(
+        (order) => (order.payload as { building: string }).building,
+      );
+      expect(new Set(planned).size).toBe(planned.length);
+      expect(of(session, 'unplanConstruction')).toEqual([]);
+      // Fora a lista, a visita cabe em meia dúzia de ordens.
+      expect(session.length - planned.length).toBeLessThanOrEqual(6);
       feudo.pass(24);
     }
+    expect(feudo.refused).toEqual([]);
   });
+
+  it.each(['economico', 'preguicoso'] as const)(
+    'o %s deixa obras planejadas, e elas começam sozinhas antes da visita seguinte',
+    async (strategy) => {
+      const feudo = game(1);
+      const started: string[] = [];
+      for (let visit = 0; visit < 4; visit += 1) {
+        await strategies[strategy](feudo.view(), feudo.act);
+        const planned = feudo.view().constructions.planned;
+        // O que ficou na lista é automático e diz o que espera.
+        for (const entry of planned) {
+          expect(entry.autoStart).toBe(true);
+          expect(entry.waiting).not.toBeNull();
+        }
+        const levels = new Map(
+          feudo.view().constructions.available.map((entry) => [entry.building, entry.fromLevel]),
+        );
+        // Um dia real sem ninguém no feudo.
+        feudo.pass(24);
+        const after = feudo.view();
+        for (const entry of planned) {
+          const still = after.constructions.planned.some((row) => row.building === entry.building);
+          const level =
+            after.constructions.available.find((row) => row.building === entry.building)
+              ?.fromLevel ?? Infinity;
+          if (!still && level > (levels.get(entry.building) ?? 0)) {
+            started.push(entry.building);
+          }
+        }
+      }
+      expect(feudo.refused).toEqual([]);
+      // Em quatro dias, várias obras subiram de nível sem ordem nenhuma de início.
+      expect(started.length).toBeGreaterThanOrEqual(3);
+    },
+  );
 
   it.each([1, 3, 0.5])(
     'o econômico, no ritmo %d, acode a fome mesmo com a fazenda rendendo menos',

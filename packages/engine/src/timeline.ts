@@ -1,13 +1,25 @@
 import { nextDayBoundary } from './clock';
 import { foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { autoStartsIn } from './planned';
 import { storageFillsIn } from './storage';
 import type { GameState } from './types';
 
 /**
+ * Instante, em ms de jogo, em que a produção contínua completa o custo de uma planejada
+ * automática que só espera recurso: nele a obra começa sozinha (GDD §6.3). `null` quando nenhuma
+ * chega lá com as taxas de agora. Vale até o próximo evento que muda as taxas; `nextEventAt` o
+ * refaz a cada trecho.
+ */
+export function nextAutoStartAt(state: GameState, rates = netRates(state)): number | null {
+  const starts = autoStartsIn(state, rates);
+  return starts === null ? null : state.lastProcessedAt + starts;
+}
+
+/**
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
  * virada de dia (que cobre estação e ano), o momento em que a comida acaba, aquele em que a
- * madeira acaba na lareira ou aquele em que um estoque chega ao limite. Nunca devolve um
- * instante anterior a `lastProcessedAt`.
+ * madeira acaba na lareira, aquele em que um estoque chega ao limite ou aquele em que uma
+ * planejada automática junta o custo. Nunca devolve um instante anterior a `lastProcessedAt`.
  */
 export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
@@ -38,6 +50,11 @@ export function nextEventAt(state: GameState): number | null {
   const fills = storageFillsIn(state, rates);
   if (fills !== null) {
     candidates.push(now + fills);
+  }
+  // O instante em que a produção completa o custo de uma planejada automática.
+  const autoStart = nextAutoStartAt(state, rates);
+  if (autoStart !== null) {
+    candidates.push(autoStart);
   }
   return Math.max(now, Math.min(...candidates));
 }

@@ -43,10 +43,12 @@ export function describeReward({ reward, rewardText }: ObjectiveDef): string {
 
 /**
  * Conclui os objetivos ativos já cumpridos, credita a recompensa e revela os seguintes.
- * Roda depois de cada comando e de cada evento; nunca há mais de três ativos.
+ * Roda depois de cada comando e de cada evento; nunca há mais de três ativos. Devolve se
+ * concluiu algum: uma recompensa mexe no estoque, e quem espera recurso confere de novo.
  */
-export function evaluateObjectives(draft: GameState, atMs: number, events: GameEvent[]): void {
+export function evaluateObjectives(draft: GameState, atMs: number, events: GameEvent[]): boolean {
   const tracker = draft.objectives;
+  const completedBefore = tracker.completed.length;
   let completedSomething = true;
   while (completedSomething) {
     completedSomething = false;
@@ -87,4 +89,5 @@ export function evaluateObjectives(draft: GameState, atMs: number, events: GameE
       }
     }
   }
+  return tracker.completed.length > completedBefore;
 }

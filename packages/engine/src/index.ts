@@ -13,6 +13,7 @@ export { applyCommand } from './commands';
 export { deriveViewState, type ViewOptions } from './view';
 export { REJECTION_CODES } from './types';
 export type {
+  ActiveConstructionView,
   BuildingId,
   Command,
   CommandResult,
@@ -26,6 +27,8 @@ export type {
   GameState,
   ObjectiveView,
   PlannedConstruction,
+  PlannedUpgradeView,
+  PlannedWaitingView,
   ProductionBuildingId,
   Rejection,
   RejectionCode,

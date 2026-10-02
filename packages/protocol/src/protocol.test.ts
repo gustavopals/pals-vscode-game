@@ -72,7 +72,9 @@ describe('CommandSchema', () => {
     { commandId: uuid, type: 'startConstruction', payload: { building: 'townHall' } },
     { commandId: uuid, type: 'cancelConstruction', payload: { building: 'housing' } },
     { commandId: uuid, type: 'planConstruction', payload: { building: 'quarry' } },
+    { commandId: uuid, type: 'planConstruction', payload: { building: 'quarry', autoStart: true } },
     { commandId: uuid, type: 'unplanConstruction', payload: { building: 'quarry' } },
+    { commandId: uuid, type: 'setAutoStart', payload: { building: 'quarry', autoStart: false } },
     { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 3 } },
     { commandId: uuid, type: 'renameSettlement', payload: { name: 'Vau Alto' } },
   ];
@@ -114,6 +116,18 @@ describe('CommandSchema', () => {
       { commandId: uuid, type: 'recruitVillagers', payload: { quantity: 1 }, at: 5 },
     ],
     ['sem payload', { commandId: uuid, type: 'recruitVillagers' }],
+    [
+      'marca de automática que não é booleana',
+      { commandId: uuid, type: 'planConstruction', payload: { building: 'farm', autoStart: 1 } },
+    ],
+    [
+      'setAutoStart sem dizer se marca ou desmarca',
+      { commandId: uuid, type: 'setAutoStart', payload: { building: 'farm' } },
+    ],
+    [
+      'setAutoStart de um edifício inexistente',
+      { commandId: uuid, type: 'setAutoStart', payload: { building: 'keep', autoStart: true } },
+    ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);
   });
@@ -306,6 +320,93 @@ describe('ViewStateSchema', () => {
       spent_wood: 160,
       spent_stone: 80,
     });
+  });
+
+  it('aceita as filas de obras e as planejadas: a fila fechada, a espera de cada uma e o início sozinho', () => {
+    let state = createInitialState('pedra-alta', { ...settings, timeScale: 3 });
+    const events: EngineEvent[] = [];
+    const order = (type: Command['type'], payload: unknown) => {
+      const result = applyCommand(
+        state,
+        { commandId: uuid, type, payload } as Command,
+        state.lastProcessedAt,
+      );
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      events.push(...result.events);
+    };
+    order('setWorkers', { building: 'lumberMill', count: 3 });
+    order('setWorkers', { building: 'farm', count: 2 });
+    order('startConstruction', { building: 'housing' });
+    order('planConstruction', { building: 'quarry', autoStart: true });
+    order('planConstruction', { building: 'farm' });
+    const waiting = deriveViewState(state, 0);
+    expect(ViewStateSchema.safeParse(waiting).error).toBeUndefined();
+    expect(waiting.constructions).toMatchObject({
+      queuesUnlocked: 1,
+      queuesNote: 'A segunda fila abre com o Salão do Senhor Nv4.',
+      queues: [{ building: 'housing' }],
+    });
+    expect(waiting.constructions.active).toEqual(waiting.constructions.queues[0]);
+    expect(
+      waiting.constructions.planned.map((entry) => [
+        entry.building,
+        entry.autoStart,
+        entry.waiting,
+      ]),
+    ).toEqual([
+      // 50 de madeira a 24 por hora de jogo, vistos no ritmo 3: 2.500 segundos reais.
+      ['quarry', true, { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 2500 }],
+      // A Fazenda é manual e também espera madeira: 10 a 24 por hora de jogo, 500 segundos reais.
+      ['farm', false, { reason: 'resources', text: 'espera 10 de madeira', etaSeconds: 500 }],
+    ]);
+
+    // A espera sem a frase, com um motivo desconhecido ou com um campo a mais não é do contrato.
+    const [quarry] = waiting.constructions.planned;
+    const withWaiting = (changed: unknown) => ({
+      ...waiting,
+      constructions: {
+        ...waiting.constructions,
+        planned: [{ ...quarry, waiting: changed }],
+      },
+    });
+    expect(ViewStateSchema.safeParse(withWaiting(null)).success).toBe(true);
+    for (const bad of [
+      { reason: 'resources', etaSeconds: 1 },
+      { reason: 'weather', text: 'espera o sol', etaSeconds: null },
+      { reason: 'queue', text: 'espera', etaSeconds: null, since: 0 },
+    ]) {
+      expect(ViewStateSchema.safeParse(withWaiting(bad)).success).toBe(false);
+    }
+    const withoutMark = Object.fromEntries(
+      Object.entries(quarry ?? {}).filter(([key]) => key !== 'autoStart'),
+    );
+    expect(
+      ViewStateSchema.safeParse({
+        ...waiting,
+        constructions: { ...waiting.constructions, planned: [withoutMark] },
+      }).success,
+    ).toBe(false);
+
+    // A obra começa sozinha, e o evento passa pelo contrato de evento da API.
+    const advanced = advanceTo(state, 6 * 3_600_000);
+    state = advanced.state;
+    events.push(...advanced.events);
+    const started = events.find((event) => event.type === 'constructionAutoStarted');
+    expect(started).toMatchObject({
+      atMs: 125 * 60_000,
+      data: { building: 'quarry', level: 2, spent_wood: 120, spent_gold: 30 },
+    });
+    for (const [index, event] of events.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+    }
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('constructionAutoStarted');
+    const after = deriveViewState(state, state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
+    expect(after.constructions.queues).toEqual([null]);
   });
 
   it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {

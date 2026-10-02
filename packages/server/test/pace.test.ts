@@ -152,7 +152,14 @@ function atPace(view: ViewState, pace: number): ViewState {
   const down = (seconds: number) => Math.floor(seconds / pace);
   // As taxas da visão têm até três casas (milésimos); o produto em ponto flutuante é limpo aqui.
   const scaled = (rate: number) => Math.round(rate * pace * 1000) / 1000;
-  const { active } = view.constructions;
+  const underway = (work: ViewState['constructions']['active']) =>
+    work === null
+      ? null
+      : {
+          ...work,
+          secondsRemaining: up(work.secondsRemaining),
+          totalSeconds: up(work.totalSeconds),
+        };
   return {
     ...view,
     settlement: { ...view.settlement, paceLabel: PACE_LABELS[pace] ?? '' },
@@ -187,17 +194,20 @@ function atPace(view: ViewState, pace: number): ViewState {
       perWorkerPerHour: scaled(entry.perWorkerPerHour),
     })),
     constructions: {
-      active:
-        active === null
-          ? null
-          : {
-              ...active,
-              secondsRemaining: up(active.secondsRemaining),
-              totalSeconds: up(active.totalSeconds),
-            },
+      ...view.constructions,
+      active: underway(view.constructions.active),
+      queues: view.constructions.queues.map(underway),
       planned: view.constructions.planned.map((entry) => ({
         ...entry,
         durationSeconds: up(entry.durationSeconds),
+        // O prazo da espera de uma planejada é um prazo como os outros.
+        waiting:
+          entry.waiting === null
+            ? null
+            : {
+                ...entry.waiting,
+                etaSeconds: entry.waiting.etaSeconds === null ? null : up(entry.waiting.etaSeconds),
+              },
       })),
       available: view.constructions.available.map((entry) => ({
         ...entry,
