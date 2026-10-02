@@ -92,6 +92,48 @@ describe('antes de partir', () => {
     });
   });
 
+  describe('a fome e o frio que acabam sozinhos', () => {
+    // O feudo empobrecido logo depois da ordem certa: dois na Fazenda e um na Serraria, ainda
+    // em adaptação. O servidor já prevê o fim da fome e do frio em duas horas.
+    const { famine, winter } = impoverishedView;
+    if (famine === null || winter === null || winter.cold === null) {
+      throw new Error('O golden do feudo empobrecido deixou de ter fome e frio.');
+    }
+    const recovering: ViewState = {
+      ...impoverishedView,
+      population: { ...impoverishedView.population, free: 0 },
+      famine: { ...famine, endsInSeconds: 2 * HOUR },
+      winter: { ...winter, cold: { ...winter.cold, endsInSeconds: 2 * HOUR } },
+    };
+    const workers = { id: 'lords.openPanel', arg: 'fief', label: 'Ver os trabalhadores' };
+
+    it('não são urgentes nem pedem mais gente: dizem o prazo e levam aos trabalhadores', () => {
+      const [food, firewood] = beforeLeaving(recovering);
+      expect(food).toEqual({
+        id: 'food',
+        severity: 'warning',
+        text: 'A fome já dura 40 h, mas acaba sozinha em 2 h. Não é preciso mexer na Fazenda.',
+        command: workers,
+      });
+      expect(firewood).toEqual({
+        id: 'firewood',
+        severity: 'warning',
+        text: 'O frio já dura 4 h, mas passa sozinho em 2 h. Não é preciso mexer na Serraria.',
+        command: workers,
+      });
+    });
+
+    it('só a fome com fim previsto: o frio continua urgente, com o botão da Serraria', () => {
+      const onlyFood: ViewState = { ...recovering, winter };
+      const [food, firewood] = beforeLeaving(onlyFood);
+      expect(food?.severity).toBe('warning');
+      expect(firewood).toMatchObject({
+        severity: 'danger',
+        command: { id: 'lords.allocateWorkers', arg: 'lumberMill' },
+      });
+    });
+  });
+
   describe('comida, do outro lado da virada de estação', () => {
     const farm = { id: 'lords.allocateWorkers', arg: 'farm', label: 'Alocar na Fazenda' };
     /** A comida cresce com a estação de agora: o prazo da linha não tem o que dizer. */

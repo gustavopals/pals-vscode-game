@@ -664,7 +664,17 @@ export type ViewState = {
      */
     moraleNote: string | null;
   };
-  famine: null | { sinceMs: number; secondsElapsed: number; text: string };
+  famine: null | {
+    sinceMs: number;
+    secondsElapsed: number;
+    /**
+     * Segundos reais até a fome acabar sozinha, sem nenhuma ordem: quem ainda se adapta passa a
+     * render inteiro, ou a virada do dia muda a moral. `null` quando ela só acaba com uma ordem
+     * do jogador (ou quando a estação vira antes): o texto diz o porquê quando há prazo.
+     */
+    endsInSeconds: number | null;
+    text: string;
+  };
   morale: MoraleView;
   /**
    * A estação da lenha: `null` fora dela. `cold` é o frio, aberto quando a madeira acabou; o
@@ -675,7 +685,12 @@ export type ViewState = {
     firewoodPerHour: number;
     /** A conta do que falta queimar até a estação virar. */
     firewood: FirewoodView;
-    cold: null | { secondsElapsed: number; text: string };
+    cold: null | {
+      secondsElapsed: number;
+      /** Segundos reais até o frio passar sozinho, como em `famine.endsInSeconds`; `null` se não passa. */
+      endsInSeconds: number | null;
+      text: string;
+    };
   };
   objectives: ObjectiveView[];
   /** Vazio na v0.1: cartas e encruzilhadas chegam nas versões seguintes. */

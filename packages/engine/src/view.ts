@@ -36,6 +36,7 @@ import { describeReward, objectiveProgress } from './objectives';
 import { paceLabel } from './pace';
 import { planCost } from './planned';
 import { plannedWaiting, queuesNote } from './plannedView';
+import { famineView } from './scarcityView';
 import {
   freeVillagers,
   housingCapacity,
@@ -298,7 +299,7 @@ export function deriveViewState(
   // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
   // e a da lenha da estação que vem.
   const atNextSeason = stateAtNextSeason(state, forecast);
-  const firewood = { timeScale, nextMorale, rates, forecast };
+  const firewood = { timeScale, nextMorale, rates, forecast, outlook };
   const firewoodAhead = firewoodForecast(state, firewood, atNextSeason);
 
   // Uma entrada por fila aberta; a fila que o Salão ainda não abriu não aparece.
@@ -413,15 +414,8 @@ export function deriveViewState(
       // Na fome ninguém se junta ao feudo: não há ordem cujo custo mostrar.
       moraleNote: settlement.famine === null ? recruitmentMoraleNote(state, maxQuantity) : null,
     },
-    famine:
-      settlement.famine === null
-        ? null
-        : {
-            sinceMs: settlement.famine.sinceMs,
-            secondsElapsed: realSecondsFloor(now - settlement.famine.sinceMs, timeScale),
-            text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
-          },
-    morale: moraleView(state, atTurn, timeScale),
+    famine: famineView(state, timeScale, outlook),
+    morale: moraleView(state, atTurn, timeScale, outlook),
     winter: winterView(state, firewood),
     objectives: objectivesView(state),
     pendingDecisions: [],

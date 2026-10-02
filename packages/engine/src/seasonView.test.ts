@@ -442,6 +442,7 @@ describe('inverno na visão', () => {
       },
       cold: {
         secondsElapsed: 50 * 60,
+        endsInSeconds: null,
         text: 'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 0/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 149 de madeira para atravessar o resto do Inverno.',
       },
     });

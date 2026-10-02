@@ -64,6 +64,22 @@ function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'
       };
 }
 
+/** "na Fazenda", "na Serraria": onde trabalha quem produz `resource`. */
+function atProducer(view: ViewState, resource: Row['id']): string {
+  const producer = view.workers.find((row) => row.resource === resource);
+  return producer === undefined ? 'nos trabalhadores' : `na ${producer.label}`;
+}
+
+/**
+ * Para a fome e o frio que o servidor já prevê acabarem sozinhos: não há ordem a dar, e o botão
+ * leva ao feudo, onde o aviso diz o porquê e o painel mostra quem ainda se adapta.
+ */
+const SEE_WORKERS: LeavingItem['command'] = {
+  id: 'lords.openPanel',
+  arg: 'fief',
+  label: 'Ver os trabalhadores',
+};
+
 /**
  * A fome em andamento, ou a comida que acaba antes de um dia. O prazo atravessa a virada de
  * estação (`runsOutIn`): a comida que cresce no outono e acaba no começo do inverno entra aqui,
@@ -76,10 +92,21 @@ function foodItem(view: ViewState): LeavingItem | null {
   }
   const command = allocateTo(view, 'food');
   if (view.famine !== null) {
+    const lasts = `A fome já dura ${formatApprox(view.famine.secondsElapsed)}`;
+    if (view.famine.endsInSeconds !== null) {
+      // O servidor já prevê o fim: quem chegou à Fazenda ainda se adapta. Pedir mais gente
+      // agora só abriria outra adaptação; o item avisa e leva a quem está trabalhando.
+      return {
+        id: 'food',
+        severity: 'warning',
+        text: `${lasts}, mas acaba sozinha em ${formatApprox(view.famine.endsInSeconds)}. Não é preciso mexer ${atProducer(view, 'food')}.`,
+        command: SEE_WORKERS,
+      };
+    }
     return {
       id: 'food',
       severity: 'danger',
-      text: `A fome já dura ${formatApprox(view.famine.secondsElapsed)}: saldo de comida de ${formatRate(food.perHour)}.`,
+      text: `${lasts}: saldo de comida de ${formatRate(food.perHour)}.`,
       command,
     };
   }
@@ -148,10 +175,19 @@ function firewoodItem(view: ViewState): LeavingItem | null {
         ? ` e faltam ${formatNumber(winter.firewood.missing)} de madeira para o resto da estação`
         : '';
     if (winter.cold !== null) {
+      const lasts = `O frio já dura ${formatApprox(winter.cold.secondsElapsed)}`;
+      if (winter.cold.endsInSeconds !== null) {
+        return {
+          id: 'firewood',
+          severity: 'warning',
+          text: `${lasts}, mas passa sozinho em ${formatApprox(winter.cold.endsInSeconds)}. Não é preciso mexer ${atProducer(view, 'wood')}.`,
+          command: SEE_WORKERS,
+        };
+      }
       return {
         id: 'firewood',
         severity: 'danger',
-        text: `O frio já dura ${formatApprox(winter.cold.secondsElapsed)}: a lareira pede ${hearth}${missing}.`,
+        text: `${lasts}: a lareira pede ${hearth}${missing}.`,
         command,
       };
     }

@@ -6,7 +6,9 @@ import { formatApprox } from './format';
 import { Icon } from './shared';
 
 /**
- * A fome. Além do que ela custa agora, um segundo aviso diz o que as próximas viradas do dia vão
+ * A fome. O conselho de pôr gente na Fazenda só vale enquanto o servidor não prevê o fim dela:
+ * com quem já chegou ao ofício em adaptação, a frase do servidor diz o prazo, e pedir mais gente
+ * seria mandar o jogador desfazer o que acabou de acertar. Além do que ela custa agora, um segundo aviso diz o que as próximas viradas do dia vão
  * fazer com o povo (`notes`, as frases de `morale.notes`: em quanto tempo alguém deserta, a
  * chance de alguém partir, o piso que segura os últimos), para a perda ser anunciada antes de
  * acontecer. Esse segundo aviso não é região viva: os prazos dele mudam a cada leitura do
@@ -21,8 +23,8 @@ export function FamineBanner(props: { famine: ViewState['famine']; notes?: reado
     <>
       <div class="banner banner-warning" role="status">
         <div>
-          <Icon name="warning" /> <strong>Fome em andamento.</strong> {props.famine.text} Ponha
-          aldeões na Fazenda.
+          <Icon name="warning" /> <strong>Fome em andamento.</strong> {props.famine.text}
+          {props.famine.endsInSeconds === null ? ' Ponha aldeões na Fazenda.' : null}
         </div>
       </div>
       {notes.length > 0 ? (
@@ -39,6 +41,7 @@ export function FamineBanner(props: { famine: ViewState['famine']; notes?: reado
 /**
  * O frio (GDD §4.1): a lenha acabou no inverno. Tem ícone e texto próprios, para não se
  * confundir com a fome; o que ele custa, a conta da lenha e quando passa vêm prontos do servidor.
+ * Como na fome, o conselho de pôr gente na Serraria sai quando o servidor já prevê o fim.
  */
 export function ColdBanner(props: { winter: ViewState['winter'] }) {
   const cold = props.winter?.cold ?? null;
@@ -48,8 +51,8 @@ export function ColdBanner(props: { winter: ViewState['winter'] }) {
   return (
     <div class="banner banner-warning" role="status">
       <div>
-        <Icon name="flame" /> <strong>Frio em andamento.</strong> {cold.text} Ponha aldeões na
-        Serraria.
+        <Icon name="flame" /> <strong>Frio em andamento.</strong> {cold.text}
+        {cold.endsInSeconds === null ? ' Ponha aldeões na Serraria.' : null}
       </div>
     </div>
   );

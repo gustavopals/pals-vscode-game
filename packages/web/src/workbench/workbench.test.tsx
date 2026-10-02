@@ -32,7 +32,12 @@ import { Workbench } from './Workbench';
 const building = withQueues(goldenView, [activeConstruction()]);
 const starving: ViewState = {
   ...goldenView,
-  famine: { sinceMs: 0, secondsElapsed: 60, text: 'Fome: a produção cai para 75%.' },
+  famine: {
+    sinceMs: 0,
+    secondsElapsed: 60,
+    endsInSeconds: null,
+    text: 'Fome: a produção cai para 75%.',
+  },
 };
 
 const signedOut: AccountState = { kind: 'signedOut' };

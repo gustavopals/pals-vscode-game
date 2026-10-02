@@ -639,7 +639,7 @@ describe('política "guardar lenha"', () => {
       winter: {
         firewoodPerHour: count.perHour,
         firewood: count,
-        cold: cold ? { secondsElapsed: 600, text: 'Frio.' } : null,
+        cold: cold ? { secondsElapsed: 600, endsInSeconds: null, text: 'Frio.' } : null,
       },
     };
   }

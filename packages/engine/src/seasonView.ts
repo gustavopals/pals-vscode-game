@@ -12,12 +12,13 @@ import {
 } from './clock';
 import { buildingWithArticle, ofBuilding } from './construction';
 import { handsAt } from './craft';
-import { type CraftForecast, craftForecast, inMs } from './craftProjection';
+import { type CraftForecast, craftForecast, type CraftOutlook, inMs } from './craftProjection';
 import { firewoodRate, foodRunsOutIn, netRates, producerOf, productionRate } from './economy';
 import { decimal, durationText, joinList, plural, sentenceCase, thousands } from './format';
 import { planCost } from './planned';
 import { planStartsIn } from './plannedView';
 import { settleScarcity } from './scarcity';
+import { endsInSeconds, reliefSentence } from './scarcityView';
 import { cloneState } from './state';
 import type {
   BuildingId,
@@ -165,6 +166,8 @@ export type FirewoodContext = {
   nextMorale: number;
   rates: Record<ResourceId, number>;
   forecast: CraftForecast;
+  /** O que a visão já previu: daqui sai o fim do frio, quando ele passa sozinho. */
+  outlook: CraftOutlook;
 };
 
 /**
@@ -509,7 +512,7 @@ export function winterView(
 ): {
   firewoodPerHour: number;
   firewood: FirewoodView;
-  cold: null | { secondsElapsed: number; text: string };
+  cold: null | { secondsElapsed: number; endsInSeconds: number | null; text: string };
 } | null {
   const now = state.lastProcessedAt;
   const season = seasonAt(now);
@@ -536,15 +539,23 @@ export function winterView(
     numbers.missing > 0
       ? ` Faltam ${numbers.missing} de ${wood} para atravessar o resto ${ofSeason(season)}.`
       : '';
+  const { coldEndsIn } = context.outlook;
+  const balanceNow = `A lareira pede ${decimal(numbers.perHour)}/h e ${count.lumberMill} entrega ${decimal(produced)}/h`;
+  // Quando o frio passa sozinho (o lenhador que ainda se adapta vai render inteiro), a frase
+  // diz isso e o prazo, em vez de pedir a madeira que já está a caminho.
+  const ending =
+    coldEndsIn === null
+      ? `${balanceNow}: o frio passa quando sobrar ${wood}, ou ${inSeason(next)}.`
+      : `${balanceNow}. ${reliefSentence(state, 'cold', coldEndsIn, timeScale)}`;
   return {
     firewoodPerHour: numbers.perHour,
     firewood,
     cold: {
       secondsElapsed: realSecondsFloor(now - cold.sinceMs, timeScale),
+      endsInSeconds: endsInSeconds(coldEndsIn, timeScale),
       text:
         `Frio: sem lenha, a produção de todo o feudo cai para ${Math.round((num * 100) / den)}%. ` +
-        `A lareira pede ${decimal(numbers.perHour)}/h e ${count.lumberMill} entrega ${decimal(produced)}/h: ` +
-        `o frio passa quando sobrar ${wood}, ou ${inSeason(next)}.${shortfall}`,
+        `${ending}${shortfall}`,
     },
   };
 }

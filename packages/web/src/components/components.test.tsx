@@ -487,7 +487,12 @@ describe('aba Feudo', () => {
     const starving = fief({
       view: {
         ...view,
-        famine: { sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' },
+        famine: {
+          sinceMs: 0,
+          secondsElapsed: 10,
+          endsInSeconds: null,
+          text: 'Fome: a produção cai para 75%.',
+        },
       },
     });
     expect(starving).toContain('Fome em andamento.');
@@ -738,7 +743,10 @@ describe('aba Feudo: estações, lenha e frio', () => {
         winter:
           coldView.winter === null
             ? null
-            : { ...coldView.winter, cold: { secondsElapsed: 60, text: 'Frase do servidor.' } },
+            : {
+                ...coldView.winter,
+                cold: { secondsElapsed: 60, endsInSeconds: null, text: 'Frase do servidor.' },
+              },
       },
     });
     expect(text(banner(other, 'Frio em andamento.') ?? '')).toBe(
@@ -759,7 +767,12 @@ describe('aba Feudo: estações, lenha e frio', () => {
     const both = fief({
       view: {
         ...coldView,
-        famine: { sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' },
+        famine: {
+          sinceMs: 0,
+          secondsElapsed: 10,
+          endsInSeconds: null,
+          text: 'Fome: a produção cai para 75%.',
+        },
       },
     });
     const famine = banner(both, 'Fome em andamento.') ?? '';
@@ -771,6 +784,40 @@ describe('aba Feudo: estações, lenha e frio', () => {
     expect(chill).not.toContain('codicon-warning');
     expect(text(famine)).toContain('Ponha aldeões na Fazenda.');
     expect(text(chill)).toContain('Ponha aldeões na Serraria.');
+  });
+
+  it('quando o servidor prevê o fim da fome e do frio, os avisos não mandam pôr mais gente', () => {
+    // Quem chegou ao ofício ainda se adapta: a frase do servidor já diz o prazo e o porquê.
+    const { winter } = coldView;
+    if (winter === null || winter.cold === null) {
+      throw new Error('O golden do frio deixou de ter frio.');
+    }
+    const recovering = fief({
+      view: {
+        ...coldView,
+        famine: {
+          sinceMs: 0,
+          secondsElapsed: 10,
+          endsInSeconds: 7200,
+          text: 'Fome: a produção cai para 75%. Os lavradores ainda se adaptam: em 2 h rendem inteiro, a comida volta a sobrar e a fome acaba. Não é preciso mexer neles.',
+        },
+        winter: {
+          ...winter,
+          cold: {
+            ...winter.cold,
+            endsInSeconds: 7200,
+            text: 'Frio: a Serraria entrega 1,44/h. Os lenhadores ainda se adaptam: em 2 h rendem inteiro e o frio passa. Não é preciso mexer neles.',
+          },
+        },
+      },
+    });
+    expect(text(banner(recovering, 'Fome em andamento.') ?? '')).toBe(
+      'Fome em andamento. Fome: a produção cai para 75%. Os lavradores ainda se adaptam: em 2 h rendem inteiro, a comida volta a sobrar e a fome acaba. Não é preciso mexer neles.',
+    );
+    expect(text(banner(recovering, 'Frio em andamento.') ?? '')).toBe(
+      'Frio em andamento. Frio: a Serraria entrega 1,44/h. Os lenhadores ainda se adaptam: em 2 h rendem inteiro e o frio passa. Não é preciso mexer neles.',
+    );
+    expect(recovering).not.toContain('Ponha aldeões');
   });
 
   it('as obras dizem, uma vez só, por que o prazo é maior no inverno', () => {
@@ -1779,7 +1826,12 @@ describe('aba Feudo: moral (GDD §5.7)', () => {
     ];
     const page = html(
       <FamineBanner
-        famine={{ sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' }}
+        famine={{
+          sinceMs: 0,
+          secondsElapsed: 10,
+          endsInSeconds: null,
+          text: 'Fome: a produção cai para 75%.',
+        }}
         notes={notes}
       />,
     );
@@ -1800,7 +1852,12 @@ describe('aba Feudo: moral (GDD §5.7)', () => {
     // Sem fome, nenhum dos dois; com fome e sem frases, só o alarme.
     expect(proud).not.toContain('O povo e a fome.');
     expect(
-      html(<FamineBanner famine={{ sinceMs: 0, secondsElapsed: 10, text: 'Fome.' }} notes={[]} />),
+      html(
+        <FamineBanner
+          famine={{ sinceMs: 0, secondsElapsed: 10, endsInSeconds: null, text: 'Fome.' }}
+          notes={[]}
+        />,
+      ),
     ).not.toContain('O povo e a fome.');
   });
 

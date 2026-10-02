@@ -58,7 +58,12 @@ const HOUR = 3_600_000;
 const building = withQueues(farmers, [activeConstruction()]);
 const starving: ViewState = {
   ...building,
-  famine: { sinceMs: 0, secondsElapsed: 60, text: 'Fome: a produção cai para 75%.' },
+  famine: {
+    sinceMs: 0,
+    secondsElapsed: 60,
+    endsInSeconds: null,
+    text: 'Fome: a produção cai para 75%.',
+  },
 };
 
 const account: AccountState = {

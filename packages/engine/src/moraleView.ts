@@ -2,6 +2,7 @@ import { balance, buildings } from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary } from './clock';
 import { buildingWithArticle } from './construction';
+import type { CraftOutlook } from './craftProjection';
 import { moraleRatio, producerOf } from './economy';
 import { decimal, durationText, plural, sentenceCase, thousands } from './format';
 import {
@@ -184,6 +185,9 @@ function reserveBeyondStorage(state: GameState, neededMilli: number): string {
   return ` ${where} só guarda ${thousands(cap / MILLI)}: ${remedy}.`;
 }
 
+/** Em quantos ms de jogo a fome e o frio abertos acabam sozinhos; `null` quando não acabam. */
+type Relief = Pick<CraftOutlook, 'famineEndsIn' | 'coldEndsIn'>;
+
 /** O que pesa na moral, do ponto de vista de quem pode agir: a fome e os dias dela são um peso só. */
 type Burden =
   | { kind: 'famine' | 'cold' | 'housingFull'; amount: number }
@@ -223,6 +227,7 @@ function adviceText(
   terms: readonly MoraleTerm[],
   reserve: MoraleView['foodReserve'],
   timeScale: number,
+  relief: Relief,
 ): string | null {
   const heaviest = burdensOf(terms).reduce<Burden | null>(
     (worst, burden) => (worst === null || burden.amount < worst.amount ? burden : worst),
@@ -232,13 +237,23 @@ function adviceText(
     return reserve.holdsAtNextTurn ? null : reserve.text;
   }
   const weight = `(−${Math.abs(heaviest.amount)})`;
+  // Quando a fome ou o frio já acabam sozinhos (quem chegou ao ofício ainda se adapta), o
+  // conselho diz o prazo: mandar mais gente abriria outra leva de adaptação à toa.
+  const alone = (endsInMs: number) =>
+    `em ${durationText(realSecondsCeil(endsInMs, timeScale))}, sem ninguém mudar de ofício, e a moral sobe na virada seguinte.`;
   switch (heaviest.kind) {
     case 'famine':
+      if (relief.famineEndsIn !== null) {
+        return `O que mais pesa é a fome ${weight}. Ela acaba sozinha ${alone(relief.famineEndsIn)}`;
+      }
       return (
         `O que mais pesa é a fome ${weight}. Ponha mais gente ${atProducerOf('food')}: ` +
         'quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.'
       );
     case 'cold':
+      if (relief.coldEndsIn !== null) {
+        return `O que mais pesa é o frio ${weight}. Ele passa sozinho ${alone(relief.coldEndsIn)}`;
+      }
       return (
         `O que mais pesa é o frio ${weight}. Ponha gente ${atProducerOf('wood')}: ` +
         'com lenha na lareira o frio passa, e a moral sobe na virada seguinte.'
@@ -351,10 +366,16 @@ export function recruitmentMoraleNote(state: GameState, maxQuantity: number): st
  *
  * `atTurn` é o estado como essa virada vai encontrá-lo se nenhuma ordem chegar antes
  * (`stateAtNextMoraleTurn`): a conta sai dele, e por isso é exatamente a que a virada vai
- * fazer. A comida que o consumo leva embora antes da virada, o aldeão que chega e enche as
+ * fazer. `relief` diz se a fome e o frio abertos acabam sozinhos, e quando: o conselho não
+ * manda pôr gente onde já há gente que basta. A comida que o consumo leva embora antes da virada, o aldeão que chega e enche as
  * casas, a fome que abre no caminho: tudo já está na conta, antes de acontecer.
  */
-export function moraleView(state: GameState, atTurn: GameState, timeScale: number): MoraleView {
+export function moraleView(
+  state: GameState,
+  atTurn: GameState,
+  timeScale: number,
+  relief: Relief,
+): MoraleView {
   const now = state.lastProcessedAt;
   const nextTurn = nextDayBoundary(now);
   const { morale, moraleEffects } = state.settlement;
@@ -379,7 +400,7 @@ export function moraleView(state: GameState, atTurn: GameState, timeScale: numbe
     nextUpdateInSeconds: realSecondsCeil(nextTurn - now, timeScale),
     next,
     nextText: nextText(morale, next),
-    advice: adviceText(state, terms, reserve, timeScale),
+    advice: adviceText(state, terms, reserve, timeScale, relief),
     foodReserve: reserve,
     notes: populationNotes(atTurn, now, next, timeScale),
     effects: moraleEffects.map((effect) => ({

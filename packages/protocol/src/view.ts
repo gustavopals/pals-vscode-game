@@ -366,7 +366,13 @@ export const ViewStateSchema = z.strictObject({
     moraleNote: z.string().nullable(),
   }),
   famine: z
-    .strictObject({ sinceMs: z.number(), secondsElapsed: z.number(), text: z.string() })
+    .strictObject({
+      sinceMs: z.number(),
+      secondsElapsed: z.number(),
+      /** Segundos reais até a fome acabar sozinha; `null` quando só acaba com uma ordem. */
+      endsInSeconds: z.number().nullable(),
+      text: z.string(),
+    })
     .nullable(),
   morale: MoraleSchema,
   /** A estação da lenha; `null` fora dela. `cold` é o frio, aberto quando a madeira acabou. */
@@ -374,7 +380,14 @@ export const ViewStateSchema = z.strictObject({
     .strictObject({
       firewoodPerHour: z.number(),
       firewood: FirewoodSchema,
-      cold: z.strictObject({ secondsElapsed: z.number(), text: z.string() }).nullable(),
+      cold: z
+        .strictObject({
+          secondsElapsed: z.number(),
+          /** Segundos reais até o frio passar sozinho; `null` quando só passa com uma ordem. */
+          endsInSeconds: z.number().nullable(),
+          text: z.string(),
+        })
+        .nullable(),
     })
     .nullable(),
   objectives: z.array(ObjectiveSchema),

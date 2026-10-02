@@ -7,7 +7,15 @@ import {
   nextAdaptationEndAt,
   tallyCraftExperience,
 } from './craft';
-import { applyContinuous, firewoodRate, foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { coldRelief } from './cold';
+import {
+  applyContinuous,
+  firewoodRate,
+  foodCoversConsumption,
+  foodRunsOutIn,
+  netRates,
+  woodRunsOutIn,
+} from './economy';
 import { moraleAt } from './morale';
 import { nextAutoStart, planCost } from './planned';
 import type { GameState, PlannedConstruction, ResourceId } from './types';
@@ -75,12 +83,35 @@ function fork(state: GameState): GameState {
 }
 
 /**
+ * Encerra, na cópia, a fome e o frio que as taxas dela já não sustentam: é o que `settleScarcity`
+ * faz no motor ao fim de cada instante com eventos, sem a Crônica nem a fila de recrutamento.
+ * Só encerra: o começo de uma escassez é onde a projeção para. A fome vem antes do frio, e a
+ * conferência se repete, porque o fim de uma tira a penalidade que segurava a outra.
+ */
+function relieveScarcity(draft: GameState): void {
+  const { settlement } = draft;
+  for (let moved = true; moved;) {
+    moved = false;
+    if (settlement.famine !== null && foodCoversConsumption(draft)) {
+      settlement.famine = null;
+      moved = true;
+    }
+    if (settlement.cold !== null && coldRelief(draft) !== null) {
+      settlement.cold = null;
+      moved = true;
+    }
+  }
+}
+
+/**
  * Os trechos em que o ofício e a moral, sozinhos, mudam as taxas: a cada virada de dia a
  * experiência dos edifícios sobe ou cai e a moral é recalculada, e quem trocou de ofício passa
  * a render inteiro quando a adaptação termina. É a conta de `advanceTo`, trecho a trecho, sobre
  * cópias, só com a produção contínua e esses eventos. O relógio das cópias não anda: a estação
  * é a de agora, e nada mais acontece nelas (nem obras, nem aldeões, nem ordens, nem sorteios:
- * a previsão não conta com o colono que pode chegar nem com o aldeão que pode partir).
+ * a previsão não conta com o colono que pode chegar nem com o aldeão que pode partir). A fome e
+ * o frio abertos acabam na cópia no instante em que acabariam no motor (`relieveScarcity`): dali
+ * em diante as taxas já não levam a penalidade.
  */
 function stretchesOf(state: GameState): Stretch[] {
   const stretches: Stretch[] = [];
@@ -112,6 +143,8 @@ function stretchesOf(state: GameState): Stretch[] {
       next.settlement.morale = moraleAt(next, step);
     }
     finishAdaptations(next, step);
+    // Quem passou a render inteiro, ou a moral que subiu, pode encerrar a fome e o frio.
+    relieveScarcity(next);
     current = next;
     at = step;
   }
@@ -197,11 +230,18 @@ export function inMs(value: number | null): Deadline | null {
  *
  * O prazo da lenha conta com a madeira que a próxima obra automática leva quando começar: o
  * motor a inicia sozinho, sem olhar a lareira (GDD §6.3).
+ *
+ * `famineEndsIn` e `coldEndsIn` são o fim da fome e do frio abertos, quando eles acabam sozinhos
+ * antes de a estação virar: quem ainda se adapta passa a render inteiro, ou a virada do dia muda
+ * a moral ou a experiência, e a produção volta a cobrir as bocas ou a lareira. `null` sem fome
+ * (ou sem frio) e quando, sem uma ordem do jogador, não acabam.
  */
 export type CraftOutlook = {
   foodRunsOutIn: number | null;
   woodRunsOutIn: number | null;
   autoStart: { plan: PlannedConstruction; inMs: number } | null;
+  famineEndsIn: number | null;
+  coldEndsIn: number | null;
 };
 
 type AutoStart = NonNullable<CraftOutlook['autoStart']>;
@@ -249,7 +289,14 @@ function woodRunsOutAfter(
 
 export function craftOutlook(state: GameState, forecast: CraftForecast): CraftOutlook {
   const autoStart = forecast.find(nextAutoStart);
+  // A projeção anda na estação de agora: além da virada, a conta é outra.
+  const seasonEnd = nextSeasonBoundary(state.lastProcessedAt);
+  const { famine, cold } = state.settlement;
+  const over = (ended: (draft: GameState) => boolean): number | null =>
+    forecast.find((draft) => (ended(draft) ? { inMs: 0 } : null), seasonEnd)?.inMs ?? null;
   return {
+    famineEndsIn: famine === null ? null : over((draft) => draft.settlement.famine === null),
+    coldEndsIn: cold === null ? null : over((draft) => draft.settlement.cold === null),
     foodRunsOutIn: forecast.find((draft, rates) => inMs(foodRunsOutIn(draft, rates)))?.inMs ?? null,
     woodRunsOutIn: woodRunsOutAfter(
       state,

@@ -896,6 +896,84 @@ describe('feudo empobrecido (roadmap V2C-T4.6): há caminho de volta', () => {
     },
   );
 
+  it('entre a ordem certa e o fim da adaptação, a tela diz que a fome e o frio acabam sozinhos, e quando', () => {
+    const start = ruined();
+    const now = start.lastProcessedAt;
+    // Antes da ordem não há o que prever: a tela manda pôr gente na Fazenda.
+    expect(view(start).famine).toEqual({
+      sinceMs: WINTER - 18 * DAY,
+      secondsElapsed: (20 * DAY + 20 * MINUTE) / 1000,
+      endsInSeconds: null,
+      text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
+    });
+    expect(view(start).winter?.cold?.endsInSeconds).toBeNull();
+
+    const ordered = play(start, [
+      command('setWorkers', { building: 'farm', count: 2 }),
+      command('setWorkers', { building: 'lumberMill', count: 1 }),
+    ]).state;
+    const derived = view(ordered);
+    // Os três acabaram de chegar ao ofício e rendem metade: a comida e a madeira ainda caem.
+    expect(derived.resources.find((row) => row.id === 'food')?.perHour).toBe(-1.2);
+    expect(derived.resources.find((row) => row.id === 'wood')?.perHour).toBe(-0.1);
+    expect(derived.population.free).toBe(0);
+    // Mas a adaptação termina em um dia de jogo (2 h), e com ela a fome e o frio: é o que o
+    // motor faz (teste acima), e a tela já diz, em vez de pedir mais gente.
+    expect(derived.famine).toMatchObject({
+      endsInSeconds: 7200,
+      text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar. Os lavradores ainda se adaptam: em 2 h rendem inteiro, a comida volta a sobrar e a fome acaba. Não é preciso mexer neles.',
+    });
+    expect(derived.winter?.cold).toMatchObject({
+      endsInSeconds: 7200,
+      text: 'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 1,5/h e a Serraria entrega 1,44/h. Os lenhadores ainda se adaptam: em 2 h rendem inteiro e o frio passa. Não é preciso mexer neles.',
+    });
+    expect(derived.morale.advice).toBe(
+      'O que mais pesa é a fome (−62). Ela acaba sozinha em 2 h, sem ninguém mudar de ofício, e a moral sobe na virada seguinte.',
+    );
+    const relieved = advanceTo(ordered, now + DAY);
+    expect(relieved.state.settlement.famine).toBeNull();
+    expect(relieved.state.settlement.cold).toBeNull();
+    expect(advanceTo(ordered, now + DAY - 1).state.settlement.famine).not.toBeNull();
+
+    // No ritmo Rápido os mesmos dois dias de jogo são 40 minutos de relógio.
+    const fast = view(ordered, 3);
+    expect(fast.famine?.endsInSeconds).toBe(2400);
+    expect(fast.famine?.text).toContain('em 40 min rendem inteiro');
+    expect(fast.winter?.cold?.endsInSeconds).toBe(2400);
+    // Meia hora de jogo depois, o prazo desceu junto.
+    expect(deriveViewState(ordered, now + 30 * MINUTE).famine?.endsInSeconds).toBe(5400);
+  });
+
+  it('os três na Fazenda, como o conselho mandava: a fome acaba sozinha, e o frio continua pedindo a Serraria', () => {
+    const start = ruined();
+    const now = start.lastProcessedAt;
+    const farmers = accept(start, command('setWorkers', { building: 'farm', count: 3 })).state;
+    const derived = view(farmers);
+    expect(derived.resources.find((row) => row.id === 'food')?.perHour).toBe(-0.3);
+    expect(derived.famine?.endsInSeconds).toBe(7200);
+    expect(derived.morale.advice).toBe(
+      'O que mais pesa é a fome (−62). Ela acaba sozinha em 2 h, sem ninguém mudar de ofício, e a moral sobe na virada seguinte.',
+    );
+    // Ninguém corta lenha: o frio não passa sozinho, e a frase continua dizendo o que falta.
+    expect(derived.winter?.cold?.endsInSeconds).toBeNull();
+    expect(derived.winter?.cold?.text).toContain(
+      'A lareira pede 1,5/h e a Serraria entrega 0/h: o frio passa quando sobrar madeira, ou na Primavera.',
+    );
+    const relieved = advanceTo(farmers, now + DAY).state.settlement;
+    expect(relieved.famine).toBeNull();
+    expect(relieved.cold).not.toBeNull();
+  });
+
+  it('gente de menos na Fazenda: a adaptação termina e a fome não acaba, e a tela não promete nada', () => {
+    const one = accept(ruined(), command('setWorkers', { building: 'farm', count: 1 })).state;
+    expect(view(one).famine).toMatchObject({
+      endsInSeconds: null,
+      text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
+    });
+    expect(view(one).morale.advice).toContain('Ponha mais gente na Fazenda');
+    expect(advanceTo(one, one.lastProcessedAt + 3 * DAY).state.settlement.famine).not.toBeNull();
+  });
+
   it('ninguém faz nada: o piso segura os três, por um ano inteiro, e a saída continua aberta', () => {
     const { state, events } = advanceTo(ruined(), WINTER + YEAR);
     expect(state.settlement.population.villagers).toBe(3);
