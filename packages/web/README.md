@@ -37,15 +37,28 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 |---|---|
 | `src/app/` | `controller.ts`: o estado do app em um lugar só (conta, partida, abas, avisos), sem nada do navegador. `dialogs.ts` e `DialogHost.tsx`: diálogos acessíveis (confirmação, campo com validação, lista de escolha, informação). `router.ts`: abas e `#/feudo` |
 | `src/account/` | Conta neste navegador, Código do Reino, vínculo GitHub (*device flow*), lembrete "Proteja seu reino" depois de 48 horas reais (`linkReminder.ts`) |
-| `src/game/` | `gameSession.ts`: ciclo de 30 s (2 min em segundo plano), cache para o modo sem conexão, envio de ordens, Relatório de Retorno |
+| `src/game/` | `gameSession.ts`: ciclo de 30 s (2 min em segundo plano), cache para o modo sem conexão (com marca de versão), envio de ordens, Relatório de Retorno. `newGame.ts`: as opções de nova partida (dificuldade e ritmo) como dados, a escolha que vale e as linhas que a tela mostra |
 | `src/notifications/` | `policy.ts` decide o que avisar (no máximo 3 por hora); `Toasts.tsx` desenha; `browserNotifications.ts` é a opção do navegador |
-| `src/palette/` | `commands.ts`: todos os comandos, o único lugar que conversa com o jogador por diálogos. `CommandPalette.tsx`: a paleta (`F1` ou `Ctrl+K`) e as listas de escolha |
+| `src/palette/` | `commands.ts`: todos os comandos, o único lugar que conversa com o jogador por diálogos. `CommandPalette.tsx`: a paleta (`F1` ou `Ctrl+K`) e as listas de escolha, que podem abrir com um item já marcado (`selected`) |
 | `src/services/` | `browserStore.ts` (`localStorage` com prefixo `lords.`, tolerante a falha), `sessionLock.ts` (Web Locks na renovação da sessão), `tabSync.ts` (evento `storage`), `visibility.ts`, `preferences.ts` |
 | `src/workbench/` | A bancada: `ActivityBar`, `SideBar`, `Tree` (padrão ARIA, `treeNav.ts`), `EditorTabs`, `StatusBar` |
-| `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Crônica, Preferências, Sobre |
-| `src/components/` | Os painéis do feudo (recursos, trabalhadores, construções, recrutamento, objetivos) e as boas-vindas |
+| `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Sobre |
+| `src/components/` | Os painéis do feudo (recursos, trabalhadores, construções, recrutamento, objetivos) e as boas-vindas, com os dois grupos de opções de nova partida |
 | `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
+
+## Dificuldade e ritmo (GDD §13.9)
+
+- **As opções vêm do servidor.** `controller.loadCatalog()` lê `GET /v1/catalog` (sem sessão) e guarda `newGame` em `controller.catalog`: rótulos, frases, a marca de recomendado e `defaults`, que é o que vem marcado. O app não escreve rótulo, frase nem número de regra, e marca por `defaults`, não por `recommended` (o servidor de teste roda no ritmo Normal). A resposta é sempre conferida com `CatalogResponseSchema`, também em produção.
+- **Só é lido quando a tela usa:** boas-vindas, Preferências e o comando "Nova partida". Quem tem feudo e não passa por aí nunca o pede.
+- **Sem catálogo, nada quebra.** Sem ligação, ou com um servidor de uma versão anterior (404), as boas-vindas ficam como na v0.1, "Nova partida" não pergunta nada, e o corpo de `POST /games` vai sem `difficulty` nem `timeScale`: valem os padrões do servidor. Com catálogo, o corpo leva o que a tela mostrava marcado.
+- **"Jogar agora" continua a um clique.** As opções já vêm marcadas e escolher é opcional; o botão não espera o catálogo. Cada grupo é um `radiogroup` de botões de rádio nativos: uma parada do `Tab`, setas para trocar. O nome de cada opção é a linha curta; a frase é a descrição (`aria-describedby`), sempre à vista.
+- **"Nova partida"** pergunta os dois em listas de escolha com o padrão já marcado (`Enter`, `Enter`), antes da confirmação, que repete a escolha ao lado do aviso de que o feudo atual é arquivado.
+- **Nas Preferências**, "Dificuldade: … · Ritmo: … (não mudam durante o ano)" vem de `settlement.difficultyLabel` e `settlement.paceLabel` do `ViewState`; a frase do que a dificuldade muda vem do catálogo, pelo `settlement.difficulty`.
+
+## Cache e versões
+
+O cache de cada partida (`lords.cache:<servidor>:<conta>:<partida>`) guarda `version`, que é `CACHE_VERSION` de `game/gameSession.ts`: o protocolo e o formato da visão (`VIEW_FORMAT`). Ao abrir, a visão só é exibida se a marca for a desta versão **e** a visão passar no `ViewStateSchema`; senão ela é descartada, e o cursor dos eventos e o instante da última visita são mantidos (sem eles a partida inteira voltaria como novidade). A primeira leitura do servidor grava por cima. Suba `VIEW_FORMAT` quando um campo do `ViewState` mudar de sentido sem mudar de forma; mudança de forma o schema já pega, e mudança de protocolo muda a marca sozinha.
 
 ## O que é próprio do navegador
 

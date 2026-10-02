@@ -371,6 +371,8 @@ test.describe('temas', () => {
     for (const theme of THEMES) {
       await applyTheme(theme);
       await expect(page.getByRole('tabpanel', { name: 'Boas-vindas' })).toBeVisible();
+      // Com as opções de dificuldade e ritmo já na tela: é com elas que o contraste é medido.
+      await expect(page.getByRole('radiogroup', { name: 'Ritmo' })).toBeVisible();
       expect(await lowContrast(page), `contraste nas boas-vindas, tema ${theme}`).toEqual([]);
       expect(await unnamed(page), `rótulos nas boas-vindas, tema ${theme}`).toEqual([]);
       await shoot(theme, 'boas-vindas');
@@ -402,6 +404,10 @@ test.describe('temas', () => {
       expect(await lowContrast(page), `contraste em Hoje, tema ${theme}`).toEqual([]);
       await page.getByRole('button', { name: 'Preferências' }).click();
       await expect(page.getByRole('tabpanel', { name: 'Preferências' })).toBeVisible();
+      // A seção da partida, com a frase da dificuldade que vem do servidor.
+      await expect(page.getByRole('group', { name: 'Esta partida' })).toContainText(
+        'O feudo como foi pensado',
+      );
       expect(await lowContrast(page), `contraste nas preferências, tema ${theme}`).toEqual([]);
       expect(await unnamed(page), `rótulos nas preferências, tema ${theme}`).toEqual([]);
       await shoot(theme, 'preferencias');

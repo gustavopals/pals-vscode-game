@@ -6,14 +6,15 @@ import {
   NetworkError,
   type TokenStore,
 } from '@lotg/client-sdk';
-import type {
-  ApiErrorCode,
-  Command,
-  CommandType,
-  GameEvent,
-  ReturnReport,
-  VersionResponse,
-  ViewState,
+import {
+  type ApiErrorCode,
+  CatalogResponseSchema,
+  type Command,
+  type CommandType,
+  type GameEvent,
+  type ReturnReport,
+  type VersionResponse,
+  type ViewState,
 } from '@lotg/protocol';
 
 import { type AccountState, AccountService } from '../account/accountService';
@@ -25,6 +26,7 @@ import {
   OfflineError,
   type SessionTarget,
 } from '../game/gameSession';
+import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import { decideNotifications, isEssential, MUTE_DURATION_MS } from '../notifications/policy';
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
@@ -136,6 +138,12 @@ export class Controller {
   toasts: Toast[] = [];
   chronicleDocument: Loadable<string> = { status: 'idle' };
   server: Loadable<VersionResponse> = { status: 'idle' };
+  /**
+   * As opções de nova partida (`GET /catalog`): dificuldades, ritmos e o que vem marcado. Sem
+   * elas (sem ligação, servidor de uma versão anterior), as boas-vindas ficam como na v0.1 e o
+   * feudo nasce com os padrões do servidor.
+   */
+  catalog: Loadable<NewGameOptions> = { status: 'idle' };
   /** A aba do navegador está à vista. */
   visible = true;
   /** Executa um comando da paleta pelo id. Ligado por `palette/commands.ts`. */
@@ -150,6 +158,8 @@ export class Controller {
   private nextToastId = 1;
   /** A consulta de versão em andamento: quem depende do que o servidor tem ligado espera por ela. */
   private serverInfo: Promise<void> = Promise.resolve();
+  /** A leitura do catálogo em andamento: quem a pede de novo espera pela mesma. */
+  private catalogRequest: Promise<void> | null = null;
 
   private readonly changes = new Emitter<void>();
   /** Algo mudou: a bancada deve se redesenhar. */
@@ -229,6 +239,8 @@ export class Controller {
     }
     this.changes.emit();
     this.serverInfo = this.loadServerInfo();
+    // As boas-vindas mostram as opções assim que chegarem; "Jogar agora" não espera por elas.
+    this.loadCatalogIfShown();
     await this.openGame();
     if (this.report !== null) {
       this.route = 'today';
@@ -276,6 +288,9 @@ export class Controller {
     void this.session.syncNow();
     if (this.server.status === 'error') {
       void this.loadServerInfo();
+    }
+    if (this.catalog.status === 'error') {
+      void this.loadCatalog();
     }
   }
 
@@ -367,7 +382,19 @@ export class Controller {
     if (route === 'about' && this.server.status !== 'ready') {
       void this.loadServerInfo();
     }
+    this.loadCatalogIfShown();
     this.changes.emit();
+  }
+
+  /**
+   * Lê as opções de nova partida quando a aba à vista as usa: as boas-vindas as oferecem e as
+   * Preferências dizem o que a dificuldade do feudo muda. Quem tem feudo e não passa por essas
+   * abas nunca as pede.
+   */
+  private loadCatalogIfShown(): void {
+    if (this.route === 'welcome' || this.route === 'settings') {
+      void this.loadCatalog();
+    }
   }
 
   closeTab(route: Route): void {
@@ -377,6 +404,7 @@ export class Controller {
     this.opened = this.opened.filter((entry) => entry !== route);
     if (this.route === route) {
       this.route = this.defaultRoute();
+      this.loadCatalogIfShown();
     }
     this.changes.emit();
   }
@@ -437,6 +465,7 @@ export class Controller {
       // Entrou em um feudo (por GitHub, Código do Reino ou "Jogar agora"): sai das boas-vindas.
       this.route = this.defaultRoute();
     }
+    this.loadCatalogIfShown();
     this.changes.emit();
   }
 
@@ -540,6 +569,9 @@ export class Controller {
     if (connection.kind === 'online' && this.server.status === 'error') {
       // A consulta de versão falhou na abertura: sem ela o vínculo GitHub ficaria escondido.
       void this.loadServerInfo();
+    }
+    if (connection.kind === 'online' && this.catalog.status === 'error') {
+      void this.loadCatalog();
     }
     // Os avisos de falta de rede ficam: é com a ligação de volta que o "Tentar de novo" deles
     // consegue reenviar a ordem.
@@ -694,11 +726,36 @@ export class Controller {
     return { timezone: this.timezone(), vigilHourLocal: this.preferences.vigilHour };
   }
 
-  /** "Jogar agora". */
-  playNow(displayName: string, settlementName: string): Promise<unknown> {
-    return this.whileBusy(() =>
-      this.account.playNow({ displayName, settlementName, ...this.gameDefaults() }),
+  /**
+   * "Jogar agora". `choice` é a dificuldade e o ritmo marcados nas boas-vindas; sem ela (as
+   * opções não chegaram), o feudo nasce com os padrões do servidor.
+   */
+  playNow(displayName: string, settlementName: string, choice?: NewGameChoice): Promise<unknown> {
+    return this.founding(() =>
+      this.account.playNow({ displayName, settlementName, ...this.gameDefaults(), ...choice }),
     );
+  }
+
+  /** "Nova partida": arquiva o feudo atual e funda outro, com a dificuldade e o ritmo escolhidos. */
+  startNewGame(settlementName: string, choice?: NewGameChoice): Promise<unknown> {
+    return this.founding(() =>
+      this.account.startNewGame({ settlementName, ...this.gameDefaults(), ...choice }),
+    );
+  }
+
+  /** Funda um feudo marcando a interface como ocupada. */
+  private async founding<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await this.whileBusy(operation);
+    } catch (error) {
+      if (describeError(error).code === 'VALIDATION') {
+        // O servidor não aceita mais o que a tela ofereceu (o conteúdo mudou com a aba aberta):
+        // as opções são lidas de novo, para a próxima tentativa partir do que vale agora.
+        this.catalog = { status: 'idle' };
+        void this.loadCatalog();
+      }
+      throw error;
+    }
   }
 
   /** Sair e excluir são pedidos do jogador: não merecem o aviso de "sessão terminou". */
@@ -836,6 +893,46 @@ export class Controller {
       this.changes.emit();
       return null;
     }
+  }
+
+  /**
+   * Lê as opções de nova partida (`GET /catalog`), uma vez. Nunca lança: uma falha só deixa as
+   * boas-vindas sem as opções. A resposta é sempre conferida com o schema, mesmo em produção: é
+   * ela que decide o que a tela oferece e o que vai no corpo de `POST /games`.
+   */
+  loadCatalog(): Promise<void> {
+    if (this.catalog.status === 'ready') {
+      return Promise.resolve();
+    }
+    this.catalogRequest ??= this.fetchCatalog().finally(() => {
+      this.catalogRequest = null;
+    });
+    return this.catalogRequest;
+  }
+
+  private async fetchCatalog(): Promise<void> {
+    this.catalog = { status: 'loading' };
+    this.changes.emit();
+    try {
+      const parsed = CatalogResponseSchema.safeParse(await this.client.catalog());
+      this.catalog = parsed.success
+        ? { status: 'ready', value: parsed.data.newGame }
+        : {
+            status: 'error',
+            message: 'O servidor mandou opções de partida em um formato que este app não conhece.',
+          };
+    } catch (error) {
+      this.catalog = { status: 'error', message: describeError(error).message };
+    }
+    if (this.catalog.status === 'error') {
+      this.log(`Opções de nova partida indisponíveis: ${this.catalog.message}`);
+    }
+    this.changes.emit();
+  }
+
+  /** As opções de nova partida, se já chegaram. */
+  get newGameOptions(): NewGameOptions | null {
+    return this.catalog.status === 'ready' ? this.catalog.value : null;
   }
 
   /** Versão do servidor e o que ele tem ligado (`GET /version`). */

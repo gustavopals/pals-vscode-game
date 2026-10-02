@@ -255,6 +255,8 @@ describe('themes.css', () => {
     ['descrição na barra lateral', 'descriptionForeground', 'sideBar-background'],
     ['descrição em avisos e cartões', 'descriptionForeground', 'editorWidget-background'],
     ['descrição na linha sob o mouse', 'descriptionForeground', 'list-hoverBackground'],
+    // Trabalhadores no painel e as opções de dificuldade e ritmo das boas-vindas.
+    ['texto do editor na linha sob o mouse', 'foreground', 'list-hoverBackground'],
     ['texto da barra lateral', 'sideBar-foreground', 'sideBar-background'],
     ['texto da barra lateral sob o mouse', 'sideBar-foreground', 'list-hoverBackground'],
     ['título da barra lateral', 'sideBarTitle-foreground', 'sideBar-background'],

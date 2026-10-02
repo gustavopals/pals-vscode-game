@@ -1,5 +1,5 @@
 import { ApiClientError, type Client } from '@lotg/client-sdk';
-import type { Account } from '@lotg/protocol';
+import { type Account, CreateGameRequestSchema } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { memoryStore } from '../services/store';
@@ -246,6 +246,50 @@ describe('corpo de criação de partida', () => {
       vigilHourLocal: 20,
     });
     expect(gameRequest(input, true)).toMatchObject({ replaceActive: true });
+  });
+
+  it('sem escolha, o corpo é o da v0.1: o servidor aplica os padrões dele', () => {
+    const body = gameRequest({ settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 });
+    expect(Object.keys(body).sort()).toEqual(['settlementName', 'timezone', 'vigilHourLocal']);
+    expect(CreateGameRequestSchema.safeParse(body).success).toBe(true);
+  });
+
+  it('com a dificuldade e o ritmo escolhidos, os dois vão como vieram do catálogo', () => {
+    const input = { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 };
+    for (const timeScale of [3, 1, 0.5]) {
+      const body = gameRequest({ ...input, difficulty: 'ironKing', timeScale }, true);
+      expect(body).toEqual({ ...input, difficulty: 'ironKing', timeScale, replaceActive: true });
+      // O número segue como número: o servidor recusa '3' e qualquer ritmo fora da lista.
+      expect(typeof body.timeScale).toBe('number');
+      expect(CreateGameRequestSchema.safeParse(body).success).toBe(true);
+    }
+  });
+
+  it('nova partida leva a escolha junto com o replaceActive', async () => {
+    const { service, calls } = setup();
+    await service.playNow({ ...welcome, difficulty: 'peasant', timeScale: 0.5 });
+    expect(calls.at(-1)).toEqual([
+      'createGame',
+      expect.objectContaining({ difficulty: 'peasant', timeScale: 0.5 }),
+    ]);
+    await service.startNewGame({
+      settlementName: 'Vau Alto',
+      timezone: 'UTC',
+      vigilHourLocal: 21,
+      difficulty: 'ironKing',
+      timeScale: 3,
+    });
+    expect(calls.at(-1)).toEqual([
+      'createGame',
+      {
+        settlementName: 'Vau Alto',
+        timezone: 'UTC',
+        vigilHourLocal: 21,
+        difficulty: 'ironKing',
+        timeScale: 3,
+        replaceActive: true,
+      },
+    ]);
   });
 });
 

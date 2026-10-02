@@ -245,6 +245,7 @@ export function DialogHost(props: {
             title={state.title}
             placeholder={state.placeholder}
             items={state.items}
+            selected={state.selected}
             onPick={resolve}
           />
         ) : null}

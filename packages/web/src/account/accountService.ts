@@ -19,9 +19,13 @@ export type AccountState =
 
 export type SignedInState = Exclude<AccountState, { kind: 'signedOut' }>;
 
+/**
+ * O que funda um feudo. `difficulty` e `timeScale` só vêm quando o jogador viu as opções do
+ * servidor (`GET /catalog`); sem eles, o corpo vai como na v0.1 e valem os padrões do servidor.
+ */
 export type NewGameInput = Pick<
   CreateGameRequest,
-  'settlementName' | 'timezone' | 'vigilHourLocal'
+  'settlementName' | 'timezone' | 'vigilHourLocal' | 'difficulty' | 'timeScale'
 >;
 
 /** Corpo de `POST /games` montado a partir do formulário de boas-vindas. */
@@ -30,6 +34,9 @@ export function gameRequest(input: NewGameInput, replaceActive = false): CreateG
     settlementName: input.settlementName.trim(),
     timezone: input.timezone,
     vigilHourLocal: input.vigilHourLocal,
+    ...(input.difficulty === undefined ? {} : { difficulty: input.difficulty }),
+    // O número vai como veio do catálogo, sem conversão.
+    ...(input.timeScale === undefined ? {} : { timeScale: input.timeScale }),
     ...(replaceActive ? { replaceActive: true } : {}),
   };
 }

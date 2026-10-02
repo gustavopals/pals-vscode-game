@@ -6,6 +6,14 @@ import { validateRecoveryCode } from '../account/recoveryCode';
 import type { Controller } from '../app/controller';
 import type { Dialogs, PickItem, Validation } from '../app/dialogs';
 import type { Route } from '../app/router';
+import {
+  choiceSummary,
+  difficultyLine,
+  type NewGameChoice,
+  type NewGameOptions,
+  paceLine,
+  resolveChoice,
+} from '../game/newGame';
 import { nextTheme, THEME_LABELS } from '../theme/theme';
 import type { ThemeId } from '../services/preferences';
 import {
@@ -310,16 +318,63 @@ export function createCommands(
     }
   };
 
+  /**
+   * Dificuldade e ritmo do feudo novo, em duas listas com o padrão do servidor já marcado:
+   * `Enter`, `Enter` aceita os dois. `null` é desistência.
+   */
+  const chooseNewGame = async (options: NewGameOptions): Promise<NewGameChoice | null> => {
+    const defaults = resolveChoice(options);
+    const difficulty = await dialogs.pick({
+      title: 'Nova partida: dificuldade',
+      placeholder: 'Fica gravada no feudo e não muda durante o ano.',
+      items: options.difficulties.map((option) => ({
+        label: difficultyLine(option),
+        detail: option.description,
+        value: option.id,
+      })),
+      selected: options.difficulties.findIndex((option) => option.id === defaults.difficulty),
+    });
+    if (difficulty === undefined) {
+      return null;
+    }
+    const timeScale = await dialogs.pick({
+      title: 'Nova partida: ritmo',
+      placeholder: 'Fica gravado no feudo e não muda durante o ano.',
+      items: options.paces.map((option) => ({
+        label: paceLine(option),
+        detail: option.hint,
+        value: option.timeScale,
+      })),
+      selected: options.paces.findIndex((option) => option.timeScale === defaults.timeScale),
+    });
+    return timeScale === undefined ? null : { difficulty, timeScale };
+  };
+
   const newGame = async () => {
     const state = controller.account.state;
     if (state.kind === 'signedOut') {
       controller.navigate('welcome');
       return;
     }
+    // As opções vêm do servidor. Sem elas (sem ligação, servidor de uma versão anterior), nada é
+    // perguntado e o feudo nasce com os padrões dele, como na v0.1.
+    await controller.loadCatalog();
+    const options = controller.newGameOptions;
+    const choice = options === null ? undefined : await chooseNewGame(options);
+    if (choice === null) {
+      return;
+    }
     if (state.gameId !== null) {
       const confirmed = await dialogs.confirm({
         title: 'Começar uma nova partida?',
-        detail: ['O feudo atual é arquivado e não pode mais receber ordens.'],
+        detail: [
+          'O feudo atual é arquivado e não pode mais receber ordens.',
+          ...(options === null || choice === undefined
+            ? []
+            : [
+                `O novo feudo nasce assim: ${choiceSummary(options, choice)}. Os dois não mudam durante o ano.`,
+              ]),
+        ],
         confirmLabel: 'Começar outro feudo',
       });
       if (!confirmed) {
@@ -335,9 +390,7 @@ export function createCommands(
     });
     if (settlementName !== undefined) {
       await controller.attempt(async () => {
-        await controller.whileBusy(() =>
-          controller.account.startNewGame({ settlementName, ...controller.gameDefaults() }),
-        );
+        await controller.startNewGame(settlementName, choice);
         controller.navigate('fief');
       });
     }

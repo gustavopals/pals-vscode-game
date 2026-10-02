@@ -6,6 +6,7 @@ import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
 import { useElapsedSeconds } from '../components/shared';
 import { Welcome } from '../components/Welcome';
+import { difficultyDescription } from '../game/newGame';
 import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
 import { ChronicleTab } from '../tabs/Chronicle';
@@ -52,6 +53,7 @@ function TabContent(props: {
           busy={controller.busy}
           online={online}
           githubAvailable={controller.githubAvailable}
+          options={controller.newGameOptions}
           actions={actions}
         />
       );
@@ -61,8 +63,21 @@ function TabContent(props: {
           preferences={controller.preferences}
           theme={props.theme}
           browserNotificationsSupported={props.browserNotificationsSupported}
+          game={
+            view === null
+              ? null
+              : {
+                  difficultyLabel: view.settlement.difficultyLabel,
+                  paceLabel: view.settlement.paceLabel,
+                  difficultyAbout: difficultyDescription(
+                    controller.newGameOptions,
+                    view.settlement.difficulty,
+                  ),
+                }
+          }
           onChange={(patch) => void controller.setPreferences(patch)}
           onBrowserNotifications={(enabled) => void controller.setBrowserNotifications(enabled)}
+          onNewGame={() => actions.run('lords.newGame')}
         />
       );
     case 'about':

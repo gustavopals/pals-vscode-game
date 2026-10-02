@@ -2,6 +2,7 @@ import { ApiClientError, type Client, isGameRuleError, NetworkError } from '@lot
 import {
   type Command,
   type GameEvent,
+  PROTOCOL_VERSION,
   type ReturnReport,
   type ViewState,
   ViewStateSchema,
@@ -11,8 +12,23 @@ import { Emitter, type KeyValueStore } from '../services/store';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
 
+/**
+ * Formato da visão guardada. Sobe quando o `ViewState` muda de forma ou de sentido sem o
+ * protocolo mudar: o schema pega a forma, mas não um campo que manteve o nome e passou a dizer
+ * outra coisa. O cache da v0.1 não tinha marca; 2 é a visão com dificuldade e ritmo (V2B-T3).
+ */
+const VIEW_FORMAT = 2;
+
+/**
+ * A marca de versão gravada no cache: protocolo e formato da visão. Um cache com outra marca,
+ * ou sem marca, foi gravado por outra versão do app e a visão dele não é exibida.
+ */
+export const CACHE_VERSION = `${PROTOCOL_VERSION}.${VIEW_FORMAT}`;
+
 /** O que fica guardado no navegador para exibir o feudo sem conexão. */
 export type GameCache = {
+  /** `CACHE_VERSION` de quem gravou. */
+  version: string;
   view: ViewState;
   stateVersion: string;
   etag: string | null;
@@ -53,10 +69,11 @@ export async function clearAccountCaches(
 }
 
 /**
- * Lê o cache e confere a forma da visão. Um cache gravado por uma versão anterior do app, com
- * outro formato de `ViewState`, perde a visão em vez de quebrar a árvore e as abas, mas o cursor
- * dos eventos e o instante da última visita continuam valendo: sem eles, a partida inteira
- * voltaria como "novidade" depois de cada atualização do jogo.
+ * Lê o cache e confere a marca de versão e a forma da visão. Um cache gravado por outra versão
+ * do app (marca diferente ou ausente, ou outro formato de `ViewState`) perde a visão em vez de
+ * quebrar a árvore e as abas, mas o cursor dos eventos e o instante da última visita continuam
+ * valendo: sem eles, a partida inteira voltaria como "novidade" depois de cada atualização do
+ * jogo. A primeira leitura do servidor grava por cima, já com a marca atual.
  */
 function loadCache(
   store: KeyValueStore,
@@ -68,6 +85,7 @@ function loadCache(
   const lastSeenAt = typeof cached?.lastSeenAt === 'number' ? cached.lastSeenAt : null;
   const valid =
     cached !== undefined &&
+    cached.version === CACHE_VERSION &&
     lastSeq !== null &&
     lastSeenAt !== null &&
     typeof cached.stateVersion === 'string' &&
@@ -331,6 +349,7 @@ export class GameSession {
     }
     if (read.status === 200) {
       this.cache = {
+        version: CACHE_VERSION,
         view: read.view,
         stateVersion: read.stateVersion,
         etag: read.etag,
@@ -418,6 +437,7 @@ export class GameSession {
     }
     this.adoptions += 1;
     this.cache = {
+      version: CACHE_VERSION,
       view,
       stateVersion,
       // O ETag é do corpo de /view; depois de um comando, a próxima leitura vem inteira.

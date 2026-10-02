@@ -275,7 +275,7 @@ test.describe('governar o feudo', () => {
     await expect(page.getByRole('button', { name: /Fechar a aba Feudo/ })).toHaveCount(0);
   });
 
-  test('"Nova partida" pede confirmação, arquiva o feudo e começa outro', async ({
+  test('"Nova partida" pergunta dificuldade e ritmo, pede confirmação, arquiva o feudo e começa outro', async ({
     context,
     world,
   }) => {
@@ -283,18 +283,62 @@ test.describe('governar o feudo', () => {
     await playNow(page);
     await fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' }).click();
     await expect(fief(page).getByText('Livres 4')).toBeVisible();
+    const housing = fief(page).getByRole('listitem').filter({ hasText: 'Habitações Nv1 → Nv2' });
+    await expect(housing).toContainText('4 min');
 
+    // Enter, Enter: as duas listas já trazem o padrão marcado.
     await palette(page, 'nova partida');
-    const confirm = page.getByRole('dialog');
+    const difficulty = page.getByRole('dialog', { name: 'Nova partida: dificuldade' });
+    await expect(difficulty.getByRole('option')).toHaveCount(3);
+    await expect(difficulty.getByRole('option', { selected: true })).toContainText(
+      'Senhor (recomendado)',
+    );
+    await expect(difficulty.getByRole('option', { selected: true })).toContainText(
+      'O feudo como foi pensado',
+    );
+    await page.keyboard.press('Enter');
+    const pace = page.getByRole('dialog', { name: 'Nova partida: ritmo' });
+    await expect(pace.getByRole('option')).toHaveCount(3);
+    // O marcado é o padrão deste servidor (Normal), não o recomendado.
+    await expect(pace.getByRole('option', { selected: true })).toContainText(
+      'Normal: um ano em 7 dias',
+    );
+    await page.keyboard.press('Enter');
+    const confirm = page.getByRole('dialog', { name: 'Começar uma nova partida?' });
     await expect(confirm).toContainText('O feudo atual é arquivado');
+    await expect(confirm).toContainText('Senhor · Normal: um ano em 7 dias');
     await page.keyboard.press('Escape');
     await expect(fief(page).getByText('Livres 4')).toBeVisible();
 
+    // Desistir em uma das listas também não muda nada.
     await palette(page, 'nova partida');
-    await page.getByRole('dialog').getByRole('button', { name: 'Começar outro feudo' }).click();
+    await expect(difficulty).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(fief(page).getByText('Livres 4')).toBeVisible();
+
+    // Outra dificuldade e outro ritmo, só com o teclado.
+    await palette(page, 'nova partida');
+    await difficulty.getByRole('combobox').fill('ferro');
+    await page.keyboard.press('Enter');
+    await expect(pace.getByRole('option', { selected: true })).toContainText('Normal');
+    await page.keyboard.press('ArrowDown');
+    await expect(pace.getByRole('option', { selected: true })).toContainText(
+      'Tranquilo: um ano em 14 dias',
+    );
+    await page.keyboard.press('Enter');
+    await expect(confirm).toContainText('Rei de Ferro · Tranquilo: um ano em 14 dias');
+    await confirm.getByRole('button', { name: 'Começar outro feudo' }).click();
     await page.getByRole('dialog').getByRole('textbox').fill('Monte Claro');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'Monte Claro', level: 1 })).toBeVisible();
     await expect(fief(page).getByText('Livres 5')).toBeVisible();
+    // O feudo novo anda no ritmo escolhido: a mesma obra leva o dobro do tempo real.
+    await expect(housing).toContainText('8 min');
+
+    await page.getByRole('button', { name: 'Preferências' }).click();
+    await expect(page.getByRole('tabpanel', { name: 'Preferências' })).toContainText(
+      'Dificuldade: Rei de Ferro · Ritmo: Tranquilo: um ano em 14 dias (não mudam durante o ano)',
+    );
   });
 });

@@ -247,11 +247,15 @@ test.describe('preferências, sobre e privacidade', () => {
     await openSettings(page);
     await settings(page).getByLabel('Hora local em que você costuma jogar').selectOption('7');
     await page.getByRole('tab', { name: 'Boas-vindas' }).click();
+    // Com as opções de nova partida à vista, o corpo leva também o que está marcado nelas.
+    await expect(page.getByRole('radiogroup', { name: 'Ritmo' })).toBeVisible();
     await playNow(page);
     expect(created).toEqual({
       settlementName: 'Pedra Alta',
       timezone: 'America/Sao_Paulo',
       vigilHourLocal: 7,
+      difficulty: 'lord',
+      timeScale: 1,
     });
     // As preferências não vão para o servidor: ficam só neste navegador.
     const saved = await page.evaluate(() => localStorage.getItem('lords.preferences'));

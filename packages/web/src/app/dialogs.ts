@@ -35,6 +35,11 @@ export type PickOptions<T> = {
   title: string;
   placeholder?: string;
   items: PickItem<T>[];
+  /**
+   * Posição do item que já vem marcado (o padrão de uma escolha): `Enter` sem mexer em nada o
+   * escolhe. Sem isto, o primeiro.
+   */
+  selected?: number;
 };
 
 export type InfoOptions = {
