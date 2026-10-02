@@ -2813,7 +2813,7 @@
   {
    "type": "cardEffectApplied",
    "atMs": 158400000,
-   "text": "No 23º dia da Primavera, a primeira carroça carregada cruzou a ponte de pedra de Pedra Alta. O grão do campo de lá chegou inteiro.",
+   "text": "No 23º dia da Primavera, o grão do campo de lá começou a chegar a Pedra Alta pela ponte de pedra, carroça após carroça.",
    "data": {
     "cardId": "thawBridgeSlab",
     "instanceId": "thawBridgeSlab-3",
@@ -2922,7 +2922,7 @@
   {
    "type": "cardAnswered",
    "atMs": 172800000,
-   "text": "No 1º dia do Verão, o senhor de Pedra Alta abriu a passagem do riacho com pão, música e a primeira travessia a pé enxuto. Dançou-se nas duas margens.",
+   "text": "No 1º dia do Verão, o senhor de Pedra Alta inaugurou a travessia do riacho com pão e música. Dançou-se nas duas margens.",
    "data": {
     "cardId": "thawBridgeCrossing",
     "instanceId": "thawBridgeCrossing-5",

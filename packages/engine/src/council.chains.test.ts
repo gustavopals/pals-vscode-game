@@ -505,13 +505,13 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
     expect(feast.state.council.flags).toEqual({ 'thawBridge.piers': true });
     expect(feast.state.council.scheduled).toEqual([]);
 
-    // Na 4ª virada depois dos pilares, o que a opção escondia: a carroça carregada.
+    // Na 4ª virada depois dos pilares, o que a opção escondia: o grão do campo de lá.
     const food = units(advanceTo(feast.state, 6 * DAY - 1).state, 'food');
     const later = advanceTo(feast.state, 6 * DAY);
     expect(eventsOfType(later.events, 'cardEffectApplied')).toMatchObject([
       {
         atMs: 6 * DAY,
-        text: 'No 7º dia da Primavera, a primeira carroça carregada cruzou a ponte de pedra de Pedra Alta. O grão do campo de lá chegou inteiro.',
+        text: 'No 7º dia da Primavera, o grão do campo de lá começou a chegar a Pedra Alta pela ponte de pedra, carroça após carroça.',
         data: { cardId: 'thawBridgeSlab', optionId: 'piers', gained_food: 90 },
       },
     ]);
@@ -524,6 +524,35 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
     const nextYear = advanceTo(later.state, YEAR + DAY).state;
     expect(nextYear.council.flags).toEqual({ 'thawBridge.piers': true });
     expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(false);
+  });
+
+  it('quem demora a responder o desfecho vê o grão chegar antes da festa, e a Crônica conta as duas coisas sem se desmentir', () => {
+    let state = choose(opened(), 'thawBridgePlea', 'timber').state;
+    state = choose(advanceTo(state, 2 * DAY).state, 'thawBridgeSlab', 'piers').state;
+    // O desfecho chega no 5º dia e fica na mesa; a 4ª virada depois dos pilares é a do 7º.
+    const waited = advanceTo(state, 6 * DAY + 1);
+    expect(story(waited.events)).toEqual([
+      [4, 'cardDrawn', 'thawBridgeCrossing', undefined],
+      [6, 'cardEffectApplied', 'thawBridgeSlab', 'piers'],
+    ]);
+    // A carta ainda na mesa não diz que as carroças esperam: elas já passam.
+    const pending = shown(waited.state, 'thawBridgeCrossing');
+    expect(pending?.text).toBe(
+      'Os pilares de pedra que o senhor mandou assentar seguram a ponte nova, e as carroças já a experimentam. O povo quer saber se a travessia terá festa. O conselho pergunta como o senhor quer inaugurá-la.',
+    );
+    const feast = choose(waited.state, 'thawBridgeCrossing', 'feast');
+    const lines = [...waited.events, ...feast.events].filter(
+      (event) => event.type !== 'dayStarted',
+    );
+    expect(lines.map((event) => event.text)).toEqual([
+      'No 5º dia da Primavera, a ponte de Pedra Alta ficou pronta sobre os pilares de pedra que o senhor mandou assentar: A passagem volta a servir.',
+      'No 7º dia da Primavera, o grão do campo de lá começou a chegar a Pedra Alta pela ponte de pedra, carroça após carroça.',
+      'No 7º dia da Primavera, o senhor de Pedra Alta inaugurou a travessia do riacho com pão e música. Dançou-se nas duas margens.',
+    ]);
+    // Nenhuma linha diz qual travessia foi a primeira: a outra ordem a desmentiria.
+    for (const line of lines) {
+      expect(line.text).not.toMatch(/primeir/i);
+    }
   });
 
   it('pagar carpinteiros, estender a pinguela e abrir sem cerimônia: barato, e o degelo seguinte a leva', () => {
@@ -619,7 +648,7 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
       ]);
       expect(eventsOfType(events, 'cardExpired').map((event) => event.text)).toEqual([
         'No 15º dia da Primavera, sem palavra do senhor, o mestre de obras de Pedra Alta contornou a laje com uma pinguela. Mais barata que a ponte, e mais estreita.',
-        'No 5º dia do Verão, sem palavra do senhor, o conselho de Pedra Alta abriu a passagem do riacho, sem festa nem discurso.',
+        'No 5º dia do Verão, sem palavra do senhor, o conselho de Pedra Alta deu a travessia do riacho por entregue, sem festa nem discurso.',
       ]);
       // Quem sumiu não perdeu nada: a passagem abriu, e a moral só subiu.
       expect(eventsOfType(events, 'cardExpired')[1]?.data).toMatchObject({

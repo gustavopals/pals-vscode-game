@@ -873,6 +873,51 @@ describe('Conselho: "A Ponte do Degelo"', () => {
   });
 });
 
+describe('Conselho: o efeito escondido que cai com a continuação ainda na mesa', () => {
+  /**
+   * As opções cujo efeito escondido acontece depois que a continuação chega: a carta seguinte
+   * espera 24 h reais na mesa (12 dias de jogo no ritmo Normal, 36 no Rápido), e o efeito cai
+   * com ela ainda sem resposta. As frases das duas foram revistas à mão para a Crônica fazer
+   * sentido nas duas ordens. Opção nova nesta situação entra aqui depois da mesma revisão.
+   */
+  const REVIEWED = ['thawBridgeSlab/piers'];
+  /** Palavras que dão ordem à história e que a outra ordem desmente. */
+  const ORDERED = /\bprimeir[oa]s?\b|\bespera na margem\b|\bainda não\b/iu;
+
+  const overlapping = councilCards.flatMap((entry) =>
+    entry.options.flatMap((option) => {
+      const next = option.effects.find((effect) => effect.type === 'scheduleCard');
+      return option.hidden !== undefined &&
+        next?.type === 'scheduleCard' &&
+        option.hidden.afterDays > next.afterDays
+        ? [{ id: `${entry.id}/${option.id}`, option, continuation: card(next.cardId) }]
+        : [];
+    }),
+  );
+
+  it('são as revistas, e nenhuma outra', () => {
+    expect(overlapping.map((entry) => entry.id)).toEqual(REVIEWED);
+  });
+
+  it('nenhuma das frases dá ordem ao que pode acontecer na ordem inversa', () => {
+    for (const { id, option, continuation } of overlapping) {
+      const phrases = [
+        option.hidden?.chronicle ?? '',
+        continuation.text,
+        ...(continuation.variants ?? []).map((variant) => variant.text),
+        ...continuation.options.flatMap((answer) => [
+          answer.label,
+          answer.chronicle,
+          answer.expiredChronicle ?? '',
+        ]),
+      ];
+      for (const phrase of phrases) {
+        expect(phrase, id).not.toMatch(ORDERED);
+      }
+    }
+  });
+});
+
 describe('Conselho: "A Promessa da Paliçada"', () => {
   const morale = (option: CouncilCard['options'][number] | undefined) =>
     option?.effects.find((effect) => effect.type === 'morale');

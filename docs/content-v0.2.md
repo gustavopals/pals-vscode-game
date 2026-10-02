@@ -71,7 +71,7 @@ O que o agente decidiu ao escrever, e que o autor pode rever. Cada regra tem um 
 
 **Quatro tipos de troca.** Recurso por moral (o poço, o descanso, as festas); agora por depois (as sementes, as lições, a hospedagem: paga-se hoje, o ganho vem em dias); certo por incerto com pista (deixar o poço, dizer que é só o vento, os pilares de pedra); e um recurso por outro (grão por lenha, pedra de amolar por madeira).
 
-**Efeito oculto sempre com pista, sempre em dias.** Onze opções escondem um efeito; ele acontece de 2 a 5 viradas de dia depois e só então vira linha da Crônica. A pista diz a direção ("volta dobrado", "o que ronda costuma voltar"), nunca o número.
+**Efeito oculto sempre com pista, sempre em dias.** Onze opções escondem um efeito; ele acontece de 2 a 5 viradas de dia depois e só então vira linha da Crônica. A pista diz a direção ("volta dobrado", "o que ronda costuma voltar"), nunca o número. Quando o efeito cai depois que a continuação chega (os pilares de pedra da Ponte), ele pode acontecer com ela ainda na mesa, e as frases das duas são escritas para as duas ordens: nenhuma diz "a primeira" de nada. Um teste lista essas opções, e opção nova nessa situação só entra depois da mesma revisão.
 
 **Cartas recorrentes e a ronda.** O ano tem 21 audiências e o lote tem 10 cartas de uma vez por ano no sorteio: sem recorrentes o Conselho ficaria sem assunto no outono. Quatro avulsas são recorrentes, sem estação nem edifício: os assuntos de sempre. Para a mesma não vir duas vezes seguidas, cada uma grava a própria flag (`routine.<carta>`) em todas as opções e apaga as das outras três: uma recorrente só volta depois de outra recorrente ter passado pela mesa. É conteúdo puro, sem regra nova no motor. Em Camponês e Senhor, a opção automática de uma recorrente não mexe em nada: uma carta que pode expirar várias vezes por ano com o senhor fora não pinga prêmio nem castigo.
 
@@ -236,7 +236,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
   - Chegada com `thawBridge.timber`: No {dia}º dia {daEstacao}, as vigas cedidas pelo senhor de {feudo} pararam no meio do riacho, e o conselho voltou ao assunto: {carta}.
   - Chegada com `thawBridge.hired`: No {dia}º dia {daEstacao}, os carpinteiros pagos pelo senhor de {feudo} pararam no meio do riacho, e o conselho voltou ao assunto: {carta}.
   - Assentar pilares de pedra: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou assentar pilares de pedra sobre a laje do riacho. A ponte há de ver muitos degelos.
-    - Efeito posterior: No {dia}º dia {daEstacao}, a primeira carroça carregada cruzou a ponte de pedra de {feudo}. O grão do campo de lá chegou inteiro.
+    - Efeito posterior: No {dia}º dia {daEstacao}, o grão do campo de lá começou a chegar a {feudo} pela ponte de pedra, carroça após carroça.
   - Estender uma pinguela: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou contornar a laje com uma pinguela. Mais barata que a ponte, e mais estreita.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o mestre de obras de {feudo} contornou a laje com uma pinguela. Mais barata que a ponte, e mais estreita.
   - Largar a obra: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou largar a obra da ponte. Recolheu-se a madeira; os lavradores voltaram ao vau.
@@ -248,31 +248,32 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
 
 #### A passagem volta a servir (`thawBridgeCrossing`, v1)
 
-- **Dilema:** Abrir a passagem com festa ou sem ela.
+- **Dilema:** Inaugurar a travessia com festa ou sem ela.
 - **Quando sai:** só chega como continuação (peso 0 no sorteio) · qualquer estação.
 - **Repetição e virada do ano:** Só chega como continuação. Fecha a cadeia: saem as flags da obra; a da ponte de pedra ou a da pinguela fica.
-- **Texto:** A travessia do riacho está pronta. O povo espera na margem para ver quem passa primeiro. O conselho pergunta como o senhor quer abrir a passagem.
-- **Texto com `thawBridge.piers`:** Os pilares de pedra que o senhor mandou assentar seguram a ponte nova. A primeira carroça espera na margem, e o povo com ela. O conselho pergunta como o senhor quer abrir a passagem.
-- **Texto com `thawBridge.plank`:** A pinguela ficou pronta: passa gente em fila, e carroça nenhuma. Os lavradores levam os sacos às costas e não reclamam em voz alta. O conselho pergunta como o senhor quer abrir a passagem.
+- **Texto:** A travessia do riacho está pronta, e o povo já passa por ela. Falta saber se haverá festa. O conselho pergunta como o senhor quer inaugurá-la.
+- **Texto com `thawBridge.piers`:** Os pilares de pedra que o senhor mandou assentar seguram a ponte nova, e as carroças já a experimentam. O povo quer saber se a travessia terá festa. O conselho pergunta como o senhor quer inaugurá-la.
+- **Texto com `thawBridge.plank`:** A pinguela ficou pronta: passa gente em fila, e carroça nenhuma. Os lavradores levam os sacos às costas e não reclamam em voz alta. O conselho pergunta como o senhor quer inaugurá-la.
+- **A ordem da história.** A carta chega 2 dias de jogo depois da escolha do meio e pode esperar 24 h reais na mesa; o grão que os pilares de pedra escondem cai na 4ª virada depois deles. Quem demora a responder vê o grão chegar antes da festa: na revisão das Fases D e E, isso aconteceu em 11 de 11 partidas do simulador em que os pilares foram escolhidos. Por isso nenhuma frase das duas cartas diz qual travessia foi a primeira, e o texto da carta não diz que as carroças esperam: elas já passam.
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Abrir a passagem com festa** (`feast`) | −40 comida | +15 de moral por 3 dias de jogo | — | Festa na travessia junta as duas margens, e a notícia segue pela estrada. |
-| **Abrir sem cerimônia** (`quiet`) | sem custo | +5 de moral por 2 dias de jogo | — | A travessia serve do mesmo jeito. Só não vira história. |
+| **Inaugurar a travessia com festa** (`feast`) | −40 comida | +15 de moral por 3 dias de jogo | — | Festa na travessia junta as duas margens, e a notícia segue pela estrada. |
+| **Dispensar a cerimônia** (`quiet`) | sem custo | +5 de moral por 2 dias de jogo | — | A travessia serve do mesmo jeito. Só não vira história. |
 
 - **Flags e continuação:**
-  - Abrir a passagem com festa: apaga `thawBridge.open`; apaga `thawBridge.timber`; apaga `thawBridge.hired`.
-  - Abrir sem cerimônia: apaga `thawBridge.open`; apaga `thawBridge.timber`; apaga `thawBridge.hired`.
-- **Se ninguém responde (`autoResolve`):** Camponês: Abrir sem cerimônia · Senhor: Abrir sem cerimônia · Rei de Ferro: Abrir sem cerimônia.
+  - Inaugurar a travessia com festa: apaga `thawBridge.open`; apaga `thawBridge.timber`; apaga `thawBridge.hired`.
+  - Dispensar a cerimônia: apaga `thawBridge.open`; apaga `thawBridge.timber`; apaga `thawBridge.hired`.
+- **Se ninguém responde (`autoResolve`):** Camponês: Dispensar a cerimônia · Senhor: Dispensar a cerimônia · Rei de Ferro: Dispensar a cerimônia.
 - **Crônica:**
   - Chegada com `thawBridge.piers`: No {dia}º dia {daEstacao}, a ponte de {feudo} ficou pronta sobre os pilares de pedra que o senhor mandou assentar: {carta}.
   - Chegada com `thawBridge.plank`: No {dia}º dia {daEstacao}, a pinguela de {feudo} ficou pronta, estreita como foi pedida: {carta}.
-  - Abrir a passagem com festa: No {dia}º dia {daEstacao}, o senhor de {feudo} abriu a passagem do riacho com pão, música e a primeira travessia a pé enxuto. Dançou-se nas duas margens.
-  - Abrir sem cerimônia: No {dia}º dia {daEstacao}, a passagem do riacho de {feudo} voltou a servir, sem festa nem discurso.
-    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} abriu a passagem do riacho, sem festa nem discurso.
+  - Inaugurar a travessia com festa: No {dia}º dia {daEstacao}, o senhor de {feudo} inaugurou a travessia do riacho com pão e música. Dançou-se nas duas margens.
+  - Dispensar a cerimônia: No {dia}º dia {daEstacao}, a travessia do riacho de {feudo} seguiu servindo, sem festa nem discurso.
+    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deu a travessia do riacho por entregue, sem festa nem discurso.
 - **Cenários:**
-  - Abrir a passagem com festa. *Faz sentido:* A comida sobra; +15 por três dias leva o feudo a Orgulhoso (75) e, com qualquer outro efeito, aos 80. *É ruim:* A despensa está curta ou o inverno está perto.
-  - Abrir sem cerimônia. *Faz sentido:* A comida está contada. *É ruim:* A comida sobra e a moral está a um passo dos 80.
+  - Inaugurar a travessia com festa. *Faz sentido:* A comida sobra; +15 por três dias leva o feudo a Orgulhoso (75) e, com qualquer outro efeito, aos 80. *É ruim:* A despensa está curta ou o inverno está perto.
+  - Dispensar a cerimônia. *Faz sentido:* A comida está contada. *É ruim:* A comida sobra e a moral está a um passo dos 80.
 
 ### 3.3 Cadeia "A Promessa da Paliçada" (no jogo desde V2E-T2)
 
