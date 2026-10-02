@@ -11,6 +11,7 @@ import {
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
+  lateObjectivesView,
   proudView,
   queuesView,
   councilView,
@@ -633,6 +634,7 @@ describe('árvore', () => {
       'council',
       'morale',
       'threat',
+      'objectives',
     ]);
   });
 
@@ -1244,6 +1246,7 @@ describe('árvore', () => {
       'council',
       'morale',
       'threat',
+      'objectives',
     ]);
   });
 
@@ -1276,6 +1279,7 @@ describe('árvore', () => {
       'morale',
       'threat',
       'hearth',
+      'objectives',
     ]);
     expect(find(tree, 'hearth')).toMatchObject({
       label: 'Lareira',
@@ -1394,6 +1398,97 @@ describe('árvore', () => {
     expect(find(buildTree({ ...input, view: farmers }), 'construction:farm')?.tooltip).toBe(
       '80 madeira, 40 ouro · 5 min',
     );
+  });
+
+  describe('objetivos (GDD §12.2)', () => {
+    it('a linha "Objetivos" conta os em aberto e os cumpridos, e abre com uma linha por objetivo', () => {
+      const tree = buildTree({ ...input, view: unlockedView });
+      const node = find(tree, 'objectives');
+      expect(node).toMatchObject({
+        label: 'Objetivos',
+        description: '3 em aberto · 4 cumpridos',
+        icon: 'target',
+        expanded: true,
+        // O clique só navega, como em toda linha.
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      });
+      // Os cumpridos não ganham linha: ficam na explicação do grupo, pelo título.
+      expect(node?.tooltip).toBe(
+        'Cumpridos: Aloque 2 aldeões na Fazenda; Inicie a melhoria das Habitações; ' +
+          'Recrute 3 aldeões; Alcance o Salão do Senhor Nv2.',
+      );
+      expect(node?.children?.map((child) => child.id)).toEqual([
+        'objective:buildWatchtower',
+        'objective:answerFirstCard',
+        'objective:buildGranaryOrWarehouse',
+      ]);
+    });
+
+    it('cada objetivo diz o progresso e a recompensa; a explicação traz o porquê e o que falta', () => {
+      const start = buildTree({ ...input, view: initial });
+      expect(find(start, 'objectives')?.description).toBe('3 em aberto');
+      expect(find(start, 'objective:allocateFarmers')).toMatchObject({
+        label: 'Aloque 2 aldeões na Fazenda',
+        description: '0/2 · +20 ouro',
+        tooltip: [
+          'Comida é o que mantém todo o resto.',
+          'Recompensa: +20 ouro.',
+          'Faltam 2 aldeões na Fazenda.',
+        ].join('\n'),
+        icon: 'target',
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      });
+      // A recompensa de moral, como o servidor a escreveu, com o prazo de relógio.
+      const tree = buildTree({ ...input, view: unlockedView });
+      expect(find(tree, 'objective:answerFirstCard')).toMatchObject({
+        label: 'Responda à primeira carta do Conselho',
+        description: '+10 de moral por 1 dia de jogo (2 h)',
+        tooltip: [
+          'Quem se cala deixa o conselho decidir em seu lugar.',
+          'Recompensa: +10 de moral por 1 dia de jogo (2 h).',
+          'Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer.',
+        ].join('\n'),
+      });
+    });
+
+    it('o botão da linha é o comando que leva a cumprir o objetivo, com o custo da obra na dica', () => {
+      const start = buildTree({ ...input, view: initial });
+      const housing = find(start, 'objective:upgradeHousing');
+      expect(housing?.action).toEqual({
+        command: 'lords.build',
+        arg: 'housing',
+        label: 'Melhorar Habitações: Inicie a melhoria das Habitações',
+        text: 'Melhorar',
+      });
+      expect(housing?.actionHints).toEqual({ 'lords.build': '80 madeira, 20 pedra · 4 min' });
+      expect(housing?.tooltip?.split('\n').at(-1)).toBe(
+        'Pode começar agora: 80 madeira, 20 pedra · 4 min.',
+      );
+      // A obra travada: o botão só leva às construções, e não há custo a anunciar.
+      const tower = find(buildTree({ ...input, view: unlockedView }), 'objective:buildWatchtower');
+      expect(tower?.action).toEqual({
+        command: 'lords.openPanel',
+        arg: 'constructions',
+        label: 'Ver as obras: Construa a Torre de Vigia',
+        text: 'Ver',
+      });
+      expect(tower?.actionHints).toBeUndefined();
+      // O inverno: nada a ordenar.
+      const winter = find(
+        buildTree({ ...input, view: lateObjectivesView }),
+        'objective:surviveWinterWithoutCold',
+      );
+      expect(winter?.action).toBeUndefined();
+      expect(winter?.description).toBe('+15 de moral por 1 dia de jogo (2 h)');
+    });
+
+    it('com tudo cumprido, a linha fica sem filhos, com o visto e a frase que não promete nada', () => {
+      const node = find(buildTree({ ...input, view: autumnView }), 'objectives');
+      expect(node).toMatchObject({ description: '10 cumpridos', icon: 'pass', children: [] });
+      expect(node?.tooltip?.split('\n')[0]).toBe(
+        'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
+      );
+    });
   });
 
   it('conta sem partida carregada oferece abrir o painel', () => {

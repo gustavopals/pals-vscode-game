@@ -52,6 +52,7 @@ import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
 import { cardNotice } from '../ui/council';
 import { documentTitle, formatAway, type StatusBarInput } from '../ui/format';
+import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
 import { THREAT_SECTION } from '../ui/threat';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
@@ -683,7 +684,7 @@ export class Controller {
     this.notificationHistory = decision.history;
     this.unseen += decision.badge;
     for (const event of decision.show) {
-      this.notify(event);
+      this.notify(event, events);
     }
     this.changes.emit();
   }
@@ -706,14 +707,21 @@ export class Controller {
     }
   }
 
-  /** Um evento que a política liberou vira aviso, com a frase da Crônica que veio nele. */
-  private notify(event: GameEvent): void {
+  /**
+   * Um evento que a política liberou vira aviso, com a frase da Crônica que veio nele. `batch` é
+   * o lote em que ele chegou: vários objetivos cumpridos de uma vez saem em um aviso só.
+   */
+  private notify(event: GameEvent, batch: GameEvent[]): void {
     if (isDecision(event)) {
       this.notifyCard(event);
       return;
     }
     if (isRaidAlarm(event)) {
       this.notifyRaid(event);
+      return;
+    }
+    if (isObjectiveCompleted(event)) {
+      this.notifyObjectives(event, batch);
       return;
     }
     // A virada de estação repete o que muda, como o aviso de uma hora antes; o ataque sofrido
@@ -739,6 +747,23 @@ export class Controller {
         route: 'fief',
         ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
       },
+    });
+  }
+
+  /**
+   * O objetivo cumprido (GDD §12.2): a frase da Crônica, que diz qual foi e a recompensa. Quando
+   * o lote traz vários (o que o feudo já tinha feito conta de uma vez), um aviso só: "3 objetivos
+   * cumpridos.", com uma linha para cada um e a recompensa como a visão a diz. "Ver" leva à lista
+   * dos objetivos, onde os seguintes acabaram de aparecer.
+   */
+  private notifyObjectives(event: GameEvent, batch: GameEvent[]): void {
+    const summary = objectivesCompleted(batch, this.view);
+    this.announce({
+      kind: 'info',
+      icon: eventIcon(event),
+      text: summary === null ? event.text : `${summary.title}.`,
+      details: summary === null ? [] : summary.lines.map((line) => `${line}.`),
+      action: { label: 'Ver', route: 'fief', section: OBJECTIVES_SECTION },
     });
   }
 

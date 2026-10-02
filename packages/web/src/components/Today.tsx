@@ -7,6 +7,7 @@ import { cardDeadline, expiresSoon, nextAudience } from '../ui/council';
 import { moraleBurdened, moraleIcon, moraleSince } from '../ui/morale';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
+import { ObjectivesPanel } from './ObjectivesPanel';
 import { Icon } from './shared';
 
 /** Uma casa decimal: a soma de duas parcelas não mostra ruído de ponto flutuante. */
@@ -458,11 +459,14 @@ function Report(props: {
 }
 
 /**
- * Aba "Hoje": o Relatório de Retorno, as decisões pendentes e o que preparar antes de sair
- * (GDD §2.3). Quem volta de uma ausência lê primeiro o que aconteceu e o que ainda pode decidir:
- * com o relatório à vista, as cartas à espera estão no terceiro bloco dele, e "Antes de partir"
- * fica só com o que o relatório não trouxe. Sem relatório, as decisões pendentes abrem a aba;
- * sem nenhuma, "Antes de partir".
+ * Aba "Hoje": o Relatório de Retorno, as decisões pendentes, o que preparar antes de sair e os
+ * objetivos em aberto (GDD §2.3 e §12.2). Quem volta de uma ausência lê primeiro o que aconteceu
+ * e o que ainda pode decidir: com o relatório à vista, as cartas à espera estão no terceiro bloco
+ * dele, e "Antes de partir" fica só com o que o relatório não trouxe. Sem relatório, as decisões
+ * pendentes abrem a aba; sem nenhuma, "Antes de partir".
+ *
+ * Os objetivos vêm logo depois de "Antes de partir": primeiro o que o feudo pede hoje, depois o
+ * que vale buscar a seguir, cada um com o botão que leva até lá. Nenhum deles obriga a nada.
  */
 export function Today(props: {
   report: ReturnReport | null;
@@ -488,12 +492,16 @@ export function Today(props: {
   const decisions = (
     <PendingDecisions view={props.view} elapsed={elapsed} online={online} actions={props.actions} />
   );
+  const objectives = (
+    <ObjectivesPanel view={props.view} online={online} actions={props.actions} brief />
+  );
   // Uma decisão com prazo passa na frente do que preparar; a seção vazia fica no fim.
   const waiting = props.view.pendingDecisions.length > 0;
   return (
     <div class="today">
       {report === null && waiting ? decisions : null}
       {report === null ? leaving : null}
+      {report === null ? objectives : null}
       <section aria-labelledby="report-title">
         <h2 id="report-title">Relatório de Retorno</h2>
         {report === null || blocks === null ? (
@@ -513,6 +521,7 @@ export function Today(props: {
         )}
       </section>
       {report === null ? null : leaving}
+      {report === null ? null : objectives}
       {report === null && !waiting ? decisions : null}
       <button
         type="button"

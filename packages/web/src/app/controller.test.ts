@@ -775,6 +775,72 @@ describe('avisos de acontecimentos', () => {
     expect(made.controller.unseen).toBe(2);
   });
 
+  it('um objetivo cumprido avisa com a frase da Crônica, e "Ver" leva à lista dos objetivos', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    const revealed: unknown[] = [];
+    controller.runCommand = (id, arg) => revealed.push([id, arg]);
+    await controller.setPreferences({ notifications: 'all' });
+    const text =
+      'No 9º dia da Primavera, cumpriu-se um objetivo: Responda à primeira carta do Conselho. Recompensa: +10 de moral por 1 dia de jogo.';
+    await deliver(made, {
+      ...gameEvent(1, 'objectiveCompleted', text),
+      data: { objective: 'answerFirstCard', morale: 10, moraleDays: 1 },
+    });
+    const [toast] = gameToasts(controller);
+    expect(gameToasts(controller)).toHaveLength(1);
+    // Um só: a frase da Crônica já diz qual foi e a recompensa, sem lista embaixo.
+    expect(toast).toMatchObject({ kind: 'info', icon: 'pass', text });
+    expect(toast?.details ?? []).toEqual([]);
+    controller.navigate('today');
+    await actionOf(toast, 'Ver').run();
+    expect(controller.route).toBe('fief');
+    expect(revealed).toEqual([['lords.openPanel', 'objectives']]);
+  });
+
+  it('vários objetivos cumpridos de uma vez: um aviso só, com uma linha para cada um', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await controller.setPreferences({ notifications: 'all' });
+    // A visão chega antes dos eventos e já traz os objetivos cumpridos, com a recompensa de
+    // cada um como a tela a diz.
+    made.api.state.view = autumnView;
+    made.api.state.stateVersion += 1;
+    await deliver(
+      made,
+      {
+        ...gameEvent(1, 'objectiveCompleted', 'Cumpriu-se a Torre.'),
+        data: { objective: 'buildWatchtower' },
+      },
+      gameEvent(2, 'constructionFinished', 'Os pedreiros ergueram a Fazenda.'),
+      {
+        ...gameEvent(3, 'objectiveCompleted', 'Cumpriu-se a carta.'),
+        data: { objective: 'answerFirstCard' },
+      },
+      {
+        ...gameEvent(4, 'objectiveCompleted', 'Cumpriu-se a Paliçada.'),
+        data: { objective: 'buildPalisade' },
+      },
+    );
+    expect(gameToasts(controller).map((toast) => toast.text)).toEqual([
+      '3 objetivos cumpridos.',
+      'Os pedreiros ergueram a Fazenda.',
+    ]);
+    expect(gameToasts(controller)[0]).toMatchObject({
+      kind: 'info',
+      icon: 'pass',
+      details: [
+        'Construa a Torre de Vigia: +40 pedra.',
+        'Responda à primeira carta do Conselho: +10 de moral por 1 dia de jogo (2 h).',
+        'Construa a Paliçada: +100 madeira.',
+      ],
+    });
+    // Dois avisos gastos da hora, e nenhuma novidade a mais no contador.
+    expect(controller.unseen).toBe(0);
+    await deliver(made, gameEvent(5, 'constructionFinished', 'Obra 5.'));
+    expect(toastWith(controller, 'Obra 5.')).toBeDefined();
+  });
+
   it('passada uma hora, os avisos voltam a aparecer', async () => {
     let clock = NOON;
     const made = await opened({ now: () => clock });

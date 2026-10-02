@@ -154,41 +154,6 @@ export function RecruitPanel(props: {
   );
 }
 
-export function ObjectivesPanel(props: { objectives: ViewState['objectives'] }) {
-  return (
-    <section aria-labelledby="objectives-title">
-      <h2 id="objectives-title">Objetivos</h2>
-      {props.objectives.length === 0 ? (
-        <p class="muted">Nenhum objetivo por agora.</p>
-      ) : (
-        <ul class="objectives">
-          {props.objectives.map((objective) => {
-            const done = objective.status === 'completed';
-            return (
-              <li key={objective.id} class={done ? 'objective objective-done' : 'objective'}>
-                <span aria-hidden="true">{done ? '☑' : '☐'}</span>
-                <span>
-                  <span class="sr-only">{done ? 'Cumprido: ' : 'Em aberto: '}</span>
-                  {objective.title}
-                  {done ? null : (
-                    <span class="muted">
-                      {' '}
-                      ({objective.progress.current}/{objective.progress.target})
-                    </span>
-                  )}
-                  <span class="objective-why">
-                    {objective.hint} Recompensa: {objective.reward}.
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
 export function ChroniclePanel(props: { chronicle: GameEvent[]; actions: Actions }) {
   const lines = props.chronicle.slice(-10).reverse();
   return (

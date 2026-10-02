@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { type Locator, type Page } from '@playwright/test';
 
 import {
   applyTheme,
@@ -9,7 +9,9 @@ import {
   MINUTE,
   overflow,
   playNow,
+  serverView,
   statusBar,
+  stock,
   test,
   THEMES,
   toasts,
@@ -109,9 +111,17 @@ test.describe('teclado', () => {
     await page.keyboard.press('ArrowLeft');
     expect(await focused()).toBe('fief');
     await page.keyboard.press('End');
+    // A última linha do feudo é o último objetivo em aberto: a seta para cima passa pelos três,
+    // pela linha "Objetivos", pela Ameaça, pela Moral e pelo Conselho, e volta às Construções.
+    expect(await focused()).toBe('objective:recruitVillagers');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused()).toBe('objective:upgradeHousing');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused()).toBe('objective:allocateFarmers');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused()).toBe('objectives');
+    await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('threat');
-    // A Ameaça é uma folha, a última linha do feudo: a seta para cima passa pela Moral e pelo
-    // Conselho e volta às Construções.
     await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('morale');
     await page.keyboard.press('ArrowUp');
@@ -271,6 +281,281 @@ test.describe('teclado', () => {
     await world.passTime(11 * MINUTE, page);
     await expect(fief(page).getByText('Salão Nv2')).toBeVisible();
     await expect(objectives.getByText('Cumprido: Alcance o Salão do Senhor Nv2')).toBeAttached();
+    // Nenhuma ordem foi recusada no caminho.
+    await expect(toasts(page).getByRole('alert')).toHaveCount(0);
+  });
+
+  // Roadmap da v0.2, V2E-T4 (GDD §12.2): os dez objetivos, do primeiro ao último, sem mouse e
+  // pelos três lugares em que eles aparecem: a árvore, o painel do feudo e a aba Hoje. O jogo é
+  // o de verdade; só o Salão no nível 3, que levaria dezenas de horas, é posto pelo teste.
+  test('os objetivos 1 a 10 só com o teclado: pela árvore, pelo painel e pela aba Hoje, com o Relatório no meio do caminho', async ({
+    context,
+    request,
+    world,
+  }) => {
+    test.setTimeout(90_000);
+    let page = await world.open(context);
+    await expect(page.getByLabel('Como devemos chamar quem governa?')).toBeFocused();
+    await page.keyboard.type('Gustavo');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'Pedra Alta', level: 1 })).toBeVisible();
+
+    const panel = () => fief(page).getByRole('region', { name: 'Objetivos' });
+    /** Os objetivos em aberto do painel à vista (o do feudo ou o da aba Hoje). */
+    const open = (region: Locator) => region.locator('li.objective');
+    /** O Tab leva ao botão; Enter o aciona. */
+    const press = async (button: Locator) => {
+      await button.focus();
+      await expect(button).toBeFocused();
+      await page.keyboard.press('Enter');
+    };
+    /** Na árvore: as setas levam à linha do objetivo, o Tab ao botão dela, Enter o aciona. */
+    const pressInTree = async (objective: string, name: RegExp) => {
+      const row = tree(page).locator(`[data-node="objective:${objective}"]`);
+      await row.focus();
+      await page.keyboard.press('Tab');
+      await expect(row.getByRole('button', { name })).toBeFocused();
+      await page.keyboard.press('Enter');
+    };
+    /** O que o servidor diz dos objetivos agora: a tela mostra os mesmos, na mesma ordem. */
+    const sameAsServer = async (region: Locator) => {
+      const view = await serverView(page, request);
+      const active = view.objectives.filter((objective) => objective.status === 'active');
+      expect(active.length).toBeLessThanOrEqual(3);
+      await expect(open(region)).toHaveCount(active.length);
+      for (const [index, objective] of active.entries()) {
+        const item = open(region).nth(index);
+        await expect(item).toContainText(objective.title);
+        await expect(item).toContainText(objective.hint);
+        await expect(item).toContainText(`Recompensa: ${objective.reward}.`);
+        if (objective.missing !== null) {
+          await expect(item).toContainText(objective.missing);
+        }
+      }
+      return view.objectives;
+    };
+
+    // No começo: três em aberto, na árvore e no painel, e nenhum cumprido.
+    await expect(tree(page).locator('[data-node="objectives"]')).toContainText('3 em aberto');
+    await sameAsServer(panel());
+    await expect(panel().getByText(/^Cumpridos/)).toHaveCount(0);
+
+    // 1. Aloque 2 aldeões na Fazenda: pelo botão da linha do objetivo, na árvore.
+    await pressInTree('allocateFarmers', /^Alocar na Fazenda/);
+    await expect(page.getByRole('dialog')).toContainText('Fazenda Nv1');
+    await page.keyboard.type('2');
+    await page.keyboard.press('Enter');
+    await expect(panel().getByText('Cumprido: Aloque 2 aldeões na Fazenda')).toBeAttached();
+    // Concluir um revela o próximo: continuam três em aberto, agora com o do Salão.
+    await expect(panel().getByText('Cumpridos (1)')).toBeVisible();
+    await expect(open(panel()).last()).toContainText('Alcance o Salão do Senhor Nv2');
+    await sameAsServer(panel());
+
+    // 2. Inicie a melhoria das Habitações: pelo botão do painel, com o custo ao lado do prêmio.
+    const housing = open(panel()).filter({ hasText: 'Inicie a melhoria das Habitações' });
+    await expect(housing).toContainText('Recompensa: +30 madeira.');
+    await expect(housing).toContainText('Pode começar agora: 80 madeira, 20 pedra · 4 min.');
+    await press(housing.getByRole('button', { name: 'Melhorar Habitações' }));
+    await expect(panel().getByText('Cumpridos (2)')).toBeVisible();
+    expect(await stock(page, 'Madeira')).toBe(120 - 80 + 30);
+
+    // 3. Recrute 3 aldeões: pela aba Hoje, onde os objetivos vêm depois de "Antes de partir".
+    await command(page, 'Ir para Hoje');
+    const today = page.getByRole('tabpanel', { name: 'Hoje' });
+    const todayObjectives = today.getByRole('region', { name: 'Objetivos' });
+    await sameAsServer(todayObjectives);
+    await expect(todayObjectives).toContainText('2 já cumpridos.');
+    await press(todayObjectives.getByRole('button', { name: 'Recrutar aldeões' }));
+    await page.keyboard.type('3');
+    await page.keyboard.press('Enter');
+    // Com os três a caminho, não há mais o que ordenar: o botão sai, e a frase diz por quê.
+    const recruit = open(todayObjectives).filter({ hasText: 'Recrute 3 aldeões' });
+    await expect(recruit).toContainText('Os 3 aldeões que faltam já estão a caminho.');
+    await expect(recruit.getByRole('button')).toHaveCount(0);
+    await world.passTime(61 * MINUTE, page);
+    await expect(todayObjectives).toContainText('3 já cumpridos.');
+    // "Ver todos" leva à lista inteira, no feudo, com o foco no título dela.
+    await press(todayObjectives.getByRole('button', { name: 'Ver todos' }));
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(panel().getByRole('heading', { name: 'Objetivos' })).toBeFocused();
+
+    // 4. Alcance o Salão do Senhor Nv2. Ainda faltam recursos: o botão leva às construções.
+    const hall = open(panel()).filter({ hasText: 'Alcance o Salão do Senhor Nv2' });
+    await expect(hall).toContainText(/Faltam \d+ madeira e \d+ pedra\./);
+    await press(hall.getByRole('button', { name: 'Ver as obras' }));
+    await expect(fief(page).getByRole('heading', { name: 'Construções' })).toBeFocused();
+    // Madeira e pedra: três na Serraria e três na Pedreira, pelo "+" da árvore.
+    for (const building of ['lumberMill', 'quarry']) {
+      const row = tree(page).locator(`[data-node="worker:${building}"]`);
+      await row.focus();
+      for (const count of [1, 2, 3]) {
+        await page.keyboard.press('+');
+        await expect(row).toContainText(`${count} ·`);
+      }
+    }
+    await expect(fief(page).getByText('Trabalhadores (8/8)')).toBeVisible();
+    await world.passTime(6 * HOUR, page);
+    // Agora a obra pode começar: o botão da linha passa a ordená-la, com o custo na dica.
+    // (O botão só fica à vista com a linha em foco: aqui se lê o que ele vai dizer.)
+    const hallRow = tree(page).locator('[data-node="objective:townHallLevel2"]');
+    await expect(hallRow.locator('button')).toHaveAttribute(
+      'title',
+      /^Melhorar Salão do Senhor: Alcance o Salão do Senhor Nv2 \(150 madeira, 100 pedra, 100 ouro · 10 min\)$/,
+    );
+    await pressInTree('townHallLevel2', /^Melhorar Salão do Senhor/);
+    await expect(statusBar(page)).toContainText('Salão do Senhor Nv2 ·');
+    await expect(hall).toContainText(
+      'A obra do Salão do Senhor já começou: o objetivo se cumpre quando ela terminar.',
+    );
+    await expect(hall.getByRole('button')).toHaveCount(0);
+    await world.passTime(11 * MINUTE, page);
+    await expect(panel().getByText('Cumpridos (4)')).toBeVisible();
+
+    // Os objetivos da v0.2: a Torre, a primeira carta e o depósito.
+    const objectives = await sameAsServer(panel());
+    expect(objectives.filter((objective) => objective.status === 'active')).toHaveLength(3);
+    await expect(tree(page).locator('[data-node="objectives"]')).toContainText(
+      '3 em aberto · 4 cumpridos',
+    );
+    // A recompensa de moral diz o prazo em dias de jogo e no relógio de quem joga.
+    const card = open(panel()).filter({ hasText: 'Responda à primeira carta do Conselho' });
+    await expect(card).toContainText('Recompensa: +10 de moral por 1 dia de jogo (2 h).');
+    await expect(card).toContainText(
+      'Nenhuma carta espera resposta: vale a próxima que o Conselho trouxer.',
+    );
+
+    // 6. Responda à primeira carta do Conselho. A carta chega; o botão do objetivo leva a ela.
+    await world.control('council-deal', { cardId: 'masonsMeal' });
+    await world.passTime(MINUTE, page);
+    await expect(card).toContainText('Só falta a sua ordem.');
+    await press(card.getByRole('button', { name: 'Decidir no Conselho' }));
+    await expect(page.getByRole('tab', { name: /^Conselho/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await command(page, 'Decidir carta');
+    await expect(page.getByRole('dialog')).toContainText('A refeição dos pedreiros');
+    // A opção que já vem marcada é a que o conselho aplicaria sozinho: não custa nada.
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await command(page, 'Ir para o Feudo');
+    await expect(panel().getByText('Cumpridos (5)')).toBeVisible();
+    await expect(
+      panel().getByText('Cumprido: Responda à primeira carta do Conselho'),
+    ).toBeAttached();
+    // O prêmio é um efeito passageiro na conta da moral, com o nome que o servidor deu: entra
+    // na próxima virada do dia e vale até a seguinte.
+    const morale = fief(page).getByRole('region', { name: 'Moral' });
+    await expect(
+      morale.getByRole('listitem').filter({ hasText: 'O Senhor ouviu o Conselho' }).first(),
+    ).toHaveText(/^\+10\s*O Senhor ouviu o Conselho$/);
+    await expect(morale).toContainText(
+      /Passageiro: O Senhor ouviu o Conselho \(\+10\), por mais \d+ h( \d+ min)?\./,
+    );
+    // 8. Deixe uma obra marcada para começar sozinha: o objetivo acaba de aparecer, e só falta
+    // a ordem. O botão dele abre a lista das obras; a Torre fica planejada, com a marca ligada.
+    const marked = open(panel()).filter({ hasText: 'Deixe uma obra marcada para começar sozinha' });
+    await expect(marked).toContainText('Só falta a sua ordem.');
+    await press(marked.getByRole('button', { name: 'Planejar obras' }));
+    await page.keyboard.type('Planejar: Torre de Vigia');
+    await page.keyboard.press('Enter');
+    // "Iniciar quando houver recursos" já vem marcada para a obra que ainda não pode começar.
+    await expect(page.getByRole('dialog')).toContainText('Iniciar quando houver recursos');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(panel().getByText('Cumpridos (6)')).toBeVisible();
+    // A Paliçada entrou na lista, travada pelo Salão: o motivo é o do servidor.
+    await expect(open(panel()).filter({ hasText: 'Construa a Paliçada' })).toContainText(
+      'Melhore antes o Salão do Senhor para o nível 3.',
+    );
+
+    // 5 e 7. O Celeiro também fica planejado, para começar sozinho, e o senhor sai.
+    await command(page, 'Planejar obras');
+    await page.keyboard.type('Planejar: Celeiro');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toContainText('Iniciar quando houver recursos');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(
+      fief(page).getByRole('checkbox', { name: /^Iniciar quando houver recursos/, checked: true }),
+    ).toHaveCount(2);
+    await sameAsServer(panel());
+    await page.close();
+    await world.passTime(14 * HOUR);
+    page = await world.open(context);
+
+    // De volta: o Relatório conta os dois objetivos cumpridos em uma linha só, e não em duas.
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    const back = page.getByRole('tabpanel', { name: 'Hoje' });
+    const prospered = back.getByRole('region', { name: /^O feudo prosperou/ });
+    const completed = prospered.getByRole('listitem').filter({ hasText: /objetivo/i });
+    await expect(completed).toHaveCount(1);
+    // Na ordem em que aconteceram: a pedra do Celeiro chega antes da da Torre, e a planejada
+    // que ainda não pode começar não segura a seguinte.
+    await expect(completed).toHaveText(
+      '2 objetivos cumpridos. Construa o Celeiro ou o Armazém: +60 madeira. ' +
+        'Construa a Torre de Vigia: +40 pedra.',
+    );
+    // A Crônica da ausência continua com uma linha para cada um.
+    const lines = back.getByRole('group').filter({ hasText: 'A Crônica da ausência' });
+    await press(lines.locator('summary'));
+    await expect(
+      lines.getByRole('listitem').filter({ hasText: 'cumpriu-se um objetivo' }),
+    ).toHaveCount(2);
+    // Nenhum aviso avulso: quem conta a ausência é o relatório.
+    await expect(toasts(page).getByRole('status')).toHaveCount(0);
+    // Logo abaixo, os dois que restam, e quantos já foram.
+    const after = back.getByRole('region', { name: 'Objetivos' });
+    await sameAsServer(after);
+    await expect(open(after)).toHaveCount(2);
+    await expect(after).toContainText('8 já cumpridos.');
+    const winter = open(after).filter({ hasText: 'Atravesse o inverno sem passar frio' });
+    await expect(winter).toContainText('Recompensa: +15 de moral por 1 dia de jogo (2 h).');
+    await expect(winter).toContainText('Falta o Inverno chegar e passar sem frio.');
+    // Atravessar o inverno é esperar: não há botão.
+    await expect(winter.getByRole('button')).toHaveCount(0);
+
+    // 9. Construa a Paliçada. Com o Salão no nível 3, o botão da árvore ergue a obra.
+    await world.raise('townHall', 3);
+    await world.passTime(2 * HOUR, page);
+    await pressInTree('buildPalisade', /^Construir Paliçada/);
+    await expect(statusBar(page)).toContainText('Paliçada Nv1 ·');
+    await world.passTime(21 * MINUTE, page);
+    await expect(after).toContainText('9 já cumpridos.');
+    await expect(open(after)).toHaveCount(1);
+    await expect(tree(page).locator('[data-node="objectives"]')).toContainText(
+      '1 em aberto · 9 cumpridos',
+    );
+
+    // 10. Atravesse o inverno sem passar frio. A lenha dá: a Serraria repõe o que a lareira queima.
+    const untilWinter = (await serverView(page, request)).calendar.nextFirewoodSeason;
+    expect(untilWinter).not.toBeNull();
+    await world.passTime(((untilWinter?.secondsUntil ?? 0) + 2 * 3600) * 1000, page);
+    await expect(winter).toContainText(
+      'Ninguém passou frio até aqui: falta o Inverno terminar assim.',
+    );
+    const untilSpring = (await serverView(page, request)).calendar.nextSeason;
+    await world.passTime((untilSpring.secondsUntil + 60) * 1000, page);
+    await expect(after).toContainText(
+      'Nenhum objetivo em aberto agora: o que havia a cumprir está cumprido.',
+    );
+    await expect(after).toContainText('10 já cumpridos.');
+    await expect(tree(page).locator('[data-node="objectives"]')).toContainText('10 cumpridos');
+
+    // A lista inteira, no feudo: os dez cumpridos, recolhidos até o jogador abrir.
+    await press(after.getByRole('button', { name: 'Ver todos' }));
+    await expect(panel().getByRole('heading', { name: 'Objetivos' })).toBeFocused();
+    const done = panel().getByRole('group');
+    await expect(done.getByRole('listitem').first()).toBeHidden();
+    await press(done.locator('summary'));
+    await expect(done.getByRole('listitem')).toHaveCount(10);
+    await expect(done.getByRole('listitem').last()).toContainText(
+      'Cumprido: Atravesse o inverno sem passar frio',
+    );
+    // O prêmio do inverno está na conta da moral.
+    await expect(fief(page).getByRole('region', { name: 'Moral' })).toContainText(
+      'Inverno sem frio (+15)',
+    );
     // Nenhuma ordem foi recusada no caminho.
     await expect(toasts(page).getByRole('alert')).toHaveCount(0);
   });

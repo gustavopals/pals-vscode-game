@@ -4,7 +4,8 @@ import type { Actions } from '../components/actions';
 import { ColdBanner, FamineBanner, FirewoodNote, OfflineBanner } from '../components/Banners';
 import { ConstructionsPanel } from '../components/ConstructionsPanel';
 import { Header } from '../components/Header';
-import { ChroniclePanel, MoralePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
+import { ObjectivesPanel } from '../components/ObjectivesPanel';
+import { ChroniclePanel, MoralePanel, RecruitPanel } from '../components/Panels';
 import { ResourcesTable } from '../components/ResourcesTable';
 import { ThreatPanel } from '../components/ThreatPanel';
 import { WorkersPanel } from '../components/WorkersPanel';
@@ -63,7 +64,7 @@ export function FiefTab(props: {
           />
           {/* Ao lado das obras: a saída da névoa é uma delas, a Torre de Vigia. */}
           <ThreatPanel view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
-          <ObjectivesPanel objectives={view.objectives} />
+          <ObjectivesPanel view={view} online={props.online} actions={actions} />
           <ChroniclePanel chronicle={props.chronicle} actions={actions} />
         </div>
       </div>

@@ -125,6 +125,41 @@ describe('política de notificações', () => {
     expect(eventIcon(event('craftMastered'))).toBe('star-full');
   });
 
+  it('vários objetivos cumpridos no mesmo lote são um aviso só: o primeiro fala por todos', () => {
+    // O que o feudo já tinha feito conta de uma vez quando o objetivo aparece, e concluir um
+    // revela o seguinte: cinco eventos não gastam os três avisos da hora.
+    const events = [
+      event('objectiveCompleted', 1),
+      event('constructionFinished', 2),
+      event('objectiveCompleted', 3),
+      event('objectiveCompleted', 4),
+      event('buildingFounded', 5),
+      event('objectiveCompleted', 6),
+    ];
+    const all = decideNotifications(input({ level: 'all', events }));
+    expect(all.show.map((entry) => entry.seq)).toEqual([1, 2, 5]);
+    // Os outros objetivos não viram aviso nem novidade a contar: já foram ditos.
+    expect(all.badge).toBe(0);
+    expect(all.history).toHaveLength(3);
+    // Sem espaço para o aviso, os objetivos do lote contam como uma novidade só.
+    const full = decideNotifications(input({ level: 'all', events, history: [now, now, now] }));
+    expect(full.show).toEqual([]);
+    expect(full.badge).toBe(3);
+    // No nível padrão continuam não interrompendo.
+    expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+    // Em lotes diferentes, cada objetivo é a sua notícia.
+    const first = decideNotifications(
+      input({ level: 'all', events: [event('objectiveCompleted', 1)] }),
+    );
+    const second = decideNotifications(
+      input({ level: 'all', events: [event('objectiveCompleted', 2)], history: first.history }),
+    );
+    expect(second.show.map((entry) => entry.seq)).toEqual([2]);
+    // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
+    expect(eventIcon(event('objectiveCompleted'))).toBe('pass');
+    expect(isEssential(event('objectiveCompleted'))).toBe(false);
+  });
+
   it('a obra que começou sozinha avisa em "todas", como o fim de uma obra; a ordenada pelo jogador, não', () => {
     const events = [
       event('constructionStarted', 1),

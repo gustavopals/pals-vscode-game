@@ -287,6 +287,75 @@ export function withPlanned(
   };
 }
 
+type ObjectiveRow = ViewState['objectives'][number];
+
+/**
+ * A mesma visão com campos de um objetivo trocados (o que falta, o progresso, onde se cumpre).
+ * Quem decide o que falta é o motor; aqui a frase é posta à mão para o app mostrar cada caso.
+ */
+export function withObjective(
+  view: ViewState,
+  id: string,
+  patch: Partial<ObjectiveRow>,
+): ViewState {
+  if (!view.objectives.some((objective) => objective.id === id)) {
+    throw new Error(`A visão não traz o objetivo ${id}.`);
+  }
+  return {
+    ...view,
+    objectives: view.objectives.map((objective) =>
+      objective.id === id ? { ...objective, ...patch } : objective,
+    ),
+  };
+}
+
+/**
+ * Os três últimos objetivos da v0.2 em aberto, depois dos sete primeiros cumpridos: marcar uma
+ * obra para começar sozinha (só falta a ordem), a Paliçada (travada pelo Salão) e o inverno sem
+ * frio (o que falta é a estação chegar). As frases são as que o motor escreve.
+ */
+export const lateObjectivesView: ViewState = {
+  ...unlockedView,
+  objectives: [
+    ...unlockedView.objectives.map((objective) => ({
+      ...objective,
+      status: 'completed' as const,
+      progress: { current: objective.progress.target, target: objective.progress.target },
+      missing: null,
+    })),
+    {
+      id: 'planAutoStart',
+      title: 'Deixe uma obra marcada para começar sozinha',
+      hint: 'A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.',
+      reward: '+30 ouro',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: null,
+      target: { kind: 'planned' },
+    },
+    {
+      id: 'buildPalisade',
+      title: 'Construa a Paliçada',
+      hint: 'Estaca firme faz o lobo recuar de barriga vazia.',
+      reward: '+100 madeira',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: 'Melhore antes o Salão do Senhor para o nível 3.',
+      target: { kind: 'building', building: 'palisade' },
+    },
+    {
+      id: 'surviveWinterWithoutCold',
+      title: 'Atravesse o inverno sem passar frio',
+      hint: 'A lareira queima madeira o inverno inteiro: guarde lenha no outono.',
+      reward: '+15 de moral por 1 dia de jogo (2 h)',
+      status: 'active',
+      progress: { current: 0, target: 1 },
+      missing: 'Falta o Inverno chegar e passar sem frio.',
+      target: { kind: 'season', season: 'winter' },
+    },
+  ],
+};
+
 export const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 export const GAME_ID = '22222222-2222-4222-8222-222222222222';
 const CREATED_AT = '2026-10-01T12:00:00.000Z';

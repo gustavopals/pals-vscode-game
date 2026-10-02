@@ -19,6 +19,7 @@ import {
   fakeApi,
   gameEvent,
   goldenView,
+  lateObjectivesView,
   unlockedView,
   makeController,
   mealCard,
@@ -465,6 +466,9 @@ describe('toda ação da interface tem um comando', () => {
     // A mesa do conselho cheia: uma linha por carta, com o botão "Decidir".
     tree(councilView, account()),
     tree(goldenView, account({ kind: 'linked', hasRecoveryCode: true })),
+    // Os objetivos da v0.2 em aberto: os botões deles levam às obras, ao Conselho e às planejadas.
+    tree(unlockedView, account()),
+    tree(lateObjectivesView, account()),
     tree(null, account()),
     tree(null, account({ gameId: null })),
     tree(null, { kind: 'signedOut' }),
@@ -496,6 +500,10 @@ describe('toda ação da interface tem um comando', () => {
       'lords.answerCard',
       'lords.build',
       'lords.cancelConstruction',
+      // Os botões das linhas dos objetivos: ver as obras ou o Conselho, planejar e recrutar.
+      'lords.openPanel',
+      'lords.planConstruction',
+      'lords.recruit',
       'lords.toggleAutoStart',
       'lords.workersDecrease',
       'lords.workersIncrease',
@@ -1143,6 +1151,21 @@ describe('construir, cancelar e planejar', () => {
     await run('lords.openPanel', 'fief');
     expect(controller.route).toBe('fief');
     expect(browser.revealed).toEqual(['threat-title']);
+  });
+
+  it('os botões dos objetivos chegam às construções e à lista dos objetivos, com a página e o foco', async () => {
+    const { run, browser, controller, orders } = await setup();
+    controller.navigate('today');
+    // "Ver as obras", no objetivo de uma obra travada.
+    await run('lords.openPanel', 'constructions');
+    expect(controller.route).toBe('fief');
+    expect(browser.revealed).toEqual(['constructions-title']);
+    // "Ver todos", na aba Hoje, e o "Ver" do aviso de um objetivo cumprido.
+    controller.navigate('today');
+    await run('lords.openPanel', 'objectives');
+    expect(controller.route).toBe('fief');
+    expect(browser.revealed).toEqual(['constructions-title', 'objectives-title']);
+    expect(orders()).toEqual([]);
   });
 
   it('o "Ver" de um aviso de incursão leva ao painel da Ameaça', async () => {

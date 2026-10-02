@@ -16,6 +16,7 @@ import {
   gameEvent,
   mealCard,
   goldenView,
+  lateObjectivesView,
   makeController,
   palisadeRaisedView,
   queuesView,
@@ -122,6 +123,11 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'council',
       'morale',
       'threat',
+      // Os objetivos em aberto ficam à vista: são o tutorial vivo.
+      'objectives',
+      'objective:upgradeHousing',
+      'objective:recruitVillagers',
+      'objective:townHallLevel2',
       'chronicle',
       'account',
       'settings',
@@ -150,7 +156,8 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 6 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 7 });
+    expect(byId.get('objective:recruitVillagers')).toMatchObject({ position: 2, setSize: 3 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
   });
 
@@ -364,19 +371,64 @@ describe('ações das linhas (rowActions)', () => {
     expect(rowActions(nodeById(seated, 'council'))).toEqual([]);
   });
 
+  it('a linha de um objetivo traz o botão que leva a cumpri-lo, com o argumento do comando', () => {
+    // Obra que pode começar: o botão a ordena, e a dica dele diz o custo e o prazo.
+    const housing = nodeById(nodes, 'objective:upgradeHousing');
+    expect(rowActions(housing)).toEqual([
+      {
+        command: 'lords.build',
+        arg: 'housing',
+        label: 'Melhorar Habitações: Inicie a melhoria das Habitações',
+        text: 'Melhorar',
+      },
+    ]);
+    expect(actionTitle(housing, rowActions(housing)[0] ?? { label: '', command: '' })).toBe(
+      'Melhorar Habitações: Inicie a melhoria das Habitações (80 madeira, 20 pedra · 4 min)',
+    );
+    // Obra travada: o botão só leva às construções, onde estão o custo e o motivo.
+    expect(rowActions(nodeById(nodes, 'objective:townHallLevel2'))).toEqual([
+      {
+        command: 'lords.openPanel',
+        arg: 'constructions',
+        label: 'Ver as obras: Alcance o Salão do Senhor Nv2',
+        text: 'Ver',
+      },
+    ]);
+    // Sem argumento: o comando abre o seu próprio diálogo.
+    expect(rowActions(nodeById(nodes, 'objective:recruitVillagers'))).toEqual([
+      { command: 'lords.recruit', label: 'Recrutar aldeões: Recrute 3 aldeões', text: 'Recrutar' },
+    ]);
+    // O inverno não tem o que ordenar: a linha fica sem botão.
+    const late = tree({ view: lateObjectivesView });
+    expect(rowActions(nodeById(late, 'objective:surviveWinterWithoutCold'))).toEqual([]);
+    expect(rowActions(nodeById(late, 'objective:planAutoStart'))).toMatchObject([
+      { command: 'lords.planConstruction', text: 'Planejar' },
+    ]);
+  });
+
   it('nenhuma outra linha dá ordens: clicar só navega', () => {
     const withActions = everyNode(nodes)
       .filter((node) => rowActions(node).length > 0)
       .map((node) => node.id);
     const allowed = (id: string) =>
       id.startsWith('worker:') ||
+      // O botão de um objetivo é o comando que leva a cumpri-lo; o clique na linha só navega.
+      id.startsWith('objective:') ||
       id === 'active:lumberMill' ||
       building.constructions.available.some(
         (upgrade) => upgrade.blockedReason === null && id === `construction:${upgrade.building}`,
       );
     expect(withActions.length).toBeGreaterThan(0);
     expect(withActions.filter((id) => !allowed(id))).toEqual([]);
-    for (const id of ['today', 'fief', 'resources', 'resource:food', 'chronicle', 'settings']) {
+    for (const id of [
+      'today',
+      'fief',
+      'resources',
+      'resource:food',
+      'objectives',
+      'chronicle',
+      'settings',
+    ]) {
       expect(rowActions(nodeById(nodes, id))).toEqual([]);
     }
     expect(rowActions(nodeById(nodes, 'account:delete'))).toEqual([]);
@@ -461,8 +513,8 @@ describe('Tree', () => {
   it('as ordens saem de botões rotulados dentro das linhas', () => {
     const markup = render(tree());
     const found = buttons(markup);
-    // Quatro edifícios com − e +; Construções começa fechada.
-    expect(found).toHaveLength(goldenView.workers.length * 2);
+    // Quatro edifícios com − e +, e um botão por objetivo em aberto; Construções começa fechada.
+    expect(found).toHaveLength(goldenView.workers.length * 2 + 3);
     expect(found.map((button) => attribute(button, 'aria-label'))).toContain(
       'Pôr mais um trabalhador em Fazenda Nv1',
     );

@@ -270,10 +270,11 @@ test.describe('fechar e reabrir', () => {
     );
     // Com o relatório à vista, as cartas estão nele: a seção à parte não se repete. "Antes de
     // partir" fica com o que está acontecendo agora (a Despensa segue cheia) e não diz de novo o
-    // que o terceiro bloco já trouxe com botão.
+    // que o terceiro bloco já trouxe com botão. Por último, os objetivos em aberto.
     await expect(today.getByRole('heading', { level: 2 })).toHaveText([
       'Relatório de Retorno',
       'Antes de partir',
+      'Objetivos',
     ]);
     const leaving = today.getByRole('region', { name: 'Antes de partir' });
     await expect(leaving.getByRole('listitem')).toHaveText([
@@ -641,9 +642,10 @@ test.describe('antes de partir', () => {
     await playNow(page);
     await page.getByRole('tab', { name: 'Hoje' }).click();
 
-    // Sem relatório, a seção é a primeira da aba.
+    // Sem relatório, a seção é a primeira da aba; logo depois dela, os objetivos em aberto.
     await expect(today(page).getByRole('heading', { level: 2 })).toHaveText([
       'Antes de partir',
+      'Objetivos',
       'Relatório de Retorno',
       'Decisões pendentes',
     ]);
@@ -793,6 +795,7 @@ test.describe('antes de partir', () => {
     await expect(today(back).getByRole('heading', { level: 2 })).toHaveText([
       'Relatório de Retorno',
       'Antes de partir',
+      'Objetivos',
     ]);
     // O que espera decisão é o terceiro bloco do relatório, acima de "Antes de partir".
     await expect(today(back).getByRole('heading', { level: 3 })).toHaveText([

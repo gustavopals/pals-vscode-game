@@ -304,7 +304,8 @@ test.describe('governar o feudo', () => {
     await playNow(page);
     await fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' }).click();
     await fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' }).click();
-    await expect(fief(page).getByText('☑')).toBeVisible();
+    // O primeiro objetivo se cumpriu: a lista dos cumpridos, recolhida, mostra a contagem.
+    await expect(fief(page).getByText('Cumpridos (1)')).toBeVisible();
 
     await fief(page).getByRole('button', { name: 'Abrir a Crônica' }).click();
     await expect(page).toHaveURL(/#\/cronica$/);

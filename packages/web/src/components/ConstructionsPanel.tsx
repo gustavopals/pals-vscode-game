@@ -1,6 +1,7 @@
 import type { ViewState } from '@lotg/protocol';
 
 import { capitalize, isNewBuilding, planWaiting, refundSentence, upgradeName } from '../ui/format';
+import { CONSTRUCTIONS_ANCHOR } from '../ui/objectives';
 import type { Actions } from './actions';
 import { formatCountdown, formatDuration, formatNumber, remaining } from './format';
 import { Icon } from './shared';
@@ -211,8 +212,11 @@ export function ConstructionsPanel(props: {
   const fresh = available.filter(isNewBuilding);
 
   return (
-    <section aria-labelledby="constructions-title">
-      <h2 id="constructions-title">Construções</h2>
+    <section aria-labelledby={CONSTRUCTIONS_ANCHOR}>
+      {/* O título recebe o foco de quem chega pelo botão de um objetivo ("Ver as obras"). */}
+      <h2 id={CONSTRUCTIONS_ANCHOR} tabIndex={-1}>
+        Construções
+      </h2>
       {/*
        * Uma linha por fila aberta. A fila que ainda não abriu aparece com o motivo que o servidor
        * dá, nunca como um botão morto.

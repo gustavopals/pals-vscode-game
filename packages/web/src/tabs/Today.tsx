@@ -5,7 +5,10 @@ import { ColdBanner, FamineBanner, OfflineBanner } from '../components/Banners';
 import { Header } from '../components/Header';
 import { Today } from '../components/Today';
 
-/** A aba Hoje: o Relatório de Retorno, as decisões pendentes e "Antes de partir" (GDD §2.3). */
+/**
+ * A aba Hoje: o Relatório de Retorno, as decisões pendentes, "Antes de partir" e os objetivos em
+ * aberto (GDD §2.3 e §12.2).
+ */
 export function TodayTab(props: {
   view: ViewState;
   elapsed: number;

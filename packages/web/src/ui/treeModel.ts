@@ -34,6 +34,17 @@ import {
   upgradeName,
 } from './format';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
+import {
+  activeObjectives,
+  completedObjectives,
+  noActiveObjectives,
+  OBJECTIVE_DONE_ICON,
+  OBJECTIVE_ICON,
+  objectiveAction,
+  objectiveLines,
+  objectivesSummary,
+  objectiveTreeLine,
+} from './objectives';
 import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
 import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
 
@@ -57,6 +68,11 @@ export type TreeNode = {
    * botão da linha "Ameaça" ergue a Torre de Vigia, e é isso que ele diz.
    */
   actionLabels?: Record<string, string>;
+  /**
+   * O botão da linha, quando a ordem não sai do tipo dela (`contextValue`): cada objetivo leva o
+   * comando que o cumpre, com o argumento, o nome por extenso e a palavra curta do botão.
+   */
+  action?: { command: string; arg?: string; label: string; text: string };
   children?: TreeNode[];
   expanded?: boolean;
 };
@@ -393,6 +409,58 @@ function councilNode(view: ViewState, elapsedSeconds: number): TreeNode {
   };
 }
 
+/**
+ * Os Objetivos do Senhor (GDD §12.2): "3 em aberto · 4 cumpridos" e uma linha por objetivo em
+ * aberto, com o progresso e a recompensa. A explicação de cada linha é o porquê, a recompensa e o
+ * que falta agora, nas frases do servidor. O clique só navega; o botão da linha é o comando que
+ * leva a cumprir o objetivo (alocar, construir, recrutar, decidir, planejar), com o custo da obra
+ * na dica. Os cumpridos não ganham linha, só a contagem e os títulos na explicação do grupo: a
+ * barra lateral é estreita, e a lista inteira está no painel.
+ */
+function objectivesNode(view: ViewState): TreeNode {
+  const active = activeObjectives(view);
+  const done = completedObjectives(view);
+  return {
+    id: 'objectives',
+    label: 'Objetivos',
+    description: objectivesSummary(view),
+    tooltip: [
+      ...(active.length === 0 ? [noActiveObjectives(view)] : []),
+      ...(done.length === 0
+        ? []
+        : [`Cumpridos: ${done.map((objective) => objective.title).join('; ')}.`]),
+    ].join('\n'),
+    icon: active.length === 0 ? OBJECTIVE_DONE_ICON : OBJECTIVE_ICON,
+    expanded: true,
+    command: { id: 'lords.openPanel', args: ['fief'] },
+    children: active.map((objective) => {
+      const action = objectiveAction(view, objective);
+      return {
+        id: `objective:${objective.id}`,
+        label: objective.title,
+        description: objectiveTreeLine(objective),
+        tooltip: objectiveLines(view, objective).join('\n'),
+        icon: OBJECTIVE_ICON,
+        // O clique só navega: a ordem sai do botão da linha.
+        command: { id: 'lords.openPanel', args: ['fief'] },
+        ...(action === null
+          ? {}
+          : {
+              action: {
+                command: action.command,
+                ...(action.arg === undefined ? {} : { arg: action.arg }),
+                label: `${action.label}: ${objective.title}`,
+                text: action.text,
+              },
+              ...(action.terms === undefined
+                ? {}
+                : { actionHints: { [action.command]: action.terms } }),
+            }),
+      };
+    }),
+  };
+}
+
 function chronicleNode(chronicle: GameEvent[]): TreeNode {
   const last = chronicle.slice(-5).reverse();
   return {
@@ -546,6 +614,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),
         ...hearthNode(view),
+        objectivesNode(view),
       ],
     },
     chronicleNode(input.chronicle),

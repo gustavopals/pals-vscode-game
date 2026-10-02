@@ -218,6 +218,70 @@ describe('os três blocos: cada tipo de evento no bloco certo', () => {
     expect(report.highlights).toEqual(events.slice(1).map((entry) => entry.text));
   });
 
+  it('vários objetivos cumpridos na ausência: uma linha só, com a recompensa de cada um, onde o primeiro aconteceu', () => {
+    // O feudo que já tinha a Torre, o depósito e a Paliçada recebe os objetivos deles e os
+    // cumpre de uma vez: são cinco eventos, e o bloco diz tudo em uma linha.
+    const events = [
+      event('constructionFinished', 'Os pedreiros ergueram a Fazenda ao 2º nível.'),
+      event('objectiveCompleted', 'Cumpriu-se um objetivo: Construa a Torre de Vigia.', {
+        objective: 'buildWatchtower',
+        gained_stone: 40,
+      }),
+      event('objectiveCompleted', 'Cumpriu-se um objetivo: Responda à primeira carta.', {
+        objective: 'answerFirstCard',
+        morale: 10,
+        moraleDays: 1,
+      }),
+      event('craftMastered', 'Os lavradores dominaram o ofício.'),
+      event('objectiveCompleted', 'Cumpriu-se um objetivo: Construa o Celeiro ou o Armazém.', {
+        objective: 'buildGranaryOrWarehouse',
+        gained_wood: 60,
+      }),
+      event('objectiveCompleted', 'Cumpriu-se um objetivo: Construa a Paliçada.', {
+        objective: 'buildPalisade',
+        gained_wood: 100,
+      }),
+      event('objectiveCompleted', 'Cumpriu-se um objetivo: Atravesse o inverno sem passar frio.', {
+        objective: 'surviveWinterWithoutCold',
+        morale: 15,
+        moraleDays: 1,
+      }),
+    ];
+    // A visão de agora traz os dez cumpridos, com a recompensa de cada um como a tela a diz.
+    const after = palisadeRaisedView;
+    const report = buildReturnReport(after, after, events, 6 * HOUR);
+    expect(texts(report.blocks?.prospered ?? [])).toEqual([
+      'Os pedreiros ergueram a Fazenda ao 2º nível.',
+      '5 objetivos cumpridos. Construa a Torre de Vigia: +40 pedra. ' +
+        'Responda à primeira carta do Conselho: +10 de moral por 1 dia de jogo (40 min). ' +
+        'Construa o Celeiro ou o Armazém: +60 madeira. Construa a Paliçada: +100 madeira. ' +
+        'Atravesse o inverno sem passar frio: +15 de moral por 1 dia de jogo (40 min).',
+      'Os lavradores dominaram o ofício.',
+    ]);
+    const line = report.blocks?.prospered[1];
+    // Boa notícia não pede ação, e o assunto continua sendo o dos objetivos.
+    expect(line?.topic).toBe('objective');
+    expect(line?.action).toBeUndefined();
+    // A contagem, a conta dos estoques e a Crônica da ausência continuam com cada um.
+    expect(report.counts.objectivesCompleted).toBe(5);
+    expect(report.resources.find((row) => row.id === 'wood')?.received).toBe(160);
+    expect(report.resources.find((row) => row.id === 'stone')?.received).toBe(40);
+    expect(report.highlights).toEqual(events.map((entry) => entry.text));
+  });
+
+  it('um objetivo só fica com a frase da Crônica, que já diz a recompensa', () => {
+    const text =
+      'No 9º dia da Primavera, cumpriu-se um objetivo: Responda à primeira carta do Conselho. Recompensa: +10 de moral por 1 dia de jogo.';
+    const events = [
+      event('objectiveCompleted', text, {
+        objective: 'answerFirstCard',
+        morale: 10,
+        moraleDays: 1,
+      }),
+    ];
+    expect(texts(blocksOf(calm, calm, events).prospered)).toEqual([text]);
+  });
+
   it('a ordem de cada bloco é a dos acontecimentos, mesmo com os tipos misturados', () => {
     const events = [
       event('cardExpired', 'O conselho decidiu sozinho: repartir o pão.'),

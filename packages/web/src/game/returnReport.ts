@@ -9,6 +9,11 @@ import {
 import { cardDeadline, expiresSoon } from '../ui/council';
 import { formatNumber, joinList } from '../ui/format';
 import { peopleMoved } from '../ui/morale';
+import {
+  isObjectiveCompleted,
+  objectivesCompleted,
+  objectivesCompletedSentence,
+} from '../ui/objectives';
 import { recoveredLine } from '../ui/workers';
 import {
   allocateTo,
@@ -268,7 +273,8 @@ function wasteItems(view: ViewState, wasted: Map<string, number>, events: GameEv
  *
  * - **O feudo prosperou:** obras concluídas e edifícios erguidos, planejadas que começaram
  *   sozinhas, recrutas e colonos que chegaram (somados, uma linha cada), ofícios dominados,
- *   objetivos cumpridos, a fome e o frio que acabaram, a moral que subiu de faixa, o efeito
+ *   objetivos cumpridos (um, com a frase da Crônica; vários, em uma linha só, com a recompensa
+ *   de cada um), a fome e o frio que acabaram, a moral que subiu de faixa, o efeito
  *   escondido de uma carta, quando ele não tirou nada, as incursões que a paliçada deteve e os
  *   feridos que sararam (somados).
  * - **O que exigiu um preço:** a fome e o frio que começaram, quem desertou e quem partiu
@@ -301,7 +307,21 @@ export function buildBlocks(
   const wasting = new Set(waste.map((entry) => entry.item.topic));
   cost.push(...waste);
 
+  // Vários objetivos cumpridos na ausência saem em uma linha só, com a recompensa de cada um
+  // (V2E-T4.4): o que o feudo já tinha feito conta de uma vez quando o objetivo aparece, e uma
+  // linha por objetivo enterraria o resto do bloco. Um só fica com a frase da Crônica.
+  const objectives = objectivesCompleted(events, after);
+  if (objectives !== null) {
+    prospered.push({
+      at: firstSeq(events, isObjectiveCompleted),
+      item: { text: objectivesCompletedSentence(objectives), topic: 'objective' },
+    });
+  }
+
   for (const event of events) {
+    if (objectives !== null && isObjectiveCompleted(event)) {
+      continue;
+    }
     const place = placeOf(event);
     if (place?.block === 'prospered') {
       prospered.push({ at: event.seq, item: { text: event.text, topic: place.topic } });

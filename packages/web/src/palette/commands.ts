@@ -35,6 +35,12 @@ import {
   remainingNow,
   upgradeName,
 } from '../ui/format';
+import {
+  CONSTRUCTIONS_ANCHOR,
+  CONSTRUCTIONS_SECTION,
+  OBJECTIVES_ANCHOR,
+  OBJECTIVES_SECTION,
+} from '../ui/objectives';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -66,7 +72,8 @@ export type CommandEnv = {
   openPalette(): void;
   /**
    * Leva a página e o foco ao elemento com este id, depois de a aba à vista ser desenhada: é
-   * como "Ver a defesa" chega ao painel da Ameaça, que fica abaixo da dobra da aba Feudo.
+   * como "Ver a defesa" chega ao painel da Ameaça, que fica abaixo da dobra da aba Feudo, e como
+   * o botão de um objetivo chega às construções ou à lista dos objetivos.
    */
   reveal(elementId: string): void;
 };
@@ -77,6 +84,8 @@ export type CommandEnv = {
  */
 const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [THREAT_SECTION]: { route: 'fief', anchor: THREAT_ANCHOR },
+  [OBJECTIVES_SECTION]: { route: 'fief', anchor: OBJECTIVES_ANCHOR },
+  [CONSTRUCTIONS_SECTION]: { route: 'fief', anchor: CONSTRUCTIONS_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';

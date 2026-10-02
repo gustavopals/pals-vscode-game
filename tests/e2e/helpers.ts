@@ -56,9 +56,10 @@ export type World = {
   wolvesRoam(): void;
   /**
    * Põe um edifício do feudo em um nível, sem obra (`/__test/raise`): a Torre de Vigia ou a
-   * Paliçada de pé antes da hora dos lobos.
+   * Paliçada de pé antes da hora dos lobos, ou o Salão do Senhor no nível que libera a obra de
+   * uma delas.
    */
-  raise(building: 'watchtower' | 'palisade', level: number): Promise<void>;
+  raise(building: 'watchtower' | 'palisade' | 'townHall', level: number): Promise<void>;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;

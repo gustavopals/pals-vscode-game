@@ -514,11 +514,12 @@ describe('aba Feudo', () => {
     );
     expect(offline).toContain('Nova tentativa em 5 s.');
     expect(offline).toContain('<h1>Pedra Alta</h1>');
-    // Só "Tentar agora" e a abertura da Crônica seguem ativos.
+    // Só o que navega segue ativo: "Tentar agora", a abertura da Crônica e, no objetivo cuja
+    // obra está travada, o caminho para as construções.
     const labels = [...offline.matchAll(/<button(?![^>]*disabled)[^>]*>([^<]*)/g)].map(
       (match) => match[1],
     );
-    expect(labels.sort()).toEqual(['Abrir a Crônica', 'Tentar agora']);
+    expect(labels.sort()).toEqual(['Abrir a Crônica', 'Tentar agora', 'Ver as obras']);
   });
 
   it('os botões dão ordens novas, com o tipo e o conteúdo certos', () => {
@@ -2464,21 +2465,23 @@ describe('aba Hoje', () => {
     ]);
 
     it('sem relatório, a seção abre a aba; com relatório, vem logo abaixo dele', () => {
+      // O título dos objetivos recebe foco (`tabindex`): a expressão aceita os dois desenhos.
       const order = (page: string) =>
-        [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
-      expect(order(shown(initialView))).toEqual(['leaving', 'report', 'decisions']);
+        [...page.matchAll(/<h2 id="([a-z]+)-title"[^>]*>/g)].map((match) => match[1]);
+      // Primeiro o que o feudo pede hoje; logo depois, os objetivos em aberto.
+      expect(order(shown(initialView))).toEqual(['leaving', 'objectives', 'report', 'decisions']);
       // Depois de uma ausência: o que aconteceu e o que espera resposta (os blocos do
-      // relatório), depois o que preparar (GDD §2.3).
-      expect(order(shown(initialView, report))).toEqual(['report', 'leaving']);
+      // relatório), depois o que preparar (GDD §2.3) e o que buscar a seguir.
+      expect(order(shown(initialView, report))).toEqual(['report', 'leaving', 'objectives']);
     });
 
     it('com carta à espera, as decisões pendentes passam na frente de "Antes de partir"', () => {
       const order = (page: string) =>
-        [...page.matchAll(/<h2 id="([a-z]+)-title">/g)].map((match) => match[1]);
-      expect(order(shown(councilView))).toEqual(['decisions', 'leaving', 'report']);
+        [...page.matchAll(/<h2 id="([a-z]+)-title"[^>]*>/g)].map((match) => match[1]);
+      expect(order(shown(councilView))).toEqual(['decisions', 'leaving', 'objectives', 'report']);
       // Com o relatório, as cartas estão no bloco "Você ainda pode decidir", acima de tudo.
       const page = shown(councilView, report);
-      expect(order(page)).toEqual(['report', 'leaving']);
+      expect(order(page)).toEqual(['report', 'leaving', 'objectives']);
       expect(page.indexOf('A vez de repartir')).toBeLessThan(page.indexOf('id="leaving-title"'));
     });
 

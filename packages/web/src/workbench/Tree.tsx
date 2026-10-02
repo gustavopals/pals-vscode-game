@@ -4,7 +4,14 @@ import { Icon } from '../components/shared';
 import type { TreeNode } from '../ui/treeModel';
 import { flattenTree, type TreeRow, treeKey } from './treeNav';
 
-type RowAction = { label: string; text: string; command: string; key?: string };
+type RowAction = {
+  label: string;
+  text: string;
+  command: string;
+  key?: string;
+  /** O argumento do comando no botão que a própria linha traz (`TreeNode.action`). */
+  arg?: string;
+};
 
 /** A dica do botão: o nome dele e, quando a linha informa, o que a ordem custa ou rende. */
 export function actionTitle(node: TreeNode, action: Pick<RowAction, 'label' | 'command'>): string {
@@ -12,8 +19,20 @@ export function actionTitle(node: TreeNode, action: Pick<RowAction, 'label' | 'c
   return hint === undefined ? action.label : `${action.label} (${hint})`;
 }
 
+/**
+ * O que o comando de um botão recebe: em regra a linha, de onde o comando tira o edifício ou a
+ * carta; no botão que a própria linha traz (o de um objetivo), o argumento que ele declara.
+ */
+function actionArg(node: TreeNode, action: RowAction): unknown {
+  return node.action === undefined ? node : action.arg;
+}
+
 /** As ordens de um item saem destes botões, nunca do clique na linha. */
 export function rowActions(node: TreeNode): RowAction[] {
+  if (node.action !== undefined) {
+    // A linha de um objetivo traz o próprio botão: o comando que leva a cumpri-lo.
+    return [node.action];
+  }
   switch (node.contextValue) {
     case 'lords.worker':
       return [
@@ -134,7 +153,7 @@ export function Tree(props: {
         );
     if (action !== undefined) {
       event.preventDefault();
-      props.onCommand(action.command, row.node);
+      props.onCommand(action.command, actionArg(row.node, action));
       return;
     }
     const result = treeKey(rows, row.node.id, event.key);
@@ -215,7 +234,7 @@ export function Tree(props: {
                   tabIndex={focused ? 0 : -1}
                   onClick={(event) => {
                     event.stopPropagation();
-                    props.onCommand(action.command, node);
+                    props.onCommand(action.command, actionArg(node, action));
                   }}
                 >
                   {action.text}

@@ -57,17 +57,20 @@ export function threatIcon(threat: Pick<Threat, 'known'>): string {
 }
 
 /**
- * Em que pé está a obra de um dos dois edifícios da Ameaça (a Torre de Vigia e a Paliçada), pelo
- * que a visão diz das construções: em obras (uma fila a leva), à espera de uma ordem (está na
- * lista do que pode ser construído, talvez já planejada), ou sem nada a ordenar (o edifício chegou
- * ao teto desta versão).
+ * Em que pé está a obra de um edifício (os dois da Ameaça, a Torre de Vigia e a Paliçada, e o
+ * que um objetivo pede), pelo que a visão diz das construções: em obras (uma fila a leva), à
+ * espera de uma ordem (está na lista do que pode ser construído, talvez já planejada), ou sem
+ * nada a ordenar (o edifício chegou ao teto desta versão).
  */
 export type DefenseWork =
   | { kind: 'underway'; queue: Queue }
   | { kind: 'available'; upgrade: Upgrade; plan: Plan | null }
   | { kind: 'none' };
 
-function workOf(constructions: Constructions, building: Upgrade['building']): DefenseWork {
+export function buildingWork(
+  constructions: Constructions,
+  building: Upgrade['building'],
+): DefenseWork {
   const queue = busyQueues(constructions).find((entry) => entry.building === building);
   if (queue !== undefined) {
     return { kind: 'underway', queue };
@@ -82,12 +85,12 @@ function workOf(constructions: Constructions, building: Upgrade['building']): De
 
 /** A obra da Torre de Vigia: o edifício é o que a visão diz (`threat.watchtower.building`). */
 export function watchtowerWork(view: Pick<ViewState, 'threat' | 'constructions'>): DefenseWork {
-  return workOf(view.constructions, view.threat.watchtower.building);
+  return buildingWork(view.constructions, view.threat.watchtower.building);
 }
 
 /** A obra da Paliçada: o edifício é o que a visão diz (`threat.defense.building`). */
 export function palisadeWork(view: Pick<ViewState, 'threat' | 'constructions'>): DefenseWork {
-  return workOf(view.constructions, view.threat.defense.building);
+  return buildingWork(view.constructions, view.threat.defense.building);
 }
 
 /** O custo e o prazo de uma obra, lado a lado: "120 madeira, 120 pedra, 50 ouro · 12 min". */

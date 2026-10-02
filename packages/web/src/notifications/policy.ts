@@ -3,6 +3,7 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import { COUNCIL_ICON } from '../ui/council';
 import { formatDuration } from '../ui/format';
 import { bandIcon } from '../ui/morale';
+import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
@@ -106,6 +107,8 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   raidAnnounced: RAID_ICON,
   raidSuffered: RAID_ICON,
   raidRepelled: DEFENSE_ICON,
+  // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
+  objectiveCompleted: OBJECTIVE_DONE_ICON,
 };
 
 export type PolicyInput = {
@@ -126,7 +129,10 @@ export type PolicyInput = {
 };
 
 export type PolicyOutput = {
-  /** Eventos que viram notificação agora. */
+  /**
+   * Eventos que viram notificação agora. Vários objetivos cumpridos no mesmo lote contam como
+   * um aviso só: aqui sai o primeiro deles, e quem o mostra fala de todos.
+   */
   show: GameEvent[];
   /**
    * Eventos que mereciam notificação, mas ficaram só como badge na árvore. Uma carta nova não
@@ -287,10 +293,15 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   // A incursão que o mesmo lote já conta como resolvida não tem mais o que avisar: o alarme dos
   // vigias sai de cena, e quem fala é o desfecho.
   const settled = new Set(input.events.filter(isRaidOutcome).map((event) => event.data.raidId));
+  // Vários objetivos cumpridos de uma vez (o que o feudo já tinha feito conta quando o objetivo
+  // aparece, e concluir um revela o seguinte) são uma notícia só: o primeiro fala por todos, e
+  // os outros não gastam os avisos da hora nem entram no contador.
+  const firstObjective = input.events.find(isObjectiveCompleted);
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
-      !(isRaidAlarm(event) && settled.has(event.data.raidId)),
+      !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
+      !(isObjectiveCompleted(event) && event !== firstObjective),
   );
   if (input.discreetMode || candidates.length === 0) {
     return { show: [], badge: 0, history };
