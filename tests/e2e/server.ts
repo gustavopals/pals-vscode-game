@@ -119,6 +119,50 @@ control.post('/__test/council-deal', async (request) => {
   return { ok: true };
 });
 
+/**
+ * Cala a Horda de todos os feudos: no lugar das incursões marcadas fica uma só, para daqui a mil
+ * anos de jogo. Como só há uma incursão marcada por vez, os lobos do roteiro não vêm (nem os
+ * uivos que os anunciam) e a Ameaça não sorteia outra; ela continua subindo como sempre. Toda
+ * partida nova tem os uivos na hora 18 e os lobos na hora 30 de jogo, e eles mexem nos estoques,
+ * na moral, nos braços e nos avisos; os cenários que não são sobre a incursão não podem depender
+ * disso. Quem funda o feudo pela página chama isto antes de a resposta chegar a ela
+ * (`helpers.ts`), a menos que o teste tenha soltado os lobos (`world.wolvesRoam()`). É o mesmo
+ * que `quietHorde` faz nos testes de integração do servidor.
+ */
+const NEVER_GAME_MS = 1000 * 84 * 2 * 3_600_000;
+control.post('/__test/horde-quiet', async () => {
+  const never = {
+    id: 'never',
+    atMs: NEVER_GAME_MS,
+    kind: 'threat',
+    enemy: 'wolves',
+    size: 'light',
+    announcedAtMs: null,
+  };
+  await pool.query(
+    `update games set state = jsonb_set(state, '{horde,scheduledRaids}', $1::jsonb)`,
+    [JSON.stringify([never])],
+  );
+  return { ok: true };
+});
+
+/**
+ * Põe um edifício de todos os feudos em um nível, sem obra: é como um teste da incursão tem a
+ * Torre de Vigia ou a Paliçada de pé antes da hora dos lobos, sem jogar as dezenas de horas que
+ * o Salão do Senhor leva para liberá-las (a obra de verdade é coberta pelos cenários da Torre e
+ * pelos testes do servidor). Só o nível muda; daí em diante o aviso, a defesa e o desfecho são
+ * os do motor.
+ */
+control.post('/__test/raise', async (request) => {
+  const { building, level } = request.body as { building: string; level: number };
+  await pool.query(
+    `update games
+        set state = jsonb_set(state, array['settlement', 'buildings', $1::text], to_jsonb($2::int))`,
+    [building, level],
+  );
+  return { ok: true };
+});
+
 /** Encerra no servidor todas as sessões, como uma revogação por reuso de refresh token. */
 control.post('/__test/revoke-sessions', async () => {
   await pool.query('update sessions set revoked_at = $1 where revoked_at is null', [clock()]);

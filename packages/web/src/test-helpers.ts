@@ -199,6 +199,18 @@ export function withCards(
 export const threatWatchedView = golden.threatWatched as unknown as ViewState;
 /** A Torre no nível 2, o teto desta versão, com uma incursão à vista e o tamanho dela. */
 export const threatIncomingView = golden.threatIncoming as unknown as ViewState;
+/**
+ * Logo depois de uma incursão média sem Paliçada (GDD §8.2): dois feridos, um da Fazenda e um da
+ * Serraria, que saram em 20 minutos; a moral com o termo "Incursão sofrida"; a Ameaça dez pontos
+ * abaixo, já com chance de marcar outra incursão; a Torre no nível 1 e o Salão no nível 2, e por
+ * isso a obra da Paliçada ainda travada.
+ */
+export const raidAftermathView = golden.raidAftermath as unknown as ViewState;
+/**
+ * A mesma incursão à vista de `threatIncomingView`, com o Salão no nível 3 e a Paliçada no
+ * nível 1: ela não segura um ataque médio, e a obra do nível 2 está liberada.
+ */
+export const palisadeRaisedView = golden.palisadeRaised as unknown as ViewState;
 
 type Constructions = ViewState['constructions'];
 type QueueRow = Constructions['queues'][number];

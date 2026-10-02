@@ -273,8 +273,13 @@ function PendingDecisions(props: {
   );
 }
 
-/** A variação de estoque da ausência, parcela por parcela: antes + produção − gasto + recebido − perdido = agora. */
+/**
+ * A variação de estoque da ausência, parcela por parcela: antes + produção − gasto + recebido −
+ * perdido = agora. Quando uma incursão levou algo, a conta ganha a parcela dela, "Levado", e
+ * continua fechando; sem incursão com perdas a coluna não existe.
+ */
 function StockTable(props: { rows: ReturnReport['resources'] }) {
+  const raided = props.rows.some((row) => (row.raided ?? 0) > 0);
   return (
     <>
       <h3 id="stock-title">
@@ -282,7 +287,7 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
       </h3>
       {/*
        * A variação de estoque não é produção: a conta fica aberta, parcela por parcela.
-       * Antes + produção − gasto + recebido − perdido = agora.
+       * Antes + produção − gasto + recebido − perdido − levado = agora.
        */}
       <table class="resources report" aria-labelledby="stock-title">
         <thead>
@@ -303,6 +308,11 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
             <th scope="col" class="num">
               Perdido
             </th>
+            {raided ? (
+              <th scope="col" class="num">
+                Levado
+              </th>
+            ) : null}
             <th scope="col" class="num">
               Agora
             </th>
@@ -317,8 +327,10 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
             // O que o feudo rendeu, já descontado o consumo: o que entrou no estoque
             // mais a produção que não coube. Assim a perda aparece como perda, e não
             // como produção que não houve; e o corte de uma recompensa, que nunca foi
-            // produção, não entra aqui.
+            // produção, não entra aqui. O que uma incursão levou já foi somado de volta
+            // por quem montou o relatório: saiu do estoque, mas foi produzido.
             const yielded = tidy((row.produced ?? row.delta) + Math.max(0, wasted - cut));
+            const taken = row.raided ?? 0;
             return (
               <tr key={row.id}>
                 <th scope="row">{row.label}</th>
@@ -327,6 +339,9 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
                 <td class="num">{part(row.spent ?? 0, -1)}</td>
                 <td class="num">{part(tidy((row.received ?? 0) + cut), 1)}</td>
                 <td class={`num ${wasted > 0 ? 'warning' : ''}`}>{part(wasted, -1)}</td>
+                {raided ? (
+                  <td class={`num ${taken > 0 ? 'warning' : ''}`}>{part(taken, -1)}</td>
+                ) : null}
                 <td class="num">{formatNumber(row.after)}</td>
               </tr>
             );
@@ -336,7 +351,7 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
       <p class="muted hint">
         Produção já desconta o que o feudo consumiu. Gasto e recebido vêm das ordens e dos
         acontecimentos da ausência. Perdido é o que não coube no depósito e foi ao chão, da produção
-        ou de uma recompensa.
+        ou de uma recompensa.{raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
       </p>
     </>
   );

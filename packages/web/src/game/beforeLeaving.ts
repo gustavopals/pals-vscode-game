@@ -17,6 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
+import { palisadeWork, THREAT_SECTION, watchtowerWork } from '../ui/threat';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -360,6 +361,50 @@ function queueItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * O que fazer a respeito de um ataque, pelo que a visão diz das duas obras da Ameaça (GDD §8.2 e
+ * §12.3): a Paliçada, quando a obra dela pode começar agora, porque é ela que muda o desfecho;
+ * sem isso, a Torre de Vigia, que faz o próximo ataque ser visto antes; e, se nenhuma das duas
+ * pode ser ordenada (em curso, travada, no teto desta versão), o caminho para o painel da Ameaça,
+ * onde estão o custo e o motivo: o botão leva a página e o foco até ele. É o botão do item de
+ * "Antes de partir" e o da incursão sofrida no Relatório de Retorno.
+ */
+export function defenseCommand(view: ViewState): LeavingItem['command'] {
+  const fence = palisadeWork(view);
+  // Com a Paliçada em obras, o que havia a fazer está feito: resta ver se ela fica pronta a tempo.
+  const works = fence.kind === 'underway' ? [] : [fence, watchtowerWork(view)];
+  for (const work of works) {
+    if (work.kind === 'available' && work.upgrade.blockedReason === null) {
+      const { upgrade } = work;
+      return {
+        id: 'lords.build',
+        arg: upgrade.building,
+        label: `${isNewBuilding(upgrade) ? 'Construir' : 'Melhorar'} ${upgrade.label}`,
+      };
+    }
+  }
+  return { id: 'lords.openPanel', arg: THREAT_SECTION, label: 'Ver a defesa' };
+}
+
+/**
+ * A incursão que os vigias avistaram: chega antes de qualquer ausência, e por isso abre a lista.
+ * A frase é a do servidor (o aviso e o que a Paliçada faz a este ataque), com o prazo; o botão é
+ * o da defesa. Só existe para quem tem a Torre de Vigia: sem ela a visão não traz incursão
+ * nenhuma, e a lista não inventa uma.
+ */
+function raidItem(view: ViewState): LeavingItem | null {
+  const { incoming } = view.threat;
+  if (incoming === null) {
+    return null;
+  }
+  return {
+    id: 'raid',
+    severity: 'warning',
+    text: `${incoming.text} Chegada em ${formatApprox(incoming.inSeconds)}. ${incoming.defenseText}`,
+    command: defenseCommand(view),
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -375,12 +420,13 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a comida, a lenha, os depósitos
- * que enchem, as obras que não começam sozinhas e os aldeões livres. O Relatório de Retorno tira
- * daqui a próxima ação de cada perda e o que ainda espera uma decisão.
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista, a comida, a
+ * lenha, os depósitos que enchem, as obras que não começam sozinhas e os aldeões livres. O
+ * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState): LeavingItem[] {
   return [
+    raidItem(view),
     foodItem(view),
     firewoodItem(view),
     ...storageItems(view),

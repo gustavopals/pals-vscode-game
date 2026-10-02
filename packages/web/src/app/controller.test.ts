@@ -18,7 +18,10 @@ import {
   goldenView,
   makeController,
   queuesView,
+  raidAftermathView,
   settle,
+  threatIncomingView,
+  threatWatchedView,
   withPlanned,
   withQueues,
 } from '../test-helpers';
@@ -1066,6 +1069,216 @@ describe('avisos de acontecimentos', () => {
     // "Ver" leva ao Feudo, onde o painel da Ameaça diz de onde ela vem e o que protege o feudo.
     await actionOf(controller.toasts[0], 'Ver').run();
     expect(controller.route).toBe('fief');
+  });
+
+  describe('a incursão (GDD §8.2 e §13.5)', () => {
+    const ALARM =
+      'No 5º dia do Outono, os vigias de Pedra Alta deram o alarme: lobos a caminho. Contam uma matilha grande.';
+    const SUFFERED =
+      'No 6º dia do Outono, os lobos chegaram a Pedra Alta: uma matilha grande, como os vigias tinham contado. Nada os deteve: o ataque custou 75 de comida, 65,9 de madeira e 2 aldeões feridos. Uma paliçada no nível 2 os teria detido.';
+    const REPELLED =
+      'No 6º dia do Outono, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.';
+    const HOWL =
+      'No 10º dia da Primavera, ouviram-se uivos na mata ao redor de Pedra Alta. Sem quem vigie, ninguém sabe quantos são.';
+    const RAID = { raidId: 'threat-5', enemy: 'wolves' };
+    const announced = (seq: number): GameEvent => ({
+      ...gameEvent(seq, 'raidAnnounced', ALARM),
+      data: { ...RAID, warning: 'sized', size: 'medium' },
+    });
+    const suffered = (seq: number): GameEvent => ({
+      ...gameEvent(seq, 'raidSuffered', SUFFERED),
+      data: { ...RAID, size: 'medium', warning: 'sized', palisadeLevel: 0, injured: 2 },
+    });
+
+    /** A visão e os eventos que levam até ela chegam na mesma leitura, como no servidor. */
+    async function serverTells(made: Made, view: ViewState, ...events: GameEvent[]) {
+      made.api.state.view = view;
+      made.api.state.stateVersion += 1;
+      made.api.state.events.push(...events);
+      await made.controller.session.syncNow();
+      await settle(made.controller);
+    }
+
+    it('o alarme dos vigias avisa no nível padrão, com tom de alarme: quando chega, o que custa e o que a Paliçada faz', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      controller.navigate('settings');
+      await serverTells(made, threatIncomingView, announced(1));
+      expect(controller.chronicle.map((event) => event.text)).toEqual([ALARM]);
+      expect(controller.toasts).toMatchObject([
+        { kind: 'warning', icon: 'megaphone', text: ALARM, game: true },
+      ]);
+      const [toast] = controller.toasts;
+      expect(toast?.details).toHaveLength(3);
+      // O prazo e a hora do relógio de quem joga: o aviso fica na tela, e o prazo envelhece.
+      expect(toast?.details?.[0]).toMatch(/^Chegada em 16 min, às \d\d:\d\d\.$/);
+      expect(toast?.details?.slice(1)).toEqual([
+        'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
+        'Sem Paliçada, nada segura este ataque.',
+      ]);
+      expect(toast?.actions.map((action) => action.label)).toEqual(['Ver', 'Silenciar 2h']);
+      // "Ver" leva ao Feudo, onde a obra da Paliçada está ao lado do aviso.
+      await actionOf(toast, 'Ver').run();
+      expect(controller.route).toBe('fief');
+    });
+
+    it('quando o ataque chega, o alarme sai de cena e o desfecho toma o lugar dele, com os feridos', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await serverTells(made, threatIncomingView, announced(1));
+      expect(controller.toasts.map((toast) => toast.text)).toEqual([ALARM]);
+
+      await serverTells(made, raidAftermathView, suffered(2));
+      expect(controller.toasts).toMatchObject([
+        { kind: 'warning', icon: 'megaphone', text: SUFFERED },
+      ]);
+      // Quem ficou ferido e quando sara, na frase do servidor.
+      expect(controller.toasts[0]?.details).toEqual([
+        '2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.',
+      ]);
+      expect(controller.chronicle.map((event) => event.text)).toEqual([ALARM, SUFFERED]);
+    });
+
+    it('a visão sem a incursão a caminho leva o alarme embora, mesmo antes de o desfecho chegar', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await serverTells(made, threatIncomingView, announced(1));
+      expect(controller.toasts).toHaveLength(1);
+      await serverShows(made, threatWatchedView);
+      expect(controller.toasts).toEqual([]);
+    });
+
+    it('o alarme que chega com o ataque já passado não sai: "a caminho" já não é verdade', async () => {
+      const made = await opened({ now: () => NOON });
+      // A leitura veio tarde: a visão já não traz a incursão, e só o alarme está no lote.
+      await serverTells(made, threatWatchedView, announced(1));
+      expect(made.controller.toasts).toEqual([]);
+      expect(made.controller.chronicle.map((event) => event.text)).toEqual([ALARM]);
+    });
+
+    it('o ataque que a paliçada deteve avisa sem alarme, com o escudo', async () => {
+      const made = await opened({ now: () => NOON });
+      await serverTells(made, threatWatchedView, {
+        ...gameEvent(1, 'raidRepelled', REPELLED),
+        data: { ...RAID, size: 'light', warning: 'warned', palisadeLevel: 1 },
+      });
+      expect(made.controller.toasts).toMatchObject([
+        { kind: 'info', icon: 'shield', text: REPELLED },
+      ]);
+      expect(made.controller.toasts[0]?.details ?? []).toEqual([]);
+    });
+
+    it('sem a Torre, o ataque sofrido avisa do mesmo jeito: é a primeira vez que o jogador sabe dele', async () => {
+      const made = await opened({ now: () => NOON });
+      await deliver(made, {
+        ...gameEvent(1, 'raidSuffered', SUFFERED),
+        data: { ...RAID, size: 'light', warning: 'unwarned', palisadeLevel: 0, injured: 1 },
+      });
+      expect(made.controller.toasts).toMatchObject([
+        { kind: 'warning', icon: 'megaphone', text: SUFFERED },
+      ]);
+    });
+
+    it('os uivos avisam no nível padrão, sem alarme e sem nada além da frase da Crônica', async () => {
+      const made = await opened({ now: () => NOON });
+      await deliver(made, {
+        ...gameEvent(1, 'wolvesHowl', HOWL),
+        data: { enemy: 'wolves', watched: 0 },
+      });
+      // O olho fechado de quem não tem vigias; nenhum prazo, nenhum número, nenhum tamanho.
+      expect(made.controller.toasts).toMatchObject([
+        { kind: 'info', icon: 'eye-closed', text: HOWL },
+      ]);
+      expect(made.controller.toasts[0]?.details ?? []).toEqual([]);
+      expect(made.controller.chronicle.map((event) => event.text)).toEqual([HOWL]);
+    });
+
+    it('quem se fere e quem sara entram na Crônica recente, sem aviso', async () => {
+      const made = await opened({ now: () => NOON });
+      await made.controller.setPreferences({ notifications: 'all' });
+      await deliver(
+        made,
+        {
+          ...gameEvent(1, 'villagerInjured', 'Um lenhador saiu ferido do ataque.'),
+          data: { raidId: 'threat-5', injured: 1, building: 'lumberMill' },
+        },
+        {
+          ...gameEvent(2, 'villagerRecovered', 'Um lenhador sarou das feridas e voltou ao ofício.'),
+          data: { injured: 0, building: 'lumberMill' },
+        },
+      );
+      expect(made.controller.toasts).toEqual([]);
+      expect(made.controller.chronicle.map((event) => event.seq)).toEqual([1, 2]);
+    });
+
+    it('"Silenciar 2h" leva o alarme junto, e o desfecho vira contador', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      controller.navigate('settings');
+      await serverTells(made, threatIncomingView, announced(1));
+      await actionOf(controller.toasts[0], 'Silenciar 2h').run();
+      await settle(controller);
+      expect(controller.toasts).toEqual([]);
+      await serverTells(made, raidAftermathView, suffered(2));
+      expect(controller.toasts).toEqual([]);
+      expect(controller.unseen).toBe(1);
+    });
+
+    describe('a leitura seguinte acontece quando o prazo vence, sem esperar o ciclo', () => {
+      /** A mesma visão com os prazos que não são da incursão longe, para só um vencer cedo. */
+      const far = (view: ViewState): ViewState => ({
+        ...view,
+        calendar: { ...view.calendar, secondsToNextDay: 9000 },
+      });
+      const watching = async (view: ViewState) => {
+        useFakeClock();
+        const made = make({ signedIn: true });
+        made.api.state.view = view;
+        made.controller.setVisible(true);
+        await made.controller.start();
+        await vi.advanceTimersByTimeAsync(0);
+        return made;
+      };
+      const views = (made: Made) => count(made.api.state.requests, VIEW_REQUEST);
+
+      it('a chegada da incursão: a tela não fica parada em "Chegada em 00:00"', async () => {
+        const { threat } = threatIncomingView;
+        if (!threat.known || threat.incoming === null) {
+          throw new Error('O golden deixou de trazer a incursão à vista.');
+        }
+        const soon = { ...threat, incoming: { ...threat.incoming, inSeconds: 7 } };
+        const made = await watching(far({ ...threatIncomingView, threat: soon }));
+        const before = views(made);
+        await vi.advanceTimersByTimeAsync(7_000);
+        expect(views(made)).toBe(before);
+        // Um segundo depois do prazo, a leitura acontece: é quando a Crônica conta o desfecho.
+        await vi.advanceTimersByTimeAsync(1_500);
+        expect(views(made)).toBe(before + 1);
+      });
+
+      it('o ferido que sara: a taxa do ofício volta na hora', async () => {
+        const made = await watching(
+          far({
+            ...raidAftermathView,
+            population: { ...raidAftermathView.population, secondsToNextRecovery: 5 },
+          }),
+        );
+        const before = views(made);
+        await vi.advanceTimersByTimeAsync(5_000);
+        expect(views(made)).toBe(before);
+        await vi.advanceTimersByTimeAsync(1_500);
+        expect(views(made)).toBe(before + 1);
+      });
+    });
+
+    it('no modo discreto, nada da incursão vai para a tela', async () => {
+      const made = await opened({ now: () => NOON });
+      await made.controller.setPreferences({ discreetMode: true });
+      await serverTells(made, threatIncomingView, announced(1));
+      await serverTells(made, raidAftermathView, suffered(2));
+      expect(made.controller.toasts).toEqual([]);
+      expect(made.controller.unseen).toBe(0);
+    });
   });
 
   it('a virada de dia fora da Crônica não é pedida de novo ao servidor', async () => {

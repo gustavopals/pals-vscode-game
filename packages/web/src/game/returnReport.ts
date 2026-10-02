@@ -9,7 +9,14 @@ import {
 import { cardDeadline, expiresSoon } from '../ui/council';
 import { formatNumber, joinList } from '../ui/format';
 import { peopleMoved } from '../ui/morale';
-import { allocateTo, type LeavingItem, leavingItems, storageCommand } from './beforeLeaving';
+import { recoveredLine } from '../ui/workers';
+import {
+  allocateTo,
+  defenseCommand,
+  type LeavingItem,
+  leavingItems,
+  storageCommand,
+} from './beforeLeaving';
 
 /** O Relatório de Retorno aparece depois de 4 horas ou mais de ausência (GDD §2.3). */
 export const RETURN_REPORT_AFTER_MS = 4 * 60 * 60 * 1000;
@@ -63,7 +70,8 @@ const toAction = (command: LeavingItem['command']): NonNullable<ReturnReportItem
  * A próxima ação de uma perda, pelo assunto dela e com a visão de agora (V2D-T4.2). Reaproveita
  * "Antes de partir": se o assunto ainda pede preparo (a fome continua, o depósito segue cheio), o
  * botão é o mesmo de lá. Se já não pede, vale o caminho que evita a próxima: a Fazenda, a
- * Serraria, a obra do depósito, a conta da moral, a mesa do conselho.
+ * Serraria, a obra do depósito, a conta da moral, a mesa do conselho e, depois de uma incursão,
+ * a Paliçada (ou a Torre de Vigia, quando a obra da Paliçada ainda não pode começar).
  */
 export function costAction(
   view: ViewState,
@@ -86,6 +94,10 @@ export function costAction(
       return toAction(storageCommand(view, building as StorageBuilding));
     }
     return { command: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
+  }
+  if (topic === 'raid') {
+    // O ataque já passou: o que se pode fazer é mudar o desfecho do próximo.
+    return toAction(defenseCommand(view));
   }
   if (topic === 'council') {
     // A carta que expirou já foi decidida; o que se pode fazer é não deixar a próxima expirar.
@@ -183,6 +195,13 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     // O que uma escolha antiga escondia: bom ou ruim, pelo que o evento diz que ela mexeu.
     case 'cardEffectApplied':
       return { block: tookSomething(event) ? 'cost' : 'prospered', topic: 'council' };
+    // A incursão (GDD §8.2 e §12.3): a que a paliçada deteve é o feudo se defendendo sozinho; a
+    // que passou custou o que a frase da Crônica diz, com os números do evento (o que foi
+    // levado, quem se feriu) e o que a teria detido.
+    case 'raidRepelled':
+      return { block: 'prospered', topic: 'raid' };
+    case 'raidSuffered':
+      return { block: 'cost', topic: 'raid' };
     default:
       // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.
@@ -249,14 +268,16 @@ function wasteItems(view: ViewState, wasted: Map<string, number>, events: GameEv
  *
  * - **O feudo prosperou:** obras concluídas e edifícios erguidos, planejadas que começaram
  *   sozinhas, recrutas e colonos que chegaram (somados, uma linha cada), ofícios dominados,
- *   objetivos cumpridos, a fome e o frio que acabaram, a moral que subiu de faixa e o efeito
- *   escondido de uma carta, quando ele não tirou nada.
+ *   objetivos cumpridos, a fome e o frio que acabaram, a moral que subiu de faixa, o efeito
+ *   escondido de uma carta, quando ele não tirou nada, as incursões que a paliçada deteve e os
+ *   feridos que sararam (somados).
  * - **O que exigiu um preço:** a fome e o frio que começaram, quem desertou e quem partiu
  *   (somados), a moral que desceu de faixa, as cartas que o conselho decidiu sozinho, o efeito
- *   escondido que cobrou algo, e o que foi ao chão por falta de espaço, uma linha por depósito.
- *   Cada item traz a próxima ação (`costAction`). A fome e o frio que já vinham de antes e não
- *   pararam ganham uma linha cada, sem número: o de agora está no aviso do alto da aba e em
- *   "Antes de partir".
+ *   escondido que cobrou algo, as incursões sofridas (a frase diz o que foi levado, quem se
+ *   feriu e o que as teria detido), e o que foi ao chão por falta de espaço, uma linha por
+ *   depósito. Cada item traz a próxima ação (`costAction`). A fome e o frio que já vinham de
+ *   antes e não pararam ganham uma linha cada, sem número: o de agora está no aviso do alto da
+ *   aba e em "Antes de partir".
  * - **Você ainda pode decidir:** `pendingItems`, com a visão de agora.
  *
  * As frases dos eventos são as da Crônica. Dentro de cada bloco a ordem é a dos acontecimentos;
@@ -309,6 +330,14 @@ export function buildBlocks(
     prospered.push({
       at: seqOf('villagerArrived'),
       item: { text: people.settlers, topic: 'people' },
+    });
+  }
+  // Os feridos que sararam: quem se feriu está na frase de cada incursão, em "custou".
+  const recovered = recoveredLine(counts.villagersRecovered ?? 0);
+  if (recovered !== null) {
+    prospered.push({
+      at: seqOf('villagerRecovered'),
+      item: { text: recovered, topic: 'people' },
     });
   }
   if (people.deserted !== null) {
@@ -381,7 +410,10 @@ export function coveredTopics(blocks: ReportBlocks): string[] {
  *   unidades inteiras) mais o que a visão de agora ainda não relatou (`wastedToday`), menos o
  *   que a visão de antes já contava como perdido: o primeiro fecho da ausência inclui essa
  *   parte. Nunca menos que `cut`: os fechos contam unidades inteiras, e o corte vem com a fração;
- * - `produced`: o saldo da produção e do consumo, que é a variação mais o gasto menos o recebido.
+ * - `raided`: o que as incursões levaram (`raided_<recurso>`, do evento `raidSuffered`). Saiu do
+ *   estoque sem ser consumo nem gasto;
+ * - `produced`: o saldo da produção e do consumo, que é a variação mais o gasto menos o recebido
+ *   mais o que as incursões levaram.
  *
  * A população que a moral e a fome moveram é contada pelos eventos, e a moral é a das duas
  * visões: o relatório diz a faixa em que o feudo está e de onde ela veio.
@@ -418,6 +450,7 @@ export function buildReturnReport(
           const spent = total(events, `spent_${row.id}`);
           const received = total(events, `gained_${row.id}`);
           const cut = total(events, `lost_${row.id}`);
+          const raided = total(events, `raided_${row.id}`);
           const wasted = Math.max(
             cut,
             tidy(
@@ -434,7 +467,8 @@ export function buildReturnReport(
             received,
             cut,
             wasted,
-            produced: tidy(delta + spent - received),
+            raided,
+            produced: tidy(delta + spent - received + raided),
           };
         });
   const counts: Counts = {
@@ -448,6 +482,12 @@ export function buildReturnReport(
     settlersArrived: count('villagerArrived'),
     villagersLeft: count('villagerLeft'),
     villagersDeserted: count('villagerDeserted'),
+    // As incursões da ausência (GDD §8.2): as sofridas, as que a paliçada deteve, quem saiu
+    // ferido e quem já sarou.
+    raidsSuffered: count('raidSuffered'),
+    raidsRepelled: count('raidRepelled'),
+    villagersInjured: count('villagerInjured'),
+    villagersRecovered: count('villagerRecovered'),
   };
   // O que foi ao chão, por recurso: o número da tabela. Sem a visão da última visita não há
   // tabela, e vale a soma dos fechos diários (o contador de hoje pode ser de antes da saída).

@@ -15,7 +15,11 @@ import {
   queuesView,
   councilView,
   mealCard,
+  palisadeRaisedView,
+  raidAftermathView,
   shareCard,
+  threatIncomingView,
+  threatWatchedView,
   unlockedView,
   winterWith,
   withCards,
@@ -53,6 +57,7 @@ import {
   truncate,
   upgradeName,
 } from './format';
+import { THREAT_SECTION } from './threat';
 import { buildTree, type TreeInput, type TreeNode } from './treeModel';
 
 const initial = golden.initial as unknown as ViewState;
@@ -447,6 +452,73 @@ describe('barra de status', () => {
       const discreet = statusBar({ ...base, view: urgent, discreetMode: true });
       expect(discreet.text).toBe('$(circle-filled) 00:42');
       expect(discreet.target).toBeUndefined();
+    });
+
+    describe('a incursão que os vigias avistaram passa na frente de tudo (GDD §8.2 e §13.5)', () => {
+      it('"Lobos em 16 min", com o ícone da incursão; a explicação traz o custo e a defesa, e o clique leva ao painel da Ameaça', () => {
+        const result = statusBar({ ...base, view: threatIncomingView, pending: 1 });
+        expect(result.text).toBe('$(megaphone) Lobos em 16 min · $(bell) 1');
+        expect(result.tooltip).toBe(
+          'Pedra Alta: Lobos a caminho. Os vigias contam uma matilha grande. Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar. Sem Paliçada, nada segura este ataque.',
+        );
+        // O clique leva ao painel da Ameaça, onde a obra da defesa está ao lado do aviso.
+        expect(result.target).toBe(THREAT_SECTION);
+        // Sem o destaque de alarme: a mesma linha anuncia o ataque que a Paliçada segura.
+        expect(result.alarm).toBeUndefined();
+        expect(statusBar({ ...base, view: palisadeRaisedView }).tooltip).toContain(
+          'A Paliçada Nv1 não segura um ataque deste tamanho',
+        );
+      });
+
+      it('o prazo desce com o relógio da página', () => {
+        expect(statusBar({ ...base, view: threatIncomingView, elapsedSeconds: 600 }).text).toBe(
+          '$(megaphone) Lobos em 6 min',
+        );
+        expect(statusBar({ ...base, view: threatIncomingView, elapsedSeconds: 9999 }).text).toBe(
+          '$(megaphone) Lobos em 1 min',
+        );
+      });
+
+      it('passa na frente das decisões pendentes, da fome, do frio, do depósito e da obra', () => {
+        // O golden da incursão já tem a Despensa cheia e perdendo: sem os lobos, a linha é dela.
+        expect(statusBar({ ...base, view: threatWatchedView }).text).toMatch(/^\$\(archive\) /);
+        const crowded: ViewState = {
+          ...deciding(withQueues(threatIncomingView, [activeConstruction()]), 2),
+          famine: starving.famine,
+          winter: coldView.winter,
+        };
+        expect(statusBar({ ...base, view: crowded }).text).toBe('$(megaphone) Lobos em 16 min');
+        // Quando o ataque chega, a linha volta ao assunto que estava: as cartas à espera.
+        const after: ViewState = { ...crowded, threat: threatWatchedView.threat };
+        expect(statusBar({ ...base, view: after }).text).toMatch(/^\$\(law\) 2 decisões pendentes/);
+      });
+
+      it('sem a Torre a visão não traz incursão nenhuma, e a linha não inventa uma', () => {
+        expect(statusBar({ ...base, view: building }).text).toBe('$(tools) Serraria Nv2 · 00:42');
+      });
+
+      it('sem ligação e no modo discreto, nada da incursão aparece', () => {
+        expect(statusBar({ ...base, view: threatIncomingView, connection: offline }).text).toBe(
+          '$(debug-disconnect) Sem ligação com o reino',
+        );
+        expect(statusBar({ ...base, view: threatIncomingView, discreetMode: true }).text).toMatch(
+          /^\$\(circle-filled\) \d\d:\d\d$/,
+        );
+      });
+
+      it('o título da aba do navegador repete o assunto, com as decisões no contador', () => {
+        const APP = 'Lords of the Guild';
+        expect(documentTitle({ ...base, view: threatIncomingView })).toBe(
+          `Lobos em 16 min · Pedra Alta · ${APP}`,
+        );
+        expect(documentTitle({ ...base, view: deciding(threatIncomingView, 1), pending: 1 })).toBe(
+          `(2) Lobos em 16 min · Pedra Alta · ${APP}`,
+        );
+        // Sem ligação o estado guardado pode estar velho: o ataque dele pode já ter passado.
+        expect(documentTitle({ ...base, view: threatIncomingView, connection: offline })).toBe(
+          `Pedra Alta · ${APP}`,
+        );
+      });
     });
 
     describe('título da aba do navegador', () => {
@@ -899,6 +971,46 @@ describe('árvore', () => {
         rules.removalText,
         rules.experienceText,
       ]);
+    });
+  });
+
+  describe('incursão e feridos (GDD §8.2)', () => {
+    it('a linha do feudo diz que há uma incursão a caminho, por extenso, e a explicação traz o aviso', () => {
+      const fief = buildTree({ ...input, view: threatIncomingView })[1];
+      expect(fief?.description).toBe('Outono, dia 5 · incursão a caminho');
+      expect(fief?.tooltip?.split('\n')).toContain(
+        'Lobos a caminho. Os vigias contam uma matilha grande.',
+      );
+      expect(buildTree({ ...input, view: threatWatchedView })[1]?.description).toBe(
+        'Outono, dia 5',
+      );
+    });
+
+    it('a linha "Hoje" conta o ataque entre o que há a preparar', () => {
+      const today = buildTree({ ...input, view: threatIncomingView })[0];
+      expect(today?.description).toBe('⚠ 4 a preparar');
+      expect(today?.tooltip?.split('\n')[1]).toBe(
+        'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min. Sem Paliçada, nada segura este ataque.',
+      );
+    });
+
+    it('os feridos têm a sua parcela na linha "Trabalhadores" e a marca em cada ofício', () => {
+      const tree = buildTree({ ...input, view: raidAftermathView });
+      // Doze aldeões: dez com ofício, nenhum livre, dois feridos.
+      expect(find(tree, 'workers')?.description).toBe('10/12 alocados · 0 livres · 2 feridos');
+      expect(find(tree, 'workers')?.tooltip?.split('\n')[0]).toBe(
+        '2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.',
+      );
+      expect(
+        ['farm', 'lumberMill', 'quarry', 'goldMine'].map(
+          (building) => find(tree, `worker:${building}`)?.description,
+        ),
+      ).toEqual(['3 · 152,7/h · 1 ferido', '3 · 78,3/h · 1 ferido', '2 · 32,6/h', '2 · 28,7/h']);
+    });
+
+    it('sem feridos a linha fica como sempre foi', () => {
+      const tree = buildTree({ ...input, view: threatWatchedView });
+      expect(find(tree, 'workers')?.description).toBe('12/12 alocados · 0 livres');
     });
   });
 
@@ -1527,6 +1639,7 @@ describe('Relatório de Retorno', () => {
         cut: 35.2,
         // O perdido nunca é menos que o corte: o fecho do dia só conta unidades inteiras.
         wasted: 35.2,
+        raided: 0,
         produced: -38.8,
       });
       expect(ReturnReportSchema.safeParse(cut).success).toBe(true);

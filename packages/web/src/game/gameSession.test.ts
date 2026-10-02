@@ -784,6 +784,10 @@ describe('cache', () => {
             settlersArrived: 0,
             villagersLeft: 0,
             villagersDeserted: 0,
+            raidsSuffered: 0,
+            raidsRepelled: 0,
+            villagersInjured: 0,
+            villagersRecovered: 0,
           },
           // A moral de agora vem da visão nova; a de antes não existe para comparar.
           morale: { value: 50, band: 'content', bandLabel: 'Contente' },
@@ -1206,6 +1210,7 @@ describe('Relatório de Retorno: a visão guardada à frente do cursor', () => {
       received: 0,
       cut: 0,
       wasted: 0,
+      raided: 0,
       produced: 60,
     });
     // A ordem não reaparece como novidade.

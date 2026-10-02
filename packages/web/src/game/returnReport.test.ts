@@ -8,8 +8,12 @@ import {
   impoverishedView,
   initialView,
   mealCard,
+  palisadeRaisedView,
   proudView,
+  raidAftermathView,
   shareCard,
+  threatIncomingView,
+  threatWatchedView,
   unlockedView,
   withCards,
   withPlanned,
@@ -406,6 +410,163 @@ describe('a próxima ação de cada perda (V2D-T4.2): a de "Antes de partir", co
   });
 });
 
+describe('a incursão no relatório (GDD §8.2, §12.3 e critério 4 da §16.2)', () => {
+  const HOWL =
+    'No 10º dia da Primavera, ouviram-se uivos na mata ao redor de Pedra Alta. Sem quem vigie, ninguém sabe quantos são.';
+  const SUFFERED =
+    'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Nada os deteve: o ataque custou 30 de comida, 12,5 de madeira e um aldeão ferido. Uma paliçada os teria detido.';
+  const REPELLED =
+    'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.';
+  const HURT = 'No 16º dia da Primavera, um lenhador de Pedra Alta saiu ferido do ataque.';
+  const HEALED = 'No 17º dia da Primavera, um lenhador de Pedra Alta sarou das feridas.';
+  const RAID = { raidId: 'wolvesYear1', enemy: 'wolves', size: 'light', warning: 'unwarned' };
+
+  const suffered = () =>
+    event('raidSuffered', SUFFERED, {
+      ...RAID,
+      palisadeLevel: 0,
+      injured: 1,
+      raided_food: 30,
+      raided_wood: 12.5,
+      palisadeLevelNeeded: 1,
+    });
+  const repelled = () => event('raidRepelled', REPELLED, { ...RAID, palisadeLevel: 1 });
+  const hurt = () =>
+    event('villagerInjured', HURT, { raidId: 'wolvesYear1', injured: 1, building: 'lumberMill' });
+  const healed = () => event('villagerRecovered', HEALED, { injured: 0, building: 'lumberMill' });
+
+  it('a incursão sofrida entra em "custou": a frase com as perdas, os feridos e o que a teria detido, e a próxima ação', () => {
+    const blocks = blocksOf(calm, calm, [event('wolvesHowl', HOWL), suffered(), hurt()]);
+    expect(blocks.cost).toEqual([
+      {
+        text: SUFFERED,
+        topic: 'raid',
+        severity: 'warning',
+        // A ação é a da defesa, pela visão de agora: os casos estão logo abaixo.
+        action: costAction(calm, 'raid'),
+      },
+    ]);
+    // Os uivos e o ferido não são desfechos: a frase do ataque já conta quem se feriu.
+    expect(blocks.prospered).toEqual([]);
+  });
+
+  it('a incursão que a paliçada deteve entra em "prosperou", sem botão: o feudo se defendeu sozinho', () => {
+    const blocks = blocksOf(calm, calm, [repelled()]);
+    expect(blocks.prospered).toEqual([{ text: REPELLED, topic: 'raid' }]);
+    expect(blocks.cost).toEqual([]);
+  });
+
+  it('os feridos que sararam entram somados em "prosperou", onde o primeiro sarou', () => {
+    const blocks = blocksOf(calm, calm, [
+      suffered(),
+      hurt(),
+      hurt(),
+      event('constructionFinished', 'A Serraria ficou pronta.'),
+      healed(),
+      healed(),
+    ]);
+    expect(texts(blocks.prospered)).toEqual([
+      'A Serraria ficou pronta.',
+      '2 aldeões sararam das feridas: quem tinha ofício voltou a ele.',
+    ]);
+    expect(texts(blocksOf(calm, calm, [healed()]).prospered)).toEqual([
+      '1 aldeão sarou das feridas: se tinha ofício, voltou a ele.',
+    ]);
+    // Quem se feriu não ganha linha própria: está na frase de cada ataque.
+    expect(texts(blocks.cost)).toEqual([SUFFERED]);
+  });
+
+  describe('a próxima ação é a defesa, pela visão de agora', () => {
+    it('com a obra da Paliçada liberada, o botão é ela', () => {
+      expect(costAction(palisadeRaisedView, 'raid')).toEqual({
+        command: 'lords.build',
+        arg: 'palisade',
+        label: 'Melhorar Paliçada',
+      });
+    });
+
+    it('com a Paliçada travada, a Torre de Vigia: o próximo ataque é visto antes', () => {
+      expect(costAction(raidAftermathView, 'raid')).toEqual({
+        command: 'lords.build',
+        arg: 'watchtower',
+        label: 'Melhorar Torre de Vigia',
+      });
+    });
+
+    it('sem nenhuma das duas ao alcance, o caminho para o painel da Ameaça, que diz o motivo', () => {
+      expect(costAction(initialView, 'raid')).toEqual({
+        command: 'lords.openPanel',
+        arg: 'threat',
+        label: 'Ver a defesa',
+      });
+      expect(costAction(threatIncomingView, 'raid')).toEqual({
+        command: 'lords.openPanel',
+        arg: 'threat',
+        label: 'Ver a defesa',
+      });
+    });
+
+    it('na tela, o botão acompanha o feudo: a obra que ficou ao alcance toma o lugar do caminho', () => {
+      const report = buildReturnReport(initialView, initialView, [suffered()], 6 * HOUR);
+      expect(currentBlocks(report, initialView).cost[0]?.action?.label).toBe('Ver a defesa');
+      // O Salão subiu e os recursos chegaram: a mesma perda aponta agora a obra.
+      const [cost] = currentBlocks(report, palisadeRaisedView).cost;
+      expect(cost).toMatchObject({ text: SUFFERED, action: { label: 'Melhorar Paliçada' } });
+    });
+  });
+
+  it('a conta dos estoques: o que os lobos levaram tem a sua parcela, e a produção não o paga', () => {
+    const before = withResource(withResource(calm, 'food', { stock: 300 }), 'wood', { stock: 125 });
+    // 60 de comida e 20 de madeira produzidas; os lobos levaram 30 e 12,5.
+    const after = withResource(withResource(calm, 'food', { stock: 330 }), 'wood', {
+      stock: 132.5,
+    });
+    const report = buildReturnReport(before, after, [suffered(), hurt()], 6 * HOUR);
+    const row = (id: string) => report.resources.find((entry) => entry.id === id);
+    expect(row('food')).toMatchObject({ delta: 30, raided: 30, produced: 60, spent: 0, wasted: 0 });
+    expect(row('wood')).toMatchObject({ delta: 7.5, raided: 12.5, produced: 20 });
+    // A pedra e o ouro ficaram.
+    expect(row('stone')).toMatchObject({ raided: 0 });
+    expect(row('gold')).toMatchObject({ raided: 0 });
+    expect(ReturnReportSchema.safeParse(report).error).toBeUndefined();
+  });
+
+  it('as contagens vêm dos eventos: sofridas, repelidas, feridos e quem já sarou', () => {
+    const report = buildReturnReport(
+      calm,
+      calm,
+      [suffered(), hurt(), healed(), repelled(), suffered(), hurt(), hurt()],
+      30 * HOUR,
+    );
+    expect(report.counts).toMatchObject({
+      raidsSuffered: 2,
+      raidsRepelled: 1,
+      villagersInjured: 3,
+      villagersRecovered: 1,
+    });
+    // Tudo continua na Crônica da ausência, linha a linha.
+    expect(report.highlights).toHaveLength(7);
+  });
+
+  it('com a Torre, o alarme dos vigias não é desfecho: fica na Crônica da ausência', () => {
+    const alarm = event(
+      'raidAnnounced',
+      'No 15º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho.',
+      { raidId: 'wolvesYear1', enemy: 'wolves', warning: 'warned' },
+    );
+    const report = buildReturnReport(
+      threatWatchedView,
+      raidAftermathView,
+      [alarm, suffered()],
+      HOUR,
+    );
+    expect(texts(report.blocks?.cost ?? []).filter((text) => text === SUFFERED)).toHaveLength(1);
+    expect(texts(report.blocks?.cost ?? [])).not.toContain(alarm.text);
+    expect(texts(report.blocks?.prospered ?? [])).not.toContain(alarm.text);
+    expect(report.highlights).toContain(alarm.text);
+  });
+});
+
 describe('"Você ainda pode decidir": só a visão de agora', () => {
   it('as cartas, da que vence primeiro à última, com o prazo e a escolha que voltou', () => {
     const items = pendingItems(councilView);
@@ -524,6 +685,9 @@ describe('os blocos na tela: o que é da ausência fica, o que é de agora acomp
       impoverishedView,
       proudView,
       councilView,
+      threatIncomingView,
+      raidAftermathView,
+      palisadeRaisedView,
     ]) {
       const built = buildReturnReport(view, view, absence, HOUR);
       expect(ReturnReportSchema.safeParse(built).error).toBeUndefined();

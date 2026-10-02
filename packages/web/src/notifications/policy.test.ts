@@ -7,6 +7,10 @@ import {
   craftsView,
   FOOD_RUNS_OUT_AHEAD,
   initialView,
+  palisadeRaisedView,
+  raidAftermathView,
+  threatIncomingView,
+  threatWatchedView,
   withFoodAhead,
 } from '../test-helpers';
 import {
@@ -15,11 +19,15 @@ import {
   eventIcon,
   isDecision,
   isEssential,
+  isRaidAlarm,
+  isRaidOutcome,
   isRelief,
   isSeasonTurn,
   isWatchReport,
   moraleBandDirection,
   type PolicyInput,
+  raidAftermath,
+  raidAhead,
   SEASON_WARNING_SECONDS,
   seasonAhead,
   seasonArrival,
@@ -387,6 +395,174 @@ describe('política de notificações', () => {
       for (const type of ['famineStarted', 'seasonChanged', 'cardDrawn', 'dayStarted'] as const) {
         expect(isWatchReport(event(type))).toBe(false);
       }
+    });
+  });
+
+  describe('a incursão (GDD §8.2 e §13.5): os uivos, o alarme dos vigias e o desfecho', () => {
+    const howl = (watched: 0 | 1): GameEvent => ({
+      ...event('wolvesHowl', 20),
+      text: 'No 10º dia da Primavera, ouviram-se uivos na mata ao redor de Pedra Alta. Sem quem vigie, ninguém sabe quantos são.',
+      data: { enemy: 'wolves', watched },
+    });
+    const announced: GameEvent = {
+      ...event('raidAnnounced', 30),
+      text: 'No 15º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Contam uma matilha pequena.',
+      data: { raidId: 'wolvesYear1', enemy: 'wolves', warning: 'sized', size: 'light' },
+    };
+    const suffered: GameEvent = {
+      ...event('raidSuffered', 40),
+      text: 'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Nada os deteve: o ataque custou 30 de comida, 12 de madeira e um aldeão ferido. Uma paliçada os teria detido.',
+      data: {
+        raidId: 'wolvesYear1',
+        enemy: 'wolves',
+        size: 'light',
+        warning: 'unwarned',
+        palisadeLevel: 0,
+        injured: 1,
+        raided_food: 30,
+        raided_wood: 12,
+        palisadeLevelNeeded: 1,
+      },
+    };
+    const repelled: GameEvent = {
+      ...event('raidRepelled', 41),
+      text: 'No 16º dia da Primavera, os lobos chegaram a Pedra Alta sem que ninguém os visse vir. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
+      data: {
+        raidId: 'wolvesYear1',
+        enemy: 'wolves',
+        size: 'light',
+        warning: 'unwarned',
+        palisadeLevel: 1,
+      },
+    };
+    const injured: GameEvent = {
+      ...event('villagerInjured', 42),
+      data: { raidId: 'wolvesYear1', injured: 1, building: 'lumberMill' },
+    };
+    const recovered: GameEvent = {
+      ...event('villagerRecovered', 50),
+      data: { injured: 0, building: 'lumberMill' },
+    };
+
+    it('o alarme dos vigias e o ataque sofrido são alarmes: nível padrão, tom de aviso, o ícone da incursão', () => {
+      for (const raid of [announced, suffered]) {
+        expect(isEssential(raid)).toBe(true);
+        expect(isRelief(raid)).toBe(false);
+        expect(eventIcon(raid)).toBe('megaphone');
+        for (const level of ['essential', 'all'] as const) {
+          expect(decideNotifications(input({ level, events: [raid] })).show).toEqual([raid]);
+        }
+      }
+      expect(isRaidAlarm(announced)).toBe(true);
+      expect(isRaidAlarm(suffered)).toBe(false);
+      expect(isRaidOutcome(suffered)).toBe(true);
+      expect(isRaidOutcome(announced)).toBe(false);
+    });
+
+    it('o ataque que a paliçada deteve é o alívio: mesmo nível, sem tom de alarme, com o escudo', () => {
+      expect(isRelief(repelled)).toBe(true);
+      expect(isEssential(repelled)).toBe(false);
+      expect(isRaidOutcome(repelled)).toBe(true);
+      expect(eventIcon(repelled)).toBe('shield');
+      expect(decideNotifications(input({ events: [repelled] })).show).toEqual([repelled]);
+    });
+
+    it('os uivos são um prenúncio: nível padrão, sem alarme, com o olho de quem tem ou não tem vigias', () => {
+      for (const watched of [0, 1] as const) {
+        const heard = howl(watched);
+        expect(isWatchReport(heard)).toBe(true);
+        expect(isEssential(heard)).toBe(false);
+        expect(isRelief(heard)).toBe(false);
+        expect(decideNotifications(input({ events: [heard] })).show).toEqual([heard]);
+      }
+      expect(eventIcon(howl(0))).toBe('eye-closed');
+      expect(eventIcon(howl(1))).toBe('eye');
+    });
+
+    it('quem se fere e quem sara não vira aviso: o ataque já contou, e o painel mostra', () => {
+      for (const level of ['essential', 'all'] as const) {
+        expect(decideNotifications(input({ level, events: [injured, recovered] }))).toMatchObject({
+          show: [],
+          badge: 0,
+        });
+      }
+    });
+
+    it('no nível silencioso e no modo discreto, nada; no silêncio de 2 horas, vira contador', () => {
+      const events = [howl(1), announced];
+      expect(decideNotifications(input({ level: 'silent', events }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ discreetMode: true, events }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ mutedUntil: now + HOUR, events }))).toMatchObject({
+        show: [],
+        badge: 2,
+      });
+    });
+
+    it('o alarme de uma incursão que o mesmo lote já resolve não sai: quem fala é o desfecho', () => {
+      // A aba ficou ao fundo e leu tarde: o aviso e o ataque chegam juntos.
+      for (const outcome of [suffered, repelled]) {
+        const result = decideNotifications(input({ events: [announced, outcome] }));
+        expect(result.show).toEqual([outcome]);
+        expect(result.badge).toBe(0);
+      }
+      // O alarme de outra incursão, ainda a caminho, continua valendo.
+      const other = { ...announced, data: { ...announced.data, raidId: 'threat-9' } };
+      expect(
+        decideNotifications(input({ events: [other, suffered] })).show.map((entry) => entry.type),
+      ).toEqual(['raidAnnounced', 'raidSuffered']);
+    });
+
+    it('com pouco espaço: os alarmes da incursão na frente, os uivos e o alívio antes do resto', () => {
+      // O alarme é de outra incursão, ainda a caminho: a que recuou já passou.
+      const other = { ...announced, data: { ...announced.data, raidId: 'threat-9' } };
+      const events = [event('constructionFinished', 1), howl(0), repelled, other];
+      const result = decideNotifications(input({ level: 'all', events, history: [now - 1000] }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['raidAnnounced', 'wolvesHowl']);
+      expect(result.badge).toBe(2);
+    });
+
+    describe('o que o alarme diz além da frase da Crônica', () => {
+      it('quando o ataque chega, com a hora do relógio, o que ele custa e o que a Paliçada faz a ele', () => {
+        expect(
+          raidAhead(threatIncomingView, { now: Date.UTC(2026, 9, 2, 20, 0), timeZone: 'UTC' }),
+        ).toEqual([
+          'Chegada em 16 min, às 20:15.',
+          'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
+          'Sem Paliçada, nada segura este ataque.',
+        ]);
+        // No fuso de quem joga.
+        expect(
+          raidAhead(threatIncomingView, {
+            now: Date.UTC(2026, 9, 2, 20, 0),
+            timeZone: 'America/Sao_Paulo',
+          })[0],
+        ).toBe('Chegada em 16 min, às 17:15.');
+        // Sem o relógio, só o prazo.
+        expect(raidAhead(threatIncomingView)[0]).toBe('Chegada em 16 min.');
+        expect(raidAhead(palisadeRaisedView)[2]).toBe(
+          'A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago.',
+        );
+      });
+
+      it('sem incursão à vista na visão (ou sem visão), nada: o app não inventa prazo', () => {
+        expect(raidAhead(threatWatchedView)).toEqual([]);
+        expect(raidAhead(initialView)).toEqual([]);
+        expect(raidAhead(null)).toEqual([]);
+      });
+    });
+
+    it('o ataque sofrido diz quem ficou ferido e quando sara, na frase do servidor', () => {
+      expect(raidAftermath(raidAftermathView)).toEqual([
+        '2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.',
+      ]);
+      expect(raidAftermath(threatWatchedView)).toEqual([]);
+      expect(raidAftermath(null)).toEqual([]);
     });
   });
 

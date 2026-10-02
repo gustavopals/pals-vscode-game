@@ -34,8 +34,8 @@ import {
   upgradeName,
 } from './format';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
-import { threatIcon, threatLines, threatTreeLine, watchtowerTerms, watchtowerWork } from './threat';
-import { experienceSummary, nextWorkerGain } from './workers';
+import { threatIcon, threatLines, threatRowWork, threatTreeLine, workTerms } from './threat';
+import { employed, experienceSummary, injuredCount, nextWorkerGain } from './workers';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
 export type TreeNode = {
@@ -150,29 +150,31 @@ function moraleNode(view: ViewState, elapsedSeconds: number): TreeNode {
 /**
  * A Ameaça (GDD §8.2 e §13.2): "46 · Covil de Lobos" para quem tem a Torre de Vigia; sem ela,
  * "desconhecida", porque o número nem chega do servidor. A explicação é a do painel, frase a
- * frase. O clique só navega; sem a Torre, e com a obra dela liberada, a linha ganha o botão que a
- * ergue, com o custo na dica: a saída da névoa fica ao lado dela.
+ * frase. O clique só navega, e o foco fica na árvore, como nas outras linhas: quem anda por ela
+ * com as setas não é levado embora. Quando uma das duas obras da Ameaça pode começar agora, a
+ * linha ganha o botão que a ordena, com o custo na dica: sem a Torre, a Torre (a saída da névoa
+ * fica ao lado dela); com ela, a Paliçada, que é o que muda o desfecho do próximo ataque.
  */
 function threatNode(view: ViewState, elapsedSeconds: number): TreeNode {
   const { threat } = view;
-  const work = watchtowerWork(view);
-  // A obra da Torre que o botão da linha ordena: só sem a Torre, e só quando nada a impede.
-  const tower =
-    !threat.known && work.kind === 'available' && work.upgrade.blockedReason === null
-      ? work.upgrade
-      : null;
+  const work = threatRowWork(view);
   return {
     id: 'threat',
     label: 'Ameaça',
     description: threatTreeLine(view, elapsedSeconds),
     tooltip: threatLines(view, elapsedSeconds).join('\n'),
     icon: threatIcon(threat),
-    ...(tower === null
+    ...(work === null
       ? {}
       : {
-          contextValue: 'lords.threatUnwatched',
-          actionLabels: { 'lords.build': upgradeName(tower) },
-          actionHints: { 'lords.build': watchtowerTerms(tower) },
+          contextValue: isNewBuilding(work) ? 'lords.threatBuild' : 'lords.threatUpgrade',
+          // "Construir: Paliçada" para o que ainda não existe; "Melhorar: Paliçada Nv1 → Nv2".
+          actionLabels: {
+            'lords.build': isNewBuilding(work)
+              ? upgradeName(work)
+              : `Melhorar: ${upgradeName(work)}`,
+          },
+          actionHints: { 'lords.build': workTerms(work) },
         }),
     command: { id: 'lords.openPanel', args: ['fief'] },
   };
@@ -212,13 +214,21 @@ function hearthNode(view: ViewState): TreeNode[] {
  * à vista antes do "+", que o repete na própria dica.
  */
 function workersNode(view: ViewState): TreeNode {
-  const { villagers, free } = view.population;
+  const { villagers, free, injured, injuredNote } = view.population;
   const rules = view.workersRules;
   return {
     id: 'workers',
     label: 'Trabalhadores',
-    description: `${villagers - free}/${villagers} alocados · ${free} ${free === 1 ? 'livre' : 'livres'}`,
-    tooltip: [rules.adaptationText, rules.removalText, rules.experienceText].join('\n'),
+    // Os feridos de uma incursão não trabalham nem estão livres: têm a sua parcela, por extenso.
+    description:
+      `${employed(view.population)}/${villagers} alocados · ${free} ${free === 1 ? 'livre' : 'livres'}` +
+      (injured > 0 ? ` · ${injuredCount(injured)}` : ''),
+    tooltip: [
+      ...(injuredNote === null ? [] : [injuredNote]),
+      rules.adaptationText,
+      rules.removalText,
+      rules.experienceText,
+    ].join('\n'),
     icon: 'organization',
     expanded: true,
     children: view.workers.map((row) => {
@@ -229,6 +239,7 @@ function workersNode(view: ViewState): TreeNode {
         description: [
           `${row.assigned} · ${formatNumber(row.grossPerHour)}/h`,
           row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+          row.injured > 0 ? injuredCount(row.injured) : null,
           row.experienceTrend === 'falling' ? '⚠ o ofício se perde' : null,
         ]
           .filter((part) => part !== null)
@@ -468,6 +479,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
   }
   const { calendar, settlement } = view;
   const cold = view.winter?.cold ?? null;
+  const { incoming } = view.threat;
   const offline = input.connection.kind === 'offline';
   // O que "Antes de partir" tem a dizer, para quem está em outra aba: quantos itens e, se algum
   // é mais que sugestão, o sinal de alerta. O clique leva à aba Hoje, onde estão os botões.
@@ -513,12 +525,14 @@ export function buildTree(input: TreeInput): TreeNode[] {
     {
       id: 'fief',
       label: `Feudo: ${settlement.name}`,
-      // A fome e o frio aparecem por extenso e com ícone próprio: nada é dito só pela cor.
+      // A fome, o frio e a incursão que os vigias avistaram aparecem por extenso: nada é dito
+      // só pela cor, e a linha continua dizendo o que importa com o feudo recolhido.
       description:
         `${calendar.seasonLabel}, dia ${calendar.dayOfSeason}` +
         (view.famine ? ' · fome' : '') +
-        (cold ? ' · frio' : ''),
-      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text]
+        (cold ? ' · frio' : '') +
+        (incoming ? ' · incursão a caminho' : ''),
+      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text, incoming?.text]
         .filter((line) => line !== undefined)
         .join('\n'),
       icon: view.famine ? 'warning' : cold ? 'flame' : 'shield',

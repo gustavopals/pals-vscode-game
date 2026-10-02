@@ -8,6 +8,8 @@ import {
   test as base,
 } from '@playwright/test';
 
+import type { ViewState } from '../../packages/protocol/src/view';
+
 export const API = 'http://127.0.0.1:3100';
 /** A semente dos feudos fundados com o conselho convocado: as mesmas cartas a cada execução. */
 const COUNCIL_SEED = 'conselho-e2e';
@@ -45,6 +47,18 @@ export type World = {
    * sobre ele não dependem de qual carta saiu. Chame antes de fundar o feudo.
    */
   conveneCouncil(): void;
+  /**
+   * Solta os lobos: os feudos fundados daqui em diante recebem os uivos na hora 18 de jogo e a
+   * incursão do roteiro na hora 30 (no ritmo Normal), e as incursões por Ameaça depois dela.
+   * Sem isto a Horda fica calada: os cenários que não são sobre a incursão não perdem estoque,
+   * braços nem moral para ela. Chame antes de fundar o feudo.
+   */
+  wolvesRoam(): void;
+  /**
+   * Põe um edifício do feudo em um nível, sem obra (`/__test/raise`): a Torre de Vigia ou a
+   * Paliçada de pé antes da hora dos lobos.
+   */
+  raise(building: 'watchtower' | 'palisade', level: number): Promise<void>;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -60,11 +74,14 @@ export const test = base.extend<{ world: World }>({
       };
       await control('reset');
       let councilInSession = false;
+      let wolvesRoaming = false;
       const watched = new WeakSet<BrowserContext>();
       /**
        * Fica entre a página e `POST /v1/games`. Com o conselho em recesso (o padrão), manda o
        * servidor adiar o sorteio do feudo recém-fundado antes de a resposta chegar à página; com
-       * ele convocado, acrescenta a semente fixa ao pedido (o servidor de teste a aceita).
+       * ele convocado, acrescenta a semente fixa ao pedido (o servidor de teste a aceita). Com a
+       * Horda calada (o padrão), manda o servidor tirar os lobos do caminho, também antes de a
+       * resposta chegar.
        */
       const watchFoundings = async (context: BrowserContext) => {
         if (watched.has(context)) {
@@ -77,14 +94,27 @@ export const test = base.extend<{ world: World }>({
             await route.fallback();
             return;
           }
-          if (councilInSession) {
-            const body = request.postDataJSON() as Record<string, unknown>;
-            await route.continue({ postData: JSON.stringify({ ...body, seed: COUNCIL_SEED }) });
+          const seeded = councilInSession
+            ? {
+                postData: JSON.stringify({
+                  ...(request.postDataJSON() as Record<string, unknown>),
+                  seed: COUNCIL_SEED,
+                }),
+              }
+            : {};
+          if (councilInSession && wolvesRoaming) {
+            // Nada a mudar no feudo recém-fundado: o pedido segue, só com a semente.
+            await route.continue(seeded);
             return;
           }
-          const response = await route.fetch();
+          const response = await route.fetch(seeded);
           if (response.ok()) {
-            await control('council-recess');
+            if (!councilInSession) {
+              await control('council-recess');
+            }
+            if (!wolvesRoaming) {
+              await control('horde-quiet');
+            }
           }
           await route.fulfill({ response });
         });
@@ -95,6 +125,12 @@ export const test = base.extend<{ world: World }>({
         control,
         conveneCouncil: () => {
           councilInSession = true;
+        },
+        wolvesRoam: () => {
+          wolvesRoaming = true;
+        },
+        raise: async (building, level) => {
+          await control('raise', { building, level });
         },
         github: (action, data = {}) => control('github', { action, ...data }),
         open: async (context, path = '/') => {
@@ -355,13 +391,22 @@ export type ServerThreat = {
   defense: { palisadeLevel: number; text: string };
 };
 
-/** A Ameaça do feudo da página, como o servidor a mostra agora. */
-export async function serverThreat(page: Page, request: APIRequestContext): Promise<ServerThreat> {
+/** O corpo de `GET /view` do feudo da página, lido agora, na forma que quem chama espera. */
+async function readView<View>(page: Page, request: APIRequestContext): Promise<View> {
   const { url, headers } = await session(page);
   const response = await request.get(`${url}/view`, { headers });
   expect(response.status(), 'leitura da visão').toBe(200);
-  const body = (await response.json()) as { view: { threat: ServerThreat } };
-  return body.view.threat;
+  const body = (await response.json()) as { view: View };
+  return body.view;
+}
+
+/** A visão inteira do feudo da página, como o servidor a manda agora. */
+export const serverView = (page: Page, request: APIRequestContext) =>
+  readView<ViewState>(page, request);
+
+/** A Ameaça do feudo da página, como o servidor a mostra agora. */
+export async function serverThreat(page: Page, request: APIRequestContext): Promise<ServerThreat> {
+  return (await readView<{ threat: ServerThreat }>(page, request)).threat;
 }
 
 /** Todos os eventos da partida, na ordem em que aconteceram. */

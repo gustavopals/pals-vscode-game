@@ -4,9 +4,12 @@ import { describe, expect, it } from 'vitest';
 import type { AccountState } from '../account/accountService';
 import {
   activeConstruction,
+  autumnView,
   craftsView,
   initialView,
+  palisadeRaisedView,
   queuesView,
+  raidAftermathView,
   threatIncomingView,
   threatWatchedView,
   withPlanned,
@@ -14,18 +17,22 @@ import {
 } from '../test-helpers';
 import {
   DEFENSE_ICON,
+  INJURED_ICON,
+  palisadeRace,
+  palisadeWork,
   RAID_ICON,
   THREAT_ICON,
   THREAT_UNKNOWN_ICON,
   threatIcon,
   threatLines,
   threatRising,
+  threatRowWork,
   threatTreeLine,
   tileLine,
   type WatchedThreat,
-  watchtowerPlanLine,
-  watchtowerTerms,
   watchtowerWork,
+  workPlanLine,
+  workTerms,
 } from './threat';
 import { buildTree, type TreeNode } from './treeModel';
 
@@ -62,7 +69,7 @@ describe('Ameaça: o ícone diz se há quem veja', () => {
   });
 
   it('nenhum ícone da Ameaça é o da fome, o do frio ou o do Conselho', () => {
-    const icons = [THREAT_ICON, THREAT_UNKNOWN_ICON, RAID_ICON, DEFENSE_ICON];
+    const icons = [THREAT_ICON, THREAT_UNKNOWN_ICON, RAID_ICON, DEFENSE_ICON, INJURED_ICON];
     expect(new Set(icons).size).toBe(icons.length);
     for (const taken of ['warning', 'flame', 'law']) {
       expect(icons).not.toContain(taken);
@@ -84,7 +91,7 @@ describe('a obra da Torre, pelo que a visão diz das construções', () => {
     });
     if (work.kind === 'available') {
       // O custo e o prazo são os da visão: o app não conhece nenhum dos dois.
-      expect(watchtowerTerms(work.upgrade)).toBe('120 madeira, 120 pedra, 50 ouro · 12 min');
+      expect(workTerms(work.upgrade)).toBe('120 madeira, 120 pedra, 50 ouro · 12 min');
     }
   });
 
@@ -93,7 +100,7 @@ describe('a obra da Torre, pelo que a visão diz das construções', () => {
     expect(work).toMatchObject({ kind: 'available', upgrade: { fromLevel: 1, targetLevel: 2 } });
     if (work.kind === 'available') {
       // No ritmo Rápido o prazo já vem em tempo real.
-      expect(watchtowerTerms(work.upgrade)).toBe('192 madeira, 192 pedra, 80 ouro · 6 min');
+      expect(workTerms(work.upgrade)).toBe('192 madeira, 192 pedra, 80 ouro · 6 min');
     }
   });
 
@@ -125,17 +132,140 @@ describe('a obra da Torre, pelo que a visão diz das construções', () => {
     const work = watchtowerWork(planned);
     expect(work).toMatchObject({ kind: 'available', plan: { autoStart: true } });
     if (work.kind === 'available' && work.plan !== null) {
-      expect(watchtowerPlanLine(work.plan, 0)).toBe(
+      expect(workPlanLine(work.plan, 0)).toBe(
         'Planejada, com início automático · espera 55 de pedra: em 1 h 15 min.',
       );
       // O prazo desce com o relógio da página.
-      expect(watchtowerPlanLine(work.plan, 900)).toBe(
+      expect(workPlanLine(work.plan, 900)).toBe(
         'Planejada, com início automático · espera 55 de pedra: em 1 h.',
       );
-      expect(watchtowerPlanLine({ ...work.plan, autoStart: false, waiting: null }, 0)).toBe(
+      expect(workPlanLine({ ...work.plan, autoStart: false, waiting: null }, 0)).toBe(
         'Planejada · pode começar agora.',
       );
     }
+  });
+});
+
+describe('a obra da Paliçada, pelo que a visão diz das construções (GDD §8.2)', () => {
+  /** O Salão no nível 3 e a Paliçada em obras, em uma das filas. */
+  const fenceUnderway = withQueues(craftsView, [
+    activeConstruction({
+      building: 'palisade',
+      label: 'Paliçada',
+      targetLevel: 1,
+      secondsRemaining: 300,
+      totalSeconds: 1200,
+    }),
+  ]);
+
+  it('antes do Salão Nv3 a obra está na lista, travada, com o motivo do servidor', () => {
+    const work = palisadeWork(initialView);
+    expect(work).toMatchObject({
+      kind: 'available',
+      plan: null,
+      upgrade: {
+        building: 'palisade',
+        fromLevel: 0,
+        blockedReason: 'Melhore antes o Salão do Senhor para o nível 3.',
+      },
+    });
+    if (work.kind === 'available') {
+      expect(workTerms(work.upgrade)).toBe('200 madeira, 50 pedra · 20 min');
+    }
+  });
+
+  it('com o Salão no nível 3 a obra se oferece; erguida, é a melhoria para o nível 2', () => {
+    expect(palisadeWork(craftsView)).toMatchObject({
+      kind: 'available',
+      upgrade: { fromLevel: 0, targetLevel: 1, blockedReason: null },
+    });
+    const raised = palisadeWork(palisadeRaisedView);
+    expect(raised).toMatchObject({
+      kind: 'available',
+      upgrade: { fromLevel: 1, targetLevel: 2, blockedReason: null },
+    });
+    if (raised.kind === 'available') {
+      expect(workTerms(raised.upgrade)).toBe('320 madeira, 80 pedra · 10 min');
+    }
+  });
+
+  it('em obras, quem fala é a fila; no teto desta versão não há obra a ordenar', () => {
+    expect(palisadeWork(fenceUnderway)).toMatchObject({
+      kind: 'underway',
+      queue: { building: 'palisade', targetLevel: 1, secondsRemaining: 300 },
+    });
+    const ceiling: ViewState = {
+      ...palisadeRaisedView,
+      constructions: {
+        ...palisadeRaisedView.constructions,
+        available: palisadeRaisedView.constructions.available.filter(
+          (upgrade) => upgrade.building !== 'palisade',
+        ),
+      },
+    };
+    expect(palisadeWork(ceiling)).toEqual({ kind: 'none' });
+  });
+
+  it('com um ataque à vista, o prazo da obra fica ao lado do prazo dele; quem diz se dá tempo é o servidor', () => {
+    const work = palisadeWork(palisadeRaisedView);
+    if (work.kind !== 'available') {
+      throw new Error('O golden deixou de trazer a obra da Paliçada.');
+    }
+    expect(palisadeRace(palisadeRaisedView, work.upgrade, 0)).toBe(
+      'A obra leva 10 min; o ataque chega em 16 min.',
+    );
+    // O prazo do ataque desce com o relógio da página; o da obra é o que ela leva.
+    expect(palisadeRace(palisadeRaisedView, work.upgrade, 400)).toBe(
+      'A obra leva 10 min; o ataque chega em 9 min.',
+    );
+    // O painel escreve o prazo do ataque como contagem regressiva.
+    expect(palisadeRace(palisadeRaisedView, work.upgrade, 0, (seconds) => `${seconds} s`)).toBe(
+      'A obra leva 10 min; o ataque chega em 940 s.',
+    );
+    // Sem incursão à vista não há corrida a mostrar.
+    expect(palisadeRace(threatWatchedView, work.upgrade, 0)).toBeNull();
+    expect(palisadeRace(craftsView, work.upgrade, 0)).toBeNull();
+  });
+
+  describe('a obra que o botão da linha "Ameaça" ordena', () => {
+    it('sem a Torre, a Torre: é a saída da névoa', () => {
+      // O Salão no nível 3 libera as duas; a Torre passa na frente.
+      expect(palisadeWork(craftsView)).toMatchObject({ upgrade: { blockedReason: null } });
+      expect(threatRowWork(craftsView)?.building).toBe('watchtower');
+    });
+
+    it('com a Torre, a Paliçada, quando a obra dela pode começar', () => {
+      expect(threatRowWork(palisadeRaisedView)).toMatchObject({
+        building: 'palisade',
+        targetLevel: 2,
+      });
+      // Antes do Salão Nv3 a obra está travada: a linha não oferece nada.
+      expect(threatRowWork(threatWatchedView)).toBeNull();
+      expect(threatRowWork(raidAftermathView)).toBeNull();
+    });
+
+    it('sem a Torre e com a obra dela travada, a Paliçada, se puder começar', () => {
+      // Com o Salão no nível 3 e sem os recursos da Torre, a defesa é o que há a ordenar.
+      const towerShort: ViewState = {
+        ...craftsView,
+        constructions: {
+          ...craftsView.constructions,
+          available: craftsView.constructions.available.map((upgrade) =>
+            upgrade.building === 'watchtower'
+              ? { ...upgrade, blockedReason: 'Faltam 50 ouro.' }
+              : upgrade,
+          ),
+        },
+      };
+      expect(threatRowWork(towerShort)?.building).toBe('palisade');
+      // Com as duas travadas, nada.
+      expect(threatRowWork(initialView)).toBeNull();
+      expect(threatRowWork(autumnView)).toBeNull();
+    });
+
+    it('com a Torre em obras e a Paliçada travada, a linha não tem o que ordenar', () => {
+      expect(threatRowWork(towerUnderway)).toBeNull();
+    });
   });
 });
 
@@ -187,22 +317,27 @@ describe('a linha "Ameaça" da árvore (GDD §13.2)', () => {
 });
 
 describe('a explicação da Ameaça, frase a frase', () => {
-  it('sem a Torre: a névoa, o que a Torre daria, o custo com o que a impede e a defesa', () => {
+  it('sem a Torre: a névoa, o que a Torre daria, o custo com o que a impede, a defesa e a obra dela', () => {
     expect(threatLines(initialView, 0)).toEqual([
       'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
       'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
       '120 madeira, 120 pedra, 50 ouro · 12 min. Melhore antes o Salão do Senhor para o nível 2.',
       'Sem Paliçada, nada segura um ataque.',
+      'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+      '200 madeira, 50 pedra · 20 min. Melhore antes o Salão do Senhor para o nível 3.',
     ]);
-    // Com a obra liberada, só o custo e o prazo.
+    // Com as obras liberadas, só o custo e o prazo.
     expect(threatLines(craftsView, 0)[2]).toBe('120 madeira, 120 pedra, 50 ouro · 12 min.');
+    expect(threatLines(craftsView, 0).at(-1)).toBe('200 madeira, 50 pedra · 20 min.');
   });
 
-  it('sem a Torre, nenhuma frase traz número de Ameaça, origem ou tile', () => {
+  it('sem a Torre, nenhuma frase traz número de Ameaça, origem, tile, chance ou estrago', () => {
     const text = threatLines(initialView, 0).join(' ');
     expect(text).not.toMatch(/Ameaça \d/);
     expect(text).not.toContain('Covil');
     expect(text).not.toContain('/dia');
+    expect(text).not.toContain('%');
+    expect(text).not.toContain('chance');
   });
 
   it('com a Torre em obras, a explicação diz quando ela fica pronta', () => {
@@ -214,27 +349,51 @@ describe('a explicação da Ameaça, frase a frase', () => {
     );
   });
 
-  it('com a Torre: o número, a tendência com o prazo, as origens, a Torre e a defesa', () => {
+  it('com a Torre: o número, a tendência, as origens, a chance e o custo de um ataque, a defesa e a Torre', () => {
+    const threat = watched(threatWatchedView);
     expect(threatLines(threatWatchedView, 0)).toEqual([
       'Ameaça 46 de 100.',
       'Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54. Faltam 36 min.',
       '+5/dia: Covil de Lobos',
       '+3/dia: outono',
+      // A regra das incursões e o que cada tamanho custa: as frases do servidor, como vieram.
+      threat.raidRisk,
+      ...threat.raidCosts,
+      'Sem Paliçada, nada segura um ataque.',
+      'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+      '200 madeira, 50 pedra · 6 min 40 s. Melhore antes o Salão do Senhor para o nível 3.',
       'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
       'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
       '192 madeira, 192 pedra, 80 ouro · 6 min.',
-      'Sem Paliçada, nada segura um ataque.',
     ]);
+    expect(threat.raidRisk).toContain('14% de chance');
+    expect(threat.raidCosts).toHaveLength(3);
   });
 
-  it('com uma incursão à vista, o aviso dos vigias entra com o prazo; no teto, não há obra', () => {
+  it('com uma incursão à vista: o aviso com o prazo, o que ela custa e o que a Paliçada faz a ela', () => {
     const lines = threatLines(threatIncomingView, 0);
-    expect(lines).toContain(
+    const at = lines.indexOf(
       'Lobos a caminho. Os vigias contam uma matilha grande. Chegada em 16 min.',
     );
-    expect(lines.at(-2)).toMatch(/Os níveis seguintes chegam em versões futuras do jogo\.$/);
-    expect(lines.at(-1)).toBe('Sem Paliçada, nada segura um ataque.');
-    expect(lines.join(' ')).not.toContain('madeira');
+    expect(at).toBeGreaterThan(-1);
+    expect(lines.slice(at + 1, at + 3)).toEqual([
+      'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
+      'Sem Paliçada, nada segura este ataque.',
+    ]);
+    // O custo deste ataque toma o lugar da lista do que cada tamanho custa.
+    expect(lines.join(' ')).not.toContain('Ataques leves');
+    // A Torre no teto não tem obra; a frase dela fecha a explicação.
+    expect(lines.at(-1)).toMatch(/Os níveis seguintes chegam em versões futuras do jogo\.$/);
+    expect(lines.join(' ')).not.toContain('ouro');
+    // Com a Paliçada no nível 1, a frase é a do que ela faz a este ataque, e a obra é a do nível 2.
+    const raised = threatLines(palisadeRaisedView, 0);
+    expect(raised).toContain(
+      'A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago.',
+    );
+    expect(raised).toContain(
+      'Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido.',
+    );
+    expect(raised).toContain('320 madeira, 80 pedra · 10 min.');
   });
 
   it('no máximo a Ameaça não sobe: a frase do servidor basta, sem prazo', () => {
@@ -295,7 +454,8 @@ describe('a Ameaça na árvore', () => {
       description: '46 · Covil de Lobos',
       tooltip: threatLines(threatWatchedView, 0).join('\n'),
       icon: 'eye',
-      // O clique só navega, e não há ordem na linha: a melhoria da Torre fica em "Construções".
+      // O clique só navega. Com a Paliçada ainda travada não há ordem na linha, e a melhoria
+      // da Torre fica em "Construções".
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
     expect(node(threatIncomingView).description).toBe('46 · ⚠ Lobos em 16 min');
@@ -317,11 +477,39 @@ describe('a Ameaça na árvore', () => {
   it('sem a Torre e com a obra liberada: a linha ganha o botão que a ergue, com o custo na dica', () => {
     expect(node(craftsView)).toMatchObject({
       description: 'desconhecida · sem Torre de Vigia',
-      contextValue: 'lords.threatUnwatched',
+      contextValue: 'lords.threatBuild',
       actionLabels: { 'lords.build': 'Construir: Torre de Vigia' },
       actionHints: { 'lords.build': '120 madeira, 120 pedra, 50 ouro · 12 min' },
       // O clique na linha continua só navegando.
       command: { id: 'lords.openPanel', args: ['fief'] },
+    });
+  });
+
+  it('com a Torre e a obra da Paliçada liberada: o botão da linha ordena a defesa, com o custo na dica', () => {
+    expect(node(palisadeRaisedView)).toMatchObject({
+      description: '46 · ⚠ Lobos em 16 min',
+      icon: 'eye',
+      contextValue: 'lords.threatUpgrade',
+      actionLabels: { 'lords.build': 'Melhorar: Paliçada Nv1 → Nv2' },
+      actionHints: { 'lords.build': '320 madeira, 80 pedra · 10 min' },
+      command: { id: 'lords.openPanel', args: ['fief'] },
+    });
+    // A Paliçada que ainda não existe: "Construir: Paliçada".
+    const fresh: ViewState = {
+      ...threatWatchedView,
+      constructions: {
+        ...threatWatchedView.constructions,
+        available: threatWatchedView.constructions.available.map((upgrade) =>
+          upgrade.building === 'palisade'
+            ? { ...upgrade, blockedCode: null, blockedReason: null }
+            : upgrade,
+        ),
+      },
+    };
+    expect(node(fresh)).toMatchObject({
+      contextValue: 'lords.threatBuild',
+      actionLabels: { 'lords.build': 'Construir: Paliçada' },
+      actionHints: { 'lords.build': '200 madeira, 50 pedra · 6 min 40 s' },
     });
   });
 

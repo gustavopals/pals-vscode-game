@@ -15,6 +15,44 @@ type Rules = ViewState['workersRules'];
 export const workersCount = (count: number) =>
   `${count} ${count === 1 ? 'trabalhador' : 'trabalhadores'}`;
 
+/** "1 ferido", "2 feridos". */
+export const injuredCount = (count: number) => `${count} ${count === 1 ? 'ferido' : 'feridos'}`;
+
+/**
+ * Quantos aldeões têm ofício agora. Os feridos de uma incursão moram e comem no feudo, mas não
+ * trabalham nem estão livres para uma ordem (GDD §8.2): ficam fora das duas contas.
+ */
+export function employed(population: ViewState['population']): number {
+  return population.villagers - population.free - population.injured;
+}
+
+/**
+ * Os feridos que sararam durante uma ausência, somados, para o Relatório de Retorno: "2 aldeões
+ * sararam das feridas: quem tinha ofício voltou a ele." `null` quando ninguém sarou.
+ */
+export function recoveredLine(count: number): string | null {
+  if (count <= 0) {
+    return null;
+  }
+  return count === 1
+    ? '1 aldeão sarou das feridas: se tinha ofício, voltou a ele.'
+    : `${count} aldeões sararam das feridas: quem tinha ofício voltou a ele.`;
+}
+
+/**
+ * Quem saiu ferido deste ofício, na linha do edifício: "1 ferido: volta a este ofício quando
+ * sarar." O prazo e a regra estão na frase do servidor (`population.injuredNote`), acima da
+ * lista. `null` quando ninguém daqui se feriu.
+ */
+export function injuredLine(row: Pick<WorkerRow, 'injured'>): string | null {
+  if (row.injured <= 0) {
+    return null;
+  }
+  return row.injured === 1
+    ? '1 ferido: volta a este ofício quando sarar.'
+    : `${row.injured} feridos: voltam a este ofício quando sararem.`;
+}
+
 /**
  * O custo da troca, antes de qualquer clique: o que um trabalhador a mais rende agora e o que
  * passa a render depois da adaptação. "+5,2/h agora, +10,4/h depois de 40 min".

@@ -35,8 +35,9 @@ import {
   remainingNow,
   upgradeName,
 } from '../ui/format';
+import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
-import { allocationMessage, nextWorkerGain, workersCount } from '../ui/workers';
+import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
 
 type WorkerRow = ViewState['workers'][number];
 type WorkersRules = ViewState['workersRules'];
@@ -63,6 +64,19 @@ export type CommandEnv = {
   /** O tema em uso agora (a escolha ou o do sistema). */
   currentTheme(): ThemeId;
   openPalette(): void;
+  /**
+   * Leva a página e o foco ao elemento com este id, depois de a aba à vista ser desenhada: é
+   * como "Ver a defesa" chega ao painel da Ameaça, que fica abaixo da dobra da aba Feudo.
+   */
+  reveal(elementId: string): void;
+};
+
+/**
+ * As seções a que `lords.openPanel` leva a página e o foco, além das abas: o argumento, a aba em
+ * que a seção fica e a âncora dela.
+ */
+const SECTIONS: Record<string, { route: Route; anchor: string }> = {
+  [THREAT_SECTION]: { route: 'fief', anchor: THREAT_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';
@@ -114,7 +128,7 @@ const nameValidation = (value: string): Validation | null =>
 
 /** O prefixo do id da linha de uma carta na árvore (`ui/treeModel.ts`). */
 const CARD_NODE = 'card:';
-/** O id da linha "Ameaça" da árvore: o botão dela ordena a obra da Torre de Vigia. */
+/** O id da linha "Ameaça" da árvore: o botão dela ordena a obra da Torre de Vigia ou a da Paliçada. */
 const THREAT_NODE = 'threat';
 
 /**
@@ -177,16 +191,21 @@ export function createCommands(
   };
 
   // A lista já mostra o custo da troca: a regra, na frase do servidor, e o que um trabalhador a
-  // mais rende em cada edifício, agora e depois da adaptação.
+  // mais rende em cada edifício, agora e depois da adaptação. Os feridos de uma incursão não
+  // estão livres para uma ordem: a lista diz quantos são e de que ofício saíram.
   const pickWorker = (view: ViewState) =>
     dialogs.pick<WorkerRow>({
       title: 'Alocar trabalhadores',
-      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}. ${view.workersRules.adaptationText}`,
+      placeholder:
+        `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}` +
+        `${view.population.injured > 0 ? ` · ${injuredCount(view.population.injured)}` : ''}. ` +
+        view.workersRules.adaptationText,
       items: view.workers.map((row) => ({
         label: `${row.label} Nv${row.level}`,
         description: [
           `${workersCount(row.assigned)} · ${formatNumber(row.grossPerHour)}/h`,
           row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+          row.injured > 0 ? injuredCount(row.injured) : null,
         ]
           .filter((part) => part !== null)
           .join(' · '),
@@ -251,10 +270,11 @@ export function createCommands(
     }
     const { available } = view.constructions;
     const busy = busyQueues(view.constructions);
-    // Vindo da linha "Ameaça" da árvore, a obra é a da Torre de Vigia: é o que tira a névoa.
+    // Vindo da linha "Ameaça" da árvore, a obra é a que a linha oferece: sem a Torre de Vigia,
+    // a Torre (é o que tira a névoa); com ela, a Paliçada.
     const requested =
       (arg as TreeNode | undefined)?.id === THREAT_NODE
-        ? view.threat.watchtower.building
+        ? threatRowWork(view)?.building
         : buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
@@ -1196,6 +1216,13 @@ export function createCommands(
     { id: 'lords.about', title: 'Sobre', palette: true, run: go('about') },
     // Usados pela árvore, pela barra de status e pelos avisos; não aparecem na paleta.
     hidden('lords.openPanel', (arg) => {
+      const section = typeof arg === 'string' ? SECTIONS[arg] : undefined;
+      if (section !== undefined) {
+        // Uma seção de uma aba: a aba abre, e a página e o foco vão até a seção.
+        controller.navigate(section.route);
+        env.reveal(section.anchor);
+        return;
+      }
       controller.navigate(
         arg === 'today' || arg === 'fief' || arg === 'council' ? arg : controller.defaultRoute(),
       );

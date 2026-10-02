@@ -17,8 +17,11 @@ import {
   mealCard,
   goldenView,
   makeController,
+  palisadeRaisedView,
   queuesView,
+  raidAftermathView,
   settle,
+  threatIncomingView,
   threatWatchedView,
   withQueues,
   withResource,
@@ -551,6 +554,32 @@ describe('Tree', () => {
     expect(rowActions(nodeById(watched, 'threat'))).toEqual([]);
     const row = tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
     expect(attribute(row, 'title')).toContain('+5/dia: Covil de Lobos');
+  });
+
+  it('com a Torre e a obra da Paliçada liberada, o botão da linha da Ameaça ordena a defesa', () => {
+    const raised = tree({ view: palisadeRaisedView });
+    // A Paliçada já existe: o botão diz "Melhorar", com o nome da obra para quem não vê a linha.
+    expect(rowActions(nodeById(raised, 'threat'))).toEqual([
+      { label: 'Melhorar: Paliçada Nv1 → Nv2', text: 'Melhorar', command: 'lords.build' },
+    ]);
+    const markup = render(raised);
+    // A linha diz o ataque que vem, com sinal e texto.
+    expect(markup).toContain('46 · ⚠ Lobos em 16 min');
+    const button = buttons(markup).find(
+      (tag) => attribute(tag, 'aria-label') === 'Melhorar: Paliçada Nv1 → Nv2',
+    );
+    // O custo está à vista antes do clique, na dica do botão.
+    expect(attribute(button ?? '', 'title')).toBe(
+      'Melhorar: Paliçada Nv1 → Nv2 (320 madeira, 80 pedra · 10 min)',
+    );
+    // Com a Paliçada à espera do Salão Nv3 a linha só navega.
+    expect(rowActions(nodeById(tree({ view: threatIncomingView }), 'threat'))).toEqual([]);
+  });
+
+  it('os feridos de uma incursão aparecem na linha dos trabalhadores e na de cada ofício', () => {
+    const markup = render(tree({ view: raidAftermathView }));
+    expect(markup).toContain('10/12 alocados · 0 livres · 2 feridos');
+    expect(markup).toContain('3 · 152,7/h · 1 ferido');
   });
 
   it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {

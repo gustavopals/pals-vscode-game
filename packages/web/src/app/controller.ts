@@ -36,8 +36,13 @@ import {
   eventIcon,
   isDecision,
   isEssential,
+  isRaidAlarm,
+  isRaidOutcome,
   isSeasonTurn,
+  isWatchReport,
   MUTE_DURATION_MS,
+  raidAftermath,
+  raidAhead,
   SEASON_ICON,
   seasonAhead,
   seasonArrival,
@@ -47,6 +52,7 @@ import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
 import { cardNotice } from '../ui/council';
 import { documentTitle, formatAway, type StatusBarInput } from '../ui/format';
+import { THREAT_SECTION } from '../ui/threat';
 import { APP_NAME, APP_VERSION } from '../version';
 import { CLOSABLE_ROUTES, resolveRoute, type Route, visibleTabs } from './router';
 
@@ -189,6 +195,12 @@ export class Controller {
    * sai de cena.
    */
   private cardToasts = new Map<string, number>();
+  /**
+   * O alarme dos vigias que está à vista ("lobos a caminho"): quando a incursão chega, ou a
+   * visão deixa de trazê-la, ele não tem mais o que avisar e sai de cena. Quem fala depois é o
+   * desfecho.
+   */
+  private raidToast: number | null = null;
   private previousAccount: AccountState = { kind: 'signedOut' };
   private subscriptions: Array<() => void> = [];
   private warnedUpgrade = false;
@@ -494,6 +506,7 @@ export class Controller {
       this.seasonChanges.clear();
       this.dropSeasonToast();
       this.dropCardToasts(() => true);
+      this.dropRaidToast();
       this.answering = new Set();
       await this.openGame();
     }
@@ -552,6 +565,10 @@ export class Controller {
       // A carta que já não espera resposta leva embora o aviso que a anunciou.
       const pending = new Set(view.pendingDecisions.map((decision) => decision.id));
       this.dropCardToasts((instanceId) => !pending.has(instanceId));
+      if (view.threat.incoming === null) {
+        // A incursão anunciada já chegou: "a caminho" deixou de ser verdade.
+        this.dropRaidToast();
+      }
     }
     this.changes.emit();
     this.warnOfSeasonAhead();
@@ -610,6 +627,13 @@ export class Controller {
     if (this.seasonToast !== null) {
       this.dismissToast(this.seasonToast.id);
       this.seasonToast = null;
+    }
+  }
+
+  private dropRaidToast(): void {
+    if (this.raidToast !== null) {
+      this.dismissToast(this.raidToast);
+      this.raidToast = null;
     }
   }
 
@@ -688,16 +712,55 @@ export class Controller {
       this.notifyCard(event);
       return;
     }
-    // A virada de estação repete o que muda, como o aviso de uma hora antes.
+    if (isRaidAlarm(event)) {
+      this.notifyRaid(event);
+      return;
+    }
+    // A virada de estação repete o que muda, como o aviso de uma hora antes; o ataque sofrido
+    // diz quem ficou ferido e quando sara.
     const details = isSeasonTurn(event)
       ? seasonArrival(event, this.seasonChanges.get(String(event.data.season)), this.view)
-      : [];
+      : event.type === 'raidSuffered'
+        ? raidAftermath(this.view)
+        : [];
+    if (isRaidOutcome(event)) {
+      // O desfecho toma o lugar do alarme que o anunciou.
+      this.dropRaidToast();
+    }
     this.announce({
       kind: isEssential(event) ? 'warning' : 'info',
       icon: eventIcon(event),
       text: event.text,
       details,
-      action: { label: 'Ver', route: 'fief' },
+      // O que vem da mata (os uivos, o relato dos vigias, o desfecho de um ataque) leva ao
+      // painel da Ameaça, que fica abaixo da dobra da aba Feudo.
+      action: {
+        label: 'Ver',
+        route: 'fief',
+        ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
+      },
+    });
+  }
+
+  /**
+   * O alarme dos vigias (GDD §8.2 e §13.5): "lobos a caminho", com o prazo e a hora do relógio em
+   * que o ataque chega, o que ele custa a um feudo sem defesa e o que a Paliçada faz a ele, nas
+   * frases do servidor. "Ver" leva ao feudo, onde a obra da Paliçada está ao lado do aviso. A
+   * incursão é a da visão, que chega antes dos eventos: se ela já não está a caminho (a página
+   * leu tarde, e o ataque já passou), o alarme não sai; quem conta é o desfecho.
+   */
+  private notifyRaid(event: GameEvent): void {
+    const details = raidAhead(this.view, { now: this.viewReceivedAt, timeZone: this.timezone() });
+    if (details.length === 0) {
+      return;
+    }
+    this.dropRaidToast();
+    this.raidToast = this.announce({
+      kind: 'warning',
+      icon: eventIcon(event),
+      text: event.text,
+      details,
+      action: { label: 'Ver', route: 'fief', section: THREAT_SECTION },
     });
   }
 
@@ -741,8 +804,11 @@ export class Controller {
     icon: string | undefined;
     text: string;
     details: string[];
-    /** O botão do aviso e a aba a que ele leva. */
-    action: { label: string; route: 'today' | 'fief' | 'council' };
+    /**
+     * O botão do aviso e a aba a que ele leva. Com `section`, a página e o foco vão também até
+     * essa seção da aba (um argumento de `lords.openPanel`).
+     */
+    action: { label: string; route: 'today' | 'fief' | 'council'; section?: string };
     /**
      * O aviso entra no contador de novidades com a aba em segundo plano. A carta nova não entra:
      * ela já é contada como decisão pendente.
@@ -756,7 +822,15 @@ export class Controller {
       details: notice.details,
       game: true,
       actions: [
-        { label: notice.action.label, run: () => this.navigate(notice.action.route) },
+        {
+          label: notice.action.label,
+          run: () => {
+            this.navigate(notice.action.route);
+            if (notice.action.section !== undefined) {
+              this.runCommand('lords.openPanel', notice.action.section);
+            }
+          },
+        },
         {
           label: 'Silenciar 2h',
           run: () => {
@@ -1171,6 +1245,7 @@ export class Controller {
     // Os avisos do jogo à vista somem junto: foi isso que o jogador pediu.
     this.toasts = this.toasts.filter((toast) => toast.game !== true);
     this.cardToasts.clear();
+    this.raidToast = null;
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
   }
 

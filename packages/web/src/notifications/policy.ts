@@ -3,7 +3,7 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import { COUNCIL_ICON } from '../ui/council';
 import { formatDuration } from '../ui/format';
 import { bandIcon } from '../ui/morale';
-import { THREAT_ICON } from '../ui/threat';
+import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
 
@@ -12,21 +12,29 @@ export const MUTE_DURATION_MS = 2 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
- * O que pede atenção de verdade: a fome, o frio e a gente que vai embora (o aldeão que parte
- * com a moral baixa e o que deserta na fome longa). A moral que desce de faixa também é alarme,
- * mas isso depende do sentido da mudança: ver `moraleBandDirection`.
+ * O que pede atenção de verdade: a fome, o frio, a gente que vai embora (o aldeão que parte
+ * com a moral baixa e o que deserta na fome longa) e as incursões (GDD §13.5): o alarme dos
+ * vigias, que só chega a quem tem a Torre e ainda dá tempo de agir, e o ataque que custou algo
+ * ao feudo. A moral que desce de faixa também é alarme, mas isso depende do sentido da mudança:
+ * ver `moraleBandDirection`.
  */
 const ALARMS: ReadonlyArray<GameEvent['type']> = [
   'famineStarted',
   'coldStarted',
   'villagerLeft',
   'villagerDeserted',
+  'raidAnnounced',
+  'raidSuffered',
 ];
 /**
  * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
- * quem soube que o frio entrou nas casas também fica sabendo que as lareiras voltaram a arder.
+ * quem soube que o frio entrou nas casas também fica sabendo que as lareiras voltaram a arder, e
+ * quem ouviu o alarme dos vigias fica sabendo que os lobos recuaram diante da paliçada. É a
+ * notícia que paga a Paliçada: chega também a quem não tem a Torre.
  */
-const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded'];
+const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded', 'raidRepelled'];
+/** O desfecho de uma incursão: depois dele, o alarme que a anunciou já não tem o que avisar. */
+const RAID_OUTCOMES: ReadonlyArray<GameEvent['type']> = ['raidSuffered', 'raidRepelled'];
 /**
  * A virada de estação: muda a produção e os prazos do feudo inteiro, e por isso chega a todos,
  * no nível "Essenciais", mas sem o tom de alarme. O aviso de uma hora antes é `seasonAhead`.
@@ -40,12 +48,14 @@ const SEASON_TURN: GameEvent['type'] = 'seasonChanged';
  */
 const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn'];
 /**
- * O relato dos vigias (GDD §8.2): a Ameaça cruzou uma marca. Só chega a quem tem a Torre de
- * Vigia, que foi erguida para isto: saber antes. Avisa no nível "Essenciais", como a virada de
- * estação, e sem o tom de alarme: nada se perdeu ainda, é hora de se preparar. Não é a incursão,
- * que tem o aviso dela.
+ * O que se ouve da mata antes de qualquer ataque (GDD §8.2). O relato dos vigias: a Ameaça
+ * cruzou uma marca; só chega a quem tem a Torre de Vigia, que foi erguida para isto: saber
+ * antes. E os uivos do ano 1, que todo feudo ouve: um prenúncio, sem número, sem prazo e sem
+ * tamanho, e o aviso não acrescenta nada à frase da Crônica. Os dois avisam no nível
+ * "Essenciais", como a virada de estação, e sem o tom de alarme: nada se perdeu ainda, é hora de
+ * se preparar. Não são a incursão, que tem os avisos dela.
  */
-const WATCH: ReadonlyArray<GameEvent['type']> = ['threatRose'];
+const WATCH: ReadonlyArray<GameEvent['type']> = ['threatRose', 'wolvesHowl'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
@@ -91,6 +101,11 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   cardEffectApplied: COUNCIL_ICON,
   // O que os vigias contam leva o olho da Ameaça, o mesmo do painel e da árvore.
   threatRose: THREAT_ICON,
+  // A incursão tem o ícone dela, do alarme dos vigias ao relato do ataque; a que a paliçada
+  // deteve leva o escudo da defesa.
+  raidAnnounced: RAID_ICON,
+  raidSuffered: RAID_ICON,
+  raidRepelled: DEFENSE_ICON,
 };
 
 export type PolicyInput = {
@@ -157,7 +172,14 @@ export function isRelief(event: GameEvent): boolean {
  * fome). A mudança de faixa da moral leva o ícone da faixa nova, o mesmo do cabeçalho.
  */
 export function eventIcon(event: GameEvent): string | undefined {
-  return event.type === 'moraleBandChanged' ? bandIcon(event.data.band) : ICONS[event.type];
+  if (event.type === 'moraleBandChanged') {
+    return bandIcon(event.data.band);
+  }
+  if (event.type === 'wolvesHowl') {
+    // Os uivos: o olho aberto de quem tem vigias, o fechado de quem não tem. O evento diz qual.
+    return event.data.watched === 1 ? THREAT_ICON : THREAT_UNKNOWN_ICON;
+  }
+  return ICONS[event.type];
 }
 
 /** O evento é a virada de estação. */
@@ -165,9 +187,52 @@ export function isSeasonTurn(event: GameEvent): boolean {
   return event.type === SEASON_TURN;
 }
 
-/** O evento é o relato dos vigias: a Ameaça cruzou uma marca. */
+/** O evento é um prenúncio: o relato dos vigias (a Ameaça cruzou uma marca) ou os uivos. */
 export function isWatchReport(event: GameEvent): boolean {
   return WATCH.includes(event.type);
+}
+
+/** O evento é o alarme dos vigias: há uma incursão a caminho. */
+export function isRaidAlarm(event: GameEvent): boolean {
+  return event.type === 'raidAnnounced';
+}
+
+/** O evento é o desfecho de uma incursão: o ataque sofrido ou o que a paliçada deteve. */
+export function isRaidOutcome(event: GameEvent): boolean {
+  return RAID_OUTCOMES.includes(event.type);
+}
+
+/**
+ * O que o alarme dos vigias diz além da frase da Crônica (GDD §8.2): quando o ataque chega (o
+ * prazo e a hora do relógio de quem joga: o aviso fica na tela, e "em 20 min" envelhece), o que
+ * ele custa a um feudo sem defesa e o que a Paliçada faz a ele. Tudo é da visão, que chega antes
+ * dos eventos; sem incursão à vista nela, nada.
+ */
+export function raidAhead(
+  view: ViewState | null,
+  when?: { now: number; timeZone?: string },
+): string[] {
+  const incoming = view?.threat.incoming ?? null;
+  if (incoming === null) {
+    return [];
+  }
+  const clock =
+    when === undefined ? null : clockTime(when.now + incoming.inSeconds * 1000, when.timeZone);
+  return [
+    `Chegada em ${formatDuration(incoming.inSeconds)}${clock === null ? '' : `, às ${clock}`}.`,
+    incoming.costText,
+    incoming.defenseText,
+  ];
+}
+
+/**
+ * O que o aviso de um ataque sofrido diz além da frase da Crônica, que já conta como o bando
+ * chegou, o que levou e o que o teria detido: os feridos de agora, na frase do servidor, com o
+ * prazo para sararem. Sem feridos na visão, nada.
+ */
+export function raidAftermath(view: ViewState | null): string[] {
+  const note = view?.population.injuredNote ?? null;
+  return note === null ? [] : [note];
 }
 
 /** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */
@@ -219,7 +284,14 @@ const badgeCount = (events: GameEvent[]) => events.filter((event) => !isDecision
  */
 export function decideNotifications(input: PolicyInput): PolicyOutput {
   const history = input.history.filter((at) => input.now - at < HOUR_MS);
-  const candidates = input.events.filter((event) => wanted(event, input.level, input.season));
+  // A incursão que o mesmo lote já conta como resolvida não tem mais o que avisar: o alarme dos
+  // vigias sai de cena, e quem fala é o desfecho.
+  const settled = new Set(input.events.filter(isRaidOutcome).map((event) => event.data.raidId));
+  const candidates = input.events.filter(
+    (event) =>
+      wanted(event, input.level, input.season) &&
+      !(isRaidAlarm(event) && settled.has(event.data.raidId)),
+  );
   if (input.discreetMode || candidates.length === 0) {
     return { show: [], badge: 0, history };
   }

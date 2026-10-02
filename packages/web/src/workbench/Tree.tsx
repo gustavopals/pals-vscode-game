@@ -35,16 +35,20 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.newBuilding':
       // O edifício ainda não existe: a linha já se chama "Construir: Celeiro".
       return [{ label: node.label, text: 'Construir', command: 'lords.build' }];
-    case 'lords.threatUnwatched':
-      // Sem a Torre de Vigia ninguém vê a Ameaça: o botão da linha ergue a Torre. O nome dele
-      // é o da obra, que a linha traz pronto ("Construir: Torre de Vigia").
+    case 'lords.threatBuild':
+    case 'lords.threatUpgrade': {
+      // A linha "Ameaça" ordena a obra que responde a ela: sem a Torre de Vigia, a Torre; com
+      // ela, a Paliçada. O nome do botão é o da obra, que a linha traz pronto ("Construir:
+      // Torre de Vigia", "Melhorar: Paliçada Nv1 → Nv2").
+      const text = node.contextValue === 'lords.threatBuild' ? 'Construir' : 'Melhorar';
       return [
         {
-          label: node.actionLabels?.['lords.build'] ?? 'Construir a torre',
-          text: 'Construir',
+          label: node.actionLabels?.['lords.build'] ?? `${text} a defesa`,
+          text,
           command: 'lords.build',
         },
       ];
+    }
     case 'lords.activeConstruction':
       return [
         {

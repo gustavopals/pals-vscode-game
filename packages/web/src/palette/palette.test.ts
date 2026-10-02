@@ -22,10 +22,13 @@ import {
   unlockedView,
   makeController,
   mealCard,
+  palisadeRaisedView,
   queuesView,
+  raidAftermathView,
   scriptedDialogs,
   settle,
   shareCard,
+  threatIncomingView,
   threatWatchedView,
   withCards,
   withPlanned,
@@ -92,6 +95,7 @@ async function setup(options: SetupOptions = {}) {
     reloads: 0,
     sleeps: [] as number[],
     paletteOpened: 0,
+    revealed: [] as string[],
     theme: 'dark' as ThemeId,
   };
   const env: CommandEnv = {
@@ -105,6 +109,9 @@ async function setup(options: SetupOptions = {}) {
     currentTheme: () => browser.theme,
     openPalette: () => {
       browser.paletteOpened += 1;
+    },
+    reveal: (elementId) => {
+      browser.revealed.push(elementId);
     },
   };
   const commands = createCommands(made.controller, scripted.dialogs, env);
@@ -509,7 +516,8 @@ describe('toda ação da interface tem um comando', () => {
       'lords.plannedAuto',
       'lords.plannedManual',
       'lords.card',
-      'lords.threatUnwatched',
+      'lords.threatBuild',
+      'lords.threatUpgrade',
       'lords.linkReminder',
     ]);
     const scanned = Object.entries(sources).filter(
@@ -861,6 +869,27 @@ describe('alocar trabalhadores', () => {
     expect(pick.placeholder).toBe(`2 aldeões livres. ${ADAPTATION}`);
   });
 
+  it('com feridos de uma incursão, a lista diz quantos são e de que ofício saíram', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        api.state.view = raidAftermathView;
+      },
+    });
+    answers.push(undefined);
+    await run('lords.allocateWorkers');
+    const pick = shownAs(shown, 0, 'pick');
+    // Os feridos não estão livres para uma ordem: têm a sua parcela, por extenso.
+    expect(pick.placeholder).toBe(
+      `0 aldeões livres · 2 feridos. ${raidAftermathView.workersRules.adaptationText}`,
+    );
+    expect(pick.items.map((item) => item.description)).toEqual([
+      '3 trabalhadores · 152,7/h · 1 ferido',
+      '3 trabalhadores · 78,3/h · 1 ferido',
+      '2 trabalhadores · 32,6/h',
+      '2 trabalhadores · 28,7/h',
+    ]);
+  });
+
   it('+ e − da árvore mudam um trabalhador por vez, sem diálogo', async () => {
     const { run, shown, orders } = await setup();
     await run('lords.workersIncrease', { id: 'worker:farm', label: 'Fazenda Nv1' });
@@ -1099,6 +1128,81 @@ describe('construir, cancelar e planejar', () => {
     await run('lords.build', { id: 'threat', label: 'Ameaça' });
     expect(shown).toEqual([]);
     expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'watchtower' } }]);
+  });
+
+  it('"Ver a defesa" leva à aba Feudo e, nela, a página e o foco ao painel da Ameaça', async () => {
+    const { run, browser, controller, orders } = await setup();
+    controller.navigate('today');
+    await run('lords.openPanel', 'threat');
+    expect(controller.route).toBe('fief');
+    expect(browser.revealed).toEqual(['threat-title']);
+    // Só navega: nenhuma ordem vai ao servidor.
+    expect(orders()).toEqual([]);
+    // As abas continuam como eram: sem seção, nada a revelar.
+    await run('lords.openPanel', 'today');
+    await run('lords.openPanel', 'fief');
+    expect(controller.route).toBe('fief');
+    expect(browser.revealed).toEqual(['threat-title']);
+  });
+
+  it('o "Ver" de um aviso de incursão leva ao painel da Ameaça', async () => {
+    const { controller, api, browser } = await setup();
+    controller.navigate('today');
+    api.state.events.push({
+      ...gameEvent(1, 'raidSuffered', 'Os lobos chegaram a Pedra Alta. Nada os deteve.'),
+      data: { raidId: 'wolvesYear1', enemy: 'wolves', size: 'light', warning: 'unwarned' },
+    });
+    await controller.session.syncNow();
+    await settle(controller);
+    const see = controller.toasts[0]?.actions.find((action) => action.label === 'Ver');
+    await see?.run();
+    expect(controller.route).toBe('fief');
+    expect(browser.revealed).toEqual(['threat-title']);
+  });
+
+  it('com a Torre de pé, o botão da linha da Ameaça ordena a Paliçada, sem abrir a lista', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = palisadeRaisedView;
+      },
+    });
+    await run('lords.build', { id: 'threat', label: 'Ameaça' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'palisade' } }]);
+  });
+
+  it('a linha da Ameaça sem obra ao alcance não ordena nada sozinha: a lista se abre', async () => {
+    // A Torre no teto e a Paliçada à espera do Salão Nv3: a linha nem tem botão. Se o comando
+    // chegar assim mesmo (a tela estava atrasada), quem decide é o jogador, na lista.
+    const { run, answers, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = threatIncomingView;
+      },
+    });
+    answers.push(undefined);
+    await run('lords.build', { id: 'threat', label: 'Ameaça' });
+    expect(shownAs(shown, 0, 'pick').title).toBe('Construir ou melhorar');
+    expect(orders()).toEqual([]);
+  });
+
+  it('o botão do painel da Ameaça manda o edifício da Paliçada, e ela entra na lista com o que segura', async () => {
+    const { run, answers, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = palisadeRaisedView;
+      },
+    });
+    await run('lords.build', palisadeRaisedView.threat.defense.building);
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'palisade' } }]);
+    answers.push(undefined);
+    await run('lords.build');
+    const fence = shownAs(shown, 0, 'pick').items.find((item) => item.value === 'palisade');
+    expect(fence).toMatchObject({
+      icon: 'check',
+      label: 'Paliçada Nv1 → Nv2',
+      description: '320 madeira, 80 pedra · 10 min',
+      detail: 'Passa a segurar também os ataques médios, sem perda nem ferido. Pode começar agora.',
+    });
   });
 
   it('o botão do painel da Ameaça manda o edifício da Torre: construir e melhorar são a mesma ordem', async () => {
@@ -2106,6 +2210,7 @@ describe('recrutar, renomear e nova partida', () => {
       sleep: async () => {},
       currentTheme: () => 'dark',
       openPalette: () => {},
+      reveal: () => {},
     };
 
     /** O app aberto com o feudo, e `GET /catalog` preso até `release()`. */

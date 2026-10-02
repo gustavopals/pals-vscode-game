@@ -337,8 +337,11 @@ export type StatusBarInput = {
 export type StatusBarOutput = {
   text: string;
   tooltip: string;
-  /** A aba a que o clique leva; sem ela, vale a aba em que o app abriria. */
-  target?: 'today' | 'fief' | 'council';
+  /**
+   * A aba a que o clique leva (um argumento de `lords.openPanel`); sem ela, vale a aba em que o
+   * app abriria. `threat` é o painel da Ameaça, na aba Feudo: a página e o foco vão até ele.
+   */
+  target?: 'today' | 'fief' | 'council' | 'threat';
   /** Fome ou frio: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
@@ -387,10 +390,19 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
 }
 
 /**
- * O assunto de maior prioridade do feudo (GDD §13.5): decisões pendentes > fome e frio >
- * depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de comida. A fome e
- * o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os
- * dois. Com duas obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
+ * O assunto de maior prioridade do feudo (GDD §13.5): incursão a caminho > decisões pendentes >
+ * fome e frio > depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de
+ * comida. A fome e o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a
+ * explicação traz os dois. Com duas obras em curso, aparece a que termina primeiro, e a outra
+ * entra como "+1 obra".
+ *
+ * A incursão que os vigias avistaram passa na frente de tudo (o exemplo do GDD para esta linha é
+ * "Cerco em 1d 03h"): é o único assunto com prazo curto que se resolve sozinho, no máximo a
+ * antecedência que a Torre dá, e foi para vê-lo antes que o jogador a ergueu. Uma carta espera um
+ * dia; a fome e o frio duram horas e têm o aviso deles no alto das abas, que continua lá. Quando
+ * o ataque chega, a linha volta ao assunto que estava. Não leva o destaque de alarme: a mesma
+ * linha anuncia o ataque que a Paliçada vai segurar, e o app não sabe qual é qual; quem diz é a
+ * explicação, com o que o ataque custa e o que a defesa faz a ele, nas frases do servidor.
  *
  * As decisões pendentes são as cartas do Conselho: a linha diz quantas esperam e o prazo da que
  * vence primeiro (a lista já vem do prazo mais curto ao mais longo), a explicação dá o título e
@@ -399,6 +411,19 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
  */
 function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   const name = view.settlement.name;
+  const { incoming } = view.threat;
+  if (incoming !== null) {
+    const due = `${incoming.enemyLabel} em ${formatApprox(remainingNow(incoming.inSeconds, elapsedSeconds))}`;
+    return {
+      bar: {
+        text: `$(megaphone) ${due}`,
+        tooltip: `${name}: ${incoming.text} ${incoming.costText} ${incoming.defenseText}`,
+        // O painel da Ameaça (`THREAT_SECTION`, em `ui/threat.ts`): é onde está a obra da defesa.
+        target: 'threat',
+      },
+      title: `${due} · ${name}`,
+    };
+  }
   const decisions = view.pendingDecisions;
   const soonest = decisions[0];
   if (soonest !== undefined) {
@@ -484,8 +509,9 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
 
 /**
  * A linha da barra de status: uma linha, uma prioridade (GDD §13.5). Sem ligação passa na frente
- * de tudo; depois vale o assunto de `statusTopic`, com o contador de novidades ao lado. No modo
- * discreto, só um contador.
+ * de tudo (o estado guardado pode estar velho, e a incursão dele pode já ter passado); depois
+ * vale o assunto de `statusTopic`, com o contador de novidades ao lado. No modo discreto, só um
+ * contador.
  */
 export function statusBar(input: StatusBarInput): StatusBarOutput {
   const { view, connection } = input;
