@@ -20,15 +20,29 @@ const purePackageRestrictions = {
 
 // O app web roda no navegador e só exibe o ViewState: sem motor, sem servidor, sem Node.
 const webMessage = 'O app web não importa o motor, o servidor nem módulos do Node (GDD §14.2).';
+// O conteúdo de jogo também não vai para o navegador: cartas (com os efeitos escondidos e as
+// flags), números de regra e frases só chegam pelo ViewState e por GET /catalog (roadmap da
+// v0.2, §0.7). `contentHash` lê o conteúdo inteiro: é do servidor e do simulador. Quem prova que
+// nada disso foi empacotado é `packages/web/src/bundle.test.ts`; o lint avisa antes.
+const webContentMessage =
+  'O app web não leva o conteúdo de jogo para o navegador: ele só exibe o ViewState (roadmap da v0.2, §0.7).';
 const webRestrictions = {
-  paths: ['@lotg/engine', '@lotg/server', ...serverModules, ...builtinModules].map((name) => ({
-    name,
-    message: webMessage,
-  })),
+  paths: [
+    ...['@lotg/engine', '@lotg/server', ...serverModules, ...builtinModules].map((name) => ({
+      name,
+      message: webMessage,
+    })),
+    { name: '@lotg/content', message: webContentMessage },
+    { name: '@lotg/protocol', importNames: ['contentHash'], message: webContentMessage },
+  ],
   patterns: [
     {
       group: ['node:*', 'fastify/*', '@fastify/*', 'pg/*', 'pg-*', 'drizzle-orm', 'drizzle-orm/*'],
       message: webMessage,
+    },
+    {
+      group: ['@lotg/content/*', '**/content/src', '**/content/src/*'],
+      message: webContentMessage,
     },
   ],
 };

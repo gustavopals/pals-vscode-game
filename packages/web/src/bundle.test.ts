@@ -102,6 +102,42 @@ describe('o pacote do app', () => {
     }
   });
 
+  it('não leva o que o Conselho e a Ameaça escondem: flags, efeitos escondidos e as regras das incursões', () => {
+    // O catálogo de cartas está a um `import` de distância: `contentHash`, de `@lotg/protocol`,
+    // o lê inteiro. O lint barra o `import` no app; este teste prova que nada chegou ao pacote,
+    // nem por um caminho que o lint não conhece.
+    const effects = content.councilCards.flatMap((card) =>
+      card.options.flatMap((option) => [...option.effects, ...(option.hidden?.effects ?? [])]),
+    );
+    const flags = effects.flatMap((effect) =>
+      effect.type === 'setFlag' || effect.type === 'clearFlag' ? [effect.flag] : [],
+    );
+    // A frase de um efeito escondido, em pedaços: os marcadores ({dia}, {feudo}) ficam de fora.
+    const hidden = content.councilCards.flatMap((card) =>
+      card.options.flatMap((option) =>
+        (option.hidden?.chronicle ?? '')
+          .split(/\{[^}]*\}/)
+          .map((piece) => piece.trim())
+          .filter((piece) => piece.length >= 16),
+      ),
+    );
+    expect(new Set(flags).size).toBeGreaterThan(10);
+    expect(hidden.length).toBeGreaterThan(10);
+    const keys = [
+      'autoResolve',
+      'scheduleCard',
+      'afterDays',
+      'drawIntervalDays',
+      'raidChanceAbove',
+      'mediumRaidAbove',
+      'palisadeBreach',
+      'lossRatio',
+    ];
+    expect(
+      [...new Set(flags), ...hidden, ...keys].filter((secret) => code.includes(secret)),
+    ).toEqual([]);
+  });
+
   it('não leva nenhuma frase do conteúdo', () => {
     const secret = Object.entries(content)
       .filter(([name]) => !ALLOWED_CONTENT_EXPORTS.includes(name))
