@@ -210,6 +210,32 @@ export async function newPlayer(target: TestApp | App, displayName = 'Gustavo'):
 }
 
 /**
+ * Cala a Horda de uma partida de teste: no lugar das incursões marcadas fica uma só, para daqui
+ * a mil anos de jogo. Como só há uma incursão marcada por vez, os lobos do roteiro não vêm e a
+ * Ameaça não sorteia outra; ela continua subindo como sempre. É para os testes que contam os
+ * eventos e os estoques de outra mecânica. O estado é reescrito direto no banco: chame logo
+ * depois de criar a partida, antes de qualquer leitura.
+ */
+export async function quietHorde(target: TestApp, gameId: string): Promise<void> {
+  const never = {
+    id: 'never',
+    // Mil anos de jogo: 84 dias de 2 horas cada.
+    atMs: 1000 * 84 * 2 * HOUR,
+    kind: 'threat',
+    enemy: 'wolves',
+    size: 'light',
+    announcedAtMs: null,
+  };
+  const { rowCount } = await target.pool.query(
+    `update games set state = jsonb_set(state, '{horde,scheduledRaids}', $2::jsonb) where id = $1`,
+    [gameId, JSON.stringify([never])],
+  );
+  if (rowCount !== 1) {
+    throw new Error('A partida do teste não está no banco.');
+  }
+}
+
+/**
  * Renova os tokens de um jogador depois de o relógio de teste passar dos 15 minutos do access
  * token. Atualiza o próprio objeto e devolve o access token novo.
  */

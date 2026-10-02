@@ -27,6 +27,7 @@ import {
   play,
   proudScenario,
   quietGame,
+  quietHorde,
   settings,
   SUMMER,
   WINTER,
@@ -230,7 +231,8 @@ describe('a moral só muda na virada do dia', () => {
   it('o fator que mudou no meio do dia só entra na virada seguinte', () => {
     // A comida acaba às 36 h, em cima de uma virada: a conta dessa virada ainda não vê a fome,
     // que abre no fim do instante. A seguinte vê, com um dia inteiro.
-    const { state: at36 } = advanceTo(newGame(), 36 * HOUR);
+    // Com a Horda calada: os lobos do roteiro adiantariam a fome.
+    const { state: at36 } = advanceTo(gameWith(quietHorde), 36 * HOUR);
     expect(at36.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
     expect(at36.settlement.morale).toBe(50);
     expect(advanceTo(at36, 38 * HOUR - 1).state.settlement.morale).toBe(50);
@@ -781,7 +783,8 @@ describe('30 dias sem acesso, com fome', () => {
   const THIRTY_DAYS = 30 * 24 * HOUR;
 
   it('Senhor: a moral cai, os aldeões partem e desertam, e o feudo para no piso', () => {
-    const { state, events } = advanceTo(newGame(), THIRTY_DAYS);
+    // Só a fome e a moral (a Horda calada); com os lobos no caminho, `threat.raids.test.ts`.
+    const { state, events } = advanceTo(gameWith(quietHorde), THIRTY_DAYS);
     expect(state.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
     expect(state.settlement.morale).toBe(0);
     expect(state.settlement.population.villagers).toBe(3);
@@ -1254,7 +1257,7 @@ describe('a moral na visão', () => {
 
   it('a fome que começou há pouco: a moral ainda é a de antes, e a visão avisa para onde vai', () => {
     // Às 37 h a fome tem uma hora; a moral ainda é a da última virada.
-    const { morale } = view(advanceTo(newGame(), 37 * HOUR).state);
+    const { morale } = view(advanceTo(gameWith(quietHorde), 37 * HOUR).state);
     expect(morale).toMatchObject({
       value: 50,
       band: 'content',

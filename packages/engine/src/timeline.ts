@@ -3,6 +3,7 @@ import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
 import { foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { autoStartsIn } from './planned';
+import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { storageFillsIn } from './storage';
 import type { GameState } from './types';
 
@@ -20,10 +21,12 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
 /**
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
  * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
- * Conselho e a subida da Ameaça), uma carta que expira, um efeito escondido de carta, uma continuação que chega, o
- * fim da adaptação de quem trocou de ofício, o momento em que a comida acaba, aquele em que a madeira
- * acaba na lareira, aquele em que um estoque chega ao limite ou aquele em que uma planejada
- * automática junta o custo. Nunca devolve um instante anterior a `lastProcessedAt`.
+ * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
+ * escondido de carta, uma continuação que chega, o fim da adaptação de quem trocou de ofício,
+ * uma incursão que chega, o aviso da Torre de Vigia, um ferido que sara, o momento em que a
+ * comida acaba, aquele em que a madeira acaba na lareira, aquele em que um estoque chega ao
+ * limite ou aquele em que uma planejada automática junta o custo. Nunca devolve um instante
+ * anterior a `lastProcessedAt`.
  */
 export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
@@ -50,6 +53,16 @@ export function nextEventAt(state: GameState): number | null {
   const council = nextCouncilEventAt(state);
   if (council !== null) {
     candidates.push(council);
+  }
+  // As incursões: a que chega e o aviso da Torre para a que ninguém anunciou ainda.
+  const raid = nextRaidEventAt(state);
+  if (raid !== null) {
+    candidates.push(raid);
+  }
+  // O ferido que sara volta ao ofício: a taxa do edifício dele muda nesse instante.
+  const recovery = nextRecoveryAt(state);
+  if (recovery !== null) {
+    candidates.push(recovery);
   }
   const rates = netRates(state);
   const foodRunsOut = foodRunsOutIn(state, rates);

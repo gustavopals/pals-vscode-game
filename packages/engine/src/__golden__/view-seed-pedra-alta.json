@@ -52,6 +52,9 @@
       "housed": 5,
       "vacancies": 5,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -150,7 +153,8 @@
         "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -169,7 +173,8 @@
         "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -188,7 +193,8 @@
         "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -207,7 +213,8 @@
         "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -685,6 +692,9 @@
       "housed": 5,
       "vacancies": 5,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -788,7 +798,8 @@
             "count": 2,
             "endsInSeconds": 7200
           }
-        ]
+        ],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -807,7 +818,8 @@
         "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -826,7 +838,8 @@
         "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -845,7 +858,8 @@
         "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -1334,6 +1348,9 @@
       "housed": 8,
       "vacancies": 12,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -1432,7 +1449,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -1451,7 +1469,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -1470,7 +1489,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -1489,7 +1509,8 @@
         "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -1984,6 +2005,9 @@
       "housed": 18,
       "vacancies": 12,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv3 × 5 = 30 vagas"
     },
     "resources": [
@@ -2082,7 +2106,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -2101,7 +2126,8 @@
         "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -2120,7 +2146,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -2139,7 +2166,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -2616,6 +2644,9 @@
       "housed": 18,
       "vacancies": 12,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv3 × 5 = 30 vagas"
     },
     "resources": [
@@ -2714,7 +2745,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -2733,7 +2765,8 @@
         "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -2752,7 +2785,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -2771,7 +2805,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -3282,6 +3317,9 @@
       "housed": 20,
       "vacancies": 5,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv4 × 5 + Habitações Nv1 × 5 = 25 vagas"
     },
     "resources": [
@@ -3380,7 +3418,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -3399,7 +3438,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -3418,7 +3458,8 @@
         "experienceNote": "A experiência não sobe: a Pedreira no nível 5 pede ao menos 5 trabalhadores (faltam 2).",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -3437,7 +3478,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -4119,6 +4161,9 @@
       "housed": 12,
       "vacancies": 13,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -4222,7 +4267,8 @@
             "count": 2,
             "endsInSeconds": 2280
           }
-        ]
+        ],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -4241,7 +4287,8 @@
         "experienceNote": "Ofício dominado: 30% a mais de produção. Só se perde se ninguém trabalhar na Serraria.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -4265,7 +4312,8 @@
             "count": 1,
             "endsInSeconds": 5880
           }
-        ]
+        ],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -4284,7 +4332,8 @@
         "experienceNote": "Sem ninguém na Mina de Ouro, o ofício se perde: 8 de experiência a menos a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -4756,6 +4805,9 @@
       "housed": 3,
       "vacancies": 7,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
     },
     "resources": [
@@ -4854,7 +4906,8 @@
         "experienceNote": "Ninguém trabalha na Fazenda. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -4873,7 +4926,8 @@
         "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -4892,7 +4946,8 @@
         "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -4911,7 +4966,8 @@
         "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -5434,6 +5490,9 @@
       "housed": 23,
       "vacancies": 2,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv3 × 5 = 25 vagas"
     },
     "resources": [
@@ -5532,7 +5591,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -5551,7 +5611,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -5570,7 +5631,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -5589,7 +5651,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -6086,6 +6149,9 @@
       "housed": 5,
       "vacancies": 10,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv1 × 5 = 15 vagas"
     },
     "resources": [
@@ -6184,7 +6250,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -6203,7 +6270,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -6222,7 +6290,8 @@
         "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -6241,7 +6310,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -6847,6 +6917,9 @@
       "housed": 12,
       "vacancies": 8,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -6945,7 +7018,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -6964,7 +7038,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -6983,7 +7058,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -7002,7 +7078,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -7435,6 +7512,13 @@
           "active": true
         }
       ],
+      "raidChancePercent": 14,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 14% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidCosts": [
+        "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
+        "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
+        "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
+      ],
       "incoming": null,
       "watchtower": {
         "building": "watchtower",
@@ -7519,6 +7603,9 @@
       "housed": 12,
       "vacancies": 8,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
     },
     "resources": [
@@ -7617,7 +7704,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -7636,7 +7724,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -7655,7 +7744,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -7674,7 +7764,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -8074,12 +8165,20 @@
           "active": true
         }
       ],
+      "raidChancePercent": 0,
+      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidCosts": [
+        "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
+        "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
+        "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
+      ],
       "incoming": {
         "enemy": "wolves",
         "enemyLabel": "Lobos",
         "inSeconds": 940,
         "sizeText": "uma matilha grande",
         "text": "Lobos a caminho. Os vigias contam uma matilha grande.",
+        "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
         "defenseText": "Sem Paliçada, nada segura este ataque."
       },
       "watchtower": {
@@ -8087,6 +8186,703 @@
         "level": 2,
         "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 40 min de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
         "next": null
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    }
+  },
+  "raidAftermath": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 2,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Rápido: um ano em 56 horas"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "autumn",
+      "seasonLabel": "Outono",
+      "dayOfSeason": 6,
+      "dayOfYear": 54,
+      "secondsToNextDay": 1200,
+      "secondsToNextSeason": 44400,
+      "seasonEffects": "Outono: comida × 1,3; ouro × 1,1.",
+      "nextSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 44400,
+        "changes": [
+          "A produção de comida passa de × 1,3 para × 0,4.",
+          "A produção de madeira e pedra passa de × 1 para × 0,8.",
+          "A produção de ouro passa de × 1,1 para × 1.",
+          "O prazo de uma obra iniciada no Inverno é × 1,5.",
+          "A lareira passa a queimar 1,5 de madeira por habitante por hora; sem madeira, vem o frio."
+        ],
+        "firewood": {
+          "perHour": 18,
+          "winterTotal": 144,
+          "winterProduction": 477,
+          "stock": 451,
+          "gathered": 49,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
+        },
+        "food": {
+          "perHour": 40.4,
+          "stockAtTurn": 500,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +40,45/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 44400,
+        "firewood": {
+          "perHour": 18,
+          "winterTotal": 144,
+          "winterProduction": 477,
+          "stock": 451,
+          "gathered": 49,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 12,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 12,
+      "vacancies": 8,
+      "secondsToNextRecruit": null,
+      "injured": 2,
+      "secondsToNextRecovery": 1200,
+      "injuredNote": "2 aldeões feridos na incursão: não trabalham até sarar. Saram em 20 min; quem tinha ofício volta a ele sozinho.",
+      "breakdown": "Salão do Senhor Nv2 × 5 + Habitações Nv2 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 463,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": false,
+        "fullInSeconds": 1114,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 116.7,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 30 × 1,2 (Nv2) × 1,036 (mestria 12) × 1,3 (outono) × 1,05 (moral 60) = 152,73/h; consumo 12 × 3 = 36/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 451,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 2016,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 78.3,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 3 trabalhadores × 24 × 1 (Nv1) × 1,036 (mestria 12) × 1,05 (moral 60) = 78,32/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 323,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 18833,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 32.6,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 2 trabalhadores × 15 × 1 (Nv1) × 1,036 (mestria 12) × 1,05 (moral 60) = 32,63/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 244,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 28.7,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,036 (mestria 12) × 1,1 (outono) × 1,05 (moral 60) = 28,72/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 2400,
+      "adaptationText": "Quem troca de ofício produz metade por 40 min.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 2,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 152.727,
+        "perWorkerPerHour": 50.907,
+        "breakdown": "3 trabalhadores × 30 × 1,2 (Nv2) × 1,036 (mestria 12) × 1,3 (outono) × 1,05 (moral 60) = 152,73/h",
+        "perNewWorkerPerHour": 25.452,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 2,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 1
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 3,
+        "grossPerHour": 78.321,
+        "perWorkerPerHour": 26.106,
+        "breakdown": "3 trabalhadores × 24 × 1 (Nv1) × 1,036 (mestria 12) × 1,05 (moral 60) = 78,32/h",
+        "perNewWorkerPerHour": 13.053,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 1
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 2,
+        "grossPerHour": 32.634,
+        "perWorkerPerHour": 16.317,
+        "breakdown": "2 trabalhadores × 15 × 1 (Nv1) × 1,036 (mestria 12) × 1,05 (moral 60) = 32,63/h",
+        "perNewWorkerPerHour": 8.157,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 28.716,
+        "perWorkerPerHour": 14.358,
+        "breakdown": "2 trabalhadores × 12 × 1 (Nv1) × 1,036 (mestria 12) × 1,1 (outono) × 1,05 (moral 60) = 28,72/h",
+        "perNewWorkerPerHour": 7.179,
+        "experience": 12,
+        "masteryBonusPercent": 3.6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 270,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 180,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 128,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 64,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 150,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 120,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 160,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 128,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 32,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 120,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 192,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 192,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o tamanho dela."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 400,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": "Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral."
+    },
+    "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 8 h",
+          "amount": 10
+        },
+        {
+          "id": "effect",
+          "label": "Incursão sofrida",
+          "amount": -10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 8 h) − 10 (incursão sofrida) = 50",
+      "nextUpdateInSeconds": 1200,
+      "next": {
+        "value": 50,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 100
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, cai de 60 para 50 (Contente).",
+      "advice": "O que mais pesa é \"Incursão sofrida\" (−10): passa sozinho em 1 h 40 min.",
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 288,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 8 h (288 para 12 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": [
+        {
+          "label": "Incursão sofrida",
+          "amount": -10,
+          "endsInSeconds": 6000
+        }
+      ]
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": null,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 6000,
+      "note": "O conselho não tem assunto novo para o feudo como ele está: a próxima audiência não traz carta.",
+      "rulesText": "O conselho pede audiência a cada 2 h 40 min e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": true,
+      "text": "Ameaça 44 de 100.",
+      "level": 44,
+      "max": 100,
+      "risePerDay": 8,
+      "nextLevel": 52,
+      "nextRiseInSeconds": 1200,
+      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 44 para 52.",
+      "sources": [
+        "+5/dia: Covil de Lobos",
+        "+3/dia: outono"
+      ],
+      "tiles": [
+        {
+          "id": "wolfDen",
+          "label": "Covil de Lobos",
+          "active": true
+        }
+      ],
+      "raidChancePercent": 12,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 12% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidCosts": [
+        "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
+        "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
+        "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
+      ],
+      "incoming": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 1,
+        "text": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.",
+        "next": "Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão."
       },
       "defense": {
         "building": "palisade",
@@ -8165,6 +8961,9 @@
       "housed": 12,
       "vacancies": 13,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -8263,7 +9062,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -8282,7 +9082,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -8301,7 +9102,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -8320,7 +9122,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {
@@ -8720,12 +9523,20 @@
           "active": true
         }
       ],
+      "raidChancePercent": 0,
+      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidCosts": [
+        "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
+        "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
+        "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
+      ],
       "incoming": {
         "enemy": "wolves",
         "enemyLabel": "Lobos",
         "inSeconds": 940,
         "sizeText": "uma matilha grande",
         "text": "Lobos a caminho. Os vigias contam uma matilha grande.",
+        "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 63 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
         "defenseText": "A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago."
       },
       "watchtower": {
@@ -8800,6 +9611,9 @@
       "housed": 14,
       "vacancies": 11,
       "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
       "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv2 × 5 = 25 vagas"
     },
     "resources": [
@@ -8898,7 +9712,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 2 trabalhadores.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "lumberMill",
@@ -8917,7 +9732,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "quarry",
@@ -8936,7 +9752,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       },
       {
         "building": "goldMine",
@@ -8955,7 +9772,8 @@
         "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
         "adapting": 0,
         "adaptationEndsInSeconds": null,
-        "adaptingCohorts": []
+        "adaptingCohorts": [],
+        "injured": 0
       }
     ],
     "constructions": {

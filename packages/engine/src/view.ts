@@ -30,7 +30,7 @@ import { costView } from './costView';
 import { councilView } from './councilView';
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
-import { decimal, plural } from './format';
+import { decimal, durationText, plural } from './format';
 import { moraleAt } from './morale';
 import { moraleView, recruitmentMoraleNote } from './moraleView';
 import { describeReward, objectiveProgress } from './objectives';
@@ -261,6 +261,42 @@ function objectivesView(state: GameState): ObjectiveView[] {
     });
 }
 
+/** "à Serraria", "ao Salão do Senhor": para onde o ferido volta. */
+function toBuilding(building: BuildingId): string {
+  const { article, label } = buildings[building];
+  return `${article.startsWith('a') ? `à${article.slice(1)}` : `a${article}`} ${label}`;
+}
+
+/**
+ * Os feridos das incursões na visão (GDD §8.2): quantos são, quando o primeiro sara e a frase
+ * que diz o que isso muda. Quem tinha ofício volta a ele sozinho: não é preciso mexer em nada.
+ */
+function injuredView(
+  state: GameState,
+  timeScale: number,
+): Pick<ViewState['population'], 'injured' | 'secondsToNextRecovery' | 'injuredNote'> {
+  const { injured } = state.settlement;
+  const [first] = injured;
+  if (first === undefined) {
+    return { injured: 0, secondsToNextRecovery: null, injuredNote: null };
+  }
+  const seconds = realSecondsCeil(first.untilMs - state.lastProcessedAt, timeScale);
+  const wait = durationText(seconds);
+  const together = injured.every((hurt) => hurt.untilMs === first.untilMs);
+  let note: string;
+  if (injured.length === 1) {
+    const back = first.building === null ? '' : `, e então volta ${toBuilding(first.building)}`;
+    note = `1 aldeão ferido na incursão: não trabalha até sarar, em ${wait}${back}.`;
+  } else {
+    const heal = together ? `Saram em ${wait}` : `O primeiro sara em ${wait}`;
+    const back = injured.some((hurt) => hurt.building !== null)
+      ? '; quem tinha ofício volta a ele sozinho'
+      : '';
+    note = `${injured.length} aldeões feridos na incursão: não trabalham até sarar. ${heal}${back}.`;
+  }
+  return { injured: injured.length, secondsToNextRecovery: seconds, injuredNote: note };
+}
+
 /**
  * Tudo que a interface precisa, já calculado, com o "por quê" de cada número.
  * A formatação de números para exibição fica com a UI; aqui saem números e textos de explicação.
@@ -365,6 +401,7 @@ export function deriveViewState(
       vacancies: housingVacancy(state),
       secondsToNextRecruit:
         nextRecruit === undefined || settlement.famine ? null : until(nextRecruit.finishesAtMs),
+      ...injuredView(state, timeScale),
       breakdown: BUILDING_IDS.flatMap((id) => {
         const perLevel = balance.housing.capacityPerLevel[id];
         return perLevel === undefined

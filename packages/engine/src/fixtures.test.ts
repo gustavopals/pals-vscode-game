@@ -145,8 +145,8 @@ const scenarios: Record<string, () => GameState> = {
   'council-hidden': () => councilScenario(5 * DAY + 13 * MINUTE + 4_321),
 
   // A Ameaça: a Torre de Vigia erguida a tempo de os vigias contarem a Ameaça passando dos 40,
-  // a obra do nível 2 em curso, o covil ativo e nenhuma incursão marcada. No meio de um dia de
-  // jogo, com cartas do Conselho na mesa.
+  // a obra do nível 2 em curso, o covil ativo e a incursão do roteiro ainda por vir, sem aviso
+  // (os uivos já soaram). No meio de um dia de jogo, com cartas do Conselho na mesa.
   threat: () =>
     play(
       (() => {
@@ -193,6 +193,45 @@ const scenarios: Record<string, () => GameState> = {
       command('startConstruction', { building: 'palisade' }),
       { at: 4 * DAY + 11 * MINUTE + 3_456 },
     ]).state;
+  },
+
+  // A incursão sofrida: os lobos do roteiro acabaram de passar por um feudo com Torre e sem
+  // Paliçada, com todos no ofício. Um lavrador ferido (com o edifício a que volta), o termo de
+  // moral da incursão, a Ameaça já derrubada e a contagem em `stats`. No meio do dia do ataque.
+  raid: () => {
+    const start = createInitialState('fixture-raid', settings);
+    start.settlement.buildings = { ...start.settlement.buildings, townHall: 2, watchtower: 1 };
+    return play(start, [
+      command('setWorkers', { building: 'farm', count: 3 }),
+      command('setWorkers', { building: 'lumberMill', count: 2 }),
+      { at: 15 * DAY + 13 * MINUTE + 5_432 },
+    ]).state;
+  },
+
+  // A incursão à vista: o mesmo feudo, dias depois, com a Paliçada erguida e uma incursão que
+  // a Ameaça sorteou já anunciada pelos vigias (`announcedAtMs`). O fluxo `horde` do gerador
+  // foi usado. O cenário anda de meia em meia hora de jogo até o alarme soar.
+  'raid-announced': () => {
+    const start = createInitialState('fixture-raid-announced', settings);
+    start.settlement.buildings = {
+      ...start.settlement.buildings,
+      townHall: 3,
+      watchtower: 2,
+      palisade: 1,
+    };
+    let { state } = play(start, [
+      command('setWorkers', { building: 'farm', count: 3 }),
+      command('setWorkers', { building: 'lumberMill', count: 2 }),
+      { at: 15 * DAY + 7 * MINUTE },
+    ]);
+    const sighted = (current: GameState) =>
+      current.horde.scheduledRaids.some(
+        (entry) => entry.kind === 'threat' && entry.announcedAtMs !== null,
+      );
+    while (!sighted(state) && state.lastProcessedAt < YEAR) {
+      state = advanceTo(state, state.lastProcessedAt + 30 * MINUTE).state;
+    }
+    return state;
   },
 
   // Os quatro primeiros objetivos concluídos.
@@ -384,8 +423,19 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       building: 'watchtower',
       targetLevel: 2,
     });
-    expect(threat.horde).toEqual({ scheduledRaids: [] });
-    expect(of('week-scripted').map.threat).toBe(100);
+    // Os lobos do roteiro ainda por vir, sem aviso: a Torre só os vê uma hora antes.
+    expect(threat.horde.scheduledRaids).toEqual([
+      {
+        id: 'wolvesYear1',
+        atMs: 15 * DAY,
+        kind: 'scripted',
+        enemy: 'wolves',
+        size: 'light',
+        announcedAtMs: null,
+      },
+    ]);
+    expect(of('fresh').horde).toEqual(threat.horde);
+    expect(of('week-scripted').map.threat).toBe(90);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
@@ -399,8 +449,34 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(palisade.council.flags).toMatchObject({ 'palisadePromise.kept': true });
     expect(palisade.council.flags).not.toHaveProperty(['palisadePromise.open']);
     expect(palisade.settlement.moraleEffects.length).toBeGreaterThan(0);
-    expect(of('week-scripted').settlement.buildings.palisade).toBe(1);
+    expect(of('week-scripted').settlement.buildings.palisade).toBe(2);
     expect(of('week-scripted').council.flags).toMatchObject({ 'palisadePromise.kept': true });
+    // As incursões: um ferido com o edifício a que volta, o termo de moral, a contagem e o
+    // fluxo `horde`; e, no outro cenário, uma incursão sorteada pela Ameaça e já anunciada.
+    const raided = of('raid');
+    expect(raided.settlement.injured).toEqual([{ untilMs: 16 * DAY, building: 'farm' }]);
+    expect(raided.settlement.workers).toEqual({ farm: 2, lumberMill: 2, quarry: 0, goldMine: 0 });
+    expect(raided.settlement.moraleEffects).toEqual([
+      { id: 'raid', label: 'Incursão sofrida', amount: -10, untilMs: 17 * DAY },
+    ]);
+    expect(raided.stats.raids_suffered).toBe(1);
+    expect(raided.horde.scheduledRaids).toEqual([]);
+    expect(raided.map.threat).toBe(65);
+    const sighted = of('raid-announced');
+    expect(sighted.horde.scheduledRaids).toHaveLength(1);
+    const [incoming] = sighted.horde.scheduledRaids;
+    expect(incoming).toMatchObject({ kind: 'threat', enemy: 'wolves', size: 'medium' });
+    expect(incoming?.id).toMatch(/^threat-\d+$/);
+    expect(incoming?.announcedAtMs).not.toBeNull();
+    expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
+    expect(incoming?.atMs).toBeGreaterThan(sighted.lastProcessedAt);
+    expect(sighted.rng.horde).toHaveLength(4);
+    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 8, raids_repelled: 9 });
+    expect(of('week-scripted').rng.horde).toHaveLength(4);
+    // Todo cenário tem a lista de feridos, vazia ou não.
+    for (const state of all0()) {
+      expect(Array.isArray(state.settlement.injured)).toBe(true);
+    }
     // E o cenário de 7 dias passou pelo Conselho de ponta a ponta.
     expect(of('week-scripted').stats.cardsDrawn).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);

@@ -15,6 +15,7 @@ import {
   HOUR,
   MINUTE,
   newGame,
+  quietHorde,
   refuse,
   settings,
   SUMMER,
@@ -68,23 +69,26 @@ const raid = (atMs: number, size: ScheduledRaid['size'] = 'light'): ScheduledRai
 });
 
 describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
-  it('uma partida nova nasce com o Covil de Lobos ativo, a Ameaça em zero e nenhuma incursão marcada', () => {
+  it('uma partida nova nasce com o Covil de Lobos ativo, a Ameaça em zero e só a incursão do roteiro marcada', () => {
     const state = newGame();
     expect(state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
     });
-    expect(state.horde).toEqual({ scheduledRaids: [] });
+    // Os lobos do ano 1 (`threat.raids.test.ts`); as outras incursões a Ameaça sorteia depois.
+    expect(state.horde.scheduledRaids.map((entry) => entry.id)).toEqual(['wolvesYear1']);
+    expect(state.settlement.injured).toEqual([]);
     expect(state.settlement.buildings.watchtower).toBe(0);
   });
 
   it('+5 por dia de jogo, no instante exato da virada, com o covil ativo', () => {
-    const state = newGame();
+    // Sem incursão nenhuma no caminho (a Horda calada): cada incursão derrubaria a Ameaça.
+    const state = gameWith(quietHorde);
     expect(threatAt(state, DAY - 1)).toBe(0);
     expect(threatAt(state, DAY)).toBe(5);
     expect(threatAt(state, 2 * DAY - 1)).toBe(5);
     expect(threatAt(state, 2 * DAY)).toBe(10);
-    // No 8º dia de jogo chega a 40; no 20º, ao máximo.
+    // No 8º dia de jogo chega a 40; no 20º, sem incursão nenhuma, ao máximo.
     expect(threatAt(state, 8 * DAY)).toBe(40);
     expect(threatAt(state, 20 * DAY)).toBe(100);
   });
@@ -200,7 +204,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
 
 describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
   it('sem Torre, nenhuma linha, por mais que a Ameaça suba', () => {
-    const { state, events } = advanceTo(newGame(), YEAR + 30 * DAY);
+    const { state, events } = advanceTo(gameWith(quietHorde), YEAR + 30 * DAY);
     expect(state.map.threat).toBe(100);
     expect(eventsOfType(events, 'threatRose')).toEqual([]);
     // Nenhum outro evento carrega o número: a Crônica não conta o que a névoa esconde.
@@ -210,8 +214,24 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
     }
   });
 
+  it('sem Torre, com os lobos atacando o ano inteiro, nenhum evento leva o número nem fala de vigias', () => {
+    // Uma partida de verdade: os uivos, a incursão do roteiro e as da Ameaça. Quem não tem
+    // Torre lê o que aconteceu, e nunca a Ameaça.
+    const { events } = advanceTo(newGame(), YEAR + 30 * DAY);
+    expect(eventsOfType(events, 'raidSuffered').length).toBeGreaterThan(5);
+    expect(eventsOfType(events, 'threatRose')).toEqual([]);
+    expect(eventsOfType(events, 'raidAnnounced')).toEqual([]);
+    for (const event of events) {
+      expect(Object.keys(event.data).filter((key) => /threat/i.test(key))).toEqual([]);
+      expect(event.text).not.toMatch(/Ameaça|vigias/);
+    }
+  });
+
   it('com a Torre, uma linha ao cruzar 40 e outra ao cruzar 70, e mais nenhuma', () => {
+    // Com a Horda calada: uma incursão derruba a Ameaça, e a marca cruzada de novo repete a
+    // linha (o último teste deste grupo, e `threat.raids.test.ts`).
     const state = gameWith((draft) => {
+      quietHorde(draft);
       draft.settlement.buildings.townHall = 2;
       draft.settlement.buildings.watchtower = 1;
     });
@@ -300,7 +320,7 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
   });
 
   it('se a Ameaça cair e cruzar a marca de novo, a linha sai de novo', () => {
-    // Nada a faz cair nesta versão do motor; a incursão de lobos fará. A regra é do cruzamento.
+    // Quem a faz cair é a incursão (`threat.raids.test.ts`); aqui, a regra do cruzamento.
     const first = advanceTo(feud(3 * DAY, 35, 1), 4 * DAY);
     expect(eventsOfType(first.events, 'threatRose')).toHaveLength(1);
     const dropped = { ...first.state, map: { ...first.state.map, threat: 30 } };
@@ -456,6 +476,15 @@ describe('a visão com a Torre de Vigia', () => {
       trend: 'Sobe 5 a cada dia de jogo (2 h): na próxima virada, vai de 40 para 45.',
       sources: ['+5/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
+      // 45 depois da virada: 5% de chance. A regra e o custo estão em `threat.raids.test.ts`.
+      raidChancePercent: 5,
+      raidRisk:
+        'Se não houver outra a caminho, a próxima virada do dia tem 5% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 6 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+      raidCosts: [
+        'Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.',
+        'Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.',
+        'Quem se fere fica 2 h sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (4 h).',
+      ],
       incoming: null,
       watchtower: {
         building: 'watchtower',
@@ -577,8 +606,8 @@ describe('a visão com a Torre de Vigia', () => {
 });
 
 describe('a incursão marcada, vista da Torre', () => {
-  // Nada marca incursões nesta versão do motor (é a incursão de lobos, V2E-T3): o estado é
-  // montado à mão. A visão só as mostra dentro da antecedência que o nível da Torre dá.
+  // O estado é montado à mão, com a incursão onde o teste a quer. A visão só a mostra dentro
+  // da antecedência que o nível da Torre dá. Quem a marca e a resolve: `threat.raids.test.ts`.
   const arrival = 20 * DAY + 3 * HOUR;
   const hunted = (atMs: number, watchtower: number, size: ScheduledRaid['size'] = 'light') =>
     feud(atMs, 55, watchtower, (draft) => {
@@ -593,6 +622,9 @@ describe('a incursão marcada, vista da Torre', () => {
       inSeconds: 3600,
       sizeText: null,
       text: 'Lobos a caminho. Daqui os vigias ainda não distinguem quantos são.',
+      // Sem o tamanho à vista, o custo diz o de cada um.
+      costText:
+        'Sem defesa, um ataque dos leves leva 10% do estoque de comida e madeira e fere 1 aldeão; um ataque dos médios leva 15% do estoque de comida e madeira e fere 2 aldeões. Quem se fere fica 2 h sem trabalhar.',
       // O que a Paliçada faz a ela está em `palisade.test.ts`.
       defenseText: 'Sem Paliçada, nada segura este ataque.',
     });
@@ -610,6 +642,9 @@ describe('a incursão marcada, vista da Torre', () => {
       inSeconds: 7200,
       sizeText: 'uma matilha pequena',
       text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+      // O estoque inicial: 180 de comida e 120 de madeira.
+      costText:
+        'Sem defesa, uma matilha pequena leva 10% do estoque de comida e madeira (hoje, 18 de comida e 12 de madeira) e fere 1 aldeão, que fica 2 h sem trabalhar.',
       defenseText: 'Sem Paliçada, nada segura este ataque.',
     });
     expect(known(hunted(arrival - HOUR, 2, 'medium')).incoming).toMatchObject({

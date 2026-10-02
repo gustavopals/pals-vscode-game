@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 10;
+const CURRENT = 11;
 
 type StoredState = {
   schemaVersion: number;
@@ -108,6 +108,8 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     // A moral (V2C-T4): a base, sem efeito temporário nenhum.
     morale: 50,
     moraleEffects: [],
+    // As incursões (V2E-T3): ninguém estava ferido.
+    injured: [],
   };
 }
 

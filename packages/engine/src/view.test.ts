@@ -18,6 +18,7 @@ import {
   queuesScenario,
   palisadeScenario,
   promiseDueScenario,
+  raidAftermathScenario,
   raidInSightScenario,
   watchScenario,
   winterColdScenario,
@@ -363,6 +364,7 @@ describe('ofícios na visão (GDD §5.4)', () => {
 
   it('a Fazenda em adaptação: quantos, até quando, por quantos contam e o que rendem', () => {
     expect(rowOf(craftScenario(), 'farm')).toEqual({
+      injured: 0,
       building: 'farm',
       label: 'Fazenda',
       level: 3,
@@ -540,11 +542,12 @@ describe('golden do ViewState', () => {
       // anterior e uma avulsa com uma opção trancada. A próxima audiência não traz carta.
       councilTable: view(councilScenario(12 * DAY + 20 * MINUTE)),
       // A Ameaça vista da Torre de Vigia, no ritmo Rápido: no outono, com o covil e a estação
-      // somando; e com a Torre no nível 2 e uma incursão à vista (estado montado à mão: nada
-      // marca incursões antes da incursão de lobos, V2E-T3). Nas outras visões, sem Torre, a
-      // Ameaça vem fechada.
+      // somando; com a Torre no nível 2 e uma incursão à vista (o que ela custa e o que a
+      // defesa faz); e o dia seguinte a um ataque sofrido: os feridos, o que os lobos levaram
+      // e o termo de moral. Nas outras visões, sem Torre, a Ameaça vem fechada.
       threatWatched: view(watchScenario()),
       threatIncoming: view(raidInSightScenario()),
+      raidAftermath: view(raidAftermathScenario()),
       // A Paliçada: no nível 1 diante de uma incursão média (ela passa, com metade do estrago),
       // com a obra do nível 2 na lista; e a promessa cobrada pelo Conselho com a Paliçada ainda
       // por erguer: a opção de mostrar a obra vem trancada, com o motivo.

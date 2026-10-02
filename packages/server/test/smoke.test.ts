@@ -21,6 +21,7 @@ import {
   createTestApp,
   HOUR,
   newPlayer,
+  quietHorde,
   order,
   renew,
   send,
@@ -115,6 +116,9 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
 
   it('a Crônica pode ser lida por ano de jogo', async () => {
     const player = await newPlayer(server, 'Cronista');
+    // A história deste teste é a do feudo abandonado à fome: os lobos têm o teste deles
+    // (`raids.test.ts`), e aqui ficam calados.
+    await quietHorde(server, player.game.id);
     const path = `/games/${player.game.id}/chronicle`;
     // Um ano de jogo dura 7 dias reais: no oitavo dia, o Ano 2 já começou.
     server.clock.advance(7 * 24 * HOUR + 3 * HOUR);

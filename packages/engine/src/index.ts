@@ -30,6 +30,7 @@ export type {
   GameEventType,
   GameSettings,
   GameState,
+  InjuredVillager,
   MapTile,
   MoraleBandId,
   MoraleEffect,

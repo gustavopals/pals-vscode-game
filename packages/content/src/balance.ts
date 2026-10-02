@@ -1,6 +1,7 @@
 import type {
   BuildingId,
   DifficultyId,
+  EnemyId,
   MoraleBandId,
   ProductionBuildingId,
   RaidSizeId,
@@ -217,6 +218,48 @@ export type ThreatDef = {
   readonly palisadeBreach: Ratio;
 };
 
+/** A incursão que o roteiro do ano 1 marca para todo feudo (GDD §8.2; ADR 0014, decisão 10). */
+export type ScriptedRaidDef = {
+  /** A ocorrência: é o `id` da incursão marcada no estado. */
+  readonly id: string;
+  readonly enemy: EnemyId;
+  readonly size: RaidSizeId;
+  /** O dia de jogo do ano 1 em cujo início ela chega: o primeiro dia é 1. */
+  readonly atGameDay: number;
+  /** O dia de jogo do ano 1 em cujo início soa o prenúncio, sem informação nenhuma. */
+  readonly howlAtGameDay: number;
+};
+
+/** O que uma incursão de um tamanho custa a um feudo sem defesa (GDD §8.2). */
+export type RaidDamageDef = {
+  /** A parte do estoque que ela leva, de cada recurso da lista: 1/10 é 10%. */
+  readonly lossRatio: Ratio;
+  /** Os recursos que ela leva. */
+  readonly resources: readonly ResourceId[];
+  /** Quantos aldeões ela fere. */
+  readonly injuries: number;
+};
+
+/**
+ * As incursões (GDD §8.2 e §5.7; ADR 0014, decisões 10 e 20): a do roteiro, o que cada tamanho
+ * custa e o que fica depois. Quando elas são sorteadas, com que antecedência a Torre avisa e o
+ * que a Paliçada segura está em `threat`. Os prazos são tempo de jogo e escalam com o ritmo.
+ */
+export type RaidsDef = {
+  /** As incursões do roteiro: só no ano 1, e só para quem ainda não passou do instante delas. */
+  readonly scripted: readonly ScriptedRaidDef[];
+  /** O estrago de cada inimigo, por tamanho, antes do que a Paliçada segura. */
+  readonly damage: Record<EnemyId, Record<RaidSizeId, RaidDamageDef>>;
+  /** Quanto tempo de jogo um ferido fica sem trabalhar. */
+  readonly injuryMs: number;
+  /** O que uma incursão com perdas tira da moral (negativo). */
+  readonly moraleOnLosses: number;
+  /** Por quantos dias de jogo. */
+  readonly moraleLossDays: number;
+  /** Como o termo aparece na conta da moral. */
+  readonly moraleLabel: string;
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -272,6 +315,7 @@ export type Balance = {
   readonly paces: readonly PaceDef[];
   readonly council: CouncilDef;
   readonly threat: ThreatDef;
+  readonly raids: RaidsDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -498,9 +542,9 @@ export const balance: Balance = {
     maxPending: 2,
     expiryRealMs: 24 * HOUR_MS,
   },
-  // GDD §8.2 (ADR 0014, decisões 10 e 11). A subida e a Torre valem desde V2E-T1 e a Paliçada,
-  // desde V2E-T2; o sorteio da incursão, o tamanho, a queda e o prazo até ela chegar são da
-  // incursão de lobos (V2E-T3), que é também quem aplica o que a Paliçada segura.
+  // GDD §8.2 (ADR 0014, decisões 10 e 11): a subida, o sorteio da incursão (a chance é a Ameaça
+  // menos `raidChanceAbove`, em %), o tamanho, a queda, o prazo até ela chegar, a Torre e a
+  // Paliçada. O que cada incursão custa está em `raids`.
   threat: {
     max: 100,
     perActiveTilePerDay: 5,
@@ -516,5 +560,23 @@ export const balance: Balance = {
     ],
     palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'medium' }],
     palisadeBreach: { num: 1, den: 2 },
+  },
+  // GDD §8.2 e §5.7 (ADR 0014, decisões 10 e 20). Os uivos soam no início do 10º dia de jogo do
+  // ano 1 e os lobos chegam no início do 16º (30 h de jogo). O ferido fica de cama um dia de
+  // jogo: o teste de conteúdo confere contra `calendar.dayMs`.
+  raids: {
+    scripted: [
+      { id: 'wolvesYear1', enemy: 'wolves', size: 'light', atGameDay: 16, howlAtGameDay: 10 },
+    ],
+    damage: {
+      wolves: {
+        light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
+        medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
+      },
+    },
+    injuryMs: 2 * HOUR_MS,
+    moraleOnLosses: -10,
+    moraleLossDays: 2,
+    moraleLabel: 'Incursão sofrida',
   },
 };

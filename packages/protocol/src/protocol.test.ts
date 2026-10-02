@@ -9,9 +9,12 @@ import {
   enemies,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   moraleBandTemplates,
   objectives,
   raidSizes,
+  raidTemplates,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -370,8 +373,9 @@ describe('ViewStateSchema', () => {
   });
 
   it('a Ameaça sem a Torre de Vigia: a forma fechada recusa qualquer coisa que a névoa esconde', () => {
+    // 30 h de jogo: a Ameaça chegou a 75 na virada, e os lobos do roteiro a derrubaram a 65.
     const state = advanceTo(createInitialState('pedra-alta', settings), 30 * 3_600_000).state;
-    expect(state.map.threat).toBe(75);
+    expect(state.map.threat).toBe(65);
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
     expect(view.threat).toEqual({
@@ -395,12 +399,17 @@ describe('ViewStateSchema', () => {
     expect(parses({ ...view.threat, sources: [] })).toBe(false);
     expect(parses({ ...view.threat, tiles: [] })).toBe(false);
     expect(parses({ ...view.threat, nextLevel: 80 })).toBe(false);
+    // Nem a chance de uma incursão, nem a regra, nem o que ela custa.
+    expect(parses({ ...view.threat, raidChancePercent: 25 })).toBe(false);
+    expect(parses({ ...view.threat, raidRisk: 'x' })).toBe(false);
+    expect(parses({ ...view.threat, raidCosts: [] })).toBe(false);
     const incoming = {
       enemy: 'wolves',
       enemyLabel: 'Lobos',
       inSeconds: 60,
       sizeText: null,
       text: 'x',
+      costText: 'x',
       defenseText: 'Sem Paliçada, nada segura este ataque.',
     };
     expect(parses({ ...view.threat, incoming })).toBe(false);
@@ -410,13 +419,30 @@ describe('ViewStateSchema', () => {
     const without: Partial<typeof view> = { ...view };
     delete without.threat;
     expect(ViewStateSchema.safeParse(without).success).toBe(false);
-    // Os eventos também não contam: nenhum fala da Ameaça a quem não tem vigias.
+    // Os eventos também não contam: nenhum fala da Ameaça a quem não tem vigias. Os uivos e a
+    // incursão sofrida chegam, sem o número e sem aviso.
     const { events } = advanceTo(createInitialState('pedra-alta', settings), 30 * 3_600_000);
     expect(events.filter((event) => event.type === 'threatRose')).toEqual([]);
+    expect(events.filter((event) => event.type === 'raidAnnounced')).toEqual([]);
+    const wolves = events.filter((event) => /^(wolvesHowl|raid|villagerInjured)/.test(event.type));
+    expect(wolves.map((event) => event.type)).toEqual([
+      'wolvesHowl',
+      'raidSuffered',
+      'villagerInjured',
+    ]);
+    for (const [index, event] of wolves.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-02T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+      expect(Object.keys(event.data).filter((key) => /threat/i.test(key))).toEqual([]);
+    }
+    // O ferido aparece na visão de quem não tem Torre: é gente do feudo, não é a Ameaça.
+    expect(view.population).toMatchObject({ injured: 1, secondsToNextRecovery: 7200 });
+    expect(view.population.injuredNote).toContain('1 aldeão ferido na incursão');
   });
 
   it('a Ameaça com a Torre de Vigia: o número, a tendência, as origens, os tiles e a incursão à vista', () => {
-    // A Torre erguida à mão em um feudo no 14º dia: a virada das 28 h cruza os 70.
+    // A Torre erguida à mão em um feudo no 14º dia: a virada das 28 h cruza os 70, e é também
+    // o instante em que os vigias do nível 2 avistam os lobos do roteiro, que chegam às 30 h.
     const start = createInitialState('pedra-alta', settings);
     start.settlement.buildings.townHall = 2;
     start.settlement.buildings.watchtower = 2;
@@ -433,8 +459,30 @@ describe('ViewStateSchema', () => {
       nextRiseInSeconds: 7200,
       sources: ['+5/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
-      incoming: null,
+      raidChancePercent: 0,
+      raidRisk:
+        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+      raidCosts: [
+        'Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.',
+        'Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.',
+        'Quem se fere fica 2 h sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (4 h).',
+      ],
+      incoming: {
+        enemy: 'wolves',
+        enemyLabel: 'Lobos',
+        inSeconds: 7200,
+        sizeText: 'uma matilha pequena',
+        text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+        defenseText: 'Sem Paliçada, nada segura este ataque.',
+      },
     });
+    const announced = events.filter((event) => event.type === 'raidAnnounced');
+    expect(announced.map((event) => event.data)).toEqual([
+      { raidId: 'wolvesYear1', enemy: 'wolves', warning: 'sized', size: 'light' },
+    ]);
+    expect(
+      GameEventSchema.safeParse({ ...announced[0], seq: 9, at: '2026-10-01T12:00:00.000Z' }).error,
+    ).toBeUndefined();
     const rose = events.filter((event) => event.type === 'threatRose');
     expect(rose.map((event) => event.data)).toEqual([
       { threat: 40, previousThreat: 35, mark: 40 },
@@ -452,13 +500,24 @@ describe('ViewStateSchema', () => {
       inSeconds: 1200,
       sizeText: 'uma matilha pequena',
       text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+      costText:
+        'Sem defesa, uma matilha pequena leva 10% do estoque de comida e madeira (hoje, 18 de comida e 12 de madeira) e fere 1 aldeão, que fica 40 min sem trabalhar.',
       defenseText: 'Sem Paliçada, nada segura este ataque.',
     };
     expect(parses({ ...view.threat, incoming })).toBe(true);
-    // O que a Paliçada faz à incursão vem sempre: sem a frase, a forma é recusada.
+    expect(parses({ ...view.threat, incoming: null })).toBe(true);
+    // O que a Paliçada faz à incursão e o que ela custa vêm sempre: sem uma das frases, a forma
+    // é recusada.
     expect(parses({ ...view.threat, incoming: { ...incoming, defenseText: undefined } })).toBe(
       false,
     );
+    expect(parses({ ...view.threat, incoming: { ...incoming, costText: undefined } })).toBe(false);
+    // A regra das incursões também: a chance, a frase e o custo de cada tamanho.
+    for (const field of ['raidChancePercent', 'raidRisk', 'raidCosts']) {
+      const missing: Record<string, unknown> = { ...view.threat };
+      delete missing[field];
+      expect(parses(missing), field).toBe(false);
+    }
     expect(parses({ ...view.threat, incoming: { ...incoming, sizeText: null } })).toBe(true);
     // O tamanho só sai em texto, e só quando a Torre o distingue: nunca o id.
     expect(parses({ ...view.threat, incoming: { ...incoming, size: 'light' } })).toBe(false);
@@ -484,6 +543,50 @@ describe('ViewStateSchema', () => {
     expect(parses({ ...view.threat, defense: { ...defense, next: undefined } })).toBe(false);
     expect(parses({ ...view.threat, defense: { ...defense, hp: 600 } })).toBe(false);
     expect(parses({ ...view.threat, raidChance: 30 })).toBe(false);
+
+    // Duas horas depois os lobos chegam. Com a Paliçada, recuam; sem ela, levam uma parte do
+    // estoque e ferem um aldeão, que sara um dia de jogo depois. Tudo passa pelo contrato.
+    const walled = createInitialState('pedra-alta', settings);
+    walled.settlement.buildings = {
+      ...walled.settlement.buildings,
+      townHall: 3,
+      watchtower: 2,
+      palisade: 1,
+    };
+    const stories = [advanceTo(walled, 32 * 3_600_000), advanceTo(state, 32 * 3_600_000)];
+    const told = stories.flatMap((story) =>
+      story.events.filter((event) => /^(raid|villager(Injured|Recovered))/.test(event.type)),
+    );
+    expect(told.map((event) => event.type)).toEqual([
+      'raidAnnounced',
+      'raidRepelled',
+      'raidSuffered',
+      'villagerInjured',
+      'villagerRecovered',
+    ]);
+    for (const [index, event] of told.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-02T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    // Quem tem vigias lê nos eventos a Ameaça antes e depois da incursão.
+    expect(told[1]?.data).toMatchObject({ warning: 'sized', previousThreat: 75, threat: 65 });
+    expect(told[2]?.data).toMatchObject({ injured: 1, palisadeLevelNeeded: 1 });
+    for (const story of stories) {
+      const after = deriveViewState(story.state, story.state.lastProcessedAt);
+      expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
+    }
+    // Com um ferido de cama, a visão diz quantos são, quando sara e de que edifício saiu.
+    const hurt = deriveViewState(state, 30 * 3_600_000 + 600_000);
+    expect(ViewStateSchema.safeParse(hurt).error).toBeUndefined();
+    expect(hurt.population).toMatchObject({ injured: 1, secondsToNextRecovery: 6600 });
+    const people = (population: object) =>
+      ViewStateSchema.safeParse({ ...hurt, population }).success;
+    expect(people({ ...hurt.population, injuredNote: null })).toBe(true);
+    expect(people({ ...hurt.population, injured: undefined })).toBe(false);
+    expect(people({ ...hurt.population, injuredUntilMs: 1 })).toBe(false);
+    const workers = hurt.workers.map((row) => ({ ...row, injured: undefined }));
+    expect(ViewStateSchema.safeParse({ ...hurt, workers }).success).toBe(false);
   });
 
   it('a Paliçada é um edifício como os outros nas ordens, e a visão dela passa pelo contrato em todo nível', () => {
@@ -612,18 +715,19 @@ describe('ViewStateSchema', () => {
     });
 
     const events: EngineEvent[] = [];
-    const advanced = advanceTo(state, 30 * 3_600_000);
+    const advanced = advanceTo(state, 28 * 3_600_000);
     state = advanced.state;
     events.push(...advanced.events);
     const full = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 });
     expect(ViewStateSchema.safeParse(full).error).toBeUndefined();
-    // 30 horas de jogo são 15 viradas de dia: a Serraria tem 60 de experiência (× 1,18), a
-    // moral está em 60 (× 1,05), e os dois lenhadores perdem 16 × 1,18 × 1,05 por hora de
-    // jogo, 59,5 por hora real.
+    // 28 horas de jogo são 14 viradas de dia (duas horas antes de os lobos do roteiro levarem
+    // parte da madeira): a Serraria tem 56 de experiência (× 1,168), a moral está em 60
+    // (× 1,05), e os dois lenhadores perdem 16 × 1,168 × 1,05 por hora de jogo, 58,9 por hora
+    // real.
     expect(full.resources.find((row) => row.id === 'wood')).toMatchObject({
       full: true,
       fullInSeconds: null,
-      wastingPerHour: 59.5,
+      wastingPerHour: 58.9,
     });
     expect(full.resources.find((row) => row.id === 'gold')).toMatchObject({
       cap: null,
@@ -936,9 +1040,24 @@ describe('ViewStateSchema', () => {
     const after = deriveViewState(abandoned.state, abandoned.state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
     expect(after.morale).toMatchObject({ value: 0, band: 'desperate', multiplierPercent: 75 });
-    expect(after.morale.terms.map((term) => term.id)).toEqual(['base', 'famine', 'famineDays']);
+    // A base, a fome e os dias dela; e, quando os lobos acabaram de passar, o termo da incursão.
+    expect(after.morale.terms.map((term) => term.id).slice(0, 3)).toEqual([
+      'base',
+      'famine',
+      'famineDays',
+    ]);
     expect(after.morale.advice).toContain('Fazenda');
     expect(after.population.villagers).toBe(3);
+    // Os lobos passaram várias vezes pelo feudo abandonado: tudo o que eles deixaram nos
+    // eventos passa pelo contrato, e nenhum desses eventos fica fora da Crônica.
+    const raidTypes = ['wolvesHowl', 'raidSuffered', 'villagerInjured', 'villagerRecovered'];
+    const raided = abandoned.events.filter((event) => raidTypes.includes(event.type));
+    expect(new Set(raided.map((event) => event.type))).toEqual(new Set(raidTypes));
+    for (const [index, event] of raided.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-02T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
   });
 
   it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
@@ -1196,6 +1315,32 @@ describe('Relatório de Retorno e device flow', () => {
     ).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, famine: 'talvez' }).success).toBe(false);
     expect(ReturnReportSchema.safeParse({ ...report, extra: 1 }).success).toBe(false);
+    // As incursões são opcionais, como a moral: o que os lobos levaram de cada recurso (dos
+    // eventos `raidSuffered`) e quantas houve, repelidas e sofridas, com os feridos.
+    const raided = {
+      ...split,
+      resources: [{ ...split.resources[0], raided: 45.5, produced: 555.5 }],
+      counts: {
+        ...report.counts,
+        raidsSuffered: 2,
+        raidsRepelled: 1,
+        villagersInjured: 3,
+        villagersRecovered: 2,
+      },
+    };
+    expect(ReturnReportSchema.safeParse(raided).error).toBeUndefined();
+    expect(
+      ReturnReportSchema.safeParse({
+        ...raided,
+        counts: { ...raided.counts, raidsSuffered: 1.5 },
+      }).success,
+    ).toBe(false);
+    expect(
+      ReturnReportSchema.safeParse({
+        ...raided,
+        resources: [{ ...raided.resources[0], raided: 'muito' }],
+      }).success,
+    ).toBe(false);
     // A moral e quem ela moveu são opcionais: o relatório de antes continua valendo, e o novo
     // diz a faixa de agora, a de antes e quantos chegaram, partiram e desertaram.
     const withMorale = {
@@ -1305,6 +1450,9 @@ describe('contentHash', () => {
         enemies,
         raidSizes,
         threatMarkTemplates,
+        raidTemplates,
+        injuryTemplates,
+        injuredLoss,
       }),
     ]);
   });
@@ -1326,9 +1474,12 @@ describe('contentHash', () => {
       'enemies',
       'foundingTemplates',
       'idleVillager',
+      'injuredLoss',
+      'injuryTemplates',
       'moraleBandTemplates',
       'objectives',
       'raidSizes',
+      'raidTemplates',
       'startingTiles',
       'threatMarkTemplates',
       'tileTypes',
@@ -1362,5 +1513,14 @@ describe('contentHash', () => {
     expect(hashed).toContain(`"plural":"${raidSizes.medium.plural}"`);
     expect(hashed).toContain(buildings.palisade.maxLevelNote ?? 'falta a frase');
     expect(hashed).toContain('"autoResolveIfUnlocked":"show"');
+    // E as incursões: o roteiro, o estrago, o ferimento, e as frases do aviso, do desfecho, do
+    // conselho e de quem se fere.
+    expect(hashed).toContain(`"scripted":${canonicalJson(balance.raids.scripted)}`);
+    expect(hashed).toContain(`"injuryMs":${balance.raids.injuryMs}`);
+    expect(hashed).toContain(`"moraleLabel":"${balance.raids.moraleLabel}"`);
+    expect(hashed).toContain(raidTemplates.wolves.advice.build);
+    expect(hashed).toContain(raidTemplates.wolves.howl.unwatched);
+    expect(hashed).toContain(injuryTemplates.villagerRecovered.worker);
+    expect(hashed).toContain(injuredLoss.one);
   });
 });

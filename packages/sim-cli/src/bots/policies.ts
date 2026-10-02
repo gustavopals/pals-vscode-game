@@ -142,13 +142,8 @@ function blockingDepots(view: ViewState): BuildingId[] {
 /**
  * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
  * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`)
- * e a Paliçada, como a visão os aponta: o edifício que amplia cada recurso, o edifício da Torre
- * e o da defesa.
- *
- * **A Paliçada ainda não tem política**: ela só rende diante de uma incursão, e nada marca
- * incursões antes da incursão de lobos. A política dela ("Paliçada quando a Ameaça conhecida
- * passa de 40") entra com essa tarefa (roadmap da v0.2, V2E-T3). Até lá o bot não a ergue: como
- * obra mais barata ela levaria 250 a 400 unidades de material de cada feudo sem medir nada.
+ * e a Paliçada (`erguer a Paliçada`), como a visão os aponta: o edifício que amplia cada
+ * recurso, o edifício da Torre e o da defesa.
  */
 function sideBuildings(view: ViewState): Set<BuildingId | null> {
   return new Set([
@@ -162,7 +157,7 @@ function sideBuildings(view: ViewState): Set<BuildingId | null> {
  * As obras da lista que são obra por fazer. O Celeiro, o Armazém, a Torre de Vigia e a Paliçada
  * não são um fim: só contam quando já estão entre as planejadas ou, os depósitos, quando travam
  * outra obra. Ampliar um depósito só para guardar o que não tem onde ser gasto não é progresso,
- * a Torre só é erguida com o que sobra, e a Paliçada espera a política dela.
+ * a Torre só é erguida com o que sobra, e a Paliçada, quando os vigias dizem que há risco.
  */
 function wantedUpgrades(view: ViewState): Upgrade[] {
   const aside = sideBuildings(view);
@@ -489,7 +484,7 @@ function price(upgrade: Upgrade): number {
  * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
  * lenha fica para depois. Os depósitos (Celeiro e Armazém), a Torre de Vigia e a Paliçada ficam
  * de fora: eles não são um fim, e quem decide quando valem a obra é `ampliar o estoque`,
- * `erguer a Torre` e, para a Paliçada, a política que entra com a incursão de lobos.
+ * `erguer a Torre` e `erguer a Paliçada`.
  */
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
@@ -594,6 +589,45 @@ export const erguerTorre: Policy = {
       (cost) => stockOf(view, cost.resource) >= WATCHTOWER_SPEND_SHARE * cost.amount,
     );
     return slack ? act('startConstruction', { building }) : view;
+  },
+};
+
+/**
+ * Ergue a Paliçada e a melhora quando a Ameaça **conhecida** diz que há risco: os vigias da
+ * Torre veem uma incursão a caminho, ou a visão diz que a próxima virada do dia pode marcar uma
+ * (`threat.raidChancePercent` acima de zero: a Ameaça passou do limiar). Sem a Torre o bot não
+ * sabe de nada, como o jogador, e não a ergue: o número fica no servidor.
+ *
+ * Não pede folga, ao contrário da Torre: a Paliçada é a obra "de seguro", e cada incursão que
+ * passa leva parte da comida e da madeira e fere gente. Se a obra não pode começar agora por
+ * falta de recurso ou de fila, o bot a deixa planejada como automática, e ela começa sozinha
+ * quando puder; presa ao Salão ou no teto, não há o que planejar. A madeira da lareira fica
+ * onde está, como nas outras obras.
+ *
+ * Nos bots ela vem **antes** de todas as obras: com uma fila só, a defesa passa na frente.
+ */
+export const erguerPalicada: Policy = {
+  name: 'erguer a Paliçada',
+  run: async (view, act) => {
+    const { threat } = view;
+    if (!threat.known || (threat.incoming === null && threat.raidChancePercent <= 0)) {
+      return view;
+    }
+    const { building } = threat.defense;
+    const upgrade = view.constructions.available.find((entry) => entry.building === building);
+    if (upgrade === undefined || deadEnd(upgrade)) {
+      return view;
+    }
+    if (upgrade.blockedCode === null) {
+      return keepsFirewood(view, upgrade) ? act('startConstruction', { building }) : view;
+    }
+    // Falta recurso ou fila: fica na lista das automáticas, e a alocação junta o que falta. Como
+    // em `planejar automáticas`, uma obra que começa sozinha não pergunta pela lenha: enquanto a
+    // lareira depende do estoque, a que gasta madeira não é marcada.
+    const woodIsSafe = firewoodReserve(view) === 0 || !costsWood(upgrade);
+    return woodIsSafe && !upgrade.planned
+      ? act('planConstruction', { building, autoStart: true, targetLevel: upgrade.targetLevel })
+      : view;
   },
 };
 
@@ -871,8 +905,17 @@ export function alocarPorDemandaFor(awayHours: number): Policy {
 /** A política para quem volta em `DEFAULT_AWAY_HOURS`: duas visitas por dia. */
 export const alocarPorDemanda: Policy = alocarPorDemandaFor(DEFAULT_AWAY_HOURS);
 
+/**
+ * Os braços do feudo: os habitantes que podem trabalhar. Quem os lobos feriram come como os
+ * outros, mas não entra em ofício nenhum até sarar (e volta sozinho ao que tinha).
+ */
+function ableHands(view: ViewState): number {
+  return view.population.villagers - view.population.injured;
+}
+
 async function allocate(view: ViewState, act: Act, awayHours: number): Promise<ViewState> {
   const { villagers, inTraining } = view.population;
+  const able = ableHands(view);
   const eaten = eatenPerVillager(view);
   if (eaten === null) {
     return view;
@@ -887,7 +930,7 @@ async function allocate(view: ViewState, act: Act, awayHours: number): Promise<V
   const food = view.resources.find((row) => row.id === 'food');
   const wasting = food !== undefined && food.full && food.wastingPerHour > 0;
   const growing = view.population.vacancies > 0 && farmYield > 0 && !wasting ? 1 : 0;
-  const standard = Math.min(villagers, feeding + growing);
+  const standard = Math.min(able, feeding + growing);
   // Só os lavradores cuja colheita tem para onde ir durante a ausência: as bocas e o espaço que
   // resta na despensa (o que os recrutas desta visita gastaram volta a caber). É o que o painel
   // manda ("ponha parte dos lavradores em outro ofício"). Com fome, a conta é a de sempre.
@@ -900,7 +943,7 @@ async function allocate(view: ViewState, act: Act, awayHours: number): Promise<V
   const farmers =
     farm.assigned >= fitting && farm.assigned <= fitting + slack ? farm.assigned : fitting;
 
-  const hands = villagers - farmers;
+  const hands = able - farmers;
   const { wanted, limits } = wantedHands(view, hands, awayHours);
   const current = (material: Material) => workplace(view, material).assigned;
   const alloc: Record<Material, number> = {
@@ -993,7 +1036,10 @@ export const comidaPrimeiro: Policy = {
       return view;
     }
     const mouthsPerHour = eaten * (villagers + inTraining);
-    const farmers = Math.min(villagers, Math.ceil(mouthsPerHour / farm.perWorkerPerHour - EPSILON));
+    const farmers = Math.min(
+      ableHands(view),
+      Math.ceil(mouthsPerHour / farm.perWorkerPerHour - EPSILON),
+    );
     if (farmers <= farm.assigned) {
       return view;
     }

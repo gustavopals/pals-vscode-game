@@ -14,6 +14,8 @@ import {
   EVENT_TYPES,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
   moraleBandTemplates,
@@ -22,6 +24,7 @@ import {
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   raidSizes,
+  raidTemplates,
   RESOURCE_IDS,
   SEASON_IDS,
   startingTiles,
@@ -38,9 +41,12 @@ import {
   EnemiesSchema,
   FoundingTemplatesSchema,
   IdleVillagerSchema,
+  InjuredLossSchema,
+  InjuryTemplatesSchema,
   MoraleBandTemplatesSchema,
   ObjectivesSchema,
   RaidSizesSchema,
+  RaidTemplatesSchema,
   StartingTilesSchema,
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
@@ -573,6 +579,153 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(StartingTilesSchema.safeParse([...startingTiles, ...startingTiles]).success).toBe(false);
     expect(
       TileTypesSchema.safeParse({ wolfDen: { ...tileTypes.wolfDen, enemy: 'bandits' } }).success,
+    ).toBe(false);
+  });
+});
+
+describe('incursões (GDD §8.2 e §5.7; ADR 0014, decisões 10 e 20)', () => {
+  const { raids, threat, calendar } = balance;
+
+  it('a do roteiro: lobos, leve, no início do 16º dia de jogo do ano 1, com os uivos no 10º', () => {
+    expect(raids.scripted).toEqual([
+      { id: 'wolvesYear1', enemy: 'wolves', size: 'light', atGameDay: 16, howlAtGameDay: 10 },
+    ]);
+    const [wolves] = raids.scripted;
+    // 30 h de jogo: o segundo dia real no ritmo Normal, 10 h reais no Rápido.
+    expect(((wolves?.atGameDay ?? 0) - 1) * calendar.dayMs).toBe(30 * 3_600_000);
+    // Cabe no ano 1, e o prenúncio vem antes.
+    const daysPerYear = calendar.seasons.reduce((sum, season) => sum + season.days, 0);
+    for (const raid of raids.scripted) {
+      expect(raid.atGameDay).toBeLessThanOrEqual(daysPerYear);
+      expect(raid.howlAtGameDay).toBeLessThan(raid.atGameDay);
+    }
+  });
+
+  it('a leve leva 10% da comida e da madeira e fere 1; a média leva 15% e fere 2', () => {
+    expect(Object.keys(raids.damage)).toEqual([...ENEMY_IDS]);
+    expect(raids.damage.wolves).toEqual({
+      light: { lossRatio: { num: 1, den: 10 }, resources: ['food', 'wood'], injuries: 1 },
+      medium: { lossRatio: { num: 3, den: 20 }, resources: ['food', 'wood'], injuries: 2 },
+    });
+  });
+
+  it('o ferido fica de cama um dia de jogo, e a moral perde 10 por 2 dias de jogo', () => {
+    expect(raids.injuryMs).toBe(calendar.dayMs);
+    expect(raids.moraleOnLosses).toBe(-10);
+    expect(raids.moraleLossDays).toBe(2);
+    expect(raids.moraleLabel).toBe('Incursão sofrida');
+  });
+
+  it('toda incursão chega em uma virada de dia, e o ferido sara em outra', () => {
+    // É o que impede a previsão da moral (que para antes da virada) de adiantar uma incursão
+    // que os vigias ainda não avistaram.
+    expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
+    expect(raids.injuryMs % calendar.dayMs).toBe(0);
+  });
+
+  it('a metade que passa pela Paliçada pequena fere ao menos um aldeão na média', () => {
+    const { num, den } = threat.palisadeBreach;
+    expect(Math.floor((raids.damage.wolves.medium.injuries * num) / den)).toBe(1);
+  });
+
+  it('entre duas incursões o ferido sara e a moral se refaz: o prazo delas é maior', () => {
+    // No máximo uma incursão marcada por vez, e a seguinte só é sorteada depois: uma incursão
+    // nunca encontra os feridos da anterior.
+    expect(threat.raidLeadMs).toBeGreaterThan(raids.injuryMs);
+    expect(threat.raidLeadMs).toBeGreaterThan(raids.moraleLossDays * calendar.dayMs);
+  });
+
+  it('as frases dos lobos contam o aviso, a defesa e o que teria mudado o desfecho', () => {
+    expect(RaidTemplatesSchema.safeParse(raidTemplates).error).toBeUndefined();
+    expect(Object.keys(raidTemplates)).toEqual([...ENEMY_IDS]);
+    const { howl, announced, arrival, outcome, advice } = raidTemplates.wolves;
+    // O prenúncio não tem informação nenhuma: nem número, nem tamanho.
+    for (const phrase of Object.values(howl)) {
+      expect(phrase).toContain('uivos');
+      expect(phrase).not.toMatch(/\{(ameaca|bando|quantidade)\}/);
+    }
+    expect(howl.unwatched).toContain('Sem quem vigie');
+    expect(howl.watched).toContain('vigias');
+    // Quem não distingue o tamanho não o diz.
+    expect(announced.warned).not.toContain('{bando}');
+    expect(arrival.unwarned).not.toContain('{bando}');
+    expect(arrival.warned).not.toContain('{bando}');
+    expect(arrival.unwarned).not.toContain('vigias');
+    expect(arrival.warned).toContain('vigias');
+    expect(arrival.sized).toContain('vigias');
+    // A linha de quem perdeu diz o que teria evitado a perda.
+    expect(outcome.held).toContain('Recuaram diante da paliçada');
+    expect(advice.build).toBe('Uma paliçada os teria detido.');
+    expect(advice.upgrade).toContain('os teria detido');
+    const phrases = [
+      ...Object.values(howl),
+      ...Object.values(announced),
+      ...Object.values(arrival),
+      ...Object.values(outcome),
+      ...Object.values(advice),
+    ];
+    expect(new Set(phrases).size).toBe(phrases.length);
+  });
+
+  it('quem se fere e quem sara têm frase com ofício e sem ofício', () => {
+    expect(InjuryTemplatesSchema.safeParse(injuryTemplates).error).toBeUndefined();
+    expect(Object.keys(injuryTemplates)).toEqual(['villagerInjured', 'villagerRecovered']);
+    expect(injuryTemplates.villagerInjured.worker).toContain('Larga o ofício');
+    expect(injuryTemplates.villagerRecovered.worker).toContain('voltou ao ofício');
+    expect(injuryTemplates.villagerRecovered.idle).not.toContain('ofício');
+    expect(InjuredLossSchema.safeParse(injuredLoss).error).toBeUndefined();
+    expect(injuredLoss).toEqual({ one: 'um aldeão ferido', many: '{quantidade} aldeões feridos' });
+  });
+
+  it('o schema recusa o roteiro fora de ordem, o estrago que encolhe e a frase sem o que promete', () => {
+    const parse = (changed: object) =>
+      BalanceSchema.safeParse({ ...balance, raids: { ...raids, ...changed } }).success;
+    const [wolves] = raids.scripted;
+    expect(parse({})).toBe(true);
+    expect(parse({ scripted: [] })).toBe(true);
+    expect(parse({ scripted: [{ ...wolves, howlAtGameDay: 16 }] })).toBe(false);
+    expect(parse({ scripted: [{ ...wolves, enemy: 'bandits' }] })).toBe(false);
+    expect(parse({ scripted: [wolves, wolves] })).toBe(false);
+    expect(parse({ scripted: [wolves, { ...wolves, id: 'wolvesAgain' }] })).toBe(false);
+    const { light, medium } = raids.damage.wolves;
+    expect(parse({ damage: { wolves: { light: medium, medium: light } } })).toBe(false);
+    expect(parse({ damage: { wolves: { light } } })).toBe(false);
+    expect(
+      parse({ damage: { wolves: { light: { ...light, lossRatio: { num: 1, den: 1 } }, medium } } }),
+    ).toBe(false);
+    expect(parse({ damage: { wolves: { light: { ...light, resources: [] }, medium } } })).toBe(
+      false,
+    );
+    expect(parse({ damage: { wolves: { light: { ...light, injuries: 0 }, medium } } })).toBe(false);
+    expect(parse({ injuryMs: 0 })).toBe(false);
+    expect(parse({ moraleOnLosses: 10 })).toBe(false);
+    expect(parse({ moraleLossDays: 0 })).toBe(false);
+    expect(parse({ moraleLabel: 'incursão sofrida.' })).toBe(false);
+
+    const wolvesPhrases = raidTemplates.wolves;
+    const phrases = (changed: object) =>
+      RaidTemplatesSchema.safeParse({ wolves: { ...wolvesPhrases, ...changed } }).success;
+    expect(phrases({})).toBe(true);
+    expect(
+      phrases({
+        announced: { ...wolvesPhrases.announced, sized: 'No {dia}º dia {daEstacao}, lobos.' },
+      }),
+    ).toBe(false);
+    expect(phrases({ outcome: { ...wolvesPhrases.outcome, open: 'Nada os deteve.' } })).toBe(false);
+    expect(phrases({ outcome: { ...wolvesPhrases.outcome, held: 'recuaram.' } })).toBe(false);
+    expect(
+      phrases({
+        advice: { ...wolvesPhrases.advice, upgrade: 'Uma paliçada maior os teria detido.' },
+      }),
+    ).toBe(false);
+    expect(
+      phrases({ arrival: { ...wolvesPhrases.arrival, unwarned: 'Os lobos chegaram a {feudo}.' } }),
+    ).toBe(false);
+    expect(
+      InjuryTemplatesSchema.safeParse({
+        ...injuryTemplates,
+        villagerInjured: { worker: 'No {dia}º dia {daEstacao}, alguém se feriu.', idle: 'x' },
+      }).success,
     ).toBe(false);
   });
 });

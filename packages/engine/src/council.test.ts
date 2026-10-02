@@ -27,6 +27,7 @@ import {
   HOUR,
   MINUTE,
   newGame,
+  quietHorde,
   refuse,
   settings,
   SUMMER,
@@ -50,9 +51,13 @@ const only = (...ids: string[]): Catalog => ids.map(card);
 const vespers: CouncilCard = { ...card('alms'), id: 'vespers', title: 'Vésperas', recurring: true };
 const matins: CouncilCard = { ...vespers, id: 'matins', title: 'Matinas' };
 
-/** Um feudo que se sustenta: três na Fazenda e os depósitos largos, para a fome não entrar na conta. */
+/**
+ * Um feudo que se sustenta: três na Fazenda e os depósitos largos, para a fome não entrar na
+ * conta, e a Horda calada, para os lobos também não.
+ */
 function fed(difficulty: DifficultyId = 'lord', timeScale = 1, seed = 'pedra-alta'): GameState {
   const state = createInitialState(seed, { ...settings, difficulty, timeScale });
+  quietHorde(state);
   state.settlement.workers.farm = 3;
   state.settlement.buildings.granary = 3;
   state.settlement.buildings.warehouse = 3;

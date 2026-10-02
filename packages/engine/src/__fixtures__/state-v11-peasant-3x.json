@@ -1,0 +1,185 @@
+{
+ "schemaVersion": 11,
+ "seed": "fixture-peasant-3x",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "peasant",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 1246380777,
+  "yearStartMs": 1209600000,
+  "year": 3
+ },
+ "lastProcessedAt": 1246380777,
+ "rng": {
+  "council": [
+   2208430229,
+   3562850890,
+   2386877647,
+   2121368419
+  ],
+  "horde": [
+   1744665841,
+   2981331793,
+   2572820061,
+   2729376067
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 533718,
+   "wood": 535986,
+   "stone": 45000,
+   "gold": 270000
+  },
+  "accumulators": {
+   "food": 442260,
+   "wood": 2569680,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 1,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [
+   {
+    "building": "farm",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 381,
+   "wood": 626,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 100,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [
+   {
+    "id": "raid",
+    "label": "Incursão sofrida",
+    "amount": -10,
+    "untilMs": 1260000000
+   }
+  ],
+  "injured": [
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   },
+   {
+    "untilMs": 1252800000,
+    "building": "farm"
+   }
+  ]
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "sawmillRest-9",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 1180800000,
+    "expiresAtMs": 1440000000,
+    "origin": null
+   },
+   {
+    "instanceId": "collapsedWell-10",
+    "cardId": "collapsedWell",
+    "drawnAtMs": 1209600000,
+    "expiresAtMs": 1468800000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "routine.neighborsWatch": true
+  },
+  "seenThisYear": [
+   "collapsedWell"
+  ],
+  "nextDrawAtMs": 1267200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 90
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "townHallLevel2"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "cardsDrawn": 10,
+  "cardsDrawn:springNews": 1,
+  "wasted_food": 7321381,
+  "cardsDrawn:thawBridgePlea": 2,
+  "raids_suffered": 34,
+  "wasted_wood": 3640626,
+  "cardsExpired": 8,
+  "cardsDrawn:sawmillRest": 2,
+  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:neighborsWatch": 1,
+  "cardsDrawn:collapsedWell": 2,
+  "cardsDrawn:apprenticesTable": 1
+ }
+}

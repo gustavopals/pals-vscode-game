@@ -11,6 +11,7 @@ import {
   MINUTE,
   newGame,
   objectivesScenario,
+  quietHorde,
   winterColdScenario,
 } from './test-helpers';
 import type { GameState, ViewState } from './types';
@@ -455,18 +456,19 @@ describe('deriveViewState com ritmo: o prazo anunciado é cumprido', () => {
   });
 
   it('a comida não acaba antes do prazo anunciado', () => {
+    // O prazo é o de quem não é atacado no caminho: uma incursão que os vigias ainda não viram
+    // é segredo, e a previsão não conta com ela (a Horda fica calada aqui).
+    const calm = gameWith(quietHorde);
     for (const timeScale of scales) {
       for (const at of instants) {
-        const n = foodOf(deriveViewState(newGame(), at, { timeScale })).depletesInSeconds;
+        const n = foodOf(deriveViewState(calm, at, { timeScale })).depletesInSeconds;
         if (n === null) {
           throw new Error('O teste esperava comida acabando.');
         }
         // Arredondado para baixo: em N segundos reais ainda não há fome; um segundo depois, há.
         const gameMs = at + n * SECOND * timeScale;
-        expect(advanceTo(newGame(), gameMs - 1).state.settlement.famine).toBeNull();
-        expect(
-          advanceTo(newGame(), gameMs + SECOND * timeScale).state.settlement.famine,
-        ).not.toBeNull();
+        expect(advanceTo(calm, gameMs - 1).state.settlement.famine).toBeNull();
+        expect(advanceTo(calm, gameMs + SECOND * timeScale).state.settlement.famine).not.toBeNull();
       }
     }
   });

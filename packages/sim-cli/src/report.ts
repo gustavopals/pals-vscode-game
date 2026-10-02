@@ -11,7 +11,7 @@ import {
 
 import { strategyPolicies } from './bots';
 import { identityLine } from './identity';
-import { type HourRow, realHoursOf, type SimulationResult } from './simulate';
+import { type HourRow, type RaidCounts, realHoursOf, type SimulationResult } from './simulate';
 
 /** Os materiais em que se mede o excedente parado. A comida fica de fora: ela é consumida. */
 export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
@@ -100,6 +100,7 @@ export const MILESTONES: ReadonlyArray<{
     level: 1,
     label: 'Torre de Vigia',
   },
+  { id: 'palisade', column: 'palisade_hour', building: 'palisade', level: 1, label: 'Paliçada' },
 ];
 
 /** A primeira hora real em que o edifício aparece no nível pedido; `null` se não chegou. */
@@ -160,7 +161,18 @@ const MECHANIC_COLUMNS = [
     meaning:
       'Ameaça do feudo naquela hora, de 0 a 100, lida do estado; na matriz, a maior da partida',
   },
-  { name: 'wolf_losses', task: 'V2E-T3', meaning: 'Perdas em incursões de lobos, acumuladas' },
+  {
+    name: 'wolf_losses',
+    task: 'V2E-T3',
+    meaning: 'Comida e madeira que as incursões de lobos levaram, somadas, em unidades, acumuladas',
+  },
+  { name: 'raids_suffered', task: 'V2E-T3', meaning: 'Incursões sofridas, acumuladas' },
+  { name: 'raids_repelled', task: 'V2E-T3', meaning: 'Incursões repelidas, acumuladas' },
+  {
+    name: 'villagers_injured',
+    task: 'V2E-T3',
+    meaning: 'Aldeões feridos em incursões, acumulados',
+  },
 ] as const;
 type MechanicColumn = (typeof MECHANIC_COLUMNS)[number]['name'];
 
@@ -188,7 +200,20 @@ const MEASURED_COLUMNS: Partial<
   // A Ameaça, lida do estado (a visão só a mostra com a Torre de Vigia): a daquela hora e, na
   // matriz, a maior da partida.
   threat: { hour: (row) => row.threat, run: (summary) => summary.threat.max },
+  // As incursões, contadas dos eventos: acumuladas até a hora, e o total da partida na matriz.
+  wolf_losses: {
+    hour: (row) => raidLosses(row.raids),
+    run: (summary) => summary.raids.losses,
+  },
+  raids_suffered: { hour: (row) => row.raids.suffered, run: (summary) => summary.raids.suffered },
+  raids_repelled: { hour: (row) => row.raids.repelled, run: (summary) => summary.raids.repelled },
+  villagers_injured: { hour: (row) => row.raids.injured, run: (summary) => summary.raids.injured },
 };
+
+/** O que as incursões levaram, somados os recursos, em unidades inteiras. */
+function raidLosses(raids: RaidCounts): number {
+  return Math.round(RESOURCE_IDS.reduce((sum, id) => sum + raids.lost[id], 0));
+}
 
 /**
  * Colunas que as tarefas seguintes do roadmap da v0.2 vão preencher. O valor sai **vazio** (e
@@ -334,6 +359,20 @@ export type Summary = {
    * hora, e o nível final da Torre de Vigia. A hora em que a Torre ficou pronta é um marco.
    */
   threat: { final: number; max: number; watchtower: number };
+  /**
+   * As incursões (GDD §8.2), contadas dos eventos: as sofridas, as repelidas, as que a Torre
+   * anunciou, os feridos, o que os lobos levaram de cada recurso (em unidades inteiras) e a
+   * soma disso; e o nível final da Paliçada. A hora em que ela ficou pronta é um marco.
+   */
+  raids: {
+    suffered: number;
+    repelled: number;
+    announced: number;
+    injured: number;
+    lost: Record<ResourceId, number>;
+    losses: number;
+    palisade: number;
+  };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -411,6 +450,17 @@ export function summarize(result: SimulationResult): Summary {
       max: rows.reduce((highest, row) => Math.max(highest, row.threat), 0),
       watchtower: last?.levels.watchtower ?? 0,
     },
+    raids: {
+      suffered: last?.raids.suffered ?? 0,
+      repelled: last?.raids.repelled ?? 0,
+      announced: last?.raids.announced ?? 0,
+      injured: last?.raids.injured ?? 0,
+      lost: Object.fromEntries(
+        RESOURCE_IDS.map((id) => [id, Math.round(last?.raids.lost[id] ?? 0)]),
+      ) as Record<ResourceId, number>,
+      losses: last === undefined ? 0 : raidLosses(last.raids),
+      palisade: last?.levels.palisade ?? 0,
+    },
     stock,
   };
 }
@@ -475,6 +525,29 @@ function threatLine({ threat, milestones }: Summary): string {
 }
 
 /**
+ * "Lobos: 8 incursões sofridas, 9 repelidas (17 anunciadas pela Torre) · levaram comida 360,
+ * madeira 590 · 13 feridos · Paliçada Nv2, erguida na hora 76". Sem incursão nenhuma, diz isso.
+ */
+function raidsLine({ raids, milestones }: Summary): string {
+  const wall =
+    raids.palisade === 0
+      ? 'sem Paliçada'
+      : `Paliçada Nv${raids.palisade}, erguida na hora ${milestones.palisade ?? '?'}`;
+  if (raids.suffered + raids.repelled === 0) {
+    return `Lobos: nenhuma incursão · ${wall}`;
+  }
+  const taken = RESOURCE_IDS.filter((id) => raids.lost[id] > 0)
+    .map((id) => `${id} ${raids.lost[id]}`)
+    .join(', ');
+  return [
+    `Lobos: ${raids.suffered} incursões sofridas, ${raids.repelled} repelidas (${raids.announced} anunciadas pela Torre)`,
+    taken === '' ? 'não levaram nada' : `levaram ${taken}`,
+    `${raids.injured} feridos`,
+    wall,
+  ].join(' · ');
+}
+
+/**
  * "Progresso: Salão Nv2 na hora 3, Salão Nv3 na hora 9, Salão Nv4 na hora 20, Celeiro na hora
  * 30, Armazém não alcançado · 46 obras começaram sozinhas · as obras acabaram na hora 113: nada
  * mais a construir". As horas são reais, desde a fundação.
@@ -534,6 +607,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     moraleLine(summary),
     councilLine(summary),
     threatLine(summary),
+    raidsLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []
@@ -546,7 +620,6 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `Da produção de cada recurso, foi ao chão: ${wastedPercentText(summary)}`,
     `Maior sequência desperdiçando, em horas de jogo: ${WASTE_RESOURCES.map((id) => `${id} ${formatDecimal(summary.wasteStreakGameHours[id])}`).join(', ')} (meta do GDD §15.2 para ${WASTE_STREAK_GOAL.sessionsPerDay} sessões por dia: até ${WASTE_STREAK_GOAL.gameHours})`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
-    'Sem medida até a Fase E: perdas por lobos',
     '',
   ].join('\n');
 }

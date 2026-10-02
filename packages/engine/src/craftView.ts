@@ -1,7 +1,7 @@
 import { balance, buildings } from '@lotg/content';
 
 import { buildingWithArticle } from './construction';
-import { experienceChange, handsOf, occupancyOf, occupiedFrom } from './craft';
+import { experienceChange, handsOf, occupancyOf, occupiedFrom, workersAtNextTurn } from './craft';
 import { effectiveWorkers, productionRate } from './economy';
 import { decimal, durationText, plural, shareText } from './format';
 import type { GameState, ProductionBuildingId, ViewState } from './types';
@@ -21,6 +21,7 @@ type CraftRow = Pick<
   | 'adapting'
   | 'adaptationEndsInSeconds'
   | 'adaptingCohorts'
+  | 'injured'
 >;
 
 const hands = (count: number) => plural(count, 'trabalhador', 'trabalhadores');
@@ -71,7 +72,9 @@ function experienceNote(state: GameState, building: ProductionBuildingId): strin
   const { settlement } = state;
   const experience = settlement.craftExperience[building];
   const needed = occupiedFrom(state, building);
-  const occupancy = occupancyOf(state, building);
+  // Quem a próxima virada vai encontrar: o ferido que sara até lá já conta.
+  const present = workersAtNextTurn(state, building);
+  const occupancy = occupancyOf(state, building, present);
   if (occupancy === 'empty') {
     return experience > 0
       ? `Sem ninguém ${inBuilding(building)}, o ofício se perde: ${experienceLossPerDay} de experiência a menos a cada virada do dia.`
@@ -83,7 +86,7 @@ function experienceNote(state: GameState, building: ProductionBuildingId): strin
   if (occupancy === 'occupied') {
     return `A experiência sobe ${experiencePerDay} a cada virada do dia enquanto houver ao menos ${hands(needed)}.`;
   }
-  const missing = needed - settlement.workers[building];
+  const missing = needed - present;
   return (
     `A experiência não sobe: ${buildingWithArticle(building)} no nível ${settlement.buildings[building]} ` +
     `pede ao menos ${hands(needed)} (${missing === 1 ? 'falta 1' : `faltam ${missing}`}).`
@@ -112,7 +115,7 @@ export function craftRow(
   timeScale: number,
 ): CraftRow {
   const experience = state.settlement.craftExperience[building];
-  const change = experienceChange(state, building);
+  const change = experienceChange(state, building, workersAtNextTurn(state, building));
   const cohorts = cohortsOf(state, building, timeScale);
   const newcomer = productionRate(state, building, { adapted: 0, adapting: 1 });
   let trend: CraftRow['experienceTrend'] = 'steady';
@@ -129,6 +132,7 @@ export function craftRow(
     adapting: cohorts.reduce((sum, cohort) => sum + cohort.count, 0),
     adaptationEndsInSeconds: cohorts[cohorts.length - 1]?.endsInSeconds ?? null,
     adaptingCohorts: cohorts,
+    injured: state.settlement.injured.filter((hurt) => hurt.building === building).length,
   };
 }
 

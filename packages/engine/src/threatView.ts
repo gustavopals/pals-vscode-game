@@ -10,12 +10,15 @@ import {
 
 import { DAY_MS, nextDayBoundary } from './clock';
 import { constructionOf } from './construction';
-import { durationText, joinList, sentenceCase, shareText } from './format';
+import { decimal, durationText, joinList, plural, sentenceCase, shareText } from './format';
 import {
   isThreatWatched,
   palisadeAgainst,
   palisadeLevel,
   type PalisadeOutcome,
+  prowlingEnemy,
+  raidChancePercent,
+  raidSizeAt,
   threatAfterTurn,
   threatSources,
   watchtowerLevel,
@@ -23,13 +26,14 @@ import {
 } from './threat';
 import type {
   BuildingId,
+  EnemyId,
   GameState,
   ThreatDefenseView,
   ThreatIncomingView,
   ThreatView,
   ThreatWatchtowerView,
 } from './types';
-import { realSecondsCeil } from './units';
+import { MILLI, realSecondsCeil } from './units';
 
 /**
  * A Ameaça na visão (GDD §8.2): o que os vigias da Torre veem, em frases prontas e em tempo
@@ -42,7 +46,7 @@ import { realSecondsCeil } from './units';
  * frase sobre a incursão que vem (`incoming.defenseText`) depende dos vigias.
  */
 
-const { threat: rules } = balance;
+const { threat: rules, raids } = balance;
 const tower = buildings.watchtower;
 const fence = buildings.palisade;
 
@@ -260,6 +264,130 @@ function incomingDefenseText(
   )}, ele passa, ${breachText()}.${late}`;
 }
 
+/** "comida e madeira": os recursos que um ataque leva, para o meio da frase. */
+const lootNames = (enemy: EnemyId, size: RaidSizeId) =>
+  joinList(
+    raids.damage[enemy][size].resources.map((resource) =>
+      balance.resources[resource].label.toLowerCase(),
+    ),
+  );
+
+/** "10%": a parte do estoque que um ataque leva. */
+const lossPercent = (enemy: EnemyId, size: RaidSizeId) => {
+  const { num, den } = raids.damage[enemy][size].lossRatio;
+  return `${decimal((num * 100) / den)}%`;
+};
+
+const injuredOf = (enemy: EnemyId, size: RaidSizeId) =>
+  plural(raids.damage[enemy][size].injuries, 'aldeão', 'aldeões');
+
+/**
+ * O que a incursão que vem custa a um feudo sem defesa, para ficar ao lado do que a Paliçada
+ * faz a ela. Com o tamanho à vista, a conta sai com o estoque de agora: "Sem defesa, uma
+ * matilha grande leva 15% do estoque de comida e madeira (hoje, 48 de comida e 45 de madeira)
+ * e fere 2 aldeões, que ficam 40 min sem trabalhar." Sem o tamanho, diz o que cada um custa, e
+ * não o revela.
+ */
+function incomingCostText(
+  state: GameState,
+  enemy: EnemyId,
+  sizes: readonly RaidSizeId[],
+  timeScale: number,
+): string {
+  const rest = real(raids.injuryMs, timeScale);
+  const [only] = sizes;
+  if (sizes.length === 1 && only !== undefined) {
+    const damage = raids.damage[enemy][only];
+    const { num, den } = damage.lossRatio;
+    const today = joinList(
+      damage.resources.map((resource) => {
+        const taken = Math.floor((state.settlement.resources[resource] * num) / den);
+        return `${decimal(taken / MILLI, 1)} de ${balance.resources[resource].label.toLowerCase()}`;
+      }),
+    );
+    const idle = damage.injuries === 1 ? 'que fica' : 'que ficam';
+    return (
+      `Sem defesa, ${enemies[enemy].sizes[only]} leva ${lossPercent(enemy, only)} do estoque de ` +
+      `${lootNames(enemy, only)} (hoje, ${today}) e fere ${injuredOf(enemy, only)}, ${idle} ${rest} sem trabalhar.`
+    );
+  }
+  const each = sizes.map(
+    (size) =>
+      `um ataque dos ${raidSizes[size].plural} leva ${lossPercent(enemy, size)} do estoque de ` +
+      `${lootNames(enemy, size)} e fere ${injuredOf(enemy, size)}`,
+  );
+  return `Sem defesa, ${each.join('; ')}. Quem se fere fica ${rest} sem trabalhar.`;
+}
+
+/**
+ * O que cada tamanho de incursão custa a um feudo sem defesa, um por linha, e o que fica depois:
+ * "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão." A última linha
+ * diz quanto dura o ferimento e o que a moral perde. Vazio sem quem ataque.
+ */
+function raidCostsView(state: GameState, timeScale: number): string[] {
+  const enemy = prowlingEnemy(state);
+  if (enemy === null) {
+    return [];
+  }
+  const days = plural(raids.moraleLossDays, 'dia de jogo', 'dias de jogo');
+  return [
+    ...RAID_SIZE_IDS.map(
+      (size) =>
+        `Ataques ${raidSizes[size].plural}: levam ${lossPercent(enemy, size)} do estoque de ` +
+        `${lootNames(enemy, size)} e ferem ${injuredOf(enemy, size)}.`,
+    ),
+    `Quem se fere fica ${real(raids.injuryMs, timeScale)} sem trabalhar e volta ao ofício sozinho. ` +
+      `Um ataque com perdas tira ${Math.abs(raids.moraleOnLosses)} da moral por ${days} ` +
+      `(${real(raids.moraleLossDays * DAY_MS, timeScale)}).`,
+  ];
+}
+
+/**
+ * A regra das incursões por Ameaça, para quem a vê: a chance de a próxima virada do dia marcar
+ * uma (com a Ameaça que essa virada vai dar), o prazo até ela chegar, o tamanho que a Ameaça
+ * traz e a queda que toda incursão provoca. Com uma incursão à vista a chance é zero: só há uma
+ * a caminho por vez. A frase não conta o que os vigias ainda não viram: a chance é a de "se não
+ * houver outra a caminho".
+ */
+function raidRiskView(
+  nextLevel: number,
+  incoming: ThreatIncomingView | null,
+  timeScale: number,
+): { chancePercent: number; text: string } {
+  const lead = real(rules.raidLeadMs, timeScale);
+  const drop = `Toda incursão, repelida ou sofrida, baixa a Ameaça em ${rules.raidDrop}.`;
+  if (incoming !== null) {
+    return {
+      chancePercent: 0,
+      text: `Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. ${drop}`,
+    };
+  }
+  const chancePercent = raidChancePercent(nextLevel);
+  const rule = `a chance é o que a Ameaça passa de ${rules.raidChanceAbove}, em %`;
+  if (chancePercent === 0) {
+    return {
+      chancePercent,
+      text:
+        `Com a Ameaça em ${rules.raidChanceAbove} ou menos, nenhuma incursão é marcada. Acima disso, ` +
+        `cada virada do dia pode marcar uma (${rule}), e ela chega ${lead} depois. ${drop}`,
+    };
+  }
+  const size = raidSizes[raidSizeAt(nextLevel)].plural;
+  const others = RAID_SIZE_IDS.filter((id) => id !== raidSizeAt(nextLevel))
+    .map((id) => raidSizes[id].plural)
+    .join(', ');
+  const sizes =
+    nextLevel >= rules.mediumRaidAbove
+      ? `Com a Ameaça em ${rules.mediumRaidAbove} ou mais, o ataque é dos ${size}; abaixo disso, dos ${others}.`
+      : `Com a Ameaça abaixo de ${rules.mediumRaidAbove}, o ataque é dos ${size}; a partir daí, dos ${others}.`;
+  return {
+    chancePercent,
+    text:
+      `Se não houver outra a caminho, a próxima virada do dia tem ${chancePercent}% de chance de marcar uma incursão ` +
+      `(${rule}); ela chega ${lead} depois. ${sizes} ${drop}`,
+  };
+}
+
 /**
  * A incursão marcada que os vigias já avistaram: a primeira a chegar, se o prazo dela já está
  * dentro da antecedência que o nível da Torre dá. O tamanho só sai com a Torre que o distingue.
@@ -279,6 +407,9 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   const enemy = enemies[raid.enemy];
   const enemyLabel = sentenceCase(enemy.label);
   const sizeText = perks.revealsRaidSize ? enemy.sizes[raid.size] : null;
+  // Os tamanhos que a incursão pode ter, para quem olha da Torre: o que os vigias contaram, ou
+  // todos, enquanto ela não distingue.
+  const sizes: readonly RaidSizeId[] = perks.revealsRaidSize ? [raid.size] : RAID_SIZE_IDS;
   return {
     enemy: raid.enemy,
     enemyLabel,
@@ -288,11 +419,9 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
       sizeText === null
         ? `${enemyLabel} a caminho. Daqui os vigias ainda não distinguem quantos são.`
         : `${enemyLabel} a caminho. Os vigias contam ${sizeText}.`,
+    costText: incomingCostText(state, raid.enemy, sizes, timeScale),
     // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
-    defenseText: incomingDefenseText(
-      palisadeAtRaid(state, raid.atMs),
-      perks.revealsRaidSize ? [raid.size] : RAID_SIZE_IDS,
-    ),
+    defenseText: incomingDefenseText(palisadeAtRaid(state, raid.atMs), sizes),
   };
 }
 
@@ -316,6 +445,8 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
   const rise = sources.reduce((sum, source) => sum + source.amount, 0);
   const day = `a cada dia de jogo (${real(DAY_MS, timeScale)})`;
   const { tiles } = state.map;
+  const incoming = incomingView(state, timeScale);
+  const risk = raidRiskView(nextLevel, incoming, timeScale);
 
   let trend: string;
   if (level >= rules.max) {
@@ -349,7 +480,10 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
           ? []
           : [{ id, label: tileTypes[tile.type].label, active: tile.threatActive }];
       }),
-    incoming: incomingView(state, timeScale),
+    raidChancePercent: risk.chancePercent,
+    raidRisk: risk.text,
+    raidCosts: raidCostsView(state, timeScale),
+    incoming,
     watchtower,
     defense,
   };

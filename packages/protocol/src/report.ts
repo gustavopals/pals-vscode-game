@@ -37,6 +37,12 @@ export const ReturnReportSchema = z.strictObject({
        * outros.
        */
       cut: z.number().optional(),
+      /**
+       * O que as incursões levaram (`raided_<recurso>`, do evento `raidSuffered`), em unidades.
+       * Como o gasto, sai do estoque sem ser consumo: o saldo da produção é a variação menos o
+       * recebido mais o gasto **mais o que os lobos levaram**. Opcional, como os outros.
+       */
+      raided: z.number().optional(),
     }),
   ),
   counts: z.strictObject({
@@ -54,6 +60,15 @@ export const ReturnReportSchema = z.strictObject({
     settlersArrived: z.number().int().nonnegative().optional(),
     villagersLeft: z.number().int().nonnegative().optional(),
     villagersDeserted: z.number().int().nonnegative().optional(),
+    /**
+     * As incursões da ausência, pelos eventos: as sofridas (`raidSuffered`), as repelidas
+     * (`raidRepelled`) e os aldeões que se feriram (`villagerInjured`; os que já sararam
+     * contam `villagerRecovered`). Opcionais, como as de cima.
+     */
+    raidsSuffered: z.number().int().nonnegative().optional(),
+    raidsRepelled: z.number().int().nonnegative().optional(),
+    villagersInjured: z.number().int().nonnegative().optional(),
+    villagersRecovered: z.number().int().nonnegative().optional(),
   }),
   /**
    * A moral na volta (a da visão atual) e a da última visita, quando o cliente a tem: o

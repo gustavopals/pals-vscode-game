@@ -1,10 +1,12 @@
 import {
   balance,
+  type EnemyId,
   RAID_SIZE_IDS,
   type RaidSizeId,
   type Ratio,
   type SeasonDef,
   threatMarkTemplates,
+  tileTypes,
   type TileTypeId,
   type WatchtowerLevelDef,
 } from '@lotg/content';
@@ -16,8 +18,9 @@ import type { GameEvent, GameState } from './types';
 /**
  * A Ameaça (GDD §8.2; ADR 0014, decisão 11): um número de 0 a 100 que **só muda na virada de
  * cada dia de jogo**. Cada tile de ameaça ativo soma o seu tanto, e cada dia de uma estação
- * marcada no conteúdo (o outono) soma mais um pouco. O sorteio de incursões e a queda que cada
- * incursão traz entram com a incursão de lobos (V2E-T3).
+ * marcada no conteúdo (o outono) soma mais um pouco. Logo depois da subida, a mesma virada pode
+ * marcar uma incursão (`hordeTurn.ts`); e toda incursão resolvida, repelida ou sofrida, faz a
+ * Ameaça cair (`raids.ts`).
  *
  * A Ameaça existe para todo feudo, mas só quem tem a Torre de Vigia a conhece: sem Torre a
  * visão não a mostra (`threatView.ts`) e a Crônica não fala dela (`turnThreat`).
@@ -75,6 +78,34 @@ export function palisadeAgainst(level: number, size: RaidSizeId): PalisadeOutcom
   return RAID_SIZE_IDS.indexOf(size) <= RAID_SIZE_IDS.indexOf(def.absorbs)
     ? { kind: 'held' }
     : { kind: 'breached', share: rules.palisadeBreach };
+}
+
+/**
+ * A chance de a virada do dia marcar uma incursão com a Ameaça em `threat`, em % (GDD §8.2): o
+ * que ela passa de `raidChanceAbove`; zero até lá.
+ */
+export function raidChancePercent(threat: number): number {
+  return Math.max(0, threat - rules.raidChanceAbove);
+}
+
+/** O tamanho da incursão que a Ameaça em `threat` marca: média a partir de `mediumRaidAbove`. */
+export function raidSizeAt(threat: number): RaidSizeId {
+  return threat >= rules.mediumRaidAbove ? 'medium' : 'light';
+}
+
+/**
+ * Quem ronda o feudo: o inimigo do primeiro tile de ameaça ativo, pela chave (a ordem das
+ * chaves de um objeto não sobrevive ao banco). `null` sem tile ativo: não há quem ataque.
+ */
+export function prowlingEnemy(state: GameState): EnemyId | null {
+  const { tiles } = state.map;
+  for (const tileId of Object.keys(tiles).sort()) {
+    const tile = tiles[tileId];
+    if (tile !== undefined && tile.threatActive) {
+      return tileTypes[tile.type].enemy;
+    }
+  }
+  return null;
 }
 
 /** Um termo da subida de uma virada de dia: um tile ativo, ou a estação do dia que acabou. */

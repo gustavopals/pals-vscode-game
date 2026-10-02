@@ -324,6 +324,13 @@ const ThreatIncomingSchema = z.strictObject({
   /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo fica em `inSeconds`. */
   text: z.string(),
   /**
+   * O que este ataque custa a um feudo sem defesa, para ficar ao lado de `defenseText`: "Sem
+   * defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 48 de comida e 45
+   * de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar." Sem o tamanho à vista, diz o
+   * que cada tamanho custa, e não o revela.
+   */
+  costText: z.string(),
+  /**
    * O que a Paliçada faz a esta incursão: "A Paliçada Nv1 segura este ataque: sem perda nem
    * ferido."; "Sem Paliçada, nada segura este ataque." Sem o tamanho à vista, a frase vale para
    * qualquer um e não o revela. Com a obra da Paliçada em curso, diz se ela fica pronta a tempo.
@@ -367,6 +374,19 @@ const ThreatSchema = z.discriminatedUnion('known', [
     sources: z.array(z.string()),
     /** Os tiles de ameaça conhecidos, em lista: o mapa gráfico é de outra versão. */
     tiles: z.array(z.strictObject({ id: z.string(), label: z.string(), active: z.boolean() })),
+    /**
+     * A chance, em %, de a próxima virada do dia marcar uma incursão, com a Ameaça que essa
+     * virada vai dar; 0 enquanto ela não passa do limiar, e com uma incursão já à vista.
+     */
+    raidChancePercent: z.number(),
+    /** A regra das incursões em frases prontas, no ritmo da partida: a chance, o prazo, o tamanho e a queda. */
+    raidRisk: z.string(),
+    /**
+     * O que cada tamanho de incursão custa a um feudo sem defesa, um por linha, e o que fica
+     * depois (o ferimento e a moral): "Ataques leves: levam 10% do estoque de comida e madeira
+     * e ferem 1 aldeão."
+     */
+    raidCosts: z.array(z.string()),
     /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
     incoming: ThreatIncomingSchema.nullable(),
     watchtower: ThreatWatchtowerSchema,
@@ -430,6 +450,18 @@ export const ViewStateSchema = z.strictObject({
     housed: z.number(),
     vacancies: z.number(),
     secondsToNextRecruit: z.number().nullable(),
+    /**
+     * Aldeões feridos em uma incursão: moram e comem no feudo, mas não trabalham até sarar. Não
+     * entram em `free`.
+     */
+    injured: z.number(),
+    /** Segundos reais até o próximo ferido sarar; `null` sem feridos. */
+    secondsToNextRecovery: z.number().nullable(),
+    /**
+     * "1 aldeão ferido na incursão: não trabalha até sarar, em 40 min, e então volta à
+     * Serraria."; `null` sem feridos.
+     */
+    injuredNote: z.string().nullable(),
     breakdown: z.string(),
   }),
   resources: z.array(
@@ -513,6 +545,11 @@ export const ViewStateSchema = z.strictObject({
       adaptationEndsInSeconds: z.number().nullable(),
       /** As levas em adaptação, da que termina antes à que termina depois. */
       adaptingCohorts: z.array(z.strictObject({ count: z.number(), endsInSeconds: z.number() })),
+      /**
+       * Feridos que saíram deste edifício e voltam a ele ao sarar, já adaptados. Não estão em
+       * `assigned`: a ordem de trabalhadores não os conta nem os tira.
+       */
+      injured: z.number(),
     }),
   ),
   constructions: z.strictObject({

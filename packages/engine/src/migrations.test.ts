@@ -32,10 +32,12 @@ import { stateV5, v5ToV6 } from './migrations/v5';
 import { stateV6, v6ToV7 } from './migrations/v6';
 import { stateV7, v7ToV8 } from './migrations/v7';
 import { stateV8, v8ToV9 } from './migrations/v8';
-import { stateV9 } from './migrations/v9';
+import { stateV9, v9ToV10 } from './migrations/v9';
+import { stateV10 } from './migrations/v10';
+import { scriptedRaidsAfter } from './raids';
 import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
-import type { BuildingId, GameState } from './types';
+import type { BuildingId, GameEvent, GameState } from './types';
 import { REJECTION_CODES } from './types';
 import { deriveViewState } from './view';
 
@@ -193,6 +195,23 @@ const FROZEN: Record<string, string> = {
   'state-v9-storage.json': '3e9b31bb',
   'state-v9-threat.json': 'feb4b550',
   'state-v9-week-scripted.json': 'c957297f',
+  'state-v10-cold.json': 'ccc9d2ae',
+  'state-v10-construction.json': '7adda350',
+  'state-v10-council-hidden.json': '4f36c939',
+  'state-v10-council.json': '321471a8',
+  'state-v10-crafts.json': '4c7b14bf',
+  'state-v10-famine.json': '35753e48',
+  'state-v10-fresh.json': 'a6240861',
+  'state-v10-iron-king-half.json': 'b3b99675',
+  'state-v10-migrated-3x.json': '7ef0fa1a',
+  'state-v10-morale.json': 'ed3ecaa7',
+  'state-v10-objectives.json': 'fecab483',
+  'state-v10-palisade.json': '16a060e5',
+  'state-v10-peasant-3x.json': '17dc9e0d',
+  'state-v10-queues.json': '965b4086',
+  'state-v10-storage.json': 'c839fb4a',
+  'state-v10-threat.json': '89f4f1d5',
+  'state-v10-week-scripted.json': '31dbc9ff',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -362,6 +381,21 @@ describe('a forma da versão atual', () => {
             announcedAtMs: null,
           },
         ]),
+    ],
+    ['os feridos ausentes', (state) => delete state.settlement.injured],
+    ['um ferido sem prazo', (state) => (state.settlement.injured = [{ building: 'farm' }])],
+    [
+      'um ferido sem dizer de onde saiu',
+      (state) => (state.settlement.injured = [{ untilMs: 7_200_000 }]),
+    ],
+    [
+      'um ferido de um edifício que não tem ofício',
+      (state) => (state.settlement.injured = [{ untilMs: 7_200_000, building: 'housing' }]),
+    ],
+    [
+      'um ferido com um campo a mais',
+      (state) =>
+        (state.settlement.injured = [{ untilMs: 7_200_000, building: null, raidId: 'threat-1' }]),
     ],
     ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
     ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
@@ -562,6 +596,15 @@ describe('a forma da versão atual', () => {
     expect(broken([{ building: 'farm', count: 1 }])).toMatch(/untilMs: campo ausente$/);
     expect(broken(null)).toMatch(/^settlement\.adaptation/);
   });
+
+  it('aceita os feridos: de cada edifício produtivo do conteúdo, e os que não tinham ofício', () => {
+    const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+    state.settlement.injured = [
+      ...PRODUCTION_BUILDING_IDS.map((building) => ({ untilMs: 7_200_000, building })),
+      { untilMs: 14_400_000, building: null },
+    ];
+    expect(currentShape(state, '')).toBeNull();
+  });
 });
 
 describe.each(fixtures)('$name', (fixture) => {
@@ -660,17 +703,20 @@ describe.each(fixtures)('$name', (fixture) => {
 
     const view = deriveViewState(advanced.state, end);
     expect(view.settlement.name).toBe('Vau do Corvo');
-    // Depois de um mês, o senhor volta e manda todo mundo para a Fazenda.
+    // Depois de um mês, o senhor volta e manda para a Fazenda todo mundo que pode trabalhar
+    // (quem os lobos feriram na véspera fica de cama).
     let later = advanced.state;
+    const able = later.settlement.population.villagers - later.settlement.injured.length;
     for (const building of ['lumberMill', 'quarry', 'goldMine', 'farm'] as const) {
-      const count = building === 'farm' ? later.settlement.population.villagers : 0;
+      const count = building === 'farm' ? able : 0;
       const result = applyCommand(later, command('setWorkers', { building, count }), end);
       expect(result.ok).toBe(true);
       if (result.ok) {
         later = result.state;
       }
     }
-    expect(later.settlement.workers.farm).toBe(later.settlement.population.villagers);
+    expect(later.settlement.workers.farm).toBe(able);
+    expect(able).toBeGreaterThan(0);
   });
 
   it('a divisão de intervalo continua exata sobre o estado migrado', () => {
@@ -788,6 +834,7 @@ describe('versão 2 → 3', () => {
     delete old.settlement.adaptation;
     delete old.settlement.morale;
     delete old.settlement.moraleEffects;
+    delete old.settlement.injured;
     delete old.council;
     delete old.map;
     delete old.horde;
@@ -1585,6 +1632,11 @@ describe('versão 8 → 9', () => {
 
 describe('versão 9 → 10', () => {
   const version9 = fixtures.filter((fixture) => fixture.version === 9);
+  // Só até a versão 10: o que a Paliçada mudou, sem o que as versões seguintes acrescentaram.
+  const palisade: MigrationChain = {
+    steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6, v6ToV7, v7ToV8, v8ToV9, v9ToV10],
+    shape: stateV10,
+  };
   const palisadeOf = (state: GameState) =>
     deriveViewState(state, state.lastProcessedAt).constructions.available.find(
       (entry) => entry.building === 'palisade',
@@ -1599,7 +1651,11 @@ describe('versão 9 → 10', () => {
 
   it.each(version9)('$name: só acrescenta a Paliçada, no nível 0', (fixture) => {
     const before = read(fixture) as unknown as GameState;
-    const after = migrated(fixture);
+    const after = migrateWith(
+      read(fixture),
+      { timeScale: fixture.timeScale },
+      palisade,
+    ) as unknown as GameState;
     expect(after.schemaVersion).toBe(10);
     expect(after.settlement.buildings).toStrictEqual({
       ...before.settlement.buildings,
@@ -1679,6 +1735,210 @@ describe('versão 9 → 10', () => {
     expect(ready.settlement.buildings.townHall).toBeGreaterThanOrEqual(3);
     expect(eligible(ready)).toContain('palisadePromisePlea');
     expect(eligible(early)).not.toContain('palisadePromisePlea');
+  });
+});
+
+describe('versão 10 → 11', () => {
+  const version10 = fixtures.filter((fixture) => fixture.version === 10);
+  const DAY = 2 * HOUR;
+  /** O instante da incursão do roteiro: o início do 16º dia de jogo do ano 1. */
+  const WOLVES_AT = 15 * DAY;
+  const HOWL_AT = 9 * DAY;
+  const WOLVES = {
+    id: 'wolvesYear1',
+    atMs: WOLVES_AT,
+    kind: 'scripted',
+    enemy: 'wolves',
+    size: 'light',
+    announcedAtMs: null,
+  };
+  const raidEvents = (events: GameEvent[]) =>
+    events.filter((event) => /^(raid|wolves|villager(Injured|Recovered))/.test(event.type));
+
+  /** Um estado como a versão 10 o gravava, a partir de um da versão atual. */
+  function asVersion10(state: GameState): Draft {
+    const old = JSON.parse(JSON.stringify(state)) as Draft;
+    old.schemaVersion = 10;
+    delete old.settlement.injured;
+    old.horde.scheduledRaids = [];
+    return old;
+  }
+
+  it('o que o passo escreve é o que uma partida nova tem, e a incursão dele é a do conteúdo', () => {
+    const fresh = migrated(named('state-v10-fresh.json'));
+    expect(fresh.horde).toEqual(newGame().horde);
+    expect(fresh.settlement.injured).toEqual(newGame().settlement.injured);
+    expect(fresh.horde.scheduledRaids).toEqual([WOLVES]);
+    // O número escrito no passo coincide com o do conteúdo de hoje.
+    expect(scriptedRaidsAfter(0)).toEqual([WOLVES]);
+    expect(balance.raids.scripted).toHaveLength(1);
+  });
+
+  it.each(version10)(
+    '$name: só acrescenta os feridos, vazios, e os lobos do roteiro para quem ainda não passou deles',
+    (fixture) => {
+      const before = read(fixture) as unknown as GameState;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(11);
+      expect(after.settlement.injured).toStrictEqual([]);
+      expect(after.horde).toStrictEqual({
+        scheduledRaids: before.lastProcessedAt < WOLVES_AT ? [WOLVES] : [],
+      });
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou sorteio muda.
+      expect({
+        ...after,
+        schemaVersion: 10,
+        settlement: before.settlement,
+        horde: before.horde,
+      }).toStrictEqual({ ...before, migratedAtMs: before.lastProcessedAt });
+      const settlement: Partial<GameState['settlement']> = { ...after.settlement };
+      delete settlement.injured;
+      expect(settlement).toStrictEqual(before.settlement);
+    },
+  );
+
+  it('os retratos cobrem os dois lados: quem ainda vai receber os lobos e quem já passou deles', () => {
+    const receives = version10
+      .filter((fixture) => migrated(fixture).horde.scheduledRaids.length > 0)
+      .map((fixture) => fixture.name);
+    expect(receives).toEqual([
+      'state-v10-construction.json',
+      'state-v10-council-hidden.json',
+      'state-v10-fresh.json',
+      'state-v10-iron-king-half.json',
+      'state-v10-objectives.json',
+      'state-v10-palisade.json',
+      'state-v10-queues.json',
+      'state-v10-threat.json',
+    ]);
+    expect(receives.length).toBeLessThan(version10.length);
+  });
+
+  it.each(version10)(
+    '$name: nada acontece na fronteira: nenhum evento, nenhum sorteio, ninguém ferido',
+    (fixture) => {
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events).toEqual([]);
+      expect(atBoundary.state.rng).toEqual(state.rng);
+      expect(atBoundary.state.settlement.injured).toEqual([]);
+      expect(atBoundary.state.horde).toEqual(state.horde);
+      // A visão diz zero feridos, e a Ameaça continua fechada ou aberta como estava.
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.population).toMatchObject({ injured: 0, injuredNote: null });
+    },
+  );
+
+  it('quem migra antes dos uivos ouve os uivos e recebe os lobos, nos instantes do roteiro', () => {
+    const state = migrated(named('state-v10-fresh.json'));
+    const { events } = advanceTo(state, WOLVES_AT);
+    expect(raidEvents(events).map((event) => [event.type, event.atMs])).toEqual([
+      ['wolvesHowl', HOWL_AT],
+      ['raidSuffered', WOLVES_AT],
+      // Ninguém tinha ofício: quem se fere é um aldeão sem ofício.
+      ['villagerInjured', WOLVES_AT],
+    ]);
+  });
+
+  it('quem migra entre os uivos e os lobos recebe os lobos, sem os uivos: o dia deles já passou', () => {
+    // O retrato da Ameaça parou no 10º dia de jogo, 23 minutos depois dos uivos.
+    const fixture = named('state-v10-threat.json');
+    const state = migrated(fixture);
+    expect(state.lastProcessedAt).toBeGreaterThan(HOWL_AT);
+    expect(state.lastProcessedAt).toBeLessThan(WOLVES_AT);
+    const { events } = advanceTo(state, WOLVES_AT);
+    expect(raidEvents(events).map((event) => event.type)).toEqual([
+      // A Torre do retrato (nível 1) avisa uma hora antes.
+      'raidAnnounced',
+      'raidSuffered',
+      'villagerInjured',
+    ]);
+    expect(events.filter((event) => event.type === 'wolvesHowl')).toEqual([]);
+  });
+
+  it('quem migra no instante exato dos lobos, ou depois, não os recebe: o instante já passou', () => {
+    const at = (boundary: number) =>
+      migrateState(asVersion10(gameAt(boundary)), { timeScale: 1 }).horde.scheduledRaids;
+    expect(at(WOLVES_AT - 1)).toEqual([WOLVES]);
+    expect(at(WOLVES_AT)).toEqual([]);
+    expect(at(WOLVES_AT + 1)).toEqual([]);
+    expect(at(84 * DAY + 3 * DAY)).toEqual([]);
+    // Uma ausência longa antes da migração não vira incursão nenhuma.
+    for (const name of ['state-v10-migrated-3x.json', 'state-v10-peasant-3x.json']) {
+      const state = migrated(named(name));
+      expect(state.clock.year, name).toBeGreaterThan(1);
+      expect(state.horde.scheduledRaids, name).toEqual([]);
+      expect(raidEvents(advanceTo(state, state.lastProcessedAt + DAY - 1).events)).toEqual([]);
+    }
+  });
+
+  it('as incursões por Ameaça contam da fronteira: a primeira só pode ser sorteada na virada seguinte e chega 6 h de jogo depois', () => {
+    // O cenário de 7 dias, encontrado no ano 2 com a Ameaça em 100: a ausência anterior foi
+    // simulada sem incursões, e nenhuma delas volta agora.
+    const state = migrated(named('state-v10-week-scripted.json'));
+    expect(state.map.threat).toBe(100);
+    expect(state.rng.horde).toBeUndefined();
+    const firstTurn = (Math.floor(state.lastProcessedAt / DAY) + 1) * DAY;
+    const earliest = firstTurn + balance.threat.raidLeadMs;
+    expect(raidEvents(advanceTo(state, earliest - 1).events).map((event) => event.type)).toEqual(
+      // Com a Torre no nível 2 do retrato, o alarme pode soar antes de a incursão chegar.
+      expect.not.arrayContaining(['raidSuffered', 'raidRepelled']),
+    );
+    const { state: later, events } = advanceTo(state, state.lastProcessedAt + 30 * DAY);
+    const resolved = events.filter(
+      (event) => event.type === 'raidSuffered' || event.type === 'raidRepelled',
+    );
+    expect(resolved.length).toBeGreaterThan(0);
+    for (const event of resolved) {
+      expect(event.atMs).toBeGreaterThanOrEqual(earliest);
+    }
+    expect(later.rng.horde).toHaveLength(4);
+  });
+
+  it('uma incursão que o estado antigo já trouxesse marcada fica onde está, e a lista continua em ordem', () => {
+    const old = asVersion10(gameAt(3 * DAY));
+    const late = { ...WOLVES, id: 'threat-9', kind: 'threat', atMs: 40 * DAY };
+    const soon = { ...WOLVES, id: 'threat-8', kind: 'threat', atMs: 5 * DAY };
+    old.horde.scheduledRaids = [soon, late];
+    const state = migrateState(old, { timeScale: 1 });
+    expect(state.horde.scheduledRaids.map((entry) => entry.id)).toEqual([
+      'threat-8',
+      'wolvesYear1',
+      'threat-9',
+    ]);
+  });
+
+  it('a fronteira dentro da antecedência da Torre: o alarme soa no primeiro avanço, na fronteira, uma vez', () => {
+    // Uma partida da versão 10 com a Torre no nível 1, parada meia hora de jogo antes do
+    // instante dos lobos: o passo os marca sem aviso, e quem avisa é o primeiro `advanceTo`.
+    const boundary = WOLVES_AT - 30 * MINUTE;
+    const old = asVersion10(
+      gameAt(boundary, (draft) => {
+        draft.settlement.buildings.townHall = 2;
+        draft.settlement.buildings.watchtower = 1;
+      }),
+    );
+    const state = migrateState(old, { timeScale: 1 });
+    expect(state.horde.scheduledRaids).toEqual([WOLVES]);
+    expect(state.migratedAtMs).toBe(boundary);
+    // A visão já mostra os lobos a caminho, antes de qualquer avanço.
+    expect(deriveViewState(state, boundary).threat.incoming).toMatchObject({ inSeconds: 1800 });
+    const first = advanceTo(state, boundary + 1);
+    expect(first.events.map((event) => [event.type, event.atMs])).toEqual([
+      ['raidAnnounced', boundary],
+    ]);
+    const rest = advanceTo(first.state, WOLVES_AT);
+    expect(rest.events.filter((event) => event.type === 'raidAnnounced')).toEqual([]);
+    expect(raidEvents(rest.events).map((event) => event.type)).toEqual([
+      'raidSuffered',
+      'villagerInjured',
+    ]);
+    // E a divisão de intervalo continua exata a partir da fronteira.
+    const direct = advanceTo(state, WOLVES_AT + 3 * DAY);
+    const middle = advanceTo(state, WOLVES_AT - 7);
+    const end = advanceTo(middle.state, WOLVES_AT + 3 * DAY);
+    expect(end.state).toStrictEqual(direct.state);
+    expect([...middle.events, ...end.events]).toStrictEqual(direct.events);
   });
 });
 

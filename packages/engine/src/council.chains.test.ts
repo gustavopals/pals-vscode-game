@@ -14,6 +14,7 @@ import {
   HOUR,
   MINUTE,
   quietCouncil,
+  quietHorde,
   refuse,
   settings,
   SUMMER,
@@ -47,6 +48,8 @@ function feud(difficulty: DifficultyId = 'lord', timeScale = 1, atMs = 0): GameS
   state.settlement.resources = { food: 300_000, wood: 300_000, stone: 100_000, gold: 100_000 };
   state.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
   quietCouncil(state);
+  // E a Horda também: só a cadeia mexe no estoque e na moral deste feudo.
+  quietHorde(state);
   return state;
 }
 

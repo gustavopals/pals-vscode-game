@@ -11,6 +11,9 @@ export type {
   MoraleDef,
   PaceDef,
   PalisadeLevelDef,
+  RaidDamageDef,
+  RaidsDef,
+  ScriptedRaidDef,
   SeasonDef,
   SeasonEffects,
   StorageDef,
@@ -30,7 +33,10 @@ export {
   EVENT_TYPES,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   moraleBandTemplates,
+  raidTemplates,
   threatMarkTemplates,
 } from './chronicle';
 export type {
@@ -38,6 +44,7 @@ export type {
   ColdRelief,
   FoundingEventType,
   GameEventType,
+  RaidTemplates,
 } from './chronicle';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {

@@ -5,6 +5,7 @@ import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
 import { cardOf, CATALOG, type Catalog, deliverCard, DRAW_INTERVAL_MS } from './council';
 import { addMoraleEffect } from './morale';
+import { scriptedRaidsAfter } from './raids';
 import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
 import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
@@ -42,9 +43,10 @@ export function gameWith(edit: (draft: GameState) => void): GameState {
 /**
  * Um feudo posto direto em um instante do calendário, sem simular o caminho até lá: para os
  * cenários de estação. O relógio fica coerente com `lastProcessedAt`, os objetivos já estão
- * todos cumpridos, para nenhuma recompensa cair no meio da conta, e o Conselho está calado
- * (`quietCouncil`), para nenhuma carta cair no meio dos eventos. O cenário que quer o Conselho
- * chama `councilInSession` no `edit`.
+ * todos cumpridos, para nenhuma recompensa cair no meio da conta, e o Conselho e a Horda estão
+ * calados (`quietCouncil`, `quietHorde`), para nenhuma carta e nenhuma incursão caírem no meio
+ * dos eventos. O cenário que quer o Conselho chama `councilInSession` no `edit`; o que quer
+ * incursões põe as dele em `horde.scheduledRaids`, ou chama `hordeAwake`.
  */
 export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}): GameState {
   return gameWith((draft) => {
@@ -54,6 +56,7 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     draft.clock.yearStartMs = Math.floor(atMs / YEAR) * YEAR;
     draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
     quietCouncil(draft);
+    quietHorde(draft);
     edit(draft);
   });
 }
@@ -98,18 +101,46 @@ export function quietCouncil(draft: GameState): void {
   draft.council.nextDrawAtMs = 1000 * YEAR;
 }
 
-/** Uma cópia do estado com o Conselho calado (`quietCouncil`). */
+/**
+ * A Horda calada: no lugar das incursões marcadas fica uma só, para daqui a mil anos de jogo.
+ * Como só há uma marcada por vez, a Ameaça não sorteia nenhuma outra, a do roteiro do ano 1 não
+ * acontece, e nenhum vigia a avista: a Ameaça sobe como sempre, e mais nada. Para os cenários
+ * que contam os eventos e os estoques de outra mecânica. Serve de `edit` em `gameWith` e
+ * `gameAt`, ou dentro de um. Este estado só existe em teste.
+ */
+export function quietHorde(draft: GameState): void {
+  draft.horde.scheduledRaids = [
+    {
+      id: 'never',
+      atMs: 1000 * YEAR,
+      kind: 'threat',
+      enemy: 'wolves',
+      size: 'light',
+      announcedAtMs: null,
+    },
+  ];
+}
+
+/**
+ * A Horda de um feudo que chegou até aqui jogando, sem nenhuma incursão marcada: a do roteiro,
+ * se o instante dela ainda não passou, e mais nenhuma. A Ameaça volta a sortear nas viradas do
+ * dia. Chame depois de pôr o relógio no lugar.
+ */
+export function hordeAwake(draft: GameState): void {
+  draft.horde.scheduledRaids = scriptedRaidsAfter(draft.lastProcessedAt);
+}
+
+/** Uma cópia do estado com o Conselho e a Horda calados (`quietCouncil`, `quietHorde`). */
 export function quiet(state: GameState): GameState {
   const draft = cloneState(state);
   quietCouncil(draft);
+  quietHorde(draft);
   return draft;
 }
 
-/** Uma partida nova com o Conselho calado (`quietCouncil`). */
+/** Uma partida nova com o Conselho e a Horda calados (`quietCouncil`, `quietHorde`). */
 export function quietGame(seed = 'pedra-alta'): GameState {
-  const draft = cloneState(newGame(seed));
-  quietCouncil(draft);
-  return draft;
+  return quiet(newGame(seed));
 }
 
 /**
@@ -441,9 +472,9 @@ export function watchScenario(): GameState {
 
 /**
  * O mesmo feudo com a Torre no nível 2 e uma incursão média marcada para daqui a 47 minutos de
- * jogo: dentro do aviso da Torre, que neste nível também diz o tamanho. **O estado é montado à
- * mão**: nada marca incursões nesta versão do motor (quem sorteia e resolve é a incursão de
- * lobos, V2E-T3). Só serve para a visão; não avance este estado até a incursão.
+ * jogo: dentro do aviso da Torre, que neste nível também diz o tamanho. O estado é montado à
+ * mão, para a incursão cair onde o retrato a quer: no jogo ela chega sempre em uma virada de
+ * dia (`threat.raids.test.ts`).
  */
 export function raidInSightScenario(): GameState {
   const draft = cloneState(watchScenario());
@@ -455,10 +486,36 @@ export function raidInSightScenario(): GameState {
       kind: 'threat',
       enemy: 'wolves',
       size: 'medium',
-      announcedAtMs: null,
+      // Como se os vigias do nível 2 a tivessem anunciado na hora deles, 2 h de jogo antes.
+      announcedAtMs: draft.lastProcessedAt + 47 * MINUTE - 2 * HOUR,
     },
   ];
   return draft;
+}
+
+/**
+ * O dia seguinte ao ataque, no ritmo Rápido: o feudo do cenário da Torre sem Paliçada, uma hora
+ * de jogo depois de uma matilha grande passar por ele. Dois feridos (um lavrador e um lenhador,
+ * que voltam ao ofício sozinhos), a comida e a madeira que os lobos levaram, o termo de moral
+ * da incursão na conta da próxima virada, e a Ameaça dez pontos abaixo. É o que a tela mostra
+ * a quem volta e quer saber o que aconteceu e o que fazer.
+ */
+export function raidAftermathScenario(): GameState {
+  const start = cloneState(watchScenario());
+  const arrival = AUTUMN + 5 * DAY;
+  // Todos no ofício: os feridos saem da Fazenda e da Serraria.
+  start.settlement.workers = { farm: 4, lumberMill: 4, quarry: 2, goldMine: 2 };
+  start.horde.scheduledRaids = [
+    {
+      id: 'threat-1',
+      atMs: arrival,
+      kind: 'threat',
+      enemy: 'wolves',
+      size: 'medium',
+      announcedAtMs: null,
+    },
+  ];
+  return advanceTo(start, arrival + HOUR).state;
 }
 
 /**
@@ -578,9 +635,10 @@ const DAY_REAL = 24 * HOUR;
  * até o fim: cede as vigas da ponte, manda assentar os pilares de pedra (o que eles rendem
  * aparece dias depois) e abre a passagem com festa; promete a paliçada aos aldeões, ergue-a e a
  * mostra no prazo; cede a madeira ao celeiro, guarda o grão para o inverno e deixa a colheita
- * com as famílias. Deixa o poço para depois (outro efeito escondido) e fecha o portão aos
- * viajantes: com a mesa livre, a audiência seguinte traz o pedido da cerca. Às outras cartas
- * ele não responde: o prazo acaba e o conselho decide sozinho.
+ * com as famílias. Fecha o portão aos viajantes: com a mesa livre, a audiência seguinte traz o
+ * pedido da cerca. O poço, se chegar a tempo, fica para depois (outro efeito escondido); no
+ * roteiro de hoje ele só chega na virada do ano. Às outras cartas ele não responde: o prazo
+ * acaba e o conselho decide sozinho.
  */
 const weekAnswers: Readonly<Record<string, string>> = {
   collapsedWell: 'wait',
@@ -630,6 +688,9 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [36, command('cancelConstruction', { building: 'quarry' })],
   [36, command('startConstruction', { building: 'housing' })],
   [36, command('setWorkers', { building: 'quarry', count: 9 })],
+  // Não há nove braços livres: os dois que sobram vão para a Pedreira. Com todos no ofício, os
+  // lobos das 38 h ferem um lenhador e um canteiro, que largam o trabalho por um dia de jogo.
+  [36, command('setWorkers', { building: 'quarry', count: 4 })],
   // Dia 3: o feudo ganha nome novo e o Salão sobe.
   [48, command('recruitVillagers', { quantity: 4 })],
   [48, command('startConstruction', { building: 'goldMine' })],
@@ -653,12 +714,16 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [96, command('startConstruction', { building: 'watchtower' })],
   // E não passa disso nesta versão: a recusa diz que os níveis seguintes ficam para depois.
   [97, command('startConstruction', { building: 'watchtower' })],
-  // Dia 5: ordens dadas com o feudo faminto. A fome já dura mais de 12 h de jogo: a moral
-  // despencou e três aldeões desertaram. De volta à Fazenda; a fome acaba.
+  // Os lobos já passaram duas vezes pela Paliçada pequena, e a Crônica diz o que os teria
+  // detido: o senhor a leva ao nível 2. Daí em diante as matilhas grandes recuam.
+  [97, command('startConstruction', { building: 'palisade' })],
+  // A fome já dura mais de 12 h de jogo: a moral despencou e três aldeões desertaram. De volta
+  // à Fazenda; a fome acaba.
+  [97, command('setWorkers', { building: 'lumberMill', count: 2 })],
+  [97, command('setWorkers', { building: 'farm', count: 8 })],
+  // Dia 5: a despensa ainda se refaz.
   [108, command('recruitVillagers', { quantity: 1 })],
   [108, command('startConstruction', { building: 'lumberMill' })],
-  [108, command('setWorkers', { building: 'lumberMill', count: 2 })],
-  [108, command('setWorkers', { building: 'farm', count: 8 })],
   [120, command('startConstruction', { building: 'granary' })],
   // A Serraria entra na lista como manual, e na visita seguinte ganha a marca de automática.
   [120, command('planConstruction', { building: 'lumberMill' })],

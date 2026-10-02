@@ -334,9 +334,9 @@ describe('a incursão à vista e a Paliçada (`threat.incoming.defenseText`)', (
 });
 
 describe('a Paliçada e a ordem do mesmo instante', () => {
-  // A incursão de lobos (V2E-T3) resolve-se depois das obras concluídas: a Paliçada que termina
-  // no instante exato do ataque já conta. Aqui, o que esta tarefa garante: nesse instante o
-  // nível já é o novo, antes de qualquer coisa da virada do dia.
+  // A incursão resolve-se depois das obras concluídas: a Paliçada que termina no instante exato
+  // do ataque já conta, e o repele. Os vigias da Torre (nível 2) já tinham dado o alarme: no
+  // cenário, na primeira coisa que acontece, porque o feudo nasce dentro da antecedência.
   const arrival = 21 * DAY;
   const racing = (finishesAtMs: number, targetLevel = 1) =>
     feud(arrival - 20 * MINUTE, targetLevel - 1, 2, (draft) => {
@@ -352,24 +352,34 @@ describe('a Paliçada e a ordem do mesmo instante', () => {
   it('a obra que termina no instante da incursão já vale nele: o nível subiu antes da virada do dia', () => {
     const { state, events } = advanceTo(racing(arrival), arrival);
     const types = events.map((event) => event.type);
-    expect(types[0]).toBe('buildingFounded');
-    expect(types.indexOf('buildingFounded')).toBeLessThan(types.indexOf('dayStarted'));
+    expect(types).toEqual(['raidAnnounced', 'buildingFounded', 'dayStarted', 'raidRepelled']);
     expect(palisadeLevel(state)).toBe(1);
     expect(palisadeAgainst(palisadeLevel(state), 'light')).toEqual({ kind: 'held' });
     expect(view(state).defense.palisadeLevel).toBe(1);
   });
 
   it('um milissegundo depois já é tarde: no instante da incursão a Paliçada ainda não existe', () => {
-    const { state } = advanceTo(racing(arrival + 1), arrival);
+    const { state, events } = advanceTo(racing(arrival + 1), arrival);
     expect(palisadeLevel(state)).toBe(0);
     expect(palisadeAgainst(palisadeLevel(state), 'light')).toEqual({ kind: 'open' });
+    expect(events.map((event) => event.type)).toEqual([
+      'raidAnnounced',
+      'dayStarted',
+      'raidSuffered',
+      'villagerInjured',
+    ]);
   });
 
   it('vale também para a melhoria: o nível 2 que termina na hora segura a incursão média', () => {
     const before = advanceTo(racing(arrival, 2), arrival - 1).state;
     expect(palisadeAgainst(palisadeLevel(before), 'medium').kind).toBe('breached');
     const { state, events } = advanceTo(racing(arrival, 2), arrival);
-    expect(events[0]?.type).toBe('constructionFinished');
+    expect(events.map((event) => event.type)).toEqual([
+      'raidAnnounced',
+      'constructionFinished',
+      'dayStarted',
+      'raidRepelled',
+    ]);
     expect(palisadeAgainst(palisadeLevel(state), 'medium')).toEqual({ kind: 'held' });
   });
 });

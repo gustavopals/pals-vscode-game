@@ -8,9 +8,12 @@ import {
   enemies,
   foundingTemplates,
   idleVillager,
+  injuredLoss,
+  injuryTemplates,
   moraleBandTemplates,
   objectives,
   raidSizes,
+  raidTemplates,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -33,7 +36,9 @@ import { canonicalJson } from './canonical';
  * faixa da moral também contam: mudá-las muda o que o jogador lê. As cartas do Conselho
  * entram inteiras: texto, opções, custos, efeitos (os escondidos também) e a ordem do catálogo,
  * que faz parte do sorteio. Da Ameaça entram os tiles, os inimigos, os nomes dos tamanhos de
- * incursão e as frases de cada marca; os números dela, e os da Paliçada, estão em `balance`.
+ * incursão e as frases de cada marca; os números dela, e os da Paliçada, estão em `balance`. Das
+ * incursões entram as frases de cada inimigo (o aviso, o desfecho, o conselho) e as de quem se
+ * fere e sara; os números (o roteiro, o estrago, o ferimento, a moral) estão em `balance.raids`.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -52,6 +57,9 @@ function hashedContent(): Record<string, unknown> {
     enemies,
     raidSizes,
     threatMarkTemplates,
+    raidTemplates,
+    injuryTemplates,
+    injuredLoss,
   };
 }
 

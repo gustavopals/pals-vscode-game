@@ -18,6 +18,7 @@ import {
 } from './economy';
 import { moraleAt } from './morale';
 import { nextAutoStart, planCost } from './planned';
+import { recoverInjured } from './raids';
 import type { GameState, PlannedConstruction, ResourceId } from './types';
 import { MILLI, positiveEntries } from './units';
 
@@ -36,10 +37,14 @@ export type Probe<T extends Deadline> = (state: GameState, rates: Rates) => T | 
  */
 type Stretch = { atMs: number; state: GameState; rates: Rates; untilMs: number };
 
-/** Com todo mundo adaptado e nenhuma experiência por mudar, o ofício não mexe mais nas taxas. */
+/**
+ * Com todo mundo adaptado, nenhum ferido por voltar ao ofício e nenhuma experiência por mudar,
+ * o ofício não mexe mais nas taxas.
+ */
 function craftSettled(state: GameState): boolean {
   return (
     state.settlement.adaptation.length === 0 &&
+    state.settlement.injured.length === 0 &&
     PRODUCTION_BUILDING_IDS.every((building) => experienceChange(state, building) === 0)
   );
 }
@@ -62,8 +67,9 @@ const MAX_STRETCHES = 2 * DAYS_PER_YEAR;
 
 /**
  * Uma cópia do estado só no que a projeção altera: estoques, restos, desperdício, contadores,
- * o ofício e a moral (um número, que a cópia rasa já separa). O resto (obras, planejadas,
- * relógio) é compartilhado e ninguém aqui o toca.
+ * o ofício (com os trabalhadores e os feridos que voltam a ele) e a moral (um número, que a
+ * cópia rasa já separa). O resto (obras, planejadas, relógio) é compartilhado e ninguém aqui o
+ * toca.
  */
 function fork(state: GameState): GameState {
   const { settlement } = state;
@@ -78,6 +84,8 @@ function fork(state: GameState): GameState {
       craftExperience: { ...settlement.craftExperience },
       craftMasteredYear: { ...settlement.craftMasteredYear },
       adaptation: settlement.adaptation.map((cohort) => ({ ...cohort })),
+      workers: { ...settlement.workers },
+      injured: settlement.injured.map((hurt) => ({ ...hurt })),
     },
   };
 }
@@ -103,11 +111,17 @@ function relieveScarcity(draft: GameState): void {
   }
 }
 
+/** O instante, depois de `at`, em que o próximo ferido da cópia sara; `null` sem nenhum. */
+function recoveryAfter(state: GameState, at: number): number | null {
+  const untilMs = state.settlement.injured[0]?.untilMs;
+  return untilMs === undefined ? null : Math.max(untilMs, at + 1);
+}
+
 /**
  * Os trechos em que o ofício e a moral, sozinhos, mudam as taxas: a cada virada de dia a
- * experiência dos edifícios sobe ou cai e a moral é recalculada, e quem trocou de ofício passa
- * a render inteiro quando a adaptação termina. É a conta de `advanceTo`, trecho a trecho, sobre
- * cópias, só com a produção contínua e esses eventos. O relógio das cópias não anda: a estação
+ * experiência dos edifícios sobe ou cai e a moral é recalculada, quem trocou de ofício passa a
+ * render inteiro quando a adaptação termina, e o ferido que sara volta ao edifício dele. É a
+ * conta de `advanceTo`, trecho a trecho, sobre cópias, só com a produção contínua e esses eventos. O relógio das cópias não anda: a estação
  * é a de agora, e nada mais acontece nelas (nem obras, nem aldeões, nem ordens, nem sorteios:
  * a previsão não conta com o colono que pode chegar nem com o aldeão que pode partir). A fome e
  * o frio abertos acabam na cópia no instante em que acabariam no motor (`relieveScarcity`): dali
@@ -130,7 +144,12 @@ function stretchesOf(state: GameState): Stretch[] {
         foodRunsOutIn(current, rates) ?? Infinity,
         woodRunsOutIn(current, rates) ?? Infinity,
       );
-    const step = Math.min(nextDayBoundary(at), nextAdaptationEndAt(current) ?? Infinity);
+    const step = Math.min(
+      nextDayBoundary(at),
+      nextAdaptationEndAt(current) ?? Infinity,
+      // Na cópia o relógio não anda: o prazo do ferido é comparado com o instante da projeção.
+      recoveryAfter(current, at) ?? Infinity,
+    );
     if (scarce <= step) {
       stretches.push({ atMs: at, state: current, rates, untilMs: scarce });
       return stretches;
@@ -138,6 +157,8 @@ function stretchesOf(state: GameState): Stretch[] {
     stretches.push({ atMs: at, state: current, rates, untilMs: step });
     const next = fork(current);
     applyContinuous(next, step - at);
+    // Na ordem do motor: o ferido que sara volta antes da contagem da virada.
+    recoverInjured(next, step, []);
     if (isDayBoundary(step)) {
       tallyCraftExperience(next, step, []);
       next.settlement.morale = moraleAt(next, step);

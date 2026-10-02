@@ -110,6 +110,11 @@ export type HourRow = {
    * continuação), as que o bot respondeu e as que expiraram sem resposta.
    */
   cards: CardCounts;
+  /**
+   * As incursões até aqui, contadas dos eventos: as sofridas, as repelidas, os aldeões que se
+   * feriram e o que os lobos levaram de cada recurso, em unidades (`raided_<recurso>`).
+   */
+  raids: RaidCounts;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -128,6 +133,14 @@ export type SimulationResult = {
 
 type CommandCounts = { accepted: number; refused: Record<string, number> };
 export type CardCounts = { seen: number; answered: number; expired: number };
+export type RaidCounts = {
+  suffered: number;
+  repelled: number;
+  /** Incursões que os vigias da Torre anunciaram antes de chegar. */
+  announced: number;
+  injured: number;
+  lost: Record<ResourceId, number>;
+};
 
 /**
  * A fila de obras parada à toa, como o jogador a veria no painel: há ao menos uma obra que
@@ -194,6 +207,23 @@ function addCards(cards: CardCounts, events: GameEvent[]): void {
   }
 }
 
+/** Conta, dos eventos, as incursões, os feridos e o que os lobos levaram de cada recurso. */
+function addRaids(raids: RaidCounts, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type === 'raidRepelled') {
+      raids.repelled += 1;
+    } else if (event.type === 'raidAnnounced') {
+      raids.announced += 1;
+    } else if (event.type === 'raidSuffered') {
+      raids.suffered += 1;
+      raids.injured += Number(event.data.injured ?? 0);
+      for (const id of Object.keys(raids.lost) as ResourceId[]) {
+        raids.lost[id] += Number(event.data[`raided_${id}`] ?? 0);
+      }
+    }
+  }
+}
+
 function rowAt(
   state: GameState,
   hour: number,
@@ -201,6 +231,7 @@ function rowAt(
   commands: CommandCounts,
   reportedWaste: Record<ResourceId, number>,
   cards: CardCounts,
+  raids: RaidCounts,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -231,6 +262,7 @@ function rowAt(
     ...idleQueue(view),
     threat: state.map.threat,
     cards: { ...cards },
+    raids: { ...raids, lost: { ...raids.lost } },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };
@@ -273,6 +305,13 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const commands: CommandCounts = { accepted: 0, refused: {} };
   const reportedWaste: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
   const cards: CardCounts = { seen: 0, answered: 0, expired: 0 };
+  const raids: RaidCounts = {
+    suffered: 0,
+    repelled: 0,
+    announced: 0,
+    injured: 0,
+    lost: { food: 0, wood: 0, stone: 0, gold: 0 },
+  };
   let commandCount = 0;
 
   const order: Act = async (type, payload) => {
@@ -307,6 +346,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       events.push(...advanced.events);
       addReportedWaste(reportedWaste, advanced.events);
       addCards(cards, advanced.events);
+      addRaids(raids, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
@@ -315,7 +355,8 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     events.push(...advanced.events);
     addReportedWaste(reportedWaste, advanced.events);
     addCards(cards, advanced.events);
-    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards));
+    addRaids(raids, advanced.events);
+    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids));
   }
 
   return {

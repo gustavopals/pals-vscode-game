@@ -169,11 +169,12 @@ describe('sem a Torre de Vigia, a Ameaça não sai do servidor', () => {
       },
     });
 
-    // 30 h reais no ritmo 1 são 15 dias de jogo: a Ameaça passou dos 40 e dos 70.
+    // 30 h reais no ritmo 1 são 15 dias de jogo: a Ameaça passou dos 40 e dos 70, chegou a 75,
+    // e os lobos do roteiro, que acabam de passar, a derrubaram a 65.
     await wait(normal, who, 30 * HOUR);
     const later = await viewOf(normal, who, who.game.id);
     expect(later.threat).toEqual(start.threat);
-    expect((await storedState(normal, who.game.id)).state.map.threat).toBe(75);
+    expect((await storedState(normal, who.game.id)).state.map.threat).toBe(65);
 
     const events = await eventsOf(normal, who, who.game.id);
     expect(events.filter((event) => event.type === 'threatRose')).toEqual([]);
@@ -368,8 +369,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(10);
-    expect(row.state.schemaVersion).toBe(10);
+    expect(row.schema_version).toBe(11);
+    expect(row.state.schemaVersion).toBe(11);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
