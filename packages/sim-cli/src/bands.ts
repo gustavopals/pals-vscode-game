@@ -1,7 +1,14 @@
 import { balance, type DifficultyId } from '@lotg/content';
 
 import type { ProfileId, Range, WindowId } from './matrix';
-import { refusedByCode, type Summary, SURPLUS_RESOURCES, type SurplusResource } from './report';
+import {
+  formatDecimal,
+  refusedByCode,
+  type Summary,
+  SURPLUS_RESOURCES,
+  type SurplusResource,
+  worstWasteStreak,
+} from './report';
 
 /** Uma célula da matriz: `week/3/regular` é 7 dias reais, ritmo 3, perfil Regular. */
 export type CellKey = `${WindowId}/${number}/${ProfileId}`;
@@ -22,6 +29,8 @@ type Baseline = {
   coldHours: number;
   /** Maior estoque final de cada material, em unidades: o excedente parado. */
   surplus: Record<SurplusResource, number>;
+  /** A maior sequência desperdiçando um recurso, o pior deles, em horas de jogo. */
+  wasteStreak: number;
 };
 
 function measured(
@@ -32,6 +41,7 @@ function measured(
   wood: number,
   stone: number,
   gold: number,
+  wasteStreak: number,
 ): Baseline {
   return {
     villagers: { min: villagers[0], max: villagers[1] },
@@ -39,13 +49,14 @@ function measured(
     famineHours,
     coldHours,
     surplus: { wood, stone, gold },
+    wasteStreak,
   };
 }
 
 /**
  * Linha de base medida: dificuldade Senhor, 50 sementes por célula. As faixas saem daqui, pela
  * regra de `SLACK`. A rodada completa, com data e identificação, está em docs/balance-v0.2.md
- * (a última é a da seção 7, depois da moral, V2C-T4).
+ * (a última é a da seção 7, depois da moral, V2C-T4; a sequência desperdiçando, a da seção 8).
  *
  * Estes números NÃO são metas aprovadas pelo autor: são o jogo como ele está, postos como
  * guarda de regressão (ADR 0013, decisão 5). Quando uma mecânica muda a economia de propósito,
@@ -54,33 +65,36 @@ function measured(
  * sem que a mudança fosse a intenção, o ajuste é nos números de `@lotg/content`, nunca no bot.
  */
 // Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro
-// parados.
+// parados, e a maior sequência desperdiçando um recurso, em horas de jogo.
 const MEASURED: Partial<Record<CellKey, Baseline>> = {
-  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3900, 3900, 4660),
-  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628),
-  'week/3/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 64707),
-  'week/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637),
-  'week/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000),
-  'week/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716),
-  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 70, 188, 231),
-  'week/0.5/regular': measured([54, 54], 6, 0, 0, 753, 952, 652),
-  'week/0.5/dedicado': measured([61, 61], 6, 0, 0, 813, 920, 180),
-  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 513, 531, 160),
-  'year/3/regular': measured([27, 27], 5, 0, 0, 780, 1234, 1155),
-  'year/3/dedicado': measured([52, 52], 7, 0, 0, 815, 1672, 477),
-  'year/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637),
-  'year/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000),
-  'year/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716),
-  'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 1029, 1279, 977),
-  'year/0.5/regular': measured([74, 74], 7, 0, 0, 5100, 5100, 5772),
-  'year/0.5/dedicado': measured([74, 74], 7, 0, 0, 5100, 4525, 8053),
+  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3900, 3900, 4660, 75),
+  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628, 165),
+  'week/3/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 64707, 294),
+  'week/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
+  'week/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000, 9),
+  'week/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716, 27),
+  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 70, 188, 231, 3.5),
+  'week/0.5/regular': measured([54, 54], 6, 0, 0, 753, 952, 652, 1.5),
+  'week/0.5/dedicado': measured([61, 61], 6, 0, 0, 813, 920, 180, 0),
+  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 513, 531, 160, 75),
+  'year/3/regular': measured([27, 27], 5, 0, 0, 780, 1234, 1155, 18),
+  'year/3/dedicado': measured([52, 52], 7, 0, 0, 815, 1672, 477, 9),
+  'year/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
+  'year/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000, 9),
+  'year/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716, 27),
+  'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 1029, 1279, 977, 3.5),
+  'year/0.5/regular': measured([74, 74], 7, 0, 0, 5100, 5100, 5772, 16),
+  'year/0.5/dedicado': measured([74, 74], 7, 0, 0, 5100, 4525, 8053, 19),
 };
 
 /** A folga entre o que foi medido e o que a faixa aceita. Pequena e explícita. */
 export const SLACK = {
   /** População: de 10% abaixo do menor a 10% acima do maior valor medido. */
   villagersPercent: 10,
-  /** Horas de fome, horas de frio e excedente parado: até 5% acima do maior valor medido. */
+  /**
+   * Horas de fome, horas de frio, excedente parado e sequência desperdiçando: até 5% acima do
+   * maior valor medido.
+   */
   ceilingPercent: 5,
 } as const;
 
@@ -92,6 +106,12 @@ export type Band = {
   coldHoursMax: number;
   /** Limite do excedente parado de cada material, em unidades. */
   surplusMax: Record<SurplusResource, number>;
+  /**
+   * Limite da maior sequência desperdiçando um recurso, em horas de jogo. Como as outras, é o
+   * medido com folga, uma guarda de regressão: a **meta** é `WASTE_STREAK_GOAL`, e as células do
+   * perfil Regular que ainda passam dela estão em `balance.test.ts` e em docs/balance-v0.2.md.
+   */
+  wasteStreakMax: number;
 };
 
 function ceiling(value: number): number {
@@ -111,6 +131,7 @@ function bandOf(baseline: Baseline): Band {
     surplusMax: Object.fromEntries(
       SURPLUS_RESOURCES.map((id) => [id, ceiling(baseline.surplus[id])]),
     ) as Record<SurplusResource, number>,
+    wasteStreakMax: ceiling(baseline.wasteStreak),
   };
 }
 
@@ -147,6 +168,12 @@ export function checkBand(band: Band, summary: Summary): string[] {
         `excedente parado de ${balance.resources[id].label.toLowerCase()}: ${surplus[id]}, acima do limite de ${band.surplusMax[id]}`,
       );
     }
+  }
+  const waste = worstWasteStreak(summary);
+  if (waste.gameHours > band.wasteStreakMax) {
+    problems.push(
+      `${formatDecimal(waste.gameHours)} h de jogo seguidas desperdiçando ${balance.resources[waste.resource].label.toLowerCase()}, acima do limite de ${band.wasteStreakMax} h`,
+    );
   }
   if (commandsRefused > 0) {
     problems.push(

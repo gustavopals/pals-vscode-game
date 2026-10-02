@@ -138,15 +138,42 @@ describe('relatório da matriz', () => {
     expect(text).toContain(
       '| Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) |',
     );
-    expect(text).toContain('| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 |');
+    expect(text).toContain(
+      '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
+    );
+    expect(text).toContain(
+      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 39.510 | ≤ 174 | 0 |',
+    );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
+  });
+
+  it('traz a meta de desperdício do perfil Regular, célula a célula, com o veredito', () => {
+    const [, section] = text.split('## Meta de desperdício');
+    const goal = (section ?? '').split('## Linha de base')[0] ?? '';
+    expect(goal).toContain('com 2 sessões por dia, nenhum recurso passa de 8 h de jogo seguidas');
+    expect(goal).toContain(
+      '| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |',
+    );
+    const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
+    expect(rows).toEqual([
+      '| 7 dias reais | Rápido 3× | Regular | 36 | 165 | 144 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 1,5 | 0,5 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 18 | 9 | 3 | ≤ 8 | **acima** |',
+      '| Um ano de jogo | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 8,5 | 16 | 10,5 | ≤ 8 | **acima** |',
+    ]);
+    // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
+    expect(text).toContain('Todas as partidas dentro das faixas.');
   });
 
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
-    expect(lines[1]).toBe("  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628),");
+    expect(lines[1]).toBe(
+      "  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628, 165),",
+    );
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -200,7 +227,8 @@ describe('CSV da matriz', () => {
     expect(lines[0]).toBe(
       'window,time_scale,profile,strategy,sessions_per_day,difficulty,seed,real_hours,game_years,' +
         'villagers,capacity,town_hall,famine_hours,queue_idle_hours,planned_idle_hours,' +
-        'free_villager_hours,food,wood,stone,gold,commands_accepted,commands_refused,' +
+        'free_villager_hours,waste_streak_game_hours,food,wood,stone,gold,commands_accepted,' +
+        'commands_refused,' +
         `refused_by_code,${MECHANIC_COLUMN_NAMES.join(',')}`,
     );
     expect(MECHANIC_COLUMN_NAMES).toEqual([

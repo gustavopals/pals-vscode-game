@@ -1106,3 +1106,88 @@ As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/s
 - **As comparações da seção 7.3 foram medidas com três sementes e com variantes do bot que não estão no código** (um `recrutar` e uma alocação de teste, por `simulate({ ..., bot })`); só a cama vazia ficou. "Materiais por hora" soma três recursos de valor diferente: serve para comparar a mesma partida com e sem uma política, não para comparar perfis.
 - **O limite de 20 aldeões da cama vazia é do bot**, não do jogo: é onde um par de braços (5% de um feudo de 20) empata com os 10 pontos de moral. Um jogador pode preferir outra conta.
 - As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).
+
+## 8. A meta de desperdício, medida (correção da revisão da Fase C)
+
+A revisão independente da Fase C apontou que a meta do GDD §15.2, como o [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) (decisão 17) a lê, não era medida nem cobrada: "nenhum recurso desperdiçando no cap por mais de 8 h de jogo contínuas", no perfil Regular. O simulador contava só as horas reais com algum depósito cheio (`Desperdiçando (h)`), sem recurso e sem sequência. Esta seção registra a medida que passou a existir e o que ela diz. **Nenhum número do conteúdo, nenhuma regra e nenhum bot mudaram**: a identificação é a da seção 7, e todas as outras colunas da matriz saíram idênticas às dela.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o da correção (`git log --grep "meta de desperdício"`) |
+| Identificação | Motor 0.1.0 · estado v7 · conteúdo 3acde0478685be9d |
+| Dificuldade | Senhor (`lord`) |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, Node 24.19.0 |
+
+### 8.1 A medida
+
+**A maior sequência desperdiçando um recurso, em horas de jogo** (`wasteStreakGameHours`, em `packages/sim-cli/src/report.ts`): para cada recurso com limite (comida, madeira, pedra), a maior sequência de horas reais seguidas em que o desperdício acumulado subiu (a coluna `wasted_<recurso>` do CSV de uma partida), vezes o ritmo. Quem tem o CSV refaz a conta.
+
+- O resumo de uma partida ganhou a linha `Maior sequência desperdiçando, em horas de jogo: food 36, wood 165, stone 144 (meta do GDD §15.2 para 2 sessões por dia: até 8)`.
+- A matriz ganhou a coluna **"Maior sequência desperdiçando (h de jogo)"** (a do pior recurso de cada partida), a coluna `waste_streak_game_hours` no CSV e a seção **"Meta de desperdício"**, com as células do perfil Regular, recurso a recurso, e o veredito.
+- A meta e o perfil que ela cobra são `WASTE_STREAK_GOAL` (2 sessões por dia, 8 h de jogo): uma meta de balanceamento, que nada no motor conhece.
+
+**Resolução.** A amostra é de uma hora real, e a hora conta inteira quando o acumulado sobe ao menos uma unidade dentro dela. A medida arredonda para cima as pontas de cada sequência (até uma hora real em cada ponta: 6 h de jogo no ritmo 3, 2 h no ritmo 1, 1 h no 0,5) e não vê um desperdício menor que uma unidade por hora real. No ritmo 3, portanto, uma sequência medida de 9 h de jogo pode ser de pouco mais de 3 h de fato; uma de 165 h não deixa dúvida.
+
+### 8.2 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
+pnpm -s sim -- --seed pedra-alta-001 --days 7 --strategy economico --sessions-per-day 2 --time-scale 3 > semana.csv
+```
+
+A meta, como a rodada a escreve:
+
+| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7 dias reais | Rápido 3× | Regular | 36 | 165 | 144 | ≤ 8 | **acima** |
+| 7 dias reais | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |
+| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 1,5 | 0,5 | ≤ 8 | dentro |
+| Um ano de jogo | Rápido 3× | Regular | 18 | 9 | 3 | ≤ 8 | **acima** |
+| Um ano de jogo | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |
+| Um ano de jogo | Tranquilo 0,5× | Regular | 8,5 | 16 | 10,5 | ≤ 8 | **acima** |
+
+A coluna nova da matriz, em todos os perfis (a do pior recurso; as 50 sementes dão o mesmo valor), ao lado do desperdício da partida:
+
+| Janela | Ritmo | Perfil | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h reais) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|
+| 7 dias reais | Rápido 3× | Preguiçoso | 14.680 | 27.617 | 12.429 | 131 | 75 |
+| 7 dias reais | Rápido 3× | Regular | 22.682 | 135.052 | 44.655 | 120 | 165 |
+| 7 dias reais | Rápido 3× | Dedicado | 8.799 | 242.145 | 108.902 | 116 | 294 |
+| 7 dias reais | Normal 1× | Preguiçoso | 0 | 1.147 | 0 | 23 | 6 |
+| 7 dias reais | Normal 1× | Regular | 199 | 8.879 | 0 | 20 | 9 |
+| 7 dias reais | Normal 1× | Dedicado | 0 | 30.744 | 5.472 | 40 | 27 |
+| 7 dias reais | Tranquilo 0,5× | Preguiçoso | 0 | 144 | 0 | 7 | 3,5 |
+| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 1.111 | 42 | 5 | 1,5 |
+| 7 dias reais | Tranquilo 0,5× | Dedicado | 0 | 0 | 0 | 0 | 0 |
+| Um ano de jogo | Rápido 3× | Preguiçoso | 79 | 5.091 | 0 | 36 | 75 |
+| Um ano de jogo | Rápido 3× | Regular | 1.642 | 1.534 | 43 | 20 | 18 |
+| Um ano de jogo | Rápido 3× | Dedicado | 1.059 | 1.566 | 0 | 12 | 9 |
+| Um ano de jogo | Normal 1× | Preguiçoso | 0 | 1.147 | 0 | 23 | 6 |
+| Um ano de jogo | Normal 1× | Regular | 199 | 8.879 | 0 | 20 | 9 |
+| Um ano de jogo | Normal 1× | Dedicado | 0 | 30.744 | 5.472 | 40 | 27 |
+| Um ano de jogo | Tranquilo 0,5× | Preguiçoso | 0 | 340 | 0 | 9 | 3,5 |
+| Um ano de jogo | Tranquilo 0,5× | Regular | 291 | 32.127 | 4.741 | 82 | 16 |
+| Um ano de jogo | Tranquilo 0,5× | Dedicado | 122 | 36.574 | 6.489 | 91 | 19 |
+
+### 8.3 O que a medida diz
+
+- **O perfil Regular passa da meta em cinco das seis células.** Só a semana do ritmo Tranquilo fica dentro, e ela é meio ano de jogo: no ano inteiro do mesmo ritmo a madeira vai ao chão por 16 h de jogo seguidas.
+- **No ritmo Rápido, o recomendado, o desvio é de outra ordem de grandeza: 165 h de jogo seguidas de madeira, 144 de pedra e 36 de comida** nos sete dias reais. A causa não é o depósito, e é a que a seção 5.4 já apontava: o feudo acaba. A última obra do Regular termina na hora real 113 (Salão no nível 7, tudo o mais no 8, que é o teto alcançável em Senhor); dali até a hora 168 não há onde gastar, e a madeira vai ao chão nas 55 horas reais que restam, sem parar (165 h de jogo), e a pedra nas últimas 48. Ao todo são 120 das 168 horas com depósito cheio, e o ouro parado chega a 37.628.
+- **No primeiro ano do ritmo Rápido (56 h reais) o pior recurso é a comida, 18 h de jogo**, e a madeira fica em 9: aqui a medida está dentro da margem da própria resolução (6 h de jogo).
+- **No ritmo Normal a madeira passa da meta por uma hora: 9 h de jogo seguidas**, entre duas visitas (12 h). É o caso em que um ajuste pequeno resolve: um nível de Armazém mais cedo, ou o bot mandando os braços para o ouro quando a madeira enche (seção 4.8: o bot não reage ao depósito cheio na alocação).
+- **Jogar mais vezes não reduz a sequência**: o Dedicado tem 27 h no ritmo 1 e 294 h no ritmo 3, porque chega mais cedo ao teto. A meta do GDD só fala do Regular.
+
+### 8.4 Faixas, e o que fica para o autor
+
+- **A sequência ganhou faixa em toda célula**, pela regra da seção 2.3: o maior valor medido com 5% de folga (`wasteStreakMax`; a coluna nova de `MEASURED`, em `packages/sim-cli/src/bands.ts`). É guarda de regressão: uma mudança que piore a sequência de qualquer perfil reprova a rodada.
+- **A meta não virou faixa.** Cobrar 8 h hoje reprovaria cinco células, e trazê-las para dentro pede mexer em números do conteúdo (mais níveis ou um sumidouro para o que sobra no ritmo Rápido, capacidade ou custo dos depósitos no Normal), que é decisão de balanceamento do autor (ADR 0013, decisão 5: nenhum número foi ajustado antes das mecânicas; V2C-T7.2 e V2F-T1). `balance.test.ts` guarda, célula a célula, quais passam da meta e por quanto: quando uma delas entrar, o teste cai e a lista encolhe de propósito.
+- **O "pronto quando" de V2C-T7 ("o bot Regular satisfaz a faixa de desperdício") não está cumprido.** O que há é a medida, que a tarefa não tinha.
+
+### 8.5 Limites desta medição
+
+- A resolução é a da seção 8.1: uma hora real por amostra. Uma medida exata, em milissegundos de jogo, pediria ao motor guardar o instante em que cada episódio de depósito cheio começa e termina; hoje ele só conta o total do dia.
+- A medida é do bot. O `economico` não troca de ofício quando um depósito enche; um jogador trocaria, e a sequência dele seria menor.
+- As 50 sementes continuam dando o mesmo resultado (seção 7.8).

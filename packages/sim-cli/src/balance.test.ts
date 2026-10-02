@@ -2,7 +2,8 @@ import { balance } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { bandFor, cellKey } from './bands';
-import { MATRIX_SEEDS, PROFILES, runMatrix, WINDOWS } from './matrix';
+import { MATRIX_SEEDS, PROFILES, runMatrix, wasteGoalCells, WINDOWS } from './matrix';
+import { WASTE_STREAK_GOAL } from './report';
 import { simulate } from './simulate';
 
 // A matriz inteira: 2 janelas × 3 ritmos × 3 perfis × 50 sementes, na dificuldade Senhor. São
@@ -62,6 +63,40 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(band?.villagers).toEqual({ min: 59, max: 73 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
+  });
+
+  it('a meta de desperdício (ADR 0013, decisão 17) é medida em toda célula do Regular, e hoje só uma a cumpre', () => {
+    // GDD §15.2: com 2 sessões por dia, nenhum recurso passa de 8 h de jogo seguidas indo ao
+    // chão. O jogo de hoje NÃO cumpre a meta, e este teste guarda por quanto, célula a célula,
+    // para o desvio não passar despercebido nem piorar calado. Trazer estas células para
+    // dentro é decisão de balanceamento do autor (ADR 0013, decisão 5: nenhum número foi
+    // ajustado; V2C-T7.2 e V2F-T1): no ritmo 3 o Regular termina a última obra possível na
+    // hora real 113 e nas 55 seguintes não tem onde gastar (docs/balance-v0.2.md, seção 8).
+    // Quando uma célula entrar na meta, tire-a daqui.
+    expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
+    const goal = wasteGoalCells(matrix.cells);
+    expect(goal).toHaveLength(WINDOWS.length * paces.length);
+    expect(goal.every(({ cell }) => cell.profile.id === 'regular')).toBe(true);
+    const over = Object.fromEntries(
+      goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
+    );
+    expect(over).toEqual({
+      'week/3/regular': 165,
+      'week/1/regular': 9,
+      'year/3/regular': 18,
+      'year/1/regular': 9,
+      'year/0.5/regular': 16,
+    });
+    expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual(['week/0.5/regular']);
+  });
+
+  it('a sequência desperdiçando tem limite em toda célula: o medido com 5% de folga', () => {
+    for (const cell of matrix.cells) {
+      const limit = cell.band?.wasteStreakMax ?? -1;
+      const worst = cell.measure.wasteStreakWorst.max;
+      expect(limit, cell.key).toBeGreaterThanOrEqual(worst);
+      expect(limit, cell.key).toBeLessThanOrEqual(Math.ceil(worst * 1.05));
+    }
   });
 
   it('todo ritmo tem limite de excedente parado para cada material, e o limite é o medido com 5% de folga', () => {

@@ -9,6 +9,7 @@ const band: Band = {
   famineHoursMax: 0,
   coldHoursMax: 0,
   surplusMax: { wood: 10_518, stone: 4_400, gold: 1_719 },
+  wasteStreakMax: 10,
 };
 
 /** Uma partida dentro da faixa, com o que cada teste trocar. */
@@ -38,6 +39,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     surplus: { wood: 10_017, stone: 4_190, gold: 1_637 },
     wasted: { food: 0, wood: 0, stone: 0 },
     wasteHours: 0,
+    wasteStreakGameHours: { food: 0, wood: 0, stone: 0 },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -97,6 +99,19 @@ describe('conferência de uma partida contra a faixa', () => {
     ).toEqual([]);
   });
 
+  it('falha com uma sequência desperdiçando maior do que a medida, dizendo o recurso e as horas', () => {
+    const streak = (food: number, wood: number, stone: number) =>
+      summary({ wasteStreakGameHours: { food, wood, stone } });
+    expect(checkBand(band, streak(10, 3, 0))).toEqual([]);
+    expect(checkBand(band, streak(0, 12, 0))).toEqual([
+      '12 h de jogo seguidas desperdiçando madeira, acima do limite de 10 h',
+    ]);
+    // Só o pior recurso entra na frase; no ritmo 0,5 as horas saem com vírgula.
+    expect(checkBand(band, streak(11, 3, 16.5))).toEqual([
+      '16,5 h de jogo seguidas desperdiçando pedra, acima do limite de 10 h',
+    ]);
+  });
+
   it('falha com qualquer ordem recusada, dizendo os códigos', () => {
     expect(
       checkBand(band, summary({ commandsRefused: 3, refusedByCode: { QUEUE_BUSY: 2, FAMINE: 1 } })),
@@ -108,13 +123,15 @@ describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
     // Regular, 7 dias reais, ritmo 3: 72 aldeões, Salão Nv7, o Armazém no nível máximo e cheio
-    // (5.100 de madeira e 5.100 de pedra) e 37.628 de ouro parado.
+    // (5.100 de madeira e 5.100 de pedra), 37.628 de ouro parado e 165 h de jogo seguidas com a
+    // madeira indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
       villagers: { min: 64, max: 80 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
       surplusMax: { wood: 5_355, stone: 5_355, gold: 39_510 },
+      wasteStreakMax: 174,
     });
   });
 

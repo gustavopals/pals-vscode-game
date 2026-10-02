@@ -12,7 +12,9 @@ import {
   SURPLUS_RESOURCES,
   type SurplusResource,
   WASTE_RESOURCES,
+  WASTE_STREAK_GOAL,
   type WasteResource,
+  worstWasteStreak,
 } from './report';
 import { simulate } from './simulate';
 
@@ -105,6 +107,10 @@ export type CellMeasure = {
   surplus: Record<SurplusResource, Range>;
   wasted: Record<WasteResource, Range>;
   wasteHours: Range;
+  /** A maior sequência desperdiçando cada recurso, em horas de jogo. */
+  wasteStreak: Record<WasteResource, Range>;
+  /** A do pior recurso de cada partida: é a que a faixa e a meta do GDD §15.2 olham. */
+  wasteStreakWorst: Range;
 };
 
 export type MatrixCell = {
@@ -166,7 +172,27 @@ function measureOf(summaries: Summary[]): CellMeasure {
       WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasted[id])]),
     ) as Record<WasteResource, Range>,
     wasteHours: range((summary) => summary.wasteHours),
+    wasteStreak: Object.fromEntries(
+      WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasteStreakGameHours[id])]),
+    ) as Record<WasteResource, Range>,
+    wasteStreakWorst: range((summary) => worstWasteStreak(summary).gameHours),
   };
+}
+
+/**
+ * As células que a meta de desperdício cobra (`WASTE_STREAK_GOAL`: o perfil de 2 sessões por
+ * dia) e o que cada uma mediu: a maior sequência desperdiçando um recurso, em horas de jogo, e
+ * se ela cabe na meta.
+ */
+export function wasteGoalCells(
+  cells: readonly MatrixCell[],
+): Array<{ cell: MatrixCell; gameHours: number; met: boolean }> {
+  return cells
+    .filter((cell) => cell.profile.sessionsPerDay === WASTE_STREAK_GOAL.sessionsPerDay)
+    .map((cell) => {
+      const gameHours = cell.measure.wasteStreakWorst.max;
+      return { cell, gameHours, met: gameHours <= WASTE_STREAK_GOAL.gameHours };
+    });
 }
 
 /**
@@ -273,6 +299,13 @@ function formatRange({ min, max }: Range): string {
   return min === max ? formatInt(min) : `${formatInt(min)} a ${formatInt(max)}`;
 }
 
+/** Horas de jogo, que no ritmo 0,5 saem com meia hora: `165`, `1,5`, `0 a 1,5`. */
+function formatHoursRange({ min, max }: Range): string {
+  return min === max ? formatDecimal(min) : `${formatDecimal(min)} a ${formatDecimal(max)}`;
+}
+
+const STREAK_TITLE = 'Maior sequência desperdiçando (h de jogo)';
+
 function table(header: string[], rows: string[][]): string {
   const line = (cells: string[]) => `| ${cells.join(' | ')} |`;
   return [line(header), line(header.map(() => '---')), ...rows.map(line)].join('\n');
@@ -281,6 +314,11 @@ function table(header: string[], rows: string[][]): string {
 /** Título da coluna de excedente parado de um material: "Excedente de madeira". */
 function surplusTitle(id: SurplusResource): string {
   return `Excedente de ${balance.resources[id].label.toLowerCase()}`;
+}
+
+/** Título da coluna da sequência desperdiçando um recurso: "Comida (h de jogo)". */
+function streakTitle(id: WasteResource): string {
+  return `${balance.resources[id].label} (h de jogo)`;
 }
 
 /** Título da coluna de desperdício de um recurso: "Desperdício de comida". */
@@ -295,13 +333,14 @@ function wasteTitle(id: WasteResource): string {
 function baselineLines(cells: MatrixCell[]): string {
   return cells
     .map(({ key, measure }) => {
-      const { villagers, townHall, famineHours, coldHours, surplus } = measure;
+      const { villagers, townHall, famineHours, coldHours, surplus, wasteStreakWorst } = measure;
       const values = [
         `[${villagers.min}, ${villagers.max}]`,
         townHall.min,
         famineHours.max,
         coldHours.max,
         ...SURPLUS_RESOURCES.map((id) => surplus[id].max),
+        wasteStreakWorst.max,
       ];
       return `  '${key}': measured(${values.join(', ')}),`;
     })
@@ -347,6 +386,7 @@ export function formatMatrix(result: MatrixResult): string {
         ...SURPLUS_RESOURCES.map(surplusTitle),
         ...WASTE_RESOURCES.map(wasteTitle),
         'Desperdiçando (h)',
+        STREAK_TITLE,
         'Recusas',
         'Faixa',
       ],
@@ -366,6 +406,7 @@ export function formatMatrix(result: MatrixResult): string {
         ...SURPLUS_RESOURCES.map((id) => formatRange(cell.measure.surplus[id])),
         ...WASTE_RESOURCES.map((id) => formatRange(cell.measure.wasted[id])),
         formatRange(cell.measure.wasteHours),
+        formatHoursRange(cell.measure.wasteStreakWorst),
         formatRange(cell.measure.commandsRefused),
         cell.band === null ? 'sem faixa' : cell.violations.length === 0 ? 'dentro' : '**fora**',
       ]),
@@ -383,6 +424,7 @@ export function formatMatrix(result: MatrixResult): string {
               'Fome (h)',
               'Frio (h)',
               ...SURPLUS_RESOURCES.map(surplusTitle),
+              STREAK_TITLE,
               'Recusas',
             ],
             banded.flatMap(({ band, paceLabel, profile }) =>
@@ -397,6 +439,7 @@ export function formatMatrix(result: MatrixResult): string {
                       `≤ ${formatInt(band.famineHoursMax)}`,
                       `≤ ${formatInt(band.coldHoursMax)}`,
                       ...SURPLUS_RESOURCES.map((id) => `≤ ${formatInt(band.surplusMax[id])}`),
+                      `≤ ${formatInt(band.wasteStreakMax)}`,
                       '0',
                     ],
                   ],
@@ -418,16 +461,38 @@ export function formatMatrix(result: MatrixResult): string {
           'Se a mudança não era para mexer na economia, é uma regressão: o ajuste é nos números de `@lotg/content`, nunca no bot. Se era, confira o que mudou, copie a linha de base abaixo para `MEASURED` e registre a rodada em `docs/balance-v0.2.md`.',
         ].join('\n');
 
+  const goal = wasteGoalCells(result.cells);
+  const windowLabel = (id: WindowId) => WINDOWS.find((window) => window.id === id)?.label ?? id;
+  const goalSection = [
+    '## Meta de desperdício',
+    '',
+    `GDD §15.2, na leitura do ADR 0013 (decisão 17): com ${WASTE_STREAK_GOAL.sessionsPerDay} sessões por dia, nenhum recurso passa de ${WASTE_STREAK_GOAL.gameHours} h de jogo seguidas indo ao chão. A medida é a maior sequência de horas reais em que o desperdício acumulado do recurso subiu, vezes o ritmo; cada hora conta inteira. É uma meta, não uma faixa: uma célula acima dela não reprova a rodada, e fica aqui à vista até o balanceamento a trazer para dentro.`,
+    '',
+    table(
+      ['Janela', 'Ritmo', 'Perfil', ...WASTE_RESOURCES.map(streakTitle), 'Meta', 'Veredito'],
+      goal.map(({ cell, met }) => [
+        windowLabel(cell.window),
+        cell.paceLabel,
+        cell.profile.label,
+        ...WASTE_RESOURCES.map((id) => formatHoursRange(cell.measure.wasteStreak[id])),
+        `≤ ${WASTE_STREAK_GOAL.gameHours}`,
+        met ? 'dentro' : '**acima**',
+      ]),
+    ),
+  ].join('\n');
+
   return [
     '# Matriz de balanceamento',
     '',
     `${identityLine()} · dificuldade ${result.difficultyLabel} (${result.difficulty}) · ${seedsLine(result.seeds)}`,
     '',
-    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção. "Moral mínima" é a menor moral de cada partida; "Moral baixa", as horas com o povo inquieto ou desesperado; "Foram embora", os aldeões que partiram ou desertaram.',
+    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção; "Maior sequência desperdiçando" é, do pior recurso de cada partida, a maior sequência de horas seguidas indo ao chão, em horas de jogo. "Moral mínima" é a menor moral de cada partida; "Moral baixa", as horas com o povo inquieto ou desesperado; "Foram embora", os aldeões que partiram ou desertaram.',
     '',
     sections.join('\n\n'),
     '',
     verdict,
+    '',
+    goalSection,
     '',
     '## Linha de base medida nesta rodada',
     '',
@@ -457,6 +522,8 @@ const runColumns: Array<[string, (run: MatrixRun, difficulty: DifficultyId) => s
   ['queue_idle_hours', (run) => run.summary.queueIdleHours],
   ['planned_idle_hours', (run) => run.summary.plannedIdleHours],
   ['free_villager_hours', (run) => run.summary.freeVillagerHours],
+  // A maior sequência desperdiçando um recurso (o pior deles), em horas de jogo.
+  ['waste_streak_game_hours', (run) => worstWasteStreak(run.summary).gameHours],
   ...RESOURCE_IDS.map((id): [string, (run: MatrixRun) => number] => [
     id,
     (run) => run.summary.stock[id],
