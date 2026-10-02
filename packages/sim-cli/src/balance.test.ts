@@ -1,29 +1,45 @@
-import { balance } from '@lotg/content';
+import { balance, DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { bandFor, cellKey } from './bands';
 import { MATRIX_SEEDS, PROFILES, runMatrix, wasteGoalCells, WINDOWS } from './matrix';
-import { WASTE_STREAK_GOAL } from './report';
+import { MILESTONES, WASTE_STREAK_GOAL } from './report';
 import { simulate } from './simulate';
 
 // A matriz inteira: 2 janelas × 3 ritmos × 3 perfis × 50 sementes, na dificuldade Senhor. São
-// 750 partidas distintas (no ritmo 1 as duas janelas são a mesma partida) e cerca de 2 s.
+// 750 partidas distintas (no ritmo 1 as duas janelas são a mesma partida) e uns 20 s.
 const matrix = await runMatrix();
 const paces = balance.paces.map((pace) => pace.timeScale);
 
+// As outras duas dificuldades têm faixa desde a rodada de balanceamento da Fase C (V2C-T7). Aqui
+// elas jogam as 3 primeiras sementes: enquanto nenhum bot chega a sortear, todas as sementes dão
+// a mesma partida, e as 50 pesariam três vezes na suíte. As 50 rodam pelo comando
+// (`pnpm -s sim -- --matrix --difficulty peasant`), e é delas a linha de base de `bands.ts`.
+const OTHER_SEEDS = MATRIX_SEEDS.slice(0, 3);
+const others = {
+  peasant: await runMatrix({ difficulty: 'peasant', seeds: OTHER_SEEDS }),
+  ironKing: await runMatrix({ difficulty: 'ironKing', seeds: OTHER_SEEDS }),
+};
+const byDifficulty: Record<DifficultyId, typeof matrix> = { ...others, lord: matrix };
+
 describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
   // Se uma faixa falhar, leia o cabeçalho de `MEASURED` em bands.ts antes de mexer em número.
-  it('há uma faixa para cada janela, cada ritmo que o jogo oferece e cada perfil', () => {
-    expect(matrix.cells).toHaveLength(WINDOWS.length * paces.length * PROFILES.length);
-    for (const window of WINDOWS) {
-      for (const timeScale of paces) {
-        for (const profile of PROFILES) {
-          const key = cellKey(window.id, timeScale, profile.id);
-          expect(bandFor(key), key).not.toBeNull();
+  it('há uma faixa para cada janela, cada ritmo que o jogo oferece e cada perfil, em cada dificuldade', () => {
+    expect(Object.keys(byDifficulty).sort()).toEqual([...DIFFICULTY_IDS].sort());
+    for (const difficulty of DIFFICULTY_IDS) {
+      const { cells } = byDifficulty[difficulty];
+      expect(cells, difficulty).toHaveLength(WINDOWS.length * paces.length * PROFILES.length);
+      for (const window of WINDOWS) {
+        for (const timeScale of paces) {
+          for (const profile of PROFILES) {
+            const key = cellKey(window.id, timeScale, profile.id);
+            expect(bandFor(key, difficulty), `${difficulty} ${key}`).not.toBeNull();
+          }
         }
       }
+      expect(cells.every((cell) => cell.band !== null)).toBe(true);
     }
-    expect(matrix.cells.every((cell) => cell.band !== null && cell.seeds === 50)).toBe(true);
+    expect(matrix.cells.every((cell) => cell.seeds === 50)).toBe(true);
   });
 
   it('as 50 sementes de cada célula ficam dentro da faixa: população, Salão, fome e excedente parado', () => {
@@ -32,8 +48,64 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.cells.flatMap((cell) => cell.violations)).toEqual([]);
   });
 
-  it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo', () => {
-    for (const run of matrix.runs) {
+  it.each(['peasant', 'ironKing'] as const)(
+    'em %s as partidas também ficam dentro das faixas da dificuldade',
+    (difficulty) => {
+      const result = others[difficulty];
+      expect(result.difficulty).toBe(difficulty);
+      expect(result.runs).toHaveLength(result.cells.length * OTHER_SEEDS.length);
+      expect(result.cells.flatMap((cell) => cell.violations)).toEqual([]);
+    },
+  );
+
+  it('em toda dificuldade e em todo perfil: nenhuma hora de fome, nenhuma de frio e ninguém vai embora', () => {
+    for (const difficulty of DIFFICULTY_IDS) {
+      for (const cell of byDifficulty[difficulty].cells) {
+        const where = `${difficulty} ${cell.key}`;
+        expect(cell.measure.famineHours, where).toEqual({ min: 0, max: 0 });
+        expect(cell.measure.coldHours, where).toEqual({ min: 0, max: 0 });
+        expect(cell.measure.villagersLost, where).toEqual({ min: 0, max: 0 });
+        // A menor população é a das primeiras horas: o feudo de bot nenhum encolhe.
+        expect(cell.measure.villagersMin.min, where).toBeGreaterThanOrEqual(5);
+      }
+    }
+  });
+
+  it('em cada dificuldade há caminho de compras até os desbloqueios da fase (V2C-T7.3)', () => {
+    // O Celeiro e o Armazém (Salão no nível 2) e a segunda fila de obras (Salão no nível 4): o
+    // perfil Regular chega a todos, em todo ritmo, dentro de um ano de jogo, só com ordens que o
+    // motor aceita. O que o catálogo anuncia e nenhum caminho alcança está no teste do motor
+    // (`storage.test.ts`, "alcançabilidade") e em docs/balance-v0.2.md, seção 9.5.
+    expect(MILESTONES.map(({ id }) => id)).toEqual([
+      'townHall2',
+      'townHall3',
+      'townHall4',
+      'granary',
+      'warehouse',
+    ]);
+    for (const difficulty of DIFFICULTY_IDS) {
+      const regular = byDifficulty[difficulty].cells.filter(
+        (cell) => cell.window === 'year' && cell.profile.id === 'regular',
+      );
+      expect(regular).toHaveLength(paces.length);
+      for (const cell of regular) {
+        for (const { id } of MILESTONES) {
+          const hours = cell.measure.milestones[id];
+          expect(hours?.max, `${difficulty} ${cell.key} ${id}`).not.toBeNull();
+          expect(hours?.max ?? Infinity, `${difficulty} ${cell.key} ${id}`).toBeLessThan(
+            cell.realHours,
+          );
+        }
+        expect(cell.measure.commandsRefused, `${difficulty} ${cell.key}`).toEqual({
+          min: 0,
+          max: 0,
+        });
+      }
+    }
+  });
+
+  it('nenhum bot dá ordens que o motor recusa, em nenhum ritmo e em nenhuma dificuldade', () => {
+    for (const run of [...matrix.runs, ...others.peasant.runs, ...others.ironKing.runs]) {
       expect(run.summary.refusedByCode, `${run.window}/${run.timeScale}/${run.profile.id}`).toEqual(
         {},
       );
@@ -50,29 +122,31 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: 66 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: 69 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
     // (V2C-T3) e o bot plantando para crescer (um lavrador a mais enquanto há vaga), chegou a 68
-    // e ao Salão no nível 7. Com a moral (V2C-T4), que põe 5% a mais na produção de quem guarda
-    // comida e muda o instante de cada obra, fica em 66. Nenhum número do conteúdo foi mexido
-    // por causa disso: o teto da meta fica para a rodada de balanceamento (V2C-T7), e este teste
-    // guarda o que foi medido para o desvio não passar despercebido.
+    // e ao Salão no nível 7; com a moral (V2C-T4), a 66. Na rodada da Fase C (V2C-T7) o bot
+    // deixou de produzir para o chão, e os braços que sobram rendem em outro ofício: 69. Nenhum
+    // número do conteúdo foi mexido por causa disso: o teto da meta é decisão do autor
+    // (docs/balance-v0.2.md, seção 9.8), e este teste guarda o que foi medido para o desvio não
+    // passar despercebido.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 59, max: 73 });
+    expect(band?.villagers).toEqual({ min: 62, max: 76 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é medida em toda célula do Regular, e hoje só uma a cumpre', () => {
-    // GDD §15.2: com 2 sessões por dia, nenhum recurso passa de 8 h de jogo seguidas indo ao
-    // chão. O jogo de hoje NÃO cumpre a meta, e este teste guarda por quanto, célula a célula,
-    // para o desvio não passar despercebido nem piorar calado. Trazer estas células para
-    // dentro é decisão de balanceamento do autor (ADR 0013, decisão 5: nenhum número foi
-    // ajustado; V2C-T7.2 e V2F-T1): no ritmo 3 o Regular termina a última obra possível na
-    // hora real 113 e nas 55 seguintes não tem onde gastar (docs/balance-v0.2.md, seção 8).
-    // Quando uma célula entrar na meta, tire-a daqui.
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Normal e Tranquilo; no Rápido, não', () => {
+    // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
+    // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
+    // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
+    // (docs/balance-v0.2.md, seção 9.3), e nenhum número do conteúdo mudou. No ritmo Rápido as 8
+    // h de jogo são 2 h 40 reais, e quem volta a cada 12 h não as cumpre: a comida ainda vai ao
+    // chão por 18 h de jogo seguidas (6 h reais) quando a Despensa de 500 enche entre duas
+    // visitas. É a pergunta que fica para o autor (seção 9.8). Este teste guarda as duas coisas:
+    // o que entrou não pode sair calado, e o que ficou fora não pode piorar calado.
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -80,14 +154,38 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const over = Object.fromEntries(
       goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
     );
-    expect(over).toEqual({
-      'week/3/regular': 165,
-      'week/1/regular': 9,
-      'year/3/regular': 18,
-      'year/1/regular': 9,
-      'year/0.5/regular': 16,
-    });
-    expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual(['week/0.5/regular']);
+    expect(over).toEqual({ 'week/3/regular': 18, 'year/3/regular': 18 });
+    expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
+      'week/1/regular',
+      'week/0.5/regular',
+      'year/1/regular',
+      'year/0.5/regular',
+    ]);
+    // Nas outras dificuldades é igual: dentro nos ritmos Normal e Tranquilo, acima no Rápido.
+    for (const difficulty of ['peasant', 'ironKing'] as const) {
+      const overThere = wasteGoalCells(others[difficulty].cells)
+        .filter(({ met }) => !met)
+        .map(({ cell }) => cell.key);
+      expect(overThere, difficulty).toEqual(['week/3/regular', 'year/3/regular']);
+    }
+  });
+
+  it('o excedente parado de madeira caiu em relação à v0.1, em todo ritmo', () => {
+    // A linha de base da v0.1, antes de qualquer mecânica (docs/balance-v0.2.md, seção 2): o
+    // perfil Regular terminava 7 dias reais com 40.872 de madeira parada no ritmo 3, 10.017 no
+    // ritmo 1 e 1.609 no 0,5. Com os limites de estoque ela não passa do que o Armazém guarda;
+    // com o início automático ela vira obra; e com o bot sem produzir para o chão, o que
+    // sobraria vira ouro. Contando também o que foi ao chão, a madeira sem uso continua menor.
+    const before: Record<number, number> = { 3: 40_872, 1: 10_017, 0.5: 1_609 };
+    for (const timeScale of paces) {
+      const cell = matrix.cells.find(
+        (entry) => entry.key === cellKey('week', timeScale, 'regular'),
+      );
+      const parked = cell?.measure.surplus.wood.max ?? Infinity;
+      const wasted = cell?.measure.wasted.wood.max ?? Infinity;
+      expect(parked, `ritmo ${timeScale}`).toBeLessThan(before[timeScale] ?? 0);
+      expect(parked + wasted, `ritmo ${timeScale}`).toBeLessThan(before[timeScale] ?? 0);
+    }
   });
 
   it('a sequência desperdiçando tem limite em toda célula: o medido com 5% de folga', () => {

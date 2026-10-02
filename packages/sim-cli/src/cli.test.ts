@@ -167,6 +167,21 @@ describe('linha de comando: matriz', () => {
   });
 });
 
+describe('linha de comando: desempenho', () => {
+  it('--perf mede o motor nas ausências longas, sem opção nenhuma', () => {
+    expect(parseCli(['--perf'])).toEqual({ mode: 'perf', options: {} });
+    expect(parseCli(['--', '--perf'])).toEqual({ mode: 'perf', options: {} });
+  });
+
+  it('recusa as opções dos outros modos', () => {
+    expect(() => parseCli(['--perf', '--seed', 's'])).toThrow('--seed não vale com --perf.');
+    expect(() => parseCli(['--perf', '--matrix'])).toThrow('--matrix não vale com --perf.');
+    expect(() => parseCli(['--perf', '--difficulty', 'lord'])).toThrow(
+      '--difficulty não vale com --perf.',
+    );
+  });
+});
+
 describe('linha de comando: modo remoto', () => {
   it('lê o servidor e usa os padrões', () => {
     expect(parseCli(['--remote', 'http://localhost:3000'])).toEqual({
@@ -228,8 +243,10 @@ describe('linha de comando: fumaça', () => {
 });
 
 describe('texto de uso', () => {
-  it('cita os quatro modos e avisa que a fumaça cria e exclui uma conta', () => {
+  it('cita os cinco modos e avisa que a fumaça cria e exclui uma conta', () => {
     expect(USAGE).toContain('--time-scale');
+    expect(USAGE).toContain('pnpm -s sim -- --perf\n');
+    expect(USAGE).toContain('Há faixas para as três dificuldades');
     expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord]');
     expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');

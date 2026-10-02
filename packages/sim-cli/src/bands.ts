@@ -54,37 +54,80 @@ function measured(
 }
 
 /**
- * Linha de base medida: dificuldade Senhor, 50 sementes por célula. As faixas saem daqui, pela
+ * Linha de base medida: 50 sementes por célula, em cada dificuldade. As faixas saem daqui, pela
  * regra de `SLACK`. A rodada completa, com data e identificação, está em docs/balance-v0.2.md
- * (a última é a da seção 7, depois da moral, V2C-T4; a sequência desperdiçando, a da seção 8).
+ * (seção 9: a rodada de balanceamento da Fase C, V2C-T7, com as três dificuldades).
  *
  * Estes números NÃO são metas aprovadas pelo autor: são o jogo como ele está, postos como
  * guarda de regressão (ADR 0013, decisão 5). Quando uma mecânica muda a economia de propósito,
- * a tarefa roda `pnpm -s sim -- --matrix`, confere o que mudou e por quê, atualiza esta tabela e
- * registra a rodada em docs/balance-v0.2.md, como se faz com um golden. Quando uma faixa falha
- * sem que a mudança fosse a intenção, o ajuste é nos números de `@lotg/content`, nunca no bot.
+ * a tarefa roda `pnpm -s sim -- --matrix` em cada dificuldade, confere o que mudou e por quê,
+ * atualiza esta tabela e registra a rodada em docs/balance-v0.2.md, como se faz com um golden.
+ * Quando uma faixa falha sem que a mudança fosse a intenção, o ajuste é nos números de
+ * `@lotg/content`, nunca no bot.
  */
 // Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro
 // parados, e a maior sequência desperdiçando um recurso, em horas de jogo.
-const MEASURED: Partial<Record<CellKey, Baseline>> = {
-  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3900, 3900, 4660, 75),
-  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628, 165),
-  'week/3/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 64707, 294),
-  'week/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
-  'week/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000, 9),
-  'week/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716, 27),
-  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 70, 188, 231, 3.5),
-  'week/0.5/regular': measured([54, 54], 6, 0, 0, 753, 952, 652, 1.5),
-  'week/0.5/dedicado': measured([61, 61], 6, 0, 0, 813, 920, 180, 0),
-  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 513, 531, 160, 75),
-  'year/3/regular': measured([27, 27], 5, 0, 0, 780, 1234, 1155, 18),
-  'year/3/dedicado': measured([52, 52], 7, 0, 0, 815, 1672, 477, 9),
-  'year/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
-  'year/1/regular': measured([66, 66], 7, 0, 0, 4500, 4106, 2000, 9),
-  'year/1/dedicado': measured([74, 74], 7, 0, 0, 5100, 5100, 5716, 27),
-  'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 1029, 1279, 977, 3.5),
-  'year/0.5/regular': measured([74, 74], 7, 0, 0, 5100, 5100, 5772, 16),
-  'year/0.5/dedicado': measured([74, 74], 7, 0, 0, 5100, 4525, 8053, 19),
+const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
+  peasant: {
+    'week/3/preguicoso': measured([33, 33], 7, 0, 0, 4125, 4125, 4666, 72),
+    'week/3/regular': measured([72, 72], 8, 0, 0, 5511, 6111, 127764, 30),
+    'week/3/dedicado': measured([84, 84], 8, 0, 0, 5316, 6168, 304802, 6),
+    'week/1/preguicoso': measured([33, 33], 6, 0, 0, 729, 587, 1749, 6),
+    'week/1/regular': measured([68, 68], 7, 0, 0, 4018, 2125, 12251, 0),
+    'week/1/dedicado': measured([84, 84], 8, 0, 0, 5221, 5908, 18505, 0),
+    'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 211, 181, 237, 1),
+    'week/0.5/regular': measured([54, 54], 6, 0, 0, 1065, 460, 271, 0),
+    'week/0.5/dedicado': measured([62, 62], 6, 0, 0, 327, 452, 537, 0),
+    'year/3/preguicoso': measured([13, 13], 3, 0, 0, 994, 659, 161, 72),
+    'year/3/regular': measured([27, 27], 5, 0, 0, 1429, 1155, 1185, 12),
+    'year/3/dedicado': measured([50, 50], 7, 0, 0, 574, 80, 1239, 3),
+    'year/1/preguicoso': measured([33, 33], 6, 0, 0, 729, 587, 1749, 6),
+    'year/1/regular': measured([68, 68], 7, 0, 0, 4018, 2125, 12251, 0),
+    'year/1/dedicado': measured([84, 84], 8, 0, 0, 5221, 5908, 18505, 0),
+    'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 691, 1756, 1001, 1),
+    'year/0.5/regular': measured([84, 84], 8, 0, 0, 6347, 6298, 17012, 0),
+    'year/0.5/dedicado': measured([84, 84], 8, 0, 0, 5583, 5811, 27646, 0.5),
+  },
+  lord: {
+    'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3900, 3900, 4660, 75),
+    'week/3/regular': measured([72, 72], 7, 0, 0, 4236, 5100, 156690, 18),
+    'week/3/dedicado': measured([74, 74], 7, 0, 0, 4212, 5020, 276963, 3),
+    'week/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
+    'week/1/regular': measured([69, 69], 7, 0, 0, 3741, 3663, 8708, 1),
+    'week/1/dedicado': measured([74, 74], 7, 0, 0, 4097, 5039, 33685, 1),
+    'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 70, 188, 231, 3.5),
+    'week/0.5/regular': measured([54, 54], 6, 0, 0, 589, 1726, 1156, 0.5),
+    'week/0.5/dedicado': measured([62, 62], 6, 0, 0, 230, 56, 152, 0.5),
+    'year/3/preguicoso': measured([13, 13], 3, 0, 0, 513, 531, 160, 75),
+    'year/3/regular': measured([27, 27], 5, 0, 0, 624, 1198, 2364, 18),
+    'year/3/dedicado': measured([52, 52], 6, 0, 0, 889, 1427, 11896, 3),
+    'year/1/preguicoso': measured([33, 33], 6, 0, 0, 692, 713, 1637, 6),
+    'year/1/regular': measured([69, 69], 7, 0, 0, 3741, 3663, 8708, 1),
+    'year/1/dedicado': measured([74, 74], 7, 0, 0, 4097, 5039, 33685, 1),
+    'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 1029, 1279, 977, 3.5),
+    'year/0.5/regular': measured([74, 74], 7, 0, 0, 4063, 5050, 39449, 2),
+    'year/0.5/dedicado': measured([74, 74], 7, 0, 0, 3108, 3709, 43687, 1),
+  },
+  ironKing: {
+    'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3120, 3120, 4610, 72),
+    'week/3/regular': measured([72, 72], 7, 0, 0, 2048, 3380, 157176, 24),
+    'week/3/dedicado': measured([74, 74], 7, 0, 0, 2499, 3573, 280419, 12),
+    'week/1/preguicoso': measured([33, 33], 6, 0, 0, 356, 395, 1591, 9),
+    'week/1/regular': measured([64, 64], 7, 0, 0, 638, 338, 16836, 0),
+    'week/1/dedicado': measured([74, 74], 7, 0, 0, 2675, 3566, 39467, 0),
+    'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 329, 264, 226, 4.5),
+    'week/0.5/regular': measured([54, 54], 6, 0, 0, 512, 519, 465, 0),
+    'week/0.5/dedicado': measured([57, 57], 6, 0, 0, 621, 577, 149, 0),
+    'year/3/preguicoso': measured([13, 13], 3, 0, 0, 333, 496, 160, 72),
+    'year/3/regular': measured([27, 27], 5, 0, 0, 133, 636, 1053, 24),
+    'year/3/dedicado': measured([51, 51], 6, 0, 0, 474, 80, 11142, 12),
+    'year/1/preguicoso': measured([33, 33], 6, 0, 0, 356, 395, 1591, 9),
+    'year/1/regular': measured([64, 64], 7, 0, 0, 638, 338, 16836, 0),
+    'year/1/dedicado': measured([74, 74], 7, 0, 0, 2675, 3566, 39467, 0),
+    'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 880, 775, 957, 5),
+    'year/0.5/regular': measured([74, 74], 7, 0, 0, 2592, 3269, 42720, 0),
+    'year/0.5/dedicado': measured([74, 74], 7, 0, 0, 113, 2157, 49131, 0),
+  },
 };
 
 /** A folga entre o que foi medido e o que a faixa aceita. Pequena e explícita. */
@@ -135,13 +178,13 @@ function bandOf(baseline: Baseline): Band {
   };
 }
 
-/** A dificuldade em que as faixas foram medidas. As outras entram quando tiverem efeito. */
-export const BANDED_DIFFICULTY: DifficultyId = 'lord';
-
-/** A faixa de uma célula; `null` quando ela não foi medida (outra dificuldade, ritmo de fora). */
-export function bandFor(key: CellKey, difficulty: DifficultyId = BANDED_DIFFICULTY): Band | null {
-  const baseline = MEASURED[key];
-  return difficulty !== BANDED_DIFFICULTY || baseline === undefined ? null : bandOf(baseline);
+/**
+ * A faixa de uma célula em uma dificuldade (o padrão é Senhor, a de quem não escolhe); `null`
+ * quando a célula não foi medida (um ritmo que o jogo não oferece).
+ */
+export function bandFor(key: CellKey, difficulty: DifficultyId = 'lord'): Band | null {
+  const baseline = MEASURED[difficulty][key];
+  return baseline === undefined ? null : bandOf(baseline);
 }
 
 /** O que uma partida tem fora da faixa, uma frase por problema; vazio quando está dentro. */

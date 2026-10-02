@@ -1,6 +1,7 @@
 import { DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
 
 import { MATRIX_SEEDS, type MatrixOptions, windowRealHours } from './matrix';
+import type { PerfOptions } from './perf';
 import type { RemoteOptions } from './remote';
 import { type SimulationOptions, strategies, type StrategyName } from './simulate';
 import type { SmokeOptions } from './smoke';
@@ -8,6 +9,7 @@ import type { SmokeOptions } from './smoke';
 export const USAGE = `Uso:
   pnpm -s sim -- --seed <semente> [--days 7 | --game-year] [--strategy economico] [--sessions-per-day 2] [--time-scale 1] [--difficulty lord]
   pnpm -s sim -- --matrix [--seeds 50] [--difficulty lord]
+  pnpm -s sim -- --perf
   pnpm -s sim -- --remote <url> [--bots 50] [--minutes 2] [--poll-ms 2000] [--strategy economico]
   pnpm -s sim -- --smoke <url> [--keep]
 
@@ -19,7 +21,9 @@ Com --difficulty, a partida nasce em peasant, lord ou ironKing.
 Com --matrix, joga a matriz de balanceamento: 7 dias reais e um ano de jogo, em cada ritmo que o
 jogo oferece, com os perfis de 1, 2 e 4 sessões por dia e as 50 sementes fixas (--seeds N usa só
 as N primeiras). O CSV, uma linha por partida, sai na saída padrão; as tabelas, na saída de erro.
-O comando sai com erro se alguma partida ficar fora das faixas.
+Há faixas para as três dificuldades; o comando sai com erro se alguma partida ficar fora delas.
+Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
+advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
 Com --remote, os bots jogam contra um servidor pela API e o relatório traz p50 e p95 por endpoint.
 Com --smoke, uma conta e uma partida são criadas no servidor para conferir concorrência e
 idempotência das ordens; a conta é excluída no fim, a menos que --keep seja passado.
@@ -28,6 +32,7 @@ idempotência das ordens; a conta é excluída no fim, a menos que --keep seja p
 export type CliCommand =
   | { mode: 'simulate'; options: SimulationOptions }
   | { mode: 'matrix'; options: MatrixOptions }
+  | { mode: 'perf'; options: PerfOptions }
   | { mode: 'remote'; options: RemoteOptions }
   | { mode: 'smoke'; options: SmokeOptions };
 
@@ -44,7 +49,7 @@ const VALUE_OPTIONS = new Set([
   'strategy',
 ]);
 /** Opções sem valor. */
-const FLAGS = new Set(['keep', 'matrix', 'game-year']);
+const FLAGS = new Set(['keep', 'matrix', 'game-year', 'perf']);
 
 type RawArgs = { values: Record<string, string>; flags: Set<string> };
 
@@ -156,6 +161,11 @@ export function parseCli(argv: string[]): CliCommand {
     };
   }
 
+  if (args.flags.has('perf')) {
+    onlyFor(args, '--perf', ['perf']);
+    return { mode: 'perf', options: {} };
+  }
+
   if (args.flags.has('matrix')) {
     onlyFor(args, '--matrix', [...MATRIX_OPTIONS, 'matrix']);
     const count = positiveNumber(values.seeds ?? String(MATRIX_SEEDS.length), 'seeds');
@@ -170,7 +180,7 @@ export function parseCli(argv: string[]): CliCommand {
 
   if (values.seed === undefined) {
     throw new Error(
-      'Informe a semente com --seed, a matriz com --matrix, ou um servidor com --remote ou --smoke.',
+      'Informe a semente com --seed, a matriz com --matrix, a medida de desempenho com --perf, ou um servidor com --remote ou --smoke.',
     );
   }
   onlyFor(args, 'o modo em processo', [...SIMULATE_OPTIONS, 'strategy', 'game-year']);

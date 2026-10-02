@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
-import { upgradeCost, upgradeQuote } from './construction';
+import { upgradeCost, upgradeQuote, upgradeStillPossible } from './construction';
 import { netRates } from './economy';
 import { fillsIn, fullStores, storageCapacity, storageFillsIn } from './storage';
 import {
@@ -1097,6 +1097,77 @@ describe('a visão do armazenamento', () => {
     );
   });
 
+  it('sem obra por fazer que leve o material, a frase manda trocar de ofício, e não "gastar"', () => {
+    // O fim das obras em Senhor: o Salão no nível 7 (o nível 8 pede 5.102 de madeira, e o
+    // Armazém no nível máximo guarda 5.100) e todo o resto no nível 8, preso à regra "nível do
+    // Salão mais um". Nenhum botão gasta madeira: a saída que resta é tirar gente da Serraria.
+    const ended = (edit: (draft: GameState) => void = () => {}) =>
+      woodcutters(3, (draft) => {
+        draft.settlement.buildings = {
+          townHall: 7,
+          farm: 8,
+          lumberMill: 8,
+          quarry: 8,
+          goldMine: 8,
+          housing: 8,
+          granary: 8,
+          warehouse: 8,
+        };
+        edit(draft);
+        draft.settlement.resources.wood = storageCapacity(draft, 'wood') ?? 0;
+      });
+    const moveHands =
+      /^Armazém cheio: [\d.,]+\/h de madeira indo ao chão\. Ponha parte dos lenhadores em outro ofício\.$/;
+    const none = ended();
+    expect(BUILDING_IDS.filter((building) => upgradeStillPossible(none, building))).toEqual([]);
+    expect(row(none, 'wood')).toMatchObject({ full: true, cap: 5100 });
+    expect(row(none, 'wood').fullNote).toMatch(moveHands);
+
+    // Com o Armazém um nível abaixo ainda há obra: a dele, e depois dela a do Salão.
+    const oneLeft = ended((draft) => {
+      draft.settlement.buildings.warehouse = 7;
+    });
+    expect(upgradeStillPossible(oneLeft, 'warehouse')).toBe(true);
+    expect(upgradeStillPossible(oneLeft, 'townHall')).toBe(true);
+    expect(upgradeStillPossible(oneLeft, 'farm')).toBe(true);
+    expect(row(oneLeft, 'wood').fullNote).toMatch(/Amplie o Armazém ou gaste madeira\.$/);
+
+    // Com a última obra em curso, o feudo ainda está construindo.
+    const lastOne = ended((draft) => {
+      draft.settlement.buildings.farm = 7;
+      draft.settlement.constructionQueues = [
+        { building: 'farm', targetLevel: 8, startedAtMs: 0, finishesAtMs: SPRING + HOUR },
+        null,
+      ];
+    });
+    expect(upgradeStillPossible(lastOne, 'farm')).toBe(true);
+    expect(row(lastOne, 'wood').fullNote).toMatch(/Gaste madeira\.$/);
+
+    // Em Rei de Ferro o Armazém para no nível 7: a obra do nível 8 pede 4.295 e ele guarda
+    // 3.600. A frase não manda ampliar o que a lista de obras recusa. Com o Salão no nível 6
+    // ainda há o que pagar (o nível 7 pede 2.834); no nível 7, mais nada.
+    const ironKing = (townHall: number) =>
+      ended((draft) => {
+        draft.settings.difficulty = 'ironKing';
+        draft.settlement.buildings.warehouse = 7;
+        draft.settlement.buildings.granary = 7;
+        draft.settlement.buildings.townHall = townHall;
+      });
+    expect(row(ironKing(6), 'wood').cap).toBe(3600);
+    expect(upgradeStillPossible(ironKing(6), 'warehouse')).toBe(false);
+    expect(row(ironKing(6), 'wood').fullNote).toMatch(/indo ao chão\. Gaste madeira\.$/);
+    expect(row(ironKing(7), 'wood').fullNote).toMatch(moveHands);
+
+    // A pedra segue a mesma regra, com os canteiros.
+    const stone = ended((draft) => {
+      draft.settlement.workers = { farm: 1, lumberMill: 0, quarry: 3, goldMine: 0 };
+      draft.settlement.resources.stone = storageCapacity(draft, 'stone') ?? 0;
+    });
+    expect(row(stone, 'stone').fullNote).toMatch(
+      /^Armazém cheio: [\d.,]+\/h de pedra indo ao chão\. Ponha parte dos canteiros em outro ofício\.$/,
+    );
+  });
+
   describe('a despensa cheia antes de o Celeiro existir', () => {
     /**
      * Verão, o Salão ainda no nível 1 (o Celeiro pede o nível 2): 10 habitantes nas 10 vagas,
@@ -1720,6 +1791,104 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       'granary 7→8',
       'warehouse 7→8',
     ]);
+  });
+
+  /**
+   * O nível mais alto a que cada edifício chega em uma dificuldade, pelas regras do próprio
+   * motor: a partir do feudo novo, com os depósitos sempre cheios e ouro de sobra, inicia toda
+   * obra que `upgradeQuote` deixa começar, até nenhuma mais poder. É o caminho de compras mais
+   * favorável que existe: o que ele não alcança, ninguém alcança.
+   */
+  function ceilings(difficulty: DifficultyId): Record<BuildingId, number> {
+    const levels = { ...newGame().settlement.buildings };
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const building of builders) {
+        const state = gameWith((draft) => {
+          draft.settings.difficulty = difficulty;
+          draft.settlement.buildings = { ...levels };
+        });
+        for (const resource of RESOURCE_IDS) {
+          state.settlement.resources[resource] =
+            storageCapacity(state, resource) ?? Number.MAX_SAFE_INTEGER;
+        }
+        if (upgradeQuote(state, building).blocked === null) {
+          levels[building] += 1;
+          changed = true;
+        }
+      }
+    }
+    return levels;
+  }
+
+  /** Os níveis que o catálogo anuncia e a dificuldade não alcança: "Salão 8", "Fazenda 9–10". */
+  function unreachable(difficulty: DifficultyId): string[] {
+    const reached = ceilings(difficulty);
+    return builders.flatMap((building) => {
+      const { maxLevel } = buildings[building];
+      const from = reached[building] + 1;
+      if (from > maxLevel) {
+        return [];
+      }
+      return [`${building} ${from === maxLevel ? from : `${from}–${maxLevel}`}`];
+    });
+  }
+
+  it('os desbloqueios da Fase C são alcançáveis em toda dificuldade (roadmap V2C-T7.3)', () => {
+    // O Celeiro e o Armazém (Salão no nível 2), a segunda fila de obras (Salão no nível 4) e os
+    // depósitos no nível máximo que a dificuldade comporta.
+    for (const difficulty of DIFFICULTY_IDS) {
+      const reached = ceilings(difficulty);
+      expect(reached.townHall, difficulty).toBeGreaterThanOrEqual(
+        balance.construction.secondQueueTownHallLevel,
+      );
+      expect(reached.granary, difficulty).toBeGreaterThanOrEqual(1);
+      expect(reached.warehouse, difficulty).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('o teto de cada edifício em cada dificuldade, e o que o catálogo anuncia além dele', () => {
+    // Também não é a regra desejada: é o retrato que vai ao autor (docs/balance-v0.2.md, seção
+    // 9.5). Só em Camponês o catálogo inteiro é alcançável. Em Senhor o Salão para no nível 7
+    // por 2 de madeira (a obra do nível 8 pede 5.102 e o Armazém no máximo guarda 5.100), e com
+    // ele param no nível 8 os cinco edifícios presos à regra "nível do Salão mais um".
+    expect(ceilings('peasant')).toEqual({
+      townHall: 8,
+      farm: 9,
+      lumberMill: 9,
+      quarry: 9,
+      goldMine: 9,
+      housing: 9,
+      granary: 8,
+      warehouse: 8,
+    });
+    expect(unreachable('peasant')).toEqual([
+      'farm 10',
+      'lumberMill 10',
+      'quarry 10',
+      'goldMine 10',
+      'housing 10',
+    ]);
+    const stuckAtSeven = {
+      townHall: 7,
+      farm: 8,
+      lumberMill: 8,
+      quarry: 8,
+      goldMine: 8,
+      housing: 8,
+    };
+    expect(ceilings('lord')).toEqual({ ...stuckAtSeven, granary: 8, warehouse: 8 });
+    expect(ceilings('ironKing')).toEqual({ ...stuckAtSeven, granary: 7, warehouse: 7 });
+    const beyondSeven = [
+      'townHall 8',
+      'farm 9–10',
+      'lumberMill 9–10',
+      'quarry 9–10',
+      'goldMine 9–10',
+      'housing 9–10',
+    ];
+    expect(unreachable('lord')).toEqual(beyondSeven);
+    expect(unreachable('ironKing')).toEqual([...beyondSeven, 'granary 8', 'warehouse 8']);
   });
 });
 

@@ -1,7 +1,19 @@
-import { balance, type BuildingId, buildings, craftGuilds, type Ratio } from '@lotg/content';
+import {
+  balance,
+  BUILDING_IDS,
+  type BuildingId,
+  buildings,
+  craftGuilds,
+  type Ratio,
+} from '@lotg/content';
 
 import { nextSeasonBoundary, seasonAfter, seasonAt, seasonWithArticle } from './clock';
-import { buildingWithArticle, constructionOf, upgradeQuote } from './construction';
+import {
+  buildingWithArticle,
+  constructionOf,
+  upgradeQuote,
+  upgradeStillPossible,
+} from './construction';
 import { type CraftForecast, type CraftOutlook, inMs } from './craftProjection';
 import { producerOf } from './economy';
 import { decimal, joinList, sentenceCase, thousands } from './format';
@@ -159,21 +171,29 @@ function joinOr(options: readonly string[]): string {
 /**
  * Como dar destino ao que sobra de `resource`, sem contar a obra do depósito: cada saída é uma
  * ordem que o jogador sabe dar, em minúscula e sem ponto. O que alguma obra custa (madeira,
- * pedra) se gasta em obras: "gaste madeira". O que nenhuma obra custa (a comida) só sai pelo
- * recrutamento, e só quando uma ordem cabe agora (há vaga, fila e o resto do custo); a saída que
- * está sempre à mão é tirar gente do ofício que o produz, e trocar o que iria ao chão por outro
- * recurso. Mandar "gastar comida" seria pedir uma ação que nenhum botão tem.
+ * pedra) se gasta em obras, enquanto houver obra por fazer que o leve: "gaste madeira". O que
+ * nenhuma obra custa (a comida) só sai pelo recrutamento, e só quando uma ordem cabe agora (há
+ * vaga, fila e o resto do custo). A saída que está sempre à mão é tirar gente do ofício que o
+ * produz, e trocar o que iria ao chão por outro recurso: é a que sobra quando o feudo já não tem
+ * obra que leve o material. Mandar "gastar comida", ou "gastar madeira" sem obra nenhuma por
+ * fazer, seria pedir uma ação que nenhum botão tem.
  */
 function spendOptions(state: GameState, resource: ResourceId): string[] {
   const name = lower(resource);
-  if (Object.values(buildings).some((def) => (def.baseCost[resource] ?? 0) > 0)) {
-    return [`gaste ${name}`];
+  const moveHands = `ponha parte d${craftGuilds[producerOf(resource)].artisans} em outro ofício`;
+  const payers = BUILDING_IDS.filter(
+    (building) => (buildings[building].baseCost[resource] ?? 0) > 0,
+  );
+  if (payers.length > 0) {
+    return payers.some((building) => upgradeStillPossible(state, building))
+      ? [`gaste ${name}`]
+      : [moveHands];
   }
   const options: string[] = [];
   if ((balance.recruitment.cost[resource] ?? 0) > 0 && recruitmentBlock(state, 1) === null) {
     options.push('recrute aldeões');
   }
-  options.push(`ponha parte d${craftGuilds[producerOf(resource)].artisans} em outro ofício`);
+  options.push(moveHands);
   return options;
 }
 
@@ -181,7 +201,7 @@ function spendOptions(state: GameState, resource: ResourceId): string[] {
  * O que dizer de um estoque cheio. Com saldo positivo: o que vai ao chão por hora e o que
  * fazer, ampliar o depósito (o botão está na lista de obras) ou dar destino ao que sobra
  * (`spendOptions`); se o depósito ainda espera o Salão, a frase diz isso em vez de mandar
- * construí-lo. Com o estoque acima do limite e sem saldo (partida que veio de antes dos
+ * construí-lo, e se ele não tem mais como crescer, só o destino do que sobra. Com o estoque acima do limite e sem saldo (partida que veio de antes dos
  * limites): por que nada entra. No limite exato e sem perda, não há o que dizer.
  */
 function fullNote(
@@ -208,7 +228,12 @@ function fullNote(
   let remedy: string;
   if (constructionOf(state, store.building) !== null) {
     remedy = `A obra ${ofBuilding(store.building)} já vai abrir espaço.`;
-  } else if (level >= buildings[store.building].maxLevel) {
+  } else if (
+    level >= buildings[store.building].maxLevel ||
+    !upgradeStillPossible(state, store.building)
+  ) {
+    // O depósito não tem como crescer: chegou ao teto, ou a obra dele pede mais do que ele
+    // mesmo guarda. Mandar ampliá-lo seria pedir o que a lista de obras recusa.
     remedy = `${sentenceCase(joinOr(spend))}.`;
   } else if (quote.blocked?.code === 'GATE_LOCKED') {
     // O depósito ainda não pode ser erguido: a frase diz o que o libera, e o que fazer até lá.

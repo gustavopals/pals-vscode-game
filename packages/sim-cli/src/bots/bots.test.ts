@@ -13,12 +13,15 @@ import {
 } from '@lotg/engine';
 import { describe, expect, it } from 'vitest';
 
-import { strategies, strategyPolicies } from './index';
+import { botFor, strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
+  alocarPorDemandaFor,
   ampliarEstoque,
   comidaPrimeiro,
+  DEFAULT_AWAY_HOURS,
   guardarLenha,
+  nothingLeftToBuild,
   obraMaisBarata,
   ocuparLivres,
   planejarAutomaticas,
@@ -50,6 +53,37 @@ function recorder(view: ViewState): { act: Act; orders: Order[] } {
     return view;
   };
   return { act, orders };
+}
+
+/**
+ * A visão com a comida em ordem no painel: o estoque não está caindo e a previsão da estação
+ * que vem diz que ele atravessa a estação. `forecast` troca o que a previsão diz.
+ */
+function fedView(
+  view: ViewState,
+  forecast: Partial<NonNullable<ViewState['calendar']['nextSeason']['food']>> = {},
+): ViewState {
+  return {
+    ...view,
+    resources: view.resources.map((row) =>
+      row.id === 'food' ? { ...row, depletesInSeconds: null } : row,
+    ),
+    calendar: {
+      ...view.calendar,
+      nextSeason: {
+        ...view.calendar.nextSeason,
+        food: { perHour: 1, stockAtTurn: 300, depletesInSeconds: null, text: '', ...forecast },
+      },
+    },
+  };
+}
+
+/** A visão com o estoque de alguns recursos trocado. */
+function withStock(view: ViewState, stock: Partial<Record<ResourceId, number>>): ViewState {
+  return {
+    ...view,
+    resources: view.resources.map((row) => ({ ...row, stock: stock[row.id] ?? row.stock })),
+  };
 }
 
 /** A visão com os trabalhadores de cada edifício trocados; os livres são o que sobra. */
@@ -156,6 +190,32 @@ describe('um bot é uma lista de políticas', () => {
       'ocupar os livres',
       'guardar lenha',
     ]);
+  });
+
+  it('o econômico prepara a ausência de quem o joga: o prazo sai das visitas por dia', async () => {
+    // Um jogador sabe quando volta. No ritmo 3, dois lavradores enchem a Despensa do feudo novo
+    // em menos de 6 horas reais: quem volta em 12 deixa um só; quem volta em 3 pode deixar os
+    // dois. O preguiçoso decide o mínimo e não olha o relógio.
+    const farmers = async (sessionsPerDay: number) => {
+      const view = fedView(freshView(3));
+      const orders: Order[] = [];
+      const act: Act = async (type, payload) => {
+        orders.push({ type, payload });
+        return view;
+      };
+      await botFor('economico', sessionsPerDay)(view, act);
+      const farm = orders.filter(
+        (order) =>
+          order.type === 'setWorkers' &&
+          (order.payload as { building: string }).building === 'farm',
+      );
+      return (farm.at(-1)?.payload as { count: number }).count;
+    };
+    expect(await farmers(2)).toBe(1);
+    expect(await farmers(8)).toBe(2);
+    expect(24 / 2).toBe(DEFAULT_AWAY_HOURS);
+    expect(botFor('preguicoso', 1)).toBe(strategies.preguicoso);
+    expect(botFor('preguicoso', 4)).toBe(strategies.preguicoso);
   });
 
   it('uma política sem o que fazer não dá ordem nenhuma e devolve a mesma visão', async () => {
@@ -352,13 +412,28 @@ describe('política "alocar por demanda"', () => {
     expect(targets(orders).farm).toBe(2);
   });
 
-  it.each([3, 0.5])('decide no ritmo %d o mesmo que no ritmo 1', async (timeScale) => {
+  it('no ritmo 0,5 decide o mesmo que no ritmo 1: com folga na despensa, o ritmo não pesa', async () => {
     const decide = async (view: ViewState) => {
       const { act, orders } = recorder(view);
       await alocarPorDemanda.run(view, act);
       return orders;
     };
-    expect(await decide(freshView(timeScale))).toEqual(await decide(freshView(1)));
+    expect(await decide(freshView(0.5))).toEqual(await decide(freshView(1)));
+  });
+
+  it('no ritmo 3 a mesma ausência vale o triplo em horas de jogo: o segundo lavrador plantaria para o chão', async () => {
+    // O bot arruma o feudo para 12 horas reais fora. No ritmo 1, dois lavradores põem 9 de
+    // comida por hora na Despensa, e os 320 de espaço duram a ausência. No ritmo 3 eles põem 57
+    // por hora real e a enchem em menos de 6 horas: fica um só, e o outro vai para a madeira.
+    const decide = async (timeScale: number) => {
+      const view = fedView(freshView(timeScale));
+      const { act, orders } = recorder(view);
+      await alocarPorDemanda.run(view, act);
+      return targets(orders);
+    };
+    expect(DEFAULT_AWAY_HOURS).toBe(12);
+    expect(await decide(1)).toEqual({ farm: 2, lumberMill: 1, quarry: 1, goldMine: 1 });
+    expect(await decide(3)).toEqual({ farm: 1, lumberMill: 2, quarry: 1, goldMine: 1 });
   });
 
   it('com a fazenda rendendo menos (fome), põe mais fazendeiros', async () => {
@@ -438,13 +513,16 @@ describe('política "alocar por demanda"', () => {
         grossPerHour: row.assigned * row.perWorkerPerHour,
         occupiedFrom: occupiedFrom[row.building] ?? 1,
       }));
-      const farm = workers.find((row) => row.building === 'farm');
+      // O saldo de cada recurso é o que o edifício dele rende; a comida desconta as 12 bocas.
+      const gross = (resource: ResourceId) =>
+        workers.find((row) => row.resource === resource)?.grossPerHour ?? 0;
       return {
         ...view,
         workers,
-        resources: view.resources.map((row) =>
-          row.id === 'food' ? { ...row, perHour: (farm?.grossPerHour ?? 0) - 12 } : row,
-        ),
+        resources: view.resources.map((row) => ({
+          ...row,
+          perHour: gross(row.id) - (row.id === 'food' ? 12 : 0),
+        })),
       };
     }
     const decide = async (view: ViewState) => {
@@ -452,6 +530,14 @@ describe('política "alocar por demanda"', () => {
       await alocarPorDemanda.run(view, act);
       return targets(orders);
     };
+    /**
+     * O mesmo feudo com depósitos folgados: a madeira e a pedra de uma ausência inteira cabem,
+     * e o que decide a partilha é só o que as obras pedem.
+     */
+    const roomy = (view: ViewState): ViewState => ({
+      ...view,
+      resources: view.resources.map((row) => (row.cap === null ? row : { ...row, cap: 5000 })),
+    });
     /**
      * Uma obra que pede o estoque e mais `wood` de madeira e `stone` de pedra: é o que falta
      * juntar. (`upgrade` monta o custo como "o que falta + 100".)
@@ -475,7 +561,7 @@ describe('política "alocar por demanda"', () => {
     });
 
     it('quem está sem ofício vai para onde mais falta gente, sem mexer nos outros', async () => {
-      const view = staffed({ farm: 2, lumberMill: 2, quarry: 3, goldMine: 2 });
+      const view = roomy(staffed({ farm: 2, lumberMill: 2, quarry: 3, goldMine: 2 }));
       expect(view.population.free).toBe(3);
       // O ideal seria 5:3:2; os três livres vão para a madeira, e ninguém sai da pedra.
       expect(await decide(view)).toEqual({ lumberMill: 5 });
@@ -512,9 +598,9 @@ describe('política "alocar por demanda"', () => {
     });
 
     it('um fazendeiro a mais fica onde está; dois a mais, a fazenda devolve', async () => {
-      const oneExtra = staffed({ farm: 3, lumberMill: 4, quarry: 3, goldMine: 2 });
+      const oneExtra = roomy(staffed({ farm: 3, lumberMill: 4, quarry: 3, goldMine: 2 }));
       expect(await decide(oneExtra)).toEqual({});
-      const twoExtra = staffed({ farm: 4, lumberMill: 4, quarry: 2, goldMine: 2 });
+      const twoExtra = roomy(staffed({ farm: 4, lumberMill: 4, quarry: 2, goldMine: 2 }));
       // Os dois que sobram vão para onde mais falta gente (o ideal dos dez é 5:3:2).
       expect(await decide(twoExtra)).toEqual({ farm: 2, lumberMill: 5, quarry: 3 });
     });
@@ -548,6 +634,276 @@ describe('política "alocar por demanda"', () => {
       expect(fast(40).workersRules.adaptationSeconds).toBe(2400);
       expect(await decide(fast(40))).toEqual({});
       expect((await decide(fast(80))).lumberMill).toBeGreaterThan(2);
+    });
+
+    describe('ninguém fica produzindo para o chão', () => {
+      /** O feudo de 12 aldeões com a experiência de um ofício trocada. */
+      const skilled = (view: ViewState, building: BuildingId, experience: number): ViewState => ({
+        ...view,
+        workers: view.workers.map((row) =>
+          row.building === building ? { ...row, experience } : row,
+        ),
+      });
+      const full = { wood: 500, stone: 500 };
+
+      it('com o Armazém cheio e nada pedindo madeira nem pedra, os braços vão para o ouro', async () => {
+        // Um lenhador rende 8 por hora e o Pátio guarda 500: cheio, nada do que ele corta cabe.
+        // Fica um em cada ofício, para o edifício não esvaziar, e os outros seis vão para a Mina,
+        // que não tem limite. Ninguém espera a troca "compensar": ficar é perder tudo.
+        const view = withStock(staffed({ farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 }), full);
+        expect(await decide(view)).toEqual({ lumberMill: 1, quarry: 1, goldMine: 8 });
+      });
+
+      it('com espaço no depósito ficam os braços cuja produção cabe na ausência', async () => {
+        // 96 de espaço e 12 horas fora: 8 por hora, a produção de um lenhador. Com 200 de
+        // espaço cabem dois (16 por hora). Com 500, a partilha de sempre não é tocada.
+        const lumberjacks = async (wood: number) =>
+          (
+            await decide(
+              withStock(staffed({ farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 }), {
+                wood,
+                stone: 500,
+              }),
+            )
+          ).lumberMill;
+        expect(await lumberjacks(404)).toBe(1);
+        expect(await lumberjacks(300)).toBe(2);
+        expect(await lumberjacks(0)).toBeUndefined();
+      });
+
+      it('quem volta antes pode deixar mais braços: o prazo da ausência é do bot, não do jogo', async () => {
+        const view = withStock(staffed({ farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 }), {
+          wood: 404,
+          stone: 500,
+        });
+        const moved = async (awayHours: number) => {
+          const { act, orders } = recorder(view);
+          await alocarPorDemandaFor(awayHours).run(view, act);
+          return targets(orders).lumberMill;
+        };
+        // 96 de espaço: um lenhador em 12 horas, dois em 6, e nenhum além do que guarda o
+        // ofício em 24.
+        expect(await moved(12)).toBe(1);
+        expect(await moved(6)).toBe(2);
+        expect(await moved(24)).toBe(1);
+      });
+
+      it('o que as obras da lista ainda levam conta como espaço', async () => {
+        // O Pátio está cheio, mas a obra das Habitações vai levar 480 de madeira quando a pouca
+        // pedra que falta chegar: 40 por hora de ausência, cinco lenhadores. Os cinco ficam.
+        const waiting = [upgrade('housing', { wood: 380, stone: 10 })];
+        const view = withStock(
+          staffed({ farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 }, {}, waiting),
+          { wood: 500, stone: 65 },
+        );
+        expect((await decide(view)).lumberMill).toBeUndefined();
+        // Com sete lenhadores, dois passam do que a obra e o depósito comportam.
+        const crowded = withStock(
+          staffed({ farm: 2, lumberMill: 7, quarry: 3, goldMine: 0 }, {}, waiting),
+          { wood: 500, stone: 65 },
+        );
+        expect((await decide(crowded)).lumberMill).toBe(5);
+      });
+
+      it('uma obra presa ao Salão só conta se o Salão ainda pode subir', async () => {
+        const locked = upgrade('housing', { wood: 380 }, 'GATE_LOCKED');
+        const staff = { farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 };
+        const rising = withStock(
+          staffed(staff, {}, [locked, upgrade('townHall', { gold: 10 })]),
+          full,
+        );
+        const stuck = withStock(
+          staffed(staff, {}, [locked, upgrade('townHall', { wood: 5000 }, 'EXCEEDS_STORAGE')]),
+          full,
+        );
+        // Com o Salão a caminho, as Habitações vão destravar e levar os 480 de madeira.
+        expect((await decide(rising)).lumberMill).toBeUndefined();
+        // Com o Salão sem ter como subir, nada mais leva madeira: o feudo acabou.
+        expect((await decide(stuck)).lumberMill).toBe(0);
+      });
+
+      it('um depósito que ninguém planejou não é motivo para juntar madeira', async () => {
+        const depot = upgrade('granary', { wood: 380 });
+        const staff = { farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 };
+        const unplanned = withStock(staffed(staff, {}, [depot]), full);
+        const planned = withStock(staffed(staff, {}, [{ ...depot, planned: true }]), full);
+        // O Celeiro fora da lista é o único item: para o bot, as obras acabaram.
+        expect(nothingLeftToBuild(unplanned)).toBe(true);
+        expect((await decide(unplanned)).lumberMill).toBe(0);
+        // Na lista das planejadas ele é obra como as outras, e os 480 que pede contam.
+        expect(nothingLeftToBuild(planned)).toBe(false);
+        expect((await decide(planned)).lumberMill).toBeUndefined();
+        // O depósito que trava outra obra também conta, mesmo fora da lista: o Salão pede mais
+        // madeira do que o Pátio guarda, e é o Armazém que resolve.
+        const blocked = withStock(
+          staffed(staff, {}, [
+            upgrade('townHall', { wood: 800 }, 'EXCEEDS_STORAGE'),
+            upgrade('warehouse', { wood: 380 }),
+          ]),
+          full,
+        );
+        expect(nothingLeftToBuild(blocked)).toBe(false);
+        // Com o Armazém no teto, o Salão não tem mais como caber: as obras acabaram.
+        const capped = withStock(
+          staffed(staff, {}, [
+            upgrade('townHall', { wood: 800 }, 'EXCEEDS_STORAGE'),
+            upgrade('warehouse', { wood: 380 }, 'MAX_LEVEL'),
+          ]),
+          full,
+        );
+        expect(nothingLeftToBuild(capped)).toBe(true);
+      });
+
+      it('enquanto a experiência sobe fica o que o edifício pede; no máximo, basta um', async () => {
+        const staff = { farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 };
+        const view = withStock(staffed(staff, { lumberMill: 3 }), full);
+        expect(view.workersRules.experienceMax).toBe(100);
+        expect((await decide(skilled(view, 'lumberMill', 40))).lumberMill).toBe(3);
+        expect((await decide(skilled(view, 'lumberMill', 100))).lumberMill).toBe(1);
+      });
+
+      it('quando o feudo não tem mais o que construir, nenhum ofício fica para o chão', async () => {
+        const done = [
+          upgrade('housing', { wood: 380 }, 'MAX_LEVEL'),
+          upgrade('townHall', { wood: 5000 }, 'EXCEEDS_STORAGE'),
+          upgrade('farm', { wood: 900 }, 'GATE_LOCKED'),
+        ];
+        const view = withStock(
+          staffed({ farm: 2, lumberMill: 5, quarry: 3, goldMine: 2 }, { lumberMill: 3 }, done),
+          full,
+        );
+        expect(nothingLeftToBuild(view)).toBe(true);
+        // A experiência já não compra nada: a Serraria e a Pedreira ficam vazias.
+        expect(await decide(view)).toEqual({ lumberMill: 0, quarry: 0, goldMine: 10 });
+        // Com uma obra em curso, ou sem lista nenhuma, o feudo não acabou.
+        const building = {
+          ...view,
+          constructions: {
+            ...view.constructions,
+            queues: [
+              {
+                building: 'farm' as const,
+                label: 'Fazenda',
+                targetLevel: 2,
+                secondsRemaining: 60,
+                totalSeconds: 300,
+                progressPercent: 80,
+                refund: [],
+              },
+            ],
+          },
+        };
+        expect(nothingLeftToBuild(building)).toBe(false);
+        expect(nothingLeftToBuild(withUpgrades(view, []))).toBe(false);
+      });
+    });
+
+    describe('a fazenda não planta para o chão', () => {
+      /** O feudo de 12 aldeões com a Despensa cheia e a comida em ordem no painel. */
+      const fullPantry = (
+        assigned: Parameters<typeof staffed>[0],
+        forecast: Parameters<typeof fedView>[1] = {},
+      ) => fedView(withStock(staffed(assigned), { food: 500 }), forecast);
+
+      it('com a Despensa cheia, fica só quem alimenta as bocas; o outro lavrador troca de ofício', async () => {
+        // 12 bocas a 12 por lavrador: um alimenta todos, e a colheita do segundo não cabe.
+        const view = fullPantry({ farm: 2, lumberMill: 4, quarry: 4, goldMine: 2 });
+        const moved = await decide(view);
+        expect(moved.farm).toBe(1);
+        expect(Object.values(moved).reduce((sum, count) => sum + count, 0)).toBeGreaterThan(1);
+      });
+
+      it('com espaço na despensa, a conta de sempre: a folga de duas bocas fica', async () => {
+        const view = fedView(staffed({ farm: 2, lumberMill: 4, quarry: 4, goldMine: 2 }));
+        expect(view.resources.find((row) => row.id === 'food')).toMatchObject({
+          stock: 180,
+          cap: 500,
+        });
+        expect((await decide(view)).farm).toBeUndefined();
+      });
+
+      it('não deixa a fazenda vazia: a comida tem de aguentar outra ausência depois desta', async () => {
+        // Um lavrador rende 12 e as bocas comem 12: com ele a despensa fica cheia e nada se
+        // perde. Se rendesse 13, a conta "sem desperdício" pediria nenhum lavrador, e a despensa
+        // de 500 perderia 144 em uma ausência e mais 144 na seguinte. Com 1.500 de estoque isso
+        // seria aceitável; com 200, não: fica o lavrador, e sobra um pouco.
+        const rich = (stock: number) => {
+          const view = fullPantry({ farm: 1, lumberMill: 5, quarry: 4, goldMine: 2 });
+          return {
+            ...view,
+            workers: view.workers.map((row) =>
+              row.building === 'farm' ? { ...row, perWorkerPerHour: 13, grossPerHour: 13 } : row,
+            ),
+            resources: view.resources.map((row) =>
+              row.id === 'food' ? { ...row, stock, cap: stock, perHour: 1 } : row,
+            ),
+          };
+        };
+        expect((await decide(rich(1500))).farm).toBe(0);
+        expect((await decide(rich(200))).farm).toBeUndefined();
+      });
+
+      it('com a estação virando no meio da ausência, usa o que a previsão diz que a fazenda vai render', async () => {
+        // Inverno: um lavrador rende 5, e as 12 bocas pedem três (com a folga). A primavera
+        // chega em 4 horas, e a previsão do painel diz que os três de agora vão dar +25,5 por
+        // hora (12,5 por lavrador). Com os três a despensa transborda nas 8 horas seguintes; com
+        // dois, o estoque cai um pouco até a virada e volta a encher sem perder nada.
+        const view = fedView(staffed({ farm: 3, lumberMill: 4, quarry: 3, goldMine: 2 }), {
+          perHour: 25.5,
+          stockAtTurn: 412,
+        });
+        const winter: ViewState = {
+          ...view,
+          workers: view.workers.map((row) =>
+            row.building === 'farm' ? { ...row, perWorkerPerHour: 5, grossPerHour: 15 } : row,
+          ),
+          resources: view.resources.map((row) =>
+            row.id === 'food' ? { ...row, stock: 400, perHour: 3 } : row,
+          ),
+          calendar: {
+            ...view.calendar,
+            secondsToNextSeason: 4 * 3600,
+            nextSeason: { ...view.calendar.nextSeason, secondsUntil: 4 * 3600 },
+          },
+        };
+        expect((await decide(winter)).farm).toBe(2);
+        // Com a virada longe, a ausência inteira é de inverno, e os três ficam.
+        const deepWinter: ViewState = {
+          ...winter,
+          calendar: {
+            ...winter.calendar,
+            nextSeason: { ...winter.calendar.nextSeason, secondsUntil: 40 * 3600 },
+          },
+        };
+        expect((await decide(deepWinter)).farm).toBeUndefined();
+      });
+
+      it('confere o painel depois da ordem: se a comida não chega à volta, devolve o lavrador', async () => {
+        const view = fullPantry({ farm: 2, lumberMill: 4, quarry: 4, goldMine: 2 });
+        // O painel depois da ordem diz que a comida acaba em 3 horas na estação que vem.
+        const worse = fedView(view, { depletesInSeconds: 3 * 3600 });
+        const orders: Order[] = [];
+        const act: Act = async (type, payload) => {
+          orders.push({ type, payload });
+          return worse;
+        };
+        await alocarPorDemanda.run(view, act);
+        // Tirou um lavrador, viu a previsão e o pôs de volta: a última ordem da fazenda é 2.
+        const farm = orders
+          .filter((order) => (order.payload as { building: string }).building === 'farm')
+          .map((order) => (order.payload as { count: number }).count);
+        expect(farm).toEqual([1, 2]);
+      });
+
+      it('com fome, a conta é a de sempre: comida primeiro', async () => {
+        const view = fullPantry({ farm: 1, lumberMill: 5, quarry: 4, goldMine: 2 });
+        const hungry: ViewState = {
+          ...view,
+          famine: { sinceMs: 0, secondsElapsed: 60, endsInSeconds: null, text: 'Fome.' },
+        };
+        // 12 bocas e 2 de folga a 12 por lavrador: dois, mesmo com a despensa "cheia".
+        expect((await decide(hungry)).farm).toBe(2);
+      });
     });
   });
 });
@@ -1336,6 +1692,8 @@ describe('os bots jogando contra o motor', () => {
         Object.fromEntries(feudo.view().workers.map((row) => [row.building, row.assigned]));
       let switched = 0;
       let hands = 0;
+      const learned: Record<string, number> = {};
+      const emptied: string[] = [];
       // Duas visitas por dia real, uma semana.
       for (let visit = 0; visit < 14; visit += 1) {
         const before = assigned();
@@ -1349,17 +1707,26 @@ describe('os bots jogando contra o motor', () => {
         // Quem chegou a um edifício e não estava sem ofício veio de outro: trocou de ofício.
         switched += Math.max(0, arrived - free);
         hands += feudo.view().population.villagers;
+        // Com as obras esgotadas (no ritmo 3 isso acontece dentro da semana) o bot esvazia os
+        // ofícios que só encheriam o depósito, e a experiência deles cai: aí já não conta.
+        if (!nothingLeftToBuild(feudo.view())) {
+          for (const row of feudo.view().workers.filter((entry) => entry.resource !== 'food')) {
+            learned[row.building] = Math.max(learned[row.building] ?? 0, row.experience);
+            if (row.experienceTrend === 'falling') {
+              emptied.push(`${row.building} na visita ${visit}`);
+            }
+          }
+        }
         feudo.pass(12 * timeScale);
       }
       expect(feudo.refused).toEqual([]);
       // Em catorze visitas, menos de uma troca a cada dez trabalhadores por visita.
       expect(switched).toBeLessThan(hands / 10);
-      // E os ofícios dos materiais ganharam experiência: nenhum ficou vazio à toa. (A fazenda
-      // sobe de nível e pede menos braços do que níveis: lá a experiência não é a meta.)
-      for (const row of feudo.view().workers.filter((entry) => entry.resource !== 'food')) {
-        expect(row.experience, row.building).toBeGreaterThan(0);
-        expect(row.experienceTrend, row.building).not.toBe('falling');
-      }
+      // E os ofícios dos materiais ganharam experiência enquanto havia obra a fazer: nenhum
+      // ficou vazio à toa. (A fazenda sobe de nível e pede menos braços do que níveis: lá a
+      // experiência não é a meta.)
+      expect(learned).toEqual({ lumberMill: 100, quarry: 100, goldMine: 100 });
+      expect(emptied).toEqual([]);
     },
   );
 

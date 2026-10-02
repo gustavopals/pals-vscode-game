@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { Command, GameState } from '@lotg/engine';
 
-import { economico } from './bots/economico';
+import { botFor } from './bots';
 import type { Act, Bot } from './bots/types';
 import { formatSummary, summarize, toCsv } from './report';
 import { simulate, type SimulationOptions } from './simulate';
@@ -41,7 +41,8 @@ function recorder(): { bot: Bot; sessions: Order[][] } {
       orders.push({ type, payload });
       return (act as LooseAct)(type, payload);
     };
-    await economico(view, noted as Act);
+    // O bot que `simulate` montaria para estas sessões: o econômico de três visitas por dia.
+    await botFor(base.strategy, base.sessionsPerDay)(view, noted as Act);
   };
   return { bot, sessions };
 }
@@ -101,17 +102,23 @@ describe('simulação no ritmo 3', () => {
       if (same === undefined) {
         throw new Error(`Falta a hora ${3 * (index + 1)} no ritmo 1.`);
       }
-      // O retrato de jogo é o mesmo; só mudam a hora real e as taxas.
-      expect({ ...row, hour: 0, realDay: 0, perHour: null }).toStrictEqual({
+      // O retrato de jogo é o mesmo; só mudam a hora real e as taxas (o saldo e a produção
+      // bruta, as duas por hora real).
+      expect({ ...row, hour: 0, realDay: 0, perHour: null, gross: null }).toStrictEqual({
         ...same,
         hour: 0,
         realDay: 0,
         perHour: null,
+        gross: null,
       });
       // A visão arredonda cada taxa a uma casa: o triplo de um valor arredondado pode ficar a
       // até três meias casas do valor de verdade, que por sua vez é arredondado a meia casa.
       for (const [resource, value] of Object.entries(row.perHour)) {
         const tripled = same.perHour[resource as keyof typeof same.perHour] * 3;
+        expect(Math.abs(value - tripled)).toBeLessThanOrEqual(0.2 + 1e-9);
+      }
+      for (const [resource, value] of Object.entries(row.gross)) {
+        const tripled = same.gross[resource as keyof typeof same.gross] * 3;
         expect(Math.abs(value - tripled)).toBeLessThanOrEqual(0.2 + 1e-9);
       }
     }

@@ -217,6 +217,42 @@ export function gateRequirement(
     : null;
 }
 
+/**
+ * A próxima melhoria de `building` ainda pode vir a começar: o edifício não chegou ao teto, e o
+ * que a segura (o nível de outro edifício, o depósito pequeno demais para o custo) ainda se
+ * resolve com outra obra. A fila ocupada e a falta de recurso não contam: passam sozinhas. Com
+ * o edifício em obras, a resposta é sim: o feudo ainda está construindo.
+ *
+ * É o que separa "gaste madeira" de um conselho que nenhum botão cumpre: em Senhor, com o
+ * Armazém no nível máximo, a obra do Salão para o nível 8 pede mais do que ele guarda, e com
+ * ela ficam presas as dos edifícios que esperam o Salão.
+ */
+export function upgradeStillPossible(
+  state: GameState,
+  building: BuildingId,
+  waitingOn: readonly BuildingId[] = [],
+): boolean {
+  // Uma obra que depende de si mesma (o depósito cujo custo não cabe nele) não se resolve.
+  if (waitingOn.includes(building)) {
+    return false;
+  }
+  if (constructionOf(state, building) !== null) {
+    return true;
+  }
+  const fromLevel = state.settlement.buildings[building];
+  if (fromLevel >= buildings[building].maxLevel) {
+    return false;
+  }
+  const chain = [...waitingOn, building];
+  // As duas travas têm de ceder: o edifício que falta subir e o depósito que falta ampliar.
+  const requirement = gateRequirement(state, building, fromLevel + 1);
+  if (requirement !== null && !upgradeStillPossible(state, requirement.building, chain)) {
+    return false;
+  }
+  const beyond = costBeyondStorage(state, upgradeCost(building, fromLevel));
+  return beyond === null || upgradeStillPossible(state, beyond.building, chain);
+}
+
 /** A recusa de uma obra sem fila livre: diz o que abre a segunda fila enquanto ela não abriu. */
 function queueRejection(state: GameState): Rejection {
   return reject(

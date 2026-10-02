@@ -1,3 +1,4 @@
+import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { type Band, bandFor, cellKey, checkBand, SLACK } from './bands';
@@ -17,6 +18,7 @@ function summary(overrides: Partial<Summary> = {}): Summary {
   return {
     hours: 168,
     villagers: 26,
+    villagersMin: 5,
     capacity: 35,
     townHall: 3,
     famineHours: 0,
@@ -40,6 +42,10 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     wasted: { food: 0, wood: 0, stone: 0 },
     wasteHours: 0,
     wasteStreakGameHours: { food: 0, wood: 0, stone: 0 },
+    wastedPercent: { food: 0, wood: 0, stone: 0 },
+    milestones: { townHall2: 20, townHall3: 60, townHall4: null, granary: null, warehouse: null },
+    exhaustedAtHour: null,
+    autoStarted: 0,
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -122,23 +128,35 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3: 72 aldeões, Salão Nv7, o Armazém no nível máximo e cheio
-    // (5.100 de madeira e 5.100 de pedra), 37.628 de ouro parado e 165 h de jogo seguidas com a
-    // madeira indo ao chão.
+    // Regular, 7 dias reais, ritmo 3, em Senhor: 72 aldeões, Salão Nv7, 4.236 de madeira e
+    // 5.100 de pedra no Armazém, 156.690 de ouro parado (com as obras esgotadas o bot manda
+    // todo mundo para a Mina) e 18 h de jogo seguidas com a comida indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
       villagers: { min: 64, max: 80 },
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_355, stone: 5_355, gold: 39_510 },
-      wasteStreakMax: 174,
+      surplusMax: { wood: 4_448, stone: 5_355, gold: 164_525 },
+      wasteStreakMax: 19,
     });
   });
 
-  it('só há faixa na dificuldade Senhor e nos ritmos medidos', () => {
-    expect(bandFor(cellKey('week', 3, 'regular'), 'lord')).not.toBeNull();
-    expect(bandFor(cellKey('week', 3, 'regular'), 'peasant')).toBeNull();
-    expect(bandFor(cellKey('week', 3, 'regular'), 'ironKing')).toBeNull();
-    expect(bandFor(cellKey('week', 2, 'regular'))).toBeNull();
+  it('há faixa nas três dificuldades, cada uma com a sua medida, e só nos ritmos medidos', () => {
+    const cell = cellKey('week', 3, 'regular');
+    expect(bandFor(cell, 'lord')).toEqual(bandFor(cell));
+    // Em Camponês o Armazém guarda 25% a mais e o Salão chega ao nível 8; em Rei de Ferro guarda
+    // 20% a menos, e o teto de madeira parada cai junto.
+    expect(bandFor(cell, 'peasant')?.townHallMin).toBe(8);
+    expect(bandFor(cell, 'ironKing')?.townHallMin).toBe(7);
+    expect(bandFor(cell, 'peasant')?.surplusMax.stone).toBeGreaterThan(
+      bandFor(cell, 'lord')?.surplusMax.stone ?? Infinity,
+    );
+    expect(bandFor(cell, 'ironKing')?.surplusMax.stone).toBeLessThan(
+      bandFor(cell, 'lord')?.surplusMax.stone ?? 0,
+    );
+    for (const difficulty of DIFFICULTY_IDS) {
+      expect(bandFor(cell, difficulty), difficulty).not.toBeNull();
+      expect(bandFor(cellKey('week', 2, 'regular'), difficulty), difficulty).toBeNull();
+    }
   });
 });

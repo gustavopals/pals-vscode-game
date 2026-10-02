@@ -5,6 +5,7 @@ import { type Band, bandFor, type CellKey, cellKey, checkBand } from './bands';
 import { IDENTITY, identityLine } from './identity';
 import {
   formatDecimal,
+  MILESTONES,
   refusedByCode,
   runMechanicColumns,
   summarize,
@@ -89,10 +90,25 @@ export type MatrixRun = {
 
 export type Range = { min: number; max: number };
 
+/**
+ * O menor e o maior valor de uma medida que pode não existir (a hora de um marco a que nem toda
+ * partida chega, um percentual sem produção). `null` no `max` diz que ao menos uma semente ficou
+ * sem a medida; no `min`, que nenhuma a teve.
+ */
+export type OptionalRange = { min: number | null; max: number | null };
+
 /** O que as sementes de uma célula (janela, ritmo, perfil) mediram: o menor e o maior valor. */
 export type CellMeasure = {
   villagers: Range;
+  /** A menor população de cada partida: cai quando alguém parte ou deserta. */
+  villagersMin: Range;
   townHall: Range;
+  /** A hora real de cada marco de `MILESTONES`, pelo `id`. */
+  milestones: Record<string, OptionalRange>;
+  /** A hora real em que as obras acabaram de vez; sem valor quando ainda havia o que construir. */
+  exhaustedAtHour: OptionalRange;
+  /** Obras que começaram sozinhas, entre as visitas. */
+  autoStarted: Range;
   famineHours: Range;
   coldHours: Range;
   /** A menor moral de cada partida, e as horas com ela nas faixas de baixo. */
@@ -107,6 +123,8 @@ export type CellMeasure = {
   surplus: Record<SurplusResource, Range>;
   wasted: Record<WasteResource, Range>;
   wasteHours: Range;
+  /** Quanto da produção bruta de cada recurso foi ao chão, em por cento. */
+  wastedPercent: Record<WasteResource, OptionalRange>;
   /** A maior sequência desperdiçando cada recurso, em horas de jogo. */
   wasteStreak: Record<WasteResource, Range>;
   /** A do pior recurso de cada partida: é a que a faixa e a meta do GDD §15.2 olham. */
@@ -151,11 +169,28 @@ function rangeOf(values: number[]): Range {
   return { min: Math.min(...values), max: Math.max(...values) };
 }
 
+/** O menor e o maior valor entre as sementes que têm a medida; `null` no `max` se alguma não tem. */
+function optionalRangeOf(values: Array<number | null>): OptionalRange {
+  const present = values.filter((value): value is number => value !== null);
+  return {
+    min: present.length === 0 ? null : Math.min(...present),
+    max: present.length < values.length ? null : Math.max(...present),
+  };
+}
+
 function measureOf(summaries: Summary[]): CellMeasure {
   const range = (pick: (summary: Summary) => number) => rangeOf(summaries.map(pick));
+  const optional = (pick: (summary: Summary) => number | null) =>
+    optionalRangeOf(summaries.map(pick));
   return {
     villagers: range((summary) => summary.villagers),
+    villagersMin: range((summary) => summary.villagersMin),
     townHall: range((summary) => summary.townHall),
+    milestones: Object.fromEntries(
+      MILESTONES.map(({ id }) => [id, optional((summary) => summary.milestones[id] ?? null)]),
+    ),
+    exhaustedAtHour: optional((summary) => summary.exhaustedAtHour),
+    autoStarted: range((summary) => summary.autoStarted),
     famineHours: range((summary) => summary.famineHours),
     coldHours: range((summary) => summary.coldHours),
     moraleMin: range((summary) => summary.moraleMin),
@@ -172,6 +207,9 @@ function measureOf(summaries: Summary[]): CellMeasure {
       WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasted[id])]),
     ) as Record<WasteResource, Range>,
     wasteHours: range((summary) => summary.wasteHours),
+    wastedPercent: Object.fromEntries(
+      WASTE_RESOURCES.map((id) => [id, optional((summary) => summary.wastedPercent[id])]),
+    ) as Record<WasteResource, OptionalRange>,
     wasteStreak: Object.fromEntries(
       WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasteStreakGameHours[id])]),
     ) as Record<WasteResource, Range>,
@@ -304,6 +342,22 @@ function formatHoursRange({ min, max }: Range): string {
   return min === max ? formatDecimal(min) : `${formatDecimal(min)} a ${formatDecimal(max)}`;
 }
 
+/**
+ * Uma medida que pode faltar: `—` quando nenhuma semente a tem, e "12 a —" quando só algumas
+ * (um marco a que nem toda partida chegou).
+ */
+function formatOptional({ min, max }: OptionalRange, suffix = ''): string {
+  if (min === null) {
+    return '—';
+  }
+  if (max === null) {
+    return `${formatInt(min)}${suffix} a —`;
+  }
+  return min === max
+    ? `${formatInt(min)}${suffix}`
+    : `${formatInt(min)}${suffix} a ${formatInt(max)}${suffix}`;
+}
+
 const STREAK_TITLE = 'Maior sequência desperdiçando (h de jogo)';
 
 function table(header: string[], rows: string[][]): string {
@@ -320,6 +374,14 @@ function surplusTitle(id: SurplusResource): string {
 function streakTitle(id: WasteResource): string {
   return `${balance.resources[id].label} (h de jogo)`;
 }
+
+/** Título da coluna da parte da produção perdida: "Comida perdida (% da produção)". */
+function wasteShareTitle(id: WasteResource): string {
+  return `${balance.resources[id].label} perdida (% da produção)`;
+}
+
+/** Um marco a que nenhuma semente chegou. */
+const NEVER: OptionalRange = { min: null, max: null };
 
 /** Título da coluna de desperdício de um recurso: "Desperdício de comida". */
 function wasteTitle(id: WasteResource): string {
@@ -445,7 +507,44 @@ export function formatMatrix(result: MatrixResult): string {
                   ],
             ),
           )}`;
-    return `## ${window.label}\n\n${measures}${bands}`;
+    const profileOf = (cell: MatrixCell) => cell.profile.label;
+    const progress = table(
+      [
+        'Ritmo',
+        'Perfil',
+        ...MILESTONES.map(({ label }) => `${label} (h)`),
+        'Fim das obras (h)',
+        'Obras que começaram sozinhas',
+        'População mínima',
+      ],
+      cells.map((cell) => [
+        cell.paceLabel,
+        profileOf(cell),
+        ...MILESTONES.map(({ id }) => formatOptional(cell.measure.milestones[id] ?? NEVER)),
+        formatOptional(cell.measure.exhaustedAtHour),
+        formatRange(cell.measure.autoStarted),
+        formatRange(cell.measure.villagersMin),
+      ]),
+    );
+    const waste = table(
+      [
+        'Ritmo',
+        'Perfil',
+        ...WASTE_RESOURCES.map(wasteShareTitle),
+        ...WASTE_RESOURCES.map(streakTitle),
+      ],
+      cells.map((cell) => [
+        cell.paceLabel,
+        profileOf(cell),
+        ...WASTE_RESOURCES.map((id) => formatOptional(cell.measure.wastedPercent[id], '%')),
+        ...WASTE_RESOURCES.map((id) => formatHoursRange(cell.measure.wasteStreak[id])),
+      ]),
+    );
+    return [
+      `## ${window.label}\n\n${measures}${bands}`,
+      `### Progresso: ${window.label.toLowerCase()}\n\n${progress}`,
+      `### Desperdício por recurso: ${window.label.toLowerCase()}\n\n${waste}`,
+    ].join('\n\n');
   });
 
   const verdict =
@@ -488,6 +587,8 @@ export function formatMatrix(result: MatrixResult): string {
     '',
     'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção; "Maior sequência desperdiçando" é, do pior recurso de cada partida, a maior sequência de horas seguidas indo ao chão, em horas de jogo. "Moral mínima" é a menor moral de cada partida; "Moral baixa", as horas com o povo inquieto ou desesperado; "Foram embora", os aldeões que partiram ou desertaram.',
     '',
+    'Nas tabelas de progresso, cada marco traz a hora real, desde a fundação, em que o edifício chegou ao nível (— é "não chegou na partida"); "Fim das obras" é a hora em que o feudo ficou sem nada em obras e sem nada que ainda possa construir, até o fim da partida (— é "ainda havia o que construir"). Nas de desperdício por recurso, a parte perdida é o desperdício sobre a produção bruta do mesmo recurso (— sem produção), e a sequência é a maior de cada recurso, em horas de jogo.',
+    '',
     sections.join('\n\n'),
     '',
     verdict,
@@ -524,6 +625,25 @@ const runColumns: Array<[string, (run: MatrixRun, difficulty: DifficultyId) => s
   ['free_villager_hours', (run) => run.summary.freeVillagerHours],
   // A maior sequência desperdiçando um recurso (o pior deles), em horas de jogo.
   ['waste_streak_game_hours', (run) => worstWasteStreak(run.summary).gameHours],
+  // A de cada recurso, e a parte da produção bruta dele que foi ao chão (vazio sem produção).
+  ...WASTE_RESOURCES.map((id): [string, (run: MatrixRun) => string | number] => [
+    `waste_streak_${id}`,
+    (run) => run.summary.wasteStreakGameHours[id],
+  ]),
+  ...WASTE_RESOURCES.map((id): [string, (run: MatrixRun) => string | number] => [
+    `wasted_${id}_percent`,
+    (run) => run.summary.wastedPercent[id] ?? '',
+  ]),
+  // Progresso: a menor população, a hora real de cada marco e a do fim das obras (vazio é "não
+  // chegou"), e as obras que começaram sozinhas.
+  ['villagers_min', (run) => run.summary.villagersMin],
+  ...MILESTONES.map(({ id, column }): [string, (run: MatrixRun) => string | number] => [
+    column,
+    (run) => run.summary.milestones[id] ?? '',
+  ]),
+  ['exhausted_hour', (run) => run.summary.exhaustedAtHour ?? ''],
+  ['auto_started', (run) => run.summary.autoStarted],
+  ['villagers_lost', (run) => run.summary.villagersLeft + run.summary.villagersDeserted],
   ...RESOURCE_IDS.map((id): [string, (run: MatrixRun) => number] => [
     id,
     (run) => run.summary.stock[id],

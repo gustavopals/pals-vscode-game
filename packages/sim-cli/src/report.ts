@@ -1,5 +1,8 @@
 import {
+  balance,
+  type BuildingId,
   BUILDING_IDS,
+  buildings,
   type GameEventType,
   type MoraleBandId,
   RESOURCE_IDS,
@@ -58,6 +61,68 @@ export function worstWasteStreak(summary: Pick<Summary, 'wasteStreakGameHours'>)
     resource,
     gameHours: summary.wasteStreakGameHours[resource],
   })).reduce((worst, entry) => (entry.gameHours > worst.gameHours ? entry : worst));
+}
+
+/**
+ * Os marcos de progresso que a rodada de balanceamento acompanha (roadmap da v0.2, §7.3,
+ * "Progresso alcançável"): cada nível do Salão até o que abre a segunda fila de obras, e o
+ * Celeiro e o Armazém erguidos. A hora de cada um diz se o caminho de compras existe e quanto
+ * ele demora; `null` é "não chegou lá na partida".
+ */
+const townHallMilestones = Array.from(
+  { length: balance.construction.secondQueueTownHallLevel - buildings.townHall.initialLevel },
+  (_, index) => {
+    const level = buildings.townHall.initialLevel + index + 1;
+    return {
+      id: `townHall${level}`,
+      column: `town_hall_${level}_hour`,
+      building: 'townHall' as BuildingId,
+      level,
+      label: `Salão Nv${level}`,
+    };
+  },
+);
+export const MILESTONES: ReadonlyArray<{
+  id: string;
+  /** Nome da coluna no CSV da matriz. */
+  column: string;
+  building: BuildingId;
+  level: number;
+  label: string;
+}> = [
+  ...townHallMilestones,
+  { id: 'granary', column: 'granary_hour', building: 'granary', level: 1, label: 'Celeiro' },
+  { id: 'warehouse', column: 'warehouse_hour', building: 'warehouse', level: 1, label: 'Armazém' },
+];
+
+/** A primeira hora real em que o edifício aparece no nível pedido; `null` se não chegou. */
+function hourOfLevel(rows: readonly HourRow[], building: BuildingId, level: number): number | null {
+  return rows.find((row) => row.levels[building] >= level)?.hour ?? null;
+}
+
+/**
+ * A hora real em que as obras acabaram de vez: a primeira da sequência final de horas com o
+ * feudo sem nada em obras e sem nada que ainda possa construir (`HourRow.exhausted`). `null`
+ * quando a partida termina com obra em curso ou por fazer.
+ */
+export function exhaustedSince(rows: readonly HourRow[]): number | null {
+  let since: number | null = null;
+  for (const row of rows) {
+    since = row.exhausted ? (since ?? row.hour) : null;
+  }
+  return since;
+}
+
+/**
+ * Quanto da produção de um recurso foi ao chão, em por cento: o desperdício da partida sobre a
+ * produção bruta do mesmo recurso, somada hora a hora (`HourRow.gross`, uma amostra ao fim de
+ * cada hora). Cada recurso por si, nunca somados; `null` sem produção ("não se aplica").
+ */
+function wastedPercent(rows: readonly HourRow[], resource: WasteResource): number | null {
+  const produced = rows.reduce((sum, row) => sum + row.gross[resource], 0);
+  const wasted = rows[rows.length - 1]?.wasted[resource] ?? 0;
+  // A amostra é do fim da hora: em uma partida curta o desperdício pode passar dela.
+  return produced <= 0 ? null : Math.min(100, Math.round((wasted * 100) / produced));
 }
 
 /**
@@ -180,6 +245,8 @@ export function toCsv(rows: HourRow[]): string {
 export type Summary = {
   hours: number;
   villagers: number;
+  /** A menor população que o feudo teve, entre as amostras de cada hora. */
+  villagersMin: number;
   capacity: number;
   townHall: number;
   famineHours: number;
@@ -220,6 +287,17 @@ export type Summary = {
    * de `longestWasteStreak` vezes o ritmo da partida. É a medida da meta de `WASTE_STREAK_GOAL`.
    */
   wasteStreakGameHours: Record<WasteResource, number>;
+  /**
+   * Quanto da produção bruta de cada recurso foi ao chão, em por cento; `null` sem produção.
+   * Cada recurso por si: nunca se somam recursos diferentes em um percentual.
+   */
+  wastedPercent: Record<WasteResource, number | null>;
+  /** A hora real de cada marco de `MILESTONES`, pelo `id`; `null` se a partida não chegou lá. */
+  milestones: Record<string, number | null>;
+  /** A hora real em que as obras acabaram de vez (`exhaustedSince`); `null` se não acabaram. */
+  exhaustedAtHour: number | null;
+  /** Obras que começaram sozinhas, entre as visitas: as planejadas automáticas (GDD §6.3). */
+  autoStarted: number;
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -240,6 +318,10 @@ export function summarize(result: SimulationResult): Summary {
   return {
     hours: rows.length,
     villagers: last?.villagers ?? 0,
+    villagersMin: rows.reduce(
+      (lowest, row) => Math.min(lowest, row.villagers),
+      last?.villagers ?? 0,
+    ),
     capacity: last?.capacity ?? 0,
     townHall: last?.levels.townHall ?? 0,
     famineHours: hungry.length,
@@ -271,6 +353,14 @@ export function summarize(result: SimulationResult): Summary {
     wasteStreakGameHours: Object.fromEntries(
       WASTE_RESOURCES.map((id) => [id, longestWasteStreak(rows, id) * (options.timeScale ?? 1)]),
     ) as Record<WasteResource, number>,
+    wastedPercent: Object.fromEntries(
+      WASTE_RESOURCES.map((id) => [id, wastedPercent(rows, id)]),
+    ) as Record<WasteResource, number | null>,
+    milestones: Object.fromEntries(
+      MILESTONES.map(({ id, building, level }) => [id, hourOfLevel(rows, building, level)]),
+    ),
+    exhaustedAtHour: exhaustedSince(rows),
+    autoStarted: happened('constructionAutoStarted'),
     stock,
   };
 }
@@ -303,6 +393,31 @@ function moraleLine(summary: Summary): string {
 }
 
 /**
+ * "Progresso: Salão Nv2 na hora 3, Salão Nv3 na hora 9, Salão Nv4 na hora 20, Celeiro na hora
+ * 30, Armazém não alcançado · 46 obras começaram sozinhas · as obras acabaram na hora 113: nada
+ * mais a construir". As horas são reais, desde a fundação.
+ */
+function progressLine(summary: Summary): string {
+  const marks = MILESTONES.map(({ id, label }) => {
+    const hour = summary.milestones[id] ?? null;
+    return hour === null ? `${label} não alcançado` : `${label} na hora ${hour}`;
+  }).join(', ');
+  const end =
+    summary.exhaustedAtHour === null
+      ? 'ainda há obra por fazer no fim'
+      : `as obras acabaram na hora ${summary.exhaustedAtHour}: nada mais a construir`;
+  return `Progresso: ${marks} · ${summary.autoStarted} obras começaram sozinhas · ${end}`;
+}
+
+/** "food 12%, wood 40%, stone n/a": a parte da produção de cada recurso que foi ao chão. */
+function wastedPercentText(summary: Summary): string {
+  return WASTE_RESOURCES.map((id) => {
+    const percent = summary.wastedPercent[id];
+    return `${id} ${percent === null ? 'não se aplica' : `${percent}%`}`;
+  }).join(', ');
+}
+
+/**
  * O resumo de uma partida. Com `control`, a mesma partida jogada com as planejadas manuais
  * (`manualPlans`), a linha da fila ociosa ganha a comparação: o que o início automático mudou.
  */
@@ -324,8 +439,9 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `Partida: ${result.game.difficultyLabel} · ${result.game.paceLabel}`,
     identityLine(),
     `Políticas: ${strategyPolicies[options.strategy].map((policy) => policy.name).join(', ')}`,
-    `População: ${summary.villagers} de ${summary.capacity} vagas`,
+    `População: ${summary.villagers} de ${summary.capacity} vagas (mínima ${summary.villagersMin})`,
     `Níveis: ${levels}`,
+    progressLine(summary),
     `Estoque: ${stock}`,
     summary.famineHours === 0
       ? 'Fome: nenhuma'
@@ -343,6 +459,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     `Aldeões sem ofício: ${summary.freeVillagerHours} aldeão-horas (${formatDecimal(summary.freePerHour)} por hora)`,
     `Excedente parado: ${SURPLUS_RESOURCES.map((id) => `${id} ${summary.surplus[id]}`).join(', ')}`,
     `Desperdício: ${WASTE_RESOURCES.map((id) => `${id} ${summary.wasted[id]}`).join(', ')} (${summary.wasteHours} h com depósito cheio perdendo produção)`,
+    `Da produção de cada recurso, foi ao chão: ${wastedPercentText(summary)}`,
     `Maior sequência desperdiçando, em horas de jogo: ${WASTE_RESOURCES.map((id) => `${id} ${formatDecimal(summary.wasteStreakGameHours[id])}`).join(', ')} (meta do GDD §15.2 para ${WASTE_STREAK_GOAL.sessionsPerDay} sessões por dia: até ${WASTE_STREAK_GOAL.gameHours})`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
     'Sem medida até as Fases D e E: cartas do Conselho, perdas por lobos',

@@ -6,7 +6,7 @@ import type {
   ViewState,
 } from '@lotg/engine';
 
-import type { Policy } from './types';
+import type { Act, Policy } from './types';
 
 /**
  * As políticas dos bots. Cada bot (`economico.ts`, `preguicoso.ts`) é uma lista delas, em ordem.
@@ -37,6 +37,13 @@ const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food'>, number> = { wood: 3, sto
  * uma noite fora, que é quando a produção iria para o chão sem ninguém ver.
  */
 const STORAGE_HORIZON_HOURS = 8;
+/**
+ * Por quantas horas reais o bot deixa o feudo arrumado antes de sair, quando ninguém diz outra
+ * coisa: o tempo até a visita seguinte de quem joga duas vezes por dia. Um jogador sabe quando
+ * volta; o bot recebe esse prazo de quem o monta (`alocarPorDemandaFor`), e com ele só deixa em
+ * um ofício os braços cuja produção tem para onde ir até lá. O resto iria ao chão.
+ */
+export const DEFAULT_AWAY_HOURS = 12;
 /** Folga para o arredondamento das taxas da visão (uma casa decimal) não pedir um braço a mais. */
 const EPSILON = 1e-9;
 /**
@@ -107,24 +114,154 @@ function hoursPerWorker(view: ViewState, resource: ResourceId, amount: number): 
   return rate > 0 ? amount / rate : 0;
 }
 
-/** Quanto de cada material falta para pagar todas as obras que só esperam recurso. */
-function materialDeficits(view: ViewState): Record<Material, number> {
-  const needed: Record<Material, number> = { wood: 0, stone: 0, gold: 0 };
+/** Os edifícios de depósito, como a visão os aponta em cada recurso com limite. */
+function depotsOf(view: ViewState): Set<BuildingId | null> {
+  return new Set(view.resources.map((row) => row.storageBuilding));
+}
+
+/**
+ * Os depósitos que travam uma obra: o custo dela não cabe no limite de um recurso
+ * (`EXCEEDS_STORAGE`), e é o edifício que a visão aponta para esse recurso que o amplia.
+ */
+function blockingDepots(view: ViewState): BuildingId[] {
+  const blocking: BuildingId[] = [];
   for (const upgrade of view.constructions.available) {
-    if (!reachable(upgrade)) {
+    if (upgrade.blockedCode !== 'EXCEEDS_STORAGE') {
       continue;
     }
     for (const cost of upgrade.cost) {
-      if (cost.resource !== 'food') {
-        needed[cost.resource] += cost.amount;
+      const row = view.resources.find((entry) => entry.id === cost.resource);
+      if (row?.storageBuilding != null && row.cap !== null && cost.amount > row.cap) {
+        blocking.push(row.storageBuilding);
       }
     }
   }
+  return blocking;
+}
+
+/**
+ * As obras da lista que são obra por fazer. O Celeiro e o Armazém não são um fim: só contam
+ * quando já estão entre as planejadas ou quando travam outra obra. Ampliar um depósito só para
+ * guardar o que não tem onde ser gasto não é progresso.
+ */
+function wantedUpgrades(view: ViewState): Upgrade[] {
+  const depots = depotsOf(view);
+  const blocking = blockingDepots(view);
+  return view.constructions.available.filter(
+    (upgrade) =>
+      upgrade.planned || !depots.has(upgrade.building) || blocking.includes(upgrade.building),
+  );
+}
+
+/** Soma, por material, o custo das obras de `upgrades`. */
+function costsOf(upgrades: readonly Upgrade[]): Record<Material, number> {
+  const total: Record<Material, number> = { wood: 0, stone: 0, gold: 0 };
+  for (const upgrade of upgrades) {
+    for (const cost of upgrade.cost) {
+      if (cost.resource !== 'food') {
+        total[cost.resource] += cost.amount;
+      }
+    }
+  }
+  return total;
+}
+
+/** Quanto de cada material as obras que só esperam recurso pedem, ao todo. */
+function materialNeeds(view: ViewState): Record<Material, number> {
+  return costsOf(wantedUpgrades(view).filter(reachable));
+}
+
+/**
+ * Quanto de cada material falta para pagar as obras que só esperam recurso. É o que dá o peso
+ * de cada ofício na partilha dos braços; o que impede a produção de ir ao chão é o limite de
+ * cada um (`handsThatFit`).
+ */
+function materialDeficits(view: ViewState): Record<Material, number> {
+  const needed = materialNeeds(view);
   return {
     wood: Math.max(0, needed.wood - stockOf(view, 'wood')),
     stone: Math.max(0, needed.stone - stockOf(view, 'stone')),
     gold: Math.max(0, needed.gold - stockOf(view, 'gold')),
   };
+}
+
+/** Os motivos de bloqueio que esperar não resolve: teto, nível de outro edifício, depósito. */
+const DEAD_ENDS: ReadonlySet<string> = new Set(['MAX_LEVEL', 'GATE_LOCKED', 'EXCEEDS_STORAGE']);
+
+function deadEnd(upgrade: Upgrade): boolean {
+  return upgrade.blockedCode !== null && DEAD_ENDS.has(upgrade.blockedCode);
+}
+
+/**
+ * O feudo não tem mais o que construir: nenhuma obra em curso e, na lista, só o que esperar não
+ * resolve (o edifício chegou ao teto, está preso ao Salão que não sobe, ou o custo não cabe em
+ * depósito nenhum). Um edifício preso ao Salão não conta enquanto o Salão puder subir, nem um
+ * custo que não cabe enquanto o depósito puder ser ampliado: aí a obra do Salão ou do depósito
+ * ainda está na lista, esperando recurso ou fila.
+ *
+ * Um depósito que ninguém planejou e que não trava obra nenhuma também não conta
+ * (`wantedUpgrades`): ampliar o Celeiro ou o Armazém só para guardar o que não tem onde ser
+ * gasto não é obra por fazer. O depósito que trava outra obra conta, até chegar ao teto. Sem
+ * lista de obras não há o que concluir, e a resposta é não.
+ */
+export function nothingLeftToBuild(view: ViewState): boolean {
+  const { queues, available } = view.constructions;
+  return (
+    available.length > 0 &&
+    queues.every((slot) => slot === null) &&
+    wantedUpgrades(view).every(deadEnd)
+  );
+}
+
+/**
+ * O Salão ainda pode subir: está em obras, ou a obra dele não é das que esperar não resolve. É
+ * ele que segura as obras que a lista mostra presas a outro edifício.
+ */
+function townHallCanRise(view: ViewState): boolean {
+  const { queues, available } = view.constructions;
+  const upgrade = available.find((entry) => entry.building === 'townHall');
+  return (
+    queues.some((slot) => slot?.building === 'townHall') ||
+    (upgrade !== undefined && !deadEnd(upgrade))
+  );
+}
+
+/**
+ * Quanto de cada material as obras da lista podem tirar do estoque até a próxima visita: as que
+ * só esperam recurso e as que esperam o Salão, enquanto ele puder subir (as planejadas
+ * automáticas começam sozinhas assim que ele chega). Cada obra conta uma vez: o nível seguinte
+ * só entra na lista na visita seguinte.
+ */
+function spendableBy(view: ViewState): Record<Material, number> {
+  const gateOpens = townHallCanRise(view);
+  return costsOf(
+    wantedUpgrades(view).filter(
+      (upgrade) => reachable(upgrade) || (upgrade.blockedCode === 'GATE_LOCKED' && gateOpens),
+    ),
+  );
+}
+
+/**
+ * Quantos braços cabem em um ofício sem a produção ir ao chão durante a ausência. O que eles
+ * rendem em `awayHours` tem para onde ir: o espaço que resta no depósito, o que as obras da
+ * lista ainda podem levar (`spendable`) e o que sai sozinho no mesmo prazo (a comida que o
+ * feudo come, a madeira da lareira: o que o edifício rende menos o saldo do recurso).
+ * `Infinity` para o que não tem limite. Tudo lido da visão, em horas reais.
+ */
+function handsThatFit(
+  view: ViewState,
+  resource: ResourceId,
+  awayHours: number,
+  spendable = 0,
+): number {
+  const row = view.resources.find((entry) => entry.id === resource);
+  const place = workplace(view, resource);
+  if (row === undefined || row.cap === null || place.perWorkerPerHour <= 0) {
+    return Infinity;
+  }
+  const leaving = Math.max(0, place.grossPerHour - row.perHour);
+  const room = Math.max(0, row.cap - row.stock);
+  return Math.floor(((room + spendable) / awayHours + leaving) / place.perWorkerPerHour + EPSILON);
 }
 
 /** Reparte `hands` trabalhadores em proporção aos pesos, pelo método dos maiores restos. */
@@ -233,18 +370,9 @@ const URGENT = { blocksUpgrade: 3e9, wasting: 2e9, fillingSoon: 1e9 } as const;
  * recurso.
  */
 function storageWanted(view: ViewState): BuildingId[] {
-  const wanted: Array<{ building: BuildingId; urgency: number }> = [];
-  for (const upgrade of view.constructions.available) {
-    if (upgrade.blockedCode !== 'EXCEEDS_STORAGE') {
-      continue;
-    }
-    for (const cost of upgrade.cost) {
-      const row = view.resources.find((entry) => entry.id === cost.resource);
-      if (row?.storageBuilding != null && row.cap !== null && cost.amount > row.cap) {
-        wanted.push({ building: row.storageBuilding, urgency: URGENT.blocksUpgrade });
-      }
-    }
-  }
+  const wanted: Array<{ building: BuildingId; urgency: number }> = blockingDepots(view).map(
+    (building) => ({ building, urgency: URGENT.blocksUpgrade }),
+  );
   for (const row of view.resources) {
     if (row.storageBuilding === null) {
       continue;
@@ -348,12 +476,106 @@ function pick(score: (material: Material) => number): Material {
 }
 
 /**
- * Quantos braços cada material deveria ter, com `hands` para repartir. Primeiro o que cada
- * edifício pede para contar como ocupado (`occupiedFrom`): é o que faz a experiência do ofício
- * subir, e um edifício vazio a perde. O resto vai em proporção ao tempo que cada um levaria
- * para cobrir o que as obras pedem. Se não há gente nem para ocupar todos, vale só a proporção.
+ * A comida chega à volta do jogador: não há fome, e nem o prazo de agora nem a previsão da
+ * estação que vem dizem que ela acaba antes de `awayHours`. Sem a previsão (a visão a cala
+ * quando a comida ou a lenha acabam antes da virada), a comida preocupa.
  */
-function wantedHands(view: ViewState, hands: number): Record<Material, number> {
+function foodLastsTheAbsence(view: ViewState, awayHours: number): boolean {
+  const food = view.resources.find((row) => row.id === 'food');
+  const forecast = view.calendar.nextSeason.food;
+  const far = (seconds: number | null) => seconds === null || seconds > awayHours * 3600;
+  return (
+    view.famine === null &&
+    food !== undefined &&
+    far(food.depletesInSeconds) &&
+    forecast !== null &&
+    far(forecast.depletesInSeconds)
+  );
+}
+
+/**
+ * Quantos lavradores deixar na fazenda para a colheita não ir ao chão durante a ausência, até o
+ * máximo de `standard` (a conta de sempre: as bocas, a folga e a sobra para os recrutas).
+ *
+ * A conta olha a ausência em dois trechos, porque a estação pode virar no meio dela: até a
+ * virada, com o que um lavrador rende agora; depois dela, com o que a previsão da visão diz que
+ * ele vai render (`calendar.nextSeason.food`, que vale para a gente que está na fazenda agora).
+ * Fica o maior número de lavradores com que a despensa não transborda em nenhum dos dois
+ * trechos, e nunca menos do que os que deixam, no ponto mais baixo, comida para outra ausência
+ * inteira: sobrar um pouco é melhor do que faltar.
+ */
+function farmersForAbsence(
+  view: ViewState,
+  eatenPerHour: number,
+  standard: number,
+  awayHours: number,
+): number {
+  const food = view.resources.find((row) => row.id === 'food');
+  const farm = workplace(view, 'food');
+  const yieldNow = farm.perWorkerPerHour;
+  if (food === undefined || food.cap === null || yieldNow <= 0) {
+    return standard;
+  }
+  const { cap, stock } = food;
+  const { nextSeason } = view.calendar;
+  const untilTurn = Math.min(awayHours, nextSeason.secondsUntil / 3600);
+  const afterTurn = awayHours - untilTurn;
+  const yieldNext =
+    nextSeason.food !== null && farm.assigned > 0
+      ? Math.max(0, (nextSeason.food.perHour + eatenPerHour) / farm.assigned)
+      : yieldNow;
+  const path = (farmers: number) => {
+    const atTurn = stock + (farmers * yieldNow - eatenPerHour) * untilTurn;
+    const atReturn = Math.min(cap, atTurn) + (farmers * yieldNext - eatenPerHour) * afterTurn;
+    return { atTurn, atReturn };
+  };
+  const overflows = (farmers: number) => {
+    const { atTurn, atReturn } = path(farmers);
+    return atTurn > cap + EPSILON || atReturn > cap + EPSILON;
+  };
+  const safe = (farmers: number) => {
+    const { atTurn, atReturn } = path(farmers);
+    return Math.min(atTurn, atReturn) >= eatenPerHour * awayHours;
+  };
+  let farmers = standard;
+  while (farmers > 0 && overflows(farmers) && safe(farmers - 1)) {
+    farmers -= 1;
+  }
+  return farmers;
+}
+
+/**
+ * Com quantos braços um ofício fica mesmo sem ter para quem produzir. Enquanto a experiência
+ * sobe, o que o edifício pede para contar como ocupado (`occupiedFrom`); com ela no máximo, um
+ * só, que é o que basta para não perdê-la (o edifício vazio a perde). Quando o feudo não tem mais
+ * o que construir, nenhum: a experiência já não compra nada.
+ */
+function handsToKeep(view: ViewState, material: Material): number {
+  if (nothingLeftToBuild(view)) {
+    return 0;
+  }
+  const { experience, occupiedFrom } = workplace(view, material);
+  return experience < view.workersRules.experienceMax ? occupiedFrom : Math.min(1, occupiedFrom);
+}
+
+/**
+ * Quantos braços cada material deveria ter, com `hands` para repartir, e o máximo que cada um
+ * comporta (`limits`).
+ *
+ * Primeiro o que cada edifício pede para o ofício não perder o que aprendeu (`handsToKeep`). O
+ * resto vai em proporção ao tempo que cada um levaria para cobrir o que as obras pedem. Se não
+ * há gente nem para isso, vale só a proporção.
+ *
+ * Um material com limite de estoque só recebe os braços cuja produção tem para onde ir durante
+ * a ausência (`handsThatFit`): o espaço do depósito e o que as obras da lista ainda levam. O que
+ * não cabe em lugar nenhum vai para o ouro, que não tem limite.
+ */
+function wantedHands(
+  view: ViewState,
+  hands: number,
+  awayHours: number,
+): { wanted: Record<Material, number>; limits: Record<Material, number> } {
+  const spendable = spendableBy(view);
   const deficits = materialDeficits(view);
   const hoursToCover: Record<Material, number> = {
     wood: hoursPerWorker(view, 'wood', deficits.wood),
@@ -362,20 +584,59 @@ function wantedHands(view: ViewState, hands: number): Record<Material, number> {
   };
   const weights = MATERIALS.some((id) => hoursToCover[id] > 0) ? hoursToCover : IDLE_WEIGHTS;
   const floors: Record<Material, number> = {
-    wood: workplace(view, 'wood').occupiedFrom,
-    stone: workplace(view, 'stone').occupiedFrom,
-    gold: workplace(view, 'gold').occupiedFrom,
+    wood: handsToKeep(view, 'wood'),
+    stone: handsToKeep(view, 'stone'),
+    gold: handsToKeep(view, 'gold'),
+  };
+  const limit = (material: Material) =>
+    Math.max(floors[material], handsThatFit(view, material, awayHours, spendable[material]));
+  const limits: Record<Material, number> = {
+    wood: limit('wood'),
+    stone: limit('stone'),
+    gold: limit('gold'),
   };
   const occupied = MATERIALS.reduce((sum, id) => sum + floors[id], 0);
   if (occupied > hands) {
-    return share(hands, weights);
+    return { wanted: share(hands, weights), limits };
   }
-  const rest = share(hands - occupied, weights);
-  return {
-    wood: floors.wood + rest.wood,
-    stone: floors.stone + rest.stone,
-    gold: floors.gold + rest.gold,
-  };
+  const wanted = { ...floors };
+  let rest = hands - occupied;
+  let open = MATERIALS.filter((id) => wanted[id] < limits[id]);
+  while (rest > 0 && open.some((id) => weights[id] > 0)) {
+    const part = share(rest, {
+      wood: open.includes('wood') ? weights.wood : 0,
+      stone: open.includes('stone') ? weights.stone : 0,
+      gold: open.includes('gold') ? weights.gold : 0,
+    });
+    // Quem recebeu mais do que comporta fica no limite, e a sobra é repartida de novo.
+    const full = open.filter((id) => wanted[id] + part[id] > limits[id]);
+    if (full.length === 0) {
+      for (const id of open) {
+        wanted[id] += part[id];
+      }
+      rest = 0;
+      break;
+    }
+    for (const id of full) {
+      rest -= limits[id] - wanted[id];
+      wanted[id] = limits[id];
+    }
+    open = open.filter((id) => !full.includes(id));
+  }
+  // O que não coube em nenhum ofício que alguém pedisse vai para o que não tem limite.
+  const sink = MATERIALS.find((id) => limits[id] === Infinity);
+  if (rest > 0 && sink !== undefined) {
+    wanted[sink] += rest;
+    rest = 0;
+  }
+  // Sem ofício sem limite (não acontece no jogo de hoje), a sobra segue os pesos de sempre.
+  if (rest > 0) {
+    const extra = share(rest, weights);
+    for (const id of MATERIALS) {
+      wanted[id] += extra[id];
+    }
+  }
+  return { wanted, limits };
 }
 
 /**
@@ -410,90 +671,129 @@ function worthSwitchingTo(view: ViewState, material: Material): boolean {
  * - entre os materiais, alguém só troca de ofício quando o ganho compensa (`worthSwitchingTo`),
  *   e nunca deixando para trás um edifício abaixo do que ele pede para contar como ocupado.
  *
+ * **Ninguém fica produzindo para o chão.** O bot arruma o feudo para as horas que vai passar
+ * fora (`awayHours`): em um recurso com limite de estoque só ficam os braços cuja produção tem
+ * para onde ir até a volta (`handsThatFit`, `farmersForAbsence`). Quem sobra sai na hora, sem
+ * esperar a troca compensar, e vai para o material que falta ou, se nada falta, para o ouro,
+ * que não tem limite. É o que o painel manda quando um depósito enche e não há como ampliá-lo.
+ *
  * A folga é em bocas, e não em comida por hora, para a decisão ser a mesma em qualquer ritmo:
  * a visão traz as taxas por hora real, e o bot não sabe (nem precisa saber) qual é o ritmo.
  */
-export const alocarPorDemanda: Policy = {
-  name: 'alocar por demanda',
-  run: async (view, act) => {
-    const { villagers, inTraining } = view.population;
-    const eaten = eatenPerVillager(view);
-    if (eaten === null) {
-      return view;
-    }
-    const farm = workplace(view, 'food');
-    const farmYield = farm.perWorkerPerHour;
-    const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
-    const feeding = farmYield > 0 ? Math.ceil(demand / farmYield - EPSILON) : 0;
-    // Com vaga nas Habitações, um lavrador a mais: é a sobra de comida que paga os recrutas.
-    // Sem ela o feudo come o que planta e para de crescer. Com a despensa cheia e a comida
-    // indo ao chão, a sobra já existe: o lavrador a mais só aumentaria o desperdício.
-    const food = view.resources.find((row) => row.id === 'food');
-    const wasting = food !== undefined && food.full && food.wastingPerHour > 0;
-    const growing = view.population.vacancies > 0 && farmYield > 0 && !wasting ? 1 : 0;
-    const needed = Math.min(villagers, feeding + growing);
-    // Um fazendeiro a mais do que a conta pede fica onde está.
-    const farmers =
-      farm.assigned >= needed && farm.assigned <= needed + FARM_SLACK ? farm.assigned : needed;
+export function alocarPorDemandaFor(awayHours: number): Policy {
+  return { name: 'alocar por demanda', run: (view, act) => allocate(view, act, awayHours) };
+}
 
-    const hands = villagers - farmers;
-    const wanted = wantedHands(view, hands);
-    const current = (material: Material) => workplace(view, material).assigned;
-    const alloc: Record<Material, number> = {
-      wood: current('wood'),
-      stone: current('stone'),
-      gold: current('gold'),
-    };
-    const total = () => MATERIALS.reduce((sum, id) => sum + alloc[id], 0);
-    const surplus = (material: Material) => alloc[material] - wanted[material];
-    // A fazenda pediu braços: saem de quem mais passa do que deveria ter.
-    while (total() > hands) {
-      alloc[pick(surplus)] -= 1;
-    }
-    // Quem está sem ofício vai para onde mais falta gente.
-    while (total() < hands) {
-      alloc[pick((material) => -surplus(material))] += 1;
-    }
-    // Troca de ofício entre os materiais: só quando compensa, e sem desocupar quem cede. Um
-    // edifício ocupado continua ocupado; um que já não estava fica com ao menos um trabalhador.
-    const keeps = (material: Material) => {
-      const { occupiedFrom } = workplace(view, material);
-      return current(material) >= occupiedFrom ? occupiedFrom : 1;
-    };
-    for (;;) {
-      const receivers = MATERIALS.filter((id) => surplus(id) < 0 && worthSwitchingTo(view, id));
-      const donors = MATERIALS.filter((id) => surplus(id) > 0 && alloc[id] > keeps(id));
-      const [receiver] = receivers.sort((a, b) => surplus(a) - surplus(b));
-      const [donor] = donors.sort((a, b) => surplus(b) - surplus(a));
-      if (receiver === undefined || donor === undefined) {
-        break;
-      }
-      alloc[donor] -= 1;
-      alloc[receiver] += 1;
-    }
+/** A política para quem volta em `DEFAULT_AWAY_HOURS`: duas visitas por dia. */
+export const alocarPorDemanda: Policy = alocarPorDemandaFor(DEFAULT_AWAY_HOURS);
 
-    const target: Record<ProductionBuildingId, number> = {
-      farm: farmers,
-      lumberMill: alloc.wood,
-      quarry: alloc.stone,
-      goldMine: alloc.gold,
-    };
-    // Primeiro libera quem sobra, depois preenche: assim nenhuma ordem esbarra na falta de livres.
-    const rows = [...view.workers].sort(
-      (a, b) => target[a.building] - a.assigned - (target[b.building] - b.assigned),
+async function allocate(view: ViewState, act: Act, awayHours: number): Promise<ViewState> {
+  const { villagers, inTraining } = view.population;
+  const eaten = eatenPerVillager(view);
+  if (eaten === null) {
+    return view;
+  }
+  const farm = workplace(view, 'food');
+  const farmYield = farm.perWorkerPerHour;
+  const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
+  const feeding = farmYield > 0 ? Math.ceil(demand / farmYield - EPSILON) : 0;
+  // Com vaga nas Habitações, um lavrador a mais: é a sobra de comida que paga os recrutas.
+  // Sem ela o feudo come o que planta e para de crescer. Com a despensa cheia e a comida
+  // indo ao chão, a sobra já existe: o lavrador a mais só aumentaria o desperdício.
+  const food = view.resources.find((row) => row.id === 'food');
+  const wasting = food !== undefined && food.full && food.wastingPerHour > 0;
+  const growing = view.population.vacancies > 0 && farmYield > 0 && !wasting ? 1 : 0;
+  const standard = Math.min(villagers, feeding + growing);
+  // Só os lavradores cuja colheita tem para onde ir durante a ausência: as bocas e o espaço que
+  // resta na despensa (o que os recrutas desta visita gastaram volta a caber). É o que o painel
+  // manda ("ponha parte dos lavradores em outro ofício"). Com fome, a conta é a de sempre.
+  const fitting =
+    view.famine === null
+      ? farmersForAbsence(view, (villagers + inTraining) * eaten, standard, awayHours)
+      : standard;
+  // Um fazendeiro a mais do que a conta pede fica onde está, se a colheita dele ainda cabe.
+  const slack = fitting < standard ? 0 : FARM_SLACK;
+  const farmers =
+    farm.assigned >= fitting && farm.assigned <= fitting + slack ? farm.assigned : fitting;
+
+  const hands = villagers - farmers;
+  const { wanted, limits } = wantedHands(view, hands, awayHours);
+  const current = (material: Material) => workplace(view, material).assigned;
+  const alloc: Record<Material, number> = {
+    wood: current('wood'),
+    stone: current('stone'),
+    gold: current('gold'),
+  };
+  const total = () => MATERIALS.reduce((sum, id) => sum + alloc[id], 0);
+  const surplus = (material: Material) => alloc[material] - wanted[material];
+  // A fazenda pediu braços: saem de quem mais passa do que deveria ter.
+  while (total() > hands) {
+    alloc[pick(surplus)] -= 1;
+  }
+  // Quem está sem ofício vai para onde mais falta gente.
+  while (total() < hands) {
+    alloc[pick((material) => -surplus(material))] += 1;
+  }
+  // Quem produz para o chão sai sem esperar a troca compensar: o que passa do que o depósito
+  // comporta vai para onde mais falta gente. A adaptação custa meio rendimento por um dia de
+  // jogo; o depósito cheio custa o rendimento inteiro.
+  for (const material of MATERIALS) {
+    while (alloc[material] > limits[material]) {
+      alloc[material] -= 1;
+      alloc[pick((other) => (other === material ? -Infinity : -surplus(other)))] += 1;
+    }
+  }
+  // Troca de ofício entre os materiais: só quando compensa, e sem desocupar quem cede. Um
+  // edifício ocupado continua ocupado; um que já não estava fica com ao menos um trabalhador.
+  const keeps = (material: Material) => {
+    const { occupiedFrom } = workplace(view, material);
+    return current(material) >= occupiedFrom ? occupiedFrom : 1;
+  };
+  for (;;) {
+    const receivers = MATERIALS.filter(
+      (id) => surplus(id) < 0 && alloc[id] < limits[id] && worthSwitchingTo(view, id),
     );
-    let latest = view;
-    for (const row of rows) {
-      if (target[row.building] !== row.assigned) {
-        latest = await act('setWorkers', {
-          building: row.building,
-          count: target[row.building],
-        });
-      }
+    const donors = MATERIALS.filter((id) => surplus(id) > 0 && alloc[id] > keeps(id));
+    const [receiver] = receivers.sort((a, b) => surplus(a) - surplus(b));
+    const [donor] = donors.sort((a, b) => surplus(b) - surplus(a));
+    if (receiver === undefined || donor === undefined) {
+      break;
     }
-    return latest;
-  },
-};
+    alloc[donor] -= 1;
+    alloc[receiver] += 1;
+  }
+
+  const target: Record<ProductionBuildingId, number> = {
+    farm: farmers,
+    lumberMill: alloc.wood,
+    quarry: alloc.stone,
+    goldMine: alloc.gold,
+  };
+  // Primeiro libera quem sobra, depois preenche: assim nenhuma ordem esbarra na falta de livres.
+  const rows = [...view.workers].sort(
+    (a, b) => target[a.building] - a.assigned - (target[b.building] - b.assigned),
+  );
+  let latest = view;
+  for (const row of rows) {
+    if (target[row.building] !== row.assigned) {
+      latest = await act('setWorkers', { building: row.building, count: target[row.building] });
+    }
+  }
+  // Quem deixou menos lavradores do que a conta de sempre confere o painel depois da ordem,
+  // como o jogador: se ele diz que a comida não chega à volta (a estação que vem rende menos do
+  // que a conta previu), devolve braços à fazenda, um a um, até fechar.
+  while (target.farm < standard && !foodLastsTheAbsence(latest, awayHours)) {
+    const donor = pick((material) => alloc[material]);
+    if (alloc[donor] === 0) {
+      break;
+    }
+    alloc[donor] -= 1;
+    target.farm += 1;
+    await act('setWorkers', { building: workplace(view, donor).building, count: alloc[donor] });
+    latest = await act('setWorkers', { building: farm.building, count: target.farm });
+  }
+  return latest;
+}
 
 /**
  * Põe na fazenda os braços que faltam para a comida não cair, contando quem ainda está

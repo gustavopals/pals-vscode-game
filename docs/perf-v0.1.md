@@ -33,7 +33,7 @@ As duas metas foram atingidas com folga: `/view` em 7,8 ms (meta 50) e `/command
 ## O que a medição não diz
 
 - **Rajadas sincronizadas ficam acima da meta.** Na primeira versão do teste os 50 bots disparavam no mesmo instante a cada ciclo. Nesse cenário o p95 foi de 81,6 ms em `/view` e 147,4 ms em `/commands`: as requisições chegam todas juntas e esperam na fila de um único processo Node. Clientes reais não fazem polling em fase, mas um evento que todos esperam no mesmo horário (o cerco, na v0.4) pode aproximar esse padrão. O job de avanço existe para espalhar essa carga (GDD §14.9).
-- **Partidas jovens.** Em dois minutos nenhuma partida acumula história; o custo de `advanceTo` depois de dias sem acesso não foi medido aqui.
+- **Partidas jovens.** Em dois minutos nenhuma partida acumula história; o custo de `advanceTo` depois de dias sem acesso não foi medido aqui. Foi medido na v0.2, com o tamanho do estado e da visão: [balance-v0.2.md](balance-v0.2.md), seção 9.7.
 - **Uma máquina só.** Banco e API dividem o mesmo hardware, sem rede entre cliente e servidor.
 - **Contêiner.** Com a API em Docker (perfil `full`), 10 bots e os limites de taxa reais, o p50 ficou igual, mas as primeiras requisições depois da subida foram lentas (p95 de 256 ms em `/view`, em 121 chamadas). Parece aquecimento do processo; não investiguei.
 

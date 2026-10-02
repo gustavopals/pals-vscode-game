@@ -89,14 +89,18 @@ describe('matriz de balanceamento: o que é jogado', () => {
     }
   });
 
-  it('em outra dificuldade a rodada é jogada e medida, mas não há faixa a conferir', async () => {
+  it('em outra dificuldade a rodada é jogada, medida e conferida contra as faixas dela', async () => {
     const hard = await runMatrix({ seeds: seeds.slice(0, 1), difficulty: 'ironKing' });
     expect(hard).toMatchObject({ difficulty: 'ironKing', difficultyLabel: 'Rei de Ferro' });
-    expect(hard.cells.every((cell) => cell.band === null && cell.violations.length === 0)).toBe(
+    expect(hard.cells.every((cell) => cell.band !== null && cell.violations.length === 0)).toBe(
       true,
     );
-    expect(formatMatrix(hard)).toContain('Nenhuma faixa definida para esta rodada.');
-    expect(formatMatrix(hard)).toContain('| sem faixa |');
+    // As faixas são as de Rei de Ferro, não as de Senhor: o Armazém guarda 20% a menos.
+    const stone = (result: typeof hard) =>
+      result.cells.find((cell) => cell.key === 'week/3/regular')?.band?.surplusMax.stone;
+    expect(stone(hard)).toBeLessThan(stone(matrix) ?? 0);
+    expect(formatMatrix(hard)).toContain('· dificuldade Rei de Ferro (ironKing) · 1 semente');
+    expect(formatMatrix(hard)).toContain('Todas as partidas dentro das faixas.');
     expect(matrixCsv(hard).split('\n')[1]).toContain(',ironKing,pedra-alta-001,');
   });
 
@@ -107,6 +111,8 @@ describe('matriz de balanceamento: o que é jogado', () => {
     );
     expect(odd.cells.every((cell) => cell.band === null)).toBe(true);
     expect(odd.cells[3]).toMatchObject({ window: 'year', realHours: 84, gameYears: 1 });
+    expect(formatMatrix(odd)).toContain('Nenhuma faixa definida para esta rodada.');
+    expect(formatMatrix(odd)).toContain('| sem faixa |');
   });
 });
 
@@ -142,7 +148,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 39.510 | ≤ 174 | 0 |',
+      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.448 | ≤ 5.355 | ≤ 164.525 | ≤ 19 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -157,12 +163,12 @@ describe('relatório da matriz', () => {
     );
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
     expect(rows).toEqual([
-      '| 7 dias reais | Rápido 3× | Regular | 36 | 165 | 144 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 1,5 | 0,5 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 18 | 9 | 3 | ≤ 8 | **acima** |',
-      '| Um ano de jogo | Normal 1× | Regular | 4 | 9 | 0 | ≤ 8 | **acima** |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 8,5 | 16 | 10,5 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Rápido 3× | Regular | 18 | 9 | 12 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 | 1 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 18 | 0 | 0 | ≤ 8 | **acima** |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 | 1 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 2 | 0,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -172,8 +178,43 @@ describe('relatório da matriz', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37628, 165),",
+      "  'week/3/regular': measured([72, 72], 7, 0, 0, 4236, 5100, 156690, 18),",
     );
+  });
+
+  it('cada janela traz o progresso: a hora de cada marco, o fim das obras e a menor população', () => {
+    const [week, year] = text.split('## Um ano de jogo');
+    const header =
+      '| Ritmo | Perfil | Salão Nv2 (h) | Salão Nv3 (h) | Salão Nv4 (h) | Celeiro (h) | Armazém (h) | Fim das obras (h) | Obras que começaram sozinhas | População mínima |';
+    expect(week).toContain(`### Progresso: 7 dias reais\n\n${header}`);
+    expect(year).toContain(`### Progresso: um ano de jogo\n\n${header}`);
+    // No ritmo 3 o Regular esgota as obras na hora 113 da semana; no primeiro ano (56 h reais)
+    // ainda há o que construir, e o Preguiçoso não chega ao Salão no nível 4.
+    expect(week).toContain('| Rápido 3× | Regular | 11 | 22 | 36 | 25 | 26 | 113 | 46 | 7 |');
+    expect(year).toContain('| Rápido 3× | Regular | 11 | 22 | 36 | 25 | 26 | — | 29 | 7 |');
+    expect(year).toContain('| Rápido 3× | Preguiçoso | 29 | 54 | — | 33 | 31 | — | 14 | 7 |');
+    const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
+    expect(cell?.measure.milestones).toMatchObject({
+      townHall4: { min: 36, max: 36 },
+      granary: { min: 25, max: 25 },
+    });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 113, max: 113 });
+    expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
+    const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
+    expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
+    expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
+  });
+
+  it('cada janela traz o desperdício de cada recurso: a parte da produção e a sequência', () => {
+    const [week] = text.split('## Um ano de jogo');
+    expect(week).toContain(
+      '### Desperdício por recurso: 7 dias reais\n\n| Ritmo | Perfil | Comida perdida (% da produção) | Madeira perdida (% da produção) | Pedra perdida (% da produção) | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) |',
+    );
+    // Cada recurso por si, nunca somados: o Preguiçoso do ritmo 3 perde quase metade do que
+    // corta, e o Regular, 2%.
+    expect(week).toContain('| Rápido 3× | Preguiçoso | 51% | 46% | 44% | 63 | 75 | 48 |');
+    expect(week).toContain('| Rápido 3× | Regular | 5% | 2% | 2% | 18 | 9 | 12 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0,5 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -210,7 +251,7 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5355 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 4448 (2 de 3 sementes, a primeira pedra-alta-002)',
       'week/3/regular: população 3, fora da faixa de 64 a 80 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
@@ -227,8 +268,12 @@ describe('CSV da matriz', () => {
     expect(lines[0]).toBe(
       'window,time_scale,profile,strategy,sessions_per_day,difficulty,seed,real_hours,game_years,' +
         'villagers,capacity,town_hall,famine_hours,queue_idle_hours,planned_idle_hours,' +
-        'free_villager_hours,waste_streak_game_hours,food,wood,stone,gold,commands_accepted,' +
-        'commands_refused,' +
+        'free_villager_hours,waste_streak_game_hours,' +
+        'waste_streak_food,waste_streak_wood,waste_streak_stone,' +
+        'wasted_food_percent,wasted_wood_percent,wasted_stone_percent,' +
+        'villagers_min,town_hall_2_hour,town_hall_3_hour,town_hall_4_hour,granary_hour,' +
+        'warehouse_hour,exhausted_hour,auto_started,villagers_lost,' +
+        'food,wood,stone,gold,commands_accepted,commands_refused,' +
         `refused_by_code,${MECHANIC_COLUMN_NAMES.join(',')}`,
     );
     expect(MECHANIC_COLUMN_NAMES).toEqual([
@@ -259,7 +304,15 @@ describe('CSV da matriz', () => {
       for (const name of ['wasted_food', 'wasted_wood', 'wasted_stone', 'cold', 'morale']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
+      // Um marco a que a partida não chegou sai vazio (não zero): hora nenhuma.
+      for (const name of ['town_hall_4_hour', 'granary_hour', 'exhausted_hour']) {
+        expect(cells[header.indexOf(name)], name).toMatch(/^\d*$/);
+      }
     }
+    const lazyYear = lines.find((line) => line.startsWith('year,3,preguicoso,'))?.split(',') ?? [];
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('54');
+    expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
+    expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
   });
 
   it('a semente ainda não muda o resultado: os bots não chegam à moral que sorteia', () => {

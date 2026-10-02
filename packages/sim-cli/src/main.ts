@@ -1,5 +1,6 @@
 import { parseCli, USAGE } from './cli';
 import { formatMatrix, matrixCsv, runMatrix } from './matrix';
+import { formatPerf, runPerf } from './perf';
 import { formatRemoteReport, runRemote } from './remote';
 import { formatSummary, toCsv } from './report';
 import { simulate } from './simulate';
@@ -23,6 +24,11 @@ async function main(): Promise<void> {
     if (Object.keys(report.errors).length > 0) {
       process.exitCode = 1;
     }
+    return;
+  }
+
+  if (command.mode === 'perf') {
+    process.stdout.write(formatPerf(await runPerf(command.options)));
     return;
   }
 

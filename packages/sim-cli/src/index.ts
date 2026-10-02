@@ -6,7 +6,7 @@ export { formatSummary, RESERVED_COLUMNS, summarize, SURPLUS_RESOURCES, toCsv } 
 export type { Summary, SurplusResource } from './report';
 export { botOf } from './bots/types';
 export type { Act, Bot, Policy } from './bots/types';
-export { strategyPolicies } from './bots';
+export { botFor, strategyPolicies } from './bots';
 export { IDENTITY, identityLine } from './identity';
 export {
   formatMatrix,
@@ -30,6 +30,8 @@ export type {
 } from './matrix';
 export { bandFor, cellKey, checkBand, SLACK } from './bands';
 export type { Band, CellKey } from './bands';
+export { formatPerf, PERF_SCENARIOS, runPerf } from './perf';
+export type { PerfMeasure, PerfOptions, PerfReport } from './perf';
 export { formatRemoteReport, runRemote } from './remote';
 export type { EndpointStats, RemoteOptions, RemoteReport } from './remote';
 export { parseCli, USAGE } from './cli';

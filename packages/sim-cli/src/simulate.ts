@@ -14,7 +14,8 @@ import {
   type ViewState,
 } from '@lotg/engine';
 
-import { strategies, type StrategyName } from './bots';
+import { botFor, strategies, type StrategyName } from './bots';
+import { nothingLeftToBuild } from './bots/policies';
 import type { Act, Bot } from './bots/types';
 
 const HOUR_MS = 3_600_000;
@@ -85,6 +86,16 @@ export type HourRow = {
   wasted: Record<ResourceId, number>;
   /** Algum depósito está cheio e perdendo produção nesta hora. */
   wasting: boolean;
+  /**
+   * O que cada ofício produz por hora real nesta hora, antes do consumo e do limite do depósito
+   * (`workers[].grossPerHour`): é o denominador de "quanto da produção foi ao chão".
+   */
+  gross: Record<ResourceId, number>;
+  /**
+   * O feudo não tem mais o que construir: nenhuma obra em curso e nenhuma que esperar resolva
+   * (todas no teto, presas ao Salão que não sobe ou com o custo acima do que o depósito guarda).
+   */
+  exhausted: boolean;
   /** A fila de obras está livre e ao menos uma obra poderia começar agora: ninguém a iniciou. */
   queueIdle: boolean;
   /** Idem, contando só as obras que o jogador deixou planejadas. */
@@ -188,6 +199,10 @@ function rowAt(
     moraleBand: view.morale.band,
     wasted: byResource((row) => reportedWaste[row.id] + row.wastedToday),
     wasting: view.resources.some((row) => row.wastingPerHour > 0),
+    gross: byResource(
+      (row) => view.workers.find((entry) => entry.resource === row.id)?.grossPerHour ?? 0,
+    ),
+    exhausted: nothingLeftToBuild(view),
     ...idleQueue(view),
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
@@ -217,7 +232,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   }
   /** Instante de jogo de um instante real, os dois em ms desde a criação da partida. */
   const gameMs = (realMs: number) => Math.round(realMs * timeScale);
-  const bot: Bot = options.bot ?? strategies[options.strategy];
+  const bot: Bot = options.bot ?? botFor(options.strategy, sessionsPerDay);
   let state = createInitialState(seed, {
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',

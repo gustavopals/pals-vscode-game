@@ -25,8 +25,10 @@ import { describe, expect, it } from 'vitest';
 
 import { IDENTITY, identityLine } from './identity';
 import {
+  exhaustedSince,
   formatSummary,
   MECHANIC_COLUMN_NAMES,
+  MILESTONES,
   refusedByCode,
   RESERVED_COLUMNS,
   summarize,
@@ -122,32 +124,124 @@ describe('CSV de uma partida', () => {
     }
   });
 
-  it('as colunas de desperdício são acumuladas e batem com o que o motor contou', () => {
-    for (const id of ['food', 'wood', 'stone'] as const) {
-      const column = twoSessions.rows.map((row) => row.wasted[id]);
-      expect(column, id).toEqual([...column].sort((a, b) => a - b));
-      // O que os eventos relataram mais o que a visão mostra como pendente é o total do motor,
-      // em unidades inteiras.
-      expect(column[167], id).toBe(
-        Math.floor((twoSessions.finalState.stats[`wasted_${id}`] ?? 0) / 1000),
+  it('as colunas de desperdício são acumuladas e batem com o que o motor contou', async () => {
+    // O preguiçoso de uma visita por dia no ritmo 3: ele não tira ninguém do ofício que enche,
+    // e a madeira vai ao chão. (O econômico de duas visitas, desde V2C-T7, quase não perde.)
+    const careless = await simulate({
+      seed: 'pedra-alta-golden',
+      days: 3,
+      strategy: 'preguicoso',
+      sessionsPerDay: 1,
+      timeScale: 3,
+    });
+    for (const result of [twoSessions, careless]) {
+      const last = result.rows.length - 1;
+      for (const id of ['food', 'wood', 'stone'] as const) {
+        const column = result.rows.map((row) => row.wasted[id]);
+        expect(column, id).toEqual([...column].sort((a, b) => a - b));
+        // O que os eventos relataram mais o que a visão mostra como pendente é o total do
+        // motor, em unidades inteiras.
+        expect(column[last], id).toBe(
+          Math.floor((result.finalState.stats[`wasted_${id}`] ?? 0) / 1000),
+        );
+      }
+      // O ouro não tem limite: nada se perde.
+      expect(result.rows.every((row) => row.wasted.gold === 0)).toBe(true);
+      const summary = summarize(result);
+      expect(summary.wasted).toEqual({
+        food: result.rows[last]?.wasted.food,
+        wood: result.rows[last]?.wasted.wood,
+        stone: result.rows[last]?.wasted.stone,
+      });
+      expect(summary.wasteHours).toBe(result.rows.filter((row) => row.wasting).length);
+      expect(formatSummary(result)).toContain(
+        `Desperdício: food ${summary.wasted.food}, wood ${summary.wasted.wood}, stone ${summary.wasted.stone} (${summary.wasteHours} h com depósito cheio perdendo produção)\n`,
       );
     }
-    // O ouro não tem limite: nada se perde.
-    expect(twoSessions.rows.every((row) => row.wasted.gold === 0)).toBe(true);
-    const summary = summarize(twoSessions);
-    expect(summary.wasted).toEqual({
-      food: twoSessions.rows[167]?.wasted.food,
-      wood: twoSessions.rows[167]?.wasted.wood,
-      stone: twoSessions.rows[167]?.wasted.stone,
+    // A madeira do preguiçoso enche o depósito e vai ao chão: é o que os limites puseram no
+    // lugar do excedente parado.
+    const lost = summarize(careless);
+    expect(lost.wasted.wood).toBeGreaterThan(0);
+    expect(lost.wasteHours).toBeGreaterThan(0);
+  });
+
+  it('diz quanto da produção de cada recurso foi ao chão, cada recurso por si', async () => {
+    const careless = await simulate({
+      seed: 'pedra-alta-golden',
+      days: 3,
+      strategy: 'preguicoso',
+      sessionsPerDay: 1,
+      timeScale: 3,
     });
-    // Antes de o Armazém ficar de pé, a madeira do bot enche o Pátio e vai ao chão: é o que os
-    // limites puseram no lugar do excedente parado.
-    expect(summary.wasted.wood).toBeGreaterThan(0);
-    expect(summary.wasteHours).toBe(twoSessions.rows.filter((row) => row.wasting).length);
-    expect(summary.wasteHours).toBeGreaterThan(0);
-    expect(formatSummary(twoSessions)).toContain(
-      `Desperdício: food ${summary.wasted.food}, wood ${summary.wasted.wood}, stone ${summary.wasted.stone} (${summary.wasteHours} h com depósito cheio perdendo produção)\n`,
+    const summary = summarize(careless);
+    const produced = careless.rows.reduce((sum, row) => sum + row.gross.wood, 0);
+    expect(summary.wastedPercent.wood).toBe(Math.round((summary.wasted.wood * 100) / produced));
+    expect(summary.wastedPercent.wood).toBeGreaterThan(0);
+    expect(summary.wastedPercent.wood).toBeLessThanOrEqual(100);
+    expect(formatSummary(careless)).toMatch(
+      /Da produção de cada recurso, foi ao chão: food \d+%, wood \d+%, stone \d+%\n/,
     );
+    // Sem produção não há percentual: um feudo sem ordens não rende madeira nenhuma.
+    const idle = summarize(
+      await simulate({
+        seed: 'pedra-alta-golden',
+        days: 1,
+        strategy: 'economico',
+        sessionsPerDay: 1,
+        bot: async () => {},
+      }),
+    );
+    expect(idle.wastedPercent).toEqual({ food: null, wood: null, stone: null });
+  });
+
+  it('acompanha o progresso: a hora de cada marco, a menor população e o fim das obras', () => {
+    const summary = summarize(twoSessions);
+    expect(MILESTONES.map(({ id, label }) => [id, label])).toEqual([
+      ['townHall2', 'Salão Nv2'],
+      ['townHall3', 'Salão Nv3'],
+      ['townHall4', 'Salão Nv4'],
+      ['granary', 'Celeiro'],
+      ['warehouse', 'Armazém'],
+    ]);
+    // A hora de um marco é a primeira linha em que o edifício aparece no nível.
+    for (const { id, building, level } of MILESTONES) {
+      const hour = summary.milestones[id];
+      expect(hour, id).toBe(twoSessions.rows.find((row) => row.levels[building] >= level)?.hour);
+    }
+    const hours = ['townHall2', 'townHall3', 'townHall4'].map((id) => summary.milestones[id] ?? 0);
+    expect(hours).toEqual([...hours].sort((a, b) => a - b));
+    expect(hours[0]).toBeGreaterThan(0);
+    // O feudo nasce com 5 aldeões e só cresce: a menor população é a das primeiras horas.
+    expect(summary.villagersMin).toBe(Math.min(...twoSessions.rows.map((row) => row.villagers)));
+    expect(summary.villagersMin).toBeLessThan(summary.villagers);
+    expect(summary.autoStarted).toBe(
+      twoSessions.events.filter((event) => event.type === 'constructionAutoStarted').length,
+    );
+    expect(summary.autoStarted).toBeGreaterThan(10);
+    expect(formatSummary(twoSessions)).toMatch(
+      /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+ · \d+ obras começaram sozinhas · /,
+    );
+    expect(formatSummary(twoSessions)).toContain(
+      `População: ${summary.villagers} de ${summary.capacity} vagas (mínima ${summary.villagersMin})\n`,
+    );
+  });
+
+  it('o fim das obras é a primeira hora da sequência final sem nada a construir', () => {
+    const row = (hour: number, exhausted: boolean) => {
+      const first = twoSessions.rows[0];
+      if (first === undefined) {
+        throw new Error('Partida sem linhas.');
+      }
+      return { ...first, hour, exhausted };
+    };
+    expect(exhaustedSince([])).toBeNull();
+    expect(exhaustedSince([row(1, false), row(2, false)])).toBeNull();
+    expect(exhaustedSince([row(1, false), row(2, true), row(3, true)])).toBe(2);
+    // Uma pausa que acabou não conta: vale a sequência que chega ao fim da partida.
+    expect(exhaustedSince([row(1, true), row(2, false), row(3, true)])).toBe(3);
+    expect(exhaustedSince([row(1, true), row(2, false)])).toBeNull();
+    // O resumo traz a mesma medida, tirada das linhas da partida.
+    expect(summarize(twoSessions).exhaustedAtHour).toBe(exhaustedSince(twoSessions.rows));
   });
 
   it('a coluna `cold` marca as horas em que o feudo passa frio', async () => {
