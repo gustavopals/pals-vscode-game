@@ -10,6 +10,7 @@ import {
   idleVillager,
   moraleBandTemplates,
   objectives,
+  raidSizes,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -31,8 +32,8 @@ import { canonicalJson } from './canonical';
  * dentro de outras (o alívio do frio, os ofícios, quem parte sem ofício) e as frases de cada
  * faixa da moral também contam: mudá-las muda o que o jogador lê. As cartas do Conselho
  * entram inteiras: texto, opções, custos, efeitos (os escondidos também) e a ordem do catálogo,
- * que faz parte do sorteio. Da Ameaça entram os tiles, os inimigos e as frases de cada marca;
- * os números dela estão em `balance`.
+ * que faz parte do sorteio. Da Ameaça entram os tiles, os inimigos, os nomes dos tamanhos de
+ * incursão e as frases de cada marca; os números dela, e os da Paliçada, estão em `balance`.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -49,6 +50,7 @@ function hashedContent(): Record<string, unknown> {
     tileTypes,
     startingTiles,
     enemies,
+    raidSizes,
     threatMarkTemplates,
   };
 }

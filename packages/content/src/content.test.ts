@@ -21,6 +21,7 @@ import {
   objectives,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
+  raidSizes,
   RESOURCE_IDS,
   SEASON_IDS,
   startingTiles,
@@ -39,6 +40,7 @@ import {
   IdleVillagerSchema,
   MoraleBandTemplatesSchema,
   ObjectivesSchema,
+  RaidSizesSchema,
   StartingTilesSchema,
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
@@ -337,6 +339,8 @@ describe('edifícios', () => {
       ['warehouse', 8],
       // 5 no GDD; 2 nesta versão (ADR 0014, decisão 11).
       ['watchtower', 2],
+      // 6 no GDD, contando a Muralha de Pedra e o Baluarte; 2 nesta versão.
+      ['palisade', 2],
     ]);
   });
 
@@ -386,13 +390,33 @@ describe('edifícios', () => {
     }
   });
 
-  it('só a Torre tem um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
+  it('a Paliçada nasce no nível 0, pede o Salão no nível 3 e vai até o nível 2 (GDD §6.1 e §6.2)', () => {
+    const palisade = buildings.palisade;
+    expect(palisade.label).toBe('Paliçada');
+    expect(palisade.article).toBe('a');
+    expect(palisade.initialLevel).toBe(0);
+    expect(palisade.maxLevel).toBe(2);
+    expect(palisade.requires).toEqual({ townHall: 3 });
+    expect(palisade.baseCost).toEqual({ wood: 200, stone: 50 });
+    expect(palisade.baseDurationMs).toBe(20 * 60_000);
+    expect(palisade.produces).toBeNull();
+    // A construção e a melhoria (× 1,6) cabem no que o Pátio guarda antes de haver Armazém.
+    const { num, den } = balance.construction.costFactor;
+    for (const amount of Object.values(palisade.baseCost)) {
+      expect(Math.round((amount * num) / den)).toBeLessThanOrEqual(balance.storage.baseCapacity);
+    }
+  });
+
+  it('só a Torre e a Paliçada têm um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
     const noted = BUILDING_IDS.filter((id) => buildings[id].maxLevelNote !== undefined);
-    expect(noted).toEqual(['watchtower']);
+    expect(noted).toEqual(['watchtower', 'palisade']);
     expect(buildings.watchtower.maxLevelNote).toBe(
       'Os níveis seguintes chegam em versões futuras do jogo.',
     );
-    expect(buildings.watchtower.maxLevelNote).not.toMatch(/\d|v0|breve|semana|mês/);
+    expect(buildings.palisade.maxLevelNote).toBe('A Muralha de Pedra chega em uma versão futura.');
+    for (const id of noted) {
+      expect(buildings[id].maxLevelNote, id).not.toMatch(/\d|v0|breve|semana|mês/);
+    }
     const parse = (maxLevelNote: string) =>
       BuildingsSchema.safeParse({
         ...buildings,
@@ -403,7 +427,7 @@ describe('edifícios', () => {
     expect(parse('Os níveis seguintes chegam depois')).toBe(false);
   });
 
-  it('os edifícios são os oito de antes e a Torre de Vigia', () => {
+  it('os edifícios são os oito de antes, a Torre de Vigia e a Paliçada', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -414,11 +438,12 @@ describe('edifícios', () => {
       'granary',
       'warehouse',
       'watchtower',
+      'palisade',
     ]);
   });
 });
 
-describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', () => {
+describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10 e 11)', () => {
   const { threat, calendar } = balance;
   const HOUR = 3_600_000;
 
@@ -449,6 +474,20 @@ describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', ()
     ]);
     // Um item por nível que a Torre pode ter nesta versão.
     expect(threat.watchtowerLevels).toHaveLength(buildings.watchtower.maxLevel);
+  });
+
+  it('a Paliçada segura as incursões leves no nível 1 e também as médias no nível 2; maior que isso, passa a metade', () => {
+    expect(threat.palisadeLevels).toEqual([{ absorbs: 'light' }, { absorbs: 'medium' }]);
+    // Um item por nível que a Paliçada pode ter nesta versão, e o último segura o maior tamanho.
+    expect(threat.palisadeLevels).toHaveLength(buildings.palisade.maxLevel);
+    expect(threat.palisadeLevels.at(-1)?.absorbs).toBe(RAID_SIZE_IDS.at(-1));
+    expect(threat.palisadeBreach).toEqual({ num: 1, den: 2 });
+  });
+
+  it('os tamanhos de incursão têm um nome geral, no plural, para a frase da Paliçada', () => {
+    expect(RaidSizesSchema.safeParse(raidSizes).error).toBeUndefined();
+    expect(raidSizes).toEqual({ light: { plural: 'leves' }, medium: { plural: 'médios' } });
+    expect(Object.keys(raidSizes)).toEqual([...RAID_SIZE_IDS]);
   });
 
   it('em todo ritmo oferecido o aviso da Torre dura um número inteiro de minutos reais', () => {
@@ -517,6 +556,18 @@ describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', ()
       }),
     ).toBe(false);
     expect(parse({ raidLeadMs: 1 * HOUR })).toBe(false);
+    // A Paliçada: cada nível segura mais que o anterior, e o que passa é sempre uma parte.
+    expect(parse({ palisadeLevels: [] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'medium' }, { absorbs: 'light' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'light' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'heavy' }] })).toBe(false);
+    expect(parse({ palisadeLevels: [{ absorbs: 'light', hp: 600 }] })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 1, den: 1 } })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 0, den: 2 } })).toBe(false);
+    expect(parse({ palisadeBreach: { num: 1, den: 4 } })).toBe(true);
+    expect(RaidSizesSchema.safeParse({ ...raidSizes, light: { plural: 'Leves.' } }).success).toBe(
+      false,
+    );
     expect(ThreatMarkTemplatesSchema.safeParse({ 40: 'Uivos em {castelo}.' }).success).toBe(false);
     expect(ThreatMarkTemplatesSchema.safeParse({ alta: 'Uivos em {feudo}.' }).success).toBe(false);
     expect(StartingTilesSchema.safeParse([...startingTiles, ...startingTiles]).success).toBe(false);

@@ -9,6 +9,7 @@ import {
   councilScenario,
   craftScenario,
   DAY,
+  dealt,
   HOUR,
   MINUTE,
   newGame,
@@ -168,6 +169,31 @@ const scenarios: Record<string, () => GameState> = {
         { at: 9 * DAY + 23 * MINUTE + 2_345 },
       ],
     ).state,
+
+  // A Paliçada: prometida aos aldeões, erguida e mostrada no prazo. A cadeia fechou: ficaram a
+  // flag da promessa cumprida e o efeito de moral dela. A obra do nível 2 está em curso, no
+  // meio de um dia de jogo.
+  palisade: () => {
+    const start = createInitialState('fixture-palisade', settings);
+    start.settlement.buildings = { ...start.settlement.buildings, townHall: 3, warehouse: 1 };
+    start.settlement.resources = { food: 400_000, wood: 700_000, stone: 300_000, gold: 200_000 };
+    const plea = dealt(start, 'palisadePromisePlea');
+    const promised = play(plea.state, [
+      command('setWorkers', { building: 'farm', count: 3 }),
+      command('setWorkers', { building: 'lumberMill', count: 2 }),
+      command('answerCard', { instanceId: plea.instanceId, optionId: 'promise' }),
+      command('startConstruction', { building: 'palisade' }),
+      { at: 4 * DAY + 5 * MINUTE },
+    ]).state;
+    const deadline = promised.council.pending.find(
+      (entry) => entry.cardId === 'palisadePromiseDeadline',
+    );
+    return play(promised, [
+      command('answerCard', { instanceId: deadline?.instanceId ?? '', optionId: 'show' }),
+      command('startConstruction', { building: 'palisade' }),
+      { at: 4 * DAY + 11 * MINUTE + 3_456 },
+    ]).state;
+  },
 
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
@@ -362,6 +388,19 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('week-scripted').map.threat).toBe(100);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
+    // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
+    // e, no cenário de 7 dias, erguida depois de prometida.
+    const palisade = of('palisade');
+    expect(palisade.settlement.buildings.palisade).toBe(1);
+    expect(palisade.settlement.constructionQueues[0]).toMatchObject({
+      building: 'palisade',
+      targetLevel: 2,
+    });
+    expect(palisade.council.flags).toMatchObject({ 'palisadePromise.kept': true });
+    expect(palisade.council.flags).not.toHaveProperty(['palisadePromise.open']);
+    expect(palisade.settlement.moraleEffects.length).toBeGreaterThan(0);
+    expect(of('week-scripted').settlement.buildings.palisade).toBe(1);
+    expect(of('week-scripted').council.flags).toMatchObject({ 'palisadePromise.kept': true });
     // E o cenário de 7 dias passou pelo Conselho de ponta a ponta.
     expect(of('week-scripted').stats.cardsDrawn).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);

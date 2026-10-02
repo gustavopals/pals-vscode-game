@@ -1,9 +1,21 @@
-import { balance, buildings, enemies, tileTypes } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  enemies,
+  RAID_SIZE_IDS,
+  type RaidSizeId,
+  raidSizes,
+  tileTypes,
+} from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary } from './clock';
-import { durationText, sentenceCase } from './format';
+import { constructionOf } from './construction';
+import { durationText, joinList, sentenceCase, shareText } from './format';
 import {
   isThreatWatched,
+  palisadeAgainst,
+  palisadeLevel,
+  type PalisadeOutcome,
   threatAfterTurn,
   threatSources,
   watchtowerLevel,
@@ -25,10 +37,14 @@ import { realSecondsCeil } from './units';
  * de onde ela vem, nem a incursão marcada. Sai só o que o jogador já sabe: que não tem Torre, o
  * que ela daria e o que protege o feudo (roadmap da v0.2, §0.7, "Visão e privacidade
  * narrativa"). Este módulo não sorteia nada.
+ *
+ * A Paliçada é do feudo, e o jogador a conhece: o que ela segura sai com ou sem Torre. Só a
+ * frase sobre a incursão que vem (`incoming.defenseText`) depende dos vigias.
  */
 
 const { threat: rules } = balance;
 const tower = buildings.watchtower;
+const fence = buildings.palisade;
 
 const real = (gameMs: number, timeScale: number) =>
   durationText(realSecondsCeil(gameMs, timeScale));
@@ -114,12 +130,134 @@ function gainText(level: number, timeScale: number): string {
     : warning;
 }
 
+/** Os tamanhos de incursão que a Paliçada do nível `level` trata do jeito `kind`, do menor ao maior. */
+function sizesBy(
+  level: number,
+  kind: PalisadeOutcome['kind'],
+  among: readonly RaidSizeId[] = RAID_SIZE_IDS,
+): RaidSizeId[] {
+  return among.filter((size) => palisadeAgainst(level, size).kind === kind);
+}
+
+/** "leves", "leves e médios". */
+const sizeNames = (sizes: readonly RaidSizeId[]) =>
+  joinList(sizes.map((size) => raidSizes[size].plural));
+
+/** "mas com metade do estrago": o que sobra de um ataque maior do que a Paliçada segura. */
+const breachText = () => `mas com ${shareText(rules.palisadeBreach)} do estrago`;
+
 /**
- * O que protege o feudo de um ataque hoje. A Paliçada entra com a tarefa dela (V2E-T2); até lá
- * o nível é zero, e a frase diz o que isso quer dizer.
+ * O que a Paliçada faz em um nível, para o meio de uma frase: "segura ataques leves, sem perda
+ * nem ferido; os médios passam, mas com metade do estrago". No último nível não sobra tamanho
+ * que passe, e a frase acaba em "ferido".
  */
-function defenseView(): ThreatDefenseView {
-  return { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' };
+function holdsText(level: number): string {
+  const holds = `segura ataques ${sizeNames(sizesBy(level, 'held'))}, sem perda nem ferido`;
+  const breached = sizesBy(level, 'breached');
+  return breached.length === 0
+    ? holds
+    : `${holds}; os ${sizeNames(breached)} passam, ${breachText()}`;
+}
+
+/**
+ * O que o nível `level` da Paliçada acrescenta ao anterior, para o meio de uma frase: "passa a
+ * segurar também os ataques médios, sem perda nem ferido". No primeiro nível é tudo o que a
+ * Paliçada faz. `null` em um nível que o conteúdo não descreve.
+ */
+function palisadeGainText(level: number): string | null {
+  if (rules.palisadeLevels[level - 1] === undefined) {
+    return null;
+  }
+  const before = new Set(sizesBy(level - 1, 'held'));
+  const gained = sizesBy(level, 'held').filter((size) => !before.has(size));
+  return before.size === 0 || gained.length === 0
+    ? holdsText(level)
+    : `passa a segurar também os ataques ${sizeNames(gained)}, sem perda nem ferido`;
+}
+
+/**
+ * O que a obra da Paliçada muda, para ficar ao lado do custo. A construção: "Segura ataques
+ * leves, sem perda nem ferido; os médios passam, mas com metade do estrago." A melhoria só diz
+ * o que muda: "Passa a segurar também os ataques médios, sem perda nem ferido." `null` para os
+ * outros edifícios e para um nível que o conteúdo não descreve.
+ */
+export function palisadeEffect(building: BuildingId, targetLevel: number): string | null {
+  const gain = building === 'palisade' ? palisadeGainText(targetLevel) : null;
+  return gain === null ? null : `${sentenceCase(gain)}.`;
+}
+
+/**
+ * O que protege o feudo de um ataque hoje, e o que a próxima obra da Paliçada mudaria. Não
+ * depende da Torre nem da Ameaça: só do nível da Paliçada. A frase fala de ataques pelo
+ * tamanho, sem dizer de quem, e não promete o que esta versão não tem: nada danifica a
+ * Paliçada, e o nível que segura hoje segura sempre.
+ */
+function defenseView(state: GameState): ThreatDefenseView {
+  const level = palisadeLevel(state);
+  const atCeiling = level >= fence.maxLevel;
+  const built = () => `${fence.label} Nv${level}: ${holdsText(level)}.`;
+  const gain = atCeiling ? null : palisadeGainText(level + 1);
+  return {
+    building: 'palisade',
+    palisadeLevel: level,
+    text:
+      level === 0
+        ? `Sem ${fence.label}, nada segura um ataque.`
+        : atCeiling && fence.maxLevelNote !== undefined
+          ? `${built()} ${fence.maxLevelNote}`
+          : built(),
+    next: gain === null ? null : `${fence.label} Nv${level + 1}: ${gain}.`,
+  };
+}
+
+/**
+ * A Paliçada que a incursão vai encontrar: o nível de hoje ou, com uma obra dela em curso que
+ * termina até o instante do ataque, o nível dessa obra (as obras concluídas vêm antes da
+ * incursão no mesmo instante). `work` diz se há obra e se ela chega a tempo.
+ */
+function palisadeAtRaid(
+  state: GameState,
+  raidAtMs: number,
+): { level: number; work: 'none' | 'inTime' | 'late' } {
+  const underway = constructionOf(state, 'palisade');
+  if (underway === null) {
+    return { level: palisadeLevel(state), work: 'none' };
+  }
+  return underway.finishesAtMs <= raidAtMs
+    ? { level: underway.targetLevel, work: 'inTime' }
+    : { level: palisadeLevel(state), work: 'late' };
+}
+
+/**
+ * O que a Paliçada faz à incursão que vem, entre os tamanhos que ela pode ter: o único que os
+ * vigias contaram, ou todos, enquanto a Torre não distingue. Com todos, a frase só depende do
+ * nível da Paliçada, e por isso não conta o tamanho a quem não o vê.
+ *
+ * Quem recebe o aviso e manda erguer a Paliçada precisa saber se dá tempo: com a obra em
+ * curso, a frase conta o nível com que o ataque vai encontrá-la ("que fica pronta a tempo") ou
+ * diz que a obra só termina depois dele.
+ */
+function incomingDefenseText(
+  { level, work }: ReturnType<typeof palisadeAtRaid>,
+  sizes: readonly RaidSizeId[],
+): string {
+  const late = work === 'late' ? ' A obra em curso só termina depois dele.' : '';
+  if (level === 0) {
+    return `Sem ${fence.label}, nada segura este ataque.${late}`;
+  }
+  const built = `${sentenceCase(fence.article)} ${fence.label} Nv${level}`;
+  const name = work === 'inTime' ? `${built}, que fica pronta a tempo,` : built;
+  const held = sizesBy(level, 'held', sizes);
+  const breached = sizes.filter((size) => !held.includes(size));
+  if (breached.length === 0) {
+    return `${name} segura este ataque: sem perda nem ferido.${late}`;
+  }
+  if (held.length === 0) {
+    return `${name} não segura um ataque deste tamanho: ele passa, ${breachText()}.${late}`;
+  }
+  return `${name} segura este ataque se ele for dos ${sizeNames(held)}; se for dos ${sizeNames(
+    breached,
+  )}, ele passa, ${breachText()}.${late}`;
 }
 
 /**
@@ -150,12 +288,17 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
       sizeText === null
         ? `${enemyLabel} a caminho. Daqui os vigias ainda não distinguem quantos são.`
         : `${enemyLabel} a caminho. Os vigias contam ${sizeText}.`,
+    // Sem o tamanho à vista, a frase cobre todos: o que a Paliçada segura não o denuncia.
+    defenseText: incomingDefenseText(
+      palisadeAtRaid(state, raid.atMs),
+      perks.revealsRaidSize ? [raid.size] : RAID_SIZE_IDS,
+    ),
   };
 }
 
 export function threatView(state: GameState, timeScale: number): ThreatView {
   const watchtower = watchtowerView(state, timeScale);
-  const defense = defenseView();
+  const defense = defenseView(state);
   if (!isThreatWatched(state)) {
     return {
       known: false,

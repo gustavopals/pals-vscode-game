@@ -139,6 +139,23 @@ const threat = z
           }),
         'nível da Torre que avisa menos que o anterior',
       ),
+    // Cada nível da Paliçada segura um tamanho maior que o anterior.
+    palisadeLevels: z
+      .array(z.strictObject({ absorbs: z.enum(RAID_SIZE_IDS) }))
+      .min(1)
+      .refine(
+        (levels) =>
+          levels.every((level, index) => {
+            const previous = levels[index - 1];
+            return (
+              previous === undefined ||
+              RAID_SIZE_IDS.indexOf(level.absorbs) > RAID_SIZE_IDS.indexOf(previous.absorbs)
+            );
+          }),
+        'nível da Paliçada que não segura mais que o anterior',
+      ),
+    // O que passa por uma Paliçada pequena demais é uma parte do estrago, nunca ele inteiro.
+    palisadeBreach: ratio.refine(({ num, den }) => num < den, 'a Paliçada não segura nada'),
   })
   .refine(
     ({ max, chronicleMarks }) => chronicleMarks.every((mark) => mark <= max),
@@ -283,6 +300,7 @@ export const BuildingsSchema = z.strictObject({
   granary: BuildingSchema,
   warehouse: BuildingSchema,
   watchtower: BuildingSchema,
+  palisade: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -408,6 +426,11 @@ export const EnemiesSchema = z.strictObject(
   ),
 );
 
+/** Os tamanhos de incursão, como as frases os chamam em geral: no plural e em minúscula. */
+export const RaidSizesSchema = z.strictObject(
+  Object.fromEntries(RAID_SIZE_IDS.map((size) => [size, z.strictObject({ plural: midSentence })])),
+);
+
 const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
 /** Uma flag: identificadores separados por ponto, o primeiro sendo a cadeia: `commonGranary.open`. */
 const flag = z.string().regex(/^[a-z][A-Za-z0-9]*(\.[a-z][A-Za-z0-9]*)+$/);
@@ -500,6 +523,7 @@ export const CouncilCardSchema = z
         typeof identifier
       >,
     ),
+    autoResolveIfUnlocked: identifier.optional(),
     options: z.array(CouncilOptionSchema).min(2).max(3),
     variants: z
       .array(
@@ -532,6 +556,21 @@ export const CouncilCardSchema = z
         context.addIssue({
           code: 'custom',
           message: 'opção automática com custo ou requisito',
+          path,
+        });
+      }
+    }
+    // A que o conselho aplica quando o feudo já tem o que ela exige: existe, exige algo (sem
+    // requisito ela seria só mais uma automática) e também não cobra nada.
+    if (card.autoResolveIfUnlocked !== undefined) {
+      const option = card.options.find((entry) => entry.id === card.autoResolveIfUnlocked);
+      const path = ['autoResolveIfUnlocked'];
+      if (option === undefined) {
+        context.addIssue({ code: 'custom', message: 'opção automática inexistente', path });
+      } else if (option.requires === undefined || option.cost !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: 'opção automática destrancada sem requisito ou com custo',
           path,
         });
       }

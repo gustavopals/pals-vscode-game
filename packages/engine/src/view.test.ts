@@ -16,6 +16,8 @@ import {
   objectivesScenario,
   proudScenario,
   queuesScenario,
+  palisadeScenario,
+  promiseDueScenario,
   raidInSightScenario,
   watchScenario,
   winterColdScenario,
@@ -148,6 +150,7 @@ describe('deriveViewState', () => {
       'granary',
       'warehouse',
       'watchtower',
+      'palisade',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -542,6 +545,11 @@ describe('golden do ViewState', () => {
       // Ameaça vem fechada.
       threatWatched: view(watchScenario()),
       threatIncoming: view(raidInSightScenario()),
+      // A Paliçada: no nível 1 diante de uma incursão média (ela passa, com metade do estrago),
+      // com a obra do nível 2 na lista; e a promessa cobrada pelo Conselho com a Paliçada ainda
+      // por erguer: a opção de mostrar a obra vem trancada, com o motivo.
+      palisadeRaised: view(palisadeScenario()),
+      palisadePromiseDue: view(promiseDueScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

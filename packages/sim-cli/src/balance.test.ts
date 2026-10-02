@@ -109,13 +109,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
 
   it('a Torre de Vigia chega tarde para quem só a ergue com folga (V2E-T1)', () => {
     // O bot só ergue a Torre com o dobro do custo em estoque. Em Senhor, com 2 sessões por dia:
-    // no ritmo Normal ela fica pronta entre as horas 49 e 97; no Tranquilo, entre a 97 e a 169;
+    // no ritmo Normal ela fica pronta entre as horas 49 e 109; no Tranquilo, entre a 97 e a 169;
     // no Rápido, da hora 49 em diante, e o primeiro ano de jogo (56 h reais) acaba antes para
     // parte das sementes. É uma medida, não uma meta: quem lê o objetivo e a constrói primeiro
-    // chega bem antes (docs/balance-v0.2.md, seção 12).
+    // chega bem antes (docs/balance-v0.2.md, seções 12 e 13: com as três cartas da Paliçada no
+    // sorteio, V2E-T2, a semente mais lenta do ritmo Normal passou da hora 97 para a 109).
     const tower = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.watchtower;
-    expect(tower('year/1/regular')).toEqual({ min: 49, max: 97 });
+    expect(tower('year/1/regular')).toEqual({ min: 49, max: 109 });
     expect(tower('year/0.5/regular')).toEqual({ min: 97, max: 169 });
     expect(tower('year/3/regular')).toEqual({ min: 49, max: null });
     expect(tower('week/3/regular')).toEqual({ min: 49, max: 61 });
@@ -166,7 +167,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Rápido, não; no Normal, três sementes em 50 passam dela', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Rápido, não; no Normal, cinco sementes em 50 passam dela', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -179,9 +180,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // tarde e, no outono, o bot mandava os lenhadores juntarem a lenha do inverno com o
     // depósito cheio: 10 h de jogo seguidas de madeira indo ao chão. Com a Torre de Vigia
     // (V2E-T1) o caminho de obras mudou de novo: são três as sementes (017, 034 e 046), com 9 a
-    // 10 h de madeira, todas com o Armazém pronto só da hora 61 em diante. O teto da célula
-    // continua em 10 h. Não é uma carta nem a Torre que desperdiça; é o caminho do bot
-    // (docs/balance-v0.2.md, seções 11 e 12).
+    // 10 h de madeira, todas com o Armazém pronto só da hora 61 em diante. Com as três cartas
+    // da Paliçada no sorteio (V2E-T2) o caminho mudou outra vez: são cinco (016, 017, 029, 033
+    // e 047), ainda com 9 a 10 h de madeira. O teto da célula continua em 10 h. Não é uma carta,
+    // a Torre nem a Paliçada (que o bot ainda não ergue) que desperdiça; é o caminho do bot
+    // (docs/balance-v0.2.md, seções 11, 12 e 13).
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -190,7 +193,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
     );
     expect(over).toEqual({
-      'week/3/regular': 30,
+      'week/3/regular': 27,
       'week/1/regular': 10,
       'year/3/regular': 24,
       'year/1/regular': 10,
@@ -207,9 +210,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
     expect(beyond.map((run) => run.seed)).toEqual([
+      'pedra-alta-016',
       'pedra-alta-017',
-      'pedra-alta-034',
-      'pedra-alta-046',
+      'pedra-alta-029',
+      'pedra-alta-033',
+      'pedra-alta-047',
     ]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido.

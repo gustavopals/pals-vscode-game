@@ -387,7 +387,12 @@ describe('névoa de informação: a visão sem a Torre de Vigia', () => {
         text: 'Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.',
         next: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
       },
-      defense: { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' },
+      defense: {
+        building: 'palisade',
+        palisadeLevel: 0,
+        text: 'Sem Paliçada, nada segura um ataque.',
+        next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+      },
     });
   });
 
@@ -458,7 +463,12 @@ describe('a visão com a Torre de Vigia', () => {
         text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
         next: 'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
       },
-      defense: { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' },
+      defense: {
+        building: 'palisade',
+        palisadeLevel: 0,
+        text: 'Sem Paliçada, nada segura um ataque.',
+        next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+      },
     });
   });
 
@@ -583,6 +593,8 @@ describe('a incursão marcada, vista da Torre', () => {
       inSeconds: 3600,
       sizeText: null,
       text: 'Lobos a caminho. Daqui os vigias ainda não distinguem quantos são.',
+      // O que a Paliçada faz a ela está em `palisade.test.ts`.
+      defenseText: 'Sem Paliçada, nada segura este ataque.',
     });
     expect(known(hunted(arrival - 10 * MINUTE, 1, 'medium')).incoming).toMatchObject({
       inSeconds: 600,
@@ -598,6 +610,7 @@ describe('a incursão marcada, vista da Torre', () => {
       inSeconds: 7200,
       sizeText: 'uma matilha pequena',
       text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+      defenseText: 'Sem Paliçada, nada segura este ataque.',
     });
     expect(known(hunted(arrival - HOUR, 2, 'medium')).incoming).toMatchObject({
       sizeText: 'uma matilha grande',

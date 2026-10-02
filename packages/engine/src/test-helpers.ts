@@ -462,6 +462,51 @@ export function raidInSightScenario(): GameState {
 }
 
 /**
+ * O mesmo feudo, com a mesma incursão média à vista, e agora com o Salão no nível 3 e a
+ * Paliçada no nível 1: ela não segura um ataque desse tamanho, e a visão diz o que passa. A
+ * obra do nível 2 está na lista, com o que ela muda. O estado é montado à mão, como o de
+ * `raidInSightScenario`, e só serve para a visão.
+ */
+export function palisadeScenario(): GameState {
+  const draft = cloneState(raidInSightScenario());
+  draft.settlement.buildings.townHall = 3;
+  draft.settlement.buildings.palisade = 1;
+  draft.settlement.resources.wood = 420_000;
+  return draft;
+}
+
+/**
+ * A promessa cobrada, no ritmo Rápido: o Salão no nível 3, a Paliçada ainda por erguer (o
+ * material está no pátio) e "O prazo da paliçada" na mesa, quatro dias de jogo depois de o
+ * senhor prometer a cerca aos aldeões. A opção de mostrar a obra está trancada, com o motivo;
+ * a carta espera 24 h reais, e a obra leva 20 min de jogo.
+ */
+export function promiseDueScenario(): GameState {
+  const start = gameAt(SUMMER + 6 * DAY, (draft) => {
+    const { settlement } = draft;
+    councilWithoutNews(draft);
+    draft.settings.timeScale = 3;
+    settlement.population.villagers = 14;
+    settlement.workers = { farm: 5, lumberMill: 4, quarry: 3, goldMine: 2 };
+    settlement.buildings = {
+      ...settlement.buildings,
+      townHall: 3,
+      housing: 2,
+      farm: 2,
+      granary: 1,
+      warehouse: 1,
+    };
+    settlement.resources = { food: 380_000, wood: 260_000, stone: 140_000, gold: 120_000 };
+  });
+  const plea = dealt(start, 'palisadePromisePlea');
+  const promised = accept(
+    plea.state,
+    command('answerCard', { instanceId: plea.instanceId, optionId: 'promise' }),
+  ).state;
+  return advanceTo(promised, SUMMER + 10 * DAY + 9 * MINUTE).state;
+}
+
+/**
  * O que o senhor do cenário responde a cada carta do jogo; a que não está aqui fica na mesa até
  * expirar. O poço fica para depois (a opção que esconde um efeito) e a madeira é cedida ao
  * celeiro (a opção que abre a cadeia).
@@ -529,11 +574,13 @@ export function eventsOfType(events: GameEvent[], type: GameEvent['type']): Game
 const DAY_REAL = 24 * HOUR;
 
 /**
- * O que o senhor do cenário de 7 dias responde ao Conselho, a cada visita. Segue as duas cadeias
+ * O que o senhor do cenário de 7 dias responde ao Conselho, a cada visita. Segue as três cadeias
  * até o fim: cede as vigas da ponte, manda assentar os pilares de pedra (o que eles rendem
- * aparece dias depois) e abre a passagem com festa; cede a madeira ao celeiro, guarda o grão
- * para o inverno e deixa a colheita com as famílias. Deixa o poço para depois (outro efeito
- * escondido). Às outras cartas ele não responde: o prazo acaba e o conselho decide sozinho.
+ * aparece dias depois) e abre a passagem com festa; promete a paliçada aos aldeões, ergue-a e a
+ * mostra no prazo; cede a madeira ao celeiro, guarda o grão para o inverno e deixa a colheita
+ * com as famílias. Deixa o poço para depois (outro efeito escondido) e fecha o portão aos
+ * viajantes: com a mesa livre, a audiência seguinte traz o pedido da cerca. Às outras cartas
+ * ele não responde: o prazo acaba e o conselho decide sozinho.
  */
 const weekAnswers: Readonly<Record<string, string>> = {
   collapsedWell: 'wait',
@@ -543,6 +590,9 @@ const weekAnswers: Readonly<Record<string, string>> = {
   thawBridgePlea: 'timber',
   thawBridgeSlab: 'piers',
   thawBridgeCrossing: 'feast',
+  moreMouths: 'close',
+  palisadePromisePlea: 'promise',
+  palisadePromiseDeadline: 'show',
 };
 
 /** As horas reais em que o senhor do cenário passa pelo feudo e olha a mesa do conselho. */
@@ -593,6 +643,9 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [72, command('setWorkers', { building: 'lumberMill', count: 6 })],
   [72, command('recruitVillagers', { quantity: 5 })],
   [72, command('startConstruction', { building: 'housing' })],
+  // A paliçada prometida aos aldeões na visita anterior (o Salão no nível 3 já a libera): fica
+  // de pé em 20 minutos, a tempo da cobrança, que chega às 80 h.
+  [76, command('startConstruction', { building: 'palisade' })],
   [84, command('recruitVillagers', { quantity: 5 })],
   [84, command('startConstruction', { building: 'quarry' })],
   // Com o Armazém cheio de madeira e de pedra, a Torre sobe ao nível 2 sem tirar nada de obra
@@ -633,8 +686,13 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [163, command('setWorkers', { building: 'lumberMill', count: 6 })],
 ];
 
-/** O cenário roteirizado de 7 dias reais no ritmo 1: o golden do motor e uma das fixtures de estado. */
-export function runWeekScenario() {
+/**
+ * O cenário roteirizado de 7 dias reais no ritmo 1: o golden do motor e uma das fixtures de
+ * estado. `answers` troca o que o senhor responde ao Conselho: o golden usa as respostas do
+ * roteiro, e o parâmetro serve para procurar, quando o catálogo de cartas mudar o sorteio, as
+ * respostas com que a história volta a passar pelas cadeias.
+ */
+export function runWeekScenario(answers: Readonly<Record<string, string>> = weekAnswers) {
   let state: GameState = newGame('pedra-alta-golden');
   const events: GameEvent[] = [];
   const orders: Array<Record<string, unknown>> = [];
@@ -660,7 +718,7 @@ export function runWeekScenario() {
       if (WEEK_VISITS.includes(hour) && !visited.has(hour)) {
         visited.add(hour);
         for (const pending of state.council.pending) {
-          const optionId = weekAnswers[pending.cardId];
+          const optionId = answers[pending.cardId];
           if (optionId === undefined) {
             continue;
           }

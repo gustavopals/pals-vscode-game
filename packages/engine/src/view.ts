@@ -57,7 +57,7 @@ import {
 } from './seasonView';
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
-import { threatView, watchtowerEffect } from './threatView';
+import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
   ActiveConstructionView,
   BuildingId,
@@ -159,7 +159,8 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
 
 /**
  * O que a obra muda, para ficar ao lado do custo: a capacidade de um depósito, o que a Torre de
- * Vigia passa a ver. `null` nos edifícios cujo efeito já está em outro lugar da tela.
+ * Vigia passa a ver, o que a Paliçada passa a segurar. `null` nos edifícios cujo efeito já está
+ * em outro lugar da tela.
  */
 function upgradeEffect(
   state: GameState,
@@ -169,7 +170,8 @@ function upgradeEffect(
 ): string | null {
   return (
     storageEffect(state, building, targetLevel) ??
-    watchtowerEffect(building, targetLevel, timeScale)
+    watchtowerEffect(building, targetLevel, timeScale) ??
+    palisadeEffect(building, targetLevel)
   );
 }
 

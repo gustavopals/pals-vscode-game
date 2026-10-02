@@ -1,5 +1,8 @@
 import {
   balance,
+  RAID_SIZE_IDS,
+  type RaidSizeId,
+  type Ratio,
   type SeasonDef,
   threatMarkTemplates,
   type TileTypeId,
@@ -18,6 +21,8 @@ import type { GameEvent, GameState } from './types';
  *
  * A Ameaça existe para todo feudo, mas só quem tem a Torre de Vigia a conhece: sem Torre a
  * visão não a mostra (`threatView.ts`) e a Crônica não fala dela (`turnThreat`).
+ *
+ * A Paliçada é o que segura uma incursão (`palisadeAgainst`). Ela não mexe na Ameaça.
  */
 
 const { threat: rules } = balance;
@@ -35,6 +40,41 @@ export function isThreatWatched(state: GameState): boolean {
 /** O que um nível da Torre dá; `null` no nível 0, e em um nível que o conteúdo não descreve. */
 export function watchtowerPerks(level: number): WatchtowerLevelDef | null {
   return rules.watchtowerLevels[level - 1] ?? null;
+}
+
+/** O nível da Paliçada; 0 enquanto não foi construída. */
+export function palisadeLevel(state: GameState): number {
+  return state.settlement.buildings.palisade;
+}
+
+/**
+ * O que a Paliçada faz a uma incursão (GDD §8.2; ADR 0014, decisão 11):
+ *
+ * - `open`: não há Paliçada, e o ataque custa tudo o que custa;
+ * - `held`: ela o segura inteiro, sem perda de recurso e sem ferido;
+ * - `breached`: o ataque é maior do que ela segura e passa, mas só com a parte `share` do
+ *   estrago (dos recursos e dos feridos).
+ */
+export type PalisadeOutcome =
+  { kind: 'open' } | { kind: 'held' } | { kind: 'breached'; share: Ratio };
+
+/**
+ * O desfecho de uma incursão de tamanho `size` contra a Paliçada no nível `level`: cada nível
+ * segura até um tamanho (`palisadeLevels`), e o que é maior passa com uma parte do estrago
+ * (`palisadeBreach`). É a regra inteira da Paliçada, lida pela visão e por quem resolve a
+ * incursão (V2E-T3), que a consulta **depois** das obras concluídas no mesmo instante: a
+ * Paliçada que fica pronta na hora do ataque já conta.
+ *
+ * Não há dano à Paliçada nesta versão: o nível que segura hoje segura sempre.
+ */
+export function palisadeAgainst(level: number, size: RaidSizeId): PalisadeOutcome {
+  const def = rules.palisadeLevels[level - 1];
+  if (def === undefined) {
+    return { kind: 'open' };
+  }
+  return RAID_SIZE_IDS.indexOf(size) <= RAID_SIZE_IDS.indexOf(def.absorbs)
+    ? { kind: 'held' }
+    : { kind: 'breached', share: rules.palisadeBreach };
 }
 
 /** Um termo da subida de uma virada de dia: um tile ativo, ou a estação do dia que acabou. */

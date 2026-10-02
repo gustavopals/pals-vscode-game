@@ -10,6 +10,7 @@ export type {
   MoraleBandDef,
   MoraleDef,
   PaceDef,
+  PalisadeLevelDef,
   SeasonDef,
   SeasonEffects,
   StorageDef,
@@ -50,5 +51,5 @@ export type {
   CouncilOptionRequires,
 } from './council';
 export { councilCards } from './cards';
-export { enemies, startingTiles, tileTypes } from './tiles';
-export type { EnemyDef, TileTypeDef } from './tiles';
+export { enemies, raidSizes, startingTiles, tileTypes } from './tiles';
+export type { EnemyDef, RaidSizeDef, TileTypeDef } from './tiles';

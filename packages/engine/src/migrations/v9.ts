@@ -11,6 +11,7 @@ import {
   type Shape,
   text,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { settlementV7Fields } from './v7';
 import { stateV8Fields } from './v8';
 
@@ -45,8 +46,7 @@ const each = (keys: readonly string[], shape: Shape) =>
  * As chaves dos tiles são texto livre, como os ids das cartas: o mapa cresce sem a forma do
  * estado mudar. O tipo de cada tile é de uma lista fechada.
  *
- * Quem subir `schemaVersion` para 10 acrescenta aqui o passo `v9ToV10`, com esta forma como
- * entrada, e escreve a forma nova em `v10.ts`.
+ * O passo que sai daqui é o `v9ToV10`, abaixo; a forma da versão 10 está em `v10.ts`.
  */
 export const settlementV9Fields: Readonly<Record<string, Shape>> = {
   ...settlementV7Fields,
@@ -95,3 +95,29 @@ export const stateV9Fields: Readonly<Record<string, Shape>> = {
 };
 
 export const stateV9: Shape = exactObject(stateV9Fields);
+
+/**
+ * Versão 9 → 10: a Paliçada (V2E-T2; ADR 0013, decisão 4; ADR 0014, decisão 11).
+ *
+ * `settlement.buildings` ganha a Paliçada (`palisade`) no nível 0: ninguém a tinha. Quem já tem
+ * o Salão no nível 3 pode erguê-la logo depois da migração.
+ *
+ * Nada mais muda: nenhum estoque, nenhum prazo, nenhum sorteio, nenhuma carta. O passo não
+ * emite evento e não cria prazo nenhum; por isso não usa a fronteira.
+ */
+export const v9ToV10: MigrationStep = {
+  from: 9,
+  summary: 'Paliçada no nível 0',
+  shape: stateV9,
+  migrate(state) {
+    const settlement = state.settlement as StoredState;
+    return {
+      ...state,
+      schemaVersion: 10,
+      settlement: {
+        ...settlement,
+        buildings: { ...(settlement.buildings as StoredState), palisade: 0 },
+      },
+    };
+  },
+};

@@ -11,6 +11,7 @@ import {
   idleVillager,
   moraleBandTemplates,
   objectives,
+  raidSizes,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -378,7 +379,12 @@ describe('ViewStateSchema', () => {
       text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
       incoming: null,
       watchtower: view.threat.watchtower,
-      defense: { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' },
+      defense: {
+        building: 'palisade',
+        palisadeLevel: 0,
+        text: 'Sem Paliçada, nada segura um ataque.',
+        next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+      },
     });
     const parses = (threat: object) => ViewStateSchema.safeParse({ ...view, threat }).success;
     expect(parses(view.threat)).toBe(true);
@@ -395,6 +401,7 @@ describe('ViewStateSchema', () => {
       inSeconds: 60,
       sizeText: null,
       text: 'x',
+      defenseText: 'Sem Paliçada, nada segura este ataque.',
     };
     expect(parses({ ...view.threat, incoming })).toBe(false);
     // Nem o estado do mapa, nem as incursões marcadas, em forma nenhuma.
@@ -445,8 +452,13 @@ describe('ViewStateSchema', () => {
       inSeconds: 1200,
       sizeText: 'uma matilha pequena',
       text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+      defenseText: 'Sem Paliçada, nada segura este ataque.',
     };
     expect(parses({ ...view.threat, incoming })).toBe(true);
+    // O que a Paliçada faz à incursão vem sempre: sem a frase, a forma é recusada.
+    expect(parses({ ...view.threat, incoming: { ...incoming, defenseText: undefined } })).toBe(
+      false,
+    );
     expect(parses({ ...view.threat, incoming: { ...incoming, sizeText: null } })).toBe(true);
     // O tamanho só sai em texto, e só quando a Torre o distingue: nunca o id.
     expect(parses({ ...view.threat, incoming: { ...incoming, size: 'light' } })).toBe(false);
@@ -464,7 +476,72 @@ describe('ViewStateSchema', () => {
       parses({ ...view.threat, watchtower: { ...view.threat.watchtower, building: 'tower' } }),
     ).toBe(false);
     expect(parses({ ...view.threat, defense: { palisadeLevel: 0 } })).toBe(false);
+    // A defesa diz qual é o edifício e o que a próxima obra muda (`null` no teto), e mais nada:
+    // a Paliçada não tem vida, dano nem reparo nesta versão.
+    const { defense } = view.threat;
+    expect(parses({ ...view.threat, defense: { ...defense, next: null } })).toBe(true);
+    expect(parses({ ...view.threat, defense: { ...defense, building: 'stoneWall' } })).toBe(false);
+    expect(parses({ ...view.threat, defense: { ...defense, next: undefined } })).toBe(false);
+    expect(parses({ ...view.threat, defense: { ...defense, hp: 600 } })).toBe(false);
     expect(parses({ ...view.threat, raidChance: 30 })).toBe(false);
+  });
+
+  it('a Paliçada é um edifício como os outros nas ordens, e a visão dela passa pelo contrato em todo nível', () => {
+    for (const type of ['startConstruction', 'planConstruction', 'cancelConstruction'] as const) {
+      const command = { commandId: uuid, type, payload: { building: 'palisade' } };
+      expect(CommandSchema.safeParse(command).success, type).toBe(true);
+    }
+    const fresh = deriveViewState(createInitialState('pedra-alta', settings), 0);
+    expect(
+      fresh.constructions.available.find((entry) => entry.building === 'palisade'),
+    ).toMatchObject({
+      blockedCode: 'GATE_LOCKED',
+      effect:
+        'Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+    });
+    for (const palisade of [0, 1, 2]) {
+      for (const watchtower of [0, 1, 2]) {
+        const state = createInitialState('pedra-alta', settings);
+        state.settlement.buildings.townHall = 3;
+        state.settlement.buildings.palisade = palisade;
+        state.settlement.buildings.watchtower = watchtower;
+        state.horde.scheduledRaids = [
+          {
+            id: 'threat-1',
+            atMs: 30 * 60_000,
+            kind: 'threat',
+            enemy: 'wolves',
+            size: 'medium',
+            announcedAtMs: null,
+          },
+        ];
+        const view = deriveViewState(state, 0);
+        expect(ViewStateSchema.safeParse(view).error, `${palisade}/${watchtower}`).toBeUndefined();
+        expect(view.threat.defense.palisadeLevel).toBe(palisade);
+        expect(view.threat.defense.next === null).toBe(palisade === 2);
+        // A frase sobre a incursão só existe com vigias; a da defesa, sempre.
+        expect(view.threat.incoming === null).toBe(watchtower === 0);
+        if (view.threat.incoming !== null) {
+          expect(view.threat.incoming.defenseText).toMatch(/Paliçada/);
+        }
+      }
+    }
+  });
+
+  it('a recusa do teto da Paliçada chega pelo motor, com a frase do conteúdo', () => {
+    const state = createInitialState('pedra-alta', settings);
+    state.settlement.buildings.townHall = 3;
+    state.settlement.buildings.palisade = 2;
+    const refused = applyCommand(
+      state,
+      { commandId: uuid, type: 'startConstruction', payload: { building: 'palisade' } },
+      0,
+    );
+    expect(refused).toMatchObject({
+      ok: false,
+      code: 'MAX_LEVEL',
+      message: 'A Paliçada já está no nível máximo. A Muralha de Pedra chega em uma versão futura.',
+    });
   });
 
   it('a Torre de Vigia é um edifício como os outros nas ordens e na lista de obras', () => {
@@ -1226,6 +1303,7 @@ describe('contentHash', () => {
         tileTypes,
         startingTiles,
         enemies,
+        raidSizes,
         threatMarkTemplates,
       }),
     ]);
@@ -1250,6 +1328,7 @@ describe('contentHash', () => {
       'idleVillager',
       'moraleBandTemplates',
       'objectives',
+      'raidSizes',
       'startingTiles',
       'threatMarkTemplates',
       'tileTypes',
@@ -1276,5 +1355,12 @@ describe('contentHash', () => {
     expect(hashed).toContain(enemies.wolves.sizes.medium);
     expect(hashed).toContain(threatMarkTemplates[70] ?? 'falta a frase');
     expect(hashed).toContain(buildings.watchtower.maxLevelNote ?? 'falta a frase');
+    // E a Paliçada: o que cada nível segura, o que passa, os nomes dos tamanhos e a frase do
+    // teto. As três cartas da promessa entram com o resto do catálogo.
+    expect(hashed).toContain(`"palisadeBreach":${canonicalJson(balance.threat.palisadeBreach)}`);
+    expect(hashed).toContain('"palisadeLevels":[{"absorbs":"light"},{"absorbs":"medium"}]');
+    expect(hashed).toContain(`"plural":"${raidSizes.medium.plural}"`);
+    expect(hashed).toContain(buildings.palisade.maxLevelNote ?? 'falta a frase');
+    expect(hashed).toContain('"autoResolveIfUnlocked":"show"');
   });
 });

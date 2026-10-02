@@ -1847,10 +1847,12 @@ describe('os bots jogando contra o motor', () => {
     expect(wood?.storageLabel).toBe('Armazém');
     expect(wood?.cap).toBeGreaterThan(500);
     expect(view.settlement.townHallLevel).toBeGreaterThanOrEqual(5);
+    // A ordem pode ter sido a de iniciar ou a de deixar planejada como automática, conforme o
+    // estoque da visita em que o bot quis o Armazém.
     expect(
       feudo.orders.filter(
         (order) =>
-          order.type === 'startConstruction' &&
+          (order.type === 'startConstruction' || order.type === 'planConstruction') &&
           (order.payload as { building: string }).building === 'warehouse',
       ).length,
     ).toBeGreaterThanOrEqual(1);

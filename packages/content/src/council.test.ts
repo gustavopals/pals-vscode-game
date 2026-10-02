@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   balance,
   BUILDING_IDS,
+  buildings,
   CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,
   COUNCIL_EFFECT_TYPES,
@@ -120,9 +121,10 @@ describe('Conselho: o catálogo', () => {
     expect(CouncilCatalogSchema.safeParse(councilCards).error).toBeUndefined();
   });
 
-  it('tem 18 das 21 cartas do primeiro lote: duas cadeias de 3 e as 12 avulsas, nesta ordem', () => {
-    // A terceira cadeia, "A Promessa da Paliçada", está em docs/content-v0.2.md e entra aqui com
-    // a Paliçada (roadmap da v0.2, V2E-T2).
+  it('tem as 21 cartas do primeiro lote: três cadeias de 3 e as 12 avulsas, nesta ordem', () => {
+    // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
+    // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md.
+    expect(councilCards).toHaveLength(21);
     expect(councilCards.map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -130,6 +132,9 @@ describe('Conselho: o catálogo', () => {
       ['thawBridgePlea', 'A ponte que o degelo levou'],
       ['thawBridgeSlab', 'A laje no leito do riacho'],
       ['thawBridgeCrossing', 'A passagem volta a servir'],
+      ['palisadePromisePlea', 'Os aldeões pedem uma cerca'],
+      ['palisadePromiseDeadline', 'O prazo da paliçada'],
+      ['palisadePromiseReckoning', 'A palavra do senhor'],
       ['collapsedWell', 'O poço entulhado'],
       ['masonsMeal', 'A refeição dos pedreiros'],
       ['sawmillRest', 'A serraria e o descanso'],
@@ -165,6 +170,30 @@ describe('Conselho: o catálogo', () => {
         expect(option, `${entry.id}/${difficulty}`).toBeDefined();
         expect(option?.cost, `${entry.id}/${difficulty}`).toBeUndefined();
         expect(option?.requires, `${entry.id}/${difficulty}`).toBeUndefined();
+      }
+    }
+  });
+
+  it('a opção que o conselho aplica com o requisito cumprido existe, exige algo, não custa e nunca tira nada', () => {
+    const marked = councilCards.filter((entry) => entry.autoResolveIfUnlocked !== undefined);
+    // Só a cadeia da Paliçada usa a marca: é a obra que cumpre a promessa.
+    expect(marked.map((entry) => entry.id)).toEqual([
+      'palisadePromisePlea',
+      'palisadePromiseDeadline',
+      'palisadePromiseReckoning',
+    ]);
+    for (const entry of marked) {
+      const option = entry.options.find(
+        (candidate) => candidate.id === entry.autoResolveIfUnlocked,
+      );
+      expect(option?.requires, entry.id).toBeDefined();
+      expect(option?.cost, entry.id).toBeUndefined();
+      expect(option?.hidden, entry.id).toBeUndefined();
+      for (const effect of option?.effects ?? []) {
+        if (effect.type === 'morale') {
+          expect(effect.amount, entry.id).toBeGreaterThan(0);
+        }
+        expect(effect.type, entry.id).not.toBe('resources');
       }
     }
   });
@@ -298,7 +327,8 @@ describe('Conselho: o catálogo', () => {
 
   it('a opção que o conselho aplica sozinho, quando muda algo, diz na Crônica que foi ele', () => {
     for (const entry of councilCards) {
-      for (const id of new Set(Object.values(entry.autoResolve))) {
+      const applied = [...Object.values(entry.autoResolve), entry.autoResolveIfUnlocked];
+      for (const id of new Set(applied.filter((value) => value !== undefined))) {
         const option = entry.options.find((candidate) => candidate.id === id);
         const changes = (option?.effects ?? []).some(
           (effect) => effect.type === 'resources' || effect.type === 'morale',
@@ -576,12 +606,13 @@ describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)',
   const recurring = councilCards.filter((entry) => entry.recurring === true);
   const yearDays = balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
 
-  it('o ano tem 21 audiências e só 10 cartas de uma vez por ano: quem cobre o resto são as recorrentes', () => {
+  it('o ano tem 21 audiências e só 11 cartas de uma vez por ano: quem cobre o resto são as recorrentes', () => {
     expect(yearDays / balance.council.drawIntervalDays).toBe(21);
     const once = councilCards.filter((entry) => entry.weight > 0 && entry.recurring !== true);
     expect(once.map((entry) => entry.id)).toEqual([
       'commonGranaryPlanks',
       'thawBridgePlea',
+      'palisadePromisePlea',
       'collapsedWell',
       'springSeeds',
       'springNews',
@@ -799,6 +830,156 @@ describe('Conselho: "A Ponte do Degelo"', () => {
   });
 });
 
+describe('Conselho: "A Promessa da Paliçada"', () => {
+  const morale = (option: CouncilCard['options'][number] | undefined) =>
+    option?.effects.find((effect) => effect.type === 'morale');
+  const flags = (option: CouncilCard['options'][number] | undefined) =>
+    (option?.effects ?? []).flatMap((effect) =>
+      effect.type === 'setFlag'
+        ? [`+${effect.flag}`]
+        : effect.type === 'clearFlag'
+          ? [`-${effect.flag}`]
+          : [],
+    );
+  const chain = ['palisadePromisePlea', 'palisadePromiseDeadline', 'palisadePromiseReckoning'];
+
+  it('só a primeira carta é sorteada, com o Salão no nível que libera a Paliçada, sem cadeia aberta nem promessa cumprida', () => {
+    expect(card('palisadePromisePlea').weight).toBeGreaterThan(0);
+    expect(card('palisadePromisePlea').requires).toEqual({
+      buildings: { townHall: 3 },
+      notFlags: ['palisadePromise.open', 'palisadePromise.kept'],
+    });
+    // O pedido só chega quando a obra já pode ser feita: o nível é o que o edifício pede.
+    expect(card('palisadePromisePlea').requires?.buildings).toEqual(buildings.palisade.requires);
+    expect(card('palisadePromiseDeadline').weight).toBe(0);
+    expect(card('palisadePromiseReckoning').weight).toBe(0);
+  });
+
+  it('nas três cartas a primeira opção é mostrar a obra, trancada enquanto a Paliçada não existe, e ela fecha a cadeia', () => {
+    for (const id of chain) {
+      const [show] = card(id).options;
+      expect(show?.id, id).toBe('show');
+      expect(show?.requires, id).toEqual({ building: 'palisade' });
+      expect(show?.cost, id).toBeUndefined();
+      expect(flags(show), id).toContain('+palisadePromise.kept');
+      expect(flags(show), id).toContain('-palisadePromise.broken');
+      expect(
+        show?.effects.some((effect) => effect.type === 'scheduleCard'),
+        id,
+      ).toBe(false);
+      // E só ela exige a obra: as outras opções estão ao alcance de qualquer feudo.
+      expect(card(id).options.filter((option) => option.requires !== undefined)).toHaveLength(1);
+    }
+  });
+
+  it('a carta não dá proteção, edifício nem recurso: só moral, flags e a continuação', () => {
+    for (const id of chain) {
+      for (const effect of effectsOf(card(id))) {
+        expect(['morale', 'setFlag', 'clearFlag', 'scheduleCard'], id).toContain(effect.type);
+      }
+      for (const option of card(id).options) {
+        expect(option.cost, `${id}/${option.id}`).toBeUndefined();
+        expect(option.hidden, `${id}/${option.id}`).toBeUndefined();
+      }
+    }
+  });
+
+  it('prometer rende +10 na hora e marca a cobrança para 4 dias de jogo depois; explicar não muda nada', () => {
+    const [show, explain, promise] = card('palisadePromisePlea').options;
+    expect(morale(show)).toEqual({ type: 'morale', amount: 10, durationDays: 3 });
+    expect(explain?.effects).toEqual([]);
+    expect(promise?.effects).toEqual([
+      { type: 'morale', amount: 10, durationDays: 3 },
+      { type: 'setFlag', flag: 'palisadePromise.open' },
+      { type: 'scheduleCard', cardId: 'palisadePromiseDeadline', afterDays: 4 },
+    ]);
+    expect(card('palisadePromisePlea').autoResolve).toEqual({
+      peasant: 'explain',
+      lord: 'explain',
+      ironKing: 'promise',
+    });
+  });
+
+  it('no prazo: mostrar vale +15, pedir mais dias adia a conta por outros 4, desfazer custa 10 e acaba ali', () => {
+    const [show, delay, withdraw] = card('palisadePromiseDeadline').options;
+    expect(morale(show)).toEqual({ type: 'morale', amount: 15, durationDays: 3 });
+    expect(flags(show)).toEqual([
+      '-palisadePromise.open',
+      '-palisadePromise.broken',
+      '+palisadePromise.kept',
+    ]);
+    expect(delay?.effects).toEqual([
+      { type: 'scheduleCard', cardId: 'palisadePromiseReckoning', afterDays: 4 },
+    ]);
+    expect(morale(withdraw)).toEqual({ type: 'morale', amount: -10, durationDays: 3 });
+    expect(flags(withdraw)).toEqual(['-palisadePromise.open', '+palisadePromise.broken']);
+    expect(card('palisadePromiseDeadline').autoResolve).toEqual({
+      peasant: 'delay',
+      lord: 'delay',
+      ironKing: 'withdraw',
+    });
+  });
+
+  it('no segundo prazo não há terceiro: mostrar tarde vale +5, e a outra saída custa 15, mais que desfazer no prazo', () => {
+    const reckoning = card('palisadePromiseReckoning');
+    const [show, admit] = reckoning.options;
+    expect(reckoning.options).toHaveLength(2);
+    expect(morale(show)).toEqual({ type: 'morale', amount: 5, durationDays: 2 });
+    expect(morale(admit)).toEqual({ type: 'morale', amount: -15, durationDays: 3 });
+    expect(flags(admit)).toEqual(['-palisadePromise.open', '+palisadePromise.broken']);
+    expect(reckoning.autoResolve).toEqual({ peasant: 'admit', lord: 'admit', ironKing: 'admit' });
+    // Adiar e não cumprir pesa mais do que voltar atrás na primeira cobrança.
+    const [, , withdraw] = card('palisadePromiseDeadline').options;
+    expect(Math.abs(morale(admit)?.amount ?? 0)).toBeGreaterThan(
+      Math.abs(morale(withdraw)?.amount ?? 0),
+    );
+    // E cumprir no prazo vale mais do que cumprir atrasado.
+    expect(morale(card('palisadePromiseDeadline').options[0])?.amount).toBeGreaterThan(
+      morale(show)?.amount ?? 0,
+    );
+  });
+
+  it('nenhuma saída deixa a cadeia aberta: toda opção fecha a promessa ou agenda a carta seguinte', () => {
+    const opens = (option: CouncilCard['options'][number]) =>
+      flags(option).includes('+palisadePromise.open');
+    const closes = (option: CouncilCard['options'][number]) =>
+      flags(option).includes('-palisadePromise.open');
+    const continues = (option: CouncilCard['options'][number]) =>
+      option.effects.some((effect) => effect.type === 'scheduleCard');
+    // Na primeira carta só quem promete abre a cadeia, e agenda a cobrança.
+    for (const option of card('palisadePromisePlea').options) {
+      expect(opens(option), option.id).toBe(continues(option));
+    }
+    // Nas continuações toda opção fecha a promessa ou marca a carta seguinte, nunca as duas.
+    for (const id of ['palisadePromiseDeadline', 'palisadePromiseReckoning']) {
+      for (const option of card(id).options) {
+        expect(closes(option) !== continues(option), `${id}/${option.id}`).toBe(true);
+      }
+    }
+    // E a última carta não agenda nada.
+    expect(card('palisadePromiseReckoning').options.some((option) => continues(option))).toBe(
+      false,
+    );
+  });
+
+  it('com a obra de pé, é a opção de mostrá-la que o conselho aplica se a carta expirar, e a Crônica diz que foi ele', () => {
+    for (const id of chain) {
+      expect(card(id).autoResolveIfUnlocked, id).toBe('show');
+      const [show] = card(id).options;
+      expect(show?.expiredChronicle, id).toMatch(/sem palavra do senhor, o conselho de \{feudo\}/);
+      // Nenhuma frase de quem mostra a obra diz que ela não existe.
+      expect(show?.expiredChronicle, id).not.toMatch(/não saiu|esperar|desfez/);
+    }
+  });
+
+  it('quando volta em outro ano, a primeira carta lembra a promessa que não se cumpriu', () => {
+    const plea = card('palisadePromisePlea');
+    expect(plea.variants?.map((variant) => variant.flag)).toEqual(['palisadePromise.broken']);
+    expect(plea.variants?.[0]?.text).toContain('já foi prometida uma vez');
+    expect(plea.variants?.[0]?.arrival).toContain('{carta}');
+  });
+});
+
 describe('Conselho: o schema de uma carta', () => {
   it('aceita a carta de exemplo', () => {
     expect(CouncilCardSchema.safeParse(sample).error).toBeUndefined();
@@ -831,6 +1012,20 @@ describe('Conselho: o schema de uma carta', () => {
     expect(parses({ autoResolve: { peasant: 'wait', lord: 'wait' } })).toBe(false);
     const gated = { ...sample.options[1], requires: { building: 'granary' } };
     expect(parses({ options: [sample.options[0], gated] })).toBe(false);
+  });
+
+  it('a opção marcada para o requisito cumprido tem de existir, exigir algo e não custar', () => {
+    const gated = { ...sample.options[0], cost: undefined, requires: { building: 'granary' } };
+    const options = [gated, sample.options[1]];
+    expect(parses({ options, autoResolveIfUnlocked: 'open' })).toBe(true);
+    expect(parses({ options, autoResolveIfUnlocked: 'flee' })).toBe(false);
+    // Sem requisito ela seria só mais uma opção automática: é o que `autoResolve` já marca.
+    expect(parses({ options, autoResolveIfUnlocked: 'wait' })).toBe(false);
+    // E não pode cobrar: a expiração nunca tira do jogador o que ele não escolheu gastar.
+    const paid = { ...gated, cost: { gold: 10 } };
+    expect(parses({ options: [paid, sample.options[1]], autoResolveIfUnlocked: 'open' })).toBe(
+      false,
+    );
   });
 
   it('recusa rótulo que não é verbo no infinitivo ou que traz número', () => {

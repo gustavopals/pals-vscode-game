@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 9;
+const CURRENT = 10;
 
 type StoredState = {
   schemaVersion: number;
@@ -79,9 +79,9 @@ function v1State(name: FixtureName): StoredState {
 
 /**
  * O feudo de um retrato da versão 1 depois de migrado e antes de o tempo andar: o que o jogador
- * tinha, mais o que cada versão acrescentou vazio (o frio fechado, o Celeiro, o Armazém e a Torre
- * de Vigia por construir, nenhum desperdício, a segunda fila de obras livre e as planejadas como
- * manuais). O estoque fica como estava, mesmo acima do limite.
+ * tinha, mais o que cada versão acrescentou vazio (o frio fechado, o Celeiro, o Armazém, a Torre
+ * de Vigia e a Paliçada por construir, nenhum desperdício, a segunda fila de obras livre e as
+ * planejadas como manuais). O estoque fica como estava, mesmo acima do limite.
  */
 function migratedSettlement(before: StoredState): Record<string, unknown> {
   const { constructionQueues, planned } = before.settlement as unknown as {
@@ -91,7 +91,13 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
   return {
     ...before.settlement,
     cold: null,
-    buildings: { ...before.settlement.buildings, granary: 0, warehouse: 0, watchtower: 0 },
+    buildings: {
+      ...before.settlement.buildings,
+      granary: 0,
+      warehouse: 0,
+      watchtower: 0,
+      palisade: 0,
+    },
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     constructionQueues: [...constructionQueues, null],
     planned: planned.map((plan) => ({ ...plan, autoStart: false })),

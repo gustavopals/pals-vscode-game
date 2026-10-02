@@ -2495,3 +2495,277 @@ O teste do bot que cobrava menos de uma troca de ofício a cada quatro trabalhad
 - A coluna `threat` é lida do estado: é o mundo, não o que o jogador vê. Sem Torre, o jogador não vê nada.
 - As outras duas dificuldades jogam 3 sementes na suíte e 50 pelo comando; a linha de base de Camponês e de Rei de Ferro é a das 50.
 - As três tarefas seguintes (a Paliçada, a incursão de lobos e os objetivos 5 a 10) mexem na economia de novo, e a cadeia "A Promessa da Paliçada" muda a ordem do sorteio das cartas: a linha de base desta seção dura até a próxima.
+
+## 13. A Paliçada e a cadeia "A Promessa da Paliçada" (V2E-T2)
+
+Tarefa V2E-T2: entrou a **Paliçada** (Salão Nv3; 200 de madeira e 50 de pedra; o nível 2 custa 320 e 80) e, no Conselho, as três cartas da cadeia **"A Promessa da Paliçada"**, com o pedido dos aldeões no sorteio de quem tem o Salão no nível 3. **Os bots ainda não erguem a Paliçada e nunca prometem**: a política dela entra com a incursão de lobos (V2E-T3), que é quando ela passa a render. O que mexe na economia nesta rodada é só o sorteio: uma carta a mais, de peso 3, na frente das avulsas, muda as cartas que cada semente tira do Salão Nv3 em diante, e com elas o caminho de obras do bot econômico. A linha de base de `packages/sim-cli/src/bands.ts` foi regravada, nas três dificuldades, com o que esta rodada mediu.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o desta tarefa (`git log --grep "V2E-T2"`), feito sobre `ed84a24` |
+| Identificação | Motor 0.1.0 · estado v10 · conteúdo 2f8434b06481af37 |
+| Dificuldades | Camponês (`peasant`), Senhor (`lord`) e Rei de Ferro (`ironKing`) |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, macOS 26.6.2, Node 24.19.0 |
+
+### 13.1 O que entrou no jogo, e o que os bots fazem com isso
+
+- **A Paliçada.** Nasce no nível 0, pede o Salão no nível 3 e vai até o nível 2. Não produz nada, nada a danifica e ela não mexe na Ameaça: o nível 1 segura as incursões leves e corta pela metade o estrago de uma média; o nível 2 segura as duas. Nada marca incursões ainda (V2E-T3): nesta rodada ela só custaria.
+- **Os bots a deixam de lado.** `obra mais barata` e `planejar automáticas` não a tocam (como a Torre e os depósitos que ninguém pediu), e ela não conta como obra por fazer: o "fim das obras" não espera por ela. Não há política "erguer a Paliçada": entra em V2E-T3, com a Ameaça conhecida acima de 40.
+- **A cadeia de cartas.** "Os aldeões pedem uma cerca" entra no sorteio com o Salão no nível 3, em toda estação, uma vez por ano. A carta não tem opção paga (a de mostrar a obra fica trancada sem a Paliçada), e os bots ficam com a primeira opção sem custo: **explicar que não é hora**. As duas continuações nunca chegam em partida nenhuma da matriz. O que a cadeia faz por quem promete está nos testes do motor e da API, não aqui.
+- **A fila ociosa passou a contar a Paliçada.** A medida é "há uma obra que podia começar agora". Do Salão Nv3 em diante a Paliçada é essa obra sempre que o estoque a paga, e os bots não a iniciam: a fila ociosa sobe em toda célula (tabelas abaixo) sem que o feudo esteja parado. A medida volta a dizer o que dizia quando o bot ganhar a política.
+
+### 13.2 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz-senhor.csv 2> matriz-senhor.md
+pnpm -s sim -- --matrix --difficulty peasant > matriz-campones.csv 2> matriz-campones.md
+pnpm -s sim -- --matrix --difficulty ironKing > matriz-rei-de-ferro.csv 2> matriz-rei-de-ferro.md
+```
+
+900 linhas no CSV em cada dificuldade. Com a linha de base nova as três saem com código 0: todas as partidas dentro das faixas da própria dificuldade, nenhuma ordem recusada, nenhuma hora de fome nem de frio, ninguém vai embora. Antes de regravar a linha de base, três células de Senhor saíam da faixa da seção 12 (a sequência desperdiçando do Dedicado no ritmo Rápido, nas duas janelas, e a madeira parada do Regular no ano do Tranquilo), quatro de Camponês e três de Rei de Ferro, todas por margens pequenas: são as partidas que tiraram outras cartas.
+
+#### Senhor: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 33 | 7 | 0 | 0 | 50 | 0 | 0 | 121 | 672 | 3.900 | 3.900 | 4.516 a 4.518 | 14.673 a 14.679 | 27.301 a 27.320 | 12.089 a 12.096 | 131 | 75 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 72 a 74 | 7 | 0 | 0 | 50 | 0 | 0 | 133 a 141 | 804 a 828 | 3.433 a 4.702 | 4.625 a 5.100 | 153.508 a 163.202 | 1.173 a 4.514 | 223 a 8.260 | 0 a 994 | 13 a 40 | 18 a 27 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 74 a 75 | 7 | 0 | 0 | 50 | 0 | 0 | 136 a 149 | 412 a 420 | 1.466 a 4.257 | 2.953 a 5.100 | 268.544 a 286.161 | 0 a 666 | 0 a 5.622 | 0 a 799 | 0 a 7 | 0 a 15 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 30 a 33 | 5 a 6 | 0 | 0 | 50 | 0 | 0 | 84 a 96 | 594 a 664 | 559 a 2.100 | 589 a 905 | 1.577 a 1.585 | 0 a 258 | 1.147 a 2.678 | 0 | 23 a 42 | 6 a 11 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 65 a 72 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 91 a 110 | 698 a 776 | 34 a 4.500 | 28 a 4.498 | 1.304 a 16.276 | 0 a 76 | 0 a 6.863 | 0 a 78 | 0 a 16 | 0 a 10 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 106 a 123 | 392 a 401 | 136 a 5.100 | 2.919 a 5.100 | 27.900 a 40.346 | 0 a 219 | 0 a 2.165 | 0 a 72 | 0 a 7 | 0 a 3 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 14 | 4 | 0 | 0 | 50 | 0 | 0 | 57 a 59 | 212 | 70 a 74 | 188 a 190 | 231 a 232 | 0 | 144 | 0 | 7 | 3,5 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 50 a 54 | 5 a 6 | 0 | 0 | 40 a 50 | 0 a 4 | 0 | 65 a 79 | 495 a 539 | 32 a 2.700 | 184 a 1.820 | 43 a 985 | 0 | 0 a 879 | 0 | 0 a 5 | 0 a 2,5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 56 a 64 | 6 | 0 | 0 | 50 | 0 | 0 | 75 a 87 | 283 a 320 | 32 a 1.841 | 23 a 1.161 | 2 a 710 | 0 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+#### Senhor: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 13 | 3 | 0 | 0 | 50 | 0 | 0 | 21 | 176 | 513 | 531 a 532 | 160 | 79 | 5.091 a 5.094 | 0 | 36 | 75 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 27 | 5 | 0 | 0 | 50 | 0 | 0 | 27 a 31 | 244 | 257 a 689 | 573 a 1.338 | 1.824 a 2.860 | 1.114 a 1.297 | 0 | 0 a 95 | 12 a 15 | 18 a 24 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 52 a 54 | 6 a 7 | 0 | 0 | 50 | 0 | 0 | 25 a 37 | 262 a 273 | 114 a 2.817 | 81 a 2.342 | 468 a 14.273 | 0 a 42 | 0 a 4.612 | 0 a 799 | 0 a 5 | 0 a 15 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 30 a 33 | 5 a 6 | 0 | 0 | 50 | 0 | 0 | 84 a 96 | 594 a 664 | 559 a 2.100 | 589 a 905 | 1.577 a 1.585 | 0 a 258 | 1.147 a 2.678 | 0 | 23 a 42 | 6 a 11 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 65 a 72 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 91 a 110 | 698 a 776 | 34 a 4.500 | 28 a 4.498 | 1.304 a 16.276 | 0 a 76 | 0 a 6.863 | 0 a 78 | 0 a 16 | 0 a 10 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 106 a 123 | 392 a 401 | 136 a 5.100 | 2.919 a 5.100 | 27.900 a 40.346 | 0 a 219 | 0 a 2.165 | 0 a 72 | 0 a 7 | 0 a 3 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 22 | 5 | 0 | 0 | 50 | 0 | 0 | 212 a 214 | 401 | 2.896 a 2.897 | 1.020 a 1.022 | 2.269 a 2.270 | 0 | 785 a 790 | 0 | 18 | 3,5 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 4 | 0 | 228 a 241 | 740 a 760 | 1.479 a 4.887 | 3.737 a 5.099 | 35.096 a 40.290 | 0 a 315 | 0 a 1.691 | 0 a 328 | 0 a 11 | 0 a 2,5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 8 | 0 | 228 a 252 | 352 a 375 | 19 a 5.099 | 276 a 5.100 | 32.177 a 47.431 | 0 a 122 | 0 a 2.513 | 0 a 43 | 0 a 7 | 0 a 3 | 0 | dentro |
+
+#### Senhor: progresso em 7 dias reais
+
+| Ritmo | Perfil | Salão Nv2 (h) | Salão Nv3 (h) | Salão Nv4 (h) | Celeiro (h) | Armazém (h) | Torre de Vigia (h) | Fim das obras (h) | Obras que começaram sozinhas | População mínima |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 29 | 54 | 76 | 33 | 31 | 73 | — | 41 | 7 |
+| Rápido 3× | Regular | 11 | 22 | 35 a 36 | 25 | 26 | 49 a 61 | 112 a 123 | 44 a 48 | 7 |
+| Rápido 3× | Dedicado | 10 | 18 a 20 | 24 a 27 | 13 a 14 | 19 a 25 | 19 a 43 | 62 a 140 | 47 a 52 | 7 |
+| Normal 1× | Preguiçoso | 40 | 78 a 90 | 103 a 108 | 73 | 49 | 97 a 121 | — | 30 a 34 | 7 |
+| Normal 1× | Regular | 27 a 28 | 45 a 53 | 63 a 70 | 31 a 35 | 39 a 74 | 49 a 109 | 162 a — | 45 a 52 | 7 |
+| Normal 1× | Dedicado | 21 a 22 | 38 a 40 | 51 a 55 | 31 a 33 | 33 a 55 | 49 a 85 | 122 a 167 | 44 a 51 | 7 |
+| Tranquilo 0,5× | Preguiçoso | 54 | 106 | 143 | — | 65 | — | — | 21 | 6 |
+| Tranquilo 0,5× | Regular | 41 a 42 | 75 a 79 | 103 a 108 | 61 a 87 | 87 a 110 | 97 a — | — | 29 a 36 | 6 |
+| Tranquilo 0,5× | Dedicado | 35 | 66 a 71 | 93 a 98 | 127 a — | 79 a 98 | 79 a 109 | — | 35 a 39 | 6 |
+
+#### Senhor: progresso em um ano de jogo
+
+| Ritmo | Perfil | Salão Nv2 (h) | Salão Nv3 (h) | Salão Nv4 (h) | Celeiro (h) | Armazém (h) | Torre de Vigia (h) | Fim das obras (h) | Obras que começaram sozinhas | População mínima |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 29 | 54 | — | 33 | 31 | — | — | 14 | 7 |
+| Rápido 3× | Regular | 11 | 22 | 35 a 36 | 25 | 26 | 49 a — | — | 29 a 30 | 7 |
+| Rápido 3× | Dedicado | 10 | 18 a 20 | 24 a 27 | 13 a 14 | 19 a 25 | 19 a 43 | — | 38 a 46 | 7 |
+| Normal 1× | Preguiçoso | 40 | 78 a 90 | 103 a 108 | 73 | 49 | 97 a 121 | — | 30 a 34 | 7 |
+| Normal 1× | Regular | 27 a 28 | 45 a 53 | 63 a 70 | 31 a 35 | 39 a 74 | 49 a 109 | 162 a — | 45 a 52 | 7 |
+| Normal 1× | Dedicado | 21 a 22 | 38 a 40 | 51 a 55 | 31 a 33 | 33 a 55 | 49 a 85 | 122 a 167 | 44 a 51 | 7 |
+| Tranquilo 0,5× | Preguiçoso | 54 | 106 | 143 | — | 65 | 193 | — | 29 | 6 |
+| Tranquilo 0,5× | Regular | 41 a 42 | 75 a 79 | 103 a 108 | 61 a 87 | 87 a 110 | 97 a 169 | 247 a 330 | 44 a 49 | 6 |
+| Tranquilo 0,5× | Dedicado | 35 | 66 a 71 | 93 a 98 | 127 a 193 | 79 a 98 | 79 a 109 | 272 a — | 44 a 50 | 6 |
+
+#### Senhor: meta de desperdício
+
+| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7 dias reais | Rápido 3× | Regular | 18 a 24 | 3 a 27 | 0 a 15 | ≤ 8 | **acima** |
+| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 10 | 0 a 2 | ≤ 8 | **acima** |
+| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 2,5 | 0 | ≤ 8 | dentro |
+| Um ano de jogo | Rápido 3× | Regular | 18 a 24 | 0 | 0 a 3 | ≤ 8 | **acima** |
+| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 10 | 0 a 2 | ≤ 8 | **acima** |
+| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 2,5 | 0 a 2,5 | 0 a 1,5 | ≤ 8 | dentro |
+
+#### Senhor: linha de base
+
+```ts
+  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3900, 3900, 4518, 75),
+  'week/3/regular': measured([72, 74], 7, 0, 0, 4702, 5100, 163202, 27),
+  'week/3/dedicado': measured([74, 75], 7, 0, 0, 4257, 5100, 286161, 15),
+  'week/1/preguicoso': measured([30, 33], 5, 0, 0, 2100, 905, 1585, 11),
+  'week/1/regular': measured([65, 72], 7, 0, 0, 4500, 4498, 16276, 10),
+  'week/1/dedicado': measured([74, 75], 7, 0, 0, 5100, 5100, 40346, 3),
+  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 74, 190, 232, 4),
+  'week/0.5/regular': measured([50, 54], 5, 0, 0, 2700, 1820, 985, 2.5),
+  'week/0.5/dedicado': measured([56, 64], 6, 0, 0, 1841, 1161, 710, 0),
+  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 513, 532, 160, 75),
+  'year/3/regular': measured([27, 27], 5, 0, 0, 689, 1338, 2860, 24),
+  'year/3/dedicado': measured([52, 54], 6, 0, 0, 2817, 2342, 14273, 15),
+  'year/1/preguicoso': measured([30, 33], 5, 0, 0, 2100, 905, 1585, 11),
+  'year/1/regular': measured([65, 72], 7, 0, 0, 4500, 4498, 16276, 10),
+  'year/1/dedicado': measured([74, 75], 7, 0, 0, 5100, 5100, 40346, 3),
+  'year/0.5/preguicoso': measured([22, 22], 5, 0, 0, 2897, 1022, 2270, 4),
+  'year/0.5/regular': measured([74, 75], 7, 0, 0, 4887, 5099, 40290, 2.5),
+  'year/0.5/dedicado': measured([74, 75], 7, 0, 0, 5099, 5100, 47431, 3),
+```
+
+#### Camponês: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 33 | 7 | 0 | 0 | 50 | 0 | 0 | 125 a 126 | 672 | 4.125 | 4.125 | 4.522 a 4.524 | 13.849 a 13.856 | 28.838 a 28.856 | 12.739 a 12.745 | 129 | 72 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 72 a 75 | 8 | 0 | 0 | 50 | 0 | 0 | 133 a 142 | 804 a 839 | 4.944 a 6.204 | 6.167 a 6.375 | 128.179 a 152.661 | 223 a 3.423 | 1.705 a 27.793 | 0 a 6.914 | 11 a 33 | 12 a 30 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 84 a 85 | 8 | 0 | 0 | 50 | 0 | 0 | 139 a 149 | 472 a 480 | 2.468 a 6.165 | 4.228 a 6.375 | 296.056 a 319.793 | 49 a 161 | 0 a 21.020 | 0 a 3.775 | 2 a 15 | 3 a 15 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 30 a 33 | 6 | 0 | 0 | 50 | 0 | 0 | 95 a 98 | 594 a 664 | 558 a 597 | 58 a 469 | 629 a 1.700 | 102 a 168 | 922 a 3.123 | 0 | 23 a 38 | 6 a 10 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 56 a 72 | 7 a 8 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 94 a 108 | 596 a 776 | 35 a 4.915 | 339 a 4.944 | 231 a 13.686 | 0 a 103 | 0 a 3.869 | 0 | 0 a 7 | 0 a 6 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 84 | 8 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 107 a 123 | 446 a 452 | 5.223 a 6.375 | 5.840 a 6.375 | 11.806 a 21.732 | 0 a 57 | 0 a 2.618 | 0 a 46 | 0 a 4 | 0 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 14 | 4 | 0 | 0 | 50 | 0 | 0 | 61 a 64 | 212 | 211 a 215 | 181 a 183 | 237 a 238 | 0 | 19 | 0 | 1 | 1 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 52 a 59 | 6 | 0 | 0 | 40 a 50 | 0 a 4 | 0 | 65 a 83 | 515 a 587 | 3 a 1.380 | 392 a 1.240 | 105 a 1.073 | 0 | 0 a 414 | 0 | 0 a 3 | 0 a 1,5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 56 a 64 | 6 | 0 | 0 | 50 | 0 | 0 | 75 a 87 | 283 a 321 | 48 a 1.398 | 285 a 1.175 | 333 a 1.168 | 0 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+#### Camponês: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 13 | 3 | 0 | 0 | 50 | 0 | 0 | 22 | 176 | 994 | 659 a 660 | 161 | 0 | 4.866 a 4.869 | 0 | 35 | 72 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 27 | 5 | 0 | 0 | 50 | 0 | 0 | 27 a 32 | 244 | 111 a 1.504 | 1.006 a 1.544 | 1.104 a 2.172 | 169 a 844 | 0 | 0 | 4 a 10 | 12 a 18 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 48 a 55 | 7 | 0 | 0 | 50 | 0 | 0 | 27 a 38 | 238 a 278 | 81 a 1.989 | 931 a 3.108 | 957 a 6.092 | 42 a 129 | 0 a 513 | 0 a 112 | 1 a 3 | 3 a 6 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 30 a 33 | 6 | 0 | 0 | 50 | 0 | 0 | 95 a 98 | 594 a 664 | 558 a 597 | 58 a 469 | 629 a 1.700 | 102 a 168 | 922 a 3.123 | 0 | 23 a 38 | 6 a 10 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 56 a 72 | 7 a 8 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 94 a 108 | 596 a 776 | 35 a 4.915 | 339 a 4.944 | 231 a 13.686 | 0 a 103 | 0 a 3.869 | 0 | 0 a 7 | 0 a 6 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 84 | 8 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 107 a 123 | 446 a 452 | 5.223 a 6.375 | 5.840 a 6.375 | 11.806 a 21.732 | 0 a 57 | 0 a 2.618 | 0 a 46 | 0 a 4 | 0 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 23 | 6 | 0 | 0 | 50 | 0 | 0 | 196 a 201 | 425 | 265 | 929 a 931 | 846 a 848 | 0 | 766 a 771 | 0 | 12 a 13 | 4,5 a 5 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 84 a 85 | 8 | 0 | 0 | 40 a 50 | 0 a 4 | 0 | 223 a 241 | 847 a 861 | 5.237 a 6.375 | 5.849 a 6.375 | 16.753 a 22.238 | 0 a 191 | 0 a 2.000 | 0 a 81 | 0 a 7 | 0 a 2,5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 84 a 85 | 8 | 0 | 0 | 50 | 0 | 0 | 232 a 248 | 398 a 423 | 3.719 a 6.375 | 5.497 a 6.375 | 27.154 a 33.867 | 0 a 25 | 0 a 646 | 0 a 59 | 0 a 4 | 0 a 2 | 0 | dentro |
+
+#### Camponês: meta de desperdício
+
+| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7 dias reais | Rápido 3× | Regular | 12 a 21 | 6 a 30 | 0 a 27 | ≤ 8 | **acima** |
+| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 6 | 0 | ≤ 8 | dentro |
+| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1,5 | 0 | ≤ 8 | dentro |
+| Um ano de jogo | Rápido 3× | Regular | 12 a 18 | 0 | 0 | ≤ 8 | **acima** |
+| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 6 | 0 | ≤ 8 | dentro |
+| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 2,5 | 0 a 2,5 | 0 a 0,5 | ≤ 8 | dentro |
+
+#### Camponês: linha de base
+
+```ts
+  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 4125, 4125, 4524, 72),
+  'week/3/regular': measured([72, 75], 8, 0, 0, 6204, 6375, 152661, 30),
+  'week/3/dedicado': measured([84, 85], 8, 0, 0, 6165, 6375, 319793, 15),
+  'week/1/preguicoso': measured([30, 33], 6, 0, 0, 597, 469, 1700, 10),
+  'week/1/regular': measured([56, 72], 7, 0, 0, 4915, 4944, 13686, 6),
+  'week/1/dedicado': measured([84, 84], 8, 0, 0, 6375, 6375, 21732, 4),
+  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 215, 183, 238, 1),
+  'week/0.5/regular': measured([52, 59], 6, 0, 0, 1380, 1240, 1073, 1.5),
+  'week/0.5/dedicado': measured([56, 64], 6, 0, 0, 1398, 1175, 1168, 0),
+  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 994, 660, 161, 72),
+  'year/3/regular': measured([27, 27], 5, 0, 0, 1504, 1544, 2172, 18),
+  'year/3/dedicado': measured([48, 55], 7, 0, 0, 1989, 3108, 6092, 6),
+  'year/1/preguicoso': measured([30, 33], 6, 0, 0, 597, 469, 1700, 10),
+  'year/1/regular': measured([56, 72], 7, 0, 0, 4915, 4944, 13686, 6),
+  'year/1/dedicado': measured([84, 84], 8, 0, 0, 6375, 6375, 21732, 4),
+  'year/0.5/preguicoso': measured([23, 23], 6, 0, 0, 265, 931, 848, 5),
+  'year/0.5/regular': measured([84, 85], 8, 0, 0, 6375, 6375, 22238, 2.5),
+  'year/0.5/dedicado': measured([84, 85], 8, 0, 0, 6375, 6375, 33867, 2),
+```
+
+#### Rei de Ferro: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 33 | 7 | 0 | 0 | 50 | 0 | 0 | 120 | 672 | 3.120 | 3.120 | 4.465 a 4.467 | 15.300 a 15.306 | 27.791 a 27.810 | 12.699 a 12.705 | 134 | 72 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 72 a 75 | 7 | 0 | 0 | 50 | 0 | 0 | 130 a 138 | 804 a 839 | 1.273 a 2.736 | 2.594 a 3.600 | 156.284 a 169.241 | 2.832 a 7.813 | 496 a 3.921 | 0 a 230 | 33 a 47 | 24 a 30 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 6 | 0 | 135 a 147 | 412 a 420 | 1.427 a 2.738 | 2.447 a 3.600 | 269.796 a 294.587 | 81 a 2.562 | 0 a 14.915 | 0 a 2.690 | 4 a 21 | 6 a 15 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 30 a 33 | 5 a 6 | 0 | 0 | 50 | 0 | 0 | 88 a 90 | 594 a 664 | 131 a 1.680 | 271 a 672 | 1.536 a 1.548 | 77 a 183 | 1.431 a 2.619 | 0 a 208 | 34 a 40 | 9 a 12 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 64 a 72 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 91 a 113 | 685 a 776 | 104 a 3.600 | 79 a 3.598 | 3.292 a 19.564 | 0 a 138 | 0 a 4.918 | 0 a 695 | 0 a 13 | 0 a 8 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 109 a 119 | 390 a 400 | 108 a 3.572 | 2.197 a 3.600 | 34.146 a 44.789 | 0 a 307 | 0 a 2.021 | 0 a 59 | 0 a 6 | 0 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 14 | 4 | 0 | 0 | 50 | 0 | 0 | 56 a 58 | 213 | 329 a 333 | 264 a 266 | 226 a 227 | 0 | 244 | 0 | 10 a 11 | 4,5 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 47 a 54 | 6 | 0 | 0 | 40 a 50 | 0 a 4 | 0 | 67 a 78 | 463 a 541 | 0 a 1.306 | 114 a 1.231 | 36 a 795 | 0 a 32 | 0 a 291 | 0 | 0 a 2 | 0 a 1 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 58 a 64 | 6 | 0 | 0 | 50 | 0 | 0 | 69 a 84 | 291 a 319 | 1 a 2.004 | 0 a 794 | 10 a 447 | 0 | 0 a 98 | 0 | 0 a 2 | 0 a 1,5 | 0 | dentro |
+
+#### Rei de Ferro: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Moral mínima | Moral baixa (h) | Foram embora | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 13 | 3 | 0 | 0 | 50 | 0 | 0 | 20 | 176 | 333 | 496 a 497 | 160 | 179 | 5.143 a 5.146 | 0 | 36 | 72 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 27 a 29 | 5 | 0 | 0 | 50 | 0 | 0 | 23 a 28 | 244 a 263 | 1 a 778 | 222 a 794 | 321 a 1.635 | 2.192 a 2.459 | 0 | 0 | 21 a 23 | 24 a 30 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 47 a 54 | 6 a 7 | 0 | 0 | 50 | 0 | 0 | 25 a 35 | 248 a 268 | 5 a 2.584 | 94 a 2.111 | 588 a 12.727 | 81 a 449 | 0 a 3.966 | 0 a 1.536 | 3 a 13 | 6 a 15 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 30 a 33 | 5 a 6 | 0 | 0 | 50 | 0 | 0 | 88 a 90 | 594 a 664 | 131 a 1.680 | 271 a 672 | 1.536 a 1.548 | 77 a 183 | 1.431 a 2.619 | 0 a 208 | 34 a 40 | 9 a 12 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 64 a 72 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 91 a 113 | 685 a 776 | 104 a 3.600 | 79 a 3.598 | 3.292 a 19.564 | 0 a 138 | 0 a 4.918 | 0 a 695 | 0 a 13 | 0 a 8 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 2 | 0 | 109 a 119 | 390 a 400 | 108 a 3.572 | 2.197 a 3.600 | 34.146 a 44.789 | 0 a 307 | 0 a 2.021 | 0 a 59 | 0 a 6 | 0 a 4 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 22 | 6 | 0 | 0 | 50 | 0 | 0 | 196 a 198 | 402 | 446 a 451 | 1.662 a 1.667 | 797 a 799 | 0 | 860 a 861 | 368 a 371 | 30 a 31 | 5 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 74 a 75 | 7 | 0 | 0 | 40 a 50 | 0 a 93 | 0 | 227 a 241 | 745 a 759 | 571 a 3.594 | 2.240 a 3.600 | 38.484 a 45.478 | 0 a 136 | 0 a 1.878 | 0 a 100 | 0 a 7 | 0 a 2,5 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 74 a 75 | 7 | 0 | 0 | 50 | 0 | 0 | 220 a 246 | 348 a 375 | 41 a 3.600 | 880 a 3.600 | 42.296 a 54.557 | 0 a 159 | 0 a 1.842 | 0 a 87 | 0 a 8 | 0 a 2,5 | 0 | dentro |
+
+#### Rei de Ferro: meta de desperdício
+
+| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 7 dias reais | Rápido 3× | Regular | 24 a 30 | 6 a 15 | 0 a 6 | ≤ 8 | **acima** |
+| 7 dias reais | Normal 1× | Regular | 0 a 4 | 0 a 8 | 0 a 4 | ≤ 8 | dentro |
+| 7 dias reais | Tranquilo 0,5× | Regular | 0 a 1 | 0 a 1 | 0 | ≤ 8 | dentro |
+| Um ano de jogo | Rápido 3× | Regular | 24 a 30 | 0 | 0 | ≤ 8 | **acima** |
+| Um ano de jogo | Normal 1× | Regular | 0 a 4 | 0 a 8 | 0 a 4 | ≤ 8 | dentro |
+| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 2 | 0 a 2,5 | 0 a 0,5 | ≤ 8 | dentro |
+
+#### Rei de Ferro: linha de base
+
+```ts
+  'week/3/preguicoso': measured([33, 33], 7, 0, 0, 3120, 3120, 4467, 72),
+  'week/3/regular': measured([72, 75], 7, 0, 0, 2736, 3600, 169241, 30),
+  'week/3/dedicado': measured([74, 75], 7, 0, 0, 2738, 3600, 294587, 15),
+  'week/1/preguicoso': measured([30, 33], 5, 0, 0, 1680, 672, 1548, 12),
+  'week/1/regular': measured([64, 72], 7, 0, 0, 3600, 3598, 19564, 8),
+  'week/1/dedicado': measured([74, 75], 7, 0, 0, 3572, 3600, 44789, 4),
+  'week/0.5/preguicoso': measured([14, 14], 4, 0, 0, 333, 266, 227, 4.5),
+  'week/0.5/regular': measured([47, 54], 6, 0, 0, 1306, 1231, 795, 1),
+  'week/0.5/dedicado': measured([58, 64], 6, 0, 0, 2004, 794, 447, 1.5),
+  'year/3/preguicoso': measured([13, 13], 3, 0, 0, 333, 497, 160, 72),
+  'year/3/regular': measured([27, 29], 5, 0, 0, 778, 794, 1635, 30),
+  'year/3/dedicado': measured([47, 54], 6, 0, 0, 2584, 2111, 12727, 15),
+  'year/1/preguicoso': measured([30, 33], 5, 0, 0, 1680, 672, 1548, 12),
+  'year/1/regular': measured([64, 72], 7, 0, 0, 3600, 3598, 19564, 8),
+  'year/1/dedicado': measured([74, 75], 7, 0, 0, 3572, 3600, 44789, 4),
+  'year/0.5/preguicoso': measured([22, 22], 6, 0, 0, 451, 1667, 799, 5),
+  'year/0.5/regular': measured([74, 75], 7, 0, 0, 3594, 3600, 45478, 2.5),
+  'year/0.5/dedicado': measured([74, 75], 7, 0, 0, 3600, 3600, 54557, 2.5),
+```
+
+### 13.3 O que mudou em relação à seção 12, e por quê
+
+- **A população e o Salão não mudaram**, a não ser em uma semente. Senhor, 7 dias reais: Regular 72 a 74 aldeões no Rápido (72 a 74), 65 a 72 no Normal (65 a 72), 50 a 54 no Tranquilo (51 a 54); Dedicado 74 a 75, 74 a 75 e 56 a 64 (59 a 64). O Salão chega ao mesmo nível em toda célula. Em Camponês, no ritmo Normal, a menor população do Regular entre as sementes caiu de 62 para 56 (a semente 013; a seguinte tem 60, e a maior subiu de 71 para 72): ninguém foi embora nem passou fome, o feudo recrutou mais devagar com as cartas que tirou.
+- **O Preguiçoso não mudou em nada**: ele responde a toda carta sem gastar, e a carta nova, respondida com "explicar", não mexe no feudo. As seis células dele, em cada dificuldade, têm a mesma linha de base da seção 12; só a fila ociosa mudou.
+- **A fila ociosa subiu em toda célula**, pelo motivo da seção 13.1. Senhor, 7 dias reais: Preguiçoso 121 h no Rápido (102), 84 a 96 no Normal (79 a 83); Regular 133 a 141 no Rápido (86 a 133) e 91 a 110 no Normal (45 a 89); Dedicado 136 a 149 no Rápido (35 a 117) e 106 a 123 no Normal (67 a 111). Não é tédio novo: é a Paliçada por erguer.
+- **A Torre de Vigia sai até 12 h mais tarde na semente mais lenta** do Regular no ritmo Normal: entre as horas 49 e 109 (49 e 97). O Dedicado melhorou: 49 a 85 (49 a 97) no Normal e 79 a 109 (79 a 115) no Tranquilo. Nas outras células as horas são as da seção 12.
+- **A meta de desperdício no ritmo Normal: 45 de 50.** Eram 47. As cinco sementes fora (016, 017, 029, 033 e 047) têm de 9 a 10 h de jogo seguidas de madeira indo ao chão; quatro delas com o Armazém pronto só da hora 61 em diante. É o mesmo caminho do bot das seções 11.4 e 12.3, em outras sementes. O teto da célula continua em 10 h. No ritmo Rápido o pior caso do Regular caiu de 30 para 27 h, e o do Dedicado subiu de 9 para 15 h, de volta à ordem de grandeza da seção 11 (21 h): a causa não foi investigada semente a semente, como nas rodadas anteriores.
+- **O ouro parado mal se mexe**: Regular no ritmo Rápido, 7 dias reais, até 163.202 (164.535).
+- **As cartas.** O pedido da cerca aparece em todas as 50 partidas do ano no ritmo Normal e em 41 das 50 do Rápido; as outras cartas saem um pouco menos, e a moral chega a 80 em menos partidas do ritmo Rápido com duas visitas por dia (6 de 50; eram 19), porque o pedido ocupa uma das dez cartas do ano e o bot não tira moral dele ([content-v0.2.md](content-v0.2.md), seções 4 e 5).
+
+### 13.4 Faixas
+
+`MEASURED`, em `packages/sim-cli/src/bands.ts`, passou a ser a linha de base desta rodada, nas três dificuldades; a regra da folga não mudou. `balance.test.ts` guarda o que mudou: as cinco sementes que passam da meta de desperdício no ritmo Normal, o pior caso do Regular no ritmo Rápido (27 h) e a hora em que cada perfil ergue a Torre (até a 109 no Normal). `coverage.test.ts` guarda que as duas continuações da cadeia da Paliçada **não** aparecem em partida nenhuma: no dia em que um bot aprender a prometer, o teste avisa.
+
+Dois testes que mediam o bot por um limiar foram afrouxados, com o motivo escrito neles: o que cobrava a fila ociosa do início automático abaixo da **metade** da partida de controle passou a cobrar abaixo de **dois terços** (a Paliçada por erguer conta nas duas), e o que cobrava uma ordem de iniciar o Armazém passou a aceitar a de planejá-lo como automático (com outras cartas, o bot quis o Armazém em uma visita em que ainda faltava material).
+
+### 13.5 O que fica para o autor
+
+- **A Paliçada custa 250 de material e, nesta rodada, não protege de nada**: o valor dela só existe com as incursões (V2E-T3). A pergunta de balanceamento é daquela tarefa: quanto vale 10% (ou 15%) da comida e da madeira, uma vez a cada tantas viradas, contra 250 a 650 de material e uma visita.
+- **O pedido dos aldeões volta todo ano para quem só explica.** É o comportamento escrito (a carta só deixa de voltar com a promessa cumprida), e no simulador ele ocupa uma audiência por ano sem dar nada. Para um jogador é o lembrete anual de que a cerca falta; se parecer insistente no playtest, o remédio é o peso da carta (3) ou uma flag que a silencie por um ano.
+- **O bot não percorre a cadeia.** Se o autor quiser medir o que a promessa faz à moral em 50 sementes, a política "prometer quando a Paliçada cabe no estoque" é pequena e pode entrar com a da Paliçada, em V2E-T3.
+
+### 13.6 Limites desta medição
+
+- A matriz mede o que as três cartas novas fazem ao sorteio, não a Paliçada: nenhum bot a ergue.
+- A fila ociosa desta rodada não se compara com a das anteriores (seção 13.1).
+- As outras duas dificuldades jogam 3 sementes na suíte e 50 pelo comando; a linha de base de Camponês e de Rei de Ferro é a das 50.
+- As duas tarefas seguintes (a incursão de lobos, com a política da Paliçada, e os objetivos 5 a 10) mexem na economia de novo: a linha de base desta seção dura até a próxima.

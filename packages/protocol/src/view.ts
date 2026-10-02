@@ -294,11 +294,22 @@ const ThreatWatchtowerSchema = z.strictObject({
   next: z.string().nullable(),
 });
 
-/** O que protege o feudo de um ataque hoje. */
+/**
+ * O que protege o feudo de um ataque hoje, e o que a próxima obra da Paliçada mudaria. Sai nas
+ * duas formas da Ameaça: só depende do nível da Paliçada, que o jogador conhece.
+ */
 const ThreatDefenseSchema = z.strictObject({
+  /** O edifício da Paliçada: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: buildingId,
+  /** 0 enquanto não foi construída. */
   palisadeLevel: z.number(),
-  /** "Sem Paliçada, nada segura um ataque." */
+  /**
+   * "Sem Paliçada, nada segura um ataque."; "Paliçada Nv1: segura ataques leves, sem perda nem
+   * ferido; os médios passam, mas com metade do estrago."
+   */
   text: z.string(),
+  /** O que o próximo nível passa a segurar; `null` com a Paliçada no teto desta versão. */
+  next: z.string().nullable(),
 });
 
 /** Uma incursão que os vigias já avistaram. */
@@ -312,6 +323,12 @@ const ThreatIncomingSchema = z.strictObject({
   sizeText: z.string().nullable(),
   /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo fica em `inSeconds`. */
   text: z.string(),
+  /**
+   * O que a Paliçada faz a esta incursão: "A Paliçada Nv1 segura este ataque: sem perda nem
+   * ferido."; "Sem Paliçada, nada segura este ataque." Sem o tamanho à vista, a frase vale para
+   * qualquer um e não o revela. Com a obra da Paliçada em curso, diz se ela fica pronta a tempo.
+   */
+  defenseText: z.string(),
 });
 
 /**

@@ -12,6 +12,7 @@ import {
   idleVillager,
   moraleBandTemplates,
   objectives,
+  raidSizes,
   startingTiles,
   threatMarkTemplates,
   tileTypes,
@@ -52,7 +53,8 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,famine,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,' +
+  'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
   'threat,wolf_losses';
@@ -448,7 +450,10 @@ describe('partida de controle: as mesmas planejadas, manuais', () => {
     // O jogador de uma visita por dia: as planejadas que podiam começar esperavam a visita.
     expect(control.plannedIdleHours).toBeGreaterThan(100);
     expect(auto.plannedIdleHours).toBe(0);
-    expect(auto.queueIdleHours).toBeLessThan(control.queueIdleHours / 2);
+    // Não chega à metade: desde que o Salão alcança o nível 3 a Paliçada é uma obra que podia
+    // começar e que o bot ainda não ergue (a política dela entra com a incursão de lobos,
+    // V2E-T3), e a fila conta como ociosa nessas horas, com ou sem o início automático.
+    expect(auto.queueIdleHours).toBeLessThan((control.queueIdleHours * 2) / 3);
     // E o feudo anda mais: as obras não esperaram por ele.
     expect(auto.townHall).toBeGreaterThan(control.townHall);
   });
@@ -531,6 +536,7 @@ describe('resumo de uma partida', () => {
             tileTypes,
             startingTiles,
             enemies,
+            raidSizes,
             threatMarkTemplates,
           }),
         )

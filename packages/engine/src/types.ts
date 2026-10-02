@@ -156,7 +156,7 @@ export type ScheduledRaid = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 9;
+  schemaVersion: 10;
   seed: string;
   settings: GameSettings;
   /**
@@ -388,8 +388,9 @@ export type UpgradeView = {
   planned: boolean;
   /**
    * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900."; "Mostra a
-   * Ameaça com a explicação e avisa de uma incursão 20 min antes." Os edifícios de armazenamento
-   * e a Torre de Vigia trazem a frase; nos outros é `null`.
+   * Ameaça com a explicação e avisa de uma incursão 20 min antes."; "Segura ataques leves, sem
+   * perda nem ferido; os médios passam, mas com metade do estrago." Os edifícios de
+   * armazenamento, a Torre de Vigia e a Paliçada trazem a frase; nos outros é `null`.
    */
   effect: string | null;
 };
@@ -687,11 +688,27 @@ export type ThreatWatchtowerView = {
   next: string | null;
 };
 
-/** O que protege o feudo de um ataque hoje. Sem Paliçada, nada. */
+/**
+ * O que protege o feudo de um ataque hoje, e o que a próxima obra da Paliçada mudaria. Sai nas
+ * duas formas da Ameaça: só depende do nível da Paliçada, que o jogador conhece. O custo e o
+ * botão da obra estão em `constructions.available`.
+ */
 export type ThreatDefenseView = {
+  /** O edifício da Paliçada: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: BuildingId;
+  /** 0 enquanto não foi construída. */
   palisadeLevel: number;
-  /** "Sem Paliçada, nada segura um ataque." */
+  /**
+   * "Sem Paliçada, nada segura um ataque."; "Paliçada Nv1: segura ataques leves, sem perda nem
+   * ferido; os médios passam, mas com metade do estrago."
+   */
   text: string;
+  /**
+   * O que a próxima obra da Paliçada muda: "Paliçada Nv2: passa a segurar também os ataques
+   * médios, sem perda nem ferido."; `null` com a Paliçada no teto desta versão (`text` diz o
+   * que vem depois).
+   */
+  next: string | null;
 };
 
 /** Uma incursão que os vigias já avistaram. Só existe para quem tem a Torre de Vigia. */
@@ -705,6 +722,15 @@ export type ThreatIncomingView = {
   sizeText: string | null;
   /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo anda na tela: fica em `inSeconds`. */
   text: string;
+  /**
+   * O que a Paliçada faz a esta incursão: "A Paliçada Nv1 segura este ataque: sem perda nem
+   * ferido."; "Sem Paliçada, nada segura este ataque." Enquanto a Torre não distingue o
+   * tamanho, a frase vale para qualquer um ("…se ele for dos leves; se for dos médios, ele
+   * passa, mas com metade do estrago") e não o revela. Com a obra da Paliçada em curso, conta
+   * o nível com que o ataque vai encontrá-la ("A Paliçada Nv1, que fica pronta a tempo, …") ou
+   * avisa que não dá tempo ("A obra em curso só termina depois dele.").
+   */
+  defenseText: string;
 };
 
 /**

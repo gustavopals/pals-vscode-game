@@ -14,6 +14,7 @@ import {
   HOUR,
   MINUTE,
   quietCouncil,
+  refuse,
   settings,
   SUMMER,
   YEAR,
@@ -23,10 +24,10 @@ import { deriveViewState } from './view';
 
 /**
  * As cadeias do jogo, de ponta a ponta (roadmap da v0.2, V2D-T2.4 e critério 3 da §16.2): "O
- * Celeiro Comum" e "A Ponte do Degelo", com as cartas de `@lotg/content`, em todas as
- * ramificações: aceitar, recusar e deixar expirar, nas três dificuldades e em um ritmo que não
- * é o 1. A continuação chega no prazo com a mesa cheia na frente e com um sorteio no mesmo
- * instante, e a história atravessa a estação e o ano.
+ * Celeiro Comum", "A Ponte do Degelo" e "A Promessa da Paliçada" (V2E-T2), com as cartas de
+ * `@lotg/content`, em todas as ramificações: aceitar, recusar e deixar expirar, nas três
+ * dificuldades e em um ritmo que não é o 1. A continuação chega no prazo com a mesa cheia na
+ * frente e com um sorteio no mesmo instante, e a história atravessa a estação e o ano.
  *
  * O sorteio fica calado (`quietCouncil`): a primeira carta de cada cadeia é posta na mesa pelo
  * teste, e daí em diante só as continuações falam. O sorteio com as cartas do jogo é do cenário
@@ -669,5 +670,540 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
     expect(gained + lost).toBe(90);
     expect(lost).toBeGreaterThan(0);
     expect(units(after, 'food')).toBe(2100);
+  });
+});
+
+describe('"A Promessa da Paliçada", de ponta a ponta', () => {
+  /** O feudo das cadeias com o Salão no nível 3: o que libera a Paliçada e o pedido dos aldeões. */
+  const hall = (difficulty: DifficultyId = 'lord', timeScale = 1, atMs = 0): GameState => {
+    const state = feud(difficulty, timeScale, atMs);
+    state.settlement.buildings.townHall = 3;
+    return state;
+  };
+  const opened = (difficulty: DifficultyId = 'lord', timeScale = 1, atMs = 0) =>
+    dealt(hall(difficulty, timeScale, atMs), 'palisadePromisePlea').state;
+  const pleaIsEligible = (state: GameState, atMs: number) =>
+    eligibleCards(state, atMs, CATALOG).some((entry) => entry.id === 'palisadePromisePlea');
+  /** Manda erguer a Paliçada agora: 200 de madeira, 50 de pedra, 20 minutos de jogo. */
+  const build = (state: GameState) =>
+    accept(state, command('startConstruction', { building: 'palisade' })).state;
+  const option = (state: GameState, cardId: string, optionId: string) =>
+    shown(state, cardId)?.options.find((entry) => entry.id === optionId);
+  const PROMISED =
+    'No 1º dia da Primavera, o senhor de Pedra Alta prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.';
+
+  it('o pedido só chega com o Salão no nível 3, e nunca com a promessa em aberto ou já cumprida', () => {
+    const at = 4 * DAY;
+    expect(pleaIsEligible(feud(), at)).toBe(false);
+    const second = feud();
+    second.settlement.buildings.townHall = 2;
+    expect(pleaIsEligible(second, at)).toBe(false);
+    expect(pleaIsEligible(hall(), at)).toBe(true);
+    // Em qualquer estação: o medo não escolhe época.
+    for (const season of [SUMMER, AUTUMN, YEAR - 4 * DAY]) {
+      expect(pleaIsEligible(hall('lord', 1, season), season + 4 * DAY)).toBe(true);
+    }
+    for (const flag of ['palisadePromise.open', 'palisadePromise.kept']) {
+      const state = hall();
+      state.council.flags[flag] = true;
+      expect(pleaIsEligible(state, at), flag).toBe(false);
+    }
+  });
+
+  it('a carta mostra a opção de quem já ergueu a cerca trancada, com o motivo, e as outras duas sem custo', () => {
+    const state = opened();
+    expect(shown(state, 'palisadePromisePlea')).toMatchObject({
+      title: 'Os aldeões pedem uma cerca',
+      defaultOptionId: 'explain',
+    });
+    expect(shown(state, 'palisadePromisePlea')?.options).toEqual([
+      {
+        id: 'show',
+        label: 'Mostrar a paliçada erguida',
+        cost: [],
+        affordable: true,
+        locked: true,
+        lockedReason: 'Requer a Paliçada.',
+        effectsText: '+10 de moral por 3 dias de jogo (6 h)',
+        hint: 'Quem já fez não precisa prometer.',
+      },
+      {
+        id: 'explain',
+        label: 'Explicar que não é hora',
+        cost: [],
+        affordable: true,
+        locked: false,
+        lockedReason: null,
+        effectsText: 'Sem custo e sem efeito imediato.',
+        hint: 'Nada se promete e nada se deve. O medo continua do tamanho que está.',
+      },
+      {
+        id: 'promise',
+        label: 'Prometer a paliçada',
+        cost: [],
+        affordable: true,
+        locked: false,
+        lockedReason: null,
+        effectsText: '+10 de moral por 3 dias de jogo (6 h)',
+        hint: 'Promessa aquece hoje. O povo conta os dias, e cobra em quatro.',
+      },
+    ]);
+    // A ordem para a opção trancada é recusada, e a recusa diz o que falta.
+    const pending = state.council.pending[0];
+    expect(
+      refuse(
+        state,
+        command('answerCard', { instanceId: pending?.instanceId ?? '', optionId: 'show' }),
+      ),
+    ).toEqual({
+      code: 'OPTION_LOCKED',
+      message: 'Essa opção ainda está fora do alcance do feudo: requer a Paliçada.',
+    });
+  });
+
+  it('cumprir: prometer, erguer a Paliçada e mostrá-la no prazo vale +10 na hora e +15 na cobrança', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    expect(first.events[0]).toMatchObject({
+      text: PROMISED,
+      data: { cardId: 'palisadePromisePlea', optionId: 'promise', morale: 10, moraleDays: 3 },
+    });
+    expect(first.state.council.flags).toEqual({ 'palisadePromise.open': true });
+    expect(first.state.council.scheduled).toMatchObject([
+      { cardId: 'palisadePromiseDeadline', atMs: 4 * DAY },
+    ]);
+    // A promessa não ergue nada nem gasta nada: quem protege o feudo é a obra.
+    expect(first.state.settlement.buildings.palisade).toBe(0);
+    expect(first.state.settlement.resources).toEqual(opened().settlement.resources);
+
+    const built = advanceTo(build(advanceTo(first.state, DAY).state), 2 * DAY);
+    expect(built.state.settlement.buildings.palisade).toBe(1);
+    expect(units(built.state, 'wood')).toBeLessThan(units(first.state, 'wood'));
+
+    // Quatro dias de jogo depois da promessa, a cobrança; com a obra de pé, mostrar está aberto.
+    const due = advanceTo(built.state, 4 * DAY);
+    expect(eventsOfType(due.events, 'cardDrawn')[0]).toMatchObject({
+      atMs: 4 * DAY,
+      text: 'No 5º dia da Primavera, os aldeões de Pedra Alta vieram cobrar a paliçada prometida: O prazo da paliçada.',
+      data: {
+        cardId: 'palisadePromiseDeadline',
+        source: 'continuation',
+        previousCardId: 'palisadePromisePlea',
+        previousOptionId: 'promise',
+      },
+    });
+    expect(shown(due.state, 'palisadePromiseDeadline')?.followsFrom?.text).toBe(
+      'A história continua: em "Os aldeões pedem uma cerca", a decisão foi prometer a paliçada.',
+    );
+    expect(option(due.state, 'palisadePromiseDeadline', 'show')).toMatchObject({
+      locked: false,
+      lockedReason: null,
+      effectsText: '+15 de moral por 3 dias de jogo (6 h)',
+    });
+
+    const kept = choose(due.state, 'palisadePromiseDeadline', 'show');
+    expect(kept.events[0]).toMatchObject({
+      text: 'No 5º dia da Primavera, o senhor de Pedra Alta mostrou aos aldeões a paliçada que prometera. Passaram a mão nas estacas, um por um.',
+      data: { morale: 15, moraleDays: 3 },
+    });
+    // A cadeia fechou: fica só a promessa cumprida, e nada mais está agendado.
+    expect(kept.state.council.flags).toEqual({ 'palisadePromise.kept': true });
+    expect(kept.state.council.scheduled).toEqual([]);
+    expect(kept.state.council.pending).toEqual([]);
+    expect(cardEvents(advanceTo(kept.state, 40 * DAY).events)).toEqual([]);
+
+    // A moral, virada a virada: a promessa vale do 1º ao 3º dia (70) e a palavra cumprida, do
+    // 5º ao 7º (75: o feudo fica orgulhoso).
+    expect(moraleByDay(first.state, 1, 4)).toEqual([70, 70, 70, 60]);
+    expect(moraleByDay(kept.state, 5, 8)).toEqual([75, 75, 75, 60]);
+
+    // Promessa cumprida não se pede de novo: a primeira carta não volta, neste ano nem em outro.
+    expect(pleaIsEligible(kept.state, 8 * DAY)).toBe(false);
+    const nextYear = advanceTo(kept.state, YEAR + DAY).state;
+    expect(nextYear.council.flags).toEqual({ 'palisadePromise.kept': true });
+    expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(false);
+  });
+
+  it('a carta espera 24 h reais na mesa: dá tempo de erguer a Paliçada com a cobrança já feita', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const due = advanceTo(first.state, 4 * DAY + 30 * MINUTE).state;
+    expect(option(due, 'palisadePromiseDeadline', 'show')).toMatchObject({
+      locked: true,
+      lockedReason: 'Requer a Paliçada.',
+    });
+    const pending = due.council.pending[0];
+    expect(
+      refuse(
+        due,
+        command('answerCard', { instanceId: pending?.instanceId ?? '', optionId: 'show' }),
+      ).code,
+    ).toBe('OPTION_LOCKED');
+    // Com a obra em curso a tranca diz que falta pouco; pronta, a opção abre no mesmo instante.
+    const building = build(due);
+    expect(option(building, 'palisadePromiseDeadline', 'show')?.lockedReason).toBe(
+      'Requer a Paliçada, que ainda está em obras.',
+    );
+    const almost = advanceTo(building, 4 * DAY + 50 * MINUTE - 1).state;
+    expect(option(almost, 'palisadePromiseDeadline', 'show')?.locked).toBe(true);
+    const done = advanceTo(building, 4 * DAY + 50 * MINUTE).state;
+    expect(option(done, 'palisadePromiseDeadline', 'show')?.locked).toBe(false);
+    const kept = choose(done, 'palisadePromiseDeadline', 'show');
+    expect(kept.state.council.flags).toEqual({ 'palisadePromise.kept': true });
+  });
+
+  it('atrasar: pedir mais alguns dias não custa nada, e mostrar a obra na segunda cobrança ainda vale +5', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const due = advanceTo(first.state, 4 * DAY + HOUR);
+    const delayed = choose(due.state, 'palisadePromiseDeadline', 'delay');
+    expect(delayed.events[0]).toMatchObject({
+      text: 'No 5º dia da Primavera, o senhor de Pedra Alta pediu aos aldeões mais alguns dias para a paliçada. Concederam, contando nos dedos.',
+      data: { cardId: 'palisadePromiseDeadline', optionId: 'delay' },
+    });
+    expect(
+      Object.keys(delayed.events[0]?.data ?? {}).filter((key) => /morale|spent/.test(key)),
+    ).toEqual([]);
+    // A promessa continua aberta, e a segunda cobrança conta quatro dias a partir da resposta.
+    expect(delayed.state.council.flags).toEqual({ 'palisadePromise.open': true });
+    expect(delayed.state.council.scheduled).toMatchObject([
+      { cardId: 'palisadePromiseReckoning', atMs: 8 * DAY + HOUR },
+    ]);
+
+    const built = advanceTo(build(advanceTo(delayed.state, 6 * DAY).state), 7 * DAY).state;
+    const reckoning = advanceTo(built, 8 * DAY + HOUR);
+    expect(eventsOfType(reckoning.events, 'cardDrawn').at(-1)).toMatchObject({
+      atMs: 8 * DAY + HOUR,
+      text: 'No 9º dia da Primavera, acabou o prazo que o senhor de Pedra Alta pedira para a paliçada: A palavra do senhor.',
+      data: { previousCardId: 'palisadePromiseDeadline', previousOptionId: 'delay' },
+    });
+    expect(
+      shown(reckoning.state, 'palisadePromiseReckoning')?.options.map((entry) => entry.id),
+    ).toEqual(['show', 'admit']);
+    const late = choose(reckoning.state, 'palisadePromiseReckoning', 'show');
+    expect(late.events[0]).toMatchObject({
+      text: 'No 9º dia da Primavera, o senhor de Pedra Alta mostrou enfim a paliçada prometida. Veio tarde, e veio.',
+      data: { morale: 5, moraleDays: 2 },
+    });
+    expect(late.state.council.flags).toEqual({ 'palisadePromise.kept': true });
+    expect(late.state.council.scheduled).toEqual([]);
+    expect(moraleByDay(late.state, 9, 11)).toEqual([65, 65, 60]);
+  });
+
+  it('atrasar e não cumprir: a segunda cobrança só tem uma saída sem a obra, e ela custa 15', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const delayed = choose(
+      advanceTo(first.state, 4 * DAY).state,
+      'palisadePromiseDeadline',
+      'delay',
+    );
+    const reckoning = advanceTo(delayed.state, 8 * DAY).state;
+    expect(option(reckoning, 'palisadePromiseReckoning', 'show')?.locked).toBe(true);
+    expect(option(reckoning, 'palisadePromiseReckoning', 'admit')).toMatchObject({
+      locked: false,
+      effectsText: '−15 de moral por 3 dias de jogo (6 h)',
+      hint: 'Explicação não é estaca. O povo ouve, e lembra.',
+    });
+    const admitted = choose(reckoning, 'palisadePromiseReckoning', 'admit');
+    expect(admitted.events[0]).toMatchObject({
+      text: 'No 9º dia da Primavera, o senhor de Pedra Alta explicou por que a paliçada não saiu. Os aldeões ouviram até o fim, e ninguém respondeu.',
+      data: { morale: -15, moraleDays: 3 },
+    });
+    expect(admitted.state.council.flags).toEqual({ 'palisadePromise.broken': true });
+    expect(admitted.state.council.scheduled).toEqual([]);
+    expect(moraleByDay(admitted.state, 9, 12)).toEqual([45, 45, 45, 60]);
+  });
+
+  it('recusar no prazo: desfazer a promessa custa 10, acaba ali, e o pedido volta no ano seguinte lembrando dela', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const due = advanceTo(first.state, 4 * DAY).state;
+    expect(option(due, 'palisadePromiseDeadline', 'withdraw')?.effectsText).toBe(
+      '−10 de moral por 3 dias de jogo (6 h)',
+    );
+    const withdrawn = choose(due, 'palisadePromiseDeadline', 'withdraw');
+    expect(withdrawn.events[0]).toMatchObject({
+      text: 'No 5º dia da Primavera, o senhor de Pedra Alta desfez a promessa da paliçada diante dos aldeões. Saíram do salão sem se despedir.',
+      data: { morale: -10, moraleDays: 3 },
+    });
+    expect(withdrawn.state.council.flags).toEqual({ 'palisadePromise.broken': true });
+    expect(withdrawn.state.council.scheduled).toEqual([]);
+    expect(moraleByDay(withdrawn.state, 5, 8)).toEqual([50, 50, 50, 60]);
+    expect(cardEvents(advanceTo(withdrawn.state, 40 * DAY).events)).toEqual([]);
+
+    // Neste ano o pedido não volta (já saiu). No seguinte, volta, e com outro texto.
+    expect(pleaIsEligible(withdrawn.state, 8 * DAY)).toBe(false);
+    const nextYear = advanceTo(withdrawn.state, YEAR + DAY).state;
+    expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(true);
+    const again = dealt(nextYear, 'palisadePromisePlea');
+    expect(shown(again.state, 'palisadePromisePlea')?.text).toBe(
+      'Os aldeões voltam a pedir uma paliçada em volta do feudo. Lembram, sem levantar a voz, que ela já foi prometida uma vez. O conselho quer saber o que o senhor responde agora.',
+    );
+    const plea = cardOf(CATALOG, 'palisadePromisePlea');
+    expect(plea === null ? '' : cardReading(nextYear, plea).arrival).toBe(
+      'No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a pedir a paliçada que um dia lhes foi prometida: {carta}.',
+    );
+    // Desta vez a obra já está de pé: mostrar apaga a promessa quebrada e fecha o assunto.
+    const fenced = cloneState(again.state);
+    fenced.settlement.buildings.palisade = 1;
+    const shownNow = choose(fenced, 'palisadePromisePlea', 'show');
+    expect(shownNow.events[0]).toMatchObject({
+      text: 'No 2º dia da Primavera, o senhor de Pedra Alta levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
+      data: { morale: 10, moraleDays: 3 },
+    });
+    expect(shownNow.state.council.flags).toEqual({ 'palisadePromise.kept': true });
+    expect(shownNow.state.council.scheduled).toEqual([]);
+  });
+
+  it('explicar que não é hora encerra o ramo: nenhuma continuação, nenhuma flag, nada gasto', () => {
+    const before = opened();
+    const explained = choose(before, 'palisadePromisePlea', 'explain');
+    expect(explained.events[0]).toMatchObject({
+      text: 'No 1º dia da Primavera, o senhor de Pedra Alta explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+      data: {
+        cardId: 'palisadePromisePlea',
+        instanceId: 'palisadePromisePlea-1',
+        optionId: 'explain',
+      },
+    });
+    expect(explained.state.settlement.resources).toEqual(before.settlement.resources);
+    expect(explained.state.council).toMatchObject({ flags: {}, scheduled: [], delayed: [] });
+    const { state, events } = advanceTo(explained.state, 40 * DAY);
+    expect(cardEvents(events)).toEqual([]);
+    expect(state.settlement.moraleEffects).toEqual([]);
+    // No ano seguinte os aldeões pedem de novo, com o texto de sempre: nada foi prometido.
+    const nextYear = advanceTo(explained.state, YEAR + DAY).state;
+    expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(true);
+    expect(
+      shown(dealt(nextYear, 'palisadePromisePlea').state, 'palisadePromisePlea')?.text,
+    ).toContain('Há pegadas grandes na lama');
+  });
+
+  it('quem já tem a Paliçada quando o pedido chega mostra a obra: +10, promessa nenhuma, e o assunto acaba', () => {
+    const fenced = hall();
+    fenced.settlement.buildings.palisade = 1;
+    const state = dealt(fenced, 'palisadePromisePlea').state;
+    expect(option(state, 'palisadePromisePlea', 'show')).toMatchObject({
+      locked: false,
+      lockedReason: null,
+    });
+    const answered = choose(state, 'palisadePromisePlea', 'show');
+    expect(answered.events[0]?.data).toMatchObject({ morale: 10, moraleDays: 3 });
+    expect(answered.state.council.flags).toEqual({ 'palisadePromise.kept': true });
+    expect(answered.state.council.scheduled).toEqual([]);
+    expect(pleaIsEligible(advanceTo(answered.state, YEAR + DAY).state, YEAR + 4 * DAY)).toBe(false);
+  });
+
+  it.each(['peasant', 'lord'] as const)(
+    'em %s, ninguém responde ao pedido: o conselho explica que não é hora, sem custo e sem promessa',
+    (difficulty) => {
+      const { state, events } = advanceTo(opened(difficulty), 40 * DAY);
+      expect(story(events)).toEqual([[12, 'cardExpired', 'palisadePromisePlea', 'explain']]);
+      expect(eventsOfType(events, 'cardExpired')[0]).toMatchObject({
+        text: 'No 13º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+        data: { difficulty },
+      });
+      expect(state.council).toMatchObject({ flags: {}, scheduled: [], delayed: [] });
+      expect(state.settlement.moraleEffects).toEqual([]);
+    },
+  );
+
+  it('em Rei de Ferro, ninguém responde: o conselho promete em nome do senhor e, na cobrança, desfaz a promessa', () => {
+    const { state, events } = advanceTo(opened('ironKing'), 60 * DAY);
+    // 24 h reais no ritmo 1 são 12 dias de jogo; a cobrança chega quatro dias depois da promessa.
+    expect(story(events)).toEqual([
+      [12, 'cardExpired', 'palisadePromisePlea', 'promise'],
+      [16, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+      [28, 'cardExpired', 'palisadePromiseDeadline', 'withdraw'],
+    ]);
+    expect(
+      eventsOfType(events, 'cardExpired').map((event) => [event.text, event.data.morale]),
+    ).toEqual([
+      [
+        'No 13º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta prometeu aos aldeões, em nome dele, uma paliçada em volta do feudo.',
+        10,
+      ],
+      [
+        'No 5º dia do Verão, sem palavra do senhor, o conselho de Pedra Alta desfez a promessa da paliçada. Os aldeões saíram do salão sem se despedir.',
+        -10,
+      ],
+    ]);
+    expect(state.council.flags).toEqual({ 'palisadePromise.broken': true });
+    expect(state.council.scheduled).toEqual([]);
+    expect(state.council.pending).toEqual([]);
+  });
+
+  it.each([
+    [
+      'peasant',
+      [
+        [4, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+        [16, 'cardExpired', 'palisadePromiseDeadline', 'delay'],
+        [20, 'cardDrawn', 'palisadePromiseReckoning', undefined],
+        [32, 'cardExpired', 'palisadePromiseReckoning', 'admit'],
+      ],
+    ],
+    [
+      'lord',
+      [
+        [4, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+        [16, 'cardExpired', 'palisadePromiseDeadline', 'delay'],
+        [20, 'cardDrawn', 'palisadePromiseReckoning', undefined],
+        [32, 'cardExpired', 'palisadePromiseReckoning', 'admit'],
+      ],
+    ],
+    [
+      'ironKing',
+      [
+        [4, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+        [16, 'cardExpired', 'palisadePromiseDeadline', 'withdraw'],
+      ],
+    ],
+  ] as const)(
+    'em %s, prometer e sumir: a promessa é do senhor, e a conta dela chega mesmo sem resposta',
+    (difficulty, expected) => {
+      const first = choose(opened(difficulty), 'palisadePromisePlea', 'promise');
+      const { state, events } = advanceTo(first.state, 60 * DAY);
+      expect(story(events)).toEqual(expected);
+      const last = eventsOfType(events, 'cardExpired').at(-1);
+      // Quem prometeu e não voltou paga a promessa quebrada: é a única conta que o Conselho
+      // cobra de quem falta, e só porque o senhor a abriu.
+      expect(last?.data.morale).toBe(difficulty === 'ironKing' ? -10 : -15);
+      if (difficulty !== 'ironKing') {
+        expect(last?.text).toBe(
+          'No 9º dia do Verão, sem palavra do senhor, o conselho de Pedra Alta tentou explicar por que a paliçada não saiu. Os aldeões ouviram até o fim, e ninguém respondeu.',
+        );
+      }
+      expect(state.council.flags).toEqual({ 'palisadePromise.broken': true });
+      expect(state.council.scheduled).toEqual([]);
+      expect(state.council.pending).toEqual([]);
+      // E nada mais: nenhum recurso saiu do feudo por causa da cadeia.
+      for (const event of cardEvents(events)) {
+        expect(Object.keys(event.data).filter((key) => /^(spent|lost)/.test(key))).toEqual([]);
+      }
+    },
+  );
+
+  it.each(DIFFICULTY_IDS)(
+    'em %s, quem promete, ergue a Paliçada e some não perde nada: o conselho mostra a obra por ele',
+    (difficulty) => {
+      const first = choose(opened(difficulty), 'palisadePromisePlea', 'promise');
+      const built = advanceTo(build(first.state), DAY).state;
+      // Com a obra de pé, a tela já diz o que acontece se ninguém responder.
+      const due = advanceTo(built, 4 * DAY).state;
+      expect(shown(due, 'palisadePromiseDeadline')).toMatchObject({
+        defaultOptionId: 'show',
+        defaultOptionLabel: 'Mostrar a paliçada erguida',
+      });
+      const { state, events } = advanceTo(built, 60 * DAY);
+      expect(story(events)).toEqual([
+        [4, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+        [16, 'cardExpired', 'palisadePromiseDeadline', 'show'],
+      ]);
+      expect(eventsOfType(events, 'cardExpired')[0]).toMatchObject({
+        text: 'No 17º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta levou os aldeões até a paliçada prometida. Passaram a mão nas estacas, um por um.',
+        data: { difficulty, morale: 15, moraleDays: 3 },
+      });
+      expect(state.council.flags).toEqual({ 'palisadePromise.kept': true });
+      expect(state.council.scheduled).toEqual([]);
+      expect(state.council.pending).toEqual([]);
+    },
+  );
+
+  it('sem a obra, a tela diz que o conselho pedirá mais dias; erguida com a carta na mesa, passa a dizer que a mostrará', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const due = advanceTo(first.state, 4 * DAY).state;
+    expect(shown(due, 'palisadePromiseDeadline')?.defaultOptionId).toBe('delay');
+    const built = advanceTo(build(due), 4 * DAY + 20 * MINUTE).state;
+    expect(shown(built, 'palisadePromiseDeadline')?.defaultOptionId).toBe('show');
+    // E a Paliçada que termina no instante exato em que a carta expira ainda cumpre a promessa.
+    const lastMinute = advanceTo(due, 16 * DAY - 20 * MINUTE).state;
+    const { events } = advanceTo(build(lastMinute), 16 * DAY);
+    expect(story(events)).toEqual([[16, 'cardExpired', 'palisadePromiseDeadline', 'show']]);
+  });
+
+  it('quem pede mais dias, ergue a Paliçada e some: na segunda cobrança o conselho a mostra, tarde, por +5', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const delayed = choose(
+      advanceTo(first.state, 4 * DAY).state,
+      'palisadePromiseDeadline',
+      'delay',
+    );
+    const built = advanceTo(build(delayed.state), 5 * DAY).state;
+    const { state, events } = advanceTo(built, 60 * DAY);
+    expect(story(events)).toEqual([
+      [8, 'cardDrawn', 'palisadePromiseReckoning', undefined],
+      [20, 'cardExpired', 'palisadePromiseReckoning', 'show'],
+    ]);
+    expect(eventsOfType(events, 'cardExpired')[0]).toMatchObject({
+      text: 'No 21º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta mostrou enfim a paliçada prometida. Veio tarde, e veio.',
+      data: { morale: 5, moraleDays: 2 },
+    });
+    expect(state.council.flags).toEqual({ 'palisadePromise.kept': true });
+  });
+
+  it.each(DIFFICULTY_IDS)(
+    'em %s, o pedido que expira com a Paliçada já erguida não vira promessa nem recusa: o conselho mostra a obra',
+    (difficulty) => {
+      const fenced = hall(difficulty);
+      fenced.settlement.buildings.palisade = 1;
+      const waiting = dealt(fenced, 'palisadePromisePlea').state;
+      expect(shown(waiting, 'palisadePromisePlea')?.defaultOptionId).toBe('show');
+      const { state, events } = advanceTo(waiting, 40 * DAY);
+      expect(story(events)).toEqual([[12, 'cardExpired', 'palisadePromisePlea', 'show']]);
+      expect(eventsOfType(events, 'cardExpired')[0]?.text).toBe(
+        'No 13º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
+      );
+      expect(state.council.flags).toEqual({ 'palisadePromise.kept': true });
+      expect(state.council.scheduled).toEqual([]);
+    },
+  );
+
+  it('no ritmo Rápido cada carta espera 36 dias de jogo, e as cobranças seguem contando 4', () => {
+    const first = choose(opened('lord', 3), 'palisadePromisePlea', 'promise');
+    const { events } = advanceTo(first.state, 100 * DAY);
+    expect(story(events)).toEqual([
+      [4, 'cardDrawn', 'palisadePromiseDeadline', undefined],
+      [40, 'cardExpired', 'palisadePromiseDeadline', 'delay'],
+      [44, 'cardDrawn', 'palisadePromiseReckoning', undefined],
+      [80, 'cardExpired', 'palisadePromiseReckoning', 'admit'],
+    ]);
+    // Na tela, em tempo real: a cobrança chega em 2 h 40 min, espera 24 h, e a moral dura 2 h.
+    const due = advanceTo(first.state, 4 * DAY).state;
+    const deadline = shown(due, 'palisadePromiseDeadline');
+    expect(deadline?.expiresInSeconds).toBe(24 * 3600);
+    expect(deadline?.options.map((entry) => entry.effectsText)).toEqual([
+      '+15 de moral por 3 dias de jogo (2 h)',
+      'Sem custo e sem efeito imediato.',
+      '−10 de moral por 3 dias de jogo (2 h)',
+    ]);
+  });
+
+  it('a cobrança atravessa a virada do ano: a promessa do último dia é cobrada no ano seguinte', () => {
+    const eve = YEAR - DAY;
+    const first = choose(opened('lord', 1, eve), 'palisadePromisePlea', 'promise');
+    const { state, events } = advanceTo(first.state, YEAR + 3 * DAY);
+    expect(eventsOfType(events, 'yearStarted')).toHaveLength(1);
+    expect(eventsOfType(events, 'cardDrawn')[0]).toMatchObject({
+      atMs: YEAR + 3 * DAY,
+      data: { cardId: 'palisadePromiseDeadline' },
+    });
+    expect(state.council.flags).toEqual({ 'palisadePromise.open': true });
+    // Com a promessa aberta o pedido não volta, nem com a lista do ano zerada.
+    expect(pleaIsEligible(state, YEAR + 4 * DAY)).toBe(false);
+  });
+
+  it('a cadeia não dá proteção nenhuma: com a promessa cumprida ou quebrada, o que segura um ataque é o nível da Paliçada', () => {
+    const first = choose(opened(), 'palisadePromisePlea', 'promise');
+    const view = (state: GameState) => deriveViewState(state, state.lastProcessedAt).threat.defense;
+    expect(view(first.state)).toMatchObject({
+      palisadeLevel: 0,
+      text: 'Sem Paliçada, nada segura um ataque.',
+    });
+    const built = advanceTo(build(first.state), DAY).state;
+    expect(view(built).palisadeLevel).toBe(1);
+    const withdrawn = choose(
+      advanceTo(built, 4 * DAY).state,
+      'palisadePromiseDeadline',
+      'withdraw',
+    );
+    // Promessa desfeita com a obra de pé: a moral cai, a Paliçada fica.
+    expect(view(withdrawn.state).palisadeLevel).toBe(1);
   });
 });

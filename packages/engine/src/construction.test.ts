@@ -8,6 +8,7 @@ import {
   accept,
   AUTUMN,
   command,
+  DAY,
   eventsOfType,
   gameAt,
   gameWith,
@@ -21,6 +22,7 @@ import {
   YEAR,
 } from './test-helpers';
 import type { BuildingId, GameState } from './types';
+import { deriveViewState } from './view';
 
 const rich = gameWith((draft) => {
   draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
@@ -411,5 +413,239 @@ describe('planejar', () => {
     });
     const bogus = command('unplanConstruction', { building: 'tower' as BuildingId });
     expect(refuse(newGame(), bogus).code).toBe('INVALID_BUILDING');
+  });
+});
+
+describe('a Paliçada como obra (GDD §6.1 e §6.2)', () => {
+  /** Um feudo com o Salão no nível `townHall`, estoque de sobra e a Paliçada no nível pedido. */
+  const feud = (townHall: number, palisade = 0, atMs = 10 * DAY) =>
+    gameAt(atMs, (draft) => {
+      draft.settlement.buildings.townHall = townHall;
+      draft.settlement.buildings.palisade = palisade;
+      draft.settlement.resources = { food: 400_000, wood: 450_000, stone: 400_000, gold: 400_000 };
+    });
+  const palisade = (state: GameState) =>
+    deriveViewState(state, state.lastProcessedAt).constructions.available.find(
+      (upgrade) => upgrade.building === 'palisade',
+    );
+  const start = command('startConstruction', { building: 'palisade' });
+
+  it('aparece na lista desde o começo, presa ao Salão no nível 3, com o que ela segura ao lado do custo', () => {
+    expect(palisade(newGame())).toMatchObject({
+      label: 'Paliçada',
+      fromLevel: 0,
+      targetLevel: 1,
+      blockedCode: 'GATE_LOCKED',
+      blockedReason: 'Melhore antes o Salão do Senhor para o nível 3.',
+      durationSeconds: 20 * 60,
+      effect:
+        'Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+    });
+    expect(palisade(newGame())?.cost.map((cost) => [cost.resource, cost.amount])).toEqual([
+      ['wood', 200],
+      ['stone', 50],
+    ]);
+  });
+
+  it('o gate é o Salão no nível 3: com 1 ou 2 a ordem é recusada, de iniciar e de começar sozinha', () => {
+    for (const townHall of [1, 2]) {
+      expect(refuse(feud(townHall), start)).toEqual({
+        code: 'GATE_LOCKED',
+        message: 'Melhore antes o Salão do Senhor para o nível 3.',
+      });
+    }
+    expect(palisade(feud(3))).toMatchObject({ blockedCode: null, affordable: true });
+    // Planejar pode, em qualquer nível do Salão: a obra espera o que falta.
+    const planned = accept(
+      feud(2),
+      command('planConstruction', { building: 'palisade', autoStart: true }),
+    ).state;
+    expect(planned.settlement.planned).toEqual([
+      { building: 'palisade', targetLevel: 1, autoStart: true },
+    ]);
+    expect(advanceTo(planned, 40 * DAY).state.settlement.buildings.palisade).toBe(0);
+    const view = deriveViewState(planned, planned.lastProcessedAt);
+    expect(view.constructions.planned[0]?.waiting).toEqual({
+      reason: 'gate',
+      text: 'espera o Salão do Senhor chegar ao nível 3: melhore-o',
+      etaSeconds: null,
+    });
+  });
+
+  it('com o Salão no nível 3 é erguida por 200 de madeira e 50 de pedra, em 20 min, com as frases de quem nasce do zero', () => {
+    const started = accept(feud(3), start);
+    expect(started.state.settlement.resources).toEqual({
+      food: 400_000,
+      wood: 250_000,
+      stone: 350_000,
+      gold: 400_000,
+    });
+    expect(started.events.map((event) => [event.type, event.data, event.text])).toEqual([
+      [
+        'constructionStarted',
+        { building: 'palisade', level: 1, spent_wood: 200, spent_stone: 50 },
+        'No 11º dia da Primavera, os pedreiros começaram a levantar a Paliçada em Pedra Alta.',
+      ],
+    ]);
+    const early = advanceTo(started.state, 10 * DAY + 20 * MINUTE - 1);
+    expect(early.state.settlement.buildings.palisade).toBe(0);
+    const done = advanceTo(started.state, 10 * DAY + 20 * MINUTE);
+    expect(done.state.settlement.buildings.palisade).toBe(1);
+    expect(done.state.settlement.constructionQueues).toEqual([null, null]);
+    expect(eventsOfType(done.events, 'buildingFounded').map((event) => event.text)).toEqual([
+      'No 11º dia da Primavera, ergueu-se a Paliçada em Pedra Alta.',
+    ]);
+  });
+
+  it('o nível 2 custa o base × 1,6 (320 de madeira e 80 de pedra) e leva 30 min; a frase diz só o que muda', () => {
+    const state = feud(3, 1);
+    expect(palisade(state)).toMatchObject({
+      fromLevel: 1,
+      targetLevel: 2,
+      blockedCode: null,
+      durationSeconds: 30 * 60,
+      effect: 'Passa a segurar também os ataques médios, sem perda nem ferido.',
+    });
+    expect(palisade(state)?.cost.map((cost) => cost.amount)).toEqual([320, 80]);
+    expect(upgradeCost('palisade', 0)).toEqual({ wood: 200, stone: 50 });
+    expect(upgradeCost('palisade', 1)).toEqual({ wood: 320, stone: 80 });
+    expect(upgradeDurationMs('palisade', 0)).toBe(20 * MINUTE);
+    expect(upgradeDurationMs('palisade', 1)).toBe(30 * MINUTE);
+    const { state: after, events } = advanceTo(accept(state, start).state, 10 * DAY + 30 * MINUTE);
+    expect(after.settlement.buildings.palisade).toBe(2);
+    expect(eventsOfType(events, 'constructionFinished').map((event) => event.text)).toEqual([
+      'No 11º dia da Primavera, os pedreiros ergueram a Paliçada ao 2º nível.',
+    ]);
+  });
+
+  it('o custo dos dois níveis cabe no Pátio de um feudo sem Armazém, em toda dificuldade', () => {
+    for (const difficulty of ['peasant', 'lord', 'ironKing'] as const) {
+      for (const level of [0, 1]) {
+        const state = gameWith((draft) => {
+          draft.settings.difficulty = difficulty;
+          draft.settlement.buildings.townHall = 3;
+          draft.settlement.buildings.palisade = level;
+        });
+        expect(palisade(state)?.blockedCode, `${difficulty}/${level}`).not.toBe('EXCEEDS_STORAGE');
+      }
+    }
+  });
+
+  it('no nível 2 sai da lista, e a recusa diz que a Muralha de Pedra fica para outra versão', () => {
+    const state = feud(4, 2);
+    expect(buildings.palisade.maxLevel).toBe(2);
+    expect(palisade(state)).toBeUndefined();
+    const message =
+      'A Paliçada já está no nível máximo. A Muralha de Pedra chega em uma versão futura.';
+    expect(refuse(state, start)).toEqual({ code: 'MAX_LEVEL', message });
+    expect(refuse(state, command('planConstruction', { building: 'palisade' }))).toEqual({
+      code: 'MAX_LEVEL',
+      message,
+    });
+    // Com a obra do nível 2 em curso, planejar o nível 3 recebe a mesma recusa.
+    const upgrading = accept(feud(3, 1), start).state;
+    expect(refuse(upgrading, command('planConstruction', { building: 'palisade' }))).toEqual({
+      code: 'MAX_LEVEL',
+      message,
+    });
+    // E nem com o Salão no nível mais alto: o teto é o desta versão, não o do Salão.
+    const high = gameWith((draft) => {
+      draft.settlement.buildings.townHall = buildings.townHall.maxLevel;
+      draft.settlement.buildings.palisade = 2;
+      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+    });
+    expect(refuse(high, start).code).toBe('MAX_LEVEL');
+  });
+
+  it('cancelar a obra devolve 80%, com a frase de quem desiste de erguer, e a Paliçada continua sem existir', () => {
+    const started = accept(feud(3), start).state;
+    const midway = advanceTo(started, 10 * DAY + 7 * MINUTE).state;
+    const wood = midway.settlement.resources.wood;
+    const stone = midway.settlement.resources.stone;
+    const cancelled = accept(midway, command('cancelConstruction', { building: 'palisade' }));
+    expect(cancelled.events.map((event) => [event.type, event.data])).toEqual([
+      [
+        'constructionCancelled',
+        { building: 'palisade', level: 0, gained_wood: 160, gained_stone: 40 },
+      ],
+    ]);
+    expect(cancelled.events[0]?.text).toContain('a Paliçada');
+    expect(cancelled.state.settlement.resources.wood).toBe(wood + 160_000);
+    expect(cancelled.state.settlement.resources.stone).toBe(stone + 40_000);
+    expect(cancelled.state.settlement.buildings.palisade).toBe(0);
+    expect(cancelled.state.settlement.constructionQueues).toEqual([null, null]);
+    // Nada fica para trás: o prazo antigo passa e a Paliçada não aparece.
+    const later = advanceTo(cancelled.state, 11 * DAY);
+    expect(later.state.settlement.buildings.palisade).toBe(0);
+    expect(eventsOfType(later.events, 'buildingFounded')).toEqual([]);
+    expect(deriveViewState(later.state, 11 * DAY).threat.defense.text).toBe(
+      'Sem Paliçada, nada segura um ataque.',
+    );
+    // E a obra pode recomeçar, pelo custo inteiro.
+    expect(palisade(cancelled.state)).toMatchObject({ fromLevel: 0, blockedCode: null });
+  });
+
+  it('cancelar a melhoria devolve 80% do custo do nível 2 e mantém o nível 1', () => {
+    const upgrading = accept(feud(3, 1), start).state;
+    const cancelled = accept(upgrading, command('cancelConstruction', { building: 'palisade' }));
+    expect(cancelled.events[0]?.data).toEqual({
+      building: 'palisade',
+      level: 1,
+      gained_wood: 256,
+      gained_stone: 64,
+    });
+    expect(cancelled.state.settlement.buildings.palisade).toBe(1);
+  });
+
+  it('no inverno a obra leva uma vez e meia o prazo, como as outras', () => {
+    const state = feud(3, 0, WINTER + HOUR);
+    expect(palisade(state)).toMatchObject({ durationSeconds: 30 * 60 });
+    expect(palisade(state)?.durationNote).toContain('Inverno');
+  });
+
+  it('o prazo sai em tempo real: no ritmo Rápido, 20 min de jogo são 6 min 40 s', () => {
+    const state = feud(3);
+    const fast = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 });
+    expect(
+      fast.constructions.available.find((upgrade) => upgrade.building === 'palisade')
+        ?.durationSeconds,
+    ).toBe(400);
+  });
+
+  it('planejada como automática, começa sozinha no instante em que o Salão chega ao nível 3', () => {
+    const waiting = gameAt(3 * DAY, (draft) => {
+      draft.settlement.buildings.townHall = 2;
+      draft.settlement.resources = { food: 400_000, wood: 450_000, stone: 400_000, gold: 400_000 };
+      draft.settlement.constructionQueues[0] = {
+        building: 'townHall',
+        targetLevel: 3,
+        startedAtMs: 3 * DAY - 5 * MINUTE,
+        finishesAtMs: 3 * DAY + 10 * MINUTE,
+      };
+    });
+    const planned = accept(
+      waiting,
+      command('planConstruction', { building: 'palisade', autoStart: true }),
+    ).state;
+    const { state, events } = advanceTo(planned, 3 * DAY + 40 * MINUTE);
+    expect(
+      eventsOfType(events, 'constructionAutoStarted').map((event) => [event.atMs, event.text]),
+    ).toEqual([
+      [
+        3 * DAY + 10 * MINUTE,
+        'No 4º dia da Primavera, com as reservas cheias, os pedreiros começaram sozinhos a levantar a Paliçada em Pedra Alta.',
+      ],
+    ]);
+    expect(state.settlement.buildings.palisade).toBe(1);
+    expect(state.settlement.planned).toEqual([]);
+  });
+
+  it('é uma obra como as outras: ocupa a fila, e o edifício em obras recusa outra ordem', () => {
+    const started = accept(feud(3), start).state;
+    expect(refuse(started, start).code).toBe('ALREADY_UPGRADING');
+    expect(refuse(started, command('startConstruction', { building: 'farm' })).code).toBe(
+      'QUEUE_LOCKED',
+    );
+    expect(started.stats['constructionsStarted:palisade']).toBe(1);
   });
 });

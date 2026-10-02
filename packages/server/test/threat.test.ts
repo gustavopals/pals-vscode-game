@@ -147,7 +147,12 @@ const BLIND = {
   known: false,
   text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
   incoming: null,
-  defense: { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' },
+  defense: {
+    building: 'palisade',
+    palisadeLevel: 0,
+    text: 'Sem Paliçada, nada segura um ataque.',
+    next: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+  },
 };
 
 describe('sem a Torre de Vigia, a Ameaça não sai do servidor', () => {
@@ -362,8 +367,10 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
     expect(view.threat).toMatchObject(BLIND);
 
     const row = await storedState(fast, game.id);
-    expect(row.schema_version).toBe(9);
-    expect(row.state.schemaVersion).toBe(9);
+    // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
+    expect(row.schema_version).toBe(10);
+    expect(row.state.schemaVersion).toBe(10);
+    expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,

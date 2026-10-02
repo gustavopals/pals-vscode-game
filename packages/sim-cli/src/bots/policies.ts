@@ -141,18 +141,28 @@ function blockingDepots(view: ViewState): BuildingId[] {
 
 /**
  * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
- * ele vale a obra. São os depósitos (`ampliar o estoque`) e a Torre de Vigia (`erguer a Torre`),
- * como a visão os aponta: o edifício que amplia cada recurso e o edifício da Torre.
+ * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`)
+ * e a Paliçada, como a visão os aponta: o edifício que amplia cada recurso, o edifício da Torre
+ * e o da defesa.
+ *
+ * **A Paliçada ainda não tem política**: ela só rende diante de uma incursão, e nada marca
+ * incursões antes da incursão de lobos. A política dela ("Paliçada quando a Ameaça conhecida
+ * passa de 40") entra com essa tarefa (roadmap da v0.2, V2E-T3). Até lá o bot não a ergue: como
+ * obra mais barata ela levaria 250 a 400 unidades de material de cada feudo sem medir nada.
  */
 function sideBuildings(view: ViewState): Set<BuildingId | null> {
-  return new Set([...depotsOf(view), view.threat.watchtower.building]);
+  return new Set([
+    ...depotsOf(view),
+    view.threat.watchtower.building,
+    view.threat.defense.building,
+  ]);
 }
 
 /**
- * As obras da lista que são obra por fazer. O Celeiro, o Armazém e a Torre de Vigia não são um
- * fim: só contam quando já estão entre as planejadas ou, os depósitos, quando travam outra
- * obra. Ampliar um depósito só para guardar o que não tem onde ser gasto não é progresso, e a
- * Torre só é erguida com o que sobra.
+ * As obras da lista que são obra por fazer. O Celeiro, o Armazém, a Torre de Vigia e a Paliçada
+ * não são um fim: só contam quando já estão entre as planejadas ou, os depósitos, quando travam
+ * outra obra. Ampliar um depósito só para guardar o que não tem onde ser gasto não é progresso,
+ * a Torre só é erguida com o que sobra, e a Paliçada espera a política dela.
  */
 function wantedUpgrades(view: ViewState): Upgrade[] {
   const aside = sideBuildings(view);
@@ -477,9 +487,9 @@ function price(upgrade: Upgrade): number {
 /**
  * Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não
  * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
- * lenha fica para depois. Os depósitos (Celeiro e Armazém) e a Torre de Vigia ficam de fora:
- * eles não são um fim, e quem decide quando valem a obra é `ampliar o estoque` e `erguer a
- * Torre`.
+ * lenha fica para depois. Os depósitos (Celeiro e Armazém), a Torre de Vigia e a Paliçada ficam
+ * de fora: eles não são um fim, e quem decide quando valem a obra é `ampliar o estoque`,
+ * `erguer a Torre` e, para a Paliçada, a política que entra com a incursão de lobos.
  */
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
@@ -597,9 +607,9 @@ function costsWood(upgrade: Upgrade): boolean {
  * nesta visita: assim elas começam sozinhas quando a fila ficar livre e o estoque chegar ao
  * custo, em vez de esperar a visita seguinte. É o caminho de sempre do bot, adiantado: primeiro
  * o depósito que `ampliar o estoque` queria e não pôde iniciar, depois as outras obras, da mais
- * barata à mais cara, que é a ordem em que o motor as tenta. Os depósitos que ninguém pediu
- * e a Torre de Vigia ficam de fora, como em `obra mais barata` (uma automática começaria sem
- * olhar a folga), e a obra que já chegou ao teto também.
+ * barata à mais cara, que é a ordem em que o motor as tenta. Os depósitos que ninguém pediu,
+ * a Torre de Vigia e a Paliçada ficam de fora, como em `obra mais barata` (uma automática
+ * começaria sem olhar a folga), e a obra que já chegou ao teto também.
  *
  * Uma obra que começa sozinha não pergunta pela lenha. Por isso, enquanto a conta da visão diz
  * que a lareira depende do estoque (a Serraria não repõe o que o inverno queima), o bot não

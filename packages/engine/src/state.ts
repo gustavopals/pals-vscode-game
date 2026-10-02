@@ -21,13 +21,14 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
-  // O Celeiro, o Armazém e a Torre de Vigia nascem no nível 0: ainda não foram construídos.
+  // O Celeiro, o Armazém, a Torre de Vigia e a Paliçada nascem no nível 0: ainda não foram
+  // construídos.
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 9,
+    schemaVersion: 10,
     seed,
     settings: {
       settlementName: settings.settlementName,

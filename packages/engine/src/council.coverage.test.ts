@@ -23,8 +23,9 @@ const SEASON_START: Record<SeasonId, number> = {
 };
 
 /**
- * O feudo em cada nível do Salão, só no que as cartas olham: o que o nível libera, já erguido.
- * O Salão no nível 2 libera o Celeiro (GDD §6.1); o 3 liberará a Paliçada, que entra em V2E-T2.
+ * O feudo em cada nível do Salão, só no que as cartas olham: o que o nível libera. O Salão no
+ * nível 2 libera o Celeiro (GDD §6.1), aqui já erguido; o 3 libera a Paliçada, e com ele os
+ * aldeões passam a pedi-la (a carta olha o nível do Salão, não a obra).
  */
 function feudAt(atMs: number, townHall: number, morale = 60): GameState {
   return gameAt(atMs, (draft) => {
@@ -71,14 +72,17 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
         return counts[0];
       }),
     ]);
-    // Colunas: Salão 1 (sem depósitos), Salão 2 (com o Celeiro) e Salão 3 (igual ao 2 até a
-    // cadeia da Paliçada entrar, em V2E-T2).
+    // Colunas: Salão 1 (sem depósitos), Salão 2 (com o Celeiro) e Salão 3 (o que o 2 tem e o
+    // pedido da Paliçada, em toda estação).
     expect(table).toEqual([
-      ['spring', 8, 9, 9],
-      ['summer', 7, 9, 9],
-      ['autumn', 9, 11, 11],
-      ['winter', 5, 6, 6],
+      ['spring', 8, 9, 10],
+      ['summer', 7, 9, 10],
+      ['autumn', 9, 11, 12],
+      ['winter', 5, 6, 7],
     ]);
+    const at = audiencesOf('winter')[0] ?? 0;
+    expect(ids(feudAt(at, 3), at)).toContain('palisadePromisePlea');
+    expect(ids(feudAt(at, 2), at)).not.toContain('palisadePromisePlea');
   });
 
   it('nunca menos de 3, nem no pior caso: tudo o que sai uma vez por ano já saiu, e uma recorrente acabou de passar', () => {
