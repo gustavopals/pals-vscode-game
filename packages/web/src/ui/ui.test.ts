@@ -8,6 +8,7 @@ import {
   activeConstruction,
   autumnView,
   coldView,
+  craftsView,
   queuesView,
   unlockedView,
   winterWith,
@@ -486,10 +487,59 @@ describe('árvore', () => {
     expect(find(tree, 'workers')?.description).toBe('2/5 alocados · 3 livres');
     expect(find(tree, 'worker:farm')).toMatchObject({
       label: 'Fazenda Nv1',
-      description: '2 · 12/h',
+      // Os dois lavradores acabaram de chegar: a linha diz que ainda se adaptam.
+      description: '2 · 12/h · 2 em adaptação',
       contextValue: 'lords.worker',
       // O clique só abre o painel; quem aloca são os botões + e − do item.
       command: { id: 'lords.openPanel', args: ['fief'] },
+    });
+    expect(find(tree, 'worker:lumberMill')?.description).toBe('0 · 0/h');
+  });
+
+  describe('troca de ofício e experiência (GDD §5.3 e §5.4)', () => {
+    const tree = buildTree({ ...input, view: craftsView });
+    const rules = craftsView.workersRules;
+
+    it('cada edifício diz quem se adapta e se o ofício está se perdendo', () => {
+      expect(
+        ['farm', 'lumberMill', 'quarry', 'goldMine'].map(
+          (building) => find(tree, `worker:${building}`)?.description,
+        ),
+      ).toEqual([
+        '4 · 61,2/h · 2 em adaptação',
+        '4 · 41,6/h',
+        '2 · 11,1/h · 1 em adaptação',
+        // Vazia e perdendo experiência: o alerta é texto, não só um sinal.
+        '0 · 0/h · ⚠ o ofício se perde',
+      ]);
+    });
+
+    it('a explicação traz a conta da taxa, a experiência com o porquê e o custo de um a mais', () => {
+      expect(find(tree, 'worker:farm')?.tooltip?.split('\n')).toEqual([
+        '4 trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 61,15/h',
+        'Experiência 40/100, subindo · +12% de produção. A experiência sobe 4 a cada virada do dia enquanto houver ao menos 3 trabalhadores.',
+        `+1 aqui: +10,2/h agora, +20,4/h depois de 2 h. ${rules.adaptationText}`,
+      ]);
+      expect(find(tree, 'worker:lumberMill')?.tooltip).toContain(
+        'Ofício dominado · +30% de produção. Ofício dominado: 30% a mais de produção.',
+      );
+      expect(find(tree, 'worker:goldMine')?.tooltip).toContain(
+        'Sem ninguém na Mina de Ouro, o ofício se perde',
+      );
+    });
+
+    it('o "+" da linha leva o custo da troca na dica; o "−" não tem o que avisar', () => {
+      expect(find(tree, 'worker:lumberMill')?.actionHints).toEqual({
+        'lords.workersIncrease': '+5,2/h agora, +10,4/h depois de 2 h',
+      });
+    });
+
+    it('a linha "Trabalhadores" explica as regras, nas frases do servidor', () => {
+      expect(find(tree, 'workers')?.tooltip?.split('\n')).toEqual([
+        rules.adaptationText,
+        rules.removalText,
+        rules.experienceText,
+      ]);
     });
   });
 
@@ -733,7 +783,8 @@ describe('árvore', () => {
         'Não enche antes da virada para o Inverno.',
       ].join('\n'),
     );
-    expect(find(tree, 'worker:goldMine')?.tooltip).toBe(
+    // A primeira linha da explicação de um edifício é a conta da taxa.
+    expect(find(tree, 'worker:goldMine')?.tooltip?.split('\n')[0]).toBe(
       '3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h',
     );
   });

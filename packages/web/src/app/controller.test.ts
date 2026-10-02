@@ -2553,6 +2553,41 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
     }
   });
 
+  it('com alguém em adaptação, o app lê o servidor quando a primeira leva termina: a taxa sobe na hora', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      // Duas levas na Fazenda: a que marca a hora é a que termina antes.
+      api.state.view = {
+        ...goldenView,
+        workers: goldenView.workers.map((row) =>
+          row.building === 'farm'
+            ? {
+                ...row,
+                adaptationEndsInSeconds: 20,
+                adaptingCohorts: [
+                  { count: 1, endsInSeconds: 7 },
+                  { count: 1, endsInSeconds: 20 },
+                ],
+              }
+            : row,
+        ),
+      };
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(7_000);
+      expect(reads()).toBe(before);
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('lembrete com o registro no futuro (relógio do aparelho estava adiantado) é reancorado', async () => {
     const now = Date.now();
     const { controller, store } = makeController({ signedIn: true, now: () => now });

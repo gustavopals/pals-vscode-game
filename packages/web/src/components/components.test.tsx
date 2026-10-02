@@ -17,6 +17,7 @@ import {
   autumnView,
   catalogFixture,
   coldView,
+  craftsView,
   initialView,
   queuesView,
   unlockedView,
@@ -40,6 +41,7 @@ import {
 import { ResourcesTable } from './ResourcesTable';
 import { Today } from './Today';
 import { Welcome } from './Welcome';
+import { WorkersPanel } from './WorkersPanel';
 
 // O CSS é lido como texto pelo Vitest, sem tocar o sistema de arquivos.
 const sheets = import.meta.glob<string>('../**/*.css', {
@@ -421,7 +423,10 @@ describe('aba Feudo', () => {
     expect(page).toContain('Trabalhadores (2/5)');
     expect(page).toContain('aria-label="Pôr mais um trabalhador em Fazenda"');
     expect(page).toContain('aria-label="Tirar um trabalhador de Serraria"');
-    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 12 por hora"');
+    // Quem chega à linha ouve também quantos se adaptam e a experiência do ofício (V2C-T3).
+    expect(page).toContain(
+      'aria-label="Fazenda nível 1: 2 trabalhadores, 12 por hora; 2 em adaptação; experiência 0 de 100, subindo"',
+    );
   });
 
   it('construções com custos em chips e o que falta em texto, não só em cor', () => {
@@ -1289,6 +1294,194 @@ describe('aba Feudo: filas de obras e planejadas (GDD §6.3)', () => {
     const page = fief({ view: withPlanned(view, [{ building: 'farm', autoStart: true }]) });
     expect(page).not.toContain('aria-label="Planejar Fazenda"');
     expect(page).toContain('aria-label="Planejar Serraria"');
+  });
+});
+
+describe('aba Feudo: troca de ofício e experiência (GDD §5.3 e §5.4)', () => {
+  const text = (markup: string) =>
+    markup
+      .replace(/<span class="sr-only">.*?<\/span>/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  /** O painel de trabalhadores de uma página. */
+  const section = (page: string) =>
+    /<section aria-labelledby="workers-title">(.*?)<\/section>/.exec(page)?.[1] ?? '';
+  /** A linha de um edifício no painel. */
+  const worker = (page: string, label: string) =>
+    section(page)
+      .match(/<li .*?<\/li>/g)
+      ?.find((entry) => entry.includes(`<span class="worker-name">${label} `)) ?? '';
+  /** O trecho da linha com esta classe, inteiro: conta os `span` abertos até o que o fecha. */
+  const part = (markup: string, name: string) => {
+    const start = markup.search(new RegExp(`<span class="${name}[ "]`));
+    if (start < 0) {
+      return '';
+    }
+    let depth = 0;
+    for (const tag of markup.slice(start).matchAll(/<span\b[^>]*>|<\/span>/g)) {
+      depth += tag[0] === '</span>' ? -1 : 1;
+      if (depth === 0) {
+        return markup.slice(start, start + tag.index + tag[0].length);
+      }
+    }
+    return '';
+  };
+  const crafts = fief({ view: craftsView });
+  const rules = craftsView.workersRules;
+
+  it('o custo da troca fica à vista antes de qualquer clique, nas frases do servidor', () => {
+    expect(text(/<p class="muted hint craft-rules">.*?<\/p>/.exec(crafts)?.[0] ?? '')).toBe(
+      `${rules.adaptationText} ${rules.removalText}`,
+    );
+    expect(rules.adaptationText).toBe('Quem troca de ofício produz metade por 2 h.');
+    // No começo do jogo, com todos livres, a regra já está lá.
+    expect(fief({ view: initialView })).toContain(initialView.workersRules.adaptationText);
+  });
+
+  it('cada edifício diz o que um trabalhador a mais rende agora e depois da adaptação', () => {
+    expect(text(part(worker(crafts, 'Fazenda'), 'worker-gain'))).toBe(
+      '+1 aqui: +10,2/h agora, +20,4/h depois de 2 h',
+    );
+    expect(text(part(worker(crafts, 'Serraria'), 'worker-gain'))).toBe(
+      '+1 aqui: +5,2/h agora, +10,4/h depois de 2 h',
+    );
+    // O botão "+" aponta para a frase: quem usa leitor de tela ouve o custo junto com o botão.
+    expect(worker(crafts, 'Serraria')).toContain(
+      'aria-label="Pôr mais um trabalhador em Serraria" aria-describedby="worker-gain-lumberMill"',
+    );
+    expect(worker(crafts, 'Serraria')).toContain('id="worker-gain-lumberMill"');
+    // No ritmo Rápido o prazo é o que o servidor mandou.
+    const fast = fief({
+      view: { ...craftsView, workersRules: { ...rules, adaptationSeconds: 2400 } },
+    });
+    expect(text(part(worker(fast, 'Fazenda'), 'worker-gain'))).toBe(
+      '+1 aqui: +10,2/h agora, +20,4/h depois de 40 min',
+    );
+  });
+
+  it('quem ainda se adapta aparece com a contagem regressiva e o que rende enquanto isso', () => {
+    const farm = worker(crafts, 'Fazenda');
+    expect(text(part(farm, 'worker-adapting'))).toBe(
+      '2 em adaptação por mais 38:00, rendendo 10,2/h cada',
+    );
+    expect(farm).toContain('codicon-history');
+    // A contagem desce com o relógio da página, sem falar com o servidor.
+    expect(
+      text(part(worker(fief({ view: craftsView, elapsed: 61 }), 'Fazenda'), 'worker-adapting')),
+    ).toBe('2 em adaptação por mais 36:59, rendendo 10,2/h cada');
+    expect(text(part(worker(crafts, 'Pedreira'), 'worker-adapting'))).toBe(
+      '1 em adaptação por mais 1:38:00, rendendo 3,7/h cada',
+    );
+    // Sem ninguém em adaptação, a linha não existe.
+    expect(worker(crafts, 'Serraria')).not.toContain('worker-adapting');
+    expect(worker(crafts, 'Mina de Ouro')).not.toContain('em adaptação');
+  });
+
+  it('a experiência de cada ofício: número, tendência em palavra, bônus e barra rotulada', () => {
+    const farm = worker(crafts, 'Fazenda');
+    expect(text(part(farm, 'worker-craft'))).toBe('Experiência 40/100, subindo · +12% de produção');
+    expect(farm).toContain('codicon-arrow-up');
+    expect(farm).toContain(
+      '<progress class="craft-bar" max="100" value="40" aria-label="Experiência do ofício em Fazenda: 40 de 100">',
+    );
+    // A explicação do número: o porquê deste edifício e, em seguida, a regra geral.
+    expect(farm).toContain(
+      `data-tip="A experiência sobe 4 a cada virada do dia enquanto houver ao menos 3 trabalhadores. ${rules.experienceText}"`,
+    );
+    const mill = worker(crafts, 'Serraria');
+    expect(text(part(mill, 'worker-craft'))).toBe('Ofício dominado · +30% de produção');
+    expect(mill).toContain('value="100"');
+    expect(mill).not.toContain('codicon-arrow');
+    expect(mill).toContain('data-tip="Ofício dominado: 30% a mais de produção.');
+  });
+
+  it('a experiência que cai, ou que parou por falta de gente, mostra o porquê e o que fazer', () => {
+    const mine = worker(crafts, 'Mina de Ouro');
+    expect(text(part(mine, 'worker-craft'))).toBe('Experiência 16/100, caindo · +4,8% de produção');
+    expect(mine).toContain('codicon-arrow-down');
+    expect(text(part(mine, 'worker-note'))).toBe(
+      'Sem ninguém na Mina de Ouro, o ofício se perde: 8 de experiência a menos a cada virada do dia.',
+    );
+    // O aviso tem ícone e texto; a cor só acompanha.
+    expect(mine).toContain(
+      '<span class="worker-note warning"><span class="codicon codicon-warning"',
+    );
+    const quarry = worker(crafts, 'Pedreira');
+    expect(text(part(quarry, 'worker-note'))).toBe(
+      'A experiência não sobe: a Pedreira no nível 3 pede ao menos 3 trabalhadores (falta 1).',
+    );
+    // Com a frase à vista, a explicação do número não a repete: fica só a regra.
+    expect(quarry).toContain(`data-tip="${rules.experienceText}"`);
+    // Quem sobe ou já dominou não tem aviso, e o começo do jogo (tudo vazio, nada a perder) também não.
+    expect(worker(crafts, 'Fazenda')).not.toContain('worker-note');
+    expect(worker(crafts, 'Serraria')).not.toContain('worker-note');
+    expect(section(fief({ view: initialView }))).not.toContain('worker-note');
+  });
+
+  it('a taxa de cada edifício continua explicada, agora com a mestria e a adaptação', () => {
+    expect(worker(crafts, 'Fazenda')).toContain(
+      'data-tip="4 trabalhadores (2 em adaptação por 38 min, valendo metade: contam como 3) × 10 × 1,4 (Nv3) × 1,12 (mestria 40) × 1,3 (outono) = 61,15/h"',
+    );
+    expect(worker(crafts, 'Serraria')).toContain(
+      'aria-label="Serraria nível 1: 4 trabalhadores, 41,6 por hora; ofício dominado"',
+    );
+    expect(worker(crafts, 'Mina de Ouro')).toContain(
+      'aria-label="Mina de Ouro nível 1: 0 trabalhadores, 0 por hora; experiência 16 de 100, caindo"',
+    );
+  });
+
+  it('+ e − mandam a ordem direto, sem diálogo; sem ligação, nada sai', () => {
+    type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+    const press = (node: unknown, label: string): boolean => {
+      if (Array.isArray(node)) {
+        return node.some((child) => press(child, label));
+      }
+      if (typeof node !== 'object' || node === null) {
+        return false;
+      }
+      const { type, props } = node as VNodeLike;
+      if (typeof type === 'function') {
+        return press((type as (props: unknown) => unknown)(props), label);
+      }
+      if (props?.['aria-label'] === label && typeof props.onClick === 'function') {
+        if (props.disabled !== true) {
+          (props.onClick as () => void)();
+        }
+        return true;
+      }
+      return press(props?.children, label);
+    };
+    const ordering = (disabled: boolean) => {
+      const orders: Array<[string, unknown]> = [];
+      const recording: Actions = {
+        ...actions,
+        order: (type, payload) => orders.push([type, payload]),
+      };
+      const panel = (
+        <WorkersPanel
+          workers={craftsView.workers}
+          rules={rules}
+          population={craftsView.population}
+          elapsed={0}
+          disabled={disabled}
+          actions={recording}
+        />
+      );
+      return { orders, press: (label: string) => press(panel, label) };
+    };
+    const online = ordering(false);
+    expect(online.press('Pôr mais um trabalhador em Serraria')).toBe(true);
+    expect(online.press('Tirar um trabalhador de Fazenda')).toBe(true);
+    // A Mina está vazia: o "−" existe, desabilitado, e não manda nada.
+    expect(online.press('Tirar um trabalhador de Mina de Ouro')).toBe(true);
+    expect(online.orders).toEqual([
+      ['setWorkers', { building: 'lumberMill', count: 5 }],
+      ['setWorkers', { building: 'farm', count: 3 }],
+    ]);
+    const offline = ordering(true);
+    offline.press('Pôr mais um trabalhador em Serraria');
+    expect(offline.orders).toEqual([]);
   });
 });
 

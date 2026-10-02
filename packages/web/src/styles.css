@@ -277,8 +277,8 @@ ol {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 72px;
   align-items: center;
-  gap: 8px;
-  padding: 3px 4px;
+  gap: 2px 8px;
+  padding: 4px;
   border-radius: 2px;
 }
 
@@ -303,6 +303,45 @@ ol {
   min-width: 2ch;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Abaixo do nome, do passo e da taxa de cada edifício (GDD §5.3 e §5.4): a experiência do ofício
+ * com a barra, o que um trabalhador a mais rende, quem ainda se adapta e, quando a experiência
+ * pede uma ação, a frase do servidor. Ocupam a largura toda da linha.
+ */
+.worker-details,
+.worker-adapting,
+.worker-note {
+  grid-column: 1 / -1;
+  font-size: 0.92em;
+}
+
+/* Lado a lado quando cabe; em coluna estreita, um embaixo do outro. */
+.worker-details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 16px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.worker-gain,
+.worker-adapting {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A barra da experiência é curta e fica na linha do texto, não embaixo dele. */
+.craft-bar {
+  display: inline-block;
+  width: 56px;
+  margin: 0 0 0 8px;
+  vertical-align: middle;
+}
+
+/* As duas regras da troca de ofício, logo abaixo da dica do teclado. */
+.craft-rules {
+  margin-top: -4px;
 }
 
 .active-construction {

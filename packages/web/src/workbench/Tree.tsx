@@ -6,6 +6,12 @@ import { flattenTree, type TreeRow, treeKey } from './treeNav';
 
 type RowAction = { label: string; text: string; command: string; key?: string };
 
+/** A dica do botão: o nome dele e, quando a linha informa, o que a ordem custa ou rende. */
+export function actionTitle(node: TreeNode, action: Pick<RowAction, 'label' | 'command'>): string {
+  const hint = node.actionHints?.[action.command];
+  return hint === undefined ? action.label : `${action.label} (${hint})`;
+}
+
 /** As ordens de um item saem destes botões, nunca do clique na linha. */
 export function rowActions(node: TreeNode): RowAction[] {
   switch (node.contextValue) {
@@ -185,7 +191,8 @@ export function Tree(props: {
                   key={action.command}
                   type="button"
                   aria-label={action.label}
-                  title={action.label}
+                  // A dica traz o que a ordem custa ou rende, quando a linha o informa.
+                  title={actionTitle(node, action)}
                   disabled={props.readOnly}
                   // Só a linha em foco põe os seus botões na ordem do Tab.
                   tabIndex={focused ? 0 : -1}

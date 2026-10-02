@@ -24,7 +24,7 @@ import { type Activity, ActivityBar } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
 import { nodesFor, SideBar } from './SideBar';
 import { StatusBar } from './StatusBar';
-import { rowActions, Tree } from './Tree';
+import { actionTitle, rowActions, Tree } from './Tree';
 import { flattenTree, treeKey } from './treeNav';
 import { Workbench } from './Workbench';
 
@@ -247,6 +247,17 @@ describe('ações das linhas (rowActions)', () => {
     expect(found[0]?.label).not.toBe(found[1]?.label);
   });
 
+  it('a dica do "+" traz o custo da troca de ofício; a do "−" é só o nome do botão', () => {
+    const farm = nodeById(nodes, 'worker:farm');
+    const [minus, plus] = rowActions(farm);
+    expect(actionTitle(farm, plus ?? { label: '', command: '' })).toBe(
+      'Pôr mais um trabalhador em Fazenda Nv1 (+6/h agora, +12/h depois de 2 h)',
+    );
+    expect(actionTitle(farm, minus ?? { label: '', command: '' })).toBe(
+      'Tirar um trabalhador de Fazenda Nv1',
+    );
+  });
+
   it('melhoria disponível tem "Melhorar"; a bloqueada não tem botão', () => {
     expect(rowActions(nodeById(nodes, 'construction:farm'))).toMatchObject([
       { text: 'Melhorar', command: 'lords.build' },
@@ -442,6 +453,16 @@ describe('Tree', () => {
     expect(attribute(hearth, 'title')).toContain('Frio: sem lenha');
     expect(markup).toContain('sem lenha · frio há 50 min');
     expect(rowActions({ id: 'hearth', label: 'Lareira' })).toEqual([]);
+  });
+
+  it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {
+    const markup = render(tree());
+    expect(markup).toContain(
+      'aria-label="Pôr mais um trabalhador em Fazenda Nv1" title="Pôr mais um trabalhador em Fazenda Nv1 (+6/h agora, +12/h depois de 2 h)"',
+    );
+    expect(markup).toContain(
+      'aria-label="Tirar um trabalhador de Fazenda Nv1" title="Tirar um trabalhador de Fazenda Nv1"',
+    );
   });
 
   it('sem ligação, a linha Hoje diz isso', () => {

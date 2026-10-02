@@ -14,6 +14,7 @@ import {
   autumnView,
   catalogFixture,
   coldView,
+  craftsView,
   fakeApi,
   gameEvent,
   goldenView,
@@ -662,22 +663,50 @@ describe('controller.runCommand', () => {
 describe('alocar trabalhadores', () => {
   const farm = goldenView.workers[0] as ViewState['workers'][number];
   const free = goldenView.population.free;
+  const rules = goldenView.workersRules;
+  const ADAPTATION = 'Quem troca de ofício produz metade por 2 h.';
+  const REMOVAL = 'Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.';
 
-  it('a validação mostra a taxa resultante enquanto o jogador digita', () => {
-    // Fazenda: cada trabalhador rende 12/h na primavera; há 2 lá e 3 livres.
-    expect(workersValidation(farm, free, '3')).toEqual({
-      message: '3 × 12 = 36/h',
+  it('a validação mostra o custo da troca enquanto o jogador digita: agora, depois e a regra', () => {
+    // Fazenda na primavera: um adaptado rende 12/h e um recém-chegado, 6/h. Há 2 lá, os dois em
+    // adaptação, e 3 livres.
+    expect(rules.adaptationText).toBe(ADAPTATION);
+    expect(rules.removalText).toBe(REMOVAL);
+    expect(workersValidation(farm, rules, free, '3')).toEqual({
+      message: `+1: 18/h agora, 36/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
-    expect(workersValidation(farm, free, '0')).toEqual({
-      message: '0 × 12 = 0/h',
+    expect(workersValidation(farm, rules, free, '5')).toEqual({
+      message: `+3: 30/h agora, 60/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
-    expect(workersValidation(farm, free, '5')).toEqual({
-      message: '5 × 12 = 60/h',
+    // Tirar: saem os que ainda se adaptam, e a frase do servidor diz isso.
+    expect(workersValidation(farm, rules, free, '1')).toEqual({
+      message: `−1: 6/h agora, 12/h depois da adaptação (2 h). ${REMOVAL}`,
+      severity: 'info',
+    });
+    expect(workersValidation(farm, rules, free, '0')).toEqual({
+      message: `−2: 0/h. ${REMOVAL}`,
+      severity: 'info',
+    });
+    // O mesmo número de hoje: o que já rende e o que vai render.
+    expect(workersValidation(farm, rules, free, '2')).toEqual({
+      message: 'Como hoje: 12/h agora, 24/h depois da adaptação (2 h).',
       severity: 'info',
     });
     expect(workersPreview(farm, free, '5')).toBeNull();
+  });
+
+  it('no ritmo Rápido, o prazo da frase é o que o servidor mandou', () => {
+    const fast = {
+      ...rules,
+      adaptationSeconds: 2400,
+      adaptationText: 'Quem troca de ofício produz metade por 40 min.',
+    };
+    const mill = craftsView.workers[1] as ViewState['workers'][number];
+    expect(workersValidation(mill, fast, 2, '6').message).toBe(
+      '+2: 52/h agora, 62,4/h depois da adaptação (40 min). Quem troca de ofício produz metade por 40 min.',
+    );
   });
 
   it('recusa o que não é um número inteiro de trabalhadores', () => {
@@ -685,7 +714,7 @@ describe('alocar trabalhadores', () => {
       expect(workersPreview(farm, free, input), `"${input}"`).toBe(
         'Digite um número inteiro de trabalhadores.',
       );
-      expect(workersValidation(farm, free, input).severity).toBe('error');
+      expect(workersValidation(farm, rules, free, input).severity).toBe('error');
     }
   });
 
@@ -695,7 +724,10 @@ describe('alocar trabalhadores', () => {
     expect(problem).toContain('Fazenda');
     expect(problem).toContain('2 já lá');
     expect(problem).toContain('3 livres');
-    expect(workersValidation(farm, free, '6')).toEqual({ message: problem, severity: 'error' });
+    expect(workersValidation(farm, rules, free, '6')).toEqual({
+      message: problem,
+      severity: 'error',
+    });
     expect(workersPreview(farm, 0, '3')).not.toBeNull();
     expect(workersPreview(farm, 0, '2')).toBeNull();
   });
@@ -712,17 +744,28 @@ describe('alocar trabalhadores', () => {
       'Pedreira Nv1',
       'Mina de Ouro Nv1',
     ]);
-    // Cada edifício mostra quantos trabalham lá e quanto rende; os livres ficam à vista.
-    expect(pick.items[0]?.description).toBe('2 trabalhadores · 12/h');
+    // Cada edifício mostra quantos trabalham lá, quanto rende e quem ainda se adapta.
+    expect(pick.items[0]?.description).toBe('2 trabalhadores · 12/h · 2 em adaptação');
     expect(pick.items[1]?.description).toBe('0 trabalhadores · 0/h');
-    expect(pick.items[0]?.detail).toBe(farm.breakdown);
-    expect(pick.placeholder).toBe('3 aldeões livres');
+    // O custo da troca já está na lista, antes de escolher: o que um a mais rende em cada
+    // edifício, agora e depois, e a conta da taxa de hoje.
+    expect(pick.items[0]?.detail).toBe(`+1: +6/h agora, +12/h depois de 2 h. ${farm.breakdown}`);
+    expect(pick.items[1]?.detail).toBe(
+      '+1: +4/h agora, +8/h depois de 2 h. 0 trabalhadores × 8 × 1 (Nv1) = 0/h',
+    );
+    // Os livres e a regra, na frase do servidor, ficam à vista no campo de busca.
+    expect(pick.placeholder).toBe(`3 aldeões livres. ${ADAPTATION}`);
 
     const input = shownAs(shown, 1, 'input');
     expect(input.title).toBe('Fazenda Nv1');
     expect(input.value).toBe('2');
-    expect(input.prompt).toContain('3 livres');
-    expect(input.validate?.('3')).toEqual({ message: '3 × 12 = 36/h', severity: 'info' });
+    expect(input.prompt).toBe(
+      `Quantos trabalhadores? Hoje são 2 (2 em adaptação); há 3 livres. Cada um rende 12/h aqui; quem chega agora, 6/h. ${ADAPTATION}`,
+    );
+    expect(input.validate?.('3')).toEqual({
+      message: `+1: 18/h agora, 36/h depois da adaptação (2 h). ${ADAPTATION}`,
+      severity: 'info',
+    });
     expect(input.validate?.('9')?.severity).toBe('error');
     expect(input.validate?.('x')?.severity).toBe('error');
 
@@ -754,13 +797,34 @@ describe('alocar trabalhadores', () => {
     await run('lords.allocateWorkers', { id: 'worker:lumberMill', label: 'Serraria Nv1' });
     expect(shown.map((entry) => entry.kind)).toEqual(['input']);
     expect(shownAs(shown, 0, 'input').title).toBe('Serraria Nv1');
+    // Ninguém lá, ninguém em adaptação: a pergunta não fala de adaptação em curso.
+    expect(shownAs(shown, 0, 'input').prompt).toContain('Hoje são 0; há 3 livres.');
     expect(shownAs(shown, 0, 'input').validate?.('2')).toEqual({
-      message: '2 × 8 = 16/h',
+      message: `+2: 8/h agora, 16/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
     expect(orders()).toEqual([
       { type: 'setWorkers', payload: { building: 'lumberMill', count: 2 } },
     ]);
+  });
+
+  it('a lista de um feudo com ofícios em andamento diz quem se adapta em cada edifício', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        api.state.view = craftsView;
+      },
+    });
+    answers.push(undefined);
+    await run('lords.allocateWorkers');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.items.map((item) => item.description)).toEqual([
+      '4 trabalhadores · 61,2/h · 2 em adaptação',
+      '4 trabalhadores · 41,6/h',
+      '2 trabalhadores · 11,1/h · 1 em adaptação',
+      '0 trabalhadores · 0/h',
+    ]);
+    expect(pick.items[1]?.detail).toContain('+1: +5,2/h agora, +10,4/h depois de 2 h.');
+    expect(pick.placeholder).toBe(`2 aldeões livres. ${ADAPTATION}`);
   });
 
   it('+ e − da árvore mudam um trabalhador por vez, sem diálogo', async () => {

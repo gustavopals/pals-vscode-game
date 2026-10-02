@@ -24,6 +24,7 @@ import {
   truncate,
   upgradeName,
 } from './format';
+import { experienceSummary, nextWorkerGain } from './workers';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
 export type TreeNode = {
@@ -35,6 +36,11 @@ export type TreeNode = {
   icon?: string;
   contextValue?: string;
   command?: { id: string; args?: unknown[] };
+  /**
+   * O que o botão de uma ordem da linha custa ou rende, por id do comando: acompanha o nome do
+   * botão na dica dele, para o custo estar à vista antes do clique.
+   */
+  actionHints?: Record<string, string>;
   children?: TreeNode[];
   expanded?: boolean;
 };
@@ -134,22 +140,44 @@ function hearthNode(view: ViewState): TreeNode[] {
   ];
 }
 
+/**
+ * Os trabalhadores (GDD §5.3 e §5.4). Cada edifício diz quantos trabalham e quanto rendem, quem
+ * ainda se adapta e, se o ofício está se perdendo, isso também. A explicação traz a conta da
+ * taxa, a experiência com o seu porquê e o que um trabalhador a mais rende: o custo da troca fica
+ * à vista antes do "+", que o repete na própria dica.
+ */
 function workersNode(view: ViewState): TreeNode {
   const { villagers, free } = view.population;
+  const rules = view.workersRules;
   return {
     id: 'workers',
     label: 'Trabalhadores',
     description: `${villagers - free}/${villagers} alocados · ${free} ${free === 1 ? 'livre' : 'livres'}`,
+    tooltip: [rules.adaptationText, rules.removalText, rules.experienceText].join('\n'),
     icon: 'organization',
     expanded: true,
-    children: view.workers.map((row) => ({
-      id: `worker:${row.building}`,
-      label: `${row.label} Nv${row.level}`,
-      description: `${row.assigned} · ${formatNumber(row.grossPerHour)}/h`,
-      tooltip: row.breakdown,
-      contextValue: 'lords.worker',
-      command: { id: 'lords.openPanel', args: ['fief'] },
-    })),
+    children: view.workers.map((row) => {
+      const gain = nextWorkerGain(row, rules);
+      return {
+        id: `worker:${row.building}`,
+        label: `${row.label} Nv${row.level}`,
+        description: [
+          `${row.assigned} · ${formatNumber(row.grossPerHour)}/h`,
+          row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+          row.experienceTrend === 'falling' ? '⚠ o ofício se perde' : null,
+        ]
+          .filter((part) => part !== null)
+          .join(' · '),
+        tooltip: [
+          row.breakdown,
+          `${experienceSummary(row, rules)}. ${row.experienceNote}`,
+          `+1 aqui: ${gain}. ${rules.adaptationText}`,
+        ].join('\n'),
+        contextValue: 'lords.worker',
+        command: { id: 'lords.openPanel', args: ['fief'] },
+        actionHints: { 'lords.workersIncrease': gain },
+      };
+    }),
   };
 }
 

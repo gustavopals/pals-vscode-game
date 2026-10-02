@@ -108,6 +108,13 @@ export function withUpgrade(
   };
 }
 
+/**
+ * Um feudo com um ofício em cada situação (GDD §5.3 e §5.4): a Fazenda com dois em adaptação e a
+ * experiência subindo, a Serraria com o ofício dominado, a Pedreira com gente de menos para o
+ * nível (um deles em adaptação) e a Mina de Ouro vazia, perdendo o ofício.
+ */
+export const craftsView = golden.crafts as unknown as ViewState;
+
 type Constructions = ViewState['constructions'];
 type QueueRow = Constructions['queues'][number];
 type PlannedRow = Constructions['planned'][number];

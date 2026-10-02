@@ -321,9 +321,9 @@ export class GameSession {
 
   /**
    * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
-   * visão (obra, planejada à espera, aldeão a caminho, virada do dia) vence antes: a contagem
-   * regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais dá ao servidor
-   * tempo de virar o prazo.
+   * visão (obra, planejada à espera, fim de adaptação, aldeão a caminho, virada do dia) vence
+   * antes: a contagem regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais
+   * dá ao servidor tempo de virar o prazo.
    */
   private nextPollMs(): number {
     const poll = pollIntervalMs(this.visible);
@@ -336,6 +336,9 @@ export class GameSession {
       // (é quando uma automática começa sozinha).
       ...view.constructions.queues.map((queue) => queue?.secondsRemaining),
       ...view.constructions.planned.map((plan) => plan.waiting?.etaSeconds),
+      // O fim da primeira leva em adaptação de cada edifício: a taxa sobe nesse instante, sem
+      // evento que avise (GDD §5.4).
+      ...view.workers.map((row) => row.adaptingCohorts[0]?.endsInSeconds),
       view.population.secondsToNextRecruit,
       view.calendar.secondsToNextDay,
     ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);

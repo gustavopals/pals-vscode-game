@@ -48,8 +48,8 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | `src/services/` | `browserStore.ts` (`localStorage` com prefixo `lords.`, tolerante a falha), `sessionLock.ts` (Web Locks na renovação da sessão), `tabSync.ts` (evento `storage`), `visibility.ts`, `preferences.ts` |
 | `src/workbench/` | A bancada: `ActivityBar`, `SideBar`, `Tree` (padrão ARIA, `treeNav.ts`), `EditorTabs`, `StatusBar` |
 | `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Sobre |
-| `src/components/` | Os painéis do feudo (recursos com os avisos de depósito, trabalhadores, construções com as filas e as planejadas, recrutamento, objetivos), os avisos do painel (`Banners.tsx`: sem ligação, fome, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
-| `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`) |
+| `src/components/` | Os painéis do feudo (recursos com os avisos de depósito, trabalhadores com a troca de ofício e a experiência, construções com as filas e as planejadas, recrutamento, objetivos), os avisos do painel (`Banners.tsx`: sem ligação, fome, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
+| `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`); a troca de ofício e a experiência como texto (`workers.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
 
 ## Dificuldade e ritmo (GDD §13.9)
@@ -105,6 +105,20 @@ As filas, a marca de cada planejada, o que ela espera e o prazo vêm prontos em 
 - **Barra de status**: a obra que termina primeiro, esteja em que fila estiver, e "+1 obra" quando há outra.
 - **Paleta** (`palette/commands.ts`): "Planejar obras" pergunta, depois da obra, se ela começa sozinha. Para a obra que ainda não pode começar, "Iniciar quando houver recursos" já vem marcada (`Enter`, `Enter`). Se a obra já pode começar, a opção avisa que ela começa agora mesmo, e o que vem marcado é "Só deixar na lista": o padrão nunca gasta. "Planejadas: ligar ou desligar o início automático" lista as planejadas com o que o clique faz e o que cada uma espera. "Cancelar a obra em andamento", com duas em curso, pergunta qual.
 - **Crônica, avisos e relatório**: `constructionAutoStarted` é linha da Crônica; avisa no nível "Todas", como o fim de uma obra (a obra que o próprio jogador ordena não avisa); e no Relatório de Retorno entra na lista do que ler, com o custo somado ao gasto de cada recurso pelos `spent_*` do evento.
+
+## Troca de ofício e experiência (GDD §5.3 e §5.4)
+
+As regras em frase, o prazo da adaptação, o que rende um trabalhador adaptado e um recém-chegado, as levas em adaptação, a experiência de cada ofício e o porquê da tendência vêm prontos em `workersRules` e `workers[]` do `ViewState`. O app não conhece a fração da adaptação, o ganho diário de experiência nem o bônus da mestria. As frases e as contas de apresentação ficam em `ui/workers.ts`.
+
+- **O custo da troca fica à vista antes de qualquer clique**, sem diálogo no "+" e no "−". No painel (`components/WorkersPanel.tsx`): as duas frases do servidor (`adaptationText` e `removalText`) abaixo do título, e em cada edifício "+1 aqui: +4/h agora, +8/h depois de 2 h" (`nextWorkerGain`: `perNewWorkerPerHour`, `perWorkerPerHour` e `workersRules.adaptationSeconds`). O botão "+" aponta para essa frase (`aria-describedby`). Na árvore, a mesma frase vai na dica do "+" (`TreeNode.actionHints`, `actionTitle` em `workbench/Tree.tsx`) e na explicação da linha.
+- **Quem se adapta**: "2 em adaptação por mais 38:00, rendendo 10,2/h cada", uma parte por leva quando há mais de uma (`adaptationLine`, a partir de `adaptingCohorts`). A contagem desce com o relógio da página. A árvore e a lista da paleta dizem só "2 em adaptação". A conta da taxa (`breakdown`) já traz a adaptação e a mestria, e é mostrada como sempre foi.
+- **A leitura seguinte acontece quando a primeira leva termina** (`nextPollMs`, em `game/gameSession.ts`): o fim da adaptação não gera evento, e sem isso a taxa só subiria na tela no ciclo seguinte.
+- **Experiência**: "Experiência 40/100, subindo · +12% de produção" e uma barra (`<progress>`, com rótulo), ou "Ofício dominado · +30% de produção" no fim da barra (`workersRules.experienceMax`). A tendência é dita por palavra; a seta só acompanha. A explicação do número é `experienceNote` (o porquê deste edifício) seguida de `workersRules.experienceText` (a regra).
+- **Quando a experiência pede uma ação** (`experienceNeedsAttention`: está caindo, ou parou com gente trabalhando e a barra por encher), a frase do servidor sai da explicação e fica à vista na linha, com ícone de aviso. O edifício vazio que nunca teve ofício não tem o que perder e não ganha aviso. Na árvore, o edifício que perde o ofício diz "⚠ o ofício se perde".
+- **Lista "Alocar trabalhadores"** (`palette/commands.ts`): o campo de busca mostra os livres e `adaptationText`; cada edifício, quantos trabalham, quanto rendem, quem se adapta e o "+1". No campo do número, a frase muda a cada tecla (`allocationMessage`): "+2: 81,5/h agora, 122,3/h depois da adaptação (2 h)", seguida da regra da chegada ou, ao tirar de onde há gente em adaptação, da regra da saída.
+- **A prévia é do app** (`previewAllocation`): soma as duas taxas da visão e, ao tirar, desconta primeiro das levas mais novas, como `removalText` diz. Quem decide é o servidor; se a ordem de saída mudar no motor, a prévia precisa mudar junto (o teste em navegador da troca de ofício tira um trabalhador de um edifício com gente adaptada e em adaptação e confere a prévia com a taxa que o servidor devolve).
+- **Avisos e Crônica**: `craftMastered` é linha da Crônica e avisa no nível "Todas", com uma estrela (`star-full`). O fim da adaptação não avisa.
+- **Cache**: `workersRules` e os campos novos de `workers[]` são obrigatórios no schema; a visão guardada pela versão anterior é descartada sem mexer em `VIEW_FORMAT`.
 
 ## Cache e versões
 

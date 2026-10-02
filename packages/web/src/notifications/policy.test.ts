@@ -79,6 +79,17 @@ describe('política de notificações', () => {
     expect(isEssential(event('storageFilled'))).toBe(false);
   });
 
+  it('o ofício dominado é boa notícia: avisa em "todas", sem tom de alarme', () => {
+    const events = [event('craftMastered', 1), event('dayStarted', 2)];
+    const all = decideNotifications(input({ level: 'all', events }));
+    expect(all.show.map((entry) => entry.type)).toEqual(['craftMastered']);
+    expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+    expect(isEssential(event('craftMastered'))).toBe(false);
+    expect(isRelief(event('craftMastered'))).toBe(false);
+    // É uma conquista: sai com a estrela, não com o ícone de um aviso qualquer.
+    expect(eventIcon(event('craftMastered'))).toBe('star-full');
+  });
+
   it('a obra que começou sozinha avisa em "todas", como o fim de uma obra; a ordenada pelo jogador, não', () => {
     const events = [
       event('constructionStarted', 1),

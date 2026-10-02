@@ -507,6 +507,48 @@ describe('cache', () => {
     expect(second.session.view).toBeNull();
   });
 
+  it('a visão de antes da troca de ofício (V2C-T3) é descartada: o painel usa as regras e a experiência', async () => {
+    // Como o app a gravava antes de a visão ganhar `workersRules` e a experiência de cada ofício.
+    const { workersRules: _rules, ...withoutRules } = view;
+    void _rules;
+    const outdated = {
+      version: CACHE_VERSION,
+      view: withoutRules,
+      stateVersion: '7',
+      etag: 'W/"antes"',
+      lastSeq: 3,
+      lastSeenAt: Date.now(),
+    };
+    const { session, state, seen } = setup(outdated as unknown as GameCache);
+    state.fail = new NetworkError('fora');
+    await session.start(target);
+    expect(session.view).toBeNull();
+    expect(seen.views).toEqual([]);
+    session.stop();
+
+    // O mesmo vale para um edifício sem a experiência nem as levas em adaptação.
+    const bare = {
+      ...outdated,
+      view: {
+        ...view,
+        workers: view.workers.map(({ building, label, level, resource, assigned, breakdown }) => ({
+          building,
+          label,
+          level,
+          resource,
+          assigned,
+          grossPerHour: 0,
+          perWorkerPerHour: 0,
+          breakdown,
+        })),
+      },
+    };
+    const second = setup(bare as unknown as GameCache);
+    second.state.fail = new NetworkError('fora');
+    await second.session.start(target);
+    expect(second.session.view).toBeNull();
+  });
+
   describe('gravado por outra versão do app', () => {
     // A visão como a v0.1 a gravava: sem dificuldade nem ritmo, e o cache sem marca de versão.
     const {

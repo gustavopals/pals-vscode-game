@@ -85,24 +85,56 @@ test.describe('governar o feudo', () => {
     await palette(page, 'alocar');
     const list = page.getByRole('dialog');
     await expect(list.getByRole('option')).toHaveCount(4);
+    // A lista já mostra o custo da troca (GDD §5.4): a regra e o que um a mais rende em cada lugar.
+    await expect(list.getByRole('combobox')).toHaveAttribute(
+      'placeholder',
+      '5 aldeões livres. Quem troca de ofício produz metade por 2 h.',
+    );
+    await expect(list.getByRole('option').filter({ hasText: 'Pedreira' })).toContainText(
+      '+1: +2,5/h agora, +5/h depois de 2 h.',
+    );
     await list.getByRole('combobox').fill('pedreira');
     await page.keyboard.press('Enter');
 
     const dialog = page.getByRole('dialog');
     const field = dialog.getByRole('textbox');
     await expect(field).toBeFocused();
+    await expect(dialog).toContainText('Cada um rende 5/h aqui; quem chega agora, 2,5/h.');
     await field.fill('9');
     await expect(dialog.getByText(/Só há 5 disponíveis para Pedreira/)).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Alocar' })).toBeDisabled();
     await field.fill('3');
-    await expect(dialog.getByText(/^3 × .* = .*\/h$/)).toBeVisible();
+    // Antes de confirmar: o que os três rendem agora, o que vão render e por quanto tempo é metade.
+    await expect(
+      dialog.getByText(
+        '+3: 7,5/h agora, 15/h depois da adaptação (2 h). Quem troca de ofício produz metade por 2 h.',
+      ),
+    ).toBeVisible();
     await page.keyboard.press('Enter');
 
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(fief(page).getByText('Trabalhadores (3/5)')).toBeVisible();
-    // A pedra passa a subir 15 por hora: a tendência já diz em quanto tempo o Pátio enche.
-    await expect(resourceRow(page, 'Pedra')).toContainText('+15');
-    await expect(resourceRow(page, 'Pedra')).toContainText('cheio em 29 h');
+    // A pedra sobe a metade do que vai subir: os três canteiros ainda se adaptam. A tendência já
+    // conta com o fim da adaptação e diz em quanto tempo o Pátio enche.
+    await expect(resourceRow(page, 'Pedra')).toContainText('+7,5');
+    await expect(resourceRow(page, 'Pedra')).toContainText(/cheio em 2\d h/);
+    // Reabrir a lista para tirar: a frase diz quem sai primeiro, nas palavras do servidor.
+    await palette(page, 'alocar');
+    await page.getByRole('dialog').getByRole('combobox').fill('pedreira');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toContainText(
+      'Hoje são 3 (3 em adaptação); há 2 livres.',
+    );
+    await page.getByRole('dialog').getByRole('textbox').fill('2');
+    await expect(
+      page
+        .getByRole('dialog')
+        .getByText(
+          /^−1: 5\/h agora, 10\/h depois da adaptação \((2 h|1 h 59 min|1 h 60 min)\)\. Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação\.$/,
+        ),
+    ).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(fief(page).getByText('Trabalhadores (3/5)')).toBeVisible();
   });
 
   test('recusas do servidor aparecem com o motivo em português', async ({ context, world }) => {
@@ -422,9 +454,10 @@ test.describe('estações, lenha e frio', () => {
     await expect(
       fief(page).getByText('Primavera: comida × 1,2; recrutamento com prazo × 0,8.'),
     ).toBeVisible();
-    await expect(resourceRow(page, 'Comida')).toContainText('+55');
-    expect((await explanation(foodRate)).text).toBe(
-      'Fazenda: 5 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 60/h; consumo 5 × 1 = 5/h',
+    // Os cinco acabaram de chegar à Fazenda: rendem metade enquanto se adaptam (GDD §5.4).
+    await expect(resourceRow(page, 'Comida')).toContainText('+25');
+    expect((await explanation(foodRate)).text).toMatch(
+      /^Fazenda: 5 trabalhadores \(5 em adaptação por até .+, valendo metade: contam como 2,5\) × 10 × 1 \(Nv1\) × 1,2 \(primavera\) = 30\/h; consumo 5 × 1 = 5\/h$/,
     );
 
     // A melhoria da Fazenda leva 80 das 120 de madeira: sobram 40, que não dão para o inverno.
@@ -441,19 +474,21 @@ test.describe('estações, lenha e frio', () => {
     await expect(fief(page).getByText(/Outono, dia 1 do Ano 1/)).toBeVisible();
     await expect(fief(page).getByText('Outono: comida × 1,3; ouro × 1,1.')).toBeVisible();
     const autumn = await explanation(foodRate);
+    // Quarenta e oito dias de trabalho: os lavradores dominaram o ofício, e a mestria entra na conta.
     expect(autumn.text).toBe(
-      'Fazenda: 5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 78/h; consumo 5 × 1 = 5/h',
+      'Fazenda: 5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (mestria 100) × 1,3 (outono) = 101,4/h; consumo 5 × 1 = 5/h',
     );
     expect(autumn).toMatchObject({ position: 'fixed', wraps: true });
     expect(autumn.roomAbove).toBeGreaterThan(0);
     // No painel de trabalhadores, a produção bruta do edifício, com o mesmo fator.
-    const farmRate = fief(page)
+    const farm = fief(page)
+      .getByRole('region', { name: /^Trabalhadores/ })
       .getByRole('listitem')
-      .filter({ hasText: 'Fazenda Nv2' })
-      .locator('.explained');
-    expect((await explanation(farmRate)).text).toBe(
-      '5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 78/h',
+      .filter({ hasText: 'Fazenda Nv2' });
+    expect((await explanation(farm.locator('.rate .explained'))).text).toBe(
+      '5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (mestria 100) × 1,3 (outono) = 101,4/h',
     );
+    await expect(farm).toContainText('Ofício dominado · +30% de produção');
     // A árvore conta a mesma história.
     await expect(tree(page).getByRole('treeitem', { name: /Feudo: Pedra Alta/ })).toContainText(
       'Outono, dia 1',
@@ -586,7 +621,8 @@ test.describe('armazenamento', () => {
     );
     await expect(resourceRow(page, 'Ouro').getByRole('cell').nth(1)).toHaveText('—');
 
-    // Doze horas de Serraria e de Pedreira pagam o Salão e ainda deixam o Celeiro pago.
+    // Treze horas de Serraria e de Pedreira pagam o Salão e ainda deixam o Celeiro pago (as duas
+    // primeiras rendem metade: os cinco ainda se adaptam ao ofício).
     for (const free of [4, 3]) {
       await step('Pôr mais um trabalhador em Serraria', free);
     }
@@ -597,7 +633,7 @@ test.describe('armazenamento', () => {
     await expect(resourceRow(page, 'Madeira')).toContainText('cheio em 23 h');
     await expect(resourceRow(page, 'Madeira').locator('.codicon-warning')).toHaveCount(0);
     await expect(notes).toHaveCount(0);
-    await world.passTime(12 * HOUR, page);
+    await world.passTime(13 * HOUR, page);
     await fief(page)
       .getByRole('listitem')
       .filter({ hasText: 'Salão do Senhor Nv1 → Nv2' })
@@ -609,8 +645,9 @@ test.describe('armazenamento', () => {
     await expect(construct.getByRole('button', { name: 'Construir Celeiro' })).toBeEnabled();
     await expect(construct).not.toContainText('Melhore antes');
 
-    // Todos para a Fazenda: a comida passa a subir 55 por hora, e a Despensa enche em menos de
-    // uma ausência. O alerta é ícone e texto, na tabela e na árvore, com a saída ao lado.
+    // Todos para a Fazenda: a comida passa a subir (a metade por ora: os cinco se adaptam), e a
+    // Despensa enche em menos de uma ausência. A previsão já conta com o fim da adaptação. O
+    // alerta é ícone e texto, na tabela e na árvore, com a saída ao lado.
     for (const free of [1, 2]) {
       await step('Tirar um trabalhador de Serraria', free);
     }
@@ -620,17 +657,17 @@ test.describe('armazenamento', () => {
     for (const free of [4, 3, 2, 1, 0]) {
       await step('Pôr mais um trabalhador em Fazenda', free);
     }
-    await expect(food).toContainText('+55');
-    await expect(food).toContainText('cheio em 6 h');
+    await expect(food).toContainText('+25');
+    await expect(food).toContainText('cheio em 7 h');
     await expect(food.locator('.codicon-warning')).toBeVisible();
     await expect(tree(page).locator('[data-node="resource:food"]')).toContainText(
-      /\d+\/500 ⚠ cheio em 6 h/,
+      /\d+\/500 ⚠ cheio em 7 h/,
     );
     await expect(tree(page).locator('[data-node="resources"]')).toContainText(
-      'comida ⚠ cheio em 6 h',
+      'comida ⚠ cheio em 7 h',
     );
     await expect(notes).toHaveCount(1);
-    await expect(notes).toContainText('Despensa: comida no limite de 500 em 6 h.');
+    await expect(notes).toContainText('Despensa: comida no limite de 500 em 7 h.');
     // Custo e benefício lado a lado, e o botão que ordena a obra.
     await expect(notes).toContainText(
       '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 900.',
@@ -652,7 +689,7 @@ test.describe('armazenamento', () => {
     await expect(fief(page).getByText('Os pedreiros estão livres.')).toBeVisible();
     await expect(food.getByRole('cell').nth(1)).toHaveText(/^900/);
     expect((await explanation(food.locator('.explained').first())).text).toBe('Celeiro Nv1: 900');
-    await expect(food).toContainText(/cheio em 1[34] h/);
+    await expect(food).toContainText('cheio em 14 h');
     await expect(food.locator('.codicon-warning')).toHaveCount(0);
     await expect(notes).toHaveCount(0);
     await expect(fief(page).getByText(/ergueu-se o Celeiro em Pedra Alta/)).toBeVisible();
@@ -664,18 +701,22 @@ test.describe('armazenamento', () => {
     expect(await stock(page, 'Comida')).toBe(900);
     await expect(food).toContainText('cheio: a produção está se perdendo');
     await expect(food.locator('.codicon-warning')).toBeVisible();
-    // A taxa continua sendo o saldo da produção; o estoque é que não sobe mais.
-    await expect(food).toContainText('+55');
+    // A taxa continua sendo o saldo da produção; o estoque é que não sobe mais. Oito dias de
+    // trabalho já deram experiência aos lavradores, e a conta da taxa mostra a mestria.
+    await expect(food).toContainText('+60,8');
+    expect((await explanation(food.locator('.explained').nth(1))).text).toBe(
+      'Fazenda: 5 trabalhadores × 10 × 1 (Nv1) × 1,096 (mestria 32) × 1,2 (primavera) = 65,76/h; consumo 5 × 1 = 5/h',
+    );
     await expect(notes).toHaveCount(1);
     await expect(notes).toContainText(
-      'Celeiro cheio: 55/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
+      'Celeiro cheio: 60,8/h de comida indo ao chão. Amplie o Celeiro ou gaste comida.',
     );
     await expect(notes).toContainText('Capacidade de comida: 900 → 1.500.');
     // A ampliação custa mais do que há: o botão espera, com o que falta escrito.
     await expect(notes.getByRole('button', { name: 'Ampliar Celeiro' })).toBeDisabled();
     await expect(notes).toContainText(/Faltam \d+ madeira e \d+ pedra\./);
     await expect(tree(page).locator('[data-node="resource:food"]')).toContainText(
-      '900/900 ⚠ cheio, perde 55/h',
+      '900/900 ⚠ cheio, perde 60,8/h',
     );
     await expect(fief(page).getByText(/o Celeiro de Pedra Alta encheu/)).toBeVisible();
     // O fecho diário do desperdício não é linha da Crônica.
@@ -695,19 +736,20 @@ test.describe('armazenamento', () => {
     const today = back.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     const row = today.getByRole('row', { name: /^Comida/ });
-    // O estoque não saiu de 900: o que a Fazenda rendeu em cinco horas, 55 por hora, não coube.
+    // O estoque não saiu de 900: o que a Fazenda rendeu em cinco horas (de 60,8 a 62 por hora,
+    // com a experiência subindo a cada dia) não coube.
     await expect(row.getByRole('cell')).toHaveText([
       '900',
-      /^\+27[4-6]$/,
+      /^\+30[6-8]$/,
       '—',
       '—',
-      /^−27[4-6]$/,
+      /^−30[6-8]$/,
       '900',
     ]);
     const waste = today.locator('.waste');
     await expect(waste).toHaveCount(1);
     await expect(waste).toContainText(
-      /Foram ao chão, por falta de espaço: 27[4-6] de comida \(Celeiro\)\./,
+      /Foram ao chão, por falta de espaço: 30[6-8] de comida \(Celeiro\)\./,
     );
     await expect(today.getByRole('listitem').filter({ hasText: /foi ao chão/ })).toHaveCount(0);
     await waste.getByRole('button', { name: 'Ver os depósitos' }).click();
@@ -781,8 +823,9 @@ test.describe('filas de obras e planejadas', () => {
       .first()
       .getByRole('checkbox', { name: 'Iniciar quando houver recursos: Serraria' });
     await expect(lumberMark).not.toBeChecked();
+    // O prazo conta com a adaptação: os lenhadores rendem metade nas duas primeiras horas.
     await expect(planned.first()).toContainText(
-      'Espera 30 de madeira e 5 de pedra: em 1 h 15 min.',
+      'Espera 30 de madeira e 5 de pedra: em 2 h 15 min.',
     );
     // A marca é um clique, e só muda na tela quando o servidor confirma.
     await lumberMark.click();
@@ -814,7 +857,7 @@ test.describe('filas de obras e planejadas', () => {
     await expect(
       planned.nth(1).getByRole('checkbox', { name: 'Iniciar quando houver recursos: Fazenda' }),
     ).toBeChecked();
-    await expect(planned.nth(1)).toContainText('Espera 10 de madeira: em 25 min.');
+    await expect(planned.nth(1)).toContainText('Espera 10 de madeira: em 50 min.');
     // Planejar e marcar não gastam nada.
     expect(await stock(page, 'Madeira')).toBe(70);
     expect(await stock(page, 'Ouro')).toBe(250);
@@ -942,5 +985,186 @@ test.describe('filas de obras e planejadas', () => {
     await expect(planned.first().getByRole('checkbox')).not.toBeChecked();
     await expect(planned.first()).toContainText(/Espera/);
     await expect(planned.first().getByRole('button', { name: /Iniciar agora/ })).toHaveCount(0);
+  });
+});
+
+// V2C-T3 (GDD §5.3 e §5.4, critério 5 da §16.2): trocar de ofício custa. O painel mostra o custo
+// antes do clique, quem chega rende metade pelo prazo anunciado, e a taxa sobe no fim dele. A
+// experiência do ofício cresce com os dias de trabalho.
+
+test.describe('troca de ofício e experiência', () => {
+  test('"+1 na Serraria" mostra o custo da troca antes do clique, rende metade e a taxa sobe no fim do prazo', async ({
+    context,
+    world,
+  }) => {
+    const commands: string[] = [];
+    context.on('request', (request) => {
+      if (request.url().endsWith('/commands')) {
+        commands.push(String(request.postDataJSON()?.type));
+      }
+    });
+    const page = await world.open(context);
+    await playNow(page);
+    const workers = fief(page).getByRole('region', { name: /^Trabalhadores/ });
+    const mill = workers.getByRole('listitem').filter({ hasText: 'Serraria' });
+    const plus = mill.getByRole('button', { name: 'Pôr mais um trabalhador em Serraria' });
+    const rate = mill.locator('.rate .explained');
+    const node = tree(page).locator('[data-node="worker:lumberMill"]');
+
+    // Antes de qualquer clique: a regra, na frase do servidor, e o que um lenhador a mais rende.
+    await expect(workers).toContainText('Quem troca de ofício produz metade por 2 h.');
+    await expect(workers).toContainText(
+      'Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.',
+    );
+    await expect(mill).toContainText('+1 aqui: +4/h agora, +8/h depois de 2 h');
+    // Quem usa leitor de tela ouve o custo junto com o botão.
+    await expect(plus).toHaveAccessibleDescription('+1 aqui: +4/h agora, +8/h depois de 2 h');
+    await expect(mill).toContainText('Experiência 0/100');
+    await expect(mill).not.toContainText('em adaptação');
+    // Na árvore, a dica do "+" diz o mesmo.
+    await node.hover();
+    await expect(
+      node.getByRole('button', { name: 'Pôr mais um trabalhador em Serraria Nv1' }),
+    ).toHaveAttribute(
+      'title',
+      'Pôr mais um trabalhador em Serraria Nv1 (+4/h agora, +8/h depois de 2 h)',
+    );
+
+    // Um clique, sem diálogo: o lenhador novo rende metade, e a linha diz por quanto tempo.
+    await plus.click();
+    await expect(mill).toContainText(
+      /1 em adaptação por mais (2:00:00|1:59:\d\d), rendendo 4\/h cada/,
+    );
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(commands).toEqual(['setWorkers']);
+    await expect(rate).toHaveText(/^4\/h/);
+    await expect(resourceRow(page, 'Madeira')).toContainText('+4');
+    // A conta da taxa diz por que é metade.
+    expect((await explanation(rate)).text).toMatch(
+      /^1 trabalhador \(1 em adaptação por .+, valendo metade: conta como 0,5\) × 8 × 1 \(Nv1\) = 4\/h$/,
+    );
+    await expect(mill).toContainText('Experiência 0/100, subindo');
+    await expect(node).toContainText('1 · 4/h · 1 em adaptação');
+
+    // Uma hora depois ainda é metade, e a contagem desceu com o relógio.
+    await world.passTime(HOUR, page);
+    await expect(mill).toContainText(/1 em adaptação por mais (1:00:00|59:\d\d)/);
+    await expect(rate).toHaveText(/^4\/h/);
+    expect(await stock(page, 'Madeira')).toBe(124);
+
+    // No fim do prazo a taxa sobe sozinha. O dia também virou, e o dia de trabalho deu a primeira
+    // experiência ao ofício, que já rende um pouco mais.
+    await world.passTime(HOUR, page);
+    await expect(mill).not.toContainText('em adaptação');
+    await expect(rate).toHaveText(/^8,1\/h/);
+    await expect(resourceRow(page, 'Madeira')).toContainText('+8,1');
+    expect(await stock(page, 'Madeira')).toBe(128);
+    await expect(mill).toContainText('Experiência 4/100, subindo · +1,2% de produção');
+    await expect(mill.getByRole('progressbar')).toHaveAttribute('value', '4');
+    expect((await explanation(rate)).text).toBe(
+      '1 trabalhador × 8 × 1 (Nv1) × 1,012 (mestria 4) = 8,1/h',
+    );
+    await expect(node).toContainText('1 · 8,1/h');
+    await expect(node).not.toContainText('em adaptação');
+
+    // Um segundo lenhador chega: só ele se adapta. Ao tirar um pela lista, a prévia diz que sai
+    // quem ainda se adapta, e é o que o servidor faz: a taxa volta à do lenhador adaptado.
+    await plus.click();
+    await expect(mill).toContainText(/1 em adaptação por mais (2:00:00|1:59:\d\d)/);
+    await expect(rate).toHaveText(/^12,1\/h/);
+    await palette(page, 'alocar');
+    await page.getByRole('dialog').getByRole('combobox').fill('serraria');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toContainText(
+      'Hoje são 2 (1 em adaptação); há 3 livres.',
+    );
+    await page.getByRole('dialog').getByRole('textbox').fill('1');
+    await expect(
+      page
+        .getByRole('dialog')
+        .getByText(
+          '−1: 8,1/h. Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.',
+        ),
+    ).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(mill).not.toContainText('em adaptação');
+    await expect(rate).toHaveText(/^8,1\/h/);
+
+    // Tirar e pôr de volta não é de graça: quem volta se adapta de novo.
+    await mill.getByRole('button', { name: 'Tirar um trabalhador de Serraria' }).click();
+    await expect(rate).toHaveText(/^0\/h/);
+    // O ofício sem ninguém começa a se perder, e a linha diz o porquê e o que custa.
+    await expect(mill).toContainText('Experiência 4/100, caindo');
+    await expect(mill).toContainText(
+      'Sem ninguém na Serraria, o ofício se perde: 8 de experiência a menos a cada virada do dia.',
+    );
+    await expect(node).toContainText('0 · 0/h · ⚠ o ofício se perde');
+    // Em 720 px o painel continua inteiro, sem transbordar.
+    await page.setViewportSize({ width: 720, height: 900 });
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await expect(mill).toContainText('+1 aqui: +4/h agora, +8,1/h depois de 2 h');
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect(page.locator('#sidebar')).toBeVisible();
+    await plus.click();
+    await expect(mill).toContainText(/1 em adaptação por mais (2:00:00|1:59:\d\d)/);
+    await expect(rate).toHaveText(/^4\/h/);
+    await expect(mill).toContainText('Experiência 4/100, subindo');
+    expect(commands).toEqual(Array.from({ length: 5 }, () => 'setWorkers'));
+  });
+
+  test('vinte e cinco dias no mesmo ofício: a experiência enche a barra, a Crônica conta e, com todos os avisos ligados, chega a notícia', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    // Todos os avisos: o ofício dominado é boa notícia, não alarme.
+    await page.getByRole('button', { name: 'Preferências' }).click();
+    await page
+      .getByRole('tabpanel', { name: 'Preferências' })
+      .getByRole('radio', { name: /Todos/ })
+      .check();
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    const workers = fief(page).getByRole('region', { name: /^Trabalhadores/ });
+    const farm = workers.getByRole('listitem').filter({ hasText: 'Fazenda' });
+    const plus = farm.getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    await plus.click();
+    await plus.click();
+    await expect(farm).toContainText('Experiência 0/100, subindo');
+    // A explicação do número: o porquê deste edifício e a regra geral, nas frases do servidor.
+    expect((await explanation(farm.locator('.worker-craft .explained'))).text).toBe(
+      'A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador. ' +
+        'A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.',
+    );
+
+    // Dez dias de jogo (20 h no ritmo dos testes): a barra anda e a produção já rende mais.
+    await world.passTime(20 * HOUR, page);
+    await expect(farm).toContainText('Experiência 40/100, subindo · +12% de produção');
+    await expect(farm.getByRole('progressbar')).toHaveAttribute('value', '40');
+    expect((await explanation(farm.locator('.rate .explained'))).text).toBe(
+      '2 trabalhadores × 10 × 1 (Nv1) × 1,12 (mestria 40) × 1,2 (primavera) = 26,88/h',
+    );
+
+    // No vigésimo quinto dia o ofício está dominado: a linha diz, a Crônica conta e o aviso chega.
+    await world.passTime(30 * HOUR, page);
+    await expect(farm).toContainText('Ofício dominado · +30% de produção');
+    await expect(farm).not.toContainText('subindo');
+    await expect(farm.getByRole('progressbar')).toHaveAttribute('value', '100');
+    const news =
+      /os lavradores de Pedra Alta dominaram o ofício: já não há sulco torto nos campos\./;
+    const notice = toasts(page).getByRole('status').filter({ hasText: news });
+    await expect(notice).toBeVisible();
+    await expect(notice.locator('.codicon-star-full')).toBeVisible();
+    await expect(
+      fief(page).getByRole('region', { name: 'Crônica' }).getByRole('listitem').filter({
+        hasText: news,
+      }),
+    ).toHaveCount(1);
+    // Quem chega agora ao ofício dominado também se adapta, e a frase do "+1" já conta com a mestria.
+    await expect(farm).toContainText(
+      /\+1 aqui: \+\d+(,\d)?\/h agora, \+\d+(,\d)?\/h depois de 2 h/,
+    );
   });
 });

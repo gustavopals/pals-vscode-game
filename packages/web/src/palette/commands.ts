@@ -29,8 +29,10 @@ import {
   upgradeName,
 } from '../ui/format';
 import type { TreeNode } from '../ui/treeModel';
+import { allocationMessage, nextWorkerGain, workersCount } from '../ui/workers';
 
 type WorkerRow = ViewState['workers'][number];
+type WorkersRules = ViewState['workersRules'];
 type BuildingId = ViewState['constructions']['available'][number]['building'];
 type PlannedRow = ViewState['constructions']['planned'][number];
 
@@ -82,17 +84,21 @@ export function workersPreview(row: WorkerRow, free: number, input: string): str
   return null;
 }
 
-/** A taxa que o edifício passaria a render com o número digitado. */
-export function workersValidation(row: WorkerRow, free: number, input: string): Validation {
+/**
+ * O que o edifício passaria a render com o número digitado, antes de confirmar: quem chega rende
+ * menos enquanto se adapta, e a frase diz quanto, por quanto tempo e o que vem depois (GDD §5.4).
+ */
+export function workersValidation(
+  row: WorkerRow,
+  rules: WorkersRules,
+  free: number,
+  input: string,
+): Validation {
   const problem = workersPreview(row, free, input);
   if (problem !== null) {
     return { message: problem, severity: 'error' };
   }
-  const count = Number(input);
-  return {
-    message: `${count} × ${formatNumber(row.perWorkerPerHour)} = ${formatNumber(count * row.perWorkerPerHour)}/h`,
-    severity: 'info',
-  };
+  return { message: allocationMessage(row, rules, Number(input)), severity: 'info' };
 }
 
 // A regra do nome é a do protocolo: o app não repete os limites.
@@ -135,14 +141,21 @@ export function createCommands(
     return view;
   };
 
+  // A lista já mostra o custo da troca: a regra, na frase do servidor, e o que um trabalhador a
+  // mais rende em cada edifício, agora e depois da adaptação.
   const pickWorker = (view: ViewState) =>
     dialogs.pick<WorkerRow>({
       title: 'Alocar trabalhadores',
-      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}`,
+      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}. ${view.workersRules.adaptationText}`,
       items: view.workers.map((row) => ({
         label: `${row.label} Nv${row.level}`,
-        description: `${row.assigned} ${row.assigned === 1 ? 'trabalhador' : 'trabalhadores'} · ${formatNumber(row.grossPerHour)}/h`,
-        detail: row.breakdown,
+        description: [
+          `${workersCount(row.assigned)} · ${formatNumber(row.grossPerHour)}/h`,
+          row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+        ]
+          .filter((part) => part !== null)
+          .join(' · '),
+        detail: `+1: ${nextWorkerGain(row, view.workersRules)}. ${row.breakdown}`,
         value: row,
       })),
     });
@@ -159,12 +172,18 @@ export function createCommands(
       return;
     }
     const { free } = view.population;
+    const rules = view.workersRules;
     const answer = await dialogs.input({
       title: `${row.label} Nv${row.level}`,
-      prompt: `Quantos trabalhadores? Hoje são ${row.assigned}; há ${free} livres. Cada um rende ${formatNumber(row.perWorkerPerHour)}/h aqui.`,
+      prompt: [
+        `Quantos trabalhadores? Hoje são ${row.assigned}${row.adapting > 0 ? ` (${row.adapting} em adaptação)` : ''}; há ${free} livres.`,
+        `Cada um rende ${formatNumber(row.perWorkerPerHour)}/h aqui; quem chega agora, ${formatNumber(row.perNewWorkerPerHour)}/h.`,
+        rules.adaptationText,
+      ].join(' '),
       value: String(row.assigned),
       confirmLabel: 'Alocar',
-      validate: (value) => workersValidation(row, free, value),
+      // A cada tecla: o que o número digitado rende agora e depois da adaptação.
+      validate: (value) => workersValidation(row, rules, free, value),
     });
     if (answer !== undefined && Number(answer) !== row.assigned) {
       await controller.order('setWorkers', { building: row.building, count: Number(answer) });

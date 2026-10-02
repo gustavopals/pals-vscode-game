@@ -25,11 +25,15 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'objectiveCompleted',
   // O depósito encheu: nada se quebra, mas a produção passa a ir ao chão. Uma vez por episódio.
   'storageFilled',
+  // Um ofício chegou ao máximo da experiência: boa notícia, uma vez por edifício e por ano.
+  'craftMastered',
 ];
 /** O ícone próprio de um aviso; sem entrada aqui, vale o do tom (aviso ou informação). */
 const ICONS: Partial<Record<GameEvent['type'], string>> = {
   coldStarted: 'flame',
   coldEnded: 'flame',
+  // Uma conquista do feudo: a estrela a distingue de um aviso comum.
+  craftMastered: 'star-full',
 };
 
 export type PolicyInput = {

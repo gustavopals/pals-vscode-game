@@ -38,7 +38,9 @@ export function FiefTab(props: {
           <ResourcesTable view={view} disabled={disabled} actions={actions} />
           <WorkersPanel
             workers={view.workers}
+            rules={view.workersRules}
             population={view.population}
+            elapsed={elapsed}
             disabled={disabled}
             actions={actions}
           />
