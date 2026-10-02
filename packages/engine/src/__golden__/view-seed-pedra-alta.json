@@ -25,7 +25,8 @@
           "A produção de madeira e pedra passa de × 1 para × 1,15.",
           "O recrutamento volta ao prazo de sempre."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": null
       }
     },
     "population": {
@@ -552,7 +553,13 @@
           "A produção de madeira e pedra passa de × 1 para × 1,15.",
           "O recrutamento volta ao prazo de sempre."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": {
+          "perHour": 22,
+          "stockAtTurn": 500,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +22,05/h."
+        }
       }
     },
     "population": {
@@ -1095,7 +1102,13 @@
           "A produção de madeira e pedra passa de × 1 para × 1,15.",
           "O recrutamento volta ao prazo de sempre."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": {
+          "perHour": 19,
+          "stockAtTurn": 500,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +19,05/h."
+        }
       }
     },
     "population": {
@@ -1637,6 +1650,12 @@
           "stock": 60,
           "missing": 156,
           "text": "O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira."
+        },
+        "food": {
+          "perHour": 33.6,
+          "stockAtTurn": 1211,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +33,61/h."
         }
       }
     },
@@ -2177,7 +2196,13 @@
           "As obras voltam ao prazo de sempre.",
           "Ninguém queima mais lenha: o frio, se houver, passa."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": {
+          "perHour": 158.6,
+          "stockAtTurn": 1835,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida na Primavera será de +158,6/h."
+        }
       }
     },
     "population": {
@@ -2734,7 +2759,13 @@
           "A produção de madeira e pedra passa de × 1,15 para × 1.",
           "A produção de ouro passa de × 1 para × 1,1."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": {
+          "perHour": 116.7,
+          "stockAtTurn": 900,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +116,72/h."
+        }
       }
     },
     "population": {
@@ -3463,6 +3494,12 @@
           "stock": 436,
           "missing": 0,
           "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
+        },
+        "food": {
+          "perHour": 18.6,
+          "stockAtTurn": 1500,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +18,58/h."
         }
       }
     },
@@ -4013,7 +4050,8 @@
           "As obras voltam ao prazo de sempre.",
           "Ninguém queima mais lenha: o frio, se houver, passa."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": null
       }
     },
     "population": {
@@ -4581,7 +4619,13 @@
           "A produção de madeira e pedra passa de × 1,15 para × 1.",
           "A produção de ouro passa de × 1 para × 1,1."
         ],
-        "firewood": null
+        "firewood": null,
+        "food": {
+          "perHour": 97.6,
+          "stockAtTurn": 500,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +97,56/h."
+        }
       }
     },
     "population": {

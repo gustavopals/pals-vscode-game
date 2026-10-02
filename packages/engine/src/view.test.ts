@@ -52,6 +52,9 @@ describe('deriveViewState', () => {
           'O recrutamento volta ao prazo de sempre.',
         ],
         firewood: null,
+        // Ninguém na Fazenda: os 180 de comida acabam em 36 h, antes do verão. O prazo é o de
+        // agora (`depletesInSeconds`), e a previsão da estação que vem sai de cena.
+        food: null,
       },
     });
     expect(initial.population).toMatchObject({

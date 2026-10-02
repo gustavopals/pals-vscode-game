@@ -12,6 +12,8 @@ import {
   isNewBuilding,
   isWasting,
   joinList,
+  runsOutIn,
+  runsOutWhy,
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
@@ -62,7 +64,11 @@ function allocateTo(view: ViewState, resource: Row['id']): LeavingItem['command'
       };
 }
 
-/** A fome em andamento, ou a comida que acaba antes de um dia. */
+/**
+ * A fome em andamento, ou a comida que acaba antes de um dia. O prazo atravessa a virada de
+ * estação (`runsOutIn`): a comida que cresce no outono e acaba no começo do inverno entra aqui,
+ * com a estação que vem, o saldo que ela traz e o prazo, todos da previsão do servidor.
+ */
 function foodItem(view: ViewState): LeavingItem | null {
   const food = view.resources.find((row) => row.id === 'food');
   if (food === undefined) {
@@ -77,9 +83,20 @@ function foodItem(view: ViewState): LeavingItem | null {
       command,
     };
   }
-  const runsOut = food.depletesInSeconds;
+  const runsOut = runsOutIn(view, food);
   if (runsOut === null || runsOut >= LEAVING_HORIZON_SECONDS) {
     return null;
+  }
+  const next = view.calendar.nextSeason;
+  if (next.food !== null && runsOutWhy(view, food) !== null) {
+    return {
+      id: 'food',
+      severity: urgency(runsOut),
+      text:
+        `${next.label} em ${formatApprox(next.secondsUntil)}: ` +
+        `o saldo de comida passa a ${formatRate(next.food.perHour)}, e ela acaba em ${formatApprox(runsOut)}.`,
+      command,
+    };
   }
   return {
     id: 'food',

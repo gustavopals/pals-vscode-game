@@ -85,17 +85,42 @@ type ResourceRow = ViewState['resources'][number];
 
 /**
  * Em quanto tempo um estoque acaba, ou `null` se ele não acaba. É o `depletesInSeconds` da
- * visão, com um cuidado na madeira do inverno: esse prazo é a conta do estoque pela taxa de
- * agora e não olha o calendário, e a lareira apaga quando a estação vira. Com lenha para o
- * resto do inverno, "acaba em 4 dias" a um dia da primavera seria alarme falso. Quem olha o
- * calendário é a conta da lenha (`winter.firewood.missing`), feita pelo motor: sem nada
- * faltando, a madeira não acaba.
+ * visão, com dois cuidados: esse prazo é a conta do estoque pela taxa de agora e não olha o
+ * calendário. Na madeira do inverno, a lareira apaga quando a estação vira: com lenha para o
+ * resto do inverno, "acaba em 4 dias" a um dia da primavera seria alarme falso, e quem olha o
+ * calendário é a conta da lenha (`winter.firewood.missing`), feita pelo motor. Na comida, a
+ * virada muda o que a Fazenda rende: do outro lado dela vale a previsão do motor (`foodAhead`).
  */
 export function runsOutIn(view: ViewState, row: ResourceRow): number | null {
   if (row.id === 'wood' && view.winter !== null && view.winter.firewood.missing === 0) {
     return null;
   }
-  return row.depletesInSeconds;
+  const ahead = foodAhead(view, row);
+  return ahead === null ? row.depletesInSeconds : ahead.depletesInSeconds;
+}
+
+/**
+ * A previsão da comida da estação que vem, quando é ela que sabe o prazo. O `depletesInSeconds`
+ * da linha é a conta pela taxa da estação de agora: enquanto ele cai antes da virada, vale. Sem
+ * prazo (a comida cresce no outono) ou com o prazo do outro lado da virada (a Fazenda vai render
+ * outra coisa), quem fez a conta atravessando a virada foi o servidor
+ * (`calendar.nextSeason.food`). `null` quando vale a linha.
+ */
+function foodAhead(view: ViewState, row: ResourceRow): ViewState['calendar']['nextSeason']['food'] {
+  const { food, secondsUntil } = view.calendar.nextSeason;
+  if (row.id !== 'food' || food == null) {
+    return null;
+  }
+  return row.depletesInSeconds === null || row.depletesInSeconds > secondsUntil ? food : null;
+}
+
+/**
+ * Por que o prazo de `runsOutIn` não é o que a taxa de agora daria: a conta do servidor para a
+ * estação que vem, em uma frase. `null` quando o prazo é o da linha, ou quando não há prazo.
+ */
+export function runsOutWhy(view: ViewState, row: ResourceRow): string | null {
+  const ahead = foodAhead(view, row);
+  return ahead === null || ahead.depletesInSeconds === null ? null : ahead.text;
 }
 
 /**

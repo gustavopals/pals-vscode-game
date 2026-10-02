@@ -9,11 +9,13 @@ import {
   autumnView,
   coldView,
   craftsView,
+  FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
   proudView,
   queuesView,
   unlockedView,
   winterWith,
+  withFoodAhead,
   withPlanned,
   withQueues,
   withResource,
@@ -38,6 +40,7 @@ import {
   refundSentence,
   remainingNow,
   runsOutIn,
+  runsOutWhy,
   soonestConstruction,
   statusBar,
   type StatusBarInput,
@@ -177,6 +180,48 @@ describe('estoque que acaba', () => {
 
   it('no frio não há prazo: a madeira já acabou', () => {
     expect(firewoodRunsOutIn(coldView)).toBeNull();
+  });
+
+  it('a comida que só acaba depois da virada de estação: o prazo é o da previsão do servidor', () => {
+    const row = (view: ViewState) => {
+      const found = food(view);
+      if (found === undefined) {
+        throw new Error('A visão não trouxe a comida.');
+      }
+      return found;
+    };
+    // Crescendo agora: a linha não tem prazo, e a previsão da estação que vem tem.
+    const growing = withFoodAhead(
+      withResource(autumnView, 'food', { perHour: 9, depletesInSeconds: null }),
+      FOOD_RUNS_OUT_AHEAD,
+      3600,
+    );
+    expect(runsOutIn(growing, row(growing))).toBe(FOOD_RUNS_OUT_AHEAD.depletesInSeconds);
+    expect(runsOutWhy(growing, row(growing))).toBe(FOOD_RUNS_OUT_AHEAD.text);
+    // Caindo devagar: o prazo da linha passa da virada e é a conta pela taxa de agora.
+    const slow = withFoodAhead(
+      withResource(autumnView, 'food', { perHour: -1, depletesInSeconds: 144_000 }),
+      FOOD_RUNS_OUT_AHEAD,
+      3600,
+    );
+    expect(runsOutIn(slow, row(slow))).toBe(FOOD_RUNS_OUT_AHEAD.depletesInSeconds);
+    // A previsão sem prazo: a comida atravessa a estação que vem, e não há alarme.
+    const lasting = withFoodAhead(slow, { ...FOOD_RUNS_OUT_AHEAD, depletesInSeconds: null }, 3600);
+    expect(runsOutIn(lasting, row(lasting))).toBeNull();
+    expect(runsOutWhy(lasting, row(lasting))).toBeNull();
+    // Acabando antes da virada, ou sem previsão: vale o prazo da linha, sem explicação a mais.
+    const soon = withFoodAhead(
+      withResource(autumnView, 'food', { perHour: -5, depletesInSeconds: 1800 }),
+      FOOD_RUNS_OUT_AHEAD,
+      3600,
+    );
+    expect(runsOutIn(soon, row(soon))).toBe(1800);
+    expect(runsOutWhy(soon, row(soon))).toBeNull();
+    const alone = withFoodAhead(slow, null, 3600);
+    expect(runsOutIn(alone, row(alone))).toBe(144_000);
+    // Só a comida tem essa previsão.
+    expect(runsOutIn(growing, wood(growing))).toBe(wood(growing).depletesInSeconds);
+    expect(runsOutWhy(growing, wood(growing))).toBeNull();
   });
 });
 
@@ -1055,6 +1100,24 @@ describe('árvore', () => {
     expect(both).toMatchObject({ description: 'Inverno, dia 4 · fome · frio', icon: 'warning' });
     expect(both?.tooltip).toContain('Fome: a produção cai para 75%.');
     expect(both?.tooltip).toContain('Frio: sem lenha');
+  });
+
+  it('a comida que acaba depois da virada de estação diz o prazo, e a explicação traz a conta', () => {
+    const ahead = withFoodAhead(autumnView, FOOD_RUNS_OUT_AHEAD, 3600);
+    const food = find(buildTree({ ...input, view: ahead }), 'resource:food');
+    const row = autumnView.resources.find((entry) => entry.id === 'food');
+    // A taxa é a de agora, positiva; o prazo é o da previsão do servidor.
+    expect(food?.description).toMatch(/\(\+[\d,]+\/h\) · acaba em 8 h$/);
+    expect(food?.tooltip?.split('\n')).toEqual([
+      row?.breakdown,
+      'Celeiro Nv3: 2.100',
+      'Não enche antes da virada para o Inverno.',
+      FOOD_RUNS_OUT_AHEAD.text,
+    ]);
+    // Sem a previsão, a linha e a explicação são as de sempre.
+    const plain = find(buildTree({ ...input, view: autumnView }), 'resource:food');
+    expect(plain?.description).not.toContain('acaba em');
+    expect(plain?.tooltip).not.toContain('a virada encontra');
   });
 
   it('um estoque que está acabando diz em quanto tempo', () => {

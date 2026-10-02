@@ -171,6 +171,18 @@ function atPace(view: ViewState, pace: number): ViewState {
         ...view.calendar.nextSeason,
         secondsUntil: up(view.calendar.nextSeason.secondsUntil),
         firewood: firewoodAtPace(view.calendar.nextSeason.firewood, pace),
+        // A previsão da comida: o saldo é uma taxa e o prazo, contado de agora, um prazo.
+        food:
+          view.calendar.nextSeason.food === null
+            ? null
+            : {
+                ...view.calendar.nextSeason.food,
+                perHour: scaled(view.calendar.nextSeason.food.perHour),
+                depletesInSeconds:
+                  view.calendar.nextSeason.food.depletesInSeconds === null
+                    ? null
+                    : down(view.calendar.nextSeason.food.depletesInSeconds),
+              },
       },
     },
     population: {
@@ -282,6 +294,11 @@ function withoutRateTexts(view: ViewState): ViewState {
       nextSeason: {
         ...view.calendar.nextSeason,
         changes: view.calendar.nextSeason.firewood === null ? view.calendar.nextSeason.changes : [],
+        // A frase da previsão da comida cita o saldo por hora e um prazo em tempo real.
+        food:
+          view.calendar.nextSeason.food === null
+            ? null
+            : { ...view.calendar.nextSeason.food, text: '' },
       },
     },
     // A frase de um depósito cheio cita o que vai ao chão por hora.
@@ -312,8 +329,16 @@ function withoutRateTexts(view: ViewState): ViewState {
 
 /** A visão sem o saldo por hora dos recursos nem o que vai ao chão, conferidos à parte. */
 function withoutNetRates(view: ViewState): ViewState {
+  const { nextSeason } = view.calendar;
   return {
     ...view,
+    calendar: {
+      ...view.calendar,
+      nextSeason: {
+        ...nextSeason,
+        food: nextSeason.food === null ? null : { ...nextSeason.food, perHour: 0 },
+      },
+    },
     resources: view.resources.map((entry) => ({ ...entry, perHour: 0, wastingPerHour: 0 })),
   };
 }
@@ -333,6 +358,12 @@ function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
     const wasted = expected.resources[index]?.wastingPerHour ?? Number.NaN;
     expect(Math.abs(entry.wastingPerHour - wasted), entry.id).toBeLessThanOrEqual(0.2 + 1e-9);
     expect(entry.wastingPerHour > 0, entry.id).toBe(wasted > 0);
+  }
+  // O saldo de comida da estação que vem é um saldo como os outros, com o mesmo arredondamento.
+  const ahead = fastView.calendar.nextSeason.food;
+  const aheadTripled = expected.calendar.nextSeason.food;
+  if (ahead !== null && aheadTripled !== null) {
+    expect(Math.abs(ahead.perHour - aheadTripled.perHour)).toBeLessThanOrEqual(0.2 + 1e-9);
   }
 }
 

@@ -96,6 +96,38 @@ export function withResource(
   };
 }
 
+/**
+ * A previsão da comida de uma estação que vem com a Fazenda rendendo menos: o saldo fica
+ * negativo e a comida acaba 7 h 03 min depois da virada. São os números que o motor dá ao feudo
+ * de 30 habitantes a uma hora do inverno (`seasonView.test.ts`).
+ */
+export const FOOD_RUNS_OUT_AHEAD: NonNullable<ViewState['calendar']['nextSeason']['food']> = {
+  perHour: -18.5,
+  stockAtTurn: 129,
+  depletesInSeconds: 8 * 3600 + 196,
+  text: 'Com a gente de agora na Fazenda, o saldo de comida no Inverno será de −18,46/h: o estoque de 129 que a virada encontra acaba 7 h 03 min depois dela. Mande mais gente para a Fazenda ou guarde comida antes.',
+};
+
+/**
+ * A mesma visão a `secondsUntil` da virada de estação, com esta previsão da comida para a
+ * estação que vem. A conta é do motor; aqui os números são postos à mão para o app mostrar
+ * cada caso.
+ */
+export function withFoodAhead(
+  view: ViewState,
+  food: ViewState['calendar']['nextSeason']['food'],
+  secondsUntil: number = view.calendar.nextSeason.secondsUntil,
+): ViewState {
+  return {
+    ...view,
+    calendar: {
+      ...view.calendar,
+      secondsToNextSeason: secondsUntil,
+      nextSeason: { ...view.calendar.nextSeason, secondsUntil, food },
+    },
+  };
+}
+
 /** A mesma visão com campos de uma obra disponível trocados (bloqueio, custo, efeito). */
 export function withUpgrade(
   view: ViewState,

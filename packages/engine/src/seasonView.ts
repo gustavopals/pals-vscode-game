@@ -12,9 +12,12 @@ import {
 } from './clock';
 import { buildingWithArticle } from './construction';
 import { handsAt } from './craft';
-import { firewoodRate, producerOf, productionRate } from './economy';
-import { decimal, joinList, plural, sentenceCase } from './format';
-import type { FirewoodView, GameState, ProductionBuildingId } from './types';
+import { type CraftForecast, craftForecast, inMs } from './craftProjection';
+import { firewoodRate, foodRunsOutIn, netRates, producerOf, productionRate } from './economy';
+import { decimal, durationText, joinList, plural, sentenceCase, thousands } from './format';
+import { settleScarcity } from './scarcity';
+import { cloneState } from './state';
+import type { FirewoodView, FoodForecastView, GameState, ProductionBuildingId } from './types';
 import { HOUR_MS, MILLI, SECOND_MS } from './units';
 
 const isNeutral = (ratio: Ratio) => ratio.num === ratio.den;
@@ -257,6 +260,89 @@ export function firewoodForecast(
 /** Segundos reais (para baixo) de uma duração em ms de jogo. */
 function realSecondsFloor(gameMs: number, timeScale: number): number {
   return Math.max(0, Math.floor(gameMs / timeScale / SECOND_MS));
+}
+
+/**
+ * A previsão da comida da próxima estação (GDD §4.1 e §5.6): o saldo logo depois da virada e,
+ * se ele não cobre as bocas, quando a comida acaba. O prazo de agora (`depletesInSeconds`) só
+ * olha a estação de agora: no outono, com a Fazenda rendendo mais, ele se cala, e é o inverno
+ * que esvazia a despensa.
+ *
+ * A conta é a da projeção do ofício, duas vezes. Primeiro até a virada, com os fatores de
+ * agora: é o estoque, a experiência e a moral que a virada deve encontrar. Depois, com o
+ * relógio posto na virada (a estação já é a outra, e a fome e o frio se acomodam como no
+ * motor), pela estação que vem, virada de dia a virada de dia. Como toda previsão da visão,
+ * conta com os habitantes e os trabalhadores de agora e não sorteia nada.
+ *
+ * `null` com fome aberta e quando a comida ou a lenha acabam antes da virada: aí o alarme é o
+ * da estação de agora, e dali em diante a visão não adivinha.
+ */
+export function foodForecast(
+  state: GameState,
+  timeScale: number,
+  forecast: CraftForecast,
+): FoodForecastView | null {
+  if (state.settlement.famine !== null) {
+    return null;
+  }
+  const now = state.lastProcessedAt;
+  const next = seasonAfter(seasonAt(now));
+  const turn = nextSeasonBoundary(now);
+  const found = forecast.stateAt(turn);
+  if (found === null) {
+    return null;
+  }
+  // Uma cópia inteira: o acerto de fome e frio mexe em listas que a projeção divide com o estado.
+  const atTurn = cloneState(found);
+  atTurn.lastProcessedAt = turn;
+  atTurn.clock.gameTimeMs = turn;
+  settleScarcity(atTurn, turn, []);
+
+  const rate = netRates(atTurn).food;
+  const perHour = (rate * timeScale) / MILLI;
+  const stockAtTurn = Math.floor(atTurn.settlement.resources.food / MILLI);
+  const farm = buildingWithArticle(producerOf('food'));
+  const food = balance.resources.food.label.toLowerCase();
+  const lead = `Com a gente de agora n${farm}, o saldo de ${food} ${inSeason(next)} será de ${rate >= 0 ? '+' : '−'}${decimal(Math.abs(perHour))}/h`;
+  const numbers = { perHour: Math.round(perHour * 10) / 10, stockAtTurn };
+  if (rate >= 0) {
+    return { ...numbers, depletesInSeconds: null, text: `${lead}.` };
+  }
+  const remedy = `Mande mais gente para ${farm} ou guarde ${food} antes.`;
+  const stock = `o estoque de ${thousands(stockAtTurn)} que a virada encontra`;
+  if (atTurn.settlement.famine !== null) {
+    return {
+      ...numbers,
+      depletesInSeconds: realSecondsFloor(turn - now, timeScale),
+      text: `${lead}, e a virada encontra o estoque vazio: a fome começa com ela. ${remedy}`,
+    };
+  }
+  const ahead = craftForecast(atTurn);
+  const seasonEnd = turn + next.days * DAY_MS;
+  const runsOut = ahead.find(
+    (stretch, rates) => inMs(foodRunsOutIn(stretch, rates)),
+    seasonEnd,
+  )?.inMs;
+  if (runsOut !== undefined) {
+    // Para baixo, ao minuto (`durationText` arredonda para cima a partir de dez minutos): a
+    // frase nunca promete mais comida do que há.
+    const seconds = realSecondsFloor(runsOut, timeScale);
+    const afterTurn = seconds < 600 ? seconds : Math.floor(seconds / 60) * 60;
+    return {
+      ...numbers,
+      depletesInSeconds: realSecondsFloor(turn - now + runsOut, timeScale),
+      text: `${lead}: ${stock} acaba ${durationText(afterTurn)} depois dela. ${remedy}`,
+    };
+  }
+  return {
+    ...numbers,
+    depletesInSeconds: null,
+    text:
+      ahead.stateAt(seasonEnd) === null
+        ? // A projeção parou antes do fim da estação: a lenha acaba primeiro.
+          `${lead}. A lenha acaba antes da ${food}: com o frio, ${farm} rende menos ainda.`
+        : `${lead}: ${stock} atravessa a estação.`,
+  };
 }
 
 /**

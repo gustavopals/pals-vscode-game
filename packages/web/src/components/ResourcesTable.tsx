@@ -7,6 +7,7 @@ import {
   isNewBuilding,
   isWasting,
   runsOutIn,
+  runsOutWhy,
   storageNotice,
 } from '../ui/format';
 import type { Actions } from './actions';
@@ -25,7 +26,15 @@ function Trend(props: { view: ViewState; row: Row }) {
   const { view, row } = props;
   const runsOut = runsOutIn(view, row);
   if (runsOut !== null) {
-    return <span class="warning">acaba em {formatApprox(runsOut)}</span>;
+    // Quando o prazo é do outro lado da virada de estação, a conta do servidor o explica: a
+    // taxa da linha, a de agora, pode até ser positiva.
+    const why = runsOutWhy(view, row);
+    const deadline = `acaba em ${formatApprox(runsOut)}`;
+    return (
+      <span class="warning">
+        {why === null ? deadline : <Explained why={why}>{deadline}</Explained>}
+      </span>
+    );
   }
   if (isWasting(row)) {
     return (

@@ -46,6 +46,7 @@ import {
 import {
   constructionDurationNote,
   firewoodForecast,
+  foodForecast,
   recruitmentDurationNote,
   seasonChanges,
   seasonEffectsText,
@@ -330,6 +331,7 @@ export function deriveViewState(
         secondsUntil: until(nextSeasonBoundary(now)),
         changes: seasonChanges(date.season, nextSeason, timeScale),
         firewood: firewoodForecast(state, timeScale, nextMorale),
+        food: foodForecast(state, timeScale, forecast),
       },
     },
     population: {

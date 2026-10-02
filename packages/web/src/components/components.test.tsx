@@ -18,12 +18,14 @@ import {
   catalogFixture,
   coldView,
   craftsView,
+  FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
   initialView,
   proudView,
   queuesView,
   unlockedView,
   winterWith,
+  withFoodAhead,
   withPlanned,
   withQueues,
   withResource,
@@ -999,6 +1001,24 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(autumn).not.toContain('storage-notes');
     // O ouro não tem limite: cresce, e não há o que explicar.
     expect(row(autumn, 'Ouro')).toContain('<span class="muted">crescendo</span>');
+  });
+
+  it('a comida que cresce agora e acaba depois da virada: o prazo, com a conta do servidor', () => {
+    const ahead = withFoodAhead(autumnView, FOOD_RUNS_OUT_AHEAD, 3600);
+    const food = row(fief({ view: ahead }), 'Comida');
+    // O prazo passa na frente de "crescendo", e a explicação é a frase da previsão.
+    expect(food).toContain('<span class="warning">');
+    expect(food).toContain(`data-tip="${FOOD_RUNS_OUT_AHEAD.text}">acaba em 8 h`);
+    expect(food).not.toContain('crescendo');
+    // Sem prazo na previsão (a comida atravessa a estação), a linha continua como era.
+    const lasting = withFoodAhead(
+      autumnView,
+      { ...FOOD_RUNS_OUT_AHEAD, depletesInSeconds: null },
+      3600,
+    );
+    expect(row(fief({ view: lasting }), 'Comida')).toContain(
+      'data-tip="Não enche antes da virada para o Inverno.">crescendo',
+    );
   });
 
   it('o que acaba passa na frente do que enche', () => {

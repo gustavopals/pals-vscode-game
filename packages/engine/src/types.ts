@@ -350,6 +350,27 @@ export type FirewoodView = {
   text: string;
 };
 
+/**
+ * A comida na estação que vem (GDD §4.1 e §5.6): o saldo logo depois da virada e, se ele não
+ * cobre as bocas, quando a comida acaba. A conta parte do que a virada deve encontrar no
+ * estoque, com os habitantes e os trabalhadores de agora, e segue pela estação com o que o
+ * ofício e a moral mudam sozinhos. É o que responde "posso sair sem olhar para a Fazenda?"
+ * quando o prazo da estação de agora (`resources[].depletesInSeconds`) ainda não diz nada.
+ */
+export type FoodForecastView = {
+  /** Saldo de comida por hora real logo depois da virada. */
+  perHour: number;
+  /** Comida que a virada deve encontrar em estoque, em unidades. */
+  stockAtTurn: number;
+  /**
+   * Segundos reais, a contar de agora, até a comida acabar na estação que vem. `null` quando
+   * ela cresce ou atravessa a estação, e quando a lenha acaba antes: com o frio a conta é outra.
+   */
+  depletesInSeconds: number | null;
+  /** A conta em uma frase, pronta para exibir. */
+  text: string;
+};
+
 /** O que a moral vale: o número, a faixa e o fator que ela põe na produção. */
 export type MoraleLevelView = {
   /** De 0 a 100. */
@@ -463,6 +484,11 @@ export type ViewState = {
       changes: string[];
       /** A conta da lenha, quando a próxima estação queima madeira; `null` nas outras. */
       firewood: FirewoodView | null;
+      /**
+       * A previsão da comida depois da virada. `null` com fome, e quando a comida ou a lenha
+       * acabam antes da virada: o alarme é o da estação de agora.
+       */
+      food: FoodForecastView | null;
     };
   };
   population: {

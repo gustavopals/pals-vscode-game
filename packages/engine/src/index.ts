@@ -21,6 +21,7 @@ export type {
   Construction,
   DifficultyId,
   FirewoodView,
+  FoodForecastView,
   GameEvent,
   GameEventType,
   GameSettings,

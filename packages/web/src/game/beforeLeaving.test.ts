@@ -6,12 +6,14 @@ import {
   autumnView,
   coldView,
   craftsView,
+  FOOD_RUNS_OUT_AHEAD,
   impoverishedView,
   initialView,
   proudView,
   queuesView,
   unlockedView,
   winterWith,
+  withFoodAhead,
   withPlanned,
   withQueues,
   withResource,
@@ -85,6 +87,53 @@ describe('antes de partir', () => {
         text: 'A fome já dura 40 h: saldo de comida de −3/h.',
         command: { id: 'lords.allocateWorkers', arg: 'farm', label: 'Alocar na Fazenda' },
       });
+    });
+  });
+
+  describe('comida, do outro lado da virada de estação', () => {
+    const farm = { id: 'lords.allocateWorkers', arg: 'farm', label: 'Alocar na Fazenda' };
+    /** A comida cresce com a estação de agora: o prazo da linha não tem o que dizer. */
+    const growing = withResource(prepared, 'food', { perHour: 9, depletesInSeconds: null });
+    const season = prepared.calendar.nextSeason.label;
+
+    it('cresce agora e acaba depois da virada: a estação, o saldo que vem, o prazo e a Fazenda', () => {
+      expect(only(withFoodAhead(growing, FOOD_RUNS_OUT_AHEAD, HOUR))).toEqual({
+        id: 'food',
+        severity: 'warning',
+        text: `${season} em 1 h: o saldo de comida passa a −18,5/h, e ela acaba em 8 h.`,
+        command: farm,
+      });
+    });
+
+    it('acaba antes de uma ausência comum: é urgente; a um dia ou mais, nada a dizer', () => {
+      const within = (seconds: number | null) =>
+        withFoodAhead(growing, { ...FOOD_RUNS_OUT_AHEAD, depletesInSeconds: seconds }, HOUR);
+      expect(only(within(8 * HOUR - 1)).severity).toBe('danger');
+      expect(only(within(24 * HOUR - 1)).severity).toBe('warning');
+      expect(beforeLeaving(within(24 * HOUR))).toEqual([]);
+      // A comida atravessa a estação que vem: a previsão não tem prazo.
+      expect(beforeLeaving(within(null))).toEqual([]);
+    });
+
+    it('caindo devagar agora e depressa depois da virada: vale o prazo da previsão', () => {
+      // Pela taxa do outono seriam 40 h; a virada, daqui a uma hora, muda a conta.
+      const slow = withResource(prepared, 'food', { perHour: -1, depletesInSeconds: 40 * HOUR });
+      expect(beforeLeaving(withFoodAhead(slow, null, HOUR))).toEqual([]);
+      expect(
+        only(withFoodAhead(slow, { ...FOOD_RUNS_OUT_AHEAD, depletesInSeconds: 5 * HOUR }, HOUR)),
+      ).toEqual({
+        id: 'food',
+        severity: 'danger',
+        text: `${season} em 1 h: o saldo de comida passa a −18,5/h, e ela acaba em 5 h.`,
+        command: farm,
+      });
+    });
+
+    it('acabando antes da virada, o prazo é o de agora', () => {
+      const soon = withResource(prepared, 'food', { perHour: -5, depletesInSeconds: 3 * HOUR });
+      expect(only(withFoodAhead(soon, FOOD_RUNS_OUT_AHEAD, 10 * HOUR)).text).toBe(
+        'A comida acaba em 3 h: saldo de −5/h.',
+      );
     });
   });
 

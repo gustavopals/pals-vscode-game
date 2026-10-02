@@ -74,6 +74,14 @@ describe('calendário: a próxima estação', () => {
         'O recrutamento volta ao prazo de sempre.',
       ],
       firewood: null,
+      // 5 lavradores com a mestria e a moral que a virada encontra, sem o fator da primavera:
+      // 64,47 por hora, contra 5 de consumo. A despensa já está cheia.
+      food: {
+        perHour: 59.5,
+        stockAtTurn: 500,
+        depletesInSeconds: null,
+        text: 'Com a gente de agora na Fazenda, o saldo de comida no Verão será de +59,47/h.',
+      },
     });
   });
 
@@ -161,6 +169,158 @@ describe('calendário: a próxima estação', () => {
       'A lareira passa a queimar 1,5 de madeira por habitante por hora; sem madeira, vem o frio.',
     );
     expect(real.changes.slice(0, -1)).toEqual(game.changes.slice(0, -1));
+  });
+});
+
+describe('calendário: a comida da próxima estação', () => {
+  /**
+   * A uma hora do inverno: 30 habitantes nas casas cheias, 3 na Fazenda e 27 na Serraria, 120 de
+   * comida e madeira de sobra. No outono a Fazenda rende 39 por hora e o saldo é de +9.
+   */
+  const beforeWinter = (edit: (draft: GameState) => void = () => {}) =>
+    gameAt(WINTER - HOUR, (draft) => {
+      const { settlement } = draft;
+      settlement.population.villagers = 30;
+      settlement.buildings.housing = 5;
+      settlement.workers = { farm: 3, lumberMill: 27, quarry: 0, goldMine: 0 };
+      settlement.resources = { ...settlement.resources, food: 120_000, wood: 400_000 };
+      edit(draft);
+    });
+  const foodOf = (derived: ViewState) => {
+    const food = derived.resources.find((row) => row.id === 'food');
+    if (food === undefined) {
+      throw new Error('A visão não trouxe a comida.');
+    }
+    return food;
+  };
+  /** O instante de jogo em que a fome começa, se ninguém fizer nada. */
+  const famineAt = (state: GameState, withinMs: number) =>
+    advanceTo(state, state.lastProcessedAt + withinMs).events.find(
+      (event) => event.type === 'famineStarted',
+    )?.atMs;
+
+  it('saldo positivo no outono e negativo no inverno: a visão diz quando a comida acaba depois da virada', () => {
+    const state = beforeWinter();
+    const derived = view(state);
+    // Com a estação de agora a comida cresce: o prazo de agora não tem o que dizer.
+    expect(foodOf(derived)).toMatchObject({ stock: 120, perHour: 9, depletesInSeconds: null });
+    // Na virada: 129 de comida; a moral cai a 40 (casas cheias) e a Fazenda ganha 4 de
+    // experiência. 3 × 10 × 0,4 × 1,012 × 0,95 = 11,536 por hora, contra 30 de consumo: 129
+    // durariam 6 h 59 min. A experiência sobe mais 4 a cada virada de dia, e a fome só chega
+    // 7 h 03 min depois da virada. É o instante que o motor encontra, andando de verdade.
+    const starved = famineAt(state, DAY + 12 * HOUR);
+    expect(starved).toBe(WINTER + 7 * HOUR + 196_421);
+    expect(derived.calendar.nextSeason.food).toEqual({
+      perHour: -18.5,
+      stockAtTurn: 129,
+      // A uma hora da virada: 8 h 03 min 16 s, para baixo.
+      depletesInSeconds: 8 * 3600 + 196,
+      text: 'Com a gente de agora na Fazenda, o saldo de comida no Inverno será de −18,46/h: o estoque de 129 que a virada encontra acaba 7 h 03 min depois dela. Mande mais gente para a Fazenda ou guarde comida antes.',
+    });
+  });
+
+  it('a comida não acaba antes do prazo anunciado, em nenhum ritmo e de nenhum ponto do outono', () => {
+    for (const timeScale of [1, 3, 7, 0.5]) {
+      for (const before of [HOUR, 3 * HOUR + 1, DAY + 999, 2 * DAY + 100_001]) {
+        const state = gameAt(WINTER - before, (draft) => {
+          const { settlement } = draft;
+          settlement.population.villagers = 30;
+          settlement.buildings.housing = 5;
+          settlement.workers = { farm: 3, lumberMill: 27, quarry: 0, goldMine: 0 };
+          settlement.resources = { ...settlement.resources, food: 120_000, wood: 400_000 };
+        });
+        const seconds = view(state, timeScale).calendar.nextSeason.food?.depletesInSeconds;
+        if (seconds === null || seconds === undefined) {
+          throw new Error('O teste esperava a comida acabando no inverno.');
+        }
+        const gameMs = state.lastProcessedAt + seconds * 1000 * timeScale;
+        expect(gameMs).toBeGreaterThan(WINTER);
+        expect(advanceTo(state, gameMs - 1).state.settlement.famine).toBeNull();
+        expect(advanceTo(state, gameMs + 1000 * timeScale).state.settlement.famine).not.toBeNull();
+      }
+    }
+  });
+
+  it('no ritmo 3 os prazos e o saldo são os do relógio de quem joga', () => {
+    const game = view(beforeWinter()).calendar.nextSeason.food;
+    const real = view(beforeWinter(), 3).calendar.nextSeason.food;
+    expect(real).toMatchObject({ perHour: -55.4, stockAtTurn: 129 });
+    expect(real?.depletesInSeconds).toBe(Math.floor((game?.depletesInSeconds ?? 0) / 3));
+    expect(real?.text).toContain('será de −55,39/h');
+    expect(real?.text).toContain('acaba 2 h 21 min depois dela');
+  });
+
+  it('com comida que atravessa a estação, a previsão diz o saldo e não dá prazo', () => {
+    const stocked = beforeWinter((draft) => {
+      draft.settlement.buildings.granary = 3;
+      draft.settlement.resources.food = 700_000;
+    });
+    // 709 na virada, a −18,46 por hora: 24 horas de inverno levam 443.
+    expect(view(stocked).calendar.nextSeason.food).toMatchObject({
+      stockAtTurn: 709,
+      depletesInSeconds: null,
+      text: 'Com a gente de agora na Fazenda, o saldo de comida no Inverno será de −18,46/h: o estoque de 709 que a virada encontra atravessa a estação.',
+    });
+  });
+
+  it('com a Fazenda cobrindo as bocas também na estação que vem, só o saldo', () => {
+    const farmers = beforeWinter((draft) => {
+      draft.settlement.workers = { farm: 30, lumberMill: 0, quarry: 0, goldMine: 0 };
+    });
+    const { food } = view(farmers).calendar.nextSeason;
+    expect(food).toMatchObject({ depletesInSeconds: null });
+    expect(food?.perHour).toBeGreaterThan(0);
+    expect(food?.text).toMatch(
+      /^Com a gente de agora na Fazenda, o saldo de comida no Inverno será de \+[\d,]+\/h\.$/,
+    );
+  });
+
+  it('a despensa que a virada encontra vazia: a fome começa com ela', () => {
+    // Ninguém na Fazenda e comida para exatamente a hora que falta: 30 bocas, 30 de comida.
+    const empty = beforeWinter((draft) => {
+      draft.settlement.workers = { farm: 0, lumberMill: 27, quarry: 0, goldMine: 0 };
+      draft.settlement.resources.food = 30_000;
+    });
+    expect(famineAt(empty, DAY)).toBe(WINTER);
+    // O prazo de agora e a previsão dizem o mesmo instante.
+    expect(foodOf(view(empty)).depletesInSeconds).toBe(3600);
+    expect(view(empty).calendar.nextSeason.food).toEqual({
+      perHour: -30,
+      stockAtTurn: 0,
+      depletesInSeconds: 3600,
+      text: 'Com a gente de agora na Fazenda, o saldo de comida no Inverno será de −30/h, e a virada encontra o estoque vazio: a fome começa com ela. Mande mais gente para a Fazenda ou guarde comida antes.',
+    });
+  });
+
+  it('com a comida acabando antes da virada, ou com fome, a previsão sai de cena', () => {
+    const short = beforeWinter((draft) => {
+      draft.settlement.workers = { farm: 0, lumberMill: 27, quarry: 0, goldMine: 0 };
+      draft.settlement.resources.food = 10_000;
+    });
+    expect(foodOf(view(short)).depletesInSeconds).toBe(1200);
+    expect(view(short).calendar.nextSeason.food).toBeNull();
+    const starving = advanceTo(short, WINTER - HOUR + 30 * MINUTE).state;
+    expect(starving.settlement.famine).not.toBeNull();
+    expect(view(starving).calendar.nextSeason.food).toBeNull();
+  });
+
+  it('do inverno para a primavera a previsão conta a Fazenda rendendo mais', () => {
+    const winter = fedAt(WINTER + 11 * DAY, (draft) => {
+      draft.settlement.resources.wood = 400_000;
+    });
+    // 5 lavradores: 5 × 10 × 0,4 = 20 por hora no inverno, contra 5 de consumo; na primavera,
+    // × 1,2.
+    const { food } = view(winter).calendar.nextSeason;
+    expect(food).toMatchObject({ depletesInSeconds: null });
+    expect(food?.perHour).toBeGreaterThan(foodOf(view(winter)).perHour);
+    expect(food?.text).toMatch(/o saldo de comida na Primavera será de \+[\d,]+\/h\.$/);
+  });
+
+  it('pedir a visão não muda o estado', () => {
+    const state = beforeWinter();
+    const before = JSON.stringify(state);
+    view(state);
+    expect(JSON.stringify(state)).toBe(before);
   });
 });
 

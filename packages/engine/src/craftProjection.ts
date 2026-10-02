@@ -128,6 +128,13 @@ function stretchesOf(state: GameState): Stretch[] {
  */
 export type CraftForecast = {
   find: <T extends Deadline>(probe: Probe<T>, untilMs?: number) => T | null;
+  /**
+   * O feudo como a projeção o encontra no instante `atMs` de jogo, de agora em diante: uma
+   * cópia com os estoques, o ofício e a moral daquele instante. Em uma virada de dia, já com a
+   * experiência e a moral que ela conta. O relógio da cópia não anda, como o dos trechos.
+   * `null` quando a comida ou a lenha acabam antes de `atMs`: dali em diante a visão não adivinha.
+   */
+  stateAt: (atMs: number) => GameState | null;
 };
 
 export function craftForecast(state: GameState): CraftForecast {
@@ -145,6 +152,30 @@ export function craftForecast(state: GameState): CraftForecast {
         if (limit >= untilMs) {
           return null;
         }
+      }
+      return null;
+    },
+    stateAt(atMs) {
+      stretches ??= stretchesOf(state);
+      // De trás para frente: o trecho que começa em `atMs` já passou pela virada.
+      for (let index = stretches.length - 1; index >= 0; index -= 1) {
+        const stretch = stretches[index] as Stretch;
+        if (stretch.atMs > atMs) {
+          continue;
+        }
+        const span = atMs - stretch.atMs;
+        // No último trecho o ofício já se acomodou, e ele vale "até o fim": a escassez que
+        // encerraria um trecho comum é conferida aqui.
+        const scarce = Math.min(
+          foodRunsOutIn(stretch.state, stretch.rates) ?? Infinity,
+          woodRunsOutIn(stretch.state, stretch.rates) ?? Infinity,
+        );
+        if (atMs > stretch.untilMs || scarce < span) {
+          return null;
+        }
+        const copy = fork(stretch.state);
+        applyContinuous(copy, span);
+        return copy;
       }
       return null;
     },

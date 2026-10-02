@@ -1,7 +1,14 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
-import { autumnView, coldView, craftsView, initialView } from '../test-helpers';
+import {
+  autumnView,
+  coldView,
+  craftsView,
+  FOOD_RUNS_OUT_AHEAD,
+  initialView,
+  withFoodAhead,
+} from '../test-helpers';
 import {
   decideNotice,
   decideNotifications,
@@ -424,6 +431,30 @@ describe('política de notificações', () => {
           text: 'Primavera à vista: chega em 50 min.',
           details: coldView.calendar.nextSeason.changes,
         });
+      });
+
+      it('com comida que acaba na estação que vem, o aviso é de alerta e traz a conta do servidor', () => {
+        // Lenha que basta e comida que não: o alerta é só o da comida.
+        const fed = withFoodAhead(craftsView, FOOD_RUNS_OUT_AHEAD, 600);
+        const notice = seasonAhead(fed);
+        expect(notice?.kind).toBe('warning');
+        expect(notice?.details).toEqual([
+          ...craftsView.calendar.nextSeason.changes,
+          FOOD_RUNS_OUT_AHEAD.text,
+        ]);
+        // As duas contas, a da lenha antes da da comida.
+        const both = seasonAhead(withFoodAhead(autumnAt(1800), FOOD_RUNS_OUT_AHEAD, 1800));
+        expect(both?.kind).toBe('warning');
+        expect(both?.details.slice(-2)).toEqual([
+          autumnView.calendar.nextSeason.firewood?.text,
+          FOOD_RUNS_OUT_AHEAD.text,
+        ]);
+        // A comida que atravessa a estação não pede ação: o aviso não muda.
+        const lasting = seasonAhead(
+          withFoodAhead(fed, { ...FOOD_RUNS_OUT_AHEAD, depletesInSeconds: null }, 600),
+        );
+        expect(lasting?.kind).toBe('info');
+        expect(lasting?.details).toEqual(craftsView.calendar.nextSeason.changes);
       });
 
       it('não prevê sorteio nem promete proteção: só o que o servidor escreveu', () => {

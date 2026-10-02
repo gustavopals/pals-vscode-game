@@ -128,6 +128,24 @@ const FirewoodSchema = z.strictObject({
   text: z.string(),
 });
 
+/**
+ * A comida na estação que vem, com os habitantes e os trabalhadores de agora: o saldo logo
+ * depois da virada e, se ele não cobre as bocas, quando a comida acaba. É o que o prazo da
+ * estação de agora (`resources[].depletesInSeconds`) não vê.
+ */
+const FoodForecastSchema = z.strictObject({
+  /** Saldo de comida por hora real logo depois da virada. */
+  perHour: z.number(),
+  /** Comida que a virada deve encontrar em estoque, em unidades. */
+  stockAtTurn: z.number(),
+  /**
+   * Segundos reais, a contar de agora, até a comida acabar na estação que vem; `null` quando
+   * ela cresce ou atravessa a estação, e quando a lenha acaba antes (com o frio a conta é outra).
+   */
+  depletesInSeconds: z.number().nullable(),
+  text: z.string(),
+});
+
 /** O que uma moral vale: o número, a faixa e o fator que ela põe na produção. */
 const MoraleLevelSchema = z.strictObject({
   /** De 0 a 100. */
@@ -208,6 +226,11 @@ export const ViewStateSchema = z.strictObject({
       changes: z.array(z.string()),
       /** A previsão da lenha, quando a próxima estação queima madeira. */
       firewood: FirewoodSchema.nullable(),
+      /**
+       * A previsão da comida depois da virada; `null` com fome, e quando a comida ou a lenha
+       * acabam antes da virada (o alarme é o da estação de agora).
+       */
+      food: FoodForecastSchema.nullable(),
     }),
   }),
   population: z.strictObject({

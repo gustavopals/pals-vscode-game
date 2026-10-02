@@ -193,7 +193,7 @@ export const SEASON_WARNING_SECONDS = 60 * 60;
 export type SeasonNotice = {
   /** O ano e a estação anunciada ("1:winter"): um aviso por virada, nunca dois. */
   key: string;
-  /** Alerta quando a lenha da estação que vem não chega; no resto, notícia. */
+  /** Alerta quando a lenha da estação que vem não chega, ou a comida acaba nela; no resto, notícia. */
   kind: 'info' | 'warning';
   /** "Inverno à vista: chega em 1 h, às 21:40." */
   text: string;
@@ -222,8 +222,8 @@ function clockTime(atMs: number, timeZone: string | undefined): string | null {
 /**
  * O aviso de uma hora antes da virada (GDD §13.5), ou `null` enquanto ela está mais longe. Diz
  * o que muda com as frases de `calendar.nextSeason.changes` e, quando a estação que vem queima
- * lenha e a conta não fecha, a conta do servidor, que é o que pede uma ação. Não prevê sorteio
- * nem promete nada: só repete o que a visão já traz.
+ * lenha e a conta não fecha, ou quando a comida acaba nela, a conta do servidor, que é o que
+ * pede uma ação. Não prevê sorteio nem promete nada: só repete o que a visão já traz.
  *
  * `when` é o instante em que a visão chegou e o fuso de quem joga: com eles o aviso diz também a
  * hora do relógio em que a estação vira. É só a soma do prazo, que já vem em tempo real, ao
@@ -238,17 +238,20 @@ export function seasonAhead(
     return null;
   }
   const short = nextSeason.firewood !== null && nextSeason.firewood.missing > 0;
+  // A comida que acaba na estação que vem: a previsão do servidor, que atravessa a virada.
+  const hungry = nextSeason.food != null && nextSeason.food.depletesInSeconds !== null;
   const clock =
     when === undefined ? null : clockTime(when.now + nextSeason.secondsUntil * 1000, when.timeZone);
   return {
     key: `${year}:${nextSeason.id}`,
-    kind: short ? 'warning' : 'info',
+    kind: short || hungry ? 'warning' : 'info',
     text:
       `${nextSeason.label} à vista: chega em ${formatDuration(nextSeason.secondsUntil)}` +
       `${clock === null ? '' : `, às ${clock}`}.`,
     details: [
       ...nextSeason.changes,
       ...(short && nextSeason.firewood ? [nextSeason.firewood.text] : []),
+      ...(hungry && nextSeason.food ? [nextSeason.food.text] : []),
     ],
   };
 }

@@ -21,6 +21,7 @@ import {
   refundSentence,
   remainingNow,
   runsOutIn,
+  runsOutWhy,
   storageAlert,
   truncate,
   upgradeName,
@@ -106,8 +107,9 @@ function resourcesNode(view: ViewState): TreeNode {
       id: `resource:${row.id}`,
       label: row.label,
       description: resourceLine(view, row),
-      // A conta da taxa, de onde vem o limite e, se houver, o que o servidor diz do depósito.
-      tooltip: [row.breakdown, capExplanation(row), row.fullNote]
+      // A conta da taxa, de onde vem o limite e, se houver, o que o servidor diz do depósito e
+      // do prazo que só vence depois da virada de estação.
+      tooltip: [row.breakdown, capExplanation(row), row.fullNote, runsOutWhy(view, row)]
         .filter((line) => line !== null)
         .join('\n'),
       command: { id: 'lords.openPanel', args: ['fief'] },
