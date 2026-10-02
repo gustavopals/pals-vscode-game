@@ -2,7 +2,13 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
-import { netRates, productionRate, woodRunsOutIn } from './economy';
+import {
+  foodCoversConsumption,
+  netRates,
+  productionRate,
+  woodCoversFirewood,
+  woodRunsOutIn,
+} from './economy';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import {
@@ -529,6 +535,14 @@ describe('o estado em repouso', () => {
         expect(nextEventAt(draft)).toBeGreaterThan(plan.atMs);
         expect(draft.settlement.resources.food).toBeGreaterThanOrEqual(0);
         expect(draft.settlement.resources.wood).toBeGreaterThanOrEqual(0);
+        // Escassez aberta é estoque que não cobre nem um instante: ninguém passa fome com a
+        // despensa cheia, nem frio com madeira no Pátio.
+        if (draft.settlement.famine !== null) {
+          expect(foodCoversConsumption(draft)).toBe(false);
+        }
+        if (draft.settlement.cold !== null) {
+          expect(woodCoversFirewood(draft)).toBe(false);
+        }
       }),
       { numRuns: 2000 },
     );

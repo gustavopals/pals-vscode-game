@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { calendarAt } from './clock';
 import { applyCommand } from './commands';
+import { foodCoversConsumption, woodCoversFirewood } from './economy';
 import { addMoraleEffect } from './morale';
 import { assignedWorkers, housingVacancy } from './population';
 import { command, DAY, gameAt, HOUR, MINUTE, newGame, WINTER, YEAR } from './test-helpers';
@@ -65,9 +66,19 @@ function prepare(plan: Scenario): GameState {
   return state;
 }
 
+/**
+ * Nenhum estoque negativo, e escassez aberta é estoque que não cobre nem um instante: ninguém
+ * passa fome com comida guardada, nem frio com madeira no Pátio.
+ */
 function expectNoNegativeResources(state: GameState): void {
   for (const amount of Object.values(state.settlement.resources)) {
     expect(amount).toBeGreaterThanOrEqual(0);
+  }
+  if (state.settlement.famine !== null) {
+    expect(foodCoversConsumption(state)).toBe(false);
+  }
+  if (state.settlement.cold !== null) {
+    expect(woodCoversFirewood(state)).toBe(false);
   }
 }
 

@@ -46,7 +46,7 @@ Nenhuma função muta a entrada.
 - **Nenhum número de jogo aqui.** Custos, taxas, tempos e textos vêm de `@lotg/content`.
 - **Valores derivados não são guardados:** capacidade habitacional, aldeões livres e taxas saem de funções puras.
 
-A fome congela a fila de recrutamento e recusa ordens novas; a produção cai para 3/4. Ela termina no primeiro instante em que o saldo de comida, já com essa penalidade, volta a ser positivo, e a fila é retomada de onde parou.
+A fome congela a fila de recrutamento e recusa ordens novas; a produção cai para 3/4. Ela termina no primeiro instante de evento ou de comando em que `foodCoversConsumption` é verdade: o saldo de comida, já com essa penalidade, volta a ser positivo, ou o estoque voltou a cobrir ao menos um instante de consumo (um ganho discreto: recompensa, carta). A fila é retomada de onde parou. A comida que chega durante a fome é comida: a fome fecha enquanto ela durar e reabre, com data nova, no instante exato em que acabar, como o frio com a madeira. É o contrário exato da condição que a abre, então a fome nunca fecha e reabre no mesmo instante, e uma fome aberta é sempre despensa que não cobre nem um instante (as propriedades conferem).
 
 ## Estações, lenha e frio
 

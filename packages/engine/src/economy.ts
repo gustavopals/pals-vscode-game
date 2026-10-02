@@ -251,6 +251,22 @@ export function foodRunsOutIn(state: GameState, rates = netRates(state)): number
 }
 
 /**
+ * Há comida para os habitantes: o saldo é positivo, ou o estoque é positivo e cobre ao menos um
+ * instante de consumo. É a condição que encerra a fome; como é o contrário exato da que a abre
+ * (`foodRunsOutIn(...) === 0`), a fome nunca termina e recomeça no mesmo instante. O saldo é o
+ * de agora, já com a penalidade da fome na produção: sem a penalidade ele só melhora.
+ */
+export function foodCoversConsumption(state: GameState, rates = netRates(state)): boolean {
+  if (rates.food > 0) {
+    return true;
+  }
+  if (state.settlement.resources.food <= 0) {
+    return false;
+  }
+  return rates.food === 0 || coversFor(state, 'food', rates.food) >= 1;
+}
+
+/**
  * Milissegundos até a madeira acabar na lareira. `null` quando a madeira não está caindo (fora
  * do inverno ela nunca cai sozinha) ou o frio já começou.
  */

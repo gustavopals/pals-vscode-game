@@ -1,10 +1,16 @@
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { settleScarcity } from './scarcity';
+import { cloneState } from './state';
+import { grantResources } from './storage';
 import {
   accept,
   command,
+  DAY,
   eventsOfType,
+  gameAt,
   gameWith,
   HOUR,
   MINUTE,
@@ -13,6 +19,7 @@ import {
   refuse,
   roomy,
 } from './test-helpers';
+import type { GameEvent, GameState } from './types';
 
 const THIRTY_DAYS = 30 * 24 * HOUR;
 
@@ -167,5 +174,99 @@ describe('fila de recrutamento congelada e fim da fome', () => {
     // habitantes por 4 min, depois menos 6 pelo resto da hora.
     const expected = Math.floor((7_000 * 4 * MINUTE + 6_000 * 56 * MINUTE) / HOUR);
     expect(state.settlement.resources.food).toBe(expected);
+  });
+});
+
+describe('comida que chega durante a fome (GDD §5.6)', () => {
+  // Dez aldeões, todos na Serraria, sem comida: a fome abre na hora e nada a encerra sozinha.
+  const famineAt = 10 * DAY;
+  const starving = advanceTo(
+    gameAt(famineAt, (draft) => {
+      draft.settlement.population.villagers = 10;
+      draft.settlement.buildings.housing = 3;
+      draft.settlement.workers = { farm: 0, lumberMill: 10, quarry: 0, goldMine: 0 };
+      draft.settlement.resources.food = 0;
+      roomy(draft);
+    }),
+    famineAt + 3 * HOUR,
+  ).state;
+  const giftAt = starving.lastProcessedAt;
+
+  /** Um ganho discreto de comida, como o de uma recompensa, e o acerto do instante. */
+  function gift(state: GameState, food: number): { state: GameState; events: GameEvent[] } {
+    const draft = cloneState(state);
+    const events: GameEvent[] = [];
+    grantResources(draft, { food });
+    settleScarcity(draft, draft.lastProcessedAt, events);
+    return { state: draft, events };
+  }
+
+  it('o cenário: fome aberta, saldo de comida negativo, despensa vazia', () => {
+    expect(starving.settlement.famine).toEqual({ sinceMs: famineAt });
+    expect(starving.settlement.resources.food).toBe(0);
+  });
+
+  it('é comida: a fome termina no instante, e recomeça no instante exato em que ela acaba', () => {
+    const fed = gift(starving, 300);
+    expect(fed.events.map((event) => event.type)).toEqual(['famineEnded']);
+    expect(fed.state.settlement.famine).toBeNull();
+    expect(fed.state.settlement.resources.food).toBe(300_000);
+
+    // 300 de comida para 10 bocas: 30 horas de jogo, nem um milissegundo a mais.
+    const again = giftAt + 30 * HOUR;
+    const before = advanceTo(fed.state, again - 1);
+    expect(before.state.settlement.famine).toBeNull();
+    expect(eventsOfType(before.events, 'famineStarted')).toEqual([]);
+    // A comida guardada foi sendo comida: resta o último milissegundo de consumo de 10 bocas
+    // (10.000 milésimos por hora), na escala do acumulador.
+    const { resources, accumulators } = before.state.settlement;
+    expect(resources.food * HOUR + accumulators.food).toBe(10_000);
+
+    const { state, events } = advanceTo(fed.state, again + 20 * HOUR);
+    expect(eventsOfType(events, 'famineStarted').map((event) => event.atMs)).toEqual([again]);
+    expect(eventsOfType(events, 'famineEnded')).toEqual([]);
+    expect(state.settlement.famine).toEqual({ sinceMs: again });
+    expect(state.settlement.resources.food).toBe(0);
+  });
+
+  it('ninguém deserta com a despensa cheia: o prazo da deserção recomeça com a fome nova', () => {
+    // Sem o presente, a fome completa 12 h de jogo e leva um aldeão por virada.
+    const unfed = advanceTo(starving, giftAt + 20 * HOUR);
+    expect(eventsOfType(unfed.events, 'villagerDeserted').length).toBeGreaterThan(0);
+    // Com ele, as 20 horas seguintes são de despensa cheia.
+    const fed = advanceTo(gift(starving, 300).state, giftAt + 20 * HOUR);
+    expect(eventsOfType(fed.events, 'villagerDeserted')).toEqual([]);
+    expect(fed.state.settlement.resources.food).toBe(100_000);
+  });
+
+  it('a fila de recrutamento, congelada pela fome, anda enquanto a comida durar', () => {
+    const queued = cloneState(starving);
+    // Faltavam 5 minutos de treinamento quando a fome abriu.
+    queued.settlement.recruitmentQueue = [{ finishesAtMs: famineAt + 5 * MINUTE }];
+    const fed = gift(queued, 300);
+    expect(fed.state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: giftAt + 5 * MINUTE }]);
+    const { events } = advanceTo(fed.state, giftAt + HOUR);
+    expect(eventsOfType(events, 'recruitmentFinished').map((event) => event.atMs)).toEqual([
+      giftAt + 5 * MINUTE,
+    ]);
+  });
+
+  it('a divisão de intervalo é exata com o corte em qualquer milissegundo', () => {
+    const fed = gift(starving, 300).state;
+    const end = giftAt + 40 * HOUR;
+    const direct = advanceTo(fed, end);
+    fc.assert(
+      fc.property(fc.integer({ min: giftAt + 1, max: end - 1 }), (cut) => {
+        const half = advanceTo(fed, cut);
+        const split = advanceTo(half.state, end);
+        expect(split.state).toStrictEqual(direct.state);
+        expect([...half.events, ...split.events]).toStrictEqual(direct.events);
+        // Fome aberta é despensa vazia, em qualquer corte.
+        if (half.state.settlement.famine !== null) {
+          expect(half.state.settlement.resources.food).toBe(0);
+        }
+      }),
+      { numRuns: 500 },
+    );
   });
 });
