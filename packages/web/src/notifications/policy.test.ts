@@ -79,6 +79,24 @@ describe('política de notificações', () => {
     expect(isEssential(event('storageFilled'))).toBe(false);
   });
 
+  it('a obra que começou sozinha avisa em "todas", como o fim de uma obra; a ordenada pelo jogador, não', () => {
+    const events = [
+      event('constructionStarted', 1),
+      event('constructionAutoStarted', 2),
+      event('constructionFinished', 3),
+    ];
+    const all = decideNotifications(input({ level: 'all', events }));
+    expect(all.show.map((entry) => entry.type)).toEqual([
+      'constructionAutoStarted',
+      'constructionFinished',
+    ]);
+    // Não é alarme nem alívio: no nível padrão não interrompe, e não passa na frente de ninguém.
+    expect(decideNotifications(input({ level: 'essential', events })).show).toEqual([]);
+    expect(isEssential(event('constructionAutoStarted'))).toBe(false);
+    expect(isRelief(event('constructionAutoStarted'))).toBe(false);
+    expect(eventIcon(event('constructionAutoStarted'))).toBeUndefined();
+  });
+
   it('o começo é alarme, o fim é alívio, e o frio tem o seu próprio ícone', () => {
     expect(isEssential(event('coldStarted'))).toBe(true);
     expect(isEssential(event('famineStarted'))).toBe(true);

@@ -8,13 +8,17 @@ import { DEFAULT_PREFERENCES, type Preferences } from '../services/preferences';
 import { PREFERENCES_KEY } from '../services/tabSync';
 import {
   ACCOUNT_ID,
+  activeConstruction,
   catalogFixture,
   fakeApi,
   GAME_ID,
   gameEvent,
   goldenView,
   makeController,
+  queuesView,
   settle,
+  withPlanned,
+  withQueues,
 } from '../test-helpers';
 import { type Controller, describeError, type Toast, type ToastAction } from './controller';
 
@@ -981,6 +985,23 @@ describe('avisos de acontecimentos', () => {
     expect(made.controller.chronicle.map((event) => event.text)).toEqual([
       'O Pátio encheu.',
       'Ergueu-se o Armazém.',
+    ]);
+  });
+
+  it('a obra que começou sozinha é linha da Crônica recente e, em "todas", vira aviso', async () => {
+    const text = 'Com as reservas cheias, os pedreiros começaram sozinhos a erguer a Pedreira.';
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'constructionAutoStarted', text));
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual([text]);
+    // No nível padrão não é alarme: a linha fica na Crônica, sem interromper.
+    expect(made.controller.toasts).toEqual([]);
+
+    await made.controller.setPreferences({ notifications: 'all' });
+    await deliver(made, gameEvent(2, 'constructionAutoStarted', text));
+    expect(made.controller.toasts).toMatchObject([{ kind: 'info', text }]);
+    expect(made.controller.toasts[0]?.actions.map((action) => action.label)).toEqual([
+      'Ver',
+      'Silenciar 2h',
     ]);
   });
 
@@ -2448,19 +2469,16 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
     vi.useFakeTimers();
     try {
       const { controller, api } = makeController({ signedIn: true });
-      const active = {
-        building: 'housing' as const,
-        label: 'Habitações',
-        targetLevel: 2,
-        secondsRemaining: 5,
-        totalSeconds: 80,
-        progressPercent: 90,
-        refund: [],
-      };
-      api.state.view = {
-        ...goldenView,
-        constructions: { ...goldenView.constructions, active },
-      };
+      api.state.view = withQueues(goldenView, [
+        activeConstruction({
+          building: 'housing',
+          label: 'Habitações',
+          secondsRemaining: 5,
+          totalSeconds: 80,
+          progressPercent: 90,
+          refund: [],
+        }),
+      ]);
       controller.setVisible(true);
       await controller.start();
       await vi.advanceTimersByTimeAsync(0);
@@ -2470,6 +2488,63 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
       await vi.advanceTimersByTimeAsync(5_000);
       expect(reads()).toBe(before);
       // Um segundo depois do prazo, a leitura acontece.
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('com duas filas, o prazo que vale é o da obra que termina primeiro, esteja em que fila estiver', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      // A primeira fila termina em 42 min; a segunda, em 5 s.
+      api.state.view = withQueues(queuesView, [
+        activeConstruction(),
+        activeConstruction({ building: 'housing', label: 'Habitações', secondsRemaining: 5 }),
+      ]);
+      api.state.view = withPlanned(api.state.view, []);
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(reads()).toBe(before);
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('com uma planejada prestes a começar sozinha, o app lê o servidor quando a espera acaba', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      api.state.view = withPlanned(goldenView, [
+        {
+          building: 'townHall',
+          autoStart: true,
+          waiting: { reason: 'resources', text: 'espera 30 de madeira', etaSeconds: 8 },
+        },
+        // Uma espera sem prazo não marca hora nenhuma.
+        {
+          building: 'goldMine',
+          autoStart: true,
+          waiting: { reason: 'gate', text: 'espera o Salão do Senhor', etaSeconds: null },
+        },
+      ]);
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(8_000);
+      expect(reads()).toBe(before);
       await vi.advanceTimersByTimeAsync(1_500);
       expect(reads()).toBe(before + 1);
       controller.dispose();

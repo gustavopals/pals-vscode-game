@@ -316,6 +316,23 @@ ol {
   justify-content: space-between;
 }
 
+/*
+ * As filas de obras, uma linha por fila: a obra em curso, a fila livre e, enquanto a segunda não
+ * abre, o motivo. Com duas filas abertas cada linha leva o número da sua.
+ */
+.queues > li + li {
+  margin-top: 6px;
+}
+
+.queue-label {
+  margin-right: 8px;
+  font-weight: normal;
+}
+
+.queue-locked {
+  font-size: 0.92em;
+}
+
 /* A barra nativa traria as cores do navegador: aqui ela é redesenhada só com as do tema. */
 progress {
   display: block;
@@ -360,6 +377,30 @@ progress::-webkit-progress-value {
 
 .upgrade .blocked {
   grid-column: 1 / -1;
+}
+
+/*
+ * Uma planejada: a marca "iniciar quando houver recursos" e o que a obra espera ocupam a largura
+ * toda, abaixo do custo. O texto da espera pode ser longo e quebra de linha.
+ */
+.plan-auto {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.plan-auto input {
+  margin: 0;
+  accent-color: var(--vscode-button-background);
+}
+
+.plan-waiting {
+  grid-column: 1 / -1;
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.92em;
 }
 
 /* O que a obra muda (a capacidade de um depósito), logo abaixo do custo. */

@@ -17,10 +17,13 @@ import {
 import { nextTheme, THEME_LABELS } from '../theme/theme';
 import type { ThemeId } from '../services/preferences';
 import {
+  busyQueues,
+  capitalize,
   formatCost,
   formatDuration,
   formatNumber,
   formatRemaining,
+  planWaiting,
   refundSentence,
   remainingNow,
   upgradeName,
@@ -28,6 +31,8 @@ import {
 import type { TreeNode } from '../ui/treeModel';
 
 type WorkerRow = ViewState['workers'][number];
+type BuildingId = ViewState['constructions']['available'][number]['building'];
+type PlannedRow = ViewState['constructions']['planned'][number];
 
 /** Um comando do app. Os que têm `palette` aparecem na paleta, com o prefixo "Lords:". */
 export type AppCommand = {
@@ -190,14 +195,21 @@ export function createCommands(
     if (view === null) {
       return;
     }
-    const { available, active } = view.constructions;
+    const { available } = view.constructions;
+    const busy = busyQueues(view.constructions);
     const requested = buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
+      // Uma ou duas obras em curso (GDD §6.3): a lista diz quais são e quando terminam.
       const queue =
-        active === null
+        busy.length === 0
           ? 'Os pedreiros estão livres'
-          : `Em obras: ${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`;
+          : `Em obras: ${busy
+              .map(
+                (active) =>
+                  `${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`,
+              )
+              .join('; ')}`;
       // Por que os prazos da lista são esses nesta estação: vale para todas as obras, dito uma vez.
       const durationNotes = [
         ...new Set(available.flatMap((upgrade) => upgrade.durationNote ?? [])),
@@ -207,7 +219,7 @@ export function createCommands(
         placeholder:
           durationNotes.length > 0
             ? `${queue}. ${durationNotes.join(' ')}`
-            : active === null
+            : busy.length === 0
               ? `${queue}.`
               : queue,
         items: available.map((upgrade) => ({
@@ -229,14 +241,34 @@ export function createCommands(
     }
   };
 
-  const cancelConstruction = async () => {
+  const cancelConstruction = async (arg?: unknown) => {
     const view = requireView();
     if (view === null) {
       return;
     }
-    const { active } = view.constructions;
-    if (active === null) {
+    const busy = busyQueues(view.constructions);
+    if (busy.length === 0) {
       controller.toast({ kind: 'info', text: 'Não há obra em andamento.' });
+      return;
+    }
+    // Vindo de uma linha da árvore, a obra é a da linha. Com duas em curso e sem linha, pergunta.
+    const requested = buildingOf(arg, 'active:');
+    const active =
+      busy.find((queue) => queue.building === requested) ??
+      (busy.length === 1
+        ? busy[0]
+        : await dialogs.pick({
+            title: 'Cancelar qual obra?',
+            placeholder: 'Há duas obras em andamento.',
+            items: busy.map((queue) => ({
+              icon: 'tools',
+              label: `${queue.label} → Nv${queue.targetLevel}`,
+              description: `termina em ${formatRemaining(remainingNow(queue.secondsRemaining, elapsed()))}`,
+              detail: refundSentence(queue.refund, 'Cancelar devolve'),
+              value: queue,
+            })),
+          }));
+    if (active === undefined) {
       return;
     }
     const confirmed = await dialogs.confirm({
@@ -251,22 +283,51 @@ export function createCommands(
     }
   };
 
+  /**
+   * A obra planejada começa sozinha? Uma lista de duas opções; `undefined` é desistência. Para a
+   * obra que ainda não pode começar, a automática já vem marcada: é para isso que se planeja, e
+   * `Enter` basta. Se a obra já pode começar, marcar a automática é começá-la agora e gastar na
+   * hora: a opção diz isso, e o que vem marcado é só deixar na lista. O padrão nunca gasta.
+   */
+  const askAutoStart = (upgrade: ViewState['constructions']['available'][number]) => {
+    const startsNow = upgrade.blockedReason === null;
+    return dialogs.pick<boolean>({
+      title: `Planejar: ${upgradeName(upgrade)}`,
+      placeholder: 'Planejar não gasta nada: a obra é paga quando começa.',
+      items: [
+        {
+          icon: 'play-circle',
+          label: 'Iniciar quando houver recursos',
+          detail: startsNow
+            ? 'Há recursos e pedreiros livres: a obra começa agora mesmo.'
+            : 'Os pedreiros começam sozinhos assim que houver recursos e fila livre, mesmo com você longe.',
+          value: true,
+        },
+        {
+          icon: 'bookmark',
+          label: 'Só deixar na lista',
+          detail: 'A obra espera a sua ordem, com o custo à vista.',
+          value: false,
+        },
+      ],
+      selected: startsNow ? 1 : 0,
+    });
+  };
+
   const planConstruction = async () => {
     const view = requireView();
     if (view === null) {
       return;
     }
     const planned = new Set(view.constructions.planned.map((plan) => plan.building));
-    type Choice = {
-      building: ViewState['constructions']['available'][number]['building'];
-      unplan: boolean;
-    };
+    type Upgrade = ViewState['constructions']['available'][number];
+    type Choice = { building: BuildingId; upgrade: Upgrade | null };
     const items: PickItem<Choice>[] = [
       ...view.constructions.planned.map((plan) => ({
         icon: 'close',
         label: `Tirar da lista: ${plan.label} → Nv${plan.targetLevel}`,
         description: formatCost(plan.cost),
-        value: { building: plan.building, unplan: true },
+        value: { building: plan.building, upgrade: null },
       })),
       ...view.constructions.available
         .filter((upgrade) => !planned.has(upgrade.building))
@@ -275,7 +336,7 @@ export function createCommands(
           label: `Planejar: ${upgrade.label} → Nv${upgrade.targetLevel}`,
           description: `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`,
           ...(upgrade.effect === null ? {} : { detail: upgrade.effect }),
-          value: { building: upgrade.building, unplan: false },
+          value: { building: upgrade.building, upgrade },
         })),
     ];
     const picked = await dialogs.pick({
@@ -283,9 +344,61 @@ export function createCommands(
       placeholder: 'Planejar não gasta nada: a obra fica na lista, com o custo à vista.',
       items,
     });
-    if (picked !== undefined) {
-      await controller.order(picked.unplan ? 'unplanConstruction' : 'planConstruction', {
-        building: picked.building,
+    if (picked === undefined) {
+      return;
+    }
+    if (picked.upgrade === null) {
+      await controller.order('unplanConstruction', { building: picked.building });
+      return;
+    }
+    const autoStart = await askAutoStart(picked.upgrade);
+    if (autoStart !== undefined) {
+      await controller.order('planConstruction', { building: picked.building, autoStart });
+    }
+  };
+
+  /** O que a lista da marca diz de cada planejada: o que o clique faz e o que a obra espera. */
+  const autoStartItem = (plan: PlannedRow): PickItem<PlannedRow> => ({
+    icon: plan.autoStart ? 'bookmark' : 'play-circle',
+    label: `${plan.autoStart ? 'Esperar a sua ordem' : 'Iniciar quando houver recursos'}: ${upgradeName(plan)}`,
+    description: formatCost(plan.cost),
+    detail: `${plan.autoStart ? 'Hoje começa sozinha.' : 'Hoje espera a sua ordem.'} ${capitalize(planWaiting(plan, elapsed()))}.`,
+    value: plan,
+  });
+
+  /**
+   * Liga ou desliga a marca "iniciar quando houver recursos" de uma planejada. Vindo de uma
+   * linha da árvore, troca a marca daquela obra; pela paleta, pergunta de qual.
+   */
+  const toggleAutoStart = async (arg?: unknown) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const { planned } = view.constructions;
+    if (planned.length === 0) {
+      controller.toast({
+        kind: 'info',
+        text: 'Não há obras planejadas. Planeje uma obra para ela poder começar sozinha.',
+        actions: [
+          { label: 'Planejar obras', run: () => controller.runCommand('lords.planConstruction') },
+        ],
+      });
+      return;
+    }
+    const requested = buildingOf(arg, 'planned:');
+    const plan =
+      planned.find((entry) => entry.building === requested) ??
+      (await dialogs.pick({
+        title: 'Início automático das planejadas',
+        placeholder:
+          'As marcadas começam sozinhas, na ordem da lista, quando houver recursos e fila livre.',
+        items: planned.map(autoStartItem),
+      }));
+    if (plan !== undefined) {
+      await controller.order('setAutoStart', {
+        building: plan.building,
+        autoStart: !plan.autoStart,
       });
     }
   };
@@ -732,6 +845,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: planConstruction,
+    },
+    {
+      id: 'lords.toggleAutoStart',
+      title: 'Planejadas: ligar ou desligar o início automático',
+      palette: true,
+      when: hasGame,
+      run: toggleAutoStart,
     },
     { id: 'lords.recruit', title: 'Recrutar aldeões', palette: true, when: hasGame, run: recruit },
     {

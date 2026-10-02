@@ -108,6 +108,81 @@ export function withUpgrade(
   };
 }
 
+type Constructions = ViewState['constructions'];
+type QueueRow = Constructions['queues'][number];
+type PlannedRow = Constructions['planned'][number];
+
+/**
+ * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera
+ * (obra anterior do edifício, fila, recurso, depósito e nível de outro edifício).
+ */
+export const queuesView = golden.queuesAndPlans as unknown as ViewState;
+
+/** Uma obra em curso, como a visão a traz, para os testes porem em uma fila. */
+export function activeConstruction(
+  patch: Partial<NonNullable<QueueRow>> = {},
+): NonNullable<QueueRow> {
+  return {
+    building: 'lumberMill',
+    label: 'Serraria',
+    targetLevel: 2,
+    secondsRemaining: 2520,
+    totalSeconds: 3000,
+    progressPercent: 16,
+    refund: [
+      { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+    ],
+    ...patch,
+  };
+}
+
+/**
+ * A mesma visão com estas filas de obras: uma entrada por fila aberta, `null` para a livre.
+ * `active` acompanha, como no motor: é a primeira obra em curso. Com uma fila só, a frase do que
+ * abre a segunda continua na visão.
+ */
+export function withQueues(view: ViewState, queues: QueueRow[]): ViewState {
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      queues,
+      active: queues.find((queue) => queue !== null) ?? null,
+      queuesUnlocked: queues.length,
+      queuesNote: queues.length > 1 ? null : initialView.constructions.queuesNote,
+    },
+  };
+}
+
+/**
+ * A mesma visão com estas obras na lista de planejadas, na ordem dada. O orçamento de cada uma é
+ * o da obra disponível do mesmo edifício; a marca e a espera são as do teste.
+ */
+export function withPlanned(
+  view: ViewState,
+  plans: Array<Pick<PlannedRow, 'building'> & Partial<Pick<PlannedRow, 'autoStart' | 'waiting'>>>,
+): ViewState {
+  const planned = plans.map(({ building, autoStart = false, waiting = null }) => {
+    const upgrade = view.constructions.available.find((entry) => entry.building === building);
+    if (upgrade === undefined) {
+      throw new Error(`A visão não oferece a obra de ${building}.`);
+    }
+    return { ...upgrade, planned: true, autoStart, waiting };
+  });
+  const names = new Set(planned.map((plan) => plan.building));
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      planned,
+      available: view.constructions.available.map((upgrade) =>
+        names.has(upgrade.building) ? { ...upgrade, planned: true } : upgrade,
+      ),
+    },
+  };
+}
+
 export const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 export const GAME_ID = '22222222-2222-4222-8222-222222222222';
 const CREATED_AT = '2026-10-01T12:00:00.000Z';

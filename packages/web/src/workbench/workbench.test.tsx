@@ -8,7 +8,16 @@ import type { Controller } from '../app/controller';
 import type { Route } from '../app/router';
 import type { Actions } from '../components/actions';
 import type { Connection } from '../game/connection';
-import { coldView, gameEvent, goldenView, makeController, settle } from '../test-helpers';
+import {
+  activeConstruction,
+  coldView,
+  gameEvent,
+  goldenView,
+  makeController,
+  queuesView,
+  settle,
+  withQueues,
+} from '../test-helpers';
 import { statusBar, type StatusBarInput } from '../ui/format';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
@@ -19,24 +28,7 @@ import { rowActions, Tree } from './Tree';
 import { flattenTree, treeKey } from './treeNav';
 import { Workbench } from './Workbench';
 
-const building: ViewState = {
-  ...goldenView,
-  constructions: {
-    ...goldenView.constructions,
-    active: {
-      building: 'lumberMill',
-      label: 'Serraria',
-      targetLevel: 2,
-      secondsRemaining: 2520,
-      totalSeconds: 3000,
-      progressPercent: 16,
-      refund: [
-        { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
-        { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
-      ],
-    },
-  },
-};
+const building = withQueues(goldenView, [activeConstruction()]);
 const starving: ViewState = {
   ...goldenView,
   famine: { sinceMs: 0, secondsElapsed: 60, text: 'Fome: a produção cai para 75%.' },
@@ -278,8 +270,50 @@ describe('ações das linhas (rowActions)', () => {
   });
 
   it('a obra em andamento tem "Cancelar"', () => {
-    expect(rowActions(nodeById(nodes, 'construction:active'))).toMatchObject([
+    expect(rowActions(nodeById(nodes, 'active:lumberMill'))).toMatchObject([
       { text: 'Cancelar', command: 'lords.cancelConstruction' },
+    ]);
+  });
+
+  it('com duas obras em curso, cada linha tem o seu "Cancelar", com o nome da obra', () => {
+    const queued = tree({ view: queuesView });
+    expect(
+      ['active:lumberMill', 'active:goldMine'].map((id) => rowActions(nodeById(queued, id))),
+    ).toEqual([
+      [
+        {
+          label: 'Cancelar a obra: Serraria → Nv2',
+          text: 'Cancelar',
+          command: 'lords.cancelConstruction',
+        },
+      ],
+      [
+        {
+          label: 'Cancelar a obra: Mina de Ouro → Nv2',
+          text: 'Cancelar',
+          command: 'lords.cancelConstruction',
+        },
+      ],
+    ]);
+  });
+
+  it('a planejada tem a marca a um clique: o botão diz o que faz, com o nome da obra', () => {
+    const queued = tree({ view: queuesView });
+    // Manual: o botão liga o início automático.
+    expect(rowActions(nodeById(queued, 'planned:housing'))).toEqual([
+      {
+        label: 'Iniciar quando houver recursos: Habitações → Nv2',
+        text: 'Iniciar sozinha',
+        command: 'lords.toggleAutoStart',
+      },
+    ]);
+    // Automática: o botão devolve a obra à espera da ordem.
+    expect(rowActions(nodeById(queued, 'planned:farm'))).toEqual([
+      {
+        label: 'Esperar a sua ordem: Fazenda → Nv2',
+        text: 'Esperar ordem',
+        command: 'lords.toggleAutoStart',
+      },
     ]);
   });
 
@@ -289,7 +323,7 @@ describe('ações das linhas (rowActions)', () => {
       .map((node) => node.id);
     const allowed = (id: string) =>
       id.startsWith('worker:') ||
-      id === 'construction:active' ||
+      id === 'active:lumberMill' ||
       building.constructions.available.some(
         (upgrade) => upgrade.blockedReason === null && id === `construction:${upgrade.building}`,
       );
@@ -307,11 +341,13 @@ describe('ações das linhas (rowActions)', () => {
       'lords.workersDecrease',
       'lords.build',
       'lords.cancelConstruction',
+      'lords.toggleAutoStart',
+      'lords.planConstruction',
       'lords.recruit',
       'lords.allocateWorkers',
     ];
-    const clicks = everyNode(nodes)
-      .filter((node) => node.id.startsWith('worker:') || node.id.startsWith('construction:'))
+    const clicks = [...everyNode(nodes), ...everyNode(tree({ view: queuesView }))]
+      .filter((node) => /^(worker|construction|active|planned):/.test(node.id))
       .map((node) => node.command?.id);
     expect(clicks.length).toBeGreaterThan(0);
     expect(clicks.filter((id) => id !== undefined && orders.includes(id))).toEqual([]);

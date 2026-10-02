@@ -16,6 +16,9 @@ const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
+  // Uma planejada automática começou sem o jogador mandar: gastou recursos e ocupou uma fila.
+  // É notícia como o fim de uma obra; a obra que o próprio jogador ordena não avisa.
+  'constructionAutoStarted',
   // Um edifício erguido do zero (Celeiro, Armazém) sai com este tipo, no lugar do anterior.
   'buildingFounded',
   'recruitmentFinished',

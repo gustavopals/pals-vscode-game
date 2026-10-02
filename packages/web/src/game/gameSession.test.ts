@@ -468,6 +468,45 @@ describe('cache', () => {
     expect(seen.views).toEqual([]);
   });
 
+  it('a visão de antes das duas filas de obras (V2C-T5) é descartada: faltam campos que a tela usa', async () => {
+    // Como o app a gravava antes de a visão ganhar `queues`, a marca e a espera das planejadas.
+    const {
+      queues: _queues,
+      queuesUnlocked: _unlocked,
+      queuesNote: _note,
+      ...oldConstructions
+    } = view.constructions;
+    void [_queues, _unlocked, _note];
+    const outdated = {
+      version: CACHE_VERSION,
+      view: { ...view, constructions: oldConstructions },
+      stateVersion: '7',
+      etag: 'W/"antes"',
+      lastSeq: 3,
+      lastSeenAt: Date.now(),
+    };
+    const { session, state, seen } = setup(outdated as unknown as GameCache);
+    state.fail = new NetworkError('fora');
+    await session.start(target);
+    expect(session.view).toBeNull();
+    expect(seen.views).toEqual([]);
+    session.stop();
+
+    // O mesmo vale para uma planejada sem a marca: a lista não pode mostrar uma caixa sem estado.
+    const [upgrade] = view.constructions.available;
+    const unmarked = {
+      ...outdated,
+      view: {
+        ...view,
+        constructions: { ...view.constructions, planned: [{ ...upgrade, planned: true }] },
+      },
+    };
+    const second = setup(unmarked as unknown as GameCache);
+    second.state.fail = new NetworkError('fora');
+    await second.session.start(target);
+    expect(second.session.view).toBeNull();
+  });
+
   describe('gravado por outra versão do app', () => {
     // A visão como a v0.1 a gravava: sem dificuldade nem ritmo, e o cache sem marca de versão.
     const {

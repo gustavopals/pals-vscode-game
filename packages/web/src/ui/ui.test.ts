@@ -5,15 +5,21 @@ import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { AccountState } from '../account/accountService';
 import { buildReturnReport, isChronicleEvent, shouldShowReturnReport } from '../game/returnReport';
 import {
+  activeConstruction,
   autumnView,
   coldView,
+  queuesView,
   unlockedView,
   winterWith,
+  withPlanned,
+  withQueues,
   withResource,
   withUpgrade,
 } from '../test-helpers';
 import {
+  busyQueues,
   capExplanation,
+  capitalize,
   fillsSoon,
   firewoodRunsOutIn,
   formatApprox,
@@ -23,10 +29,12 @@ import {
   formatRate,
   formatRemaining,
   FULL_SOON_SECONDS,
+  planWaiting,
   refundParts,
   refundSentence,
   remainingNow,
   runsOutIn,
+  soonestConstruction,
   statusBar,
   storageAlert,
   truncate,
@@ -38,24 +46,7 @@ const initial = golden.initial as unknown as ViewState;
 const farmers = golden.afterFirstAllocation as unknown as ViewState;
 const HOUR = 3_600_000;
 
-const building: ViewState = {
-  ...farmers,
-  constructions: {
-    ...farmers.constructions,
-    active: {
-      building: 'lumberMill',
-      label: 'Serraria',
-      targetLevel: 2,
-      secondsRemaining: 2520,
-      totalSeconds: 3000,
-      progressPercent: 16,
-      refund: [
-        { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
-        { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
-      ],
-    },
-  },
-};
+const building = withQueues(farmers, [activeConstruction()]);
 const starving: ViewState = {
   ...building,
   famine: { sinceMs: 0, secondsElapsed: 60, text: 'Fome: a produção cai para 75%.' },
@@ -100,6 +91,26 @@ describe('formatação', () => {
     expect(formatDuration(601)).toBe('11 min');
     expect(formatDuration(3601)).toBe('1 h 01 min');
     expect(formatCost(initial.recruitment.cost)).toBe('50 comida, 10 ouro');
+  });
+
+  it('a espera de uma planejada: a frase do servidor e, quando há, o prazo que desce', () => {
+    const waiting = (text: string, etaSeconds: number | null) => ({
+      waiting: { reason: 'resources' as const, text, etaSeconds },
+    });
+    expect(planWaiting(waiting('espera 15 de ouro', 6630), 0)).toBe(
+      'espera 15 de ouro: em 1 h 51 min',
+    );
+    expect(planWaiting(waiting('espera 15 de ouro', 6630), 6600)).toBe(
+      'espera 15 de ouro: em 30 s',
+    );
+    // Vencido o prazo, a tela não mostra tempo negativo: a leitura seguinte traz a obra iniciada.
+    expect(planWaiting(waiting('espera 15 de ouro', 60), 600)).toBe('espera 15 de ouro: em 1 s');
+    expect(planWaiting(waiting('não cabe no Armazém: amplie-o', null), 600)).toBe(
+      'não cabe no Armazém: amplie-o',
+    );
+    expect(planWaiting({ waiting: null }, 0)).toBe('pode começar agora');
+    expect(capitalize('espera 15 de ouro')).toBe('Espera 15 de ouro');
+    expect(capitalize('')).toBe('');
   });
 
   it('corta texto longo com reticências e desconta o tempo decorrido', () => {
@@ -192,6 +203,30 @@ describe('barra de status', () => {
 
   it('a fome passa na frente da obra', () => {
     expect(statusBar({ ...base, view: starving }).text).toBe('$(warning) Fome em Pedra Alta');
+  });
+
+  it('com duas obras em curso, mostra a que termina primeiro e conta a outra', () => {
+    const result = statusBar({ ...base, view: queuesView });
+    expect(result.text).toBe('$(tools) Serraria Nv2 · 00:03 · +1 obra');
+    expect(result.tooltip).toBe('Pedra Alta: 2 obras em andamento');
+    // A ordem das filas não importa: vale o prazo. Aqui a segunda fila termina antes.
+    const [first, second] = queuesView.constructions.queues;
+    const swapped = withQueues(queuesView, [second ?? null, first ?? null]);
+    expect(statusBar({ ...base, view: swapped }).text).toBe(
+      '$(tools) Serraria Nv2 · 00:03 · +1 obra',
+    );
+    expect(soonestConstruction(swapped.constructions)?.building).toBe('lumberMill');
+    // Com a primeira fila livre, a obra da segunda é a que aparece, sem "+1".
+    const onlySecond = withQueues(queuesView, [null, second ?? null]);
+    expect(statusBar({ ...base, view: onlySecond }).text).toBe('$(tools) Mina de Ouro Nv2 · 00:06');
+    expect(busyQueues(onlySecond.constructions).map((queue) => queue.building)).toEqual([
+      'goldMine',
+    ]);
+    expect(soonestConstruction(farmers.constructions)).toBeNull();
+    // No modo discreto, o contador é o da obra que termina primeiro.
+    expect(statusBar({ ...base, view: swapped, discreetMode: true }).text).toBe(
+      '$(circle-filled) 00:03',
+    );
   });
 
   it('o frio tem ícone e texto próprios, e a explicação é a que o servidor mandou', () => {
@@ -415,20 +450,15 @@ describe('árvore', () => {
     });
 
     it('a obra em andamento diz o que o cancelamento devolve e o que se perderia', () => {
-      const tight: ViewState = {
-        ...building,
-        constructions: {
-          ...building.constructions,
-          active: building.constructions.active && {
-            ...building.constructions.active,
-            refund: [
-              { resource: 'wood', label: 'Madeira', amount: 30, lost: 50 },
-              { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
-            ],
-          },
-        },
-      };
-      expect(find(buildTree({ ...input, view: tight }), 'construction:active')?.tooltip).toContain(
+      const tight = withQueues(farmers, [
+        activeConstruction({
+          refund: [
+            { resource: 'wood', label: 'Madeira', amount: 30, lost: 50 },
+            { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+          ],
+        }),
+      ]);
+      expect(find(buildTree({ ...input, view: tight }), 'active:lumberMill')?.tooltip).toContain(
         'Cancelar devolve 30 madeira, 40 pedra. Não cabem no depósito e se perderiam: 50 madeira.',
       );
       expect(refundParts([{ resource: 'wood', label: 'Madeira', amount: 0, lost: 64 }])).toEqual({
@@ -463,7 +493,7 @@ describe('árvore', () => {
 
   it('construções mostram a obra ativa com o tempo restante e as melhorias disponíveis', () => {
     const tree = buildTree({ ...input, elapsedSeconds: 600 });
-    expect(find(tree, 'construction:active')).toMatchObject({
+    expect(find(tree, 'active:lumberMill')).toMatchObject({
       label: 'Serraria → Nv2',
       description: '00:32',
       contextValue: 'lords.activeConstruction',
@@ -475,7 +505,7 @@ describe('árvore', () => {
       contextValue: 'lords.blockedUpgrade',
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
-    expect(find(tree, 'construction:active')?.tooltip).toContain(
+    expect(find(tree, 'active:lumberMill')?.tooltip).toContain(
       'Cancelar devolve 80 madeira, 40 pedra.',
     );
     expect(hall?.tooltip).toContain('Faltam 30 madeira e 35 pedra.');
@@ -484,6 +514,142 @@ describe('árvore', () => {
       description: '80 madeira, 40 ouro · 5 min',
       icon: 'check',
       contextValue: 'lords.upgrade',
+    });
+  });
+
+  describe('filas de obras e planejadas (GDD §6.3)', () => {
+    const queued = { ...input, view: queuesView };
+
+    it('com duas filas, cada obra em curso é uma linha, com o edifício no id e o seu Cancelar', () => {
+      const tree = buildTree(queued);
+      expect(find(tree, 'active:lumberMill')).toMatchObject({
+        label: 'Serraria → Nv2',
+        description: '00:03',
+        contextValue: 'lords.activeConstruction',
+      });
+      expect(find(tree, 'active:goldMine')).toMatchObject({
+        label: 'Mina de Ouro → Nv2',
+        description: '00:06',
+        contextValue: 'lords.activeConstruction',
+      });
+      expect(find(tree, 'active:goldMine')?.tooltip).toContain(
+        'Cancelar devolve 96 madeira, 64 pedra.',
+      );
+    });
+
+    it('a linha "Construções" resume as obras, a fila que sobra e quantas planejadas esperam', () => {
+      expect(find(buildTree(queued), 'constructions')?.description).toBe(
+        'Serraria · 00:03, Mina de Ouro · 00:06 · 5 planejadas',
+      );
+      const oneFree = withQueues(queuesView, [null, activeConstruction()]);
+      expect(find(buildTree({ ...input, view: oneFree }), 'constructions')?.description).toBe(
+        'Serraria · 00:42 · 1 fila livre · 5 planejadas',
+      );
+      // Com uma fila só, ocupada, não há fila livre a anunciar.
+      expect(find(buildTree(input), 'constructions')?.description).toBe('Serraria · 00:42');
+      const idle = withPlanned(farmers, [{ building: 'farm' }]);
+      expect(find(buildTree({ ...input, view: idle }), 'constructions')?.description).toBe(
+        'nenhuma obra em andamento · 1 planejada',
+      );
+      expect(find(buildTree({ ...input, view: farmers }), 'constructions')?.description).toBe(
+        'nenhuma obra em andamento',
+      );
+    });
+
+    it('enquanto a segunda fila está fechada, a explicação da linha diz o que a abre', () => {
+      expect(find(buildTree(input), 'constructions')?.tooltip).toBe(
+        'A segunda fila abre com o Salão do Senhor Nv4.',
+      );
+      expect(find(buildTree(queued), 'constructions')?.tooltip).toBeUndefined();
+    });
+
+    it('as planejadas têm o seu grupo, na ordem da lista, com a marca por extenso e o que cada uma espera', () => {
+      const group = find(buildTree(queued), 'planned');
+      expect(group).toMatchObject({
+        label: 'Planejadas',
+        description: '4 automáticas, 1 manual',
+        expanded: true,
+      });
+      // O grupo só abre e fecha: não navega nem dá ordem.
+      expect(group?.command).toBeUndefined();
+      const planned = group?.children ?? [];
+      expect(planned.map((node) => [node.id, node.label, node.description])).toEqual([
+        [
+          'planned:lumberMill',
+          'Serraria → Nv3',
+          'automática · espera a obra da Serraria terminar: em 3 min',
+        ],
+        [
+          'planned:housing',
+          'Habitações → Nv2',
+          'manual · espera os pedreiros terminarem outra obra: em 3 min',
+        ],
+        ['planned:farm', 'Fazenda → Nv2', 'automática · espera 15 de ouro: em 1 h 51 min'],
+        [
+          'planned:townHall',
+          'Salão do Senhor → Nv5',
+          'automática · não cabe no Pátio: construa o Armazém',
+        ],
+        [
+          'planned:quarry',
+          'Pedreira → Nv6',
+          'automática · espera o Salão do Senhor chegar ao nível 5: melhore-o',
+        ],
+      ]);
+      expect(planned.map((node) => node.contextValue)).toEqual([
+        'lords.plannedAuto',
+        'lords.plannedManual',
+        'lords.plannedAuto',
+        'lords.plannedAuto',
+        'lords.plannedAuto',
+      ]);
+      // Clicar na linha só navega; a marca muda no botão da linha.
+      expect(planned.every((node) => node.command?.id === 'lords.openPanel')).toBe(true);
+      expect(planned[2]?.tooltip).toBe(
+        [
+          'Planejada, com início automático: os pedreiros começam sozinhos quando puderem.',
+          'Fazenda Nv1 → Nv2 · 80 madeira, 40 ouro · 5 min',
+          'Espera 15 de ouro: em 1 h 51 min.',
+        ].join('\n'),
+      );
+      expect(planned[1]?.tooltip).toContain('Planejada: espera a sua ordem para começar.');
+    });
+
+    it('o grupo conta as marcas no singular e no plural, e some sem planejadas', () => {
+      const one = withPlanned(farmers, [{ building: 'farm' }]);
+      expect(find(buildTree({ ...input, view: one }), 'planned')?.description).toBe('1 manual');
+      const mixed = withPlanned(farmers, [
+        { building: 'farm', autoStart: true },
+        { building: 'housing' },
+        { building: 'quarry' },
+      ]);
+      expect(find(buildTree({ ...input, view: mixed }), 'planned')?.description).toBe(
+        '1 automática, 2 manuais',
+      );
+      expect(find(buildTree({ ...input, view: farmers }), 'planned')).toBeUndefined();
+    });
+
+    it('uma planejada manual sem espera diz que já pode começar', () => {
+      const ready = withPlanned(farmers, [{ building: 'farm' }]);
+      expect(find(buildTree({ ...input, view: ready }), 'planned:farm')).toMatchObject({
+        label: 'Fazenda → Nv2',
+        description: 'manual · pode começar agora',
+        contextValue: 'lords.plannedManual',
+      });
+    });
+
+    it('a planejada do que ainda não existe não fala em "Nv0" nem em "Nv1"', () => {
+      const fresh = withPlanned(unlockedView, [{ building: 'granary', autoStart: true }]);
+      expect(find(buildTree({ ...input, view: fresh }), 'planned:granary')?.label).toBe(
+        'Construir: Celeiro',
+      );
+    });
+
+    it('as planejadas ficam entre as obras em curso e as que podem ser ordenadas', () => {
+      const kinds = (find(buildTree(queued), 'constructions')?.children ?? []).map(
+        (node) => node.id.split(':')[0],
+      );
+      expect([...new Set(kinds)]).toEqual(['active', 'planned', 'construction']);
     });
   });
 
@@ -811,6 +977,38 @@ describe('Relatório de Retorno', () => {
       expect(events.filter((entry) => !isChronicleEvent(entry)).map((entry) => entry.type)).toEqual(
         ['dayStarted', 'storageWasted', 'dayStarted', 'storageWasted'],
       );
+    });
+
+    it('a obra que começou sozinha é gasto como as outras e entra na lista do que ler', () => {
+      const auto = [
+        event(
+          'constructionAutoStarted',
+          { building: 'quarry', level: 2, spent_wood: 120, spent_gold: 30 },
+          'Com as reservas cheias, os pedreiros começaram sozinhos a erguer a Pedreira ao 2º nível.',
+        ),
+        event('constructionStarted', {
+          building: 'farm',
+          level: 2,
+          spent_wood: 80,
+          spent_gold: 40,
+        }),
+        event(
+          'constructionAutoStarted',
+          { building: 'warehouse', level: 1, spent_wood: 160, spent_stone: 80 },
+          'Com as reservas cheias, os pedreiros começaram sozinhos a levantar o Armazém.',
+        ),
+      ];
+      const away = buildReturnReport(before, after, auto, 6 * HOUR);
+      expect(row(away, 'wood')).toMatchObject({ spent: 360, produced: 540 });
+      expect(row(away, 'stone')).toMatchObject({ spent: 80 });
+      expect(row(away, 'gold')).toMatchObject({ spent: 70 });
+      expect(away.highlights).toEqual([
+        'Com as reservas cheias, os pedreiros começaram sozinhos a erguer a Pedreira ao 2º nível.',
+        'constructionStarted',
+        'Com as reservas cheias, os pedreiros começaram sozinhos a levantar o Armazém.',
+      ]);
+      expect(auto.every(isChronicleEvent)).toBe(true);
+      expect(ReturnReportSchema.safeParse(away).success).toBe(true);
     });
 
     it('um edifício erguido do zero conta como obra concluída', () => {

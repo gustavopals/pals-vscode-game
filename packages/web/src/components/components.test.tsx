@@ -13,16 +13,21 @@ import type { NewGameOptions } from '../game/newGame';
 import { FiefTab } from '../tabs/Fief';
 import { TodayTab } from '../tabs/Today';
 import {
+  activeConstruction,
   autumnView,
   catalogFixture,
   coldView,
   initialView,
+  queuesView,
   unlockedView,
   winterWith,
+  withPlanned,
+  withQueues,
   withResource,
   withUpgrade,
 } from '../test-helpers';
 import type { Actions } from './actions';
+import { ConstructionsPanel } from './ConstructionsPanel';
 import {
   formatApprox,
   formatAway,
@@ -427,29 +432,25 @@ describe('aba Feudo', () => {
   });
 
   it('obra ativa mostra contagem regressiva, progresso e Cancelar', () => {
-    const building: ViewState = {
-      ...view,
-      constructions: {
-        ...view.constructions,
-        active: {
-          building: 'farm',
-          label: 'Fazenda',
-          targetLevel: 2,
-          secondsRemaining: 180,
-          totalSeconds: 300,
-          progressPercent: 40,
-          refund: [
-            { resource: 'wood', label: 'Madeira', amount: 64, lost: 0 },
-            { resource: 'gold', label: 'Ouro', amount: 32, lost: 0 },
-          ],
-        },
-      },
-    };
+    const building = withQueues(view, [
+      activeConstruction({
+        building: 'farm',
+        label: 'Fazenda',
+        secondsRemaining: 180,
+        totalSeconds: 300,
+        progressPercent: 40,
+        refund: [
+          { resource: 'wood', label: 'Madeira', amount: 64, lost: 0 },
+          { resource: 'gold', label: 'Ouro', amount: 32, lost: 0 },
+        ],
+      }),
+    ]);
     const active = fief({ view: building });
     expect(active).toContain('Fazenda → Nv2');
     expect(active).toContain('03:00');
-    expect(active).toContain('aria-label="Obra 40% concluída"');
-    expect(active).toContain('Cancelar');
+    expect(active).toContain('aria-label="Obra de Fazenda: 40% concluída"');
+    expect(active).toContain('aria-label="Cancelar a obra: Fazenda"');
+    expect(active).not.toContain('Os pedreiros estão livres.');
     // O que volta ao cancelar vem do servidor; o app não conhece a regra dos 80%.
     expect(active).toContain('Cancelar devolve 64 madeira e 32 ouro.');
   });
@@ -1041,39 +1042,22 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
   });
 
   it('uma obra planejada do que ainda não existe também não fala em "Nv0"', () => {
-    const granary = unlockedView.constructions.available.find(
-      (upgrade) => upgrade.building === 'granary',
-    );
-    const planned: ViewState = {
-      ...unlockedView,
-      constructions: {
-        ...unlockedView.constructions,
-        planned: granary === undefined ? [] : [{ ...granary, planned: true }],
-      },
-    };
-    const page = fief({ view: planned });
-    expect(page).toContain('<span class="upgrade-name">Construir: Celeiro</span>');
+    const page = fief({ view: withPlanned(unlockedView, [{ building: 'granary' }]) });
+    expect(page).toContain('<span class="upgrade-name">Construir: Celeiro<span class="muted">');
     expect(page).not.toContain('Nv0');
   });
 
   it('cancelar perto do limite: diz o que volta e o que se perderia', () => {
     const active = (refund: NonNullable<ViewState['constructions']['active']>['refund']) =>
       fief({
-        view: {
-          ...view,
-          constructions: {
-            ...view.constructions,
-            active: {
-              building: 'lumberMill',
-              label: 'Serraria',
-              targetLevel: 2,
-              secondsRemaining: 180,
-              totalSeconds: 300,
-              progressPercent: 40,
-              refund,
-            },
-          },
-        },
+        view: withQueues(view, [
+          activeConstruction({
+            secondsRemaining: 180,
+            totalSeconds: 300,
+            progressPercent: 40,
+            refund,
+          }),
+        ]),
       });
     const tight = active([
       { resource: 'wood', label: 'Madeira', amount: 30, lost: 34 },
@@ -1096,6 +1080,214 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(fief({ view: unlockedView })).toContain(
       'Recompensa: desbloqueia o Celeiro e o Armazém.',
     );
+  });
+});
+
+describe('aba Feudo: filas de obras e planejadas (GDD §6.3)', () => {
+  const text = (markup: string) =>
+    markup
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  /** As linhas da lista de filas, uma por fila aberta e, se houver, a da fila ainda fechada. */
+  const queues = (page: string) =>
+    /<ul class="queues"[^>]*>(.*?)<\/ul>/.exec(page)?.[1]?.match(/<li .*?<\/li>/g) ?? [];
+  /** As planejadas, na ordem em que a página as mostra. */
+  const plans = (page: string) =>
+    /<ol class="upgrades"[^>]*>(.*?)<\/ol>/.exec(page)?.[1]?.match(/<li .*?<\/li>/g) ?? [];
+  const mark = (plan: string) => /<input[^>]*>/.exec(plan)?.[0] ?? '';
+
+  type VNodeLike = { type?: unknown; props?: Record<string, unknown> };
+  /**
+   * Aciona, sem navegador, o controle com este nome: percorre a árvore de componentes (nenhum
+   * deles usa ganchos) e chama o `onClick` de quem tem o `aria-label`, se não estiver desabilitado.
+   */
+  const press = (node: unknown, label: string): boolean => {
+    if (Array.isArray(node)) {
+      return node.some((child) => press(child, label));
+    }
+    if (typeof node !== 'object' || node === null) {
+      return false;
+    }
+    const { type, props } = node as VNodeLike;
+    if (typeof type === 'function') {
+      return press((type as (props: unknown) => unknown)(props), label);
+    }
+    if (props?.['aria-label'] === label && typeof props.onClick === 'function') {
+      if (props.disabled !== true) {
+        (props.onClick as (event: { preventDefault(): void }) => void)({ preventDefault() {} });
+      }
+      return true;
+    }
+    return press(props?.children, label);
+  };
+  const ordering = (shown: ViewState, disabled = false) => {
+    const orders: Array<[string, unknown]> = [];
+    const recording: Actions = {
+      ...actions,
+      order: (type, payload) => orders.push([type, payload]),
+    };
+    const panel = (
+      <ConstructionsPanel
+        constructions={shown.constructions}
+        elapsed={0}
+        disabled={disabled}
+        actions={recording}
+      />
+    );
+    return { orders, press: (label: string) => press(panel, label) };
+  };
+
+  it('uma fila só: os pedreiros livres e, logo abaixo, o que abre a segunda, sem botão morto', () => {
+    const [free, locked, ...rest] = queues(fief({ view: initialView }));
+    expect(rest).toEqual([]);
+    expect(text(free ?? '')).toBe('Os pedreiros estão livres.');
+    // A frase é a do servidor; o cadeado acompanha o texto, não o substitui.
+    expect(text(locked ?? '')).toBe('A segunda fila abre com o Salão do Senhor Nv4.');
+    expect(locked).toContain('codicon-lock');
+    expect(locked).not.toContain('<button');
+    // Com uma fila só, ninguém precisa de número de fila.
+    expect(free).not.toContain('Fila 1');
+  });
+
+  it('uma fila só, ocupada: a obra e o motivo da segunda fila continuam lado a lado', () => {
+    const [busy, locked] = queues(fief({ view: withQueues(view, [activeConstruction()]) }));
+    expect(text(busy ?? '')).toContain('Serraria → Nv2');
+    expect(text(busy ?? '')).not.toContain('Fila');
+    expect(text(locked ?? '')).toBe('A segunda fila abre com o Salão do Senhor Nv4.');
+  });
+
+  it('duas filas abertas: uma linha por fila, cada uma com número, prazo, progresso e Cancelar', () => {
+    const page = fief({ view: queuesView });
+    const [first, second, ...rest] = queues(page);
+    expect(rest).toEqual([]);
+    expect(text(first ?? '')).toContain('Fila 1Serraria → Nv203:00Cancelar');
+    expect(text(second ?? '')).toContain('Fila 2Mina de Ouro → Nv206:00Cancelar');
+    expect(first).toContain('aria-label="Cancelar a obra: Serraria"');
+    expect(second).toContain('aria-label="Cancelar a obra: Mina de Ouro"');
+    expect(first).toContain('aria-label="Obra de Serraria: 40% concluída"');
+    expect(second).toContain('aria-label="Obra de Mina de Ouro: 25% concluída"');
+    expect(second).toContain('Cancelar devolve 96 madeira e 64 pedra.');
+    // Com as duas abertas, não há fila fechada a explicar.
+    expect(page).not.toContain('queue-locked');
+    expect(page).not.toContain('A segunda fila abre');
+  });
+
+  it('duas filas, uma livre: a linha da fila livre diz de quem são os pedreiros parados', () => {
+    const [first, second] = queues(
+      fief({ view: withQueues(queuesView, [null, activeConstruction()]) }),
+    );
+    expect(text(first ?? '')).toBe('Fila 1Os pedreiros estão livres.');
+    expect(text(second ?? '')).toContain('Fila 2Serraria → Nv2');
+  });
+
+  it('cada fila desconta o seu prazo com o relógio da página', () => {
+    const [first, second] = queues(fief({ view: queuesView, elapsed: 90 }));
+    expect(text(first ?? '')).toContain('01:30');
+    expect(text(second ?? '')).toContain('04:30');
+  });
+
+  it('cancelar manda a obra da linha em que o botão está', () => {
+    const { orders, press } = ordering(queuesView);
+    expect(press('Cancelar a obra: Mina de Ouro')).toBe(true);
+    expect(orders).toEqual([['cancelConstruction', { building: 'goldMine' }]]);
+  });
+
+  it('as planejadas vêm na ordem da lista, com a marca, o custo, o prazo e o que cada uma espera', () => {
+    const page = fief({ view: queuesView });
+    expect(page).toContain(
+      'As marcadas começam sozinhas, na ordem da lista, assim que houver recursos e pedreiros livres.',
+    );
+    const rows = plans(page);
+    expect(rows.map((row) => /class="upgrade-name">([^<]*)</.exec(row)?.[1])).toEqual([
+      'Serraria Nv2 → Nv3',
+      'Habitações Nv1 → Nv2',
+      'Fazenda Nv1 → Nv2',
+      'Salão do Senhor Nv4 → Nv5',
+      'Pedreira Nv5 → Nv6',
+    ]);
+    // A frase é a do servidor, com maiúscula e ponto; o prazo entra só quando há um.
+    expect(
+      rows.map((row) => text(/class="plan-waiting">(.*?)<\/span><\/li>/.exec(row)?.[1] ?? '')),
+    ).toEqual([
+      'Espera a obra da Serraria terminar: em 3 min.',
+      'Espera os pedreiros terminarem outra obra: em 3 min.',
+      'Espera 15 de ouro: em 1 h 51 min.',
+      'Não cabe no Pátio: construa o Armazém.',
+      'Espera o Salão do Senhor chegar ao nível 5: melhore-o.',
+    ]);
+    // A marca é uma caixa de seleção com nome próprio; só a das Habitações está desligada.
+    expect(rows.map((row) => /aria-label="([^"]*)"/.exec(mark(row))?.[1])).toEqual([
+      'Iniciar quando houver recursos: Serraria',
+      'Iniciar quando houver recursos: Habitações',
+      'Iniciar quando houver recursos: Fazenda',
+      'Iniciar quando houver recursos: Salão do Senhor',
+      'Iniciar quando houver recursos: Pedreira',
+    ]);
+    expect(rows.map((row) => /\bchecked\b/.test(mark(row)))).toEqual([
+      true,
+      false,
+      true,
+      true,
+      true,
+    ]);
+    expect(rows.every((row) => text(row).includes('Iniciar quando houver recursos'))).toBe(true);
+    // O custo fica na linha, com o que falta por extenso, e o prazo da obra ao lado do nome.
+    expect(text(rows[2] ?? '')).toContain('Fazenda Nv1 → Nv2 · 5 min');
+    expect(text(rows[2] ?? '')).toContain('40 ouro (faltam 15)');
+    // Nenhuma delas pode começar agora: não há "Iniciar agora" para oferecer.
+    expect(page).not.toContain('Iniciar agora');
+  });
+
+  it('o prazo da espera desce com o relógio da página', () => {
+    const [first, , third] = plans(fief({ view: queuesView, elapsed: 60 }));
+    expect(text(first ?? '')).toContain('Espera a obra da Serraria terminar: em 2 min.');
+    expect(text(third ?? '')).toContain('Espera 15 de ouro: em 1 h 50 min.');
+  });
+
+  it('uma manual que já pode começar diz isso e traz "Iniciar agora"', () => {
+    const ready = withPlanned(view, [{ building: 'farm' }]);
+    const [row, ...rest] = plans(fief({ view: ready }));
+    expect(rest).toEqual([]);
+    expect(text(row ?? '')).toContain('Pode começar agora.');
+    expect(row).toContain('aria-label="Iniciar agora: Fazenda"');
+    expect(/\bchecked\b/.test(mark(row ?? ''))).toBe(false);
+    const { orders, press } = ordering(ready);
+    expect(press('Iniciar agora: Fazenda')).toBe(true);
+    expect(orders).toEqual([['startConstruction', { building: 'farm' }]]);
+  });
+
+  it('um clique na marca manda a ordem de ligar; outro, na marcada, a de desligar', () => {
+    const { orders, press } = ordering(queuesView);
+    expect(press('Iniciar quando houver recursos: Habitações')).toBe(true);
+    expect(press('Iniciar quando houver recursos: Fazenda')).toBe(true);
+    expect(press('Tirar da lista: Pedreira')).toBe(true);
+    expect(orders).toEqual([
+      ['setAutoStart', { building: 'housing', autoStart: true }],
+      ['setAutoStart', { building: 'farm', autoStart: false }],
+      ['unplanConstruction', { building: 'quarry' }],
+    ]);
+  });
+
+  it('sem ligação, a marca e os botões da lista ficam travados e nada é enviado', () => {
+    const offline = plans(fief({ view: queuesView, online: false }));
+    expect(offline.every((row) => /\bdisabled\b/.test(mark(row)))).toBe(true);
+    const { orders, press } = ordering(queuesView, true);
+    expect(press('Iniciar quando houver recursos: Habitações')).toBe(true);
+    expect(press('Cancelar a obra: Serraria')).toBe(true);
+    expect(orders).toEqual([]);
+  });
+
+  it('sem planejadas, a lista e a explicação dela não aparecem', () => {
+    const page = fief({ view });
+    expect(page).not.toContain('Planejadas');
+    expect(page).not.toContain('As marcadas começam sozinhas');
+  });
+
+  it('a obra já planejada não oferece "Planejar" de novo; as outras, sim', () => {
+    const page = fief({ view: withPlanned(view, [{ building: 'farm', autoStart: true }]) });
+    expect(page).not.toContain('aria-label="Planejar Fazenda"');
+    expect(page).toContain('aria-label="Planejar Serraria"');
   });
 });
 

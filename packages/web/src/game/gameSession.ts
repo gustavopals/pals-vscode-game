@@ -321,8 +321,9 @@ export class GameSession {
 
   /**
    * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
-   * visão (obra, aldeão a caminho, virada do dia) vence antes: a contagem regressiva chegaria a
-   * zero e a tela ficaria parada nela. O segundo a mais dá ao servidor tempo de virar o prazo.
+   * visão (obra, planejada à espera, aldeão a caminho, virada do dia) vence antes: a contagem
+   * regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais dá ao servidor
+   * tempo de virar o prazo.
    */
   private nextPollMs(): number {
     const poll = pollIntervalMs(this.visible);
@@ -331,7 +332,10 @@ export class GameSession {
       return poll;
     }
     const deadlines = [
-      view.constructions.active?.secondsRemaining,
+      // Cada fila de obras tem o seu prazo, e cada planejada, o instante em que a espera acaba
+      // (é quando uma automática começa sozinha).
+      ...view.constructions.queues.map((queue) => queue?.secondsRemaining),
+      ...view.constructions.planned.map((plan) => plan.waiting?.etaSeconds),
       view.population.secondsToNextRecruit,
       view.calendar.secondsToNextDay,
     ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);

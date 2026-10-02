@@ -163,7 +163,48 @@ export function upgradeName(
     : `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`;
 }
 
-type RefundRow = NonNullable<ViewState['constructions']['active']>['refund'][number];
+type Constructions = ViewState['constructions'];
+type ActiveRow = NonNullable<Constructions['active']>;
+type PlannedRow = Constructions['planned'][number];
+
+/** As obras em curso, na ordem das filas abertas (GDD §6.3): nenhuma, uma ou duas. */
+export function busyQueues(constructions: Constructions): ActiveRow[] {
+  return constructions.queues.filter((queue) => queue !== null);
+}
+
+/** A obra em curso que termina primeiro; `null` com os pedreiros livres. */
+export function soonestConstruction(constructions: Constructions): ActiveRow | null {
+  return busyQueues(constructions).reduce<ActiveRow | null>(
+    (soonest, queue) =>
+      soonest === null || queue.secondsRemaining < soonest.secondsRemaining ? queue : soonest,
+    null,
+  );
+}
+
+/**
+ * A primeira letra em maiúscula: as frases de espera do servidor vêm em minúscula e sem ponto,
+ * prontas para o meio de uma linha.
+ */
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/**
+ * O que uma obra planejada espera, como o servidor disse, com o prazo quando há um: "espera 15 de
+ * ouro: em 1 h 51 min", "não cabe no Pátio: construa o Armazém". Sem espera, a obra já pode ser
+ * iniciada. A frase e o prazo vêm prontos (GDD §6.3); aqui só se desconta o tempo desde a leitura.
+ */
+export function planWaiting(plan: Pick<PlannedRow, 'waiting'>, elapsedSeconds: number): string {
+  const { waiting } = plan;
+  if (waiting === null) {
+    return 'pode começar agora';
+  }
+  return waiting.etaSeconds === null
+    ? waiting.text
+    : `${waiting.text}: em ${formatDuration(remainingNow(waiting.etaSeconds, elapsedSeconds))}`;
+}
+
+type RefundRow = ActiveRow['refund'][number];
 
 /** "a", "a e b", "a, b e c". */
 export function joinList(items: readonly string[]): string {
@@ -239,14 +280,17 @@ export type StatusBarOutput = { text: string; tooltip: string };
 /**
  * A linha da barra de status: uma linha, uma prioridade (GDD §13.5).
  * Sem ligação > fome e frio > obra em andamento > produção de comida. A fome e o frio têm cada
- * um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os dois.
+ * um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os dois. Com duas
+ * obras em curso, aparece a que termina primeiro, e a outra entra como "+1 obra".
  */
 export function statusBar(input: StatusBarInput): StatusBarOutput {
   const { view, connection } = input;
   if (!input.signedIn || connection.kind === 'unauthenticated') {
     return { text: '$(home) Lords of the Guild', tooltip: 'Jogar agora' };
   }
-  const active = view?.constructions.active ?? null;
+  // Com duas filas, a linha fala da obra que termina primeiro e conta as outras.
+  const active = view === null ? null : soonestConstruction(view.constructions);
+  const others = view === null ? 0 : busyQueues(view.constructions).length - 1;
   const remaining =
     active === null ? null : remainingNow(active.secondsRemaining, input.elapsedSeconds);
 
@@ -288,8 +332,12 @@ export function statusBar(input: StatusBarInput): StatusBarOutput {
   }
   if (active !== null && remaining !== null) {
     return {
-      text: `$(tools) ${active.label} Nv${active.targetLevel} · ${formatRemaining(remaining)}${bell}`,
-      tooltip: `${name}: obra em andamento`,
+      text:
+        `$(tools) ${active.label} Nv${active.targetLevel} · ${formatRemaining(remaining)}` +
+        (others > 0 ? ` · +${others} ${others === 1 ? 'obra' : 'obras'}` : '') +
+        bell,
+      tooltip:
+        others > 0 ? `${name}: ${others + 1} obras em andamento` : `${name}: obra em andamento`,
     };
   }
   const food = view.resources.find((row) => row.id === 'food');

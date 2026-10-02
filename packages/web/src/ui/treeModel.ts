@@ -3,7 +3,9 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import type { AccountState } from '../account/accountService';
 import type { Connection } from '../game/connection';
 import {
+  busyQueues,
   capExplanation,
+  capitalize,
   fillsSoon,
   firewoodRunsOutIn,
   formatApprox,
@@ -14,6 +16,7 @@ import {
   formatRemaining,
   isNewBuilding,
   isWasting,
+  planWaiting,
   refundSentence,
   remainingNow,
   runsOutIn,
@@ -150,19 +153,66 @@ function workersNode(view: ViewState): TreeNode {
   };
 }
 
+/**
+ * As construções (GDD §6.3): uma linha por obra em curso (até duas, com a segunda fila aberta),
+ * as planejadas na ordem da lista, com o que cada uma espera, e as obras que podem ser ordenadas.
+ */
 function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
-  const { active, available } = view.constructions;
+  const { constructions } = view;
+  const { available, planned, queuesUnlocked, queuesNote } = constructions;
+  const busy = busyQueues(constructions);
+  const left = (seconds: number) => formatRemaining(remainingNow(seconds, elapsedSeconds));
   const children: TreeNode[] = [];
-  if (active !== null) {
-    const remaining = formatRemaining(remainingNow(active.secondsRemaining, elapsedSeconds));
+  for (const active of busy) {
+    const remaining = left(active.secondsRemaining);
     children.push({
-      id: 'construction:active',
+      // O edifício vai no id: com duas obras em curso, "Cancelar" sabe de qual linha veio.
+      id: `active:${active.building}`,
       label: `${active.label} → Nv${active.targetLevel}`,
       description: remaining,
       tooltip: `Em obras. Termina em ${remaining}. ${refundSentence(active.refund, 'Cancelar devolve')}`,
       icon: 'tools',
       contextValue: 'lords.activeConstruction',
       command: { id: 'lords.openPanel', args: ['fief'] },
+    });
+  }
+  if (planned.length > 0) {
+    // As planejadas têm o seu grupo, na ordem da lista (é a ordem em que as automáticas são
+    // tentadas). A barra lateral é estreita: o nome vai curto, e a marca vem por extenso antes
+    // da espera, para nada ser dito só pelo ícone.
+    const automatic = planned.filter((plan) => plan.autoStart).length;
+    const manual = planned.length - automatic;
+    children.push({
+      id: 'planned',
+      label: 'Planejadas',
+      description: [
+        ...(automatic > 0 ? [automatic === 1 ? '1 automática' : `${automatic} automáticas`] : []),
+        ...(manual > 0 ? [manual === 1 ? '1 manual' : `${manual} manuais`] : []),
+      ].join(', '),
+      tooltip:
+        'As automáticas começam sozinhas, na ordem da lista, quando houver recursos e fila livre.',
+      icon: 'checklist',
+      expanded: true,
+      children: planned.map((plan) => {
+        const waiting = planWaiting(plan, elapsedSeconds);
+        return {
+          id: `planned:${plan.building}`,
+          // "Serraria → Nv3", como a obra em curso; o que ainda não existe é "Construir: Celeiro".
+          label: isNewBuilding(plan) ? upgradeName(plan) : `${plan.label} → Nv${plan.targetLevel}`,
+          description: `${plan.autoStart ? 'automática' : 'manual'} · ${waiting}`,
+          tooltip: [
+            plan.autoStart
+              ? 'Planejada, com início automático: os pedreiros começam sozinhos quando puderem.'
+              : 'Planejada: espera a sua ordem para começar.',
+            `${upgradeName(plan)} · ${formatCost(plan.cost)} · ${formatDuration(plan.durationSeconds)}`,
+            `${capitalize(waiting)}.`,
+          ].join('\n'),
+          icon: plan.autoStart ? 'play-circle' : 'bookmark',
+          contextValue: plan.autoStart ? 'lords.plannedAuto' : 'lords.plannedManual',
+          // O clique só navega: a marca muda no botão da linha.
+          command: { id: 'lords.openPanel', args: ['fief'] },
+        };
+      }),
     });
   }
   for (const upgrade of available) {
@@ -187,13 +237,24 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
   }
+  // Com o grupo recolhido, a linha ainda diz o que importa: as obras em curso, a fila que sobra
+  // e quantas planejadas esperam.
+  const free = queuesUnlocked - busy.length;
+  const summary = [
+    busy.length === 0
+      ? 'nenhuma obra em andamento'
+      : busy.map((active) => `${active.label} · ${left(active.secondsRemaining)}`).join(', '),
+    ...(busy.length > 0 && free > 0 ? [free === 1 ? '1 fila livre' : `${free} filas livres`] : []),
+    ...(planned.length > 0
+      ? [planned.length === 1 ? '1 planejada' : `${planned.length} planejadas`]
+      : []),
+  ];
   return {
     id: 'constructions',
     label: 'Construções',
-    description:
-      active === null
-        ? 'nenhuma obra em andamento'
-        : `${active.label} · ${formatRemaining(remainingNow(active.secondsRemaining, elapsedSeconds))}`,
+    description: summary.join(' · '),
+    // O que abre a segunda fila, enquanto ela está fechada: a frase é a do servidor.
+    ...(queuesNote === null ? {} : { tooltip: queuesNote }),
     icon: 'tools',
     children,
   };

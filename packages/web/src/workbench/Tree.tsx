@@ -37,6 +37,23 @@ export function rowActions(node: TreeNode): RowAction[] {
           command: 'lords.cancelConstruction',
         },
       ];
+    case 'lords.plannedManual':
+      // A marca "iniciar quando houver recursos" a um clique: o botão diz o que ele faz.
+      return [
+        {
+          label: `Iniciar quando houver recursos: ${node.label}`,
+          text: 'Iniciar sozinha',
+          command: 'lords.toggleAutoStart',
+        },
+      ];
+    case 'lords.plannedAuto':
+      return [
+        {
+          label: `Esperar a sua ordem: ${node.label}`,
+          text: 'Esperar ordem',
+          command: 'lords.toggleAutoStart',
+        },
+      ];
     default:
       return [];
   }

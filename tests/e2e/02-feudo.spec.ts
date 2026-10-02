@@ -715,3 +715,232 @@ test.describe('armazenamento', () => {
     await expect(fief(back).locator('.storage-notes')).toContainText('Celeiro cheio:');
   });
 });
+
+// V2C-T5 (GDD §6.3): a fila que ainda não abriu diz o que a abre, e as planejadas marcadas
+// "iniciar quando houver recursos" começam sem o jogador, na ordem da lista e pulando a que não
+// pode: o alívio de quem visita o feudo uma vez por dia.
+
+test.describe('filas de obras e planejadas', () => {
+  test('duas planejadas automáticas começam sozinhas na ausência, e a Crônica e o Relatório contam', async ({
+    context,
+    world,
+  }) => {
+    test.setTimeout(60_000);
+    const commands: Array<{ type: string; payload: unknown }> = [];
+    context.on('request', (request) => {
+      if (request.url().endsWith('/commands')) {
+        const body = request.postDataJSON() as { type: string; payload: unknown };
+        commands.push({ type: body.type, payload: body.payload });
+      }
+    });
+    const page = await world.open(context);
+    await playNow(page);
+    const step = async (label: string, free: number) => {
+      await fief(page).getByRole('button', { name: label }).click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    };
+    // Três na Serraria e dois na Pedreira: a madeira e a pedra sobem enquanto o feudo fica só.
+    for (const free of [4, 3, 2]) {
+      await step('Pôr mais um trabalhador em Serraria', free);
+    }
+    for (const free of [1, 0]) {
+      await step('Pôr mais um trabalhador em Pedreira', free);
+    }
+
+    // Uma fila aberta; a segunda aparece com o motivo, e não como um botão que não faz nada.
+    const queues = fief(page).getByRole('list', { name: 'Filas de obras' }).locator('> li');
+    await expect(queues).toHaveText([
+      'Os pedreiros estão livres.',
+      'A segunda fila abre com o Salão do Senhor Nv4.',
+    ]);
+    await expect(queues.nth(1).getByRole('button')).toHaveCount(0);
+    await expect(tree(page).locator('[data-node="constructions"]')).toHaveAttribute(
+      'title',
+      'A segunda fila abre com o Salão do Senhor Nv4.',
+    );
+
+    // Os pedreiros ocupados com as Habitações: o que for planejado agora tem de esperar.
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Habitações Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(queues.first()).toContainText('Habitações → Nv2');
+    await expect(queues.nth(1)).toHaveText('A segunda fila abre com o Salão do Senhor Nv4.');
+    expect(await stock(page, 'Madeira')).toBe(70);
+
+    // Pelo painel, a obra entra na lista como manual, com o que espera e em quanto tempo.
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Serraria Nv1 → Nv2' })
+      .getByRole('button', { name: 'Planejar' })
+      .click();
+    const planned = fief(page).getByRole('list', { name: 'Planejadas' }).locator('> li');
+    await expect(planned).toHaveCount(1);
+    const lumberMark = planned
+      .first()
+      .getByRole('checkbox', { name: 'Iniciar quando houver recursos: Serraria' });
+    await expect(lumberMark).not.toBeChecked();
+    await expect(planned.first()).toContainText(
+      'Espera 30 de madeira e 5 de pedra: em 1 h 15 min.',
+    );
+    // A marca é um clique, e só muda na tela quando o servidor confirma.
+    await lumberMark.click();
+    await expect(lumberMark).toBeChecked();
+    expect(commands.at(-1)).toEqual({
+      type: 'setAutoStart',
+      payload: { building: 'lumberMill', autoStart: true },
+    });
+
+    // Pela paleta, "Planejar obras" pergunta se a obra começa sozinha; Enter aceita a marca.
+    await palette(page, 'planejar obras');
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('combobox').fill('fazenda');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toContainText('Planejar: Fazenda Nv1 → Nv2');
+    const options = dialog.getByRole('option');
+    await expect(options).toHaveCount(2);
+    await expect(options.first()).toHaveAttribute('aria-selected', 'true');
+    await expect(options.first()).toContainText('Iniciar quando houver recursos');
+    await expect(options.first()).toContainText('Os pedreiros começam sozinhos');
+    await expect(options.last()).toContainText('Só deixar na lista');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(planned).toHaveCount(2);
+    expect(commands.at(-1)).toEqual({
+      type: 'planConstruction',
+      payload: { building: 'farm', autoStart: true },
+    });
+    await expect(
+      planned.nth(1).getByRole('checkbox', { name: 'Iniciar quando houver recursos: Fazenda' }),
+    ).toBeChecked();
+    await expect(planned.nth(1)).toContainText('Espera 10 de madeira: em 25 min.');
+    // Planejar e marcar não gastam nada.
+    expect(await stock(page, 'Madeira')).toBe(70);
+    expect(await stock(page, 'Ouro')).toBe(250);
+
+    // Na árvore, cada planejada diz a marca por extenso e tem o botão que a troca.
+    await tree(page).locator('[data-node="constructions"]').click();
+    await expect(tree(page).locator('[data-node="constructions"]')).toContainText('2 planejadas');
+    const lumberRow = tree(page).locator('[data-node="planned:lumberMill"]');
+    await expect(tree(page).locator('[data-node="planned"]')).toContainText(
+      'Planejadas2 automáticas',
+    );
+    await expect(lumberRow).toContainText('Serraria → Nv2');
+    await expect(lumberRow).toContainText('automática · espera 30 de madeira e 5 de pedra');
+    await lumberRow.hover();
+    await lumberRow.getByRole('button', { name: 'Esperar a sua ordem: Serraria → Nv2' }).click();
+    await expect(lumberRow).toContainText('manual ·');
+    await expect(lumberMark).not.toBeChecked();
+    await lumberRow
+      .getByRole('button', { name: 'Iniciar quando houver recursos: Serraria → Nv2' })
+      .click();
+    await expect(lumberRow).toContainText('automática ·');
+    await expect(lumberMark).toBeChecked();
+    // Pelo teclado, a barra de espaço troca a marca como o clique.
+    await lumberMark.focus();
+    await page.keyboard.press('Space');
+    await expect(lumberMark).not.toBeChecked();
+    await page.keyboard.press('Space');
+    await expect(lumberMark).toBeChecked();
+    await expect(lumberMark).toBeFocused();
+    // O clique na linha só navega: nenhuma ordem a mais saiu.
+    const sent = commands.length;
+    await lumberRow.click();
+    expect(commands).toHaveLength(sent);
+
+    // Em 720 px a lista de planejadas cabe, com a marca e a espera, sem rolagem horizontal.
+    await page.setViewportSize({ width: 720, height: 800 });
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await expect(lumberMark).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // Seis horas fora. A Fazenda, mais barata, começa primeiro (a Serraria, à frente dela na
+    // lista, ainda não podia e não a segura); a Serraria começa quando a madeira junta de novo.
+    await page.close();
+    await world.passTime(6 * HOUR);
+    const back = await world.open(context);
+    const today = back.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(today.getByText('Você esteve fora por 6 horas.')).toBeVisible();
+    const started = today.getByRole('listitem').filter({ hasText: 'começaram sozinhos' });
+    await expect(started).toHaveText([
+      /com as reservas cheias, os pedreiros começaram sozinhos a erguer a Fazenda ao 2º nível\.$/,
+      /com as reservas cheias, os pedreiros começaram sozinhos a erguer a Serraria ao 2º nível\.$/,
+    ]);
+    // O que as duas obras custaram aparece como gasto, não como produção que não houve.
+    const spent = (name: string) =>
+      today
+        .getByRole('row', { name: new RegExp(`^${name}`) })
+        .getByRole('cell')
+        .nth(2);
+    await expect(spent('Madeira')).toHaveText('−180');
+    await expect(spent('Pedra')).toHaveText('−50');
+    await expect(spent('Ouro')).toHaveText('−40');
+    await expect(today.getByText(/Obras concluídas: 3/)).toBeVisible();
+
+    // No feudo: a lista de planejadas esvaziou, os edifícios subiram e a Crônica conta as duas.
+    await today.getByRole('button', { name: 'Ir para o feudo' }).click();
+    await expect(fief(back).getByRole('heading', { name: 'Planejadas' })).toHaveCount(0);
+    await expect(fief(back).getByText('Os pedreiros estão livres.')).toBeVisible();
+    await expect(fief(back).getByText('Fazenda Nv2 → Nv3')).toBeVisible();
+    await expect(fief(back).getByText('Serraria Nv2 → Nv3')).toBeVisible();
+    const recent = fief(back)
+      .getByRole('region', { name: 'Crônica' })
+      .getByRole('listitem')
+      .filter({ hasText: 'começaram sozinhos' });
+    await expect(recent).toHaveCount(2);
+    await fief(back).getByRole('button', { name: 'Abrir a Crônica' }).click();
+    const chronicle = back.getByRole('tabpanel', { name: 'Crônica' });
+    await expect(chronicle.getByText(/começaram sozinhos a erguer a Fazenda/)).toBeVisible();
+    await expect(chronicle.getByText(/começaram sozinhos a erguer a Serraria/)).toBeVisible();
+  });
+
+  test('planejar como automática o que já pode começar inicia a obra na mesma hora, sozinha', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    // A Fazenda cabe no estoque e os pedreiros estão livres: a opção diz que começa agora.
+    await palette(page, 'planejar obras');
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('combobox').fill('fazenda');
+    await page.keyboard.press('Enter');
+    const options = dialog.getByRole('option');
+    await expect(options.first()).toContainText(
+      'Há recursos e pedreiros livres: a obra começa agora mesmo.',
+    );
+    // Começar agora gasta agora: o que vem marcado é só deixar na lista. A escolha é do jogador.
+    await expect(options.last()).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('ArrowUp');
+    await expect(options.first()).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    const queues = fief(page).getByRole('list', { name: 'Filas de obras' }).locator('> li');
+    await expect(queues.first()).toContainText('Fazenda → Nv2');
+    // Começou e saiu da lista: foi paga uma vez, e a Crônica diz que os pedreiros agiram sós.
+    await expect(fief(page).getByRole('heading', { name: 'Planejadas' })).toHaveCount(0);
+    expect(await stock(page, 'Madeira')).toBe(40);
+    await expect(
+      fief(page).getByText(/os pedreiros começaram sozinhos a erguer a Fazenda ao 2º nível/),
+    ).toBeVisible();
+
+    // A outra opção só deixa a obra na lista, à espera da ordem, e "Iniciar agora" a começa
+    // quando o jogador quiser. Aqui a fila está ocupada: a espera diz isso, com o prazo.
+    await palette(page, 'planejar obras');
+    await page.getByRole('dialog').getByRole('combobox').fill('pedreira');
+    await page.keyboard.press('Enter');
+    // A Pedreira ainda não pode começar: aqui a automática é que vem marcada.
+    await expect(page.getByRole('dialog').getByRole('option').first()).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    const planned = fief(page).getByRole('list', { name: 'Planejadas' }).locator('> li');
+    await expect(planned).toHaveCount(1);
+    await expect(planned.first().getByRole('checkbox')).not.toBeChecked();
+    await expect(planned.first()).toContainText(/Espera/);
+    await expect(planned.first().getByRole('button', { name: /Iniciar agora/ })).toHaveCount(0);
+  });
+});
