@@ -148,7 +148,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.448 | ≤ 5.355 | ≤ 164.489 | ≤ 19 | 0 |',
+      '| Rápido 3× | Regular | 64 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 173.967 | ≤ 32 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -163,12 +163,12 @@ describe('relatório da matriz', () => {
     );
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
     expect(rows).toEqual([
-      '| 7 dias reais | Rápido 3× | Regular | 18 | 9 | 12 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 | 1 | 0 | ≤ 8 | dentro |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0,5 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Rápido 3× | Regular | 18 | 21 a 24 | 0 a 3 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 a 2 | 0 a 5 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 18 | 0 | 0 | ≤ 8 | **acima** |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 | 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 1,5 | 0,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 a 2 | 0 a 5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 1 | 0 a 1,5 | 0 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -177,8 +177,9 @@ describe('relatório da matriz', () => {
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
+    // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 72], 7, 0, 0, 4236, 5100, 156656, 18),",
+      "  'week/3/regular': measured([72, 73], 7, 0, 0, 4236, 4727, 161640, 24),",
     );
   });
 
@@ -188,17 +189,21 @@ describe('relatório da matriz', () => {
       '| Ritmo | Perfil | Salão Nv2 (h) | Salão Nv3 (h) | Salão Nv4 (h) | Celeiro (h) | Armazém (h) | Fim das obras (h) | Obras que começaram sozinhas | População mínima |';
     expect(week).toContain(`### Progresso: 7 dias reais\n\n${header}`);
     expect(year).toContain(`### Progresso: um ano de jogo\n\n${header}`);
-    // No ritmo 3 o Regular esgota as obras na hora 113 da semana; no primeiro ano (56 h reais)
+    // No ritmo 3 o Regular esgota as obras na hora 123 da semana; no primeiro ano (56 h reais)
     // ainda há o que construir, e o Preguiçoso não chega ao Salão no nível 4.
-    expect(week).toContain('| Rápido 3× | Regular | 11 | 22 | 36 | 25 | 26 | 113 | 46 | 7 |');
-    expect(year).toContain('| Rápido 3× | Regular | 11 | 22 | 36 | 25 | 26 | — | 29 | 7 |');
+    expect(week).toContain(
+      '| Rápido 3× | Regular | 11 | 22 | 35 a 36 | 25 | 26 | 123 | 45 a 47 | 7 |',
+    );
+    expect(year).toContain(
+      '| Rápido 3× | Regular | 11 | 22 | 35 a 36 | 25 | 26 | — | 29 a 30 | 7 |',
+    );
     expect(year).toContain('| Rápido 3× | Preguiçoso | 29 | 54 | — | 33 | 31 | — | 14 | 7 |');
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
-      townHall4: { min: 36, max: 36 },
+      townHall4: { min: 35, max: 36 },
       granary: { min: 25, max: 25 },
     });
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 113, max: 113 });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 123, max: 123 });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
@@ -211,10 +216,12 @@ describe('relatório da matriz', () => {
       '### Desperdício por recurso: 7 dias reais\n\n| Ritmo | Perfil | Comida perdida (% da produção) | Madeira perdida (% da produção) | Pedra perdida (% da produção) | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) |',
     );
     // Cada recurso por si, nunca somados: o Preguiçoso do ritmo 3 perde quase metade do que
-    // corta, e o Regular, 2%.
+    // corta, e o Regular, um décimo.
     expect(week).toContain('| Rápido 3× | Preguiçoso | 51% | 46% | 44% | 63 | 75 | 48 |');
-    expect(week).toContain('| Rápido 3× | Regular | 5% | 2% | 2% | 18 | 9 | 12 |');
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0,5 | 0 |');
+    expect(week).toContain(
+      '| Rápido 3× | Regular | 6% a 14% | 9% a 10% | 0% | 18 | 21 a 24 | 0 a 3 |',
+    );
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -251,11 +258,11 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 4448 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 64 a 80 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5355 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: população 3, fora da faixa de 64 a 82 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 64 a 80 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 64 a 82 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });

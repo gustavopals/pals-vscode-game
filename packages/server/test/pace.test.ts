@@ -1072,15 +1072,16 @@ describe('as estações no relógio real (V2C-T1)', () => {
       await accepted(server, player, order('setWorkers', { building: 'quarry', count: 1 }));
       await accepted(server, player, order('startConstruction', { building: 'farm' }));
     }
-    // As duas primeiras audiências do Conselho (4 e 8 dias de jogo): os dois senhores respondem
-    // na hora, com a opção que o conselho aplicaria sozinho. Sem isso os mundos se separam, e
-    // é de propósito: o prazo de resposta é de tempo real (24 h em qualquer ritmo), então uma
-    // carta sem resposta expira em instantes de jogo diferentes em cada ritmo.
-    const audiences = [4 * DAY, 8 * DAY];
+    // A cada audiência do Conselho (de 4 em 4 dias de jogo, o ano inteiro) os dois senhores
+    // respondem na hora, com a opção que o conselho aplicaria sozinho. Sem isso os mundos se
+    // separam, e é de propósito: o prazo de resposta é de tempo real (24 h em qualquer ritmo),
+    // então uma carta sem resposta expira em instantes de jogo diferentes em cada ritmo.
+    const audiences = Array.from({ length: YEAR / (4 * DAY) }, (_, index) => (index + 1) * 4 * DAY);
     // 40 de madeira e 5 habitantes: a lenha dura 16 horas de jogo de inverno.
-    const instants = [WINTER - DAY, WINTER + 7 * HOUR + 1234 * SECOND, WINTER + 17 * HOUR, YEAR];
+    const instants = [WINTER - DAY, WINTER + 7 * HOUR + 1234 * SECOND, WINTER + 17 * HOUR];
+    const stops = [...new Set([...audiences, ...instants])].sort((a, b) => a - b);
     let gameNow = 0;
-    for (const instant of [...audiences, ...instants]) {
+    for (const instant of stops) {
       await wait(fast, quick, (instant - gameNow) / PACE);
       await wait(normal, slow, instant - gameNow);
       gameNow = instant;

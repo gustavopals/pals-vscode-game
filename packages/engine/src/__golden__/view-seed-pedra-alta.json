@@ -5422,7 +5422,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 24222,
+        "fullInSeconds": 24171,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -5898,7 +5898,7 @@
           "instanceId": "commonGranaryShare-3",
           "title": "A vez de repartir",
           "text": "As prateleiras feitas com a madeira que o senhor cedeu já seguram a carga. Algumas famílias pedem uma refeição em comum para estreá-las; outras preferem guardar cada saco para o frio. O conselho quer saber que exemplo o senhor dá.",
-          "expiresInSeconds": 83740,
+          "expiresInSeconds": 81340,
           "defaultOptionId": "reserve",
           "defaultOptionLabel": "Guardar para o inverno",
           "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: guardar para o inverno.",
@@ -5922,7 +5922,7 @@
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "−30 comida; +10 de moral por 2 dias de jogo (1 h 20 min)",
+              "effectsText": "−30 comida; +10 de moral por 3 dias de jogo (2 h)",
               "hint": "Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar."
             },
             {
@@ -5998,7 +5998,7 @@
         "kind": "card",
         "id": "commonGranaryShare-3",
         "title": "A vez de repartir",
-        "expiresInSeconds": 83740
+        "expiresInSeconds": 81340
       },
       {
         "kind": "card",

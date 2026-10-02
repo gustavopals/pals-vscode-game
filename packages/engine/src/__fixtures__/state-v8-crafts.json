@@ -92,13 +92,31 @@
  },
  "council": {
   "pending": [],
-  "flags": {},
+  "flags": {
+   "routine.masonsMeal": true,
+   "routine.sawmillRest": true,
+   "routine.neighborsWatch": true,
+   "routine.moreMouths": true
+  },
   "seenThisYear": [
    "commonGranaryPlanks",
    "commonGranaryShare",
    "commonGranaryOutcome",
+   "thawBridgePlea",
+   "thawBridgeSlab",
+   "thawBridgeCrossing",
    "collapsedWell",
-   "masonsMeal"
+   "masonsMeal",
+   "sawmillRest",
+   "neighborsWatch",
+   "moreMouths",
+   "springSeeds",
+   "springNews",
+   "apprenticesTable",
+   "fullGranary",
+   "dampFirewood",
+   "roofBeforeCold",
+   "harvestFeast"
   ],
   "nextDrawAtMs": 374400000,
   "scheduled": [],

@@ -50,10 +50,12 @@ describe('advanceTo', () => {
     const { events } = advanceTo(newGame(), 24 * DAY_MS);
     const atBoundary = events.filter((event) => event.atMs === 24 * DAY_MS);
     // Ninguém cuidou do feudo: depois do amanhecer vem a moral, e a fome de 12 h leva um aldeão.
+    // A virada do 25º dia é também uma audiência do Conselho, e o sorteio vem depois da moral.
     expect(atBoundary.map((event) => event.type)).toEqual([
       'seasonChanged',
       'dayStarted',
       'villagerDeserted',
+      'cardDrawn',
     ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');

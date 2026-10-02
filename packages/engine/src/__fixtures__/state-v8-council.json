@@ -1,6 +1,6 @@
 {
  "schemaVersion": 8,
- "seed": "fixture-council",
+ "seed": "fixture-council-623",
  "settings": {
   "settlementName": "Pedra Alta",
   "timezone": "America/Sao_Paulo",
@@ -17,10 +17,10 @@
  "lastProcessedAt": 340201234,
  "rng": {
   "council": [
-   1124665707,
-   1707222688,
-   1402197216,
-   1965384662
+   1914069544,
+   2465930559,
+   1572033635,
+   1838027134
   ]
  },
  "settlement": {
@@ -29,7 +29,7 @@
    "food": 900000,
    "wood": 500000,
    "stone": 85000,
-   "gold": 732367
+   "gold": 732593
   },
   "accumulators": {
    "food": 1162300,
@@ -65,8 +65,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 18263,
-   "wood": 6889,
+   "food": 18301,
+   "wood": 6343,
    "stone": 0,
    "gold": 0
   },
@@ -111,7 +111,7 @@
   "scheduled": [
    {
     "cardId": "commonGranaryOutcome",
-    "atMs": 360420000,
+    "atMs": 346020000,
     "previousCardId": "commonGranaryShare",
     "previousOptionId": "reserve",
     "previousInstanceId": "commonGranaryShare-3"
@@ -136,10 +136,10 @@
   "cardsDrawn:collapsedWell": 1,
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
-  "wasted_food": 2768263,
   "cardsDrawn:commonGranaryShare": 1,
+  "wasted_food": 2770301,
   "cardsDrawn:masonsMeal": 1,
-  "wasted_wood": 620889,
+  "wasted_wood": 621343,
   "cardsExpired": 1
  }
 }

@@ -69,56 +69,89 @@ describe('cenário golden de 7 dias', () => {
     const bands = events
       .filter((event) => event.type === 'moraleBandChanged')
       .map((event) => event.data.band);
-    // (As duas primeiras mudanças são do poço que o senhor deixou para depois: ver adiante.)
-    expect(bands).toEqual([
-      'restless',
-      'content',
-      'restless',
-      'desperate',
-      'content',
-      'restless',
-      'content',
-    ]);
+    expect(bands).toEqual(['restless', 'desperate', 'content', 'restless', 'content']);
     expect(events.filter((event) => event.type === 'villagerDeserted')).toHaveLength(3);
     // Com a moral em 25 ou menos houve sorteio de partida a cada virada: o fluxo andou.
     expect(state.rng.morale).toHaveLength(4);
     expect(state.settlement.morale).toBe(60);
-    // O Conselho, de ponta a ponta. A primeira audiência é no 5º dia de jogo (8 h): o poço
-    // entulhado, que o senhor deixa para depois; o que a opção escondia acontece na 2ª virada
-    // de dia seguinte e derruba a moral por dois dias. A refeição dos pedreiros fica sem
-    // resposta e expira 24 h reais depois de chegar. Com o Celeiro erguido vem a cadeia: as
-    // tábuas, a vez de repartir e o desfecho, cada continuação três dias de jogo depois da
-    // escolha e ligada a ela. Na virada do ano a lista das cartas vistas zera, e as tábuas
-    // voltam.
+    // O Conselho, de ponta a ponta, com as cartas do jogo. A primeira audiência é no 5º dia de
+    // jogo (8 h). "A Ponte do Degelo" inteira: as vigas cedidas, a laje dois dias de jogo depois
+    // da escolha, os pilares de pedra (o que eles escondiam aparece na 4ª virada: a carroça
+    // carregada), e a passagem aberta com festa. O poço, que o senhor deixa para depois, com o
+    // efeito escondido dele. "O Celeiro Comum" inteira, com o Celeiro já erguido: as tábuas, a
+    // vez de repartir e o desfecho. Sete cartas ficam sem resposta e expiram 24 h reais depois
+    // de chegar, sem custo nenhum. As recorrentes voltam: a vigília sai duas vezes no ano.
     const cards = events.filter((event) => event.type.startsWith('card'));
     expect(
       cards.map((event) => [event.atMs / HOUR, event.type, event.data.cardId, event.data.optionId]),
     ).toEqual([
-      [8, 'cardDrawn', 'collapsedWell', undefined],
-      [13, 'cardAnswered', 'collapsedWell', 'wait'],
-      [16, 'cardDrawn', 'masonsMeal', undefined],
-      [16, 'cardEffectApplied', 'collapsedWell', 'wait'],
-      [40, 'cardExpired', 'masonsMeal', 'bread'],
-      [56, 'cardDrawn', 'commonGranaryPlanks', undefined],
-      [60, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
-      [66, 'cardDrawn', 'commonGranaryShare', undefined],
-      [72, 'cardAnswered', 'commonGranaryShare', 'reserve'],
-      [78, 'cardDrawn', 'commonGranaryOutcome', undefined],
-      [84, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
-      [168, 'cardDrawn', 'commonGranaryPlanks', undefined],
+      [8, 'cardDrawn', 'neighborsWatch', undefined],
+      [16, 'cardDrawn', 'thawBridgePlea', undefined],
+      [24, 'cardAnswered', 'thawBridgePlea', 'timber'],
+      [28, 'cardDrawn', 'thawBridgeSlab', undefined],
+      [32, 'cardExpired', 'neighborsWatch', 'vigil'],
+      [36, 'cardAnswered', 'thawBridgeSlab', 'piers'],
+      [40, 'cardDrawn', 'springSeeds', undefined],
+      [40, 'cardDrawn', 'thawBridgeCrossing', undefined],
+      [44, 'cardEffectApplied', 'thawBridgeSlab', 'piers'],
+      [48, 'cardAnswered', 'thawBridgeCrossing', 'feast'],
+      [56, 'cardDrawn', 'moreMouths', undefined],
+      [64, 'cardExpired', 'springSeeds', 'fallow'],
+      [72, 'cardDrawn', 'apprenticesTable', undefined],
+      [80, 'cardExpired', 'moreMouths', 'close'],
+      [88, 'cardDrawn', 'neighborsWatch', undefined],
+      [96, 'cardExpired', 'apprenticesTable', 'watch'],
+      [104, 'cardDrawn', 'collapsedWell', undefined],
+      [108, 'cardAnswered', 'collapsedWell', 'wait'],
+      [112, 'cardDrawn', 'roofBeforeCold', undefined],
+      [112, 'cardExpired', 'neighborsWatch', 'vigil'],
+      [112, 'cardEffectApplied', 'collapsedWell', 'wait'],
+      [120, 'cardDrawn', 'commonGranaryPlanks', undefined],
+      [120, 'cardAnswered', 'commonGranaryPlanks', 'cede'],
+      [124, 'cardDrawn', 'commonGranaryShare', undefined],
+      [132, 'cardAnswered', 'commonGranaryShare', 'reserve'],
+      [136, 'cardExpired', 'roofBeforeCold', 'hall'],
+      [136, 'cardDrawn', 'commonGranaryOutcome', undefined],
+      [144, 'cardDrawn', 'masonsMeal', undefined],
+      [144, 'cardAnswered', 'commonGranaryOutcome', 'leave'],
+      [152, 'cardDrawn', 'sawmillRest', undefined],
+      [168, 'cardExpired', 'masonsMeal', 'bread'],
     ]);
+    // Cada continuação leva a escolha que a trouxe: é o que liga as linhas na Crônica.
     const continuations = cards.filter((event) => event.data.source === 'continuation');
-    expect(continuations.map((event) => event.data.previousInstanceId)).toEqual([
-      'commonGranaryPlanks-3',
-      'commonGranaryShare-4',
+    expect(
+      continuations.map((event) => [event.data.previousInstanceId, event.data.previousOptionId]),
+    ).toEqual([
+      ['thawBridgePlea-2', 'timber'],
+      ['thawBridgeSlab-3', 'piers'],
+      ['commonGranaryPlanks-11', 'cede'],
+      ['commonGranaryShare-12', 'reserve'],
     ]);
+    // A continuação da ponte chegou na mesma virada de um sorteio, com lugar para os dois.
+    expect(
+      cards.filter((event) => event.atMs === 40 * HOUR).map((event) => event.data.source),
+    ).toEqual(['draw', 'continuation']);
     expect(
       orders.filter((order) => order.type === 'answerCard').map((order) => order.result),
-    ).toEqual(['accepted', 'accepted', 'accepted', 'accepted']);
+    ).toEqual(Array.from({ length: 7 }, () => 'accepted'));
+    // Quem não respondeu não perdeu nada: nenhuma expiração tirou recurso nem moral.
+    for (const expired of cards.filter((event) => event.type === 'cardExpired')) {
+      expect(Object.keys(expired.data).filter((key) => /^(spent|lost|morale)/.test(key))).toEqual(
+        [],
+      );
+    }
     expect(state.rng.council).toHaveLength(4);
-    expect(state.council.flags).toEqual({ 'commonGranary.gifted': true });
-    expect(state.council.seenThisYear).toEqual(['commonGranaryPlanks']);
-    expect(state.stats).toMatchObject({ cardsDrawn: 6, cardsAnswered: 4, cardsExpired: 1 });
+    // O que as cadeias deixaram: a ponte de pedra, a colheita com as famílias, e a vez da
+    // última recorrente que passou pela mesa.
+    expect(state.council.flags).toEqual({
+      'thawBridge.piers': true,
+      'commonGranary.gifted': true,
+      'routine.masonsMeal': true,
+    });
+    // A virada do ano zerou a lista das cartas vistas; a serraria, que chegou antes dela, espera.
+    expect(state.council.seenThisYear).toEqual([]);
+    expect(state.council.pending.map((entry) => entry.cardId)).toEqual(['sawmillRest']);
+    expect(state.stats).toMatchObject({ cardsDrawn: 15, cardsAnswered: 7, cardsExpired: 7 });
     expect(state.lastProcessedAt).toBe(7 * DAY_REAL);
     expect(state.clock.year).toBe(2);
     expect(state.objectives.active).toEqual([]);

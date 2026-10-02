@@ -72,10 +72,21 @@ export function councilInSession(draft: GameState): void {
  * do jogo já saíram neste ano, e nenhuma chega. É o Conselho dos cenários que servem de retrato
  * de outra mecânica (as estações, as filas, os ofícios, a moral): a visão deles traz o Conselho
  * como ele é, sem carta na mesa para tomar a frente da tela.
+ *
+ * As recorrentes saem mais de uma vez por ano: para elas também calarem, o cenário grava a flag
+ * que cada uma proíbe (a vez dela na ronda). No jogo só uma dessas flags fica gravada por vez;
+ * este estado só existe em teste.
  */
 export function councilWithoutNews(draft: GameState): void {
   councilInSession(draft);
   draft.council.seenThisYear = councilCards.map((card) => card.id);
+  for (const card of councilCards) {
+    if (card.recurring === true) {
+      for (const flag of card.requires?.notFlags ?? []) {
+        draft.council.flags[flag] = true;
+      }
+    }
+  }
 }
 
 /**
@@ -435,19 +446,26 @@ function answerCards(
 }
 
 /**
+ * A semente do cenário do Conselho. Foi escolhida pelas cartas que tira nas três primeiras
+ * audiências de um feudo com o Celeiro erguido (o poço, as tábuas e a refeição dos pedreiros):
+ * o catálogo é conteúdo e muda, e quando mudar a ordem do sorteio é preciso procurar outra.
+ */
+export const COUNCIL_SCENARIO_SEED = 'fixture-council-623';
+
+/**
  * O Conselho em uso, com as cartas do jogo e no ritmo Rápido: um feudo com o Celeiro erguido,
  * visitado uma vez por dia de jogo (aos 7 minutos do dia) por um senhor que responde a duas
- * cartas e deixa as outras expirarem. Com a semente `fixture-council`:
+ * cartas e deixa as outras expirarem. Com a semente do cenário:
  *
  * - dia 5: "O poço entulhado" chega; ele deixa para depois (um efeito escondido para o dia 7);
  * - dia 9: "Tábuas para as reservas"; ele cede a madeira, e a cadeia começa;
- * - dia 12: "A vez de repartir" chega como continuação; dia 13, "A refeição dos pedreiros": a
+ * - dia 11: "A vez de repartir" chega como continuação; dia 13, "A refeição dos pedreiros": a
  *   mesa fica cheia, e ninguém responde;
- * - dia 48: a continuação expira (o conselho guarda o grão) e agenda o desfecho; dia 49, a
- *   refeição expira; dia 51, chega "O que ficou da escolha".
+ * - dia 47: a continuação expira (o conselho guarda o grão) e agenda o desfecho; dia 49, a
+ *   refeição expira e chega "O que ficou da escolha".
  */
-export function councilScenario(untilMs: number): GameState {
-  let state = createInitialState('fixture-council', { ...settings, timeScale: 3 });
+export function councilScenario(untilMs: number, seed = COUNCIL_SCENARIO_SEED): GameState {
+  let state = createInitialState(seed, { ...settings, timeScale: 3 });
   state.settlement.buildings = { ...state.settlement.buildings, townHall: 2, granary: 1 };
   state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 0, goldMine: 1 };
   state.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
@@ -464,16 +482,20 @@ export function eventsOfType(events: GameEvent[], type: GameEvent['type']): Game
 const DAY_REAL = 24 * HOUR;
 
 /**
- * O que o senhor do cenário de 7 dias responde ao Conselho, a cada visita: deixa o poço para
- * depois (o efeito escondido aparece dias adiante), cede a madeira ao celeiro, guarda o grão
- * para o inverno e deixa a colheita com as famílias. À refeição dos pedreiros ele não responde:
- * o prazo acaba e o conselho decide sozinho.
+ * O que o senhor do cenário de 7 dias responde ao Conselho, a cada visita. Segue as duas cadeias
+ * até o fim: cede as vigas da ponte, manda assentar os pilares de pedra (o que eles rendem
+ * aparece dias depois) e abre a passagem com festa; cede a madeira ao celeiro, guarda o grão
+ * para o inverno e deixa a colheita com as famílias. Deixa o poço para depois (outro efeito
+ * escondido). Às outras cartas ele não responde: o prazo acaba e o conselho decide sozinho.
  */
 const weekAnswers: Readonly<Record<string, string>> = {
   collapsedWell: 'wait',
   commonGranaryPlanks: 'cede',
   commonGranaryShare: 'reserve',
   commonGranaryOutcome: 'leave',
+  thawBridgePlea: 'timber',
+  thawBridgeSlab: 'piers',
+  thawBridgeCrossing: 'feast',
 };
 
 /** As horas reais em que o senhor do cenário passa pelo feudo e olha a mesa do conselho. */

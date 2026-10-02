@@ -3,10 +3,16 @@ import type { CouncilCard } from '../council';
 /**
  * Cadeia "O Celeiro Comum" (roadmap da v0.2, §12.2): três cartas sobre repartir agora ou guardar
  * margem para as obras e o inverno. Só a primeira é sorteada; as outras duas chegam como
- * continuação, e o texto de cada uma lembra a escolha que a trouxe.
+ * continuação, dois dias de jogo depois da escolha, e o texto de cada uma lembra a escolha que
+ * a trouxe.
+ *
+ * Os efeitos de moral duram três dias e as continuações chegam em dois: quem responde logo
+ * soma a moral de uma carta à da seguinte, e o caminho de quem cede, reparte e deixa a colheita
+ * com as famílias passa por um dia com a moral em 80 (a base, a comida guardada e duas cartas).
  *
  * Flags: `commonGranary.open` marca a cadeia em curso (a primeira carta não volta enquanto ela
- * durar) e é apagada no desfecho, com as transitórias. Fica gravado só o desfecho.
+ * durar) e é apagada no desfecho, com as transitórias. Fica gravado só como ela terminou
+ * (`stocked` ou `gifted`), e é isso que a primeira carta lembra quando volta em outro ano.
  */
 
 export const commonGranaryPlanks: CouncilCard = {
@@ -15,6 +21,20 @@ export const commonGranaryPlanks: CouncilCard = {
   text: 'As prateleiras do celeiro cederam com a última carga. Os moradores propõem refazê-las antes que a próxima colheita chegue. A madeira usada ali fará falta nas obras do salão.',
   weight: 3,
   requires: { buildings: { granary: 1 }, notFlags: ['commonGranary.open'] },
+  variants: [
+    {
+      flag: 'commonGranary.gifted',
+      text: 'As prateleiras do celeiro cederam outra vez. Os moradores, que não esqueceram a colheita deixada com eles, já vieram com os martelos. Falta a madeira, e ela fará falta nas obras do salão.',
+      arrival:
+        'No {dia}º dia {daEstacao}, quem ficou com a colheita em {feudo} veio de martelo na mão oferecer o conserto do celeiro: {carta}.',
+    },
+    {
+      flag: 'commonGranary.stocked',
+      text: 'As prateleiras do celeiro cederam outra vez, sob o peso do que as famílias lhe entregaram. Os moradores propõem refazê-las antes que a próxima colheita chegue. A madeira usada ali fará falta nas obras do salão.',
+      arrival:
+        'No {dia}º dia {daEstacao}, as prateleiras do celeiro de {feudo} cederam sob a contribuição das famílias, e o conselho voltou ao assunto: {carta}.',
+    },
+  ],
   autoResolve: { peasant: 'keep', lord: 'keep', ironKing: 'keep' },
   options: [
     {
@@ -22,10 +42,10 @@ export const commonGranaryPlanks: CouncilCard = {
       label: 'Ceder a madeira',
       cost: { wood: 40 },
       effects: [
-        { type: 'morale', amount: 5, durationDays: 2 },
+        { type: 'morale', amount: 5, durationDays: 3 },
         { type: 'setFlag', flag: 'commonGranary.open' },
         { type: 'setFlag', flag: 'commonGranary.supported' },
-        { type: 'scheduleCard', cardId: 'commonGranaryShare', afterDays: 3 },
+        { type: 'scheduleCard', cardId: 'commonGranaryShare', afterDays: 2 },
       ],
       hint: 'O conselho volta ao assunto quando as prateleiras estiverem de pé.',
       chronicle:
@@ -36,10 +56,10 @@ export const commonGranaryPlanks: CouncilCard = {
       label: 'Pagar o conserto',
       cost: { gold: 30 },
       effects: [
-        { type: 'morale', amount: 5, durationDays: 2 },
+        { type: 'morale', amount: 5, durationDays: 3 },
         { type: 'setFlag', flag: 'commonGranary.open' },
         { type: 'setFlag', flag: 'commonGranary.paid' },
-        { type: 'scheduleCard', cardId: 'commonGranaryShare', afterDays: 3 },
+        { type: 'scheduleCard', cardId: 'commonGranaryShare', afterDays: 2 },
       ],
       hint: 'Ouro traz carpinteiro de fora, e a madeira do feudo fica para as obras.',
       chronicle:
@@ -84,9 +104,9 @@ export const commonGranaryShare: CouncilCard = {
       label: 'Partilhar a comida',
       cost: { food: 30 },
       effects: [
-        { type: 'morale', amount: 10, durationDays: 2 },
+        { type: 'morale', amount: 10, durationDays: 3 },
         { type: 'setFlag', flag: 'commonGranary.shared' },
-        { type: 'scheduleCard', cardId: 'commonGranaryOutcome', afterDays: 3 },
+        { type: 'scheduleCard', cardId: 'commonGranaryOutcome', afterDays: 2 },
       ],
       hint: 'Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar.',
       chronicle:
@@ -97,7 +117,7 @@ export const commonGranaryShare: CouncilCard = {
       label: 'Guardar para o inverno',
       effects: [
         { type: 'setFlag', flag: 'commonGranary.reserved' },
-        { type: 'scheduleCard', cardId: 'commonGranaryOutcome', afterDays: 3 },
+        { type: 'scheduleCard', cardId: 'commonGranaryOutcome', afterDays: 2 },
       ],
       hint: 'Ninguém festeja, mas o frio respeita celeiro cheio.',
       chronicle:
@@ -143,6 +163,7 @@ export const commonGranaryOutcome: CouncilCard = {
         { type: 'clearFlag', flag: 'commonGranary.paid' },
         { type: 'clearFlag', flag: 'commonGranary.shared' },
         { type: 'clearFlag', flag: 'commonGranary.reserved' },
+        { type: 'clearFlag', flag: 'commonGranary.gifted' },
         { type: 'setFlag', flag: 'commonGranary.stocked' },
       ],
       hint: 'O que não couber no celeiro se perde.',
@@ -155,12 +176,13 @@ export const commonGranaryOutcome: CouncilCard = {
       id: 'leave',
       label: 'Deixar com as famílias',
       effects: [
-        { type: 'morale', amount: 10, durationDays: 2 },
+        { type: 'morale', amount: 10, durationDays: 3 },
         { type: 'clearFlag', flag: 'commonGranary.open' },
         { type: 'clearFlag', flag: 'commonGranary.supported' },
         { type: 'clearFlag', flag: 'commonGranary.paid' },
         { type: 'clearFlag', flag: 'commonGranary.shared' },
         { type: 'clearFlag', flag: 'commonGranary.reserved' },
+        { type: 'clearFlag', flag: 'commonGranary.stocked' },
         { type: 'setFlag', flag: 'commonGranary.gifted' },
       ],
       hint: 'Despensa cheia em cada casa alegra mais que celeiro cheio.',

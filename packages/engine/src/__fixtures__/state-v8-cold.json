@@ -17,10 +17,10 @@
  "lastProcessedAt": 537544321,
  "rng": {
   "council": [
-   1039358943,
-   410384349,
-   95122169,
-   669291490
+   2317320458,
+   2409255482,
+   3423404699,
+   2420466185
   ]
  },
  "settlement": {
@@ -71,7 +71,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 18398,
+   "food": 18010,
    "wood": 0,
    "stone": 0,
    "gold": 0
@@ -93,18 +93,48 @@
   "moraleEffects": []
  },
  "council": {
-  "pending": [],
-  "flags": {},
+  "pending": [
+   {
+    "instanceId": "roofBeforeCold-9",
+    "cardId": "roofBeforeCold",
+    "drawnAtMs": 489600000,
+    "expiresAtMs": 576000000,
+    "origin": null
+   },
+   {
+    "instanceId": "neighborsWatch-10",
+    "cardId": "neighborsWatch",
+    "drawnAtMs": 518400000,
+    "expiresAtMs": 604800000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "routine.masonsMeal": true
+  },
   "seenThisYear": [
    "collapsedWell",
-   "masonsMeal"
+   "springSeeds",
+   "neighborsWatch",
+   "moreMouths",
+   "masonsMeal",
+   "thawBridgePlea",
+   "apprenticesTable",
+   "harvestFeast",
+   "roofBeforeCold"
   ],
   "nextDrawAtMs": 547200000,
   "scheduled": [],
   "delayed": [],
   "expired": [
    "collapsedWell-1",
-   "masonsMeal-2"
+   "springSeeds-2",
+   "neighborsWatch-3",
+   "moreMouths-4",
+   "masonsMeal-5",
+   "thawBridgePlea-6",
+   "apprenticesTable-7",
+   "harvestFeast-8"
   ]
  },
  "objectives": {
@@ -119,10 +149,17 @@
  },
  "stats": {
   "constructionsStarted:quarry": 1,
-  "wasted_food": 9946398,
-  "cardsDrawn": 2,
+  "wasted_food": 9950010,
+  "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:springSeeds": 1,
+  "cardsExpired": 8,
+  "cardsDrawn:neighborsWatch": 2,
+  "cardsDrawn:moreMouths": 1,
   "cardsDrawn:masonsMeal": 1,
-  "cardsExpired": 2
+  "cardsDrawn:thawBridgePlea": 1,
+  "cardsDrawn:apprenticesTable": 1,
+  "cardsDrawn:harvestFeast": 1,
+  "cardsDrawn:roofBeforeCold": 1
  }
 }

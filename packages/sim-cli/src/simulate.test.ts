@@ -156,8 +156,12 @@ describe('CSV de uma partida', () => {
     expect(summary.cards.answered).toBe(
       summary.cards.drawn - twoSessions.finalState.council.pending.length,
     );
+    // Com folga, o bot paga a primeira carta de uma cadeia, e as continuações chegam; algumas
+    // das opções pagas escondem um efeito, que vira evento dias depois.
+    expect(summary.cards.continuations).toBeGreaterThan(0);
+    expect(summary.cards.hidden).toBeGreaterThan(0);
     expect(formatSummary(twoSessions)).toMatch(
-      /\nConselho: \d+ cartas · \d+ respondidas, 0 expiradas · 0 efeitos escondidos\n/,
+      /\nConselho: \d+ cartas \(\d+ continuaç(?:ão|ões)\) · \d+ respondidas, 0 expiradas · \d+ efeitos? escondidos?\n/,
     );
   });
 
@@ -523,7 +527,7 @@ describe('resumo de uma partida', () => {
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
     expect(lines[3]).toBe(
-      'Políticas: responder a carta, obra mais barata, ampliar o estoque, planejar automáticas, recrutar, alocar por demanda, guardar lenha',
+      'Políticas: obra mais barata, ampliar o estoque, planejar automáticas, recrutar, responder a carta, alocar por demanda, guardar lenha',
     );
   });
 
@@ -553,18 +557,22 @@ describe('resumo de uma partida', () => {
 
   it('diz a moral: a do fim, a menor e, quando há, as horas de moral baixa e quem foi embora', async () => {
     // O bot econômico cuida do feudo: a moral nasce em 50, chega a 60 quando a despensa
-    // guarda a comida de 24 h de jogo, e o pior que ela conhece são as casas cheias (40).
+    // guarda a comida de 24 h de jogo, e o pior que ela conhece são as casas cheias (40). Acima
+    // de 60 só com as cartas do Conselho que ele paga quando tem folga.
     const cared = summarize(twoSessions);
     const morales = twoSessions.rows.map((row) => row.morale);
     expect(morales[0]).toBe(50);
-    expect(Math.max(...morales)).toBe(60);
+    expect(Math.max(...morales)).toBeGreaterThan(60);
     expect(cared.morale).toBe(morales[167]);
     expect(cared.moraleMin).toBe(Math.min(...morales));
     expect(cared.moraleMin).toBeGreaterThanOrEqual(40);
     expect(cared.lowMoraleHours).toBe(
       twoSessions.rows.filter((row) => row.moraleBand === 'restless').length,
     );
-    expect(cared).toMatchObject({ settlersArrived: 0, villagersLeft: 0, villagersDeserted: 0 });
+    expect(cared).toMatchObject({ villagersLeft: 0, villagersDeserted: 0 });
+    expect(cared.settlersArrived).toBe(
+      twoSessions.events.filter((event) => event.type === 'villagerArrived').length,
+    );
     expect(formatSummary(twoSessions)).toMatch(/\nMoral: \d+ no fim, mínima \d+[^\n]*\n/);
 
     // Um feudo em que ninguém dá ordem nenhuma, no ritmo 3: a fome chega em 12 h reais, a

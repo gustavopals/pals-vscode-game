@@ -1,6 +1,6 @@
 {
  "schemaVersion": 8,
- "seed": "fixture-council",
+ "seed": "fixture-council-623",
  "settings": {
   "settlementName": "Pedra Alta",
   "timezone": "America/Sao_Paulo",
@@ -17,10 +17,10 @@
  "lastProcessedAt": 36784321,
  "rng": {
   "council": [
-   3829621437,
-   1116685671,
-   4202255770,
-   2668333597
+   1309507330,
+   501834965,
+   3377392267,
+   239061053
   ]
  },
  "settlement": {

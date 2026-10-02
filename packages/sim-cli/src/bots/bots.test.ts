@@ -27,6 +27,7 @@ import {
   planejarAutomaticas,
   recrutar,
   responderCartas,
+  responderCartasSemGastar,
 } from './policies';
 import { type Act, botOf, type Policy } from './types';
 
@@ -151,24 +152,25 @@ describe('um bot é uma lista de políticas', () => {
   });
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
-    // O Conselho primeiro: a carta na mesa tem prazo. Depois, as obras antes do recrutamento: o
-    // bot olha o painel como o encontrou, com o depósito cheio e a produção indo ao chão, antes
-    // de gastar a comida em aldeões.
+    // As obras antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
+    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. O Conselho vem
+    // depois dos dois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico
+    // investe com folga; o preguiçoso responde sem gastar.
     expect(strategyPolicies.economico).toEqual([
-      responderCartas,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
+      responderCartas,
       alocarPorDemanda,
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
-      responderCartas,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
       recrutar,
+      responderCartasSemGastar,
       comidaPrimeiro,
       ocuparLivres,
       guardarLenha,
@@ -176,6 +178,7 @@ describe('um bot é uma lista de políticas', () => {
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
     const names = [
       responderCartas,
+      responderCartasSemGastar,
       recrutar,
       obraMaisBarata,
       ampliarEstoque,
@@ -187,6 +190,7 @@ describe('um bot é uma lista de políticas', () => {
     ].map((policy) => policy.name);
     expect(names).toEqual([
       'responder a carta',
+      'responder a carta sem gastar',
       'recrutar',
       'obra mais barata',
       'ampliar o estoque',
@@ -1547,8 +1551,11 @@ describe('os bots jogando contra o motor', () => {
       );
       expect(new Set(planned).size).toBe(planned.length);
       expect(of(session, 'unplanConstruction')).toEqual([]);
-      // Fora a lista, a visita cabe em meia dúzia de ordens.
-      expect(session.length - planned.length).toBeLessThanOrEqual(6);
+      // Fora a lista e as cartas que estavam na mesa (duas, no máximo, e a continuação que uma
+      // resposta pode trazer), a visita cabe em meia dúzia de ordens.
+      const answers = of(session, 'answerCard').length;
+      expect(answers).toBeLessThanOrEqual(4);
+      expect(session.length - planned.length - answers).toBeLessThanOrEqual(6);
       feudo.pass(24);
     }
     expect(feudo.refused).toEqual([]);
@@ -1726,8 +1733,12 @@ describe('os bots jogando contra o motor', () => {
         feudo.pass(12 * timeScale);
       }
       expect(feudo.refused).toEqual([]);
-      // Em catorze visitas, menos de uma troca a cada dez trabalhadores por visita.
-      expect(switched).toBeLessThan(hands / 10);
+      // Em catorze visitas, menos de uma troca a cada quatro trabalhadores por visita. Entram
+      // na conta as trocas que o bot faz de propósito quando um depósito não comporta o que o
+      // ofício renderia até a visita seguinte (ele tira os braços que produziriam para o chão,
+      // e os devolve quando uma obra abre espaço). Com as cartas do Conselho o feudo cresce
+      // mais depressa, e esse limite chega dentro da semana também no ritmo 1.
+      expect(switched).toBeLessThan(hands / 4);
       // E os ofícios dos materiais ganharam experiência enquanto havia obra a fazer: nenhum
       // ficou vazio à toa. (A fazenda sobe de nível e pede menos braços do que níveis: lá a
       // experiência não é a meta.)
@@ -1757,10 +1768,17 @@ describe('os bots jogando contra o motor', () => {
       expect(feudo.refused).toEqual([]);
       // A moral nunca sai das faixas de cima: o pior dia é o de casas cheias sem comida guardada.
       expect(Math.min(...morales)).toBeGreaterThanOrEqual(40);
-      expect(Math.max(...morales)).toBe(60);
+      // 60 é o teto sem o Conselho (GDD §5.7). Com as cartas que o econômico paga quando tem
+      // folga, o feudo fica orgulhoso e chega aos 80 que atraem um colono. O preguiçoso responde
+      // sem gastar: só passa da base com o que uma carta dá de graça.
+      if (strategy === 'economico') {
+        expect(Math.max(...morales)).toBeGreaterThanOrEqual(80);
+      } else {
+        expect(Math.max(...morales)).toBeLessThanOrEqual(70);
+      }
       // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
       const late = morales.slice(-90);
-      expect(late.filter((value) => value === 60).length).toBeGreaterThan(80);
+      expect(late.filter((value) => value >= 60).length).toBeGreaterThan(80);
       expect(feudo.view().population.villagers).toBeGreaterThan(20);
     },
   );
@@ -1809,10 +1827,18 @@ describe('política "responder a carta"', () => {
     followsFrom: null,
     options,
   });
-  const withCards = (cards: Card[]): ViewState => ({
-    ...freshView(),
-    council: { ...freshView().council, pending: cards },
-  });
+  /**
+   * O feudo recém-criado com as cartas na mesa e gente em todos os ofícios: os quatro recursos
+   * com saldo positivo. `idle` deixa como nasce: ninguém trabalha, e nada entra.
+   */
+  const withCards = (cards: Card[], idle = false): ViewState => {
+    const base = freshView();
+    return {
+      ...base,
+      resources: idle ? base.resources : base.resources.map((row) => ({ ...row, perHour: 6 })),
+      council: { ...base.council, pending: cards },
+    };
+  };
 
   it('sem carta na mesa, não dá ordem nenhuma', async () => {
     const view = freshView();
@@ -1821,20 +1847,158 @@ describe('política "responder a carta"', () => {
     expect(orders).toEqual([]);
   });
 
-  it('escolhe a opção mais barata que pode pagar; no empate, a primeira da carta', async () => {
+  /** A mesma visão com o estoque de um recurso trocado. */
+  const stocked = (view: ViewState, resource: ResourceId, stock: number): ViewState => ({
+    ...view,
+    resources: view.resources.map((row) => (row.id === resource ? { ...row, stock } : row)),
+  });
+
+  it('paga a opção mais cara que cabe três vezes no estoque; no empate, a primeira da carta', async () => {
+    // O feudo recém-criado tem 180 de comida, 120 de madeira, 65 de pedra e 250 de ouro.
     const view = withCards([
+      // 30 de pedra não cabem três vezes em 65: fica com a primeira sem custo.
       card('poço-1', [option('pedra', costing('stone', 30)), option('cavar'), option('esperar')]),
+      // As duas cabem: a mais cara.
       card('festa-2', [
-        option('banquete', costing('food', 40)),
         option('moeda', costing('gold', 5)),
+        option('banquete', costing('food', 40)),
+        option('nada'),
+      ]),
+      // Empate no preço: a primeira da carta.
+      card('ponte-3', [
+        option('vigas', costing('wood', 40)),
+        option('carpinteiros', costing('gold', 40)),
+        option('adiar'),
       ]),
     ]);
     const { act, orders } = recorder(view);
     await responderCartas.run(view, act);
     expect(orders).toEqual([
       { type: 'answerCard', payload: { instanceId: 'poço-1', optionId: 'cavar' } },
-      { type: 'answerCard', payload: { instanceId: 'festa-2', optionId: 'moeda' } },
+      { type: 'answerCard', payload: { instanceId: 'festa-2', optionId: 'banquete' } },
+      { type: 'answerCard', payload: { instanceId: 'ponte-3', optionId: 'vigas' } },
     ]);
+  });
+
+  it('sem folga em nenhuma opção paga, fica com a primeira sem custo: a que não arrisca', async () => {
+    const view = withCards([
+      card('tonel-1', [
+        option('abrir', costing('gold', 100)),
+        option('sino'),
+        option('campo', { effectsText: '+25 comida; −5 de moral por 1 dia de jogo (2 h)' }),
+      ]),
+    ]);
+    const { act, orders } = recorder(view);
+    await responderCartas.run(view, act);
+    expect(orders).toEqual([
+      { type: 'answerCard', payload: { instanceId: 'tonel-1', optionId: 'sino' } },
+    ]);
+  });
+
+  it('só paga com o recurso que está entrando: o que não volta não é sobra', async () => {
+    // Ninguém trabalha no feudo recém-criado: o ouro não entra e a comida cai. Com 250 de ouro
+    // e 180 de comida em estoque, o bot ainda assim não paga nenhuma das duas.
+    const cards = [
+      card('tonel-1', [option('abrir', costing('gold', 40)), option('sino')]),
+      card('refeição-2', [option('servir', costing('food', 40)), option('pão')]),
+    ];
+    const idle = withCards(cards, true);
+    const { act, orders } = recorder(idle);
+    await responderCartas.run(idle, act);
+    expect(orders.map((order) => (order.payload as { optionId: string }).optionId)).toEqual([
+      'sino',
+      'pão',
+    ]);
+    const working = withCards(cards);
+    const second = recorder(working);
+    await responderCartas.run(working, second.act);
+    expect(second.orders.map((order) => (order.payload as { optionId: string }).optionId)).toEqual([
+      'abrir',
+      'servir',
+    ]);
+  });
+
+  it('o preguiçoso responde sem gastar: a primeira opção sem custo, sempre', async () => {
+    const view = withCards([
+      card('tonel-1', [option('abrir', costing('gold', 5)), option('sino'), option('campo')]),
+      card('ponte-2', [option('regatear', { locked: true }), option('adiar')]),
+    ]);
+    const { act, orders } = recorder(view);
+    await responderCartasSemGastar.run(view, act);
+    expect(orders.map((order) => (order.payload as { optionId: string }).optionId)).toEqual([
+      'sino',
+      'adiar',
+    ]);
+  });
+
+  it('não gasta com carta a comida da reserva, a comida de um feudo com fome nem a madeira da lareira', async () => {
+    const meal = [option('servir', costing('food', 25)), option('pão')];
+    const decide = async (view: ViewState) => {
+      const { act, orders } = recorder(view);
+      await responderCartas.run(view, act);
+      return orders.map((order) => (order.payload as { optionId: string }).optionId);
+    };
+    // 80 de comida pagam três vezes os 25, mas sobrariam 55: menos que a reserva.
+    const table = withCards([card('refeição-1', meal)]);
+    expect(await decide(stocked(table, 'food', 80))).toEqual(['pão']);
+    expect(await decide(stocked(table, 'food', 90))).toEqual(['servir']);
+    // Com fome, nem com a despensa cheia: a comida que chegou é para acabar com ela.
+    const starving = {
+      ...stocked(table, 'food', 400),
+      famine: { sinceMs: 0, secondsElapsed: 600, endsInSeconds: null },
+    } as ViewState;
+    expect(await decide(starving)).toEqual(['pão']);
+
+    // A lareira vai queimar 200 e a Serraria repõe 50: 150 de madeira têm dono.
+    const fires = withCards([
+      card('vigília-2', [option('lenha', costing('wood', 30)), option('velar')]),
+    ]);
+    const beforeWinter = (stock: number): ViewState => {
+      const base = stocked(fires, 'wood', stock);
+      return {
+        ...base,
+        calendar: {
+          ...base.calendar,
+          nextSeason: {
+            ...base.calendar.nextSeason,
+            firewood: {
+              perHour: 9,
+              winterTotal: 200,
+              winterProduction: 50,
+              stock,
+              gathered: 0,
+              reserved: 0,
+              missing: Math.max(0, 150 - stock),
+              text: 'A conta da lenha.',
+            },
+          },
+        },
+      };
+    };
+    expect(await decide(beforeWinter(170))).toEqual(['velar']);
+    expect(await decide(beforeWinter(180))).toEqual(['lenha']);
+    // Sem conta de lenha na visão e sem obra à espera, a madeira só precisa da folga.
+    expect(await decide(withUpgrades(stocked(fires, 'wood', 90), []))).toEqual(['lenha']);
+  });
+
+  it('não tira o material da próxima obra: a mais barata das que o feudo ainda pode fazer', async () => {
+    const fires = withCards([
+      card('vigília-1', [option('lenha', costing('wood', 30)), option('velar')]),
+    ]);
+    const decide = async (view: ViewState) => {
+      const { act, orders } = recorder(view);
+      await responderCartas.run(view, act);
+      return orders.map((order) => (order.payload as { optionId: string }).optionId);
+    };
+    // No feudo recém-criado a obra mais barata são as Habitações: 80 de madeira e 20 de pedra.
+    expect(await decide(stocked(fires, 'wood', 100))).toEqual(['velar']);
+    expect(await decide(stocked(fires, 'wood', 110))).toEqual(['lenha']);
+    // A obra que espera o Salão ou não cabe no depósito não segura nada: juntar para ela não
+    // adianta.
+    const gated = withUpgrades(stocked(fires, 'wood', 100), [
+      upgrade('farm', { wood: 128 }, 'GATE_LOCKED'),
+    ]);
+    expect(await decide(gated)).toEqual(['lenha']);
   });
 
   it('não tenta a opção trancada nem a que o estoque não paga, por mais barata que seja', async () => {
