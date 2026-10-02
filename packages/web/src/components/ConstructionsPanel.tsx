@@ -28,6 +28,8 @@ export function ConstructionsPanel(props: {
   const { constructions, elapsed, disabled, actions } = props;
   const { active, planned, available } = constructions;
   const left = active === null ? 0 : remaining(active.secondsRemaining, elapsed);
+  // Por que os prazos são esses nesta estação: a frase vale para todas as obras, e é dita uma vez.
+  const durationNotes = [...new Set(available.flatMap((upgrade) => upgrade.durationNote ?? []))];
   const progress =
     active === null || active.totalSeconds === 0
       ? 0
@@ -94,6 +96,11 @@ export function ConstructionsPanel(props: {
       ) : null}
 
       <h3>Disponíveis</h3>
+      {durationNotes.map((note) => (
+        <p key={note} class="muted hint">
+          {note}
+        </p>
+      ))}
       <ul class="upgrades">
         {available.map((upgrade) => {
           const blocked = upgrade.blockedReason !== null;

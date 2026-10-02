@@ -24,6 +24,47 @@ import { memoryStore } from './services/store';
 /** O `ViewState` de exemplo dos testes: o golden do motor (importar `@lotg/engine` é barrado). */
 export const goldenView = golden.afterFirstAllocation as unknown as ViewState;
 export const initialView = golden.initial as unknown as ViewState;
+/** O outono a quatro horas do inverno, com lenha que não chega: a conta vem em `nextSeason`. */
+export const autumnView = golden.autumnBeforeWinter as unknown as ViewState;
+/** O inverno sem madeira nenhuma: o frio. */
+export const coldView = golden.winterCold as unknown as ViewState;
+
+/**
+ * O mesmo inverno com a lareira acesa: `stock` de madeira no estoque, `missing` faltando para
+ * chegar à primavera e `depletesInSeconds` para a madeira acabar. O motor é quem faz essas
+ * contas; aqui os números são postos à mão para o app mostrar cada caso.
+ */
+export function winterWith(firewood: {
+  stock: number;
+  missing: number;
+  depletesInSeconds: number | null;
+}): ViewState {
+  const { winter } = coldView;
+  if (winter === null) {
+    throw new Error('O golden `winterCold` deixou de ser um inverno.');
+  }
+  return {
+    ...coldView,
+    winter: {
+      ...winter,
+      cold: null,
+      firewood: {
+        ...winter.firewood,
+        stock: firewood.stock,
+        missing: firewood.missing,
+        text:
+          firewood.missing > 0
+            ? `Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há ${firewood.stock} em estoque: faltam ${firewood.missing} de madeira.`
+            : 'Até a Primavera a lareira ainda queima 149 de madeira. O estoque e a Serraria dão conta.',
+      },
+    },
+    resources: coldView.resources.map((row) =>
+      row.id === 'wood'
+        ? { ...row, stock: firewood.stock, depletesInSeconds: firewood.depletesInSeconds }
+        : row,
+    ),
+  };
+}
 
 export const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 export const GAME_ID = '22222222-2222-4222-8222-222222222222';

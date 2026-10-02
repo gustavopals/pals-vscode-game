@@ -48,7 +48,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | `src/services/` | `browserStore.ts` (`localStorage` com prefixo `lords.`, tolerante a falha), `sessionLock.ts` (Web Locks na renovação da sessão), `tabSync.ts` (evento `storage`), `visibility.ts`, `preferences.ts` |
 | `src/workbench/` | A bancada: `ActivityBar`, `SideBar`, `Tree` (padrão ARIA, `treeNav.ts`), `EditorTabs`, `StatusBar` |
 | `src/tabs/` | Conteúdo das abas: Feudo, Hoje, Crônica, Preferências (com a dificuldade e o ritmo do feudo, só para leitura), Sobre |
-| `src/components/` | Os painéis do feudo (recursos, trabalhadores, construções, recrutamento, objetivos) e as boas-vindas, com os dois grupos de opções de nova partida |
+| `src/components/` | Os painéis do feudo (recursos, trabalhadores, construções, recrutamento, objetivos), os avisos do painel (`Banners.tsx`: sem ligação, fome, frio e a conta da lenha) e as boas-vindas, com os dois grupos de opções de nova partida |
 | `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
 
@@ -61,6 +61,20 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 - **"Jogar agora" continua a um clique.** As opções já vêm marcadas e escolher é opcional; o botão não espera o catálogo. Cada grupo é um `radiogroup` de botões de rádio nativos: uma parada do `Tab`, setas para trocar. O nome de cada opção é a linha curta; a frase é a descrição (`aria-describedby`), sempre à vista.
 - **"Nova partida"** pergunta os dois em listas de escolha com o padrão já marcado (`Enter`, `Enter`), antes da confirmação, que repete a escolha ao lado do aviso de que o feudo atual é arquivado.
 - **Nas Preferências**, "Dificuldade: … · Ritmo: … (não mudam durante o ano)" vem de `settlement.difficultyLabel` e `settlement.paceLabel` do `ViewState`; a frase do que a dificuldade muda vem do catálogo, pelo `settlement.difficulty`.
+
+## Estações, lenha e frio (GDD §4.1)
+
+Tudo vem pronto no `ViewState`; o app não escreve fator, taxa nem prazo.
+
+- **O que a estação muda** fica à vista no cabeçalho (`calendar.seasonEffects`) e na explicação do item do feudo na árvore. O fator de cada taxa já vem dentro do `breakdown` ("× 1,3 (outono)", "× 0,8 (frio)", "−9/h (lenha de 18 habitantes)"), que a tabela de recursos, o painel de trabalhadores e a árvore mostram como sempre mostraram.
+- **A conta da lenha** (`components/Banners.tsx`, `FirewoodNote`) aparece sem ninguém pedir: no outono é `calendar.nextSeason.firewood` (o inverno inteiro, visto de antes: quanto guardar); no inverno é `winter.firewood` (o que falta até a estação virar). Com `missing` maior que zero ganha o destaque de aviso. É `role="note"`, não região viva: os números mudam a cada leitura.
+- **No inverno** o cabeçalho e a árvore ganham a linha da Lareira: `winter.firewoodPerHour` e, se a lenha não chega até a primavera, em quanto tempo a madeira acaba.
+- **"Acaba em"** passa por `runsOutIn` (`ui/format.ts`). É o `depletesInSeconds` da visão, menos em um caso: a madeira do inverno com `winter.firewood.missing` igual a zero. Aquele prazo é o estoque pela taxa de agora e não olha o calendário; a lareira apaga na virada da estação, e anunciar "acaba em 4 dias" a um dia da primavera seria alarme falso. Se o motor passar a devolver `null` nesse caso, a função vira só um repasse.
+- **O frio** (`winter.cold`) tem ícone (`flame`) e texto próprios em todo lugar, para não se confundir com a fome: aviso no painel (`ColdBanner`, nas abas Feudo e Hoje), "· frio" e a Lareira na árvore, e a barra de status (`$(flame) Frio em …`; com fome ao mesmo tempo, `Fome e frio em …`, e a explicação traz os dois textos). O destaque de cor é o mesmo da fome; quem distingue é o ícone e o texto.
+- **Avisos** (`notifications/policy.ts`): `coldStarted` e `famineStarted` são alarmes (tom de aviso, passam na frente); `coldEnded` e `famineEnded` são o alívio deles e chegam no mesmo nível "Essenciais", com tom de informação. Com pouco espaço: alarmes, alívios, o resto. O texto é a frase da Crônica que veio no evento.
+- **Prazos da estação**: `durationNote` das obras aparece uma vez acima da lista de disponíveis, uma vez na lista da paleta e na explicação de cada obra na árvore; o do recrutamento, ao lado do prazo, no painel e na paleta.
+- **A explicação de um número** (`.explained`) fica por cima dos avisos do canto. O aviso de frio ou de fome não some sozinho, e antes cobria a ponta da explicação em telas estreitas.
+- Os prazos aproximados ("acaba em 14 h", "Inverno em 4 h", "frio há 50 min") não descem com o relógio local: o cabeçalho, a tabela e a árvore mostram o mesmo número, que muda a cada leitura do servidor.
 
 ## Cache e versões
 

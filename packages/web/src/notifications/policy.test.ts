@@ -1,7 +1,7 @@
 import type { GameEvent } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
-import { decideNotifications, type PolicyInput } from './policy';
+import { decideNotifications, eventIcon, isEssential, isRelief, type PolicyInput } from './policy';
 
 const HOUR = 3_600_000;
 const now = Date.parse('2026-10-01T12:00:00.000Z');
@@ -43,20 +43,60 @@ describe('política de notificações', () => {
     });
   });
 
-  it('essenciais: na v0.1, só a fome', () => {
+  it('essenciais: a fome e o fim dela; obras, aldeões e objetivos ficam de fora', () => {
     const result = decideNotifications(input({ level: 'essential', events: everything }));
-    expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted']);
+    expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'famineEnded']);
     expect(result.badge).toBe(0);
+  });
+
+  it('essenciais: o frio avisa quando começa e quando passa, como a fome', () => {
+    const result = decideNotifications(
+      input({
+        level: 'essential',
+        events: [
+          event('seasonChanged', 1),
+          event('coldStarted', 2),
+          event('constructionFinished', 3),
+          event('coldEnded', 4),
+        ],
+      }),
+    );
+    expect(result.show.map((entry) => entry.type)).toEqual(['coldStarted', 'coldEnded']);
+    expect(result.badge).toBe(0);
+  });
+
+  it('o começo é alarme, o fim é alívio, e o frio tem o seu próprio ícone', () => {
+    expect(isEssential(event('coldStarted'))).toBe(true);
+    expect(isEssential(event('famineStarted'))).toBe(true);
+    // O alívio chega no mesmo nível do alarme, mas não é alarme: sai sem o tom de aviso.
+    expect(isEssential(event('coldEnded'))).toBe(false);
+    expect(isEssential(event('famineEnded'))).toBe(false);
+    expect(isRelief(event('coldEnded'))).toBe(true);
+    expect(isRelief(event('famineEnded'))).toBe(true);
+    expect(isRelief(event('coldStarted'))).toBe(false);
+    expect(isRelief(event('constructionFinished'))).toBe(false);
+
+    expect(eventIcon(event('coldStarted'))).toBe('flame');
+    expect(eventIcon(event('coldEnded'))).toBe('flame');
+    // A fome fica com o ícone do tom: o frio não se confunde com ela.
+    expect(eventIcon(event('famineStarted'))).toBeUndefined();
+    expect(eventIcon(event('famineEnded'))).toBeUndefined();
   });
 
   it('todas: inclui obras, aldeões e objetivos, mas nunca a virada de dia', () => {
     const result = decideNotifications(input({ level: 'all', events: everything }));
+    // Três por hora: o alarme, o alívio dele e a primeira das outras, na ordem em que vieram.
     expect(result.show.map((entry) => entry.type)).toEqual([
       'famineStarted',
+      'famineEnded',
       'constructionFinished',
-      'recruitmentFinished',
     ]);
-    expect(result.badge).toBe(1);
+    expect(result.badge).toBe(2);
+    expect(
+      decideNotifications(
+        input({ level: 'all', events: everything.filter((entry) => entry.type !== 'famineEnded') }),
+      ).show.map((entry) => entry.type),
+    ).toEqual(['famineStarted', 'constructionFinished', 'recruitmentFinished']);
   });
 
   it('com "todas", 5 obras em uma hora geram 3 notificações e badge 2', () => {
@@ -92,6 +132,29 @@ describe('política de notificações', () => {
     );
     expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted']);
     expect(result.badge).toBe(1);
+  });
+
+  it('com pouco espaço: primeiro os alarmes, depois os alívios, depois o resto', () => {
+    const events = [
+      event('constructionFinished', 1),
+      event('coldEnded', 2),
+      event('famineStarted', 3),
+      event('coldStarted', 4),
+    ];
+    const result = decideNotifications(input({ level: 'all', events }));
+    // Dentro de cada grupo vale a ordem em que as coisas aconteceram.
+    expect(result.show.map((entry) => entry.type)).toEqual([
+      'famineStarted',
+      'coldStarted',
+      'coldEnded',
+    ]);
+    expect(result.badge).toBe(1);
+    // Com uma vaga só, quem fica é o alarme.
+    const tight = decideNotifications(
+      input({ level: 'essential', history: [now - 1000, now - 2000], events }),
+    );
+    expect(tight.show.map((entry) => entry.type)).toEqual(['famineStarted']);
+    expect(tight.badge).toBe(2);
   });
 
   it('durante o silêncio de 2 horas nada aparece e tudo vira badge', () => {

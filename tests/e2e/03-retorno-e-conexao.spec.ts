@@ -51,11 +51,12 @@ test.describe('fechar e reabrir', () => {
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 2 dias de jogo/)).toBeVisible();
     await expect(today.getByText('Obras concluídas: 1')).toBeVisible();
-    // 2 fazendeiros rendem 20/h e 5 aldeões comem 5/h: +15/h por 5 h, exatamente uma vez.
+    // Na primavera, 2 fazendeiros rendem 24/h e 5 aldeões comem 5/h: +19/h por 5 h, exatamente
+    // uma vez.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 75));
-    await expect(food).toContainText('+75');
+    await expect(food).toContainText(String(foodBefore + 95));
+    await expect(food).toContainText('+95');
     await expect(today.getByRole('row', { name: /^Ouro/ })).toContainText(String(goldBefore));
     await expect(today.getByRole('listitem').filter({ hasText: /Habitações/ })).toBeVisible();
 
@@ -69,13 +70,13 @@ test.describe('fechar e reabrir', () => {
     await expect(page).toHaveTitle('Pedra Alta · Lords of the Guild');
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 75);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 95);
     await expect(fief(page).getByText('Habitações Nv2 → Nv3')).toBeVisible();
 
     // Recarregar de novo não soma nada: o progresso não se duplica.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 75);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 95);
   });
 
   test('reabrir depois de pouco tempo não gera relatório e abre no Feudo', async ({
@@ -330,8 +331,9 @@ test.describe('no ritmo da produção', () => {
     const announced = view.constructions.available.find((entry) => entry.building === 'housing');
     expect(announced?.durationSeconds).toBe(80);
     await expect(housing).toContainText('1 min 20 s');
-    expect(view.recruitment.secondsPerVillager).toBe(400);
-    await expect(fief(page).getByText(/leva 6 min 40 s/)).toBeVisible();
+    // O recrutamento da primavera: 16 min de jogo, 5 min 20 s de relógio.
+    expect(view.recruitment.secondsPerVillager).toBe(320);
+    await expect(fief(page).getByText(/leva 5 min 20 s/)).toBeVisible();
     // O dia de jogo dura 40 minutos de relógio.
     expect(view.calendar.secondsToNextDay).toBeGreaterThan(2390);
     expect(view.calendar.secondsToNextDay).toBeLessThanOrEqual(2400);
@@ -374,11 +376,12 @@ test.describe('no ritmo da produção', () => {
     await plus.click();
     await expect(fief(first).getByText('Trabalhadores (2/5)')).toBeVisible();
 
-    // A taxa já chega por hora de relógio: 2 fazendeiros rendem 60/h e 5 aldeões comem 15/h,
-    // três vezes o +15/h do mesmo feudo no ritmo Normal. A tela mostra o número como veio.
+    // A taxa já chega por hora de relógio: na primavera, 2 fazendeiros rendem 72/h e 5 aldeões
+    // comem 15/h, três vezes o +19/h do mesmo feudo no ritmo Normal. A tela mostra o número como
+    // veio.
     const rate = (await views.latest()).resources.find((entry) => entry.id === 'food')?.perHour;
-    expect(rate).toBe(45);
-    await expect(resourceRow(first, 'Comida')).toContainText('+45');
+    expect(rate).toBe(57);
+    await expect(resourceRow(first, 'Comida')).toContainText('+57');
     const foodBefore = await stock(first, 'Comida');
     await first.close();
 
@@ -389,18 +392,65 @@ test.describe('no ritmo da produção', () => {
     const today = page.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 7 dias de jogo/)).toBeVisible();
-    // +45/h por 5 h de relógio: nem os +75 do ritmo Normal, nem os +675 de converter duas vezes.
+    // +57/h por 5 h de relógio: nem os +95 do ritmo Normal, nem os +855 de converter duas vezes.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 225));
-    await expect(food).toContainText('+225');
+    await expect(food).toContainText(String(foodBefore + 285));
+    await expect(food).toContainText('+285');
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
-    await expect(resourceRow(page, 'Comida')).toContainText('+45');
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 285);
+    await expect(resourceRow(page, 'Comida')).toContainText('+57');
     // Recarregar não soma de novo.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 285);
+  });
+
+  test('ritmo Rápido: a lareira do inverno queima por hora de relógio, e a tela escreve o número da API', async ({
+    context,
+    world,
+  }) => {
+    const views = watchViews(context);
+    const page = await world.open(context);
+    await playFast(page);
+    // Todos na Fazenda, e a melhoria dela leva 80 das 120 de madeira.
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Fazenda → Nv2');
+
+    // O inverno chega em 48 horas de relógio (144 de jogo); vinte minutos depois, a lareira arde.
+    await world.passTime(48 * HOUR + 20 * MINUTE, page);
+    await expect(fief(page).getByText(/Inverno, dia 1 do Ano 1/)).toBeVisible();
+    const view = await views.latest();
+    // 0,5 de madeira por habitante por hora de jogo são 1,5 por hora de relógio: 7,5/h com 5.
+    expect(view.winter?.firewoodPerHour).toBe(7.5);
+    expect(view.calendar.seasonEffects).toContain(
+      'a lareira queima 1,5 de madeira por habitante por hora',
+    );
+    await expect(fief(page).getByText(view.calendar.seasonEffects)).toBeVisible();
+    await expect(fief(page).locator('.hearth')).toContainText('Lareira: 7,5 de madeira por hora');
+    await expect(resourceRow(page, 'Madeira')).toContainText('−7,5');
+    // O prazo até a madeira acabar também vem em relógio: as 37 de madeira duram perto de 5 h,
+    // e não as 15 h que seriam sem a conversão do servidor.
+    const wood = view.resources.find((entry) => entry.id === 'wood');
+    expect(wood?.depletesInSeconds).toBeGreaterThan(4 * 3600);
+    expect(wood?.depletesInSeconds).toBeLessThan(5.5 * 3600);
+    await expect(fief(page).locator('.hearth')).toContainText(/madeira acaba em [45] h/);
+    // A obra iniciada no inverno: 5 min de jogo × 1,5, um terço disso em relógio.
+    const sawmill = view.constructions.available.find((entry) => entry.building === 'lumberMill');
+    expect(sawmill?.durationSeconds).toBe(150);
+    expect(sawmill?.durationNote).toBe('No Inverno, o prazo de uma obra iniciada agora é × 1,5.');
+    await expect(
+      fief(page).getByRole('listitem').filter({ hasText: 'Serraria Nv1 → Nv2' }),
+    ).toContainText('2 min 30 s');
   });
 });

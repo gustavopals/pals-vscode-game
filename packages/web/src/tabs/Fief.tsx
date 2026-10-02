@@ -1,7 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import type { Actions } from '../components/actions';
-import { FamineBanner, OfflineBanner } from '../components/Banners';
+import { ColdBanner, FamineBanner, FirewoodNote, OfflineBanner } from '../components/Banners';
 import { ConstructionsPanel } from '../components/ConstructionsPanel';
 import { Header } from '../components/Header';
 import { ChroniclePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
@@ -31,9 +31,11 @@ export function FiefTab(props: {
         actions={actions}
       />
       <FamineBanner famine={view.famine} />
+      <ColdBanner winter={view.winter} />
+      <FirewoodNote view={view} />
       <div class="fief">
         <div class="column">
-          <ResourcesTable resources={view.resources} />
+          <ResourcesTable view={view} />
           <WorkersPanel
             workers={view.workers}
             population={view.population}

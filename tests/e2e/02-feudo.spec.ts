@@ -1,6 +1,9 @@
+import type { Locator, Page } from '@playwright/test';
+
 import {
   expect,
   fief,
+  HOUR,
   MINUTE,
   palette,
   playNow,
@@ -200,8 +203,14 @@ test.describe('governar o feudo', () => {
     await fief(page).getByRole('button', { name: 'Recrutar 1 aldeão' }).click();
     await expect(fief(page).getByText('A caminho 1')).toBeVisible();
     expect(await stock(page, 'Comida')).toBe(130);
-    // O painel diz quanto falta para o aldeão chegar (20 min no ritmo dos testes).
-    await expect(fief(page).getByText(/Chega em (20:00|19:5\d)/)).toBeVisible();
+    // O painel diz quanto falta para o aldeão chegar: 16 min, o prazo da primavera no ritmo dos
+    // testes, e diz por que o prazo é esse.
+    await expect(fief(page).getByText(/Chega em (16:00|15:5\d)/)).toBeVisible();
+    await expect(
+      fief(page).getByText(
+        /leva 16 min\. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8\./,
+      ),
+    ).toBeVisible();
 
     await palette(page, 'recrutar');
     const dialog = page.getByRole('dialog');
@@ -212,7 +221,7 @@ test.describe('governar o feudo', () => {
     await page.keyboard.press('Enter');
     await expect(fief(page).getByText('A caminho 3')).toBeVisible();
 
-    // Os aldeões chegam com o tempo, um a cada 20 minutos.
+    // Os aldeões chegam com o tempo, um a cada 16 minutos.
     await world.passTime(61 * MINUTE, page);
     await expect(fief(page).getByText('Aldeões 8')).toBeVisible();
     await expect(fief(page).getByText('Livres 8')).toBeVisible();
@@ -340,5 +349,197 @@ test.describe('governar o feudo', () => {
     await expect(page.getByRole('tabpanel', { name: 'Preferências' })).toContainText(
       'Dificuldade: Rei de Ferro · Ritmo: Tranquilo: um ano em 14 dias (não mudam durante o ano)',
     );
+  });
+});
+
+// V2C-T1 (GDD §4.1): as estações mudam a produção e os prazos, o inverno queima lenha, e sem
+// madeira vem o frio. A tela explica cada taxa com o fator da estação, faz a conta da lenha
+// antes de o inverno chegar e avisa do frio com ícone e texto próprios.
+
+/**
+ * A explicação de um número como o navegador a desenha quando ele recebe o foco: o texto e a
+ * caixa. É um pseudo-elemento, por isso se lê pelo estilo calculado.
+ */
+async function explanation(target: Locator) {
+  await target.focus();
+  return target.evaluate((element) => {
+    const box = getComputedStyle(element, '::after');
+    const height = parseFloat(box.height);
+    const width = parseFloat(box.width);
+    const bottom = parseFloat(box.bottom);
+    // Um ponto perto da ponta direita da faixa, onde os avisos do canto também ficam.
+    const x = parseFloat(box.left) + width - 60;
+    const y = window.innerHeight - bottom - height / 2;
+    return {
+      text: box.content.replace(/^"|"$/g, '').replace(/\\"/g, '"'),
+      // Fixa no rodapé e com quebra de linha: nenhuma borda corta o texto.
+      position: box.position,
+      wraps: box.whiteSpace === 'normal',
+      // Quanto sobra entre o topo da caixa e o topo da janela; negativo é texto cortado.
+      roomAbove: window.innerHeight - bottom - height,
+      width,
+      // Nada na frente dela: quem está nesse ponto é a própria explicação.
+      onTop: document.elementFromPoint(x, y) === element,
+    };
+  });
+}
+
+const overflow = (page: Page) =>
+  page.evaluate(() => {
+    const content = document.querySelector('.editor-content');
+    return {
+      page: document.documentElement.scrollWidth - window.innerWidth,
+      content: content === null ? 0 : content.scrollWidth - content.clientWidth,
+    };
+  });
+
+test.describe('estações, lenha e frio', () => {
+  test('o ano passa: o fator da estação nas explicações, a conta da lenha no outono e, sem madeira no inverno, o frio', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    // Todos na Fazenda: a comida não falta até o inverno, e ninguém corta lenha.
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    const foodRate = resourceRow(page, 'Comida').locator('.explained');
+    const woodRate = resourceRow(page, 'Madeira').locator('.explained');
+
+    // Primavera: o cabeçalho diz o que a estação muda e a explicação da taxa traz o fator.
+    await expect(
+      fief(page).getByText('Primavera: comida × 1,2; recrutamento com prazo × 0,8.'),
+    ).toBeVisible();
+    await expect(resourceRow(page, 'Comida')).toContainText('+55');
+    expect((await explanation(foodRate)).text).toBe(
+      'Fazenda: 5 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 60/h; consumo 5 × 1 = 5/h',
+    );
+
+    // A melhoria da Fazenda leva 80 das 120 de madeira: sobram 40, que não dão para o inverno.
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Fazenda → Nv2');
+    expect(await stock(page, 'Madeira')).toBe(40);
+
+    // Duas estações depois (96 h no ritmo dos testes), o outono.
+    await world.passTime(97 * HOUR, page);
+    await expect(fief(page).getByText(/Outono, dia 1 do Ano 1/)).toBeVisible();
+    await expect(fief(page).getByText('Outono: comida × 1,3; ouro × 1,1.')).toBeVisible();
+    const autumn = await explanation(foodRate);
+    expect(autumn.text).toBe(
+      'Fazenda: 5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 78/h; consumo 5 × 1 = 5/h',
+    );
+    expect(autumn).toMatchObject({ position: 'fixed', wraps: true });
+    expect(autumn.roomAbove).toBeGreaterThan(0);
+    // No painel de trabalhadores, a produção bruta do edifício, com o mesmo fator.
+    const farmRate = fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv2' })
+      .locator('.explained');
+    expect((await explanation(farmRate)).text).toBe(
+      '5 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 78/h',
+    );
+    // A árvore conta a mesma história.
+    await expect(tree(page).getByRole('treeitem', { name: /Feudo: Pedra Alta/ })).toContainText(
+      'Outono, dia 1',
+    );
+    await expect(tree(page).locator('[data-node="fief"]')).toHaveAttribute(
+      'title',
+      'Outono: comida × 1,3; ouro × 1,1.',
+    );
+    // Antes de o inverno chegar, a conta da lenha: quanto ele queima, o que há e o que falta.
+    const firewood = fief(page).getByRole('note');
+    await expect(firewood).toContainText(/Inverno em (46|47) h\./);
+    await expect(firewood).toContainText(
+      'O Inverno vai queimar 60 de madeira com 5 habitantes. A Serraria repõe 0 e há 40 em estoque: faltam 20 de madeira.',
+    );
+    await expect(statusBar(page)).not.toContainText('Frio');
+
+    // O inverno: a lareira queima lenha, as obras demoram mais, e a madeira tem prazo para acabar.
+    await world.passTime(48 * HOUR, page);
+    await expect(fief(page).getByText(/Inverno, dia 1 do Ano 1/)).toBeVisible();
+    await expect(
+      fief(page).getByText(/^Inverno: comida × 0,4; madeira e pedra × 0,8;/),
+    ).toBeVisible();
+    const hearth = fief(page).locator('.hearth');
+    await expect(hearth).toContainText('Lareira: 2,5 de madeira por hora');
+    await expect(hearth).toContainText(/madeira acaba em 1[45] h/);
+    await expect(resourceRow(page, 'Madeira')).toContainText('−2,5');
+    await expect(resourceRow(page, 'Madeira')).toContainText(/acaba em 1[45] h/);
+    expect((await explanation(woodRate)).text).toBe(
+      'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) = 0/h; −2,5/h (lenha de 5 habitantes)',
+    );
+    await expect(firewood).toContainText('Lareira acesa.');
+    await expect(firewood).toContainText(/faltam \d+ de madeira\./);
+    await expect(
+      fief(page).getByText('No Inverno, o prazo de uma obra iniciada agora é × 1,5.'),
+    ).toHaveCount(1);
+    const lit = tree(page).locator('[data-node="hearth"]');
+    await expect(lit).toContainText('Lareira');
+    await expect(lit).toContainText(/2,5\/h de madeira · acaba em 1[45] h/);
+    await expect(statusBar(page)).not.toContainText('Frio');
+    await expect(toasts(page).getByRole('status').filter({ hasText: /frio/i })).toHaveCount(0);
+
+    // Dezesseis horas depois a última acha queimou: o frio.
+    await world.passTime(16 * HOUR, page);
+    await expect(statusBar(page)).toContainText('Frio em Pedra Alta');
+    await expect(statusBar(page)).not.toContainText('Fome');
+    await expect(statusBar(page).locator('.codicon-flame')).toBeVisible();
+    const cold = fief(page).getByRole('status').filter({ hasText: 'Frio em andamento.' });
+    await expect(cold).toContainText('sem lenha, a produção de todo o feudo cai para 80%');
+    await expect(cold).toContainText('A lareira pede 2,5/h e a Serraria entrega 0/h');
+    await expect(cold).toContainText(/Faltam \d+ de madeira para atravessar o resto do Inverno\./);
+    await expect(fief(page).getByText('Fome em andamento.')).toHaveCount(0);
+    await expect(hearth).toContainText(/sem lenha, frio há \d+ (min|h)/);
+    await expect(resourceRow(page, 'Madeira')).toContainText('em falta');
+    await expect(tree(page).getByRole('treeitem', { name: /Feudo: Pedra Alta/ })).toContainText(
+      '· frio',
+    );
+    await expect(lit).toContainText(/sem lenha · frio há/);
+    // O aviso é a frase da Crônica, com o ícone do frio, e chega no nível padrão de avisos.
+    const alarm = toasts(page).getByRole('status').filter({ hasText: 'O frio entrou nas casas.' });
+    await expect(alarm).toContainText('queimou-se a última acha de lenha em Pedra Alta');
+    await expect(alarm.locator('.codicon-flame')).toBeVisible();
+    // A explicação de cada taxa diz o que o frio custa, termo a termo.
+    const chilled = await explanation(woodRate);
+    expect(chilled.text).toBe(
+      'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −2,5/h (lenha de 5 habitantes)',
+    );
+    expect(chilled.roomAbove).toBeGreaterThan(0);
+
+    // Em 720 px nada transborda, e a explicação mais longa da tela cabe inteira na janela.
+    await page.setViewportSize({ width: 720, height: 800 });
+    // A bancada se redesenha para a tela estreita, com a barra lateral recolhida.
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    const narrow = await explanation(woodRate);
+    // O aviso de frio não some sozinho e fica no mesmo canto: a explicação passa por cima dele.
+    await expect(alarm).toBeVisible();
+    expect(narrow).toMatchObject({ position: 'fixed', wraps: true, onTop: true });
+    expect(narrow.width).toBeLessThanOrEqual(720 - 32);
+    expect(narrow.roomAbove).toBeGreaterThan(0);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect(page.locator('#sidebar')).toBeVisible();
+
+    // A saída está na tela: um aldeão na Serraria e as lareiras voltam a arder, na hora.
+    await fief(page).getByRole('button', { name: 'Tirar um trabalhador de Fazenda' }).click();
+    await fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Serraria' }).click();
+    await expect(statusBar(page)).not.toContainText('Frio');
+    await expect(fief(page).getByText('Frio em andamento.')).toHaveCount(0);
+    const relief = toasts(page)
+      .getByRole('status')
+      .filter({ hasText: 'as lareiras voltaram a arder em Pedra Alta. O frio passou.' });
+    await expect(relief).toBeVisible();
+    await expect(tree(page).getByRole('treeitem', { name: /Feudo: Pedra Alta/ })).not.toContainText(
+      'frio',
+    );
+    await expect(hearth).toContainText('Lareira: 2,5 de madeira por hora');
+    await expect(resourceRow(page, 'Madeira')).toContainText('crescendo');
   });
 });

@@ -29,8 +29,13 @@ export function StatusBar(props: {
   const { input } = props;
   const status = statusBar(input);
   const offline = input.signedIn && input.connection.kind === 'offline';
-  const famine = input.signedIn && !input.discreetMode && !offline && input.view?.famine != null;
-  const tone = offline && !input.discreetMode ? ' status-offline' : famine ? ' status-warning' : '';
+  // A fome e o frio pedem atenção com o mesmo destaque; o que os distingue é o ícone e o texto.
+  const alarm =
+    input.signedIn &&
+    !input.discreetMode &&
+    !offline &&
+    (input.view?.famine != null || input.view?.winter?.cold != null);
+  const tone = offline && !input.discreetMode ? ' status-offline' : alarm ? ' status-warning' : '';
   return (
     <footer class="statusbar" aria-label="Barra de status">
       <div class="statusbar-group">

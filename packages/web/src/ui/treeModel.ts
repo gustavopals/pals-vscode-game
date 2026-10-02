@@ -3,12 +3,15 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import type { AccountState } from '../account/accountService';
 import type { Connection } from '../game/connection';
 import {
+  firewoodRunsOutIn,
+  formatApprox,
   formatCost,
   formatDuration,
   formatNumber,
   formatRate,
   formatRemaining,
   remainingNow,
+  runsOutIn,
   truncate,
 } from './format';
 
@@ -47,14 +50,46 @@ function resourcesNode(view: ViewState): TreeNode {
     label: 'Recursos',
     icon: 'package',
     expanded: true,
-    children: view.resources.map((row) => ({
-      id: `resource:${row.id}`,
-      label: row.label,
-      description: `${formatNumber(row.stock)} (${formatRate(row.perHour)})`,
-      tooltip: row.breakdown,
-      command: { id: 'lords.openPanel', args: ['fief'] },
-    })),
+    children: view.resources.map((row) => {
+      const runsOut = runsOutIn(view, row);
+      return {
+        id: `resource:${row.id}`,
+        label: row.label,
+        description:
+          `${formatNumber(row.stock)} (${formatRate(row.perHour)})` +
+          (runsOut === null ? '' : ` · acaba em ${formatApprox(runsOut)}`),
+        tooltip: row.breakdown,
+        command: { id: 'lords.openPanel', args: ['fief'] },
+      };
+    }),
   };
+}
+
+/**
+ * A lareira, só no inverno: quanto queima por hora e em quanto tempo a lenha acaba; no frio, há
+ * quanto tempo ele dura. A explicação é a conta da lenha (ou a do frio), como veio do servidor.
+ */
+function hearthNode(view: ViewState): TreeNode[] {
+  const { winter } = view;
+  if (winter === null) {
+    return [];
+  }
+  const wood = view.resources.find((row) => row.id === 'wood')?.label.toLowerCase() ?? 'lenha';
+  const runsOut = firewoodRunsOutIn(view);
+  return [
+    {
+      id: 'hearth',
+      label: 'Lareira',
+      description:
+        winter.cold !== null
+          ? `sem lenha · frio há ${formatApprox(winter.cold.secondsElapsed)}`
+          : `${formatNumber(winter.firewoodPerHour)}/h de ${wood}` +
+            (runsOut === null ? '' : ` · acaba em ${formatApprox(runsOut)}`),
+      tooltip: winter.cold?.text ?? winter.firewood.text,
+      icon: 'flame',
+      command: { id: 'lords.openPanel', args: ['fief'] },
+    },
+  ];
 }
 
 function workersNode(view: ViewState): TreeNode {
@@ -97,7 +132,10 @@ function constructionsNode(view: ViewState, elapsedSeconds: number): TreeNode {
       id: `construction:${upgrade.building}`,
       label: `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`,
       description: truncate(terms, DESCRIPTION_MAX),
-      tooltip: upgrade.blockedReason === null ? terms : `${terms}\n${upgrade.blockedReason}`,
+      // O custo e o prazo, por que o prazo é esse nesta estação e, se houver, o que impede a obra.
+      tooltip: [terms, upgrade.durationNote, upgrade.blockedReason]
+        .filter((line) => line !== null)
+        .join('\n'),
       icon: upgrade.blockedReason === null ? 'check' : 'lock',
       // O clique só navega: começar a obra é uma ação explícita, no botão do item.
       contextValue: upgrade.blockedReason === null ? 'lords.upgrade' : 'lords.blockedUpgrade',
@@ -201,6 +239,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
     ];
   }
   const { calendar, settlement } = view;
+  const cold = view.winter?.cold ?? null;
   const offline = input.connection.kind === 'offline';
   return [
     {
@@ -218,14 +257,22 @@ export function buildTree(input: TreeInput): TreeNode[] {
     {
       id: 'fief',
       label: `Feudo: ${settlement.name}`,
-      description: `${calendar.seasonLabel}, dia ${calendar.dayOfSeason}${view.famine ? ' · fome' : ''}`,
-      icon: view.famine ? 'warning' : 'shield',
+      // A fome e o frio aparecem por extenso e com ícone próprio: nada é dito só pela cor.
+      description:
+        `${calendar.seasonLabel}, dia ${calendar.dayOfSeason}` +
+        (view.famine ? ' · fome' : '') +
+        (cold ? ' · frio' : ''),
+      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text]
+        .filter((line) => line !== undefined)
+        .join('\n'),
+      icon: view.famine ? 'warning' : cold ? 'flame' : 'shield',
       expanded: true,
       command: { id: 'lords.openPanel', args: ['fief'] },
       children: [
         resourcesNode(view),
         workersNode(view),
         constructionsNode(view, input.elapsedSeconds),
+        ...hearthNode(view),
       ],
     },
     chronicleNode(input.chronicle),

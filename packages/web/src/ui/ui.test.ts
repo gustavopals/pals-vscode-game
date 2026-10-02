@@ -4,13 +4,17 @@ import { describe, expect, it } from 'vitest';
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { AccountState } from '../account/accountService';
 import { buildReturnReport, shouldShowReturnReport } from '../game/returnReport';
+import { autumnView, coldView, winterWith } from '../test-helpers';
 import {
+  firewoodRunsOutIn,
+  formatApprox,
   formatCost,
   formatDuration,
   formatNumber,
   formatRate,
   formatRemaining,
   remainingNow,
+  runsOutIn,
   statusBar,
   truncate,
 } from './format';
@@ -92,6 +96,59 @@ describe('formatação', () => {
   });
 });
 
+describe('estoque que acaba', () => {
+  const wood = (view: ViewState) => {
+    const row = view.resources.find((entry) => entry.id === 'wood');
+    if (row === undefined) {
+      throw new Error('A visão não tem madeira.');
+    }
+    return row;
+  };
+  const food = (view: ViewState) => view.resources.find((entry) => entry.id === 'food');
+
+  it('tempo aproximado: minutos, horas e dias', () => {
+    expect(formatApprox(1500)).toBe('25 min');
+    expect(formatApprox(36_000)).toBe('10 h');
+    expect(formatApprox(3 * 86_400)).toBe('3 dias');
+    expect(formatApprox(0)).toBe('1 min');
+  });
+
+  it('fora do inverno, o prazo é o que a visão traz', () => {
+    const row = food(initial);
+    expect(row?.depletesInSeconds).toBe(129_600);
+    expect(row === undefined ? null : runsOutIn(initial, row)).toBe(129_600);
+    expect(firewoodRunsOutIn(initial)).toBeNull();
+    expect(firewoodRunsOutIn(autumnView)).toBeNull();
+  });
+
+  it('no inverno, a madeira que não chega à primavera acaba no prazo da visão', () => {
+    const short = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
+    expect(runsOutIn(short, wood(short))).toBe(36_000);
+    expect(firewoodRunsOutIn(short)).toBe(36_000);
+  });
+
+  it('com lenha para o resto do inverno, o prazo da visão não vira alarme', () => {
+    // O prazo é o estoque pela taxa de agora e passa da primavera, quando a lareira apaga.
+    const enough = winterWith({ stock: 900, missing: 0, depletesInSeconds: 360_000 });
+    expect(enough.calendar.secondsToNextSeason).toBeLessThan(360_000);
+    expect(runsOutIn(enough, wood(enough))).toBeNull();
+    expect(firewoodRunsOutIn(enough)).toBeNull();
+    // Só a madeira tem lareira: os outros recursos seguem o prazo da visão.
+    const hungry: ViewState = {
+      ...enough,
+      resources: enough.resources.map((row) =>
+        row.id === 'food' ? { ...row, depletesInSeconds: 7200 } : row,
+      ),
+    };
+    const row = food(hungry);
+    expect(row === undefined ? null : runsOutIn(hungry, row)).toBe(7200);
+  });
+
+  it('no frio não há prazo: a madeira já acabou', () => {
+    expect(firewoodRunsOutIn(coldView)).toBeNull();
+  });
+});
+
 describe('barra de status', () => {
   const base = {
     connection: online,
@@ -123,6 +180,32 @@ describe('barra de status', () => {
     expect(statusBar({ ...base, view: starving }).text).toBe('$(warning) Fome em Pedra Alta');
   });
 
+  it('o frio tem ícone e texto próprios, e a explicação é a que o servidor mandou', () => {
+    const result = statusBar({ ...base, view: coldView });
+    expect(result.text).toBe('$(flame) Frio em Pedra Alta');
+    expect(result.text).not.toContain('Fome');
+    expect(result.tooltip).toBe(coldView.winter?.cold?.text);
+    expect(result.tooltip).toContain('Faltam 149 de madeira');
+    // Passa na frente da obra, como a fome, e convive com o contador de novidades.
+    const busy: ViewState = { ...coldView, constructions: building.constructions };
+    expect(statusBar({ ...base, view: busy, pending: 2 }).text).toBe(
+      '$(flame) Frio em Pedra Alta · $(bell) 2',
+    );
+  });
+
+  it('fome e frio juntos dividem a linha, e a explicação traz os dois', () => {
+    const both: ViewState = { ...coldView, famine: starving.famine };
+    const result = statusBar({ ...base, view: both });
+    expect(result.text).toBe('$(warning) Fome e frio em Pedra Alta');
+    expect(result.tooltip).toContain('Fome: a produção cai para 75%.');
+    expect(result.tooltip).toContain('Frio: sem lenha');
+  });
+
+  it('inverno com a lareira acesa não toma a barra', () => {
+    const lit = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
+    expect(statusBar({ ...base, view: lit }).text).toBe('$(home) Pedra Alta · +20,4 comida/h');
+  });
+
   it('sem ligação passa na frente de tudo', () => {
     const result = statusBar({ ...base, view: starving, connection: offline });
     expect(result.text).toBe('$(debug-disconnect) Sem ligação com o reino');
@@ -132,6 +215,10 @@ describe('barra de status', () => {
   it('modo discreto mostra só um contador', () => {
     expect(statusBar({ ...base, view: building, discreetMode: true }).text).toBe(
       '$(circle-filled) 00:42',
+    );
+    // Nem a fome nem o frio aparecem para quem olha por cima do ombro.
+    expect(statusBar({ ...base, view: coldView, discreetMode: true }).text).toBe(
+      '$(circle-filled) 00:30',
     );
     expect(
       statusBar({ ...base, view: starving, connection: offline, discreetMode: true }).text,
@@ -294,6 +381,103 @@ describe('árvore', () => {
       description: 'Primavera, dia 1 · fome',
       icon: 'warning',
     });
+  });
+
+  it('o feudo diz a estação e, na explicação, o que ela muda', () => {
+    const spring = buildTree(input)[1];
+    expect(spring?.tooltip).toBe('Primavera: comida × 1,2; recrutamento com prazo × 0,8.');
+    const autumn = buildTree({ ...input, view: autumnView })[1];
+    expect(autumn).toMatchObject({
+      description: 'Outono, dia 23',
+      icon: 'shield',
+      tooltip: 'Outono: comida × 1,3; ouro × 1,1.',
+    });
+    // Fora do inverno não há lareira na árvore.
+    expect(autumn?.children?.map((node) => node.id)).toEqual([
+      'resources',
+      'workers',
+      'constructions',
+    ]);
+  });
+
+  it('as taxas da árvore trazem o fator da estação na explicação', () => {
+    const tree = buildTree({ ...input, view: autumnView });
+    expect(find(tree, 'resource:food')?.tooltip).toBe(
+      'Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h',
+    );
+    expect(find(tree, 'worker:goldMine')?.tooltip).toBe(
+      '3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h',
+    );
+  });
+
+  it('no inverno, a lareira mostra a lenha por hora e em quanto tempo a madeira acaba', () => {
+    const lit = winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 });
+    const tree = buildTree({ ...input, view: lit });
+    expect(tree[1]).toMatchObject({ description: 'Inverno, dia 4', icon: 'shield' });
+    expect(tree[1]?.tooltip).toContain('a lareira queima 0,5 de madeira por habitante por hora');
+    expect(tree[1]?.children?.map((node) => node.id)).toEqual([
+      'resources',
+      'workers',
+      'constructions',
+      'hearth',
+    ]);
+    expect(find(tree, 'hearth')).toMatchObject({
+      label: 'Lareira',
+      description: '9/h de madeira · acaba em 10 h',
+      icon: 'flame',
+      tooltip: lit.winter?.firewood.text,
+      // Como todo item da árvore, o clique só navega.
+      command: { id: 'lords.openPanel', args: ['fief'] },
+    });
+    expect(find(tree, 'resource:wood')).toMatchObject({
+      description: '90 (−9/h) · acaba em 10 h',
+    });
+    expect(find(tree, 'resource:wood')?.tooltip).toContain('−9/h (lenha de 18 habitantes)');
+  });
+
+  it('com lenha para o resto do inverno, a árvore não anuncia um fim que não vem', () => {
+    const enough = winterWith({ stock: 900, missing: 0, depletesInSeconds: 360_000 });
+    const tree = buildTree({ ...input, view: enough });
+    expect(find(tree, 'hearth')?.description).toBe('9/h de madeira');
+    expect(find(tree, 'hearth')?.tooltip).toContain('O estoque e a Serraria dão conta.');
+    expect(find(tree, 'resource:wood')?.description).toBe('900 (−9/h)');
+  });
+
+  it('com frio, o feudo avisa com ícone e texto próprios, diferentes dos da fome', () => {
+    const tree = buildTree({ ...input, view: coldView });
+    expect(tree[1]).toMatchObject({ description: 'Inverno, dia 4 · frio', icon: 'flame' });
+    expect(tree[1]?.tooltip).toContain('Frio: sem lenha');
+    expect(find(tree, 'hearth')).toMatchObject({
+      description: 'sem lenha · frio há 50 min',
+      tooltip: coldView.winter?.cold?.text,
+    });
+    // Os dois juntos: os dois por extenso, e o ícone é o da fome.
+    const both = buildTree({ ...input, view: { ...coldView, famine: starving.famine } })[1];
+    expect(both).toMatchObject({ description: 'Inverno, dia 4 · fome · frio', icon: 'warning' });
+    expect(both?.tooltip).toContain('Fome: a produção cai para 75%.');
+    expect(both?.tooltip).toContain('Frio: sem lenha');
+  });
+
+  it('um estoque que está acabando diz em quanto tempo', () => {
+    expect(find(buildTree({ ...input, view: initial }), 'resource:food')?.description).toBe(
+      '180 (−5/h) · acaba em 36 h',
+    );
+  });
+
+  it('a explicação de uma obra diz por que o prazo é esse na estação', () => {
+    const farm = find(buildTree({ ...input, view: coldView }), 'construction:farm');
+    expect(farm?.description).toBe('128 madeira, 64 ouro · 12 min');
+    expect(farm?.tooltip).toBe(
+      [
+        '128 madeira, 64 ouro · 12 min',
+        'No Inverno, o prazo de uma obra iniciada agora é × 1,5.',
+        'Faltam 128 madeira.',
+      ].join('\n'),
+    );
+    // Sem nota e sem bloqueio, só o custo e o prazo.
+    expect(find(buildTree({ ...input, view: farmers }), 'construction:farm')?.tooltip).toBe(
+      '80 madeira, 40 ouro · 5 min',
+    );
   });
 
   it('conta sem partida carregada oferece abrir o painel', () => {

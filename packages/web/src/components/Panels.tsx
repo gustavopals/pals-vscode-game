@@ -22,6 +22,8 @@ export function RecruitPanel(props: {
       <h2 id="recruit-title">Recrutar</h2>
       <p class="muted hint">
         Cada aldeão custa {cost} e leva {formatDuration(recruitment.secondsPerVillager)}.
+        {/* Por que o prazo é esse nesta estação, quando ela mexe nele. */}
+        {recruitment.durationNote !== null ? ` ${recruitment.durationNote}` : ''}
       </p>
       {inTraining > 0 ? (
         <p class="arrivals" role="status">

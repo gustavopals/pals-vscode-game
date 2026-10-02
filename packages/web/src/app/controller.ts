@@ -28,7 +28,12 @@ import {
 } from '../game/gameSession';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
-import { decideNotifications, isEssential, MUTE_DURATION_MS } from '../notifications/policy';
+import {
+  decideNotifications,
+  eventIcon,
+  isEssential,
+  MUTE_DURATION_MS,
+} from '../notifications/policy';
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
@@ -79,6 +84,8 @@ export type ToastAction = { label: string; run: () => void | Promise<void> };
 export type Toast = {
   id: number;
   kind: 'info' | 'warning' | 'error';
+  /** Codicon próprio do aviso; sem ele, vale o do tom. */
+  icon?: string;
   text: string;
   actions: ToastAction[];
   /** Avisos sem botões somem sozinhos; os com botões esperam o jogador. */
@@ -541,6 +548,7 @@ export class Controller {
   private notify(event: GameEvent): void {
     this.toast({
       kind: isEssential(event) ? 'warning' : 'info',
+      icon: eventIcon(event),
       text: event.text,
       actions: [
         { label: 'Ver', run: () => this.navigate('fief') },
@@ -650,13 +658,25 @@ export class Controller {
   // --- Avisos --------------------------------------------------------------------
 
   /** Mostra um aviso no canto. Um aviso igual a um que já está à vista o substitui. */
-  toast(input: { kind: Toast['kind']; text: string; actions?: ToastAction[] }): number {
+  toast(input: {
+    kind: Toast['kind'];
+    text: string;
+    actions?: ToastAction[];
+    icon?: string | undefined;
+  }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
     const actions = input.actions ?? [];
     this.toasts = [
       ...this.toasts.filter((toast) => toast.text !== input.text),
-      { id, kind: input.kind, text: input.text, actions, sticky: actions.length > 0 },
+      {
+        id,
+        kind: input.kind,
+        ...(input.icon === undefined ? {} : { icon: input.icon }),
+        text: input.text,
+        actions,
+        sticky: actions.length > 0,
+      },
     ].slice(-4);
     this.changes.emit();
     return id;

@@ -814,6 +814,54 @@ describe('avisos de acontecimentos', () => {
     expect(controller.unseen).toBe(0);
   });
 
+  it('o frio avisa no nível padrão, como alerta e com o ícone dele; o fim do frio, como alívio', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    expect(controller.preferences.notifications).toBe('essential');
+    const started =
+      'No 4º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.';
+    const ended =
+      'No 6º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.';
+    await deliver(
+      made,
+      gameEvent(1, 'seasonChanged', 'Chega o Inverno a Pedra Alta.'),
+      gameEvent(2, 'coldStarted', started),
+    );
+    // O texto é a frase da Crônica, como veio no evento.
+    expect(gameToasts(controller)).toHaveLength(1);
+    expect(gameToasts(controller)[0]).toMatchObject({
+      kind: 'warning',
+      icon: 'flame',
+      text: started,
+      sticky: true,
+    });
+    expect(gameToasts(controller)[0]?.actions.map((action) => action.label)).toEqual([
+      'Ver',
+      'Silenciar 2h',
+    ]);
+
+    await deliver(made, gameEvent(3, 'coldEnded', ended));
+    expect(gameToasts(controller)).toHaveLength(2);
+    expect(toastWith(controller, 'as lareiras voltaram a arder')).toMatchObject({
+      kind: 'info',
+      icon: 'flame',
+    });
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('a fome continua com o ícone do tom, e o fim dela também avisa', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou a Pedra Alta.'));
+    const alarm = toastWith(controller, 'A fome chegou');
+    expect(alarm).toMatchObject({ kind: 'warning' });
+    expect(alarm).not.toHaveProperty('icon');
+    await deliver(made, gameEvent(2, 'famineEnded', 'Voltou a haver pão. A fome acabou.'));
+    const relief = toastWith(controller, 'A fome acabou');
+    expect(relief).toMatchObject({ kind: 'info' });
+    expect(relief).not.toHaveProperty('icon');
+  });
+
   it('no nível silencioso nada aparece, nem como badge', async () => {
     const made = await opened({ now: () => NOON });
     await made.controller.setPreferences({ notifications: 'silent' });
@@ -1045,6 +1093,15 @@ describe('Relatório de Retorno', () => {
     // Posta em dia a ausência, o que chegar depois volta a avisar normalmente.
     await deliver(made, gameEvent(5, 'constructionFinished', 'A fazenda ficou pronta.'));
     expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fazenda ficou pronta.']);
+  });
+
+  it('o frio de uma ausência longa também fica para o relatório, sem avisos avulsos', async () => {
+    const { controller } = await returning(6, [
+      gameEvent(1, 'coldStarted', 'O frio entrou nas casas.'),
+      gameEvent(2, 'coldEnded', 'O frio passou.'),
+    ]);
+    expect(gameToasts(controller)).toEqual([]);
+    expect(controller.report?.highlights).toEqual(['O frio entrou nas casas.', 'O frio passou.']);
   });
 
   describe('na primeira abertura depois de uma atualização do jogo', () => {

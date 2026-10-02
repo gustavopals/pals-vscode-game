@@ -6,14 +6,24 @@ export const MAX_NOTIFICATIONS_PER_HOUR = 3;
 export const MUTE_DURATION_MS = 2 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
-/** O que pede atenção de verdade. Na v0.1, só a fome. */
-const ESSENTIAL: ReadonlyArray<GameEvent['type']> = ['famineStarted'];
+/** O que pede atenção de verdade: a fome e o frio. */
+const ALARMS: ReadonlyArray<GameEvent['type']> = ['famineStarted', 'coldStarted'];
+/**
+ * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
+ * quem soube que o frio entrou nas casas também fica sabendo que as lareiras voltaram a arder.
+ */
+const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
   'recruitmentFinished',
   'objectiveCompleted',
 ];
+/** O ícone próprio de um aviso; sem entrada aqui, vale o do tom (aviso ou informação). */
+const ICONS: Partial<Record<GameEvent['type'], string>> = {
+  coldStarted: 'flame',
+  coldEnded: 'flame',
+};
 
 export type PolicyInput = {
   events: GameEvent[];
@@ -34,15 +44,33 @@ export type PolicyOutput = {
   history: number[];
 };
 
+/** O evento é um alarme: vira aviso com tom de aviso e passa na frente dos outros. */
 export function isEssential(event: GameEvent): boolean {
-  return ESSENTIAL.includes(event.type);
+  return ALARMS.includes(event.type);
+}
+
+/** O evento encerra um alarme. */
+export function isRelief(event: GameEvent): boolean {
+  return RELIEFS.includes(event.type);
+}
+
+/** O codicon do aviso de um evento, quando ele tem um só dele (o frio não se confunde com a fome). */
+export function eventIcon(event: GameEvent): string | undefined {
+  return ICONS[event.type];
 }
 
 function wanted(event: GameEvent, level: NotificationLevel): boolean {
   if (level === 'silent') {
     return false;
   }
-  return isEssential(event) || (level === 'all' && INFORMATIVE.includes(event.type));
+  return (
+    isEssential(event) || isRelief(event) || (level === 'all' && INFORMATIVE.includes(event.type))
+  );
+}
+
+/** Com pouco espaço: primeiro os alarmes, depois os alívios, depois o resto. */
+function rank(event: GameEvent): number {
+  return isEssential(event) ? 0 : isRelief(event) ? 1 : 2;
 }
 
 /**
@@ -59,8 +87,9 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   if (input.mutedUntil !== null && input.now < input.mutedUntil) {
     return { show: [], badge: candidates.length, history };
   }
-  // Com pouco espaço, o essencial passa na frente.
-  const ordered = [...candidates.filter(isEssential), ...candidates.filter((e) => !isEssential(e))];
+  // Com pouco espaço, o essencial passa na frente. A ordenação é estável: dentro de cada grupo
+  // vale a ordem em que as coisas aconteceram.
+  const ordered = [...candidates].sort((a, b) => rank(a) - rank(b));
   const room = Math.max(0, MAX_NOTIFICATIONS_PER_HOUR - history.length);
   const show = ordered.slice(0, room);
   return {

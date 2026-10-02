@@ -221,7 +221,7 @@ test.describe('teclado', () => {
     await page.keyboard.press('Enter');
     await expect(objectives.getByText('Cumprido: Inicie a melhoria das Habitações')).toBeAttached();
 
-    // 3. Recrute 3 aldeões (20 minutos cada).
+    // 3. Recrute 3 aldeões (16 minutos cada, na primavera).
     await command(page, 'recrutar');
     await page.keyboard.type('3');
     await page.keyboard.press('Enter');

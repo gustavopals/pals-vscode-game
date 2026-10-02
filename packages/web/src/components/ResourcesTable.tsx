@@ -1,9 +1,35 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { runsOutIn } from '../ui/format';
 import { formatApprox, formatNumber, formatSigned } from './format';
 import { Explained } from './shared';
 
-export function ResourcesTable(props: { resources: ViewState['resources'] }) {
+type Row = ViewState['resources'][number];
+
+/** Para onde o estoque vai, por extenso: a cor só reforça o que o texto já diz. */
+function Trend(props: { view: ViewState; row: Row }) {
+  const { view, row } = props;
+  const runsOut = runsOutIn(view, row);
+  if (runsOut !== null) {
+    return <span class="warning">acaba em {formatApprox(runsOut)}</span>;
+  }
+  if (row.perHour > 0) {
+    return <span class="muted">crescendo</span>;
+  }
+  if (row.perHour < 0) {
+    // Caindo sem prazo para acabar: ou já acabou (fome, frio), ou a queda para antes do fim
+    // (a lareira apaga quando a estação vira).
+    return row.stock === 0 ? (
+      <span class="warning">em falta</span>
+    ) : (
+      <span class="muted">caindo</span>
+    );
+  }
+  return <span class="muted">estável</span>;
+}
+
+export function ResourcesTable(props: { view: ViewState }) {
+  const { view } = props;
   return (
     <section aria-labelledby="resources-title">
       <h2 id="resources-title">Recursos</h2>
@@ -25,7 +51,7 @@ export function ResourcesTable(props: { resources: ViewState['resources'] }) {
           </tr>
         </thead>
         <tbody>
-          {props.resources.map((row) => (
+          {view.resources.map((row) => (
             <tr key={row.id}>
               <th scope="row">{row.label}</th>
               <td class="num">{formatNumber(row.stock)}</td>
@@ -34,13 +60,7 @@ export function ResourcesTable(props: { resources: ViewState['resources'] }) {
                 <Explained why={row.breakdown}>{formatSigned(row.perHour)}</Explained>
               </td>
               <td>
-                {row.depletesInSeconds !== null ? (
-                  <span class="warning">acaba em {formatApprox(row.depletesInSeconds)}</span>
-                ) : row.perHour > 0 ? (
-                  <span class="muted">crescendo</span>
-                ) : (
-                  <span class="muted">estável</span>
-                )}
+                <Trend view={view} row={row} />
               </td>
             </tr>
           ))}

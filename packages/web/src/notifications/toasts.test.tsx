@@ -51,6 +51,17 @@ describe('avisos no canto (Toasts)', () => {
     }
   });
 
+  it('um aviso com ícone próprio o mostra no lugar do ícone do tom, sem perder o tom', () => {
+    const cold = render([toast({ kind: 'warning', icon: 'flame' })]);
+    expect(items(cold)[0]).toContain('toast-warning');
+    expect(cold).toMatch(/<span[^>]*class="codicon codicon-flame"[^>]*aria-hidden="true"/);
+    expect(cold).not.toContain('codicon-warning');
+    const relief = render([toast({ kind: 'info', icon: 'flame' })]);
+    expect(items(relief)[0]).toContain('toast-info');
+    expect(relief).toContain('codicon-flame');
+    expect(relief).not.toContain('codicon-info');
+  });
+
   it('mostra o texto do aviso', () => {
     expect(render([toast()])).toContain('<span>A Fazenda chegou ao nível 2.</span>');
   });

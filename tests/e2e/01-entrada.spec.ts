@@ -359,8 +359,9 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
       // A mesma obra, com o mesmo custo, leva tempos diferentes: a visão já vem em tempo real.
       await expect(housing(normal)).toContainText('4 min');
       await expect(housing(fast)).toContainText('1 min 20 s');
-      await expect(fief(normal).getByText(/leva 20 min/)).toBeVisible();
-      await expect(fief(fast).getByText(/leva 6 min 40 s/)).toBeVisible();
+      // Na primavera o recrutamento é mais rápido: 16 min no ritmo Normal, um terço no Rápido.
+      await expect(fief(normal).getByText(/leva 16 min/)).toBeVisible();
+      await expect(fief(fast).getByText(/leva 5 min 20 s/)).toBeVisible();
 
       await startHousing(normal);
       await startHousing(fast);

@@ -253,6 +253,7 @@ describe('themes.css', () => {
     ['texto no editor', 'foreground', 'editor-background'],
     ['descrição no editor', 'descriptionForeground', 'editor-background'],
     ['descrição na barra lateral', 'descriptionForeground', 'sideBar-background'],
+    ['texto em avisos e cartões', 'foreground', 'editorWidget-background'],
     ['descrição em avisos e cartões', 'descriptionForeground', 'editorWidget-background'],
     ['descrição na linha sob o mouse', 'descriptionForeground', 'list-hoverBackground'],
     // Trabalhadores no painel e as opções de dificuldade e ritmo das boas-vindas.
@@ -271,7 +272,7 @@ describe('themes.css', () => {
     ['barra de status', 'statusBar-foreground', 'statusBar-background'],
     ['barra de status sob o mouse', 'statusBar-foreground', 'statusBarItem-hoverBackground'],
     [
-      'barra de status com fome',
+      'barra de status com fome ou frio',
       'statusBarItem-warningForeground',
       'statusBarItem-warningBackground',
     ],

@@ -192,12 +192,22 @@ export function createCommands(
     const requested = buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
+      const queue =
+        active === null
+          ? 'Os pedreiros estão livres'
+          : `Em obras: ${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`;
+      // Por que os prazos da lista são esses nesta estação: vale para todas as obras, dito uma vez.
+      const durationNotes = [
+        ...new Set(available.flatMap((upgrade) => upgrade.durationNote ?? [])),
+      ];
       building = await dialogs.pick({
         title: 'Construir ou melhorar',
         placeholder:
-          active === null
-            ? 'Os pedreiros estão livres.'
-            : `Em obras: ${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`,
+          durationNotes.length > 0
+            ? `${queue}. ${durationNotes.join(' ')}`
+            : active === null
+              ? `${queue}.`
+              : queue,
         items: available.map((upgrade) => ({
           // Cadeado: está bloqueada, e o detalhe diz por quê.
           icon: upgrade.blockedReason === null ? 'check' : 'lock',
@@ -282,7 +292,13 @@ export function createCommands(
     const max = recruitment.maxQuantity;
     const answer = await dialogs.input({
       title: 'Recrutar aldeões',
-      prompt: `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}. Vagas: ${population.vacancies} de ${population.capacity}.`,
+      prompt: [
+        `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}.`,
+        recruitment.durationNote,
+        `Vagas: ${population.vacancies} de ${population.capacity}.`,
+      ]
+        .filter((line) => line !== null)
+        .join(' '),
       placeholder: max > 0 ? `de 1 a ${max}` : 'sem vaga agora',
       value: max > 0 ? '1' : '',
       confirmLabel: 'Recrutar',

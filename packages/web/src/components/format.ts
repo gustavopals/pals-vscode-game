@@ -24,16 +24,7 @@ export function formatCountdown(seconds: number): string {
     : `${pad(minutes)}:${pad(total % 60)}`;
 }
 
-export { formatDuration } from '../ui/format';
-
-/** Tempo aproximado, para o que não precisa de precisão: "37 h", "4 h", "25 min". */
-export function formatApprox(seconds: number): string {
-  const hours = seconds / 3600;
-  if (hours >= 48) {
-    return `${Math.floor(hours / 24)} dias`;
-  }
-  return hours >= 1 ? `${Math.floor(hours)} h` : `${Math.max(1, Math.round(seconds / 60))} min`;
-}
+export { formatApprox, formatDuration } from '../ui/format';
 
 /** Quanto tempo o jogador ficou fora: "5 horas", "2 dias e 3 horas". */
 export function formatAway(seconds: number): string {

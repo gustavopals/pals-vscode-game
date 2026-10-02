@@ -10,7 +10,9 @@ import { DialogService, type DialogState, filterItems } from '../app/dialogs';
 import { loadPreferences, type ThemeId } from '../services/preferences';
 import {
   ACCOUNT_ID,
+  autumnView,
   catalogFixture,
+  coldView,
   fakeApi,
   gameEvent,
   goldenView,
@@ -828,6 +830,56 @@ describe('alocar trabalhadores', () => {
     expect(toast).toMatchObject({ kind: 'error' });
     expect(toast?.text).toMatch(/Sem ligação com o reino/);
     expect(toast?.actions.map((action) => action.label)).toEqual(['Tentar de novo']);
+  });
+});
+
+describe('prazos que a estação muda', () => {
+  const inSeason = (view: typeof goldenView) =>
+    setup({
+      before: (made) => {
+        made.api.state.view = view;
+      },
+    });
+
+  it('no inverno, a lista de obras diz uma vez por que os prazos são maiores', async () => {
+    const { run, answers, shown } = await inSeason(coldView);
+    answers.push(undefined);
+    await run('lords.build');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.placeholder).toBe(
+      'Os pedreiros estão livres. No Inverno, o prazo de uma obra iniciada agora é × 1,5.',
+    );
+    expect(pick.items.find((item) => item.value === 'farm')).toMatchObject({
+      icon: 'lock',
+      // O prazo já é o de quem começa agora: o app não multiplica nada.
+      description: '128 madeira, 64 ouro · 12 min',
+      detail: 'Faltam 128 madeira.',
+    });
+  });
+
+  it('fora do inverno, a lista não diz nada sobre o prazo', async () => {
+    const { run, answers, shown } = await inSeason(autumnView);
+    answers.push(undefined);
+    await run('lords.build');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.placeholder).toBe('Os pedreiros estão livres.');
+    expect(pick.items.find((item) => item.value === 'farm')?.detail).toBe('Faltam 68 madeira.');
+  });
+
+  it('na primavera, recrutar diz por que o prazo é menor; nas outras estações, não', async () => {
+    const spring = await setup();
+    spring.answers.push(undefined);
+    await spring.run('lords.recruit');
+    expect(shownAs(spring.shown, 0, 'input').prompt).toBe(
+      'Cada aldeão custa 50 comida, 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8. Vagas: 5 de 10.',
+    );
+
+    const autumn = await inSeason(autumnView);
+    autumn.answers.push(undefined);
+    await autumn.run('lords.recruit');
+    expect(shownAs(autumn.shown, 0, 'input').prompt).toBe(
+      'Cada aldeão custa 50 comida, 10 ouro e leva 20 min. Vagas: 12 de 30.',
+    );
   });
 });
 

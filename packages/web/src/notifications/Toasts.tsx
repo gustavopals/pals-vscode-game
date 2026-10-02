@@ -29,7 +29,7 @@ function ToastItem(props: { toast: Toast; onDismiss: (id: number) => void }) {
       // Um erro interrompe o leitor de tela; o resto espera a vez.
       role={toast.kind === 'error' ? 'alert' : 'status'}
     >
-      <Icon name={ICONS[toast.kind]} />
+      <Icon name={toast.icon ?? ICONS[toast.kind]} />
       <span>{toast.text}</span>
       <button
         type="button"

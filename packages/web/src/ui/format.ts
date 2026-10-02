@@ -55,6 +55,15 @@ export function formatDuration(seconds: number): string {
     : `${Math.floor(minutes / 60)} h ${String(rest).padStart(2, '0')} min`;
 }
 
+/** Tempo aproximado, para o que não precisa de precisão: "37 h", "4 h", "25 min". */
+export function formatApprox(seconds: number): string {
+  const hours = seconds / 3600;
+  if (hours >= 48) {
+    return `${Math.floor(hours / 24)} dias`;
+  }
+  return hours >= 1 ? `${Math.floor(hours)} h` : `${Math.max(1, Math.round(seconds / 60))} min`;
+}
+
 /** "80 madeira, 40 ouro". */
 export function formatCost(cost: ReadonlyArray<{ amount: number; label: string }>): string {
   return cost
@@ -72,6 +81,29 @@ export function remainingNow(secondsAtReceipt: number, elapsedSeconds: number): 
   return Math.max(0, secondsAtReceipt - Math.max(0, Math.floor(elapsedSeconds)));
 }
 
+type ResourceRow = ViewState['resources'][number];
+
+/**
+ * Em quanto tempo um estoque acaba, ou `null` se ele não acaba. É o `depletesInSeconds` da
+ * visão, com um cuidado na madeira do inverno: esse prazo é a conta do estoque pela taxa de
+ * agora e não olha o calendário, e a lareira apaga quando a estação vira. Com lenha para o
+ * resto do inverno, "acaba em 4 dias" a um dia da primavera seria alarme falso. Quem olha o
+ * calendário é a conta da lenha (`winter.firewood.missing`), feita pelo motor: sem nada
+ * faltando, a madeira não acaba.
+ */
+export function runsOutIn(view: ViewState, row: ResourceRow): number | null {
+  if (row.id === 'wood' && view.winter !== null && view.winter.firewood.missing === 0) {
+    return null;
+  }
+  return row.depletesInSeconds;
+}
+
+/** Em quanto tempo a lareira fica sem lenha; `null` fora do inverno, no frio ou com lenha que basta. */
+export function firewoodRunsOutIn(view: ViewState): number | null {
+  const wood = view.resources.find((row) => row.id === 'wood');
+  return view.winter === null || wood === undefined ? null : runsOutIn(view, wood);
+}
+
 export type StatusBarInput = {
   view: ViewState | null;
   connection: Connection;
@@ -87,7 +119,8 @@ export type StatusBarOutput = { text: string; tooltip: string };
 
 /**
  * A linha da barra de status: uma linha, uma prioridade (GDD §13.5).
- * Sem ligação > fome > obra em andamento > produção de comida.
+ * Sem ligação > fome e frio > obra em andamento > produção de comida. A fome e o frio têm cada
+ * um o seu ícone e o seu texto; juntos, dividem a linha e a explicação traz os dois.
  */
 export function statusBar(input: StatusBarInput): StatusBarOutput {
   const { view, connection } = input;
@@ -118,11 +151,21 @@ export function statusBar(input: StatusBarInput): StatusBarOutput {
   }
   const name = view.settlement.name;
   const bell = input.pending > 0 ? ` · $(bell) ${input.pending}` : '';
+  const cold = view.winter?.cold ?? null;
+  if (view.famine !== null && cold !== null) {
+    return {
+      text: `$(warning) Fome e frio em ${name}${bell}`,
+      tooltip: `${view.famine.text} ${cold.text}`,
+    };
+  }
   if (view.famine !== null) {
     return {
       text: `$(warning) Fome em ${name}${bell}`,
       tooltip: view.famine.text,
     };
+  }
+  if (cold !== null) {
+    return { text: `$(flame) Frio em ${name}${bell}`, tooltip: cold.text };
   }
   if (active !== null && remaining !== null) {
     return {

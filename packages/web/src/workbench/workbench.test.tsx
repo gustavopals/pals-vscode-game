@@ -8,7 +8,7 @@ import type { Controller } from '../app/controller';
 import type { Route } from '../app/router';
 import type { Actions } from '../components/actions';
 import type { Connection } from '../game/connection';
-import { gameEvent, goldenView, makeController, settle } from '../test-helpers';
+import { coldView, gameEvent, goldenView, makeController, settle } from '../test-helpers';
 import { statusBar, type StatusBarInput } from '../ui/format';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
@@ -378,6 +378,20 @@ describe('Tree', () => {
     expect(markup).toContain('codicon codicon-warning');
   });
 
+  it('com frio, o feudo avisa com outro ícone e outro texto, e a lareira entra na árvore', () => {
+    const markup = render(tree({ view: coldView }));
+    expect(markup).toContain('Inverno, dia 4 · frio');
+    expect(markup).not.toContain('· fome');
+    expect(markup).toContain('codicon codicon-flame');
+    expect(markup).not.toContain('codicon codicon-warning');
+    const hearth = tags(markup, /<div[^>]*data-node="hearth"[^>]*>/g)[0] ?? '';
+    expect(attribute(hearth, 'role')).toBe('treeitem');
+    // A explicação é a do servidor, e a linha não tem botão de ordem: só navega.
+    expect(attribute(hearth, 'title')).toContain('Frio: sem lenha');
+    expect(markup).toContain('sem lenha · frio há 50 min');
+    expect(rowActions({ id: 'hearth', label: 'Lareira' })).toEqual([]);
+  });
+
   it('sem ligação, a linha Hoje diz isso', () => {
     const markup = render(tree({ connection: offline }), true);
     expect(markup).toContain('sem ligação com o reino');
@@ -652,6 +666,8 @@ describe('StatusBar', () => {
       {},
       { view: building },
       { view: starving },
+      { view: coldView },
+      { view: { ...coldView, famine: starving.famine } },
       { connection: offline },
       { signedIn: false, view: null },
       { discreetMode: true },
@@ -693,6 +709,19 @@ describe('StatusBar', () => {
     expect(markup).toContain('codicon codicon-warning');
   });
 
+  it('o frio ganha o mesmo destaque, com outro ícone e outro texto', () => {
+    const markup = render({ view: coldView });
+    expect(attribute(main(markup), 'class')).toContain('status-warning');
+    expect(mainText(markup)).toBe('Frio em Pedra Alta');
+    expect(markup).toContain('codicon codicon-flame');
+    expect(markup).not.toContain('codicon codicon-warning');
+    expect(attribute(main(markup), 'title')).toContain('Faltam 149 de madeira');
+    // Os dois juntos: uma linha só, que diz os dois.
+    const both = render({ view: { ...coldView, famine: starving.famine } });
+    expect(attribute(main(both), 'class')).toContain('status-warning');
+    expect(mainText(both)).toBe('Fome e frio em Pedra Alta');
+  });
+
   it('sem ligação passa na frente da fome e ganha o seu próprio destaque', () => {
     const markup = render({ view: starving, connection: offline });
     expect(attribute(main(markup), 'class')).toContain('status-offline');
@@ -710,6 +739,7 @@ describe('StatusBar', () => {
   it('modo discreto: só um contador, sem nome do feudo, sem fome e sem destaque', () => {
     for (const overrides of [
       { view: starving },
+      { view: coldView },
       { view: starving, connection: offline },
       { view: building, pending: 3 },
     ]) {
@@ -718,6 +748,7 @@ describe('StatusBar', () => {
       expect(mainText(markup)).toMatch(/^\d{2}:\d{2}$/);
       expect(markup).not.toContain('Pedra Alta');
       expect(markup).not.toContain('Fome');
+      expect(markup).not.toContain('Frio');
       expect(markup).not.toContain('silenciadas');
     }
   });
@@ -919,6 +950,28 @@ describe('Workbench', () => {
     expect(sidebar(markup)).toContain('· fome');
     expect(markup).toMatch(/<button[^>]*class="status-main status-warning"/);
     expect(markup).toContain('Fome em Pedra Alta');
+  });
+
+  it('com frio: aviso no painel, na árvore e na barra de status, sem se passar por fome', async () => {
+    const made = makeController({ signedIn: true });
+    controllers.push(made.controller);
+    made.api.state.view = coldView;
+    await made.controller.start();
+    await settle(made.controller);
+    const markup = render(made.controller);
+    expect(panel(markup)).toContain('Frio em andamento.');
+    expect(panel(markup)).toContain('Faltam 149 de madeira para atravessar o resto do Inverno.');
+    expect(panel(markup)).not.toContain('Fome em andamento.');
+    expect(sidebar(markup)).toContain('· frio');
+    expect(sidebar(markup)).toContain('Lareira');
+    expect(markup).toMatch(/<button[^>]*class="status-main status-warning"/);
+    expect(markup).toContain('Frio em Pedra Alta');
+    expect(markup).not.toContain('Fome em Pedra Alta');
+    // O título da aba do navegador não muda com o frio: é o nome do feudo.
+    expect(made.controller.title(0)).toBe('Pedra Alta · Lords of the Guild');
+    // A aba Hoje leva o mesmo aviso.
+    made.controller.navigate('today');
+    expect(panel(render(made.controller))).toContain('Frio em andamento.');
   });
 
   it('em tela estreita a barra lateral começa recolhida e nenhuma atividade fica pressionada', async () => {

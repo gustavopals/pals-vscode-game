@@ -1,7 +1,7 @@
 import type { ReturnReport, ViewState } from '@lotg/protocol';
 
 import type { Actions } from '../components/actions';
-import { FamineBanner, OfflineBanner } from '../components/Banners';
+import { ColdBanner, FamineBanner, OfflineBanner } from '../components/Banners';
 import { Header } from '../components/Header';
 import { Today } from '../components/Today';
 
@@ -23,6 +23,7 @@ export function TodayTab(props: {
         actions={props.actions}
       />
       <FamineBanner famine={props.view.famine} />
+      <ColdBanner winter={props.view.winter} />
       <Today report={props.report} actions={props.actions} />
     </div>
   );

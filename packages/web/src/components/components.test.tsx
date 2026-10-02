@@ -12,7 +12,7 @@ import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import type { NewGameOptions } from '../game/newGame';
 import { FiefTab } from '../tabs/Fief';
 import { TodayTab } from '../tabs/Today';
-import { catalogFixture } from '../test-helpers';
+import { autumnView, catalogFixture, coldView, winterWith } from '../test-helpers';
 import type { Actions } from './actions';
 import {
   formatApprox,
@@ -40,6 +40,7 @@ const html = (node: ComponentChild) => renderToString(<>{node}</>);
 const fief = (
   overrides: Partial<{
     view: ViewState;
+    elapsed: number;
     online: boolean;
     retryInSeconds: number | null;
     chronicle: GameEvent[];
@@ -484,6 +485,261 @@ describe('aba Feudo', () => {
     // As ordens saem de `actions.order`; aqui só se confere que o painel não tem outro caminho.
     expect(page).not.toMatch(/<a /);
     expect(page).not.toContain('<form');
+  });
+});
+
+describe('aba Feudo: estações, lenha e frio', () => {
+  /** O texto de uma página sem as marcas, para conferir frases que atravessam elementos. */
+  const text = (page: string) =>
+    page
+      .replace(/<[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  /** O bloco de aviso (`.banner`) que contém o trecho. */
+  const banner = (page: string, fragment: string) =>
+    (page.match(/<div class="banner[^"]*" role="[a-z]+">.*?<\/div><\/div>/g) ?? []).find((block) =>
+      block.includes(fragment),
+    );
+  /** A linha de um recurso na tabela. */
+  const row = (page: string, label: string) =>
+    new RegExp(`<tr><th scope="row">${label}</th>.*?</tr>`).exec(page)?.[0] ?? '';
+
+  const autumn = fief({ view: autumnView });
+  const cold = fief({ view: coldView });
+  const lit = fief({ view: winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 }) });
+  const stocked = fief({
+    view: winterWith({ stock: 900, missing: 0, depletesInSeconds: 360_000 }),
+  });
+
+  it('o cabeçalho diz, por extenso, o que a estação muda', () => {
+    expect(fief()).toContain(
+      '<p class="season muted">Primavera: comida × 1,2; recrutamento com prazo × 0,8.</p>',
+    );
+    expect(autumn).toContain('Salão Nv3 · Outono, dia 23 do Ano 1');
+    expect(autumn).toContain('<p class="season muted">Outono: comida × 1,3; ouro × 1,1.</p>');
+    expect(cold).toContain(
+      'Inverno: comida × 0,4; madeira e pedra × 0,8; obras iniciadas com prazo × 1,5; a lareira queima 0,5 de madeira por habitante por hora.',
+    );
+    // A frase é a do servidor: o app não escreve fator nenhum.
+    const other = fief({
+      view: {
+        ...view,
+        calendar: { ...view.calendar, seasonEffects: 'Frase que só o servidor sabe.' },
+      },
+    });
+    expect(other).toContain('<p class="season muted">Frase que só o servidor sabe.</p>');
+    expect(other).not.toContain('comida × 1,2; recrutamento');
+  });
+
+  it('a explicação de cada taxa aparece inteira, com o fator da estação', () => {
+    for (const why of [
+      'Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h',
+      'Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h',
+      // No painel de trabalhadores, a produção bruta de cada edifício.
+      '10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h',
+    ]) {
+      expect(autumn).toContain(`data-tip="${why}"`);
+      // E vai junto do número para leitores de tela, sem cortes.
+      expect(autumn).toContain(`<span class="sr-only"> (${why})</span>`);
+    }
+    expect(autumn).toContain('+138');
+    expect(autumn).toContain('+13,2');
+    expect(autumn).toContain('156/h');
+  });
+
+  it('no frio, a explicação traz o inverno, o frio e a lenha, termo a termo', () => {
+    const wood =
+      'Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)';
+    expect(cold).toContain(`data-tip="${wood}"`);
+    expect(cold).toContain(
+      'data-tip="10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h"',
+    );
+    expect(row(cold, 'Madeira')).toContain('−9<span class="sr-only">');
+    expect(row(cold, 'Madeira')).toContain('class="num negative"');
+  });
+
+  it('no outono, a conta da lenha do inverno fica à vista, com o que falta guardar', () => {
+    const note = banner(autumn, 'vai queimar') ?? '';
+    expect(text(note)).toBe(
+      'Inverno em 4 h. O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+    );
+    // Faltando lenha, o aviso ganha o destaque; é nota, não região viva: os números mudam a
+    // cada leitura e um leitor de tela não deve repeti-los sozinho.
+    expect(note).toContain('class="banner banner-warning" role="note"');
+    expect(note).toContain('codicon-flame');
+    // No outono ainda não há lareira nem frio.
+    expect(autumn).not.toContain('class="hearth"');
+    expect(autumn).not.toContain('Frio em andamento.');
+  });
+
+  it('com lenha guardada para o inverno inteiro, a conta sossega', () => {
+    const { nextSeason } = autumnView.calendar;
+    if (nextSeason.firewood === null) {
+      throw new Error('O golden do outono deixou de trazer a conta da lenha.');
+    }
+    const ready = fief({
+      view: {
+        ...autumnView,
+        calendar: {
+          ...autumnView.calendar,
+          nextSeason: {
+            ...nextSeason,
+            firewood: {
+              ...nextSeason.firewood,
+              stock: 300,
+              missing: 0,
+              text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. O estoque e a Serraria dão conta.',
+            },
+          },
+        },
+      },
+    });
+    const note = banner(ready, 'vai queimar') ?? '';
+    expect(text(note)).toContain('O estoque e a Serraria dão conta.');
+    expect(note).toContain('class="banner" role="note"');
+  });
+
+  it('fora do outono e do inverno não há conta de lenha', () => {
+    const spring = fief();
+    expect(spring).not.toContain('role="note"');
+    expect(spring).not.toContain('Lareira');
+    expect(spring).not.toContain('codicon-flame');
+  });
+
+  it('no inverno, o cabeçalho mostra a lenha por hora e em quanto tempo a madeira acaba', () => {
+    expect(text(lit)).toContain('Lareira: 9 de madeira por hora · madeira acaba em 10 h');
+    expect(lit).toContain('<p class="hearth">');
+    // A tabela diz o mesmo prazo na linha da madeira: os dois saem do mesmo número, e nenhum
+    // desce sozinho com o relógio local (um diria "9 h" enquanto o outro ainda diz "10 h").
+    expect(row(lit, 'Madeira')).toContain('<span class="warning">acaba em 10 h</span>');
+    expect(
+      text(
+        fief({
+          view: winterWith({ stock: 90, missing: 59, depletesInSeconds: 36_000 }),
+          elapsed: 20,
+        }),
+      ),
+    ).toContain('· madeira acaba em 10 h');
+    // A conta inteira fica à vista, sem o tom de frio.
+    const note = banner(lit, 'Lareira acesa.') ?? '';
+    expect(text(note)).toBe(
+      'Lareira acesa. Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há 90 em estoque: faltam 59 de madeira.',
+    );
+    expect(note).toContain('class="banner banner-warning" role="note"');
+    expect(lit).not.toContain('Frio em andamento.');
+  });
+
+  it('em outro ritmo, a lareira e os prazos são os que a visão traz: o app não converte nada', () => {
+    // A visão já vem em tempo real: no ritmo Rápido a lareira queima três vezes mais por hora
+    // de relógio e os prazos são um terço. A tela escreve os números como vieram.
+    const base = winterWith({ stock: 90, missing: 59, depletesInSeconds: 12_000 });
+    const fast = fief({
+      view: {
+        ...base,
+        winter: base.winter === null ? null : { ...base.winter, firewoodPerHour: 27 },
+        resources: base.resources.map((entry) =>
+          entry.id === 'wood' ? { ...entry, perHour: -27 } : entry,
+        ),
+      },
+    });
+    expect(text(fast)).toContain('Lareira: 27 de madeira por hora · madeira acaba em 3 h');
+    expect(row(fast, 'Madeira')).toContain('−27<span class="sr-only">');
+    expect(row(fast, 'Madeira')).toContain('<span class="warning">acaba em 3 h</span>');
+  });
+
+  it('com lenha para o resto do inverno, ninguém anuncia que a madeira acaba', () => {
+    expect(text(stocked)).toContain('Lareira: 9 de madeira por hora');
+    expect(stocked).not.toContain('madeira acaba em');
+    expect(row(stocked, 'Madeira')).not.toContain('acaba em');
+    // A madeira cai, mas não acaba: a lareira apaga antes.
+    expect(row(stocked, 'Madeira')).toContain('<span class="muted">caindo</span>');
+    const note = banner(stocked, 'Lareira acesa.') ?? '';
+    expect(text(note)).toContain('O estoque e a Serraria dão conta.');
+    expect(note).toContain('class="banner" role="note"');
+  });
+
+  it('o frio é um aviso próprio, com ícone, o que custa, a conta e a saída', () => {
+    const warning = banner(cold, 'Frio em andamento.') ?? '';
+    expect(warning).toContain('class="banner banner-warning" role="status"');
+    expect(warning).toContain('codicon-flame');
+    expect(text(warning)).toBe(
+      'Frio em andamento. Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 0/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 149 de madeira para atravessar o resto do Inverno. Ponha aldeões na Serraria.',
+    );
+    // O texto é o do servidor.
+    const other = fief({
+      view: {
+        ...coldView,
+        winter:
+          coldView.winter === null
+            ? null
+            : { ...coldView.winter, cold: { secondsElapsed: 60, text: 'Frase do servidor.' } },
+      },
+    });
+    expect(text(banner(other, 'Frio em andamento.') ?? '')).toBe(
+      'Frio em andamento. Frase do servidor. Ponha aldeões na Serraria.',
+    );
+    // No frio, quem traz a conta da lenha é o aviso: a nota da lareira acesa sai.
+    expect(cold).not.toContain('Lareira acesa.');
+    expect(cold).not.toContain('Fome em andamento.');
+  });
+
+  it('no frio, o cabeçalho diz há quanto tempo, e a madeira aparece em falta', () => {
+    expect(text(cold)).toContain('· sem lenha, frio há 50 min');
+    expect(cold).not.toContain('madeira acaba em');
+    expect(row(cold, 'Madeira')).toContain('<span class="warning">em falta</span>');
+  });
+
+  it('a fome e o frio juntos são dois avisos, cada um com o seu ícone e o seu texto', () => {
+    const both = fief({
+      view: {
+        ...coldView,
+        famine: { sinceMs: 0, secondsElapsed: 10, text: 'Fome: a produção cai para 75%.' },
+      },
+    });
+    const famine = banner(both, 'Fome em andamento.') ?? '';
+    const chill = banner(both, 'Frio em andamento.') ?? '';
+    expect(famine).not.toBe(chill);
+    expect(famine).toContain('codicon-warning');
+    expect(famine).not.toContain('codicon-flame');
+    expect(chill).toContain('codicon-flame');
+    expect(chill).not.toContain('codicon-warning');
+    expect(text(famine)).toContain('Ponha aldeões na Fazenda.');
+    expect(text(chill)).toContain('Ponha aldeões na Serraria.');
+  });
+
+  it('as obras dizem, uma vez só, por que o prazo é maior no inverno', () => {
+    const note = 'No Inverno, o prazo de uma obra iniciada agora é × 1,5.';
+    expect(cold.split(note)).toHaveLength(2);
+    expect(cold).toContain(`<p class="muted hint">${note}</p>`);
+    // O prazo já é o de quem começa agora: 675 s, e não os 450 s do outono.
+    expect(cold).toContain('Fazenda Nv2 → Nv3<span class="muted"> · 12 min</span>');
+    expect(autumn).toContain('Fazenda Nv2 → Nv3<span class="muted"> · 7 min 30 s</span>');
+    expect(autumn).not.toContain('o prazo de uma obra');
+  });
+
+  it('o recrutamento diz por que o prazo é menor na primavera', () => {
+    const spring = fief();
+    expect(text(spring)).toContain(
+      'Cada aldeão custa 50 comida e 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.',
+    );
+    expect(text(autumn)).toContain('Cada aldeão custa 50 comida e 10 ouro e leva 20 min.');
+    expect(autumn).not.toContain('o prazo de um recrutamento');
+  });
+
+  it('a aba Hoje também avisa do frio', () => {
+    const page = html(
+      <TodayTab
+        view={coldView}
+        elapsed={0}
+        online={true}
+        retryInSeconds={null}
+        report={null}
+        actions={actions}
+      />,
+    );
+    expect(page).toContain('Frio em andamento.');
+    expect(page).toContain('Faltam 149 de madeira');
+    expect(page).toContain('Inverno: comida × 0,4');
   });
 });
 
