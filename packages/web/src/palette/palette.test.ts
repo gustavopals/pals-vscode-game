@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AccountState } from '../account/accountService';
 import type { Controller } from '../app/controller';
-import { filterItems } from '../app/dialogs';
+import { DialogService, type DialogState, filterItems } from '../app/dialogs';
 import { loadPreferences, type ThemeId } from '../services/preferences';
 import {
   ACCOUNT_ID,
@@ -1289,6 +1289,125 @@ describe('recrutar, renomear e nova partida', () => {
       timeScale: 1,
     });
     expect(controller.route).toBe('fief');
+  });
+
+  describe('enquanto as opções não chegam (diálogos de verdade, em fila)', () => {
+    const env: CommandEnv = {
+      download: () => {},
+      reload: () => {},
+      sleep: async () => {},
+      currentTheme: () => 'dark',
+      openPalette: () => {},
+    };
+
+    /** O app aberto com o feudo, e `GET /catalog` preso até `release()`. */
+    async function waitingForCatalog() {
+      const api = fakeApi();
+      let release: () => void = () => {};
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const slowCatalog: typeof fetch = async (input, init) => {
+        if (new URL(String(input), 'http://app.test').pathname.endsWith('/catalog')) {
+          await held;
+        }
+        return api.fetch(input, init);
+      };
+      const made = makeController({ api, signedIn: true, overrides: { fetch: slowCatalog } });
+      controllers.push(made.controller);
+      const dialogs = new DialogService();
+      bindCommands(made.controller, createCommands(made.controller, dialogs, env));
+      await made.controller.start();
+      await settle(made.controller);
+      // Feudo aberto sem passar pelas boas-vindas nem pelas Preferências: nada leu as opções.
+      expect(made.controller.catalog.status).toBe('idle');
+      return { ...made, dialogs, release };
+    }
+
+    /** Responde cada diálogo à vista com o que já vem marcado, como quem só aperta Enter. */
+    async function acceptEverything(controller: Controller, dialogs: DialogService) {
+      const accept = (state: DialogState): unknown => {
+        switch (state.kind) {
+          case 'pick':
+            return state.items[state.selected ?? 0]?.value;
+          case 'confirm':
+            return true;
+          case 'input':
+            return state.value;
+          case 'info':
+            return undefined;
+        }
+      };
+      const titles: string[] = [];
+      for (let turn = 0; turn < 12; turn += 1) {
+        await settle(controller);
+        const current = dialogs.current;
+        if (current === null) {
+          break;
+        }
+        titles.push(current.state.title);
+        dialogs.resolve(current.id, accept(current.state));
+      }
+      return titles;
+    }
+
+    it('acionada duas vezes, abre um fluxo só e funda um feudo só', async () => {
+      const { controller, api, dialogs, release } = await waitingForCatalog();
+      // Duplo clique no botão das Preferências, ou um segundo clique porque nada apareceu.
+      controller.runCommand('lords.newGame');
+      controller.runCommand('lords.newGame');
+      await settle(controller);
+      expect(dialogs.current).toBeNull();
+      controller.runCommand('lords.newGame');
+      release();
+
+      expect(await acceptEverything(controller, dialogs)).toEqual([
+        'Nova partida: dificuldade',
+        'Nova partida: ritmo',
+        'Começar uma nova partida?',
+        'Nova partida',
+      ]);
+      expect(api.state.gameRequests).toHaveLength(1);
+      expect(api.state.requests.filter((entry) => entry === 'GET /catalog')).toHaveLength(1);
+      expect(controller.toasts.filter((toast) => toast.kind === 'error')).toEqual([]);
+
+      // Terminado o fluxo, o comando volta a valer.
+      controller.runCommand('lords.newGame');
+      await settle(controller);
+      expect(dialogs.current?.state.title).toBe('Nova partida: dificuldade');
+      dialogs.cancel();
+    });
+
+    it('desistir no meio libera o comando para a próxima vez', async () => {
+      const { controller, api, dialogs, release } = await waitingForCatalog();
+      release();
+      controller.runCommand('lords.newGame');
+      await settle(controller);
+      expect(dialogs.current?.state.title).toBe('Nova partida: dificuldade');
+      dialogs.cancel();
+      await settle(controller);
+      expect(dialogs.current).toBeNull();
+
+      controller.runCommand('lords.newGame');
+      expect(await acceptEverything(controller, dialogs)).toHaveLength(4);
+      expect(api.state.gameRequests).toHaveLength(1);
+    });
+
+    it('a conta é lida depois da espera: quem perdeu a sessão nesse meio vai às boas-vindas', async () => {
+      const { controller, api, dialogs, release } = await waitingForCatalog();
+      controller.navigate('settings');
+      controller.runCommand('lords.newGame');
+      await settle(controller);
+      // A sessão termina com a leitura das opções ainda em voo.
+      await controller.account.handleUnauthenticated();
+      await settle(controller);
+      expect(controller.account.state.kind).toBe('signedOut');
+      release();
+
+      expect(await acceptEverything(controller, dialogs)).toEqual([]);
+      expect(controller.route).toBe('welcome');
+      expect(api.state.gameRequests).toEqual([]);
+    });
   });
 
   it('sem conta, "Nova partida" leva às boas-vindas', async () => {

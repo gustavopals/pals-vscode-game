@@ -350,15 +350,23 @@ export function createCommands(
     return timeScale === undefined ? null : { difficulty, timeScale };
   };
 
-  const newGame = async () => {
-    const state = controller.account.state;
-    if (state.kind === 'signedOut') {
+  const askAndStartNewGame = async () => {
+    // Uma função, para o compilador não supor que a conta é a mesma depois de uma espera.
+    const accountNow = () => controller.account.state;
+    if (accountNow().kind === 'signedOut') {
       controller.navigate('welcome');
       return;
     }
     // As opções vêm do servidor. Sem elas (sem ligação, servidor de uma versão anterior), nada é
     // perguntado e o feudo nasce com os padrões dele, como na v0.1.
     await controller.loadCatalog();
+    // A conta é lida depois da espera: a sessão pode ter terminado, ou outra aba pode ter
+    // fundado ou arquivado o feudo, enquanto as opções não chegavam.
+    const state = accountNow();
+    if (state.kind === 'signedOut') {
+      controller.navigate('welcome');
+      return;
+    }
     const options = controller.newGameOptions;
     const choice = options === null ? undefined : await chooseNewGame(options);
     if (choice === null) {
@@ -393,6 +401,25 @@ export function createCommands(
         await controller.startNewGame(settlementName, choice);
         controller.navigate('fief');
       });
+    }
+  };
+
+  /**
+   * Um fluxo de nova partida por vez. Enquanto as opções não chegam do servidor não há diálogo
+   * na tela, e nada impede um segundo acionamento (duplo clique, ou um clique a mais porque
+   * "não aconteceu nada"): sem esta trava, dois fluxos se intercalariam na fila de diálogos e
+   * o segundo feudo fundado arquivaria o primeiro.
+   */
+  let startingNewGame = false;
+  const newGame = async () => {
+    if (startingNewGame) {
+      return;
+    }
+    startingNewGame = true;
+    try {
+      await askAndStartNewGame();
+    } finally {
+      startingNewGame = false;
     }
   };
 
