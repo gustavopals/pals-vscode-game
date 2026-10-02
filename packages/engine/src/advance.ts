@@ -39,8 +39,11 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
   emit(events, draft, atMs, 'dayStarted', { dayOfYear: date.dayOfYear });
 }
 
+/** Processa, sobre o rascunho, os eventos discretos de um instante. */
+export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[]) => void;
+
 /** Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa. */
-function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
+export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   processCalendar(draft, atMs, events);
@@ -49,13 +52,14 @@ function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): v
 }
 
 /**
- * Avança o estado até `gameTimeMs`, trecho a trecho entre eventos discretos. Dentro de cada
- * trecho as taxas são constantes, então avançar de uma vez dá exatamente o mesmo estado e os
- * mesmos eventos que avançar em qualquer número de passos. Não muta a entrada.
+ * O laço de `advanceTo`, com o processador de eventos por parâmetro. O jogo só usa
+ * `processEventsAt`; outro processador só existe em teste (`test-helpers.ts`), para provar a
+ * divisão de intervalo com eventos que nenhuma regra tem ainda.
  */
-export function advanceTo(
+export function advanceWith(
   state: GameState,
   gameTimeMs: number,
+  processEvents: EventProcessor,
 ): { state: GameState; events: GameEvent[] } {
   if (gameTimeMs <= state.lastProcessedAt) {
     return { state, events: [] };
@@ -67,7 +71,19 @@ export function advanceTo(
     applyContinuous(draft, next - draft.lastProcessedAt);
     draft.lastProcessedAt = next;
     draft.clock.gameTimeMs = next;
-    processEventsAt(draft, next, events);
+    processEvents(draft, next, events);
   }
   return { state: draft, events };
+}
+
+/**
+ * Avança o estado até `gameTimeMs`, trecho a trecho entre eventos discretos. Dentro de cada
+ * trecho as taxas são constantes, então avançar de uma vez dá exatamente o mesmo estado e os
+ * mesmos eventos que avançar em qualquer número de passos. Não muta a entrada.
+ */
+export function advanceTo(
+  state: GameState,
+  gameTimeMs: number,
+): { state: GameState; events: GameEvent[] } {
+  return advanceWith(state, gameTimeMs, processEventsAt);
 }

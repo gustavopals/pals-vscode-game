@@ -33,7 +33,7 @@ Nenhuma função muta a entrada.
 
 ## Invariantes
 
-- **Divisão de intervalo exata.** `advanceTo(t2)` dá o mesmo estado e os mesmos eventos que `advanceTo(t1)` seguido de `advanceTo(t2)`, para qualquer `t1` no meio, com igualdade estrita. É o que permite ao servidor calcular às 23:00 o que aconteceu às 20:00.
+- **Divisão de intervalo exata.** `advanceTo(t2)` dá o mesmo estado e os mesmos eventos que `advanceTo(t1)` seguido de `advanceTo(t2)`, para qualquer `t1` no meio, com igualdade estrita. O estado inclui o do gerador de sorteios: avançar de uma vez ou em dez pedaços sorteia igual. É o que permite ao servidor calcular às 23:00 o que aconteceu às 20:00.
 - **Só inteiros no estado**, com uma exceção: `settings.timeScale`, o ritmo, que pode ser 0,5. Ele não entra em conta contínua nenhuma: converte um prazo de tempo real em tempo de jogo no instante em que o prazo nasce, e tempo de jogo em tempo real na visão. Recursos ficam em milésimos. A produção acumula `taxa × ms` em `accumulators` e só a parte inteira de `acumulador / 3.600.000` vai para o estoque; o resto fica guardado para o próximo trecho. Nada é arredondado e descartado.
 - **Recursos nunca negativos.** O instante em que a comida acaba é um evento da linha do tempo, calculado em inteiros; a fome começa exatamente nele.
 - **Ordem fixa dentro do mesmo instante:** obras concluídas, aldeões que chegam, virada de ano, de estação e de dia, objetivos, e por fim a abertura ou o encerramento da fome.
@@ -41,6 +41,35 @@ Nenhuma função muta a entrada.
 - **Valores derivados não são guardados:** capacidade habitacional, aldeões livres e taxas saem de funções puras.
 
 A fome congela a fila de recrutamento e recusa ordens novas; a produção cai para 3/4. Ela termina no primeiro instante em que o saldo de comida, já com essa penalidade, volta a ser positivo, e a fila é retomada de onde parou.
+
+## Sorteios
+
+O motor sorteia com um gerador próprio, com semente, em `src/random.ts`. `Math.random` é barrado pelo lint e por `purity.test.ts`.
+
+- **Algoritmo:** xoshiro128\*\*, com estado de quatro inteiros sem sinal de 32 bits. Só operações inteiras (`Math.imul`, deslocamentos, `>>> 0`); nenhum sorteio passa por um número entre 0 e 1.
+- **Fluxos nomeados:** cada assunto tem o próprio fluxo, com o estado em `state.rng[nome]`. Os da v0.2 são `council` (cartas do Conselho), `morale` (chegadas e partidas) e `horde` (incursões por Ameaça), em `RNG_STREAMS`. Sortear em um não desloca os outros: mexer na ordem ou na quantidade de sorteios da moral não muda as cartas de ninguém.
+- **Semente do fluxo:** FNV-1a de 32 bits sobre os bytes UTF-8 de `seed + ':' + nome`, expandido por SplitMix32 nos quatro inteiros iniciais. O fluxo **nasce na primeira vez em que é usado**: uma partida nova, ou uma que veio da v0.1, tem `rng: {}` até o primeiro sorteio, e por isso o gerador não mudou a forma do estado nem subiu `schemaVersion`.
+- **É estado como qualquer outro:** JSON puro, gravado com a partida. Salvar e recarregar continua a mesma sequência; a mesma semente com as mesmas ordens nos mesmos instantes dá os mesmos sorteios.
+
+A API é interna ao pacote (não sai em `index.ts`) e altera o rascunho que recebe:
+
+```ts
+nextInt(draft, stream, maxExclusive): number          // inteiro em [0, maxExclusive), até 2^32
+chance(draft, stream, { num, den }): boolean          // acontece com chance num/den
+pickWeighted(draft, stream, items): T | null          // items: { weight: number, … }[]
+```
+
+- `nextInt` não tem viés: os valores de 32 bits que sobram depois do último múltiplo de `maxExclusive` são descartados e o sorteio se repete (rejeição).
+- `chance` compara um inteiro sorteado em `[0, den)` com `num`. `num` zero nunca acontece e `num >= den` acontece sempre.
+- `pickWeighted` usa pesos inteiros a partir de zero; item de peso zero nunca sai. Lista vazia ou só de pesos zero devolve `null`, sem lançar. A **ordem da lista faz parte do sorteio**: passe sempre na ordem do conteúdo.
+- **Quanto cada chamada gasta:** toda chamada que devolve um valor gasta o fluxo, mesmo quando só havia um resultado possível (chance de 0% ou de 100%, um item só). `pickWeighted` que devolve `null` não gasta nada. Quem não quer sortear uma certeza não chama.
+- Limite, chance ou peso inválido (negativo, quebrado, `NaN`) lança erro antes de tocar no estado: é defeito de conteúdo ou de código, não uma recusa de regra. Um fluxo gravado que não tem quatro inteiros de 32 bits também lança, em vez de recomeçar da semente e repetir sorteios já feitos.
+
+**Quem sorteia e quem não.** Só `advanceTo`, em eventos com hora marcada na linha do tempo (`nextEventAt`). `deriveViewState`, `nextEventAt`, `applyCommand` (aceite ou recusa), `createInitialState` e `migrateState` nunca sorteiam: consultar a tela a cada 30 segundos não rerrola nada, e um recibo reenviado nem chega ao motor. O estado do gerador nunca sai no `ViewState`. `purity.test.ts` barra a importação de `random.ts` nesses módulos.
+
+**Trocar o algoritmo é mudar uma regra.** `RNG_VERSION` marca a versão; os vetores de `random.test.ts` (as saídas da implementação de referência do xoshiro128\*\*, os vetores publicados do FNV-1a e as primeiras saídas de cada fluxo da semente `pedra-alta`) congelam o comportamento. Mudar o gerador, o hash ou a redução a um intervalo muda o futuro de toda partida em andamento: sobe a versão, regrava os vetores de propósito e passa por um passo de migração.
+
+A divisão de intervalo com sorteios é provada em `random.property.test.ts` com um cenário sintético (`advanceWithDailyDraws`, em `test-helpers.ts`): o laço de `advanceTo` de verdade (`advanceWith`, em `advance.ts`) com uma virada de dia que sorteia nos três fluxos e mexe no estoque. Nenhuma regra do jogo usa esse evento; cada mecânica que sorteia repete a prova com os próprios.
 
 ## Versões do estado e migração
 
@@ -86,7 +115,8 @@ O servidor não precisa mudar: ele migra ao travar a partida e grava a versão n
 1. Acrescente o tipo em `EVENT_TYPES` e o modelo de frase em `chronicleTemplates`, em `packages/content/src/chronicle.ts`. O teste de conteúdo exige uma frase para cada tipo e só aceita os marcadores conhecidos.
 2. No motor, chame `emit(events, draft, atMs, 'tipo', dados, marcadores)` no ponto em que o fato acontece.
 3. Se o evento tem hora marcada, inclua o instante em `nextEventAt` (`timeline.ts`) e processe-o em `processEventsAt` (`advance.ts`), respeitando a ordem fixa.
-4. Escreva o teste do instante exato e rode os testes de propriedade: eles pegam qualquer evento que dependa de como o intervalo foi dividido.
+4. Se o evento sorteia, use `nextInt`, `chance` ou `pickWeighted` de `random.ts`, no fluxo do assunto, **dentro** do processamento do instante marcado, nunca em um comando, na visão ou em `nextEventAt`. O instante do sorteio tem de vir do estado (uma virada de dia, um `nextDrawAtMs`), não de quando alguém consultou.
+5. Escreva o teste do instante exato e rode os testes de propriedade: eles pegam qualquer evento que dependa de como o intervalo foi dividido.
 
 ## Goldens
 
@@ -102,6 +132,6 @@ Mudar uma regra exige atualizar o golden correspondente e o GDD (GDD §18.3).
 
 ## O que ainda não existe
 
-O estado carrega o campo `rng`, mas nenhuma regra sorteia nada, então ainda não há gerador de números aleatórios. Ele entra com a primeira mecânica que precisar dele (roadmap da v0.2, V2B-T2).
+O gerador de sorteios existe (ver "Sorteios"), mas nenhuma regra o usa ainda: os fluxos `council`, `morale` e `horde` ganham o primeiro sorteio com o Conselho, a moral e as incursões por Ameaça (roadmap da v0.2, V2D-T1, V2C-T4 e V2E-T3). Até lá, `rng` continua vazio em toda partida.
 
 A dificuldade está no estado e ainda não muda nenhuma regra: os fatores dela chegam com o armazenamento, a fome com deserção e o Conselho.

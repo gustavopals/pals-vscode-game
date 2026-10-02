@@ -52,7 +52,10 @@ export type GameState = {
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   /** Tempo de jogo, em ms, até onde o estado já foi simulado. */
   lastProcessedAt: number;
-  /** Estado dos fluxos de RNG por nome. Nenhuma regra da v0.1 sorteia nada. */
+  /**
+   * Estado dos fluxos de sorteio, por nome: quatro inteiros de 32 bits cada (`random.ts`). Um
+   * fluxo só aparece aqui depois do primeiro sorteio nele. Nunca sai no `ViewState`.
+   */
   rng: Record<string, number[]>;
   settlement: {
     name: string;

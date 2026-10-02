@@ -921,7 +921,7 @@ lords-of-the-guild/
 
 1. **Tempo de jogo** em milissegundos inteiros. `advanceTo(state, t)` processa a **linha do tempo de eventos** (conclusões, viradas de dia, estações, chegadas, incursões, ondas) em ordem, aplicando produção contínua por segmento. Invariante testada por propriedade: `advanceTo(t2)` ≡ `advanceTo(t1)` seguido de `advanceTo(t2)` para qualquer `t1` intermediário.
 2. **Aritmética inteira** para recursos: estoques em milésimos; a produção por segmento acumula `taxa × ms` em um acumulador por recurso e converte com divisão inteira, carregando o resto. O invariante acima fica **exato**, sem tolerância de ponto flutuante.
-3. **RNG com semente e fluxos nomeados** (`council`, `market`, `omens`, `expedition:<id>`, `battle:<id>`, `horde`), cada fluxo com estado próprio dentro do `GameState`. A ordem de processamento de um subsistema não altera o sorteio de outro. Algoritmo sugerido: xoshiro128** ou mulberry32.
+3. **RNG com semente e fluxos nomeados** (`council`, `market`, `omens`, `expedition:<id>`, `battle:<id>`, `horde`), cada fluxo com estado próprio dentro do `GameState`. A ordem de processamento de um subsistema não altera o sorteio de outro. Algoritmo: **xoshiro128\*\***, com estado de quatro inteiros de 32 bits por fluxo; a semente de um fluxo é o FNV-1a de 32 bits de `seed + ':' + nome`, expandido por SplitMix32, e o fluxo nasce no primeiro sorteio. Só inteiros: um valor em `[0, n)` sai por rejeição, sem viés, e uma chance é a comparação de dois inteiros (`num/den`). `[v0.2]` Os fluxos em uso são `council`, `morale` e `horde`. Só `advanceTo` sorteia, em eventos com hora marcada na linha do tempo; visão, recusas e recibos nunca sorteiam, e o estado do gerador não sai no `ViewState`. Trocar o algoritmo é mudar uma regra: exige nova versão do estado.
 4. **Comandos** são a única forma de mudar o estado além de `advanceTo`. Cada comando é validado (recursos, pré-requisitos, limites) e recusado com um motivo legível, que chega à UI. O servidor chama `advanceTo(agora)` antes de aplicar um comando novo; reenvios retornam o recibo original sem chamar o motor (§14.8).
 5. **Prévia** (Conselho de Guerra) usa o mesmo `resolveBattle` com sementes derivadas de `hash(seed, 'preview', i)`; roda no servidor porque só ele conhece a composição inimiga real por trás da névoa.
 
@@ -1044,7 +1044,7 @@ type GameState = {
   migratedAtMs: number | null;                               // fronteira da atualização (§15.4); null em partida nova
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
-  rng: Record<string, number[]>;                             // estado por fluxo
+  rng: Record<string, number[]>;                             // estado por fluxo: 4 inteiros de 32 bits; vazio até o primeiro sorteio
   settlement: {
     name: string; moral: number;
     resources: Record<Resource, number>;                     // milésimos

@@ -1,7 +1,10 @@
-import { advanceTo } from './advance';
+import { advanceTo, advanceWith, processEventsAt } from './advance';
+import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
+import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
 import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
+import { MILLI } from './units';
 
 export const HOUR = 3_600_000;
 export const MINUTE = 60_000;
@@ -182,4 +185,61 @@ export function runWeekScenario() {
     days.push({ day, eventsSoFar: events.length, state });
   }
   return { state, events, orders, days };
+}
+
+/** Tipo dos eventos do cenário sintético: não existe no conteúdo nem chega a jogador nenhum. */
+export const SYNTHETIC_DRAW = 'syntheticDraw' as GameEvent['type'];
+
+const syntheticGifts = [
+  { weight: 5, resource: 'wood' },
+  { weight: 3, resource: 'stone' },
+  { weight: 0, resource: 'gold' },
+] as const;
+
+/**
+ * A virada de dia do cenário sintético: sorteia nos três fluxos, e o que sai mexe no estoque,
+ * portanto nas taxas, na fome e em tudo o que vem depois. Nenhuma regra do jogo é assim.
+ */
+function syntheticDayTurn(draft: GameState, atMs: number, events: GameEvent[]): void {
+  const { resources } = draft.settlement;
+  const data: Record<string, string | number> = { gift: 'none', amount: 0, raided: 0, omen: 0 };
+
+  // `council`: um presente de tamanho sorteado, em um recurso sorteado por peso.
+  const gift = pickWeighted(draft, 'council', syntheticGifts);
+  if (gift !== null) {
+    const amount = (nextInt(draft, 'council', 20) + 1) * MILLI;
+    resources[gift.resource] += amount;
+    data.gift = gift.resource;
+    data.amount = amount;
+  }
+  // `horde`: uma em cada quatro viradas leva um décimo da comida e da madeira.
+  if (chance(draft, 'horde', { num: 1, den: 4 })) {
+    resources.food -= Math.floor(resources.food / 10);
+    resources.wood -= Math.floor(resources.wood / 10);
+    data.raided = 1;
+  }
+  // `morale`: só conta, para o terceiro fluxo também andar.
+  if (chance(draft, 'morale', { num: 1, den: 3 })) {
+    draft.stats.syntheticOmens = (draft.stats.syntheticOmens ?? 0) + 1;
+    data.omen = 1;
+  }
+  events.push({ type: SYNTHETIC_DRAW, atMs, text: 'Sorteio sintético de teste.', data });
+}
+
+/**
+ * `advanceTo` com um evento a mais, que só existe em teste: toda virada de dia sorteia. É o
+ * mesmo laço do jogo, com os eventos de verdade processados logo depois dos sorteios. Prova que
+ * avançar de uma vez ou aos pedaços consome o gerador igual, antes de a primeira mecânica que
+ * sorteia existir.
+ */
+export function advanceWithDailyDraws(
+  state: GameState,
+  gameTimeMs: number,
+): { state: GameState; events: GameEvent[] } {
+  return advanceWith(state, gameTimeMs, (draft, atMs, events) => {
+    if (isDayBoundary(atMs)) {
+      syntheticDayTurn(draft, atMs, events);
+    }
+    processEventsAt(draft, atMs, events);
+  });
 }

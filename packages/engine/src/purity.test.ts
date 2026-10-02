@@ -31,6 +31,7 @@ describe('pureza do motor', () => {
     expect(names).toContain('./commands.ts');
     expect(names).toContain('./migrations.ts');
     expect(names).toContain('./migrations/v1.ts');
+    expect(names).toContain('./random.ts');
     expect(names.length).toBeGreaterThan(10);
   });
 
@@ -45,6 +46,21 @@ describe('pureza do motor', () => {
     );
     const external = new Set(imports.filter((specifier) => !specifier.startsWith('.')));
     expect([...external]).toEqual(['@lotg/content']);
+  });
+
+  it('quem mostra, recusa, agenda ou carrega o estado não importa o gerador de sorteios', () => {
+    // Só `advanceTo` sorteia, em eventos com hora marcada. A visão, as ordens, as recusas, a
+    // linha do tempo, o estado inicial e a migração nunca: uma leitura não pode rerrolar nada.
+    const neverDraw =
+      /^\.\/(view|commands|rejections|timeline|state|migrations|units|clock|chronicle)(\.ts|\/)/;
+    const guarded = sources.filter(([path]) => neverDraw.test(path));
+    expect(guarded.map(([path]) => path)).toEqual(
+      expect.arrayContaining(['./view.ts', './commands.ts', './rejections.ts', './timeline.ts']),
+    );
+    const offenders = guarded
+      .filter(([, text]) => /from '(\.\.?\/)+random'/.test(text))
+      .map(([path]) => path);
+    expect(offenders).toEqual([]);
   });
 });
 
