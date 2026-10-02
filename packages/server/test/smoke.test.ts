@@ -92,7 +92,9 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     token = await renew(server, player);
     const later = await call<ViewResponse>(server, 'GET', `/games/${game.id}/view`, { token });
     expect(later.body.view.calendar.dayOfSeason).toBe(2);
-    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 218, perHour: 19 });
+    // Os dois lavradores renderam metade nas duas horas da adaptação (+7 por hora). Agora,
+    // adaptados e com os 4 de experiência da virada do dia: 24 × 1,012 − 5.
+    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 194, perHour: 19.3 });
 
     const events = await call<EventsResponse>(server, 'GET', `/games/${game.id}/events`, { token });
     expect(EventsResponseSchema.safeParse(events.body).error).toBeUndefined();

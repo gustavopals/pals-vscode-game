@@ -33,6 +33,17 @@ const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food'>, number> = { wood: 3, sto
 const STORAGE_HORIZON_HOURS = 8;
 /** Folga para o arredondamento das taxas da visão (uma casa decimal) não pedir um braço a mais. */
 const EPSILON = 1e-9;
+/**
+ * Fazendeiros além da conta que o bot deixa onde estão: tirar um para devolvê-lo na visita
+ * seguinte custaria duas adaptações.
+ */
+const FARM_SLACK = 1;
+/**
+ * Trocar alguém de ofício só compensa se o destino ainda vai precisar dos braços por este
+ * múltiplo do tempo de adaptação: quem chega rende metade enquanto se adapta, e uma falta que
+ * se cobre antes disso não paga a troca.
+ */
+const SWITCH_PAYBACK = 2;
 
 type Material = Exclude<ResourceId, 'food'>;
 const MATERIALS: Material[] = ['wood', 'stone', 'gold'];
@@ -313,10 +324,73 @@ export const planejarAutomaticas: Policy = {
   },
 };
 
+/** O material que maximiza `score`; no empate, o primeiro na ordem de `MATERIALS`. */
+function pick(score: (material: Material) => number): Material {
+  return MATERIALS.reduce((best, material) => (score(material) > score(best) ? material : best));
+}
+
 /**
- * Realoca todos os aldeões: primeiro os fazendeiros que alimentam o feudo, contando quem ainda
- * está chegando e duas bocas de folga; o resto vai para os materiais, em proporção ao tempo que
- * cada um levaria para cobrir o que as obras pedem.
+ * Quantos braços cada material deveria ter, com `hands` para repartir. Primeiro o que cada
+ * edifício pede para contar como ocupado (`occupiedFrom`): é o que faz a experiência do ofício
+ * subir, e um edifício vazio a perde. O resto vai em proporção ao tempo que cada um levaria
+ * para cobrir o que as obras pedem. Se não há gente nem para ocupar todos, vale só a proporção.
+ */
+function wantedHands(view: ViewState, hands: number): Record<Material, number> {
+  const deficits = materialDeficits(view);
+  const hoursToCover: Record<Material, number> = {
+    wood: hoursPerWorker(view, 'wood', deficits.wood),
+    stone: hoursPerWorker(view, 'stone', deficits.stone),
+    gold: hoursPerWorker(view, 'gold', deficits.gold),
+  };
+  const weights = MATERIALS.some((id) => hoursToCover[id] > 0) ? hoursToCover : IDLE_WEIGHTS;
+  const floors: Record<Material, number> = {
+    wood: workplace(view, 'wood').occupiedFrom,
+    stone: workplace(view, 'stone').occupiedFrom,
+    gold: workplace(view, 'gold').occupiedFrom,
+  };
+  const occupied = MATERIALS.reduce((sum, id) => sum + floors[id], 0);
+  if (occupied > hands) {
+    return share(hands, weights);
+  }
+  const rest = share(hands - occupied, weights);
+  return {
+    wood: floors.wood + rest.wood,
+    stone: floors.stone + rest.stone,
+    gold: floors.gold + rest.gold,
+  };
+}
+
+/**
+ * A troca de ofício para `material` compensa: falta dele para as obras e, com os braços que
+ * ele tem hoje, a falta ainda levaria mais que `SWITCH_PAYBACK` adaptações para ser coberta (ou
+ * não seria coberta nunca, sem ninguém lá). Tudo lido da visão: a falta, o que o edifício
+ * rende agora e o prazo da adaptação (`workersRules.adaptationSeconds`).
+ */
+function worthSwitchingTo(view: ViewState, material: Material): boolean {
+  const deficit = materialDeficits(view)[material];
+  if (deficit <= 0) {
+    return false;
+  }
+  const { grossPerHour } = workplace(view, material);
+  if (grossPerHour <= 0) {
+    return true;
+  }
+  return (deficit / grossPerHour) * 3600 > SWITCH_PAYBACK * view.workersRules.adaptationSeconds;
+}
+
+/**
+ * Reparte os aldeões: os fazendeiros que alimentam o feudo, contando quem ainda está chegando e
+ * duas bocas de folga, e o resto nos materiais, pelo que as obras pedem.
+ *
+ * Trocar de ofício custa (quem chega rende metade por um dia de jogo, e um edifício que fica
+ * vazio perde a experiência), então o bot não refaz a alocação inteira a cada visita:
+ *
+ * - quem está sem ofício vai para onde mais falta gente;
+ * - a fazenda é atendida sempre que a comida pede, ganha um lavrador a mais enquanto há vaga
+ *   nas Habitações (a sobra de comida é o que paga os recrutas) e só devolve braços quando
+ *   sobra mais de um;
+ * - entre os materiais, alguém só troca de ofício quando o ganho compensa (`worthSwitchingTo`),
+ *   e nunca deixando para trás um edifício abaixo do que ele pede para contar como ocupado.
  *
  * A folga é em bocas, e não em comida por hora, para a decisão ser a mesma em qualquer ritmo:
  * a visão traz as taxas por hora real, e o bot não sabe (nem precisa saber) qual é o ritmo.
@@ -329,40 +403,77 @@ export const alocarPorDemanda: Policy = {
     if (eaten === null) {
       return view;
     }
-    const farmYield = perWorker(view, 'food');
+    const farm = workplace(view, 'food');
+    const farmYield = farm.perWorkerPerHour;
     const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
+    const feeding = farmYield > 0 ? Math.ceil(demand / farmYield - EPSILON) : 0;
+    // Com vaga nas Habitações, um lavrador a mais: é a sobra de comida que paga os recrutas.
+    // Sem ela o feudo come o que planta e para de crescer. Com a despensa cheia e a comida
+    // indo ao chão, a sobra já existe: o lavrador a mais só aumentaria o desperdício.
+    const food = view.resources.find((row) => row.id === 'food');
+    const wasting = food !== undefined && food.full && food.wastingPerHour > 0;
+    const growing = view.population.vacancies > 0 && farmYield > 0 && !wasting ? 1 : 0;
+    const needed = Math.min(villagers, feeding + growing);
+    // Um fazendeiro a mais do que a conta pede fica onde está.
     const farmers =
-      farmYield > 0 ? Math.min(villagers, Math.ceil(demand / farmYield - EPSILON)) : 0;
+      farm.assigned >= needed && farm.assigned <= needed + FARM_SLACK ? farm.assigned : needed;
 
-    const deficits = materialDeficits(view);
-    const hoursToCover: Record<Material, number> = {
-      wood: hoursPerWorker(view, 'wood', deficits.wood),
-      stone: hoursPerWorker(view, 'stone', deficits.stone),
-      gold: hoursPerWorker(view, 'gold', deficits.gold),
+    const hands = villagers - farmers;
+    const wanted = wantedHands(view, hands);
+    const current = (material: Material) => workplace(view, material).assigned;
+    const alloc: Record<Material, number> = {
+      wood: current('wood'),
+      stone: current('stone'),
+      gold: current('gold'),
     };
-    const waiting = MATERIALS.some((id) => hoursToCover[id] > 0);
-    const hands = share(villagers - farmers, waiting ? hoursToCover : IDLE_WEIGHTS);
+    const total = () => MATERIALS.reduce((sum, id) => sum + alloc[id], 0);
+    const surplus = (material: Material) => alloc[material] - wanted[material];
+    // A fazenda pediu braços: saem de quem mais passa do que deveria ter.
+    while (total() > hands) {
+      alloc[pick(surplus)] -= 1;
+    }
+    // Quem está sem ofício vai para onde mais falta gente.
+    while (total() < hands) {
+      alloc[pick((material) => -surplus(material))] += 1;
+    }
+    // Troca de ofício entre os materiais: só quando compensa, e sem desocupar quem cede. Um
+    // edifício ocupado continua ocupado; um que já não estava fica com ao menos um trabalhador.
+    const keeps = (material: Material) => {
+      const { occupiedFrom } = workplace(view, material);
+      return current(material) >= occupiedFrom ? occupiedFrom : 1;
+    };
+    for (;;) {
+      const receivers = MATERIALS.filter((id) => surplus(id) < 0 && worthSwitchingTo(view, id));
+      const donors = MATERIALS.filter((id) => surplus(id) > 0 && alloc[id] > keeps(id));
+      const [receiver] = receivers.sort((a, b) => surplus(a) - surplus(b));
+      const [donor] = donors.sort((a, b) => surplus(b) - surplus(a));
+      if (receiver === undefined || donor === undefined) {
+        break;
+      }
+      alloc[donor] -= 1;
+      alloc[receiver] += 1;
+    }
 
     const target: Record<ProductionBuildingId, number> = {
       farm: farmers,
-      lumberMill: hands.wood,
-      quarry: hands.stone,
-      goldMine: hands.gold,
+      lumberMill: alloc.wood,
+      quarry: alloc.stone,
+      goldMine: alloc.gold,
     };
     // Primeiro libera quem sobra, depois preenche: assim nenhuma ordem esbarra na falta de livres.
     const rows = [...view.workers].sort(
       (a, b) => target[a.building] - a.assigned - (target[b.building] - b.assigned),
     );
-    let current = view;
+    let latest = view;
     for (const row of rows) {
       if (target[row.building] !== row.assigned) {
-        current = await act('setWorkers', {
+        latest = await act('setWorkers', {
           building: row.building,
           count: target[row.building],
         });
       }
     }
-    return current;
+    return latest;
   },
 };
 

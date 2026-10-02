@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 5;
+const CURRENT = 6;
 
 type StoredState = {
   schemaVersion: number;
@@ -95,6 +95,10 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     constructionQueues: [...constructionQueues, null],
     planned: planned.map((plan) => ({ ...plan, autoStart: false })),
+    // Os ofícios (V2C-T3): experiência em zero e todo mundo já adaptado.
+    craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
+    craftMasteredYear: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },
+    adaptation: [],
   };
 }
 

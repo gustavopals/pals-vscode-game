@@ -138,7 +138,7 @@ describe('relatório da matriz', () => {
     expect(text).toContain(
       '| Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) |',
     );
-    expect(text).toContain('| Rápido 3× | Regular | 57 a 71 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 |');
+    expect(text).toContain('| Rápido 3× | Regular | 64 a 80 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 |');
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
   });
@@ -146,7 +146,7 @@ describe('relatório da matriz', () => {
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
-    expect(lines[1]).toBe("  'week/3/regular': measured([64, 64], 7, 0, 0, 5100, 5100, 9409),");
+    expect(lines[1]).toBe("  'week/3/regular': measured([72, 72], 7, 0, 0, 5100, 5100, 37781),");
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -184,10 +184,10 @@ describe('problemas de uma célula', () => {
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
       'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5355 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 57 a 71 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: população 3, fora da faixa de 64 a 80 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 57 a 71 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 64 a 80 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });

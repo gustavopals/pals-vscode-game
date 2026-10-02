@@ -266,8 +266,9 @@ describe('inverno na visão', () => {
     for (const row of cold.workers) {
       expect(row.breakdown).toContain('× 0,8 (frio)');
     }
+    // A Fazenda, ocupada, ganhou 4 de experiência em cada uma das cinco viradas do caminho.
     expect(cold.workers[0]?.breakdown).toBe(
-      '10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h',
+      '10 trabalhadores × 10 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 40,7/h',
     );
     expect(cold.famine).toBeNull();
   });
@@ -280,7 +281,7 @@ describe('inverno na visão', () => {
     expect(cold.winter?.cold?.secondsElapsed).toBe(1000);
     expect(cold.winter?.cold?.text).toContain('A lareira pede 27/h e a Serraria entrega 0/h');
     expect(cold.workers[0]?.breakdown).toBe(
-      '10 trabalhadores × 30 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 115,2/h',
+      '10 trabalhadores × 30 × 1,2 (Nv2) × 1,06 (mestria 20) × 0,4 (inverno) × 0,8 (frio) = 122,11/h',
     );
     // Um instante quebrado arredonda para baixo, como a fome.
     const state = winterColdScenario();
@@ -300,10 +301,17 @@ describe('inverno na visão', () => {
       accept(state, command('setWorkers', { building: 'quarry', count: 4 })).state,
       command('setWorkers', { building: 'lumberMill', count: 1 }),
     ).state;
-    // Um lenhador no frio: 8 × 0,8 × 0,8 = 5,12, contra 9 de lenha.
+    // Um lenhador recém-chegado, no frio: 8 × 0,8 × 0,8 × metade = 2,56, contra 9 de lenha.
     expect(moved.settlement.cold).not.toBeNull();
+    // Até a primavera faltam 16 h 30 min: 2 h pela metade (5,12) e 14 h 30 min a 5,12 por hora
+    // (74,24). A conta da lenha já sabe que a adaptação termina: repõe 79 dos 149.
+    expect(view(moved).winter?.firewood).toMatchObject({
+      winterTotal: 149,
+      winterProduction: 79,
+      missing: 70,
+    });
     expect(view(moved).winter?.cold?.text).toBe(
-      'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 5,12/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 65 de madeira para atravessar o resto do Inverno.',
+      'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 2,56/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 70 de madeira para atravessar o resto do Inverno.',
     );
   });
 });

@@ -8,6 +8,7 @@ import {
   yearOf,
 } from './clock';
 import { finishConstructions } from './construction';
+import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
@@ -40,6 +41,8 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
     );
   }
   emit(events, draft, atMs, 'dayStarted', { dayOfYear: date.dayOfYear });
+  // O dia virou: cada ofício conta a experiência com quem está no edifício agora.
+  tallyCraftExperience(draft, atMs, events);
 }
 
 /** Processa, sobre o rascunho, os eventos discretos de um instante. */
@@ -47,15 +50,17 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação e o dia), início
- * automático das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der
- * motivo ao outro) e, por fim, fome e frio. Os estoques que encheram são registrados depois de
- * tudo, por `advanceWith` e por `applyCommand` (`announceFilled`).
+ * que chegam, virada do dia (o desperdício do dia que acabou, o ano, a estação, o dia e a
+ * experiência do ofício), fim de adaptação de quem trocou de ofício, início automático das
+ * planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao outro)
+ * e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
+ * `advanceWith` e por `applyCommand` (`announceFilled`).
  */
 export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   processCalendar(draft, atMs, events);
+  finishAdaptations(draft, atMs);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }

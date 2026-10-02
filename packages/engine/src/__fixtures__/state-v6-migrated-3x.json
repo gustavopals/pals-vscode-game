@@ -1,0 +1,118 @@
+{
+ "schemaVersion": 6,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": 1814400000,
+ "clock": {
+  "gameTimeMs": 1852631003,
+  "yearStartMs": 1814400000,
+  "year": 4
+ },
+ "lastProcessedAt": 1852631003,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 2713125,
+   "wood": 39802200,
+   "stone": 15584800,
+   "gold": 6526433
+  },
+  "accumulators": {
+   "food": 1205800,
+   "wood": 1808544,
+   "stone": 380340,
+   "gold": 1335232
+  },
+  "population": {
+   "villagers": 37
+  },
+  "workers": {
+   "farm": 8,
+   "lumberMill": 9,
+   "quarry": 9,
+   "goldMine": 4
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 4,
+   "lumberMill": 3,
+   "quarry": 3,
+   "goldMine": 3,
+   "housing": 5,
+   "granary": 0,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   {
+    "building": "lumberMill",
+    "targetLevel": 4,
+    "startedAtMs": 1852620000,
+    "finishesAtMs": 1853295000
+   },
+   null
+  ],
+  "planned": [
+   {
+    "building": "farm",
+    "targetLevel": 5,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 40246,
+   "wood": 70801,
+   "stone": 41505,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 20,
+   "quarry": 20,
+   "goldMine": 20
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [
+   {
+    "building": "farm",
+    "count": 5,
+    "untilMs": 1857840000
+   }
+  ]
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "upgradeHousing",
+   "allocateFarmers",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 4,
+  "villagersRecruited": 32,
+  "constructionsStarted:farm": 3,
+  "constructionsStarted:lumberMill": 3,
+  "constructionsStarted:quarry": 2,
+  "constructionsStarted:goldMine": 2,
+  "constructionsStarted:townHall": 3,
+  "wasted_food": 266246,
+  "wasted_wood": 1675801,
+  "wasted_stone": 686505
+ }
+}

@@ -62,6 +62,53 @@ export function roomy(draft: GameState): void {
   draft.settlement.buildings.warehouse = buildings.warehouse.maxLevel;
 }
 
+/**
+ * A experiência do ofício de todos os edifícios produtivos posta no mesmo valor: para comparar
+ * taxas depois de viradas de dia, que a fazem subir.
+ */
+export function experienced(experience: number): (draft: GameState) => void {
+  return (draft) => {
+    draft.settlement.craftExperience = {
+      farm: experience,
+      lumberMill: experience,
+      quarry: experience,
+      goldMine: experience,
+    };
+  };
+}
+
+/**
+ * A mestria de um edifício que está ocupado desde o dia de jogo 0, sem experiência nenhuma, no
+ * dia `day`: em milésimos (1012 é × 1,012). Cada virada de dia dá 4 de experiência, até 100.
+ */
+export function masteryOnDay(day: number): number {
+  return 1000 + 3 * Math.min(100, 4 * day);
+}
+
+/**
+ * O instante em que `missing` milésimos de um recurso se juntam a partir de `fromMs`, quando a
+ * taxa (em milésimos por hora) muda a cada virada de dia de jogo. É a conta do motor refeita à
+ * mão: o resto de cada dia passa inteiro para o seguinte, e só o instante final é arredondado.
+ */
+export function reachedAt(
+  fromMs: number,
+  missing: number,
+  rateOnDay: (day: number) => number,
+): number {
+  let at = fromMs;
+  let left = missing * HOUR;
+  for (;;) {
+    const day = Math.floor(at / DAY);
+    const rate = rateOnDay(day);
+    const end = (day + 1) * DAY;
+    if (rate * (end - at) >= left) {
+      return at + Math.ceil(left / rate);
+    }
+    left -= rate * (end - at);
+    at = end;
+  }
+}
+
 let nextCommandId = 0;
 
 export function command<T extends Command['type']>(
@@ -181,6 +228,39 @@ export function queuesScenario(): GameState {
   ]).state;
 }
 
+/**
+ * Outono, no meio de um dia de jogo, com um ofício em cada situação. A Fazenda (nível 3,
+ * experiência 40) tem quatro lavradores, dois deles chegados há 1 h 22 min: faltam 38 minutos
+ * de adaptação. A Serraria está dominada (100). A Pedreira, no nível 3, tem dois canteiros, um a
+ * menos do que o nível pede, e um deles chegou há 22 minutos. A Mina de Ouro está vazia e perde
+ * a experiência que tinha (16). Sobram dois aldeões sem ofício.
+ */
+export function craftScenario(): GameState {
+  const start = gameAt(AUTUMN + 3 * DAY, (draft) => {
+    const { settlement } = draft;
+    settlement.population.villagers = 12;
+    settlement.workers = { farm: 2, lumberMill: 4, quarry: 1, goldMine: 0 };
+    settlement.buildings = {
+      ...settlement.buildings,
+      townHall: 3,
+      farm: 3,
+      quarry: 3,
+      housing: 2,
+      granary: 2,
+      warehouse: 2,
+    };
+    settlement.resources = { food: 420_000, wood: 380_000, stone: 240_000, gold: 310_000 };
+    settlement.craftExperience = { farm: 40, lumberMill: 100, quarry: 20, goldMine: 16 };
+    settlement.craftMasteredYear.lumberMill = 1;
+  });
+  return play(start, [
+    command('setWorkers', { building: 'farm', count: 4 }),
+    { at: start.lastProcessedAt + HOUR },
+    command('setWorkers', { building: 'quarry', count: 2 }),
+    { at: start.lastProcessedAt + 82 * MINUTE },
+  ]).state;
+}
+
 export function eventsOfType(events: GameEvent[], type: GameEvent['type']): GameEvent[] {
   return events.filter((event) => event.type === type);
 }
@@ -197,10 +277,13 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [1, command('setWorkers', { building: 'quarry', count: 2 })],
   [1, command('setWorkers', { building: 'goldMine', count: 1 })],
   [8, command('startConstruction', { building: 'townHall' })],
-  [12, command('recruitVillagers', { quantity: 5 })],
-  [12, command('recruitVillagers', { quantity: 3 })],
-  [12, command('startConstruction', { building: 'lumberMill' })],
-  [12, command('planConstruction', { building: 'farm' })],
+  // A segunda visita do dia cai uma hora mais tarde do que cairia sem a troca de ofício: quem
+  // acabou de ganhar ofício rendeu metade nas duas primeiras horas, e a comida e a pedra para
+  // estas ordens só fecham agora.
+  [13, command('recruitVillagers', { quantity: 5 })],
+  [13, command('recruitVillagers', { quantity: 3 })],
+  [13, command('startConstruction', { building: 'lumberMill' })],
+  [13, command('planConstruction', { building: 'farm' })],
   // Dia 2: mais braços na madeira e no ouro; uma obra cancelada.
   [24, command('setWorkers', { building: 'lumberMill', count: 4 })],
   [24, command('setWorkers', { building: 'goldMine', count: 3 })],
@@ -255,7 +338,7 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [156, command('startConstruction', { building: 'goldMine' })],
   // Sem madeira para a Mina agora: fica planejada, e começa sozinha quando a madeira chegar.
   [156, command('planConstruction', { building: 'goldMine', autoStart: true })],
-  [162, command('setWorkers', { building: 'lumberMill', count: 6 })],
+  [163, command('setWorkers', { building: 'lumberMill', count: 6 })],
 ];
 
 /** O cenário roteirizado de 7 dias reais no ritmo 1: o golden do motor e uma das fixtures de estado. */

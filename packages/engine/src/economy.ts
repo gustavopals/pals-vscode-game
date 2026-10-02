@@ -8,6 +8,7 @@ import {
 } from '@lotg/content';
 
 import { seasonAt } from './clock';
+import { type Hands, handsOf, masteryRatio } from './craft';
 import { storeResource } from './storage';
 import type { GameState, ProductionBuildingId, ResourceId } from './types';
 import { HOUR_MS, MILLI } from './units';
@@ -35,16 +36,16 @@ export function producerOf(resource: ResourceId): ProductionBuildingId {
  * na explicação do número ("× 1,3 (outono)").
  */
 export type ProductionFactor = {
-  id: 'level' | 'season' | 'famine' | 'cold';
+  id: 'level' | 'mastery' | 'season' | 'famine' | 'cold';
   ratio: Ratio;
   label: string;
 };
 
 /**
  * Os fatores que multiplicam a produção de um edifício agora, na ordem em que a explicação os
- * mostra: nível, estação, fome e frio (GDD §5.3). É **a** lista: `productionRate` multiplica
- * todos e a visão escreve um termo para cada um. Um fator novo (moral, mestria) entra aqui e
- * aparece nos dois lugares.
+ * mostra: nível, mestria, estação, fome e frio (GDD §5.3). É **a** lista: `productionRate`
+ * multiplica todos e a visão escreve um termo para cada um. Um fator novo (a moral) entra aqui
+ * e aparece nos dois lugares.
  *
  * `season` permite perguntar "e se fosse a outra estação?": é como a visão faz a conta da lenha
  * do inverno que ainda não chegou.
@@ -55,14 +56,16 @@ export function productionFactors(
   season: SeasonDef = seasonAt(state.lastProcessedAt),
 ): ProductionFactor[] {
   const { levelBonus } = balance.production;
-  const { buildings: levels, famine, cold } = state.settlement;
+  const { buildings: levels, famine, cold, craftExperience } = state.settlement;
   const level = levels[building];
+  const experience = craftExperience[building];
   const factors: ProductionFactor[] = [
     {
       id: 'level',
       ratio: { num: levelBonus.den + levelBonus.num * (level - 1), den: levelBonus.den },
       label: `Nv${level}`,
     },
+    { id: 'mastery', ratio: masteryRatio(experience), label: `mestria ${experience}` },
     {
       id: 'season',
       ratio: season.effects.production[producedBy(building)],
@@ -78,23 +81,48 @@ export function productionFactors(
   return factors;
 }
 
+function gcd(a: number, b: number): number {
+  let [x, y] = [a, b];
+  while (y !== 0) {
+    [x, y] = [y, x % y];
+  }
+  return x;
+}
+
+/**
+ * Quantos trabalhadores adaptados valem os braços de um edifício, em fração: quem está em
+ * adaptação entra com `adaptationMultiplier` (GDD §5.4). Dois adaptados e dois em adaptação,
+ * com 1/2, valem 6/2 = 3.
+ */
+export function effectiveWorkers(hands: Hands): Ratio {
+  const { num, den } = balance.craft.adaptationMultiplier;
+  return { num: hands.adapted * den + hands.adapting * num, den };
+}
+
 /**
  * Produção bruta de um edifício, em milésimos por hora de jogo. É uma conta só, em frações, com
  * **um** arredondamento para baixo no fim (ADR 0013, decisão 13a):
- * trabalhadores × taxa base × 1000 × nível × estação × fome × frio. A ordem dos fatores não
- * muda o resultado.
+ * trabalhadores (os em adaptação valem a fração) × taxa base × 1000 × nível × mestria × estação
+ * × fome × frio. A ordem dos fatores não muda o resultado. A fração é simplificada a cada
+ * fator, só para os números da conta ficarem pequenos: o quociente é o mesmo.
+ *
+ * `hands` permite perguntar "e com outros braços?": um trabalhador adaptado, um recém-chegado.
  */
 export function productionRate(
   state: GameState,
   building: ProductionBuildingId,
-  workers = state.settlement.workers[building],
+  hands: Hands = handsOf(state, building),
   season: SeasonDef = seasonAt(state.lastProcessedAt),
 ): number {
-  let num = workers * balance.production.perWorkerPerHour[building] * MILLI;
-  let den = 1;
+  const workers = effectiveWorkers(hands);
+  let num = workers.num * balance.production.perWorkerPerHour[building] * MILLI;
+  let den = workers.den;
   for (const factor of productionFactors(state, building, season)) {
     num *= factor.ratio.num;
     den *= factor.ratio.den;
+    const common = gcd(num, den);
+    num /= common;
+    den /= common;
   }
   return Math.floor(num / den);
 }

@@ -30,33 +30,47 @@ const base: SimulationOptions = {
 // repete, sessão a sessão, as ordens que ele deu no ritmo 3.
 type Order = { type: Command['type']; payload: Command['payload'] };
 type LooseAct = (type: Order['type'], payload: Order['payload']) => ReturnType<Act>;
-const sessions: Order[][] = [];
-const recording: Bot = async (view, act) => {
-  const orders: Order[] = [];
-  sessions.push(orders);
-  const noted: LooseAct = (type, payload) => {
-    orders.push({ type, payload });
-    return (act as LooseAct)(type, payload);
+
+/** O bot econômico com um gravador: anota, sessão a sessão, as ordens que ele deu. */
+function recorder(): { bot: Bot; sessions: Order[][] } {
+  const sessions: Order[][] = [];
+  const bot: Bot = async (view, act) => {
+    const orders: Order[] = [];
+    sessions.push(orders);
+    const noted: LooseAct = (type, payload) => {
+      orders.push({ type, payload });
+      return (act as LooseAct)(type, payload);
+    };
+    await economico(view, noted as Act);
   };
-  await economico(view, noted as Act);
-};
-let replayed = 0;
-const replaying: Bot = async (_view, act) => {
-  const orders = sessions[replayed] ?? [];
-  replayed += 1;
-  for (const order of orders) {
-    await (act as LooseAct)(order.type, order.payload);
-  }
-};
-const fast = await simulate({ ...base, timeScale: 3, bot: recording });
-const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1, bot: replaying });
+  return { bot, sessions };
+}
+
+/** Um bot que não decide nada: repete, sessão a sessão, as ordens gravadas. */
+function replayer(sessions: Order[][]): { bot: Bot; replayed: () => number } {
+  let replayed = 0;
+  const bot: Bot = async (_view, act) => {
+    const orders = sessions[replayed] ?? [];
+    replayed += 1;
+    for (const order of orders) {
+      await (act as LooseAct)(order.type, order.payload);
+    }
+  };
+  return { bot, replayed: () => replayed };
+}
+
+const recorded = recorder();
+const { sessions } = recorded;
+const fast = await simulate({ ...base, timeScale: 3, bot: recorded.bot });
+const replay = replayer(sessions);
+const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1, bot: replay.bot });
 
 describe('simulação no ritmo 3', () => {
   it('3 dias no ritmo 3 terminam no mesmo estado de jogo que 9 dias no ritmo 1', () => {
     // Nove sessões em cada partida, com as mesmas ordens; e há obras que começaram sozinhas no
     // caminho, nos mesmos instantes de jogo nos dois ritmos.
     expect(sessions).toHaveLength(9);
-    expect(replayed).toBe(9);
+    expect(replay.replayed()).toBe(9);
     expect(
       fast.events.filter((event) => event.type === 'constructionAutoStarted').length,
     ).toBeGreaterThan(3);
@@ -142,8 +156,24 @@ describe('ritmo da simulação: padrão e limites', () => {
   });
 
   it('ritmo 0,5: 2 dias reais são 24 h de jogo, e o resumo usa vírgula', async () => {
-    const slow = await simulate({ ...base, days: 2, sessionsPerDay: 1, timeScale: 0.5 });
-    const reference = await simulate({ ...base, days: 1, sessionsPerDay: 2 });
+    // As mesmas ordens nos mesmos instantes de jogo: a partida do ritmo 1 repete as que o bot
+    // deu no ritmo 0,5, porque ele decide em tempo real (o depósito que "enche em menos de 8
+    // horas reais" é outro em cada ritmo).
+    const tape = recorder();
+    const slow = await simulate({
+      ...base,
+      days: 2,
+      sessionsPerDay: 1,
+      timeScale: 0.5,
+      bot: tape.bot,
+    });
+    const reference = await simulate({
+      ...base,
+      days: 1,
+      sessionsPerDay: 2,
+      bot: replayer(tape.sessions).bot,
+    });
+    expect(tape.sessions).toHaveLength(2);
     expect(slow.rows).toHaveLength(48);
     expect(slow.finalState.settings.timeScale).toBe(0.5);
     expect(world(slow.finalState)).toStrictEqual(world(reference.finalState));

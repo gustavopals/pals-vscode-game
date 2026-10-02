@@ -42,7 +42,7 @@ function dispatch(
   const payload: Record<string, unknown> = { ...(command.payload as object | undefined) };
   switch (command.type) {
     case 'setWorkers':
-      return setWorkers(draft, payload.building, payload.count);
+      return setWorkers(draft, payload.building, payload.count, nowMs);
     case 'startConstruction':
       return startConstruction(draft, payload.building, nowMs, events);
     case 'cancelConstruction':

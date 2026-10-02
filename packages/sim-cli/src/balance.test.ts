@@ -49,15 +49,17 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: 45 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: 68 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
-    // e o mesmo perfil chega a 45 aldeões e ao Salão no nível 6. Nenhum número do conteúdo foi
-    // mexido por causa disso: o teto da meta fica para a rodada de balanceamento (V2C-T7), e
-    // este teste guarda o que foi medido para o desvio não passar despercebido.
+    // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
+    // (V2C-T3) e o bot plantando para crescer (um lavrador a mais enquanto há vaga), chega a 68
+    // e ao Salão no nível 7. Nenhum número do conteúdo foi mexido por causa disso: o teto da
+    // meta fica para a rodada de balanceamento (V2C-T7), e este teste guarda o que foi medido
+    // para o desvio não passar despercebido.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 40, max: 50 });
-    expect(band?.townHallMin).toBe(6);
+    expect(band?.villagers).toEqual({ min: 61, max: 75 });
+    expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
 

@@ -45,6 +45,12 @@ export const natural: Shape = (value, path) =>
     ? null
     : problem(path, 'inteiro a partir de zero', value);
 
+/** Inteiro a partir de um: a contagem de algo que só existe enquanto tem ao menos um. */
+export const positive: Shape = (value, path) =>
+  Number.isSafeInteger(value) && (value as number) >= 1
+    ? null
+    : problem(path, 'inteiro a partir de um', value);
+
 /** Número finito maior que zero; o único não inteiro do estado é o ritmo da partida. */
 export const positiveNumber: Shape = (value, path) =>
   typeof value === 'number' && Number.isFinite(value) && value > 0

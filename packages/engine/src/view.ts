@@ -21,14 +21,14 @@ import {
 import {
   consumptionRate,
   firewoodRate,
-  foodRunsOutIn,
   netRates,
   producedBy,
   producerOf,
   productionFactors,
   productionRate,
-  woodRunsOutIn,
 } from './economy';
+import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
+import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, plural } from './format';
 import { describeReward, objectiveProgress } from './objectives';
 import { paceLabel } from './pace';
@@ -65,7 +65,7 @@ import type {
   UpgradeView,
   ViewState,
 } from './types';
-import { assertTimeScale, MILLI, positiveEntries, SECOND_MS } from './units';
+import { assertTimeScale, MILLI, positiveEntries, realSecondsCeil, SECOND_MS } from './units';
 
 function costView(state: GameState, cost: ResourceAmounts, quantity = 1): ResourceCostView[] {
   return positiveEntries(cost).map(([resource, amount]) => {
@@ -90,18 +90,15 @@ export type ViewOptions = {
   readonly timeScale?: number;
 };
 
-/** Segundos reais (arredondados para cima) de uma duração em ms de jogo. */
-function realSecondsCeil(gameMs: number, timeScale: number): number {
-  return Math.max(0, Math.ceil(gameMs / timeScale / SECOND_MS));
-}
-
 function realSecondsFloor(gameMs: number, timeScale: number): number {
   return Math.max(0, Math.floor(gameMs / timeScale / SECOND_MS));
 }
 
 /**
- * "4 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 62,4/h", por hora real: um termo para cada
- * fator da conta de `productionRate`. O nível aparece sempre; os outros, só quando mexem.
+ * "4 trabalhadores × 10 × 1,2 (Nv2) × 1,12 (mestria 40) × 1,3 (outono) = 69,89/h", por hora
+ * real: um termo para cada fator da conta de `productionRate`. O nível aparece sempre; os
+ * outros, só quando mexem. Com gente em adaptação, o primeiro termo diz quantos são, até quando
+ * e por quantos contam (`handsClause`).
  */
 function productionBreakdown(
   state: GameState,
@@ -111,10 +108,11 @@ function productionBreakdown(
   const { perWorkerPerHour } = balance.production;
   const factors = productionFactors(state, building)
     .filter(({ id, ratio }) => id === 'level' || ratio.num !== ratio.den)
-    .map(({ ratio, label }) => ` × ${decimal(ratio.num / ratio.den)} (${label})`)
+    // Três casas: a mestria anda de 0,003 em 0,003, e os termos têm de dar o total escrito.
+    .map(({ ratio, label }) => ` × ${decimal(ratio.num / ratio.den, 3)} (${label})`)
     .join('');
   const total = decimal((productionRate(state, building) * timeScale) / MILLI);
-  const hands = plural(state.settlement.workers[building], 'trabalhador', 'trabalhadores');
+  const hands = handsClause(state, building, timeScale);
   const perWorker = decimal(perWorkerPerHour[building] * timeScale);
   return `${hands} × ${perWorker}${factors} = ${total}/h`;
 }
@@ -189,6 +187,7 @@ function plannedView(
   plan: PlannedConstruction,
   rates: Record<ResourceId, number>,
   timeScale: number,
+  forecast: CraftForecast,
 ): PlannedUpgradeView {
   const { building, targetLevel } = plan;
   const costs = costView(state, planCost(plan));
@@ -209,7 +208,7 @@ function plannedView(
     planned: true,
     effect: storageEffect(state, building, targetLevel),
     autoStart: plan.autoStart,
-    waiting: plannedWaiting(state, plan, rates, timeScale),
+    waiting: plannedWaiting(state, plan, rates, timeScale, forecast),
   };
 }
 
@@ -279,9 +278,12 @@ export function deriveViewState(
   const rates = netRates(state);
   const capacity = housingCapacity(state);
   const { villagers } = settlement.population;
+  // "Acaba em" conta com o que o ofício muda sozinho: quem ainda se adapta vai render inteiro.
+  const forecast = craftForecast(state);
+  const outlook = craftOutlook(forecast);
   const runsOutIn: Partial<Record<ResourceId, number | null>> = {
-    food: foodRunsOutIn(state, rates),
-    wood: woodRunsOutIn(state, rates),
+    food: outlook.foodRunsOutIn,
+    wood: outlook.woodRunsOutIn,
   };
   const nextSeason = seasonAfter(date.season);
 
@@ -347,12 +349,13 @@ export function deriveViewState(
         id,
         label: balance.resources[id].label,
         stock: Math.floor(settlement.resources[id] / MILLI),
-        ...storageRow(state, id, rates, timeScale),
+        ...storageRow(state, id, rates, timeScale, forecast, outlook),
         perHour: Math.round((rates[id] * timeScale) / 100) / 10,
         depletesInSeconds: runsOut === null ? null : realSecondsFloor(runsOut, timeScale),
         breakdown: resourceBreakdown(state, id, timeScale),
       };
     }),
+    workersRules: workersRulesView(timeScale),
     workers: PRODUCTION_BUILDING_IDS.map((building) => ({
       building,
       label: buildings[building].label,
@@ -360,15 +363,18 @@ export function deriveViewState(
       resource: producedBy(building),
       assigned: settlement.workers[building],
       grossPerHour: perRealHour(productionRate(state, building)),
-      perWorkerPerHour: perRealHour(productionRate(state, building, 1)),
+      perWorkerPerHour: perRealHour(productionRate(state, building, { adapted: 1, adapting: 0 })),
       breakdown: productionBreakdown(state, building, timeScale),
+      ...craftRow(state, building, timeScale),
     })),
     constructions: {
       active: queues.find((entry) => entry !== null) ?? null,
       queues,
       queuesUnlocked: queues.length,
       queuesNote: queuesNote(state),
-      planned: settlement.planned.map((plan) => plannedView(state, plan, rates, timeScale)),
+      planned: settlement.planned.map((plan) =>
+        plannedView(state, plan, rates, timeScale, forecast),
+      ),
       available: BUILDING_IDS.filter(
         (id) =>
           constructionOf(state, id) === null && settlement.buildings[id] < buildings[id].maxLevel,

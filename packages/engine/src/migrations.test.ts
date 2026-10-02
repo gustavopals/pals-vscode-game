@@ -1,4 +1,10 @@
-import { balance, BUILDING_IDS, DIFFICULTY_IDS, RESOURCE_IDS } from '@lotg/content';
+import {
+  balance,
+  BUILDING_IDS,
+  DIFFICULTY_IDS,
+  PRODUCTION_BUILDING_IDS,
+  RESOURCE_IDS,
+} from '@lotg/content';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
@@ -17,7 +23,8 @@ import { natural, type Shape } from './migrations/shape';
 import { v1ToV2 } from './migrations/v1';
 import { stateV2, v2ToV3 } from './migrations/v2';
 import { stateV3, v3ToV4 } from './migrations/v3';
-import { stateV4 } from './migrations/v4';
+import { stateV4, v4ToV5 } from './migrations/v4';
+import { stateV5 } from './migrations/v5';
 import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
@@ -111,6 +118,17 @@ const FROZEN: Record<string, string> = {
   'state-v4-peasant-3x.json': 'a2f70389',
   'state-v4-storage.json': '797741c0',
   'state-v4-week-scripted.json': '7911107c',
+  'state-v5-cold.json': 'f5bf0408',
+  'state-v5-construction.json': '2fa2de12',
+  'state-v5-famine.json': '61f37e61',
+  'state-v5-fresh.json': '6c84d674',
+  'state-v5-iron-king-half.json': 'd906632d',
+  'state-v5-migrated-3x.json': '3948acce',
+  'state-v5-objectives.json': 'e0a56ad8',
+  'state-v5-peasant-3x.json': '35d952f7',
+  'state-v5-queues.json': '3d4361bc',
+  'state-v5-storage.json': '745791ce',
+  'state-v5-week-scripted.json': '57b9a3e9',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -295,6 +313,30 @@ describe('a forma da versão atual', () => {
       ];
       expect(currentShape(busy, ''), building).toBeNull();
     }
+  });
+
+  it('conhece os mesmos edifícios produtivos que o conteúdo, e recusa uma coorte vazia', () => {
+    const state = newGame();
+    expect(Object.keys(state.settlement.craftExperience)).toEqual([...PRODUCTION_BUILDING_IDS]);
+    expect(Object.keys(state.settlement.craftMasteredYear)).toEqual([...PRODUCTION_BUILDING_IDS]);
+    for (const building of PRODUCTION_BUILDING_IDS) {
+      const adapting = JSON.parse(JSON.stringify(state)) as Draft;
+      adapting.settlement.adaptation = [{ building, count: 2, untilMs: 7_200_000 }];
+      expect(currentShape(adapting, ''), building).toBeNull();
+    }
+    const broken = (adaptation: unknown) => {
+      const draft = JSON.parse(JSON.stringify(state)) as Draft;
+      draft.settlement.adaptation = adaptation;
+      return currentShape(draft, '');
+    };
+    expect(broken([{ building: 'farm', count: 0, untilMs: 1 }])).toMatch(
+      /^settlement\.adaptation\.0\.count/,
+    );
+    expect(broken([{ building: 'housing', count: 1, untilMs: 1 }])).toMatch(
+      /^settlement\.adaptation\.0\.building/,
+    );
+    expect(broken([{ building: 'farm', count: 1 }])).toMatch(/untilMs: campo ausente$/);
+    expect(broken(null)).toMatch(/^settlement\.adaptation/);
   });
 });
 
@@ -517,6 +559,9 @@ describe('versão 2 → 3', () => {
     old.schemaVersion = 2;
     delete old.settlement.cold;
     delete old.settlement.wasted;
+    delete old.settlement.craftExperience;
+    delete old.settlement.craftMasteredYear;
+    delete old.settlement.adaptation;
     delete old.settlement.buildings.granary;
     delete old.settlement.buildings.warehouse;
     old.settlement.workers.farm = 5;
@@ -746,12 +791,18 @@ describe('versão 4 → 5', () => {
   const version4 = fixtures.filter((fixture) => fixture.version === 4);
   const autoStarts = (events: Array<{ type: string }>) =>
     events.filter((event) => event.type === 'constructionAutoStarted');
+  // Só até a versão 5: o que as filas mudaram, sem o que as versões seguintes acrescentaram.
+  const queues: MigrationChain = { steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5], shape: stateV5 };
 
   it.each(version4)(
     '$name: só acrescenta a segunda fila, vazia, e marca as planejadas como manuais',
     (fixture) => {
       const before = read(fixture) as unknown as GameState;
-      const after = migrated(fixture);
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        queues,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(5);
       // A obra em curso continua onde estava, e a segunda fila nasce livre.
       expect(before.settlement.constructionQueues).toHaveLength(1);
@@ -857,6 +908,93 @@ describe('versão 4 → 5', () => {
     expect(
       events.filter((event) => event.type === 'constructionFinished').map((event) => event.atMs),
     ).toEqual([4 * MINUTE]);
+  });
+});
+
+describe('versão 5 → 6', () => {
+  const version5 = fixtures.filter((fixture) => fixture.version === 5);
+  const NOBODY = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
+
+  it.each(version5)(
+    '$name: só acrescenta a experiência em zero e a lista de adaptação vazia',
+    (fixture) => {
+      const before = read(fixture) as unknown as GameState;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(6);
+      expect(after.settlement.craftExperience).toStrictEqual(NOBODY);
+      expect(after.settlement.craftMasteredYear).toStrictEqual(NOBODY);
+      // Todo mundo que já trabalha é adaptado (ADR 0013, decisão 4).
+      expect(after.settlement.adaptation).toStrictEqual([]);
+      // O resto é o estado antigo, campo por campo: ninguém sai do lugar.
+      expect(after.settlement).toStrictEqual({
+        ...before.settlement,
+        craftExperience: NOBODY,
+        craftMasteredYear: NOBODY,
+        adaptation: [],
+      });
+      expect({ ...after, schemaVersion: 5, settlement: before.settlement }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version5)(
+    '$name: ninguém passa a render metade, e nada acontece na fronteira',
+    (fixture) => {
+      const state = migrated(fixture);
+      const view = deriveViewState(state, state.lastProcessedAt);
+      for (const row of view.workers) {
+        expect(row).toMatchObject({ adapting: 0, adaptationEndsInSeconds: null, experience: 0 });
+        // A taxa na fronteira é a de antes: trabalhadores inteiros, sem mestria.
+        expect(row.grossPerHour).toBeCloseTo(row.assigned * row.perWorkerPerHour, 9);
+        expect(row.breakdown).not.toContain('adaptação');
+        expect(row.breakdown).not.toContain('mestria');
+      }
+      const { events } = advanceTo(state, state.lastProcessedAt + 1);
+      expect(events.filter((event) => event.type === 'craftMastered')).toEqual([]);
+    },
+  );
+
+  it('a experiência começa a contar na primeira virada de dia depois da fronteira', () => {
+    // O feudo que veio da v0.1, com gente em todos os ofícios e parado no meio de um dia.
+    const state = migrated(named('state-v5-migrated-3x.json'));
+    const dayMs = 2 * HOUR;
+    const nextDay = (Math.floor(state.lastProcessedAt / dayMs) + 1) * dayMs;
+    const before = advanceTo(state, nextDay - 1).state;
+    expect(before.settlement.craftExperience).toStrictEqual(NOBODY);
+    const after = advanceTo(state, nextDay).state;
+    // Ganha 4 quem tem ao menos um trabalhador por nível; os outros ficam onde estão.
+    for (const building of ['farm', 'lumberMill', 'quarry', 'goldMine'] as const) {
+      const occupied = state.settlement.workers[building] >= state.settlement.buildings[building];
+      expect(after.settlement.craftExperience[building], building).toBe(occupied ? 4 : 0);
+    }
+    expect(Object.values(after.settlement.craftExperience).some((value) => value > 0)).toBe(true);
+  });
+
+  it('as trocas feitas depois da fronteira custam como em qualquer partida', () => {
+    const state = migrated(named('state-v5-migrated-3x.json'));
+    const { villagers } = state.settlement.population;
+    const free =
+      villagers - Object.values(state.settlement.workers).reduce((sum, count) => sum + count, 0);
+    expect(free).toBeGreaterThan(0);
+    const moved = applyCommand(
+      state,
+      command('setWorkers', { building: 'quarry', count: state.settlement.workers.quarry + 1 }),
+      state.lastProcessedAt,
+    );
+    expect(moved.ok).toBe(true);
+    if (moved.ok) {
+      expect(moved.state.settlement.adaptation).toEqual([
+        { building: 'quarry', count: 1, untilMs: state.lastProcessedAt + 2 * HOUR },
+      ]);
+      // No ritmo 3, o dia de jogo da adaptação são 40 minutos reais.
+      const view = deriveViewState(moved.state, state.lastProcessedAt);
+      expect(view.workers.find((row) => row.building === 'quarry')).toMatchObject({
+        adapting: 1,
+        adaptationEndsInSeconds: 40 * 60,
+      });
+    }
   });
 });
 

@@ -1,6 +1,7 @@
 import { balance, type BuildingId, buildings } from '@lotg/content';
 
 import { buildingWithArticle, constructionOf, isFounding, queuesUnlocked } from './construction';
+import { type CraftForecast, inMs } from './craftProjection';
 import { flowRate, producerOf } from './economy';
 import { coversIn, type PlanWait, planWait } from './planned';
 import { SECOND_QUEUE_OPENS } from './rejections';
@@ -95,9 +96,14 @@ function waitResources(
   state: GameState,
   wait: Extract<PlanWait, { reason: 'resources' }>,
   rates: Record<ResourceId, number>,
+  forecast: CraftForecast,
 ): Waiting {
   const needs = `espera ${describeLoss(wait.missing)}`;
-  const covers = coversIn(state, wait.cost, rates);
+  // O prazo conta com o que o ofício muda sozinho no caminho; quando essa conta não chega a
+  // um instante (a comida acabaria antes), fica o das taxas de agora.
+  const covers =
+    forecast.find((draft, current) => inMs(coversIn(draft, wait.cost, current)))?.inMs ??
+    coversIn(state, wait.cost, rates);
   if (covers !== null) {
     return { text: needs, etaMs: covers };
   }
@@ -139,13 +145,15 @@ function waitQueue(state: GameState): Waiting {
 /**
  * O que uma planejada espera, como a interface mostra: o motivo, a frase e o prazo em segundos
  * reais. `null` quando ela já pode ser iniciada. O prazo é o da espera **deste** motivo, com as
- * taxas de agora: é exato enquanto nada mudar as taxas, e a visão seguinte o corrige.
+ * taxas de agora e o que o ofício muda sozinho (a adaptação que termina, a experiência que sobe
+ * a cada virada do dia): é exato enquanto nada mais mudar as taxas, e a visão seguinte o corrige.
  */
 export function plannedWaiting(
   state: GameState,
   plan: PlannedConstruction,
   rates: Record<ResourceId, number>,
   timeScale: number,
+  forecast: CraftForecast,
 ): PlannedWaitingView | null {
   const wait = planWait(state, plan);
   if (wait === null) {
@@ -163,7 +171,7 @@ export function plannedWaiting(
       waiting = waitCapacity(state, plan, wait);
       break;
     case 'resources':
-      waiting = waitResources(state, wait, rates);
+      waiting = waitResources(state, wait, rates, forecast);
       break;
     case 'queue':
       waiting = waitQueue(state);

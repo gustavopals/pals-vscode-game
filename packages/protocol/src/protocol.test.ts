@@ -2,6 +2,8 @@ import {
   balance,
   buildings,
   chronicleTemplates,
+  coldReliefs,
+  craftGuilds,
   DIFFICULTY_IDS,
   foundingTemplates,
   objectives,
@@ -245,14 +247,16 @@ describe('ViewStateSchema', () => {
     const rising = deriveViewState(state, 0, { timeScale: 3 });
     expect(ViewStateSchema.safeParse(rising).error).toBeUndefined();
     const wood = rising.resources.find((row) => row.id === 'wood');
-    // Rei de Ferro: 400. Faltam 280 a 16 por hora de jogo, vistos no ritmo 3.
+    // Rei de Ferro: 400. Faltam 280: os dois lenhadores, recém-chegados, rendem 8 por hora de
+    // jogo no primeiro dia e 16 depois, com a experiência que sobe a cada virada. A previsão
+    // conta tudo isso: 63.604.380 ms de jogo, vistos no ritmo 3.
     expect(wood).toMatchObject({
       cap: 400,
       capBreakdown: '500 iniciais × 0,8 (Rei de Ferro) = 400',
       storageBuilding: 'warehouse',
       storageLabel: 'Pátio',
       full: false,
-      fullInSeconds: 21_000,
+      fullInSeconds: 21_202,
       fullNote: null,
       wastingPerHour: 0,
       wastedToday: 0,
@@ -264,10 +268,12 @@ describe('ViewStateSchema', () => {
     events.push(...advanced.events);
     const full = deriveViewState(state, state.lastProcessedAt, { timeScale: 3 });
     expect(ViewStateSchema.safeParse(full).error).toBeUndefined();
+    // 30 horas de jogo são 15 viradas de dia: a Serraria tem 60 de experiência (× 1,18), e os
+    // dois lenhadores perdem 16 × 1,18 por hora de jogo, 56,6 por hora real.
     expect(full.resources.find((row) => row.id === 'wood')).toMatchObject({
       full: true,
       fullInSeconds: null,
-      wastingPerHour: 48,
+      wastingPerHour: 56.6,
     });
     expect(full.resources.find((row) => row.id === 'gold')).toMatchObject({
       cap: null,
@@ -357,10 +363,12 @@ describe('ViewStateSchema', () => {
         entry.waiting,
       ]),
     ).toEqual([
-      // 50 de madeira a 24 por hora de jogo, vistos no ritmo 3: 2.500 segundos reais.
-      ['quarry', true, { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 2500 }],
-      // A Fazenda é manual e também espera madeira: 10 a 24 por hora de jogo, 500 segundos reais.
-      ['farm', false, { reason: 'resources', text: 'espera 10 de madeira', etaSeconds: 500 }],
+      // 50 de madeira: os três lenhadores, recém-chegados, rendem 12 por hora de jogo no
+      // primeiro dia (24 de madeira) e 24,288 depois. São 11.053.755 ms de jogo, vistos no
+      // ritmo 3: 3.685 segundos reais.
+      ['quarry', true, { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 3685 }],
+      // A Fazenda é manual e também espera madeira: 10 a 12 por hora de jogo, 1.000 segundos reais.
+      ['farm', false, { reason: 'resources', text: 'espera 10 de madeira', etaSeconds: 1000 }],
     ]);
 
     // A espera sem a frase, com um motivo desconhecido ou com um campo a mais não é do contrato.
@@ -395,8 +403,9 @@ describe('ViewStateSchema', () => {
     state = advanced.state;
     events.push(...advanced.events);
     const started = events.find((event) => event.type === 'constructionAutoStarted');
+    // No instante que a visão anunciou.
     expect(started).toMatchObject({
-      atMs: 125 * 60_000,
+      atMs: 11_053_755,
       data: { building: 'quarry', level: 2, spent_wood: 120, spent_gold: 30 },
     });
     for (const [index, event] of events.entries()) {
@@ -407,6 +416,89 @@ describe('ViewStateSchema', () => {
     const after = deriveViewState(state, state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
     expect(after.constructions.queues).toEqual([null]);
+  });
+
+  it('aceita os ofícios: as regras, a adaptação, a experiência e o ofício dominado', () => {
+    let state = createInitialState('pedra-alta', { ...settings, timeScale: 3 });
+    const order = (building: 'farm' | 'lumberMill' | 'quarry', count: number) => {
+      const result = applyCommand(
+        state,
+        { commandId: uuid, type: 'setWorkers', payload: { building, count } },
+        state.lastProcessedAt,
+      );
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+    };
+    order('farm', 2);
+    order('lumberMill', 2);
+    const view = deriveViewState(state, 0);
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    // As regras chegam prontas, no ritmo da partida: o app não escreve número nenhum.
+    expect(view.workersRules).toMatchObject({
+      adaptationSeconds: 2400,
+      adaptationText: 'Quem troca de ofício produz metade por 40 min.',
+      experienceMax: 100,
+      masteryMaxBonusPercent: 30,
+    });
+    expect(view.workers[1]).toMatchObject({
+      building: 'lumberMill',
+      assigned: 2,
+      adapting: 2,
+      adaptationEndsInSeconds: 2400,
+      adaptingCohorts: [{ count: 2, endsInSeconds: 2400 }],
+      // Por hora real, no ritmo 3: 24 de um lenhador adaptado, 12 de quem chega agora.
+      perWorkerPerHour: 24,
+      perNewWorkerPerHour: 12,
+      grossPerHour: 24,
+      experience: 0,
+      masteryBonusPercent: 0,
+      occupiedFrom: 1,
+      experienceTrend: 'rising',
+    });
+
+    // Sem as regras, com uma tendência desconhecida ou com uma leva sem prazo, não é do contrato.
+    const withoutRules = Object.fromEntries(
+      Object.entries(view).filter(([key]) => key !== 'workersRules'),
+    );
+    expect(ViewStateSchema.safeParse(withoutRules).success).toBe(false);
+    const withRow = (changed: object) => ({
+      ...view,
+      workers: [{ ...view.workers[0], ...changed }, ...view.workers.slice(1)],
+    });
+    expect(ViewStateSchema.safeParse(withRow({})).success).toBe(true);
+    expect(ViewStateSchema.safeParse(withRow({ experienceTrend: 'booming' })).success).toBe(false);
+    expect(ViewStateSchema.safeParse(withRow({ adaptingCohorts: [{ count: 1 }] })).success).toBe(
+      false,
+    );
+    expect(ViewStateSchema.safeParse(withRow({ adaptationEndsInSeconds: null })).success).toBe(
+      true,
+    );
+    expect(ViewStateSchema.safeParse(withRow({ posts: 4 })).success).toBe(false);
+
+    // 25 dias de jogo depois, os dois ofícios ocupados chegam ao máximo: o evento passa pelo
+    // contrato da API e é linha da Crônica.
+    const advanced = advanceTo(state, 25 * 2 * 3_600_000);
+    const mastered = advanced.events.filter((event) => event.type === 'craftMastered');
+    expect(mastered.map((event) => event.data)).toEqual([
+      { building: 'farm', experience: 100 },
+      { building: 'lumberMill', experience: 100 },
+    ]);
+    for (const [index, event] of mastered.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+    }
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('craftMastered');
+    const after = deriveViewState(advanced.state, advanced.state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(after).error).toBeUndefined();
+    expect(after.workers[1]).toMatchObject({
+      experience: 100,
+      masteryBonusPercent: 30,
+      adapting: 0,
+      adaptationEndsInSeconds: null,
+      experienceTrend: 'steady',
+    });
   });
 
   it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
@@ -728,7 +820,15 @@ describe('contentHash', () => {
     });
     expect(hash).toBe('0123456789abcdef');
     expect(hashed).toEqual([
-      canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
+      canonicalJson({
+        balance,
+        buildings,
+        objectives,
+        chronicleTemplates,
+        foundingTemplates,
+        coldReliefs,
+        craftGuilds,
+      }),
     ]);
   });
 
@@ -743,9 +843,15 @@ describe('contentHash', () => {
       'balance',
       'buildings',
       'chronicleTemplates',
+      'coldReliefs',
+      'craftGuilds',
       'foundingTemplates',
       'objectives',
     ]);
+    // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
+    expect(hashed).toContain(craftGuilds.lumberMill.feat);
+    expect(hashed).toContain(coldReliefs.thaw);
+    expect(hashed).toContain(`"adaptationMs":${balance.craft.adaptationMs}`);
     // O armazenamento é conteúdo: mexer em um limite muda o hash.
     expect(hashed).toContain(`"baseCapacity":${balance.storage.baseCapacity}`);
     expect(hashed).toContain(balance.difficulties.lord.description);

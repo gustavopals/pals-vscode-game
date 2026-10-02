@@ -10,9 +10,10 @@ import {
   seasonWithArticle,
 } from './clock';
 import { buildingWithArticle } from './construction';
+import { handsAt } from './craft';
 import { firewoodRate, producerOf, productionRate } from './economy';
 import { decimal, joinList, plural, sentenceCase } from './format';
-import type { FirewoodView, GameState } from './types';
+import type { FirewoodView, GameState, ProductionBuildingId } from './types';
 import { HOUR_MS, MILLI, SECOND_MS } from './units';
 
 const isNeutral = (ratio: Ratio) => ratio.num === ratio.den;
@@ -139,22 +140,50 @@ type FirewoodCount = {
 };
 
 /**
- * A conta da lenha de `season` por `spanMs` de jogo, com os habitantes e os trabalhadores de
- * agora: o que a lareira queima, o que a Serraria entrega e o que o estoque ainda precisa ter.
- * A lenha é arredondada para cima e a produção para baixo, para a conta nunca prometer mais do
- * que o inverno entrega.
+ * O que `building` entrega de `fromMs` a `toMs`, em milésimos × ms por hora, com os fatores de
+ * `season` e os trabalhadores de agora. Quem ainda se adapta rende a fração só até o fim da
+ * adaptação: a conta é feita trecho a trecho, cortando em cada leva que termina no caminho.
+ */
+function producedBetween(
+  state: GameState,
+  building: ProductionBuildingId,
+  season: SeasonDef,
+  fromMs: number,
+  toMs: number,
+): number {
+  const ends = state.settlement.adaptation
+    .filter((cohort) => cohort.building === building)
+    .map((cohort) => cohort.untilMs)
+    .filter((untilMs) => untilMs > fromMs && untilMs < toMs);
+  const cuts = [fromMs, ...[...new Set(ends)].sort((a, b) => a - b), toMs];
+  let total = 0;
+  for (let index = 0; index + 1 < cuts.length; index += 1) {
+    const start = cuts[index] as number;
+    const rate = productionRate(state, building, handsAt(state, building, start), season);
+    total += rate * ((cuts[index + 1] as number) - start);
+  }
+  return total;
+}
+
+/**
+ * A conta da lenha de `season` entre `fromMs` e `toMs` de jogo, com os habitantes e os
+ * trabalhadores de agora: o que a lareira queima, o que a Serraria entrega e o que o estoque
+ * ainda precisa ter. A lenha é arredondada para cima e a produção para baixo, para a conta
+ * nunca prometer mais do que o inverno entrega.
  */
 function countFirewood(
   state: GameState,
   season: SeasonDef,
-  spanMs: number,
+  fromMs: number,
+  toMs: number,
   timeScale: number,
 ): FirewoodCount {
   const producer = producerOf('wood');
   const burned = firewoodRate(state, season);
-  const produced = productionRate(state, producer, undefined, season);
-  const winterTotal = Math.ceil((burned * spanMs) / HOUR_MS / MILLI);
-  const winterProduction = Math.floor((produced * spanMs) / HOUR_MS / MILLI);
+  const winterTotal = Math.ceil((burned * (toMs - fromMs)) / HOUR_MS / MILLI);
+  const winterProduction = Math.floor(
+    producedBetween(state, producer, season, fromMs, toMs) / HOUR_MS / MILLI,
+  );
   const stock = Math.floor(state.settlement.resources.wood / MILLI);
   return {
     numbers: {
@@ -186,7 +215,8 @@ export function firewoodForecast(state: GameState, timeScale: number): FirewoodV
   if (next.effects.firewoodPerVillagerPerHour.num === 0) {
     return null;
   }
-  const count = countFirewood(state, next, next.days * DAY_MS, timeScale);
+  const starts = nextSeasonBoundary(state.lastProcessedAt);
+  const count = countFirewood(state, next, starts, starts + next.days * DAY_MS, timeScale);
   const wood = balance.resources.wood.label.toLowerCase();
   const people = plural(count.villagers, 'habitante', 'habitantes');
   return {
@@ -219,7 +249,7 @@ export function winterView(
     return null;
   }
   const next = seasonAfter(season);
-  const count = countFirewood(state, season, nextSeasonBoundary(now) - now, timeScale);
+  const count = countFirewood(state, season, now, nextSeasonBoundary(now), timeScale);
   const { numbers } = count;
   const wood = balance.resources.wood.label.toLowerCase();
   const firewood: FirewoodView = {

@@ -34,6 +34,13 @@ import { resetTestDb } from './helpers/db';
 
 const SECOND = 1000;
 const PACE = 3;
+/**
+ * O instante de jogo em que a Pedreira de `leaveQuarryPlanned` começa sozinha: faltam 50 de
+ * madeira. Os três lenhadores, recém-chegados, rendem metade no primeiro dia de jogo (12 por
+ * hora: 24 de madeira em 2 h) e, adaptados e com 4 de experiência, 24,288 por hora: os 26 que
+ * faltam chegam 3.853.755 ms depois.
+ */
+const QUARRY_STARTS_AT = 2 * HOUR + Math.ceil((26_000 * HOUR) / 24_288);
 const REPLAYED = 'x-lords-replayed';
 
 /** Instância no ritmo Normal do GDD. */
@@ -119,29 +126,31 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
           building: 'quarry',
           targetLevel: 2,
           autoStart: true,
-          // 50 de madeira a 24 por hora: 2 h 05 min.
-          waiting: { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 7500 },
+          // O prazo conta com a adaptação dos lenhadores: 3 h 04 min 14 s, arredondados para cima.
+          waiting: { reason: 'resources', text: 'espera 50 de madeira', etaSeconds: 11_054 },
         },
       ],
     });
 
-    // Seis horas fora. A Pedreira começou sozinha às 2 h 05 min e já terminou.
+    expect(QUARRY_STARTS_AT).toBe(11_053_755);
+
+    // Seis horas fora. A Pedreira começou sozinha às 3 h 04 min e já terminou.
     await wait(normal, who, 6 * HOUR);
     const events = await eventsOf(normal, who);
     const [started, ...others] = autoStarted(events);
     expect(others).toEqual([]);
     expect(started).toMatchObject({
-      atMs: 125 * MINUTE,
+      atMs: QUARRY_STARTS_AT,
       text: 'No 2º dia da Primavera, com as reservas cheias, os pedreiros começaram sozinhos a erguer a Pedreira ao 2º nível.',
       data: { building: 'quarry', level: 2, spent_wood: 120, spent_gold: 30 },
     });
     expect(new Date(started?.at ?? 0).getTime()).toBe(
-      new Date(who.game.createdAt).getTime() + 125 * MINUTE,
+      new Date(who.game.createdAt).getTime() + QUARRY_STARTS_AT,
     );
     const finished = events.find(
       (event) => event.type === 'constructionFinished' && event.data.building === 'quarry',
     );
-    expect(finished?.atMs).toBe(125 * MINUTE + 6 * MINUTE);
+    expect(finished?.atMs).toBe(QUARRY_STARTS_AT + 6 * MINUTE);
 
     const view = await viewOf(normal, who);
     expect(view.constructions.planned).toEqual([]);
@@ -161,21 +170,23 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
   it('no ritmo Rápido: o mesmo instante de jogo, um terço do tempo real', async () => {
     const who = await newPlayer(fast);
     const planned = await leaveQuarryPlanned(fast, who);
-    // A visão fala em tempo real: 72 de madeira por hora, 2.500 segundos de espera.
+    // A visão fala em tempo real: o mesmo instante de jogo, visto em um terço do tempo.
+    const etaSeconds = Math.ceil(QUARRY_STARTS_AT / PACE / SECOND);
+    expect(etaSeconds).toBe(3685);
     expect(planned.view.constructions.planned[0]?.waiting).toEqual({
       reason: 'resources',
       text: 'espera 50 de madeira',
-      etaSeconds: 7500 / PACE,
+      etaSeconds,
     });
 
-    // Um segundo real antes, ainda não; no segundo exato, sim.
-    await wait(fast, who, (7500 / PACE - 1) * SECOND);
+    // Um segundo real antes, ainda não; no segundo anunciado, sim.
+    await wait(fast, who, (etaSeconds - 1) * SECOND);
     expect(autoStarted(await eventsOf(fast, who))).toEqual([]);
     await wait(fast, who, SECOND);
     const [started] = autoStarted(await eventsOf(fast, who));
-    expect(started).toMatchObject({ atMs: 125 * MINUTE, data: { building: 'quarry' } });
+    expect(started).toMatchObject({ atMs: QUARRY_STARTS_AT, data: { building: 'quarry' } });
     expect(new Date(started?.at ?? 0).getTime()).toBe(
-      new Date(who.game.createdAt).getTime() + (125 * MINUTE) / PACE,
+      new Date(who.game.createdAt).getTime() + QUARRY_STARTS_AT / PACE,
     );
   });
 
@@ -188,7 +199,7 @@ describe('a planejada automática começa sozinha com o jogador fora', () => {
       await viewOf(normal, who);
     }
     const started = autoStarted(await eventsOf(normal, who));
-    expect(started.map((event) => event.atMs)).toEqual([125 * MINUTE]);
+    expect(started.map((event) => event.atMs)).toEqual([QUARRY_STARTS_AT]);
     expect(
       await countRows(
         normal.pool,

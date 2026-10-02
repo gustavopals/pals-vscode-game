@@ -389,19 +389,20 @@ describe('aba Feudo', () => {
     expect(page).toMatch(
       /<th scope="row">Ouro<\/th><td class="num">270<\/td><td class="num">—<\/td>/,
     );
-    expect(page).toContain('+19');
+    // Os dois lavradores acabaram de chegar: rendem metade enquanto se adaptam (V2C-T3).
+    expect(page).toContain('+7');
     expect(page).toContain(
-      'data-tip="Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h"',
+      'data-tip="Fazenda: 2 trabalhadores (2 em adaptação por 2 h, valendo metade: contam como 1) × 10 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 1 = 5/h"',
     );
     // Para leitores de tela, a explicação acompanha o número em vez de substituí-lo.
-    expect(page).toContain('+19<span class="sr-only"> (Fazenda: 2 trabalhadores');
+    expect(page).toContain('+7<span class="sr-only"> (Fazenda: 2 trabalhadores');
   });
 
   it('trabalhadores com − e +, rotulados para leitores de tela', () => {
     expect(page).toContain('Trabalhadores (2/5)');
     expect(page).toContain('aria-label="Pôr mais um trabalhador em Fazenda"');
     expect(page).toContain('aria-label="Tirar um trabalhador de Serraria"');
-    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 24 por hora"');
+    expect(page).toContain('aria-label="Fazenda nível 1: 2 trabalhadores, 12 por hora"');
   });
 
   it('construções com custos em chips e o que falta em texto, não só em cor', () => {

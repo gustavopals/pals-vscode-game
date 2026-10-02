@@ -2,6 +2,8 @@ import {
   balance,
   buildings,
   chronicleTemplates,
+  coldReliefs,
+  craftGuilds,
   foundingTemplates,
   objectives,
 } from '@lotg/content';
@@ -17,8 +19,22 @@ import { canonicalJson } from './canonical';
  * simulador usam esta mesma função: um relatório de balanceamento e o servidor que está no ar
  * dizem o mesmo hash para o mesmo conteúdo. Conteúdo novo (cartas, tiles) entra na lista daqui.
  */
+/**
+ * O que entra no resumo: todos os números e todos os textos de jogo. As frases que só entram
+ * dentro de outras (o alívio do frio, os ofícios) também contam: mudá-las muda o que o jogador lê.
+ */
+function hashedContent(): Record<string, unknown> {
+  return {
+    balance,
+    buildings,
+    objectives,
+    chronicleTemplates,
+    foundingTemplates,
+    coldReliefs,
+    craftGuilds,
+  };
+}
+
 export function contentHash(sha256Hex: (text: string) => string): string {
-  return sha256Hex(
-    canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
-  ).slice(0, 16);
+  return sha256Hex(canonicalJson(hashedContent())).slice(0, 16);
 }

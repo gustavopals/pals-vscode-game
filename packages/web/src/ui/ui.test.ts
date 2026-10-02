@@ -108,7 +108,7 @@ describe('barra de status', () => {
   });
 
   it('padrão: o feudo e a comida por hora', () => {
-    expect(statusBar({ ...base, view: farmers }).text).toBe('$(home) Pedra Alta · +19 comida/h');
+    expect(statusBar({ ...base, view: farmers }).text).toBe('$(home) Pedra Alta · +7 comida/h');
     expect(statusBar({ ...base, view: initial }).text).toBe('$(home) Pedra Alta · −5 comida/h');
   });
 
@@ -144,7 +144,7 @@ describe('barra de status', () => {
 
   it('mostra as novidades pendentes', () => {
     expect(statusBar({ ...base, view: farmers, pending: 2 }).text).toBe(
-      '$(home) Pedra Alta · +19 comida/h · $(bell) 2',
+      '$(home) Pedra Alta · +7 comida/h · $(bell) 2',
     );
   });
 });
@@ -203,8 +203,10 @@ describe('árvore', () => {
 
   it('recursos mostram estoque e taxa com sinal; o tooltip explica o número', () => {
     const food = find(buildTree(input), 'resource:food');
-    expect(food).toMatchObject({ label: 'Comida', description: '180 (+19/h)' });
-    expect(food?.tooltip).toContain('2 trabalhadores × 10');
+    expect(food).toMatchObject({ label: 'Comida', description: '180 (+7/h)' });
+    // Os dois lavradores acabaram de chegar: a explicação diz que rendem metade (V2C-T3).
+    expect(food?.tooltip).toContain('2 trabalhadores (2 em adaptação por 2 h');
+    expect(food?.tooltip).toContain('× 10 × 1 (Nv1)');
   });
 
   it('trabalhadores têm ações inline de mais e menos', () => {
@@ -212,7 +214,7 @@ describe('árvore', () => {
     expect(find(tree, 'workers')?.description).toBe('2/5 alocados · 3 livres');
     expect(find(tree, 'worker:farm')).toMatchObject({
       label: 'Fazenda Nv1',
-      description: '2 · 24/h',
+      description: '2 · 12/h',
       contextValue: 'lords.worker',
       // O clique só abre o painel; quem aloca são os botões + e − do item.
       command: { id: 'lords.openPanel', args: ['fief'] },

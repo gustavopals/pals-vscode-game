@@ -47,11 +47,10 @@ describe('lenha', () => {
     const state = winter((draft) => {
       draft.settlement.workers = { farm: 4, lumberMill: 1, quarry: 0, goldMine: 0 };
     });
-    // 8 × 0,8 − 2,5 = +3,9 por hora.
+    // 8 × 0,8 − 2,5 = +3,9 por hora, no primeiro dia de jogo (depois dele a experiência do
+    // ofício começa a render).
     expect(netRates(state).wood).toBe(3_900);
-    expect(advanceTo(state, WINTER + 10 * HOUR).state.settlement.resources.wood).toBe(
-      120_000 + 39_000,
-    );
+    expect(advanceTo(state, WINTER + DAY).state.settlement.resources.wood).toBe(120_000 + 7_800);
   });
 
   it('um inverno inteiro com madeira no estoque: 12 por habitante, e nada de frio', () => {
@@ -227,13 +226,22 @@ describe('fim do frio', () => {
     expect(eventsOfType(events, 'coldEnded').map((event) => event.atMs)).toEqual([YEAR]);
     expect(state.settlement.cold).toBeNull();
     expect(state.settlement.resources.wood).toBe(0);
-    // Uma hora de outono (5 × 13 − 5), 24 de inverno com frio (5 × 10 × 0,4 × 0,8 − 5) e uma
-    // de primavera (5 × 12 − 5).
-    expect(state.settlement.resources.food).toBe(180_000 + 60_000 + 24 * 11_000 + 55_000);
+    // Uma hora de outono (5 × 13 − 5). Doze dias de inverno com frio, de 2 h cada um, e a cada
+    // virada a Fazenda ganha 4 de experiência: 5 × 10 × 0,4 × 0,8 × mestria − 5 por hora. E uma
+    // hora de primavera, já com 52 de experiência: 5 × 12 × 1,156 − 5.
+    const winterDays = Array.from({ length: 12 }, (_, index) => {
+      const experience = 4 * (index + 1);
+      return 2 * ((16_000 * (1000 + 3 * experience)) / 1000 - 5_000);
+    });
+    expect(state.settlement.craftExperience.farm).toBe(52);
+    expect(state.settlement.resources.food).toBe(
+      180_000 + 60_000 + winterDays.reduce((sum, day) => sum + day, 0) + 64_360,
+    );
   });
 
   it('termina quando o saldo de madeira volta a ser positivo, já com a penalidade', () => {
-    // Um lenhador no frio rende 8 × 0,8 × 0,8 = 5,12, mais que os 2,5 da lenha.
+    // Um lenhador recém-chegado rende, no frio, 8 × 0,8 × 0,8 × metade = 2,56: mais que os 2,5
+    // da lenha.
     const { state, events } = accept(
       accept(freezing, command('setWorkers', { building: 'farm', count: 4 })).state,
       command('setWorkers', { building: 'lumberMill', count: 1 }),
@@ -247,18 +255,21 @@ describe('fim do frio', () => {
     expect(events[0]?.text).toBe(
       'No 2º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.',
     );
-    // Sem o frio a Serraria rende 6,4: o saldo passa a +3,9.
-    expect(netRates(state).wood).toBe(3_900);
+    // Sem o frio ele rende 3,2: o saldo passa a +0,7. Um dia de jogo depois, adaptado e com os
+    // 4 de experiência da virada, rende 6,4 × 1,012.
+    expect(netRates(state).wood).toBe(700);
+    expect(netRates(advanceTo(state, WINTER + 3 * HOUR + DAY).state).wood).toBe(6_476 - 2_500);
   });
 
   it('um saldo positivo só sem a penalidade ainda mantém o frio', () => {
-    // 11 habitantes queimam 5,5. Um lenhador renderia 6,4, mas com o frio rende 5,12.
+    // 6 habitantes queimam 3. Um lenhador recém-chegado renderia 3,2, mas com o frio rende 2,56.
     const crowded = cloneState(freezing);
-    crowded.settlement.population.villagers = 11;
+    crowded.settlement.population.villagers = 6;
+    crowded.settlement.workers.farm = 4;
     const one = accept(crowded, command('setWorkers', { building: 'lumberMill', count: 1 }));
     expect(one.state.settlement.cold).toEqual({ sinceMs: WINTER });
     expect(one.events).toEqual([]);
-    // Dois lenhadores: 10,24 contra 5,5.
+    // Dois lenhadores: 5,12 contra 3.
     const two = accept(one.state, command('setWorkers', { building: 'lumberMill', count: 2 }));
     expect(two.state.settlement.cold).toBeNull();
     expect(types(two.events)).toEqual(['coldEnded']);
@@ -338,8 +349,9 @@ describe('fim do frio', () => {
 describe('Crônica do inverno', () => {
   it('o outono sem lenha guardada, o frio, a volta da madeira e o degelo', async () => {
     // O feudo do outono (18 habitantes, 60 de madeira, ninguém na Serraria) atravessa o
-    // inverno: o frio chega no 4º dia; no 6º o senhor manda três para a Serraria, a lareira
-    // volta, e no 9º ele os tira de novo.
+    // inverno: o frio chega no 4º dia; no 6º o senhor manda três para a Serraria, mas
+    // recém-chegados eles rendem metade (7,68 por hora, contra 9 de lenha): a lareira só volta
+    // um dia de jogo depois, quando pegam o ofício. No 9º ele os tira de novo.
     const { events } = play(autumnScenario(), [
       { at: WINTER + 5 * DAY + 30 * MINUTE },
       command('setWorkers', { building: 'quarry', count: 2 }),

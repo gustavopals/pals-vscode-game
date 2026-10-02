@@ -129,12 +129,16 @@ describe('advanceTo', () => {
     }
   });
 
-  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, objetivo, fome e frio', () => {
-    // Tudo marcado para a virada do ano: uma obra e um recruta que terminam nela, um objetivo
-    // que a obra cumpre, a comida que acaba e o frio que o degelo encerra.
+  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, ofício, objetivo, fome e frio', () => {
+    // Tudo marcado para a virada do ano: uma obra e um recruta que terminam nela, um ofício que
+    // a virada do dia leva ao máximo, um mineiro que termina a adaptação, um objetivo que a
+    // obra cumpre, a comida que acaba e o frio que o degelo encerra.
     const start = gameAt(YEAR_MS - HOUR, (draft) => {
       const { settlement } = draft;
       settlement.resources = { food: 5_000, wood: 0, stone: 0, gold: 0 };
+      settlement.workers.goldMine = 1;
+      settlement.craftExperience.goldMine = 96;
+      settlement.adaptation = [{ building: 'goldMine', count: 1, untilMs: YEAR_MS }];
       settlement.cold = { sinceMs: 72 * DAY_MS };
       settlement.constructionQueues = [
         {
@@ -158,11 +162,17 @@ describe('advanceTo', () => {
       'yearStarted',
       'seasonChanged',
       'dayStarted',
+      'craftMastered',
       'objectiveCompleted',
       'famineStarted',
       'coldEnded',
     ]);
     expect(events.every((event) => event.atMs === YEAR_MS)).toBe(true);
+    // A experiência foi contada com o mineiro ainda em adaptação, e já no ano que começa; a
+    // adaptação terminou no mesmo instante, sem linha na Crônica.
+    expect(state.settlement.craftExperience.goldMine).toBe(100);
+    expect(state.settlement.craftMasteredYear.goldMine).toBe(2);
+    expect(state.settlement.adaptation).toEqual([]);
     expect(state.settlement.famine).toEqual({ sinceMs: YEAR_MS });
     expect(state.settlement.cold).toBeNull();
   });

@@ -4,6 +4,8 @@ import {
   balance,
   buildings,
   chronicleTemplates,
+  coldReliefs,
+  craftGuilds,
   foundingTemplates,
   objectives,
 } from '@lotg/content';
@@ -360,7 +362,15 @@ describe('resumo de uma partida', () => {
     expect(IDENTITY.contentHash).toBe(
       createHash('sha256')
         .update(
-          canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
+          canonicalJson({
+            balance,
+            buildings,
+            objectives,
+            chronicleTemplates,
+            foundingTemplates,
+            coldReliefs,
+            craftGuilds,
+          }),
         )
         .digest('hex')
         .slice(0, 16),

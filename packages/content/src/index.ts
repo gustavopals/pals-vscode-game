@@ -4,6 +4,7 @@ export * from './ids';
 export { balance } from './balance';
 export type {
   Balance,
+  CraftDef,
   DifficultyDef,
   PaceDef,
   SeasonDef,
@@ -18,6 +19,7 @@ export {
   CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,
   coldReliefs,
+  craftGuilds,
   EVENT_TYPES,
   foundingTemplates,
 } from './chronicle';

@@ -1,3 +1,5 @@
+import type { ProductionBuildingId } from './ids';
+
 export const EVENT_TYPES = [
   'dayStarted',
   'seasonChanged',
@@ -15,6 +17,7 @@ export const EVENT_TYPES = [
   'coldEnded',
   'storageFilled',
   'storageWasted',
+  'craftMastered',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -27,6 +30,8 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {alivio} por que o frio passou: uma das frases de `coldReliefs`
  * {deposito} onde o recurso fica: "o Celeiro", "a despensa" · {recurso} "comida"
  * {perda} o que se perdeu: "120 de comida e 40 de madeira"
+ * {artifices} quem trabalha no edifício: "os lenhadores" · {feito} o que se diz de quem domina o
+ * ofício: as duas frases vêm de `craftGuilds`
  */
 export const CHRONICLE_PLACEHOLDERS = [
   'dia',
@@ -44,6 +49,8 @@ export const CHRONICLE_PLACEHOLDERS = [
   'deposito',
   'recurso',
   'perda',
+  'artifices',
+  'feito',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -77,6 +84,8 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   // O dia do modelo é o que acabou: a conta fecha na virada.
   storageWasted:
     'No {dia}º dia {daEstacao}, a produção de {feudo} não coube nos depósitos e foi ao chão: {perda}.',
+  // A experiência do ofício chegou ao máximo (GDD §5.4): uma vez por edifício e por ano.
+  craftMastered: 'No {dia}º dia {daEstacao}, {artifices} de {feudo} dominaram o ofício: {feito}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -91,6 +100,21 @@ export const coldReliefs = {
   thaw: 'o gelo cedeu',
 } as const;
 export type ColdRelief = keyof typeof coldReliefs;
+
+/**
+ * Quem trabalha em cada edifício produtivo, e o que a Crônica diz deles quando dominam o ofício:
+ * entram em {artifices} e {feito} no modelo de `craftMastered`. As duas frases ficam no meio de
+ * outra: minúscula, sem ponto.
+ */
+export const craftGuilds: Record<
+  ProductionBuildingId,
+  { readonly artisans: string; readonly feat: string }
+> = {
+  farm: { artisans: 'os lavradores', feat: 'já não há sulco torto nos campos' },
+  lumberMill: { artisans: 'os lenhadores', feat: 'já nenhum machado erra o golpe' },
+  quarry: { artisans: 'os canteiros', feat: 'a rocha agora se parte onde eles querem' },
+  goldMine: { artisans: 'os mineiros', feat: 'já nenhum veio lhes escapa' },
+};
 
 /**
  * A obra que ergue um edifício do zero (nível 0 → 1) é o mesmo evento com outra frase: não há

@@ -39,6 +39,13 @@ export type PlannedConstruction = {
   autoStart: boolean;
 };
 
+/** Uma leva de trabalhadores que chegou junta a um edifício e ainda se adapta ao ofício. */
+export type AdaptationCohort = {
+  building: ProductionBuildingId;
+  count: number;
+  untilMs: number;
+};
+
 /**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
@@ -48,7 +55,7 @@ export type PlannedConstruction = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 5;
+  schemaVersion: 6;
   seed: string;
   settings: GameSettings;
   /**
@@ -98,6 +105,23 @@ export type GameState = {
      * total de sempre fica em `stats.wasted_<recurso>`, também em milésimos.
      */
     wasted: Record<ResourceId, number>;
+    /**
+     * Experiência do ofício de cada edifício produtivo, de 0 ao máximo do conteúdo (GDD §5.4):
+     * contada na virada de cada dia de jogo, sobe com o edifício ocupado e cai com ele vazio.
+     * Dela sai a mestria, um dos fatores da produção.
+     */
+    craftExperience: Record<ProductionBuildingId, number>;
+    /**
+     * O ano de jogo em que cada ofício chegou pela última vez à experiência máxima; 0 é
+     * "nunca". Só serve para a Crônica dizer isso uma vez por ano.
+     */
+    craftMasteredYear: Record<ProductionBuildingId, number>;
+    /**
+     * Quem trocou de ofício e ainda se adapta, em coortes: quantos, em que edifício e até que
+     * instante de jogo rendem só uma fração (GDD §5.4). Em ordem de término; o fim de cada uma
+     * é um evento da linha do tempo. Quem não está em coorte nenhuma já é adaptado.
+     */
+    adaptation: AdaptationCohort[];
   };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -368,6 +392,24 @@ export type ViewState = {
     depletesInSeconds: number | null;
     breakdown: string;
   }>;
+  /**
+   * As regras da troca de ofício e da experiência, em frases prontas e no ritmo da partida: é o
+   * que a lista de alocação mostra **antes** de o jogador confirmar (GDD §5.4).
+   */
+  workersRules: {
+    /** Quanto dura a adaptação de quem trocar de ofício agora, em segundos reais. */
+    adaptationSeconds: number;
+    /** "Quem troca de ofício produz metade por 40 min." */
+    adaptationText: string;
+    /** "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação." */
+    removalText: string;
+    /** A regra da experiência do ofício e da mestria, em uma frase. */
+    experienceText: string;
+    /** O máximo da experiência do ofício: o fim da barra. */
+    experienceMax: number;
+    /** O bônus de produção com a experiência no máximo, em pontos percentuais: 30. */
+    masteryMaxBonusPercent: number;
+  };
   workers: Array<{
     building: ProductionBuildingId;
     label: string;
@@ -376,11 +418,35 @@ export type ViewState = {
     assigned: number;
     grossPerHour: number;
     /**
-     * Quanto cada trabalhador produz por hora neste edifício agora, já com nível, estação, fome
-     * e frio.
+     * Quanto um trabalhador **adaptado** produz por hora neste edifício agora, já com nível,
+     * mestria, estação, fome e frio.
      */
     perWorkerPerHour: number;
+    /**
+     * Quanto produz por hora um trabalhador que chegar agora, enquanto se adapta. Ao lado de
+     * `perWorkerPerHour`, é o custo da troca: "+4/h agora, +8/h depois da adaptação".
+     */
+    perNewWorkerPerHour: number;
     breakdown: string;
+    /** Experiência do ofício deste edifício, de 0 a `workersRules.experienceMax`. */
+    experience: number;
+    /** O que a experiência acrescenta à produção agora, em pontos percentuais: 12 é "+12%". */
+    masteryBonusPercent: number;
+    /** Com quantos trabalhadores o edifício conta como ocupado na virada do dia. */
+    occupiedFrom: number;
+    /** Para onde a experiência vai na próxima virada do dia, se nada mudar. */
+    experienceTrend: 'rising' | 'steady' | 'falling';
+    /** O porquê da tendência e o que fazer, em uma frase pronta. */
+    experienceNote: string;
+    /** Quantos dos trabalhadores ainda estão em adaptação. */
+    adapting: number;
+    /**
+     * Segundos reais até o último deles terminar a adaptação e o edifício render inteiro;
+     * `null` sem ninguém em adaptação.
+     */
+    adaptationEndsInSeconds: number | null;
+    /** As levas em adaptação, da que termina antes à que termina depois. */
+    adaptingCohorts: Array<{ count: number; endsInSeconds: number }>;
   }>;
   constructions: {
     /** Atalho para a primeira obra em curso, na ordem das filas; `null` sem nenhuma. */

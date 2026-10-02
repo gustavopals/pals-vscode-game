@@ -1,0 +1,100 @@
+{
+ "schemaVersion": 6,
+ "seed": "fixture-cold",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 537544321,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 537544321,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 451599,
+   "wood": 0,
+   "stone": 65000,
+   "gold": 230000
+  },
+  "accumulators": {
+   "food": 1071800,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 5,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 2,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [
+   {
+    "finishesAtMs": 538380000
+   }
+  ],
+  "famine": null,
+  "cold": {
+   "sinceMs": 518400000
+  },
+  "wasted": {
+   "food": 19663,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": []
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ],
+  "completed": [
+   "allocateFarmers"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:quarry": 1,
+  "wasted_food": 9434663
+ }
+}

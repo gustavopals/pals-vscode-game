@@ -715,7 +715,7 @@ describe('alocar trabalhadores', () => {
       'Mina de Ouro Nv1',
     ]);
     // Cada edifício mostra quantos trabalham lá e quanto rende; os livres ficam à vista.
-    expect(pick.items[0]?.description).toBe('2 trabalhadores · 24/h');
+    expect(pick.items[0]?.description).toBe('2 trabalhadores · 12/h');
     expect(pick.items[1]?.description).toBe('0 trabalhadores · 0/h');
     expect(pick.items[0]?.detail).toBe(farm.breakdown);
     expect(pick.placeholder).toBe('3 aldeões livres');

@@ -343,7 +343,7 @@ describe('Tree', () => {
     expect(markup).toContain('Hoje em Pedra Alta');
     expect(markup).toContain('Feudo: Pedra Alta');
     expect(markup).toContain('Primavera, dia 1');
-    expect(markup).toContain('180 (+19/h)');
+    expect(markup).toContain('180 (+7/h)');
     expect(markup).toContain('2/5 alocados · 3 livres');
     expect(markup).toContain('codicon codicon-shield');
     expect(markup).toContain('codicon codicon-chevron-down');
@@ -677,7 +677,7 @@ describe('StatusBar', () => {
   it('é um rodapé rotulado, com o feudo e a comida por hora no estado normal', () => {
     const markup = render();
     expect(markup).toMatch(/<footer[^>]*aria-label="Barra de status"/);
-    expect(mainText(markup)).toBe('Pedra Alta · +19 comida/h');
+    expect(mainText(markup)).toBe('Pedra Alta · +7 comida/h');
     expect(attribute(main(markup), 'class')).toBe('status-main');
   });
 
@@ -835,7 +835,7 @@ describe('Workbench', () => {
     expect(orders.length).toBeGreaterThan(0);
     expect(orders.some((button) => hasAttribute(button, 'disabled'))).toBe(false);
     expect(markup).toMatch(/<button[^>]*class="status-main"[^>]*>/);
-    expect(markup).toContain('+19 comida/h');
+    expect(markup).toContain('+7 comida/h');
   });
 
   it('a aba ativa muda o painel e quem o rotula', async () => {
