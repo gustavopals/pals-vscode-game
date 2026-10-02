@@ -658,6 +658,33 @@ describe('cache', () => {
     expect(second.session.view).toBeNull();
   });
 
+  it('a visão de antes da Ameaça (V2E-T1) é descartada: o painel confere `threat.known` antes de tudo', async () => {
+    // Como o app a gravava antes de a visão ganhar a Ameaça e a Torre de Vigia.
+    const { threat, ...withoutThreat } = view;
+    const outdated = {
+      version: CACHE_VERSION,
+      view: withoutThreat,
+      stateVersion: '7',
+      etag: 'W/"antes"',
+      lastSeq: 3,
+      lastSeenAt: Date.now(),
+    };
+    const { session, state, seen } = setup(outdated as unknown as GameCache);
+    state.fail = new NetworkError('fora');
+    await session.start(target);
+    expect(session.view).toBeNull();
+    expect(seen.views).toEqual([]);
+    session.stop();
+
+    // A névoa é uma forma fechada: uma visão sem Torre que trouxesse o número não é exibida.
+    expect(threat.known).toBe(false);
+    const leaking = { ...outdated, view: { ...view, threat: { ...threat, level: 46 } } };
+    const second = setup(leaking as unknown as GameCache);
+    second.state.fail = new NetworkError('fora');
+    await second.session.start(target);
+    expect(second.session.view).toBeNull();
+  });
+
   describe('gravado por outra versão do app', () => {
     // A visão como a v0.1 a gravava: sem dificuldade nem ritmo, e o cache sem marca de versão.
     const {

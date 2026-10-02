@@ -26,6 +26,7 @@ import {
   scriptedDialogs,
   settle,
   shareCard,
+  threatWatchedView,
   withCards,
   withPlanned,
   withQueues,
@@ -508,6 +509,7 @@ describe('toda ação da interface tem um comando', () => {
       'lords.plannedAuto',
       'lords.plannedManual',
       'lords.card',
+      'lords.threatUnwatched',
       'lords.linkReminder',
     ]);
     const scanned = Object.entries(sources).filter(
@@ -1086,6 +1088,46 @@ describe('construir, cancelar e planejar', () => {
     await run('lords.build', { id: 'construction:granary', label: 'Construir: Celeiro' });
     expect(shown).toEqual([]);
     expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'granary' } }]);
+  });
+
+  it('"Construir" na linha da Ameaça ergue a Torre de Vigia, sem abrir a lista', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = craftsView;
+      },
+    });
+    await run('lords.build', { id: 'threat', label: 'Ameaça' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'watchtower' } }]);
+  });
+
+  it('o botão do painel da Ameaça manda o edifício da Torre: construir e melhorar são a mesma ordem', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = threatWatchedView;
+      },
+    });
+    await run('lords.build', threatWatchedView.threat.watchtower.building);
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'watchtower' } }]);
+  });
+
+  it('a Torre entra na lista de obras com o que ela dá; o servidor recusa o que ainda não pode', async () => {
+    const { run, answers, shown, api, controller } = await setup();
+    answers.push('watchtower');
+    api.refuseNextCommand('Melhore antes o Salão do Senhor para o nível 2.', 'GATE_LOCKED');
+    await run('lords.build');
+    const tower = shownAs(shown, 0, 'pick').items.find((item) => item.value === 'watchtower');
+    expect(tower).toMatchObject({
+      icon: 'lock',
+      label: 'Construir: Torre de Vigia',
+      description: '120 madeira, 120 pedra, 50 ouro · 12 min',
+      detail:
+        'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência. Melhore antes o Salão do Senhor para o nível 2.',
+    });
+    expect(controller.toasts).toMatchObject([
+      { kind: 'warning', text: 'Melhore antes o Salão do Senhor para o nível 2.' },
+    ]);
   });
 
   it('um custo que não cabe no depósito é recusado com a frase do servidor', async () => {

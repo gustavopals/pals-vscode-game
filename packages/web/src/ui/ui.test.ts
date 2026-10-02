@@ -560,6 +560,7 @@ describe('árvore', () => {
       'constructions',
       'council',
       'morale',
+      'threat',
     ]);
   });
 
@@ -1130,6 +1131,7 @@ describe('árvore', () => {
       'constructions',
       'council',
       'morale',
+      'threat',
     ]);
   });
 
@@ -1160,6 +1162,7 @@ describe('árvore', () => {
       'constructions',
       'council',
       'morale',
+      'threat',
       'hearth',
     ]);
     expect(find(tree, 'hearth')).toMatchObject({

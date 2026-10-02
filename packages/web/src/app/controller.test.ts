@@ -1046,6 +1046,28 @@ describe('avisos de acontecimentos', () => {
     ]);
   });
 
+  it('o relato dos vigias (a Ameaça cruzou uma marca) é linha da Crônica e avisa no nível padrão, sem alarme', async () => {
+    const text =
+      'No 9º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.';
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    controller.navigate('settings');
+    await deliver(made, {
+      ...gameEvent(1, 'threatRose', text),
+      data: { threat: 40, previousThreat: 35, mark: 40 },
+    });
+    expect(controller.chronicle.map((event) => event.text)).toEqual([text]);
+    // O olho da Ameaça, sem o tom de aviso: nada se perdeu ainda.
+    expect(controller.toasts).toMatchObject([{ kind: 'info', icon: 'eye', text }]);
+    expect(controller.toasts[0]?.actions.map((action) => action.label)).toEqual([
+      'Ver',
+      'Silenciar 2h',
+    ]);
+    // "Ver" leva ao Feudo, onde o painel da Ameaça diz de onde ela vem e o que protege o feudo.
+    await actionOf(controller.toasts[0], 'Ver').run();
+    expect(controller.route).toBe('fief');
+  });
+
   it('a virada de dia fora da Crônica não é pedida de novo ao servidor', async () => {
     const made = await opened({ now: () => NOON });
     await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));

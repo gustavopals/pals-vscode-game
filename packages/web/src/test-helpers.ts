@@ -191,6 +191,15 @@ export function withCards(
   };
 }
 
+/**
+ * A Torre de Vigia no nível 1, no outono e no ritmo Rápido (GDD §8.2): a Ameaça à vista, com a
+ * tendência, as origens e o Covil de Lobos. Todas as outras visões do golden são de feudos sem
+ * Torre, e trazem a Ameaça na forma fechada da névoa (`known: false`).
+ */
+export const threatWatchedView = golden.threatWatched as unknown as ViewState;
+/** A Torre no nível 2, o teto desta versão, com uma incursão à vista e o tamanho dela. */
+export const threatIncomingView = golden.threatIncoming as unknown as ViewState;
+
 type Constructions = ViewState['constructions'];
 type QueueRow = Constructions['queues'][number];
 type PlannedRow = Constructions['planned'][number];

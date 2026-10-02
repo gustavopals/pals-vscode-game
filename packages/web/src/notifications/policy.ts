@@ -3,6 +3,7 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 import { COUNCIL_ICON } from '../ui/council';
 import { formatDuration } from '../ui/format';
 import { bandIcon } from '../ui/morale';
+import { THREAT_ICON } from '../ui/threat';
 
 export type NotificationLevel = 'silent' | 'essential' | 'all';
 
@@ -38,6 +39,13 @@ const SEASON_TURN: GameEvent['type'] = 'seasonChanged';
  * conta é o contador de decisões pendentes, que vem da visão.
  */
 const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn'];
+/**
+ * O relato dos vigias (GDD §8.2): a Ameaça cruzou uma marca. Só chega a quem tem a Torre de
+ * Vigia, que foi erguida para isto: saber antes. Avisa no nível "Essenciais", como a virada de
+ * estação, e sem o tom de alarme: nada se perdeu ainda, é hora de se preparar. Não é a incursão,
+ * que tem o aviso dela.
+ */
+const WATCH: ReadonlyArray<GameEvent['type']> = ['threatRose'];
 /** "Todas" acrescenta o que é bom saber, mas não pede ação imediata. */
 const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'constructionFinished',
@@ -81,6 +89,8 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   cardAnswered: COUNCIL_ICON,
   cardExpired: COUNCIL_ICON,
   cardEffectApplied: COUNCIL_ICON,
+  // O que os vigias contam leva o olho da Ameaça, o mesmo do painel e da árvore.
+  threatRose: THREAT_ICON,
 };
 
 export type PolicyInput = {
@@ -155,6 +165,11 @@ export function isSeasonTurn(event: GameEvent): boolean {
   return event.type === SEASON_TURN;
 }
 
+/** O evento é o relato dos vigias: a Ameaça cruzou uma marca. */
+export function isWatchReport(event: GameEvent): boolean {
+  return WATCH.includes(event.type);
+}
+
 /** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */
 export function isDecision(event: GameEvent): boolean {
   return DECISIONS.includes(event.type);
@@ -176,19 +191,22 @@ function wanted(
     isEssential(event) ||
     isRelief(event) ||
     isDecision(event) ||
+    isWatchReport(event) ||
     (level === 'all' && INFORMATIVE.includes(event.type))
   );
 }
 
 /**
- * Com pouco espaço: primeiro os alarmes; depois as cartas novas, os alívios e a virada de
- * estação; depois o resto.
+ * Com pouco espaço: primeiro os alarmes; depois as cartas novas, os alívios, a virada de
+ * estação e o relato dos vigias; depois o resto.
  */
 function rank(event: GameEvent): number {
   if (isEssential(event)) {
     return 0;
   }
-  return isDecision(event) || isRelief(event) || isSeasonTurn(event) ? 1 : 2;
+  return isDecision(event) || isRelief(event) || isSeasonTurn(event) || isWatchReport(event)
+    ? 1
+    : 2;
 }
 
 /** Quantos eventos sem aviso viram badge de novidade: as cartas novas ficam de fora. */

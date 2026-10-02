@@ -12,12 +12,14 @@ import {
   activeConstruction,
   coldView,
   councilView,
+  craftsView,
   gameEvent,
   mealCard,
   goldenView,
   makeController,
   queuesView,
   settle,
+  threatWatchedView,
   withQueues,
   withResource,
 } from '../test-helpers';
@@ -116,6 +118,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'constructions',
       'council',
       'morale',
+      'threat',
       'chronicle',
       'account',
       'settings',
@@ -144,7 +147,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 5 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 6 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
   });
 
@@ -503,6 +506,51 @@ describe('Tree', () => {
     expect(attribute(morale, 'title')).toContain('O que mais pesa é o frio (−20).');
     // Não há ordem a dar na moral: a linha só navega.
     expect(rowActions({ id: 'morale', label: 'Moral' })).toEqual([]);
+  });
+
+  it('a Ameaça é uma linha do feudo: sem a Torre, a névoa; com a obra liberada, o botão que a ergue', () => {
+    // Antes do Salão Nv2 a obra está travada: a linha só navega, e a explicação diz o motivo.
+    const gated = render(tree());
+    const row = (markup: string) => tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
+    expect(attribute(row(gated), 'role')).toBe('treeitem');
+    expect(gated).toContain('codicon codicon-eye-closed');
+    expect(gated).toContain('desconhecida · sem Torre de Vigia');
+    expect(attribute(row(gated), 'title')).toContain(
+      'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
+    );
+    expect(attribute(row(gated), 'title')).toContain(
+      'Melhore antes o Salão do Senhor para o nível 2.',
+    );
+    expect(rowActions(nodeById(tree(), 'threat'))).toEqual([]);
+
+    // Com o Salão no nível 2 e o estoque pago, a saída da névoa fica na própria linha.
+    const open = tree({ view: craftsView });
+    expect(rowActions(nodeById(open, 'threat'))).toEqual([
+      { label: 'Construir: Torre de Vigia', text: 'Construir', command: 'lords.build' },
+    ]);
+    const button = buttons(render(open)).find(
+      (tag) => attribute(tag, 'aria-label') === 'Construir: Torre de Vigia',
+    );
+    // O custo está à vista antes do clique, na dica do botão.
+    expect(attribute(button ?? '', 'title')).toBe(
+      'Construir: Torre de Vigia (120 madeira, 120 pedra, 50 ouro · 12 min)',
+    );
+    // Sem ligação, o botão não dá ordem.
+    const readOnly = buttons(render(open, true)).find(
+      (tag) => attribute(tag, 'aria-label') === 'Construir: Torre de Vigia',
+    );
+    expect(hasAttribute(readOnly ?? '', 'disabled')).toBe(true);
+  });
+
+  it('com a Torre, a linha da Ameaça traz o número e o que ronda, com o olho aberto, e só navega', () => {
+    const watched = tree({ view: threatWatchedView });
+    const markup = render(watched);
+    expect(markup).toContain('46 · Covil de Lobos');
+    expect(markup).toContain('codicon codicon-eye"');
+    expect(markup).not.toContain('codicon codicon-eye-closed');
+    expect(rowActions(nodeById(watched, 'threat'))).toEqual([]);
+    const row = tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
+    expect(attribute(row, 'title')).toContain('+5/dia: Covil de Lobos');
   });
 
   it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {

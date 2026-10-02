@@ -109,9 +109,11 @@ test.describe('teclado', () => {
     await page.keyboard.press('ArrowLeft');
     expect(await focused()).toBe('fief');
     await page.keyboard.press('End');
+    expect(await focused()).toBe('threat');
+    // A Ameaça é uma folha, a última linha do feudo: a seta para cima passa pela Moral e pelo
+    // Conselho e volta às Construções.
+    await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('morale');
-    // A moral é uma folha, a última linha do feudo: a seta para cima passa pelo Conselho e
-    // volta às Construções.
     await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('council');
     await page.keyboard.press('ArrowUp');

@@ -114,6 +114,8 @@ const nameValidation = (value: string): Validation | null =>
 
 /** O prefixo do id da linha de uma carta na árvore (`ui/treeModel.ts`). */
 const CARD_NODE = 'card:';
+/** O id da linha "Ameaça" da árvore: o botão dela ordena a obra da Torre de Vigia. */
+const THREAT_NODE = 'threat';
 
 /**
  * A carta e a opção que quem chamou `lords.answerCard` já escolheu: o painel manda as duas
@@ -249,7 +251,11 @@ export function createCommands(
     }
     const { available } = view.constructions;
     const busy = busyQueues(view.constructions);
-    const requested = buildingOf(arg, 'construction:');
+    // Vindo da linha "Ameaça" da árvore, a obra é a da Torre de Vigia: é o que tira a névoa.
+    const requested =
+      (arg as TreeNode | undefined)?.id === THREAT_NODE
+        ? view.threat.watchtower.building
+        : buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
       // Uma ou duas obras em curso (GDD §6.3): a lista diz quais são e quando terminam.

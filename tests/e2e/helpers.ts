@@ -335,6 +335,35 @@ export async function pendingCards(page: Page, request: APIRequestContext): Prom
   return body.view.council.pending;
 }
 
+/**
+ * A Ameaça como o servidor a manda (GDD §8.2). Sem a Torre de Vigia a resposta só tem a frase da
+ * névoa, a Torre e a defesa; o número, a tendência, as origens e os tiles só existem com ela.
+ */
+export type ServerThreat = {
+  known: boolean;
+  text: string;
+  level?: number;
+  max?: number;
+  risePerDay?: number;
+  nextLevel?: number;
+  nextRiseInSeconds?: number;
+  trend?: string;
+  sources?: string[];
+  tiles?: Array<{ id: string; label: string; active: boolean }>;
+  incoming: unknown;
+  watchtower: { building: string; level: number; text: string; next: string | null };
+  defense: { palisadeLevel: number; text: string };
+};
+
+/** A Ameaça do feudo da página, como o servidor a mostra agora. */
+export async function serverThreat(page: Page, request: APIRequestContext): Promise<ServerThreat> {
+  const { url, headers } = await session(page);
+  const response = await request.get(`${url}/view`, { headers });
+  expect(response.status(), 'leitura da visão').toBe(200);
+  const body = (await response.json()) as { view: { threat: ServerThreat } };
+  return body.view.threat;
+}
+
 /** Todos os eventos da partida, na ordem em que aconteceram. */
 export async function gameEvents(page: Page, request: APIRequestContext): Promise<ServerEvent[]> {
   const { url, headers } = await session(page);

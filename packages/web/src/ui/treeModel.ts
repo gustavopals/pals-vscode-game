@@ -34,6 +34,7 @@ import {
   upgradeName,
 } from './format';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
+import { threatIcon, threatLines, threatTreeLine, watchtowerTerms, watchtowerWork } from './threat';
 import { experienceSummary, nextWorkerGain } from './workers';
 
 /** Um item da árvore lateral, como dado: `workbench/Tree.tsx` só o desenha. */
@@ -51,6 +52,11 @@ export type TreeNode = {
    * botão na dica dele, para o custo estar à vista antes do clique.
    */
   actionHints?: Record<string, string>;
+  /**
+   * O nome do botão de uma ordem, por id do comando, quando ele não sai do rótulo da linha: o
+   * botão da linha "Ameaça" ergue a Torre de Vigia, e é isso que ele diz.
+   */
+  actionLabels?: Record<string, string>;
   children?: TreeNode[];
   expanded?: boolean;
 };
@@ -137,6 +143,37 @@ function moraleNode(view: ViewState, elapsedSeconds: number): TreeNode {
     description: moraleTreeLine(morale),
     tooltip: [...moraleLines(morale, elapsedSeconds), ...morale.notes].join('\n'),
     icon: moraleIcon(morale.band),
+    command: { id: 'lords.openPanel', args: ['fief'] },
+  };
+}
+
+/**
+ * A Ameaça (GDD §8.2 e §13.2): "46 · Covil de Lobos" para quem tem a Torre de Vigia; sem ela,
+ * "desconhecida", porque o número nem chega do servidor. A explicação é a do painel, frase a
+ * frase. O clique só navega; sem a Torre, e com a obra dela liberada, a linha ganha o botão que a
+ * ergue, com o custo na dica: a saída da névoa fica ao lado dela.
+ */
+function threatNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { threat } = view;
+  const work = watchtowerWork(view);
+  // A obra da Torre que o botão da linha ordena: só sem a Torre, e só quando nada a impede.
+  const tower =
+    !threat.known && work.kind === 'available' && work.upgrade.blockedReason === null
+      ? work.upgrade
+      : null;
+  return {
+    id: 'threat',
+    label: 'Ameaça',
+    description: threatTreeLine(view, elapsedSeconds),
+    tooltip: threatLines(view, elapsedSeconds).join('\n'),
+    icon: threatIcon(threat),
+    ...(tower === null
+      ? {}
+      : {
+          contextValue: 'lords.threatUnwatched',
+          actionLabels: { 'lords.build': upgradeName(tower) },
+          actionHints: { 'lords.build': watchtowerTerms(tower) },
+        }),
     command: { id: 'lords.openPanel', args: ['fief'] },
   };
 }
@@ -493,6 +530,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         constructionsNode(view, input.elapsedSeconds),
         councilNode(view, input.elapsedSeconds),
         moraleNode(view, input.elapsedSeconds),
+        threatNode(view, input.elapsedSeconds),
         ...hearthNode(view),
       ],
     },

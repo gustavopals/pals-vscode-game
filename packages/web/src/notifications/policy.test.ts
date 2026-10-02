@@ -17,6 +17,7 @@ import {
   isEssential,
   isRelief,
   isSeasonTurn,
+  isWatchReport,
   moraleBandDirection,
   type PolicyInput,
   SEASON_WARNING_SECONDS,
@@ -339,6 +340,53 @@ describe('política de notificações', () => {
       );
       expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'cardDrawn']);
       expect(result.badge).toBe(1);
+    });
+  });
+
+  describe('o relato dos vigias (GDD §8.2): a Ameaça cruzou uma marca', () => {
+    const rose: GameEvent = {
+      ...event('threatRose', 9),
+      text: 'No 9º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
+      data: { threat: 40, previousThreat: 35, mark: 40 },
+    };
+
+    it('avisa no nível padrão, sem tom de alarme, com o olho da Ameaça', () => {
+      expect(isWatchReport(rose)).toBe(true);
+      expect(isEssential(rose)).toBe(false);
+      expect(isRelief(rose)).toBe(false);
+      expect(isDecision(rose)).toBe(false);
+      expect(eventIcon(rose)).toBe('eye');
+      for (const level of ['essential', 'all'] as const) {
+        expect(decideNotifications(input({ level, events: [rose] })).show).toEqual([rose]);
+      }
+    });
+
+    it('no nível silencioso e no modo discreto, nada; no silêncio de 2 horas, vira contador', () => {
+      expect(decideNotifications(input({ level: 'silent', events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ discreetMode: true, events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 0,
+      });
+      expect(decideNotifications(input({ mutedUntil: now + HOUR, events: [rose] }))).toMatchObject({
+        show: [],
+        badge: 1,
+      });
+    });
+
+    it('com pouco espaço: o alarme na frente, o relato dos vigias antes do resto', () => {
+      const events = [event('constructionFinished', 1), rose, event('famineStarted', 10)];
+      const result = decideNotifications(input({ level: 'all', events, history: [now - 1000] }));
+      expect(result.show.map((entry) => entry.type)).toEqual(['famineStarted', 'threatRose']);
+      expect(result.badge).toBe(1);
+    });
+
+    it('os outros eventos não são relato dos vigias', () => {
+      for (const type of ['famineStarted', 'seasonChanged', 'cardDrawn', 'dayStarted'] as const) {
+        expect(isWatchReport(event(type))).toBe(false);
+      }
     });
   });
 

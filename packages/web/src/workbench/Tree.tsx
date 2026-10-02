@@ -35,6 +35,16 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.newBuilding':
       // O edifício ainda não existe: a linha já se chama "Construir: Celeiro".
       return [{ label: node.label, text: 'Construir', command: 'lords.build' }];
+    case 'lords.threatUnwatched':
+      // Sem a Torre de Vigia ninguém vê a Ameaça: o botão da linha ergue a Torre. O nome dele
+      // é o da obra, que a linha traz pronto ("Construir: Torre de Vigia").
+      return [
+        {
+          label: node.actionLabels?.['lords.build'] ?? 'Construir a torre',
+          text: 'Construir',
+          command: 'lords.build',
+        },
+      ];
     case 'lords.activeConstruction':
       return [
         {
