@@ -54,7 +54,7 @@ As opções de nova partida, para as boas-vindas do app, que não importa `@lotg
 ```bash
 pnpm --filter @lotg/server test     # unitários: configuração, Código do Reino, ETag, esqueleto HTTP
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
-TEST_DATABASE_URL=… pnpm test:integration -- games     # um arquivo
+TEST_DATABASE_URL=… pnpm test:integration games        # só os arquivos com "games" no nome (sem "--": com ele o filtro é ignorado)
 ```
 
 Os testes de integração ficam em `test/` (e os cenários de ponta a ponta em `tests/server/`, na raiz) e rodam contra o PostgreSQL real do `db_test`, um arquivo por vez. Cada arquivo recria o banco com `resetTestDb()`. Os helpers de `test/helpers/app.ts` sobem a API em memória com um relógio controlado (`server.clock.advance(ms)`): nenhum teste espera tempo real. O access token vale 15 minutos desse relógio; depois de avançá-lo, use `renew`.

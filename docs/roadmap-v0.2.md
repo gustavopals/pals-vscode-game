@@ -233,14 +233,14 @@ Quem faz o quê: **o autor** convida, entrega o endereço, recolhe as respostas 
 **Antes de convidar**
 
 - [ ] V2A-T1.1 Conferir a produção no dia: `curl -s https://lords.palsincomehub.com/v1/health` responde `{"status":"ok","db":"ok"}` e `curl -s https://lords.palsincomehub.com/v1/version` traz o `builtAt` do último deploy. Anotar os dois no relatório. **Congelar o `main` durante as 48 horas**: todo push no `main` com a CI verde é implantado sozinho, e um deploy no meio do playtest muda o que as pessoas estão jogando.
-- [ ] V2A-T1.2 Ensaiar as consultas de playtest de [`deploy/analytics/ops.sql`](../deploy/analytics/ops.sql) no banco de desenvolvimento, depois de uma partida curta (elas **nunca rodaram em produção**). Corrigir o que falhar. Duas limitações a tratar: acrescentar à CTE `jogadores` de cada consulta a janela de criação das contas (por exemplo `and created_at >= timestamptz '2026-10-05 00:00 America/Sao_Paulo' and created_at < timestamptz '2026-10-07 00:00 America/Sao_Paulo'`) e descomentar a linha que tira a conta do autor; e lembrar que leituras não deixam rastro ("voltar" é dar ao menos um comando; quem voltou só para olhar não aparece).
+- [x] V2A-T1.2 Ensaiar as consultas de playtest de [`deploy/analytics/ops.sql`](../deploy/analytics/ops.sql) no banco de desenvolvimento, depois de uma partida curta (elas **nunca rodaram em produção**). Corrigir o que falhar. Duas limitações a tratar: acrescentar à CTE `jogadores` de cada consulta a janela de criação das contas (por exemplo `and created_at >= timestamptz '2026-10-05 00:00 America/Sao_Paulo' and created_at < timestamptz '2026-10-07 00:00 America/Sao_Paulo'`) e descomentar a linha que tira a conta do autor; e lembrar que leituras não deixam rastro ("voltar" é dar ao menos um comando; quem voltou só para olhar não aparece). — *Registro: Ensaiadas no banco de desenvolvimento; a janela e a conta do autor entram por três variáveis do `psql` (`\set`), não por valores escritos em cada consulta. Nunca rodaram em produção.*
 - [ ] V2A-T1.3 Decidir (autor) se os dois itens de operação pendentes são feitos antes de haver dados de outras pessoas no banco: cópia de `RECOVERY_CODE_SECRET` fora do Coolify e destino externo para os backups ([architecture.md §6.3](architecture.md)). Não bloqueiam o playtest; sem eles, perder o servidor perde os feudos dos convidados.
 - [ ] V2A-T1.4 Escolher (autor) 3 a 5 pessoas e a janela. Preferir quem trabalha no computador, que é o público do jogo (GDD §1). O servidor aceita 10 contas novas por hora por IP: convidados na mesma rede podem bater nesse limite.
 
 **O que entregar às pessoas**
 
-- [ ] V2A-T1.5 Uma mensagem com: o endereço `https://lords.palsincomehub.com` e a instrução inteira (abrir, clicar em **Jogar agora**, jogar quando quiser por dois dias; sem explicar regras: descobrir se o jogo se explica é parte do teste); o pedido de usar o **computador** e de dizer qual navegador usou; o que fica guardado (conta anônima, nome de exibição, ordens e datas de acesso, sem e-mail nem senha; a conta pode ser excluída pelo app); o aviso de que é versão de teste; a dica do **Código do Reino** para quem trocar de máquina; e quando chega o formulário.
-- [ ] V2A-T1.6 A página de apresentação ([ADR 0012](decisions/0012-pagina-de-apresentacao.md)) só entra na mensagem se o autor já tiver confirmado endereço e texto. Se entrar, anotar: muda o que se mede no "primeiro contato".
+- [x] V2A-T1.5 Uma mensagem com: o endereço `https://lords.palsincomehub.com` e a instrução inteira (abrir, clicar em **Jogar agora**, jogar quando quiser por dois dias; sem explicar regras: descobrir se o jogo se explica é parte do teste); o pedido de usar o **computador** e de dizer qual navegador usou; o que fica guardado (conta anônima, nome de exibição, ordens e datas de acesso, sem e-mail nem senha; a conta pode ser excluída pelo app); o aviso de que é versão de teste; a dica do **Código do Reino** para quem trocar de máquina; e quando chega o formulário. — *Registro: O texto está pronto em [playtest/convite-v0.1.md](playtest/convite-v0.1.md), com três campos para o autor preencher. **Enviar é ato do autor e não aconteceu.***
+- [x] V2A-T1.6 A página de apresentação ([ADR 0012](decisions/0012-pagina-de-apresentacao.md)) só entra na mensagem se o autor já tiver confirmado endereço e texto. Se entrar, anotar: muda o que se mede no "primeiro contato". — *Registro: Na mensagem pronta a página ficou de fora: o ADR 0012 segue sem confirmação.*
 
 **Durante as 48 horas**
 
@@ -277,7 +277,7 @@ docker compose -f deploy/docker-compose.dev.yml exec -T db psql -U lotg -d lotg 
 **Entregáveis:** commits de correção, cada um com teste de regressão; relatório atualizado com o destino de cada achado; a resposta do autor registrada (ADR se mudar regra).
 
 - [ ] V2A-T2.1 Cada P0 e cada P1 corrigido com teste de regressão e commit próprio (`V2A-T2: …`). Um P0 ou P1 cuja correção seja uma mecânica nova volta ao autor para reclassificar.
-- [ ] V2A-T2.2 Repetir a medição do simulador e colar a saída no relatório. Em 2026-10-01, com a semente `pedra-alta-golden`, o bot econômico e 2 sessões por dia em 7 dias reais:
+- [x] V2A-T2.2 Repetir a medição do simulador e colar a saída no relatório. *Registro: medida de novo em 2026-10-01, idêntica à tabela abaixo. Como o relatório de playtest não existe, a saída está em [balance-v0.2.md](balance-v0.2.md), seção 1.* Em 2026-10-01, com a semente `pedra-alta-golden`, o bot econômico e 2 sessões por dia em 7 dias reais:
 
   | Ritmo | População | Salão | Comandos aceitos | Madeira parada | Pedra parada | Ouro parado |
   |---|---|---|---:|---:|---:|---:|
@@ -316,10 +316,10 @@ docker compose -f deploy/docker-compose.dev.yml exec -T db psql -U lotg -d lotg 
 **Decisões:** 1 (contrato de tempo), 2, 3, 4, 5, 13, 14, 17, 18 (filas), 19.
 **Entregáveis:** **novo** `docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md`; GDD §4.1, §4.2, §5.4–5.7, §6.3 corrigidos onde a resposta mudar um número ou uma frase; linha no `docs/decisions/README.md`.
 
-- [ ] V2B-T0.1 Apresentar ao autor cada decisão do lote com a premissa recomendada da §8, a alternativa e o que muda no jogo; uma pergunta por vez, com a recomendação como padrão ("se não disser nada, fica assim").
-- [ ] V2B-T0.2 Escrever o ADR com a tabela resposta/alternativa/razão/tarefa/seção do GDD; marcar o estado como `aprovada`.
-- [ ] V2B-T0.3 Corrigir o GDD: onde uma frase dizia "reais" e a resposta é "de jogo" (ou o contrário), reescrever a frase; acrescentar os números que faltavam (postos por edifício, instante dos lobos, perdas exatas).
-- [ ] V2B-T0.4 Atualizar a §8 deste roadmap: decisão fechada deixa de ser pergunta e aponta para o ADR.
+- [ ] V2B-T0.1 Apresentar ao autor cada decisão do lote com a premissa recomendada da §8, a alternativa e o que muda no jogo; uma pergunta por vez, com a recomendação como padrão ("se não disser nada, fica assim"). — *Registro: A sessão não aconteceu: o autor pediu a versão sem ela.*
+- [ ] V2B-T0.2 Escrever o ADR com a tabela resposta/alternativa/razão/tarefa/seção do GDD; marcar o estado como `aprovada`. — *Registro: O ADR 0013 está escrito, com a premissa recomendada de cada decisão, mas o estado dele é "aplicada por delegação", não `aprovada`. Falta a confirmação do autor ([pendencias-v0.2.md](pendencias-v0.2.md)).*
+- [x] V2B-T0.3 Corrigir o GDD: onde uma frase dizia "reais" e a resposta é "de jogo" (ou o contrário), reescrever a frase; acrescentar os números que faltavam (postos por edifício, instante dos lobos, perdas exatas).
+- [x] V2B-T0.4 Atualizar a §8 deste roadmap: decisão fechada deixa de ser pergunta e aponta para o ADR.
 
 **Verificação:** links do ADR e do GDD válidos; `pnpm lint` (o Prettier confere o Markdown).
 
@@ -335,12 +335,12 @@ docker compose -f deploy/docker-compose.dev.yml exec -T db psql -U lotg -d lotg 
 **Depende de:** V2B-T0 (decisões 3 e 4).
 **Entregáveis:** **novo** `packages/engine/src/migrations.ts` (função pura `migrateState(json): GameState`); `types.ts` (`schemaVersion: 2`, `settings` com `difficulty` e `timeScale`, `migratedAtMs`); `state.ts`; `packages/server/src/games/repository.ts` e `jobs/advanceStaleGames.ts` (migram ao travar a partida e persistem a versão nova); **novo** `packages/engine/src/__fixtures__/state-v1-*.json`; teste de integração; procedimento de reversão em `deploy/README.md`.
 
-- [ ] V2B-T1.1 Inventariar o que tem versão: estado (`schemaVersion`), conteúdo (`contentHash` em `/version`), protocolo (`protocol: 1`), recibos (`response_body` com o `ViewState` da época). Definir o tratamento de cada um no README do servidor: cliente antigo (426 só quando o protocolo subir), versão de estado **futura** desconhecida (recusar com erro interno sem gravar por cima, para uma reversão de imagem não corromper o banco).
-- [ ] V2B-T1.2 Criar fixtures da v0.1, sanitizadas (sem nome real de conta), geradas pelo motor atual em cenários fixos: feudo recém-criado; com obra ativa e planejadas; com fome; com os objetivos 1–4 concluídos; com estoque alto (o cenário do simulador de 7 dias). Validar a forma do JSON com zod antes de migrar; falha de validação preserva o original e sobe erro.
-- [ ] V2B-T1.3 Implementar `migrateState`: sequencial (`1 → 2`, pronta para `2 → 3`), idempotente, pura (entra no `purity.test.ts`). A versão 2 muda **só o que a fundação exige**: `settings.capsEnabled` sai; `settings.difficulty = 'lord'` e `settings.timeScale` entram (o servidor passa o `time_scale` da linha); `migratedAtMs = lastProcessedAt`; `rng` fica como está. Campos de moral, Conselho e ameaça entram **com as suas tarefas**, cada uma com o seu passo de migração e os seus valores iniciais.
-- [ ] V2B-T1.4 Servidor: `lockGame` lê a linha, migra se `schema_version` for menor que a atual, e persiste estado e versão **na mesma transação** do avanço (`persistState`), inclusive no job. Duas leituras concorrentes da mesma partida antiga migram uma vez (o lock garante). A fronteira da atualização (§0.7) nasce aqui: `migratedAtMs`.
-- [ ] V2B-T1.5 Compatibilidade: reenvio de um recibo da v0.1 devolve o corpo original (sem reescrever); o cache antigo do app é descartado quando `schemaVersion`/`protocol` mudam (`packages/web/src/services/store.ts`, chave `cacheKey`); uma aba antiga continua funcionando enquanto o protocolo for 1.
-- [ ] V2B-T1.6 Reversão: documentar em `deploy/README.md` que voltar a imagem **depois** de uma migração de estado deixa as partidas migradas ilegíveis pela v0.1, e o procedimento: restaurar o backup anterior ao deploy (perde o que foi jogado desde então) ou avançar para uma imagem corrigida. Ensaiar em banco descartável: migrar, reverter a imagem, observar a falha controlada, restaurar.
+- [x] V2B-T1.1 Inventariar o que tem versão: estado (`schemaVersion`), conteúdo (`contentHash` em `/version`), protocolo (`protocol: 1`), recibos (`response_body` com o `ViewState` da época). Definir o tratamento de cada um no README do servidor: cliente antigo (426 só quando o protocolo subir), versão de estado **futura** desconhecida (recusar com erro interno sem gravar por cima, para uma reversão de imagem não corromper o banco).
+- [x] V2B-T1.2 Criar fixtures da v0.1, sanitizadas (sem nome real de conta), geradas pelo motor atual em cenários fixos: feudo recém-criado; com obra ativa e planejadas; com fome; com os objetivos 1–4 concluídos; com estoque alto (o cenário do simulador de 7 dias). Validar a forma do JSON com zod antes de migrar; falha de validação preserva o original e sobe erro. — *Registro: A forma é conferida por guardas escritas à mão (`packages/engine/src/migrations/shape.ts`), não por zod: o motor não ganha dependência.*
+- [x] V2B-T1.3 Implementar `migrateState`: sequencial (`1 → 2`, pronta para `2 → 3`), idempotente, pura (entra no `purity.test.ts`). A versão 2 muda **só o que a fundação exige**: `settings.capsEnabled` sai; `settings.difficulty = 'lord'` e `settings.timeScale` entram (o servidor passa o `time_scale` da linha); `migratedAtMs = lastProcessedAt`; `rng` fica como está. Campos de moral, Conselho e ameaça entram **com as suas tarefas**, cada uma com o seu passo de migração e os seus valores iniciais.
+- [x] V2B-T1.4 Servidor: `lockGame` lê a linha, migra se `schema_version` for menor que a atual, e persiste estado e versão **na mesma transação** do avanço (`persistState`), inclusive no job. Duas leituras concorrentes da mesma partida antiga migram uma vez (o lock garante). A fronteira da atualização (§0.7) nasce aqui: `migratedAtMs`.
+- [x] V2B-T1.5 Compatibilidade: reenvio de um recibo da v0.1 devolve o corpo original (sem reescrever); o cache antigo do app é descartado quando `schemaVersion`/`protocol` mudam (`packages/web/src/services/store.ts`, chave `cacheKey`); uma aba antiga continua funcionando enquanto o protocolo for 1. — *Registro: A marca de versão do cache ficou no valor guardado (`GameCache.version`, em `packages/web/src/game/gameSession.ts`), não na chave: o cursor de eventos e a última visita do cache antigo são reaproveitados.*
+- [ ] V2B-T1.6 Reversão: documentar em `deploy/README.md` que voltar a imagem **depois** de uma migração de estado deixa as partidas migradas ilegíveis pela v0.1, e o procedimento: restaurar o backup anterior ao deploy (perde o que foi jogado desde então) ou avançar para uma imagem corrigida. Ensaiar em banco descartável: migrar, reverter a imagem, observar a falha controlada, restaurar. — *Registro: **Parcial.** O procedimento está escrito em `deploy/README.md` ("Reverter depois de uma migração de estado") e a recusa de versão futura tem teste de integração. **O ensaio com duas imagens em banco descartável não foi feito.** Achado no caminho: o motor da `v0.1.0` não confere a versão do estado e lê a versão 2 sem falhar; da versão 3 em diante ele gravaria por cima sem as regras novas.*
 
 **Diversão:** nenhuma diretamente. Protege os feudos de quem já joga: perder o feudo é o pior P0 possível.
 
@@ -348,7 +348,7 @@ docker compose -f deploy/docker-compose.dev.yml exec -T db psql -U lotg -d lotg 
 
 ```bash
 pnpm --filter @lotg/engine test -- migrations
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- games
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration games
 ```
 
 Esperado: cada fixture v1 migra, avança 30 dias e aceita comandos; migrar duas vezes dá o mesmo estado; a propriedade de divisão de intervalo vale sobre um estado migrado; a integração carrega uma linha gravada com `schema_version = 1` e a persiste com `2`.
@@ -365,11 +365,11 @@ Esperado: cada fixture v1 migra, avança 30 dias e aceita comandos; migrar duas 
 **Depende de:** V2B-T1.
 **Entregáveis:** **novo** `packages/engine/src/random.ts`; `state.ts` (semente derivada por fluxo a partir de `seed`); testes de vetores, independência e propriedade.
 
-- [ ] V2B-T2.1 Algoritmo inteiro e versionado (recomendação: xoshiro128**, estado de 4 inteiros de 32 bits, só operações inteiras, sem `Math.random`). Semente de cada fluxo = hash determinístico de `seed + ':' + nome` (SplitMix32 sobre os bytes da string). Vetores conhecidos de saída gravados em teste.
-- [ ] V2B-T2.2 API interna (não exportada pelo pacote): `nextInt(state, stream, maxExclusive)`, `chance(state, stream, ratio)` e `pickWeighted(state, stream, items)` com validação dos pesos. Pesos zero são ignorados; conjunto vazio ou todos os pesos zero devolvem `null`, nunca lançam. O fluxo é criado sob demanda na primeira chamada.
-- [ ] V2B-T2.3 Fluxos da v0.2: `council` (sorteio de cartas), `morale` (chegadas e partidas), `horde` (incursões por Ameaça). Consumir um não desloca o outro; salvar e recarregar continua a mesma sequência (o estado é JSON puro).
-- [ ] V2B-T2.4 Pureza: `deriveViewState`, recusas e recibos **não** sorteiam; só `advanceTo` sorteia, em eventos marcados na linha do tempo. Polling não rerrola nada: avançar até `t2` de uma vez ou em dez pedaços consome o RNG igual.
-- [ ] V2B-T2.5 Propriedade: um cenário sintético de teste (fora da API pública, em `test-helpers.ts`) com um evento diário que sorteia prova a divisão de intervalo exata com sorteios no caminho. A integração com eventos reais entra em V2C-T4, V2D-T1 e V2E-T3.
+- [x] V2B-T2.1 Algoritmo inteiro e versionado (recomendação: xoshiro128**, estado de 4 inteiros de 32 bits, só operações inteiras, sem `Math.random`). Semente de cada fluxo = hash determinístico de `seed + ':' + nome` (SplitMix32 sobre os bytes da string). Vetores conhecidos de saída gravados em teste. — *Registro: A semente de cada fluxo é FNV-1a de 32 bits sobre `seed + ':' + nome`, expandido por SplitMix32.*
+- [x] V2B-T2.2 API interna (não exportada pelo pacote): `nextInt(state, stream, maxExclusive)`, `chance(state, stream, ratio)` e `pickWeighted(state, stream, items)` com validação dos pesos. Pesos zero são ignorados; conjunto vazio ou todos os pesos zero devolvem `null`, nunca lançam. O fluxo é criado sob demanda na primeira chamada.
+- [x] V2B-T2.3 Fluxos da v0.2: `council` (sorteio de cartas), `morale` (chegadas e partidas), `horde` (incursões por Ameaça). Consumir um não desloca o outro; salvar e recarregar continua a mesma sequência (o estado é JSON puro).
+- [x] V2B-T2.4 Pureza: `deriveViewState`, recusas e recibos **não** sorteiam; só `advanceTo` sorteia, em eventos marcados na linha do tempo. Polling não rerrola nada: avançar até `t2` de uma vez ou em dez pedaços consome o RNG igual.
+- [x] V2B-T2.5 Propriedade: um cenário sintético de teste (fora da API pública, em `test-helpers.ts`) com um evento diário que sorteia prova a divisão de intervalo exata com sorteios no caminho. A integração com eventos reais entra em V2C-T4, V2D-T1 e V2E-T3.
 
 **Diversão:** indireta. É o que permite "a mesma semente dá as mesmas cartas" (GDD §11.5) e, no futuro, desafios da semana.
 
@@ -392,12 +392,12 @@ pnpm --filter @lotg/engine test -- purity
 **Depende de:** V2B-T1; decisões 1 e 2.
 **Entregáveis:** `packages/content/src/balance.ts` (**novo** `difficulties` com rótulo, descrição e os fatores da v0.2; **novo** `paces` com `timeScale`, rótulo e descrição); `schemas.ts`; `packages/engine/src/types.ts`, `state.ts`, `view.ts` (`settlement.difficulty`, `difficultyLabel`, `paceLabel`); `packages/protocol/src/api.ts`; `packages/server/src/games/service.ts`; `packages/web/src/components/Welcome.tsx`, `palette/commands.ts` ("Nova partida…"), `tabs/Settings.tsx` (mostra os dois, sem editar).
 
-- [ ] V2B-T3.1 Conteúdo: `difficulties: { peasant, lord, ironKing }` com `label`, `description` (uma frase sobre o que muda **nesta versão**) e os fatores que a v0.2 usa (`storageCapacity`, `famineDesertion`, `cardAutoResolve`); `paces` com os ritmos da decisão 2 (premissa: `1`, `3` padrão, `0.5`), rótulo e descrição em tempo real ("um ano em 56 horas"). Teste de conteúdo: um ritmo padrão, fatores dentro da faixa do GDD §12.1.
-- [ ] V2B-T3.2 Protocolo e servidor: `CreateGameRequestSchema` aceita `difficulty` entre os IDs do conteúdo e `timeScale` entre os valores de `paces`; valor inválido é `400 VALIDATION`; corpo sem os campos usa o padrão (compatibilidade com o app antigo). `GAME_TIME_SCALE` deixa de definir o ritmo das partidas novas e passa a ser o **padrão** quando o corpo não traz `timeScale` (os testes continuam com `1`). Partidas antigas não mudam.
-- [ ] V2B-T3.3 Motor: `settings.difficulty` e `settings.timeScale` no estado (já previstos pela migração); `deriveViewState` passa a ler o ritmo do estado quando `options.timeScale` não vier. `ViewState.settlement` ganha `difficulty`, `difficultyLabel` e `paceLabel`.
-- [ ] V2B-T3.4 Boas-vindas (GDD §13.9): duas linhas de opções com a recomendada marcada e uma frase por opção; **Jogar agora** continua a um clique com os padrões (critério 1 da v0.1: menos de 30 s até o primeiro comando). "Nova partida…" pela paleta pergunta os dois em listas de escolha. Nas Preferências, "Dificuldade: Senhor · Ritmo: um ano em 56 horas (não mudam durante o ano)".
-- [ ] V2B-T3.5 Enquanto a dificuldade ainda não muda nada (até V2C-T2), a descrição diz isso ("Nesta versão a dificuldade muda o armazenamento, a fome e o Conselho; eles chegam em breve") só se a tarefa for publicada antes da Fase C; com a premissa da §0.8, a frase é a definitiva.
-- [ ] V2B-T3.6 Testes: integração (criar com cada combinação; inválido 400; sem campos usa os padrões; partida antiga intacta); navegador (boas-vindas com as duas escolhas, só pelo teclado; duas partidas com ritmos diferentes mostram prazos diferentes); unidade do `ViewState`.
+- [x] V2B-T3.1 Conteúdo: `difficulties: { peasant, lord, ironKing }` com `label`, `description` (uma frase sobre o que muda **nesta versão**) e os fatores que a v0.2 usa (`storageCapacity`, `famineDesertion`, `cardAutoResolve`); `paces` com os ritmos da decisão 2 (premissa: `1`, `3` padrão, `0.5`), rótulo e descrição em tempo real ("um ano em 56 horas"). Teste de conteúdo: um ritmo padrão, fatores dentro da faixa do GDD §12.1. — *Registro: `cardAutoResolve` **não** foi criado: pelo ADR 0014 (decisão 9) a opção automática é marcada em cada carta. Entraram a mais `recommended` (dificuldades e ritmos) e `hint` (ritmos).*
+- [x] V2B-T3.2 Protocolo e servidor: `CreateGameRequestSchema` aceita `difficulty` entre os IDs do conteúdo e `timeScale` entre os valores de `paces`; valor inválido é `400 VALIDATION`; corpo sem os campos usa o padrão (compatibilidade com o app antigo). `GAME_TIME_SCALE` deixa de definir o ritmo das partidas novas e passa a ser o **padrão** quando o corpo não traz `timeScale` (os testes continuam com `1`). Partidas antigas não mudam.
+- [x] V2B-T3.3 Motor: `settings.difficulty` e `settings.timeScale` no estado (já previstos pela migração); `deriveViewState` passa a ler o ritmo do estado quando `options.timeScale` não vier. `ViewState.settlement` ganha `difficulty`, `difficultyLabel` e `paceLabel`.
+- [x] V2B-T3.4 Boas-vindas (GDD §13.9): duas linhas de opções com a recomendada marcada e uma frase por opção; **Jogar agora** continua a um clique com os padrões (critério 1 da v0.1: menos de 30 s até o primeiro comando). "Nova partida…" pela paleta pergunta os dois em listas de escolha. Nas Preferências, "Dificuldade: Senhor · Ritmo: um ano em 56 horas (não mudam durante o ano)". — *Registro: As opções chegam ao app por `GET /v1/catalog`. A linha das Preferências usa o `paceLabel` inteiro ("Ritmo: Rápido: um ano em 56 horas").*
+- [x] V2B-T3.5 Enquanto a dificuldade ainda não muda nada (até V2C-T2), a descrição diz isso ("Nesta versão a dificuldade muda o armazenamento, a fome e o Conselho; eles chegam em breve") só se a tarefa for publicada antes da Fase C; com a premissa da §0.8, a frase é a definitiva. — *Registro: Vale a frase definitiva (§0.8): as descrições já falam de Celeiro, Armazém, deserção e Conselho, que só chegam nas Fases C e D.*
+- [x] V2B-T3.6 Testes: integração (criar com cada combinação; inválido 400; sem campos usa os padrões; partida antiga intacta); navegador (boas-vindas com as duas escolhas, só pelo teclado; duas partidas com ritmos diferentes mostram prazos diferentes); unidade do `ViewState`.
 
 **Diversão:** escolher o ritmo é a primeira decisão com custo: quem joga uma vez por dia escolhe 0,5× e não perde cartas; quem quer ver o inverno nesta semana escolhe 3×. A descrição de cada opção tem que deixar isso claro em uma frase.
 
@@ -405,7 +405,7 @@ pnpm --filter @lotg/engine test -- purity
 
 ```bash
 pnpm --filter @lotg/content test
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- games
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration games
 pnpm test:e2e 01-entrada
 ```
 
@@ -421,12 +421,12 @@ pnpm test:e2e 01-entrada
 **Depende de:** V2A-T2 (decisão 5), V2B-T3.
 **Entregáveis:** `packages/sim-cli/src/simulate.ts`, `report.ts`, `bots/economico.ts`, **novo** `bots/preguicoso.ts`, `balance.test.ts`; **novo** `docs/balance-v0.2.md`; `tests/e2e/server.ts` (ritmo parametrizável).
 
-- [ ] V2B-T4.1 Perfis por visitas: 1, 2 e 4 sessões por dia real; lista fixa de 50 sementes (`pedra-alta-001` … `-050`); cada ritmo oferecido; dificuldade Senhor (as outras entram quando tiverem efeito). O relatório identifica ritmo, dificuldade, `contentHash` e versão do motor.
-- [ ] V2B-T4.2 Duas tabelas: uma duração real fixa (7 dias) e um ano de jogo completo. No 3×, sete dias reais atravessam três anos; não misturar denominadores.
-- [ ] V2B-T4.3 Colunas novas no CSV e no resumo: horas de fila ociosa com planejadas viáveis, comandos recusados por motivo, aldeões livres por hora. Reservar (sem implementar) as colunas que C a E vão preencher: desperdício por recurso, horas de frio, moral, cartas vistas/respondidas/expiradas, perdas por lobos.
-- [ ] V2B-T4.4 Faixas: as atuais (população 20–40, Salão ≥ 3, sem fome em 2 sessões/dia) passam a valer **por ritmo**, com os valores aprovados em V2A-T2; nova faixa de "excedente parado" com o limite que o autor definir. Registrar valores medidos e faixas, com unidade e perfil, em `docs/balance-v0.2.md`.
-- [ ] V2B-T4.5 Cenário E2E no ritmo da produção: `tests/e2e/server.ts` aceita `GAME_TIME_SCALE` por variável (padrão 1) e um teste em `03-retorno-e-conexao.spec.ts` sobe com 3 e confere que os prazos do navegador e da API concordam. Não trocar o ritmo dos testes existentes.
-- [ ] V2B-T4.6 Interface do bot pronta para a v0.2: `Bot` continua `(view, act)`; um bot é uma lista de **políticas** (comida primeiro, obra mais barata, …) para que C a E acrescentem políticas (ampliar quando "cheio em" < 8 h, responder a carta com a opção mais barata, construir Paliçada quando a Ameaça for conhecida) sem reescrever o bot. O bot só lê o `ViewState`.
+- [x] V2B-T4.1 Perfis por visitas: 1, 2 e 4 sessões por dia real; lista fixa de 50 sementes (`pedra-alta-001` … `-050`); cada ritmo oferecido; dificuldade Senhor (as outras entram quando tiverem efeito). O relatório identifica ritmo, dificuldade, `contentHash` e versão do motor.
+- [x] V2B-T4.2 Duas tabelas: uma duração real fixa (7 dias) e um ano de jogo completo. No 3×, sete dias reais atravessam três anos; não misturar denominadores.
+- [x] V2B-T4.3 Colunas novas no CSV e no resumo: horas de fila ociosa com planejadas viáveis, comandos recusados por motivo, aldeões livres por hora. Reservar (sem implementar) as colunas que C a E vão preencher: desperdício por recurso, horas de frio, moral, cartas vistas/respondidas/expiradas, perdas por lobos.
+- [x] V2B-T4.4 Faixas: as atuais (população 20–40, Salão ≥ 3, sem fome em 2 sessões/dia) passam a valer **por ritmo**, com os valores aprovados em V2A-T2; nova faixa de "excedente parado" com o limite que o autor definir. Registrar valores medidos e faixas, com unidade e perfil, em `docs/balance-v0.2.md`. — *Registro: As faixas são os **valores medidos com folga** (10% na população, 5% nos tetos), não limites aprovados pelo autor: V2A-T2 não teve resposta dele. A faixa fixa de 20 a 40 no ritmo 1 deu lugar à medida (23 a 29).*
+- [x] V2B-T4.5 Cenário E2E no ritmo da produção: `tests/e2e/server.ts` aceita `GAME_TIME_SCALE` por variável (padrão 1) e um teste em `03-retorno-e-conexao.spec.ts` sobe com 3 e confere que os prazos do navegador e da API concordam. Não trocar o ritmo dos testes existentes. — *Registro: Os cenários fundam o feudo no ritmo Rápido pelas boas-vindas e rodam sempre com a suíte; com `GAME_TIME_SCALE=3` no servidor de teste também passam.*
+- [x] V2B-T4.6 Interface do bot pronta para a v0.2: `Bot` continua `(view, act)`; um bot é uma lista de **políticas** (comida primeiro, obra mais barata, …) para que C a E acrescentem políticas (ampliar quando "cheio em" < 8 h, responder a carta com a opção mais barata, construir Paliçada quando a Ameaça for conhecida) sem reescrever o bot. O bot só lê o `ViewState`.
 
 **Diversão:** o simulador é o detector de tédio: fila ociosa, excedente parado e aldeão livre por horas são sinais de que o jogo não pediu nada.
 
@@ -673,8 +673,8 @@ O Conselho é o motor de narrativa da v0.2 (GDD §7). O que o jogador deve conse
 **Decisões:** 1 (prazos do Conselho), 7, 8, 9, 10, 11, 12, 18 (Conselho), 20, 21.
 **Entregáveis:** **novo** `docs/decisions/0014-conselho-e-ameaca-na-v0.2.md`; GDD §7.1, §8.2, §12.2 corrigidos; §8 deste roadmap atualizada.
 
-- [ ] V2D-T0.1 Apresentar cada decisão com a premissa da §8 como padrão; para a 7 e a 8, mostrar o lote da §12 e perguntar quem escreve (premissa: o agente escreve, o autor aprova carta a carta).
-- [ ] V2D-T0.2 Escrever o ADR, corrigir o GDD (instante dos lobos, perdas exatas, o que a Paliçada Nv2 faz, objetivos da v0.2) e atualizar a §8.
+- [ ] V2D-T0.1 Apresentar cada decisão com a premissa da §8 como padrão; para a 7 e a 8, mostrar o lote da §12 e perguntar quem escreve (premissa: o agente escreve, o autor aprova carta a carta). — *Registro: A sessão não aconteceu: o autor pediu a versão sem ela.*
+- [x] V2D-T0.2 Escrever o ADR, corrigir o GDD (instante dos lobos, perdas exatas, o que a Paliçada Nv2 faz, objetivos da v0.2) e atualizar a §8. — *Registro: Feito em 2026-10-01, junto com V2B-T0 (commits `242296b` e `9b1d3e8`). O ADR 0014 está "aplicado por delegação" e aguarda a confirmação do autor.*
 
 **Pronto quando:** nenhuma tarefa de D ou E tem decisão aberta.
 
@@ -706,7 +706,7 @@ O Conselho é o motor de narrativa da v0.2 (GDD §7). O que o jogador deve conse
 pnpm --filter @lotg/content test
 pnpm --filter @lotg/engine test -- council
 pnpm --filter @lotg/engine test -- economy.property
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- council
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration council
 ```
 
 **Pronto quando:** o cenário roteirizado passa nas três dificuldades, a propriedade vale com sorteio e expiração, a integração prova idempotência da resposta, e o protocolo 2 recusa o cliente 1 com 426.
@@ -896,7 +896,7 @@ pnpm --filter @lotg/content test
 ```bash
 pnpm --filter @lotg/engine test -- threat
 pnpm --filter @lotg/engine test -- scenario
-TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration -- raids
+TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration raids
 pnpm test:e2e 08-ameaca
 ```
 
@@ -1222,13 +1222,14 @@ Preencher ao fechar cada tarefa.
 
 | Tarefa | Data | Commit | Sessões | O que foi feito e desvios | O que não foi verificado |
 |---|---|---|---|---|---|
-| V2A-T1 | | | | | |
-| V2A-T2 | | | | | |
-| V2B-T0 | | | | | |
-| V2B-T1 | | | | | |
-| V2B-T2 | | | | | |
-| V2B-T3 | | | | | |
-| V2B-T4 | | | | | |
+| V2A-T1 | 2026-10-01 | `43b9983` | agente, trilha motor | **Parcial: o playtest não aconteceu.** Só o que não depende de pessoas nem da produção: as consultas de `deploy/analytics/ops.sql` ensaiadas no banco de desenvolvimento, com a janela e a conta do autor por variáveis do `psql` e a consulta nova "Filtro em vigor" (T1.2); a mensagem do convite pronta, sem a página de apresentação (T1.5, T1.6). Ninguém foi convidado e `docs/playtest/relatorio-v0.1.md` não existe. T1.1, T1.3, T1.4 e T1.7 a T1.13 seguem abertas e são do autor. Desvio: `\set` em vez de valores em cada consulta (no Coolify, colar as três linhas antes; sem elas a consulta falha em vez de rodar sem filtro) | As consultas nunca rodaram em produção. O ensaio usou horários sintéticos, não uma partida de vários dias. O caminho para achar o identificador da conta (o app não o mostra em tela nenhuma) foi lido no código, não aberto em um navegador. A mensagem não foi lida por ninguém |
+| V2A-T2 | 2026-10-01 | `43b9983` | agente, trilha motor | **Parcial.** T2.2: medição repetida nos ritmos 1 e 3, idêntica à tabela da tarefa, registrada em `docs/balance-v0.2.md` §1 (o relatório de playtest não existe). T2.1 e T2.4 ficaram sem objeto: sem playtest não há P0 nem P1, e nenhum número mudou. T2.3: a decisão 5 foi aplicada por delegação no ADR 0013 ("esperar caps e início automático"), **sem resposta do autor**. T2.5 não se aplica: nada foi publicado | Tudo o que depende do playtest |
+| V2B-T0 | 2026-10-01 | `242296b`, `9b1d3e8` | agentes (orquestrador e trilha motor) | **A sessão com o autor não aconteceu.** O ADR 0013 foi escrito com a premissa recomendada de cada decisão e vale "por delegação"; a confirmação, decisão a decisão, está pendente em `pendencias-v0.2.md` (T0.1 e T0.2 sem marca). GDD levado à versão 0.7 (T0.3) e §8 com a coluna "Registro" (T0.4). Desvio: o GDD foi tocado também em §5.3, §14.4, §14.11, §15.2, §15.4, §16 e §18.2, uma frase cada, onde a decisão deixaria o texto contraditório | O Prettier não confere Markdown (`.prettierignore` tem `*.md`); links e colunas foram conferidos por script, a renderização não. Dúvidas de regra que os ADRs não fecham: experiência do ofício com menos trabalhadores que o nível, duração do festival, frio e moral no mesmo instante ou na virada |
+| V2B-T1 | 2026-10-01 | `43580ca` (motor e servidor), `6d14b6d` (cache do app) | agentes, trilhas motor e app | `migrateState(stored, { timeScale })`, `CURRENT_SCHEMA_VERSION` (2) e `StateMigrationError` no motor; um arquivo por versão em `migrations/`; seis retratos `state-v1-*.json` congelados com impressão digital e os da versão atual como goldens. O servidor migra sob o lock (`loadGame`), grava na escrita seguinte com um incremento de `state_version`, e recusa versão futura ou forma estranha com 500 sem gravar por cima. O app marca o cache com `CACHE_VERSION`. Golden do cenário de 7 dias regravado; o diff só tem os campos da versão 2. Desvios: guarda de forma escrita à mão em vez de zod; `difficulty` e `timeScale` dentro de `settings` (GDD §14.11 corrigido); o teste de integração avança 21 dias, não 30 (a sessão de teste vale 30); regra nova: uma versão de estado por tarefa que muda a forma | **O ensaio de reversão com duas imagens não foi feito** (T1.6 sem marca). Nenhum estado de produção foi usado: só retratos do motor da v0.1 e três partidas de desenvolvimento. O servidor inteiro da `v0.1.0` diante de um estado da versão 2 não foi rodado, só o motor. Dois ramos defensivos de `migrateState` sem teste. App novo contra API ainda na v0.1 (visão sem `difficultyLabel`) não foi exercitado |
+| V2B-T2 | 2026-10-01 | `363a2a7` | agente, trilha motor | `packages/engine/src/random.ts`: xoshiro128\*\* com fluxos nomeados (`council`, `morale`, `horde`), semente por FNV-1a mais SplitMix32, `nextInt`, `chance` e `pickWeighted` internos ao pacote, `RNG_VERSION = 1`. Vetores de referência gravados; divisão de intervalo provada com um evento sintético que sorteia. `advance.ts` ganhou `advanceWith` para a prova usar o laço real. A forma do estado não mudou (`rng` continua `Record<string, number[]>`, vazio até o primeiro sorteio). Decisão do agente: toda chamada que devolve valor gasta o fluxo, mesmo em certeza | Nenhuma regra sorteia ainda: a prova usa o evento sintético. Os vetores do SplitMix32 são próprios, não comparados com fonte externa. Integração não rodada na tarefa (rodou na integração da fase) |
+| V2B-T3 | 2026-10-01 | `02863a4` (motor), `01d53f6` e `6d14b6d` (app) | agentes, trilhas motor e app | `balance.difficulties` e `balance.paces` no conteúdo; `POST /games` aceita `difficulty` e `timeScale` (inválido é 400, sem os campos valem Senhor e `GAME_TIME_SCALE`); `GET /v1/catalog` novo, com ETag; `settlement.difficulty`, `difficultyLabel` e `paceLabel` na visão; `client.catalog()`; `--difficulty` no simulador. No app: dois grupos de opções nas boas-vindas, duas listas em "Nova partida", linha nas Preferências. No caminho, um defeito corrigido: `F1` logo ao abrir a página deixava a paleta sem aparecer (`useLayoutEffect` nas assinaturas). Desvios: sem `cardAutoResolve` (ADR 0014); `hint` e `recommended` a mais; ETag do catálogo pelo corpo inteiro; boas-vindas mais largas (720 px) e botão "Nova partida…" nas Preferências, que o roadmap não pedia | **As frases de dificuldade e de ritmo foram escritas pelo agente e não foram lidas pelo autor.** Só Chromium; leitor de tela não usado. Catálogo com o padrão da produção (3) só em unidade. Cache HTTP de `/catalog` em navegador de verdade. `pnpm capture:landing` não foi rodado |
+| V2B-T4 | 2026-10-01 | `35710b9` (motor), `b56949d` (app) | agentes, trilhas motor e app | `pnpm -s sim -- --matrix`: 3 perfis × 3 ritmos × 50 sementes, duas tabelas (7 dias reais e um ano de jogo), colunas novas e reservadas no CSV, faixas por ritmo em `bands.ts`, bots como listas de políticas, bot `preguicoso`. A matriz inteira roda no `pnpm test` (cerca de 2 s). No navegador, dois cenários no ritmo Rápido conferem prazos e taxas da tela contra a API. Nenhum número de conteúdo mudou. Desvios: as faixas são os valores medidos com folga, não limites do autor; `contentHash` virou função de `@lotg/protocol`; o segundo cenário de navegador (Relatório de Retorno no ritmo 3) não estava pedido | **Nenhuma faixa foi aprovada pelo autor**; fila ociosa e aldeões sem ofício são medidos, sem faixa. As 50 sementes dão hoje o mesmo resultado, porque nada sorteia. `--remote` com o bot `preguicoso` não foi rodado. A meta do GDD §15.2 (30 a 40 habitantes no dia 7) não é atingida no ritmo 1: a medida é 26 |
+| V2B (integração) | 2026-10-01 | `98a85b6` e o commit deste registro | agente de integração | Trilha do app (`web-track`) mesclada ao `main` sem conflito. Portão no resultado: `pnpm verify` (1.613 testes de unidade em 60 arquivos), integração (358 em 13), `pnpm build`, navegador (56 de 56) e os dois cenários "ritmo" com `GAME_TIME_SCALE=3`. Nada quebrou. Corrigido nos documentos: o filtro de um arquivo de integração é `pnpm test:integration games`, sem `--` (com `--` o Vitest ignora o filtro e roda tudo). Apêndice B atualizado com o que a fase mudou. **O autor não jogou nem aprovou nada desta fase; nada foi publicado** | `pnpm test:e2e:landing` e `pnpm capture:landing` não foram rodados (a página de apresentação não mudou; as boas-vindas ficaram mais largas e o roteiro de captura passa por elas). `CLAUDE.md`, reservado ao orquestrador, ficou desatualizado: GDD v0.6, API pública do motor sem `migrateState`, "ainda não existe gerador", `GAME_TIME_SCALE` como ritmo de toda partida nova e o filtro de integração com `--` |
 | V2B-T5 | | | | | |
 | V2C-T1 | | | | | |
 | V2C-T2 | | | | | |
@@ -1237,7 +1238,7 @@ Preencher ao fechar cada tarefa.
 | V2C-T4 | | | | | |
 | V2C-T6 | | | | | |
 | V2C-T7 | | | | | |
-| V2D-T0 | | | | | |
+| V2D-T0 | 2026-10-01 | `242296b`, `9b1d3e8` | agentes (orquestrador e trilha motor) | Feita junto com V2B-T0, **sem a sessão com o autor**: ADR 0014 escrito com as premissas, "aplicado por delegação"; GDD §7, §8.2 e §12.2 corrigidos; §8 atualizada (T0.2). T0.1 sem marca | A confirmação do autor, decisão a decisão; o texto das cartas ainda não existe |
 | V2D-T1 | | | | | |
 | V2D-T2 | | | | | |
 | V2D-T3 | | | | | |
@@ -1420,11 +1421,13 @@ Não corrija nada: quem corrige é a sessão principal, com teste de regressão.
 
 Referência única dos **nomes propostos** para estado, comandos, eventos, recusas e `ViewState`. Cada tarefa confirma ou ajusta os seus e atualiza este apêndice; nenhum campo entra antes da tarefa que o usa (regra 6 do `CLAUDE.md`). Tudo em tempo de jogo no estado e em tempo real no `ViewState`.
 
-### B.1 `GameState` (versão 2), por tarefa
+### B.1 `GameState`, por tarefa
+
+A versão 2 de verdade (V2B-T1) tem só o que está marcado com V2B abaixo. **Cada tarefa que muda a forma do estado sobe `schemaVersion` e escreve o seu passo de migração** ([README do motor](../packages/engine/README.md), "Uma mecânica que muda o estado sobe a versão"): o bloco mostra a forma ao fim da v0.2, não a da versão 2.
 
 ```ts
 type GameState = {
-  schemaVersion: 2;                                   // V2B-T1
+  schemaVersion: 2;                                   // V2B-T1; sobe a cada tarefa que muda a forma
   seed: string;
   settings: {
     settlementName: string; timezone: string; vigilHourLocal: number;
@@ -1434,7 +1437,7 @@ type GameState = {
   migratedAtMs: number | null;                        // V2B-T1: fronteira das regras novas
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;
-  rng: Record<'council' | 'morale' | 'horde', number[]>;   // V2B-T2
+  rng: Record<string, number[]>;                      // V2B-T2: vazio até o primeiro sorteio; nomes válidos em RNG_STREAMS (council, morale, horde)
   settlement: {
     name: string;
     resources: Record<ResourceId, number>; accumulators: Record<ResourceId, number>;
@@ -1471,7 +1474,8 @@ type GameState = {
 | `planConstruction` (estendido) | `{ building, autoStart?: boolean }` | V2C-T5 | as atuais |
 | `setAutoStart` | `{ building, autoStart: boolean }` | V2C-T5 | `NOT_PLANNED` |
 | `answerCard` | `{ instanceId, optionId }` | V2D-T1 | `CARD_NOT_PENDING`, `CARD_EXPIRED`, `INVALID_OPTION`, `OPTION_LOCKED`, `INSUFFICIENT_RESOURCES` |
-| `POST /games` (estendido) | `{ difficulty, timeScale }` | V2B-T3 | `400 VALIDATION` |
+| `POST /games` (estendido) | `{ difficulty?, timeScale? }`; sem os campos valem a dificuldade recomendada e `GAME_TIME_SCALE` | V2B-T3 | `400 VALIDATION` |
+| `GET /catalog` (rota nova, sem sessão) | resposta: `{ contentHash, newGame: { difficulties[], paces[], defaults } }` | V2B-T3 | — |
 
 Códigos novos em `REJECTION_CODES` (motor e protocolo): `QUEUE_LOCKED` (V2C-T5), `CARD_NOT_PENDING`, `CARD_EXPIRED`, `INVALID_OPTION`, `OPTION_LOCKED` (V2D-T1). `protocol` passa a **2** em V2D-T1.
 
@@ -1518,7 +1522,7 @@ Marcadores novos para os modelos de frase: `{carta}`, `{opcao}`, `{inimigo}`, `{
 
 | Arquivo | O que entra | Tarefa |
 |---|---|---|
-| `balance.ts` | `difficulties`, `paces` | V2B-T3 |
+| `balance.ts` | `difficulties` (`label`, `description`, `recommended`, `storageCapacity`, `famineDesertion`; **sem** `cardAutoResolve`: a opção automática é marcada em cada carta, ADR 0014) e `paces` (`timeScale`, `label`, `description`, `hint`, `recommended`) | V2B-T3 |
 | `balance.ts` | `seasons[].effects`, `winter` | V2C-T1 |
 | `balance.ts`, `buildings.ts`, `ids.ts` | `storage`, `granary`, `warehouse`, `watchtower` (construível em V2E-T1), `requires` | V2C-T2 |
 | `balance.ts` | `construction.queues: 2`, `secondQueueTownHallLevel` | V2C-T5 |
@@ -1531,4 +1535,4 @@ Marcadores novos para os modelos de frase: `{carta}`, `{opcao}`, `{inimigo}`, `{
 
 ---
 
-**Próximo passo de execução:** V2A-T1, conforme o fluxo vigente. As sessões de decisões (V2B-T0 e V2D-T0) e a escrita das cartas em `docs/content-v0.2.md` podem avançar enquanto o playtest corre, sem mudar a versão observada. Começar uma mecânica, alterar o escopo ou publicar continua sendo uma ação separada desta revisão.
+**Próximo passo de execução (2026-10-01):** V2B-T5, a revisão independente da fundação, e depois a Fase C. A Fase B (V2B-T0 a V2B-T4) está no `main` local, sem `push`. O playtest (V2A-T1) e as confirmações das decisões continuam pendentes do autor ([pendencias-v0.2.md](pendencias-v0.2.md)); publicar continua sendo uma ação separada, só com autorização.
