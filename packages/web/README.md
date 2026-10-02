@@ -54,6 +54,7 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 - **Atalhos**: `Ctrl+Shift+P` e `Ctrl+P` são do navegador. A paleta abre com `F1` e `Ctrl+K`.
 - **Nada chega com a aba fechada.** Com ela em segundo plano, o título conta as novidades; notificações do navegador só se o jogador ligar nas preferências, e a permissão só é pedida nessa hora.
 - **Estado restaurado antes do primeiro desenho** (`main.tsx`): quem recarrega a página vê o feudo direto do cache, sem passar pelas boas-vindas.
+- **A bancada ouve desde o primeiro desenho.** `useController` e o `DialogHost` assinam as mudanças com `useLayoutEffect`. Com `useEffect` a assinatura só existiria depois do próximo quadro, e o que mudasse nesse intervalo (a resposta de `/version`, um `F1` logo ao abrir a página) não redesenharia nada: a paleta ficava aberta sem aparecer e o texto digitado caía no campo das boas-vindas.
 
 ## Limites conhecidos
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 
 import type { Controller } from '../app/controller';
 import type { Route } from '../app/router';
@@ -18,10 +18,15 @@ import { EditorTabs } from './EditorTabs';
 import { SideBar } from './SideBar';
 import { StatusBar } from './StatusBar';
 
-/** Redesenha o componente a cada mudança do controlador. */
+/**
+ * Redesenha o componente a cada mudança do controlador. A assinatura é feita com
+ * `useLayoutEffect`, junto com o primeiro desenho: `useEffect` só roda depois do próximo quadro,
+ * e uma mudança que chegasse nesse intervalo (a resposta de `/version`, uma tecla) não
+ * redesenharia nada.
+ */
 export function useController(controller: Controller): void {
   const [, redraw] = useState(0);
-  useEffect(() => controller.onChange(() => redraw((count) => count + 1)), [controller]);
+  useLayoutEffect(() => controller.onChange(() => redraw((count) => count + 1)), [controller]);
 }
 
 function TabContent(props: {
