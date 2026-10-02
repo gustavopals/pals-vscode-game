@@ -9,6 +9,17 @@ export type MigrationContext = {
   timeScale: number;
 };
 
+/** O que cada passo recebe: o contexto de quem chamou e a fronteira que é só dele. */
+export type StepContext = MigrationContext & {
+  /**
+   * A fronteira **deste** passo: o instante de jogo em que a partida estava (`lastProcessedAt`)
+   * quando ele rodou. Todo prazo que o passo criar (a primeira carta, a primeira incursão)
+   * conta a partir daqui, nunca do `migratedAtMs` que veio gravado: aquele é a fronteira de uma
+   * migração anterior, ou `null` em uma partida que nasceu na versão de que este passo parte.
+   */
+  boundaryMs: number;
+};
+
 /**
  * Um passo leva o estado de uma versão para a seguinte. A lista de passos fica em
  * `migrations.ts`; o passo de índice `n` parte da versão `n + 1`.
@@ -19,6 +30,10 @@ export type MigrationStep = {
   summary: string;
   /** A forma exata do estado na versão `from`, congelada. */
   shape: Shape;
-  /** Recebe um estado que passou pela guarda e não o altera: devolve o da versão seguinte. */
-  migrate: (state: StoredState, context: MigrationContext) => StoredState;
+  /**
+   * Recebe um estado que passou pela guarda e não o altera: devolve o da versão seguinte. Não
+   * mexe em `lastProcessedAt`. A partir da versão 2 não precisa escrever `migratedAtMs`:
+   * `migrateWith` grava a fronteira do passo no que ele devolve.
+   */
+  migrate: (state: StoredState, context: StepContext) => StoredState;
 };

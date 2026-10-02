@@ -44,9 +44,11 @@ export type GameState = {
   seed: string;
   settings: GameSettings;
   /**
-   * Fronteira da atualização: instante de jogo até onde o estado foi simulado por uma versão
-   * anterior das regras. `null` em partidas que já nasceram nesta versão. Regras novas contam
-   * a partir daqui e nunca recalculam o que veio antes (ADR 0013, decisão 4).
+   * Fronteira da atualização mais recente: instante de jogo em que a última migração encontrou
+   * a partida, ou seja, até onde ela foi simulada por uma versão anterior das regras. `null` em
+   * partidas que nasceram nesta versão. Cada passo de migração a regrava, e os prazos de uma
+   * mecânica nova contam a partir da fronteira do passo que a trouxe; nenhuma regra recalcula o
+   * que veio antes (ADR 0013, decisão 4).
    */
   migratedAtMs: number | null;
   clock: { gameTimeMs: number; yearStartMs: number; year: number };

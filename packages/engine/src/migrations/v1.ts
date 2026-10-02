@@ -69,14 +69,15 @@ export const stateV1: Shape = exactObject(stateV1Fields);
  *   regra, com o Celeiro e o Armazém.
  * - `settings.difficulty` entra como `lord`: toda partida da v0.1 nasceu Senhor.
  * - `settings.timeScale` entra com o ritmo gravado na linha da partida, que não muda mais.
- * - `migratedAtMs` recebe o instante de jogo até onde as regras antigas valeram: é a fronteira
- *   a partir da qual as regras novas contam. Partidas novas nascem com `null`.
+ * - `migratedAtMs` entra, com a fronteira deste passo: o instante de jogo até onde as regras
+ *   antigas valeram. Partidas novas nascem com `null`. Cada passo seguinte tem a própria
+ *   fronteira, e `migrateWith` a grava neste mesmo campo.
  */
 export const v1ToV2: MigrationStep = {
   from: 1,
   summary: 'fundação da v0.2: dificuldade e ritmo no estado, fronteira da atualização',
   shape: stateV1,
-  migrate(state, { timeScale }) {
+  migrate(state, { timeScale, boundaryMs }) {
     const old = state.settings as StoredState;
     return {
       schemaVersion: 2,
@@ -88,7 +89,7 @@ export const v1ToV2: MigrationStep = {
         difficulty: 'lord',
         timeScale,
       },
-      migratedAtMs: state.lastProcessedAt,
+      migratedAtMs: boundaryMs,
       clock: state.clock,
       lastProcessedAt: state.lastProcessedAt,
       rng: state.rng,

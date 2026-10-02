@@ -7,11 +7,15 @@ import { applyCommand } from './commands';
 import {
   CURRENT_SCHEMA_VERSION,
   currentShape,
+  type MigrationChain,
   migrateState,
+  migrateWith,
   migrationSteps,
   StateMigrationError,
 } from './migrations';
+import { natural, type Shape } from './migrations/shape';
 import { command, HOUR, newGame, runWeekScenario } from './test-helpers';
+import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
 import { REJECTION_CODES } from './types';
 import { deriveViewState } from './view';
@@ -198,6 +202,17 @@ describe.each(fixtures)('$name', (fixture) => {
     expect(migrated(fixture)).toEqual(once);
   });
 
+  it('a fronteira fica no instante em que a migração encontrou a partida', () => {
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    // Um retrato da versão atual não é migrado: a fronteira dele é a que estava gravada.
+    expect(after.migratedAtMs).toBe(
+      fixture.version < CURRENT_SCHEMA_VERSION ? before.lastProcessedAt : before.migratedAtMs,
+    );
+    // Nada do que a migração marcou está vencido: o próximo evento é depois da fronteira.
+    expect(nextEventAt(after)).toBeGreaterThan(after.lastProcessedAt);
+  });
+
   it('preserva tudo o que o jogador tem', () => {
     const before = read(fixture) as unknown as GameState;
     const after = migrated(fixture);
@@ -359,6 +374,108 @@ describe('versão 1 → 2', () => {
     ['um ritmo que não é número', Number.NaN],
   ])('recusa %s', (_, timeScale) => {
     expect(() => migrateState(read(construction), { timeScale })).toThrow(/Ritmo inválido/);
+  });
+});
+
+describe('a fronteira é de cada passo', () => {
+  // A v0.2 chega à produção em mais de uma publicação, e cada uma migra as partidas em um
+  // instante diferente. Este passo ainda não existe: é o próximo que alguém vai escrever, com a
+  // conta que o roadmap pede para a primeira carta do Conselho (V2D-T1.2): o primeiro prazo de
+  // uma mecânica nova conta a partir da fronteira **deste** passo.
+  const NEXT = CURRENT_SCHEMA_VERSION + 1;
+  const INTERVAL = 8 * HOUR;
+  const nextShape: Shape = (value, path) => {
+    const { syntheticDeadlineMs, schemaVersion, ...rest } = value as Draft;
+    if (schemaVersion !== NEXT) {
+      return 'schemaVersion: esperada a versão do passo sintético';
+    }
+    return (
+      natural(syntheticDeadlineMs, 'syntheticDeadlineMs') ??
+      currentShape({ ...rest, schemaVersion: CURRENT_SCHEMA_VERSION }, path)
+    );
+  };
+  const seen: Array<{ boundaryMs: number; timeScale: number }> = [];
+  const chain: MigrationChain = {
+    steps: [
+      ...migrationSteps,
+      {
+        from: CURRENT_SCHEMA_VERSION,
+        summary: 'passo sintético de teste: uma mecânica com prazo',
+        shape: currentShape,
+        migrate: (state, context) => {
+          seen.push({ ...context });
+          return {
+            ...state,
+            schemaVersion: NEXT,
+            syntheticDeadlineMs: context.boundaryMs + INTERVAL,
+          };
+        },
+      },
+    ],
+    shape: nextShape,
+  };
+  const throughBank = (state: GameState) => JSON.parse(JSON.stringify(state)) as Draft;
+  const YEAR_3 = 400 * HOUR;
+
+  it('partida que nasceu na versão atual, sem fronteira: o prazo novo conta de onde ela está', () => {
+    const born = throughBank(advanceTo(newGame(), YEAR_3).state);
+    expect(born.clock.year).toBe(3);
+    expect(born.migratedAtMs).toBeNull();
+
+    const after = migrateWith(born, { timeScale: 1 }, chain);
+    expect(after.schemaVersion).toBe(NEXT);
+    expect(after.lastProcessedAt).toBe(YEAR_3);
+    expect(after.migratedAtMs).toBe(YEAR_3);
+    expect(after.syntheticDeadlineMs).toBe(YEAR_3 + INTERVAL);
+    expect(born.migratedAtMs).toBeNull();
+  });
+
+  it('partida migrada há muito tempo: a fronteira antiga não vale para a mecânica nova', () => {
+    const old = migrateState(read(named('state-v1-construction.json')), { timeScale: 3 });
+    const played = throughBank(advanceTo(old, YEAR_3).state);
+    expect(played.migratedAtMs).toBe(127_321);
+
+    const after = migrateWith(played, { timeScale: 3 }, chain);
+    // Com a fronteira antiga, o prazo cairia no passado e a ausência inteira seria recalculada
+    // com uma regra que não existia.
+    expect(after.migratedAtMs).toBe(YEAR_3);
+    expect(after.syntheticDeadlineMs).toBe(YEAR_3 + INTERVAL);
+    expect(after.syntheticDeadlineMs).toBeGreaterThan(after.lastProcessedAt as number);
+  });
+
+  it('partida que atravessa dois passos de uma vez: os dois veem o mesmo instante', () => {
+    seen.length = 0;
+    const before = read(named('state-v1-week-bot-3x.json'));
+    const after = migrateWith(before, { timeScale: 3 }, chain);
+    expect(after.migratedAtMs).toBe(before.lastProcessedAt);
+    expect(after.syntheticDeadlineMs).toBe((before.lastProcessedAt as number) + INTERVAL);
+    expect(seen).toEqual([{ boundaryMs: before.lastProcessedAt, timeScale: 3 }]);
+  });
+
+  it('um passo que esquece a fronteira não a deixa para trás', () => {
+    const forgetful: MigrationChain = {
+      steps: [
+        ...migrationSteps,
+        {
+          from: CURRENT_SCHEMA_VERSION,
+          summary: 'passo sintético de teste: só troca o número da versão',
+          shape: currentShape,
+          migrate: (state) => ({ ...state, schemaVersion: NEXT, syntheticDeadlineMs: 0 }),
+        },
+      ],
+      shape: nextShape,
+    };
+    const born = throughBank(advanceTo(newGame(), YEAR_3).state);
+    expect(migrateWith(born, { timeScale: 1 }, forgetful).migratedAtMs).toBe(YEAR_3);
+  });
+
+  it('a cadeia do jogo é a que `migrateState` usa', () => {
+    const real: MigrationChain = { steps: migrationSteps, shape: currentShape };
+    for (const fixture of fixtures) {
+      expect(migrateWith(read(fixture), { timeScale: fixture.timeScale }, real)).toEqual(
+        migrated(fixture),
+      );
+    }
   });
 });
 
