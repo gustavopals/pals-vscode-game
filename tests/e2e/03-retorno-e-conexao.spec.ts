@@ -982,15 +982,24 @@ test.describe('no ritmo da produção', () => {
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 7 dias de jogo/)).toBeVisible();
     // 40 min de relógio a +21/h (a adaptação) e, depois, de +61,5/h a +66,9/h, um degrau a cada dia
-    // de experiência, já com a moral em 60 desde a primeira virada: nem os +75 do ritmo Normal,
-    // nem o triplo disso de converter duas vezes.
+    // de experiência, já com a moral em 60 desde a primeira virada: 291 e uma fração, nem os +75
+    // do ritmo Normal, nem o triplo disso de converter duas vezes.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 291));
-    await expect(food).toContainText('+291');
+    await expect(food).toContainText(/\+29[12]/);
+    // A tabela mostra estoques inteiros, e a fração que o estoque de antes já tinha soma com a do
+    // ganho: a diferença é 291 ou 292, conforme os segundos que o teste levou entre fundar o feudo,
+    // pôr os fazendeiros e ler o estoque. Numa máquina lenta (a da CI) dá 292.
+    const [before, produced, , , , after] = (await food.getByRole('cell').allInnerTexts()).map(
+      (text) => Number(text.replace(/\./g, '').replace(',', '.').replace('+', '')),
+    );
+    expect(before).toBe(foodBefore);
+    expect(produced).toBeGreaterThanOrEqual(291);
+    expect(produced).toBeLessThanOrEqual(292);
+    expect(after).toBe(foodBefore + (produced ?? 0));
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
+    expect(await stock(page, 'Comida')).toBe(after);
     await expect(resourceRow(page, 'Comida')).toContainText('+66,9');
     // A moral também fala em relógio: a comida guardada é a de 8 horas (as 24 h de jogo), e a
     // virada do dia que a recalcula vem em menos de 40 minutos. São os números da API.
@@ -1003,7 +1012,7 @@ test.describe('no ritmo da produção', () => {
     // Recarregar não soma de novo.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
+    expect(await stock(page, 'Comida')).toBe(after);
   });
 
   test('ritmo Rápido: a lareira do inverno queima por hora de relógio, e a tela escreve o número da API', async ({
