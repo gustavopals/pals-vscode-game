@@ -19,6 +19,7 @@ import {
   withQueues,
   withResource,
 } from '../test-helpers';
+import { formatApprox } from '../ui/format';
 import type { WatchedThreat } from '../ui/threat';
 import type { Actions } from './actions';
 import { ConstructionsPanel } from './ConstructionsPanel';
@@ -708,7 +709,18 @@ describe('a incursão na aba Hoje (GDD §2.3, §8.2 e critério 4 da §16.2)', (
       today(report, after, (id, arg) => ran.push([id, arg])),
       'Melhorar Torre de Vigia',
     );
-    expect(ran).toEqual([['lords.build', 'watchtower']]);
+    // O mesmo botão está também em "Antes de partir": o relatório conta o ataque que passou, e
+    // a seção, o que pode vir na ausência seguinte (a Ameaça segue acima de 40, sem Paliçada).
+    expect(ran).toEqual([
+      ['lords.build', 'watchtower'],
+      ['lords.build', 'watchtower'],
+    ]);
+    if (!after.threat.known) {
+      throw new Error('O golden deixou de trazer a Ameaça à vista depois do ataque.');
+    }
+    expect(text(page)).toContain(
+      `${after.threat.text} A próxima virada do dia, em ${formatApprox(after.threat.nextRiseInSeconds)}, tem ${after.threat.raidChancePercent}% de chance de marcar uma incursão. ${after.threat.defense.text}`,
+    );
   });
 
   it('com a Paliçada ao alcance, o botão da mesma perda passa a ser a obra dela', () => {

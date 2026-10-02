@@ -580,6 +580,79 @@ describe('antes de partir', () => {
     });
   });
 
+  describe('a Ameaça que pode marcar uma incursão na ausência (GDD §8.2)', () => {
+    type Watched = Extract<ViewState['threat'], { known: true }>;
+    const watched = threatWatchedView.threat;
+    if (!watched.known) {
+      throw new Error('O golden deixou de trazer a Ameaça à vista.');
+    }
+    /** O feudo preparado de resto, com os vigias vendo a Ameaça, nenhuma incursão à vista. */
+    const threatened = (changes: Partial<Watched> = {}): ViewState => ({
+      ...prepared,
+      threat: {
+        ...watched,
+        text: 'Ameaça 85 de 100.',
+        level: 85,
+        nextLevel: 90,
+        raidChancePercent: 50,
+        nextRiseInSeconds: 40 * 60,
+        incoming: null,
+        ...changes,
+      },
+    });
+
+    it('com a chance acima de zero e a Paliçada que ainda pode crescer: as frases do servidor e o botão da defesa', () => {
+      const view = threatened();
+      expect(view.threat.defense.text).toBe('Sem Paliçada, nada segura um ataque.');
+      expect(beforeLeaving(view)).toEqual([
+        {
+          id: 'threat',
+          severity: 'warning',
+          text: 'Ameaça 85 de 100. A próxima virada do dia, em 40 min, tem 50% de chance de marcar uma incursão. Sem Paliçada, nada segura um ataque.',
+          command: defenseCommand(view),
+        },
+      ]);
+    });
+
+    it('com uma Paliçada que segura parte dos ataques, o item informa, sem alerta', () => {
+      const defense = {
+        ...watched.defense,
+        palisadeLevel: 1,
+        text: 'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
+        next: 'Paliçada Nv2: passa a segurar também os ataques médios, sem perda nem ferido.',
+      };
+      expect(only(threatened({ defense }))).toMatchObject({
+        id: 'threat',
+        severity: 'info',
+        text: `Ameaça 85 de 100. A próxima virada do dia, em 40 min, tem 50% de chance de marcar uma incursão. ${defense.text}`,
+      });
+    });
+
+    it('nada a dizer com a chance em zero, nem com a Paliçada no teto: não há o que preparar', () => {
+      expect(beforeLeaving(threatened({ raidChancePercent: 0 }))).toEqual([]);
+      const top = {
+        ...watched.defense,
+        palisadeLevel: 2,
+        text: 'Paliçada Nv2: segura ataques leves e médios, sem perda nem ferido. A Muralha de Pedra chega em uma versão futura.',
+        next: null,
+      };
+      expect(beforeLeaving(threatened({ defense: top }))).toEqual([]);
+    });
+
+    it('sem a Torre não há item: a lista não conta o que a névoa esconde', () => {
+      // `initialView` e `craftsView` não têm Torre, e a Paliçada deles está no nível 0.
+      for (const view of [initialView, craftsView, unlockedView]) {
+        expect(view.threat.known).toBe(false);
+        expect(ids(leavingItems(view))).not.toContain('threat');
+      }
+    });
+
+    it('com a incursão à vista, o item é o dela, e não os dois', () => {
+      expect(ids(leavingItems(threatIncomingView))).toContain('raid');
+      expect(ids(leavingItems(threatIncomingView))).not.toContain('threat');
+    });
+  });
+
   it('o feudo recém-fundado: planejar uma obra e dar ofício aos cinco', () => {
     // A comida dura 36 horas: ainda não é assunto.
     expect(ids(beforeLeaving(initialView))).toEqual(['queue', 'idle']);

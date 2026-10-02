@@ -405,6 +405,35 @@ function raidItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * A Ameaça que pode marcar uma incursão enquanto o jogador está longe, sem nenhuma à vista ainda:
+ * a chance que a próxima virada do dia dá (`raidChancePercent`), com o prazo até ela, e o que a
+ * Paliçada de hoje segura (`defense.text`), nas frases e nos números do servidor; o botão é o da
+ * defesa. Só com a Torre de Vigia: sem ela a visão não traz a Ameaça, e a lista não a adivinha.
+ * Não aparece com a chance em zero nem com a Paliçada no teto (`defense.next` nulo): aí não há
+ * obra que mude o desfecho, e nada a preparar. Sem Paliçada é alerta; com uma que segura parte
+ * dos ataques, informação.
+ */
+function threatItem(view: ViewState): LeavingItem | null {
+  const { threat } = view;
+  if (
+    !threat.known ||
+    threat.incoming !== null ||
+    threat.raidChancePercent <= 0 ||
+    threat.defense.next === null
+  ) {
+    return null;
+  }
+  return {
+    id: 'threat',
+    severity: threat.defense.palisadeLevel === 0 ? 'warning' : 'info',
+    text:
+      `${threat.text} A próxima virada do dia, em ${formatApprox(threat.nextRiseInSeconds)}, ` +
+      `tem ${threat.raidChancePercent}% de chance de marcar uma incursão. ${threat.defense.text}`,
+    command: defenseCommand(view),
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -420,13 +449,15 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista, a comida, a
- * lenha, os depósitos que enchem, as obras que não começam sozinhas e os aldeões livres. O
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
+ * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, os depósitos que enchem, as obras
+ * que não começam sozinhas e os aldeões livres. O
  * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState): LeavingItem[] {
   return [
     raidItem(view),
+    threatItem(view),
     foodItem(view),
     firewoodItem(view),
     ...storageItems(view),
