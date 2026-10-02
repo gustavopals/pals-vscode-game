@@ -1,6 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import {
+  clockDeadline,
   expiresIn,
   FULL_SOON_SECONDS,
   formatApprox,
@@ -167,11 +168,26 @@ export function stockLine(view: ViewState): string {
 /**
  * O texto do aviso de carta nova (GDD §13.5) e o que o detalha: o prazo de resposta e o que o
  * conselho faz sozinho, nas frases do servidor.
+ *
+ * `when` é o instante em que a visão chegou e o fuso de quem joga: com eles o aviso diz também
+ * até que hora do relógio a carta espera ("por 23 h, até amanhã às 08:20"). O aviso fica na tela
+ * até ser dispensado, e "por 23 h" envelhece; a hora, não. É só a soma do prazo, que já vem em
+ * tempo real, ao relógio do navegador.
  */
-export function cardNotice(card: CouncilCard): { text: string; details: string[] } {
+export function cardNotice(
+  card: CouncilCard,
+  when?: { now: number; timeZone?: string },
+): { text: string; details: string[] } {
+  const until =
+    when === undefined
+      ? null
+      : clockDeadline(when.now, when.now + card.expiresInSeconds * 1000, when.timeZone);
   return {
     text: `Nova carta do Conselho: ${card.title}`,
-    details: [`Espera a sua resposta por ${formatApprox(card.expiresInSeconds)}.`, card.expiryNote],
+    details: [
+      `Espera a sua resposta por ${formatApprox(card.expiresInSeconds)}${until === null ? '' : `, até ${until}`}.`,
+      card.expiryNote,
+    ],
   };
 }
 

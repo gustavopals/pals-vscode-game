@@ -1,7 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import { COUNCIL_ICON } from '../ui/council';
-import { formatDuration } from '../ui/format';
+import { clockTime, formatDuration } from '../ui/format';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
@@ -339,24 +339,6 @@ export type SeasonNotice = {
   /** Uma frase para cada coisa que muda na virada, como o servidor as escreveu. */
   details: string[];
 };
-
-/**
- * A hora do relógio de quem joga em que um prazo vence: "21:40". O aviso fica na tela até ser
- * dispensado, e "em 59 min" envelhece; a hora, não. `null` se o fuso não for conhecido.
- */
-function clockTime(atMs: number, timeZone: string | undefined): string | null {
-  try {
-    return new Intl.DateTimeFormat('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      // De 00 a 23: meia-noite e meia é "00:30", nunca "24:30".
-      hourCycle: 'h23',
-      ...(timeZone === undefined ? {} : { timeZone }),
-    }).format(new Date(atMs));
-  } catch {
-    return null;
-  }
-}
 
 /**
  * O aviso de uma hora antes da virada (GDD §13.5), ou `null` enquanto ela está mais longe. Diz

@@ -79,6 +79,63 @@ export function formatApprox(seconds: number): string {
   return hours >= 1 ? `${Math.floor(hours)} h` : `${Math.max(1, Math.round(seconds / 60))} min`;
 }
 
+/**
+ * A hora do relógio de quem joga em que um prazo vence: "21:40". Um aviso fica na tela até ser
+ * dispensado, e "em 59 min" envelhece; a hora, não. `null` se o fuso não for conhecido.
+ */
+export function clockTime(atMs: number, timeZone: string | undefined): string | null {
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      // De 00 a 23: meia-noite e meia é "00:30", nunca "24:30".
+      hourCycle: 'h23',
+      ...(timeZone === undefined ? {} : { timeZone }),
+    }).format(new Date(atMs));
+  } catch {
+    return null;
+  }
+}
+
+/** O dia do calendário de um instante, no fuso de quem joga, contado em dias inteiros. */
+function calendarDay(atMs: number, timeZone: string | undefined): number | null {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      ...(timeZone === undefined ? {} : { timeZone }),
+    }).formatToParts(new Date(atMs));
+    const part = (type: string) => Number(parts.find((entry) => entry.type === type)?.value);
+    const day = Date.UTC(part('year'), part('month') - 1, part('day')) / 86_400_000;
+    return Number.isFinite(day) ? day : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Até quando vale um prazo que pode passar da meia-noite, no relógio de quem joga: "as 21:40"
+ * (hoje) ou "amanhã às 08:20". `null` se o fuso não for conhecido ou se o prazo vai além de
+ * amanhã: aí a hora sozinha enganaria.
+ */
+export function clockDeadline(
+  nowMs: number,
+  atMs: number,
+  timeZone: string | undefined,
+): string | null {
+  const clock = clockTime(atMs, timeZone);
+  const today = calendarDay(nowMs, timeZone);
+  const day = calendarDay(atMs, timeZone);
+  if (clock === null || today === null || day === null) {
+    return null;
+  }
+  if (day === today) {
+    return `as ${clock}`;
+  }
+  return day === today + 1 ? `amanhã às ${clock}` : null;
+}
+
 /** "80 madeira, 40 ouro". */
 export function formatCost(cost: ReadonlyArray<{ amount: number; label: string }>): string {
   return cost

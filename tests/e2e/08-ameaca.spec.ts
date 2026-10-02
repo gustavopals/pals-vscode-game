@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import {
   applyTheme,
@@ -66,6 +66,17 @@ async function employEveryone(page: Page): Promise<void> {
   await step('Serraria', 1);
   await step('Pedreira', 0);
 }
+
+/**
+ * O elemento está à vista e nada o cobre no próprio centro: nem um aviso do canto, nem o
+ * cabeçalho preso, nem a borda da janela (fora dela, `elementFromPoint` não acha nada).
+ */
+const uncovered = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit !== null && (hit === element || element.contains(hit));
+  });
 
 /**
  * Treze horas de Serraria e de Pedreira pagam o Salão do Senhor Nv2 e ainda deixam a Torre paga;
@@ -533,6 +544,55 @@ test.describe('a incursão de lobos', () => {
     await expect(fief(page).getByRole('heading', { name: 'Trabalhadores (5/5)' })).toBeVisible();
     await expect(fief(page).getByRole('region', { name: 'Crônica' })).toContainText(raid.text);
   });
+
+  // Um dia e pouco com a aba Feudo à vista e sem dispensar nada: as cartas do conselho, o relato
+  // dos vigias e o alarme se acumulam no canto, por cima da coluna em que o painel da Ameaça está.
+  for (const [width, height] of [
+    [1280, 800],
+    [720, 800],
+  ] as const) {
+    test(`em ${width}×${height}, "Ver" no alarme leva ao painel com a incursão e a obra da Paliçada à vista, sem aviso por cima`, async ({
+      context,
+      world,
+      request,
+    }) => {
+      test.setTimeout(90_000);
+      world.conveneCouncil();
+      world.wolvesRoam();
+      const page = await world.open(context);
+      await playNow(page);
+      await page.setViewportSize({ width, height });
+      await employEveryone(page);
+      await world.raise('townHall', 3);
+      await world.raise('watchtower', 1);
+      for (const ms of [8 * HOUR, 8 * HOUR, 2 * HOUR + 5 * MINUTE, 11 * HOUR]) {
+        await world.passTime(ms, page);
+      }
+      const alarm = only(await gameEvents(page, request), 'raidAnnounced');
+      const notices = toasts(page).getByRole('status');
+      // O relato dos vigias de agora tomou o lugar do anterior; as cartas esperam ao lado.
+      await expect(notices.filter({ hasText: alarm.text })).toBeVisible();
+      expect(await notices.count()).toBeGreaterThanOrEqual(3);
+      const marks = (await gameEvents(page, request)).filter(
+        (event) => event.type === 'threatRose' || event.type === 'wolvesHowl',
+      );
+      expect(marks.length).toBeGreaterThanOrEqual(2);
+      for (const old of marks.slice(0, -1)) {
+        await expect(toasts(page).getByText(old.text)).toHaveCount(0);
+      }
+
+      await notices.filter({ hasText: alarm.text }).getByRole('button', { name: 'Ver' }).click();
+      const panel = threatPanel(page);
+      await expect(panel.getByRole('heading', { name: 'Ameaça' })).toBeFocused();
+      // Os outros avisos saíram da frente: o que eles diziam continua no jogo.
+      await expect(notices).toHaveCount(0);
+      const banner = panel.locator('.threat-incoming');
+      const build = panel.getByRole('button', { name: 'Construir Paliçada' });
+      await expect(banner).toBeVisible();
+      await expect.poll(() => uncovered(banner), { message: 'o aviso da incursão' }).toBe(true);
+      await expect.poll(() => uncovered(build), { message: 'a obra da Paliçada' }).toBe(true);
+    });
+  }
 
   test('com a Torre: os vigias dão o alarme antes; o aviso, o painel, a barra de status e a árvore dizem quando os lobos chegam e o que a defesa faz', async ({
     context,

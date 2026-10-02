@@ -1259,6 +1259,56 @@ describe('avisos de acontecimentos', () => {
       expect(made.controller.chronicle.map((event) => event.text)).toEqual([HOWL]);
     });
 
+    const marked = (seq: number, level: number): GameEvent => ({
+      ...gameEvent(
+        seq,
+        'threatRose',
+        `Os vigias de Pedra Alta contam: a Ameaça chegou a ${level}.`,
+      ),
+      data: { threat: level, previousThreat: level - 5, mark: level },
+    });
+    const howled = (seq: number): GameEvent => ({
+      ...gameEvent(seq, 'wolvesHowl', HOWL),
+      data: { enemy: 'wolves', watched: 1 },
+    });
+
+    it('um relato novo dos vigias toma o lugar do anterior: "chegou a 40" não fica na tela com a Ameaça em 70', async () => {
+      let clock = NOON;
+      const made = await opened({ now: () => clock });
+      const texts = () => made.controller.toasts.map((toast) => toast.text);
+      await deliver(made, marked(1, 40));
+      expect(texts()).toEqual([marked(1, 40).text]);
+      await deliver(made, howled(2));
+      expect(texts()).toEqual([HOWL]);
+      await deliver(made, marked(3, 70));
+      expect(texts()).toEqual([marked(3, 70).text]);
+      // O alarme é outro assunto, e mais urgente: fica ao lado do relato, sem tirá-lo.
+      clock += HOUR;
+      await serverTells(made, threatIncomingView, announced(4));
+      expect(texts()).toEqual([marked(3, 70).text, ALARM]);
+    });
+
+    it('"Ver" recolhe os avisos do jogo: o painel da Ameaça não fica debaixo deles', async () => {
+      let clock = NOON;
+      const made = await opened({ now: () => clock });
+      const { controller } = made;
+      await controller.setPreferences({ notifications: 'all' });
+      await deliver(made, gameEvent(1, 'constructionFinished', 'A Serraria ficou pronta.'));
+      clock += HOUR;
+      await deliver(made, marked(2, 70));
+      await serverTells(made, threatIncomingView, announced(3));
+      expect(gameToasts(controller).map((toast) => toast.text)).toEqual([
+        'A Serraria ficou pronta.',
+        marked(2, 70).text,
+        ALARM,
+      ]);
+      // Um aviso que não é do jogo (uma recusa, um erro) não tem nada com isso e fica.
+      controller.toast({ kind: 'error', text: 'Sem ligação com o servidor.' });
+      await actionOf(toastWith(controller, 'deram o alarme'), 'Ver').run();
+      expect(controller.route).toBe('fief');
+      expect(controller.toasts.map((toast) => toast.text)).toEqual(['Sem ligação com o servidor.']);
+    });
+
     it('quem se fere e quem sara entram na Crônica recente, sem aviso', async () => {
       const made = await opened({ now: () => NOON });
       await made.controller.setPreferences({ notifications: 'all' });

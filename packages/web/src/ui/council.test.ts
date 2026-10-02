@@ -186,6 +186,30 @@ describe('aviso de carta nova', () => {
     });
   });
 
+  it('com o relógio de quem joga, diz também a hora em que o prazo acaba', () => {
+    // 9:00 em São Paulo. O aviso fica na tela até ser dispensado: "por 23 h" envelhece, a hora não.
+    const now = Date.parse('2026-10-01T12:00:00.000Z');
+    const when = { now, timeZone: 'America/Sao_Paulo' };
+    const deadline = (expiresInSeconds: number, zone = when) =>
+      cardNotice({ ...mealCard, expiresInSeconds }, zone).details[0];
+    expect(deadline(24 * HOUR)).toBe('Espera a sua resposta por 24 h, até amanhã às 09:00.');
+    expect(deadline(23 * HOUR + 20 * 60)).toBe(
+      'Espera a sua resposta por 23 h, até amanhã às 08:20.',
+    );
+    expect(deadline(3 * HOUR)).toBe('Espera a sua resposta por 3 h, até as 12:00.');
+    // O dia é o do fuso de quem joga: 14 h 59 min depois das 9:00 ainda é hoje; 15 h, amanhã.
+    expect(deadline(15 * HOUR - 60)).toBe('Espera a sua resposta por 14 h, até as 23:59.');
+    expect(deadline(15 * HOUR)).toBe('Espera a sua resposta por 15 h, até amanhã às 00:00.');
+    // Em outro fuso o mesmo instante já é outra hora, e outro dia.
+    expect(deadline(3 * HOUR, { now, timeZone: 'Asia/Tokyo' })).toBe(
+      'Espera a sua resposta por 3 h, até amanhã às 00:00.',
+    );
+    // Um fuso que o navegador não conhece: só o prazo, como antes.
+    expect(deadline(3 * HOUR, { now, timeZone: 'Lugar/Nenhum' })).toBe(
+      'Espera a sua resposta por 3 h.',
+    );
+  });
+
   it('não leva número de regra do app: o prazo é o da carta que o servidor mandou', () => {
     const card: ViewState['council']['pending'][number] = { ...mealCard, expiresInSeconds: 600 };
     expect(cardNotice(card).details[0]).toBe('Espera a sua resposta por 10 min.');

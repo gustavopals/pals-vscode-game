@@ -25,6 +25,8 @@ import type { Controller, Toast, ToastAction } from './controller';
 const COMMANDS_REQUEST = `POST /games/${GAME_ID}/commands`;
 const NEW_CARD = 'Nova carta do Conselho';
 const APP_TITLE = 'Lords of the Guild';
+/** Meio-dia em UTC: 9:00 no fuso do controlador de teste (America/Sao_Paulo). */
+const NOON = Date.parse('2026-10-01T12:00:00.000Z');
 
 type Made = ReturnType<typeof makeController>;
 type MakeOptions = Parameters<typeof makeController>[0];
@@ -349,7 +351,7 @@ describe('aviso de carta nova (GDD §13.5)', () => {
   const seated = withCards(goldenView, [mealCard]);
 
   it('"Nova carta do Conselho: <título>", com "Decidir", que leva à aba do Conselho', async () => {
-    const made = await opened(goldenView);
+    const made = await opened(goldenView, { now: () => NOON });
     await serverShows(made, seated, drawn(1));
     const toast = toastWith(made.controller, NEW_CARD);
     expect(toast).toMatchObject({
@@ -357,7 +359,8 @@ describe('aviso de carta nova (GDD §13.5)', () => {
       icon: 'law',
       text: 'Nova carta do Conselho: A refeição dos pedreiros',
       details: [
-        'Espera a sua resposta por 23 h.',
+        // A visão chegou às 9:00 no fuso de quem joga: o prazo acaba amanhã, pouco antes disso.
+        'Espera a sua resposta por 23 h, até amanhã às 08:53.',
         'Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.',
       ],
       sticky: true,
@@ -367,6 +370,41 @@ describe('aviso de carta nova (GDD §13.5)', () => {
     expect(made.controller.route).toBe('fief');
     await actionOf(toast, 'Decidir').run();
     expect(made.controller.route).toBe('council');
+  });
+
+  it('diz a hora do relógio em que o prazo acaba: o aviso fica na tela, e "por 23 h" envelhece', async () => {
+    const made = await opened(goldenView, { now: () => NOON });
+    // A visão chega às 9:00 no fuso de quem joga, com 23 h 20 min de prazo.
+    await serverShows(
+      made,
+      withCards(goldenView, [{ ...mealCard, expiresInSeconds: 23 * 3600 + 20 * 60 }]),
+      drawn(1),
+    );
+    expect(toastWith(made.controller, NEW_CARD)?.details?.[0]).toBe(
+      'Espera a sua resposta por 23 h, até amanhã às 08:20.',
+    );
+  });
+
+  it('seguir qualquer aviso recolhe os do jogo, o da carta também: ela continua contada como decisão', async () => {
+    const made = await opened(goldenView);
+    await made.controller.setPreferences({ notifications: 'all' });
+    await serverShows(
+      made,
+      seated,
+      drawn(1),
+      gameEvent(2, 'constructionFinished', 'A Serraria ficou pronta.'),
+    );
+    expect(made.controller.toasts).toHaveLength(2);
+    await actionOf(toastWith(made.controller, 'Serraria'), 'Ver').run();
+    expect(made.controller.route).toBe('fief');
+    expect(made.controller.toasts).toEqual([]);
+    // Recolher não é silenciar: a carta seguinte avisa como sempre.
+    expect(made.controller.preferences.mutedUntil).toBeNull();
+    expect(made.controller.title(0)).toBe(`(1) Pedra Alta · ${APP_TITLE}`);
+    await serverShows(made, councilView, drawn(3, shareCard));
+    expect(made.controller.toasts.map((toast) => toast.text)).toEqual([
+      'Nova carta do Conselho: A vez de repartir',
+    ]);
   });
 
   it('com a aba à vista não mexe no contador de novidades: a carta já é contada como decisão', async () => {
@@ -384,7 +422,7 @@ describe('aviso de carta nova (GDD §13.5)', () => {
       request: async () => true,
       show: (title, body) => shown.push({ title, body }),
     };
-    const made = await opened(goldenView, { overrides: { notifier } });
+    const made = await opened(goldenView, { now: () => NOON, overrides: { notifier } });
     await made.controller.setPreferences({ browserNotifications: true });
     made.controller.setVisible(false);
     await serverShows(made, seated, drawn(1));
@@ -394,7 +432,7 @@ describe('aviso de carta nova (GDD §13.5)', () => {
     expect(shown).toEqual([
       {
         title: 'Pedra Alta',
-        body: 'Nova carta do Conselho: A refeição dos pedreiros Espera a sua resposta por 23 h. Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.',
+        body: 'Nova carta do Conselho: A refeição dos pedreiros Espera a sua resposta por 23 h, até amanhã às 08:53. Sem resposta até o fim do prazo, o conselho decide sozinho: repartir o pão do dia.',
       },
     ]);
   });

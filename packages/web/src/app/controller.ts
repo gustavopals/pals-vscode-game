@@ -202,6 +202,11 @@ export class Controller {
    * desfecho.
    */
   private raidToast: number | null = null;
+  /**
+   * O relato dos vigias que está à vista (os uivos, ou a marca que a Ameaça cruzou): o relato
+   * seguinte toma o lugar dele. "A Ameaça chegou a 40" não fica na tela com a Ameaça em 70.
+   */
+  private watchToast: number | null = null;
   private previousAccount: AccountState = { kind: 'signedOut' };
   private subscriptions: Array<() => void> = [];
   private warnedUpgrade = false;
@@ -508,6 +513,7 @@ export class Controller {
       this.dropSeasonToast();
       this.dropCardToasts(() => true);
       this.dropRaidToast();
+      this.dropWatchToast();
       this.answering = new Set();
       await this.openGame();
     }
@@ -638,6 +644,13 @@ export class Controller {
     }
   }
 
+  private dropWatchToast(): void {
+    if (this.watchToast !== null) {
+      this.dismissToast(this.watchToast);
+      this.watchToast = null;
+    }
+  }
+
   /** Tira de cena os avisos de carta nova das cartas que `gone` aponta. */
   private dropCardToasts(gone: (instanceId: string) => boolean): void {
     for (const [instanceId, toastId] of [...this.cardToasts]) {
@@ -735,7 +748,11 @@ export class Controller {
       // O desfecho toma o lugar do alarme que o anunciou.
       this.dropRaidToast();
     }
-    this.announce({
+    if (isWatchReport(event)) {
+      // Um relato novo dos vigias toma o lugar do anterior: o de antes já é notícia velha.
+      this.dropWatchToast();
+    }
+    const id = this.announce({
       kind: isEssential(event) ? 'warning' : 'info',
       icon: eventIcon(event),
       text: event.text,
@@ -748,6 +765,9 @@ export class Controller {
         ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
       },
     });
+    if (isWatchReport(event)) {
+      this.watchToast = id;
+    }
   }
 
   /**
@@ -770,9 +790,11 @@ export class Controller {
   /**
    * O alarme dos vigias (GDD §8.2 e §13.5): "lobos a caminho", com o prazo e a hora do relógio em
    * que o ataque chega, o que ele custa a um feudo sem defesa e o que a Paliçada faz a ele, nas
-   * frases do servidor. "Ver" leva ao feudo, onde a obra da Paliçada está ao lado do aviso. A
-   * incursão é a da visão, que chega antes dos eventos: se ela já não está a caminho (a página
-   * leu tarde, e o ataque já passou), o alarme não sai; quem conta é o desfecho.
+   * frases do servidor. "Ver" leva ao painel da Ameaça, no feudo, onde a obra da Paliçada está
+   * logo abaixo do aviso, e recolhe os outros avisos do jogo (`announce`), que ficariam por cima
+   * da coluna do painel. A incursão é a da visão, que chega antes dos eventos: se ela já não está
+   * a caminho (a página leu tarde, e o ataque já passou), o alarme não sai; quem conta é o
+   * desfecho.
    */
   private notifyRaid(event: GameEvent): void {
     const details = raidAhead(this.view, { now: this.viewReceivedAt, timeZone: this.timezone() });
@@ -790,7 +812,8 @@ export class Controller {
   }
 
   /**
-   * "Nova carta do Conselho: <título>", com o prazo, o que o conselho faz sozinho e o botão
+   * "Nova carta do Conselho: <título>", com o prazo (e a hora do relógio em que ele acaba: o
+   * aviso fica na tela, e "por 23 h" envelhece), o que o conselho faz sozinho e o botão
    * "Decidir", que leva à aba do Conselho (GDD §13.5). A carta é a da visão, que chega antes dos
    * eventos: se ela já não está na mesa (foi respondida em outra aba, ou o prazo acabou antes
    * de esta página ler), não há o que decidir e o aviso não sai. Também não sai para quem já está
@@ -812,7 +835,7 @@ export class Controller {
     const id = this.announce({
       kind: 'info',
       icon: eventIcon(event),
-      ...cardNotice(card),
+      ...cardNotice(card, { now: this.viewReceivedAt, timeZone: this.timezone() }),
       action: { label: 'Decidir', route: 'council' },
       counted: false,
     });
@@ -823,6 +846,14 @@ export class Controller {
    * Um aviso do jogo: no canto da página, com o botão que leva ao assunto ("Ver" ou "Decidir")
    * e "Silenciar 2h", e, com a aba em segundo plano, no contador do título e (se o jogador
    * pediu) pelo navegador.
+   *
+   * Seguir um aviso ("Ver", "Decidir") recolhe todos os avisos do jogo, como "Silenciar 2h",
+   * mas sem silenciar os seguintes. Um aviso com botões não some sozinho, e os que sobrassem no
+   * canto ficariam por cima do que o botão prometeu mostrar: o painel da Ameaça e a obra da
+   * Paliçada estão na coluna da direita, debaixo deles. Nada do que diziam se perde: a Crônica
+   * recente tem cada frase; as cartas à espera estão no contador de decisões, na árvore e na
+   * barra de status; o que a estação muda, em "Antes de partir"; a incursão a caminho, no painel
+   * e na barra de status.
    */
   private announce(notice: {
     kind: Toast['kind'];
@@ -850,6 +881,7 @@ export class Controller {
         {
           label: notice.action.label,
           run: () => {
+            this.dropGameToasts();
             this.navigate(notice.action.route);
             if (notice.action.section !== undefined) {
               this.runCommand('lords.openPanel', notice.action.section);
@@ -878,6 +910,18 @@ export class Controller {
       }
     }
     return id;
+  }
+
+  /** Tira de cena todos os avisos do jogo, e esquece quais eram os de carta, estação e vigias. */
+  private dropGameToasts(): void {
+    this.cardToasts.clear();
+    this.seasonToast = null;
+    this.raidToast = null;
+    this.watchToast = null;
+    if (this.toasts.some((toast) => toast.game === true)) {
+      this.toasts = this.toasts.filter((toast) => toast.game !== true);
+      this.changes.emit();
+    }
   }
 
   private connectionChanged(connection: Connection): void {
@@ -1268,9 +1312,7 @@ export class Controller {
 
   muteNotifications(): Promise<void> {
     // Os avisos do jogo à vista somem junto: foi isso que o jogador pediu.
-    this.toasts = this.toasts.filter((toast) => toast.game !== true);
-    this.cardToasts.clear();
-    this.raidToast = null;
+    this.dropGameToasts();
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
   }
 

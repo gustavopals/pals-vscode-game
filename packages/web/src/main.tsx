@@ -79,13 +79,40 @@ const commands = createCommands(controller, dialogs, {
     // A aba pedida só é desenhada depois deste comando: a seção existe no quadro seguinte.
     requestAnimationFrame(() => {
       const section = document.getElementById(elementId);
-      // No meio da tela: o cabeçalho preso do feudo não fica por cima do título.
-      section?.scrollIntoView({ block: 'center' });
-      section?.focus({ preventScroll: true });
+      if (section === null) {
+        return;
+      }
+      revealBelowHeader(section);
+      section.focus({ preventScroll: true });
     });
   },
 });
 bindCommands(controller, commands);
+
+/**
+ * Leva o título de uma seção ao alto da área da aba, logo abaixo do cabeçalho preso do feudo
+ * (quando ele está preso). O que vem depois do título (o aviso da incursão, a obra da defesa)
+ * fica à vista, em vez de cair na metade de baixo da tela, que é onde ficam os avisos do canto.
+ * Uma seção perto do fim da aba sobe o quanto a rolagem deixa.
+ */
+function revealBelowHeader(section: HTMLElement): void {
+  section.scrollIntoView({ block: 'start' });
+  const scroller = section.closest('.editor-content');
+  const header = scroller?.querySelector('.header');
+  if (
+    scroller === null ||
+    scroller === undefined ||
+    !(header instanceof HTMLElement) ||
+    getComputedStyle(header).position !== 'sticky'
+  ) {
+    return;
+  }
+  // Um respiro de 8 px entre o cabeçalho e o título.
+  const covered = header.getBoundingClientRect().bottom + 8 - section.getBoundingClientRect().top;
+  if (covered > 0) {
+    scroller.scrollBy({ top: -covered });
+  }
+}
 
 async function showPalette(): Promise<void> {
   if (dialogs.current !== null) {
