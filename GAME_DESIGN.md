@@ -901,7 +901,7 @@ Interação: clique no posto abre um seletor (tipo + quantidade com slider/tecla
 - **Modo discreto** (comando e configuração): o item vira apenas `$(circle-filled) 2h14`, o título da aba vira só esse contador e todas as notificações são suprimidas. Para quem joga no trabalho.
 - Política de notificações: **Silenciosa** (nada), **Essenciais** (padrão: cerco, incursão, encruzilhada, carta nova, herói capturado), **Todas** (inclui obras e treinos). Limite de 3 notificações por hora; o excedente vira badge.
 - As notificações aparecem dentro do app. Com a aba em segundo plano, o jogador pode **optar** por recebê-las também como notificações do navegador; a permissão só é pedida quando ele liga essa opção. Com a aba fechada nada é entregue na v0.1: quem volta lê o Relatório de Retorno.
-- Toda notificação tem botões: `[Ver]` `[Decidir]` `[Silenciar 2h]`.
+- Toda notificação tem botões: `[Ver]` `[Decidir]` `[Silenciar 2h]`. Seguir uma (`[Ver]`, `[Decidir]`) recolhe as notificações do jogo à vista, sem silenciar as seguintes: elas ficam no canto e cobririam o que o botão foi mostrar. O que diziam continua no jogo (Crônica, contador de decisões, "Antes de partir", barra de status).
 - **Relatório de Retorno:** ao abrir após 4 h ou mais ausente, o app abre na aba "Hoje" com o resumo.
 
 ### 13.6 Comandos (paleta de comandos)
