@@ -13,6 +13,11 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 | `objectives` | Os quatro primeiros objetivos concluídos |
 | `week-scripted` | O cenário roteirizado de 7 dias (o golden do motor): ano 2, feudo renomeado |
 | `week-bot-3x` | Só na versão 1: o bot econômico do simulador, 7 dias reais no ritmo 3 (ano 4, estoque alto) |
+| `migrated-3x` | A partir da versão 2: o `week-bot-3x` da versão 1 migrado (Senhor, ritmo 3) e jogado por mais cinco dias de jogo. `migratedAtMs` numérico e bem anterior a `lastProcessedAt`; obra em curso, uma planejada, um recruta a caminho |
+| `iron-king-half` | A partir da versão 2: Rei de Ferro no ritmo 0,5 (o único não inteiro), com obra, planejada e recruta, no meio de um trecho |
+| `peasant-3x` | A partir da versão 2: Camponês no ritmo 3, nascido na versão (`migratedAtMs: null`) e já no ano 3 |
+
+Os três últimos cobrem o que a fundação da v0.2 pôs no estado e que os passos seguintes leem: a fronteira, o ritmo e a dificuldade. `fixtures.test.ts` exige que os cenários tenham uma fronteira antiga, uma partida sem fronteira no ano 3, os ritmos 1, 3 e 0,5 e as três dificuldades.
 
 Os retratos da versão 1 foram gerados com o motor da v0.1 (commit `9b1d3e8`, o mesmo motor da tag `v0.1.0`) antes de o tipo mudar. Nomes e sementes são de teste: nenhum veio de uma conta real.
 

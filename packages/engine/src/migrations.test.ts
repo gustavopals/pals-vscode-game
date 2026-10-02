@@ -39,8 +39,10 @@ const fixtures: Fixture[] = Object.entries(files)
   .map(([path, text]) => {
     const name = path.slice(path.lastIndexOf('/') + 1);
     const version = Number(/^state-v(\d+)-/.exec(name)?.[1]);
-    // O ritmo da versão 1 não estava no estado: vinha da linha da partida. O bot jogou no 3.
-    return { name, version, timeScale: name.includes('-3x') ? 3 : 1, text };
+    // O ritmo da versão 1 não estava no estado: vinha da linha da partida, e o bot jogou no 3.
+    // Da versão 2 em diante ele está gravado, e quem carrega informa o mesmo número.
+    const stored = (JSON.parse(text) as { settings: { timeScale?: number } }).settings.timeScale;
+    return { name, version, timeScale: stored ?? (name.includes('-3x') ? 3 : 1), text };
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 

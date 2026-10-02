@@ -1,16 +1,32 @@
+import { DIFFICULTY_IDS } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
-import { CURRENT_SCHEMA_VERSION } from './migrations';
+import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
+import { createInitialState } from './state';
 import {
   command,
+  DAY,
   HOUR,
   MINUTE,
   newGame,
   objectivesScenario,
   play,
   runWeekScenario,
+  settings,
 } from './test-helpers';
 import type { GameState } from './types';
+
+const YEAR = 84 * DAY;
+
+// O retrato da versão 1 que o bot do simulador deixou, como texto: o cenário `migrated-3x`
+// parte dele.
+const weekBot3x = Object.values(
+  import.meta.glob<string>('./__fixtures__/state-v1-week-bot-3x.json', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }),
+)[0] as string;
 
 /**
  * Retratos do estado **na versão atual**, um por cenário, gravados em
@@ -55,6 +71,63 @@ const scenarios: Record<string, () => GameState> = {
 
   // O cenário roteirizado de 7 dias reais: ano 2, feudo renomeado, estoque de uma semana.
   'week-scripted': () => runWeekScenario().state,
+
+  // Uma partida da v0.1 que a migração já alcançou, no ritmo da produção: o feudo do bot (ano 4,
+  // estoque alto), migrado e jogado por mais cinco dias de jogo. A fronteira ficou para trás;
+  // há obra em curso, uma planejada e um recruta a caminho.
+  'migrated-3x': () => {
+    const migrated = migrateState(JSON.parse(weekBot3x), { timeScale: 3 });
+    return play(migrated, [
+      // As Habitações estavam cheias e presas ao Salão: primeiro a obra que abre o caminho.
+      command('startConstruction', { building: 'townHall' }),
+      { at: migrated.lastProcessedAt + 5 * DAY + 4 * MINUTE },
+      command('setWorkers', { building: 'lumberMill', count: 9 }),
+      command('setWorkers', { building: 'farm', count: 8 }),
+      command('recruitVillagers', { quantity: 2 }),
+      command('startConstruction', { building: 'housing' }),
+      command('planConstruction', { building: 'farm' }),
+      { at: migrated.lastProcessedAt + 5 * DAY + 37 * MINUTE },
+      command('startConstruction', { building: 'lumberMill' }),
+      { at: migrated.lastProcessedAt + 5 * DAY + 37 * MINUTE + 11_003 },
+    ]).state;
+  },
+
+  // Rei de Ferro no ritmo Tranquilo, o único que não é inteiro: primeiras ordens, no meio de um
+  // trecho de produção.
+  'iron-king-half': () =>
+    play(
+      createInitialState('fixture-iron-king-half', {
+        ...settings,
+        difficulty: 'ironKing',
+        timeScale: 0.5,
+      }),
+      [
+        command('setWorkers', { building: 'farm', count: 3 }),
+        command('setWorkers', { building: 'quarry', count: 2 }),
+        command('startConstruction', { building: 'housing' }),
+        command('planConstruction', { building: 'lumberMill' }),
+        command('recruitVillagers', { quantity: 1 }),
+        { at: MINUTE + 59_003 },
+      ],
+    ).state,
+
+  // Camponês no ritmo Rápido, nascido nesta versão (sem fronteira) e já no ano 3: é a partida
+  // criada entre duas publicações, que a migração seguinte encontra longe do começo.
+  'peasant-3x': () =>
+    play(
+      createInitialState('fixture-peasant-3x', {
+        ...settings,
+        difficulty: 'peasant',
+        timeScale: 3,
+      }),
+      [
+        command('setWorkers', { building: 'farm', count: 3 }),
+        command('setWorkers', { building: 'lumberMill', count: 2 }),
+        command('startConstruction', { building: 'housing' }),
+        { at: 2 * YEAR + 5 * DAY + 13 * MINUTE + 777 },
+        command('planConstruction', { building: 'farm' }),
+      ],
+    ).state,
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -85,5 +158,20 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('famine').settlement.recruitmentQueue.length).toBeGreaterThan(0);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
+
+    // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,
+    // o ritmo (que converte prazos de tempo real) e a dificuldade (que tem fatores próprios).
+    const all = Object.values(built);
+    // Partida migrada há tempos: a fronteira gravada ficou bem atrás de onde a partida está.
+    expect(
+      all.some(
+        (state) => state.migratedAtMs !== null && state.migratedAtMs + DAY < state.lastProcessedAt,
+      ),
+    ).toBe(true);
+    // Partida que nasceu nesta versão e já vai longe: sem fronteira, e no ano 3 ou depois.
+    expect(all.some((state) => state.migratedAtMs === null && state.clock.year >= 3)).toBe(true);
+    // O ritmo da produção (3) e o único que não é inteiro (0,5), além do 1 dos outros cenários.
+    expect(new Set(all.map((state) => state.settings.timeScale))).toEqual(new Set([1, 3, 0.5]));
+    expect(new Set(all.map((state) => state.settings.difficulty))).toEqual(new Set(DIFFICULTY_IDS));
   });
 });
