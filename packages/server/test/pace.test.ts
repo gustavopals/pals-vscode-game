@@ -36,8 +36,9 @@ import { resetTestDb } from './helpers/db';
 // Ritmo das partidas (ADR 0011; ADR 0013, decisão 2a): sem escolha no corpo de POST /games, o
 // servidor grava GAME_TIME_SCALE na partida nova; com `timeScale`, vale o escolhido. O motor
 // segue em tempo de jogo e a visão sai em tempo real. Os números de jogo usados aqui são os do
-// GDD no ritmo Normal: melhoria das Habitações em 4 min, aldeão em 20 min, dia de 2 h, 180 de
-// comida inicial, 10 de comida por fazendeiro por hora e 1 de consumo por aldeão por hora.
+// GDD no ritmo Normal: melhoria das Habitações em 4 min, aldeão em 20 min (16 na primavera, em
+// que toda partida nasce), dia de 2 h, 180 de comida inicial, 10 de comida por fazendeiro por hora
+// (12 na primavera) e 1 de consumo por aldeão por hora.
 
 const SECOND = 1000;
 const PACE = 3;
@@ -149,6 +150,8 @@ function createdAtMs(player: Player): number {
 function atPace(view: ViewState, pace: number): ViewState {
   const up = (seconds: number) => Math.ceil(seconds / pace);
   const down = (seconds: number) => Math.floor(seconds / pace);
+  // As taxas da visão têm até três casas (milésimos); o produto em ponto flutuante é limpo aqui.
+  const scaled = (rate: number) => Math.round(rate * pace * 1000) / 1000;
   const { active } = view.constructions;
   return {
     ...view,
@@ -157,6 +160,11 @@ function atPace(view: ViewState, pace: number): ViewState {
       ...view.calendar,
       secondsToNextDay: up(view.calendar.secondsToNextDay),
       secondsToNextSeason: up(view.calendar.secondsToNextSeason),
+      nextSeason: {
+        ...view.calendar.nextSeason,
+        secondsUntil: up(view.calendar.nextSeason.secondsUntil),
+        firewood: firewoodAtPace(view.calendar.nextSeason.firewood, pace),
+      },
     },
     population: {
       ...view.population,
@@ -167,13 +175,13 @@ function atPace(view: ViewState, pace: number): ViewState {
     },
     resources: view.resources.map((entry) => ({
       ...entry,
-      perHour: entry.perHour * pace,
+      perHour: scaled(entry.perHour),
       depletesInSeconds: entry.depletesInSeconds === null ? null : down(entry.depletesInSeconds),
     })),
     workers: view.workers.map((entry) => ({
       ...entry,
-      grossPerHour: entry.grossPerHour * pace,
-      perWorkerPerHour: entry.perWorkerPerHour * pace,
+      grossPerHour: scaled(entry.grossPerHour),
+      perWorkerPerHour: scaled(entry.perWorkerPerHour),
     })),
     constructions: {
       active:
@@ -201,20 +209,73 @@ function atPace(view: ViewState, pace: number): ViewState {
       view.famine === null
         ? null
         : { ...view.famine, secondsElapsed: down(view.famine.secondsElapsed) },
+    winter:
+      view.winter === null
+        ? null
+        : {
+            firewoodPerHour: scaled(view.winter.firewoodPerHour),
+            firewood: firewoodAtPace(view.winter.firewood, pace) ?? view.winter.firewood,
+            cold:
+              view.winter.cold === null
+                ? null
+                : {
+                    ...view.winter.cold,
+                    secondsElapsed: down(view.winter.cold.secondsElapsed),
+                  },
+          },
   };
 }
 
-/** A visão sem os textos de explicação que citam taxas por hora. */
+type Firewood = NonNullable<ViewState['calendar']['nextSeason']['firewood']>;
+
+/** A conta da lenha em outro ritmo: só a taxa por hora muda; os totais são de jogo. */
+function firewoodAtPace(firewood: Firewood | null, pace: number): Firewood | null {
+  return firewood === null
+    ? null
+    : { ...firewood, perHour: Math.round(firewood.perHour * pace * 1000) / 1000 };
+}
+
+/**
+ * A visão sem os textos de explicação que citam taxas por hora: os das taxas e, no inverno ou às
+ * portas dele, os que dizem quanto a lareira queima por hora.
+ */
 function withoutRateTexts(view: ViewState): ViewState {
   return {
     ...view,
+    calendar: {
+      ...view.calendar,
+      seasonEffects: view.winter === null ? view.calendar.seasonEffects : '',
+      nextSeason: {
+        ...view.calendar.nextSeason,
+        changes: view.calendar.nextSeason.firewood === null ? view.calendar.nextSeason.changes : [],
+      },
+    },
     resources: view.resources.map((entry) => ({ ...entry, breakdown: '' })),
     workers: view.workers.map((entry) => ({ ...entry, breakdown: '' })),
+    winter:
+      view.winter === null || view.winter.cold === null
+        ? view.winter
+        : { ...view.winter, cold: { ...view.winter.cold, text: '' } },
   };
 }
 
+/** A visão sem o saldo por hora dos recursos, que é conferido à parte. */
+function withoutNetRates(view: ViewState): ViewState {
+  return { ...view, resources: view.resources.map((entry) => ({ ...entry, perHour: 0 })) };
+}
+
 function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
-  expect(withoutRateTexts(fastView)).toEqual(withoutRateTexts(atPace(normalView, PACE)));
+  const expected = atPace(normalView, PACE);
+  expect(withoutNetRates(withoutRateTexts(fastView))).toEqual(
+    withoutNetRates(withoutRateTexts(expected)),
+  );
+  // O saldo por hora sai da visão arredondado a uma casa. O triplo de um valor já arredondado
+  // pode ficar a até duas casas decimais de distância do triplo de verdade, também arredondado
+  // (10,368 vira 10,4 e o triplo 31,2; 31,104 vira 31,1).
+  for (const [index, entry] of fastView.resources.entries()) {
+    const tripled = expected.resources[index]?.perHour ?? Number.NaN;
+    expect(Math.abs(entry.perHour - tripled), entry.id).toBeLessThanOrEqual(0.2 + 1e-9);
+  }
 }
 
 // --- Criação ------------------------------------------------------------------
@@ -298,9 +359,10 @@ describe('a visão fala em tempo real', () => {
       secondsToNextSeason: 172_800,
     });
     expect(resource(normalView, 'food')).toMatchObject({ perHour: -5, depletesInSeconds: 129_600 });
-    expect(worker(normalView, 'farm').perWorkerPerHour).toBe(10);
+    // Primavera: a comida rende × 1,2 e o recrutamento leva × 0,8.
+    expect(worker(normalView, 'farm').perWorkerPerHour).toBe(12);
     expect(upgradeOf(normalView, 'housing').durationSeconds).toBe(240);
-    expect(normalView.recruitment.secondsPerVillager).toBe(1200);
+    expect(normalView.recruitment.secondsPerVillager).toBe(960);
 
     // Ritmo 3: o dia dura 40 min reais, a estação 16 h e a comida acaba em 12 h.
     expect(fastView.calendar).toMatchObject({
@@ -313,17 +375,18 @@ describe('a visão fala em tempo real', () => {
       stock: 180,
       perHour: -15,
       depletesInSeconds: 43_200,
-      breakdown: 'Fazenda: 0 trabalhadores × 30 × 1 (Nv1) = 0/h; consumo 5 × 3 = 15/h',
+      breakdown:
+        'Fazenda: 0 trabalhadores × 30 × 1 (Nv1) × 1,2 (primavera) = 0/h; consumo 5 × 3 = 15/h',
     });
     expect(fastView.workers.map((entry) => [entry.building, entry.perWorkerPerHour])).toEqual([
-      ['farm', 30],
+      ['farm', 36],
       ['lumberMill', 24],
       ['quarry', 15],
       ['goldMine', 12],
     ]);
     expect(upgradeOf(fastView, 'housing').durationSeconds).toBe(80);
     expect(upgradeOf(fastView, 'townHall').durationSeconds).toBe(200);
-    expect(fastView.recruitment.secondsPerVillager).toBe(400);
+    expect(fastView.recruitment.secondsPerVillager).toBe(320);
 
     // E o resto da visão é o mesmo mundo: estoques, custos, população, objetivos.
     expectSameWorld(fastView, normalView);
@@ -358,20 +421,21 @@ describe('a visão fala em tempo real', () => {
       totalSeconds: 80,
       progressPercent: 0,
     });
-    expect(fastReply.view.population.secondsToNextRecruit).toBe(400);
+    expect(fastReply.view.population.secondsToNextRecruit).toBe(320);
     expect(resource(fastReply.view, 'food')).toMatchObject({
-      perHour: 45,
-      breakdown: 'Fazenda: 2 trabalhadores × 30 × 1 (Nv1) = 60/h; consumo 5 × 3 = 15/h',
+      perHour: 57,
+      breakdown:
+        'Fazenda: 2 trabalhadores × 30 × 1 (Nv1) × 1,2 (primavera) = 72/h; consumo 5 × 3 = 15/h',
     });
     expect(worker(fastReply.view, 'farm')).toMatchObject({
-      grossPerHour: 60,
-      perWorkerPerHour: 30,
-      breakdown: '2 trabalhadores × 30 × 1 (Nv1) = 60/h',
+      grossPerHour: 72,
+      perWorkerPerHour: 36,
+      breakdown: '2 trabalhadores × 30 × 1 (Nv1) × 1,2 (primavera) = 72/h',
     });
 
-    // Instantes de jogo: 3 min (obra a 75%), 19 min 57 s (aldeão a 3 s de jogo de chegar),
+    // Instantes de jogo: 3 min (obra a 75%), 15 min 57 s (aldeão a 3 s de jogo de chegar),
     // 30 min (obra pronta, aldeão em casa) e 3 h (depois da primeira virada de dia).
-    const checkpoints = [3 * MINUTE, 19 * MINUTE + 57 * SECOND, 30 * MINUTE, 3 * HOUR];
+    const checkpoints = [3 * MINUTE, 15 * MINUTE + 57 * SECOND, 30 * MINUTE, 3 * HOUR];
     let gameNow = 0;
     for (const checkpoint of checkpoints) {
       await wait(fast, quick, (checkpoint - gameNow) / PACE);
@@ -386,9 +450,9 @@ describe('a visão fala em tempo real', () => {
           totalSeconds: 80,
           progressPercent: 75,
         });
-        expect(fastView.population.secondsToNextRecruit).toBe(340);
+        expect(fastView.population.secondsToNextRecruit).toBe(260);
       }
-      if (checkpoint === 19 * MINUTE + 57 * SECOND) {
+      if (checkpoint === 15 * MINUTE + 57 * SECOND) {
         expect(normalView.population.secondsToNextRecruit).toBe(3);
         expect(fastView.population.secondsToNextRecruit).toBe(1);
       }
@@ -430,9 +494,9 @@ describe('a visão fala em tempo real', () => {
     const fastView = await viewOf(fast, quick);
     const normalView = await viewOf(normal, slow);
 
-    // Por hora de jogo: 2 × 10 de produção − 5 de consumo = +15.
-    expect(resource(normalView, 'food')).toMatchObject({ stock: 195, perHour: 15 });
-    expect(resource(fastView, 'food')).toMatchObject({ stock: 225, perHour: 45 });
+    // Por hora de jogo, na primavera: 2 × 10 × 1,2 de produção − 5 de consumo = +19.
+    expect(resource(normalView, 'food')).toMatchObject({ stock: 199, perHour: 19 });
+    expect(resource(fastView, 'food')).toMatchObject({ stock: 237, perHour: 57 });
     // Uma hora real são três horas de jogo: o dia de 2 h já virou uma vez.
     expect(normalView.calendar).toMatchObject({ dayOfSeason: 1, secondsToNextDay: 3600 });
     expect(fastView.calendar).toMatchObject({ dayOfSeason: 2, secondsToNextDay: 1200 });
@@ -510,15 +574,16 @@ describe('o que a visão anuncia acontece no relógio real', () => {
     const recruit = () => order('recruitVillagers', { quantity: 1 });
     const fastOrder = await accepted(fast, quick, recruit());
     const normalOrder = await accepted(normal, slow, recruit());
-    expect(normalOrder.view.population.secondsToNextRecruit).toBe(1200);
+    // Na primavera o treinamento leva 16 min de jogo: 960 s no ritmo Normal, 320 s no 3.
+    expect(normalOrder.view.population.secondsToNextRecruit).toBe(960);
     expect(fastOrder.view.population).toMatchObject({
       villagers: 5,
       inTraining: 1,
-      secondsToNextRecruit: 400,
+      secondsToNextRecruit: 320,
     });
     const orderedAt = fast.clock.now().getTime();
 
-    await wait(fast, quick, 399 * SECOND);
+    await wait(fast, quick, 319 * SECOND);
     expect((await viewOf(fast, quick)).population).toMatchObject({
       villagers: 5,
       inTraining: 1,
@@ -534,17 +599,17 @@ describe('o que a visão anuncia acontece no relógio real', () => {
       (event) => event.type === 'recruitmentFinished',
     );
     expect(arrived).toMatchObject({
-      atMs: 20 * MINUTE,
-      at: new Date(orderedAt + 400 * SECOND).toISOString(),
+      atMs: 16 * MINUTE,
+      at: new Date(orderedAt + 320 * SECOND).toISOString(),
     });
 
-    // No ritmo Normal, 400 s depois o aldeão ainda está a caminho; chega aos 1.200 s.
-    await wait(normal, slow, 400 * SECOND);
+    // No ritmo Normal, 320 s depois o aldeão ainda está a caminho; chega aos 960 s.
+    await wait(normal, slow, 320 * SECOND);
     expect((await viewOf(normal, slow)).population).toMatchObject({
       villagers: 5,
-      secondsToNextRecruit: 800,
+      secondsToNextRecruit: 640,
     });
-    await wait(normal, slow, 800 * SECOND);
+    await wait(normal, slow, 640 * SECOND);
     expect((await viewOf(normal, slow)).population.villagers).toBe(6);
   });
 
@@ -646,14 +711,14 @@ describe('mudar GAME_TIME_SCALE não mexe nas partidas que já existem', () => {
       expect(first.calendar.secondsToNextDay).toBe(7200);
       expect(resource(first, 'food')).toMatchObject({ perHour: -5, depletesInSeconds: 129_600 });
       expect(upgradeOf(first, 'housing').durationSeconds).toBe(240);
-      expect(first.recruitment.secondsPerVillager).toBe(1200);
+      expect(first.recruitment.secondsPerVillager).toBe(960);
 
       const ordered = await accepted(
         after,
         player,
         order('setWorkers', { building: 'farm', count: 2 }),
       );
-      expect(resource(ordered.view, 'food').perHour).toBe(15);
+      expect(resource(ordered.view, 'food').perHour).toBe(19);
       await accepted(after, player, order('startConstruction', { building: 'housing' }));
 
       // 80 s depois (o prazo do ritmo 3) a obra não terminou: o prazo dela é de 240 s.
@@ -662,10 +727,10 @@ describe('mudar GAME_TIME_SCALE não mexe nas partidas que já existem', () => {
       before.clock.advance(160 * SECOND);
       expect((await viewOf(after, player)).constructions.active).toBeNull();
 
-      // Uma hora real depois da criação: uma hora de jogo, +15 de comida, ainda no 1º dia.
+      // Uma hora real depois da criação: uma hora de jogo, +19 de comida, ainda no 1º dia.
       await wait(after, player, HOUR - 240 * SECOND);
       const later = await viewOf(after, player);
-      expect(resource(later, 'food')).toMatchObject({ stock: 195, perHour: 15 });
+      expect(resource(later, 'food')).toMatchObject({ stock: 199, perHour: 19 });
       expect(later.calendar).toMatchObject({ dayOfSeason: 1, secondsToNextDay: 3600 });
       expect(later).toEqual(await viewOf(before, player));
 
@@ -703,6 +768,148 @@ describe('mudar GAME_TIME_SCALE não mexe nas partidas que já existem', () => {
   });
 });
 
+// --- Estações ---------------------------------------------------------------------
+
+describe('as estações no relógio real (V2C-T1)', () => {
+  const DAY = 2 * HOUR;
+  const WINTER = 72 * DAY;
+  const YEAR = 84 * DAY;
+
+  it('no ritmo 3, o inverno chega em 48 horas reais; sem madeira, o frio abre na virada e a Crônica o registra', async () => {
+    const player = await newPlayer(fast);
+    const created = createdAtMs(player);
+    // Todos na Fazenda (a comida sobra o ano inteiro) e a madeira inteira em uma obra: a
+    // Pedreira custa 120 de madeira, tudo o que o feudo tem.
+    await accepted(fast, player, order('setWorkers', { building: 'farm', count: 5 }));
+    const built = await accepted(fast, player, order('startConstruction', { building: 'quarry' }));
+    expect(resource(built.view, 'wood').stock).toBe(0);
+    expect(built.view.winter).toBeNull();
+    expect(built.view.calendar.seasonEffects).toBe(
+      'Primavera: comida × 1,2; recrutamento com prazo × 0,8.',
+    );
+
+    // Outono, dois dias de jogo antes do inverno: a visão já faz a conta da lenha, com a taxa
+    // por hora real e os totais do inverno inteiro.
+    await wait(fast, player, (WINTER - 2 * DAY) / PACE);
+    const autumn = await viewOf(fast, player);
+    expect(autumn.calendar).toMatchObject({ season: 'autumn', dayOfSeason: 23 });
+    expect(autumn.calendar.nextSeason).toMatchObject({
+      id: 'winter',
+      label: 'Inverno',
+      secondsUntil: (2 * DAY) / PACE / SECOND,
+      firewood: {
+        perHour: 7.5,
+        winterTotal: 60,
+        winterProduction: 0,
+        stock: 0,
+        missing: 60,
+        text: 'O Inverno vai queimar 60 de madeira com 5 habitantes. A Serraria repõe 0 e há 0 em estoque: faltam 60 de madeira.',
+      },
+    });
+    expect(autumn.calendar.nextSeason.changes).toContain(
+      'A lareira passa a queimar 1,5 de madeira por habitante por hora; sem madeira, vem o frio.',
+    );
+
+    // Um segundo real antes da virada ainda é outono; na virada, o frio.
+    await wait(fast, player, (2 * DAY) / PACE - SECOND);
+    expect((await viewOf(fast, player)).winter).toBeNull();
+    fast.clock.advance(SECOND);
+    const winter = await viewOf(fast, player);
+    expect(winter.calendar).toMatchObject({ season: 'winter', dayOfSeason: 1 });
+    expect(winter.winter).toMatchObject({
+      firewoodPerHour: 7.5,
+      firewood: { perHour: 7.5, winterTotal: 60, winterProduction: 0, stock: 0, missing: 60 },
+      cold: { secondsElapsed: 0 },
+    });
+    expect(winter.winter?.cold?.text).toContain('a produção de todo o feudo cai para 80%');
+    expect(winter.winter?.cold?.text).toContain('A lareira pede 7,5/h e a Serraria entrega 0/h');
+    expect(resource(winter, 'wood')).toMatchObject({ stock: 0, perHour: -7.5 });
+    expect(resource(winter, 'wood').breakdown).toBe(
+      'Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −7,5/h (lenha de 5 habitantes)',
+    );
+    // Inverno com frio: 5 × 30 × 0,4 × 0,8 = 48 por hora real.
+    expect(worker(winter, 'farm')).toMatchObject({ grossPerHour: 48, perWorkerPerHour: 9.6 });
+    // A obra iniciada agora leva × 1,5, e a visão diz por quê.
+    expect(upgradeOf(winter, 'housing')).toMatchObject({
+      durationSeconds: 120,
+      durationNote: 'No Inverno, o prazo de uma obra iniciada agora é × 1,5.',
+    });
+    expect(winter.recruitment).toMatchObject({ secondsPerVillager: 400, durationNote: null });
+
+    const started = (await eventsOf(fast, player)).filter((event) => event.type === 'coldStarted');
+    expect(started).toHaveLength(1);
+    expect(started[0]).toMatchObject({
+      atMs: WINTER,
+      at: new Date(created + WINTER / PACE).toISOString(),
+      text: 'No 1º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.',
+    });
+
+    // Uma hora real de frio depois, o senhor manda um aldeão para a Serraria: a lareira volta.
+    await wait(fast, player, HOUR);
+    expect((await viewOf(fast, player)).winter?.cold?.secondsElapsed).toBe(3600);
+    await accepted(fast, player, order('setWorkers', { building: 'farm', count: 4 }));
+    const warmed = await accepted(
+      fast,
+      player,
+      order('setWorkers', { building: 'lumberMill', count: 1 }),
+    );
+    expect(warmed.events.map((event) => event.type)).toEqual(['coldEnded']);
+    expect(warmed.events[0]).toMatchObject({
+      atMs: WINTER + 3 * HOUR,
+      text: 'No 2º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.',
+      data: { reason: 'firewood', sinceMs: WINTER },
+    });
+    expect(warmed.view.winter).toMatchObject({ firewoodPerHour: 7.5, cold: null });
+    // Sem o frio: 8 × 0,8 = 6,4 por hora de jogo, menos 2,5 de lenha; por hora real, o triplo.
+    expect(resource(warmed.view, 'wood').perHour).toBe(11.7);
+
+    // A Crônica conta o frio como contou a fome: começo e fim, cada um uma vez.
+    const chronicle = await chronicleOf(fast, player);
+    expect(
+      chronicle.filter((entry) => entry.type.startsWith('cold')).map((entry) => entry.type),
+    ).toEqual(['coldStarted', 'coldEnded']);
+
+    // E a primavera chega na hora marcada, sem lareira nenhuma na visão.
+    await wait(fast, player, (YEAR - WINTER - 3 * HOUR) / PACE);
+    const spring = await viewOf(fast, player);
+    expect(spring.calendar).toMatchObject({ year: 2, season: 'spring', dayOfSeason: 1 });
+    expect(spring.winter).toBeNull();
+    expect(resource(spring, 'wood').depletesInSeconds).toBeNull();
+  });
+
+  it('o mesmo inverno nos dois ritmos é o mesmo mundo, com prazos ÷3 e taxas ×3', async () => {
+    const quick = await newPlayer(fast);
+    const slow = await newPlayer(normal);
+    for (const [server, player] of [
+      [fast, quick],
+      [normal, slow],
+    ] as const) {
+      await accepted(server, player, order('setWorkers', { building: 'farm', count: 4 }));
+      await accepted(server, player, order('setWorkers', { building: 'quarry', count: 1 }));
+      await accepted(server, player, order('startConstruction', { building: 'farm' }));
+    }
+    // 40 de madeira e 5 habitantes: a lenha dura 16 horas de jogo de inverno.
+    const instants = [WINTER - DAY, WINTER + 7 * HOUR + 1234 * SECOND, WINTER + 17 * HOUR, YEAR];
+    let gameNow = 0;
+    for (const instant of instants) {
+      await wait(fast, quick, (instant - gameNow) / PACE);
+      await wait(normal, slow, instant - gameNow);
+      gameNow = instant;
+      expectSameWorld(await viewOf(fast, quick), await viewOf(normal, slow));
+    }
+    const story = (events: GameEvent[]) =>
+      events
+        .filter((event) => event.type !== 'dayStarted')
+        .map(({ type, atMs, text, data }) => ({ type, atMs, text, data }));
+    const fastStory = story(await eventsOf(fast, quick));
+    expect(fastStory).toEqual(story(await eventsOf(normal, slow)));
+    expect(fastStory.filter((event) => event.type.startsWith('cold'))).toMatchObject([
+      { type: 'coldStarted', atMs: WINTER + 16 * HOUR },
+      { type: 'coldEnded', atMs: YEAR, data: { reason: 'thaw' } },
+    ]);
+  });
+});
+
 // --- Outros ritmos --------------------------------------------------------------
 
 describe('ritmos que não são 3', () => {
@@ -715,7 +922,7 @@ describe('ritmos que não são 3', () => {
       expect(view.settlement.paceLabel).toBe('Tranquilo: um ano em 14 dias');
       expect(view.calendar.secondsToNextDay).toBe(4 * 3600);
       expect(resource(view, 'food')).toMatchObject({ perHour: -2.5, depletesInSeconds: 72 * 3600 });
-      expect(worker(view, 'farm').perWorkerPerHour).toBe(5);
+      expect(worker(view, 'farm').perWorkerPerHour).toBe(6);
       expect(upgradeOf(view, 'housing').durationSeconds).toBe(480);
 
       await wait(server, player, 4 * HOUR - SECOND);

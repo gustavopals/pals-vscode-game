@@ -8,6 +8,8 @@ import {
 } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { seasonAt } from './clock';
+import { sentenceCase } from './format';
 import { reject } from './rejections';
 import type {
   BuildingId,
@@ -29,10 +31,6 @@ export function buildingWithArticle(building: BuildingId): string {
   return `${def.article} ${def.label}`;
 }
 
-function sentenceCase(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 /** arredondar(valor × fator^passos), só com inteiros. */
 function growRounded(value: number, factor: Ratio, steps: number): number {
   const num = value * factor.num ** steps;
@@ -51,14 +49,29 @@ export function upgradeCost(building: BuildingId, fromLevel: number): ResourceAm
   return cost;
 }
 
-/** Duração da obra a partir de `fromLevel`, limitada a 8 h: nenhuma obra exige mais que uma noite. */
-export function upgradeDurationMs(building: BuildingId, fromLevel: number): number {
+/**
+ * Duração da obra a partir de `fromLevel`. `seasonFactor` é o fator da estação em que ela começa
+ * (no inverno, × 1,5); sem ele, sai o prazo de tabela. É uma conta só, com um arredondamento
+ * para baixo, e o teto de 8 h vem **depois** do fator: nenhuma obra exige mais que uma noite,
+ * nem no inverno. O prazo é fixado quando a obra começa e não muda na virada (GDD §4.1).
+ */
+export function upgradeDurationMs(
+  building: BuildingId,
+  fromLevel: number,
+  seasonFactor: Ratio = { num: 1, den: 1 },
+): number {
   const { timeFactor, maxDurationMs } = balance.construction;
   const steps = fromLevel - 1;
   const duration = Math.floor(
-    (buildings[building].baseDurationMs * timeFactor.num ** steps) / timeFactor.den ** steps,
+    (buildings[building].baseDurationMs * timeFactor.num ** steps * seasonFactor.num) /
+      (timeFactor.den ** steps * seasonFactor.den),
   );
   return Math.min(maxDurationMs, duration);
+}
+
+/** Duração da obra a partir de `fromLevel` se ela começar no instante `atMs`. */
+export function upgradeDurationAt(building: BuildingId, fromLevel: number, atMs: number): number {
+  return upgradeDurationMs(building, fromLevel, seasonAt(atMs).effects.constructionDuration);
 }
 
 /** O que falta, em unidades, para pagar `quantity` vezes `cost`; `null` quando há o bastante. */
@@ -136,7 +149,7 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
     fromLevel,
     targetLevel,
     cost,
-    durationMs: upgradeDurationMs(building, fromLevel),
+    durationMs: upgradeDurationAt(building, fromLevel, state.lastProcessedAt),
     missing,
     blocked,
   };

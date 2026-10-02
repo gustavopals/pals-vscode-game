@@ -48,6 +48,8 @@ const UpgradeSchema = z.strictObject({
   targetLevel: z.number(),
   cost: z.array(ResourceCostSchema),
   durationSeconds: z.number(),
+  /** Por que o prazo não é o de tabela (fator da estação); `null` sem efeito. */
+  durationNote: z.string().nullable(),
   affordable: z.boolean(),
   blockedCode: RejectionCodeSchema.nullable(),
   blockedReason: z.string().nullable(),
@@ -61,6 +63,21 @@ const ObjectiveSchema = z.strictObject({
   reward: z.string(),
   status: z.enum(['active', 'completed']),
   progress: z.strictObject({ current: z.number(), target: z.number() }),
+});
+
+/**
+ * A conta da lenha, em unidades, com os habitantes e os trabalhadores de agora: o que a lareira
+ * queima, o que a Serraria entrega no mesmo prazo e quanto falta guardar.
+ */
+const FirewoodSchema = z.strictObject({
+  /** Madeira queimada por hora real. */
+  perHour: z.number(),
+  winterTotal: z.number(),
+  winterProduction: z.number(),
+  stock: z.number(),
+  /** Quanto falta guardar; 0 quando o estoque e a Serraria cobrem. */
+  missing: z.number(),
+  text: z.string(),
 });
 
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
@@ -82,6 +99,17 @@ export const ViewStateSchema = z.strictObject({
     dayOfYear: z.number(),
     secondsToNextDay: z.number(),
     secondsToNextSeason: z.number(),
+    /** O que a estação atual muda, em uma frase. */
+    seasonEffects: z.string(),
+    nextSeason: z.strictObject({
+      id: z.enum(SEASON_IDS),
+      label: z.string(),
+      secondsUntil: z.number(),
+      /** Uma frase para cada coisa que muda na virada. */
+      changes: z.array(z.string()),
+      /** A previsão da lenha, quando a próxima estação queima madeira. */
+      firewood: FirewoodSchema.nullable(),
+    }),
   }),
   population: z.strictObject({
     villagers: z.number(),
@@ -136,11 +164,21 @@ export const ViewStateSchema = z.strictObject({
   recruitment: z.strictObject({
     cost: z.array(ResourceCostSchema),
     secondsPerVillager: z.number(),
+    /** Por que o tempo de treinamento não é o de tabela (fator da estação); `null` sem efeito. */
+    durationNote: z.string().nullable(),
     maxQuantity: z.number(),
     blockedReason: z.string().nullable(),
   }),
   famine: z
     .strictObject({ sinceMs: z.number(), secondsElapsed: z.number(), text: z.string() })
+    .nullable(),
+  /** A estação da lenha; `null` fora dela. `cold` é o frio, aberto quando a madeira acabou. */
+  winter: z
+    .strictObject({
+      firewoodPerHour: z.number(),
+      firewood: FirewoodSchema,
+      cold: z.strictObject({ secondsElapsed: z.number(), text: z.string() }).nullable(),
+    })
     .nullable(),
   objectives: z.array(ObjectiveSchema),
   pendingDecisions: z.array(z.never()),

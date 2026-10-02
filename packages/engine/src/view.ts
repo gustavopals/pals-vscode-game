@@ -9,19 +9,45 @@ import {
 } from '@lotg/content';
 
 import { advanceTo } from './advance';
-import { calendarAt, nextDayBoundary, nextSeasonBoundary } from './clock';
+import { calendarAt, nextDayBoundary, nextSeasonBoundary, seasonAfter } from './clock';
 import {
   cancelRefund,
   constructionOf,
   upgradeCost,
+  upgradeDurationAt,
   upgradeDurationMs,
   upgradeQuote,
 } from './construction';
-import { consumptionRate, foodRunsOutIn, netRates, productionRate, storageCap } from './economy';
+import {
+  consumptionRate,
+  firewoodRate,
+  foodRunsOutIn,
+  netRates,
+  producedBy,
+  producerOf,
+  productionFactors,
+  productionRate,
+  storageCap,
+  woodRunsOutIn,
+} from './economy';
 import { decimal, plural } from './format';
 import { describeReward, objectiveProgress } from './objectives';
 import { paceLabel } from './pace';
-import { freeVillagers, housingCapacity, housingVacancy, recruitmentBlock } from './population';
+import {
+  freeVillagers,
+  housingCapacity,
+  housingVacancy,
+  recruitmentBlock,
+  recruitmentDurationMs,
+} from './population';
+import {
+  constructionDurationNote,
+  firewoodForecast,
+  recruitmentDurationNote,
+  seasonChanges,
+  seasonEffectsText,
+  winterView,
+} from './seasonView';
 import type {
   BuildingId,
   GameState,
@@ -66,30 +92,24 @@ function realSecondsFloor(gameMs: number, timeScale: number): number {
   return Math.max(0, Math.floor(gameMs / timeScale / SECOND_MS));
 }
 
-/** "4 trabalhadores × 10 × 1,2 (Nv2) = 48/h", por hora real. */
+/**
+ * "4 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 62,4/h", por hora real: um termo para cada
+ * fator da conta de `productionRate`. O nível aparece sempre; os outros, só quando mexem.
+ */
 function productionBreakdown(
   state: GameState,
   building: ProductionBuildingId,
   timeScale: number,
 ): string {
-  const { levelBonus, perWorkerPerHour } = balance.production;
-  const { workers, buildings: levels, famine } = state.settlement;
-  const level = levels[building];
-  const bonus = (levelBonus.den + levelBonus.num * (level - 1)) / levelBonus.den;
-  const { num, den } = balance.famine.productionMultiplier;
-  const penalty = famine ? ` × ${decimal(num / den)} (fome)` : '';
+  const { perWorkerPerHour } = balance.production;
+  const factors = productionFactors(state, building)
+    .filter(({ id, ratio }) => id === 'level' || ratio.num !== ratio.den)
+    .map(({ ratio, label }) => ` × ${decimal(ratio.num / ratio.den)} (${label})`)
+    .join('');
   const total = decimal((productionRate(state, building) * timeScale) / MILLI);
-  const hands = plural(workers[building], 'trabalhador', 'trabalhadores');
+  const hands = plural(state.settlement.workers[building], 'trabalhador', 'trabalhadores');
   const perWorker = decimal(perWorkerPerHour[building] * timeScale);
-  return `${hands} × ${perWorker} × ${decimal(bonus)} (Nv${level})${penalty} = ${total}/h`;
-}
-
-function producerOf(resource: ResourceId): ProductionBuildingId {
-  const producer = PRODUCTION_BUILDING_IDS.find((id) => buildings[id].produces === resource);
-  if (producer === undefined) {
-    throw new Error(`Nenhum edifício produz ${resource}.`);
-  }
-  return producer;
+  return `${hands} × ${perWorker}${factors} = ${total}/h`;
 }
 
 function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: number): string {
@@ -97,11 +117,16 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   const parts = [
     `${buildings[producer].label}: ${productionBreakdown(state, producer, timeScale)}`,
   ];
+  const { villagers } = state.settlement.population;
   if (resource === 'food') {
-    const { villagers } = state.settlement.population;
     const perVillager = decimal(balance.consumption.foodPerVillagerPerHour * timeScale);
     const consumed = decimal((consumptionRate(state) * timeScale) / MILLI);
     parts.push(`consumo ${villagers} × ${perVillager} = ${consumed}/h`);
+  }
+  const firewood = firewoodRate(state);
+  if (resource === 'wood' && firewood > 0) {
+    const burned = decimal((firewood * timeScale) / MILLI);
+    parts.push(`−${burned}/h (lenha de ${plural(villagers, 'habitante', 'habitantes')})`);
   }
   return parts.join('; ');
 }
@@ -115,6 +140,17 @@ function refundView(building: BuildingId, fromLevel: number) {
   }));
 }
 
+/**
+ * A frase que explica o prazo de uma obra iniciada agora, quando a estação mexe nele. Se o teto
+ * de 8 h absorve o fator inteiro, o prazo é o de tabela e não há o que explicar.
+ */
+function durationNote(state: GameState, building: BuildingId, fromLevel: number): string | null {
+  const now = state.lastProcessedAt;
+  return upgradeDurationAt(building, fromLevel, now) === upgradeDurationMs(building, fromLevel)
+    ? null
+    : constructionDurationNote(calendarAt(now).season);
+}
+
 function upgradeView(state: GameState, building: BuildingId, timeScale: number): UpgradeView {
   const quote = upgradeQuote(state, building);
   return {
@@ -124,6 +160,7 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
     targetLevel: quote.targetLevel,
     cost: costView(state, quote.cost),
     durationSeconds: realSecondsCeil(quote.durationMs, timeScale),
+    durationNote: durationNote(state, building, quote.fromLevel),
     affordable: Object.keys(quote.missing).length === 0,
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
@@ -145,7 +182,11 @@ function plannedView(
     fromLevel: targetLevel - 1,
     targetLevel,
     cost: costs,
-    durationSeconds: realSecondsCeil(upgradeDurationMs(building, targetLevel - 1), timeScale),
+    durationSeconds: realSecondsCeil(
+      upgradeDurationAt(building, targetLevel - 1, state.lastProcessedAt),
+      timeScale,
+    ),
+    durationNote: durationNote(state, building, targetLevel - 1),
     affordable: costs.every((entry) => entry.missing === 0),
     blockedCode: null,
     blockedReason: null,
@@ -199,11 +240,15 @@ export function deriveViewState(
   const rates = netRates(state);
   const capacity = housingCapacity(state);
   const { villagers } = settlement.population;
-  const foodRunsOut = foodRunsOutIn(state);
+  const runsOutIn: Partial<Record<ResourceId, number | null>> = {
+    food: foodRunsOutIn(state, rates),
+    wood: woodRunsOutIn(state, rates),
+  };
+  const nextSeason = seasonAfter(date.season);
 
   const active = settlement.constructionQueues.find((slot) => slot !== null) ?? null;
   const nextRecruit = settlement.recruitmentQueue[0];
-  const { cost: recruitCost, durationMs, maxPerOrder, maxQueue } = balance.recruitment;
+  const { cost: recruitCost, maxPerOrder, maxQueue } = balance.recruitment;
   const maxQuantity = Math.max(
     0,
     Math.min(maxPerOrder, maxQueue - settlement.recruitmentQueue.length, housingVacancy(state)),
@@ -226,6 +271,14 @@ export function deriveViewState(
       dayOfYear: date.dayOfYear,
       secondsToNextDay: until(nextDayBoundary(now)),
       secondsToNextSeason: until(nextSeasonBoundary(now)),
+      seasonEffects: seasonEffectsText(date.season, timeScale),
+      nextSeason: {
+        id: nextSeason.id,
+        label: nextSeason.label,
+        secondsUntil: until(nextSeasonBoundary(now)),
+        changes: seasonChanges(date.season, nextSeason, timeScale),
+        firewood: firewoodForecast(state, timeScale),
+      },
     },
     population: {
       villagers,
@@ -245,21 +298,23 @@ export function deriveViewState(
         .join(' + ')
         .concat(` = ${capacity} vagas`),
     },
-    resources: RESOURCE_IDS.map((id) => ({
-      id,
-      label: balance.resources[id].label,
-      stock: Math.floor(settlement.resources[id] / MILLI),
-      cap: storageCap(),
-      perHour: Math.round((rates[id] * timeScale) / 100) / 10,
-      depletesInSeconds:
-        id === 'food' && foodRunsOut !== null ? realSecondsFloor(foodRunsOut, timeScale) : null,
-      breakdown: resourceBreakdown(state, id, timeScale),
-    })),
+    resources: RESOURCE_IDS.map((id) => {
+      const runsOut = runsOutIn[id] ?? null;
+      return {
+        id,
+        label: balance.resources[id].label,
+        stock: Math.floor(settlement.resources[id] / MILLI),
+        cap: storageCap(),
+        perHour: Math.round((rates[id] * timeScale) / 100) / 10,
+        depletesInSeconds: runsOut === null ? null : realSecondsFloor(runsOut, timeScale),
+        breakdown: resourceBreakdown(state, id, timeScale),
+      };
+    }),
     workers: PRODUCTION_BUILDING_IDS.map((building) => ({
       building,
       label: buildings[building].label,
       level: settlement.buildings[building],
-      resource: buildings[building].produces as ResourceId,
+      resource: producedBy(building),
       assigned: settlement.workers[building],
       grossPerHour: perRealHour(productionRate(state, building)),
       perWorkerPerHour: perRealHour(productionRate(state, building, 1)),
@@ -290,7 +345,8 @@ export function deriveViewState(
     },
     recruitment: {
       cost: costView(state, recruitCost),
-      secondsPerVillager: realSecondsCeil(durationMs, timeScale),
+      secondsPerVillager: realSecondsCeil(recruitmentDurationMs(date.season), timeScale),
+      durationNote: recruitmentDurationNote(date.season),
       maxQuantity,
       blockedReason: recruitmentBlock(state, 1)?.message ?? null,
     },
@@ -302,6 +358,7 @@ export function deriveViewState(
             secondsElapsed: realSecondsFloor(now - settlement.famine.sinceMs, timeScale),
             text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
           },
+    winter: winterView(state, timeScale),
     objectives: objectivesView(state),
     pendingDecisions: [],
   };

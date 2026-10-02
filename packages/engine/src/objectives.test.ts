@@ -8,6 +8,7 @@ import {
   eventsOfType,
   gameWith,
   HOUR,
+  MINUTE,
   newGame,
   objectivesScenario,
   play,
@@ -53,9 +54,13 @@ describe('objetivos', () => {
     expect(ordered.state.objectives.completed).toEqual([]);
     const arrived = play(ordered.state, [{ at: HOUR }]);
     expect(arrived.state.objectives.completed).toEqual(['recruitVillagers']);
-    expect(eventsOfType(arrived.events, 'objectiveCompleted')[0]).toMatchObject({ atMs: HOUR });
-    // 180 − 150 do recrutamento, menos o consumo de 5, 6 e 7 habitantes por 20 min, mais 40.
-    expect(arrived.state.settlement.resources.food).toBe(30_000 - 6_000 + 40_000);
+    // Na primavera cada aldeão leva 16 minutos: o terceiro chega aos 48.
+    expect(eventsOfType(arrived.events, 'objectiveCompleted')[0]).toMatchObject({
+      atMs: 48 * MINUTE,
+    });
+    // 180 − 150 do recrutamento, menos o consumo de 5, 6 e 7 habitantes por 16 min e de 8 por
+    // 12 min, mais os 40 da recompensa.
+    expect(arrived.state.settlement.resources.food).toBe(30_000 - 6_400 + 40_000);
   });
 
   it('um objetivo só é avaliado depois de revelado', () => {

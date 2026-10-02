@@ -40,7 +40,7 @@ export type PlannedConstruction = { building: BuildingId; targetLevel: number };
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   seed: string;
   settings: GameSettings;
   /**
@@ -72,6 +72,11 @@ export type GameState = {
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
     recruitmentQueue: Array<{ finishesAtMs: number }>;
     famine: { sinceMs: number } | null;
+    /**
+     * O frio: aberto no instante em que a madeira acabou em uma estação que queima lenha
+     * (GDD §4.1). Enquanto dura, a produção de todo o feudo cai e a madeira não fica negativa.
+     */
+    cold: { sinceMs: number } | null;
   };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -142,7 +147,13 @@ export type UpgradeView = {
   fromLevel: number;
   targetLevel: number;
   cost: ResourceCostView[];
+  /** Prazo se a obra começar agora, já com o fator da estação. */
   durationSeconds: number;
+  /**
+   * Por que o prazo não é o de tabela: "No Inverno, o prazo de uma obra iniciada agora é × 1,5."
+   * `null` quando a estação não mexe nele.
+   */
+  durationNote: string | null;
   affordable: boolean;
   /** Código e motivo pelo qual a obra não pode começar agora; `null` quando pode. */
   blockedCode: RejectionCode | null;
@@ -157,6 +168,26 @@ export type ObjectiveView = {
   reward: string;
   status: 'active' | 'completed';
   progress: { current: number; target: number };
+};
+
+/**
+ * A conta da lenha de uma estação que queima madeira (GDD §4.1), feita com os habitantes e os
+ * trabalhadores de agora, em unidades inteiras. No outono é a previsão do inverno inteiro; no
+ * inverno, do que falta até a primavera. É o que responde "quanta madeira preciso guardar?".
+ */
+export type FirewoodView = {
+  /** Madeira queimada por hora real. */
+  perHour: number;
+  /** Madeira que a lareira queima no prazo da conta. */
+  winterTotal: number;
+  /** Madeira que a Serraria entrega no mesmo prazo. */
+  winterProduction: number;
+  /** Madeira em estoque agora. */
+  stock: number;
+  /** Quanto falta guardar para a lareira não apagar; 0 quando o estoque e a Serraria cobrem. */
+  missing: number;
+  /** A conta em uma frase, pronta para exibir. */
+  text: string;
 };
 
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
@@ -179,6 +210,17 @@ export type ViewState = {
     dayOfYear: number;
     secondsToNextDay: number;
     secondsToNextSeason: number;
+    /** O que a estação atual muda, em uma frase: "Outono: comida × 1,3; ouro × 1,1." */
+    seasonEffects: string;
+    nextSeason: {
+      id: SeasonId;
+      label: string;
+      secondsUntil: number;
+      /** Uma frase para cada coisa que muda na virada. */
+      changes: string[];
+      /** A conta da lenha, quando a próxima estação queima madeira; `null` nas outras. */
+      firewood: FirewoodView | null;
+    };
   };
   population: {
     villagers: number;
@@ -201,7 +243,10 @@ export type ViewState = {
     cap: number | null;
     /** Saldo líquido por hora, com uma casa decimal. */
     perHour: number;
-    /** Segundos até o estoque acabar; `null` quando não está caindo. */
+    /**
+     * Segundos até o estoque acabar; `null` quando não está caindo. Vale para a comida e, no
+     * inverno, para a madeira que a lareira queima.
+     */
     depletesInSeconds: number | null;
     breakdown: string;
   }>;
@@ -212,7 +257,10 @@ export type ViewState = {
     resource: ResourceId;
     assigned: number;
     grossPerHour: number;
-    /** Quanto cada trabalhador produz por hora neste edifício agora, já com nível e fome. */
+    /**
+     * Quanto cada trabalhador produz por hora neste edifício agora, já com nível, estação, fome
+     * e frio.
+     */
     perWorkerPerHour: number;
     breakdown: string;
   }>;
@@ -232,12 +280,29 @@ export type ViewState = {
   };
   recruitment: {
     cost: ResourceCostView[];
+    /** Tempo de treinamento de cada aldeão de uma ordem dada agora, já com o fator da estação. */
     secondsPerVillager: number;
+    /**
+     * Por que o tempo não é o de tabela: "Na Primavera, o prazo de um recrutamento ordenado agora
+     * é × 0,8." `null` quando a estação não mexe nele.
+     */
+    durationNote: string | null;
     /** Quantos aldeões cabem em uma nova ordem agora. */
     maxQuantity: number;
     blockedReason: string | null;
   };
   famine: null | { sinceMs: number; secondsElapsed: number; text: string };
+  /**
+   * A estação da lenha: `null` fora dela. `cold` é o frio, aberto quando a madeira acabou; o
+   * texto diz o que ele custa, quanto falta e o que fazer.
+   */
+  winter: null | {
+    /** Madeira queimada por hora real. */
+    firewoodPerHour: number;
+    /** A conta do que falta queimar até a estação virar. */
+    firewood: FirewoodView;
+    cold: null | { secondsElapsed: number; text: string };
+  };
   objectives: ObjectiveView[];
   /** Vazio na v0.1: cartas e encruzilhadas chegam nas versões seguintes. */
   pendingDecisions: never[];

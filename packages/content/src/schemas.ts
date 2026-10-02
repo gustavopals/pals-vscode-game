@@ -16,12 +16,21 @@ const resourceAmounts = z
   .refine((amounts) => Object.keys(amounts).length > 0, 'ao menos um recurso');
 
 const ratio = z.strictObject({ num: positiveInt, den: positiveInt });
+/** Uma fração que pode ser zero: a lenha das estações em que nada se queima. */
+const ratioOrZero = z.strictObject({ num: z.number().int().nonnegative(), den: positiveInt });
 
 const perResource = <T extends z.ZodType>(value: T) =>
   z.strictObject({ food: value, wood: value, stone: value, gold: value });
 
 const exactlyOneRecommended = (items: ReadonlyArray<{ recommended: boolean }>) =>
   items.filter((item) => item.recommended).length === 1;
+
+const seasonEffects = z.strictObject({
+  production: perResource(ratio),
+  recruitmentDuration: ratio,
+  constructionDuration: ratio,
+  firewoodPerVillagerPerHour: ratioOrZero,
+});
 
 const difficulty = z.strictObject({
   label,
@@ -73,6 +82,7 @@ export const BalanceSchema = z.strictObject({
     gateLevelsAboveTownHall: z.number().int().nonnegative(),
   }),
   famine: z.strictObject({ productionMultiplier: ratio }),
+  winter: z.strictObject({ cold: z.strictObject({ productionMultiplier: ratio }) }),
   calendar: z.strictObject({
     dayMs: positiveInt,
     seasons: z
@@ -82,6 +92,7 @@ export const BalanceSchema = z.strictObject({
           label,
           article: z.enum(['a', 'o']),
           days: positiveInt,
+          effects: seasonEffects,
         }),
       )
       .length(SEASON_IDS.length),

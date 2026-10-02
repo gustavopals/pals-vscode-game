@@ -1,4 +1,4 @@
-import type { ProductionBuildingId, ResourceId, ViewState } from '@lotg/engine';
+import type { FirewoodView, ProductionBuildingId, ResourceId, ViewState } from '@lotg/engine';
 
 import type { Policy } from './types';
 
@@ -135,13 +135,37 @@ export const recrutar: Policy = {
   },
 };
 
-/** Inicia a melhoria mais barata entre as que podem começar agora. */
+/**
+ * A conta da lenha que a visão traz: no inverno, o que falta queimar até a primavera; no
+ * outono, a previsão do inverno inteiro. `null` quando nenhuma das duas existe.
+ */
+function firewoodOf(view: ViewState): FirewoodView | null {
+  return view.winter?.firewood ?? view.calendar.nextSeason.firewood;
+}
+
+/**
+ * Madeira que o estoque precisa ter para a lareira não apagar: o que ela vai queimar menos o
+ * que a Serraria entrega no mesmo prazo, os dois números como a visão os mostra.
+ */
+function firewoodReserve(view: ViewState): number {
+  const firewood = firewoodOf(view);
+  return firewood === null ? 0 : Math.max(0, firewood.winterTotal - firewood.winterProduction);
+}
+
+/**
+ * Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não
+ * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
+ * lenha fica para depois.
+ */
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
   run: async (view, act) => {
     const price = (upgrade: Upgrade) => upgrade.cost.reduce((sum, cost) => sum + cost.amount, 0);
+    const spare = stockOf(view, 'wood') - firewoodReserve(view);
+    const keepsFirewood = (upgrade: Upgrade) =>
+      upgrade.cost.every((cost) => cost.resource !== 'wood' || cost.amount <= spare);
     const [cheapest] = view.constructions.available
-      .filter((upgrade) => upgrade.blockedCode === null)
+      .filter((upgrade) => upgrade.blockedCode === null && keepsFirewood(upgrade))
       .sort((a, b) => price(a) - price(b));
     return cheapest === undefined
       ? view
@@ -262,5 +286,50 @@ export const ocuparLivres: Policy = {
     const emptiest = crafts.reduce((best, row) => (row.assigned < best.assigned ? row : best));
     const chosen = hoursToCover(mostNeeded) > 0 ? mostNeeded : emptiest;
     return act('setWorkers', { building: chosen.building, count: chosen.assigned + free });
+  },
+};
+
+/**
+ * Lenha: quando a conta da visão diz que falta madeira para o inverno, manda para a Serraria os
+ * braços que cobrem a falta até a estação virar. Usa primeiro quem está sem ofício e depois
+ * busca nos outros materiais, a começar por quem tem mais gente; nunca tira ninguém da fazenda.
+ * Sem falta, não dá ordem: no resto do ano a alocação é das outras políticas.
+ *
+ * Os braços saem de "o que falta ÷ (o que um lenhador rende por hora × as horas até a virada)",
+ * tudo lido da visão. É de propósito uma conta folgada: no outono ela ignora o que o lenhador
+ * novo ainda vai render durante o inverno.
+ */
+export const guardarLenha: Policy = {
+  name: 'guardar lenha',
+  run: async (view, act) => {
+    const firewood = firewoodOf(view);
+    if (firewood === null || firewood.missing <= 0) {
+      return view;
+    }
+    const lumberMill = workplace(view, 'wood');
+    const hoursLeft = view.calendar.secondsToNextSeason / 3600;
+    const perLumberjack = lumberMill.perWorkerPerHour * hoursLeft;
+    const donors = view.workers
+      .filter((row) => row.resource !== 'food' && row.building !== lumberMill.building)
+      .sort((a, b) => b.assigned - a.assigned);
+    const available = view.population.free + donors.reduce((sum, row) => sum + row.assigned, 0);
+    const wanted =
+      perLumberjack > 0 ? Math.ceil(firewood.missing / perLumberjack - EPSILON) : available;
+    const extra = Math.min(wanted, available);
+    if (extra <= 0) {
+      return view;
+    }
+    let shortfall = extra - view.population.free;
+    for (const donor of donors) {
+      const taken = Math.min(donor.assigned, shortfall);
+      if (taken > 0) {
+        await act('setWorkers', { building: donor.building, count: donor.assigned - taken });
+        shortfall -= taken;
+      }
+    }
+    return act('setWorkers', {
+      building: lumberMill.building,
+      count: lumberMill.assigned + extra,
+    });
   },
 };

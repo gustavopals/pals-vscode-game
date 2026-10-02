@@ -34,6 +34,20 @@ export function seasonOf(day: number): SeasonDef {
   return seasonSpan(day).season;
 }
 
+/** Estação em vigor em um instante de jogo. Na virada, já é a estação nova. */
+export function seasonAt(ms: number): SeasonDef {
+  return seasonOf(dayIndex(ms));
+}
+
+/** A estação que vem depois de `season`; depois da última, a primeira do ano seguinte. */
+export function seasonAfter(season: SeasonDef): SeasonDef {
+  const next = seasons[(seasons.indexOf(season) + 1) % seasons.length];
+  if (next === undefined) {
+    throw new Error(`Estação fora do calendário: ${season.id}`);
+  }
+  return next;
+}
+
 /** Dia dentro da estação, a partir de 1. */
 export function dayOfSeason(day: number): number {
   return day - seasonSpan(day).firstDay + 1;
@@ -89,4 +103,9 @@ export function seasonWithArticle(season: SeasonDef): string {
 /** "da Primavera", "do Verão". */
 export function ofSeason(season: SeasonDef): string {
   return `d${season.article} ${season.label}`;
+}
+
+/** "na Primavera", "no Inverno". */
+export function inSeason(season: SeasonDef): string {
+  return `n${season.article} ${season.label}`;
 }

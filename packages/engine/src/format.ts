@@ -7,3 +7,16 @@ export function decimal(value: number): string {
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }
+
+/** "A Serraria", "No Inverno": a primeira letra em maiúscula, para começar uma frase. */
+export function sentenceCase(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** "madeira", "madeira e pedra", "comida, madeira e pedra". */
+export function joinList(items: readonly string[]): string {
+  if (items.length <= 1) {
+    return items.join('');
+  }
+  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`;
+}

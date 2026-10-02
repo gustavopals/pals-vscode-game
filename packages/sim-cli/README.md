@@ -44,20 +44,23 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 
 | Bot | Políticas, na ordem | Quem ele imita |
 |---|---|---|
-| `economico` | `recrutar`, `obra mais barata`, `alocar por demanda` | Quem cuida do feudo a cada visita e reequilibra todos os ofícios |
-| `preguicoso` | `recrutar`, `obra mais barata`, `comida primeiro`, `ocupar os livres` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
+| `economico` | `recrutar`, `obra mais barata`, `alocar por demanda`, `guardar lenha` | Quem cuida do feudo a cada visita e reequilibra todos os ofícios |
+| `preguicoso` | `recrutar`, `obra mais barata`, `comida primeiro`, `ocupar os livres`, `guardar lenha` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
 
 | Política | O que faz |
 |---|---|
 | `recrutar` | Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida |
-| `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora |
+| `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não começa a obra que gastaria a madeira da lareira: a reserva é o que a visão diz que o inverno queima menos o que a Serraria repõe |
 | `alocar por demanda` | Realoca todos os aldeões: fazendeiros o bastante para alimentar o feudo (contando quem ainda está chegando e duas bocas de folga) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem |
 | `comida primeiro` | Põe na fazenda os braços que faltam para a comida não cair, contando quem está chegando; nunca tira ninguém de lá. Sem livres, busca em quem tem mais gente |
 | `ocupar os livres` | Manda todos os aldeões sem ofício, em uma ordem só, para o material que mais demoraria a cobrir o que falta às obras; se nada falta, para o ofício com menos gente |
+| `guardar lenha` | Quando a conta da lenha da visão diz que falta madeira (no outono, `calendar.nextSeason.firewood`; no inverno, `winter.firewood`), manda para a Serraria os braços que cobrem a falta até a estação virar: primeiro os livres, depois quem está nos outros materiais; nunca tira ninguém da fazenda. Sem falta, não dá ordem |
 
 Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem ofício até a seguinte.
 
-**Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As Fases C a E preveem "ampliar o armazém quando ele está para encher", "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
+**Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As estações (V2C-T1) trouxeram `guardar lenha`; as tarefas seguintes preveem "ampliar o armazém quando ele está para encher", "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
+
+**A lenha ainda não aperta nenhum bot.** Sem limite de estoque (ele chega em V2C-T2), os bots entram no inverno com milhares de unidades de madeira e a conta da lenha nunca diz que falta: `guardar lenha` não dá ordem em nenhuma das partidas da matriz, e nenhuma delas passa frio. A política é provada em `bots.test.ts` com feudos sem madeira, inclusive contra o motor, e passa a trabalhar na matriz quando os caps existirem.
 
 **Bot honesto.** Uma política só conhece o `ViewState`: nunca o `GameState`, flags, o gerador de sorteios nem `@lotg/content`; um teste recusa esses imports em `src/bots/` (dos pacotes do jogo, só os tipos de `@lotg/engine`). O que um trabalhador rende vem de `workers[].perWorkerPerHour`, e o que o feudo come é o que a fazenda rende menos o saldo da comida. Assim um fator de fome, de estação, de moral ou de dificuldade chega ao bot como chega ao jogador, e um efeito que a visão esconde (o de uma carta, a composição de uma incursão) fica escondido dele também. Até a correção da revisão da Fase B, `alocar por demanda` lia a taxa por trabalhador e o consumo por aldeão direto do conteúdo, e por isso não via a fazenda rendendo menos na fome: com oito bocas, deixava um fazendeiro só e a fome não acabava. A troca não mudou nenhum número medido: o CSV e o resumo de 20 partidas do `economico` (ritmos 1, 3, 0,5, 2 e 10 × 1, 2, 4 e 8 sessões por dia, 14 dias) e a matriz inteira saíram idênticos.
 
@@ -76,17 +79,18 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `in_training` | Aldeões recrutados que ainda não chegaram |
 | `townHall` … `housing` | Nível de cada edifício |
 | `famine` | `1` se o feudo está com fome naquela hora |
+| `cold` | `1` se o feudo passa frio naquela hora: é inverno e a madeira da lareira acabou. Fica entre as colunas das mecânicas, no fim da linha |
 | `queue_idle` | `1` se a fila de obras está livre **e** ao menos uma obra poderia começar agora: o feudo tinha o que construir e esperou a próxima visita |
 | `planned_idle` | O mesmo, contando só as obras que o jogador deixou planejadas. É a coluna que o início automático (V2C-T5) tem de zerar |
 | `commands_accepted`, `commands_refused` | Ordens aceitas e recusadas pelo motor, acumuladas desde a criação da partida |
 | `refused_by_code` | As recusas por motivo, acumuladas: `HOUSING_FULL:1;QUEUE_BUSY:2`. Vazio sem recusas |
 
-**Colunas reservadas.** O cabeçalho já traz as colunas que as Fases C a E do roadmap vão preencher, para o formato não mudar a cada mecânica. Até a tarefa indicada, o valor sai **vazio** (e não zero: zero seria uma medida). A lista está em `RESERVED_COLUMNS` (`src/report.ts`); a tarefa tira a coluna de lá e passa a lê-la da visão.
+**Colunas das mecânicas.** O cabeçalho termina com as colunas das mecânicas da v0.2, em ordem fixa, para o formato não mudar a cada mecânica (`MECHANIC_COLUMNS`, em `src/report.ts`). As que ainda ninguém mede saem **vazias** (e não zero: zero seria uma medida) e formam `RESERVED_COLUMNS`; a tarefa de cada uma a acrescenta a `MEASURED_COLUMNS`, lendo da visão, e ela sai da lista das reservadas sem mudar de lugar.
 
 | Coluna | Significado | Tarefa |
 |---|---|---|
 | `wasted_food`, `wasted_wood`, `wasted_stone` | Desperdício no cap, por recurso, acumulado (o ouro não tem cap) | V2C-T2 |
-| `cold` | `1` se o feudo passa frio naquela hora | V2C-T1 |
+| `cold` | **Medida desde V2C-T1.** No CSV de uma partida, `1` se o feudo passa frio naquela hora; no da matriz, as horas de frio da partida | V2C-T1 |
 | `morale` | Moral do feudo, de 0 a 100 | V2C-T4 |
 | `cards_seen`, `cards_answered`, `cards_expired` | Cartas do Conselho recebidas, respondidas e expiradas, acumuladas | V2D-T1 |
 | `wolf_losses` | Perdas em incursões de lobos, acumuladas | V2E-T3 |
@@ -96,17 +100,18 @@ O resumo, na saída de erro, traz:
 ```text
 Semente pedra-alta-golden · estratégia economico · 7 dias · 2 sessões/dia · ritmo 3×
 Partida: Senhor · Rápido: um ano em 56 horas
-Motor 0.1.0 · estado v2 · conteúdo dac513145ad9399e
-Políticas: recrutar, obra mais barata, alocar por demanda
+Motor 0.1.0 · estado v3 · conteúdo 4a7d2ccbede2ae2c
+Políticas: recrutar, obra mais barata, alocar por demanda, guardar lenha
 População: 35 de 35 vagas
 Níveis: townHall 3, farm 4, lumberMill 3, quarry 3, goldMine 3, housing 4
-Estoque: food 2813, wood 40872, stone 16118, gold 6626
+Estoque: food 4700, wood 39064, stone 16155, gold 6972
 Fome: nenhuma
+Frio: nenhum
 Fila ociosa: 168 h com obra que podia começar (0 h com obra planejada)
 Aldeões sem ofício: 360 aldeão-horas (2,1 por hora)
-Excedente parado: wood 40872, stone 16118, gold 6626
-Comandos: 47 aceitos, 0 recusados
-Sem medida até as Fases C a E: desperdício por recurso, horas de frio, moral, cartas do Conselho, perdas por lobos
+Excedente parado: wood 39064, stone 16155, gold 6972
+Comandos: 56 aceitos, 0 recusados
+Sem medida até as Fases C a E: desperdício por recurso, moral, cartas do Conselho, perdas por lobos
 ```
 
 - A terceira linha **identifica o jogo medido**: versão do motor, versão do estado e `contentHash`, o mesmo de `GET /v1/version` (os dois saem de `contentHash`, em `@lotg/protocol`). Dois resumos só se comparam número a número quando essa linha é igual.
@@ -127,7 +132,7 @@ A matriz do roadmap da v0.2 (§7.3) joga, na dificuldade Senhor:
 - **50 sementes fixas**: `pedra-alta-001` a `pedra-alta-050`;
 - **duas janelas, em tabelas separadas**, porque não têm o mesmo denominador: **7 dias reais** (em que o ritmo 3 atravessa três anos de jogo e o 0,5, meio ano) e **um ano de jogo** (56 h reais no ritmo 3, 7 dias no 1, 14 dias no 0,5). No ritmo 1 as duas são a mesma partida, jogada uma vez.
 
-O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, semente) com os valores finais e as mesmas colunas reservadas. As tabelas, na saída de erro, saem em Markdown, prontas para [docs/balance-v0.2.md](../../docs/balance-v0.2.md): a identificação da rodada, o menor e o maior valor entre as sementes em cada célula, as faixas cobradas e o veredito. O comando sai com código 1 se alguma partida ficar fora da faixa. Com `--difficulty peasant` ou `ironKing` a rodada é jogada e medida, mas não há faixa: as outras dificuldades entram quando tiverem efeito.
+O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, semente) com os valores finais e as mesmas colunas das mecânicas (`cold`, aqui, são as horas de frio da partida). As tabelas, na saída de erro, saem em Markdown, prontas para [docs/balance-v0.2.md](../../docs/balance-v0.2.md): a identificação da rodada, o menor e o maior valor entre as sementes em cada célula, as faixas cobradas e o veredito. O comando sai com código 1 se alguma partida ficar fora da faixa. Com `--difficulty peasant` ou `ironKing` a rodada é jogada e medida, mas não há faixa: as outras dificuldades entram quando tiverem efeito.
 
 Enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado; a lista passa a trabalhar com a moral e o Conselho, e um teste avisa quando isso acontecer.
 
@@ -140,6 +145,7 @@ Enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado; a li
 | População final | De 10% abaixo do menor a 10% acima do maior valor medido |
 | Salão do Senhor | Pelo menos o menor nível medido |
 | Horas de fome | No máximo o maior valor medido, com 5% de folga (hoje, zero em toda célula) |
+| Horas de frio | No máximo o maior valor medido, com 5% de folga (hoje, zero em toda célula) |
 | Excedente parado de madeira, de pedra e de ouro | No máximo o maior estoque final medido, com 5% de folga. Só tem teto: sobrar menos nunca é problema |
 | Ordens recusadas | Nenhuma |
 

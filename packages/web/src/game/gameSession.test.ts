@@ -649,8 +649,8 @@ describe('Relatório de Retorno', () => {
     expect(report?.highlights).toEqual(['evento 3']);
     expect(report?.resources.find((row) => row.id === 'food')).toMatchObject({
       before: 180,
-      after: 146,
-      delta: -34,
+      after: 170,
+      delta: -10,
     });
   });
 

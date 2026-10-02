@@ -324,7 +324,8 @@ describe('criação e listagem de partidas (F2-T6.1)', () => {
         paceLabel,
       });
       expect(view.body.view.calendar.secondsToNextDay).toBe(7200 / timeScale);
-      expect(view.body.view.recruitment.secondsPerVillager).toBe(1200 / timeScale);
+      // Toda partida nasce na primavera, e nela o recrutamento leva 20 min × 0,8.
+      expect(view.body.view.recruitment.secondsPerVillager).toBe(960 / timeScale);
       // Nesta versão a dificuldade ainda não muda o feudo inicial.
       expect(view.body.view.population).toMatchObject({ villagers: 5, free: 5 });
       expect(stock(view.body.view, 'food')).toBe(180);
@@ -1689,8 +1690,9 @@ describe('recusa após horas sem acesso (F2-T6.9)', () => {
     expect(advanced.constructions.active).toBeNull();
     expect(advanced.population.capacity).toBe(base.population.capacity + 5);
     expect(advanced.calendar.dayOfSeason).toBe(3);
-    // 2 aldeões na Fazenda (10/h cada) menos o consumo de 5 aldeões (1/h cada): +15/h.
-    expect(stock(advanced, 'food')).toBe(stock(base, 'food') + 75);
+    // 2 aldeões na Fazenda (10/h cada, × 1,2 na primavera) menos o consumo de 5 aldeões
+    // (1/h cada): +19/h.
+    expect(stock(advanced, 'food')).toBe(stock(base, 'food') + 95);
     // A ação recusada não descontou nada.
     expect(stock(advanced, 'wood')).toBe(stock(base, 'wood'));
     expect(stock(advanced, 'stone')).toBe(stock(base, 'stone'));
@@ -2223,8 +2225,8 @@ describe('relógio da partida (F2-T6.2)', () => {
     await renew(server, player);
     const reopened = await getView(server, player.token, game.id);
     expect(reopened.status).toBe(200);
-    // +15 de comida por hora durante 6 h, a partir de 180.
-    expect(stock(reopened.body.view, 'food')).toBe(270);
+    // +19 de comida por hora (primavera) durante 6 h, a partir de 180.
+    expect(stock(reopened.body.view, 'food')).toBe(294);
     expect(reopened.body.view.calendar.dayOfSeason).toBe(4);
     const events = await getEvents(server, player.token, game.id);
     expect(events.body.events.filter((event) => event.type === 'dayStarted')).toHaveLength(3);
@@ -2240,7 +2242,7 @@ describe('relógio da partida (F2-T6.2)', () => {
     server.clock.advance(HOUR);
     await renew(server, player);
     const later = await getView(server, player.token, game.id);
-    expect(stock(later.body.view, 'food')).toBe(285);
+    expect(stock(later.body.view, 'food')).toBe(313);
     expect(later.body.view.calendar.dayOfSeason).toBe(4);
     expect(await eventRows(server, game.id)).toHaveLength(before.events.length);
   });

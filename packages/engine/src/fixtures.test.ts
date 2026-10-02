@@ -66,6 +66,17 @@ const scenarios: Record<string, () => GameState> = {
       { at: 41 * HOUR + 13 * MINUTE },
     ]).state,
 
+  // Frio: a madeira inteira gasta em uma obra na primavera, ninguém na Serraria, e o inverno
+  // chega. O frio abre na virada; um aldeão foi chamado no meio dele.
+  cold: () =>
+    play(newGame('fixture-cold'), [
+      command('setWorkers', { building: 'farm', count: 5 }),
+      command('startConstruction', { building: 'quarry' }),
+      { at: 72 * DAY + 5 * HOUR + 13 * MINUTE },
+      command('recruitVillagers', { quantity: 1 }),
+      { at: 72 * DAY + 5 * HOUR + 19 * MINUTE + 4_321 },
+    ]).state,
+
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
 
@@ -156,6 +167,11 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ).toBe(true);
     expect(of('famine').settlement.famine).not.toBeNull();
     expect(of('famine').settlement.recruitmentQueue.length).toBeGreaterThan(0);
+    // O frio aberto no inverno, sem fome, com a madeira em zero e um aldeão a caminho.
+    expect(of('cold').settlement.cold).toEqual({ sinceMs: 72 * DAY });
+    expect(of('cold').settlement.famine).toBeNull();
+    expect(of('cold').settlement.resources.wood).toBe(0);
+    expect(of('cold').settlement.recruitmentQueue.length).toBe(1);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 

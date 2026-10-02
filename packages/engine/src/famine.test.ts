@@ -17,14 +17,15 @@ const THIRTY_DAYS = 30 * 24 * HOUR;
 
 describe('início da fome', () => {
   it('30 dias fora com consumo maior que a produção: a fome começa no instante previsto', () => {
-    // Recrutar 2 aldeões leva a comida de 180 a 80 e o consumo de 5 para 6 (20 min) e 7 (40 min).
+    // Recrutar 2 aldeões leva a comida de 180 a 80 e o consumo de 5 para 6 (16 min) e 7 (32 min):
+    // na primavera cada aldeão leva 16 minutos para chegar.
     const start = accept(newGame(), command('recruitVillagers', { quantity: 2 })).state;
 
-    // Conta à mão, em milésimos × ms: 80.000 de comida, 20 min a 5.000/h, 20 min a 6.000/h
+    // Conta à mão, em milésimos × ms: 80.000 de comida, 16 min a 5.000/h, 16 min a 6.000/h
     // e o resto a 7.000/h.
-    const balance = 80_000 * HOUR - 5_000 * 20 * MINUTE - 6_000 * 20 * MINUTE;
-    const expectedAt = 40 * MINUTE + Math.floor(balance / 7_000);
-    expect(expectedAt).toBe(41_657_142);
+    const balance = 80_000 * HOUR - 5_000 * 16 * MINUTE - 6_000 * 16 * MINUTE;
+    const expectedAt = 32 * MINUTE + Math.floor(balance / 7_000);
+    expect(expectedAt).toBe(41_554_285);
 
     const { state, events } = advanceTo(start, THIRTY_DAYS);
     const famines = eventsOfType(events, 'famineStarted');
@@ -100,7 +101,7 @@ describe('durante a fome', () => {
 });
 
 describe('fila de recrutamento congelada e fim da fome', () => {
-  // 51 de comida: recrutar 1 aldeão deixa 1, que acaba em 12 min, antes de ele chegar (20 min).
+  // 51 de comida: recrutar 1 aldeão deixa 1, que acaba em 12 min, antes de ele chegar (16 min).
   const start = accept(
     gameWith((draft) => {
       draft.settlement.resources.food = 51_000;
@@ -113,7 +114,7 @@ describe('fila de recrutamento congelada e fim da fome', () => {
     const { state, events } = advanceTo(start, 10 * HOUR);
     expect(state.settlement.famine).toEqual({ sinceMs: famineAt });
     expect(state.settlement.population.villagers).toBe(5);
-    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 20 * MINUTE }]);
+    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 16 * MINUTE }]);
     expect(eventsOfType(events, 'recruitmentFinished')).toEqual([]);
   });
 
@@ -128,8 +129,8 @@ describe('fila de recrutamento congelada e fim da fome', () => {
     expect(ended).toHaveLength(1);
     expect(ended[0]).toMatchObject({ atMs: endAt });
 
-    // Faltavam 8 minutos de treinamento quando a fome começou.
-    const arrivesAt = endAt + 8 * MINUTE;
+    // Faltavam 4 minutos de treinamento quando a fome começou.
+    const arrivesAt = endAt + 4 * MINUTE;
     expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: arrivesAt }]);
     const later = advanceTo(state, arrivesAt);
     expect(later.state.settlement.population.villagers).toBe(6);
@@ -137,15 +138,16 @@ describe('fila de recrutamento congelada e fim da fome', () => {
   });
 
   it('um saldo positivo só com a penalidade ainda mantém a fome', () => {
-    // 1 fazendeiro: 10 × 0,75 = 7,5 contra 5 de consumo encerra; com 7 habitantes não bastaria.
+    // 1 fazendeiro na primavera rende 12; com a fome, 12 × 0,75 = 9, que não alimenta 10 bocas.
+    // Sem a penalidade bastaria.
     const hungry = gameWith((draft) => {
       draft.settlement.resources.food = 0;
-      draft.settlement.population.villagers = 8;
+      draft.settlement.population.villagers = 10;
       draft.settlement.famine = { sinceMs: 0 };
     });
     const one = accept(hungry, command('setWorkers', { building: 'farm', count: 1 }));
     expect(one.state.settlement.famine).toEqual({ sinceMs: 0 });
-    // 2 fazendeiros: 15 contra 8.
+    // 2 fazendeiros: 18 contra 10.
     const two = accept(one.state, command('setWorkers', { building: 'farm', count: 2 }));
     expect(two.state.settlement.famine).toBeNull();
     expect(two.events.map((event) => event.type)).toContain('famineEnded');
@@ -157,8 +159,8 @@ describe('fila de recrutamento congelada e fim da fome', () => {
       command('setWorkers', { building: 'farm', count: 2 }),
       { at: 2 * HOUR },
     ]);
-    // 2 × 10 − 5 habitantes por 8 min, depois − 6 habitantes pelo resto da hora.
-    const expected = Math.floor((15_000 * 8 * MINUTE + 14_000 * 52 * MINUTE) / HOUR);
+    // 2 × 10 × 1,2 (primavera) − 5 habitantes por 4 min, depois − 6 habitantes pelo resto da hora.
+    const expected = Math.floor((19_000 * 4 * MINUTE + 18_000 * 56 * MINUTE) / HOUR);
     expect(state.settlement.resources.food).toBe(expected);
   });
 });

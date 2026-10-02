@@ -1,3 +1,5 @@
+import { objectives } from '@lotg/content';
+
 import { advanceTo, advanceWith, processEventsAt } from './advance';
 import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
@@ -9,6 +11,12 @@ import { MILLI } from './units';
 export const HOUR = 3_600_000;
 export const MINUTE = 60_000;
 export const DAY = 2 * HOUR;
+/** O primeiro instante de cada estação do ano 1 (24, 24, 24 e 12 dias de jogo). */
+export const SPRING = 0;
+export const SUMMER = 24 * DAY;
+export const AUTUMN = 48 * DAY;
+export const WINTER = 72 * DAY;
+export const YEAR = 84 * DAY;
 
 export const settings: GameSettings = {
   settlementName: 'Pedra Alta',
@@ -27,6 +35,22 @@ export function gameWith(edit: (draft: GameState) => void): GameState {
   const draft = cloneState(newGame());
   edit(draft);
   return draft;
+}
+
+/**
+ * Um feudo posto direto em um instante do calendário, sem simular o caminho até lá: para os
+ * cenários de estação. O relógio fica coerente com `lastProcessedAt`, e os objetivos já estão
+ * todos cumpridos, para nenhuma recompensa cair no meio da conta.
+ */
+export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}): GameState {
+  return gameWith((draft) => {
+    draft.lastProcessedAt = atMs;
+    draft.clock.gameTimeMs = atMs;
+    draft.clock.year = Math.floor(atMs / YEAR) + 1;
+    draft.clock.yearStartMs = Math.floor(atMs / YEAR) * YEAR;
+    draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
+    edit(draft);
+  });
 }
 
 let nextCommandId = 0;
@@ -90,6 +114,28 @@ export function objectivesScenario() {
     command('startConstruction', { building: 'townHall' }),
     { at: 6 * HOUR + 10 * MINUTE },
   ]);
+}
+
+/**
+ * Outono, dois dias antes do inverno: 18 habitantes, a Fazenda no nível 2, ninguém na Serraria
+ * e 60 de madeira. A conta da lenha da próxima estação diz quanto falta guardar.
+ */
+export function autumnScenario(): GameState {
+  return gameAt(AUTUMN + 22 * DAY, (draft) => {
+    const { settlement } = draft;
+    settlement.population.villagers = 18;
+    settlement.workers = { farm: 10, lumberMill: 0, quarry: 5, goldMine: 3 };
+    settlement.buildings = { ...settlement.buildings, townHall: 3, farm: 2, housing: 3 };
+    settlement.resources = { food: 640_000, wood: 60_000, stone: 310_000, gold: 420_000 };
+  });
+}
+
+/**
+ * O mesmo feudo no 4º dia do inverno, sem ninguém ter mexido em nada: os 60 de madeira
+ * queimaram em 6 h 40 min (9 por hora) e o frio já dura 50 minutos.
+ */
+export function winterColdScenario(): GameState {
+  return advanceTo(autumnScenario(), WINTER + 3 * DAY + 90 * MINUTE).state;
 }
 
 export function eventsOfType(events: GameEvent[], type: GameEvent['type']): GameEvent[] {

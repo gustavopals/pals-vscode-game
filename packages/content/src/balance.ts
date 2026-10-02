@@ -8,6 +8,25 @@ import type {
   SeasonId,
 } from './ids';
 
+/**
+ * O que uma estação muda (GDD §4.1). Os fatores de produção valem a partir do instante exato da
+ * virada; os de duração são fixados quando a obra começa ou o recrutamento é ordenado, e o prazo
+ * não muda na virada seguinte (ADR 0013, decisão 13).
+ */
+export type SeasonEffects = {
+  /** Fator sobre a produção de cada recurso. */
+  readonly production: Record<ResourceId, Ratio>;
+  /** Fator sobre o prazo de um recrutamento **ordenado** nesta estação. */
+  readonly recruitmentDuration: Ratio;
+  /** Fator sobre o prazo de uma obra **iniciada** nesta estação. */
+  readonly constructionDuration: Ratio;
+  /**
+   * Lenha: madeira queimada por habitante por hora de jogo, em fração (1/2 é meia unidade).
+   * Zero nas estações em que ninguém acende a lareira.
+   */
+  readonly firewoodPerVillagerPerHour: Ratio;
+};
+
 export type SeasonDef = {
   readonly id: SeasonId;
   readonly label: string;
@@ -15,6 +34,7 @@ export type SeasonDef = {
   readonly article: 'a' | 'o';
   /** Duração em dias de jogo. */
   readonly days: number;
+  readonly effects: SeasonEffects;
 };
 
 /**
@@ -78,6 +98,8 @@ export type Balance = {
     readonly gateLevelsAboveTownHall: number;
   };
   readonly famine: { readonly productionMultiplier: Ratio };
+  /** O frio: sem lenha em uma estação que a queima, a produção de todo o feudo cai (GDD §4.1). */
+  readonly winter: { readonly cold: { readonly productionMultiplier: Ratio } };
   readonly calendar: { readonly dayMs: number; readonly seasons: readonly SeasonDef[] };
   readonly settlement: { readonly nameMinLength: number; readonly nameMaxLength: number };
   readonly objectives: { readonly maxActive: number };
@@ -88,6 +110,9 @@ export type Balance = {
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
+
+const SAME: Ratio = { num: 1, den: 1 };
+const NO_FIREWOOD: Ratio = { num: 0, den: 1 };
 
 // GDD §5.2, §5.3, §5.6 e §6.2. Todo número de jogo da v0.1 vive aqui ou em buildings.ts.
 export const balance: Balance = {
@@ -124,13 +149,74 @@ export const balance: Balance = {
     gateLevelsAboveTownHall: 1,
   },
   famine: { productionMultiplier: { num: 3, den: 4 } },
+  winter: { cold: { productionMultiplier: { num: 4, den: 5 } } },
+  // GDD §4.1: a tabela de efeitos das estações, em frações.
   calendar: {
     dayMs: 2 * HOUR_MS,
     seasons: [
-      { id: 'spring', label: 'Primavera', article: 'a', days: 24 },
-      { id: 'summer', label: 'Verão', article: 'o', days: 24 },
-      { id: 'autumn', label: 'Outono', article: 'o', days: 24 },
-      { id: 'winter', label: 'Inverno', article: 'o', days: 12 },
+      {
+        id: 'spring',
+        label: 'Primavera',
+        article: 'a',
+        days: 24,
+        effects: {
+          production: { food: { num: 6, den: 5 }, wood: SAME, stone: SAME, gold: SAME },
+          recruitmentDuration: { num: 4, den: 5 },
+          constructionDuration: SAME,
+          firewoodPerVillagerPerHour: NO_FIREWOOD,
+        },
+      },
+      {
+        id: 'summer',
+        label: 'Verão',
+        article: 'o',
+        days: 24,
+        effects: {
+          production: {
+            food: SAME,
+            wood: { num: 23, den: 20 },
+            stone: { num: 23, den: 20 },
+            gold: SAME,
+          },
+          recruitmentDuration: SAME,
+          constructionDuration: SAME,
+          firewoodPerVillagerPerHour: NO_FIREWOOD,
+        },
+      },
+      {
+        id: 'autumn',
+        label: 'Outono',
+        article: 'o',
+        days: 24,
+        effects: {
+          production: {
+            food: { num: 13, den: 10 },
+            wood: SAME,
+            stone: SAME,
+            gold: { num: 11, den: 10 },
+          },
+          recruitmentDuration: SAME,
+          constructionDuration: SAME,
+          firewoodPerVillagerPerHour: NO_FIREWOOD,
+        },
+      },
+      {
+        id: 'winter',
+        label: 'Inverno',
+        article: 'o',
+        days: 12,
+        effects: {
+          production: {
+            food: { num: 2, den: 5 },
+            wood: { num: 4, den: 5 },
+            stone: { num: 4, den: 5 },
+            gold: SAME,
+          },
+          recruitmentDuration: SAME,
+          constructionDuration: { num: 3, den: 2 },
+          firewoodPerVillagerPerHour: { num: 1, den: 2 },
+        },
+      },
     ],
   },
   settlement: { nameMinLength: 2, nameMaxLength: 24 },

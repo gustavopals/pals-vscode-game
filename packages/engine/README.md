@@ -15,7 +15,7 @@ deriveViewState(state: GameState, gameTimeMs: number, options?: { timeScale?: nu
 
 `GameSettings` é `{ settlementName, timezone, vigilHourLocal, difficulty, timeScale }`: a dificuldade (`peasant`, `lord`, `ironKing`) e o ritmo ficam gravados no estado e não mudam durante o ano. A visão os devolve prontos para exibir, em `settlement`: `difficulty`, `difficultyLabel` ("Senhor") e `paceLabel` ("Rápido: um ano em 56 horas").
 
-Além delas, o pacote exporta só os tipos, a lista `REJECTION_CODES`, `CURRENT_SCHEMA_VERSION` e a classe `StateMigrationError`. Um teste (`purity.test.ts`) falha se qualquer outra coisa vazar.
+Além delas, o pacote exporta só os tipos (entre eles `FirewoodView`, a conta da lenha que a visão traz), a lista `REJECTION_CODES`, `CURRENT_SCHEMA_VERSION` e a classe `StateMigrationError`. Um teste (`purity.test.ts`) falha se qualquer outra coisa vazar.
 
 ## O ciclo
 
@@ -23,7 +23,7 @@ Além delas, o pacote exporta só os tipos, a lista `REJECTION_CODES`, `CURRENT_
 advanceTo(estado, agora)  →  applyCommand(estado avançado, comando, agora)  →  deriveViewState(estado, agora)
 ```
 
-1. **`advanceTo`** leva o estado até um instante de jogo, em milissegundos. Percorre a linha do tempo trecho a trecho: aplica a produção contínua até o próximo evento discreto (`nextEventAt`), processa os eventos daquele instante e repete. Devolve o estado novo e os eventos, cada um já com a frase da Crônica.
+1. **`advanceTo`** leva o estado até um instante de jogo, em milissegundos. Percorre a linha do tempo trecho a trecho: aplica a produção contínua até o próximo evento discreto (`nextEventAt`), processa os eventos daquele instante e repete. Devolve o estado novo e os eventos, cada um já com a frase da Crônica. Antes de o tempo andar, acomoda fome e frio no instante em que o estado está: em um estado em repouso isso não muda nada; em um que acabou de ser migrado, é onde uma regra nova abre o que tem de abrir, na fronteira (ver "Estações, lenha e frio").
 2. **`applyCommand`** é a única outra forma de mudar o estado. Exige o estado já avançado até o instante do comando (`state.lastProcessedAt === gameTimeMs`); violar isso lança erro, porque é falha de quem chamou. Uma recusa de regra nunca lança: devolve `{ ok: false, code, message }`, com a mensagem em português, e não altera nada. O chamador fica com o estado que saiu de `advanceTo` e pode persisti-lo mesmo na recusa.
 3. **`deriveViewState`** calcula tudo que a interface exibe, com a explicação de cada número. Se receber um instante futuro, avança uma cópia antes de derivar. A visão fala em **tempo real**: no ritmo da partida (`state.settings.timeScale`, horas de jogo por hora real), os prazos saem em segundos reais, arredondados para cima (`depletesInSeconds` e `famine.secondsElapsed`, para baixo), e as taxas por hora, multiplicadas pelo ritmo, inclusive nos textos de explicação. `options.timeScale` só serve para ver o mesmo estado em outro ritmo (o simulador e os testes usam). O resto do motor continua em tempo de jogo ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)).
 
@@ -37,12 +37,25 @@ Nenhuma função muta a entrada.
 
 - **Divisão de intervalo exata.** `advanceTo(t2)` dá o mesmo estado e os mesmos eventos que `advanceTo(t1)` seguido de `advanceTo(t2)`, para qualquer `t1` no meio, com igualdade estrita. O estado inclui o do gerador de sorteios: avançar de uma vez ou em dez pedaços sorteia igual. É o que permite ao servidor calcular às 23:00 o que aconteceu às 20:00.
 - **Só inteiros no estado**, com uma exceção: `settings.timeScale`, o ritmo, que pode ser 0,5. Ele não entra em conta contínua nenhuma: converte um prazo de tempo real em tempo de jogo no instante em que o prazo nasce, e tempo de jogo em tempo real na visão. Recursos ficam em milésimos. A produção acumula `taxa × ms` em `accumulators` e só a parte inteira de `acumulador / 3.600.000` vai para o estoque; o resto fica guardado para o próximo trecho. Nada é arredondado e descartado.
-- **Recursos nunca negativos.** O instante em que a comida acaba é um evento da linha do tempo, calculado em inteiros; a fome começa exatamente nele.
-- **Ordem fixa dentro do mesmo instante:** obras concluídas, aldeões que chegam, virada de ano, de estação e de dia, objetivos, e por fim a abertura ou o encerramento da fome.
+- **Recursos nunca negativos.** O instante em que a comida acaba é um evento da linha do tempo, calculado em inteiros; a fome começa exatamente nele. O mesmo vale para a madeira que a lareira queima no inverno: no instante em que ela acaba começa o frio.
+- **Ordem fixa dentro do mesmo instante** (`processEventsAt`, em `advance.ts`): obras concluídas, aldeões que chegam, virada de ano, de estação e de dia, objetivos, e por fim fome e frio, nessa ordem (`settleScarcity`). Todo comando termina no mesmo acerto de fome e frio.
+- **Estado em repouso.** Depois de um instante processado ou de um comando, nem a fome nem o frio têm mais o que abrir ou fechar, e por isso `nextEventAt` é sempre depois de agora: nenhum instante é processado duas vezes.
+- **A produção é uma conta só.** `productionRate` multiplica os fatores de `productionFactors` (nível, estação, fome, frio) em frações e arredonda para baixo uma vez, no fim. A visão escreve um termo da explicação para cada fator da mesma lista. Um fator novo (moral, mestria, adaptação) entra na lista e aparece nos dois lugares.
 - **Nenhum número de jogo aqui.** Custos, taxas, tempos e textos vêm de `@lotg/content`.
 - **Valores derivados não são guardados:** capacidade habitacional, aldeões livres e taxas saem de funções puras.
 
 A fome congela a fila de recrutamento e recusa ordens novas; a produção cai para 3/4. Ela termina no primeiro instante em que o saldo de comida, já com essa penalidade, volta a ser positivo, e a fila é retomada de onde parou.
+
+## Estações, lenha e frio
+
+Os números são os de `balance.calendar.seasons[].effects` e `balance.winter` (GDD §4.1; [ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 13 e 13a). O motor não conhece o nome de estação nenhuma: lê os efeitos da que está em vigor em `lastProcessedAt`.
+
+- **Produção.** O fator da estação é um dos fatores de `productionFactors` e vale a partir do instante exato da virada: toda virada de dia já é um evento da linha do tempo, então nenhum trecho atravessa uma estação.
+- **Prazos.** O fator de duração é aplicado quando o prazo nasce e fica gravado em `finishesAtMs`: uma obra iniciada no inverno (`upgradeDurationAt`) e um recrutamento ordenado na primavera (`recruitmentDurationMs`, para a ordem inteira). Nada é recalculado na virada. Na obra, o fator entra antes do teto de 8 h.
+- **Lenha.** `firewoodRate` é a madeira queimada por hora de jogo (`firewoodPerVillagerPerHour` × habitantes) e entra no saldo da madeira em `netRates`, como o consumo entra no da comida. `woodRunsOutIn` é o instante em que ela acaba, um candidato de `nextEventAt`.
+- **Frio** (`settlement.cold = { sinceMs }`, em `cold.ts`). Abre quando a madeira não cobre nem mais um milissegundo de lenha; o estoque e o resto são zerados, e dali em diante a madeira não fica negativa (`applyContinuous` não mexe nela enquanto o saldo não for positivo). A produção de todos os edifícios leva o fator `balance.winter.cold.productionMultiplier`. Fecha no primeiro instante de evento ou de comando em que `woodCoversFirewood` é verdade (saldo positivo já com a penalidade, ou estoque positivo que cobre ao menos um instante) e sempre que a estação em vigor não queima lenha: a virada para a primavera. `coldEnded` leva em `data.reason` o porquê (`firewood` ou `thaw`) e em `data.sinceMs` o começo.
+- **Fome e frio juntos** (`settleScarcity`, em `scarcity.ts`). Cada um mexe na taxa do outro: a fome corta a madeira que a Serraria entrega, o frio corta a comida da Fazenda. Os dois são conferidos em ordem fixa, fome e depois frio, e de novo até nada mudar. Como as duas penalidades só tiram produção (um teste de conteúdo garante), começar um só pode fazer o outro começar, e terminar um só pode fazer o outro terminar: o par nunca volta a um estado em que já esteve, e a conferência acaba em no máximo três mudanças. A Crônica registra a mudança que sobra entre o começo e o fim do instante; se um dos dois terminou e recomeçou no meio da conferência, ele simplesmente continua, com a data em que começou. A condição que encerra o frio é o contrário exato da que o abre, então a lenha que volta e acaba de novo dá sempre dois instantes diferentes.
+- **Na visão** (`seasonView.ts`): `calendar.seasonEffects`, `calendar.nextSeason` (com `changes` e, quando a próxima estação queima lenha, a conta `firewood`), `winter` (a lareira, a conta do que falta até a primavera e o frio), `durationNote` nas obras e no recrutamento, e a lenha na explicação e no `depletesInSeconds` da madeira. Taxas por hora real e prazos em segundos reais, como o resto.
 
 ## Sorteios
 
@@ -75,7 +88,7 @@ A divisão de intervalo com sorteios é provada em `random.property.test.ts` com
 
 ## Versões do estado e migração
 
-O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 2):
+O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 3):
 
 - É **pura**: não altera a entrada e, para a mesma entrada, devolve sempre o mesmo estado. O ritmo vem de fora (`context.timeScale`, que o servidor lê de `games.time_scale`), porque na versão 1 ele não estava no estado.
 - É **sequencial**: os passos rodam em ordem (1 → 2 → 3 …). Cada passo confere, antes de mexer, a **forma exata** da versão de que parte, e o resultado final é conferido contra a forma da versão atual.
@@ -87,6 +100,7 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 |---|---|---|
 | 1 | v0.1 | — |
 | 2 | V2B-T1 | Sai `settings.capsEnabled`; entram `settings.difficulty` (`lord` na migração) e `settings.timeScale` (o ritmo da linha da partida); entra `migratedAtMs` |
+| 3 | V2C-T1 | Entra `settlement.cold`, `null` na migração. Nenhum prazo em curso muda; as taxas levam o fator da estação a partir da fronteira. Uma partida encontrada no inverno e sem madeira abre o frio no primeiro avanço, no instante da fronteira |
 
 **`migratedAtMs` é a fronteira da atualização mais recente** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 4): o instante de jogo em que a última migração encontrou a partida, isto é, até onde uma versão anterior das regras a simulou. Nas partidas que nasceram na versão atual, é `null`.
 
@@ -99,7 +113,9 @@ O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados
 
 `migrations.test.ts` prova isso com um passo sintético (`describe('a fronteira é de cada passo')`) e confere, em todo retrato de versão anterior, que a fronteira é o `lastProcessedAt` do retrato e que nada fica marcado para antes dela.
 
-**Limite conhecido: refazer a história de uma partida migrada.** O instante de cada migração depende de quando a partida foi gravada pela última vez antes da publicação, e isso não se deduz da semente nem dos comandos. O estado guarda só a fronteira mais recente. Enquanto nenhum passo criar prazo (é o caso da versão 2), "estado inicial + semente + comandos" refaz qualquer partida; depois do primeiro passo que criar, refazer uma partida migrada exige também o estado gravado em cada fronteira (um backup). Partidas que nasceram na versão atual não têm esse limite.
+**Um passo não emite eventos.** A migração só muda a forma. Quando a regra nova tem algo a abrir no estado que encontrou (o frio de uma partida parada no inverno sem madeira), quem abre é o primeiro `advanceTo`, que acomoda fome e frio no instante da fronteira antes de o tempo andar e põe a linha na Crônica. O passo `v2ToV3` é o exemplo, e `migrations.test.ts` prova que a virada de dia daquele instante não se repete.
+
+**Limite conhecido: refazer a história de uma partida migrada.** O instante de cada migração depende de quando a partida foi gravada pela última vez antes da publicação, e isso não se deduz da semente nem dos comandos. O estado guarda só a fronteira mais recente. Enquanto nenhum passo criar prazo nem mudar regra (é o caso da versão 2), "estado inicial + semente + comandos" refaz qualquer partida. A versão 3 já muda regra: as taxas levam o fator da estação a partir da fronteira. Daí em diante, refazer uma partida migrada exige também o estado gravado em cada fronteira (um backup). Partidas que nasceram na versão atual não têm esse limite.
 
 ### Onde fica cada coisa
 
@@ -134,7 +150,7 @@ O servidor não precisa mudar: ele migra ao travar a partida e grava a versão n
 
 ## Goldens
 
-Os arquivos em `src/__golden__/` congelam o comportamento: o `ViewState` de três momentos, as frases da Crônica e um cenário roteirizado de 7 dias. Qualquer mudança de regra aparece no diff. Os retratos de estado da versão atual, em `src/__fixtures__/`, seguem a mesma regra enquanto a versão não sobe; os de versões anteriores estão congelados e têm a impressão digital conferida por teste.
+Os arquivos em `src/__golden__/` congelam o comportamento: o `ViewState` de cinco momentos (três da primavera, o outono de quem ainda não guardou lenha e o inverno com frio), as frases da Crônica dos objetivos e de um inverno, e um cenário roteirizado de 7 dias. Qualquer mudança de regra aparece no diff. Os retratos de estado da versão atual, em `src/__fixtures__/`, seguem a mesma regra enquanto a versão não sobe; os de versões anteriores estão congelados e têm a impressão digital conferida por teste.
 
 ```bash
 pnpm --filter @lotg/engine test                  # compara com os goldens
@@ -147,5 +163,7 @@ Mudar uma regra exige atualizar o golden correspondente e o GDD (GDD §18.3).
 ## O que ainda não existe
 
 O gerador de sorteios existe (ver "Sorteios"), mas nenhuma regra o usa ainda: os fluxos `council`, `morale` e `horde` ganham o primeiro sorteio com o Conselho, a moral e as incursões por Ameaça (roadmap da v0.2, V2D-T1, V2C-T4 e V2E-T3). Até lá, `rng` continua vazio em toda partida.
+
+O cenário roteirizado de 7 dias atravessa o inverno com milhares de unidades de madeira, porque ainda não há limite de estoque: o frio fica congelado no golden da Crônica do inverno (`chronicle-winter.txt`) e nos testes de `cold.test.ts`, e entra no roteiro quando os caps (V2C-T2) tornarem a lenha apertada.
 
 A dificuldade está no estado e aparece na visão, mas ainda não muda nenhuma regra. Os fatores já estão em `balance.difficulties` (`storageCapacity`, `famineDesertion`) e passam a valer com o armazenamento (V2C-T2) e a deserção por fome (V2C-T4); a opção automática do Conselho é marcada em cada carta (V2D-T1).

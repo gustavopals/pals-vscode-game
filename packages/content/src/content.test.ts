@@ -5,11 +5,14 @@ import {
   BUILDING_IDS,
   buildings,
   chronicleTemplates,
+  coldReliefs,
   DIFFICULTY_IDS,
   EVENT_TYPES,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
+  RESOURCE_IDS,
+  SEASON_IDS,
 } from './index';
 import {
   BalanceSchema,
@@ -176,6 +179,96 @@ describe('ritmos', () => {
   });
 });
 
+describe('estações (GDD §4.1)', () => {
+  const { seasons } = balance.calendar;
+  const bySeason = Object.fromEntries(seasons.map((season) => [season.id, season.effects]));
+  const value = ({ num, den }: { num: number; den: number }) => num / den;
+
+  it('toda estação tem fator de produção para os quatro recursos, todos positivos', () => {
+    for (const season of seasons) {
+      expect(Object.keys(season.effects.production), season.id).toEqual([...RESOURCE_IDS]);
+      for (const id of RESOURCE_IDS) {
+        expect(value(season.effects.production[id]), `${season.id} ${id}`).toBeGreaterThan(0);
+      }
+      expect(value(season.effects.recruitmentDuration), season.id).toBeGreaterThan(0);
+      expect(value(season.effects.constructionDuration), season.id).toBeGreaterThan(0);
+      expect(season.effects.firewoodPerVillagerPerHour.num, season.id).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('os fatores de produção são os da tabela', () => {
+    const table = (id: (typeof SEASON_IDS)[number]) =>
+      RESOURCE_IDS.map((resource) => value(bySeason[id]!.production[resource]));
+    // Comida, madeira, pedra, ouro.
+    expect(table('spring')).toEqual([1.2, 1, 1, 1]);
+    expect(table('summer')).toEqual([1, 1.15, 1.15, 1]);
+    expect(table('autumn')).toEqual([1.3, 1, 1, 1.1]);
+    expect(table('winter')).toEqual([0.4, 0.8, 0.8, 1]);
+  });
+
+  it('só a primavera apressa o recrutamento e só o inverno atrasa as obras e queima lenha', () => {
+    expect(SEASON_IDS.map((id) => value(bySeason[id]!.recruitmentDuration))).toEqual([
+      0.8, 1, 1, 1,
+    ]);
+    expect(SEASON_IDS.map((id) => value(bySeason[id]!.constructionDuration))).toEqual([
+      1, 1, 1, 1.5,
+    ]);
+    expect(SEASON_IDS.map((id) => value(bySeason[id]!.firewoodPerVillagerPerHour))).toEqual([
+      0, 0, 0, 0.5,
+    ]);
+  });
+
+  it('a lenha de um habitante é um número inteiro de milésimos por hora', () => {
+    for (const season of seasons) {
+      const { num, den } = season.effects.firewoodPerVillagerPerHour;
+      expect((1000 * num) % den, season.id).toBe(0);
+    }
+  });
+
+  it('a estação que queima lenha é a última do ano: o frio nunca atravessa a virada', () => {
+    // O motor encerra o frio quando a estação deixa de queimar lenha; com o inverno no fim do
+    // ano, isso é sempre a virada para a primavera.
+    const burning = seasons.filter((season) => season.effects.firewoodPerVillagerPerHour.num > 0);
+    expect(burning.map((season) => season.id)).toEqual(['winter']);
+    expect(seasons.at(-1)?.id).toBe('winter');
+  });
+
+  it('o frio e a fome só tiram produção: é o que impede os dois de oscilar no mesmo instante', () => {
+    const cold = balance.winter.cold.productionMultiplier;
+    expect(cold).toEqual({ num: 4, den: 5 });
+    expect(value(cold)).toBeLessThanOrEqual(1);
+    expect(value(balance.famine.productionMultiplier)).toBeLessThanOrEqual(1);
+  });
+
+  it('o schema recusa estação sem efeitos, fator zero e lenha negativa', () => {
+    const [spring, ...others] = seasons;
+    if (spring === undefined) {
+      throw new Error('O conteúdo não tem estações.');
+    }
+    const parse = (first: unknown) =>
+      BalanceSchema.safeParse({
+        ...balance,
+        calendar: { ...balance.calendar, seasons: [first, ...others] },
+      }).success;
+    expect(parse(spring)).toBe(true);
+    const { effects, ...bare } = spring;
+    expect(parse(bare)).toBe(false);
+    expect(
+      parse({
+        ...spring,
+        effects: { ...effects, production: { ...effects.production, food: { num: 0, den: 1 } } },
+      }),
+    ).toBe(false);
+    expect(
+      parse({
+        ...spring,
+        effects: { ...effects, firewoodPerVillagerPerHour: { num: -1, den: 2 } },
+      }),
+    ).toBe(false);
+    expect(parse({ ...spring, effects: { ...effects, moraleBonus: 5 } })).toBe(false);
+  });
+});
+
 describe('edifícios', () => {
   it.each(BUILDING_IDS)('%s tem rótulo, custo e tempo positivos e ao menos 2 níveis', (id) => {
     const def = buildings[id];
@@ -220,10 +313,27 @@ describe('balanceamento', () => {
   });
 
   it('as frações permitem taxas inteiras em milésimos', () => {
-    // O motor calcula taxas em milésimos por hora: o bônus por nível e a penalidade da fome
-    // precisam dividir 1000 sem resto para nenhuma taxa ser truncada.
-    expect(1000 % balance.production.levelBonus.den).toBe(0);
-    expect(1000 % balance.famine.productionMultiplier.den).toBe(0);
+    // O motor calcula taxas em milésimos por hora, em uma conta só com um arredondamento no
+    // fim. Com os fatores de hoje (nível, estação, fome e frio, todos juntos) nenhuma taxa é
+    // truncada: o arredondamento só vai agir quando a moral e a mestria entrarem.
+    const { levelBonus, perWorkerPerHour } = balance.production;
+    const famine = balance.famine.productionMultiplier;
+    const cold = balance.winter.cold.productionMultiplier;
+    for (const season of balance.calendar.seasons) {
+      for (const building of PRODUCTION_BUILDING_IDS) {
+        const resource = buildings[building].produces;
+        if (resource === null) {
+          throw new Error(`${building} não produz nada.`);
+        }
+        const { num, den } = season.effects.production[resource];
+        for (let level = 1; level <= buildings[building].maxLevel; level += 1) {
+          const bonus = levelBonus.den + levelBonus.num * (level - 1);
+          const top = perWorkerPerHour[building] * 1000 * bonus * num * famine.num * cold.num;
+          const bottom = levelBonus.den * den * famine.den * cold.den;
+          expect(top % bottom, `${season.id} ${building} Nv${level}`).toBe(0);
+        }
+      }
+    }
   });
 
   it('a capacidade inicial é 10 e a penalidade da fome reduz a produção', () => {
@@ -266,5 +376,27 @@ describe('Crônica', () => {
     for (const type of EVENT_TYPES) {
       expect(chronicleTemplates[type].trim()).not.toBe('');
     }
+  });
+
+  it('o frio tem voz própria: não soa como a fome', () => {
+    expect(EVENT_TYPES).toContain('coldStarted');
+    expect(EVENT_TYPES).toContain('coldEnded');
+    expect(chronicleTemplates.coldStarted).toContain('lenha');
+    expect(chronicleTemplates.coldStarted).toContain('frio');
+    expect(chronicleTemplates.coldStarted).not.toMatch(/fome|despensas|pão/);
+    expect(chronicleTemplates.coldEnded).not.toMatch(/fome|despensas|pão/);
+    expect(chronicleTemplates.coldStarted).not.toBe(chronicleTemplates.famineStarted);
+  });
+
+  it('o fim do frio diz por que ele passou: a lenha voltou ou a estação virou', () => {
+    expect(chronicleTemplates.coldEnded).toContain('{alivio}');
+    expect(Object.keys(coldReliefs)).toEqual(['firewood', 'thaw']);
+    for (const relief of Object.values(coldReliefs)) {
+      expect(relief.trim()).not.toBe('');
+      // Entra no meio da frase: sem maiúscula e sem ponto.
+      expect(relief).toBe(relief.toLowerCase());
+      expect(relief).not.toMatch(/[.{}]/);
+    }
+    expect(coldReliefs.firewood).not.toBe(coldReliefs.thaw);
   });
 });

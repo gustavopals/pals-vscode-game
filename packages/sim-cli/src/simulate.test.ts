@@ -14,7 +14,14 @@ import { canonicalJson } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { IDENTITY, identityLine } from './identity';
-import { formatSummary, refusedByCode, RESERVED_COLUMNS, summarize, toCsv } from './report';
+import {
+  formatSummary,
+  MECHANIC_COLUMN_NAMES,
+  refusedByCode,
+  RESERVED_COLUMNS,
+  summarize,
+  toCsv,
+} from './report';
 import { idleQueue, simulate } from './simulate';
 
 const twoSessions = await simulate({
@@ -74,16 +81,47 @@ describe('CSV de uma partida', () => {
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
   });
 
-  it('as colunas reservadas para as Fases C a E saem vazias, e não zeradas', () => {
-    const names = RESERVED_COLUMNS.map((column) => column.name);
-    expect(HEADER.endsWith(names.join(','))).toBe(true);
+  it('as colunas das mecânicas fecham o cabeçalho; as que ninguém mede ainda saem vazias', () => {
+    expect(HEADER.endsWith(MECHANIC_COLUMN_NAMES.join(','))).toBe(true);
+    const reserved: string[] = RESERVED_COLUMNS.map((column) => column.name);
+    expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual(['cold']);
     expect(new Set(RESERVED_COLUMNS.map((column) => column.task))).toEqual(
-      new Set(['V2C-T1', 'V2C-T2', 'V2C-T4', 'V2D-T1', 'V2E-T3']),
+      new Set(['V2C-T2', 'V2C-T4', 'V2D-T1', 'V2E-T3']),
     );
+    const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
     for (const line of lines) {
-      expect(line.split(',').slice(-names.length)).toEqual(names.map(() => ''));
+      const cells = line.split(',');
+      for (const name of reserved) {
+        // Vazio, e não zero: zero seria uma medida.
+        expect(cells[header.indexOf(name)], name).toBe('');
+      }
+      expect(cells[header.indexOf('cold')]).toMatch(/^[01]$/);
     }
+  });
+
+  it('a coluna `cold` marca as horas em que o feudo passa frio', async () => {
+    const header = HEADER.split(',');
+    const column = (rows: typeof twoSessions.rows) =>
+      toCsv(rows)
+        .trimEnd()
+        .split('\n')
+        .slice(1)
+        .map((line) => line.split(',')[header.indexOf('cold')]);
+    // Na partida do bot a madeira sobra: nenhuma hora de frio.
+    expect(twoSessions.rows.some((row) => row.cold)).toBe(false);
+    expect(new Set(column(twoSessions.rows))).toEqual(new Set(['0']));
+    const frozen = twoSessions.rows.map((row) => ({ ...row, cold: row.season === 'winter' }));
+    expect(column(frozen).filter((cell) => cell === '1')).toHaveLength(24);
+    // No ritmo 1 o inverno vai da hora 144 à 167: a linha da hora 144 já é o primeiro instante dele.
+    expect(summarize({ ...twoSessions, rows: frozen })).toMatchObject({
+      coldHours: 24,
+      firstColdHour: 144,
+    });
+    expect(formatSummary({ ...twoSessions, rows: frozen })).toContain(
+      'Frio: 24 h, a primeira na hora 144\n',
+    );
+    expect(formatSummary(twoSessions)).toContain('Frio: nenhum\n');
   });
 
   it('as ordens são acumuladas: a última linha traz o total da partida', () => {
@@ -197,7 +235,9 @@ describe('resumo de uma partida', () => {
     const lines = formatSummary(twoSessions).split('\n');
     expect(lines[1]).toBe('Partida: Senhor · Normal: um ano em 7 dias');
     expect(lines[2]).toBe(identityLine());
-    expect(lines[3]).toBe('Políticas: recrutar, obra mais barata, alocar por demanda');
+    expect(lines[3]).toBe(
+      'Políticas: recrutar, obra mais barata, alocar por demanda, guardar lenha',
+    );
   });
 
   it('traz os sinais de tédio: fila ociosa, aldeões sem ofício e excedente parado', () => {

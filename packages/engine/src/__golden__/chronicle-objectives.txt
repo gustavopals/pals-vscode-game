@@ -3,10 +3,10 @@
 0	No 1º dia da Primavera, cumpriu-se um objetivo: Inicie a melhoria das Habitações. Recompensa: +30 madeira.
 0	No 1º dia da Primavera, o Salão mandou chamar novos aldeões: 3.
 240000	No 1º dia da Primavera, os pedreiros ergueram as Habitações ao 2º nível.
-1200000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 6.
-2400000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 7.
-3600000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 8.
-3600000	No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida.
+960000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 6.
+1920000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 7.
+2880000	No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 8.
+2880000	No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida.
 7200000	Amanhece o 2º dia da Primavera em Pedra Alta.
 14400000	Amanhece o 3º dia da Primavera em Pedra Alta.
 21600000	Amanhece o 4º dia da Primavera em Pedra Alta.

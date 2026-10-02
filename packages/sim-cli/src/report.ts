@@ -11,22 +11,66 @@ export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
 export type SurplusResource = (typeof SURPLUS_RESOURCES)[number];
 
 /**
- * Colunas que as Fases C a E do roadmap da v0.2 vão preencher. O cabeçalho já existe, para o
- * formato do CSV não mudar a cada mecânica; o valor sai **vazio** (e não zero: zero seria uma
- * medida) até a tarefa indicada tirar a coluna daqui e passar a lê-la da visão. Valem para o
- * CSV de uma partida (hora a hora) e para o da matriz (uma linha por partida, valor final).
+ * As colunas das mecânicas da v0.2, na ordem fixa em que fecham o cabeçalho dos dois CSVs: o de
+ * uma partida (hora a hora) e o da matriz (uma linha por partida). O cabeçalho já existe, para
+ * o formato não mudar a cada mecânica.
  */
-export const RESERVED_COLUMNS = [
+const MECHANIC_COLUMNS = [
   { name: 'wasted_food', task: 'V2C-T2', meaning: 'Comida desperdiçada no cap, acumulada' },
   { name: 'wasted_wood', task: 'V2C-T2', meaning: 'Madeira desperdiçada no cap, acumulada' },
   { name: 'wasted_stone', task: 'V2C-T2', meaning: 'Pedra desperdiçada no cap, acumulada' },
-  { name: 'cold', task: 'V2C-T1', meaning: '`1` se o feudo passa frio naquela hora' },
+  {
+    name: 'cold',
+    task: 'V2C-T1',
+    meaning: '`1` se o feudo passa frio naquela hora; na matriz, as horas de frio da partida',
+  },
   { name: 'morale', task: 'V2C-T4', meaning: 'Moral do feudo, de 0 a 100' },
   { name: 'cards_seen', task: 'V2D-T1', meaning: 'Cartas do Conselho recebidas, acumuladas' },
   { name: 'cards_answered', task: 'V2D-T1', meaning: 'Cartas respondidas pelo bot, acumuladas' },
   { name: 'cards_expired', task: 'V2D-T1', meaning: 'Cartas que expiraram, acumuladas' },
   { name: 'wolf_losses', task: 'V2E-T3', meaning: 'Perdas em incursões de lobos, acumuladas' },
 ] as const;
+type MechanicColumn = (typeof MECHANIC_COLUMNS)[number]['name'];
+
+/**
+ * As colunas que já são medidas: o valor de uma hora (CSV de uma partida) e o de uma partida
+ * inteira (CSV da matriz). Cada tarefa acrescenta a sua aqui, lendo da visão.
+ */
+const MEASURED_COLUMNS: Partial<
+  Record<
+    MechanicColumn,
+    { hour: (row: HourRow) => string | number; run: (summary: Summary) => string | number }
+  >
+> = {
+  cold: { hour: (row) => (row.cold ? 1 : 0), run: (summary) => summary.coldHours },
+};
+
+/**
+ * Colunas que as tarefas seguintes do roadmap da v0.2 vão preencher. O valor sai **vazio** (e
+ * não zero: zero seria uma medida) até a tarefa indicada medir a coluna em `MEASURED_COLUMNS`.
+ */
+export const RESERVED_COLUMNS = MECHANIC_COLUMNS.filter(
+  (column) => MEASURED_COLUMNS[column.name] === undefined,
+);
+
+/** Os nomes das colunas das mecânicas, na ordem do cabeçalho. */
+export const MECHANIC_COLUMN_NAMES: readonly string[] = MECHANIC_COLUMNS.map(({ name }) => name);
+
+/** As colunas das mecânicas para o CSV de uma partida: vazio enquanto ninguém as mede. */
+const hourMechanicColumns = MECHANIC_COLUMNS.map(
+  ({ name }): [string, (row: HourRow) => string | number] => [
+    name,
+    (row) => MEASURED_COLUMNS[name]?.hour(row) ?? '',
+  ],
+);
+
+/** As colunas das mecânicas para o CSV da matriz: o valor da partida inteira. */
+export const runMechanicColumns = MECHANIC_COLUMNS.map(
+  ({ name }): [string, (summary: Summary) => string | number] => [
+    name,
+    (summary) => MEASURED_COLUMNS[name]?.run(summary) ?? '',
+  ],
+);
 
 /** `QUEUE_BUSY:2;HOUSING_FULL:1`, em ordem alfabética de código; vazio sem recusas. */
 export function refusedByCode(refused: Record<string, number>): string {
@@ -62,7 +106,7 @@ const columns: Array<[string, (row: HourRow) => string | number]> = [
   ['commands_accepted', (row) => row.commandsAccepted],
   ['commands_refused', (row) => total(row.commandsRefused)],
   ['refused_by_code', (row) => refusedByCode(row.commandsRefused)],
-  ...RESERVED_COLUMNS.map(({ name }): [string, () => string] => [name, () => '']),
+  ...hourMechanicColumns,
 ];
 
 /** CSV com cabeçalho e uma linha por hora real; as colunas `*_per_hour` são por hora real. */
@@ -80,6 +124,9 @@ export type Summary = {
   townHall: number;
   famineHours: number;
   firstFamineHour: number | null;
+  /** Horas com o feudo passando frio: a lenha acabou no inverno. */
+  coldHours: number;
+  firstColdHour: number | null;
   commandsAccepted: number;
   commandsRefused: number;
   refusedByCode: Record<string, number>;
@@ -101,6 +148,7 @@ export function summarize(result: SimulationResult): Summary {
   const { rows } = result;
   const last = rows[rows.length - 1];
   const hungry = rows.filter((row) => row.famine);
+  const freezing = rows.filter((row) => row.cold);
   const freeVillagerHours = rows.reduce((sum, row) => sum + row.free, 0);
   const stock = Object.fromEntries(RESOURCE_IDS.map((id) => [id, last?.stock[id] ?? 0])) as Record<
     ResourceId,
@@ -113,6 +161,8 @@ export function summarize(result: SimulationResult): Summary {
     townHall: last?.levels.townHall ?? 0,
     famineHours: hungry.length,
     firstFamineHour: hungry[0]?.hour ?? null,
+    coldHours: freezing.length,
+    firstColdHour: freezing[0]?.hour ?? null,
     commandsAccepted: result.commands.accepted,
     commandsRefused: total(result.commands.refused),
     refusedByCode: { ...result.commands.refused },
@@ -157,11 +207,14 @@ export function formatSummary(result: SimulationResult): string {
     summary.famineHours === 0
       ? 'Fome: nenhuma'
       : `Fome: ${summary.famineHours} h, a primeira na hora ${summary.firstFamineHour}`,
+    summary.coldHours === 0
+      ? 'Frio: nenhum'
+      : `Frio: ${summary.coldHours} h, a primeira na hora ${summary.firstColdHour}`,
     `Fila ociosa: ${summary.queueIdleHours} h com obra que podia começar (${summary.plannedIdleHours} h com obra planejada)`,
     `Aldeões sem ofício: ${summary.freeVillagerHours} aldeão-horas (${formatDecimal(summary.freePerHour)} por hora)`,
     `Excedente parado: ${SURPLUS_RESOURCES.map((id) => `${id} ${summary.surplus[id]}`).join(', ')}`,
     `Comandos: ${summary.commandsAccepted} aceitos, ${summary.commandsRefused} recusados${refused ? ` (${refused})` : ''}`,
-    'Sem medida até as Fases C a E: desperdício por recurso, horas de frio, moral, cartas do Conselho, perdas por lobos',
+    'Sem medida até as Fases C a E: desperdício por recurso, moral, cartas do Conselho, perdas por lobos',
     '',
   ].join('\n');
 }

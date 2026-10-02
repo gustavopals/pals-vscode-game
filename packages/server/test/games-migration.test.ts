@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 2;
+const CURRENT = 3;
 
 type StoredState = {
   schemaVersion: number;
@@ -280,7 +280,8 @@ describe('uma partida gravada na versão 1', () => {
     });
     // A fronteira é o instante de jogo até onde a v0.1 simulou, não o instante da leitura.
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-    expect(row.state.settlement).toEqual(before.settlement);
+    // O feudo é o da v0.1, campo por campo; a versão 3 só acrescenta o frio, fechado.
+    expect(row.state.settlement).toEqual({ ...before.settlement, cold: null });
     expect(row.state.objectives).toEqual(before.objectives);
     expect(row.state.stats).toEqual(before.stats);
     expect(row.state.seed).toBe(before.seed);
@@ -456,7 +457,7 @@ describe('uma partida gravada na versão 1', () => {
       expect(row.schemaVersion).toBe(CURRENT);
       expect(row.stateVersion).toBe(41);
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-      expect(row.state.settlement).toEqual(before.settlement);
+      expect(row.state.settlement).toEqual({ ...before.settlement, cold: null });
       const views = [replies[0], replies[1], replies[4], replies[5]] as Array<{
         body: ViewResponse;
       }>;

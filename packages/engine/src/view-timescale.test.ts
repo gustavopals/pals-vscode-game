@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import {
   accept,
+  autumnScenario,
   command,
   gameWith,
   HOUR,
   MINUTE,
   newGame,
   objectivesScenario,
+  winterColdScenario,
 } from './test-helpers';
 import type { GameState, ViewState } from './types';
 import { deriveViewState } from './view';
@@ -21,7 +23,7 @@ const floorReal = (gameMs: number, timeScale: number) => Math.floor(gameMs / tim
 
 const farmers = accept(newGame(), command('setWorkers', { building: 'farm', count: 2 })).state;
 
-/** Obra na Fazenda (300 s de jogo), 3 aldeões a caminho (1200 s cada) e o Nv3 da Fazenda planejado. */
+/** Obra na Fazenda (300 s de jogo), 3 aldeões a caminho (960 s cada, na primavera) e o Nv3 da Fazenda planejado. */
 function busy(): GameState {
   let state = accept(newGame(), command('startConstruction', { building: 'farm' })).state;
   state = accept(state, command('recruitVillagers', { quantity: 3 })).state;
@@ -67,22 +69,36 @@ function foodOf(view: ViewState) {
 /** Número escrito com vírgula decimal nos textos de explicação. */
 const written = (text: string | undefined) => Number((text ?? '').replace(',', '.'));
 
-/** Lê "4 trabalhadores × 30 × 1,2 (Nv2) × 0,75 (fome) = 144/h". */
+/**
+ * Lê "4 trabalhadores × 30 × 1,2 (Nv2) × 1,3 (outono) × 0,75 (fome) = 140,4/h": os braços, a taxa
+ * base, um termo por fator e o total.
+ */
 function readProduction(text: string) {
   const match =
-    /^(\d+) trabalhador(?:es)? × ([\d,]+) × ([\d,]+) \(Nv\d+\)(?: × ([\d,]+) \(fome\))? = ([\d,]+)\/h$/.exec(
-      text,
-    );
+    /^(\d+) trabalhador(?:es)? × ([\d,]+)((?: × [\d,]+ \([^)]+\))+) = ([\d,]+)\/h$/.exec(text);
   if (match === null) {
     throw new Error(`Explicação de produção fora do formato: ${text}`);
   }
+  const factors = [...(match[3] ?? '').matchAll(/ × ([\d,]+) \(([^)]+)\)/g)].map((factor) => ({
+    value: written(factor[1]),
+    label: factor[2] ?? '',
+  }));
   return {
     hands: Number(match[1]),
     perWorker: written(match[2]),
-    bonus: written(match[3]),
-    penalty: match[4] === undefined ? 1 : written(match[4]),
-    total: written(match[5]),
+    factors,
+    /** Todos os fatores multiplicados. */
+    multiplier: factors.reduce((product, factor) => product * factor.value, 1),
+    total: written(match[4]),
   };
+}
+
+/** Lê "−27/h (lenha de 18 habitantes)" no fim da explicação da madeira; zero se não há lenha. */
+function readFirewood(text: string) {
+  const match = /; −([\d,]+)\/h \(lenha de (\d+) habitantes?\)$/.exec(text);
+  return match === null
+    ? { total: 0, villagers: null }
+    : { total: written(match[1]), villagers: Number(match[2]) };
 }
 
 /** Lê "consumo 18 × 3 = 54/h". */
@@ -140,12 +156,13 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
   });
 
   it('recrutamento: tempo por aldeão e chegada do próximo', () => {
-    expect(game.recruitment.secondsPerVillager).toBe(1200);
-    expect(real.recruitment.secondsPerVillager).toBe(400);
+    // Primavera: 20 min × 0,8 = 960 s de jogo por aldeão.
+    expect(game.recruitment.secondsPerVillager).toBe(960);
+    expect(real.recruitment.secondsPerVillager).toBe(320);
     const next = state.settlement.recruitmentQueue[0];
-    expect(next?.finishesAtMs).toBe(20 * MINUTE);
-    // (1.200.000 − 100.001) ms ÷ 3 = 366,67 s.
-    expect(real.population.secondsToNextRecruit).toBe(367);
+    expect(next?.finishesAtMs).toBe(16 * MINUTE);
+    // (960.000 − 100.001) ms ÷ 3 = 286,67 s.
+    expect(real.population.secondsToNextRecruit).toBe(287);
   });
 
   it('calendário: virada do dia e da estação', () => {
@@ -157,7 +174,7 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
   it('em instantes redondos a divisão é exata', () => {
     const round = deriveViewState(state, 2 * MINUTE, { timeScale: 3 });
     expect(activeOf(round)).toMatchObject({ secondsRemaining: 60, totalSeconds: 100 });
-    expect(round.population.secondsToNextRecruit).toBe(360);
+    expect(round.population.secondsToNextRecruit).toBe(280);
     expect(round.calendar).toMatchObject({ secondsToNextDay: 2360, secondsToNextSeason: 57_560 });
   });
 
@@ -177,7 +194,8 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
     );
     expect(scaled.calendar.secondsToNextDay).toBe(ceilReal(2 * HOUR - at, timeScale));
     expect(scaled.calendar.secondsToNextSeason).toBe(ceilReal(48 * HOUR - at, timeScale));
-    expect(scaled.recruitment.secondsPerVillager).toBe(ceilReal(20 * MINUTE, timeScale));
+    expect(scaled.calendar.nextSeason.secondsUntil).toBe(scaled.calendar.secondsToNextSeason);
+    expect(scaled.recruitment.secondsPerVillager).toBe(ceilReal(16 * MINUTE, timeScale));
     expect(scaled.constructions.available.map((entry) => entry.durationSeconds)).toEqual(
       game.constructions.available.map((entry) =>
         ceilReal(entry.durationSeconds * SECOND, timeScale),
@@ -205,11 +223,18 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
     expect(real.workers.map((row) => [row.building, row.level, row.assigned])).toEqual(
       game.workers.map((row) => [row.building, row.level, row.assigned]),
     );
-    expect({
-      ...real.calendar,
+    // Do calendário só mudam os prazos: a frase da estação e o que muda na virada são os mesmos.
+    const timeless = ({ calendar }: ViewState) => ({
+      ...calendar,
       secondsToNextDay: 0,
       secondsToNextSeason: 0,
-    }).toEqual({ ...game.calendar, secondsToNextDay: 0, secondsToNextSeason: 0 });
+      nextSeason: { ...calendar.nextSeason, secondsUntil: 0 },
+    });
+    expect(timeless(real)).toEqual(timeless(game));
+    expect(real.constructions.available.map((entry) => entry.durationNote)).toEqual(
+      game.constructions.available.map((entry) => entry.durationNote),
+    );
+    expect(real.recruitment.durationNote).toBe(game.recruitment.durationNote);
     expect(real.constructions.available.map((entry) => [entry.building, entry.cost])).toEqual(
       game.constructions.available.map((entry) => [entry.building, entry.cost]),
     );
@@ -257,16 +282,20 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
     const state = leveled();
     const game = deriveViewState(state, 0);
     const real = deriveViewState(state, 0, { timeScale: 3 });
-    expect(game.workers[0]).toMatchObject({ grossPerHour: 48, perWorkerPerHour: 12 });
-    expect(real.workers[0]).toMatchObject({ grossPerHour: 144, perWorkerPerHour: 36 });
-    expect(foodOf(game).perHour).toBe(30);
-    expect(foodOf(real).perHour).toBe(90);
+    // Primavera: 4 × 10 × 1,2 (Nv2) × 1,2 = 57,6 por hora de jogo.
+    expect(game.workers[0]).toMatchObject({ grossPerHour: 57.6, perWorkerPerHour: 14.4 });
+    expect(real.workers[0]).toMatchObject({ grossPerHour: 172.8, perWorkerPerHour: 43.2 });
+    expect(foodOf(game).perHour).toBe(39.6);
+    expect(foodOf(real).perHour).toBe(118.8);
     for (const [index, row] of real.workers.entries()) {
-      expect(row.grossPerHour).toBe((game.workers[index]?.grossPerHour ?? NaN) * 3);
-      expect(row.perWorkerPerHour).toBe((game.workers[index]?.perWorkerPerHour ?? NaN) * 3);
+      expect(row.grossPerHour).toBeCloseTo((game.workers[index]?.grossPerHour ?? NaN) * 3, 9);
+      expect(row.perWorkerPerHour).toBeCloseTo(
+        (game.workers[index]?.perWorkerPerHour ?? NaN) * 3,
+        9,
+      );
     }
     for (const [index, row] of real.resources.entries()) {
-      expect(row.perHour).toBe((game.resources[index]?.perHour ?? NaN) * 3);
+      expect(row.perHour).toBeCloseTo((game.resources[index]?.perHour ?? NaN) * 3, 9);
     }
   });
 
@@ -283,9 +312,11 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
   it('os textos de explicação falam em horas reais', () => {
     const real = deriveViewState(leveled(), 0, { timeScale: 3 });
     expect(foodOf(real).breakdown).toBe(
-      'Fazenda: 4 trabalhadores × 30 × 1,2 (Nv2) = 144/h; consumo 18 × 3 = 54/h',
+      'Fazenda: 4 trabalhadores × 30 × 1,2 (Nv2) × 1,2 (primavera) = 172,8/h; consumo 18 × 3 = 54/h',
     );
-    expect(real.workers[0]?.breakdown).toBe('4 trabalhadores × 30 × 1,2 (Nv2) = 144/h');
+    expect(real.workers[0]?.breakdown).toBe(
+      '4 trabalhadores × 30 × 1,2 (Nv2) × 1,2 (primavera) = 172,8/h',
+    );
     expect(real.workers[1]?.breakdown).toBe('0 trabalhadores × 24 × 1 (Nv1) = 0/h');
     expect(deriveViewState(starving(), HOUR, { timeScale: 3 }).workers[1]?.breakdown).toBe(
       '1 trabalhador × 24 × 1 (Nv1) × 0,75 (fome) = 18/h',
@@ -298,6 +329,8 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
     ['nível 2', leveled(), 0],
     ['fome', starving(), HOUR],
     ['objetivos', objectivesScenario().state, 7 * HOUR],
+    ['outono', autumnScenario(), autumnScenario().lastProcessedAt],
+    ['inverno com frio', winterColdScenario(), winterColdScenario().lastProcessedAt],
   ];
   const scenarios = states.flatMap(([name, state, at]) =>
     [1, 3, 0.5, 2].map((timeScale): [string, number, GameState, number] => [
@@ -316,16 +349,26 @@ describe('deriveViewState no ritmo 3: taxas por hora real', () => {
         const text = readProduction(row.breakdown);
         expect(text.hands).toBe(row.assigned);
         expect(text.total).toBeCloseTo(row.grossPerHour, 2);
-        // Os fatores escritos, multiplicados, dão o total escrito.
-        expect(text.hands * text.perWorker * text.bonus * text.penalty).toBeCloseTo(text.total, 1);
-        // Sem fome, "por trabalhador × bônus" é o que a visão diz que um trabalhador rende.
-        if (text.penalty === 1) {
-          expect(text.perWorker * text.bonus).toBeCloseTo(row.perWorkerPerHour, 1);
+        // O nível vem sempre e vem primeiro; nenhum fator escrito é neutro, fora ele.
+        expect(text.factors[0]?.label).toBe(`Nv${row.level}`);
+        for (const factor of text.factors.slice(1)) {
+          expect(factor.value).not.toBe(1);
         }
+        // Os fatores escritos, multiplicados, dão o total escrito.
+        expect(text.hands * text.perWorker * text.multiplier).toBeCloseTo(text.total, 1);
+        // "Por trabalhador × fatores" é o que a visão diz que um trabalhador rende agora.
+        expect(text.perWorker * text.multiplier).toBeCloseTo(row.perWorkerPerHour, 1);
         const resource = derived.resources.find((entry) => entry.id === row.resource);
         expect(resource?.breakdown.startsWith(`${row.label}: ${row.breakdown}`)).toBe(true);
         if (row.resource !== 'food') {
-          expect(resource?.perHour).toBeCloseTo(row.grossPerHour, 1);
+          // A madeira desconta a lenha que o texto anuncia; os outros são só a produção.
+          const firewood = readFirewood(resource?.breakdown ?? '');
+          expect(firewood.total === 0 || row.resource === 'wood').toBe(true);
+          expect(resource?.perHour).toBeCloseTo(row.grossPerHour - firewood.total, 1);
+          if (firewood.villagers !== null) {
+            expect(firewood.villagers).toBe(derived.population.villagers);
+            expect(firewood.total).toBeCloseTo(derived.winter?.firewoodPerHour ?? NaN, 2);
+          }
         }
       }
       const food = foodOf(derived);
@@ -424,12 +467,12 @@ describe('deriveViewState no ritmo 0,5', () => {
       totalSeconds: 600,
       progressPercent: 40,
     });
-    expect(slow.recruitment.secondsPerVillager).toBe(2400);
+    expect(slow.recruitment.secondsPerVillager).toBe(1920);
     expect(slow.calendar).toMatchObject({ secondsToNextDay: 14_160 });
-    expect(slow.workers[0]).toMatchObject({ grossPerHour: 10, perWorkerPerHour: 5 });
-    expect(foodOf(slow)).toMatchObject({ perHour: 7.5, depletesInSeconds: null });
+    expect(slow.workers[0]).toMatchObject({ grossPerHour: 12, perWorkerPerHour: 6 });
+    expect(foodOf(slow)).toMatchObject({ perHour: 9.5, depletesInSeconds: null });
     expect(foodOf(slow).breakdown).toBe(
-      'Fazenda: 2 trabalhadores × 5 × 1 (Nv1) = 10/h; consumo 5 × 0,5 = 2,5/h',
+      'Fazenda: 2 trabalhadores × 5 × 1 (Nv1) × 1,2 (primavera) = 12/h; consumo 5 × 0,5 = 2,5/h',
     );
     expect(foodOf(deriveViewState(newGame(), 0, { timeScale: 0.5 })).depletesInSeconds).toBe(
       72 * 3600,

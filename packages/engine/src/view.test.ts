@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import {
   accept,
+  autumnScenario,
   command,
   gameWith,
   HOUR,
   MINUTE,
   newGame,
   objectivesScenario,
+  winterColdScenario,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -34,6 +36,18 @@ describe('deriveViewState', () => {
       dayOfYear: 1,
       secondsToNextDay: 7200,
       secondsToNextSeason: 24 * 7200,
+      seasonEffects: 'Primavera: comida × 1,2; recrutamento com prazo × 0,8.',
+      nextSeason: {
+        id: 'summer',
+        label: 'Verão',
+        secondsUntil: 24 * 7200,
+        changes: [
+          'A produção de comida passa de × 1,2 para × 1.',
+          'A produção de madeira e pedra passa de × 1 para × 1,15.',
+          'O recrutamento volta ao prazo de sempre.',
+        ],
+        firewood: null,
+      },
     });
     expect(initial.population).toMatchObject({
       villagers: 5,
@@ -53,14 +67,15 @@ describe('deriveViewState', () => {
     expect(initial.resources[0]?.depletesInSeconds).toBe(36 * 3600);
     expect(initial.constructions.active).toBeNull();
     expect(initial.famine).toBeNull();
+    expect(initial.winter).toBeNull();
     expect(initial.pendingDecisions).toEqual([]);
   });
 
-  it('com 2 trabalhadores na Fazenda e 5 habitantes, a comida rende +15/h líquida', () => {
+  it('com 2 trabalhadores na Fazenda e 5 habitantes, a comida rende +19/h líquida na primavera', () => {
     const food = view(farmers).resources[0];
-    expect(food).toMatchObject({ id: 'food', perHour: 15, depletesInSeconds: null });
+    expect(food).toMatchObject({ id: 'food', perHour: 19, depletesInSeconds: null });
     expect(food?.breakdown).toBe(
-      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) = 20/h; consumo 5 × 1 = 5/h',
+      'Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h',
     );
   });
 
@@ -72,16 +87,17 @@ describe('deriveViewState', () => {
     });
     const derived = view(state);
     expect(derived.resources[0]?.breakdown).toBe(
-      'Fazenda: 4 trabalhadores × 10 × 1,2 (Nv2) = 48/h; consumo 18 × 1 = 18/h',
+      'Fazenda: 4 trabalhadores × 10 × 1,2 (Nv2) × 1,2 (primavera) = 57,6/h; consumo 18 × 1 = 18/h',
     );
     expect(derived.workers[0]).toMatchObject({
       building: 'farm',
       level: 2,
       assigned: 4,
-      grossPerHour: 48,
-      perWorkerPerHour: 12,
-      breakdown: '4 trabalhadores × 10 × 1,2 (Nv2) = 48/h',
+      grossPerHour: 57.6,
+      perWorkerPerHour: 14.4,
+      breakdown: '4 trabalhadores × 10 × 1,2 (Nv2) × 1,2 (primavera) = 57,6/h',
     });
+    // Um fator neutro (a madeira na primavera) não aparece na explicação.
     expect(derived.workers[1]?.breakdown).toBe('0 trabalhadores × 8 × 1 (Nv1) = 0/h');
   });
 
@@ -101,6 +117,7 @@ describe('deriveViewState', () => {
       fromLevel: 1,
       targetLevel: 2,
       durationSeconds: 300,
+      durationNote: null,
       affordable: true,
       blockedCode: null,
       blockedReason: null,
@@ -177,13 +194,15 @@ describe('deriveViewState', () => {
         { resource: 'food', label: 'Comida', amount: 50, missing: 0 },
         { resource: 'gold', label: 'Ouro', amount: 10, missing: 0 },
       ],
-      secondsPerVillager: 1200,
+      // Na primavera, 20 min × 0,8.
+      secondsPerVillager: 960,
+      durationNote: 'Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.',
       maxQuantity: 5,
       blockedReason: null,
     });
     const queued = accept(newGame(), command('recruitVillagers', { quantity: 3 })).state;
     const derived = deriveViewState(queued, 5 * MINUTE);
-    expect(derived.population).toMatchObject({ inTraining: 3, secondsToNextRecruit: 900 });
+    expect(derived.population).toMatchObject({ inTraining: 3, secondsToNextRecruit: 660 });
     expect(derived.recruitment).toMatchObject({
       maxQuantity: 2,
       blockedReason: 'Faltam 21 comida.',
@@ -226,7 +245,7 @@ describe('deriveViewState', () => {
   it('avança sozinho até o instante pedido, sem mutar a entrada, e não volta no tempo', () => {
     const before = JSON.stringify(farmers);
     const derived = deriveViewState(farmers, 2 * HOUR);
-    expect(derived.resources[0]?.stock).toBe(210);
+    expect(derived.resources[0]?.stock).toBe(218);
     expect(derived.calendar).toMatchObject({ dayOfSeason: 2, secondsToNextDay: 7200 });
     expect(JSON.stringify(farmers)).toBe(before);
     expect(derived).toEqual(view(advanceTo(farmers, 2 * HOUR).state));
@@ -240,6 +259,9 @@ describe('golden do ViewState', () => {
       initial: view(newGame('pedra-alta')),
       afterFirstAllocation: view(farmers),
       afterObjectivesScenario: view(objectivesScenario().state),
+      // As estações: o outono de quem ainda não guardou lenha e o inverno de quem ficou sem ela.
+      autumnBeforeWinter: view(autumnScenario()),
+      winterCold: view(winterColdScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

@@ -60,8 +60,11 @@ describe('simulação no ritmo 3', () => {
         realDay: 0,
         perHour: null,
       });
+      // A visão arredonda cada taxa a uma casa: o triplo de um valor arredondado pode ficar a
+      // até três meias casas do valor de verdade, que por sua vez é arredondado a meia casa.
       for (const [resource, value] of Object.entries(row.perHour)) {
-        expect(value).toBeCloseTo(same.perHour[resource as keyof typeof same.perHour] * 3, 6);
+        const tripled = same.perHour[resource as keyof typeof same.perHour] * 3;
+        expect(Math.abs(value - tripled)).toBeLessThanOrEqual(0.2 + 1e-9);
       }
     }
   });

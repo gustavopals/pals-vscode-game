@@ -1,11 +1,11 @@
 import { nextDayBoundary } from './clock';
-import { foodRunsOutIn } from './economy';
+import { foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import type { GameState } from './types';
 
 /**
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
- * virada de dia (que cobre estação e ano) ou o momento em que a comida acaba.
- * Nunca devolve um instante anterior a `lastProcessedAt`.
+ * virada de dia (que cobre estação e ano), o momento em que a comida acaba ou aquele em que a
+ * madeira acaba na lareira. Nunca devolve um instante anterior a `lastProcessedAt`.
  */
 export function nextEventAt(state: GameState): number | null {
   const now = state.lastProcessedAt;
@@ -22,9 +22,15 @@ export function nextEventAt(state: GameState): number | null {
   if (nextRecruit !== undefined && !famine) {
     candidates.push(nextRecruit.finishesAtMs);
   }
-  const foodRunsOut = foodRunsOutIn(state);
+  const rates = netRates(state);
+  const foodRunsOut = foodRunsOutIn(state, rates);
   if (foodRunsOut !== null) {
     candidates.push(now + foodRunsOut);
+  }
+  // No inverno a lenha come a madeira: o instante em que ela acaba abre o frio.
+  const woodRunsOut = woodRunsOutIn(state, rates);
+  if (woodRunsOut !== null) {
+    candidates.push(now + woodRunsOut);
   }
   return Math.max(now, Math.min(...candidates));
 }

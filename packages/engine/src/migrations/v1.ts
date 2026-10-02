@@ -28,6 +28,20 @@ const construction = exactObject({
   finishesAtMs: natural,
 });
 
+/** Os campos de `settlement` na versão 1; as versões seguintes partem daqui e acrescentam os seus. */
+export const settlementV1Fields: Readonly<Record<string, Shape>> = {
+  name: text,
+  resources: each(RESOURCES, natural),
+  accumulators: each(RESOURCES, integer),
+  population: exactObject({ villagers: natural }),
+  workers: each(PRODUCTION_BUILDINGS, natural),
+  buildings: each(BUILDINGS, natural),
+  constructionQueues: listOf(nullable(construction)),
+  planned: listOf(exactObject({ building: oneOf(BUILDINGS), targetLevel: natural })),
+  recruitmentQueue: listOf(exactObject({ finishesAtMs: natural })),
+  famine: nullable(exactObject({ sinceMs: natural })),
+};
+
 /**
  * Os campos do `GameState` da v0.1 (`schemaVersion: 1`), como o motor da tag `v0.1.0` o gravava.
  * A versão seguinte parte daqui e troca só o que mudou.
@@ -44,18 +58,7 @@ export const stateV1Fields: Readonly<Record<string, Shape>> = {
   clock: exactObject({ gameTimeMs: natural, yearStartMs: natural, year: natural }),
   lastProcessedAt: natural,
   rng: recordOf(listOf(integer)),
-  settlement: exactObject({
-    name: text,
-    resources: each(RESOURCES, natural),
-    accumulators: each(RESOURCES, integer),
-    population: exactObject({ villagers: natural }),
-    workers: each(PRODUCTION_BUILDINGS, natural),
-    buildings: each(BUILDINGS, natural),
-    constructionQueues: listOf(nullable(construction)),
-    planned: listOf(exactObject({ building: oneOf(BUILDINGS), targetLevel: natural })),
-    recruitmentQueue: listOf(exactObject({ finishesAtMs: natural })),
-    famine: nullable(exactObject({ sinceMs: natural })),
-  }),
+  settlement: exactObject(settlementV1Fields),
   objectives: exactObject({ active: listOf(text), completed: listOf(text) }),
   stats: recordOf(natural),
 };

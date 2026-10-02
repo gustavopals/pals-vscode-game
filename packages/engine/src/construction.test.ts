@@ -6,15 +6,21 @@ import { upgradeCost, upgradeDurationMs, upgradeQuote } from './construction';
 import { housingCapacity } from './population';
 import {
   accept,
+  AUTUMN,
   command,
   eventsOfType,
+  gameAt,
   gameWith,
   HOUR,
   MINUTE,
   newGame,
   refuse,
+  SPRING,
+  SUMMER,
+  WINTER,
+  YEAR,
 } from './test-helpers';
-import type { BuildingId } from './types';
+import type { BuildingId, GameState } from './types';
 
 const rich = gameWith((draft) => {
   draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
@@ -206,6 +212,75 @@ describe('concluir', () => {
     const wood = advanceTo(started, 65 * MINUTE).state.settlement.resources.wood;
     // 5 min a 40/h e 60 min a 48/h, depois de pagar 100 de madeira.
     expect(wood).toBe(20_000 + Math.floor((40_000 * 5 + 48_000 * 60) / 60));
+  });
+});
+
+describe('obras e estações (GDD §4.1)', () => {
+  const richAt = (atMs: number) =>
+    gameAt(atMs, (draft) => {
+      draft.settlement.workers.farm = 5;
+      draft.settlement.resources = { food: 9e6, wood: 9e6, stone: 9e6, gold: 9e6 };
+    });
+  const finishOf = (state: GameState) => state.settlement.constructionQueues[0]?.finishesAtMs;
+
+  it('a obra iniciada no inverno dura × 1,5', () => {
+    const started = accept(richAt(WINTER), command('startConstruction', { building: 'housing' }));
+    // Habitações 1→2: 4 min de tabela, 6 min no inverno.
+    expect(started.state.settlement.constructionQueues).toEqual([
+      {
+        building: 'housing',
+        targetLevel: 2,
+        startedAtMs: WINTER,
+        finishesAtMs: WINTER + 6 * MINUTE,
+      },
+    ]);
+    const before = advanceTo(started.state, WINTER + 6 * MINUTE - 1);
+    expect(before.state.settlement.buildings.housing).toBe(1);
+    const { state, events } = advanceTo(before.state, WINTER + 6 * MINUTE);
+    expect(state.settlement.buildings.housing).toBe(2);
+    expect(eventsOfType(events, 'constructionFinished')).toMatchObject([
+      { atMs: WINTER + 6 * MINUTE },
+    ]);
+  });
+
+  it.each([
+    ['primavera', SPRING],
+    ['verão', SUMMER],
+    ['outono', AUTUMN],
+  ])('na %s a obra leva o prazo de tabela', (_, season) => {
+    const started = accept(richAt(season), command('startConstruction', { building: 'housing' }));
+    expect(finishOf(started.state)).toBe(season + 4 * MINUTE);
+  });
+
+  it('a obra em curso na virada para o inverno mantém o prazo com que começou', () => {
+    const start = richAt(WINTER - 2 * MINUTE);
+    const started = accept(start, command('startConstruction', { building: 'housing' })).state;
+    expect(finishOf(started)).toBe(WINTER + 2 * MINUTE);
+    const turned = advanceTo(started, WINTER + MINUTE);
+    expect(eventsOfType(turned.events, 'seasonChanged')).toHaveLength(1);
+    expect(finishOf(turned.state)).toBe(WINTER + 2 * MINUTE);
+    expect(advanceTo(turned.state, WINTER + 2 * MINUTE).state.settlement.buildings.housing).toBe(2);
+  });
+
+  it('a obra iniciada no inverno não encurta quando a primavera chega', () => {
+    const start = richAt(YEAR - 2 * MINUTE);
+    const started = accept(start, command('startConstruction', { building: 'housing' })).state;
+    expect(finishOf(started)).toBe(YEAR + 4 * MINUTE);
+    const turned = advanceTo(started, YEAR + 2 * MINUTE + 1);
+    expect(turned.state.settlement.buildings.housing).toBe(1);
+    expect(advanceTo(turned.state, YEAR + 4 * MINUTE).state.settlement.buildings.housing).toBe(2);
+  });
+
+  it('cancelar no inverno devolve os mesmos 80%: a estação mexe no prazo, não no custo', () => {
+    const started = accept(richAt(WINTER), command('startConstruction', { building: 'quarry' }));
+    const cancelled = accept(started.state, command('cancelConstruction', { building: 'quarry' }));
+    expect(cancelled.state.settlement.resources.wood).toBe(9e6 - 120_000 + 96_000);
+    expect(cancelled.state.settlement.resources.gold).toBe(9e6 - 30_000 + 24_000);
+  });
+
+  it('o orçamento de uma obra já traz o prazo da estação', () => {
+    expect(upgradeQuote(richAt(WINTER), 'lumberMill').durationMs).toBe(450_000);
+    expect(upgradeQuote(richAt(AUTUMN), 'lumberMill').durationMs).toBe(300_000);
   });
 });
 

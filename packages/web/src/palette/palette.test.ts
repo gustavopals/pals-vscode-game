@@ -666,17 +666,17 @@ describe('alocar trabalhadores', () => {
   const free = goldenView.population.free;
 
   it('a validação mostra a taxa resultante enquanto o jogador digita', () => {
-    // Fazenda: cada trabalhador rende 10/h; há 2 lá e 3 livres.
+    // Fazenda: cada trabalhador rende 12/h na primavera; há 2 lá e 3 livres.
     expect(workersValidation(farm, free, '3')).toEqual({
-      message: '3 × 10 = 30/h',
+      message: '3 × 12 = 36/h',
       severity: 'info',
     });
     expect(workersValidation(farm, free, '0')).toEqual({
-      message: '0 × 10 = 0/h',
+      message: '0 × 12 = 0/h',
       severity: 'info',
     });
     expect(workersValidation(farm, free, '5')).toEqual({
-      message: '5 × 10 = 50/h',
+      message: '5 × 12 = 60/h',
       severity: 'info',
     });
     expect(workersPreview(farm, free, '5')).toBeNull();
@@ -715,7 +715,7 @@ describe('alocar trabalhadores', () => {
       'Mina de Ouro Nv1',
     ]);
     // Cada edifício mostra quantos trabalham lá e quanto rende; os livres ficam à vista.
-    expect(pick.items[0]?.description).toBe('2 trabalhadores · 20/h');
+    expect(pick.items[0]?.description).toBe('2 trabalhadores · 24/h');
     expect(pick.items[1]?.description).toBe('0 trabalhadores · 0/h');
     expect(pick.items[0]?.detail).toBe(farm.breakdown);
     expect(pick.placeholder).toBe('3 aldeões livres');
@@ -724,7 +724,7 @@ describe('alocar trabalhadores', () => {
     expect(input.title).toBe('Fazenda Nv1');
     expect(input.value).toBe('2');
     expect(input.prompt).toContain('3 livres');
-    expect(input.validate?.('3')).toEqual({ message: '3 × 10 = 30/h', severity: 'info' });
+    expect(input.validate?.('3')).toEqual({ message: '3 × 12 = 36/h', severity: 'info' });
     expect(input.validate?.('9')?.severity).toBe('error');
     expect(input.validate?.('x')?.severity).toBe('error');
 
@@ -1006,7 +1006,8 @@ describe('recrutar, renomear e nova partida', () => {
     // 10 vagas no feudo, 5 aldeões, ninguém em treino: 5 vagas.
     expect(input.prompt).toContain('Vagas: 5 de 10');
     expect(input.prompt).toContain('50 comida, 10 ouro');
-    expect(input.prompt).toContain('20 min');
+    // Na primavera o treinamento leva 16 minutos (o prazo vem da visão).
+    expect(input.prompt).toContain('16 min');
     expect(input.placeholder).toBe('de 1 a 5');
     expect(input.value).toBe('1');
     for (const invalid of ['', '0', '-2', '1.5', 'dois']) {

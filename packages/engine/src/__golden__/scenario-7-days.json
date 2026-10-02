@@ -66,7 +66,7 @@
    "payload": {
     "quantity": 5
    },
-   "result": "INSUFFICIENT_RESOURCES"
+   "result": "accepted"
   },
   {
    "hour": 12,
@@ -74,7 +74,7 @@
    "payload": {
     "quantity": 3
    },
-   "result": "accepted"
+   "result": "RECRUIT_QUEUE_FULL"
   },
   {
    "hour": 12,
@@ -232,7 +232,7 @@
    "payload": {
     "quantity": 5
    },
-   "result": "INSUFFICIENT_RESOURCES"
+   "result": "FAMINE"
   },
   {
    "hour": 84,
@@ -320,9 +320,9 @@
  "days": [
   {
    "day": 1,
-   "eventsSoFar": 30,
+   "eventsSoFar": 32,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -342,10 +342,10 @@
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
-      "food": 176000,
+      "food": 149600,
       "wood": 429200,
       "stone": 125000,
-      "gold": 252000
+      "gold": 232000
      },
      "accumulators": {
       "food": 0,
@@ -354,7 +354,7 @@
       "gold": 0
      },
      "population": {
-      "villagers": 11
+      "villagers": 13
      },
      "workers": {
       "farm": 2,
@@ -380,7 +380,8 @@
       }
      ],
      "recruitmentQueue": [],
-     "famine": null
+     "famine": null,
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -393,7 +394,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 1,
-     "villagersRecruited": 6,
+     "villagersRecruited": 8,
      "constructionsStarted:townHall": 1,
      "constructionsStarted:lumberMill": 1
     }
@@ -401,9 +402,9 @@
   },
   {
    "day": 2,
-   "eventsSoFar": 49,
+   "eventsSoFar": 51,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -423,19 +424,19 @@
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
-      "food": 487666,
+      "food": 528400,
       "wood": 1118800,
       "stone": 333000,
-      "gold": 494000
+      "gold": 474000
      },
      "accumulators": {
-      "food": 2400000,
+      "food": 0,
       "wood": 0,
       "stone": 0,
       "gold": 0
      },
      "population": {
-      "villagers": 11
+      "villagers": 13
      },
      "workers": {
       "farm": 2,
@@ -456,7 +457,8 @@
      ],
      "planned": [],
      "recruitmentQueue": [],
-     "famine": null
+     "famine": null,
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -469,7 +471,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 2,
-     "villagersRecruited": 6,
+     "villagersRecruited": 8,
      "constructionsStarted:townHall": 1,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
@@ -479,9 +481,9 @@
   },
   {
    "day": 3,
-   "eventsSoFar": 71,
+   "eventsSoFar": 73,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -501,19 +503,19 @@
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 507000,
-      "wood": 1650400,
-      "stone": 433000,
-      "gold": 619280
+      "food": 499733,
+      "wood": 1788640,
+      "stone": 487000,
+      "gold": 599280
      },
      "accumulators": {
-      "food": 0,
+      "food": 1200000,
       "wood": 0,
       "stone": 0,
       "gold": 0
      },
      "population": {
-      "villagers": 15
+      "villagers": 17
      },
      "workers": {
       "farm": 2,
@@ -534,7 +536,8 @@
      ],
      "planned": [],
      "recruitmentQueue": [],
-     "famine": null
+     "famine": null,
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -547,7 +550,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 2,
-     "villagersRecruited": 10,
+     "villagersRecruited": 12,
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
@@ -558,9 +561,9 @@
   },
   {
    "day": 4,
-   "eventsSoFar": 95,
+   "eventsSoFar": 97,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -581,18 +584,18 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 0,
-      "wood": 2550840,
-      "stone": 844200,
-      "gold": 845640
+      "wood": 2847704,
+      "stone": 957633,
+      "gold": 820163
      },
      "accumulators": {
       "food": 0,
-      "wood": 0,
-      "stone": 0,
-      "gold": 0
+      "wood": 2612160,
+      "stone": 107000,
+      "gold": 2289600
      },
      "population": {
-      "villagers": 20
+      "villagers": 22
      },
      "workers": {
       "farm": 0,
@@ -614,8 +617,9 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 306360000
-     }
+      "sinceMs": 300883636
+     },
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -628,7 +632,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 3,
-     "villagersRecruited": 15,
+     "villagersRecruited": 17,
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
@@ -639,9 +643,9 @@
   },
   {
    "day": 5,
-   "eventsSoFar": 109,
+   "eventsSoFar": 111,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -662,18 +666,18 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 0,
-      "wood": 3513140,
-      "stone": 1196200,
-      "gold": 1104840
+      "wood": 3810004,
+      "stone": 1309633,
+      "gold": 1105283
      },
      "accumulators": {
       "food": 0,
-      "wood": 0,
-      "stone": 0,
-      "gold": 0
+      "wood": 2612160,
+      "stone": 107000,
+      "gold": 2289600
      },
      "population": {
-      "villagers": 20
+      "villagers": 22
      },
      "workers": {
       "farm": 0,
@@ -695,8 +699,9 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 306360000
-     }
+      "sinceMs": 300883636
+     },
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -709,7 +714,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 3,
-     "villagersRecruited": 15,
+     "villagersRecruited": 17,
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 1,
@@ -720,9 +725,9 @@
   },
   {
    "day": 6,
-   "eventsSoFar": 125,
+   "eventsSoFar": 127,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -742,19 +747,19 @@
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 1102000,
-      "wood": 4258740,
-      "stone": 1700200,
-      "gold": 1343240
+      "food": 1480600,
+      "wood": 4555604,
+      "stone": 1813633,
+      "gold": 1373923
      },
      "accumulators": {
       "food": 0,
-      "wood": 0,
-      "stone": 0,
-      "gold": 0
+      "wood": 2612160,
+      "stone": 107000,
+      "gold": 2289600
      },
      "population": {
-      "villagers": 20
+      "villagers": 22
      },
      "workers": {
       "farm": 8,
@@ -775,7 +780,8 @@
      ],
      "planned": [],
      "recruitmentQueue": [],
-     "famine": null
+     "famine": null,
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -788,7 +794,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 3,
-     "villagersRecruited": 15,
+     "villagersRecruited": 17,
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 2,
@@ -799,9 +805,9 @@
   },
   {
    "day": 7,
-   "eventsSoFar": 147,
+   "eventsSoFar": 149,
    "state": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -821,19 +827,19 @@
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 3126000,
-      "wood": 4118340,
-      "stone": 1824200,
-      "gold": 1363160
+      "food": 1843800,
+      "wood": 4026684,
+      "stone": 1822433,
+      "gold": 1393603
      },
      "accumulators": {
       "food": 0,
-      "wood": 0,
-      "stone": 0,
-      "gold": 0
+      "wood": 2612160,
+      "stone": 107000,
+      "gold": 2289600
      },
      "population": {
-      "villagers": 23
+      "villagers": 25
      },
      "workers": {
       "farm": 8,
@@ -854,7 +860,8 @@
      ],
      "planned": [],
      "recruitmentQueue": [],
-     "famine": null
+     "famine": null,
+     "cold": null
     },
     "objectives": {
      "active": [],
@@ -867,7 +874,7 @@
     },
     "stats": {
      "constructionsStarted:housing": 3,
-     "villagersRecruited": 18,
+     "villagersRecruited": 20,
      "constructionsStarted:townHall": 3,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 2,
@@ -922,7 +929,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 1200000,
+   "atMs": 960000,
    "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 6.",
    "data": {
     "villagers": 6
@@ -930,7 +937,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 2400000,
+   "atMs": 1920000,
    "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 7.",
    "data": {
     "villagers": 7
@@ -938,7 +945,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 3600000,
+   "atMs": 2880000,
    "text": "No 1º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 8.",
    "data": {
     "villagers": 8
@@ -946,7 +953,7 @@
   },
   {
    "type": "objectiveCompleted",
-   "atMs": 3600000,
+   "atMs": 2880000,
    "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida.",
    "data": {
     "objective": "recruitVillagers"
@@ -1029,9 +1036,9 @@
   {
    "type": "recruitmentStarted",
    "atMs": 43200000,
-   "text": "No 7º dia da Primavera, o Salão mandou chamar novos aldeões: 3.",
+   "text": "No 7º dia da Primavera, o Salão mandou chamar novos aldeões: 5.",
    "data": {
-    "quantity": 3
+    "quantity": 5
    }
   },
   {
@@ -1054,7 +1061,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 44400000,
+   "atMs": 44160000,
    "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 9.",
    "data": {
     "villagers": 9
@@ -1062,7 +1069,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 45600000,
+   "atMs": 45120000,
    "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 10.",
    "data": {
     "villagers": 10
@@ -1070,10 +1077,26 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 46800000,
+   "atMs": 46080000,
    "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 11.",
    "data": {
     "villagers": 11
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 47040000,
+   "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 12.",
+   "data": {
+    "villagers": 12
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 48000000,
+   "text": "No 7º dia da Primavera, um novo aldeão se juntou ao feudo. Agora são 13.",
+   "data": {
+    "villagers": 13
    }
   },
   {
@@ -1319,22 +1342,6 @@
   {
    "type": "recruitmentFinished",
    "atMs": 174000000,
-   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 12.",
-   "data": {
-    "villagers": 12
-   }
-  },
-  {
-   "type": "recruitmentFinished",
-   "atMs": 175200000,
-   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 13.",
-   "data": {
-    "villagers": 13
-   }
-  },
-  {
-   "type": "recruitmentFinished",
-   "atMs": 176400000,
    "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 14.",
    "data": {
     "villagers": 14
@@ -1342,10 +1349,26 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 177600000,
+   "atMs": 175200000,
    "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 15.",
    "data": {
     "villagers": 15
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 176400000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 16.",
+   "data": {
+    "villagers": 16
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 177600000,
+   "text": "No 1º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 17.",
+   "data": {
+    "villagers": 17
    }
   },
   {
@@ -1491,22 +1514,6 @@
   {
    "type": "recruitmentFinished",
    "atMs": 260400000,
-   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 16.",
-   "data": {
-    "villagers": 16
-   }
-  },
-  {
-   "type": "recruitmentFinished",
-   "atMs": 261600000,
-   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 17.",
-   "data": {
-    "villagers": 17
-   }
-  },
-  {
-   "type": "recruitmentFinished",
-   "atMs": 262800000,
    "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 18.",
    "data": {
     "villagers": 18
@@ -1514,7 +1521,7 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 264000000,
+   "atMs": 261600000,
    "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 19.",
    "data": {
     "villagers": 19
@@ -1522,10 +1529,26 @@
   },
   {
    "type": "recruitmentFinished",
-   "atMs": 265200000,
+   "atMs": 262800000,
    "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 20.",
    "data": {
     "villagers": 20
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 264000000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 21.",
+   "data": {
+    "villagers": 21
+   }
+  },
+  {
+   "type": "recruitmentFinished",
+   "atMs": 265200000,
+   "text": "No 13º dia do Verão, um novo aldeão se juntou ao feudo. Agora são 22.",
+   "data": {
+    "villagers": 22
    }
   },
   {
@@ -1569,6 +1592,12 @@
    }
   },
   {
+   "type": "famineStarted",
+   "atMs": 300883636,
+   "text": "No 18º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
+   "data": {}
+  },
+  {
    "type": "dayStarted",
    "atMs": 302400000,
    "text": "Amanhece o 19º dia do Verão em Pedra Alta do Norte.",
@@ -1593,12 +1622,6 @@
     "building": "quarry",
     "level": 2
    }
-  },
-  {
-   "type": "famineStarted",
-   "atMs": 306360000,
-   "text": "No 19º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
-   "data": {}
   },
   {
    "type": "dayStarted",
@@ -1909,7 +1932,7 @@
   },
   {
    "type": "constructionFinished",
-   "atMs": 519750000,
+   "atMs": 520425000,
    "text": "No 1º dia do Inverno, os pedreiros ergueram o Salão do Senhor ao 4º nível.",
    "data": {
     "building": "townHall",
@@ -1983,7 +2006,7 @@
   },
   {
    "type": "constructionFinished",
-   "atMs": 562320000,
+   "atMs": 562680000,
    "text": "No 7º dia do Inverno, os pedreiros ergueram a Mina de Ouro ao 3º nível.",
    "data": {
     "building": "goldMine",
@@ -1993,25 +2016,25 @@
   {
    "type": "recruitmentFinished",
    "atMs": 562800000,
-   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 21.",
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 23.",
    "data": {
-    "villagers": 21
+    "villagers": 23
    }
   },
   {
    "type": "recruitmentFinished",
    "atMs": 564000000,
-   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 22.",
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 24.",
    "data": {
-    "villagers": 22
+    "villagers": 24
    }
   },
   {
    "type": "recruitmentFinished",
    "atMs": 565200000,
-   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 23.",
+   "text": "No 7º dia do Inverno, um novo aldeão se juntou ao feudo. Agora são 25.",
    "data": {
-    "villagers": 23
+    "villagers": 25
    }
   },
   {

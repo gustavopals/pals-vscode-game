@@ -6,7 +6,7 @@ import { IDENTITY, identityLine } from './identity';
 import {
   formatDecimal,
   refusedByCode,
-  RESERVED_COLUMNS,
+  runMechanicColumns,
   summarize,
   type Summary,
   SURPLUS_RESOURCES,
@@ -90,6 +90,7 @@ export type CellMeasure = {
   villagers: Range;
   townHall: Range;
   famineHours: Range;
+  coldHours: Range;
   queueIdleHours: Range;
   plannedIdleHours: Range;
   freeVillagerHours: Range;
@@ -141,6 +142,7 @@ function measureOf(summaries: Summary[]): CellMeasure {
     villagers: range((summary) => summary.villagers),
     townHall: range((summary) => summary.townHall),
     famineHours: range((summary) => summary.famineHours),
+    coldHours: range((summary) => summary.coldHours),
     queueIdleHours: range((summary) => summary.queueIdleHours),
     plannedIdleHours: range((summary) => summary.plannedIdleHours),
     freeVillagerHours: range((summary) => summary.freeVillagerHours),
@@ -272,11 +274,12 @@ function surplusTitle(id: SurplusResource): string {
 function baselineLines(cells: MatrixCell[]): string {
   return cells
     .map(({ key, measure }) => {
-      const { villagers, townHall, famineHours, surplus } = measure;
+      const { villagers, townHall, famineHours, coldHours, surplus } = measure;
       const values = [
         `[${villagers.min}, ${villagers.max}]`,
         townHall.min,
         famineHours.max,
+        coldHours.max,
         ...SURPLUS_RESOURCES.map((id) => surplus[id].max),
       ];
       return `  '${key}': measured(${values.join(', ')}),`;
@@ -314,6 +317,7 @@ export function formatMatrix(result: MatrixResult): string {
         'População',
         'Salão',
         'Fome (h)',
+        'Frio (h)',
         'Fila ociosa (h)',
         'Sem ofício (aldeão-h)',
         ...SURPLUS_RESOURCES.map(surplusTitle),
@@ -327,6 +331,7 @@ export function formatMatrix(result: MatrixResult): string {
         formatRange(cell.measure.villagers),
         formatRange(cell.measure.townHall),
         formatRange(cell.measure.famineHours),
+        formatRange(cell.measure.coldHours),
         formatRange(cell.measure.queueIdleHours),
         formatRange(cell.measure.freeVillagerHours),
         ...SURPLUS_RESOURCES.map((id) => formatRange(cell.measure.surplus[id])),
@@ -345,6 +350,7 @@ export function formatMatrix(result: MatrixResult): string {
               'População',
               'Salão',
               'Fome (h)',
+              'Frio (h)',
               ...SURPLUS_RESOURCES.map(surplusTitle),
               'Recusas',
             ],
@@ -358,6 +364,7 @@ export function formatMatrix(result: MatrixResult): string {
                       `${band.villagers.min} a ${band.villagers.max}`,
                       `≥ ${band.townHallMin}`,
                       `≤ ${formatInt(band.famineHoursMax)}`,
+                      `≤ ${formatInt(band.coldHoursMax)}`,
                       ...SURPLUS_RESOURCES.map((id) => `≤ ${formatInt(band.surplusMax[id])}`),
                       '0',
                     ],
@@ -426,7 +433,10 @@ const runColumns: Array<[string, (run: MatrixRun, difficulty: DifficultyId) => s
   ['commands_accepted', (run) => run.summary.commandsAccepted],
   ['commands_refused', (run) => run.summary.commandsRefused],
   ['refused_by_code', (run) => refusedByCode(run.summary.refusedByCode)],
-  ...RESERVED_COLUMNS.map(({ name }): [string, () => string] => [name, () => '']),
+  ...runMechanicColumns.map(([name, pick]): [string, (run: MatrixRun) => string | number] => [
+    name,
+    (run) => pick(run.summary),
+  ]),
 ];
 
 /** CSV da matriz: uma linha por partida (janela, ritmo, perfil, semente), com os valores finais. */

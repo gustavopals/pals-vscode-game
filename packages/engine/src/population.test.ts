@@ -4,13 +4,17 @@ import { advanceTo } from './advance';
 import { freeVillagers, housingCapacity, housingVacancy } from './population';
 import {
   accept,
+  AUTUMN,
   command,
   eventsOfType,
+  gameAt,
   gameWith,
   HOUR,
   MINUTE,
   newGame,
   refuse,
+  SUMMER,
+  WINTER,
 } from './test-helpers';
 import type { ProductionBuildingId } from './types';
 
@@ -95,25 +99,82 @@ describe('alocar trabalhadores', () => {
 
 describe('recrutar', () => {
   it('desconta o custo na ordem e cada aldeão chega 20 minutos depois do anterior', () => {
-    const { state, events } = accept(newGame(), command('recruitVillagers', { quantity: 3 }));
+    // No verão o prazo é o de tabela: 20 minutos por aldeão.
+    const { state, events } = accept(gameAt(SUMMER), command('recruitVillagers', { quantity: 3 }));
     expect(state.settlement.resources).toMatchObject({ food: 30_000, gold: 220_000 });
     expect(state.settlement.recruitmentQueue).toEqual([
-      { finishesAtMs: 20 * MINUTE },
-      { finishesAtMs: 40 * MINUTE },
-      { finishesAtMs: 60 * MINUTE },
+      { finishesAtMs: SUMMER + 20 * MINUTE },
+      { finishesAtMs: SUMMER + 40 * MINUTE },
+      { finishesAtMs: SUMMER + 60 * MINUTE },
     ]);
     expect(state.settlement.population.villagers).toBe(5);
     expect(events).toMatchObject([{ type: 'recruitmentStarted', data: { quantity: 3 } }]);
 
-    const first = advanceTo(state, 20 * MINUTE);
+    const first = advanceTo(state, SUMMER + 20 * MINUTE);
     expect(first.state.settlement.population.villagers).toBe(6);
-    const all = advanceTo(first.state, HOUR);
+    const all = advanceTo(first.state, SUMMER + HOUR);
     expect(all.state.settlement.population.villagers).toBe(8);
     expect(eventsOfType(all.events, 'recruitmentFinished').map((event) => event.atMs)).toEqual([
-      40 * MINUTE,
-      60 * MINUTE,
+      SUMMER + 40 * MINUTE,
+      SUMMER + 60 * MINUTE,
     ]);
     expect(all.state.stats.villagersRecruited).toBe(3);
+  });
+
+  it('ordenado na primavera, o treinamento leva × 0,8: 16 minutos por aldeão', () => {
+    const { state } = accept(newGame(), command('recruitVillagers', { quantity: 3 }));
+    expect(state.settlement.recruitmentQueue).toEqual([
+      { finishesAtMs: 16 * MINUTE },
+      { finishesAtMs: 32 * MINUTE },
+      { finishesAtMs: 48 * MINUTE },
+    ]);
+    const all = advanceTo(state, HOUR);
+    expect(eventsOfType(all.events, 'recruitmentFinished').map((event) => event.atMs)).toEqual([
+      16 * MINUTE,
+      32 * MINUTE,
+      48 * MINUTE,
+    ]);
+  });
+
+  it.each([
+    ['verão', SUMMER],
+    ['outono', AUTUMN],
+    ['inverno', WINTER],
+  ])('ordenado no %s, o treinamento leva os 20 minutos de tabela', (_, season) => {
+    const rich = gameAt(season, (draft) => {
+      draft.settlement.workers.farm = 5;
+      draft.settlement.resources.wood = 900_000;
+    });
+    const { state } = accept(rich, command('recruitVillagers', { quantity: 1 }));
+    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: season + 20 * MINUTE }]);
+  });
+
+  it('o prazo é o da estação da ordem: não muda quando a estação vira com a fila andando', () => {
+    // Ordem dada 20 minutos antes do verão: os três chegam de 16 em 16 minutos, dois deles já
+    // no verão. E a ordem dada no verão conta 20 minutos, mesmo atrás de uma fila da primavera.
+    const before = gameAt(SUMMER - 20 * MINUTE, (draft) => {
+      draft.settlement.resources.food = 900_000;
+    });
+    const spring = accept(before, command('recruitVillagers', { quantity: 3 })).state;
+    expect(spring.settlement.recruitmentQueue).toEqual([
+      { finishesAtMs: SUMMER - 4 * MINUTE },
+      { finishesAtMs: SUMMER + 12 * MINUTE },
+      { finishesAtMs: SUMMER + 28 * MINUTE },
+    ]);
+    const turned = advanceTo(spring, SUMMER + MINUTE);
+    expect(eventsOfType(turned.events, 'seasonChanged')).toHaveLength(1);
+    expect(turned.state.settlement.recruitmentQueue).toEqual([
+      { finishesAtMs: SUMMER + 12 * MINUTE },
+      { finishesAtMs: SUMMER + 28 * MINUTE },
+    ]);
+    const summer = accept(turned.state, command('recruitVillagers', { quantity: 1 })).state;
+    expect(summer.settlement.recruitmentQueue[2]).toEqual({ finishesAtMs: SUMMER + 48 * MINUTE });
+    const all = advanceTo(summer, SUMMER + HOUR);
+    expect(eventsOfType(all.events, 'recruitmentFinished').map((event) => event.atMs)).toEqual([
+      SUMMER + 12 * MINUTE,
+      SUMMER + 28 * MINUTE,
+      SUMMER + 48 * MINUTE,
+    ]);
   });
 
   it('uma segunda ordem entra depois do último da fila', () => {
@@ -123,16 +184,18 @@ describe('recrutar', () => {
     const first = accept(state, command('recruitVillagers', { quantity: 2 })).state;
     const later = advanceTo(first, 25 * MINUTE).state;
     const second = accept(later, command('recruitVillagers', { quantity: 1 })).state;
+    // Primavera: 16 minutos cada. O primeiro chegou aos 16; o da segunda ordem entra atrás do
+    // que ainda falta, aos 32.
     expect(second.settlement.recruitmentQueue).toEqual([
-      { finishesAtMs: 40 * MINUTE },
-      { finishesAtMs: 60 * MINUTE },
+      { finishesAtMs: 32 * MINUTE },
+      { finishesAtMs: 48 * MINUTE },
     ]);
   });
 
-  it('com a fila vazia, conta os 20 minutos a partir de agora', () => {
+  it('com a fila vazia, conta o prazo a partir de agora', () => {
     const later = advanceTo(newGame(), 7 * MINUTE).state;
     const { state } = accept(later, command('recruitVillagers', { quantity: 1 }));
-    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 27 * MINUTE }]);
+    expect(state.settlement.recruitmentQueue).toEqual([{ finishesAtMs: 23 * MINUTE }]);
   });
 
   it('recrutar 3 com 1 vaga é recusado e nenhum recurso é descontado', () => {

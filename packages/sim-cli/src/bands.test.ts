@@ -7,6 +7,7 @@ const band: Band = {
   villagers: { min: 23, max: 29 },
   townHallMin: 3,
   famineHoursMax: 0,
+  coldHoursMax: 0,
   surplusMax: { wood: 10_518, stone: 4_400, gold: 1_719 },
 };
 
@@ -19,6 +20,8 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     townHall: 3,
     famineHours: 0,
     firstFamineHour: null,
+    coldHours: 0,
+    firstColdHour: null,
     commandsAccepted: 55,
     commandsRefused: 0,
     refusedByCode: {},
@@ -77,6 +80,15 @@ describe('conferência de uma partida contra a faixa', () => {
     ]);
   });
 
+  it('falha com mais horas de frio do que as medidas', () => {
+    expect(checkBand(band, summary({ coldHours: 3, firstColdHour: 150 }))).toEqual([
+      '3 h de frio, acima do limite de 0 h',
+    ]);
+    expect(
+      checkBand({ ...band, coldHoursMax: 3 }, summary({ coldHours: 3, firstColdHour: 150 })),
+    ).toEqual([]);
+  });
+
   it('falha com qualquer ordem recusada, dizendo os códigos', () => {
     expect(
       checkBand(band, summary({ commandsRefused: 3, refusedByCode: { QUEUE_BUSY: 2, FAMINE: 1 } })),
@@ -87,12 +99,13 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3: 35 aldeões, Salão Nv3, 40.872 de madeira parada.
+    // Regular, 7 dias reais, ritmo 3: 35 aldeões, Salão Nv3, 39.064 de madeira parada.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
       villagers: { min: 31, max: 39 },
       townHallMin: 3,
       famineHoursMax: 0,
-      surplusMax: { wood: 42_916, stone: 16_924, gold: 6_958 },
+      coldHoursMax: 0,
+      surplusMax: { wood: 41_018, stone: 16_963, gold: 7_321 },
     });
   });
 

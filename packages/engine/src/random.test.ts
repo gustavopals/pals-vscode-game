@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { applyCommand } from './commands';
-import { stateV2 } from './migrations/v2';
+import { currentShape } from './migrations';
 import {
   chance,
   hashText,
@@ -368,7 +368,7 @@ describe('fluxos nomeados', () => {
     for (const stream of RNG_STREAMS) {
       take(30, () => nextInt(state, stream, 6));
     }
-    expect(stateV2(state, '')).toBeNull();
+    expect(currentShape(state, '')).toBeNull();
     for (const words of Object.values(state.rng)) {
       expect(words).toHaveLength(4);
     }

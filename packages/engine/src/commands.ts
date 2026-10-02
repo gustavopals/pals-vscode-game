@@ -7,10 +7,10 @@ import {
   startConstruction,
   unplanConstruction,
 } from './construction';
-import { settleFamine } from './famine';
 import { evaluateObjectives } from './objectives';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
+import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 
@@ -78,6 +78,6 @@ export function applyCommand(state: GameState, command: Command, nowMs: number):
     return { ok: false, code: rejection.code, message: rejection.message };
   }
   evaluateObjectives(draft, nowMs, events);
-  settleFamine(draft, nowMs, events);
+  settleScarcity(draft, nowMs, events);
   return { ok: true, state: draft, events };
 }

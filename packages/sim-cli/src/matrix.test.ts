@@ -13,7 +13,7 @@ import {
   windowRealHours,
   YEAR_GAME_HOURS,
 } from './matrix';
-import { RESERVED_COLUMNS } from './report';
+import { MECHANIC_COLUMN_NAMES, RESERVED_COLUMNS } from './report';
 import { strategies } from './simulate';
 
 // Três sementes bastam para conferir a forma da matriz; as 50 são jogadas em balance.test.ts.
@@ -135,7 +135,7 @@ describe('relatório da matriz', () => {
   it('cada recurso tem a sua coluna de excedente, e as faixas cobradas vêm ao lado', () => {
     expect(text).toContain('| Excedente de madeira | Excedente de pedra | Excedente de ouro |');
     expect(text.match(/Faixas cobradas:/g)).toHaveLength(2);
-    expect(text).toContain('| Rápido 3× | Regular | 31 a 39 | ≥ 3 | ≤ 0 | ≤ 42.916 |');
+    expect(text).toContain('| Rápido 3× | Regular | 31 a 39 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 41.018 |');
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
   });
@@ -143,7 +143,7 @@ describe('relatório da matriz', () => {
   it('traz a linha de base no formato de bands.ts, uma linha por célula', () => {
     const lines = text.split('\n').filter((line) => line.includes('measured('));
     expect(lines).toHaveLength(matrix.cells.length);
-    expect(lines[1]).toBe("  'week/3/regular': measured([35, 35], 3, 0, 40872, 16118, 6626),");
+    expect(lines[1]).toBe("  'week/3/regular': measured([35, 35], 3, 0, 0, 39064, 16155, 6972),");
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -180,7 +180,7 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 42916 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 41018 (2 de 3 sementes, a primeira pedra-alta-002)',
       'week/3/regular: população 3, fora da faixa de 31 a 39 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
@@ -198,14 +198,34 @@ describe('CSV da matriz', () => {
       'window,time_scale,profile,strategy,sessions_per_day,difficulty,seed,real_hours,game_years,' +
         'villagers,capacity,town_hall,famine_hours,queue_idle_hours,planned_idle_hours,' +
         'free_villager_hours,food,wood,stone,gold,commands_accepted,commands_refused,' +
-        `refused_by_code,${RESERVED_COLUMNS.map((column) => column.name).join(',')}`,
+        `refused_by_code,${MECHANIC_COLUMN_NAMES.join(',')}`,
     );
+    expect(MECHANIC_COLUMN_NAMES).toEqual([
+      'wasted_food',
+      'wasted_wood',
+      'wasted_stone',
+      'cold',
+      'morale',
+      'cards_seen',
+      'cards_answered',
+      'cards_expired',
+      'wolf_losses',
+    ]);
     const columns = lines[0]?.split(',').length;
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
     expect(lines[1]?.startsWith('week,3,preguicoso,preguicoso,1,lord,pedra-alta-001,168,3,')).toBe(
       true,
     );
-    expect(lines[1]?.endsWith(','.repeat(RESERVED_COLUMNS.length))).toBe(true);
+    // As colunas das mecânicas: só o frio é medido (as horas de frio da partida); as outras
+    // saem vazias até a tarefa de cada uma.
+    const header = (lines[0] ?? '').split(',');
+    for (const line of lines.slice(1)) {
+      const cells = line.split(',');
+      for (const { name } of RESERVED_COLUMNS) {
+        expect(cells[header.indexOf(name)], name).toBe('');
+      }
+      expect(cells[header.indexOf('cold')]).toMatch(/^\d+$/);
+    }
   });
 
   it('a semente não muda o resultado enquanto nenhuma regra sorteia', () => {

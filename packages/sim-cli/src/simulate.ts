@@ -60,6 +60,8 @@ export type HourRow = {
   inTraining: number;
   levels: Record<BuildingId, number>;
   famine: boolean;
+  /** O feudo passa frio: é inverno e a madeira da lareira acabou. */
+  cold: boolean;
   /** A fila de obras está livre e ao menos uma obra poderia começar agora: ninguém a iniciou. */
   queueIdle: boolean;
   /** Idem, contando só as obras que o jogador deixou planejadas. */
@@ -120,6 +122,7 @@ function rowAt(
     inTraining: view.population.inTraining,
     levels: { ...state.settlement.buildings },
     famine: view.famine !== null,
+    cold: view.winter !== null && view.winter.cold !== null,
     ...idleQueue(view),
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },

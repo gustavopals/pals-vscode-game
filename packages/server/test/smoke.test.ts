@@ -92,7 +92,7 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     token = await renew(server, player);
     const later = await call<ViewResponse>(server, 'GET', `/games/${game.id}/view`, { token });
     expect(later.body.view.calendar.dayOfSeason).toBe(2);
-    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 210, perHour: 15 });
+    expect(later.body.view.resources[0]).toMatchObject({ id: 'food', stock: 218, perHour: 19 });
 
     const events = await call<EventsResponse>(server, 'GET', `/games/${game.id}/events`, { token });
     expect(EventsResponseSchema.safeParse(events.body).error).toBeUndefined();

@@ -1,6 +1,7 @@
-import { balance, BUILDING_IDS, PRODUCTION_BUILDING_IDS } from '@lotg/content';
+import { balance, BUILDING_IDS, PRODUCTION_BUILDING_IDS, type SeasonDef } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { seasonAt } from './clock';
 import { missingResources, payResources } from './construction';
 import { reject } from './rejections';
 import type { GameEvent, GameState, ProductionBuildingId, Rejection } from './types';
@@ -78,8 +79,19 @@ export function recruitmentBlock(state: GameState, quantity: unknown): Rejection
 }
 
 /**
- * Ordem de recrutamento: o custo é pago na hora e cada aldeão fica pronto 20 minutos
- * depois do anterior, contando a partir do último que já está na fila.
+ * Tempo de treinamento de cada aldeão de uma ordem dada na estação `season`: na primavera,
+ * × 0,8 (GDD §4.1). Uma conta só, arredondada para baixo.
+ */
+export function recruitmentDurationMs(season: SeasonDef): number {
+  const { num, den } = season.effects.recruitmentDuration;
+  return Math.floor((balance.recruitment.durationMs * num) / den);
+}
+
+/**
+ * Ordem de recrutamento: o custo é pago na hora e cada aldeão fica pronto um tempo de
+ * treinamento depois do anterior, contando a partir do último que já está na fila. O tempo é o
+ * da estação em que a ordem foi dada, para a ordem inteira: ele não muda se a estação virar
+ * com a fila andando.
  */
 export function recruitVillagers(
   draft: GameState,
@@ -92,7 +104,8 @@ export function recruitVillagers(
     return blocked;
   }
   const wanted = quantity as number;
-  const { cost, durationMs } = balance.recruitment;
+  const { cost } = balance.recruitment;
+  const durationMs = recruitmentDurationMs(seasonAt(nowMs));
   const { recruitmentQueue } = draft.settlement;
   payResources(draft, cost, wanted);
   const startsAt = recruitmentQueue[recruitmentQueue.length - 1]?.finishesAtMs ?? nowMs;

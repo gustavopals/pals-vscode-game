@@ -17,6 +17,7 @@ import { strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
   comidaPrimeiro,
+  guardarLenha,
   obraMaisBarata,
   ocuparLivres,
   recrutar,
@@ -81,6 +82,7 @@ function upgrade(
       missing: amount,
     })),
     durationSeconds: 600,
+    durationNote: null,
     affordable: false,
     blockedCode,
     blockedReason: blockedCode === null ? null : 'Não pode começar agora.',
@@ -111,23 +113,35 @@ describe('um bot é uma lista de políticas', () => {
   });
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
-    expect(strategyPolicies.economico).toEqual([recrutar, obraMaisBarata, alocarPorDemanda]);
+    expect(strategyPolicies.economico).toEqual([
+      recrutar,
+      obraMaisBarata,
+      alocarPorDemanda,
+      guardarLenha,
+    ]);
     expect(strategyPolicies.preguicoso).toEqual([
       recrutar,
       obraMaisBarata,
       comidaPrimeiro,
       ocuparLivres,
+      guardarLenha,
     ]);
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
-    const names = [recrutar, obraMaisBarata, alocarPorDemanda, comidaPrimeiro, ocuparLivres].map(
-      (policy) => policy.name,
-    );
+    const names = [
+      recrutar,
+      obraMaisBarata,
+      alocarPorDemanda,
+      comidaPrimeiro,
+      ocuparLivres,
+      guardarLenha,
+    ].map((policy) => policy.name);
     expect(names).toEqual([
       'recrutar',
       'obra mais barata',
       'alocar por demanda',
       'comida primeiro',
       'ocupar os livres',
+      'guardar lenha',
     ]);
   });
 
@@ -150,16 +164,16 @@ describe('política "comida primeiro"', () => {
 
   it('conta as bocas que ainda estão chegando', async () => {
     const base = freshView();
-    const view = { ...base, population: { ...base.population, inTraining: 6 } };
+    const view = { ...base, population: { ...base.population, inTraining: 8 } };
     const { act, orders } = recorder(view);
     await comidaPrimeiro.run(view, act);
-    // 11 bocas a 1 por hora, 10 por fazendeiro: dois fazendeiros.
+    // 13 bocas a 1 por hora, 12 por fazendeiro na primavera: dois fazendeiros.
     expect(orders).toEqual([{ type: 'setWorkers', payload: { building: 'farm', count: 2 } }]);
   });
 
   it('decide igual em qualquer ritmo: só usa as taxas que a visão traz', async () => {
     const view = freshView(3);
-    expect(view.workers.find((row) => row.building === 'farm')?.perWorkerPerHour).toBe(30);
+    expect(view.workers.find((row) => row.building === 'farm')?.perWorkerPerHour).toBe(36);
     const { act, orders } = recorder(view);
     await comidaPrimeiro.run(view, act);
     expect(orders).toEqual([{ type: 'setWorkers', payload: { building: 'farm', count: 1 } }]);
@@ -220,16 +234,16 @@ describe('política "alocar por demanda"', () => {
     const { act, orders } = recorder(view);
     await alocarPorDemanda.run(view, act);
     expect(orders.every((order) => order.type === 'setWorkers')).toBe(true);
-    // 5 bocas e 2 de folga, 10 por fazendeiro: um basta. Os outros quatro, 3:2:1.
+    // 5 bocas e 2 de folga, 12 por fazendeiro na primavera: um basta. Os outros quatro, 3:2:1.
     expect(targets(orders)).toEqual({ farm: 1, lumberMill: 2, quarry: 1, goldMine: 1 });
   });
 
   it('conta as bocas que ainda estão chegando', async () => {
     const base = withUpgrades(freshView(), []);
-    const view = { ...base, population: { ...base.population, inTraining: 4 } };
+    const view = { ...base, population: { ...base.population, inTraining: 6 } };
     const { act, orders } = recorder(view);
     await alocarPorDemanda.run(view, act);
-    // 9 bocas e 2 de folga: um fazendeiro não basta.
+    // 11 bocas e 2 de folga, a 12 por fazendeiro: um não basta.
     expect(targets(orders).farm).toBe(2);
   });
 
@@ -345,6 +359,186 @@ describe('política "ocupar os livres"', () => {
   });
 });
 
+describe('política "guardar lenha"', () => {
+  type Firewood = NonNullable<ViewState['calendar']['nextSeason']['firewood']>;
+
+  /** A conta da lenha como a visão a traz: o que vai queimar, o que a Serraria repõe e o que falta. */
+  function firewood(winterTotal: number, winterProduction: number, stock: number): Firewood {
+    return {
+      perHour: 9,
+      winterTotal,
+      winterProduction,
+      stock,
+      missing: Math.max(0, winterTotal - winterProduction - stock),
+      text: 'A conta da lenha.',
+    };
+  }
+
+  /** Outono a `hours` horas do inverno, com a previsão da lenha na próxima estação. */
+  function autumn(view: ViewState, forecast: Firewood, hours: number): ViewState {
+    return {
+      ...view,
+      calendar: {
+        ...view.calendar,
+        season: 'autumn',
+        secondsToNextSeason: hours * 3600,
+        nextSeason: { ...view.calendar.nextSeason, id: 'winter', firewood: forecast },
+      },
+    };
+  }
+
+  /** Inverno a `hours` horas da primavera, com a conta do que falta queimar. */
+  function winter(view: ViewState, count: Firewood, hours: number, cold = false): ViewState {
+    return {
+      ...view,
+      calendar: { ...view.calendar, season: 'winter', secondsToNextSeason: hours * 3600 },
+      winter: {
+        firewoodPerHour: count.perHour,
+        firewood: count,
+        cold: cold ? { secondsElapsed: 600, text: 'Frio.' } : null,
+      },
+    };
+  }
+
+  it('sem inverno à vista, ou com a lenha coberta, não dá ordem', async () => {
+    const spring = freshView();
+    expect(spring.calendar.nextSeason.firewood).toBeNull();
+    expect(spring.winter).toBeNull();
+    const first = recorder(spring);
+    expect(await guardarLenha.run(spring, first.act)).toBe(spring);
+    expect(first.orders).toEqual([]);
+
+    const covered = autumn(freshView(), firewood(60, 0, 120), 10);
+    const second = recorder(covered);
+    expect(await guardarLenha.run(covered, second.act)).toBe(covered);
+    expect(second.orders).toEqual([]);
+  });
+
+  it('no outono, manda para a Serraria os braços que cobrem o que falta até o inverno', async () => {
+    // Faltam 96 de madeira; um lenhador rende 8 por hora e o inverno chega em 6 horas: 48 cada.
+    const view = autumn(
+      withWorkers(freshView(), { farm: 2, lumberMill: 1 }),
+      firewood(216, 0, 120),
+      6,
+    );
+    expect(view.population.free).toBe(2);
+    const { act, orders } = recorder(view);
+    await guardarLenha.run(view, act);
+    expect(orders).toEqual([{ type: 'setWorkers', payload: { building: 'lumberMill', count: 3 } }]);
+  });
+
+  it('sem livres, busca nos outros materiais, a começar por quem tem mais gente, e nunca na fazenda', async () => {
+    const view = autumn(
+      withWorkers(freshView(), { farm: 2, quarry: 2, goldMine: 1 }),
+      firewood(216, 0, 120),
+      4,
+    );
+    expect(view.population.free).toBe(0);
+    const { act, orders } = recorder(view);
+    await guardarLenha.run(view, act);
+    // Faltam 96 e cada lenhador rende 32 em 4 horas: três braços, e só há três fora da fazenda.
+    expect(orders).toEqual([
+      { type: 'setWorkers', payload: { building: 'quarry', count: 0 } },
+      { type: 'setWorkers', payload: { building: 'goldMine', count: 0 } },
+      { type: 'setWorkers', payload: { building: 'lumberMill', count: 3 } },
+    ]);
+    expect(
+      orders.some((order) => (order.payload as { building: string }).building === 'farm'),
+    ).toBe(false);
+  });
+
+  it('no inverno, com frio, usa a conta do que falta até a primavera e o que o lenhador rende agora', async () => {
+    const base = withWorkers(freshView(), { farm: 2, quarry: 3 });
+    const cold: ViewState = winter(
+      {
+        ...base,
+        // No frio um lenhador rende 8 × 0,8 × 0,8.
+        workers: base.workers.map((row) =>
+          row.building === 'lumberMill' ? { ...row, perWorkerPerHour: 5.12 } : row,
+        ),
+      },
+      firewood(40, 0, 0),
+      16,
+      true,
+    );
+    const { act, orders } = recorder(cold);
+    await guardarLenha.run(cold, act);
+    // 40 de madeira em 16 horas a 5,12 por hora: 81,92 por lenhador. Um basta.
+    expect(orders).toEqual([
+      { type: 'setWorkers', payload: { building: 'quarry', count: 2 } },
+      { type: 'setWorkers', payload: { building: 'lumberMill', count: 1 } },
+    ]);
+  });
+
+  it('decide igual em qualquer ritmo: horas reais vezes taxa por hora real', async () => {
+    const decide = async (timeScale: number) => {
+      const base = withWorkers(freshView(timeScale), { farm: 2, quarry: 3 });
+      // As mesmas 6 horas de jogo até o inverno, no relógio de cada ritmo.
+      const view = autumn(base, firewood(216, 0, 120), 6 / timeScale);
+      const { act, orders } = recorder(view);
+      await guardarLenha.run(view, act);
+      return orders;
+    };
+    expect(await decide(3)).toEqual(await decide(1));
+    expect(await decide(0.5)).toEqual(await decide(1));
+  });
+});
+
+describe('política "obra mais barata" com o inverno à vista', () => {
+  const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
+    perHour: 9,
+    winterTotal,
+    winterProduction,
+    stock,
+    missing: Math.max(0, winterTotal - winterProduction - stock),
+    text: 'A conta da lenha.',
+  });
+  const cheap: ViewState['constructions']['available'][number] = {
+    ...upgrade('housing', {}, null),
+    cost: [
+      { resource: 'wood', label: 'Madeira', amount: 80, missing: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 20, missing: 0 },
+    ],
+    affordable: true,
+    blockedReason: null,
+  };
+  const withForecast = (view: ViewState, firewood: ReturnType<typeof forecast>): ViewState => ({
+    ...view,
+    calendar: {
+      ...view.calendar,
+      nextSeason: { ...view.calendar.nextSeason, id: 'winter', firewood },
+    },
+  });
+
+  it('não começa a obra que gastaria a madeira da lareira', async () => {
+    // 120 de madeira; o inverno pede 60 do estoque. A obra de 80 deixaria 40.
+    const view = withForecast(withUpgrades(freshView(), [cheap]), forecast(60, 0, 120));
+    const { act, orders } = recorder(view);
+    expect(await obraMaisBarata.run(view, act)).toBe(view);
+    expect(orders).toEqual([]);
+  });
+
+  it('começa quando a madeira que sobra depois da reserva paga a obra', async () => {
+    // A Serraria repõe 30 dos 60: a reserva cai para 30, e sobram 90 para a obra de 80.
+    const view = withForecast(withUpgrades(freshView(), [cheap]), forecast(60, 30, 120));
+    const { act, orders } = recorder(view);
+    await obraMaisBarata.run(view, act);
+    expect(orders).toEqual([{ type: 'startConstruction', payload: { building: 'housing' } }]);
+  });
+
+  it('uma obra que não gasta madeira começa de qualquer jeito', async () => {
+    const stoneOnly = {
+      ...cheap,
+      building: 'quarry' as const,
+      cost: [{ resource: 'stone' as const, label: 'Pedra', amount: 50, missing: 0 }],
+    };
+    const view = withForecast(withUpgrades(freshView(), [cheap, stoneOnly]), forecast(600, 0, 120));
+    const { act, orders } = recorder(view);
+    await obraMaisBarata.run(view, act);
+    expect(orders).toEqual([{ type: 'startConstruction', payload: { building: 'quarry' } }]);
+  });
+});
+
 describe('os bots jogando contra o motor', () => {
   /** Uma partida de verdade, com um `act` que aplica a ordem no motor e anota a resposta. */
   function game(timeScale: number) {
@@ -372,7 +566,14 @@ describe('os bots jogando contra o motor', () => {
     const pass = (gameHours: number) => {
       state = advanceTo(state, state.lastProcessedAt + gameHours * HOUR_MS).state;
     };
-    return { view, act, pass, orders, refused };
+    /** O teste mexe no estoque; o bot continua só com a visão. */
+    const spendWoodDownTo = (units: number) => {
+      const spent = structuredClone(state);
+      spent.settlement.resources.wood = units * 1000;
+      spent.settlement.accumulators.wood = 0;
+      state = spent;
+    };
+    return { view, act, pass, orders, refused, spendWoodDownTo };
   }
 
   it.each([1, 3, 0.5])(
@@ -425,6 +626,49 @@ describe('os bots jogando contra o motor', () => {
       expect(after.resources.find((row) => row.id === 'food')?.perHour).toBeGreaterThan(0);
       feudo.pass(2);
       expect(feudo.view().famine).toBeNull();
+    },
+  );
+
+  it.each(['economico', 'preguicoso'] as const)(
+    'o %s, avisado no outono de que falta lenha, atravessa o inverno sem frio',
+    async (strategy) => {
+      const feudo = game(1);
+      // Primavera, verão e quase todo o outono com o bot jogando uma vez a cada dois dias reais.
+      for (let visit = 0; visit < 3; visit += 1) {
+        await strategies[strategy](feudo.view(), feudo.act);
+        feudo.pass(46);
+      }
+      // 138 horas de jogo: faltam 6 para o inverno. O senhor tirou todos da Serraria e gastou
+      // a madeira: restam 5.
+      const row = (building: BuildingId) =>
+        feudo.view().workers.find((entry) => entry.building === building)?.assigned ?? 0;
+      const moved = row('lumberMill');
+      await feudo.act('setWorkers', { building: 'lumberMill', count: 0 });
+      await feudo.act('setWorkers', { building: 'quarry', count: row('quarry') + moved });
+      feudo.spendWoodDownTo(5);
+      const before = feudo.view();
+      expect(row('lumberMill')).toBe(0);
+      expect(before.calendar.season).toBe('autumn');
+      expect(before.calendar.nextSeason.firewood?.missing).toBeGreaterThan(0);
+
+      await strategies[strategy](feudo.view(), feudo.act);
+      expect(feudo.refused).toEqual([]);
+      const lumberjacks = feudo.view().workers.find((row) => row.building === 'lumberMill');
+      expect(lumberjacks?.assigned).toBeGreaterThan(0);
+
+      // O inverno inteiro, com uma visita por dia real.
+      feudo.pass(6);
+      let coldSeen = false;
+      for (let hour = 0; hour < 24; hour += 1) {
+        if (hour % 24 === 0) {
+          await strategies[strategy](feudo.view(), feudo.act);
+        }
+        feudo.pass(1);
+        coldSeen ||= feudo.view().winter?.cold != null;
+      }
+      expect(coldSeen).toBe(false);
+      expect(feudo.refused).toEqual([]);
+      expect(feudo.view().calendar.season).toBe('spring');
     },
   );
 

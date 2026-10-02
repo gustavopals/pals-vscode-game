@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { DAY_MS, YEAR_MS } from './clock';
-import { accept, command, eventsOfType, HOUR, newGame } from './test-helpers';
+import { accept, command, eventsOfType, gameAt, HOUR, newGame } from './test-helpers';
 import type { GameEvent, GameState } from './types';
 
 function steps(start: GameState, count: number, stepMs: number) {
@@ -76,6 +76,94 @@ describe('advanceTo', () => {
     expect(stepped.events).toStrictEqual(atOnce.events);
     expect(stepped.state).toStrictEqual(atOnce.state);
     expect(eventsOfType(atOnce.events, 'dayStarted')).toHaveLength(360);
+  });
+
+  it('dois anos de uma vez dão o mesmo estado e os mesmos eventos que 730 passos desiguais', () => {
+    // Um feudo que atravessa as oito estações com pouca madeira: no primeiro inverno a lenha
+    // acaba e o frio vem; a primavera o encerra. O passo de 27 min 36 s e 989 ms quase nunca cai em
+    // cima de uma virada, e o último passo completa os dois anos.
+    let start = accept(newGame(), command('setWorkers', { building: 'farm', count: 3 })).state;
+    start = accept(start, command('setWorkers', { building: 'quarry', count: 2 })).state;
+    start = accept(start, command('startConstruction', { building: 'lumberMill' })).state;
+    const end = 2 * YEAR_MS;
+    const stepMs = 1_656_989;
+    expect(729 * stepMs).toBeLessThan(end);
+    expect(730 * stepMs).toBeGreaterThan(end);
+
+    const atOnce = advanceTo(start, end);
+    let state = start;
+    const events: GameEvent[] = [];
+    for (let index = 1; index <= 730; index += 1) {
+      const result = advanceTo(state, Math.min(index * stepMs, end));
+      state = result.state;
+      events.push(...result.events);
+    }
+    expect(state).toStrictEqual(atOnce.state);
+    expect(events).toStrictEqual(atOnce.events);
+
+    expect(atOnce.state.clock.year).toBe(3);
+    expect(eventsOfType(atOnce.events, 'dayStarted')).toHaveLength(168);
+    expect(eventsOfType(atOnce.events, 'seasonChanged').map((event) => event.data.season)).toEqual([
+      'summer',
+      'autumn',
+      'winter',
+      'spring',
+      'summer',
+      'autumn',
+      'winter',
+      'spring',
+    ]);
+    // 20 de madeira depois da obra, 5 habitantes: 8 horas de lareira em cada inverno.
+    const winter = 72 * DAY_MS;
+    expect(eventsOfType(atOnce.events, 'coldStarted').map((event) => event.atMs)).toEqual([
+      winter + 8 * HOUR,
+      YEAR_MS + winter,
+    ]);
+    expect(eventsOfType(atOnce.events, 'coldEnded').map((event) => event.atMs)).toEqual([
+      YEAR_MS,
+      2 * YEAR_MS,
+    ]);
+    expect(atOnce.state.settlement.cold).toBeNull();
+    for (const amount of Object.values(atOnce.state.settlement.resources)) {
+      expect(amount).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('no mesmo instante a ordem é fixa: obra, aldeão, ano, estação, dia, objetivo, fome e frio', () => {
+    // Tudo marcado para a virada do ano: uma obra e um recruta que terminam nela, um objetivo
+    // que a obra cumpre, a comida que acaba e o frio que o degelo encerra.
+    const start = gameAt(YEAR_MS - HOUR, (draft) => {
+      const { settlement } = draft;
+      settlement.resources = { food: 5_000, wood: 0, stone: 0, gold: 0 };
+      settlement.cold = { sinceMs: 72 * DAY_MS };
+      settlement.constructionQueues = [
+        {
+          building: 'townHall',
+          targetLevel: 2,
+          startedAtMs: YEAR_MS - HOUR,
+          finishesAtMs: YEAR_MS,
+        },
+      ];
+      settlement.recruitmentQueue = [{ finishesAtMs: YEAR_MS }];
+      draft.objectives = {
+        active: ['townHallLevel2'],
+        completed: ['allocateFarmers', 'upgradeHousing', 'recruitVillagers'],
+      };
+    });
+    const { state, events } = advanceTo(start, YEAR_MS);
+    expect(events.map((event) => event.type)).toEqual([
+      'constructionFinished',
+      'recruitmentFinished',
+      'yearStarted',
+      'seasonChanged',
+      'dayStarted',
+      'objectiveCompleted',
+      'famineStarted',
+      'coldEnded',
+    ]);
+    expect(events.every((event) => event.atMs === YEAR_MS)).toBe(true);
+    expect(state.settlement.famine).toEqual({ sinceMs: YEAR_MS });
+    expect(state.settlement.cold).toBeNull();
   });
 
   it('os eventos saem em ordem de instante', () => {

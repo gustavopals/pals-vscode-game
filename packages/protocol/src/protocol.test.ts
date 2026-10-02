@@ -26,6 +26,7 @@ import {
   GithubDeviceStartResponseSchema,
   ReturnReportSchema,
   type GameEvent,
+  GameEventSchema,
   GameRuleErrorSchema,
   GithubAuthResponseSchema,
   PROTOCOL_VERSION,
@@ -135,6 +136,70 @@ describe('ViewStateSchema', () => {
       const view = deriveViewState(state, state.lastProcessedAt);
       expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
     }
+  });
+
+  it('aceita as quatro estações, a conta da lenha e o frio, em mais de um ritmo', () => {
+    // Todos na Fazenda e a madeira inteira em uma obra: o inverno chega sem lenha nenhuma.
+    let state = createInitialState('pedra-alta', settings);
+    for (const [type, payload] of [
+      ['setWorkers', { building: 'farm', count: 5 }],
+      ['startConstruction', { building: 'quarry' }],
+    ] as const) {
+      const result = applyCommand(state, { commandId: uuid, type, payload } as Command, 0);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+    }
+    const seen = new Set<string>();
+    const events: EngineEvent[] = [];
+    // Primavera, verão, outono (com a previsão da lenha), inverno (com frio) e a primavera
+    // seguinte, em horas de jogo.
+    for (const hour of [10, 60, 140, 150, 170]) {
+      const advanced = advanceTo(state, hour * 3_600_000);
+      state = advanced.state;
+      events.push(...advanced.events);
+      for (const timeScale of [1, 3, 0.5]) {
+        const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
+        expect(
+          ViewStateSchema.safeParse(view).error,
+          `${hour} h, ritmo ${timeScale}`,
+        ).toBeUndefined();
+        seen.add(view.calendar.season);
+        if (hour === 140) {
+          expect(view.calendar.nextSeason.firewood).not.toBeNull();
+        }
+        if (hour === 150) {
+          expect(view.winter?.cold).not.toBeNull();
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual(['autumn', 'spring', 'summer', 'winter']);
+
+    // Os eventos do frio passam pelo contrato de evento da API como os outros.
+    const cold = events.filter((event) => event.type.startsWith('cold'));
+    expect(cold.map((event) => event.type)).toEqual(['coldStarted', 'coldEnded']);
+    for (const [index, event] of cold.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+    }
+  });
+
+  it('recusa um campo a mais na conta da lenha e no frio', () => {
+    let state = createInitialState('pedra-alta', settings);
+    state = advanceTo(state, 145 * 3_600_000).state;
+    const view = deriveViewState(state, state.lastProcessedAt);
+    if (view.winter === null) {
+      throw new Error('O teste esperava o inverno.');
+    }
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    const extra = {
+      ...view,
+      winter: { ...view.winter, firewood: { ...view.winter.firewood, hint: 'x' } },
+    };
+    expect(ViewStateSchema.safeParse(extra).success).toBe(false);
+    const noText = { ...view, winter: { ...view.winter, cold: { secondsElapsed: 1 } } };
+    expect(ViewStateSchema.safeParse(noText).success).toBe(false);
   });
 
   it('recusa campos a mais: o cliente nunca recebe o que não está no contrato', () => {

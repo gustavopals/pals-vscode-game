@@ -1,6 +1,6 @@
 # Balanceamento da v0.2
 
-Medições do simulador (`@lotg/sim-cli`) ao longo da v0.2, na ordem em que foram feitas. Cada rodada traz data, commit, comandos e a saída como veio, para a seguinte poder ser comparada com ela. As faixas que a CI cobra nasceram na tarefa V2B-T4 do [roadmap](roadmap-v0.2.md) e estão na seção 2; as rodadas depois das mecânicas entram em V2C-T7 e V2F-T1.
+Medições do simulador (`@lotg/sim-cli`) ao longo da v0.2, na ordem em que foram feitas. Cada rodada traz data, commit, comandos e a saída como veio, para a seguinte poder ser comparada com ela. As faixas que a CI cobra nasceram na tarefa V2B-T4 do [roadmap](roadmap-v0.2.md) e estão na seção 2. Cada mecânica que muda a economia de propósito regrava a linha de base e registra a rodada aqui (a primeira é a das estações, na seção 3); as rodadas de balanceamento entram em V2C-T7 e V2F-T1.
 
 Nenhum número deste documento é promessa ao jogador ([ADR 0011](decisions/0011-ritmo-3x-no-mvp.md)): são medidas de um bot, não a duração de nada na tela.
 
@@ -232,3 +232,133 @@ A fila ociosa e os aldeões sem ofício são medidos e relatados, mas **não tê
 - **Só a dificuldade Senhor.** `--matrix --difficulty ironKing` joga e mede, sem faixa.
 - **Colunas reservadas.** Desperdício por recurso, horas de frio, moral, cartas vistas, respondidas e expiradas, e perdas por lobos já têm cabeçalho nos dois CSVs e saem vazias até as Fases C a E.
 - O "excedente parado" é o estoque ao fim da janela. Depois dos caps, a medida útil passa a ser o desperdício (ADR 0013, decisão 17), e esta vira um teto que o próprio cap garante.
+
+## 3. Estações com efeito (V2C-T1)
+
+Tarefa V2C-T1. É a primeira mecânica da v0.2 que **muda a economia de propósito**: a produção passa a levar o fator da estação, o recrutamento ordenado na primavera leva 16 minutos de jogo em vez de 20, as obras iniciadas no inverno demoram × 1,5 e o inverno queima lenha. Os números são os da tabela do GDD §4.1; nenhum outro número de conteúdo mudou. A linha de base da seção 2 deixou de valer e foi regravada, como um golden.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o da tarefa V2C-T1 (`git log --grep V2C-T1`) |
+| Identificação | Motor 0.1.0 · estado v3 · conteúdo 4a7d2ccbede2ae2c |
+| Dificuldade | Senhor (`lord`) |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, Node 24.19.0 |
+
+### 3.1 Perfis
+
+Os mesmos da seção 2.1, com uma política a mais em cada bot e uma mudança em outra:
+
+| Perfil | Sessões por dia real | Bot | Políticas do bot, na ordem |
+|---|---:|---|---|
+| Preguiçoso | 1 | `preguicoso` | recrutar, obra mais barata, comida primeiro, ocupar os livres, guardar lenha |
+| Regular | 2 | `economico` | recrutar, obra mais barata, alocar por demanda, guardar lenha |
+| Dedicado | 4 | `economico` | recrutar, obra mais barata, alocar por demanda, guardar lenha |
+
+`guardar lenha` manda braços para a Serraria quando a conta da lenha da visão diz que falta madeira; `obra mais barata` deixa de começar a obra que gastaria a madeira da lareira. **Nenhuma das duas mudou uma partida sequer desta rodada**: a matriz jogada com as duas desligadas dá o mesmo CSV, byte a byte. Sem limite de estoque, os bots chegam ao inverno com milhares de unidades de madeira e a conta nunca diz que falta. Tudo o que mudou em relação à seção 2 vem das regras, não dos bots.
+
+### 3.2 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
+```
+
+São 900 linhas no CSV e 750 partidas distintas, como antes; a rodada leva cerca de 4 s. As tabelas ganharam a coluna **Frio (h)**: horas reais com o feudo passando frio, uma amostra ao fim de cada hora, como a fome. No CSV ela é a coluna `cold`, que deixou de sair vazia.
+
+#### Tabela 1: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 20 | 2 | 0 | 0 | 168 | 360 | 17.434 | 7.523 | 4.970 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 35 | 3 | 0 | 0 | 168 | 360 | 39.064 | 16.155 | 6.972 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 55 | 5 | 0 | 0 | 168 | 300 | 81.313 | 33.418 | 12.478 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 20 | 2 | 0 | 0 | 168 | 357 | 5.370 | 2.242 | 2.073 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 34 | 3 | 0 | 0 | 168 | 344 | 9.735 | 4.196 | 1.808 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 40 | 5 | 0 | 0 | 168 | 210 | 8.864 | 3.846 | 1.954 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 12 | 2 | 0 | 0 | 168 | 165 | 2.650 | 1.160 | 770 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 18 | 3 | 0 | 0 | 168 | 153 | 2.150 | 949 | 552 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 20 | 4 | 0 | 0 | 79 | 89 | 783 | 460 | 345 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 18.306 | ≤ 7.900 | ≤ 5.219 | 0 |
+| Rápido 3× | Regular | 31 a 39 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 41.018 | ≤ 16.963 | ≤ 7.321 | 0 |
+| Rápido 3× | Dedicado | 49 a 61 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 85.379 | ≤ 35.089 | ≤ 13.102 | 0 |
+| Normal 1× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 5.639 | ≤ 2.355 | ≤ 2.177 | 0 |
+| Normal 1× | Regular | 30 a 38 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 10.222 | ≤ 4.406 | ≤ 1.899 | 0 |
+| Normal 1× | Dedicado | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 9.308 | ≤ 4.039 | ≤ 2.052 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 10 a 14 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 2.783 | ≤ 1.218 | ≤ 809 | 0 |
+| Tranquilo 0,5× | Regular | 16 a 20 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 2.258 | ≤ 997 | ≤ 580 | 0 |
+| Tranquilo 0,5× | Dedicado | 18 a 22 | ≥ 4 | ≤ 0 | ≤ 0 | ≤ 823 | ≤ 483 | ≤ 363 | 0 |
+
+#### Tabela 2: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 15 | 1 | 0 | 0 | 56 | 192 | 5.286 | 469 | 418 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 15 | 1 | 0 | 0 | 56 | 120 | 5.748 | 1.545 | 1.669 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 25 | 2 | 0 | 0 | 56 | 120 | 8.420 | 2.807 | 1.591 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 20 | 2 | 0 | 0 | 168 | 357 | 5.370 | 2.242 | 2.073 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 34 | 3 | 0 | 0 | 168 | 344 | 9.735 | 4.196 | 1.808 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 40 | 5 | 0 | 0 | 168 | 210 | 8.864 | 3.846 | 1.954 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 16 | 3 | 0 | 0 | 336 | 261 | 4.915 | 3.104 | 2.100 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 40 | 5 | 0 | 0 | 331 | 409 | 8.864 | 3.846 | 1.954 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 46 | 7 | 0 | 0 | 129 | 243 | 820 | 1.130 | 398 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 13 a 17 | ≥ 1 | ≤ 0 | ≤ 0 | ≤ 5.551 | ≤ 493 | ≤ 439 | 0 |
+| Rápido 3× | Regular | 13 a 17 | ≥ 1 | ≤ 0 | ≤ 0 | ≤ 6.036 | ≤ 1.623 | ≤ 1.753 | 0 |
+| Rápido 3× | Dedicado | 22 a 28 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 8.841 | ≤ 2.948 | ≤ 1.671 | 0 |
+| Normal 1× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 5.639 | ≤ 2.355 | ≤ 2.177 | 0 |
+| Normal 1× | Regular | 30 a 38 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 10.222 | ≤ 4.406 | ≤ 1.899 | 0 |
+| Normal 1× | Dedicado | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 9.308 | ≤ 4.039 | ≤ 2.052 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 14 a 18 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 5.161 | ≤ 3.260 | ≤ 2.205 | 0 |
+| Tranquilo 0,5× | Regular | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 9.308 | ≤ 4.039 | ≤ 2.052 | 0 |
+| Tranquilo 0,5× | Dedicado | 41 a 51 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 861 | ≤ 1.187 | ≤ 418 | 0 |
+
+Todas as 900 partidas ficam dentro das faixas novas, e nenhum bot teve ordem recusada.
+
+### 3.3 O que mudou em relação à seção 2, e por quê
+
+População final, Salão e excedentes, antes (seção 2) e depois (esta rodada), nos 7 dias reais:
+
+| Ritmo | Perfil | População | Salão | Madeira parada | Pedra parada | Ouro parado |
+|---|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 20 → 20 | 2 → 2 | 17.803 → 17.434 | 9.142 → 7.523 | 6.450 → 4.970 |
+| Rápido 3× | Regular | 35 → 35 | 3 → 3 | 40.872 → 39.064 | 16.118 → 16.155 | 6.626 → 6.972 |
+| Rápido 3× | Dedicado | 55 → 55 | 5 → 5 | 83.001 → 81.313 | 33.786 → 33.418 | 12.151 → 12.478 |
+| Normal 1× | Preguiçoso | 12 → 20 | 2 → 2 | 5.515 → 5.370 | 1.846 → 2.242 | 1.921 → 2.073 |
+| Normal 1× | Regular | 26 → 34 | 3 → 3 | 10.017 → 9.735 | 4.190 → 4.196 | 1.637 → 1.808 |
+| Normal 1× | Dedicado | 17 → 40 | 5 → 5 | 2.068 → 8.864 | 1.145 → 3.846 | 676 → 1.954 |
+| Tranquilo 0,5× | Preguiçoso | 11 → 12 | 2 → 2 | 2.443 → 2.650 | 814 → 1.160 | 674 → 770 |
+| Tranquilo 0,5× | Regular | 12 → 18 | 3 → 3 | 1.609 → 2.150 | 710 → 949 | 409 → 552 |
+| Tranquilo 0,5× | Dedicado | 14 → 20 | 4 → 4 | 470 → 783 | 316 → 460 | 182 → 345 |
+
+- **A comida sobra mais, e o feudo cresce mais.** Toda partida nasce na primavera, com a Fazenda rendendo × 1,2, e o outono rende × 1,3. O bot `economico` põe na Fazenda só os braços que alimentam o feudo com duas bocas de folga; com cada fazendeiro rendendo mais, sobram braços para os materiais e comida para recrutar. No ritmo 1 o Regular passa de 26 para 34 aldeões e o Dedicado, de 17 para 40. É a mudança grande desta rodada, e ela vem do fator da primavera e do outono, não do recrutamento mais rápido (16 minutos em vez de 20 não mudam quantas ordens cabem em uma visita).
+- **A meta do GDD §15.2 para o Regular (30 a 40 aldeões no dia 7) passa a ser atingida no ritmo 1**: 34. Na seção 2 a medida era 26.
+- **O inverno custa comida, e ninguém passa fome.** Com × 0,4 na Fazenda, o saldo de comida do Regular no ritmo 3 chega a ficar negativo no inverno (até −47 por hora real, na semente `pedra-alta-golden`) e volta na primavera; o estoque acumulado no outono cobre. Fome continua zero em toda célula.
+- **Ninguém passa frio.** A lenha de um inverno inteiro são 12 de madeira por habitante (0,5 por hora de jogo × 24 horas de jogo): 420 para os 35 aldeões do Regular, contra dezenas de milhares em estoque. Um lenhador no nível 1 rende 6,4 por hora de jogo no inverno, a lenha de quase 13 habitantes. **Enquanto não houver limite de estoque, a lenha não é uma decisão para quem tem alguém na Serraria.** Com o cap inicial de 500 (V2C-T2) ela passa a pesar: um feudo de 35 aldeões queima 420 no inverno, quase o cap inteiro. É a pergunta de balanceamento que esta tarefa deixa para V2C-T7.
+- **Os excedentes continuam enormes** e a fila continua ociosa em quase todas as horas: são os sinais que os caps (V2C-T2) e o início automático (V2C-T5) atacam. O excedente de madeira cai um pouco no ritmo 3 (a lenha e o inverno a × 0,8) e sobe nas células em que o feudo cresceu.
+
+### 3.4 Faixas
+
+As faixas saem das medidas pela mesma regra da seção 2.3, com uma grandeza a mais:
+
+| Grandeza | Faixa | Folga |
+|---|---|---|
+| Horas de frio | no máximo o maior valor medido | 5% (hoje a medida é zero em toda célula, e o limite também) |
+
+`MEASURED`, em `packages/sim-cli/src/bands.ts`, traz a linha de base desta rodada. "Sem frio" passa a ser cobrado de todo bot em toda célula: quando os caps tornarem a lenha apertada, uma hora de frio em qualquer partida derruba o teste, e a tarefa decide se é regressão ou se é a mecânica trabalhando.
+
+### 3.5 Limites desta medição
+
+- **O frio não aparece na matriz.** A mecânica está provada nos testes do motor (`cold.test.ts`, as propriedades de divisão de intervalo, o golden da Crônica do inverno) e no teste de integração do servidor no ritmo 3, mas nenhum bot a encontra jogando. Não há, portanto, medida de quanto o frio custa a um feudo de verdade.
+- **O bot não planeja o inverno pela comida.** Ele reage: realoca fazendeiros a cada visita conforme o que a Fazenda rende naquela hora. Com uma visita por dia real no ritmo 3 (um dia real são 36 dias de jogo), a visita pode cair no outono e a seguinte só na primavera; o estoque sem limite cobre a diferença. Com caps, é aí que a fome de inverno pode aparecer.
+- As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).

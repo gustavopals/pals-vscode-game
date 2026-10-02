@@ -14,7 +14,9 @@ import {
   StateMigrationError,
 } from './migrations';
 import { natural, type Shape } from './migrations/shape';
-import { command, HOUR, newGame, runWeekScenario } from './test-helpers';
+import { v1ToV2 } from './migrations/v1';
+import { stateV2 } from './migrations/v2';
+import { command, gameAt, HOUR, newGame, runWeekScenario } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameState } from './types';
 import { REJECTION_CODES } from './types';
@@ -80,6 +82,14 @@ const FROZEN: Record<string, string> = {
   'state-v1-objectives.json': 'f0ee3653',
   'state-v1-week-bot-3x.json': '03aad6d4',
   'state-v1-week-scripted.json': 'bd507c88',
+  'state-v2-construction.json': 'a7e60886',
+  'state-v2-famine.json': '580fb023',
+  'state-v2-fresh.json': '635c91de',
+  'state-v2-iron-king-half.json': '84be606d',
+  'state-v2-migrated-3x.json': 'c9380b87',
+  'state-v2-objectives.json': '9518b31a',
+  'state-v2-peasant-3x.json': 'a50a387f',
+  'state-v2-week-scripted.json': '213bb8f1',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -167,6 +177,9 @@ describe('a forma da versão atual', () => {
     ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
     ['o ritmo ausente', (state) => delete state.settings.timeScale],
     ['a fronteira ausente', (state) => delete state.migratedAtMs],
+    ['o frio ausente', (state) => delete state.settlement.cold],
+    ['um frio sem data', (state) => (state.settlement.cold = {})],
+    ['o número da versão 2', (state) => (state.schemaVersion = 2)],
     ['o número da versão anterior', (state) => (state.schemaVersion = 1)],
     ['um resto de produção ausente', (state) => delete state.settlement.accumulators.wood],
     ['um estoque negativo', (state) => (state.settlement.resources.stone = -1)],
@@ -203,7 +216,9 @@ describe('a forma da versão atual', () => {
     stored.settlement.workers.lumberMill = 3;
     delete stored.settlement.accumulators.wood;
     expect(() => migrateState(stored, { timeScale: 1 })).toThrow(
-      /versão 2, mas não tem a forma dela \(settlement\.accumulators\.wood: campo ausente\)/,
+      new RegExp(
+        `versão ${CURRENT_SCHEMA_VERSION}, mas não tem a forma dela \\(settlement\\.accumulators\\.wood: campo ausente\\)`,
+      ),
     );
   });
 
@@ -357,6 +372,8 @@ describe.each(fixtures)('$name', (fixture) => {
 
 describe('versão 1 → 2', () => {
   const construction = named('state-v1-construction.json');
+  // Só o primeiro passo: o que a fundação mudou, sem o que as versões seguintes acrescentaram.
+  const foundation: MigrationChain = { steps: [v1ToV2], shape: stateV2 };
 
   it.each(fixtures.filter((fixture) => fixture.version === 1))(
     '$name: muda só o que a fundação exige',
@@ -364,7 +381,11 @@ describe('versão 1 → 2', () => {
       const before = read(fixture) as unknown as GameState & {
         settings: { capsEnabled: boolean };
       };
-      const after = migrateState(read(fixture), { timeScale: fixture.timeScale });
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        foundation,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(2);
       expect(after.settings).toStrictEqual({
         settlementName: before.settings.settlementName,
@@ -420,6 +441,101 @@ describe('versão 1 → 2', () => {
     ['um ritmo que não é número', Number.NaN],
   ])('recusa %s', (_, timeScale) => {
     expect(() => migrateState(read(construction), { timeScale })).toThrow(/Ritmo inválido/);
+  });
+});
+
+describe('versão 2 → 3', () => {
+  const version2 = fixtures.filter((fixture) => fixture.version === 2);
+  const WINTER_DAY_4 = (72 + 3) * 2 * HOUR;
+
+  /**
+   * Um estado como a versão 2 o gravava, parado no 4º dia do inverno, em cima de uma virada de
+   * dia: todos na Fazenda, comida de sobra, objetivos cumpridos e `wood` de madeira.
+   */
+  function version2InWinter(wood: number): Draft {
+    const old = JSON.parse(JSON.stringify(gameAt(WINTER_DAY_4))) as Draft;
+    old.schemaVersion = 2;
+    delete old.settlement.cold;
+    old.settlement.workers.farm = 5;
+    old.settlement.resources.food = 500_000;
+    old.settlement.resources.wood = wood;
+    return old;
+  }
+
+  it.each(version2)('$name: só acrescenta o frio, fechado', (fixture) => {
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(3);
+    expect(after.settlement.cold).toBeNull();
+    // O resto é o estado antigo, campo por campo: estoque, restos de produção, prazos de obra
+    // e de recrutamento, fome. A fronteira passa a ser a deste passo.
+    expect(after.settlement).toStrictEqual({ ...before.settlement, cold: null });
+    expect({ ...after, schemaVersion: 2, settlement: before.settlement }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it('nenhum prazo muda: a obra e o recruta em curso chegam na hora marcada', () => {
+    // O retrato tem uma obra que acaba aos 240.000 ms e dois aldeões a caminho, ordenados na
+    // primavera com o prazo de tabela (20 min), antes de a estação mexer em prazos.
+    const fixture = named('state-v2-construction.json');
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    expect(after.settlement.constructionQueues).toEqual(before.settlement.constructionQueues);
+    expect(after.settlement.recruitmentQueue).toEqual([
+      { finishesAtMs: 1_200_000 },
+      { finishesAtMs: 2_400_000 },
+    ]);
+    const { events } = advanceTo(after, HOUR);
+    expect(
+      events.filter((event) => event.type === 'recruitmentFinished').map((event) => event.atMs),
+    ).toEqual([1_200_000, 2_400_000]);
+    expect(
+      events.filter((event) => event.type === 'constructionFinished').map((event) => event.atMs),
+    ).toEqual([240_000]);
+  });
+
+  it('as taxas passam a levar a estação a partir da fronteira, sem recalcular o que passou', () => {
+    const fixture = named('state-v2-construction.json');
+    const before = read(fixture) as unknown as GameState;
+    const after = migrated(fixture);
+    // O estoque na fronteira é o que as regras antigas deixaram.
+    expect(after.settlement.resources).toEqual(before.settlement.resources);
+    expect(after.settlement.accumulators).toEqual(before.settlement.accumulators);
+    // Dali em diante, primavera: os 2 fazendeiros rendem 24 por hora, e não 20.
+    const view = deriveViewState(after, after.lastProcessedAt);
+    expect(view.workers.find((row) => row.building === 'farm')?.grossPerHour).toBe(24);
+  });
+
+  it('partida encontrada no inverno e sem madeira: o frio abre na fronteira, com a linha na Crônica', () => {
+    // Uma partida da versão 2 parada no 4º dia do inverno, em cima de uma virada de dia, sem
+    // madeira e sem lenhadores. Nas regras antigas ninguém passava frio.
+    const old = version2InWinter(0);
+
+    const state = migrateState(old, { timeScale: 3 });
+    expect(state.settlement.cold).toBeNull();
+    expect(state.migratedAtMs).toBe(WINTER_DAY_4);
+
+    // O primeiro avanço acomoda o estado no instante da fronteira: o frio começa ali, e a
+    // virada de dia daquele instante, que as regras antigas já tinham registrado, não se repete.
+    const { state: after, events } = advanceTo(state, WINTER_DAY_4 + 1);
+    expect(events.map((event) => [event.type, event.atMs])).toEqual([
+      ['coldStarted', WINTER_DAY_4],
+    ]);
+    expect(after.settlement.cold).toEqual({ sinceMs: WINTER_DAY_4 });
+    // E a divisão de intervalo continua exata a partir dali.
+    const direct = advanceTo(state, WINTER_DAY_4 + 30 * HOUR);
+    const first = advanceTo(state, WINTER_DAY_4 + 7 * HOUR + 13);
+    const second = advanceTo(first.state, WINTER_DAY_4 + 30 * HOUR);
+    expect(second.state).toStrictEqual(direct.state);
+    expect([...first.events, ...second.events]).toStrictEqual(direct.events);
+  });
+
+  it('partida encontrada no inverno com madeira: nada acontece na fronteira', () => {
+    const old = version2InWinter(100_000);
+    const state = migrateState(old, { timeScale: 1 });
+    expect(advanceTo(state, WINTER_DAY_4 + 1).events).toEqual([]);
   });
 });
 

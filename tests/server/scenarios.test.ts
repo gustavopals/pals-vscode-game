@@ -90,7 +90,7 @@ describe('primeira hora de um jogador novo', () => {
     expect(view.objectives.filter((objective) => objective.status === 'completed')).toHaveLength(3);
     expect(view.constructions.planned.map((plan) => plan.building)).toEqual(['townHall']);
     expect(view.resources.map((row) => [row.id, row.perHour])).toEqual([
-      ['food', 12],
+      ['food', 16],
       ['wood', 24],
       ['stone', 15],
       ['gold', 0],

@@ -19,6 +19,7 @@ export type {
   CommandType,
   Construction,
   DifficultyId,
+  FirewoodView,
   GameEvent,
   GameEventType,
   GameSettings,

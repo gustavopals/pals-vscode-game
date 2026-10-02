@@ -9,6 +9,8 @@ export const EVENT_TYPES = [
   'recruitmentFinished',
   'famineStarted',
   'famineEnded',
+  'coldStarted',
+  'coldEnded',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -18,6 +20,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * Marcadores aceitos nos modelos de frase:
  * {dia} dia da estação · {estacao} "Primavera" · {aEstacao} "a Primavera" · {daEstacao} "da Primavera"
  * {ano} · {feudo} · {edificio} "a Serraria" · {nivel} · {quantidade} · {objetivo} · {recompensa}
+ * {alivio} por que o frio passou: uma das frases de `coldReliefs`
  */
 export const CHRONICLE_PLACEHOLDERS = [
   'dia',
@@ -31,6 +34,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'quantidade',
   'objetivo',
   'recompensa',
+  'alivio',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -52,7 +56,20 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   famineStarted:
     'No {dia}º dia {daEstacao}, as despensas de {feudo} ficaram vazias. A fome começou.',
   famineEnded: 'No {dia}º dia {daEstacao}, voltou a haver pão em {feudo}. A fome acabou.',
+  coldStarted:
+    'No {dia}º dia {daEstacao}, queimou-se a última acha de lenha em {feudo}. O frio entrou nas casas.',
+  coldEnded: 'No {dia}º dia {daEstacao}, {alivio} em {feudo}. O frio passou.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
 };
+
+/**
+ * Por que o frio passou: a frase que entra em {alivio} no modelo de `coldEnded`. `firewood`
+ * quando voltou a haver madeira para queimar; `thaw` quando a estação da lenha terminou.
+ */
+export const coldReliefs = {
+  firewood: 'as lareiras voltaram a arder',
+  thaw: 'o gelo cedeu',
+} as const;
+export type ColdRelief = keyof typeof coldReliefs;

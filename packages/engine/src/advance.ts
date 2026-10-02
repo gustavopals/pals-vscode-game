@@ -9,9 +9,9 @@ import {
 } from './clock';
 import { finishConstructions } from './construction';
 import { applyContinuous } from './economy';
-import { settleFamine } from './famine';
 import { evaluateObjectives } from './objectives';
 import { finishRecruitments } from './population';
+import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
@@ -42,13 +42,16 @@ function processCalendar(draft: GameState, atMs: number, events: GameEvent[]): v
 /** Processa, sobre o rascunho, os eventos discretos de um instante. */
 export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[]) => void;
 
-/** Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa. */
+/**
+ * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
+ * que chegam, virada de ano, de estação e de dia, objetivos e, por fim, fome e frio.
+ */
 export function processEventsAt(draft: GameState, atMs: number, events: GameEvent[]): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   processCalendar(draft, atMs, events);
   evaluateObjectives(draft, atMs, events);
-  settleFamine(draft, atMs, events);
+  settleScarcity(draft, atMs, events);
 }
 
 /**
@@ -66,6 +69,11 @@ export function advanceWith(
   }
   const draft = cloneState(state);
   const events: GameEvent[] = [];
+  // Um estado em repouso já passou por aqui e nada muda. Um estado que acabou de ser migrado
+  // pode não estar em repouso pelas regras novas (inverno sem madeira, por exemplo): a fome e o
+  // frio abrem ou fecham na fronteira, com a linha na Crônica, antes de o tempo andar. Sem isto
+  // o próximo evento seria "agora" e o mesmo instante seria processado duas vezes.
+  settleScarcity(draft, draft.lastProcessedAt, events);
   while (draft.lastProcessedAt < gameTimeMs) {
     const next = Math.min(nextEventAt(draft) ?? gameTimeMs, gameTimeMs);
     applyContinuous(draft, next - draft.lastProcessedAt);

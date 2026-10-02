@@ -1,0 +1,7 @@
+518400000	seasonChanged	Chega o Inverno a Pedra Alta.
+542400000	coldStarted	No 4º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
+556200000	coldEnded	No 6º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.
+598440000	coldStarted	No 12º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.
+604800000	yearStarted	Começa o ano 2 da Casa de Pedra Alta.
+604800000	seasonChanged	Chega a Primavera a Pedra Alta.
+604800000	coldEnded	No 1º dia da Primavera, o gelo cedeu em Pedra Alta. O frio passou.

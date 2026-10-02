@@ -18,6 +18,8 @@ type Baseline = {
   townHall: number;
   /** Maior número de horas reais com fome. */
   famineHours: number;
+  /** Maior número de horas reais com frio. */
+  coldHours: number;
   /** Maior estoque final de cada material, em unidades: o excedente parado. */
   surplus: Record<SurplusResource, number>;
 };
@@ -26,6 +28,7 @@ function measured(
   villagers: [number, number],
   townHall: number,
   famineHours: number,
+  coldHours: number,
   wood: number,
   stone: number,
   gold: number,
@@ -34,13 +37,15 @@ function measured(
     villagers: { min: villagers[0], max: villagers[1] },
     townHall,
     famineHours,
+    coldHours,
     surplus: { wood, stone, gold },
   };
 }
 
 /**
  * Linha de base medida: dificuldade Senhor, 50 sementes por célula. As faixas saem daqui, pela
- * regra de `SLACK`. A rodada completa, com data e identificação, está em docs/balance-v0.2.md.
+ * regra de `SLACK`. A rodada completa, com data e identificação, está em docs/balance-v0.2.md
+ * (a última é a da seção 3, depois das estações com efeito, V2C-T1).
  *
  * Estes números NÃO são metas aprovadas pelo autor: são o jogo como ele está, postos como
  * guarda de regressão (ADR 0013, decisão 5). Quando uma mecânica muda a economia de propósito,
@@ -48,33 +53,34 @@ function measured(
  * registra a rodada em docs/balance-v0.2.md, como se faz com um golden. Quando uma faixa falha
  * sem que a mudança fosse a intenção, o ajuste é nos números de `@lotg/content`, nunca no bot.
  */
-// Colunas: população (menor e maior), Salão, horas de fome, madeira, pedra e ouro parados.
+// Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro
+// parados.
 const MEASURED: Partial<Record<CellKey, Baseline>> = {
-  'week/3/preguicoso': measured([20, 20], 2, 0, 17803, 9142, 6450),
-  'week/3/regular': measured([35, 35], 3, 0, 40872, 16118, 6626),
-  'week/3/dedicado': measured([55, 55], 5, 0, 83001, 33786, 12151),
-  'week/1/preguicoso': measured([12, 12], 2, 0, 5515, 1846, 1921),
-  'week/1/regular': measured([26, 26], 3, 0, 10017, 4190, 1637),
-  'week/1/dedicado': measured([17, 17], 5, 0, 2068, 1145, 676),
-  'week/0.5/preguicoso': measured([11, 11], 2, 0, 2443, 814, 674),
-  'week/0.5/regular': measured([12, 12], 3, 0, 1609, 710, 409),
-  'week/0.5/dedicado': measured([14, 14], 4, 0, 470, 316, 182),
-  'year/3/preguicoso': measured([15, 15], 1, 0, 5419, 475, 514),
-  'year/3/regular': measured([15, 15], 1, 0, 6274, 1571, 1338),
-  'year/3/dedicado': measured([25, 25], 2, 0, 8758, 2989, 1493),
-  'year/1/preguicoso': measured([12, 12], 2, 0, 5515, 1846, 1921),
-  'year/1/regular': measured([26, 26], 3, 0, 10017, 4190, 1637),
-  'year/1/dedicado': measured([17, 17], 5, 0, 2068, 1145, 676),
-  'year/0.5/preguicoso': measured([14, 14], 3, 0, 4777, 2487, 1843),
-  'year/0.5/regular': measured([17, 17], 5, 0, 2068, 1145, 676),
-  'year/0.5/dedicado': measured([18, 18], 6, 0, 457, 322, 366),
+  'week/3/preguicoso': measured([20, 20], 2, 0, 0, 17434, 7523, 4970),
+  'week/3/regular': measured([35, 35], 3, 0, 0, 39064, 16155, 6972),
+  'week/3/dedicado': measured([55, 55], 5, 0, 0, 81313, 33418, 12478),
+  'week/1/preguicoso': measured([20, 20], 2, 0, 0, 5370, 2242, 2073),
+  'week/1/regular': measured([34, 34], 3, 0, 0, 9735, 4196, 1808),
+  'week/1/dedicado': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
+  'week/0.5/preguicoso': measured([12, 12], 2, 0, 0, 2650, 1160, 770),
+  'week/0.5/regular': measured([18, 18], 3, 0, 0, 2150, 949, 552),
+  'week/0.5/dedicado': measured([20, 20], 4, 0, 0, 783, 460, 345),
+  'year/3/preguicoso': measured([15, 15], 1, 0, 0, 5286, 469, 418),
+  'year/3/regular': measured([15, 15], 1, 0, 0, 5748, 1545, 1669),
+  'year/3/dedicado': measured([25, 25], 2, 0, 0, 8420, 2807, 1591),
+  'year/1/preguicoso': measured([20, 20], 2, 0, 0, 5370, 2242, 2073),
+  'year/1/regular': measured([34, 34], 3, 0, 0, 9735, 4196, 1808),
+  'year/1/dedicado': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
+  'year/0.5/preguicoso': measured([16, 16], 3, 0, 0, 4915, 3104, 2100),
+  'year/0.5/regular': measured([40, 40], 5, 0, 0, 8864, 3846, 1954),
+  'year/0.5/dedicado': measured([46, 46], 7, 0, 0, 820, 1130, 398),
 };
 
 /** A folga entre o que foi medido e o que a faixa aceita. Pequena e explícita. */
 export const SLACK = {
   /** População: de 10% abaixo do menor a 10% acima do maior valor medido. */
   villagersPercent: 10,
-  /** Horas de fome e excedente parado: até 5% acima do maior valor medido. */
+  /** Horas de fome, horas de frio e excedente parado: até 5% acima do maior valor medido. */
   ceilingPercent: 5,
 } as const;
 
@@ -83,6 +89,7 @@ export type Band = {
   villagers: Range;
   townHallMin: number;
   famineHoursMax: number;
+  coldHoursMax: number;
   /** Limite do excedente parado de cada material, em unidades. */
   surplusMax: Record<SurplusResource, number>;
 };
@@ -100,6 +107,7 @@ function bandOf(baseline: Baseline): Band {
     },
     townHallMin: baseline.townHall,
     famineHoursMax: ceiling(baseline.famineHours),
+    coldHoursMax: ceiling(baseline.coldHours),
     surplusMax: Object.fromEntries(
       SURPLUS_RESOURCES.map((id) => [id, ceiling(baseline.surplus[id])]),
     ) as Record<SurplusResource, number>,
@@ -118,7 +126,7 @@ export function bandFor(key: CellKey, difficulty: DifficultyId = BANDED_DIFFICUL
 /** O que uma partida tem fora da faixa, uma frase por problema; vazio quando está dentro. */
 export function checkBand(band: Band, summary: Summary): string[] {
   const problems: string[] = [];
-  const { villagers, townHall, famineHours, surplus, commandsRefused } = summary;
+  const { villagers, townHall, famineHours, coldHours, surplus, commandsRefused } = summary;
   if (villagers < band.villagers.min || villagers > band.villagers.max) {
     problems.push(
       `população ${villagers}, fora da faixa de ${band.villagers.min} a ${band.villagers.max}`,
@@ -129,6 +137,9 @@ export function checkBand(band: Band, summary: Summary): string[] {
   }
   if (famineHours > band.famineHoursMax) {
     problems.push(`${famineHours} h de fome, acima do limite de ${band.famineHoursMax} h`);
+  }
+  if (coldHours > band.coldHoursMax) {
+    problems.push(`${coldHours} h de frio, acima do limite de ${band.coldHoursMax} h`);
   }
   for (const id of SURPLUS_RESOURCES) {
     if (surplus[id] > band.surplusMax[id]) {
