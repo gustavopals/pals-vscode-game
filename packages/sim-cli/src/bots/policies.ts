@@ -1,4 +1,3 @@
-import { balance } from '@lotg/content';
 import type { ProductionBuildingId, ResourceId, ViewState } from '@lotg/engine';
 
 import type { Policy } from './types';
@@ -8,16 +7,17 @@ import type { Policy } from './types';
  * Uma mecânica nova entra aqui como uma política nova, com teste, e depois na lista dos bots que
  * a usam.
  *
- * `alocarPorDemanda` vem da v0.1 e ainda lê dois números de `@lotg/content`: a taxa por
- * trabalhador e o consumo por aldeão. Não lê o `GameState`. As outras políticas tiram tudo da
- * visão, e é assim que as novas devem ser: um fator de estação, de moral ou de dificuldade só
- * aparece na visão.
+ * Toda política tira tudo da visão, como o jogador: o que um trabalhador rende é
+ * `workers[].perWorkerPerHour`, e o que o feudo come é o que a fazenda rende menos o saldo da
+ * comida. Nenhuma lê `@lotg/content` nem o `GameState` (o teste "bot honesto" barra os dois):
+ * um fator de fome, de estação, de moral ou de dificuldade só chega ao bot pela visão, e um
+ * efeito que a visão esconde fica escondido dele também.
  */
 
 /** Comida que o recrutamento não gasta: uma folga para a noite. */
 const FOOD_RESERVE = 60;
-/** Saldo mínimo de comida por hora que a alocação por demanda procura garantir. */
-const FOOD_MARGIN_PER_HOUR = 2;
+/** Bocas a mais que a alocação por demanda alimenta, de folga. */
+const SPARE_MOUTHS = 2;
 /** Pesos usados quando nenhuma obra está esperando recurso. */
 const IDLE_WEIGHTS: Record<Exclude<ResourceId, 'food'>, number> = { wood: 3, stone: 2, gold: 1 };
 /** Folga para o arredondamento das taxas da visão (uma casa decimal) não pedir um braço a mais. */
@@ -46,13 +46,29 @@ function reachable(upgrade: Upgrade): boolean {
   return upgrade.blockedCode !== 'GATE_LOCKED' && upgrade.blockedCode !== 'MAX_LEVEL';
 }
 
-/** Produção de um trabalhador no edifício, por hora de jogo, no nível atual. */
+/** O que um trabalhador rende no edifício, por hora, como a visão mostra agora. */
 function perWorker(view: ViewState, resource: ResourceId): number {
-  const { building, level } = workplace(view, resource);
-  const { levelBonus, perWorkerPerHour } = balance.production;
-  return (
-    (perWorkerPerHour[building] * (levelBonus.den + levelBonus.num * (level - 1))) / levelBonus.den
-  );
+  return workplace(view, resource).perWorkerPerHour;
+}
+
+/**
+ * O que cada habitante come por hora, ou `null` com o feudo vazio. A visão não traz esse
+ * número; traz o que a fazenda rende e o saldo da comida, e a diferença entre os dois é o
+ * consumo, já com fome, estação e o que mais vier.
+ */
+function eatenPerVillager(view: ViewState): number | null {
+  const food = view.resources.find((row) => row.id === 'food');
+  const { villagers } = view.population;
+  if (food === undefined || villagers === 0) {
+    return null;
+  }
+  return (workplace(view, 'food').grossPerHour - food.perHour) / villagers;
+}
+
+/** Horas que os braços de um edifício levariam, um a um, para render `amount`. */
+function hoursPerWorker(view: ViewState, resource: ResourceId, amount: number): number {
+  const rate = perWorker(view, resource);
+  return rate > 0 ? amount / rate : 0;
 }
 
 /** Quanto de cada material falta para pagar todas as obras que só esperam recurso. */
@@ -134,25 +150,31 @@ export const obraMaisBarata: Policy = {
 };
 
 /**
- * Realoca todos os aldeões: primeiro os fazendeiros que mantêm a comida no positivo, contando
- * quem ainda está chegando; o resto vai para os materiais, em proporção ao tempo que cada um
- * levaria para cobrir o que as obras pedem.
+ * Realoca todos os aldeões: primeiro os fazendeiros que alimentam o feudo, contando quem ainda
+ * está chegando e duas bocas de folga; o resto vai para os materiais, em proporção ao tempo que
+ * cada um levaria para cobrir o que as obras pedem.
+ *
+ * A folga é em bocas, e não em comida por hora, para a decisão ser a mesma em qualquer ritmo:
+ * a visão traz as taxas por hora real, e o bot não sabe (nem precisa saber) qual é o ritmo.
  */
 export const alocarPorDemanda: Policy = {
   name: 'alocar por demanda',
   run: async (view, act) => {
     const { villagers, inTraining } = view.population;
-    const mouths = (villagers + inTraining) * balance.consumption.foodPerVillagerPerHour;
-    const farmers = Math.min(
-      villagers,
-      Math.ceil((mouths + FOOD_MARGIN_PER_HOUR) / perWorker(view, 'food')),
-    );
+    const eaten = eatenPerVillager(view);
+    if (eaten === null) {
+      return view;
+    }
+    const farmYield = perWorker(view, 'food');
+    const demand = (villagers + inTraining + SPARE_MOUTHS) * eaten;
+    const farmers =
+      farmYield > 0 ? Math.min(villagers, Math.ceil(demand / farmYield - EPSILON)) : 0;
 
     const deficits = materialDeficits(view);
     const hoursToCover: Record<Material, number> = {
-      wood: deficits.wood / perWorker(view, 'wood'),
-      stone: deficits.stone / perWorker(view, 'stone'),
-      gold: deficits.gold / perWorker(view, 'gold'),
+      wood: hoursPerWorker(view, 'wood', deficits.wood),
+      stone: hoursPerWorker(view, 'stone', deficits.stone),
+      gold: hoursPerWorker(view, 'gold', deficits.gold),
     };
     const waiting = MATERIALS.some((id) => hoursToCover[id] > 0);
     const hands = share(villagers - farmers, waiting ? hoursToCover : IDLE_WEIGHTS);
@@ -183,21 +205,17 @@ export const alocarPorDemanda: Policy = {
 /**
  * Põe na fazenda os braços que faltam para a comida não cair, contando quem ainda está
  * chegando. Nunca tira ninguém da fazenda. Sem livres o bastante, busca em quem tem mais gente.
- *
- * A visão não diz quanto um aldeão come; diz o que a fazenda rende e o saldo da comida. A
- * diferença entre os dois é o consumo, já com fome, estação e o que mais vier.
  */
 export const comidaPrimeiro: Policy = {
   name: 'comida primeiro',
   run: async (view, act) => {
     const farm = workplace(view, 'food');
-    const food = view.resources.find((row) => row.id === 'food');
     const { villagers, inTraining, free } = view.population;
-    if (food === undefined || villagers === 0 || farm.perWorkerPerHour <= 0) {
+    const eaten = eatenPerVillager(view);
+    if (eaten === null || farm.perWorkerPerHour <= 0) {
       return view;
     }
-    const eatenPerHour = farm.grossPerHour - food.perHour;
-    const mouthsPerHour = (eatenPerHour / villagers) * (villagers + inTraining);
+    const mouthsPerHour = eaten * (villagers + inTraining);
     const farmers = Math.min(villagers, Math.ceil(mouthsPerHour / farm.perWorkerPerHour - EPSILON));
     if (farmers <= farm.assigned) {
       return view;

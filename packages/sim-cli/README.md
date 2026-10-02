@@ -51,7 +51,7 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 |---|---|
 | `recrutar` | Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida |
 | `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora |
-| `alocar por demanda` | Realoca todos os aldeões: fazendeiros o bastante para a comida fechar no positivo (contando quem ainda está chegando) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem |
+| `alocar por demanda` | Realoca todos os aldeões: fazendeiros o bastante para alimentar o feudo (contando quem ainda está chegando e duas bocas de folga) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem |
 | `comida primeiro` | Põe na fazenda os braços que faltam para a comida não cair, contando quem está chegando; nunca tira ninguém de lá. Sem livres, busca em quem tem mais gente |
 | `ocupar os livres` | Manda todos os aldeões sem ofício, em uma ordem só, para o material que mais demoraria a cobrir o que falta às obras; se nada falta, para o ofício com menos gente |
 
@@ -59,7 +59,7 @@ Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem 
 
 **Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As Fases C a E preveem "ampliar o armazém quando ele está para encher", "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
 
-**Bot honesto.** Uma política só conhece o `ViewState`: nunca o `GameState`, flags nem o gerador de sorteios; um teste recusa esses imports em `src/bots/`. Uma política herdada da v0.1, `alocar por demanda`, ainda lê dois números de `@lotg/content` (a taxa por trabalhador e o consumo por aldeão); as outras tiram tudo da visão, e é assim que as próximas devem ser, porque um fator de estação, de moral ou de dificuldade só aparece lá.
+**Bot honesto.** Uma política só conhece o `ViewState`: nunca o `GameState`, flags, o gerador de sorteios nem `@lotg/content`; um teste recusa esses imports em `src/bots/` (dos pacotes do jogo, só os tipos de `@lotg/engine`). O que um trabalhador rende vem de `workers[].perWorkerPerHour`, e o que o feudo come é o que a fazenda rende menos o saldo da comida. Assim um fator de fome, de estação, de moral ou de dificuldade chega ao bot como chega ao jogador, e um efeito que a visão esconde (o de uma carta, a composição de uma incursão) fica escondido dele também. Até a correção da revisão da Fase B, `alocar por demanda` lia a taxa por trabalhador e o consumo por aldeão direto do conteúdo, e por isso não via a fazenda rendendo menos na fome: com oito bocas, deixava um fazendeiro só e a fome não acabava. A troca não mudou nenhum número medido: o CSV e o resumo de 20 partidas do `economico` (ritmos 1, 3, 0,5, 2 e 10 × 1, 2, 4 e 8 sessões por dia, 14 dias) e a matriz inteira saíram idênticos.
 
 ## Como ler o CSV
 

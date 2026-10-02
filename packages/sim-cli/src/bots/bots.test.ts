@@ -206,6 +206,96 @@ describe('política "comida primeiro"', () => {
   });
 });
 
+describe('política "alocar por demanda"', () => {
+  const targets = (orders: Order[]) =>
+    Object.fromEntries(
+      orders.map((order) => {
+        const { building, count } = order.payload as { building: BuildingId; count: number };
+        return [building, count];
+      }),
+    );
+
+  it('põe na fazenda quem alimenta todas as bocas e mais duas, e reparte o resto', async () => {
+    const view = withUpgrades(freshView(), []);
+    const { act, orders } = recorder(view);
+    await alocarPorDemanda.run(view, act);
+    expect(orders.every((order) => order.type === 'setWorkers')).toBe(true);
+    // 5 bocas e 2 de folga, 10 por fazendeiro: um basta. Os outros quatro, 3:2:1.
+    expect(targets(orders)).toEqual({ farm: 1, lumberMill: 2, quarry: 1, goldMine: 1 });
+  });
+
+  it('conta as bocas que ainda estão chegando', async () => {
+    const base = withUpgrades(freshView(), []);
+    const view = { ...base, population: { ...base.population, inTraining: 4 } };
+    const { act, orders } = recorder(view);
+    await alocarPorDemanda.run(view, act);
+    // 9 bocas e 2 de folga: um fazendeiro não basta.
+    expect(targets(orders).farm).toBe(2);
+  });
+
+  it.each([3, 0.5])('decide no ritmo %d o mesmo que no ritmo 1', async (timeScale) => {
+    const decide = async (view: ViewState) => {
+      const { act, orders } = recorder(view);
+      await alocarPorDemanda.run(view, act);
+      return orders;
+    };
+    expect(await decide(freshView(timeScale))).toEqual(await decide(freshView(1)));
+  });
+
+  it('com a fazenda rendendo menos (fome), põe mais fazendeiros', async () => {
+    const base = withUpgrades(freshView(), []);
+    const view: ViewState = {
+      ...base,
+      population: { ...base.population, inTraining: 1 },
+      workers: base.workers.map((row) =>
+        row.building === 'farm' ? { ...row, perWorkerPerHour: 7.5 } : row,
+      ),
+    };
+    const { act, orders } = recorder(view);
+    await alocarPorDemanda.run(view, act);
+    // 6 bocas e 2 de folga a 7,5 por fazendeiro: um não basta. Com 10, bastaria.
+    expect(targets(orders).farm).toBe(2);
+  });
+
+  it('reparte os braços pelo que cada um rende na visão, e não por uma tabela', async () => {
+    // Falta o mesmo de madeira e de pedra. A serraria rende 8 por braço e a pedreira, 5.
+    const needs = (view: ViewState) =>
+      withUpgrades(view, [
+        upgrade('housing', {
+          wood: (view.resources.find((row) => row.id === 'wood')?.stock ?? 0) + 300,
+          stone: (view.resources.find((row) => row.id === 'stone')?.stock ?? 0) + 300,
+        }),
+      ]);
+    const base = needs(freshView());
+    const plain = recorder(base);
+    await alocarPorDemanda.run(base, plain.act);
+    expect(targets(plain.orders)).toMatchObject({ lumberMill: 2, quarry: 2 });
+
+    // Um fator que só a visão conhece (estação, moral, ofício) faz a pedreira render o triplo:
+    // a pedra passa a ser a que menos demora, e os braços vão para a madeira.
+    const boosted: ViewState = {
+      ...base,
+      workers: base.workers.map((row) =>
+        row.building === 'quarry' ? { ...row, perWorkerPerHour: row.perWorkerPerHour * 3 } : row,
+      ),
+    };
+    const seen = recorder(boosted);
+    await alocarPorDemanda.run(boosted, seen.act);
+    expect(targets(seen.orders)).toMatchObject({ lumberMill: 3, quarry: 1 });
+  });
+
+  it('sem ninguém no feudo, não dá ordem', async () => {
+    const base = freshView();
+    const view: ViewState = {
+      ...base,
+      population: { ...base.population, villagers: 0, free: 0 },
+    };
+    const { act, orders } = recorder(view);
+    expect(await alocarPorDemanda.run(view, act)).toBe(view);
+    expect(orders).toEqual([]);
+  });
+});
+
 describe('política "ocupar os livres"', () => {
   it('manda todos os livres, em uma ordem só, para o material que mais demora a cobrir', async () => {
     // Faltam 120 de madeira (15 h de um lenhador) e 100 de pedra (20 h de um pedreiro).
@@ -317,6 +407,27 @@ describe('os bots jogando contra o motor', () => {
     }
   });
 
+  it.each([1, 3, 0.5])(
+    'o econômico, no ritmo %d, acode a fome mesmo com a fazenda rendendo menos',
+    async (timeScale) => {
+      const feudo = game(timeScale);
+      // Três aldeões a mais, e ninguém na fazenda: a comida acaba com oito bocas no feudo.
+      await feudo.act('recruitVillagers', { quantity: 3 });
+      expect(feudo.refused).toEqual([]);
+      feudo.pass(72);
+      expect(feudo.view().famine).not.toBeNull();
+      expect(feudo.view().population.villagers).toBe(8);
+      await alocarPorDemanda.run(feudo.view(), feudo.act);
+      expect(feudo.refused).toEqual([]);
+      // Na fome um fazendeiro rende três quartos: um só não alimenta oito bocas.
+      const after = feudo.view();
+      expect(after.workers.find((row) => row.building === 'farm')?.assigned).toBe(2);
+      expect(after.resources.find((row) => row.id === 'food')?.perHour).toBeGreaterThan(0);
+      feudo.pass(2);
+      expect(feudo.view().famine).toBeNull();
+    },
+  );
+
   it('o preguiçoso acode a fome quando ela chega', async () => {
     const feudo = game(1);
     // Ninguém na fazenda: a comida acaba e a fome se instala.
@@ -336,7 +447,7 @@ describe('bot honesto', () => {
     .filter((name) => name.endsWith('.ts') && !name.endsWith('.test.ts'))
     .map((name) => ({ name, text: readFileSync(`${directory}/${name}`, 'utf8') }));
 
-  it('os bots só conhecem os tipos do motor: nunca o estado, o avanço nem os sorteios', () => {
+  it('os bots só conhecem os tipos do motor: nunca o estado, o avanço, os sorteios nem o conteúdo', () => {
     expect(sources.map((source) => source.name).sort()).toEqual([
       'economico.ts',
       'index.ts',
@@ -354,6 +465,14 @@ describe('bot honesto', () => {
       expect(code, name).not.toMatch(
         /GameState|createInitialState|advanceTo|applyCommand|deriveViewState|\brng\b/,
       );
+      // Nem o conteúdo: taxa, consumo, fator de estação ou efeito de carta que a visão não
+      // mostra, o jogador não vê, e o bot também não. Dos pacotes do jogo, só os tipos do motor.
+      expect(code, name).not.toMatch(/@lotg\/content/);
+      const packages = [...code.matchAll(/from '(@lotg\/[^']+)'/g)].map((match) => match[1]);
+      expect(
+        [...new Set(packages)].filter((id) => id !== '@lotg/engine'),
+        name,
+      ).toEqual([]);
     }
     // A conferência enxerga os imports: os tipos do motor entram por `import type`.
     expect(sources.some(({ text }) => /import type [^;]*from '@lotg\/engine';/.test(text))).toBe(
