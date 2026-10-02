@@ -2225,6 +2225,35 @@ describe('aba Hoje', () => {
       );
     });
 
+    it('sem ligação, a lista vazia não afirma que o feudo está preparado: diz que é o último estado conhecido', () => {
+      const page = shown(ready, null, false);
+      expect(text(section(page))).toBe(
+        'Antes de partir Sem ligação com o reino: este é o último estado conhecido do feudo. ' +
+          'Nele não havia nada a preparar; confira de novo quando a ligação voltar.',
+      );
+      expect(section(page)).not.toContain('O feudo está preparado para a sua ausência.');
+      // O ícone também muda: o visto é uma garantia, e sem ligação não há garantia.
+      expect(section(page)).not.toContain('codicon-pass');
+      expect(section(page)).toContain('codicon-debug-disconnect');
+      expect(section(page)).toContain('class="leaving-stale"');
+      // Com ligação, a frase e o visto são os de sempre.
+      expect(section(shown(ready))).toContain('codicon-pass');
+    });
+
+    it('sem ligação, a lista diz que os itens e os prazos são os do último estado conhecido', () => {
+      const offline = section(shown(impoverishedView, null, false));
+      expect(text(offline)).toContain(
+        'Sem ligação com o reino: a lista e os prazos são os do último estado conhecido do feudo.',
+      );
+      expect(offline).not.toContain('O que vale resolver antes de sair');
+      expect(items(shown(impoverishedView, null, false))).toHaveLength(
+        items(shown(impoverishedView)).length,
+      );
+      expect(section(shown(impoverishedView))).toContain(
+        'O que vale resolver antes de sair, do mais urgente ao menos.',
+      );
+    });
+
     it('a aba Hoje passa o estado da ligação adiante', () => {
       expect(section(today(null, false))).toContain('disabled');
       expect(section(today(null))).not.toContain('disabled');

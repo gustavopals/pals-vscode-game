@@ -341,6 +341,19 @@ test.describe('antes de partir', () => {
     await expect(leaving(page).getByRole('button')).toHaveCount(0);
     await expect(todayNode).toContainText('pronto para a ausência');
 
+    // A API cai: a visão à vista passa a ser a guardada, e a seção deixa de garantir. Vazio e
+    // sem ligação são estados diferentes, com frases diferentes.
+    await context.route('**/v1/**', (route) => route.abort('connectionrefused'));
+    await page.clock.fastForward(31_000);
+    await expect(leaving(page)).toContainText(
+      'Sem ligação com o reino: este é o último estado conhecido do feudo.',
+    );
+    await expect(leaving(page)).not.toContainText('O feudo está preparado para a sua ausência.');
+    await expect(todayNode).toContainText('sem ligação com o reino');
+    await context.unroute('**/v1/**');
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(leaving(page)).toContainText('O feudo está preparado para a sua ausência.');
+
     // Seis minutos depois as Habitações ficaram prontas. A Fazenda ainda espera a madeira que a
     // Serraria está cortando: continua preparado, porque essa espera tem prazo.
     await world.passTime(6 * MINUTE, page);

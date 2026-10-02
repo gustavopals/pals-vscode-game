@@ -557,6 +557,26 @@ describe('árvore', () => {
         'sem ligação com o reino',
       );
     });
+
+    it('sem ligação, a explicação não afirma que o feudo está preparado: a visão é a guardada', () => {
+      const ready = withPlanned(unlockedView, [
+        {
+          building: 'farm',
+          autoStart: true,
+          waiting: { reason: 'resources', text: 'espera 59 de madeira', etaSeconds: 7200 },
+        },
+      ]);
+      expect(today({ view: ready, connection: offline })).toMatchObject({
+        description: 'sem ligação com o reino',
+        tooltip:
+          'Sem ligação com o reino: este é o último estado conhecido do feudo. Nele não havia nada a preparar.',
+      });
+      // Com itens, a lista é a de sempre, com o aviso de que é a do último estado conhecido.
+      expect(today({ view: impoverishedView, connection: offline })?.tooltip?.split('\n')[0]).toBe(
+        'Antes de partir, pelo último estado conhecido (sem ligação com o reino):',
+      );
+      expect(today({ view: impoverishedView })?.tooltip?.split('\n')[0]).toBe('Antes de partir:');
+    });
   });
 
   it('recursos mostram estoque e taxa com sinal; o tooltip explica o número', () => {

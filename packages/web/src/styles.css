@@ -780,7 +780,9 @@ progress::-webkit-progress-value {
   border-left-color: var(--vscode-editorWarning-foreground);
 }
 
-.leaving-warning .codicon {
+/* Sem ligação, a seção fala do último estado conhecido: o ícone é de alerta, e não o visto. */
+.leaving-warning .codicon,
+.leaving-stale .codicon {
   color: var(--vscode-editorWarning-foreground);
 }
 

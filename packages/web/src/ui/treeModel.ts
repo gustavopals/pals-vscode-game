@@ -412,10 +412,18 @@ export function buildTree(input: TreeInput): TreeNode[] {
             : leaving.length === 0
               ? 'pronto para a ausência'
               : `${pressing ? '⚠ ' : ''}${leaving.length} a preparar`,
+      // Sem ligação a visão é a guardada: a explicação diz isso, e não garante nada.
       tooltip:
         leaving.length === 0
-          ? 'O feudo está preparado para a sua ausência.'
-          : ['Antes de partir:', ...leaving.map((item) => item.text)].join('\n'),
+          ? offline
+            ? 'Sem ligação com o reino: este é o último estado conhecido do feudo. Nele não havia nada a preparar.'
+            : 'O feudo está preparado para a sua ausência.'
+          : [
+              offline
+                ? 'Antes de partir, pelo último estado conhecido (sem ligação com o reino):'
+                : 'Antes de partir:',
+              ...leaving.map((item) => item.text),
+            ].join('\n'),
       icon: offline ? 'debug-disconnect' : 'home',
       command: { id: 'lords.openPanel', args: ['today'] },
     },

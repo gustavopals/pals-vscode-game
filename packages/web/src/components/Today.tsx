@@ -126,19 +126,33 @@ const SEVERITY: Record<LeavingSeverity, { icon: string; word: string }> = {
  * fechar a aba, cada uma com o botão que resolve. Quem escolhe os itens e escreve as frases é
  * `beforeLeaving`, só com o que o servidor mandou; aqui eles são desenhados. Sem ligação, os
  * botões que dão ordens ficam desabilitados, como no feudo; o que só navega continua valendo.
+ *
+ * Sem ligação a visão é a guardada, que pode ter horas: a seção diz que fala do último estado
+ * conhecido, e a lista vazia não vira a garantia de que o feudo está preparado. Vazio e sem
+ * ligação são estados diferentes, com frases e ícones diferentes.
  */
 function BeforeLeaving(props: { view: ViewState; online: boolean; actions: Actions }) {
   const items = beforeLeaving(props.view);
   return (
     <section aria-labelledby="leaving-title">
       <h2 id="leaving-title">Antes de partir</h2>
-      {items.length === 0 ? (
+      {items.length > 0 ? null : props.online ? (
         <p class="leaving-ready">
           <Icon name="pass" /> O feudo está preparado para a sua ausência.
         </p>
       ) : (
+        <p class="leaving-stale">
+          <Icon name="debug-disconnect" /> Sem ligação com o reino: este é o último estado conhecido
+          do feudo. Nele não havia nada a preparar; confira de novo quando a ligação voltar.
+        </p>
+      )}
+      {items.length === 0 ? null : (
         <>
-          <p class="muted hint">O que vale resolver antes de sair, do mais urgente ao menos.</p>
+          <p class="muted hint">
+            {props.online
+              ? 'O que vale resolver antes de sair, do mais urgente ao menos.'
+              : 'Sem ligação com o reino: a lista e os prazos são os do último estado conhecido do feudo.'}
+          </p>
           <ul class="leaving">
             {items.map((item) => (
               <li key={item.id} class={`leaving-item leaving-${item.severity}`}>
