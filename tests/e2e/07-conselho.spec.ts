@@ -2,6 +2,7 @@ import type { APIRequestContext, Page } from '@playwright/test';
 
 import {
   applyTheme,
+  cutTreeRows,
   type Card,
   expect,
   fief,
@@ -148,6 +149,10 @@ test.describe('conselho', () => {
     const row = tree(page).locator(`[data-node="card:${card.instanceId}"]`);
     await expect(row).toContainText(card.title);
     await expect(row).toContainText(new RegExp(DAY_LEFT));
+    // A barra lateral é estreita, e nada da árvore fica cortado: o prazo da carta, o do Conselho e
+    // a decisão pendente da linha "Hoje" se leem sem passar o mouse.
+    expect(await cutTreeRows(page)).toEqual([]);
+    await expect(row.locator('.tree-description')).toBeInViewport({ ratio: 1 });
 
     // A aba Hoje lista a decisão, e "Decidir" leva à aba do Conselho.
     await page.getByRole('tab', { name: 'Hoje' }).click();

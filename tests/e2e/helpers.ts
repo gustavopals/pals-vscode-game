@@ -295,6 +295,29 @@ export async function palette(page: Page, text: string) {
 export const toasts = (page: Page) => page.getByRole('region', { name: 'Avisos' });
 export const fief = (page: Page) => page.getByRole('tabpanel', { name: 'Feudo' });
 export const tree = (page: Page) => page.getByRole('tree');
+
+/**
+ * As linhas da árvore com o nome ou a descrição cortados pela largura da barra lateral (o texto
+ * passa da caixa dele, ou a caixa passa da linha): o que ficou de fora só se leria passando o
+ * mouse. Devolve o `data-node` e o texto de cada uma.
+ */
+export const cutTreeRows = (page: Page) =>
+  tree(page).evaluate((root) =>
+    [...root.querySelectorAll<HTMLElement>('.tree-label, .tree-description')]
+      .filter((element) => {
+        const row = element.closest<HTMLElement>('[data-node]');
+        const box = element.getBoundingClientRect();
+        const bounds = row?.getBoundingClientRect();
+        return (
+          element.scrollWidth > element.clientWidth + 1 ||
+          (bounds !== undefined && box.right > bounds.right + 1)
+        );
+      })
+      .map(
+        (element) =>
+          `${element.closest('[data-node]')?.getAttribute('data-node') ?? '?'}: ${element.textContent ?? ''}`,
+      ),
+  );
 export const statusBar = (page: Page) => page.getByRole('contentinfo', { name: 'Barra de status' });
 
 /** A linha de um recurso na tabela da aba Feudo. */

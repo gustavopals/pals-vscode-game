@@ -219,8 +219,13 @@ export function Tree(props: {
               ) : null}
             </span>
             {node.icon === undefined ? null : <Icon name={node.icon} />}
-            <span class="tree-label">{node.label}</span>
-            {node.description ? <span class="tree-description">{node.description}</span> : null}
+            {/* O nome e a descrição dividem uma caixa que quebra a linha: a barra lateral é
+                estreita, e o prazo de uma carta ou "incursão a caminho" desce para a linha de
+                baixo em vez de sumir nas reticências. */}
+            <span class="tree-text">
+              <span class="tree-label">{node.label}</span>
+              {node.description ? <span class="tree-description">{node.description}</span> : null}
+            </span>
             <span class="tree-actions">
               {rowActions(node).map((action) => (
                 <button

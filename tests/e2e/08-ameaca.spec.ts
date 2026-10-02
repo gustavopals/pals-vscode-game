@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 
 import {
   applyTheme,
+  cutTreeRows,
   expect,
   fief,
   gameEvents,
@@ -663,6 +664,12 @@ test.describe('a incursão de lobos', () => {
     await expect(page).toHaveTitle(/Lobos em \d+ min · Pedra Alta/);
     await expect(threatRow(page)).toContainText(/⚠ Lobos em \d+ min/);
     await expect(tree(page).locator('[data-node="fief"]')).toContainText('incursão a caminho');
+    // A barra lateral é estreita, e nada da árvore fica cortado: "incursão a caminho", ao lado do
+    // nome do feudo e da estação, e os lobos da linha "Ameaça" se leem sem passar o mouse.
+    expect(await cutTreeRows(page)).toEqual([]);
+    await expect(tree(page).locator('[data-node="fief"] .tree-description')).toBeInViewport({
+      ratio: 1,
+    });
     // "Antes de partir" abre com o ataque, com o botão da defesa.
     await page.getByRole('tab', { name: 'Hoje' }).click();
     const leaving = todayTab(page).getByRole('region', { name: 'Antes de partir' });
