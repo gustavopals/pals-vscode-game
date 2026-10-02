@@ -16,6 +16,8 @@ import {
   objectivesScenario,
   proudScenario,
   queuesScenario,
+  raidInSightScenario,
+  watchScenario,
   winterColdScenario,
 } from './test-helpers';
 import type { GameState } from './types';
@@ -145,6 +147,7 @@ describe('deriveViewState', () => {
       'housing',
       'granary',
       'warehouse',
+      'watchtower',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -533,6 +536,12 @@ describe('golden do ViewState', () => {
       // O Conselho com a mesa cheia, no ritmo Rápido: uma continuação que lembra a escolha
       // anterior e uma avulsa com uma opção trancada. A próxima audiência não traz carta.
       councilTable: view(councilScenario(12 * DAY + 20 * MINUTE)),
+      // A Ameaça vista da Torre de Vigia, no ritmo Rápido: no outono, com o covil e a estação
+      // somando; e com a Torre no nível 2 e uma incursão à vista (estado montado à mão: nada
+      // marca incursões antes da incursão de lobos, V2E-T3). Nas outras visões, sem Torre, a
+      // Ameaça vem fechada.
+      threatWatched: view(watchScenario()),
+      threatIncoming: view(raidInSightScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

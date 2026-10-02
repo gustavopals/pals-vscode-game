@@ -1,0 +1,149 @@
+{
+ "schemaVersion": 9,
+ "seed": "pedra-alta",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 372542345,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 372542345,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 492940,
+   "wood": 441733,
+   "stone": 252806,
+   "gold": 310000
+  },
+  "accumulators": {
+   "food": 2941440,
+   "wood": 2752000,
+   "stone": 2699850,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 12
+  },
+  "workers": {
+   "farm": 4,
+   "lumberMill": 4,
+   "quarry": 2,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 3,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 2,
+   "warehouse": 2,
+   "watchtower": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 40,
+   "lumberMill": 100,
+   "quarry": 20,
+   "goldMine": 16
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [
+   {
+    "building": "farm",
+    "count": 2,
+    "untilMs": 374400000
+   },
+   {
+    "building": "quarry",
+    "count": 1,
+    "untilMs": 378000000
+   }
+  ],
+  "morale": 50,
+  "moraleEffects": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {
+   "routine.masonsMeal": true,
+   "routine.sawmillRest": true,
+   "routine.neighborsWatch": true,
+   "routine.moreMouths": true
+  },
+  "seenThisYear": [
+   "commonGranaryPlanks",
+   "commonGranaryShare",
+   "commonGranaryOutcome",
+   "thawBridgePlea",
+   "thawBridgeSlab",
+   "thawBridgeCrossing",
+   "collapsedWell",
+   "masonsMeal",
+   "sawmillRest",
+   "neighborsWatch",
+   "moreMouths",
+   "springSeeds",
+   "springNews",
+   "apprenticesTable",
+   "fullGranary",
+   "dampFirewood",
+   "roofBeforeCold",
+   "harvestFeast"
+  ],
+  "nextDrawAtMs": 374400000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 0
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {}
+}

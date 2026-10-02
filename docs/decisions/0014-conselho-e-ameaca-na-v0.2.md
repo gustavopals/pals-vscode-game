@@ -63,6 +63,25 @@ O que as decisões 7, 9 e 21 deixavam em aberto e o lote precisava ter. Foi deci
 | Custos | Fixos, de 15 a 150 unidades, em qualquer estágio do feudo | É o que o efeito `resources` permite. Custo proporcional ao estoque seria um efeito novo |
 | Ordem das opções | Primeiro as pagas ou trancadas; depois a que o conselho aplica em Senhor; por último a de Rei de Ferro | Quem lê de cima para baixo vê primeiro o que pode comprar; e a primeira opção sem custo é sempre a que não arrisca |
 
+### Detalhes fechados na implementação da Torre de Vigia e da Ameaça (V2E-T1, 2026-10-02)
+
+O que as decisões 10 e 11 deixavam em aberto e o código precisava ter. Foi decidido pelo agente, sem o autor, e **aguarda confirmação** como o resto deste ADR. Os números são conteúdo (`balance.threat`, `tiles.ts`, `buildings.watchtower`); o resto é regra do motor (`threat.ts`, `threatView.ts`).
+
+| Assunto | O que foi aplicado | Por quê |
+|---|---|---|
+| Em que instante a Ameaça sobe | Na **virada do dia de jogo**, depois do Conselho (a ordem do ADR 0013). Sobe com ou sem Torre | É um instante que já existe na linha do tempo: o resultado de uma ausência não depende de como o intervalo foi dividido |
+| Que dias contam como outono | Os **dias de outono que passam**: a virada que fecha cada um dos 24 dias da estação soma os 3. A virada que abre o outono (fecha um dia de verão) não soma; a que abre o inverno soma | A tela diz "+3/dia: outono" enquanto é outono, e a virada seguinte cumpre. Contando a estação do dia que começa, a tela teria de anunciar o outono no último dia do verão |
+| `threatRose` e a névoa | O evento **só existe para quem tem a Torre naquela virada** (a obra que termina no mesmo instante conta). Sem Torre a Ameaça sobe calada: nenhum evento, nenhuma linha. Quem ergue a Torre depois de a marca passar não recebe a linha atrasada | O evento leva o número e sai em `GET /events` e na Crônica: emiti-lo sem Torre contaria ao jogador o que a visão esconde. A frase também fala em "vigias" |
+| As marcas da Crônica | **40 e 70**, cada uma com a frase dela, e a Ameaça a que se chegou na própria linha. Chegar exatamente à marca conta; ficar acima não repete; cair e cruzar de novo repete | 40 é onde as incursões por Ameaça passam a ser possíveis. O 70 veio do roadmap, sem outra regra presa a ele |
+| O que sai na visão sem Torre | A frase "ninguém sabe o que ronda o feudo", o que a Torre daria no ritmo da partida e o que protege o feudo. **Mais nada**: o contrato da API é uma forma fechada (`known: false`) que recusa o número, a tendência, as origens, os tiles e a incursão | "O que não é revelado não sai do servidor": com campos opcionais o contrato aceitaria um vazamento; com duas formas, não |
+| Os tiles sem Torre | Também ficam fora da visão: o jogador não sabe que há um Covil de Lobos | "Ninguém sabe o que ronda o feudo" inclui o que ronda |
+| O aviso da Torre | Vale pelo **nível que a Torre tem naquele instante**: a incursão marcada aparece na visão quando falta, para ela, a antecedência do nível, e o tamanho só no nível 2, em palavras ("uma matilha pequena", "uma matilha grande"); o identificador do tamanho nunca sai | A Torre concluída com a incursão já dentro da antecedência avisa na hora, sem regra à parte. O evento `raidAnnounced` fica para a tarefa que marca as incursões (V2E-T3) |
+| A Torre no teto | No nível 2 a obra sai da lista e a recusa `MAX_LEVEL` diz "Os níveis seguintes chegam em versões futuras do jogo." | Dizer por que parou, sem prometer data (decisão 11; ADR 0011) |
+| Custo do nível 2 | O da regra geral: base × 1,6 (192 de madeira, 192 de pedra, 80 de ouro) e 18 min | A Torre é um edifício como os outros que nascem no nível 0 |
+| A queda e o sorteio | **Não entraram**: nada marca nem resolve incursões nesta tarefa, e a Ameaça só sobe. Os números (`raidChanceAbove`, `mediumRaidAbove`, `raidDrop`, `raidLeadMs`) já estão no conteúdo, sem uso | São de V2E-T3. Um feudo novo chega a 100 no 20º dia de jogo e fica lá até essa tarefa |
+| `repelDrop` | No conteúdo chama `raidDrop` | A queda é em toda incursão, repelida ou sofrida (decisão 11) |
+| O bot | Ergue a Torre quando o custo cabe duas vezes no estoque, antes das outras obras | "Quando o Salão chega a 2 e há folga"; a folga é escolha desta tarefa, medida em [balance-v0.2.md](../balance-v0.2.md), seção 12 |
+
 ### Compatibilidade
 
 O `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 não sabe ler. O protocolo sobe para **2** e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a um `X-Lords-Client` anterior. O cache local de uma versão anterior é descartado.
@@ -72,5 +91,6 @@ O `ViewState` passa a trazer cartas em `pendingDecisions`, que o app da v0.1 nã
 - O GDD foi corrigido em §6.1, §7.1, §8.2 e §12.2 com os números aplicados.
 - Critérios 2, 3 e 4 da §16.2: cenário no motor nas três dificuldades, a cadeia "O Celeiro Comum" de ponta a ponta nas duas ramificações, e a incursão de lobos com o jogador fora, por integração e em navegador.
 - A mesma incursão com Torre 0/1/2 e Paliçada 0/1/2 (matriz QA-10) prova que aviso e proteção têm efeito real.
+- A névoa é provada no motor (`threat.test.ts`: a visão inteira de dois feudos iguais, um com a Ameaça em 0 e outro em 73 com uma incursão à porta, é a mesma sem a Torre), no contrato (`protocol.test.ts`: a forma sem Torre recusa o número) e na API (`packages/server/test/threat.test.ts`: dois feudos no mesmo relógio, e os eventos de quem não tem Torre).
 - As duas cadeias do jogo são percorridas de ponta a ponta, em todas as ramificações e nas três dificuldades, em `packages/engine/src/council.chains.test.ts`; o golden de 7 dias passa pelas duas.
 - **O que o autor precisa confirmar**, incluindo o texto das 21 cartas, está em [pendencias-v0.2.md](../pendencias-v0.2.md).

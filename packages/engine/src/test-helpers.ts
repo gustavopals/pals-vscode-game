@@ -415,6 +415,53 @@ export function proudScenario(): GameState {
 }
 
 /**
+ * A Ameaça vista da Torre de Vigia, no ritmo Rápido: o 5º dia do outono, com a Torre no nível 1
+ * e um feudo arrumado. A Ameaça estava em 30 ao fim do 2º dia; as duas viradas seguintes somam
+ * o covil e o outono (+8 cada), e a primeira cruza os 40: os vigias contam os uivos.
+ */
+export function watchScenario(): GameState {
+  const start = gameAt(AUTUMN + 2 * DAY, (draft) => {
+    const { settlement } = draft;
+    councilWithoutNews(draft);
+    draft.settings.timeScale = 3;
+    settlement.population.villagers = 12;
+    settlement.workers = { farm: 4, lumberMill: 4, quarry: 2, goldMine: 2 };
+    settlement.buildings = {
+      ...settlement.buildings,
+      townHall: 2,
+      housing: 2,
+      farm: 2,
+      watchtower: 1,
+    };
+    settlement.resources = { food: 320_000, wood: 300_000, stone: 250_000, gold: 180_000 };
+    draft.map.threat = 30;
+  });
+  return advanceTo(start, AUTUMN + 4 * DAY + 13 * MINUTE).state;
+}
+
+/**
+ * O mesmo feudo com a Torre no nível 2 e uma incursão média marcada para daqui a 47 minutos de
+ * jogo: dentro do aviso da Torre, que neste nível também diz o tamanho. **O estado é montado à
+ * mão**: nada marca incursões nesta versão do motor (quem sorteia e resolve é a incursão de
+ * lobos, V2E-T3). Só serve para a visão; não avance este estado até a incursão.
+ */
+export function raidInSightScenario(): GameState {
+  const draft = cloneState(watchScenario());
+  draft.settlement.buildings.watchtower = 2;
+  draft.horde.scheduledRaids = [
+    {
+      id: 'threat-1',
+      atMs: draft.lastProcessedAt + 47 * MINUTE,
+      kind: 'threat',
+      enemy: 'wolves',
+      size: 'medium',
+      announcedAtMs: null,
+    },
+  ];
+  return draft;
+}
+
+/**
  * O que o senhor do cenário responde a cada carta do jogo; a que não está aqui fica na mesa até
  * expirar. O poço fica para depois (a opção que esconde um efeito) e a madeira é cedida ao
  * celeiro (a opção que abre a cadeia).
@@ -524,8 +571,11 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [24, command('startConstruction', { building: 'farm' })],
   // A Pedreira fica planejada como automática: começa sozinha assim que houver fila e recurso.
   [24, command('planConstruction', { building: 'quarry', autoStart: true })],
-  // O Salão no nível 2 liberou os depósitos: o Armazém, antes que a madeira vá para o chão.
-  [28, command('startConstruction', { building: 'warehouse' })],
+  // O Salão no nível 2 liberou a Torre de Vigia e os depósitos. Primeiro a Torre: fica pronta
+  // a tempo de os vigias contarem a Ameaça passando dos 70, na virada das 28 h.
+  [25, command('startConstruction', { building: 'watchtower' })],
+  // Depois o Armazém, antes que a madeira vá para o chão.
+  [30, command('startConstruction', { building: 'warehouse' })],
   [36, command('startConstruction', { building: 'quarry' })],
   [36, command('cancelConstruction', { building: 'quarry' })],
   [36, command('startConstruction', { building: 'housing' })],
@@ -545,6 +595,11 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [72, command('startConstruction', { building: 'housing' })],
   [84, command('recruitVillagers', { quantity: 5 })],
   [84, command('startConstruction', { building: 'quarry' })],
+  // Com o Armazém cheio de madeira e de pedra, a Torre sobe ao nível 2 sem tirar nada de obra
+  // nenhuma: o que ela leva o feudo repõe antes da visita seguinte.
+  [96, command('startConstruction', { building: 'watchtower' })],
+  // E não passa disso nesta versão: a recusa diz que os níveis seguintes ficam para depois.
+  [97, command('startConstruction', { building: 'watchtower' })],
   // Dia 5: ordens dadas com o feudo faminto. A fome já dura mais de 12 h de jogo: a moral
   // despencou e três aldeões desertaram. De volta à Fazenda; a fome acaba.
   [108, command('recruitVillagers', { quantity: 1 })],

@@ -6,10 +6,14 @@ import {
   councilCards,
   craftGuilds,
   DIFFICULTY_IDS,
+  enemies,
   foundingTemplates,
   idleVillager,
   moraleBandTemplates,
   objectives,
+  startingTiles,
+  threatMarkTemplates,
+  tileTypes,
 } from '@lotg/content';
 import type {
   Command as EngineCommand,
@@ -362,6 +366,118 @@ describe('ViewStateSchema', () => {
     const without: Partial<typeof view> = { ...view };
     delete without.council;
     expect(ViewStateSchema.safeParse(without).success).toBe(false);
+  });
+
+  it('a Ameaça sem a Torre de Vigia: a forma fechada recusa qualquer coisa que a névoa esconde', () => {
+    const state = advanceTo(createInitialState('pedra-alta', settings), 30 * 3_600_000).state;
+    expect(state.map.threat).toBe(75);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    expect(view.threat).toEqual({
+      known: false,
+      text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
+      incoming: null,
+      watchtower: view.threat.watchtower,
+      defense: { palisadeLevel: 0, text: 'Sem Paliçada, nada segura um ataque.' },
+    });
+    const parses = (threat: object) => ViewStateSchema.safeParse({ ...view, threat }).success;
+    expect(parses(view.threat)).toBe(true);
+    // Um servidor que mandasse o número, a tendência, as origens, os tiles ou uma incursão a
+    // quem não tem Torre é recusado pelo próprio contrato.
+    expect(parses({ ...view.threat, level: 75 })).toBe(false);
+    expect(parses({ ...view.threat, trend: 'Sobe 5 a cada dia de jogo.' })).toBe(false);
+    expect(parses({ ...view.threat, sources: [] })).toBe(false);
+    expect(parses({ ...view.threat, tiles: [] })).toBe(false);
+    expect(parses({ ...view.threat, nextLevel: 80 })).toBe(false);
+    const incoming = {
+      enemy: 'wolves',
+      enemyLabel: 'Lobos',
+      inSeconds: 60,
+      sizeText: null,
+      text: 'x',
+    };
+    expect(parses({ ...view.threat, incoming })).toBe(false);
+    // Nem o estado do mapa, nem as incursões marcadas, em forma nenhuma.
+    expect(parses({ ...view.threat, map: state.map })).toBe(false);
+    expect(parses({ ...view.threat, scheduledRaids: [] })).toBe(false);
+    const without: Partial<typeof view> = { ...view };
+    delete without.threat;
+    expect(ViewStateSchema.safeParse(without).success).toBe(false);
+    // Os eventos também não contam: nenhum fala da Ameaça a quem não tem vigias.
+    const { events } = advanceTo(createInitialState('pedra-alta', settings), 30 * 3_600_000);
+    expect(events.filter((event) => event.type === 'threatRose')).toEqual([]);
+  });
+
+  it('a Ameaça com a Torre de Vigia: o número, a tendência, as origens, os tiles e a incursão à vista', () => {
+    // A Torre erguida à mão em um feudo no 14º dia: a virada das 28 h cruza os 70.
+    const start = createInitialState('pedra-alta', settings);
+    start.settlement.buildings.townHall = 2;
+    start.settlement.buildings.watchtower = 2;
+    const { state, events } = advanceTo(start, 28 * 3_600_000);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
+    expect(view.threat).toMatchObject({
+      known: true,
+      text: 'Ameaça 70 de 100.',
+      level: 70,
+      max: 100,
+      risePerDay: 5,
+      nextLevel: 75,
+      nextRiseInSeconds: 7200,
+      sources: ['+5/dia: Covil de Lobos'],
+      tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
+      incoming: null,
+    });
+    const rose = events.filter((event) => event.type === 'threatRose');
+    expect(rose.map((event) => event.data)).toEqual([
+      { threat: 40, previousThreat: 35, mark: 40 },
+      { threat: 70, previousThreat: 65, mark: 70 },
+    ]);
+    for (const [index, event] of rose.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
+    }
+
+    const parses = (threat: object) => ViewStateSchema.safeParse({ ...view, threat }).success;
+    const incoming = {
+      enemy: 'wolves',
+      enemyLabel: 'Lobos',
+      inSeconds: 1200,
+      sizeText: 'uma matilha pequena',
+      text: 'Lobos a caminho. Os vigias contam uma matilha pequena.',
+    };
+    expect(parses({ ...view.threat, incoming })).toBe(true);
+    expect(parses({ ...view.threat, incoming: { ...incoming, sizeText: null } })).toBe(true);
+    // O tamanho só sai em texto, e só quando a Torre o distingue: nunca o id.
+    expect(parses({ ...view.threat, incoming: { ...incoming, size: 'light' } })).toBe(false);
+    expect(parses({ ...view.threat, incoming: { ...incoming, enemy: 'raiders' } })).toBe(false);
+    expect(parses({ ...view.threat, incoming: { ...incoming, atMs: 1 } })).toBe(false);
+    // Com a Torre, a forma é a completa: faltar o número é erro.
+    const noLevel: Record<string, unknown> = { ...view.threat };
+    delete noLevel.level;
+    expect(parses(noLevel)).toBe(false);
+    expect(parses({ ...view.threat, known: false })).toBe(false);
+    expect(
+      parses({ ...view.threat, watchtower: { building: 'watchtower', level: 2, text: 'x' } }),
+    ).toBe(false);
+    expect(
+      parses({ ...view.threat, watchtower: { ...view.threat.watchtower, building: 'tower' } }),
+    ).toBe(false);
+    expect(parses({ ...view.threat, defense: { palisadeLevel: 0 } })).toBe(false);
+    expect(parses({ ...view.threat, raidChance: 30 })).toBe(false);
+  });
+
+  it('a Torre de Vigia é um edifício como os outros nas ordens e na lista de obras', () => {
+    for (const type of ['startConstruction', 'planConstruction', 'cancelConstruction'] as const) {
+      const command = { commandId: uuid, type, payload: { building: 'watchtower' } };
+      expect(CommandSchema.safeParse(command).success, type).toBe(true);
+    }
+    const view = deriveViewState(createInitialState('pedra-alta', settings), 0);
+    const tower = view.constructions.available.find((entry) => entry.building === 'watchtower');
+    expect(tower?.effect).toBe(
+      'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+    );
+    expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
   });
 
   it('recusa um campo a mais na conta da lenha e no frio', () => {
@@ -1107,6 +1223,10 @@ describe('contentHash', () => {
         moraleBandTemplates,
         idleVillager,
         councilCards,
+        tileTypes,
+        startingTiles,
+        enemies,
+        threatMarkTemplates,
       }),
     ]);
   });
@@ -1125,10 +1245,14 @@ describe('contentHash', () => {
       'coldReliefs',
       'councilCards',
       'craftGuilds',
+      'enemies',
       'foundingTemplates',
       'idleVillager',
       'moraleBandTemplates',
       'objectives',
+      'startingTiles',
+      'threatMarkTemplates',
+      'tileTypes',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
@@ -1146,5 +1270,11 @@ describe('contentHash', () => {
     expect(hashed).toContain(councilCards[0]?.text ?? 'falta a carta');
     expect(hashed).toContain(councilCards[0]?.options[0]?.hint ?? 'falta a opção');
     expect(hashed).toContain(`"drawIntervalDays":${balance.council.drawIntervalDays}`);
+    // E a Ameaça: os números, o tile, o inimigo e a frase de cada marca.
+    expect(hashed).toContain(`"perActiveTilePerDay":${balance.threat.perActiveTilePerDay}`);
+    expect(hashed).toContain(tileTypes.wolfDen.label);
+    expect(hashed).toContain(enemies.wolves.sizes.medium);
+    expect(hashed).toContain(threatMarkTemplates[70] ?? 'falta a frase');
+    expect(hashed).toContain(buildings.watchtower.maxLevelNote ?? 'falta a frase');
   });
 });

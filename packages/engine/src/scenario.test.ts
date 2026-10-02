@@ -40,6 +40,8 @@ describe('cenário golden de 7 dias', () => {
       'cardAnswered',
       'cardExpired',
       'cardEffectApplied',
+      'buildingFounded',
+      'threatRose',
     ]) {
       expect(types).toContain(type);
     }
@@ -64,6 +66,36 @@ describe('cenário golden de 7 dias', () => {
       starts.some((event, index) => starts[index + 1]?.atMs === event.atMs && event.atMs > 0),
     ).toBe(true);
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
+    // A Ameaça: sobe 5 a cada dia de jogo e chega ao máximo às 40 h. A Torre de Vigia fica
+    // pronta às 25 h 12 min: os 40 passaram sem vigia nenhum (às 16 h) e não viram linha; os 70,
+    // às 28 h, sim. A Torre sobe ao nível 2 às 96 h, e a ordem seguinte para ela é recusada.
+    expect(
+      events
+        .filter((event) => event.type === 'threatRose')
+        .map((event) => [event.atMs / HOUR, event.data.mark, event.text]),
+    ).toEqual([
+      [
+        28,
+        70,
+        'No 15º dia da Primavera, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+      ],
+    ]);
+    expect(
+      events
+        .filter((event) => event.data.building === 'watchtower')
+        .map((event) => [event.type, event.data.level]),
+    ).toEqual([
+      ['constructionStarted', 1],
+      ['buildingFounded', 1],
+      ['constructionStarted', 2],
+      ['constructionFinished', 2],
+    ]);
+    expect(refusals).toContain('MAX_LEVEL');
+    expect(state.map.threat).toBe(100);
+    expect(state.settlement.buildings.watchtower).toBe(2);
+    expect(state.horde.scheduledRaids).toEqual([]);
+    const lastView = deriveViewState(state, state.lastProcessedAt).threat;
+    expect(lastView).toMatchObject({ known: true, level: 100, risePerDay: 0, incoming: null });
     // A moral: a fome a derruba em duas faixas, três aldeões desertam antes de o senhor voltar
     // à Fazenda, e ela se refaz; no inverno, o frio a derruba de novo e ela volta.
     const bands = events

@@ -143,6 +143,32 @@ const scenarios: Record<string, () => GameState> = {
   // espera da virada de dia dele.
   'council-hidden': () => councilScenario(5 * DAY + 13 * MINUTE + 4_321),
 
+  // A Ameaça: a Torre de Vigia erguida a tempo de os vigias contarem a Ameaça passando dos 40,
+  // a obra do nível 2 em curso, o covil ativo e nenhuma incursão marcada. No meio de um dia de
+  // jogo, com cartas do Conselho na mesa.
+  threat: () =>
+    play(
+      (() => {
+        const start = createInitialState('fixture-threat', settings);
+        start.settlement.buildings.townHall = 2;
+        start.settlement.resources = {
+          food: 400_000,
+          wood: 400_000,
+          stone: 400_000,
+          gold: 200_000,
+        };
+        return start;
+      })(),
+      [
+        command('setWorkers', { building: 'farm', count: 3 }),
+        command('setWorkers', { building: 'quarry', count: 2 }),
+        command('startConstruction', { building: 'watchtower' }),
+        { at: 9 * DAY + 20 * MINUTE },
+        command('startConstruction', { building: 'watchtower' }),
+        { at: 9 * DAY + 23 * MINUTE + 2_345 },
+      ],
+    ).state,
+
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
 
@@ -320,6 +346,22 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(hidden.delayed).toEqual([
       { atMs: 6 * DAY, instanceId: 'collapsedWell-1', cardId: 'collapsedWell', optionId: 'wait' },
     ]);
+    // A Ameaça: longe do zero, com a Torre erguida e a obra do nível seguinte em curso; e, no
+    // cenário de 7 dias, no máximo, com a Torre no teto desta versão.
+    const threat = of('threat');
+    expect(threat.map).toEqual({
+      tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
+      threat: 45,
+    });
+    expect(threat.settlement.buildings.watchtower).toBe(1);
+    expect(threat.settlement.constructionQueues[0]).toMatchObject({
+      building: 'watchtower',
+      targetLevel: 2,
+    });
+    expect(threat.horde).toEqual({ scheduledRaids: [] });
+    expect(of('week-scripted').map.threat).toBe(100);
+    expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
+    expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // E o cenário de 7 dias passou pelo Conselho de ponta a ponta.
     expect(of('week-scripted').stats.cardsDrawn).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);

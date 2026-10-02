@@ -160,6 +160,46 @@ export type CouncilDef = {
   readonly expiryRealMs: number;
 };
 
+/**
+ * O que um nível da Torre de Vigia dá (GDD §6.1 e §8.2; ADR 0014, decisão 11). Com a Torre em
+ * qualquer nível a Ameaça aparece, com a explicação; cada nível diz com que antecedência os
+ * vigias avisam de uma incursão e se já distinguem o tamanho dela.
+ */
+export type WatchtowerLevelDef = {
+  /** Antecedência do aviso de uma incursão, em tempo de jogo. */
+  readonly warningMs: number;
+  /** Os vigias dizem o tamanho da incursão que avisam. */
+  readonly revealsRaidSize: boolean;
+};
+
+/**
+ * A Ameaça (GDD §8.2; ADR 0014, decisões 10 e 11): um número de 0 a `max` que só muda na virada
+ * de cada dia de jogo e só aparece para quem tem a Torre de Vigia. Os prazos são tempo de jogo e
+ * escalam com o ritmo.
+ */
+export type ThreatDef = {
+  readonly max: number;
+  /** Quanto cada tile de ameaça ativo soma a cada dia de jogo. */
+  readonly perActiveTilePerDay: number;
+  /** Quanto cada dia de jogo de uma estação soma a mais: no outono os lobos descem a serra. */
+  readonly seasonPerDay: Partial<Record<SeasonId, number>>;
+  /**
+   * As marcas que, cruzadas para cima, viram linha na Crônica de quem tem a Torre, em ordem
+   * crescente: a Ameaça sobe todo dia, e a Crônica só fala dela nestes dois momentos.
+   */
+  readonly chronicleMarks: readonly number[];
+  /** Acima disto, cada virada de dia pode trazer uma incursão: a chance é `Ameaça − este valor`, em %. */
+  readonly raidChanceAbove: number;
+  /** A partir disto a incursão sorteada é média; abaixo, leve. */
+  readonly mediumRaidAbove: number;
+  /** Quanto a Ameaça cai em toda incursão, repelida ou sofrida. */
+  readonly raidDrop: number;
+  /** Quanto tempo de jogo passa entre o sorteio de uma incursão e a chegada dela. */
+  readonly raidLeadMs: number;
+  /** Um item por nível da Torre de Vigia, a partir do nível 1. */
+  readonly watchtowerLevels: readonly WatchtowerLevelDef[];
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -214,6 +254,7 @@ export type Balance = {
   /** Na ordem em que as boas-vindas os mostram. */
   readonly paces: readonly PaceDef[];
   readonly council: CouncilDef;
+  readonly threat: ThreatDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -439,5 +480,21 @@ export const balance: Balance = {
     drawIntervalDays: 4,
     maxPending: 2,
     expiryRealMs: 24 * HOUR_MS,
+  },
+  // GDD §8.2 (ADR 0014, decisões 10 e 11). A subida e a Torre valem desde V2E-T1; o sorteio da
+  // incursão, o tamanho, a queda e o prazo até ela chegar são da incursão de lobos (V2E-T3).
+  threat: {
+    max: 100,
+    perActiveTilePerDay: 5,
+    seasonPerDay: { autumn: 3 },
+    chronicleMarks: [40, 70],
+    raidChanceAbove: 40,
+    mediumRaidAbove: 60,
+    raidDrop: 10,
+    raidLeadMs: 6 * HOUR_MS,
+    watchtowerLevels: [
+      { warningMs: 1 * HOUR_MS, revealsRaidSize: false },
+      { warningMs: 2 * HOUR_MS, revealsRaidSize: true },
+    ],
   },
 };

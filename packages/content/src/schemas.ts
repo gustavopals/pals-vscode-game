@@ -10,10 +10,13 @@ import { COUNCIL_EFFECT_TYPES } from './council';
 import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
+  ENEMY_IDS,
   MORALE_BAND_IDS,
   PRODUCTION_BUILDING_IDS,
+  RAID_SIZE_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
+  TILE_TYPE_IDS,
 } from './ids';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
@@ -101,6 +104,56 @@ const morale = z
   .refine(
     ({ arrival, departure }) => departure.maxMorale < arrival.minMorale,
     'partida e chegada na mesma moral',
+  );
+
+/** As marcas da Crônica, as incursões e a Torre de Vigia (GDD §8.2). */
+const threat = z
+  .strictObject({
+    max: positiveInt,
+    perActiveTilePerDay: positiveInt,
+    seasonPerDay: z.partialRecord(z.enum(SEASON_IDS), positiveInt),
+    chronicleMarks: z
+      .array(positiveInt)
+      .min(1)
+      .refine(
+        (marks) => marks.every((mark, index) => index === 0 || mark > (marks[index - 1] ?? 0)),
+        'marcas fora de ordem',
+      ),
+    raidChanceAbove: z.number().int().nonnegative(),
+    mediumRaidAbove: positiveInt,
+    raidDrop: positiveInt,
+    raidLeadMs: positiveInt,
+    // Cada nível avisa mais cedo que o anterior, e o que já distingue o tamanho não o esquece.
+    watchtowerLevels: z
+      .array(z.strictObject({ warningMs: positiveInt, revealsRaidSize: z.boolean() }))
+      .min(1)
+      .refine(
+        (levels) =>
+          levels.every((level, index) => {
+            const previous = levels[index - 1];
+            return (
+              previous === undefined ||
+              (level.warningMs > previous.warningMs &&
+                (level.revealsRaidSize || !previous.revealsRaidSize))
+            );
+          }),
+        'nível da Torre que avisa menos que o anterior',
+      ),
+  })
+  .refine(
+    ({ max, chronicleMarks }) => chronicleMarks.every((mark) => mark <= max),
+    'marca acima do máximo da Ameaça',
+  )
+  .refine(
+    ({ max, raidChanceAbove, mediumRaidAbove }) =>
+      raidChanceAbove < mediumRaidAbove && mediumRaidAbove <= max,
+    'limites de incursão fora de ordem',
+  )
+  // O aviso mais longo cabe no prazo da incursão: ninguém avisa do que ainda não foi sorteado.
+  .refine(
+    ({ raidLeadMs, watchtowerLevels }) =>
+      watchtowerLevels.every((level) => level.warningMs <= raidLeadMs),
+    'aviso da Torre maior que o prazo da incursão',
   );
 
 const pace = z.strictObject({
@@ -202,6 +255,7 @@ export const BalanceSchema = z.strictObject({
     maxPending: positiveInt,
     expiryRealMs: positiveInt,
   }),
+  threat,
 });
 
 export const BuildingSchema = z
@@ -214,6 +268,8 @@ export const BuildingSchema = z
     maxLevel: z.number().int().min(2),
     produces: resourceId.nullable(),
     requires: z.partialRecord(buildingId, positiveInt),
+    // Entra depois de "já está no nível máximo.": uma frase inteira.
+    maxLevelNote: label.regex(/^\p{Lu}.*\.$/u).optional(),
   })
   .refine((def) => def.maxLevel > def.initialLevel, 'nível máximo abaixo do inicial');
 
@@ -226,6 +282,7 @@ export const BuildingsSchema = z.strictObject({
   housing: BuildingSchema,
   granary: BuildingSchema,
   warehouse: BuildingSchema,
+  watchtower: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -304,6 +361,49 @@ export const MoraleBandTemplatesSchema = z.strictObject(
     MORALE_BAND_IDS.map((id) => [
       id,
       z.strictObject({ rose: chronicleTemplate.optional(), fell: chronicleTemplate.optional() }),
+    ]),
+  ),
+);
+
+/** As frases da Ameaça que cruza uma marca: uma por marca, com o número dela como chave. */
+export const ThreatMarkTemplatesSchema = z.record(
+  z.string().regex(/^[1-9]\d*$/),
+  chronicleTemplate,
+);
+
+/** Os tipos de tile: rótulo, artigo e o inimigo que mora nele. */
+export const TileTypesSchema = z.strictObject(
+  Object.fromEntries(
+    TILE_TYPE_IDS.map((id) => [
+      id,
+      z.strictObject({ label, article: z.enum(['o', 'a']), enemy: z.enum(ENEMY_IDS) }),
+    ]),
+  ),
+);
+
+/** Os tiles com que um feudo nasce: ids únicos, de tipos que existem. */
+export const StartingTilesSchema = z
+  .array(
+    z.strictObject({
+      id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+      type: z.enum(TILE_TYPE_IDS),
+      threatActive: z.boolean(),
+    }),
+  )
+  .refine(
+    (tiles) => new Set(tiles.map((tile) => tile.id)).size === tiles.length,
+    'tiles com o mesmo id',
+  );
+
+/** Os inimigos: o nome e o que os vigias dizem de cada tamanho, tudo para o meio da frase. */
+export const EnemiesSchema = z.strictObject(
+  Object.fromEntries(
+    ENEMY_IDS.map((id) => [
+      id,
+      z.strictObject({
+        label: midSentence,
+        sizes: z.strictObject(Object.fromEntries(RAID_SIZE_IDS.map((size) => [size, midSentence]))),
+      }),
     ]),
   ),
 );

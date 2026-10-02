@@ -140,16 +140,26 @@ function blockingDepots(view: ViewState): BuildingId[] {
 }
 
 /**
- * As obras da lista que são obra por fazer. O Celeiro e o Armazém não são um fim: só contam
- * quando já estão entre as planejadas ou quando travam outra obra. Ampliar um depósito só para
- * guardar o que não tem onde ser gasto não é progresso.
+ * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
+ * ele vale a obra. São os depósitos (`ampliar o estoque`) e a Torre de Vigia (`erguer a Torre`),
+ * como a visão os aponta: o edifício que amplia cada recurso e o edifício da Torre.
+ */
+function sideBuildings(view: ViewState): Set<BuildingId | null> {
+  return new Set([...depotsOf(view), view.threat.watchtower.building]);
+}
+
+/**
+ * As obras da lista que são obra por fazer. O Celeiro, o Armazém e a Torre de Vigia não são um
+ * fim: só contam quando já estão entre as planejadas ou, os depósitos, quando travam outra
+ * obra. Ampliar um depósito só para guardar o que não tem onde ser gasto não é progresso, e a
+ * Torre só é erguida com o que sobra.
  */
 function wantedUpgrades(view: ViewState): Upgrade[] {
-  const depots = depotsOf(view);
+  const aside = sideBuildings(view);
   const blocking = blockingDepots(view);
   return view.constructions.available.filter(
     (upgrade) =>
-      upgrade.planned || !depots.has(upgrade.building) || blocking.includes(upgrade.building),
+      upgrade.planned || !aside.has(upgrade.building) || blocking.includes(upgrade.building),
   );
 }
 
@@ -467,15 +477,16 @@ function price(upgrade: Upgrade): number {
 /**
  * Inicia a melhoria mais barata entre as que podem começar agora. Com o inverno à vista, não
  * começa obra que gaste a madeira da lareira: a que deixaria o estoque abaixo da reserva de
- * lenha fica para depois. Os depósitos (Celeiro e Armazém) ficam de fora: eles não são um fim,
- * e quem decide quando valem a obra é `ampliar o estoque`.
+ * lenha fica para depois. Os depósitos (Celeiro e Armazém) e a Torre de Vigia ficam de fora:
+ * eles não são um fim, e quem decide quando valem a obra é `ampliar o estoque` e `erguer a
+ * Torre`.
  */
 export const obraMaisBarata: Policy = {
   name: 'obra mais barata',
   run: async (view, act) => {
-    const depots = new Set(view.resources.map((row) => row.storageBuilding));
+    const aside = sideBuildings(view);
     const [cheapest] = view.constructions.available
-      .filter((upgrade) => !depots.has(upgrade.building))
+      .filter((upgrade) => !aside.has(upgrade.building))
       .filter((upgrade) => upgrade.blockedCode === null && keepsFirewood(view, upgrade))
       .sort((a, b) => price(a) - price(b));
     return cheapest === undefined
@@ -539,6 +550,43 @@ export const ampliarEstoque: Policy = {
   },
 };
 
+/**
+ * Quanto do estoque a Torre de Vigia pode levar: o bot só a ergue (ou melhora) quando o custo
+ * cabe duas vezes em cada recurso que ela pede. É a folga de quem compra informação com o que
+ * sobra: a Torre não rende nada, e metade do estoque continua com as obras que rendem.
+ */
+const WATCHTOWER_SPEND_SHARE = 2;
+
+/**
+ * Ergue a Torre de Vigia e a melhora, uma obra por sessão, quando ela pode começar e há folga:
+ * o Salão já a libera (a lista de obras diz), a fila está livre, o custo cabe duas vezes no
+ * estoque e a madeira da lareira fica onde está. O edifício é o que a visão aponta
+ * (`threat.watchtower.building`), e o teto é o da lista: no último nível a Torre sai dela.
+ *
+ * O bot não usa o que a Torre mostra. Ele a ergue porque é o que um jogador faria ao ler "sem
+ * uma Torre de Vigia, ninguém sabe o que ronda o feudo", e para o simulador medir quanto ela
+ * custa ao resto do feudo.
+ *
+ * Nos bots ela vem **antes** de `obra mais barata`. Depois dela, com uma fila só, a Torre só
+ * começaria na visita em que nenhuma outra obra pudesse começar e, mesmo assim, o estoque
+ * pagasse o dobro do custo dela: quase nunca. Na frente, quem a segura é a folga: sem o dobro do
+ * custo em estoque a política não dá ordem, e a fila fica com a obra que rende.
+ */
+export const erguerTorre: Policy = {
+  name: 'erguer a Torre',
+  run: async (view, act) => {
+    const { building } = view.threat.watchtower;
+    const upgrade = view.constructions.available.find((entry) => entry.building === building);
+    if (upgrade === undefined || upgrade.blockedCode !== null || !keepsFirewood(view, upgrade)) {
+      return view;
+    }
+    const slack = upgrade.cost.every(
+      (cost) => stockOf(view, cost.resource) >= WATCHTOWER_SPEND_SHARE * cost.amount,
+    );
+    return slack ? act('startConstruction', { building }) : view;
+  },
+};
+
 /** A obra gasta madeira: é a que pode deixar a lareira sem lenha. */
 function costsWood(upgrade: Upgrade): boolean {
   return upgrade.cost.some((cost) => cost.resource === 'wood' && cost.amount > 0);
@@ -550,7 +598,8 @@ function costsWood(upgrade: Upgrade): boolean {
  * custo, em vez de esperar a visita seguinte. É o caminho de sempre do bot, adiantado: primeiro
  * o depósito que `ampliar o estoque` queria e não pôde iniciar, depois as outras obras, da mais
  * barata à mais cara, que é a ordem em que o motor as tenta. Os depósitos que ninguém pediu
- * ficam de fora, como em `obra mais barata`, e a obra que já chegou ao teto também.
+ * e a Torre de Vigia ficam de fora, como em `obra mais barata` (uma automática começaria sem
+ * olhar a folga), e a obra que já chegou ao teto também.
  *
  * Uma obra que começa sozinha não pergunta pela lenha. Por isso, enquanto a conta da visão diz
  * que a lareira depende do estoque (a Serraria não repõe o que o inverno queima), o bot não
@@ -572,7 +621,7 @@ export const planejarAutomaticas: Policy = {
         });
       }
     }
-    const depots = new Set(current.resources.map((row) => row.storageBuilding));
+    const aside = sideBuildings(current);
     const wantedDepots = storageWanted(current);
     const rank = (upgrade: Upgrade) => {
       const urgency = wantedDepots.indexOf(upgrade.building);
@@ -580,7 +629,7 @@ export const planejarAutomaticas: Policy = {
     };
     const waiting = current.constructions.available
       .filter((upgrade) => !upgrade.planned && upgrade.blockedCode !== 'MAX_LEVEL')
-      .filter((upgrade) => !depots.has(upgrade.building) || wantedDepots.includes(upgrade.building))
+      .filter((upgrade) => !aside.has(upgrade.building) || wantedDepots.includes(upgrade.building))
       .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
       .sort((a, b) => rank(a) - rank(b) || price(a) - price(b));
     for (const upgrade of waiting) {

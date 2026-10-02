@@ -26,6 +26,7 @@ export const EVENT_TYPES = [
   'cardAnswered',
   'cardExpired',
   'cardEffectApplied',
+  'threatRose',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -44,6 +45,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {aldeao} quem partiu: "um lenhador" (de `craftGuilds`) ou "um aldeão sem ofício"
  * {carta} o título de uma carta do Conselho: "Tábuas para as reservas"
  * {opcao} a opção escolhida, em minúscula, para o meio da frase: "conservar as reservas"
+ * {ameaca} a Ameaça, de 0 a 100, depois de subir: "45"
  */
 export const CHRONICLE_PLACEHOLDERS = [
   'dia',
@@ -67,6 +69,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'aldeao',
   'carta',
   'opcao',
+  'ameaca',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -125,6 +128,11 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   // O efeito que a opção escondia: é aqui que o jogador o descobre.
   cardEffectApplied:
     'No {dia}º dia {daEstacao}, uma decisão antiga do conselho de {feudo} mostrou a que veio: {carta}.',
+  // A Ameaça cruzou uma marca (GDD §8.2). Só quem tem a Torre de Vigia recebe a linha: sem
+  // vigias, ninguém conta. Cada marca tem a sua frase em `threatMarkTemplates`; esta só vale
+  // para uma marca que ainda não tenha a dela.
+  threatRose:
+    'No {dia}º dia {daEstacao}, os vigias de {feudo} deram o alarme: a Ameaça chegou a {ameaca}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -193,6 +201,16 @@ export const moraleBandTemplates: Record<
   proud: {
     rose: 'No {dia}º dia {daEstacao}, o povo de {feudo} anda de cabeça erguida. Fala-se do feudo nas estradas.',
   },
+};
+
+/**
+ * A Ameaça que sobe é o mesmo evento com uma frase por marca cruzada (`balance.threat.
+ * chronicleMarks`): na primeira os vigias ainda só escutam; na segunda já veem. Uma marca sem
+ * frase aqui usa a de `chronicleTemplates.threatRose`.
+ */
+export const threatMarkTemplates: Readonly<Record<number, string>> = {
+  40: 'No {dia}º dia {daEstacao}, os vigias de {feudo} contam mais uivos a cada noite. A Ameaça chegou a {ameaca}.',
+  70: 'No {dia}º dia {daEstacao}, os vigias de {feudo} já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a {ameaca}.',
 };
 
 /**

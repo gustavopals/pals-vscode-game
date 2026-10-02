@@ -1,4 +1,11 @@
-import { balance, BUILDING_IDS, buildings, DIFFICULTY_IDS, objectives } from '@lotg/content';
+import {
+  balance,
+  BUILDING_IDS,
+  buildings,
+  DIFFICULTY_IDS,
+  objectives,
+  startingTiles,
+} from '@lotg/content';
 
 import type { BuildingId, GameSettings, GameState } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
@@ -14,13 +21,13 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
-  // O Celeiro e o Armazém nascem no nível 0: ainda não foram construídos.
+  // O Celeiro, o Armazém e a Torre de Vigia nascem no nível 0: ainda não foram construídos.
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -63,6 +70,17 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       delayed: [],
       expired: [],
     },
+    // O Covil de Lobos está ativo desde o primeiro dia, e a Ameaça começa em zero (GDD §8.2).
+    map: {
+      tiles: Object.fromEntries(
+        startingTiles.map((tile) => [
+          tile.id,
+          { type: tile.type, threatActive: tile.threatActive },
+        ]),
+      ),
+      threat: 0,
+    },
+    horde: { scheduledRaids: [] },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),
       completed: [],

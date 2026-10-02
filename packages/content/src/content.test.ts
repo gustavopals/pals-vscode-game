@@ -9,6 +9,8 @@ import {
   craftGuilds,
   cutRewardTemplates,
   DIFFICULTY_IDS,
+  enemies,
+  ENEMY_IDS,
   EVENT_TYPES,
   foundingTemplates,
   idleVillager,
@@ -18,8 +20,13 @@ import {
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
+  RAID_SIZE_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
+  startingTiles,
+  threatMarkTemplates,
+  TILE_TYPE_IDS,
+  tileTypes,
 } from './index';
 import {
   BalanceSchema,
@@ -27,10 +34,14 @@ import {
   ChronicleTemplatesSchema,
   CraftGuildsSchema,
   CutRewardTemplatesSchema,
+  EnemiesSchema,
   FoundingTemplatesSchema,
   IdleVillagerSchema,
   MoraleBandTemplatesSchema,
   ObjectivesSchema,
+  StartingTilesSchema,
+  ThreatMarkTemplatesSchema,
+  TileTypesSchema,
 } from './schemas';
 
 describe('schemas do conteúdo', () => {
@@ -324,6 +335,8 @@ describe('edifícios', () => {
       ['housing', 10],
       ['granary', 8],
       ['warehouse', 8],
+      // 5 no GDD; 2 nesta versão (ADR 0014, decisão 11).
+      ['watchtower', 2],
     ]);
   });
 
@@ -357,7 +370,40 @@ describe('edifícios', () => {
     expect([buildings.granary.label, buildings.warehouse.label]).toEqual(['Celeiro', 'Armazém']);
   });
 
-  it('a Torre de Vigia ainda não existe: entra com a Ameaça', () => {
+  it('a Torre de Vigia nasce no nível 0, pede o Salão no nível 2 e vai até o nível 2 (GDD §6.1 e §6.2)', () => {
+    const tower = buildings.watchtower;
+    expect(tower.label).toBe('Torre de Vigia');
+    expect(tower.article).toBe('a');
+    expect(tower.initialLevel).toBe(0);
+    expect(tower.maxLevel).toBe(2);
+    expect(tower.requires).toEqual({ townHall: 2 });
+    expect(tower.baseCost).toEqual({ wood: 120, stone: 120, gold: 50 });
+    expect(tower.baseDurationMs).toBe(12 * 60_000);
+    expect(tower.produces).toBeNull();
+    // O custo da construção cabe no que o Pátio guarda antes de haver Armazém.
+    for (const amount of [tower.baseCost.wood ?? 0, tower.baseCost.stone ?? 0]) {
+      expect(amount).toBeLessThanOrEqual(balance.storage.baseCapacity);
+    }
+  });
+
+  it('só a Torre tem um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
+    const noted = BUILDING_IDS.filter((id) => buildings[id].maxLevelNote !== undefined);
+    expect(noted).toEqual(['watchtower']);
+    expect(buildings.watchtower.maxLevelNote).toBe(
+      'Os níveis seguintes chegam em versões futuras do jogo.',
+    );
+    expect(buildings.watchtower.maxLevelNote).not.toMatch(/\d|v0|breve|semana|mês/);
+    const parse = (maxLevelNote: string) =>
+      BuildingsSchema.safeParse({
+        ...buildings,
+        watchtower: { ...buildings.watchtower, maxLevelNote },
+      }).success;
+    expect(parse('Os níveis seguintes chegam depois.')).toBe(true);
+    expect(parse('os níveis seguintes chegam depois.')).toBe(false);
+    expect(parse('Os níveis seguintes chegam depois')).toBe(false);
+  });
+
+  it('os edifícios são os oito de antes e a Torre de Vigia', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -367,7 +413,116 @@ describe('edifícios', () => {
       'housing',
       'granary',
       'warehouse',
+      'watchtower',
     ]);
+  });
+});
+
+describe('Ameaça e Torre de Vigia (GDD §8.2; ADR 0014, decisões 10 e 11)', () => {
+  const { threat, calendar } = balance;
+  const HOUR = 3_600_000;
+
+  it('vai de 0 a 100: +5 por dia de jogo por tile ativo e +3 por dia no outono', () => {
+    expect(threat.max).toBe(100);
+    expect(threat.perActiveTilePerDay).toBe(5);
+    expect(threat.seasonPerDay).toEqual({ autumn: 3 });
+  });
+
+  it('a Crônica fala dela ao cruzar 40 e 70, e a primeira marca é onde as incursões começam', () => {
+    expect(threat.chronicleMarks).toEqual([40, 70]);
+    expect(threat.chronicleMarks[0]).toBe(threat.raidChanceAbove);
+  });
+
+  it('as incursões por Ameaça: acima de 40, média a partir de 60, −10 por incursão, 6 h de jogo depois', () => {
+    expect(threat.raidChanceAbove).toBe(40);
+    expect(threat.mediumRaidAbove).toBe(60);
+    expect(threat.raidDrop).toBe(10);
+    expect(threat.raidLeadMs).toBe(6 * HOUR);
+    // O prazo é um número inteiro de dias de jogo: a incursão sorteada em uma virada cai em outra.
+    expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
+  });
+
+  it('a Torre avisa 1 h de jogo antes no nível 1; no nível 2, 2 h antes e diz o tamanho', () => {
+    expect(threat.watchtowerLevels).toEqual([
+      { warningMs: 1 * HOUR, revealsRaidSize: false },
+      { warningMs: 2 * HOUR, revealsRaidSize: true },
+    ]);
+    // Um item por nível que a Torre pode ter nesta versão.
+    expect(threat.watchtowerLevels).toHaveLength(buildings.watchtower.maxLevel);
+  });
+
+  it('em todo ritmo oferecido o aviso da Torre dura um número inteiro de minutos reais', () => {
+    for (const pace of balance.paces) {
+      for (const level of threat.watchtowerLevels) {
+        expect((level.warningMs / pace.timeScale) % 60_000, pace.label).toBe(0);
+      }
+    }
+  });
+
+  it('o único tile é o Covil de Lobos, ativo desde o primeiro dia, e nele moram lobos', () => {
+    expect(TileTypesSchema.safeParse(tileTypes).error).toBeUndefined();
+    expect(StartingTilesSchema.safeParse(startingTiles).error).toBeUndefined();
+    expect(Object.keys(tileTypes)).toEqual([...TILE_TYPE_IDS]);
+    expect(tileTypes.wolfDen).toEqual({ label: 'Covil de Lobos', article: 'o', enemy: 'wolves' });
+    expect(startingTiles).toEqual([{ id: 'wolfDen', type: 'wolfDen', threatActive: true }]);
+  });
+
+  it('os lobos têm nome e um jeito de dizer cada tamanho de incursão, para o meio da frase', () => {
+    expect(EnemiesSchema.safeParse(enemies).error).toBeUndefined();
+    expect(Object.keys(enemies)).toEqual([...ENEMY_IDS]);
+    expect(enemies.wolves.label).toBe('lobos');
+    expect(Object.keys(enemies.wolves.sizes)).toEqual([...RAID_SIZE_IDS]);
+    expect(new Set(Object.values(enemies.wolves.sizes)).size).toBe(RAID_SIZE_IDS.length);
+  });
+
+  it('cada marca da Crônica tem a sua frase, com sabor, e a frase diz a quanto a Ameaça chegou', () => {
+    expect(ThreatMarkTemplatesSchema.safeParse(threatMarkTemplates).error).toBeUndefined();
+    expect(Object.keys(threatMarkTemplates).map(Number)).toEqual([...threat.chronicleMarks]);
+    const phrases = [chronicleTemplates.threatRose, ...Object.values(threatMarkTemplates)];
+    expect(new Set(phrases).size).toBe(phrases.length);
+    for (const phrase of phrases) {
+      expect(phrase).toContain('os vigias de {feudo}');
+      expect(phrase).toContain('{ameaca}');
+      expect(phrase).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
+    }
+    expect(threatMarkTemplates[40]).toContain('contam mais uivos a cada noite');
+  });
+
+  it('o schema recusa marcas fora de ordem, Torre que avisa menos e aviso maior que o prazo', () => {
+    const parse = (changed: object) =>
+      BalanceSchema.safeParse({ ...balance, threat: { ...threat, ...changed } }).success;
+    expect(parse({})).toBe(true);
+    expect(parse({ chronicleMarks: [70, 40] })).toBe(false);
+    expect(parse({ chronicleMarks: [40, 101] })).toBe(false);
+    expect(parse({ chronicleMarks: [] })).toBe(false);
+    expect(parse({ perActiveTilePerDay: 0 })).toBe(false);
+    expect(parse({ seasonPerDay: { harvest: 3 } })).toBe(false);
+    expect(parse({ mediumRaidAbove: 40 })).toBe(false);
+    expect(parse({ mediumRaidAbove: 101 })).toBe(false);
+    expect(parse({ watchtowerLevels: [] })).toBe(false);
+    expect(
+      parse({
+        watchtowerLevels: [
+          { warningMs: 2 * HOUR, revealsRaidSize: false },
+          { warningMs: 1 * HOUR, revealsRaidSize: true },
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      parse({
+        watchtowerLevels: [
+          { warningMs: 1 * HOUR, revealsRaidSize: true },
+          { warningMs: 2 * HOUR, revealsRaidSize: false },
+        ],
+      }),
+    ).toBe(false);
+    expect(parse({ raidLeadMs: 1 * HOUR })).toBe(false);
+    expect(ThreatMarkTemplatesSchema.safeParse({ 40: 'Uivos em {castelo}.' }).success).toBe(false);
+    expect(ThreatMarkTemplatesSchema.safeParse({ alta: 'Uivos em {feudo}.' }).success).toBe(false);
+    expect(StartingTilesSchema.safeParse([...startingTiles, ...startingTiles]).success).toBe(false);
+    expect(
+      TileTypesSchema.safeParse({ wolfDen: { ...tileTypes.wolfDen, enemy: 'bandits' } }).success,
+    ).toBe(false);
   });
 });
 
@@ -703,7 +858,7 @@ describe('objetivos', () => {
     }
   });
 
-  it('as recompensas são +20 ouro, +30 madeira, +40 comida e o desbloqueio dos depósitos', () => {
+  it('as recompensas são +20 ouro, +30 madeira, +40 comida e o desbloqueio do que o Salão libera', () => {
     expect(objectives.map((objective) => objective.reward)).toEqual([
       { gold: 20 },
       { wood: 30 },
@@ -714,7 +869,7 @@ describe('objetivos', () => {
       undefined,
       undefined,
       undefined,
-      'desbloqueia o Celeiro e o Armazém',
+      'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
     ]);
   });
 
@@ -722,12 +877,10 @@ describe('objetivos', () => {
     const fourth = objectives.find((objective) => objective.id === 'townHallLevel2');
     expect(fourth?.condition).toEqual({ type: 'buildingLevel', building: 'townHall', level: 2 });
     const unlocked = BUILDING_IDS.filter((id) => buildings[id].requires.townHall === 2);
-    expect(unlocked).toEqual(['granary', 'warehouse']);
+    expect(unlocked).toEqual(['granary', 'warehouse', 'watchtower']);
     for (const id of unlocked) {
-      expect(fourth?.rewardText).toContain(buildings[id].label);
+      expect(fourth?.rewardText).toContain(`${buildings[id].article} ${buildings[id].label}`);
     }
-    // A Torre de Vigia entra na frase quando existir.
-    expect(fourth?.rewardText).not.toContain('Torre');
   });
 
   it('o schema recusa objetivo sem recompensa e texto de recompensa que não cabe na frase', () => {

@@ -10,6 +10,7 @@ export const BUILDING_IDS = [
   'housing',
   'granary',
   'warehouse',
+  'watchtower',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 
@@ -42,6 +43,18 @@ export const MORALE_TERM_IDS = [
   'effect',
 ] as const;
 export type MoraleTermId = (typeof MORALE_TERM_IDS)[number];
+
+/** Os tipos de tile do mapa (GDD §8.1). Na v0.2 só existe o tile de ameaça, em lista: `tiles.ts`. */
+export const TILE_TYPE_IDS = ['wolfDen'] as const;
+export type TileTypeId = (typeof TILE_TYPE_IDS)[number];
+
+/** Quem ataca o feudo em uma incursão (GDD §8.2). Na v0.2, só os lobos. */
+export const ENEMY_IDS = ['wolves'] as const;
+export type EnemyId = (typeof ENEMY_IDS)[number];
+
+/** Os tamanhos de uma incursão (GDD §8.2), da menor à maior. */
+export const RAID_SIZE_IDS = ['light', 'medium'] as const;
+export type RaidSizeId = (typeof RAID_SIZE_IDS)[number];
 
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };

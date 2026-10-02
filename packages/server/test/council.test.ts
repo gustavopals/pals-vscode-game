@@ -589,7 +589,7 @@ describe('uma partida gravada antes do Conselho (versão 7 do estado)', () => {
       'select schema_version, state from games where id = $1',
       [game.id],
     );
-    expect(rows[0]?.schema_version).toBe(8);
+    expect(rows[0]?.schema_version).toBe(9);
     const nextDrawAtMs = rows[0]?.state.council?.nextDrawAtMs ?? 0;
     // A primeira virada de dia a partir de um intervalo inteiro depois da fronteira.
     expect(nextDrawAtMs % DAY).toBe(0);

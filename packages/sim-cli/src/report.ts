@@ -93,6 +93,13 @@ export const MILESTONES: ReadonlyArray<{
   ...townHallMilestones,
   { id: 'granary', column: 'granary_hour', building: 'granary', level: 1, label: 'Celeiro' },
   { id: 'warehouse', column: 'warehouse_hour', building: 'warehouse', level: 1, label: 'Armazém' },
+  {
+    id: 'watchtower',
+    column: 'watchtower_hour',
+    building: 'watchtower',
+    level: 1,
+    label: 'Torre de Vigia',
+  },
 ];
 
 /** A primeira hora real em que o edifício aparece no nível pedido; `null` se não chegou. */
@@ -147,6 +154,12 @@ const MECHANIC_COLUMNS = [
   { name: 'cards_seen', task: 'V2D-T1', meaning: 'Cartas do Conselho recebidas, acumuladas' },
   { name: 'cards_answered', task: 'V2D-T1', meaning: 'Cartas respondidas pelo bot, acumuladas' },
   { name: 'cards_expired', task: 'V2D-T1', meaning: 'Cartas que expiraram, acumuladas' },
+  {
+    name: 'threat',
+    task: 'V2E-T1',
+    meaning:
+      'Ameaça do feudo naquela hora, de 0 a 100, lida do estado; na matriz, a maior da partida',
+  },
   { name: 'wolf_losses', task: 'V2E-T3', meaning: 'Perdas em incursões de lobos, acumuladas' },
 ] as const;
 type MechanicColumn = (typeof MECHANIC_COLUMNS)[number]['name'];
@@ -172,6 +185,9 @@ const MEASURED_COLUMNS: Partial<
   cards_seen: { hour: (row) => row.cards.seen, run: (summary) => summary.cards.drawn },
   cards_answered: { hour: (row) => row.cards.answered, run: (summary) => summary.cards.answered },
   cards_expired: { hour: (row) => row.cards.expired, run: (summary) => summary.cards.expired },
+  // A Ameaça, lida do estado (a visão só a mostra com a Torre de Vigia): a daquela hora e, na
+  // matriz, a maior da partida.
+  threat: { hour: (row) => row.threat, run: (summary) => summary.threat.max },
 };
 
 /**
@@ -313,6 +329,11 @@ export type Summary = {
     expired: number;
     hidden: number;
   };
+  /**
+   * A Ameaça (GDD §8.2), lida do estado: a do fim da partida, a maior entre as amostras de cada
+   * hora, e o nível final da Torre de Vigia. A hora em que a Torre ficou pronta é um marco.
+   */
+  threat: { final: number; max: number; watchtower: number };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -385,6 +406,11 @@ export function summarize(result: SimulationResult): Summary {
       expired: happened('cardExpired'),
       hidden: happened('cardEffectApplied'),
     },
+    threat: {
+      final: last?.threat ?? 0,
+      max: rows.reduce((highest, row) => Math.max(highest, row.threat), 0),
+      watchtower: last?.levels.watchtower ?? 0,
+    },
     stock,
   };
 }
@@ -435,6 +461,17 @@ function councilLine({ cards }: Summary): string {
     `${plural(cards.answered, 'respondida', 'respondidas')}, ${plural(cards.expired, 'expirada', 'expiradas')}`,
     plural(cards.hidden, 'efeito escondido', 'efeitos escondidos'),
   ].join(' · ');
+}
+
+/**
+ * "Ameaça: 100 no fim (máxima 100) · Torre de Vigia Nv2, erguida na hora 61". Sem a Torre, a
+ * linha diz que o jogador nunca viu o número que o simulador mede.
+ */
+function threatLine({ threat, milestones }: Summary): string {
+  const level = `Ameaça: ${threat.final} no fim (máxima ${threat.max})`;
+  return threat.watchtower === 0
+    ? `${level} · sem Torre de Vigia: o jogador nunca a viu`
+    : `${level} · Torre de Vigia Nv${threat.watchtower}, erguida na hora ${milestones.watchtower ?? '?'}`;
 }
 
 /**
@@ -496,6 +533,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
       : `Frio: ${summary.coldHours} h, a primeira na hora ${summary.firstColdHour}`,
     moraleLine(summary),
     councilLine(summary),
+    threatLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []

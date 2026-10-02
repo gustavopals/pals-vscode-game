@@ -1,0 +1,172 @@
+{
+ "schemaVersion": 9,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 604800000,
+  "yearStartMs": 604800000,
+  "year": 2
+ },
+ "lastProcessedAt": 604800000,
+ "rng": {
+  "council": [
+   2227731083,
+   278337704,
+   553604304,
+   1162801657
+  ],
+  "morale": [
+   3881588205,
+   3039749652,
+   1225820957,
+   2933432022
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta do Norte",
+  "resources": {
+   "food": 1500000,
+   "wood": 52009,
+   "stone": 799907,
+   "gold": 1759549
+  },
+  "accumulators": {
+   "food": 2728125,
+   "wood": 0,
+   "stone": 1080800,
+   "gold": 1796688
+  },
+  "population": {
+   "villagers": 22
+  },
+  "workers": {
+   "farm": 8,
+   "lumberMill": 6,
+   "quarry": 4,
+   "goldMine": 3
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 3,
+   "lumberMill": 4,
+   "quarry": 4,
+   "goldMine": 3,
+   "housing": 5,
+   "granary": 2,
+   "warehouse": 1,
+   "watchtower": 2
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 270,
+   "wood": 166,
+   "stone": 108,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 64,
+   "quarry": 100,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": []
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "sawmillRest-15",
+    "cardId": "sawmillRest",
+    "drawnAtMs": 547200000,
+    "expiresAtMs": 633600000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "thawBridge.piers": true,
+   "commonGranary.gifted": true,
+   "routine.masonsMeal": true
+  },
+  "seenThisYear": [],
+  "nextDrawAtMs": 633600000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "masonsMeal-14"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 100
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 4,
+  "villagersRecruited": 20,
+  "cardsDrawn": 15,
+  "cardsDrawn:neighborsWatch": 2,
+  "constructionsStarted:townHall": 3,
+  "constructionsStarted:lumberMill": 3,
+  "cardsDrawn:thawBridgePlea": 1,
+  "cardsAnswered": 7,
+  "constructionsStarted:farm": 2,
+  "constructionsStarted:quarry": 4,
+  "constructionsStarted:watchtower": 2,
+  "cardsDrawn:thawBridgeSlab": 1,
+  "constructionsStarted:warehouse": 1,
+  "cardsExpired": 7,
+  "wasted_food": 4117270,
+  "cardsDrawn:springSeeds": 1,
+  "cardsDrawn:thawBridgeCrossing": 1,
+  "wasted_wood": 3078166,
+  "constructionsStarted:goldMine": 2,
+  "constructionsStarted:granary": 2,
+  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:apprenticesTable": 1,
+  "wasted_stone": 1887108,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:roofBeforeCold": 1,
+  "cardsDrawn:commonGranaryPlanks": 1,
+  "cardsDrawn:commonGranaryShare": 1,
+  "cardsDrawn:commonGranaryOutcome": 1,
+  "cardsDrawn:masonsMeal": 1,
+  "cardsDrawn:sawmillRest": 1
+ }
+}

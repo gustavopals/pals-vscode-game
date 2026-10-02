@@ -1,23 +1,29 @@
 import type {
   BuildingId,
   DifficultyId,
+  EnemyId,
   GameEventType,
   MoraleBandId,
   MoraleTermId,
   ProductionBuildingId,
+  RaidSizeId,
   ResourceId,
   SeasonId,
+  TileTypeId,
 } from '@lotg/content';
 
 export type {
   BuildingId,
   DifficultyId,
+  EnemyId,
   GameEventType,
   MoraleBandId,
   MoraleTermId,
   ProductionBuildingId,
+  RaidSizeId,
   ResourceId,
   SeasonId,
+  TileTypeId,
 };
 
 /** Escolhas feitas na criação da partida. Dificuldade e ritmo não mudam durante o ano. */
@@ -114,6 +120,34 @@ export type DelayedCardEffect = {
 };
 
 /**
+ * Um tile do mapa (GDD §8.1). O mapa gráfico é da v0.5: até lá um tile é só o tipo dele e se a
+ * ameaça que mora nele está ativa.
+ */
+export type MapTile = {
+  type: TileTypeId;
+  /** Ativo, o tile faz a Ameaça subir a cada dia de jogo. Não há como limpá-lo nesta versão. */
+  threatActive: boolean;
+};
+
+/**
+ * Uma incursão marcada (GDD §8.2). Nada a marca nesta versão do estado: quem sorteia, anuncia e
+ * resolve é a incursão de lobos (V2E-T3). A forma já está aqui porque a visão sabe mostrá-la
+ * através da Torre de Vigia.
+ */
+export type ScheduledRaid = {
+  /** A ocorrência: "threat-3", "scripted-1". */
+  id: string;
+  /** Quando ela chega, em tempo de jogo. */
+  atMs: number;
+  /** `scripted`: a do roteiro do ano 1. `threat`: sorteada pela Ameaça. */
+  kind: 'scripted' | 'threat';
+  enemy: EnemyId;
+  size: RaidSizeId;
+  /** O instante em que a Torre avisou; `null` enquanto ninguém avisou. */
+  announcedAtMs: number | null;
+};
+
+/**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
@@ -122,7 +156,7 @@ export type DelayedCardEffect = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 8;
+  schemaVersion: 9;
   seed: string;
   settings: GameSettings;
   /**
@@ -147,7 +181,10 @@ export type GameState = {
     accumulators: Record<ResourceId, number>;
     population: { villagers: number };
     workers: Record<ProductionBuildingId, number>;
-    /** Nível de cada edifício; 0 é "ainda não construído" (o Celeiro e o Armazém nascem assim). */
+    /**
+     * Nível de cada edifício; 0 é "ainda não construído" (o Celeiro, o Armazém e a Torre de
+     * Vigia nascem assim).
+     */
     buildings: Record<BuildingId, number>;
     /**
      * Uma posição por fila de obra, sempre `balance.construction.queues` delas; `null` é fila
@@ -228,6 +265,14 @@ export type GameState = {
      */
     expired: string[];
   };
+  /**
+   * O mapa, ainda sem grade (GDD §8.1 e §8.2; ADR 0014, decisão 11): os tiles de ameaça, pela
+   * chave de cada um, e a Ameaça, de 0 a 100. Ela só muda na virada de cada dia de jogo e só sai
+   * na visão de quem tem a Torre de Vigia.
+   */
+  map: { tiles: Record<string, MapTile>; threat: number };
+  /** As incursões marcadas, em ordem de chegada. Vazio até a incursão de lobos (V2E-T3). */
+  horde: { scheduledRaids: ScheduledRaid[] };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
 };
@@ -342,8 +387,9 @@ export type UpgradeView = {
   blockedReason: string | null;
   planned: boolean;
   /**
-   * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900." Hoje só os
-   * edifícios de armazenamento trazem a frase; nos outros é `null`.
+   * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900."; "Mostra a
+   * Ameaça com a explicação e avisa de uma incursão 20 min antes." Os edifícios de armazenamento
+   * e a Torre de Vigia trazem a frase; nos outros é `null`.
    */
   effect: string | null;
 };
@@ -623,6 +669,86 @@ export type PendingDecisionView = {
   expiresInSeconds: number;
 };
 
+/**
+ * A Torre de Vigia, como o painel da Ameaça a mostra: o que ela faz hoje e o que o próximo nível
+ * passaria a fazer. O custo e o botão da obra estão em `constructions.available`.
+ */
+export type ThreatWatchtowerView = {
+  /** O edifício da Torre: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: BuildingId;
+  /** 0 enquanto não foi construída. */
+  level: number;
+  /** "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão 20 min antes." */
+  text: string;
+  /**
+   * O que a próxima obra da Torre muda: "Construa a Torre de Vigia: ela mostra a Ameaça…";
+   * `null` com a Torre no teto desta versão (`text` diz que os níveis seguintes vêm depois).
+   */
+  next: string | null;
+};
+
+/** O que protege o feudo de um ataque hoje. Sem Paliçada, nada. */
+export type ThreatDefenseView = {
+  palisadeLevel: number;
+  /** "Sem Paliçada, nada segura um ataque." */
+  text: string;
+};
+
+/** Uma incursão que os vigias já avistaram. Só existe para quem tem a Torre de Vigia. */
+export type ThreatIncomingView = {
+  enemy: EnemyId;
+  /** "Lobos". */
+  enemyLabel: string;
+  /** Segundos reais até a incursão chegar. */
+  inSeconds: number;
+  /** "uma matilha pequena"; `null` quando a Torre ainda não distingue o tamanho. */
+  sizeText: string | null;
+  /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo anda na tela: fica em `inSeconds`. */
+  text: string;
+};
+
+/**
+ * A Ameaça (GDD §8.2). **Sem a Torre de Vigia, só sai o que o jogador já sabe**: que não tem
+ * Torre e o que protege o feudo. O número, a tendência, as origens e as incursões marcadas não
+ * saem do servidor (roadmap da v0.2, §0.7, "Visão e privacidade narrativa"). Por isso são duas
+ * formas, e não campos opcionais: quem lê confere `known` antes de procurar o número.
+ */
+export type ThreatView =
+  | {
+      known: false;
+      /** "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo." */
+      text: string;
+      /** Sem Torre não há aviso: sempre `null`. */
+      incoming: null;
+      watchtower: ThreatWatchtowerView;
+      defense: ThreatDefenseView;
+    }
+  | {
+      known: true;
+      /** "Ameaça 45 de 100." */
+      text: string;
+      /** De 0 a `max`. */
+      level: number;
+      /** O fim da barra. */
+      max: number;
+      /** Quanto a próxima virada do dia soma, já com o limite: 0 com a Ameaça no máximo. */
+      risePerDay: number;
+      /** A Ameaça depois da próxima virada do dia, se nada mudar. */
+      nextLevel: number;
+      /** Segundos reais até a próxima virada do dia, quando a Ameaça sobe. */
+      nextRiseInSeconds: number;
+      /** "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 45 para 53." */
+      trend: string;
+      /** De onde vem a subida, um termo por linha: "+5/dia: Covil de Lobos", "+3/dia: outono". */
+      sources: string[];
+      /** Os tiles de ameaça conhecidos, em lista (GDD §8.1): o mapa gráfico é de outra versão. */
+      tiles: Array<{ id: string; label: string; active: boolean }>;
+      /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
+      incoming: ThreatIncomingView | null;
+      watchtower: ThreatWatchtowerView;
+      defense: ThreatDefenseView;
+    };
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -851,6 +977,8 @@ export type ViewState = {
   };
   objectives: ObjectiveView[];
   council: CouncilView;
+  /** A Ameaça, vista (ou não) pela Torre de Vigia. */
+  threat: ThreatView;
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
    * Conselho. É o resumo para a barra de status, a árvore e os avisos; a carta inteira está em

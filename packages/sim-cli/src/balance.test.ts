@@ -75,21 +75,24 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // O Celeiro e o Armazém (Salão no nível 2) e a segunda fila de obras (Salão no nível 4): o
     // perfil Regular chega a todos, em todo ritmo, dentro de um ano de jogo, só com ordens que o
     // motor aceita. O que o catálogo anuncia e nenhum caminho alcança está no teste do motor
-    // (`storage.test.ts`, "alcançabilidade") e em docs/balance-v0.2.md, seção 9.5.
+    // (`storage.test.ts`, "alcançabilidade") e em docs/balance-v0.2.md, seção 9.5. A Torre de
+    // Vigia tem o teste dela, logo abaixo: o bot só a ergue com folga.
     expect(MILESTONES.map(({ id }) => id)).toEqual([
       'townHall2',
       'townHall3',
       'townHall4',
       'granary',
       'warehouse',
+      'watchtower',
     ]);
+    const phaseC = MILESTONES.filter(({ id }) => id !== 'watchtower');
     for (const difficulty of DIFFICULTY_IDS) {
       const regular = byDifficulty[difficulty].cells.filter(
         (cell) => cell.window === 'year' && cell.profile.id === 'regular',
       );
       expect(regular).toHaveLength(paces.length);
       for (const cell of regular) {
-        for (const { id } of MILESTONES) {
+        for (const { id } of phaseC) {
           const hours = cell.measure.milestones[id];
           expect(hours?.max, `${difficulty} ${cell.key} ${id}`).not.toBeNull();
           expect(hours?.max ?? Infinity, `${difficulty} ${cell.key} ${id}`).toBeLessThan(
@@ -101,6 +104,29 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           max: 0,
         });
       }
+    }
+  });
+
+  it('a Torre de Vigia chega tarde para quem só a ergue com folga (V2E-T1)', () => {
+    // O bot só ergue a Torre com o dobro do custo em estoque. Em Senhor, com 2 sessões por dia:
+    // no ritmo Normal ela fica pronta entre as horas 49 e 97; no Tranquilo, entre a 97 e a 169;
+    // no Rápido, da hora 49 em diante, e o primeiro ano de jogo (56 h reais) acaba antes para
+    // parte das sementes. É uma medida, não uma meta: quem lê o objetivo e a constrói primeiro
+    // chega bem antes (docs/balance-v0.2.md, seção 12).
+    const tower = (key: string) =>
+      matrix.cells.find((cell) => cell.key === key)?.measure.milestones.watchtower;
+    expect(tower('year/1/regular')).toEqual({ min: 49, max: 97 });
+    expect(tower('year/0.5/regular')).toEqual({ min: 97, max: 169 });
+    expect(tower('year/3/regular')).toEqual({ min: 49, max: null });
+    expect(tower('week/3/regular')).toEqual({ min: 49, max: 61 });
+    // O Preguiçoso, com uma visita por dia, também chega lá dentro da semana nos ritmos Rápido
+    // e Normal; no Tranquilo, só no segundo mês.
+    expect(tower('week/3/preguicoso')).toEqual({ min: 73, max: 73 });
+    expect(tower('week/1/preguicoso')).toEqual({ min: 97, max: 121 });
+    expect(tower('week/0.5/preguicoso')).toEqual({ min: null, max: null });
+    // A Ameaça chega ao máximo em toda partida: nada a faz cair antes da incursão de lobos.
+    for (const run of matrix.runs) {
+      expect(run.summary.threat.max, `${run.window}/${run.timeScale}/${run.seed}`).toBe(100);
     }
   });
 
@@ -122,7 +148,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 64 a 72 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 65 a 72 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
@@ -130,16 +156,17 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // e ao Salão no nível 7; com a moral (V2C-T4), a 66. Na rodada da Fase C (V2C-T7) o bot
     // deixou de produzir para o chão, e os braços que sobram rendem em outro ofício: 69. Com o
     // primeiro lote de cartas (V2D-T2) cada semente conta outra história, e o mesmo perfil
-    // termina entre 64 e 72. Nenhum número do conteúdo foi mexido por causa disso: o teto da
-    // meta é decisão do autor (docs/balance-v0.2.md, seções 9.8 e 11), e este teste guarda o
-    // que foi medido para o desvio não passar despercebido.
+    // termina entre 64 e 72; com a Torre de Vigia (V2E-T1), entre 65 e 72. Nenhum número do
+    // conteúdo foi mexido por causa disso: o teto da meta é decisão do autor
+    // (docs/balance-v0.2.md, seções 9.8, 11 e 12), e este teste guarda o que foi medido para o
+    // desvio não passar despercebido.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 57, max: 80 });
+    expect(band?.villagers).toEqual({ min: 58, max: 80 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Rápido, não; no Normal, uma semente em 50 passa dela', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Rápido, não; no Normal, três sementes em 50 passam dela', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -148,10 +175,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // duas coisas: o que entrou não pode sair calado, e o que ficou fora não pode piorar calado.
     //
     // Com o primeiro lote de cartas (V2D-T2) cada semente segue um caminho de obras diferente.
-    // No ritmo Normal, 49 das 50 sementes continuam dentro da meta; em uma (pedra-alta-047) o
-    // Armazém sai tarde e, no outono, o bot manda os lenhadores juntarem a lenha do inverno com
-    // o depósito cheio: 10 h de jogo seguidas de madeira indo ao chão. Não é uma carta que
-    // desperdiça; é o caminho do bot (docs/balance-v0.2.md, seção 11).
+    // No ritmo Normal, 49 das 50 sementes continuavam dentro da meta; em uma o Armazém saía
+    // tarde e, no outono, o bot mandava os lenhadores juntarem a lenha do inverno com o
+    // depósito cheio: 10 h de jogo seguidas de madeira indo ao chão. Com a Torre de Vigia
+    // (V2E-T1) o caminho de obras mudou de novo: são três as sementes (017, 034 e 046), com 9 a
+    // 10 h de madeira, todas com o Armazém pronto só da hora 61 em diante. O teto da célula
+    // continua em 10 h. Não é uma carta nem a Torre que desperdiça; é o caminho do bot
+    // (docs/balance-v0.2.md, seções 11 e 12).
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -176,7 +206,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-047']);
+    expect(beyond.map((run) => run.seed)).toEqual([
+      'pedra-alta-017',
+      'pedra-alta-034',
+      'pedra-alta-046',
+    ]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido.
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

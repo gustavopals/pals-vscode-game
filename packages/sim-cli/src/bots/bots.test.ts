@@ -20,6 +20,7 @@ import {
   ampliarEstoque,
   comidaPrimeiro,
   DEFAULT_AWAY_HOURS,
+  erguerTorre,
   guardarLenha,
   nothingLeftToBuild,
   obraMaisBarata,
@@ -153,10 +154,13 @@ describe('um bot é uma lista de políticas', () => {
 
   it('o econômico e o preguiçoso são listas de políticas com nome', () => {
     // As obras antes do recrutamento: o bot olha o painel como o encontrou, com o depósito
-    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. O Conselho vem
+    // cheio e a produção indo ao chão, antes de gastar a comida em aldeões. A Torre de Vigia
+    // vem na frente das outras obras, e só com folga: sem ela, a fila é das obras que rendem. O
+    // Conselho vem
     // depois dos dois: o que o bot gasta com uma carta é o que sobrou da visita. O econômico
     // investe com folga; o preguiçoso responde sem gastar.
     expect(strategyPolicies.economico).toEqual([
+      erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
@@ -166,6 +170,7 @@ describe('um bot é uma lista de políticas', () => {
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
+      erguerTorre,
       obraMaisBarata,
       ampliarEstoque,
       planejarAutomaticas,
@@ -182,6 +187,7 @@ describe('um bot é uma lista de políticas', () => {
       recrutar,
       obraMaisBarata,
       ampliarEstoque,
+      erguerTorre,
       planejarAutomaticas,
       alocarPorDemanda,
       comidaPrimeiro,
@@ -194,6 +200,7 @@ describe('um bot é uma lista de políticas', () => {
       'recrutar',
       'obra mais barata',
       'ampliar o estoque',
+      'erguer a Torre',
       'planejar automáticas',
       'alocar por demanda',
       'comida primeiro',
@@ -1276,6 +1283,130 @@ describe('política "ampliar o estoque"', () => {
   });
 });
 
+describe('política "erguer a Torre"', () => {
+  type Upgrade = ViewState['constructions']['available'][number];
+  /** A obra da Torre como a lista a mostra: 120 de madeira, 120 de pedra e 50 de ouro. */
+  const tower = (blockedCode: Upgrade['blockedCode'] = null): Upgrade => ({
+    ...upgrade('watchtower', {}, blockedCode),
+    fromLevel: 0,
+    targetLevel: 1,
+    cost: [
+      { resource: 'wood', label: 'Madeira', amount: 120, missing: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 120, missing: 0 },
+      { resource: 'gold', label: 'Ouro', amount: 50, missing: 0 },
+    ],
+  });
+  const rich = { wood: 240, stone: 240, gold: 100 };
+  const decide = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    const after = await erguerTorre.run(view, act);
+    return { orders, untouched: after === view };
+  };
+  const build = { type: 'startConstruction', payload: { building: 'watchtower' } };
+
+  it('a visão diz qual edifício é a Torre, e sem ela não mostra a Ameaça', () => {
+    const view = freshView();
+    expect(view.threat.known).toBe(false);
+    expect(view.threat.watchtower).toMatchObject({ building: 'watchtower', level: 0 });
+    // No feudo novo a Torre está na lista, presa ao Salão: o bot não dá ordem.
+    expect(
+      view.constructions.available.find((entry) => entry.building === 'watchtower'),
+    ).toMatchObject({ blockedCode: 'GATE_LOCKED' });
+  });
+
+  it('com a Torre liberada, a fila livre e o dobro do custo em estoque, ergue', async () => {
+    const view = withStock(withUpgrades(freshView(), [tower()]), rich);
+    expect((await decide(view)).orders).toEqual([build]);
+  });
+
+  it('sem folga em um dos recursos, espera: a Torre não leva mais que metade do estoque', async () => {
+    for (const short of [{ wood: 239 }, { stone: 239 }, { gold: 99 }]) {
+      const view = withStock(withUpgrades(freshView(), [tower()]), { ...rich, ...short });
+      expect(await decide(view), JSON.stringify(short)).toEqual({ orders: [], untouched: true });
+    }
+  });
+
+  it('presa ao Salão, sem fila ou sem recurso, não dá ordem', async () => {
+    for (const code of ['GATE_LOCKED', 'QUEUE_LOCKED', 'QUEUE_BUSY', 'INSUFFICIENT_RESOURCES']) {
+      const view = withStock(
+        withUpgrades(freshView(), [tower(code as Upgrade['blockedCode'])]),
+        rich,
+      );
+      expect(await decide(view), code).toEqual({ orders: [], untouched: true });
+    }
+  });
+
+  it('melhora a Torre pela mesma regra, e para quando ela sai da lista (o teto desta versão)', async () => {
+    const second: Upgrade = {
+      ...tower(),
+      fromLevel: 1,
+      targetLevel: 2,
+      cost: [
+        { resource: 'wood', label: 'Madeira', amount: 192, missing: 0 },
+        { resource: 'stone', label: 'Pedra', amount: 192, missing: 0 },
+        { resource: 'gold', label: 'Ouro', amount: 80, missing: 0 },
+      ],
+    };
+    const view = withUpgrades(freshView(), [second]);
+    expect((await decide(withStock(view, rich))).orders).toEqual([]);
+    expect((await decide(withStock(view, { wood: 384, stone: 384, gold: 160 }))).orders).toEqual([
+      build,
+    ]);
+    const noTower = withStock(withUpgrades(freshView(), [upgrade('farm', {}, null)]), rich);
+    expect(await decide(noTower)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('não gasta a madeira da lareira', async () => {
+    const view = withStock(withUpgrades(freshView(), [tower()]), { ...rich, wood: 400 });
+    const winterAhead: ViewState = {
+      ...view,
+      calendar: {
+        ...view.calendar,
+        nextSeason: {
+          ...view.calendar.nextSeason,
+          id: 'winter',
+          firewood: {
+            perHour: 9,
+            winterTotal: 500,
+            winterProduction: 200,
+            stock: 400,
+            gathered: 0,
+            reserved: 0,
+            missing: 0,
+            text: 'A conta da lenha.',
+          },
+        },
+      },
+    };
+    // A reserva é 300: com 400 em estoque sobram 100, e a Torre pede 120.
+    expect(await decide(winterAhead)).toEqual({ orders: [], untouched: true });
+    expect((await decide(withStock(winterAhead, { wood: 420 }))).orders).toEqual([build]);
+  });
+
+  it('"obra mais barata" e "planejar automáticas" deixam a Torre para esta política', async () => {
+    // A Torre sai mais barata que a Fazenda, e mesmo assim a obra iniciada é a Fazenda.
+    const farm: Upgrade = {
+      ...upgrade('farm', {}, null),
+      cost: [{ resource: 'wood', label: 'Madeira', amount: 400, missing: 0 }],
+    };
+    const view = withStock(withUpgrades(freshView(), [tower(), farm]), { wood: 500 });
+    const cheapest = recorder(view);
+    await obraMaisBarata.run(view, cheapest.act);
+    expect(cheapest.orders).toEqual([{ type: 'startConstruction', payload: { building: 'farm' } }]);
+    // A Torre que não pôde começar não vira planejada automática: começaria sem olhar a folga.
+    const waiting = withUpgrades(freshView(), [tower('INSUFFICIENT_RESOURCES')]);
+    const planner = recorder(waiting);
+    await planejarAutomaticas.run(waiting, planner.act);
+    expect(planner.orders).toEqual([]);
+    // E não conta como obra por fazer: com o resto no teto, o feudo acabou de construir.
+    const done = withUpgrades(freshView(), [
+      tower('INSUFFICIENT_RESOURCES'),
+      upgrade('farm', {}, 'MAX_LEVEL'),
+    ]);
+    expect(nothingLeftToBuild(done)).toBe(true);
+  });
+});
+
 describe('política "obra mais barata" com o inverno à vista', () => {
   const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
     perHour: 9,
@@ -1534,6 +1665,34 @@ describe('os bots jogando contra o motor', () => {
     },
   );
 
+  it.each([1, 3, 0.5])(
+    'no ritmo %d o econômico ergue a Torre de Vigia e a leva ao nível 2, sem ordem recusada',
+    async (timeScale) => {
+      const feudo = game(timeScale);
+      const levels: number[] = [];
+      // Duas visitas por dia real, por duas semanas reais.
+      for (let visit = 0; visit < 28; visit += 1) {
+        await strategies.economico(feudo.view(), feudo.act);
+        feudo.pass(12 * timeScale);
+        levels.push(feudo.view().threat.watchtower.level);
+      }
+      expect(feudo.refused).toEqual([]);
+      expect(levels[levels.length - 1]).toBe(2);
+      // Da Torre em diante a visão mostra a Ameaça; antes, não.
+      const view = feudo.view();
+      expect(view.threat.known).toBe(true);
+      expect(view.threat.watchtower.next).toBeNull();
+      expect(levels[0]).toBe(0);
+      expect(
+        feudo.orders.filter(
+          (order) =>
+            order.type === 'startConstruction' &&
+            (order.payload as { building: string }).building === 'watchtower',
+        ),
+      ).toHaveLength(2);
+    },
+  );
+
   it('o preguiçoso dá poucas ordens por visita: uma obra, um depósito, um recrutamento e a lista', async () => {
     const feudo = game(1);
     const of = (session: Order[], type: Command['type']) =>
@@ -1733,12 +1892,18 @@ describe('os bots jogando contra o motor', () => {
         feudo.pass(12 * timeScale);
       }
       expect(feudo.refused).toEqual([]);
-      // Em catorze visitas, menos de uma troca a cada quatro trabalhadores por visita. Entram
+      // Em catorze visitas, menos de três trocas a cada dez trabalhadores por visita. Entram
       // na conta as trocas que o bot faz de propósito quando um depósito não comporta o que o
       // ofício renderia até a visita seguinte (ele tira os braços que produziriam para o chão,
       // e os devolve quando uma obra abre espaço). Com as cartas do Conselho o feudo cresce
       // mais depressa, e esse limite chega dentro da semana também no ritmo 1.
-      expect(switched).toBeLessThan(hands / 4);
+      //
+      // O limite era de uma troca a cada quatro. Com a Torre de Vigia (V2E-T1) o caminho de
+      // obras mudou e, no ritmo 1, as trocas da segunda metade da semana passaram de 109 para
+      // 122 em 461 trabalhadores-visita (no ritmo 3, de 44 para 58 em 486). São as mesmas
+      // trocas grandes de quando as obras rareiam, em visitas diferentes; a população e o
+      // Salão do fim da semana não mudaram (docs/balance-v0.2.md, seção 12).
+      expect(switched).toBeLessThan((3 * hands) / 10);
       // E os ofícios dos materiais ganharam experiência enquanto havia obra a fazer: nenhum
       // ficou vazio à toa. (A fazenda sobe de nível e pede menos braços do que níveis: lá a
       // experiência não é a meta.)

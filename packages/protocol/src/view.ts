@@ -1,6 +1,7 @@
 import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
+  ENEMY_IDS,
   EVENT_TYPES,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
@@ -278,6 +279,84 @@ const PendingDecisionSchema = z.strictObject({
   expiresInSeconds: z.number(),
 });
 
+/**
+ * A Torre de Vigia, como o painel da Ameaça a mostra: o que ela faz hoje e o que o próximo nível
+ * passaria a fazer. O custo e o botão da obra estão em `constructions.available`.
+ */
+const ThreatWatchtowerSchema = z.strictObject({
+  /** O edifício da Torre: é o que `startConstruction` recebe e o que a lista de obras mostra. */
+  building: buildingId,
+  /** 0 enquanto não foi construída. */
+  level: z.number(),
+  /** "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência." */
+  text: z.string(),
+  /** O que o próximo nível passa a fazer; `null` com a Torre no teto desta versão. */
+  next: z.string().nullable(),
+});
+
+/** O que protege o feudo de um ataque hoje. */
+const ThreatDefenseSchema = z.strictObject({
+  palisadeLevel: z.number(),
+  /** "Sem Paliçada, nada segura um ataque." */
+  text: z.string(),
+});
+
+/** Uma incursão que os vigias já avistaram. */
+const ThreatIncomingSchema = z.strictObject({
+  enemy: z.enum(ENEMY_IDS),
+  /** "Lobos". */
+  enemyLabel: z.string(),
+  /** Segundos reais até a incursão chegar. */
+  inSeconds: z.number(),
+  /** "uma matilha pequena"; `null` quando a Torre ainda não distingue o tamanho. */
+  sizeText: z.string().nullable(),
+  /** "Lobos a caminho. Os vigias contam uma matilha pequena." O prazo fica em `inSeconds`. */
+  text: z.string(),
+});
+
+/**
+ * A Ameaça (GDD §8.2), em duas formas fechadas. **Sem a Torre de Vigia (`known: false`) o
+ * número, a tendência, as origens, os tiles e as incursões não saem do servidor**, e este
+ * schema recusa uma resposta que os trouxesse. Quem lê confere `known` antes de procurar o
+ * número.
+ */
+const ThreatSchema = z.discriminatedUnion('known', [
+  z.strictObject({
+    known: z.literal(false),
+    /** "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo." */
+    text: z.string(),
+    /** Sem Torre não há aviso: sempre `null`. */
+    incoming: z.null(),
+    watchtower: ThreatWatchtowerSchema,
+    defense: ThreatDefenseSchema,
+  }),
+  z.strictObject({
+    known: z.literal(true),
+    /** "Ameaça 45 de 100." */
+    text: z.string(),
+    /** De 0 a `max`. */
+    level: z.number(),
+    /** O fim da barra. */
+    max: z.number(),
+    /** Quanto a próxima virada do dia soma, já com o limite: 0 com a Ameaça no máximo. */
+    risePerDay: z.number(),
+    /** A Ameaça depois da próxima virada do dia, se nada mudar. */
+    nextLevel: z.number(),
+    /** Segundos reais até a próxima virada do dia, quando a Ameaça sobe. */
+    nextRiseInSeconds: z.number(),
+    /** "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 45 para 53." */
+    trend: z.string(),
+    /** De onde vem a subida, um termo por linha: "+5/dia: Covil de Lobos", "+3/dia: outono". */
+    sources: z.array(z.string()),
+    /** Os tiles de ameaça conhecidos, em lista: o mapa gráfico é de outra versão. */
+    tiles: z.array(z.strictObject({ id: z.string(), label: z.string(), active: z.boolean() })),
+    /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
+    incoming: ThreatIncomingSchema.nullable(),
+    watchtower: ThreatWatchtowerSchema,
+    defense: ThreatDefenseSchema,
+  }),
+]);
+
 /** Tudo que a interface exibe. O cliente recebe isto pronto e não calcula regras (GDD §14.5). */
 export const ViewStateSchema = z.strictObject({
   settlement: z.strictObject({
@@ -469,6 +548,8 @@ export const ViewStateSchema = z.strictObject({
     .nullable(),
   objectives: z.array(ObjectiveSchema),
   council: CouncilSchema,
+  /** A Ameaça, vista (ou não) pela Torre de Vigia. */
+  threat: ThreatSchema,
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
    * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`.

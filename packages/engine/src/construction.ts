@@ -282,7 +282,7 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   } else if (freeQueue(state) === -1) {
     blocked = queueRejection(state);
   } else if (fromLevel >= def.maxLevel) {
-    blocked = reject('MAX_LEVEL', { label: label() });
+    blocked = reject('MAX_LEVEL', { label: label(), note: def.maxLevelNote });
   } else {
     const requirement = gateRequirement(state, building, targetLevel);
     // Falta recurso: ou ele nunca vai caber no depósito (e esperar não adianta), ou é só esperar.
@@ -508,7 +508,7 @@ export function planConstruction(
     }
   }
   if (targetLevel > buildings[building].maxLevel) {
-    return reject('MAX_LEVEL', { label });
+    return reject('MAX_LEVEL', { label, note: buildings[building].maxLevelNote });
   }
   if (askedLevel !== undefined && askedLevel !== targetLevel) {
     return reject('STALE_LEVEL', { label: ofBuilding(building), level: targetLevel });
