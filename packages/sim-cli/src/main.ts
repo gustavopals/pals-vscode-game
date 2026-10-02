@@ -1,4 +1,5 @@
 import { parseCli, USAGE } from './cli';
+import { formatMatrix, matrixCsv, runMatrix } from './matrix';
 import { formatRemoteReport, runRemote } from './remote';
 import { formatSummary, toCsv } from './report';
 import { simulate } from './simulate';
@@ -20,6 +21,16 @@ async function main(): Promise<void> {
     const report = await runRemote(command.options);
     process.stdout.write(formatRemoteReport(report));
     if (Object.keys(report.errors).length > 0) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (command.mode === 'matrix') {
+    const result = await runMatrix(command.options);
+    process.stdout.write(matrixCsv(result));
+    process.stderr.write(formatMatrix(result));
+    if (result.cells.some((cell) => cell.violations.length > 0)) {
       process.exitCode = 1;
     }
     return;

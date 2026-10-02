@@ -2,20 +2,23 @@
 
 Bots de playtest que jogam partidas inteiras em segundos, só com o motor (`@lotg/engine`), sem servidor nem navegador. É por aqui que os números de `@lotg/content` são conferidos e corrigidos (GDD §15.3).
 
-São três modos: em processo (`--seed`), carga contra um servidor (`--remote`) e fumaça de concorrência contra um servidor (`--smoke`). Uma opção desconhecida ou de outro modo é recusada, e não ignorada.
+São quatro modos: uma partida em processo (`--seed`), a matriz de balanceamento (`--matrix`), carga contra um servidor (`--remote`) e fumaça de concorrência contra um servidor (`--smoke`). Uma opção desconhecida ou de outro modo é recusada, e não ignorada.
 
 ## Uso
 
 ```bash
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico --sessions-per-day 2 > semana.csv
 pnpm -s sim -- --seed pedra-alta-golden --days 7 --time-scale 3 > semana-3x.csv
+pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy preguicoso --sessions-per-day 1 > ano-3x.csv
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
 ```
 
 | Opção | Padrão | Significado |
 |---|---|---|
 | `--seed` | obrigatória | Semente da partida |
 | `--days` | `7` | Dias reais simulados; no ritmo Normal, 7 dias são um ano de jogo |
-| `--strategy` | `economico` | Bot que joga as sessões |
+| `--game-year` | — | No lugar de `--days`: a partida dura um ano de jogo completo, o que dá 56 h reais no ritmo 3, 7 dias no 1 e 14 dias no 0,5. Recusado em um ritmo em que o ano não fecha em horas reais inteiras |
+| `--strategy` | `economico` | Bot que joga as sessões: `economico` ou `preguicoso` |
 | `--sessions-per-day` | `2` | Sessões por dia real, a intervalos iguais, a primeira na criação da partida |
 | `--time-scale` | `1` | Ritmo: horas de jogo por hora real. Qualquer número positivo (`3`, `0.5`) |
 | `--difficulty` | `lord` | Dificuldade da partida: `peasant`, `lord` ou `ironKing`. Fica gravada no estado; os fatores dela passam a valer com as mecânicas da v0.2 |
@@ -24,26 +27,39 @@ O CSV sai na saída padrão e o resumo na saída de erro; use `pnpm -s` para o p
 
 ### Ritmo (`--time-scale`)
 
-O servidor cria as partidas no ritmo 3 ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md)); o padrão daqui continua sendo 1, o ritmo Normal em que o GDD e as faixas de balanceamento são definidos.
+O jogo recomenda o ritmo 3 ([ADR 0011](../../docs/decisions/0011-ritmo-3x-no-mvp.md) e [0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 2); o padrão daqui continua sendo 1, o ritmo Normal em que o GDD é escrito. As faixas de balanceamento existem para cada ritmo que o jogo oferece (veja "Matriz de balanceamento").
 
 Com `--time-scale N`, o que é do jogador continua em tempo real e o que é do mundo anda `N` vezes mais rápido:
 
 - `--days` e `--sessions-per-day` são dias reais e sessões por dia real. Entre duas sessões passam `N` vezes mais horas de jogo.
 - O bot recebe a visão como o app a recebe: prazos em segundos reais e taxas por hora real (`deriveViewState` com `{ timeScale }`).
 - O CSV continua com uma linha por hora real, e as colunas `*_per_hour` são por hora real. O calendário (`year`, `season`, `day_of_season`) é o de jogo: no ritmo 3, um dia de jogo dura 40 minutos reais.
-- O resumo diz o ritmo na primeira linha, e as horas de fome são horas reais. A segunda linha diz a partida como o jogo a mostra ao jogador, lida do `ViewState`: `Partida: Senhor · Rápido: um ano em 56 horas` (um ritmo que o jogo não oferece sai como `Ritmo 2×: um ano em 3 dias e 12 horas`).
+- O resumo diz o ritmo na primeira linha, e todas as horas dele são horas reais. A segunda linha diz a partida como o jogo a mostra ao jogador, lida do `ViewState`: `Partida: Senhor · Rápido: um ano em 56 horas` (um ritmo que o jogo não oferece sai como `Ritmo 2×: um ano em 3 dias e 12 horas`).
 
 O ritmo não muda as regras: 3 dias no ritmo 3 com 3 sessões por dia terminam exatamente no mesmo estado de jogo que 9 dias no ritmo 1 com 1 sessão por dia, porque as sessões caem nos mesmos instantes de jogo. `src/timescale.test.ts` confere essa igualdade no estado, nos eventos e linha a linha.
 
-## O bot econômico
+## Os bots
 
-A cada sessão, olhando só o `ViewState`, como um jogador:
+Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view, act)`, e nada mais. Ele é uma **lista de políticas** (`src/bots/policies.ts`), aplicadas em ordem a cada sessão; cada política olha a visão que a anterior deixou, dá as ordens que achar e devolve a visão resultante.
 
-1. recruta quantos aldeões couberem, guardando uma reserva de comida;
-2. inicia a melhoria mais barata entre as que podem começar agora;
-3. realoca os aldeões: fazendeiros o bastante para a comida fechar no positivo (contando quem ainda está chegando) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem.
+| Bot | Políticas, na ordem | Quem ele imita |
+|---|---|---|
+| `economico` | `recrutar`, `obra mais barata`, `alocar por demanda` | Quem cuida do feudo a cada visita e reequilibra todos os ofícios |
+| `preguicoso` | `recrutar`, `obra mais barata`, `comida primeiro`, `ocupar os livres` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
+
+| Política | O que faz |
+|---|---|
+| `recrutar` | Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida |
+| `obra mais barata` | Inicia a melhoria mais barata entre as que podem começar agora |
+| `alocar por demanda` | Realoca todos os aldeões: fazendeiros o bastante para a comida fechar no positivo (contando quem ainda está chegando) e o resto nos materiais, em proporção ao tempo que cada um levaria para cobrir o que as obras pedem |
+| `comida primeiro` | Põe na fazenda os braços que faltam para a comida não cair, contando quem está chegando; nunca tira ninguém de lá. Sem livres, busca em quem tem mais gente |
+| `ocupar os livres` | Manda todos os aldeões sem ofício, em uma ordem só, para o material que mais demoraria a cobrir o que falta às obras; se nada falta, para o ofício com menos gente |
 
 Entre as sessões o mundo anda sozinho. Quem chega entre duas sessões fica sem ofício até a seguinte.
+
+**Uma mecânica nova entra como uma política nova** (roadmap da v0.2, §0.5): escreva a política em `policies.ts`, com teste em `bots.test.ts`, e ponha-a na lista dos bots que devem usá-la. Não é preciso mexer no simulador nem nos outros bots. As Fases C a E preveem "ampliar o armazém quando ele está para encher", "responder à carta do Conselho" e "erguer a Paliçada quando a Ameaça é conhecida".
+
+**Bot honesto.** Uma política só conhece o `ViewState`: nunca o `GameState`, flags nem o gerador de sorteios; um teste recusa esses imports em `src/bots/`. Uma política herdada da v0.1, `alocar por demanda`, ainda lê dois números de `@lotg/content` (a taxa por trabalhador e o consumo por aldeão); as outras tiram tudo da visão, e é assim que as próximas devem ser, porque um fator de estação, de moral ou de dificuldade só aparece lá.
 
 ## Como ler o CSV
 
@@ -56,23 +72,85 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `food`, `wood`, `stone`, `gold` | Estoque em unidades inteiras |
 | `*_per_hour` | Saldo líquido por hora real naquele instante; `food_per_hour` já desconta o consumo |
 | `villagers`, `capacity` | População e vagas |
-| `free` | Aldeões sem ofício: alto por muitas horas indica sessões espaçadas demais |
+| `free` | Aldeões sem ofício naquela hora: alto por muitas horas indica sessões espaçadas demais |
 | `in_training` | Aldeões recrutados que ainda não chegaram |
 | `townHall` … `housing` | Nível de cada edifício |
 | `famine` | `1` se o feudo está com fome naquela hora |
+| `queue_idle` | `1` se a fila de obras está livre **e** ao menos uma obra poderia começar agora: o feudo tinha o que construir e esperou a próxima visita |
+| `planned_idle` | O mesmo, contando só as obras que o jogador deixou planejadas. É a coluna que o início automático (V2C-T5) tem de zerar |
+| `commands_accepted`, `commands_refused` | Ordens aceitas e recusadas pelo motor, acumuladas desde a criação da partida |
+| `refused_by_code` | As recusas por motivo, acumuladas: `HOUSING_FULL:1;QUEUE_BUSY:2`. Vazio sem recusas |
 
-O resumo traz o ritmo, população, níveis, estoque final, horas de fome e quantos comandos o motor aceitou e recusou. Um bot bem escrito não tem comando recusado.
+**Colunas reservadas.** O cabeçalho já traz as colunas que as Fases C a E do roadmap vão preencher, para o formato não mudar a cada mecânica. Até a tarefa indicada, o valor sai **vazio** (e não zero: zero seria uma medida). A lista está em `RESERVED_COLUMNS` (`src/report.ts`); a tarefa tira a coluna de lá e passa a lê-la da visão.
 
-## Faixas conferidas nos testes
+| Coluna | Significado | Tarefa |
+|---|---|---|
+| `wasted_food`, `wasted_wood`, `wasted_stone` | Desperdício no cap, por recurso, acumulado (o ouro não tem cap) | V2C-T2 |
+| `cold` | `1` se o feudo passa frio naquela hora | V2C-T1 |
+| `morale` | Moral do feudo, de 0 a 100 | V2C-T4 |
+| `cards_seen`, `cards_answered`, `cards_expired` | Cartas do Conselho recebidas, respondidas e expiradas, acumuladas | V2D-T1 |
+| `wolf_losses` | Perdas em incursões de lobos, acumuladas | V2E-T3 |
 
-`src/balance.test.ts` falha se, com o bot econômico:
+O resumo, na saída de erro, traz:
 
-- em 2 sessões por dia, no dia 7 a população sair de 20–40, o Salão ficar abaixo do nível 3 ou houver fome;
-- em 1 sessão por dia, houver fome nas primeiras 24 h.
+```text
+Semente pedra-alta-golden · estratégia economico · 7 dias · 2 sessões/dia · ritmo 3×
+Partida: Senhor · Rápido: um ano em 56 horas
+Motor 0.1.0 · estado v2 · conteúdo dac513145ad9399e
+Políticas: recrutar, obra mais barata, alocar por demanda
+População: 35 de 35 vagas
+Níveis: townHall 3, farm 4, lumberMill 3, quarry 3, goldMine 3, housing 4
+Estoque: food 2813, wood 40872, stone 16118, gold 6626
+Fome: nenhuma
+Fila ociosa: 168 h com obra que podia começar (0 h com obra planejada)
+Aldeões sem ofício: 360 aldeão-horas (2,1 por hora)
+Excedente parado: wood 40872, stone 16118, gold 6626
+Comandos: 47 aceitos, 0 recusados
+Sem medida até as Fases C a E: desperdício por recurso, horas de frio, moral, cartas do Conselho, perdas por lobos
+```
 
-Quando uma faixa falhar, ajuste os números em `@lotg/content`, nunca o bot.
+- A terceira linha **identifica o jogo medido**: versão do motor, versão do estado e `contentHash`, o mesmo de `GET /v1/version` (os dois saem de `contentHash`, em `@lotg/protocol`). Dois resumos só se comparam número a número quando essa linha é igual.
+- **Os três sinais de tédio** (roadmap, V2B-T4): a fila ociosa, os aldeões sem ofício e o excedente parado dizem que o jogo não pediu nada ao jogador. As horas são reais, uma amostra ao fim de cada hora. "Aldeão-horas" é a soma, hora a hora, dos aldeões sem ofício. O excedente parado é o estoque final de madeira, pedra e ouro, cada um por si e nunca somados; a comida fica de fora porque é consumida.
+- Um bot bem escrito não tem comando recusado; se tiver, os códigos vêm entre parênteses.
 
-As faixas valem no ritmo 1. No ritmo 3 não há faixa definida: os testes só conferem que o ritmo não muda as regras.
+## Matriz de balanceamento
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md   # as 50 sementes; cerca de 3 s
+pnpm -s sim -- --matrix --seeds 5 > /dev/null       # só as 5 primeiras: uma olhada rápida
+```
+
+A matriz do roadmap da v0.2 (§7.3) joga, na dificuldade Senhor:
+
+- **três perfis de visita** (GDD §15.2): Preguiçoso, 1 sessão por dia real, com o bot `preguicoso`; Regular, 2 sessões, com o `economico`; Dedicado, 4 sessões, com o `economico`;
+- **cada ritmo que o jogo oferece** (`balance.paces`): hoje 3, 1 e 0,5;
+- **50 sementes fixas**: `pedra-alta-001` a `pedra-alta-050`;
+- **duas janelas, em tabelas separadas**, porque não têm o mesmo denominador: **7 dias reais** (em que o ritmo 3 atravessa três anos de jogo e o 0,5, meio ano) e **um ano de jogo** (56 h reais no ritmo 3, 7 dias no 1, 14 dias no 0,5). No ritmo 1 as duas são a mesma partida, jogada uma vez.
+
+O CSV, na saída padrão, tem uma linha por partida (janela, ritmo, perfil, semente) com os valores finais e as mesmas colunas reservadas. As tabelas, na saída de erro, saem em Markdown, prontas para [docs/balance-v0.2.md](../../docs/balance-v0.2.md): a identificação da rodada, o menor e o maior valor entre as sementes em cada célula, as faixas cobradas e o veredito. O comando sai com código 1 se alguma partida ficar fora da faixa. Com `--difficulty peasant` ou `ironKing` a rodada é jogada e medida, mas não há faixa: as outras dificuldades entram quando tiverem efeito.
+
+Enquanto nenhuma regra sorteia nada, as 50 sementes dão o mesmo resultado; a lista passa a trabalhar com a moral e o Conselho, e um teste avisa quando isso acontecer.
+
+### Faixas
+
+`src/bands.ts` guarda a **linha de base medida** de cada célula (tabela `MEASURED`) e a regra que faz dela uma faixa (`SLACK`):
+
+| Grandeza | Faixa |
+|---|---|
+| População final | De 10% abaixo do menor a 10% acima do maior valor medido |
+| Salão do Senhor | Pelo menos o menor nível medido |
+| Horas de fome | No máximo o maior valor medido, com 5% de folga (hoje, zero em toda célula) |
+| Excedente parado de madeira, de pedra e de ouro | No máximo o maior estoque final medido, com 5% de folga. Só tem teto: sobrar menos nunca é problema |
+| Ordens recusadas | Nenhuma |
+
+`src/balance.test.ts` joga a matriz inteira a cada `pnpm test` (750 partidas distintas, cerca de 2 s) e falha se alguma sair da faixa, dizendo a célula, o problema com os dois números e em quantas sementes ele apareceu. A fila ociosa e os aldeões sem ofício são medidos e relatados, mas ainda não têm faixa.
+
+**Estes limites são o jogo como ele está, não metas aprovadas pelo autor** ([ADR 0013](../../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5): servem de guarda de regressão até o autor apertá-los. Quando uma faixa falhar:
+
+1. Se a mudança **não** pretendia mexer na economia, é uma regressão: ajuste os números em `@lotg/content`, nunca o bot.
+2. Se a mudança é uma mecânica que muda a economia de propósito, a linha de base é regravada de propósito, como um golden: rode `pnpm -s sim -- --matrix`, confira o que mudou e por quê, copie o bloco "Linha de base medida nesta rodada" para `MEASURED` e registre a rodada, com as tabelas, em `docs/balance-v0.2.md`. Nada regrava a linha de base sozinho.
+
+Se a matriz passar a pesar na suíte (mais de uns 20 s no `pnpm test`), deixe no teste um subconjunto das sementes e rode a matriz completa pelo comando.
 
 ## Modo remoto: carga contra um servidor
 

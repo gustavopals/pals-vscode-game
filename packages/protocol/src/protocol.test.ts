@@ -1,4 +1,4 @@
-import { balance, DIFFICULTY_IDS } from '@lotg/content';
+import { balance, buildings, chronicleTemplates, DIFFICULTY_IDS, objectives } from '@lotg/content';
 import type {
   Command as EngineCommand,
   GameEvent as EngineEvent,
@@ -14,6 +14,7 @@ import {
   ApiErrorSchema,
   canonicalJson,
   CatalogResponseSchema,
+  contentHash,
   type Command,
   CommandAcceptedSchema,
   CommandSchema,
@@ -385,5 +386,34 @@ describe('canonicalJson', () => {
     );
     expect(canonicalJson({ list: [1, 3] })).not.toBe(canonicalJson({ list: [3, 1] }));
     expect(canonicalJson(null)).toBe('null');
+  });
+});
+
+describe('contentHash', () => {
+  it('entrega ao SHA-256 o JSON canônico do conteúdo inteiro e fica com 16 caracteres', () => {
+    const hashed: string[] = [];
+    const hash = contentHash((text) => {
+      hashed.push(text);
+      return '0123456789abcdef'.repeat(4);
+    });
+    expect(hash).toBe('0123456789abcdef');
+    expect(hashed).toEqual([canonicalJson({ balance, buildings, objectives, chronicleTemplates })]);
+  });
+
+  it('o que é resumido traz os números e os textos do conteúdo', () => {
+    let hashed = '';
+    contentHash((text) => {
+      hashed = text;
+      return '';
+    });
+    const parsed = JSON.parse(hashed) as Record<string, unknown>;
+    expect(Object.keys(parsed)).toEqual([
+      'balance',
+      'buildings',
+      'chronicleTemplates',
+      'objectives',
+    ]);
+    expect(hashed).toContain(balance.difficulties.lord.description);
+    expect(hashed).toContain(`"dayMs":${balance.calendar.dayMs}`);
   });
 });

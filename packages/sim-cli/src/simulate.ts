@@ -10,34 +10,42 @@ import {
   type GameState,
   type ResourceId,
   type SeasonId,
+  type ViewState,
 } from '@lotg/engine';
 
-import { economico } from './bots/economico';
+import { strategies, type StrategyName } from './bots';
 import type { Act, Bot } from './bots/types';
 
 const HOUR_MS = 3_600_000;
 const HOURS_PER_REAL_DAY = 24;
 
-export const strategies = { economico } satisfies Record<string, Bot>;
-export type StrategyName = keyof typeof strategies;
+export { strategies, type StrategyName };
 
 export type SimulationOptions = {
   seed: string;
   /** Dias reais simulados; no ritmo Normal, 7 dias são um ano de jogo. */
   days: number;
+  /**
+   * Duração em horas reais, para as janelas que não fecham em dias inteiros (um ano de jogo no
+   * ritmo 3 são 56 h reais). Quando presente, vale no lugar de `days`.
+   */
+  hours?: number;
   strategy: StrategyName;
   /** Sessões por dia real, a intervalos iguais. */
   sessionsPerDay: number;
   /**
-   * Horas de jogo por hora real (ADR 0011). Padrão 1, o ritmo Normal em que as faixas de
-   * balanceamento são definidas. O servidor cria as partidas no ritmo 3.
+   * Horas de jogo por hora real (ADR 0011). Padrão 1, o ritmo Normal do GDD; o jogo recomenda o
+   * 3. As faixas de balanceamento existem para cada ritmo que o jogo oferece (`bands.ts`).
    */
   timeScale?: number;
   /** Dificuldade da partida (GDD §12.1). Padrão `lord`, a de quem não escolhe. */
   difficulty?: DifficultyId;
 };
 
-/** Retrato do feudo ao fim de uma hora real. As taxas `perHour` são por hora real. */
+/**
+ * Retrato do feudo ao fim de uma hora real, como o jogador o veria no painel. As taxas `perHour`
+ * são por hora real. As contagens de ordens são acumuladas desde a criação da partida.
+ */
 export type HourRow = {
   hour: number;
   realDay: number;
@@ -52,6 +60,14 @@ export type HourRow = {
   inTraining: number;
   levels: Record<BuildingId, number>;
   famine: boolean;
+  /** A fila de obras está livre e ao menos uma obra poderia começar agora: ninguém a iniciou. */
+  queueIdle: boolean;
+  /** Idem, contando só as obras que o jogador deixou planejadas. */
+  plannedIdle: boolean;
+  /** Ordens aceitas pelo motor até aqui. */
+  commandsAccepted: number;
+  /** Ordens recusadas pelo motor até aqui, por código de recusa. */
+  commandsRefused: Record<string, number>;
 };
 
 export type SimulationResult = {
@@ -59,12 +75,34 @@ export type SimulationResult = {
   rows: HourRow[];
   events: GameEvent[];
   finalState: GameState;
-  commands: { accepted: number; refused: Record<string, number> };
+  commands: CommandCounts;
   /** Dificuldade e ritmo como a visão os mostra ao jogador. */
   game: { difficultyLabel: string; paceLabel: string };
 };
 
-function rowAt(state: GameState, hour: number, timeScale: number): HourRow {
+type CommandCounts = { accepted: number; refused: Record<string, number> };
+
+/**
+ * A fila de obras parada à toa, como o jogador a veria no painel: está livre e há ao menos uma
+ * obra que poderia começar agora (`queueIdle`), ou ao menos uma das que ele planejou
+ * (`plannedIdle`). É um dos sinais de tédio do simulador: o jogo tinha o que fazer e esperou
+ * a próxima visita.
+ */
+export function idleQueue(view: ViewState): { queueIdle: boolean; plannedIdle: boolean } {
+  const { active, available } = view.constructions;
+  const startable = available.filter((upgrade) => upgrade.blockedCode === null);
+  return {
+    queueIdle: active === null && startable.length > 0,
+    plannedIdle: active === null && startable.some((upgrade) => upgrade.planned),
+  };
+}
+
+function rowAt(
+  state: GameState,
+  hour: number,
+  timeScale: number,
+  commands: CommandCounts,
+): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
     Object.fromEntries(view.resources.map((row) => [row.id, pick(row)])) as Record<ResourceId, T>;
@@ -82,7 +120,15 @@ function rowAt(state: GameState, hour: number, timeScale: number): HourRow {
     inTraining: view.population.inTraining,
     levels: { ...state.settlement.buildings },
     famine: view.famine !== null,
+    ...idleQueue(view),
+    commandsAccepted: commands.accepted,
+    commandsRefused: { ...commands.refused },
   };
+}
+
+/** Horas reais da simulação: `hours`, ou `days` inteiros. */
+export function realHoursOf(options: Pick<SimulationOptions, 'days' | 'hours'>): number {
+  return options.hours ?? options.days * HOURS_PER_REAL_DAY;
 }
 
 /**
@@ -92,10 +138,14 @@ function rowAt(state: GameState, hour: number, timeScale: number): HourRow {
  * dia e encontra `N` vezes mais mundo andado entre uma e outra.
  */
 export async function simulate(options: SimulationOptions): Promise<SimulationResult> {
-  const { seed, days, sessionsPerDay } = options;
+  const { seed, sessionsPerDay } = options;
   const timeScale = options.timeScale ?? 1;
   if (!Number.isFinite(timeScale) || timeScale <= 0) {
     throw new Error(`Ritmo inválido: ${timeScale}.`);
+  }
+  const realHours = realHoursOf(options);
+  if (!Number.isInteger(realHours) || realHours <= 0) {
+    throw new Error(`Duração inválida: ${realHours} horas reais.`);
   }
   /** Instante de jogo de um instante real, os dois em ms desde a criação da partida. */
   const gameMs = (realMs: number) => Math.round(realMs * timeScale);
@@ -110,7 +160,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const { difficultyLabel, paceLabel } = deriveViewState(state, 0, { timeScale }).settlement;
   const events: GameEvent[] = [];
   const rows: HourRow[] = [];
-  const commands: SimulationResult['commands'] = { accepted: 0, refused: {} };
+  const commands: CommandCounts = { accepted: 0, refused: {} };
   let commandCount = 0;
 
   const act: Act = async (type, payload) => {
@@ -129,10 +179,10 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
 
   // Daqui em diante os instantes são reais; `gameMs` converte na hora de mover o motor.
   const sessionEveryMs = Math.round((HOURS_PER_REAL_DAY * HOUR_MS) / sessionsPerDay);
-  const endMs = days * HOURS_PER_REAL_DAY * HOUR_MS;
+  const endMs = realHours * HOUR_MS;
   let nextSessionMs = 0;
 
-  for (let hour = 1; hour <= days * HOURS_PER_REAL_DAY; hour += 1) {
+  for (let hour = 1; hour <= realHours; hour += 1) {
     const hourEndMs = hour * HOUR_MS;
     while (nextSessionMs < hourEndMs && nextSessionMs < endMs) {
       const advanced = advanceTo(state, gameMs(nextSessionMs));
@@ -144,7 +194,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     const advanced = advanceTo(state, gameMs(hourEndMs));
     state = advanced.state;
     events.push(...advanced.events);
-    rows.push(rowAt(state, hour, timeScale));
+    rows.push(rowAt(state, hour, timeScale, commands));
   }
 
   return {

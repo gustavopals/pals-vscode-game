@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseCli, USAGE } from './cli';
+import { MATRIX_SEEDS } from './matrix';
 
 describe('linha de comando: modo em processo', () => {
   it('só com a semente, usa os padrões: 7 dias, 2 sessões, ritmo 1, Senhor', () => {
@@ -65,7 +66,7 @@ describe('linha de comando: modo em processo', () => {
 
   it('recusa estratégia e opção desconhecidas, e argumento solto', () => {
     expect(() => parseCli(['--seed', 's', '--strategy', 'guerreiro'])).toThrow(
-      'Estratégia desconhecida: guerreiro. Disponíveis: economico.',
+      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso.',
     );
     expect(() => parseCli(['--seed', 's', '--strategy', 'toString'])).toThrow(
       /Estratégia desconhecida/,
@@ -76,8 +77,37 @@ describe('linha de comando: modo em processo', () => {
     expect(() => parseCli(['seed', 's'])).toThrow('Argumento inválido: seed');
   });
 
-  it('sem semente nem servidor, pede um dos dois', () => {
-    expect(() => parseCli([])).toThrow(/--seed.*--remote.*--smoke/);
+  it('aceita o bot preguiçoso', () => {
+    expect(parseCli(['--seed', 's', '--strategy', 'preguicoso'])).toMatchObject({
+      options: { strategy: 'preguicoso' },
+    });
+  });
+
+  it('--game-year dura um ano de jogo: 56 h reais no ritmo 3, 14 dias no 0,5', () => {
+    expect(parseCli(['--seed', 's', '--game-year'])).toMatchObject({
+      mode: 'simulate',
+      options: { days: 7, hours: 168, timeScale: 1 },
+    });
+    expect(parseCli(['--seed', 's', '--game-year', '--time-scale', '3'])).toMatchObject({
+      options: { days: 3, hours: 56, timeScale: 3 },
+    });
+    expect(parseCli(['--game-year', '--time-scale', '0.5', '--seed', 's'])).toMatchObject({
+      options: { days: 14, hours: 336, timeScale: 0.5 },
+    });
+    expect(parseCli(['--seed', 's']).options).not.toHaveProperty('hours');
+  });
+
+  it('--game-year não vale com --days nem com um ritmo em que o ano não fecha em horas', () => {
+    expect(() => parseCli(['--seed', 's', '--game-year', '--days', '3'])).toThrow(
+      '--game-year e --days não valem juntos: escolha uma duração.',
+    );
+    expect(() => parseCli(['--seed', 's', '--game-year', '--time-scale', '5'])).toThrow(
+      'No ritmo 5× um ano de jogo dura 33,6 h reais; o simulador anda em horas inteiras.',
+    );
+  });
+
+  it('sem semente, matriz nem servidor, pede um deles', () => {
+    expect(() => parseCli([])).toThrow(/--seed.*--matrix.*--remote.*--smoke/);
     expect(() => parseCli(['--days', '3'])).toThrow(/Informe a semente/);
   });
 
@@ -87,6 +117,52 @@ describe('linha de comando: modo em processo', () => {
     );
     expect(() => parseCli(['--seed', 's', '--keep'])).toThrow(
       '--keep não vale com o modo em processo.',
+    );
+  });
+});
+
+describe('linha de comando: matriz', () => {
+  it('sem mais nada, joga as 50 sementes fixas na dificuldade Senhor', () => {
+    const command = parseCli(['--', '--matrix']);
+    expect(command).toMatchObject({ mode: 'matrix', options: { difficulty: 'lord' } });
+    expect(command.mode === 'matrix' && command.options.seeds).toEqual(MATRIX_SEEDS);
+  });
+
+  it('--seeds N usa as N primeiras da lista; --difficulty troca a dificuldade', () => {
+    expect(parseCli(['--matrix', '--seeds', '3', '--difficulty', 'ironKing'])).toEqual({
+      mode: 'matrix',
+      options: {
+        seeds: ['pedra-alta-001', 'pedra-alta-002', 'pedra-alta-003'],
+        difficulty: 'ironKing',
+      },
+    });
+  });
+
+  it('recusa mais sementes do que a lista tem, e um número que não é inteiro positivo', () => {
+    expect(() => parseCli(['--matrix', '--seeds', '51'])).toThrow(
+      '--seeds vai até 50: a lista de sementes é fixa.',
+    );
+    expect(() => parseCli(['--matrix', '--seeds', '0'])).toThrow(
+      '--seeds deve ser um inteiro positivo.',
+    );
+  });
+
+  it('recusa as opções de uma partida só e dos modos com servidor', () => {
+    expect(() => parseCli(['--matrix', '--seed', 's'])).toThrow('--seed não vale com --matrix.');
+    expect(() => parseCli(['--matrix', '--time-scale', '3'])).toThrow(
+      '--time-scale não vale com --matrix.',
+    );
+    expect(() => parseCli(['--matrix', '--game-year'])).toThrow(
+      '--game-year não vale com --matrix.',
+    );
+    expect(() => parseCli(['--seed', 's', '--seeds', '3'])).toThrow(
+      '--seeds não vale com o modo em processo.',
+    );
+    expect(() => parseCli(['--remote', 'http://localhost:3000', '--matrix'])).toThrow(
+      '--matrix não vale com --remote.',
+    );
+    expect(() => parseCli(['--smoke', 'http://localhost:3000', '--matrix'])).toThrow(
+      '--matrix não vale com --smoke.',
     );
   });
 });
@@ -152,8 +228,10 @@ describe('linha de comando: fumaça', () => {
 });
 
 describe('texto de uso', () => {
-  it('cita os três modos e avisa que a fumaça cria e exclui uma conta', () => {
+  it('cita os quatro modos e avisa que a fumaça cria e exclui uma conta', () => {
     expect(USAGE).toContain('--time-scale');
+    expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord]');
+    expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');
     expect(USAGE).toContain('--smoke <url> [--keep]');
     expect(USAGE).toMatch(/conta é excluída no fim/);
