@@ -40,7 +40,7 @@ export function drawCard(
   while (council.nextDrawAtMs <= atMs) {
     council.nextDrawAtMs += DRAW_INTERVAL_MS;
   }
-  if (freeSeats(draft) - dueContinuations(draft, atMs, catalog).length <= 0) {
+  if (freeSeats(draft, catalog) - dueContinuations(draft, atMs, catalog).length <= 0) {
     return;
   }
   const scripted = scriptedCard(draft, atMs, catalog);

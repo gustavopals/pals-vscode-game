@@ -617,6 +617,63 @@ describe('expiração', () => {
     expect(eventsOfType(events, 'cardExpired')).toEqual([]);
     expect(councilView(waiting, 1, only('toll')).council.pending).toEqual([]);
   });
+
+  describe('a carta que o catálogo já não tem não ocupa lugar', () => {
+    // Duas cartas na mesa, e o conteúdo muda: o catálogo novo não tem nenhuma das duas.
+    const stale = () => dealt(dealt(fed(), 'alms', testCards).state, 'toll', testCards).state;
+    const renewed: Catalog = [vespers, matins];
+
+    it('a visão não conta o lugar que ninguém vê: nem bloqueio, nem a nota que manda responder', () => {
+      const state = stale();
+      expect(state.council.pending).toHaveLength(2);
+      const { council, pendingDecisions } = councilView(state, 1, renewed);
+      expect(council.pending).toEqual([]);
+      expect(pendingDecisions).toEqual([]);
+      expect(council).toMatchObject({
+        blockedByPending: false,
+        nextCardInSeconds: 8 * 3600,
+        note: null,
+      });
+    });
+
+    it('o sorteio seguinte traz carta, sem esperar o prazo das que sumiram', () => {
+      const { state, events } = advanceWithCards(stale(), INTERVAL, renewed);
+      expect(drawn(events).map((event) => event.atMs)).toEqual([INTERVAL]);
+      expect(councilView(state, 1, renewed).council.pending).toHaveLength(1);
+      // As que sumiram saem caladas no prazo delas, e a mesa volta a ter só o que se vê.
+      const later = advanceWithCards(state, 24 * HOUR, renewed);
+      expect(cardEvents(later.events).map((event) => event.type)).not.toContain('cardExpired');
+      expect(later.state.council.pending.map((entry) => entry.cardId)).not.toContain('alms');
+      expect(later.state.council.pending.map((entry) => entry.cardId)).not.toContain('toll');
+    });
+
+    it('a continuação com o prazo vencido entra na mesa, sem esperar as que sumiram', () => {
+      const waiting = stale();
+      waiting.council.scheduled.push({
+        cardId: 'vespers',
+        atMs: HOUR,
+        previousCardId: 'alms',
+        previousOptionId: 'give',
+        previousInstanceId: 'alms-0',
+      });
+      const { state, events } = advanceWithCards(waiting, HOUR, renewed);
+      expect(drawn(events).map((event) => [event.atMs, event.data.cardId])).toEqual([
+        [HOUR, 'vespers'],
+      ]);
+      expect(state.council.scheduled).toEqual([]);
+    });
+
+    it('avançar de uma vez ou aos pedaços dá o mesmo estado e os mesmos eventos', () => {
+      const start = stale();
+      const direct = advanceWithCards(start, 5 * INTERVAL, renewed);
+      for (const cut of [HOUR, INTERVAL - 1, INTERVAL, 24 * HOUR, 24 * HOUR + 1]) {
+        const first = advanceWithCards(start, cut, renewed);
+        const second = advanceWithCards(first.state, 5 * INTERVAL, renewed);
+        expect(second.state, `corte em ${cut}`).toEqual(direct.state);
+        expect([...first.events, ...second.events], `corte em ${cut}`).toEqual(direct.events);
+      }
+    });
+  });
 });
 
 describe('answerCard', () => {
@@ -954,7 +1011,7 @@ describe('continuação agendada', () => {
   });
 
   it('tem prioridade sobre o sorteio do mesmo instante: com um lugar só, ele é dela', () => {
-    const catalog = [...only('toll', 'tollReturn'), vespers];
+    const catalog = [...only('toll', 'tollReturn', 'alms'), vespers];
     // Uma carta na mesa e a continuação marcada para a mesma virada da audiência.
     let state = dealt(advanceWithCards(fed(), 2 * DAY, []).state, 'toll', testCards).state;
     state = answer(state, state.council.pending[0]?.instanceId ?? '', 'pay').state;

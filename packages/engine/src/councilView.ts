@@ -14,6 +14,7 @@ import {
   optionLock,
   optionOf,
   scriptedCard,
+  seatedCards,
 } from './council';
 import { durationText, plural, sentenceCase, thousands } from './format';
 import { storable, storagePlace } from './storage';
@@ -149,7 +150,8 @@ export function councilView(
   for (const entry of council.pending) {
     const card = cardOf(catalog, entry.cardId);
     const fallback = card === null ? null : defaultOption(state, card);
-    // Uma carta que o catálogo já não tem não aparece: ela sai da mesa sozinha quando expira.
+    // Uma carta que o catálogo já não tem não aparece nem ocupa lugar (`seatedCards`): ela sai
+    // da mesa sozinha quando expira.
     if (card === null || fallback === null) {
       continue;
     }
@@ -169,7 +171,9 @@ export function councilView(
   const nextDraw = council.nextDrawAtMs;
   // As pendentes que ainda vão estar na mesa na próxima audiência: a que expira no mesmo
   // instante ainda conta, porque o sorteio vem antes da expiração.
-  const seated = council.pending.filter((entry) => entry.expiresAtMs >= nextDraw).length;
+  const seated = seatedCards(state, catalog).filter(
+    (entry) => entry.expiresAtMs >= nextDraw,
+  ).length;
   const blockedByPending = seated >= rules.maxPending;
   const brings = !blockedByPending && mayBringCard(state, nextDraw, catalog);
   const cards = plural(rules.maxPending, 'carta', 'cartas');

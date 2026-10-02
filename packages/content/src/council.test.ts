@@ -151,6 +151,49 @@ describe('Conselho: o catálogo', () => {
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
 
+  it('os ids de carta e de opção que as partidas vivas guardam: mudar um deles pede migração do estado', () => {
+    // O estado de uma partida guarda estes ids: a carta na mesa (`council.pending`), a
+    // continuação agendada (`council.scheduled`) e o efeito escondido de uma opção já paga
+    // (`council.delayed`, as opções com `*`). O motor trata o id que o catálogo já não tem como
+    // carta que saiu: sem efeito e sem linha (ADR 0014). Renomear ou remover um deles com
+    // partidas vivas tira do jogador o efeito que ele pagou e deixa a cadeia aberta para sempre
+    // (a flag `<cadeia>.open` fica gravada e a primeira carta nunca mais é elegível).
+    //
+    // Por isso esta lista não se edita sozinha: quem muda um id escreve antes o passo de
+    // migração do estado, em `packages/engine/src/migrations`, que leva o id antigo ao novo (ou
+    // devolve o que foi pago e apaga as flags da cadeia). Texto, números, pesos e requisitos
+    // podem mudar à vontade; carta nova e opção nova, também.
+    const published = Object.fromEntries(
+      councilCards.map((entry) => [
+        entry.id,
+        entry.options.map((option) => `${option.id}${option.hidden === undefined ? '' : '*'}`),
+      ]),
+    );
+    expect(published).toEqual({
+      commonGranaryPlanks: ['cede', 'pay', 'keep'],
+      commonGranaryShare: ['share', 'reserve'],
+      commonGranaryOutcome: ['accept', 'leave'],
+      thawBridgePlea: ['timber', 'hire', 'postpone'],
+      thawBridgeSlab: ['piers*', 'plank', 'abandon'],
+      thawBridgeCrossing: ['feast', 'quiet'],
+      palisadePromisePlea: ['show', 'explain', 'promise'],
+      palisadePromiseDeadline: ['show', 'delay', 'withdraw'],
+      palisadePromiseReckoning: ['show', 'admit'],
+      collapsedWell: ['repair', 'dig', 'wait*'],
+      masonsMeal: ['feast', 'bread', 'refuse'],
+      sawmillRest: ['rest', 'sharpen*', 'keep'],
+      neighborsWatch: ['fires', 'vigil', 'wind*'],
+      moreMouths: ['host*', 'provide', 'close'],
+      springSeeds: ['sow*', 'buy*', 'fallow'],
+      springNews: ['cask', 'bells', 'fields'],
+      apprenticesTable: ['teach*', 'watch', 'harvest'],
+      fullGranary: ['share', 'firewood', 'keep'],
+      dampFirewood: ['sheds*', 'leave', 'split*'],
+      roofBeforeCold: ['build', 'hall', 'axes*'],
+      harvestFeast: ['feast', 'modest', 'store'],
+    });
+  });
+
   it('ids únicos, e toda opção com id único dentro da carta', () => {
     const ids = councilCards.map((entry) => entry.id);
     expect(new Set(ids).size).toBe(ids.length);

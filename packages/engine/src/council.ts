@@ -89,9 +89,17 @@ export function lowerFirst(text: string): string {
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
+/**
+ * As cartas da mesa que o catálogo ainda tem. Só elas ocupam lugar: a que o conteúdo deixou de
+ * ter (ele mudou com ela na mesa) ninguém vê nem pode responder, e sai calada no prazo dela.
+ */
+export function seatedCards(state: GameState, catalog: Catalog): PendingCard[] {
+  return state.council.pending.filter((entry) => cardOf(catalog, entry.cardId) !== null);
+}
+
 /** Quantas cartas ainda cabem entre as pendentes. */
-export function freeSeats(state: GameState): number {
-  return Math.max(0, rules.maxPending - state.council.pending.length);
+export function freeSeats(state: GameState, catalog: Catalog): number {
+  return Math.max(0, rules.maxPending - seatedCards(state, catalog).length);
 }
 
 /**
@@ -403,7 +411,7 @@ function resolveCard(
  * instante: a resposta que chega junto encontra a carta já decidida (`CARD_EXPIRED`).
  *
  * Uma carta que o catálogo já não tem (o conteúdo mudou com ela na mesa) sai sem efeito e sem
- * linha: não há o que aplicar nem o que dizer.
+ * linha: não há o que aplicar nem o que dizer. Até lá ela não ocupa lugar (`seatedCards`).
  */
 export function expireCards(
   draft: GameState,
@@ -502,7 +510,7 @@ export function deliverContinuations(
     }
     const entry = council.scheduled[index] as ScheduledCard;
     const card = cardOf(catalog, entry.cardId);
-    if (card !== null && freeSeats(draft) === 0) {
+    if (card !== null && freeSeats(draft, catalog) === 0) {
       return;
     }
     council.scheduled.splice(index, 1);
