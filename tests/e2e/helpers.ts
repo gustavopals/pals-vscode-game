@@ -3,6 +3,8 @@ import {
   type BrowserContext,
   expect,
   type Page,
+  type Request,
+  type Response,
   test as base,
 } from '@playwright/test';
 
@@ -27,6 +29,11 @@ export type World = {
    * Adianta o servidor e as páginas dadas, e espera cada página terminar o ciclo de atualização
    * que o salto dispara. Sem essa espera, um segundo salto pegaria a leitura ainda em voo, o
    * que no tempo de verdade não acontece.
+   *
+   * Antes de saltar, espera as chamadas que cada página ainda tem em voo (a leitura dos eventos
+   * que segue uma ordem, por exemplo: o resultado da ordem aparece na tela antes de ela
+   * terminar). E só conta como ciclo o que a página pediu depois do salto: a resposta de uma
+   * leitura anterior não diz que a página já viu o tempo passar, nem que renovou a sessão.
    */
   passTime(ms: number, ...pages: Page[]): Promise<void>;
   /** Como `passTime`, sem esperar o ciclo: para páginas sem sessão ou sem rede. */
@@ -94,6 +101,7 @@ export const test = base.extend<{ world: World }>({
           await watchFoundings(context);
           const page = await context.newPage();
           watch(page, world.problems);
+          inFlight(page);
           await page.clock.install({ time: new Date(Date.now() + world.offsetMs) });
           await page.goto(path);
           return page;
@@ -104,14 +112,17 @@ export const test = base.extend<{ world: World }>({
           await Promise.all(pages.map((page) => page.clock.fastForward(ms)));
         },
         passTime: async (ms, ...pages) => {
-          // Todo ciclo termina lendo os eventos novos.
-          const synced = pages.map((page) =>
-            page.waitForResponse(
-              (response) => /\/games\/[^/]+\/events/.test(response.url()) && response.ok(),
-            ),
-          );
-          await world.jump(ms, ...pages);
-          await Promise.all(synced);
+          await Promise.all(pages.map((page) => atRest(page, 'antes do salto')));
+          const cycles = pages.map(nextCycle);
+          await control('advance', { ms });
+          world.offsetMs += ms;
+          // Daqui em diante o servidor já está no instante novo: o que a página pedir é do salto.
+          for (const cycle of cycles) {
+            cycle.arm();
+          }
+          await Promise.all(pages.map((page) => page.clock.fastForward(ms)));
+          await Promise.all(cycles.map((cycle) => cycle.done));
+          await Promise.all(pages.map((page) => atRest(page, 'depois do ciclo')));
         },
       };
       await use(world);
@@ -131,6 +142,95 @@ function watch(page: Page, problems: string[]): void {
       problems.push(`CSP: ${text}`);
     }
   });
+}
+
+/** As chamadas à API que cada página fez e que ainda não terminaram. */
+const flights = new WeakMap<Page, Set<Request>>();
+
+/** Passa a acompanhar as chamadas de uma página à API; devolve as que estão em voo. */
+function inFlight(page: Page): Set<Request> {
+  const known = flights.get(page);
+  if (known !== undefined) {
+    return known;
+  }
+  const pending = new Set<Request>();
+  flights.set(page, pending);
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.startsWith('/v1/')) {
+      pending.add(request);
+    }
+  });
+  page.on('requestfinished', (request) => pending.delete(request));
+  page.on('requestfailed', (request) => pending.delete(request));
+  return pending;
+}
+
+/** Espera a página não ter chamada nenhuma à API em voo. */
+async function atRest(page: Page, when: string): Promise<void> {
+  const pending = inFlight(page);
+  await expect
+    .poll(() => [...pending].map((request) => `${request.method()} ${request.url()}`), {
+      message: `chamadas em voo ${when}`,
+      intervals: [5, 10, 25, 50, 100],
+    })
+    .toEqual([]);
+}
+
+/**
+ * O ciclo de atualização que um salto dispara em uma página: ela lê a visão e, em seguida, os
+ * eventos novos. Só conta o que a página pede depois de `arm()`, e a leitura dos eventos só
+ * conta se foi pedida depois da leitura da visão. A resposta de uma leitura que já estava em voo
+ * (a dos eventos que segue uma ordem) não é o ciclo: quem saísse daqui por ela encontraria a
+ * página ainda com o access token antigo, que o salto fez vencer.
+ */
+function nextCycle(page: Page): { arm(): void; done: Promise<void> } {
+  const views = new WeakSet<Request>();
+  const events = new WeakSet<Request>();
+  let armed = false;
+  let viewAsked = false;
+  let viewRead = false;
+  let eventsRead = false;
+  let finish = (): void => undefined;
+  const onRequest = (request: Request) => {
+    if (!armed) {
+      return;
+    }
+    const path = new URL(request.url()).pathname;
+    if (/\/games\/[^/]+\/view$/.test(path)) {
+      views.add(request);
+      viewAsked = true;
+    } else if (viewAsked && /\/games\/[^/]+\/events$/.test(path)) {
+      events.add(request);
+    }
+  };
+  const onResponse = (response: Response) => {
+    const request = response.request();
+    if (views.has(request) && response.status() < 400) {
+      // 200, ou 304 quando nada mudou. O 401 do token vencido não conta: a página renova a
+      // sessão e pede de novo.
+      viewRead = true;
+    } else if (events.has(request) && response.ok()) {
+      eventsRead = true;
+    }
+    if (viewRead && eventsRead) {
+      finish();
+    }
+  };
+  const done = new Promise<void>((resolve) => {
+    finish = () => {
+      page.off('request', onRequest);
+      page.off('response', onResponse);
+      resolve();
+    };
+  });
+  page.on('request', onRequest);
+  page.on('response', onResponse);
+  return {
+    arm: () => {
+      armed = true;
+    },
+    done,
+  };
 }
 
 export { expect };
@@ -230,7 +330,7 @@ export async function session(page: Page) {
 export async function pendingCards(page: Page, request: APIRequestContext): Promise<Card[]> {
   const { url, headers } = await session(page);
   const response = await request.get(`${url}/view`, { headers });
-  expect(response.ok(), 'leitura da visão').toBe(true);
+  expect(response.status(), 'leitura da visão').toBe(200);
   const body = (await response.json()) as { view: { council: { pending: Card[] } } };
   return body.view.council.pending;
 }
@@ -241,7 +341,7 @@ export async function gameEvents(page: Page, request: APIRequestContext): Promis
   const events: ServerEvent[] = [];
   for (let after = 0, more = true; more;) {
     const response = await request.get(`${url}/events?after=${after}`, { headers });
-    expect(response.ok(), 'leitura dos eventos').toBe(true);
+    expect(response.status(), 'leitura dos eventos').toBe(200);
     const page = (await response.json()) as {
       events: ServerEvent[];
       lastSeq: number;

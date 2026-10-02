@@ -356,6 +356,51 @@ test.describe('conselho', () => {
     });
   }
 
+  test('com a rede lenta, a resposta a uma carta não atropela a audiência seguinte', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await found(page);
+    const first = await nextAudience(world, request, [page]);
+    await councilTab(page).click();
+
+    // A leitura dos eventos que segue toda ordem chega devagar, e a renovação da sessão, mais
+    // devagar ainda. A resposta aparece na tela antes de essa leitura terminar; oito horas
+    // depois o access token já venceu, e a página só o troca no ciclo que o salto dispara.
+    await context.route('**/v1/games/*/events*', async (route) => {
+      const response = await route.fetch();
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await route.fulfill({ response });
+    });
+    await context.route('**/v1/auth/refresh', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      await route.continue();
+    });
+    await sheet(page, first)
+      .getByRole('button', { name: first.defaultOptionLabel, exact: true })
+      .click();
+    await expect(sheet(page, first)).toHaveCount(0);
+
+    // O salto espera a leitura em voo e o ciclo inteiro: a sessão renovada, a visão e os eventos.
+    // A carta nova está na mesa, na tela e no servidor, e a resposta dada foi contada uma vez só.
+    const second = await nextAudience(world, request, [page], [first]);
+    expect(second.instanceId).not.toBe(first.instanceId);
+    await expect(sheet(page, second)).toBeVisible();
+    await expect(statusBar(page)).toContainText('1 decisão pendente');
+    const answered = (await gameEvents(page, request)).filter(
+      (event) => event.type === 'cardAnswered',
+    );
+    expect(answered.map((event) => event.data.instanceId)).toEqual([first.instanceId]);
+    await expect(
+      record(page)
+        .getByRole('listitem')
+        .filter({ hasText: answered[0]?.text ?? '' }),
+    ).toHaveCount(1);
+    await expect(toasts(page).getByRole('alert')).toHaveCount(0);
+  });
+
   test('em 720 px a carta cabe: as opções descem uma embaixo da outra, sem rolagem lateral', async ({
     context,
     request,
