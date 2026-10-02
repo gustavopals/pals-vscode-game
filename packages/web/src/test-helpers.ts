@@ -1,12 +1,13 @@
 import { memoryTokenStore, type TokenStore } from '@lotg/client-sdk';
-import type {
-  Account,
-  CatalogResponse,
-  Command,
-  CreateGameRequest,
-  GameEvent,
-  GameSummary,
-  ViewState,
+import {
+  type Account,
+  type CatalogResponse,
+  CHRONICLE_HIDDEN_EVENT_TYPES,
+  type Command,
+  type CreateGameRequest,
+  type GameEvent,
+  type GameSummary,
+  type ViewState,
 } from '@lotg/protocol';
 
 import golden from '../../engine/src/__golden__/view-seed-pedra-alta.json';
@@ -24,6 +25,175 @@ import { memoryStore } from './services/store';
 /** O `ViewState` de exemplo dos testes: o golden do motor (importar `@lotg/engine` é barrado). */
 export const goldenView = golden.afterFirstAllocation as unknown as ViewState;
 export const initialView = golden.initial as unknown as ViewState;
+/** O outono a quatro horas do inverno, com lenha que não chega: a conta vem em `nextSeason`. */
+export const autumnView = golden.autumnBeforeWinter as unknown as ViewState;
+/** O inverno sem madeira nenhuma: o frio. */
+export const coldView = golden.winterCold as unknown as ViewState;
+
+/** O feudo empobrecido (GDD §5.7): fome longa, frio, moral 0 e os 3 aldeões que o piso segura. */
+export const impoverishedView = golden.impoverished as unknown as ViewState;
+/** O feudo orgulhoso: moral 80 por um efeito passageiro, com colono a caminho de chegar. */
+export const proudView = golden.proud as unknown as ViewState;
+
+/**
+ * O mesmo inverno com a lareira acesa: `stock` de madeira no estoque, `missing` faltando para
+ * chegar à primavera e `depletesInSeconds` para a madeira acabar. O motor é quem faz essas
+ * contas; aqui os números são postos à mão para o app mostrar cada caso.
+ */
+export function winterWith(firewood: {
+  stock: number;
+  missing: number;
+  depletesInSeconds: number | null;
+}): ViewState {
+  const { winter } = coldView;
+  if (winter === null) {
+    throw new Error('O golden `winterCold` deixou de ser um inverno.');
+  }
+  return {
+    ...coldView,
+    winter: {
+      ...winter,
+      cold: null,
+      firewood: {
+        ...winter.firewood,
+        stock: firewood.stock,
+        missing: firewood.missing,
+        text:
+          firewood.missing > 0
+            ? `Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há ${firewood.stock} em estoque: faltam ${firewood.missing} de madeira.`
+            : 'Até a Primavera a lareira ainda queima 149 de madeira. O estoque e a Serraria dão conta.',
+      },
+    },
+    resources: coldView.resources.map((row) =>
+      row.id === 'wood'
+        ? { ...row, stock: firewood.stock, depletesInSeconds: firewood.depletesInSeconds }
+        : row,
+    ),
+  };
+}
+
+/**
+ * O feudo com o Salão do Senhor no nível 2: o Celeiro e o Armazém já podem ser erguidos, e só
+ * faltam recursos para isso.
+ */
+export const unlockedView = golden.afterObjectivesScenario as unknown as ViewState;
+
+type ResourceRow = ViewState['resources'][number];
+type UpgradeRow = ViewState['constructions']['available'][number];
+
+/**
+ * A mesma visão com campos de um recurso trocados. Limite, "cheio em" e desperdício são contas
+ * do motor; aqui os números são postos à mão para o app mostrar cada caso.
+ */
+export function withResource(
+  view: ViewState,
+  id: ResourceRow['id'],
+  patch: Partial<ResourceRow>,
+): ViewState {
+  return {
+    ...view,
+    resources: view.resources.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+  };
+}
+
+/** A mesma visão com campos de uma obra disponível trocados (bloqueio, custo, efeito). */
+export function withUpgrade(
+  view: ViewState,
+  building: UpgradeRow['building'],
+  patch: Partial<UpgradeRow>,
+): ViewState {
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      available: view.constructions.available.map((upgrade) =>
+        upgrade.building === building ? { ...upgrade, ...patch } : upgrade,
+      ),
+    },
+  };
+}
+
+/**
+ * Um feudo com um ofício em cada situação (GDD §5.3 e §5.4): a Fazenda com dois em adaptação e a
+ * experiência subindo, a Serraria com o ofício dominado, a Pedreira com gente de menos para o
+ * nível (um deles em adaptação) e a Mina de Ouro vazia, perdendo o ofício.
+ */
+export const craftsView = golden.crafts as unknown as ViewState;
+
+type Constructions = ViewState['constructions'];
+type QueueRow = Constructions['queues'][number];
+type PlannedRow = Constructions['planned'][number];
+
+/**
+ * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera
+ * (obra anterior do edifício, fila, recurso, depósito e nível de outro edifício).
+ */
+export const queuesView = golden.queuesAndPlans as unknown as ViewState;
+
+/** Uma obra em curso, como a visão a traz, para os testes porem em uma fila. */
+export function activeConstruction(
+  patch: Partial<NonNullable<QueueRow>> = {},
+): NonNullable<QueueRow> {
+  return {
+    building: 'lumberMill',
+    label: 'Serraria',
+    targetLevel: 2,
+    secondsRemaining: 2520,
+    totalSeconds: 3000,
+    progressPercent: 16,
+    refund: [
+      { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
+      { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+    ],
+    ...patch,
+  };
+}
+
+/**
+ * A mesma visão com estas filas de obras: uma entrada por fila aberta, `null` para a livre.
+ * `active` acompanha, como no motor: é a primeira obra em curso. Com uma fila só, a frase do que
+ * abre a segunda continua na visão.
+ */
+export function withQueues(view: ViewState, queues: QueueRow[]): ViewState {
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      queues,
+      active: queues.find((queue) => queue !== null) ?? null,
+      queuesUnlocked: queues.length,
+      queuesNote: queues.length > 1 ? null : initialView.constructions.queuesNote,
+    },
+  };
+}
+
+/**
+ * A mesma visão com estas obras na lista de planejadas, na ordem dada. O orçamento de cada uma é
+ * o da obra disponível do mesmo edifício; a marca e a espera são as do teste.
+ */
+export function withPlanned(
+  view: ViewState,
+  plans: Array<Pick<PlannedRow, 'building'> & Partial<Pick<PlannedRow, 'autoStart' | 'waiting'>>>,
+): ViewState {
+  const planned = plans.map(({ building, autoStart = false, waiting = null }) => {
+    const upgrade = view.constructions.available.find((entry) => entry.building === building);
+    if (upgrade === undefined) {
+      throw new Error(`A visão não oferece a obra de ${building}.`);
+    }
+    return { ...upgrade, planned: true, autoStart, waiting };
+  });
+  const names = new Set(planned.map((plan) => plan.building));
+  return {
+    ...view,
+    constructions: {
+      ...view.constructions,
+      planned,
+      available: view.constructions.available.map((upgrade) =>
+        names.has(upgrade.building) ? { ...upgrade, planned: true } : upgrade,
+      ),
+    },
+  };
+}
 
 export const ACCOUNT_ID = '11111111-1111-4111-8111-111111111111';
 export const GAME_ID = '22222222-2222-4222-8222-222222222222';
@@ -263,9 +433,14 @@ export function fakeApi() {
       return json({ events, lastSeq: events.at(-1)?.seq ?? after, hasMore: false });
     }
     if (resource === 'chronicle') {
-      // Como no servidor: as viradas de dia não entram na Crônica (ADR 0007).
+      // Como no servidor: as viradas de dia e o fecho diário do desperdício não entram na
+      // Crônica (ADRs 0007 e 0015).
       return json({
-        entries: state.events.filter((event) => event.type !== 'dayStarted').slice(-20),
+        entries: state.events
+          .filter(
+            (event) => !(CHRONICLE_HIDDEN_EVENT_TYPES as readonly string[]).includes(event.type),
+          )
+          .slice(-20),
       });
     }
     if (resource === 'chronicle.md') {

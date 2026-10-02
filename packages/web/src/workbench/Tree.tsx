@@ -6,6 +6,12 @@ import { flattenTree, type TreeRow, treeKey } from './treeNav';
 
 type RowAction = { label: string; text: string; command: string; key?: string };
 
+/** A dica do botão: o nome dele e, quando a linha informa, o que a ordem custa ou rende. */
+export function actionTitle(node: TreeNode, action: Pick<RowAction, 'label' | 'command'>): string {
+  const hint = node.actionHints?.[action.command];
+  return hint === undefined ? action.label : `${action.label} (${hint})`;
+}
+
 /** As ordens de um item saem destes botões, nunca do clique na linha. */
 export function rowActions(node: TreeNode): RowAction[] {
   switch (node.contextValue) {
@@ -26,12 +32,32 @@ export function rowActions(node: TreeNode): RowAction[] {
       ];
     case 'lords.upgrade':
       return [{ label: `Melhorar: ${node.label}`, text: 'Melhorar', command: 'lords.build' }];
+    case 'lords.newBuilding':
+      // O edifício ainda não existe: a linha já se chama "Construir: Celeiro".
+      return [{ label: node.label, text: 'Construir', command: 'lords.build' }];
     case 'lords.activeConstruction':
       return [
         {
           label: `Cancelar a obra: ${node.label}`,
           text: 'Cancelar',
           command: 'lords.cancelConstruction',
+        },
+      ];
+    case 'lords.plannedManual':
+      // A marca "iniciar quando houver recursos" a um clique: o botão diz o que ele faz.
+      return [
+        {
+          label: `Iniciar quando houver recursos: ${node.label}`,
+          text: 'Iniciar sozinha',
+          command: 'lords.toggleAutoStart',
+        },
+      ];
+    case 'lords.plannedAuto':
+      return [
+        {
+          label: `Esperar a sua ordem: ${node.label}`,
+          text: 'Esperar ordem',
+          command: 'lords.toggleAutoStart',
         },
       ];
     default:
@@ -165,7 +191,8 @@ export function Tree(props: {
                   key={action.command}
                   type="button"
                   aria-label={action.label}
-                  title={action.label}
+                  // A dica traz o que a ordem custa ou rende, quando a linha o informa.
+                  title={actionTitle(node, action)}
                   disabled={props.readOnly}
                   // Só a linha em foco põe os seus botões na ordem do Tab.
                   tabIndex={focused ? 0 : -1}

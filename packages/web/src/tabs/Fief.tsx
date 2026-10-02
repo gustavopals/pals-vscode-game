@@ -1,10 +1,10 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import type { Actions } from '../components/actions';
-import { FamineBanner, OfflineBanner } from '../components/Banners';
+import { ColdBanner, FamineBanner, FirewoodNote, OfflineBanner } from '../components/Banners';
 import { ConstructionsPanel } from '../components/ConstructionsPanel';
 import { Header } from '../components/Header';
-import { ChroniclePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
+import { ChroniclePanel, MoralePanel, ObjectivesPanel, RecruitPanel } from '../components/Panels';
 import { ResourcesTable } from '../components/ResourcesTable';
 import { WorkersPanel } from '../components/WorkersPanel';
 
@@ -30,16 +30,21 @@ export function FiefTab(props: {
         retryInSeconds={props.retryInSeconds}
         actions={actions}
       />
-      <FamineBanner famine={view.famine} />
+      <FamineBanner famine={view.famine} notes={view.morale.notes} />
+      <ColdBanner winter={view.winter} />
+      <FirewoodNote view={view} />
       <div class="fief">
         <div class="column">
-          <ResourcesTable resources={view.resources} />
+          <ResourcesTable view={view} disabled={disabled} actions={actions} />
           <WorkersPanel
             workers={view.workers}
+            rules={view.workersRules}
             population={view.population}
+            elapsed={elapsed}
             disabled={disabled}
             actions={actions}
           />
+          <MoralePanel morale={view.morale} elapsed={elapsed} />
           <RecruitPanel
             recruitment={view.recruitment}
             population={view.population}

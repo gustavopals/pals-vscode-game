@@ -18,7 +18,7 @@ export function IconText(props: { text: string }) {
 
 /**
  * A barra de status: uma linha, uma prioridade (GDD §13.5), calculada por `statusBar`. O clique
- * leva à aba correspondente.
+ * leva à aba do assunto que está na linha.
  */
 export function StatusBar(props: {
   input: StatusBarInput;
@@ -29,8 +29,13 @@ export function StatusBar(props: {
   const { input } = props;
   const status = statusBar(input);
   const offline = input.signedIn && input.connection.kind === 'offline';
-  const famine = input.signedIn && !input.discreetMode && !offline && input.view?.famine != null;
-  const tone = offline && !input.discreetMode ? ' status-offline' : famine ? ' status-warning' : '';
+  // A fome e o frio pedem atenção com o mesmo destaque; o que os distingue é o ícone e o texto.
+  const tone =
+    offline && !input.discreetMode
+      ? ' status-offline'
+      : status.alarm === true
+        ? ' status-warning'
+        : '';
   return (
     <footer class="statusbar" aria-label="Barra de status">
       <div class="statusbar-group">
@@ -39,7 +44,8 @@ export function StatusBar(props: {
           class={`status-main${tone}`}
           title={status.tooltip}
           onClick={() =>
-            props.onCommand(input.signedIn ? 'lords.openPanel' : 'lords.playNow', undefined)
+            // O assunto da linha diz a aba: as decisões esperam em Hoje; o depósito, no feudo.
+            props.onCommand(input.signedIn ? 'lords.openPanel' : 'lords.playNow', status.target)
           }
         >
           <IconText text={status.text} />

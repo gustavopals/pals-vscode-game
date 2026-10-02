@@ -27,8 +27,19 @@ import {
   type SessionTarget,
 } from '../game/gameSession';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
+import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
-import { decideNotifications, isEssential, MUTE_DURATION_MS } from '../notifications/policy';
+import {
+  decideNotice,
+  decideNotifications,
+  eventIcon,
+  isEssential,
+  isSeasonTurn,
+  MUTE_DURATION_MS,
+  SEASON_ICON,
+  seasonAhead,
+  seasonArrival,
+} from '../notifications/policy';
 import { loadPreferences, type Preferences, savePreferences } from '../services/preferences';
 import { Emitter, type KeyValueStore } from '../services/store';
 import type { TabChange } from '../services/tabSync';
@@ -79,7 +90,11 @@ export type ToastAction = { label: string; run: () => void | Promise<void> };
 export type Toast = {
   id: number;
   kind: 'info' | 'warning' | 'error';
+  /** Codicon próprio do aviso; sem ele, vale o do tom. */
+  icon?: string;
   text: string;
+  /** Frases que detalham o aviso, uma por linha (o que muda na virada de estação). */
+  details?: string[];
   actions: ToastAction[];
   /** Avisos sem botões somem sozinhos; os com botões esperam o jogador. */
   sticky: boolean;
@@ -150,6 +165,14 @@ export class Controller {
   runCommand: (id: string, ...args: unknown[]) => void = () => {};
 
   private notificationHistory: number[] = [];
+  /**
+   * O que muda na chegada de cada estação, guardado enquanto ela ainda é a próxima
+   * (`calendar.nextSeason.changes`): depois da virada a visão já fala da estação seguinte, e o
+   * aviso da virada repete estas frases.
+   */
+  private seasonChanges = new Map<string, string[]>();
+  /** O aviso de uma hora antes que está à vista: sai de cena quando a estação vira. */
+  private seasonToast: { id: number; key: string } | null = null;
   private previousAccount: AccountState = { kind: 'signedOut' };
   private subscriptions: Array<() => void> = [];
   private warnedUpgrade = false;
@@ -447,6 +470,8 @@ export class Controller {
       this.chronicleDocument = { status: 'idle' };
       this.report = null;
       this.unseen = 0;
+      this.seasonChanges.clear();
+      this.dropSeasonToast();
       await this.openGame();
     }
     if (state.kind === 'signedOut') {
@@ -497,17 +522,79 @@ export class Controller {
 
   private viewChanged(): void {
     this.viewReceivedAt = this.now();
+    const view = this.view;
+    if (view !== null) {
+      const { id, changes } = view.calendar.nextSeason;
+      this.seasonChanges.set(id, changes);
+    }
     this.changes.emit();
+    this.warnOfSeasonAhead();
     void this.maybeRemindToLink();
   }
 
+  /**
+   * O aviso de uma hora antes da virada de estação (GDD §13.5): o que muda, nas frases do
+   * servidor, e o caminho para a aba Hoje, onde "Antes de partir" diz o que preparar. É um por
+   * virada (a marca fica guardada com o cache da partida) e segue a política dos outros avisos:
+   * nível, silêncio de 2 horas, limite por hora e modo discreto. Só uma visão lida do servidor
+   * nesta abertura conta: a guardada pode ter horas, e o prazo dela já não vale.
+   */
+  private warnOfSeasonAhead(): void {
+    const { view, session } = this;
+    if (view === null || !session.live) {
+      return;
+    }
+    const notice = seasonAhead(view, { now: this.viewReceivedAt, timeZone: this.timezone() });
+    if (this.seasonToast !== null && this.seasonToast.key !== notice?.key) {
+      // A estação anunciada já chegou: "à vista" deixou de ser verdade.
+      this.dropSeasonToast();
+    }
+    if (notice === null || session.seasonWarned === notice.key) {
+      return;
+    }
+    const decision = decideNotice({
+      level: this.preferences.notifications,
+      discreetMode: this.preferences.discreetMode,
+      mutedUntil: this.preferences.mutedUntil,
+      now: this.now(),
+      history: this.notificationHistory,
+    });
+    if (decision.outcome === 'skip') {
+      // Nada foi dito: se o jogador ligar os avisos ainda dentro da hora, este chega.
+      return;
+    }
+    this.notificationHistory = decision.history;
+    void session.markSeasonWarned(notice.key);
+    if (decision.outcome === 'badge') {
+      this.unseen += 1;
+      this.changes.emit();
+      return;
+    }
+    const id = this.announce({
+      kind: notice.kind,
+      icon: SEASON_ICON,
+      text: notice.text,
+      details: notice.details,
+      see: 'today',
+    });
+    this.seasonToast = { id, key: notice.key };
+  }
+
+  private dropSeasonToast(): void {
+    if (this.seasonToast !== null) {
+      this.dismissToast(this.seasonToast.id);
+      this.seasonToast = null;
+    }
+  }
+
   private eventsArrived(events: GameEvent[]): void {
-    // As viradas de dia provam que o mundo andou, mas não entram na Crônica (ADR 0007).
-    this.chronicle = [...this.chronicle, ...events.filter((event) => event.type !== 'dayStarted')]
+    // As viradas de dia provam que o mundo andou e o fecho diário do desperdício dá o total ao
+    // Relatório, mas nenhum dos dois é linha da Crônica (ADRs 0007 e 0015).
+    this.chronicle = [...this.chronicle, ...events.filter(isChronicleEvent)]
       .filter((event, index, all) => all.findIndex((other) => other.seq === event.seq) === index)
       .slice(-CHRONICLE_LINES);
-    // Um lote só de viradas de dia não muda a Crônica: não há por que baixá-la de novo.
-    const changesChronicle = events.some((event) => event.type !== 'dayStarted');
+    // Um lote só desses eventos não muda a Crônica: não há por que baixá-la de novo.
+    const changesChronicle = events.some(isChronicleEvent);
     if (changesChronicle && this.chronicleDocument.status === 'ready') {
       // A Crônica aberta ficou para trás: a próxima visita à aba a lê de novo.
       this.chronicleDocument = { status: 'idle' };
@@ -528,6 +615,8 @@ export class Controller {
       mutedUntil: this.preferences.mutedUntil,
       now: this.now(),
       history: this.notificationHistory,
+      // A visão chega antes dos eventos: a estação dela é a que vale agora.
+      season: this.view?.calendar.season ?? null,
     });
     this.notificationHistory = decision.history;
     this.unseen += decision.badge;
@@ -537,13 +626,40 @@ export class Controller {
     this.changes.emit();
   }
 
-  /** Um aviso que a política liberou: no canto da página e, se pedido, pelo navegador. */
+  /** Um evento que a política liberou vira aviso, com a frase da Crônica que veio nele. */
   private notify(event: GameEvent): void {
-    this.toast({
+    // A virada de estação repete o que muda, como o aviso de uma hora antes.
+    const details = isSeasonTurn(event)
+      ? seasonArrival(event, this.seasonChanges.get(String(event.data.season)), this.view)
+      : [];
+    this.announce({
       kind: isEssential(event) ? 'warning' : 'info',
+      icon: eventIcon(event),
       text: event.text,
+      details,
+      see: 'fief',
+    });
+  }
+
+  /**
+   * Um aviso do jogo: no canto da página, com "Ver" e "Silenciar 2h", e, com a aba em segundo
+   * plano, no contador do título e (se o jogador pediu) pelo navegador.
+   */
+  private announce(notice: {
+    kind: Toast['kind'];
+    icon: string | undefined;
+    text: string;
+    details: string[];
+    /** A aba a que "Ver" leva. */
+    see: 'today' | 'fief';
+  }): number {
+    const id = this.toast({
+      kind: notice.kind,
+      icon: notice.icon,
+      text: notice.text,
+      details: notice.details,
       actions: [
-        { label: 'Ver', run: () => this.navigate('fief') },
+        { label: 'Ver', run: () => this.navigate(notice.see) },
         {
           label: 'Silenciar 2h',
           run: () => {
@@ -557,9 +673,13 @@ export class Controller {
       this.unseen += 1;
       const notifier = this.options.notifier;
       if (this.preferences.browserNotifications && notifier?.granted()) {
-        notifier.show(this.view?.settlement.name ?? APP_NAME, event.text);
+        notifier.show(
+          this.view?.settlement.name ?? APP_NAME,
+          [notice.text, ...notice.details].join(' '),
+        );
       }
     }
+    return id;
   }
 
   private connectionChanged(connection: Connection): void {
@@ -650,13 +770,28 @@ export class Controller {
   // --- Avisos --------------------------------------------------------------------
 
   /** Mostra um aviso no canto. Um aviso igual a um que já está à vista o substitui. */
-  toast(input: { kind: Toast['kind']; text: string; actions?: ToastAction[] }): number {
+  toast(input: {
+    kind: Toast['kind'];
+    text: string;
+    actions?: ToastAction[];
+    icon?: string | undefined;
+    details?: string[];
+  }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
     const actions = input.actions ?? [];
+    const details = input.details ?? [];
     this.toasts = [
       ...this.toasts.filter((toast) => toast.text !== input.text),
-      { id, kind: input.kind, text: input.text, actions, sticky: actions.length > 0 },
+      {
+        id,
+        kind: input.kind,
+        ...(input.icon === undefined ? {} : { icon: input.icon }),
+        text: input.text,
+        ...(details.length === 0 ? {} : { details }),
+        actions,
+        sticky: actions.length > 0,
+      },
     ].slice(-4);
     this.changes.emit();
     return id;

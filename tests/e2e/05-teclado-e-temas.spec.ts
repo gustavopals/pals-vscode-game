@@ -1,11 +1,22 @@
 import { type Page } from '@playwright/test';
 
-import { expect, fief, HOUR, MINUTE, playNow, statusBar, test, toasts, tree } from './helpers';
+import {
+  applyTheme,
+  expect,
+  fief,
+  HOUR,
+  lowContrast,
+  MINUTE,
+  playNow,
+  statusBar,
+  test,
+  THEMES,
+  toasts,
+  tree,
+} from './helpers';
 
 // Critério 9 (GDD §16.1): temas claro, escuro e de alto contraste; navegável por teclado,
 // inclusive a paleta de comandos.
-
-const THEMES = ['dark', 'light', 'high-contrast'] as const;
 
 /** Onde está o foco: a região da bancada e o que identifica o elemento. */
 const focusInfo = (page: Page) =>
@@ -97,6 +108,9 @@ test.describe('teclado', () => {
     await page.keyboard.press('ArrowLeft');
     expect(await focused()).toBe('fief');
     await page.keyboard.press('End');
+    expect(await focused()).toBe('morale');
+    // A moral é uma folha, a última linha do feudo: a seta para cima volta às Construções.
+    await page.keyboard.press('ArrowUp');
     expect(await focused()).toBe('constructions');
     // Seta para a direita abre o ramo e, de novo, entra nele.
     await page.keyboard.press('ArrowRight');
@@ -221,7 +235,7 @@ test.describe('teclado', () => {
     await page.keyboard.press('Enter');
     await expect(objectives.getByText('Cumprido: Inicie a melhoria das Habitações')).toBeAttached();
 
-    // 3. Recrute 3 aldeões (20 minutos cada).
+    // 3. Recrute 3 aldeões (16 minutos cada, na primavera).
     await command(page, 'recrutar');
     await page.keyboard.type('3');
     await page.keyboard.press('Enter');
@@ -257,74 +271,6 @@ test.describe('teclado', () => {
 });
 
 test.describe('temas', () => {
-  /** Contraste de todo texto visível contra o fundo que ele realmente tem (WCAG 2.x). */
-  const lowContrast = (page: Page) =>
-    page.evaluate(() => {
-      type Rgb = [number, number, number, number];
-      const parse = (value: string): Rgb => {
-        const parts = value.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0, 0];
-        return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0, parts[3] ?? 1];
-      };
-      const over = (top: Rgb, bottom: Rgb): Rgb => [
-        top[0] * top[3] + bottom[0] * (1 - top[3]),
-        top[1] * top[3] + bottom[1] * (1 - top[3]),
-        top[2] * top[3] + bottom[2] * (1 - top[3]),
-        1,
-      ];
-      const luminance = ([r, g, b]: Rgb) => {
-        const channel = (value: number) => {
-          const unit = value / 255;
-          return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
-        };
-        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-      };
-      const background = (element: Element): Rgb => {
-        const layers: Rgb[] = [];
-        for (let node: Element | null = element; node !== null; node = node.parentElement) {
-          const color = parse(getComputedStyle(node).backgroundColor);
-          if (color[3] > 0) {
-            layers.push(color);
-            if (color[3] === 1) {
-              break;
-            }
-          }
-        }
-        return layers.reduceRight<Rgb>((below, layer) => over(layer, below), [255, 255, 255, 1]);
-      };
-      const failures: string[] = [];
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
-        const element = node.parentElement;
-        const text = node.textContent?.trim() ?? '';
-        if (element === null || text === '') {
-          continue;
-        }
-        const style = getComputedStyle(element);
-        const box = element.getBoundingClientRect();
-        const disabled = element.closest(':disabled') !== null;
-        if (
-          disabled ||
-          element.closest('.sr-only') !== null ||
-          box.width === 0 ||
-          box.height === 0 ||
-          style.visibility === 'hidden'
-        ) {
-          continue;
-        }
-        const back = background(element);
-        const fore = over(parse(style.color), back);
-        const [light, dark] = [luminance(fore), luminance(back)].sort((a, b) => b - a) as [
-          number,
-          number,
-        ];
-        const ratio = (light + 0.05) / (dark + 0.05);
-        if (ratio < 4.5) {
-          failures.push(`${ratio.toFixed(2)} "${text.slice(0, 30)}" <${element.className}>`);
-        }
-      }
-      return [...new Set(failures)];
-    });
-
   /** Todo controle tem nome acessível. */
   const unnamed = (page: Page) =>
     page.evaluate(() => {
@@ -359,17 +305,8 @@ test.describe('temas', () => {
       });
       await testInfo.attach(`${theme}-${screen}.png`, { body: image, contentType: 'image/png' });
     };
-    const applyTheme = async (theme: string) => {
-      await page.evaluate((chosen) => {
-        const saved = JSON.parse(localStorage.getItem('lords.preferences') ?? '{}') as object;
-        localStorage.setItem('lords.preferences', JSON.stringify({ ...saved, theme: chosen }));
-      }, theme);
-      await page.reload();
-      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-    };
-
     for (const theme of THEMES) {
-      await applyTheme(theme);
+      await applyTheme(page, theme);
       await expect(page.getByRole('tabpanel', { name: 'Boas-vindas' })).toBeVisible();
       // Com as opções de dificuldade e ritmo já na tela: é com elas que o contraste é medido.
       await expect(page.getByRole('radiogroup', { name: 'Ritmo' })).toBeVisible();
@@ -388,7 +325,7 @@ test.describe('temas', () => {
     await expect(fief(page).locator('.active-construction')).toBeVisible();
 
     for (const theme of THEMES) {
-      await applyTheme(theme);
+      await applyTheme(page, theme);
       await expect(fief(page).locator('.active-construction')).toBeVisible();
       expect(await lowContrast(page), `contraste no Feudo, tema ${theme}`).toEqual([]);
       expect(await unnamed(page), `rótulos no Feudo, tema ${theme}`).toEqual([]);

@@ -4,7 +4,11 @@ import { THEME_LABELS } from '../theme/theme';
 
 const LEVELS: Array<{ value: NotificationLevel; label: string; hint: string }> = [
   { value: 'silent', label: 'Silencioso', hint: 'nenhum aviso' },
-  { value: 'essential', label: 'Essenciais', hint: 'só o que pede ação, como a fome' },
+  {
+    value: 'essential',
+    label: 'Essenciais',
+    hint: 'só o que pede ação, como a fome, o frio e a gente que vai embora',
+  },
   { value: 'all', label: 'Todos', hint: 'também obras, aldeões e objetivos concluídos' },
 ];
 

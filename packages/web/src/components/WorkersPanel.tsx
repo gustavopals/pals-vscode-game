@@ -1,18 +1,84 @@
 import type { ViewState } from '@lotg/protocol';
 
+import {
+  adaptationLine,
+  experienceNeedsAttention,
+  experienceSummary,
+  experienceTrendWord,
+  isMastered,
+  nextWorkerGain,
+  workersCount,
+} from '../ui/workers';
 import type { Actions } from './actions';
-import { formatNumber } from './format';
-import { Explained } from './shared';
+import { formatCountdown, formatNumber } from './format';
+import { Explained, Icon } from './shared';
 
 type Row = ViewState['workers'][number];
+type Rules = ViewState['workersRules'];
+
+const TREND_ICONS: Record<Row['experienceTrend'], string | null> = {
+  rising: 'arrow-up',
+  steady: null,
+  falling: 'arrow-down',
+};
+
+/**
+ * A experiência do ofício de um edifício (GDD §5.3): o número com a explicação, a barra e o que
+ * ela rende. A palavra diz para onde vai ("subindo", "caindo"); o ícone só acompanha.
+ */
+function Craft(props: { row: Row; rules: Rules }) {
+  const { row, rules } = props;
+  const icon = TREND_ICONS[row.experienceTrend];
+  return (
+    <span class="worker-craft">
+      {icon === null ? null : <Icon name={icon} />}{' '}
+      {/*
+        O porquê da tendência deste edifício e, em seguida, a regra geral. Quando a frase do
+        edifício já está à vista na linha (pede uma ação), a explicação é só a regra.
+      */}
+      <Explained
+        why={
+          experienceNeedsAttention(row, rules)
+            ? rules.experienceText
+            : `${row.experienceNote} ${rules.experienceText}`
+        }
+      >
+        {experienceSummary(row, rules)}
+      </Explained>
+      <progress
+        class="craft-bar"
+        max={rules.experienceMax}
+        value={row.experience}
+        aria-label={`Experiência do ofício em ${row.label}: ${formatNumber(row.experience)} de ${formatNumber(rules.experienceMax)}`}
+      />
+    </span>
+  );
+}
+
+/** O que os leitores de tela ouvem ao chegar à linha: o mesmo que a linha mostra. */
+function rowLabel(row: Row, rules: Rules): string {
+  const trend = experienceTrendWord(row);
+  return [
+    `${row.label} nível ${row.level}: ${workersCount(row.assigned)}, ${formatNumber(row.grossPerHour)} por hora`,
+    row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+    isMastered(row, rules)
+      ? 'ofício dominado'
+      : `experiência ${formatNumber(row.experience)} de ${formatNumber(rules.experienceMax)}${trend === null ? '' : `, ${trend}`}`,
+  ]
+    .filter((part) => part !== null)
+    .join('; ');
+}
 
 export function WorkersPanel(props: {
   workers: ViewState['workers'];
+  rules: Rules;
   population: ViewState['population'];
+  /** Segundos desde que a visão chegou: a contagem da adaptação desce com o relógio da página. */
+  elapsed: number;
   disabled: boolean;
   actions: Actions;
 }) {
-  const { workers, population, disabled, actions } = props;
+  const { workers, rules, population, elapsed, disabled, actions } = props;
   const set = (row: Row, count: number) => {
     if (!disabled && count >= 0 && count <= row.assigned + population.free) {
       actions.order('setWorkers', { building: row.building, count });
@@ -45,44 +111,71 @@ export function WorkersPanel(props: {
           : `${population.free} ${population.free === 1 ? 'aldeão livre' : 'aldeões livres'}.`}{' '}
         Use + e − no teclado.
       </p>
+      {/* O custo da troca fica à vista antes de qualquer clique: as duas frases são do servidor. */}
+      <p class="muted hint craft-rules">
+        {rules.adaptationText} {rules.removalText}
+      </p>
       <ul class="workers">
-        {workers.map((row) => (
-          <li
-            key={row.building}
-            class="worker"
-            tabIndex={0}
-            onKeyDown={onKeyDown(row)}
-            aria-label={`${row.label} nível ${row.level}: ${row.assigned} trabalhadores, ${formatNumber(row.grossPerHour)} por hora`}
-          >
-            <span class="worker-name">
-              {row.label} <span class="muted">Nv{row.level}</span>
-            </span>
-            <span class="stepper">
-              <button
-                type="button"
-                aria-label={`Tirar um trabalhador de ${row.label}`}
-                disabled={disabled || row.assigned === 0}
-                onClick={() => set(row, row.assigned - 1)}
-              >
-                −
-              </button>
-              <span class="count" aria-hidden="true">
-                {row.assigned}
+        {workers.map((row) => {
+          const adapting = adaptationLine(row, elapsed, formatCountdown);
+          const gainId = `worker-gain-${row.building}`;
+          return (
+            <li
+              key={row.building}
+              class="worker"
+              tabIndex={0}
+              onKeyDown={onKeyDown(row)}
+              aria-label={rowLabel(row, rules)}
+            >
+              <span class="worker-name">
+                {row.label} <span class="muted">Nv{row.level}</span>
               </span>
-              <button
-                type="button"
-                aria-label={`Pôr mais um trabalhador em ${row.label}`}
-                disabled={disabled || population.free === 0}
-                onClick={() => set(row, row.assigned + 1)}
-              >
-                +
-              </button>
-            </span>
-            <span class="num rate">
-              <Explained why={row.breakdown}>{formatNumber(row.grossPerHour)}/h</Explained>
-            </span>
-          </li>
-        ))}
+              <span class="stepper">
+                <button
+                  type="button"
+                  aria-label={`Tirar um trabalhador de ${row.label}`}
+                  disabled={disabled || row.assigned === 0}
+                  onClick={() => set(row, row.assigned - 1)}
+                >
+                  −
+                </button>
+                <span class="count" aria-hidden="true">
+                  {row.assigned}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Pôr mais um trabalhador em ${row.label}`}
+                  // O que o clique custa e rende: a mesma frase que a linha mostra.
+                  aria-describedby={gainId}
+                  disabled={disabled || population.free === 0}
+                  onClick={() => set(row, row.assigned + 1)}
+                >
+                  +
+                </button>
+              </span>
+              <span class="num rate">
+                <Explained why={row.breakdown}>{formatNumber(row.grossPerHour)}/h</Explained>
+              </span>
+              <span class="worker-details">
+                <Craft row={row} rules={rules} />
+                <span class="worker-gain" id={gainId}>
+                  +1 aqui: {nextWorkerGain(row, rules)}
+                </span>
+              </span>
+              {adapting === null ? null : (
+                <span class="worker-adapting">
+                  <Icon name="history" /> {adapting}, rendendo{' '}
+                  {formatNumber(row.perNewWorkerPerHour)}/h cada
+                </span>
+              )}
+              {experienceNeedsAttention(row, rules) ? (
+                <span class="worker-note warning">
+                  <Icon name="warning" /> {row.experienceNote}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

@@ -8,13 +8,19 @@ import { DEFAULT_PREFERENCES, type Preferences } from '../services/preferences';
 import { PREFERENCES_KEY } from '../services/tabSync';
 import {
   ACCOUNT_ID,
+  activeConstruction,
+  autumnView,
   catalogFixture,
+  coldView,
   fakeApi,
   GAME_ID,
   gameEvent,
   goldenView,
   makeController,
+  queuesView,
   settle,
+  withPlanned,
+  withQueues,
 } from '../test-helpers';
 import { type Controller, describeError, type Toast, type ToastAction } from './controller';
 
@@ -814,6 +820,93 @@ describe('avisos de acontecimentos', () => {
     expect(controller.unseen).toBe(0);
   });
 
+  it('o frio avisa no nível padrão, como alerta e com o ícone dele; o fim do frio, como alívio', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    expect(controller.preferences.notifications).toBe('essential');
+    const started =
+      'No 4º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta. O frio entrou nas casas.';
+    const ended =
+      'No 6º dia do Inverno, as lareiras voltaram a arder em Pedra Alta. O frio passou.';
+    await deliver(
+      made,
+      gameEvent(1, 'seasonChanged', 'Chega o Inverno a Pedra Alta.'),
+      gameEvent(2, 'coldStarted', started),
+    );
+    // O texto é a frase da Crônica, como veio no evento.
+    expect(gameToasts(controller)).toHaveLength(1);
+    expect(gameToasts(controller)[0]).toMatchObject({
+      kind: 'warning',
+      icon: 'flame',
+      text: started,
+      sticky: true,
+    });
+    expect(gameToasts(controller)[0]?.actions.map((action) => action.label)).toEqual([
+      'Ver',
+      'Silenciar 2h',
+    ]);
+
+    await deliver(made, gameEvent(3, 'coldEnded', ended));
+    expect(gameToasts(controller)).toHaveLength(2);
+    expect(toastWith(controller, 'as lareiras voltaram a arder')).toMatchObject({
+      kind: 'info',
+      icon: 'flame',
+    });
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('a moral que desce de faixa e a gente que se vai avisam no nível padrão, como alerta; a que sobe, como alívio', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    expect(controller.preferences.notifications).toBe('essential');
+    const fell = {
+      ...gameEvent(1, 'moraleBandChanged', 'O povo de Pedra Alta anda inquieto.'),
+      data: { morale: 30, band: 'restless', previousMorale: 60, previousBand: 'content' },
+    };
+    const deserted = {
+      ...gameEvent(2, 'villagerDeserted', 'Um lavrador fugiu da fome de Pedra Alta.'),
+      data: { villagers: 4, morale: 30, building: 'farm' },
+    };
+    // O colono que chega é boa notícia: no nível padrão não interrompe ninguém.
+    await deliver(made, fell, deserted, gameEvent(3, 'villagerArrived', 'Um colono chegou.'));
+    expect(gameToasts(controller)).toHaveLength(2);
+    // O ícone da mudança de faixa é o da faixa nova; o texto é a frase da Crônica.
+    expect(toastWith(controller, 'anda inquieto')).toMatchObject({
+      kind: 'warning',
+      icon: 'comment-discussion',
+      sticky: true,
+    });
+    expect(toastWith(controller, 'fugiu da fome')).toMatchObject({
+      kind: 'warning',
+      icon: 'sign-out',
+      sticky: true,
+    });
+
+    const rose = {
+      ...gameEvent(4, 'moraleBandChanged', 'Os resmungos cessaram. O povo está contente.'),
+      data: { morale: 50, band: 'content', previousMorale: 30, previousBand: 'restless' },
+    };
+    await deliver(made, rose);
+    expect(toastWith(controller, 'Os resmungos cessaram')).toMatchObject({
+      kind: 'info',
+      icon: 'smiley',
+    });
+    expect(controller.unseen).toBe(0);
+  });
+
+  it('a fome continua com o ícone do tom, e o fim dela também avisa', async () => {
+    const made = await opened({ now: () => NOON });
+    const { controller } = made;
+    await deliver(made, gameEvent(1, 'famineStarted', 'A fome chegou a Pedra Alta.'));
+    const alarm = toastWith(controller, 'A fome chegou');
+    expect(alarm).toMatchObject({ kind: 'warning' });
+    expect(alarm).not.toHaveProperty('icon');
+    await deliver(made, gameEvent(2, 'famineEnded', 'Voltou a haver pão. A fome acabou.'));
+    const relief = toastWith(controller, 'A fome acabou');
+    expect(relief).toMatchObject({ kind: 'info' });
+    expect(relief).not.toHaveProperty('icon');
+  });
+
   it('no nível silencioso nada aparece, nem como badge', async () => {
     const made = await opened({ now: () => NOON });
     await made.controller.setPreferences({ notifications: 'silent' });
@@ -918,6 +1011,41 @@ describe('avisos de acontecimentos', () => {
     expect(made.controller.chronicle.some((event) => event.type === 'dayStarted')).toBe(false);
   });
 
+  it('o fecho diário do desperdício não entra na Crônica recente (ADR 0015)', async () => {
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'storageWasted', 'A produção não coube e foi ao chão.'));
+    expect(made.controller.chronicle).toEqual([]);
+    expect(made.controller.toasts).toEqual([]);
+    // O depósito que encheu é linha da Crônica; o fecho de cada dia, não.
+    await deliver(
+      made,
+      gameEvent(2, 'storageFilled', 'O Pátio encheu.'),
+      gameEvent(3, 'storageWasted', 'Foi ao chão de novo.'),
+      gameEvent(4, 'buildingFounded', 'Ergueu-se o Armazém.'),
+    );
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual([
+      'O Pátio encheu.',
+      'Ergueu-se o Armazém.',
+    ]);
+  });
+
+  it('a obra que começou sozinha é linha da Crônica recente e, em "todas", vira aviso', async () => {
+    const text = 'Com as reservas cheias, os pedreiros começaram sozinhos a erguer a Pedreira.';
+    const made = await opened({ now: () => NOON });
+    await deliver(made, gameEvent(1, 'constructionAutoStarted', text));
+    expect(made.controller.chronicle.map((event) => event.text)).toEqual([text]);
+    // No nível padrão não é alarme: a linha fica na Crônica, sem interromper.
+    expect(made.controller.toasts).toEqual([]);
+
+    await made.controller.setPreferences({ notifications: 'all' });
+    await deliver(made, gameEvent(2, 'constructionAutoStarted', text));
+    expect(made.controller.toasts).toMatchObject([{ kind: 'info', text }]);
+    expect(made.controller.toasts[0]?.actions.map((action) => action.label)).toEqual([
+      'Ver',
+      'Silenciar 2h',
+    ]);
+  });
+
   it('a virada de dia fora da Crônica não é pedida de novo ao servidor', async () => {
     const made = await opened({ now: () => NOON });
     await deliver(made, gameEvent(1, 'dayStarted', 'Amanheceu.'));
@@ -926,6 +1054,289 @@ describe('avisos de acontecimentos', () => {
     await made.controller.session.syncNow();
     await settle(made.controller);
     expect(made.controller.chronicle.map((event) => event.seq)).toEqual([2]);
+  });
+});
+
+describe('aviso de estação (GDD §13.5)', () => {
+  /** O outono do golden, com a virada para o inverno a `seconds` de distância. */
+  const autumnAt = (seconds: number): ViewState => ({
+    ...autumnView,
+    calendar: {
+      ...autumnView.calendar,
+      secondsToNextSeason: seconds,
+      nextSeason: { ...autumnView.calendar.nextSeason, secondsUntil: seconds },
+    },
+  });
+  const changes = autumnView.calendar.nextSeason.changes;
+  const ahead = (controller: Controller) => toastWith(controller, 'à vista');
+  const winterCame = (seq: number): GameEvent => ({
+    ...gameEvent(seq, 'seasonChanged', 'Chega o Inverno a Pedra Alta.'),
+    data: { season: 'winter' },
+  });
+  /** A visão muda e o evento chega na mesma leitura, como numa virada de verdade. */
+  async function turns(made: Made, view: ViewState, ...events: GameEvent[]): Promise<void> {
+    made.api.state.view = view;
+    made.api.state.stateVersion += 1;
+    await deliver(made, ...events);
+  }
+
+  describe('uma hora antes', () => {
+    it('a mais de uma hora da virada, nada', async () => {
+      const made = await opened({ now: () => NOON });
+      await serverShows(made, autumnAt(3601));
+      expect(ahead(made.controller)).toBeUndefined();
+      expect(made.controller.session.seasonWarned).toBeNull();
+    });
+
+    it('a uma hora: o que muda, a conta da lenha e o caminho para a aba Hoje', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      expect(controller.preferences.notifications).toBe('essential');
+      await serverShows(made, autumnAt(3600));
+      const toast = ahead(controller);
+      expect(toast).toMatchObject({
+        // A lenha não chega: é um alerta, com o ícone do calendário.
+        kind: 'warning',
+        icon: 'calendar',
+        // Meio-dia em UTC são 9 h em São Paulo, o fuso do navegador de teste.
+        text: 'Inverno à vista: chega em 1 h, às 10:00.',
+        sticky: true,
+      });
+      expect(toast?.details).toEqual([
+        ...changes,
+        'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+      ]);
+      expect(toast?.actions.map((entry) => entry.label)).toEqual(['Ver', 'Silenciar 2h']);
+      // "Ver" leva a Hoje, onde "Antes de partir" diz o que preparar.
+      controller.navigate('fief');
+      await actionOf(toast, 'Ver').run();
+      expect(controller.route).toBe('today');
+    });
+
+    it('é um por virada: as leituras seguintes não repetem, nem recarregar a página', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await serverShows(made, autumnAt(3000));
+      expect(ahead(controller)?.text).toBe('Inverno à vista: chega em 50 min, às 09:50.');
+      controller.dismissToast(ahead(controller)?.id ?? -1);
+      await serverShows(made, autumnAt(2400));
+      expect(ahead(controller)).toBeUndefined();
+      expect(made.store.get<GameCache>(cacheKey(target))?.seasonWarned).toBe('1:winter');
+
+      // A página recarregada lê a marca guardada.
+      const reloaded = make({ api: made.api, signedIn: true, now: () => NOON });
+      reloaded.store.data[cacheKey(target)] = made.store.data[cacheKey(target)];
+      await reloaded.controller.start();
+      await settle(reloaded.controller);
+      expect(reloaded.controller.view?.calendar.nextSeason.secondsUntil).toBe(2400);
+      expect(ahead(reloaded.controller)).toBeUndefined();
+    });
+
+    it('a visão guardada de horas atrás não anuncia nada: só a que veio do servidor agora', async () => {
+      const api = fakeApi();
+      api.state.view = coldView;
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = { ...cachedAt(NOON - 2 * HOUR), view: autumnAt(1800) };
+      await made.controller.start();
+      await settle(made.controller);
+      expect(made.controller.view?.calendar.season).toBe('winter');
+      expect(ahead(made.controller)).toBeUndefined();
+      expect(made.controller.session.seasonWarned).toBeNull();
+    });
+
+    it('sem ligação, a visão guardada também não anuncia', async () => {
+      const api = fakeApi();
+      api.state.online = false;
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = { ...cachedAt(NOON - HOUR), view: autumnAt(1800) };
+      await made.controller.start();
+      await settle(made.controller);
+      expect(made.controller.view?.calendar.nextSeason.secondsUntil).toBe(1800);
+      expect(ahead(made.controller)).toBeUndefined();
+    });
+
+    it('quem volta de uma ausência longa a menos de uma hora da virada é avisado', async () => {
+      const api = fakeApi();
+      api.state.view = autumnAt(1200);
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = cachedAt(NOON - 6 * HOUR);
+      await made.controller.start();
+      await settle(made.controller);
+      expect(made.controller.report).not.toBeNull();
+      expect(ahead(made.controller)?.text).toBe('Inverno à vista: chega em 20 min, às 09:20.');
+    });
+
+    it('no nível silencioso e no modo discreto, nada; ligados os avisos dentro da hora, ele chega', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await controller.setPreferences({ notifications: 'silent' });
+      await serverShows(made, autumnAt(3000));
+      expect(ahead(controller)).toBeUndefined();
+      expect(controller.unseen).toBe(0);
+      await controller.setPreferences({ notifications: 'essential', discreetMode: true });
+      await serverShows(made, autumnAt(2400));
+      expect(ahead(controller)).toBeUndefined();
+      expect(controller.session.seasonWarned).toBeNull();
+
+      await controller.setPreferences({ discreetMode: false });
+      await serverShows(made, autumnAt(1800));
+      expect(ahead(controller)?.text).toBe('Inverno à vista: chega em 30 min, às 09:30.');
+    });
+
+    it('durante o "Silenciar 2h" vira contador, e não volta depois', async () => {
+      let clock = NOON;
+      const made = await opened({ now: () => clock });
+      const { controller } = made;
+      await controller.muteNotifications();
+      await serverShows(made, autumnAt(3000));
+      expect(ahead(controller)).toBeUndefined();
+      expect(controller.unseen).toBe(1);
+      clock += 2 * HOUR + 1;
+      await serverShows(made, autumnAt(60));
+      expect(ahead(controller)).toBeUndefined();
+      expect(controller.unseen).toBe(1);
+    });
+
+    it('conta no limite de três avisos por hora', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await deliver(
+        made,
+        gameEvent(1, 'famineStarted', 'A fome chegou.'),
+        gameEvent(2, 'famineEnded', 'A fome passou.'),
+        gameEvent(3, 'coldStarted', 'O frio entrou.'),
+      );
+      expect(gameToasts(controller)).toHaveLength(3);
+      await serverShows(made, autumnAt(3000));
+      expect(ahead(controller)).toBeUndefined();
+      expect(controller.unseen).toBe(1);
+    });
+
+    it('com a aba em segundo plano, conta no título e, a pedido, sai pelo navegador', async () => {
+      const browser = fakeNotifier(true);
+      const made = await opened({ now: () => NOON, overrides: { notifier: browser.notifier } });
+      const { controller } = made;
+      await controller.setBrowserNotifications(true);
+      controller.setVisible(false);
+      await serverShows(made, autumnAt(3000));
+      expect(controller.unseen).toBe(1);
+      expect(browser.log.shown).toHaveLength(1);
+      expect(browser.log.shown[0]?.body).toContain('Inverno à vista: chega em 50 min, às 09:50.');
+      expect(browser.log.shown[0]?.body).toContain(
+        'A produção de comida passa de × 1,3 para × 0,4.',
+      );
+    });
+  });
+
+  describe('na virada', () => {
+    it('o aviso é a frase da Crônica, com as mesmas frases do que muda, e "Ver" leva ao Feudo', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await serverShows(made, autumnAt(3000));
+      controller.dismissToast(ahead(controller)?.id ?? -1);
+      await turns(made, coldView, winterCame(1));
+      const toast = toastWith(controller, 'Chega o Inverno');
+      expect(toast).toMatchObject({
+        kind: 'info',
+        icon: 'calendar',
+        text: 'Chega o Inverno a Pedra Alta.',
+        details: changes,
+        sticky: true,
+      });
+      expect(toast?.actions.map((entry) => entry.label)).toEqual(['Ver', 'Silenciar 2h']);
+      controller.navigate('today');
+      await actionOf(toast, 'Ver').run();
+      expect(controller.route).toBe('fief');
+    });
+
+    it('o aviso de uma hora antes, se ainda estiver à vista, sai de cena: a estação já chegou', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller } = made;
+      await serverShows(made, autumnAt(3000));
+      expect(ahead(controller)).toBeDefined();
+      // Enquanto a estação anunciada for a mesma, ele fica.
+      await serverShows(made, autumnAt(1200));
+      expect(ahead(controller)?.text).toBe('Inverno à vista: chega em 50 min, às 09:50.');
+      await turns(made, coldView, winterCame(1));
+      expect(ahead(controller)).toBeUndefined();
+      expect(gameToasts(controller).map((toast) => toast.text)).toEqual([
+        'Chega o Inverno a Pedra Alta.',
+      ]);
+    });
+
+    it('as frases valem também quando só a visão guardada viu a estação como próxima', async () => {
+      const api = fakeApi();
+      api.state.view = coldView;
+      api.state.events = [winterCame(1)];
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = {
+        ...cachedAt(NOON - HOUR),
+        view: autumnAt(3000),
+        seasonWarned: '1:winter',
+      };
+      await made.controller.start();
+      await settle(made.controller);
+      expect(toastWith(made.controller, 'Chega o Inverno')?.details).toEqual(changes);
+    });
+
+    it('sem as frases guardadas, diz o que a estação de agora muda', async () => {
+      const made = await opened({ now: () => NOON });
+      await turns(made, coldView, winterCame(1));
+      expect(toastWith(made.controller, 'Chega o Inverno')?.details).toEqual([
+        coldView.calendar.seasonEffects,
+      ]);
+    });
+
+    it('a virada para uma estação que já passou não vira aviso', async () => {
+      const made = await opened({ now: () => NOON });
+      const summer: GameEvent = {
+        ...gameEvent(1, 'seasonChanged', 'Chega o Verão a Pedra Alta.'),
+        data: { season: 'summer' },
+      };
+      // Um salto longo: o verão e o inverno chegam juntos, e a visão já é a do inverno.
+      await turns(made, coldView, summer, winterCame(2));
+      expect(gameToasts(made.controller).map((toast) => toast.text)).toEqual([
+        'Chega o Inverno a Pedra Alta.',
+      ]);
+      expect(made.controller.unseen).toBe(0);
+      // Na Crônica recente as duas viradas continuam.
+      expect(made.controller.chronicle.map((entry) => entry.text)).toEqual([
+        'Chega o Verão a Pedra Alta.',
+        'Chega o Inverno a Pedra Alta.',
+      ]);
+    });
+
+    it('numa ausência longa, a virada fica para o Relatório de Retorno', async () => {
+      const api = fakeApi();
+      api.state.view = coldView;
+      api.state.events = [winterCame(1)];
+      const made = make({ api, signedIn: true, now: () => NOON });
+      made.store.data[cacheKey(target)] = cachedAt(NOON - 6 * HOUR, 0);
+      await made.controller.start();
+      await settle(made.controller);
+      expect(gameToasts(made.controller)).toEqual([]);
+      expect(made.controller.report?.highlights).toEqual(['Chega o Inverno a Pedra Alta.']);
+    });
+
+    it('trocar de feudo esquece as frases guardadas do anterior', async () => {
+      const made = await opened({ now: () => NOON });
+      const { controller, api } = made;
+      await serverShows(made, autumnAt(7200));
+      const game = api.state.game;
+      if (game === null) {
+        throw new Error('A API de mentira deveria ter uma partida.');
+      }
+      // Outro feudo, que pode ter outro ritmo: as frases do anterior não servem para ele.
+      api.state.game = { ...game, id: OTHER_GAME_ID };
+      api.state.view = coldView;
+      await controller.session.syncNow();
+      await settle(controller);
+      expect(controller.session.gameId).toBe(OTHER_GAME_ID);
+      await deliver(made, winterCame(1));
+      expect(toastWith(controller, 'Chega o Inverno')?.details).toEqual([
+        coldView.calendar.seasonEffects,
+      ]);
+    });
   });
 });
 
@@ -1045,6 +1456,15 @@ describe('Relatório de Retorno', () => {
     // Posta em dia a ausência, o que chegar depois volta a avisar normalmente.
     await deliver(made, gameEvent(5, 'constructionFinished', 'A fazenda ficou pronta.'));
     expect(gameToasts(controller).map((toast) => toast.text)).toEqual(['A fazenda ficou pronta.']);
+  });
+
+  it('o frio de uma ausência longa também fica para o relatório, sem avisos avulsos', async () => {
+    const { controller } = await returning(6, [
+      gameEvent(1, 'coldStarted', 'O frio entrou nas casas.'),
+      gameEvent(2, 'coldEnded', 'O frio passou.'),
+    ]);
+    expect(gameToasts(controller)).toEqual([]);
+    expect(controller.report?.highlights).toEqual(['O frio entrou nas casas.', 'O frio passou.']);
   });
 
   describe('na primeira abertura depois de uma atualização do jogo', () => {
@@ -2373,19 +2793,16 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
     vi.useFakeTimers();
     try {
       const { controller, api } = makeController({ signedIn: true });
-      const active = {
-        building: 'housing' as const,
-        label: 'Habitações',
-        targetLevel: 2,
-        secondsRemaining: 5,
-        totalSeconds: 80,
-        progressPercent: 90,
-        refund: [],
-      };
-      api.state.view = {
-        ...goldenView,
-        constructions: { ...goldenView.constructions, active },
-      };
+      api.state.view = withQueues(goldenView, [
+        activeConstruction({
+          building: 'housing',
+          label: 'Habitações',
+          secondsRemaining: 5,
+          totalSeconds: 80,
+          progressPercent: 90,
+          refund: [],
+        }),
+      ]);
       controller.setVisible(true);
       await controller.start();
       await vi.advanceTimersByTimeAsync(0);
@@ -2395,6 +2812,98 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
       await vi.advanceTimersByTimeAsync(5_000);
       expect(reads()).toBe(before);
       // Um segundo depois do prazo, a leitura acontece.
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('com duas filas, o prazo que vale é o da obra que termina primeiro, esteja em que fila estiver', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      // A primeira fila termina em 42 min; a segunda, em 5 s.
+      api.state.view = withQueues(queuesView, [
+        activeConstruction(),
+        activeConstruction({ building: 'housing', label: 'Habitações', secondsRemaining: 5 }),
+      ]);
+      api.state.view = withPlanned(api.state.view, []);
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(reads()).toBe(before);
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('com uma planejada prestes a começar sozinha, o app lê o servidor quando a espera acaba', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      api.state.view = withPlanned(goldenView, [
+        {
+          building: 'townHall',
+          autoStart: true,
+          waiting: { reason: 'resources', text: 'espera 30 de madeira', etaSeconds: 8 },
+        },
+        // Uma espera sem prazo não marca hora nenhuma.
+        {
+          building: 'goldMine',
+          autoStart: true,
+          waiting: { reason: 'gate', text: 'espera o Salão do Senhor', etaSeconds: null },
+        },
+      ]);
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(8_000);
+      expect(reads()).toBe(before);
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(reads()).toBe(before + 1);
+      controller.dispose();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('com alguém em adaptação, o app lê o servidor quando a primeira leva termina: a taxa sobe na hora', async () => {
+    vi.useFakeTimers();
+    try {
+      const { controller, api } = makeController({ signedIn: true });
+      // Duas levas na Fazenda: a que marca a hora é a que termina antes.
+      api.state.view = {
+        ...goldenView,
+        workers: goldenView.workers.map((row) =>
+          row.building === 'farm'
+            ? {
+                ...row,
+                adaptationEndsInSeconds: 20,
+                adaptingCohorts: [
+                  { count: 1, endsInSeconds: 7 },
+                  { count: 1, endsInSeconds: 20 },
+                ],
+              }
+            : row,
+        ),
+      };
+      controller.setVisible(true);
+      await controller.start();
+      await vi.advanceTimersByTimeAsync(0);
+      const reads = () => api.state.requests.filter((request) => request.endsWith('/view')).length;
+      const before = reads();
+      await vi.advanceTimersByTimeAsync(7_000);
+      expect(reads()).toBe(before);
       await vi.advanceTimersByTimeAsync(1_500);
       expect(reads()).toBe(before + 1);
       controller.dispose();

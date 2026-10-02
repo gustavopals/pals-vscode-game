@@ -1,6 +1,18 @@
 import { type Page } from '@playwright/test';
 
-import { expect, fief, HOUR, MINUTE, palette, playNow, statusBar, test, toasts } from './helpers';
+import {
+  expect,
+  fief,
+  HOUR,
+  lowContrast,
+  MINUTE,
+  palette,
+  playNow,
+  statusBar,
+  test,
+  THEMES,
+  toasts,
+} from './helpers';
 
 // GDD §13.5: avisar o essencial, nunca incomodar. Avisos no canto, contador no título da aba,
 // notificações do navegador só a pedido, e o modo discreto.
@@ -119,6 +131,106 @@ test.describe('avisos', () => {
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  // V2C-T6 (GDD §13.5): a virada de estação muda a produção e os prazos do feudo inteiro. O aviso
+  // chega uma hora de relógio antes, com o que muda, e de novo na virada, com as mesmas frases.
+  test('a mudança de estação avisa uma hora antes e de novo na virada, com o que muda; a barra e o título seguem a prioridade', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    // Todos na Fazenda: a comida não falta, e nenhum outro aviso disputa a vez.
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    const ahead = toasts(page).getByRole('status').filter({ hasText: 'à vista' });
+    const changes = [
+      'A produção de comida passa de × 1,2 para × 1.',
+      'A produção de madeira e pedra passa de × 1 para × 1,15.',
+      'O recrutamento volta ao prazo de sempre.',
+    ];
+
+    // A primavera dura 48 horas no ritmo dos testes. A uma hora e meia da virada, nenhum aviso.
+    await world.passTime(46 * HOUR + 30 * MINUTE, page);
+    await expect(fief(page).getByText(/Primavera, dia 24 do Ano 1/)).toBeVisible();
+    await expect(toasts(page).getByRole('status')).toHaveCount(0);
+    // A Despensa encheu nesse meio-tempo: sem fome nem frio, é ela que toma a barra de status e
+    // o título da aba, e o clique leva ao feudo, onde o aviso do depósito tem a saída.
+    await expect(statusBar(page)).toContainText(/Comida: cheio, perde [\d,]+\/h/);
+    await expect(statusBar(page).locator('.codicon-archive')).toBeVisible();
+    await expect(page).toHaveTitle(
+      /^Comida: cheio, perde [\d,]+\/h · Pedra Alta · Lords of the Guild$/,
+    );
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await statusBar(page).getByRole('button').first().click();
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+
+    // A menos de uma hora da virada, o aviso chega, no nível padrão: a estação, o prazo em
+    // tempo de relógio e uma frase para cada coisa que muda.
+    await world.passTime(31 * MINUTE, page);
+    // O prazo vem com a hora do relógio em que a estação vira: o aviso fica na tela até ser
+    // dispensado, e a hora não envelhece.
+    await expect(ahead).toContainText(/Verão à vista: chega em 5[89] min, às \d\d:\d\d\./);
+    await expect(ahead.locator('.codicon-calendar')).toBeVisible();
+    await expect(ahead.getByRole('listitem')).toHaveText(changes);
+    await expect(ahead.getByRole('button', { name: 'Silenciar 2h' })).toBeVisible();
+    // Não prevê sorteio nem promete proteção.
+    await expect(ahead).not.toContainText(/sorte|chance|proteg|garant/i);
+
+    // Legível nos três temas, com o aviso à vista: "Trocar tema" passa por todos.
+    const seen: Array<string | null> = [];
+    for (let turn = 1; turn <= THEMES.length; turn += 1) {
+      await palette(page, 'trocar tema');
+      await expect(toasts(page).getByText(/^Tema: /)).toHaveCount(turn);
+      const theme = await page.locator('html').getAttribute('data-theme');
+      seen.push(theme);
+      expect(await lowContrast(page), `contraste com o aviso de estação, tema ${theme}`).toEqual(
+        [],
+      );
+    }
+    expect([...seen].sort()).toEqual([...THEMES].sort());
+
+    // Um por virada: na leitura seguinte ele não se repete, e o que está à vista não muda.
+    await world.passTime(MINUTE, page);
+    await expect(ahead).toHaveCount(1);
+    await expect(ahead).toContainText(/chega em 5[89] min/);
+
+    // Pelo teclado: depois da barra de status vêm os avisos. O primeiro botão dispensa, o
+    // segundo é "Ver", que leva à aba Hoje, onde "Antes de partir" diz o que preparar.
+    await statusBar(page).getByRole('button', { name: 'Abrir a paleta de comandos' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(ahead.getByRole('button', { name: 'Dispensar aviso' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(ahead.getByRole('button', { name: 'Ver' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(ahead).toHaveCount(0);
+    await expect(
+      page.getByRole('tabpanel', { name: 'Hoje' }).getByRole('region', { name: 'Antes de partir' }),
+    ).toBeVisible();
+
+    // Recarregar a página dentro da mesma hora não traz o aviso de volta.
+    const synced = page.waitForResponse(
+      (response) => /\/games\/[^/]+\/events/.test(response.url()) && response.ok(),
+    );
+    await page.reload();
+    await synced;
+    await expect(page.getByRole('heading', { name: 'Pedra Alta', level: 1 })).toBeVisible();
+    await expect(ahead).toHaveCount(0);
+
+    // Na virada, a frase da Crônica vira aviso, com as mesmas frases do que muda.
+    await world.passTime(HOUR, page);
+    const arrived = toasts(page).getByRole('status').filter({ hasText: 'Chega o Verão' });
+    await expect(arrived).toContainText('Chega o Verão a Pedra Alta.');
+    await expect(arrived.locator('.codicon-calendar')).toBeVisible();
+    await expect(arrived.getByRole('listitem')).toHaveText(changes);
+    await arrived.getByRole('button', { name: 'Ver' }).click();
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(fief(page).getByText(/Verão, dia 1 do Ano 1/)).toBeVisible();
+  });
+
   test('com a aba em segundo plano, o título conta as novidades; as do navegador só a pedido', async ({
     context,
     world,
@@ -171,7 +283,8 @@ test.describe('avisos', () => {
         .getByRole('status')
         .filter({ hasText: /objetivo/i }),
     ).toBeVisible();
-    await expect(page).toHaveTitle('Pedra Alta · Lords of the Guild');
+    // Com a aba à vista ou ao fundo, o título repete o assunto da barra: a obra e o prazo dela.
+    await expect(page).toHaveTitle(/^Habitações Nv2 · 00:0[45] · Pedra Alta · Lords of the Guild$/);
     await hide(page, true);
     await world.passTime(5 * MINUTE, page);
     await expect(page).toHaveTitle('(1) Pedra Alta · Lords of the Guild');

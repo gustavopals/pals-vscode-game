@@ -10,13 +10,21 @@ import { DialogService, type DialogState, filterItems } from '../app/dialogs';
 import { loadPreferences, type ThemeId } from '../services/preferences';
 import {
   ACCOUNT_ID,
+  activeConstruction,
+  autumnView,
   catalogFixture,
+  coldView,
+  craftsView,
   fakeApi,
   gameEvent,
   goldenView,
+  unlockedView,
   makeController,
+  queuesView,
   scriptedDialogs,
   settle,
+  withPlanned,
+  withQueues,
 } from '../test-helpers';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { rowActions } from '../workbench/Tree';
@@ -41,24 +49,7 @@ const sources = import.meta.glob<string>('../**/*.{ts,tsx}', {
   eager: true,
 });
 
-const building: ViewState = {
-  ...goldenView,
-  constructions: {
-    ...goldenView.constructions,
-    active: {
-      building: 'lumberMill',
-      label: 'Serraria',
-      targetLevel: 2,
-      secondsRemaining: 2520,
-      totalSeconds: 3000,
-      progressPercent: 16,
-      refund: [
-        { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
-        { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
-      ],
-    },
-  },
-};
+const building = withQueues(goldenView, [activeConstruction()]);
 
 const VALID_CODE = 'PEDR-7F3A-K9QD-M2XW-4HTB';
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
@@ -443,6 +434,8 @@ describe('toda ação da interface tem um comando', () => {
     });
   const trees = [
     tree(building, account()),
+    // Duas filas ocupadas e planejadas automáticas e manuais.
+    tree(queuesView, account()),
     tree(goldenView, account({ kind: 'linked', hasRecoveryCode: true })),
     tree(null, account()),
     tree(null, account({ gameId: null })),
@@ -474,6 +467,7 @@ describe('toda ação da interface tem um comando', () => {
     expect([...used].sort()).toEqual([
       'lords.build',
       'lords.cancelConstruction',
+      'lords.toggleAutoStart',
       'lords.workersDecrease',
       'lords.workersIncrease',
     ]);
@@ -487,8 +481,11 @@ describe('toda ação da interface tem um comando', () => {
     const notCommands = new Set([
       'lords.worker',
       'lords.upgrade',
+      'lords.newBuilding',
       'lords.blockedUpgrade',
       'lords.activeConstruction',
+      'lords.plannedAuto',
+      'lords.plannedManual',
       'lords.linkReminder',
     ]);
     const scanned = Object.entries(sources).filter(
@@ -537,6 +534,8 @@ describe('toda ação da interface tem um comando', () => {
       ['lords.build', /^Construir ou melhorar/],
       ['lords.cancelConstruction', /Cancelar a obra/],
       ['lords.planConstruction', /Planejar/],
+      // V2C-T5 (GDD §6.3): a marca "iniciar quando houver recursos" também tem comando.
+      ['lords.toggleAutoStart', /início automático/],
       ['lords.recruit', /^Recrutar aldeões/],
       ['lords.renameSettlement', /Renomear o feudo/],
       ['lords.newGame', /^Nova partida/],
@@ -664,22 +663,50 @@ describe('controller.runCommand', () => {
 describe('alocar trabalhadores', () => {
   const farm = goldenView.workers[0] as ViewState['workers'][number];
   const free = goldenView.population.free;
+  const rules = goldenView.workersRules;
+  const ADAPTATION = 'Quem troca de ofício produz metade por 2 h.';
+  const REMOVAL = 'Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.';
 
-  it('a validação mostra a taxa resultante enquanto o jogador digita', () => {
-    // Fazenda: cada trabalhador rende 12/h na primavera; há 2 lá e 3 livres.
-    expect(workersValidation(farm, free, '3')).toEqual({
-      message: '3 × 12 = 36/h',
+  it('a validação mostra o custo da troca enquanto o jogador digita: agora, depois e a regra', () => {
+    // Fazenda na primavera: um adaptado rende 12/h e um recém-chegado, 6/h. Há 2 lá, os dois em
+    // adaptação, e 3 livres.
+    expect(rules.adaptationText).toBe(ADAPTATION);
+    expect(rules.removalText).toBe(REMOVAL);
+    expect(workersValidation(farm, rules, free, '3')).toEqual({
+      message: `+1: 18/h agora, 36/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
-    expect(workersValidation(farm, free, '0')).toEqual({
-      message: '0 × 12 = 0/h',
+    expect(workersValidation(farm, rules, free, '5')).toEqual({
+      message: `+3: 30/h agora, 60/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
-    expect(workersValidation(farm, free, '5')).toEqual({
-      message: '5 × 12 = 60/h',
+    // Tirar: saem os que ainda se adaptam, e a frase do servidor diz isso.
+    expect(workersValidation(farm, rules, free, '1')).toEqual({
+      message: `−1: 6/h agora, 12/h depois da adaptação (2 h). ${REMOVAL}`,
+      severity: 'info',
+    });
+    expect(workersValidation(farm, rules, free, '0')).toEqual({
+      message: `−2: 0/h. ${REMOVAL}`,
+      severity: 'info',
+    });
+    // O mesmo número de hoje: o que já rende e o que vai render.
+    expect(workersValidation(farm, rules, free, '2')).toEqual({
+      message: 'Como hoje: 12/h agora, 24/h depois da adaptação (2 h).',
       severity: 'info',
     });
     expect(workersPreview(farm, free, '5')).toBeNull();
+  });
+
+  it('no ritmo Rápido, o prazo da frase é o que o servidor mandou', () => {
+    const fast = {
+      ...rules,
+      adaptationSeconds: 2400,
+      adaptationText: 'Quem troca de ofício produz metade por 40 min.',
+    };
+    const mill = craftsView.workers[1] as ViewState['workers'][number];
+    expect(workersValidation(mill, fast, 2, '6').message).toBe(
+      '+2: 52/h agora, 62,4/h depois da adaptação (40 min). Quem troca de ofício produz metade por 40 min.',
+    );
   });
 
   it('recusa o que não é um número inteiro de trabalhadores', () => {
@@ -687,7 +714,7 @@ describe('alocar trabalhadores', () => {
       expect(workersPreview(farm, free, input), `"${input}"`).toBe(
         'Digite um número inteiro de trabalhadores.',
       );
-      expect(workersValidation(farm, free, input).severity).toBe('error');
+      expect(workersValidation(farm, rules, free, input).severity).toBe('error');
     }
   });
 
@@ -697,7 +724,10 @@ describe('alocar trabalhadores', () => {
     expect(problem).toContain('Fazenda');
     expect(problem).toContain('2 já lá');
     expect(problem).toContain('3 livres');
-    expect(workersValidation(farm, free, '6')).toEqual({ message: problem, severity: 'error' });
+    expect(workersValidation(farm, rules, free, '6')).toEqual({
+      message: problem,
+      severity: 'error',
+    });
     expect(workersPreview(farm, 0, '3')).not.toBeNull();
     expect(workersPreview(farm, 0, '2')).toBeNull();
   });
@@ -714,17 +744,28 @@ describe('alocar trabalhadores', () => {
       'Pedreira Nv1',
       'Mina de Ouro Nv1',
     ]);
-    // Cada edifício mostra quantos trabalham lá e quanto rende; os livres ficam à vista.
-    expect(pick.items[0]?.description).toBe('2 trabalhadores · 12/h');
+    // Cada edifício mostra quantos trabalham lá, quanto rende e quem ainda se adapta.
+    expect(pick.items[0]?.description).toBe('2 trabalhadores · 12/h · 2 em adaptação');
     expect(pick.items[1]?.description).toBe('0 trabalhadores · 0/h');
-    expect(pick.items[0]?.detail).toBe(farm.breakdown);
-    expect(pick.placeholder).toBe('3 aldeões livres');
+    // O custo da troca já está na lista, antes de escolher: o que um a mais rende em cada
+    // edifício, agora e depois, e a conta da taxa de hoje.
+    expect(pick.items[0]?.detail).toBe(`+1: +6/h agora, +12/h depois de 2 h. ${farm.breakdown}`);
+    expect(pick.items[1]?.detail).toBe(
+      '+1: +4/h agora, +8/h depois de 2 h. 0 trabalhadores × 8 × 1 (Nv1) = 0/h',
+    );
+    // Os livres e a regra, na frase do servidor, ficam à vista no campo de busca.
+    expect(pick.placeholder).toBe(`3 aldeões livres. ${ADAPTATION}`);
 
     const input = shownAs(shown, 1, 'input');
     expect(input.title).toBe('Fazenda Nv1');
     expect(input.value).toBe('2');
-    expect(input.prompt).toContain('3 livres');
-    expect(input.validate?.('3')).toEqual({ message: '3 × 12 = 36/h', severity: 'info' });
+    expect(input.prompt).toBe(
+      `Quantos trabalhadores? Hoje são 2 (2 em adaptação); há 3 livres. Cada um rende 12/h aqui; quem chega agora, 6/h. ${ADAPTATION}`,
+    );
+    expect(input.validate?.('3')).toEqual({
+      message: `+1: 18/h agora, 36/h depois da adaptação (2 h). ${ADAPTATION}`,
+      severity: 'info',
+    });
     expect(input.validate?.('9')?.severity).toBe('error');
     expect(input.validate?.('x')?.severity).toBe('error');
 
@@ -756,13 +797,34 @@ describe('alocar trabalhadores', () => {
     await run('lords.allocateWorkers', { id: 'worker:lumberMill', label: 'Serraria Nv1' });
     expect(shown.map((entry) => entry.kind)).toEqual(['input']);
     expect(shownAs(shown, 0, 'input').title).toBe('Serraria Nv1');
+    // Ninguém lá, ninguém em adaptação: a pergunta não fala de adaptação em curso.
+    expect(shownAs(shown, 0, 'input').prompt).toContain('Hoje são 0; há 3 livres.');
     expect(shownAs(shown, 0, 'input').validate?.('2')).toEqual({
-      message: '2 × 8 = 16/h',
+      message: `+2: 8/h agora, 16/h depois da adaptação (2 h). ${ADAPTATION}`,
       severity: 'info',
     });
     expect(orders()).toEqual([
       { type: 'setWorkers', payload: { building: 'lumberMill', count: 2 } },
     ]);
+  });
+
+  it('a lista de um feudo com ofícios em andamento diz quem se adapta em cada edifício', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        api.state.view = craftsView;
+      },
+    });
+    answers.push(undefined);
+    await run('lords.allocateWorkers');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.items.map((item) => item.description)).toEqual([
+      '4 trabalhadores · 61,2/h · 2 em adaptação',
+      '4 trabalhadores · 41,6/h',
+      '2 trabalhadores · 11,1/h · 1 em adaptação',
+      '0 trabalhadores · 0/h',
+    ]);
+    expect(pick.items[1]?.detail).toContain('+1: +5,2/h agora, +10,4/h depois de 2 h.');
+    expect(pick.placeholder).toBe(`2 aldeões livres. ${ADAPTATION}`);
   });
 
   it('+ e − da árvore mudam um trabalhador por vez, sem diálogo', async () => {
@@ -828,6 +890,58 @@ describe('alocar trabalhadores', () => {
     expect(toast).toMatchObject({ kind: 'error' });
     expect(toast?.text).toMatch(/Sem ligação com o reino/);
     expect(toast?.actions.map((action) => action.label)).toEqual(['Tentar de novo']);
+  });
+});
+
+describe('prazos que a estação muda', () => {
+  const inSeason = (view: typeof goldenView) =>
+    setup({
+      before: (made) => {
+        made.api.state.view = view;
+      },
+    });
+
+  it('no inverno, a lista de obras diz uma vez por que os prazos são maiores', async () => {
+    const { run, answers, shown } = await inSeason(coldView);
+    answers.push(undefined);
+    await run('lords.build');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.placeholder).toBe(
+      'Os pedreiros estão livres. No Inverno, o prazo de uma obra iniciada agora é × 1,5.',
+    );
+    expect(pick.items.find((item) => item.value === 'farm')).toMatchObject({
+      icon: 'lock',
+      // O prazo já é o de quem começa agora: o app não multiplica nada.
+      description: '128 madeira, 64 ouro · 12 min',
+      detail: 'Faltam 128 madeira.',
+    });
+  });
+
+  it('fora do inverno, a lista não diz nada sobre o prazo', async () => {
+    const { run, answers, shown } = await inSeason(autumnView);
+    answers.push(undefined);
+    await run('lords.build');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.placeholder).toBe('Os pedreiros estão livres.');
+    expect(pick.items.find((item) => item.value === 'farm')?.detail).toBe('Faltam 68 madeira.');
+  });
+
+  it('na primavera, recrutar diz por que o prazo é menor; nas outras estações, não', async () => {
+    const spring = await setup();
+    spring.answers.push(undefined);
+    await spring.run('lords.recruit');
+    expect(shownAs(spring.shown, 0, 'input').prompt).toBe(
+      'Cada aldeão custa 50 comida, 10 ouro e leva 16 min. Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8. Vagas: 5 de 10. ' +
+        // O que a ordem custa à moral vem junto do custo em recursos, na frase do servidor.
+        'Chamar aldeões agora gasta a comida guardada, que vale 10 de moral. Com as casas cheias a moral perde 10: para evitar, chame até 4.',
+    );
+
+    const autumn = await inSeason(autumnView);
+    autumn.answers.push(undefined);
+    await autumn.run('lords.recruit');
+    expect(shownAs(autumn.shown, 0, 'input').prompt).toBe(
+      'Cada aldeão custa 50 comida, 10 ouro e leva 20 min. Vagas: 12 de 30. Chamar mais de 2 aldeões agora gasta a comida guardada, que vale 10 de moral.',
+    );
   });
 });
 
@@ -902,6 +1016,55 @@ describe('construir, cancelar e planejar', () => {
     expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'housing' } }]);
   });
 
+  it('o Celeiro e o Armazém entram na lista como "Construir", com o que a obra muda', async () => {
+    const { run, answers, shown } = await setup();
+    answers.push(undefined);
+    await run('lords.build');
+    const byLabel = new Map(shownAs(shown, 0, 'pick').items.map((item) => [item.label, item]));
+    // Antes do Salão Nv2: cadeado, e o detalhe traz o efeito e o que libera a obra.
+    expect(byLabel.get('Construir: Celeiro')).toMatchObject({
+      icon: 'lock',
+      description: '160 madeira, 80 pedra · 10 min',
+      detail: 'Capacidade de comida: 500 → 900. Melhore antes o Salão do Senhor para o nível 2.',
+      value: 'granary',
+    });
+    expect(byLabel.get('Construir: Armazém')?.detail).toBe(
+      'Capacidade de madeira e de pedra: 500 → 900 cada. Melhore antes o Salão do Senhor para o nível 2.',
+    );
+    expect([...byLabel.keys()].some((label) => label.includes('Nv0'))).toBe(false);
+  });
+
+  it('o botão do aviso de depósito cheio manda o edifício: a obra começa sem abrir a lista', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = unlockedView;
+      },
+    });
+    await run('lords.build', 'warehouse');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'warehouse' } }]);
+  });
+
+  it('"Construir" em um item da árvore começa a obra do edifício novo', async () => {
+    const { run, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = unlockedView;
+      },
+    });
+    await run('lords.build', { id: 'construction:granary', label: 'Construir: Celeiro' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([{ type: 'startConstruction', payload: { building: 'granary' } }]);
+  });
+
+  it('um custo que não cabe no depósito é recusado com a frase do servidor', async () => {
+    const reason =
+      'A obra pede 875 de madeira e o Pátio só guarda 500: construa o Armazém primeiro.';
+    const { run, api, controller } = await setup();
+    api.refuseNextCommand(reason);
+    await run('lords.build', 'townHall');
+    expect(controller.toasts).toMatchObject([{ kind: 'warning', text: reason }]);
+  });
+
   it('desistir da lista não manda nada', async () => {
     const { run, answers, orders } = await setup();
     answers.push(undefined);
@@ -926,6 +1089,26 @@ describe('construir, cancelar e planejar', () => {
     expect(orders()).toEqual([{ type: 'cancelConstruction', payload: { building: 'lumberMill' } }]);
   });
 
+  it('cancelar com o depósito perto do limite diz quanto da devolução se perderia', async () => {
+    const { run, answers, shown } = await setup({
+      before: ({ api }) => {
+        api.state.view = withQueues(goldenView, [
+          activeConstruction({
+            refund: [
+              { resource: 'wood', label: 'Madeira', amount: 30, lost: 50 },
+              { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
+            ],
+          }),
+        ]);
+      },
+    });
+    answers.push(false);
+    await run('lords.cancelConstruction');
+    expect(shownAs(shown, 0, 'confirm').detail).toEqual([
+      'Voltam 30 madeira, 40 pedra. Não cabem no depósito e se perderiam: 50 madeira.',
+    ]);
+  });
+
   it('sem confirmar, a obra continua', async () => {
     const { run, answers, orders } = await setup({
       before: ({ api }) => {
@@ -945,9 +1128,9 @@ describe('construir, cancelar e planejar', () => {
     expect(controller.toasts).toMatchObject([{ kind: 'info', text: 'Não há obra em andamento.' }]);
   });
 
-  it('planejar: escolhe uma melhoria e ela entra na lista, sem gastar nada', async () => {
+  it('planejar: escolhe uma melhoria e responde se ela começa sozinha', async () => {
     const { run, answers, shown, orders } = await setup();
-    answers.push(1);
+    answers.push(1, false);
     await run('lords.planConstruction');
     const pick = shownAs(shown, 0, 'pick');
     expect(pick.placeholder).toContain('Planejar não gasta nada');
@@ -957,7 +1140,65 @@ describe('construir, cancelar e planejar', () => {
       label: 'Planejar: Fazenda → Nv2',
       description: '80 madeira, 40 ouro · 5 min',
     });
-    expect(orders()).toEqual([{ type: 'planConstruction', payload: { building: 'farm' } }]);
+    // A segunda pergunta: duas opções, cada uma com a sua frase.
+    const question = shownAs(shown, 1, 'pick');
+    expect(question.title).toBe('Planejar: Fazenda Nv1 → Nv2');
+    expect(question.items.map((item) => [item.label, item.value])).toEqual([
+      ['Iniciar quando houver recursos', true],
+      ['Só deixar na lista', false],
+    ]);
+    expect(question.items[1]?.detail).toBe('A obra espera a sua ordem, com o custo à vista.');
+    expect(orders()).toEqual([
+      { type: 'planConstruction', payload: { building: 'farm', autoStart: false } },
+    ]);
+  });
+
+  it('planejar como automática manda a marca junto com o plano', async () => {
+    const { run, answers, orders } = await setup();
+    answers.push(1, 0);
+    await run('lords.planConstruction');
+    expect(orders()).toEqual([
+      { type: 'planConstruction', payload: { building: 'farm', autoStart: true } },
+    ]);
+  });
+
+  it('o que vem marcado nunca gasta: a automática para a obra que espera, a lista para a que já pode começar', async () => {
+    const { run, answers, shown } = await setup();
+    // O Salão espera recursos: a automática vem marcada, e Enter basta.
+    answers.push(0, undefined);
+    await run('lords.planConstruction');
+    expect(shownAs(shown, 1, 'pick').selected).toBe(0);
+    // A Fazenda pode começar agora: marcar a automática seria gastar na hora. Vem marcado o
+    // que só a deixa na lista.
+    answers.push(1, undefined);
+    await run('lords.planConstruction');
+    expect(shownAs(shown, 3, 'pick').selected).toBe(1);
+  });
+
+  it('a opção automática diz o que acontece agora: começa já, ou espera recursos e fila', async () => {
+    const { run, answers, shown } = await setup();
+    // A Fazenda pode começar agora: marcar como automática é gastar na hora, e a frase avisa.
+    answers.push(1, undefined);
+    await run('lords.planConstruction');
+    expect(shownAs(shown, 1, 'pick').items[0]?.detail).toBe(
+      'Há recursos e pedreiros livres: a obra começa agora mesmo.',
+    );
+    // O Salão espera recursos: a automática começa sozinha quando eles chegarem.
+    answers.push(0, undefined);
+    await run('lords.planConstruction');
+    const blocked = shownAs(shown, 3, 'pick');
+    expect(blocked.title).toBe('Planejar: Salão do Senhor Nv1 → Nv2');
+    expect(blocked.items[0]?.detail).toBe(
+      'Os pedreiros começam sozinhos assim que houver recursos e fila livre, mesmo com você longe.',
+    );
+  });
+
+  it('desistir na pergunta da marca não planeja nada', async () => {
+    const { run, answers, shown, orders } = await setup();
+    answers.push(1, undefined);
+    await run('lords.planConstruction');
+    expect(shown).toHaveLength(2);
+    expect(orders()).toEqual([]);
   });
 
   it('o que já está planejado pode sair da lista e não é oferecido de novo', async () => {
@@ -986,6 +1227,8 @@ describe('construir, cancelar e planejar', () => {
     expect(labels[0]).toBe('Tirar da lista: Fazenda → Nv2');
     expect(labels).not.toContain('Planejar: Fazenda → Nv2');
     expect(labels).toHaveLength(goldenView.constructions.available.length);
+    // Tirar da lista não pergunta mais nada.
+    expect(shown).toHaveLength(1);
     expect(orders()).toEqual([{ type: 'unplanConstruction', payload: { building: 'farm' } }]);
   });
 
@@ -994,6 +1237,168 @@ describe('construir, cancelar e planejar', () => {
     answers.push(undefined);
     await run('lords.planConstruction');
     expect(orders()).toEqual([]);
+  });
+});
+
+describe('duas filas de obras e a marca das planejadas (GDD §6.3)', () => {
+  const queued = {
+    before: ({ api }: ReturnType<typeof makeController>) => void (api.state.view = queuesView),
+  };
+
+  it('com duas obras em andamento, a lista de construir diz as duas e quando terminam', async () => {
+    const { run, answers, shown } = await setup(queued);
+    answers.push(undefined);
+    await run('lords.build');
+    expect(shownAs(shown, 0, 'pick').placeholder).toMatch(
+      /^Em obras: Serraria → Nv2, termina em 00:0[23]; Mina de Ouro → Nv2, termina em 00:0[56]$/,
+    );
+  });
+
+  it('cancelar pela paleta com duas obras pergunta qual, e só depois pede a confirmação', async () => {
+    const { run, answers, shown, orders } = await setup(queued);
+    answers.push(1, true);
+    await run('lords.cancelConstruction');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.title).toBe('Cancelar qual obra?');
+    expect(pick.items.map((item) => item.label)).toEqual(['Serraria → Nv2', 'Mina de Ouro → Nv2']);
+    // Cada obra traz o que o cancelamento devolve, antes da escolha.
+    expect(pick.items[1]?.detail).toBe('Cancelar devolve 96 madeira, 64 pedra.');
+    const confirm = shownAs(shown, 1, 'confirm');
+    expect(confirm.title).toBe('Cancelar a obra de Mina de Ouro?');
+    expect(confirm.detail).toEqual(['Voltam 96 madeira, 64 pedra.']);
+    expect(orders()).toEqual([{ type: 'cancelConstruction', payload: { building: 'goldMine' } }]);
+  });
+
+  it('desistir na escolha da obra não pede confirmação nem cancela nada', async () => {
+    const { run, answers, shown, orders } = await setup(queued);
+    answers.push(undefined);
+    await run('lords.cancelConstruction');
+    expect(shown).toHaveLength(1);
+    expect(orders()).toEqual([]);
+  });
+
+  it('"Cancelar" em uma linha da árvore cancela a obra daquela linha, sem perguntar qual', async () => {
+    const { run, answers, shown, orders } = await setup(queued);
+    answers.push(true);
+    await run('lords.cancelConstruction', { id: 'active:goldMine', label: 'Mina de Ouro → Nv2' });
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['confirm']);
+    expect(shownAs(shown, 0, 'confirm').title).toBe('Cancelar a obra de Mina de Ouro?');
+    expect(orders()).toEqual([{ type: 'cancelConstruction', payload: { building: 'goldMine' } }]);
+  });
+
+  it('com a primeira fila livre, a obra da segunda é cancelada sem perguntar qual', async () => {
+    const { run, answers, shown, orders } = await setup({
+      before: ({ api }) => {
+        api.state.view = withQueues(queuesView, [null, activeConstruction()]);
+      },
+    });
+    answers.push(true);
+    await run('lords.cancelConstruction');
+    expect(shown.map((dialog) => dialog.kind)).toEqual(['confirm']);
+    expect(orders()).toEqual([{ type: 'cancelConstruction', payload: { building: 'lumberMill' } }]);
+  });
+
+  it('a marca pela paleta: a lista diz, de cada planejada, o que o clique faz e o que ela espera', async () => {
+    const { run, answers, shown, orders } = await setup(queued);
+    answers.push(1);
+    await run('lords.toggleAutoStart');
+    const pick = shownAs(shown, 0, 'pick');
+    expect(pick.title).toBe('Início automático das planejadas');
+    expect(pick.items.map((item) => item.label)).toEqual([
+      'Esperar a sua ordem: Serraria Nv2 → Nv3',
+      'Iniciar quando houver recursos: Habitações Nv1 → Nv2',
+      'Esperar a sua ordem: Fazenda Nv1 → Nv2',
+      'Esperar a sua ordem: Salão do Senhor Nv4 → Nv5',
+      'Esperar a sua ordem: Pedreira Nv5 → Nv6',
+    ]);
+    expect(pick.items[1]).toMatchObject({
+      description: '80 madeira, 20 pedra',
+      detail: 'Hoje espera a sua ordem. Espera os pedreiros terminarem outra obra: em 3 min.',
+    });
+    expect(pick.items[2]?.detail).toMatch(
+      /^Hoje começa sozinha\. Espera 15 de ouro: em 1 h 5[01] min\.$/,
+    );
+    expect(orders()).toEqual([
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
+    ]);
+  });
+
+  it('escolher uma automática desliga a marca', async () => {
+    const { run, answers, orders } = await setup(queued);
+    answers.push(2);
+    await run('lords.toggleAutoStart');
+    expect(orders()).toEqual([
+      { type: 'setAutoStart', payload: { building: 'farm', autoStart: false } },
+    ]);
+  });
+
+  it('o botão da linha da árvore troca a marca daquela obra, sem abrir a lista', async () => {
+    const { run, shown, orders } = await setup(queued);
+    await run('lords.toggleAutoStart', { id: 'planned:housing', label: 'Habitações → Nv2' });
+    await run('lords.toggleAutoStart', { id: 'planned:quarry', label: 'Pedreira → Nv6' });
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([
+      { type: 'setAutoStart', payload: { building: 'housing', autoStart: true } },
+      { type: 'setAutoStart', payload: { building: 'quarry', autoStart: false } },
+    ]);
+  });
+
+  it('desistir da lista da marca não manda nada', async () => {
+    const { run, answers, orders } = await setup(queued);
+    answers.push(undefined);
+    await run('lords.toggleAutoStart');
+    expect(orders()).toEqual([]);
+  });
+
+  it('sem planejadas, avisa e oferece planejar', async () => {
+    const { run, shown, orders, controller, answers } = await setup();
+    await run('lords.toggleAutoStart');
+    expect(shown).toEqual([]);
+    expect(orders()).toEqual([]);
+    expect(controller.toasts).toMatchObject([
+      {
+        kind: 'info',
+        text: 'Não há obras planejadas. Planeje uma obra para ela poder começar sozinha.',
+      },
+    ]);
+    // O botão do aviso abre a lista de planejar.
+    answers.push(undefined);
+    controller.toasts[0]?.actions[0]?.run();
+    await settle(controller);
+    expect(shownAs(shown, 0, 'pick').title).toBe('Obras planejadas');
+  });
+
+  it('a obra que deixou de estar planejada é recusada com a frase do servidor', async () => {
+    const { run, api, controller } = await setup(queued);
+    api.refuseNextCommand('A Fazenda não está na lista de obras planejadas.', 'NOT_PLANNED');
+    await run('lords.toggleAutoStart', { id: 'planned:farm', label: 'Fazenda → Nv2' });
+    expect(controller.toasts).toMatchObject([
+      { kind: 'warning', text: 'A Fazenda não está na lista de obras planejadas.' },
+    ]);
+  });
+
+  it('a marca é uma ordem como as outras: "Tentar de novo" reenvia o mesmo commandId', async () => {
+    const { run, api, controller } = await setup({
+      before: ({ api: fake }) => {
+        fake.state.view = withPlanned(goldenView, [{ building: 'farm' }]);
+      },
+    });
+    api.state.online = false;
+    await run('lords.toggleAutoStart', 'farm');
+    expect(api.state.commands).toEqual([]);
+    api.state.online = true;
+    await controller.session.syncNow();
+    await settle(controller);
+    const retry = controller.toasts
+      .flatMap((toast) => toast.actions)
+      .find((action) => action.label === 'Tentar de novo');
+    expect(retry).toBeDefined();
+    await retry?.run();
+    await settle(controller);
+    expect(api.state.commands).toMatchObject([
+      { type: 'setAutoStart', payload: { building: 'farm', autoStart: true } },
+    ]);
+    expect(api.state.commands[0]?.commandId).toBe('00000000-0000-4000-8000-000000000001');
   });
 });
 

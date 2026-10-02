@@ -8,35 +8,28 @@ import type { Controller } from '../app/controller';
 import type { Route } from '../app/router';
 import type { Actions } from '../components/actions';
 import type { Connection } from '../game/connection';
-import { gameEvent, goldenView, makeController, settle } from '../test-helpers';
+import {
+  activeConstruction,
+  coldView,
+  gameEvent,
+  goldenView,
+  makeController,
+  queuesView,
+  settle,
+  withQueues,
+  withResource,
+} from '../test-helpers';
 import { statusBar, type StatusBarInput } from '../ui/format';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
 import { nodesFor, SideBar } from './SideBar';
 import { StatusBar } from './StatusBar';
-import { rowActions, Tree } from './Tree';
+import { actionTitle, rowActions, Tree } from './Tree';
 import { flattenTree, treeKey } from './treeNav';
 import { Workbench } from './Workbench';
 
-const building: ViewState = {
-  ...goldenView,
-  constructions: {
-    ...goldenView.constructions,
-    active: {
-      building: 'lumberMill',
-      label: 'Serraria',
-      targetLevel: 2,
-      secondsRemaining: 2520,
-      totalSeconds: 3000,
-      progressPercent: 16,
-      refund: [
-        { resource: 'wood', label: 'Madeira', amount: 80, lost: 0 },
-        { resource: 'stone', label: 'Pedra', amount: 40, lost: 0 },
-      ],
-    },
-  },
-};
+const building = withQueues(goldenView, [activeConstruction()]);
 const starving: ViewState = {
   ...goldenView,
   famine: { sinceMs: 0, secondsElapsed: 60, text: 'Fome: a produção cai para 75%.' },
@@ -114,6 +107,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
       'worker:quarry',
       'worker:goldMine',
       'constructions',
+      'morale',
       'chronicle',
       'account',
       'settings',
@@ -135,7 +129,7 @@ describe('árvore como lista de linhas (flattenTree)', () => {
     const byId = new Map(rows.map((row) => [row.node.id, row]));
     expect(byId.get('today')).toMatchObject({ position: 1, setSize: 5 });
     expect(byId.get('settings')).toMatchObject({ position: 5, setSize: 5 });
-    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 3 });
+    expect(byId.get('workers')).toMatchObject({ position: 2, setSize: 4 });
     expect(byId.get('resource:gold')).toMatchObject({ position: 4, setSize: 4 });
   });
 
@@ -255,6 +249,17 @@ describe('ações das linhas (rowActions)', () => {
     expect(found[0]?.label).not.toBe(found[1]?.label);
   });
 
+  it('a dica do "+" traz o custo da troca de ofício; a do "−" é só o nome do botão', () => {
+    const farm = nodeById(nodes, 'worker:farm');
+    const [minus, plus] = rowActions(farm);
+    expect(actionTitle(farm, plus ?? { label: '', command: '' })).toBe(
+      'Pôr mais um trabalhador em Fazenda Nv1 (+6/h agora, +12/h depois de 2 h)',
+    );
+    expect(actionTitle(farm, minus ?? { label: '', command: '' })).toBe(
+      'Tirar um trabalhador de Fazenda Nv1',
+    );
+  });
+
   it('melhoria disponível tem "Melhorar"; a bloqueada não tem botão', () => {
     expect(rowActions(nodeById(nodes, 'construction:farm'))).toMatchObject([
       { text: 'Melhorar', command: 'lords.build' },
@@ -264,9 +269,64 @@ describe('ações das linhas (rowActions)', () => {
     expect(rowActions(nodeById(nodes, 'construction:goldMine'))).toEqual([]);
   });
 
+  it('o que ainda não existe tem "Construir", com o nome da linha como rótulo', () => {
+    const fresh: TreeNode = {
+      id: 'construction:granary',
+      label: 'Construir: Celeiro',
+      contextValue: 'lords.newBuilding',
+    };
+    expect(rowActions(fresh)).toEqual([
+      { label: 'Construir: Celeiro', text: 'Construir', command: 'lords.build' },
+    ]);
+    // No golden o Celeiro ainda espera o Salão: bloqueado, sem botão.
+    expect(rowActions(nodeById(nodes, 'construction:granary'))).toEqual([]);
+  });
+
   it('a obra em andamento tem "Cancelar"', () => {
-    expect(rowActions(nodeById(nodes, 'construction:active'))).toMatchObject([
+    expect(rowActions(nodeById(nodes, 'active:lumberMill'))).toMatchObject([
       { text: 'Cancelar', command: 'lords.cancelConstruction' },
+    ]);
+  });
+
+  it('com duas obras em curso, cada linha tem o seu "Cancelar", com o nome da obra', () => {
+    const queued = tree({ view: queuesView });
+    expect(
+      ['active:lumberMill', 'active:goldMine'].map((id) => rowActions(nodeById(queued, id))),
+    ).toEqual([
+      [
+        {
+          label: 'Cancelar a obra: Serraria → Nv2',
+          text: 'Cancelar',
+          command: 'lords.cancelConstruction',
+        },
+      ],
+      [
+        {
+          label: 'Cancelar a obra: Mina de Ouro → Nv2',
+          text: 'Cancelar',
+          command: 'lords.cancelConstruction',
+        },
+      ],
+    ]);
+  });
+
+  it('a planejada tem a marca a um clique: o botão diz o que faz, com o nome da obra', () => {
+    const queued = tree({ view: queuesView });
+    // Manual: o botão liga o início automático.
+    expect(rowActions(nodeById(queued, 'planned:housing'))).toEqual([
+      {
+        label: 'Iniciar quando houver recursos: Habitações → Nv2',
+        text: 'Iniciar sozinha',
+        command: 'lords.toggleAutoStart',
+      },
+    ]);
+    // Automática: o botão devolve a obra à espera da ordem.
+    expect(rowActions(nodeById(queued, 'planned:farm'))).toEqual([
+      {
+        label: 'Esperar a sua ordem: Fazenda → Nv2',
+        text: 'Esperar ordem',
+        command: 'lords.toggleAutoStart',
+      },
     ]);
   });
 
@@ -276,7 +336,7 @@ describe('ações das linhas (rowActions)', () => {
       .map((node) => node.id);
     const allowed = (id: string) =>
       id.startsWith('worker:') ||
-      id === 'construction:active' ||
+      id === 'active:lumberMill' ||
       building.constructions.available.some(
         (upgrade) => upgrade.blockedReason === null && id === `construction:${upgrade.building}`,
       );
@@ -294,11 +354,13 @@ describe('ações das linhas (rowActions)', () => {
       'lords.workersDecrease',
       'lords.build',
       'lords.cancelConstruction',
+      'lords.toggleAutoStart',
+      'lords.planConstruction',
       'lords.recruit',
       'lords.allocateWorkers',
     ];
-    const clicks = everyNode(nodes)
-      .filter((node) => node.id.startsWith('worker:') || node.id.startsWith('construction:'))
+    const clicks = [...everyNode(nodes), ...everyNode(tree({ view: queuesView }))]
+      .filter((node) => /^(worker|construction|active|planned):/.test(node.id))
       .map((node) => node.command?.id);
     expect(clicks.length).toBeGreaterThan(0);
     expect(clicks.filter((id) => id !== undefined && orders.includes(id))).toEqual([]);
@@ -343,13 +405,16 @@ describe('Tree', () => {
     expect(markup).toContain('Hoje em Pedra Alta');
     expect(markup).toContain('Feudo: Pedra Alta');
     expect(markup).toContain('Primavera, dia 1');
-    expect(markup).toContain('180 (+7/h)');
+    expect(markup).toContain('180/500 (+7/h)');
     expect(markup).toContain('2/5 alocados · 3 livres');
     expect(markup).toContain('codicon codicon-shield');
     expect(markup).toContain('codicon codicon-chevron-down');
     expect(markup).toContain('codicon codicon-chevron-right');
     const food = treeItems(markup).find((item) => attribute(item, 'data-node') === 'resource:food');
-    expect(attribute(food ?? '', 'title')).toBe(goldenView.resources[0]?.breakdown);
+    // A conta da taxa e, na linha de baixo, de onde vem o limite.
+    expect(attribute(food ?? '', 'title')).toBe(
+      `${goldenView.resources[0]?.breakdown}\nDespensa: 500 iniciais`,
+    );
   });
 
   it('as ordens saem de botões rotulados dentro das linhas', () => {
@@ -376,6 +441,43 @@ describe('Tree', () => {
     const markup = render(tree({ view: starving }));
     expect(markup).toContain('Primavera, dia 1 · fome');
     expect(markup).toContain('codicon codicon-warning');
+  });
+
+  it('com frio, o feudo avisa com outro ícone e outro texto, e a lareira entra na árvore', () => {
+    const markup = render(tree({ view: coldView }));
+    expect(markup).toContain('Inverno, dia 4 · frio');
+    expect(markup).not.toContain('· fome');
+    expect(markup).toContain('codicon codicon-flame');
+    expect(markup).not.toContain('codicon codicon-warning');
+    const hearth = tags(markup, /<div[^>]*data-node="hearth"[^>]*>/g)[0] ?? '';
+    expect(attribute(hearth, 'role')).toBe('treeitem');
+    // A explicação é a do servidor, e a linha não tem botão de ordem: só navega.
+    expect(attribute(hearth, 'title')).toContain('Frio: sem lenha');
+    expect(markup).toContain('sem lenha · frio há 50 min');
+    expect(rowActions({ id: 'hearth', label: 'Lareira' })).toEqual([]);
+  });
+
+  it('a moral é uma linha do feudo, com o ícone da faixa, o número e a explicação do servidor', () => {
+    const markup = render(tree({ view: coldView }));
+    const morale = tags(markup, /<div[^>]*data-node="morale"[^>]*>/g)[0] ?? '';
+    expect(attribute(morale, 'role')).toBe('treeitem');
+    // A faixa vai por extenso ao lado do ícone, e a queda leva o sinal e o verbo.
+    expect(markup).toContain('codicon codicon-smiley');
+    expect(markup).toContain('60 (Contente) · ⚠ cai para 40 (Inquieto)');
+    expect(attribute(morale, 'title')).toContain('Moral 60 (Contente): produção × 1,05.');
+    expect(attribute(morale, 'title')).toContain('O que mais pesa é o frio (−20).');
+    // Não há ordem a dar na moral: a linha só navega.
+    expect(rowActions({ id: 'morale', label: 'Moral' })).toEqual([]);
+  });
+
+  it('o "+" de um edifício leva o custo da troca de ofício na dica; o nome do botão não muda', () => {
+    const markup = render(tree());
+    expect(markup).toContain(
+      'aria-label="Pôr mais um trabalhador em Fazenda Nv1" title="Pôr mais um trabalhador em Fazenda Nv1 (+6/h agora, +12/h depois de 2 h)"',
+    );
+    expect(markup).toContain(
+      'aria-label="Tirar um trabalhador de Fazenda Nv1" title="Tirar um trabalhador de Fazenda Nv1"',
+    );
   });
 
   it('sem ligação, a linha Hoje diz isso', () => {
@@ -652,6 +754,8 @@ describe('StatusBar', () => {
       {},
       { view: building },
       { view: starving },
+      { view: coldView },
+      { view: { ...coldView, famine: starving.famine } },
       { connection: offline },
       { signedIn: false, view: null },
       { discreetMode: true },
@@ -693,6 +797,39 @@ describe('StatusBar', () => {
     expect(markup).toContain('codicon codicon-warning');
   });
 
+  it('o frio ganha o mesmo destaque, com outro ícone e outro texto', () => {
+    const markup = render({ view: coldView });
+    expect(attribute(main(markup), 'class')).toContain('status-warning');
+    expect(mainText(markup)).toBe('Frio em Pedra Alta');
+    expect(markup).toContain('codicon codicon-flame');
+    expect(markup).not.toContain('codicon codicon-warning');
+    expect(attribute(main(markup), 'title')).toContain('Faltam 149 de madeira');
+    // Os dois juntos: uma linha só, que diz os dois.
+    const both = render({ view: { ...coldView, famine: starving.famine } });
+    expect(attribute(main(both), 'class')).toContain('status-warning');
+    expect(mainText(both)).toBe('Fome e frio em Pedra Alta');
+  });
+
+  it('o depósito a encher toma a linha sem o destaque de aviso, e o clique leva ao feudo', () => {
+    const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
+    const markup = render({ view: filling });
+    expect(mainText(markup)).toBe('Madeira: cheio em 3 h');
+    expect(markup).toContain('codicon codicon-archive');
+    expect(attribute(main(markup), 'class')).toBe('status-main');
+    expect(attribute(main(markup), 'title')).toBe('Pátio: madeira no limite de 500 em 3 h.');
+    // O clique manda o comando com a aba do assunto.
+    const ran: Array<[string, unknown]> = [];
+    const bar = StatusBar({
+      input: input({ view: filling }),
+      muted: false,
+      onCommand: (id, arg) => ran.push([id, arg]),
+    });
+    const group = (bar.props as { children: Array<{ props: { children: unknown } }> }).children[0];
+    const button = group?.props.children as { props: { onClick: () => void } };
+    button.props.onClick();
+    expect(ran).toEqual([['lords.openPanel', 'fief']]);
+  });
+
   it('sem ligação passa na frente da fome e ganha o seu próprio destaque', () => {
     const markup = render({ view: starving, connection: offline });
     expect(attribute(main(markup), 'class')).toContain('status-offline');
@@ -710,6 +847,7 @@ describe('StatusBar', () => {
   it('modo discreto: só um contador, sem nome do feudo, sem fome e sem destaque', () => {
     for (const overrides of [
       { view: starving },
+      { view: coldView },
       { view: starving, connection: offline },
       { view: building, pending: 3 },
     ]) {
@@ -718,6 +856,7 @@ describe('StatusBar', () => {
       expect(mainText(markup)).toMatch(/^\d{2}:\d{2}$/);
       expect(markup).not.toContain('Pedra Alta');
       expect(markup).not.toContain('Fome');
+      expect(markup).not.toContain('Frio');
       expect(markup).not.toContain('silenciadas');
     }
   });
@@ -919,6 +1058,28 @@ describe('Workbench', () => {
     expect(sidebar(markup)).toContain('· fome');
     expect(markup).toMatch(/<button[^>]*class="status-main status-warning"/);
     expect(markup).toContain('Fome em Pedra Alta');
+  });
+
+  it('com frio: aviso no painel, na árvore e na barra de status, sem se passar por fome', async () => {
+    const made = makeController({ signedIn: true });
+    controllers.push(made.controller);
+    made.api.state.view = coldView;
+    await made.controller.start();
+    await settle(made.controller);
+    const markup = render(made.controller);
+    expect(panel(markup)).toContain('Frio em andamento.');
+    expect(panel(markup)).toContain('Faltam 149 de madeira para atravessar o resto do Inverno.');
+    expect(panel(markup)).not.toContain('Fome em andamento.');
+    expect(sidebar(markup)).toContain('· frio');
+    expect(sidebar(markup)).toContain('Lareira');
+    expect(markup).toMatch(/<button[^>]*class="status-main status-warning"/);
+    expect(markup).toContain('Frio em Pedra Alta');
+    expect(markup).not.toContain('Fome em Pedra Alta');
+    // O título da aba do navegador repete o assunto da barra: é o que se vê com a aba ao fundo.
+    expect(made.controller.title(0)).toBe('Frio em Pedra Alta · Lords of the Guild');
+    // A aba Hoje leva o mesmo aviso.
+    made.controller.navigate('today');
+    expect(panel(render(made.controller))).toContain('Frio em andamento.');
   });
 
   it('em tela estreita a barra lateral começa recolhida e nenhuma atividade fica pressionada', async () => {

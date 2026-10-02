@@ -17,15 +17,24 @@ import {
 import { nextTheme, THEME_LABELS } from '../theme/theme';
 import type { ThemeId } from '../services/preferences';
 import {
+  busyQueues,
+  capitalize,
   formatCost,
   formatDuration,
   formatNumber,
   formatRemaining,
+  planWaiting,
+  refundSentence,
   remainingNow,
+  upgradeName,
 } from '../ui/format';
 import type { TreeNode } from '../ui/treeModel';
+import { allocationMessage, nextWorkerGain, workersCount } from '../ui/workers';
 
 type WorkerRow = ViewState['workers'][number];
+type WorkersRules = ViewState['workersRules'];
+type BuildingId = ViewState['constructions']['available'][number]['building'];
+type PlannedRow = ViewState['constructions']['planned'][number];
 
 /** Um comando do app. Os que têm `palette` aparecem na paleta, com o prefixo "Lords:". */
 export type AppCommand = {
@@ -75,17 +84,21 @@ export function workersPreview(row: WorkerRow, free: number, input: string): str
   return null;
 }
 
-/** A taxa que o edifício passaria a render com o número digitado. */
-export function workersValidation(row: WorkerRow, free: number, input: string): Validation {
+/**
+ * O que o edifício passaria a render com o número digitado, antes de confirmar: quem chega rende
+ * menos enquanto se adapta, e a frase diz quanto, por quanto tempo e o que vem depois (GDD §5.4).
+ */
+export function workersValidation(
+  row: WorkerRow,
+  rules: WorkersRules,
+  free: number,
+  input: string,
+): Validation {
   const problem = workersPreview(row, free, input);
   if (problem !== null) {
     return { message: problem, severity: 'error' };
   }
-  const count = Number(input);
-  return {
-    message: `${count} × ${formatNumber(row.perWorkerPerHour)} = ${formatNumber(count * row.perWorkerPerHour)}/h`,
-    severity: 'info',
-  };
+  return { message: allocationMessage(row, rules, Number(input)), severity: 'info' };
 }
 
 // A regra do nome é a do protocolo: o app não repete os limites.
@@ -128,14 +141,21 @@ export function createCommands(
     return view;
   };
 
+  // A lista já mostra o custo da troca: a regra, na frase do servidor, e o que um trabalhador a
+  // mais rende em cada edifício, agora e depois da adaptação.
   const pickWorker = (view: ViewState) =>
     dialogs.pick<WorkerRow>({
       title: 'Alocar trabalhadores',
-      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}`,
+      placeholder: `${view.population.free} ${view.population.free === 1 ? 'aldeão livre' : 'aldeões livres'}. ${view.workersRules.adaptationText}`,
       items: view.workers.map((row) => ({
         label: `${row.label} Nv${row.level}`,
-        description: `${row.assigned} ${row.assigned === 1 ? 'trabalhador' : 'trabalhadores'} · ${formatNumber(row.grossPerHour)}/h`,
-        detail: row.breakdown,
+        description: [
+          `${workersCount(row.assigned)} · ${formatNumber(row.grossPerHour)}/h`,
+          row.adapting > 0 ? `${row.adapting} em adaptação` : null,
+        ]
+          .filter((part) => part !== null)
+          .join(' · '),
+        detail: `+1: ${nextWorkerGain(row, view.workersRules)}. ${row.breakdown}`,
         value: row,
       })),
     });
@@ -152,12 +172,18 @@ export function createCommands(
       return;
     }
     const { free } = view.population;
+    const rules = view.workersRules;
     const answer = await dialogs.input({
       title: `${row.label} Nv${row.level}`,
-      prompt: `Quantos trabalhadores? Hoje são ${row.assigned}; há ${free} livres. Cada um rende ${formatNumber(row.perWorkerPerHour)}/h aqui.`,
+      prompt: [
+        `Quantos trabalhadores? Hoje são ${row.assigned}${row.adapting > 0 ? ` (${row.adapting} em adaptação)` : ''}; há ${free} livres.`,
+        `Cada um rende ${formatNumber(row.perWorkerPerHour)}/h aqui; quem chega agora, ${formatNumber(row.perNewWorkerPerHour)}/h.`,
+        rules.adaptationText,
+      ].join(' '),
       value: String(row.assigned),
       confirmLabel: 'Alocar',
-      validate: (value) => workersValidation(row, free, value),
+      // A cada tecla: o que o número digitado rende agora e depois da adaptação.
+      validate: (value) => workersValidation(row, rules, free, value),
     });
     if (answer !== undefined && Number(answer) !== row.assigned) {
       await controller.order('setWorkers', { building: row.building, count: Number(answer) });
@@ -188,22 +214,42 @@ export function createCommands(
     if (view === null) {
       return;
     }
-    const { available, active } = view.constructions;
+    const { available } = view.constructions;
+    const busy = busyQueues(view.constructions);
     const requested = buildingOf(arg, 'construction:');
     let building = available.find((upgrade) => upgrade.building === requested)?.building;
     if (building === undefined) {
+      // Uma ou duas obras em curso (GDD §6.3): a lista diz quais são e quando terminam.
+      const queue =
+        busy.length === 0
+          ? 'Os pedreiros estão livres'
+          : `Em obras: ${busy
+              .map(
+                (active) =>
+                  `${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`,
+              )
+              .join('; ')}`;
+      // Por que os prazos da lista são esses nesta estação: vale para todas as obras, dito uma vez.
+      const durationNotes = [
+        ...new Set(available.flatMap((upgrade) => upgrade.durationNote ?? [])),
+      ];
       building = await dialogs.pick({
         title: 'Construir ou melhorar',
         placeholder:
-          active === null
-            ? 'Os pedreiros estão livres.'
-            : `Em obras: ${active.label} → Nv${active.targetLevel}, termina em ${formatRemaining(remainingNow(active.secondsRemaining, elapsed()))}`,
+          durationNotes.length > 0
+            ? `${queue}. ${durationNotes.join(' ')}`
+            : busy.length === 0
+              ? `${queue}.`
+              : queue,
         items: available.map((upgrade) => ({
           // Cadeado: está bloqueada, e o detalhe diz por quê.
           icon: upgrade.blockedReason === null ? 'check' : 'lock',
-          label: `${upgrade.label} Nv${upgrade.fromLevel} → Nv${upgrade.targetLevel}`,
+          label: upgradeName(upgrade),
           description: `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`,
-          detail: upgrade.blockedReason ?? 'Pode começar agora.',
+          // O que a obra muda fica ao lado do custo, antes do que a impede (ou de "pode começar").
+          detail: [upgrade.effect, upgrade.blockedReason ?? 'Pode começar agora.']
+            .filter((line) => line !== null)
+            .join(' '),
           value: upgrade.building,
         })),
       });
@@ -214,19 +260,40 @@ export function createCommands(
     }
   };
 
-  const cancelConstruction = async () => {
+  const cancelConstruction = async (arg?: unknown) => {
     const view = requireView();
     if (view === null) {
       return;
     }
-    const { active } = view.constructions;
-    if (active === null) {
+    const busy = busyQueues(view.constructions);
+    if (busy.length === 0) {
       controller.toast({ kind: 'info', text: 'Não há obra em andamento.' });
+      return;
+    }
+    // Vindo de uma linha da árvore, a obra é a da linha. Com duas em curso e sem linha, pergunta.
+    const requested = buildingOf(arg, 'active:');
+    const active =
+      busy.find((queue) => queue.building === requested) ??
+      (busy.length === 1
+        ? busy[0]
+        : await dialogs.pick({
+            title: 'Cancelar qual obra?',
+            placeholder: 'Há duas obras em andamento.',
+            items: busy.map((queue) => ({
+              icon: 'tools',
+              label: `${queue.label} → Nv${queue.targetLevel}`,
+              description: `termina em ${formatRemaining(remainingNow(queue.secondsRemaining, elapsed()))}`,
+              detail: refundSentence(queue.refund, 'Cancelar devolve'),
+              value: queue,
+            })),
+          }));
+    if (active === undefined) {
       return;
     }
     const confirmed = await dialogs.confirm({
       title: `Cancelar a obra de ${active.label}?`,
-      detail: [`Voltam ${formatCost(active.refund)}.`],
+      // O que entra no estoque e, com o depósito perto do limite, o que se perderia.
+      detail: [refundSentence(active.refund, 'Voltam')],
       confirmLabel: 'Cancelar a obra',
       cancelLabel: 'Manter a obra',
     });
@@ -235,22 +302,51 @@ export function createCommands(
     }
   };
 
+  /**
+   * A obra planejada começa sozinha? Uma lista de duas opções; `undefined` é desistência. Para a
+   * obra que ainda não pode começar, a automática já vem marcada: é para isso que se planeja, e
+   * `Enter` basta. Se a obra já pode começar, marcar a automática é começá-la agora e gastar na
+   * hora: a opção diz isso, e o que vem marcado é só deixar na lista. O padrão nunca gasta.
+   */
+  const askAutoStart = (upgrade: ViewState['constructions']['available'][number]) => {
+    const startsNow = upgrade.blockedReason === null;
+    return dialogs.pick<boolean>({
+      title: `Planejar: ${upgradeName(upgrade)}`,
+      placeholder: 'Planejar não gasta nada: a obra é paga quando começa.',
+      items: [
+        {
+          icon: 'play-circle',
+          label: 'Iniciar quando houver recursos',
+          detail: startsNow
+            ? 'Há recursos e pedreiros livres: a obra começa agora mesmo.'
+            : 'Os pedreiros começam sozinhos assim que houver recursos e fila livre, mesmo com você longe.',
+          value: true,
+        },
+        {
+          icon: 'bookmark',
+          label: 'Só deixar na lista',
+          detail: 'A obra espera a sua ordem, com o custo à vista.',
+          value: false,
+        },
+      ],
+      selected: startsNow ? 1 : 0,
+    });
+  };
+
   const planConstruction = async () => {
     const view = requireView();
     if (view === null) {
       return;
     }
     const planned = new Set(view.constructions.planned.map((plan) => plan.building));
-    type Choice = {
-      building: ViewState['constructions']['available'][number]['building'];
-      unplan: boolean;
-    };
+    type Upgrade = ViewState['constructions']['available'][number];
+    type Choice = { building: BuildingId; upgrade: Upgrade | null };
     const items: PickItem<Choice>[] = [
       ...view.constructions.planned.map((plan) => ({
         icon: 'close',
         label: `Tirar da lista: ${plan.label} → Nv${plan.targetLevel}`,
         description: formatCost(plan.cost),
-        value: { building: plan.building, unplan: true },
+        value: { building: plan.building, upgrade: null },
       })),
       ...view.constructions.available
         .filter((upgrade) => !planned.has(upgrade.building))
@@ -258,7 +354,8 @@ export function createCommands(
           icon: 'add',
           label: `Planejar: ${upgrade.label} → Nv${upgrade.targetLevel}`,
           description: `${formatCost(upgrade.cost)} · ${formatDuration(upgrade.durationSeconds)}`,
-          value: { building: upgrade.building, unplan: false },
+          ...(upgrade.effect === null ? {} : { detail: upgrade.effect }),
+          value: { building: upgrade.building, upgrade },
         })),
     ];
     const picked = await dialogs.pick({
@@ -266,9 +363,61 @@ export function createCommands(
       placeholder: 'Planejar não gasta nada: a obra fica na lista, com o custo à vista.',
       items,
     });
-    if (picked !== undefined) {
-      await controller.order(picked.unplan ? 'unplanConstruction' : 'planConstruction', {
-        building: picked.building,
+    if (picked === undefined) {
+      return;
+    }
+    if (picked.upgrade === null) {
+      await controller.order('unplanConstruction', { building: picked.building });
+      return;
+    }
+    const autoStart = await askAutoStart(picked.upgrade);
+    if (autoStart !== undefined) {
+      await controller.order('planConstruction', { building: picked.building, autoStart });
+    }
+  };
+
+  /** O que a lista da marca diz de cada planejada: o que o clique faz e o que a obra espera. */
+  const autoStartItem = (plan: PlannedRow): PickItem<PlannedRow> => ({
+    icon: plan.autoStart ? 'bookmark' : 'play-circle',
+    label: `${plan.autoStart ? 'Esperar a sua ordem' : 'Iniciar quando houver recursos'}: ${upgradeName(plan)}`,
+    description: formatCost(plan.cost),
+    detail: `${plan.autoStart ? 'Hoje começa sozinha.' : 'Hoje espera a sua ordem.'} ${capitalize(planWaiting(plan, elapsed()))}.`,
+    value: plan,
+  });
+
+  /**
+   * Liga ou desliga a marca "iniciar quando houver recursos" de uma planejada. Vindo de uma
+   * linha da árvore, troca a marca daquela obra; pela paleta, pergunta de qual.
+   */
+  const toggleAutoStart = async (arg?: unknown) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const { planned } = view.constructions;
+    if (planned.length === 0) {
+      controller.toast({
+        kind: 'info',
+        text: 'Não há obras planejadas. Planeje uma obra para ela poder começar sozinha.',
+        actions: [
+          { label: 'Planejar obras', run: () => controller.runCommand('lords.planConstruction') },
+        ],
+      });
+      return;
+    }
+    const requested = buildingOf(arg, 'planned:');
+    const plan =
+      planned.find((entry) => entry.building === requested) ??
+      (await dialogs.pick({
+        title: 'Início automático das planejadas',
+        placeholder:
+          'As marcadas começam sozinhas, na ordem da lista, quando houver recursos e fila livre.',
+        items: planned.map(autoStartItem),
+      }));
+    if (plan !== undefined) {
+      await controller.order('setAutoStart', {
+        building: plan.building,
+        autoStart: !plan.autoStart,
       });
     }
   };
@@ -282,7 +431,15 @@ export function createCommands(
     const max = recruitment.maxQuantity;
     const answer = await dialogs.input({
       title: 'Recrutar aldeões',
-      prompt: `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}. Vagas: ${population.vacancies} de ${population.capacity}.`,
+      prompt: [
+        `Cada aldeão custa ${formatCost(recruitment.cost)} e leva ${formatDuration(recruitment.secondsPerVillager)}.`,
+        recruitment.durationNote,
+        `Vagas: ${population.vacancies} de ${population.capacity}.`,
+        // O que chamar gente agora custa à moral, como o servidor disse.
+        recruitment.moraleNote,
+      ]
+        .filter((line) => line !== null)
+        .join(' '),
       placeholder: max > 0 ? `de 1 a ${max}` : 'sem vaga agora',
       value: max > 0 ? '1' : '',
       confirmLabel: 'Recrutar',
@@ -709,6 +866,13 @@ export function createCommands(
       palette: true,
       when: hasGame,
       run: planConstruction,
+    },
+    {
+      id: 'lords.toggleAutoStart',
+      title: 'Planejadas: ligar ou desligar o início automático',
+      palette: true,
+      when: hasGame,
+      run: toggleAutoStart,
     },
     { id: 'lords.recruit', title: 'Recrutar aldeões', palette: true, when: hasGame, run: recruit },
     {

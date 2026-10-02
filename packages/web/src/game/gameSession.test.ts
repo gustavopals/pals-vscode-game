@@ -448,6 +448,81 @@ describe('cache', () => {
     });
   });
 
+  describe('a visão é de agora, ou do que estava guardado', () => {
+    it('a que vem do cache não é de agora; a primeira leitura do servidor é', async () => {
+      const { session, state } = setup(cachedNow());
+      const live: boolean[] = [];
+      session.onView(() => live.push(session.live));
+      state.etag = 'W/"b"';
+      await session.start(target);
+      expect(live).toEqual([false, true]);
+    });
+
+    it('sem ligação, a visão guardada continua sendo só a guardada', async () => {
+      const { session, state } = setup(cachedNow());
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(session.view).not.toBeNull();
+      expect(session.live).toBe(false);
+    });
+
+    it('a visão que vem na resposta de uma ordem é de agora; fechar a partida esquece', async () => {
+      const { session, state } = setup(cachedNow());
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      state.fail = null;
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(session.connection.kind).toBe('online');
+      await session.send(order);
+      expect(session.live).toBe(true);
+      session.stop();
+      expect(session.live).toBe(false);
+    });
+  });
+
+  describe('a virada de estação já anunciada', () => {
+    it('começa sem marca, e o cache não ganha o campo à toa', async () => {
+      const { session, store } = setup();
+      await session.start(target);
+      expect(session.seasonWarned).toBeNull();
+      expect(store.get<GameCache>(cacheKey(target))).not.toHaveProperty('seasonWarned');
+    });
+
+    it('a marca é gravada com o cache e sobrevive às leituras seguintes', async () => {
+      const { session, store, state } = setup();
+      await session.start(target);
+      await session.markSeasonWarned('1:summer');
+      expect(session.seasonWarned).toBe('1:summer');
+      expect(store.get<GameCache>(cacheKey(target))?.seasonWarned).toBe('1:summer');
+      state.etag = 'W/"b"';
+      await session.syncNow();
+      await session.send(order);
+      expect(store.get<GameCache>(cacheKey(target))?.seasonWarned).toBe('1:summer');
+    });
+
+    it('recarregar a página a encontra; outra partida, não', async () => {
+      const first = setup();
+      await first.session.start(target);
+      await first.session.markSeasonWarned('1:summer');
+      const reopened = new GameSession({ client: first.client, store: first.store });
+      await reopened.start(target);
+      expect(reopened.seasonWarned).toBe('1:summer');
+      await reopened.start({ ...target, gameId: 'partida-2' });
+      expect(reopened.seasonWarned).toBeNull();
+      reopened.stop();
+    });
+
+    it('vale mesmo quando a visão guardada é descartada por ser de outra versão do app', async () => {
+      const { session } = setup({
+        ...cachedNow(),
+        version: 'outra',
+        seasonWarned: '1:winter',
+      });
+      await session.start(target);
+      expect(session.seasonWarned).toBe('1:winter');
+    });
+  });
+
   it('a marca de versão junta o protocolo e o formato da visão', () => {
     expect(CACHE_VERSION).toBe(`${PROTOCOL_VERSION}.2`);
   });
@@ -466,6 +541,87 @@ describe('cache', () => {
     await session.start(target);
     expect(session.view).toBeNull();
     expect(seen.views).toEqual([]);
+  });
+
+  it('a visão de antes das duas filas de obras (V2C-T5) é descartada: faltam campos que a tela usa', async () => {
+    // Como o app a gravava antes de a visão ganhar `queues`, a marca e a espera das planejadas.
+    const {
+      queues: _queues,
+      queuesUnlocked: _unlocked,
+      queuesNote: _note,
+      ...oldConstructions
+    } = view.constructions;
+    void [_queues, _unlocked, _note];
+    const outdated = {
+      version: CACHE_VERSION,
+      view: { ...view, constructions: oldConstructions },
+      stateVersion: '7',
+      etag: 'W/"antes"',
+      lastSeq: 3,
+      lastSeenAt: Date.now(),
+    };
+    const { session, state, seen } = setup(outdated as unknown as GameCache);
+    state.fail = new NetworkError('fora');
+    await session.start(target);
+    expect(session.view).toBeNull();
+    expect(seen.views).toEqual([]);
+    session.stop();
+
+    // O mesmo vale para uma planejada sem a marca: a lista não pode mostrar uma caixa sem estado.
+    const [upgrade] = view.constructions.available;
+    const unmarked = {
+      ...outdated,
+      view: {
+        ...view,
+        constructions: { ...view.constructions, planned: [{ ...upgrade, planned: true }] },
+      },
+    };
+    const second = setup(unmarked as unknown as GameCache);
+    second.state.fail = new NetworkError('fora');
+    await second.session.start(target);
+    expect(second.session.view).toBeNull();
+  });
+
+  it('a visão de antes da troca de ofício (V2C-T3) é descartada: o painel usa as regras e a experiência', async () => {
+    // Como o app a gravava antes de a visão ganhar `workersRules` e a experiência de cada ofício.
+    const { workersRules: _rules, ...withoutRules } = view;
+    void _rules;
+    const outdated = {
+      version: CACHE_VERSION,
+      view: withoutRules,
+      stateVersion: '7',
+      etag: 'W/"antes"',
+      lastSeq: 3,
+      lastSeenAt: Date.now(),
+    };
+    const { session, state, seen } = setup(outdated as unknown as GameCache);
+    state.fail = new NetworkError('fora');
+    await session.start(target);
+    expect(session.view).toBeNull();
+    expect(seen.views).toEqual([]);
+    session.stop();
+
+    // O mesmo vale para um edifício sem a experiência nem as levas em adaptação.
+    const bare = {
+      ...outdated,
+      view: {
+        ...view,
+        workers: view.workers.map(({ building, label, level, resource, assigned, breakdown }) => ({
+          building,
+          label,
+          level,
+          resource,
+          assigned,
+          grossPerHour: 0,
+          perWorkerPerHour: 0,
+          breakdown,
+        })),
+      },
+    };
+    const second = setup(bare as unknown as GameCache);
+    second.state.fail = new NetworkError('fora');
+    await second.session.start(target);
+    expect(second.session.view).toBeNull();
   });
 
   describe('gravado por outra versão do app', () => {
@@ -561,7 +717,12 @@ describe('cache', () => {
             constructionsFinished: 1,
             villagersArrived: 0,
             objectivesCompleted: 0,
+            settlersArrived: 0,
+            villagersLeft: 0,
+            villagersDeserted: 0,
           },
+          // A moral de agora vem da visão nova; a de antes não existe para comparar.
+          morale: { value: 50, band: 'content', bandLabel: 'Contente' },
           famine: 'none',
           highlights: ['evento 4'],
         },

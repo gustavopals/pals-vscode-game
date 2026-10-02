@@ -551,6 +551,18 @@ input::placeholder {
   color: var(--vscode-editorError-foreground);
 }
 
+/* As frases que detalham um aviso ficam abaixo dele, na coluna do texto, uma por linha. */
+.toast-details {
+  grid-column: 2 / -1;
+  margin: 0;
+  padding: 0;
+  font-size: 0.92em;
+}
+
+.toast-details > li + li {
+  margin-top: 2px;
+}
+
 .toast-actions {
   grid-column: 2 / -1;
   display: flex;

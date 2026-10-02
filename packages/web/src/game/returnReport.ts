@@ -1,4 +1,9 @@
-import type { GameEvent, ReturnReport, ViewState } from '@lotg/protocol';
+import {
+  CHRONICLE_HIDDEN_EVENT_TYPES,
+  type GameEvent,
+  type ReturnReport,
+  type ViewState,
+} from '@lotg/protocol';
 
 /** O Relatório de Retorno aparece depois de 4 horas ou mais de ausência (GDD §2.3). */
 export const RETURN_REPORT_AFTER_MS = 4 * 60 * 60 * 1000;
@@ -7,9 +12,50 @@ export function shouldShowReturnReport(lastSeenAt: number | null, now: number): 
   return lastSeenAt !== null && now - lastSeenAt >= RETURN_REPORT_AFTER_MS;
 }
 
+/** O evento conta para a Crônica; os outros só servem de número ao relatório (ADRs 0007 e 0015). */
+export function isChronicleEvent(event: GameEvent): boolean {
+  return !(CHRONICLE_HIDDEN_EVENT_TYPES as readonly string[]).includes(event.type);
+}
+
+/** Uma casa decimal: as somas de totais fracionários não mostram ruído de ponto flutuante. */
+const tidy = (value: number) => Math.round(value * 10) / 10;
+
+/**
+ * A soma de um total que os eventos trazem em `data`, em unidades: `spent_wood`, `gained_food`,
+ * `wasted_stone`. Quem calcula é o motor; aqui só se soma o que veio.
+ */
+function total(events: GameEvent[], key: string): number {
+  return tidy(
+    events.reduce((sum, event) => {
+      const value = event.data[key];
+      return typeof value === 'number' ? sum + value : sum;
+    }, 0),
+  );
+}
+
+/** O número e a faixa da moral de uma visão, como o relatório os guarda. */
+function moraleLevel(view: ViewState) {
+  const { value, band, bandLabel } = view.morale;
+  return { value, band, bandLabel };
+}
+
 /**
  * Resume o que aconteceu na ausência: quanto cada estoque mudou entre a última visita e agora
  * e o que os eventos contam. Só soma e conta o que o servidor mandou; nenhuma regra de jogo.
+ *
+ * A variação de estoque não é produção: obras e recrutamento gastam, recompensas e devoluções
+ * entram, e o que não coube no depósito nunca chegou ao estoque. Cada linha separa essas partes
+ * pelos totais dos eventos da ausência:
+ *
+ * - `spent`: o que foi pago (`spent_<recurso>`);
+ * - `received`: o que entrou por recompensa e devolução (`gained_<recurso>`);
+ * - `wasted`: o que foi ao chão. Os fechos diários (`storageWasted`, um por dia de jogo, com
+ *   unidades inteiras) mais o que a visão de agora ainda não relatou (`wastedToday`), menos o
+ *   que a visão de antes já contava como perdido: o primeiro fecho da ausência inclui essa parte;
+ * - `produced`: o saldo da produção e do consumo, que é a variação mais o gasto menos o recebido.
+ *
+ * A população que a moral e a fome moveram é contada pelos eventos, e a moral é a das duas
+ * visões: o relatório diz a faixa em que o feudo está e de onde ela veio.
  *
  * Sem a visão da última visita (`before` nula: o cache era de outra versão do app), o relatório
  * sai sem as linhas de estoque. Repetir o estoque de agora como "antes" diria que nada mudou.
@@ -20,7 +66,8 @@ export function buildReturnReport(
   events: GameEvent[],
   awayMs: number,
 ): ReturnReport {
-  const count = (type: GameEvent['type']) => events.filter((event) => event.type === type).length;
+  const count = (...types: GameEvent['type'][]) =>
+    events.filter((event) => types.includes(event.type)).length;
   const started = count('famineStarted') > 0;
   const ended = count('famineEnded') > 0;
   let famine: ReturnReport['famine'] = 'none';
@@ -35,24 +82,49 @@ export function buildReturnReport(
       before === null
         ? []
         : after.resources.map((row) => {
-            const previous =
-              before.resources.find((entry) => entry.id === row.id)?.stock ?? row.stock;
+            const previous = before.resources.find((entry) => entry.id === row.id);
+            const stockBefore = previous?.stock ?? row.stock;
+            const delta = row.stock - stockBefore;
+            const spent = total(events, `spent_${row.id}`);
+            const received = total(events, `gained_${row.id}`);
+            const wasted = Math.max(
+              0,
+              tidy(
+                total(events, `wasted_${row.id}`) + row.wastedToday - (previous?.wastedToday ?? 0),
+              ),
+            );
             return {
               id: row.id,
               label: row.label,
-              before: previous,
+              before: stockBefore,
               after: row.stock,
-              delta: row.stock - previous,
+              delta,
+              spent,
+              received,
+              wasted,
+              produced: tidy(delta + spent - received),
             };
           }),
     counts: {
       daysPassed: count('dayStarted'),
-      constructionsFinished: count('constructionFinished'),
+      // Um edifício erguido do zero sai como `buildingFounded`, no lugar de `constructionFinished`.
+      constructionsFinished: count('constructionFinished', 'buildingFounded'),
       villagersArrived: count('recruitmentFinished'),
       objectivesCompleted: count('objectiveCompleted'),
+      // A gente que a moral e a fome moveram (GDD §5.6 e §5.7), separada dos recrutados: o
+      // colono que veio sozinho, o aldeão que partiu e o que desertou.
+      settlersArrived: count('villagerArrived'),
+      villagersLeft: count('villagerLeft'),
+      villagersDeserted: count('villagerDeserted'),
+    },
+    // A moral na volta e a da última visita, quando há a visão guardada para comparar.
+    morale: {
+      ...moraleLevel(after),
+      ...(before === null ? {} : { before: moraleLevel(before) }),
     },
     famine,
-    // A virada de dia só entra como número: a lista é do que vale a pena ler.
-    highlights: events.filter((event) => event.type !== 'dayStarted').map((event) => event.text),
+    // A lista é do que vale a pena ler: a virada de dia entra só como número, e o fecho diário
+    // do desperdício, como total na linha de cada recurso (nunca uma linha por dia perdido).
+    highlights: events.filter(isChronicleEvent).map((event) => event.text),
   };
 }

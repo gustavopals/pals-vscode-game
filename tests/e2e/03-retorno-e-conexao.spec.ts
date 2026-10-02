@@ -2,16 +2,20 @@ import type { BrowserContext, Locator, Page } from '@playwright/test';
 
 import type { ViewState } from '../../packages/protocol/src/view';
 import {
+  applyTheme,
   expect,
   fief,
   HOUR,
+  lowContrast,
   MINUTE,
+  overflow,
   playNow,
   resourceRow,
   statusBar,
   stock,
   stored,
   test,
+  THEMES,
   toasts,
   tree,
 } from './helpers';
@@ -51,11 +55,19 @@ test.describe('fechar e reabrir', () => {
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 2 dias de jogo/)).toBeVisible();
     await expect(today.getByText('Obras concluídas: 1')).toBeVisible();
-    // 2 fazendeiros rendem 20/h e 5 aldeões comem 5/h: +15/h por 5 h, exatamente uma vez.
+    // Na primavera, 2 fazendeiros rendem 24/h e 5 aldeões comem 5/h. Nas duas primeiras horas os
+    // dois ainda se adaptam e rendem metade (+7/h). Na primeira virada do dia a moral sobe a 60,
+    // pela comida guardada, e a produção ganha 5%: +20,5/h, e um pouco mais a cada dia de
+    // experiência do ofício. 14 + 41 + 20,8 = +75, exatamente uma vez.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
     await expect(food).toContainText(String(foodBefore + 75));
     await expect(food).toContainText('+75');
+    // O relatório diz a moral de agora e de onde ela veio; sem perda nem peso, não há conselho.
+    const morale = today.locator('.morale-report');
+    await expect(morale).toContainText('Moral 60 (Contente): subiu de 50 (Contente).');
+    await expect(morale.getByRole('status')).toHaveCount(0);
+    await expect(morale.getByRole('button', { name: 'Ver a moral' })).toHaveCount(0);
     await expect(today.getByRole('row', { name: /^Ouro/ })).toContainText(String(goldBefore));
     await expect(today.getByRole('listitem').filter({ hasText: /Habitações/ })).toBeVisible();
 
@@ -116,7 +128,8 @@ test.describe('fechar e reabrir', () => {
     expect(reads).toHaveLength(0);
     await world.passTime(HOUR, page);
     await expect.poll(() => reads.length).toBe(1);
-    await expect.poll(() => stock(page, 'Madeira')).toBe(128); // um lenhador rende 8/h
+    // Um lenhador rende 8/h; o que acabou de chegar, a metade, enquanto se adapta.
+    await expect.poll(() => stock(page, 'Madeira')).toBe(124);
 
     // Em segundo plano a cadência cai para 2 minutos…
     await page.evaluate(() => {
@@ -196,7 +209,8 @@ test.describe('sem conexão', () => {
     await world.passTime(HOUR, page);
     await expect(banner).toHaveCount(0);
     await expect(statusBar(page)).not.toContainText('Sem ligação');
-    await expect.poll(() => stock(page, 'Madeira')).toBe(128); // um lenhador rende 8/h
+    // Um lenhador rende 8/h; o que acabou de chegar, a metade, enquanto se adapta.
+    await expect.poll(() => stock(page, 'Madeira')).toBe(124);
     await expect(
       fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Serraria' }),
     ).toBeEnabled();
@@ -244,6 +258,176 @@ test.describe('sem conexão', () => {
     await context.unroute('**/v1/**');
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await expect(fief(page).getByText('Sem ligação com o reino.')).toHaveCount(0);
+  });
+});
+
+// V2C-T6 (GDD §2.3, passo 4, e §15.1): antes de sair, a aba Hoje diz em até cinco linhas o que
+// preparar para a ausência, cada linha com o botão que resolve. Os prazos e as taxas das frases
+// são os que o servidor mandou; o app só escolhe o que mostrar.
+
+test.describe('antes de partir', () => {
+  const today = (page: Page) => page.getByRole('tabpanel', { name: 'Hoje' });
+  const leaving = (page: Page) => today(page).getByRole('region', { name: 'Antes de partir' });
+  const items = (page: Page) => leaving(page).getByRole('listitem');
+
+  test('Antes de partir: sem relatório, abre a aba Hoje; cada botão resolve o seu item, pelo teclado também, até o feudo ficar pronto', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+
+    // Sem relatório, a seção é a primeira da aba.
+    await expect(today(page).getByRole('heading', { level: 2 })).toHaveText([
+      'Antes de partir',
+      'Relatório de Retorno',
+      'Decisões pendentes',
+    ]);
+    await expect(items(page)).toHaveCount(2);
+    await expect(items(page).nth(0)).toContainText(
+      'Os pedreiros estão livres e nenhuma obra começa sozinha.',
+    );
+    await expect(items(page).nth(1)).toContainText('5 aldeões livres, sem ofício.');
+    // A comida dura 36 horas: ainda não é assunto.
+    await expect(leaving(page)).not.toContainText('comida');
+    // De qualquer aba, a árvore diz quantos itens esperam, e o clique nela traz para cá.
+    const todayNode = tree(page).getByRole('treeitem', { name: /Hoje em Pedra Alta/ });
+    await expect(todayNode).toContainText('2 a preparar');
+
+    // Pelo teclado: do primeiro botão, Tab chega ao segundo, e Enter abre a lista de alocação.
+    await items(page).nth(0).getByRole('button', { name: 'Planejar obras' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(
+      items(page).nth(1).getByRole('button', { name: 'Alocar trabalhadores' }),
+    ).toBeFocused();
+    await page.keyboard.press('Enter');
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('combobox').fill('fazenda');
+    await page.keyboard.press('Enter');
+    await dialog.getByRole('textbox').fill('2');
+    await page.keyboard.press('Enter');
+    await expect(items(page).nth(1)).toContainText('3 aldeões livres, sem ofício.');
+
+    // Os outros três vão para a Serraria: o item some.
+    await items(page).nth(1).getByRole('button', { name: 'Alocar trabalhadores' }).click();
+    await dialog.getByRole('combobox').fill('serraria');
+    await page.keyboard.press('Enter');
+    await dialog.getByRole('textbox').fill('3');
+    await page.keyboard.press('Enter');
+    await expect(items(page)).toHaveCount(1);
+    await expect(leaving(page)).not.toContainText('sem ofício');
+
+    // "Planejar obras": as Habitações como automática começam agora mesmo. Com os pedreiros
+    // ocupados, o item passa a dizer quando a obra termina e que nada vem depois dela.
+    await items(page).first().getByRole('button', { name: 'Planejar obras' }).click();
+    await dialog.getByRole('combobox').fill('habita');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Enter');
+    await expect(items(page).first()).toContainText(
+      /A obra de Habitações termina em \d+ min e nenhuma começa depois dela\./,
+    );
+    await expect(statusBar(page)).toContainText('Habitações Nv2 ·');
+
+    // Mais uma planejada automática, à espera da fila: era o que faltava.
+    await items(page).first().getByRole('button', { name: 'Planejar obras' }).click();
+    await dialog.getByRole('combobox').fill('fazenda');
+    await page.keyboard.press('Enter');
+    await expect(dialog.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Enter');
+    await expect(leaving(page)).toContainText('O feudo está preparado para a sua ausência.');
+    await expect(items(page)).toHaveCount(0);
+    await expect(leaving(page).getByRole('button')).toHaveCount(0);
+    await expect(todayNode).toContainText('pronto para a ausência');
+
+    // Seis minutos depois as Habitações ficaram prontas. A Fazenda ainda espera a madeira que a
+    // Serraria está cortando: continua preparado, porque essa espera tem prazo.
+    await world.passTime(6 * MINUTE, page);
+    await expect(statusBar(page)).not.toContainText('Habitações');
+    await expect(leaving(page)).toContainText('O feudo está preparado para a sua ausência.');
+    // E estava mesmo: uma hora depois a Fazenda já começou sozinha e ficou pronta. Agora os
+    // pedreiros estão parados de novo, e a lista volta a dizer isso.
+    await world.passTime(HOUR, page);
+    await expect(tree(page).locator('[data-node="worker:farm"]')).toContainText('Fazenda Nv2');
+    await expect(items(page)).toHaveCount(1);
+    await expect(items(page).first()).toContainText(
+      'Os pedreiros estão livres e nenhuma obra começa sozinha.',
+    );
+  });
+
+  test('Antes de partir: a comida que acaba é o item mais urgente, com o botão da Fazenda; nos três temas, em 720 px e abaixo do Relatório de Retorno', async ({
+    context,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    // Ninguém na Fazenda: a comida cai 5 por hora e dura 36 horas. Treze horas depois, falta
+    // menos de um dia: é o primeiro item, como alerta.
+    await world.passTime(13 * HOUR, page);
+    const food = items(page).first();
+    await expect(food).toContainText(/A comida acaba em 2[23] h: saldo de −5\/h\./);
+    await expect(food).toContainText('Atenção:');
+    await expect(food.locator('.codicon-warning')).toBeVisible();
+    await expect(items(page)).toHaveCount(3);
+
+    // A menos de uma ausência comum do fim, é urgente: outro ícone e outra palavra, não só a cor.
+    await world.passTime(17 * HOUR, page);
+    await expect(food).toContainText(/A comida acaba em [56] h: saldo de −5\/h\./);
+    await expect(food).toContainText('Urgente:');
+    await expect(food.locator('.codicon-error')).toBeVisible();
+    await expect(food.getByRole('button', { name: 'Alocar na Fazenda' })).toBeVisible();
+    // Na árvore, o sinal de alerta acompanha o número.
+    await expect(tree(page).getByRole('treeitem', { name: /Hoje em Pedra Alta/ })).toContainText(
+      '⚠ 3 a preparar',
+    );
+
+    // Legível nos três temas, e em 720 px nada transborda.
+    for (const theme of THEMES) {
+      await applyTheme(page, theme);
+      await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await expect(items(page)).toHaveCount(3);
+      expect(await lowContrast(page), `contraste em "Antes de partir", tema ${theme}`).toEqual([]);
+    }
+    await page.setViewportSize({ width: 720, height: 800 });
+    await expect(page.locator('#sidebar')).toBeHidden();
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    // O botão do item leva direto à Fazenda: sem lista de edifícios, só o número.
+    await food.getByRole('button', { name: 'Alocar na Fazenda' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText('Fazenda Nv1');
+    await dialog.getByRole('textbox').fill('5');
+    await page.keyboard.press('Enter');
+    await expect(leaving(page)).not.toContainText('A comida acaba');
+    await expect(leaving(page)).not.toContainText('sem ofício');
+    await expect(items(page)).toHaveCount(1);
+
+    // Quem volta de uma ausência lê primeiro o que aconteceu: a seção vem logo abaixo do relatório.
+    await page.close();
+    await world.passTime(5 * HOUR);
+    const back = await world.open(context);
+    await expect(back.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(today(back).getByRole('heading', { level: 2 })).toHaveText([
+      'Relatório de Retorno',
+      'Antes de partir',
+      'Decisões pendentes',
+    ]);
+    await expect(today(back).getByText('Você esteve fora por 5 horas.')).toBeVisible();
+    // Cinco lavradores por cinco horas: agora é a Despensa que está para encher, e o item do
+    // depósito passa na frente das obras que não começam sozinhas.
+    await expect(items(back).first()).toContainText(
+      /Despensa: comida no limite em \d+ h\. O que passar disso vai ao chão\./,
+    );
+    await expect(
+      items(back).first().getByRole('button', { name: 'Ver os depósitos' }),
+    ).toBeVisible();
+    await expect(items(back).filter({ hasText: 'nenhuma obra começa sozinha' })).toHaveCount(1);
   });
 });
 
@@ -330,8 +514,9 @@ test.describe('no ritmo da produção', () => {
     const announced = view.constructions.available.find((entry) => entry.building === 'housing');
     expect(announced?.durationSeconds).toBe(80);
     await expect(housing).toContainText('1 min 20 s');
-    expect(view.recruitment.secondsPerVillager).toBe(400);
-    await expect(fief(page).getByText(/leva 6 min 40 s/)).toBeVisible();
+    // O recrutamento da primavera: 16 min de jogo, 5 min 20 s de relógio.
+    expect(view.recruitment.secondsPerVillager).toBe(320);
+    await expect(fief(page).getByText(/leva 5 min 20 s/)).toBeVisible();
     // O dia de jogo dura 40 minutos de relógio.
     expect(view.calendar.secondsToNextDay).toBeGreaterThan(2390);
     expect(view.calendar.secondsToNextDay).toBeLessThanOrEqual(2400);
@@ -362,7 +547,7 @@ test.describe('no ritmo da produção', () => {
     expect((await views.latest()).constructions.active).toBeNull();
   });
 
-  test('ritmo Rápido: depois de 5 horas fora, o relatório conta horas de relógio e o ganho é a taxa anunciada, uma vez só', async ({
+  test('ritmo Rápido: depois de 5 horas fora, o relatório conta horas de relógio e o ganho é o das taxas anunciadas, uma vez só', async ({
     context,
     world,
   }) => {
@@ -374,11 +559,23 @@ test.describe('no ritmo da produção', () => {
     await plus.click();
     await expect(fief(first).getByText('Trabalhadores (2/5)')).toBeVisible();
 
-    // A taxa já chega por hora de relógio: 2 fazendeiros rendem 60/h e 5 aldeões comem 15/h,
-    // três vezes o +15/h do mesmo feudo no ritmo Normal. A tela mostra o número como veio.
-    const rate = (await views.latest()).resources.find((entry) => entry.id === 'food')?.perHour;
-    expect(rate).toBe(45);
-    await expect(resourceRow(first, 'Comida')).toContainText('+45');
+    // A taxa já chega por hora de relógio: na primavera, 2 fazendeiros que acabaram de chegar
+    // rendem 36/h (a metade dos 72/h de depois da adaptação) e 5 aldeões comem 15/h, três vezes o
+    // +7/h do mesmo feudo no ritmo Normal. A tela mostra o número como veio.
+    const arrived = await views.latest();
+    expect(arrived.resources.find((entry) => entry.id === 'food')?.perHour).toBe(21);
+    await expect(resourceRow(first, 'Comida')).toContainText('+21');
+    // A adaptação também é anunciada em relógio: 40 minutos, e não as 2 horas de jogo.
+    expect(arrived.workersRules.adaptationSeconds).toBe(2400);
+    await expect(
+      fief(first).getByText(/Quem troca de ofício produz metade por 40 min\./),
+    ).toBeVisible();
+    await expect(
+      fief(first)
+        .getByRole('region', { name: /^Trabalhadores/ })
+        .getByRole('listitem')
+        .filter({ hasText: 'Fazenda' }),
+    ).toContainText('+1 aqui: +18/h agora, +36/h depois de 40 min');
     const foodBefore = await stock(first, 'Comida');
     await first.close();
 
@@ -389,18 +586,75 @@ test.describe('no ritmo da produção', () => {
     const today = page.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     await expect(today.getByText(/O mundo andou 7 dias de jogo/)).toBeVisible();
-    // +45/h por 5 h de relógio: nem os +75 do ritmo Normal, nem os +675 de converter duas vezes.
+    // 40 min de relógio a +21/h (a adaptação) e, depois, de +61,5/h a +66,9/h, um degrau a cada dia
+    // de experiência, já com a moral em 60 desde a primeira virada: nem os +75 do ritmo Normal,
+    // nem o triplo disso de converter duas vezes.
     const food = today.getByRole('row', { name: /^Comida/ });
     await expect(food).toContainText(String(foodBefore));
-    await expect(food).toContainText(String(foodBefore + 225));
-    await expect(food).toContainText('+225');
+    await expect(food).toContainText(String(foodBefore + 291));
+    await expect(food).toContainText('+291');
 
     await today.getByRole('button', { name: 'Ir para o feudo' }).click();
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
-    await expect(resourceRow(page, 'Comida')).toContainText('+45');
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
+    await expect(resourceRow(page, 'Comida')).toContainText('+66,9');
+    // A moral também fala em relógio: a comida guardada é a de 8 horas (as 24 h de jogo), e a
+    // virada do dia que a recalcula vem em menos de 40 minutos. São os números da API.
+    const morale = fief(page).getByRole('region', { name: 'Moral' });
+    const served = (await views.latest()).morale;
+    expect(served.nextUpdateInSeconds).toBeLessThanOrEqual(2400);
+    expect(served.terms.map((term) => term.label)).toContain('Comida guardada para 8 h');
+    await expect(morale).toContainText('Comida guardada para 8 h');
+    await expect(morale).toContainText(/Faltam [0-3]\d:\d\d\./);
     // Recarregar não soma de novo.
     await page.reload();
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
-    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 291);
+  });
+
+  test('ritmo Rápido: a lareira do inverno queima por hora de relógio, e a tela escreve o número da API', async ({
+    context,
+    world,
+  }) => {
+    const views = watchViews(context);
+    const page = await world.open(context);
+    await playFast(page);
+    // Todos na Fazenda, e a melhoria dela leva 80 das 120 de madeira.
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Fazenda → Nv2');
+
+    // O inverno chega em 48 horas de relógio (144 de jogo); vinte minutos depois, a lareira arde.
+    await world.passTime(48 * HOUR + 20 * MINUTE, page);
+    await expect(fief(page).getByText(/Inverno, dia 1 do Ano 1/)).toBeVisible();
+    const view = await views.latest();
+    // 0,5 de madeira por habitante por hora de jogo são 1,5 por hora de relógio: 7,5/h com 5.
+    expect(view.winter?.firewoodPerHour).toBe(7.5);
+    expect(view.calendar.seasonEffects).toContain(
+      'a lareira queima 1,5 de madeira por habitante por hora',
+    );
+    await expect(fief(page).getByText(view.calendar.seasonEffects)).toBeVisible();
+    await expect(fief(page).locator('.hearth')).toContainText('Lareira: 7,5 de madeira por hora');
+    await expect(resourceRow(page, 'Madeira')).toContainText('−7,5');
+    // O prazo até a madeira acabar também vem em relógio: as 37 de madeira duram perto de 5 h,
+    // e não as 15 h que seriam sem a conversão do servidor.
+    const wood = view.resources.find((entry) => entry.id === 'wood');
+    expect(wood?.depletesInSeconds).toBeGreaterThan(4 * 3600);
+    expect(wood?.depletesInSeconds).toBeLessThan(5.5 * 3600);
+    await expect(fief(page).locator('.hearth')).toContainText(/madeira acaba em [45] h/);
+    // A obra iniciada no inverno: 5 min de jogo × 1,5, um terço disso em relógio.
+    const sawmill = view.constructions.available.find((entry) => entry.building === 'lumberMill');
+    expect(sawmill?.durationSeconds).toBe(150);
+    expect(sawmill?.durationNote).toBe('No Inverno, o prazo de uma obra iniciada agora é × 1,5.');
+    await expect(
+      fief(page).getByRole('listitem').filter({ hasText: 'Serraria Nv1 → Nv2' }),
+    ).toContainText('2 min 30 s');
   });
 });

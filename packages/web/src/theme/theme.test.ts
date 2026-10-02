@@ -253,6 +253,7 @@ describe('themes.css', () => {
     ['texto no editor', 'foreground', 'editor-background'],
     ['descrição no editor', 'descriptionForeground', 'editor-background'],
     ['descrição na barra lateral', 'descriptionForeground', 'sideBar-background'],
+    ['texto em avisos e cartões', 'foreground', 'editorWidget-background'],
     ['descrição em avisos e cartões', 'descriptionForeground', 'editorWidget-background'],
     ['descrição na linha sob o mouse', 'descriptionForeground', 'list-hoverBackground'],
     // Trabalhadores no painel e as opções de dificuldade e ritmo das boas-vindas.
@@ -271,7 +272,7 @@ describe('themes.css', () => {
     ['barra de status', 'statusBar-foreground', 'statusBar-background'],
     ['barra de status sob o mouse', 'statusBar-foreground', 'statusBarItem-hoverBackground'],
     [
-      'barra de status com fome',
+      'barra de status com fome ou frio',
       'statusBarItem-warningForeground',
       'statusBarItem-warningBackground',
     ],
@@ -299,6 +300,14 @@ describe('themes.css', () => {
     ['texto de aviso no editor', 'editorWarning-foreground', 'editor-background'],
     ['texto de aviso em cartões', 'editorWarning-foreground', 'editorWidget-background'],
     ['texto de erro no editor', 'editorError-foreground', 'editor-background'],
+    // Os ícones de "Antes de partir": urgente e sugestão em cada item; o do feudo preparado.
+    ['ícone de erro em cartões', 'editorError-foreground', 'editorWidget-background'],
+    [
+      'ícone de informação em cartões',
+      'notificationsInfoIcon-foreground',
+      'editorWidget-background',
+    ],
+    ['ícone de informação no editor', 'notificationsInfoIcon-foreground', 'editor-background'],
     ['campo de texto', 'input-foreground', 'input-background'],
     ['texto de exemplo do campo', 'input-placeholderForeground', 'input-background'],
     ['campo com validação de erro', 'input-foreground', 'inputValidation-errorBackground'],

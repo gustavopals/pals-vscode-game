@@ -1,11 +1,11 @@
 import type { ReturnReport, ViewState } from '@lotg/protocol';
 
 import type { Actions } from '../components/actions';
-import { FamineBanner, OfflineBanner } from '../components/Banners';
+import { ColdBanner, FamineBanner, OfflineBanner } from '../components/Banners';
 import { Header } from '../components/Header';
 import { Today } from '../components/Today';
 
-/** A aba Hoje: o Relatório de Retorno e as decisões pendentes (GDD §2.3). */
+/** A aba Hoje: o Relatório de Retorno, "Antes de partir" e as decisões pendentes (GDD §2.3). */
 export function TodayTab(props: {
   view: ViewState;
   elapsed: number;
@@ -22,8 +22,14 @@ export function TodayTab(props: {
         retryInSeconds={props.retryInSeconds}
         actions={props.actions}
       />
-      <FamineBanner famine={props.view.famine} />
-      <Today report={props.report} actions={props.actions} />
+      <FamineBanner famine={props.view.famine} notes={props.view.morale.notes} />
+      <ColdBanner winter={props.view.winter} />
+      <Today
+        report={props.report}
+        view={props.view}
+        online={props.online}
+        actions={props.actions}
+      />
     </div>
   );
 }
