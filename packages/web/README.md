@@ -25,9 +25,12 @@ pnpm --filter @lotg/web test                # testes de unidade (sem navegador)
 pnpm --filter @lotg/web test -- controller  # só os arquivos com "controller" no nome
 pnpm dev:up && pnpm test:e2e                # Chromium de verdade, API de verdade, db_test
 pnpm test:e2e 04-conta -g "duas abas"       # um arquivo, um teste
+GAME_TIME_SCALE=3 pnpm test:e2e 03-retorno-e-conexao -g "ritmo"   # o ritmo Rápido com o servidor de teste como o da produção
 ```
 
 Os testes de unidade rodam em Node, sem DOM: funções puras e HTML gerado com `preact-render-to-string`. Tudo o que depende de um navegador (foco, teclado, `localStorage` entre abas, CSP, contraste) é provado em `tests/e2e/`, com o app compilado. `src/test-helpers.ts` tem uma API `/v1` de mentira em memória (`fakeApi`), um controlador pronto (`makeController`) e diálogos respondidos por roteiro (`scriptedDialogs`).
+
+Os testes em navegador rodam com o servidor de teste no ritmo Normal, o dos tempos do GDD. Os cenários "no ritmo da produção" de `tests/e2e/03-retorno-e-conexao.spec.ts` fundam o feudo no ritmo Rápido pelas boas-vindas e rodam com a suíte: conferem que os prazos e as taxas na tela são os que a API entregou e que a obra termina na hora anunciada. `GAME_TIME_SCALE=3` sobe o servidor de teste com o padrão da produção (o Rápido já vem marcado); assim só esses cenários valem, e um servidor de teste que tenha ficado de pé na porta 3100 precisa ser encerrado antes, porque o Playwright reaproveita o que encontra.
 
 O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho relativo (`../../engine/src/__golden__/view-seed-pedra-alta.json`).
 

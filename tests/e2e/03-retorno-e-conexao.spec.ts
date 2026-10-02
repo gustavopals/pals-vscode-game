@@ -1,3 +1,6 @@
+import type { BrowserContext, Locator, Page } from '@playwright/test';
+
+import type { ViewState } from '../../packages/protocol/src/view';
 import {
   expect,
   fief,
@@ -241,5 +244,163 @@ test.describe('sem conexão', () => {
     await context.unroute('**/v1/**');
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await expect(fief(page).getByText('Sem ligação com o reino.')).toHaveCount(0);
+  });
+});
+
+// QA-15 do roadmap da v0.2 e ADR 0011: a produção joga no ritmo Rápido (3×). Quem converte o
+// tempo de jogo em tempo real é o servidor, uma vez só; o app mostra os segundos e as taxas que
+// recebe. Se o app convertesse de novo, ou se a API anunciasse um prazo e cumprisse outro, estes
+// cenários cairiam. O feudo é fundado no Rápido pelas boas-vindas: por isso rodam com a suíte,
+// no servidor de ritmo 1, e também com `GAME_TIME_SCALE=3`, que sobe o servidor como o da
+// produção (`GAME_TIME_SCALE=3 pnpm test:e2e 03-retorno-e-conexao -g "ritmo"`).
+
+/** Cada visão que a API entregou a este navegador, em leituras e em respostas de ordens. */
+function watchViews(context: BrowserContext): { latest(): Promise<ViewState> } {
+  const arrived: Array<Promise<ViewState | null>> = [];
+  context.on('response', (response) => {
+    const path = new URL(response.url()).pathname;
+    if (response.status() === 200 && /^\/v1\/games\/[^/]+\/(view|commands)$/.test(path)) {
+      arrived.push(
+        response.json().then(
+          (body: { view: ViewState }) => body.view,
+          // A página fechou com a resposta a caminho: não há corpo para ler.
+          () => null,
+        ),
+      );
+    }
+  });
+  return {
+    latest: async () => {
+      const views = (await Promise.all(arrived)).filter((view) => view !== null);
+      const last = views.at(-1);
+      if (last === undefined) {
+        throw new Error('A API ainda não entregou nenhuma visão a este navegador.');
+      }
+      return last;
+    },
+  };
+}
+
+/** "Jogar agora" no ritmo Rápido, o da produção, esteja ele marcado de saída ou não. */
+async function playFast(page: Page) {
+  await page
+    .getByRole('tabpanel', { name: 'Boas-vindas' })
+    .getByRole('radiogroup', { name: 'Ritmo' })
+    .getByRole('radio', { name: /^Rápido/ })
+    .check();
+  await playNow(page);
+}
+
+/** "39:58" ou "1:07:30" em segundos. */
+function countdownSeconds(text: string): number {
+  const clock = /\d+(?::\d\d)+/.exec(text);
+  if (clock === null) {
+    throw new Error(`Sem contagem regressiva em "${text}".`);
+  }
+  return clock[0].split(':').reduce((total, part) => total * 60 + Number(part), 0);
+}
+
+/**
+ * A contagem na tela parte do prazo que a API deu e só desce com o relógio: nunca passa do que a
+ * API disse e nunca fica mais que uns segundos abaixo (o tempo que o teste leva para olhar).
+ * Tenta de novo por um instante: a visão pode ter chegado e a tela ainda não ter sido redesenhada.
+ */
+async function expectCountdown(shown: Locator, apiSeconds: number) {
+  await expect(async () => {
+    const seconds = countdownSeconds(await shown.innerText());
+    expect(seconds).toBeLessThanOrEqual(apiSeconds);
+    expect(seconds).toBeGreaterThan(apiSeconds - 10);
+  }).toPass({ timeout: 3_000 });
+}
+
+test.describe('no ritmo da produção', () => {
+  test('ritmo Rápido: os prazos na tela são os da API, e a obra termina na hora anunciada, não antes', async ({
+    context,
+    world,
+  }) => {
+    const views = watchViews(context);
+    const page = await world.open(context);
+    await playFast(page);
+    const view = await views.latest();
+    expect(view.settlement.paceLabel).toBe('Rápido: um ano em 56 horas');
+
+    // A API anuncia cada prazo em segundos reais, um terço dos tempos de jogo do GDD, e a tela
+    // escreve esse mesmo número, sem dividir de novo.
+    const housing = fief(page).getByRole('listitem').filter({ hasText: 'Habitações Nv1 → Nv2' });
+    const announced = view.constructions.available.find((entry) => entry.building === 'housing');
+    expect(announced?.durationSeconds).toBe(80);
+    await expect(housing).toContainText('1 min 20 s');
+    expect(view.recruitment.secondsPerVillager).toBe(400);
+    await expect(fief(page).getByText(/leva 6 min 40 s/)).toBeVisible();
+    // O dia de jogo dura 40 minutos de relógio.
+    expect(view.calendar.secondsToNextDay).toBeGreaterThan(2390);
+    expect(view.calendar.secondsToNextDay).toBeLessThanOrEqual(2400);
+    await expectCountdown(page.getByText(/próximo dia em/), view.calendar.secondsToNextDay);
+
+    await housing.getByRole('button', { name: 'Melhorar' }).click();
+    const active = fief(page).locator('.active-construction');
+    await expect(active).toContainText('Habitações → Nv2');
+    const started = (await views.latest()).constructions.active;
+    expect(started?.totalSeconds).toBe(80);
+    expect(started?.secondsRemaining).toBeGreaterThan(70);
+    await expectCountdown(active.getByLabel(/^Termina em/), started?.secondsRemaining ?? 0);
+
+    // Um minuto de relógio depois, a obra continua, na API e na tela, com os 20 s que faltam.
+    // Convertida duas vezes, já teria terminado (aos 27 s).
+    await world.passTime(MINUTE, page);
+    const later = (await views.latest()).constructions.active;
+    expect(later?.secondsRemaining).toBeGreaterThan(10);
+    expect(later?.secondsRemaining).toBeLessThanOrEqual(20);
+    await expect(active).toContainText('Habitações → Nv2');
+    await expectCountdown(active.getByLabel(/^Termina em/), later?.secondsRemaining ?? 0);
+    await expect(fief(page).getByText('Habitações Nv2 → Nv3')).toHaveCount(0);
+
+    // Passados os 80 s anunciados, terminou. Sem conversão nenhuma, levaria 4 minutos.
+    await world.passTime(21_000, page);
+    await expect(fief(page).getByText('Os pedreiros estão livres.')).toBeVisible();
+    await expect(fief(page).getByText('Habitações Nv2 → Nv3')).toBeVisible();
+    expect((await views.latest()).constructions.active).toBeNull();
+  });
+
+  test('ritmo Rápido: depois de 5 horas fora, o relatório conta horas de relógio e o ganho é a taxa anunciada, uma vez só', async ({
+    context,
+    world,
+  }) => {
+    const views = watchViews(context);
+    const first = await world.open(context);
+    await playFast(first);
+    const plus = fief(first).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    await plus.click();
+    await plus.click();
+    await expect(fief(first).getByText('Trabalhadores (2/5)')).toBeVisible();
+
+    // A taxa já chega por hora de relógio: 2 fazendeiros rendem 60/h e 5 aldeões comem 15/h,
+    // três vezes o +15/h do mesmo feudo no ritmo Normal. A tela mostra o número como veio.
+    const rate = (await views.latest()).resources.find((entry) => entry.id === 'food')?.perHour;
+    expect(rate).toBe(45);
+    await expect(resourceRow(first, 'Comida')).toContainText('+45');
+    const foodBefore = await stock(first, 'Comida');
+    await first.close();
+
+    await world.passTime(5 * HOUR);
+    const page = await world.open(context);
+
+    // A ausência é contada no relógio do jogador; o mundo, em dias de jogo (de 40 minutos).
+    const today = page.getByRole('tabpanel', { name: 'Hoje' });
+    await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
+    await expect(today.getByText(/O mundo andou 7 dias de jogo/)).toBeVisible();
+    // +45/h por 5 h de relógio: nem os +75 do ritmo Normal, nem os +675 de converter duas vezes.
+    const food = today.getByRole('row', { name: /^Comida/ });
+    await expect(food).toContainText(String(foodBefore));
+    await expect(food).toContainText(String(foodBefore + 225));
+    await expect(food).toContainText('+225');
+
+    await today.getByRole('button', { name: 'Ir para o feudo' }).click();
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
+    await expect(resourceRow(page, 'Comida')).toContainText('+45');
+    // Recarregar não soma de novo.
+    await page.reload();
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    expect(await stock(page, 'Comida')).toBe(foodBefore + 225);
   });
 });

@@ -16,6 +16,14 @@ process.env.TEST_DATABASE_URL ??= 'postgres://lotg:lotg@localhost:5433/lotg_test
 
 const PORT = Number(process.env.E2E_API_PORT ?? 3100);
 const GITHUB = 'https://github.test';
+/**
+ * O ritmo com que as partidas nascem quando o jogador não escolhe outro. A suíte foi escrita no
+ * ritmo Normal (1) e é nele que roda. `GAME_TIME_SCALE=3` sobe este servidor como o da produção
+ * (ADR 0011): o Rápido vem marcado nas boas-vindas. Só os cenários de "ritmo da produção" de
+ * `03-retorno-e-conexao.spec.ts` valem nos dois casos, porque fundam o feudo no Rápido de
+ * qualquer jeito; os outros esperam os prazos do ritmo 1.
+ */
+const TIME_SCALE = process.env.GAME_TIME_SCALE?.trim() || '1';
 
 let offsetMs = 0;
 const clock = () => new Date(Date.now() + offsetMs);
@@ -28,6 +36,7 @@ const { app, ctx } = await buildApp({
     PUBLIC_URL: `http://localhost:${PORT}`,
     GITHUB_OAUTH_URL: GITHUB,
     GITHUB_CLIENT_ID: 'cliente-e2e',
+    GAME_TIME_SCALE: TIME_SCALE,
   }),
   pool,
   clock,
@@ -92,7 +101,7 @@ control.post('/__test/github', async (request) => {
 });
 
 await app.listen({ port: PORT, host: '127.0.0.1' });
-console.log(`API de teste em http://127.0.0.1:${PORT}`);
+console.log(`API de teste em http://127.0.0.1:${PORT} (ritmo ${ctx.config.gameTimeScale})`);
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
