@@ -177,6 +177,9 @@ function atPace(view: ViewState, pace: number): ViewState {
       ...entry,
       perHour: scaled(entry.perHour),
       depletesInSeconds: entry.depletesInSeconds === null ? null : down(entry.depletesInSeconds),
+      // "Cheio em" é um prazo como os outros; o que vai ao chão por hora é uma taxa.
+      fullInSeconds: entry.fullInSeconds === null ? null : up(entry.fullInSeconds),
+      wastingPerHour: scaled(entry.wastingPerHour),
     })),
     workers: view.workers.map((entry) => ({
       ...entry,
@@ -250,7 +253,12 @@ function withoutRateTexts(view: ViewState): ViewState {
         changes: view.calendar.nextSeason.firewood === null ? view.calendar.nextSeason.changes : [],
       },
     },
-    resources: view.resources.map((entry) => ({ ...entry, breakdown: '' })),
+    // A frase de um depósito cheio cita o que vai ao chão por hora.
+    resources: view.resources.map((entry) => ({
+      ...entry,
+      breakdown: '',
+      fullNote: entry.wastingPerHour > 0 ? '' : entry.fullNote,
+    })),
     workers: view.workers.map((entry) => ({ ...entry, breakdown: '' })),
     winter:
       view.winter === null || view.winter.cold === null
@@ -259,9 +267,12 @@ function withoutRateTexts(view: ViewState): ViewState {
   };
 }
 
-/** A visão sem o saldo por hora dos recursos, que é conferido à parte. */
+/** A visão sem o saldo por hora dos recursos nem o que vai ao chão, conferidos à parte. */
 function withoutNetRates(view: ViewState): ViewState {
-  return { ...view, resources: view.resources.map((entry) => ({ ...entry, perHour: 0 })) };
+  return {
+    ...view,
+    resources: view.resources.map((entry) => ({ ...entry, perHour: 0, wastingPerHour: 0 })),
+  };
 }
 
 function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
@@ -275,6 +286,10 @@ function expectSameWorld(fastView: ViewState, normalView: ViewState): void {
   for (const [index, entry] of fastView.resources.entries()) {
     const tripled = expected.resources[index]?.perHour ?? Number.NaN;
     expect(Math.abs(entry.perHour - tripled), entry.id).toBeLessThanOrEqual(0.2 + 1e-9);
+    // O que vai ao chão com o depósito cheio é o mesmo saldo, com o mesmo arredondamento.
+    const wasted = expected.resources[index]?.wastingPerHour ?? Number.NaN;
+    expect(Math.abs(entry.wastingPerHour - wasted), entry.id).toBeLessThanOrEqual(0.2 + 1e-9);
+    expect(entry.wastingPerHour > 0, entry.id).toBe(wasted > 0);
   }
 }
 

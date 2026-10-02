@@ -41,7 +41,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 3;
+const CURRENT = 4;
 
 type StoredState = {
   schemaVersion: number;
@@ -75,6 +75,20 @@ type FixtureName = (typeof FIXTURES)[number][0];
 function v1State(name: FixtureName): StoredState {
   const url = new URL(`../../engine/src/__fixtures__/state-v1-${name}.json`, import.meta.url);
   return JSON.parse(readFileSync(url, 'utf8')) as StoredState;
+}
+
+/**
+ * O feudo de um retrato da versão 1 depois de migrado e antes de o tempo andar: o que o jogador
+ * tinha, mais o que cada versão acrescentou vazio (o frio fechado, o Celeiro e o Armazém por
+ * construir, nenhum desperdício). O estoque fica como estava, mesmo acima do limite.
+ */
+function migratedSettlement(before: StoredState): Record<string, unknown> {
+  return {
+    ...before.settlement,
+    cold: null,
+    buildings: { ...before.settlement.buildings, granary: 0, warehouse: 0 },
+    wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+  };
 }
 
 /** A resposta 200 de uma ordem, como o servidor da v0.1 a guardou em `commands.response_body`. */
@@ -280,8 +294,8 @@ describe('uma partida gravada na versão 1', () => {
     });
     // A fronteira é o instante de jogo até onde a v0.1 simulou, não o instante da leitura.
     expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-    // O feudo é o da v0.1, campo por campo; a versão 3 só acrescenta o frio, fechado.
-    expect(row.state.settlement).toEqual({ ...before.settlement, cold: null });
+    // O feudo é o da v0.1, campo por campo; as versões seguintes só acrescentam o que não havia.
+    expect(row.state.settlement).toEqual(migratedSettlement(before));
     expect(row.state.objectives).toEqual(before.objectives);
     expect(row.state.stats).toEqual(before.stats);
     expect(row.state.seed).toBe(before.seed);
@@ -457,7 +471,7 @@ describe('uma partida gravada na versão 1', () => {
       expect(row.schemaVersion).toBe(CURRENT);
       expect(row.stateVersion).toBe(41);
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-      expect(row.state.settlement).toEqual({ ...before.settlement, cold: null });
+      expect(row.state.settlement).toEqual(migratedSettlement(before));
       const views = [replies[0], replies[1], replies[4], replies[5]] as Array<{
         body: ViewResponse;
       }>;

@@ -43,7 +43,15 @@
         "id": "food",
         "label": "Comida",
         "stock": 180,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": -5,
         "depletesInSeconds": 129600,
         "breakdown": "Fazenda: 0 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 0/h; consumo 5 × 1 = 5/h"
@@ -52,7 +60,15 @@
         "id": "wood",
         "label": "Madeira",
         "stock": 120,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
@@ -61,7 +77,15 @@
         "id": "stone",
         "label": "Pedra",
         "stock": 65,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
@@ -71,6 +95,14 @@
         "label": "Ouro",
         "stock": 250,
         "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
@@ -152,7 +184,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 30 madeira e 35 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "farm",
@@ -178,7 +211,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "lumberMill",
@@ -204,7 +238,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "quarry",
@@ -230,7 +265,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "goldMine",
@@ -256,7 +292,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 15 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "housing",
@@ -282,7 +319,62 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 40
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 40
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
         }
       ]
     },
@@ -389,7 +481,15 @@
         "id": "food",
         "label": "Comida",
         "stock": 180,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": false,
+        "fullInSeconds": 60632,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 19,
         "depletesInSeconds": null,
         "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 5 × 1 = 5/h"
@@ -398,7 +498,15 @@
         "id": "wood",
         "label": "Madeira",
         "stock": 120,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
@@ -407,7 +515,15 @@
         "id": "stone",
         "label": "Pedra",
         "stock": 65,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
@@ -417,6 +533,14 @@
         "label": "Ouro",
         "stock": 270,
         "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
@@ -498,7 +622,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 30 madeira e 35 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "farm",
@@ -524,7 +649,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "lumberMill",
@@ -550,7 +676,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "quarry",
@@ -576,7 +703,8 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "goldMine",
@@ -602,7 +730,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 15 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "housing",
@@ -628,7 +757,62 @@
           "affordable": true,
           "blockedCode": null,
           "blockedReason": null,
-          "planned": false
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 40
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 40
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 15
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 2.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
         }
       ]
     },
@@ -692,7 +876,7 @@
         "id": "townHallLevel2",
         "title": "Alcance o Salão do Senhor Nv2",
         "hint": "O Salão dita até onde os outros edifícios podem crescer.",
-        "reward": "+50 ouro",
+        "reward": "desbloqueia o Celeiro e o Armazém",
         "status": "active",
         "progress": {
           "current": 1,
@@ -746,7 +930,15 @@
         "id": "food",
         "label": "Comida",
         "stock": 170,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "granary",
+        "storageLabel": "Despensa",
+        "full": false,
+        "fullInSeconds": 74190,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 16,
         "depletesInSeconds": null,
         "breakdown": "Fazenda: 2 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 24/h; consumo 8 × 1 = 8/h"
@@ -755,7 +947,15 @@
         "id": "wood",
         "label": "Madeira",
         "stock": 44,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 68400,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 24,
         "depletesInSeconds": null,
         "breakdown": "Serraria: 3 trabalhadores × 8 × 1 (Nv1) = 24/h"
@@ -764,7 +964,15 @@
         "id": "stone",
         "label": "Pedra",
         "stock": 22,
-        "cap": null,
+        "cap": 500,
+        "capBreakdown": "500 iniciais",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Pátio",
+        "full": false,
+        "fullInSeconds": 114600,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 15,
         "depletesInSeconds": null,
         "breakdown": "Pedreira: 3 trabalhadores × 5 × 1 (Nv1) = 15/h"
@@ -772,8 +980,16 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 190,
+        "stock": 140,
         "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
@@ -847,15 +1063,16 @@
               "resource": "gold",
               "label": "Ouro",
               "amount": 180,
-              "missing": 0
+              "missing": 40
             }
           ],
           "durationSeconds": 900,
           "durationNote": null,
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
-          "blockedReason": "Faltam 226 madeira e 158 pedra.",
-          "planned": false
+          "blockedReason": "Faltam 226 madeira, 158 pedra e 40 ouro.",
+          "planned": false,
+          "effect": null
         },
         {
           "building": "farm",
@@ -881,7 +1098,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 36 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "lumberMill",
@@ -907,7 +1125,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 56 madeira e 28 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "quarry",
@@ -933,7 +1152,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 76 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "goldMine",
@@ -959,7 +1179,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 76 madeira e 58 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "housing",
@@ -985,7 +1206,62 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 84 madeira e 10 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 116
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 58
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 116 madeira e 58 pedra.",
+          "planned": false,
+          "effect": "Capacidade de comida: 500 → 900."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 160,
+              "missing": 116
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 58
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 116 madeira e 58 pedra.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 500 → 900 cada."
         }
       ]
     },
@@ -1049,7 +1325,7 @@
         "id": "townHallLevel2",
         "title": "Alcance o Salão do Senhor Nv2",
         "hint": "O Salão dita até onde os outros edifícios podem crescer.",
-        "reward": "+50 ouro",
+        "reward": "desbloqueia o Celeiro e o Armazém",
         "status": "completed",
         "progress": {
           "current": 2,
@@ -1112,7 +1388,15 @@
         "id": "food",
         "label": "Comida",
         "stock": 640,
-        "cap": null,
+        "cap": 2100,
+        "capBreakdown": "Celeiro Nv3: 2.100",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Inverno.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 138,
         "depletesInSeconds": null,
         "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h"
@@ -1121,7 +1405,15 @@
         "id": "wood",
         "label": "Madeira",
         "stock": 60,
-        "cap": null,
+        "cap": 900,
+        "capBreakdown": "Armazém Nv1: 900",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 0,
         "depletesInSeconds": null,
         "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) = 0/h"
@@ -1130,7 +1422,15 @@
         "id": "stone",
         "label": "Pedra",
         "stock": 310,
-        "cap": null,
+        "cap": 900,
+        "capBreakdown": "Armazém Nv1: 900",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Inverno.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 25,
         "depletesInSeconds": null,
         "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) = 25/h"
@@ -1140,6 +1440,14 @@
         "label": "Ouro",
         "stock": 420,
         "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 13.2,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 1,1 (outono) = 13,2/h"
@@ -1221,7 +1529,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 426 madeira e 14 pedra.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "farm",
@@ -1247,7 +1556,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 68 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "lumberMill",
@@ -1273,7 +1583,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 40 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "quarry",
@@ -1299,7 +1610,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 60 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "goldMine",
@@ -1325,7 +1637,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 60 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "housing",
@@ -1351,7 +1664,62 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 145 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 655,
+              "missing": 595
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 328,
+              "missing": 18
+            }
+          ],
+          "durationSeconds": 2025,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 595 madeira e 18 pedra.",
+          "planned": false,
+          "effect": "Capacidade de comida: 2.100 → 2.700."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 256,
+              "missing": 196
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 128,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 196 madeira.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 900 → 1.500 cada."
         }
       ]
     },
@@ -1415,7 +1783,7 @@
         "id": "townHallLevel2",
         "title": "Alcance o Salão do Senhor Nv2",
         "hint": "O Salão dita até onde os outros edifícios podem crescer.",
-        "reward": "+50 ouro",
+        "reward": "desbloqueia o Celeiro e o Armazém",
         "status": "completed",
         "progress": {
           "current": 2,
@@ -1471,7 +1839,15 @@
         "id": "food",
         "label": "Comida",
         "stock": 1409,
-        "cap": null,
+        "cap": 2100,
+        "capBreakdown": "Celeiro Nv3: 2.100",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para a Primavera.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 20.4,
         "depletesInSeconds": null,
         "breakdown": "Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 0,4 (inverno) × 0,8 (frio) = 38,4/h; consumo 18 × 1 = 18/h"
@@ -1480,7 +1856,15 @@
         "id": "wood",
         "label": "Madeira",
         "stock": 0,
-        "cap": null,
+        "cap": 900,
+        "capBreakdown": "Armazém Nv1: 900",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": -9,
         "depletesInSeconds": null,
         "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 0/h; −9/h (lenha de 18 habitantes)"
@@ -1489,7 +1873,15 @@
         "id": "stone",
         "label": "Pedra",
         "stock": 556,
-        "cap": null,
+        "cap": 900,
+        "capBreakdown": "Armazém Nv1: 900",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para a Primavera.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 16,
         "depletesInSeconds": null,
         "breakdown": "Pedreira: 5 trabalhadores × 5 × 1 (Nv1) × 0,8 (inverno) × 0,8 (frio) = 16/h"
@@ -1499,6 +1891,14 @@
         "label": "Ouro",
         "stock": 560,
         "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
         "perHour": 9.6,
         "depletesInSeconds": null,
         "breakdown": "Mina de Ouro: 3 trabalhadores × 4 × 1 (Nv1) × 0,8 (frio) = 9,6/h"
@@ -1580,7 +1980,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 486 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "farm",
@@ -1606,7 +2007,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 128 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "lumberMill",
@@ -1632,7 +2034,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 100 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "quarry",
@@ -1658,7 +2061,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 120 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "goldMine",
@@ -1684,7 +2088,8 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 120 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
         },
         {
           "building": "housing",
@@ -1710,7 +2115,62 @@
           "affordable": false,
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 205 madeira.",
-          "planned": false
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 655,
+              "missing": 655
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 328,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3038,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 655 madeira.",
+          "planned": false,
+          "effect": "Capacidade de comida: 2.100 → 2.700."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 256,
+              "missing": 256
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 128,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 256 madeira.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 900 → 1.500 cada."
         }
       ]
     },
@@ -1788,7 +2248,7 @@
         "id": "townHallLevel2",
         "title": "Alcance o Salão do Senhor Nv2",
         "hint": "O Salão dita até onde os outros edifícios podem crescer.",
-        "reward": "+50 ouro",
+        "reward": "desbloqueia o Celeiro e o Armazém",
         "status": "completed",
         "progress": {
           "current": 2,

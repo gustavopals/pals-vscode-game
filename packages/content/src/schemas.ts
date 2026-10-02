@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { CHRONICLE_PLACEHOLDERS, EVENT_TYPES } from './chronicle';
+import { CHRONICLE_PLACEHOLDERS, EVENT_TYPES, foundingTemplates } from './chronicle';
 import { BUILDING_IDS, PRODUCTION_BUILDING_IDS, RESOURCE_IDS, SEASON_IDS } from './ids';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
 
@@ -40,6 +40,13 @@ const difficulty = z.strictObject({
   famineDesertion: z.boolean(),
 });
 
+const storageBuilding = z.strictObject({
+  resources: z.array(resourceId).min(1),
+  level1: positiveInt,
+  perLevel: positiveInt,
+  unbuilt: z.strictObject({ label, article: z.enum(['o', 'a']) }),
+});
+
 const pace = z.strictObject({
   timeScale: z.number().positive(),
   label,
@@ -53,7 +60,6 @@ export const BalanceSchema = z.strictObject({
   initial: z.strictObject({
     villagers: positiveInt,
     resources: perResource(z.number().int().nonnegative()),
-    buildingLevel: positiveInt,
   }),
   production: z.strictObject({
     perWorkerPerHour: z.strictObject({
@@ -81,6 +87,15 @@ export const BalanceSchema = z.strictObject({
     queues: positiveInt,
     gateLevelsAboveTownHall: z.number().int().nonnegative(),
   }),
+  storage: z
+    .strictObject({
+      baseCapacity: positiveInt,
+      buildings: z.partialRecord(buildingId, storageBuilding),
+    })
+    .refine(({ buildings }) => {
+      const stored = Object.values(buildings).flatMap((entry) => entry?.resources ?? []);
+      return new Set(stored).size === stored.length;
+    }, 'um recurso guardado por dois edifícios'),
   famine: z.strictObject({ productionMultiplier: ratio }),
   winter: z.strictObject({ cold: z.strictObject({ productionMultiplier: ratio }) }),
   calendar: z.strictObject({
@@ -115,14 +130,18 @@ export const BalanceSchema = z.strictObject({
     ),
 });
 
-export const BuildingSchema = z.strictObject({
-  label,
-  article: z.enum(['o', 'a', 'os', 'as']),
-  baseCost: resourceAmounts,
-  baseDurationMs: positiveInt,
-  maxLevel: z.number().int().min(2),
-  produces: resourceId.nullable(),
-});
+export const BuildingSchema = z
+  .strictObject({
+    label,
+    article: z.enum(['o', 'a', 'os', 'as']),
+    baseCost: resourceAmounts,
+    baseDurationMs: positiveInt,
+    initialLevel: z.number().int().nonnegative(),
+    maxLevel: z.number().int().min(2),
+    produces: resourceId.nullable(),
+    requires: z.partialRecord(buildingId, positiveInt),
+  })
+  .refine((def) => def.maxLevel > def.initialLevel, 'nível máximo abaixo do inicial');
 
 export const BuildingsSchema = z.strictObject({
   townHall: BuildingSchema,
@@ -131,6 +150,8 @@ export const BuildingsSchema = z.strictObject({
   quarry: BuildingSchema,
   goldMine: BuildingSchema,
   housing: BuildingSchema,
+  granary: BuildingSchema,
+  warehouse: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -144,13 +165,20 @@ export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('buildingLevel'), building: buildingId, level: positiveInt }),
 ]);
 
-export const ObjectiveSchema = z.strictObject({
-  id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
-  title: label,
-  hint: label,
-  condition: ObjectiveConditionSchema,
-  reward: resourceAmounts,
-});
+export const ObjectiveSchema = z
+  .strictObject({
+    id: z.string().regex(/^[a-z][A-Za-z0-9]*$/),
+    title: label,
+    hint: label,
+    condition: ObjectiveConditionSchema,
+    reward: z.partialRecord(resourceId, positiveInt),
+    // Entra depois de "Recompensa:" e ao lado de "+20 ouro": minúscula, sem ponto final.
+    rewardText: label.regex(/^\p{Ll}.*[^.]$/u).optional(),
+  })
+  .refine(
+    (objective) => Object.keys(objective.reward).length > 0 || objective.rewardText !== undefined,
+    'objetivo sem recompensa',
+  );
 
 export const ObjectivesSchema = z.array(ObjectiveSchema).min(1);
 
@@ -167,6 +195,11 @@ const chronicleTemplate = label.refine(
 
 export const ChronicleTemplatesSchema = z.strictObject(
   Object.fromEntries(EVENT_TYPES.map((type) => [type, chronicleTemplate])),
+);
+
+/** As frases da obra que ergue um edifício do zero: só para eventos que existem. */
+export const FoundingTemplatesSchema = z.strictObject(
+  Object.fromEntries(Object.keys(foundingTemplates).map((type) => [type, chronicleTemplate])),
 );
 
 export { EVENT_TYPES, OBJECTIVE_CONDITION_TYPES };

@@ -4,8 +4,8 @@ import {
   migrateState,
   StateMigrationError,
 } from '@lotg/engine';
-import type { GameEvent, GameSummary } from '@lotg/protocol';
-import { and, desc, eq, gt, gte, lt, ne, sql } from 'drizzle-orm';
+import { CHRONICLE_HIDDEN_EVENT_TYPES, type GameEvent, type GameSummary } from '@lotg/protocol';
+import { and, desc, eq, gt, gte, lt, notInArray, sql } from 'drizzle-orm';
 
 import { notFound } from '../api-error';
 import type { Tx } from '../db/client';
@@ -212,8 +212,12 @@ export async function chronicleRows(
   gameId: string,
   options: { limit?: number | undefined; year?: number | undefined } = {},
 ): Promise<GameEventRow[]> {
-  // As viradas de dia continuam em `GET /events`, mas não entram na Crônica (ADR 0007).
-  const conditions = [eq(gameEvents.gameId, gameId), ne(gameEvents.kind, 'dayStarted')];
+  // As viradas de dia e o fecho diário do desperdício continuam em `GET /events`, mas não
+  // entram na Crônica (ADRs 0007 e 0015).
+  const conditions = [
+    eq(gameEvents.gameId, gameId),
+    notInArray(gameEvents.kind, [...CHRONICLE_HIDDEN_EVENT_TYPES]),
+  ];
   if (options.year !== undefined) {
     const from = await yearStartSeq(tx, gameId, options.year);
     if (from === null) {

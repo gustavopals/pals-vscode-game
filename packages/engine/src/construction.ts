@@ -2,6 +2,7 @@ import {
   balance,
   BUILDING_IDS,
   buildings,
+  foundingTemplates,
   type Ratio,
   RESOURCE_IDS,
   type ResourceAmounts,
@@ -11,6 +12,7 @@ import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { sentenceCase } from './format';
 import { reject } from './rejections';
+import { costBeyondStorage, storagePlace, storeResource } from './storage';
 import type {
   BuildingId,
   Construction,
@@ -38,13 +40,27 @@ function growRounded(value: number, factor: Ratio, steps: number): number {
   return Math.floor((2 * num + den) / (2 * den));
 }
 
+/**
+ * Quantas obras o edifício já teve quando está em `fromLevel`: é o expoente do custo e do prazo.
+ * Conta a partir do nível com que ele nasce, então a primeira obra sai sempre pelo custo base: a
+ * melhoria 1 → 2 de quem nasce erguido e a construção 0 → 1 do Celeiro e do Armazém (GDD §6.2).
+ */
+function upgradeSteps(building: BuildingId, fromLevel: number): number {
+  return fromLevel - buildings[building].initialLevel;
+}
+
+/** A obra que parte de `fromLevel` ergue o edifício do zero. */
+export function isFounding(fromLevel: number): boolean {
+  return fromLevel === 0;
+}
+
 /** Custo, em unidades, de levar um edifício de `fromLevel` para o nível seguinte (GDD §6.2). */
 export function upgradeCost(building: BuildingId, fromLevel: number): ResourceAmounts {
   const { costFactor, costFactorByBuilding } = balance.construction;
   const factor = costFactorByBuilding[building] ?? costFactor;
   const cost: ResourceAmounts = {};
   for (const [resource, base] of positiveEntries(buildings[building].baseCost)) {
-    cost[resource] = growRounded(base, factor, fromLevel - 1);
+    cost[resource] = growRounded(base, factor, upgradeSteps(building, fromLevel));
   }
   return cost;
 }
@@ -61,7 +77,7 @@ export function upgradeDurationMs(
   seasonFactor: Ratio = { num: 1, den: 1 },
 ): number {
   const { timeFactor, maxDurationMs } = balance.construction;
-  const steps = fromLevel - 1;
+  const steps = upgradeSteps(building, fromLevel);
   const duration = Math.floor(
     (buildings[building].baseDurationMs * timeFactor.num ** steps * seasonFactor.num) /
       (timeFactor.den ** steps * seasonFactor.den),
@@ -96,12 +112,6 @@ export function payResources(draft: GameState, cost: ResourceAmounts, quantity =
   }
 }
 
-export function grantResources(draft: GameState, amounts: ResourceAmounts): void {
-  for (const [resource, amount] of positiveEntries(amounts)) {
-    draft.settlement.resources[resource] += amount * MILLI;
-  }
-}
-
 export function constructionOf(state: GameState, building: BuildingId): Construction | null {
   return state.settlement.constructionQueues.find((slot) => slot?.building === building) ?? null;
 }
@@ -118,6 +128,47 @@ export type UpgradeQuote = {
   blocked: Rejection | null;
 };
 
+/**
+ * O pré-requisito que falta a um edifício (`requires`, GDD §6.1: "Salão 2"): o primeiro, na
+ * ordem do catálogo, cujo nível ainda não chegou ao pedido. `null` quando não falta nenhum.
+ */
+function unmetRequirement(
+  state: GameState,
+  building: BuildingId,
+): { building: BuildingId; level: number } | null {
+  const { requires } = buildings[building];
+  for (const required of BUILDING_IDS) {
+    const level = requires[required];
+    if (level !== undefined && state.settlement.buildings[required] < level) {
+      return { building: required, level };
+    }
+  }
+  return null;
+}
+
+/**
+ * A recusa de uma obra cujo custo não cabe no depósito: diz quanto ela pede, quanto o depósito
+ * guarda e o que fazer. Quando o próprio depósito é a obra, ou ele já está no nível máximo, não
+ * há o que ampliar, e a frase diz isso.
+ */
+function storageRejection(state: GameState, building: BuildingId, cost: ResourceAmounts) {
+  const beyond = costBeyondStorage(state, cost);
+  if (beyond === null) {
+    return null;
+  }
+  const place = storagePlace(state, beyond.resource);
+  const storeLevel = state.settlement.buildings[beyond.building];
+  const canGrow = beyond.building !== building && storeLevel < buildings[beyond.building].maxLevel;
+  const verb = storeLevel === 0 ? 'construa' : 'amplie';
+  return reject('EXCEEDS_STORAGE', {
+    amount: beyond.amount,
+    resource: balance.resources[beyond.resource].label.toLowerCase(),
+    label: place === null ? '' : `${place.article} ${place.label}`,
+    capacity: beyond.capacity,
+    ...(canGrow ? { remedy: `${verb} ${buildingWithArticle(beyond.building)} primeiro` } : {}),
+  });
+}
+
 /** Orçamento da próxima melhoria de um edifício: custos, duração e bloqueios. */
 export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuote {
   const { settlement } = state;
@@ -128,20 +179,30 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   const missing = missingResources(state, cost) ?? {};
   const label = sentenceCase(buildingWithArticle(building));
   const gate = settlement.buildings.townHall + balance.construction.gateLevelsAboveTownHall;
+  const requirement = unmetRequirement(state, building);
 
-  let blocked: Rejection | null = null;
+  let blocked: Rejection | null;
   if (constructionOf(state, building) !== null) {
     blocked = reject('ALREADY_UPGRADING', { label });
   } else if (!settlement.constructionQueues.includes(null)) {
     blocked = reject('QUEUE_BUSY');
   } else if (fromLevel >= def.maxLevel) {
     blocked = reject('MAX_LEVEL', { label });
+  } else if (requirement !== null) {
+    blocked = reject('GATE_LOCKED', {
+      label: buildingWithArticle(requirement.building),
+      level: requirement.level,
+    });
   } else if (building !== 'townHall' && targetLevel > gate) {
     blocked = reject('GATE_LOCKED', {
+      label: buildingWithArticle('townHall'),
       level: targetLevel - balance.construction.gateLevelsAboveTownHall,
     });
-  } else if (Object.keys(missing).length > 0) {
-    blocked = reject('INSUFFICIENT_RESOURCES', { missing });
+  } else {
+    // Falta recurso: ou ele nunca vai caber no depósito (e esperar não adianta), ou é só esperar.
+    blocked =
+      storageRejection(state, building, cost) ??
+      (Object.keys(missing).length > 0 ? reject('INSUFFICIENT_RESOURCES', { missing }) : null);
   }
 
   return {
@@ -190,26 +251,46 @@ export function startConstruction(
     draft,
     nowMs,
     'constructionStarted',
-    { building, level: quote.targetLevel },
+    { building, level: quote.targetLevel, ...amountsData('spent', quote.cost) },
     { edificio: buildingWithArticle(building), nivel: quote.targetLevel },
+    isFounding(quote.fromLevel) ? foundingTemplates.constructionStarted : undefined,
   );
   return null;
 }
 
-/** Conclui as obras que vencem até `atMs`. O efeito do nível novo vale a partir daqui. */
+/**
+ * Totais de um evento, em unidades, com uma chave por recurso: `spent_wood`, `gained_gold`. É
+ * com eles que o Relatório de Retorno separa o que foi produzido do que foi gasto, recebido e
+ * perdido, sem refazer conta nenhuma.
+ */
+export function amountsData(
+  prefix: 'spent' | 'gained',
+  amounts: ResourceAmounts,
+): Record<string, number> {
+  return Object.fromEntries(
+    positiveEntries(amounts).map(([resource, amount]) => [`${prefix}_${resource}`, amount]),
+  );
+}
+
+/**
+ * Conclui as obras que vencem até `atMs`. O efeito do nível novo vale a partir daqui. A obra
+ * que ergue um edifício do zero termina com evento próprio, `buildingFounded`, no lugar de
+ * `constructionFinished`.
+ */
 export function finishConstructions(draft: GameState, atMs: number, events: GameEvent[]): void {
   const { settlement } = draft;
   settlement.constructionQueues.forEach((slot, index) => {
     if (slot === null || slot.finishesAtMs > atMs) {
       return;
     }
+    const founded = isFounding(settlement.buildings[slot.building]);
     settlement.buildings[slot.building] = slot.targetLevel;
     settlement.constructionQueues[index] = null;
     emit(
       events,
       draft,
       atMs,
-      'constructionFinished',
+      founded ? 'buildingFounded' : 'constructionFinished',
       { building: slot.building, level: slot.targetLevel },
       { edificio: buildingWithArticle(slot.building), nivel: slot.targetLevel },
     );
@@ -229,7 +310,11 @@ export function cancelRefund(building: BuildingId, fromLevel: number): Record<Re
   };
 }
 
-/** Cancela a obra de um edifício e devolve 80% do que foi pago, arredondando para baixo. */
+/**
+ * Cancela a obra de um edifício e devolve 80% do que foi pago, arredondando para baixo. A
+ * devolução é um ganho como outro qualquer: entra o que cabe no depósito, e o que não cabe é
+ * desperdício contado (GDD §5.5).
+ */
 export function cancelConstruction(
   draft: GameState,
   building: unknown,
@@ -246,8 +331,12 @@ export function cancelConstruction(
   }
   const level = settlement.buildings[building];
   const refund = cancelRefund(building, level);
+  const gained: ResourceAmounts = {};
   for (const resource of RESOURCE_IDS) {
-    settlement.resources[resource] += refund[resource];
+    const stored = storeResource(draft, resource, refund[resource]);
+    if (stored > 0) {
+      gained[resource] = stored / MILLI;
+    }
   }
   settlement.constructionQueues[index] = null;
   emit(
@@ -255,8 +344,9 @@ export function cancelConstruction(
     draft,
     nowMs,
     'constructionCancelled',
-    { building, level },
+    { building, level, ...amountsData('gained', gained) },
     { edificio: buildingWithArticle(building), nivel: level },
+    isFounding(level) ? foundingTemplates.constructionCancelled : undefined,
   );
   return null;
 }

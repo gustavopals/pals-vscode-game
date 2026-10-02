@@ -16,6 +16,7 @@ import { describe, expect, it } from 'vitest';
 import { strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
+  ampliarEstoque,
   comidaPrimeiro,
   guardarLenha,
   obraMaisBarata,
@@ -87,6 +88,7 @@ function upgrade(
     blockedCode,
     blockedReason: blockedCode === null ? null : 'Não pode começar agora.',
     planned: false,
+    effect: null,
   };
 }
 
@@ -116,12 +118,14 @@ describe('um bot é uma lista de políticas', () => {
     expect(strategyPolicies.economico).toEqual([
       recrutar,
       obraMaisBarata,
+      ampliarEstoque,
       alocarPorDemanda,
       guardarLenha,
     ]);
     expect(strategyPolicies.preguicoso).toEqual([
       recrutar,
       obraMaisBarata,
+      ampliarEstoque,
       comidaPrimeiro,
       ocuparLivres,
       guardarLenha,
@@ -130,6 +134,7 @@ describe('um bot é uma lista de políticas', () => {
     const names = [
       recrutar,
       obraMaisBarata,
+      ampliarEstoque,
       alocarPorDemanda,
       comidaPrimeiro,
       ocuparLivres,
@@ -138,6 +143,7 @@ describe('um bot é uma lista de políticas', () => {
     expect(names).toEqual([
       'recrutar',
       'obra mais barata',
+      'ampliar o estoque',
       'alocar por demanda',
       'comida primeiro',
       'ocupar os livres',
@@ -484,6 +490,186 @@ describe('política "guardar lenha"', () => {
   });
 });
 
+describe('política "ampliar o estoque"', () => {
+  type Row = ViewState['resources'][number];
+
+  /** A visão com os campos de limite de alguns recursos trocados. */
+  function withStores(
+    view: ViewState,
+    changes: Partial<Record<ResourceId, Partial<Row>>>,
+  ): ViewState {
+    return {
+      ...view,
+      resources: view.resources.map((row) => ({ ...row, ...changes[row.id] })),
+    };
+  }
+  /** A obra de um depósito, pronta para começar (ou travada por `blockedCode`). */
+  const depot = (
+    building: 'granary' | 'warehouse',
+    blockedCode: Parameters<typeof upgrade>[2] = null,
+  ) => upgrade(building, {}, blockedCode);
+  const wasting = (perHour: number): Partial<Row> => ({ full: true, wastingPerHour: perHour });
+  const fillsIn = (hours: number): Partial<Row> => ({ fullInSeconds: hours * 3600 });
+  const decide = async (view: ViewState) => {
+    const { act, orders } = recorder(view);
+    const after = await ampliarEstoque.run(view, act);
+    return { orders, untouched: after === view };
+  };
+  const both = [depot('granary'), depot('warehouse')];
+
+  it('a visão diz qual edifício amplia cada recurso, e o ouro não tem nenhum', () => {
+    expect(freshView().resources.map((row) => [row.id, row.storageBuilding])).toEqual([
+      ['food', 'granary'],
+      ['wood', 'warehouse'],
+      ['stone', 'warehouse'],
+      ['gold', null],
+    ]);
+  });
+
+  it('sem depósito enchendo nem obra travada pelo limite, não dá ordem', async () => {
+    const view = withUpgrades(freshView(), both);
+    expect(await decide(view)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('constrói o depósito do recurso que está cheio e perdendo produção', async () => {
+    const view = withStores(withUpgrades(freshView(), both), { wood: wasting(24) });
+    expect((await decide(view)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'warehouse' } },
+    ]);
+  });
+
+  it('entre dois depósitos cheios, o que perde mais por hora', async () => {
+    const view = withStores(withUpgrades(freshView(), both), {
+      food: wasting(55),
+      stone: wasting(10),
+    });
+    expect((await decide(view)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'granary' } },
+    ]);
+  });
+
+  it('cheio mas sem perder nada, não é urgência', async () => {
+    const view = withStores(withUpgrades(freshView(), both), { wood: wasting(0) });
+    expect(await decide(view)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('amplia o que enche em menos de 8 horas reais; além disso, espera', async () => {
+    const soon = withStores(withUpgrades(freshView(), both), { wood: fillsIn(7.9) });
+    expect((await decide(soon)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'warehouse' } },
+    ]);
+    const later = withStores(withUpgrades(freshView(), both), { wood: fillsIn(8) });
+    expect(await decide(later)).toEqual({ orders: [], untouched: true });
+    // Dos que enchem logo, o que enche antes.
+    const two = withStores(withUpgrades(freshView(), both), {
+      food: fillsIn(2),
+      wood: fillsIn(5),
+    });
+    expect((await decide(two)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'granary' } },
+    ]);
+  });
+
+  it('o prazo é em horas reais: o mesmo estoque, no ritmo 3, enche em um terço do tempo', async () => {
+    // 18 horas de jogo para encher: fora do horizonte no ritmo 1, dentro no ritmo 3.
+    const slow = withStores(withUpgrades(freshView(1), both), { wood: fillsIn(18) });
+    expect((await decide(slow)).orders).toEqual([]);
+    const fast = withStores(withUpgrades(freshView(3), both), { wood: fillsIn(18 / 3) });
+    expect((await decide(fast)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'warehouse' } },
+    ]);
+  });
+
+  it('a obra que não cabe no limite vem primeiro: amplia o depósito do recurso que não cabe', async () => {
+    // O Salão pede 875 de madeira e o Pátio guarda 500. A comida também está indo ao chão.
+    const hall = {
+      ...upgrade('townHall', { wood: 755 }, 'EXCEEDS_STORAGE'),
+      cost: [
+        { resource: 'wood' as const, label: 'Madeira', amount: 875, missing: 755 },
+        { resource: 'gold' as const, label: 'Ouro', amount: 583, missing: 333 },
+      ],
+    };
+    const view = withStores(withUpgrades(freshView(), [hall, ...both]), { food: wasting(55) });
+    expect(view.resources.find((row) => row.id === 'wood')?.cap).toBe(500);
+    expect((await decide(view)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'warehouse' } },
+    ]);
+  });
+
+  it('se o depósito mais urgente não pode começar, tenta o seguinte; se nenhum pode, não dá ordem', async () => {
+    const stores = { food: wasting(55), wood: fillsIn(3) };
+    const granaryWaits = withStores(
+      withUpgrades(freshView(), [depot('granary', 'INSUFFICIENT_RESOURCES'), depot('warehouse')]),
+      stores,
+    );
+    expect((await decide(granaryWaits)).orders).toEqual([
+      { type: 'startConstruction', payload: { building: 'warehouse' } },
+    ]);
+    const gated = withStores(
+      withUpgrades(freshView(), [
+        depot('granary', 'GATE_LOCKED'),
+        depot('warehouse', 'GATE_LOCKED'),
+      ]),
+      stores,
+    );
+    expect(await decide(gated)).toEqual({ orders: [], untouched: true });
+    // Com a fila ocupada pela obra que `obra mais barata` acabou de iniciar, também não.
+    const busy = withStores(
+      withUpgrades(freshView(), [depot('granary', 'QUEUE_BUSY'), depot('warehouse', 'QUEUE_BUSY')]),
+      stores,
+    );
+    expect(await decide(busy)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('não gasta a madeira da lareira', async () => {
+    const warehouse = {
+      ...depot('warehouse'),
+      cost: [{ resource: 'wood' as const, label: 'Madeira', amount: 160, missing: 0 }],
+    };
+    const base = withStores(withUpgrades(freshView(), [warehouse]), { stone: wasting(10) });
+    // 120 de madeira em estoque e o inverno pede 60 deles: os 160 da obra não sobram.
+    const view: ViewState = {
+      ...base,
+      calendar: {
+        ...base.calendar,
+        nextSeason: {
+          ...base.calendar.nextSeason,
+          id: 'winter',
+          firewood: {
+            perHour: 9,
+            winterTotal: 60,
+            winterProduction: 0,
+            stock: 120,
+            missing: 0,
+            text: 'A conta da lenha.',
+          },
+        },
+      },
+    };
+    expect(await decide(view)).toEqual({ orders: [], untouched: true });
+  });
+
+  it('"obra mais barata" deixa os depósitos para esta política', async () => {
+    // O Armazém sai mais barato que a Fazenda, e mesmo assim a obra iniciada é a Fazenda.
+    const farm = {
+      ...upgrade('farm', {}, null),
+      cost: [{ resource: 'wood' as const, label: 'Madeira', amount: 110, missing: 0 }],
+    };
+    const cheapDepot = {
+      ...depot('warehouse'),
+      cost: [{ resource: 'wood' as const, label: 'Madeira', amount: 10, missing: 0 }],
+    };
+    const view = withUpgrades(freshView(), [cheapDepot, farm]);
+    const { act, orders } = recorder(view);
+    await obraMaisBarata.run(view, act);
+    expect(orders).toEqual([{ type: 'startConstruction', payload: { building: 'farm' } }]);
+    const onlyDepots = withUpgrades(freshView(), both);
+    const idle = recorder(onlyDepots);
+    expect(await obraMaisBarata.run(onlyDepots, idle.act)).toBe(onlyDepots);
+    expect(idle.orders).toEqual([]);
+  });
+});
+
 describe('política "obra mais barata" com o inverno à vista', () => {
   const forecast = (winterTotal: number, winterProduction: number, stock: number) => ({
     perHour: 9,
@@ -671,6 +857,34 @@ describe('os bots jogando contra o motor', () => {
       expect(feudo.view().calendar.season).toBe('spring');
     },
   );
+
+  it('o econômico destrava a obra que não cabe no Pátio: constrói o Armazém e o Salão segue', async () => {
+    const feudo = game(1);
+    let blocked = false;
+    // Quatro visitas por dia real, uma semana.
+    for (let visit = 0; visit < 28; visit += 1) {
+      blocked ||= feudo
+        .view()
+        .constructions.available.some((entry) => entry.blockedCode === 'EXCEEDS_STORAGE');
+      await strategies.economico(feudo.view(), feudo.act);
+      feudo.pass(6);
+    }
+    expect(feudo.refused).toEqual([]);
+    // No caminho, uma obra pediu mais do que o depósito guardava...
+    expect(blocked).toBe(true);
+    // ...o bot ergueu o Armazém, e o Salão passou do nível em que travaria (4 → 5 pede 875).
+    const view = feudo.view();
+    const warehouse = view.constructions.available.find((entry) => entry.building === 'warehouse');
+    expect(warehouse?.fromLevel).toBeGreaterThanOrEqual(1);
+    expect(view.settlement.townHallLevel).toBeGreaterThanOrEqual(5);
+    expect(
+      feudo.orders.filter(
+        (order) =>
+          order.type === 'startConstruction' &&
+          (order.payload as { building: string }).building === 'warehouse',
+      ).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
 
   it('o preguiçoso acode a fome quando ela chega', async () => {
     const feudo = game(1);

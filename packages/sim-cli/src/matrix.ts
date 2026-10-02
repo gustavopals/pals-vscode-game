@@ -11,6 +11,8 @@ import {
   type Summary,
   SURPLUS_RESOURCES,
   type SurplusResource,
+  WASTE_RESOURCES,
+  type WasteResource,
 } from './report';
 import { simulate } from './simulate';
 
@@ -96,6 +98,8 @@ export type CellMeasure = {
   freeVillagerHours: Range;
   commandsRefused: Range;
   surplus: Record<SurplusResource, Range>;
+  wasted: Record<WasteResource, Range>;
+  wasteHours: Range;
 };
 
 export type MatrixCell = {
@@ -150,6 +154,10 @@ function measureOf(summaries: Summary[]): CellMeasure {
     surplus: Object.fromEntries(
       SURPLUS_RESOURCES.map((id) => [id, range((summary) => summary.surplus[id])]),
     ) as Record<SurplusResource, Range>,
+    wasted: Object.fromEntries(
+      WASTE_RESOURCES.map((id) => [id, range((summary) => summary.wasted[id])]),
+    ) as Record<WasteResource, Range>,
+    wasteHours: range((summary) => summary.wasteHours),
   };
 }
 
@@ -267,6 +275,11 @@ function surplusTitle(id: SurplusResource): string {
   return `Excedente de ${balance.resources[id].label.toLowerCase()}`;
 }
 
+/** Título da coluna de desperdício de um recurso: "Desperdício de comida". */
+function wasteTitle(id: WasteResource): string {
+  return `Desperdício de ${balance.resources[id].label.toLowerCase()}`;
+}
+
 /**
  * As linhas da tabela `MEASURED` de `src/bands.ts` com o que esta rodada mediu. Servem para
  * atualizar a linha de base de propósito, depois de conferir o que mudou; nada as grava sozinho.
@@ -321,6 +334,8 @@ export function formatMatrix(result: MatrixResult): string {
         'Fila ociosa (h)',
         'Sem ofício (aldeão-h)',
         ...SURPLUS_RESOURCES.map(surplusTitle),
+        ...WASTE_RESOURCES.map(wasteTitle),
+        'Desperdiçando (h)',
         'Recusas',
         'Faixa',
       ],
@@ -335,6 +350,8 @@ export function formatMatrix(result: MatrixResult): string {
         formatRange(cell.measure.queueIdleHours),
         formatRange(cell.measure.freeVillagerHours),
         ...SURPLUS_RESOURCES.map((id) => formatRange(cell.measure.surplus[id])),
+        ...WASTE_RESOURCES.map((id) => formatRange(cell.measure.wasted[id])),
+        formatRange(cell.measure.wasteHours),
         formatRange(cell.measure.commandsRefused),
         cell.band === null ? 'sem faixa' : cell.violations.length === 0 ? 'dentro' : '**fora**',
       ]),
@@ -392,7 +409,7 @@ export function formatMatrix(result: MatrixResult): string {
     '',
     `${identityLine()} · dificuldade ${result.difficultyLabel} (${result.difficulty}) · ${seedsLine(result.seeds)}`,
     '',
-    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques em unidades, cada recurso por si.',
+    'Cada célula traz o menor e o maior valor entre as sementes (um número só quando são iguais). Horas são reais, amostradas ao fim de cada hora; estoques e desperdício em unidades, cada recurso por si. O desperdício é o que não coube no depósito na partida inteira; "Desperdiçando" são as horas com ao menos um depósito cheio e perdendo produção.',
     '',
     sections.join('\n\n'),
     '',

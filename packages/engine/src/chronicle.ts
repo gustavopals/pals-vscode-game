@@ -5,12 +5,16 @@ import type { GameEvent, GameEventType, GameState } from './types';
 
 type PhraseParams = Partial<Record<ChroniclePlaceholder, string | number>>;
 
-/** Frase da Crônica de um evento, a partir do modelo em `@lotg/content` e do calendário. */
+/**
+ * Frase da Crônica de um evento, a partir do modelo em `@lotg/content` e do calendário.
+ * `template` troca o modelo do tipo por outro do conteúdo (a obra que ergue um edifício do zero).
+ */
 export function narrate(
   type: GameEventType,
   state: GameState,
   atMs: number,
   params: PhraseParams = {},
+  template: string = chronicleTemplates[type],
 ): string {
   const date = calendarAt(atMs);
   const values: PhraseParams = {
@@ -22,7 +26,7 @@ export function narrate(
     feudo: state.settlement.name,
     ...params,
   };
-  return chronicleTemplates[type].replace(/\{([^}]*)\}/g, (marker, name: string) => {
+  return template.replace(/\{([^}]*)\}/g, (marker, name: string) => {
     const value = values[name as ChroniclePlaceholder];
     return value === undefined ? marker : String(value);
   });
@@ -39,6 +43,7 @@ export function emit(
   type: GameEventType,
   data: Record<string, string | number> = {},
   params: PhraseParams = {},
+  template?: string,
 ): void {
-  events.push({ type, atMs, text: narrate(type, state, atMs, params), data });
+  events.push({ type, atMs, text: narrate(type, state, atMs, params, template), data });
 }

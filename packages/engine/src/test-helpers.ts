@@ -1,4 +1,4 @@
-import { objectives } from '@lotg/content';
+import { buildings, objectives } from '@lotg/content';
 
 import { advanceTo, advanceWith, processEventsAt } from './advance';
 import { isDayBoundary } from './clock';
@@ -51,6 +51,15 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
     edit(draft);
   });
+}
+
+/**
+ * Celeiro e Armazém no nível máximo (5.100 de cada recurso em Senhor): para os cenários que não
+ * são sobre o limite de estoque e precisam de onde guardar o que produzem.
+ */
+export function roomy(draft: GameState): void {
+  draft.settlement.buildings.granary = buildings.granary.maxLevel;
+  draft.settlement.buildings.warehouse = buildings.warehouse.maxLevel;
 }
 
 let nextCommandId = 0;
@@ -118,14 +127,22 @@ export function objectivesScenario() {
 
 /**
  * Outono, dois dias antes do inverno: 18 habitantes, a Fazenda no nível 2, ninguém na Serraria
- * e 60 de madeira. A conta da lenha da próxima estação diz quanto falta guardar.
+ * e 60 de madeira. A conta da lenha da próxima estação diz quanto falta guardar. O Celeiro
+ * (nível 3) e o Armazém (nível 1) têm folga: o cenário é sobre a lenha, não sobre o limite.
  */
 export function autumnScenario(): GameState {
   return gameAt(AUTUMN + 22 * DAY, (draft) => {
     const { settlement } = draft;
     settlement.population.villagers = 18;
     settlement.workers = { farm: 10, lumberMill: 0, quarry: 5, goldMine: 3 };
-    settlement.buildings = { ...settlement.buildings, townHall: 3, farm: 2, housing: 3 };
+    settlement.buildings = {
+      ...settlement.buildings,
+      townHall: 3,
+      farm: 2,
+      housing: 3,
+      granary: 3,
+      warehouse: 1,
+    };
     settlement.resources = { food: 640_000, wood: 60_000, stone: 310_000, gold: 420_000 };
   });
 }
@@ -162,6 +179,8 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [24, command('setWorkers', { building: 'lumberMill', count: 4 })],
   [24, command('setWorkers', { building: 'goldMine', count: 3 })],
   [24, command('startConstruction', { building: 'farm' })],
+  // O Salão no nível 2 liberou os depósitos: o Armazém, antes que a madeira vá para o chão.
+  [28, command('startConstruction', { building: 'warehouse' })],
   [36, command('startConstruction', { building: 'quarry' })],
   [36, command('cancelConstruction', { building: 'quarry' })],
   [36, command('startConstruction', { building: 'housing' })],
@@ -170,6 +189,7 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [48, command('recruitVillagers', { quantity: 4 })],
   [48, command('startConstruction', { building: 'goldMine' })],
   [48, command('renameSettlement', { name: 'Pedra Alta do Norte' })],
+  [52, command('startConstruction', { building: 'granary' })],
   [60, command('setWorkers', { building: 'quarry', count: 4 })],
   [60, command('startConstruction', { building: 'townHall' })],
   // Dia 4: o senhor tira todos da Fazenda e gasta a comida em recrutas. A fome vem.
@@ -182,15 +202,20 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   // Dia 5: ordens dadas com o feudo faminto.
   [108, command('recruitVillagers', { quantity: 1 })],
   [108, command('startConstruction', { building: 'lumberMill' })],
+  [120, command('startConstruction', { building: 'granary' })],
   // Dia 6: de volta à Fazenda; a fome acaba.
   [132, command('setWorkers', { building: 'lumberMill', count: 2 })],
   [132, command('setWorkers', { building: 'farm', count: 8 })],
   [132, command('startConstruction', { building: 'farm' })],
-  // Dia 7: últimas obras antes da virada do ano.
+  // Dia 7: o inverno. As obras levam a madeira do Armazém e o senhor tira os lenhadores: a
+  // lareira apaga, o frio entra, e os lenhadores voltam antes da virada do ano.
   [144, command('startConstruction', { building: 'townHall' })],
   [144, command('unplanConstruction', { building: 'farm' })],
+  [150, command('setWorkers', { building: 'lumberMill', count: 0 })],
+  [150, command('startConstruction', { building: 'housing' })],
   [156, command('recruitVillagers', { quantity: 3 })],
   [156, command('startConstruction', { building: 'goldMine' })],
+  [162, command('setWorkers', { building: 'lumberMill', count: 6 })],
 ];
 
 /** O cenário roteirizado de 7 dias reais no ritmo 1: o golden do motor e uma das fixtures de estado. */

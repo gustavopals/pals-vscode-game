@@ -1,5 +1,6 @@
-import { balance, type ResourceAmounts } from '@lotg/content';
+import { balance, buildings, type ResourceAmounts } from '@lotg/content';
 
+import { joinList, thousands } from './format';
 import type { Rejection, RejectionCode } from './types';
 import { positiveEntries } from './units';
 
@@ -8,14 +9,14 @@ type RejectionParams = {
   level?: number;
   count?: number;
   missing?: ResourceAmounts;
+  /** O recurso de que a recusa fala, em minúscula: "madeira". */
+  resource?: string;
+  /** Quanto a obra pede desse recurso e quanto o depósito guarda, em unidades. */
+  amount?: number;
+  capacity?: number;
+  /** O que fazer para a recusa deixar de valer, sem ponto final. */
+  remedy?: string;
 };
-
-function joinList(items: string[]): string {
-  if (items.length <= 1) {
-    return items.join('');
-  }
-  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`;
-}
 
 /** "40 madeira e 10 pedra". */
 export function describeAmounts(amounts: ResourceAmounts): string {
@@ -28,6 +29,7 @@ export function describeAmounts(amounts: ResourceAmounts): string {
 
 const { nameMinLength, nameMaxLength } = balance.settlement;
 const { maxPerOrder, maxQueue } = balance.recruitment;
+const { townHall } = buildings;
 
 // Motivos de recusa em pt-BR: chegam à interface exatamente como estão aqui.
 const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
@@ -42,7 +44,14 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   ALREADY_UPGRADING: ({ label }) => `${label} já está em obras.`,
   QUEUE_BUSY: () => 'Os pedreiros já estão ocupados com outra obra.',
   MAX_LEVEL: ({ label }) => `${label} já está no nível máximo.`,
-  GATE_LOCKED: ({ level }) => `Melhore antes o Salão do Senhor para o nível ${level}.`,
+  // `label` é o edifício que falta melhorar, com artigo; quase sempre, o Salão.
+  GATE_LOCKED: ({ label = `${townHall.article} ${townHall.label}`, level }) =>
+    `Melhore antes ${label} para o nível ${level}.`,
+  // `label` é o depósito, com artigo: "o Armazém", ou "o Pátio" antes de ele existir.
+  EXCEEDS_STORAGE: ({ amount = 0, resource, label, capacity = 0, remedy }) =>
+    `A obra pede ${thousands(amount)} de ${resource} e ${label} só guarda ${thousands(capacity)}: ${
+      remedy ?? 'não há como juntar tanto'
+    }.`,
   INSUFFICIENT_RESOURCES: ({ missing = {} }) => `Faltam ${describeAmounts(missing)}.`,
   NOT_IN_CONSTRUCTION: ({ label }) => `${label} não está em obras.`,
   ALREADY_PLANNED: ({ label }) => `${label} já está na lista de obras planejadas.`,

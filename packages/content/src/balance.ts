@@ -54,6 +54,23 @@ export type DifficultyDef = {
   readonly famineDesertion: boolean;
 };
 
+/**
+ * O que um edifício de armazenamento guarda (GDD §5.5). A capacidade é em unidades e vale para
+ * **cada** recurso da lista: o Armazém guarda 900 de madeira e 900 de pedra.
+ */
+export type StorageDef = {
+  readonly resources: readonly ResourceId[];
+  /** Capacidade no nível 1. */
+  readonly level1: number;
+  /** O que cada nível acima do primeiro acrescenta. */
+  readonly perLevel: number;
+  /**
+   * Onde esses recursos ficam enquanto o edifício não existe: "a despensa", "o pátio". Entra
+   * nas frases no lugar do nome do edifício.
+   */
+  readonly unbuilt: { readonly label: string; readonly article: 'o' | 'a' };
+};
+
 /** Um ritmo que o jogador pode escolher ao criar a partida (GDD §4.2). */
 export type PaceDef = {
   /** Horas de jogo por hora real. */
@@ -71,7 +88,6 @@ export type Balance = {
   readonly initial: {
     readonly villagers: number;
     readonly resources: Record<ResourceId, number>;
-    readonly buildingLevel: number;
   };
   readonly production: {
     /** Unidades por trabalhador por hora no nível 1. */
@@ -96,6 +112,15 @@ export type Balance = {
     readonly queues: number;
     /** Um edifício nunca ultrapassa o nível do Salão mais este valor. */
     readonly gateLevelsAboveTownHall: number;
+  };
+  /**
+   * Armazenamento (GDD §5.5): `cap = máx(baseCapacity, capacidade do edifício) × fator da
+   * dificuldade`. Recurso que nenhum edifício guarda (o ouro) não tem limite.
+   */
+  readonly storage: {
+    /** Capacidade de cada recurso guardado enquanto o edifício dele não existe. */
+    readonly baseCapacity: number;
+    readonly buildings: Partial<Record<BuildingId, StorageDef>>;
   };
   readonly famine: { readonly productionMultiplier: Ratio };
   /** O frio: sem lenha em uma estação que a queima, a produção de todo o feudo cai (GDD §4.1). */
@@ -125,7 +150,6 @@ export const balance: Balance = {
   initial: {
     villagers: 5,
     resources: { food: 180, wood: 120, stone: 65, gold: 250 },
-    buildingLevel: 1,
   },
   production: {
     perWorkerPerHour: { farm: 10, lumberMill: 8, quarry: 5, goldMine: 4 },
@@ -147,6 +171,24 @@ export const balance: Balance = {
     cancelRefund: { num: 8, den: 10 },
     queues: 1,
     gateLevelsAboveTownHall: 1,
+  },
+  // GDD §5.2 e §5.5 (ADR 0013, decisão 17).
+  storage: {
+    baseCapacity: 500,
+    buildings: {
+      granary: {
+        resources: ['food'],
+        level1: 900,
+        perLevel: 600,
+        unbuilt: { label: 'Despensa', article: 'a' },
+      },
+      warehouse: {
+        resources: ['wood', 'stone'],
+        level1: 900,
+        perLevel: 600,
+        unbuilt: { label: 'Pátio', article: 'o' },
+      },
+    },
   },
   famine: { productionMultiplier: { num: 3, den: 4 } },
   winter: { cold: { productionMultiplier: { num: 4, den: 5 } } },

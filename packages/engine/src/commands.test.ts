@@ -100,6 +100,10 @@ describe('catálogo de recusas', () => {
     Object.assign(draft.settlement, rich.settlement);
     draft.settlement.buildings = { ...draft.settlement.buildings, quarry: 2 };
   });
+  // O Salão no nível 4 pede 875 de madeira, e sem Armazém só cabem 500.
+  const hoarder = gameWith((draft) => {
+    draft.settlement.buildings.townHall = 4;
+  });
   const crowded = gameWith((draft) => {
     Object.assign(draft.settlement, rich.settlement);
     draft.settlement.population = { villagers: 10 };
@@ -116,6 +120,7 @@ describe('catálogo de recusas', () => {
     QUEUE_BUSY: [building, command('startConstruction', { building: 'housing' })],
     MAX_LEVEL: [maxed, command('startConstruction', { building: 'townHall' })],
     GATE_LOCKED: [gated, command('startConstruction', { building: 'quarry' })],
+    EXCEEDS_STORAGE: [hoarder, command('startConstruction', { building: 'townHall' })],
     INSUFFICIENT_RESOURCES: [newGame(), command('startConstruction', { building: 'townHall' })],
     NOT_IN_CONSTRUCTION: [rich, command('cancelConstruction', { building: 'farm' })],
     ALREADY_PLANNED: [planned, command('planConstruction', { building: 'farm' })],

@@ -40,7 +40,7 @@ export type PlannedConstruction = { building: BuildingId; targetLevel: number };
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 3;
+  schemaVersion: 4;
   seed: string;
   settings: GameSettings;
   /**
@@ -65,6 +65,7 @@ export type GameState = {
     accumulators: Record<ResourceId, number>;
     population: { villagers: number };
     workers: Record<ProductionBuildingId, number>;
+    /** Nível de cada edifício; 0 é "ainda não construído" (o Celeiro e o Armazém nascem assim). */
     buildings: Record<BuildingId, number>;
     /** Uma posição por fila de obra; `null` é fila livre. A v0.1 tem uma fila. */
     constructionQueues: Array<Construction | null>;
@@ -77,6 +78,13 @@ export type GameState = {
      * (GDD §4.1). Enquanto dura, a produção de todo o feudo cai e a madeira não fica negativa.
      */
     cold: { sinceMs: number } | null;
+    /**
+     * Desperdício que a Crônica ainda não contou, em milésimos: o que a produção e os ganhos
+     * discretos deixaram de pôr no estoque porque ele estava no limite (GDD §5.5). A virada do
+     * dia relata as unidades inteiras e deixa aqui o resto, para nada se perder na conta. O
+     * total de sempre fica em `stats.wasted_<recurso>`, também em milésimos.
+     */
+    wasted: Record<ResourceId, number>;
   };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -115,6 +123,7 @@ export const REJECTION_CODES = [
   'QUEUE_BUSY',
   'MAX_LEVEL',
   'GATE_LOCKED',
+  'EXCEEDS_STORAGE',
   'INSUFFICIENT_RESOURCES',
   'NOT_IN_CONSTRUCTION',
   'ALREADY_PLANNED',
@@ -159,6 +168,11 @@ export type UpgradeView = {
   blockedCode: RejectionCode | null;
   blockedReason: string | null;
   planned: boolean;
+  /**
+   * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900." Hoje só os
+   * edifícios de armazenamento trazem a frase; nos outros é `null`.
+   */
+  effect: string | null;
 };
 
 export type ObjectiveView = {
@@ -240,7 +254,35 @@ export type ViewState = {
     label: string;
     /** Estoque em unidades inteiras. */
     stock: number;
+    /** Limite do estoque, em unidades; `null` para o que não tem limite (o ouro). */
     cap: number | null;
+    /**
+     * De onde vem o limite: "500 iniciais" ou "Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200".
+     * `null` sem limite.
+     */
+    capBreakdown: string | null;
+    /** O edifício que amplia o limite deste recurso; `null` sem limite. */
+    storageBuilding: BuildingId | null;
+    /** Onde o recurso fica hoje: "Celeiro", ou "Despensa" antes de ele existir; `null` sem limite. */
+    storageLabel: string | null;
+    /** O estoque está no limite (ou acima dele, em uma partida que veio de antes dos limites). */
+    full: boolean;
+    /**
+     * Segundos até encher. `null` quando o estoque não está subindo, quando já está cheio e
+     * quando o enchimento cai depois de algo que muda a taxa (`fullNote` diz o quê).
+     */
+    fullInSeconds: number | null;
+    /**
+     * O que os números do limite não dizem, pronto para exibir. Cheio: o que se perde por hora e
+     * o que fazer ("Celeiro cheio: 12/h de comida vão ao chão. Amplie o Celeiro ou gaste
+     * comida."). Enchendo, mas só depois de a taxa mudar: "Não enche antes da virada para o
+     * Outono." `null` no resto do tempo.
+     */
+    fullNote: string | null;
+    /** Quanto deixa de entrar por hora real com o estoque cheio; 0 quando nada se perde. */
+    wastingPerHour: number;
+    /** Unidades inteiras perdidas desde o último relato da Crônica (a virada do dia). */
+    wastedToday: number;
     /** Saldo líquido por hora, com uma casa decimal. */
     perHour: number;
     /**
@@ -272,8 +314,11 @@ export type ViewState = {
       secondsRemaining: number;
       totalSeconds: number;
       progressPercent: number;
-      /** O que volta ao estoque se a obra for cancelada agora, em unidades. */
-      refund: Array<{ resource: ResourceId; label: string; amount: number }>;
+      /**
+       * O que volta ao estoque se a obra for cancelada agora, em unidades: `amount` é o que
+       * entra e `lost`, o que não cabe no depósito e se perde.
+       */
+      refund: Array<{ resource: ResourceId; label: string; amount: number; lost: number }>;
     };
     planned: UpgradeView[];
     available: UpgradeView[];

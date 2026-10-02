@@ -23,11 +23,19 @@ export type ObjectiveDef = {
   /** O "porquê" do objetivo: é ele que ensina (GDD §12.2). */
   readonly hint: string;
   readonly condition: ObjectiveCondition;
+  /** Recursos creditados na conclusão; vazio quando a recompensa é só o que `rewardText` diz. */
   readonly reward: ResourceAmounts;
+  /**
+   * Recompensa que não é recurso, pronta para entrar depois de "Recompensa:" e ao lado de
+   * "+20 ouro": começa em minúscula e não tem ponto final.
+   */
+  readonly rewardText?: string;
 };
 
 // GDD §12.2, objetivos 1 a 4, na ordem em que são revelados.
-// O objetivo 4 recompensa ouro na v0.1 porque Celeiro, Armazém e Torre só chegam na v0.2 (ADR 0002).
+// O objetivo 4 recompensa o desbloqueio, como no GDD: na v0.1 dava +50 ouro, porque os edifícios
+// ainda não existiam (ADR 0002). Quem libera a obra é o Salão no nível 2 (`requires`, em
+// buildings.ts), que é a própria condição do objetivo; a Torre de Vigia entra na frase com ela.
 export const objectives: readonly ObjectiveDef[] = [
   {
     id: 'allocateFarmers',
@@ -55,6 +63,7 @@ export const objectives: readonly ObjectiveDef[] = [
     title: 'Alcance o Salão do Senhor Nv2',
     hint: 'O Salão dita até onde os outros edifícios podem crescer.',
     condition: { type: 'buildingLevel', building: 'townHall', level: 2 },
-    reward: { gold: 50 },
+    reward: {},
+    rewardText: 'desbloqueia o Celeiro e o Armazém',
   },
 ];

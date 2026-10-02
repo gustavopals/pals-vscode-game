@@ -18,6 +18,18 @@ export const ReturnReportSchema = z.strictObject({
       before: z.number(),
       after: z.number(),
       delta: z.number(),
+      /**
+       * A variação de estoque separada pelo que os eventos da ausência contam, em unidades: o
+       * que foi pago em obras e recrutamento (`spent_<recurso>`), o que entrou por recompensa e
+       * devolução (`gained_<recurso>`), o que não coube no depósito e se perdeu
+       * (`wasted_<recurso>`, do evento `storageWasted`) e o saldo da produção e do consumo, que
+       * é a variação menos o recebido mais o gasto. Opcionais: quem monta o relatório os
+       * preenche quando tem os eventos; nenhum é calculado com regra de jogo.
+       */
+      spent: z.number().optional(),
+      received: z.number().optional(),
+      wasted: z.number().optional(),
+      produced: z.number().optional(),
     }),
   ),
   counts: z.strictObject({

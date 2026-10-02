@@ -119,6 +119,14 @@
    "result": "accepted"
   },
   {
+   "hour": 28,
+   "type": "startConstruction",
+   "payload": {
+    "building": "warehouse"
+   },
+   "result": "accepted"
+  },
+  {
    "hour": 36,
    "type": "startConstruction",
    "payload": {
@@ -172,6 +180,14 @@
    "type": "renameSettlement",
    "payload": {
     "name": "Pedra Alta do Norte"
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 52,
+   "type": "startConstruction",
+   "payload": {
+    "building": "granary"
    },
    "result": "accepted"
   },
@@ -259,6 +275,14 @@
    "result": "accepted"
   },
   {
+   "hour": 120,
+   "type": "startConstruction",
+   "payload": {
+    "building": "granary"
+   },
+   "result": "accepted"
+  },
+  {
    "hour": 132,
    "type": "setWorkers",
    "payload": {
@@ -301,6 +325,23 @@
    "result": "NOT_PLANNED"
   },
   {
+   "hour": 150,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 0
+   },
+   "result": "accepted"
+  },
+  {
+   "hour": 150,
+   "type": "startConstruction",
+   "payload": {
+    "building": "housing"
+   },
+   "result": "accepted"
+  },
+  {
    "hour": 156,
    "type": "recruitVillagers",
    "payload": {
@@ -314,6 +355,15 @@
    "payload": {
     "building": "goldMine"
    },
+   "result": "INSUFFICIENT_RESOURCES"
+  },
+  {
+   "hour": 162,
+   "type": "setWorkers",
+   "payload": {
+    "building": "lumberMill",
+    "count": 6
+   },
    "result": "accepted"
   }
  ],
@@ -322,7 +372,7 @@
    "day": 1,
    "eventsSoFar": 32,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -345,7 +395,7 @@
       "food": 149600,
       "wood": 429200,
       "stone": 125000,
-      "gold": 232000
+      "gold": 182000
      },
      "accumulators": {
       "food": 0,
@@ -368,7 +418,9 @@
       "lumberMill": 2,
       "quarry": 1,
       "goldMine": 1,
-      "housing": 2
+      "housing": 2,
+      "granary": 0,
+      "warehouse": 0
      },
      "constructionQueues": [
       null
@@ -381,7 +433,13 @@
      ],
      "recruitmentQueue": [],
      "famine": null,
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -402,9 +460,9 @@
   },
   {
    "day": 2,
-   "eventsSoFar": 51,
+   "eventsSoFar": 58,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -424,10 +482,10 @@
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
-      "food": 528400,
-      "wood": 1118800,
-      "stone": 333000,
-      "gold": 474000
+      "food": 500000,
+      "wood": 900000,
+      "stone": 253000,
+      "gold": 424000
      },
      "accumulators": {
       "food": 0,
@@ -450,7 +508,9 @@
       "lumberMill": 2,
       "quarry": 1,
       "goldMine": 1,
-      "housing": 3
+      "housing": 3,
+      "granary": 0,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -458,7 +518,13 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 400,
+      "wood": 800,
+      "stone": 0,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -475,15 +541,18 @@
      "constructionsStarted:townHall": 1,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
-     "constructionsStarted:quarry": 1
+     "wasted_wood": 58800,
+     "constructionsStarted:warehouse": 1,
+     "constructionsStarted:quarry": 1,
+     "wasted_food": 28400
     }
    }
   },
   {
    "day": 3,
-   "eventsSoFar": 73,
+   "eventsSoFar": 92,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -503,10 +572,10 @@
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 499733,
-      "wood": 1788640,
-      "stone": 487000,
-      "gold": 599280
+      "food": 471333,
+      "wood": 900000,
+      "stone": 327000,
+      "gold": 549280
      },
      "accumulators": {
       "food": 1200000,
@@ -529,7 +598,9 @@
       "lumberMill": 2,
       "quarry": 1,
       "goldMine": 2,
-      "housing": 3
+      "housing": 3,
+      "granary": 1,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -537,7 +608,13 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 400,
+      "wood": 640,
+      "stone": 0,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -554,16 +631,20 @@
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
+     "wasted_wood": 568640,
+     "constructionsStarted:warehouse": 1,
      "constructionsStarted:quarry": 1,
-     "constructionsStarted:goldMine": 1
+     "wasted_food": 28400,
+     "constructionsStarted:goldMine": 1,
+     "constructionsStarted:granary": 1
     }
    }
   },
   {
    "day": 4,
-   "eventsSoFar": 97,
+   "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -584,15 +665,15 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 0,
-      "wood": 2847704,
-      "stone": 957633,
-      "gold": 820163
+      "wood": 900000,
+      "stone": 790210,
+      "gold": 765516
      },
      "accumulators": {
       "food": 0,
-      "wood": 2612160,
-      "stone": 107000,
-      "gold": 2289600
+      "wood": 971280,
+      "stone": 1087250,
+      "gold": 1306800
      },
      "population": {
       "villagers": 22
@@ -609,7 +690,9 @@
       "lumberMill": 2,
       "quarry": 2,
       "goldMine": 2,
-      "housing": 4
+      "housing": 4,
+      "granary": 1,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -617,9 +700,15 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 300883636
+      "sinceMs": 296236363
      },
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 400,
+      "wood": 327,
+      "stone": 0,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -636,16 +725,20 @@
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 1,
      "constructionsStarted:farm": 1,
+     "wasted_wood": 1606327,
+     "constructionsStarted:warehouse": 1,
      "constructionsStarted:quarry": 2,
-     "constructionsStarted:goldMine": 1
+     "wasted_food": 28400,
+     "constructionsStarted:goldMine": 1,
+     "constructionsStarted:granary": 1
     }
    }
   },
   {
    "day": 5,
-   "eventsSoFar": 111,
+   "eventsSoFar": 156,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -666,15 +759,15 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 0,
-      "wood": 3810004,
-      "stone": 1309633,
-      "gold": 1105283
+      "wood": 900000,
+      "stone": 900000,
+      "gold": 1050636
      },
      "accumulators": {
       "food": 0,
-      "wood": 2612160,
-      "stone": 107000,
-      "gold": 2289600
+      "wood": 971280,
+      "stone": 1087250,
+      "gold": 1306800
      },
      "population": {
       "villagers": 22
@@ -691,7 +784,9 @@
       "lumberMill": 3,
       "quarry": 2,
       "goldMine": 2,
-      "housing": 4
+      "housing": 4,
+      "granary": 1,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -699,9 +794,15 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 300883636
+      "sinceMs": 296236363
      },
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 400,
+      "wood": 627,
+      "stone": 210,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -718,16 +819,21 @@
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 1,
+     "wasted_wood": 2568627,
+     "constructionsStarted:warehouse": 1,
      "constructionsStarted:quarry": 2,
-     "constructionsStarted:goldMine": 1
+     "wasted_food": 28400,
+     "constructionsStarted:goldMine": 1,
+     "constructionsStarted:granary": 1,
+     "wasted_stone": 242210
     }
    }
   },
   {
    "day": 6,
-   "eventsSoFar": 127,
+   "eventsSoFar": 187,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -748,15 +854,15 @@
      "name": "Pedra Alta do Norte",
      "resources": {
       "food": 1480600,
-      "wood": 4555604,
-      "stone": 1813633,
-      "gold": 1373923
+      "wood": 900000,
+      "stone": 900000,
+      "gold": 1319276
      },
      "accumulators": {
       "food": 0,
-      "wood": 2612160,
-      "stone": 107000,
-      "gold": 2289600
+      "wood": 971280,
+      "stone": 1087250,
+      "gold": 1306800
      },
      "population": {
       "villagers": 22
@@ -773,7 +879,9 @@
       "lumberMill": 3,
       "quarry": 2,
       "goldMine": 2,
-      "housing": 4
+      "housing": 4,
+      "granary": 2,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -781,7 +889,13 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 400,
+      "wood": 227,
+      "stone": 210,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -798,16 +912,21 @@
      "constructionsStarted:townHall": 2,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 2,
+     "wasted_wood": 3058227,
+     "constructionsStarted:warehouse": 1,
      "constructionsStarted:quarry": 2,
-     "constructionsStarted:goldMine": 1
+     "wasted_food": 28400,
+     "constructionsStarted:goldMine": 1,
+     "constructionsStarted:granary": 2,
+     "wasted_stone": 618210
     }
    }
   },
   {
    "day": 7,
-   "eventsSoFar": 149,
+   "eventsSoFar": 223,
    "state": {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -827,23 +946,23 @@
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
-      "food": 1843800,
-      "wood": 4026684,
-      "stone": 1822433,
-      "gold": 1393603
+      "food": 1500000,
+      "wood": 247560,
+      "stone": 900000,
+      "gold": 1308001
      },
      "accumulators": {
-      "food": 0,
-      "wood": 2612160,
-      "stone": 107000,
-      "gold": 2289600
+      "food": 1899520,
+      "wood": 0,
+      "stone": 1901330,
+      "gold": 117360
      },
      "population": {
       "villagers": 25
      },
      "workers": {
       "farm": 8,
-      "lumberMill": 2,
+      "lumberMill": 6,
       "quarry": 4,
       "goldMine": 3
      },
@@ -852,8 +971,10 @@
       "farm": 3,
       "lumberMill": 3,
       "quarry": 2,
-      "goldMine": 3,
-      "housing": 4
+      "goldMine": 2,
+      "housing": 5,
+      "granary": 2,
+      "warehouse": 1
      },
      "constructionQueues": [
       null
@@ -861,7 +982,13 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
-     "cold": null
+     "cold": null,
+     "wasted": {
+      "food": 254,
+      "wood": 227,
+      "stone": 176,
+      "gold": 0
+     }
     },
     "objectives": {
      "active": [],
@@ -873,13 +1000,18 @@
      ]
     },
     "stats": {
-     "constructionsStarted:housing": 3,
+     "constructionsStarted:housing": 4,
      "villagersRecruited": 20,
      "constructionsStarted:townHall": 3,
      "constructionsStarted:lumberMill": 2,
      "constructionsStarted:farm": 2,
+     "wasted_wood": 3058227,
+     "constructionsStarted:warehouse": 1,
      "constructionsStarted:quarry": 2,
-     "constructionsStarted:goldMine": 2
+     "wasted_food": 363254,
+     "constructionsStarted:goldMine": 1,
+     "constructionsStarted:granary": 2,
+     "wasted_stone": 669176
     }
    }
   }
@@ -890,7 +1022,8 @@
    "atMs": 0,
    "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Aloque 2 aldeões na Fazenda. Recompensa: +20 ouro.",
    "data": {
-    "objective": "allocateFarmers"
+    "objective": "allocateFarmers",
+    "gained_gold": 20
    }
   },
   {
@@ -899,7 +1032,9 @@
    "text": "No 1º dia da Primavera, os pedreiros começaram a erguer as Habitações ao 2º nível.",
    "data": {
     "building": "housing",
-    "level": 2
+    "level": 2,
+    "spent_wood": 80,
+    "spent_stone": 20
    }
   },
   {
@@ -907,7 +1042,8 @@
    "atMs": 0,
    "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Inicie a melhoria das Habitações. Recompensa: +30 madeira.",
    "data": {
-    "objective": "upgradeHousing"
+    "objective": "upgradeHousing",
+    "gained_wood": 30
    }
   },
   {
@@ -915,7 +1051,9 @@
    "atMs": 0,
    "text": "No 1º dia da Primavera, o Salão mandou chamar novos aldeões: 3.",
    "data": {
-    "quantity": 3
+    "quantity": 3,
+    "spent_food": 150,
+    "spent_gold": 30
    }
   },
   {
@@ -956,7 +1094,8 @@
    "atMs": 2880000,
    "text": "No 1º dia da Primavera, cumpriu-se um objetivo: Recrute 3 aldeões. Recompensa: +40 comida.",
    "data": {
-    "objective": "recruitVillagers"
+    "objective": "recruitVillagers",
+    "gained_food": 40
    }
   },
   {
@@ -997,7 +1136,10 @@
    "text": "No 5º dia da Primavera, os pedreiros começaram a erguer o Salão do Senhor ao 2º nível.",
    "data": {
     "building": "townHall",
-    "level": 2
+    "level": 2,
+    "spent_wood": 150,
+    "spent_stone": 100,
+    "spent_gold": 100
    }
   },
   {
@@ -1012,7 +1154,7 @@
   {
    "type": "objectiveCompleted",
    "atMs": 29400000,
-   "text": "No 5º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: +50 ouro.",
+   "text": "No 5º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: desbloqueia o Celeiro e o Armazém.",
    "data": {
     "objective": "townHallLevel2"
    }
@@ -1038,7 +1180,9 @@
    "atMs": 43200000,
    "text": "No 7º dia da Primavera, o Salão mandou chamar novos aldeões: 5.",
    "data": {
-    "quantity": 5
+    "quantity": 5,
+    "spent_food": 250,
+    "spent_gold": 50
    }
   },
   {
@@ -1047,7 +1191,9 @@
    "text": "No 7º dia da Primavera, os pedreiros começaram a erguer a Serraria ao 2º nível.",
    "data": {
     "building": "lumberMill",
-    "level": 2
+    "level": 2,
+    "spent_wood": 100,
+    "spent_stone": 50
    }
   },
   {
@@ -1153,7 +1299,9 @@
    "text": "No 13º dia da Primavera, os pedreiros começaram a erguer a Fazenda ao 2º nível.",
    "data": {
     "building": "farm",
-    "level": 2
+    "level": 2,
+    "spent_wood": 80,
+    "spent_gold": 40
    }
   },
   {
@@ -1174,11 +1322,50 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 100537500,
+   "text": "No 14º dia da Primavera, o Pátio de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 0,
+    "cap": 500
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 100800000,
+   "text": "No 14º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 2 de madeira.",
+   "data": {
+    "wasted_wood": 2
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 100800000,
    "text": "Amanhece o 15º dia da Primavera em Pedra Alta.",
    "data": {
     "dayOfYear": 15
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 100800000,
+   "text": "No 15º dia da Primavera, os pedreiros começaram a levantar o Armazém em Pedra Alta.",
+   "data": {
+    "building": "warehouse",
+    "level": 1,
+    "spent_wood": 160,
+    "spent_stone": 80
+   }
+  },
+  {
+   "type": "buildingFounded",
+   "atMs": 101400000,
+   "text": "No 15º dia da Primavera, ergueu-se o Armazém em Pedra Alta.",
+   "data": {
+    "building": "warehouse",
+    "level": 1
    }
   },
   {
@@ -1219,7 +1406,9 @@
    "text": "No 19º dia da Primavera, os pedreiros começaram a erguer a Pedreira ao 2º nível.",
    "data": {
     "building": "quarry",
-    "level": 2
+    "level": 2,
+    "spent_wood": 120,
+    "spent_gold": 30
    }
   },
   {
@@ -1228,7 +1417,9 @@
    "text": "No 19º dia da Primavera, os pedreiros largaram as ferramentas: a Pedreira fica no 1º nível.",
    "data": {
     "building": "quarry",
-    "level": 1
+    "level": 1,
+    "gained_wood": 96,
+    "gained_gold": 24
    }
   },
   {
@@ -1237,7 +1428,9 @@
    "text": "No 19º dia da Primavera, os pedreiros começaram a erguer as Habitações ao 3º nível.",
    "data": {
     "building": "housing",
-    "level": 3
+    "level": 3,
+    "spent_wood": 128,
+    "spent_stone": 32
    }
   },
   {
@@ -1290,6 +1483,37 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 166329114,
+   "text": "No 24º dia da Primavera, a Despensa de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.",
+   "data": {
+    "resource": "food",
+    "building": "granary",
+    "level": 0,
+    "cap": 500
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 167550000,
+   "text": "No 24º dia da Primavera, o Armazém de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 172800000,
+   "text": "No 24º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 28 de comida e 56 de madeira.",
+   "data": {
+    "wasted_food": 28,
+    "wasted_wood": 56
+   }
+  },
+  {
    "type": "seasonChanged",
    "atMs": 172800000,
    "text": "Chega o Verão a Pedra Alta.",
@@ -1310,7 +1534,9 @@
    "atMs": 172800000,
    "text": "No 1º dia do Verão, o Salão mandou chamar novos aldeões: 4.",
    "data": {
-    "quantity": 4
+    "quantity": 4,
+    "spent_food": 200,
+    "spent_gold": 40
    }
   },
   {
@@ -1319,7 +1545,9 @@
    "text": "No 1º dia do Verão, os pedreiros começaram a erguer a Mina de Ouro ao 2º nível.",
    "data": {
     "building": "goldMine",
-    "level": 2
+    "level": 2,
+    "spent_wood": 120,
+    "spent_stone": 80
    }
   },
   {
@@ -1380,11 +1608,50 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 182582609,
+   "text": "No 2º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 187200000,
+   "text": "No 2º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 57 de madeira.",
+   "data": {
+    "wasted_wood": 57
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 187200000,
    "text": "Amanhece o 3º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 27
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 187200000,
+   "text": "No 3º dia do Verão, os pedreiros começaram a levantar o Celeiro em Pedra Alta do Norte.",
+   "data": {
+    "building": "granary",
+    "level": 1,
+    "spent_wood": 160,
+    "spent_stone": 80
+   }
+  },
+  {
+   "type": "buildingFounded",
+   "atMs": 187800000,
+   "text": "No 3º dia do Verão, ergueu-se o Celeiro em Pedra Alta do Norte.",
+   "data": {
+    "building": "granary",
+    "level": 1
    }
   },
   {
@@ -1396,6 +1663,25 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 200243479,
+   "text": "No 4º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 201600000,
+   "text": "No 4º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 17 de madeira.",
+   "data": {
+    "wasted_wood": 17
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 201600000,
    "text": "Amanhece o 5º dia do Verão em Pedra Alta do Norte.",
@@ -1404,11 +1690,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 208800000,
+   "text": "No 5º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 88 de madeira.",
+   "data": {
+    "wasted_wood": 88
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 208800000,
    "text": "Amanhece o 6º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 30
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 216000000,
+   "text": "No 6º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 88 de madeira.",
+   "data": {
+    "wasted_wood": 88
    }
   },
   {
@@ -1425,7 +1727,10 @@
    "text": "No 7º dia do Verão, os pedreiros começaram a erguer o Salão do Senhor ao 3º nível.",
    "data": {
     "building": "townHall",
-    "level": 3
+    "level": 3,
+    "spent_wood": 270,
+    "spent_stone": 180,
+    "spent_gold": 180
    }
   },
   {
@@ -1462,6 +1767,25 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 238010870,
+   "text": "No 10º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 244800000,
+   "text": "No 10º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 84 de madeira.",
+   "data": {
+    "wasted_wood": 84
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 244800000,
    "text": "Amanhece o 11º dia do Verão em Pedra Alta do Norte.",
@@ -1470,11 +1794,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 252000000,
+   "text": "No 11º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 88 de madeira.",
+   "data": {
+    "wasted_wood": 88
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 252000000,
    "text": "Amanhece o 12º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 36
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 259200000,
+   "text": "No 12º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 88 de madeira.",
+   "data": {
+    "wasted_wood": 88
    }
   },
   {
@@ -1490,7 +1830,9 @@
    "atMs": 259200000,
    "text": "No 13º dia do Verão, o Salão mandou chamar novos aldeões: 5.",
    "data": {
-    "quantity": 5
+    "quantity": 5,
+    "spent_food": 250,
+    "spent_gold": 50
    }
   },
   {
@@ -1499,7 +1841,9 @@
    "text": "No 13º dia do Verão, os pedreiros começaram a erguer as Habitações ao 4º nível.",
    "data": {
     "building": "housing",
-    "level": 4
+    "level": 4,
+    "spent_wood": 205,
+    "spent_stone": 51
    }
   },
   {
@@ -1560,11 +1904,38 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 270341305,
+   "text": "No 14º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 273600000,
+   "text": "No 14º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 60 de madeira.",
+   "data": {
+    "wasted_wood": 60
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 273600000,
    "text": "Amanhece o 15º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 39
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 280800000,
+   "text": "No 15º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 133 de madeira.",
+   "data": {
+    "wasted_wood": 133
    }
   },
   {
@@ -1576,11 +1947,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 288000000,
+   "text": "No 16º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 132 de madeira.",
+   "data": {
+    "wasted_wood": 132
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 288000000,
    "text": "Amanhece o 17º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 41
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 295200000,
+   "text": "No 17º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 133 de madeira.",
+   "data": {
+    "wasted_wood": 133
    }
   },
   {
@@ -1593,9 +1980,17 @@
   },
   {
    "type": "famineStarted",
-   "atMs": 300883636,
+   "atMs": 296236363,
    "text": "No 18º dia do Verão, as despensas de Pedra Alta do Norte ficaram vazias. A fome começou.",
    "data": {}
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 302400000,
+   "text": "No 18º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 104 de madeira.",
+   "data": {
+    "wasted_wood": 104
+   }
   },
   {
    "type": "dayStarted",
@@ -1611,7 +2006,9 @@
    "text": "No 19º dia do Verão, os pedreiros começaram a erguer a Pedreira ao 2º nível.",
    "data": {
     "building": "quarry",
-    "level": 2
+    "level": 2,
+    "spent_wood": 120,
+    "spent_gold": 30
    }
   },
   {
@@ -1632,11 +2029,38 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 311095633,
+   "text": "No 20º dia do Verão, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 316800000,
+   "text": "No 20º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 78 de madeira.",
+   "data": {
+    "wasted_wood": 78
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 316800000,
    "text": "Amanhece o 21º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 45
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 324000000,
+   "text": "No 21º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 100 de madeira.",
+   "data": {
+    "wasted_wood": 100
    }
   },
   {
@@ -1648,6 +2072,14 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 331200000,
+   "text": "No 22º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 99 de madeira.",
+   "data": {
+    "wasted_wood": 99
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 331200000,
    "text": "Amanhece o 23º dia do Verão em Pedra Alta do Norte.",
@@ -1656,11 +2088,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 338400000,
+   "text": "No 23º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 99 de madeira.",
+   "data": {
+    "wasted_wood": 99
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 338400000,
    "text": "Amanhece o 24º dia do Verão em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 48
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 345600000,
+   "text": "No 24º dia do Verão, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 100 de madeira.",
+   "data": {
+    "wasted_wood": 100
    }
   },
   {
@@ -1680,11 +2128,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 352800000,
+   "text": "No 1º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 86 de madeira.",
+   "data": {
+    "wasted_wood": 86
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 352800000,
    "text": "Amanhece o 2º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 50
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 360000000,
+   "text": "No 2º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 87 de madeira.",
+   "data": {
+    "wasted_wood": 87
    }
   },
   {
@@ -1696,11 +2160,39 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 367200000,
+   "text": "No 3º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 86 de madeira.",
+   "data": {
+    "wasted_wood": 86
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 367200000,
    "text": "Amanhece o 4º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 52
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 367557940,
+   "text": "No 4º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
+   "data": {
+    "resource": "stone",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 374400000,
+   "text": "No 4º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 86 de madeira e 34 de pedra.",
+   "data": {
+    "wasted_wood": 86,
+    "wasted_stone": 34
    }
   },
   {
@@ -1712,11 +2204,29 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 381600000,
+   "text": "No 5º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 87 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 87,
+    "wasted_stone": 36
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 381600000,
    "text": "Amanhece o 6º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 54
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 388800000,
+   "text": "No 6º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 86 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 86,
+    "wasted_stone": 36
    }
   },
   {
@@ -1733,7 +2243,9 @@
    "text": "No 7º dia do Outono, os pedreiros começaram a erguer a Serraria ao 3º nível.",
    "data": {
     "building": "lumberMill",
-    "level": 3
+    "level": 3,
+    "spent_wood": 160,
+    "spent_stone": 80
    }
   },
   {
@@ -1754,11 +2266,50 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 400292838,
+   "text": "No 8º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 403200000,
+   "text": "No 8º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 41 de madeira.",
+   "data": {
+    "wasted_wood": 41
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 403200000,
    "text": "Amanhece o 9º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 57
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 404799940,
+   "text": "No 9º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
+   "data": {
+    "resource": "stone",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 410400000,
+   "text": "No 9º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 101 de madeira e 28 de pedra.",
+   "data": {
+    "wasted_wood": 101,
+    "wasted_stone": 28
    }
   },
   {
@@ -1770,11 +2321,29 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 417600000,
+   "text": "No 10º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 101 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 101,
+    "wasted_stone": 36
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 417600000,
    "text": "Amanhece o 11º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 59
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 424800000,
+   "text": "No 11º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 100 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 100,
+    "wasted_stone": 36
    }
   },
   {
@@ -1786,11 +2355,40 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 432000000,
+   "text": "No 12º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 101 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 101,
+    "wasted_stone": 36
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 432000000,
    "text": "Amanhece o 13º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 61
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 432000000,
+   "text": "No 13º dia do Outono, os pedreiros começaram a erguer o Celeiro ao 2º nível.",
+   "data": {
+    "building": "granary",
+    "level": 2,
+    "spent_wood": 256,
+    "spent_stone": 128
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 432900000,
+   "text": "No 13º dia do Outono, os pedreiros ergueram o Celeiro ao 2º nível.",
+   "data": {
+    "building": "granary",
+    "level": 2
    }
   },
   {
@@ -1810,11 +2408,50 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 450285696,
+   "text": "No 15º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 453600000,
+   "text": "No 15º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 47 de madeira.",
+   "data": {
+    "wasted_wood": 47
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 453600000,
    "text": "Amanhece o 16º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 64
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 457599940,
+   "text": "No 16º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
+   "data": {
+    "resource": "stone",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 460800000,
+   "text": "No 16º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 100 de madeira e 16 de pedra.",
+   "data": {
+    "wasted_wood": 100,
+    "wasted_stone": 16
    }
   },
   {
@@ -1826,11 +2463,29 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 468000000,
+   "text": "No 17º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 101 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 101,
+    "wasted_stone": 36
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 468000000,
    "text": "Amanhece o 18º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 66
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 475200000,
+   "text": "No 18º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 101 de madeira e 36 de pedra.",
+   "data": {
+    "wasted_wood": 101,
+    "wasted_stone": 36
    }
   },
   {
@@ -1853,7 +2508,9 @@
    "text": "No 19º dia do Outono, os pedreiros começaram a erguer a Fazenda ao 3º nível.",
    "data": {
     "building": "farm",
-    "level": 3
+    "level": 3,
+    "spent_wood": 128,
+    "spent_gold": 64
    }
   },
   {
@@ -1866,11 +2523,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 482400000,
+   "text": "No 19º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 48 de pedra.",
+   "data": {
+    "wasted_stone": 48
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 482400000,
    "text": "Amanhece o 20º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 68
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 489600000,
+   "text": "No 20º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 48 de pedra.",
+   "data": {
+    "wasted_stone": 48
    }
   },
   {
@@ -1882,11 +2555,40 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 495771386,
+   "text": "No 21º dia do Outono, o Armazém de Pedra Alta do Norte encheu: não cabe mais madeira, e o que chegar se perde.",
+   "data": {
+    "resource": "wood",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 496800000,
+   "text": "No 21º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 6 de madeira e 48 de pedra.",
+   "data": {
+    "wasted_wood": 6,
+    "wasted_stone": 48
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 496800000,
    "text": "Amanhece o 22º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 70
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 504000000,
+   "text": "No 22º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 45 de madeira e 48 de pedra.",
+   "data": {
+    "wasted_wood": 45,
+    "wasted_stone": 48
    }
   },
   {
@@ -1898,11 +2600,29 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 511200000,
+   "text": "No 23º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 45 de madeira e 48 de pedra.",
+   "data": {
+    "wasted_wood": 45,
+    "wasted_stone": 48
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 511200000,
    "text": "Amanhece o 24º dia do Outono em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 72
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 518400000,
+   "text": "No 24º dia do Outono, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 45 de madeira e 48 de pedra.",
+   "data": {
+    "wasted_wood": 45,
+    "wasted_stone": 48
    }
   },
   {
@@ -1927,7 +2647,10 @@
    "text": "No 1º dia do Inverno, os pedreiros começaram a erguer o Salão do Senhor ao 4º nível.",
    "data": {
     "building": "townHall",
-    "level": 4
+    "level": 4,
+    "spent_wood": 486,
+    "spent_stone": 324,
+    "spent_gold": 324
    }
   },
   {
@@ -1940,11 +2663,38 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 521463158,
+   "text": "No 1º dia do Inverno, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
+   "data": {
+    "resource": "food",
+    "building": "granary",
+    "level": 2,
+    "cap": 1500
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 525600000,
+   "text": "No 1º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 26 de comida.",
+   "data": {
+    "wasted_food": 26
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 525600000,
    "text": "Amanhece o 2º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 74
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 532800000,
+   "text": "No 2º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 46 de comida.",
+   "data": {
+    "wasted_food": 46
    }
   },
   {
@@ -1956,11 +2706,47 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 540000000,
+   "text": "No 3º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 45 de comida.",
+   "data": {
+    "wasted_food": 45
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 540000000,
    "text": "Amanhece o 4º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 76
+   }
+  },
+  {
+   "type": "constructionStarted",
+   "atMs": 540000000,
+   "text": "No 4º dia do Inverno, os pedreiros começaram a erguer as Habitações ao 5º nível.",
+   "data": {
+    "building": "housing",
+    "level": 5,
+    "spent_wood": 328,
+    "spent_stone": 82
+   }
+  },
+  {
+   "type": "constructionFinished",
+   "atMs": 541215000,
+   "text": "No 4º dia do Inverno, os pedreiros ergueram as Habitações ao 5º nível.",
+   "data": {
+    "building": "housing",
+    "level": 5
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 547200000,
+   "text": "No 4º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 46 de comida.",
+   "data": {
+    "wasted_food": 46
    }
   },
   {
@@ -1972,11 +2758,27 @@
    }
   },
   {
+   "type": "storageWasted",
+   "atMs": 554400000,
+   "text": "No 5º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 46 de comida.",
+   "data": {
+    "wasted_food": 46
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 554400000,
    "text": "Amanhece o 6º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 78
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 561600000,
+   "text": "No 6º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 45 de comida.",
+   "data": {
+    "wasted_food": 45
    }
   },
   {
@@ -1992,25 +2794,9 @@
    "atMs": 561600000,
    "text": "No 7º dia do Inverno, o Salão mandou chamar novos aldeões: 3.",
    "data": {
-    "quantity": 3
-   }
-  },
-  {
-   "type": "constructionStarted",
-   "atMs": 561600000,
-   "text": "No 7º dia do Inverno, os pedreiros começaram a erguer a Mina de Ouro ao 3º nível.",
-   "data": {
-    "building": "goldMine",
-    "level": 3
-   }
-  },
-  {
-   "type": "constructionFinished",
-   "atMs": 562680000,
-   "text": "No 7º dia do Inverno, os pedreiros ergueram a Mina de Ouro ao 3º nível.",
-   "data": {
-    "building": "goldMine",
-    "level": 3
+    "quantity": 3,
+    "spent_food": 150,
+    "spent_gold": 30
    }
   },
   {
@@ -2054,11 +2840,45 @@
    }
   },
   {
+   "type": "coldStarted",
+   "atMs": 579605837,
+   "text": "No 9º dia do Inverno, queimou-se a última acha de lenha em Pedra Alta do Norte. O frio entrou nas casas.",
+   "data": {}
+  },
+  {
    "type": "dayStarted",
    "atMs": 583200000,
    "text": "Amanhece o 10º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 82
+   }
+  },
+  {
+   "type": "coldEnded",
+   "atMs": 583200000,
+   "text": "No 10º dia do Inverno, as lareiras voltaram a arder em Pedra Alta do Norte. O frio passou.",
+   "data": {
+    "reason": "firewood",
+    "sinceMs": 579605837
+   }
+  },
+  {
+   "type": "storageFilled",
+   "atMs": 590135541,
+   "text": "No 10º dia do Inverno, o Celeiro de Pedra Alta do Norte encheu: não cabe mais comida, e o que chegar se perde.",
+   "data": {
+    "resource": "food",
+    "building": "granary",
+    "level": 2,
+    "cap": 1500
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 590400000,
+   "text": "No 10º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 2 de comida.",
+   "data": {
+    "wasted_food": 2
    }
   },
   {
@@ -2070,11 +2890,40 @@
    }
   },
   {
+   "type": "storageFilled",
+   "atMs": 595243776,
+   "text": "No 11º dia do Inverno, o Armazém de Pedra Alta do Norte encheu: não cabe mais pedra, e o que chegar se perde.",
+   "data": {
+    "resource": "stone",
+    "building": "warehouse",
+    "level": 1,
+    "cap": 900
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 597600000,
+   "text": "No 11º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 39 de comida e 12 de pedra.",
+   "data": {
+    "wasted_food": 39,
+    "wasted_stone": 12
+   }
+  },
+  {
    "type": "dayStarted",
    "atMs": 597600000,
    "text": "Amanhece o 12º dia do Inverno em Pedra Alta do Norte.",
    "data": {
     "dayOfYear": 84
+   }
+  },
+  {
+   "type": "storageWasted",
+   "atMs": 604800000,
+   "text": "No 12º dia do Inverno, a produção de Pedra Alta do Norte não coube nos depósitos e foi ao chão: 40 de comida e 39 de pedra.",
+   "data": {
+    "wasted_food": 40,
+    "wasted_stone": 39
    }
   },
   {

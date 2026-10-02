@@ -1,4 +1,10 @@
-import { balance, buildings, chronicleTemplates, objectives } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  chronicleTemplates,
+  foundingTemplates,
+  objectives,
+} from '@lotg/content';
 
 import { canonicalJson } from './canonical';
 
@@ -12,8 +18,7 @@ import { canonicalJson } from './canonical';
  * dizem o mesmo hash para o mesmo conteúdo. Conteúdo novo (cartas, tiles) entra na lista daqui.
  */
 export function contentHash(sha256Hex: (text: string) => string): string {
-  return sha256Hex(canonicalJson({ balance, buildings, objectives, chronicleTemplates })).slice(
-    0,
-    16,
-  );
+  return sha256Hex(
+    canonicalJson({ balance, buildings, objectives, chronicleTemplates, foundingTemplates }),
+  ).slice(0, 16);
 }

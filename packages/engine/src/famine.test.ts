@@ -11,6 +11,7 @@ import {
   newGame,
   play,
   refuse,
+  roomy,
 } from './test-helpers';
 
 const THIRTY_DAYS = 30 * 24 * HOUR;
@@ -72,6 +73,8 @@ describe('durante a fome', () => {
   const starving = advanceTo(
     gameWith((draft) => {
       draft.settlement.workers = { farm: 0, lumberMill: 2, quarry: 0, goldMine: 0 };
+      // Com o Armazém, a madeira das 36 horas tem onde ficar.
+      roomy(draft);
     }),
     36 * HOUR,
   ).state;

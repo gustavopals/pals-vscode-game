@@ -57,18 +57,35 @@ describe('fórmulas de custo e tempo (GDD §6.2)', () => {
     expect(upgradeDurationMs(building, fromLevel)).toBe(seconds * 1000);
   });
 
-  it('a conta inteira bate com arredondar(base × fator^(nível − 1)) em todos os níveis', () => {
+  it('a conta inteira bate com arredondar(base × fator^obras já feitas) em todos os níveis', () => {
     for (const building of BUILDING_IDS) {
       const factor = building === 'townHall' ? 1.8 : 1.6;
-      for (let level = 1; level < buildings[building].maxLevel; level += 1) {
+      const { initialLevel, maxLevel, baseCost } = buildings[building];
+      for (let level = initialLevel; level < maxLevel; level += 1) {
         const cost = upgradeCost(building, level);
-        for (const [resource, base] of Object.entries(buildings[building].baseCost)) {
-          const expected = Math.round(base * factor ** (level - 1));
+        for (const [resource, base] of Object.entries(baseCost)) {
+          // O expoente conta as obras desde o nível com que o edifício nasce.
+          const expected = Math.round(base * factor ** (level - initialLevel));
           expect(cost[resource as keyof typeof cost]).toBe(expected);
         }
       }
     }
   });
+
+  it.each([
+    ['granary', 0, { wood: 160, stone: 80 }, 600],
+    ['granary', 1, { wood: 256, stone: 128 }, 900],
+    ['granary', 2, { wood: 410, stone: 205 }, 1350],
+    ['warehouse', 0, { wood: 160, stone: 80 }, 600],
+    ['warehouse', 1, { wood: 256, stone: 128 }, 900],
+    ['warehouse', 7, { wood: 4295, stone: 2147 }, 10251.5625],
+  ] as const)(
+    '%s do nível %i para o seguinte: construir sai pelo custo base',
+    (building, fromLevel, cost, seconds) => {
+      expect(upgradeCost(building, fromLevel)).toEqual(cost);
+      expect(upgradeDurationMs(building, fromLevel)).toBe(Math.floor(seconds * 1000));
+    },
+  );
 
   it('nenhuma obra passa de 8 horas', () => {
     expect(upgradeDurationMs('goldMine', 30)).toBe(8 * HOUR);
@@ -272,10 +289,14 @@ describe('obras e estações (GDD §4.1)', () => {
   });
 
   it('cancelar no inverno devolve os mesmos 80%: a estação mexe no prazo, não no custo', () => {
-    const started = accept(richAt(WINTER), command('startConstruction', { building: 'quarry' }));
+    const start = gameAt(WINTER, (draft) => {
+      draft.settlement.workers.farm = 5;
+      draft.settlement.resources.wood = 400_000;
+    });
+    const started = accept(start, command('startConstruction', { building: 'quarry' }));
     const cancelled = accept(started.state, command('cancelConstruction', { building: 'quarry' }));
-    expect(cancelled.state.settlement.resources.wood).toBe(9e6 - 120_000 + 96_000);
-    expect(cancelled.state.settlement.resources.gold).toBe(9e6 - 30_000 + 24_000);
+    expect(cancelled.state.settlement.resources.wood).toBe(400_000 - 120_000 + 96_000);
+    expect(cancelled.state.settlement.resources.gold).toBe(250_000 - 30_000 + 24_000);
   });
 
   it('o orçamento de uma obra já traz o prazo da estação', () => {
@@ -306,15 +327,15 @@ describe('cancelar', () => {
 
   it('arredonda o reembolso para baixo, em milésimos', () => {
     const state = gameWith((draft) => {
-      Object.assign(draft.settlement, rich.settlement);
+      draft.settlement.resources = { food: 400_000, wood: 400_000, stone: 400_000, gold: 400_000 };
       draft.settlement.buildings = { ...draft.settlement.buildings, townHall: 4, housing: 4 };
     });
     // Habitações 4→5: 328 madeira e 82 pedra; 80% = 262,4 e 65,6.
     // Iniciar a obra cumpre o objetivo das Habitações, que rende +30 madeira.
     const started = accept(state, command('startConstruction', { building: 'housing' })).state;
     const cancelled = accept(started, command('cancelConstruction', { building: 'housing' })).state;
-    expect(cancelled.settlement.resources.wood).toBe(9e6 - 328_000 + 30_000 + 262_400);
-    expect(cancelled.settlement.resources.stone).toBe(9e6 - 82_000 + 65_600);
+    expect(cancelled.settlement.resources.wood).toBe(400_000 - 328_000 + 30_000 + 262_400);
+    expect(cancelled.settlement.resources.stone).toBe(400_000 - 82_000 + 65_600);
   });
 
   it('recusa quando não há obra daquele edifício', () => {

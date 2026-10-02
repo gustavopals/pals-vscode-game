@@ -3,6 +3,11 @@ export function decimal(value: number): string {
   return String(Math.round(value * 100) / 100).replace('.', ',');
 }
 
+/** Inteiro com ponto de milhar, para os textos: "1.500". */
+export function thousands(value: number): string {
+  return String(Math.trunc(value)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 /** "1 trabalhador", "4 trabalhadores". */
 export function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;

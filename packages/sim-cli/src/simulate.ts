@@ -62,6 +62,13 @@ export type HourRow = {
   famine: boolean;
   /** O feudo passa frio: é inverno e a madeira da lareira acabou. */
   cold: boolean;
+  /**
+   * Desperdício acumulado de cada recurso, em unidades: o que os eventos `storageWasted` já
+   * relataram mais o que a visão mostra como ainda não relatado (`wastedToday`).
+   */
+  wasted: Record<ResourceId, number>;
+  /** Algum depósito está cheio e perdendo produção nesta hora. */
+  wasting: boolean;
   /** A fila de obras está livre e ao menos uma obra poderia começar agora: ninguém a iniciou. */
   queueIdle: boolean;
   /** Idem, contando só as obras que o jogador deixou planejadas. */
@@ -99,11 +106,24 @@ export function idleQueue(view: ViewState): { queueIdle: boolean; plannedIdle: b
   };
 }
 
+/** Soma, por recurso, o que os eventos de desperdício relataram (`wasted_<recurso>`). */
+function addReportedWaste(reported: Record<ResourceId, number>, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type !== 'storageWasted') {
+      continue;
+    }
+    for (const id of Object.keys(reported) as ResourceId[]) {
+      reported[id] += Number(event.data[`wasted_${id}`] ?? 0);
+    }
+  }
+}
+
 function rowAt(
   state: GameState,
   hour: number,
   timeScale: number,
   commands: CommandCounts,
+  reportedWaste: Record<ResourceId, number>,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -123,6 +143,8 @@ function rowAt(
     levels: { ...state.settlement.buildings },
     famine: view.famine !== null,
     cold: view.winter !== null && view.winter.cold !== null,
+    wasted: byResource((row) => reportedWaste[row.id] + row.wastedToday),
+    wasting: view.resources.some((row) => row.wastingPerHour > 0),
     ...idleQueue(view),
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
@@ -164,6 +186,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   const events: GameEvent[] = [];
   const rows: HourRow[] = [];
   const commands: CommandCounts = { accepted: 0, refused: {} };
+  const reportedWaste: Record<ResourceId, number> = { food: 0, wood: 0, stone: 0, gold: 0 };
   let commandCount = 0;
 
   const act: Act = async (type, payload) => {
@@ -191,13 +214,15 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       const advanced = advanceTo(state, gameMs(nextSessionMs));
       state = advanced.state;
       events.push(...advanced.events);
+      addReportedWaste(reportedWaste, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
     const advanced = advanceTo(state, gameMs(hourEndMs));
     state = advanced.state;
     events.push(...advanced.events);
-    rows.push(rowAt(state, hour, timeScale, commands));
+    addReportedWaste(reportedWaste, advanced.events);
+    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste));
   }
 
   return {

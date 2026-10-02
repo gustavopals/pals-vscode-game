@@ -8,6 +8,7 @@ import {
   coldReliefs,
   DIFFICULTY_IDS,
   EVENT_TYPES,
+  foundingTemplates,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
@@ -18,6 +19,7 @@ import {
   BalanceSchema,
   BuildingsSchema,
   ChronicleTemplatesSchema,
+  FoundingTemplatesSchema,
   ObjectivesSchema,
 } from './schemas';
 
@@ -51,6 +53,17 @@ describe('schemas do conteúdo', () => {
     expect(
       BuildingsSchema.safeParse({ ...buildings, farm: { ...farm, maxLevel: 1 } }).success,
     ).toBe(false);
+  });
+
+  it('recusa um edifício que nasce no nível máximo e um pré-requisito de edifício desconhecido', () => {
+    const farm = buildings.farm;
+    const parse = (changed: object) =>
+      BuildingsSchema.safeParse({ ...buildings, farm: { ...farm, ...changed } }).success;
+    expect(parse({})).toBe(true);
+    expect(parse({ initialLevel: farm.maxLevel })).toBe(false);
+    expect(parse({ initialLevel: -1 })).toBe(false);
+    expect(parse({ requires: { castle: 2 } })).toBe(false);
+    expect(parse({ requires: { townHall: 0 } })).toBe(false);
   });
 });
 
@@ -292,10 +305,138 @@ describe('edifícios', () => {
   });
 
   it('os níveis máximos seguem o GDD §6.1', () => {
-    expect(buildings.townHall.maxLevel).toBe(8);
-    for (const id of BUILDING_IDS.filter((building) => building !== 'townHall')) {
-      expect(buildings[id].maxLevel).toBe(10);
+    expect(BUILDING_IDS.map((id) => [id, buildings[id].maxLevel])).toEqual([
+      ['townHall', 8],
+      ['farm', 10],
+      ['lumberMill', 10],
+      ['quarry', 10],
+      ['goldMine', 10],
+      ['housing', 10],
+      ['granary', 8],
+      ['warehouse', 8],
+    ]);
+  });
+
+  it('os seis da v0.1 nascem erguidos e sem pré-requisito, com o custo e o prazo de sempre', () => {
+    const founders = ['townHall', 'farm', 'lumberMill', 'quarry', 'goldMine', 'housing'] as const;
+    for (const id of founders) {
+      expect(buildings[id].initialLevel, id).toBe(1);
+      expect(buildings[id].requires, id).toEqual({});
     }
+    expect(founders.map((id) => buildings[id].baseCost)).toEqual([
+      { wood: 150, stone: 100, gold: 100 },
+      { wood: 80, gold: 40 },
+      { wood: 100, stone: 50 },
+      { wood: 120, gold: 30 },
+      { wood: 120, stone: 80 },
+      { wood: 80, stone: 20 },
+    ]);
+    expect(founders.map((id) => buildings[id].baseDurationMs / 60_000)).toEqual([
+      10, 5, 5, 6, 8, 4,
+    ]);
+  });
+
+  it('o Celeiro e o Armazém nascem no nível 0 e pedem o Salão no nível 2 (GDD §6.1 e §6.2)', () => {
+    for (const id of ['granary', 'warehouse'] as const) {
+      expect(buildings[id].initialLevel, id).toBe(0);
+      expect(buildings[id].requires, id).toEqual({ townHall: 2 });
+      expect(buildings[id].baseCost, id).toEqual({ wood: 160, stone: 80 });
+      expect(buildings[id].baseDurationMs, id).toBe(10 * 60_000);
+      expect(buildings[id].produces, id).toBeNull();
+    }
+    expect([buildings.granary.label, buildings.warehouse.label]).toEqual(['Celeiro', 'Armazém']);
+  });
+
+  it('a Torre de Vigia ainda não existe: entra com a Ameaça', () => {
+    expect(BUILDING_IDS).toEqual([
+      'townHall',
+      'farm',
+      'lumberMill',
+      'quarry',
+      'goldMine',
+      'housing',
+      'granary',
+      'warehouse',
+    ]);
+  });
+});
+
+describe('armazenamento (GDD §5.5)', () => {
+  const { storage, difficulties } = balance;
+  const stores = Object.entries(storage.buildings);
+
+  it('500 por recurso antes do edifício; Celeiro e Armazém guardam 900 e mais 600 por nível', () => {
+    expect(storage.baseCapacity).toBe(500);
+    expect(storage.buildings.granary).toMatchObject({
+      resources: ['food'],
+      level1: 900,
+      perLevel: 600,
+    });
+    expect(storage.buildings.warehouse).toMatchObject({
+      resources: ['wood', 'stone'],
+      level1: 900,
+      perLevel: 600,
+    });
+    expect(Object.keys(storage.buildings)).toEqual(['granary', 'warehouse']);
+  });
+
+  it('o ouro não tem limite, e cada recurso guardado tem um edifício só', () => {
+    const stored = stores.flatMap(([, def]) => def.resources);
+    expect(stored).toEqual(['food', 'wood', 'stone']);
+    expect(stored).not.toContain('gold');
+    expect(new Set(stored).size).toBe(stored.length);
+  });
+
+  it('construir o edifício nunca encolhe o estoque: o nível 1 guarda mais que o começo', () => {
+    for (const [id, def] of stores) {
+      expect(def.level1, id).toBeGreaterThan(storage.baseCapacity);
+      expect(def.perLevel, id).toBeGreaterThan(0);
+    }
+  });
+
+  it('quem guarda é edifício que se constrói: nasce no nível 0 e não produz nada', () => {
+    for (const [id] of stores) {
+      const def = buildings[id as (typeof BUILDING_IDS)[number]];
+      expect(def.initialLevel, id).toBe(0);
+      expect(def.produces, id).toBeNull();
+    }
+  });
+
+  it('em toda dificuldade e em todo nível o limite é um número inteiro de unidades', () => {
+    // O motor arredonda o limite para baixo, em milésimos. Com os fatores de hoje nada é
+    // cortado, e a tela mostra o mesmo número que a regra usa.
+    for (const id of DIFFICULTY_IDS) {
+      const { num, den } = difficulties[id].storageCapacity;
+      expect((storage.baseCapacity * num) % den, id).toBe(0);
+      for (const [building, def] of stores) {
+        const { maxLevel } = buildings[building as (typeof BUILDING_IDS)[number]];
+        for (let level = 1; level <= maxLevel; level += 1) {
+          const capacity = def.level1 + def.perLevel * (level - 1);
+          expect((capacity * num) % den, `${id} ${building} Nv${level}`).toBe(0);
+        }
+      }
+    }
+  });
+
+  it('antes do edifício, o recurso fica em um lugar com nome próprio para as frases', () => {
+    expect(storage.buildings.granary?.unbuilt).toEqual({ label: 'Despensa', article: 'a' });
+    expect(storage.buildings.warehouse?.unbuilt).toEqual({ label: 'Pátio', article: 'o' });
+  });
+
+  it('o schema recusa um recurso guardado por dois edifícios e um edifício sem recurso', () => {
+    const parse = (buildingsOf: unknown) =>
+      BalanceSchema.safeParse({ ...balance, storage: { ...storage, buildings: buildingsOf } })
+        .success;
+    const { granary, warehouse } = storage.buildings;
+    expect(parse({ granary, warehouse })).toBe(true);
+    expect(parse({ granary, warehouse: { ...warehouse, resources: ['wood', 'food'] } })).toBe(
+      false,
+    );
+    expect(parse({ granary: { ...granary, resources: [] }, warehouse })).toBe(false);
+    expect(parse({ granary, castle: warehouse })).toBe(false);
+    expect(
+      BalanceSchema.safeParse({ ...balance, storage: { ...storage, baseCapacity: 0 } }).success,
+    ).toBe(false);
   });
 });
 
@@ -338,8 +479,11 @@ describe('balanceamento', () => {
 
   it('a capacidade inicial é 10 e a penalidade da fome reduz a produção', () => {
     const { capacityPerLevel } = balance.housing;
-    const perLevel = Object.values(capacityPerLevel).reduce((sum, value) => sum + value, 0);
-    expect(perLevel * balance.initial.buildingLevel).toBe(10);
+    const capacity = BUILDING_IDS.reduce(
+      (sum, id) => sum + (capacityPerLevel[id] ?? 0) * buildings[id].initialLevel,
+      0,
+    );
+    expect(capacity).toBe(10);
     const { num, den } = balance.famine.productionMultiplier;
     expect(num).toBeLessThan(den);
   });
@@ -360,13 +504,46 @@ describe('objetivos', () => {
     }
   });
 
-  it('as recompensas da v0.1 são +20 ouro, +30 madeira, +40 comida e +50 ouro', () => {
+  it('as recompensas são +20 ouro, +30 madeira, +40 comida e o desbloqueio dos depósitos', () => {
     expect(objectives.map((objective) => objective.reward)).toEqual([
       { gold: 20 },
       { wood: 30 },
       { food: 40 },
-      { gold: 50 },
+      {},
     ]);
+    expect(objectives.map((objective) => objective.rewardText)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+      'desbloqueia o Celeiro e o Armazém',
+    ]);
+  });
+
+  it('o objetivo 4 promete o que o Salão no nível 2 libera, e só isso', () => {
+    const fourth = objectives.find((objective) => objective.id === 'townHallLevel2');
+    expect(fourth?.condition).toEqual({ type: 'buildingLevel', building: 'townHall', level: 2 });
+    const unlocked = BUILDING_IDS.filter((id) => buildings[id].requires.townHall === 2);
+    expect(unlocked).toEqual(['granary', 'warehouse']);
+    for (const id of unlocked) {
+      expect(fourth?.rewardText).toContain(buildings[id].label);
+    }
+    // A Torre de Vigia entra na frase quando existir.
+    expect(fourth?.rewardText).not.toContain('Torre');
+  });
+
+  it('o schema recusa objetivo sem recompensa e texto de recompensa que não cabe na frase', () => {
+    const [first] = objectives;
+    if (first === undefined) {
+      throw new Error('O conteúdo não tem objetivos.');
+    }
+    const parse = (changed: object) =>
+      ObjectivesSchema.safeParse([{ ...first, ...changed }]).success;
+    expect(parse({})).toBe(true);
+    expect(parse({ reward: {} })).toBe(false);
+    expect(parse({ reward: {}, rewardText: 'desbloqueia o Celeiro' })).toBe(true);
+    expect(parse({ rewardText: 'Desbloqueia o Celeiro' })).toBe(false);
+    expect(parse({ rewardText: 'desbloqueia o Celeiro.' })).toBe(false);
+    expect(parse({ reward: { gold: 0 } })).toBe(false);
   });
 });
 
@@ -376,6 +553,31 @@ describe('Crônica', () => {
     for (const type of EVENT_TYPES) {
       expect(chronicleTemplates[type].trim()).not.toBe('');
     }
+  });
+
+  it('a obra que ergue um edifício do zero tem frases próprias, sem nível', () => {
+    expect(FoundingTemplatesSchema.safeParse(foundingTemplates).error).toBeUndefined();
+    expect(Object.keys(foundingTemplates)).toEqual([
+      'constructionStarted',
+      'constructionCancelled',
+    ]);
+    for (const [type, template] of Object.entries(foundingTemplates)) {
+      expect(EVENT_TYPES, type).toContain(type);
+      expect(template, type).toContain('{edificio}');
+      expect(template, type).not.toContain('{nivel}');
+      expect(template, type).not.toBe(chronicleTemplates[type as keyof typeof foundingTemplates]);
+    }
+    expect(chronicleTemplates.buildingFounded).toContain('{edificio}');
+    expect(chronicleTemplates.buildingFounded).not.toContain('{nivel}');
+  });
+
+  it('o depósito cheio diz qual e de quê; o desperdício do dia diz quanto foi ao chão', () => {
+    expect(chronicleTemplates.storageFilled).toContain('{deposito}');
+    expect(chronicleTemplates.storageFilled).toContain('{recurso}');
+    expect(chronicleTemplates.storageFilled).toContain('se perde');
+    expect(chronicleTemplates.storageWasted).toContain('{perda}');
+    // A frase não depende de quantos recursos nem de quanto: a lista entra depois dos dois pontos.
+    expect(chronicleTemplates.storageWasted.endsWith(': {perda}.')).toBe(true);
   });
 
   it('o frio tem voz própria: não soa como a fome', () => {

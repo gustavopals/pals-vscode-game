@@ -1,4 +1,4 @@
-import { balance, BUILDING_IDS, DIFFICULTY_IDS, objectives } from '@lotg/content';
+import { balance, BUILDING_IDS, buildings, DIFFICULTY_IDS, objectives } from '@lotg/content';
 
 import type { BuildingId, GameSettings, GameState } from './types';
 import { amountsToMilli, assertTimeScale } from './units';
@@ -14,12 +14,13 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
+  // O Celeiro e o Armazém nascem no nível 0: ainda não foram construídos.
   const levels = Object.fromEntries(
-    BUILDING_IDS.map((id) => [id, balance.initial.buildingLevel]),
+    BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -44,6 +45,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       recruitmentQueue: [],
       famine: null,
       cold: null,
+      wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

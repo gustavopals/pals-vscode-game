@@ -1,6 +1,6 @@
 # Balanceamento da v0.2
 
-Medições do simulador (`@lotg/sim-cli`) ao longo da v0.2, na ordem em que foram feitas. Cada rodada traz data, commit, comandos e a saída como veio, para a seguinte poder ser comparada com ela. As faixas que a CI cobra nasceram na tarefa V2B-T4 do [roadmap](roadmap-v0.2.md) e estão na seção 2. Cada mecânica que muda a economia de propósito regrava a linha de base e registra a rodada aqui (a primeira é a das estações, na seção 3); as rodadas de balanceamento entram em V2C-T7 e V2F-T1.
+Medições do simulador (`@lotg/sim-cli`) ao longo da v0.2, na ordem em que foram feitas. Cada rodada traz data, commit, comandos e a saída como veio, para a seguinte poder ser comparada com ela. As faixas que a CI cobra nasceram na tarefa V2B-T4 do [roadmap](roadmap-v0.2.md) e estão na seção 2. Cada mecânica que muda a economia de propósito regrava a linha de base e registra a rodada aqui (as estações, na seção 3; o armazenamento, na seção 4, com a auditoria de alcançabilidade); as rodadas de balanceamento entram em V2C-T7 e V2F-T1.
 
 Nenhum número deste documento é promessa ao jogador ([ADR 0011](decisions/0011-ritmo-3x-no-mvp.md)): são medidas de um bot, não a duração de nada na tela.
 
@@ -361,4 +361,211 @@ As faixas saem das medidas pela mesma regra da seção 2.3, com uma grandeza a m
 
 - **O frio não aparece na matriz.** A mecânica está provada nos testes do motor (`cold.test.ts`, as propriedades de divisão de intervalo, o golden da Crônica do inverno) e no teste de integração do servidor no ritmo 3, mas nenhum bot a encontra jogando. Não há, portanto, medida de quanto o frio custa a um feudo de verdade.
 - **O bot não planeja o inverno pela comida.** Ele reage: realoca fazendeiros a cada visita conforme o que a Fazenda rende naquela hora. Com uma visita por dia real no ritmo 3 (um dia real são 36 dias de jogo), a visita pode cair no outono e a seguinte só na primavera; o estoque sem limite cobre a diferença. Com caps, é aí que a fome de inverno pode aparecer.
+- As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).
+
+## 4. Armazenamento: Celeiro, Armazém e limites (V2C-T2)
+
+Tarefa V2C-T2. O estoque de comida, madeira e pedra passa a ter limite: 500 de cada no começo, 900 com o Celeiro (comida) ou o Armazém (madeira e pedra) no nível 1 e mais 600 por nível, vezes o fator da dificuldade (× 1,25 em Camponês, × 0,8 em Rei de Ferro). O que não cabe é desperdício contado. O ouro continua sem limite. Os números são os do GDD §5.5 e do [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 17; **nenhum outro número de conteúdo mudou**, e a recompensa do objetivo 4 deixou de ser +50 de ouro e voltou a ser o desbloqueio ([ADR 0002](decisions/0002-objetivo-4-v01.md)).
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o da tarefa V2C-T2 (`git log --grep V2C-T2`) |
+| Identificação | Motor 0.1.0 · estado v4 · conteúdo cf22b9000fd9f485 |
+| Dificuldade | Senhor (`lord`) na matriz; as outras duas na seção 4.6, sem faixa |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, Node 22.22.2 |
+
+### 4.1 Auditoria de alcançabilidade (V2C-T2.5)
+
+A pergunta: com o limite de cada dificuldade, **o custo de cada obra cabe no depósito que existe antes dela?** Só a madeira e a pedra importam: nenhuma obra custa comida, e o ouro não tem limite. Uma obra cujo custo passa do limite é recusada com `EXCEEDS_STORAGE` ("A obra pede 875 de madeira e o Pátio só guarda 500: construa o Armazém primeiro"), a menos que o estoque herdado de uma partida migrada já a pague.
+
+Limite de madeira e de pedra por nível do Armazém:
+
+| Dificuldade | Sem Armazém | Nv1 | Nv2 | Nv3 | Nv4 | Nv5 | Nv6 | Nv7 | Nv8 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Camponês (× 1,25) | 625 | 1.125 | 1.875 | 2.625 | 3.375 | 4.125 | 4.875 | 5.625 | 6.375 |
+| Senhor (× 1) | 500 | 900 | 1.500 | 2.100 | 2.700 | 3.300 | 3.900 | 4.500 | 5.100 |
+| Rei de Ferro (× 0,8) | 400 | 720 | 1.200 | 1.680 | 2.160 | 2.640 | 3.120 | 3.600 | 4.080 |
+
+**O caminho até o Salão no nível 4 e os depósitos no nível 2** (o que a tarefa pede). A coluna de cada dificuldade diz o nível do Armazém que a obra exige: 0 é "cabe no limite inicial".
+
+| Obra | Custo (madeira / pedra / ouro) | Camponês | Senhor | Rei de Ferro |
+|---|---|:-:|:-:|:-:|
+| Salão 1 → 2 | 150 / 100 / 100 | 0 | 0 | 0 |
+| Salão 2 → 3 | 270 / 180 / 180 | 0 | 0 | 0 |
+| Salão 3 → 4 | 486 / 324 / 324 | 0 | 0 | **1** |
+| Celeiro 0 → 1 | 160 / 80 | 0 | 0 | 0 |
+| Celeiro 1 → 2 | 256 / 128 | 0 | 0 | 0 |
+| Armazém 0 → 1 | 160 / 80 | 0 | 0 | 0 |
+| Armazém 1 → 2 | 256 / 128 | 0 | 0 | 0 |
+
+**Não há trava nesse caminho.** Em Rei de Ferro o Salão 3 → 4 pede 486 de madeira e o limite inicial é 400: é preciso erguer o Armazém antes (160 de madeira e 80 de pedra, que cabem nos 400), e ele passa a guardar 720. É uma dependência, não um beco: o jogo diz o que fazer na recusa e na lista de obras. Em Senhor os 486 cabem nos 500 por 14 unidades.
+
+**Nível do Armazém que cada obra exige em Senhor, do começo ao nível máximo.** Cada item é "custo em madeira / nível do Armazém"; X é "não cabe em nível nenhum".
+
+| Edifício | Obras |
+|---|---|
+| Salão do Senhor | 1→2: 150/0 · 2→3: 270/0 · 3→4: 486/0 · 4→5: 875/1 · 5→6: 1.575/3 · 6→7: 2.834/5 · **7→8: 5.102/X** |
+| Fazenda, Habitações | 1→2: 80/0 · 2→3: 128/0 · 3→4: 205/0 · 4→5: 328/0 · 5→6: 524/1 · 6→7: 839/1 · 7→8: 1.342/2 · 8→9: 2.147/4 · 9→10: 3.436/6 |
+| Serraria | 1→2: 100/0 · 2→3: 160/0 · 3→4: 256/0 · 4→5: 410/0 · 5→6: 655/1 · 6→7: 1.049/2 · 7→8: 1.678/3 · 8→9: 2.684/4 · 9→10: 4.295/7 |
+| Pedreira, Mina de Ouro | 1→2: 120/0 · 2→3: 192/0 · 3→4: 307/0 · 4→5: 492/0 · 5→6: 786/1 · 6→7: 1.258/2 · 7→8: 2.013/3 · 8→9: 3.221/5 · **9→10: 5.154/X** |
+| Celeiro, Armazém | 0→1: 160/0 · 1→2: 256/0 · 2→3: 410/0 · 3→4: 655/1 · 4→5: 1.049/2 · 5→6: 1.678/3 · 6→7: 2.684/4 · 7→8: 4.295/7 |
+
+**Travas encontradas, todas além do Salão no nível 7** (nenhum número foi mudado; vão ao autor):
+
+| Dificuldade | O que não cabe | Por quê |
+|---|---|---|
+| Senhor | Salão 7 → 8 | Custa 5.102 de madeira; o Armazém no nível máximo guarda 5.100. **Faltam 2 unidades** |
+| Senhor | Pedreira 9 → 10 e Mina de Ouro 9 → 10 | Custam 5.154 de madeira; o máximo é 5.100 |
+| Rei de Ferro | Armazém 7 → 8 e Celeiro 7 → 8 | Custam 4.295 de madeira; o Armazém no nível 7 guarda 3.600. O Armazém para no nível 7 |
+| Rei de Ferro | Salão 7 → 8, Serraria 9 → 10, Pedreira 9 → 10 e Mina de Ouro 9 → 10 | Custam de 4.295 a 5.154; o limite alcançável é 3.600 |
+| Camponês | nada | Tudo cabe |
+
+Em Senhor e em Rei de Ferro **o Salão não chega ao nível 8**, e com ele os edifícios presos ao "Salão mais um" param no nível 8. Nenhum bot da matriz chega perto (o melhor termina um ano no nível 6), e a recusa diz "não há como juntar tanto" quando o próprio depósito é a obra que não cabe. É um defeito de balanceamento de fim de jogo, não da v0.2 jogável; a lista está congelada em um teste do motor (`storage.test.ts`, "alcançabilidade") para que mexer em custo ou em capacidade a mude de propósito.
+
+### 4.2 Perfis
+
+Os mesmos da seção 3.1, com uma política a mais em cada bot e uma mudança em outra:
+
+| Perfil | Sessões por dia real | Bot | Políticas do bot, na ordem |
+|---|---:|---|---|
+| Preguiçoso | 1 | `preguicoso` | recrutar, obra mais barata, ampliar o estoque, comida primeiro, ocupar os livres, guardar lenha |
+| Regular | 2 | `economico` | recrutar, obra mais barata, ampliar o estoque, alocar por demanda, guardar lenha |
+| Dedicado | 4 | `economico` | recrutar, obra mais barata, ampliar o estoque, alocar por demanda, guardar lenha |
+
+`ampliar o estoque` constrói ou melhora o depósito que vale a obra agora: o que trava uma obra cujo custo não cabe, o que está cheio e perdendo produção e o que enche em menos de 8 horas reais. `obra mais barata` deixou de contar os depósitos entre as obras baratas: eles são um meio, e quem decide é a política nova. Como a fila é uma só e `ampliar o estoque` vem depois, o depósito fica com a visita em que nenhuma outra obra pôde começar (seção 4.5).
+
+### 4.3 Comando e saída
+
+```bash
+pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
+```
+
+900 linhas no CSV e 750 partidas distintas, como antes; a rodada leva cerca de 5 s. As tabelas ganharam quatro colunas: o **desperdício** de comida, de madeira e de pedra (o que não coube no depósito na partida inteira, em unidades) e **Desperdiçando (h)**, as horas reais com ao menos um depósito cheio e perdendo produção. No CSV são as colunas `wasted_food`, `wasted_wood` e `wasted_stone`, que deixaram de sair vazias.
+
+#### Tabela 1: 7 dias reais
+
+| Ritmo | Perfil | Anos de jogo | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 3 | 20 | 2 | 0 | 0 | 168 | 360 | 500 | 500 | 4.920 | 12.273 | 16.934 | 7.023 | 163 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 3 | 35 | 3 | 0 | 0 | 168 | 360 | 500 | 500 | 1.169 | 4.580 | 63.197 | 8.075 | 160 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 3 | 55 | 5 | 0 | 0 | 168 | 300 | 900 | 900 | 1.732 | 3.445 | 110.303 | 25.556 | 160 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 1 | 20 | 2 | 0 | 0 | 168 | 357 | 500 | 500 | 2.023 | 732 | 4.870 | 1.742 | 148 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 1 | 34 | 3 | 0 | 0 | 168 | 344 | 500 | 500 | 425 | 0 | 15.384 | 1.585 | 136 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 1 | 40 | 5 | 0 | 0 | 168 | 210 | 900 | 900 | 836 | 0 | 12.299 | 2.040 | 109 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 0,5 | 12 | 2 | 0 | 0 | 168 | 165 | 500 | 500 | 720 | 0 | 2.150 | 660 | 113 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 0,5 | 18 | 3 | 0 | 0 | 167 | 153 | 500 | 500 | 189 | 0 | 2.817 | 153 | 83 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 0,5 | 22 | 4 | 0 | 0 | 130 | 101 | 1.143 | 646 | 123 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 5.166 | 0 |
+| Rápido 3× | Regular | 31 a 39 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 1.228 | 0 |
+| Rápido 3× | Dedicado | 49 a 61 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 945 | ≤ 945 | ≤ 1.819 | 0 |
+| Normal 1× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 2.125 | 0 |
+| Normal 1× | Regular | 30 a 38 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 447 | 0 |
+| Normal 1× | Dedicado | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 945 | ≤ 945 | ≤ 878 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 10 a 14 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 756 | 0 |
+| Tranquilo 0,5× | Regular | 16 a 20 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 199 | 0 |
+| Tranquilo 0,5× | Dedicado | 19 a 25 | ≥ 4 | ≤ 0 | ≤ 0 | ≤ 1.201 | ≤ 679 | ≤ 130 | 0 |
+
+#### Tabela 2: um ano de jogo
+
+| Ritmo | Perfil | Horas reais | População | Salão | Fome (h) | Frio (h) | Fila ociosa (h) | Sem ofício (aldeão-h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Desperdício de comida | Desperdício de madeira | Desperdício de pedra | Desperdiçando (h) | Recusas | Faixa |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso (1/dia, preguicoso) | 56 | 15 | 1 | 0 | 0 | 56 | 192 | 500 | 469 | 418 | 897 | 4.786 | 0 | 51 | 0 | dentro |
+| Rápido 3× | Regular (2/dia, economico) | 56 | 15 | 1 | 0 | 0 | 56 | 120 | 500 | 420 | 397 | 1.026 | 9.273 | 502 | 48 | 0 | dentro |
+| Rápido 3× | Dedicado (4/dia, economico) | 56 | 25 | 2 | 0 | 0 | 56 | 120 | 500 | 500 | 317 | 84 | 12.984 | 862 | 48 | 0 | dentro |
+| Normal 1× | Preguiçoso (1/dia, preguicoso) | 168 | 20 | 2 | 0 | 0 | 168 | 357 | 500 | 500 | 2.023 | 732 | 4.870 | 1.742 | 148 | 0 | dentro |
+| Normal 1× | Regular (2/dia, economico) | 168 | 34 | 3 | 0 | 0 | 168 | 344 | 500 | 500 | 425 | 0 | 15.384 | 1.585 | 136 | 0 | dentro |
+| Normal 1× | Dedicado (4/dia, economico) | 168 | 40 | 5 | 0 | 0 | 168 | 210 | 900 | 900 | 836 | 0 | 12.299 | 2.040 | 109 | 0 | dentro |
+| Tranquilo 0,5× | Preguiçoso (1/dia, preguicoso) | 336 | 16 | 3 | 0 | 0 | 336 | 261 | 500 | 500 | 2.050 | 0 | 4.764 | 2.385 | 257 | 0 | dentro |
+| Tranquilo 0,5× | Regular (2/dia, economico) | 336 | 40 | 5 | 0 | 0 | 328 | 408 | 900 | 900 | 836 | 0 | 12.299 | 2.040 | 207 | 0 | dentro |
+| Tranquilo 0,5× | Dedicado (4/dia, economico) | 336 | 44 | 6 | 0 | 0 | 282 | 232 | 3.244 | 2.137 | 1.235 | 0 | 0 | 0 | 0 | 0 | dentro |
+
+Faixas cobradas:
+
+| Ritmo | Perfil | População | Salão | Fome (h) | Frio (h) | Excedente de madeira | Excedente de pedra | Excedente de ouro | Recusas |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 13 a 17 | ≥ 1 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 493 | ≤ 439 | 0 |
+| Rápido 3× | Regular | 13 a 17 | ≥ 1 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 441 | ≤ 417 | 0 |
+| Rápido 3× | Dedicado | 22 a 28 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 333 | 0 |
+| Normal 1× | Preguiçoso | 18 a 22 | ≥ 2 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 2.125 | 0 |
+| Normal 1× | Regular | 30 a 38 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 447 | 0 |
+| Normal 1× | Dedicado | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 945 | ≤ 945 | ≤ 878 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 14 a 18 | ≥ 3 | ≤ 0 | ≤ 0 | ≤ 525 | ≤ 525 | ≤ 2.153 | 0 |
+| Tranquilo 0,5× | Regular | 36 a 44 | ≥ 5 | ≤ 0 | ≤ 0 | ≤ 945 | ≤ 945 | ≤ 878 | 0 |
+| Tranquilo 0,5× | Dedicado | 39 a 49 | ≥ 6 | ≤ 0 | ≤ 0 | ≤ 3.407 | ≤ 2.244 | ≤ 1.297 | 0 |
+
+Todas as 900 partidas ficam dentro das faixas novas, e nenhum bot teve ordem recusada.
+
+### 4.4 O que mudou em relação à seção 3, e por quê
+
+População final, Salão e madeira, antes (seção 3) e depois (esta rodada), nos 7 dias reais. "Madeira parada" é o estoque final; "madeira perdida", o desperdício da semana.
+
+| Ritmo | Perfil | População | Salão | Madeira parada | Madeira perdida |
+|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 20 → 20 | 2 → 2 | 17.434 → 500 | 16.934 |
+| Rápido 3× | Regular | 35 → 35 | 3 → 3 | 39.064 → 500 | 63.197 |
+| Rápido 3× | Dedicado | 55 → 55 | 5 → 5 | 81.313 → 900 | 110.303 |
+| Normal 1× | Preguiçoso | 20 → 20 | 2 → 2 | 5.370 → 500 | 4.870 |
+| Normal 1× | Regular | 34 → 34 | 3 → 3 | 9.735 → 500 | 15.384 |
+| Normal 1× | Dedicado | 40 → 40 | 5 → 5 | 8.864 → 900 | 12.299 |
+| Tranquilo 0,5× | Preguiçoso | 12 → 12 | 2 → 2 | 2.650 → 500 | 2.150 |
+| Tranquilo 0,5× | Regular | 18 → 18 | 3 → 3 | 2.150 → 500 | 2.817 |
+| Tranquilo 0,5× | Dedicado | 20 → 22 | 4 → 4 | 783 → 1.143 | 0 |
+
+- **O excedente parado virou desperdício, e o feudo anda no mesmo passo.** População e Salão são os da seção 3 em quase toda célula. A madeira que antes se empilhava sem uso agora para no limite, e o que passa dele vai ao chão: no Regular do ritmo 3, 63 mil unidades em uma semana, mais do que as 39 mil que ficavam paradas, porque o bot continua alocando lenhadores (a alocação por demanda reparte os braços pelos materiais sem olhar se o depósito está cheio).
+- **Nenhuma obra dos bots ficou sem madeira.** Com uma fila só e uma obra por visita, o estoque só precisa pagar a próxima obra, e até o Salão no nível 4 tudo cabe nos 500 de Senhor (seção 4.1). O Dedicado é o único que esbarra no limite em uma semana: o Salão 4 → 5 pede 875 de madeira, ele ergue o Armazém (900) e segue até o nível 5.
+- **Os depósitos cheios são a regra, não a exceção.** No ritmo 1 o Regular passa 136 das 168 horas com ao menos um depósito perdendo produção; no ritmo 3, 160. Só o Dedicado do ritmo 0,5, que gasta o que produz, não perde nada. A meta do GDD §15.2 ("nenhum recurso desperdiçando no cap por mais de 8 h de jogo contínuas", perfil Regular) **está longe de ser atingida**: é a pergunta de balanceamento que esta tarefa deixa para V2C-T7, junto com a segunda fila e o início automático (V2C-T5), que dão ao estoque onde ser gasto.
+- **Ninguém passa frio nem fome.** O inverno de 35 aldeões queima 420 de madeira e o Pátio guarda 500; a Serraria repõe. A lenha passou a caber justa no limite, mas a conta ainda fecha sozinha.
+- **O ouro parado caiu** (no Regular do ritmo 3, de 6.972 para 1.169), e não por limite, que o ouro não tem. A alocação por demanda reparte os braços pelo que falta às obras: com a madeira e a pedra limitadas, sempre falta para a soma das obras e os braços vão para elas; antes, com milhares em estoque, nada faltava e um em cada seis braços ia para a Mina. O objetivo 4 também deixou de pagar 50 de ouro.
+- **O ano de jogo no ritmo 0,5 perdeu um nível de Salão no Dedicado** (7 → 6) e dois aldeões (46 → 44): com 4 visitas por dia em 14 dias reais ele chega aonde o limite pesa. O Salão 6 → 7 pede 2.834 de madeira, e antes disso o Armazém tem de subir até o nível 5.
+
+### 4.5 A ordem da política de depósito
+
+Uma primeira versão punha `ampliar o estoque` **antes** de `obra mais barata` e deixava os depósitos entre as obras baratas. Medida com as mesmas regras, 7 dias reais:
+
+| Ritmo | Perfil e ordem | População | Salão | Depósitos ao fim | Madeira perdida |
+|---|---|---|---|---|---|
+| Rápido 3× | Regular, depósito primeiro | 25 | 2 | Celeiro Nv2, Armazém Nv3 | 50.544 |
+| Rápido 3× | Regular, obra primeiro (a adotada) | 35 | 3 | nenhum | 63.197 |
+| Normal 1× | Regular, depósito primeiro | 25 | 2 | Celeiro Nv1, Armazém Nv3 | 10.544 |
+| Normal 1× | Regular, obra primeiro (a adotada) | 34 | 3 | nenhum | 15.384 |
+| Normal 1× | Dedicado, depósito primeiro | 35 | 4 | não anotado | 9.863 |
+| Normal 1× | Dedicado, obra primeiro (a adotada) | 40 | 5 | Armazém Nv1 | 12.299 |
+
+Com o depósito primeiro, a cada visita há um estoque enchendo, a fila vai para ele, e o Regular perde um nível de Salão e cerca de dez aldeões para desperdiçar de um quinto a um terço a menos. **Com uma fila só, ampliar o depósito custa uma visita e não compra progresso**: o estoque a mais não tem onde ser gasto antes da visita seguinte. A ordem adotada mantém o progresso e usa o depósito quando ele destrava uma obra ou quando sobra a visita.
+
+Isso é uma medida do bot, mas também diz algo do jogo: **hoje o limite não muda a decisão de quem joga pelo progresso**, só o que ele vê sumir. A escolha "ampliar ou gastar" que a mecânica quer criar (roadmap, V2C-T2, "Diversão") passa a pesar quando houver o que fazer com o estoque guardado: a segunda fila e o início automático (V2C-T5), as cartas que cobram recursos (Fase D) e as incursões (Fase E).
+
+### 4.6 As outras dificuldades (uma semente, sem faixa)
+
+`pnpm -s sim -- --matrix --seeds 1 --difficulty ironKing` e `--difficulty peasant`. 7 dias reais, perfil Regular:
+
+| Dificuldade | Ritmo | População | Salão | Madeira parada | Madeira perdida | Desperdiçando (h) | Recusas |
+|---|---|---|---|---|---|---|---|
+| Camponês | Rápido 3× | 35 | 3 | 625 | 68.201 | 157 | 0 |
+| Camponês | Normal 1× | 34 | 3 | 625 | 16.413 | 131 | 0 |
+| Senhor | Rápido 3× | 35 | 3 | 500 | 63.197 | 160 | 0 |
+| Senhor | Normal 1× | 34 | 3 | 500 | 15.384 | 136 | 0 |
+| Rei de Ferro | Rápido 3× | 35 | 3 | 400 | 59.133 | 162 | 0 |
+| Rei de Ferro | Normal 1× | 32 | 3 | 400 | 14.453 | 139 | 0 |
+
+A dificuldade passou a mudar o jogo, e pouco: o Regular de Rei de Ferro termina o ritmo 1 com 32 aldeões em vez de 34. Sem fome, sem frio e sem ordem recusada em nenhuma das 36 células das duas rodadas. As faixas das outras dificuldades ficam para V2C-T7.
+
+### 4.7 Faixas
+
+As faixas saem das medidas pela regra da seção 2.3. `MEASURED`, em `packages/sim-cli/src/bands.ts`, traz a linha de base desta rodada. O teto do **excedente parado** de madeira e de pedra caiu para o limite do depósito com 5% de folga (525 onde ninguém ergue o Armazém): deixou de ser um sinal e virou uma garantia da regra. O desperdício e as horas desperdiçando são medidos e relatados, e **não têm faixa** ainda: o limite deles é decisão de balanceamento (V2C-T7).
+
+### 4.8 Limites desta medição
+
+- **O bot não reage ao depósito cheio na alocação.** `alocar por demanda` e `ocupar os livres` continuam mandando braços para o material que vai ao chão. Um jogador os mandaria para o ouro, que não tem limite, ou para a comida. O desperdício medido é, por isso, um teto do que um jogador perderia, não uma estimativa.
+- **Os bots quase não usam o Celeiro.** A comida do bot econômico fica perto do equilíbrio (duas bocas de folga), e a Despensa de 500 basta. No ritmo 3 a comida enche e se perde (4.580 na semana do Regular), e mesmo assim nenhuma visita sobra para o Celeiro.
+- **A Crônica não está na medida.** O fecho diário do desperdício não entra nela ([ADR 0015](decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md)); o que entra é uma linha por episódio de depósito cheio, e nenhum número aqui diz se ela é demais.
+- **A comparação da seção 4.5 foi medida com uma semente**, durante a tarefa, antes de a ordem adotada ser a do código; os números da ordem descartada não se repetem com o código de hoje sem trocar a ordem das políticas à mão.
 - As faixas continuam sendo o jogo de hoje, com folga, e não metas (seção 2.5).

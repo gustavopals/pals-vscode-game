@@ -77,6 +77,22 @@ const scenarios: Record<string, () => GameState> = {
       { at: 72 * DAY + 5 * HOUR + 19 * MINUTE + 4_321 },
     ]).state,
 
+  // Armazenamento: o Celeiro erguido e cheio, o Armazém em obra e desperdício ainda não
+  // relatado, no meio de um dia. Em Rei de Ferro, para o fator da dificuldade entrar no limite.
+  storage: () =>
+    play(createInitialState('fixture-storage', { ...settings, difficulty: 'ironKing' }), [
+      command('setWorkers', { building: 'farm', count: 2 }),
+      command('setWorkers', { building: 'lumberMill', count: 2 }),
+      command('setWorkers', { building: 'quarry', count: 1 }),
+      { at: 20 * HOUR },
+      command('startConstruction', { building: 'townHall' }),
+      { at: 24 * HOUR },
+      command('startConstruction', { building: 'granary' }),
+      { at: 71 * HOUR },
+      command('startConstruction', { building: 'warehouse' }),
+      { at: 71 * HOUR + 3 * MINUTE + 1_234 },
+    ]).state,
+
   // Os quatro primeiros objetivos concluídos.
   objectives: () => objectivesScenario().state,
 
@@ -172,6 +188,16 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('cold').settlement.famine).toBeNull();
     expect(of('cold').settlement.resources.wood).toBe(0);
     expect(of('cold').settlement.recruitmentQueue.length).toBe(1);
+    // O armazenamento: um depósito construído, outro em obra, um estoque no limite (720 de
+    // comida, em Rei de Ferro) e desperdício no total e no contador que a Crônica ainda não
+    // relatou.
+    expect(of('storage').settlement.buildings.granary).toBe(1);
+    expect(of('storage').settlement.constructionQueues[0]?.building).toBe('warehouse');
+    expect(of('storage').settlement.resources.food).toBe(720_000);
+    expect(of('storage').stats.wasted_food).toBeGreaterThan(0);
+    expect(of('storage').stats.wasted_wood).toBeGreaterThan(0);
+    expect(of('storage').settlement.wasted.food).toBeGreaterThan(0);
+    expect(of('storage').settlement.wasted.food).toBeLessThan(of('storage').stats.wasted_food ?? 0);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
 
