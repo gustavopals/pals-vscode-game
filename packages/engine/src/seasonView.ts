@@ -10,14 +10,23 @@ import {
   seasonAt,
   seasonWithArticle,
 } from './clock';
-import { buildingWithArticle } from './construction';
+import { buildingWithArticle, ofBuilding } from './construction';
 import { handsAt } from './craft';
 import { type CraftForecast, craftForecast, inMs } from './craftProjection';
 import { firewoodRate, foodRunsOutIn, netRates, producerOf, productionRate } from './economy';
 import { decimal, durationText, joinList, plural, sentenceCase, thousands } from './format';
+import { planCost } from './planned';
+import { planStartsIn } from './plannedView';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
-import type { FirewoodView, FoodForecastView, GameState, ProductionBuildingId } from './types';
+import type {
+  BuildingId,
+  FirewoodView,
+  FoodForecastView,
+  GameState,
+  ProductionBuildingId,
+  ResourceId,
+} from './types';
 import { HOUR_MS, MILLI, SECOND_MS } from './units';
 
 const isNeutral = (ratio: Ratio) => ratio.num === ratio.den;
@@ -141,7 +150,60 @@ type FirewoodCount = {
   villagers: number;
   /** "a Serraria". */
   lumberMill: string;
+  /** Os edifícios das obras automáticas que levam a madeira de `numbers.reserved`. */
+  reservedFor: BuildingId[];
 };
+
+/**
+ * O que a conta da lenha precisa além do estado: o ritmo, a moral da próxima virada do dia e as
+ * taxas e a projeção com que a visão diz quando cada planejada começa.
+ */
+export type FirewoodContext = {
+  timeScale: number;
+  nextMorale: number;
+  rates: Record<ResourceId, number>;
+  forecast: CraftForecast;
+};
+
+/**
+ * A madeira que as planejadas automáticas vão levar do estoque até `untilMs`, em unidades, e de
+ * que edifícios são. O motor as inicia sozinho assim que podem começar, sem olhar a lenha
+ * (GDD §6.3): uma conta que as ignorasse diria "dão conta", e o frio abriria na ausência.
+ *
+ * Entram as que esperam algo que chega antes de `untilMs` (o recurso que a produção junta, a
+ * fila, a obra anterior), na ordem em que devem começar, e cada uma só leva o que o estoque
+ * ainda tem: a que pede mais madeira do que sobrou não começa com a lareira acesa. As manuais e
+ * as que esperam uma ordem do jogador ficam de fora. É uma previsão, como o prazo de cada
+ * planejada: vale enquanto nada mais mudar as taxas.
+ */
+function autoStartWood(
+  state: GameState,
+  untilMs: number,
+  { rates, forecast }: FirewoodContext,
+): { units: number; buildings: BuildingId[] } {
+  const now = state.lastProcessedAt;
+  const starting = state.settlement.planned
+    .filter((plan) => plan.autoStart && (planCost(plan).wood ?? 0) > 0)
+    .map((plan) => ({ plan, startsIn: planStartsIn(state, plan, rates, forecast) }))
+    .filter(
+      (entry): entry is typeof entry & { startsIn: number } =>
+        entry.startsIn !== null && now + entry.startsIn < untilMs,
+    )
+    // A ordem em que começam; no empate, a da lista (a ordenação é estável).
+    .sort((a, b) => a.startsIn - b.startsIn);
+  let left = state.settlement.resources.wood;
+  let units = 0;
+  const buildings: BuildingId[] = [];
+  for (const { plan } of starting) {
+    const wood = planCost(plan).wood ?? 0;
+    if (wood * MILLI <= left) {
+      left -= wood * MILLI;
+      units += wood;
+      buildings.push(plan.building);
+    }
+  }
+  return { units, buildings };
+}
 
 /**
  * O que `building` entrega de `fromMs` a `toMs`, em milésimos × ms por hora, com os fatores de
@@ -186,18 +248,18 @@ function producedBetween(
 
 /**
  * A conta da lenha de `season` entre `fromMs` e `toMs` de jogo, com os habitantes e os
- * trabalhadores de agora: o que a lareira queima, o que a Serraria entrega e o que o estoque
- * ainda precisa ter. A lenha é arredondada para cima e a produção para baixo, para a conta
- * nunca prometer mais do que o inverno entrega.
+ * trabalhadores de agora: o que a lareira queima, o que a Serraria entrega, o que as obras
+ * automáticas levam e o que o estoque ainda precisa ter. A lenha é arredondada para cima e a
+ * produção para baixo, para a conta nunca prometer mais do que o inverno entrega.
  */
 function countFirewood(
   state: GameState,
   season: SeasonDef,
   fromMs: number,
   toMs: number,
-  timeScale: number,
-  nextMorale: number,
+  context: FirewoodContext,
 ): FirewoodCount {
+  const { timeScale, nextMorale } = context;
   const producer = producerOf('wood');
   const burned = firewoodRate(state, season);
   const winterTotal = Math.ceil((burned * (toMs - fromMs)) / HOUR_MS / MILLI);
@@ -205,25 +267,47 @@ function countFirewood(
     producedBetween(state, producer, season, fromMs, toMs, nextMorale) / HOUR_MS / MILLI,
   );
   const stock = Math.floor(state.settlement.resources.wood / MILLI);
+  const reserved = autoStartWood(state, toMs, context);
   return {
     numbers: {
       perHour: (burned * timeScale) / MILLI,
       winterTotal,
       winterProduction,
       stock,
-      missing: Math.max(0, winterTotal - winterProduction - stock),
+      reserved: reserved.units,
+      missing: Math.max(0, winterTotal - winterProduction - (stock - reserved.units)),
     },
     villagers: state.settlement.population.villagers,
     lumberMill: buildingWithArticle(producer),
+    reservedFor: reserved.buildings,
   };
 }
 
-/** A segunda frase da conta: o que a Serraria repõe, o que há e o que falta; ou que dá conta. */
-function firewoodSums({ numbers, lumberMill }: FirewoodCount): string {
+/**
+ * A segunda frase da conta: o que a Serraria repõe, o que há e o que falta; ou que dá conta.
+ * Quando uma obra automática vai levar madeira do estoque, a frase diz qual e quanto: com
+ * falta, vem junto o que fazer (mais gente na Serraria, ou a obra esperar a ordem do jogador).
+ */
+function firewoodSums({ numbers, lumberMill, reservedFor }: FirewoodCount): string {
   const wood = balance.resources.wood.label.toLowerCase();
-  return numbers.missing > 0
-    ? `${sentenceCase(lumberMill)} repõe ${numbers.winterProduction} e há ${numbers.stock} em estoque: faltam ${numbers.missing} de ${wood}.`
-    : `O estoque e ${lumberMill} dão conta.`;
+  const { missing, reserved, stock, winterProduction } = numbers;
+  const [only] = reservedFor;
+  const single = reservedFor.length === 1 && only !== undefined;
+  const takes = single ? `a obra planejada ${ofBuilding(only)} leva` : 'as obras planejadas levam';
+  if (missing > 0) {
+    const sources = `${sentenceCase(lumberMill)} repõe ${winterProduction} e há ${stock} em estoque`;
+    if (reserved === 0) {
+      return `${sources}: faltam ${missing} de ${wood}.`;
+    }
+    const alone = single ? 'quando começar sozinha' : 'quando começarem sozinhas';
+    return (
+      `${sources}, mas ${takes} ${reserved} ${alone}: faltam ${missing} de ${wood}. ` +
+      `Mande gente para ${lumberMill} ou desligue o início automático.`
+    );
+  }
+  return reserved === 0
+    ? `O estoque e ${lumberMill} dão conta.`
+    : `O estoque e ${lumberMill} dão conta, mesmo com os ${reserved} que ${takes}.`;
 }
 
 /**
@@ -231,24 +315,13 @@ function firewoodSums({ numbers, lumberMill }: FirewoodCount): string {
  * de antes. `null` quando a próxima estação não queima nada. `nextMorale` é a moral que a
  * próxima virada do dia vai calcular: é com ela que a Serraria rende dali em diante.
  */
-export function firewoodForecast(
-  state: GameState,
-  timeScale: number,
-  nextMorale: number,
-): FirewoodView | null {
+export function firewoodForecast(state: GameState, context: FirewoodContext): FirewoodView | null {
   const next = seasonAfter(seasonAt(state.lastProcessedAt));
   if (next.effects.firewoodPerVillagerPerHour.num === 0) {
     return null;
   }
   const starts = nextSeasonBoundary(state.lastProcessedAt);
-  const count = countFirewood(
-    state,
-    next,
-    starts,
-    starts + next.days * DAY_MS,
-    timeScale,
-    nextMorale,
-  );
+  const count = countFirewood(state, next, starts, starts + next.days * DAY_MS, context);
   const wood = balance.resources.wood.label.toLowerCase();
   const people = plural(count.villagers, 'habitante', 'habitantes');
   return {
@@ -352,8 +425,7 @@ export function foodForecast(
  */
 export function winterView(
   state: GameState,
-  timeScale: number,
-  nextMorale: number,
+  context: FirewoodContext,
 ): {
   firewoodPerHour: number;
   firewood: FirewoodView;
@@ -365,7 +437,8 @@ export function winterView(
     return null;
   }
   const next = seasonAfter(season);
-  const count = countFirewood(state, season, now, nextSeasonBoundary(now), timeScale, nextMorale);
+  const { timeScale } = context;
+  const count = countFirewood(state, season, now, nextSeasonBoundary(now), context);
   const { numbers } = count;
   const wood = balance.resources.wood.label.toLowerCase();
   const firewood: FirewoodView = {

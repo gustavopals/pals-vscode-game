@@ -199,6 +199,40 @@ describe('antes de partir', () => {
       expect(beforeLeaving(enough).some(firewood)).toBe(false);
     });
 
+    it('com uma obra automática que vai levar madeira da lareira, o item aparece e diz quanto ela leva', () => {
+      // A conta do servidor já desconta a obra: sem ela, estes 125 dariam para o inverno.
+      const lit = winterWith({ stock: 125, missing: 70, depletesInSeconds: 9 * HOUR });
+      const { winter } = lit;
+      if (winter === null) {
+        throw new Error('O teste esperava o inverno.');
+      }
+      const reserved: ViewState = {
+        ...lit,
+        winter: { ...winter, firewood: { ...winter.firewood, reserved: 80 } },
+      };
+      expect(beforeLeaving(reserved).find(firewood)).toEqual({
+        id: 'firewood',
+        severity: 'warning',
+        text: 'A lenha acaba em 9 h: a lareira queima 9 madeira/h e faltam 70 de madeira para o resto da estação. As obras que começam sozinhas levam 80 do estoque.',
+        command: { id: 'lords.allocateWorkers', arg: 'lumberMill', label: 'Alocar na Serraria' },
+      });
+      // No outono, a mesma coisa na previsão do inverno.
+      const { firewood: forecast } = autumn.calendar.nextSeason;
+      const ahead: ViewState = {
+        ...autumn,
+        calendar: {
+          ...autumn.calendar,
+          nextSeason: {
+            ...autumn.calendar.nextSeason,
+            firewood: forecast === null ? null : { ...forecast, reserved: 60, missing: 216 },
+          },
+        },
+      };
+      expect(beforeLeaving(ahead).find(firewood)?.text).toBe(
+        'Inverno em 4 h: 18 habitantes vão queimar 9 madeira/h, e faltam 216 de madeira para a estação inteira. As obras que começam sozinhas levam 60 do estoque.',
+      );
+    });
+
     it('o frio em andamento é urgente e diz há quanto tempo', () => {
       expect(beforeLeaving(coldView).find(firewood)).toEqual({
         id: 'firewood',

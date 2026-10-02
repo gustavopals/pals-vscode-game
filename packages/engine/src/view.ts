@@ -284,7 +284,7 @@ export function deriveViewState(
   // "Acaba em" conta com o que o ofício e a moral mudam sozinhos: quem ainda se adapta vai
   // render inteiro, e a próxima virada do dia recalcula a moral.
   const forecast = craftForecast(state);
-  const outlook = craftOutlook(forecast);
+  const outlook = craftOutlook(state, forecast);
   const runsOutIn: Partial<Record<ResourceId, number | null>> = {
     food: outlook.foodRunsOutIn,
     wood: outlook.woodRunsOutIn,
@@ -294,6 +294,7 @@ export function deriveViewState(
   // conta da moral e a da lenha saem daqui.
   const atTurn = stateAtNextMoraleTurn(state);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
+  const firewood = { timeScale, nextMorale, rates, forecast };
 
   // Uma entrada por fila aberta; a fila que o Salão ainda não abriu não aparece.
   const queues = Array.from({ length: queuesUnlocked(state) }, (_, index) => {
@@ -330,7 +331,7 @@ export function deriveViewState(
         label: nextSeason.label,
         secondsUntil: until(nextSeasonBoundary(now)),
         changes: seasonChanges(date.season, nextSeason, timeScale),
-        firewood: firewoodForecast(state, timeScale, nextMorale),
+        firewood: firewoodForecast(state, firewood),
         food: foodForecast(state, timeScale, forecast),
       },
     },
@@ -407,7 +408,7 @@ export function deriveViewState(
             text: 'Fome: a produção cai para 75% e ninguém se junta ao feudo até a comida voltar.',
           },
     morale: moraleView(state, atTurn, timeScale),
-    winter: winterView(state, timeScale, nextMorale),
+    winter: winterView(state, firewood),
     objectives: objectivesView(state),
     pendingDecisions: [],
   };

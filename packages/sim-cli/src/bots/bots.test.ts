@@ -611,6 +611,7 @@ describe('política "guardar lenha"', () => {
       winterTotal,
       winterProduction,
       stock,
+      reserved: 0,
       missing: Math.max(0, winterTotal - winterProduction - stock),
       text: 'A conta da lenha.',
     };
@@ -876,6 +877,7 @@ describe('política "ampliar o estoque"', () => {
             winterTotal: 60,
             winterProduction: 0,
             stock: 120,
+            reserved: 0,
             missing: 0,
             text: 'A conta da lenha.',
           },
@@ -912,6 +914,7 @@ describe('política "obra mais barata" com o inverno à vista', () => {
     winterTotal,
     winterProduction,
     stock,
+    reserved: 0,
     missing: Math.max(0, winterTotal - winterProduction - stock),
     text: 'A conta da lenha.',
   });
@@ -969,6 +972,7 @@ describe('política "planejar automáticas"', () => {
     winterTotal,
     winterProduction,
     stock,
+    reserved: 0,
     missing: Math.max(0, winterTotal - winterProduction - stock),
     text: 'A conta da lenha.',
   });

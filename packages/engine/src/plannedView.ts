@@ -145,6 +145,31 @@ function waitQueue(state: GameState): Waiting {
   };
 }
 
+/** A espera de uma planejada, com o prazo ainda em ms de jogo; `null` se ela já pode começar. */
+function waitingOf(
+  state: GameState,
+  plan: PlannedConstruction,
+  rates: Record<ResourceId, number>,
+  forecast: CraftForecast,
+): (Waiting & { reason: PlanWait['reason'] }) | null {
+  const wait = planWait(state, plan);
+  if (wait === null) {
+    return null;
+  }
+  switch (wait.reason) {
+    case 'upgrading':
+      return { reason: wait.reason, ...waitUpgrading(state, plan, wait) };
+    case 'gate':
+      return { reason: wait.reason, ...waitGate(state, plan, wait) };
+    case 'capacity':
+      return { reason: wait.reason, ...waitCapacity(state, plan, wait) };
+    case 'resources':
+      return { reason: wait.reason, ...waitResources(state, wait, rates, forecast) };
+    case 'queue':
+      return { reason: wait.reason, ...waitQueue(state) };
+  }
+}
+
 /**
  * O que uma planejada espera, como a interface mostra: o motivo, a frase e o prazo em segundos
  * reais. `null` quando ela já pode ser iniciada. O prazo é o da espera **deste** motivo, com as
@@ -158,34 +183,31 @@ export function plannedWaiting(
   timeScale: number,
   forecast: CraftForecast,
 ): PlannedWaitingView | null {
-  const wait = planWait(state, plan);
-  if (wait === null) {
+  const waiting = waitingOf(state, plan, rates, forecast);
+  if (waiting === null) {
     return null;
   }
-  let waiting: Waiting;
-  switch (wait.reason) {
-    case 'upgrading':
-      waiting = waitUpgrading(state, plan, wait);
-      break;
-    case 'gate':
-      waiting = waitGate(state, plan, wait);
-      break;
-    case 'capacity':
-      waiting = waitCapacity(state, plan, wait);
-      break;
-    case 'resources':
-      waiting = waitResources(state, wait, rates, forecast);
-      break;
-    case 'queue':
-      waiting = waitQueue(state);
-      break;
-  }
   return {
-    reason: wait.reason,
+    reason: waiting.reason,
     text: waiting.text,
     etaSeconds:
       waiting.etaMs === null ? null : Math.max(0, Math.ceil(waiting.etaMs / timeScale / SECOND_MS)),
   };
+}
+
+/**
+ * Em quantos ms de jogo a espera de uma planejada acaba, pelo mesmo prazo que a interface
+ * mostra: é quando uma automática deve começar sozinha. `null` quando esperar não resolve (falta
+ * uma ordem do jogador, ou o recurso não está chegando); 0 quando ela já pode começar.
+ */
+export function planStartsIn(
+  state: GameState,
+  plan: PlannedConstruction,
+  rates: Record<ResourceId, number>,
+  forecast: CraftForecast,
+): number | null {
+  const waiting = waitingOf(state, plan, rates, forecast);
+  return waiting === null ? 0 : waiting.etaMs;
 }
 
 /**

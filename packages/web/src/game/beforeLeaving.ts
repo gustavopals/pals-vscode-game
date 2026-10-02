@@ -106,10 +106,22 @@ function foodItem(view: ViewState): LeavingItem | null {
   };
 }
 
+type Firewood = NonNullable<ViewState['winter']>['firewood'];
+
+/**
+ * Por que a conta da lenha não fecha com a madeira que há: o que as obras planejadas que começam
+ * sozinhas vão levar do estoque (`firewood.reserved`, da conta do servidor). Vazia sem nenhuma.
+ */
+function takenByWorks(firewood: Firewood): string {
+  return firewood.reserved > 0
+    ? ` As obras que começam sozinhas levam ${formatNumber(firewood.reserved)} do estoque.`
+    : '';
+}
+
 /**
  * A lenha: o frio em andamento, a madeira que acaba no meio do inverno, ou o inverno que chega
  * em menos de um dia sem lenha que baste. Quanto falta é a conta do servidor (`firewood.missing`),
- * que já desconta o que a Serraria repõe.
+ * que já desconta o que a Serraria repõe e o que as obras automáticas levam.
  */
 function firewoodItem(view: ViewState): LeavingItem | null {
   const command = allocateTo(view, 'wood');
@@ -135,7 +147,7 @@ function firewoodItem(view: ViewState): LeavingItem | null {
     return {
       id: 'firewood',
       severity: urgency(runsOut),
-      text: `A lenha acaba em ${formatApprox(runsOut)}: a lareira queima ${hearth}${missing}.`,
+      text: `A lenha acaba em ${formatApprox(runsOut)}: a lareira queima ${hearth}${missing}.${takenByWorks(winter.firewood)}`,
       command,
     };
   }
@@ -151,7 +163,7 @@ function firewoodItem(view: ViewState): LeavingItem | null {
     text:
       `${next.label} em ${formatApprox(next.secondsUntil)}: ` +
       `${villagers} ${villagers === 1 ? 'habitante vai' : 'habitantes vão'} queimar ${formatNumber(ahead.perHour)} madeira/h, ` +
-      `e faltam ${formatNumber(ahead.missing)} de madeira para a estação inteira.`,
+      `e faltam ${formatNumber(ahead.missing)} de madeira para a estação inteira.${takenByWorks(ahead)}`,
     command,
   };
 }

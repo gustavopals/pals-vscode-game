@@ -1648,6 +1648,7 @@
           "winterTotal": 216,
           "winterProduction": 0,
           "stock": 60,
+          "reserved": 0,
           "missing": 156,
           "text": "O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira."
         },
@@ -2677,6 +2678,7 @@
         "winterTotal": 149,
         "winterProduction": 0,
         "stock": 0,
+        "reserved": 0,
         "missing": 149,
         "text": "Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 149 de madeira."
       },
@@ -3492,6 +3494,7 @@
           "winterTotal": 144,
           "winterProduction": 838,
           "stock": 436,
+          "reserved": 0,
           "missing": 0,
           "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
         },
@@ -4537,6 +4540,7 @@
         "winterTotal": 30,
         "winterProduction": 0,
         "stock": 0,
+        "reserved": 0,
         "missing": 30,
         "text": "Até a Primavera a lareira ainda queima 30 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 30 de madeira."
       },

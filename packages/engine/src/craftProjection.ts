@@ -1,16 +1,17 @@
 import { PRODUCTION_BUILDING_IDS } from '@lotg/content';
 
-import { DAYS_PER_YEAR, isDayBoundary, nextDayBoundary } from './clock';
+import { DAYS_PER_YEAR, isDayBoundary, nextDayBoundary, nextSeasonBoundary } from './clock';
 import {
   experienceChange,
   finishAdaptations,
   nextAdaptationEndAt,
   tallyCraftExperience,
 } from './craft';
-import { applyContinuous, foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { applyContinuous, firewoodRate, foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { moraleAt } from './morale';
-import { nextAutoStart } from './planned';
+import { nextAutoStart, planCost } from './planned';
 import type { GameState, PlannedConstruction, ResourceId } from './types';
+import { MILLI, positiveEntries } from './units';
 
 type Rates = Record<ResourceId, number>;
 
@@ -193,6 +194,9 @@ export function inMs(value: number | null): Deadline | null {
  * prazo é em ms de jogo a contar de agora; `null` quando não acontece. Lavradores em adaptação
  * que passam a render inteiro podem virar o saldo antes de a despensa esvaziar: aí o alarme de
  * "acaba em" não toca.
+ *
+ * O prazo da lenha conta com a madeira que a próxima obra automática leva quando começar: o
+ * motor a inicia sozinho, sem olhar a lareira (GDD §6.3).
  */
 export type CraftOutlook = {
   foodRunsOutIn: number | null;
@@ -200,10 +204,59 @@ export type CraftOutlook = {
   autoStart: { plan: PlannedConstruction; inMs: number } | null;
 };
 
-export function craftOutlook(forecast: CraftForecast): CraftOutlook {
+type AutoStart = NonNullable<CraftOutlook['autoStart']>;
+
+const woodRunsOut: Probe<Deadline> = (state, rates) => inMs(woodRunsOutIn(state, rates));
+
+/**
+ * Quando a lenha acaba se a próxima obra automática começar antes: a projeção vai até o instante
+ * em que ela começa, paga o custo e segue dali, com o relógio da cópia posto nesse instante.
+ * `plain` é o prazo sem a obra, e vale quando ela não leva madeira, quando a lenha acaba antes
+ * de ela começar ou quando ela só começa depois de a estação virar (aí a conta é outra, e a
+ * visão não adivinha).
+ */
+function woodRunsOutAfter(
+  state: GameState,
+  forecast: CraftForecast,
+  autoStart: AutoStart | null,
+  plain: number | null,
+): number | null {
+  // Fora da estação da lenha a madeira não cai sozinha: não há prazo a corrigir.
+  if (autoStart === null || firewoodRate(state) === 0) {
+    return plain;
+  }
+  if (plain !== null && plain <= autoStart.inMs) {
+    return plain;
+  }
+  const cost = planCost(autoStart.plan);
+  const at = state.lastProcessedAt + autoStart.inMs;
+  if ((cost.wood ?? 0) <= 0 || at >= nextSeasonBoundary(state.lastProcessedAt)) {
+    return plain;
+  }
+  const paid = forecast.stateAt(at);
+  if (paid === null) {
+    return plain;
+  }
+  // `stateAt` devolve uma cópia: o estoque é dela; o relógio, dividido com o estado, é trocado.
+  paid.lastProcessedAt = at;
+  paid.clock = { ...paid.clock, gameTimeMs: at };
+  for (const [resource, amount] of positiveEntries(cost)) {
+    paid.settlement.resources[resource] -= amount * MILLI;
+  }
+  const rest = craftForecast(paid).find(woodRunsOut)?.inMs ?? null;
+  return rest === null ? null : autoStart.inMs + rest;
+}
+
+export function craftOutlook(state: GameState, forecast: CraftForecast): CraftOutlook {
+  const autoStart = forecast.find(nextAutoStart);
   return {
-    foodRunsOutIn: forecast.find((state, rates) => inMs(foodRunsOutIn(state, rates)))?.inMs ?? null,
-    woodRunsOutIn: forecast.find((state, rates) => inMs(woodRunsOutIn(state, rates)))?.inMs ?? null,
-    autoStart: forecast.find(nextAutoStart),
+    foodRunsOutIn: forecast.find((draft, rates) => inMs(foodRunsOutIn(draft, rates)))?.inMs ?? null,
+    woodRunsOutIn: woodRunsOutAfter(
+      state,
+      forecast,
+      autoStart,
+      forecast.find(woodRunsOut)?.inMs ?? null,
+    ),
+    autoStart,
   };
 }

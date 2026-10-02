@@ -115,6 +115,7 @@ describe('calendário: a próxima estação', () => {
       winterTotal: 216,
       winterProduction: 0,
       stock: 60,
+      reserved: 0,
       missing: 156,
       text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
     });
@@ -149,6 +150,7 @@ describe('calendário: a próxima estação', () => {
       winterTotal: 216,
       winterProduction: 161,
       stock: 50,
+      reserved: 0,
       missing: 5,
       text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 161 e há 50 em estoque: faltam 5 de madeira.',
     });
@@ -395,6 +397,7 @@ describe('inverno na visão', () => {
         winterTotal: 45,
         winterProduction: 0,
         stock: 30,
+        reserved: 0,
         missing: 15,
         text: 'Até a Primavera a lareira ainda queima 45 de madeira. A Serraria repõe 0 e há 30 em estoque: faltam 15 de madeira.',
       },
@@ -417,6 +420,7 @@ describe('inverno na visão', () => {
         winterTotal: 149,
         winterProduction: 0,
         stock: 0,
+        reserved: 0,
         missing: 149,
         text: 'Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 149 de madeira.',
       },
@@ -487,6 +491,159 @@ describe('inverno na visão', () => {
     });
     expect(view(moved).winter?.cold?.text).toBe(
       'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 9/h e a Serraria entrega 2,69/h: o frio passa quando sobrar madeira, ou na Primavera. Faltam 74 de madeira para atravessar o resto do Inverno.',
+    );
+  });
+});
+
+describe('a conta da lenha e as planejadas automáticas', () => {
+  /**
+   * 10 habitantes, ninguém na Serraria, 125 de madeira e nenhum ouro. A Fazenda fica planejada
+   * como automática: custa 80 de madeira, que há, e 40 de ouro, que os dois mineiros juntam em
+   * pouco menos de cinco horas. O motor inicia a obra sozinho, sem olhar a lenha (GDD §6.3).
+   */
+  const fief = (atMs: number, wood: number) =>
+    gameAt(atMs, (draft) => {
+      const { settlement } = draft;
+      settlement.population.villagers = 10;
+      settlement.buildings.housing = 2;
+      settlement.workers = { farm: 4, lumberMill: 0, quarry: 4, goldMine: 2 };
+      settlement.resources = { food: 300_000, wood: wood * 1000, stone: 100_000, gold: 0 };
+    });
+  const planned = (state: GameState) =>
+    accept(state, command('planConstruction', { building: 'farm', autoStart: true })).state;
+  const coldAt = (state: GameState) =>
+    advanceTo(state, YEAR).events.find((event) => event.type === 'coldStarted')?.atMs;
+
+  it('no inverno: a conta desconta a madeira que a obra automática vai levar, e diz qual obra', () => {
+    const start = fief(WINTER + HOUR, 125);
+    // Sem a planejada, 125 de madeira cobrem as 23 horas que faltam a 5 por hora.
+    expect(view(start).winter?.firewood).toMatchObject({
+      winterTotal: 115,
+      stock: 125,
+      reserved: 0,
+      missing: 0,
+      text: 'Até a Primavera a lareira ainda queima 115 de madeira. O estoque e a Serraria dão conta.',
+    });
+    expect(coldAt(start)).toBeUndefined();
+
+    const state = planned(start);
+    const derived = view(state);
+    expect(derived.constructions.planned[0]?.waiting).toMatchObject({
+      reason: 'resources',
+      text: 'espera 40 de ouro',
+    });
+    // A obra começa sozinha na 6ª hora do inverno, e o frio abre na 10ª: é o que o motor faz.
+    const events = advanceTo(state, YEAR).events;
+    expect(events.find((event) => event.type === 'constructionAutoStarted')?.atMs).toBeLessThan(
+      WINTER + 6 * HOUR,
+    );
+    expect(coldAt(state)).toBe(WINTER + 10 * HOUR);
+    // A conta já diz isso antes: dos 125, a obra leva 80, e os 45 que sobram não cobrem 115.
+    expect(derived.winter?.firewood).toEqual({
+      perHour: 5,
+      winterTotal: 115,
+      winterProduction: 0,
+      stock: 125,
+      reserved: 80,
+      missing: 70,
+      text: 'Até a Primavera a lareira ainda queima 115 de madeira. A Serraria repõe 0 e há 125 em estoque, mas a obra planejada da Fazenda leva 80 quando começar sozinha: faltam 70 de madeira. Mande gente para a Serraria ou desligue o início automático.',
+    });
+  });
+
+  it('no inverno: "acaba em" conta com o que a obra automática leva, e o frio abre naquele segundo', () => {
+    for (const timeScale of [1, 3, 7, 0.5]) {
+      const state = planned(fief(WINTER + HOUR, 125));
+      const seconds = woodOf(view(state, timeScale)).depletesInSeconds;
+      if (seconds === null) {
+        throw new Error('O teste esperava madeira acabando.');
+      }
+      const gameMs = state.lastProcessedAt + seconds * 1000 * timeScale;
+      // Nove horas de jogo: sem a obra seriam vinte e cinco.
+      expect(gameMs).toBeGreaterThan(WINTER + 10 * HOUR - 1000 * timeScale);
+      expect(gameMs).toBeLessThanOrEqual(WINTER + 10 * HOUR);
+      expect(advanceTo(state, gameMs - 1).state.settlement.cold).toBeNull();
+      expect(advanceTo(state, gameMs + 1000 * timeScale).state.settlement.cold).not.toBeNull();
+    }
+  });
+
+  it('no outono: a previsão do inverno desconta a obra que começa sozinha antes de ele acabar', () => {
+    const start = fief(WINTER - DAY, 130);
+    expect(view(start).calendar.nextSeason.firewood).toMatchObject({
+      winterTotal: 120,
+      stock: 130,
+      reserved: 0,
+      missing: 0,
+    });
+    expect(coldAt(start)).toBeUndefined();
+
+    const state = planned(start);
+    expect(coldAt(state)).toBe(WINTER + 10 * HOUR);
+    expect(view(state).calendar.nextSeason.firewood).toEqual({
+      perHour: 5,
+      winterTotal: 120,
+      winterProduction: 0,
+      stock: 130,
+      reserved: 80,
+      missing: 70,
+      text: 'O Inverno vai queimar 120 de madeira com 10 habitantes. A Serraria repõe 0 e há 130 em estoque, mas a obra planejada da Fazenda leva 80 quando começar sozinha: faltam 70 de madeira. Mande gente para a Serraria ou desligue o início automático.',
+    });
+  });
+
+  it('com lenha de sobra, a conta fecha e ainda diz o que a obra leva', () => {
+    const state = planned(fief(WINTER + HOUR, 200));
+    expect(coldAt(state)).toBeUndefined();
+    expect(view(state).winter?.firewood).toMatchObject({
+      stock: 200,
+      reserved: 80,
+      missing: 0,
+      text: 'Até a Primavera a lareira ainda queima 115 de madeira. O estoque e a Serraria dão conta, mesmo com os 80 que a obra planejada da Fazenda leva.',
+    });
+  });
+
+  it('a planejada manual, e a automática que não vai começar, não entram na conta', () => {
+    const manual = accept(
+      fief(WINTER + HOUR, 125),
+      command('planConstruction', { building: 'farm' }),
+    ).state;
+    expect(view(manual).winter?.firewood).toMatchObject({ reserved: 0, missing: 0 });
+    // Sem ninguém na Mina, o ouro não chega: a obra não começa, e a lenha fica onde está.
+    const stalled = planned(
+      gameAt(WINTER + HOUR, (draft) => {
+        const { settlement } = draft;
+        settlement.population.villagers = 10;
+        settlement.buildings.housing = 2;
+        settlement.workers = { farm: 6, lumberMill: 0, quarry: 4, goldMine: 0 };
+        settlement.resources = { food: 300_000, wood: 125_000, stone: 100_000, gold: 0 };
+      }),
+    );
+    expect(view(stalled).constructions.planned[0]?.waiting?.etaSeconds).toBeNull();
+    expect(view(stalled).winter?.firewood).toMatchObject({ reserved: 0, missing: 0 });
+    expect(coldAt(stalled)).toBeUndefined();
+    // A que só começaria depois da primavera também não: até lá a lareira já apagou.
+    const late = planned(fief(WINTER + 11 * DAY + HOUR, 125));
+    expect(view(late).winter?.firewood).toMatchObject({ reserved: 0, missing: 0 });
+    expect(coldAt(late)).toBeUndefined();
+  });
+
+  it('duas obras automáticas: a conta soma as que o estoque paga, na ordem em que começam', () => {
+    const both = (wood: number) =>
+      accept(
+        planned(fief(WINTER + HOUR, wood)),
+        command('planConstruction', { building: 'quarry', autoStart: true }),
+      ).state;
+    // Com 250 de madeira, as duas começam: a Pedreira leva 120 e a Fazenda, 80.
+    const rich = view(both(250)).winter?.firewood;
+    expect(rich).toMatchObject({ stock: 250, reserved: 200, missing: 65 });
+    expect(rich?.text).toContain(
+      'há 250 em estoque, mas as obras planejadas levam 200 quando começarem sozinhas: faltam 65 de madeira.',
+    );
+    expect(coldAt(both(250))).toBeDefined();
+    // Com 150, a Pedreira começa primeiro (pede menos ouro) e leva 120; para a Fazenda não
+    // sobra madeira, e ela não entra na conta.
+    const short = view(both(150)).winter?.firewood;
+    expect(short).toMatchObject({ stock: 150, reserved: 120, missing: 85 });
+    expect(short?.text).toContain(
+      'mas a obra planejada da Pedreira leva 120 quando começar sozinha: faltam 85 de madeira.',
     );
   });
 });

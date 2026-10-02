@@ -123,7 +123,9 @@ const FirewoodSchema = z.strictObject({
   winterTotal: z.number(),
   winterProduction: z.number(),
   stock: z.number(),
-  /** Quanto falta guardar; 0 quando o estoque e a Serraria cobrem. */
+  /** Madeira que as obras planejadas automáticas vão levar do estoque no prazo da conta. */
+  reserved: z.number(),
+  /** Quanto falta guardar, já sem o que as obras levam; 0 quando o estoque e a Serraria cobrem. */
   missing: z.number(),
   text: z.string(),
 });

@@ -344,7 +344,15 @@ export type FirewoodView = {
   winterProduction: number;
   /** Madeira em estoque agora. */
   stock: number;
-  /** Quanto falta guardar para a lareira não apagar; 0 quando o estoque e a Serraria cobrem. */
+  /**
+   * Madeira que as obras planejadas automáticas vão levar do estoque antes de o prazo da conta
+   * acabar: o motor as inicia sozinho, sem olhar a lenha (GDD §6.3). 0 quando nenhuma começa.
+   */
+  reserved: number;
+  /**
+   * Quanto falta guardar para a lareira não apagar, já descontado o que as obras automáticas
+   * levam; 0 quando o estoque e a Serraria cobrem.
+   */
   missing: number;
   /** A conta em uma frase, pronta para exibir. */
   text: string;
