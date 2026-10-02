@@ -16,6 +16,8 @@ O GDD define o contrato vigente; o roadmap divide sua implementação em tarefas
 | [0010](0010-version-informa-o-que-esta-ligado.md) | `GET /version` informa o que o servidor tem ligado (`features.githubDevice`) | Aprovado pelo autor em 2026-10-01; implementado em F3W-T8 |
 | [0011](0011-ritmo-3x-no-mvp.md) | Ritmo 3× no MVP, configurável no servidor (`GAME_TIME_SCALE`) | Decidido pelo autor em 2026-10-01; implementado no mesmo dia |
 | [0012](0012-pagina-de-apresentacao.md) | Página de apresentação em domínio próprio (`@lotg/landing`, um quarto recurso no Coolify) | Decidido pelo autor em 2026-10-01; implementado no mesmo dia; oito pontos a confirmar |
+| [0013](0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) | Regras da v0.2: tempo, ritmo, migração e economia (lote 1 de decisões do roadmap da v0.2) | Aplicado por delegação do autor em 2026-10-01, com as premissas recomendadas; aguarda confirmação ([pendências](../pendencias-v0.2.md)) |
+| [0014](0014-conselho-e-ameaca-na-v0.2.md) | Conselho e ameaça na v0.2 (lote 2 de decisões) | Aplicado por delegação do autor em 2026-10-01, com as premissas recomendadas; aguarda confirmação ([pendências](../pendencias-v0.2.md)) |
 
 Os ADRs 0003–0005 atendem aos pontos 1, 2 e 3 da revisão documental solicitados pelo usuário. Estão refletidos no GDD desde a versão 0.4 e no roadmap desde a 1.1 ([GAME_DESIGN.md](../../GAME_DESIGN.md), [MVP-ROADMAP.md](../../MVP-ROADMAP.md)). Não renumerar decisões existentes ao preencher os números reservados.
 
