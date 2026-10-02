@@ -223,7 +223,7 @@ Nenhum destes itens tem tarefa no roadmap do MVP. Ficaram de fora por escopo, e 
 | "Baixar cópia da partida (JSON)" (GDD §13.6) | Registro, F3W-T6 | Não implementado: não há rota nem comando. Existe "Baixar Crônica (Markdown)" |
 | "Reiniciar partida" (GDD §13.6) | Registro, F3W-T6 | Entregue como "Nova partida", com confirmação: arquiva o feudo atual e começa outro |
 | Gerador de números aleatórios com fluxos nomeados (GDD §14.3 e §18.1) | Registro, F1-T11; [README do motor](../packages/engine/README.md) | Não existe. O estado tem o campo `rng`, vazio: nenhuma regra da v0.1 sorteia. Entra com a primeira mecânica que sortear |
-| Migração de estados por `schemaVersion` (GDD §15.4) | `packages/engine/src/types.ts` (`schemaVersion: 1`) | Não existe código de migração: só há a versão 1. O campo é gravado no estado e na tabela `games` |
+| Migração de estados por `schemaVersion` (GDD §15.4) | `packages/engine/src/types.ts` (`schemaVersion: 1`) | Na v0.1 não existia código de migração: só havia a versão 1. **Resolvido na v0.2 (V2B-T1):** `migrateState` no motor e migração ao travar a partida no servidor; ver os READMEs do [motor](../packages/engine/README.md) e do [servidor](../packages/server/README.md) |
 | Relatório de Retorno para quem deixou a aba aberta (GDD §13.5 fala em "ao abrir") | Registro, F3W-T10 | Só é montado ao **abrir a página** depois de 4 h. Uma aba aberta a noite inteira continua sincronizando e não recebe relatório |
 | Escolha de dificuldade e de ritmo pelo jogador | Registro, F3-T3; `games/service.ts` | A dificuldade é fixa (`lord`) e o ritmo é o do servidor. `POST /games` aceita `timeScale: 1` por compatibilidade e o ignora |
 | Hora da Vigília com efeito | `packages/web/src/tabs/Settings.tsx` | É guardada com a partida e não muda nada no jogo; o texto das Preferências diz isso |
@@ -254,7 +254,7 @@ Deixaram de ser dívida: as vagas de habitação, que o app calculava, agora vê
 | Os backups ficam no mesmo disco do banco: perder o servidor perde os dois. Falta cadastrar um armazenamento externo | Registro, F4-T2; [`deploy/README.md`](../deploy/README.md) |
 | Copiar `RECOVERY_CODE_SECRET` para fora do Coolify é ato do autor e não há registro de que foi feito | Registro, F4-T3 |
 | Os avisos do Coolify estão marcados, mas sem canal de notificação ligado | Registro, F4-T4 |
-| A reversão foi ensaiada entre dois commits com a mesma migração; nunca atravessando uma migração | Registro, F4-T5 |
+| A reversão foi ensaiada entre dois commits com a mesma migração; nunca atravessando uma migração. Desde a v0.2 há também a migração de **estado**: o procedimento está escrito em [`deploy/README.md`](../deploy/README.md), sem ensaio com imagens | Registro, F4-T5; roadmap da v0.2, V2B-T1.6 |
 | As consultas de `deploy/analytics/ops.sql` foram escritas a partir do esquema e não foram executadas em produção | Registro, F4-T4 |
 | A chegada do e-mail de alerta do GitHub ao autor e o disparo do monitor pelo agendamento não foram conferidos | Registro, F4-T4 |
 

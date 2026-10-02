@@ -44,7 +44,8 @@ function fakeServer(fault?: Fault) {
     settlementName: 'Feudo de Fumaça',
     timezone: 'UTC',
     vigilHourLocal: 20,
-    capsEnabled: false,
+    difficulty: 'lord',
+    timeScale: 3,
   });
   let version = 1;
   const receipts = new Map<string, Receipt>();

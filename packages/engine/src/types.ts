@@ -1,19 +1,25 @@
 import type {
   BuildingId,
+  DifficultyId,
   GameEventType,
   ProductionBuildingId,
   ResourceId,
   SeasonId,
 } from '@lotg/content';
 
-export type { BuildingId, GameEventType, ProductionBuildingId, ResourceId, SeasonId };
+export type { BuildingId, DifficultyId, GameEventType, ProductionBuildingId, ResourceId, SeasonId };
 
-/** Escolhas feitas na criação da partida. Na v0.1 não há limite de estoque (GDD §5.5 é v0.2). */
+/** Escolhas feitas na criação da partida. Dificuldade e ritmo não mudam durante o ano. */
 export type GameSettings = {
   settlementName: string;
   timezone: string;
   vigilHourLocal: number;
-  capsEnabled: false;
+  difficulty: DifficultyId;
+  /**
+   * Ritmo: horas de jogo por hora real (GDD §4.2). O motor roda em tempo de jogo; o ritmo só
+   * converte prazos de tempo real no instante em que nascem e os prazos e taxas da visão.
+   */
+  timeScale: number;
 };
 
 export type Construction = {
@@ -26,14 +32,23 @@ export type Construction = {
 export type PlannedConstruction = { building: BuildingId; targetLevel: number };
 
 /**
- * Estado da v0.1: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro.
- * Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
+ * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
+ * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
+ *
+ * Mudar a forma deste tipo é subir `schemaVersion` e escrever um passo em `migrations/`: há
+ * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   seed: string;
   settings: GameSettings;
+  /**
+   * Fronteira da atualização: instante de jogo até onde o estado foi simulado por uma versão
+   * anterior das regras. `null` em partidas que já nasceram nesta versão. Regras novas contam
+   * a partir daqui e nunca recalculam o que veio antes (ADR 0013, decisão 4).
+   */
+  migratedAtMs: number | null;
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   /** Tempo de jogo, em ms, até onde o estado já foi simulado. */
   lastProcessedAt: number;

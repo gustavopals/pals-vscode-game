@@ -5,6 +5,7 @@ import {
   BUILDING_IDS,
   buildings,
   chronicleTemplates,
+  DIFFICULTY_IDS,
   EVENT_TYPES,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
@@ -47,6 +48,12 @@ describe('schemas do conteúdo', () => {
     expect(
       BuildingsSchema.safeParse({ ...buildings, farm: { ...farm, maxLevel: 1 } }).success,
     ).toBe(false);
+  });
+});
+
+describe('dificuldades', () => {
+  it('são as três do GDD §12.1, da mais branda à mais dura', () => {
+    expect(DIFFICULTY_IDS).toEqual(['peasant', 'lord', 'ironKing']);
   });
 });
 

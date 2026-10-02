@@ -322,14 +322,16 @@
    "day": 1,
    "eventsSoFar": 30,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 86400000,
      "yearStartMs": 0,
@@ -401,14 +403,16 @@
    "day": 2,
    "eventsSoFar": 49,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 172800000,
      "yearStartMs": 0,
@@ -477,14 +481,16 @@
    "day": 3,
    "eventsSoFar": 71,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 259200000,
      "yearStartMs": 0,
@@ -554,14 +560,16 @@
    "day": 4,
    "eventsSoFar": 95,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 345600000,
      "yearStartMs": 0,
@@ -633,14 +641,16 @@
    "day": 5,
    "eventsSoFar": 109,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 432000000,
      "yearStartMs": 0,
@@ -712,14 +722,16 @@
    "day": 6,
    "eventsSoFar": 125,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 518400000,
      "yearStartMs": 0,
@@ -789,14 +801,16 @@
    "day": 7,
    "eventsSoFar": 147,
    "state": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
      "timezone": "America/Sao_Paulo",
      "vigilHourLocal": 20,
-     "capsEnabled": false
+     "difficulty": "lord",
+     "timeScale": 1
     },
+    "migratedAtMs": null,
     "clock": {
      "gameTimeMs": 604800000,
      "yearStartMs": 604800000,

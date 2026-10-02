@@ -19,6 +19,7 @@ A configuração vem das variáveis de `deploy/.env` ([exemplo comentado](../../
 
 - O valor é gravado em `games.time_scale` na criação. Mudar a variável não mexe nas partidas que já existem: cada uma segue no ritmo com que nasceu, em qualquer instância que a leia.
 - O jogador não escolhe o ritmo. `POST /games` ainda aceita `timeScale: 1` no corpo, por compatibilidade, e o ignora; qualquer outro valor é `400 VALIDATION`.
+- O ritmo também fica dentro do estado (`state.settings.timeScale`), de onde o motor o lê: na criação, é o mesmo valor da coluna; em uma partida da v0.1, a migração o copia da coluna.
 - O motor continua em tempo de jogo. O servidor converte: tempo de jogo = (agora − `created_at`) × `time_scale`, e o `at` de cada evento é `created_at` + `atMs` ÷ `time_scale`.
 - **A visão sai em tempo real.** Em `GET /view` e na resposta dos comandos (aceitos ou recusados), todo campo em segundos é de segundos reais e toda taxa por hora é por hora real, inclusive nos textos de explicação (`breakdown`). Prazos são arredondados para cima; `depletesInSeconds` e `famine.secondsElapsed`, para baixo. Uma obra anunciada com `durationSeconds: 80` termina 80 segundos reais depois. `atMs` nos eventos e `famine.sinceMs` continuam em milissegundos de jogo.
 - No ritmo 3, o dia de jogo dura 40 minutos reais e a comida inicial, sem ninguém na Fazenda, acaba em 12 horas reais.
@@ -42,7 +43,7 @@ Os helpers sobem a API com `GAME_TIME_SCALE=1`, porque os cenários foram escrit
 | `src/app.ts`, `main.ts`, `config.ts` | Montagem do Fastify, arranque e configuração |
 | `src/plugins/` | Formato de erros, limites de taxa, autorização (`requireIdentity`), saúde do banco |
 | `src/auth/` | Tokens (JWT e refresh), sessões, exclusão, Código do Reino, GitHub (validação do token e repasse do *device flow*) |
-| `src/games/` | Lock e persistência (`repository`), criação e leitura (`service`), `/view` e ETag, comandos com recibo, eventos e Crônica |
+| `src/games/` | Lock, migração do estado e persistência (`repository`), criação e leitura (`service`), `/view` e ETag, comandos com recibo, eventos e Crônica |
 | `src/jobs/` | Avanço de partidas paradas, expurgo de contas, agendador com advisory lock |
 | `src/db/` | Esquema Drizzle e migrador |
 | `src/routes/` | Rotas: validam a forma com os schemas de `@lotg/protocol` e chamam os serviços |
@@ -54,7 +55,7 @@ As dependências entram por um `AppContext` (`config`, `pool`, `db`, `clock`, `f
 O texto completo está no GDD §14.5–14.9 e nos ADRs 0003–0005. Em resumo:
 
 - **Toda leitura e todo comando** de uma partida autenticam, conferem a propriedade e travam a linha com `SELECT … FOR UPDATE` (`lockGame`). Partida de outra conta é 404, antes de qualquer outra consulta.
-- **Leitura** avança o mundo até agora e só escreve se o avanço produziu eventos. Produção contínua não escreve nem muda `state_version`.
+- **Leitura** avança o mundo até agora e só escreve se o avanço produziu eventos (ou se o estado acabou de ser migrado de uma versão anterior; ver "O que tem versão"). Produção contínua não escreve nem muda `state_version`.
 - **Comando novo** avança, aplica e grava estado, eventos e recibo na mesma transação, com um único incremento de `state_version`. Uma recusa do motor também é gravada: o mundo avançou, a ação não teve efeito, e a resposta é `422 GAME_RULE` com o estado novo em `details`.
 - **Reenvio** do mesmo `commandId` devolve status e corpo originais com `X-Lords-Replayed: true`, sem avançar nem aplicar. Mesmo UUID com outra ordem é `409 COMMAND_ID_CONFLICT`.
 - **ETag de `/view`** é o SHA-256 do corpo `{ view, stateVersion }`; não é a `stateVersion`.
@@ -62,12 +63,35 @@ O texto completo está no GDD §14.5–14.9 e nos ADRs 0003–0005. Em resumo:
 - **Refresh**: apresentar um token já usado revoga a sessão inteira, com commit antes do 401. Por isso os desfechos de `rotateRefreshToken` saem da transação como valor, não como exceção.
 - **Exclusão** tem duas etapas: `DELETE /me` bloqueia na hora (202); o job remove tudo sete dias depois.
 - **Crônica sem viradas de dia** ([ADR 0007](../../docs/decisions/0007-cronica-sem-viradas-de-dia.md)): `GET /chronicle` e `GET /chronicle.md` trazem uma linha por evento, menos os `dayStarted`. As viradas de estação e de ano ficam, e o filtro `?year=` e o `?limit=` contam só o que entra na Crônica. `GET /events` continua trazendo tudo, inclusive `dayStarted`, e os eventos continuam todos gravados em `game_events`.
-- **Partida arquivada** não avança mais: `/view` e comandos novos respondem `409 CONFLICT`; eventos, Crônica e recibos continuam legíveis.
+- **Partida arquivada** não avança mais: `/view` e comandos novos respondem `409 CONFLICT`; eventos, Crônica e recibos continuam legíveis. Ela também não é regravada: fica na versão de estado em que parou e é migrada só em memória, a cada leitura.
+
+## O que tem versão
+
+Quatro coisas mudam de forma entre uma versão do jogo e outra. Cada uma tem o seu número e o seu tratamento:
+
+| O quê | Onde está o número | Quando muda | O que o servidor faz |
+|---|---|---|---|
+| **Estado da partida** | `state.schemaVersion` dentro de `games.state`; a coluna `games.schema_version` é um espelho para consultas | Uma tarefa muda a forma do `GameState` ([README do motor](../engine/README.md), "Versões do estado e migração") | Migra ao travar a partida e grava na escrita seguinte (abaixo) |
+| **Conteúdo** | `contentHash` em `GET /version` | Qualquer número ou texto de `@lotg/content` | Nada: o conteúdo vai dentro da imagem e não é gravado no banco. O estado guarda só o que aconteceu (níveis, estoques, prazos já calculados); obras e recrutas em curso mantêm o prazo com que nasceram. O hash serve para saber, de fora, que conteúdo está no ar |
+| **Protocolo** | `protocol` em `GET /version`; o cliente manda `X-Lords-Protocol` em toda chamada | O `ViewState` ou uma rota muda de modo que o app antigo não consegue ler. O `ViewState` cresce por **adição**; adição não sobe o protocolo | Um `X-Lords-Protocol` diferente do número do servidor recebe `426 UPGRADE_REQUIRED` com a instrução de recarregar a página. Enquanto o número for o mesmo, uma aba antiga continua funcionando. Hoje é 1; sobe para 2 quando as cartas entrarem em `pendingDecisions` (ADR 0014) |
+| **Recibos de comando** | Não têm número: `commands.response_body` é a resposta **da época**, com o `ViewState` de então | Nunca são reescritos | O reenvio do mesmo `commandId` devolve o corpo original, byte a byte, mesmo que o estado já tenha mudado de versão. O cliente não usa um recibo repetido como tela: busca `/view` (GDD §14.8) |
+
+### Migração do estado
+
+- **Onde.** `loadGame` (`src/games/repository.ts`) chama `migrateState` do motor com o `time_scale` da linha. `lockGame` passa por ela, e o job `advance-stale-games` também, depois da própria trava. O resto do servidor só enxerga o estado já na versão atual (`LoadedGame`); o tipo de `games.state` (`StoredGameState`) deixa ler direto só o nome do feudo, que é o que a lista de partidas mostra.
+- **Quando grava.** A migração acontece em memória, sob o lock, e é gravada pela primeira escrita daquela transação, junto com `schema_version` e um único incremento de `state_version`: a leitura (que neste caso escreve mesmo sem eventos), o comando novo, aceito ou recusado, ou o job. Duas requisições simultâneas migram uma vez: a segunda espera o lock e já encontra a versão nova.
+- **Reenvio.** Um comando repetido responde o recibo antes de avançar: não grava nada, nem a migração. Ela fica para a próxima leitura.
+- **Fronteira.** O primeiro passo grava `state.migratedAtMs`, o instante de jogo até onde a versão anterior simulou. Regras novas contam a partir dali.
+- **Versão futura ou forma inesperada.** `migrateState` lança `StateMigrationError` e a requisição termina em `500 INTERNAL`, com a transação desfeita: **nada é gravado por cima**. No log, a causa aparece com o nome do erro e o caminho do campo (nunca o valor); no job, a partida conta em `failed` e as outras seguem. É isso que protege o banco quando alguém volta a imagem da API para antes de uma migração; o procedimento está em [deploy/README.md](../../deploy/README.md), "Reverter depois de uma migração de estado". A lista de partidas (`GET /games`) continua respondendo, porque só lê o nome.
+- **Sem migração de SQL.** Mudar a forma do estado não muda o esquema do banco: o estado é um JSONB inteiro. Migração de estado e migração de esquema são coisas separadas, e a regra "expandir, depois contrair" vale só para a segunda.
+
+Os testes ficam em `test/games-migration.test.ts`: gravam linhas com `schema_version = 1` a partir dos retratos do motor (`packages/engine/src/__fixtures__/state-v1-*.json`) e de um recibo da v0.1 (`test/__fixtures__/receipt-v1.json`).
 
 ## Cuidados que já custaram um defeito
 
 - **Ordem de locks.** Um comando trava a partida e depois insere o recibo, que referencia a conta; uma exclusão trava a conta e depois arquiva as partidas. Por isso toda trava de conta é `FOR NO KEY UPDATE` (`lockLiveAccount`), que não bloqueia a referência por chave estrangeira. Com `FOR UPDATE`, os dois se travam.
 - **Jobs.** Cada partida avança na própria transação; uma que falha é contada em `failed` e não segura as outras nem o expurgo de contas.
+- **Estado cru.** `games.state` pode estar em uma versão anterior. Nunca passe `row.state` de uma consulta direta para o motor: use `lockGame` ou `loadGame`. O tipo `StoredGameState` existe para o compilador barrar isso.
 - **Banco fora do ar.** `guardPool` põe um ouvinte de erro em cada conexão; sem ele, uma conexão que cai em uso derruba o processo. Com ele, a consulta falha, a API segue de pé e `/v1/health` responde 503 com `{ status: 'ok', db: 'down' }`.
 - **Logs.** O erro de consulta do Drizzle traz o SQL e os parâmetros na mensagem. Nunca logue o erro cru: use `safeError`.
 - **Texto.** Nomes passam por `isStorableText` no protocolo: o PostgreSQL recusa o caractere nulo, e sem a checagem ele viraria um 500.

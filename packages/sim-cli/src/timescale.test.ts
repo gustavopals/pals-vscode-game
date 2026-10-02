@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
+import type { GameState } from '@lotg/engine';
+
 import { formatSummary, summarize, toCsv } from './report';
 import { simulate, type SimulationOptions } from './simulate';
 
 const HOUR_MS = 3_600_000;
+
+/** O estado sem o ritmo gravado nele: o que tem de coincidir entre duas partidas de ritmos diferentes. */
+const world = (state: GameState) => ({
+  ...state,
+  settings: { ...state.settings, timeScale: null },
+});
 const base: SimulationOptions = {
   seed: 'pedra-alta-golden',
   days: 3,
@@ -19,7 +27,9 @@ const normal = await simulate({ ...base, days: 9, sessionsPerDay: 1 });
 describe('simulação no ritmo 3', () => {
   it('3 dias no ritmo 3 terminam no mesmo estado de jogo que 9 dias no ritmo 1', () => {
     expect(fast.finalState.lastProcessedAt).toBe(216 * HOUR_MS);
-    expect(fast.finalState).toStrictEqual(normal.finalState);
+    expect(fast.finalState.settings.timeScale).toBe(3);
+    expect(normal.finalState.settings.timeScale).toBe(1);
+    expect(world(fast.finalState)).toStrictEqual(world(normal.finalState));
     expect(fast.events).toStrictEqual(normal.events);
     expect(fast.commands).toStrictEqual(normal.commands);
   });
@@ -97,7 +107,8 @@ describe('ritmo da simulação: padrão e limites', () => {
     const slow = await simulate({ ...base, days: 2, sessionsPerDay: 1, timeScale: 0.5 });
     const reference = await simulate({ ...base, days: 1, sessionsPerDay: 2 });
     expect(slow.rows).toHaveLength(48);
-    expect(slow.finalState).toStrictEqual(reference.finalState);
+    expect(slow.finalState.settings.timeScale).toBe(0.5);
+    expect(world(slow.finalState)).toStrictEqual(world(reference.finalState));
     expect(formatSummary(slow)).toContain('ritmo 0,5×');
   });
 

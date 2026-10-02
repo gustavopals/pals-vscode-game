@@ -1,6 +1,12 @@
 export const ENGINE_VERSION = '0.1.0';
 
 export { createInitialState } from './state';
+export {
+  CURRENT_SCHEMA_VERSION,
+  type MigrationContext,
+  migrateState,
+  StateMigrationError,
+} from './migrations';
 export { nextEventAt } from './timeline';
 export { advanceTo } from './advance';
 export { applyCommand } from './commands';
@@ -12,6 +18,7 @@ export type {
   CommandResult,
   CommandType,
   Construction,
+  DifficultyId,
   GameEvent,
   GameEventType,
   GameSettings,

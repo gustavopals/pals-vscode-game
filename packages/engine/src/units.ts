@@ -5,6 +5,17 @@ export const MILLI = 1000;
 export const HOUR_MS = 3_600_000;
 export const SECOND_MS = 1000;
 
+/**
+ * O ritmo é o único número não inteiro que o estado guarda (`settings.timeScale`). Ele não entra
+ * em nenhuma conta contínua: só converte prazos de tempo real em tempo de jogo no instante em
+ * que o prazo nasce, e tempo de jogo em tempo real na visão.
+ */
+export function assertTimeScale(timeScale: unknown): asserts timeScale is number {
+  if (typeof timeScale !== 'number' || !Number.isFinite(timeScale) || !(timeScale > 0)) {
+    throw new Error(`Ritmo inválido: ${String(timeScale)}.`);
+  }
+}
+
 export function toMilli(units: number): number {
   return Math.round(units * MILLI);
 }

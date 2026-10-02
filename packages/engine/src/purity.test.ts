@@ -29,6 +29,8 @@ describe('pureza do motor', () => {
     const names = sources.map(([path]) => path);
     expect(names).toContain('./advance.ts');
     expect(names).toContain('./commands.ts');
+    expect(names).toContain('./migrations.ts');
+    expect(names).toContain('./migrations/v1.ts');
     expect(names.length).toBeGreaterThan(10);
   });
 
@@ -49,12 +51,15 @@ describe('pureza do motor', () => {
 describe('API pública', () => {
   it('exporta exatamente o contrato da fase', () => {
     expect(Object.keys(engine).sort()).toEqual([
+      'CURRENT_SCHEMA_VERSION',
       'ENGINE_VERSION',
       'REJECTION_CODES',
+      'StateMigrationError',
       'advanceTo',
       'applyCommand',
       'createInitialState',
       'deriveViewState',
+      'migrateState',
       'nextEventAt',
     ]);
   });

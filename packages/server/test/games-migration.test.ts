@@ -1,0 +1,686 @@
+import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
+import type {
+  ApiError,
+  Command,
+  CommandAccepted,
+  GameRuleError,
+  ListGamesResponse,
+  ViewResponse,
+} from '@lotg/protocol';
+import {
+  canonicalJson,
+  CommandAcceptedSchema,
+  GameRuleErrorSchema,
+  ViewResponseSchema,
+} from '@lotg/protocol';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
+import { advanceStaleGames } from '../src/jobs/advanceStaleGames';
+import {
+  call,
+  createTestApp,
+  DAY,
+  fakeClock,
+  HOUR,
+  newPlayer,
+  order,
+  renew,
+  send,
+  signUp,
+  type TestApp,
+} from './helpers/app';
+import { resetTestDb, truncateAll } from './helpers/db';
+
+// Testes derivados da documentação: roadmap da v0.2, V2B-T1 (migração de `GameState` por
+// `schemaVersion`), GDD §14.8 e §15.4 e ADR 0013, decisão 4. As linhas de partida são gravadas
+// direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
+
+const REPLAYED = 'x-lords-replayed';
+const CURRENT = 2;
+
+type StoredState = {
+  schemaVersion: number;
+  seed: string;
+  lastProcessedAt: number;
+  migratedAtMs?: number | null;
+  clock: { year: number };
+  settings: Record<string, unknown>;
+  settlement: {
+    name: string;
+    resources: Record<string, number>;
+    population: { villagers: number };
+    workers: Record<string, number>;
+    buildings: Record<string, number>;
+  };
+  objectives: { active: string[]; completed: string[] };
+  stats: Record<string, number>;
+};
+
+const FIXTURES = [
+  ['fresh', 1],
+  ['construction', 3],
+  ['famine', 1],
+  ['objectives', 0.5],
+  ['week-scripted', 1],
+  ['week-bot-3x', 3],
+] as const;
+type FixtureName = (typeof FIXTURES)[number][0];
+
+/** Um retrato da versão 1, como o motor da v0.1 o gravou. Cada chamada lê uma cópia nova. */
+function v1State(name: FixtureName): StoredState {
+  const url = new URL(`../../engine/src/__fixtures__/state-v1-${name}.json`, import.meta.url);
+  return JSON.parse(readFileSync(url, 'utf8')) as StoredState;
+}
+
+/** A resposta 200 de uma ordem, como o servidor da v0.1 a guardou em `commands.response_body`. */
+const v1Receipt = JSON.parse(
+  readFileSync(new URL('./__fixtures__/receipt-v1.json', import.meta.url), 'utf8'),
+) as {
+  command: Pick<Command, 'type' | 'payload'>;
+  responseStatus: number;
+  responseBody: Record<string, unknown>;
+  stateAfter: StoredState;
+};
+
+type Row = {
+  status: string;
+  schemaVersion: number;
+  stateVersion: number;
+  timeScale: number;
+  difficulty: string;
+  lastProcessedAt: string;
+  /** Muda a cada `UPDATE` da linha: serve de contador de escritas. */
+  xmin: string;
+  state: StoredState;
+};
+
+async function rowOf(app: TestApp, gameId: string): Promise<Row> {
+  const { rows } = await app.pool.query<{
+    status: string;
+    schema_version: number;
+    state_version: string;
+    time_scale: string;
+    difficulty: string;
+    last_processed_at: Date;
+    xmin: string;
+    state: StoredState;
+  }>(
+    `select status, schema_version, state_version::text as state_version, time_scale, difficulty,
+            last_processed_at, xmin::text as xmin, state
+       from games where id = $1`,
+    [gameId],
+  );
+  const row = rows[0];
+  if (row === undefined) {
+    throw new Error(`Partida ${gameId} não está no banco.`);
+  }
+  return {
+    status: row.status,
+    schemaVersion: row.schema_version,
+    stateVersion: Number(row.state_version),
+    timeScale: Number(row.time_scale),
+    difficulty: row.difficulty,
+    lastProcessedAt: row.last_processed_at.toISOString(),
+    xmin: row.xmin,
+    state: row.state,
+  };
+}
+
+type OldGame = { id: string; token: string; refreshToken: string; accountId: string };
+
+/**
+ * Grava uma partida como o servidor da v0.1 a deixou: `schema_version` e estado na versão
+ * informada, criada há tempo bastante para o relógio de jogo estar exatamente onde o estado
+ * parou. `staleForMs` empurra `last_processed_at` para o passado, para o job enxergá-la.
+ */
+async function insertGame(
+  app: TestApp,
+  state: StoredState,
+  options: {
+    timeScale?: number;
+    stateVersion?: number;
+    status?: 'active' | 'archived';
+    staleForMs?: number;
+    schemaVersion?: number;
+  } = {},
+): Promise<OldGame> {
+  const auth = await signUp(app, 'Senhor Antigo');
+  const timeScale = options.timeScale ?? 1;
+  const now = app.clock.now().getTime();
+  const id = randomUUID();
+  await app.pool.query(
+    `insert into games (id, account_id, status, seed, difficulty, time_scale, timezone, vigil_hour,
+                        schema_version, state, state_version, last_processed_at, created_at, updated_at)
+     values ($1, $2, $3, $4, 'lord', $5, 'America/Sao_Paulo', 20, $6, $7::jsonb, $8, $9, $10, $9)`,
+    [
+      id,
+      auth.account.id,
+      options.status ?? 'active',
+      state.seed,
+      String(timeScale),
+      options.schemaVersion ?? state.schemaVersion,
+      JSON.stringify(state),
+      options.stateVersion ?? 7,
+      new Date(now - (options.staleForMs ?? 0)),
+      // Arredondado para baixo: o relógio de jogo nunca fica atrás do estado, então a primeira
+      // leitura encontra a partida exatamente no instante do retrato.
+      new Date(now - Math.floor(state.lastProcessedAt / timeScale)),
+    ],
+  );
+  return {
+    id,
+    token: auth.accessToken,
+    refreshToken: auth.refreshToken,
+    accountId: auth.account.id,
+  };
+}
+
+const getView = (app: TestApp, game: OldGame) =>
+  call<ViewResponse>(app, 'GET', `/games/${game.id}/view`, { token: game.token });
+
+function requestHash(command: Pick<Command, 'type' | 'payload'>): string {
+  return createHash('sha256')
+    .update(canonicalJson({ type: command.type, payload: command.payload }))
+    .digest('hex');
+}
+
+async function insertReceipt(app: TestApp, game: OldGame, commandId: string): Promise<void> {
+  await app.pool.query(
+    `insert into commands (game_id, id, account_id, seq, type, payload, request_hash, server_time,
+                           result, error_code, response_status, response_body)
+     values ($1, $2, $3, 1, $4, $5::jsonb, $6, $7, 'accepted', null, $8, $9::jsonb)`,
+    [
+      game.id,
+      commandId,
+      game.accountId,
+      v1Receipt.command.type,
+      JSON.stringify(v1Receipt.command.payload),
+      requestHash(v1Receipt.command),
+      app.clock.now(),
+      v1Receipt.responseStatus,
+      JSON.stringify(v1Receipt.responseBody),
+    ],
+  );
+}
+
+function stock(view: ViewResponse['view'], id: string): number {
+  const found = view.resources.find((resource) => resource.id === id);
+  if (found === undefined) {
+    throw new Error(`Recurso ${id} ausente da view.`);
+  }
+  return found.stock;
+}
+
+let server: TestApp;
+
+beforeAll(async () => {
+  await resetTestDb();
+  server = await createTestApp();
+});
+afterAll(async () => {
+  await server.close();
+});
+
+describe('partida nova', () => {
+  it('nasce na versão atual do estado, com dificuldade e ritmo dentro dele e sem fronteira', async () => {
+    const player = await newPlayer(server);
+    const row = await rowOf(server, player.game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    expect(row.state.schemaVersion).toBe(CURRENT);
+    expect(row.state.settings).toEqual({
+      settlementName: 'Pedra Alta',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 1,
+    });
+    expect(row.state.migratedAtMs).toBeNull();
+  });
+
+  it('guarda no estado o ritmo com que o servidor a criou', async () => {
+    const fast = await createTestApp({ config: { GAME_TIME_SCALE: '3' } });
+    try {
+      const player = await newPlayer(fast);
+      const row = await rowOf(fast, player.game.id);
+      expect(row.timeScale).toBe(3);
+      expect(row.state.settings.timeScale).toBe(3);
+    } finally {
+      await fast.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 1', () => {
+  it('carrega na primeira leitura e é persistida na versão atual, com tudo o que o jogador tinha', async () => {
+    const before = v1State('construction');
+    const game = await insertGame(server, before, { timeScale: 3, stateVersion: 7 });
+    expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 1, stateVersion: 7 });
+
+    const reply = await getView(server, game);
+    expect(reply.status).toBe(200);
+    expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+    // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+    expect(reply.body.stateVersion).toBe('8');
+
+    const row = await rowOf(server, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    expect(row.stateVersion).toBe(8);
+    expect(row.state.schemaVersion).toBe(CURRENT);
+    expect(row.state.settings).toEqual({
+      settlementName: 'Pedra Alta',
+      timezone: 'America/Sao_Paulo',
+      vigilHourLocal: 20,
+      difficulty: 'lord',
+      timeScale: 3,
+    });
+    // A fronteira é o instante de jogo até onde a v0.1 simulou, não o instante da leitura.
+    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+    expect(row.state.settlement).toEqual(before.settlement);
+    expect(row.state.objectives).toEqual(before.objectives);
+    expect(row.state.stats).toEqual(before.stats);
+    expect(row.state.seed).toBe(before.seed);
+
+    const { view } = reply.body;
+    expect(view.settlement.name).toBe('Pedra Alta');
+    expect(stock(view, 'gold')).toBe(250);
+    expect(view.population.villagers).toBe(5);
+    expect(view.constructions.planned.map((plan) => plan.building)).toEqual(['farm', 'lumberMill']);
+    // A obra do retrato acaba aos 240.000 ms de jogo e o estado está em 127.321 ms: no ritmo 3,
+    // faltam 38 segundos reais (37,56 arredondados para cima).
+    expect(view.constructions.active).toMatchObject({ building: 'housing', targetLevel: 2 });
+    expect(view.constructions.active?.secondsRemaining).toBe(38);
+  });
+
+  it('a leitura seguinte não migra nem escreve de novo', async () => {
+    const game = await insertGame(server, v1State('fresh'));
+    await getView(server, game);
+    const migrated = await rowOf(server, game.id);
+
+    const again = await getView(server, game);
+    expect(again.status).toBe(200);
+    const row = await rowOf(server, game.id);
+    expect(row.xmin).toBe(migrated.xmin);
+    expect(row.stateVersion).toBe(migrated.stateVersion);
+    expect(row.state).toEqual(migrated.state);
+  });
+
+  it.each(FIXTURES)(
+    'retrato %s (ritmo %s): carrega, avança 21 dias reais e aceita ordens',
+    async (name, timeScale) => {
+      const clock = fakeClock();
+      const app = await createTestApp({ clock });
+      try {
+        const before = v1State(name);
+        const game = await insertGame(app, before, { timeScale });
+
+        const first = await getView(app, game);
+        expect(first.status).toBe(200);
+        expect(ViewResponseSchema.safeParse(first.body).error).toBeUndefined();
+        expect(first.body.view.population.villagers).toBe(before.settlement.population.villagers);
+        expect(first.body.view.calendar.year).toBe(before.clock.year);
+        for (const [id, milli] of Object.entries(before.settlement.resources)) {
+          expect(stock(first.body.view, id)).toBe(Math.floor(milli / 1000));
+        }
+
+        // Três semanas: a sessão do teste vale 30 dias no total.
+        clock.advance(21 * DAY);
+        await renew(app, game);
+        const later = await getView(app, game);
+        expect(later.status).toBe(200);
+        expect(ViewResponseSchema.safeParse(later.body).error).toBeUndefined();
+        // 21 dias reais são 21 × 12 × ritmo dias de jogo; o ano de jogo tem 84 dias.
+        const gameDays = Math.floor((before.lastProcessedAt + 21 * DAY * timeScale) / (2 * HOUR));
+        expect(later.body.view.calendar.year).toBe(Math.floor(gameDays / 84) + 1);
+
+        const renamed = await send<CommandAccepted>(
+          app,
+          game.token,
+          game.id,
+          order('renameSettlement', { name: 'Vau do Corvo' }),
+        );
+        expect(renamed.status).toBe(200);
+        expect(CommandAcceptedSchema.safeParse(renamed.body).error).toBeUndefined();
+        expect(renamed.body.view.settlement.name).toBe('Vau do Corvo');
+        const idle = await send<CommandAccepted>(
+          app,
+          game.token,
+          game.id,
+          order('setWorkers', { building: 'goldMine', count: 0 }),
+        );
+        expect(idle.status).toBe(200);
+
+        const row = await rowOf(app, game.id);
+        expect(row.schemaVersion).toBe(CURRENT);
+        expect(row.state.schemaVersion).toBe(CURRENT);
+        expect(row.state.settings.timeScale).toBe(timeScale);
+        expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+        expect(row.state.settlement.name).toBe('Vau do Corvo');
+      } finally {
+        await app.close();
+      }
+    },
+  );
+
+  it('uma ordem como primeiro contato migra, aplica e grava tudo em uma escrita só', async () => {
+    const before = v1State('objectives');
+    const game = await insertGame(server, before, { stateVersion: 12 });
+
+    const reply = await send<CommandAccepted>(
+      server,
+      game.token,
+      game.id,
+      order('setWorkers', { building: 'goldMine', count: 0 }),
+    );
+    expect(reply.status).toBe(200);
+    expect(CommandAcceptedSchema.safeParse(reply.body).error).toBeUndefined();
+    expect(reply.body.stateVersion).toBe('13');
+
+    const row = await rowOf(server, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    expect(row.stateVersion).toBe(13);
+    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+    expect(row.state.settlement.workers).toMatchObject({ farm: 2, lumberMill: 3, quarry: 3 });
+  });
+
+  it('uma ordem recusada como primeiro contato também deixa a migração gravada', async () => {
+    const before = v1State('famine');
+    const game = await insertGame(server, before, { stateVersion: 4 });
+
+    const reply = await send<GameRuleError>(
+      server,
+      game.token,
+      game.id,
+      order('recruitVillagers', { quantity: 1 }),
+    );
+    expect(reply.status).toBe(422);
+    expect(GameRuleErrorSchema.safeParse(reply.body).error).toBeUndefined();
+    expect(reply.body.details.code).toBe('FAMINE');
+
+    const row = await rowOf(server, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    expect(row.stateVersion).toBe(5);
+    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+  });
+
+  it('leituras concorrentes, em duas réplicas, migram uma vez só', async () => {
+    const clock = fakeClock();
+    const first = await createTestApp({ clock });
+    const second = await createTestApp({ clock });
+    try {
+      const before = v1State('week-scripted');
+      const game = await insertGame(first, before, { stateVersion: 40 });
+
+      const replies = await Promise.all([
+        getView(first, game),
+        getView(second, game),
+        call(first, 'GET', `/games/${game.id}/events?after=0`, { token: game.token }),
+        call(second, 'GET', `/games/${game.id}/chronicle`, { token: game.token }),
+        getView(second, game),
+        getView(first, game),
+      ]);
+      expect(replies.map((reply) => reply.status)).toEqual([200, 200, 200, 200, 200, 200]);
+
+      // Uma escrita: a de quem pegou o lock primeiro. Os outros já encontraram a versão nova.
+      const row = await rowOf(first, game.id);
+      expect(row.schemaVersion).toBe(CURRENT);
+      expect(row.stateVersion).toBe(41);
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(row.state.settlement).toEqual(before.settlement);
+      const views = [replies[0], replies[1], replies[4], replies[5]] as Array<{
+        body: ViewResponse;
+      }>;
+      for (const { body } of views) {
+        expect(body).toEqual(views[0]?.body);
+        expect(body.stateVersion).toBe('41');
+      }
+    } finally {
+      await first.close();
+      await second.close();
+    }
+  });
+
+  it('uma ordem e uma leitura ao mesmo tempo gravam a migração uma vez e a ordem uma vez', async () => {
+    const before = v1State('objectives');
+    const game = await insertGame(server, before, { stateVersion: 20 });
+
+    const [command, view] = await Promise.all([
+      send<CommandAccepted>(
+        server,
+        game.token,
+        game.id,
+        order('renameSettlement', { name: 'Pedra Nova' }),
+      ),
+      getView(server, game),
+    ]);
+    expect(command.status).toBe(200);
+    expect(view.status).toBe(200);
+
+    const row = await rowOf(server, game.id);
+    expect(row.schemaVersion).toBe(CURRENT);
+    // Duas escritas, em qualquer ordem: a migração (pela leitura ou pela ordem) e a ordem.
+    expect([21, 22]).toContain(row.stateVersion);
+    expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+    expect(row.state.settlement.name).toBe('Pedra Nova');
+  });
+
+  it('o job migra quem não voltou e grava os eventos da ausência', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      // O job olha o banco inteiro: este teste começa com ele vazio.
+      await truncateAll(app.pool);
+      const before = v1State('construction');
+      const game = await insertGame(app, before, { timeScale: 3 });
+      clock.advance(2 * HOUR);
+
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toEqual({ advanced: 1, events: 6, failed: 0 });
+
+      const row = await rowOf(app, game.id);
+      expect(row.schemaVersion).toBe(CURRENT);
+      expect(row.stateVersion).toBe(8);
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      // Duas horas reais no ritmo 3 são seis horas de jogo.
+      expect(row.state.lastProcessedAt).toBe(
+        (Math.floor(before.lastProcessedAt / 3) + 2 * HOUR) * 3,
+      );
+      expect(row.state.settlement.buildings.housing).toBe(2);
+      expect(row.state.settlement.population.villagers).toBe(7);
+      const { rows } = await app.pool.query<{ kind: string }>(
+        'select kind from game_events where game_id = $1 order by seq',
+        [game.id],
+      );
+      expect(rows.map((event) => event.kind)).toEqual([
+        'constructionFinished',
+        'recruitmentFinished',
+        'recruitmentFinished',
+        'dayStarted',
+        'dayStarted',
+        'dayStarted',
+      ]);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('arquivada: a Crônica continua legível e a linha fica como estava', async () => {
+    const game = await insertGame(server, v1State('week-scripted'), { status: 'archived' });
+    const before = await rowOf(server, game.id);
+
+    const chronicle = await call<string>(server, 'GET', `/games/${game.id}/chronicle.md`, {
+      token: game.token,
+    });
+    expect(chronicle.status).toBe(200);
+    expect(chronicle.body).toContain('# Crônica de Pedra Alta do Norte');
+    const view = await getView(server, game);
+    expect(view.status).toBe(409);
+    const list = await call<ListGamesResponse>(server, 'GET', '/games', { token: game.token });
+    expect(list.body.games[0]).toMatchObject({
+      id: game.id,
+      status: 'archived',
+      settlementName: 'Pedra Alta do Norte',
+    });
+
+    expect(await rowOf(server, game.id)).toEqual(before);
+  });
+});
+
+describe('recibos da versão anterior', () => {
+  it('o reenvio devolve o corpo original, sem migrar, avançar nem reescrever o recibo', async () => {
+    const game = await insertGame(server, v1Receipt.stateAfter, { timeScale: 3 });
+    const commandId = randomUUID();
+    await insertReceipt(server, game, commandId);
+    const before = await rowOf(server, game.id);
+    server.clock.advance(3 * HOUR);
+    await renew(server, game);
+
+    const replay = await send<Record<string, unknown>>(server, game.token, game.id, {
+      commandId,
+      ...v1Receipt.command,
+    } as Command);
+    expect(replay.status).toBe(200);
+    expect(replay.headers[REPLAYED]).toBe('true');
+    expect(replay.body).toEqual(v1Receipt.responseBody);
+
+    // Um recibo é uma resposta antes do avanço: a linha da partida nem foi tocada.
+    expect(await rowOf(server, game.id)).toEqual(before);
+    const { rows } = await server.pool.query<{ response_body: unknown }>(
+      'select response_body from commands where game_id = $1 and id = $2',
+      [game.id, commandId],
+    );
+    expect(rows[0]?.response_body).toEqual(v1Receipt.responseBody);
+  });
+
+  it('depois de migrada a partida, o recibo antigo continua valendo e o UUID continua preso à ordem', async () => {
+    const game = await insertGame(server, v1Receipt.stateAfter, { timeScale: 3 });
+    const commandId = randomUUID();
+    await insertReceipt(server, game, commandId);
+
+    expect((await getView(server, game)).status).toBe(200);
+    expect((await rowOf(server, game.id)).schemaVersion).toBe(CURRENT);
+
+    const replay = await send<Record<string, unknown>>(server, game.token, game.id, {
+      commandId,
+      ...v1Receipt.command,
+    } as Command);
+    expect(replay.status).toBe(200);
+    expect(replay.headers[REPLAYED]).toBe('true');
+    expect(replay.body).toEqual(v1Receipt.responseBody);
+
+    const conflict = await send<ApiError>(
+      server,
+      game.token,
+      game.id,
+      order('startConstruction', { building: 'quarry' }, commandId),
+    );
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.code).toBe('COMMAND_ID_CONFLICT');
+
+    // Uma ordem nova, com outro UUID, segue numerada depois do recibo antigo.
+    const fresh = await send<CommandAccepted>(
+      server,
+      game.token,
+      game.id,
+      order('setWorkers', { building: 'farm', count: 1 }),
+    );
+    expect(fresh.status).toBe(200);
+    const { rows } = await server.pool.query<{ seq: number }>(
+      'select seq::int as seq from commands where game_id = $1 order by seq',
+      [game.id],
+    );
+    expect(rows.map((row) => row.seq)).toEqual([1, 2]);
+  });
+});
+
+describe('estado que este servidor não sabe ler', () => {
+  /** Um estado de uma versão que ainda não existe: o que uma imagem antiga encontraria. */
+  function futureState(): StoredState {
+    const state = v1State('objectives');
+    return {
+      ...state,
+      schemaVersion: CURRENT + 1,
+      settings: { settlementName: 'Pedra Alta', timezone: 'UTC', vigilHourLocal: 20 },
+      stats: { ...state.stats },
+      // Um campo de uma mecânica que este servidor desconhece.
+      ...({ council: { pending: [{ cardId: 'carta-do-futuro' }] } } as object),
+    };
+  }
+
+  it('versão mais nova: leitura e ordem respondem 500 sem gravar por cima', async () => {
+    const game = await insertGame(server, futureState(), { stateVersion: 9 });
+    const before = await rowOf(server, game.id);
+    server.clock.advance(5 * HOUR);
+    await renew(server, game);
+
+    const view = await call<ApiError>(server, 'GET', `/games/${game.id}/view`, {
+      token: game.token,
+    });
+    expect(view.status).toBe(500);
+    expect(view.body.code).toBe('INTERNAL');
+    // O corpo não descreve o estado nem a causa: só o protocolo de erro e o requestId.
+    expect(JSON.stringify(view.body)).not.toContain('carta-do-futuro');
+    expect(JSON.stringify(view.body)).not.toContain('versão');
+
+    const command = await send<ApiError>(
+      server,
+      game.token,
+      game.id,
+      order('setWorkers', { building: 'farm', count: 0 }),
+    );
+    expect(command.status).toBe(500);
+    const events = await call<ApiError>(server, 'GET', `/games/${game.id}/events?after=0`, {
+      token: game.token,
+    });
+    expect(events.status).toBe(500);
+
+    expect(await rowOf(server, game.id)).toEqual(before);
+    const { rows } = await server.pool.query<{ total: string }>(
+      `select (select count(*) from commands where game_id = $1)
+            + (select count(*) from game_events where game_id = $1) as total`,
+      [game.id],
+    );
+    expect(Number(rows[0]?.total)).toBe(0);
+  });
+
+  it('versão mais nova: o job conta a falha, deixa a linha intacta e avança as outras', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const future = await insertGame(app, futureState());
+      const old = await insertGame(app, v1State('fresh'));
+      const before = await rowOf(app, future.id);
+      clock.advance(3 * HOUR);
+
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 1 });
+      expect(await rowOf(app, future.id)).toEqual(before);
+      expect((await rowOf(app, old.id)).schemaVersion).toBe(CURRENT);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('versão 1 com um campo estranho: 500, e o original fica preservado', async () => {
+    const state = v1State('construction');
+    (state.settlement as Record<string, unknown>).morale = 50;
+    const game = await insertGame(server, state);
+    const before = await rowOf(server, game.id);
+
+    const view = await call<ApiError>(server, 'GET', `/games/${game.id}/view`, {
+      token: game.token,
+    });
+    expect(view.status).toBe(500);
+    expect(view.body.code).toBe('INTERNAL');
+    expect(await rowOf(server, game.id)).toEqual(before);
+  });
+
+  it('a lista de partidas continua respondendo, com o nome do feudo', async () => {
+    const game = await insertGame(server, futureState());
+    const list = await call<ListGamesResponse>(server, 'GET', '/games', { token: game.token });
+    expect(list.status).toBe(200);
+    expect(list.body.games[0]).toMatchObject({ id: game.id, settlementName: 'Pedra Alta' });
+  });
+});

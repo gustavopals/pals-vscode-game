@@ -3,7 +3,7 @@ import { and, eq, lt, notInArray } from 'drizzle-orm';
 
 import type { AppContext } from '../context';
 import { games } from '../db/schema';
-import { gameTimeAt, persistState } from '../games/repository';
+import { gameTimeAt, loadGame, persistState } from '../games/repository';
 
 const BATCH_SIZE = 100;
 const BUDGET_MS = 20_000;
@@ -16,6 +16,10 @@ export type AdvanceReport = { advanced: number; events: number; failed: number }
  * lendo ou comandando agora fica para a próxima rodada, e a que der erro é pulada sem impedir as
  * outras. Sempre escreve, para `last_processed_at` andar. Garante que eventos e Crônica existam
  * para quem sumiu (GDD §14.9).
+ *
+ * É também o job que migra o estado de quem não voltou: a linha travada passa por `loadGame`
+ * e a escrita do avanço grava a versão nova. Um estado que o motor não sabe ler (versão mais
+ * nova, forma inesperada) conta como falha e fica intocado.
  */
 export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport> {
   const startedAt = Date.now();
@@ -44,7 +48,7 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
           const now = ctx.clock();
           const stillStaleBefore = new Date(now.getTime() - ctx.config.advanceStaleAfterMs);
           // Revalida sob o lock: outra requisição pode ter avançado a partida nesse meio-tempo.
-          const [game] = await tx
+          const [row] = await tx
             .select()
             .from(games)
             .where(
@@ -55,9 +59,10 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
               ),
             )
             .for('update', { skipLocked: true });
-          if (game === undefined) {
+          if (row === undefined) {
             return null;
           }
+          const game = loadGame(row);
           const advanced = advanceTo(game.state, gameTimeAt(game, now));
           await persistState(tx, game, advanced.state, advanced.events, now);
           return advanced.events.length;

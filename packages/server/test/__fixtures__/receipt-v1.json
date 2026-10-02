@@ -1,0 +1,414 @@
+{
+ "command": {
+  "type": "startConstruction",
+  "payload": {
+   "building": "farm"
+  }
+ },
+ "responseStatus": 200,
+ "responseBody": {
+  "view": {
+   "settlement": {
+    "name": "Pedra Alta",
+    "townHallLevel": 1
+   },
+   "calendar": {
+    "year": 1,
+    "season": "spring",
+    "seasonLabel": "Primavera",
+    "dayOfSeason": 1,
+    "dayOfYear": 1,
+    "secondsToNextDay": 2300,
+    "secondsToNextSeason": 57500
+   },
+   "population": {
+    "villagers": 5,
+    "capacity": 10,
+    "free": 5,
+    "inTraining": 0,
+    "housed": 5,
+    "vacancies": 5,
+    "secondsToNextRecruit": null,
+    "breakdown": "Salão do Senhor Nv1 × 5 + Habitações Nv1 × 5 = 10 vagas"
+   },
+   "resources": [
+    {
+     "id": "food",
+     "label": "Comida",
+     "stock": 179,
+     "cap": null,
+     "perHour": -15,
+     "depletesInSeconds": 43100,
+     "breakdown": "Fazenda: 0 trabalhadores × 30 × 1 (Nv1) = 0/h; consumo 5 × 3 = 15/h"
+    },
+    {
+     "id": "wood",
+     "label": "Madeira",
+     "stock": 40,
+     "cap": null,
+     "perHour": 0,
+     "depletesInSeconds": null,
+     "breakdown": "Serraria: 0 trabalhadores × 24 × 1 (Nv1) = 0/h"
+    },
+    {
+     "id": "stone",
+     "label": "Pedra",
+     "stock": 65,
+     "cap": null,
+     "perHour": 0,
+     "depletesInSeconds": null,
+     "breakdown": "Pedreira: 0 trabalhadores × 15 × 1 (Nv1) = 0/h"
+    },
+    {
+     "id": "gold",
+     "label": "Ouro",
+     "stock": 210,
+     "cap": null,
+     "perHour": 0,
+     "depletesInSeconds": null,
+     "breakdown": "Mina de Ouro: 0 trabalhadores × 12 × 1 (Nv1) = 0/h"
+    }
+   ],
+   "workers": [
+    {
+     "building": "farm",
+     "label": "Fazenda",
+     "level": 1,
+     "resource": "food",
+     "assigned": 0,
+     "grossPerHour": 0,
+     "perWorkerPerHour": 30,
+     "breakdown": "0 trabalhadores × 30 × 1 (Nv1) = 0/h"
+    },
+    {
+     "building": "lumberMill",
+     "label": "Serraria",
+     "level": 1,
+     "resource": "wood",
+     "assigned": 0,
+     "grossPerHour": 0,
+     "perWorkerPerHour": 24,
+     "breakdown": "0 trabalhadores × 24 × 1 (Nv1) = 0/h"
+    },
+    {
+     "building": "quarry",
+     "label": "Pedreira",
+     "level": 1,
+     "resource": "stone",
+     "assigned": 0,
+     "grossPerHour": 0,
+     "perWorkerPerHour": 15,
+     "breakdown": "0 trabalhadores × 15 × 1 (Nv1) = 0/h"
+    },
+    {
+     "building": "goldMine",
+     "label": "Mina de Ouro",
+     "level": 1,
+     "resource": "gold",
+     "assigned": 0,
+     "grossPerHour": 0,
+     "perWorkerPerHour": 12,
+     "breakdown": "0 trabalhadores × 12 × 1 (Nv1) = 0/h"
+    }
+   ],
+   "constructions": {
+    "active": {
+     "building": "farm",
+     "label": "Fazenda",
+     "targetLevel": 2,
+     "secondsRemaining": 100,
+     "totalSeconds": 100,
+     "progressPercent": 0,
+     "refund": [
+      {
+       "resource": "wood",
+       "label": "Madeira",
+       "amount": 64
+      },
+      {
+       "resource": "gold",
+       "label": "Ouro",
+       "amount": 32
+      }
+     ]
+    },
+    "planned": [],
+    "available": [
+     {
+      "building": "townHall",
+      "label": "Salão do Senhor",
+      "fromLevel": 1,
+      "targetLevel": 2,
+      "cost": [
+       {
+        "resource": "wood",
+        "label": "Madeira",
+        "amount": 150,
+        "missing": 110
+       },
+       {
+        "resource": "stone",
+        "label": "Pedra",
+        "amount": 100,
+        "missing": 35
+       },
+       {
+        "resource": "gold",
+        "label": "Ouro",
+        "amount": 100,
+        "missing": 0
+       }
+      ],
+      "durationSeconds": 200,
+      "affordable": false,
+      "blockedCode": "QUEUE_BUSY",
+      "blockedReason": "Os pedreiros já estão ocupados com outra obra.",
+      "planned": false
+     },
+     {
+      "building": "lumberMill",
+      "label": "Serraria",
+      "fromLevel": 1,
+      "targetLevel": 2,
+      "cost": [
+       {
+        "resource": "wood",
+        "label": "Madeira",
+        "amount": 100,
+        "missing": 60
+       },
+       {
+        "resource": "stone",
+        "label": "Pedra",
+        "amount": 50,
+        "missing": 0
+       }
+      ],
+      "durationSeconds": 100,
+      "affordable": false,
+      "blockedCode": "QUEUE_BUSY",
+      "blockedReason": "Os pedreiros já estão ocupados com outra obra.",
+      "planned": false
+     },
+     {
+      "building": "quarry",
+      "label": "Pedreira",
+      "fromLevel": 1,
+      "targetLevel": 2,
+      "cost": [
+       {
+        "resource": "wood",
+        "label": "Madeira",
+        "amount": 120,
+        "missing": 80
+       },
+       {
+        "resource": "gold",
+        "label": "Ouro",
+        "amount": 30,
+        "missing": 0
+       }
+      ],
+      "durationSeconds": 120,
+      "affordable": false,
+      "blockedCode": "QUEUE_BUSY",
+      "blockedReason": "Os pedreiros já estão ocupados com outra obra.",
+      "planned": false
+     },
+     {
+      "building": "goldMine",
+      "label": "Mina de Ouro",
+      "fromLevel": 1,
+      "targetLevel": 2,
+      "cost": [
+       {
+        "resource": "wood",
+        "label": "Madeira",
+        "amount": 120,
+        "missing": 80
+       },
+       {
+        "resource": "stone",
+        "label": "Pedra",
+        "amount": 80,
+        "missing": 15
+       }
+      ],
+      "durationSeconds": 160,
+      "affordable": false,
+      "blockedCode": "QUEUE_BUSY",
+      "blockedReason": "Os pedreiros já estão ocupados com outra obra.",
+      "planned": false
+     },
+     {
+      "building": "housing",
+      "label": "Habitações",
+      "fromLevel": 1,
+      "targetLevel": 2,
+      "cost": [
+       {
+        "resource": "wood",
+        "label": "Madeira",
+        "amount": 80,
+        "missing": 40
+       },
+       {
+        "resource": "stone",
+        "label": "Pedra",
+        "amount": 20,
+        "missing": 0
+       }
+      ],
+      "durationSeconds": 80,
+      "affordable": false,
+      "blockedCode": "QUEUE_BUSY",
+      "blockedReason": "Os pedreiros já estão ocupados com outra obra.",
+      "planned": false
+     }
+    ]
+   },
+   "recruitment": {
+    "cost": [
+     {
+      "resource": "food",
+      "label": "Comida",
+      "amount": 50,
+      "missing": 0
+     },
+     {
+      "resource": "gold",
+      "label": "Ouro",
+      "amount": 10,
+      "missing": 0
+     }
+    ],
+    "secondsPerVillager": 400,
+    "maxQuantity": 5,
+    "blockedReason": null
+   },
+   "famine": null,
+   "objectives": [
+    {
+     "id": "allocateFarmers",
+     "title": "Aloque 2 aldeões na Fazenda",
+     "hint": "Comida é o que mantém todo o resto.",
+     "reward": "+20 ouro",
+     "status": "active",
+     "progress": {
+      "current": 0,
+      "target": 2
+     }
+    },
+    {
+     "id": "upgradeHousing",
+     "title": "Inicie a melhoria das Habitações",
+     "hint": "Sem teto, ninguém vem morar no feudo.",
+     "reward": "+30 madeira",
+     "status": "active",
+     "progress": {
+      "current": 0,
+      "target": 1
+     }
+    },
+    {
+     "id": "recruitVillagers",
+     "title": "Recrute 3 aldeões",
+     "hint": "Mais braços, mais colheita, mais madeira.",
+     "reward": "+40 comida",
+     "status": "active",
+     "progress": {
+      "current": 0,
+      "target": 3
+     }
+    }
+   ],
+   "pendingDecisions": []
+  },
+  "events": [
+   {
+    "seq": 1,
+    "type": "constructionStarted",
+    "at": "2026-09-28T12:01:40.000Z",
+    "atMs": 300000,
+    "text": "No 1º dia da Primavera, os pedreiros começaram a erguer a Fazenda ao 2º nível.",
+    "data": {
+     "building": "farm",
+     "level": 2
+    }
+   }
+  ],
+  "stateVersion": "2",
+  "staleView": false
+ },
+ "stateAfter": {
+  "schemaVersion": 1,
+  "seed": "fixture-v1-receipt",
+  "settings": {
+   "settlementName": "Pedra Alta",
+   "timezone": "America/Sao_Paulo",
+   "vigilHourLocal": 20,
+   "capsEnabled": false
+  },
+  "clock": {
+   "gameTimeMs": 300000,
+   "yearStartMs": 0,
+   "year": 1
+  },
+  "lastProcessedAt": 300000,
+  "rng": {},
+  "settlement": {
+   "name": "Pedra Alta",
+   "resources": {
+    "food": 179584,
+    "wood": 40000,
+    "stone": 65000,
+    "gold": 210000
+   },
+   "accumulators": {
+    "food": -2400000,
+    "wood": 0,
+    "stone": 0,
+    "gold": 0
+   },
+   "population": {
+    "villagers": 5
+   },
+   "workers": {
+    "farm": 0,
+    "lumberMill": 0,
+    "quarry": 0,
+    "goldMine": 0
+   },
+   "buildings": {
+    "townHall": 1,
+    "farm": 1,
+    "lumberMill": 1,
+    "quarry": 1,
+    "goldMine": 1,
+    "housing": 1
+   },
+   "constructionQueues": [
+    {
+     "building": "farm",
+     "targetLevel": 2,
+     "startedAtMs": 300000,
+     "finishesAtMs": 600000
+    }
+   ],
+   "planned": [],
+   "recruitmentQueue": [],
+   "famine": null
+  },
+  "objectives": {
+   "active": [
+    "allocateFarmers",
+    "upgradeHousing",
+    "recruitVillagers"
+   ],
+   "completed": []
+  },
+  "stats": {
+   "constructionsStarted:farm": 1
+  }
+ }
+}

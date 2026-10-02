@@ -1,0 +1,73 @@
+{
+ "schemaVersion": 1,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "capsEnabled": false
+ },
+ "clock": {
+  "gameTimeMs": 1814400000,
+  "yearStartMs": 1814400000,
+  "year": 4
+ },
+ "lastProcessedAt": 1814400000,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 2813125,
+   "wood": 40872200,
+   "stone": 16118800,
+   "gold": 6626346
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 2400000
+  },
+  "population": {
+   "villagers": 35
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 14,
+   "quarry": 9,
+   "goldMine": 4
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 4,
+   "lumberMill": 3,
+   "quarry": 3,
+   "goldMine": 3,
+   "housing": 4
+  },
+  "constructionQueues": [
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "upgradeHousing",
+   "allocateFarmers",
+   "recruitVillagers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 3,
+  "villagersRecruited": 30,
+  "constructionsStarted:farm": 3,
+  "constructionsStarted:lumberMill": 2,
+  "constructionsStarted:quarry": 2,
+  "constructionsStarted:goldMine": 2,
+  "constructionsStarted:townHall": 2
+ }
+}

@@ -17,6 +17,10 @@ export type ProductionBuildingId = (typeof PRODUCTION_BUILDING_IDS)[number];
 export const SEASON_IDS = ['spring', 'summer', 'autumn', 'winter'] as const;
 export type SeasonId = (typeof SEASON_IDS)[number];
 
+/** Dificuldades do GDD §12.1. Os fatores de cada uma chegam com as mecânicas que os usam. */
+export const DIFFICULTY_IDS = ['peasant', 'lord', 'ironKing'] as const;
+export type DifficultyId = (typeof DIFFICULTY_IDS)[number];
+
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };
 

@@ -39,8 +39,8 @@ export function netRates(state: GameState): Record<ResourceId, number> {
 }
 
 /**
- * Limite de estoque de um recurso. A v0.1 não tem limite (`capsEnabled` é sempre falso):
- * Celeiro e Armazém chegam na v0.2 e entram por aqui.
+ * Limite de estoque de um recurso. Ainda não há limite: o Celeiro e o Armazém chegam com a
+ * mecânica de armazenamento e entram por aqui.
  */
 export function storageCap(): number | null {
   return null;

@@ -1,4 +1,4 @@
-import type { GameEvent as EngineEvent, GameState } from '@lotg/engine';
+import { type GameEvent as EngineEvent, type GameState, migrateState } from '@lotg/engine';
 import type { GameEvent, GameSummary } from '@lotg/protocol';
 import { and, desc, eq, gt, gte, lt, ne, sql } from 'drizzle-orm';
 
@@ -6,12 +6,38 @@ import { notFound } from '../api-error';
 import type { Tx } from '../db/client';
 import { commands, type GameEventRow, gameEvents, type GameRow, games } from '../db/schema';
 
+/** Uma partida travada, com o estado já na versão que o motor desta imagem simula. */
+export type LoadedGame = Omit<GameRow, 'state'> & {
+  state: GameState;
+  /**
+   * Versão em que o estado estava gravado, quando era anterior à do motor; `null` se a linha já
+   * está em dia. A migração aconteceu só em memória: a próxima escrita desta transação a grava.
+   */
+  migratedFrom: number | null;
+};
+
+/**
+ * Leva o estado gravado até a versão do motor (GDD §15.4). Só é chamada com a linha travada.
+ *
+ * Um estado de versão **mais nova** que a do motor, ou que não tem a forma da versão que
+ * declara, faz `migrateState` lançar `StateMigrationError`: a requisição termina em 500 e a
+ * transação é desfeita, sem nada gravado por cima. É o que protege o banco quando alguém volta
+ * a imagem da API para antes de uma migração (deploy/README.md, "Reverter depois de uma
+ * migração de estado").
+ */
+export function loadGame(row: GameRow): LoadedGame {
+  const state = migrateState(row.state, { timeScale: Number(row.timeScale) });
+  const stored: unknown = row.state;
+  return { ...row, state, migratedFrom: state === stored ? null : row.state.schemaVersion };
+}
+
 /**
  * Trava a partida com `SELECT … FOR UPDATE`, já filtrando pela conta: quem não é o dono recebe
- * 404 antes de qualquer consulta a recibos ou eventos. Leituras, comandos e o job passam por
- * aqui, então nunca dois deles avançam a mesma partida ao mesmo tempo.
+ * 404 antes de qualquer consulta a recibos ou eventos. Leituras e comandos passam por aqui (o
+ * job tem a própria trava, com `SKIP LOCKED`), então nunca dois deles avançam nem migram a
+ * mesma partida ao mesmo tempo.
  */
-export async function lockGame(tx: Tx, accountId: string, gameId: string): Promise<GameRow> {
+export async function lockGame(tx: Tx, accountId: string, gameId: string): Promise<LoadedGame> {
   const [row] = await tx
     .select()
     .from(games)
@@ -20,11 +46,11 @@ export async function lockGame(tx: Tx, accountId: string, gameId: string): Promi
   if (row === undefined) {
     throw notFound('Partida');
   }
-  return row;
+  return loadGame(row);
 }
 
 /** Tempo de jogo, em ms inteiros, no instante `now` do relógio do servidor. */
-export function gameTimeAt(game: GameRow, now: Date): number {
+export function gameTimeAt(game: LoadedGame, now: Date): number {
   const elapsed = Math.max(0, now.getTime() - game.createdAt.getTime());
   const gameTime = Math.floor(elapsed * Number(game.timeScale));
   // O relógio nunca anda para trás do ponto de vista da partida.
@@ -32,7 +58,7 @@ export function gameTimeAt(game: GameRow, now: Date): number {
 }
 
 /** Instante real em que um evento de jogo aconteceu. */
-function wallTimeOf(game: GameRow, atMs: number): Date {
+function wallTimeOf(game: LoadedGame, atMs: number): Date {
   return new Date(game.createdAt.getTime() + Math.round(atMs / Number(game.timeScale)));
 }
 
@@ -65,11 +91,13 @@ export async function nextCommandSeq(tx: Tx, gameId: string): Promise<number> {
 
 /**
  * Escreve o estado completo e os eventos, sob o lock da partida, e incrementa `state_version`
- * exatamente uma vez. `last_processed_at` recebe o relógio de parede do avanço.
+ * exatamente uma vez. `last_processed_at` recebe o relógio de parede do avanço. O estado que
+ * chega aqui já está na versão do motor: se a linha guardava uma versão anterior, é esta escrita
+ * que grava a migração, junto com `schema_version`.
  */
 export async function persistState(
   tx: Tx,
-  game: GameRow,
+  game: LoadedGame,
   state: GameState,
   events: EngineEvent[],
   now: Date,
@@ -171,7 +199,7 @@ export async function chronicleRows(
   return rows.reverse();
 }
 
-export function toGameSummary(row: GameRow): GameSummary {
+export function toGameSummary(row: GameRow | LoadedGame): GameSummary {
   return {
     id: row.id,
     status: row.status,

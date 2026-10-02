@@ -8,4 +8,6 @@ coverage/
 deploy/backups/
 deploy/migrations/
 __golden__/
+# Retratos de estado gravados pelo motor de cada versão: congelados, nunca reformatados.
+__fixtures__/
 .vitest/

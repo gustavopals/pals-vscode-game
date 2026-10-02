@@ -1,0 +1,64 @@
+{
+ "schemaVersion": 1,
+ "seed": "fixture-v1-fresh",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "capsEnabled": false
+ },
+ "clock": {
+  "gameTimeMs": 0,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 0,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 180000,
+   "wood": 120000,
+   "stone": 65000,
+   "gold": 250000
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1
+  },
+  "constructionQueues": [
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null
+ },
+ "objectives": {
+  "active": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers"
+  ],
+  "completed": []
+ },
+ "stats": {}
+}

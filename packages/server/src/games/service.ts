@@ -7,12 +7,13 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import { ApiError, sessionRevoked } from '../api-error';
 import type { AppContext } from '../context';
 import type { Tx } from '../db/client';
-import { accounts, type GameRow, games } from '../db/schema';
-import { gameTimeAt, lockGame, persistState, toGameSummary } from './repository';
+import { accounts, games } from '../db/schema';
+import { gameTimeAt, type LoadedGame, lockGame, persistState, toGameSummary } from './repository';
 
 /**
- * Na v0.1 a dificuldade é fixa e o ritmo é o do servidor (`GAME_TIME_SCALE`, ADR 0011): o
- * jogador ainda não escolhe nenhum dos dois. Os campos existem e são guardados por partida.
+ * A dificuldade ainda é fixa e o ritmo é o do servidor (`GAME_TIME_SCALE`, ADR 0011): o jogador
+ * ainda não escolhe nenhum dos dois. Os dois ficam gravados na linha da partida e, desde a
+ * versão 2 do estado, também dentro dele (`settings`), de onde o motor os lê.
  */
 const DIFFICULTY = 'lord';
 
@@ -72,7 +73,8 @@ export async function createGame(
       settlementName: input.settlementName,
       timezone: input.timezone,
       vigilHourLocal: input.vigilHourLocal,
-      capsEnabled: false,
+      difficulty: DIFFICULTY,
+      timeScale: ctx.config.gameTimeScale,
     });
     const [row] = await tx
       .insert(games)
@@ -101,7 +103,7 @@ export async function createGame(
 }
 
 export type GameReading = {
-  game: GameRow;
+  game: LoadedGame;
   state: GameState;
   /** Tempo de jogo até onde `state` foi avançado. */
   gameNowMs: number;
@@ -110,10 +112,15 @@ export type GameReading = {
 
 /**
  * Leitura de uma partida, já sob o lock: avança até agora e só escreve se o avanço produziu
- * eventos. Produção contínua sem evento não gera escrita nem muda `state_version`.
- * Uma partida arquivada não avança mais: é devolvida como ficou.
+ * eventos ou se o estado acabou de ser migrado de uma versão anterior. Produção contínua sem
+ * evento não gera escrita nem muda `state_version`.
+ * Uma partida arquivada não avança nem é regravada: é devolvida como ficou, migrada só em memória.
  */
-export async function readLockedGame(ctx: AppContext, tx: Tx, game: GameRow): Promise<GameReading> {
+export async function readLockedGame(
+  ctx: AppContext,
+  tx: Tx,
+  game: LoadedGame,
+): Promise<GameReading> {
   if (game.status !== 'active') {
     return {
       game,
@@ -125,7 +132,7 @@ export async function readLockedGame(ctx: AppContext, tx: Tx, game: GameRow): Pr
   const now = ctx.clock();
   const gameNowMs = gameTimeAt(game, now);
   const advanced = advanceTo(game.state, gameNowMs);
-  if (advanced.events.length === 0) {
+  if (advanced.events.length === 0 && game.migratedFrom === null) {
     return { game, state: advanced.state, gameNowMs, stateVersion: game.stateVersion };
   }
   const persisted = await persistState(tx, game, advanced.state, advanced.events, now);
@@ -145,7 +152,7 @@ export async function withGameReading<T>(
   });
 }
 
-export function assertActive(game: GameRow): void {
+export function assertActive(game: Pick<LoadedGame, 'status'>): void {
   if (game.status !== 'active') {
     throw new ApiError('CONFLICT', 'Esta partida foi arquivada e não aceita mais ordens.');
   }

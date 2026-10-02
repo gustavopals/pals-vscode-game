@@ -1,4 +1,3 @@
-import type { GameState } from '@lotg/engine';
 import { sql } from 'drizzle-orm';
 import {
   bigint,
@@ -19,6 +18,16 @@ import {
 // conta → sessões → refresh tokens; conta → partidas → comandos, eventos e Crônicas.
 
 const instant = (name: string) => timestamp(name, { withTimezone: true, mode: 'date' });
+
+/**
+ * O que está gravado em `games.state`: o `GameState` de **alguma** versão do motor, não
+ * necessariamente a atual. Só o nome do feudo pode ser lido direto daqui (existe desde a versão
+ * 1); todo o resto só depois de `loadGame`, que migra o estado para a versão do motor.
+ */
+export type StoredGameState = {
+  readonly schemaVersion: number;
+  readonly settlement: { readonly name: string };
+};
 
 export const accounts = pgTable(
   'accounts',
@@ -84,9 +93,10 @@ export const games = pgTable(
     timeScale: numeric('time_scale').notNull(),
     timezone: text('timezone').notNull(),
     vigilHour: smallint('vigil_hour').notNull(),
+    /** Espelho de `state.schemaVersion`, para consultas; quem decide a migração é o estado. */
     schemaVersion: integer('schema_version').notNull(),
     /** O `GameState` inteiro; sempre escrito por completo, nunca em pedaços. */
-    state: jsonb('state').$type<GameState>().notNull(),
+    state: jsonb('state').$type<StoredGameState>().notNull(),
     stateVersion: bigint('state_version', { mode: 'number' }).notNull(),
     lastProcessedAt: instant('last_processed_at').notNull(),
     createdAt: instant('created_at').notNull(),

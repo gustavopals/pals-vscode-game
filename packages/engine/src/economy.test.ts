@@ -60,8 +60,7 @@ describe('taxas', () => {
     expect(productionRate(state, 'goldMine')).toBe(3_000);
   });
 
-  it('a v0.1 não tem limite de estoque', () => {
-    expect(newGame().settings.capsEnabled).toBe(false);
+  it('ainda não há limite de estoque', () => {
     expect(storageCap()).toBeNull();
   });
 });

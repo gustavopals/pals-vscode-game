@@ -1,7 +1,7 @@
-import { balance, BUILDING_IDS, objectives } from '@lotg/content';
+import { balance, BUILDING_IDS, DIFFICULTY_IDS, objectives } from '@lotg/content';
 
 import type { BuildingId, GameSettings, GameState } from './types';
-import { amountsToMilli } from './units';
+import { amountsToMilli, assertTimeScale } from './units';
 
 /** Cópia profunda: o estado é JSON puro, sem datas, mapas ou funções. */
 export function cloneState(state: GameState): GameState {
@@ -10,14 +10,25 @@ export function cloneState(state: GameState): GameState {
 
 /** Estado inicial reproduzível de um feudo: mesma semente e mesmas escolhas, mesmo estado. */
 export function createInitialState(seed: string, settings: GameSettings): GameState {
+  assertTimeScale(settings.timeScale);
+  if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
+    throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
+  }
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, balance.initial.buildingLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     seed,
-    settings: { ...settings },
+    settings: {
+      settlementName: settings.settlementName,
+      timezone: settings.timezone,
+      vigilHourLocal: settings.vigilHourLocal,
+      difficulty: settings.difficulty,
+      timeScale: settings.timeScale,
+    },
+    migratedAtMs: null,
     clock: { gameTimeMs: 0, yearStartMs: 0, year: 1 },
     lastProcessedAt: 0,
     rng: {},

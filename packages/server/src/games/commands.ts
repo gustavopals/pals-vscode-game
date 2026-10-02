@@ -31,12 +31,14 @@ export function requestHash(command: Command): string {
 /**
  * `POST /games/:id/commands`, em uma transação (GDD §14.8, ADR 0004):
  *
- * 1. trava a partida, o que também confere a propriedade;
+ * 1. trava a partida, o que também confere a propriedade e migra o estado em memória, se ele
+ *    estava gravado em uma versão anterior;
  * 2. procura o recibo de `(game_id, commandId)`. Mesmo hash: devolve status e corpo originais,
  *    sem avançar nem aplicar de novo. Outro hash: `409 COMMAND_ID_CONFLICT`, sem efeitos;
  * 3. comando novo: avança o mundo até agora e aplica;
  * 4. grava estado, eventos e recibo completo. Uma recusa do motor também é um resultado
- *    persistido: o mundo avançou, só a ação não teve efeito.
+ *    persistido: o mundo avançou, só a ação não teve efeito. Recibos antigos nunca são
+ *    reescritos: o reenvio devolve o corpo da época, mesmo que o estado já tenha mudado de versão.
  *
  * A resposta só sai depois do commit. Uma falha inesperada desfaz tudo e o mesmo UUID pode
  * ser tentado de novo.

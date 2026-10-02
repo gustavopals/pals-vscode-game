@@ -99,7 +99,8 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
     vigilHourLocal: 20,
-    capsEnabled: false,
+    difficulty: 'lord',
+    timeScale,
   });
   const events: GameEvent[] = [];
   const rows: HourRow[] = [];

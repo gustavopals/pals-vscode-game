@@ -112,7 +112,8 @@ describe('ViewStateSchema', () => {
     settlementName: 'Pedra Alta',
     timezone: 'America/Sao_Paulo',
     vigilHourLocal: 20,
-    capsEnabled: false as const,
+    difficulty: 'lord' as const,
+    timeScale: 1,
   };
 
   it('aceita o que o motor produz, do estado inicial a uma semana de jogo', () => {
@@ -145,7 +146,8 @@ describe('contratos da API', () => {
       settlementName: 'Pedra Alta',
       timezone: 'UTC',
       vigilHourLocal: 20,
-      capsEnabled: false,
+      difficulty: 'lord',
+      timeScale: 1,
     }),
     0,
   );

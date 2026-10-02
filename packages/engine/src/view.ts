@@ -30,7 +30,7 @@ import type {
   UpgradeView,
   ViewState,
 } from './types';
-import { MILLI, positiveEntries, SECOND_MS } from './units';
+import { assertTimeScale, MILLI, positiveEntries, SECOND_MS } from './units';
 
 /** Número com vírgula decimal e até duas casas, para os textos de explicação. */
 function decimal(value: number): string {
@@ -60,7 +60,7 @@ function costView(state: GameState, cost: ResourceAmounts, quantity = 1): Resour
  * divididos pelo ritmo e taxas "por hora" são multiplicadas por ele.
  */
 export type ViewOptions = {
-  /** Horas de jogo por hora real. Padrão 1 (ritmo Normal). */
+  /** Horas de jogo por hora real. Sem ele, vale o ritmo gravado na partida (`settings.timeScale`). */
   readonly timeScale?: number;
 };
 
@@ -182,17 +182,16 @@ function objectivesView(state: GameState): ObjectiveView[] {
  * Tudo que a interface precisa, já calculado, com o "por quê" de cada número.
  * A formatação de números para exibição fica com a UI; aqui saem números e textos de explicação.
  * Aceita um instante futuro: avança uma cópia do estado antes de derivar, sem mutar a entrada.
- * Prazos e taxas saem em tempo real, conforme o ritmo da partida (`options.timeScale`).
+ * Prazos e taxas saem em tempo real, conforme o ritmo da partida (`settings.timeScale`, ou
+ * `options.timeScale` quando quem chama quer ver o mesmo estado em outro ritmo).
  */
 export function deriveViewState(
   input: GameState,
   gameTimeMs: number,
   options: ViewOptions = {},
 ): ViewState {
-  const timeScale = options.timeScale ?? 1;
-  if (!(timeScale > 0) || !Number.isFinite(timeScale)) {
-    throw new Error(`Ritmo inválido: ${timeScale}.`);
-  }
+  const timeScale = options.timeScale ?? input.settings.timeScale;
+  assertTimeScale(timeScale);
   const perRealHour = (milliPerGameHour: number) => (milliPerGameHour * timeScale) / MILLI;
   if (gameTimeMs < input.lastProcessedAt) {
     throw new Error(

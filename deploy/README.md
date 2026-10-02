@@ -89,9 +89,41 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/jso
   https://app.palsincomehub.com/api/v1/applications/<uuid>/rollback -d '{"commit":"<sha do deploy anterior>"}'
 ```
 
-O Coolify guarda as duas últimas imagens de cada aplicação, com o SHA do commit como tag (`GET /applications/<uuid>/rollback-images`). Reverter não desfaz migrações.
+O Coolify guarda as duas últimas imagens de cada aplicação, com o SHA do commit como tag (`GET /applications/<uuid>/rollback-images`). Reverter não desfaz migrações, nem as do esquema nem as do estado das partidas.
 
-**Regra das migrações.** Toda migração precisa funcionar com a versão anterior da API: primeiro expandir (coluna ou tabela nova, sem remover nada), publicar, e só em uma versão seguinte contrair. É isso que deixa a reversão segura.
+**Regra das migrações de esquema.** Toda migração de SQL precisa funcionar com a versão anterior da API: primeiro expandir (coluna ou tabela nova, sem remover nada), publicar, e só em uma versão seguinte contrair. É isso que deixa a reversão segura.
+
+### Reverter depois de uma migração de estado
+
+Desde a v0.2 existe um segundo tipo de migração, que **não** segue a regra acima: a do `GameState` guardado em `games.state` ([README do servidor](../packages/server/README.md), "O que tem versão"). A API nova regrava cada partida na versão nova do estado quando a toca: na primeira leitura, no primeiro comando, ou no job `advance-stale-games`, que alcança todas as partidas ativas em cerca de uma hora. **Uma hora depois do deploy, considere todas as partidas ativas migradas.** Não há caminho de volta no código: nenhuma versão sabe "desmigrar".
+
+**Voltar a imagem da API depois disso é perigoso.** O que acontece depende de qual imagem volta:
+
+| Imagem para a qual se volta | O que ela faz com um estado mais novo que o dela |
+|---|---|
+| A da tag `v0.1.0`, ou qualquer uma **anterior** à migração por `schemaVersion` (roadmap da v0.2, V2B-T1) | **Não confere a versão.** Lê o estado, simula com as regras antigas, ignora os campos que não conhece e grava por cima. Nada avisa. É corrupção silenciosa: o mundo anda sem as regras novas (uma carta que não expira, um estoque que passa do limite), e quando a imagem nova voltar ela encontra um estado que diz ser da versão nova e não é coerente com ela |
+| Qualquer imagem **a partir** da V2B-T1 | Recusa: `GET /view`, comandos e eventos dessas partidas respondem `500 INTERNAL`, o job as conta em `failed`, e **nada é gravado**. No log aparece `StateMigrationError` com as duas versões. O jogo fica fora do ar para essas partidas, mas o banco fica intacto. As partidas criadas depois da reversão funcionam |
+
+Medido em 2026-10-01 com o motor da tag `v0.1.0` (extraído com `git archive` para uma pasta temporária) diante de cinco estados da versão 2: ele avançou 30 dias, aceitou comandos, derivou a visão e devolveu o estado ainda com `schemaVersion: 2`, `migratedAtMs` e `settings` intactos, **idêntico** ao que o motor novo produz. Ou seja: atravessar **só** a migração 1 → 2 não estraga nada, porque a versão 2 não mudou nenhuma regra, e o servidor da v0.1 grava de volta o número de versão que leu. Isso vale para esse passo e para nenhum outro: da versão 3 em diante o estado carrega campos com regra, e a imagem da `v0.1.0` os atropelaria. **Não use a imagem da `v0.1.0` como destino de reversão depois que uma versão de estado maior que 2 tiver ido ao ar.**
+
+**Antes de um deploy que sobe a versão do estado** (o commit muda `CURRENT_SCHEMA_VERSION` em `packages/engine/src/migrations.ts`):
+
+1. Conferir que o backup da madrugada existe e anotar o nome do arquivo; se o deploy for longe das 03:00 UTC, disparar um backup manual na página do `lotg-db` (aba "Backups") e esperar terminar. É o único ponto de retorno.
+2. Conferir que há uma cópia do backup **fora do servidor** e que `RECOVERY_CODE_SECRET` está guardado fora do Coolify (as duas pendências da seção "Operação").
+3. Anotar o SHA que está no ar (`GET /v1/version`, `builtAt`, e a lista de `rollback-images`).
+
+**Se o deploy que migrou der errado**, há dois caminhos, nesta ordem de preferência:
+
+1. **Avançar.** Corrigir o defeito e publicar uma imagem nova, que entenda a versão de estado que já está no banco. Ninguém perde nada. Enquanto a correção não sai, se o defeito for grave, **parar** `lotg-api` (o app fica sem conexão, mostrando o último retrato que guardou, e não aceita ordens) é melhor do que deixar o defeito ou uma imagem antiga escrevendo.
+2. **Restaurar o backup anterior ao deploy** e só então voltar a imagem. Parar `lotg-api`; restaurar como em "Backup e restauração"; fazer o rollback da imagem para o SHA anotado; iniciar `lotg-api`; conferir `/v1/health`, `/v1/version` e, com `analytics/ops.sql`, as contagens. **Perde-se tudo o que foi jogado desde o backup**: ordens, eventos, contas e partidas criadas depois dele. Como o tempo de jogo é calculado a partir de `created_at`, as partidas restauradas alcançam o presente sozinhas na primeira leitura; o que se perde são as decisões dos jogadores, não o tempo.
+
+O que **não** fazer: voltar a imagem sem restaurar o backup e deixá-la rodando. Com uma imagem a partir da V2B-T1 o resultado é um jogo fora do ar (reversível: basta avançar de novo); com uma imagem anterior, é corrupção que nenhum backup posterior conserta.
+
+Para saber em que versão as partidas estão:
+
+```sql
+select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
+```
 
 ### Ensaios de reversão
 
@@ -100,7 +132,17 @@ O Coolify guarda as duas últimas imagens de cada aplicação, com o SHA do comm
 | 2026-10-01 | `lotg-api` de `42d9256` para a imagem de `1ef9545` pela API de rollback; `/v1/version` voltou a responder sem `features` | 38 s  | sem erro em `/v1/health` durante a troca; contas e partidas intactas |
 | 2026-10-01 | Volta para `42d9256` por um deploy normal (a imagem já existia)                                                    | 20 s  | `features.githubDevice` de volta em `/v1/version` |
 
-Os dois commits usam a mesma migração (`0000_init`); a reversão ainda não foi ensaiada atravessando uma migração.
+Os dois commits usam a mesma migração (`0000_init`); a reversão ainda não foi ensaiada atravessando uma migração de esquema.
+
+**Atravessando uma migração de estado: sem ensaio com imagens.** O procedimento acima foi escrito a partir do código e de três provas automáticas, e **não** foi ensaiado com duas imagens Docker diante de um banco descartável (migrar, reverter a imagem, observar a falha, restaurar). O que existe:
+
+| Data       | O que foi provado | Como |
+| ---------- | ----------------- | ---- |
+| 2026-10-01 | Uma linha gravada com `schema_version = 1` carrega, é persistida na versão 2 uma vez só (também com duas réplicas ao mesmo tempo e pelo job) e aceita ordens; um recibo da v0.1 é devolvido como foi gravado | `packages/server/test/games-migration.test.ts`, contra o PostgreSQL do `db_test` |
+| 2026-10-01 | Diante de um estado de versão mais nova, a API responde 500 em leitura, comando e eventos, o job conta a falha, e a linha fica idêntica (mesmo `xmin`) | idem |
+| 2026-10-01 | O motor da tag `v0.1.0` não confere a versão e, diante de estados da versão 2, produz o mesmo resultado que o motor novo | Roteiro descartável com o motor extraído por `git archive v0.1.0` |
+
+Falta, antes de a primeira migração de estado ir para a produção: fazer o ensaio de verdade no ambiente `ensaio` (restaurar um backup de produção no banco descartável, subir a imagem nova, conferir a contagem por `schema_version`, voltar a imagem, observar, restaurar de novo) e registrar a linha aqui.
 
 ## Backup e restauração
 
