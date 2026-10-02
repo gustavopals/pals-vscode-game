@@ -2,12 +2,13 @@ import { ApiClientError, NetworkError } from '@lotg/client-sdk';
 import type { Command, GameEvent, ViewState } from '@lotg/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { cacheKey, type GameCache, OfflineError } from '../game/gameSession';
+import { CACHE_VERSION, cacheKey, type GameCache, OfflineError } from '../game/gameSession';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import { DEFAULT_PREFERENCES, type Preferences } from '../services/preferences';
 import { PREFERENCES_KEY } from '../services/tabSync';
 import {
   ACCOUNT_ID,
+  catalogFixture,
   fakeApi,
   GAME_ID,
   gameEvent,
@@ -99,6 +100,7 @@ async function serverShows(made: Made, view: ViewState): Promise<void> {
 }
 
 const cachedAt = (lastSeenAt: number, lastSeq = 0): GameCache => ({
+  version: CACHE_VERSION,
   view: goldenView,
   stateVersion: '1',
   etag: null,
@@ -155,6 +157,179 @@ describe('describeError', () => {
   });
 });
 
+describe('opções de nova partida (GET /catalog)', () => {
+  const CATALOG = 'GET /catalog';
+
+  it('sem feudo, chegam junto com as boas-vindas, com o que o servidor manda marcar', async () => {
+    const { controller, api } = make();
+    expect(controller.newGameOptions).toBeNull();
+    await controller.start();
+    await settle(controller);
+    expect(controller.catalog.status).toBe('ready');
+    expect(controller.newGameOptions).toEqual(catalogFixture().newGame);
+    expect(controller.newGameOptions?.defaults).toEqual({ difficulty: 'lord', timeScale: 3 });
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+  });
+
+  it('avisa a bancada quando chegam, para as boas-vindas ganharem as opções', async () => {
+    const { controller } = make();
+    const seen: Array<string> = [];
+    controller.onChange(() => seen.push(controller.catalog.status));
+    await controller.start();
+    await settle(controller);
+    expect(seen).toContain('loading');
+    expect(seen.at(-1)).toBe('ready');
+  });
+
+  it('com feudo aberto não são pedidas: só ao ir às Preferências, e uma vez só', async () => {
+    const { controller, api } = await opened();
+    expect(count(api.state.requests, CATALOG)).toBe(0);
+    expect(controller.newGameOptions).toBeNull();
+    controller.navigate('settings');
+    await settle(controller);
+    expect(controller.newGameOptions).not.toBeNull();
+    controller.navigate('fief');
+    controller.navigate('settings');
+    await controller.loadCatalog();
+    await settle(controller);
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+  });
+
+  it('página aberta direto nas Preferências, com feudo: as opções vêm para dizer o que a dificuldade muda', async () => {
+    const { controller, api } = make({ signedIn: true });
+    await controller.start('settings');
+    await settle(controller);
+    expect(controller.route).toBe('settings');
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+    expect(controller.newGameOptions).not.toBeNull();
+  });
+
+  it('página aberta em "Sobre", sem conta: só pede as opções ao ir às boas-vindas', async () => {
+    const { controller, api } = make();
+    await controller.start('about');
+    await settle(controller);
+    expect(count(api.state.requests, CATALOG)).toBe(0);
+    controller.closeTab('about');
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+  });
+
+  it('pedidos simultâneos dividem a mesma leitura', async () => {
+    const { controller, api } = await opened();
+    await Promise.all([
+      controller.loadCatalog(),
+      controller.loadCatalog(),
+      controller.loadCatalog(),
+    ]);
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+    expect(controller.catalog.status).toBe('ready');
+  });
+
+  it('servidor de uma versão anterior (404): sem opções, sem aviso, e "Jogar agora" funciona', async () => {
+    const api = fakeApi();
+    api.state.catalog = null;
+    const { controller, logs } = make({ api });
+    await controller.start();
+    await settle(controller);
+    expect(controller.catalog.status).toBe('error');
+    expect(controller.newGameOptions).toBeNull();
+    // Não é problema do jogador: fica no console, não na tela.
+    expect(controller.toasts).toEqual([]);
+    expect(logs.join(' ')).toContain('Opções de nova partida indisponíveis');
+
+    await controller.playNow('Gustavo', 'Pedra Alta');
+    await settle(controller);
+    expect(controller.route).toBe('fief');
+    expect(api.state.gameRequests).toEqual([
+      { settlementName: 'Pedra Alta', timezone: 'America/Sao_Paulo', vigilHourLocal: 20 },
+    ]);
+  });
+
+  it('resposta em formato desconhecido é tratada como ausência, mesmo sem a validação do SDK', async () => {
+    const api = fakeApi();
+    // Os padrões fora das opções: a tela não teria o que marcar.
+    api.state.catalog = catalogFixture({ difficulty: 'lord', timeScale: 7 });
+    const { controller } = make({ api, overrides: { validateResponses: false } });
+    await controller.start();
+    await settle(controller);
+    expect(controller.catalog.status).toBe('error');
+    expect(controller.newGameOptions).toBeNull();
+    expect(controller.toasts).toEqual([]);
+  });
+
+  it('sem rede na abertura, são lidas quando a ligação volta', async () => {
+    useFakeClock();
+    const api = fakeApi();
+    api.state.online = false;
+    const { controller } = make({ api });
+    const starting = controller.start();
+    // O SDK tenta de novo algumas vezes antes de desistir.
+    await vi.advanceTimersByTimeAsync(10_000);
+    await starting;
+    await settle(controller);
+    expect(controller.catalog.status).toBe('error');
+
+    api.state.online = true;
+    controller.handleOnline();
+    await settle(controller);
+    expect(controller.catalog.status).toBe('ready');
+    expect(controller.newGameOptions?.paces).toHaveLength(3);
+  });
+
+  it('se o servidor recusa a escolha (o conteúdo mudou com a aba aberta), as opções são lidas de novo', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    await settle(controller);
+    api.state.failNext.set('/games', {
+      status: 400,
+      body: { code: 'VALIDATION', message: 'Ritmo fora dos oferecidos.' },
+    });
+    api.state.catalog = catalogFixture({ difficulty: 'lord', timeScale: 1 });
+    await expect(
+      controller.playNow('Gustavo', 'Pedra Alta', { difficulty: 'lord', timeScale: 3 }),
+    ).rejects.toThrow('Ritmo fora dos oferecidos.');
+    await settle(controller);
+    expect(count(api.state.requests, CATALOG)).toBe(2);
+    expect(controller.newGameOptions?.defaults.timeScale).toBe(1);
+    // Outras falhas não mexem nas opções.
+    api.state.failNext.set('/games', {
+      status: 500,
+      body: { code: 'INTERNAL', message: 'O servidor tropeçou.' },
+    });
+    await expect(controller.playNow('Gustavo', 'Pedra Alta')).rejects.toThrow();
+    await settle(controller);
+    expect(count(api.state.requests, CATALOG)).toBe(2);
+  });
+
+  it('sair da conta leva às boas-vindas já com as opções', async () => {
+    const { controller, api } = await opened();
+    expect(count(api.state.requests, CATALOG)).toBe(0);
+    await controller.signOut();
+    await settle(controller);
+    expect(controller.route).toBe('welcome');
+    expect(controller.newGameOptions).not.toBeNull();
+    expect(count(api.state.requests, CATALOG)).toBe(1);
+  });
+
+  it('"Nova partida" pelo controlador arquiva o feudo atual e leva a escolha', async () => {
+    const { controller, api } = await opened();
+    await controller.startNewGame('Vau Alto', { difficulty: 'peasant', timeScale: 1 });
+    await settle(controller);
+    expect(api.state.gameRequests).toEqual([
+      {
+        settlementName: 'Vau Alto',
+        timezone: 'America/Sao_Paulo',
+        vigilHourLocal: 20,
+        difficulty: 'peasant',
+        timeScale: 1,
+        replaceActive: true,
+      },
+    ]);
+    expect(controller.busy).toBe(false);
+  });
+});
+
 describe('abertura da página', () => {
   it('sem conta: boas-vindas, e nada é pedido ao servidor em nome de ninguém', async () => {
     const { controller, api } = make();
@@ -165,8 +340,8 @@ describe('abertura da página', () => {
     expect(controller.hasGame).toBe(false);
     expect(controller.view).toBeNull();
     expect(controller.tabs).toEqual(['welcome']);
-    // Só a versão do servidor, que é pública.
-    expect(api.state.requests.filter((request) => request !== 'GET /version')).toEqual([]);
+    // Só o que é público: a versão do servidor e as opções de nova partida.
+    expect([...api.state.requests].sort()).toEqual(['GET /catalog', 'GET /version']);
     expect(controller.toasts).toEqual([]);
   });
 
@@ -234,6 +409,33 @@ describe('abertura da página', () => {
       timezone: 'America/Sao_Paulo',
       vigilHourLocal: 7,
     });
+  });
+
+  it('"Jogar agora" sem escolha manda o corpo da v0.1: valem os padrões do servidor', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    await controller.playNow('Gustavo', 'Vale Verde');
+    expect(api.state.gameRequests).toEqual([
+      { settlementName: 'Vale Verde', timezone: 'America/Sao_Paulo', vigilHourLocal: 20 },
+    ]);
+  });
+
+  it('"Jogar agora" com a dificuldade e o ritmo marcados manda os dois', async () => {
+    const { controller, api } = make();
+    await controller.start();
+    await controller.playNow('Gustavo', 'Vale Verde', { difficulty: 'ironKing', timeScale: 0.5 });
+    await settle(controller);
+    expect(api.state.gameRequests).toEqual([
+      {
+        settlementName: 'Vale Verde',
+        timezone: 'America/Sao_Paulo',
+        vigilHourLocal: 20,
+        difficulty: 'ironKing',
+        timeScale: 0.5,
+      },
+    ]);
+    expect(controller.route).toBe('fief');
+    expect(count(api.state.requests, 'POST /games')).toBe(1);
   });
 
   it('com conta guardada: abre a sessão e cai na aba Feudo', async () => {
@@ -2053,6 +2255,7 @@ describe('cursor, cache e prazos (achados da revisão do ritmo)', () => {
     void _housed;
     void _vacancies;
     await store.update(key, {
+      version: CACHE_VERSION,
       view: { ...goldenView, population: oldPopulation },
       stateVersion: '7',
       etag: 'W/"antigo"',

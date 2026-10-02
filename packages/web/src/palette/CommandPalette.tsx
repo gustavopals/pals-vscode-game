@@ -44,13 +44,15 @@ export function QuickPick(props: {
   title: string;
   placeholder?: string | undefined;
   items: PickItem<unknown>[];
+  /** Posição do item que já vem marcado. Digitar na busca volta a marcar o primeiro. */
+  selected?: number | undefined;
   onPick: (value: unknown) => void;
 }) {
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(props.selected ?? 0);
   const list = useRef<HTMLUListElement>(null);
   const matches = filterItems(props.items, query);
-  const index = matches.length === 0 ? -1 : Math.min(selected, matches.length - 1);
+  const index = matches.length === 0 ? -1 : Math.min(Math.max(selected, 0), matches.length - 1);
 
   useEffect(() => {
     list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });

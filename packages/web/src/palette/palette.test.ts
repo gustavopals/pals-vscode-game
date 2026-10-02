@@ -1,5 +1,7 @@
 import { memoryTokenStore } from '@lotg/client-sdk';
 import { DisplayNameSchema, type ViewState } from '@lotg/protocol';
+import { h } from 'preact';
+import { renderToString } from 'preact-render-to-string';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AccountState } from '../account/accountService';
@@ -8,6 +10,7 @@ import { filterItems } from '../app/dialogs';
 import { loadPreferences, type ThemeId } from '../services/preferences';
 import {
   ACCOUNT_ID,
+  catalogFixture,
   fakeApi,
   gameEvent,
   goldenView,
@@ -17,7 +20,7 @@ import {
 } from '../test-helpers';
 import { buildTree, type TreeNode } from '../ui/treeModel';
 import { rowActions } from '../workbench/Tree';
-import { isPaletteShortcut, openPalette } from './CommandPalette';
+import { isPaletteShortcut, openPalette, QuickPick } from './CommandPalette';
 import {
   type AppCommand,
   bindCommands,
@@ -183,6 +186,42 @@ describe('atalho da paleta (isPaletteShortcut)', () => {
     expect(isPaletteShortcut(key('F1', { ctrlKey: true }))).toBe(false);
     expect(isPaletteShortcut(key('F2'))).toBe(false);
     expect(isPaletteShortcut(key('Enter'))).toBe(false);
+  });
+});
+
+describe('lista de escolha (QuickPick)', () => {
+  const items = ['Camponês', 'Senhor', 'Rei de Ferro'].map((label) => ({
+    label,
+    detail: `Frase de ${label}.`,
+    value: label,
+  }));
+  const draw = (selected?: number) =>
+    renderToString(h(QuickPick, { title: 'Dificuldade', items, selected, onPick: () => {} }));
+  const marked = (markup: string) =>
+    (markup.match(/<li[^>]*>/g) ?? []).map((tag) => /aria-selected="true"/.test(tag));
+
+  it('sem padrão, o primeiro item vem marcado', () => {
+    const markup = draw();
+    expect(marked(markup)).toEqual([true, false, false]);
+    expect(markup).toContain('aria-activedescendant="quickpick-0"');
+  });
+
+  it('com padrão, o item indicado já vem marcado: Enter sem mexer em nada o escolhe', () => {
+    const markup = draw(1);
+    expect(marked(markup)).toEqual([false, true, false]);
+    expect(markup).toContain('aria-activedescendant="quickpick-1"');
+  });
+
+  it('um padrão fora da lista não quebra: vale o item mais próximo', () => {
+    expect(marked(draw(9))).toEqual([false, false, true]);
+    expect(marked(draw(-1))).toEqual([true, false, false]);
+  });
+
+  it('a frase de cada opção fica à vista na lista', () => {
+    const markup = draw(1);
+    for (const item of items) {
+      expect(markup).toContain(item.detail);
+    }
   });
 });
 
@@ -1082,25 +1121,78 @@ describe('recrutar, renomear e nova partida', () => {
     expect(orders()).toEqual([]);
   });
 
-  it('nova partida pede confirmação antes de qualquer outra coisa', async () => {
-    const { run, answers, shown, requested, api } = await setup();
-    answers.push(false);
+  it('nova partida pergunta dificuldade e ritmo, com o padrão do servidor já marcado', async () => {
+    const { run, answers, shown, requested } = await setup();
+    // Desiste na confirmação: até ali, nada foi pedido ao servidor além das opções.
+    answers.push(1, 0, false);
     await run('lords.newGame');
-    expect(shown.map((entry) => entry.kind)).toEqual(['confirm']);
-    const confirm = shownAs(shown, 0, 'confirm');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm']);
+
+    const difficulty = shownAs(shown, 0, 'pick');
+    expect(difficulty.title).toBe('Nova partida: dificuldade');
+    expect(difficulty.placeholder).toMatch(/não muda durante o ano/);
+    expect(difficulty.items.map((item) => item.label)).toEqual([
+      'Camponês',
+      'Senhor (recomendado)',
+      'Rei de Ferro',
+    ]);
+    expect(difficulty.items.map((item) => item.value)).toEqual(['peasant', 'lord', 'ironKing']);
+    // Cada opção leva a frase do servidor, à vista na lista.
+    expect(difficulty.items.every((item) => (item.detail ?? '').length > 20)).toBe(true);
+    // O padrão (Senhor) já vem marcado: Enter sem mexer em nada o escolhe.
+    expect(difficulty.selected).toBe(1);
+
+    const pace = shownAs(shown, 1, 'pick');
+    expect(pace.title).toBe('Nova partida: ritmo');
+    expect(pace.placeholder).toMatch(/não muda durante o ano/);
+    expect(pace.items.map((item) => item.label)).toEqual([
+      'Rápido: um ano em 56 horas (recomendado)',
+      'Normal: um ano em 7 dias',
+      'Tranquilo: um ano em 14 dias',
+    ]);
+    expect(pace.items.map((item) => item.value)).toEqual([3, 1, 0.5]);
+    expect(pace.items.map((item) => item.detail)).toEqual([
+      'Para quem volta várias vezes ao dia e quer ver o inverno ainda nesta semana.',
+      'Uma semana, um ano: para quem passa pelo feudo duas ou três vezes por dia.',
+      'Para quem abre o jogo uma vez por dia: o feudo anda devagar e espera por você.',
+    ]);
+    expect(pace.selected).toBe(0);
+    expect(requested('GET /catalog')).toBe(1);
+    expect(requested('POST /games')).toBe(0);
+  });
+
+  it('o ritmo marcado é o padrão do servidor, mesmo quando o recomendado é outro', async () => {
+    const api = fakeApi();
+    // Como o servidor de testes: roda no Normal, e o Rápido continua sendo o recomendado.
+    api.state.catalog = catalogFixture({ difficulty: 'lord', timeScale: 1 });
+    const { run, answers, shown } = await setup({ api });
+    answers.push(1, undefined);
+    await run('lords.newGame');
+    const pace = shownAs(shown, 1, 'pick');
+    expect(pace.selected).toBe(1);
+    expect(pace.items[pace.selected ?? -1]?.label).toBe('Normal: um ano em 7 dias');
+  });
+
+  it('nova partida pede confirmação antes de mudar qualquer coisa, e diz como o feudo nasce', async () => {
+    const { run, answers, shown, requested, api } = await setup();
+    answers.push(2, 2, false);
+    await run('lords.newGame');
+    const confirm = shownAs(shown, 2, 'confirm');
     expect(confirm.title).toBe('Começar uma nova partida?');
     expect(confirm.detail?.join(' ')).toMatch(/arquivado/);
+    // O custo (o feudo atual) e a escolha ficam lado a lado na mesma pergunta.
+    expect(confirm.detail?.join(' ')).toContain('Rei de Ferro · Tranquilo: um ano em 14 dias');
     expect(requested('POST /games')).toBe(0);
     expect(api.state.game?.settlementName).toBe('Pedra Alta');
   });
 
-  it('confirmada, pergunta o nome e funda o outro feudo no lugar do atual', async () => {
+  it('confirmada, pergunta o nome e funda o outro feudo no lugar do atual, com a escolha', async () => {
     const { run, answers, shown, requested, api, controller } = await setup();
     controller.navigate('today');
-    answers.push(true, 'Vila Nova');
+    answers.push(2, 2, true, 'Vila Nova');
     await run('lords.newGame');
-    expect(shown.map((entry) => entry.kind)).toEqual(['confirm', 'input']);
-    const input = shownAs(shown, 1, 'input');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'confirm', 'input']);
+    const input = shownAs(shown, 3, 'input');
     expect(input.validate?.('a')?.severity).toBe('error');
     expect(input.validate?.('   ')?.severity).toBe('error');
     expect(input.validate?.('x'.repeat(25))?.severity).toBe('error');
@@ -1108,16 +1200,95 @@ describe('recrutar, renomear e nova partida', () => {
     expect(input.validate?.('x'.repeat(24))).toBeNull();
     expect(input.validate?.('Vila Nova')).toBeNull();
     expect(requested('POST /games')).toBe(1);
+    expect(api.state.gameRequests).toEqual([
+      {
+        settlementName: 'Vila Nova',
+        timezone: 'America/Sao_Paulo',
+        vigilHourLocal: 20,
+        difficulty: 'ironKing',
+        timeScale: 0.5,
+        replaceActive: true,
+      },
+    ]);
     expect(api.state.game?.settlementName).toBe('Vila Nova');
     expect(controller.route).toBe('fief');
     expect(controller.toasts.filter((toast) => toast.kind === 'error')).toEqual([]);
   });
 
+  it('aceitar os padrões nas duas listas manda exatamente o que estava marcado', async () => {
+    const { run, answers, shown, api } = await setup();
+    // Uma primeira passada só para ver as duas listas; desiste na segunda.
+    answers.push(0, undefined);
+    await run('lords.newGame');
+    const [difficulty, pace] = [shownAs(shown, 0, 'pick'), shownAs(shown, 1, 'pick')];
+    shown.length = 0;
+    // Enter, Enter: o item marcado de cada lista.
+    answers.push(difficulty.selected, pace.selected, true, 'Vila Nova');
+    await run('lords.newGame');
+    expect(api.state.gameRequests.at(-1)).toMatchObject({ difficulty: 'lord', timeScale: 3 });
+  });
+
+  it('desistir em qualquer das duas listas não pergunta mais nada nem muda o feudo', async () => {
+    const { run, answers, shown, requested } = await setup();
+    answers.push(undefined);
+    await run('lords.newGame');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick']);
+    shown.length = 0;
+    answers.push(0, undefined);
+    await run('lords.newGame');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick']);
+    expect(requested('POST /games')).toBe(0);
+  });
+
   it('confirmada mas sem nome (desistiu no campo), nada muda', async () => {
     const { run, answers, requested } = await setup();
-    answers.push(true, undefined);
+    answers.push(1, 0, true, undefined);
     await run('lords.newGame');
     expect(requested('POST /games')).toBe(0);
+  });
+
+  it('servidor sem as opções (versão anterior): nova partida funciona como na v0.1', async () => {
+    const api = fakeApi();
+    api.state.catalog = null;
+    const { run, answers, shown, api: used, controller } = await setup({ api });
+    answers.push(true, 'Vila Nova');
+    await run('lords.newGame');
+    expect(shown.map((entry) => entry.kind)).toEqual(['confirm', 'input']);
+    const confirm = shownAs(shown, 0, 'confirm');
+    expect(confirm.detail).toEqual(['O feudo atual é arquivado e não pode mais receber ordens.']);
+    // Sem dificuldade nem ritmo no corpo: valem os padrões do servidor.
+    expect(used.state.gameRequests).toEqual([
+      {
+        settlementName: 'Vila Nova',
+        timezone: 'America/Sao_Paulo',
+        vigilHourLocal: 20,
+        replaceActive: true,
+      },
+    ]);
+    expect(controller.route).toBe('fief');
+    expect(controller.toasts.filter((toast) => toast.kind === 'error')).toEqual([]);
+  });
+
+  it('conta sem feudo: escolhe e funda, sem a pergunta de arquivar', async () => {
+    const { run, answers, shown, api, controller } = await setup({
+      before: ({ api: fake, store }) => {
+        fake.state.game = null;
+        store.data['lords.account:self'] = {
+          ...(store.data['lords.account:self'] as object),
+          gameId: null,
+        };
+      },
+    });
+    expect(controller.hasGame).toBe(false);
+    answers.push(0, 1, 'Vau Alto');
+    await run('lords.newGame');
+    expect(shown.map((entry) => entry.kind)).toEqual(['pick', 'pick', 'input']);
+    expect(api.state.gameRequests.at(-1)).toMatchObject({
+      settlementName: 'Vau Alto',
+      difficulty: 'peasant',
+      timeScale: 1,
+    });
+    expect(controller.route).toBe('fief');
   });
 
   it('sem conta, "Nova partida" leva às boas-vindas', async () => {

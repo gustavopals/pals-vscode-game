@@ -9,8 +9,10 @@ import { renderToString } from 'preact-render-to-string';
 import { describe, expect, it } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
+import type { NewGameOptions } from '../game/newGame';
 import { FiefTab } from '../tabs/Fief';
 import { TodayTab } from '../tabs/Today';
+import { catalogFixture } from '../test-helpers';
 import type { Actions } from './actions';
 import {
   formatApprox,
@@ -61,6 +63,7 @@ const welcome = (
     busy: boolean;
     online: boolean;
     githubAvailable: boolean;
+    options: NewGameOptions | null;
   }> = {},
 ) =>
   html(
@@ -69,6 +72,7 @@ const welcome = (
       busy={false}
       online={true}
       githubAvailable={true}
+      options={null}
       actions={actions}
       {...overrides}
     />,
@@ -115,8 +119,9 @@ describe('boas-vindas', () => {
     expect(page).toContain('Jogar agora');
     expect(page).toContain('Entrar com GitHub');
     expect(page).toContain('Usar Código do Reino');
-    // Nada de dificuldade nem ritmo na v0.1.
+    // Sem as opções do servidor a tela é a da v0.1: nada de dificuldade nem de ritmo.
     expect(page).not.toMatch(/Dificuldade|Ritmo|e-mail|senha/i);
+    expect(page).not.toContain('type="radio"');
   });
 
   it('servidor sem o vínculo GitHub ligado: o botão não aparece', () => {
@@ -143,6 +148,125 @@ describe('boas-vindas', () => {
     const page = welcome({ online: false });
     expect(page).toContain('Sem ligação com o reino.');
     expect(page).toMatch(/<button type="submit"[^>]*disabled/);
+  });
+});
+
+describe('boas-vindas: dificuldade e ritmo (GDD §13.9)', () => {
+  const options = catalogFixture().newGame;
+  const tags = (page: string, pattern: RegExp) => page.match(pattern) ?? [];
+  const attribute = (tag: string, name: string) =>
+    new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1] ?? null;
+  const radios = (page: string, name: string) =>
+    tags(page, /<input[^>]*type="radio"[^>]*>/g).filter((tag) => attribute(tag, 'name') === name);
+  const checked = (page: string, name: string) =>
+    radios(page, name)
+      .filter((tag) => /\schecked(=|\s|>|\/)/.test(tag))
+      .map((tag) => attribute(tag, 'value'));
+  /** O texto do elemento com este id. */
+  const textOf = (page: string, id: string) =>
+    new RegExp(`id="${id}"[^>]*>([^<]*)<`).exec(page)?.[1] ?? null;
+
+  it('dois grupos de opções, na ordem do servidor, cada um com nome para leitores de tela', () => {
+    const page = welcome({ options });
+    const groups = tags(page, /<fieldset[^>]*>/g);
+    expect(groups).toHaveLength(2);
+    expect(groups.every((tag) => attribute(tag, 'role') === 'radiogroup')).toBe(true);
+    expect(groups.map((tag) => textOf(page, attribute(tag, 'aria-labelledby') ?? ''))).toEqual([
+      'Dificuldade',
+      'Ritmo',
+    ]);
+    expect(radios(page, 'difficulty').map((tag) => attribute(tag, 'value'))).toEqual([
+      'peasant',
+      'lord',
+      'ironKing',
+    ]);
+    expect(radios(page, 'pace').map((tag) => attribute(tag, 'value'))).toEqual(['3', '1', '0.5']);
+  });
+
+  it('cada opção tem a linha curta como nome e uma frase como descrição, as duas à vista', () => {
+    const page = welcome({ options });
+    const named = (name: string) =>
+      radios(page, name).map((tag) => ({
+        line: textOf(page, attribute(tag, 'aria-labelledby') ?? ''),
+        about: textOf(page, attribute(tag, 'aria-describedby') ?? ''),
+      }));
+    expect(named('difficulty')).toEqual([
+      { line: 'Camponês', about: options.difficulties[0]?.description },
+      { line: 'Senhor (recomendado)', about: options.difficulties[1]?.description },
+      { line: 'Rei de Ferro', about: options.difficulties[2]?.description },
+    ]);
+    expect(named('pace')).toEqual([
+      { line: 'Rápido: um ano em 56 horas (recomendado)', about: options.paces[0]?.hint },
+      { line: 'Normal: um ano em 7 dias', about: options.paces[1]?.hint },
+      { line: 'Tranquilo: um ano em 14 dias', about: options.paces[2]?.hint },
+    ]);
+    // Nenhuma frase fica escondida atrás de um clique ou do mouse.
+    expect(page).not.toMatch(/hidden|title="/);
+  });
+
+  it('vem marcado o que o servidor manda marcar, e diz que os dois não mudam durante o ano', () => {
+    const page = welcome({ options });
+    expect(checked(page, 'difficulty')).toEqual(['lord']);
+    expect(checked(page, 'pace')).toEqual(['3']);
+    expect(page).toContain('não mudam durante o ano');
+  });
+
+  it('o marcado é o padrão do servidor, mesmo quando o recomendado é outro', () => {
+    const testServer = catalogFixture({ difficulty: 'ironKing', timeScale: 1 }).newGame;
+    const page = welcome({ options: testServer });
+    expect(checked(page, 'difficulty')).toEqual(['ironKing']);
+    expect(checked(page, 'pace')).toEqual(['1']);
+    // A marca de recomendado continua onde o servidor a pôs.
+    expect(page).toContain('Rápido: um ano em 56 horas (recomendado)');
+    expect(page).toContain('Senhor (recomendado)');
+  });
+
+  it('os textos são os do servidor: o app não escreve rótulo nem frase de opção', () => {
+    const other: NewGameOptions = {
+      difficulties: [
+        {
+          id: 'lord',
+          label: 'Alcaide',
+          description: 'Frase que só o servidor conhece.',
+          recommended: false,
+        },
+      ],
+      paces: [
+        {
+          timeScale: 1,
+          label: 'Passo de boi',
+          description: 'um ano em 9 luas',
+          hint: 'Para quem ara devagar.',
+          recommended: false,
+        },
+      ],
+      defaults: { difficulty: 'lord', timeScale: 1 },
+    };
+    const page = welcome({ options: other });
+    expect(page).toContain('Alcaide');
+    expect(page).toContain('Frase que só o servidor conhece.');
+    expect(page).toContain('Passo de boi: um ano em 9 luas');
+    expect(page).toContain('Para quem ara devagar.');
+    expect(page).not.toMatch(/Senhor|Camponês|Rei de Ferro|Rápido|Tranquilo|recomendado/);
+  });
+
+  it('escolher é opcional: com os nomes válidos, "Jogar agora" já pode ser clicado', () => {
+    const page = welcome({ options, account: { displayName: 'Gustavo' } });
+    expect(/<button type="submit"[^>]*>/.exec(page)?.[0]).not.toContain('disabled');
+    // E continua sendo um botão só, depois das opções.
+    expect(page.match(/<button type="submit"/g)).toHaveLength(1);
+    expect(page.indexOf('type="submit"')).toBeGreaterThan(page.lastIndexOf('type="radio"'));
+  });
+
+  it('enquanto o feudo é fundado, as opções ficam travadas junto com o botão', () => {
+    const page = welcome({ options, busy: true });
+    expect(tags(page, /<fieldset[^>]*>/g).every((tag) => /\sdisabled/.test(tag))).toBe(true);
+  });
+
+  it('quem já tem conta e ainda não tem feudo também escolhe', () => {
+    const page = welcome({ options, account: { displayName: 'Gustavo' } });
+    expect(radios(page, 'difficulty')).toHaveLength(3);
+    expect(radios(page, 'pace')).toHaveLength(3);
   });
 });
 

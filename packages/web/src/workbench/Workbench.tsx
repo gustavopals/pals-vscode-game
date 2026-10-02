@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 
 import type { Controller } from '../app/controller';
 import type { Route } from '../app/router';
@@ -6,6 +6,7 @@ import type { Actions } from '../components/actions';
 import { OfflineBanner } from '../components/Banners';
 import { useElapsedSeconds } from '../components/shared';
 import { Welcome } from '../components/Welcome';
+import { difficultyDescription } from '../game/newGame';
 import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
 import { ChronicleTab } from '../tabs/Chronicle';
@@ -18,10 +19,15 @@ import { EditorTabs } from './EditorTabs';
 import { SideBar } from './SideBar';
 import { StatusBar } from './StatusBar';
 
-/** Redesenha o componente a cada mudança do controlador. */
+/**
+ * Redesenha o componente a cada mudança do controlador. A assinatura é feita com
+ * `useLayoutEffect`, junto com o primeiro desenho: `useEffect` só roda depois do próximo quadro,
+ * e uma mudança que chegasse nesse intervalo (a resposta de `/version`, uma tecla) não
+ * redesenharia nada.
+ */
 export function useController(controller: Controller): void {
   const [, redraw] = useState(0);
-  useEffect(() => controller.onChange(() => redraw((count) => count + 1)), [controller]);
+  useLayoutEffect(() => controller.onChange(() => redraw((count) => count + 1)), [controller]);
 }
 
 function TabContent(props: {
@@ -47,6 +53,7 @@ function TabContent(props: {
           busy={controller.busy}
           online={online}
           githubAvailable={controller.githubAvailable}
+          options={controller.newGameOptions}
           actions={actions}
         />
       );
@@ -56,8 +63,21 @@ function TabContent(props: {
           preferences={controller.preferences}
           theme={props.theme}
           browserNotificationsSupported={props.browserNotificationsSupported}
+          game={
+            view === null
+              ? null
+              : {
+                  difficultyLabel: view.settlement.difficultyLabel,
+                  paceLabel: view.settlement.paceLabel,
+                  difficultyAbout: difficultyDescription(
+                    controller.newGameOptions,
+                    view.settlement.difficulty,
+                  ),
+                }
+          }
           onChange={(patch) => void controller.setPreferences(patch)}
           onBrowserNotifications={(enabled) => void controller.setBrowserNotifications(enabled)}
+          onNewGame={() => actions.run('lords.newGame')}
         />
       );
     case 'about':

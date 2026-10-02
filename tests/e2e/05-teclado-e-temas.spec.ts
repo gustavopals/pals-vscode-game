@@ -173,6 +173,31 @@ test.describe('teclado', () => {
     await page.keyboard.press('Escape');
   });
 
+  test('F1 no instante em que a página abre já mostra a paleta, e o que se digita vai para ela', async ({
+    context,
+    world,
+  }) => {
+    const page = await context.newPage();
+    page.on('pageerror', (error) => world.problems.push(`exceção: ${error.message}`));
+    // Relógio parado: nada do que o app agenda para "depois do próximo quadro" roda. A bancada
+    // tem de ouvir os diálogos e o controlador desde o primeiro desenho; se só passasse a ouvir
+    // um quadro depois, a paleta aberta nesse intervalo ficaria invisível e o texto digitado
+    // cairia no campo das boas-vindas.
+    await page.clock.install({ time: new Date() });
+    await page.clock.pauseAt(new Date(Date.now() + 60_000));
+    await page.goto('/');
+
+    await page.keyboard.press('F1');
+    const box = page.getByRole('dialog').getByRole('combobox');
+    await expect(box).toBeFocused();
+    await page.keyboard.type('sobre');
+    await page.keyboard.press('Enter');
+    const about = page.getByRole('tabpanel', { name: 'Sobre' });
+    // A resposta do servidor também chega com o relógio parado, e a aba a mostra.
+    await expect(about).toContainText(/Servidor\s*\d+\.\d+\.\d+/);
+    await expect(page.getByLabel('Como devemos chamar quem governa?')).toHaveCount(0);
+  });
+
   test('uma partida inteira dos objetivos 1 a 4 só com o teclado', async ({ context, world }) => {
     const page = await world.open(context);
     // Boas-vindas: o campo do nome já tem o foco; Enter envia o formulário.
@@ -346,6 +371,8 @@ test.describe('temas', () => {
     for (const theme of THEMES) {
       await applyTheme(theme);
       await expect(page.getByRole('tabpanel', { name: 'Boas-vindas' })).toBeVisible();
+      // Com as opções de dificuldade e ritmo já na tela: é com elas que o contraste é medido.
+      await expect(page.getByRole('radiogroup', { name: 'Ritmo' })).toBeVisible();
       expect(await lowContrast(page), `contraste nas boas-vindas, tema ${theme}`).toEqual([]);
       expect(await unnamed(page), `rótulos nas boas-vindas, tema ${theme}`).toEqual([]);
       await shoot(theme, 'boas-vindas');
@@ -377,6 +404,10 @@ test.describe('temas', () => {
       expect(await lowContrast(page), `contraste em Hoje, tema ${theme}`).toEqual([]);
       await page.getByRole('button', { name: 'Preferências' }).click();
       await expect(page.getByRole('tabpanel', { name: 'Preferências' })).toBeVisible();
+      // A seção da partida, com a frase da dificuldade que vem do servidor.
+      await expect(page.getByRole('group', { name: 'Esta partida' })).toContainText(
+        'O feudo como foi pensado',
+      );
       expect(await lowContrast(page), `contraste nas preferências, tema ${theme}`).toEqual([]);
       expect(await unnamed(page), `rótulos nas preferências, tema ${theme}`).toEqual([]);
       await shoot(theme, 'preferencias');

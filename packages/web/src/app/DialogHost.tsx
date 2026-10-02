@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 import { QuickPick } from '../palette/CommandPalette';
 import { type DialogService, type DialogState, nextFocusIndex } from './dialogs';
@@ -150,7 +150,10 @@ export function DialogHost(props: {
   const returnTo = useRef<Element | null>(null);
   const current = dialogs.current;
 
-  useEffect(() => dialogs.onChange(() => redraw((count) => count + 1)), [dialogs]);
+  // Ouve os diálogos desde o primeiro desenho (`useLayoutEffect`): com `useEffect` a assinatura
+  // só existiria um quadro depois, e uma paleta aberta nesse intervalo (F1 logo ao carregar a
+  // página) ficaria na fila sem aparecer, com o texto digitado caindo no campo que tem o foco.
+  useLayoutEffect(() => dialogs.onChange(() => redraw((count) => count + 1)), [dialogs]);
 
   // Logo depois de desenhar (e não no próximo quadro): quem digita rápido, ou um leitor de
   // tela, já encontra o foco dentro do diálogo.
@@ -242,6 +245,7 @@ export function DialogHost(props: {
             title={state.title}
             placeholder={state.placeholder}
             items={state.items}
+            selected={state.selected}
             onPick={resolve}
           />
         ) : null}

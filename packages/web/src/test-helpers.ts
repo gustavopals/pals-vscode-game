@@ -1,5 +1,13 @@
 import { memoryTokenStore, type TokenStore } from '@lotg/client-sdk';
-import type { Account, Command, GameEvent, GameSummary, ViewState } from '@lotg/protocol';
+import type {
+  Account,
+  CatalogResponse,
+  Command,
+  CreateGameRequest,
+  GameEvent,
+  GameSummary,
+  ViewState,
+} from '@lotg/protocol';
 
 import golden from '../../engine/src/__golden__/view-seed-pedra-alta.json';
 import { Controller, type ControllerOptions } from './app/controller';
@@ -28,6 +36,67 @@ export function gameEvent(seq: number, type: GameEvent['type'], text = `Evento $
 type ErrorBody = { code: string; message: string; details?: unknown };
 
 /**
+ * O corpo de `GET /v1/catalog` como a produção o manda (GDD §13.9), com os textos do conteúdo.
+ * `defaults` é o que vem marcado: o padrão do servidor, que pode não ser o recomendado.
+ */
+export function catalogFixture(
+  defaults: CatalogResponse['newGame']['defaults'] = { difficulty: 'lord', timeScale: 3 },
+): CatalogResponse {
+  return {
+    contentHash: '0123456789abcdef',
+    newGame: {
+      difficulties: [
+        {
+          id: 'peasant',
+          label: 'Camponês',
+          description:
+            'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, escolhe o melhor caminho.',
+          recommended: false,
+        },
+        {
+          id: 'lord',
+          label: 'Senhor',
+          description:
+            'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide com cautela.',
+          recommended: true,
+        },
+        {
+          id: 'ironKing',
+          label: 'Rei de Ferro',
+          description:
+            'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o pior caminho.',
+          recommended: false,
+        },
+      ],
+      paces: [
+        {
+          timeScale: 3,
+          label: 'Rápido',
+          description: 'um ano em 56 horas',
+          hint: 'Para quem volta várias vezes ao dia e quer ver o inverno ainda nesta semana.',
+          recommended: true,
+        },
+        {
+          timeScale: 1,
+          label: 'Normal',
+          description: 'um ano em 7 dias',
+          hint: 'Uma semana, um ano: para quem passa pelo feudo duas ou três vezes por dia.',
+          recommended: false,
+        },
+        {
+          timeScale: 0.5,
+          label: 'Tranquilo',
+          description: 'um ano em 14 dias',
+          hint: 'Para quem abre o jogo uma vez por dia: o feudo anda devagar e espera por você.',
+          recommended: false,
+        },
+      ],
+      defaults,
+    },
+  };
+}
+
+/**
  * Uma API `/v1` de mentira, em memória, para os testes de unidade do app. Guarda uma conta e
  * uma partida, registra as chamadas e deixa o teste mexer no que o servidor responde. Não
  * aplica regra de jogo nenhuma: a visão é a que o teste puser em `state.view`.
@@ -42,6 +111,10 @@ export function fakeApi() {
     events: [] as GameEvent[],
     chronicleMarkdown: '# Crônica de Pedra Alta\n\n## Ano 1\n\n*Ainda não há nada a contar.*\n',
     githubDevice: true,
+    /** O que `GET /catalog` responde; `null` é um servidor de uma versão anterior (404). */
+    catalog: catalogFixture() as CatalogResponse | null,
+    /** Os corpos de `POST /games`, na ordem em que chegaram. */
+    gameRequests: [] as CreateGameRequest[],
     recoveryCode: 'PEDR-7F3A-K9QD-M2XW-4HTB',
     /** Resposta forçada para a próxima chamada cujo caminho contenha a chave. */
     failNext: new Map<string, { status: number; body: ErrorBody }>(),
@@ -66,12 +139,13 @@ export function fakeApi() {
     createdAt: CREATED_AT,
   });
   const tokens = () => ({ accessToken: 'acesso', refreshToken: 'renovacao', expiresIn: 900 });
-  const game = (settlementName: string): GameSummary => ({
+  const game = (settlementName: string, request: Partial<CreateGameRequest> = {}): GameSummary => ({
     id: GAME_ID,
     status: 'active',
     settlementName,
-    difficulty: 'lord',
-    timeScale: 1,
+    // Sem os campos no corpo, valem os padrões do servidor de mentira.
+    difficulty: request.difficulty ?? 'lord',
+    timeScale: request.timeScale ?? 1,
     timezone: 'America/Sao_Paulo',
     vigilHourLocal: 20,
     stateVersion: String(state.stateVersion),
@@ -94,7 +168,8 @@ export function fakeApi() {
       }
     }
     const authorized = new Headers(init?.headers).get('authorization') === 'Bearer acesso';
-    const needsAuth = !['/version', '/health'].includes(path) && !path.startsWith('/auth/');
+    const needsAuth =
+      !['/version', '/health', '/catalog'].includes(path) && !path.startsWith('/auth/');
     if (needsAuth && (!authorized || state.account === null)) {
       return error(401, 'SESSION_REVOKED', 'Esta sessão foi encerrada. Entre de novo.');
     }
@@ -107,6 +182,11 @@ export function fakeApi() {
         builtAt: CREATED_AT,
         features: { githubDevice: state.githubDevice },
       });
+    }
+    if (path === '/catalog') {
+      return state.catalog === null
+        ? error(404, 'NOT_FOUND', 'Recurso não encontrado.')
+        : json(state.catalog);
     }
     if (path === '/auth/anonymous') {
       state.account = account((body as { displayName: string }).displayName);
@@ -157,8 +237,9 @@ export function fakeApi() {
       return json({ games: state.game === null ? [] : [state.game] });
     }
     if (path === '/games' && method === 'POST') {
-      const request = body as { settlementName: string };
-      state.game = game(request.settlementName);
+      const request = body as CreateGameRequest;
+      state.gameRequests.push(request);
+      state.game = game(request.settlementName, request);
       state.view = {
         ...state.view,
         settlement: { ...state.view.settlement, name: request.settlementName },

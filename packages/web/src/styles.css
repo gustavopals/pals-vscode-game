@@ -438,6 +438,25 @@ progress::-webkit-progress-value {
   color: var(--vscode-descriptionForeground);
 }
 
+/*
+ * Largura para os dois grupos de opções ficarem lado a lado, com as frases em poucas linhas: em
+ * uma janela de 720 px de altura, "Jogar agora" fica à vista sem rolar. Os campos de nome não
+ * esticam.
+ */
+.welcome {
+  max-width: 720px;
+  padding-top: 28px;
+  padding-bottom: 24px;
+}
+
+.welcome .lead {
+  margin-bottom: 16px;
+}
+
+.welcome input[type='text'] {
+  max-width: 440px;
+}
+
 .welcome label {
   display: block;
   margin-bottom: 12px;
@@ -445,6 +464,63 @@ progress::-webkit-progress-value {
 
 .welcome .primary {
   margin-top: 8px;
+}
+
+/*
+ * Dificuldade e ritmo: dois grupos lado a lado quando cabem, um sob o outro em tela estreita. A
+ * frase de cada opção fica à vista, para comparar sem clicar.
+ */
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0 24px;
+  margin-top: 12px;
+}
+
+.choice {
+  min-width: 0;
+  margin: 0 0 8px;
+  padding: 0;
+  border: none;
+}
+
+.choice legend {
+  padding: 0;
+  font-weight: 600;
+}
+
+.welcome .choice-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 6px;
+  margin: 6px 0 0;
+  padding: 2px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.choice-option:hover,
+.choice-option:focus-within {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.choice-option input[type='radio'] {
+  margin: 4px 0 0;
+  accent-color: var(--vscode-button-background);
+}
+
+/* A opção marcada não depende só da cor do botão de rádio: a linha dela fica em negrito. */
+.choice-option:has(input:checked) > span:first-of-type {
+  font-weight: 600;
+}
+
+.choice-about {
+  grid-column: 2;
+  font-size: 0.92em;
+}
+
+.choices-note {
+  grid-column: 1 / -1;
 }
 
 .elsewhere {
@@ -529,6 +605,14 @@ progress::-webkit-progress-value {
 .settings select,
 .settings input[type='number'] {
   max-width: 220px;
+}
+
+.settings-game p {
+  margin-top: 6px;
+}
+
+.settings-game button {
+  margin-top: 4px;
 }
 
 dl.facts {

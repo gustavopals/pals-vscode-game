@@ -10,7 +10,7 @@ import { APP_VERSION } from '../version';
 import { AboutTab } from './About';
 import { ChronicleTab } from './Chronicle';
 import { parseChronicle } from './markdown';
-import { SettingsTab } from './Settings';
+import { type GameSettings, SettingsTab } from './Settings';
 
 const noop = () => {};
 const actions: Actions = { order: noop, run: noop, playNow: noop };
@@ -190,6 +190,7 @@ describe('aba Preferências', () => {
       preferences: Preferences;
       theme: ThemeId;
       browserNotificationsSupported: boolean;
+      game: GameSettings | null;
     }> = {},
   ) =>
     html(
@@ -197,8 +198,10 @@ describe('aba Preferências', () => {
         preferences={DEFAULT_PREFERENCES}
         theme="dark"
         browserNotificationsSupported={true}
+        game={null}
         onChange={noop}
         onBrowserNotifications={noop}
+        onNewGame={noop}
         {...overrides}
       />,
     );
@@ -318,6 +321,56 @@ describe('aba Preferências', () => {
     expect(section).not.toMatch(/dia de jogo/i);
     expect(section).not.toMatch(/\bvira\b/i);
     expect(section).not.toContain('Vale para os feudos');
+  });
+
+  describe('esta partida: dificuldade e ritmo', () => {
+    const game: GameSettings = {
+      difficultyLabel: 'Senhor',
+      paceLabel: 'Rápido: um ano em 56 horas',
+      difficultyAbout: 'O feudo como foi pensado.',
+    };
+    const section = (markup: string) => {
+      const start = markup.indexOf('<legend>Esta partida</legend>');
+      return start === -1 ? null : markup.slice(start, markup.indexOf('</fieldset>', start));
+    };
+
+    it('sem feudo aberto, a seção não aparece', () => {
+      expect(section(render())).toBeNull();
+      expect(render()).not.toMatch(/Dificuldade|Ritmo/);
+    });
+
+    it('mostra os dois com os textos da visão e diz que não mudam durante o ano', () => {
+      const text = (section(render({ game })) ?? '').replace(/<[^>]+>/g, '');
+      expect(text).toContain(
+        'Dificuldade: Senhor · Ritmo: Rápido: um ano em 56 horas (não mudam durante o ano)',
+      );
+    });
+
+    it('o ritmo é o rótulo que veio pronto, qualquer que seja', () => {
+      const text = section(render({ game: { ...game, paceLabel: 'Ritmo 7×: um ano em 1 dia' } }));
+      expect(text).toContain('Ritmo: Ritmo 7×: um ano em 1 dia');
+    });
+
+    it('diz o que a dificuldade muda com a frase do servidor; sem ela, só os rótulos', () => {
+      expect(section(render({ game }))).toContain('O feudo como foi pensado.');
+      const without = section(render({ game: { ...game, difficultyAbout: null } })) ?? '';
+      expect(without).not.toContain('O feudo como foi pensado.');
+      expect(without).toContain('Dificuldade: Senhor');
+    });
+
+    it('só para leitura: nenhum campo, e o caminho para mudar é "Nova partida…"', () => {
+      const markup = section(render({ game })) ?? '';
+      expect(markup).not.toMatch(/<(input|select)/);
+      expect(markup).toContain('comece uma nova partida');
+      expect(markup).toContain('o feudo atual é arquivado');
+      expect(markup).toMatch(/<button type="button"[^>]*>Nova partida…<\/button>/);
+    });
+
+    it('fica depois das preferências do navegador, que continuam com os mesmos campos', () => {
+      const markup = render({ game });
+      expect(markup.indexOf('Esta partida')).toBeGreaterThan(markup.indexOf('Hora da Vigília'));
+      expect(tags(markup, /<(input|select)[^>]*>/g)).toHaveLength(3 + 3 + 1 + 1 + 1);
+    });
   });
 
   it('todo campo tem rótulo: nenhum input ou select fica fora de um <label>', () => {

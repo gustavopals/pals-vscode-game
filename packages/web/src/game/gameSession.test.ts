@@ -1,11 +1,18 @@
 import { ApiClientError, type Client, GameRuleClientError, NetworkError } from '@lotg/client-sdk';
-import type { Command, GameEvent, ReturnReport, ViewState } from '@lotg/protocol';
+import {
+  type Command,
+  type GameEvent,
+  PROTOCOL_VERSION,
+  type ReturnReport,
+  type ViewState,
+} from '@lotg/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import golden from '../../../engine/src/__golden__/view-seed-pedra-alta.json';
 import { memoryStore } from '../services/store';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import {
+  CACHE_VERSION,
   cacheKey,
   clearAccountCaches,
   type GameCache,
@@ -14,6 +21,15 @@ import {
 } from './gameSession';
 
 const view = golden.initial as unknown as ViewState;
+/** Um cache gravado agora por esta versão do app. */
+const cachedNow = (): GameCache => ({
+  version: CACHE_VERSION,
+  view,
+  stateVersion: '1',
+  etag: 'W/"a"',
+  lastSeq: 0,
+  lastSeenAt: Date.now(),
+});
 const laterView = golden.afterObjectivesScenario as unknown as ViewState;
 const target = { serverKey: 'http://servidor', accountId: 'conta-1', gameId: 'partida-1' };
 const HOUR = 3_600_000;
@@ -195,6 +211,7 @@ describe('eventos', () => {
 describe('conexão', () => {
   it('sem rede, mostra o cache e tenta de novo em 5, 10, 20, 40 e 60 s', async () => {
     const cached: GameCache = {
+      version: CACHE_VERSION,
       view,
       stateVersion: '1',
       etag: 'W/"a"',
@@ -422,6 +439,7 @@ describe('cache', () => {
     state.events = [event(4)];
     await session.start(target);
     expect(store.get<GameCache>(cacheKey(target))).toEqual({
+      version: CACHE_VERSION,
       view,
       stateVersion: '1',
       etag: 'W/"a"',
@@ -430,8 +448,13 @@ describe('cache', () => {
     });
   });
 
+  it('a marca de versão junta o protocolo e o formato da visão', () => {
+    expect(CACHE_VERSION).toBe(`${PROTOCOL_VERSION}.2`);
+  });
+
   it('um cache com formato antigo de ViewState é descartado ao carregar', async () => {
     const outdated = {
+      version: CACHE_VERSION,
       view: { settlement: { name: 'Pedra Alta' } },
       stateVersion: '1',
       etag: null,
@@ -443,6 +466,80 @@ describe('cache', () => {
     await session.start(target);
     expect(session.view).toBeNull();
     expect(seen.views).toEqual([]);
+  });
+
+  describe('gravado por outra versão do app', () => {
+    // A visão como a v0.1 a gravava: sem dificuldade nem ritmo, e o cache sem marca de versão.
+    const {
+      difficulty: _difficulty,
+      difficultyLabel: _difficultyLabel,
+      paceLabel: _paceLabel,
+      ...oldSettlement
+    } = view.settlement;
+    void [_difficulty, _difficultyLabel, _paceLabel];
+    const fromV01 = {
+      view: { ...view, settlement: oldSettlement },
+      stateVersion: '7',
+      etag: 'W/"v01"',
+      lastSeq: 3,
+      lastSeenAt: Date.now() - 5 * HOUR,
+    };
+
+    it('o cache da v0.1 não é exibido: sem rede, a tela não mostra uma visão de outro formato', async () => {
+      const { session, state, seen } = setup(fromV01 as unknown as GameCache);
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(session.view).toBeNull();
+      expect(seen.views).toEqual([]);
+      expect(session.connection.kind).toBe('offline');
+    });
+
+    it('a visão em forma válida, mas com outra marca (ou sem marca), também é descartada', async () => {
+      for (const version of [undefined, '1.1', `${PROTOCOL_VERSION + 1}.2`, 2]) {
+        const stale = { ...cachedNow(), ...(version === undefined ? {} : { version }) };
+        if (version === undefined) {
+          delete (stale as Partial<GameCache>).version;
+        }
+        const { session, state, seen } = setup(stale as unknown as GameCache);
+        state.fail = new NetworkError('fora');
+        await session.start(target);
+        expect(session.view, String(version)).toBeNull();
+        expect(seen.views, String(version)).toEqual([]);
+        session.stop();
+      }
+    });
+
+    it('com a marca atual e a forma atual, o cache é exibido', async () => {
+      const { session, state, seen } = setup(cachedNow());
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(seen.views).toEqual([view]);
+    });
+
+    it('o cursor dos eventos sobrevive: a partida não volta inteira como novidade', async () => {
+      const { session, state, seen, store } = setup(fromV01 as unknown as GameCache);
+      state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
+      await session.start(target);
+      // A leitura pediu só o que veio depois do cursor guardado pela versão anterior.
+      expect(state.lastEtagSent).toBeNull();
+      expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
+      // E a primeira leitura grava por cima, já no formato e com a marca desta versão.
+      expect(store.get<GameCache>(cacheKey(target))).toEqual({
+        version: CACHE_VERSION,
+        view,
+        stateVersion: '1',
+        etag: 'W/"a"',
+        lastSeq: 4,
+        lastSeenAt: Date.now(),
+      });
+      expect(session.view).toEqual(view);
+    });
+
+    it('sem a visão antiga não há Relatório de Retorno a comparar, mesmo depois de horas fora', async () => {
+      const { session, seen } = setup(fromV01 as unknown as GameCache);
+      await session.start(target);
+      expect(seen.reports).toEqual([]);
+    });
   });
 
   it('apagar os caches da conta leva todas as partidas dela, e só as dela', async () => {
@@ -476,6 +573,7 @@ describe('cache', () => {
 
 describe('Relatório de Retorno', () => {
   const cachedAt = (hoursAgo: number): GameCache => ({
+    version: CACHE_VERSION,
     view,
     stateVersion: '1',
     etag: 'W/"velho"',
