@@ -233,13 +233,24 @@ describe('deriveViewState no ritmo 3: prazos em segundos reais, arredondados par
     expect(real.workers.map((row) => [row.building, row.level, row.assigned])).toEqual(
       game.workers.map((row) => [row.building, row.level, row.assigned]),
     );
-    // Do calendário só mudam os prazos: a frase da estação e o que muda na virada são os mesmos.
-    const timeless = ({ calendar }: ViewState) => ({
-      ...calendar,
-      secondsToNextDay: 0,
-      secondsToNextSeason: 0,
-      nextSeason: { ...calendar.nextSeason, secondsUntil: 0 },
-    });
+    // Do calendário só mudam os prazos e a lenha por hora: a frase da estação, o que muda na
+    // virada e os totais da conta da lenha são os mesmos.
+    const timeless = ({ calendar }: ViewState) => {
+      const ahead = calendar.nextFirewoodSeason;
+      return {
+        ...calendar,
+        secondsToNextDay: 0,
+        secondsToNextSeason: 0,
+        nextSeason: { ...calendar.nextSeason, secondsUntil: 0 },
+        nextFirewoodSeason:
+          ahead === null
+            ? null
+            : { ...ahead, secondsUntil: 0, firewood: { ...ahead.firewood, perHour: 0 } },
+      };
+    };
+    expect(real.calendar.nextFirewoodSeason?.firewood.perHour).toBe(
+      (game.calendar.nextFirewoodSeason?.firewood.perHour ?? 0) * 3,
+    );
     expect(timeless(real)).toEqual(timeless(game));
     expect(real.constructions.available.map((entry) => entry.durationNote)).toEqual(
       game.constructions.available.map((entry) => entry.durationNote),

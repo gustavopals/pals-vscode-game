@@ -184,6 +184,17 @@ function atPace(view: ViewState, pace: number): ViewState {
                     : down(view.calendar.nextSeason.food.depletesInSeconds),
               },
       },
+      // A estação da lenha, quando ainda vem: o prazo até ela é um prazo, e a conta, a mesma.
+      nextFirewoodSeason:
+        view.calendar.nextFirewoodSeason === null
+          ? null
+          : {
+              ...view.calendar.nextFirewoodSeason,
+              secondsUntil: up(view.calendar.nextFirewoodSeason.secondsUntil),
+              firewood:
+                firewoodAtPace(view.calendar.nextFirewoodSeason.firewood, pace) ??
+                view.calendar.nextFirewoodSeason.firewood,
+            },
     },
     population: {
       ...view.population,

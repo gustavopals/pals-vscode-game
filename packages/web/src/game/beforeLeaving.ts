@@ -107,6 +107,21 @@ function foodItem(view: ViewState): LeavingItem | null {
 }
 
 type Firewood = NonNullable<ViewState['winter']>['firewood'];
+type FirewoodSeason = NonNullable<ViewState['calendar']['nextFirewoodSeason']>;
+
+/**
+ * A estação que queima lenha, quando chega antes de uma ausência de um dia e a conta do servidor
+ * diz que a madeira não basta; `null` nos outros casos. Vale para a próxima estação e para a que
+ * vem depois dela: o prazo e a conta já chegam prontos em `calendar.nextFirewoodSeason`.
+ */
+export function firewoodSeasonSoon(view: ViewState): FirewoodSeason | null {
+  const season = view.calendar.nextFirewoodSeason;
+  return season !== null &&
+    season.firewood.missing > 0 &&
+    season.secondsUntil < LEAVING_HORIZON_SECONDS
+    ? season
+    : null;
+}
 
 /**
  * Por que a conta da lenha não fecha com a madeira que há: o que as obras planejadas que começam
@@ -151,17 +166,19 @@ function firewoodItem(view: ViewState): LeavingItem | null {
       command,
     };
   }
-  const next = view.calendar.nextSeason;
-  const ahead = next.firewood;
-  if (ahead === null || ahead.missing <= 0 || next.secondsUntil >= LEAVING_HORIZON_SECONDS) {
+  // A estação da lenha pode não ser a próxima: no ritmo Rápido o outono dura menos de um dia de
+  // relógio, e quem sai no fim do verão volta com o inverno pela metade.
+  const season = firewoodSeasonSoon(view);
+  if (season === null) {
     return null;
   }
+  const ahead = season.firewood;
   const { villagers } = view.population;
   return {
     id: 'firewood',
     severity: 'warning',
     text:
-      `${next.label} em ${formatApprox(next.secondsUntil)}: ` +
+      `${season.label} em ${formatApprox(season.secondsUntil)}: ` +
       `${villagers} ${villagers === 1 ? 'habitante vai' : 'habitantes vão'} queimar ${formatNumber(ahead.perHour)} madeira/h, ` +
       `e faltam ${formatNumber(ahead.missing)} de madeira para a estação inteira.${takenByWorks(ahead)}`,
     command,

@@ -345,13 +345,18 @@ export type FirewoodView = {
   /** Madeira em estoque agora. */
   stock: number;
   /**
+   * Madeira que a Serraria ainda junta antes de a estação da conta começar, até onde o depósito
+   * guarda. 0 dentro da estação, e quando a comida acaba antes (a visão não adivinha).
+   */
+  gathered: number;
+  /**
    * Madeira que as obras planejadas automáticas vão levar do estoque antes de o prazo da conta
    * acabar: o motor as inicia sozinho, sem olhar a lenha (GDD §6.3). 0 quando nenhuma começa.
    */
   reserved: number;
   /**
-   * Quanto falta guardar para a lareira não apagar, já descontado o que as obras automáticas
-   * levam; 0 quando o estoque e a Serraria cobrem.
+   * Quanto falta guardar para a lareira não apagar, já com o que a Serraria junta até lá e sem
+   * o que as obras automáticas levam; 0 quando o estoque e a Serraria cobrem.
    */
   missing: number;
   /** A conta em uma frase, pronta para exibir. */
@@ -497,6 +502,18 @@ export type ViewState = {
        * acabam antes da virada: o alarme é o da estação de agora.
        */
       food: FoodForecastView | null;
+    };
+    /**
+     * A próxima estação que queima lenha, com o prazo até ela e a conta: é `nextSeason` no
+     * outono, e o inverno ainda distante no resto do ano (no ritmo Rápido ele pode estar a menos
+     * de um dia de relógio com o outono no meio). `null` quando a estação de agora já queima
+     * lenha: a conta é a de `winter.firewood`.
+     */
+    nextFirewoodSeason: null | {
+      id: SeasonId;
+      label: string;
+      secondsUntil: number;
+      firewood: FirewoodView;
     };
   };
   population: {

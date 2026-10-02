@@ -23,6 +23,8 @@ import { beforeLeaving, type LeavingItem, MAX_LEAVING_ITEMS } from './beforeLeav
 
 const HOUR = 3600;
 
+type Firewood = NonNullable<ViewState['winter']>['firewood'];
+
 /**
  * Um feudo sem nada a preparar: ninguém livre, comida e depósitos com folga e uma obra planejada
  * que começa sozinha quando a madeira chegar. Cada teste estraga uma coisa só.
@@ -157,29 +159,75 @@ describe('antes de partir', () => {
       });
     });
 
+    /** A mesma visão com a estação da lenha trocada: o prazo até ela e campos da conta. */
+    const withFirewoodAhead = (
+      view: ViewState,
+      secondsUntil: number,
+      patch: Partial<Firewood> = {},
+    ): ViewState => {
+      const ahead = view.calendar.nextFirewoodSeason;
+      if (ahead === null) {
+        throw new Error('O teste esperava uma estação de lenha à frente.');
+      }
+      return {
+        ...view,
+        calendar: {
+          ...view.calendar,
+          nextFirewoodSeason: { ...ahead, secondsUntil, firewood: { ...ahead.firewood, ...patch } },
+        },
+      };
+    };
+
     it('inverno longe, ou com lenha que basta: nada a dizer', () => {
-      const far: ViewState = {
-        ...autumn,
-        calendar: {
-          ...autumn.calendar,
-          nextSeason: { ...autumn.calendar.nextSeason, secondsUntil: 24 * HOUR },
-        },
-      };
-      expect(beforeLeaving(far).some(firewood)).toBe(false);
-      const { firewood: forecast } = autumn.calendar.nextSeason;
-      const enough: ViewState = {
-        ...autumn,
-        calendar: {
-          ...autumn.calendar,
-          nextSeason: {
-            ...autumn.calendar.nextSeason,
-            firewood: forecast === null ? null : { ...forecast, missing: 0 },
-          },
-        },
-      };
-      expect(beforeLeaving(enough).some(firewood)).toBe(false);
+      expect(beforeLeaving(withFirewoodAhead(autumn, 24 * HOUR)).some(firewood)).toBe(false);
+      expect(
+        beforeLeaving(withFirewoodAhead(autumn, 4 * HOUR, { missing: 0 })).some(firewood),
+      ).toBe(false);
       // No golden dos ofícios o inverno está longe e a Serraria dá conta.
       expect(beforeLeaving(craftsView).some(firewood)).toBe(false);
+    });
+
+    it('ritmo Rápido: o inverno a menos de um dia com o outono no meio também entra na lista', () => {
+      // Fim do verão no ritmo 3: a próxima estação é o outono, que não queima nada, mas o
+      // inverno chega em menos de 19 horas de relógio. A conta é a do servidor.
+      const summer: ViewState = {
+        ...prepared,
+        calendar: {
+          ...prepared.calendar,
+          nextSeason: {
+            ...prepared.calendar.nextSeason,
+            id: 'autumn',
+            label: 'Outono',
+            secondsUntil: 2 * HOUR + 40 * 60,
+            firewood: null,
+          },
+          nextFirewoodSeason: {
+            id: 'winter',
+            label: 'Inverno',
+            secondsUntil: 18 * HOUR + 40 * 60,
+            firewood: {
+              perHour: 27,
+              winterTotal: 216,
+              winterProduction: 0,
+              stock: 60,
+              gathered: 0,
+              reserved: 0,
+              missing: 156,
+              text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+            },
+          },
+        },
+        population: { ...prepared.population, villagers: 18 },
+      };
+      expect(only(summer)).toEqual({
+        id: 'firewood',
+        severity: 'warning',
+        text: 'Inverno em 18 h: 18 habitantes vão queimar 27 madeira/h, e faltam 156 de madeira para a estação inteira.',
+        command: { id: 'lords.allocateWorkers', arg: 'lumberMill', label: 'Alocar na Serraria' },
+      });
+      // A mais de um dia, ou com a conta fechada, nada a dizer.
+      expect(beforeLeaving(withFirewoodAhead(summer, 24 * HOUR))).toEqual([]);
+      expect(beforeLeaving(withFirewoodAhead(summer, 18 * HOUR, { missing: 0 }))).toEqual([]);
     });
 
     it('no inverno, a madeira com prazo para acabar: o prazo, a lareira e o que falta', () => {
@@ -217,17 +265,7 @@ describe('antes de partir', () => {
         command: { id: 'lords.allocateWorkers', arg: 'lumberMill', label: 'Alocar na Serraria' },
       });
       // No outono, a mesma coisa na previsão do inverno.
-      const { firewood: forecast } = autumn.calendar.nextSeason;
-      const ahead: ViewState = {
-        ...autumn,
-        calendar: {
-          ...autumn.calendar,
-          nextSeason: {
-            ...autumn.calendar.nextSeason,
-            firewood: forecast === null ? null : { ...forecast, reserved: 60, missing: 216 },
-          },
-        },
-      };
+      const ahead = withFirewoodAhead(autumn, 4 * HOUR, { reserved: 60, missing: 216 });
       expect(beforeLeaving(ahead).find(firewood)?.text).toBe(
         'Inverno em 4 h: 18 habitantes vão queimar 9 madeira/h, e faltam 216 de madeira para a estação inteira. As obras que começam sozinhas levam 60 do estoque.',
       );

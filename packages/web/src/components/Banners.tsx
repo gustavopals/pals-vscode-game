@@ -1,5 +1,6 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { firewoodSeasonSoon } from '../game/beforeLeaving';
 import type { Actions } from './actions';
 import { formatApprox } from './format';
 import { Icon } from './shared';
@@ -56,9 +57,11 @@ export function ColdBanner(props: { winter: ViewState['winter'] }) {
 
 /**
  * A conta da lenha, à vista sem ninguém pedir. No outono é o inverno inteiro, visto de antes:
- * quanto guardar. No inverno é o que falta até a estação virar. No frio, quem fala é o aviso de
- * frio, que já traz a conta. Não é região viva: os números mudam a cada leitura do servidor, e
- * um leitor de tela não deve repeti-los sozinho.
+ * quanto guardar. Antes do outono ela só aparece quando o inverno chega em menos de um dia de
+ * relógio e a madeira não basta (no ritmo Rápido, o fim do verão): é o mesmo caso em que "Antes
+ * de partir" avisa. No inverno é o que falta até a estação virar. No frio, quem fala é o aviso
+ * de frio, que já traz a conta. Não é região viva: os números mudam a cada leitura do servidor,
+ * e um leitor de tela não deve repeti-los sozinho.
  */
 export function FirewoodNote(props: { view: ViewState }) {
   const { calendar, winter } = props.view;
@@ -74,16 +77,21 @@ export function FirewoodNote(props: { view: ViewState }) {
       </div>
     );
   }
-  const ahead = calendar.nextSeason.firewood;
-  if (ahead === null) {
+  const next =
+    calendar.nextSeason.firewood === null
+      ? null
+      : { ...calendar.nextSeason, firewood: calendar.nextSeason.firewood };
+  const season = next ?? firewoodSeasonSoon(props.view);
+  if (season === null) {
     return null;
   }
+  const ahead = season.firewood;
   return (
     <div class={`banner${ahead.missing > 0 ? ' banner-warning' : ''}`} role="note">
       <div>
         <Icon name="flame" />{' '}
         <strong>
-          {calendar.nextSeason.label} em {formatApprox(calendar.nextSeason.secondsUntil)}.
+          {season.label} em {formatApprox(season.secondsUntil)}.
         </strong>{' '}
         {ahead.text}
       </div>

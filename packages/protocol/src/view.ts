@@ -123,6 +123,8 @@ const FirewoodSchema = z.strictObject({
   winterTotal: z.number(),
   winterProduction: z.number(),
   stock: z.number(),
+  /** Madeira que a Serraria ainda junta antes de a estação da conta começar. */
+  gathered: z.number(),
   /** Madeira que as obras planejadas automáticas vão levar do estoque no prazo da conta. */
   reserved: z.number(),
   /** Quanto falta guardar, já sem o que as obras levam; 0 quando o estoque e a Serraria cobrem. */
@@ -234,6 +236,18 @@ export const ViewStateSchema = z.strictObject({
        */
       food: FoodForecastSchema.nullable(),
     }),
+    /**
+     * A próxima estação que queima lenha, com o prazo até ela e a conta; `null` quando a estação
+     * de agora já queima (a conta é a de `winter.firewood`).
+     */
+    nextFirewoodSeason: z
+      .strictObject({
+        id: z.enum(SEASON_IDS),
+        label: z.string(),
+        secondsUntil: z.number(),
+        firewood: FirewoodSchema,
+      })
+      .nullable(),
   }),
   population: z.strictObject({
     villagers: z.number(),

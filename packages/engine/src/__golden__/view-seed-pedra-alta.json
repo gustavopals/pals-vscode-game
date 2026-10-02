@@ -27,6 +27,21 @@
         ],
         "firewood": null,
         "food": null
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 518400,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 120,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
       }
     },
     "population": {
@@ -559,6 +574,21 @@
           "stockAtTurn": 500,
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +22,05/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 518400,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 120,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
         }
       }
     },
@@ -1109,6 +1139,21 @@
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +19,05/h."
         }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 496200,
+        "firewood": {
+          "perHour": 4,
+          "winterTotal": 96,
+          "winterProduction": 477,
+          "stock": 21,
+          "gathered": 479,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 96 de madeira com 8 habitantes. O estoque e a Serraria dão conta."
+        }
       }
     },
     "population": {
@@ -1648,6 +1693,7 @@
           "winterTotal": 216,
           "winterProduction": 0,
           "stock": 60,
+          "gathered": 0,
           "reserved": 0,
           "missing": 156,
           "text": "O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira."
@@ -1657,6 +1703,21 @@
           "stockAtTurn": 1211,
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +33,61/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 14400,
+        "firewood": {
+          "perHour": 9,
+          "winterTotal": 216,
+          "winterProduction": 0,
+          "stock": 60,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 156,
+          "text": "O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira."
         }
       }
     },
@@ -2204,7 +2265,8 @@
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida na Primavera será de +158,6/h."
         }
-      }
+      },
+      "nextFirewoodSeason": null
     },
     "population": {
       "villagers": 18,
@@ -2678,6 +2740,7 @@
         "winterTotal": 149,
         "winterProduction": 0,
         "stock": 0,
+        "gathered": 0,
         "reserved": 0,
         "missing": 149,
         "text": "Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 149 de madeira."
@@ -2767,6 +2830,21 @@
           "stockAtTurn": 900,
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +116,72/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 323880,
+        "firewood": {
+          "perHour": 10,
+          "winterTotal": 240,
+          "winterProduction": 806,
+          "stock": 201,
+          "gathered": 299,
+          "reserved": 240,
+          "missing": 0,
+          "text": "O Inverno vai queimar 240 de madeira com 20 habitantes. O estoque e a Serraria dão conta, mesmo com os 240 que as obras planejadas levam."
         }
       }
     },
@@ -3494,6 +3572,7 @@
           "winterTotal": 144,
           "winterProduction": 838,
           "stock": 436,
+          "gathered": 1064,
           "reserved": 0,
           "missing": 0,
           "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
@@ -3503,6 +3582,21 @@
           "stockAtTurn": 1500,
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +18,58/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 146280,
+        "firewood": {
+          "perHour": 6,
+          "winterTotal": 144,
+          "winterProduction": 838,
+          "stock": 436,
+          "gathered": 1064,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 144 de madeira com 12 habitantes. O estoque e a Serraria dão conta."
         }
       }
     },
@@ -4055,7 +4149,8 @@
         ],
         "firewood": null,
         "food": null
-      }
+      },
+      "nextFirewoodSeason": null
     },
     "population": {
       "villagers": 3,
@@ -4540,6 +4635,7 @@
         "winterTotal": 30,
         "winterProduction": 0,
         "stock": 0,
+        "gathered": 0,
         "reserved": 0,
         "missing": 30,
         "text": "Até a Primavera a lareira ainda queima 30 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 30 de madeira."
@@ -4629,6 +4725,21 @@
           "stockAtTurn": 500,
           "depletesInSeconds": null,
           "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +97,56/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 307380,
+        "firewood": {
+          "perHour": 11.5,
+          "winterTotal": 276,
+          "winterProduction": 1123,
+          "stock": 500,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 276 de madeira com 23 habitantes. O estoque e a Serraria dão conta."
         }
       }
     },

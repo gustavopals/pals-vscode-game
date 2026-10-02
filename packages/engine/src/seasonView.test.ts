@@ -115,6 +115,7 @@ describe('calendário: a próxima estação', () => {
       winterTotal: 216,
       winterProduction: 0,
       stock: 60,
+      gathered: 0,
       reserved: 0,
       missing: 156,
       text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
@@ -143,17 +144,30 @@ describe('calendário: a próxima estação', () => {
     state.settlement.resources.wood = 50_000;
     // Um lenhador no inverno rende 8 × 0,8 = 6,4 por hora, e a conta usa a moral que a próxima
     // virada vai calcular (60, com a comida guardada): 6,72 por hora, 161,28 em 24 horas, para
-    // baixo.
+    // baixo. Sozinhos, os 161 e os 50 do estoque não cobrem os 216; mas nas 4 horas que faltam
+    // para o inverno o mesmo lenhador junta mais 33 (duas horas a 8 e duas a 8,4, com a moral
+    // nova), e com eles a conta fecha. É o que o motor faz: o frio não vem.
     expect(view(state).morale.next.value).toBe(60);
     expect(view(state).calendar.nextSeason.firewood).toEqual({
       perHour: 9,
       winterTotal: 216,
       winterProduction: 161,
       stock: 50,
+      gathered: 33,
       reserved: 0,
-      missing: 5,
-      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 161 e há 50 em estoque: faltam 5 de madeira.',
+      missing: 0,
+      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. O estoque e a Serraria dão conta.',
     });
+    expect(advanceTo(state, YEAR).events.some((event) => event.type === 'coldStarted')).toBe(false);
+    // Com menos no estoque, as três parcelas aparecem.
+    state.settlement.resources.wood = 10_000;
+    expect(view(state).calendar.nextSeason.firewood).toMatchObject({
+      stock: 10,
+      gathered: 33,
+      missing: 12,
+      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria junta 33 até lá e repõe 161 no Inverno, e há 10 em estoque: faltam 12 de madeira.',
+    });
+    state.settlement.resources.wood = 50_000;
     state.settlement.workers = { farm: 10, lumberMill: 2, quarry: 3, goldMine: 3 };
     expect(view(state).calendar.nextSeason.firewood).toMatchObject({
       winterProduction: 322,
@@ -397,6 +411,7 @@ describe('inverno na visão', () => {
         winterTotal: 45,
         winterProduction: 0,
         stock: 30,
+        gathered: 0,
         reserved: 0,
         missing: 15,
         text: 'Até a Primavera a lareira ainda queima 45 de madeira. A Serraria repõe 0 e há 30 em estoque: faltam 15 de madeira.',
@@ -420,6 +435,7 @@ describe('inverno na visão', () => {
         winterTotal: 149,
         winterProduction: 0,
         stock: 0,
+        gathered: 0,
         reserved: 0,
         missing: 149,
         text: 'Até a Primavera a lareira ainda queima 149 de madeira. A Serraria repõe 0 e há 0 em estoque: faltam 149 de madeira.',
@@ -495,6 +511,123 @@ describe('inverno na visão', () => {
   });
 });
 
+describe('calendário: a próxima estação que queima lenha', () => {
+  /**
+   * Fim do verão, 20º dia: 18 habitantes, ninguém na Serraria e 60 de madeira. Faltam 4 dias de
+   * verão e o outono inteiro (24 dias) para o inverno: 56 horas de jogo. No ritmo Rápido são
+   * menos de 19 horas de relógio, e a próxima estação ainda é o outono, que não queima nada.
+   */
+  const lateSummer = (edit: (draft: GameState) => void = () => {}) =>
+    gameAt(SUMMER + 20 * DAY, (draft) => {
+      const { settlement } = draft;
+      draft.settings.timeScale = 3;
+      settlement.population.villagers = 18;
+      settlement.buildings = { ...settlement.buildings, townHall: 2, housing: 4, granary: 2 };
+      settlement.workers = { farm: 10, lumberMill: 0, quarry: 4, goldMine: 4 };
+      settlement.resources = { ...settlement.resources, food: 600_000, wood: 60_000 };
+      edit(draft);
+    });
+  const coldAt = (state: GameState) =>
+    advanceTo(state, YEAR).events.find((event) => event.type === 'coldStarted')?.atMs;
+
+  it('no verão, com o outono no meio: a conta do inverno já vem, com o prazo até ele', () => {
+    const state = lateSummer();
+    const { nextSeason, nextFirewoodSeason } = view(state).calendar;
+    expect(nextSeason).toMatchObject({ id: 'autumn', firewood: null });
+    // 56 horas de jogo, a três por hora de relógio: 18 h 40 min.
+    expect(nextFirewoodSeason).toEqual({
+      id: 'winter',
+      label: 'Inverno',
+      secondsUntil: (56 * 3600) / 3,
+      firewood: {
+        perHour: 27,
+        winterTotal: 216,
+        winterProduction: 0,
+        stock: 60,
+        gathered: 0,
+        reserved: 0,
+        missing: 156,
+        text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+      },
+    });
+    // É o que o motor faz se ninguém mexer: o frio abre no 4º dia do inverno.
+    expect(coldAt(state)).toBe(WINTER + 3 * DAY + 40 * MINUTE);
+  });
+
+  it('no outono é a próxima estação; no inverno não há o que prever', () => {
+    const autumn = view(autumnScenario()).calendar;
+    expect(autumn.nextFirewoodSeason).toEqual({
+      id: autumn.nextSeason.id,
+      label: autumn.nextSeason.label,
+      secondsUntil: autumn.nextSeason.secondsUntil,
+      firewood: autumn.nextSeason.firewood,
+    });
+    expect(view(fedAt(WINTER)).calendar.nextFirewoodSeason).toBeNull();
+    expect(view(winterColdScenario()).calendar.nextFirewoodSeason).toBeNull();
+  });
+
+  it('na primavera o inverno está a três estações, e a conta é a mesma', () => {
+    const { nextFirewoodSeason } = view(fedAt(SPRING + 5 * DAY)).calendar;
+    // 5 habitantes × 0,5 × 24 horas = 60; há 120 de madeira.
+    expect(nextFirewoodSeason).toMatchObject({
+      id: 'winter',
+      secondsUntil: 67 * 7200,
+      firewood: { winterTotal: 60, stock: 120, gathered: 0, missing: 0 },
+    });
+  });
+
+  it('a conta soma o que a Serraria junta até o inverno, até onde o depósito guarda', () => {
+    // Um lenhador: no inverno ele repõe menos do que a lareira queima, mas até lá junta
+    // madeira o resto do verão e o outono inteiro, e o Pátio guarda até 500.
+    const state = lateSummer((draft) => {
+      draft.settlement.workers = { farm: 10, lumberMill: 1, quarry: 3, goldMine: 4 };
+    });
+    const firewood = view(state).calendar.nextFirewoodSeason?.firewood;
+    expect(firewood).toMatchObject({
+      winterTotal: 216,
+      stock: 60,
+      gathered: 440,
+      reserved: 0,
+      missing: 0,
+      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. O estoque e a Serraria dão conta.',
+    });
+    expect(firewood?.winterProduction).toBeGreaterThan(150);
+    expect(firewood?.winterProduction).toBeLessThan(216);
+    expect(coldAt(state)).toBeUndefined();
+    // Com a despensa do inverno quase toda por juntar, a frase mostra as três parcelas.
+    const hungry = lateSummer((draft) => {
+      draft.settlement.population.villagers = 60;
+      draft.settlement.buildings.housing = 12;
+      draft.settlement.workers = { farm: 55, lumberMill: 1, quarry: 0, goldMine: 4 };
+      draft.settlement.resources.food = 2_000_000;
+      draft.settlement.buildings.granary = 5;
+    });
+    const short = view(hungry).calendar.nextFirewoodSeason?.firewood;
+    expect(short).toMatchObject({ winterTotal: 720, stock: 60, gathered: 440 });
+    expect(short?.missing).toBe(720 - 500 - (short?.winterProduction ?? 0));
+    expect(short?.text).toBe(
+      `O Inverno vai queimar 720 de madeira com 60 habitantes. A Serraria junta 440 até lá e repõe ${short?.winterProduction} no Inverno, e há 60 em estoque: faltam ${short?.missing} de madeira.`,
+    );
+  });
+
+  it('a obra automática que começa antes do inverno leva madeira do que a Serraria juntou', () => {
+    const state = accept(
+      lateSummer((draft) => {
+        draft.settlement.workers = { farm: 10, lumberMill: 1, quarry: 3, goldMine: 4 };
+        draft.settlement.resources.gold = 0;
+      }),
+      command('planConstruction', { building: 'farm', autoStart: true }),
+    ).state;
+    expect(view(state).calendar.nextFirewoodSeason?.firewood).toMatchObject({
+      stock: 60,
+      gathered: 440,
+      reserved: 80,
+      missing: 0,
+      text: 'O Inverno vai queimar 216 de madeira com 18 habitantes. O estoque e a Serraria dão conta, mesmo com os 80 que a obra planejada da Fazenda leva.',
+    });
+  });
+});
+
 describe('a conta da lenha e as planejadas automáticas', () => {
   /**
    * 10 habitantes, ninguém na Serraria, 125 de madeira e nenhum ouro. A Fazenda fica planejada
@@ -520,6 +653,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
     expect(view(start).winter?.firewood).toMatchObject({
       winterTotal: 115,
       stock: 125,
+      gathered: 0,
       reserved: 0,
       missing: 0,
       text: 'Até a Primavera a lareira ainda queima 115 de madeira. O estoque e a Serraria dão conta.',
@@ -544,6 +678,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
       winterTotal: 115,
       winterProduction: 0,
       stock: 125,
+      gathered: 0,
       reserved: 80,
       missing: 70,
       text: 'Até a Primavera a lareira ainda queima 115 de madeira. A Serraria repõe 0 e há 125 em estoque, mas a obra planejada da Fazenda leva 80 quando começar sozinha: faltam 70 de madeira. Mande gente para a Serraria ou desligue o início automático.',
@@ -571,6 +706,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
     expect(view(start).calendar.nextSeason.firewood).toMatchObject({
       winterTotal: 120,
       stock: 130,
+      gathered: 0,
       reserved: 0,
       missing: 0,
     });
@@ -583,6 +719,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
       winterTotal: 120,
       winterProduction: 0,
       stock: 130,
+      gathered: 0,
       reserved: 80,
       missing: 70,
       text: 'O Inverno vai queimar 120 de madeira com 10 habitantes. A Serraria repõe 0 e há 130 em estoque, mas a obra planejada da Fazenda leva 80 quando começar sozinha: faltam 70 de madeira. Mande gente para a Serraria ou desligue o início automático.',
@@ -594,6 +731,7 @@ describe('a conta da lenha e as planejadas automáticas', () => {
     expect(coldAt(state)).toBeUndefined();
     expect(view(state).winter?.firewood).toMatchObject({
       stock: 200,
+      gathered: 0,
       reserved: 80,
       missing: 0,
       text: 'Até a Primavera a lareira ainda queima 115 de madeira. O estoque e a Serraria dão conta, mesmo com os 80 que a obra planejada da Fazenda leva.',

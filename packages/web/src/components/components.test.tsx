@@ -636,6 +636,42 @@ describe('aba Feudo: estações, lenha e frio', () => {
     expect(spring).not.toContain('codicon-flame');
   });
 
+  it('com o inverno a menos de um dia e o outono no meio (ritmo Rápido), a conta aparece se a madeira não basta', () => {
+    const ahead = autumnView.calendar.nextFirewoodSeason;
+    if (ahead === null) {
+      throw new Error('O golden do outono deixou de trazer a estação da lenha.');
+    }
+    // Fim do verão: a próxima estação é o outono, que não queima nada.
+    const summer = (secondsUntil: number, missing: number) =>
+      fief({
+        view: {
+          ...autumnView,
+          calendar: {
+            ...autumnView.calendar,
+            nextSeason: {
+              ...autumnView.calendar.nextSeason,
+              id: 'autumn',
+              label: 'Outono',
+              firewood: null,
+            },
+            nextFirewoodSeason: {
+              ...ahead,
+              secondsUntil,
+              firewood: { ...ahead.firewood, missing },
+            },
+          },
+        },
+      });
+    const note = banner(summer(18 * 3600 + 2400, 156), 'vai queimar') ?? '';
+    expect(text(note)).toBe(
+      'Inverno em 18 h. O Inverno vai queimar 216 de madeira com 18 habitantes. A Serraria repõe 0 e há 60 em estoque: faltam 156 de madeira.',
+    );
+    expect(note).toContain('class="banner banner-warning" role="note"');
+    // A mais de um dia, ou com a conta fechada, o feudo não fala de lenha antes do outono.
+    expect(summer(24 * 3600, 156)).not.toContain('vai queimar');
+    expect(summer(18 * 3600, 0)).not.toContain('vai queimar');
+  });
+
   it('no inverno, o cabeçalho mostra a lenha por hora e em quanto tempo a madeira acaba', () => {
     expect(text(lit)).toContain('Lareira: 9 de madeira por hora · madeira acaba em 10 h');
     expect(lit).toContain('<p class="hearth">');

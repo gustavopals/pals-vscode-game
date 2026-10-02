@@ -50,6 +50,7 @@ import {
   recruitmentDurationNote,
   seasonChanges,
   seasonEffectsText,
+  stateAtNextSeason,
   winterView,
 } from './seasonView';
 import { storable } from './storage';
@@ -294,7 +295,11 @@ export function deriveViewState(
   // conta da moral e a da lenha saem daqui.
   const atTurn = stateAtNextMoraleTurn(state);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
+  // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
+  // e a da lenha da estação que vem.
+  const atNextSeason = stateAtNextSeason(state, forecast);
   const firewood = { timeScale, nextMorale, rates, forecast };
+  const firewoodAhead = firewoodForecast(state, firewood, atNextSeason);
 
   // Uma entrada por fila aberta; a fila que o Salão ainda não abriu não aparece.
   const queues = Array.from({ length: queuesUnlocked(state) }, (_, index) => {
@@ -331,9 +336,18 @@ export function deriveViewState(
         label: nextSeason.label,
         secondsUntil: until(nextSeasonBoundary(now)),
         changes: seasonChanges(date.season, nextSeason, timeScale),
-        firewood: firewoodForecast(state, firewood),
-        food: foodForecast(state, timeScale, forecast),
+        firewood: firewoodAhead?.season.id === nextSeason.id ? firewoodAhead.firewood : null,
+        food: foodForecast(state, timeScale, atNextSeason),
       },
+      nextFirewoodSeason:
+        firewoodAhead === null
+          ? null
+          : {
+              id: firewoodAhead.season.id,
+              label: firewoodAhead.season.label,
+              secondsUntil: until(firewoodAhead.startsMs),
+              firewood: firewoodAhead.firewood,
+            },
     },
     population: {
       villagers,

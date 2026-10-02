@@ -152,6 +152,8 @@ type FirewoodCount = {
   lumberMill: string;
   /** Os edifícios das obras automáticas que levam a madeira de `numbers.reserved`. */
   reservedFor: BuildingId[];
+  /** A estação da conta: a que queima a lenha. */
+  season: SeasonDef;
 };
 
 /**
@@ -171,14 +173,16 @@ export type FirewoodContext = {
  * (GDD §6.3): uma conta que as ignorasse diria "dão conta", e o frio abriria na ausência.
  *
  * Entram as que esperam algo que chega antes de `untilMs` (o recurso que a produção junta, a
- * fila, a obra anterior), na ordem em que devem começar, e cada uma só leva o que o estoque
- * ainda tem: a que pede mais madeira do que sobrou não começa com a lareira acesa. As manuais e
- * as que esperam uma ordem do jogador ficam de fora. É uma previsão, como o prazo de cada
- * planejada: vale enquanto nada mais mudar as taxas.
+ * fila, a obra anterior), na ordem em que devem começar, e cada uma só leva o que ainda há em
+ * `poolMilli` (o estoque e o que a Serraria junta antes da estação): a que pede mais madeira do
+ * que sobrou não começa com a lareira acesa. As manuais e as que esperam uma ordem do jogador
+ * ficam de fora. É uma previsão, como o prazo de cada planejada: vale enquanto nada mais mudar
+ * as taxas.
  */
 function autoStartWood(
   state: GameState,
   untilMs: number,
+  poolMilli: number,
   { rates, forecast }: FirewoodContext,
 ): { units: number; buildings: BuildingId[] } {
   const now = state.lastProcessedAt;
@@ -191,7 +195,7 @@ function autoStartWood(
     )
     // A ordem em que começam; no empate, a da lista (a ordenação é estável).
     .sort((a, b) => a.startsIn - b.startsIn);
-  let left = state.settlement.resources.wood;
+  let left = poolMilli;
   let units = 0;
   const buildings: BuildingId[] = [];
   for (const { plan } of starting) {
@@ -247,10 +251,51 @@ function producedBetween(
 }
 
 /**
+ * O feudo como a próxima virada de estação deve encontrá-lo: a projeção do ofício até ela, com
+ * os fatores de agora, e o relógio da cópia posto na virada (a estação já é a outra, e a fome e
+ * o frio se acomodam como no motor). `null` quando a comida ou a lenha acabam antes: dali em
+ * diante a visão não adivinha.
+ */
+export function stateAtNextSeason(state: GameState, forecast: CraftForecast): GameState | null {
+  const turn = nextSeasonBoundary(state.lastProcessedAt);
+  const found = forecast.stateAt(turn);
+  if (found === null) {
+    return null;
+  }
+  // Uma cópia inteira: o acerto de fome e frio mexe em listas que a projeção divide com o estado.
+  const atTurn = cloneState(found);
+  atTurn.lastProcessedAt = turn;
+  atTurn.clock.gameTimeMs = turn;
+  settleScarcity(atTurn, turn, []);
+  return atTurn;
+}
+
+/**
+ * O feudo como o começo de uma estação mais à frente deve encontrá-lo: a mesma projeção, uma
+ * estação de cada vez, cada uma com os seus fatores, a partir do que a próxima virada encontra
+ * (`atNextSeason`). `null` quando a comida ou a lenha acabam no caminho.
+ */
+function stateAtSeasonStart(atNextSeason: GameState | null, startsMs: number): GameState | null {
+  let current = atNextSeason;
+  // O calendário tem poucas estações: o laço acaba em no máximo uma volta por elas.
+  for (let turns = 0; turns < balance.calendar.seasons.length; turns += 1) {
+    if (current === null || current.lastProcessedAt >= startsMs) {
+      return current;
+    }
+    current = stateAtNextSeason(current, craftForecast(current));
+  }
+  return null;
+}
+
+/**
  * A conta da lenha de `season` entre `fromMs` e `toMs` de jogo, com os habitantes e os
  * trabalhadores de agora: o que a lareira queima, o que a Serraria entrega, o que as obras
  * automáticas levam e o que o estoque ainda precisa ter. A lenha é arredondada para cima e a
  * produção para baixo, para a conta nunca prometer mais do que o inverno entrega.
+ *
+ * `atStart` é o feudo como o começo da estação deve encontrá-lo, quando ela ainda não chegou:
+ * o que a Serraria junta até lá entra na conta, até onde o depósito guarda. Sem ele (dentro da
+ * estação, ou quando a projeção não chega lá), vale só o estoque de agora.
  */
 function countFirewood(
   state: GameState,
@@ -258,6 +303,7 @@ function countFirewood(
   fromMs: number,
   toMs: number,
   context: FirewoodContext,
+  atStart: GameState | null = null,
 ): FirewoodCount {
   const { timeScale, nextMorale } = context;
   const producer = producerOf('wood');
@@ -266,36 +312,45 @@ function countFirewood(
   const winterProduction = Math.floor(
     producedBetween(state, producer, season, fromMs, toMs, nextMorale) / HOUR_MS / MILLI,
   );
-  const stock = Math.floor(state.settlement.resources.wood / MILLI);
-  const reserved = autoStartWood(state, toMs, context);
+  const stockMilli = state.settlement.resources.wood;
+  const stock = Math.floor(stockMilli / MILLI);
+  const foundMilli = Math.max(stockMilli, atStart?.settlement.resources.wood ?? 0);
+  const gathered = Math.floor(foundMilli / MILLI) - stock;
+  const reserved = autoStartWood(state, toMs, foundMilli, context);
   return {
     numbers: {
       perHour: (burned * timeScale) / MILLI,
       winterTotal,
       winterProduction,
       stock,
+      gathered,
       reserved: reserved.units,
-      missing: Math.max(0, winterTotal - winterProduction - (stock - reserved.units)),
+      missing: Math.max(0, winterTotal - winterProduction - (stock + gathered - reserved.units)),
     },
     villagers: state.settlement.population.villagers,
     lumberMill: buildingWithArticle(producer),
     reservedFor: reserved.buildings,
+    season,
   };
 }
 
 /**
  * A segunda frase da conta: o que a Serraria repõe, o que há e o que falta; ou que dá conta.
- * Quando uma obra automática vai levar madeira do estoque, a frase diz qual e quanto: com
- * falta, vem junto o que fazer (mais gente na Serraria, ou a obra esperar a ordem do jogador).
+ * Antes da estação, o que a Serraria junta até lá é uma parcela à parte. Quando uma obra
+ * automática vai levar madeira do estoque, a frase diz qual e quanto: com falta, vem junto o
+ * que fazer (mais gente na Serraria, ou a obra esperar a ordem do jogador).
  */
-function firewoodSums({ numbers, lumberMill, reservedFor }: FirewoodCount): string {
+function firewoodSums({ numbers, lumberMill, reservedFor, season }: FirewoodCount): string {
   const wood = balance.resources.wood.label.toLowerCase();
-  const { missing, reserved, stock, winterProduction } = numbers;
+  const { gathered, missing, reserved, stock, winterProduction } = numbers;
   const [only] = reservedFor;
   const single = reservedFor.length === 1 && only !== undefined;
   const takes = single ? `a obra planejada ${ofBuilding(only)} leva` : 'as obras planejadas levam';
   if (missing > 0) {
-    const sources = `${sentenceCase(lumberMill)} repõe ${winterProduction} e há ${stock} em estoque`;
+    const sources =
+      gathered > 0
+        ? `${sentenceCase(lumberMill)} junta ${gathered} até lá e repõe ${winterProduction} ${inSeason(season)}, e há ${stock} em estoque`
+        : `${sentenceCase(lumberMill)} repõe ${winterProduction} e há ${stock} em estoque`;
     if (reserved === 0) {
       return `${sources}: faltam ${missing} de ${wood}.`;
     }
@@ -310,23 +365,56 @@ function firewoodSums({ numbers, lumberMill, reservedFor }: FirewoodCount): stri
     : `O estoque e ${lumberMill} dão conta, mesmo com os ${reserved} que ${takes}.`;
 }
 
+/** A próxima estação que queima lenha, vista de antes: qual é, quando começa e a conta dela. */
+export type FirewoodAhead = { season: SeasonDef; startsMs: number; firewood: FirewoodView };
+
 /**
- * A previsão da lenha da próxima estação, quando ela queima madeira: o inverno inteiro, visto
- * de antes. `null` quando a próxima estação não queima nada. `nextMorale` é a moral que a
- * próxima virada do dia vai calcular: é com ela que a Serraria rende dali em diante.
+ * A previsão da lenha da próxima estação que queima madeira: o inverno inteiro, visto de antes,
+ * seja ele a próxima estação ou não. No ritmo Rápido o outono é mais curto do que um dia de
+ * relógio: quem sai no fim do verão volta com o inverno pela metade, e precisa da conta antes.
+ * `null` quando a estação de agora já queima lenha: aí a conta é a de `winterView`.
+ *
+ * `atNextSeason` é o feudo como a próxima virada de estação deve encontrá-lo (`stateAtNextSeason`):
+ * dali a projeção segue até o começo do inverno, e o que a Serraria junta no caminho entra na
+ * conta. `context.nextMorale` é a moral que a próxima virada do dia vai calcular: é com ela que
+ * a Serraria rende no inverno.
  */
-export function firewoodForecast(state: GameState, context: FirewoodContext): FirewoodView | null {
-  const next = seasonAfter(seasonAt(state.lastProcessedAt));
-  if (next.effects.firewoodPerVillagerPerHour.num === 0) {
+export function firewoodForecast(
+  state: GameState,
+  context: FirewoodContext,
+  atNextSeason: GameState | null,
+): FirewoodAhead | null {
+  const now = state.lastProcessedAt;
+  if (seasonAt(now).effects.firewoodPerVillagerPerHour.num > 0) {
     return null;
   }
-  const starts = nextSeasonBoundary(state.lastProcessedAt);
-  const count = countFirewood(state, next, starts, starts + next.days * DAY_MS, context);
+  let season = seasonAfter(seasonAt(now));
+  let startsMs = nextSeasonBoundary(now);
+  // Cada estação é visitada uma vez: se nenhuma queima lenha, não há o que prever.
+  for (let ahead = 1; season.effects.firewoodPerVillagerPerHour.num === 0; ahead += 1) {
+    if (ahead >= balance.calendar.seasons.length) {
+      return null;
+    }
+    startsMs += season.days * DAY_MS;
+    season = seasonAfter(season);
+  }
+  const count = countFirewood(
+    state,
+    season,
+    startsMs,
+    startsMs + season.days * DAY_MS,
+    context,
+    stateAtSeasonStart(atNextSeason, startsMs),
+  );
   const wood = balance.resources.wood.label.toLowerCase();
   const people = plural(count.villagers, 'habitante', 'habitantes');
   return {
-    ...count.numbers,
-    text: `${sentenceCase(seasonWithArticle(next))} vai queimar ${count.numbers.winterTotal} de ${wood} com ${people}. ${firewoodSums(count)}`,
+    season,
+    startsMs,
+    firewood: {
+      ...count.numbers,
+      text: `${sentenceCase(seasonWithArticle(season))} vai queimar ${count.numbers.winterTotal} de ${wood} com ${people}. ${firewoodSums(count)}`,
+    },
   };
 }
 
@@ -347,29 +435,21 @@ function realSecondsFloor(gameMs: number, timeScale: number): number {
  * motor), pela estação que vem, virada de dia a virada de dia. Como toda previsão da visão,
  * conta com os habitantes e os trabalhadores de agora e não sorteia nada.
  *
- * `null` com fome aberta e quando a comida ou a lenha acabam antes da virada: aí o alarme é o
- * da estação de agora, e dali em diante a visão não adivinha.
+ * `atTurn` é o feudo como a virada deve encontrá-lo (`stateAtNextSeason`). `null` com fome
+ * aberta e quando a comida ou a lenha acabam antes da virada: aí o alarme é o da estação de
+ * agora, e dali em diante a visão não adivinha.
  */
 export function foodForecast(
   state: GameState,
   timeScale: number,
-  forecast: CraftForecast,
+  atTurn: GameState | null,
 ): FoodForecastView | null {
-  if (state.settlement.famine !== null) {
+  if (state.settlement.famine !== null || atTurn === null) {
     return null;
   }
   const now = state.lastProcessedAt;
   const next = seasonAfter(seasonAt(now));
-  const turn = nextSeasonBoundary(now);
-  const found = forecast.stateAt(turn);
-  if (found === null) {
-    return null;
-  }
-  // Uma cópia inteira: o acerto de fome e frio mexe em listas que a projeção divide com o estado.
-  const atTurn = cloneState(found);
-  atTurn.lastProcessedAt = turn;
-  atTurn.clock.gameTimeMs = turn;
-  settleScarcity(atTurn, turn, []);
+  const turn = atTurn.lastProcessedAt;
 
   const rate = netRates(atTurn).food;
   const perHour = (rate * timeScale) / MILLI;

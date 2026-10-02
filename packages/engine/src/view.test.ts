@@ -56,6 +56,22 @@ describe('deriveViewState', () => {
         // agora (`depletesInSeconds`), e a previsão da estação que vem sai de cena.
         food: null,
       },
+      // O inverno está a três estações: 5 habitantes queimam 60, e os 120 de madeira bastam.
+      nextFirewoodSeason: {
+        id: 'winter',
+        label: 'Inverno',
+        secondsUntil: 72 * 7200,
+        firewood: {
+          perHour: 2.5,
+          winterTotal: 60,
+          winterProduction: 0,
+          stock: 120,
+          gathered: 0,
+          reserved: 0,
+          missing: 0,
+          text: 'O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta.',
+        },
+      },
     });
     expect(initial.population).toMatchObject({
       villagers: 5,

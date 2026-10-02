@@ -670,4 +670,56 @@ test.describe('no ritmo da produção', () => {
       fief(page).getByRole('listitem').filter({ hasText: 'Serraria Nv1 → Nv2' }),
     ).toContainText('2 min 30 s');
   });
+
+  test('ritmo Rápido: no fim do verão, com o outono no meio, a aba Hoje e o feudo já avisam que falta lenha para o inverno', async ({
+    context,
+    world,
+  }) => {
+    const views = watchViews(context);
+    const page = await world.open(context);
+    await playFast(page);
+    // Todos na Fazenda, e a melhoria dela leva 80 das 120 de madeira: sobram 40.
+    const plus = fief(page).getByRole('button', { name: 'Pôr mais um trabalhador em Fazenda' });
+    for (const free of [4, 3, 2, 1, 0]) {
+      await plus.click();
+      await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
+    }
+    await fief(page)
+      .getByRole('listitem')
+      .filter({ hasText: 'Fazenda Nv1 → Nv2' })
+      .getByRole('button', { name: 'Melhorar' })
+      .click();
+    await expect(fief(page).locator('.active-construction')).toContainText('Fazenda → Nv2');
+
+    // Trinta horas de relógio e uns minutos: fim do verão. O outono dura 16 h, e o inverno
+    // chega em menos de 18.
+    await world.passTime(30 * HOUR + 20 * MINUTE, page);
+    const view = await views.latest();
+    expect(view.calendar.season).toBe('summer');
+    expect(view.calendar.nextSeason).toMatchObject({ id: 'autumn', firewood: null });
+    const ahead = view.calendar.nextFirewoodSeason;
+    expect(ahead).toMatchObject({
+      id: 'winter',
+      firewood: { perHour: 7.5, winterTotal: 60, stock: 40, gathered: 0, missing: 20 },
+    });
+    expect(ahead?.secondsUntil).toBeLessThan(18 * 3600);
+    expect(ahead?.secondsUntil).toBeGreaterThan(17 * 3600);
+
+    // Na aba Hoje, o item da lenha, com o botão da Serraria.
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    const firewood = page
+      .getByRole('tabpanel', { name: 'Hoje' })
+      .getByRole('region', { name: 'Antes de partir' })
+      .getByRole('listitem')
+      .filter({ hasText: 'Inverno em' });
+    await expect(firewood).toContainText(
+      'Inverno em 17 h: 5 habitantes vão queimar 7,5 madeira/h, e faltam 20 de madeira para a estação inteira.',
+    );
+    await expect(firewood.getByRole('button', { name: 'Alocar na Serraria' })).toBeVisible();
+    // No feudo, a conta inteira, por extenso.
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    await expect(fief(page).getByRole('note')).toContainText(
+      'Inverno em 17 h. O Inverno vai queimar 60 de madeira com 5 habitantes. A Serraria repõe 0 e há 40 em estoque: faltam 20 de madeira.',
+    );
+  });
 });
