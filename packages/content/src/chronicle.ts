@@ -232,12 +232,27 @@ export const moraleBandTemplates: Record<
 
 /**
  * A Ameaça que sobe é o mesmo evento com uma frase por marca cruzada (`balance.threat.
- * chronicleMarks`): na primeira os vigias ainda só escutam; na segunda já veem. Uma marca sem
- * frase aqui usa a de `chronicleTemplates.threatRose`.
+ * chronicleMarks`): na primeira os vigias ainda só escutam; na segunda já veem. Cada marca tem a
+ * frase da primeira vez (`first`) e a de quando a Ameaça volta a ela (`again`): só uma incursão a
+ * faz cair, então quem cruza a marca de novo é a matilha que voltou depois de um ataque, e a
+ * Crônica não repete, palavra por palavra, o anúncio de antes. Uma marca sem frase aqui usa a de
+ * `chronicleTemplates.threatRose`.
  */
-export const threatMarkTemplates: Readonly<Record<number, string>> = {
-  40: 'No {dia}º dia {daEstacao}, os vigias de {feudo} contam mais uivos a cada noite. A Ameaça chegou a {ameaca}.',
-  70: 'No {dia}º dia {daEstacao}, os vigias de {feudo} já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a {ameaca}.',
+export const threatMarkTemplates: Readonly<
+  Record<number, { readonly first: string; readonly again: string }>
+> = {
+  40: {
+    first:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} contam mais uivos a cada noite. A Ameaça chegou a {ameaca}.',
+    again:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a {ameaca}.',
+  },
+  70: {
+    first:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a {ameaca}.',
+    again:
+      'No {dia}º dia {daEstacao}, os vigias de {feudo} tornam a ver olhos acesos na orla da mata. A Ameaça chegou a {ameaca}.',
+  },
 };
 
 /**

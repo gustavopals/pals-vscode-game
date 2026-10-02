@@ -489,10 +489,15 @@ export const MoraleBandTemplatesSchema = z.strictObject(
   ),
 );
 
-/** As frases da Ameaça que cruza uma marca: uma por marca, com o número dela como chave. */
+/**
+ * As frases da Ameaça que cruza uma marca, com o número dela como chave: a da primeira vez e a
+ * de quando ela volta depois de uma incursão a derrubar, que não podem ser iguais.
+ */
 export const ThreatMarkTemplatesSchema = z.record(
   z.string().regex(/^[1-9]\d*$/),
-  chronicleTemplate,
+  z
+    .strictObject({ first: chronicleTemplate, again: chronicleTemplate })
+    .refine(({ first, again }) => first !== again, 'a marca cruzada de novo repete a frase'),
 );
 
 /**

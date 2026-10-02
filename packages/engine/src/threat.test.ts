@@ -321,16 +321,74 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
 
   it('se a Ameaça cair e cruzar a marca de novo, a linha sai de novo', () => {
     // Quem a faz cair é a incursão (`threat.raids.test.ts`); aqui, a regra do cruzamento.
-    const first = advanceTo(feud(3 * DAY, 35, 1), 4 * DAY);
+    const rise = rules.perActiveTilePerDay;
+    const first = advanceTo(feud(3 * DAY, 40 - rise, 1), 4 * DAY);
     expect(eventsOfType(first.events, 'threatRose')).toHaveLength(1);
-    const dropped = { ...first.state, map: { ...first.state.map, threat: 30 } };
+    const dropped = { ...first.state, map: { ...first.state.map, threat: 40 - 2 * rise } };
     expect(rose(dropped, 5 * DAY)).toEqual([]);
     expect(rose(dropped, 6 * DAY).map((event) => event.data.mark)).toEqual([40]);
   });
 
-  it('cada marca do conteúdo tem a frase dela; a geral fica para uma marca nova', () => {
+  it('a marca cruzada de novo não repete a frase da primeira vez: diz que os lobos voltaram (achado 1 da revisão)', () => {
+    // A Ameaça só cai com uma incursão: quem cruza a marca de novo é a matilha que voltou. Antes
+    // a Crônica repetia, palavra por palavra, o anúncio de antes, dois dias depois do ataque.
+    const rise = rules.perActiveTilePerDay;
+    const told: string[] = [];
+    let state = feud(3 * DAY, 70 - rise, 1);
+    for (let round = 0; round < 3; round += 1) {
+      const turn = state.lastProcessedAt + DAY;
+      const step = advanceTo(state, turn);
+      told.push(...eventsOfType(step.events, 'threatRose').map((event) => event.text));
+      // O ataque que a derruba, sem mexer em mais nada: a regra do cruzamento é a da virada.
+      state = { ...step.state, map: { ...step.state.map, threat: 70 - rise } };
+    }
+    expect(told).toEqual([
+      'No 5º dia da Primavera, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+      'No 6º dia da Primavera, os vigias de Pedra Alta tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 70.',
+      'No 7º dia da Primavera, os vigias de Pedra Alta tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 70.',
+    ]);
+    // Cada marca conta as vezes em que foi cruzada para cima.
+    expect(state.stats['threatCrossed:70']).toBe(3);
+    expect(state.stats['threatCrossed:40']).toBeUndefined();
+    // E a dos 40 também tem a frase da volta.
+    const forty = advanceTo(
+      feud(3 * DAY, 40 - rise, 1, (draft) => {
+        draft.stats['threatCrossed:40'] = 1;
+      }),
+      4 * DAY,
+    );
+    expect(eventsOfType(forty.events, 'threatRose').map((event) => event.text)).toEqual([
+      'No 5º dia da Primavera, os vigias de Pedra Alta tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 40.',
+    ]);
+  });
+
+  it('a contagem das marcas anda com ou sem Torre: quem ergue a Torre depois da primeira vez lê a frase da volta', () => {
+    // A Torre não muda o estado de quem está fora (`threat.raids.test.ts`, matriz QA-10): a
+    // marca cruzada às cegas conta igual, e a Crônica de quem passa a vigiar não a anuncia como
+    // novidade.
+    const rise = rules.perActiveTilePerDay;
+    const blind = advanceTo(feud(3 * DAY, 40 - rise, 0), 4 * DAY);
+    expect(eventsOfType(blind.events, 'threatRose')).toEqual([]);
+    expect(blind.state.stats['threatCrossed:40']).toBe(1);
+    const watching = {
+      ...blind.state,
+      map: { ...blind.state.map, threat: 40 - rise },
+      settlement: {
+        ...blind.state.settlement,
+        buildings: { ...blind.state.settlement.buildings, watchtower: 1 },
+      },
+    };
+    expect(rose(watching, 5 * DAY).map((event) => event.text)).toEqual([
+      'No 6º dia da Primavera, os vigias de Pedra Alta tornam a ouvir uivos: os lobos voltaram. A Ameaça chegou a 40.',
+    ]);
+  });
+
+  it('cada marca do conteúdo tem a frase dela e a da volta; a geral fica para uma marca nova', () => {
     for (const mark of rules.chronicleMarks) {
-      expect(threatMarkTemplates[mark]).toBeDefined();
+      const phrases = threatMarkTemplates[mark];
+      expect(phrases?.first).toBeDefined();
+      expect(phrases?.again).toBeDefined();
+      expect(phrases?.again).not.toBe(phrases?.first);
     }
     expect(chronicleTemplates.threatRose).toContain('{ameaca}');
   });

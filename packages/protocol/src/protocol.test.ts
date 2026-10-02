@@ -1540,7 +1540,8 @@ describe('contentHash', () => {
     expect(hashed).toContain(`"perActiveTilePerDay":${balance.threat.perActiveTilePerDay}`);
     expect(hashed).toContain(tileTypes.wolfDen.label);
     expect(hashed).toContain(enemies.wolves.sizes.medium);
-    expect(hashed).toContain(threatMarkTemplates[70] ?? 'falta a frase');
+    expect(hashed).toContain(threatMarkTemplates[70]?.first ?? 'falta a frase');
+    expect(hashed).toContain(threatMarkTemplates[70]?.again ?? 'falta a frase da volta');
     expect(hashed).toContain(buildings.watchtower.maxLevelNote ?? 'falta a frase');
     // E a Paliçada: o que cada nível segura, o que passa, os nomes dos tamanhos e a frase do
     // teto. As três cartas da promessa entram com o resto do catálogo.

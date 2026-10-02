@@ -1448,6 +1448,33 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
     }
   });
 
+  it('com a Torre desde o começo, um ano: a frase de cada marca não se repete na volta, que diz que os lobos voltaram (achado 1 da revisão)', () => {
+    // Antes, a incursão do roteiro derrubava a Ameaça de 75 para 65 e a virada seguinte a levava
+    // de novo a 70: a mesma frase dos 70, palavra por palavra, nos dias 15 e 17 de toda partida.
+    for (const seed of SEEDS) {
+      const watched = gameWith((draft) => {
+        quietCouncil(draft);
+        draft.seed = seed;
+        draft.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
+        draft.settlement.buildings.townHall = 2;
+        draft.settlement.buildings.watchtower = 1;
+      });
+      const lines = eventsOfType(advanceTo(watched, YEAR).events, 'threatRose');
+      // A Ameaça volta a alguma marca depois de uma incursão em toda semente.
+      expect(lines.length, seed).toBeGreaterThan(rules.chronicleMarks.length);
+      // O que a frase diz, sem a data e sem o número.
+      const said = (event: GameEvent) =>
+        event.text.replace(/^No \d+º dia \S+ \S+, /, '').replace(/\d+\.$/, '');
+      for (const mark of rules.chronicleMarks) {
+        const [first, ...returns] = lines.filter((event) => event.data.mark === mark).map(said);
+        for (const text of returns) {
+          expect(text, `${seed}, marca ${mark}`).not.toBe(first);
+          expect(text, `${seed}, marca ${mark}`).toContain('tornam a');
+        }
+      }
+    }
+  });
+
   it('dois anos: a frequência fica entre 12 e 20 incursões por ano de jogo, e a do roteiro não se repete', () => {
     for (const seed of SEEDS) {
       const { events } = advanceTo(left(seed), 2 * YEAR);

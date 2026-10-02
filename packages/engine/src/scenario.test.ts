@@ -74,7 +74,8 @@ describe('cenário golden de 7 dias', () => {
     expect(orders.filter((order) => order.result === 'accepted').length).toBeGreaterThan(30);
     // A Ameaça: sobe 5 a cada dia de jogo. A Torre de Vigia fica pronta às 25 h 12 min: os 40
     // passaram sem vigia nenhum (às 16 h) e não viram linha; os 70, às 28 h, sim. Os lobos do
-    // roteiro a derrubam a 65 às 30 h, e às 32 h ela cruza os 70 de novo: a linha sai de novo.
+    // roteiro a derrubam a 65 às 30 h, e às 32 h ela cruza os 70 de novo: a linha sai de novo,
+    // com a frase da volta, e não a mesma de antes.
     // Daí em diante fica entre 90 e 100, caindo 10 a cada incursão. A Torre sobe ao nível 2 às
     // 96 h, e a ordem seguinte para ela é recusada.
     expect(
@@ -90,7 +91,7 @@ describe('cenário golden de 7 dias', () => {
       [
         32,
         70,
-        'No 17º dia da Primavera, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+        'No 17º dia da Primavera, os vigias de Pedra Alta tornam a ver olhos acesos na orla da mata. A Ameaça chegou a 70.',
       ],
     ]);
     expect(
