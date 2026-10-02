@@ -964,6 +964,34 @@ describe('feudo empobrecido (roadmap V2C-T4.6): há caminho de volta', () => {
     expect(relieved.cold).not.toBeNull();
   });
 
+  it('o frio que só passa porque a fome acaba: a frase diz o prazo, sem a conta do que faltaria', () => {
+    // Seis aldeões, um lenhador veterano: com a fome cortando a Serraria ele entrega 2,88 por
+    // hora, contra 3 da lareira. Quatro lavradores acabam de chegar à Fazenda: quando rendem
+    // inteiro a fome acaba, a Serraria deixa de levar o corte dela e passa a cobrir a lareira.
+    const start = gameWith((draft) => {
+      Object.assign(draft, cloneState(ruined()));
+      draft.settlement.population.villagers = 6;
+      draft.settlement.workers.lumberMill = 1;
+    });
+    const now = start.lastProcessedAt;
+    const ordered = accept(start, command('setWorkers', { building: 'farm', count: 4 })).state;
+    expect(ordered.settlement.cold).not.toBeNull();
+    const { winter, famine } = view(ordered);
+    expect(famine?.endsInSeconds).toBe(7200);
+    // A conta da lenha, feita com a fome ainda aberta, acusaria falta: o aviso não a repete,
+    // porque o frio passa antes.
+    expect(winter?.firewood.missing).toBeGreaterThan(0);
+    expect(winter?.cold).toMatchObject({
+      endsInSeconds: 7200,
+      text: 'Frio: sem lenha, a produção de todo o feudo cai para 80%. A lareira pede 3/h e a Serraria entrega 2,88/h. Sem mexer em nada, a Serraria passa a cobrir a lareira em 2 h, e o frio passa.',
+    });
+    // O motor confirma, se ninguém desertar no caminho (seis aldeões estão acima do piso).
+    const relieved = advanceTo(ordered, now + DAY);
+    if (eventsOfType(relieved.events, 'villagerDeserted').length === 0) {
+      expect(relieved.state.settlement.cold).toBeNull();
+    }
+  });
+
   it('gente de menos na Fazenda: a adaptação termina e a fome não acaba, e a tela não promete nada', () => {
     const one = accept(ruined(), command('setWorkers', { building: 'farm', count: 1 })).state;
     expect(view(one).famine).toMatchObject({

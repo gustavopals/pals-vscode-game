@@ -541,11 +541,13 @@ export function winterView(
       : '';
   const { coldEndsIn } = context.outlook;
   const balanceNow = `A lareira pede ${decimal(numbers.perHour)}/h e ${count.lumberMill} entrega ${decimal(produced)}/h`;
-  // Quando o frio passa sozinho (o lenhador que ainda se adapta vai render inteiro), a frase
-  // diz isso e o prazo, em vez de pedir a madeira que já está a caminho.
+  // Quando o frio passa sozinho (o lenhador que ainda se adapta vai render inteiro, ou a fome
+  // que cortava a Serraria acaba), a frase diz isso e o prazo, em vez de pedir a madeira que já
+  // está a caminho. A conta do que faltaria, feita com as penalidades de agora, sai da frase:
+  // o frio passa antes, e as duas juntas se desmentiriam.
   const ending =
     coldEndsIn === null
-      ? `${balanceNow}: o frio passa quando sobrar ${wood}, ou ${inSeason(next)}.`
+      ? `${balanceNow}: o frio passa quando sobrar ${wood}, ou ${inSeason(next)}.${shortfall}`
       : `${balanceNow}. ${reliefSentence(state, 'cold', coldEndsIn, timeScale)}`;
   return {
     firewoodPerHour: numbers.perHour,
@@ -555,7 +557,7 @@ export function winterView(
       endsInSeconds: endsInSeconds(coldEndsIn, timeScale),
       text:
         `Frio: sem lenha, a produção de todo o feudo cai para ${Math.round((num * 100) / den)}%. ` +
-        `${ending}${shortfall}`,
+        ending,
     },
   };
 }
