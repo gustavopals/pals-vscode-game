@@ -24,7 +24,7 @@
 
 A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam produzindo efeitos durante sua ausência e uma Crônica que conta a história do seu reino quando você volta.
 
-> **Já dá para jogar:** o MVP está no ar em **[lords.palsincomehub.com](https://lords.palsincomehub.com)** e foi fechado como [v0.1.0](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0) em 2026-10-01. Motor de economia, simulador local, API online e app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) estão implementados, com testes automatizados, inclusive em navegador real. As imagens deste README continuam sendo **artes conceituais**, criadas com IA para apresentar o universo do jogo: não são capturas da interface.
+> **Já dá para jogar:** o jogo está no ar em **[lords.palsincomehub.com](https://lords.palsincomehub.com)**. O MVP foi fechado como [v0.1.0](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0) em 2026-10-01, e a v0.2 "Estações e Conselho" foi implementada e publicada por fase em 2026-10-02, ainda sem versão etiquetada: as regras novas aguardam a confirmação do autor ([registro de mudanças](CHANGELOG.md)). Motor de economia, simulador local, API online e app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) estão implementados, com testes automatizados, inclusive em navegador real. As imagens deste README continuam sendo **artes conceituais**, criadas com IA para apresentar o universo do jogo: não são capturas da interface.
 
 ### Quatro estações. Uma história para contar.
 
@@ -34,26 +34,27 @@ A proposta é simples: sessões de **2 a 10 minutos**, decisões que continuam p
 | :---: | :---: | :---: | :---: |
 | Construir e crescer | Explorar com a Guilda | Abastecer e preparar | Resistir ao cerco |
 
-Esse é o ciclo previsto para a evolução do jogo. O MVP implementa economia, obras, recrutamento, fome, objetivos e Crônica; o calendário já mostra a estação e o dia, mas **as estações ainda não têm efeito**. Efeitos sazonais, cartas do Conselho, heróis, exército e mapa são de versões futuras.
+Esse é o ciclo previsto para a evolução do jogo. Desde a v0.2 **as estações têm efeito**: cada uma muda a produção e os prazos, e no inverno a lareira queima madeira, e sem ela vem o frio. O estoque tem limite, que o Celeiro e o Armazém ampliam; os aldeões têm moral e ofício; o Conselho do Feudo traz dilemas com prazo, que deixam rastro na Crônica; e os lobos atacam com ou sem você, enquanto a Torre de Vigia avisa e a Paliçada segura. A Guilda, os heróis, o exército, o cerco e o mapa são de versões futuras.
 
 <a id="jogue"></a>
 
 ## Jogue agora, sem instalar nada
 
 1. Abra **[lords.palsincomehub.com](https://lords.palsincomehub.com)**.
-2. Escolha o seu nome e o nome do feudo e clique em **Jogar agora**. Não há e-mail, senha nem formulário.
-3. Ponha os aldeões para trabalhar, comece uma obra e feche a aba. O servidor continua a conta; quando você voltar depois de algumas horas, o Relatório de Retorno diz o que aconteceu.
+2. Escolha o seu nome e o nome do feudo e clique em **Jogar agora**. Não há e-mail, senha nem formulário. Dá para escolher ali a dificuldade e o ritmo, ou deixar os que vêm marcados.
+3. Ponha os aldeões para trabalhar, comece uma obra, confira "Antes de partir" na aba Hoje e feche a aba. O servidor continua a conta; quando você voltar depois de algumas horas, o Relatório de Retorno diz o que prosperou, o que custou e o que ainda dá para decidir.
 
 Para mostrar o jogo a quem ainda não joga, há uma página de apresentação: **[lordsoftheguild.palsincomehub.com](https://lordsoftheguild.palsincomehub.com)**.
 
 O que vale saber antes:
 
 - **A interface é uma bancada de editor.** Barra de atividades, árvore lateral, abas, barra de status e paleta de comandos (`F1` ou `Ctrl+K`). Dá para jogar inteiro pelo teclado; há temas claro, escuro e de alto contraste.
-- **O ritmo é 3×.** Uma hora real são três horas de jogo: o dia de jogo dura 40 minutos reais e o ano, 56 horas ([ADR 0011](docs/decisions/0011-ritmo-3x-no-mvp.md)). Prazos e taxas aparecem sempre em tempo real. A comida também acaba com a aba fechada.
+- **O ritmo é escolhido ao fundar o feudo**: Rápido (3×, o recomendado: o dia de jogo dura 40 minutos reais), Normal (1×) ou Tranquilo (0,5×). A dificuldade também: Camponês, Senhor ou Rei de Ferro. As duas escolhas não mudam depois. Prazos e taxas aparecem sempre em tempo real. A comida, a lenha e os lobos também andam com a aba fechada.
+- **O Conselho espera 24 horas reais** por uma resposta, em qualquer ritmo; depois decide sozinho, pela opção que a dificuldade marca em cada carta, e essa opção nunca custa nada.
 - **A conta mora neste navegador.** Ela é anônima e fica no armazenamento do site: limpar os dados de navegação apaga o acesso. Para jogar em outro navegador ou outra máquina, gere um **Código do Reino** (paleta: "Lords: Conta: gerar Código do Reino") e guarde-o; no outro navegador, use "Usar Código do Reino", nas boas-vindas.
-- **O vínculo com o GitHub está desligado na v0.1.** O código existe, mas só foi testado com um GitHub simulado; por isso o app não mostra esses botões.
+- **O vínculo com o GitHub continua desligado.** O código existe, mas só foi testado com um GitHub simulado; por isso o app não mostra esses botões.
 - **Sem conexão**, o app mostra o último estado conhecido em modo leitura e volta sozinho quando o servidor responde. Nenhuma ordem fica guardada para depois.
-- **Os testes automáticos rodam em Chromium.** O autor jogou em dois navegadores antes de fechar a versão, sem registrar quais; Safari e navegadores de celular não foram conferidos.
+- **Os testes automáticos rodam em Chromium.** A v0.2 ainda não foi jogada por ninguém além dos testes e dos bots do simulador; Firefox, Safari e navegadores de celular não foram conferidos.
 
 <a id="experimente"></a>
 
@@ -80,19 +81,24 @@ pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico --sessions
 
 O terminal mostra o resumo da partida; `semana.csv` recebe **168 retratos horários** da economia, população e construções. A mesma semente e as mesmas opções reproduzem o mesmo resultado na mesma versão do motor e do conteúdo.
 
-O simulador roda no **ritmo Normal do GDD**, em que sete dias reais são um ano de jogo: é nele que o balanceamento é definido. No servidor do MVP, com o ritmo 3×, esse mesmo ano passa em 56 horas.
+O simulador roda por padrão no **ritmo Normal do GDD**, em que sete dias reais são um ano de jogo: é nele que o GDD escreve os números. `--time-scale 3` joga no ritmo Rápido, em que o mesmo ano passa em 56 horas.
 
-Exemplo de resultado dessa simulação:
+Trecho do resumo dessa simulação, com o conteúdo de 2026-10-02 (o balanceamento de fechamento da v0.2 ainda pode mudar os números):
 
 ```text
-População: 26 de 35 vagas
-Níveis: townHall 3, farm 4, lumberMill 3, quarry 3, goldMine 3, housing 4
-Estoque: food 162, wood 10017, stone 4190, gold 1637
+Partida: Senhor · Normal: um ano em 7 dias
+População: 69 de 75 vagas (mínima 7)
+Objetivos: 10 de 10 concluídos, o último na hora 168
 Fome: nenhuma
-Comandos: 55 aceitos, 0 recusados
+Frio: nenhum
+Moral: 60 no fim, mínima 40 (10 h com o povo inquieto ou desesperado)
+Conselho: 22 cartas (2 continuações) · 20 respondidas, 0 expiradas · 4 efeitos escondidos
+Comandos: 138 aceitos, 0 recusados
 ```
 
-Quer investigar o equilíbrio? Mude `--sessions-per-day` para `1` e compare os arquivos. O [guia do simulador](packages/sim-cli/README.md) explica o bot, cada coluna do CSV e as faixas verificadas nos testes.
+O resumo inteiro traz também os níveis, a hora de cada marco, os estoques, a Ameaça e as incursões, a fila de obras ociosa e o desperdício.
+
+Quer investigar o equilíbrio? Mude `--sessions-per-day` para `1` e compare os arquivos, ou rode a matriz de balanceamento (`pnpm -s sim -- --matrix > matriz.csv 2> matriz.md`: três perfis de visita, três ritmos e 50 sementes). O [guia do simulador](packages/sim-cli/README.md) explica os bots, cada coluna do CSV e as faixas verificadas nos testes.
 
 <a id="engenharia"></a>
 
@@ -106,6 +112,8 @@ O desafio técnico é fazer o tempo passar de forma consistente: uma hora calcul
 | **Economia sem deriva de arredondamento** | Recursos em unidades inteiras de milésimos, com acumuladores. [Implementação](packages/engine/src/economy.ts) e [testes de propriedades com fast-check](packages/engine/src/economy.property.test.ts). |
 | **Balanceamento separado das regras** | Números e textos em `content`, validados por schemas; comportamento em `engine`. [Conteúdo](packages/content/src) e [testes de balanceamento](packages/sim-cli/src/balance.test.ts). |
 | **Partidas reproduzíveis** | Cenário de sete dias e snapshots de referência ajudam a detectar mudanças de comportamento. [Teste de cenário](packages/engine/src/scenario.test.ts). |
+| **Sorteios que não dependem de quando se olha** | Gerador com semente e fluxos nomeados, gravado com a partida; só a passagem do tempo sorteia, nunca a tela. [Sorteios](packages/engine/src/random.ts). |
+| **Partidas antigas continuam** | O estado tem versão, e cada partida é migrada uma vez, a partir de uma fronteira, sem recalcular o passado com regras novas. [Migrações](packages/engine/src/migrations.ts). |
 | **Servidor autoritativo** | O cliente manda ordens e recebe uma visão pronta; nunca manda estado, relógio nem resultado. Toda ordem é idempotente por `commandId`. [Servidor](packages/server/README.md). |
 | **Contratos documentados e verificados** | Autenticação, comandos idempotentes, cache e exclusão de conta têm decisões registradas e testes de integração contra PostgreSQL real. [ADRs](docs/decisions/README.md) · [arquitetura](docs/architecture.md). |
 
@@ -179,6 +187,7 @@ O ESLint impede que `engine`, `content` e `protocol` importem `fastify`, `pg` ou
 | `pnpm test:integration` | Executa testes de integração com `TEST_DATABASE_URL` definido |
 | `pnpm test:e2e` | Testes em Chromium contra a API real e o `db_test` (antes: `pnpm dev:up` e `pnpm exec playwright install chromium`) |
 | `pnpm test:e2e:landing` | Testes em Chromium da página de apresentação, em tela de computador e de celular; não precisa da API nem do banco (antes: `pnpm exec playwright install chromium`) |
+| `pnpm -s sim -- --matrix > matriz.csv 2> matriz.md` | Matriz de balanceamento: três perfis de visita, três ritmos e 50 sementes, contra as faixas de `bands.ts` ([rodadas](docs/balance-v0.2.md)) |
 | `pnpm -s sim -- --remote http://localhost:3000 --bots 50 --minutes 2` | Bots contra a API, com p50 e p95 por endpoint ([resultados](docs/perf-v0.1.md)) |
 | `pnpm secrets:gen` | Cria `deploy/.env` e gera segredos ausentes, preservando os existentes |
 | `pnpm docker:build` / `pnpm docker:build:web` / `pnpm docker:build:landing` | Constrói a imagem de produção da API / do app web / da página de apresentação |
@@ -216,7 +225,7 @@ O app em desenvolvimento fala com a API pela própria origem ([como o app é org
 TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integration
 ```
 
-Configurações estão em [deploy/.env.example](deploy/.env.example). `GAME_TIME_SCALE` define o ritmo das partidas novas (padrão 3). `JWT_SECRET` e `RECOVERY_CODE_SECRET` são independentes; a rotação do segundo invalida os Códigos do Reino emitidos. No WSL2, mantenha o repositório no sistema de arquivos Linux. `docker compose down -v` apaga os volumes do banco.
+Configurações estão em [deploy/.env.example](deploy/.env.example). `GAME_TIME_SCALE` é o ritmo de quem cria uma partida sem escolher (padrão 3). `JWT_SECRET` e `RECOVERY_CODE_SECRET` são independentes; a rotação do segundo invalida os Códigos do Reino emitidos. No WSL2, mantenha o repositório no sistema de arquivos Linux. `docker compose down -v` apaga os volumes do banco.
 
 Para atualizar snapshots de referência intencionalmente, use `UPDATE_GOLDEN=1 pnpm test` e revise o diff antes de commitar.
 
@@ -243,13 +252,13 @@ O passo a passo para implantar do zero, atualizar, reverter, fazer backup e rest
 | **Cliente · v0.1** — app web com aparência de editor ([ADR 0008](docs/decisions/0008-cliente-web-com-aparencia-de-editor.md)) | Implementado |
 | **Implantação · v0.1** — servidor público, backup e operação ([ADR 0009](docs/decisions/0009-implantacao-no-coolify.md)) | No ar; backup fora do servidor pendente |
 | **Fechamento · v0.1** — critérios de aceitação, versão e release | Fechada em 2026-10-01 ([v0.1.0](https://github.com/gustavopals/pals-vscode-game/releases/tag/v0.1.0)), com o playtest do autor; o que não foi verificado está na [aceitação](docs/acceptance-v0.1.md) |
-| **Playtest com outras pessoas** — previsto para a v0.1, não realizado | Primeira tarefa da v0.2 |
-| **Estações e Conselho · v0.2** — decisões sazonais | Planejado |
-| **Guilda · v0.3** — heróis e exploração | Planejado |
+| **Playtest com outras pessoas** — previsto para a v0.1 e para a v0.2 | Não realizado; continua pendente |
+| **Estações e Conselho · v0.2** — estações com efeito, armazenamento, moral, Conselho, Torre, Paliçada e lobos | Implementada e publicada em 2026-10-02, sem versão etiquetada; as regras aguardam a confirmação do autor ([aceitação](docs/acceptance-v0.2.md)) |
+| **Guilda · v0.3** — heróis e exploração | Planejado ([roadmap proposto](docs/roadmap-v0.3.md)) |
 | **Guerra e Cerco · v0.4** — defesa do feudo no inverno | Planejado |
 | **Mundo, legado e polimento · v0.5–v0.6** | Planejados |
 
-O [roadmap do MVP](MVP-ROADMAP.md) detalha tarefas e critérios de aceite, o [registro de mudanças](CHANGELOG.md) resume o que a v0.1 entrega e os seus limites, e o [roadmap da v0.2](docs/roadmap-v0.2.md) diz o que vem depois. O [Game Design Document](GAME_DESIGN.md) apresenta a visão completa, incluindo a evolução futura para multiplayer.
+O [roadmap do MVP](MVP-ROADMAP.md) e o [roadmap da v0.2](docs/roadmap-v0.2.md) detalham tarefas e critérios de aceite, o [registro de mudanças](CHANGELOG.md) resume o que cada versão entrega e os seus limites, e o [roadmap da v0.3](docs/roadmap-v0.3.md), ainda proposto, diz o que vem depois. O [Game Design Document](GAME_DESIGN.md) apresenta a visão completa, incluindo a evolução futura para multiplayer.
 
 <a id="privacidade"></a>
 
@@ -267,7 +276,7 @@ O [roadmap do MVP](MVP-ROADMAP.md) detalha tarefas e critérios de aceite, o [re
 ## Conheça as escolhas do projeto
 
 - **[Game Design Document](GAME_DESIGN.md)** — experiência, sistemas, regras e escopo de cada versão.
-- **[Plano de execução](MVP-ROADMAP.md)** — entregas, dependências e verificações do MVP.
+- **[Plano de execução](MVP-ROADMAP.md)** — entregas, dependências e verificações do MVP; o da v0.2 está em [docs/roadmap-v0.2.md](docs/roadmap-v0.2.md), e o que espera o autor, em [docs/pendencias-v0.2.md](docs/pendencias-v0.2.md).
 - **[Arquitetura](docs/architecture.md)** — o que foi construído, como o tempo funciona e as divergências aceitas em relação ao GDD.
 - **[Decisões de arquitetura](docs/decisions/README.md)** — contexto e justificativas dos contratos técnicos.
 - **[Implantação e operação](deploy/README.md)** — a instalação em produção, backup, reversão e ensaios.
