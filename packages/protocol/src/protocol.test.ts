@@ -373,9 +373,9 @@ describe('ViewStateSchema', () => {
   });
 
   it('a Ameaça sem a Torre de Vigia: a forma fechada recusa qualquer coisa que a névoa esconde', () => {
-    // 30 h de jogo: a Ameaça chegou a 75 na virada, e os lobos do roteiro a derrubaram a 65.
+    // 30 h de jogo: a Ameaça chegou a 30 na virada, e os lobos do roteiro a derrubaram a zero.
     const state = advanceTo(createInitialState('pedra-alta', settings), 30 * 3_600_000).state;
-    expect(state.map.threat).toBe(65);
+    expect(state.map.threat).toBe(0);
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
     expect(view.threat).toEqual({
@@ -441,11 +441,13 @@ describe('ViewStateSchema', () => {
   });
 
   it('a Ameaça com a Torre de Vigia: o número, a tendência, as origens, os tiles e a incursão à vista', () => {
-    // A Torre erguida à mão em um feudo no 14º dia: a virada das 28 h cruza os 70, e é também
-    // o instante em que os vigias do nível 2 avistam os lobos do roteiro, que chegam às 30 h.
+    // A Torre e a Ameaça postas à mão em um feudo novo (a Ameaça em 42): a virada das 28 h cruza
+    // os 70, e é também o instante em que os vigias do nível 2 avistam os lobos do roteiro, que
+    // chegam às 30 h.
     const start = createInitialState('pedra-alta', settings);
     start.settlement.buildings.townHall = 2;
     start.settlement.buildings.watchtower = 2;
+    start.map.threat = 42;
     const { state, events } = advanceTo(start, 28 * 3_600_000);
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(ViewStateSchema.safeParse(view).error).toBeUndefined();
@@ -454,14 +456,17 @@ describe('ViewStateSchema', () => {
       text: 'Ameaça 70 de 100.',
       level: 70,
       max: 100,
-      risePerDay: 5,
-      nextLevel: 75,
+      risePerDay: 2,
+      // A virada das 30 h sobe 2 e traz os lobos à vista, que a derrubam em 35.
+      nextLevel: 37,
       nextRiseInSeconds: 7200,
-      sources: ['+5/dia: Covil de Lobos'],
+      trend:
+        'Sobe 2 a cada dia de jogo (2 h), e a incursão à vista a faz cair 35: na próxima virada, vai de 70 para 37.',
+      sources: ['+2/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
       raidChancePercent: 0,
       raidRisk:
-        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
       raidCosts: [
         'Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.',
         'Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.',
@@ -484,10 +489,7 @@ describe('ViewStateSchema', () => {
       GameEventSchema.safeParse({ ...announced[0], seq: 9, at: '2026-10-01T12:00:00.000Z' }).error,
     ).toBeUndefined();
     const rose = events.filter((event) => event.type === 'threatRose');
-    expect(rose.map((event) => event.data)).toEqual([
-      { threat: 40, previousThreat: 35, mark: 40 },
-      { threat: 70, previousThreat: 65, mark: 70 },
-    ]);
+    expect(rose.map((event) => event.data)).toEqual([{ threat: 70, previousThreat: 68, mark: 70 }]);
     for (const [index, event] of rose.entries()) {
       const sent = { ...event, seq: index + 1, at: '2026-10-01T12:00:00.000Z' };
       expect(GameEventSchema.safeParse(sent).error).toBeUndefined();
@@ -570,7 +572,7 @@ describe('ViewStateSchema', () => {
       expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
     }
     // Quem tem vigias lê nos eventos a Ameaça antes e depois da incursão.
-    expect(told[1]?.data).toMatchObject({ warning: 'sized', previousThreat: 75, threat: 65 });
+    expect(told[1]?.data).toMatchObject({ warning: 'sized', previousThreat: 30, threat: 0 });
     expect(told[2]?.data).toMatchObject({ injured: 1, palisadeLevelNeeded: 1 });
     for (const story of stories) {
       const after = deriveViewState(story.state, story.state.lastProcessedAt);
@@ -1540,7 +1542,8 @@ describe('contentHash', () => {
     expect(hashed).toContain(`"perActiveTilePerDay":${balance.threat.perActiveTilePerDay}`);
     expect(hashed).toContain(tileTypes.wolfDen.label);
     expect(hashed).toContain(enemies.wolves.sizes.medium);
-    expect(hashed).toContain(threatMarkTemplates[70] ?? 'falta a frase');
+    expect(hashed).toContain(threatMarkTemplates[70]?.first ?? 'falta a frase');
+    expect(hashed).toContain(threatMarkTemplates[70]?.again ?? 'falta a frase da volta');
     expect(hashed).toContain(buildings.watchtower.maxLevelNote ?? 'falta a frase');
     // E a Paliçada: o que cada nível segura, o que passa, os nomes dos tamanhos e a frase do
     // teto. As três cartas da promessa entram com o resto do catálogo.

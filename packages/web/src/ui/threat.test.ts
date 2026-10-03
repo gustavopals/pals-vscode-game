@@ -353,8 +353,8 @@ describe('a explicação da Ameaça, frase a frase', () => {
     const threat = watched(threatWatchedView);
     expect(threatLines(threatWatchedView, 0)).toEqual([
       'Ameaça 46 de 100.',
-      'Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54. Faltam 36 min.',
-      '+5/dia: Covil de Lobos',
+      'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51. Faltam 36 min.',
+      '+2/dia: Covil de Lobos',
       '+3/dia: outono',
       // A regra das incursões e o que cada tamanho custa: as frases do servidor, como vieram.
       threat.raidRisk,
@@ -366,7 +366,7 @@ describe('a explicação da Ameaça, frase a frase', () => {
       'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
       '192 madeira, 192 pedra, 80 ouro · 6 min.',
     ]);
-    expect(threat.raidRisk).toContain('14% de chance');
+    expect(threat.raidRisk).toContain('11% de chance');
     expect(threat.raidCosts).toHaveLength(3);
   });
 

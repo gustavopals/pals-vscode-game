@@ -605,7 +605,7 @@ describe('Tree', () => {
     expect(markup).not.toContain('codicon codicon-eye-closed');
     expect(rowActions(nodeById(watched, 'threat'))).toEqual([]);
     const row = tags(markup, /<div[^>]*data-node="threat"[^>]*>/g)[0] ?? '';
-    expect(attribute(row, 'title')).toContain('+5/dia: Covil de Lobos');
+    expect(attribute(row, 'title')).toContain('+2/dia: Covil de Lobos');
   });
 
   it('com a Torre e a obra da Paliçada liberada, o botão da linha da Ameaça ordena a defesa', () => {

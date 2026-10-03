@@ -144,6 +144,9 @@ export function threatAfterTurn(state: GameState, turnMs: number): number {
   return Math.min(rules.max, state.map.threat + rise);
 }
 
+/** Quantas vezes a Ameaça já cruzou `mark` para cima, com ou sem Torre. */
+const markStat = (mark: number) => `threatCrossed:${mark}`;
+
 /**
  * A Ameaça na virada do dia de jogo, depois do Conselho (ADR 0013, ordem do mesmo instante).
  *
@@ -152,6 +155,12 @@ export function threatAfterTurn(state: GameState, turnMs: number): number {
  * evento com o número dentro contaria ao jogador o que a névoa esconde. Quem ergue a Torre
  * depois de a marca passar não recebe a linha atrasada: vê o número no painel.
  *
+ * Cruzar de novo uma marca dá outra linha, com a frase da volta (`again`): a Ameaça só cai com
+ * uma incursão, então quem a cruza de novo é a matilha que voltou depois de um ataque, e a
+ * Crônica não repete, palavra por palavra, o anúncio de antes. Toda virada que cruza uma marca
+ * conta em `stats["threatCrossed:<marca>"]`, com ou sem Torre: a Torre não muda o estado de
+ * quem está fora, só o que ele lê. Quem ergue a Torre depois da primeira vez lê a frase da volta.
+ *
  * A virada do dia é um instante da linha do tempo, e a regra só olha o estado daquele instante:
  * avançar de uma vez ou aos pedaços dá a mesma Ameaça e as mesmas linhas.
  */
@@ -159,15 +168,17 @@ export function turnThreat(draft: GameState, atMs: number, events: GameEvent[]):
   const previous = draft.map.threat;
   const next = threatAfterTurn(draft, atMs);
   draft.map.threat = next;
-  if (!isThreatWatched(draft)) {
-    return;
+  const crossed = rules.chronicleMarks.filter((mark) => previous < mark && next >= mark);
+  const before = new Map(crossed.map((mark) => [mark, draft.stats[markStat(mark)] ?? 0]));
+  for (const [mark, times] of before) {
+    draft.stats[markStat(mark)] = times + 1;
   }
   // A marca mais alta que esta virada cruzou: uma linha só, mesmo que a subida pule duas.
-  const crossed = rules.chronicleMarks.filter((mark) => previous < mark && next >= mark);
   const mark = crossed[crossed.length - 1];
-  if (mark === undefined) {
+  if (mark === undefined || !isThreatWatched(draft)) {
     return;
   }
+  const phrases = threatMarkTemplates[mark];
   emit(
     events,
     draft,
@@ -175,6 +186,6 @@ export function turnThreat(draft: GameState, atMs: number, events: GameEvent[]):
     'threatRose',
     { threat: next, previousThreat: previous, mark },
     { ameaca: next },
-    threatMarkTemplates[mark],
+    before.get(mark) === 0 ? phrases?.first : phrases?.again,
   );
 }

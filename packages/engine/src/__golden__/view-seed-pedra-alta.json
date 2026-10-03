@@ -8500,12 +8500,12 @@
       "text": "Ameaça 46 de 100.",
       "level": 46,
       "max": 100,
-      "risePerDay": 8,
-      "nextLevel": 54,
+      "risePerDay": 5,
+      "nextLevel": 51,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54.",
+      "trend": "Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51.",
       "sources": [
-        "+5/dia: Covil de Lobos",
+        "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
@@ -8515,8 +8515,8 @@
           "active": true
         }
       ],
-      "raidChancePercent": 14,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 14% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidChancePercent": 11,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 11% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -9266,12 +9266,12 @@
       "text": "Ameaça 46 de 100.",
       "level": 46,
       "max": 100,
-      "risePerDay": 8,
-      "nextLevel": 54,
+      "risePerDay": 5,
+      "nextLevel": 16,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54.",
+      "trend": "Sobe 5 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 46 para 16.",
       "sources": [
-        "+5/dia: Covil de Lobos",
+        "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
@@ -9282,7 +9282,7 @@
         }
       ],
       "raidChancePercent": 0,
-      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -10081,15 +10081,15 @@
     "pendingDecisions": [],
     "threat": {
       "known": true,
-      "text": "Ameaça 44 de 100.",
-      "level": 44,
+      "text": "Ameaça 41 de 100.",
+      "level": 41,
       "max": 100,
-      "risePerDay": 8,
-      "nextLevel": 52,
+      "risePerDay": 5,
+      "nextLevel": 46,
       "nextRiseInSeconds": 1200,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 44 para 52.",
+      "trend": "Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 41 para 46.",
       "sources": [
-        "+5/dia: Covil de Lobos",
+        "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
@@ -10099,8 +10099,8 @@
           "active": true
         }
       ],
-      "raidChancePercent": 12,
-      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 12% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidChancePercent": 6,
+      "raidRisk": "Se não houver outra a caminho, a próxima virada do dia tem 6% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",
@@ -10850,12 +10850,12 @@
       "text": "Ameaça 46 de 100.",
       "level": 46,
       "max": 100,
-      "risePerDay": 8,
-      "nextLevel": 54,
+      "risePerDay": 5,
+      "nextLevel": 16,
       "nextRiseInSeconds": 2140,
-      "trend": "Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54.",
+      "trend": "Sobe 5 a cada dia de jogo (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 46 para 16.",
       "sources": [
-        "+5/dia: Covil de Lobos",
+        "+2/dia: Covil de Lobos",
         "+3/dia: outono"
       ],
       "tiles": [
@@ -10866,7 +10866,7 @@
         }
       ],
       "raidChancePercent": 0,
-      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.",
+      "raidRisk": "Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.",
       "raidCosts": [
         "Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.",
         "Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.",

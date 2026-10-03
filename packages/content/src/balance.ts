@@ -545,14 +545,19 @@ export const balance: Balance = {
   // GDD §8.2 (ADR 0014, decisões 10 e 11): a subida, o sorteio da incursão (a chance é a Ameaça
   // menos `raidChanceAbove`, em %), o tamanho, a queda, o prazo até ela chegar, a Torre e a
   // Paliçada. O que cada incursão custa está em `raids`.
+  //
+  // A subida, a queda e o limiar da média foram reequilibrados depois da revisão das Fases D e E
+  // (eram +5, −10 e 60): com eles a Ameaça subia até 90-100 e ficava, e toda incursão sorteada
+  // era média. Com +2, −35 e 70 ela oscila entre a calmaria e a marca dos 40, quase toda
+  // incursão é leve, e as médias vêm com o outono (docs/balance-v0.2.md, seção 16).
   threat: {
     max: 100,
-    perActiveTilePerDay: 5,
+    perActiveTilePerDay: 2,
     seasonPerDay: { autumn: 3 },
     chronicleMarks: [40, 70],
     raidChanceAbove: 40,
-    mediumRaidAbove: 60,
-    raidDrop: 10,
+    mediumRaidAbove: 70,
+    raidDrop: 35,
     raidLeadMs: 6 * HOUR_MS,
     watchtowerLevels: [
       { warningMs: 1 * HOUR_MS, revealsRaidSize: false },

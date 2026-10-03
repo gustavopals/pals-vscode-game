@@ -3633,7 +3633,174 @@ Não é uma regra do jogo que trava: é a alocação de uma só vez do bot. Mas 
 - As outras duas dificuldades jogam 3 sementes na suíte e 50 pelo comando; a linha de base de Camponês e de Rei de Ferro é a das 50.
 - Nenhum número de jogo foi mexido por causa desta rodada.
 
-## 16. As correções das cartas da revisão das Fases D e E (V2DE)
+## 16. A Ameaça reequilibrada (revisão das Fases D e E)
+
+A revisão independente das Fases D e E (achados 3, 8 e 35) mediu o que a seção 14.4 já mostrava: com a Torre, a Ameaça saturava entre 85 e 100, toda incursão sorteada era média, a Paliçada no nível 1 nunca segurava uma depois da do roteiro, e no ritmo Rápido chegavam de 5 a 7 incursões médias por dia real. É o contrário do GDD §15.1 (a derrota custa pouco e ensina; faltar não destrói o feudo) e do "Pronto quando" de V2E-T3 (a Ameaça oscila em vez de só subir). **O autor delegou a decisão de equilíbrio ao agente, com a meta**: a Ameaça oscilando numa faixa média, a maioria das incursões leve, as médias vindo sobretudo com o outono, e no ritmo Rápido não mais que 2 a 3 incursões por dia real (no Normal, uma a cada um ou dois dias reais). Registrada no [ADR 0014](decisions/0014-conselho-e-ameaca-na-v0.2.md), linha 11a; **aguarda a confirmação do autor**.
+
+Três números mudaram em `balance.threat`, e nenhuma regra:
+
+| Número | Antes | Agora |
+|---|---|---|
+| `perActiveTilePerDay` (subida por tile ativo, por dia de jogo) | 5 | **2** |
+| `raidDrop` (queda em toda incursão, repelida ou sofrida) | 10 | **35** |
+| `mediumRaidAbove` (a partir de quanto a incursão sorteada é média) | 60 | **70** |
+
+Continuam: +3 por dia de outono, a chance `Ameaça − 40` %, 6 h de jogo entre o sorteio e a chegada, uma incursão marcada por vez, os uivos no 10º dia e a do roteiro, leve, no 16º. O limiar da média passou a ser a marca dos 70 da Crônica: "os vigias já não dormem" é também quando as matilhas ficam grandes.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | o desta rodada (`git log --grep "reequilibra a Ameaça"`), feito sobre `49ad033` |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo 9fc2a77d45095944 |
+| Dificuldades | Senhor (`lord`) nas medidas da Ameaça; as três na matriz |
+| Sementes | `pedra-alta-001` a `pedra-alta-020` (bots); `dois-anos-1` a `dois-anos-20` (feudo sem ordens); 50 na matriz |
+| Ritmos | Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | Apple M5, macOS 26.6.2, Node 24.19.0 |
+
+### 16.1 Como os números foram escolhidos
+
+A conta que satura: entre duas incursões passam ao menos quatro viradas (a sorteada leva três dias de jogo para chegar, e o sorteio só volta na virada seguinte à chegada). Com +5 por dia a Ameaça sobe 20 ou mais por ciclo e cai 10, e sobe até o teto. Para oscilar, a queda precisa pagar a subida de um ciclo inteiro; e, como a chance é o que a Ameaça passa de 40, a espera pelo sorteio é longa perto dos 40 e curta perto dos 100, o que puxa o equilíbrio para cima. Com o limiar da média em 60, a Ameaça passa dos 60 antes de o sorteio sair na maior parte dos ciclos, e **as médias são a maioria em quase toda combinação de subida e queda**: só a queda (30 ou 40, seção 14.4) ainda deixava de 80% a 92% de médias.
+
+Um modelo do sorteio (a mesma regra do motor, sem o resto do feudo, 300 a 1.000 sementes) comparou as combinações; o ano 2 é o regime, sem a primavera calma do ano 1 (a do roteiro zera a Ameaça no 16º dia):
+
+| Subida | Queda | Média a partir de | Incursões no ano 2 | Por dia real no Rápido (ano 2) | Leves / médias sorteadas (ano 2) | Ameaça média por estação no ano 2 (P / V / O / I) | Observação |
+|---|---|---|---|---|---|---|---|
+| 5 | 10 | 60 | 18,1 | 7,8 | 0 / 18,1 | 97 / 97 / 97 / 97 | o de antes (motor, 20 sementes) |
+| 2 | 20 | 70 | 11,6 | 5,0 | 5,2 / 6,4 | 60 / 56 / 78 / 76 | ainda sobe demais |
+| 2 | 25 | 70 | 9,5 | 4,1 | 5,5 / 4,0 | 53 / 51 / 72 / 65 | frequente demais |
+| 2 | 30 | 60 | 8,0 | 3,4 | 2,8 / 5,2 | 48 / 48 / 66 / 58 | médias são a maioria |
+| 2 | 30 | 70 | 7,9 | 3,4 | 5,2 / 2,7 | 48 / 48 / 66 / 58 | passa de 3 por dia real no Rápido |
+| 2 | 35 | 60 | 6,8 | 2,9 | 3,0 / 3,8 | 45 / 45 / 62 / 52 | médias são a maioria |
+| **2** | **35** | **70** | **6,8** | **2,9** | **4,7 / 2,1** | **45 / 45 / 62 / 52** | **o escolhido** |
+| 2 | 40 | 70 | 6,0 | 2,6 | 4,4 / 1,5 | 43 / 42 / 58 / 48 | também serve; vales mais fundos |
+| 1 | 25 | 70 | 6,2 | 2,6 | 4,7 / 1,5 | 43 / 43 / 62 / 54 | o ano 1 fica sem incursão sorteada até o outono |
+| 3 | 30 | 70 | 10,5 | 4,5 | 5,1 / 5,4 | 56 / 55 / 74 / 66 | frequente demais |
+
+A escolha, +2 / −35 / 70, é a combinação mais simples que cumpre as quatro metas ao mesmo tempo no ano 1 e nos seguintes. A −40 também cumpre; ficou −35 porque mantém a média mais perto do meio da faixa (45 a 62 contra 42 a 58) com a frequência ainda dentro do teto.
+
+### 16.2 Antes e depois, com os bots
+
+Um ano de jogo, Senhor, 20 sementes, os bots Preguiçoso (1 visita por dia, `preguicoso`) e Regular (2 por dia, `economico`). O sorteio da Horda tem fluxo próprio no gerador, e a Ameaça não depende de ordem nenhuma: as colunas da Ameaça e das incursões são as mesmas nos dois perfis; o que muda é o desfecho. Cada célula traz o menor e o maior valor entre as sementes, e a média entre parênteses. O script da medida é um de uso único (não entrou no simulador): roda `simulate` e lê as linhas por hora e os eventos.
+
+**A Ameaça e as incursões, por ritmo:**
+
+| Ritmo | | Ameaça média: primavera / verão / outono / inverno | Mínima e máxima depois do 30º dia | Incursões no ano | Por dia real | Sorteadas leves / médias | Médias que chegam no outono |
+|---|---|---|---|---|---|---|---|
+| Rápido 3× | antes | 56 / 97 / 98 / 97 | 90 / 100 | 13 a 17 (15,1) | 5,6 a 7,3 (6,5) | 0 / 14,1 | 5 |
+| Rápido 3× | **agora** | 14 / 36 / 60 / 54 | 15 a 30 (23,5) / 71 a 100 (85,1) | 5 a 6 (5,7) | 2,1 a 2,6 (2,4) | 3,1 / 1,6 | 1,1 |
+| Normal 1× | antes | 54 / 97 / 97 / 97 | 90 / 100 | 13 a 17 (15,1) | 1,9 a 2,4 (2,2) | 0 / 14,1 | 5,2 |
+| Normal 1× | **agora** | 13 / 36 / 60 / 53 | 15 a 30 (23,1) / 71 a 100 (86,6) | 5 a 6 (5,7) | 0,7 a 0,9 (0,8) | 3,1 / 1,6 | 1,1 |
+| Tranquilo 0,5× | antes | 53 / 97 / 97 / 97 | 90 / 100 | 13 a 17 (15,1) | 0,9 a 1,2 (1,1) | 0 / 14,1 | 5,2 |
+| Tranquilo 0,5× | **agora** | 12 / 36 / 60 / 53 | 15 a 30 (23,1) / 71 a 100 (86,6) | 5 a 6 (5,7) | 0,4 | 3,1 / 1,6 | 1,1 |
+
+A Ameaça cruza os 50 para baixo de 1 a 5 vezes no ano e para cima de 2 a 5 (antes, nunca). A primeira incursão sorteada chega entre o 41º e o 54º dia de jogo (antes, entre o 20º e o 25º): a do roteiro a encontra em 30 e a zera, e ela leva o verão para voltar aos 40. Das médias, a maioria é sorteada no outono e chega nele ou no começo do inverno. A máxima chega a 100 em ao menos uma semente: um outono em que o sorteio demora.
+
+**O desfecho, por perfil** (antes → agora):
+
+| Ritmo | Perfil | Sofridas | Repelidas | Seguradas pela Paliçada Nv1 | Feridos | Incursões antes do Salão Nv3 (sorteadas) | Salão Nv3 (hora real) |
+|---|---|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | 15,1 → 5,5 | 0 → 0,2 | 0 → 0,2 | 28,7 → 7 | 14,1 (13,1) → 5,2 (4,2) | 53,5 → 53,2 |
+| Rápido 3× | Regular | 9 → 1,1 | 6,1 → 4,6 | 0 → 1,2 | 13,9 → 1,1 | 5,3 (4,3) → **1 (0)** | 25,8 → 23,5 |
+| Normal 1× | Preguiçoso | 12,3 → 3,8 | 2,8 → 1,9 | 0 → 0,8 | 21,3 → 4,2 | 10 (9) → 3,1 (2,1) | 120,2 → 125,7 |
+| Normal 1× | Regular | 4,1 → 1 | 11 → 4,7 | 0 → 0 | 5,7 → 1 | 2,5 (1,5) → **1 (0)** | 49,4 → 48,5 |
+| Tranquilo 0,5× | Preguiçoso | 5,1 → 1 | 10 → 4,7 | 0 → 0 | 9,1 → 1 | 4,9 (3,9) → **1 (0)** | 143,3 → 138,3 |
+| Tranquilo 0,5× | Regular | 2,8 → 1 | 12,3 → 4,7 | 0 → 0 | 3,5 → 1 | 1,5 (0,5) → **1 (0)** | 80,5 → 80,5 |
+
+**O achado 3 (a Paliçada pede o Salão Nv3, e até lá vinham várias incursões):** com os números novos, quem joga duas vezes por dia recebe **só a incursão do roteiro** antes de poder erguer a Paliçada, nos três ritmos, em todas as sementes: a primeira sorteada chega depois do Salão no nível 3 (antes vinham de 3 a 7 no Rápido e de 2 a 3 no Normal). O Preguiçoso, que no Rápido só chega ao Salão Nv3 na hora 53 de um ano de 56, ainda recebe de 4 a 5 sorteadas antes dele (eram de 11 a 15), e no Normal de 1 a 3 (eram de 5 a 12). O Regular e o Dedicado levam a Paliçada ao nível 2 cedo e repelem quase tudo; a Paliçada Nv1 segura por inteiro de 0 a 4 incursões por ano no Rápido (antes, nenhuma depois da do roteiro).
+
+### 16.3 Dois anos sem ordens
+
+O feudo da seção 14.4 (3 na Fazenda, 1 na Serraria, 1 na Pedreira, sem Torre e sem Paliçada, ninguém volta), 20 sementes, dois anos de jogo, só com o motor:
+
+| | Ano | Ameaça média: P / V / O / I | Incursões | Leves / médias sorteadas | Médias sorteadas no outono | Viradas abaixo do limiar da média, depois do 16º dia |
+|---|---|---|---|---|---|---|
+| Antes (+5, −10, 60) | 1 | 56 / 97 / 97 / 97 | 14,8 | 0 / 13,8 | 5,0 | 0% (abaixo de 60) |
+| Antes | 2 | 97 / 97 / 97 / 97 | 18,1 | 0 / 18,1 | 5,3 | |
+| **Agora (+2, −35, 70)** | 1 | 13 / 38 / 64 / 51 | 5,7 | 2,6 / 2,1 | 2,0 | 80% (abaixo de 70) |
+| **Agora** | 2 | 45 / 46 / 63 / 53 | 6,7 | 4,3 / 2,3 | 1,8 | |
+
+No primeiro ano quase toda média é do outono; no segundo, a Ameaça já entra o ano acima dos 40, e as leves passam a dois terços.
+
+### 16.4 A matriz
+
+```bash
+pnpm -s sim -- --matrix > matriz-senhor.csv 2> matriz-senhor.md
+pnpm -s sim -- --matrix --difficulty peasant > matriz-campones.csv 2> matriz-campones.md
+pnpm -s sim -- --matrix --difficulty ironKing > matriz-rei-de-ferro.csv 2> matriz-rei-de-ferro.md
+```
+
+900 linhas no CSV em cada dificuldade. **Nenhuma ordem recusada, nenhuma hora de fome nem de frio, ninguém vai embora**, nas 2.700 partidas. Antes de regravar a linha de base, várias células saíam da faixa da seção 15, **todas pelo excedente parado ou pela sequência desperdiçando**: os lobos levam menos, e sobra mais no depósito. `MEASURED` foi regravada com esta rodada, nas três dificuldades; a regra da folga não mudou.
+
+**Senhor: lobos em um ano de jogo**
+
+| Ritmo | Perfil | Incursões sofridas | Incursões repelidas | Anunciadas pela Torre | Feridos | Comida levada | Madeira levada | Ameaça no fim |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 5 a 6 | 0 a 1 | 0 a 2 | 5 a 9 | 362 a 623 | 264 a 531 | 19 a 70 |
+| Rápido 3× | Regular | 1 a 2 | 3 a 5 | 4 a 5 | 1 a 2 | 30 a 125 | 25 a 63 | 19 a 70 |
+| Rápido 3× | Dedicado | 1 | 4 a 5 | 4 a 5 | 1 | 28 a 37 | 2 a 10 | 19 a 70 |
+| Normal 1× | Preguiçoso | 3 a 5 | 1 a 3 | 3 a 5 | 3 a 6 | 311 a 788 | 171 a 602 | 19 a 70 |
+| Normal 1× | Regular | 1 | 4 a 5 | 4 a 5 | 1 | 26 a 42 | 0 a 15 | 19 a 70 |
+| Normal 1× | Dedicado | 1 | 4 a 5 | 4 a 6 | 1 | 27 a 38 | 1 a 16 | 19 a 70 |
+| Tranquilo 0,5× | Preguiçoso | 1 | 4 a 5 | 4 a 5 | 1 | 34 | 14 | 19 a 70 |
+| Tranquilo 0,5× | Regular | 1 | 4 a 5 | 4 a 6 | 1 | 27 a 38 | 1 a 16 | 19 a 70 |
+| Tranquilo 0,5× | Dedicado | 1 | 4 a 5 | 5 a 6 | 1 | 18 a 23 | 7 a 16 | 19 a 70 |
+
+**Senhor: lobos em 7 dias reais**
+
+| Ritmo | Perfil | Incursões sofridas | Incursões repelidas | Anunciadas pela Torre | Feridos | Comida levada | Madeira levada | Ameaça no fim |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 5 a 7 | 12 a 15 | 14 a 16 | 5 a 10 | 370 a 711 | 264 a 559 | 19 a 79 |
+| Rápido 3× | Regular | 1 a 2 | 17 a 19 | 17 a 19 | 1 a 2 | 30 a 125 | 25 a 63 | 19 a 79 |
+| Rápido 3× | Dedicado | 1 | 17 a 19 | 17 a 19 | 1 | 28 a 37 | 2 a 10 | 19 a 79 |
+| Normal 1× | Preguiçoso | 3 a 5 | 1 a 3 | 3 a 5 | 3 a 6 | 311 a 788 | 171 a 602 | 19 a 70 |
+| Normal 1× | Regular | 1 | 4 a 5 | 4 a 5 | 1 | 26 a 42 | 0 a 15 | 19 a 70 |
+| Normal 1× | Dedicado | 1 | 4 a 5 | 4 a 6 | 1 | 27 a 38 | 1 a 16 | 19 a 70 |
+| Tranquilo 0,5× | Preguiçoso | 1 | 0 a 1 | 0 a 1 | 1 | 34 | 14 | 19 a 54 |
+| Tranquilo 0,5× | Regular | 1 | 0 a 1 | 0 a 2 | 1 | 27 a 38 | 1 a 16 | 19 a 54 |
+| Tranquilo 0,5× | Dedicado | 1 | 0 a 1 | 1 a 2 | 1 | 18 a 23 | 7 a 16 | 19 a 54 |
+
+Em Camponês e em Rei de Ferro os lobos de um ano de jogo dão o mesmo desenho: de 1 a 2 sofridas e de 3 a 5 repelidas para o Regular no Rápido, 1 sofrida e de 4 a 5 repelidas no Normal, e a Ameaça no fim entre 19 e 70.
+
+O resumo de uma partida (Senhor, ritmo Normal, 2 sessões por dia; `pnpm -s sim -- --seed pedra-alta-golden --days 7 --strategy economico`), as linhas que mudaram em relação à seção 15:
+
+```text
+Moral: 60 no fim, mínima 40 (4 h com o povo inquieto ou desesperado)
+Ameaça: 70 no fim (máxima 76) · Torre de Vigia Nv2, erguida na hora 40
+Lobos: 1 incursões sofridas, 4 repelidas (4 anunciadas pela Torre) · levaram food 29, wood 13 · 1 feridos · Paliçada Nv2, erguida na hora 53
+Excedente parado: wood 4356, stone 3266, gold 2451
+Desperdício: food 0, wood 2125, stone 0 (3 h com depósito cheio perdendo produção)
+```
+
+### 16.5 O que mudou em relação à seção 15, e por quê
+
+- **Os lobos levam muito menos, de todo perfil.** Regular, ano do ritmo Normal, em Senhor: a do roteiro sofrida e de 4 a 5 repelidas (eram de 3 a 5 sofridas e de 9 a 13 repelidas); de 26 a 42 de comida levada (88 a 291). Preguiçoso no Rápido: de 5 a 6 sofridas no ano (13 a 17).
+- **A Ameaça no fim do ano** fica entre 19 e 70 em toda célula (eram 90 a 100).
+- **O Preguiçoso conclui mais objetivos.** No ritmo Normal, os dez em todas as sementes (eram 49 de 50); no Rápido, nove ou dez (eram de oito a dez). O Salão dele no ritmo Normal termina no nível 3 ou 4 (2 a 5), com 21 a 25 aldeões (16 a 28).
+- **O Armazém do Regular no Rápido** sai na hora 37 em todas as sementes, também na janela de um ano (eram três sementes sem ele).
+- **A Paliçada do Regular** fica pronta entre as horas 48 e 55 no ritmo Normal (49 a 54) e na 25 no Rápido (26 a 29).
+- **O excedente parado subiu** um pouco em quase toda célula (é o que os lobos deixaram de levar), e a meta de desperdício melhorou: no ano do Rápido a maior sequência do Regular em Senhor caiu de 15 para 9 h de jogo, e em Camponês o ano do Rápido entrou na meta; em Rei de Ferro o ritmo Normal voltou para dentro dela (8 h; eram 9) e a semana do Rápido caiu de 60 para 24 h. A semana do Rápido em Senhor continua em 33 h.
+- **O cenário roteirizado de 7 dias do motor** (o golden) mudou de história: a Ameaça só volta aos 40 no verão, as quatro incursões sorteadas do outono são leves e recuam diante da Paliçada Nv2, e a fome, sem a perda das incursões, só leva a moral a "inquieto": ninguém deserta. A deserção continua provada nos testes da moral e da fome e no retrato `famine`.
+
+### 16.6 Faixas
+
+`MEASURED`, em `packages/sim-cli/src/bands.ts`, é a linha de base desta rodada, nas três dificuldades. `balance.test.ts` guarda o que mudou: a Ameaça não satura (toda partida de um ano de jogo termina abaixo de 80, e alguma abaixo de 40); as incursões do Regular no ano do ritmo Normal (1 sofrida, 4 a 5 repelidas, a Ameaça entre 19 e 70); a hora da Torre do Preguiçoso e da Paliçada do Regular; o Armazém do Regular no Rápido; e a meta de desperdício (no Rápido, 33 h na semana e 9 no ano). No motor, `threat.raids.test.ts` prova a oscilação em dois anos de cinco sementes (a Ameaça cai ao limiar dos 40 e volta a passar dele ao menos quatro vezes, mais da metade das viradas fica abaixo dos 70, mais de 60% das incursões sorteadas são leves e a maioria das médias é sorteada no outono): com os números de antes ele falha.
+
+### 16.7 O que fica para o autor
+
+- **Os três números** (+2, −35 e a média a partir de 70), no lugar de +5, −10 e 60 do ADR 0014, decisões 10 e 11. A alternativa medida mais próxima é −40 (seção 16.1).
+- **A primavera calma do ano 1.** A do roteiro encontra a Ameaça em 30 e a zera; ela só volta aos 40 no 36º dia de jogo, e a primeira incursão sorteada chega entre o 41º e o 54º (no Rápido, de 17 a 25 h reais depois da do roteiro; no Normal, de 2 a 3 dias reais). Dá tempo de erguer a Paliçada com calma; a Torre mostra a Ameaça subindo devagar nesse meio-tempo.
+- **A frequência.** De 5 a 7 incursões por ano de jogo: no Rápido, de 2,1 a 2,9 por dia real; no Normal, de 0,7 a 1. Com a Torre, cada uma ainda dá dois avisos (o alarme e o desfecho), e a volta aos 40 dá uma linha na Crônica ("os vigias tornam a ouvir uivos").
+- **A partida migrada da v0.1** (achado 9 da revisão) não mudou: ela não recebe a do roteiro e começa a sortear quando a Ameaça passa de 40 depois da fronteira. Com +2 por dia isso leva 20 dias de jogo, e a primeira incursão dela ainda pode ser média se cair no outono.
+- **O −30 de limpar o Covil** (v0.3, GDD §8.2) fica abaixo da queda de uma incursão (−35): é assunto da versão que limpa o tile.
+
+### 16.8 Limites desta medição
+
+- Os números da seção 16.1 vêm de um modelo do sorteio, conferido contra o motor nas combinações escolhidas (a seção 16.2 é o motor com os bots): servem para comparar as combinações entre si.
+- A Ameaça não depende do perfil, e as médias de cada ritmo são de 20 sementes; a matriz, de 50.
+- O bot só ergue a Paliçada com a Torre, e não volta ao feudo por causa do alarme: a matriz mede a defesa, não a antecedência da Torre.
+- Ninguém jogou: se 2 a 3 incursões por dia real no Rápido divertem ou cansam é pergunta para o playtest.
+
+## 17. As correções das cartas da revisão das Fases D e E (V2DE)
 
 A revisão independente das Fases D e E achou duas cartas com números a corrigir. Esta seção registra a rodada da matriz depois de cada uma, como o comentário de `MEASURED`, em `packages/sim-cli/src/bands.ts`, pede. Nenhum número de `balance.ts` mudou: só os efeitos das cartas, em `packages/content/src/cards/`.
 
@@ -3641,14 +3808,14 @@ A revisão independente das Fases D e E achou duas cartas com números a corrigi
 |---|---|
 | Data | 2026-10-02 |
 | Commit | os desta seção (`git log --grep "V2DE: corrige"`, na branch `web-track`), feitos sobre `e693e3d` |
-| Identificação | Motor 0.1.0 · estado v11 · conteúdo `3cf7000da6b0c55e` (16.1) e `32e60cd2b32b10bb` (16.2) |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo `3cf7000da6b0c55e` (17.1) e `32e60cd2b32b10bb` (17.2), antes da Ameaça reequilibrada da seção 16 |
 | Dificuldades | Camponês, Senhor e Rei de Ferro |
 | Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
 | Máquina | Apple M5, macOS 26.6.2, Node 24.19.0 |
 
 O comando é o da seção 15.2, nas três dificuldades.
 
-### 16.1 Os pilares de pedra da Ponte dão +5 de moral por 3 dias (achado 13)
+### 17.1 Os pilares de pedra da Ponte dão +5 de moral por 3 dias (achado 13)
 
 O inventário (docs/content-v0.2.md, seção 5) dava a Ponte como caminho até os 80 de moral, e um teste somava no papel as vigas da primeira carta com a festa da última; entre as duas há a carta do meio, e no motor o máximo era 75. "Assentar pilares de pedra" passou a dar +5 de moral por 3 dias, além do grão escondido: respondida logo, ela ainda conta na virada em que a festa do desfecho começa, e o feudo passa um dia em 80.
 
@@ -3659,7 +3826,7 @@ O bot paga os pilares quando a pedra sobra, e por isso a economia dele muda um p
 - **A meta de desperdício no Rápido, ano de jogo:** a pior sequência voltou a 18 h de jogo (era 15), de comida, na semente 025: a fazenda rende mais e a Despensa enche antes. A meta já não era cumprida no Rápido (seção 15).
 - **Faixas:** com a linha de base da seção 15, quatro células saíam da faixa por uma semente: em Senhor, a sequência de 18 h acima; em Camponês, o ouro parado do Regular no ritmo Normal (18.112, o limite era 14.077) e do Dedicado no Tranquilo; em Rei de Ferro, o ouro parado do Dedicado no ritmo Normal (42.128 para 42.018). `MEASURED` passou a ser a linha de base desta rodada, nas três dificuldades, com a mesma regra de folga; os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram atualizados com o porquê.
 
-### 16.2 A Paliçada erguida, mostrada aos aldeões, dá +20 de moral (achado 12)
+### 17.2 A Paliçada erguida, mostrada aos aldeões, dá +20 de moral (achado 12)
 
 Com a cerca de pé, "Prometer a paliçada" rendia mais que "Mostrar a paliçada erguida" em tudo: +10 por 3 dias e, na cobrança, +15 por 3, contra +10 por 3. E o pedido chega quase sempre a quem já ergueu a cerca (23 de 24 chegadas na revisão). Mostrar passou a dar +20 por 3 dias: leva aos 80 na hora; prometer e mostrar no prazo rende mais dias acima da base, mas nunca passa de 75. Desfazer a promessa passou a durar 4 dias (−10), um a mais que a promessa: prometer e desfazer deixou de ser um adiantamento de moral sem custo. Os números que o GDD §7.1 dá à cadeia (+10, +15, +5, −10 e −15) não mudaram. Identificação: conteúdo `32e60cd2b32b10bb`.
 
@@ -3667,8 +3834,13 @@ Os bots mostram a obra quando ela existe (é a primeira opção sem custo que el
 
 - **População:** em Senhor, 188 partidas terminam com outra população; 155 com mais gente (de um a oito aldeões: os colonos dos dias em 80), 33 com menos (até nove, pelo caminho que o sorteio tomou). A faixa do Regular no ritmo Normal foi de 60 a 71 para 57 a 72 aldeões, e o Salão continua no nível 7.
 - **Nada piorou no que as faixas cobram de duro:** nenhuma hora de fome nem de frio, nenhuma recusa, ninguém vai embora; a moral mínima de cada célula não mudou.
-- **Faixas:** com a linha de base de 16.1, saíam da faixa, por uma ou duas sementes, os excedentes parados de algumas células (mais gente, mais produção) e, em Rei de Ferro, a semana do Tranquilo do Regular, por duas sementes (001 e 023: no fim da semana, o estoque juntado para a obra seguinte ainda estava parado; na 001 o Salão ficou um nível abaixo, no 5, dentro da faixa). `MEASURED` passou a ser a linha de base desta rodada nas três dificuldades, e os números fixados nos testes do simulador foram atualizados (o teto do preguiçoso no teste dos bots passou de 75 para 80: ele também mostra a obra).
+- **Faixas:** com a linha de base de 17.1, saíam da faixa, por uma ou duas sementes, os excedentes parados de algumas células (mais gente, mais produção) e, em Rei de Ferro, a semana do Tranquilo do Regular, por duas sementes (001 e 023: no fim da semana, o estoque juntado para a obra seguinte ainda estava parado; na 001 o Salão ficou um nível abaixo, no 5, dentro da faixa). `MEASURED` passou a ser a linha de base desta rodada nas três dificuldades, e os números fixados nos testes do simulador foram atualizados (o teto do preguiçoso no teste dos bots passou de 75 para 80: ele também mostra a obra).
 
-### 16.3 Com quem roda as matrizes depois
+### 17.3 Depois de juntar as trilhas
 
-A tarefa que mexe na Ameaça (balance.ts e GDD §8.2) roda ao mesmo tempo em outra trilha e também regrava `MEASURED`. As duas linhas de base não se somam: depois de juntar as trilhas, a matriz precisa rodar de novo nas três dificuldades, sobre o conteúdo das duas.
+As rodadas 17.1 e 17.2 foram medidas antes da Ameaça reequilibrada (seção 16), que entrou na outra trilha ao mesmo tempo. Juntadas as duas, a matriz rodou de novo nas três dificuldades, sobre o conteúdo das duas (conteúdo `3b1caded545b09eb`), e `MEASURED` é a linha de base dessa rodada.
+
+- **Nada de duro:** nas 2.700 partidas, nenhuma hora de fome nem de frio, nenhuma recusa, ninguém vai embora.
+- **Contra a linha de base da seção 16**, saíam da faixa só excedentes parados, quase todos por uma semente, e uma célula por muitas: a semana do Tranquilo do Preguiçoso, nas três dificuldades, em 22 e em 3 das 50 sementes, com dezenas de unidades acima do teto (em Senhor, 145 de madeira e 62 de ouro contra 117 e 52; o teto do ouro vinha de 49 parados). É o preguiçoso mostrando a Paliçada por +20: mais braços nos dias em 80, um pouco mais de estoque no fim da semana. Em Camponês, a semana do Tranquilo do Regular passou de 0 para 1 h de jogo de madeira indo ao chão em uma semente.
+- **O Regular no ritmo Normal**, em Senhor: de 63 a 73 aldeões na semana (eram 63 a 71 na seção 16), Salão no nível 7 em toda semente. A pior sequência de desperdício do Regular no Normal ficou em 8 h; a meta continua cumprida no Normal e no Tranquilo.
+- Os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram refeitos sobre esta rodada; os que a seção 16 tinha mudado e as cartas não mexem (o Armazém no Rápido, a pior sequência do ano do Rápido) ficaram como a seção 16 os deixou.

@@ -523,7 +523,7 @@ progress::-webkit-progress-value {
 
 /*
  * De onde vem a subida: uma origem por linha, recuada sob a frase da tendência. Cada termo já
- * começa pelo sinal ("+5/dia: Covil de Lobos"), e por isso a lista não leva marcador. O que cada
+ * começa pelo sinal ("+2/dia: Covil de Lobos"), e por isso a lista não leva marcador. O que cada
  * tamanho de ataque custa tem o mesmo desenho, sob a frase da defesa.
  */
 .threat-sources,

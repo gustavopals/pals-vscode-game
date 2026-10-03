@@ -21,12 +21,6 @@
    169231564,
    896822589,
    4075764412
-  ],
-  "horde": [
-   3023915732,
-   352746914,
-   367737413,
-   847683131
   ]
  },
  "settlement": {
@@ -34,7 +28,7 @@
   "resources": {
    "food": 720000,
    "wood": 241204,
-   "stone": 294077,
+   "stone": 299811,
    "gold": 170000
   },
   "accumulators": {
@@ -78,8 +72,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 15443,
-   "wood": 24684,
+   "food": 22676,
+   "wood": 24008,
    "stone": 0,
    "gold": 0
   },
@@ -142,19 +136,10 @@
     "threatActive": true
    }
   },
-  "threat": 100
+  "threat": 40
  },
  "horde": {
-  "scheduledRaids": [
-   {
-    "id": "threat-6",
-    "atMs": 259200000,
-    "kind": "threat",
-    "enemy": "wolves",
-    "size": "medium",
-    "announcedAtMs": null
-   }
-  ]
+  "scheduledRaids": []
  },
  "objectives": {
   "active": [
@@ -170,16 +155,17 @@
  "stats": {
   "cardsDrawn": 4,
   "cardsDrawn:thawBridgePlea": 1,
-  "wasted_food": 425443,
+  "wasted_food": 989676,
   "cardsDrawn:masonsMeal": 1,
-  "wasted_wood": 497684,
+  "wasted_wood": 852008,
   "constructionsStarted:townHall": 1,
   "constructionsStarted:granary": 1,
-  "raids_suffered": 5,
+  "raids_suffered": 1,
   "cardsExpired": 3,
   "cardsDrawn:collapsedWell": 1,
   "coldSpellsThisSeason": 0,
   "cardsDrawn:commonGranaryPlanks": 1,
+  "threatCrossed:40": 1,
   "constructionsStarted:warehouse": 1
  }
 }

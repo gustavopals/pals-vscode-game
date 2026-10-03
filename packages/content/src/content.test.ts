@@ -453,21 +453,24 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
   const { threat, calendar } = balance;
   const HOUR = 3_600_000;
 
-  it('vai de 0 a 100: +5 por dia de jogo por tile ativo e +3 por dia no outono', () => {
+  it('vai de 0 a 100: +2 por dia de jogo por tile ativo e +3 por dia no outono', () => {
+    // Reequilibrado depois da revisão das Fases D e E: eram +5 (docs/balance-v0.2.md, seção 16).
     expect(threat.max).toBe(100);
-    expect(threat.perActiveTilePerDay).toBe(5);
+    expect(threat.perActiveTilePerDay).toBe(2);
     expect(threat.seasonPerDay).toEqual({ autumn: 3 });
   });
 
-  it('a Crônica fala dela ao cruzar 40 e 70, e a primeira marca é onde as incursões começam', () => {
+  it('a Crônica fala dela ao cruzar 40 e 70: a primeira marca é onde as incursões começam, e a segunda, onde elas ficam médias', () => {
     expect(threat.chronicleMarks).toEqual([40, 70]);
     expect(threat.chronicleMarks[0]).toBe(threat.raidChanceAbove);
+    expect(threat.chronicleMarks[1]).toBe(threat.mediumRaidAbove);
   });
 
-  it('as incursões por Ameaça: acima de 40, média a partir de 60, −10 por incursão, 6 h de jogo depois', () => {
+  it('as incursões por Ameaça: acima de 40, média a partir de 70, −35 por incursão, 6 h de jogo depois', () => {
+    // Reequilibrado depois da revisão das Fases D e E: eram média a partir de 60 e −10.
     expect(threat.raidChanceAbove).toBe(40);
-    expect(threat.mediumRaidAbove).toBe(60);
-    expect(threat.raidDrop).toBe(10);
+    expect(threat.mediumRaidAbove).toBe(70);
+    expect(threat.raidDrop).toBe(35);
     expect(threat.raidLeadMs).toBe(6 * HOUR);
     // O prazo é um número inteiro de dias de jogo: a incursão sorteada em uma virada cai em outra.
     expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
@@ -520,17 +523,24 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(new Set(Object.values(enemies.wolves.sizes)).size).toBe(RAID_SIZE_IDS.length);
   });
 
-  it('cada marca da Crônica tem a sua frase, com sabor, e a frase diz a quanto a Ameaça chegou', () => {
+  it('cada marca da Crônica tem a sua frase e a da volta, com sabor, e a frase diz a quanto a Ameaça chegou', () => {
     expect(ThreatMarkTemplatesSchema.safeParse(threatMarkTemplates).error).toBeUndefined();
     expect(Object.keys(threatMarkTemplates).map(Number)).toEqual([...threat.chronicleMarks]);
-    const phrases = [chronicleTemplates.threatRose, ...Object.values(threatMarkTemplates)];
+    const phrases = [
+      chronicleTemplates.threatRose,
+      ...Object.values(threatMarkTemplates).flatMap(({ first, again }) => [first, again]),
+    ];
     expect(new Set(phrases).size).toBe(phrases.length);
     for (const phrase of phrases) {
       expect(phrase).toContain('os vigias de {feudo}');
       expect(phrase).toContain('{ameaca}');
       expect(phrase).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
     }
-    expect(threatMarkTemplates[40]).toContain('contam mais uivos a cada noite');
+    expect(threatMarkTemplates[40]?.first).toContain('contam mais uivos a cada noite');
+    // A volta diz que os lobos voltaram: só uma incursão faz a Ameaça cair (achado 1 da revisão).
+    for (const { again } of Object.values(threatMarkTemplates)) {
+      expect(again).toContain('tornam a');
+    }
   });
 
   it('o schema recusa marcas fora de ordem, Torre que avisa menos e aviso maior que o prazo', () => {
@@ -574,8 +584,19 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(RaidSizesSchema.safeParse({ ...raidSizes, light: { plural: 'Leves.' } }).success).toBe(
       false,
     );
-    expect(ThreatMarkTemplatesSchema.safeParse({ 40: 'Uivos em {castelo}.' }).success).toBe(false);
-    expect(ThreatMarkTemplatesSchema.safeParse({ alta: 'Uivos em {feudo}.' }).success).toBe(false);
+    const marks = (first: string, again: string) => ({ first, again });
+    expect(
+      ThreatMarkTemplatesSchema.safeParse({ 40: marks('Uivos em {castelo}.', 'De novo.') }).success,
+    ).toBe(false);
+    expect(
+      ThreatMarkTemplatesSchema.safeParse({ alta: marks('Uivos em {feudo}.', 'De novo.') }).success,
+    ).toBe(false);
+    // A marca cruzada de novo não repete a frase da primeira vez, e as duas existem.
+    expect(
+      ThreatMarkTemplatesSchema.safeParse({ 40: marks('Uivos em {feudo}.', 'Uivos em {feudo}.') })
+        .success,
+    ).toBe(false);
+    expect(ThreatMarkTemplatesSchema.safeParse({ 40: 'Uivos em {feudo}.' }).success).toBe(false);
     expect(StartingTilesSchema.safeParse([...startingTiles, ...startingTiles]).success).toBe(false);
     expect(
       TileTypesSchema.safeParse({ wolfDen: { ...tileTypes.wolfDen, enemy: 'bandits' } }).success,

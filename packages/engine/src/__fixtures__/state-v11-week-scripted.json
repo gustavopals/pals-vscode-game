@@ -23,34 +23,28 @@
    1162801657
   ],
   "horde": [
-   883870550,
-   1931642205,
-   180836481,
-   694859572
-  ],
-  "morale": [
-   1963695365,
-   762819907,
-   1839371436,
-   3869336588
+   1784935854,
+   3047186823,
+   3686916175,
+   152010001
   ]
  },
  "settlement": {
   "name": "Pedra Alta do Norte",
   "resources": {
    "food": 1500000,
-   "wood": 49509,
-   "stone": 798770,
-   "gold": 1773997
+   "wood": 42009,
+   "stone": 795255,
+   "gold": 1878166
   },
   "accumulators": {
-   "food": 2326530,
+   "food": 1900335,
    "wood": 0,
-   "stone": 3249730,
-   "gold": 1346360
+   "stone": 3461115,
+   "gold": 313713
   },
   "population": {
-   "villagers": 23
+   "villagers": 26
   },
   "workers": {
    "farm": 8,
@@ -79,9 +73,9 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 975,
-   "wood": 909,
-   "stone": 971,
+   "food": 48,
+   "wood": 357,
+   "stone": 155,
    "gold": 0
   },
   "craftExperience": {
@@ -134,7 +128,7 @@
     "threatActive": true
    }
   },
-  "threat": 90
+  "threat": 70
  },
  "horde": {
   "scheduledRaids": []
@@ -169,25 +163,27 @@
   "constructionsStarted:quarry": 4,
   "constructionsStarted:watchtower": 2,
   "cardsDrawn:thawBridgeSlab": 1,
-  "raids_suffered": 8,
+  "raids_suffered": 1,
   "constructionsStarted:warehouse": 1,
   "cardsExpired": 6,
   "cardsDrawn:springSeeds": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5623975,
+  "wasted_food": 5530048,
+  "wasted_wood": 2531357,
   "coldSpellsThisSeason": 0,
   "constructionsStarted:goldMine": 2,
   "constructionsStarted:granary": 2,
-  "wasted_wood": 1306909,
   "cardsDrawn:moreMouths": 1,
   "cardsDrawn:palisadePromisePlea": 1,
-  "wasted_stone": 2129971,
+  "wasted_stone": 2382155,
+  "threatCrossed:40": 2,
   "cardsDrawn:fullGranary": 1,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:palisadePromiseDeadline": 1,
   "cardsDrawn:commonGranaryPlanks": 1,
   "seasonsSurvived:summer": 1,
-  "raids_repelled": 9,
+  "threatCrossed:70": 5,
+  "raids_repelled": 4,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:commonGranaryShare": 1,
   "cardsDrawn:commonGranaryOutcome": 1,

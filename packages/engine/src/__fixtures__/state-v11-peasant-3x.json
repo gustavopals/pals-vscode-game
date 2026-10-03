@@ -23,22 +23,22 @@
    2121368419
   ],
   "horde": [
-   1744665841,
-   2981331793,
-   2572820061,
-   2729376067
+   515272011,
+   3317600185,
+   2305500079,
+   3552779755
   ]
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 533718,
-   "wood": 535986,
+   "food": 625000,
+   "wood": 625000,
    "stone": 45000,
    "gold": 270000
   },
   "accumulators": {
-   "food": 442260,
+   "food": 696780,
    "wood": 2569680,
    "stone": 0,
    "gold": 0
@@ -47,7 +47,7 @@
    "villagers": 5
   },
   "workers": {
-   "farm": 1,
+   "farm": 3,
    "lumberMill": 2,
    "quarry": 0,
    "goldMine": 0
@@ -79,8 +79,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 381,
-   "wood": 626,
+   "food": 9855,
+   "wood": 5592,
    "stone": 0,
    "gold": 0
   },
@@ -98,24 +98,8 @@
   },
   "adaptation": [],
   "morale": 60,
-  "moraleEffects": [
-   {
-    "id": "raid",
-    "label": "Incursão sofrida",
-    "amount": -10,
-    "untilMs": 1260000000
-   }
-  ],
-  "injured": [
-   {
-    "untilMs": 1252800000,
-    "building": "farm"
-   },
-   {
-    "untilMs": 1252800000,
-    "building": "farm"
-   }
-  ]
+  "moraleEffects": [],
+  "injured": []
  },
  "council": {
   "pending": [
@@ -152,10 +136,19 @@
     "threatActive": true
    }
   },
-  "threat": 90
+  "threat": 64
  },
  "horde": {
-  "scheduledRaids": []
+  "scheduledRaids": [
+   {
+    "id": "threat-13",
+    "atMs": 1252800000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
  },
  "objectives": {
   "active": [
@@ -172,15 +165,17 @@
   "constructionsStarted:housing": 1,
   "cardsDrawn": 10,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 7321381,
+  "wasted_food": 11096855,
   "cardsDrawn:thawBridgePlea": 2,
-  "raids_suffered": 34,
-  "wasted_wood": 3640626,
+  "raids_suffered": 12,
+  "wasted_wood": 5923592,
   "coldSpellsThisSeason": 0,
+  "threatCrossed:40": 7,
   "cardsExpired": 8,
   "cardsDrawn:sawmillRest": 2,
   "seasonsSurvived:summer": 2,
   "cardsDrawn:moreMouths": 1,
+  "threatCrossed:70": 9,
   "seasonsSurvived:autumn": 2,
   "seasonsSurvived:winter": 2,
   "cardsDrawn:neighborsWatch": 1,

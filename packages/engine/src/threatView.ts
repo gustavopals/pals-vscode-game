@@ -19,7 +19,6 @@ import {
   prowlingEnemy,
   raidChancePercent,
   raidSizeAt,
-  threatAfterTurn,
   threatSources,
   watchtowerLevel,
   watchtowerPerks,
@@ -28,6 +27,7 @@ import type {
   BuildingId,
   EnemyId,
   GameState,
+  ScheduledRaid,
   ThreatDefenseView,
   ThreatIncomingView,
   ThreatView,
@@ -390,9 +390,9 @@ function raidRiskView(
 
 /**
  * A incursão marcada que os vigias já avistaram: a primeira a chegar, se o prazo dela já está
- * dentro da antecedência que o nível da Torre dá. O tamanho só sai com a Torre que o distingue.
+ * dentro da antecedência que o nível da Torre dá. `null` sem Torre e sem incursão à vista.
  */
-function incomingView(state: GameState, timeScale: number): ThreatIncomingView | null {
+function sightedRaid(state: GameState): ScheduledRaid | null {
   const perks = watchtowerPerks(watchtowerLevel(state));
   if (perks === null) {
     return null;
@@ -401,9 +401,20 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   const [raid] = state.horde.scheduledRaids
     .filter((entry) => entry.atMs >= now && entry.atMs - perks.warningMs <= now)
     .sort((a, b) => a.atMs - b.atMs);
-  if (raid === undefined) {
+  return raid ?? null;
+}
+
+/**
+ * A incursão que os vigias já avistaram (`sightedRaid`), em frases. O tamanho só sai com a Torre
+ * que o distingue.
+ */
+function incomingView(state: GameState, timeScale: number): ThreatIncomingView | null {
+  const perks = watchtowerPerks(watchtowerLevel(state));
+  const raid = sightedRaid(state);
+  if (perks === null || raid === null) {
     return null;
   }
+  const now = state.lastProcessedAt;
   const enemy = enemies[raid.enemy];
   const enemyLabel = sentenceCase(enemy.label);
   const sizeText = perks.revealsRaidSize ? enemy.sizes[raid.size] : null;
@@ -425,6 +436,77 @@ function incomingView(state: GameState, timeScale: number): ThreatIncomingView |
   };
 }
 
+/**
+ * O que a próxima virada do dia faz à Ameaça, como a visão o promete: a subida e, com uma
+ * incursão à vista que chega até lá, a queda dela (achado 2 da revisão das Fases D e E). Toda
+ * incursão chega em uma virada de dia e o aviso da Torre é de no máximo um dia de jogo: a que
+ * está à vista chega **nessa** virada, que sobe primeiro e cai depois (a virada vem antes da
+ * incursão no mesmo instante). Um retrato montado à mão pode pôr a incursão antes da virada:
+ * aí ela cai primeiro e a virada sobe depois. A incursão que os vigias ainda não viram não
+ * entra: a névoa vale também para a previsão.
+ *
+ * `before` é a Ameaça que a subida encontra, `risen` a de depois da subida (com o limite) e
+ * `nextLevel` a de depois da virada inteira. `dropped` diz se a incursão entrou na conta, e
+ * `floored`, se a queda parou no zero.
+ */
+type TurnForecast = {
+  before: number;
+  risen: number;
+  nextLevel: number;
+  dropped: boolean;
+  floored: boolean;
+};
+
+function nextTurnForecast(state: GameState, turn: number, rise: number): TurnForecast {
+  const level = state.map.threat;
+  const raid = sightedRaid(state);
+  const lands = raid !== null && raid.atMs <= turn;
+  const fall = (from: number) => Math.max(0, from - rules.raidDrop);
+  const climb = (from: number) => Math.min(rules.max, from + rise);
+  if (!lands) {
+    const risen = climb(level);
+    return { before: level, risen, nextLevel: risen, dropped: false, floored: false };
+  }
+  if (raid.atMs < turn) {
+    const before = fall(level);
+    const risen = climb(before);
+    return { before, risen, nextLevel: risen, dropped: true, floored: level < rules.raidDrop };
+  }
+  const risen = climb(level);
+  return {
+    before: level,
+    risen,
+    nextLevel: fall(risen),
+    dropped: true,
+    floored: risen < rules.raidDrop,
+  };
+}
+
+/**
+ * A tendência, em uma frase: "Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 45
+ * para 50." Com a incursão à vista, a frase conta as duas coisas: "Sobe 5 a cada dia de jogo
+ * (40 min), e a incursão à vista a faz cair 35: na próxima virada, vai de 70 para 40."
+ */
+function trendText(level: number, rise: number, forecast: TurnForecast, day: string): string {
+  const { before, risen, nextLevel, dropped, floored } = forecast;
+  const capped = risen - before < rise ? ', até o máximo' : '';
+  const going = `na próxima virada, vai de ${level} para ${nextLevel}.`;
+  if (!dropped) {
+    if (level >= rules.max) {
+      return 'Está no máximo: não sobe mais.';
+    }
+    return rise === 0 ? 'Nada a faz subir hoje.' : `Sobe ${rise} ${day}${capped}: ${going}`;
+  }
+  const fall = `a incursão à vista a faz cair ${floored ? 'até zero' : String(rules.raidDrop)}`;
+  if (before >= rules.max) {
+    return `Está no máximo, e ${fall}: ${going}`;
+  }
+  if (rise === 0) {
+    return `Nada a faz subir hoje, e ${fall}: ${going}`;
+  }
+  return `Sobe ${rise} ${day}${capped}, e ${fall}: ${going}`;
+}
+
 export function threatView(state: GameState, timeScale: number): ThreatView {
   const watchtower = watchtowerView(state, timeScale);
   const defense = defenseView(state);
@@ -440,33 +522,24 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
   const now = state.lastProcessedAt;
   const turn = nextDayBoundary(now);
   const level = state.map.threat;
-  const nextLevel = threatAfterTurn(state, turn);
   const sources = threatSources(state, turn);
   const rise = sources.reduce((sum, source) => sum + source.amount, 0);
   const day = `a cada dia de jogo (${real(DAY_MS, timeScale)})`;
   const { tiles } = state.map;
   const incoming = incomingView(state, timeScale);
-  const risk = raidRiskView(nextLevel, incoming, timeScale);
-
-  let trend: string;
-  if (level >= rules.max) {
-    trend = 'Está no máximo: não sobe mais.';
-  } else if (rise === 0) {
-    trend = 'Nada a faz subir hoje.';
-  } else {
-    const capped = nextLevel - level < rise ? ', até o máximo' : '';
-    trend = `Sobe ${rise} ${day}${capped}: na próxima virada, vai de ${level} para ${nextLevel}.`;
-  }
+  const forecast = nextTurnForecast(state, turn, rise);
+  const { nextLevel } = forecast;
+  const risk = raidRiskView(forecast.risen, incoming, timeScale);
 
   return {
     known: true,
     text: `Ameaça ${level} de ${rules.max}.`,
     level,
     max: rules.max,
-    risePerDay: nextLevel - level,
+    risePerDay: forecast.risen - forecast.before,
     nextLevel,
     nextRiseInSeconds: realSecondsCeil(turn - now, timeScale),
-    trend,
+    trend: trendText(level, rise, forecast, day),
     sources: sources.map((source) =>
       source.kind === 'tile'
         ? `+${source.amount}/dia: ${tileTypes[source.type].label}`

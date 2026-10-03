@@ -10,23 +10,29 @@
  },
  "migratedAtMs": null,
  "clock": {
-  "gameTimeMs": 130020000,
+  "gameTimeMs": 367620000,
   "yearStartMs": 0,
   "year": 1
  },
- "lastProcessedAt": 130020000,
+ "lastProcessedAt": 367620000,
  "rng": {
   "council": [
-   3057387139,
-   393811064,
-   488397358,
-   1781318797
+   3653103236,
+   1590350303,
+   1981431363,
+   1485483721
   ],
   "horde": [
-   1616840053,
-   3114435531,
-   1740926280,
-   2660883221
+   2540306934,
+   3376420165,
+   1771995401,
+   3542293133
+  ],
+  "morale": [
+   3064948913,
+   794306229,
+   706916659,
+   1947401870
   ]
  },
  "settlement": {
@@ -38,8 +44,8 @@
    "gold": 270000
   },
   "accumulators": {
-   "food": 480000,
-   "wood": 960000,
+   "food": 1500000,
+   "wood": 0,
    "stone": 0,
    "gold": 0
   },
@@ -73,20 +79,20 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 4933,
-   "wood": 3221,
+   "food": 6615,
+   "wood": 3070,
    "stone": 0,
    "gold": 0
   },
   "craftExperience": {
-   "farm": 72,
-   "lumberMill": 72,
+   "farm": 100,
+   "lumberMill": 100,
    "quarry": 0,
    "goldMine": 0
   },
   "craftMasteredYear": {
-   "farm": 0,
-   "lumberMill": 0,
+   "farm": 1,
+   "lumberMill": 1,
    "quarry": 0,
    "goldMine": 0
   },
@@ -98,23 +104,34 @@
  "council": {
   "pending": [
    {
-    "instanceId": "collapsedWell-2",
-    "cardId": "collapsedWell",
-    "drawnAtMs": 57600000,
-    "expiresAtMs": 144000000,
+    "instanceId": "masonsMeal-6",
+    "cardId": "masonsMeal",
+    "drawnAtMs": 288000000,
+    "expiresAtMs": 374400000,
     "origin": null
    }
   ],
-  "flags": {},
+  "flags": {
+   "routine.moreMouths": true,
+   "palisadePromise.kept": true
+  },
   "seenThisYear": [
    "springNews",
-   "collapsedWell"
+   "collapsedWell",
+   "moreMouths",
+   "palisadePromisePlea",
+   "thawBridgePlea",
+   "masonsMeal"
   ],
-  "nextDrawAtMs": 144000000,
+  "nextDrawAtMs": 374400000,
   "scheduled": [],
   "delayed": [],
   "expired": [
-   "springNews-1"
+   "springNews-1",
+   "collapsedWell-2",
+   "moreMouths-3",
+   "palisadePromisePlea-4",
+   "thawBridgePlea-5"
   ]
  },
  "map": {
@@ -124,17 +141,17 @@
     "threatActive": true
    }
   },
-  "threat": 80
+  "threat": 81
  },
  "horde": {
   "scheduledRaids": [
    {
     "id": "threat-2",
-    "atMs": 136800000,
+    "atMs": 374400000,
     "kind": "threat",
     "enemy": "wolves",
     "size": "medium",
-    "announcedAtMs": 129600000
+    "announcedAtMs": 367200000
    }
   ]
  },
@@ -151,12 +168,20 @@
   ]
  },
  "stats": {
-  "cardsDrawn": 2,
+  "cardsDrawn": 6,
   "cardsDrawn:springNews": 1,
-  "wasted_food": 966933,
+  "wasted_food": 3510615,
   "cardsDrawn:collapsedWell": 1,
-  "wasted_wood": 272221,
+  "wasted_wood": 1874070,
   "raids_repelled": 1,
-  "cardsExpired": 1
+  "cardsExpired": 5,
+  "cardsDrawn:moreMouths": 1,
+  "coldSpellsThisSeason": 0,
+  "cardsDrawn:palisadePromisePlea": 1,
+  "threatCrossed:40": 1,
+  "cardsDrawn:thawBridgePlea": 1,
+  "cardsDrawn:masonsMeal": 1,
+  "seasonsSurvived:summer": 1,
+  "threatCrossed:70": 1
  }
 }

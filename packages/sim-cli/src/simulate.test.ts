@@ -286,12 +286,13 @@ describe('CSV de uma partida', () => {
       /Progresso: Salão Nv2 na hora \d+, Salão Nv3 na hora \d+, Salão Nv4 na hora \d+, Celeiro na hora \d+, Armazém na hora \d+, Torre de Vigia na hora \d+, Paliçada na hora \d+ · \d+ obras começaram sozinhas · /,
     );
     // A Ameaça é medida no estado, com ou sem Torre; a linha diz se o jogador chegou a vê-la.
-    // Ela chega ao máximo e cai 10 a cada incursão: o ano acaba logo depois de uma.
-    expect(summary.threat).toEqual({ final: 90, max: 100, watchtower: 2 });
+    // Ela sobe 2 por dia de jogo (5 no outono) e cai 35 a cada incursão: oscila, e no ano não
+    // passa de 76.
+    expect(summary.threat).toEqual({ final: 70, max: 76, watchtower: 2 });
     expect(formatSummary(twoSessions)).toContain(
-      `Ameaça: 90 no fim (máxima 100) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
+      `Ameaça: 70 no fim (máxima 76) · Torre de Vigia Nv2, erguida na hora ${summary.milestones.watchtower}\n`,
     );
-    expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 5, 5, 10]);
+    expect(twoSessions.rows.map((row) => row.threat).slice(0, 4)).toEqual([0, 2, 2, 4]);
     expect(formatSummary(twoSessions)).toContain(
       `População: ${summary.villagers} de ${summary.capacity} vagas (mínima ${summary.villagersMin})\n`,
     );

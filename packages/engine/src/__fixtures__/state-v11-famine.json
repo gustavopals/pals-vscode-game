@@ -27,26 +27,20 @@
    2253665365,
    3145566891,
    3095441531
-  ],
-  "horde": [
-   2019491397,
-   619599012,
-   2292500949,
-   1699858095
   ]
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
    "food": 0,
-   "wood": 425000,
-   "stone": 433891,
+   "wood": 500000,
+   "stone": 438587,
    "gold": 240000
   },
   "accumulators": {
    "food": 0,
-   "wood": 0,
-   "stone": 420000,
+   "wood": 3300000,
+   "stone": 1620000,
    "gold": 0
   },
   "population": {
@@ -54,8 +48,8 @@
   },
   "workers": {
    "farm": 0,
-   "lumberMill": 0,
-   "quarry": 1,
+   "lumberMill": 1,
+   "quarry": 2,
    "goldMine": 0
   },
   "buildings": {
@@ -86,7 +80,7 @@
   "cold": null,
   "wasted": {
    "food": 0,
-   "wood": 384,
+   "wood": 7896,
    "stone": 0,
    "gold": 0
   },
@@ -104,24 +98,8 @@
   },
   "adaptation": [],
   "morale": 16,
-  "moraleEffects": [
-   {
-    "id": "raid",
-    "label": "Incursão sofrida",
-    "amount": -10,
-    "untilMs": 158400000
-   }
-  ],
-  "injured": [
-   {
-    "untilMs": 151200000,
-    "building": "quarry"
-   },
-   {
-    "untilMs": 151200000,
-    "building": "lumberMill"
-   }
-  ]
+  "moraleEffects": [],
+  "injured": []
  },
  "council": {
   "pending": [
@@ -154,7 +132,7 @@
     "threatActive": true
    }
   },
-  "threat": 80
+  "threat": 10
  },
  "horde": {
   "scheduledRaids": []
@@ -174,8 +152,8 @@
   "cardsDrawn": 3,
   "cardsDrawn:springNews": 1,
   "cardsDrawn:thawBridgePlea": 1,
-  "wasted_wood": 380384,
-  "raids_suffered": 2,
+  "wasted_wood": 387896,
+  "raids_suffered": 1,
   "cardsExpired": 2,
   "cardsDrawn:sawmillRest": 1
  }

@@ -502,8 +502,8 @@ export function proudScenario(): GameState {
 
 /**
  * A Ameaça vista da Torre de Vigia, no ritmo Rápido: o 5º dia do outono, com a Torre no nível 1
- * e um feudo arrumado. A Ameaça estava em 30 ao fim do 2º dia; as duas viradas seguintes somam
- * o covil e o outono (+8 cada), e a primeira cruza os 40: os vigias contam os uivos.
+ * e um feudo arrumado. A Ameaça estava em 36 ao fim do 2º dia; as duas viradas seguintes somam
+ * o covil e o outono (+5 cada), e a primeira cruza os 40: os vigias contam os uivos.
  */
 export function watchScenario(): GameState {
   const start = gameAt(AUTUMN + 2 * DAY, (draft) => {
@@ -520,7 +520,7 @@ export function watchScenario(): GameState {
       watchtower: 1,
     };
     settlement.resources = { food: 320_000, wood: 300_000, stone: 250_000, gold: 180_000 };
-    draft.map.threat = 30;
+    draft.map.threat = 36;
   });
   return advanceTo(start, AUTUMN + 4 * DAY + 13 * MINUTE).state;
 }
@@ -552,12 +552,15 @@ export function raidInSightScenario(): GameState {
  * O dia seguinte ao ataque, no ritmo Rápido: o feudo do cenário da Torre sem Paliçada, uma hora
  * de jogo depois de uma matilha grande passar por ele. Dois feridos (um lavrador e um lenhador,
  * que voltam ao ofício sozinhos), a comida e a madeira que os lobos levaram, o termo de moral
- * da incursão na conta da próxima virada, e a Ameaça dez pontos abaixo. É o que a tela mostra
- * a quem volta e quer saber o que aconteceu e o que fazer.
+ * da incursão na conta da próxima virada, e a Ameaça derrubada por ela, mas ainda acima dos 40.
+ * É o que a tela mostra a quem volta e quer saber o que aconteceu e o que fazer.
  */
 export function raidAftermathScenario(): GameState {
   const start = cloneState(watchScenario());
   const arrival = AUTUMN + 5 * DAY;
+  // A matilha grande vem da Ameaça acima dos 70; depois do ataque ela fica acima dos 40, e a
+  // próxima virada ainda pode marcar outra incursão.
+  start.map.threat = 71;
   // Todos no ofício: os feridos saem da Fazenda e da Serraria.
   start.settlement.workers = { farm: 4, lumberMill: 4, quarry: 2, goldMine: 2 };
   start.horde.scheduledRaids = [
@@ -735,7 +738,7 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   // A Pedreira fica planejada como automática: começa sozinha assim que houver fila e recurso.
   [24, command('planConstruction', { building: 'quarry', autoStart: true })],
   // O Salão no nível 2 liberou a Torre de Vigia e os depósitos. Primeiro a Torre: fica pronta
-  // a tempo de os vigias contarem a Ameaça passando dos 70, na virada das 28 h.
+  // a tempo de os vigias avistarem os lobos do roteiro uma hora antes de eles chegarem (30 h).
   [25, command('startConstruction', { building: 'watchtower' })],
   // Depois o Armazém, antes que a madeira vá para o chão.
   [30, command('startConstruction', { building: 'warehouse' })],
@@ -743,8 +746,7 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [36, command('cancelConstruction', { building: 'quarry' })],
   [36, command('startConstruction', { building: 'housing' })],
   [36, command('setWorkers', { building: 'quarry', count: 9 })],
-  // Não há nove braços livres: os dois que sobram vão para a Pedreira. Com todos no ofício, os
-  // lobos das 38 h ferem um lenhador e um canteiro, que largam o trabalho por um dia de jogo.
+  // Não há nove braços livres: os dois que sobram vão para a Pedreira.
   [36, command('setWorkers', { building: 'quarry', count: 4 })],
   // Dia 3: o feudo ganha nome novo e o Salão sobe.
   [48, command('recruitVillagers', { quantity: 4 })],
@@ -753,8 +755,8 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [52, command('startConstruction', { building: 'granary' })],
   [60, command('setWorkers', { building: 'quarry', count: 4 })],
   [60, command('startConstruction', { building: 'townHall' })],
-  // Dia 4: o senhor tira todos da Fazenda e gasta a comida em recrutas. A fome vem, e com ela
-  // a moral cai: inquieto na virada seguinte, desesperado três dias de jogo depois.
+  // Dia 4: o senhor tira todos da Fazenda e gasta a comida em recrutas. A fome vem (90 h), e
+  // com ela a moral cai: o povo fica inquieto.
   [72, command('setWorkers', { building: 'farm', count: 0 })],
   [72, command('setWorkers', { building: 'lumberMill', count: 6 })],
   [72, command('recruitVillagers', { quantity: 5 })],
@@ -769,11 +771,10 @@ const weekScript = (): Array<[hour: number, order: Command]> => [
   [96, command('startConstruction', { building: 'watchtower' })],
   // E não passa disso nesta versão: a recusa diz que os níveis seguintes ficam para depois.
   [97, command('startConstruction', { building: 'watchtower' })],
-  // Os lobos já passaram duas vezes pela Paliçada pequena, e a Crônica diz o que os teria
-  // detido: o senhor a leva ao nível 2. Daí em diante as matilhas grandes recuam.
+  // O outono começa e a Ameaça sobe mais depressa: o senhor leva a Paliçada ao nível 2. Daí em
+  // diante toda matilha recua.
   [97, command('startConstruction', { building: 'palisade' })],
-  // A fome já dura mais de 12 h de jogo: a moral despencou e três aldeões desertaram. De volta
-  // à Fazenda; a fome acaba.
+  // A fome já dura sete horas de jogo e o povo anda inquieto. De volta à Fazenda; a fome acaba.
   [97, command('setWorkers', { building: 'lumberMill', count: 2 })],
   [97, command('setWorkers', { building: 'farm', count: 8 })],
   // Dia 5: a despensa ainda se refaz.

@@ -135,7 +135,7 @@
     "threatActive": true
    }
   },
-  "threat": 65
+  "threat": 0
  },
  "horde": {
   "scheduledRaids": []

@@ -412,8 +412,8 @@ describe('a Torre avisa e a Paliçada muda o desfecho, com o senhor fora ou pres
         raidId: 'wolvesYear1',
         warning: 'warned',
         palisadeLevel: 1,
-        previousThreat: 75,
-        threat: 65,
+        previousThreat: 30,
+        threat: 0,
       },
       text: 'No 16º dia da Primavera, os lobos que os vigias tinham avistado chegaram a Pedra Alta. Recuaram diante da paliçada: nada se perdeu e ninguém se feriu.',
     });
@@ -523,10 +523,16 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     await wait(normal, game, YEAR);
     const all = await eventsOf(normal, game, game.id);
     const resolved = all.filter((event) => /^raid(Suffered|Repelled)$/.test(event.type));
-    // A primeira é a do roteiro, leve, que a Paliçada no nível 1 repele; as da Ameaça, médias,
-    // passam por ela com a metade do estrago e um ferido cada.
+    // A primeira é a do roteiro, leve, que a Paliçada no nível 1 repele. Das da Ameaça, as leves
+    // também recuam diante dela; as médias, que vêm com o outono, passam com a metade do estrago
+    // e um ferido cada. São umas seis no ano (eram mais de oito, quase todas médias, antes de a
+    // Ameaça ser reequilibrada na revisão das Fases D e E).
     expect(resolved[0]).toMatchObject({ type: 'raidRepelled', data: { raidId: 'wolvesYear1' } });
-    expect(resolved.length).toBeGreaterThan(8);
+    expect(resolved.length).toBeGreaterThanOrEqual(5);
+    for (const event of resolved.filter((entry) => entry.type === 'raidRepelled')) {
+      expect(event.data).toMatchObject({ size: 'light', palisadeLevel: 1 });
+    }
+    expect(resolved.filter((event) => event.type === 'raidRepelled').length).toBeGreaterThan(1);
     const ids = resolved.map((event) => event.data.raidId);
     expect(new Set(ids).size).toBe(ids.length);
     resolved.slice(1).forEach((event, index) => {
@@ -573,13 +579,15 @@ describe('as incursões por Ameaça em uma ausência longa', () => {
     expect(paged.filter((event) => /^raid(Suffered|Repelled)$/.test(event.type))).toHaveLength(
       resolved.length,
     );
-    // A Ameaça, que a Torre mostra, caiu a cada incursão e voltou a subir.
+    // A Ameaça, que a Torre mostra, caiu a cada incursão e voltou a subir: oscila longe do
+    // teto, e o ano acaba logo depois de uma incursão (até a revisão das Fases D e E ela ficava
+    // entre 90 e 100).
     const view = await viewOf(normal, game, game.id);
     expect(view.threat.known).toBe(true);
     if (view.threat.known) {
-      expect(view.threat.level).toBeGreaterThanOrEqual(80);
+      expect(view.threat.level).toBeLessThan(70);
       expect(view.threat.raidRisk).toContain(
-        'Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+        'Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
       );
     }
   });

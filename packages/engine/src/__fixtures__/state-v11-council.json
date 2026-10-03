@@ -23,22 +23,22 @@
    1838027134
   ],
   "horde": [
-   2230303645,
-   2280538892,
-   1829634301,
-   2111673367
+   171814662,
+   1741797841,
+   2316546886,
+   2381009975
   ]
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 769327,
-   "wood": 431283,
+   "food": 900000,
+   "wood": 500000,
    "stone": 85000,
-   "gold": 725447
+   "gold": 730597
   },
   "accumulators": {
-   "food": 3474100,
+   "food": 1162300,
    "wood": 1096572,
    "stone": 0,
    "gold": 3137640
@@ -47,7 +47,7 @@
    "villagers": 5
   },
   "workers": {
-   "farm": 1,
+   "farm": 3,
    "lumberMill": 1,
    "quarry": 0,
    "goldMine": 1
@@ -73,8 +73,8 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 418,
-   "wood": 647,
+   "food": 18841,
+   "wood": 6842,
    "stone": 0,
    "gold": 0
   },
@@ -92,24 +92,8 @@
   },
   "adaptation": [],
   "morale": 60,
-  "moraleEffects": [
-   {
-    "id": "raid",
-    "label": "Incursão sofrida",
-    "amount": -10,
-    "untilMs": 352800000
-   }
-  ],
-  "injured": [
-   {
-    "untilMs": 345600000,
-    "building": "farm"
-   },
-   {
-    "untilMs": 345600000,
-    "building": "farm"
-   }
-  ]
+  "moraleEffects": [],
+  "injured": []
  },
  "council": {
   "pending": [
@@ -154,7 +138,7 @@
     "threatActive": true
    }
   },
-  "threat": 90
+  "threat": 29
  },
  "horde": {
   "scheduledRaids": []
@@ -180,11 +164,12 @@
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
-  "wasted_food": 1421418,
+  "wasted_food": 2516841,
   "cardsDrawn:masonsMeal": 1,
-  "raids_suffered": 8,
+  "raids_suffered": 2,
+  "wasted_wood": 531842,
   "coldSpellsThisSeason": 0,
-  "wasted_wood": 149647,
+  "threatCrossed:40": 1,
   "cardsExpired": 1
  }
 }
