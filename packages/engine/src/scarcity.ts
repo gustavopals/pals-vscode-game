@@ -17,17 +17,17 @@ import type { GameEvent, GameState } from './types';
 const MAX_PASSES = 8;
 
 /**
- * Abre ou encerra a fome e o frio no instante `atMs`, depois de qualquer mudança no estado:
- * todo comando e todo instante com eventos terminam aqui.
+ * A conferência de `settleScarcity` sem a Crônica e sem a fila de recrutamento: só os
+ * indicadores e o estoque. A ordem é fixa, fome e depois frio, e a conferência se repete até
+ * nada mais mudar: o estado que sai daqui está em repouso, e por isso o próximo evento da linha
+ * do tempo é sempre depois de agora. Se a fome terminou e recomeçou na mesma conferência (o frio
+ * abriu logo depois e cortou a Fazenda), ela simplesmente continua, com a data em que começou:
+ * não há oscilação no mesmo instante. O mesmo vale para o frio.
  *
- * A ordem é fixa, fome e depois frio, e a conferência se repete até nada mais mudar: o estado
- * que sai daqui está em repouso, e por isso o próximo evento da linha do tempo é sempre depois
- * de agora. A Crônica só registra o que mudou **entre o começo e o fim do instante**. Se a
- * fome terminou e recomeçou na mesma conferência (o frio abriu logo depois e cortou a
- * Fazenda), ela simplesmente continua, com a data em que começou e sem linha nenhuma: não há
- * oscilação no mesmo instante.
+ * É também o que a projeção do ofício faz na cópia quando a pergunta é o fim da fome ou do frio
+ * (`craftProjection.ts`): só toca no que a cópia separa do estado.
  */
-export function settleScarcity(draft: GameState, atMs: number, events: GameEvent[]): void {
+export function settleIndicators(draft: GameState, atMs: number): void {
   const { settlement } = draft;
   const famineBefore = settlement.famine;
   const coldBefore = settlement.cold;
@@ -43,10 +43,29 @@ export function settleScarcity(draft: GameState, atMs: number, events: GameEvent
     }
   }
 
+  if (famineBefore !== null && settlement.famine !== null) {
+    settlement.famine = famineBefore;
+  }
+  if (coldBefore !== null && settlement.cold !== null) {
+    settlement.cold = coldBefore;
+  }
+}
+
+/**
+ * Abre ou encerra a fome e o frio no instante `atMs`, depois de qualquer mudança no estado:
+ * todo comando e todo instante com eventos terminam aqui. A conferência é `settleIndicators`;
+ * a Crônica só registra o que mudou **entre o começo e o fim do instante**, e a fome que
+ * terminou e recomeçou na mesma conferência continua sem linha nenhuma.
+ */
+export function settleScarcity(draft: GameState, atMs: number, events: GameEvent[]): void {
+  const { settlement } = draft;
+  const famineBefore = settlement.famine;
+  const coldBefore = settlement.cold;
+
+  settleIndicators(draft, atMs);
+
   if (famineBefore !== null) {
-    if (settlement.famine !== null) {
-      settlement.famine = famineBefore;
-    } else {
+    if (settlement.famine === null) {
       // A fila de recrutamento ficou congelada durante a fome: retoma de onde parou.
       const frozenFor = atMs - famineBefore.sinceMs;
       for (const recruit of settlement.recruitmentQueue) {
@@ -59,9 +78,7 @@ export function settleScarcity(draft: GameState, atMs: number, events: GameEvent
   }
 
   if (coldBefore !== null) {
-    if (settlement.cold !== null) {
-      settlement.cold = coldBefore;
-    } else {
+    if (settlement.cold === null) {
       const reason = burnsFirewood(draft) ? 'firewood' : 'thaw';
       emit(
         events,
