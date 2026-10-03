@@ -278,13 +278,13 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
       [
         'Ameaça',
         'Ameaça 46 de 100.',
-        'Sobe 8 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 54. Faltam 35:40.',
-        '+5/dia: Covil de Lobos',
+        'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 46 para 51. Faltam 35:40.',
+        '+2/dia: Covil de Lobos',
         '+3/dia: outono',
         'O que ronda o feudo: Covil de Lobos (ativo).',
         'Os vigias não avistam nenhuma incursão agora.',
         // A regra das incursões, na frase do servidor: a chance, o prazo, o tamanho, a queda.
-        'Se não houver outra a caminho, a próxima virada do dia tem 14% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+        'Se não houver outra a caminho, a próxima virada do dia tem 11% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 2 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
         // A defesa vem antes da Torre: é o que muda o desfecho de um ataque. O preço de não a
         // ter fica ao lado do preço da obra.
         'Sem Paliçada, nada segura um ataque.',
@@ -347,7 +347,7 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
         // O custo deste ataque ao lado do que a Paliçada faz a ele, nas frases do servidor.
         'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
         'Sem Paliçada, nada segura este ataque.',
-        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
         // Logo abaixo do aviso, a defesa com a obra: é o que se pode fazer a respeito.
         'Sem Paliçada, nada segura um ataque.',
       ].join(' '),
