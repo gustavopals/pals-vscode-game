@@ -60,6 +60,11 @@ export type World = {
    * uma delas.
    */
   raise(building: 'watchtower' | 'palisade' | 'townHall', level: number): Promise<void>;
+  /**
+   * Põe a Ameaça de todos os feudos em um valor (`/__test/threat`), para um cenário que precisa
+   * de uma marca da Crônica cedo. Daí em diante a subida e as marcas são as do motor.
+   */
+  threat(level: number): Promise<void>;
   /** Comanda o GitHub de mentira do servidor de teste. */
   github(action: string, data?: Record<string, unknown>): Promise<unknown>;
   control(path: string, data?: Record<string, unknown>): Promise<unknown>;
@@ -132,6 +137,9 @@ export const test = base.extend<{ world: World }>({
         },
         raise: async (building, level) => {
           await control('raise', { building, level });
+        },
+        threat: async (level) => {
+          await control('threat', { level });
         },
         github: (action, data = {}) => control('github', { action, ...data }),
         open: async (context, path = '/') => {

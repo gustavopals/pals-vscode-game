@@ -163,6 +163,20 @@ control.post('/__test/raise', async (request) => {
   return { ok: true };
 });
 
+/**
+ * Põe a Ameaça de todos os feudos em um valor, sem passar pelos dias: é como um teste tem a
+ * Ameaça perto de uma marca da Crônica sem jogar as dezenas de horas que ela leva para subir
+ * (a subida de verdade é coberta pelo cenário da Torre de Vigia e pelos testes do motor). Só o
+ * número muda; daí em diante a subida, as marcas e o sorteio são os do motor.
+ */
+control.post('/__test/threat', async (request) => {
+  const { level } = request.body as { level: number };
+  await pool.query(`update games set state = jsonb_set(state, '{map,threat}', to_jsonb($1::int))`, [
+    level,
+  ]);
+  return { ok: true };
+});
+
 /** Encerra no servidor todas as sessões, como uma revogação por reuso de refresh token. */
 control.post('/__test/revoke-sessions', async () => {
   await pool.query('update sessions set revoked_at = $1 where revoked_at is null', [clock()]);

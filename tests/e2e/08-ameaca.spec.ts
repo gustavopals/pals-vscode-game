@@ -235,10 +235,21 @@ test.describe('a Ameaça e a Torre de Vigia', () => {
     await expect(panel).toContainText(`Ameaça ${seen.nextLevel} de ${max}.`);
     await expect(row).toContainText(`${seen.nextLevel} · ${active.join(', ')}`);
 
-    // Mais uma virada e a Ameaça cruza a primeira marca: os vigias contam, e quem tem a Torre é
-    // avisado no nível padrão, sem alarme, com a frase da Crônica.
-    await world.passTime(2 * HOUR, page);
-    const rose = (await gameEvents(page, request)).filter((event) => event.type === 'threatRose');
+    // Virada a virada, a Ameaça sobe até cruzar a primeira marca: os vigias contam, e quem tem a
+    // Torre é avisado no nível padrão, sem alarme, com a frase da Crônica. Quantas viradas isso
+    // leva é do equilíbrio (a subida por dia e a marca), que o teste não repete: ele avança um
+    // dia de cada vez e confere, a cada um, que a Ameaça só subiu, sem marca cruzada antes da
+    // hora.
+    const marks = async () =>
+      (await gameEvents(page, request)).filter((event) => event.type === 'threatRose');
+    let before = seen.nextLevel;
+    for (let day = 0; day < 40 && (await marks()).length === 0; day += 1) {
+      await world.passTime(2 * HOUR, page);
+      const after = await serverThreat(page, request);
+      expect(after.level, `dia ${day}`).toBeGreaterThan(before);
+      before = after.level ?? before;
+    }
+    const rose = await marks();
     expect(rose).toHaveLength(1);
     const told = rose[0]?.text ?? 'falta a linha dos vigias';
     const notice = toasts(page).getByRole('status').filter({ hasText: told });
@@ -566,6 +577,11 @@ test.describe('a incursão de lobos', () => {
       await employEveryone(page);
       await world.raise('townHall', 3);
       await world.raise('watchtower', 1);
+      // A Ameaça logo abaixo da primeira marca da Crônica (40): subindo do zero, ela só chegaria
+      // lá depois dos lobos do roteiro, e o cenário quer dois relatos dos vigias na tela, um
+      // depois do outro (a marca, nas primeiras horas, e os uivos, na hora 18). A incursão do
+      // roteiro já está marcada, e com ela nenhuma outra é sorteada: o alarme continua o dela.
+      await world.threat(39);
       for (const ms of [8 * HOUR, 8 * HOUR, 2 * HOUR + 5 * MINUTE, 11 * HOUR]) {
         await world.passTime(ms, page);
       }
@@ -577,7 +593,7 @@ test.describe('a incursão de lobos', () => {
       const marks = (await gameEvents(page, request)).filter(
         (event) => event.type === 'threatRose' || event.type === 'wolvesHowl',
       );
-      expect(marks.length).toBeGreaterThanOrEqual(2);
+      expect(marks.map((event) => event.type)).toEqual(['threatRose', 'wolvesHowl']);
       for (const old of marks.slice(0, -1)) {
         await expect(toasts(page).getByText(old.text)).toHaveCount(0);
       }
