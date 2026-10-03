@@ -18,8 +18,10 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   timeout: 30_000,
   expect: { timeout: 7_000 },
+  // Na CI, o relator "github" põe cada teste que falhou nas anotações do job, que se leem sem
+  // permissão de administrador (o log inteiro, não).
   reporter: process.env.CI
-    ? [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]
+    ? [['list'], ['github'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]
     : [['list']],
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
