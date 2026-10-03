@@ -4,6 +4,15 @@
 
 ## 1. O mais importante
 
+**Em uma tela: o que decidir primeiro.** A v0.2 inteira está no `main` (Fases A a F). As fases D e E foram fechadas de forma enxuta, a pedido do autor: a revisão independente teve 35 achados, os defeitos que mudavam o jogo foram corrigidos e os riscos e dúvidas restantes estão na seção 4 (itens DE). Por ordem de importância:
+
+1. **Ameaça reequilibrada sem você** (DE-1): crescimento de 2 por tile por dia (era 5), queda de 35 por incursão (era 10), incursão média a partir de 70 (era 60). Antes ela travava em 90 a 100 com incursões médias seguidas; agora oscila, com 5 a 6 incursões por ano, a maioria leve. Confirmar os três números.
+2. **As 21 cartas do Conselho** (DE-2 e DE-3) foram escritas pelos agentes e estão no jogo como rascunho: falta a sua leitura, carta a carta (`docs/content-v0.2.md`).
+3. **Teto dos edifícios** (C-1): em Senhor o Salão Nv8 fica fora de alcance por 2 de madeira; em Rei de Ferro o teto é ainda mais baixo.
+4. **Fome e deserção** (C-2 e C-4): no ritmo Rápido a deserção começa 4 h reais depois de a fome começar, e uma troca de ofício de um instante zera o prazo.
+5. **Aviso da Torre em tempo de jogo** (DE-6): no Rápido são 20 e 40 minutos reais, curto demais para quem não está olhando.
+6. **Atos seus antes de convidar alguém**: backup externo e cópia do `RECOVERY_CODE_SECRET` fora do Coolify (seção 3); e decidir se a restauração de backup guarda as sessões (B-2).
+
 - **A publicação está sendo feita por fase, a pedido do autor.** Em 2026-10-02 de manhã o autor autorizou o `push` no `main` ("ninguém está usando o ambiente do Coolify ainda"). Cada fase é enviada quando fecha com o portão completo verde; todo `push` no `main` com a CI verde é implantado sozinho. O backup externo e a cópia do `RECOVERY_CODE_SECRET` fora do Coolify **continuam por fazer** (item 3): só o autor tem acesso.
 - **A primeira publicação foi em dois passos**, como [deploy/README.md](../deploy/README.md) pede (a imagem da `v0.1.0` não confere a versão do estado). Passo 1: até o fim da Fase B (`1051008`, estado na versão 2), enviado às 12:01 e implantado às 12:04 de 2026-10-02 (15:04 UTC em `/v1/version`), com `/v1/health` ok. Passo 2: a Fase C. O primeiro envio (`d9957d7`) parou na CI por um teste do motor que estourou o limite de 5 s na máquina da CI; o limite subiu para 30 s (`vitest.config.ts`) e o envio foi refeito. Não houve a espera de uma hora entre os passos que o README recomenda: a produção não tinha jogadores. O ensaio de reversão com imagens continua sem ser feito.
 - **As regras da v0.2 são as premissas recomendadas do roadmap (§8)**, registradas nos ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md) como "aplicadas por delegação". Nenhuma foi respondida pelo autor. A seção 2 lista cada uma para confirmar ou trocar.
@@ -42,7 +51,7 @@
 | Ensaio da reversão atravessando uma migração, em produção ou em banco descartável do Coolify, incluindo a janela da troca de contêiner e os dois passos da primeira publicação | Idem | V2B-T1.6 |
 | Jogar cada fase e aprovar | O roadmap pede o autor jogando antes da fase seguinte; não aconteceu | V2C-T7.5, V2D-T5.4, V2E-T5.3 |
 | Aprovar as 21 cartas, uma a uma | Curadoria é do autor | V2D-T2 |
-| `git push` **em dois passos** (primeiro só a Fase B, depois o resto), tag `v0.2.0` e release | Publicar é do autor; em um passo só, a imagem da `v0.1.0` grava por cima de partidas já migradas (deploy/README.md) | V2F-T4.5 |
+| Tag `v0.2.0` e release no GitHub | A publicação no `main` já foi feita por fase, com a sua autorização (em dois passos na primeira vez); a tag e a release continuam suas | V2F-T4.5 |
 | Os oito pontos do ADR 0012 e o vínculo GitHub | Já eram pendências | decisões 15 e 16 |
 
 ## 4. Dúvidas levantadas durante a implementação

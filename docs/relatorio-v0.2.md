@@ -4,6 +4,31 @@
 
 **Publicação:** por autorização do autor em 2026-10-02, cada fase vai para o `main` quando fecha verde (o primeiro envio foi em dois passos: Fase B, depois Fase C). O estado da publicação está no começo de [pendencias-v0.2.md](pendencias-v0.2.md).
 
+## Resumo
+
+**O que o jogador ganha com a v0.2 "Estações e Conselho":**
+
+- **Escolhe ritmo e dificuldade** ao fundar o feudo: Rápido (um ano em 56 horas, recomendado), Normal (7 dias) ou Tranquilo (14 dias); Camponês, Senhor ou Rei de Ferro. As partidas da v0.1 são migradas sem perder nada.
+- **O ano pesa.** Cada estação muda a produção; o inverno queima lenha, e sem madeira vem o frio. A tela avisa uma hora antes da virada e faz a conta da lenha.
+- **Estoque com limite.** Celeiro e Armazém; a tabela diz "cheio em 4h" com a obra ao lado, e o que transborda aparece como desperdício no Relatório.
+- **Obras que começam sozinhas** quando os recursos chegam, e uma segunda fila a partir do Salão Nv4.
+- **Ofício e moral.** Trocar de ofício custa produção por um tempo, especializar rende bônus; a moral, explicada termo a termo, mexe na produção, traz colonos quando está alta e faz gente partir quando está baixa.
+- **"Antes de partir"**: a aba Hoje lista em até cinco linhas o que preparar antes de fechar a aba, com um botão por item.
+- **O Conselho do Feudo**: uma carta a cada 4 dias de jogo, com custo e consequência visíveis, 24 horas reais para responder e uma opção automática por dificuldade. São 21 cartas, entre elas três cadeias de três ("O Celeiro Comum", "A Ponte do Degelo", "A Promessa da Paliçada"), e a continuação lembra a escolha anterior na Crônica.
+- **O Relatório de Retorno em três blocos**: o que prosperou, o que custou (com a ação seguinte) e o que ainda dá para decidir.
+- **Ameaça, Torre, Paliçada e lobos.** Só com a Torre se vê a Ameaça e o aviso de incursão; a Paliçada segura as incursões leves (nível 1) e as médias (nível 2); os lobos chegam no 16º dia do primeiro ano e, depois, conforme a Ameaça. Quem perde fica sabendo o que teria mudado o resultado.
+- **Objetivos 5 a 10**, que ensinam cada ferramenta nova quando ela resolve um problema já sentido.
+
+**Números:** 106 commits desde o início da v0.2 (92 sem contar as junções), em 440 arquivos. No portão final, no `main` integrado: 4.809 testes de unidade (93 arquivos), 452 de integração (23 arquivos), `pnpm build` e 92 testes em navegador com `CI=1`, todos verdes.
+
+**O que ficou de fora ou pela metade** (detalhes em [pendencias-v0.2.md](pendencias-v0.2.md)):
+
+- O autor não jogou nem aprovou nenhuma fase, regra, número ou carta; todas as decisões de regra estão como "aplicadas por delegação".
+- Playtest com outras pessoas (V2A-T1 e V2F-T3): depende de pessoas; os convites e formulários estão prontos em `docs/playtest/`.
+- Fechamento enxuto de D e E, a pedido do autor: dos 35 achados da revisão, os defeitos que mudavam o jogo foram corrigidos (lote 1, reequilíbrio da Ameaça, Conselho, árvore e três cartas); 18 riscos e dúvidas ficaram como pendência. A rodada do simulador com cartas (V2D-T5.3) não foi feita.
+- Fase F enxuta: a matriz completa de balanceamento (V2F-T1), as capturas da página de apresentação (V2F-T4.2) e a revisão final (documentação contra o código, segurança) não foram feitas. O quadro de aceitação (`docs/acceptance-v0.2.md`) tem a coluna de evidência manual vazia.
+- Tag `v0.2.0` e release: do autor.
+
 ## Como a versão foi feita
 
 Cada fase rodou em duas trilhas ao mesmo tempo, com um agente por tarefa: a trilha do motor (conteúdo, motor, protocolo, servidor e simulador) e a trilha do app (interface e testes em navegador). Depois de cada tarefa, um portão de verificação independente rodou `pnpm verify`, a integração e, na trilha do app, a suíte de navegador. No fim da fase as trilhas foram integradas, revisores independentes (que não escreveram o código) procuraram defeitos por lente, e cada achado confirmado foi corrigido com teste de regressão. As decisões de regra são as premissas recomendadas do roadmap, registradas nos ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md) como aplicadas por delegação.
@@ -12,7 +37,7 @@ Cada fase rodou em duas trilhas ao mesmo tempo, com um agente por tarefa: a tril
 
 ### Fases A e B
 
-Tudo está no `main` local, sem `push`. O autor não jogou nem aprovou nada. Portão ao fim da fase, verde: `pnpm verify` (1.706 testes de unidade em 61 arquivos), integração (374 testes em 14 arquivos), navegador (56 de 56 em Chromium) e `pnpm build`.
+Quando a fase fechou, tudo estava no `main` local; a publicação veio depois (ver o começo de [pendencias-v0.2.md](pendencias-v0.2.md)). O autor não jogou nem aprovou nada. Portão ao fim da fase, verde: `pnpm verify` (1.706 testes de unidade em 61 arquivos), integração (374 testes em 14 arquivos), navegador (56 de 56 em Chromium) e `pnpm build`.
 
 **V2A, playtest e linha de base** (commit `43b9983`). O playtest não aconteceu: depende de pessoas e da produção. Ficou pronto o que não dependia. As consultas de `deploy/analytics/ops.sql` ganharam a janela do playtest e a exclusão da conta do autor, por três variáveis `\set`, e uma consulta nova, "Filtro em vigor". O convite está em `docs/playtest/convite-v0.1.md`, com três campos para o autor preencher. `docs/balance-v0.2.md` nasceu com a linha de base do simulador nos ritmos 1 e 3, idêntica à tabela do roadmap. Nenhum número de jogo mudou.
 
