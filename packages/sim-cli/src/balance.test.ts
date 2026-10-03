@@ -265,7 +265,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 60 a 71 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 57 a 72 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
@@ -279,9 +279,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // por causa disso: o teto da meta é decisão do autor (docs/balance-v0.2.md, seções 9.8, 11,
     // 12 e 14), e este teste guarda o que foi medido para o desvio não passar despercebido.
     // Com os objetivos da v0.2 (V2E-T4) a população continua entre 60 e 71, e o Salão volta ao
-    // nível 7 em toda semente: a defesa chega cedo, e os lobos levam menos (seção 15).
+    // nível 7 em toda semente: a defesa chega cedo, e os lobos levam menos (seção 15). Com a
+    // Paliçada mostrada aos aldeões por +20 (V2DE), entre 57 e 72: os três dias em 80 trazem
+    // colono a umas sementes, e o sorteio que muda leva outras por outro caminho (seção 16).
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 54, max: 79 });
+    expect(band?.villagers).toEqual({ min: 51, max: 80 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });

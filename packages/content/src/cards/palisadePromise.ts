@@ -5,9 +5,14 @@ import type { CouncilCard } from '../council';
  * promete (ou não), o prazo chega, e a palavra é cumprida ou explicada. A carta não dá
  * proteção nenhuma: quem protege é a Paliçada, que o senhor ergue com as obras de sempre.
  *
- * Só a primeira é sorteada, com o Salão no nível 3 (o que libera a Paliçada). A opção de quem
- * já ergueu a Paliçada aparece nas três cartas, trancada enquanto o edifício não existe. É
- * também a que o conselho aplica sozinho quando a carta expira com a obra de pé
+ * Só a primeira é sorteada, com o Salão no nível 3 (o que libera a Paliçada). Como a obra e o
+ * pedido se destravam juntos, o pedido chega quase sempre a quem já ergueu a cerca: o texto
+ * pergunta pela cerca em vez de pedi-la, e nenhuma frase pede ou promete o que já existe. Com
+ * a obra de pé, mostrá-la (+20 de moral) leva o feudo aos 80 na hora; prometer e mostrar no
+ * prazo (+10, depois +15) rende mais dias, mas nunca chega lá: nenhuma das duas domina.
+ *
+ * A opção de quem já ergueu a Paliçada aparece nas três cartas, trancada enquanto o edifício
+ * não existe. É também a que o conselho aplica sozinho quando a carta expira com a obra de pé
  * (`autoResolveIfUnlocked`): a cerca erguida cumpre a promessa mesmo sem o senhor na sala, e a
  * Crônica nunca diz que ela "não saiu" diante de quem a vê.
  *
@@ -18,8 +23,8 @@ import type { CouncilCard } from '../council';
 
 export const palisadePromisePlea: CouncilCard = {
   id: 'palisadePromisePlea',
-  title: 'Os aldeões pedem uma cerca',
-  text: 'Há pegadas grandes na lama, junto aos currais, e as mães já não deixam as crianças buscar água sozinhas. Os aldeões pedem uma paliçada em volta do feudo. O conselho quer saber o que o senhor responde.',
+  title: 'Os aldeões perguntam pela cerca',
+  text: 'Há pegadas grandes na lama, junto aos currais, e as mães já não deixam as crianças buscar água sozinhas. Os aldeões vieram ao salão perguntar pela cerca do feudo. O conselho quer saber o que o senhor responde.',
   weight: 3,
   requires: {
     buildings: { townHall: 3 },
@@ -28,9 +33,9 @@ export const palisadePromisePlea: CouncilCard = {
   variants: [
     {
       flag: 'palisadePromise.broken',
-      text: 'Os aldeões voltam a pedir uma paliçada em volta do feudo. Lembram, sem levantar a voz, que ela já foi prometida uma vez. O conselho quer saber o que o senhor responde agora.',
+      text: 'Os aldeões voltaram ao salão perguntar pela cerca do feudo. Lembram, sem levantar a voz, que uma paliçada já lhes foi prometida uma vez. O conselho quer saber o que o senhor responde agora.',
       arrival:
-        'No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a pedir a paliçada que um dia lhes foi prometida: {carta}.',
+        'No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a falar da paliçada que um dia lhes foi prometida: {carta}.',
     },
   ],
   autoResolve: { peasant: 'explain', lord: 'explain', ironKing: 'promise' },
@@ -41,7 +46,7 @@ export const palisadePromisePlea: CouncilCard = {
       label: 'Mostrar a paliçada erguida',
       requires: { building: 'palisade' },
       effects: [
-        { type: 'morale', amount: 10, durationDays: 3 },
+        { type: 'morale', amount: 20, durationDays: 3 },
         { type: 'clearFlag', flag: 'palisadePromise.broken' },
         { type: 'setFlag', flag: 'palisadePromise.kept' },
       ],
@@ -57,9 +62,9 @@ export const palisadePromisePlea: CouncilCard = {
       effects: [],
       hint: 'Nada se promete e nada se deve. O medo continua do tamanho que está.',
       chronicle:
-        'No {dia}º dia {daEstacao}, o senhor de {feudo} explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} explicou aos aldeões que não é hora de prometer nada. Ouviram calados.',
       expiredChronicle:
-        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+        'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} explicou aos aldeões que não é hora de prometer nada. Ouviram calados.',
     },
     {
       id: 'promise',
@@ -71,7 +76,7 @@ export const palisadePromisePlea: CouncilCard = {
       ],
       hint: 'Promessa aquece hoje. O povo conta os dias, e cobra em quatro.',
       chronicle:
-        'No {dia}º dia {daEstacao}, o senhor de {feudo} prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.',
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.',
       expiredChronicle:
         'No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} prometeu aos aldeões, em nome dele, uma paliçada em volta do feudo.',
     },
@@ -81,7 +86,7 @@ export const palisadePromisePlea: CouncilCard = {
 export const palisadePromiseDeadline: CouncilCard = {
   id: 'palisadePromiseDeadline',
   title: 'O prazo da paliçada',
-  text: 'Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e olham para onde a paliçada devia estar. O conselho pergunta o que mostrar a eles.',
+  text: 'Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e querem ver a paliçada. O conselho pergunta o que mostrar a eles.',
   weight: 0,
   arrival:
     'No {dia}º dia {daEstacao}, os aldeões de {feudo} vieram cobrar a paliçada prometida: {carta}.',
@@ -98,7 +103,7 @@ export const palisadePromiseDeadline: CouncilCard = {
         { type: 'clearFlag', flag: 'palisadePromise.broken' },
         { type: 'setFlag', flag: 'palisadePromise.kept' },
       ],
-      hint: 'Palavra cumprida no prazo vale mais que a própria cerca.',
+      hint: 'Palavra cumprida no prazo aquece mais que a promessa.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} mostrou aos aldeões a paliçada que prometera. Passaram a mão nas estacas, um por um.',
       expiredChronicle:
@@ -118,7 +123,9 @@ export const palisadePromiseDeadline: CouncilCard = {
       id: 'withdraw',
       label: 'Desfazer a promessa',
       effects: [
-        { type: 'morale', amount: -10, durationDays: 3 },
+        // Um dia a mais que a promessa durou: prometer e desfazer custa, e não vira um
+        // adiantamento de moral que volta todo ano com o pedido.
+        { type: 'morale', amount: -10, durationDays: 4 },
         { type: 'clearFlag', flag: 'palisadePromise.open' },
         { type: 'setFlag', flag: 'palisadePromise.broken' },
       ],

@@ -339,12 +339,12 @@ describe('cenário golden de 7 dias', () => {
       [
         'cardDrawn',
         undefined,
-        'No 9º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões pedem uma cerca.',
+        'No 9º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.',
       ],
       [
         'cardAnswered',
         10,
-        'No 13º dia do Verão, o senhor de Pedra Alta do Norte prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.',
+        'No 13º dia do Verão, o senhor de Pedra Alta do Norte prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.',
       ],
       [
         'cardDrawn',

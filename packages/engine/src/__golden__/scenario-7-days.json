@@ -3300,7 +3300,7 @@
   {
    "type": "cardDrawn",
    "atMs": 230400000,
-   "text": "No 9º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões pedem uma cerca.",
+   "text": "No 9º dia do Verão, o conselho de Pedra Alta do Norte pediu audiência: Os aldeões perguntam pela cerca.",
    "data": {
     "cardId": "palisadePromisePlea",
     "instanceId": "palisadePromisePlea-7",
@@ -3530,7 +3530,7 @@
   {
    "type": "cardAnswered",
    "atMs": 259200000,
-   "text": "No 13º dia do Verão, o senhor de Pedra Alta do Norte prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.",
+   "text": "No 13º dia do Verão, o senhor de Pedra Alta do Norte prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.",
    "data": {
     "cardId": "palisadePromisePlea",
     "instanceId": "palisadePromisePlea-7",

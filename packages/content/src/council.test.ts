@@ -132,7 +132,7 @@ describe('Conselho: o catálogo', () => {
       ['thawBridgePlea', 'A ponte que o degelo levou'],
       ['thawBridgeSlab', 'A laje no leito do riacho'],
       ['thawBridgeCrossing', 'A passagem volta a servir'],
-      ['palisadePromisePlea', 'Os aldeões pedem uma cerca'],
+      ['palisadePromisePlea', 'Os aldeões perguntam pela cerca'],
       ['palisadePromiseDeadline', 'O prazo da paliçada'],
       ['palisadePromiseReckoning', 'A palavra do senhor'],
       ['collapsedWell', 'O poço entulhado'],
@@ -444,6 +444,59 @@ describe('Conselho: nenhuma opção domina no papel (GDD §7.1 e §15.1, item 8)
         }
       }
     }
+  });
+
+  it('com o requisito cumprido, mostrar o feito não perde em tudo para prometer e mostrar depois', () => {
+    // A opção trancada por um edifício fecha a história ("Mostrar a paliçada erguida"). Quando
+    // o feudo já tem o edifício, a opção sem custo que leva a história adiante (prometer) chega
+    // a uma continuação em que a mesma opção trancada também está aberta: o caminho inteiro se
+    // compara com mostrar de uma vez, na moral mais alta de um dia e na moral somada dos dias.
+    // Antes da correção V2DE (achado 12), prometer o que já existia rendia +10 e depois +15, e
+    // mostrar, só +10: prometer era melhor em tudo.
+    const moraleOf = (option: CouncilCard['options'][number]) =>
+      option.effects.find((effect) => effect.type === 'morale');
+    let compared = 0;
+    for (const entry of councilCards) {
+      for (const done of entry.options.filter(
+        (option) => option.requires?.building !== undefined && !schedules(option),
+      )) {
+        const building = done.requires?.building;
+        const now = moraleOf(done);
+        const doneValue = {
+          peak: now?.type === 'morale' ? now.amount : 0,
+          total: known(done.effects).morale,
+        };
+        for (const opener of entry.options.filter((option) => isFree(option))) {
+          const next = opener.effects.find((effect) => effect.type === 'scheduleCard');
+          if (next?.type !== 'scheduleCard') {
+            continue;
+          }
+          const first = moraleOf(opener);
+          const a = first?.type === 'morale' ? first : { amount: 0, durationDays: 0 };
+          for (const answer of card(next.cardId).options.filter(
+            (option) =>
+              option.cost === undefined &&
+              (option.requires === undefined || option.requires.building === building),
+          )) {
+            const later = moraleOf(answer);
+            const b = later?.type === 'morale' ? later.amount : 0;
+            // Os dois efeitos só se somam se o primeiro ainda conta quando a continuação chega.
+            const peak = a.durationDays > next.afterDays ? a.amount + b : Math.max(a.amount, b);
+            const total = known(opener.effects).morale + known(answer.effects).morale;
+            const dominates =
+              peak >= doneValue.peak &&
+              total >= doneValue.total &&
+              (peak > doneValue.peak || total > doneValue.total);
+            expect(
+              dominates,
+              `${entry.id}: ${opener.id} e ${next.cardId}/${answer.id} dominam ${done.id}`,
+            ).toBe(false);
+            compared += 1;
+          }
+        }
+      }
+    }
+    expect(compared).toBeGreaterThan(0);
   });
 
   it('toda opção paga dá algo que a opção sem custo não dá: um efeito maior, uma pista ou a continuação', () => {
@@ -986,7 +1039,8 @@ describe('Conselho: "A Promessa da Paliçada"', () => {
 
   it('prometer rende +10 na hora e marca a cobrança para 4 dias de jogo depois; explicar não muda nada', () => {
     const [show, explain, promise] = card('palisadePromisePlea').options;
-    expect(morale(show)).toEqual({ type: 'morale', amount: 10, durationDays: 3 });
+    // Quem já ergueu a cerca e a mostra vai aos 80 na hora: +20, o dobro da promessa.
+    expect(morale(show)).toEqual({ type: 'morale', amount: 20, durationDays: 3 });
     expect(explain?.effects).toEqual([]);
     expect(promise?.effects).toEqual([
       { type: 'morale', amount: 10, durationDays: 3 },
@@ -1011,7 +1065,8 @@ describe('Conselho: "A Promessa da Paliçada"', () => {
     expect(delay?.effects).toEqual([
       { type: 'scheduleCard', cardId: 'palisadePromiseReckoning', afterDays: 4 },
     ]);
-    expect(morale(withdraw)).toEqual({ type: 'morale', amount: -10, durationDays: 3 });
+    // Um dia a mais que os +10 da promessa: prometer e desfazer custa 10 de moral-dia.
+    expect(morale(withdraw)).toEqual({ type: 'morale', amount: -10, durationDays: 4 });
     expect(flags(withdraw)).toEqual(['-palisadePromise.open', '+palisadePromise.broken']);
     expect(card('palisadePromiseDeadline').autoResolve).toEqual({
       peasant: 'delay',
@@ -1075,7 +1130,7 @@ describe('Conselho: "A Promessa da Paliçada"', () => {
   it('quando volta em outro ano, a primeira carta lembra a promessa que não se cumpriu', () => {
     const plea = card('palisadePromisePlea');
     expect(plea.variants?.map((variant) => variant.flag)).toEqual(['palisadePromise.broken']);
-    expect(plea.variants?.[0]?.text).toContain('já foi prometida uma vez');
+    expect(plea.variants?.[0]?.text).toContain('já lhes foi prometida uma vez');
     expect(plea.variants?.[0]?.arrival).toContain('{carta}');
   });
 });

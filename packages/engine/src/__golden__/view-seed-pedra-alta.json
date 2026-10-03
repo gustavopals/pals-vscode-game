@@ -11637,15 +11637,15 @@
         {
           "instanceId": "palisadePromiseDeadline-2",
           "title": "O prazo da paliçada",
-          "text": "Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e olham para onde a paliçada devia estar. O conselho pergunta o que mostrar a eles.",
+          "text": "Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e querem ver a paliçada. O conselho pergunta o que mostrar a eles.",
           "expiresInSeconds": 86220,
           "defaultOptionId": "delay",
           "defaultOptionLabel": "Pedir mais alguns dias",
           "expiryNote": "Sem resposta até o fim do prazo, o conselho decide sozinho: pedir mais alguns dias.",
           "followsFrom": {
-            "title": "Os aldeões pedem uma cerca",
+            "title": "Os aldeões perguntam pela cerca",
             "optionLabel": "Prometer a paliçada",
-            "text": "A história continua: em \"Os aldeões pedem uma cerca\", a decisão foi prometer a paliçada."
+            "text": "A história continua: em \"Os aldeões perguntam pela cerca\", a decisão foi prometer a paliçada."
           },
           "options": [
             {
@@ -11656,7 +11656,7 @@
               "locked": true,
               "lockedReason": "Requer a Paliçada.",
               "effectsText": "+15 de moral por 3 dias de jogo (2 h)",
-              "hint": "Palavra cumprida no prazo vale mais que a própria cerca."
+              "hint": "Palavra cumprida no prazo aquece mais que a promessa."
             },
             {
               "id": "delay",
@@ -11675,7 +11675,7 @@
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "−10 de moral por 3 dias de jogo (2 h)",
+              "effectsText": "−10 de moral por 4 dias de jogo (2 h 40 min)",
               "hint": "Dói agora, e acaba aqui. Quem adia e não cumpre paga mais caro."
             }
           ]

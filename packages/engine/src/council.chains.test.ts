@@ -729,7 +729,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
   const option = (state: GameState, cardId: string, optionId: string) =>
     shown(state, cardId)?.options.find((entry) => entry.id === optionId);
   const PROMISED =
-    'No 1º dia da Primavera, o senhor de Pedra Alta prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.';
+    'No 1º dia da Primavera, o senhor de Pedra Alta prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.';
 
   it('o pedido só chega com o Salão no nível 3, e nunca com a promessa em aberto ou já cumprida', () => {
     const at = 4 * DAY;
@@ -752,7 +752,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
   it('a carta mostra a opção de quem já ergueu a cerca trancada, com o motivo, e as outras duas sem custo', () => {
     const state = opened();
     expect(shown(state, 'palisadePromisePlea')).toMatchObject({
-      title: 'Os aldeões pedem uma cerca',
+      title: 'Os aldeões perguntam pela cerca',
       defaultOptionId: 'explain',
     });
     expect(shown(state, 'palisadePromisePlea')?.options).toEqual([
@@ -763,7 +763,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
         affordable: true,
         locked: true,
         lockedReason: 'Requer a Paliçada.',
-        effectsText: '+10 de moral por 3 dias de jogo (6 h)',
+        effectsText: '+20 de moral por 3 dias de jogo (6 h)',
         hint: 'Quem já fez não precisa prometer.',
       },
       {
@@ -831,7 +831,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
       },
     });
     expect(shown(due.state, 'palisadePromiseDeadline')?.followsFrom?.text).toBe(
-      'A história continua: em "Os aldeões pedem uma cerca", a decisão foi prometer a paliçada.',
+      'A história continua: em "Os aldeões perguntam pela cerca", a decisão foi prometer a paliçada.',
     );
     expect(option(due.state, 'palisadePromiseDeadline', 'show')).toMatchObject({
       locked: false,
@@ -954,16 +954,19 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     const first = choose(opened(), 'palisadePromisePlea', 'promise');
     const due = advanceTo(first.state, 4 * DAY).state;
     expect(option(due, 'palisadePromiseDeadline', 'withdraw')?.effectsText).toBe(
-      '−10 de moral por 3 dias de jogo (6 h)',
+      '−10 de moral por 4 dias de jogo (8 h)',
     );
     const withdrawn = choose(due, 'palisadePromiseDeadline', 'withdraw');
     expect(withdrawn.events[0]).toMatchObject({
       text: 'No 5º dia da Primavera, o senhor de Pedra Alta desfez a promessa da paliçada diante dos aldeões. Saíram do salão sem se despedir.',
-      data: { morale: -10, moraleDays: 3 },
+      data: { morale: -10, moraleDays: 4 },
     });
     expect(withdrawn.state.council.flags).toEqual({ 'palisadePromise.broken': true });
     expect(withdrawn.state.council.scheduled).toEqual([]);
-    expect(moraleByDay(withdrawn.state, 5, 8)).toEqual([50, 50, 50, 60]);
+    // Prometer e desfazer custa: os +10 da promessa contaram em três viradas (1º ao 3º dia), e o
+    // −10 conta em quatro (5º ao 8º). Não é um adiantamento de moral que volta todo ano.
+    expect(moraleByDay(first.state, 1, 4)).toEqual([70, 70, 70, 60]);
+    expect(moraleByDay(withdrawn.state, 5, 9)).toEqual([50, 50, 50, 50, 60]);
     expect(cardEvents(advanceTo(withdrawn.state, 40 * DAY).events)).toEqual([]);
 
     // Neste ano o pedido não volta (já saiu). No seguinte, volta, e com outro texto.
@@ -972,11 +975,11 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     expect(pleaIsEligible(nextYear, YEAR + 4 * DAY)).toBe(true);
     const again = dealt(nextYear, 'palisadePromisePlea');
     expect(shown(again.state, 'palisadePromisePlea')?.text).toBe(
-      'Os aldeões voltam a pedir uma paliçada em volta do feudo. Lembram, sem levantar a voz, que ela já foi prometida uma vez. O conselho quer saber o que o senhor responde agora.',
+      'Os aldeões voltaram ao salão perguntar pela cerca do feudo. Lembram, sem levantar a voz, que uma paliçada já lhes foi prometida uma vez. O conselho quer saber o que o senhor responde agora.',
     );
     const plea = cardOf(CATALOG, 'palisadePromisePlea');
     expect(plea === null ? '' : cardReading(nextYear, plea).arrival).toBe(
-      'No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a pedir a paliçada que um dia lhes foi prometida: {carta}.',
+      'No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a falar da paliçada que um dia lhes foi prometida: {carta}.',
     );
     // Desta vez a obra já está de pé: mostrar apaga a promessa quebrada e fecha o assunto.
     const fenced = cloneState(again.state);
@@ -984,7 +987,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     const shownNow = choose(fenced, 'palisadePromisePlea', 'show');
     expect(shownNow.events[0]).toMatchObject({
       text: 'No 2º dia da Primavera, o senhor de Pedra Alta levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.',
-      data: { morale: 10, moraleDays: 3 },
+      data: { morale: 20, moraleDays: 3 },
     });
     expect(shownNow.state.council.flags).toEqual({ 'palisadePromise.kept': true });
     expect(shownNow.state.council.scheduled).toEqual([]);
@@ -994,7 +997,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     const before = opened();
     const explained = choose(before, 'palisadePromisePlea', 'explain');
     expect(explained.events[0]).toMatchObject({
-      text: 'No 1º dia da Primavera, o senhor de Pedra Alta explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+      text: 'No 1º dia da Primavera, o senhor de Pedra Alta explicou aos aldeões que não é hora de prometer nada. Ouviram calados.',
       data: {
         cardId: 'palisadePromisePlea',
         instanceId: 'palisadePromisePlea-1',
@@ -1014,7 +1017,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     ).toContain('Há pegadas grandes na lama');
   });
 
-  it('quem já tem a Paliçada quando o pedido chega mostra a obra: +10, promessa nenhuma, e o assunto acaba', () => {
+  it('quem já tem a Paliçada quando o pedido chega mostra a obra: +20, promessa nenhuma, e o assunto acaba', () => {
     const fenced = hall();
     fenced.settlement.buildings.palisade = 1;
     const state = dealt(fenced, 'palisadePromisePlea').state;
@@ -1023,10 +1026,40 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
       lockedReason: null,
     });
     const answered = choose(state, 'palisadePromisePlea', 'show');
-    expect(answered.events[0]?.data).toMatchObject({ morale: 10, moraleDays: 3 });
+    expect(answered.events[0]?.data).toMatchObject({ morale: 20, moraleDays: 3 });
     expect(answered.state.council.flags).toEqual({ 'palisadePromise.kept': true });
     expect(answered.state.council.scheduled).toEqual([]);
     expect(pleaIsEligible(advanceTo(answered.state, YEAR + DAY).state, YEAR + 4 * DAY)).toBe(false);
+  });
+
+  it('com a Paliçada de pé, mostrar e prometer valem cada um em uma coisa, e nenhuma frase pede ou promete o que já existe', () => {
+    const fenced = hall();
+    fenced.settlement.buildings.palisade = 1;
+    const state = dealt(fenced, 'palisadePromisePlea').state;
+    // O pedido pergunta pela cerca; não a pede.
+    expect(shown(state, 'palisadePromisePlea')?.text).toBe(
+      'Há pegadas grandes na lama, junto aos currais, e as mães já não deixam as crianças buscar água sozinhas. Os aldeões vieram ao salão perguntar pela cerca do feudo. O conselho quer saber o que o senhor responde.',
+    );
+
+    // Mostrar de uma vez: três dias com a moral em 80, a que atrai um colono.
+    const shownNow = choose(state, 'palisadePromisePlea', 'show').state;
+    const showing = moraleByDay(shownNow, 1, 9);
+    expect(showing).toEqual([80, 80, 80, 60, 60, 60, 60, 60, 60]);
+
+    // Prometer e mostrar no prazo: a moral fica acima da base por mais dias, mas nunca em 80.
+    const promised = choose(state, 'palisadePromisePlea', 'promise');
+    expect(promised.events[0]?.text).toBe(PROMISED);
+    const due = advanceTo(promised.state, 4 * DAY).state;
+    expect(shown(due, 'palisadePromiseDeadline')?.text).toBe(
+      'Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e querem ver a paliçada. O conselho pergunta o que mostrar a eles.',
+    );
+    const kept = choose(due, 'palisadePromiseDeadline', 'show').state;
+    const promising = [...moraleByDay(promised.state, 1, 4), ...moraleByDay(kept, 5, 9)];
+    expect(promising).toEqual([70, 70, 70, 60, 75, 75, 75, 60, 60]);
+    const above = (values: number[]) => values.reduce((sum, value) => sum + value - 60, 0);
+    // Mostrar ganha no pico (80 contra 75), prometer na soma dos dias (75 contra 60).
+    expect(Math.max(...showing)).toBeGreaterThan(Math.max(...promising));
+    expect(above(promising)).toBeGreaterThan(above(showing));
   });
 
   it.each(['peasant', 'lord'] as const)(
@@ -1035,7 +1068,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
       const { state, events } = advanceTo(opened(difficulty), 40 * DAY);
       expect(story(events)).toEqual([[12, 'cardExpired', 'palisadePromisePlea', 'explain']]);
       expect(eventsOfType(events, 'cardExpired')[0]).toMatchObject({
-        text: 'No 13º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.',
+        text: 'No 13º dia da Primavera, sem palavra do senhor, o conselho de Pedra Alta explicou aos aldeões que não é hora de prometer nada. Ouviram calados.',
         data: { difficulty },
       });
       expect(state.council).toMatchObject({ flags: {}, scheduled: [], delayed: [] });
@@ -1210,7 +1243,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
     expect(deadline?.options.map((entry) => entry.effectsText)).toEqual([
       '+15 de moral por 3 dias de jogo (2 h)',
       'Sem custo e sem efeito imediato.',
-      '−10 de moral por 3 dias de jogo (2 h)',
+      '−10 de moral por 4 dias de jogo (2 h 40 min)',
     ]);
   });
 

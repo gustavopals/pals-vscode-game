@@ -31,7 +31,7 @@ São **21 modelos**: 3 cadeias de 3 cartas e 12 avulsas. **As 21 estão em `@lot
 | 4 | A ponte que o degelo levou | Cadeia "A Ponte do Degelo", 1/3 | Primavera e verão; uma vez por ano | sim | idem |
 | 5 | A laje no leito do riacho | Cadeia "A Ponte do Degelo", 2/3 | Continuação | sim | idem |
 | 6 | A passagem volta a servir | Cadeia "A Ponte do Degelo", 3/3 | Continuação | sim | idem |
-| 7 | Os aldeões pedem uma cerca | Cadeia "A Promessa da Paliçada", 1/3 | Salão no nível 3; uma vez por ano | sim (desde V2E-T2) | idem |
+| 7 | Os aldeões perguntam pela cerca | Cadeia "A Promessa da Paliçada", 1/3 | Salão no nível 3; uma vez por ano | sim (desde V2E-T2) | idem |
 | 8 | O prazo da paliçada | Cadeia "A Promessa da Paliçada", 2/3 | Continuação | sim (desde V2E-T2) | idem |
 | 9 | A palavra do senhor | Cadeia "A Promessa da Paliçada", 3/3 | Continuação | sim (desde V2E-T2) | idem |
 | 10 | A refeição dos pedreiros | Avulsa recorrente | Qualquer estação | sim | idem |
@@ -75,7 +75,7 @@ O que o agente decidiu ao escrever, e que o autor pode rever. Cada regra tem um 
 
 **Cartas recorrentes e a ronda.** O ano tem 21 audiências e o lote tem 10 cartas de uma vez por ano no sorteio: sem recorrentes o Conselho ficaria sem assunto no outono. Quatro avulsas são recorrentes, sem estação nem edifício: os assuntos de sempre. Para a mesma não vir duas vezes seguidas, cada uma grava a própria flag (`routine.<carta>`) em todas as opções e apaga as das outras três: uma recorrente só volta depois de outra recorrente ter passado pela mesa. É conteúdo puro, sem regra nova no motor. Em Camponês e Senhor, a opção automática de uma recorrente não mexe em nada: uma carta que pode expirar várias vezes por ano com o senhor fora não pinga prêmio nem castigo.
 
-**Cadeias.** A continuação chega **2 dias de jogo** depois da escolha (4 quando a carta dá um prazo), e os efeitos de moral das cadeias duram **3 dias**: quem responde logo soma a moral de uma carta à da seguinte. O texto da continuação lembra a escolha anterior por variante de flag (IDEIA-03), e a primeira carta de cada cadeia, quando volta em outro ano, lembra como a história terminou (IDEIA-07). Cada cadeia tem saída para aceitar, recusar e expirar, e nenhuma deixa cobrança impossível.
+**Cadeias.** A continuação chega **2 dias de jogo** depois da escolha (4 quando a carta dá um prazo), e os efeitos de moral das cadeias duram, em geral, **3 dias**: quem responde logo soma a moral de uma carta à da seguinte. Duas exceções de propósito: desfazer a promessa da Paliçada dura 4 (um dia a mais que a promessa, para prometer e desfazer não sair de graça) e as saídas de consolo (largar a obra, abrir sem cerimônia, mostrar a paliçada tarde) duram 2. O texto da continuação lembra a escolha anterior por variante de flag (IDEIA-03), e a primeira carta de cada cadeia, quando volta em outro ano, lembra como a história terminou (IDEIA-07). Cada cadeia tem saída para aceitar, recusar e expirar, e nenhuma deixa cobrança impossível.
 
 **Cartas de estação lidas fora da estação.** O prazo de resposta é de 24 h reais, que no ritmo Rápido são 36 dias de jogo: uma carta do outono pode ser respondida no inverno. As frases da Crônica não afirmam a estação ("pela volta das cegonhas", não "pela primavera").
 
@@ -283,17 +283,18 @@ A carta não dá proteção nenhuma: quem protege é a Paliçada, erguida com as
 
 Flags: `palisadePromise.open` (cadeia em curso) e os desfechos que ficam: `kept` (a primeira carta nunca mais volta) e `broken` (ela volta no ano seguinte, com o texto que lembra a promessa).
 
-#### Os aldeões pedem uma cerca (`palisadePromisePlea`, v1)
+#### Os aldeões perguntam pela cerca (`palisadePromisePlea`, v1)
 
-- **Dilema:** Prometer proteção, com prazo, ou não se comprometer.
+- **Dilema:** Prometer proteção, com prazo, ou não se comprometer; e, para quem já ergueu a cerca, mostrá-la de uma vez ou fazer da promessa um adiantamento.
 - **Quando sai:** peso 3 no sorteio · uma vez por ano · todas as estações · exige o Salão do Senhor no nível 3 · não sai com `palisadePromise.open` nem `palisadePromise.kept`.
 - **Repetição e virada do ano:** Sai uma vez por ano, com o Salão no nível 3, e nunca com a cadeia aberta. Com a promessa cumprida, não volta mais; com a promessa quebrada, volta no ano seguinte lembrando dela.
-- **Texto:** Há pegadas grandes na lama, junto aos currais, e as mães já não deixam as crianças buscar água sozinhas. Os aldeões pedem uma paliçada em volta do feudo. O conselho quer saber o que o senhor responde.
-- **Texto com `palisadePromise.broken`:** Os aldeões voltam a pedir uma paliçada em volta do feudo. Lembram, sem levantar a voz, que ela já foi prometida uma vez. O conselho quer saber o que o senhor responde agora.
+- **Texto:** Há pegadas grandes na lama, junto aos currais, e as mães já não deixam as crianças buscar água sozinhas. Os aldeões vieram ao salão perguntar pela cerca do feudo. O conselho quer saber o que o senhor responde.
+- **Texto com `palisadePromise.broken`:** Os aldeões voltaram ao salão perguntar pela cerca do feudo. Lembram, sem levantar a voz, que uma paliçada já lhes foi prometida uma vez. O conselho quer saber o que o senhor responde agora.
+- **Quem recebe o pedido.** A obra e o pedido se destravam com o mesmo Salão 3, e o objetivo 9 manda erguer a Paliçada: na revisão das Fases D e E, o pedido chegou com a cerca já de pé em 23 de 24 chegadas do simulador. Por isso o texto pergunta pela cerca em vez de pedi-la, e nenhuma frase das três cartas pede ou promete o que já existe (o título também: era "Os aldeões pedem uma cerca").
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +10 de moral por 3 dias de jogo | — | Quem já fez não precisa prometer. |
+| **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +20 de moral por 3 dias de jogo | — | Quem já fez não precisa prometer. |
 | **Explicar que não é hora** (`explain`) | sem custo | nenhuma | — | Nada se promete e nada se deve. O medo continua do tamanho que está. |
 | **Prometer a paliçada** (`promise`) | sem custo | +10 de moral por 3 dias de jogo | — | Promessa aquece hoje. O povo conta os dias, e cobra em quatro. |
 
@@ -302,30 +303,30 @@ Flags: `palisadePromise.open` (cadeia em curso) e os desfechos que ficam: `kept`
   - Prometer a paliçada: grava `palisadePromise.open`; agenda `palisadePromiseDeadline` para 4 dias de jogo depois.
 - **Se ninguém responde (`autoResolve`):** Camponês: Explicar que não é hora · Senhor: Explicar que não é hora · Rei de Ferro: Prometer a paliçada. **Com a Paliçada já erguida**, nas três dificuldades: Mostrar a paliçada erguida.
 - **Crônica:**
-  - Chegada com `palisadePromise.broken`: No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a pedir a paliçada que um dia lhes foi prometida: {carta}.
+  - Chegada com `palisadePromise.broken`: No {dia}º dia {daEstacao}, os aldeões de {feudo} voltaram a falar da paliçada que um dia lhes foi prometida: {carta}.
   - Mostrar a paliçada erguida: No {dia}º dia {daEstacao}, o senhor de {feudo} levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} levou os aldeões até a paliçada já erguida. Ninguém pediu mais nada.
-  - Explicar que não é hora: No {dia}º dia {daEstacao}, o senhor de {feudo} explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.
-    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} explicou aos aldeões que a paliçada terá de esperar. Ouviram calados.
-  - Prometer a paliçada: No {dia}º dia {daEstacao}, o senhor de {feudo} prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.
+  - Explicar que não é hora: No {dia}º dia {daEstacao}, o senhor de {feudo} explicou aos aldeões que não é hora de prometer nada. Ouviram calados.
+    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} explicou aos aldeões que não é hora de prometer nada. Ouviram calados.
+  - Prometer a paliçada: No {dia}º dia {daEstacao}, o senhor de {feudo} prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} prometeu aos aldeões, em nome dele, uma paliçada em volta do feudo.
 - **Cenários:**
-  - Mostrar a paliçada erguida. *Faz sentido:* A Paliçada já está de pé: é moral de graça, e o assunto acaba. *É ruim:* Não se aplica sem a Paliçada: a opção fica trancada, com o motivo.
+  - Mostrar a paliçada erguida. *Faz sentido:* A Paliçada já está de pé e o senhor quer os 80 agora: +20 por três dias, a moral que atrai um colono, e o assunto acaba. *É ruim:* O senhor prefere a moral acima da base por mais dias: prometer e mostrar no prazo dá +10 e depois +15 (75 no pico, mais dias somados). Não se aplica sem a Paliçada: a opção fica trancada, com o motivo.
   - Explicar que não é hora. *Faz sentido:* O feudo não junta 200 de madeira e 50 de pedra tão cedo, ou a moral não aguenta uma promessa quebrada. *É ruim:* A obra cabe no estoque: prometer rende +10 agora e +15 no prazo.
-  - Prometer a paliçada. *Faz sentido:* A Paliçada cabe no estoque ou vai caber em poucos dias: são +10 agora e +15 no prazo. *É ruim:* O material não vem: a promessa desfeita custa −10, e a adiada sem obra, −15.
+  - Prometer a paliçada. *Faz sentido:* A Paliçada cabe no estoque ou vai caber em poucos dias: são +10 agora e +15 no prazo; com ela já de pé, é trocar o pico de 80 por mais dias acima da base. *É ruim:* O material não vem: a promessa desfeita custa −10 por quatro dias (mais do que ela rendeu), e a adiada sem obra, −15.
 
 #### O prazo da paliçada (`palisadePromiseDeadline`, v1)
 
 - **Dilema:** Mostrar a obra, pedir prazo ou voltar atrás.
 - **Quando sai:** só chega como continuação (peso 0 no sorteio) · qualquer estação.
 - **Repetição e virada do ano:** Só chega como continuação, quatro dias de jogo depois da promessa.
-- **Texto:** Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e olham para onde a paliçada devia estar. O conselho pergunta o que mostrar a eles.
+- **Texto:** Passaram-se os dias da promessa. Os aldeões vieram ao salão sem pressa e sem sorriso, e querem ver a paliçada. O conselho pergunta o que mostrar a eles.
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +15 de moral por 3 dias de jogo | — | Palavra cumprida no prazo vale mais que a própria cerca. |
+| **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +15 de moral por 3 dias de jogo | — | Palavra cumprida no prazo aquece mais que a promessa. |
 | **Pedir mais alguns dias** (`delay`) | sem custo | nenhuma | — | O povo espera mais quatro dias. Não espera uma terceira vez. |
-| **Desfazer a promessa** (`withdraw`) | sem custo | −10 de moral por 3 dias de jogo | — | Dói agora, e acaba aqui. Quem adia e não cumpre paga mais caro. |
+| **Desfazer a promessa** (`withdraw`) | sem custo | −10 de moral por 4 dias de jogo | — | Dói agora, e acaba aqui. Quem adia e não cumpre paga mais caro. |
 
 - **Flags e continuação:**
   - Mostrar a paliçada erguida: apaga `palisadePromise.open`; apaga `palisadePromise.broken`; grava `palisadePromise.kept`.
@@ -770,7 +771,7 @@ O perfil Regular (bot econômico, 2 visitas por dia), um ano de jogo, sementes `
 | A ponte que o degelo levou | 50 | 55 |
 | A laje no leito do riacho | 38 | 38 |
 | A passagem volta a servir | 38 | 38 |
-| Os aldeões pedem uma cerca | 50 | 61 |
+| Os aldeões perguntam pela cerca | 50 | 61 |
 | O prazo da paliçada | 0 | 0 |
 | A palavra do senhor | 0 | 0 |
 | O poço entulhado | 50 | 59 |
@@ -823,7 +824,7 @@ O perfil Regular (bot econômico, 2 visitas por dia), um ano de jogo, sementes `
 | A ponte que o degelo levou | 46 | 46 |
 | A laje no leito do riacho | 4 | 4 |
 | A passagem volta a servir | 4 | 4 |
-| Os aldeões pedem uma cerca | 41 | 41 |
+| Os aldeões perguntam pela cerca | 41 | 41 |
 | O prazo da paliçada | 0 | 0 |
 | A palavra do senhor | 0 | 0 |
 | O poço entulhado | 41 | 41 |
@@ -869,7 +870,7 @@ Medido nas mesmas 50 sementes, um ano de jogo, com o bot econômico (que só pag
 
 A tabela é anterior à correção V2DE: com o +5 dos pilares de pedra, o bot (que paga os pilares quando a pedra sobra) chega aos 80 um pouco mais vezes; ela não foi medida de novo.
 
-(Medido de novo em V2E-T2, com as três cartas da Paliçada no sorteio. No ritmo Rápido com duas visitas por dia o número caiu de 19 para 6 partidas: o ano traz 10 cartas, e o pedido da cerca, a que o bot só responde explicando, ocupa o lugar de uma das que dariam moral. Quem promete e cumpre ganha +10 e, quatro dias depois, +15: é mais um caminho até os 80, que o bot não usa.)
+(Medido de novo em V2E-T2, com as três cartas da Paliçada no sorteio. No ritmo Rápido com duas visitas por dia o número caiu de 19 para 6 partidas: o ano traz 10 cartas, e o pedido da cerca, a que o bot só responde explicando, ocupa o lugar de uma das que dariam moral. Quem promete e cumpre ganha +10 e, quatro dias depois, +15, que não se somam: o pico é 75. Desde a correção V2DE, quem já ergueu a cerca e a mostra ganha +20: os 80 na hora, e o bot, que mostra a obra quando ela existe, passa a chegar lá também.)
 
 Quem responde duas cartas de uma vez soma os efeitos; quem responde uma por visita, não. É uma habilidade do jogador, e a tela a mostra (a conta da moral lista cada carta com o prazo). Um jogador que queira o colono chega lá mais vezes do que o bot.
 
@@ -883,8 +884,8 @@ Quem responde duas cartas de uma vez soma os efeitos; quem responde uma por visi
 6. **"O celeiro quase cheio" não confere o estoque para sair**: a carta pede o Celeiro e a moral em 60 ou mais (a de quem tem comida guardada), e as duas opções pagas ficam trancadas com menos de 300 de comida. Com o celeiro vazio e a moral alta por outra carta, o texto ("os lavradores juram que a colheita não cabe") fica otimista. Um requisito de estoque na carta, e não só na opção, é um requisito novo no motor.
 7. **O bot do simulador não lê a consequência.** Decide pelo custo e pelo estoque: paga a opção mais cara que cabe com folga. Não distingue uma festa de um conserto, e por isso mede a economia com o Conselho, não a qualidade dos dilemas. Quem valida os dilemas é o autor e o playtest.
 8. **Ninguém jogou as cartas.** Texto, tom, clareza do custo e da pista só se provam com gente lendo.
-9. **O pedido da cerca pode chegar a quem já a ergueu.** Uma carta confere um edifício pelo nível mínimo ("com o Salão no nível 3") e pela opção trancada, mas não sabe **deixar de sair** porque um edifício existe. Com a Paliçada de pé, "Os aldeões pedem uma cerca" ainda sai uma vez: o texto pede o que já existe, e a opção "Mostrar a paliçada erguida" resolve o assunto (+10 de moral, e a carta não volta). Um requisito "sem este edifício", ou uma variante de texto por edifício, seria um requisito novo no motor.
-10. **A cadeia da Paliçada não tem opção paga**, e por isso o bot do simulador nunca a abre (seção 4.3). A obra é o custo: 200 de madeira e 50 de pedra, fora da carta.
+9. **O pedido da cerca chega quase sempre a quem já a ergueu, e as cobranças quase nunca saem.** Não é exceção: a obra e o pedido se destravam com o mesmo Salão 3, e o objetivo 9 manda erguer a Paliçada. Na revisão das Fases D e E, o pedido chegou com a cerca de pé em 23 de 24 chegadas do simulador, e "O prazo da paliçada" e "A palavra do senhor" aparecem 0 vezes nas 100 partidas da seção 4.2: para quem segue os objetivos, 2 das 21 cartas são, na prática, inalcançáveis. Uma carta confere um edifício pelo nível mínimo e pela opção trancada, mas não sabe **deixar de sair** porque um edifício existe. O que a correção V2DE (achado 12) fez, só com conteúdo: o texto pergunta pela cerca em vez de pedi-la, nenhuma frase pede ou promete o que já existe, e com a obra de pé nenhuma opção domina (mostrar dá +20 e leva aos 80 na hora; prometer e mostrar no prazo, +10 e +15, rende mais dias, mas nunca chega lá; antes, mostrar dava +10, e prometer o que já existia rendia mais em tudo). Fazer as cobranças chegarem a quem promete de verdade pede uma regra: um requisito "sem este edifício" na carta e na opção de prometer (`requires.withoutBuildings`), ou sortear o pedido antes do Salão 3. As duas mudam o GDD (§7.1 lista os requisitos e diz que a carta sai com o Salão no nível 3) e são decisão do autor.
+10. **A cadeia da Paliçada não tem opção paga**, e por isso o bot do simulador nunca a abre (seção 4.3): sem a cerca ele explica que não é hora; com ela, mostra a obra (desde a correção V2DE, +20). A obra é o custo: 200 de madeira e 50 de pedra, fora da carta.
 11. **Os ids de carta e de opção não se renomeiam sem migração.** O estado de uma partida guarda o id da carta na mesa, da continuação agendada e da opção cujo efeito escondido ainda vai acontecer. Para o motor, um id que o catálogo já não tem é carta que saiu: sem efeito e sem linha (ADR 0014). Renomear `sow` com partidas vivas tira do jogador a colheita que ele pagou; renomear `commonGranaryShare` deixa a cadeia aberta para sempre. Um teste (`packages/content/src/council.test.ts`) fixa os pares publicados e diz o que fazer: escrever antes o passo de migração do estado. Texto, números, pesos, requisitos, cartas novas e opções novas não têm esse custo. Uma linha na Crônica para o efeito perdido, ou a cadeia que se fecha sozinha, seriam regras novas, e aguardam o autor.
 
 ## 7. Versão do conteúdo

@@ -3641,7 +3641,7 @@ A revisão independente das Fases D e E achou duas cartas com números a corrigi
 |---|---|
 | Data | 2026-10-02 |
 | Commit | os desta seção (`git log --grep "V2DE: corrige"`, na branch `web-track`), feitos sobre `e693e3d` |
-| Identificação | Motor 0.1.0 · estado v11 · conteúdo `3cf7000da6b0c55e` (16.1) |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo `3cf7000da6b0c55e` (16.1) e `32e60cd2b32b10bb` (16.2) |
 | Dificuldades | Camponês, Senhor e Rei de Ferro |
 | Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
 | Máquina | Apple M5, macOS 26.6.2, Node 24.19.0 |
@@ -3659,6 +3659,16 @@ O bot paga os pilares quando a pedra sobra, e por isso a economia dele muda um p
 - **A meta de desperdício no Rápido, ano de jogo:** a pior sequência voltou a 18 h de jogo (era 15), de comida, na semente 025: a fazenda rende mais e a Despensa enche antes. A meta já não era cumprida no Rápido (seção 15).
 - **Faixas:** com a linha de base da seção 15, quatro células saíam da faixa por uma semente: em Senhor, a sequência de 18 h acima; em Camponês, o ouro parado do Regular no ritmo Normal (18.112, o limite era 14.077) e do Dedicado no Tranquilo; em Rei de Ferro, o ouro parado do Dedicado no ritmo Normal (42.128 para 42.018). `MEASURED` passou a ser a linha de base desta rodada, nas três dificuldades, com a mesma regra de folga; os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram atualizados com o porquê.
 
-### 16.2 Com quem roda as matrizes depois
+### 16.2 A Paliçada erguida, mostrada aos aldeões, dá +20 de moral (achado 12)
+
+Com a cerca de pé, "Prometer a paliçada" rendia mais que "Mostrar a paliçada erguida" em tudo: +10 por 3 dias e, na cobrança, +15 por 3, contra +10 por 3. E o pedido chega quase sempre a quem já ergueu a cerca (23 de 24 chegadas na revisão). Mostrar passou a dar +20 por 3 dias: leva aos 80 na hora; prometer e mostrar no prazo rende mais dias acima da base, mas nunca passa de 75. Desfazer a promessa passou a durar 4 dias (−10), um a mais que a promessa: prometer e desfazer deixou de ser um adiantamento de moral sem custo. Os números que o GDD §7.1 dá à cadeia (+10, +15, +5, −10 e −15) não mudaram. Identificação: conteúdo `32e60cd2b32b10bb`.
+
+Os bots mostram a obra quando ela existe (é a primeira opção sem custo que eles alcançam), e por isso esta é a mudança que mais mexe na matriz: em Senhor, 680 das 900 partidas mudam em algum número (688 em Camponês, 667 em Rei de Ferro), quase sempre pelo sorteio que passa a correr diferente depois dos três dias em 80.
+
+- **População:** em Senhor, 188 partidas terminam com outra população; 155 com mais gente (de um a oito aldeões: os colonos dos dias em 80), 33 com menos (até nove, pelo caminho que o sorteio tomou). A faixa do Regular no ritmo Normal foi de 60 a 71 para 57 a 72 aldeões, e o Salão continua no nível 7.
+- **Nada piorou no que as faixas cobram de duro:** nenhuma hora de fome nem de frio, nenhuma recusa, ninguém vai embora; a moral mínima de cada célula não mudou.
+- **Faixas:** com a linha de base de 16.1, saíam da faixa, por uma ou duas sementes, os excedentes parados de algumas células (mais gente, mais produção) e, em Rei de Ferro, a semana do Tranquilo do Regular, por duas sementes (001 e 023: no fim da semana, o estoque juntado para a obra seguinte ainda estava parado; na 001 o Salão ficou um nível abaixo, no 5, dentro da faixa). `MEASURED` passou a ser a linha de base desta rodada nas três dificuldades, e os números fixados nos testes do simulador foram atualizados (o teto do preguiçoso no teste dos bots passou de 75 para 80: ele também mostra a obra).
+
+### 16.3 Com quem roda as matrizes depois
 
 A tarefa que mexe na Ameaça (balance.ts e GDD §8.2) roda ao mesmo tempo em outra trilha e também regrava `MEASURED`. As duas linhas de base não se somam: depois de juntar as trilhas, a matriz precisa rodar de novo nas três dificuldades, sobre o conteúdo das duas.

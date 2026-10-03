@@ -149,7 +149,7 @@ function readyForPalisade(seed: string, timeScale: number): GameState {
   return state;
 }
 
-/** O mesmo feudo com "Os aldeões pedem uma cerca" na mesa, como o sorteio a teria posto. */
+/** O mesmo feudo com "Os aldeões perguntam pela cerca" na mesa, como o sorteio a teria posto. */
 function withPlea(seed: string, timeScale: number): GameState {
   const state = readyForPalisade(seed, timeScale);
   state.council.pending = [
@@ -316,7 +316,7 @@ describe('"A Promessa da Paliçada", pela API', () => {
   it('prometer, erguer e mostrar no prazo: a opção trancada abre com a obra, e nada é cobrado nem premiado duas vezes', async () => {
     const game = await insertGame(normal, withPlea('promessa-cumprida', 1), 1);
     const first = await viewOf(normal, game, game.id);
-    const plea = cardNamed(first, 'Os aldeões pedem uma cerca');
+    const plea = cardNamed(first, 'Os aldeões perguntam pela cerca');
     expect(plea.options.map((option) => [option.id, option.locked, option.lockedReason])).toEqual([
       ['show', true, 'Requer a Paliçada.'],
       ['explain', false, null],
@@ -346,7 +346,7 @@ describe('"A Promessa da Paliçada", pela API', () => {
     ).toEqual([
       [
         'cardAnswered',
-        'No 1º dia da Primavera, o senhor de Pedra Alta prometeu aos aldeões uma paliçada em volta do feudo. Dormiu-se melhor naquela noite.',
+        'No 1º dia da Primavera, o senhor de Pedra Alta prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.',
       ],
     ]);
     // Duas abas, duplo clique: a mesma ordem devolve o recibo, e a promessa vale uma vez.
@@ -404,7 +404,7 @@ describe('"A Promessa da Paliçada", pela API', () => {
 
   it('quem promete, ergue a Paliçada e não volta tem a promessa cumprida pelo conselho, e a Crônica conta', async () => {
     const game = await insertGame(fast, withPlea('promessa-ausente', PACE), PACE);
-    const plea = cardNamed(await viewOf(fast, game, game.id), 'Os aldeões pedem uma cerca');
+    const plea = cardNamed(await viewOf(fast, game, game.id), 'Os aldeões perguntam pela cerca');
     await send(
       fast,
       game.token,
@@ -432,7 +432,7 @@ describe('"A Promessa da Paliçada", pela API', () => {
 
   it('quem promete e não ergue nada paga a conta da promessa, mesmo ausente, e ela não tira recurso nenhum', async () => {
     const game = await insertGame(fast, withPlea('promessa-quebrada', PACE), PACE);
-    const plea = cardNamed(await viewOf(fast, game, game.id), 'Os aldeões pedem uma cerca');
+    const plea = cardNamed(await viewOf(fast, game, game.id), 'Os aldeões perguntam pela cerca');
     await send(
       fast,
       game.token,

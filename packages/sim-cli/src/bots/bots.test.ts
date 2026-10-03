@@ -2319,11 +2319,12 @@ describe('os bots jogando contra o motor', () => {
       // 60 é o teto sem o Conselho (GDD §5.7). Com as cartas que o econômico paga quando tem
       // folga, o feudo fica orgulhoso e chega aos 80 que atraem um colono. O preguiçoso responde
       // sem gastar: só passa da base com o que uma carta dá de graça e com o prêmio de um
-      // objetivo. O maior é o do inverno sem frio: +15 por um dia de jogo, 75.
+      // objetivo. O maior é mostrar aos aldeões a Paliçada que ele já ergueu, quando o pedido da
+      // cerca chega: +20 por três dias, 80 (V2DE; antes, o inverno sem frio, +15, era o teto).
       if (strategy === 'economico') {
         expect(Math.max(...morales)).toBeGreaterThanOrEqual(80);
       } else {
-        expect(Math.max(...morales)).toBeLessThanOrEqual(75);
+        expect(Math.max(...morales)).toBeLessThanOrEqual(80);
       }
       // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
       const late = morales.slice(-90);
