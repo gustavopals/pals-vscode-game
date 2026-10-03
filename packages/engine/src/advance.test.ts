@@ -52,15 +52,11 @@ describe('advanceTo', () => {
     const atBoundary = events.filter((event) => event.atMs === 24 * DAY_MS);
     // Ninguém cuidou do feudo: depois do amanhecer vem a moral, e a fome de 12 h leva um aldeão.
     // A virada do 25º dia é também uma audiência do Conselho, e o sorteio vem depois da moral.
-    // Por último chegam os lobos que a Ameaça marcou três viradas antes: uma matilha grande.
     expect(atBoundary.map((event) => event.type)).toEqual([
       'seasonChanged',
       'dayStarted',
       'villagerDeserted',
       'cardDrawn',
-      'raidSuffered',
-      'villagerInjured',
-      'villagerInjured',
     ]);
     expect(atBoundary[0]).toMatchObject({ data: { season: 'summer' } });
     expect(atBoundary[0]?.text).toBe('Chega o Verão a Pedra Alta.');
@@ -139,8 +135,8 @@ describe('advanceTo', () => {
     expect(moreCold).toEqual([]);
     // O caminho passa pelas incursões: a do roteiro e as que a Ameaça sorteia, com feridos que
     // largam o ofício e voltam.
-    expect(eventsOfType(atOnce.events, 'raidSuffered').length).toBeGreaterThan(20);
-    expect(eventsOfType(atOnce.events, 'villagerRecovered').length).toBeGreaterThan(20);
+    expect(eventsOfType(atOnce.events, 'raidSuffered').length).toBeGreaterThan(10);
+    expect(eventsOfType(atOnce.events, 'villagerRecovered').length).toBeGreaterThan(10);
     expect(eventsOfType(atOnce.events, 'coldEnded').map((event) => event.atMs)).toEqual([
       YEAR_MS,
       2 * YEAR_MS,
@@ -158,7 +154,7 @@ describe('advanceTo', () => {
     // um efeito escondido que acontece, um objetivo que a obra cumpre, a comida que acaba e o
     // frio que o degelo encerra.
     const start = gameAt(YEAR_MS - HOUR, (draft) => {
-      draft.map.threat = 35;
+      draft.map.threat = 38;
       draft.settlement.buildings.watchtower = 1;
       draft.council.nextDrawAtMs = YEAR_MS;
       draft.council.pending = [

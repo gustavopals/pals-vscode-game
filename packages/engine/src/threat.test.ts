@@ -81,44 +81,46 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     expect(state.settlement.buildings.watchtower).toBe(0);
   });
 
-  it('+5 por dia de jogo, no instante exato da virada, com o covil ativo', () => {
+  it('+2 por dia de jogo, no instante exato da virada, com o covil ativo', () => {
     // Sem incursão nenhuma no caminho (a Horda calada): cada incursão derrubaria a Ameaça.
     const state = gameWith(quietHorde);
     expect(threatAt(state, DAY - 1)).toBe(0);
-    expect(threatAt(state, DAY)).toBe(5);
-    expect(threatAt(state, 2 * DAY - 1)).toBe(5);
-    expect(threatAt(state, 2 * DAY)).toBe(10);
-    // No 8º dia de jogo chega a 40; no 20º, sem incursão nenhuma, ao máximo.
-    expect(threatAt(state, 8 * DAY)).toBe(40);
-    expect(threatAt(state, 20 * DAY)).toBe(100);
+    expect(threatAt(state, DAY)).toBe(2);
+    expect(threatAt(state, 2 * DAY - 1)).toBe(2);
+    expect(threatAt(state, 2 * DAY)).toBe(4);
+    // Na virada que abre o 21º dia de jogo chega a 40; sem incursão nenhuma, chega ao máximo na
+    // que fecha o primeiro dia de outono (96 + 5).
+    expect(threatAt(state, 20 * DAY)).toBe(40);
+    expect(threatAt(state, AUTUMN)).toBe(96);
+    expect(threatAt(state, AUTUMN + DAY)).toBe(100);
   });
 
   it('sobe com ou sem Torre de Vigia: a Torre só deixa ver', () => {
     for (const watchtower of [0, 1, 2]) {
-      expect(threatAt(feud(3 * DAY, 15, watchtower), 9 * DAY)).toBe(45);
+      expect(threatAt(feud(3 * DAY, 15, watchtower), 9 * DAY)).toBe(27);
     }
   });
 
   it('+3 a mais por cada dia de outono que passa, do primeiro ao último', () => {
     // A virada que abre o outono fecha um dia de verão: soma só o covil.
     const lastOfSummer = feud(AUTUMN - DAY, 0);
-    expect(threatAt(lastOfSummer, AUTUMN)).toBe(5);
-    // O primeiro dia de outono inteiro soma 5 + 3.
-    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(13);
-    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(21);
-    // A virada que abre o inverno fecha o último dia de outono: ainda soma 8.
+    expect(threatAt(lastOfSummer, AUTUMN)).toBe(2);
+    // O primeiro dia de outono inteiro soma 2 + 3.
+    expect(threatAt(lastOfSummer, AUTUMN + DAY)).toBe(7);
+    expect(threatAt(lastOfSummer, AUTUMN + 2 * DAY)).toBe(12);
+    // A virada que abre o inverno fecha o último dia de outono: ainda soma 5.
     const lastOfAutumn = feud(WINTER - DAY, 0);
-    expect(threatAt(lastOfAutumn, WINTER)).toBe(8);
+    expect(threatAt(lastOfAutumn, WINTER)).toBe(5);
     // No inverno, só o covil.
-    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(13);
+    expect(threatAt(lastOfAutumn, WINTER + DAY)).toBe(7);
     // E no verão e na primavera também.
-    expect(threatAt(feud(SUMMER, 0), SUMMER + DAY)).toBe(5);
+    expect(threatAt(feud(SUMMER, 0), SUMMER + DAY)).toBe(2);
   });
 
   it('é limitada a 100, e fica lá', () => {
     expect(threatAt(feud(3 * DAY, 98), 4 * DAY)).toBe(100);
     expect(threatAt(feud(3 * DAY, 100), 9 * DAY)).toBe(100);
-    // No outono a subida de 8 também para no limite.
+    // No outono a subida de 5 também para no limite.
     expect(threatAt(feud(AUTUMN + DAY, 95), AUTUMN + 2 * DAY)).toBe(100);
     expect(rules.max).toBe(100);
   });
@@ -139,7 +141,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
         northDen: { type: 'wolfDen', threatActive: true },
       };
     });
-    expect(threatAt(two, 4 * DAY)).toBe(20);
+    expect(threatAt(two, 4 * DAY)).toBe(14);
   });
 
   it('os termos saem na mesma ordem qualquer que seja a ordem das chaves no estado', () => {
@@ -168,9 +170,9 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     const state = feud(YEAR - DAY, 30);
     const { state: after, events } = advanceTo(state, YEAR + DAY);
     expect(eventsOfType(events, 'yearStarted')).toHaveLength(1);
-    // A virada do ano fecha um dia de inverno (+5); a seguinte, um de primavera (+5).
-    expect(threatAt(state, YEAR)).toBe(35);
-    expect(after.map.threat).toBe(40);
+    // A virada do ano fecha um dia de inverno (+2); a seguinte, um de primavera (+2).
+    expect(threatAt(state, YEAR)).toBe(32);
+    expect(after.map.threat).toBe(34);
     expect(after.map.tiles).toEqual(state.map.tiles);
     expect(after.horde).toEqual(state.horde);
     expect(after.clock.year).toBe(2);
@@ -192,7 +194,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
 
   it('na virada do dia a Ameaça vem depois do Conselho (ADR 0013, ordem do mesmo instante)', () => {
     // A audiência do 8º dia cai na virada em que a Ameaça cruza os 40.
-    const state = feud(8 * DAY - HOUR, 35, 1, councilInSession);
+    const state = feud(8 * DAY - HOUR, 40 - rules.perActiveTilePerDay, 1, councilInSession);
     const { events } = advanceTo(state, 8 * DAY);
     const types = events.map((event) => event.type);
     expect(types).toContain('cardDrawn');
@@ -237,26 +239,26 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
     });
     const events = rose(state, 40 * DAY);
     expect(events.map((event) => [event.atMs / DAY, event.data])).toEqual([
-      [8, { threat: 40, previousThreat: 35, mark: 40 }],
-      [14, { threat: 70, previousThreat: 65, mark: 70 }],
+      [20, { threat: 40, previousThreat: 38, mark: 40 }],
+      [35, { threat: 70, previousThreat: 68, mark: 70 }],
     ]);
     expect(events.map((event) => event.text)).toEqual([
-      'No 9º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
-      'No 15º dia da Primavera, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
+      'No 21º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
+      'No 12º dia do Verão, os vigias de Pedra Alta já não dormem: há olhos acesos na orla da mata. A Ameaça chegou a 70.',
     ]);
     expect(rules.chronicleMarks).toEqual([40, 70]);
   });
 
-  it('no outono a subida de 8 passa da marca, e a frase diz a quanto a Ameaça chegou', () => {
-    const [event] = rose(feud(AUTUMN + DAY, 35, 1), AUTUMN + 2 * DAY);
-    expect(event?.data).toEqual({ threat: 43, previousThreat: 35, mark: 40 });
+  it('no outono a subida de 5 passa da marca, e a frase diz a quanto a Ameaça chegou', () => {
+    const [event] = rose(feud(AUTUMN + DAY, 37, 1), AUTUMN + 2 * DAY);
+    expect(event?.data).toEqual({ threat: 42, previousThreat: 37, mark: 40 });
     expect(event?.text).toBe(
-      'No 3º dia do Outono, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 43.',
+      'No 3º dia do Outono, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 42.',
     );
   });
 
   it('chegar exatamente à marca conta; ficar acima dela não repete a linha', () => {
-    expect(rose(feud(3 * DAY, 35, 1), 4 * DAY)).toHaveLength(1);
+    expect(rose(feud(3 * DAY, 38, 1), 4 * DAY)).toHaveLength(1);
     expect(rose(feud(3 * DAY, 40, 1), 5 * DAY)).toEqual([]);
     expect(rose(feud(3 * DAY, 30, 1), 4 * DAY)).toEqual([]);
     // No máximo, nada mais sobe e nada mais se diz.
@@ -266,7 +268,7 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
   it('uma subida que pulasse as duas marcas daria uma linha só, a da mais alta', () => {
     const many = feud(3 * DAY, 38, 1, (draft) => {
       draft.map.tiles = Object.fromEntries(
-        Array.from({ length: 7 }, (_, index) => [
+        Array.from({ length: 17 }, (_, index) => [
           `den${index}`,
           { type: 'wolfDen' as const, threatActive: true },
         ]),
@@ -274,7 +276,7 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
     });
     const events = rose(many, 4 * DAY);
     expect(events.map((event) => event.data)).toEqual([
-      { threat: 73, previousThreat: 38, mark: 70 },
+      { threat: 72, previousThreat: 38, mark: 70 },
     ]);
   });
 
@@ -289,13 +291,13 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
         finishesAtMs: 9 * DAY + HOUR,
       };
     });
-    const { events } = advanceTo(late, 20 * DAY);
+    const { events } = advanceTo(late, 30 * DAY);
     expect(eventsOfType(events, 'threatRose').map((event) => event.data.mark)).toEqual([70]);
   });
 
   it('a Torre que fica pronta na própria virada já conta os uivos dela', () => {
     // As obras concluídas vêm antes da virada do dia, no mesmo instante.
-    const state = feud(8 * DAY - 12 * MINUTE, 35, 0, (draft) => {
+    const state = feud(8 * DAY - 12 * MINUTE, 38, 0, (draft) => {
       draft.settlement.constructionQueues[0] = {
         building: 'watchtower',
         targetLevel: 1,
@@ -308,7 +310,7 @@ describe('a Crônica só fala da Ameaça a quem tem a Torre de Vigia', () => {
     expect(types.indexOf('buildingFounded')).toBeLessThan(types.indexOf('threatRose'));
     expect(eventsOfType(events, 'threatRose')).toHaveLength(1);
     // Um milissegundo depois, a marca já passou: nenhuma linha.
-    const tooLate = feud(8 * DAY - 12 * MINUTE, 35, 0, (draft) => {
+    const tooLate = feud(8 * DAY - 12 * MINUTE, 38, 0, (draft) => {
       draft.settlement.constructionQueues[0] = {
         building: 'watchtower',
         targetLevel: 1,
@@ -441,9 +443,9 @@ describe('a divisão de intervalo continua exata com a Ameaça', () => {
           const firstTurn = (Math.floor(startMs / DAY) + 1) * DAY;
           let expected = threat;
           for (let turn = firstTurn; turn < firstTurn + days * DAY; turn += DAY) {
-            // O dia que a virada fecha: de outono, +8; de qualquer outra estação, +5.
+            // O dia que a virada fecha: de outono, +5; de qualquer outra estação, +2.
             const dayOfYear = Math.floor(((turn - 1) % YEAR) / DAY);
-            expected = Math.min(100, expected + (dayOfYear >= 48 && dayOfYear < 72 ? 8 : 5));
+            expected = Math.min(100, expected + (dayOfYear >= 48 && dayOfYear < 72 ? 5 : 2));
           }
           expect(threatAt(start, firstTurn + (days - 1) * DAY)).toBe(expected);
         },
@@ -528,16 +530,16 @@ describe('a visão com a Torre de Vigia', () => {
       text: 'Ameaça 40 de 100.',
       level: 40,
       max: 100,
-      risePerDay: 5,
-      nextLevel: 45,
+      risePerDay: 2,
+      nextLevel: 42,
       nextRiseInSeconds: 90 * 60,
-      trend: 'Sobe 5 a cada dia de jogo (2 h): na próxima virada, vai de 40 para 45.',
-      sources: ['+5/dia: Covil de Lobos'],
+      trend: 'Sobe 2 a cada dia de jogo (2 h): na próxima virada, vai de 40 para 42.',
+      sources: ['+2/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
-      // 45 depois da virada: 5% de chance. A regra e o custo estão em `threat.raids.test.ts`.
-      raidChancePercent: 5,
+      // 42 depois da virada: 2% de chance. A regra e o custo estão em `threat.raids.test.ts`.
+      raidChancePercent: 2,
       raidRisk:
-        'Se não houver outra a caminho, a próxima virada do dia tem 5% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 6 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+        'Se não houver outra a caminho, a próxima virada do dia tem 2% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 6 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
       raidCosts: [
         'Ataques leves: levam 10% do estoque de comida e madeira e ferem 1 aldeão.',
         'Ataques médios: levam 15% do estoque de comida e madeira e ferem 2 aldeões.',
@@ -562,19 +564,19 @@ describe('a visão com a Torre de Vigia', () => {
   it('no outono a explicação traz os dois termos: o covil e a estação', () => {
     const state = feud(AUTUMN + 4 * DAY + HOUR, 22, 1);
     expect(known(state)).toMatchObject({
-      risePerDay: 8,
-      nextLevel: 30,
-      trend: 'Sobe 8 a cada dia de jogo (2 h): na próxima virada, vai de 22 para 30.',
-      sources: ['+5/dia: Covil de Lobos', '+3/dia: outono'],
+      risePerDay: 5,
+      nextLevel: 27,
+      trend: 'Sobe 5 a cada dia de jogo (2 h): na próxima virada, vai de 22 para 27.',
+      sources: ['+2/dia: Covil de Lobos', '+3/dia: outono'],
     });
     // No último dia de verão a próxima virada ainda não soma o outono.
-    expect(known(feud(AUTUMN - HOUR, 22, 1)).sources).toEqual(['+5/dia: Covil de Lobos']);
+    expect(known(feud(AUTUMN - HOUR, 22, 1)).sources).toEqual(['+2/dia: Covil de Lobos']);
     // No último dia de outono, ainda soma.
     expect(known(feud(WINTER - HOUR, 22, 1)).sources).toEqual([
-      '+5/dia: Covil de Lobos',
+      '+2/dia: Covil de Lobos',
       '+3/dia: outono',
     ]);
-    expect(known(feud(WINTER + HOUR, 22, 1)).sources).toEqual(['+5/dia: Covil de Lobos']);
+    expect(known(feud(WINTER + HOUR, 22, 1)).sources).toEqual(['+2/dia: Covil de Lobos']);
   });
 
   it('o que a visão promete para a próxima virada, a virada cumpre', () => {
@@ -597,18 +599,18 @@ describe('a visão com a Torre de Vigia', () => {
   });
 
   it('perto do limite a frase diz que a subida para nele; no limite, que não sobe mais', () => {
-    expect(known(feud(3 * DAY, 98, 1))).toMatchObject({
-      risePerDay: 2,
+    expect(known(feud(3 * DAY, 99, 1))).toMatchObject({
+      risePerDay: 1,
       nextLevel: 100,
       trend:
-        'Sobe 5 a cada dia de jogo (2 h), até o máximo: na próxima virada, vai de 98 para 100.',
+        'Sobe 2 a cada dia de jogo (2 h), até o máximo: na próxima virada, vai de 99 para 100.',
     });
     expect(known(feud(3 * DAY, 100, 1))).toMatchObject({
       text: 'Ameaça 100 de 100.',
       risePerDay: 0,
       nextLevel: 100,
       trend: 'Está no máximo: não sobe mais.',
-      sources: ['+5/dia: Covil de Lobos'],
+      sources: ['+2/dia: Covil de Lobos'],
     });
   });
 
@@ -629,7 +631,7 @@ describe('a visão com a Torre de Vigia', () => {
     // Rápido: o dia de jogo dura 40 min, e 1 h de jogo são 20 min.
     expect(known(state, 3)).toMatchObject({
       nextRiseInSeconds: 30 * 60,
-      trend: 'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 40 para 45.',
+      trend: 'Sobe 2 a cada dia de jogo (40 min): na próxima virada, vai de 40 para 42.',
       watchtower: {
         text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
         next: 'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
@@ -638,7 +640,7 @@ describe('a visão com a Torre de Vigia', () => {
     // Tranquilo: o dia de jogo dura 4 h, e 1 h de jogo são 2 h.
     expect(known(state, 0.5)).toMatchObject({
       nextRiseInSeconds: 180 * 60,
-      trend: 'Sobe 5 a cada dia de jogo (4 h): na próxima virada, vai de 40 para 45.',
+      trend: 'Sobe 2 a cada dia de jogo (4 h): na próxima virada, vai de 40 para 42.',
       watchtower: {
         text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 2 h de antecedência.',
       },
@@ -864,10 +866,16 @@ describe('a Torre de Vigia como obra (GDD §6.1 e §6.2)', () => {
     expect(after.settlement.buildings).toMatchObject({ townHall: 2, watchtower: 1 });
     expect(after.settlement.famine).toBeNull();
     expect(eventsOfType(events, 'famineStarted')).toEqual([]);
-    // Pronta no 8º dia de jogo: antes dos uivos, e a tempo de ver a Ameaça chegar aos 40.
+    // Pronta no 8º dia de jogo: antes dos uivos e dos lobos. A Ameaça ainda não chegou aos 40
+    // quando os lobos do roteiro chegam: os vigias a veem subir, sem marca, e a incursão a
+    // encontra em 30 e a derruba.
     expect(founded?.atMs).toBeLessThan(9 * DAY);
     expect(Math.floor((founded?.atMs ?? 0) / DAY) + 1).toBe(8);
-    expect(eventsOfType(events, 'threatRose').map((event) => event.data.mark)).toEqual([40, 70]);
+    expect(eventsOfType(events, 'threatRose')).toEqual([]);
+    expect(eventsOfType(events, 'raidSuffered').map((event) => event.data)).toMatchObject([
+      { raidId: 'wolvesYear1', previousThreat: 15 * rules.perActiveTilePerDay, threat: 0 },
+    ]);
+    expect(after.map.threat).toBe(0);
   });
 
   it('pode ser planejada como automática e começa sozinha quando o Salão chega ao nível 2', () => {

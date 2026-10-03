@@ -8,6 +8,7 @@ import { ableVillagers, assignedWorkers, freeVillagers } from './population';
 import { scriptedRaidsAfter } from './raids';
 import {
   accept,
+  AUTUMN,
   command,
   DAY,
   eventsOfType,
@@ -179,8 +180,11 @@ describe('matriz QA-10: a mesma incursão, com o senhor fora, com Torre 0/1/2 e 
           expect(state.settlement.workers).toEqual(before.workers);
         }
 
-        // A Ameaça cai 10 em toda incursão, repelida ou sofrida: 20 + 3 viradas de 5, menos 10.
-        expect(advanceTo(start, RAID_AT).state.map.threat).toBe(20 + 15 - rules.raidDrop);
+        // A Ameaça cai `raidDrop` em toda incursão, repelida ou sofrida, e não passa de zero:
+        // 20 mais três viradas do covil, menos a queda.
+        expect(advanceTo(start, RAID_AT).state.map.threat).toBe(
+          Math.max(0, 20 + 3 * rules.perActiveTilePerDay - rules.raidDrop),
+        );
 
         // O relato: como chegou, o que a defesa fez e, na perda, o que a teria evitado.
         const text = resolved?.text ?? '';
@@ -530,13 +534,15 @@ describe('a resolução no instante marcado', () => {
   });
 
   it('a ordem do instante: a virada do dia (com a moral e a Ameaça) vem antes da incursão', () => {
-    const { state, events } = advanceTo(feud({ tower: 1 }), RAID_AT);
+    const at30 = (draft: GameState) => void (draft.map.threat = 30);
+    const { state, events } = advanceTo(feud({ tower: 1, edit: at30 }), RAID_AT);
     const at = events.filter((event) => event.atMs === RAID_AT).map((event) => event.type);
     // O fecho do desperdício do dia que acabou abre a virada (a despensa do cenário enche).
     expect(at).toEqual(['storageWasted', 'dayStarted', 'raidSuffered', 'villagerInjured']);
-    // A Ameaça subiu na virada e caiu com a incursão, nessa ordem.
-    expect(only(events, 'raidSuffered').data).toMatchObject({ previousThreat: 35, threat: 25 });
-    expect(state.map.threat).toBe(25);
+    // A Ameaça subiu na virada (30 + 3 × 2) e caiu com a incursão, nessa ordem: ao contrário,
+    // daria 34 − 35 = 0, e a virada a levaria a 2.
+    expect(only(events, 'raidSuffered').data).toMatchObject({ previousThreat: 36, threat: 1 });
+    expect(state.map.threat).toBe(1);
     // A moral daquela virada é a de antes do ataque: o termo só pesa a partir da seguinte.
     expect(state.settlement.morale).toBe(
       advanceTo(feud({ palisade: 2 }), RAID_AT).state.settlement.morale,
@@ -610,8 +616,9 @@ describe('a resolução no instante marcado', () => {
         expect(Object.keys(event.data).filter((key) => /threat/i.test(key))).toEqual([]);
       }
     }
-    const watched = advanceTo(feud({ tower: 1, palisade: 2 }), BACK_AT).events;
-    expect(only(watched, 'raidRepelled').data).toMatchObject({ previousThreat: 35, threat: 25 });
+    const at40 = (draft: GameState) => void (draft.map.threat = 40);
+    const watched = advanceTo(feud({ tower: 1, palisade: 2, edit: at40 }), BACK_AT).events;
+    expect(only(watched, 'raidRepelled').data).toMatchObject({ previousThreat: 46, threat: 11 });
   });
 });
 
@@ -856,31 +863,31 @@ describe('a visão de quem tem a Torre: a chance, o custo e o que fazer', () => 
     const threat = known(watched(30));
     expect(threat.raidChancePercent).toBe(0);
     expect(threat.raidRisk).toBe(
-      'Com a Ameaça em 40 ou menos, nenhuma incursão é marcada. Acima disso, cada virada do dia pode marcar uma (a chance é o que a Ameaça passa de 40, em %), e ela chega 6 h depois. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+      'Com a Ameaça em 40 ou menos, nenhuma incursão é marcada. Acima disso, cada virada do dia pode marcar uma (a chance é o que a Ameaça passa de 40, em %), e ela chega 6 h depois. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
     );
     // A virada que leva a 40 ainda não sorteia: a chance é o que **passa** de 40.
-    expect(known(watched(35)).raidChancePercent).toBe(0);
+    expect(known(watched(38)).raidChancePercent).toBe(0);
   });
 
   it('acima do limiar: a chance da próxima virada, com a Ameaça que ela vai dar, e o tamanho', () => {
-    // 45 hoje, 50 depois da virada: 10%.
-    const light = known(watched(45));
+    // 48 hoje, 50 depois da virada: 10%.
+    const light = known(watched(48));
     expect(light.raidChancePercent).toBe(10);
     expect(light.raidRisk).toBe(
-      'Se não houver outra a caminho, a próxima virada do dia tem 10% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 6 h depois. Com a Ameaça abaixo de 60, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+      'Se não houver outra a caminho, a próxima virada do dia tem 10% de chance de marcar uma incursão (a chance é o que a Ameaça passa de 40, em %); ela chega 6 h depois. Com a Ameaça abaixo de 70, o ataque é dos leves; a partir daí, dos médios. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
     );
-    // 55 hoje, 60 depois da virada: 20%, e já dos médios.
-    const medium = known(watched(55));
-    expect(medium.raidChancePercent).toBe(20);
+    // 68 hoje, 70 depois da virada: 30%, e já dos médios.
+    const medium = known(watched(68));
+    expect(medium.raidChancePercent).toBe(30);
     expect(medium.raidRisk).toContain(
-      'Com a Ameaça em 60 ou mais, o ataque é dos médios; abaixo disso, dos leves.',
+      'Com a Ameaça em 70 ou mais, o ataque é dos médios; abaixo disso, dos leves.',
     );
     expect(known(watched(100)).raidChancePercent).toBe(60);
   });
 
   it('o que a visão promete, a virada cumpre: a chance é a do sorteio daquele instante', () => {
     // Em muitas sementes, a fração de viradas que marcam incursão fica perto da chance anunciada.
-    const state = watched(75, hordeAwake);
+    const state = watched(78, hordeAwake);
     const chance = known(state).raidChancePercent;
     expect(chance).toBe(40);
     let drawn = 0;
@@ -916,7 +923,7 @@ describe('a visão de quem tem a Torre: a chance, o custo e o que fazer', () => 
     const threat = known(state, 3);
     expect(threat.raidChancePercent).toBe(0);
     expect(threat.raidRisk).toBe(
-      'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 10.',
+      'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
     );
     expect(threat.incoming).toMatchObject({
       sizeText: 'uma matilha grande',
@@ -1098,19 +1105,21 @@ describe('os lobos do ano 1: os uivos e a incursão do roteiro (ADR 0014, decis�
     expect(Number(suffered.data.raided_food)).toBeLessThanOrEqual((stock.food + 10) / 10_000);
     expect(Number(suffered.data.raided_food)).toBeGreaterThan(0);
     expect(after.horde.scheduledRaids).toEqual([]);
-    // A Ameaça, que ninguém vê, chegou a 75 na virada e caiu a 65.
-    expect(after.map.threat).toBe(65);
+    // A Ameaça, que ninguém vê, chegou a 30 na virada e a incursão a derrubou a zero.
+    expect(after.map.threat).toBe(0);
   });
 
   it('enquanto a do roteiro está marcada, a Ameaça não sorteia outra: a primeira é sempre a leve', () => {
-    // Do 9º ao 15º dia a Ameaça passa de 40 e chega a 70, e o gerador não é tocado.
+    // No jogo a Ameaça chega a 30 no 15º dia; aqui ela é posta à mão acima de 40 desde o início,
+    // e chega a 78 sem que o gerador seja tocado.
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
       const start = gameWith((draft) => {
         quietCouncil(draft);
         draft.seed = seed;
+        draft.map.threat = 50;
       });
       const { state, events } = advanceTo(start, WOLVES_AT - 1);
-      expect(state.map.threat).toBe(70);
+      expect(state.map.threat).toBe(50 + 14 * rules.perActiveTilePerDay);
       expect(state.rng.horde).toBeUndefined();
       expect(state.horde.scheduledRaids.map((entry) => entry.id)).toEqual(['wolvesYear1']);
       expect(events.filter((event) => /^raid/.test(event.type))).toEqual([]);
@@ -1177,9 +1186,10 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
   };
 
   it('com a Ameaça em 40 ou menos depois da virada, nada é sorteado e o gerador não anda', () => {
-    for (const threat of [0, 20, 35]) {
+    // 38 + 2 = 40: chegar ao limiar ainda não sorteia; a chance é o que **passa** dele.
+    for (const threat of [0, 20, 38]) {
       const { state } = advanceTo(awake(threat), TURN);
-      expect(state.map.threat).toBe(threat + 5);
+      expect(state.map.threat).toBe(threat + rules.perActiveTilePerDay);
       expect(state.horde.scheduledRaids).toEqual([]);
       expect(state.rng.horde).toBeUndefined();
     }
@@ -1188,8 +1198,8 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
   it('acima de 40, a chance da virada é a Ameaça menos 40, em %', () => {
     const trials = 600;
     // 41 depois da virada: 1%. 60: 20%. 100: 60%.
-    expect(drawnOver(36, trials).length / trials).toBeLessThan(0.04);
-    const twenty = drawnOver(55, trials).length / trials;
+    expect(drawnOver(39, trials).length / trials).toBeLessThan(0.04);
+    const twenty = drawnOver(58, trials).length / trials;
     expect(twenty).toBeGreaterThan(0.15);
     expect(twenty).toBeLessThan(0.25);
     const sixty = drawnOver(100, trials).length / trials;
@@ -1200,14 +1210,14 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
     expect(rules.raidChanceAbove).toBe(40);
   });
 
-  it('o tamanho vem da Ameaça já somada: leve abaixo de 60, média a partir de 60', () => {
+  it('o tamanho vem da Ameaça já somada: leve abaixo de 70, média a partir de 70', () => {
     const sizes = (threat: number) => new Set(drawnOver(threat, 200).map((entry) => entry.size));
     expect([...sizes(45)]).toEqual(['light']);
-    // 54 + 5 = 59: ainda leve. 55 + 5 = 60: média.
-    expect([...sizes(54)]).toEqual(['light']);
-    expect([...sizes(55)]).toEqual(['medium']);
+    // 67 + 2 = 69: ainda leve. 68 + 2 = 70: média.
+    expect([...sizes(67)]).toEqual(['light']);
+    expect([...sizes(68)]).toEqual(['medium']);
     expect([...sizes(95)]).toEqual(['medium']);
-    expect(rules.mediumRaidAbove).toBe(60);
+    expect(rules.mediumRaidAbove).toBe(70);
   });
 
   it('a incursão sorteada chega 6 h de jogo depois, em outra virada de dia, e são os lobos do covil', () => {
@@ -1260,30 +1270,35 @@ describe('as incursões por Ameaça (ADR 0014, decisões 10 e 11)', () => {
     expect(state.rng.horde).toBeUndefined();
   });
 
-  it('a Ameaça oscila: cai 10 a cada incursão e volta a subir, e a marca cruzada de novo vira linha de novo', () => {
-    // Com a Torre, a Ameaça em 62 e uma incursão média à porta: a virada leva a 67, a incursão
-    // derruba a 57... e nada se diz. Mais tarde, cruzar os 70 de novo dá a linha de novo.
+  it('toda incursão, repelida ou sofrida, baixa a Ameaça em raidDrop; ela volta a subir, e a marca cruzada de novo vira linha de novo, com a frase da volta', () => {
+    // Com a Torre, a Ameaça a uma subida dos 70 e uma incursão média à porta, que a Paliçada
+    // Nv2 repele. A prova de que a Ameaça oscila ao longo do ano é o teste do achado 8, abaixo.
+    const rise = rules.perActiveTilePerDay;
     const start = gameAt(TURN - 50 * MINUTE, (draft) => {
       draft.settlement.buildings.townHall = 3;
       draft.settlement.buildings.watchtower = 1;
       draft.settlement.buildings.palisade = 2;
       draft.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
-      draft.map.threat = 69;
-      draft.horde.scheduledRaids = [raid(TURN + DAY, 'medium')];
+      draft.map.threat = 70 - rise;
     });
-    const { state, events } = advanceTo(start, TURN + 2 * DAY);
-    const story = events
-      .filter((event) => event.type === 'threatRose' || event.type === 'raidRepelled')
-      .map((event) => [event.type, (event.atMs - TURN) / DAY, event.data.threat]);
-    expect(story).toEqual([
-      // 69 → 74: cruza os 70.
-      ['threatRose', 0, 74],
-      // 74 → 79 na virada; a incursão repelida derruba a 69.
-      ['raidRepelled', 1, 69],
-      // 69 → 74: cruza os 70 de novo, e a linha sai de novo.
-      ['threatRose', 2, 74],
-    ]);
-    expect(state.map.threat).toBe(74);
+    // O sorteio fica calado: a única incursão é a marcada à mão.
+    start.horde.scheduledRaids = [raid(TURN + DAY, 'medium'), ...start.horde.scheduledRaids];
+    // As viradas que a Ameaça leva para voltar aos 70 depois da queda.
+    const back = Math.ceil((rules.raidDrop - rise) / rise);
+    const { state, events } = advanceTo(start, TURN + (1 + back) * DAY);
+    // A virada leva aos 70; a seguinte sobe mais e a incursão repelida a derruba.
+    const repelled = only(events, 'raidRepelled');
+    expect(repelled.atMs).toBe(TURN + DAY);
+    expect(repelled.data).toMatchObject({
+      threat: 70 + rise - rules.raidDrop,
+      previousThreat: 70 + rise,
+    });
+    // Depois ela volta a subir, e cruzar os 70 de novo dá a linha de novo, com a frase da volta.
+    const seventy = eventsOfType(events, 'threatRose').filter((event) => event.data.mark === 70);
+    expect(seventy.map((event) => (event.atMs - TURN) / DAY)).toEqual([0, 1 + back]);
+    expect(seventy[0]?.text).toContain('já não dormem');
+    expect(seventy[1]?.text).toContain('tornam a ver olhos acesos');
+    expect(state.map.threat).toBe(70 + rise - rules.raidDrop + back * rise);
   });
 });
 
@@ -1545,15 +1560,71 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
     }
   });
 
-  it('dois anos: a frequência fica entre 12 e 20 incursões por ano de jogo, e a do roteiro não se repete', () => {
+  it('a Ameaça oscila de verdade: cai abaixo do limiar e volta a passar dele várias vezes por ano; quase toda incursão sorteada é leve, e as médias vêm com o outono (achado 8 da revisão)', () => {
+    // O "Pronto quando" de V2E-T3: a Ameaça oscila em vez de só subir. Com +5 por dia e −10 por
+    // incursão ela subia até 90-100 e ficava: depois do roteiro nunca mais ficava abaixo de 60, e
+    // nenhuma incursão sorteada era leve. Este teste quebra se ela voltar a saturar.
+    const limiar = rules.raidChanceAbove;
+    let light = 0;
+    let medium = 0;
+    let mediumFromAutumn = 0;
+    for (const seed of SEEDS) {
+      let state = left(seed);
+      const events: GameEvent[] = [];
+      const atTurn: number[] = [];
+      for (let at = DAY; at <= 2 * YEAR; at += DAY) {
+        const step = advanceTo(state, at);
+        state = step.state;
+        events.push(...step.events);
+        atTurn.push(state.map.threat);
+      }
+      // Da incursão do roteiro (16º dia) em diante, em dois anos: quantas vezes ela cruza o
+      // limiar para baixo (uma incursão a derrubou) e para cima (voltou a subir).
+      const afterScripted = atTurn.slice(15);
+      let down = 0;
+      let up = 0;
+      afterScripted.forEach((threat, index) => {
+        const before = afterScripted[index - 1];
+        if (before !== undefined && before > limiar && threat <= limiar) down += 1;
+        if (before !== undefined && before <= limiar && threat > limiar) up += 1;
+      });
+      expect(down, `${seed}: vezes que caiu a ${limiar} ou menos`).toBeGreaterThanOrEqual(4);
+      expect(up, `${seed}: vezes que voltou a passar de ${limiar}`).toBeGreaterThanOrEqual(4);
+      // Mais da metade das viradas fica abaixo da marca das médias: o teto é exceção do outono.
+      const calm = afterScripted.filter((threat) => threat < rules.mediumRaidAbove).length;
+      expect(calm / afterScripted.length, seed).toBeGreaterThan(0.5);
+      for (const event of resolved(events)) {
+        if (event.data.raidId === 'wolvesYear1') {
+          continue;
+        }
+        if (event.data.size === 'light') {
+          light += 1;
+          continue;
+        }
+        medium += 1;
+        // Sorteada em uma virada que fechou um dia de outono, deste ano ou do seguinte: a virada
+        // do sorteio é a da chegada menos o prazo.
+        const drawnAt = (event.atMs - rules.raidLeadMs) % YEAR;
+        if (drawnAt > AUTUMN && drawnAt <= WINTER) {
+          mediumFromAutumn += 1;
+        }
+      }
+    }
+    // A maioria das sorteadas é leve, que a Paliçada Nv1 segura por inteiro…
+    expect(light / (light + medium)).toBeGreaterThan(0.6);
+    // …e as médias vêm sobretudo do outono, quando os lobos descem a serra.
+    expect(mediumFromAutumn).toBeGreaterThan(medium / 2);
+  });
+
+  it('dois anos: a frequência fica entre 4 e 9 incursões por ano de jogo, e a do roteiro não se repete', () => {
     for (const seed of SEEDS) {
       const { events } = advanceTo(left(seed), 2 * YEAR);
       const raidsSeen = resolved(events);
       expect(raidsSeen.filter((event) => event.data.raidId === 'wolvesYear1')).toHaveLength(1);
       expect(eventsOfType(events, 'wolvesHowl')).toHaveLength(1);
       const perYear = raidsSeen.length / 2;
-      expect(perYear, seed).toBeGreaterThanOrEqual(12);
-      expect(perYear, seed).toBeLessThanOrEqual(20);
+      expect(perYear, seed).toBeGreaterThanOrEqual(4);
+      expect(perYear, seed).toBeLessThanOrEqual(9);
       // Os ids não se repetem: cada incursão acontece uma vez.
       const ids = raidsSeen.map((event) => event.data.raidId);
       expect(new Set(ids).size).toBe(ids.length);
@@ -1600,7 +1671,8 @@ describe('30 dias e dois anos de jogo com o senhor fora', () => {
           goldMine: 0,
         });
       }
-      // A Ameaça oscila: cai com cada incursão e volta a subir.
+      // A Ameaça se move: cai com cada incursão e volta a subir. Que ela oscila de verdade, e não
+      // só junto ao teto, é o teste do achado 8, acima.
       expect(highestThreat).toBeGreaterThan(lowestThreat);
       expect(state.stats.raids_suffered).toBe(eventsOfType(events, 'raidSuffered').length);
     }

@@ -135,7 +135,7 @@
     "threatActive": true
    }
   },
-  "threat": 65
+  "threat": 0
  },
  "horde": {
   "scheduledRaids": []
@@ -157,9 +157,7 @@
   "cardsDrawn:thawBridgePlea": 1,
   "wasted_food": 719644,
   "cardsDrawn:springSeeds": 1,
-  "threatCrossed:40": 1,
   "wasted_wood": 148724,
-  "threatCrossed:70": 1,
   "raids_suffered": 1
  }
 }

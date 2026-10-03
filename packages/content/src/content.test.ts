@@ -453,21 +453,24 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
   const { threat, calendar } = balance;
   const HOUR = 3_600_000;
 
-  it('vai de 0 a 100: +5 por dia de jogo por tile ativo e +3 por dia no outono', () => {
+  it('vai de 0 a 100: +2 por dia de jogo por tile ativo e +3 por dia no outono', () => {
+    // Reequilibrado depois da revisão das Fases D e E: eram +5 (docs/balance-v0.2.md, seção 16).
     expect(threat.max).toBe(100);
-    expect(threat.perActiveTilePerDay).toBe(5);
+    expect(threat.perActiveTilePerDay).toBe(2);
     expect(threat.seasonPerDay).toEqual({ autumn: 3 });
   });
 
-  it('a Crônica fala dela ao cruzar 40 e 70, e a primeira marca é onde as incursões começam', () => {
+  it('a Crônica fala dela ao cruzar 40 e 70: a primeira marca é onde as incursões começam, e a segunda, onde elas ficam médias', () => {
     expect(threat.chronicleMarks).toEqual([40, 70]);
     expect(threat.chronicleMarks[0]).toBe(threat.raidChanceAbove);
+    expect(threat.chronicleMarks[1]).toBe(threat.mediumRaidAbove);
   });
 
-  it('as incursões por Ameaça: acima de 40, média a partir de 60, −10 por incursão, 6 h de jogo depois', () => {
+  it('as incursões por Ameaça: acima de 40, média a partir de 70, −35 por incursão, 6 h de jogo depois', () => {
+    // Reequilibrado depois da revisão das Fases D e E: eram média a partir de 60 e −10.
     expect(threat.raidChanceAbove).toBe(40);
-    expect(threat.mediumRaidAbove).toBe(60);
-    expect(threat.raidDrop).toBe(10);
+    expect(threat.mediumRaidAbove).toBe(70);
+    expect(threat.raidDrop).toBe(35);
     expect(threat.raidLeadMs).toBe(6 * HOUR);
     // O prazo é um número inteiro de dias de jogo: a incursão sorteada em uma virada cai em outra.
     expect(threat.raidLeadMs % calendar.dayMs).toBe(0);

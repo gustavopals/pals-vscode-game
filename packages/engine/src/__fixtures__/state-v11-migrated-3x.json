@@ -159,7 +159,7 @@
     "threatActive": true
    }
   },
-  "threat": 25
+  "threat": 10
  },
  "horde": {
   "scheduledRaids": []

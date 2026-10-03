@@ -412,11 +412,11 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       { atMs: 6 * DAY, instanceId: 'collapsedWell-1', cardId: 'collapsedWell', optionId: 'wait' },
     ]);
     // A Ameaça: longe do zero, com a Torre erguida e a obra do nível seguinte em curso; e, no
-    // cenário de 7 dias, no máximo, com a Torre no teto desta versão.
+    // cenário de 7 dias, na marca dos 70, com a Torre no teto desta versão.
     const threat = of('threat');
     expect(threat.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
-      threat: 45,
+      threat: 18,
     });
     expect(threat.settlement.buildings.watchtower).toBe(1);
     expect(threat.settlement.constructionQueues[0]).toMatchObject({
@@ -435,7 +435,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       },
     ]);
     expect(of('fresh').horde).toEqual(threat.horde);
-    expect(of('week-scripted').map.threat).toBe(90);
+    expect(of('week-scripted').map.threat).toBe(70);
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
@@ -461,7 +461,8 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ]);
     expect(raided.stats.raids_suffered).toBe(1);
     expect(raided.horde.scheduledRaids).toEqual([]);
-    expect(raided.map.threat).toBe(65);
+    // Os lobos do roteiro a encontraram em 30 e a derrubaram a zero.
+    expect(raided.map.threat).toBe(0);
     const sighted = of('raid-announced');
     expect(sighted.horde.scheduledRaids).toHaveLength(1);
     const [incoming] = sighted.horde.scheduledRaids;
@@ -471,7 +472,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(incoming?.announcedAtMs).toBeLessThanOrEqual(sighted.lastProcessedAt);
     expect(incoming?.atMs).toBeGreaterThan(sighted.lastProcessedAt);
     expect(sighted.rng.horde).toHaveLength(4);
-    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 8, raids_repelled: 9 });
+    expect(of('week-scripted').stats).toMatchObject({ raids_suffered: 1, raids_repelled: 4 });
     expect(of('week-scripted').rng.horde).toHaveLength(4);
     // Todo cenário tem a lista de feridos, vazia ou não.
     for (const state of all0()) {

@@ -169,12 +169,12 @@ describe('sem a Torre de Vigia, a Ameaça não sai do servidor', () => {
       },
     });
 
-    // 30 h reais no ritmo 1 são 15 dias de jogo: a Ameaça passou dos 40 e dos 70, chegou a 75,
-    // e os lobos do roteiro, que acabam de passar, a derrubaram a 65.
+    // 30 h reais no ritmo 1 são 15 dias de jogo: a Ameaça chegou a 30, e os lobos do roteiro,
+    // que acabam de passar, a derrubaram a zero.
     await wait(normal, who, 30 * HOUR);
     const later = await viewOf(normal, who, who.game.id);
     expect(later.threat).toEqual(start.threat);
-    expect((await storedState(normal, who.game.id)).state.map.threat).toBe(65);
+    expect((await storedState(normal, who.game.id)).state.map.threat).toBe(0);
 
     const events = await eventsOf(normal, who, who.game.id);
     expect(events.filter((event) => event.type === 'threatRose')).toEqual([]);
@@ -209,7 +209,11 @@ describe('sem a Torre de Vigia, a Ameaça não sai do servidor', () => {
 
 describe('com a Torre de Vigia', () => {
   it('a ordem passa pelo recibo; pronta a Torre, a visão mostra a Ameaça e a Crônica conta os uivos', async () => {
-    const game = await insertGame(normal, readyForTower('torre-normal', 1), 1);
+    // A Ameaça posta à mão em 24: no jogo ela não chega aos 40 antes dos lobos do roteiro, e o
+    // teste quer a primeira linha dos vigias.
+    const ready = readyForTower('torre-normal', 1);
+    ready.map.threat = 24;
+    const game = await insertGame(normal, ready, 1);
     const build = order('startConstruction', { building: 'watchtower' });
     const first = await send<CommandAccepted>(normal, game.token, game.id, build);
     expect(first.status).toBe(200);
@@ -222,31 +226,32 @@ describe('com a Torre de Vigia', () => {
     expect(again.headers[REPLAYED]).toBe('true');
     expect(stone(await viewOf(normal, game, game.id))).toBe(330);
 
-    // 12 minutos depois a Torre está pronta, e a Ameaça ainda está em zero: o dia não virou.
+    // 12 minutos depois a Torre está pronta, e a Ameaça ainda está em 24: o dia não virou.
     await wait(normal, game, 12 * MINUTE);
     const built = await viewOf(normal, game, game.id);
     expect(built.threat).toMatchObject({
       known: true,
-      text: 'Ameaça 0 de 100.',
-      level: 0,
-      nextLevel: 5,
-      risePerDay: 5,
+      text: 'Ameaça 24 de 100.',
+      level: 24,
+      nextLevel: 26,
+      risePerDay: 2,
       nextRiseInSeconds: (GAME_DAY - 12 * MINUTE) / 1000,
-      trend: 'Sobe 5 a cada dia de jogo (2 h): na próxima virada, vai de 0 para 5.',
-      sources: ['+5/dia: Covil de Lobos'],
+      trend: 'Sobe 2 a cada dia de jogo (2 h): na próxima virada, vai de 24 para 26.',
+      sources: ['+2/dia: Covil de Lobos'],
       tiles: [{ id: 'wolfDen', label: 'Covil de Lobos', active: true }],
       incoming: null,
       watchtower: { level: 1 },
     });
 
-    // 16 h reais depois da fundação (8 dias de jogo) a Ameaça chega a 40: a primeira linha.
+    // 16 h reais depois da fundação (8 dias de jogo) a Ameaça chega a 40 (24 + 8 × 2): a
+    // primeira linha.
     await wait(normal, game, 16 * HOUR - 12 * MINUTE);
     const at40 = await viewOf(normal, game, game.id);
-    expect(at40.threat).toMatchObject({ known: true, level: 40, nextLevel: 45 });
+    expect(at40.threat).toMatchObject({ known: true, level: 40, nextLevel: 42 });
     const rose = (await eventsOf(normal, game, game.id)).filter(
       (event) => event.type === 'threatRose',
     );
-    expect(rose.map((event) => event.data)).toEqual([{ threat: 40, previousThreat: 35, mark: 40 }]);
+    expect(rose.map((event) => event.data)).toEqual([{ threat: 40, previousThreat: 38, mark: 40 }]);
     expect(await chronicleOf(normal, game, game.id)).toContain(
       'No 9º dia da Primavera, os vigias de Pedra Alta contam mais uivos a cada noite. A Ameaça chegou a 40.',
     );
@@ -271,7 +276,7 @@ describe('com a Torre de Vigia', () => {
       known: true,
       level: 0,
       nextRiseInSeconds: 36 * 60,
-      trend: 'Sobe 5 a cada dia de jogo (40 min): na próxima virada, vai de 0 para 5.',
+      trend: 'Sobe 2 a cada dia de jogo (40 min): na próxima virada, vai de 0 para 2.',
       watchtower: {
         level: 1,
         text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
@@ -328,7 +333,7 @@ describe('com a Torre de Vigia', () => {
     await renew(normal, watcher);
     const seen = await viewOf(normal, watcher, watcher.id);
     const unseen = await viewOf(normal, blind, blind.game.id);
-    expect(seen.threat).toMatchObject({ known: true, level: 50 });
+    expect(seen.threat).toMatchObject({ known: true, level: 20 });
     expect(unseen.threat).toMatchObject(BLIND);
     expect(Object.keys(unseen.threat).sort()).toEqual([
       'defense',
@@ -338,8 +343,8 @@ describe('com a Torre de Vigia', () => {
       'watchtower',
     ]);
     // Os dois estados têm a mesma Ameaça: a diferença é só o que sai do servidor.
-    expect((await storedState(normal, blind.game.id)).state.map.threat).toBe(50);
-    expect((await storedState(normal, watcher.id)).state.map.threat).toBe(50);
+    expect((await storedState(normal, blind.game.id)).state.map.threat).toBe(20);
+    expect((await storedState(normal, watcher.id)).state.map.threat).toBe(20);
   });
 });
 
@@ -384,7 +389,8 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
     // erguida: o Salão desse feudo já passou do nível 2.
     await wait(fast, game, 40 * MINUTE);
     await viewOf(fast, game, game.id);
-    expect([5, 8]).toContain((await storedState(fast, game.id)).state.map.threat);
+    // O covil soma 2, e o outono, se o dia que acabou é de outono, mais 3.
+    expect([2, 5]).toContain((await storedState(fast, game.id)).state.map.threat);
     const tower = (await viewOf(fast, game, game.id)).constructions.available.find(
       (entry) => entry.building === 'watchtower',
     );

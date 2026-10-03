@@ -1589,9 +1589,10 @@ describe('versão 8 → 9', () => {
       expect(atBoundary.events.filter((event) => event.type === 'threatRose')).toEqual([]);
       expect(atBoundary.state.rng).toEqual(state.rng);
       expect(advanceTo(state, turn - 1).state.map.threat).toBe(0);
-      // Na primeira virada sobe o que a visão de quem tivesse a Torre prometeria.
+      // Na primeira virada sobe o que a visão de quem tivesse a Torre prometeria: o covil, e o
+      // outono, se o dia que acaba é de outono.
       const first = advanceTo(state, turn).state.map.threat;
-      expect([5, 8]).toContain(first);
+      expect([2, 5]).toContain(first);
       expect(advanceTo(state, turn + DAY).state.map.threat).toBeGreaterThan(first);
     },
   );
@@ -1635,7 +1636,7 @@ describe('versão 8 → 9', () => {
       return;
     }
     const view = deriveViewState(started.state, 3 * DAY + 5 * MINUTE);
-    expect(view.threat).toMatchObject({ known: true, level: 15, nextLevel: 20 });
+    expect(view.threat).toMatchObject({ known: true, level: 6, nextLevel: 8 });
   });
 });
 

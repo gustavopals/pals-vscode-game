@@ -128,7 +128,7 @@
     "threatActive": true
    }
   },
-  "threat": 45
+  "threat": 18
  },
  "horde": {
   "scheduledRaids": [
@@ -160,7 +160,6 @@
   "cardsDrawn": 2,
   "cardsDrawn:springNews": 1,
   "cardsDrawn:collapsedWell": 1,
-  "threatCrossed:40": 1,
   "wasted_stone": 10950
  }
 }

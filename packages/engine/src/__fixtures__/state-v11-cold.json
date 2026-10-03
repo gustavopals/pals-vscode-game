@@ -23,16 +23,16 @@
    2420466185
   ],
   "horde": [
-   2085674588,
-   3628740372,
-   3827791652,
-   2249570057
+   571426369,
+   1077773932,
+   204046712,
+   4240501490
   ]
  },
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 406793,
+   "food": 451389,
    "wood": 0,
    "stone": 65000,
    "gold": 230000
@@ -79,7 +79,7 @@
    "sinceMs": 518400000
   },
   "wasted": {
-   "food": 332,
+   "food": 16736,
    "wood": 0,
    "stone": 0,
    "gold": 0
@@ -103,7 +103,7 @@
     "id": "raid",
     "label": "Incursão sofrida",
     "amount": -10,
-    "untilMs": 540000000
+    "untilMs": 532800000
    }
   ],
   "injured": []
@@ -160,19 +160,10 @@
     "threatActive": true
    }
   },
-  "threat": 95
+  "threat": 50
  },
  "horde": {
-  "scheduledRaids": [
-   {
-    "id": "threat-15",
-    "atMs": 554400000,
-    "kind": "threat",
-    "enemy": "wolves",
-    "size": "medium",
-    "announcedAtMs": null
-   }
-  ]
+  "scheduledRaids": []
  },
  "objectives": {
   "active": [
@@ -186,22 +177,22 @@
  },
  "stats": {
   "constructionsStarted:quarry": 1,
-  "wasted_food": 7986332,
+  "wasted_food": 9498736,
   "cardsDrawn": 10,
   "cardsDrawn:collapsedWell": 1,
   "cardsDrawn:springSeeds": 1,
-  "threatCrossed:40": 1,
-  "threatCrossed:70": 2,
-  "raids_suffered": 14,
+  "raids_suffered": 5,
   "cardsExpired": 8,
   "cardsDrawn:neighborsWatch": 2,
   "coldSpellsThisSeason": 1,
   "cardsDrawn:moreMouths": 1,
+  "threatCrossed:40": 4,
   "cardsDrawn:masonsMeal": 1,
   "cardsDrawn:thawBridgePlea": 1,
   "seasonsSurvived:summer": 1,
   "cardsDrawn:apprenticesTable": 1,
   "cardsDrawn:harvestFeast": 1,
+  "threatCrossed:70": 3,
   "cardsDrawn:roofBeforeCold": 1,
   "seasonsSurvived:autumn": 1
  }

@@ -148,7 +148,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 63 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.473 | ≤ 5.340 | ≤ 167.383 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 62 a 82 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 5.355 | ≤ 5.355 | ≤ 167.272 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -163,12 +163,12 @@ describe('relatório da matriz', () => {
     );
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
     expect(rows).toEqual([
-      '| 7 dias reais | Rápido 3× | Regular | 3 a 21 | 6 a 33 | 0 a 15 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Rápido 3× | Regular | 3 a 15 | 15 a 30 | 0 a 3 | ≤ 8 | **acima** |',
       '| 7 dias reais | Normal 1× | Regular | 0 | 0 a 5 | 0 a 1 | ≤ 8 | dentro |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 a 15 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 a 3 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Normal 1× | Regular | 0 | 0 a 5 | 0 a 1 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0,5 a 1,5 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 0,5 | 0 a 1,5 | 0 a 0,5 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -179,7 +179,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 73], 7, 0, 0, 3928, 5085, 150192, 33),",
+      "  'week/3/regular': measured([72, 73], 7, 0, 0, 4236, 4703, 154062, 30),",
     );
   });
 
@@ -190,37 +190,37 @@ describe('relatório da matriz', () => {
     expect(week).toContain(`### Progresso: 7 dias reais\n\n${header}`);
     expect(year).toContain(`### Progresso: um ano de jogo\n\n${header}`);
     // No ritmo 3 o Regular, seguindo os objetivos, ergue o Celeiro na hora 15, a Torre de Vigia
-    // na 20 e a Paliçada entre a 26 e a 28, e esgota as obras entre as horas 136 e 151 da
-    // semana; conclui os dez objetivos na hora 56, a virada do primeiro ano. No primeiro ano
-    // (56 h reais) ainda há o que construir. O Preguiçoso chega à Torre na hora 50 e, em parte
-    // das sementes, não ergue a Paliçada dentro do ano: fica com nove objetivos.
+    // na 20 e a Paliçada na 25, e esgota as obras entre as horas 121 e 151 da semana; conclui
+    // os dez objetivos na hora 56, a virada do primeiro ano. No primeiro ano (56 h reais) ainda
+    // há o que construir. O Preguiçoso chega à Torre na hora 50 e ergue a Paliçada nas horas 55
+    // e 56, a tempo dos dez objetivos.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 11 | 24 a 27 | 35 a 41 | 15 | 37 | 20 | 26 a 28 | 136 a 151 | 48 a 49 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 34 | 15 | 37 | 20 | 25 | 121 a 151 | 47 a 48 | 7 | 10 | 56 |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Regular | 11 | 24 a 27 | 35 a 41 | 15 | 37 | 20 | 26 a 28 | — | 30 a 32 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 34 | 15 | 37 | 20 | 25 | — | 31 | 7 | 10 | 56 |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Preguiçoso | 29 | 53 a 54 | — | 31 | 33 | 50 | 54 a — | — | 15 a 16 | 7 | 9 a 10 | 56 a — |',
+      '| Rápido 3× | Preguiçoso | 29 | 53 a 54 | — | 31 | 32 a 33 | 50 | 55 a 56 | — | 16 | 7 | 10 | 56 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
-      townHall4: { min: 35, max: 41 },
+      townHall4: { min: 34, max: 34 },
       granary: { min: 15, max: 15 },
       watchtower: { min: 20, max: 20 },
-      palisade: { min: 26, max: 28 },
+      palisade: { min: 25, max: 25 },
     });
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 136, max: 151 });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 121, max: 151 });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
     expect(cell?.measure.objectivesDone).toEqual({ min: 10, max: 10 });
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: 56 });
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
     expect(lazy?.measure.milestones.townHall4).toEqual({ min: null, max: null });
     expect(lazy?.measure.milestones.watchtower).toEqual({ min: 50, max: 50 });
-    expect(lazy?.measure.milestones.palisade).toEqual({ min: 54, max: null });
+    expect(lazy?.measure.milestones.palisade).toEqual({ min: 55, max: 56 });
     expect(lazy?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
-    expect(lazy?.measure.objectivesDone).toEqual({ min: 9, max: 10 });
-    expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: null });
+    expect(lazy?.measure.objectivesDone).toEqual({ min: 10, max: 10 });
+    expect(lazy?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: 56 });
   });
 
   it('cada janela traz os lobos: as incursões, os feridos, o que levaram e a Ameaça no fim', () => {
@@ -229,23 +229,24 @@ describe('relatório da matriz', () => {
       '| Ritmo | Perfil | Incursões sofridas | Incursões repelidas | Anunciadas pela Torre | Feridos | Comida levada | Madeira levada | Ameaça no fim |';
     expect(week).toContain(`### Lobos: 7 dias reais\n\n${header}`);
     expect(year).toContain(`### Lobos: um ano de jogo\n\n${header}`);
-    // No ritmo 3 a semana são três anos de jogo: o Regular sofre as incursões de antes da
-    // Paliçada no nível 2 e repele as outras; a Ameaça termina entre 90 e 100. Com a Paliçada
-    // que o objetivo adianta, são de 7 a 10 sofridas (eram de 14 a 17).
+    // No ritmo 3 a semana são três anos de jogo: o Regular sofre a incursão do roteiro (e, em
+    // uma semente, outra antes da Paliçada no nível 2) e repele as outras, umas seis por ano; a
+    // Ameaça termina entre 39 e 60. Até a Ameaça ser reequilibrada (revisão das Fases D e E)
+    // eram de 7 a 10 sofridas e de 39 a 44 repelidas, com a Ameaça entre 90 e 100.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 7 a 10 | 39 a 44 | 43 a 50 | 10 a 16 | 327 a 613 | 68 a 134 | 90 a 100 |',
+      '| Rápido 3× | Regular | 1 a 2 | 17 a 18 | 18 a 19 | 1 a 2 | 30 a 118 | 25 a 54 | 39 a 60 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
-      suffered: { min: 7, max: 10 },
-      repelled: { min: 39, max: 44 },
-      threatFinal: { min: 90, max: 100 },
+      suffered: { min: 1, max: 2 },
+      repelled: { min: 17, max: 18 },
+      threatFinal: { min: 39, max: 60 },
     });
     // O Preguiçoso do primeiro ano no ritmo 3 chega à Torre na hora 50, perto do fim do ano:
-    // os vigias anunciam uma ou duas incursões, e nenhuma é repelida (a Paliçada, quando sai,
-    // fica no nível 1).
+    // os vigias anunciam no máximo uma incursão, e nenhuma é repelida (a Paliçada sai nas
+    // últimas horas do ano).
     const lazy = matrix.cells.find((entry) => entry.key === 'year/3/preguicoso');
-    expect(lazy?.measure.raids.announced).toEqual({ min: 1, max: 2 });
+    expect(lazy?.measure.raids.announced).toEqual({ min: 0, max: 1 });
     expect(lazy?.measure.raids.repelled).toEqual({ min: 0, max: 0 });
     expect(lazy?.measure.raids.suffered.min).toBeGreaterThan(0);
   });
@@ -258,12 +259,12 @@ describe('relatório da matriz', () => {
     // Cada recurso por si, nunca somados: o Preguiçoso do ritmo 3 perde mais da metade do que
     // corta, e o Regular, bem menos.
     expect(week).toContain(
-      '| Rápido 3× | Preguiçoso | 29% a 50% | 57% | 0% a 2% | 54 a 63 | 63 | 0 a 9 |',
+      '| Rápido 3× | Preguiçoso | 35% a 37% | 52% a 59% | 0% a 17% | 54 | 63 | 3 a 30 |',
     );
     expect(week).toContain(
-      '| Rápido 3× | Regular | 0% a 11% | 1% a 24% | 0% a 1% | 3 a 21 | 6 a 33 | 0 a 15 |',
+      '| Rápido 3× | Regular | 1% a 8% | 4% a 23% | 0% a 2% | 3 a 15 | 15 a 30 | 0 a 3 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 1 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 3% | 0% | 0 | 0 a 1,5 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -300,11 +301,11 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 4473 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 63 a 83 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 5355 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: população 3, fora da faixa de 62 a 82 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 63 a 83 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 62 a 82 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });
@@ -373,13 +374,14 @@ describe('CSV da matriz', () => {
       }
     }
     const lazyYear = lines.find((line) => line.startsWith('year,3,preguicoso,'))?.split(',') ?? [];
-    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('53');
+    expect(lazyYear[header.indexOf('town_hall_3_hour')]).toBe('54');
     expect(lazyYear[header.indexOf('town_hall_4_hour')]).toBe('');
     expect(lazyYear[header.indexOf('exhausted_hour')]).toBe('');
     // Os objetivos: os concluídos na partida e a hora do último, vazia enquanto falta algum.
     expect(lazyYear[header.indexOf('objectives_done')]).toBe('10');
     expect(lazyYear[header.indexOf('objectives_done_hour')]).toBe('56');
-    const short = lines.filter((line) => line.startsWith('year,3,preguicoso,'))[1]?.split(',');
+    // Na semana do ritmo Tranquilo o inverno ainda não chegou: falta um, e a hora fica vazia.
+    const short = lines.find((line) => line.startsWith('week,0.5,regular,'))?.split(',');
     expect(short?.[header.indexOf('objectives_done')]).toBe('9');
     expect(short?.[header.indexOf('objectives_done_hour')]).toBe('');
   });
