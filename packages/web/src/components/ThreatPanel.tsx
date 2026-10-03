@@ -235,7 +235,9 @@ function Watched(props: { threat: WatchedThreat; elapsed: number }) {
         </ul>
       ) : null}
       {/* Sem a Torre, "ninguém sabe o que ronda o feudo"; com ela, a mesma frase tem resposta. */}
-      {threat.tiles.length > 0 ? (
+      {/* Com a incursão à vista, o aviso já diz o que vem: a linha dos tiles sai para o aviso e a
+          obra da defesa caberem juntos na tela em janela baixa. */}
+      {threat.tiles.length > 0 && incoming === null ? (
         <p class="threat-tiles">O que ronda o feudo: {threat.tiles.map(tileLine).join('; ')}.</p>
       ) : null}
       {incoming === null ? (
@@ -261,7 +263,6 @@ function Watched(props: { threat: WatchedThreat; elapsed: number }) {
             <p class="threat-holds">
               <Icon name={DEFENSE_ICON} /> {incoming.defenseText}
             </p>
-            <p class="muted">{threat.raidRisk}</p>
           </div>
         </div>
       )}
@@ -299,6 +300,9 @@ export function ThreatPanel(props: {
         <>
           <Watched threat={threat} elapsed={elapsed} />
           {defense}
+          {/* Com a incursão à vista, a regra das incursões desce para depois da obra: o aviso e a
+              Paliçada cabem juntos na tela, mesmo em janela baixa. */}
+          {threat.incoming !== null ? <p class="muted threat-risk">{threat.raidRisk}</p> : null}
           {tower}
         </>
       ) : (

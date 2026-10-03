@@ -347,11 +347,15 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
         // O custo deste ataque ao lado do que a Paliçada faz a ele, nas frases do servidor.
         'Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.',
         'Sem Paliçada, nada segura este ataque.',
-        'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.',
         // Logo abaixo do aviso, a defesa com a obra: é o que se pode fazer a respeito.
         'Sem Paliçada, nada segura um ataque.',
       ].join(' '),
     );
+    // A regra das incursões desce para depois da obra da Paliçada, para o aviso e a obra caberem
+    // juntos na tela em janela baixa (o teste em navegador de 720×800 confere).
+    const rule =
+      'Há uma incursão a caminho, e só há uma por vez: nenhuma outra é marcada até ela chegar. Toda incursão, repelida ou sofrida, baixa a Ameaça em 35.';
+    expect(text(markup).indexOf(rule)).toBeGreaterThan(text(markup).indexOf('Construir Paliçada'));
     expect(incoming).not.toBeNull();
     expect(text(markup)).toContain(incoming?.costText ?? 'falta o custo');
     expect(text(markup)).toContain(incoming?.defenseText ?? 'falta a defesa');
