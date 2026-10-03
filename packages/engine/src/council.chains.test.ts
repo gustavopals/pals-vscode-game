@@ -477,10 +477,11 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
     expect(slab?.followsFrom?.text).toBe(
       'A história continua: em "A ponte que o degelo levou", a decisão foi ceder as vigas.',
     );
-    // O que os pilares rendem não aparece: só o custo e a pista.
+    // O grão que os pilares rendem não aparece: só o custo, o ânimo de ver a pedra subir e a
+    // pista.
     expect(slab?.options[0]).toMatchObject({
       label: 'Assentar pilares de pedra',
-      effectsText: '−30 pedra',
+      effectsText: '−30 pedra; +5 de moral por 3 dias de jogo (6 h)',
       hint: 'Ponte de pedra aguenta carroça carregada, e mais de um degelo.',
     });
 
@@ -490,6 +491,8 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
       instanceId: 'thawBridgeSlab-2',
       optionId: 'piers',
       spent_stone: 30,
+      morale: 5,
+      moraleDays: 3,
     });
 
     const third = advanceTo(piers.state, 4 * DAY);
@@ -516,8 +519,12 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
       },
     ]);
     expect(units(later.state, 'food')).toBe(food + 90);
-    // A festa: +15 por três viradas, do 5º ao 7º dia.
-    expect(moraleByDay(feast.state, 5, 8)).toEqual([75, 75, 75, 60]);
+    // Os pilares: +5 por três viradas, do 3º ao 5º dia; no 3º ainda contam as vigas.
+    expect(moraleByDay(piers.state, 3, 4)).toEqual([70, 65]);
+    // A festa: +15 por três viradas, do 5º ao 7º dia. Na primeira delas ainda conta o ânimo dos
+    // pilares: um dia com a moral em 80, a que atrai um colono. É o caminho até os 80 que o
+    // inventário promete na Ponte (docs/content-v0.2.md, seção 5).
+    expect(moraleByDay(feast.state, 5, 8)).toEqual([80, 75, 75, 60]);
 
     // A ponte de pedra não cai: a primeira carta não volta, neste ano nem em outro.
     expect(pleaIsEligible(later.state, 8 * DAY)).toBe(false);

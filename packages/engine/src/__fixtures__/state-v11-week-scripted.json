@@ -41,7 +41,7 @@
    "food": 1500000,
    "wood": 49509,
    "stone": 798770,
-   "gold": 1771765
+   "gold": 1773997
   },
   "accumulators": {
    "food": 2326530,
@@ -79,9 +79,9 @@
   "famine": null,
   "cold": null,
   "wasted": {
-   "food": 619,
-   "wood": 922,
-   "stone": 877,
+   "food": 975,
+   "wood": 909,
+   "stone": 971,
    "gold": 0
   },
   "craftExperience": {
@@ -174,14 +174,14 @@
   "cardsExpired": 6,
   "cardsDrawn:springSeeds": 1,
   "cardsDrawn:thawBridgeCrossing": 1,
-  "wasted_food": 5618619,
+  "wasted_food": 5623975,
   "coldSpellsThisSeason": 0,
   "constructionsStarted:goldMine": 2,
   "constructionsStarted:granary": 2,
+  "wasted_wood": 1306909,
   "cardsDrawn:moreMouths": 1,
-  "wasted_wood": 1301922,
   "cardsDrawn:palisadePromisePlea": 1,
-  "wasted_stone": 2125877,
+  "wasted_stone": 2129971,
   "cardsDrawn:fullGranary": 1,
   "constructionsStarted:palisade": 2,
   "cardsDrawn:palisadePromiseDeadline": 1,

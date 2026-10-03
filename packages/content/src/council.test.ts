@@ -627,21 +627,33 @@ describe('Conselho: os números das cartas ficam em uma faixa que a tela explica
       .flatMap((entry) => entry.options.flatMap((option) => option.effects))
       .filter((effect) => effect.type === 'morale' && effect.amount >= need);
     expect(single.length).toBeGreaterThanOrEqual(1);
-    // E as duas cadeias têm um caminho que soma +20 com a continuação: cada continuação chega
-    // em 2 dias e o efeito anterior dura 3.
+    // E as duas cadeias têm um caminho que soma +20 com a continuação: a opção de `first` que
+    // agenda `second` tem um efeito de moral que dura mais que a espera pela continuação, e quem
+    // responde logo soma os dois. Só cartas vizinhas: numa cadeia de três, a carta do meio
+    // separa a primeira da última por 4 dias, e um efeito de 3 já acabou. O cenário no motor
+    // (`council.chains.test.ts`) confere o dia em 80.
     const peak = (first: string, second: string) => {
-      const best = (id: string) =>
-        Math.max(
-          ...card(id).options.flatMap((option) =>
-            option.effects.flatMap((effect) =>
-              effect.type === 'morale' && effect.durationDays >= 3 ? [effect.amount] : [0],
-            ),
-          ),
+      const opening = card(first).options.flatMap((option) => {
+        const next = option.effects.find(
+          (effect) => effect.type === 'scheduleCard' && effect.cardId === second,
         );
-      return best(first) + best(second);
+        return option.effects.flatMap((effect) =>
+          next?.type === 'scheduleCard' &&
+          effect.type === 'morale' &&
+          effect.durationDays > next.afterDays
+            ? [effect.amount]
+            : [],
+        );
+      });
+      const closing = card(second).options.flatMap((option) =>
+        option.effects.flatMap((effect) => (effect.type === 'morale' ? [effect.amount] : [])),
+      );
+      return Math.max(0, ...opening) + Math.max(0, ...closing);
     };
     expect(peak('commonGranaryShare', 'commonGranaryOutcome')).toBeGreaterThanOrEqual(need);
-    expect(peak('thawBridgePlea', 'thawBridgeCrossing')).toBeGreaterThanOrEqual(need);
+    expect(peak('thawBridgeSlab', 'thawBridgeCrossing')).toBeGreaterThanOrEqual(need);
+    // A primeira e a última da Ponte não se encontram: a carta do meio fica entre elas.
+    expect(peak('thawBridgePlea', 'thawBridgeCrossing')).toBeLessThan(need);
   });
 });
 

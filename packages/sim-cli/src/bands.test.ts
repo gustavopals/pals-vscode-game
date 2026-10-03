@@ -157,7 +157,7 @@ describe('faixas a partir da linha de base medida', () => {
       townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 4_473, stone: 5_340, gold: 167_383 },
+      surplusMax: { wood: 4_473, stone: 5_348, gold: 167_442 },
       wasteStreakMax: 35,
     });
   });

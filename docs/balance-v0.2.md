@@ -3632,3 +3632,33 @@ Não é uma regra do jogo que trava: é a alocação de uma só vez do bot. Mas 
 - O bot não lê `objectives[].missing`: só `target` e `progress`.
 - As outras duas dificuldades jogam 3 sementes na suíte e 50 pelo comando; a linha de base de Camponês e de Rei de Ferro é a das 50.
 - Nenhum número de jogo foi mexido por causa desta rodada.
+
+## 16. As correções das cartas da revisão das Fases D e E (V2DE)
+
+A revisão independente das Fases D e E achou duas cartas com números a corrigir. Esta seção registra a rodada da matriz depois de cada uma, como o comentário de `MEASURED`, em `packages/sim-cli/src/bands.ts`, pede. Nenhum número de `balance.ts` mudou: só os efeitos das cartas, em `packages/content/src/cards/`.
+
+| | |
+|---|---|
+| Data | 2026-10-02 |
+| Commit | os desta seção (`git log --grep "V2DE: corrige"`, na branch `web-track`), feitos sobre `e693e3d` |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo `3cf7000da6b0c55e` (16.1) |
+| Dificuldades | Camponês, Senhor e Rei de Ferro |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Máquina | Apple M5, macOS 26.6.2, Node 24.19.0 |
+
+O comando é o da seção 15.2, nas três dificuldades.
+
+### 16.1 Os pilares de pedra da Ponte dão +5 de moral por 3 dias (achado 13)
+
+O inventário (docs/content-v0.2.md, seção 5) dava a Ponte como caminho até os 80 de moral, e um teste somava no papel as vigas da primeira carta com a festa da última; entre as duas há a carta do meio, e no motor o máximo era 75. "Assentar pilares de pedra" passou a dar +5 de moral por 3 dias, além do grão escondido: respondida logo, ela ainda conta na virada em que a festa do desfecho começa, e o feudo passa um dia em 80.
+
+O bot paga os pilares quando a pedra sobra, e por isso a economia dele muda um pouco. Em Senhor, 228 das 900 partidas da matriz mudaram em algum número; nenhuma ganhou fome, frio, recusa nem quem vá embora.
+
+- **População:** 25 partidas terminam com outra população, quase todas com um a cinco aldeões a mais (os colonos dos dias em 80); a faixa de cada célula não mudou. Duas perderam um nível do Salão (Tranquilo, semana, Regular, semente 001: 6 para 5; Rápido, ano, Regular, semente 015: 5 para 4), dentro da faixa.
+- **O Armazém no Rápido:** duas sementes do Regular fecham o ano de jogo sem ele (eram três; a 013 passou a erguê-lo na hora 56).
+- **A meta de desperdício no Rápido, ano de jogo:** a pior sequência voltou a 18 h de jogo (era 15), de comida, na semente 025: a fazenda rende mais e a Despensa enche antes. A meta já não era cumprida no Rápido (seção 15).
+- **Faixas:** com a linha de base da seção 15, quatro células saíam da faixa por uma semente: em Senhor, a sequência de 18 h acima; em Camponês, o ouro parado do Regular no ritmo Normal (18.112, o limite era 14.077) e do Dedicado no Tranquilo; em Rei de Ferro, o ouro parado do Dedicado no ritmo Normal (42.128 para 42.018). `MEASURED` passou a ser a linha de base desta rodada, nas três dificuldades, com a mesma regra de folga; os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram atualizados com o porquê.
+
+### 16.2 Com quem roda as matrizes depois
+
+A tarefa que mexe na Ameaça (balance.ts e GDD §8.2) roda ao mesmo tempo em outra trilha e também regrava `MEASURED`. As duas linhas de base não se somam: depois de juntar as trilhas, a matriz precisa rodar de novo nas três dificuldades, sobre o conteúdo das duas.

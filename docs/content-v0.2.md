@@ -223,7 +223,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Assentar pilares de pedra** (`piers`) | −30 pedra | nenhuma | +90 comida, na 4ª virada de dia depois da escolha | Ponte de pedra aguenta carroça carregada, e mais de um degelo. |
+| **Assentar pilares de pedra** (`piers`) | −30 pedra | +5 de moral por 3 dias de jogo | +90 comida, na 4ª virada de dia depois da escolha | Ponte de pedra aguenta carroça carregada, e mais de um degelo. |
 | **Estender uma pinguela** (`plank`) | sem custo | nenhuma | — | Passa gente em fila; carroça, não. O próximo degelo dirá se ela fica. |
 | **Largar a obra** (`abandon`) | sem custo | +30 madeira; −5 de moral por 2 dias de jogo | — | Recolhe-se a madeira que der, e o povo volta ao vau. |
 
@@ -235,14 +235,14 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
 - **Crônica:**
   - Chegada com `thawBridge.timber`: No {dia}º dia {daEstacao}, as vigas cedidas pelo senhor de {feudo} pararam no meio do riacho, e o conselho voltou ao assunto: {carta}.
   - Chegada com `thawBridge.hired`: No {dia}º dia {daEstacao}, os carpinteiros pagos pelo senhor de {feudo} pararam no meio do riacho, e o conselho voltou ao assunto: {carta}.
-  - Assentar pilares de pedra: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou assentar pilares de pedra sobre a laje do riacho. A ponte há de ver muitos degelos.
+  - Assentar pilares de pedra: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou assentar pilares de pedra sobre a laje do riacho. O povo desceu à margem para ver a pedra subir do leito.
     - Efeito posterior: No {dia}º dia {daEstacao}, o grão do campo de lá começou a chegar a {feudo} pela ponte de pedra, carroça após carroça.
   - Estender uma pinguela: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou contornar a laje com uma pinguela. Mais barata que a ponte, e mais estreita.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o mestre de obras de {feudo} contornou a laje com uma pinguela. Mais barata que a ponte, e mais estreita.
   - Largar a obra: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou largar a obra da ponte. Recolheu-se a madeira; os lavradores voltaram ao vau.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} largou a obra da ponte. Recolheu-se a madeira; os lavradores voltaram ao vau.
 - **Cenários:**
-  - Assentar pilares de pedra. *Faz sentido:* A pedra sobra ou o Armazém está cheio; comida vai fazer falta em alguns dias; o senhor não quer refazer a ponte todo ano. *É ruim:* A pedra está contada para o Salão, ou o depósito de comida está cheio (os 90 seriam cortados).
+  - Assentar pilares de pedra. *Faz sentido:* A pedra sobra ou o Armazém está cheio; comida vai fazer falta em alguns dias; o senhor não quer refazer a ponte todo ano; o senhor quer os 80 de moral: +5 agora e, dois dias depois, a festa do desfecho (+15) somam um dia em 80. *É ruim:* A pedra está contada para o Salão, ou o depósito de comida está cheio (os 90 seriam cortados).
   - Estender uma pinguela. *Faz sentido:* A pedra tem dono e o senhor quer fechar a história sem gastar mais. *É ruim:* A pedra sobra: ficam 90 de comida na mesa, e a carta volta no ano que vem.
   - Largar a obra. *Faz sentido:* A madeira faz falta agora (lenha, obra) e a moral tem folga. *É ruim:* A moral está na beira de uma faixa (fome, casas cheias); perde-se o desfecho.
 
@@ -272,7 +272,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
   - Dispensar a cerimônia: No {dia}º dia {daEstacao}, a travessia do riacho de {feudo} seguiu servindo, sem festa nem discurso.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deu a travessia do riacho por entregue, sem festa nem discurso.
 - **Cenários:**
-  - Inaugurar a travessia com festa. *Faz sentido:* A comida sobra; +15 por três dias leva o feudo a Orgulhoso (75) e, com qualquer outro efeito, aos 80. *É ruim:* A despensa está curta ou o inverno está perto.
+  - Inaugurar a travessia com festa. *Faz sentido:* A comida sobra; +15 por três dias leva o feudo a Orgulhoso (75) e, com os pilares de pedra respondidos logo ou qualquer outro efeito de +5, aos 80. *É ruim:* A despensa está curta ou o inverno está perto.
   - Dispensar a cerimônia. *Faz sentido:* A comida está contada. *É ruim:* A comida sobra e a moral está a um passo dos 80.
 
 ### 3.3 Cadeia "A Promessa da Paliçada" (no jogo desde V2E-T2)
@@ -855,7 +855,7 @@ A coluna "Audiências" da primavera conta 6 porque a da virada do ano entra nela
 Sem as cartas a moral vai de 0 a 60 (a base e a comida guardada, GDD §5.7). Com 80 ou mais, cada virada de dia tem 20% de chance de trazer um colono, se houver vaga. O lote foi escrito para que 80 seja alcançável por quem cuida do feudo:
 
 - **Sozinha:** "A colheita de todos", celebrar (+20 por 2 dias).
-- **Em cadeia:** no Celeiro Comum, partilhar (+10 por 3 dias) e, dois dias depois, deixar com as famílias (+10 por 3 dias) dão um dia em 80; na Ponte, ceder as vigas (+5 por 3 dias) e abrir com festa (+15 por 3 dias).
+- **Em cadeia:** no Celeiro Comum, partilhar (+10 por 3 dias) e, dois dias depois, deixar com as famílias (+10 por 3 dias) dão um dia em 80; na Ponte, assentar os pilares de pedra (+5 por 3 dias) e, dois dias depois, inaugurar a travessia com festa (+15 por 3 dias) também. Nos dois casos é preciso responder cada carta perto da chegada: a continuação chega 2 dias de jogo depois, e o efeito anterior conta em 3 viradas. As vigas do começo da Ponte (+5) não se somam à festa: entre as duas fica a carta do meio, e quando a festa começa a contar o efeito das vigas já acabou. Até a correção V2DE (achado 13) esta lista dava as vigas e a festa como caminho até os 80, e um teste verde somava as duas no papel; no motor o máximo desse caminho era 75. Os pilares de pedra não davam moral. Hoje o cenário no motor (`council.chains.test.ts`, "ceder as vigas, assentar os pilares e abrir com festa") exige o dia em 80.
 - **Somando duas cartas respondidas na mesma visita:** efeitos de cartas diferentes se somam. "Abrir o tonel" (+15) com qualquer +5; "Ceder a pedra" do poço (+10 por 3 dias) com outra de +10.
 
 Medido nas mesmas 50 sementes, um ano de jogo, com o bot econômico (que só paga uma carta com folga e não escolhe pela moral):
@@ -866,6 +866,8 @@ Medido nas mesmas 50 sementes, um ano de jogo, com o bot econômico (que só pag
 | Normal | 4 | 27 de 50 | 2 | 8 | 0 a 1 |
 | Rápido | 2 | 6 de 50 | 0 | 0 | 0 |
 | Rápido | 4 | 37 de 50 | 1 | 20 | 0 a 2 |
+
+A tabela é anterior à correção V2DE: com o +5 dos pilares de pedra, o bot (que paga os pilares quando a pedra sobra) chega aos 80 um pouco mais vezes; ela não foi medida de novo.
 
 (Medido de novo em V2E-T2, com as três cartas da Paliçada no sorteio. No ritmo Rápido com duas visitas por dia o número caiu de 19 para 6 partidas: o ano traz 10 cartas, e o pedido da cerca, a que o bot só responde explicando, ocupa o lugar de uma das que dariam moral. Quem promete e cumpre ganha +10 e, quatro dias depois, +15: é mais um caminho até os 80, que o bot não usa.)
 

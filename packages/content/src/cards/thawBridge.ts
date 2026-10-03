@@ -101,6 +101,9 @@ export const thawBridgeSlab: CouncilCard = {
       label: 'Assentar pilares de pedra',
       cost: { stone: 30 },
       effects: [
+        // O povo vê a pedra subir do leito. Escolhida logo, ainda conta na virada em que a festa
+        // do desfecho começa a contar: +5 e +15 levam o feudo aos 80 por um dia.
+        { type: 'morale', amount: 5, durationDays: 3 },
         { type: 'setFlag', flag: 'thawBridge.piers' },
         { type: 'clearFlag', flag: 'thawBridge.plank' },
         { type: 'scheduleCard', cardId: 'thawBridgeCrossing', afterDays: 2 },
@@ -116,7 +119,7 @@ export const thawBridgeSlab: CouncilCard = {
           'No {dia}º dia {daEstacao}, o grão do campo de lá começou a chegar a {feudo} pela ponte de pedra, carroça após carroça.',
       },
       chronicle:
-        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou assentar pilares de pedra sobre a laje do riacho. A ponte há de ver muitos degelos.',
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou assentar pilares de pedra sobre a laje do riacho. O povo desceu à margem para ver a pedra subir do leito.',
     },
     {
       id: 'plank',

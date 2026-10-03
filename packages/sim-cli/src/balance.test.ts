@@ -135,6 +135,8 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(week?.measure.milestones.warehouse).toEqual({ min: 25, max: 57 });
     const year = matrix.cells.find((cell) => cell.key === 'year/3/regular');
     expect(year?.measure.milestones.warehouse).toEqual({ min: 25, max: null });
+    // Duas sementes fecham o ano do ritmo Rápido sem o Armazém (eram três antes de os pilares de
+    // pedra da Ponte darem +5 de moral, V2DE: a 013 passou a erguê-lo na hora 56).
     expect(
       matrix.runs.filter(
         (run) =>
@@ -143,7 +145,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
           run.profile.id === 'regular' &&
           run.summary.milestones.warehouse === null,
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(2);
   });
 
   it('os bots percorrem a sequência dos objetivos: os dez em um ano de jogo, em toda semente do Regular e do Dedicado (V2E-T4)', () => {
@@ -307,7 +309,9 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     //
     // Com os objetivos da v0.2 (V2E-T4) o primeiro depósito sai cedo, porque o objetivo o pede,
     // e no ritmo Normal as 50 sementes ficam dentro da meta: o pior caso é de 8 h de madeira.
-    // No Rápido a semana continua em 33 h, e o ano caiu de 18 para 15 (seção 15).
+    // No Rápido a semana continua em 33 h, e o ano caiu de 18 para 15 (seção 15). Com o +5 de
+    // moral dos pilares de pedra da Ponte (V2DE), a fazenda da semente 025 rende mais e o ano
+    // voltou a 18 h, de comida (seção 16).
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -317,7 +321,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     );
     expect(over).toEqual({
       'week/3/regular': 33,
-      'year/3/regular': 15,
+      'year/3/regular': 18,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
       'week/1/regular',

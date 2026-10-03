@@ -148,7 +148,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 63 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.473 | ≤ 5.340 | ≤ 167.383 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 63 a 83 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.473 | ≤ 5.348 | ≤ 167.442 | ≤ 35 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -165,7 +165,7 @@ describe('relatório da matriz', () => {
     expect(rows).toEqual([
       '| 7 dias reais | Rápido 3× | Regular | 3 a 21 | 6 a 33 | 0 a 15 | ≤ 8 | **acima** |',
       '| 7 dias reais | Normal 1× | Regular | 0 | 0 a 5 | 0 a 1 | ≤ 8 | dentro |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1,5 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 a 15 | ≤ 8 | **acima** |',
       '| Um ano de jogo | Normal 1× | Regular | 0 | 0 a 5 | 0 a 1 | ≤ 8 | dentro |',
       '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0,5 a 1,5 | 0 | ≤ 8 | dentro |',
@@ -179,7 +179,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 73], 7, 0, 0, 3928, 5085, 150192, 33),",
+      "  'week/3/regular': measured([72, 73], 7, 0, 0, 3928, 5093, 150203, 33),",
     );
   });
 
@@ -263,7 +263,7 @@ describe('relatório da matriz', () => {
     expect(week).toContain(
       '| Rápido 3× | Regular | 0% a 11% | 1% a 24% | 0% a 1% | 3 a 21 | 6 a 33 | 0 a 15 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 1 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 4% | 0% | 0 | 0 a 1,5 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
