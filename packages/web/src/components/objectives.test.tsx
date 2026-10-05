@@ -258,13 +258,16 @@ describe('os objetivos na aba Feudo', () => {
       />,
     );
 
-  it('o painel fica depois da Ameaça e antes da Crônica, com os cumpridos recolhidos', () => {
+  it('o painel fica depois das Construções e antes da Ameaça e da Crônica, com os cumpridos recolhidos (ADR 0016, item 10)', () => {
     const markup = fief(unlockedView);
-    const threat = markup.indexOf('id="threat-title"');
-    const objectives = markup.indexOf('id="objectives-title"');
-    const chronicle = markup.indexOf('id="chronicle-title"');
-    expect(objectives).toBeGreaterThan(threat);
-    expect(chronicle).toBeGreaterThan(objectives);
+    const order = [
+      'constructions-title',
+      'objectives-title',
+      'threat-title',
+      'chronicle-title',
+    ].map((id) => markup.indexOf(`id="${id}"`));
+    expect(Math.min(...order)).toBeGreaterThan(-1);
+    expect(order).toEqual([...order].sort((a, b) => a - b));
     expect(markup).toContain('<details class="objectives-done">');
     expect(markup).toContain('Construa a Torre de Vigia');
   });

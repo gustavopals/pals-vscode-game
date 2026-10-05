@@ -571,11 +571,17 @@ describe('a incursão no relatório (GDD §8.2, §12.3 e critério 4 da §16.2)'
       });
     });
 
-    it('com a Paliçada travada, a Torre de Vigia: o próximo ataque é visto antes', () => {
+    it('com a Paliçada travada, o painel da Ameaça, mesmo com a Torre ao alcance (ADR 0016, item 9)', () => {
+      // Depois do ataque do golden a Torre pode subir de nível agora, e a Paliçada espera o
+      // Salão: o botão não manda gastar na Torre a madeira que a Paliçada vai pedir.
+      const tower = raidAftermathView.constructions.available.find(
+        (upgrade) => upgrade.building === 'watchtower',
+      );
+      expect(tower?.blockedReason).toBeNull();
       expect(costAction(raidAftermathView, 'raid')).toEqual({
-        command: 'lords.build',
-        arg: 'watchtower',
-        label: 'Melhorar Torre de Vigia',
+        command: 'lords.openPanel',
+        arg: 'threat',
+        label: 'Ver a defesa',
       });
     });
 

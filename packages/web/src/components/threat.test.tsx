@@ -704,20 +704,26 @@ describe('a incursão na aba Hoje (GDD §2.3, §8.2 e critério 4 da §16.2)', (
     // A frase da Crônica conta como o bando chegou, o que levou, quem se feriu e o que o teria
     // detido; a urgência tem ícone e palavra.
     expect(text(cost)).toContain(`Atenção: ${SUFFERED}`);
-    // A Paliçada ainda espera o Salão Nv3: o botão é a obra que faz o próximo ataque ser visto
-    // antes, e é descrito pela frase da perda.
-    expect(buttons(cost)).toEqual([{ label: 'Melhorar Torre de Vigia', disabled: false }]);
+    // A Paliçada ainda espera o Salão Nv3. A Torre pode subir de nível agora, mas o botão não a
+    // ordena (ADR 0016, item 9): leva ao painel da Ameaça, que diz o que trava a Paliçada. É
+    // descrito pela frase da perda.
+    expect(
+      after.constructions.available.find((upgrade) => upgrade.building === 'watchtower')
+        ?.blockedReason,
+    ).toBeNull();
+    expect(buttons(cost)).toEqual([{ label: 'Ver a defesa', disabled: false }]);
     expect(cost).toContain('aria-describedby="cost-item-0"');
+    expect(text(page)).not.toContain('Melhorar Torre de Vigia');
     const ran: Array<[string, unknown]> = [];
     click(
       today(report, after, (id, arg) => ran.push([id, arg])),
-      'Melhorar Torre de Vigia',
+      'Ver a defesa',
     );
     // O mesmo botão está também em "Antes de partir": o relatório conta o ataque que passou, e
     // a seção, o que pode vir na ausência seguinte (a Ameaça segue acima de 40, sem Paliçada).
     expect(ran).toEqual([
-      ['lords.build', 'watchtower'],
-      ['lords.build', 'watchtower'],
+      ['lords.openPanel', 'threat'],
+      ['lords.openPanel', 'threat'],
     ]);
     if (!after.threat.known) {
       throw new Error('O golden deixou de trazer a Ameaça à vista depois do ataque.');
@@ -811,14 +817,16 @@ describe('a Ameaça na aba Feudo', () => {
       />,
     );
 
-  it('o painel fica logo depois das Construções, onde a obra da Torre está', () => {
+  it('o painel fica na coluna das Construções, depois dos Objetivos e antes da Crônica (ADR 0016, item 10)', () => {
     const markup = fief(craftsView);
     const constructions = markup.indexOf('id="constructions-title"');
-    const threat = markup.indexOf('id="threat-title"');
     const objectives = markup.indexOf('id="objectives-title"');
+    const threat = markup.indexOf('id="threat-title"');
+    const chronicle = markup.indexOf('id="chronicle-title"');
     expect(constructions).toBeGreaterThan(-1);
-    expect(threat).toBeGreaterThan(constructions);
-    expect(objectives).toBeGreaterThan(threat);
+    expect(objectives).toBeGreaterThan(constructions);
+    expect(threat).toBeGreaterThan(objectives);
+    expect(chronicle).toBeGreaterThan(threat);
   });
 
   it('sem ligação o painel fica em modo leitura', () => {

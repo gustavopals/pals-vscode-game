@@ -447,24 +447,30 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
 }
 
 /**
- * O assunto de maior prioridade do feudo (GDD §13.5): incursão a caminho > decisões pendentes >
- * fome e frio > depósito cheio ou a menos de 8 h de encher > obra em andamento > produção de
- * comida. A fome e o frio têm cada um o seu ícone e o seu texto; juntos, dividem a linha e a
- * explicação traz os dois. Com duas obras em curso, aparece a que termina primeiro, e a outra
- * entra como "+1 obra".
+ * O assunto de maior prioridade do feudo (GDD §13.5; ADR 0016, item 8): incursão a caminho > fome
+ * e frio > decisões pendentes > depósito cheio ou a menos de 8 h de encher > obra em andamento >
+ * produção de comida. A fome e o frio têm cada um o seu ícone e o seu texto; juntos, dividem a
+ * linha e a explicação traz os dois. Com duas obras em curso, aparece a que termina primeiro, e a
+ * outra entra como "+1 obra".
  *
  * A incursão que os vigias avistaram passa na frente de tudo (o exemplo do GDD para esta linha é
  * "Cerco em 1d 03h"): é o único assunto com prazo curto que se resolve sozinho, no máximo a
- * antecedência que a Torre dá, e foi para vê-lo antes que o jogador a ergueu. Uma carta espera um
- * dia; a fome e o frio duram horas e têm o aviso deles no alto das abas, que continua lá. Quando
- * o ataque chega, a linha volta ao assunto que estava. Não leva o destaque de alarme: a mesma
- * linha anuncia o ataque que a Paliçada vai segurar, e o app não sabe qual é qual; quem diz é a
- * explicação, com o que o ataque custa e o que a defesa faz a ele, nas frases do servidor.
+ * antecedência que a Torre dá, e foi para vê-lo antes que o jogador a ergueu. A fome e o frio
+ * duram horas e têm o aviso deles no alto das abas, que continua lá. Quando o ataque chega, a
+ * linha volta ao assunto que estava. Não leva o destaque de alarme: a mesma linha anuncia o ataque
+ * que a Paliçada vai segurar, e o app não sabe qual é qual; quem diz é a explicação, com o que o
+ * ataque custa e o que a defesa faz a ele, nas frases do servidor.
+ *
+ * A fome e o frio passam na frente das decisões pendentes: o conselho traz cartas o tempo todo, e
+ * quem não responde na hora tem quase sempre uma à espera; se ela tomasse a linha, o alarme da
+ * fome nunca apareceria. A carta não se perde por isso: continua no contador do título, no ícone
+ * do Feudo, na linha "Hoje" da árvore e na aba do Conselho.
  *
  * As decisões pendentes são as cartas do Conselho: a linha diz quantas esperam e o prazo da que
  * vence primeiro (a lista já vem do prazo mais curto ao mais longo), a explicação dá o título e
  * o prazo de cada uma, e o clique leva à aba do Conselho. No título da aba do navegador elas
- * entram no contador, e não como assunto: "(1) Pedra Alta".
+ * entram no contador, e não como assunto: "(1) Pedra Alta", ou "(1) Fome em Pedra Alta" quando
+ * há fome.
  */
 function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   const name = view.settlement.name;
@@ -479,26 +485,6 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
         target: 'threat',
       },
       title: `${due} · ${name}`,
-    };
-  }
-  const decisions = view.pendingDecisions;
-  const soonest = decisions[0];
-  if (soonest !== undefined) {
-    const pending = pendingDecisionsLabel(decisions.length);
-    const each = decisions.map(
-      (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
-    );
-    return {
-      bar: {
-        text: `$(law) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
-        tooltip:
-          `${name}: ${each.join('; ')}. ` +
-          (decisions.length === 1
-            ? 'A carta espera na aba Conselho.'
-            : 'As cartas esperam na aba Conselho.'),
-        target: 'council',
-      },
-      title: null,
     };
   }
   const cold = view.winter?.cold ?? null;
@@ -522,6 +508,26 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
     return {
       bar: { text: `$(flame) Frio em ${name}`, tooltip: cold.text, alarm: true },
       title: `Frio em ${name}`,
+    };
+  }
+  const decisions = view.pendingDecisions;
+  const soonest = decisions[0];
+  if (soonest !== undefined) {
+    const pending = pendingDecisionsLabel(decisions.length);
+    const each = decisions.map(
+      (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
+    );
+    return {
+      bar: {
+        text: `$(law) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        tooltip:
+          `${name}: ${each.join('; ')}. ` +
+          (decisions.length === 1
+            ? 'A carta espera na aba Conselho.'
+            : 'As cartas esperam na aba Conselho.'),
+        target: 'council',
+      },
+      title: null,
     };
   }
   const storage = mostPressingStorage(view);
@@ -640,8 +646,9 @@ const APP_TITLE = 'Lords of the Guild';
  * O título da aba do navegador: é o que se vê com a aba em segundo plano. Na frente, quantas
  * coisas esperam o jogador: as novidades e as decisões pendentes, somadas ("(1) Pedra Alta").
  * Depois, o mesmo assunto que toma a barra de status (fome e frio, depósito a encher, obra) e o
- * nome do feudo. Sem ligação o estado guardado pode estar velho: fica só o nome, e as decisões
- * dele não entram no contador. No modo discreto, só um contador de tempo.
+ * nome do feudo; a carta à espera não tira a fome nem o frio daqui: "(1) Fome em Pedra Alta". Sem
+ * ligação o estado guardado pode estar velho: fica só o nome, e as decisões dele não entram no
+ * contador. No modo discreto, só um contador de tempo.
  */
 export function documentTitle(input: StatusBarInput): string {
   if (!input.signedIn || input.view === null) {

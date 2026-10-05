@@ -62,9 +62,13 @@ export function FiefTab(props: {
             disabled={disabled}
             actions={actions}
           />
-          {/* Ao lado das obras: a saída da névoa é uma delas, a Torre de Vigia. */}
-          <ThreatPanel view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
+          {/*
+            Os objetivos antes da Ameaça (ADR 0016, item 10): no feudo recém-fundado o painel da
+            Ameaça é longo e só repete obras trancadas, e quem chega procura o que fazer.
+          */}
           <ObjectivesPanel view={view} online={props.online} actions={actions} />
+          {/* Na coluna das obras: a saída da névoa é uma delas, a Torre de Vigia. */}
+          <ThreatPanel view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
           <ChroniclePanel chronicle={props.chronicle} actions={actions} />
         </div>
       </div>

@@ -392,6 +392,63 @@ test.describe('governar o feudo', () => {
       'Dificuldade: Rei de Ferro · Ritmo: Tranquilo: um ano em 14 dias (não mudam durante o ano)',
     );
   });
+
+  // V2G-T6.3 (ADR 0016, item 10): no feudo recém-fundado o painel da Ameaça é longo e só repete
+  // obras trancadas. Os Objetivos vêm antes dele, logo depois das Construções: quem chega acha o
+  // que fazer sem atravessar a Ameaça. Nada mais muda de lugar.
+  for (const [width, height] of [
+    [1280, 800],
+    [720, 800],
+  ] as const) {
+    test(`em ${width}×${height}, a aba Feudo traz Construções, Objetivos, Ameaça e Crônica, nessa ordem`, async ({
+      context,
+      world,
+    }) => {
+      const page = await world.open(context);
+      await playNow(page);
+      await page.setViewportSize({ width, height });
+      if (width < 1280) {
+        await expect(page.locator('#sidebar')).toBeHidden();
+      }
+
+      // Os painéis da aba, na ordem em que são lidos (e em que o teclado e o leitor de tela os
+      // percorrem): a coluna dos recursos e do povo, depois a das obras.
+      await expect(fief(page).getByRole('heading', { level: 2 })).toHaveText([
+        'Recursos',
+        /^Trabalhadores \(\d+\/\d+\)$/,
+        'Moral',
+        'Recrutar',
+        'Construções',
+        'Objetivos',
+        'Ameaça',
+        'Crônica',
+      ]);
+      // E na tela: de cima para baixo, cada título abaixo do anterior.
+      const titles = ['constructions-title', 'objectives-title', 'threat-title', 'chronicle-title'];
+      const tops = await fief(page).evaluate(
+        (panel, ids) =>
+          ids.map((id) => panel.querySelector(`#${id}`)?.getBoundingClientRect().top ?? null),
+        titles,
+      );
+      expect(tops, 'os quatro títulos existem').not.toContain(null);
+      const heights = tops.map((top) => top ?? 0);
+      for (const [index, top] of heights.entries()) {
+        expect(top, `${titles[index]} abaixo do título anterior`).toBeGreaterThan(
+          heights[index - 1] ?? Number.NEGATIVE_INFINITY,
+        );
+      }
+
+      // O painel dos objetivos traz o primeiro deles, e o da Ameaça (a névoa, sem a Torre de
+      // Vigia) vem depois.
+      const objectives = fief(page).getByRole('region', { name: 'Objetivos' });
+      await expect(objectives.locator('li.objective').first()).toBeVisible();
+      await expect(fief(page).getByRole('region', { name: 'Ameaça' })).toContainText(
+        'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
+      );
+      // Nada transborda com a ordem nova.
+      expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+    });
+  }
 });
 
 // V2C-T1 (GDD §4.1): as estações mudam a produção e os prazos, o inverno queima lenha, e sem

@@ -352,7 +352,7 @@ describe('barra de status', () => {
     );
   });
 
-  describe('prioridade: decisões > fome e frio > depósito a encher > obra', () => {
+  describe('prioridade: fome e frio > decisões > depósito a encher > obra', () => {
     /** A madeira a três horas de encher o Pátio, com uma obra em curso. */
     const filling = withResource(building, 'wood', { perHour: 24, fullInSeconds: 3 * 3600 });
     /** A mesma visão com as primeiras `count` cartas da mesa cheia à espera de resposta. */
@@ -410,9 +410,32 @@ describe('barra de status', () => {
       });
     });
 
-    it('as decisões pendentes passam na frente de tudo, com o prazo da que vence primeiro', () => {
-      const hungry: ViewState = { ...filling, famine: starving.famine };
-      const result = statusBar({ ...base, view: deciding(hungry, 2), pending: 3 });
+    it('a fome e o frio passam na frente das decisões pendentes (ADR 0016, item 8)', () => {
+      // Com carta à espera, a linha continua sendo o alarme: a fome não some atrás da carta.
+      const hungry = statusBar({ ...base, view: deciding(starving, 1), pending: 2 });
+      expect(hungry).toEqual({
+        text: '$(warning) Fome em Pedra Alta · $(bell) 2',
+        tooltip: starving.famine?.text,
+        alarm: true,
+      });
+      // Sem `target`: o clique não leva ao Conselho, e sim à aba em que o app abriria.
+      expect(hungry.target).toBeUndefined();
+      expect(statusBar({ ...base, view: deciding(coldView, 2) })).toMatchObject({
+        text: '$(flame) Frio em Pedra Alta',
+        alarm: true,
+      });
+      const both: ViewState = { ...deciding(coldView, 2), famine: starving.famine };
+      expect(statusBar({ ...base, view: both })).toMatchObject({
+        text: '$(warning) Fome e frio em Pedra Alta',
+        alarm: true,
+      });
+      // Passada a fome, a linha volta às cartas que esperavam.
+      const fed: ViewState = { ...deciding(starving, 1), famine: null };
+      expect(statusBar({ ...base, view: fed }).text).toMatch(/^\$\(law\) 1 decisão pendente/);
+    });
+
+    it('as decisões pendentes passam na frente do depósito e da obra, com o prazo da que vence primeiro', () => {
+      const result = statusBar({ ...base, view: deciding(filling, 2), pending: 3 });
       expect(result.text).toBe('$(law) 2 decisões pendentes · expira em 22 h · $(bell) 3');
       // A explicação diz o título e o prazo de cada carta, e onde elas esperam.
       expect(result.tooltip).toBe(
@@ -480,7 +503,7 @@ describe('barra de status', () => {
         );
       });
 
-      it('passa na frente das decisões pendentes, da fome, do frio, do depósito e da obra', () => {
+      it('passa na frente da fome, do frio, das decisões pendentes, do depósito e da obra', () => {
         // O golden da incursão já tem a Despensa cheia e perdendo: sem os lobos, a linha é dela.
         expect(statusBar({ ...base, view: threatWatchedView }).text).toMatch(/^\$\(archive\) /);
         const crowded: ViewState = {
@@ -489,9 +512,14 @@ describe('barra de status', () => {
           winter: coldView.winter,
         };
         expect(statusBar({ ...base, view: crowded }).text).toBe('$(megaphone) Lobos em 16 min');
-        // Quando o ataque chega, a linha volta ao assunto que estava: as cartas à espera.
+        // Quando o ataque chega, a linha volta ao assunto que estava: a fome e o frio.
         const after: ViewState = { ...crowded, threat: threatWatchedView.threat };
-        expect(statusBar({ ...base, view: after }).text).toMatch(/^\$\(law\) 2 decisões pendentes/);
+        expect(statusBar({ ...base, view: after }).text).toBe(
+          '$(warning) Fome e frio em Pedra Alta',
+        );
+        // E, sem eles, às cartas à espera.
+        const calm: ViewState = { ...after, famine: null, winter: null };
+        expect(statusBar({ ...base, view: calm }).text).toMatch(/^\$\(law\) 2 decisões pendentes/);
       });
 
       it('sem a Torre a visão não traz incursão nenhuma, e a linha não inventa uma', () => {
@@ -554,9 +582,20 @@ describe('barra de status', () => {
         expect(title(deciding(farmers, 1))).toBe(`(1) Pedra Alta · ${APP}`);
         expect(title(deciding(farmers, 2))).toBe(`(2) Pedra Alta · ${APP}`);
         expect(title(deciding(farmers, 1), { pending: 2 })).toBe(`(3) Pedra Alta · ${APP}`);
-        // Com carta à espera, o assunto do título é o contador, mesmo com fome ou obra.
-        expect(title(deciding(starving, 2), { pending: 4 })).toBe(`(6) Pedra Alta · ${APP}`);
+        // Com carta à espera, a obra e o depósito cedem o título ao contador.
         expect(title(deciding(building, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+        expect(title(deciding(filling, 1))).toBe(`(1) Pedra Alta · ${APP}`);
+      });
+
+      it('a fome e o frio não somem atrás da carta: "(1) Fome em Pedra Alta" (ADR 0016, item 8)', () => {
+        expect(title(deciding(starving, 1))).toBe(`(1) Fome em Pedra Alta · ${APP}`);
+        expect(title(deciding(starving, 2), { pending: 4 })).toBe(
+          `(6) Fome em Pedra Alta · ${APP}`,
+        );
+        expect(title(deciding(coldView, 1))).toBe(`(1) Frio em Pedra Alta · ${APP}`);
+        expect(title({ ...deciding(coldView, 1), famine: starving.famine })).toBe(
+          `(1) Fome e frio em Pedra Alta · ${APP}`,
+        );
       });
 
       it('sem ligação, a carta do estado guardado não entra no contador do título', () => {

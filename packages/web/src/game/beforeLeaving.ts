@@ -17,7 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
-import { palisadeWork, THREAT_SECTION, watchtowerWork } from '../ui/threat';
+import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
 /**
  * "Antes de partir" (GDD §2.3, passo 4): o que vale resolver antes de fechar a aba, do mais
@@ -362,26 +362,23 @@ function queueItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * O que fazer a respeito de um ataque, pelo que a visão diz das duas obras da Ameaça (GDD §8.2 e
- * §12.3): a Paliçada, quando a obra dela pode começar agora, porque é ela que muda o desfecho;
- * sem isso, a Torre de Vigia, que faz o próximo ataque ser visto antes; e, se nenhuma das duas
- * pode ser ordenada (em curso, travada, no teto desta versão), o caminho para o painel da Ameaça,
- * onde estão o custo e o motivo: o botão leva a página e o foco até ele. É o botão do item de
- * "Antes de partir" e o da incursão sofrida no Relatório de Retorno.
+ * O que fazer a respeito de um ataque, pelo que a visão diz da obra da Paliçada (GDD §8.2 e §12.3;
+ * ADR 0016, item 9): ordená-la, quando ela pode começar agora, porque é ela que muda o desfecho.
+ * Quando não pode (em curso, travada pelo Salão ou por recurso, no teto desta versão), o caminho
+ * para o painel da Ameaça, onde estão o custo e o motivo: o botão leva a página e o foco até ele.
+ * Nunca ordena a Torre de Vigia: ela não segura ataque nenhum, e a obra dela gastaria justo a
+ * madeira que falta à Paliçada. Quem quer a Torre a encontra no painel, ao lado da defesa. É o
+ * botão dos itens de "Antes de partir" e o da incursão sofrida no Relatório de Retorno.
  */
 export function defenseCommand(view: ViewState): LeavingItem['command'] {
   const fence = palisadeWork(view);
-  // Com a Paliçada em obras, o que havia a fazer está feito: resta ver se ela fica pronta a tempo.
-  const works = fence.kind === 'underway' ? [] : [fence, watchtowerWork(view)];
-  for (const work of works) {
-    if (work.kind === 'available' && work.upgrade.blockedReason === null) {
-      const { upgrade } = work;
-      return {
-        id: 'lords.build',
-        arg: upgrade.building,
-        label: `${isNewBuilding(upgrade) ? 'Construir' : 'Melhorar'} ${upgrade.label}`,
-      };
-    }
+  if (fence.kind === 'available' && fence.upgrade.blockedReason === null) {
+    const { upgrade } = fence;
+    return {
+      id: 'lords.build',
+      arg: upgrade.building,
+      label: `${isNewBuilding(upgrade) ? 'Construir' : 'Melhorar'} ${upgrade.label}`,
+    };
   }
   return { id: 'lords.openPanel', arg: THREAT_SECTION, label: 'Ver a defesa' };
 }

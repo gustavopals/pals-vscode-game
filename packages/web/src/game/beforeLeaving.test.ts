@@ -544,38 +544,76 @@ describe('antes de partir', () => {
       }
     });
 
-    describe('o botão da defesa', () => {
-      it('a Paliçada primeiro, quando a obra dela pode começar: é o que muda o desfecho', () => {
+    describe('o botão da defesa (ADR 0016, item 9)', () => {
+      /** A obra de um edifício pode ser ordenada agora: está na lista e nada a trava. */
+      const orderable = (view: ViewState, building: 'palisade' | 'watchtower') =>
+        view.constructions.available.some(
+          (upgrade) => upgrade.building === building && upgrade.blockedReason === null,
+        );
+
+      it('a Paliçada, quando a obra dela pode começar: é o que muda o desfecho', () => {
         // Sem Torre e com o Salão no nível 3, as duas obras estão liberadas.
+        expect(orderable(craftsView, 'watchtower')).toBe(true);
         expect(defenseCommand(craftsView)).toEqual({
           id: 'lords.build',
           arg: 'palisade',
           label: 'Construir Paliçada',
         });
-      });
-
-      it('com a Paliçada travada, a Torre de Vigia: o próximo ataque é visto antes', () => {
-        expect(defenseCommand(threatWatchedView)).toEqual({
+        expect(defenseCommand(palisadeRaisedView)).toEqual({
           id: 'lords.build',
-          arg: 'watchtower',
-          label: 'Melhorar Torre de Vigia',
-        });
-        const noTower = withUpgrade(craftsView, 'palisade', {
-          blockedReason: 'Faltam 80 madeira.',
-        });
-        expect(defenseCommand(noTower)).toEqual({
-          id: 'lords.build',
-          arg: 'watchtower',
-          label: 'Construir Torre de Vigia',
+          arg: 'palisade',
+          label: 'Melhorar Paliçada',
         });
       });
 
-      it('com as duas travadas, ou com a Paliçada já em obras, o caminho para o painel da Ameaça', () => {
+      it('com a Paliçada travada pelo Salão, o painel da Ameaça, mesmo com a Torre ao alcance', () => {
+        // Nos dois goldens a Torre pode subir de nível agora, e a Paliçada espera o Salão.
+        for (const view of [threatWatchedView, raidAftermathView]) {
+          expect(orderable(view, 'watchtower')).toBe(true);
+          expect(orderable(view, 'palisade')).toBe(false);
+          expect(defenseCommand(view)).toEqual(SEE);
+        }
+      });
+
+      it('com a Paliçada travada por recurso, o painel da Ameaça: a Torre gastaria a madeira que falta', () => {
+        const short = withUpgrade(craftsView, 'palisade', { blockedReason: 'Faltam 80 madeira.' });
+        expect(orderable(short, 'watchtower')).toBe(true);
+        expect(defenseCommand(short)).toEqual(SEE);
+      });
+
+      it('com as duas travadas, com a Paliçada em obras ou no teto, o painel da Ameaça', () => {
         expect(defenseCommand(initialView)).toEqual(SEE);
         const underway = withQueues(craftsView, [
           activeConstruction({ building: 'palisade', label: 'Paliçada', targetLevel: 1 }),
         ]);
         expect(defenseCommand(underway)).toEqual(SEE);
+        // No teto desta versão a Paliçada sai da lista de obras; a Torre continua nela.
+        const top: ViewState = {
+          ...craftsView,
+          constructions: {
+            ...craftsView.constructions,
+            available: craftsView.constructions.available.filter(
+              (upgrade) => upgrade.building !== 'palisade',
+            ),
+          },
+        };
+        expect(orderable(top, 'watchtower')).toBe(true);
+        expect(defenseCommand(top)).toEqual(SEE);
+      });
+
+      it('nunca ordena a Torre de Vigia, em nenhum dos goldens', () => {
+        const views = [
+          initialView,
+          craftsView,
+          unlockedView,
+          threatWatchedView,
+          threatIncomingView,
+          raidAftermathView,
+          palisadeRaisedView,
+        ];
+        for (const view of views) {
+          expect(defenseCommand(view).arg).not.toBe('watchtower');
+        }
       });
     });
   });

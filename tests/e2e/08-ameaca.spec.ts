@@ -53,19 +53,26 @@ function only(events: ServerEvent[], type: string): ServerEvent {
   return found[0] as ServerEvent;
 }
 
-/** Os cinco aldeões do feudo novo com ofício: dois na Fazenda, dois na Serraria, um na Pedreira. */
-async function employEveryone(page: Page): Promise<void> {
-  const step = async (building: string, free: number) => {
+/**
+ * Os cinco aldeões do feudo novo com ofício: dois na Fazenda, dois na Serraria, um na Pedreira,
+ * ou os ofícios de `plan`, um por aldeão.
+ */
+async function employEveryone(
+  page: Page,
+  plan: readonly [string, string, string, string, string] = [
+    'Fazenda',
+    'Fazenda',
+    'Serraria',
+    'Serraria',
+    'Pedreira',
+  ],
+): Promise<void> {
+  for (const [index, building] of plan.entries()) {
     await fief(page)
       .getByRole('button', { name: `Pôr mais um trabalhador em ${building}` })
       .click();
-    await expect(fief(page).getByText(`Livres ${free}`)).toBeVisible();
-  };
-  await step('Fazenda', 4);
-  await step('Fazenda', 3);
-  await step('Serraria', 2);
-  await step('Serraria', 1);
-  await step('Pedreira', 0);
+    await expect(fief(page).getByText(`Livres ${plan.length - 1 - index}`)).toBeVisible();
+  }
 }
 
 /**
@@ -555,6 +562,90 @@ test.describe('a incursão de lobos', () => {
     await expect(panel).toContainText(view.threat.defense.next ?? 'falta o próximo nível');
     await expect(fief(page).getByRole('heading', { name: 'Trabalhadores (5/5)' })).toBeVisible();
     await expect(fief(page).getByRole('region', { name: 'Crônica' })).toContainText(raid.text);
+  });
+
+  // V2G-T6.2 (ADR 0016, item 9): o botão da defesa só ordena a Paliçada, que é o que muda o
+  // desfecho. Com ela travada, leva ao painel da Ameaça, que diz o motivo; não manda erguer a
+  // Torre de Vigia, que não segura ataque nenhum e gastaria a madeira que a Paliçada vai pedir.
+  test('com a Paliçada travada e a obra da Torre ao alcance, o botão da defesa é "Ver a defesa": em "Antes de partir", com os lobos à vista, e no Relatório, depois do ataque', async ({
+    context,
+    world,
+    request,
+  }) => {
+    test.setTimeout(90_000);
+    world.wolvesRoam();
+    const first = await world.open(context);
+    await playNow(first);
+    // Dois na Pedreira: a pedra do nível seguinte da Torre chega com folga antes dos lobos.
+    await employEveryone(first, ['Fazenda', 'Fazenda', 'Serraria', 'Pedreira', 'Pedreira']);
+    // O Salão no nível 2 libera o nível seguinte da Torre, mas não a Paliçada.
+    await world.raise('townHall', 2);
+    await world.raise('watchtower', 1);
+    /** A obra de um edifício na lista do servidor, com o que a trava (`null`: pode começar). */
+    const work = async (page: Page, building: 'watchtower' | 'palisade') => {
+      const view = await serverView(page, request);
+      const upgrade = view.constructions.available.find((entry) => entry.building === building);
+      if (upgrade === undefined) {
+        throw new Error(`A obra de ${building} devia estar na lista.`);
+      }
+      return upgrade;
+    };
+
+    // Os vigias dão o alarme uma hora antes dos lobos, como no cenário da Torre.
+    await world.passTime(20 * HOUR, first);
+    await world.passTime(9 * HOUR + MINUTE, first);
+    only(await gameEvents(first, request), 'raidAnnounced');
+    const incoming = (await serverView(first, request)).threat.incoming;
+    if (incoming === null) {
+      throw new Error('Os vigias deviam ter a incursão à vista.');
+    }
+    // O que o cenário quer provar: a Torre pode subir de nível agora, e a Paliçada não pode.
+    expect((await work(first, 'watchtower')).blockedReason, 'a obra da Torre').toBeNull();
+    const locked = (await work(first, 'palisade')).blockedReason;
+    expect(locked, 'o que trava a Paliçada').toEqual(expect.any(String));
+
+    // "Antes de partir" abre com o ataque, e o botão dele leva à defesa: não ordena a Torre.
+    await first.getByRole('tab', { name: 'Hoje' }).click();
+    const leaving = todayTab(first)
+      .getByRole('region', { name: 'Antes de partir' })
+      .getByRole('listitem')
+      .first();
+    await expect(leaving).toContainText(incoming.text);
+    await expect(leaving.getByRole('button', { name: 'Ver a defesa' })).toBeVisible();
+    await expect(leaving.getByRole('button', { name: /Torre de Vigia/ })).toHaveCount(0);
+    await first.close();
+
+    // O senhor sai. Os lobos chegam, e na volta o Relatório conta o que levaram.
+    await world.passTime(5 * HOUR);
+    const page = await world.open(context);
+    await expect(page.getByRole('tab', { name: 'Hoje' })).toHaveAttribute('aria-selected', 'true');
+    await expect(todayTab(page).getByText(/Você esteve fora por \d+ horas\./)).toBeVisible();
+    const raid = only(await gameEvents(page, request), 'raidSuffered');
+    expect(raid.data).toMatchObject({ warning: 'warned', palisadeLevel: 0 });
+    const item = reportBlock(page, 'O que exigiu um preço')
+      .getByRole('listitem')
+      .filter({ hasText: raid.text });
+    await expect(item).toBeVisible();
+    // Depois do ataque a Torre continua ao alcance e a Paliçada, travada: o botão é o caminho.
+    expect((await work(page, 'watchtower')).blockedReason, 'a obra da Torre').toBeNull();
+    expect((await work(page, 'palisade')).blockedReason, 'o que trava a Paliçada').toBe(locked);
+    const see = item.getByRole('button', { name: 'Ver a defesa' });
+    await expect(see).toBeVisible();
+    await expect(item.getByRole('button', { name: /Torre de Vigia/ })).toHaveCount(0);
+
+    // Pelo teclado, o botão leva ao painel da Ameaça: lá estão o motivo que trava a Paliçada e,
+    // para quem a quiser assim mesmo, a obra da Torre.
+    await see.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    const panel = threatPanel(page);
+    await expect(panel.getByRole('heading', { name: 'Ameaça' })).toBeFocused();
+    await expect(panel.getByRole('heading', { name: 'Ameaça' })).toBeInViewport();
+    await expect(panel).toContainText(locked ?? 'falta o motivo que trava a Paliçada');
+    await expect(panel.getByRole('button', { name: 'Construir Paliçada' })).toBeDisabled();
+    await expect(panel.getByRole('button', { name: 'Melhorar Torre de Vigia' })).toBeEnabled();
+    // Nenhuma obra foi ordenada pelo caminho: os pedreiros continuam livres.
+    await expect(fief(page).locator('.active-construction')).toHaveCount(0);
   });
 
   // Um dia e pouco com a aba Feudo à vista e sem dispensar nada: as cartas do conselho, o relato

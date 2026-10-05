@@ -12,6 +12,7 @@ import {
   test,
   THEMES,
   toasts,
+  tree,
 } from './helpers';
 
 // GDD §13.5: avisar o essencial, nunca incomodar. Avisos no canto, contador no título da aba,
@@ -154,7 +155,7 @@ test.describe('avisos', () => {
     await expect(notices).toHaveCount(0);
   });
 
-  test('a fome avisa mesmo no nível padrão, e toma a barra de status', async ({
+  test('a fome avisa mesmo no nível padrão, e toma a barra de status e o título; a carta do Conselho que chega não a tira de lá', async ({
     context,
     world,
   }) => {
@@ -169,6 +170,23 @@ test.describe('avisos', () => {
     await expect(fief(page).getByText('Fome em andamento.')).toBeVisible();
     // Menos de 4 horas desde a última leitura: é aviso avulso, não Relatório de Retorno…
     await expect(page.getByRole('tab', { name: 'Feudo' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page).toHaveTitle(/^(\(\d+\) )?Fome em Pedra Alta · Lords of the Guild$/);
+
+    // ADR 0016, item 8: com cartas chegando o tempo todo, quem não responde na hora tem quase
+    // sempre uma decisão à espera. A carta entra no contador do título, no ícone do Feudo e na
+    // linha "Hoje" da árvore, mas a barra e o título continuam dizendo a fome, com o alarme.
+    await world.control('council-deal', { cardId: 'masonsMeal' });
+    await world.passTime(MINUTE, page);
+    await expect(page.getByRole('button', { name: /^Feudo: 1 decisão pendente/ })).toBeVisible();
+    await expect(tree(page).locator('[data-node="today"]')).toContainText('1 decisão pendente');
+    const line = statusBar(page).locator('.status-main');
+    await expect(line).toContainText('Fome em Pedra Alta');
+    await expect(line).not.toContainText('decisão pendente');
+    await expect(line).toHaveClass(/status-warning/);
+    await expect(line.locator('.codicon-warning')).toBeVisible();
+    await expect(page).toHaveTitle(/^\(\d+\) Fome em Pedra Alta · Lords of the Guild$/);
+    // A carta não se perdeu: a árvore continua mostrando que ela espera no Conselho.
+    await expect(tree(page).locator('[data-node="council"]')).toContainText('1 carta pendente');
   });
 
   // V2C-T6 (GDD §13.5): a virada de estação muda a produção e os prazos do feudo inteiro. O aviso
