@@ -1,7 +1,7 @@
 # 0013 — Regras da v0.2: tempo, ritmo, migração e economia
 
 Data: 2026-10-01\
-Estado: aplicada por delegação do autor em 2026-10-01; **aguarda confirmação decisão a decisão** ([pendencias-v0.2.md](../pendencias-v0.2.md))\
+Estado: aplicada por delegação do autor em 2026-10-01; **confirmada pelo autor em 2026-10-05, com as mudanças do [ADR 0016](0016-respostas-do-autor-as-pendencias-da-v0.2.md)**, que vale onde os dois divergirem\
 Escopo: GDD §4.1, §4.2, §5.4–5.7, §6.3, §12.1 e §14.5; roadmap da v0.2, lote 1 de decisões (V2B-T0): Fases B e C
 
 ## Contexto

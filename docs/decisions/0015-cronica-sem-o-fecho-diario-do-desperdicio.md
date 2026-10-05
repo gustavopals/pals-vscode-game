@@ -1,7 +1,7 @@
 # 0015 — Crônica sem o fecho diário do desperdício
 
 Data: 2026-10-02\
-Estado: aplicada por delegação do autor em 2026-10-02 (tarefa V2C-T2, sem o autor presente); **aguarda confirmação**\
+Estado: aplicada por delegação do autor em 2026-10-02 (tarefa V2C-T2, sem o autor presente); **confirmada pelo autor em 2026-10-05** ([ADR 0016](0016-respostas-do-autor-as-pendencias-da-v0.2.md))\
 Escopo: GDD §5.5, §11.4 e §13.2; roadmap da v0.2, V2C-T2.3; [ADR 0007](0007-cronica-sem-viradas-de-dia.md)
 
 ## Contexto

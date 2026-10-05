@@ -20,6 +20,7 @@ Revisar este plano não conclui tarefas nem aprova regras. As premissas da §8 n
 - [4. Fase D — O Conselho do Feudo](#4-fase-d--o-conselho-do-feudo)
 - [5. Fase E — Ameaça: Torre, Paliçada e lobos](#5-fase-e--ameaça-torre-paliçada-e-lobos)
 - [6. Fase F — Fechamento da v0.2](#6-fase-f--fechamento-da-v02)
+- [6b. Fase G — Correções com as respostas do autor](#6b-fase-g--correções-com-as-respostas-do-autor)
 - [7. Critérios de aceitação, cenários integrados e sinais de diversão](#7-critérios-de-aceitação-cenários-integrados-e-sinais-de-diversão)
 - [8. Decisões que esperam o autor, com premissas recomendadas](#8-decisões-que-esperam-o-autor-com-premissas-recomendadas)
 - [9. Dívidas conhecidas](#9-dívidas-conhecidas)
@@ -112,6 +113,7 @@ Os tamanhos são complexidade relativa, não prazo. O documento não estima dura
 | D — Conselho | Ler, escolher e acompanhar uma cadeia de três cartas | V2D-T0 a V2D-T5 |
 | E — Preparação e ameaça | Comparar feudos com e sem defesa na mesma incursão | V2E-T1 a V2E-T5 |
 | F — Versão completa | Um ano de jogo e a virada seguinte; playtest; release | V2F-T1 a V2F-T5 |
+| G — Respostas do autor | As decisões de 2026-10-05 aplicadas ao jogo que já tem jogadores | V2G-T1 a V2G-T7 |
 
 A ordem das fases é obrigatória. Dentro de uma fase vale o campo "Depende de". Dentro de C, a ordem recomendada é **C1 → C2 → C5 → C3 → C4 → C6 → C7**: entregar a pressão do estoque junto com a automação das obras, para que o autor jogue com a tensão e o alívio ao mesmo tempo.
 
@@ -1040,6 +1042,104 @@ pnpm -s sim -- --seed pedra-alta-001 --days 7 --sessions-per-day 1 --time-scale 
 
 ---
 
+## 6b. Fase G — Correções com as respostas do autor
+
+Acrescentada em 2026-10-05, depois de o autor responder às pendências com quatro dias de jogo em produção ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)). Vem **antes da v0.3**. Há jogadores em produção: cada tarefa diz o que acontece com a partida em andamento, e nada é enviado ao `main` remoto sem o autor pedir (todo `push` com a CI verde é implantado).
+
+### V2G-T1 · Depósitos em 1.000 e o ouro do objetivo 4 `M`
+
+**Objetivo:** o Salão nível 8 cabe no Armazém em Senhor, e o objetivo 4 paga a Torre que o objetivo 5 pede (ADR 0016, itens 1 e 7).
+**Depende de:** nada.
+
+- [ ] V2G-T1.1 `storage.buildings.{granary,warehouse}.level1` de 900 para 1.000; `townHallLevel2` com `reward: { gold: 50 }`, mantendo o desbloqueio.
+- [ ] V2G-T1.2 Testes de conteúdo, motor, servidor e app na regra nova; a lista de tetos por dificuldade recalculada.
+- [ ] V2G-T1.3 Goldens regravados com o diff lido; retratos congelados das versões 1 a 10 intactos.
+- [ ] V2G-T1.4 Linha de base do simulador medida de novo, com o antes e o depois; bots sem mudança.
+- [ ] V2G-T1.5 GDD §5.5 e §12.2 e uma seção datada em `docs/balance-v0.2.md`.
+
+**Partidas em andamento:** a capacidade sobe no instante em que a imagem nova entra; quem já cumpriu o objetivo 4 não recebe os 50 de ouro. Sem versão nova do estado.
+**Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e`.
+**Pronto quando:** o teste de alcançabilidade mostra o Salão 8 ao alcance em Senhor e nenhuma faixa do simulador piora sem explicação.
+
+### V2G-T2 · Deserção em tempo real e a fome que reabre `M`
+
+**Objetivo:** uma noite de sono no ritmo Rápido não custa meia dúzia de aldeões, e mandar todos à Fazenda e de volta não zera o prazo (ADR 0016, itens 2 e 3).
+**Depende de:** V2G-T1 (para não regravar os mesmos goldens duas vezes).
+
+- [x] V2G-T2.1 As duas escolhas de regra, respondidas pelo autor em 2026-10-05: a deserção **continua na virada do dia**, onde saem os aldeões que o prazo real já deve (dois por virada no Tranquilo); a fome que reabre com menos de **2 h reais** sem fome é a mesma. Falta só o plano de implementação.
+- [ ] V2G-T2.2 Conteúdo: carência e passo da deserção em milissegundos **reais**, convertidos com `settings.timeScale`, como `council.expiryRealMs`.
+- [ ] V2G-T2.3 Motor: a deserção na ordem do mesmo instante, com teste do instante exato; a fome que reabre dentro da janela guarda o início anterior.
+- [ ] V2G-T2.4 Versão 12 do estado e passo de migração (o campo que lembra quando a última fome acabou; o que mais o plano pedir). Partida em fome na fronteira: a contagem não recomeça nem salta.
+- [ ] V2G-T2.5 Visão e textos: o painel da moral e o aviso de fome dizem os prazos em tempo real; teste que reproduz o furo de C-4 e fica no repositório.
+- [ ] V2G-T2.6 Propriedade de divisão de intervalo rodada com fome, deserção e reabertura no caminho; goldens; GDD §5.6 e §12.1.
+
+**Partidas em andamento:** migram na primeira leitura. No Rápido a deserção fica três vezes mais lenta; no Normal nada muda; no Tranquilo fica duas vezes mais rápida que hoje.
+**Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e`; a matriz não mede fome (nenhum bot passa fome), então a prova é de teste do motor e de integração nos três ritmos.
+**Pronto quando:** nos três ritmos a primeira deserção vem na primeira virada do dia a partir de 12 h reais de fome e as seguintes acompanham o passo de 2 h reais (dois por virada no Tranquilo), e a manobra de C-4 não muda nenhum desses instantes.
+
+### V2G-T3 · Aviso da Torre de Vigia em tempo real `M`
+
+**Objetivo:** a antecedência do aviso é de 1 h real no nível 1 e de 2 h reais no nível 2, em qualquer ritmo (ADR 0016, item 4).
+**Depende de:** V2G-T2 (a mesma conversão de tempo real).
+
+- [ ] V2G-T3.1 Conteúdo: `watchtowerLevels[].warningRealMs`; o motor converte com o ritmo ao decidir o instante do aviso.
+- [ ] V2G-T3.2 Incursão já marcada ou já anunciada em partida em andamento: o que vale é o aviso que ainda não saiu; nenhum aviso sai duas vezes. Dizer no plano se pede versão nova do estado.
+- [ ] V2G-T3.3 A matriz QA-10 nos três ritmos; textos do painel da Ameaça e da obra da Torre; goldens; GDD §8.2.
+
+**Partidas em andamento:** no Rápido o aviso triplica; no Normal nada muda; no Tranquilo cai à metade (de 2 h e 4 h reais para 1 h e 2 h).
+**Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e 08-ameaca`.
+**Pronto quando:** o painel anuncia a mesma antecedência nos três ritmos e a obra da Paliçada continua cabendo na janela.
+
+### V2G-T4 · Os sete problemas das cartas `M`
+
+**Objetivo:** corrigir o que a revisão editorial achou e ninguém aplicou (pendências, DE-3), com cada reescrita aprovada pelo autor antes de entrar (ADR 0016, item 5).
+**Depende de:** nada.
+
+- [ ] V2G-T4.1 Proposta por carta, com texto e números de antes e de depois, para o autor aprovar: a opção dura que vale mais que a neutra na primavera (pedreiros, poço, notícia da primavera); "Um teto antes do frio"; "Vigília entre vizinhos"; as pistas da promessa da Paliçada; as duas cartas que saem com o feudo em fome; a Ponte do Degelo; o Celeiro Comum.
+- [ ] V2G-T4.2 Aplicar só o aprovado. **Nenhum id de carta ou de opção muda** (o teste de `council.test.ts` do conteúdo fixa os publicados).
+- [ ] V2G-T4.3 Goldens, retratos da versão atual e a semente de cenário do Conselho, pela receita "Uma carta nova" do README do motor quando o sorteio mudar; `docs/content-v0.2.md` com as fichas atualizadas.
+
+**Partidas em andamento:** carta já na mesa mostra o texto novo; efeito já aplicado não é refeito.
+**Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e 07-conselho`, `SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`.
+**Pronto quando:** o autor aprovou as sete e a cobertura do Conselho não perdeu carta.
+
+### V2G-T5 · Descrições das dificuldades e textos pequenos `S`
+
+**Objetivo:** as boas-vindas dizem o que o Conselho faz por quem falta (ADR 0016, item 6), e a concordância de "As Habitações já está em obras." é corrigida.
+**Depende de:** V2G-T1 e V2G-T2 (as frases citam depósitos e deserção).
+
+- [ ] V2G-T5.1 Três descrições propostas ao autor e aprovadas; chegam à tela por `GET /v1/catalog`.
+- [ ] V2G-T5.2 As duas frases de recusa com a concordância certa, com os testes e goldens que as fixam.
+
+**Verificação:** `pnpm verify`, `pnpm test:integration catalog`, `pnpm test:e2e 01-entrada`.
+**Pronto quando:** nenhuma frase das boas-vindas promete o que a regra não faz.
+
+### V2G-T6 · App: barra de status, botão da defesa e ordem da aba Feudo `M`
+
+**Objetivo:** a fome não some atrás de uma carta, o botão depois da incursão não gasta a madeira da Paliçada, e o jogador novo acha os objetivos (ADR 0016, itens 8, 9 e 10).
+**Depende de:** nada no motor.
+
+- [ ] V2G-T6.1 `statusTopic`: fome e frio na frente da decisão pendente, na barra e no título.
+- [ ] V2G-T6.2 `defenseCommand`: "Ver a defesa" quando a Paliçada não pode começar, no Relatório e em "Antes de partir".
+- [ ] V2G-T6.3 Aba Feudo: Objetivos antes do painel da Ameaça; conferir em 1280×800 e em 720×800.
+- [ ] V2G-T6.4 `pnpm capture:landing` e as três imagens e o `og.png` da página de apresentação, velhas desde a Fase C.
+
+**Verificação:** `pnpm verify`, `pnpm test:e2e`, `pnpm test:e2e:landing`.
+**Pronto quando:** os três comportamentos têm teste em navegador e a página de apresentação mostra a bancada de hoje.
+
+### V2G-T7 · Fechar a fase `S`
+
+**Objetivo:** documentos no estado novo e o que é do autor dito com clareza.
+**Depende de:** V2G-T1 a V2G-T6.
+
+- [ ] V2G-T7.1 Conferir os dois defeitos das previsões de C-8 contra o commit `85a9373`: o que ficou, com teste que o marque.
+- [ ] V2G-T7.2 `CLAUDE.md`, READMEs, `docs/architecture.md`, `docs/acceptance-v0.2.md` e `docs/pendencias-v0.2.md` no estado novo.
+- [ ] V2G-T7.3 Do autor: publicar, tag `v0.2.0` e release; backup externo e cópia do `RECOVERY_CODE_SECRET` fora do Coolify.
+
+**Pronto quando:** a primeira tarefa da v0.3 (V3A-T1) pode abrir com a v0.2 fechada.
+
+---
+
 ## 7. Critérios de aceitação, cenários integrados e sinais de diversão
 
 ### 7.1 Critérios do GDD §16.2 por tarefa
@@ -1550,4 +1650,6 @@ Desde V2C-T2, os eventos que mexem no estoque levam os totais em `data` (`spent_
 
 ---
 
-**Próximo passo de execução (2026-10-02):** a Fase F, começando pelo balanceamento com o simulador (V2F-T1), que herda o que as Fases D e E mediram e não mudaram: a Ameaça que não oscila, o ouro da Torre no objetivo 5 e a frequência das incursões. As Fases A a E foram enviadas ao `main` por fase; as Fases D e E, por último, às 20:04, em `b1b892a`, e às 20:21 a produção ainda respondia `protocol: 1`. Os documentos de fechamento estão nas linhas V2F-T2, V2F-T4 e V2F-T5 do Registro. As revisões independentes com o autor jogando não foram feitas (V2D-T5, V2E-T5 e V2C-T7, da qual só a rodada do simulador e o desempenho têm commit, `4faa40e`). O playtest (V2A-T1) e as confirmações das decisões continuam pendentes do autor ([pendencias-v0.2.md](pendencias-v0.2.md)); publicar continua sendo uma ação separada, só com autorização.
+**Próximo passo de execução (2026-10-05):** a Fase G (§6b), que aplica as respostas do autor às pendências ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)), começando por V2G-T1. O parágrafo seguinte é o de 2026-10-02 e fica como histórico.
+
+**Próximo passo de execução (2026-10-02, histórico):** a Fase F, começando pelo balanceamento com o simulador (V2F-T1), que herda o que as Fases D e E mediram e não mudaram: a Ameaça que não oscila, o ouro da Torre no objetivo 5 e a frequência das incursões. As Fases A a E foram enviadas ao `main` por fase; as Fases D e E, por último, às 20:04, em `b1b892a`, e às 20:21 a produção ainda respondia `protocol: 1`. Os documentos de fechamento estão nas linhas V2F-T2, V2F-T4 e V2F-T5 do Registro. As revisões independentes com o autor jogando não foram feitas (V2D-T5, V2E-T5 e V2C-T7, da qual só a rodada do simulador e o desempenho têm commit, `4faa40e`). O playtest (V2A-T1) e as confirmações das decisões continuam pendentes do autor ([pendencias-v0.2.md](pendencias-v0.2.md)); publicar continua sendo uma ação separada, só com autorização.

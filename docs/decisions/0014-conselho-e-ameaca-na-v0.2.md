@@ -1,7 +1,7 @@
 # 0014 — Conselho e ameaça na v0.2
 
 Data: 2026-10-01\
-Estado: aplicada por delegação do autor em 2026-10-01; **aguarda confirmação decisão a decisão** ([pendencias-v0.2.md](../pendencias-v0.2.md))\
+Estado: aplicada por delegação do autor em 2026-10-01; **confirmada pelo autor em 2026-10-05, com as mudanças do [ADR 0016](0016-respostas-do-autor-as-pendencias-da-v0.2.md)**, que vale onde os dois divergirem\
 Escopo: GDD §6.1, §7.1, §7.2, §8.2, §12.1, §12.2 e §14.5; roadmap da v0.2, lote 2 de decisões (V2D-T0): Fases D e E
 
 ## Contexto

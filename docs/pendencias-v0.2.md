@@ -2,6 +2,29 @@
 
 > **Para ler primeiro.** Em 2026-10-01 o autor pediu a implementação da v0.2 inteira durante a madrugada, com as dúvidas anotadas aqui. Este documento lista o que foi decidido sem ele, o que só ele pode fazer e o que ficou sem verificação. O que foi implementado está em [relatorio-v0.2.md](relatorio-v0.2.md).
 
+## 0. Respostas do autor em 2026-10-05
+
+O autor respondeu às dúvidas em sessão de perguntas, com quatro dias de jogo em produção. O registro completo está no [ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md). O que segue abaixo, das seções 1 a 5, é o texto de 2026-10-02 e **não foi reescrito**: onde ele diz "confirmar", "enquanto isso" ou "aguarda", leia com esta tabela por cima.
+
+| Item | Resposta |
+|---|---|
+| DE-1, Ameaça reequilibrada | Fica como está |
+| C-1, teto dos edifícios | Celeiro e Armazém nível 1 de 900 para 1.000 |
+| C-2, deserção por fome | Em tempo real: 12 h reais de carência, depois um aldeão a cada 2 h reais |
+| C-4, furo da fome | Corrigir: a fome que reabre logo é a mesma |
+| DE-6, aviso da Torre | Em tempo real: 1 h e 2 h reais |
+| DE-2 e DE-3, cartas | Aprovadas, menos os sete problemas da revisão, que serão corrigidos com aprovação de cada reescrita |
+| DE-4 e B-3, descrições das dificuldades | Muda o texto, não as cartas |
+| C-5, ouro sem destino | Fica para a v0.3 |
+| C-7, automática e lenha | Fica como está |
+| DE-7, botão depois da incursão | "Ver a defesa" |
+| DE-8, ouro da Torre | O objetivo 4 volta a dar 50 de ouro |
+| DE-12, barra de status | Fome e frio na frente da carta pendente |
+| DE-15, ordem da aba Feudo | Objetivos antes do painel da Ameaça |
+| B-4 a B-15, C-6, C-9 a C-18, DE-9 a DE-18 | Confirmados em bloco, fora o que as linhas acima mudam |
+
+**Continuam em aberto:** B-2 (sessões na restauração de backup), os atos da seção 3 (backup externo, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão, playtest, tag e release) e a conferência dos dois defeitos de C-8 contra o commit `85a9373`. **Nada da tabela foi implementado ainda:** é o lote de correções da v0.2, que vem antes da v0.3.
+
 ## 1. O mais importante
 
 **Em uma tela: o que decidir primeiro.** A v0.2 inteira está no `main` (Fases A a F). As fases D e E foram fechadas de forma enxuta, a pedido do autor: a revisão independente teve 35 achados, os defeitos que mudavam o jogo foram corrigidos e os riscos e dúvidas restantes estão na seção 4 (itens DE). Por ordem de importância:
