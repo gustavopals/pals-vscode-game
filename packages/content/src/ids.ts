@@ -57,6 +57,41 @@ export type EnemyId = (typeof ENEMY_IDS)[number];
 export const RAID_SIZE_IDS = ['light', 'medium'] as const;
 export type RaidSizeId = (typeof RAID_SIZE_IDS)[number];
 
+/** As classes de herói da v0.3 (GDD §9.1). Os atributos-base estão em `heroClasses`. */
+export const HERO_CLASS_IDS = ['warrior', 'archer', 'mage', 'cleric'] as const;
+export type HeroClassId = (typeof HERO_CLASS_IDS)[number];
+
+/** Os seis atributos de um herói (GDD §9.1), na ordem em que a ficha os mostra. */
+export const HERO_ATTRIBUTE_IDS = [
+  'health',
+  'attack',
+  'defense',
+  'speed',
+  'skill',
+  'will',
+] as const;
+export type HeroAttributeId = (typeof HERO_ATTRIBUTE_IDS)[number];
+
+/** Os traços de herói (GDD, Apêndice D; ADR 0017, "Os oito traços"). */
+export const HERO_TRAIT_IDS = [
+  'brave',
+  'prudent',
+  'greedy',
+  'charismatic',
+  'devout',
+  'veteran',
+  'loyal',
+  'tracker',
+] as const;
+export type HeroTraitId = (typeof HERO_TRAIT_IDS)[number];
+
+/**
+ * O que um herói está fazendo. Na Fase C só existe "no feudo": expedição, escolta, ferimento e
+ * captura entram com as tarefas que os usam.
+ */
+export const HERO_STATUS_IDS = ['idle'] as const;
+export type HeroStatusId = (typeof HERO_STATUS_IDS)[number];
+
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };
 

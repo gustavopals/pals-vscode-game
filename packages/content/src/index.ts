@@ -7,6 +7,7 @@ export type {
   CouncilDef,
   CraftDef,
   DifficultyDef,
+  HeroesDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,
@@ -38,6 +39,7 @@ export {
   moraleBandTemplates,
   raidTemplates,
   threatMarkTemplates,
+  wageArrearsReliefs,
 } from './chronicle';
 export type {
   ChroniclePlaceholder,
@@ -45,7 +47,10 @@ export type {
   FoundingEventType,
   GameEventType,
   RaidTemplates,
+  WageArrearsRelief,
 } from './chronicle';
+export { heroClasses, heroStatuses, heroTraits } from './heroes';
+export type { HeroClassDef, HeroTraitDef, HeroTraitEffects } from './heroes';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {
   CouncilCard,

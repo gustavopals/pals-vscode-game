@@ -13,6 +13,13 @@ import {
   ENEMY_IDS,
   EVENT_TYPES,
   foundingTemplates,
+  HERO_ATTRIBUTE_IDS,
+  HERO_CLASS_IDS,
+  HERO_STATUS_IDS,
+  HERO_TRAIT_IDS,
+  heroClasses,
+  heroStatuses,
+  heroTraits,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -31,6 +38,7 @@ import {
   threatMarkTemplates,
   TILE_TYPE_IDS,
   tileTypes,
+  wageArrearsReliefs,
 } from './index';
 import {
   BalanceSchema,
@@ -40,6 +48,9 @@ import {
   CutRewardTemplatesSchema,
   EnemiesSchema,
   FoundingTemplatesSchema,
+  HeroClassesSchema,
+  HeroStatusesSchema,
+  HeroTraitsSchema,
   IdleVillagerSchema,
   InjuredLossSchema,
   InjuryTemplatesSchema,
@@ -50,6 +61,7 @@ import {
   StartingTilesSchema,
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
+  WageArrearsReliefsSchema,
 } from './schemas';
 
 describe('schemas do conteúdo', () => {
@@ -1527,5 +1539,233 @@ describe('Crônica', () => {
     for (const leaver of leavers) {
       expect(leaver.startsWith('um ')).toBe(true);
     }
+  });
+});
+
+describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7)', () => {
+  const { heroes } = balance;
+  const HOUR = 3_600_000;
+
+  it('são quatro classes, com os seis atributos-base inteiros e positivos do ADR 0017', () => {
+    expect(HeroClassesSchema.safeParse(heroClasses).error).toBeUndefined();
+    expect(HERO_CLASS_IDS).toEqual(['warrior', 'archer', 'mage', 'cleric']);
+    expect(HERO_ATTRIBUTE_IDS).toEqual(['health', 'attack', 'defense', 'speed', 'skill', 'will']);
+    expect(heroClasses.warrior.attributes).toEqual({
+      health: 120,
+      attack: 14,
+      defense: 16,
+      speed: 8,
+      skill: 6,
+      will: 8,
+    });
+    expect(heroClasses.archer.attributes).toEqual({
+      health: 90,
+      attack: 18,
+      defense: 9,
+      speed: 14,
+      skill: 14,
+      will: 8,
+    });
+    expect(heroClasses.mage.attributes).toEqual({
+      health: 70,
+      attack: 22,
+      defense: 6,
+      speed: 9,
+      skill: 10,
+      will: 16,
+    });
+    expect(heroClasses.cleric.attributes).toEqual({
+      health: 100,
+      attack: 9,
+      defense: 13,
+      speed: 9,
+      skill: 8,
+      will: 16,
+    });
+    for (const id of HERO_CLASS_IDS) {
+      for (const attribute of HERO_ATTRIBUTE_IDS) {
+        const value = heroClasses[id].attributes[attribute];
+        expect(Number.isInteger(value) && value > 0, `${id}.${attribute}`).toBe(true);
+      }
+    }
+    expect(new Set(HERO_CLASS_IDS.map((id) => heroClasses[id].label)).size).toBe(4);
+  });
+
+  it('o poder é ataque + defesa + vida ÷ 10, e no nível 1 dá os números do ADR 0017', () => {
+    expect(heroes.power).toEqual({
+      attack: { num: 1, den: 1 },
+      defense: { num: 1, den: 1 },
+      health: { num: 1, den: 10 },
+    });
+    const power = (id: (typeof HERO_CLASS_IDS)[number]) =>
+      HERO_ATTRIBUTE_IDS.reduce((sum, attribute) => {
+        const weight = heroes.power[attribute];
+        return weight === undefined
+          ? sum
+          : sum + (heroClasses[id].attributes[attribute] * weight.num) / weight.den;
+      }, 0);
+    expect(HERO_CLASS_IDS.map(power)).toEqual([42, 36, 35, 32]);
+  });
+
+  it('são os oito traços do Apêndice D, cada um com nome e uma frase sem números', () => {
+    expect(HeroTraitsSchema.safeParse(heroTraits).error).toBeUndefined();
+    expect(HERO_TRAIT_IDS).toEqual([
+      'brave',
+      'prudent',
+      'greedy',
+      'charismatic',
+      'devout',
+      'veteran',
+      'loyal',
+      'tracker',
+    ]);
+    expect(HERO_TRAIT_IDS.map((id) => heroTraits[id].label)).toEqual([
+      'Corajoso',
+      'Prudente',
+      'Ganancioso',
+      'Carismático',
+      'Devoto',
+      'Veterano',
+      'Leal',
+      'Rastreador',
+    ]);
+    expect(new Set(HERO_TRAIT_IDS.map((id) => heroTraits[id].text)).size).toBe(8);
+    for (const id of HERO_TRAIT_IDS) {
+      expect(heroTraits[id].text, id).not.toMatch(/\d|%/);
+      // Nada do que é de outra versão: nem comandante, nem maldição, nem tile.
+      expect(heroTraits[id].text, id).not.toMatch(/comandante|aura|maldiç|tile|relíquia/i);
+    }
+  });
+
+  it('só os efeitos que a versão usa: o Leal é o único traço que segura o herói sem soldo', () => {
+    const loyal = HERO_TRAIT_IDS.filter((id) => heroTraits[id].effects.loyalInArrears === true);
+    expect(loyal).toEqual(['loyal']);
+    for (const id of HERO_TRAIT_IDS) {
+      expect(Object.keys(heroTraits[id].effects), id).toEqual(
+        id === 'loyal' ? ['loyalInArrears'] : [],
+      );
+    }
+    expect(heroTraits.loyal.text).toContain('soldo');
+  });
+
+  it('o schema recusa atributo que falta, atributo zero, traço com número na frase e efeito desconhecido', () => {
+    const { warrior } = heroClasses;
+    const classes = (attributes: object) =>
+      HeroClassesSchema.safeParse({ ...heroClasses, warrior: { ...warrior, attributes } }).success;
+    expect(classes(warrior.attributes)).toBe(true);
+    expect(classes({ ...warrior.attributes, will: 0 })).toBe(false);
+    expect(classes({ ...warrior.attributes, attack: 14.5 })).toBe(false);
+    expect(classes({ health: 120, attack: 14, defense: 16, speed: 8, skill: 6 })).toBe(false);
+    expect(classes({ ...warrior.attributes, luck: 3 })).toBe(false);
+    const traits = (changed: object) =>
+      HeroTraitsSchema.safeParse({ ...heroTraits, loyal: { ...heroTraits.loyal, ...changed } })
+        .success;
+    expect(traits({})).toBe(true);
+    expect(traits({ text: 'Rende 10% a mais.' })).toBe(false);
+    expect(traits({ text: 'sem maiúscula nem ponto' })).toBe(false);
+    expect(traits({ effects: { commanderAura: true } })).toBe(false);
+    expect(traits({ effects: { loyalInArrears: false } })).toBe(false);
+    const seven = Object.fromEntries(Object.entries(heroTraits).filter(([id]) => id !== 'tracker'));
+    expect(HeroTraitsSchema.safeParse(seven).success).toBe(false);
+  });
+
+  it('o estado de um herói tem rótulo: nesta fase, só "no feudo"', () => {
+    expect(HeroStatusesSchema.safeParse(heroStatuses).error).toBeUndefined();
+    expect(HERO_STATUS_IDS).toEqual(['idle']);
+    expect(heroStatuses.idle.label).toBe('No feudo');
+  });
+
+  it('o soldo é de 2 de ouro por hora de jogo por herói, e um herói sozinho começa cabendo no feudo', () => {
+    expect(heroes.wagePerHour).toBe(2);
+    expect(heroes.limitBase).toBe(1);
+    expect(heroes.rosterCap).toBe(12);
+    expect(heroes.rosterCap).toBeGreaterThanOrEqual(heroes.limitBase);
+    // Um mineiro de nível 1 paga dois heróis: o soldo cabe na economia do começo.
+    expect(balance.production.perWorkerPerHour.goldMine).toBe(2 * heroes.wagePerHour);
+  });
+
+  it('os prazos do atraso são tempo real: 12 h, 24 h, um a cada 2 h, e a janela de 2 h', () => {
+    expect(heroes.arrears).toEqual({
+      discontentAfterRealMs: 12 * HOUR,
+      leaveAfterRealMs: 24 * HOUR,
+      leaveEveryRealMs: 2 * HOUR,
+      resumeWithinRealMs: 2 * HOUR,
+      discontentFactor: { num: 4, den: 5 },
+    });
+  });
+
+  it('em todo ritmo oferecido os prazos do atraso viram um número inteiro de ms de jogo', () => {
+    const deadlines = Object.entries(heroes.arrears).filter(
+      (entry): entry is [string, number] => typeof entry[1] === 'number',
+    );
+    expect(deadlines).toHaveLength(4);
+    for (const { timeScale } of balance.paces) {
+      for (const [name, realMs] of deadlines) {
+        expect(Number.isInteger(realMs * timeScale), `${name}@${timeScale}`).toBe(true);
+      }
+    }
+  });
+
+  it('nível máximo 10, +8% por nível sem compor, e a tabela de experiência é 100 × n^1,5 para baixo', () => {
+    expect(heroes.maxLevel).toBe(10);
+    expect(heroes.levelBonus).toEqual({ num: 8, den: 100 });
+    expect(heroes.xpToNext).toEqual([100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700]);
+    expect(heroes.xpToNext).toHaveLength(heroes.maxLevel - 1);
+    heroes.xpToNext.forEach((xp, index) => {
+      const level = index + 1;
+      // 100 × n^1,5 = 100 × √(n³): o inteiro cujo quadrado não passa de 10.000 × n³.
+      expect(xp * xp <= 10_000 * level ** 3, `nível ${level}`).toBe(true);
+      expect((xp + 1) * (xp + 1) > 10_000 * level ** 3, `nível ${level}`).toBe(true);
+      expect(index === 0 || xp > (heroes.xpToNext[index - 1] ?? 0)).toBe(true);
+    });
+  });
+
+  it('o schema recusa tabela curta, tabela que desce, Descontente que rende mais e teto abaixo do limite', () => {
+    const parse = (changed: object) =>
+      BalanceSchema.safeParse({ ...balance, heroes: { ...heroes, ...changed } }).success;
+    expect(parse({})).toBe(true);
+    expect(parse({ xpToNext: heroes.xpToNext.slice(1) })).toBe(false);
+    expect(parse({ xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2262] })).toBe(false);
+    expect(parse({ maxLevel: 11 })).toBe(false);
+    expect(parse({ wagePerHour: 0 })).toBe(false);
+    expect(parse({ wagePerHour: 1.5 })).toBe(false);
+    expect(parse({ rosterCap: 0 })).toBe(false);
+    expect(parse({ limitBase: heroes.rosterCap + 1 })).toBe(false);
+    expect(parse({ power: {} })).toBe(false);
+    expect(parse({ power: { luck: { num: 1, den: 1 } } })).toBe(false);
+    const arrears = (changed: object) => parse({ arrears: { ...heroes.arrears, ...changed } });
+    expect(arrears({ discontentFactor: { num: 6, den: 5 } })).toBe(false);
+    expect(arrears({ leaveEveryRealMs: 0 })).toBe(false);
+    expect(arrears({ leaveAfterRealMs: 6 * HOUR })).toBe(false);
+    expect(arrears({ graceRealMs: HOUR })).toBe(false);
+  });
+
+  it('a Crônica tem a frase do atraso que abre e fecha, do Descontente, de quem parte e de quem é dispensado', () => {
+    for (const type of [
+      'wageArrearsStarted',
+      'wageArrearsEnded',
+      'heroDiscontent',
+      'heroLeft',
+      'heroDismissed',
+    ] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type].startsWith('No {dia}º dia {daEstacao}, '), type).toBe(true);
+      expect(chronicleTemplates[type], type).toContain('{feudo}');
+      // Nenhuma soa a planilha: o soldo não aparece em número.
+      expect(chronicleTemplates[type], type).not.toMatch(/\d/);
+    }
+    for (const type of ['heroDiscontent', 'heroLeft', 'heroDismissed'] as const) {
+      expect(chronicleTemplates[type], type).toContain('{heroi}');
+    }
+    expect(chronicleTemplates.heroLeft).toContain('soldo');
+    expect(chronicleTemplates.heroDismissed).not.toContain('soldo');
+    expect(WageArrearsReliefsSchema.safeParse(wageArrearsReliefs).error).toBeUndefined();
+    expect(Object.keys(wageArrearsReliefs)).toEqual(['paid', 'noHeroes']);
+    expect(wageArrearsReliefs.paid).toBe(chronicleTemplates.wageArrearsEnded);
+    expect(wageArrearsReliefs.noHeroes).not.toBe(wageArrearsReliefs.paid);
+    expect(
+      WageArrearsReliefsSchema.safeParse({ ...wageArrearsReliefs, paid: 'Pago em {moeda}.' })
+        .success,
+    ).toBe(false);
   });
 });

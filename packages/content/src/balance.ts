@@ -2,6 +2,7 @@ import type {
   BuildingId,
   DifficultyId,
   EnemyId,
+  HeroAttributeId,
   MoraleBandId,
   ProductionBuildingId,
   RaidSizeId,
@@ -272,6 +273,50 @@ export type RaidsDef = {
   readonly moraleLabel: string;
 };
 
+/**
+ * Heróis e soldo (GDD §9.1; ADR 0017, decisões 3, 5 e 7). O soldo é tempo de jogo e escala com
+ * o ritmo; os quatro prazos do atraso (`…RealMs`) são **tempo real**, iguais em qualquer ritmo:
+ * o motor os converte com o ritmo da partida.
+ */
+export type HeroesDef = {
+  /** Ouro por hora de jogo, por herói que recebe. */
+  readonly wagePerHour: number;
+  /** Quantos heróis o feudo contrata antes de ter a Taverna. */
+  readonly limitBase: number;
+  /**
+   * O teto da lista de heróis no estado: nem a contratação nem uma recompensa (que o limite de
+   * contratação não barra) põem no feudo mais heróis do que isto.
+   */
+  readonly rosterCap: number;
+  /** O soldo em atraso: o ouro acabou com soldo a pagar. */
+  readonly arrears: {
+    /** Atraso contínuo, em tempo real, a partir do qual quem não é Leal fica Descontente. */
+    readonly discontentAfterRealMs: number;
+    /** Atraso contínuo, em tempo real, a partir do qual o primeiro herói parte. */
+    readonly leaveAfterRealMs: number;
+    /** Depois disso, mais um herói a cada tanto de atraso, em tempo real. */
+    readonly leaveEveryRealMs: number;
+    /**
+     * A janela, em tempo real, em que o atraso que reabre é o mesmo que fechou: continua de
+     * onde parou, com a duração e os heróis que já tinha cobrado.
+     */
+    readonly resumeWithinRealMs: number;
+    /** O fator do Descontente em todos os atributos, enquanto o atraso durar. */
+    readonly discontentFactor: Ratio;
+  };
+  readonly maxLevel: number;
+  /** Somado aos atributos a cada nível acima do primeiro, sem compor: 8/100 = +8%. */
+  readonly levelBonus: Ratio;
+  /**
+   * Experiência para passar do nível `n` ao seguinte, a partir do nível 1: `100 × n^1,5`,
+   * arredondado para baixo e **escrito número a número** (o motor não calcula potência
+   * fracionária). Tem `maxLevel − 1` entradas.
+   */
+  readonly xpToNext: readonly number[];
+  /** O poder de um herói: a soma dos atributos listados, cada um com o peso dele. */
+  readonly power: Partial<Record<HeroAttributeId, Ratio>>;
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -328,6 +373,7 @@ export type Balance = {
   readonly council: CouncilDef;
   readonly threat: ThreatDef;
   readonly raids: RaidsDef;
+  readonly heroes: HeroesDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -600,5 +646,26 @@ export const balance: Balance = {
     moraleOnLosses: -10,
     moraleLossDays: 2,
     moraleLabel: 'Incursão sofrida',
+  },
+  // GDD §9.1 (ADR 0017, decisões 3, 5 e 7). O soldo é de 2 de ouro por hora de jogo por herói.
+  // Os prazos do atraso contam tempo real, em qualquer ritmo: 12 h para o Descontente, 24 h
+  // para o primeiro herói partir, depois um a cada 2 h; e o atraso que reabre menos de 2 h
+  // depois de fechar é o mesmo. O poder é ataque + defesa + vida ÷ 10. A tabela de experiência
+  // é 100 × n^1,5, arredondado para baixo: o teste de conteúdo confere número a número.
+  heroes: {
+    wagePerHour: 2,
+    limitBase: 1,
+    rosterCap: 12,
+    arrears: {
+      discontentAfterRealMs: 12 * HOUR_MS,
+      leaveAfterRealMs: 24 * HOUR_MS,
+      leaveEveryRealMs: 2 * HOUR_MS,
+      resumeWithinRealMs: 2 * HOUR_MS,
+      discontentFactor: { num: 4, den: 5 },
+    },
+    maxLevel: 10,
+    levelBonus: { num: 8, den: 100 },
+    xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700],
+    power: { attack: SAME, defense: SAME, health: { num: 1, den: 10 } },
   },
 };

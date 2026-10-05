@@ -33,6 +33,11 @@ export const EVENT_TYPES = [
   'raidSuffered',
   'villagerInjured',
   'villagerRecovered',
+  'wageArrearsStarted',
+  'wageArrearsEnded',
+  'heroDiscontent',
+  'heroLeft',
+  'heroDismissed',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -54,6 +59,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {ameaca} a Ameaça, de 0 a 100, depois de subir: "45"
  * {inimigo} quem ataca, em minúscula: "lobos" (de `enemies`)
  * {bando} o que os vigias contaram: "uma matilha pequena" (de `enemies`)
+ * {heroi} o nome de um herói: "Edda"
  *
  * Nas frases de uma incursão, {perda} é tudo o que ela custou, feridos inclusive ("18 de comida,
  * 12 de madeira e um aldeão ferido"), {nivel} é o nível da Paliçada que a teria detido e
@@ -84,6 +90,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'ameaca',
   'inimigo',
   'bando',
+  'heroi',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -160,6 +167,17 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   villagerInjured:
     'No {dia}º dia {daEstacao}, {aldeao} de {feudo} saiu ferido do ataque. Fica de cama até sarar.',
   villagerRecovered: 'No {dia}º dia {daEstacao}, {aldeao} de {feudo} sarou das feridas.',
+  // O soldo dos heróis (GDD §9.1). O atraso abre no instante em que o ouro acaba com soldo a
+  // pagar; a frase de quando ele fecha depende do porquê e está em `wageArrearsReliefs`.
+  wageArrearsStarted:
+    'No {dia}º dia {daEstacao}, o cofre de {feudo} ficou vazio: já não há com que pagar o soldo dos heróis.',
+  wageArrearsEnded:
+    'No {dia}º dia {daEstacao}, voltou a haver ouro no cofre de {feudo}. O soldo está em dia.',
+  heroDiscontent:
+    'No {dia}º dia {daEstacao}, {heroi} cobrou o soldo atrasado diante de todo o salão de {feudo}. Anda descontente.',
+  heroLeft:
+    'No {dia}º dia {daEstacao}, {heroi} cansou de esperar o soldo, juntou as armas e deixou {feudo}.',
+  heroDismissed: 'No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou {heroi}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
@@ -174,6 +192,18 @@ export const coldReliefs = {
   thaw: 'o gelo cedeu',
 } as const;
 export type ColdRelief = keyof typeof coldReliefs;
+
+/**
+ * O fim do soldo em atraso é o mesmo evento com uma frase por motivo: `paid` quando voltou a
+ * haver ouro para a equipe; `noHeroes` quando já não há herói a quem pagar (o último partiu ou
+ * foi dispensado).
+ */
+export const wageArrearsReliefs = {
+  paid: 'No {dia}º dia {daEstacao}, voltou a haver ouro no cofre de {feudo}. O soldo está em dia.',
+  noHeroes:
+    'No {dia}º dia {daEstacao}, já não há herói a quem {feudo} deva soldo. A conta está fechada.',
+} as const;
+export type WageArrearsRelief = keyof typeof wageArrearsReliefs;
 
 /**
  * Quem trabalha em cada edifício produtivo, e o que a Crônica diz deles quando dominam o ofício:

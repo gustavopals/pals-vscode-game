@@ -9,6 +9,9 @@ import {
   craftGuilds,
   enemies,
   foundingTemplates,
+  heroClasses,
+  heroStatuses,
+  heroTraits,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -19,6 +22,7 @@ import {
   startingTiles,
   threatMarkTemplates,
   tileTypes,
+  wageArrearsReliefs,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -597,6 +601,10 @@ describe('resumo de uma partida', () => {
             raidTemplates,
             injuryTemplates,
             injuredLoss,
+            heroClasses,
+            heroTraits,
+            heroStatuses,
+            wageArrearsReliefs,
           }),
         )
         .digest('hex')

@@ -6,12 +6,17 @@ import {
   EVENT_TYPES,
   foundingTemplates,
   injuryTemplates,
+  wageArrearsReliefs,
 } from './chronicle';
 import { COUNCIL_EFFECT_TYPES } from './council';
 import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
+  HERO_ATTRIBUTE_IDS,
+  HERO_CLASS_IDS,
+  HERO_STATUS_IDS,
+  HERO_TRAIT_IDS,
   MORALE_BAND_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
@@ -241,6 +246,47 @@ const pace = z.strictObject({
   recommended: z.boolean(),
 });
 
+/**
+ * Heróis e soldo (GDD §9.1; ADR 0017). O Descontente nunca rende mais; a tabela de experiência
+ * sobe sempre e tem uma entrada por nível que ainda tem para onde subir; o poder conta ao menos
+ * um atributo; e o teto da lista nunca fica abaixo do que o feudo contrata sem Taverna.
+ */
+const heroes = z
+  .strictObject({
+    wagePerHour: positiveInt,
+    limitBase: positiveInt,
+    rosterCap: positiveInt,
+    arrears: z
+      .strictObject({
+        discontentAfterRealMs: positiveInt,
+        leaveAfterRealMs: positiveInt,
+        leaveEveryRealMs: positiveInt,
+        resumeWithinRealMs: positiveInt,
+        discontentFactor: ratio.refine(({ num, den }) => num <= den, 'Descontente que rende mais'),
+      })
+      // Quem parte por soldo já estava Descontente: o aviso vem antes da perda.
+      .refine(
+        ({ discontentAfterRealMs, leaveAfterRealMs }) => discontentAfterRealMs <= leaveAfterRealMs,
+        'herói que parte antes de ficar Descontente',
+      ),
+    maxLevel: positiveInt.min(2),
+    levelBonus: ratio,
+    xpToNext: z
+      .array(positiveInt)
+      .refine(
+        (table) => table.every((xp, index) => index === 0 || xp > (table[index - 1] ?? 0)),
+        'tabela de experiência que não sobe',
+      ),
+    power: z
+      .partialRecord(z.enum(HERO_ATTRIBUTE_IDS), ratio)
+      .refine((weights) => Object.keys(weights).length > 0, 'poder sem atributo nenhum'),
+  })
+  .refine(
+    ({ maxLevel, xpToNext }) => xpToNext.length === maxLevel - 1,
+    'a tabela de experiência tem uma entrada por nível abaixo do máximo',
+  )
+  .refine(({ limitBase, rosterCap }) => rosterCap >= limitBase, 'teto abaixo do limite inicial');
+
 const balanceFields = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
@@ -334,6 +380,7 @@ const balanceFields = z.strictObject({
   }),
   threat,
   raids,
+  heroes,
 });
 
 /**
@@ -471,6 +518,11 @@ export const CutRewardTemplatesSchema = z.strictObject(
   Object.fromEntries(Object.keys(cutRewardTemplates).map((type) => [type, chronicleTemplate])),
 );
 
+/** As frases do fim do soldo em atraso, uma por motivo. */
+export const WageArrearsReliefsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(wageArrearsReliefs).map((reason) => [reason, chronicleTemplate])),
+);
+
 /**
  * Quem trabalha em cada edifício produtivo e o que se diz deles: os dois entram no meio de uma
  * frase, em minúscula e sem ponto.
@@ -606,6 +658,43 @@ export const EnemiesSchema = z.strictObject(
 /** Os tamanhos de incursão, como as frases os chamam em geral: no plural e em minúscula. */
 export const RaidSizesSchema = z.strictObject(
   Object.fromEntries(RAID_SIZE_IDS.map((size) => [size, z.strictObject({ plural: midSentence })])),
+);
+
+/** As classes de herói: o nome e os seis atributos-base, inteiros e positivos. */
+export const HeroClassesSchema = z.strictObject(
+  Object.fromEntries(
+    HERO_CLASS_IDS.map((id) => [
+      id,
+      z.strictObject({
+        label,
+        attributes: z.strictObject(
+          Object.fromEntries(HERO_ATTRIBUTE_IDS.map((attribute) => [attribute, positiveInt])),
+        ),
+      }),
+    ]),
+  ),
+);
+
+/**
+ * Os traços: o nome, uma frase inteira sem números (o número de um efeito mora no campo dele, e
+ * a frase não o repete) e só os efeitos que a versão usa.
+ */
+export const HeroTraitsSchema = z.strictObject(
+  Object.fromEntries(
+    HERO_TRAIT_IDS.map((id) => [
+      id,
+      z.strictObject({
+        label,
+        text: label.regex(/^\p{Lu}[^0-9{}]*\.$/u),
+        effects: z.strictObject({ loyalInArrears: z.literal(true).optional() }),
+      }),
+    ]),
+  ),
+);
+
+/** Como a ficha diz o que o herói está fazendo: um rótulo por estado. */
+export const HeroStatusesSchema = z.strictObject(
+  Object.fromEntries(HERO_STATUS_IDS.map((id) => [id, z.strictObject({ label })])),
 );
 
 const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);

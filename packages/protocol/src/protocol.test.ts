@@ -8,6 +8,9 @@ import {
   DIFFICULTY_IDS,
   enemies,
   foundingTemplates,
+  heroClasses,
+  heroStatuses,
+  heroTraits,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -18,6 +21,7 @@ import {
   startingTiles,
   threatMarkTemplates,
   tileTypes,
+  wageArrearsReliefs,
 } from '@lotg/content';
 import type {
   Command as EngineCommand,
@@ -1497,6 +1501,10 @@ describe('contentHash', () => {
         raidTemplates,
         injuryTemplates,
         injuredLoss,
+        heroClasses,
+        heroTraits,
+        heroStatuses,
+        wageArrearsReliefs,
       }),
     ]);
   });
@@ -1517,6 +1525,9 @@ describe('contentHash', () => {
       'craftGuilds',
       'enemies',
       'foundingTemplates',
+      'heroClasses',
+      'heroStatuses',
+      'heroTraits',
       'idleVillager',
       'injuredLoss',
       'injuryTemplates',
@@ -1527,6 +1538,7 @@ describe('contentHash', () => {
       'startingTiles',
       'threatMarkTemplates',
       'tileTypes',
+      'wageArrearsReliefs',
     ]);
     // As frases que entram dentro de outras também são conteúdo: o ofício e o alívio do frio.
     expect(hashed).toContain(craftGuilds.lumberMill.feat);
