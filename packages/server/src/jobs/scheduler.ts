@@ -23,6 +23,11 @@ export type JobsReport =
        * dados de conta ou de partida. Sem ela, o log só diria quantas falharam.
        */
       firstFailure?: AdvanceReport['firstFailure'];
+      /**
+       * Os ids das primeiras partidas cujo avanço falhou (até `FAILED_IDS_IN_REPORT`); a
+       * contagem inteira está em `failed`. Só o UUID da partida.
+       */
+      failedGameIds?: AdvanceReport['failedGameIds'];
     };
 
 /**
@@ -57,6 +62,7 @@ export async function runJobsOnce(ctx: AppContext): Promise<JobsReport> {
         purgedAccounts: purge?.accounts ?? 0,
         expiredSessions: purge?.sessions ?? 0,
         ...(advance.firstFailure !== undefined ? { firstFailure: advance.firstFailure } : {}),
+        ...(advance.failedGameIds !== undefined ? { failedGameIds: advance.failedGameIds } : {}),
       };
     } finally {
       await client.query('select pg_advisory_unlock($1)', [JOBS_LOCK]);
@@ -82,8 +88,8 @@ export function startScheduler(
     }
     running = runJobsOnce(ctx)
       .then((report) => {
-        // Contagens e, se uma partida falhou, a causa da primeira (`failureCause`): nenhum
-        // dado de conta ou de partida vai para o log.
+        // Contagens e, se uma partida falhou, a causa da primeira (`failureCause`) e os ids
+        // das primeiras que falharam: nenhum outro dado de conta ou de partida vai para o log.
         if (report.ran && report.failed > 0) {
           log.error({ jobs: report }, 'jobs executados com falhas');
         } else if (report.ran) {

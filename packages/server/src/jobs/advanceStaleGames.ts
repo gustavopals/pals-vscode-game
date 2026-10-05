@@ -8,6 +8,8 @@ import { safeError } from '../safe-error';
 
 const BATCH_SIZE = 100;
 const BUDGET_MS = 20_000;
+/** Quantos ids de partidas que falharam cabem no relatório; `failed` traz a contagem inteira. */
+export const FAILED_IDS_IN_REPORT = 20;
 
 /** A causa de uma falha, no que pode ir para o log: nome e mensagem, já sem dados de partida. */
 export type FailureCause = { name: string; message: string; code?: string };
@@ -18,6 +20,12 @@ export type AdvanceReport = {
   failed: number;
   /** Só existe quando `failed > 0`: a causa da primeira falha da rodada. */
   firstFailure?: FailureCause;
+  /**
+   * Só existe quando `failed > 0`: os ids (UUID) das primeiras partidas que falharam, até
+   * `FAILED_IDS_IN_REPORT`, na ordem em que falharam. É o que deixa quem lê o log achar a
+   * linha no banco. Só o id: nunca o estado, a conta nem o nome do feudo.
+   */
+  failedGameIds?: string[];
 };
 
 /** `safeError` sem a pilha: a causa cabe no relatório da rodada. */
@@ -100,6 +108,10 @@ export async function advanceStaleGames(ctx: AppContext): Promise<AdvanceReport>
         failedIds.push(id);
         // Só a primeira causa: depois de uma reversão de imagem todas falham pelo mesmo motivo.
         report.firstFailure ??= failureCause(error);
+        report.failedGameIds ??= [];
+        if (report.failedGameIds.length < FAILED_IDS_IN_REPORT) {
+          report.failedGameIds.push(id);
+        }
       }
     }
     // Lote incompleto: a fila acabou. Lote sem avanço nem falha nova (tudo travado por outros,

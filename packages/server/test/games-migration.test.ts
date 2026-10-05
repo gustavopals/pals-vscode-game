@@ -1108,6 +1108,17 @@ describe('estado que este servidor não sabe ler', () => {
 
       const report = await advanceStaleGames(app.ctx);
       expect(report).toMatchObject({ advanced: 1, failed: 201 });
+      // O relatório diz quais: os ids das vinte primeiras que falharam, e a contagem inteira.
+      const failedIds = report.failedGameIds ?? [];
+      expect(failedIds).toHaveLength(20);
+      expect(new Set(failedIds).size).toBe(20);
+      expect(failedIds).not.toContain(old.id);
+      const { rows: unreadable } = await app.pool.query<{ id: string }>(
+        'select id from games where schema_version = $1',
+        [CURRENT + 1],
+      );
+      const unreadableIds = new Set(unreadable.map((row) => row.id));
+      expect(failedIds.every((id) => unreadableIds.has(id))).toBe(true);
       expect((await rowOf(app, old.id)).schemaVersion).toBe(CURRENT);
       expect(await countRows(app.pool, 'games', `schema_version = ${CURRENT + 1}`)).toBe(201);
       expect(await countRows(app.pool, 'games', 'state_version <> 7')).toBe(1);
@@ -1122,19 +1133,29 @@ describe('estado que este servidor não sabe ler', () => {
     }
   });
 
-  it('o job diz a causa da primeira falha, sem nada do que o jogador escreveu', async () => {
+  it('o job diz a causa da primeira falha e qual partida falhou, sem nada do que o jogador escreveu', async () => {
     const clock = fakeClock();
     const app = await createTestApp({ clock });
     try {
       await truncateAll(app.pool);
       const state = futureState();
       state.settlement.name = 'Nome Que Não Vai Para o Log';
-      await insertGame(app, state);
-      await insertGame(app, v1State('fresh'));
+      const unreadable = await insertGame(app, state);
+      const healthy = await insertGame(app, v1State('fresh'));
       clock.advance(3 * HOUR);
 
       const report = await advanceStaleGames(app.ctx);
       expect(report).toMatchObject({ advanced: 1, failed: 1 });
+      // Só o id da partida que falhou: é com ele que se acha a linha no banco.
+      expect(report.failedGameIds).toEqual([unreadable.id]);
+      expect(report.failedGameIds).not.toContain(healthy.id);
+      expect(Object.keys(report).sort()).toEqual([
+        'advanced',
+        'events',
+        'failed',
+        'failedGameIds',
+        'firstFailure',
+      ]);
       expect(report.firstFailure).toEqual({
         name: 'StateMigrationError',
         message: expect.stringContaining(
@@ -1150,6 +1171,7 @@ describe('estado que este servidor não sabe ler', () => {
         ran: true,
         failed: 1,
         firstFailure: { name: 'StateMigrationError' },
+        failedGameIds: [unreadable.id],
       });
       expect(JSON.stringify(round)).not.toContain('Nome Que');
     } finally {
