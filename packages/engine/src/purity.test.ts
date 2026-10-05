@@ -91,10 +91,21 @@ describe('pureza do motor', () => {
   it('quem mostra, agenda ou carrega o estado não importa o contador de identidades', () => {
     // Só uma ordem aceita e um evento da linha do tempo criam entidades. A visão, as previsões,
     // a linha do tempo, as recusas, o estado inicial e a migração nunca: uma leitura a cada 30
-    // segundos não pode gastar um identificador. `commands.ts` fica de fora desta lista de
-    // propósito: contratar e enviar são ordens.
+    // segundos não pode gastar um identificador.
+    //
+    // O critério desta lista **não** é o de `neverDraw`. Entram os módulos de leitura e de
+    // conta que a visão e `nextEventAt` importam e que não têm por que criar nada: além dos
+    // de visão, a moral (`morale.ts`, a soma e os prazos), a Ameaça (`threat.ts`, a subida e a
+    // Paliçada), a economia, o armazenamento e o ritmo. Ficam de fora, de propósito, os
+    // módulos de regra que `advanceTo` e `applyCommand` chamam e que **vão** criar entidades:
+    // `commands.ts` (contratar e enviar são ordens), `council.ts` (o efeito de uma carta
+    // entrega o primeiro herói), `raids.ts` (a resolução é um evento da linha do tempo),
+    // `advance.ts` e os `*Turn.ts`. A visão e a linha do tempo importam alguns deles pelas
+    // funções de leitura (`nextCouncilEventAt`, `nextRaidEventAt`, as previsões que rodam
+    // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
+    // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -112,8 +123,17 @@ describe('pureza do motor', () => {
         './migrations/v12.ts',
         './migrations/v13.ts',
         './random.ts',
+        './morale.ts',
+        './threat.ts',
+        './economy.ts',
+        './storage.ts',
+        './pace.ts',
       ]),
     );
+    // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
+    for (const allowed of ['./commands.ts', './council.ts', './raids.ts', './advance.ts']) {
+      expect(guarded.map(([path]) => path)).not.toContain(allowed);
+    }
     const offenders = guarded
       .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text) || /\bnextId\(/.test(text))
       .map(([path]) => path);

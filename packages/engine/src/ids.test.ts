@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { applyCommand } from './commands';
 import { nextId } from './ids';
-import { currentShape } from './migrations';
+import { CURRENT_SCHEMA_VERSION, currentShape } from './migrations';
 import { dropStream, entityStream, nextInt, RNG_STREAM_FAMILIES } from './random';
 import { cloneState } from './state';
 import { command, gameWith, HOUR, newGame } from './test-helpers';
@@ -218,6 +218,54 @@ describe('quem não cria identidades', () => {
     nextEventAt(state);
     expect(JSON.stringify(state)).toBe(frozen);
   });
+
+  // O teste de pureza só lê os `import` diretos. Aqui é o comportamento: a visão e a linha do
+  // tempo rodam sobre todo retrato da versão atual, sem e com entidades vivas, e o gerador e
+  // os contadores saem como entraram, comparados campo a campo.
+  const portraits = Object.entries(
+    import.meta.glob<string>('./__fixtures__/state-v*.json', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  )
+    .filter(([path]) => path.includes(`/state-v${CURRENT_SCHEMA_VERSION}-`))
+    .map(([path, text]) => [path.replace(/^.*state-v\d+-|\.json$/g, ''), text] as const);
+
+  /** O mesmo retrato com entidades já criadas, duas delas vivas e com o fluxo em uso. */
+  const withEntities = (text: string) => {
+    const state = JSON.parse(text) as GameState;
+    for (const kind of ['hero', 'expedition', 'expedition', 'caravan', 'item']) {
+      nextId(state, kind);
+    }
+    nextInt(state, entityStream('expedition', 'expedition-2'), 6);
+    nextInt(state, entityStream('caravan', 'caravan-1'), 6);
+    return state;
+  };
+
+  it('há retratos da versão atual para conferir', () => {
+    expect(portraits.length).toBeGreaterThanOrEqual(20);
+  });
+
+  it.each(portraits)(
+    'deriveViewState e nextEventAt não mudam `rng` nem `ids` no retrato %s',
+    (_, text) => {
+      for (const state of [JSON.parse(text) as GameState, withEntities(text)]) {
+        expect(currentShape(throughBank(state), '')).toBeNull();
+        const before = cloneState(state);
+        const options = { timeScale: state.settings.timeScale };
+        for (const ahead of [0, 1, 5 * HOUR, 30 * 24 * HOUR, 400 * 24 * HOUR]) {
+          const view = deriveViewState(state, state.lastProcessedAt + ahead, options);
+          expect(JSON.stringify(view)).not.toContain('"ids"');
+          expect(JSON.stringify(view)).not.toContain('"rng"');
+        }
+        nextEventAt(state);
+        expect(state.rng).toStrictEqual(before.rng);
+        expect(state.ids).toStrictEqual(before.ids);
+        expect(state).toStrictEqual(before);
+      }
+    },
+  );
 
   it('nenhuma ordem de hoje cria entidade: aceita ou recusada, os contadores ficam como estão', () => {
     const state = used();
