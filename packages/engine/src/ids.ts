@@ -24,8 +24,9 @@ const KIND = /^[a-z][A-Za-z]*$/;
 
 /**
  * O próximo identificador do tipo `kind`: `<kind>-<n>`, com `n` a partir de 1. Altera
- * `draft.ids`. Um tipo fora da forma, ou um contador gravado que não é um inteiro a partir de
- * zero, lança erro: é defeito de código ou estado corrompido, não uma recusa de regra.
+ * `draft.ids`. Um tipo fora da forma, um contador gravado que não é um inteiro a partir de zero
+ * ou um contador já no maior inteiro seguro lança erro **antes de gravar**: é defeito de código
+ * ou estado corrompido, não uma recusa de regra.
  */
 export function nextId(draft: GameState, kind: string): string {
   if (!KIND.test(kind)) {
@@ -35,6 +36,11 @@ export function nextId(draft: GameState, kind: string): string {
   if (!Number.isSafeInteger(used) || (used as number) < 0) {
     // Recomeçar do um repetiria identificadores já dados: melhor parar.
     throw new Error(`Contador de identidades corrompido: ${kind}.`);
+  }
+  if ((used as number) >= Number.MAX_SAFE_INTEGER) {
+    // O seguinte já não é um inteiro seguro: a soma perderia a unidade, o mesmo identificador
+    // sairia duas vezes e a guarda de forma recusaria o estado gravado. Para antes de gravar.
+    throw new Error(`Contador de identidades esgotado: ${kind}.`);
   }
   const next = (used as number) + 1;
   draft.ids[kind] = next;

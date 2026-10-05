@@ -111,6 +111,22 @@ describe('nextId', () => {
   });
 });
 
+describe('o contador no limite dos inteiros seguros', () => {
+  it('dá o último identificador seguro e depois lança, sem gravar nem repetir', () => {
+    const state = gameWith((draft) => {
+      draft.ids = { hero: Number.MAX_SAFE_INTEGER - 1, caravan: 2 };
+    });
+    expect(nextId(state, 'hero')).toBe(`hero-${Number.MAX_SAFE_INTEGER}`);
+    expect(currentShape(throughBank(state), '')).toBeNull();
+    const frozen = JSON.stringify(state);
+    expect(() => nextId(state, 'hero')).toThrow('Contador de identidades esgotado: hero.');
+    expect(() => nextId(state, 'hero')).toThrow('Contador de identidades esgotado: hero.');
+    expect(JSON.stringify(state)).toBe(frozen);
+    // Os outros tipos seguem contando.
+    expect(nextId(state, 'caravan')).toBe('caravan-3');
+  });
+});
+
 describe('um identificador nunca se repete', () => {
   // Uma vida qualquer de entidades: nascer, sortear, terminar (com o fluxo apagado) e passar
   // pelo banco, em qualquer ordem, com tipos misturados. Só os tipos que são família de fluxo

@@ -237,7 +237,7 @@ A v0.3 é a primeira versão com entidades que nascem e morrem durante a partida
 nextId(draft, kind): string   // 'hero-1', 'hero-2', 'expedition-1'… Altera draft.ids
 ```
 
-- **Contador no estado:** `state.ids[kind]` guarda quantos identificadores daquele tipo já foram dados. É `{}` até a primeira entidade, como `rng`, e é JSON puro: salvar e recarregar continua a contagem. O tipo é um nome só de letras, começando por minúscula; outro lança erro, como um contador gravado que não é um inteiro a partir de zero.
+- **Contador no estado:** `state.ids[kind]` guarda quantos identificadores daquele tipo já foram dados. É `{}` até a primeira entidade, como `rng`, e é JSON puro: salvar e recarregar continua a contagem. O tipo é um nome só de letras, começando por minúscula; outro lança erro, como um contador gravado que não é um inteiro a partir de zero ou que já chegou ao maior inteiro seguro (`nextId` para antes de gravar, em vez de repetir o último identificador).
 - **Tipo e família de fluxo:** a entidade que sorteia no próprio fluxo tem como tipo o nome da família (`nextId(draft, 'expedition')` e `entityStream('expedition', id)`), e é o contador desse tipo que limita os fluxos que podem existir em `rng` (ver [Sorteios](#sorteios)).
 - **Nunca reutilizado:** o contador só sobe. A entidade que terminou leva o identificador com ela, e é isso que deixa apagar o fluxo de sorteio dela sem risco de ele renascer com a mesma sequência.
 - **Nunca relógio, UUID ou sorteio:** a mesma semente com as mesmas ordens nos mesmos instantes dá os mesmos identificadores, e criar uma entidade não gasta fluxo nenhum.
