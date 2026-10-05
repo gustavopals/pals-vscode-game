@@ -816,7 +816,7 @@ O jogo é uma página única que imita a bancada de um editor de código. Usa as
 | **Barra de atividades** (faixa de ícones à esquerda) | Alterna a barra lateral entre o Feudo, a Crônica e a Conta; o ícone do Feudo mostra o badge de novidades |
 | **Barra lateral / árvore** | Navegação, resumo e **badges** de pendências; ações nos itens |
 | **Área central, em abas** | Abas como as de arquivos de um editor: Hoje, Feudo e, nas versões seguintes, Mapa, Exército, Guilda, Conselho e Mercado. A Crônica abre em uma aba própria |
-| **Barra de status** | Uma linha, uma prioridade: cerco > decisões pendentes > obra > alerta de comida |
+| **Barra de status** | Uma linha, uma prioridade: cerco e incursão à vista > fome e frio > decisões pendentes > obra > alerta de comida (ADR 0016, item 8) |
 | **Notificações** | Avisos no canto inferior direito, com botões de ação; política configurável (§13.5) |
 | **Paleta de comandos** | Abre com `F1` ou `Ctrl+K`. Todas as ações principais como comandos `Lords: …`, com listas de escolha para alocar, construir, enviar expedição |
 | **Título e ícone da aba do navegador** | Nome do feudo e contador de novidades; no modo discreto, só um contador |

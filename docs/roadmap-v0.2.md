@@ -1067,11 +1067,11 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Depende de:** V2G-T1 (para não regravar os mesmos goldens duas vezes).
 
 - [x] V2G-T2.1 As duas escolhas de regra, respondidas pelo autor em 2026-10-05: a deserção **continua na virada do dia**, onde saem os aldeões que o prazo real já deve (dois por virada no Tranquilo); a fome que reabre com menos de **2 h reais** sem fome é a mesma. Falta só o plano de implementação.
-- [ ] V2G-T2.2 Conteúdo: carência e passo da deserção em milissegundos **reais**, convertidos com `settings.timeScale`, como `council.expiryRealMs`.
-- [ ] V2G-T2.3 Motor: a deserção na ordem do mesmo instante, com teste do instante exato; a fome que reabre dentro da janela guarda o início anterior.
-- [ ] V2G-T2.4 Versão 12 do estado e passo de migração (o campo que lembra quando a última fome acabou; o que mais o plano pedir). Partida em fome na fronteira: a contagem não recomeça nem salta.
-- [ ] V2G-T2.5 Visão e textos: o painel da moral e o aviso de fome dizem os prazos em tempo real; teste que reproduz o furo de C-4 e fica no repositório.
-- [ ] V2G-T2.6 Propriedade de divisão de intervalo rodada com fome, deserção e reabertura no caminho; goldens; GDD §5.6 e §12.1.
+- [x] V2G-T2.2 Conteúdo: carência e passo da deserção em milissegundos **reais**, convertidos com `settings.timeScale`, como `council.expiryRealMs`.
+- [x] V2G-T2.3 Motor: a deserção na ordem do mesmo instante, com teste do instante exato; a fome que reabre dentro da janela guarda o início anterior.
+- [x] V2G-T2.4 Versão 12 do estado e passo de migração (o campo que lembra quando a última fome acabou; o que mais o plano pedir). Partida em fome na fronteira: a contagem não recomeça nem salta.
+- [x] V2G-T2.5 Visão e textos: o painel da moral e o aviso de fome dizem os prazos em tempo real; teste que reproduz o furo de C-4 e fica no repositório.
+- [x] V2G-T2.6 Propriedade de divisão de intervalo rodada com fome, deserção e reabertura no caminho; goldens; GDD §5.6 e §12.1.
 
 **Partidas em andamento:** migram na primeira leitura. No Rápido a deserção fica três vezes mais lenta; no Normal nada muda; no Tranquilo fica duas vezes mais rápida que hoje.
 **Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e`; a matriz não mede fome (nenhum bot passa fome), então a prova é de teste do motor e de integração nos três ritmos.
@@ -1082,9 +1082,9 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Objetivo:** a antecedência do aviso é de 1 h real no nível 1 e de 2 h reais no nível 2, em qualquer ritmo (ADR 0016, item 4).
 **Depende de:** V2G-T2 (a mesma conversão de tempo real).
 
-- [ ] V2G-T3.1 Conteúdo: `watchtowerLevels[].warningRealMs`; o motor converte com o ritmo ao decidir o instante do aviso.
-- [ ] V2G-T3.2 Incursão já marcada ou já anunciada em partida em andamento: o que vale é o aviso que ainda não saiu; nenhum aviso sai duas vezes. Dizer no plano se pede versão nova do estado.
-- [ ] V2G-T3.3 A matriz QA-10 nos três ritmos; textos do painel da Ameaça e da obra da Torre; goldens; GDD §8.2.
+- [x] V2G-T3.1 Conteúdo: `watchtowerLevels[].warningRealMs`; o motor converte com o ritmo ao decidir o instante do aviso.
+- [x] V2G-T3.2 Incursão já marcada ou já anunciada em partida em andamento: o que vale é o aviso que ainda não saiu; nenhum aviso sai duas vezes. Dizer no plano se pede versão nova do estado.
+- [x] V2G-T3.3 A matriz QA-10 nos três ritmos; textos do painel da Ameaça e da obra da Torre; goldens; GDD §8.2.
 
 **Partidas em andamento:** no Rápido o aviso triplica; no Normal nada muda; no Tranquilo cai à metade (de 2 h e 4 h reais para 1 h e 2 h).
 **Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e 08-ameaca`.
@@ -1096,8 +1096,8 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Depende de:** nada.
 
 - [x] V2G-T4.1 Proposta por carta, com texto e números de antes e de depois, para o autor aprovar: a opção dura que vale mais que a neutra na primavera (pedreiros, poço, notícia da primavera); "Um teto antes do frio"; "Vigília entre vizinhos"; as pistas da promessa da Paliçada; as duas cartas que saem com o feudo em fome; a Ponte do Degelo; o Celeiro Comum.
-- [ ] V2G-T4.2 Aplicar só o aprovado. **Nenhum id de carta ou de opção muda** (o teste de `council.test.ts` do conteúdo fixa os publicados).
-- [ ] V2G-T4.3 Goldens, retratos da versão atual e a semente de cenário do Conselho, pela receita "Uma carta nova" do README do motor quando o sorteio mudar; `docs/content-v0.2.md` com as fichas atualizadas.
+- [x] V2G-T4.2 Aplicar só o aprovado. **Nenhum id de carta ou de opção muda** (o teste de `council.test.ts` do conteúdo fixa os publicados).
+- [x] V2G-T4.3 Goldens, retratos da versão atual e a semente de cenário do Conselho, pela receita "Uma carta nova" do README do motor quando o sorteio mudar; `docs/content-v0.2.md` com as fichas atualizadas.
 
 **Partidas em andamento:** carta já na mesa mostra o texto novo; efeito já aplicado não é refeito.
 **Verificação:** `pnpm verify`, `pnpm test:integration`, `pnpm test:e2e 07-conselho`, `SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`.
@@ -1109,7 +1109,7 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Depende de:** V2G-T1 e V2G-T2 (as frases citam depósitos e deserção).
 
 - [x] V2G-T5.1 Três descrições propostas ao autor e aprovadas; chegam à tela por `GET /v1/catalog`.
-- [ ] V2G-T5.2 As duas frases de recusa com a concordância certa, com os testes e goldens que as fixam.
+- [x] V2G-T5.2 As duas frases de recusa com a concordância certa, com os testes e goldens que as fixam.
 
 **Verificação:** `pnpm verify`, `pnpm test:integration catalog`, `pnpm test:e2e 01-entrada`.
 **Pronto quando:** nenhuma frase das boas-vindas promete o que a regra não faz.
@@ -1360,6 +1360,10 @@ Preencher ao fechar cada tarefa.
 
 ---
 | V2G-T6 (T6.1 a T6.3) | 2026-10-05 | `3ec85ef` | agente em árvore separada, conferido pela sessão principal | Barra de status e título: fome e frio na frente da decisão pendente (`statusTopic`). Botão da defesa: ordena a Paliçada só quando ela pode começar agora; em qualquer outro caso é "Ver a defesa", que leva ao painel da Ameaça, e nunca mais ordena a Torre (`defenseCommand`, usado por "Antes de partir" e pelo Relatório). Aba Feudo: Objetivos antes do painel da Ameaça. Escolhas do agente: a carta some da barra enquanto há fome ou frio, mas continua no contador do título, no ícone do Feudo, na árvore e na aba do Conselho; a linha "Hoje" da árvore continua com as decisões na frente. Quatro cenários de navegador novos ou alterados; a suíte passou com 95 de 95 junto com a V2G-T1 | A T6.4 (capturas da página de apresentação) fica para o fim da fase. O GDD §13.5 ainda dava a ordem antiga da barra (corrigido em V2G-T7). Só Chromium |
+| V2G-T2 | 2026-10-05 | `ffc6b68` | agente, conferido pela sessão principal | Deserção por fome em tempo real (12 h reais de carência, depois um aldeão a cada 2 h reais), cobrada na virada do dia: saem os devidos menos os que já saíram, e o que o piso impediu fica perdoado. A fome que reabre com menos de 2 h reais sem fome continua de onde parou; o tempo sem fome não conta. **Estado na versão 12**: `famine` guarda `carriedMs` e `deserted`, e `lastFamine` lembra a última fome que acabou; nenhum instante novo na linha do tempo. Passo 11 → 12: a partida em fome entra com a contagem que a regra nova teria cobrado na última virada até a fronteira. Medido nos testes: no ritmo 3 a primeira deserção vem entre 12 h reais e 12 h mais um dia de jogo, depois uma a cada três viradas; no 1, uma por virada, como antes; no 0,5, duas por virada. Teste permanente da manobra de C-4 nos três ritmos, pelo motor e pela API. Golden de 7 dias: só a forma do estado. Matriz do simulador idêntica byte a byte. Escolhas do agente: `VIEW_FORMAT` não subiu (a duração da fome na visão passou a incluir o que a fome retomada já tinha durado, o que não desmente nenhuma visão em cache); duas frases novas no painel da moral, com os prazos | Nenhum estado de produção passou pelo passo 11 → 12 antes da publicação: só retratos e estados montados em teste. A matriz não mede a deserção (nenhum bot passa fome). As duas frases novas da moral não foram lidas pelo autor |
+| V2G-T3 | 2026-10-05 | `bb7fe6a` | agente, conferido pela sessão principal | Aviso da Torre em tempo real: 1 h real no nível 1 e 2 h reais no nível 2 (`warningRealMs`), convertido pelo ritmo. Sem mudança na forma do estado. Partida em andamento: a incursão já anunciada continua à vista e não se repete; a ainda não anunciada, já dentro da janela nova, é anunciada no primeiro instante processado. O schema do conteúdo confere que o aviso cabe no prazo da incursão em todo ritmo oferecido. Matriz QA-10 nos três ritmos | **No Tranquilo, no inverno, com a Torre Nv1, a obra da Paliçada cabe no aviso sem folga nenhuma** (30 min de jogo de obra para 1 h real de aviso): só quem ordena no instante do alarme chega a tempo. Num ritmo acima de 3, fora dos oferecidos, a antecedência passaria do prazo da incursão. `08-ameaca` em navegador só no ritmo 1 |
+| V2G-T4 | 2026-10-05 | `070c7e5`, `cb22cba` | agente em árvore separada; junção e retratos pela sessão principal | Os sete problemas das cartas, com o texto e os números que o autor aprovou um a um (ADR 0016). Nenhum id mudou; nenhum modelo novo. Com as cartas entrando depois da versão 12, os retratos da 11 ficaram congelados com as cartas de antes e cinco da 12 foram regravados (`council`, `storage` e os três de fome, em que o sorteio muda porque duas cartas deixaram de sair com a moral abaixo de 40). Linha de base do simulador medida de novo (`docs/balance-v0.2.md`, seção 20): três células saíram da faixa antiga por uma semente em 50 cada (desperdício do Dedicado no Normal em Senhor, 3 → 5 h; ouro parado do Regular no Tranquilo; desperdício do Dedicado no ano do Rápido em Rei de Ferro, 15 → 18 h). A cobertura do Conselho não perdeu carta | O mesmo desequilíbrio da primavera existe em três cartas de verão e de outono, fora dos sete. O ausente de Rei de Ferro ainda pode sair com mais pedra em feudo pequeno. As tabelas da seção 4.2 de `docs/content-v0.2.md` já estavam velhas e não foram refeitas. Ninguém jogou com os textos novos |
+| V2G-T5 | 2026-10-05 | `48d92b2` | agente em árvore separada, conferido pela sessão principal | As três descrições das dificuldades aprovadas pelo autor. Concordância das recusas de obra pelo artigo do edifício no conteúdo: o agente corrigiu cinco frases da mesma tabela, não só as duas citadas | `plannedView.ts` ainda tem "as Habitações já está no nível máximo", texto de espera hoje inalcançável |
 
 ## 12. Conteúdo proposto: o primeiro lote do Conselho
 

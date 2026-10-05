@@ -10,12 +10,26 @@ A versão foi implementada por agentes de código entre a noite de 2026-10-01 e 
 
 O que esta versão **não** tem, dito antes de tudo: as regras são as premissas recomendadas do roadmap, **aplicadas por delegação** nos ADRs [0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), [0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md) e [0015](docs/decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md), e aguardam a confirmação do autor, decisão a decisão, em [`docs/pendencias-v0.2.md`](docs/pendencias-v0.2.md). As 21 cartas não foram lidas pelo autor. O autor não jogou nenhuma fase antes da seguinte, e nenhum playtest com outras pessoas aconteceu (nem o da v0.1, nem o da v0.2). O quadro dos critérios está em [`docs/acceptance-v0.2.md`](docs/acceptance-v0.2.md), com a prova automática de cada um e a coluna de evidência manual vazia; o roteiro para jogar em desenvolvimento, em [`docs/manual-test-v0.2.md`](docs/manual-test-v0.2.md).
 
+### Mudado em 2026-10-05, com as respostas do autor (Fase G)
+
+O autor respondeu às pendências com quatro dias de jogo em produção ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)). As regras deixam de valer "por delegação": estão confirmadas, com as mudanças abaixo. O estado do jogo sobe para a **versão 12**.
+
+- **Deserção por fome em tempo real**: 12 h reais de carência e depois um aldeão a cada 2 h reais, em qualquer ritmo, cobrados na virada do dia. No ritmo Rápido fica três vezes mais lenta; no Normal não muda; no Tranquilo saem dois por virada.
+- **A fome que reabre logo é a mesma**: se a fome volta com menos de 2 h reais sem fome, o prazo e a contagem continuam de onde estavam. Mandar todos à Fazenda e de volta deixou de zerar o prazo.
+- **Aviso da Torre de Vigia em tempo real**: 1 h real no nível 1 e 2 h reais no nível 2, em qualquer ritmo.
+- **Celeiro e Armazém guardam 1.000 no nível 1** (eram 900): em Senhor o Salão do Senhor nível 8 passa a caber no Armazém.
+- **O objetivo 4 volta a dar 50 de ouro**, além de desbloquear o Celeiro, o Armazém e a Torre de Vigia. Quem já o tinha cumprido não recebe o ouro depois.
+- **Sete correções nas cartas do Conselho**, com cada reescrita aprovada pelo autor: nas cartas da primavera a moral perdida dura mais e o poço custa menos; "Um teto antes do frio", "Vigília entre vizinhos", a Ponte do Degelo e o Celeiro Comum deixam de prometer o que a regra não dá; as pistas da Promessa da Paliçada ficam sem número; "Tábuas para as reservas" e "A notícia da primavera" não saem mais com a moral abaixo de 40. Nenhum id mudou.
+- **Descrições das dificuldades**: dizem o que o Conselho faz por quem falta ("decide sem cobrar nada do feudo" em Camponês e em Senhor; "escolhe o caminho mais duro" em Rei de Ferro).
+- **Recusas de obra com a concordância certa** ("As Habitações já estão em obras.").
+- **App**: a fome e o frio passam na frente da carta pendente na barra de status e no título; depois de uma incursão o botão é "Ver a defesa" quando a Paliçada não pode começar, e não ordena mais a Torre; na aba Feudo os Objetivos vêm antes do painel da Ameaça.
+
 ### Adicionado
 
 **Motor (`@lotg/engine`) e conteúdo (`@lotg/content`)**
 
 - **Dificuldade e ritmo por partida**: Camponês, Senhor e Rei de Ferro; Rápido (3×, recomendado), Normal (1×) e Tranquilo (0,5×). Gravados no estado na criação e imutáveis. Da dificuldade, três coisas mudam regra: o limite do estoque, a deserção por fome e a opção que o Conselho aplica quando uma carta expira (ADR 0013, decisões 2 e 2a; ADR 0014, decisão 9).
-- **Migração do estado por versão** (`migrateState`, `CURRENT_SCHEMA_VERSION`, `StateMigrationError`): um passo por versão, do 1 ao 11, cada um conferindo a forma exata da versão de que parte. A partida da v0.1 entra nas regras novas a partir de uma **fronteira** (`migratedAtMs`) e nada da ausência anterior é recalculado com regras que não existiam (ADR 0013, decisão 4). Retratos congelados de cada versão em `packages/engine/src/__fixtures__/`.
+- **Migração do estado por versão** (`migrateState`, `CURRENT_SCHEMA_VERSION`, `StateMigrationError`): um passo por versão, do 1 ao 12, cada um conferindo a forma exata da versão de que parte. A partida da v0.1 entra nas regras novas a partir de uma **fronteira** (`migratedAtMs`) e nada da ausência anterior é recalculado com regras que não existiam (ADR 0013, decisão 4). Retratos congelados de cada versão em `packages/engine/src/__fixtures__/`.
 - **Sorteios com semente** (`random.ts`: xoshiro128\*\* só com inteiros, fluxos nomeados `council`, `morale` e `horde`). O estado do gerador é gravado com a partida e nunca sai na visão; só `advanceTo` sorteia, em instantes da linha do tempo, e a divisão de intervalo continua exata com os sorteios no caminho.
 - **Estações com efeito**: fatores de produção por estação, obras iniciadas no inverno mais lentas, recrutamento ordenado na primavera mais rápido, prazos fixados quando nascem. No inverno a lareira queima madeira por habitante; sem madeira abre o **frio**, com produção e moral menores (GDD §4.1; ADR 0013, decisão 13).
 - **Armazenamento**: comida, madeira e pedra param no limite, que cresce com o **Celeiro** e o **Armazém** (Salão Nv2) e com o fator da dificuldade; o ouro não tem limite. O que não cabe é desperdício contado, e um custo que nenhum depósito comporta é recusado com `EXCEEDS_STORAGE` e a frase do que fazer. O estoque herdado acima do limite fica (GDD §5.5; ADR 0013, decisão 17).

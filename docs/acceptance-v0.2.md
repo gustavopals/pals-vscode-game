@@ -2,6 +2,8 @@
 
 Quadro dos seis critérios de aceitação do GDD §16.2 ([GAME_DESIGN.md](../GAME_DESIGN.md)) e dos cenários integrados QA-01 a QA-16 do [roadmap da v0.2](roadmap-v0.2.md) (§7.2), para a tarefa V2F-T2. Para cada linha: a prova automática que existe, o que ela não cobre e a evidência manual, **que o autor preenche durante o teste** (lição 7 do roadmap, §10). O passo a passo para jogar em desenvolvimento está em [manual-test-v0.2.md](manual-test-v0.2.md).
 
+> **Atualização de 2026-10-05.** O autor jogou quatro dias em produção, com outras pessoas jogando também, disse que até ali estava tudo bem e respondeu às pendências ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)); a Fase G aplicou as respostas e subiu o estado para a versão 12. **A coluna de evidência manual continua vazia**: ninguém registrou observação por critério, e este quadro não dá nenhum como aceito. Os nomes de teste citados abaixo foram conferidos em `b1b892a`; a Fase G mexeu em alguns (deserção, aviso da Torre, objetivo 4, capacidade), e quem for preencher deve conferi-los de novo.
+>
 > **Estado em 2026-10-02: nada foi aceito.** A v0.2 está implementada e publicada por fase no `main`, sem tag. Ninguém além dos agentes jogou a versão: a coluna de evidência manual está vazia em todas as linhas, de propósito. Aceitar um critério é do autor. As regras que os critérios exercitam valem por delegação (ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md)) e aguardam a confirmação dele em [pendencias-v0.2.md](pendencias-v0.2.md): uma resposta diferente pode mudar o que um critério quer dizer.
 
 ## Como ler e como preencher

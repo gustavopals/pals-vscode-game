@@ -23,7 +23,7 @@ O autor respondeu às dúvidas em sessão de perguntas, com quatro dias de jogo 
 | DE-15, ordem da aba Feudo | Objetivos antes do painel da Ameaça |
 | B-4 a B-15, C-6, C-9 a C-18, DE-9 a DE-18 | Confirmados em bloco, fora o que as linhas acima mudam |
 
-**Continuam em aberto:** B-2 (sessões na restauração de backup), os atos da seção 3 (backup externo, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão, playtest, tag e release) e a conferência dos dois defeitos de C-8 contra o commit `85a9373`. **Nada da tabela foi implementado ainda:** é o lote de correções da v0.2, que vem antes da v0.3.
+**Continuam em aberto:** B-2 (sessões na restauração de backup), os atos da seção 3 (backup externo, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão, playtest, tag e release) e a conferência dos dois defeitos de C-8 contra o commit `85a9373`. **Tudo o que a tabela muda foi implementado em 2026-10-05**, na Fase G do roadmap (§6b; o Registro de execução, §11, diz o que cada tarefa fez e o que não foi verificado). As reescritas das cartas e das dificuldades foram aprovadas pelo autor uma a uma, com o antes e o depois na tela (ADR 0016).
 
 ## 1. O mais importante
 
