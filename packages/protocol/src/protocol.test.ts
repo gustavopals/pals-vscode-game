@@ -109,6 +109,7 @@ describe('CommandSchema', () => {
       type: 'answerCard',
       payload: { instanceId: 'collapsedWell-3', optionId: 'repair' },
     },
+    { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-2' } },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -215,6 +216,27 @@ describe('CommandSchema', () => {
         type: 'answerCard',
         payload: { instanceId: 'collapsedWell-3', optionId: 'repair', gold: 100 },
       },
+    ],
+    ['dispensa sem dizer de quem', { commandId: uuid, type: 'dismissHero', payload: {} }],
+    [
+      'dispensa de um herói sem identificador',
+      { commandId: uuid, type: 'dismissHero', payload: { heroId: '' } },
+    ],
+    [
+      'dispensa com o herói que não é texto',
+      { commandId: uuid, type: 'dismissHero', payload: { heroId: 2 } },
+    ],
+    [
+      'dispensa com um identificador grande demais',
+      { commandId: uuid, type: 'dismissHero', payload: { heroId: 'x'.repeat(61) } },
+    ],
+    [
+      'dispensa com caractere de controle',
+      { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-1\u0000' } },
+    ],
+    [
+      'dispensa com devolução pedida',
+      { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-1', refund: true } },
     ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);

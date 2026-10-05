@@ -1,5 +1,6 @@
 import type {
   Account,
+  ApiError,
   AuthResponse,
   CommandAccepted,
   DeleteMeResponse,
@@ -15,10 +16,12 @@ import {
   countRows,
   createTestApp,
   DAY,
+  enlistHeroes,
   HOUR,
   MINUTE,
   newPlayer,
   order,
+  quietHorde,
   renew,
   send,
   type TestApp,
@@ -252,6 +255,146 @@ describe('reiniciar o servidor no meio do dia', () => {
       `game_id = '${player.game.id}' and kind = 'constructionFinished'`,
     );
     expect(finished).toBe(1);
+  });
+});
+
+describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
+  it('o reenvio devolve o recibo, o herói sai uma vez só e o soldo cai uma vez só', async () => {
+    const player = await newPlayer(server, 'Edda');
+    const gameId = player.game.id;
+    await quietHorde(server, gameId);
+    await enlistHeroes(server, gameId, [
+      { name: 'Edda', traits: ['loyal'] },
+      { name: 'Rolf', classId: 'archer' },
+    ]);
+    const goldOf = async () => {
+      const { view } = await viewOf(server, player.token, gameId);
+      return view.resources.find((row) => row.id === 'gold');
+    };
+    // O servidor de teste roda no ritmo 1: dois heróis, 4 de ouro por hora.
+    expect((await goldOf())?.breakdown).toMatch(/−4\/h \(soldo de 2 heróis\)$/);
+    expect((await goldOf())?.perHour).toBe(-4);
+
+    server.clock.advance(30 * MINUTE);
+    await renew(server, player);
+    const dismissal = order('dismissHero', { heroId: 'hero-2' });
+    const original = await send<CommandAccepted>(server, player.token, gameId, dismissal);
+    expect(original.status).toBe(200);
+    expect(original.headers['x-lords-replayed']).toBeUndefined();
+    expect(original.body.events.map((event) => [event.type, event.text, event.data])).toEqual([
+      [
+        'heroDismissed',
+        'No 1º dia da Primavera, o senhor de Pedra Alta dispensou Rolf.',
+        { heroId: 'hero-2', heroes: 1 },
+      ],
+    ]);
+    // Meia hora de soldo dos dois saiu do cofre (250 − 2), e dali em diante só um recebe.
+    const gold = original.body.view.resources.find((row) => row.id === 'gold');
+    expect(gold).toMatchObject({ stock: 248, perHour: -2 });
+    expect(gold?.breakdown).toMatch(/−2\/h \(soldo de 1 herói\)$/);
+
+    // O duplo clique: a mesma ordem, com o mesmo commandId, devolve o recibo sem reaplicar.
+    server.clock.advance(10 * MINUTE);
+    const replay = await send<CommandAccepted>(server, player.token, gameId, dismissal);
+    expect(replay.status).toBe(200);
+    expect(replay.headers['x-lords-replayed']).toBe('true');
+    expect(replay.body).toEqual(original.body);
+
+    // A outra aba, com a visão velha: outro commandId para o mesmo herói. O motor recusa.
+    const other = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('dismissHero', { heroId: 'hero-2' }),
+    );
+    expect(other.status).toBe(422);
+    const message = 'Esse herói já não está a serviço do feudo.';
+    expect(other.body).toMatchObject({
+      code: 'GAME_RULE',
+      message,
+      details: { code: 'HERO_NOT_FOUND', message },
+    });
+
+    // O mesmo commandId para outro herói é conflito, e a Edda continua no feudo.
+    const conflict = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('dismissHero', { heroId: 'hero-1' }, dismissal.commandId),
+    );
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.code).toBe('COMMAND_ID_CONFLICT');
+
+    const { rows } = await server.pool.query<{
+      heroes: Array<{ id: string }>;
+      issued: number;
+    }>(
+      `select state -> 'guild' -> 'heroes' as heroes, (state -> 'ids' ->> 'hero')::int as issued
+         from games where id = $1`,
+      [gameId],
+    );
+    expect(rows[0]?.heroes.map((hero) => hero.id)).toEqual(['hero-1']);
+    // O identificador do herói dispensado não volta.
+    expect(rows[0]?.issued).toBe(2);
+    // Um recibo só (a recusa e o conflito não deixam recibo de ordem aceita) e uma linha só.
+    expect(
+      await countRows(
+        server.pool,
+        'commands',
+        `game_id = '${gameId}' and type = 'dismissHero' and response_status = 200`,
+      ),
+    ).toBe(1);
+    expect(
+      await countRows(
+        server.pool,
+        'game_events',
+        `game_id = '${gameId}' and kind = 'heroDismissed'`,
+      ),
+    ).toBe(1);
+    expect((await goldOf())?.perHour).toBe(-2);
+  });
+
+  it('com o cofre vazio o atraso abre, a Crônica conta, e dispensar o último herói fecha a conta', async () => {
+    const player = await newPlayer(server, 'Rolf');
+    const gameId = player.game.id;
+    await quietHorde(server, gameId);
+    await enlistHeroes(server, gameId, [{ name: 'Rolf', classId: 'archer' }]);
+    // 250 de ouro, 2 por hora: 125 h de jogo. Seis dias depois o cofre está vazio há 19 h.
+    server.clock.advance(6 * DAY);
+    await renew(server, player);
+    const events = await call<EventsResponse>(server, 'GET', `/games/${gameId}/events?limit=200`, {
+      token: player.token,
+    });
+    expect(events.status).toBe(200);
+    const told = events.body.events.filter((event) => /^(wageArrears|hero)/.test(event.type));
+    expect(told.map((event) => [event.type, event.atMs])).toEqual([
+      ['wageArrearsStarted', 125 * HOUR],
+      // Descontente na primeira virada com 12 h reais de atraso: 137 h, a virada das 138 h.
+      ['heroDiscontent', 138 * HOUR],
+    ]);
+    const chronicle = await call<{ entries: Array<{ text: string }> }>(
+      server,
+      'GET',
+      `/games/${gameId}/chronicle`,
+      { token: player.token },
+    );
+    expect(chronicle.status).toBe(200);
+    expect(JSON.stringify(chronicle.body)).toContain(
+      'o cofre de Pedra Alta ficou vazio: já não há com que pagar o soldo dos heróis.',
+    );
+
+    const dismissed = await send<CommandAccepted>(
+      server,
+      player.token,
+      gameId,
+      order('dismissHero', { heroId: 'hero-1' }),
+    );
+    expect(dismissed.status).toBe(200);
+    expect(dismissed.body.events.map((event) => event.type)).toEqual([
+      'heroDismissed',
+      'wageArrearsEnded',
+    ]);
+    expect(dismissed.body.events[1]?.data).toMatchObject({ reason: 'noHeroes' });
   });
 });
 

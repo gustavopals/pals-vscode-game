@@ -174,13 +174,17 @@ describe('divisão de intervalo com heróis, soldo e atraso no caminho', () => {
     );
   });
 
-  it('vale com ordens no meio: gastar ouro em um instante qualquer', () => {
+  it('vale com ordens no meio: dispensar um herói e gastar ouro em um instante qualquer', () => {
     fc.assert(
       fc.property(scenario, (plan) => {
         const start = prepare(plan);
         const t1 = start.lastProcessedAt + Math.round(plan.firstRealMs * plan.timeScale);
         let state = advanceTo(start, t1).state;
+        const target = state.guild.heroes[plan.dismiss % Math.max(1, state.guild.heroes.length)];
         const orders: Command[] = [command('recruitVillagers', { quantity: 1 })];
+        if (target !== undefined) {
+          orders.unshift(command('dismissHero', { heroId: target.id }));
+        }
         for (const order of orders) {
           const result = applyCommand(state, order, t1);
           if (result.ok) {

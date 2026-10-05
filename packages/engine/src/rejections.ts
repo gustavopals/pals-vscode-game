@@ -102,6 +102,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `remedy` é o que a opção exige, sem ponto: "requer o Celeiro".
   OPTION_LOCKED: ({ remedy = 'falta o que ela exige' }) =>
     `Essa opção ainda está fora do alcance do feudo: ${remedy}.`,
+  // Os heróis (GDD §9.1). O herói da ordem já não serve ao feudo: partiu sem soldo, ou foi
+  // dispensado em outra aba.
+  HERO_NOT_FOUND: () => 'Esse herói já não está a serviço do feudo.',
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

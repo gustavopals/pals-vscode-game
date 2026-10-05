@@ -4,7 +4,8 @@ import { emit } from './chronicle';
 import { nextDayBoundary } from './clock';
 import { goldCoversWages, goldRunsOutIn } from './economy';
 import { isAtHome, isLoyal, wageRate } from './heroes';
-import type { GameEvent, GameState, Hero } from './types';
+import { reject } from './rejections';
+import type { GameEvent, GameState, Hero, Rejection } from './types';
 import { realToGameMs } from './units';
 
 /**
@@ -277,4 +278,35 @@ export function nextWageDepartureAt(state: GameState): number | null {
 function firstTurnFrom(state: GameState, dueAt: number): number {
   const next = nextDayBoundary(state.lastProcessedAt);
   return dueAt <= next ? next : nextDayBoundary(dueAt - 1);
+}
+
+/**
+ * A ordem de dispensar um herói (GDD §9.1; ADR 0017, decisão 3): sempre possível, sem devolução
+ * de ouro. Com o soldo em atraso, pode ser o que fecha a conta: `settleScarcity` confere depois
+ * de toda ordem, e a dispensa não conta como herói cobrado pelo prazo.
+ *
+ * Nesta fase todo herói está no feudo. A recusa de quem está fora (`HERO_BUSY`) entra com a
+ * primeira tarefa que tira um herói do feudo, na Fase D.
+ */
+export function dismissHero(
+  draft: GameState,
+  heroId: unknown,
+  nowMs: number,
+  events: GameEvent[],
+): Rejection | null {
+  const { guild } = draft;
+  const hero = guild.heroes.find((entry) => entry.id === heroId);
+  if (hero === undefined) {
+    return reject('HERO_NOT_FOUND');
+  }
+  guild.heroes = guild.heroes.filter((entry) => entry.id !== hero.id);
+  emit(
+    events,
+    draft,
+    nowMs,
+    'heroDismissed',
+    { heroId: hero.id, heroes: guild.heroes.length },
+    { heroi: hero.name },
+  );
+  return null;
 }

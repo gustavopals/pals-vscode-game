@@ -418,7 +418,9 @@ export type Command =
       type: 'answerCard';
       /** `instanceId` é a ocorrência que a tela mostrava; `optionId`, a opção escolhida. */
       payload: { instanceId: string; optionId: string };
-    };
+    }
+  /** Dispensa um herói que está no feudo, sem devolução (GDD §9.1). `heroId` é o da visão. */
+  | { commandId: string; type: 'dismissHero'; payload: { heroId: string } };
 
 export type CommandType = Command['type'];
 
@@ -447,6 +449,7 @@ export const REJECTION_CODES = [
   'CARD_EXPIRED',
   'INVALID_OPTION',
   'OPTION_LOCKED',
+  'HERO_NOT_FOUND',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 

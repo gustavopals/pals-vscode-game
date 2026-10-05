@@ -4,6 +4,7 @@ import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { describeAmounts, reject } from './rejections';
 import {
+  addHero,
   accept,
   apply,
   command,
@@ -148,6 +149,7 @@ describe('catálogo de recusas', () => {
     }),
     'collapsedWell',
   );
+  const staffed = gameWith((draft) => void addHero(draft));
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
@@ -189,6 +191,8 @@ describe('catálogo de recusas', () => {
       hungry.state,
       command('answerCard', { instanceId: hungry.instanceId, optionId: 'feast' }),
     ],
+    // O feudo tem a Edda (`hero-1`); a ordem fala de um herói que já partiu.
+    HERO_NOT_FOUND: [staffed, command('dismissHero', { heroId: 'hero-2' })],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

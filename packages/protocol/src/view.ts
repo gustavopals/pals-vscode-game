@@ -40,6 +40,7 @@ export const REJECTION_CODES = [
   'CARD_EXPIRED',
   'INVALID_OPTION',
   'OPTION_LOCKED',
+  'HERO_NOT_FOUND',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;

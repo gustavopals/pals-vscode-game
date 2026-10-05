@@ -3,7 +3,18 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { goldCoversWages, goldRunsOutIn, netRates } from './economy';
-import { accept, addHero, command, DAY, gameAt, HOUR, MINUTE, roomy, starve } from './test-helpers';
+import {
+  accept,
+  addHero,
+  command,
+  DAY,
+  gameAt,
+  HOUR,
+  MINUTE,
+  refuse,
+  roomy,
+  starve,
+} from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
 import { deriveViewState } from './view';
@@ -566,6 +577,110 @@ describe('o atraso que reabre logo é o mesmo', () => {
       departed: 1,
     });
     expect(wageArrearsDurationAt(spent.state, 25 * HOUR)).toBe(lasted);
+  });
+});
+
+describe('dispensar um herói (dismissHero)', () => {
+  const start = court(1, (draft) => {
+    draft.settlement.resources.gold = 30_000;
+    addHero(draft, { name: 'Edda', traits: ['loyal'] });
+    addHero(draft, { name: 'Rolf' });
+    addHero(draft, { name: 'Brann' });
+  });
+
+  it('tira o herói do feudo na hora, sem devolver ouro, e o soldo cai no mesmo instante', () => {
+    const at = advanceTo(start, 90 * MINUTE).state;
+    const gold = at.settlement.resources.gold;
+    const { state, events } = accept(at, command('dismissHero', { heroId: 'hero-2' }));
+    expect(events).toEqual([
+      {
+        type: 'heroDismissed',
+        atMs: 90 * MINUTE,
+        text: 'No 1º dia da Primavera, o senhor de Pedra Alta dispensou Rolf.',
+        data: { heroId: 'hero-2', heroes: 2 },
+      },
+    ]);
+    expect(state.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1', 'hero-3']);
+    expect(state.settlement.resources.gold).toBe(gold);
+    expect(netRates(state).gold).toBe(-4_000);
+    // O identificador não volta: o próximo herói é o quarto.
+    expect(state.ids).toEqual({ hero: 3 });
+    // A Leal pode ser dispensada como qualquer outro.
+    const alone = accept(state, command('dismissHero', { heroId: 'hero-1' }));
+    expect(alone.state.guild.heroes.map((hero) => hero.name)).toEqual(['Brann']);
+  });
+
+  it('recusa o herói que não está a serviço do feudo, sem mexer em nada, e não confia no payload', () => {
+    const expected = {
+      code: 'HERO_NOT_FOUND',
+      message: 'Esse herói já não está a serviço do feudo.',
+    };
+    expect(refuse(start, command('dismissHero', { heroId: 'hero-9' }))).toEqual(expected);
+    expect(refuse(start, command('dismissHero', { heroId: 'Rolf' }))).toEqual(expected);
+    const bogus = { heroId: 2 } as unknown as { heroId: string };
+    expect(refuse(start, command('dismissHero', bogus))).toEqual(expected);
+    const empty = {} as unknown as { heroId: string };
+    expect(refuse(start, command('dismissHero', empty))).toEqual(expected);
+    // Dispensado uma vez, a segunda ordem (outra aba, com outro commandId) é recusada.
+    const once = accept(start, command('dismissHero', { heroId: 'hero-2' })).state;
+    expect(refuse(once, command('dismissHero', { heroId: 'hero-2' }))).toEqual(expected);
+  });
+
+  it('durante o atraso: dispensar não conta como herói cobrado, e o prazo continua para os outros', () => {
+    // O ouro acaba às 5 h de jogo; às 18 h os dois que não são Leais já estão Descontentes.
+    const open = advanceTo(start, 18 * HOUR + 7 * MINUTE).state;
+    expect(open.guild.wageArrears).toEqual({ sinceMs: 5 * HOUR, carriedMs: 0, departed: 0 });
+    expect(open.guild.heroes.map((hero) => hero.discontent)).toEqual([false, true, true]);
+    const { state, events } = accept(open, command('dismissHero', { heroId: 'hero-3' }));
+    expect(brief(events)).toEqual([['heroDismissed', 18 * HOUR + 7 * MINUTE, 'hero-3']]);
+    expect(state.guild.wageArrears).toEqual({ sinceMs: 5 * HOUR, carriedMs: 0, departed: 0 });
+    // Com 24 h de atraso (às 29 h; a virada é a das 30 h) parte o primeiro devido: Rolf.
+    expect(nextWageDepartureAt(state)).toBe(30 * HOUR);
+    const end = advanceTo(state, 30 * HOUR);
+    expect(brief(end.events)).toEqual([['heroLeft', 30 * HOUR, 'hero-2']]);
+    expect(end.state.guild.wageArrears?.departed).toBe(1);
+    expect(end.state.guild.heroes.map((hero) => hero.name)).toEqual(['Edda']);
+  });
+
+  it('durante o atraso: dispensar o último herói fecha a conta, e dispensar até a Mina cobrir o soldo também', () => {
+    const open = advanceTo(start, 18 * HOUR + 7 * MINUTE).state;
+    let state = open;
+    const types: string[] = [];
+    for (const heroId of ['hero-1', 'hero-2', 'hero-3']) {
+      const step = accept(state, command('dismissHero', { heroId }));
+      state = step.state;
+      types.push(...step.events.map((event) => event.type));
+    }
+    expect(types).toEqual(['heroDismissed', 'heroDismissed', 'heroDismissed', 'wageArrearsEnded']);
+    expect(state.guild).toEqual({
+      heroes: [],
+      wageArrears: null,
+      lastWageArrears: {
+        endedAtMs: 18 * HOUR + 7 * MINUTE,
+        lastedMs: 13 * HOUR + 7 * MINUTE,
+        departed: 0,
+      },
+    });
+    // Sem herói não há soldo: nada mais acontece, por mais que o tempo passe.
+    expect(guildEvents(advanceTo(state, 200 * HOUR).events)).toEqual([]);
+
+    // Com um mineiro (uns 4 por hora), três heróis não se pagam; dispensado um, o saldo fica
+    // positivo e o atraso fecha na hora, pago, com os outros dois de volta ao ânimo.
+    const mined = court(1, (draft) => {
+      draft.settlement.workers.goldMine = 1;
+      addHero(draft);
+      addHero(draft);
+      addHero(draft);
+    });
+    const sour = advanceTo(mined, 13 * HOUR).state;
+    expect(sour.guild.heroes.map((hero) => hero.discontent)).toEqual([true, true, true]);
+    const relieved = accept(sour, command('dismissHero', { heroId: 'hero-1' }));
+    expect(brief(relieved.events)).toEqual([
+      ['heroDismissed', 13 * HOUR, 'hero-1'],
+      ['wageArrearsEnded', 13 * HOUR],
+    ]);
+    expect(guildEvents(relieved.events).at(-1)?.data).toMatchObject({ reason: 'paid' });
+    expect(relieved.state.guild.heroes.map((hero) => hero.discontent)).toEqual([false, false]);
   });
 });
 

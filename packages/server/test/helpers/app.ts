@@ -235,6 +235,48 @@ export async function quietHorde(target: TestApp, gameId: string): Promise<void>
   }
 }
 
+/** Um herói de teste, como `enlistHeroes` o grava: só o que não é igual para todos. */
+export type TestHero = {
+  name: string;
+  classId?: 'warrior' | 'archer' | 'mage' | 'cleric';
+  traits?: string[];
+};
+
+/**
+ * Põe heróis em uma partida de teste recém-criada, como uma carta ou a Taverna vão pôr
+ * (V3C-T3 e V3C-T2): por enquanto nenhuma ordem e nenhum evento dão um herói a ninguém. Os
+ * identificadores são `hero-1`, `hero-2`…, e o contador de identidades fica em dia. O estado é
+ * reescrito direto no banco: chame logo depois de criar a partida, antes de qualquer leitura.
+ */
+export async function enlistHeroes(
+  target: TestApp,
+  gameId: string,
+  heroes: readonly TestHero[],
+): Promise<void> {
+  const roster = heroes.map((hero, index) => ({
+    id: `hero-${index + 1}`,
+    name: hero.name,
+    classId: hero.classId ?? 'warrior',
+    level: 1,
+    xp: 0,
+    traits: hero.traits ?? [],
+    status: 'idle',
+    joinedAtMs: 0,
+    discontent: false,
+  }));
+  const { rowCount } = await target.pool.query(
+    `update games
+        set state = jsonb_set(
+              jsonb_set(state, '{guild,heroes}', $2::jsonb),
+              '{ids,hero}', $3::jsonb)
+      where id = $1 and state -> 'guild' -> 'heroes' = '[]'::jsonb`,
+    [gameId, JSON.stringify(roster), JSON.stringify(roster.length)],
+  );
+  if (rowCount !== 1) {
+    throw new Error('A partida do teste não está no banco, ou já tem heróis.');
+  }
+}
+
 /**
  * Renova os tokens de um jogador depois de o relógio de teste passar dos 15 minutos do access
  * token. Atualiza o próprio objeto e devolve o access token novo.

@@ -16,6 +16,7 @@ import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import { announceFilled, fullStores } from './storage';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
+import { dismissHero } from './wages';
 
 function renameSettlement(
   draft: GameState,
@@ -60,6 +61,8 @@ function dispatch(
       return renameSettlement(draft, payload.name, nowMs, events);
     case 'answerCard':
       return answerCard(draft, payload.instanceId, payload.optionId, nowMs, events);
+    case 'dismissHero':
+      return dismissHero(draft, payload.heroId, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

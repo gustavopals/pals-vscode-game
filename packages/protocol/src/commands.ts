@@ -67,6 +67,16 @@ export const AnswerCardCommandSchema = command(
   }),
 );
 
+/**
+ * A dispensa de um herói. `heroId` é o identificador que a visão mostrava (`guild.heroes[].id`).
+ * O protocolo só confere que é um texto de tamanho razoável; se o herói ainda serve ao feudo é
+ * com o motor.
+ */
+export const DismissHeroCommandSchema = command(
+  'dismissHero',
+  z.strictObject({ heroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE) }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -78,6 +88,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   RecruitVillagersCommandSchema,
   RenameSettlementCommandSchema,
   AnswerCardCommandSchema,
+  DismissHeroCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];
