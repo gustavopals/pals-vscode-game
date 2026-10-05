@@ -15,21 +15,32 @@ const API = 'http://127.0.0.1:3190';
 const LANDING = 'http://localhost:4174';
 const MINUTE = 60_000;
 
-// A janela larga do herói e a estreita dos celulares, em pixels de CSS; as capturas saem em 2×.
-const WIDE = { width: 1040, height: 480 };
-const NARROW = { width: 480, height: 520 };
+/*
+ * A janela larga do herói e a estreita dos celulares, em pixels de CSS; as capturas saem em 2×.
+ * A larga é alta o bastante para a árvore lateral aparecer inteira, com os objetivos abertos como
+ * um jogador novo os vê, e ainda sobrar abaixo dela a faixa em que a página põe o rótulo da barra
+ * de status; a estreita mostra os quatro ofícios e corta antes do título seguinte. Se uma delas
+ * mudar, mudam juntos `width` e `height` da imagem em packages/landing/index.html.
+ */
+const WIDE = { width: 1040, height: 720 };
+const NARROW = { width: 480, height: 780 };
 
 /**
  * Onde ficam, em % da captura larga, os cinco pedaços da tela que a página rotula. As posições
  * dos rótulos em packages/landing/src/styles/page.css foram escolhidas para esta disposição: se
  * a tela do jogo mudar, esta conferência falha e as posições precisam ser revistas.
+ *
+ * Cada pedaço é medido pela parte que aparece na captura, acima da barra de status. A lista dos
+ * trabalhadores continua para baixo da dobra: a altura de `steppers` vai do primeiro ofício até
+ * a barra. A árvore hoje cabe inteira; se crescer até a barra, a altura dela muda e a conferência
+ * falha, porque o rótulo da barra de status ocupa a faixa livre abaixo da árvore.
  */
 const REGIONS = {
-  tree: { x: 4.6, y: 7.2, w: 28.7, h: 62.1 },
-  table: { x: 35, y: 30.1, w: 30.2, h: 27 },
-  steppers: { x: 35, y: 70.9, w: 30.2, h: 24.6 },
-  work: { x: 68.3, y: 30.1, w: 30.2, h: 17.4 },
-  status: { x: 0, y: 94.8, w: 100, h: 5.2 },
+  tree: { x: 4.6, y: 4.8, w: 28.8, h: 84.4 },
+  table: { x: 35, y: 25.8, w: 30.2, h: 18 },
+  steppers: { x: 35, y: 60.8, w: 30.2, h: 35.8 },
+  work: { x: 68.3, y: 25.8, w: 30.2, h: 11.6 },
+  status: { x: 0, y: 96.5, w: 100, h: 3.5 },
 } as const;
 const TOLERANCE = 1.5;
 
@@ -124,23 +135,30 @@ test('jogo: a aba Feudo, larga e estreita, e a barra de status no modo discreto'
   await shoot(page, 'jogo-feudo');
 
   // As cinco regiões rotuladas continuam onde a folha de estilos da página espera?
-  const box = async (selector: string) => {
+  const STATUS_BAR = 'footer[aria-label="Barra de status"]';
+  const rectOf = async (selector: string) => {
     const rect = await page.locator(selector).first().boundingBox();
     if (rect === null) throw new Error(`A captura não tem ${selector}.`);
-    const percent = (value: number, total: number) => Math.round((value / total) * 1000) / 10;
+    return rect;
+  };
+  const percent = (value: number, total: number) => Math.round((value / total) * 1000) / 10;
+  /** O pedaço em % da captura, cortado em `floor`: o que passa dali para baixo não aparece. */
+  const box = async (selector: string, floor: number) => {
+    const rect = await rectOf(selector);
     return {
       x: percent(rect.x, WIDE.width),
       y: percent(rect.y, WIDE.height),
       w: percent(rect.width, WIDE.width),
-      h: percent(rect.height, WIDE.height),
+      h: percent(Math.min(rect.y + rect.height, floor) - rect.y, WIDE.height),
     };
   };
+  const fold = (await rectOf(STATUS_BAR)).y;
   const measured = {
-    tree: await box('[role="tree"]'),
-    table: await box('[role="tabpanel"] table'),
-    steppers: await box('.workers'),
-    work: await box('.active-construction'),
-    status: await box('footer[aria-label="Barra de status"]'),
+    tree: await box('[role="tree"]', fold),
+    table: await box('[role="tabpanel"] table', fold),
+    steppers: await box('.workers', fold),
+    work: await box('.active-construction', fold),
+    status: await box(STATUS_BAR, WIDE.height),
   };
   for (const [name, expected] of Object.entries(REGIONS)) {
     const found = measured[name as keyof typeof REGIONS];

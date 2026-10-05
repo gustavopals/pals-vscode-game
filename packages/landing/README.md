@@ -77,11 +77,13 @@ pnpm dev:up              # o roteiro usa o db_test; não rode junto com test:e2e
 pnpm capture:landing     # tests/landing/capture/: PNG em packages/landing/test-results/capture/
 ```
 
-O roteiro confere se os cinco pedaços rotulados da tela continuam onde `page.css` espera; se a tela do jogo mudar de disposição, ele falha e as posições dos rótulos precisam ser revistas. Depois de rodar:
+São três imagens, todas em 2×: a aba Feudo em uma janela de 1040 × 720 (`jogo-feudo`, a do herói), a mesma aba em 480 × 780 (`jogo-feudo-estreito`, a dos celulares) e a barra de status no modo discreto (`jogo-discreto-barra`). A janela larga tem a altura em que a árvore lateral aparece inteira e ainda sobra, abaixo dela, a faixa em que fica o rótulo da barra de status; a lista dos trabalhadores e a das construções continuam para baixo da dobra. Os tamanhos estão no começo do roteiro e, em dobro, no `width` e no `height` das imagens em `index.html`: mudam juntos.
 
-1. Converter os três PNG para WebP sem perda, com o mesmo nome, em `src/assets/` (por exemplo `magick jogo-feudo.png -define webp:lossless=true jogo-feudo.webp`). O repositório não tem ferramenta de imagem: a conversão é feita à mão.
+O roteiro confere se os cinco pedaços rotulados da tela (`REGIONS`: árvore, tabela de recursos, trabalhadores, obra em andamento e barra de status) continuam onde `page.css` espera, cada um medido pela parte que aparece acima da barra de status; se a tela do jogo mudar de disposição, ele falha e as posições dos rótulos precisam ser revistas. Na disposição de hoje a árvore enche a coluna: o rótulo dela fica no cabeçalho da barra lateral, e o fio do rótulo dos trabalhadores desce pelas linhas de explicação até os botões. Depois de rodar:
+
+1. Converter os três PNG para WebP sem perda, com o mesmo nome, em `src/assets/` (por exemplo `magick jogo-feudo.png -define webp:lossless=true jogo-feudo.webp`). O repositório não tem ferramenta de imagem: a conversão é feita à mão. Faça isso antes do passo 3: `pnpm test:e2e:landing` esvazia `packages/landing/test-results/`, com os PNG dentro.
 2. Rodar `pnpm capture:landing -g prévia` de novo, para a imagem da prévia do link (`public/og.png`) usar a captura nova.
-3. Olhar o resultado: `pnpm test:e2e:landing` grava a página inteira em `packages/landing/test-results/`.
+3. Olhar o resultado: `pnpm test:e2e:landing` grava a página inteira em `packages/landing/test-results/`. A captura da página inteira sai com os rótulos de "quem passa vê"; os de "quem governa vê" só se conferem abrindo a página (`pnpm dev:landing`) em uma janela de 68rem ou mais.
 
 A pintura das estações vem de `docs/assets/readme/seasons.png`, redimensionada para 2143, 1400 e 900 px de largura e gravada em AVIF e WebP. A pasta `docs/` não entra no contexto do Docker: o que a página usa precisa estar neste pacote.
 

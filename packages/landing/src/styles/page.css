@@ -260,7 +260,7 @@ figcaption,
 /*
  * Telas largas: os rótulos ficam presos à captura e o interruptor troca a leitura. É só CSS:
  * dois botões de opção antes da figura. As posições são porcentagens da captura
- * (src/assets/jogo-feudo.webp, 1040 × 480); se ela for refeita com outra disposição, reveja.
+ * (src/assets/jogo-feudo.webp, 1040 × 720); se ela for refeita com outra disposição, reveja.
  * Abaixo de 68rem a captura fica pequena demais para a gótica dos rótulos ser lida.
  */
 @media (min-width: 60rem) {
@@ -400,20 +400,23 @@ figcaption,
     background: var(--gold);
   }
 
-  /* Árvore lateral: 4,6% a 33,3% na horizontal, 7% a 69% na vertical. */
+  /*
+   * Árvore lateral: 4,6% a 33,4% na horizontal, 4,8% a 89,2% na vertical. Ela enche a coluna:
+   * o rótulo fica no cabeçalho da barra lateral, à direita do título, encostado no topo dela.
+   */
   .label-tree {
-    top: 71.5%;
-    left: 7.5%;
+    top: 0.2%;
+    left: 11.5%;
   }
 
   .label-tree::before {
-    bottom: 100%;
-    height: 3cqw;
+    top: 100%;
+    height: 0.4cqw;
   }
 
-  /* Tabela de recursos: 35% a 65%, 30% a 57%. */
+  /* Tabela de recursos: 35% a 65,2%, 25,8% a 43,8%. */
   .label-table {
-    top: 22.6%;
+    top: 20.7%;
     left: 46%;
   }
 
@@ -422,20 +425,26 @@ figcaption,
     height: 0.9cqw;
   }
 
-  /* Contadores dos trabalhadores: 35% a 65%, 71% a 95%. */
+  /*
+   * Contadores dos trabalhadores: 35% a 65,2%, de 60,8% até a barra de status; os botões ficam
+   * de 49,8% a 57,1% na horizontal. O rótulo fica ao lado do título da seção, e o fio desce até
+   * os botões do primeiro ofício por 51,6%, onde passa entre as palavras das linhas de
+   * explicação sem riscar nenhuma.
+   */
   .label-steppers {
-    top: 58.6%;
-    left: 50.8%;
+    top: 45%;
+    left: 50.6%;
   }
 
   .label-steppers::before {
     top: 100%;
-    height: 0.9cqw;
+    left: 0.88cqw;
+    height: 8.3cqw;
   }
 
-  /* Obra em andamento: 68% a 98,5%, 30% a 47,5%. */
+  /* Obra em andamento: 68,3% a 98,5%, 25,8% a 37,4%. */
   .label-work {
-    top: 22.6%;
+    top: 20.7%;
     right: 1.4%;
   }
 
@@ -444,15 +453,18 @@ figcaption,
     height: 1.2cqw;
   }
 
-  /* Barra de status: a faixa de baixo, de 94,8% a 100%. */
+  /*
+   * Barra de status: a faixa de baixo, de 96,5% a 100%. O rótulo ocupa a faixa livre entre o
+   * fim da árvore (89,2%) e a barra, e o fio cai sobre o que ela anuncia, à esquerda.
+   */
   .label-status {
-    top: 84%;
-    left: 14%;
+    top: 90%;
+    left: 6.5%;
   }
 
   .label-status::before {
     top: 100%;
-    height: 2.2cqw;
+    height: 1.6cqw;
   }
 }
 
