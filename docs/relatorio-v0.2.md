@@ -27,7 +27,7 @@
 - Playtest com outras pessoas (V2A-T1 e V2F-T3): depende de pessoas; os convites e formulários estão prontos em `docs/playtest/`.
 - Fechamento enxuto de D e E, a pedido do autor: dos 35 achados da revisão, os defeitos que mudavam o jogo foram corrigidos (lote 1, reequilíbrio da Ameaça, Conselho, árvore e três cartas); 18 riscos e dúvidas ficaram como pendência. A rodada do simulador com cartas (V2D-T5.3) não foi feita.
 - Fase F enxuta: a matriz completa de balanceamento (V2F-T1), as capturas da página de apresentação (V2F-T4.2) e a revisão final (documentação contra o código, segurança) não foram feitas. O quadro de aceitação (`docs/acceptance-v0.2.md`) tem a coluna de evidência manual vazia.
-- Tag `v0.2.0` e release: do autor.
+- Tag `v0.2.0` e release: criadas em 2026-10-05, a pedido do autor, depois da Fase G.
 
 ## Como a versão foi feita
 

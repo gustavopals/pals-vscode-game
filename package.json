@@ -1,6 +1,6 @@
 {
   "name": "lords-of-the-guild-monorepo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "license": "MIT",
   "description": "Lords of the Guild: jogo medieval de gerenciamento jogado no navegador, com aparência de editor",

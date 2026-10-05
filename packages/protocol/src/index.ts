@@ -1,4 +1,4 @@
-export const PROTOCOL_PACKAGE_VERSION = '0.1.0';
+export const PROTOCOL_PACKAGE_VERSION = '0.2.0';
 
 /**
  * Versão do protocolo `/v1`. O cliente a envia em `X-Lords-Protocol`; um servidor que não a

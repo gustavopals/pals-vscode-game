@@ -441,8 +441,8 @@ test.describe('preferências, sobre e privacidade', () => {
     await palette(page, 'sobre');
     const about = page.getByRole('tabpanel', { name: 'Sobre' });
     await expect(about.getByRole('heading', { name: 'Lords of the Guild' })).toBeVisible();
-    await expect(about).toContainText(/App\s*0\.1\.0/);
-    await expect(about).toContainText(/Servidor\s*0\.1\.0/);
+    await expect(about).toContainText(/App\s*0\.2\.0/);
+    await expect(about).toContainText(/Servidor\s*0\.2\.0/);
     await expect(about).toContainText(/Conteúdo\s*[0-9a-f]{16}/);
     await expect(about).toContainText('Vínculo GitHub');
     await expect(page).toHaveURL(/#\/sobre$/);

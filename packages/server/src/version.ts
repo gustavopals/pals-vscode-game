@@ -4,7 +4,7 @@ import { contentHash, PROTOCOL_VERSION, type VersionResponse } from '@lotg/proto
 
 import type { Config } from './config';
 
-export const SERVER_VERSION = '0.1.0';
+export const SERVER_VERSION = '0.2.0';
 
 declare const __BUILT_AT__: string | undefined;
 

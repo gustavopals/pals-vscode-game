@@ -47,7 +47,7 @@ describe('esqueleto do servidor', () => {
 
   it('GET /v1/version informa servidor, protocolo e hash do conteúdo', async () => {
     const response = await app.inject({ url: '/v1/version' });
-    expect(response.json()).toMatchObject({ server: '0.1.0', protocol: 2 });
+    expect(response.json()).toMatchObject({ server: '0.2.0', protocol: 2 });
     expect(response.json().contentHash).toMatch(/^[0-9a-f]{16}$/);
     expect(Number.isNaN(Date.parse(response.json().builtAt))).toBe(false);
   });

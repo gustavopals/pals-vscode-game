@@ -45,7 +45,7 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
     expect(health.status).toBe(200);
     expect(health.body).toEqual({ status: 'ok', db: 'ok' });
     const version = await call<VersionResponse>(server, 'GET', '/version');
-    expect(version.body).toMatchObject({ server: '0.1.0', protocol: 2 });
+    expect(version.body).toMatchObject({ server: '0.2.0', protocol: 2 });
     expect(version.body.contentHash).toMatch(/^[0-9a-f]{16}$/);
   });
 

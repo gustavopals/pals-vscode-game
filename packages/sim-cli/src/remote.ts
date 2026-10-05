@@ -74,7 +74,7 @@ export async function runRemote(options: RemoteOptions): Promise<RemoteReport> {
     const client = createClient({
       baseUrl: options.baseUrl,
       tokenStore: memoryTokenStore(),
-      clientVersion: 'sim-cli/0.1.0',
+      clientVersion: 'sim-cli/0.2.0',
       fetch: timedFetch,
       retryAttempts: 1,
     });
