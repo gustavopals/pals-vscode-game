@@ -9,6 +9,7 @@ import {
 
 import { seasonAt } from './clock';
 import { type Hands, handsOf, masteryRatio } from './craft';
+import { wageRate } from './heroes';
 import { storeResource } from './storage';
 import type { GameState, ProductionBuildingId, ResourceId } from './types';
 import { HOUR_MS, MILLI } from './units';
@@ -166,14 +167,18 @@ export function netRates(state: GameState): Record<ResourceId, number> {
   }
   rates.food -= consumptionRate(state);
   rates.wood -= firewoodRate(state, season);
+  // O soldo dos heróis sai do ouro como o consumo sai da comida (GDD §9.1).
+  rates.gold -= wageRate(state);
   return rates;
 }
 
 /**
  * A taxa com que o estoque de um recurso anda de fato em um trecho, em milésimos por hora: o
  * saldo líquido, ou zero quando a escassez o segura. Na fome a comida fica em zero, porque só se
- * consome o que existe (GDD §5.6); no frio, a madeira (GDD §4.1). É a taxa de `applyContinuous`
- * e a de toda previsão que precisa bater com ele no milissegundo.
+ * consome o que existe (GDD §5.6); no frio, a madeira (GDD §4.1); com o soldo em atraso, o ouro:
+ * só se paga o que existe, e o que a Mina entrega vai inteiro para o soldo, sem dívida (GDD
+ * §9.1). É a taxa de `applyContinuous` e a de toda previsão que precisa bater com ele no
+ * milissegundo.
  */
 export function flowRate(
   state: GameState,
@@ -185,6 +190,9 @@ export function flowRate(
     return 0;
   }
   if (resource === 'wood' && cold && rates.wood <= 0) {
+    return 0;
+  }
+  if (resource === 'gold' && state.guild.wageArrears && rates.gold <= 0) {
     return 0;
   }
   return rates[resource];
@@ -290,4 +298,31 @@ export function woodCoversFirewood(state: GameState, rates = netRates(state)): b
     return false;
   }
   return rates.wood === 0 || coversFor(state, 'wood', rates.wood) >= 1;
+}
+
+/**
+ * Milissegundos até o ouro acabar com soldo a pagar: o maior intervalo em que o saldo ainda é
+ * não negativo. `null` quando o ouro não está caindo (sem herói ele nunca cai sozinho) ou o
+ * atraso já abriu.
+ */
+export function goldRunsOutIn(state: GameState, rates = netRates(state)): number | null {
+  if (state.guild.wageArrears || rates.gold >= 0) {
+    return null;
+  }
+  return coversFor(state, 'gold', rates.gold);
+}
+
+/**
+ * Há ouro para o soldo: o saldo é positivo, ou o estoque é positivo e cobre ao menos um instante
+ * de soldo. É a condição que fecha o atraso; como é o contrário exato da que o abre
+ * (`goldRunsOutIn(...) === 0`), o atraso nunca fecha e reabre no mesmo instante.
+ */
+export function goldCoversWages(state: GameState, rates = netRates(state)): boolean {
+  if (rates.gold > 0) {
+    return true;
+  }
+  if (state.settlement.resources.gold <= 0) {
+    return false;
+  }
+  return rates.gold === 0 || coversFor(state, 'gold', rates.gold) >= 1;
 }

@@ -56,9 +56,10 @@ describe('pureza do motor', () => {
     // os efeitos) e `councilView.ts` ficam do lado de quem não sorteia. Na Ameaça, mora em
     // `hordeTurn.ts`; `threat.ts` (a subida e a Paliçada), `raids.ts` (o aviso, a resolução e
     // os feridos, que a linha do tempo, o estado inicial e as previsões da visão também usam)
-    // e `threatView.ts` ficam do lado de quem não sorteia.
+    // e `threatView.ts` ficam do lado de quem não sorteia. Nos heróis nada sorteia: o soldo, o
+    // atraso e quem parte (`heroes.ts`, `wages.ts`) são contas fixas, sem fluxo nenhum.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -75,6 +76,8 @@ describe('pureza do motor', () => {
         './threat.ts',
         './threatView.ts',
         './raids.ts',
+        './heroes.ts',
+        './wages.ts',
       ]),
     );
     const offenders = guarded
@@ -96,7 +99,8 @@ describe('pureza do motor', () => {
     // O critério desta lista **não** é o de `neverDraw`. Entram os módulos de leitura e de
     // conta que a visão e `nextEventAt` importam e que não têm por que criar nada: além dos
     // de visão, a moral (`morale.ts`, a soma e os prazos), a Ameaça (`threat.ts`, a subida e a
-    // Paliçada), a economia, o armazenamento e o ritmo. Ficam de fora, de propósito, os
+    // Paliçada), a economia, o armazenamento, o ritmo e os heróis (`heroes.ts`, as derivações, e
+    // `wages.ts`, o soldo e o atraso: quem parte e quem é dispensado sai da lista, ninguém entra). Ficam de fora, de propósito, os
     // módulos de regra que `advanceTo` e `applyCommand` chamam e que **vão** criar entidades:
     // `commands.ts` (contratar e enviar são ordens), `council.ts` (o efeito de uma carta
     // entrega o primeiro herói), `raids.ts` (a resolução é um evento da linha do tempo),
@@ -105,7 +109,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -122,12 +126,15 @@ describe('pureza do motor', () => {
         './migrations.ts',
         './migrations/v12.ts',
         './migrations/v13.ts',
+        './migrations/v14.ts',
         './random.ts',
         './morale.ts',
         './threat.ts',
         './economy.ts',
         './storage.ts',
         './pace.ts',
+        './heroes.ts',
+        './wages.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.

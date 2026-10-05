@@ -30,6 +30,7 @@ import { councilView } from './councilView';
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, durationText, plural } from './format';
+import { paidHeroes, wageRate } from './heroes';
 import { moraleAt } from './morale';
 import { moraleView, recruitmentMoraleNote } from './moraleView';
 import { objectivesView } from './objectivesView';
@@ -123,6 +124,11 @@ function resourceBreakdown(state: GameState, resource: ResourceId, timeScale: nu
   if (resource === 'wood' && firewood > 0) {
     const burned = decimal((firewood * timeScale) / MILLI);
     parts.push(`−${burned}/h (lenha de ${plural(villagers, 'habitante', 'habitantes')})`);
+  }
+  const wages = wageRate(state);
+  if (resource === 'gold' && wages > 0) {
+    const paid = decimal((wages * timeScale) / MILLI);
+    parts.push(`−${paid}/h (soldo de ${plural(paidHeroes(state), 'herói', 'heróis')})`);
   }
   return parts.join('; ');
 }
@@ -307,6 +313,8 @@ export function deriveViewState(
   const runsOutIn: Partial<Record<ResourceId, number | null>> = {
     food: outlook.foodRunsOutIn,
     wood: outlook.woodRunsOutIn,
+    // O ouro só acaba sozinho com soldo a pagar: é o instante em que o atraso abre.
+    gold: outlook.goldRunsOutIn,
   };
   const nextSeason = seasonAfter(date.season);
   // O feudo como a próxima virada do dia vai encontrá-lo, e a moral que ela vai calcular: a

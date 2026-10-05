@@ -1,7 +1,7 @@
 import { nextDayBoundary } from './clock';
 import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
-import { foodRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { storageFillsIn } from './storage';
@@ -24,8 +24,9 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
  * escondido de carta, uma continuação que chega, o fim da adaptação de quem trocou de ofício,
  * uma incursão que chega, o aviso da Torre de Vigia, um ferido que sara, o momento em que a
- * comida acaba, aquele em que a madeira acaba na lareira, aquele em que um estoque chega ao
- * limite ou aquele em que uma planejada automática junta o custo. Nunca devolve um instante
+ * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
+ * a pagar, aquele em que um estoque chega ao limite ou aquele em que uma planejada automática
+ * junta o custo. As consequências do soldo em atraso são cobradas na virada do dia. Nunca devolve um instante
  * anterior a `lastProcessedAt`.
  */
 export function nextEventAt(state: GameState): number | null {
@@ -73,6 +74,11 @@ export function nextEventAt(state: GameState): number | null {
   const woodRunsOut = woodRunsOutIn(state, rates);
   if (woodRunsOut !== null) {
     candidates.push(now + woodRunsOut);
+  }
+  // O soldo dos heróis come o ouro: o instante em que ele acaba abre o atraso.
+  const goldRunsOut = goldRunsOutIn(state, rates);
+  if (goldRunsOut !== null) {
+    candidates.push(now + goldRunsOut);
   }
   // O instante em que um estoque enche: dali em diante a produção dele é desperdício.
   const fills = storageFillsIn(state, rates);

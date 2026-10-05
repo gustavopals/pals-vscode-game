@@ -384,11 +384,16 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 /**
  * Caminhos das chaves de estrutura fixa de um estado, tendo uma partida nova como referência:
  * só desce onde a partida nova também tem um objeto. Listas, campos que nascem `null` e os
- * objetos de chaves livres (`rng`, `stats`, `council.flags`, `map.tiles`) contam como um campo só.
+ * objetos de chaves livres (`rng`, `ids`, `stats`, `council.flags`, `map.tiles`) contam como um
+ * campo só.
  */
 function fixedKeys(value: unknown, reference: unknown = value, path = ''): string[] {
   const freeKeys =
-    path === 'rng' || path === 'stats' || path === 'council.flags' || path === 'map.tiles';
+    path === 'rng' ||
+    path === 'ids' ||
+    path === 'stats' ||
+    path === 'council.flags' ||
+    path === 'map.tiles';
   if (!isObject(value) || !isObject(reference) || freeKeys) {
     return [];
   }

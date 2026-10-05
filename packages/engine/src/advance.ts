@@ -24,6 +24,7 @@ import { turnSeasonWatch } from './seasonWatch';
 import { cloneState } from './state';
 import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
+import { turnWages } from './wages';
 import type { GameEvent, GameState } from './types';
 
 function processCalendar(
@@ -62,6 +63,10 @@ function processCalendar(
   tallyCraftExperience(draft, atMs, events);
   // Depois a moral: o recálculo, os sorteios de chegada e de partida e a deserção por fome.
   turnMorale(draft, atMs, events);
+  // Logo depois da deserção por fome, a outra cobrança de prazo real: o soldo em atraso deixa
+  // os heróis Descontentes e, mais adiante, os faz partir. Vem antes do sorteio do Conselho
+  // porque quem partiu já não está no feudo para a carta que perguntar por ele.
+  turnWages(draft, atMs, events);
   // E, com a moral do dia já calculada (ela é um dos requisitos das cartas), o sorteio do Conselho.
   drawCard(draft, atMs, events, catalog);
   // Por último a Ameaça: sobe com os tiles ativos e com a estação do dia que acabou e, já
@@ -76,12 +81,12 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
  * que chegam (os recrutas e os feridos que saram), virada do dia (o desperdício do dia que
  * acabou, o ano, a estação, o dia, a experiência do ofício, a moral: recálculo, sorteios e
- * deserção, o sorteio do Conselho, a subida da Ameaça, os uivos do roteiro e o sorteio da
- * incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
+ * deserção, a cobrança do soldo em atraso, o sorteio do Conselho, a subida da Ameaça, os uivos
+ * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
  * continuações que chegam (`settleCouncil`), fim de adaptação de quem trocou de ofício, as
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), início automático
  * das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao
- * outro) e, por fim, fome e frio. Os estoques que encheram são registrados depois de tudo, por
+ * outro) e, por fim, fome, frio e soldo em atraso (`settleScarcity`). Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
  *
  * A incursão vem depois das obras (a Paliçada que termina no instante do ataque já conta) e

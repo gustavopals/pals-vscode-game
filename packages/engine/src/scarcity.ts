@@ -5,6 +5,7 @@ import { burnsFirewood, stepCold } from './cold';
 import { stepFamine } from './famine';
 import { noteColdStarted } from './seasonWatch';
 import type { GameEvent, GameState } from './types';
+import { settleWageArrears, stepWageArrears } from './wages';
 
 /**
  * Quantas vezes, no máximo, fome e frio são conferidos em um instante. Cada um mexe na taxa do
@@ -24,6 +25,12 @@ const MAX_PASSES = 8;
  * abriu logo depois e cortou a Fazenda), ela simplesmente continua, com a data em que começou
  * e sem deixar registro de fome acabada: não há oscilação no mesmo instante. O mesmo vale para
  * o frio.
+ *
+ * **O soldo em atraso vem por último, uma vez só** (`stepWageArrears`; GDD §9.1). A fome e o frio
+ * mexem no saldo do ouro (cortam o que a Mina entrega), e o atraso não mexe em taxa nenhuma: ele
+ * é conferido com as penalidades já acomodadas, e nada do que ele faz pede uma nova volta. Um
+ * passo só abre ou só fecha, e a condição que fecha é o contrário exato da que abre: o atraso
+ * não oscila no mesmo instante, por mais ouro que tenha chegado e saído nele.
  *
  * É também o que a projeção do ofício faz na cópia quando a pergunta é o fim da fome ou do frio
  * (`craftProjection.ts`): só toca no que a cópia separa do estado.
@@ -52,18 +59,25 @@ export function settleIndicators(draft: GameState, atMs: number): void {
   if (coldBefore !== null && settlement.cold !== null) {
     settlement.cold = coldBefore;
   }
+  stepWageArrears(draft, atMs);
 }
 
 /**
- * Abre ou encerra a fome e o frio no instante `atMs`, depois de qualquer mudança no estado:
- * todo comando e todo instante com eventos terminam aqui. A conferência é `settleIndicators`;
- * a Crônica só registra o que mudou **entre o começo e o fim do instante**, e a fome que
- * terminou e recomeçou na mesma conferência continua sem linha nenhuma.
+ * Abre ou encerra a fome, o frio e o soldo em atraso no instante `atMs`, depois de qualquer
+ * mudança no estado: todo comando e todo instante com eventos terminam aqui. A conferência é
+ * `settleIndicators`; a Crônica só registra o que mudou **entre o começo e o fim do instante**,
+ * e a fome que terminou e recomeçou na mesma conferência continua sem linha nenhuma.
+ *
+ * O atraso do soldo mora aqui porque é a mesma pergunta feita ao ouro ("o estoque ainda cobre o
+ * que sai?") e precisa da mesma garantia: ser a última coisa do instante, depois de tudo o que
+ * pôs ou tirou ouro nele (obras, recompensas, cartas, incursões, planejadas automáticas) e de
+ * tudo o que mudou o saldo (quem chegou, quem partiu, a moral, a fome e o frio).
  */
 export function settleScarcity(draft: GameState, atMs: number, events: GameEvent[]): void {
   const { settlement } = draft;
   const famineBefore = settlement.famine;
   const coldBefore = settlement.cold;
+  const arrearsBefore = draft.guild.wageArrears;
 
   settleIndicators(draft, atMs);
 
@@ -97,4 +111,6 @@ export function settleScarcity(draft: GameState, atMs: number, events: GameEvent
     noteColdStarted(draft);
     emit(events, draft, atMs, 'coldStarted');
   }
+
+  settleWageArrears(draft, atMs, events, arrearsBefore);
 }

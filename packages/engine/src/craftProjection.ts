@@ -13,15 +13,18 @@ import {
   firewoodRate,
   foodCoversConsumption,
   foodRunsOutIn,
+  goldRunsOutIn,
   netRates,
   woodRunsOutIn,
 } from './economy';
+import { wageRate } from './heroes';
 import { moraleAt } from './morale';
 import { nextAutoStart, planCost } from './planned';
 import { recoverInjured } from './raids';
 import { settleIndicators } from './scarcity';
 import type { GameState, PlannedConstruction, ResourceId } from './types';
 import { MILLI, positiveEntries } from './units';
+import { stepWageArrears } from './wages';
 
 type Rates = Record<ResourceId, number>;
 
@@ -70,15 +73,17 @@ const MAX_STRETCHES = 2 * DAYS_PER_YEAR;
 
 /**
  * Uma cópia do estado só no que a projeção altera: estoques, restos, desperdício, contadores,
- * o ofício (com os trabalhadores e os feridos que voltam a ele) e a moral (um número, que a
- * cópia rasa já separa). O resto (obras, planejadas, relógio) é compartilhado e ninguém aqui o
- * toca.
+ * o ofício (com os trabalhadores e os feridos que voltam a ele), a moral (um número, que a
+ * cópia rasa já separa) e o soldo em atraso (os dois registros de `guild`, que `stepWageArrears`
+ * troca sem alterar; a lista de heróis é dividida com o estado e ninguém aqui a toca). O resto
+ * (obras, planejadas, relógio) é compartilhado e ninguém aqui o toca.
  */
 function fork(state: GameState): GameState {
   const { settlement } = state;
   return {
     ...state,
     stats: { ...state.stats },
+    guild: { ...state.guild },
     settlement: {
       ...settlement,
       resources: { ...settlement.resources },
@@ -139,6 +144,11 @@ function recoveryAfter(state: GameState, at: number): number | null {
  * fome de acabar ali, e a visão que parasse nele mandaria pôr mais gente na Fazenda à toa. E o
  * começo da segunda escassez ("acaba em"): a lenha que acaba antes da comida não tira o prazo
  * da comida, só o adianta.
+ *
+ * **O ouro que acaba com soldo a pagar** só fecha um trecho, nas duas projeções: o atraso abre
+ * na cópia (`stepWageArrears`), o ouro para em zero como no motor, e a projeção segue. O atraso
+ * não mexe na taxa de nenhum outro recurso, então nenhuma outra previsão muda por causa dele; e,
+ * sem herói, o instante não existe e os trechos são os de sempre.
  */
 function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
   const stretches: Stretch[] = [];
@@ -156,20 +166,25 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
     // Acomodado, o ofício não muda mais nada sozinho. Só a projeção que atravessa a escassez
     // ainda tem o que andar: a comida ou a lenha que acabam mais adiante abrem a fome ou o frio,
     // e a penalidade e a moral voltam a mexer nas taxas.
-    const done = settled && (!throughScarcity || scarce === Infinity);
+    // O ouro que acaba com soldo a pagar: o atraso abre ali, e o ouro deixa de cair.
+    const goldOut = at + (goldRunsOutIn(current, rates) ?? Infinity);
+    const done = settled && goldOut === Infinity && (!throughScarcity || scarce === Infinity);
     if (done || stretches.length + 1 >= MAX_STRETCHES) {
       stretches.push({ atMs: at, state: current, rates, untilMs: Infinity });
       return stretches;
     }
-    const step = settled
-      ? // Nenhuma virada muda nada até lá: o trecho vai direto ao instante em que algo acaba.
-        Infinity
-      : Math.min(
-          nextDayBoundary(at),
-          nextAdaptationEndAt(current) ?? Infinity,
-          // Na cópia o relógio não anda: o prazo do ferido é comparado com o instante da projeção.
-          recoveryAfter(current, at) ?? Infinity,
-        );
+    const step = Math.min(
+      goldOut,
+      settled
+        ? // Nenhuma virada muda nada até lá: o trecho vai direto ao instante em que algo acaba.
+          Infinity
+        : Math.min(
+            nextDayBoundary(at),
+            nextAdaptationEndAt(current) ?? Infinity,
+            // Na cópia o relógio não anda: o prazo do ferido é comparado com o instante da projeção.
+            recoveryAfter(current, at) ?? Infinity,
+          ),
+    );
     if (scarce <= step && !throughScarcity) {
       stretches.push({ atMs: at, state: current, rates, untilMs: scarce });
       return stretches;
@@ -193,6 +208,8 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
     } else {
       // Quem passou a render inteiro, ou a moral que subiu, pode encerrar a fome e o frio.
       relieveScarcity(next);
+      // E o soldo em atraso abre ou fecha com o saldo que ficou, como no fim de todo instante.
+      stepWageArrears(next, until);
     }
     current = next;
     at = until;
@@ -305,10 +322,17 @@ export function inMs(value: number | null): Deadline | null {
  * a moral ou a experiência, e a produção volta a cobrir as bocas ou a lareira. `null` sem fome
  * (ou sem frio) e quando, sem uma ordem do jogador, não acabam. A conta atravessa o começo da
  * outra escassez no caminho (a lenha que acaba enquanto a fome dura), como o motor.
+ *
+ * `goldRunsOutIn` é o instante em que o soldo em atraso abre: o ouro acaba com soldo a pagar, ou
+ * uma virada deixa o saldo negativo com o cofre vazio. Sai da mesma projeção que atravessa a
+ * escassez (a fome que abre no caminho corta a Mina, e o ouro acaba mais cedo por isso), pela
+ * estação de agora e sem contar com quem chega nem com quem parte. `null` sem herói, com o
+ * atraso já aberto e quando o ouro não acaba.
  */
 export type CraftOutlook = {
   foodRunsOutIn: number | null;
   woodRunsOutIn: number | null;
+  goldRunsOutIn: number | null;
   autoStart: { plan: PlannedConstruction; inMs: number } | null;
   famineEndsIn: number | null;
   coldEndsIn: number | null;
@@ -318,6 +342,7 @@ type AutoStart = NonNullable<CraftOutlook['autoStart']>;
 
 const inFamine = (state: GameState) => state.settlement.famine !== null;
 const inCold = (state: GameState) => state.settlement.cold !== null;
+const inArrears = (state: GameState) => state.guild.wageArrears !== null;
 
 /**
  * Em quantos ms, a contar de `start`, a fome (ou o frio) abre nos trechos da projeção que
@@ -440,6 +465,9 @@ export function craftOutlook(state: GameState, forecast: CraftForecast): CraftOu
     coldEndsIn: cold === null ? null : over((draft) => !inCold(draft)),
     foodRunsOutIn: opens(inFamine),
     woodRunsOutIn: woodRunsOutAfter(state, forecast, autoStart, opens(inCold)),
+    // Sem herói o ouro não cai sozinho: a projeção que atravessa a escassez nem é feita.
+    goldRunsOutIn:
+      wageRate(state) === 0 || inArrears(state) ? null : opensIn(crossing(), now, inArrears),
     autoStart,
   };
 }

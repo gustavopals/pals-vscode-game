@@ -6,6 +6,7 @@ import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
+  addHero,
   command,
   councilScenario,
   craftScenario,
@@ -36,6 +37,44 @@ function frozenState(name: string): unknown {
     throw new Error(`Falta o retrato ${name}.`);
   }
   return JSON.parse(text) as unknown;
+}
+
+/**
+ * Um feudo recém-fundado com três heróis, como as cartas e a Taverna vão pôr: Edda, Guerreira
+ * Leal; Rolf, Arqueiro Prudente; e Isolda, Maga Veterana e Gananciosa, de nível 2. Os três
+ * chegam no mesmo instante, com `gold` milésimos de ouro no cofre.
+ */
+function heroesStart(
+  seed: string,
+  gold: number,
+  changed: Partial<typeof settings> = {},
+): GameState {
+  const start = createInitialState(seed, { ...settings, ...changed });
+  start.settlement.resources.gold = gold;
+  addHero(start, { name: 'Edda', classId: 'warrior', traits: ['loyal'] });
+  addHero(start, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
+  addHero(start, { name: 'Isolda', classId: 'mage', level: 2, traits: ['veteran', 'greedy'] });
+  return start;
+}
+
+/**
+ * O soldo em atraso há mais de um dia real, no ritmo Normal: os 20 de ouro do cofre e os 20 do
+ * primeiro objetivo pagam os três heróis por 6 h 40 de jogo; às 20 h Rolf e Isolda ficam
+ * Descontentes, e às 32 h Isolda, a de identificador mais alto entre os que não são Leais (os
+ * três chegaram juntos), parte. O feudo fica parado às 33 h 13 de jogo.
+ */
+function arrearsScenario(): GameState {
+  return play(heroesStart('fixture-wage-arrears', 20_000), [
+    command('setWorkers', { building: 'farm', count: 3 }),
+    { at: 33 * HOUR + 13 * MINUTE + 2_345 },
+  ]).state;
+}
+
+/** O mesmo feudo logo depois de chegarem `gold` milésimos de ouro, `afterMs` adiante. */
+function arrearsPaid(gold: number, afterMs: number): GameState {
+  const paid = arrearsScenario();
+  paid.settlement.resources.gold = gold;
+  return advanceTo(paid, paid.lastProcessedAt + afterMs).state;
 }
 
 /**
@@ -388,6 +427,27 @@ const scenarios: Record<string, () => GameState> = {
         command('planConstruction', { building: 'farm' }),
       ],
     ).state,
+
+  // A guilda com o soldo em dia, no ritmo Rápido: três heróis (uma Leal; uma de nível 2, com
+  // dois traços), dois mineiros que cobrem o soldo e o resto do ouro no meio de um trecho.
+  guild: () =>
+    play(heroesStart('fixture-guild', 250_000, { timeScale: 3 }), [
+      command('setWorkers', { building: 'farm', count: 3 }),
+      command('setWorkers', { building: 'goldMine', count: 2 }),
+      { at: 5 * DAY + 7 * MINUTE + 1_234 },
+    ]).state,
+
+  // O soldo em atraso que já cobrou um herói: aberto, com um Descontente, uma Leal que fica e
+  // o contador de identidades à frente da lista.
+  'wage-arrears': () => arrearsScenario(),
+
+  // O atraso que fechou há 18 minutos de jogo, com 3 de ouro que chegaram: o registro do último
+  // atraso guarda quando fechou, quanto durou e o herói cobrado, e ninguém está Descontente.
+  'wage-arrears-ended': () => arrearsPaid(3_000, 18 * MINUTE),
+
+  // O atraso que reabriu dentro da janela: os 3 de ouro pagaram 45 minutos de jogo de dois
+  // heróis, e o atraso continua de onde parou, com a duração e o herói cobrado que trazia.
+  'wage-arrears-resumed': () => arrearsPaid(3_000, 46 * MINUTE),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -593,6 +653,60 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('week-scripted').stats.cardsDrawn).toBeGreaterThan(2);
     expect(of('objectives').objectives.completed.length).toBeGreaterThanOrEqual(4);
     expect(of('week-scripted').clock.year).toBeGreaterThan(1);
+
+    // A guilda (V3C-T1): heróis de três classes, com e sem traços, em dois níveis; o soldo em
+    // dia; o atraso aberto, com um Descontente e um herói já cobrado; o atraso que fechou; e o
+    // que reabriu dentro da janela. O contador de identidades só existe nesses cenários.
+    const guild = of('guild');
+    expect(
+      guild.guild.heroes.map((hero) => [hero.id, hero.name, hero.classId, hero.level]),
+    ).toEqual([
+      ['hero-1', 'Edda', 'warrior', 1],
+      ['hero-2', 'Rolf', 'archer', 1],
+      ['hero-3', 'Isolda', 'mage', 2],
+    ]);
+    expect(guild.guild.heroes.map((hero) => hero.traits)).toEqual([
+      ['loyal'],
+      ['prudent'],
+      ['veteran', 'greedy'],
+    ]);
+    expect(guild.guild).toMatchObject({ wageArrears: null, lastWageArrears: null });
+    expect(guild.ids).toEqual({ hero: 3 });
+    expect(guild.settlement.resources.gold).toBeGreaterThan(0);
+    expect(guild.settlement.accumulators.gold).not.toBe(0);
+    const arrears = of('wage-arrears').guild;
+    const openedAt = 6 * HOUR + 40 * MINUTE;
+    expect(arrears.wageArrears).toEqual({ sinceMs: openedAt, carriedMs: 0, departed: 1 });
+    expect(arrears.lastWageArrears).toBeNull();
+    expect(arrears.heroes.map((hero) => [hero.name, hero.discontent])).toEqual([
+      ['Edda', false],
+      ['Rolf', true],
+    ]);
+    expect(of('wage-arrears').ids).toEqual({ hero: 3 });
+    expect(of('wage-arrears').settlement.resources.gold).toBe(0);
+    const paidAt = of('wage-arrears').lastProcessedAt;
+    const settled = of('wage-arrears-ended').guild;
+    expect(settled.wageArrears).toBeNull();
+    expect(settled.lastWageArrears).toEqual({
+      endedAtMs: paidAt,
+      lastedMs: paidAt - openedAt,
+      departed: 1,
+    });
+    expect(settled.heroes.map((hero) => hero.discontent)).toEqual([false, false]);
+    const reopened = of('wage-arrears-resumed').guild;
+    expect(reopened.wageArrears).toEqual({
+      sinceMs: paidAt + 45 * MINUTE,
+      carriedMs: paidAt - openedAt,
+      departed: 1,
+    });
+    expect(reopened.lastWageArrears).toBeNull();
+    for (const state of all0()) {
+      // Atraso aberto e registro de atraso fechado nunca andam juntos; sem herói, nenhum dos dois.
+      expect(state.guild.wageArrears === null || state.guild.lastWageArrears === null).toBe(true);
+      if (state.ids.hero === undefined) {
+        expect(state.guild).toEqual({ heroes: [], wageArrears: null, lastWageArrears: null });
+      }
+    }
 
     // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,
     // o ritmo (que converte prazos de tempo real) e a dificuldade (que tem fatores próprios).
