@@ -3,6 +3,9 @@ import type {
   DifficultyId,
   EnemyId,
   GameEventType,
+  HeroClassId,
+  HeroStatusId,
+  HeroTraitId,
   MoraleBandId,
   MoraleTermId,
   ProductionBuildingId,
@@ -17,6 +20,9 @@ export type {
   DifficultyId,
   EnemyId,
   GameEventType,
+  HeroClassId,
+  HeroStatusId,
+  HeroTraitId,
   MoraleBandId,
   MoraleTermId,
   ProductionBuildingId,
@@ -162,6 +168,31 @@ export type InjuredVillager = {
 };
 
 /**
+ * Um herói a serviço do feudo (GDD §9.1; ADR 0017). Só o que não se deriva: os atributos e o
+ * poder saem da classe, do nível e do Descontente, em `heroes.ts`, e nunca são gravados.
+ */
+export type Hero = {
+  /** `hero-<n>`, de `nextId(draft, 'hero')`: nunca reutilizado. */
+  id: string;
+  name: string;
+  classId: HeroClassId;
+  /** De 1 ao nível máximo do conteúdo. */
+  level: number;
+  /** Experiência acumulada no nível de agora. */
+  xp: number;
+  traits: HeroTraitId[];
+  /** O que ele está fazendo. Nesta fase todo herói está no feudo. */
+  status: HeroStatusId;
+  /** Quando chegou, em tempo de jogo: quem chegou por último é o primeiro a partir sem soldo. */
+  joinedAtMs: number;
+  /**
+   * Descontente com o soldo em atraso (GDD §9.1): os atributos valem uma fração enquanto o
+   * atraso durar. Só a virada do dia o marca, e ele some quando o atraso fecha.
+   */
+  discontent: boolean;
+};
+
+/**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
@@ -170,7 +201,7 @@ export type InjuredVillager = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 13;
+  schemaVersion: 14;
   seed: string;
   settings: GameSettings;
   /**
@@ -315,6 +346,29 @@ export type GameState = {
   map: { tiles: Record<string, MapTile>; threat: number };
   /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
   horde: { scheduledRaids: ScheduledRaid[] };
+  /**
+   * Os heróis e o soldo deles (GDD §9.1; ADR 0017, decisão 3). O edifício da Guilda e as
+   * expedições são da Fase D: aqui só há quem serve ao feudo e a conta do soldo.
+   */
+  guild: {
+    /** Os heróis, na ordem em que chegaram; nunca mais do que `balance.heroes.rosterCap`. */
+    heroes: Hero[];
+    /**
+     * O soldo em atraso, aberto no instante em que o ouro acabou com soldo a pagar, no molde
+     * de `settlement.famine`. `sinceMs` é o instante em que abriu, ou reabriu; `carriedMs`, o
+     * quanto já tinha durado antes, quando é a continuação de um atraso que fechou há pouco: a
+     * duração que conta é `agora − sinceMs + carriedMs`. `departed` é quantos heróis o prazo
+     * já cobrou neste atraso: os que partiram e os que só os Leais restantes fizeram perdoar.
+     */
+    wageArrears: { sinceMs: number; carriedMs: number; departed: number } | null;
+    /**
+     * O último atraso que fechou: quando, quanto tinha durado e quantos heróis tinha cobrado.
+     * O atraso que reabre dentro da janela do conteúdo (`arrears.resumeWithinRealMs`, em
+     * tempo real) é o mesmo e continua daqui. `null` enquanto nenhum atraso fechou, e depois
+     * de um atraso ser retomado.
+     */
+    lastWageArrears: { endedAtMs: number; lastedMs: number; departed: number } | null;
+  };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
 };

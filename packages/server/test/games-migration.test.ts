@@ -42,7 +42,9 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 13;
+const CURRENT = 14;
+/** A guilda com que toda partida chega à versão 14: sem herói e sem soldo em atraso. */
+const EMPTY_GUILD = { heroes: [], wageArrears: null, lastWageArrears: null };
 
 type StoredState = {
   schemaVersion: number;
@@ -845,7 +847,7 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
     ['raid-announced'],
     ['famine-resumed'],
   ])(
-    '%s: a primeira leitura a persiste na versão atual, uma vez, só com os contadores de identidade a mais',
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com os contadores de identidade e a guilda vazia a mais',
     async (name) => {
       const before = v12State(name);
       expect(before.ids).toBeUndefined();
@@ -867,6 +869,8 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         ids: {},
+        // A guilda é do passo seguinte (13 → 14), conferido no bloco dele, abaixo.
+        guild: EMPTY_GUILD,
       });
       expect(row.state.rng).toEqual(before.rng);
 
@@ -984,6 +988,93 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
       }
     },
   );
+});
+
+describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)', () => {
+  type V13State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    guild?: unknown;
+  };
+
+  /** Um retrato da versão 13, como o motor da Fase B o gravou. */
+  function v13State(name: string): V13State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v13-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V13State;
+  }
+
+  async function insertV13(app: TestApp, state: V13State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  it.each([['week-scripted'], ['migrated-3x'], ['migrated-iron-king-half'], ['famine-resumed']])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com a guilda vazia a mais',
+    async (name) => {
+      const before = v13State(name);
+      expect(before.guild).toBeUndefined();
+      const game = await insertV13(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 13, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V13State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 13, campo por campo, com a fronteira nova e a guilda vazia:
+      // nenhum estoque, prazo, carta, incursão, contador ou sorteio muda.
+      expect(row.state).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+        guild: EMPTY_GUILD,
+      });
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: um dia real depois não há herói, soldo nem atraso', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v13State('migrated-peasant-3x');
+      const game = await insertV13(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V13State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(row.state.guild).toEqual(EMPTY_GUILD);
+      expect(row.state.ids).toEqual({});
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and (kind like 'wageArrears%' or kind like 'hero%')`,
+        ),
+      ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
 });
 
 describe('recibos da versão anterior', () => {

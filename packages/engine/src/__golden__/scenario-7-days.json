@@ -570,7 +570,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -716,6 +716,11 @@
       }
      ]
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "buildWatchtower",
@@ -744,7 +749,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -889,6 +894,11 @@
     "horde": {
      "scheduledRaids": []
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -933,7 +943,7 @@
    "day": 3,
    "eventsSoFar": 127,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1082,6 +1092,11 @@
     "horde": {
      "scheduledRaids": []
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -1134,7 +1149,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1293,6 +1308,11 @@
       }
      ]
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -1349,7 +1369,7 @@
    "day": 5,
    "eventsSoFar": 222,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1514,6 +1534,11 @@
     "horde": {
      "scheduledRaids": []
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -1574,7 +1599,7 @@
    "day": 6,
    "eventsSoFar": 270,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1737,6 +1762,11 @@
     "horde": {
      "scheduledRaids": []
     },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -1800,7 +1830,7 @@
    "day": 7,
    "eventsSoFar": 318,
    "state": {
-    "schemaVersion": 13,
+    "schemaVersion": 14,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1939,6 +1969,11 @@
     },
     "horde": {
      "scheduledRaids": []
+    },
+    "guild": {
+     "heroes": [],
+     "wageArrears": null,
+     "lastWageArrears": null
     },
     "objectives": {
      "active": [

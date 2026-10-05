@@ -7,6 +7,7 @@ import {
   type Shape,
   uint32,
 } from './shape';
+import type { MigrationStep } from './step';
 import { stateV12Fields } from './v12';
 
 // Os nomes ficam escritos aqui, como os identificadores das outras versões: a forma de uma
@@ -108,8 +109,7 @@ export const idsShape: Shape = keyedRecordOf(
  * - A forma do estado inteiro confere `rng` contra `ids` (`rngWithinIds`): nenhum fluxo de
  *   entidade além do contador da família.
  *
- * Quem subir `schemaVersion` para 14 acrescenta aqui o passo `v13ToV14`, com esta forma como
- * entrada, e escreve a forma nova em `v14.ts`.
+ * O passo que sai daqui é o `v13ToV14`, abaixo; a forma da versão 14 está em `v14.ts`.
  */
 export const stateV13Fields: Readonly<Record<string, Shape>> = {
   ...stateV12Fields,
@@ -123,3 +123,24 @@ const stateV13Streams: Shape = rngWithinIds(RNG_STREAM_FAMILIES_V13);
 
 export const stateV13: Shape = (value, path) =>
   stateV13Form(value, path) ?? stateV13Streams(value, path);
+
+/**
+ * Versão 13 → 14: os heróis no feudo e o soldo em atraso (V3C-T1; ADR 0017, decisões 3 e 5).
+ *
+ * Entra `guild`, vazio: nenhum herói, nenhum atraso aberto e nenhum registro de atraso fechado.
+ * Nenhuma partida tinha herói, então ninguém passa a dever soldo na fronteira: o ouro continua
+ * sem consumo nenhum, e o saldo de ninguém muda. O passo não cria prazo, não emite evento, não
+ * dá identificador a ninguém e não toca o gerador; a partida não muda de comportamento.
+ */
+export const v13ToV14: MigrationStep = {
+  from: 13,
+  summary: 'entra a guilda, vazia: nenhum herói e nenhum soldo em atraso',
+  shape: stateV13,
+  migrate(state) {
+    return {
+      ...state,
+      schemaVersion: 14,
+      guild: { heroes: [], wageArrears: null, lastWageArrears: null },
+    };
+  },
+};

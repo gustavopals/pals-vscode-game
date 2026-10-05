@@ -3,6 +3,9 @@ import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
+  HERO_CLASS_IDS,
+  HERO_STATUS_IDS,
+  HERO_TRAIT_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   RESOURCE_IDS,
@@ -43,10 +46,17 @@ import {
   RNG_STREAM_FAMILIES_V13,
   rngShape,
 } from './migrations/v13';
+import {
+  HERO_CLASS_IDS_V14,
+  HERO_MAX_LEVEL_V14,
+  HERO_ROSTER_CAP_V14,
+  HERO_TRAIT_IDS_V14,
+} from './migrations/v14';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
+  addHero,
   command,
   eventsOfType,
   famineSince,
@@ -99,11 +109,19 @@ const named = (name: string) => {
 };
 
 /**
- * Um estado como a versão 12 o gravava, a partir de um da versão atual: sem os contadores de
- * identidade. É o ponto de partida de quem monta, à mão, um estado de uma versão anterior.
+ * Um estado como a versão 13 o gravava, a partir de um da versão atual: sem a guilda. É o ponto
+ * de partida de quem monta, à mão, um estado de uma versão anterior.
  */
-function asVersion12(state: GameState): Draft {
+function asVersion13(state: GameState): Draft {
   const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 13;
+  delete old.guild;
+  return old;
+}
+
+/** Um estado como a versão 12 o gravava: sem os contadores de identidade. */
+function asVersion12(state: GameState): Draft {
+  const old = asVersion13(state);
   old.schemaVersion = 12;
   delete old.ids;
   return old;
@@ -312,7 +330,53 @@ const FROZEN: Record<string, string> = {
   'state-v12-storage.json': 'b12227a9',
   'state-v12-threat.json': 'ddd4a1f6',
   'state-v12-week-scripted.json': '5d2450d1',
+  'state-v13-cold.json': 'a4af57d6',
+  'state-v13-construction.json': '7a109e98',
+  'state-v13-council-hidden.json': 'a25d8fd5',
+  'state-v13-council.json': 'd38a55bc',
+  'state-v13-crafts.json': '53df4270',
+  'state-v13-famine-3x.json': 'f5cbeeca',
+  'state-v13-famine-ended.json': '1ee57e1e',
+  'state-v13-famine-half.json': 'a39a80f9',
+  'state-v13-famine-resumed.json': 'f6379ac2',
+  'state-v13-famine.json': '18aa4a12',
+  'state-v13-fresh.json': '5d6865d3',
+  'state-v13-iron-king-half.json': '7f3f2bdd',
+  'state-v13-migrated-3x.json': '255980e1',
+  'state-v13-migrated-iron-king-half.json': 'b165e632',
+  'state-v13-migrated-peasant-3x.json': '3e04f1f7',
+  'state-v13-morale.json': '7638c6fa',
+  'state-v13-objectives.json': '68748506',
+  'state-v13-palisade.json': 'b1893a90',
+  'state-v13-peasant-3x.json': '9a4917a3',
+  'state-v13-queues.json': 'b38a0fe8',
+  'state-v13-raid-announced.json': '790ce199',
+  'state-v13-raid.json': 'c68877a2',
+  'state-v13-storage.json': 'fa472732',
+  'state-v13-threat.json': 'ddad56f3',
+  'state-v13-week-scripted.json': 'fb868f04',
 };
+
+/** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
+const HERO = {
+  id: 'hero-1',
+  name: 'Edda',
+  classId: 'warrior',
+  level: 1,
+  xp: 0,
+  traits: ['loyal'],
+  status: 'idle',
+  joinedAtMs: 0,
+  discontent: false,
+} as const;
+
+/** Põe um herói bom no estado e deixa o teste estragá-lo. */
+function withHero(state: Draft, damage: (hero: Draft) => unknown): void {
+  const hero: Draft = { ...HERO, traits: [...HERO.traits] };
+  damage(hero);
+  state.ids = { hero: 1 };
+  state.guild.heroes = [hero];
+}
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -596,6 +660,133 @@ describe('a forma da versão atual', () => {
       'uma planejada com a marca que não é sim nem não',
       (state) => (state.settlement.planned = [{ building: 'farm', targetLevel: 2, autoStart: 1 }]),
     ],
+    ['a guilda ausente', (state) => delete state.guild],
+    ['a guilda nula', (state) => (state.guild = null)],
+    ['a guilda sem a lista de heróis', (state) => delete state.guild.heroes],
+    ['a guilda sem o atraso', (state) => delete state.guild.wageArrears],
+    ['a guilda sem o registro do último atraso', (state) => delete state.guild.lastWageArrears],
+    // Nada da Fase D antes da Fase D (regra 6 do CLAUDE.md).
+    ['a guilda com as expedições', (state) => (state.guild.expeditions = [])],
+    ['a guilda com as ofertas da Taverna', (state) => (state.guild.tavernOffers = [])],
+    ['a lista de heróis que não é lista', (state) => (state.guild.heroes = {})],
+    [
+      'um herói que não é objeto',
+      (state) => {
+        state.ids = { hero: 1 };
+        state.guild.heroes = ['hero-1'];
+      },
+    ],
+    ['um herói sem nome', (state) => withHero(state, (hero) => delete hero.name)],
+    ['um herói de nome vazio', (state) => withHero(state, (hero) => (hero.name = '  '))],
+    ['um herói sem identificador', (state) => withHero(state, (hero) => delete hero.id)],
+    [
+      'um herói com identificador de outro tipo',
+      (state) => withHero(state, (hero) => (hero.id = 'caravan-1')),
+    ],
+    [
+      'um herói com o identificador zero',
+      (state) => withHero(state, (hero) => (hero.id = 'hero-0')),
+    ],
+    ['um herói com zeros à esquerda', (state) => withHero(state, (hero) => (hero.id = 'hero-01'))],
+    ['um herói além do contador', (state) => withHero(state, (hero) => (hero.id = 'hero-2'))],
+    [
+      'um herói sem contador nenhum',
+      (state) => {
+        withHero(state, () => undefined);
+        state.ids = {};
+      },
+    ],
+    [
+      'um herói de uma classe desconhecida',
+      (state) => withHero(state, (hero) => (hero.classId = 'paladin')),
+    ],
+    ['um herói no nível zero', (state) => withHero(state, (hero) => (hero.level = 0))],
+    ['um herói acima do nível máximo', (state) => withHero(state, (hero) => (hero.level = 11))],
+    ['um herói de nível quebrado', (state) => withHero(state, (hero) => (hero.level = 1.5))],
+    ['um herói de experiência negativa', (state) => withHero(state, (hero) => (hero.xp = -1))],
+    [
+      'um herói com um traço desconhecido',
+      (state) => withHero(state, (hero) => (hero.traits = ['cursed'])),
+    ],
+    [
+      'um herói com um traço repetido',
+      (state) => withHero(state, (hero) => (hero.traits = ['loyal', 'loyal'])),
+    ],
+    [
+      'um herói com os traços em texto',
+      (state) => withHero(state, (hero) => (hero.traits = 'loyal')),
+    ],
+    // Os estados de quem está fora entram com as tarefas deles.
+    ['um herói em expedição', (state) => withHero(state, (hero) => (hero.status = 'expedition'))],
+    ['um herói ferido', (state) => withHero(state, (hero) => (hero.status = 'injured'))],
+    ['um herói com ferimento', (state) => withHero(state, (hero) => (hero.injury = null))],
+    ['um herói com equipamento', (state) => withHero(state, (hero) => (hero.equipment = {}))],
+    ['um herói com atributos gravados', (state) => withHero(state, (hero) => (hero.power = 42))],
+    [
+      'um herói sem a data de chegada',
+      (state) => withHero(state, (hero) => delete hero.joinedAtMs),
+    ],
+    [
+      'um herói que chegou depois de agora',
+      (state) => withHero(state, (hero) => (hero.joinedAtMs = 1)),
+    ],
+    [
+      'um herói sem dizer se está Descontente',
+      (state) => withHero(state, (hero) => delete hero.discontent),
+    ],
+    ['um herói Descontente em número', (state) => withHero(state, (hero) => (hero.discontent = 1))],
+    [
+      'um herói Descontente sem soldo em atraso',
+      (state) => withHero(state, (hero) => (hero.discontent = true)),
+    ],
+    [
+      'dois heróis com o mesmo identificador',
+      (state) => {
+        withHero(state, () => undefined);
+        state.guild.heroes.push({ ...state.guild.heroes[0] });
+      },
+    ],
+    [
+      'mais heróis do que o teto da lista',
+      (state) => {
+        state.ids = { hero: HERO_ROSTER_CAP_V14 + 1 };
+        state.guild.heroes = Array.from({ length: HERO_ROSTER_CAP_V14 + 1 }, (_, index) => ({
+          ...HERO,
+          id: `hero-${index + 1}`,
+        }));
+      },
+    ],
+    [
+      'um atraso sem o que já durou',
+      (state) => (state.guild.wageArrears = { sinceMs: 0, departed: 0 }),
+    ],
+    [
+      'um atraso com um campo a mais',
+      (state) => (state.guild.wageArrears = { sinceMs: 0, carriedMs: 0, departed: 0, debt: 5 }),
+    ],
+    [
+      'um atraso de duração quebrada',
+      (state) => (state.guild.wageArrears = { sinceMs: 0, carriedMs: 0.5, departed: 0 }),
+    ],
+    [
+      'um atraso que abriu depois de agora',
+      (state) => (state.guild.wageArrears = { sinceMs: 1, carriedMs: 0, departed: 0 }),
+    ],
+    [
+      'um registro de atraso sem os heróis cobrados',
+      (state) => (state.guild.lastWageArrears = { endedAtMs: 0, lastedMs: 5 }),
+    ],
+    [
+      'um registro de atraso que fechou depois de agora',
+      (state) => (state.guild.lastWageArrears = { endedAtMs: 1, lastedMs: 5, departed: 0 }),
+    ],
+    [
+      'um atraso aberto junto com o registro do que fechou',
+      (state) => {
+        state.guild.wageArrears = { sinceMs: 0, carriedMs: 0, departed: 0 };
+        state.guild.lastWageArrears = { endedAtMs: 0, lastedMs: 5, departed: 0 };
+      },
+    ],
     ['o número da versão 3', (state) => (state.schemaVersion = 3)],
     ['o número da versão 2', (state) => (state.schemaVersion = 2)],
     ['o número da versão anterior', (state) => (state.schemaVersion = 1)],
@@ -648,6 +839,69 @@ describe('a forma da versão atual', () => {
       /settings\.vigilHourLocal: esperado inteiro a partir de zero, veio texto/,
     );
     expect(() => migrateState(stored, { timeScale: 1 })).not.toThrow(/Nome Que/);
+  });
+
+  it('conhece as classes, os traços, o nível máximo e o teto da lista que o conteúdo tem', () => {
+    expect(HERO_CLASS_IDS_V14).toEqual([...HERO_CLASS_IDS]);
+    expect(HERO_TRAIT_IDS_V14).toEqual([...HERO_TRAIT_IDS]);
+    expect(HERO_MAX_LEVEL_V14).toBe(balance.heroes.maxLevel);
+    expect(HERO_ROSTER_CAP_V14).toBe(balance.heroes.rosterCap);
+    // O único estado de herói desta versão: os de quem está fora entram com as tarefas deles.
+    expect(HERO_STATUS_IDS).toEqual(['idle']);
+  });
+
+  it('aceita a guilda cheia: o teto de heróis, de todas as classes, todos os traços e níveis, com o atraso aberto', () => {
+    const draft = JSON.parse(JSON.stringify(newGame())) as GameState;
+    for (let index = 0; index < balance.heroes.rosterCap; index += 1) {
+      addHero(draft, {
+        classId: HERO_CLASS_IDS[index % HERO_CLASS_IDS.length] ?? 'warrior',
+        level: (index % balance.heroes.maxLevel) + 1,
+        traits: index === 0 ? [...HERO_TRAIT_IDS] : [],
+      });
+    }
+    expect(() => addHero(draft)).toThrow(/teto da lista/);
+    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
+    draft.guild.wageArrears = { sinceMs: 0, carriedMs: 7, departed: 2 };
+    (draft.guild.heroes[1] as GameState['guild']['heroes'][number]).discontent = true;
+    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
+    draft.guild.wageArrears = null;
+    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBe(
+      'guild.heroes.1.discontent: herói Descontente sem soldo em atraso',
+    );
+    // Um herói que partiu leva o identificador: o contador fica à frente da lista.
+    const gone = JSON.parse(JSON.stringify(newGame())) as GameState;
+    addHero(gone);
+    addHero(gone);
+    gone.guild.heroes.shift();
+    gone.guild.lastWageArrears = { endedAtMs: 0, lastedMs: 9, departed: 1 };
+    expect(currentShape(JSON.parse(JSON.stringify(gone)), '')).toBeNull();
+  });
+
+  it('a mensagem da guilda fora da forma diz o caminho e nunca o nome do herói', () => {
+    const broken = (damage: (state: Draft) => unknown) => {
+      const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+      damage(state);
+      return currentShape(state, '');
+    };
+    expect(broken((state) => withHero(state, (hero) => (hero.id = 'hero-2')))).toBe(
+      'guild.heroes.0.id: herói além do contador de ids.hero',
+    );
+    expect(broken((state) => withHero(state, (hero) => (hero.level = 11)))).toBe(
+      'guild.heroes.0.level: esperado um nível de 1 a 10',
+    );
+    expect(broken((state) => withHero(state, (hero) => (hero.status = 'captured')))).toBe(
+      'guild.heroes.0.status: esperado o valor fixo "idle", veio texto',
+    );
+    expect(broken((state) => withHero(state, (hero) => (hero.equipment = {})))).toBe(
+      'guild.heroes.0.equipment: campo desconhecido',
+    );
+    const named = broken((state) =>
+      withHero(state, (hero) => {
+        hero.name = 'Nome Que Não Vai Para o Log';
+        hero.xp = 'muita';
+      }),
+    );
+    expect(named).toBe('guild.heroes.0.xp: esperado inteiro a partir de zero, veio texto');
   });
 
   it('conhece os mesmos fluxos de sorteio que o gerador, fixos e de família', () => {
@@ -2513,13 +2767,14 @@ describe('versão 12 → 13', () => {
   it.each(version12)('$name: só acrescenta os contadores de identidade, vazios', (fixture) => {
     const before = read(fixture) as Draft;
     const after = migrated(fixture);
-    expect(after.schemaVersion).toBe(13);
     expect(after.ids).toStrictEqual({});
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, e o gerador fica palavra por palavra como estava.
     expect(after.rng).toStrictEqual(before.rng);
     const rest: Partial<GameState> = { ...after };
     delete rest.ids;
+    // A guilda é do passo seguinte (13 → 14), conferido no bloco dele.
+    delete rest.guild;
     expect({ ...rest, schemaVersion: 12 }).toStrictEqual({
       ...before,
       migratedAtMs: before.lastProcessedAt,
@@ -2572,7 +2827,10 @@ describe('versão 12 → 13', () => {
       }
       expect(caught).toBeInstanceOf(StateMigrationError);
       expect((caught as StateMigrationError).reason).toBe('invalid');
-      expect((caught as StateMigrationError).message).toMatch(/fora da forma \(rng\./);
+      // Quem recusa é a guarda da versão 13, na entrada do passo seguinte.
+      expect((caught as StateMigrationError).message).toMatch(
+        /diz ser da versão 13, mas não tem a forma dela \(rng\./,
+      );
       expect(old).toEqual(copy);
     }
   });
@@ -2585,6 +2843,84 @@ describe('versão 12 → 13', () => {
     expect(old).toEqual(copy);
     expect(slow).toEqual(fast);
     expect(slow.migratedAtMs).toBe(400 * HOUR);
+  });
+});
+
+describe('versão 13 → 14', () => {
+  const version13 = fixtures.filter((fixture) => fixture.version === 13);
+  const EMPTY_GUILD = { heroes: [], wageArrears: null, lastWageArrears: null };
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v13-fresh.json'));
+    expect(fresh.guild).toEqual(EMPTY_GUILD);
+    expect(newGame().guild).toEqual(EMPTY_GUILD);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version13)('$name: só acrescenta a guilda, vazia', (fixture) => {
+    const before = read(fixture) as Draft;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(14);
+    expect(after.guild).toStrictEqual(EMPTY_GUILD);
+    // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
+    // muda, ninguém ganha identificador e o gerador fica palavra por palavra como estava.
+    expect(after.rng).toStrictEqual(before.rng);
+    expect(after.ids).toStrictEqual(before.ids);
+    const rest: Partial<GameState> = { ...after };
+    delete rest.guild;
+    expect({ ...rest, schemaVersion: 13 }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it.each(version13)(
+    '$name: nada acontece na fronteira, e a partida segue sem herói, sem soldo e sem atraso',
+    (fixture) => {
+      const state = migrated(fixture);
+      // Nenhum prazo novo: o próximo evento é o que a partida já tinha marcado.
+      expect(nextEventAt(state)).toBe(
+        nextEventAt({ ...state, guild: { heroes: [], wageArrears: null, lastWageArrears: null } }),
+      );
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
+      // Nenhuma regra de hoje dá herói a ninguém: um mês real depois a guilda continua vazia,
+      // nenhum evento do soldo saiu e ninguém ganhou identificador.
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month);
+      expect(later.state.guild).toEqual(EMPTY_GUILD);
+      expect(later.state.ids).toEqual({});
+      expect(
+        later.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
+      ).toEqual([]);
+    },
+  );
+
+  it('o ouro de uma partida migrada anda como andava: sem herói não há soldo', () => {
+    const fixture = named('state-v13-week-scripted.json');
+    const state = migrated(fixture);
+    const view = deriveViewState(state, state.lastProcessedAt);
+    const gold = view.resources.find((row) => row.id === 'gold');
+    expect(gold?.breakdown).not.toMatch(/soldo/);
+    expect(gold?.depletesInSeconds).toBeNull();
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const old = asVersion13(advanceTo(newGame(), 400 * HOUR).state);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(400 * HOUR);
+    expect(slow.guild).toEqual(EMPTY_GUILD);
+  });
+
+  it('um estado da versão 13 que já traz a guilda é recusado: não é da versão que diz', () => {
+    const old = asVersion13(newGame());
+    old.guild = EMPTY_GUILD;
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(StateMigrationError);
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(/guild: campo desconhecido/);
   });
 });
 

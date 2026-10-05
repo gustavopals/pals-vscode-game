@@ -1,4 +1,11 @@
-import { buildings, councilCards, objectives } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  councilCards,
+  type HeroClassId,
+  type HeroTraitId,
+  objectives,
+} from '@lotg/content';
 
 import { advanceTo, advanceWith, processEventsAt, processEventsWith } from './advance';
 import { DAY_MS, isDayBoundary } from './clock';
@@ -17,7 +24,7 @@ import {
   type RngStreamFamily,
 } from './random';
 import { cloneState, createInitialState } from './state';
-import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
+import type { Command, CommandResult, GameEvent, GameSettings, GameState, Hero } from './types';
 import { MILLI } from './units';
 import { deriveViewState } from './view';
 
@@ -69,6 +76,45 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
     quietHorde(draft);
     edit(draft);
   });
+}
+
+/** Os nomes dos heróis de teste, na ordem em que chegam. */
+const TEST_HERO_NAMES = ['Edda', 'Rolf', 'Brann', 'Isolda', 'Tibério', 'Mirela'];
+
+/**
+ * Põe um herói no feudo, como uma carta ou a Taverna vão pôr (V3C-T3 e V3C-T2): nesta tarefa
+ * ainda não há ordem nem evento que dê um herói a ninguém. O identificador sai do contador do
+ * estado (`nextId`), ele chega no instante em que o rascunho está, a não ser que `joinedAtMs`
+ * diga outro, e o teto da lista vale aqui como vai valer para quem contratar.
+ */
+export function addHero(
+  draft: GameState,
+  spec: {
+    name?: string;
+    classId?: HeroClassId;
+    level?: number;
+    traits?: HeroTraitId[];
+    joinedAtMs?: number;
+  } = {},
+): Hero {
+  const { heroes } = draft.guild;
+  if (heroes.length >= balance.heroes.rosterCap) {
+    throw new Error(`O feudo já tem ${heroes.length} heróis: o teto da lista.`);
+  }
+  const id = nextId(draft, 'hero');
+  const hero: Hero = {
+    id,
+    name: spec.name ?? TEST_HERO_NAMES[heroes.length % TEST_HERO_NAMES.length] ?? id,
+    classId: spec.classId ?? 'warrior',
+    level: spec.level ?? 1,
+    xp: 0,
+    traits: spec.traits ?? [],
+    status: 'idle',
+    joinedAtMs: spec.joinedAtMs ?? draft.lastProcessedAt,
+    discontent: false,
+  };
+  heroes.push(hero);
+  return hero;
 }
 
 /**
