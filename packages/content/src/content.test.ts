@@ -1009,8 +1009,9 @@ describe('moral (GDD §5.6 e §5.7)', () => {
     expect(morale.departure.maxMorale).toBeLessThan(morale.arrival.minMorale);
   });
 
-  it('a fome longa faz desertar depois de 12 h de jogo, e o piso é de 3 aldeões', () => {
-    expect(morale.famineDesertionAfterMs).toBe(12 * 3_600_000);
+  it('a fome longa faz desertar depois de 12 h reais, um aldeão a cada 2 h reais, e o piso é de 3 aldeões', () => {
+    expect(morale.famineDesertionAfterRealMs).toBe(12 * 3_600_000);
+    expect(morale.famineDesertionEveryRealMs).toBe(2 * 3_600_000);
     expect(morale.populationFloor).toBe(3);
     // O feudo nasce acima do piso: a proteção não é o estado inicial.
     expect(balance.initial.villagers).toBeGreaterThan(morale.populationFloor);
@@ -1020,14 +1021,42 @@ describe('moral (GDD §5.6 e §5.7)', () => {
     ]);
   });
 
-  it('os prazos são dias de jogo inteiros, e em todo ritmo um número inteiro de minutos reais', () => {
+  it('a fome que reabre menos de 2 h reais depois de acabar é a mesma fome', () => {
+    expect(morale.famineResumeWithinRealMs).toBe(2 * 3_600_000);
+  });
+
+  it('a reserva de comida é um número inteiro de dias de jogo, e em todo ritmo um número inteiro de minutos reais', () => {
     // A moral só muda na virada do dia: um prazo que não fecha em dias valeria o dia seguinte.
-    for (const ms of [morale.foodReserve.coverMs, morale.famineDesertionAfterMs]) {
-      expect(ms % balance.calendar.dayMs).toBe(0);
-      for (const pace of balance.paces) {
-        expect((ms / pace.timeScale) % 60_000, pace.label).toBe(0);
+    const ms = morale.foodReserve.coverMs;
+    expect(ms % balance.calendar.dayMs).toBe(0);
+    for (const pace of balance.paces) {
+      expect((ms / pace.timeScale) % 60_000, pace.label).toBe(0);
+    }
+  });
+
+  it('os prazos de tempo real da deserção viram um número inteiro de ms de jogo em todo ritmo oferecido', () => {
+    const { dayMs } = balance.calendar;
+    const realMs = [
+      morale.famineDesertionAfterRealMs,
+      morale.famineDesertionEveryRealMs,
+      morale.famineResumeWithinRealMs,
+    ];
+    for (const pace of balance.paces) {
+      for (const ms of realMs) {
+        expect(Number.isInteger(ms * pace.timeScale), pace.label).toBe(true);
       }
     }
+    // A conta que o autor fez (ADR 0016, item 2): um aldeão a cada três viradas de dia no
+    // Rápido, um por virada no Normal e dois por virada no Tranquilo.
+    const turnsPerDeserter = (timeScale: number) =>
+      (morale.famineDesertionEveryRealMs * timeScale) / dayMs;
+    expect(balance.paces.map((pace) => [pace.timeScale, turnsPerDeserter(pace.timeScale)])).toEqual(
+      [
+        [3, 3],
+        [1, 1],
+        [0.5, 0.5],
+      ],
+    );
   });
 
   it('no piso, com a pior produção possível, a Fazenda ainda alimenta o feudo: há caminho de volta', () => {
@@ -1065,7 +1094,12 @@ describe('moral (GDD §5.6 e §5.7)', () => {
     expect(withMorale({ arrival: { minMorale: 80, chance: { num: 6, den: 5 } } })).toBe(false);
     expect(withMorale({ departure: { maxMorale: 80, chance: { num: 1, den: 5 } } })).toBe(false);
     expect(withMorale({ populationFloor: 0 })).toBe(false);
-    expect(withMorale({ famineDesertionAfterMs: 0 })).toBe(false);
+    expect(withMorale({ famineDesertionAfterRealMs: 0 })).toBe(false);
+    expect(withMorale({ famineDesertionEveryRealMs: 0 })).toBe(false);
+    expect(withMorale({ famineResumeWithinRealMs: 0 })).toBe(false);
+    // O nome antigo, em tempo de jogo, já não existe.
+    const stale: object = { famineDesertionAfterMs: 12 * 3_600_000 };
+    expect(withMorale(stale)).toBe(false);
     const withoutMorale = Object.fromEntries(
       Object.entries(balance).filter(([key]) => key !== 'morale'),
     );

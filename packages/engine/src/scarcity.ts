@@ -21,8 +21,9 @@ const MAX_PASSES = 8;
  * indicadores e o estoque. A ordem é fixa, fome e depois frio, e a conferência se repete até
  * nada mais mudar: o estado que sai daqui está em repouso, e por isso o próximo evento da linha
  * do tempo é sempre depois de agora. Se a fome terminou e recomeçou na mesma conferência (o frio
- * abriu logo depois e cortou a Fazenda), ela simplesmente continua, com a data em que começou:
- * não há oscilação no mesmo instante. O mesmo vale para o frio.
+ * abriu logo depois e cortou a Fazenda), ela simplesmente continua, com a data em que começou
+ * e sem deixar registro de fome acabada: não há oscilação no mesmo instante. O mesmo vale para
+ * o frio.
  *
  * É também o que a projeção do ofício faz na cópia quando a pergunta é o fim da fome ou do frio
  * (`craftProjection.ts`): só toca no que a cópia separa do estado.
@@ -30,6 +31,7 @@ const MAX_PASSES = 8;
 export function settleIndicators(draft: GameState, atMs: number): void {
   const { settlement } = draft;
   const famineBefore = settlement.famine;
+  const lastFamineBefore = settlement.lastFamine;
   const coldBefore = settlement.cold;
 
   for (let pass = 0; ; pass += 1) {
@@ -45,6 +47,7 @@ export function settleIndicators(draft: GameState, atMs: number): void {
 
   if (famineBefore !== null && settlement.famine !== null) {
     settlement.famine = famineBefore;
+    settlement.lastFamine = lastFamineBefore;
   }
   if (coldBefore !== null && settlement.cold !== null) {
     settlement.cold = coldBefore;

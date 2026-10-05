@@ -609,8 +609,8 @@ describe('uma partida gravada antes das incursões (estado na versão 10)', () =
     const view = await viewOf(normal, game, game.id);
     expect(view.population).toMatchObject({ injured: 0, injuredNote: null });
     const row = await storedState(normal, game.id);
-    expect(row.schema_version).toBe(11);
-    expect(row.state.schemaVersion).toBe(11);
+    expect(row.schema_version).toBe(12);
+    expect(row.state.schemaVersion).toBe(12);
     expect(row.state.settlement.injured).toEqual([]);
     expect(row.state.horde.scheduledRaids).toEqual([
       {

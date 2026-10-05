@@ -166,7 +166,7 @@ describe('a moral na visão, em tempo real', () => {
 });
 
 describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
-  it('no ritmo Rápido, em 16 h reais o feudo está no piso, e a visão diz o porquê e o que fazer', async () => {
+  it('no ritmo Rápido, em 20 h reais a moral baixa leva o feudo ao piso sem ninguém ter desertado: a fome só cobra depois de 12 h reais', async () => {
     const who = await newPlayer(fast);
     // Só a fome e a moral: os lobos do roteiro levariam comida às 30 h de jogo e adiantariam
     // a fome (as incursões pela API estão em `raids.test.ts`).
@@ -183,13 +183,16 @@ describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
       nextText: 'A moral só muda na virada do dia: na próxima, cai de 50 para 28 (Inquieto).',
       advice:
         'O que mais pesa é a fome (−22). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.',
-      // 12 h de jogo de fome são 4 h reais; a primeira virada com elas completas é às 48 h.
+      // 12 h reais de fome são 36 h de jogo: a primeira virada com elas completas é às 72 h de
+      // jogo, 35 h de jogo depois desta leitura.
       notes: [
-        'Depois de 4 h de fome, um aldeão deserta a cada virada do dia. Faltam 3 h 40 min para o primeiro.',
+        'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia. Faltam 11 h 40 min para o primeiro.',
       ],
     });
 
-    // 60 h de jogo (20 h reais): a moral caiu duas faixas e dois aldeões se foram.
+    // 60 h de jogo (20 h reais, 8 de fome): a moral caiu duas faixas e levou dois aldeões, por
+    // sorteio. Pela regra de antes (12 h de jogo de carência) um deles teria desertado na
+    // virada das 48 h.
     await wait(fast, who, (23 * HOUR) / PACE);
     const view = await viewOf(fast, who, who.game.id);
     expect(view.population.villagers).toBe(3);
@@ -204,13 +207,13 @@ describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
       ['moraleBandChanged', 19],
       ['moraleBandChanged', 21],
       ['villagerLeft', 24],
-      ['villagerDeserted', 24],
+      ['villagerLeft', 29],
     ]);
     expect(moved.map((event) => event.text)).toEqual([
       'No 20º dia da Primavera, o povo de Pedra Alta anda inquieto. Há resmungos junto ao poço.',
       'No 22º dia da Primavera, o povo de Pedra Alta perdeu a esperança. Já se fala em ir embora.',
       'No 1º dia do Verão, um aldeão sem ofício juntou a trouxa e deixou Pedra Alta: o povo anda sem ânimo. Restam 4.',
-      'No 1º dia do Verão, um aldeão sem ofício fugiu da fome de Pedra Alta na calada da noite. Restam 3.',
+      'No 6º dia do Verão, um aldeão sem ofício juntou a trouxa e deixou Pedra Alta: o povo anda sem ânimo. Restam 3.',
     ]);
     expect(moved[0]?.data).toEqual({
       morale: 28,
@@ -255,7 +258,7 @@ describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
       'moraleBandChanged',
       'moraleBandChanged',
       'villagerLeft',
-      'villagerDeserted',
+      'villagerLeft',
     ]);
     // A leitura depois do job não repete nenhum.
     await viewOf(fast, sleeper, sleeper.game.id);
@@ -303,6 +306,175 @@ describe('o feudo abandonado: fome, moral baixa e quem vai embora', () => {
     expect(again.headers[REPLAYED]).toBe('true');
     expect(again.body).toEqual(first.body);
     expect(await rngOf()).toEqual(before);
+  });
+});
+
+describe('a deserção por fome em tempo real, nos três ritmos (V2G-T2; ADR 0016, itens 2 e 3)', () => {
+  type Starver = { id: string; token: string; refreshToken: string; createdAt: number };
+
+  /**
+   * Um feudo grande e sem lavradores, no ritmo pedido: 40 habitantes (as casas cheias: nenhum
+   * colono chega), comida para meia hora de jogo, a Horda e o Conselho calados e um efeito de
+   * teste que segura a moral acima de 25: aqui só a fome tira gente, sem sorteio. O estado é
+   * reescrito direto no banco, logo depois de criada a partida, antes de qualquer leitura.
+   */
+  async function starvingFief(timeScale: number, difficulty = 'lord'): Promise<Starver> {
+    const auth = await signUp(normal, 'Senhora da Fome');
+    const game = await startGame(normal, auth.accessToken, {
+      timeScale: timeScale as 3,
+      difficulty: difficulty as 'lord',
+    });
+    await quietHorde(normal, game.id);
+    const year = 84 * DAY;
+    const { rowCount } = await normal.pool.query(
+      `update games set state = state
+          || jsonb_build_object('council', (state->'council') || '{"nextDrawAtMs": ${1000 * year}}'::jsonb)
+          || jsonb_build_object('settlement', (state->'settlement') || $2::jsonb)
+        where id = $1`,
+      [
+        game.id,
+        JSON.stringify({
+          population: { villagers: 40 },
+          resources: { food: 20_000, wood: 0, stone: 0, gold: 0 },
+          moraleEffects: [{ id: 'teste', label: 'efeito de teste', amount: 100, untilMs: year }],
+        }),
+      ],
+    );
+    expect(rowCount).toBe(1);
+    return {
+      id: game.id,
+      token: auth.accessToken,
+      refreshToken: auth.refreshToken,
+      createdAt: new Date(game.createdAt).getTime(),
+    };
+  }
+
+  /** Leva o relógio real até `realMs` depois da criação da partida. */
+  async function at(who: Starver, realMs: number): Promise<void> {
+    normal.clock.advance(who.createdAt + realMs - normal.clock.now().getTime());
+    await renew(normal, who as unknown as Player);
+  }
+
+  const deserted = (events: GameEvent[]) =>
+    events.filter((event) => event.type === 'villagerDeserted');
+
+  it.each([
+    // Em horas reais desde a criação. A fome abre com meia hora de jogo; a carência se completa
+    // com 12 h reais de fome, e quem cobra é a primeira virada de dia a partir daí.
+    // Rápido: fome aos 10 min reais; viradas a cada 40 min; um aldeão a cada três viradas.
+    { timeScale: 3, famineAt: 1 / 6, hours: [12 + 2 / 3, 14 + 2 / 3, 16 + 2 / 3] },
+    // Normal: fome aos 30 min; viradas a cada 2 h; um aldeão por virada, como sempre foi.
+    { timeScale: 1, famineAt: 0.5, hours: [14, 16, 18] },
+    // Tranquilo: fome com 1 h; viradas a cada 4 h; dois aldeões por virada.
+    { timeScale: 0.5, famineAt: 1, hours: [16, 16, 20, 20, 24, 24] },
+  ])(
+    'ritmo $timeScale: os desertores saem nas horas reais $hours',
+    async ({ timeScale, famineAt, hours }) => {
+      const who = await starvingFief(timeScale);
+      const [first] = hours as [number, ...number[]];
+      const last = hours[hours.length - 1] as number;
+
+      // Uma hora real depois de a fome abrir: a visão diz os prazos, os mesmos em todo ritmo.
+      await at(who, (famineAt + 1) * HOUR);
+      const early = await viewOf(normal, who, who.id);
+      expect(early.famine?.secondsElapsed).toBe(3600);
+      expect(early.population.villagers).toBe(40);
+      const note = early.morale.notes.find((text) => text.includes('Faltam'));
+      expect(note).toMatch(
+        /^Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia\. Faltam .+ para o primeiro\.$/,
+      );
+
+      // Um milissegundo real antes da primeira deserção, ninguém saiu.
+      await at(who, first * HOUR - 1);
+      expect((await viewOf(normal, who, who.id)).population.villagers).toBe(40);
+      expect(deserted(await eventsOf(normal, who, who.id))).toEqual([]);
+
+      // No instante dela, e até a última da lista.
+      await at(who, first * HOUR);
+      expect(deserted(await eventsOf(normal, who, who.id)).length).toBeGreaterThan(0);
+      await at(who, last * HOUR);
+      const events = await eventsOf(normal, who, who.id);
+      const famine = events.filter((event) => event.type === 'famineStarted');
+      expect(famine.map((event) => new Date(event.at).getTime() - who.createdAt)).toEqual([
+        Math.round(famineAt * HOUR),
+      ]);
+      const gone = deserted(events);
+      expect(gone.map((event) => new Date(event.at).getTime() - who.createdAt)).toEqual(
+        hours.map((hour) => Math.round(hour * HOUR)),
+      );
+      // Todos em viradas de dia de jogo, e a primeira entre 12 h e 12 h mais um dia de jogo
+      // depois de a fome abrir.
+      for (const event of gone) {
+        expect(event.atMs % DAY).toBe(0);
+      }
+      const waited = (first - famineAt) * HOUR;
+      expect(waited).toBeGreaterThanOrEqual(12 * HOUR);
+      expect(waited).toBeLessThan(12 * HOUR + DAY / timeScale);
+      const view = await viewOf(normal, who, who.id);
+      expect(view.population.villagers).toBe(40 - hours.length);
+      expect(view.famine?.secondsElapsed).toBe(Math.round((last - famineAt) * 3600));
+    },
+  );
+
+  it('em Camponês ninguém deserta, em nenhum ritmo', async () => {
+    for (const timeScale of [3, 1, 0.5]) {
+      const who = await starvingFief(timeScale, 'peasant');
+      await at(who, 30 * HOUR);
+      expect(deserted(await eventsOf(normal, who, who.id))).toEqual([]);
+      expect((await viewOf(normal, who, who.id)).population.villagers).toBe(40);
+    }
+  });
+
+  it('mandar todos à Fazenda e de volta, em duas ordens seguidas, não muda nenhum instante de deserção nem a moral', async () => {
+    const plain = await starvingFief(1);
+    const cheater = await starvingFief(1);
+    // A manobra do furo de C-4, a cada 5 h reais: a fome fecha na primeira ordem e reabre na
+    // segunda, sem ninguém ter comido.
+    for (const hour of [5, 10, 13.5, 15]) {
+      await at(cheater, hour * HOUR);
+      const { villagers } = (await viewOf(normal, cheater, cheater.id)).population;
+      const toFarm = await send<CommandAccepted>(
+        normal,
+        cheater.token,
+        cheater.id,
+        order('setWorkers', { building: 'farm', count: villagers }),
+      );
+      expect(toFarm.status).toBe(200);
+      expect(toFarm.body.view.famine).toBeNull();
+      const back = await send<CommandAccepted>(
+        normal,
+        cheater.token,
+        cheater.id,
+        order('setWorkers', { building: 'farm', count: 0 }),
+      );
+      expect(back.status).toBe(200);
+      // A fome reabriu e continua contando o que já tinha durado: o tempo desde que abriu, aos
+      // 30 min reais.
+      expect(back.body.view.famine?.secondsElapsed).toBe((hour - 0.5) * 3600);
+    }
+    await at(cheater, 18 * HOUR);
+    await at(plain, 18 * HOUR);
+    const story = async (who: Starver) => {
+      const events = await eventsOf(normal, who, who.id);
+      return {
+        deserted: deserted(events).map((event) => event.atMs / HOUR),
+        morale: deserted(events).map((event) => event.data.morale),
+        ended: events.filter((event) => event.type === 'famineEnded').length,
+      };
+    };
+    const honest = await story(plain);
+    const cheated = await story(cheater);
+    expect(honest).toEqual({ deserted: [14, 16, 18], morale: [100, 100, 100], ended: 0 });
+    expect(cheated).toEqual({ ...honest, ended: 4 });
+    const views = await Promise.all([
+      viewOf(normal, plain, plain.id),
+      viewOf(normal, cheater, cheater.id),
+    ]);
+    expect(views[1].population.villagers).toBe(views[0].population.villagers);
+    expect(views[1].morale.value).toBe(views[0].morale.value);
+    expect(views[1].morale.terms).toEqual(views[0].morale.terms);
+    expect(views[1].morale.notes).toEqual(views[0].morale.notes);
+    expect(views[1].famine?.secondsElapsed).toBe(views[0].famine?.secondsElapsed);
   });
 });
 
@@ -377,8 +549,8 @@ describe('uma partida gravada antes da moral (versão 6 do estado)', () => {
       expect(row.breakdown).not.toContain('moral');
     }
     const row = await rowOf(normal, game.id);
-    expect(row.schema_version).toBe(11);
-    expect(row.state.schemaVersion).toBe(11);
+    expect(row.schema_version).toBe(12);
+    expect(row.state.schemaVersion).toBe(12);
     expect(row.state.settlement).toMatchObject({ morale: 50, moraleEffects: [] });
     expect(row.state.settlement.population).toEqual(before.settlement.population);
     expect(moraleOnly(await eventsOf(normal, game, game.id))).toEqual([]);
@@ -400,8 +572,9 @@ describe('uma partida gravada antes da moral (versão 6 do estado)', () => {
     expect(view.population.villagers).toBe(before.settlement.population.villagers);
     expect(moraleOnly(await eventsOf(normal, game, game.id))).toEqual([]);
     // A visão avisa antes de acontecer.
-    expect(view.morale.notes).toContain(
-      'A fome já dura 12 h ou mais: um aldeão deserta a cada virada do dia, até a comida voltar.',
+    const warning = view.morale.notes.find((note) => note.startsWith('A fome já dura'));
+    expect(warning).toMatch(
+      /^A fome já dura 12 h ou mais: deserta um aldeão a cada 2 h de fome, na virada do dia, até a comida voltar\. Faltam .+ para o próximo\.$/,
     );
 
     await wait(normal, game, view.morale.nextUpdateInSeconds * 1000);

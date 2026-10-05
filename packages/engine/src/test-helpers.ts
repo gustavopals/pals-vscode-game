@@ -4,7 +4,7 @@ import { advanceTo, advanceWith, processEventsAt, processEventsWith } from './ad
 import { isDayBoundary } from './clock';
 import { applyCommand } from './commands';
 import { cardOf, CATALOG, type Catalog, deliverCard, DRAW_INTERVAL_MS } from './council';
-import { addMoraleEffect } from './morale';
+import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { chance, nextInt, pickWeighted } from './random';
 import { cloneState, createInitialState } from './state';
@@ -129,6 +129,29 @@ export function quietHorde(draft: GameState): void {
  */
 export function hordeAwake(draft: GameState): void {
   draft.horde.scheduledRaids = scriptedRaidsAfter(draft.lastProcessedAt);
+}
+
+/**
+ * Uma fome nova, aberta em `sinceMs`, como o estado a guarda: sem nada de uma fome anterior e,
+ * por padrão, sem nenhum desertor cobrado ainda.
+ */
+export function famineSince(
+  sinceMs: number,
+  deserted = 0,
+): NonNullable<GameState['settlement']['famine']> {
+  return { sinceMs, carriedMs: 0, deserted };
+}
+
+/**
+ * Põe o feudo em fome desde `sinceMs`, com a deserção em dia: os aldeões que o prazo já devia
+ * na última virada de dia antes de agora contam como cobrados, como em um feudo que chegou até
+ * aqui jogando. Sem isso, a primeira virada cobraria de uma vez tudo o que a fome antiga deve.
+ * Chame depois de pôr o relógio, o ritmo e a dificuldade no lugar.
+ */
+export function starve(draft: GameState, sinceMs: number): void {
+  draft.settlement.famine = famineSince(sinceMs);
+  const lastTurn = Math.floor(draft.lastProcessedAt / DAY) * DAY;
+  draft.settlement.famine.deserted = famineDesertionsOwedAt(draft, lastTurn);
 }
 
 /** Uma cópia do estado com o Conselho e a Horda calados (`quietCouncil`, `quietHorde`). */
@@ -463,7 +486,7 @@ export function impoverishedScenario(difficulty: GameSettings['difficulty'] = 'l
     settlement.population.villagers = 3;
     settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
     settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
-    settlement.famine = { sinceMs: WINTER - 18 * DAY };
+    starve(draft, WINTER - 18 * DAY);
     settlement.cold = { sinceMs: WINTER };
     settlement.morale = 0;
   });

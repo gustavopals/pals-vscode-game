@@ -1,0 +1,174 @@
+{
+ "schemaVersion": 12,
+ "seed": "fixture-queues",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 184567,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 184567,
+ "rng": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 400358,
+   "wood": 200410,
+   "stone": 170000,
+   "gold": 160102
+  },
+  "accumulators": {
+   "food": 3169000,
+   "wood": 536000,
+   "stone": 0,
+   "gold": 1934000
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 2,
+   "lumberMill": 2,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 2,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   {
+    "building": "lumberMill",
+    "targetLevel": 2,
+    "startedAtMs": 0,
+    "finishesAtMs": 300000
+   },
+   {
+    "building": "goldMine",
+    "targetLevel": 2,
+    "startedAtMs": 0,
+    "finishesAtMs": 480000
+   }
+  ],
+  "planned": [
+   {
+    "building": "lumberMill",
+    "targetLevel": 3,
+    "autoStart": true
+   },
+   {
+    "building": "housing",
+    "targetLevel": 2,
+    "autoStart": false
+   },
+   {
+    "building": "townHall",
+    "targetLevel": 5,
+    "autoStart": true
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [
+   {
+    "building": "farm",
+    "count": 2,
+    "untilMs": 7200000
+   },
+   {
+    "building": "lumberMill",
+    "count": 2,
+    "untilMs": 7200000
+   },
+   {
+    "building": "goldMine",
+    "count": 1,
+    "untilMs": 7200000
+   }
+  ],
+  "morale": 50,
+  "moraleEffects": [],
+  "injured": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 28800000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 0
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "objectives": {
+  "active": [
+   "upgradeHousing",
+   "recruitVillagers",
+   "buildWatchtower"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "townHallLevel2"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:lumberMill": 1,
+  "constructionsStarted:goldMine": 1,
+  "plansMarkedAuto": 2
+ }
+}

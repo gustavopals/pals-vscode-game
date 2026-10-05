@@ -1829,7 +1829,7 @@ describe('aba Feudo: moral (GDD §5.7)', () => {
 
   it('na fome, um segundo aviso diz o que as viradas vão fazer com o povo, fora da região viva', () => {
     const notes = [
-      'Depois de 12 h de fome, um aldeão deserta a cada virada do dia. Faltam 3 h 40 min para o primeiro.',
+      'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia. Faltam 11 h 40 min para o primeiro.',
       'Com a moral em 25 ou menos, cada virada do dia tem 20% de chance de levar um aldeão embora.',
     ];
     const page = html(

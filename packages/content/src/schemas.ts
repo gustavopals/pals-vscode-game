@@ -94,7 +94,9 @@ const morale = z
       ),
     arrival: z.strictObject({ minMorale: positiveInt, chance }),
     departure: z.strictObject({ maxMorale: z.number().int().nonnegative(), chance }),
-    famineDesertionAfterMs: positiveInt,
+    famineDesertionAfterRealMs: positiveInt,
+    famineDesertionEveryRealMs: positiveInt,
+    famineResumeWithinRealMs: positiveInt,
     populationFloor: positiveInt,
   })
   .refine(

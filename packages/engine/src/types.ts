@@ -170,7 +170,7 @@ export type InjuredVillager = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 11;
+  schemaVersion: 12;
   seed: string;
   settings: GameSettings;
   /**
@@ -210,7 +210,22 @@ export type GameState = {
     planned: PlannedConstruction[];
     /** Um item por aldeão em treinamento, em ordem de conclusão. */
     recruitmentQueue: Array<{ finishesAtMs: number }>;
-    famine: { sinceMs: number } | null;
+    /**
+     * A fome aberta (GDD §5.6). `sinceMs` é o instante em que ela abriu, ou reabriu.
+     * `carriedMs` é o quanto ela já tinha durado antes, quando é a continuação de uma fome que
+     * acabou há pouco (zero em uma fome nova): a duração que conta para a moral e para a
+     * deserção é `agora − sinceMs + carriedMs`. `deserted` é quantos aldeões o prazo da
+     * deserção já cobrou nesta fome: os que saíram e os que o piso impediu de sair.
+     */
+    famine: { sinceMs: number; carriedMs: number; deserted: number } | null;
+    /**
+     * A última fome que acabou: quando acabou, quanto tinha durado e quantos aldeões o prazo da
+     * deserção tinha cobrado nela. A fome que reabre dentro da janela do conteúdo
+     * (`famineResumeWithinRealMs`, em tempo real) é a mesma e continua daqui; passada a
+     * janela, o registro fica sem efeito até a próxima fome o trocar. `null` enquanto nenhuma
+     * fome acabou, e depois de uma fome ser retomada.
+     */
+    lastFamine: { endedAtMs: number; lastedMs: number; deserted: number } | null;
     /**
      * O frio: aberto no instante em que a madeira acabou em uma estação que queima lenha
      * (GDD §4.1). Enquanto dura, a produção de todo o feudo cai e a madeira não fica negativa.
@@ -1068,7 +1083,12 @@ export type ViewState = {
     moraleNote: string | null;
   };
   famine: null | {
+    /** O instante de jogo em que a fome abriu, ou reabriu. */
     sinceMs: number;
+    /**
+     * Há quantos segundos reais a fome dura, na conta da moral e da deserção: a fome que reabre
+     * pouco depois de acabar é a mesma (GDD §5.6), e o que ela já tinha durado antes entra aqui.
+     */
     secondsElapsed: number;
     /**
      * Segundos reais até a fome acabar sozinha, sem nenhuma ordem: quem ainda se adapta passa a

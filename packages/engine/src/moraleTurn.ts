@@ -8,7 +8,13 @@ import {
 } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { aboveFloor, dropSpentEffects, famineDesertsAt, moraleAt, moraleBand } from './morale';
+import {
+  aboveFloor,
+  dropSpentEffects,
+  famineDesertionsOwedAt,
+  moraleAt,
+  moraleBand,
+} from './morale';
 import { housingVacancy, releaseExcessWorkers } from './population';
 import { chance } from './random';
 import type { GameEvent, GameState } from './types';
@@ -22,8 +28,9 @@ import type { GameEvent, GameState } from './types';
  * 2. **Sorteios**, no fluxo `morale`, com a moral recém-calculada: primeiro a chegada de um
  *    colono (moral alta e vaga nas casas), depois a partida de um aldeão (moral baixa e gente
  *    acima do piso). Só se sorteia o que pode acontecer: sem vaga ou no piso, o fluxo não anda.
- * 3. **Deserção por fome**, sem sorteio: com a fome durando o bastante, um aldeão por virada,
- *    exceto na dificuldade em que a fome não faz partir, e nunca abaixo do piso.
+ * 3. **Deserção por fome**, sem sorteio: saem os aldeões que o prazo da fome já deve (a carência
+ *    e o passo são tempo real, convertidos pelo ritmo) e ainda não saíram, exceto na
+ *    dificuldade em que a fome não faz partir, e nunca abaixo do piso.
  *
  * Tudo acontece em uma virada de dia, que já é um instante da linha do tempo: avançar de uma
  * vez ou aos pedaços encontra as mesmas viradas, na mesma ordem, e gasta o gerador igual.
@@ -91,11 +98,22 @@ function drawDeparture(draft: GameState, atMs: number, events: GameEvent[]): voi
   }
 }
 
-/** A fome longa: um aldeão deserta por virada de dia, sem sorteio (GDD §5.6). */
+/**
+ * A fome longa, sem sorteio (GDD §5.6; ADR 0016, item 2). A carência e o passo são tempo real;
+ * quem cobra é a virada do dia: saem, um a um, os aldeões que o prazo já deve e que esta fome
+ * ainda não cobrou, enquanto o feudo estiver acima do piso. A conta fecha no que era devido: o
+ * que o piso impediu de sair fica perdoado, e ninguém sai em bloco se a população subir depois.
+ */
 function desertFromFamine(draft: GameState, atMs: number, events: GameEvent[]): void {
-  if (famineDesertsAt(draft, atMs) && aboveFloor(draft)) {
+  const { famine } = draft.settlement;
+  const owed = famineDesertionsOwedAt(draft, atMs);
+  if (famine === null || owed <= famine.deserted) {
+    return;
+  }
+  for (let due = owed - famine.deserted; due > 0 && aboveFloor(draft); due -= 1) {
     loseVillager(draft, atMs, events, 'villagerDeserted');
   }
+  draft.settlement.famine = { ...famine, deserted: owed };
 }
 
 /**

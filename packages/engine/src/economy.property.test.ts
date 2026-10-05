@@ -15,6 +15,7 @@ import {
   HOUR,
   MINUTE,
   newGame,
+  starve,
   WINTER,
   YEAR,
 } from './test-helpers';
@@ -472,7 +473,7 @@ describe('invariante de divisão de intervalo', () => {
           settlement.resources.wood = scenario.wood;
           settlement.morale = scenario.morale;
           if (scenario.food === 0 && scenario.famineAgoMs !== null) {
-            settlement.famine = { sinceMs: Math.max(0, scenario.startMs - scenario.famineAgoMs) };
+            starve(draft, Math.max(0, scenario.startMs - scenario.famineAgoMs));
           }
           scenario.effects.forEach((effect, index) => {
             addMoraleEffect(draft, {

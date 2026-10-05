@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 11,
+    schemaVersion: 12,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -53,6 +53,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       planned: [],
       recruitmentQueue: [],
       famine: null,
+      lastFamine: null,
       cold: null,
       wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
       craftExperience: { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 },

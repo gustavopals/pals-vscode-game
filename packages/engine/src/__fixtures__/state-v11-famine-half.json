@@ -1,0 +1,152 @@
+{
+ "schemaVersion": 11,
+ "seed": "fixture-famine-half",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "ironKing",
+  "timeScale": 0.5
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 34801111,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 34801111,
+ "rng": {
+  "morale": [
+   1082508993,
+   3584244937,
+   3835752731,
+   319979113
+  ],
+  "council": [
+   960144149,
+   3475872366,
+   3438137624,
+   3282502962
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 0,
+   "wood": 261668,
+   "stone": 65000,
+   "gold": 250000
+  },
+  "accumulators": {
+   "food": 0,
+   "wood": 2784948,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 12
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 3,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": {
+   "sinceMs": 6000000
+  },
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 16,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 14,
+  "moraleEffects": [],
+  "injured": []
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "springSeeds-1",
+    "cardId": "springSeeds",
+    "drawnAtMs": 28800000,
+    "expiresAtMs": 72000000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "springSeeds"
+  ],
+  "nextDrawAtMs": 57600000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 8
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "objectives": {
+  "active": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers"
+  ],
+  "completed": []
+ },
+ "stats": {
+  "cardsDrawn": 1,
+  "cardsDrawn:springSeeds": 1
+ }
+}

@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 11;
+const CURRENT = 12;
 
 type StoredState = {
   schemaVersion: number;
@@ -82,7 +82,8 @@ function v1State(name: FixtureName): StoredState {
  * O feudo de um retrato da versão 1 depois de migrado e antes de o tempo andar: o que o jogador
  * tinha, mais o que cada versão acrescentou vazio (o frio fechado, o Celeiro, o Armazém, a Torre
  * de Vigia e a Paliçada por construir, nenhum desperdício, a segunda fila de obras livre e as
- * planejadas como manuais). O estoque fica como estava, mesmo acima do limite.
+ * planejadas como manuais). O estoque fica como estava, mesmo acima do limite. Só para os
+ * retratos sem fome: a fome aberta ganha campos (ver "uma partida gravada na versão 11, em fome").
  */
 function migratedSettlement(before: StoredState): Record<string, unknown> {
   const { constructionQueues, planned } = before.settlement as unknown as {
@@ -111,6 +112,8 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
     moraleEffects: [],
     // As incursões (V2E-T3): ninguém estava ferido.
     injured: [],
+    // A fome que reabre (V2G-T2): nenhuma fome acabada guardada.
+    lastFamine: null,
   };
 }
 
@@ -651,6 +654,158 @@ describe('uma partida gravada na versão 1', () => {
     });
 
     expect(await rowOf(server, game.id)).toEqual(before);
+  });
+});
+
+describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 e 3)', () => {
+  const GAME_DAY = 2 * HOUR;
+  type Famine = { sinceMs: number; carriedMs?: number; deserted?: number } | null;
+  type Starving = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    settlement: StoredState['settlement'] & { famine: Famine; lastFamine?: unknown };
+  };
+
+  /** Um retrato da versão 11, como o motor de antes da deserção em tempo real o gravou. */
+  function v11State(name: string): Starving {
+    const url = new URL(`../../engine/src/__fixtures__/state-v11-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as Starving;
+  }
+
+  async function insertV11(app: TestApp, state: Starving, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  async function deserters(app: TestApp, game: OldGame): Promise<number[]> {
+    const reply = await call<EventsResponse>(app, 'GET', `/games/${game.id}/events?limit=500`, {
+      token: game.token,
+    });
+    expect(reply.status).toBe(200);
+    return reply.body.events
+      .filter((event) => event.type === 'villagerDeserted')
+      .map((event) => event.atMs / HOUR);
+  }
+
+  /**
+   * Leva o relógio real até o instante de jogo `gameMs` desta partida (a criação mais o instante
+   * de jogo dividido pelo ritmo), renova a sessão e lê a visão.
+   */
+  async function until(app: TestApp, game: OldGame, timeScale: number, gameMs: number) {
+    const { rows } = await app.pool.query<{ created_at: Date }>(
+      'select created_at from games where id = $1',
+      [game.id],
+    );
+    const createdAt = rows[0]?.created_at.getTime() ?? 0;
+    const target = createdAt + Math.ceil(gameMs / timeScale);
+    app.clock.advance(target - app.clock.now().getTime());
+    await renew(app, game);
+    expect((await getView(app, game)).status).toBe(200);
+  }
+
+  it.each([
+    // Rápido: 45 h 30 de fome na última virada; carência de 36 h de jogo e passo de 6 h.
+    { name: 'famine-3x', timeScale: 3, villagers: 18, charged: 2, next: [50, 56, 62] },
+    // Tranquilo: 6 h 20 de fome; carência de 6 h de jogo e passo de 1 h.
+    { name: 'famine-half', timeScale: 0.5, villagers: 12, charged: 1, next: [10, 10, 12, 12] },
+  ])(
+    '$name: entra com os desertores que a regra nova já teria cobrado, ninguém sai na fronteira, e os seguintes saem no prazo novo',
+    async ({ name, timeScale, villagers, charged, next }) => {
+      const app = await createTestApp({ clock: fakeClock() });
+      try {
+        const before = v11State(name);
+        expect(before.schemaVersion).toBe(11);
+        expect(before.settings.timeScale).toBe(timeScale);
+        expect(before.settlement.population.villagers).toBe(villagers);
+        expect(before.settlement.famine).toEqual({ sinceMs: before.settlement.famine?.sinceMs });
+        const game = await insertV11(app, before);
+
+        const reply = await getView(app, game);
+        expect(reply.status).toBe(200);
+        expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+        const row = (await rowOf(app, game.id)) as Row & { state: Starving };
+        expect(row.schemaVersion).toBe(CURRENT);
+        expect(row.state.schemaVersion).toBe(CURRENT);
+        expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+        expect(row.state.settlement.famine).toEqual({
+          sinceMs: before.settlement.famine?.sinceMs,
+          carriedMs: 0,
+          deserted: charged,
+        });
+        expect(row.state.settlement.lastFamine).toBeNull();
+        // Ninguém saiu na fronteira, e a migração não gravou evento nenhum.
+        expect(row.state.settlement.population.villagers).toBe(villagers);
+        expect(reply.body.view.population.villagers).toBe(villagers);
+        expect(await countRows(app.pool, 'game_events', `game_id = '${game.id}'`)).toBe(0);
+
+        // Até um milissegundo real antes do primeiro instante devido, ninguém deserta.
+        const [first] = next as [number, ...number[]];
+        await until(app, game, timeScale, first * HOUR - timeScale);
+        expect(await deserters(app, game)).toEqual([]);
+        // E os seguintes saem nas viradas que o prazo novo marca.
+        await until(app, game, timeScale, (next[next.length - 1] as number) * HOUR);
+        expect(await deserters(app, game)).toEqual(next);
+        for (const hour of next) {
+          expect((hour * HOUR) % GAME_DAY).toBe(0);
+        }
+      } finally {
+        await app.close();
+      }
+    },
+  );
+
+  it('no ritmo Normal a partida em fome entra com os mesmos que a regra antiga cobrou, e sem fome nada muda', async () => {
+    const before = v11State('famine');
+    expect(before.settings.timeScale).toBe(1);
+    const game = await insertV11(server, before);
+    expect((await getView(server, game)).status).toBe(200);
+    const row = (await rowOf(server, game.id)) as Row & { state: Starving };
+    // Dois desertores levaram o feudo de 5 para 3 aldeões: é o que a conta nova também dá.
+    expect(row.state.settlement.famine).toEqual({
+      sinceMs: before.settlement.famine?.sinceMs,
+      carriedMs: 0,
+      deserted: 2,
+    });
+    expect(row.state.settlement.population.villagers).toBe(3);
+
+    // Sem fome: o feudo é o mesmo, com os dois campos novos vazios.
+    const calm = v11State('construction');
+    const other = await insertV11(server, calm);
+    expect((await getView(server, other)).status).toBe(200);
+    const after = (await rowOf(server, other.id)) as Row & { state: Starving };
+    expect(after.schemaVersion).toBe(CURRENT);
+    expect(after.state.settlement).toEqual({ ...calm.settlement, lastFamine: null });
+  });
+
+  it('o job de avanço migra a partida em fome de quem não voltou, com a mesma contagem', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v11State('famine-half');
+      // Parada há duas horas: o job a enxerga.
+      const game = await insertV11(app, before, 2 * HOUR);
+      // 40 minutos reais no ritmo Tranquilo: 20 minutos de jogo, até a virada das 10 h.
+      const toTurn = (10 * HOUR - before.lastProcessedAt) / 0.5;
+      clock.advance(Math.ceil(toTurn));
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: Starving };
+      expect(row.schemaVersion).toBe(CURRENT);
+      // Um cobrado na fronteira e os dois da virada das 10 h.
+      expect(row.state.settlement.famine).toMatchObject({ carriedMs: 0, deserted: 3 });
+      expect(row.state.settlement.population.villagers).toBe(10);
+      await renew(app, game);
+      expect(await deserters(app, game)).toEqual([10, 10]);
+    } finally {
+      await app.close();
+    }
   });
 });
 

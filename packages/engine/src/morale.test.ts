@@ -6,7 +6,7 @@ import { netRates, productionRate } from './economy';
 import {
   addMoraleEffect,
   clampMorale,
-  famineDesertsAt,
+  famineDesertionsOwedAt,
   moraleAt,
   moraleBand,
   moraleTermsAt,
@@ -18,6 +18,7 @@ import {
   command,
   DAY,
   eventsOfType,
+  famineSince,
   gameAt,
   gameWith,
   HOUR,
@@ -26,9 +27,11 @@ import {
   newGame,
   play,
   proudScenario,
+  quietCouncil,
   quietGame,
   quietHorde,
   settings,
+  starve,
   SUMMER,
   WINTER,
   YEAR,
@@ -127,7 +130,7 @@ describe('a conta da moral (GDD §5.7; ADR 0013, decisão 19)', () => {
       plain((draft) => {
         draft.settlement.workers.farm = 0;
         draft.settlement.resources.food = 0;
-        draft.settlement.famine = { sinceMs: since };
+        starve(draft, since);
       });
     // A fome começou há meia hora: nenhum dia inteiro ainda.
     const fresh = starving(SUMMER - 30 * MINUTE);
@@ -184,7 +187,7 @@ describe('a conta da moral (GDD §5.7; ADR 0013, decisão 19)', () => {
     const state = gameAt(WINTER + 3 * DAY, (draft) => {
       draft.settlement.population.villagers = 10;
       draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
-      draft.settlement.famine = { sinceMs: WINTER + DAY };
+      starve(draft, WINTER + DAY);
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });
     expect(termsAt(state, WINTER + 4 * DAY)).toEqual([
@@ -233,7 +236,7 @@ describe('a moral só muda na virada do dia', () => {
     // que abre no fim do instante. A seguinte vê, com um dia inteiro.
     // Com a Horda calada: os lobos do roteiro adiantariam a fome.
     const { state: at36 } = advanceTo(gameWith(quietHorde), 36 * HOUR);
-    expect(at36.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
+    expect(at36.settlement.famine).toEqual(famineSince(36 * HOUR));
     expect(at36.settlement.morale).toBe(50);
     expect(advanceTo(at36, 38 * HOUR - 1).state.settlement.morale).toBe(50);
     expect(advanceTo(at36, 38 * HOUR).state.settlement.morale).toBe(28);
@@ -300,7 +303,7 @@ describe('a moral na produção (GDD §5.3)', () => {
       settlement.morale = 33;
       settlement.resources.food = 0;
       settlement.resources.wood = 0;
-      settlement.famine = { sinceMs: WINTER };
+      starve(draft, WINTER);
       settlement.cold = { sinceMs: WINTER };
     });
     // 3 × 10 × 1,4 (Nv3) × 1,111 (mestria 37) × 0,4 (inverno) × 0,915 (moral 33) × 0,75 × 0,8
@@ -615,7 +618,7 @@ describe('deserção por fome (GDD §5.6)', () => {
       draft.settlement.population.villagers = 8;
       draft.settlement.workers = { farm: 0, lumberMill: 3, quarry: 3, goldMine: 2 };
       draft.settlement.resources.food = 0;
-      draft.settlement.famine = { sinceMs: SUMMER - agoMs };
+      starve(draft, SUMMER - agoMs);
       // A moral fica alta de propósito: aqui só a fome tira gente, sem sorteio.
       addMoraleEffect(draft, {
         id: 'teste',
@@ -626,12 +629,12 @@ describe('deserção por fome (GDD §5.6)', () => {
       edit(draft);
     });
 
-  it('com 12 h de jogo de fome contínua, um aldeão deserta a cada virada de dia', () => {
+  it('no ritmo Normal, com 12 h de fome contínua, um aldeão deserta a cada virada de dia', () => {
     // A fome começou 10 h e 30 min antes: as 12 h se completam daqui a 90 minutos, no meio de
     // um dia. A primeira virada com 12 h completas é a do fim desse dia.
     const state = starving(10 * HOUR + 30 * MINUTE);
-    expect(famineDesertsAt(state, SUMMER)).toBe(false);
-    expect(famineDesertsAt(state, SUMMER + DAY)).toBe(true);
+    expect(famineDesertionsOwedAt(state, SUMMER)).toBe(0);
+    expect(famineDesertionsOwedAt(state, SUMMER + DAY)).toBe(1);
     const { state: end, events } = advanceTo(state, SUMMER + 3 * DAY);
     const deserted = eventsOfType(events, 'villagerDeserted');
     expect(deserted.map((event) => event.atMs)).toEqual([
@@ -702,7 +705,7 @@ describe('deserção por fome (GDD §5.6)', () => {
       draft.settlement.population.villagers = 6;
       draft.settlement.workers = { farm: 1, lumberMill: 5, quarry: 0, goldMine: 0 };
       draft.settlement.resources.food = 0;
-      draft.settlement.famine = { sinceMs: SUMMER - 20 * DAY };
+      starve(draft, SUMMER - 20 * DAY);
       draft.settlement.morale = 0;
     });
     // 5,625 contra 6 bocas: a fome continua. Na virada, alguém deserta (e talvez outro parta):
@@ -724,7 +727,7 @@ describe('a ordem na virada do dia (ADR 0013)', () => {
       settlement.workers = { farm: 0, lumberMill: 3, quarry: 3, goldMine: 2 };
       settlement.craftExperience.lumberMill = 96;
       settlement.resources.food = 0;
-      settlement.famine = { sinceMs: SUMMER - 12 * HOUR };
+      starve(draft, SUMMER - 12 * HOUR);
       settlement.morale = 60;
     });
     const seed = Array.from({ length: 200 }, (_, index) => `ordem-${index}`).find((candidate) =>
@@ -752,7 +755,7 @@ describe('a simulação termina', () => {
       draft.settlement.population.villagers = 6;
       draft.settlement.workers = { farm: 1, lumberMill: 5, quarry: 0, goldMine: 0 };
       draft.settlement.resources.food = 0;
-      draft.settlement.famine = { sinceMs: SUMMER - 20 * DAY };
+      starve(draft, SUMMER - 20 * DAY);
       draft.settlement.morale = 0;
     });
     const seen = new Set<string>();
@@ -785,7 +788,8 @@ describe('30 dias sem acesso, com fome', () => {
   it('Senhor: a moral cai, os aldeões partem e desertam, e o feudo para no piso', () => {
     // Só a fome e a moral (a Horda calada); com os lobos no caminho, `threat.raids.test.ts`.
     const { state, events } = advanceTo(gameWith(quietHorde), THIRTY_DAYS);
-    expect(state.settlement.famine).toEqual({ sinceMs: 36 * HOUR });
+    // 684 h de fome: (684 − 12) ÷ 2, mais um. O piso perdoou quase todos.
+    expect(state.settlement.famine).toEqual(famineSince(36 * HOUR, 337));
     expect(state.settlement.morale).toBe(0);
     expect(state.settlement.population.villagers).toBe(3);
     const gone = events.filter(
@@ -850,7 +854,7 @@ describe('feudo empobrecido (roadmap V2C-T4.6): há caminho de volta', () => {
     });
     expect(view(four).morale.notes).toEqual([
       'Com a moral em 25 ou menos, cada virada do dia tem 20% de chance de levar um aldeão embora.',
-      'A fome já dura 12 h ou mais: um aldeão deserta a cada virada do dia, até a comida voltar.',
+      'A fome já dura 12 h ou mais: deserta um aldeão a cada 2 h de fome, na virada do dia, até a comida voltar. Faltam 1 h 40 min para o próximo.',
     ]);
   });
 
@@ -1194,7 +1198,7 @@ describe('a moral na visão', () => {
     expect(morale.advice).toContain('O que mais pesa é a fome (−20)');
     // E avisa da deserção, contada de quando a fome vai começar.
     expect(morale.notes).toEqual([
-      'Depois de 12 h de fome, um aldeão deserta a cada virada do dia. Faltam 14 h para o primeiro.',
+      'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia. Faltam 14 h para o primeiro.',
     ]);
     expect(advanceTo(state, SUMMER + DAY).state.settlement.morale).toBe(30);
   });
@@ -1273,16 +1277,30 @@ describe('a moral na visão', () => {
       advice:
         'O que mais pesa é a fome (−22). Ponha mais gente na Fazenda: quando a comida voltar a sobrar, a fome acaba e a moral sobe na virada seguinte.',
       notes: [
-        'Depois de 12 h de fome, um aldeão deserta a cada virada do dia. Faltam 11 h para o primeiro.',
+        'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia. Faltam 11 h para o primeiro.',
       ],
     });
   });
 
-  it('no ritmo Rápido o aviso da deserção conta em tempo real', () => {
-    const { morale } = view(advanceTo(newGame(), 37 * HOUR).state, 3);
-    expect(morale.notes).toEqual([
-      'Depois de 4 h de fome, um aldeão deserta a cada virada do dia. Faltam 3 h 40 min para o primeiro.',
-    ]);
+  it('o aviso da deserção diz a carência e o passo em tempo real, os mesmos em todo ritmo', () => {
+    // A fome abre às 36 h de jogo em qualquer ritmo, e a visão é pedida uma hora de jogo depois.
+    const notesAt = (timeScale: number) => {
+      const start = gameWith((draft) => {
+        quietHorde(draft);
+        quietCouncil(draft);
+        draft.settings.timeScale = timeScale;
+      });
+      const { state } = advanceTo(start, 37 * HOUR);
+      expect(state.settlement.famine).toEqual(famineSince(36 * HOUR));
+      return view(state).morale.notes;
+    };
+    const rule = 'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia.';
+    // Rápido: 12 h reais são 36 h de jogo; o primeiro sai na virada das 72 h, a 35 h de jogo.
+    expect(notesAt(3)).toEqual([`${rule} Faltam 11 h 40 min para o primeiro.`]);
+    // Normal: a virada das 48 h, a 11 h de jogo.
+    expect(notesAt(1)).toEqual([`${rule} Faltam 11 h para o primeiro.`]);
+    // Tranquilo: 12 h reais são 6 h de jogo; a virada das 42 h, a 5 h de jogo.
+    expect(notesAt(0.5)).toEqual([`${rule} Faltam 10 h para o primeiro.`]);
   });
 
   it('em Camponês a visão diz que ninguém deserta', () => {
@@ -1316,7 +1334,7 @@ describe('a moral na visão', () => {
     );
     const both = gameAt(WINTER + 3 * DAY, (draft) => {
       draft.settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
-      draft.settlement.famine = { sinceMs: WINTER + 3 * DAY };
+      starve(draft, WINTER + 3 * DAY);
       draft.settlement.cold = { sinceMs: WINTER + 2 * DAY };
     });
     expect(view(both).morale.advice).toContain('O que mais pesa é a fome (−22)');
@@ -1470,7 +1488,7 @@ describe('a moral na visão', () => {
       expect(noteOf(nearlyFull(0))).toBeNull();
       const starving = town(0, (draft) => {
         draft.settlement.workers.farm = 0;
-        draft.settlement.famine = { sinceMs: SUMMER - HOUR };
+        starve(draft, SUMMER - HOUR);
       });
       expect(view(starving).recruitment.blockedReason).not.toBeNull();
       expect(noteOf(starving)).toBeNull();

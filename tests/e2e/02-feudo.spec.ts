@@ -1353,7 +1353,7 @@ test.describe('moral', () => {
     // A perda é anunciada antes de acontecer, junto do aviso de fome.
     const people = fief(page).getByRole('note').filter({ hasText: 'O povo e a fome.' });
     await expect(people).toContainText(
-      'Depois de 12 h de fome, um aldeão deserta a cada virada do dia. Faltam 10 h para o primeiro.',
+      'Depois de 12 h de fome, deserta um aldeão a cada 2 h, na virada do dia. Faltam 10 h para o primeiro.',
     );
     await expect(node).toContainText('28 (Inquieto) · ⚠ cai para 26');
 

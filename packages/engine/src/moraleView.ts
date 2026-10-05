@@ -1,6 +1,6 @@
 import { balance, buildings } from '@lotg/content';
 
-import { DAY_MS, nextDayBoundary } from './clock';
+import { nextDayBoundary } from './clock';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { moraleRatio, producerOf } from './economy';
@@ -8,7 +8,7 @@ import { decimal, durationText, plural, sentenceCase, thousands } from './format
 import {
   aboveFloor,
   clampMorale,
-  famineDesertsAt,
+  famineDesertionsOwedAt,
   foodReserveMissing,
   foodReserveNeeded,
   MAX_MORALE,
@@ -17,12 +17,13 @@ import {
   moraleSum,
   type MoraleTerm,
   moraleTermsAt,
+  nextFamineDesertionAt,
   recruitsKeepingFoodReserve,
 } from './morale';
 import { housingVacancy } from './population';
 import { storageCapacity, storagePlace, storeOf } from './storage';
 import type { GameState, MoraleLevelView, MoraleView } from './types';
-import { HOUR_MS, MILLI, realSecondsCeil } from './units';
+import { HOUR_MS, MILLI, realSecondsCeil, SECOND_MS } from './units';
 
 const { morale: rules } = balance;
 
@@ -274,6 +275,9 @@ function adviceText(
  * O que a moral e a fome longa fazem com a população nas viradas do dia, com a moral que a
  * próxima virada vai calcular e o feudo como ela vai encontrá-lo (`state` é o da virada; `now`,
  * o instante de quem olha): é com eles que os sorteios são feitos.
+ *
+ * A carência e o passo da deserção são **tempo real** (ADR 0016, item 2): saem do conteúdo como
+ * estão, iguais em todo ritmo. O prazo até o próximo desertor é o da virada do dia que o cobra.
  */
 function populationNotes(
   state: GameState,
@@ -281,7 +285,7 @@ function populationNotes(
   next: MoraleLevelView,
   timeScale: number,
 ): string[] {
-  const { arrival, departure, famineDesertionAfterMs, populationFloor } = rules;
+  const { arrival, departure, populationFloor } = rules;
   const { settlement, settings } = state;
   const notes: string[] = [];
   if (next.value >= arrival.minMorale) {
@@ -304,20 +308,16 @@ function populationNotes(
     notes.push(`Em ${difficulty.label}, ninguém deserta por fome.`);
   }
   if (settlement.famine !== null && mayDesert && canLose) {
-    const after = durationText(realSecondsCeil(famineDesertionAfterMs, timeScale));
-    if (famineDesertsAt(state, state.lastProcessedAt)) {
-      notes.push(
-        `A fome já dura ${after} ou mais: um aldeão deserta a cada virada do dia, até a comida voltar.`,
-      );
-    } else {
-      // A primeira virada de dia em que a fome já terá durado o prazo inteiro.
-      const firstTurn =
-        Math.ceil((settlement.famine.sinceMs + famineDesertionAfterMs) / DAY_MS) * DAY_MS;
-      const left = durationText(realSecondsCeil(firstTurn - now, timeScale));
-      notes.push(
-        `Depois de ${after} de fome, um aldeão deserta a cada virada do dia. Faltam ${left} para o primeiro.`,
-      );
-    }
+    const after = durationText(rules.famineDesertionAfterRealMs / SECOND_MS);
+    const every = durationText(rules.famineDesertionEveryRealMs / SECOND_MS);
+    // A virada de dia que cobra o próximo desertor, se a fome durar até lá.
+    const turn = nextFamineDesertionAt(state, state.lastProcessedAt) ?? state.lastProcessedAt;
+    const left = durationText(realSecondsCeil(turn - now, timeScale));
+    notes.push(
+      famineDesertionsOwedAt(state, state.lastProcessedAt) > 0
+        ? `A fome já dura ${after} ou mais: deserta um aldeão a cada ${every} de fome, na virada do dia, até a comida voltar. Faltam ${left} para o próximo.`
+        : `Depois de ${after} de fome, deserta um aldeão a cada ${every}, na virada do dia. Faltam ${left} para o primeiro.`,
+    );
   }
   if (!canLose && (mayLeave || mayDesert)) {
     notes.push(

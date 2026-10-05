@@ -12,6 +12,7 @@ import {
   newGame,
   play,
   SPRING,
+  starve,
   WINTER,
 } from './test-helpers';
 import { nextAutoStartAt, nextEventAt } from './timeline';
@@ -127,7 +128,7 @@ describe('nextEventAt', () => {
   it('ignora a fila de recrutamento enquanto durar a fome', () => {
     const starving = gameWith((draft) => {
       draft.settlement.resources.food = 0;
-      draft.settlement.famine = { sinceMs: 0 };
+      starve(draft, 0);
       draft.settlement.recruitmentQueue = [{ finishesAtMs: 20 * MINUTE }];
     });
     expect(nextEventAt(starving)).toBe(DAY);

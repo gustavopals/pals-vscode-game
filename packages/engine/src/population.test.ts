@@ -24,6 +24,7 @@ import {
   newGame,
   play,
   refuse,
+  starve,
   SUMMER,
   WINTER,
 } from './test-helpers';
@@ -541,7 +542,7 @@ describe('recrutar', () => {
     const starving = gameWith((draft) => {
       draft.settlement.resources.food = 0;
       draft.settlement.resources.gold = 900_000;
-      draft.settlement.famine = { sinceMs: 0 };
+      starve(draft, 0);
       draft.settlement.recruitmentQueue = [{ finishesAtMs: 10 * MINUTE }];
     });
     expect(refuse(starving, command('recruitVillagers', { quantity: 1 })).code).toBe('FAMINE');

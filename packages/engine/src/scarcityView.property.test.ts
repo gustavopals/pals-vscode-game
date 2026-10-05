@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { nextSeasonBoundary } from './clock';
 import { applyCommand } from './commands';
-import { command, gameAt, WINTER, YEAR } from './test-helpers';
+import { command, gameAt, starve, WINTER, YEAR } from './test-helpers';
 import type { GameEvent, GameState } from './types';
 import { deriveViewState } from './view';
 
@@ -52,7 +52,7 @@ function hungryFief(fief: Fief): GameState {
     // Alguns lavradores já conhecem o ofício: sozinhos não bastam, ou a fome não estaria aberta.
     settlement.workers = { farm: veterans, lumberMill: 0, quarry: 0, goldMine: 0 };
     settlement.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
-    settlement.famine = { sinceMs: fief.atMs - fief.famineHours * HOUR };
+    starve(draft, fief.atMs - fief.famineHours * HOUR);
     settlement.morale = fief.morale;
   });
   // Um milissegundo adiante: a fome e o frio que o cenário pede (ou dispensa) se acomodam.

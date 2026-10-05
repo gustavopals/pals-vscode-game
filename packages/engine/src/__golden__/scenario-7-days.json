@@ -570,7 +570,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -642,6 +642,7 @@
      ],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": null,
      "cold": null,
      "wasted": {
       "food": 0,
@@ -742,7 +743,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -808,6 +809,7 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": null,
      "cold": null,
      "wasted": {
       "food": 706,
@@ -929,7 +931,7 @@
    "day": 3,
    "eventsSoFar": 127,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1001,6 +1003,7 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": null,
      "cold": null,
      "wasted": {
       "food": 706,
@@ -1128,7 +1131,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1200,8 +1203,11 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": {
-      "sinceMs": 324249995
+      "sinceMs": 324249995,
+      "carriedMs": 0,
+      "deserted": 0
      },
+     "lastFamine": null,
      "cold": null,
      "wasted": {
       "food": 706,
@@ -1339,7 +1345,7 @@
    "day": 5,
    "eventsSoFar": 222,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1411,6 +1417,11 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": {
+      "endedAtMs": 349200000,
+      "lastedMs": 24950005,
+      "deserted": 0
+     },
      "cold": null,
      "wasted": {
       "food": 697,
@@ -1558,7 +1569,7 @@
    "day": 6,
    "eventsSoFar": 270,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1630,6 +1641,11 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": {
+      "endedAtMs": 349200000,
+      "lastedMs": 24950005,
+      "deserted": 0
+     },
      "cold": null,
      "wasted": {
       "food": 858,
@@ -1778,7 +1794,7 @@
    "day": 7,
    "eventsSoFar": 318,
    "state": {
-    "schemaVersion": 11,
+    "schemaVersion": 12,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1850,6 +1866,11 @@
      "planned": [],
      "recruitmentQueue": [],
      "famine": null,
+     "lastFamine": {
+      "endedAtMs": 349200000,
+      "lastedMs": 24950005,
+      "deserted": 0
+     },
      "cold": null,
      "wasted": {
       "food": 665,

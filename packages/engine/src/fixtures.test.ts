@@ -71,6 +71,64 @@ const scenarios: Record<string, () => GameState> = {
       { at: 41 * HOUR + 13 * MINUTE },
     ]).state,
 
+  // Fome longa no ritmo Rápido, em Senhor: um feudo grande sem lavradores, com a despensa vazia
+  // desde o primeiro dia, parado no meio de um dia de jogo depois de quase dois dias de jogo de
+  // fome. Parte do povo já desertou e ainda há gente acima do piso.
+  'famine-3x': () => {
+    const start = createInitialState('fixture-famine-3x', { ...settings, timeScale: 3 });
+    start.settlement.population.villagers = 40;
+    start.settlement.resources.food = 20_000;
+    return play(start, [
+      command('setWorkers', { building: 'lumberMill', count: 3 }),
+      { at: 46 * HOUR + 17 * MINUTE + 3_210 },
+    ]).state;
+  },
+
+  // Fome no ritmo Tranquilo, em Rei de Ferro: a despensa vazia há mais de quatro dias de jogo,
+  // no meio de um dia, com o povo ainda inteiro.
+  'famine-half': () => {
+    const start = createInitialState('fixture-famine-half', {
+      ...settings,
+      difficulty: 'ironKing',
+      timeScale: 0.5,
+    });
+    start.settlement.population.villagers = 12;
+    start.settlement.resources.food = 20_000;
+    return play(start, [
+      command('setWorkers', { building: 'lumberMill', count: 3 }),
+      { at: 9 * HOUR + 40 * MINUTE + 1_111 },
+    ]).state;
+  },
+
+  // A fome que reabriu dentro da janela (ADR 0016, item 3): depois de dois desertores, todos
+  // vão à Fazenda e voltam, em duas ordens seguidas. A fome continua com o que já tinha durado
+  // (`carriedMs`) e com os desertores já cobrados. No meio de um dia de jogo.
+  'famine-resumed': () => {
+    const start = createInitialState('fixture-famine-resumed', settings);
+    start.settlement.population.villagers = 14;
+    start.settlement.resources.food = 20_000;
+    return play(start, [
+      { at: 17 * HOUR + 13 * MINUTE },
+      command('setWorkers', { building: 'farm', count: 8 }),
+      command('setWorkers', { building: 'farm', count: 0 }),
+      { at: 17 * HOUR + 31 * MINUTE + 2_222 },
+    ]).state;
+  },
+
+  // A fome que acabou há pouco: os lavradores foram postos na Fazenda e ficaram. O registro da
+  // última fome (`lastFamine`) está no estado, ainda dentro da janela em que uma fome que
+  // reabrisse seria a mesma.
+  'famine-ended': () => {
+    const start = createInitialState('fixture-famine-ended', settings);
+    start.settlement.population.villagers = 14;
+    start.settlement.resources.food = 20_000;
+    return play(start, [
+      { at: 17 * HOUR + 13 * MINUTE },
+      command('setWorkers', { building: 'farm', count: 8 }),
+      { at: 17 * HOUR + 31 * MINUTE + 2_222 },
+    ]).state;
+  },
+
   // Frio: a madeira inteira gasta em uma obra na primavera, ninguém na Serraria, e o inverno
   // chega. O frio abre na virada; um aldeão foi chamado no meio dele.
   cold: () =>
@@ -325,6 +383,25 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     ).toBe(true);
     expect(of('famine').settlement.famine).not.toBeNull();
     expect(of('famine').settlement.recruitmentQueue.length).toBeGreaterThan(0);
+    // A fome longa nos outros dois ritmos, com gente acima do piso; a fome retomada, com a
+    // duração e os desertores que trazia; e a fome que acabou há pouco, com o registro dela.
+    expect(of('famine-3x').settlement.famine).toMatchObject({ carriedMs: 0 });
+    expect(of('famine-3x').settlement.population.villagers).toBeGreaterThan(3);
+    expect(of('famine-half').settlement.famine?.deserted).toBeGreaterThan(0);
+    expect(of('famine-half').settlement.population.villagers).toBeGreaterThan(3);
+    const resumed = of('famine-resumed').settlement;
+    expect(resumed.famine?.sinceMs).toBe(17 * HOUR + 13 * MINUTE);
+    expect(resumed.famine?.carriedMs).toBeGreaterThan(12 * HOUR);
+    expect(resumed.famine?.deserted).toBe(2);
+    expect(resumed.lastFamine).toBeNull();
+    const ended = of('famine-ended').settlement;
+    expect(ended.famine).toBeNull();
+    expect(ended.lastFamine).toMatchObject({ endedAtMs: 17 * HOUR + 13 * MINUTE, deserted: 2 });
+    expect(ended.lastFamine?.lastedMs).toBe(resumed.famine?.carriedMs);
+    for (const state of all0()) {
+      // Fome aberta e registro de fome acabada nunca andam juntos.
+      expect(state.settlement.famine === null || state.settlement.lastFamine === null).toBe(true);
+    }
     // O frio aberto no inverno, sem fome, com a madeira em zero e um aldeão a caminho.
     expect(of('cold').settlement.cold).toEqual({ sinceMs: 72 * DAY });
     expect(of('cold').settlement.famine).toBeNull();

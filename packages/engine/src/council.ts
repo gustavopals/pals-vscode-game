@@ -24,7 +24,7 @@ import type {
   ResourceId,
   ScheduledCard,
 } from './types';
-import { MILLI, positiveEntries } from './units';
+import { MILLI, positiveEntries, realToGameMs } from './units';
 
 /**
  * O Conselho do Feudo (GDD §7; ADR 0014, decisões 1, 9, 18 e 20): as regras que não sorteiam.
@@ -70,13 +70,13 @@ export function defaultOption(state: GameState, card: CouncilCard): CouncilOptio
 }
 
 /**
- * O prazo de resposta em tempo de jogo: as 24 h reais do conteúdo no ritmo desta partida. É o
- * único prazo de tempo real do motor, e a conversão acontece uma vez, quando a carta chega
- * (roadmap da v0.2, §0.7, "Relógios explícitos"). Em um ritmo que não dê um número inteiro de
- * milissegundos, arredonda: o estado só guarda inteiros.
+ * O prazo de resposta em tempo de jogo: as 24 h reais do conteúdo no ritmo desta partida. É um
+ * prazo de tempo real, e a conversão acontece uma vez, quando a carta chega (roadmap da v0.2,
+ * §0.7, "Relógios explícitos"). Em um ritmo que não dê um número inteiro de milissegundos,
+ * arredonda: o estado só guarda inteiros.
  */
 export function expiryMs(state: GameState): number {
-  return Math.max(1, Math.round(rules.expiryRealMs * state.settings.timeScale));
+  return realToGameMs(rules.expiryRealMs, state.settings.timeScale);
 }
 
 /** O dia de jogo do feudo a contar da fundação: o primeiro é 1. */

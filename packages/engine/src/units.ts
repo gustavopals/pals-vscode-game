@@ -35,6 +35,16 @@ export function scaleDown(value: number, ratio: Ratio): number {
 }
 
 /**
+ * Um prazo de **tempo real** do conteúdo (`…RealMs`) em ms de jogo, no ritmo `timeScale`: é como
+ * o prazo de resposta de uma carta, a carência e o passo da deserção por fome e a janela da
+ * fome que reabre entram no motor (ADR 0016). Em um ritmo que não dê um número inteiro de
+ * milissegundos, arredonda: o estado só guarda inteiros, e nenhum prazo vira zero.
+ */
+export function realToGameMs(realMs: number, timeScale: number): number {
+  return Math.max(1, Math.round(realMs * timeScale));
+}
+
+/**
  * Segundos reais (arredondados para cima) de uma duração em ms de jogo, no ritmo `timeScale`:
  * é como todo prazo chega à visão.
  */

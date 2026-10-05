@@ -1,0 +1,152 @@
+{
+ "schemaVersion": 12,
+ "seed": "fixture-council-623",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 3
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 36784321,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 36784321,
+ "rng": {
+  "council": [
+   1309507330,
+   501834965,
+   3377392267,
+   239061053
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 521108,
+   "wood": 207151,
+   "stone": 65000,
+   "gold": 293573
+  },
+  "accumulators": {
+   "food": 568828,
+   "wood": 3194184,
+   "stone": 0,
+   "gold": 3397092
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 0,
+   "goldMine": 1
+  },
+  "buildings": {
+   "townHall": 2,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 1,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 20,
+   "lumberMill": 20,
+   "quarry": 0,
+   "goldMine": 20
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [
+   "collapsedWell"
+  ],
+  "nextDrawAtMs": 57600000,
+  "scheduled": [],
+  "delayed": [
+   {
+    "atMs": 43200000,
+    "instanceId": "collapsedWell-1",
+    "cardId": "collapsedWell",
+    "optionId": "wait"
+   }
+  ],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 10
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
+  ]
+ },
+ "stats": {
+  "cardsDrawn": 1,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsAnswered": 1
+ }
+}

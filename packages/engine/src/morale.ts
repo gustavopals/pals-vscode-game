@@ -2,9 +2,10 @@ import { balance, type MoraleBandDef, type MoraleTermId } from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { consumptionRate, stockBalance } from './economy';
+import { famineDurationAt } from './famine';
 import { housingCapacity } from './population';
 import type { GameState, MoraleEffect } from './types';
-import { HOUR_MS, MILLI } from './units';
+import { HOUR_MS, MILLI, realToGameMs } from './units';
 
 /**
  * A moral do feudo (GDD §5.7; ADR 0013, decisão 19): as contas, sem sorteio nenhum. Quem recalcula,
@@ -78,10 +79,12 @@ export function foodReserveMissing(state: GameState): number {
   return missing <= 0 ? 0 : Math.ceil(missing / HOUR_MS);
 }
 
-/** Dias de jogo inteiros de fome contínua em `atMs`; zero sem fome. */
+/**
+ * Dias de jogo inteiros de fome em `atMs`; zero sem fome. A fome que reabriu dentro da janela
+ * continua a conta de onde tinha parado (`famineDurationAt`).
+ */
 export function famineDaysAt(state: GameState, atMs: number): number {
-  const { famine } = state.settlement;
-  return famine === null ? 0 : Math.max(0, Math.floor((atMs - famine.sinceMs) / DAY_MS));
+  return Math.floor(famineDurationAt(state, atMs) / DAY_MS);
 }
 
 /**
@@ -141,16 +144,49 @@ export function moraleAt(state: GameState, atMs: number): number {
 }
 
 /**
- * A fome já dura o bastante para um aldeão desertar na virada de `atMs` (GDD §5.6): fome
- * contínua há `famineDesertionAfterMs` ou mais, em uma dificuldade em que a fome faz partir.
+ * Os dois prazos da deserção por fome em ms de jogo: a carência e o passo, que o conteúdo dá em
+ * **tempo real**, no ritmo desta partida (GDD §5.6; ADR 0016, item 2).
  */
-export function famineDesertsAt(state: GameState, atMs: number): boolean {
+export function famineDesertionPace(state: GameState): { graceMs: number; stepMs: number } {
+  const { timeScale } = state.settings;
+  return {
+    graceMs: realToGameMs(rules.famineDesertionAfterRealMs, timeScale),
+    stepMs: realToGameMs(rules.famineDesertionEveryRealMs, timeScale),
+  };
+}
+
+/**
+ * Quantos aldeões o prazo da deserção já deve em `atMs`, desde o começo desta fome (GDD §5.6):
+ * nenhum enquanto ela dura menos que a carência; a partir dela, o primeiro e mais um a cada
+ * passo. Zero sem fome e na dificuldade em que a fome não faz partir. Quem cobra é a virada do
+ * dia (`moraleTurn.ts`), descontando os que a fome já tinha cobrado (`famine.deserted`).
+ */
+export function famineDesertionsOwedAt(state: GameState, atMs: number): number {
+  if (
+    state.settlement.famine === null ||
+    !balance.difficulties[state.settings.difficulty].famineDesertion
+  ) {
+    return 0;
+  }
+  const { graceMs, stepMs } = famineDesertionPace(state);
+  const lasted = famineDurationAt(state, atMs);
+  return lasted < graceMs ? 0 : Math.floor((lasted - graceMs) / stepMs) + 1;
+}
+
+/**
+ * A primeira virada de dia, de `fromMs` em diante, em que o prazo da deserção deve mais um
+ * aldeão do que esta fome já cobrou, se ela durar até lá; `null` sem fome e na dificuldade em
+ * que a fome não faz partir. Só lê o estado: é a visão que pergunta.
+ */
+export function nextFamineDesertionAt(state: GameState, fromMs: number): number | null {
   const { famine } = state.settlement;
-  return (
-    famine !== null &&
-    balance.difficulties[state.settings.difficulty].famineDesertion &&
-    atMs - famine.sinceMs >= rules.famineDesertionAfterMs
-  );
+  if (famine === null || !balance.difficulties[state.settings.difficulty].famineDesertion) {
+    return null;
+  }
+  const { graceMs, stepMs } = famineDesertionPace(state);
+  // O instante em que a fome passa a dever o aldeão seguinte, e a virada que o cobra.
+  const dueAt = famine.sinceMs - famine.carriedMs + graceMs + famine.deserted * stepMs;
+  return Math.max(Math.ceil(dueAt / DAY_MS), Math.ceil(fromMs / DAY_MS)) * DAY_MS;
 }
 
 /** Acima do piso: o feudo ainda pode perder um aldeão (GDD §5.6). */

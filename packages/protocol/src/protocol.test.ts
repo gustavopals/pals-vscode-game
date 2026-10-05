@@ -1019,7 +1019,13 @@ describe('ViewStateSchema', () => {
 
     // O feudo abandonado: a fome, a moral que despenca e quem vai embora. Tudo o que o motor
     // emite passa pelo contrato do evento, e a visão de cada momento, pelo da visão.
-    const abandoned = advanceTo(start, 40 * 2 * 3_600_000);
+    // Com mais gente do que o feudo recém-fundado: no ritmo Rápido a fome só faz desertar com
+    // 12 h reais (36 h de jogo), e até lá a moral baixa já teria levado um feudo de 5 ao piso.
+    const crowded = {
+      ...start,
+      settlement: { ...start.settlement, population: { villagers: 14 } },
+    };
+    const abandoned = advanceTo(crowded, 40 * 2 * 3_600_000);
     const moraleTypes = ['moraleBandChanged', 'villagerLeft', 'villagerDeserted'];
     const emitted = abandoned.events.filter((event) => moraleTypes.includes(event.type));
     expect(new Set(emitted.map((event) => event.type))).toEqual(new Set(moraleTypes));

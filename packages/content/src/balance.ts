@@ -106,9 +106,10 @@ export type MoraleBandDef = {
 };
 
 /**
- * Moral (GDD §5.6 e §5.7; ADR 0013, decisões 1 e 19). Vai de 0 ao `max` da última faixa e só
- * muda na virada de cada dia de jogo: `base` mais os termos, limitada. Os prazos são tempo de
- * jogo e escalam com o ritmo.
+ * Moral (GDD §5.6 e §5.7; ADR 0013, decisões 1 e 19; ADR 0016, itens 2 e 3). Vai de 0 ao `max`
+ * da última faixa e só muda na virada de cada dia de jogo: `base` mais os termos, limitada. Os
+ * prazos são tempo de jogo e escalam com o ritmo, menos os três da deserção por fome
+ * (`…RealMs`), que são **tempo real**: o motor os converte com o ritmo da partida.
  */
 export type MoraleDef = {
   readonly base: number;
@@ -130,8 +131,16 @@ export type MoraleDef = {
   readonly arrival: { readonly minMorale: number; readonly chance: Ratio };
   /** Na virada do dia, com a moral em `maxMorale` ou menos: a chance de um aldeão partir. */
   readonly departure: { readonly maxMorale: number; readonly chance: Ratio };
-  /** Fome contínua, em tempo de jogo, a partir da qual um aldeão deserta a cada virada de dia. */
-  readonly famineDesertionAfterMs: number;
+  /** A carência da deserção: fome contínua, em tempo real, a partir da qual o primeiro aldeão deserta. */
+  readonly famineDesertionAfterRealMs: number;
+  /** O passo da deserção: depois da carência, mais um aldeão a cada tanto de fome, em tempo real. */
+  readonly famineDesertionEveryRealMs: number;
+  /**
+   * A janela, em tempo real, em que a fome que reabre é a mesma que acabou: continua de onde
+   * parou, com a duração e os desertores que já tinha. Passada a janela, a fome seguinte
+   * começa do zero.
+   */
+  readonly famineResumeWithinRealMs: number;
   /** Nenhuma partida nem deserção deixa o feudo com menos aldeões do que isto. */
   readonly populationFloor: number;
 };
@@ -389,8 +398,10 @@ export const balance: Balance = {
     masteryBonus: { num: 3, den: 10 },
     occupiedWorkersPerLevel: 1,
   },
-  // GDD §5.6 e §5.7 (ADR 0013, decisões 1 e 19). 24 h de jogo de comida são 12 dias de jogo; a
-  // deserção começa com 12 h de jogo de fome, que são 6. O teste de conteúdo confere as contas.
+  // GDD §5.6 e §5.7 (ADR 0013, decisões 1 e 19; ADR 0016, itens 2 e 3). 24 h de jogo de comida
+  // são 12 dias de jogo. A deserção conta tempo real, em qualquer ritmo: 12 h de fome de
+  // carência, depois um aldeão a cada 2 h; e a fome que reabre menos de 2 h depois de acabar é
+  // a mesma. O teste de conteúdo confere as contas.
   morale: {
     base: 50,
     foodReserve: { coverMs: 24 * HOUR_MS, bonus: 10 },
@@ -407,7 +418,9 @@ export const balance: Balance = {
     ],
     arrival: { minMorale: 80, chance: { num: 1, den: 5 } },
     departure: { maxMorale: 25, chance: { num: 1, den: 5 } },
-    famineDesertionAfterMs: 12 * HOUR_MS,
+    famineDesertionAfterRealMs: 12 * HOUR_MS,
+    famineDesertionEveryRealMs: 2 * HOUR_MS,
+    famineResumeWithinRealMs: 2 * HOUR_MS,
     populationFloor: 3,
   },
   winter: { cold: { productionMultiplier: { num: 4, den: 5 } } },

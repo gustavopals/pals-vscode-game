@@ -33,9 +33,20 @@ import { stateV6, v6ToV7 } from './migrations/v6';
 import { stateV7, v7ToV8 } from './migrations/v7';
 import { stateV8, v8ToV9 } from './migrations/v8';
 import { stateV9, v9ToV10 } from './migrations/v9';
-import { stateV10 } from './migrations/v10';
+import { stateV10, v10ToV11 } from './migrations/v10';
+import { stateV11 } from './migrations/v11';
 import { scriptedRaidsAfter } from './raids';
-import { command, gameAt, HOUR, MINUTE, newGame, runWeekScenario } from './test-helpers';
+import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
+import {
+  command,
+  eventsOfType,
+  famineSince,
+  gameAt,
+  HOUR,
+  MINUTE,
+  newGame,
+  runWeekScenario,
+} from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { BuildingId, GameEvent, GameState } from './types';
 import { REJECTION_CODES } from './types';
@@ -77,6 +88,21 @@ const named = (name: string) => {
   }
   return found;
 };
+
+/**
+ * Um estado como a versão 11 o gravava, a partir de um da versão atual: a fome só com a data em
+ * que começou, e sem o registro da última fome. É o ponto de partida de quem monta, à mão, um
+ * estado de uma versão anterior.
+ */
+function asVersion11(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 11;
+  if (old.settlement.famine !== null) {
+    old.settlement.famine = { sinceMs: old.settlement.famine.sinceMs };
+  }
+  delete old.settlement.lastFamine;
+  return old;
+}
 
 /**
  * Os eventos de uma fronteira, menos os objetivos concluídos. A lista de objetivos cresceu sem
@@ -221,6 +247,27 @@ const FROZEN: Record<string, string> = {
   'state-v10-storage.json': 'c839fb4a',
   'state-v10-threat.json': '89f4f1d5',
   'state-v10-week-scripted.json': '31dbc9ff',
+  'state-v11-cold.json': '51c3ae5b',
+  'state-v11-construction.json': 'a86f8ea7',
+  'state-v11-council-hidden.json': '12c3d26e',
+  'state-v11-council.json': '602be268',
+  'state-v11-crafts.json': '3c40daa1',
+  'state-v11-famine-3x.json': 'd482003a',
+  'state-v11-famine-half.json': '6f84165e',
+  'state-v11-famine.json': '99eac237',
+  'state-v11-fresh.json': '193d77e2',
+  'state-v11-iron-king-half.json': '3f9af7c2',
+  'state-v11-migrated-3x.json': 'cb253082',
+  'state-v11-morale.json': 'bb88e20d',
+  'state-v11-objectives.json': '5828ca91',
+  'state-v11-palisade.json': '6ed05c79',
+  'state-v11-peasant-3x.json': '66f7e272',
+  'state-v11-queues.json': '70a7aa15',
+  'state-v11-raid-announced.json': 'daa6fd1e',
+  'state-v11-raid.json': 'a8cefeaf',
+  'state-v11-storage.json': '38ec7bfa',
+  'state-v11-threat.json': '31a068fc',
+  'state-v11-week-scripted.json': 'ea01677f',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -663,7 +710,10 @@ describe.each(fixtures)('$name', (fixture) => {
     expect(after.settlement.workers).toMatchObject(before.settlement.workers);
     expect(after.settlement.buildings).toMatchObject(before.settlement.buildings);
     expect(after.settlement.recruitmentQueue).toEqual(before.settlement.recruitmentQueue);
-    expect(after.settlement.famine).toEqual(before.settlement.famine);
+    // A fome continua aberta desde quando abriu; o que a versão 12 acrescenta a ela é do passo.
+    expect(after.settlement.famine?.sinceMs ?? null).toBe(
+      before.settlement.famine?.sinceMs ?? null,
+    );
     expect(after.objectives).toEqual(before.objectives);
     expect(after.stats).toMatchObject(before.stats);
     expect(after.settings.settlementName).toBe(before.settings.settlementName);
@@ -834,7 +884,7 @@ describe('versão 2 → 3', () => {
    * dia: todos na Fazenda, comida de sobra, objetivos cumpridos e `wood` de madeira.
    */
   function version2InWinter(wood: number): Draft {
-    const old = JSON.parse(JSON.stringify(gameAt(WINTER_DAY_4))) as Draft;
+    const old = asVersion11(gameAt(WINTER_DAY_4));
     old.schemaVersion = 2;
     delete old.settlement.cold;
     delete old.settlement.wasted;
@@ -1077,7 +1127,7 @@ describe('versão 3 → 4', () => {
       const before = read(named(name)) as unknown as GameState;
       const after = migrated(named(name));
       expect(after.settlement.cold, name).toEqual(before.settlement.cold);
-      expect(after.settlement.famine, name).toEqual(before.settlement.famine);
+      expect(after.settlement.famine?.sinceMs, name).toBe(before.settlement.famine?.sinceMs);
       expect(after.settlement.recruitmentQueue, name).toEqual(before.settlement.recruitmentQueue);
     }
   });
@@ -1766,10 +1816,15 @@ describe('versão 10 → 11', () => {
   };
   const raidEvents = (events: GameEvent[]) =>
     events.filter((event) => /^(raid|wolves|villager(Injured|Recovered))/.test(event.type));
+  // Só até a versão 11: o que as incursões mudaram, sem o que as versões seguintes acrescentaram.
+  const raids: MigrationChain = {
+    steps: [v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6, v6ToV7, v7ToV8, v8ToV9, v9ToV10, v10ToV11],
+    shape: stateV11,
+  };
 
   /** Um estado como a versão 10 o gravava, a partir de um da versão atual. */
   function asVersion10(state: GameState): Draft {
-    const old = JSON.parse(JSON.stringify(state)) as Draft;
+    const old = asVersion11(state);
     old.schemaVersion = 10;
     delete old.settlement.injured;
     old.horde.scheduledRaids = [];
@@ -1790,7 +1845,11 @@ describe('versão 10 → 11', () => {
     '$name: só acrescenta os feridos, vazios, e os lobos do roteiro para quem ainda não passou deles',
     (fixture) => {
       const before = read(fixture) as unknown as GameState;
-      const after = migrated(fixture);
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        raids,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(11);
       expect(after.settlement.injured).toStrictEqual([]);
       expect(after.horde).toStrictEqual({
@@ -1951,6 +2010,261 @@ describe('versão 10 → 11', () => {
     const end = advanceTo(middle.state, WOLVES_AT + 3 * DAY);
     expect(end.state).toStrictEqual(direct.state);
     expect([...middle.events, ...end.events]).toStrictEqual(direct.events);
+  });
+});
+
+describe('versão 11 → 12', () => {
+  const version11 = fixtures.filter((fixture) => fixture.version === 11);
+  const DAY = 2 * HOUR;
+  const lastTurn = (ms: number) => Math.floor(ms / DAY) * DAY;
+  const nextTurn = (ms: number) => lastTurn(ms) + DAY;
+  const deserters = (events: GameEvent[]) =>
+    eventsOfType(events, 'villagerDeserted').map((event) => event.atMs);
+
+  /**
+   * Um feudo da versão 11 em fome desde `sinceMs`, parado em `boundary`, sem lavradores nem
+   * comida e com gente bastante para a deserção não bater no piso. A moral nasce em 50 e a fome
+   * a derruba: quem parte pelo sorteio da moral baixa sai como `villagerLeft`, e não entra na
+   * conta dos desertores.
+   */
+  function starvingV11(
+    boundary: number,
+    sinceMs: number,
+    timeScale: number,
+    difficulty: GameState['settings']['difficulty'] = 'lord',
+  ): Draft {
+    return asVersion11(
+      gameAt(boundary, (draft) => {
+        draft.settings.timeScale = timeScale;
+        draft.settings.difficulty = difficulty;
+        draft.settlement.population.villagers = 60;
+        draft.settlement.workers = { farm: 0, lumberMill: 3, quarry: 0, goldMine: 0 };
+        draft.settlement.resources.food = 0;
+        draft.settlement.famine = famineSince(sinceMs);
+      }),
+    );
+  }
+
+  it('os números escritos no passo são os do conteúdo de hoje', () => {
+    expect(balance.calendar.dayMs).toBe(DAY);
+    expect(balance.morale.famineDesertionAfterRealMs).toBe(12 * HOUR);
+    expect(balance.morale.famineDesertionEveryRealMs).toBe(2 * HOUR);
+    expect(DIFFICULTY_IDS.filter((id) => balance.difficulties[id].famineDesertion)).toEqual([
+      'lord',
+      'ironKing',
+    ]);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v11-fresh.json'));
+    expect(fresh.settlement.famine).toBeNull();
+    expect(fresh.settlement.lastFamine).toBeNull();
+    expect(fresh.settlement).toStrictEqual(newGame('fixture-fresh').settlement);
+  });
+
+  it.each(version11)(
+    '$name: só muda a fome aberta, que ganha o que já durou antes e os desertores cobrados, e acrescenta a última fome, vazia',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(12);
+      expect(after.settlement.lastFamine).toBeNull();
+      if (before.settlement.famine === null) {
+        expect(after.settlement.famine).toBeNull();
+      } else {
+        expect(after.settlement.famine).toMatchObject({
+          sinceMs: before.settlement.famine.sinceMs,
+          carriedMs: 0,
+        });
+      }
+      // O resto é o estado antigo, campo por campo: nenhum aldeão, estoque, prazo ou sorteio muda.
+      const settlement: Draft = { ...after.settlement };
+      delete settlement.lastFamine;
+      expect({ ...settlement, famine: before.settlement.famine }).toStrictEqual(before.settlement);
+      expect({ ...after, schemaVersion: 11, settlement: before.settlement }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it('os retratos cobrem os dois lados: partidas sem fome e partidas em fome, nos três ritmos', () => {
+    const starving = version11
+      .filter((fixture) => migrated(fixture).settlement.famine !== null)
+      .map((fixture) => [fixture.name, fixture.timeScale]);
+    expect(starving).toEqual([
+      ['state-v11-famine-3x.json', 3],
+      ['state-v11-famine-half.json', 0.5],
+      ['state-v11-famine.json', 1],
+    ]);
+  });
+
+  it.each(version11)(
+    '$name: nada acontece na fronteira: nenhum evento, nenhum sorteio, ninguém a menos',
+    (fixture) => {
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
+      expect(atBoundary.state.rng).toEqual(state.rng);
+      expect(atBoundary.state.settlement.population).toEqual(state.settlement.population);
+      expect(atBoundary.state.settlement.famine).toEqual(state.settlement.famine);
+      expect(atBoundary.state.settlement.lastFamine).toBeNull();
+    },
+  );
+
+  it('a contagem com que a partida em fome entra é a que a regra nova já teria cobrado na última virada', () => {
+    for (const fixture of version11) {
+      const state = migrated(fixture);
+      const { famine } = state.settlement;
+      if (famine === null) {
+        continue;
+      }
+      // A mesma conta do motor, feita no estado migrado, na última virada antes da fronteira.
+      const owed = famineDesertionsOwedAt(state, lastTurn(state.lastProcessedAt));
+      expect(famine.deserted, fixture.name).toBe(owed);
+    }
+    // À mão, retrato por retrato (a fome em horas de jogo na última virada antes da fronteira).
+    // Normal: 14 h de fome, carência de 12 h e passo de 2 h: 2, os mesmos que a regra antiga
+    // tirou do feudo (de 5 para 3 aldeões).
+    expect(migrated(named('state-v11-famine.json')).settlement.famine?.deserted).toBe(2);
+    // Rápido: 45 h 30 de fome, carência de 36 h e passo de 6 h: 2. A regra antiga já tinha
+    // levado bem mais gente (um por virada desde as 12 h), e ninguém volta.
+    expect(migrated(named('state-v11-famine-3x.json')).settlement.famine?.deserted).toBe(2);
+    // Tranquilo: 6 h 20 de fome, carência de 6 h e passo de 1 h: 1. A regra antiga ainda não
+    // tinha cobrado ninguém (a carência dela era de 12 h de jogo): esse fica perdoado.
+    const half = read(named('state-v11-famine-half.json')) as Draft;
+    expect(half.settlement.population.villagers).toBe(12);
+    expect(migrated(named('state-v11-famine-half.json')).settlement.famine?.deserted).toBe(1);
+  });
+
+  it('no ritmo Normal nada muda: um desertor por virada, a começar pela primeira depois da fronteira', () => {
+    // Fome há 15 h e 13 min, no meio de um dia. A regra antiga cobrou nas duas viradas com
+    // 12 h ou mais; a nova conta os mesmos dois, e segue de um em um.
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const since = boundary - (15 * HOUR + 13 * MINUTE);
+    const state = migrateState(starvingV11(boundary, since, 1), { timeScale: 1 });
+    expect(state.settlement.famine).toEqual({ sinceMs: since, carriedMs: 0, deserted: 2 });
+    const { events } = advanceTo(state, boundary + 4 * DAY);
+    expect(deserters(events)).toEqual([41 * DAY, 42 * DAY, 43 * DAY, 44 * DAY]);
+  });
+
+  it('no ritmo Normal, a fome que ainda não chegou às 12 h cobra o primeiro na mesma virada de antes', () => {
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const since = boundary - 9 * HOUR;
+    const state = migrateState(starvingV11(boundary, since, 1), { timeScale: 1 });
+    expect(state.settlement.famine).toEqual({ sinceMs: since, carriedMs: 0, deserted: 0 });
+    // 12 h de fome se completam 3 h depois da fronteira: a primeira virada a partir daí.
+    const first = nextTurn(since + 12 * HOUR - 1);
+    expect(deserters(advanceTo(state, first + 2 * DAY).events)).toEqual([
+      first,
+      first + DAY,
+      first + 2 * DAY,
+    ]);
+  });
+
+  it('no ritmo Rápido ninguém sai em bloco: quem já desertou a mais não volta, e o próximo só sai quando o prazo novo o deve', () => {
+    // 20 h de jogo de fome: a regra antiga já cobrava desde as 12 h; a nova só cobra o primeiro
+    // com 36 h de jogo (12 h reais), e depois um a cada 6 h de jogo (três viradas).
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const since = boundary - 20 * HOUR;
+    const state = migrateState(starvingV11(boundary, since, 3), { timeScale: 3 });
+    expect(state.settlement.famine).toEqual({ sinceMs: since, carriedMs: 0, deserted: 0 });
+    const first = nextTurn(since + 36 * HOUR - 1);
+    const { events } = advanceTo(state, first + 6 * DAY);
+    expect(deserters(events)).toEqual([first, first + 3 * DAY, first + 6 * DAY]);
+    expect(first - boundary).toBeGreaterThan(15 * HOUR);
+  });
+
+  it('no ritmo Tranquilo ninguém sai em bloco: o que a regra antiga não cobrou fica perdoado, e dali em diante saem dois por virada', () => {
+    // 11 h de jogo de fome: pela regra antiga ninguém tinha desertado (12 h de jogo); pela nova
+    // (6 h de jogo de carência, um a cada hora) a fome já devia vários.
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const since = boundary - 11 * HOUR;
+    const stored = starvingV11(boundary, since, 0.5, 'ironKing');
+    const state = migrateState(stored, { timeScale: 0.5 });
+    // Na última virada antes da fronteira a fome tinha 9 h 47: (9 h 47 − 6 h) ÷ 1 h, mais um.
+    expect(state.settlement.famine).toEqual({ sinceMs: since, carriedMs: 0, deserted: 4 });
+    expect(state.settlement.population.villagers).toBe(60);
+    const { events } = advanceTo(state, boundary + 3 * DAY);
+    expect(deserters(events)).toEqual([41 * DAY, 41 * DAY, 42 * DAY, 42 * DAY, 43 * DAY, 43 * DAY]);
+  });
+
+  it('a fronteira em cima de uma virada de dia: essa virada já foi cobrada pelas regras antigas', () => {
+    const boundary = 40 * DAY;
+    const since = boundary - 14 * HOUR;
+    const state = migrateState(starvingV11(boundary, since, 1), { timeScale: 1 });
+    // 14 h de fome na própria fronteira: a virada das 12 h e a das 14 h.
+    expect(state.settlement.famine?.deserted).toBe(2);
+    expect(deserters(advanceTo(state, boundary + 2 * DAY).events)).toEqual([41 * DAY, 42 * DAY]);
+  });
+
+  it('a contagem sai da fronteira deste passo e do ritmo gravado no estado, não de uma fronteira antiga', () => {
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const stored = starvingV11(boundary, boundary - 20 * HOUR, 1);
+    // Uma migração anterior a encontrou muito antes: se a conta partisse dali, daria zero.
+    stored.migratedAtMs = 3 * DAY;
+    const state = migrateState(stored, { timeScale: 1 });
+    expect(state.migratedAtMs).toBe(boundary);
+    // 18 h 47 de fome na última virada: (18 h 47 − 12 h) ÷ 2 h, mais um.
+    expect(state.settlement.famine?.deserted).toBe(4);
+    const born = starvingV11(boundary, boundary - 20 * HOUR, 1);
+    born.migratedAtMs = null;
+    expect(migrateState(born, { timeScale: 1 }).settlement.famine?.deserted).toBe(4);
+  });
+
+  it('em Camponês a partida em fome entra sem ninguém cobrado, e ninguém deserta', () => {
+    const boundary = 40 * DAY + 73 * MINUTE;
+    const stored = starvingV11(boundary, boundary - 30 * HOUR, 3, 'peasant');
+    const state = migrateState(stored, { timeScale: 3 });
+    expect(state.settlement.famine?.deserted).toBe(0);
+    expect(deserters(advanceTo(state, boundary + 30 * DAY).events)).toEqual([]);
+  });
+
+  it('os retratos em fome: ninguém deserta na fronteira, e os instantes seguintes são os do prazo novo', () => {
+    // Rápido: a fome começou meia hora de jogo depois da fundação e a fronteira está nas
+    // 46 h 17. Com dois já cobrados, o terceiro é devido às 48 h de fome: a virada das 50 h.
+    const fast = migrated(named('state-v11-famine-3x.json'));
+    expect(fast.settlement.famine).toEqual({ sinceMs: 30 * MINUTE, carriedMs: 0, deserted: 2 });
+    const fastRun = advanceTo(fast, 62 * HOUR);
+    expect(deserters(fastRun.events)).toEqual([50 * HOUR, 56 * HOUR, 62 * HOUR]);
+    // Tranquilo: fome desde 1 h 40, fronteira nas 9 h 40. Com um já cobrado, a virada das 10 h
+    // encontra 8 h 20 de fome (três devidos) e a das 12 h, 10 h 20 (cinco).
+    const slow = migrated(named('state-v11-famine-half.json'));
+    expect(slow.settlement.famine).toEqual({ sinceMs: 100 * MINUTE, carriedMs: 0, deserted: 1 });
+    const slowRun = advanceTo(slow, 12 * HOUR);
+    expect(deserters(slowRun.events)).toEqual([10 * HOUR, 10 * HOUR, 12 * HOUR, 12 * HOUR]);
+    // Normal: o feudo do retrato já está no piso de 3 aldeões, e ninguém mais deserta.
+    const normal = migrated(named('state-v11-famine.json'));
+    expect(normal.settlement.population.villagers).toBe(3);
+    const normalRun = advanceTo(normal, normal.lastProcessedAt + 10 * DAY);
+    expect(deserters(normalRun.events)).toEqual([]);
+  });
+
+  it('a divisão de intervalo continua exata a partir da fronteira, com a deserção no caminho', () => {
+    for (const name of ['state-v11-famine-3x.json', 'state-v11-famine-half.json']) {
+      const state = migrated(named(name));
+      const end = state.lastProcessedAt + 12 * DAY;
+      const direct = advanceTo(state, end);
+      expect(deserters(direct.events).length, name).toBeGreaterThan(1);
+      for (const cut of [1, 7 * HOUR + 13, 5 * DAY, 5 * DAY + 1]) {
+        const first = advanceTo(state, state.lastProcessedAt + cut);
+        const second = advanceTo(first.state, end);
+        expect(second.state, name).toStrictEqual(direct.state);
+        expect([...first.events, ...second.events], name).toStrictEqual(direct.events);
+      }
+    }
+  });
+
+  it('a conversão dos prazos é a do motor, em todo ritmo oferecido', () => {
+    for (const pace of balance.paces) {
+      const state = migrateState(starvingV11(40 * DAY, 39 * DAY, pace.timeScale), {
+        timeScale: pace.timeScale,
+      });
+      expect(famineDesertionPace(state)).toEqual({
+        graceMs: 12 * HOUR * pace.timeScale,
+        stepMs: 2 * HOUR * pace.timeScale,
+      });
+    }
   });
 });
 

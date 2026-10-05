@@ -23,6 +23,7 @@ import {
   DAY,
   eventsOfType,
   experienced,
+  famineSince,
   FED_MORALE,
   gameAt,
   gameWith,
@@ -32,6 +33,7 @@ import {
   play,
   spirited,
   SPRING,
+  starve,
   SUMMER,
   WINTER,
   YEAR,
@@ -83,7 +85,7 @@ describe('taxas', () => {
   it('a fome multiplica a produção de todos os edifícios por 0,75', () => {
     const edit = (draft: GameState) => {
       draft.settlement.workers = { farm: 1, lumberMill: 1, quarry: 1, goldMine: 1 };
-      draft.settlement.famine = { sinceMs: 0 };
+      starve(draft, 0);
     };
     expect(productionRate(gameAt(SUMMER, edit), 'farm')).toBe(7_500);
     expect(productionRate(gameAt(SPRING, edit), 'lumberMill')).toBe(6_000);
@@ -173,7 +175,7 @@ describe('estações (GDD §4.1)', () => {
       draft.settlement.workers.farm = 7;
       draft.settlement.population.villagers = 10;
       draft.settlement.buildings.farm = 3;
-      draft.settlement.famine = { sinceMs: WINTER };
+      starve(draft, WINTER);
       draft.settlement.cold = { sinceMs: WINTER };
     });
     // 7 × 10 × 1,4 (Nv3) × 0,4 (inverno) × 0,75 (fome) × 0,8 (frio) = 23,52.
@@ -216,7 +218,7 @@ describe('estações (GDD §4.1)', () => {
                 draft.settlement.craftExperience[building] = experience;
                 draft.settlement.adaptation =
                   adapting === 0 ? [] : [{ building, count: adapting, untilMs: season + DAY }];
-                draft.settlement.famine = famine ? { sinceMs: season } : null;
+                draft.settlement.famine = famine ? famineSince(season) : null;
                 draft.settlement.cold = cold ? { sinceMs: season } : null;
               });
               const factors = productionFactors(state, building);
@@ -363,7 +365,7 @@ describe('mestria e experiência do ofício (GDD §5.3 e §5.4)', () => {
       draft.settlement.workers.quarry = 1;
       draft.settlement.craftExperience.quarry = 7;
       draft.settlement.adaptation = [{ building: 'quarry', count: 1, untilMs: WINTER + DAY }];
-      draft.settlement.famine = { sinceMs: WINTER };
+      starve(draft, WINTER);
       draft.settlement.cold = { sinceMs: WINTER };
     });
     // 0,5 × 5 × 1,021 × 0,8 (inverno) × 0,75 (fome) × 0,8 (frio) = 1,2252.
@@ -543,7 +545,7 @@ describe('mestria e experiência do ofício (GDD §5.3 e §5.4)', () => {
     // de 9/h: a fome acaba no instante em que a adaptação termina, e não na virada.
     const starving = gameAt(SPRING + 30 * MINUTE, (draft) => {
       draft.settlement.resources.food = 0;
-      draft.settlement.famine = { sinceMs: SPRING };
+      starve(draft, SPRING);
     });
     const hired = accept(starving, command('setWorkers', { building: 'farm', count: 1 })).state;
     expect(hired.settlement.famine).not.toBeNull();
@@ -599,7 +601,7 @@ describe('acumuladores', () => {
   it('na fome a comida fica em zero em vez de ficar negativa', () => {
     const draft = gameWith((state) => {
       state.settlement.resources.food = 0;
-      state.settlement.famine = { sinceMs: 0 };
+      starve(state, 0);
     });
     applyContinuous(draft, 10 * HOUR);
     expect(draft.settlement.resources.food).toBe(0);
@@ -662,7 +664,7 @@ describe('foodRunsOutIn', () => {
     });
     expect(foodRunsOutIn(fed)).toBeNull();
     const starving = gameWith((draft) => {
-      draft.settlement.famine = { sinceMs: 0 };
+      starve(draft, 0);
     });
     expect(foodRunsOutIn(starving)).toBeNull();
   });

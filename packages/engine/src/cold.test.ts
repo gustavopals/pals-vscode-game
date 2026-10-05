@@ -18,12 +18,14 @@ import {
   command,
   DAY,
   eventsOfType,
+  famineSince,
   gameAt,
   HOUR,
   MINUTE,
   play,
   quiet,
   roomy,
+  starve,
   WINTER,
   YEAR,
 } from './test-helpers';
@@ -406,7 +408,7 @@ describe('fome e frio no mesmo instante', () => {
       'famineStarted',
       'coldStarted',
     ]);
-    expect(state.settlement.famine).toEqual({ sinceMs: at });
+    expect(state.settlement.famine).toEqual(famineSince(at));
     expect(state.settlement.cold).toEqual({ sinceMs: at });
     // O estado parou na virada do dia seguinte; o próximo evento é a virada depois dela.
     expect(nextEventAt(state)).toBe(WINTER + 2 * DAY);
@@ -429,7 +431,7 @@ describe('fome e frio no mesmo instante', () => {
     expect(before.events).toEqual([]);
     const { state, events } = advanceTo(before.state, at);
     expect(types(events)).toEqual(['famineStarted', 'coldStarted']);
-    expect(state.settlement.famine).toEqual({ sinceMs: at });
+    expect(state.settlement.famine).toEqual(famineSince(at));
     expect(state.settlement.cold).toEqual({ sinceMs: at });
     expect(state.settlement.resources.wood).toBe(0);
     // Fome e frio juntos: 5 × 8 × 0,8 × 0,75 × 0,8.
@@ -448,7 +450,7 @@ describe('fome e frio no mesmo instante', () => {
       draft.settlement.workers.farm = 5;
       draft.settlement.resources.food = 0;
       draft.settlement.resources.wood = 0;
-      draft.settlement.famine = { sinceMs: WINTER };
+      starve(draft, WINTER);
       draft.settlement.cold = { sinceMs: WINTER };
     });
     const { state, events } = advanceTo(start, YEAR);
@@ -502,7 +504,7 @@ describe('o estado em repouso', () => {
           settlement.resources.wood = plan.wood;
           settlement.accumulators.food = plan.foodRest;
           settlement.accumulators.wood = plan.woodRest;
-          settlement.famine = plan.famine ? { sinceMs: plan.atMs - HOUR } : null;
+          settlement.famine = plan.famine ? famineSince(plan.atMs - HOUR) : null;
           settlement.cold = plan.cold ? { sinceMs: plan.atMs - HOUR } : null;
         });
         const draft = cloneState(state);
@@ -522,7 +524,9 @@ describe('o estado em repouso', () => {
         expect(kinds.includes('coldEnded')).toBe(plan.cold && draft.settlement.cold === null);
         // Quem continua com fome ou frio continua desde quando começou.
         if (plan.famine && draft.settlement.famine !== null) {
-          expect(draft.settlement.famine).toEqual({ sinceMs: plan.atMs - HOUR });
+          expect(draft.settlement.famine).toEqual(famineSince(plan.atMs - HOUR));
+          // E não fica registro de fome acabada: ela não acabou.
+          expect(draft.settlement.lastFamine).toBeNull();
         }
         if (plan.cold && draft.settlement.cold !== null) {
           expect(draft.settlement.cold).toEqual({ sinceMs: plan.atMs - HOUR });

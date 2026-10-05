@@ -12,6 +12,7 @@ import {
   command,
   DAY,
   eventsOfType,
+  famineSince,
   gameAt,
   gameWith,
   hordeAwake,
@@ -23,6 +24,7 @@ import {
   quietCouncil,
   raidInSightScenario,
   refuse,
+  starve,
   SUMMER,
   WINTER,
   YEAR,
@@ -580,7 +582,7 @@ describe('a resolução no instante marcado', () => {
         settlement.resources = { food: 0, wood: 0, stone: 50_000, gold: 50_000 };
         settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
         settlement.population.villagers = 3;
-        settlement.famine = { sinceMs: RAID_AT - DAY };
+        starve(draft, RAID_AT - DAY);
         // Os três já estão de cama, de outro ataque.
         settlement.injured = [
           { untilMs: RAID_AT + HOUR, building: null },
@@ -824,7 +826,7 @@ describe('os feridos', () => {
         settlement.workers = { farm: 0, lumberMill: 3, quarry: 2, goldMine: 1 };
         settlement.resources.food = 0;
         // Fome antiga: a moral está no chão e a deserção corre a cada virada.
-        settlement.famine = { sinceMs: LEFT_AT - 10 * DAY };
+        starve(draft, LEFT_AT - 10 * DAY);
         settlement.morale = 0;
       },
     });
@@ -1319,7 +1321,7 @@ describe('interações no mesmo instante (roadmap V2E-T3.4)', () => {
     expect(suffered.data).not.toHaveProperty('raided_food');
     expect(Number(suffered.data.raided_wood)).toBeGreaterThan(0);
     expect(state.settlement.resources.food).toBe(0);
-    expect(state.settlement.famine).toEqual({ sinceMs: RAID_AT });
+    expect(state.settlement.famine).toEqual(famineSince(RAID_AT));
   });
 
   it('a fome já aberta: o ataque leva a madeira, fere, e a fome continua com a data que tinha', () => {
@@ -1327,11 +1329,11 @@ describe('interações no mesmo instante (roadmap V2E-T3.4)', () => {
       edit: (draft) => {
         draft.settlement.workers = { farm: 0, lumberMill: 4, quarry: 3, goldMine: 3 };
         draft.settlement.resources.food = 0;
-        draft.settlement.famine = { sinceMs: LEFT_AT - HOUR };
+        starve(draft, LEFT_AT - HOUR);
       },
     });
     const { state, events } = advanceTo(start, RAID_AT + HOUR);
-    expect(state.settlement.famine).toEqual({ sinceMs: LEFT_AT - HOUR });
+    expect(state.settlement.famine).toEqual(famineSince(LEFT_AT - HOUR));
     expect(eventsOfType(events, 'famineStarted')).toEqual([]);
     expect(eventsOfType(events, 'famineEnded')).toEqual([]);
     expect(state.settlement.resources.food).toBe(0);

@@ -1,0 +1,199 @@
+{
+ "schemaVersion": 12,
+ "seed": "pedra-alta-golden",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 604800000,
+  "yearStartMs": 604800000,
+  "year": 2
+ },
+ "lastProcessedAt": 604800000,
+ "rng": {
+  "council": [
+   2227731083,
+   278337704,
+   553604304,
+   1162801657
+  ],
+  "horde": [
+   1784935854,
+   3047186823,
+   3686916175,
+   152010001
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta do Norte",
+  "resources": {
+   "food": 1600000,
+   "wood": 42009,
+   "stone": 895256,
+   "gold": 1972722
+  },
+  "accumulators": {
+   "food": 1530471,
+   "wood": 0,
+   "stone": 531299,
+   "gold": 948305
+  },
+  "population": {
+   "villagers": 26
+  },
+  "workers": {
+   "farm": 8,
+   "lumberMill": 6,
+   "quarry": 4,
+   "goldMine": 3
+  },
+  "buildings": {
+   "townHall": 4,
+   "farm": 3,
+   "lumberMill": 4,
+   "quarry": 4,
+   "goldMine": 3,
+   "housing": 5,
+   "granary": 2,
+   "warehouse": 1,
+   "watchtower": 2,
+   "palisade": 2
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": {
+   "endedAtMs": 349200000,
+   "lastedMs": 24950005,
+   "deserted": 0
+  },
+  "cold": null,
+  "wasted": {
+   "food": 665,
+   "wood": 357,
+   "stone": 369,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 100,
+   "lumberMill": 64,
+   "quarry": 100,
+   "goldMine": 100
+  },
+  "craftMasteredYear": {
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": []
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "collapsedWell-16",
+    "cardId": "collapsedWell",
+    "drawnAtMs": 604800000,
+    "expiresAtMs": 691200000,
+    "origin": null
+   }
+  ],
+  "flags": {
+   "thawBridge.piers": true,
+   "palisadePromise.kept": true,
+   "commonGranary.gifted": true,
+   "routine.sawmillRest": true
+  },
+  "seenThisYear": [
+   "collapsedWell"
+  ],
+  "nextDrawAtMs": 633600000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": [
+   "sawmillRest-15"
+  ]
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 70
+ },
+ "horde": {
+  "scheduledRaids": []
+ },
+ "objectives": {
+  "active": [
+   "surviveWinterWithoutCold"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "answerFirstCard",
+   "planAutoStart",
+   "buildWatchtower",
+   "buildGranaryOrWarehouse",
+   "buildPalisade"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 4,
+  "villagersRecruited": 21,
+  "cardsDrawn": 16,
+  "cardsDrawn:neighborsWatch": 2,
+  "constructionsStarted:townHall": 3,
+  "constructionsStarted:lumberMill": 3,
+  "cardsDrawn:thawBridgePlea": 1,
+  "cardsAnswered": 9,
+  "constructionsStarted:farm": 2,
+  "plansMarkedAuto": 3,
+  "constructionsStarted:quarry": 4,
+  "constructionsStarted:watchtower": 2,
+  "cardsDrawn:thawBridgeSlab": 1,
+  "raids_suffered": 1,
+  "constructionsStarted:warehouse": 1,
+  "cardsExpired": 6,
+  "cardsDrawn:springSeeds": 1,
+  "cardsDrawn:thawBridgeCrossing": 1,
+  "wasted_food": 5568665,
+  "coldSpellsThisSeason": 0,
+  "constructionsStarted:goldMine": 2,
+  "wasted_wood": 2431357,
+  "constructionsStarted:granary": 2,
+  "cardsDrawn:moreMouths": 1,
+  "cardsDrawn:palisadePromisePlea": 1,
+  "threatCrossed:40": 2,
+  "wasted_stone": 2361369,
+  "cardsDrawn:fullGranary": 1,
+  "constructionsStarted:palisade": 2,
+  "cardsDrawn:palisadePromiseDeadline": 1,
+  "cardsDrawn:commonGranaryPlanks": 1,
+  "seasonsSurvived:summer": 1,
+  "threatCrossed:70": 5,
+  "raids_repelled": 4,
+  "cardsDrawn:apprenticesTable": 1,
+  "cardsDrawn:commonGranaryShare": 1,
+  "cardsDrawn:commonGranaryOutcome": 1,
+  "seasonsSurvived:autumn": 1,
+  "cardsDrawn:sawmillRest": 1,
+  "cardsDrawn:collapsedWell": 1
+ }
+}

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
 import { DAY_MS, YEAR_MS } from './clock';
-import { accept, command, eventsOfType, gameAt, HOUR, newGame } from './test-helpers';
+import { accept, command, eventsOfType, famineSince, gameAt, HOUR, newGame } from './test-helpers';
 import type { GameEvent, GameState } from './types';
 
 function steps(start: GameState, count: number, stepMs: number) {
@@ -222,7 +222,7 @@ describe('advanceTo', () => {
     expect(state.settlement.craftExperience.goldMine).toBe(100);
     expect(state.settlement.craftMasteredYear.goldMine).toBe(2);
     expect(state.settlement.adaptation).toEqual([]);
-    expect(state.settlement.famine).toEqual({ sinceMs: YEAR_MS });
+    expect(state.settlement.famine).toEqual(famineSince(YEAR_MS));
     expect(state.settlement.cold).toBeNull();
   });
 

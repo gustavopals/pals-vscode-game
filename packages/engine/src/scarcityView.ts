@@ -3,6 +3,7 @@ import { balance, craftGuilds } from '@lotg/content';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { producerOf } from './economy';
+import { famineDurationAt } from './famine';
 import { durationText, sentenceCase } from './format';
 import type { GameState, ViewState } from './types';
 import { realSecondsCeil, SECOND_MS } from './units';
@@ -68,6 +69,10 @@ export function endsInSeconds(endsInMs: number | null, timeScale: number): numbe
 /**
  * A fome na visão: há quanto tempo dura, o que ela custa e, quando ela acaba sozinha, em quanto
  * tempo e por quê. `null` sem fome.
+ *
+ * `secondsElapsed` é a duração que a moral e a deserção contam: na fome que reabriu dentro da
+ * janela (GDD §5.6), inclui o que ela já tinha durado antes. `sinceMs` é o instante em que ela
+ * abriu, ou reabriu.
  */
 export function famineView(
   state: GameState,
@@ -83,9 +88,8 @@ export function famineView(
   const { famineEndsIn } = outlook;
   return {
     sinceMs: famine.sinceMs,
-    secondsElapsed: Math.max(
-      0,
-      Math.floor((state.lastProcessedAt - famine.sinceMs) / timeScale / SECOND_MS),
+    secondsElapsed: Math.floor(
+      famineDurationAt(state, state.lastProcessedAt) / timeScale / SECOND_MS,
     ),
     endsInSeconds: endsInSeconds(famineEndsIn, timeScale),
     text:

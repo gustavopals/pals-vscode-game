@@ -13,6 +13,7 @@ import {
   newGame,
   play,
   refuse,
+  starve,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
@@ -105,7 +106,7 @@ describe('catálogo de recusas', () => {
   const planned = accept(rich, command('planConstruction', { building: 'farm' })).state;
   const starving = gameWith((draft) => {
     draft.settlement.resources.food = 0;
-    draft.settlement.famine = { sinceMs: 0 };
+    starve(draft, 0);
   });
   const queued = accept(
     gameWith((draft) => {
