@@ -1095,7 +1095,7 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Objetivo:** corrigir o que a revisão editorial achou e ninguém aplicou (pendências, DE-3), com cada reescrita aprovada pelo autor antes de entrar (ADR 0016, item 5).
 **Depende de:** nada.
 
-- [ ] V2G-T4.1 Proposta por carta, com texto e números de antes e de depois, para o autor aprovar: a opção dura que vale mais que a neutra na primavera (pedreiros, poço, notícia da primavera); "Um teto antes do frio"; "Vigília entre vizinhos"; as pistas da promessa da Paliçada; as duas cartas que saem com o feudo em fome; a Ponte do Degelo; o Celeiro Comum.
+- [x] V2G-T4.1 Proposta por carta, com texto e números de antes e de depois, para o autor aprovar: a opção dura que vale mais que a neutra na primavera (pedreiros, poço, notícia da primavera); "Um teto antes do frio"; "Vigília entre vizinhos"; as pistas da promessa da Paliçada; as duas cartas que saem com o feudo em fome; a Ponte do Degelo; o Celeiro Comum.
 - [ ] V2G-T4.2 Aplicar só o aprovado. **Nenhum id de carta ou de opção muda** (o teste de `council.test.ts` do conteúdo fixa os publicados).
 - [ ] V2G-T4.3 Goldens, retratos da versão atual e a semente de cenário do Conselho, pela receita "Uma carta nova" do README do motor quando o sorteio mudar; `docs/content-v0.2.md` com as fichas atualizadas.
 
@@ -1108,7 +1108,7 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Objetivo:** as boas-vindas dizem o que o Conselho faz por quem falta (ADR 0016, item 6), e a concordância de "As Habitações já está em obras." é corrigida.
 **Depende de:** V2G-T1 e V2G-T2 (as frases citam depósitos e deserção).
 
-- [ ] V2G-T5.1 Três descrições propostas ao autor e aprovadas; chegam à tela por `GET /v1/catalog`.
+- [x] V2G-T5.1 Três descrições propostas ao autor e aprovadas; chegam à tela por `GET /v1/catalog`.
 - [ ] V2G-T5.2 As duas frases de recusa com a concordância certa, com os testes e goldens que as fixam.
 
 **Verificação:** `pnpm verify`, `pnpm test:integration catalog`, `pnpm test:e2e 01-entrada`.
@@ -1119,9 +1119,9 @@ Acrescentada em 2026-10-05, depois de o autor responder às pendências com quat
 **Objetivo:** a fome não some atrás de uma carta, o botão depois da incursão não gasta a madeira da Paliçada, e o jogador novo acha os objetivos (ADR 0016, itens 8, 9 e 10).
 **Depende de:** nada no motor.
 
-- [ ] V2G-T6.1 `statusTopic`: fome e frio na frente da decisão pendente, na barra e no título.
-- [ ] V2G-T6.2 `defenseCommand`: "Ver a defesa" quando a Paliçada não pode começar, no Relatório e em "Antes de partir".
-- [ ] V2G-T6.3 Aba Feudo: Objetivos antes do painel da Ameaça; conferir em 1280×800 e em 720×800.
+- [x] V2G-T6.1 `statusTopic`: fome e frio na frente da decisão pendente, na barra e no título.
+- [x] V2G-T6.2 `defenseCommand`: "Ver a defesa" quando a Paliçada não pode começar, no Relatório e em "Antes de partir".
+- [x] V2G-T6.3 Aba Feudo: Objetivos antes do painel da Ameaça; conferir em 1280×800 e em 720×800.
 - [ ] V2G-T6.4 `pnpm capture:landing` e as três imagens e o `og.png` da página de apresentação, velhas desde a Fase C.
 
 **Verificação:** `pnpm verify`, `pnpm test:e2e`, `pnpm test:e2e:landing`.
@@ -1359,6 +1359,7 @@ Preencher ao fechar cada tarefa.
 | V2G-T1 | 2026-10-05 | o commit `V2G-T1: …` | agente, conferido pela sessão principal | Celeiro e Armazém no nível 1 de 900 para 1.000 e o objetivo 4 de volta com 50 de ouro (ADR 0016, itens 1 e 7). Em Senhor o Salão 8 passa a caber (Armazém Nv8: 5.200 contra 5.102) e os cinco edifícios de produção e moradia chegam ao nível 9; Rei de Ferro não muda de teto. Goldens e os retratos da versão 11 regravados; os das versões 1 a 10 intactos; bots sem mudança. Linha de base do simulador medida de novo nas três dificuldades (`docs/balance-v0.2.md`, seção 18). **Pioras medidas e aceitas como estão:** o Preguiçoso no ritmo Tranquilo perde gente e um nível de Salão (20 aldeões e Salão 3 na semana, eram 26 e Salão 4), porque o bot gasta os 50 de ouro na Fazenda e atrasa a Mina; no ritmo Normal em Senhor uma semente de 50 (`pedra-alta-026`) passa da meta de 8 h de desperdício (9 h); em Rei de Ferro o Regular do Normal fecha a semana com Salão 6 no pior caso (era 7). No golden de 7 dias o frio do inverno começa quatro dias de jogo mais tarde e dura menos, e a expectativa da moral inquieta foi de 152 h para 160 h | Ninguém jogou com os números novos: tudo é bot e teste. A causa da piora do Preguiçoso no Tranquilo é inferência da leitura de uma semente. `pnpm capture:landing` não rodou (fica para V2G-T6.4). O frio do golden de 7 dias é pego pela virada do dia com 12 minutos de folga: frágil a qualquer mudança de número |
 
 ---
+| V2G-T6 (T6.1 a T6.3) | 2026-10-05 | `3ec85ef` | agente em árvore separada, conferido pela sessão principal | Barra de status e título: fome e frio na frente da decisão pendente (`statusTopic`). Botão da defesa: ordena a Paliçada só quando ela pode começar agora; em qualquer outro caso é "Ver a defesa", que leva ao painel da Ameaça, e nunca mais ordena a Torre (`defenseCommand`, usado por "Antes de partir" e pelo Relatório). Aba Feudo: Objetivos antes do painel da Ameaça. Escolhas do agente: a carta some da barra enquanto há fome ou frio, mas continua no contador do título, no ícone do Feudo, na árvore e na aba do Conselho; a linha "Hoje" da árvore continua com as decisões na frente. Quatro cenários de navegador novos ou alterados; a suíte passou com 95 de 95 junto com a V2G-T1 | A T6.4 (capturas da página de apresentação) fica para o fim da fase. O GDD §13.5 ainda dava a ordem antiga da barra (corrigido em V2G-T7). Só Chromium |
 
 ## 12. Conteúdo proposto: o primeiro lote do Conselho
 

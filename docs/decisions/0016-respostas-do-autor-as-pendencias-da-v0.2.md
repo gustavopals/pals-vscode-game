@@ -33,6 +33,21 @@ A v0.2 foi implementada sem o autor, com as regras dos ADRs 0013 a 0015 "aplicad
 - **O ouro sem destino no fim da semana** (C-5): fica para a v0.3, com a Taverna, o soldo e o Mercado. Nenhum custo nem teto muda agora por causa disso.
 - **Em bloco:** as leituras de regra, o desenho das telas e os textos escritos pelos agentes que as rodadas não trataram um a um. São os itens B-4 a B-15, C-6, C-9 a C-18 e DE-9 a DE-18 de `pendencias-v0.2.md`, fora o que a tabela acima muda dentro deles. O autor confirmou o conjunto com base em quatro dias de jogo, sem ler item por item.
 
+### As reescritas das cartas e das dificuldades (itens 5 e 6), aprovadas uma a uma
+
+Na mesma data, o autor viu o antes e o depois de cada uma e aprovou a opção recomendada em todas:
+
+- **Cartas da primavera:** a penalidade de moral dura mais (pedreiros, −5 por 4 dias; "Deixar para depois" no poço, −10 por 3 dias; "Mandar todos ao campo", −5 por 4 dias) e "Ceder a pedra" custa 20 em vez de 30. Os ganhos ficam.
+- **"Um teto antes do frio":** as famílias dormem no palheiro porque a ventania destelhou as casas; três frases.
+- **"Vigília entre vizinhos":** o que ronda os currais é ladrão de galinha; a carta deixa de prometer o que só a Torre e a Paliçada dão.
+- **Promessa da Paliçada:** as duas pistas ficam sem número.
+- **"Tábuas para as reservas" e "A notícia da primavera":** só saem com a moral em 40 ou mais, como "A colheita de todos".
+- **Ponte do Degelo:** três frases; números e desfechos iguais.
+- **Celeiro Comum:** a pista de "Partilhar a comida" diz o que a opção dá de fato.
+- **Dificuldades:** em Camponês e em Senhor o Conselho, sem resposta, "decide sem cobrar nada do feudo"; em Rei de Ferro, "escolhe o caminho mais duro".
+
+Nenhum id de carta ou de opção muda e nada pede migração: o estado guarda só ids, e texto e números são lidos do catálogo. Uma carta já na mesa passa a mostrar e a aplicar o que há de novo. Fica registrado o que a revisão não tratou: o mesmo desequilíbrio da primavera existe em três cartas de verão e de outono ("A mesa dos aprendizes", "Lenha ainda úmida", "Um teto antes do frio"), que não estavam entre os sete e ficaram como estão.
+
 ### O que não foi perguntado
 
 Continuam em aberto, por serem de operação ou atos do autor: B-1 (já superado pela publicação em dois passos), B-2 (sessões na restauração de backup), os atos da seção 3 das pendências (backup externo, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão, playtest, tag e release) e os dois defeitos das previsões de C-8, que precisam ser conferidos contra o commit `85a9373`.
