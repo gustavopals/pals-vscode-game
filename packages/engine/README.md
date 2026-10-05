@@ -247,6 +247,16 @@ nextId(draft, kind): string   // 'hero-1', 'hero-2', 'expedition-1'… Altera dr
 
 Não é API pública: `nextId` não sai em `index.ts`, e os contadores nunca saem no `ViewState`. Nenhuma regra de hoje cria entidade: `ids` continua `{}` em toda partida até a primeira mecânica da v0.3.
 
+### O que a fundação não prova, e cada mecânica tem de provar
+
+A revisão independente da Fase B (V3B-T3) não confirmou defeito, mas registrou riscos que só fazem sentido quando houver expedição e caravana de verdade. Quem escrever as mecânicas das Fases D e E (e toda mecânica que criar entidade com fluxo) entrega isto junto:
+
+- **Fluxo apagado não reaparece (R1).** `dropStream` seguido de um sorteio no mesmo nome recomeça da semente e repete a sequência; o gerador não tem como saber. Cada mecânica prova que nenhum fluxo de entidade encerrada volta a `rng` e que **nada sorteia no fluxo depois do `dropStream` no mesmo instante** (o encerramento é o último passo da entidade naquele instante).
+- **Fluxos só de entidades vivas (R2).** A guarda de hoje confere o nome e o contador (`1 ≤ n ≤ ids[família]`), não se a entidade ainda existe: o estado 13 não tem lista de expedições. A guarda da versão que criar expedições e a da que criar caravanas exigem que as chaves da família em `rng` estejam contidas nas entidades vivas do estado.
+- **A divisão de intervalo com os instantes da mecânica (R5).** O cenário sintético só cria, sorteia e encerra em viradas de dia. As Fases D e E repetem a propriedade com os instantes próprios em `nextEventAt` (fim de nó, prazo de encruzilhada, chegada de caravana) e com **entidades criadas por comando**, no meio de um trecho.
+- **Importação indireta (R4b, R4c).** `purity.test.ts` só lê os `import` diretos de cada arquivo: um módulo de leitura que chama, por outro módulo, quem cria ou sorteia não é visto. Quem cobre é o comportamento: o teste de `ids.test.ts` sobre os retratos e, por mecânica, um teste de que a visão e `nextEventAt` não mudam `rng` nem `ids` com entidades dela vivas.
+- **Famílias aceitas antes da mecânica (D2).** `expedition` e `caravan` já são nomes válidos em `rng` no estado 13, sem expedição nem caravana no jogo: é o que V3B-T1.3 e a decisão 9 do ADR 0017 pedem, e nenhum campo de mecânica entrou no `GameState`. Com `ids: {}`, a conferência cruzada recusa qualquer fluxo de entidade gravado.
+
 ## Versões do estado e migração
 
 O `GameState` tem um número de versão, `schemaVersion`, e há estados gravados em produção. Um estado gravado só entra no motor por `migrateState`, que o leva da versão em que foi escrito até `CURRENT_SCHEMA_VERSION` (hoje, 13):

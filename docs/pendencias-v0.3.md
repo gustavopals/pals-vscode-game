@@ -141,7 +141,42 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase B: fundação da Guilda
+
+Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum defeito confirmado, sete riscos e quatro dúvidas. Os riscos R3, R4a, R6 e R7 e a dúvida D3 foram corrigidos em commits próprios. O que ficou:
+
+**B-1 (D2). As famílias `expedition` e `caravan` já são aceitas em `rng` antes de existir expedição ou caravana.**
+- Enquanto isso: fica como está. É o que V3B-T1.3 e a decisão 9 do ADR 0017 pedem, nenhum campo de mecânica entrou no `GameState` (a regra 6 do `CLAUDE.md` continua cumprida), e, com `ids: {}`, a conferência cruzada recusa qualquer fluxo de entidade gravado: na prática nenhum estado de hoje pode ter um.
+- Onde: `packages/engine/src/random.ts` (`RNG_STREAM_FAMILIES`), `migrations/v13.ts`; README do motor, "O que a fundação não prova".
+- Se decidir diferente: tirar as famílias até a Fase D é reescrever a guarda da versão 13 já publicada no `main`, com outro passo de migração.
+
+**B-2 (R1, R2, R5, R4b e R4c). Quatro garantias que a fundação não dá e que cada mecânica tem de provar.**
+- Enquanto isso: nada a fazer no estado 13, que não tem entidade nenhuma. Estão escritas no README do motor como obrigação de quem implementar as Fases D e E: fluxo apagado não reaparece e nada sorteia depois do `dropStream` no mesmo instante; a guarda da versão que criar expedições e caravanas exige fluxos só de entidades vivas; a divisão de intervalo é repetida com os instantes da mecânica e com entidades criadas por comando; e a visão e `nextEventAt` são provadas por comportamento, porque o teste de pureza não vê importação indireta.
+- Onde: README do motor, "O que a fundação não prova, e cada mecânica tem de provar"; V3D-T1 e V3E-T2.
+- Se decidir diferente: não é decisão do autor; é lista de conferência das revisões V3D-T5 e V3E-T5.
+
+**B-3 (D1 e D4). Duas dúvidas da revisão sem enunciado no repositório.**
+- Enquanto isso: nada mudou por causa delas. O relatório da revisão não foi gravado em arquivo, e quem integrou a fase recebeu só os identificadores; o enunciado está na conversa da revisão.
+- Onde: roadmap, §12, linha V3B-T3.
+- Se decidir diferente: se alguma delas pedir código, entra como correção `V3B: corrige …` antes da Fase C.
+
+**B-4. O fluxo de entidade ficou mais estrito do que o registrado em V3B-T1.**
+- Enquanto isso: o nome é `<família>:<família>-<n>`, com `1 ≤ n ≤ ids[família]`. Um herói não tem fluxo próprio: se alguma mecânica quiser sortear "por herói", precisa de uma família nova (`hero`), em uma versão de estado nova.
+- Onde: commit `33f8411`; README do motor, "Sorteios".
+- Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
+
 ## 6. O que não foi verificado
+
+### Fase B
+
+1. **O backup manual do banco de produção antes do `push` da Fase B.** A fase sobe o estado de 12 para 13; nada foi enviado, e o backup é o primeiro passo de quem der o `push` (dúvida A-2).
+2. **Nenhuma partida de produção passou pelo passo 12 → 13.** Só os 25 retratos e os casos de integração. Uma linha de produção com um fluxo de nome estranho em `rng` passaria a responder `500` (sem ser gravada por cima; o job diz o id e a causa): nenhum motor publicado escreveu um fluxo assim, mas ninguém olhou o banco.
+3. **Reversão de imagem atravessando o passo 12 → 13:** não ensaiada, como as anteriores.
+4. **A revisão independente foi de leitura:** não rodou a integração nem o navegador, não comparou o motor novo com o anterior por execução e não tocou o banco de produção. O portão inteiro rodou depois, no fechamento da fase (roadmap, §12, "V3B (integração)").
+5. **A matriz completa do simulador** (`--matrix` nas três dificuldades) e `--perf` não foram rodados além do que o `pnpm test` cobre; a Fase B não mudou número nem regra.
+6. **`pnpm test:e2e:landing`, `pnpm capture:landing` e `pnpm docker:build`** não rodaram: nada da página, da aparência do app ou da imagem mudou.
+7. **O texto que o agendador grava no log** quando o job falha não tem teste; o relatório que ele grava (`failedGameIds`, `firstFailure`) tem.
+
 
 ### Fase A
 
