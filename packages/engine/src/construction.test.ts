@@ -343,6 +343,47 @@ describe('cancelar', () => {
     expect(cancelled.settlement.resources.stone).toBe(400_000 - 82_000 + 65_600);
   });
 
+  it('a recusa concorda com o edifício: o verbo vai no plural quando o artigo do conteúdo é plural', () => {
+    // O número vem do artigo que o conteúdo guarda ("as Habitações"), não do nome do edifício.
+    const plural = BUILDING_IDS.filter((id) => buildings[id].article.endsWith('s'));
+    expect(plural).toEqual(['housing']);
+    for (const id of BUILDING_IDS) {
+      const { article, label } = buildings[id];
+      const subject = `${article.charAt(0).toUpperCase()}${article.slice(1)} ${label}`;
+      const verb = plural.includes(id) ? 'estão' : 'está';
+      expect(refuse(newGame(), command('cancelConstruction', { building: id }))).toEqual({
+        code: 'NOT_IN_CONSTRUCTION',
+        message: `${subject} não ${verb} em obras.`,
+      });
+      expect(refuse(newGame(), command('unplanConstruction', { building: id }))).toEqual({
+        code: 'NOT_PLANNED',
+        message: `${subject} não ${verb} na lista de obras planejadas.`,
+      });
+    }
+
+    const busy = accept(rich, command('startConstruction', { building: 'housing' })).state;
+    expect(refuse(busy, command('startConstruction', { building: 'housing' })).message).toBe(
+      'As Habitações já estão em obras.',
+    );
+    expect(refuse(newGame(), command('cancelConstruction', { building: 'housing' })).message).toBe(
+      'As Habitações não estão em obras.',
+    );
+    const planned = accept(newGame(), command('planConstruction', { building: 'housing' })).state;
+    expect(refuse(planned, command('planConstruction', { building: 'housing' })).message).toBe(
+      'As Habitações já estão na lista de obras planejadas.',
+    );
+    const auto = command('setAutoStart', { building: 'housing', autoStart: true });
+    expect(refuse(newGame(), auto).message).toBe(
+      'As Habitações não estão na lista de obras planejadas.',
+    );
+    const maxed = gameWith((draft) => {
+      draft.settlement.buildings.housing = buildings.housing.maxLevel;
+    });
+    const top = 'As Habitações já estão no nível máximo.';
+    expect(refuse(maxed, command('startConstruction', { building: 'housing' })).message).toBe(top);
+    expect(refuse(maxed, command('planConstruction', { building: 'housing' })).message).toBe(top);
+  });
+
   it('recusa quando não há obra daquele edifício', () => {
     expect(refuse(newGame(), command('cancelConstruction', { building: 'farm' }))).toEqual({
       code: 'NOT_IN_CONSTRUCTION',

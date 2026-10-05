@@ -328,7 +328,7 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
     await expect(game).toContainText(
       'Dificuldade: Rei de Ferro · Ritmo: Rápido: um ano em 56 horas (não mudam durante o ano)',
     );
-    await expect(game).toContainText(/escolhe o pior caminho/);
+    await expect(game).toContainText(/escolhe o caminho mais duro/);
     await expect(game.getByRole('radio')).toHaveCount(0);
     await expect(game.getByRole('button', { name: 'Nova partida…' })).toBeVisible();
   });

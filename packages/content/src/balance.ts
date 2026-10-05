@@ -504,7 +504,7 @@ export const balance: Balance = {
     peasant: {
       label: 'Camponês',
       description:
-        'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, escolhe o melhor caminho.',
+        'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
       recommended: false,
       storageCapacity: { num: 5, den: 4 },
       famineDesertion: false,
@@ -512,7 +512,7 @@ export const balance: Balance = {
     lord: {
       label: 'Senhor',
       description:
-        'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide com cautela.',
+        'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
       recommended: true,
       storageCapacity: { num: 1, den: 1 },
       famineDesertion: true,
@@ -520,7 +520,7 @@ export const balance: Balance = {
     ironKing: {
       label: 'Rei de Ferro',
       description:
-        'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o pior caminho.',
+        'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o caminho mais duro.',
       recommended: false,
       storageCapacity: { num: 4, den: 5 },
       famineDesertion: true,

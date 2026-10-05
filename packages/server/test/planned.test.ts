@@ -270,7 +270,7 @@ describe('a marca de automática passa pelo recibo', () => {
       order('setAutoStart', { building: 'housing', autoStart: true }),
     );
     expect(late.status).toBe(422);
-    const message = 'As Habitações não está na lista de obras planejadas.';
+    const message = 'As Habitações não estão na lista de obras planejadas.';
     expect(late.body).toMatchObject({
       code: 'GAME_RULE',
       message,
@@ -313,7 +313,7 @@ describe('duas abas com a tela atrasada: a ordem diz o nível que a tela mostrav
     // Aba B: a mesma intenção, outro UUID, a mesma visão velha. A obra pedida já começou.
     const second = await send<GameRuleError>(normal, who.token, who.game.id, plan(), seen);
     expect(second.status, JSON.stringify(second.body)).toBe(422);
-    const message = 'As Habitações já está em obras.';
+    const message = 'As Habitações já estão em obras.';
     expect(second.body).toMatchObject({
       code: 'GAME_RULE',
       message,

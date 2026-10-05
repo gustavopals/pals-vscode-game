@@ -149,6 +149,16 @@ describe('dificuldades', () => {
     }
   });
 
+  it('a frase diz o que o Conselho faz por quem falta (ADR 0016, item 6): as aprovadas pelo autor', () => {
+    // Em Camponês e em Senhor a opção que o conselho aplica sozinho nunca tira recurso nem
+    // moral (a regra está nos testes das cartas); em Rei de Ferro ele aplica a mais dura.
+    expect(DIFFICULTY_IDS.map((id) => difficulties[id].description)).toEqual([
+      'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
+      'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
+      'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o caminho mais duro.',
+    ]);
+  });
+
   it('o schema recusa uma dificuldade a menos, um campo a mais e duas recomendadas', () => {
     const missing = { peasant: difficulties.peasant, lord: difficulties.lord };
     expect(BalanceSchema.safeParse({ ...balance, difficulties: missing }).success).toBe(false);

@@ -306,7 +306,7 @@ describe('a ordem que diz o nível (duas abas, tela atrasada)', () => {
     const wood = first.state.settlement.resources.wood;
     expect(refuse(first.state, planLevel('housing', 2))).toEqual({
       code: 'ALREADY_UPGRADING',
-      message: 'As Habitações já está em obras.',
+      message: 'As Habitações já estão em obras.',
     });
     // Nada ficou na lista: a obra do nível 2 termina e a do nível 3 não começa sozinha.
     const { state, events } = advanceTo(first.state, first.state.lastProcessedAt + 10 * HOUR);

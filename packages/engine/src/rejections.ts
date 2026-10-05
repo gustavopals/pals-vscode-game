@@ -6,6 +6,8 @@ import { positiveEntries } from './units';
 
 type RejectionParams = {
   label?: string;
+  /** O sujeito de `label` é plural ("As Habitações"): o verbo da recusa o acompanha. */
+  plural?: boolean;
   level?: number;
   count?: number;
   missing?: ResourceAmounts;
@@ -29,6 +31,9 @@ export function describeAmounts(amounts: ResourceAmounts): string {
   );
 }
 
+/** "está" ou "estão": o verbo das recusas cujo sujeito é um edifício. */
+const is = (plural = false): string => (plural ? 'estão' : 'está');
+
 const { nameMinLength, nameMaxLength } = balance.settlement;
 const { maxPerOrder, maxQueue } = balance.recruitment;
 const { townHall } = buildings;
@@ -46,14 +51,14 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
     count === 1
       ? 'Só há 1 aldeão livre para esse ofício.'
       : `Só há ${count} aldeões livres para esse ofício.`,
-  ALREADY_UPGRADING: ({ label }) => `${label} já está em obras.`,
+  ALREADY_UPGRADING: ({ label, plural }) => `${label} já ${is(plural)} em obras.`,
   // Todas as filas abertas têm obra, e não há mais fila para abrir.
   QUEUE_BUSY: () => 'Os pedreiros já estão ocupados: não há fila de obras livre.',
   // A fila que existe está ocupada e a segunda ainda não abriu: a frase diz o que a abre.
   QUEUE_LOCKED: () => `Os pedreiros já estão ocupados com outra obra. ${SECOND_QUEUE_OPENS}`,
   // `note` é a frase do conteúdo para o teto que é só desta versão do jogo (a Torre de Vigia).
-  MAX_LEVEL: ({ label, note }) =>
-    `${label} já está no nível máximo.${note === undefined ? '' : ` ${note}`}`,
+  MAX_LEVEL: ({ label, plural, note }) =>
+    `${label} já ${is(plural)} no nível máximo.${note === undefined ? '' : ` ${note}`}`,
   // `label` é o edifício que falta melhorar, com artigo; quase sempre, o Salão.
   GATE_LOCKED: ({ label = `${townHall.article} ${townHall.label}`, level }) =>
     `Melhore antes ${label} para o nível ${level}.`,
@@ -63,9 +68,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
       remedy ?? 'não há como juntar tanto'
     }.`,
   INSUFFICIENT_RESOURCES: ({ missing = {} }) => `Faltam ${describeAmounts(missing)}.`,
-  NOT_IN_CONSTRUCTION: ({ label }) => `${label} não está em obras.`,
-  ALREADY_PLANNED: ({ label }) => `${label} já está na lista de obras planejadas.`,
-  NOT_PLANNED: ({ label }) => `${label} não está na lista de obras planejadas.`,
+  NOT_IN_CONSTRUCTION: ({ label, plural }) => `${label} não ${is(plural)} em obras.`,
+  ALREADY_PLANNED: ({ label, plural }) => `${label} já ${is(plural)} na lista de obras planejadas.`,
+  NOT_PLANNED: ({ label, plural }) => `${label} não ${is(plural)} na lista de obras planejadas.`,
   // A ordem dizia um nível e a obra da vez já é outra (a tela estava atrasada, ou outra aba
   // passou na frente). `label` é o edifício com "de": "das Habitações"; `level`, o nível de agora.
   STALE_LEVEL: ({ label = 'desse edifício', level }) =>

@@ -381,21 +381,21 @@ export function catalogFixture(
           id: 'peasant',
           label: 'Camponês',
           description:
-            'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, escolhe o melhor caminho.',
+            'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
           recommended: false,
         },
         {
           id: 'lord',
           label: 'Senhor',
           description:
-            'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide com cautela.',
+            'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
           recommended: true,
         },
         {
           id: 'ironKing',
           label: 'Rei de Ferro',
           description:
-            'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o pior caminho.',
+            'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o caminho mais duro.',
           recommended: false,
         },
       ],

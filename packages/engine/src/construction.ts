@@ -33,6 +33,17 @@ export function buildingWithArticle(building: BuildingId): string {
   return `${def.article} ${def.label}`;
 }
 
+/**
+ * O edifício como sujeito de uma recusa: "A Serraria", "As Habitações", com a marca de plural
+ * que o verbo acompanha. O número é o do artigo que o conteúdo guarda, nunca o do nome.
+ */
+function subjectOf(building: BuildingId): { label: string; plural: boolean } {
+  return {
+    label: sentenceCase(buildingWithArticle(building)),
+    plural: buildings[building].article.endsWith('s'),
+  };
+}
+
 /** "da Serraria", "do Armazém", "das Habitações". */
 export function ofBuilding(building: BuildingId): string {
   const def = buildings[building];
@@ -276,15 +287,14 @@ export function upgradeQuote(state: GameState, building: BuildingId): UpgradeQuo
   const targetLevel = fromLevel + 1;
   const cost = upgradeCost(building, fromLevel);
   const missing = missingResources(state, cost) ?? {};
-  const label = () => sentenceCase(buildingWithArticle(building));
 
   let blocked: Rejection | null;
   if (constructionOf(state, building) !== null) {
-    blocked = reject('ALREADY_UPGRADING', { label: label() });
+    blocked = reject('ALREADY_UPGRADING', subjectOf(building));
   } else if (freeQueue(state) === -1) {
     blocked = queueRejection(state);
   } else if (fromLevel >= def.maxLevel) {
-    blocked = reject('MAX_LEVEL', { label: label(), note: def.maxLevelNote });
+    blocked = reject('MAX_LEVEL', { ...subjectOf(building), note: def.maxLevelNote });
   } else {
     const requirement = gateRequirement(state, building, targetLevel);
     // Falta recurso: ou ele nunca vai caber no depósito (e esperar não adianta), ou é só esperar.
@@ -443,7 +453,7 @@ export function cancelConstruction(
   const { settlement } = draft;
   const index = settlement.constructionQueues.findIndex((slot) => slot?.building === building);
   if (index === -1) {
-    return reject('NOT_IN_CONSTRUCTION', { label: sentenceCase(buildingWithArticle(building)) });
+    return reject('NOT_IN_CONSTRUCTION', subjectOf(building));
   }
   const level = settlement.buildings[building];
   const refund = cancelRefund(building, level);
@@ -508,19 +518,19 @@ export function planConstruction(
   if (!isBuildingId(building)) {
     return reject('INVALID_BUILDING');
   }
-  const label = sentenceCase(buildingWithArticle(building));
+  const subject = subjectOf(building);
   if (draft.settlement.planned.some((plan) => plan.building === building)) {
-    return reject('ALREADY_PLANNED', { label });
+    return reject('ALREADY_PLANNED', subject);
   }
   const targetLevel = nextPlannableLevel(draft, building);
   if (askedLevel !== undefined && askedLevel !== targetLevel) {
     const underway = constructionOf(draft, building);
     if (underway !== null && typeof askedLevel === 'number' && askedLevel <= underway.targetLevel) {
-      return reject('ALREADY_UPGRADING', { label });
+      return reject('ALREADY_UPGRADING', subject);
     }
   }
   if (targetLevel > buildings[building].maxLevel) {
-    return reject('MAX_LEVEL', { label, note: buildings[building].maxLevelNote });
+    return reject('MAX_LEVEL', { ...subject, note: buildings[building].maxLevelNote });
   }
   if (askedLevel !== undefined && askedLevel !== targetLevel) {
     return reject('STALE_LEVEL', { label: ofBuilding(building), level: targetLevel });
@@ -548,7 +558,7 @@ export function setAutoStart(
   }
   const plan = draft.settlement.planned.find((entry) => entry.building === building);
   if (plan === undefined) {
-    return reject('NOT_PLANNED', { label: sentenceCase(buildingWithArticle(building)) });
+    return reject('NOT_PLANNED', subjectOf(building));
   }
   if (askedLevel !== undefined && askedLevel !== plan.targetLevel) {
     return reject('STALE_LEVEL', { label: ofBuilding(building), level: plan.targetLevel });
@@ -566,7 +576,7 @@ export function unplanConstruction(draft: GameState, building: unknown): Rejecti
     return reject('INVALID_BUILDING');
   }
   if (!draft.settlement.planned.some((plan) => plan.building === building)) {
-    return reject('NOT_PLANNED', { label: sentenceCase(buildingWithArticle(building)) });
+    return reject('NOT_PLANNED', subjectOf(building));
   }
   unplan(draft, building);
   return null;
