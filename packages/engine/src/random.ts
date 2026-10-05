@@ -16,8 +16,8 @@ import type { GameState } from './types';
  * recarregar segue a mesma sequência.
  *
  * Há fluxos **fixos**, um por assunto (`RNG_STREAMS`), e fluxos **de entidade**, um por entidade
- * que nasce e morre durante a partida (`RNG_STREAM_FAMILIES`): `expedition:<id>`,
- * `caravan:<id>`. O fluxo de uma entidade é apagado quando ela termina (`dropStream`), e o
+ * que nasce e morre durante a partida (`RNG_STREAM_FAMILIES`): `expedition:expedition-<n>`,
+ * `caravan:caravan-<n>`, sempre de um identificador já dado (`1 ≤ n ≤ state.ids[família]`). O fluxo de uma entidade é apagado quando ela termina (`dropStream`), e o
  * identificador dela nunca é reutilizado (`ids.ts`), então um fluxo apagado não renasce.
  *
  * Quem sorteia é `advanceTo`, em eventos com hora marcada na linha do tempo. `deriveViewState`,
@@ -41,7 +41,8 @@ export type FixedRngStream = (typeof RNG_STREAMS)[number];
 
 /**
  * Famílias de fluxo de entidade (GDD §14.3; ADR 0017, decisão 9): cada expedição e cada
- * caravana sorteia no próprio fluxo, `<família>:<id>`, com o `id` que `nextId` deu a ela. Duas
+ * caravana sorteia no próprio fluxo, `<família>:<id>`, com o `id` que `nextId` deu a ela (o
+ * tipo da entidade é o nome da família: `expedition:expedition-3`). Duas
  * entidades nunca dividem um fluxo, então a ordem em que são processadas e a existência de
  * uma não mudam a sorte da outra.
  */
@@ -52,22 +53,60 @@ export type EntityRngStream = `${RngStreamFamily}:${string}`;
 /** O nome de um fluxo: um dos fixos, ou o de uma entidade de uma família conhecida. */
 export type RngStream = FixedRngStream | EntityRngStream;
 
-/** A forma dos identificadores de `nextId`: `<kind>-<n>`, com `n` a partir de 1. */
-const ENTITY_ID = /^[a-z][A-Za-z]*-[1-9][0-9]*$/;
+/** O número de um identificador de `nextId`: a partir de 1, sem zeros à esquerda. */
+const ENTITY_NUMBER = /^[1-9][0-9]*$/;
 
 const isFixedStream = (name: string): name is FixedRngStream =>
   (RNG_STREAMS as readonly string[]).includes(name);
 
-function isEntityStream(name: string): name is EntityRngStream {
+/**
+ * As partes do nome de um fluxo de entidade, ou `null` se o nome não é um: `<família>:<id>`,
+ * em que o `id` é o que `nextId` dá **ao tipo de mesmo nome da família** (`expedition-3` na
+ * família `expedition`) e o número é um inteiro seguro. Amarrar o tipo à família é o que deixa
+ * a guarda de forma conferir cada fluxo contra o contador dele em `state.ids`.
+ */
+function entityStreamParts(name: string): { family: RngStreamFamily; number: number } | null {
   const colon = name.indexOf(':');
-  return (
-    colon > 0 &&
-    (RNG_STREAM_FAMILIES as readonly string[]).includes(name.slice(0, colon)) &&
-    ENTITY_ID.test(name.slice(colon + 1))
-  );
+  if (colon <= 0) {
+    return null;
+  }
+  const family = name.slice(0, colon);
+  if (!(RNG_STREAM_FAMILIES as readonly string[]).includes(family)) {
+    return null;
+  }
+  const id = name.slice(colon + 1);
+  if (!id.startsWith(`${family}-`)) {
+    return null;
+  }
+  const digits = id.slice(family.length + 1);
+  const number = Number(digits);
+  if (!ENTITY_NUMBER.test(digits) || !Number.isSafeInteger(number)) {
+    return null;
+  }
+  return { family: family as RngStreamFamily, number };
 }
 
-/** O nome do fluxo da entidade `id` (um identificador de `nextId`) na família `family`. */
+const isEntityStream = (name: string): name is EntityRngStream => entityStreamParts(name) !== null;
+
+/**
+ * Confere que a entidade do fluxo já recebeu o identificador: o número do nome vai de 1 ao
+ * contador da família em `state.ids`. Um fluxo de uma entidade que `nextId` ainda não criou é
+ * defeito de código (um nome montado à mão), e abri-lo gastaria a sorte de uma entidade futura.
+ */
+function assertIssued(draft: GameState, stream: EntityRngStream): void {
+  const parts = entityStreamParts(stream);
+  const issued =
+    parts !== null && Object.hasOwn(draft.ids, parts.family) ? draft.ids[parts.family] : 0;
+  if (parts === null || !Number.isSafeInteger(issued) || parts.number > (issued as number)) {
+    throw new Error(`Fluxo de sorteio de uma entidade que não existe: ${String(stream)}.`);
+  }
+}
+
+/**
+ * O nome do fluxo da entidade `id` na família `family`. O `id` é o que `nextId` deu ao tipo
+ * de mesmo nome: o tipo da entidade é a família. Outro tipo (`hero-1` em `expedition`) ou um
+ * número fora da forma lança erro.
+ */
 export function entityStream(family: RngStreamFamily, id: string): EntityRngStream {
   const name = `${family}:${id}`;
   if (!isEntityStream(name)) {
@@ -176,6 +215,9 @@ function wordsOf(draft: GameState, stream: RngStream): StreamWords {
     // montado em tempo de execução não pode abrir um fluxo que ninguém conhece.
     throw new Error(`Fluxo de sorteio desconhecido: ${String(stream)}.`);
   }
+  if (!isFixedStream(stream)) {
+    assertIssued(draft, stream);
+  }
   const stored = Object.hasOwn(draft.rng, stream) ? draft.rng[stream] : undefined;
   if (stored === undefined) {
     const fresh = seedStream(draft.seed, stream);
@@ -192,8 +234,8 @@ function wordsOf(draft: GameState, stream: RngStream): StreamWords {
 /**
  * Apaga o fluxo de uma entidade que terminou (a expedição que voltou, a caravana que chegou):
  * o estado não cresce com as que já não existem. Só fluxos de família; apagar um fluxo fixo, ou
- * um nome desconhecido, lança erro. Apagar o fluxo de uma entidade que nunca sorteou não faz
- * nada. Altera `draft.rng`.
+ * um nome desconhecido, ou o de uma entidade que `nextId` ainda não criou, lança erro. Apagar o
+ * fluxo de uma entidade que nunca sorteou não faz nada. Altera `draft.rng`.
  *
  * Um fluxo apagado e usado de novo recomeçaria da semente e repetiria a mesma sequência. Isso
  * nunca acontece porque o identificador da entidade não volta: o contador de `ids.ts` só sobe.
@@ -206,6 +248,7 @@ export function dropStream(draft: GameState, stream: EntityRngStream): void {
         : `Fluxo de sorteio desconhecido: ${String(stream)}.`,
     );
   }
+  assertIssued(draft, stream);
   if (Object.hasOwn(draft.rng, stream)) {
     delete draft.rng[stream];
   }

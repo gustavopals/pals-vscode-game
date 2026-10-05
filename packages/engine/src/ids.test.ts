@@ -113,7 +113,8 @@ describe('nextId', () => {
 
 describe('um identificador nunca se repete', () => {
   // Uma vida qualquer de entidades: nascer, sortear, terminar (com o fluxo apagado) e passar
-  // pelo banco, em qualquer ordem, com tipos e famílias misturados.
+  // pelo banco, em qualquer ordem, com tipos misturados. Só os tipos que são família de fluxo
+  // sorteiam (o tipo da entidade é a família); os outros só gastam o contador.
   const kinds = ['hero', 'expedition', 'item', 'caravan'] as const;
   const step = fc.oneof(
     fc.record({ op: fc.constant('create' as const), kind: fc.constantFrom(...kinds) }),
@@ -132,14 +133,16 @@ describe('um identificador nunca se repete', () => {
           const given: string[] = [];
           const opened: string[] = [];
           let alive: Array<{ id: string; stream: ReturnType<typeof entityStream> }> = [];
-          for (const [index, current] of steps.entries()) {
+          for (const current of steps) {
             if (current.op === 'create') {
               const id = nextId(state, current.kind);
-              const family = RNG_STREAM_FAMILIES[index % RNG_STREAM_FAMILIES.length] ?? 'caravan';
-              const stream = entityStream(family, id);
               given.push(id);
-              opened.push(stream);
-              alive.push({ id, stream });
+              const family = RNG_STREAM_FAMILIES.find((name) => name === current.kind);
+              if (family !== undefined) {
+                const stream = entityStream(family, id);
+                opened.push(stream);
+                alive.push({ id, stream });
+              }
             } else if (current.op === 'save') {
               state = throughBank(state);
             } else if (alive.length > 0) {

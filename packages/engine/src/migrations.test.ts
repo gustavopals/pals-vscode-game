@@ -522,6 +522,45 @@ describe('a forma da versão atual', () => {
       (state) => (state.rng = { 'caravan:caravan-0': [1, 2, 3, 4] }),
     ],
     [
+      'um fluxo de uma família com o identificador de outro tipo',
+      (state) => {
+        state.ids = { hero: 1, expedition: 1 };
+        state.rng = { 'expedition:hero-1': [1, 2, 3, 4] };
+      },
+    ],
+    [
+      'um fluxo de uma família com o identificador de outra família',
+      (state) => {
+        state.ids = { expedition: 1, caravan: 1 };
+        state.rng = { 'caravan:expedition-1': [1, 2, 3, 4] };
+      },
+    ],
+    [
+      'um fluxo de entidade com um número que não é inteiro seguro',
+      (state) => {
+        state.ids = { expedition: Number.MAX_SAFE_INTEGER };
+        state.rng = { 'expedition:expedition-99999999999999999999999': [1, 2, 3, 4] };
+      },
+    ],
+    [
+      'um fluxo de entidade sem contador nenhum',
+      (state) => (state.rng = { 'expedition:expedition-5': [1, 2, 3, 4] }),
+    ],
+    [
+      'um fluxo de entidade além do contador da família',
+      (state) => {
+        state.ids = { expedition: 4, caravan: 9 };
+        state.rng = { 'expedition:expedition-5': [1, 2, 3, 4] };
+      },
+    ],
+    [
+      'um fluxo de entidade com o contador só de outro tipo',
+      (state) => {
+        state.ids = { hero: 9 };
+        state.rng = { 'caravan:caravan-1': [1, 2, 3, 4] };
+      },
+    ],
+    [
       'um fluxo fixo com sufixo de entidade',
       (state) => (state.rng = { 'council:council-1': [1, 2, 3, 4] }),
     ],
@@ -622,18 +661,19 @@ describe('a forma da versão atual', () => {
     }
     for (const family of RNG_STREAM_FAMILIES) {
       nextInt(draft, entityStream(family, nextId(draft, family)), 6);
-      nextInt(draft, entityStream(family, nextId(draft, 'hero')), 6);
+      nextInt(draft, entityStream(family, nextId(draft, family)), 6);
+      nextId(draft, 'hero');
     }
     expect(Object.keys(draft.rng)).toEqual([
       'council',
       'morale',
       'horde',
       'expedition:expedition-1',
-      'expedition:hero-1',
+      'expedition:expedition-2',
       'caravan:caravan-1',
-      'caravan:hero-2',
+      'caravan:caravan-2',
     ]);
-    expect(draft.ids).toEqual({ expedition: 1, hero: 2, caravan: 1 });
+    expect(draft.ids).toEqual({ expedition: 2, hero: 2, caravan: 2 });
     expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
     // O maior valor de cada palavra e um contador em zero também cabem.
     const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
@@ -649,7 +689,7 @@ describe('a forma da versão atual', () => {
       return currentShape(state, '');
     };
     expect(broken((state) => (state.rng = { tavern: [1, 2, 3, 4] }))).toBe(
-      'rng.tavern: chave fora do esperado (um de council, morale, horde, ou expedition:<tipo>-<n>, caravan:<tipo>-<n>)',
+      'rng.tavern: chave fora do esperado (um de council, morale, horde, ou expedition:expedition-<n>, caravan:caravan-<n>)',
     );
     expect(broken((state) => (state.rng = { council: [1, 2, 3] }))).toBe(
       'rng.council: esperada lista de 4 itens, veio de 3',
@@ -660,6 +700,26 @@ describe('a forma da versão atual', () => {
     expect(broken((state) => (state.rng = { council: [0, 0, 0, 0] }))).toBe(
       'rng.council: esperado um fluxo de sorteio com alguma palavra diferente de zero',
     );
+    expect(broken((state) => (state.rng = { 'expedition:hero-1': [1, 2, 3, 4] }))).toMatch(
+      /^rng\.expedition:hero-1: chave fora do esperado/,
+    );
+    // A conferência cruzada: o fluxo tem a forma certa, mas é de uma entidade que o contador
+    // ainda não deu.
+    expect(
+      broken((state) => {
+        state.ids = { expedition: 4 };
+        state.rng = { 'expedition:expedition-5': [1, 2, 3, 4] };
+      }),
+    ).toBe('rng.expedition:expedition-5: fluxo de uma entidade além do contador de ids.expedition');
+    expect(broken((state) => (state.rng = { 'caravan:caravan-1': [1, 2, 3, 4] }))).toBe(
+      'rng.caravan:caravan-1: fluxo de uma entidade além do contador de ids.caravan',
+    );
+    expect(
+      broken((state) => {
+        state.ids = { expedition: 5 };
+        state.rng = { 'expedition:expedition-5': [1, 2, 3, 4] };
+      }),
+    ).toBeNull();
     expect(broken((state) => (state.ids = { 'hero-1': 3 }))).toBe(
       'ids.hero-1: chave fora do esperado (um tipo de entidade, só letras, começando por minúscula)',
     );
