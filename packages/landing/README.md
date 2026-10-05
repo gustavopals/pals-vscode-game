@@ -65,7 +65,7 @@ O que os testes não alcançam e quem edita precisa manter:
 - **As outras formas de dizer a mesma coisa.** Uma expressão regular não pega "um ano de jogo dura 56 horas", "não custa nada" ou o nome de outro editor. Promessa de duração, preço, multijogador e marca de editor continuam proibidos, com ou sem teste.
 - **Nenhum número de regra no texto** (custos, taxas, prazos). As capturas mostram números porque são a tela do jogo; a página não os repete.
 - **A pintura é arte conceitual**, gerada por IA, e a página diz isso na legenda e no rodapé. O jogo tem a cara das capturas, e é com uma captura que a página abre. As capturas mostram os ícones do app (Codicons, CC BY 4.0): o crédito fica no rodapé e em `public/licencas.txt`.
-- **O que ainda não existe** (estações com efeito, Conselho, Guilda, cerco, mapa) só aparece no parágrafo "No horizonte", sem data.
+- **O que ainda não existe** (Guilda, heróis, expedições, guerra, cerco, mapa, legado) só aparece no parágrafo "No horizonte", sem data. Estações com efeito e Conselho saíram de lá em 2026-10-05: existem desde a v0.2.
 - **Nada de terceiros**: nenhuma letra, script, imagem ou medição de audiência de outra origem. A política de conteúdo barra, e o GDD §18.1 proíbe telemetria.
 
 ## Capturas do jogo
