@@ -310,7 +310,7 @@ const ThreatWatchtowerSchema = z.strictObject({
   building: buildingId,
   /** 0 enquanto não foi construída. */
   level: z.number(),
-  /** "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência." */
+  /** "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência." */
   text: z.string(),
   /** O que o próximo nível passa a fazer; `null` com a Torre no teto desta versão. */
   next: z.string().nullable(),

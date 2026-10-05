@@ -7353,7 +7353,7 @@
           "blockedCode": "INSUFFICIENT_RESOURCES",
           "blockedReason": "Faltam 35 pedra.",
           "planned": false,
-          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência."
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
         },
         {
           "building": "palisade",
@@ -7728,7 +7728,7 @@
         "building": "watchtower",
         "level": 0,
         "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
-        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência."
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
       },
       "defense": {
         "building": "palisade",
@@ -8234,7 +8234,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o tamanho dela."
+          "effect": "Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho dela."
         },
         {
           "building": "palisade",
@@ -8526,8 +8526,8 @@
       "watchtower": {
         "building": "watchtower",
         "level": 1,
-        "text": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.",
-        "next": "Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão."
+        "text": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.",
+        "next": "Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão."
       },
       "defense": {
         "building": "palisade",
@@ -9300,7 +9300,7 @@
       "watchtower": {
         "building": "watchtower",
         "level": 2,
-        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 40 min de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
+        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
         "next": null
       },
       "defense": {
@@ -9807,7 +9807,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o tamanho dela."
+          "effect": "Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho dela."
         },
         {
           "building": "palisade",
@@ -10110,8 +10110,8 @@
       "watchtower": {
         "building": "watchtower",
         "level": 1,
-        "text": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.",
-        "next": "Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão."
+        "text": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.",
+        "next": "Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão."
       },
       "defense": {
         "building": "palisade",
@@ -10884,7 +10884,7 @@
       "watchtower": {
         "building": "watchtower",
         "level": 2,
-        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 40 min de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
+        "text": "Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.",
         "next": null
       },
       "defense": {
@@ -11380,7 +11380,7 @@
           "blockedCode": null,
           "blockedReason": null,
           "planned": false,
-          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência."
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
         },
         {
           "building": "palisade",
@@ -11703,7 +11703,7 @@
         "building": "watchtower",
         "level": 0,
         "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
-        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência."
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
       },
       "defense": {
         "building": "palisade",

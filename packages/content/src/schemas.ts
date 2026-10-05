@@ -128,7 +128,7 @@ const threat = z
     raidLeadMs: positiveInt,
     // Cada nível avisa mais cedo que o anterior, e o que já distingue o tamanho não o esquece.
     watchtowerLevels: z
-      .array(z.strictObject({ warningMs: positiveInt, revealsRaidSize: z.boolean() }))
+      .array(z.strictObject({ warningRealMs: positiveInt, revealsRaidSize: z.boolean() }))
       .min(1)
       .refine(
         (levels) =>
@@ -136,7 +136,7 @@ const threat = z
             const previous = levels[index - 1];
             return (
               previous === undefined ||
-              (level.warningMs > previous.warningMs &&
+              (level.warningRealMs > previous.warningRealMs &&
                 (level.revealsRaidSize || !previous.revealsRaidSize))
             );
           }),
@@ -168,12 +168,6 @@ const threat = z
     ({ max, raidChanceAbove, mediumRaidAbove }) =>
       raidChanceAbove < mediumRaidAbove && mediumRaidAbove <= max,
     'limites de incursão fora de ordem',
-  )
-  // O aviso mais longo cabe no prazo da incursão: ninguém avisa do que ainda não foi sorteado.
-  .refine(
-    ({ raidLeadMs, watchtowerLevels }) =>
-      watchtowerLevels.every((level) => level.warningMs <= raidLeadMs),
-    'aviso da Torre maior que o prazo da incursão',
   );
 
 const raidDamage = z.strictObject({
@@ -247,7 +241,7 @@ const pace = z.strictObject({
   recommended: z.boolean(),
 });
 
-export const BalanceSchema = z.strictObject({
+const balanceFields = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
     villagers: positiveInt,
@@ -341,6 +335,19 @@ export const BalanceSchema = z.strictObject({
   threat,
   raids,
 });
+
+/**
+ * Os números de jogo. O aviso da Torre é tempo real e o prazo da incursão sorteada, tempo de
+ * jogo: em todo ritmo oferecido o aviso mais longo cabe nesse prazo. Ninguém avisa do que ainda
+ * não foi sorteado.
+ */
+export const BalanceSchema = balanceFields.refine(
+  ({ paces, threat: { raidLeadMs, watchtowerLevels } }) =>
+    paces.every(({ timeScale }) =>
+      watchtowerLevels.every((level) => level.warningRealMs * timeScale <= raidLeadMs),
+    ),
+  'aviso da Torre maior que o prazo da incursão em um ritmo oferecido',
+);
 
 export const BuildingSchema = z
   .strictObject({

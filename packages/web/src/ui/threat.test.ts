@@ -362,8 +362,8 @@ describe('a explicação da Ameaça, frase a frase', () => {
       'Sem Paliçada, nada segura um ataque.',
       'Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago.',
       '200 madeira, 50 pedra · 6 min 40 s. Melhore antes o Salão do Senhor para o nível 3.',
-      'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
-      'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
+      'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+      'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
       '192 madeira, 192 pedra, 80 ouro · 6 min.',
     ]);
     expect(threat.raidRisk).toContain('11% de chance');

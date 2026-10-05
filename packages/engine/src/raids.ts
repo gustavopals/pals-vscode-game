@@ -22,6 +22,7 @@ import {
   palisadeLevel,
   watchtowerLevel,
   watchtowerPerks,
+  watchtowerWarningMs,
 } from './threat';
 import type {
   GameEvent,
@@ -100,7 +101,7 @@ type Warning = 'unwarned' | 'warned' | 'sized';
 /** O instante em que a Torre do nível de agora avisa de `raid`; `null` sem Torre. */
 function announcementAt(state: GameState, raid: ScheduledRaid): number | null {
   const perks = watchtowerPerks(watchtowerLevel(state));
-  return perks === null ? null : raid.atMs - perks.warningMs;
+  return perks === null ? null : raid.atMs - watchtowerWarningMs(state, perks);
 }
 
 /**
@@ -110,6 +111,11 @@ function announcementAt(state: GameState, raid: ScheduledRaid): number | null {
  * mesmo instante, se ainda houver tempo: no instante exato da incursão já não há o que avisar.
  * Sem Torre não há aviso, e a incursão chega sem que ninguém a veja.
  *
+ * A antecedência é **tempo real**, a mesma em qualquer ritmo (ADR 0016, item 4), convertida com
+ * o ritmo da partida. Quem já foi anunciada (`announcedAtMs`) não é anunciada de novo, mesmo
+ * que a antecedência mude: uma partida gravada com a antecedência de antes recebe o alarme que
+ * ainda faltava no primeiro instante processado, e nenhum em dobro.
+ *
  * O tamanho só sai no evento se a Torre o distingue: é o que os vigias viram.
  */
 export function announceRaids(draft: GameState, atMs: number, events: GameEvent[]): void {
@@ -117,8 +123,9 @@ export function announceRaids(draft: GameState, atMs: number, events: GameEvent[
   if (perks === null) {
     return;
   }
+  const warningMs = watchtowerWarningMs(draft, perks);
   for (const raid of draft.horde.scheduledRaids) {
-    if (raid.announcedAtMs !== null || atMs >= raid.atMs || atMs < raid.atMs - perks.warningMs) {
+    if (raid.announcedAtMs !== null || atMs >= raid.atMs || atMs < raid.atMs - warningMs) {
       continue;
     }
     raid.announcedAtMs = atMs;

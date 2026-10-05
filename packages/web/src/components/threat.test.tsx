@@ -295,8 +295,8 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
         '200 madeira, 50 pedra · 6 min 40 s',
         'Melhore antes o Salão do Senhor para o nível 3.',
         'Construir Paliçada',
-        'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
-        'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
+        'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+        'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
         '192 madeira, 192 pedra, 80 ouro · 6 min',
         'Melhorar Torre de Vigia',
       ].join(' '),
@@ -392,7 +392,7 @@ describe('painel "Ameaça": com a Torre de Vigia, o que os vigias veem', () => {
     const markup = box(panel(threatIncomingView), 'tower');
     expect(buttons(markup)).toEqual([]);
     expect(text(markup)).toBe(
-      'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 40 min de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
+      'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
     );
   });
 
@@ -892,7 +892,7 @@ describe('a Torre de Vigia na lista de obras', () => {
     const built = constructions(threatWatchedView);
     expect(text(built)).toContain('Torre de Vigia Nv1 → Nv2 · 6 min');
     expect(text(built)).toContain(
-      'Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o tamanho dela.',
+      'Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho dela.',
     );
     expect(built.indexOf('Torre de Vigia Nv1 → Nv2')).toBeLessThan(
       built.indexOf('<h3>Construir</h3>'),

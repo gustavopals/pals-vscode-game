@@ -14,6 +14,7 @@ import {
 import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import type { GameEvent, GameState } from './types';
+import { realToGameMs } from './units';
 
 /**
  * A Ameaça (GDD §8.2; ADR 0014, decisão 11): um número de 0 a 100 que **só muda na virada de
@@ -43,6 +44,15 @@ export function isThreatWatched(state: GameState): boolean {
 /** O que um nível da Torre dá; `null` no nível 0, e em um nível que o conteúdo não descreve. */
 export function watchtowerPerks(level: number): WatchtowerLevelDef | null {
   return rules.watchtowerLevels[level - 1] ?? null;
+}
+
+/**
+ * A antecedência do aviso de um nível da Torre em ms de jogo: o tempo real do conteúdo (1 h no
+ * nível 1, 2 h no nível 2, em qualquer ritmo) no ritmo desta partida (GDD §8.2; ADR 0016, item
+ * 4). É o que decide o instante do alarme e o que a visão mostra como incursão à vista.
+ */
+export function watchtowerWarningMs(state: GameState, perks: WatchtowerLevelDef): number {
+  return realToGameMs(perks.warningRealMs, state.settings.timeScale);
 }
 
 /** O nível da Paliçada; 0 enquanto não foi construída. */

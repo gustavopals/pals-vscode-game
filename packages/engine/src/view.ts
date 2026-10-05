@@ -160,15 +160,10 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
  * Vigia passa a ver, o que a Paliçada passa a segurar. `null` nos edifícios cujo efeito já está
  * em outro lugar da tela.
  */
-function upgradeEffect(
-  state: GameState,
-  building: BuildingId,
-  targetLevel: number,
-  timeScale: number,
-): string | null {
+function upgradeEffect(state: GameState, building: BuildingId, targetLevel: number): string | null {
   return (
     storageEffect(state, building, targetLevel) ??
-    watchtowerEffect(building, targetLevel, timeScale) ??
+    watchtowerEffect(building, targetLevel) ??
     palisadeEffect(building, targetLevel)
   );
 }
@@ -187,7 +182,7 @@ function upgradeView(state: GameState, building: BuildingId, timeScale: number):
     blockedCode: quote.blocked?.code ?? null,
     blockedReason: quote.blocked?.message ?? null,
     planned: state.settlement.planned.some((plan) => plan.building === building),
-    effect: upgradeEffect(state, building, quote.targetLevel, timeScale),
+    effect: upgradeEffect(state, building, quote.targetLevel),
   };
 }
 
@@ -215,7 +210,7 @@ function plannedView(
     blockedCode: null,
     blockedReason: null,
     planned: true,
-    effect: upgradeEffect(state, building, targetLevel, timeScale),
+    effect: upgradeEffect(state, building, targetLevel),
     autoStart: plan.autoStart,
     waiting: plannedWaiting(state, plan, rates, timeScale, forecast),
   };

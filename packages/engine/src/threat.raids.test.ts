@@ -29,7 +29,7 @@ import {
   WINTER,
   YEAR,
 } from './test-helpers';
-import { palisadeAgainst, watchtowerPerks } from './threat';
+import { palisadeAgainst, watchtowerPerks, watchtowerWarningMs } from './threat';
 import type { GameEvent, GameState, ScheduledRaid, ThreatView } from './types';
 import { deriveViewState } from './view';
 
@@ -43,6 +43,16 @@ const LEFT_AT = RAID_AT - 3 * DAY;
 const BACK_AT = RAID_AT + 3 * DAY;
 
 type Size = ScheduledRaid['size'];
+
+/** Os três ritmos oferecidos: o aviso da Torre é tempo real, e em jogo muda com eles. */
+const PACES = [3, 1, 0.5] as const;
+
+/**
+ * A antecedência do aviso de um nível da Torre em ms de jogo, no ritmo dado: 1 h real no nível
+ * 1 e 2 h reais no nível 2 (ADR 0016, item 4). Zero sem Torre.
+ */
+const warningOf = (tower: number, timeScale = 1): number =>
+  (watchtowerPerks(tower)?.warningRealMs ?? 0) * timeScale;
 
 const raid = (atMs: number, size: Size = 'light', id = 'threat-1'): ScheduledRaid => ({
   id,
@@ -64,12 +74,21 @@ function feud(
     palisade?: number;
     size?: Size;
     atMs?: number;
+    timeScale?: number;
     edit?: (draft: GameState) => void;
   } = {},
 ): GameState {
-  const { tower = 0, palisade = 0, size = 'light', atMs = LEFT_AT, edit = () => {} } = options;
+  const {
+    tower = 0,
+    palisade = 0,
+    size = 'light',
+    atMs = LEFT_AT,
+    timeScale = 1,
+    edit = () => {},
+  } = options;
   return gameAt(atMs, (draft) => {
     const { settlement } = draft;
+    draft.settings.timeScale = timeScale;
     settlement.buildings = {
       ...settlement.buildings,
       townHall: 3,
@@ -86,7 +105,8 @@ function feud(
   });
 }
 
-const threatOf = (state: GameState, timeScale = 1): ThreatView =>
+/** A Ameaça na visão, no ritmo da partida (ou no pedido, para ver o mesmo estado em outro). */
+const threatOf = (state: GameState, timeScale = state.settings.timeScale): ThreatView =>
   deriveViewState(state, state.lastProcessedAt, { timeScale }).threat;
 
 const only = (events: GameEvent[], type: GameEvent['type']): GameEvent => {
@@ -98,29 +118,34 @@ const only = (events: GameEvent[], type: GameEvent['type']): GameEvent => {
 const LEVELS = [0, 1, 2] as const;
 const CELLS = LEVELS.flatMap((tower) => LEVELS.map((palisade) => ({ tower, palisade })));
 
-describe('matriz QA-10: a mesma incursão, com o senhor fora, com Torre 0/1/2 e Paliçada 0/1/2', () => {
+describe('matriz QA-10: a mesma incursão, com o senhor fora, com Torre 0/1/2 e Paliçada 0/1/2, nos três ritmos', () => {
   // O feudo que a Paliçada no nível 2 protegeu é a régua: nele a incursão não tirou nada.
-  const untouched = (size: Size) =>
-    advanceTo(feud({ size, tower: 0, palisade: 2 }), RAID_AT).state.settlement;
+  const untouched = (size: Size, timeScale = 1) =>
+    advanceTo(feud({ size, tower: 0, palisade: 2, timeScale }), RAID_AT).state.settlement;
+  const MATRIX = PACES.flatMap((timeScale) => RAID_SIZE_IDS.map((size) => ({ timeScale, size })));
 
-  describe.each(RAID_SIZE_IDS)('incursão %s', (size) => {
+  describe.each(MATRIX)('ritmo $timeScale, incursão $size', ({ timeScale, size }) => {
     it.each(CELLS)(
       'Torre Nv$tower e Paliçada Nv$palisade: o aviso, a proteção e a perda',
       ({ tower, palisade }) => {
-        const start = feud({ size, tower, palisade });
+        const start = feud({ size, tower, palisade, timeScale });
         const { state, events } = advanceTo(start, BACK_AT);
-        const before = untouched(size);
+        const before = untouched(size, timeScale);
         const outcome = palisadeAgainst(palisade, size);
         const damage = raids.damage.wolves[size];
 
-        // 1. O aviso: só com a Torre, uma vez, com a antecedência do nível, e o tamanho só no 2.
+        // 1. O aviso: só com a Torre, uma vez, com a antecedência do nível (1 h real no nível
+        // 1, 2 h reais no 2, no ritmo da partida), e o tamanho só no 2. No Rápido, as 2 h reais
+        // do nível 2 são as 6 h de jogo em que o senhor saiu: o alarme soa no primeiro instante.
         const announced = eventsOfType(events, 'raidAnnounced');
         const perks = watchtowerPerks(tower);
         if (perks === null) {
           expect(announced).toEqual([]);
         } else {
           expect(announced).toHaveLength(1);
-          expect(announced[0]?.atMs).toBe(RAID_AT - perks.warningMs);
+          expect(announced[0]?.atMs).toBe(RAID_AT - warningOf(tower, timeScale));
+          expect(warningOf(tower, timeScale)).toBe(watchtowerWarningMs(start, perks));
+          expect(RAID_AT - (announced[0]?.atMs ?? 0)).toBe(tower * HOUR * timeScale);
           expect(announced[0]?.data).toEqual({
             raidId: 'threat-1',
             enemy: 'wolves',
@@ -270,22 +295,31 @@ describe('matriz QA-10: a mesma incursão, com o senhor fora, com Torre 0/1/2 e 
     }
   });
 
-  it('a Torre muda o que o senhor sabe antes: a incursão à vista, com a antecedência do nível', () => {
-    const at = (tower: number, beforeMs: number) =>
-      threatOf(advanceTo(feud({ size: 'medium', tower }), RAID_AT - beforeMs).state);
-    // Sem Torre, nada, nem um instante antes do ataque.
-    expect(at(0, 1).incoming).toBeNull();
-    expect(at(0, 1).known).toBe(false);
-    // Nível 1: 1 h de jogo antes, sem o tamanho.
-    expect(at(1, HOUR + 1).incoming).toBeNull();
-    expect(at(1, HOUR).incoming).toMatchObject({ inSeconds: 3600, sizeText: null });
-    // Nível 2: 2 h de jogo antes, com o tamanho.
-    expect(at(2, 2 * HOUR + 1).incoming).toBeNull();
-    expect(at(2, 2 * HOUR).incoming).toMatchObject({
-      inSeconds: 7200,
-      sizeText: 'uma matilha grande',
-    });
-  });
+  it.each(PACES)(
+    'ritmo %s: a Torre muda o que o senhor sabe antes: a incursão à vista, com a antecedência real do nível',
+    (timeScale) => {
+      // O senhor saiu sete horas de jogo antes: mais do que a maior antecedência (6 h, no Rápido).
+      const at = (tower: number, beforeMs: number) =>
+        threatOf(
+          advanceTo(
+            feud({ size: 'medium', tower, timeScale, atMs: RAID_AT - 7 * HOUR }),
+            RAID_AT - beforeMs,
+          ).state,
+        );
+      // Sem Torre, nada, nem um instante antes do ataque.
+      expect(at(0, 1).incoming).toBeNull();
+      expect(at(0, 1).known).toBe(false);
+      // Nível 1: 1 h real antes, sem o tamanho.
+      expect(at(1, HOUR * timeScale + 1).incoming).toBeNull();
+      expect(at(1, HOUR * timeScale).incoming).toMatchObject({ inSeconds: 3600, sizeText: null });
+      // Nível 2: 2 h reais antes, com o tamanho.
+      expect(at(2, 2 * HOUR * timeScale + 1).incoming).toBeNull();
+      expect(at(2, 2 * HOUR * timeScale).incoming).toMatchObject({
+        inSeconds: 7200,
+        sizeText: 'uma matilha grande',
+      });
+    },
+  );
 
   it('o aviso dá tempo de agir: quem volta com o alarme e ergue a Paliçada repele o ataque', () => {
     // O mesmo senhor passa pelo feudo meia hora de jogo antes do ataque. Com a Torre ele vê os
@@ -313,9 +347,8 @@ describe('matriz QA-10: a mesma incursão, com o senhor fora, com Torre 0/1/2 e 
     expect(threatOf(visit).incoming?.defenseText).toBe('Sem Paliçada, nada segura este ataque.');
     const building = accept(visit, command('startConstruction', { building: 'palisade' })).state;
     expect(threatOf(building).incoming?.defenseText).toContain('que fica pronta a tempo');
-    expect(buildings.palisade.baseDurationMs).toBeLessThan(
-      rules.watchtowerLevels[0]?.warningMs ?? 0,
-    );
+    // A obra cabe na antecedência do nível 1 até no ritmo em que ela é mais curta em jogo.
+    expect(buildings.palisade.baseDurationMs).toBeLessThan(warningOf(1, 0.5));
   });
 
   it('uma perda por ataque: avançar mais, de uma vez ou aos pedaços, não repete nada', () => {
@@ -355,19 +388,39 @@ describe('o aviso da Torre de Vigia (raidAnnounced)', () => {
     expect(line(2, 'medium')).toContain('Contam uma matilha grande.');
   });
 
-  it('a visão mostra a incursão no mesmo instante em que o alarme soa, nem antes nem depois', () => {
-    for (const tower of [1, 2]) {
-      const warningMs = watchtowerPerks(tower)?.warningMs ?? 0;
-      const start = feud({ tower });
-      const before = advanceTo(start, RAID_AT - warningMs - 1);
-      expect(eventsOfType(before.events, 'raidAnnounced')).toEqual([]);
-      expect(before.state.horde.scheduledRaids[0]?.announcedAtMs).toBeNull();
-      expect(threatOf(before.state).incoming).toBeNull();
-      const at = advanceTo(before.state, RAID_AT - warningMs);
-      expect(eventsOfType(at.events, 'raidAnnounced')).toHaveLength(1);
-      expect(at.state.horde.scheduledRaids[0]?.announcedAtMs).toBe(RAID_AT - warningMs);
-      expect(threatOf(at.state).incoming).not.toBeNull();
-    }
+  it.each(PACES)(
+    'ritmo %s: a visão mostra a incursão no mesmo instante em que o alarme soa, nem antes nem depois',
+    (timeScale) => {
+      for (const tower of [1, 2]) {
+        const warningMs = warningOf(tower, timeScale);
+        const start = feud({ tower, timeScale, atMs: RAID_AT - 7 * HOUR });
+        const before = advanceTo(start, RAID_AT - warningMs - 1);
+        expect(eventsOfType(before.events, 'raidAnnounced')).toEqual([]);
+        expect(before.state.horde.scheduledRaids[0]?.announcedAtMs).toBeNull();
+        expect(threatOf(before.state).incoming).toBeNull();
+        const at = advanceTo(before.state, RAID_AT - warningMs);
+        expect(eventsOfType(at.events, 'raidAnnounced')).toHaveLength(1);
+        expect(at.state.horde.scheduledRaids[0]?.announcedAtMs).toBe(RAID_AT - warningMs);
+        // Uma hora real por nível, em qualquer ritmo.
+        expect(threatOf(at.state).incoming?.inSeconds).toBe(tower * 3600);
+      }
+    },
+  );
+
+  it('o instante do aviso, em horas de jogo antes do ataque, nos três ritmos', () => {
+    const before = (timeScale: number, tower: number) => {
+      const start = feud({ tower, timeScale, atMs: RAID_AT - 7 * HOUR });
+      const { events } = advanceTo(start, RAID_AT);
+      return (RAID_AT - only(events, 'raidAnnounced').atMs) / HOUR;
+    };
+    // Rápido: 1 h e 2 h reais são 3 h e 6 h de jogo (seis horas é o prazo de uma incursão
+    // sorteada: o nível 2 avisa no instante do sorteio).
+    expect([before(3, 1), before(3, 2)]).toEqual([3, 6]);
+    expect(6 * HOUR).toBe(rules.raidLeadMs);
+    // Normal: como sempre foi.
+    expect([before(1, 1), before(1, 2)]).toEqual([1, 2]);
+    // Tranquilo: meia hora e uma hora de jogo.
+    expect([before(0.5, 1), before(0.5, 2)]).toEqual([0.5, 1]);
   });
 
   it('a Torre concluída dentro da janela avisa ao concluir; concluída antes, avisa no prazo', () => {
@@ -445,18 +498,14 @@ describe('o aviso da Torre de Vigia (raidAnnounced)', () => {
     expect(events.map((event) => event.text).join('\n')).not.toMatch(/lobo|matilha|vigia/i);
   });
 
-  it('em outro ritmo o alarme soa no mesmo instante de jogo, e a visão dá o prazo real', () => {
-    const fast = feud({ tower: 2, edit: (draft) => void (draft.settings.timeScale = 3) });
-    const slow = feud({ tower: 2, edit: (draft) => void (draft.settings.timeScale = 0.5) });
-    for (const [state, timeScale] of [
-      [fast, 3],
-      [slow, 0.5],
-    ] as const) {
-      const at = advanceTo(state, RAID_AT - 2 * HOUR);
-      expect(only(at.events, 'raidAnnounced').atMs).toBe(RAID_AT - 2 * HOUR);
+  it('em outro ritmo o alarme soa com a mesma antecedência real, em outro instante de jogo', () => {
+    for (const timeScale of [3, 0.5]) {
+      const state = feud({ tower: 2, timeScale, atMs: RAID_AT - 7 * HOUR });
+      // 2 h reais: 6 h de jogo no Rápido, 1 h no Tranquilo.
+      const at = advanceTo(state, RAID_AT - 2 * HOUR * timeScale);
+      expect(only(at.events, 'raidAnnounced').atMs).toBe(RAID_AT - 2 * HOUR * timeScale);
       const { incoming } = threatOf(at.state, timeScale);
-      // 2 h de jogo: 40 min reais no Rápido, 4 h no Tranquilo.
-      expect(incoming?.inSeconds).toBe((2 * 3600) / timeScale);
+      expect(incoming?.inSeconds).toBe(2 * 3600);
       expect(only(advanceTo(at.state, BACK_AT).events, 'raidSuffered').atMs).toBe(RAID_AT);
     }
   });
@@ -1502,6 +1551,185 @@ describe('interações no mesmo instante (roadmap V2E-T3.4)', () => {
   });
 });
 
+describe('o aviso da Torre em tempo real (V2G-T3; ADR 0016, item 4)', () => {
+  /** Uma partida nova, no ritmo dado, com a Torre no nível pedido desde o primeiro dia. */
+  const watching = (timeScale: number, tower: number, seed = 'pedra-alta') =>
+    gameWith((draft) => {
+      quietCouncil(draft);
+      draft.seed = seed;
+      draft.settings.timeScale = timeScale;
+      draft.settlement.buildings.townHall = 3;
+      draft.settlement.buildings.watchtower = tower;
+      draft.settlement.workers = { farm: 3, lumberMill: 1, quarry: 1, goldMine: 0 };
+    });
+  const WOLVES_AT = 15 * DAY;
+
+  it.each([
+    // Em horas de jogo: os lobos do roteiro chegam às 30 h.
+    { timeScale: 3, tower: 1, hour: 27 },
+    { timeScale: 3, tower: 2, hour: 24 },
+    { timeScale: 1, tower: 1, hour: 29 },
+    { timeScale: 1, tower: 2, hour: 28 },
+    { timeScale: 0.5, tower: 1, hour: 29.5 },
+    { timeScale: 0.5, tower: 2, hour: 29 },
+  ])(
+    'ritmo $timeScale, Torre Nv$tower: o alarme dos lobos do roteiro soa às $hour h de jogo, $tower h reais antes',
+    ({ timeScale, tower, hour }) => {
+      const start = watching(timeScale, tower);
+      const before = advanceTo(start, hour * HOUR - 1);
+      expect(eventsOfType(before.events, 'raidAnnounced')).toEqual([]);
+      expect(threatOf(before.state).incoming).toBeNull();
+      const at = advanceTo(before.state, hour * HOUR);
+      expect(only(at.events, 'raidAnnounced').atMs).toBe(hour * HOUR);
+      // A antecedência em tempo real é a mesma em qualquer ritmo: uma hora por nível.
+      expect((WOLVES_AT - hour * HOUR) / timeScale).toBe(tower * HOUR);
+      expect(threatOf(at.state).incoming?.inSeconds).toBe(tower * 3600);
+      // O alarme soa uma vez, e os lobos chegam no instante de sempre.
+      const rest = advanceTo(at.state, WOLVES_AT + DAY);
+      expect(eventsOfType(rest.events, 'raidAnnounced')).toEqual([]);
+      const suffered = only(rest.events, 'raidSuffered');
+      expect(suffered.atMs).toBe(WOLVES_AT);
+      expect(suffered.data.warning).toBe(tower === 2 ? 'sized' : 'warned');
+    },
+  );
+
+  it('no Rápido, o nível 2 avisa da incursão sorteada na própria virada do sorteio: 2 h reais são as 6 h de jogo do prazo', () => {
+    let seen = 0;
+    for (let index = 0; index < 20; index += 1) {
+      // Depois dos lobos do roteiro, com a Ameaça alta: cada virada pode marcar uma incursão.
+      const start = gameAt(SUMMER + 30 * MINUTE, (draft) => {
+        draft.seed = `sorteio-${index}`;
+        draft.settings.timeScale = 3;
+        draft.settlement.buildings.townHall = 3;
+        draft.settlement.buildings.watchtower = 2;
+        draft.map.threat = 90;
+        hordeAwake(draft);
+      });
+      const turn = SUMMER + DAY;
+      const { state, events } = advanceTo(start, turn);
+      const [drawn] = state.horde.scheduledRaids;
+      if (drawn === undefined) {
+        expect(eventsOfType(events, 'raidAnnounced')).toEqual([]);
+        continue;
+      }
+      seen += 1;
+      // Sorteada e anunciada no mesmo instante, depois da virada do dia; chega 6 h de jogo depois.
+      expect(drawn.atMs).toBe(turn + rules.raidLeadMs);
+      expect(drawn.announcedAtMs).toBe(turn);
+      const order = events.filter((event) => event.atMs === turn).map((event) => event.type);
+      expect(order.indexOf('dayStarted')).toBeLessThan(order.indexOf('raidAnnounced'));
+      expect(threatOf(state).incoming?.inSeconds).toBe(2 * 3600);
+      // No nível 1 a mesma incursão só é avistada uma hora real antes: 3 h de jogo.
+      const lower = advanceTo(
+        {
+          ...start,
+          settlement: {
+            ...start.settlement,
+            buildings: { ...start.settlement.buildings, watchtower: 1 },
+          },
+        },
+        turn + rules.raidLeadMs - 1,
+      );
+      expect(only(lower.events, 'raidAnnounced').atMs).toBe(turn + 3 * HOUR);
+    }
+    expect(seen).toBeGreaterThan(3);
+  });
+
+  describe('partidas em andamento, gravadas com a antecedência de antes (em tempo de jogo)', () => {
+    it('no Rápido, a incursão que a antecedência nova já alcança é anunciada no primeiro instante processado, uma vez', () => {
+      // Torre Nv1, duas horas de jogo antes do ataque: pela regra antiga (1 h de jogo) ninguém
+      // tinha avisado; pela nova (1 h real, 3 h de jogo) a incursão já está à vista.
+      const boundary = RAID_AT - 2 * HOUR;
+      const saved = feud({ tower: 1, timeScale: 3, atMs: boundary });
+      expect(saved.horde.scheduledRaids[0]?.announcedAtMs).toBeNull();
+      // A visão já a mostra, antes de qualquer avanço.
+      expect(threatOf(saved).incoming).toMatchObject({ inSeconds: 40 * 60, sizeText: null });
+      const first = advanceTo(saved, boundary + 1);
+      expect(first.events.map((event) => [event.type, event.atMs])).toEqual([
+        ['raidAnnounced', boundary],
+      ]);
+      expect(first.state.horde.scheduledRaids[0]?.announcedAtMs).toBe(boundary);
+      const rest = advanceTo(first.state, BACK_AT);
+      expect(eventsOfType(rest.events, 'raidAnnounced')).toEqual([]);
+      expect(only(rest.events, 'raidSuffered').data.warning).toBe('warned');
+      // De uma vez, ou com o corte em qualquer lugar, dá o mesmo.
+      const whole = advanceTo(saved, BACK_AT);
+      expect(whole.state).toStrictEqual(rest.state);
+      expect(whole.events).toStrictEqual([...first.events, ...rest.events]);
+      expect(eventsOfType(whole.events, 'raidAnnounced')).toHaveLength(1);
+    });
+
+    it('no Rápido, a incursão ainda fora da antecedência nova espera o instante dela', () => {
+      // Quatro horas de jogo antes: fora das 3 h de jogo do nível 1.
+      const saved = feud({ tower: 1, timeScale: 3, atMs: RAID_AT - 4 * HOUR });
+      expect(threatOf(saved).incoming).toBeNull();
+      expect(advanceTo(saved, RAID_AT - 3 * HOUR - 1).events).toEqual([]);
+      const { events } = advanceTo(saved, RAID_AT - 3 * HOUR);
+      expect(only(events, 'raidAnnounced').atMs).toBe(RAID_AT - 3 * HOUR);
+    });
+
+    it('no Tranquilo, a incursão já anunciada continua anunciada e à vista, e o alarme não soa de novo', () => {
+      // Torre Nv1: o alarme soou uma hora de jogo antes do ataque, pela regra antiga. A
+      // antecedência nova (1 h real) é de meia hora de jogo, e a partida está entre as duas.
+      const boundary = RAID_AT - 45 * MINUTE;
+      const saved = feud({
+        tower: 1,
+        timeScale: 0.5,
+        atMs: boundary,
+        edit: (draft) => {
+          const [marked] = draft.horde.scheduledRaids;
+          if (marked !== undefined) {
+            marked.announcedAtMs = RAID_AT - HOUR;
+          }
+        },
+      });
+      // Continua à vista: 45 min de jogo são 1 h 30 reais.
+      expect(threatOf(saved).incoming).toMatchObject({ inSeconds: 90 * 60, sizeText: null });
+      const { state, events } = advanceTo(saved, BACK_AT);
+      expect(eventsOfType(events, 'raidAnnounced')).toEqual([]);
+      expect(only(events, 'raidSuffered').data.warning).toBe('warned');
+      expect(state.horde.scheduledRaids).toEqual([]);
+      // Com cortes em volta do instante em que a antecedência nova começaria, nada muda.
+      for (const offset of [-1, 0, 1]) {
+        const first = advanceTo(saved, RAID_AT - 30 * MINUTE + offset);
+        expect(first.events).toEqual([]);
+        expect(first.state.horde.scheduledRaids[0]?.announcedAtMs).toBe(RAID_AT - HOUR);
+        expect(threatOf(first.state).incoming).not.toBeNull();
+        const second = advanceTo(first.state, BACK_AT);
+        expect(second.state).toStrictEqual(state);
+        expect(second.events).toStrictEqual(events);
+      }
+    });
+
+    it('no Tranquilo, a incursão que ninguém anunciou ainda usa a antecedência nova', () => {
+      const saved = feud({ tower: 2, timeScale: 0.5, atMs: RAID_AT - 3 * HOUR });
+      // Nível 2: 2 h reais, uma hora de jogo (e não as duas de antes).
+      expect(eventsOfType(advanceTo(saved, RAID_AT - HOUR - 1).events, 'raidAnnounced')).toEqual(
+        [],
+      );
+      const { events } = advanceTo(saved, RAID_AT - HOUR);
+      expect(only(events, 'raidAnnounced')).toMatchObject({
+        atMs: RAID_AT - HOUR,
+        data: { warning: 'sized', size: 'light' },
+      });
+    });
+
+    it('a forma do estado não mudou: a antecedência é derivada do nível da Torre e do ritmo', () => {
+      const saved = feud({ tower: 2, timeScale: 3 });
+      const { state } = advanceTo(saved, BACK_AT);
+      expect(Object.keys(state.horde)).toEqual(['scheduledRaids']);
+      expect(Object.keys(saved.horde.scheduledRaids[0] ?? {})).toEqual([
+        'id',
+        'atMs',
+        'kind',
+        'enemy',
+        'size',
+        'announcedAtMs',
+      ]);
+    });
+  });
+});
+
 describe('30 dias e dois anos de jogo com o senhor fora', () => {
   /** Um feudo novo que se alimenta sozinho, sem defesa, deixado à própria sorte. */
   const left = (seed: string, palisade = 0) =>
@@ -1869,23 +2097,27 @@ describe('a divisão de intervalo continua exata com as incursões (GDD §14.3)'
     expect(hurt).toBeGreaterThan(20);
   });
 
-  it('vale com o corte em qualquer milissegundo em volta dos uivos, do aviso, do ataque e da volta do ferido', () => {
-    const instants = [
-      9 * DAY,
-      15 * DAY - 2 * HOUR,
-      15 * DAY - HOUR,
-      15 * DAY,
-      15 * DAY + raids.injuryMs,
-    ];
+  it('vale com o corte em qualquer milissegundo em volta dos uivos, do aviso, do ataque e da volta do ferido, nos três ritmos', () => {
+    // O aviso é tempo real: cai em um instante de jogo diferente em cada ritmo.
+    const instants = PACES.flatMap((timeScale) =>
+      [
+        9 * DAY,
+        15 * DAY - warningOf(2, timeScale),
+        15 * DAY - warningOf(1, timeScale),
+        15 * DAY,
+        15 * DAY + raids.injuryMs,
+      ].map((instant) => ({ timeScale, instant })),
+    );
     fc.assert(
       fc.property(
         fc.constantFrom(...instants),
         fc.integer({ min: -3, max: 3 }),
         fc.integer({ min: 0, max: 2 }),
         fc.integer({ min: 0, max: 1 }),
-        (instant, offset, watchtower, palisade) => {
+        ({ timeScale, instant }, offset, watchtower, palisade) => {
           const start = gameWith((draft) => {
             quietCouncil(draft);
+            draft.settings.timeScale = timeScale;
             draft.settlement.workers = { farm: 2, lumberMill: 2, quarry: 1, goldMine: 0 };
             draft.settlement.buildings.townHall = 3;
             draft.settlement.buildings.watchtower = watchtower;
@@ -1899,7 +2131,7 @@ describe('a divisão de intervalo continua exata com as incursões (GDD §14.3)'
           expect([...first.events, ...second.events]).toStrictEqual(direct.events);
         },
       ),
-      { numRuns: 120 },
+      { numRuns: 300 },
     );
   });
 

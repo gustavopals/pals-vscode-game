@@ -258,7 +258,7 @@ describe('com a Torre de Vigia', () => {
     expect((await storedState(normal, game.id)).state.settlement.buildings.watchtower).toBe(1);
   });
 
-  it('no ritmo Rápido os prazos e as antecedências saem em tempo real', async () => {
+  it('no ritmo Rápido os prazos saem em tempo real, e a antecedência do aviso é a mesma de todo ritmo', async () => {
     const game = await insertGame(fast, readyForTower('torre-rapida', PACE), PACE);
     const reply = await send<CommandAccepted>(
       fast,
@@ -279,15 +279,15 @@ describe('com a Torre de Vigia', () => {
       trend: 'Sobe 2 a cada dia de jogo (40 min): na próxima virada, vai de 0 para 2.',
       watchtower: {
         level: 1,
-        text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
-        next: 'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
+        text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+        next: 'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
       },
     });
     expect(tower(view)).toMatchObject({
       targetLevel: 2,
       durationSeconds: 6 * 60,
       effect:
-        'Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o tamanho dela.',
+        'Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho dela.',
     });
 
     // O nível 2 é o teto desta versão: sai da lista, e a recusa diz que o resto vem depois.
@@ -304,7 +304,7 @@ describe('com a Torre de Vigia', () => {
     expect(top.threat.watchtower).toEqual({
       building: 'watchtower',
       level: 2,
-      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 40 min de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
+      text: 'Torre de Vigia Nv2: mostra a Ameaça com a explicação, avisa de uma incursão com 2 h de antecedência e diz o tamanho dela. Os níveis seguintes chegam em versões futuras do jogo.',
       next: null,
     });
     const refused = await send<GameRuleError>(

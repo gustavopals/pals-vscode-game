@@ -3979,3 +3979,24 @@ No motor, o golden de 7 dias mudou no que os dois números explicam: +50 de ouro
 - A atribuição de cada piora a um dos dois números vem de duas rodadas extras da matriz (só a capacidade; só o ouro), com 50 sementes por célula, que não ficaram guardadas no repositório.
 - A explicação do item 1 vem da leitura hora a hora de uma semente (001); as 50 sementes da célula dão as mesmas horas de Torre e de Salão, mas só uma foi lida.
 - Ninguém jogou com os números novos. As partidas em produção ganham a capacidade no instante em que a imagem nova subir; quem já tem o objetivo 4 cumprido não recebe o ouro.
+
+## 19. A deserção e o aviso da Torre em tempo real (2026-10-05)
+
+Três respostas do autor às pendências da v0.2 ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), itens 2, 3 e 4) trocam o relógio de quatro prazos, que passam a ser **tempo real**, iguais em qualquer ritmo: a carência e o passo da deserção por fome (12 h e 2 h), a janela em que a fome que reabre é a mesma (2 h) e a antecedência do aviso da Torre de Vigia (1 h no nível 1, 2 h no nível 2). Nenhum custo, taxa, capacidade ou limiar mudou.
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commits | os das tarefas V2G-T2 e V2G-T3 |
+| Identificação | Motor 0.1.0 · estado v12 · conteúdo `03fde8891bcd1a5c` (V2G-T2) e `bf822f322ceaee94` (V2G-T3) |
+| Dificuldades | Camponês, Senhor e Rei de Ferro |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+
+O comando é o da seção 15.2, nas três dificuldades, rodado três vezes: na árvore de antes (`e36246c`, estado v11), depois da V2G-T2 e depois da V2G-T3. As políticas dos bots não foram tocadas.
+
+**A linha de base não mudou.** O CSV da matriz (2.700 partidas) é idêntico, byte a byte, nas três rodadas e nas três dificuldades: população, Salão, estoques, desperdício, fome, frio, lobos sofridos e repelidos, feridos e perdas. `MEASURED`, em `packages/sim-cli/src/bands.ts`, não foi regravado.
+
+- **A deserção não aparece na matriz:** nenhum bot passa fome (zero horas de fome em toda célula), então ninguém deserta em rodada nenhuma. O efeito da regra está nos testes do motor e de integração, nos três ritmos (`desertion.test.ts`, `packages/server/test/morale.test.ts`).
+- **O aviso da Torre só mexe na contagem de alarmes do ritmo Rápido.** Na tabela "Lobos" da semana, a coluna "Anunciadas pela Torre" do Regular e do Dedicado passa de "17 a 19" para "18 a 19", nas três dificuldades: com 1 h real de antecedência (3 h de jogo, e não 1 h), a incursão marcada para logo depois do fim da semana já foi avistada. Nenhuma outra célula muda, nem no Tranquilo, em que a antecedência caiu à metade. A política `erguer a Paliçada` olha a incursão à vista, mas em nenhuma das 2.700 partidas o alarme em outro instante mudou uma ordem: as horas da Paliçada, os comandos aceitos e o desfecho de cada incursão são os mesmos.
+
+O que a matriz não mede, e fica para quem joga: se 12 h reais de carência bastam para quem dorme uma noite no ritmo Rápido; e, no Tranquilo, se a hora real de aviso do nível 1 dá tempo de erguer a Paliçada no inverno (a obra leva uma vez e meia no inverno: 30 min de jogo, que no Tranquilo são exatamente a hora real do aviso; o teste de conteúdo registra essa folga zero).

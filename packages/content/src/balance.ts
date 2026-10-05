@@ -172,13 +172,16 @@ export type CouncilDef = {
 };
 
 /**
- * O que um nível da Torre de Vigia dá (GDD §6.1 e §8.2; ADR 0014, decisão 11). Com a Torre em
- * qualquer nível a Ameaça aparece, com a explicação; cada nível diz com que antecedência os
- * vigias avisam de uma incursão e se já distinguem o tamanho dela.
+ * O que um nível da Torre de Vigia dá (GDD §6.1 e §8.2; ADR 0014, decisão 11; ADR 0016, item
+ * 4). Com a Torre em qualquer nível a Ameaça aparece, com a explicação; cada nível diz com que
+ * antecedência os vigias avisam de uma incursão e se já distinguem o tamanho dela.
  */
 export type WatchtowerLevelDef = {
-  /** Antecedência do aviso de uma incursão, em tempo de jogo. */
-  readonly warningMs: number;
+  /**
+   * Antecedência do aviso de uma incursão, em **tempo real**, em qualquer ritmo: o motor a
+   * converte com o ritmo da partida ao decidir o instante do aviso.
+   */
+  readonly warningRealMs: number;
   /** Os vigias dizem o tamanho da incursão que avisam. */
   readonly revealsRaidSize: boolean;
 };
@@ -557,7 +560,8 @@ export const balance: Balance = {
   },
   // GDD §8.2 (ADR 0014, decisões 10 e 11): a subida, o sorteio da incursão (a chance é a Ameaça
   // menos `raidChanceAbove`, em %), o tamanho, a queda, o prazo até ela chegar, a Torre e a
-  // Paliçada. O que cada incursão custa está em `raids`.
+  // Paliçada. O que cada incursão custa está em `raids`. O aviso da Torre é tempo real (ADR
+  // 0016, item 4): 1 h no nível 1 e 2 h no nível 2, em qualquer ritmo.
   //
   // A subida, a queda e o limiar da média foram reequilibrados depois da revisão das Fases D e E
   // (eram +5, −10 e 60): com eles a Ameaça subia até 90-100 e ficava, e toda incursão sorteada
@@ -573,8 +577,8 @@ export const balance: Balance = {
     raidDrop: 35,
     raidLeadMs: 6 * HOUR_MS,
     watchtowerLevels: [
-      { warningMs: 1 * HOUR_MS, revealsRaidSize: false },
-      { warningMs: 2 * HOUR_MS, revealsRaidSize: true },
+      { warningRealMs: 1 * HOUR_MS, revealsRaidSize: false },
+      { warningRealMs: 2 * HOUR_MS, revealsRaidSize: true },
     ],
     palisadeLevels: [{ absorbs: 'light' }, { absorbs: 'medium' }],
     palisadeBreach: { num: 1, den: 2 },

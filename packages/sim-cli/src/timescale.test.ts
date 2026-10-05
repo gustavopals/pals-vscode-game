@@ -11,9 +11,11 @@ const HOUR_MS = 3_600_000;
 
 /**
  * O estado sem o que depende do ritmo: o que tem de coincidir entre duas partidas de ritmos
- * diferentes. São duas coisas: o ritmo gravado nele e o prazo de resposta das cartas do
+ * diferentes. São três coisas: o ritmo gravado nele; o prazo de resposta das cartas do
  * Conselho, que é de tempo real (24 h em qualquer ritmo) e por isso cai em outro instante de
- * jogo. Enquanto as cartas são respondidas nos mesmos instantes, o resto do feudo coincide.
+ * jogo; e o instante em que os vigias avistaram a incursão que vem, porque a antecedência do
+ * aviso da Torre também é tempo real (1 h e 2 h reais, ADR 0016). Enquanto as cartas são
+ * respondidas nos mesmos instantes e ninguém passa fome, o resto do feudo coincide.
  */
 const world = (state: GameState) => ({
   ...state,
@@ -22,7 +24,17 @@ const world = (state: GameState) => ({
     ...state.council,
     pending: state.council.pending.map((card) => ({ ...card, expiresAtMs: null })),
   },
+  horde: {
+    ...state.horde,
+    scheduledRaids: state.horde.scheduledRaids.map((raid) => ({ ...raid, announcedAtMs: null })),
+  },
 });
+
+/** Os eventos sem o alarme dos vigias: ele soa em outro instante de jogo em cada ritmo. */
+const withoutAlarms = <T extends { type: string }>(events: T[]) =>
+  events.filter((event) => event.type !== 'raidAnnounced');
+const alarms = <T extends { type: string }>(events: T[]) =>
+  events.filter((event) => event.type === 'raidAnnounced');
 const base: SimulationOptions = {
   seed: 'pedra-alta-golden',
   days: 3,
@@ -88,8 +100,44 @@ describe('simulação no ritmo 3', () => {
     expect(fast.finalState.settings.timeScale).toBe(3);
     expect(normal.finalState.settings.timeScale).toBe(1);
     expect(world(fast.finalState)).toStrictEqual(world(normal.finalState));
-    expect(fast.events).toStrictEqual(normal.events);
+    expect(withoutAlarms(fast.events)).toStrictEqual(withoutAlarms(normal.events));
     expect(fast.commands).toStrictEqual(normal.commands);
+  });
+
+  it('só o alarme dos vigias cai em outro instante de jogo: no ritmo 3 ele soa mais cedo, com a mesma antecedência real', () => {
+    // Para cada incursão anunciada e já resolvida: quantas horas de jogo antes o alarme soou.
+    const gaps = (events: typeof fast.events) =>
+      new Map(
+        alarms(events).flatMap((alarm) => {
+          const raid = events.find(
+            (event) =>
+              /^raid(Suffered|Repelled)$/.test(event.type) &&
+              event.data.raidId === alarm.data.raidId,
+          );
+          return raid === undefined
+            ? []
+            : [[String(alarm.data.raidId), (raid.atMs - alarm.atMs) / HOUR_MS] as const];
+        }),
+      );
+    const inNormal = gaps(normal.events);
+    const inFast = gaps(fast.events);
+    expect(inNormal.size).toBeGreaterThan(0);
+    expect([...inFast.keys()]).toEqual([...inNormal.keys()]);
+    let earlier = 0;
+    for (const [raidId, hours] of inNormal) {
+      const fastHours = inFast.get(raidId) ?? 0;
+      // No máximo a antecedência do nível 2: 2 h reais, que são 2 h de jogo no ritmo 1 e 6 h no
+      // ritmo 3. A Torre que fica pronta com a incursão já à vista avisa com menos.
+      expect(hours).toBeLessThanOrEqual(2);
+      expect(fastHours).toBeLessThanOrEqual(6);
+      expect(fastHours).toBeGreaterThanOrEqual(hours);
+      earlier += fastHours > hours ? 1 : 0;
+    }
+    expect(earlier).toBeGreaterThan(0);
+    // A incursão que ainda está por vir pode já ter sido avistada no ritmo 3, e não no ritmo 1.
+    const count = (events: typeof fast.events) => alarms(events).length;
+    expect(count(fast.events)).toBeGreaterThanOrEqual(count(normal.events));
+    expect(count(fast.events) - count(normal.events)).toBeLessThanOrEqual(1);
   });
 
   it('uma linha por hora real: 72 em 3 dias, cada uma com 3 horas de jogo', () => {
@@ -111,15 +159,19 @@ describe('simulação no ritmo 3', () => {
       if (same === undefined) {
         throw new Error(`Falta a hora ${3 * (index + 1)} no ritmo 1.`);
       }
-      // O retrato de jogo é o mesmo; só mudam a hora real e as taxas (o saldo e a produção
-      // bruta, as duas por hora real).
-      expect({ ...row, hour: 0, realDay: 0, perHour: null, gross: null }).toStrictEqual({
-        ...same,
+      // O retrato de jogo é o mesmo; só mudam a hora real, as taxas (o saldo e a produção
+      // bruta, as duas por hora real) e a contagem dos alarmes dos vigias, que no ritmo 3 soam
+      // mais cedo em tempo de jogo (a antecedência é tempo real).
+      const pictured = (entry: typeof row) => ({
+        ...entry,
         hour: 0,
         realDay: 0,
         perHour: null,
         gross: null,
+        raids: { ...entry.raids, announced: 0 },
       });
+      expect(pictured(row)).toStrictEqual(pictured(same));
+      expect(row.raids.announced).toBeGreaterThanOrEqual(same.raids.announced);
       // A visão arredonda cada taxa a uma casa: o triplo de um valor arredondado pode ficar a
       // até três meias casas do valor de verdade, que por sua vez é arredondado a meia casa.
       for (const [resource, value] of Object.entries(row.perHour)) {

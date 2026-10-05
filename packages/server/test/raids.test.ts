@@ -382,7 +382,7 @@ describe('critério 4: a incursão de lobos acontece com o senhor fora e aparece
 });
 
 describe('a Torre avisa e a Paliçada muda o desfecho, com o senhor fora ou presente', () => {
-  it('com Torre e Paliçada: o alarme soa 1 h de jogo antes, e os lobos recuam sem levar nada', async () => {
+  it('com Torre e Paliçada: o alarme soa 1 h real antes, e os lobos recuam sem levar nada', async () => {
     const game = await insertGame(
       fast,
       feud('lobos-repelidos', PACE, { watchtower: 1, palisade: 1 }),
@@ -397,11 +397,12 @@ describe('a Torre avisa e a Paliçada muda o desfecho, com o senhor fora ou pres
     expect(raidStory(events)).toEqual(['wolvesHowl', 'raidAnnounced', 'raidRepelled']);
     expect(ofType(events, 'wolvesHowl')[0]?.text).toContain('Os vigias dobraram a ronda.');
     const [announced] = ofType(events, 'raidAnnounced');
+    // Uma hora real antes dos lobos: no ritmo Rápido, três horas de jogo.
     expect(announced).toMatchObject({
-      atMs: WOLVES_AT - HOUR,
-      at: new Date(game.createdAtMs + (WOLVES_AT - HOUR) / PACE).toISOString(),
+      atMs: WOLVES_AT - 3 * HOUR,
+      at: new Date(game.createdAtMs + WOLVES_AT / PACE - HOUR).toISOString(),
       data: { raidId: 'wolvesYear1', enemy: 'wolves', warning: 'warned' },
-      text: 'No 15º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Da torre ainda não se distingue quantos são.',
+      text: 'No 14º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Da torre ainda não se distingue quantos são.',
     });
     // A Torre no nível 1 não distingue o tamanho: o evento não o leva.
     expect(announced?.data).not.toHaveProperty('size');
@@ -500,15 +501,121 @@ describe('a Torre avisa e a Paliçada muda o desfecho, com o senhor fora ou pres
     await wait(fast, game, (HOUR + GAME_DAY) / PACE);
     const events = await eventsOf(fast, game, game.id);
     expect(raidStory(events)).toEqual(['wolvesHowl', 'raidAnnounced', 'raidRepelled']);
+    // O nível 2 avisa 2 h reais antes: no ritmo Rápido, seis horas de jogo.
     expect(ofType(events, 'raidAnnounced')[0]).toMatchObject({
-      atMs: WOLVES_AT - 2 * HOUR,
+      atMs: WOLVES_AT - 6 * HOUR,
+      at: new Date(game.createdAtMs + WOLVES_AT / PACE - 2 * HOUR).toISOString(),
       data: { warning: 'sized', size: 'light' },
-      text: 'No 15º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Contam uma matilha pequena.',
+      text: 'No 13º dia da Primavera, os vigias de Pedra Alta deram o alarme: lobos a caminho. Contam uma matilha pequena.',
     });
     expect(
       ofType(events, 'constructionStarted').filter((event) => event.data.building === 'palisade'),
     ).toHaveLength(1);
     expect((await storedState(fast, game.id)).state.settlement.buildings.palisade).toBe(1);
+  });
+});
+
+describe('o aviso da Torre de Vigia em tempo real, nos três ritmos (V2G-T3; ADR 0016, item 4)', () => {
+  const CELLS = [3, 1, 0.5].flatMap((timeScale) =>
+    [1, 2].map((watchtower) => ({ timeScale, watchtower })),
+  );
+
+  it.each(CELLS)(
+    'ritmo $timeScale, Torre Nv$watchtower: o alarme dos lobos soa $watchtower h reais antes, nem um milissegundo mais cedo',
+    async ({ timeScale, watchtower }) => {
+      const game = await insertGame(
+        normal,
+        feud(`aviso-${timeScale}-${watchtower}`, timeScale, { watchtower }),
+        timeScale,
+      );
+      // Os lobos do roteiro chegam às 30 h de jogo: em horas reais, 10, 30 ou 60.
+      const wolvesRealMs = WOLVES_AT / timeScale;
+      const alarmRealMs = wolvesRealMs - watchtower * HOUR;
+      const at = async (realMs: number) => {
+        normal.clock.advance(game.createdAtMs + realMs - normal.clock.now().getTime());
+        await renew(normal, game);
+      };
+
+      await at(alarmRealMs - 1);
+      expect((await viewOf(normal, game, game.id)).threat).toMatchObject({
+        known: true,
+        incoming: null,
+      });
+      expect(ofType(await eventsOf(normal, game, game.id), 'raidAnnounced')).toEqual([]);
+
+      await at(alarmRealMs);
+      const view = await viewOf(normal, game, game.id);
+      expect(view.threat.incoming).toMatchObject({
+        inSeconds: watchtower * 3600,
+        sizeText: watchtower === 2 ? 'uma matilha pequena' : null,
+      });
+      // A frase da Torre diz a mesma antecedência em todo ritmo.
+      expect(view.threat.watchtower.text).toContain(
+        `avisa de uma incursão com ${watchtower} h de antecedência`,
+      );
+      const [announced, ...more] = ofType(await eventsOf(normal, game, game.id), 'raidAnnounced');
+      expect(more).toEqual([]);
+      expect(announced).toMatchObject({
+        atMs: WOLVES_AT - watchtower * HOUR * timeScale,
+        at: new Date(game.createdAtMs + alarmRealMs).toISOString(),
+        data: { raidId: 'wolvesYear1', warning: watchtower === 2 ? 'sized' : 'warned' },
+      });
+
+      // Os lobos chegam no instante de sempre, e o alarme não soa de novo.
+      await at(wolvesRealMs + HOUR);
+      const events = await eventsOf(normal, game, game.id);
+      expect(ofType(events, 'raidAnnounced')).toHaveLength(1);
+      expect(ofType(events, 'raidSuffered')[0]).toMatchObject({
+        atMs: WOLVES_AT,
+        data: { warning: watchtower === 2 ? 'sized' : 'warned' },
+      });
+    },
+  );
+
+  it('uma partida gravada com a antecedência de antes: o alarme que faltava soa na primeira leitura, uma vez; o que já soou não se repete', async () => {
+    // Rápido, Torre Nv1, duas horas de jogo antes dos lobos: pela regra antiga (1 h de jogo)
+    // ninguém tinha avisado; pela nova (1 h real, três horas de jogo), a incursão está à vista.
+    const late = feud('aviso-atrasado', 3, { watchtower: 1 });
+    const boundary = WOLVES_AT - 2 * HOUR;
+    late.lastProcessedAt = boundary;
+    late.clock.gameTimeMs = boundary;
+    // Os uivos do 10º dia já soaram e o Conselho não entra nesta conta.
+    late.council.nextDrawAtMs = 1000 * 84 * GAME_DAY;
+    const game = await insertGame(normal, late, 3);
+    // A primeira leitura depois da atualização vem um segundo real depois de a partida parar:
+    // o alarme sai no primeiro instante processado, com o instante em que a partida estava.
+    await wait(normal, game, SECOND);
+    const first = await viewOf(normal, game, game.id);
+    expect(first.threat.incoming).toMatchObject({ inSeconds: 40 * 60 - 1, sizeText: null });
+    const events = await eventsOf(normal, game, game.id);
+    expect(ofType(events, 'raidAnnounced').map((event) => event.atMs)).toEqual([boundary]);
+    await wait(normal, game, 10 * MINUTE);
+    await viewOf(normal, game, game.id);
+    expect(ofType(await eventsOf(normal, game, game.id), 'raidAnnounced')).toHaveLength(1);
+
+    // Tranquilo, Torre Nv1: o alarme soou uma hora de jogo antes, pela regra antiga; a partida
+    // está a 45 minutos de jogo dos lobos, fora da antecedência nova (meia hora de jogo).
+    const heard = feud('aviso-ouvido', 0.5, { watchtower: 1 });
+    const stopped = WOLVES_AT - 45 * MINUTE;
+    heard.lastProcessedAt = stopped;
+    heard.clock.gameTimeMs = stopped;
+    heard.council.nextDrawAtMs = 1000 * 84 * GAME_DAY;
+    const [marked] = heard.horde.scheduledRaids;
+    if (marked !== undefined) {
+      marked.announcedAtMs = WOLVES_AT - HOUR;
+    }
+    const other = await insertGame(normal, heard, 0.5);
+    // Continua à vista: 45 min de jogo são 1 h 30 reais.
+    expect((await viewOf(normal, other, other.id)).threat.incoming).toMatchObject({
+      inSeconds: 90 * 60,
+    });
+    await wait(normal, other, 3 * HOUR);
+    const after = await eventsOf(normal, other, other.id);
+    expect(ofType(after, 'raidAnnounced')).toEqual([]);
+    expect(ofType(after, 'raidSuffered')[0]).toMatchObject({
+      atMs: WOLVES_AT,
+      data: { warning: 'warned' },
+    });
   });
 });
 

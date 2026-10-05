@@ -6,6 +6,7 @@ import {
   type RaidSizeId,
   raidSizes,
   tileTypes,
+  type WatchtowerLevelDef,
 } from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary } from './clock';
@@ -22,6 +23,7 @@ import {
   threatSources,
   watchtowerLevel,
   watchtowerPerks,
+  watchtowerWarningMs,
 } from './threat';
 import type {
   BuildingId,
@@ -33,7 +35,7 @@ import type {
   ThreatView,
   ThreatWatchtowerView,
 } from './types';
-import { MILLI, realSecondsCeil } from './units';
+import { MILLI, realSecondsCeil, SECOND_MS } from './units';
 
 /**
  * A Ameaça na visão (GDD §8.2): o que os vigias da Torre veem, em frases prontas e em tempo
@@ -54,16 +56,21 @@ const real = (gameMs: number, timeScale: number) =>
   durationText(realSecondsCeil(gameMs, timeScale));
 
 /**
- * O que a Torre faz em um nível, para o meio de uma frase: "mostra a Ameaça com a explicação e
- * avisa de uma incursão com 20 min de antecedência". A antecedência é tempo de jogo e sai no
- * relógio do jogador.
+ * "1 h": a antecedência do aviso de um nível da Torre. É tempo real (ADR 0016, item 4) e sai
+ * como o conteúdo a dá, igual em todo ritmo.
  */
-function perksText(level: number, timeScale: number): string {
+const warningText = (perks: WatchtowerLevelDef) => durationText(perks.warningRealMs / SECOND_MS);
+
+/**
+ * O que a Torre faz em um nível, para o meio de uma frase: "mostra a Ameaça com a explicação e
+ * avisa de uma incursão com 1 h de antecedência".
+ */
+function perksText(level: number): string {
   const perks = watchtowerPerks(level);
   if (perks === null) {
     return 'mostra a Ameaça com a explicação';
   }
-  const warning = `avisa de uma incursão com ${real(perks.warningMs, timeScale)} de antecedência`;
+  const warning = `avisa de uma incursão com ${warningText(perks)} de antecedência`;
   return perks.revealsRaidSize
     ? `mostra a Ameaça com a explicação, ${warning} e diz o tamanho dela`
     : `mostra a Ameaça com a explicação e ${warning}`;
@@ -71,36 +78,31 @@ function perksText(level: number, timeScale: number): string {
 
 /**
  * O que a obra da Torre muda, para ficar ao lado do custo. A construção: "Mostra a Ameaça com a
- * explicação e avisa de uma incursão com 20 min de antecedência." Uma melhoria só diz o que
- * muda: "Aviso de incursão: de 20 min para 40 min de antecedência. Os vigias passam a dizer o
- * tamanho dela." `null` para os outros edifícios e para um nível que o conteúdo não descreve.
+ * explicação e avisa de uma incursão com 1 h de antecedência." Uma melhoria só diz o que muda:
+ * "Aviso de incursão: de 1 h para 2 h de antecedência. Os vigias passam a dizer o tamanho
+ * dela." `null` para os outros edifícios e para um nível que o conteúdo não descreve.
  */
-export function watchtowerEffect(
-  building: BuildingId,
-  targetLevel: number,
-  timeScale: number,
-): string | null {
+export function watchtowerEffect(building: BuildingId, targetLevel: number): string | null {
   const perks = building === 'watchtower' ? watchtowerPerks(targetLevel) : null;
   if (perks === null) {
     return null;
   }
   const before = watchtowerPerks(targetLevel - 1);
   if (before === null) {
-    return `${sentenceCase(perksText(targetLevel, timeScale))}.`;
+    return `${sentenceCase(perksText(targetLevel))}.`;
   }
-  const warning = `Aviso de incursão: de ${real(before.warningMs, timeScale)} para ${real(
-    perks.warningMs,
-    timeScale,
+  const warning = `Aviso de incursão: de ${warningText(before)} para ${warningText(
+    perks,
   )} de antecedência.`;
   return perks.revealsRaidSize && !before.revealsRaidSize
     ? `${warning} Os vigias passam a dizer o tamanho dela.`
     : warning;
 }
 
-function watchtowerView(state: GameState, timeScale: number): ThreatWatchtowerView {
+function watchtowerView(state: GameState): ThreatWatchtowerView {
   const level = watchtowerLevel(state);
   const atCeiling = level >= tower.maxLevel;
-  const built = `${tower.label} Nv${level}: ${perksText(level, timeScale)}.`;
+  const built = `${tower.label} Nv${level}: ${perksText(level)}.`;
   return {
     building: 'watchtower',
     level,
@@ -110,24 +112,23 @@ function watchtowerView(state: GameState, timeScale: number): ThreatWatchtowerVi
         : atCeiling && tower.maxLevelNote !== undefined
           ? `${built} ${tower.maxLevelNote}`
           : built,
-    next: atCeiling ? null : `${tower.label} Nv${level + 1}: ${gainText(level + 1, timeScale)}.`,
+    next: atCeiling ? null : `${tower.label} Nv${level + 1}: ${gainText(level + 1)}.`,
   };
 }
 
 /**
  * O que o nível `level` da Torre acrescenta ao anterior, para o meio de uma frase: "avisa com
- * 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão". No primeiro
- * nível é tudo o que a Torre faz.
+ * 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão". No primeiro nível
+ * é tudo o que a Torre faz.
  */
-function gainText(level: number, timeScale: number): string {
+function gainText(level: number): string {
   const perks = watchtowerPerks(level);
   const before = watchtowerPerks(level - 1);
   if (perks === null || before === null) {
-    return perksText(level, timeScale);
+    return perksText(level);
   }
-  const warning = `avisa com ${real(perks.warningMs, timeScale)} de antecedência (em vez de ${real(
-    before.warningMs,
-    timeScale,
+  const warning = `avisa com ${warningText(perks)} de antecedência (em vez de ${warningText(
+    before,
   )})`;
   return perks.revealsRaidSize && !before.revealsRaidSize
     ? `${warning} e passa a dizer o tamanho da incursão`
@@ -390,7 +391,10 @@ function raidRiskView(
 
 /**
  * A incursão marcada que os vigias já avistaram: a primeira a chegar, se o prazo dela já está
- * dentro da antecedência que o nível da Torre dá. `null` sem Torre e sem incursão à vista.
+ * dentro da antecedência que o nível da Torre dá, em tempo real, no ritmo da partida, ou se o
+ * alarme dela já soou (`announcedAtMs`). Em repouso as duas coisas coincidem; a segunda existe
+ * para a partida que foi anunciada com a antecedência de antes da mudança (ADR 0016, item 4):
+ * uma incursão anunciada continua à vista. `null` sem Torre e sem incursão à vista.
  */
 function sightedRaid(state: GameState): ScheduledRaid | null {
   const perks = watchtowerPerks(watchtowerLevel(state));
@@ -398,8 +402,12 @@ function sightedRaid(state: GameState): ScheduledRaid | null {
     return null;
   }
   const now = state.lastProcessedAt;
+  const warningMs = watchtowerWarningMs(state, perks);
   const [raid] = state.horde.scheduledRaids
-    .filter((entry) => entry.atMs >= now && entry.atMs - perks.warningMs <= now)
+    .filter(
+      (entry) =>
+        entry.atMs >= now && (entry.announcedAtMs !== null || entry.atMs - warningMs <= now),
+    )
     .sort((a, b) => a.atMs - b.atMs);
   return raid ?? null;
 }
@@ -508,7 +516,7 @@ function trendText(level: number, rise: number, forecast: TurnForecast, day: str
 }
 
 export function threatView(state: GameState, timeScale: number): ThreatView {
-  const watchtower = watchtowerView(state, timeScale);
+  const watchtower = watchtowerView(state);
   const defense = defenseView(state);
   if (!isThreatWatched(state)) {
     return {

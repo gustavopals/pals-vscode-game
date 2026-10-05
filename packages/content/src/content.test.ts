@@ -476,10 +476,10 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(threat.raidLeadMs % calendar.dayMs).toBe(0);
   });
 
-  it('a Torre avisa 1 h de jogo antes no nível 1; no nível 2, 2 h antes e diz o tamanho', () => {
+  it('a Torre avisa 1 h real antes no nível 1; no nível 2, 2 h reais antes e diz o tamanho', () => {
     expect(threat.watchtowerLevels).toEqual([
-      { warningMs: 1 * HOUR, revealsRaidSize: false },
-      { warningMs: 2 * HOUR, revealsRaidSize: true },
+      { warningRealMs: 1 * HOUR, revealsRaidSize: false },
+      { warningRealMs: 2 * HOUR, revealsRaidSize: true },
     ]);
     // Um item por nível que a Torre pode ter nesta versão.
     expect(threat.watchtowerLevels).toHaveLength(buildings.watchtower.maxLevel);
@@ -499,12 +499,39 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(Object.keys(raidSizes)).toEqual([...RAID_SIZE_IDS]);
   });
 
-  it('em todo ritmo oferecido o aviso da Torre dura um número inteiro de minutos reais', () => {
+  it('em todo ritmo oferecido o aviso da Torre vira um número inteiro de ms de jogo e cabe no prazo da incursão sorteada', () => {
     for (const pace of balance.paces) {
       for (const level of threat.watchtowerLevels) {
-        expect((level.warningMs / pace.timeScale) % 60_000, pace.label).toBe(0);
+        const gameMs = level.warningRealMs * pace.timeScale;
+        expect(Number.isInteger(gameMs), pace.label).toBe(true);
+        // No Rápido o nível 2 avisa no instante do sorteio: 2 h reais são as 6 h de jogo do prazo.
+        expect(gameMs, pace.label).toBeLessThanOrEqual(threat.raidLeadMs);
       }
     }
+    const longest = threat.watchtowerLevels.at(-1)?.warningRealMs ?? 0;
+    expect(longest * 3).toBe(threat.raidLeadMs);
+  });
+
+  it('a obra da Paliçada cabe no aviso do nível 1 da Torre em todo ritmo; no Tranquilo, no inverno, cabe sem folga nenhuma', () => {
+    // O aviso serve para agir: quem volta com o alarme ainda ergue a Paliçada a tempo (GDD §8.2).
+    // A obra é tempo de jogo e o aviso, tempo real: a folga muda com o ritmo.
+    const warningRealMs = threat.watchtowerLevels[0]?.warningRealMs ?? 0;
+    const tight: string[] = [];
+    for (const pace of balance.paces) {
+      for (const season of calendar.seasons) {
+        const { num, den } = season.effects.constructionDuration;
+        const buildMs = (buildings.palisade.baseDurationMs * num) / den;
+        const windowMs = warningRealMs * pace.timeScale;
+        expect(buildMs, `${pace.label}, ${season.label}`).toBeLessThanOrEqual(windowMs);
+        if (buildMs === windowMs) {
+          tight.push(`${pace.label}, ${season.label}`);
+        }
+      }
+    }
+    // No inverno a obra leva uma vez e meia (30 min de jogo), e no Tranquilo a hora real do
+    // aviso são exatamente 30 min de jogo: só quem dá a ordem no instante do alarme chega a
+    // tempo. O nível 2 da Torre avisa com o dobro.
+    expect(tight).toEqual(['Tranquilo, Inverno']);
   });
 
   it('o único tile é o Covil de Lobos, ativo desde o primeiro dia, e nele moram lobos', () => {
@@ -558,16 +585,16 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(
       parse({
         watchtowerLevels: [
-          { warningMs: 2 * HOUR, revealsRaidSize: false },
-          { warningMs: 1 * HOUR, revealsRaidSize: true },
+          { warningRealMs: 2 * HOUR, revealsRaidSize: false },
+          { warningRealMs: 1 * HOUR, revealsRaidSize: true },
         ],
       }),
     ).toBe(false);
     expect(
       parse({
         watchtowerLevels: [
-          { warningMs: 1 * HOUR, revealsRaidSize: true },
-          { warningMs: 2 * HOUR, revealsRaidSize: false },
+          { warningRealMs: 1 * HOUR, revealsRaidSize: true },
+          { warningRealMs: 2 * HOUR, revealsRaidSize: false },
         ],
       }),
     ).toBe(false);

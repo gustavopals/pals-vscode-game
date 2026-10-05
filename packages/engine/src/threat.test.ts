@@ -626,32 +626,40 @@ describe('a visão com a Torre de Vigia', () => {
     });
   });
 
-  it('prazos e antecedências saem em tempo real, no ritmo da partida', () => {
+  it('os prazos saem em tempo real, no ritmo da partida, e a antecedência do aviso é a mesma em todo ritmo', () => {
     const state = feud(8 * DAY + 30 * MINUTE, 40, 1);
-    // Rápido: o dia de jogo dura 40 min, e 1 h de jogo são 20 min.
+    // A antecedência é tempo real (ADR 0016, item 4): 1 h no nível 1 e 2 h no nível 2, sempre.
+    const watchtower = {
+      text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+      next: 'Torre de Vigia Nv2: avisa com 2 h de antecedência (em vez de 1 h) e passa a dizer o tamanho da incursão.',
+    };
+    // Rápido: o dia de jogo dura 40 min.
     expect(known(state, 3)).toMatchObject({
       nextRiseInSeconds: 30 * 60,
       trend: 'Sobe 2 a cada dia de jogo (40 min): na próxima virada, vai de 40 para 42.',
-      watchtower: {
-        text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
-        next: 'Torre de Vigia Nv2: avisa com 40 min de antecedência (em vez de 20 min) e passa a dizer o tamanho da incursão.',
-      },
+      watchtower,
     });
-    // Tranquilo: o dia de jogo dura 4 h, e 1 h de jogo são 2 h.
+    // Normal: o dia de jogo dura 2 h.
+    expect(known(state)).toMatchObject({
+      nextRiseInSeconds: 90 * 60,
+      trend: 'Sobe 2 a cada dia de jogo (2 h): na próxima virada, vai de 40 para 42.',
+      watchtower,
+    });
+    // Tranquilo: o dia de jogo dura 4 h.
     expect(known(state, 0.5)).toMatchObject({
       nextRiseInSeconds: 180 * 60,
       trend: 'Sobe 2 a cada dia de jogo (4 h): na próxima virada, vai de 40 para 42.',
-      watchtower: {
-        text: 'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 2 h de antecedência.',
-      },
+      watchtower,
     });
     // O que a visão usa por padrão é o ritmo gravado na partida.
     const fast = { ...state, settings: { ...settings, timeScale: 3 } };
     expect(deriveViewState(fast, fast.lastProcessedAt).threat).toEqual(view(state, 3));
-    // Sem Torre, a frase do que ela daria também é no ritmo da partida.
-    expect(view(feud(8 * DAY, 40), 3).watchtower.next).toBe(
-      'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 20 min de antecedência.',
-    );
+    // Sem Torre, a frase do que ela daria diz a mesma hora real.
+    for (const timeScale of [3, 1, 0.5]) {
+      expect(view(feud(8 * DAY, 40), timeScale).watchtower.next).toBe(
+        'Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
+      );
+    }
   });
 
   it('nível 2: diz o que faz e que os níveis seguintes ficam para depois, sem prometer data', () => {
@@ -740,8 +748,8 @@ describe('a incursão marcada, vista da Torre', () => {
 
   it('os avisos de cada nível são os do conteúdo', () => {
     expect(watchtowerPerks(0)).toBeNull();
-    expect(watchtowerPerks(1)).toEqual({ warningMs: HOUR, revealsRaidSize: false });
-    expect(watchtowerPerks(2)).toEqual({ warningMs: 2 * HOUR, revealsRaidSize: true });
+    expect(watchtowerPerks(1)).toEqual({ warningRealMs: HOUR, revealsRaidSize: false });
+    expect(watchtowerPerks(2)).toEqual({ warningRealMs: 2 * HOUR, revealsRaidSize: true });
     expect(watchtowerPerks(3)).toBeNull();
   });
 });
