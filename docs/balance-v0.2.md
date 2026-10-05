@@ -4000,3 +4000,90 @@ O comando é o da seção 15.2, nas três dificuldades, rodado três vezes: na �
 - **O aviso da Torre só mexe na contagem de alarmes do ritmo Rápido.** Na tabela "Lobos" da semana, a coluna "Anunciadas pela Torre" do Regular e do Dedicado passa de "17 a 19" para "18 a 19", nas três dificuldades: com 1 h real de antecedência (3 h de jogo, e não 1 h), a incursão marcada para logo depois do fim da semana já foi avistada. Nenhuma outra célula muda, nem no Tranquilo, em que a antecedência caiu à metade. A política `erguer a Paliçada` olha a incursão à vista, mas em nenhuma das 2.700 partidas o alarme em outro instante mudou uma ordem: as horas da Paliçada, os comandos aceitos e o desfecho de cada incursão são os mesmos.
 
 O que a matriz não mede, e fica para quem joga: se 12 h reais de carência bastam para quem dorme uma noite no ritmo Rápido; e, no Tranquilo, se a hora real de aviso do nível 1 dá tempo de erguer a Paliçada no inverno (a obra leva uma vez e meia no inverno: 30 min de jogo, que no Tranquilo são exatamente a hora real do aviso; o teste de conteúdo registra essa folga zero).
+
+## 20. Os sete problemas das cartas corrigidos (V2G-T4, 2026-10-05)
+
+As correções das cartas que o autor aprovou em 2026-10-05 ([content-v0.2.md](content-v0.2.md), seção 9) mexem em quatro números de três cartas (a duração da moral negativa de "Mandar voltar ao trabalho", de "Deixar para depois" e de "Mandar todos ao campo", e a pedra de "Ceder a pedra", de 30 para 20) e põem a faixa de moral de 40 a 100 em "Tábuas para as reservas" e em "A notícia da primavera". O resto é texto. As seções anteriores não foram reescritas.
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commit | o da tarefa V2G-T4 (`V2G-T4: …`), sobre `3ec85ef` |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo `632fae516da42341` → `701a1bbdee9d23f7` |
+| Dificuldades | Camponês, Senhor e Rei de Ferro |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Máquina | Intel Core i7-12700T, Linux 6.6 (WSL2), Node 22.22.3 |
+
+O comando é o da seção 15.2, nas três dificuldades, rodado duas vezes no mesmo dia: no commit `3ec85ef` (o "antes", que confere com a linha de base da seção 18) e com as cartas corrigidas. As políticas dos bots não foram tocadas.
+
+### 20.1 O que chega aos bots
+
+Os bots nunca deixam carta expirar. O Preguiçoso responde com a primeira opção sem custo, e nenhuma delas mudou: **as 900 partidas dele (300 por dificuldade) são idênticas, linha a linha do CSV, antes e depois**. O econômico (Regular e Dedicado) paga a opção mais cara que cabe com folga e, sem ela, fica com a primeira sem custo: das correções, só a pedra do poço a 20 chega a ele (a opção cabe com 60 de pedra em estoque, e não 90, e deixa 10 a mais). Nenhuma partida tem a moral amostrada abaixo de 40, antes ou depois: o requisito novo das duas cartas não aparece nesta medida. As durações novas da moral negativa são de opções que nenhum bot escolhe; o efeito delas está nos retratos do motor (`packages/engine/src/__fixtures__/README.md`), não aqui.
+
+O que a matriz mostra, então, é uma opção 10 de pedra mais barata deslocando a hora das obras de um bot que decide por limiares: diferenças pequenas, para os dois lados, sem direção. Das 1.800 partidas do econômico, 1.155 mudam em alguma coluna do CSV (398 em Senhor, 390 em Camponês e 367 em Rei de Ferro). Nas células Regular do ritmo Rápido as partidas mudam, mas os extremos que formam a linha de base ficam iguais nas três dificuldades.
+
+### 20.2 A linha de base, antes e depois
+
+Só as células que mudaram (8 de 15 em cada dificuldade, contando o ritmo Normal uma vez: as duas janelas são a mesma partida). Menor e maior valor das 50 sementes; em negrito, o que piorou pela régua da seção 18.2 (menos gente no pior caso, Salão mais baixo, sequência de desperdício mais longa). Nenhuma célula tem hora de fome nem de frio, nenhuma partida perde gente e nenhum bot dá ordem recusada, antes e depois.
+
+**Senhor**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 | 8 | 4.225 | 5.200 | 324.520 → 324.539 | 15 |
+| 7 dias | Normal 1× | Regular | 64 a 73 | 7 | 4.512 | 4.643 → 4.637 | 23.277 → 23.641 | 9 |
+| 7 dias | Normal 1× | Dedicado | 84 | 8 | 5.200 | 5.200 | 21.575 | **3 → 5** |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 | 6 | 1.037 | 1.244 → 1.254 | 979 → 1.044 | 1,5 → 1 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 59 a 65 → 60 a 65 | 6 | 1.781 | 1.163 → 1.173 | 940 | 1 |
+| Ano de jogo | Rápido 3× | Dedicado | 51 a 55 | 6 | 1.809 → 1.650 | 2.172 → 2.091 | 13.041 → 12.964 | 15 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 | 8 | 5.200 | 5.200 | 22.534 → 22.535 | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 | 8 | 5.200 | 5.200 | 31.125 → 32.471 | **3,5 → 4** |
+
+**Camponês**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 | 8 | 5.985 → 5.520 | 6.500 | 322.690 → 323.662 | 15 |
+| 7 dias | Normal 1× | Regular | **65 a 73 → 62 a 72** | 7 | 5.056 → 5.029 | 5.033 → 4.985 | 20.286 → 18.058 | 8 |
+| 7 dias | Normal 1× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 20.217 → 20.225 | 3 |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 | 6 | 1.008 | 1.115 → 1.125 | 935 | 0 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 58 a 65 | 6 | 1.519 → 1.491 | 1.220 → 1.227 | 1.234 → 1.237 | 1 |
+| Ano de jogo | Rápido 3× | Dedicado | 48 a 55 → 50 a 55 | 6 | 1.872 → 1.915 | 3.297 → 3.307 | 13.868 → 13.816 | 9 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 a 85 | 8 | 6.500 | 6.500 | 21.275 | 3,5 → 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 33.473 → 33.840 | 2,5 |
+
+**Rei de Ferro**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Dedicado | 74 a 75 | 7 | 2.825 → 2.837 | 3.680 | 294.114 → 294.121 | 45 |
+| 7 dias | Normal 1× | Regular | 64 a 71 | 6 | 3.680 | 3.680 | 19.717 | 8 → 5 |
+| 7 dias | Normal 1× | Dedicado | 74 a 75 | 7 | 3.680 | 3.680 | 43.952 → 43.766 | 3 |
+| 7 dias | Tranquilo 0,5× | Regular | 49 a 54 | 6 | 1.098 | 952 → 887 | 763 → 730 | 1 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 58 a 64 | 6 | 1.661 → 1.709 | 776 → 768 | 763 | 0 |
+| Ano de jogo | Rápido 3× | Dedicado | 50 a 55 | 6 | 1.226 → 1.274 | 1.692 → 1.646 | 15.240 → 14.091 | **15 → 18** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 74 a 75 | 7 | 3.680 → 3.672 | 3.680 | 44.169 → 44.215 | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 74 a 75 | 7 | 3.680 | 3.680 | 52.755 → 53.059 | **2,5 → 3** |
+
+### 20.3 O que saiu da faixa antiga
+
+Com a linha de base da seção 18, quatro partidas das 2.700 saíam da faixa, todas por uma semente em 50:
+
+1. **Senhor, Dedicado, ritmo Normal** (as duas janelas): a semente 049 fica 5 h de jogo seguidas com a madeira indo ao chão (eram 2 h nela; o limite da célula era 4). O Armazém dela fica pronto na mesma hora 49; o Salão no nível 3 sai uma hora depois (41) e ela termina com 5.186 de madeira e 2.587 de ouro (eram 3.042 e 12.004).
+2. **Senhor, Regular, semana do ritmo Tranquilo:** a semente 018 termina com 1.044 de ouro parado (eram 13 nela; o limite era 1.028). A pior sequência dela cai de 1,5 h para 0,5 h.
+3. **Rei de Ferro, Dedicado, ano do ritmo Rápido:** a semente 047 fica 18 h de jogo com a madeira indo ao chão (eram 12 h; o limite era 16).
+
+Fora da faixa não, mas na mesma direção: a pior sequência do Dedicado no ano do Tranquilo sobe meia hora de jogo em Senhor (3,5 → 4) e em Rei de Ferro (2,5 → 3), e em Camponês o Regular do ritmo Normal tem 62 aldeões no pior caso (eram 65), dentro da folga de 10%.
+
+**A meta de desperdício no ritmo Normal, em Senhor** (seção 18.4, item 2) continua descumprida por uma semente em 50, pelas mesmas 9 h de jogo, mas a semente é outra: na 026 o Armazém passa a ficar pronto na hora 49 (era 73) e o pior caso dela cai de 9 h para 1 h; na 018 ele sai na hora 74 (era 73) e a madeira vai ao chão por 9 h (eram 8). O teste que guarda essa regressão (`balance.test.ts`) passou a nomear a 018.
+
+### 20.4 Faixas e testes
+
+`MEASURED`, em `packages/sim-cli/src/bands.ts`, passou a ser a linha de base desta rodada nas três dificuldades, com a mesma regra de folga; com ela as 2.700 partidas ficam dentro das faixas. Em `balance.test.ts` mudaram três marcos do Regular em Senhor (a Torre de Vigia entre as horas 33 e 42 no ano do ritmo Normal, era a partir da 32, e entre a 53 e a 57 no Tranquilo, era a partir da 55; a Paliçada até a hora 86 no Tranquilo, era 85) e a semente da meta de desperdício. Em `matrix.test.ts`, que joga três sementes, mudaram cinco linhas do relatório do Regular nos ritmos Normal e Tranquilo.
+
+### 20.5 Limites desta medição
+
+- Não houve rodada com cada correção sozinha: que só a pedra do poço chega ao bot econômico sai da leitura das políticas (`bots/policies.ts`); que as outras correções não chegam ao Preguiçoso, das 900 partidas dele, idênticas.
+- As pioras são de uma semente em 50 e nenhuma foi lida hora a hora: os números acima são os do fim da partida.
+- A moral é amostrada a cada hora real. No ritmo Rápido uma hora real são um dia e meio de jogo, e uma moral abaixo de 40 por um dia só poderia passar entre duas amostras.
+- Ninguém jogou com as cartas corrigidas.

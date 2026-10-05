@@ -197,7 +197,7 @@ describe('catálogo de recusas', () => {
         broke.state,
         command('answerCard', { instanceId: broke.instanceId, optionId: 'repair' }),
       ),
-    ).toEqual({ code: 'INSUFFICIENT_RESOURCES', message: 'Faltam 30 pedra.' });
+    ).toEqual({ code: 'INSUFFICIENT_RESOURCES', message: 'Faltam 20 pedra.' });
   });
 
   it.each(REJECTION_CODES)('%s', (code) => {

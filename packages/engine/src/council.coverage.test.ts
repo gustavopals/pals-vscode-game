@@ -115,6 +115,27 @@ describe('cobertura do catálogo por estação e nível do Salão', () => {
     expect(hungry.length).toBeGreaterThanOrEqual(3);
   });
 
+  it('com o feudo inquieto não saem as tábuas das reservas nem a notícia da primavera (V2G-T4)', () => {
+    const at = audiencesOf('spring')[0] ?? 0;
+    const calm = ids(feudAt(at, 2, 40), at);
+    const restless = ids(feudAt(at, 2, 39), at);
+    for (const id of ['commonGranaryPlanks', 'springNews']) {
+      expect(calm, id).toContain(id);
+      expect(restless, id).not.toContain(id);
+    }
+    // Só essas duas saem da lista: o resto da primavera continua ao alcance.
+    expect(restless).toEqual(
+      calm.filter((id) => id !== 'commonGranaryPlanks' && id !== 'springNews'),
+    );
+    expect(restless.length).toBeGreaterThanOrEqual(3);
+    // Em qualquer estação: as tábuas não pedem estação.
+    for (const season of balance.calendar.seasons) {
+      const instant = audiencesOf(season.id)[0] ?? 0;
+      expect(ids(feudAt(instant, 2, 60), instant), season.id).toContain('commonGranaryPlanks');
+      expect(ids(feudAt(instant, 2, 30), instant), season.id).not.toContain('commonGranaryPlanks');
+    }
+  });
+
   it('as cartas de cada estação: o que só ela tem, com o Celeiro erguido', () => {
     const only = (season: SeasonId) => {
       const at = audiencesOf(season)[0] ?? 0;

@@ -74,7 +74,7 @@ export const palisadePromisePlea: CouncilCard = {
         { type: 'setFlag', flag: 'palisadePromise.open' },
         { type: 'scheduleCard', cardId: 'palisadePromiseDeadline', afterDays: 4 },
       ],
-      hint: 'Promessa aquece hoje. O povo conta os dias, e cobra em quatro.',
+      hint: 'Promessa aquece hoje. O povo conta os dias, e volta para cobrar.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} prometeu aos aldeões que logo veriam a paliçada de pé em volta do feudo. Dormiu-se melhor naquela noite.',
       expiredChronicle:
@@ -113,7 +113,7 @@ export const palisadePromiseDeadline: CouncilCard = {
       id: 'delay',
       label: 'Pedir mais alguns dias',
       effects: [{ type: 'scheduleCard', cardId: 'palisadePromiseReckoning', afterDays: 4 }],
-      hint: 'O povo espera mais quatro dias. Não espera uma terceira vez.',
+      hint: 'O povo espera mais uma vez. Não espera uma terceira.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} pediu aos aldeões mais alguns dias para a paliçada. Concederam, contando nos dedos.',
       expiredChronicle:

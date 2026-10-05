@@ -20,7 +20,12 @@ export const commonGranaryPlanks: CouncilCard = {
   title: 'Tábuas para as reservas',
   text: 'As prateleiras do celeiro cederam com a última carga. Os moradores propõem refazê-las antes que a próxima colheita chegue. A madeira usada ali fará falta nas obras do salão.',
   weight: 3,
-  requires: { buildings: { granary: 1 }, notFlags: ['commonGranary.open'] },
+  // Não sai com o feudo desesperado ou inquieto de fome: a faixa de "A colheita de todos".
+  requires: {
+    buildings: { granary: 1 },
+    notFlags: ['commonGranary.open'],
+    moralRange: [40, 100],
+  },
   variants: [
     {
       flag: 'commonGranary.gifted',
@@ -108,7 +113,7 @@ export const commonGranaryShare: CouncilCard = {
         { type: 'setFlag', flag: 'commonGranary.shared' },
         { type: 'scheduleCard', cardId: 'commonGranaryOutcome', afterDays: 2 },
       ],
-      hint: 'Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar.',
+      hint: 'Mesa farta hoje, um saco a menos no inverno. A alegria da mesa ainda dura quando o conselho voltar ao assunto.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou abrir os sacos, e o feudo inteiro comeu à mesma mesa.',
     },

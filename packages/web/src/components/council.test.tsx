@@ -112,7 +112,7 @@ describe('CouncilCard', () => {
     expect(markup).toContain(
       '<p class="card-effects">−40 comida; +10 de moral por 2 dias de jogo (1 h 20 min)</p>',
     );
-    expect(markup).toContain('+15 pedra; −5 de moral por 2 dias de jogo (1 h 20 min)');
+    expect(markup).toContain('+15 pedra; −5 de moral por 4 dias de jogo (2 h 40 min)');
     expect(text(markup)).toContain('Barriga cheia, ânimo alto.');
     expect(text(markup)).toContain('A tarde rende mais pedra, e a obra guarda a mágoa.');
   });

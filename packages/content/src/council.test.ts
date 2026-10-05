@@ -710,6 +710,58 @@ describe('Conselho: os números das cartas ficam em uma faixa que a tela explica
   });
 });
 
+describe('Conselho: as correções aprovadas pelo autor em 2026-10-05 (roadmap da v0.2, V2G-T4)', () => {
+  const option = (cardId: string, optionId: string) => {
+    const found = card(cardId).options.find((candidate) => candidate.id === optionId);
+    if (found === undefined) {
+      throw new Error(`${cardId} não tem a opção ${optionId}`);
+    }
+    return found;
+  };
+  const moraleOf = (effects: readonly CouncilEffect[]) =>
+    effects.flatMap((effect) =>
+      effect.type === 'morale' ? [[effect.amount, effect.durationDays]] : [],
+    );
+  const resourcesOf = (effects: readonly CouncilEffect[]) =>
+    effects.flatMap((effect) => (effect.type === 'resources' ? [effect.amounts] : []));
+
+  it('na primavera a opção dura rende o mesmo e pesa por mais dias: pedreiros, poço e notícia', () => {
+    const refuse = option('masonsMeal', 'refuse');
+    expect(resourcesOf(refuse.effects)).toEqual([{ stone: 15 }]);
+    expect(moraleOf(refuse.effects)).toEqual([[-5, 4]]);
+
+    const wait = option('collapsedWell', 'wait');
+    expect(wait.effects).toEqual([]);
+    expect(wait.hidden?.afterDays).toBe(2);
+    expect(resourcesOf(wait.hidden?.effects ?? [])).toEqual([{ stone: 20 }]);
+    expect(moraleOf(wait.hidden?.effects ?? [])).toEqual([[-10, 3]]);
+
+    const fields = option('springNews', 'fields');
+    expect(resourcesOf(fields.effects)).toEqual([{ food: 25 }]);
+    expect(moraleOf(fields.effects)).toEqual([[-5, 4]]);
+  });
+
+  it('ceder a pedra do poço custa o que o entulho daria a quem espera, e a moral dela não muda', () => {
+    const repair = option('collapsedWell', 'repair');
+    expect(repair.cost).toEqual({ stone: 20 });
+    expect(moraleOf(repair.effects)).toEqual([[10, 3]]);
+  });
+
+  it('as duas cartas que saíam com o feudo em fome pedem a faixa de moral de "A colheita de todos"', () => {
+    const range = card('harvestFeast').requires?.moralRange;
+    expect(range).toEqual([40, 100]);
+    expect(card('commonGranaryPlanks').requires?.moralRange).toEqual(range);
+    expect(card('springNews').requires).toEqual({ seasons: ['spring'], moralRange: range });
+    // Só estas três e "O celeiro quase cheio" olham a moral: as recorrentes continuam valendo
+    // em qualquer ânimo, e são elas que dão assunto à audiência de um feudo inquieto.
+    expect(
+      councilCards
+        .filter((entry) => entry.requires?.moralRange !== undefined)
+        .map((entry) => entry.id),
+    ).toEqual(['commonGranaryPlanks', 'springNews', 'fullGranary', 'harvestFeast']);
+  });
+});
+
 describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)', () => {
   const recurring = councilCards.filter((entry) => entry.recurring === true);
   const yearDays = balance.calendar.seasons.reduce((sum, season) => sum + season.days, 0);
@@ -787,11 +839,12 @@ describe('Conselho: há assunto em toda audiência (roadmap da v0.2, V2D-T2.5)',
 });
 
 describe('Conselho: "O Celeiro Comum"', () => {
-  it('só a primeira carta é sorteada, com o Celeiro erguido e a cadeia fechada', () => {
+  it('só a primeira carta é sorteada, com o Celeiro erguido, a cadeia fechada e o feudo sem inquietação', () => {
     expect(card('commonGranaryPlanks').weight).toBeGreaterThan(0);
     expect(card('commonGranaryPlanks').requires).toEqual({
       buildings: { granary: 1 },
       notFlags: ['commonGranary.open'],
+      moralRange: [40, 100],
     });
     expect(card('commonGranaryShare').weight).toBe(0);
     expect(card('commonGranaryOutcome').weight).toBe(0);

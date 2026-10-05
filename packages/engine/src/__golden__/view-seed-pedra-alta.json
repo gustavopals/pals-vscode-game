@@ -6958,7 +6958,7 @@
         "storageBuilding": "warehouse",
         "storageLabel": "Pátio",
         "full": false,
-        "fullInSeconds": 24171,
+        "fullInSeconds": 24271,
         "fullNote": null,
         "wastingPerHour": 0,
         "wastedToday": 0,
@@ -7636,7 +7636,7 @@
               "locked": false,
               "lockedReason": null,
               "effectsText": "−30 comida; +10 de moral por 3 dias de jogo (2 h)",
-              "hint": "Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar."
+              "hint": "Mesa farta hoje, um saco a menos no inverno. A alegria da mesa ainda dura quando o conselho voltar ao assunto."
             },
             {
               "id": "reserve",
@@ -7694,7 +7694,7 @@
               "affordable": true,
               "locked": false,
               "lockedReason": null,
-              "effectsText": "+15 pedra; −5 de moral por 2 dias de jogo (1 h 20 min)",
+              "effectsText": "+15 pedra; −5 de moral por 4 dias de jogo (2 h 40 min)",
               "hint": "A tarde rende mais pedra, e a obra guarda a mágoa."
             }
           ]
@@ -11666,7 +11666,7 @@
               "locked": false,
               "lockedReason": null,
               "effectsText": "Sem custo e sem efeito imediato.",
-              "hint": "O povo espera mais quatro dias. Não espera uma terceira vez."
+              "hint": "O povo espera mais uma vez. Não espera uma terceira."
             },
             {
               "id": "withdraw",

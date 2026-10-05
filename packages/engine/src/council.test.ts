@@ -780,7 +780,7 @@ describe('answerCard', () => {
     const { state: waiting, instanceId } = dealt(fed(), 'collapsedWell');
     const order = command('answerCard', { instanceId, optionId: 'repair' });
     const first = accept(waiting, order).state;
-    expect(first.settlement.resources.stone).toBe(waiting.settlement.resources.stone - 30_000);
+    expect(first.settlement.resources.stone).toBe(waiting.settlement.resources.stone - 20_000);
     const again = refuse(first, command('answerCard', { instanceId, optionId: 'repair' }));
     expect(again.code).toBe('CARD_NOT_PENDING');
     expect(first.stats.cardsAnswered).toBe(1);
@@ -1169,7 +1169,7 @@ describe('o Conselho na visão', () => {
 
   it('uma carta do jogo: custo e consequência conhecida lado a lado, a pista e o que o conselho faz sozinho', () => {
     const start = newGame();
-    start.settlement.resources.stone = 20_000;
+    start.settlement.resources.stone = 10_000;
     const { state, instanceId } = dealt(start, 'collapsedWell');
     const view = deriveViewState(state, 0);
     expect(view.council.pending).toEqual([
@@ -1187,11 +1187,11 @@ describe('o Conselho na visão', () => {
           {
             id: 'repair',
             label: 'Ceder a pedra',
-            cost: [{ resource: 'stone', label: 'Pedra', amount: 30, missing: 10 }],
+            cost: [{ resource: 'stone', label: 'Pedra', amount: 20, missing: 10 }],
             affordable: false,
             locked: false,
             lockedReason: null,
-            effectsText: '−30 pedra; +10 de moral por 3 dias de jogo (6 h)',
+            effectsText: '−20 pedra; +10 de moral por 3 dias de jogo (6 h)',
             hint: 'Mureta bem assentada dura mais que a queixa.',
           },
           {
@@ -1235,7 +1235,7 @@ describe('o Conselho na visão', () => {
     const [shown] = deriveViewState(state, 36 * HOUR).council.pending;
     // 36 h de jogo no ritmo 3 são 12 h reais: metade do prazo.
     expect(shown?.expiresInSeconds).toBe(12 * 3600);
-    expect(shown?.options[0]?.effectsText).toBe('−30 pedra; +10 de moral por 3 dias de jogo (2 h)');
+    expect(shown?.options[0]?.effectsText).toBe('−20 pedra; +10 de moral por 3 dias de jogo (2 h)');
   });
 
   it('a opção trancada diz o que falta; o ganho que não cabe avisa antes da escolha', () => {
@@ -1248,7 +1248,7 @@ describe('o Conselho na visão', () => {
       locked: true,
       lockedReason: 'Requer 100 de comida em estoque.',
     });
-    expect(meal?.options[2]?.effectsText).toBe('+15 pedra; −5 de moral por 2 dias de jogo (4 h)');
+    expect(meal?.options[2]?.effectsText).toBe('+15 pedra; −5 de moral por 4 dias de jogo (8 h)');
 
     const full = fed();
     full.settlement.buildings.granary = 1;

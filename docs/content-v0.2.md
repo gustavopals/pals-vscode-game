@@ -18,6 +18,7 @@ Este documento é o inventário do lote: a ficha de cada carta (a da §12.3 do r
 6. [Limites conhecidos e o que fica para o lote 2](#6-limites-conhecidos-e-o-que-fica-para-o-lote-2)
 7. [Versão do conteúdo](#7-versão-do-conteúdo)
 8. [Como a cadeia da Paliçada entrou (V2E-T2)](#8-como-a-cadeia-da-paliçada-entrou-v2e-t2)
+9. [Os sete problemas corrigidos (V2G-T4, 2026-10-05)](#9-os-sete-problemas-corrigidos-v2g-t4-2026-10-05)
 
 ## 1. O lote em uma tabela
 
@@ -25,7 +26,7 @@ São **21 modelos**: 3 cadeias de 3 cartas e 12 avulsas. **As 21 estão em `@lot
 
 | # | Carta | Tipo | Quando sai | No jogo | Curadoria |
 |---:|---|---|---|---|---|
-| 1 | Tábuas para as reservas | Cadeia "O Celeiro Comum", 1/3 | Com o Celeiro; uma vez por ano | sim | escrita pelo agente; aguarda aprovação do autor |
+| 1 | Tábuas para as reservas | Cadeia "O Celeiro Comum", 1/3 | Com o Celeiro e a moral em 40 ou mais; uma vez por ano | sim | escrita pelo agente; aguarda aprovação do autor |
 | 2 | A vez de repartir | Cadeia "O Celeiro Comum", 2/3 | Continuação | sim | idem |
 | 3 | O que ficou da escolha | Cadeia "O Celeiro Comum", 3/3 | Continuação | sim | idem |
 | 4 | A ponte que o degelo levou | Cadeia "A Ponte do Degelo", 1/3 | Primavera e verão; uma vez por ano | sim | idem |
@@ -40,7 +41,7 @@ São **21 modelos**: 3 cadeias de 3 cartas e 12 avulsas. **As 21 estão em `@lot
 | 13 | Mais bocas à mesa | Avulsa recorrente | Qualquer estação | sim | idem |
 | 14 | O poço entulhado | Avulsa | Qualquer estação; uma vez por ano | sim | idem |
 | 15 | Sementes para o próximo campo | Avulsa | Primavera | sim | idem |
-| 16 | A notícia da primavera | Avulsa | Primavera | sim | idem |
+| 16 | A notícia da primavera | Avulsa | Primavera, com a moral em 40 ou mais | sim | idem |
 | 17 | A mesa dos aprendizes | Avulsa | Verão e outono | sim | idem |
 | 18 | O celeiro quase cheio | Avulsa | Verão e outono, com o Celeiro e a moral em 60 ou mais | sim | idem |
 | 19 | Lenha ainda úmida | Avulsa | Outono | sim | idem |
@@ -94,8 +95,8 @@ Compartilhar agora ou conservar margem para as obras e o inverno. Três cartas; 
 #### Tábuas para as reservas (`commonGranaryPlanks`, v1)
 
 - **Dilema:** Gastar com o celeiro de todos ou guardar a margem das obras.
-- **Quando sai:** peso 3 no sorteio · uma vez por ano · todas as estações · exige o Celeiro no nível 1 · não sai com `commonGranary.open`.
-- **Repetição e virada do ano:** Sai uma vez por ano e nunca com a cadeia aberta. No ano seguinte volta com outro texto, conforme a cadeia terminou.
+- **Quando sai:** peso 3 no sorteio · uma vez por ano · todas as estações · exige o Celeiro no nível 1 · moral de 40 a 100 · não sai com `commonGranary.open`.
+- **Repetição e virada do ano:** Sai uma vez por ano, com a moral em 40 ou mais, e nunca com a cadeia aberta. No ano seguinte volta com outro texto, conforme a cadeia terminou.
 - **Texto:** As prateleiras do celeiro cederam com a última carga. Os moradores propõem refazê-las antes que a próxima colheita chegue. A madeira usada ali fará falta nas obras do salão.
 - **Texto com `commonGranary.gifted`:** As prateleiras do celeiro cederam outra vez. Os moradores, que não esqueceram a colheita deixada com eles, já vieram com os martelos. Falta a madeira, e ela fará falta nas obras do salão.
 - **Texto com `commonGranary.stocked`:** As prateleiras do celeiro cederam outra vez, sob o peso do que as famílias lhe entregaram. Os moradores propõem refazê-las antes que a próxima colheita chegue. A madeira usada ali fará falta nas obras do salão.
@@ -133,7 +134,7 @@ Compartilhar agora ou conservar margem para as obras e o inverno. Três cartas; 
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Partilhar a comida** (`share`) | −30 comida | +10 de moral por 3 dias de jogo | — | Mesa farta hoje, um saco a menos no inverno. Quem come junto costuma lembrar. |
+| **Partilhar a comida** (`share`) | −30 comida | +10 de moral por 3 dias de jogo | — | Mesa farta hoje, um saco a menos no inverno. A alegria da mesa ainda dura quando o conselho voltar ao assunto. |
 | **Guardar para o inverno** (`reserve`) | sem custo | nenhuma | — | Ninguém festeja, mas o frio respeita celeiro cheio. |
 
 - **Flags e continuação:**
@@ -194,7 +195,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
 | **Ceder as vigas** (`timber`) | −40 madeira | +5 de moral por 3 dias de jogo | — | A obra começa. O riacho ainda tem o que dizer. |
-| **Pagar carpinteiros de fora** (`hire`) | −40 ouro | +5 de moral por 3 dias de jogo | — | Gente de fora traz a própria madeira e cobra à vista. O riacho ainda tem o que dizer. |
+| **Pagar carpinteiros de fora** (`hire`) | −40 ouro | +5 de moral por 3 dias de jogo | — | Gente de fora cobra à vista, e a madeira que traz já vai no preço. O riacho ainda tem o que dizer. |
 | **Adiar a obra** (`postpone`) | sem custo | nenhuma | — | Nada se gasta. Os lavradores seguem pelo vau, e a ponte espera outro degelo. |
 
 - **Flags e continuação:**
@@ -202,7 +203,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
   - Pagar carpinteiros de fora: grava `thawBridge.open`; grava `thawBridge.hired`; agenda `thawBridgeSlab` para 2 dias de jogo depois.
 - **Se ninguém responde (`autoResolve`):** Camponês: Adiar a obra · Senhor: Adiar a obra · Rei de Ferro: Adiar a obra.
 - **Crônica:**
-  - Chegada com `thawBridge.plank`: No {dia}º dia {daEstacao}, soube-se em {feudo} que o riacho levou a pinguela, e o conselho voltou ao assunto: {carta}.
+  - Chegada com `thawBridge.plank`: No {dia}º dia {daEstacao}, sem a pinguela que o riacho levou, os lavradores de {feudo} voltaram ao conselho: {carta}.
   - Ceder as vigas: No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu vigas das obras para a ponte do riacho. Os lavradores as levaram no ombro até a margem.
   - Pagar carpinteiros de fora: No {dia}º dia {daEstacao}, o senhor de {feudo} pagou carpinteiros de fora para refazer a ponte do riacho. Vieram com vigas, cordas e pressa.
   - Adiar a obra: No {dia}º dia {daEstacao}, o senhor de {feudo} deixou a ponte para depois. Os lavradores seguiram pelo vau.
@@ -225,7 +226,7 @@ Gastar madeira, pagar ajuda com ouro ou adiar; no meio da obra, fazer direito, f
 |---|---|---|---|---|
 | **Assentar pilares de pedra** (`piers`) | −30 pedra | +5 de moral por 3 dias de jogo | +90 comida, na 4ª virada de dia depois da escolha | Ponte de pedra aguenta carroça carregada, e mais de um degelo. |
 | **Estender uma pinguela** (`plank`) | sem custo | nenhuma | — | Passa gente em fila; carroça, não. O próximo degelo dirá se ela fica. |
-| **Largar a obra** (`abandon`) | sem custo | +30 madeira; −5 de moral por 2 dias de jogo | — | Recolhe-se a madeira que der, e o povo volta ao vau. |
+| **Largar a obra** (`abandon`) | sem custo | +30 madeira; −5 de moral por 2 dias de jogo | — | Recolhe-se a madeira que ficou na obra, e o povo volta ao vau. |
 
 - **Flags e continuação:**
   - Assentar pilares de pedra: grava `thawBridge.piers`; apaga `thawBridge.plank`; agenda `thawBridgeCrossing` para 2 dias de jogo depois.
@@ -296,7 +297,7 @@ Flags: `palisadePromise.open` (cadeia em curso) e os desfechos que ficam: `kept`
 |---|---|---|---|---|
 | **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +20 de moral por 3 dias de jogo | — | Quem já fez não precisa prometer. |
 | **Explicar que não é hora** (`explain`) | sem custo | nenhuma | — | Nada se promete e nada se deve. O medo continua do tamanho que está. |
-| **Prometer a paliçada** (`promise`) | sem custo | +10 de moral por 3 dias de jogo | — | Promessa aquece hoje. O povo conta os dias, e cobra em quatro. |
+| **Prometer a paliçada** (`promise`) | sem custo | +10 de moral por 3 dias de jogo | — | Promessa aquece hoje. O povo conta os dias, e volta para cobrar. |
 
 - **Flags e continuação:**
   - Mostrar a paliçada erguida: apaga `palisadePromise.broken`; grava `palisadePromise.kept`.
@@ -325,7 +326,7 @@ Flags: `palisadePromise.open` (cadeia em curso) e os desfechos que ficam: `kept`
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
 | **Mostrar a paliçada erguida** (`show`) | requer a Paliçada | +15 de moral por 3 dias de jogo | — | Palavra cumprida no prazo aquece mais que a promessa. |
-| **Pedir mais alguns dias** (`delay`) | sem custo | nenhuma | — | O povo espera mais quatro dias. Não espera uma terceira vez. |
+| **Pedir mais alguns dias** (`delay`) | sem custo | nenhuma | — | O povo espera mais uma vez. Não espera uma terceira. |
 | **Desfazer a promessa** (`withdraw`) | sem custo | −10 de moral por 4 dias de jogo | — | Dói agora, e acaba aqui. Quem adia e não cumpre paga mais caro. |
 
 - **Flags e continuação:**
@@ -387,7 +388,7 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 |---|---|---|---|---|
 | **Servir a refeição** (`feast`) | −40 comida; requer 100 de comida em estoque | +10 de moral por 2 dias de jogo | — | Barriga cheia, ânimo alto. |
 | **Repartir o pão do dia** (`bread`) | sem custo | nenhuma | — | Nem festa, nem queixa. |
-| **Mandar voltar ao trabalho** (`refuse`) | sem custo | +15 pedra; −5 de moral por 2 dias de jogo | — | A tarde rende mais pedra, e a obra guarda a mágoa. |
+| **Mandar voltar ao trabalho** (`refuse`) | sem custo | +15 pedra; −5 de moral por 4 dias de jogo | — | A tarde rende mais pedra, e a obra guarda a mágoa. |
 
 - **Flags e continuação:** só a ronda das recorrentes (as flags `routine.*`, descritas acima); nenhuma continuação.
 - **Se ninguém responde (`autoResolve`):** Camponês: Repartir o pão do dia · Senhor: Repartir o pão do dia · Rei de Ferro: Mandar voltar ao trabalho.
@@ -435,11 +436,11 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 - **Dilema:** Gastar lenha com o medo dos vizinhos, pedir esforço, ou acalmar com palavras.
 - **Quando sai:** peso 1 no sorteio · recorrente · todas as estações · não sai com `routine.neighborsWatch`.
 - **Repetição e virada do ano:** Recorrente: pode sair mais de uma vez por ano, nunca duas vezes seguidas entre as recorrentes.
-- **Texto:** Há três noites algo ronda os currais, e ninguém viu o quê. Os vizinhos querem revezar a vigília e pedem lenha para as fogueiras. Quem vela de noite boceja no trabalho de dia.
+- **Texto:** Há três noites somem galinhas dos currais, e ninguém viu o ladrão. Os vizinhos querem revezar a vigília e pedem lenha para as fogueiras. O capataz lembra que lenha queimada na vigília é lenha a menos na pilha.
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Ceder lenha para as fogueiras** (`fires`) | −25 madeira | +5 de moral por 3 dias de jogo | — | Fogueira acesa afasta o medo, e o que mais rondar. |
+| **Ceder lenha para as fogueiras** (`fires`) | −25 madeira | +5 de moral por 3 dias de jogo | — | Fogueira acesa afasta o medo, e bicho pequeno não gosta de luz. |
 | **Revezar a vigília no escuro** (`vigil`) | sem custo | nenhuma | — | Sem fogueira vela-se do mesmo jeito: com mais frio e menos conversa. |
 | **Dizer que é só o vento** (`wind`) | sem custo | +5 de moral por 1 dia de jogo | −20 comida, na 2ª virada de dia depois da escolha | A palavra do senhor acalma por uma noite. O que ronda costuma voltar. |
 
@@ -447,7 +448,7 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 - **Se ninguém responde (`autoResolve`):** Camponês: Revezar a vigília no escuro · Senhor: Revezar a vigília no escuro · Rei de Ferro: Dizer que é só o vento.
 - **Crônica:**
   - Chegada: a frase geral ("o conselho de {feudo} pediu audiência: {carta}").
-  - Ceder lenha para as fogueiras: No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu lenha para as fogueiras da vigília. Os vizinhos velaram juntos, e nada chegou perto dos currais.
+  - Ceder lenha para as fogueiras: No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu lenha para as fogueiras da vigília. Os vizinhos velaram juntos, e nenhuma galinha sumiu naquela noite.
   - Revezar a vigília no escuro: No {dia}º dia {daEstacao}, os vizinhos de {feudo} revezaram a vigília no escuro, cada qual com o seu cajado. Nada sumiu dos currais.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, os vizinhos de {feudo} revezaram a vigília no escuro, cada qual com o seu cajado. Nada sumiu dos currais.
   - Dizer que é só o vento: No {dia}º dia {daEstacao}, o senhor de {feudo} disse aos vizinhos que era só o vento. Dormiu-se bem naquela noite.
@@ -496,9 +497,9 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
-| **Ceder a pedra** (`repair`) | −30 pedra | +10 de moral por 3 dias de jogo | — | Mureta bem assentada dura mais que a queixa. |
+| **Ceder a pedra** (`repair`) | −20 pedra | +10 de moral por 3 dias de jogo | — | Mureta bem assentada dura mais que a queixa. |
 | **Mandar o povo cavar** (`dig`) | sem custo | nenhuma | — | Sem pedra nova, a mureta fica como der. A água volta, e é só. |
-| **Deixar para depois** (`wait`) | sem custo | nenhuma | +20 pedra; −10 de moral por 2 dias de jogo, na 2ª virada de dia depois da escolha | O riacho fica longe, e o povo tem memória. Dizem que no entulho ainda há pedra boa. |
+| **Deixar para depois** (`wait`) | sem custo | nenhuma | +20 pedra; −10 de moral por 3 dias de jogo, na 2ª virada de dia depois da escolha | O riacho fica longe, e o povo tem memória. Dizem que no entulho ainda há pedra boa. |
 
 - **Flags e continuação:** nenhuma.
 - **Se ninguém responde (`autoResolve`):** Camponês: Mandar o povo cavar · Senhor: Mandar o povo cavar · Rei de Ferro: Deixar para depois.
@@ -513,7 +514,7 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 - **Cenários:**
   - Ceder a pedra. *Faz sentido:* A pedra sobra; +10 por três dias dura até a carta seguinte e soma com ela. *É ruim:* O Salão ou o Armazém esperam pedra.
   - Mandar o povo cavar. *Faz sentido:* A pedra está contada e a moral está na beira de uma faixa. *É ruim:* A pedra sobra (ceder rende moral) ou a pedra falta e a moral tem folga (deixar para depois rende 20).
-  - Deixar para depois. *Faz sentido:* Falta pedra para uma obra e a moral tem folga: de 60 para 50 por dois dias ainda é Contente. *É ruim:* A moral já está baixa (fome, frio, casas cheias): −10 derruba a faixa e, com 25 ou menos, pode levar alguém embora.
+  - Deixar para depois. *Faz sentido:* Falta pedra para uma obra e a moral tem folga: de 60 para 50 por três dias ainda é Contente. *É ruim:* A moral já está baixa (fome, frio, casas cheias): −10 derruba a faixa e, com 25 ou menos, pode levar alguém embora.
 
 #### Sementes para o próximo campo (`springSeeds`, v1)
 
@@ -546,15 +547,15 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 #### A notícia da primavera (`springNews`, v1)
 
 - **Dilema:** Festa paga, festa de graça ou dia de trabalho.
-- **Quando sai:** peso 3 no sorteio · uma vez por ano · Primavera.
-- **Repetição e virada do ano:** Sai uma vez por ano, na primavera.
+- **Quando sai:** peso 3 no sorteio · uma vez por ano · Primavera · moral de 40 a 100.
+- **Repetição e virada do ano:** Sai uma vez por ano, na primavera, com a moral em 40 ou mais.
 - **Texto:** As cegonhas voltaram ao telhado do salão, e com elas a certeza de que a primavera veio para ficar. O povo quer marcar o dia com música e um tonel aberto. O tesoureiro lembra que tonel não se enche sozinho.
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
 | **Abrir o tonel** (`cask`) | −40 ouro | +15 de moral por 2 dias de jogo | — | Dia de festa pesa pouco no cofre e muito na lembrança. |
 | **Mandar tocar o sino** (`bells`) | sem custo | +5 de moral por 1 dia de jogo | — | Sino não custa nada, e festa sem tonel acaba cedo. |
-| **Mandar todos ao campo** (`fields`) | sem custo | +25 comida; −5 de moral por 1 dia de jogo | — | Dia de sol é dia de enxada: a despensa agradece, o povo nem tanto. |
+| **Mandar todos ao campo** (`fields`) | sem custo | +25 comida; −5 de moral por 4 dias de jogo | — | Dia de sol é dia de enxada: a despensa agradece, o povo nem tanto. |
 
 - **Flags e continuação:** nenhuma.
 - **Se ninguém responde (`autoResolve`):** Camponês: Mandar tocar o sino · Senhor: Mandar tocar o sino · Rei de Ferro: Mandar todos ao campo.
@@ -658,19 +659,19 @@ Os assuntos de sempre do feudo: saem mais de uma vez por ano, em qualquer estaç
 - **Dilema:** Dar um teto, emprestar o salão ou mandar cada um fazer o seu.
 - **Quando sai:** peso 3 no sorteio · uma vez por ano · Outono.
 - **Repetição e virada do ano:** Sai uma vez por ano, no outono.
-- **Texto:** Duas famílias dormem no palheiro desde a colheita. Pedem ao senhor um teto de verdade antes da primeira geada. O carpinteiro lembra que cada tábua dada agora é uma acha a menos no inverno.
+- **Texto:** Duas famílias dormem no palheiro desde que a ventania destelhou as casas delas. Pedem ao senhor um teto de verdade antes da primeira geada. O carpinteiro lembra que cada tábua dada agora é uma acha a menos no inverno.
 
 | Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
 |---|---|---|---|---|
 | **Ceder madeira e pedra** (`build`) | −50 madeira, −20 pedra | +10 de moral por 4 dias de jogo | — | Quem ganha um teto no outono não esquece no inverno. |
-| **Abrigar as famílias no salão** (`hall`) | sem custo | nenhuma | — | O salão é grande e seco. Ninguém ganha casa, e ninguém dorme ao relento. |
+| **Abrigar as famílias no salão** (`hall`) | sem custo | nenhuma | — | O salão é grande e seco. Nenhum teto se refaz, e ninguém dorme ao relento. |
 | **Dar machados e mandar à mata** (`axes`) | sem custo | −5 de moral por 2 dias de jogo | +40 madeira, na 3ª virada de dia depois da escolha | Quem corta a própria viga demora, reclama, e às vezes corta de sobra. |
 
 - **Flags e continuação:** nenhuma.
 - **Se ninguém responde (`autoResolve`):** Camponês: Abrigar as famílias no salão · Senhor: Abrigar as famílias no salão · Rei de Ferro: Dar machados e mandar à mata.
 - **Crônica:**
   - Chegada: a frase geral ("o conselho de {feudo} pediu audiência: {carta}").
-  - Ceder madeira e pedra: No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu madeira e pedra para o teto de duas famílias. Em poucos dias havia fumaça em duas chaminés novas.
+  - Ceder madeira e pedra: No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu madeira e pedra para o teto de duas famílias. Em poucos dias havia fumaça outra vez nas duas chaminés.
   - Abrigar as famílias no salão: No {dia}º dia {daEstacao}, o senhor de {feudo} abriu o salão às duas famílias do palheiro. Dormiram secas, entre os bancos do conselho.
     - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} abrigou no salão as duas famílias do palheiro. Dormiram secas, entre os bancos do conselho.
   - Dar machados e mandar à mata: No {dia}º dia {daEstacao}, o senhor de {feudo} deu machados às famílias do palheiro e as mandou à mata. Foram resmungando.
@@ -726,7 +727,7 @@ O Salão 3 tem uma carta a mais em todas as estações: o pedido da Paliçada, q
 
 **O pior caso é 3.** Com todas as cartas de uma vez por ano já vistas e uma recorrente recém-saída da mesa (travada pela ronda), sobram as outras três recorrentes, em qualquer estação e com qualquer Salão. É o piso que a tarefa pedia ("ao menos 3 elegíveis em qualquer estação a partir do dia 4"), e o teste o confere em cada uma das 21 audiências.
 
-**Com a moral baixa** (abaixo de 40) saem do sorteio "A colheita de todos" e "O celeiro quase cheio": ninguém pede festa com fome. As recorrentes continuam.
+**Com a moral baixa** (abaixo de 40) saem do sorteio "A colheita de todos" e "O celeiro quase cheio" (que pede 60) e, desde V2G-T4, "Tábuas para as reservas" e "A notícia da primavera": ninguém pede festa nem prateleira com fome. As recorrentes continuam.
 
 ### 4.2 O que o bot vê em um ano, em 50 sementes
 
@@ -905,3 +906,45 @@ As três cartas estão em `packages/content/src/cards/palisadePromise.ts`, na li
 3. **A ordem do catálogo mudou o sorteio** de todo feudo com o Salão no nível 3 ou mais (abaixo disso a carta nova não é elegível, e o sorteio é o de antes). Foram regravados o golden de 7 dias e os retratos do motor; a semente de `COUNCIL_SCENARIO_SEED` e a de `WELL_FIRST_SEED` continuam valendo (os dois cenários ficam abaixo do Salão 3); e a linha de base de `packages/sim-cli/src/bands.ts` foi medida de novo nas três dificuldades ([balance-v0.2.md](balance-v0.2.md), seção 13).
 4. **O cenário de 7 dias passa pela cadeia**, pelo caminho de quem cumpre: o pedido chega às 64 h, o senhor promete às 72 h, ergue a Paliçada às 76 h, é cobrado às 80 h e mostra a obra às 84 h. Para o pedido sair nessa semente o senhor do cenário passou a responder aos viajantes ("Fechar o portão"): com a mesa livre, a audiência das 64 h deixou de ser pulada.
 5. **Os cenários do motor** (`council.chains.test.ts`): cumprir no prazo; erguer a obra com a cobrança já na mesa; atrasar e mostrar tarde; atrasar e não cumprir; desfazer a promessa e receber o pedido de novo no ano seguinte, com o texto que lembra dela; explicar; expirar nas três dificuldades, com a obra e sem ela; quem já tem a Paliçada quando o pedido chega; o ritmo Rápido; e a virada do ano com a promessa aberta. Os de conteúdo estão em `packages/content/src/council.test.ts`, e os da API, em `packages/server/test/palisade.test.ts`.
+
+## 9. Os sete problemas corrigidos (V2G-T4, 2026-10-05)
+
+A revisão editorial das Fases D e E apontou sete problemas nas cartas ([pendências da v0.2](pendencias-v0.2.md), DE-3; [ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), item 5). **O autor aprovou, item a item, o texto e os números de cada correção em 2026-10-05**, e só eles entraram: nenhum id de carta ou de opção mudou, nenhum modelo novo, nenhuma regra nova no motor. As outras frases e os outros números das 21 cartas continuam no estado que o cabeçalho deste documento descreve. As fichas da seção 3 já trazem o texto novo.
+
+| # | Problema | Carta e opção | Antes | Depois |
+|---:|---|---|---|---|
+| 1 | Na primavera a opção dura valia mais que a neutra | "A refeição dos pedreiros", Mandar voltar ao trabalho | −5 de moral por 2 dias | −5 de moral por **4 dias** (os +15 de pedra ficam) |
+| 1 | | "O poço entulhado", Deixar para depois (efeito oculto) | −10 de moral por 2 dias | −10 de moral por **3 dias** (os +20 de pedra ficam) |
+| 1 | | "O poço entulhado", Ceder a pedra | −30 pedra | **−20 pedra** (os +10 de moral por 3 dias ficam) |
+| 1 | | "A notícia da primavera", Mandar todos ao campo | −5 de moral por 1 dia | −5 de moral por **4 dias** (os +25 de comida ficam) |
+| 2 | "Um teto antes do frio" falava em famílias sem casa e em chaminés novas, e a tela mostrava vagas que não mudavam | Texto, pista de Abrigar as famílias no salão e Crônica de Ceder madeira e pedra | "desde a colheita"; "Ninguém ganha casa"; "duas chaminés novas" | A ventania destelhou as casas delas; "Nenhum teto se refaz"; "fumaça outra vez nas duas chaminés" |
+| 3 | "Vigília entre vizinhos" prometia o que só a Torre e a Paliçada dão | Texto, pista e Crônica de Ceder lenha para as fogueiras | "algo ronda os currais"; "afasta o medo, e o que mais rondar"; "nada chegou perto dos currais" | Somem galinhas; "bicho pequeno não gosta de luz"; "nenhuma galinha sumiu naquela noite" |
+| 4 | As pistas da promessa da Paliçada repetiam um número de regra, sem dizer que eram dias de jogo | "Os aldeões perguntam pela cerca", Prometer a paliçada; "O prazo da paliçada", Pedir mais alguns dias | "cobra em quatro"; "mais quatro dias" | "volta para cobrar"; "mais uma vez" |
+| 5 | Duas cartas saíam com o feudo em fome | "Tábuas para as reservas" e "A notícia da primavera" | sem requisito de moral | moral de **40 a 100**, a faixa de "A colheita de todos" |
+| 6 | Na Ponte do Degelo, três frases diziam o que os números não fazem | Chegada com a pinguela levada; pista de Pagar carpinteiros de fora; pista de Largar a obra | "soube-se em {feudo}…"; "traz a própria madeira"; "a madeira que der" | os lavradores voltam ao conselho; "a madeira que traz já vai no preço"; "a madeira que ficou na obra" |
+| 7 | No Celeiro Comum a pista de partilhar prometia reciprocidade | "A vez de repartir", Partilhar a comida | "Quem come junto costuma lembrar." | "A alegria da mesa ainda dura quando o conselho voltar ao assunto." |
+
+**O que acompanha no jogo.** Carta já na mesa mostra o texto novo; efeito de moral já aplicado guarda o prazo com que foi gravado. Não há versão nova do estado nem passo de migração.
+
+**O sorteio.** O requisito de moral não mexe na ordem do catálogo nem nos pesos: com a moral em 40 ou mais, a lista de cada audiência é a de antes. `COUNCIL_SCENARIO_SEED` continua tirando o poço, as tábuas e a refeição dos pedreiros nas três primeiras audiências, e o golden de 7 dias não mudou. O que mudou um sorteio foi a duração nova da moral: no retrato `storage` do motor (Rei de Ferro), a refeição recusada pelo conselho deixa a moral em 55 na audiência do 24º dia, "O celeiro quase cheio" (que pede 60) sai da lista e a carta tirada é outra (`packages/engine/src/__fixtures__/README.md`). `WELL_FIRST_SEED`, do teste de integração do servidor, continua trazendo o poço na primeira audiência (conferido no motor, com a semente e o ritmo do teste); o teste de integração em si não foi rodado nesta tarefa.
+
+**Cobertura** (`SHOW_COVERAGE=1 pnpm --filter @lotg/sim-cli test -- coverage`, 50 sementes, perfil Regular, medida antes e depois no mesmo dia; conteúdo `632fae516da42341` → `701a1bbdee9d23f7`). Nenhuma carta deixou de aparecer. No ritmo Rápido a tabela por carta é idêntica. No Normal, partidas em que a carta apareceu e vezes ao todo:
+
+| Carta | Antes | Depois |
+|---|---|---|
+| Tábuas para as reservas | 50 partidas, 58 vezes | 50 partidas, 57 vezes |
+| A notícia da primavera | 42 partidas, 50 vezes | 42 partidas, 48 vezes |
+| A vez de repartir, O que ficou da escolha | 31, 31 | 32, 32 |
+| A ponte que o degelo levou | 50, 58 | 50, 60 |
+| O poço entulhado | 50, 56 | 50, 58 |
+| A refeição dos pedreiros | 50, 107 | 50, 105 |
+| A serraria e o descanso | 49, 107 | 49, 105 |
+| Vigília entre vizinhos | 49, 106 | 49, 111 |
+| Mais bocas à mesa | 49, 105 | 49, 99 |
+| Sementes para o próximo campo | 38, 43 | 38, 44 |
+| O celeiro quase cheio | 49, 49 | 50, 50 |
+| Um teto antes do frio | 46, 46 | 47, 47 |
+
+No ritmo Normal nenhuma partida do bot fica com a moral abaixo de 40 (a menor moral das partidas de Senhor nesse ritmo, amostrada duas vezes por dia de jogo, é 40), então o requisito novo não tira carta de nenhuma delas. Pela política do bot econômico (paga a opção mais cara que cabe com folga; sem ela, a primeira sem custo), a única correção que chega a ele é a pedra do poço a 20: é ela que desloca a hora das obras e, com isso, as contagens. **As tabelas da seção 4.2 são de uma medição anterior** (o lote com a Paliçada, antes dos objetivos 5 a 10 e dos números do ADR 0016) e não foram refeitas aqui: os números "antes" desta seção são os de hoje, não os de lá.
+
+**O simulador.** A linha de base de `packages/sim-cli/src/bands.ts` foi medida de novo nas três dificuldades, com o antes e o depois das células que mudaram em [balance-v0.2.md](balance-v0.2.md), seção 20.

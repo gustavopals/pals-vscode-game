@@ -67,7 +67,7 @@ export const masonsMeal: CouncilCard = {
       label: 'Mandar voltar ao trabalho',
       effects: [
         { type: 'resources', amounts: { stone: 15 } },
-        { type: 'morale', amount: -5, durationDays: 2 },
+        { type: 'morale', amount: -5, durationDays: 4 },
         { type: 'setFlag', flag: 'routine.masonsMeal' },
         { type: 'clearFlag', flag: 'routine.sawmillRest' },
         { type: 'clearFlag', flag: 'routine.neighborsWatch' },
@@ -148,7 +148,7 @@ export const sawmillRest: CouncilCard = {
 export const neighborsWatch: CouncilCard = {
   id: 'neighborsWatch',
   title: 'Vigília entre vizinhos',
-  text: 'Há três noites algo ronda os currais, e ninguém viu o quê. Os vizinhos querem revezar a vigília e pedem lenha para as fogueiras. Quem vela de noite boceja no trabalho de dia.',
+  text: 'Há três noites somem galinhas dos currais, e ninguém viu o ladrão. Os vizinhos querem revezar a vigília e pedem lenha para as fogueiras. O capataz lembra que lenha queimada na vigília é lenha a menos na pilha.',
   weight: 1,
   recurring: true,
   requires: { notFlags: ['routine.neighborsWatch'] },
@@ -165,9 +165,9 @@ export const neighborsWatch: CouncilCard = {
         { type: 'clearFlag', flag: 'routine.sawmillRest' },
         { type: 'clearFlag', flag: 'routine.moreMouths' },
       ],
-      hint: 'Fogueira acesa afasta o medo, e o que mais rondar.',
+      hint: 'Fogueira acesa afasta o medo, e bicho pequeno não gosta de luz.',
       chronicle:
-        'No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu lenha para as fogueiras da vigília. Os vizinhos velaram juntos, e nada chegou perto dos currais.',
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu lenha para as fogueiras da vigília. Os vizinhos velaram juntos, e nenhuma galinha sumiu naquela noite.',
     },
     {
       id: 'vigil',
@@ -288,7 +288,7 @@ export const collapsedWell: CouncilCard = {
     {
       id: 'repair',
       label: 'Ceder a pedra',
-      cost: { stone: 30 },
+      cost: { stone: 20 },
       effects: [{ type: 'morale', amount: 10, durationDays: 3 }],
       hint: 'Mureta bem assentada dura mais que a queixa.',
       chronicle:
@@ -313,7 +313,7 @@ export const collapsedWell: CouncilCard = {
         afterDays: 2,
         effects: [
           { type: 'resources', amounts: { stone: 20 } },
-          { type: 'morale', amount: -10, durationDays: 2 },
+          { type: 'morale', amount: -10, durationDays: 3 },
         ],
         chronicle:
           'No {dia}º dia {daEstacao}, o poço de {feudo} desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.',
@@ -382,7 +382,8 @@ export const springNews: CouncilCard = {
   title: 'A notícia da primavera',
   text: 'As cegonhas voltaram ao telhado do salão, e com elas a certeza de que a primavera veio para ficar. O povo quer marcar o dia com música e um tonel aberto. O tesoureiro lembra que tonel não se enche sozinho.',
   weight: 3,
-  requires: { seasons: ['spring'] },
+  // Não sai com o feudo desesperado ou inquieto de fome: a faixa de "A colheita de todos".
+  requires: { seasons: ['spring'], moralRange: [40, 100] },
   autoResolve: { peasant: 'bells', lord: 'bells', ironKing: 'fields' },
   options: [
     {
@@ -409,7 +410,7 @@ export const springNews: CouncilCard = {
       label: 'Mandar todos ao campo',
       effects: [
         { type: 'resources', amounts: { food: 25 } },
-        { type: 'morale', amount: -5, durationDays: 1 },
+        { type: 'morale', amount: -5, durationDays: 4 },
       ],
       hint: 'Dia de sol é dia de enxada: a despensa agradece, o povo nem tanto.',
       chronicle:
@@ -567,7 +568,7 @@ export const dampFirewood: CouncilCard = {
 export const roofBeforeCold: CouncilCard = {
   id: 'roofBeforeCold',
   title: 'Um teto antes do frio',
-  text: 'Duas famílias dormem no palheiro desde a colheita. Pedem ao senhor um teto de verdade antes da primeira geada. O carpinteiro lembra que cada tábua dada agora é uma acha a menos no inverno.',
+  text: 'Duas famílias dormem no palheiro desde que a ventania destelhou as casas delas. Pedem ao senhor um teto de verdade antes da primeira geada. O carpinteiro lembra que cada tábua dada agora é uma acha a menos no inverno.',
   weight: 3,
   requires: { seasons: ['autumn'] },
   autoResolve: { peasant: 'hall', lord: 'hall', ironKing: 'axes' },
@@ -579,13 +580,13 @@ export const roofBeforeCold: CouncilCard = {
       effects: [{ type: 'morale', amount: 10, durationDays: 4 }],
       hint: 'Quem ganha um teto no outono não esquece no inverno.',
       chronicle:
-        'No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu madeira e pedra para o teto de duas famílias. Em poucos dias havia fumaça em duas chaminés novas.',
+        'No {dia}º dia {daEstacao}, o senhor de {feudo} cedeu madeira e pedra para o teto de duas famílias. Em poucos dias havia fumaça outra vez nas duas chaminés.',
     },
     {
       id: 'hall',
       label: 'Abrigar as famílias no salão',
       effects: [],
-      hint: 'O salão é grande e seco. Ninguém ganha casa, e ninguém dorme ao relento.',
+      hint: 'O salão é grande e seco. Nenhum teto se refaz, e ninguém dorme ao relento.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} abriu o salão às duas famílias do palheiro. Dormiram secas, entre os bancos do conselho.',
       expiredChronicle:

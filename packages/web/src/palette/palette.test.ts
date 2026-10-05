@@ -1648,7 +1648,7 @@ describe('decidir carta do Conselho (GDD §7 e §13.6)', () => {
       value: 'feast',
     });
     expect(pick.items[2]?.description).toBe(
-      '+15 pedra; −5 de moral por 2 dias de jogo (1 h 20 min)',
+      '+15 pedra; −5 de moral por 4 dias de jogo (2 h 40 min)',
     );
     expect(orders()).toEqual([answer('masonsMeal-4', 'feast')]);
   });

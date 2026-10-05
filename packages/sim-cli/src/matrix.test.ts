@@ -164,11 +164,11 @@ describe('relatório da matriz', () => {
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
     expect(rows).toEqual([
       '| 7 dias reais | Rápido 3× | Regular | 0 a 18 | 3 a 30 | 0 a 3 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 a 2 | 2 a 8 | 0 a 1 | ≤ 8 | dentro |',
-      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 0,5 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Normal 1× | Regular | 0 a 2 | 2 a 6 | 0 a 2 | ≤ 8 | dentro |',
+      '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
       '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 a 3 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 a 2 | 2 a 8 | 0 a 1 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 0,5 a 3 | 0 a 0,5 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 a 2 | 2 a 6 | 0 a 2 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 0,5 | 0,5 a 3 | 0 a 0,5 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -268,7 +268,7 @@ describe('relatório da matriz', () => {
     expect(week).toContain(
       '| Rápido 3× | Regular | 0% a 6% | 1% a 20% | 0% a 1% | 0 a 18 | 3 a 30 | 0 a 3 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 0,5 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% | 0% | 0 | 0 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {

@@ -183,11 +183,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // sessões por dia, fica pronta entre as horas 32 e 43 no Normal, 55 e 61 no Tranquilo e na
     // hora 20 no Rápido (docs/balance-v0.2.md, seção 15). O nível 2 continua sendo o da folga.
     // Com os dois números do ADR 0016 (seção 18): entre as horas 32 e 42 no Normal e 55 e 57 no
-    // Tranquilo.
+    // Tranquilo. Com a pedra do poço a 20 (V2G-T4, seção 20): a partir da hora 33 no Normal e
+    // da 53 no Tranquilo.
     const tower = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.watchtower;
-    expect(tower('year/1/regular')).toEqual({ min: 32, max: 42 });
-    expect(tower('year/0.5/regular')).toEqual({ min: 55, max: 57 });
+    expect(tower('year/1/regular')).toEqual({ min: 33, max: 42 });
+    expect(tower('year/0.5/regular')).toEqual({ min: 53, max: 57 });
     expect(tower('year/3/regular')).toEqual({ min: 20, max: 20 });
     expect(tower('week/3/regular')).toEqual({ min: 20, max: 20 });
     // O Preguiçoso, com uma visita por dia, agora chega lá dentro da semana em todo ritmo e em
@@ -225,11 +226,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // "Construa a Paliçada", em Senhor, com 2 sessões por dia: entre as horas 48 e 55 no
     // Normal, na 25 no Rápido e entre a 83 e a 86 no Tranquilo (seção 16). Com os dois números
     // do ADR 0016 (seção 18): entre as horas 49 e 53 no Normal e entre a 82 e a 85 no Tranquilo.
+    // Com a pedra do poço a 20 (V2G-T4, seção 20): até a hora 86 no Tranquilo.
     const palisade = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.palisade;
     expect(palisade('year/1/regular')).toEqual({ min: 49, max: 53 });
     expect(palisade('year/3/regular')).toEqual({ min: 25, max: 25 });
-    expect(palisade('year/0.5/regular')).toEqual({ min: 82, max: 85 });
+    expect(palisade('year/0.5/regular')).toEqual({ min: 82, max: 86 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
       const tower = cell.measure.milestones.watchtower;
       const wall = cell.measure.milestones.palisade;
@@ -331,6 +333,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Rodando cada número sozinho, a capacidade de 1.000 baixa o pior caso da célula para 6 h, e
     // os 50 de ouro do objetivo 4 o levam a 10 h; juntos, 9 h. Nenhum número além dos dois foi
     // mexido e o bot não foi tocado: fica à espera do autor.
+    //
+    // Com as cartas corrigidas (V2G-T4, seção 20) a célula continua com uma semente em 50 acima
+    // da meta, pelas mesmas 9 h, mas é outra: na 026 o Armazém passa a ficar pronto na hora 49
+    // e o pior caso dela cai para 1 h; na 018, que tinha 8 h, ele sai na hora 74 (era 73) e a
+    // madeira vai ao chão por 9 h. O que mudou para o bot foi a pedra do poço, de 30 para 20.
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -355,7 +362,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-026']);
+    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-018']);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

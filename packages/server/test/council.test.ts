@@ -482,11 +482,11 @@ describe('o que a opção esconde', () => {
     expect(applied[0]).toMatchObject({
       atMs: AUDIENCE + 2 * DAY,
       text: 'No 7º dia da Primavera, o poço de Pedra Alta desabou de vez. Do entulho saiu pedra de cantaria; da fila do riacho, só queixa.',
-      data: { instanceId: well.instanceId, gained_stone: 20, morale: -10, moraleDays: 2 },
+      data: { instanceId: well.instanceId, gained_stone: 20, morale: -10, moraleDays: 3 },
     });
     expect(stock(after, 'stone')).toBe(stone + 20);
     expect(after.morale.effects).toEqual([
-      { label: 'Carta: O poço entulhado', amount: -10, endsInSeconds: (3 * DAY) / 1000 },
+      { label: 'Carta: O poço entulhado', amount: -10, endsInSeconds: (4 * DAY) / 1000 },
     ]);
     expect(await chronicleOf(normal, who, who.game.id)).toContain(applied[0]?.text);
   });

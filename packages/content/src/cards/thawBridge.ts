@@ -29,7 +29,7 @@ export const thawBridgePlea: CouncilCard = {
       flag: 'thawBridge.plank',
       text: 'A pinguela não resistiu às águas do degelo. Desde então os lavradores dão a volta pelo vau, com água pelo joelho e a carroça vazia. Pedem madeira para uma travessia que dure mais que um inverno.',
       arrival:
-        'No {dia}º dia {daEstacao}, soube-se em {feudo} que o riacho levou a pinguela, e o conselho voltou ao assunto: {carta}.',
+        'No {dia}º dia {daEstacao}, sem a pinguela que o riacho levou, os lavradores de {feudo} voltaram ao conselho: {carta}.',
     },
   ],
   autoResolve: { peasant: 'postpone', lord: 'postpone', ironKing: 'postpone' },
@@ -58,7 +58,7 @@ export const thawBridgePlea: CouncilCard = {
         { type: 'setFlag', flag: 'thawBridge.hired' },
         { type: 'scheduleCard', cardId: 'thawBridgeSlab', afterDays: 2 },
       ],
-      hint: 'Gente de fora traz a própria madeira e cobra à vista. O riacho ainda tem o que dizer.',
+      hint: 'Gente de fora cobra à vista, e a madeira que traz já vai no preço. O riacho ainda tem o que dizer.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} pagou carpinteiros de fora para refazer a ponte do riacho. Vieram com vigas, cordas e pressa.',
     },
@@ -144,7 +144,7 @@ export const thawBridgeSlab: CouncilCard = {
         { type: 'clearFlag', flag: 'thawBridge.timber' },
         { type: 'clearFlag', flag: 'thawBridge.hired' },
       ],
-      hint: 'Recolhe-se a madeira que der, e o povo volta ao vau.',
+      hint: 'Recolhe-se a madeira que ficou na obra, e o povo volta ao vau.',
       chronicle:
         'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou largar a obra da ponte. Recolheu-se a madeira; os lavradores voltaram ao vau.',
       expiredChronicle:

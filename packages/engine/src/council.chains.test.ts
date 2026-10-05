@@ -784,7 +784,7 @@ describe('"A Promessa da Paliçada", de ponta a ponta', () => {
         locked: false,
         lockedReason: null,
         effectsText: '+10 de moral por 3 dias de jogo (6 h)',
-        hint: 'Promessa aquece hoje. O povo conta os dias, e cobra em quatro.',
+        hint: 'Promessa aquece hoje. O povo conta os dias, e volta para cobrar.',
       },
     ]);
     // A ordem para a opção trancada é recusada, e a recusa diz o que falta.
