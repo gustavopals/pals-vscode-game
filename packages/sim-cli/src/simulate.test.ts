@@ -40,6 +40,7 @@ import {
   MILESTONES,
   refusedByCode,
   RESERVED_COLUMNS,
+  V02_MECHANIC_COLUMN_COUNT,
   summarize,
   toCsv,
 } from './report';
@@ -60,7 +61,13 @@ const HEADER =
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
-  'threat,wolf_losses,raids_suffered,raids_repelled,villagers_injured,objectives_done';
+  'threat,wolf_losses,raids_suffered,raids_repelled,villagers_injured,objectives_done,' +
+  // As da Guilda (roadmap da v0.3, V3B-T2.2): sempre depois das da v0.2.
+  'heroes,wages_paid,wage_arrears_hours,heroes_departed,expeditions_sent,' +
+  'outcomes_full_success,outcomes_success,outcomes_setback,outcomes_disaster,' +
+  'crossroads_by_player,crossroads_by_stance,hero_idle_hours,' +
+  'traded_food,traded_wood,traded_stone,market_volume_used_percent,' +
+  'caravans_sent,caravans_ambushed,masters';
 
 describe('simulação', () => {
   it('produz uma linha por hora: 168 em 7 dias, e o ano vira no fim', () => {
@@ -104,7 +111,7 @@ describe('CSV de uma partida', () => {
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
   });
 
-  it('as colunas das mecânicas fecham o cabeçalho, e todas as da v0.2 já são medidas', () => {
+  it('as colunas das mecânicas fecham o cabeçalho: as da v0.2, todas medidas, e depois as da Guilda, reservadas', () => {
     expect(HEADER.endsWith(MECHANIC_COLUMN_NAMES.join(','))).toBe(true);
     const reserved: string[] = RESERVED_COLUMNS.map((column) => column.name);
     expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual([
@@ -123,9 +130,42 @@ describe('CSV de uma partida', () => {
       'villagers_injured',
       'objectives_done',
     ]);
-    // Com a incursão de lobos (V2E-T3) a última coluna reservada passou a ser medida; a dos
-    // objetivos (V2E-T4) já nasceu medida.
-    expect(RESERVED_COLUMNS).toEqual([]);
+    // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
+    // dos objetivos (V2E-T4) já nasceu medida. As reservadas de hoje são as da Guilda (roadmap
+    // da v0.3, V3B-T2.2), e vêm todas depois das da v0.2: nenhuma coluna antiga mudou de lugar.
+    expect(MECHANIC_COLUMN_NAMES.slice(0, V02_MECHANIC_COLUMN_COUNT)).toEqual(
+      MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name)),
+    );
+    expect(reserved).toEqual(MECHANIC_COLUMN_NAMES.slice(V02_MECHANIC_COLUMN_COUNT));
+    expect(reserved).toEqual([
+      'heroes',
+      'wages_paid',
+      'wage_arrears_hours',
+      'heroes_departed',
+      'expeditions_sent',
+      'outcomes_full_success',
+      'outcomes_success',
+      'outcomes_setback',
+      'outcomes_disaster',
+      'crossroads_by_player',
+      'crossroads_by_stance',
+      'hero_idle_hours',
+      'traded_food',
+      'traded_wood',
+      'traded_stone',
+      'market_volume_used_percent',
+      'caravans_sent',
+      'caravans_ambushed',
+      'masters',
+    ]);
+    expect(RESERVED_COLUMNS.map((column) => column.task)).toEqual([
+      ...Array.from({ length: 4 }, () => 'V3C-T1'),
+      ...Array.from({ length: 8 }, () => 'V3D-T1'),
+      ...Array.from({ length: 4 }, () => 'V3E-T1'),
+      'V3E-T2',
+      'V3E-T2',
+      'V3E-T3',
+    ]);
     const header = HEADER.split(',');
     const lines = toCsv(twoSessions.rows).trimEnd().split('\n').slice(1);
     for (const line of lines) {

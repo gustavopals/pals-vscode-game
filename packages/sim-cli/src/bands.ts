@@ -18,7 +18,7 @@ export function cellKey(window: WindowId, timeScale: number, profile: ProfileId)
 }
 
 /** O que as 50 sementes mediram em uma célula, só nas grandezas que têm faixa. */
-type Baseline = {
+export type Baseline = {
   /** Menor e maior população final. */
   villagers: Range;
   /** Menor nível final do Salão do Senhor. */
@@ -136,6 +136,15 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
     'year/0.5/dedicado': measured([74, 75], 7, 0, 0, 3680, 3680, 53059, 3),
   },
 };
+
+/**
+ * A linha de base de uma célula, como está em `MEASURED`; `null` se a célula não foi medida.
+ * Serve ao teste que confere que uma tarefa que não era para mexer na economia não mexeu: a
+ * faixa tem folga, a linha de base não.
+ */
+export function baselineFor(key: CellKey, difficulty: DifficultyId = 'lord'): Baseline | null {
+  return MEASURED[difficulty][key] ?? null;
+}
 
 /** A folga entre o que foi medido e o que a faixa aceita. Pequena e explícita. */
 export const SLACK = {

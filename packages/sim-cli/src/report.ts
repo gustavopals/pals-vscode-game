@@ -135,9 +135,17 @@ function wastedPercent(rows: readonly HourRow[], resource: WasteResource): numbe
 }
 
 /**
- * As colunas das mecânicas da v0.2, na ordem fixa em que fecham o cabeçalho dos dois CSVs: o de
- * uma partida (hora a hora) e o da matriz (uma linha por partida). O cabeçalho já existe, para
- * o formato não mudar a cada mecânica.
+ * Os recursos que o Mercado da v0.3 negocia (roadmap da v0.3, V3E-T1.1). Só dá nome às colunas
+ * reservadas `traded_<recurso>`; quando o Mercado existir, a lista passa a vir da visão.
+ */
+const TRADED_RESOURCES = ['food', 'wood', 'stone'] as const satisfies readonly ResourceId[];
+
+/**
+ * As colunas das mecânicas, na ordem fixa em que fecham o cabeçalho dos dois CSVs: o de uma
+ * partida (hora a hora) e o da matriz (uma linha por partida). O cabeçalho já existe, para o
+ * formato não mudar a cada mecânica. Primeiro as da v0.2, todas medidas; depois as da v0.3
+ * (roadmap da v0.3, V3B-T2.2), reservadas até a tarefa de cada uma. Uma coluna nova entra
+ * sempre **no fim**: quem lê o CSV pela posição não pode ver uma coluna antiga mudar de lugar.
  */
 const MECHANIC_COLUMNS = [
   { name: 'wasted_food', task: 'V2C-T2', meaning: 'Comida desperdiçada no cap, acumulada' },
@@ -179,7 +187,84 @@ const MECHANIC_COLUMNS = [
     task: 'V2E-T4',
     meaning: 'Objetivos do Senhor concluídos, acumulados',
   },
+  // A Guilda (v0.3). Reservadas: saem vazias até a tarefa indicada medir cada uma.
+  {
+    name: 'heroes',
+    task: 'V3C-T1',
+    meaning: 'Heróis a serviço do feudo naquela hora; na matriz, os do fim da partida',
+  },
+  { name: 'wages_paid', task: 'V3C-T1', meaning: 'Ouro pago em soldo, em unidades, acumulado' },
+  {
+    name: 'wage_arrears_hours',
+    task: 'V3C-T1',
+    meaning: 'Horas reais com soldo em atraso, acumuladas: o ouro não pagou a equipe',
+  },
+  {
+    name: 'heroes_departed',
+    task: 'V3C-T1',
+    meaning: 'Heróis que partiram (sem soldo ou dispensados), acumulados',
+  },
+  { name: 'expeditions_sent', task: 'V3D-T1', meaning: 'Expedições enviadas, acumuladas' },
+  {
+    name: 'outcomes_full_success',
+    task: 'V3D-T1',
+    meaning: 'Nós de expedição resolvidos com Sucesso Pleno, acumulados',
+  },
+  {
+    name: 'outcomes_success',
+    task: 'V3D-T1',
+    meaning: 'Nós de expedição resolvidos com Sucesso, acumulados',
+  },
+  {
+    name: 'outcomes_setback',
+    task: 'V3D-T1',
+    meaning: 'Nós de expedição resolvidos com Revés, acumulados',
+  },
+  {
+    name: 'outcomes_disaster',
+    task: 'V3D-T1',
+    meaning: 'Nós de expedição resolvidos com Desastre, acumulados',
+  },
+  {
+    name: 'crossroads_by_player',
+    task: 'V3D-T1',
+    meaning: 'Encruzilhadas decididas pelo jogador (o bot, em uma visita), acumuladas',
+  },
+  {
+    name: 'crossroads_by_stance',
+    task: 'V3D-T1',
+    meaning: 'Encruzilhadas decididas pela Postura, porque ninguém respondeu a tempo, acumuladas',
+  },
+  {
+    name: 'hero_idle_hours',
+    task: 'V3D-T1',
+    meaning: 'Herói-horas reais com herói disponível e sem tarefa, acumuladas: a equipe parada',
+  },
+  ...TRADED_RESOURCES.map(
+    (id) =>
+      ({
+        name: `traded_${id}`,
+        task: 'V3E-T1',
+        meaning: `Unidades de ${id} negociadas no Mercado, compra e venda somadas, acumuladas`,
+      }) as const,
+  ),
+  {
+    name: 'market_volume_used_percent',
+    task: 'V3E-T1',
+    meaning:
+      'Parcela do volume diário do Mercado usada, em por cento; a tarefa que a medir diz sobre que dias',
+  },
+  { name: 'caravans_sent', task: 'V3E-T2', meaning: 'Caravanas enviadas, acumuladas' },
+  { name: 'caravans_ambushed', task: 'V3E-T2', meaning: 'Caravanas emboscadas, acumuladas' },
+  {
+    name: 'masters',
+    task: 'V3E-T3',
+    meaning: 'Mestres no feudo naquela hora; na matriz, os do fim da partida',
+  },
 ] as const;
+
+/** Quantas das colunas das mecânicas são da v0.2: as primeiras, que não mudam de lugar. */
+export const V02_MECHANIC_COLUMN_COUNT = 14;
 type MechanicColumn = (typeof MECHANIC_COLUMNS)[number]['name'];
 
 /**
@@ -224,8 +309,9 @@ function raidLosses(raids: RaidCounts): number {
 }
 
 /**
- * Colunas que as tarefas seguintes do roadmap da v0.2 vão preencher. O valor sai **vazio** (e
- * não zero: zero seria uma medida) até a tarefa indicada medir a coluna em `MEASURED_COLUMNS`.
+ * Colunas que as tarefas seguintes do roadmap vão preencher: hoje, as da Guilda (v0.3). O valor
+ * sai **vazio** (e não zero: zero seria uma medida) até a tarefa indicada medir a coluna em
+ * `MEASURED_COLUMNS`.
  */
 export const RESERVED_COLUMNS = MECHANIC_COLUMNS.filter(
   (column) => MEASURED_COLUMNS[column.name] === undefined,

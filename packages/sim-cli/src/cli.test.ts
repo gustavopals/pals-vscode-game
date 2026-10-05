@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseCli, USAGE } from './cli';
-import { MATRIX_SEEDS } from './matrix';
+import { EXPLORER_PROFILE, MATRIX_SEEDS } from './matrix';
 
 describe('linha de comando: modo em processo', () => {
   it('só com a semente, usa os padrões: 7 dias, 2 sessões, ritmo 1, Senhor', () => {
@@ -66,7 +66,7 @@ describe('linha de comando: modo em processo', () => {
 
   it('recusa estratégia e opção desconhecidas, e argumento solto', () => {
     expect(() => parseCli(['--seed', 's', '--strategy', 'guerreiro'])).toThrow(
-      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso.',
+      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador.',
     );
     expect(() => parseCli(['--seed', 's', '--strategy', 'toString'])).toThrow(
       /Estratégia desconhecida/,
@@ -81,6 +81,16 @@ describe('linha de comando: modo em processo', () => {
     expect(parseCli(['--seed', 's', '--strategy', 'preguicoso'])).toMatchObject({
       options: { strategy: 'preguicoso' },
     });
+  });
+
+  it('aceita o bot explorador (roadmap da v0.3, V3B-T2), em processo e contra um servidor', () => {
+    expect(parseCli(['--seed', 's', '--strategy', 'explorador'])).toMatchObject({
+      mode: 'simulate',
+      options: { strategy: 'explorador' },
+    });
+    expect(
+      parseCli(['--remote', 'http://localhost:3000', '--strategy', 'explorador']),
+    ).toMatchObject({ mode: 'remote', options: { strategy: 'explorador' } });
   });
 
   it('--game-year dura um ano de jogo: 56 h reais no ritmo 3, 14 dias no 0,5', () => {
@@ -136,6 +146,25 @@ describe('linha de comando: matriz', () => {
         difficulty: 'ironKing',
       },
     });
+  });
+
+  it('--profile joga só um perfil; o explorador roda a pedido, fora da rodada padrão', () => {
+    const padrao = parseCli(['--matrix']);
+    expect(padrao.mode === 'matrix' && padrao.options.profiles).toBeUndefined();
+    expect(parseCli(['--matrix', '--seeds', '1', '--profile', 'explorador'])).toEqual({
+      mode: 'matrix',
+      options: { seeds: ['pedra-alta-001'], difficulty: 'lord', profiles: [EXPLORER_PROFILE] },
+    });
+    expect(parseCli(['--matrix', '--profile', 'dedicado'])).toMatchObject({
+      options: { profiles: [{ id: 'dedicado', sessionsPerDay: 4, strategy: 'economico' }] },
+    });
+    // O nome é o do perfil, não o do bot: `economico` joga dois perfis.
+    expect(() => parseCli(['--matrix', '--profile', 'economico'])).toThrow(
+      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador.',
+    );
+    expect(() => parseCli(['--seed', 's', '--profile', 'explorador'])).toThrow(
+      '--profile não vale com o modo em processo.',
+    );
   });
 
   it('recusa mais sementes do que a lista tem, e um número que não é inteiro positivo', () => {
@@ -247,7 +276,8 @@ describe('texto de uso', () => {
     expect(USAGE).toContain('--time-scale');
     expect(USAGE).toContain('pnpm -s sim -- --perf\n');
     expect(USAGE).toContain('Há faixas para as três dificuldades');
-    expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord]');
+    expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord] [--profile explorador]');
+    expect(USAGE).toContain('economico, preguicoso e explorador');
     expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');
     expect(USAGE).toContain('--smoke <url> [--keep]');

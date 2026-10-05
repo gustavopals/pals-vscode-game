@@ -9,7 +9,9 @@ export type { Act, Bot, Policy } from './bots/types';
 export { botFor, strategyPolicies } from './bots';
 export { IDENTITY, identityLine } from './identity';
 export {
+  EXPLORER_PROFILE,
   formatMatrix,
+  KNOWN_PROFILES,
   MATRIX_SEEDS,
   matrixCsv,
   PROFILES,

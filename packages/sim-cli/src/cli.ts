@@ -1,6 +1,6 @@
 import { DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
 
-import { MATRIX_SEEDS, type MatrixOptions, windowRealHours } from './matrix';
+import { KNOWN_PROFILES, MATRIX_SEEDS, type MatrixOptions, windowRealHours } from './matrix';
 import type { PerfOptions } from './perf';
 import type { RemoteOptions } from './remote';
 import { type SimulationOptions, strategies, type StrategyName } from './simulate';
@@ -8,7 +8,7 @@ import type { SmokeOptions } from './smoke';
 
 export const USAGE = `Uso:
   pnpm -s sim -- --seed <semente> [--days 7 | --game-year] [--strategy economico] [--sessions-per-day 2] [--time-scale 1] [--difficulty lord]
-  pnpm -s sim -- --matrix [--seeds 50] [--difficulty lord]
+  pnpm -s sim -- --matrix [--seeds 50] [--difficulty lord] [--profile explorador]
   pnpm -s sim -- --perf
   pnpm -s sim -- --remote <url> [--bots 50] [--minutes 2] [--poll-ms 2000] [--strategy economico]
   pnpm -s sim -- --smoke <url> [--keep]
@@ -22,6 +22,9 @@ Com --matrix, joga a matriz de balanceamento: 7 dias reais e um ano de jogo, em 
 jogo oferece, com os perfis de 1, 2 e 4 sessões por dia e as 50 sementes fixas (--seeds N usa só
 as N primeiras). O CSV, uma linha por partida, sai na saída padrão; as tabelas, na saída de erro.
 Há faixas para as três dificuldades; o comando sai com erro se alguma partida ficar fora delas.
+Com --profile, a matriz joga só aquele perfil: preguicoso, regular, dedicado ou explorador (2
+sessões por dia com o bot explorador, que hoje joga como o economico; fica fora da rodada padrão
+e não tem faixa). As estratégias de --strategy são economico, preguicoso e explorador.
 Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
 advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
 Com --remote, os bots jogam contra um servidor pela API e o relatório traz p50 e p95 por endpoint.
@@ -38,7 +41,7 @@ export type CliCommand =
 
 /** Opções que pedem um valor, por modo. `strategy` vale em processo e no modo remoto. */
 const SIMULATE_OPTIONS = ['seed', 'days', 'sessions-per-day', 'time-scale', 'difficulty'];
-const MATRIX_OPTIONS = ['seeds', 'difficulty'];
+const MATRIX_OPTIONS = ['seeds', 'difficulty', 'profile'];
 const REMOTE_OPTIONS = ['remote', 'bots', 'minutes', 'poll-ms'];
 const SMOKE_OPTIONS = ['smoke'];
 const VALUE_OPTIONS = new Set([
@@ -172,10 +175,20 @@ export function parseCli(argv: string[]): CliCommand {
     if (count > MATRIX_SEEDS.length) {
       throw new Error(`--seeds vai até ${MATRIX_SEEDS.length}: a lista de sementes é fixa.`);
     }
-    return {
-      mode: 'matrix',
-      options: { seeds: MATRIX_SEEDS.slice(0, count), difficulty: difficultyOf(args) },
+    const options: MatrixOptions = {
+      seeds: MATRIX_SEEDS.slice(0, count),
+      difficulty: difficultyOf(args),
     };
+    if (values.profile !== undefined) {
+      const profile = KNOWN_PROFILES.find((entry) => entry.id === values.profile);
+      if (profile === undefined) {
+        throw new Error(
+          `Perfil desconhecido: ${values.profile}. Disponíveis: ${KNOWN_PROFILES.map((entry) => entry.id).join(', ')}.`,
+        );
+      }
+      options.profiles = [profile];
+    }
+    return { mode: 'matrix', options };
   }
 
   if (values.seed === undefined) {

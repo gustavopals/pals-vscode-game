@@ -266,7 +266,80 @@ A régua do contrato "estado de tamanho limitado" (roadmap, §0.7). Motor 0.2.0 
 
 ## 2. Dispersão por semente (V3B-T2)
 
-*Reservada. A tarefa V3B-T2 do roadmap prepara o simulador para a Guilda; esta seção recebe o que ela medir. Nada foi medido ainda.*
+Tarefa V3B-T2 do [roadmap da v0.3](roadmap-v0.3.md). A Fase B não acrescenta mecânica: dá identidade às entidades e sorteio por entidade (V3B-T1, estado 13) e prepara o simulador (o bot `explorador`, as colunas reservadas da Guilda). Esta seção registra duas coisas: **que nenhum número medido mudou** em relação à seção 1 e **quanto as 50 sementes de uma célula divergem entre si**, que é a régua para ler as rodadas das Fases C a E (uma diferença menor que a dispersão de uma célula não é efeito de mecânica nenhuma).
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commit | árvore de trabalho da tarefa V3B-T2, sobre o `190f72c` (V3B-T1) |
+| Identificação | Motor 0.2.0 · estado v13 · conteúdo `cea08e6e14163458` (o mesmo da seção 1: nenhum número de conteúdo mudou) |
+| Dificuldades, sementes, perfis | Os da seção 1 |
+| Máquina | A da seção 1, **Node v24.15.0** |
+
+### 2.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix --difficulty lord     > matriz-lord.csv     2> matriz-lord.md
+pnpm -s sim -- --matrix --difficulty peasant  > matriz-peasant.csv  2> matriz-peasant.md
+pnpm -s sim -- --matrix --difficulty ironKing > matriz-ironKing.csv 2> matriz-ironKing.md
+pnpm -s sim -- --matrix --profile explorador  > matriz-explorador.csv 2> matriz-explorador.md
+pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy explorador > explorador-3x.csv
+```
+
+Os cinco saíram com código 0. As três matrizes ficaram inteiras dentro das faixas (2.700 partidas). Os arquivos de saída não estão no repositório.
+
+### 2.2 Nenhum número medido mudou
+
+- **Contra o commit da seção 1.** O `7bff36b` foi extraído para uma pasta à parte (`git archive`), com as dependências do `pnpm-lock.yaml`, e jogou as mesmas três matrizes. As **56 colunas** que o CSV da matriz tinha são idênticas, célula a célula e semente a semente, nas **2.700 linhas** (900 por dificuldade). O mesmo vale para as 47 colunas do CSV hora a hora das duas partidas de exemplo da seção 1.4 (`pedra-alta-001`, um ano de jogo no ritmo 3: Regular e Preguiçoso, 56 linhas cada). O que mudou no arquivo foram só as 19 colunas novas, no fim, todas vazias.
+- **Contra `MEASURED`.** O bloco "Linha de base medida nesta rodada" de cada um dos três relatórios é igual, linha a linha, à tabela `MEASURED` de `packages/sim-cli/src/bands.ts` (18 células por dificuldade).
+- **O que fica cobrando isso.** Para Senhor, com as 50 sementes, um teste novo de `balance.test.ts` compara a medida de cada célula com `MEASURED` **sem folga** (as faixas aceitam 5% ou 10%). Para Camponês e Rei de Ferro a suíte joga 3 sementes contra as faixas, como antes; a igualdade exata das 50 foi conferida à mão nesta rodada, pelos comandos acima.
+- **O explorador.** O CSV e o resumo de `--strategy explorador` são iguais aos de `--strategy economico` (o resumo difere só no nome da estratégia). A matriz do perfil explorador (300 partidas, sem faixa) mede o mesmo que as células do Regular. Por isso o perfil **não entrou na rodada padrão**: seria a célula do Regular repetida, e a matriz do `pnpm test` cresceria um terço sem informação nova. Ele entra em `PROFILES`, com faixa própria, na tarefa que lhe der a primeira política que o econômico não tem.
+
+### 2.3 A matriz já mostra o menor e o maior valor
+
+Cada célula do relatório traz o menor e o maior valor entre as 50 sementes (um número só quando são iguais) desde V2B-T4: `CellMeasure` guarda um `Range` por medida, e as tabelas da seção 1.2 já estão nesse formato. A tarefa não mudou o relatório; o que faltava era dizer quanto as sementes divergem, e é a tabela abaixo.
+
+### 2.4 Dispersão medida, em Senhor
+
+"Partidas distintas" é quantas das 50 sementes de uma célula terminam com uma linha diferente no CSV da matriz (todas as colunas, menos a semente). Entre parênteses, quantos valores diferentes a coluna assume. As outras colunas são o menor e o maior valor; a mediana do ouro mostra para que lado a célula pende. "Lobos levaram" soma comida e madeira; "Moral mínima" e "Ameaça máxima" são a menor e a maior de cada partida.
+
+| Janela | Ritmo | Perfil | Partidas distintas | População | Ouro parado | Mediana do ouro | Valores de ouro | Cartas recebidas | Incursões sofridas | Incursões repelidas | Lobos levaram | Moral mínima | Ameaça máxima |
+|---|---|---|---:|---|---|---:|---:|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 50 | 36 a 38 (3) | 3.925 a 7.497 | 7.482 | 28 | 14 | 5 a 6 | 13 a 15 | 761 a 1.270 | 50 | 78 a 100 |
+| 7 dias | Rápido 3× | Regular | 50 | 72 a 75 (4) | 113.566 a 148.487 | 128.436 | 50 | 28 | 1 a 2 | 17 a 19 | 55 a 187 | 50 | 78 a 100 |
+| 7 dias | Rápido 3× | Dedicado | 50 | 84 a 85 (2) | 284.168 a 324.539 | 309.332 | 50 | 56 a 57 | 1 | 17 a 19 | 32 a 44 | 40 a 50 | 78 a 100 |
+| 7 dias | Normal 1× | Preguiçoso | 49 | 31 a 33 (3) | 1.034 a 1.139 | 1.065 | 27 | 14 | 1 a 3 | 2 a 5 | 94 a 424 | 50 | 71 a 100 |
+| 7 dias | Normal 1× | Regular | 50 | 64 a 73 (10) | 2.348 a 23.641 | 8.967 | 50 | 21 a 23 | 1 | 4 a 5 | 28 a 47 | 40 a 50 | 71 a 100 |
+| 7 dias | Normal 1× | Dedicado | 50 | 84 (1) | 2.587 a 21.575 | 13.399 | 50 | 23 a 25 | 1 | 4 a 5 | 32 a 55 | 40 a 45 | 71 a 100 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 14 | 20 (1) | 26 a 30 | 30 | 3 | 10 | 1 a 2 | 0 a 1 | 47 a 350 | 50 | 46 a 54 |
+| 7 dias | Tranquilo 0,5× | Regular | 50 | 50 a 54 (5) | 38 a 1.044 | 518 | 48 | 10 a 14 | 1 | 0 a 1 | 32 a 55 | 40 a 45 | 46 a 54 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 50 | 60 a 65 (6) | 53 a 940 | 244 | 48 | 10 a 14 | 1 | 0 a 1 | 18 a 38 | 40 a 45 | 46 a 54 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 50 | 16 (1) | 51 a 304 | 299 | 11 | 6 | 5 a 6 | 0 a 1 | 761 a 1.270 | 50 | 66 a 100 |
+| Ano de jogo | Rápido 3× | Regular | 50 | 27 a 30 (4) | 1.870 a 3.052 | 2.176 | 48 | 10 | 1 a 2 | 3 a 5 | 55 a 187 | 50 | 66 a 100 |
+| Ano de jogo | Rápido 3× | Dedicado | 50 | 51 a 55 (5) | 1.130 a 12.964 | 8.225 | 50 | 19 a 20 | 1 | 4 a 5 | 32 a 44 | 40 a 50 | 66 a 100 |
+| Ano de jogo | Normal 1× | Preguiçoso | 49 | 31 a 33 (3) | 1.034 a 1.139 | 1.065 | 27 | 14 | 1 a 3 | 2 a 5 | 94 a 424 | 50 | 71 a 100 |
+| Ano de jogo | Normal 1× | Regular | 50 | 64 a 73 (10) | 2.348 a 23.641 | 8.967 | 50 | 21 a 23 | 1 | 4 a 5 | 28 a 47 | 40 a 50 | 71 a 100 |
+| Ano de jogo | Normal 1× | Dedicado | 50 | 84 (1) | 2.587 a 21.575 | 13.399 | 50 | 23 a 25 | 1 | 4 a 5 | 32 a 55 | 40 a 45 | 71 a 100 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 48 | 52 a 56 (5) | 160 a 3.936 | 2.714 | 22 | 21 | 1 a 2 | 3 a 5 | 47 a 350 | 50 | 71 a 100 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 50 | 84 (1) | 13.128 a 22.535 | 17.645 | 50 | 21 a 25 | 1 | 4 a 5 | 32 a 55 | 40 a 45 | 71 a 100 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 50 | 84 a 85 (2) | 23.713 a 32.471 | 28.208 | 50 | 21 a 25 | 1 | 4 a 5 | 18 a 38 | 40 a 45 | 71 a 100 |
+
+No ritmo Normal as duas janelas são a mesma partida (seção 1.2), e as linhas se repetem.
+
+O que a tabela diz:
+
+- **As sementes trabalham.** Em 14 das 18 células de Senhor as 50 partidas são todas diferentes; em três, 48 ou 49. Camponês repete esses números (14 células com 50; as outras com 14, 48, 49 e 49) e Rei de Ferro tem 16 células com 50 (as outras, 14 e 47). A exceção nas três dificuldades é a semana do Preguiçoso no ritmo Tranquilo, com **14 desfechos em 50**: em meio ano de jogo, com uma visita por dia, quase nada do que sorteia chega a pesar.
+- **Varia em toda célula:** o ouro e a comida no fim, a fila ociosa, os aldeão-horas sem ofício, a madeira desperdiçada, a maior Ameaça, as incursões repelidas e o que os lobos levaram.
+- **Não varia em nenhuma:** fome, frio, gente que foi embora, a menor população, ordens recusadas, cartas expiradas, objetivos concluídos e a hora do último. São as medidas que continuam podendo ser cobradas com um número só.
+- **O ouro parado é a medida mais larga**, e é a que a v0.3 promete baixar (seção 1.3). No Regular do ritmo Normal ele vai de 2.348 a 23.641, dez vezes, com a mediana em 8.967; no Dedicado do ritmo Rápido em 7 dias, de 284.168 a 324.539, uma amplitude de 14% do menor valor. **Uma queda do ouro depois do soldo ou do Mercado só é efeito da mecânica se a célula inteira descer**: comparar o menor, a mediana e o maior, nunca uma semente só nem só o teto que `MEASURED` guarda.
+- **A população mexe pouco:** no máximo 4 aldeões entre as sementes, fora o Regular do ritmo Normal (64 a 73, dez valores) e o Dedicado do Tranquilo em 7 dias (60 a 65).
+
+### 2.5 Limites desta medição
+
+- A mediana e a contagem de valores distintos saíram de uma conta avulsa sobre o CSV da matriz; o relatório do simulador continua trazendo só o menor e o maior. Se as Fases C a E precisarem da mediana em toda rodada, ela entra em `CellMeasure` na tarefa que precisar.
+- A tabela é de Senhor. De Camponês e Rei de Ferro ficou só a contagem de partidas distintas por célula.
+- Node v24.15.0, como a seção 1; não repetida no 22 do `.nvmrc`.
+- As colunas reservadas da Guilda estão vazias: não há nada delas a medir até as Fases C a E.
 
 ## 3. Rodadas das Fases C a G
 

@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import { identityLine } from './identity';
 import {
+  EXPLORER_PROFILE,
   formatMatrix,
   gameYearsIn,
+  KNOWN_PROFILES,
   MATRIX_SEEDS,
   matrixCsv,
   PROFILES,
@@ -40,6 +42,43 @@ describe('matriz de balanceamento: o que é jogado', () => {
     for (const profile of PROFILES) {
       expect(strategies).toHaveProperty(profile.strategy);
     }
+  });
+
+  it('o perfil explorador roda na matriz a pedido, sem faixa, e hoje mede o mesmo que o Regular (roadmap da v0.3, V3B-T2)', async () => {
+    // Fora da rodada padrão enquanto o bot for igual ao econômico: a célula seria a do Regular
+    // repetida. Quando ganhar a primeira política da Guilda, entra em PROFILES com faixa.
+    expect(PROFILES).not.toContain(EXPLORER_PROFILE);
+    expect(KNOWN_PROFILES).toEqual([...PROFILES, EXPLORER_PROFILE]);
+    expect(EXPLORER_PROFILE).toEqual({
+      id: 'explorador',
+      label: 'Explorador',
+      sessionsPerDay: 2,
+      strategy: 'explorador',
+    });
+    expect(strategies).toHaveProperty(EXPLORER_PROFILE.strategy);
+
+    const explorer = await runMatrix({ seeds, profiles: [EXPLORER_PROFILE] });
+    expect(explorer.cells.map((cell) => cell.key)).toEqual([
+      'week/3/explorador',
+      'week/1/explorador',
+      'week/0.5/explorador',
+      'year/3/explorador',
+      'year/1/explorador',
+      'year/0.5/explorador',
+    ]);
+    expect(explorer.cells.every((cell) => cell.band === null)).toBe(true);
+    expect(explorer.runs).toHaveLength(6 * seeds.length);
+    const regular = matrix.runs.filter((run) => run.profile.id === 'regular');
+    expect(explorer.runs.map((run) => run.summary)).toEqual(regular.map((run) => run.summary));
+    expect(explorer.cells.map((cell) => cell.measure)).toEqual(
+      matrix.cells.filter((cell) => cell.profile.id === 'regular').map((cell) => cell.measure),
+    );
+    const text = formatMatrix(explorer);
+    expect(text).toContain('| Explorador (2/dia, explorador) |');
+    expect(text).toContain('Nenhuma faixa definida para esta rodada.');
+    expect(matrixCsv(explorer).split('\n')[1]).toContain(
+      'week,3,explorador,explorador,2,lord,pedra-alta-001,',
+    );
   });
 
   it('a janela de 7 dias reais é a mesma em todo ritmo; a de um ano de jogo sai do calendário', () => {
@@ -346,6 +385,26 @@ describe('CSV da matriz', () => {
       'raids_repelled',
       'villagers_injured',
       'objectives_done',
+      // A Guilda (roadmap da v0.3, V3B-T2.2): reservadas, sempre depois das da v0.2.
+      'heroes',
+      'wages_paid',
+      'wage_arrears_hours',
+      'heroes_departed',
+      'expeditions_sent',
+      'outcomes_full_success',
+      'outcomes_success',
+      'outcomes_setback',
+      'outcomes_disaster',
+      'crossroads_by_player',
+      'crossroads_by_stance',
+      'hero_idle_hours',
+      'traded_food',
+      'traded_wood',
+      'traded_stone',
+      'market_volume_used_percent',
+      'caravans_sent',
+      'caravans_ambushed',
+      'masters',
     ]);
     const columns = lines[0]?.split(',').length;
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
@@ -354,7 +413,8 @@ describe('CSV da matriz', () => {
     );
     // As colunas das mecânicas: o desperdício por recurso, o frio e a moral são medidos (o
     // total, as horas e a menor moral da partida); as outras saem vazias até a tarefa de cada
-    // uma.
+    // uma. Hoje as reservadas são as da Guilda.
+    expect(RESERVED_COLUMNS).toHaveLength(19);
     const header = (lines[0] ?? '').split(',');
     for (const line of lines.slice(1)) {
       const cells = line.split(',');

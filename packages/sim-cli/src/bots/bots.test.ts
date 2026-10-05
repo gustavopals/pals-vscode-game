@@ -187,6 +187,11 @@ describe('um bot é uma lista de políticas', () => {
       ocuparLivres,
       guardarLenha,
     ]);
+    // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2) é o econômico mais as políticas da
+    // Guilda, que ainda não existem: a lista é igual, e é uma cópia, para crescer sozinha.
+    expect(strategyPolicies.explorador).toEqual(strategyPolicies.economico);
+    expect(strategyPolicies.explorador).not.toBe(strategyPolicies.economico);
+    expect(Object.keys(strategies)).toEqual(['economico', 'preguicoso', 'explorador']);
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
     const names = [
       responderCartas,
@@ -224,14 +229,17 @@ describe('um bot é uma lista de políticas', () => {
     // Um jogador sabe quando volta. No ritmo 3, dois lavradores enchem a Despensa do feudo novo
     // em menos de 6 horas reais: quem volta em 12 deixa um só; quem volta em 3 pode deixar os
     // dois. O preguiçoso decide o mínimo e não olha o relógio.
-    const farmers = async (sessionsPerDay: number) => {
+    const farmers = async (
+      sessionsPerDay: number,
+      strategy: 'economico' | 'explorador' = 'economico',
+    ) => {
       const view = fedView(freshView(3));
       const orders: Order[] = [];
       const act: Act = async (type, payload) => {
         orders.push({ type, payload });
         return view;
       };
-      await botFor('economico', sessionsPerDay)(view, act);
+      await botFor(strategy, sessionsPerDay)(view, act);
       const farm = orders.filter(
         (order) =>
           order.type === 'setWorkers' &&
@@ -241,6 +249,9 @@ describe('um bot é uma lista de políticas', () => {
     };
     expect(await farmers(2)).toBe(1);
     expect(await farmers(8)).toBe(2);
+    // O explorador também sabe quando volta: prepara a ausência como o econômico.
+    expect(await farmers(2, 'explorador')).toBe(1);
+    expect(await farmers(8, 'explorador')).toBe(2);
     expect(24 / 2).toBe(DEFAULT_AWAY_HOURS);
     expect(botFor('preguicoso', 1)).toBe(strategies.preguicoso);
     expect(botFor('preguicoso', 4)).toBe(strategies.preguicoso);
@@ -2640,6 +2651,7 @@ describe('bot honesto', () => {
   it('os bots só conhecem os tipos do motor: nunca o estado, o avanço, os sorteios nem o conteúdo', () => {
     expect(sources.map((source) => source.name).sort()).toEqual([
       'economico.ts',
+      'explorador.ts',
       'index.ts',
       'policies.ts',
       'preguicoso.ts',

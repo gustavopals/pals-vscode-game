@@ -1,7 +1,7 @@
 import { balance, DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
-import { bandFor, cellKey } from './bands';
+import { bandFor, baselineFor, cellKey } from './bands';
 import {
   MATRIX_SEEDS,
   type MatrixRun,
@@ -54,6 +54,29 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(matrix.seeds).toBe(MATRIX_SEEDS);
     expect(matrix.runs).toHaveLength(matrix.cells.length * MATRIX_SEEDS.length);
     expect(matrix.cells.flatMap((cell) => cell.violations)).toEqual([]);
+  });
+
+  it('a linha de base de Senhor confere sem folga: as 50 sementes medem exatamente o que `MEASURED` diz (roadmap da v0.3, V3B-T2.4)', () => {
+    // A faixa aceita 5% ou 10% de folga; isto, nenhuma. É o que prova que uma tarefa que não
+    // era para mexer na economia (a fundação da v0.3: identidades, fluxos por entidade, o bot
+    // explorador, as colunas reservadas) não mexeu em nenhum número medido. Quando uma mecânica
+    // muda a economia de propósito, este teste falha junto com as faixas, e a linha de base é
+    // atualizada como um golden (cabeçalho de `MEASURED`, em bands.ts).
+    for (const cell of matrix.cells) {
+      const { villagers, townHall, famineHours, coldHours, surplus, wasteStreakWorst } =
+        cell.measure;
+      expect(
+        {
+          villagers,
+          townHall: townHall.min,
+          famineHours: famineHours.max,
+          coldHours: coldHours.max,
+          surplus: { wood: surplus.wood.max, stone: surplus.stone.max, gold: surplus.gold.max },
+          wasteStreak: wasteStreakWorst.max,
+        },
+        cell.key,
+      ).toEqual(baselineFor(cell.key));
+    }
   });
 
   it.each(['peasant', 'ironKing'] as const)(

@@ -55,13 +55,16 @@ export const economicoPolicies: readonly Policy[] = [
 export const economico = botOf(economicoPolicies);
 
 /**
- * O bot econômico de quem volta em `awayHours` horas reais: as mesmas políticas, com a alocação
- * arrumando o feudo para esse prazo (um jogador sabe quando volta).
+ * As políticas de `policies` para quem volta em `awayHours` horas reais: as mesmas, na mesma
+ * ordem, com a alocação arrumando o feudo para esse prazo (um jogador sabe quando volta).
  */
-export function economicoFor(awayHours: number): Bot {
-  return botOf(
-    economicoPolicies.map((policy) =>
-      policy === alocarPorDemanda ? alocarPorDemandaFor(awayHours) : policy,
-    ),
+export function preparedFor(policies: readonly Policy[], awayHours: number): readonly Policy[] {
+  return policies.map((policy) =>
+    policy === alocarPorDemanda ? alocarPorDemandaFor(awayHours) : policy,
   );
+}
+
+/** O bot econômico de quem volta em `awayHours` horas reais. */
+export function economicoFor(awayHours: number): Bot {
+  return botOf(preparedFor(economicoPolicies, awayHours));
 }

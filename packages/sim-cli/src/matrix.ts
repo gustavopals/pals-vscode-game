@@ -29,7 +29,7 @@ export const MATRIX_SEEDS: readonly string[] = Array.from(
 );
 
 export type Profile = {
-  readonly id: 'preguicoso' | 'regular' | 'dedicado';
+  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador';
   readonly label: string;
   /** Visitas por dia real, a intervalos iguais, a primeira na criação da partida. */
   readonly sessionsPerDay: number;
@@ -43,6 +43,24 @@ export const PROFILES: readonly Profile[] = [
   { id: 'dedicado', label: 'Dedicado', sessionsPerDay: 4, strategy: 'economico' },
 ];
 export type ProfileId = Profile['id'];
+
+/**
+ * O perfil da Guilda (GDD §15.3): 2 sessões por dia, como o Regular, com o bot `explorador`.
+ * **Fica fora de `PROFILES`** enquanto o explorador for igual ao econômico (roadmap da v0.3,
+ * V3B-T2): a célula dele seria a do Regular repetida, e a matriz do `pnpm test` cresceria um
+ * terço sem medir nada novo. Roda a pedido (`MatrixOptions.profiles`, `--matrix --profile
+ * explorador`), sem faixa. Entra em `PROFILES`, com faixa própria, na tarefa que der ao
+ * explorador a primeira política que o econômico não tem.
+ */
+export const EXPLORER_PROFILE: Profile = {
+  id: 'explorador',
+  label: 'Explorador',
+  sessionsPerDay: 2,
+  strategy: 'explorador',
+};
+
+/** Todo perfil que a matriz sabe jogar: os de sempre e os que só rodam a pedido. */
+export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, EXPLORER_PROFILE];
 
 /**
  * As duas janelas de medida. Não se comparam entre si: em 7 dias reais o ritmo 3 atravessa três
@@ -170,6 +188,8 @@ export type MatrixOptions = {
   difficulty?: DifficultyId;
   /** Ritmos da rodada; o padrão são os que o conteúdo oferece. */
   timeScales?: readonly number[];
+  /** Perfis da rodada; o padrão são os três de `PROFILES`. */
+  profiles?: readonly Profile[];
 };
 
 export type MatrixResult = {
@@ -297,6 +317,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
   const seeds = options.seeds ?? MATRIX_SEEDS;
   const difficulty = options.difficulty ?? 'lord';
   const timeScales = options.timeScales ?? balance.paces.map((pace) => pace.timeScale);
+  const profiles = options.profiles ?? PROFILES;
   const played = new Map<string, Summary>();
   const runs: MatrixRun[] = [];
   const cells: MatrixCell[] = [];
@@ -304,7 +325,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
   for (const window of WINDOWS) {
     for (const timeScale of timeScales) {
       const realHours = windowRealHours(window.id, timeScale);
-      for (const profile of PROFILES) {
+      for (const profile of profiles) {
         const summaries: Summary[] = [];
         for (const seed of seeds) {
           const id = `${timeScale}/${profile.id}/${realHours}/${seed}`;
