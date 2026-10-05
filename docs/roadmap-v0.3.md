@@ -1,16 +1,27 @@
 # Lords of the Guild — Roadmap da v0.3 "Guilda"
 
-> **Status:** plano **proposto**, escrito em 2026-10-02 por um agente, sem o autor, enquanto a v0.2 ainda era implementada. **Nenhuma tarefa foi executada e nenhuma decisão da §9 foi respondida.** É a entrega da tarefa V2F-T5 do [roadmap da v0.2](roadmap-v0.2.md), feita antes do fechamento da v0.2: por isso a seção de lições (§11) tem um espaço marcado para preencher depois, e a primeira tarefa (V3A-T1) confere no código tudo o que este plano presumiu.\
-> **Versão do documento:** 0.1 (2026-10-02)\
+> **Status:** plano **proposto, pronto para começar**. Escrito em 2026-10-02 por um agente, sem o autor, com a v0.2 pela metade (é a entrega da tarefa V2F-T5 do [roadmap da v0.2](roadmap-v0.2.md)), e **revisado duas vezes em 2026-10-05 contra o código**: de manhã, com a Fase G da v0.2 em curso, e à tarde, com ela fechada e publicada ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)). **Nenhuma tarefa da v0.3 foi concluída e nenhuma das decisões de regra da §9 (1 a 21) foi respondida.** A primeira tarefa, V3A-T1, está começada: as subtarefas de conferência (1 a 5) foram feitas na revisão da tarde, por leitura; faltam o portão, a linha de base e a caixa de entrada do autor\
+> **Versão do documento:** 0.3 (2026-10-05, depois da Fase G da v0.2); a 0.2 é da manhã do mesmo dia e a 0.1, de 2026-10-02\
 > **Base:** [GAME_DESIGN.md](../GAME_DESIGN.md) v0.7: §16 (linha da v0.3), §16.2 (critérios da v0.3), §18.2 ("§9 completo, §5.9"), §14 (contrato de arquitetura), §15.1 (regras de diversão)\
-> **Vem de:** [roadmap-v0.2.md](roadmap-v0.2.md), tarefa V2F-T5; ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md) e [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md); [pendencias-v0.2.md](pendencias-v0.2.md)\
-> **Árvore em que foi escrito:** commit `e3d478e`, com a Fase B da v0.2 concluída e revisada e as Fases C a F em andamento em outras árvores. O que este plano diz das mecânicas da v0.2 (estações, caps, moral, Conselho, Ameaça) vem dos ADRs 0013 e 0014 e do Apêndice B do roadmap da v0.2, **não do código**\
+> **Vem de:** [roadmap-v0.2.md](roadmap-v0.2.md), tarefa V2F-T5; ADRs [0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), [0014](decisions/0014-conselho-e-ameaca-na-v0.2.md), [0015](decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md) e [0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md); [pendencias-v0.2.md](pendencias-v0.2.md)\
+> **Árvore conferida:** commit `6788c41` (`main` igual a `origin/main`), com a Fase G da v0.2 inteira: **estado na versão 12**, protocolo 2, três fluxos de sorteio, 21 cartas (sete reescritas, sem mudar id). A produção roda esse commit desde 2026-10-05, 16:17 UTC (`GET /v1/version`: `protocol: 2`, `contentHash` `cea08e6e14163458`). O que este plano diz das mecânicas da v0.2 foi conferido no código (Apêndice B.0)\
 > **Forma de trabalho:** desenvolvimento 100% com Claude Code, uma tarefa por sessão; o autor decide regras, aprova conteúdo e joga cada fase antes da seguinte\
 > **Idioma:** português (Brasil); identificadores de código em inglês
 
-Revisar este plano não conclui tarefas nem aprova regras. As premissas da §9 são **propostas**: viram regra quando o autor responder (sessões V3A-T2 e V3D-T0) ou, se ele pedir de novo uma execução sem ele, quando forem aplicadas por delegação e registradas como tal (§0.6). Onde este roadmap e um ADR divergirem, vale o ADR. Onde este roadmap e o código da v0.2 divergirem, vale o código, e este documento é corrigido em V3A-T1.
+Revisar este plano não conclui tarefas nem aprova regras. As premissas da §9 são **propostas**: viram regra quando o autor responder (sessões V3A-T2 e V3D-T0) ou, se ele pedir uma execução sem ele, quando forem aplicadas por delegação e registradas como tal (§0.6). Onde este roadmap e um ADR divergirem, vale o ADR. Onde este roadmap e o código divergirem, vale o código, e este documento é corrigido na tarefa que achar a diferença.
 
-**Leia primeiro:** §0.2 (o que o jogador vai sentir), §0.3 (como o plano está organizado), §0.8 (como a v0.3 chega à produção), §9 (decisões e premissas) e §11 (o que a v0.2 ensinou). Para executar uma tarefa, leia a tarefa, o Apêndice B (nomes e contratos propostos) e a matriz da §8.
+**Leia primeiro:** §0.2 (o que o jogador vai sentir), §0.3 (como o plano está organizado), §0.8 (como a v0.3 chega à produção), §9 (decisões e premissas) e §11.5 (o que mudou desde que o plano foi escrito). Para executar uma tarefa, leia a tarefa, o Apêndice B (o mapa do que existe e os nomes propostos) e a matriz da §8.
+
+**O que as duas revisões de 2026-10-05 mudaram em relação à 0.1:**
+
+- **Caminhos e contratos conferidos no código.** A versão 0.1 marcava com a cruz (†) os arquivos que a v0.2 ainda ia criar. Todos existem com o nome previsto; a marca saiu, e o Apêndice B.0 virou o mapa do que a v0.2 construiu, com o que cada tarefa da v0.3 encontra.
+- **Os ADRs da v0.3 passam a ser 0017 e 0018.** Os números 0015 e 0016 foram usados pela v0.2.
+- **A produção mudou** (§0.8, §10.2): a v0.2 está no ar com a Fase G, há pessoas jogando, e o estado em produção está na versão 12. O primeiro passo de migração da v0.3 é o 12 → 13.
+- **O protocolo 3 é certo em V3D-T1:** `pendingDecisions` é uma lista fechada no protocolo 2 (§0.7).
+- **A carta roteirizada já funciona no motor:** V3C-T3 escreve a carta e o efeito `addHero`; o passo de migração não precisa agendar nada.
+- **A recomendação da decisão 3 mudou:** os prazos do soldo em atraso em tempo real e cobrados na virada do dia, no mesmo desenho que a deserção por fome ganhou na Fase G (ADR 0016; V2G-T2). As decisões 1, 2, 6 e 14 foram ajustadas aos números e ao motor de hoje; a 22 foi respondida.
+- **V3A-T1 encolheu e já começou:** a conferência dos caminhos, das versões, dos contratos e dos retratos está feita (subtarefas 1 a 5); ficam o portão, a linha de base do simulador, os tamanhos e a caixa de entrada do autor.
+- **§11.5 é nova:** o que os quatro primeiros dias de jogo em produção e as respostas do autor ensinam à v0.3.
 
 ## Índice
 
@@ -66,7 +77,7 @@ Os critérios de aceitação são os cinco da §16.2:
 | Reparo de equipamentos no Ferreiro (§6.1) | Equipamento não se desgasta na v0.3 | 15 |
 | Clériga cura, auras de comandante, Mago contra mortos-vivos (§9.1) | Classe conta só no que a v0.3 usa: poder, requisito de nó, opção de carta | 7 |
 
-A v0.3 também herda o que a v0.2 deixar por fazer. Na data deste plano isso inclui: nada publicado, nenhuma decisão confirmada pelo autor, nenhum playtest com outras pessoas (§10 e §11).
+A v0.3 também herda o que a v0.2 deixou por fazer. A Fase G da v0.2 fechou em 2026-10-05; o que resta é do autor ou de pessoas: o backup fora do servidor, a cópia do `RECOVERY_CODE_SECRET`, o ensaio de reversão, a evidência manual por critério de aceitação e um playtest estruturado (§10 e §11.5). O autor também deixou para esta versão, de propósito, o **ouro sem destino no fim da semana** (pendência C-5 da v0.2; ADR 0016): a Taverna, o soldo e o Mercado são a resposta, e o simulador mede se foi (§8.3, "Ouro com destino").
 
 ### 0.2 O que o jogador vai sentir
 
@@ -127,7 +138,7 @@ Os tamanhos são complexidade relativa, não prazo. O documento não estima dura
 
 | Fase | Entrega jogável | Tarefas |
 |---|---|---|
-| A — Herança e decisões | Este plano conferido contra o código; linha de base medida; lote 1 de decisões | V3A-T1, V3A-T2 |
+| A — Herança e decisões | Linha de base medida com a v0.2 fechada; caixa de entrada do autor; lote 1 de decisões | V3A-T1, V3A-T2 |
 | B — Fundação | Sorteio por expedição e por caravana, identidades determinísticas, simulador pronto | V3B-T1 a V3B-T3 |
 | C — Heróis e Taverna | Receber o primeiro herói pela carta, pagar soldo, contratar e dispensar | V3C-T1 a V3C-T5 |
 | D — Expedições | Enviar uma equipe, decidir na encruzilhada (ou deixar a Postura), ler o relatório | V3D-T0 a V3D-T5 |
@@ -154,7 +165,7 @@ A ──► B ──► C ──► D ──► E ──► F ──► G
 
 1. **Abrir a sessão** com o prompt da tarefa (ou o modelo do Apêndice A). O prompt pede para ler `CLAUDE.md`, as seções do GDD indicadas, a tarefa, o Apêndice B e as premissas da §9 que a tarefa consome.
 2. **Conferir as decisões.** Se uma decisão que a tarefa consome ainda não tem ADR, o agente **para e pergunta**, com a premissa recomendada da §9 como padrão. Só segue sem resposta se o autor tiver pedido a execução por delegação (§0.6).
-3. **Conferir os caminhos marcados com †** (§0.9) antes de planejar: são arquivos da v0.2 que não existiam quando este plano foi escrito.
+3. **Conferir o mapa de arquivos** (Apêndice B.0) antes de planejar. Ele foi conferido no commit `6788c41`; o que as tarefas anteriores da v0.3 mudaram depois vale mais que ele, e a diferença achada é corrigida no apêndice.
 4. **Plano aprovado antes de codar** em tarefas `M` e `L`. O plano lista arquivos, nomes (eventos, códigos de recusa, campos do `ViewState`), o passo de migração e os testes, nessa ordem.
 5. **Testes primeiro** onde houver regra de jogo ou contrato de API. Para o motor: unidade, propriedade de divisão de intervalo e golden; para o servidor: integração; para o app: unidade sem DOM e navegador.
 6. **Mostrar a mecânica ao autor cedo.** Em tarefas com interface, a primeira versão funcional (um herói na lista, uma encruzilhada, um preço) é apresentada antes de a tela ficar completa.
@@ -183,6 +194,7 @@ Vale para cada tarefa das Fases C a F (GDD §18.3). Uma mecânica só está pron
 - **explicação do número** no `ViewState` (o `breakdown` que o jogador lê ao perguntar "por que este valor?"), calculada no motor, já em tempo real quando for prazo ou taxa;
 - **teste**: unidade do instante exato, propriedade de divisão de intervalo ainda exata (estado, eventos **e** fluxos de sorteio, inclusive os que nascem e morrem no caminho), golden regravado de propósito com `UPDATE_GOLDEN=1` e diff conferido, um ritmo diferente de 1, e um teste em navegador quando houver interface;
 - **política no bot do simulador** que usa a mecânica só com o `ViewState` (ou um registro de por que não usa);
+- **nível alcançável**: todo nível vendido de um edifício novo tem custo que cabe no depósito nas três dificuldades, ou o teto é dito na tela. Na v0.2 o Salão Nv8 ficou fora de alcance em Senhor por 2 de madeira, e só o autor jogando achou (pendência C-1; §11.5, lição 25);
 - **GDD atualizado** se a regra mudou, no mesmo commit.
 
 ### 0.6 O que o agente não decide, e como as decisões se fecham
@@ -193,10 +205,14 @@ As decisões fecham em **dois lotes**, cada um em uma sessão própria:
 
 | Lote | Tarefa | Decisões | Resultado |
 |---|---|---|---|
-| 1 — Heróis, Taverna e fundação | V3A-T2 | 1 a 10 | **novo** `docs/decisions/0015-regras-da-v0.3-herois-taverna-e-soldo.md` |
-| 2 — Expedições, Mercado, Mestres e cartas | V3D-T0 | 11 a 21 | **novo** `docs/decisions/0016-expedicoes-mercado-mestres-e-cartas-na-v0.3.md` |
+| 1 — Heróis, Taverna e fundação | V3A-T2 | 1 a 10 | **novo** `docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md` |
+| 2 — Expedições, Mercado, Mestres e cartas | V3D-T0 | 11 a 21 | **novo** `docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md` |
 
-As decisões 22, 23 e 24 são atos do autor e não bloqueiam tarefa nenhuma, com uma exceção: a 23 (operação) bloqueia a chegada de qualquer migração de estado à produção.
+Os números 0015 e 0016, que a versão 0.1 deste plano reservava, foram usados pela v0.2 (a Crônica sem o fecho diário do desperdício e as respostas do autor às pendências). Se outro ADR entrar antes, vale o próximo número livre, e as tarefas são corrigidas.
+
+A decisão 22 foi respondida em 2026-10-05 ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)). A 23 e a 24 são atos do autor e não bloqueiam tarefa nenhuma, com uma exceção: a 23 (operação) bloqueia a chegada de qualquer migração de estado à produção.
+
+**O formato da sessão.** As pendências da v0.2 fecharam em 2026-10-05 em quatro rodadas curtas de perguntas, das que mudam o jogo de quem já joga para as de apresentação, cada pergunta com opções e uma recomendação. Funcionou, e é o formato de V3A-T2 e V3D-T0: perguntas com opções, a recomendada primeiro, poucas por rodada. O autor não recebe um documento longo para ler antes; o documento (`docs/pendencias-v0.3.md`, o ADR) é o registro do que ele respondeu.
 
 **Se o autor não estiver.** Na v0.2 as duas sessões não aconteceram: o autor pediu a versão inteira sem ele, e as premissas foram aplicadas por delegação. Isso só vale quando ele pede. Se pedir de novo, o procedimento é o que a v0.2 usou e que funcionou: aplicar a premissa recomendada, registrar o ADR com o estado "aplicada por delegação; aguarda confirmação", escrever uma linha por decisão em **novo** `docs/pendencias-v0.3.md` e não publicar nada. O agente não preenche a resposta do autor por suposição em nenhum outro caso, nem pergunta de novo o que já está registrado.
 
@@ -206,14 +222,14 @@ Os onze contratos da [§0.7 do roadmap da v0.2](roadmap-v0.2.md) continuam valen
 
 | Contrato | O que a v0.3 acrescenta |
 |---|---|
-| **Relógios explícitos** | Segunda constante de tempo real do jogo: a espera da encruzilhada (`crossroadsWaitRealMs`, 6 h), convertida com `settings.timeScale` no instante em que a equipe chega ao nó, como a expiração da carta. Todo o resto é tempo de jogo e termina em `Ms`: soldo, atraso, ferimento, rotação da Taverna, festival, duração dos nós, viagem da caravana, dia do Mercado (premissa 1) |
+| **Relógios explícitos** | O motor continua em tempo de jogo, e todo campo de prazo termina em `Ms`. As constantes de **tempo real** são poucas e nomeadas (`…RealMs`), e entram no motor por uma função só, `realToGameMs(realMs, timeScale)` (`packages/engine/src/units.ts`). Depois da Fase G da v0.2 são cinco: a resposta de uma carta (`council.expiryRealMs`, 24 h); a carência e o passo da deserção por fome (`famineDesertionAfterRealMs`, 12 h, e `famineDesertionEveryRealMs`, 2 h); a janela da fome que reabre (`famineResumeWithinRealMs`, 2 h); e o aviso da Torre de Vigia (`watchtowerLevels[].warningRealMs`, 1 h e 2 h). A v0.3 acrescenta a espera da encruzilhada (`crossroadsWaitRealMs`, 6 h, convertida quando a equipe chega ao nó) e, pela recomendação da decisão 3, os prazos do soldo em atraso. Todo o resto é tempo de jogo e escala com o ritmo: o soldo por hora, o ferimento, a rotação da Taverna, o festival, a duração dos nós, a viagem da caravana, o dia do Mercado (premissa 1) |
 | **Fronteira da atualização** | Cada passo de migração da v0.3 conta os seus prazos de `context.boundaryMs`, nunca de `state.migratedAtMs`: a primeira rotação da Taverna, a carta da estrangeira em partidas que já passaram do dia 13, o primeiro preço do Mercado. O que o passo decide fica gravado no campo que ele criou ([README do motor](../packages/engine/README.md), "A fronteira é de cada passo") |
-| **Eventos no mesmo instante** | A ordem fixa de `processEventsAt` ([ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md)) ganha os passos da v0.3. Proposta, a confirmar em cada tarefa: obras concluídas → aldeões e Mestres que chegam → ano → estação → dia (experiência do ofício, moral, sorteios da moral, **preços e volume do Mercado**, Conselho, Ameaça) → cartas que expiram e continuações → incursões → feridos que se recuperam → **heróis que se recuperam** → **rotação da Taverna** → **nós de expedição que terminam e prazos de encruzilhada**, por ordem de identificador da expedição → **caravanas que chegam**, por ordem de identificador → fim de adaptação → início automático → objetivos → fome, frio e **soldo em atraso** |
+| **Eventos no mesmo instante** | A ordem fixa de `processEventsAt` (`packages/engine/src/advance.ts`, conferida em `6788c41`; a Fase G não a mudou) é: obras concluídas (`finishConstructions`) → aldeões que chegam (`finishRecruitments`, depois `recoverInjured`) → virada do dia (`processCalendar`: fecho do desperdício, ano, estação, amanhecer, experiência do ofício, moral com os sorteios dela, sorteio do Conselho, Ameaça) → Conselho fora do sorteio (`settleCouncil`: expirações, efeitos escondidos, continuações) → fim de adaptação → incursões (`settleRaids`) → planejadas automáticas e objetivos (`settlePlanned`) → fome e frio (`settleScarcity`); depois, `announceFilled`. **Proposta para os passos da v0.3, a confirmar em cada tarefa, com teste do instante exato e a razão escrita no README do motor:** Mestres que chegam junto dos aldeões; **heróis que se recuperam** logo depois dos feridos que saram; **preços e volume do Mercado** dentro da virada do dia, depois da moral e antes do sorteio do Conselho; **efeito de carta com sorteio** junto dos efeitos escondidos; depois das incursões, **rotação da Taverna**, **nós de expedição que terminam e prazos de encruzilhada** (por ordem de identificador da expedição) e **caravanas que chegam** (por ordem de identificador); o **soldo em atraso** abre e fecha em `settleScarcity`, com a fome e o frio; e as consequências dele (Descontente, herói que parte) são cobradas na virada do dia, logo depois da deserção por fome, se a decisão 3 ficar como recomendada. A carta roteirizada não pede passo novo: já sai no sorteio do Conselho, na frente das sorteadas |
 | **Simulação que termina** | Grafos de expedição são acíclicos e têm saída (teste de conteúdo); o soldo em atraso abre e fecha em instantes exatos sem oscilar quando ouro chega e sai no mesmo instante; o Mercado não tem ordem automática, então não encadeia |
 | **Consistência numérica** | Atributos, poder, dificuldade, preço e experiência em inteiros; fatores em `{ num, den }`; **um arredondamento para baixo no fim** de cada conta (ADR 0013, 13a); comparações por multiplicação cruzada, sem divisão (premissa 7). O preço é guardado em milésimos de ouro por unidade |
 | **Reenvio de comando** | Contratar, dispensar, enviar expedição, escolher caminho, equipar, negociar e enviar caravana passam pelo recibo transacional de `packages/server/src/games/commands.ts`. Duplo clique e duas abas não contratam, não vendem e não enviam duas vezes |
 | **Visão e privacidade narrativa** | Nunca saem do servidor: a dificuldade e o conteúdo dos nós depois de uma encruzilhada ainda não alcançada, o estado dos fluxos de sorteio, os candidatos da próxima rotação, o preço de amanhã, o desfecho de uma caravana antes da chegada, efeitos ocultos de carta. O nome de uma flag e o identificador de um nó não são texto de interface |
-| **Compatibilidade** | O `ViewState` cresce por adição. Se `pendingDecisions` for uma união fechada no protocolo 2 (conferir em V3A-T1), a encruzilhada como decisão pendente quebra o parse do app antigo: nessa tarefa (V3D-T1) o `protocol` passa a **3** e o servidor responde `426 UPGRADE_REQUIRED` a um cliente anterior. Recibos antigos nunca são reescritos; o cache local de outra versão é descartado, mas o cursor e a última visita continuam valendo (§11.1, lição 10) |
+| **Compatibilidade** | O `ViewState` cresce por adição, e adição não sobe o protocolo: em produção o SDK não valida as respostas, e o app valida só o cache (`ViewStateSchema` é fechado na raiz, então a visão guardada por uma versão anterior do app é descartada a cada campo novo; o cursor e a última visita continuam valendo, §11.1, lição 10). **A encruzilhada sobe o protocolo, e isso está conferido:** `pendingDecisions` é uma lista fechada (`PendingDecisionSchema`, com `kind: z.literal('card')`, e um teste em `packages/protocol/src/protocol.test.ts` que recusa `kind: 'crossroads'`). Em V3D-T1 o `protocol` passa a **3** e o servidor responde `426 UPGRADE_REQUIRED` a um cliente anterior (`packages/server/src/plugins/errors.ts` compara `X-Lords-Protocol`), como na passagem para o 2. Recibos antigos nunca são reescritos |
 | **Relatório confiável** | O relatório de expedição é montado no motor, nó a nó, e viaja no estado e na visão enquanto a expedição existe e por um número limitado de relatórios depois. O Retorno agrupa eventos com totais vindos do motor; soldo pago e ouro de venda não são "produção" |
 | **Conteúdo como dados** | Classes, traços, nomes, modelos de candidato, itens, grafos, preços-base e textos de nó em `content`, com identificadores estáveis. O teste de conteúdo confere: grafo acíclico e com saída, três variantes por modelo, toda encruzilhada com a opção de cada Postura, a da Cautelosa sem requisito, todo nó com desfecho de Desastre marcado |
 | **Descoberta gradual** | Taverna, Mercado e Guilda aparecem com o Salão Nv3 e um objetivo que os explica. Um destino de expedição só aparece quando foi descoberto. Nada da v0.4 aparece, nem desligado |
@@ -224,17 +240,19 @@ Os onze contratos da [§0.7 do roadmap da v0.2](roadmap-v0.2.md) continuam valen
 
 ### 0.8 Como a v0.3 chega à produção
 
-Na data deste plano a v0.2 está inteira no `main` **local**, sem `push`, e a produção roda a `v0.1.0`. A primeira publicação da v0.2 vai em dois passos ([deploy/README.md](../deploy/README.md), "A primeira publicação da v0.2 vai em dois passos"), e é ato do autor.
+**De onde se parte (2026-10-05, à tarde).** A v0.2 está inteira em produção: as Fases A a E desde 2026-10-02 e 2026-10-03, e a Fase G desde 2026-10-05, 16:17 UTC (`GET /v1/version`: `protocol: 2`, `contentHash` `cea08e6e14163458`). O `main` é igual a `origin/main` (commit `6788c41`). **O estado está na versão 12**, e as partidas migram na primeira leitura ou no job de avanço. **Há outras pessoas jogando** (ADR 0016). A publicação da Fase G foi precedida de um backup manual do banco, com o commit anterior anotado como ponto de retorno ([roadmap da v0.2](roadmap-v0.2.md), §11, linha "Lançamento da v0.2.0"): é o procedimento que a v0.3 repete. Não há backup fora do servidor, e a reversão atravessando uma migração de estado nunca foi ensaiada com imagens ([deploy/README.md](../deploy/README.md), "Ensaios de reversão").
 
 **Premissa recomendada (decisão 2):**
 
-- **A v0.3 só sobe a versão do estado depois de a v0.2 estar publicada e migrada.** Empilhar versões de estado que nunca foram à produção repete o problema que a v0.2 criou: a produção saltaria várias versões de uma vez, sem imagem de reversão que as entenda. A Fase A não muda o estado e pode começar antes.
+- **A v0.3 só sobe a versão do estado sobre a v0.2 publicada e migrada.** A condição está cumprida desde 2026-10-05: o primeiro passo de migração da v0.3 (V3B-T1) é o 12 → 13. A regra continua valendo entre as fases da v0.3: uma fase não sobe o estado em cima de outra que ainda não foi à produção, para a produção nunca saltar várias versões de uma vez sem imagem de reversão que as entenda.
+- **Commit e `push` são atos separados.** Com pessoas jogando, vale para a v0.3 o regime que o autor fixou para a Fase G da v0.2: um commit local por tarefa, com o portão verde; **`push` só quando o autor mandar**. Todo `push` no `main` com a CI verde é implantado sozinho: dar `push` é publicar. Do `push` ao ar são cerca de 8 minutos e meio (4 e meio de CI, 4 de deploy).
 - **Fases A e B:** cada tarefa é um commit no `main`. A Fase B sobe a versão do estado sem mudar regra (entram só os contadores de identidade), e por isso pode ser publicada sozinha.
 - **Fases C a F:** cada fase vive em um branch (`v3c-herois`, `v3d-expedicoes`, `v3e-mercado`, `v3f-conselho`) aberto como *pull request* desde o primeiro commit. O autor joga a fase no computador dele (`pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web`) e ela é mesclada no `main`, e portanto publicada, **quando ele jogou e aprovou**.
 - **Fase G:** no `main`.
-- **Todo deploy que sobe a versão do estado** segue "Antes de um deploy que sobe a versão do estado" do `deploy/README.md`: backup conferido, cópia fora do servidor, SHA anotado. A partir da V2B-T1 a imagem anterior **recusa** um estado de versão futura com `500` e não grava nada: a janela da troca de contêiner vira um erro passageiro, não corrupção. Conferir em V3A-T1 que a imagem no ar já é dessa geração.
+- **Todo deploy que sobe a versão do estado** segue "Antes de um deploy que sobe a versão do estado" do `deploy/README.md`: backup conferido, cópia fora do servidor, SHA anotado. A imagem no ar **recusa** um estado de versão futura com `500` e não grava nada: a janela da troca de contêiner vira um erro passageiro, não corrupção. A imagem da `v0.1.0` nunca é destino de reversão.
+- **Uma migração chega a partidas vivas.** Cada passo da v0.3 encontra feudos em andamento, de pessoas que não leram plano nenhum. O que um passo dá, tira ou marca para depois é decisão de regra, e não detalhe de implementação (o passo 11 → 12 da Fase G é o modelo: ninguém saiu do feudo em bloco na primeira virada por causa da regra nova); a nota de versão diz o que muda para quem já joga (V3G-T4.4).
 
-Se o autor pedir de novo tudo no `main` local sem `push`, vale o pedido, e a consequência fica escrita em `docs/pendencias-v0.3.md`: a publicação seguinte volta a ser em passos, um por fase que sobe o estado.
+Se o autor pedir tudo no `main` local sem `push` até o fim da versão, vale o pedido, e a consequência fica escrita em `docs/pendencias-v0.3.md`: a publicação seguinte vai em passos, um por fase que sobe o estado.
 
 O `main` continua sempre verde. "Um commit por tarefa" vale dentro do branch de fase. Uma correção de revisão é um commit por defeito, com o defeito no título, como a v0.2 fez na Fase B.
 
@@ -264,8 +282,9 @@ As suítes que usam o banco apagam dados: só `db_test`, nunca a URL de produç�
 **Marcas nos caminhos de arquivo:**
 
 - **novo**: entregável da tarefa; o arquivo não existe.
-- **†**: arquivo que a v0.2 previa (roadmap da v0.2, Apêndice B e entregáveis das Fases C a E) e que **não existia na árvore em que este plano foi escrito** (commit `e3d478e`). **Conferir no código ao abrir a v0.3**: o nome, o lugar e a forma podem ter mudado. V3A-T1 substitui cada † pelo caminho encontrado.
-- Sem marca: o arquivo existia em `e3d478e`.
+- Sem marca: o arquivo existe no commit `6788c41`.
+
+A versão 0.1 deste plano marcava com a cruz (†) os arquivos que a v0.2 previa e que ainda não existiam na árvore em que ela foi escrita. Todos foram conferidos nesta revisão e existem com o nome previsto; a marca saiu. O Apêndice B.0 guarda o que a v0.2 construiu em volta deles (o Conselho, por exemplo, são três arquivos no motor: regras, sorteio e visão).
 
 As subtarefas descrevem comportamento a provar e propõem nomes (Apêndice B); a tarefa pode mudar um nome, desde que atualize o apêndice.
 
@@ -273,61 +292,54 @@ As subtarefas descrevem comportamento a provar e propõem nomes (Apêndice B); a
 
 ## 1. Fase A — Herança e decisões
 
-**Meta da fase:** antes de qualquer código da v0.3, saber o que a v0.2 entregou de verdade, medir de onde se parte e fechar com o autor as decisões que travam as Fases B e C.
+**Meta da fase:** antes de qualquer código da v0.3, medir de onde se parte com a v0.2 inteira e fechar com o autor as decisões que travam as Fases B e C.
 
-Por que primeiro: este plano foi escrito com a v0.2 pela metade (§11). Ele descreve estações, caps, moral, Conselho e Ameaça pelo que os ADRs 0013 e 0014 decidiram, e cita arquivos que ainda não existiam. Uma tarefa que partisse dele sem conferir construiria sobre nomes errados.
+Por que primeiro: a v0.2 só fechou em 2026-10-05, com a Fase G, e ninguém mediu a linha de base depois dela. Sem essa régua não há como dizer, no fim, se a Guilda deu destino ao ouro e ao estoque parado. E as Fases B e C não começam sem as decisões 1 a 10.
 
-### V3A-T1 · Conferência da herança da v0.2 e linha de base `M`
+### V3A-T1 · Herança da v0.2, linha de base e caixa de entrada `M`
 
-**Esta é a primeira tarefa da v0.3.** Está detalhada para abrir a sessão seguinte sem outra preparação.
+**Esta é a primeira tarefa da v0.3, e está começada.** As subtarefas 1 a 5 (a conferência) foram feitas na revisão 0.3 deste documento, por leitura do código no commit `6788c41`. A sessão que abrir a tarefa começa pela subtarefa 6.
 
-**Objetivo:** corrigir este roadmap contra o código da v0.2, medir a linha de base da v0.3 e abrir a caixa de entrada do autor.
+**Objetivo:** medir a linha de base da v0.3 com a v0.2 fechada e abrir a caixa de entrada do autor.
 **GDD:** §14.3, §14.11, §15.2 a §15.4, §16.2.
-**Depende de:** as Fases C a E da v0.2 no `main`, com o portão verde. O ideal é a v0.2 fechada (V2F-T4); se não estiver, a tarefa roda assim mesmo e registra o que falta.
-**Decisões:** nenhuma. A tarefa não muda regra nem código de jogo. Ela só **registra** o estado da decisão 22 (confirmações pendentes da v0.2).
+**Depende de:** a Fase G da v0.2 fechada e publicada. **Cumprido em 2026-10-05** (commit `6788c41`).
+**Decisões:** nenhuma. A tarefa não muda regra nem código de jogo. Ela só **registra** o estado das decisões 22 a 24.
 **Trilha:** documentos.
 
 **Arquivos:**
 
 | Arquivo | O que a tarefa faz |
 |---|---|
-| `docs/roadmap-v0.3.md` (este) | Troca cada † pelo caminho encontrado; corrige o Apêndice B.0 (o que a v0.2 entregou); preenche §11.3; revisa §10; preenche a linha V3A-T1 do §12 |
+| `docs/roadmap-v0.3.md` (este) | Revisa a §10; completa a §11.5 se a linha de base mostrar algo novo; marca as caixas; preenche a linha V3A-T1 do §12 |
 | **novo** `docs/balance-v0.3.md` | Seção 1: linha de base da v0.2 (simulador, tamanhos, custo do avanço), no formato de [balance-v0.2.md](balance-v0.2.md) |
-| **novo** `docs/pendencias-v0.3.md` | Caixa de entrada do autor, no formato de [pendencias-v0.2.md](pendencias-v0.2.md): o que continua pendente da v0.2, as decisões 1 a 21 deste roadmap como "a decidir" e os atos 22 a 24 do autor |
-| `packages/` | **Nada.** Se a conferência achar um defeito, ele vira achado no Registro e uma tarefa de correção, não uma mudança escondida aqui |
+| **novo** `docs/pendencias-v0.3.md` | Caixa de entrada do autor, no formato de [pendencias-v0.2.md](pendencias-v0.2.md): o que continua pendente da v0.2, as decisões 1 a 21 deste roadmap como "a decidir" e os atos 23 e 24 do autor |
+| `packages/` | **Nada.** Se a tarefa achar um defeito, ele vira achado no Registro e uma tarefa de correção, não uma mudança escondida aqui |
 
 **Subtarefas:**
 
-- [ ] V3A-T1.1 **Onde estamos.** `git status`, `git log --oneline -40`, `git tag`, `git worktree list`. Anotar: commit de partida, se as trilhas da v0.2 foram mescladas, se a v0.2 foi publicada (os dois passos de `deploy/README.md`) e o que a produção responde em `curl -s https://lords.palsincomehub.com/v1/version`. O agente não tem acesso ao banco de produção: o que depender dele fica como pergunta ao autor.
-- [ ] V3A-T1.2 **Os números de versão.** Anotar `CURRENT_SCHEMA_VERSION` (`packages/engine/src/migrations.ts`; era 2 em `e3d478e`), a tabela de versões do [README do motor](../packages/engine/README.md), `PROTOCOL_VERSION` (`packages/protocol/src/index.ts`; era 1, a v0.2 previa 2), `RNG_VERSION` e `RNG_STREAMS` (`packages/engine/src/random.ts`), `CONTENT_VERSION` e o `contentHash` de `GET /v1/version` em desenvolvimento.
-- [ ] V3A-T1.3 **Os caminhos marcados com †.** Para cada um (lista no Apêndice B.0), dizer: existe com esse nome; existe com outro nome ou em outro lugar; não existe e a mecânica mora em outro arquivo; a mecânica não foi entregue. Corrigir o caminho em todas as tarefas que o citam.
-- [ ] V3A-T1.4 **Os contratos que a v0.3 usa.** Conferir no código, um a um, e corrigir o Apêndice B.0:
-  - a ordem real de `processEventsAt` (`packages/engine/src/advance.ts`) contra a do ADR 0013;
-  - a forma de `council` no estado: `pending`, `flags`, `seenThisYear`, `nextDrawAtMs`, `scheduled`, `effects`; como nasce o `instanceId` de uma carta (contador, instante ou derivado); se existe um teste com carta `scripted`, que o ADR 0014 diz que o motor aceita e o catálogo não usa;
-  - o termo de efeitos temporários na moral: nome do campo, unidade da duração, como aparece em `morale.terms`;
-  - `map.tiles`, `map.threat` e `horde.scheduledRaids`: nomes, e se um tile pode ficar inativo;
-  - `pendingDecisions` no protocolo (`packages/protocol/src/view.ts`): união fechada por `kind` ou lista aberta. Disso depende o protocolo 3 (§0.7);
-  - o corpo de `GET /v1/catalog` (`packages/server/src/catalog.ts`);
-  - os tipos de `Effect` e de `requires` que as cartas aceitam, e o teste de conteúdo que proíbe herói, Mercado, ferro, exército e combate nas cartas (V3C-T3 e V3F-T1 vão afrouxá-lo de propósito);
-  - os níveis máximos de Torre de Vigia e Paliçada, de que a caravana depende (premissa 17);
-  - `beforeLeaving` e `ReturnReport.blocks` no app, que V3F-T3 estende;
-  - as políticas e as colunas do simulador (`packages/sim-cli/src/bots/policies.ts`, `report.ts`).
-- [ ] V3A-T1.5 **Os retratos de estado.** Listar os cenários de `packages/engine/src/fixtures.test.ts` da versão atual. O próximo passo de migração tem de encontrar o que estará em produção: os três ritmos, as três dificuldades, fronteira antiga, carta pendente, continuação agendada, efeito de moral em curso, incursão marcada, ferido, planejada automática, frio e estoque acima do cap. O que faltar vira a primeira subtarefa de V3B-T1, **antes** de subir a versão (README do motor, "Uma mecânica que muda o estado sobe a versão", passo 1).
-- [ ] V3A-T1.6 **O portão.** Rodar a verificação comum inteira (§0.9) no commit de partida e anotar as contagens de testes. A integração da Fase B da v0.2 registrou 1.613 testes de unidade, 358 de integração e 56 em navegador: servem de comparação.
-- [ ] V3A-T1.7 **Linha de base do simulador.** `pnpm -s sim -- --matrix > matriz.csv 2> matriz.md` e duas partidas de exemplo (Regular e Preguiçoso no ritmo 3). Registrar em `docs/balance-v0.3.md`, seção 1: data, commit, identificação (motor, versão do estado, `contentHash`), máquina, comando e a saída como veio. Dizer se as 50 sementes já dão resultados diferentes (na Fase B da v0.2 davam o mesmo, porque nada sorteava).
-- [ ] V3A-T1.8 **Linha de base de tamanho e custo.** No cenário de um ano de jogo no ritmo 3: bytes do `GameState` e do `ViewState` em JSON, e o tempo de `advanceTo` para 1, 7 e 30 dias reais de ausência. A v0.3 acrescenta heróis, expedições, relatórios, itens e preços ao estado e à visão, e cada recibo de comando guarda a visão inteira ([perf-v0.1.md](perf-v0.1.md)): estes números são a régua do contrato "estado de tamanho limitado" (§0.7).
-- [ ] V3A-T1.9 **Lições.** Preencher a §11.3 a partir de: `docs/pendencias-v0.2.md` (seções 4 e 5, que na data deste plano estavam vazias), o Registro do roadmap da v0.2 (§11), `docs/balance-v0.2.md`, o relatório das revisões por fase e, se existirem, `docs/playtest/relatorio-v0.1.md` e `relatorio-v0.2.md`. **Se não houve playtest, escrever que não houve**, e manter a §11.4 como está.
-- [ ] V3A-T1.10 **Dívidas.** Passar pela §10 linha a linha: resolvida (com o commit), continua, ou nova.
-- [ ] V3A-T1.11 **Caixa de entrada do autor.** Criar `docs/pendencias-v0.3.md` com: (1) o mais importante, em cinco linhas; (2) as confirmações da v0.2 que continuam abertas; (3) o que só o autor pode fazer (publicar, backup externo, ensaio de reversão, playtest); (4) as decisões 1 a 21 deste roadmap, uma linha cada, com a premissa.
-- [ ] V3A-T1.12 **`CLAUDE.md`.** Listar o que ficou falso nele (na integração da Fase B da v0.2: versão do GDD, API pública do motor sem `migrateState`, "ainda não existe gerador", `GAME_TIME_SCALE` como ritmo de toda partida, o filtro de integração com `--`). Quem integra a fase atualiza; esta tarefa só entrega a lista.
+- [x] V3A-T1.1 **Onde estamos.** *Feita em 2026-10-05, na revisão 0.3.* `main` igual a `origin/main`, em `6788c41`; uma árvore de trabalho só. A Fase G da v0.2 está fechada (as caixas de V2G-T1 a V2G-T7.2 marcadas no [roadmap da v0.2](roadmap-v0.2.md), §6b; a V2G-T7.3 é do autor) e publicada: a produção responde `protocol: 2`, `builtAt` 2026-10-05 16:17 UTC e `contentHash` `cea08e6e14163458`. **Por conferir com o autor**, porque o agente não tem acesso ao banco de produção: se alguma partida foi recusada no passo 11 → 12 (o log do job `advance-stale-games` diz), e se o lançamento da v0.2.0 (tag, release e versão dos pacotes, que outra sessão preparava ao fim desta revisão) terminou.
+- [x] V3A-T1.2 **Os números de versão.** *Feita em 2026-10-05.* Em `6788c41`: `CURRENT_SCHEMA_VERSION` **12** (`packages/engine/src/migrations.ts`), `PROTOCOL_VERSION` 2 (`packages/protocol/src/index.ts`), `RNG_VERSION` 1 e `RNG_STREAMS` com `council`, `morale` e `horde` (`packages/engine/src/random.ts`), `VIEW_FORMAT` 2 (`packages/web/src/game/gameSession.ts`), `contentHash` `cea08e6e14163458`. `CONTENT_VERSION` e a versão dos pacotes eram `0.1.0` e passam a `0.2.0` com o lançamento. **O primeiro passo de migração da v0.3 é o 12 → 13.**
+- [x] V3A-T1.3 **O que a Fase G mudou no mapa.** *Feita em 2026-10-05.* O Apêndice B.0 está reconferido: a forma da fome (`settlement.famine` com `carriedMs` e `deserted`; `settlement.lastFamine`), as cinco constantes de tempo real e `realToGameMs`, o aviso da Torre em tempo real sem mudar o estado, as sete cartas reescritas com os mesmos ids, as descrições das dificuldades em `GET /v1/catalog`.
+- [x] V3A-T1.4 **Os contratos que a v0.3 usa.** *Feita em 2026-10-05.* Os três que a Fase G podia mover:
+  - a ordem de `processEventsAt` **não mudou**: a deserção continua dentro da virada do dia, sem instante próprio na linha do tempo (§0.7);
+  - todo prazo de tempo real entra por `realToGameMs(realMs, timeScale)`, uma vez, quando o prazo nasce (a carta) ou quando é cobrado (a deserção, na virada): é o molde de `crossroadsWaitRealMs` e dos prazos do soldo em atraso;
+  - "a fome que reabre é a mesma" virou `famine: { sinceMs; carriedMs; deserted }` mais `lastFamine: { endedAtMs; lastedMs; deserted }`: é o molde do atraso do soldo que reabre (decisão 3, V3C-T1.2).
+- [x] V3A-T1.5 **Os retratos de estado.** *Feita em 2026-10-05.* A versão 12 tem **23 cenários** em `packages/engine/src/__fixtures__/`: `cold`, `construction`, `council`, `council-hidden`, `crafts`, `famine`, `famine-3x`, `famine-half`, `famine-ended`, `famine-resumed`, `fresh`, `iron-king-half`, `migrated-3x`, `morale`, `objectives`, `palisade`, `peasant-3x`, `queues`, `raid`, `raid-announced`, `storage`, `threat` e `week-scripted`. Lidos um a um, cobrem: os três ritmos (o 3 em seis cenários, o 0,5 em dois), as três dificuldades, fronteira antiga (`migrated-3x`), carta pendente, continuação agendada (`council`), efeito escondido à espera (`council-hidden`), efeito de moral em curso, incursão marcada e anunciada, ferido (`raid`), planejadas automáticas à espera e duas filas ocupadas (`queues`), frio, fome aberta, fome retomada (`famine-resumed`) e fome que acabou há pouco (`famine-ended`). **Não conferido:** se algum cenário tem estoque acima do cap herdado de antes dos limites. Só um cenário é de partida migrada, e ele é Senhor no ritmo 3. Os dois pontos são a primeira coisa a olhar em V3B-T1.1.
+- [ ] V3A-T1.6 **O portão.** Rodar a verificação comum inteira (§0.9) no commit de partida e anotar as contagens de testes. Para comparar: o portão final da Fase G registrou 5.162 testes de unidade (com uma falha esperada, marcada com `it.fails`), 468 de integração, 95 em navegador e 37 da página de apresentação.
+- [ ] V3A-T1.7 **Linha de base do simulador.** `pnpm -s sim -- --matrix > matriz.csv 2> matriz.md`, nas três dificuldades, e duas partidas de exemplo (Regular e Preguiçoso no ritmo 3). Registrar em `docs/balance-v0.3.md`, seção 1: data, commit, identificação (motor, versão do estado, `contentHash`), máquina, comando e a saída como veio, com menor e maior valor entre as 50 sementes. A última medição é a da seção 20 de [balance-v0.2.md](balance-v0.2.md), feita depois das cartas reescritas: dizer se a matriz bate com ela. **Anotar o ouro parado no fim da semana por perfil e ritmo:** é o número que a v0.3 promete baixar (C-5).
+- [ ] V3A-T1.8 **Linha de base de tamanho e custo.** No cenário de um ano de jogo no ritmo 3: bytes do `GameState` e do `ViewState` em JSON, e o tempo de `advanceTo` para 1, 7 e 30 dias reais de ausência (`pnpm -s sim -- --perf`). A v0.3 acrescenta heróis, expedições, relatórios, itens e preços ao estado e à visão, e cada recibo de comando guarda a visão inteira ([perf-v0.1.md](perf-v0.1.md)): estes números são a régua do contrato "estado de tamanho limitado" (§0.7).
+- [ ] V3A-T1.9 **Lições.** A §11.3 foi preenchida no fechamento da v0.2 e a §11.5, nas revisões de 2026-10-05, já com a Fase G fechada. Completar a §11.5 só se a linha de base ou o autor trouxerem algo novo. **Se não houve playtest estruturado, escrever que não houve**, e manter a §11.4.
+- [ ] V3A-T1.10 **Dívidas.** Passar pela §10 linha a linha: resolvida (com o commit), continua, ou nova. As linhas que as revisões não reconferiram no código estão sem a marca ✔.
+- [ ] V3A-T1.11 **Caixa de entrada do autor.** Criar `docs/pendencias-v0.3.md` com: (1) o mais importante, em cinco linhas; (2) o que continua aberto da v0.2 (a pendência B-2 e os restos que o Registro da Fase G anotou, §10.3); (3) o que só o autor pode fazer (backup externo, ensaio de reversão, evidência manual, playtest); (4) as decisões 1 a 21 deste roadmap, uma linha cada, com a premissa. É registro, não leitura obrigatória: as decisões chegam ao autor como perguntas (§0.6).
+- [ ] V3A-T1.12 **`CLAUDE.md`.** Listar o que ficou falso nele depois desta tarefa (ele foi posto no estado da Fase G em V2G-T7 e ainda descreve o roadmap da v0.3 como "proposto, sem nenhuma tarefa executada"). Quem integra a fase atualiza; esta tarefa só entrega a lista.
 
 **Testes:** nenhum teste novo, porque nenhum código muda. O que a tarefa roda: a verificação comum inteira; a matriz do simulador; e um roteiro descartável que confere links e âncoras dos três documentos tocados (o Prettier não confere Markdown).
 
-**Impacto em partidas antigas:** nenhum. A tarefa não sobe `schemaVersion`, não toca `content` e não publica. Ela deixa escrito **em que versão de estado a produção está** e quais versões o próximo deploy atravessaria, que é o que V3B-T1 precisa saber antes de criar o primeiro passo de migração da v0.3.
+**Impacto em partidas antigas:** nenhum. A tarefa não sobe `schemaVersion`, não toca `content` e não publica.
 
-**Evidência de conclusão:** (1) nenhum † resta neste documento; (2) o Apêndice B.0 diz "conferido em <data>, commit <sha>"; (3) `docs/balance-v0.3.md` tem a seção 1 com comandos e saídas; (4) `docs/pendencias-v0.3.md` existe; (5) a §11.3 está preenchida ou diz por que não pôde ser; (6) a linha V3A-T1 do §12 traz as contagens do portão e o que não foi verificado.
+**Evidência de conclusão:** (1) `docs/balance-v0.3.md` tem a seção 1 com comandos e saídas; (2) `docs/pendencias-v0.3.md` existe; (3) a §10 está em dia; (4) a linha V3A-T1 do §12 traz as contagens do portão e o que não foi verificado; (5) as duas perguntas de V3A-T1.1 ao autor têm resposta ou estão em `docs/pendencias-v0.3.md`.
 
-**Diversão:** nenhuma diretamente. É o que impede a v0.3 de construir sobre um nome que mudou, e é a régua para dizer, no fim, se a Guilda deu o que fazer com o ouro e com o estoque parado.
+**Diversão:** nenhuma diretamente. É a régua para dizer, no fim, se a Guilda deu o que fazer com o ouro e com o estoque parado.
 
 **Verificação:**
 
@@ -339,32 +351,32 @@ pnpm build
 pnpm test:e2e
 pnpm -s sim -- --matrix > matriz.csv 2> matriz.md
 pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --sessions-per-day 2 > /dev/null
-grep -c '†' docs/roadmap-v0.3.md    # esperado ao fim: só as ocorrências da legenda (§0.9) e desta linha
+pnpm -s sim -- --perf
 ```
 
-**Pronto quando:** as seis evidências acima existem, o portão está verde no commit de partida (ou cada falha está registrada com o motivo) e o autor tem em `docs/pendencias-v0.3.md` uma página que diz o que decidir primeiro.
+**Pronto quando:** as cinco evidências acima existem, o portão está verde no commit de partida (ou cada falha está registrada com o motivo) e o autor tem em `docs/pendencias-v0.3.md` uma página que diz o que decidir primeiro.
 
-**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md (§0, V3A-T1, §10, §11 e Apêndice B), docs/roadmap-v0.2.md §11, docs/pendencias-v0.2.md e packages/engine/README.md. Esta tarefa não muda código: confira no repositório cada caminho marcado com † e cada contrato de V3A-T1.4, corrija o roadmap, rode o portão e a matriz do simulador, registre a linha de base em docs/balance-v0.3.md e crie docs/pendencias-v0.3.md. Me mostre primeiro a tabela 'previsto e encontrado'. Se não houve playtest, escreva que não houve."
+**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md (§0, V3A-T1, §10, §11.5 e Apêndice B) e docs/balance-v0.2.md (seção 20). A tarefa V3A-T1 está começada: as subtarefas 1 a 5 já foram feitas. Esta tarefa não muda código: rode o portão inteiro e a matriz do simulador nas três dificuldades, meça os tamanhos e o custo do avanço, registre a linha de base em docs/balance-v0.3.md, revise a §10 e crie docs/pendencias-v0.3.md. Me mostre primeiro o ouro parado no fim da semana por perfil e ritmo. Se não houve playtest, escreva que não houve."
 
-### V3A-T2 · Sessão de decisões, lote 1 → ADR 0015 `S`
+### V3A-T2 · Sessão de decisões, lote 1 → ADR 0017 `S`
 
 **Objetivo:** fechar com o autor as decisões que travam as Fases B e C e registrá-las.
-**Depende de:** V3A-T1 (a sessão usa os números da linha de base e as confirmações da v0.2).
+**Depende de:** V3A-T1 (a sessão usa os números da linha de base e o que ficou aberto da v0.2).
 **Decisões:** 1 a 10.
 **Trilha:** documentos.
-**Entregáveis:** **novo** `docs/decisions/0015-regras-da-v0.3-herois-taverna-e-soldo.md`; GDD §5.7 (termos da Taverna e do festival), §6.1 (Taverna), §7.1 (carta roteirizada), §9.1 e §12.1 corrigidos onde a resposta mudar um número ou uma frase; linha em `docs/decisions/README.md`; §9 deste roadmap com a coluna "Registro".
+**Entregáveis:** **novo** `docs/decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md`; GDD §5.7 (termos da Taverna e do festival), §6.1 (Taverna), §7.1 (carta roteirizada), §9.1 e §12.1 corrigidos onde a resposta mudar um número ou uma frase; linha em `docs/decisions/README.md`; §9 deste roadmap com a coluna "Registro".
 
-- [ ] V3A-T2.1 Apresentar cada decisão do lote com a premissa da §9, a alternativa e o que muda no jogo; uma pergunta por vez, com a recomendação como padrão ("se não disser nada, fica assim").
-- [ ] V3A-T2.2 Antes das decisões novas, passar pela decisão 22: uma confirmação da v0.2 que o autor trocar pode mudar uma premissa daqui (por exemplo, os ritmos oferecidos mudam as conversões da premissa 1).
+- [ ] V3A-T2.1 Apresentar as decisões do lote em rodadas curtas de perguntas (§0.6): cada uma com a premissa da §9 como opção recomendada, a alternativa e o que muda no jogo ("se não disser nada, fica assim"). Começar pelas que mudam o jogo de quem já joga: a 3 (soldo em atraso) e a 6 (a carta chega também às partidas em andamento).
+- [ ] V3A-T2.2 Antes das decisões novas, levar o que continua aberto da v0.2: os atos das decisões 23 e 24 e a pendência B-2 (sessões na restauração de backup). A decisão 22 já foi respondida (ADR 0016); o que ela trocou está na §11.5 e já entrou nas premissas daqui.
 - [ ] V3A-T2.3 Escrever o ADR com a tabela decisão, o que foi aplicado, alternativa descartada, razão, tarefas e seção do GDD, no formato do ADR 0013. Estado `aprovada` só com resposta do autor; por delegação, o estado diz isso (§0.6).
-- [ ] V3A-T2.4 Corrigir o GDD e subir a versão do documento; onde o GDD diz "12 h" ou "24 h" sem dizer de quê, escrever "de jogo" ou "reais".
+- [ ] V3A-T2.4 Corrigir o GDD e subir a versão do documento; onde o GDD diz "12 h" ou "24 h" sem dizer de quê (§9.1, soldo e ferimento), escrever "de jogo" ou "reais", conforme a resposta.
 - [ ] V3A-T2.5 Propor, para aprovação, os números que o GDD não tem e a Fase C precisa: atributos-base das quatro classes e o preço de cada modelo de candidato (decisões 4 e 7). São conteúdo, e ficam no ADR como tabela.
 
 **Verificação:** links do ADR e do GDD conferidos por script; `pnpm lint`.
 
-**Pronto quando:** o ADR 0015 existe e nenhuma tarefa de B ou C tem decisão aberta sem resposta.
+**Pronto quando:** o ADR 0017 existe e nenhuma tarefa de B ou C tem decisão aberta sem resposta.
 
-**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md §9 e §0.6, docs/pendencias-v0.3.md e GAME_DESIGN.md §9.1, §5.7, §6.1 e §12.1. Vamos fechar o lote 1: primeiro as confirmações pendentes da v0.2, depois as decisões 1 a 10, uma por vez, com a sua recomendação como padrão. Registre em docs/decisions/0015-…md, corrija o GDD onde a resposta mudar uma frase e atualize a §9 do roadmap."
+**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md §9 e §0.6, docs/pendencias-v0.3.md e GAME_DESIGN.md §9.1, §5.7, §6.1 e §12.1. Vamos fechar o lote 1 em rodadas curtas de perguntas com opções, a recomendada primeiro: o que ficou aberto da v0.2 e depois as decisões 1 a 10, começando pelas que mudam o jogo de quem já joga. Registre em docs/decisions/0017-…md, corrija o GDD onde a resposta mudar uma frase e atualize a §9 do roadmap."
 
 ---
 
@@ -377,13 +389,13 @@ grep -c '†' docs/roadmap-v0.3.md    # esperado ao fim: só as ocorrências da 
 **Objetivo:** o motor consegue dar um identificador estável a uma entidade nova e sortear em um fluxo que pertence só a ela, sem que a ordem de processamento ou a divisão do intervalo mude o resultado.
 **Por que antes:** a v0.3 é a primeira versão com entidades que nascem e morrem durante a partida (heróis, expedições, itens, caravanas). O GDD §14.3 prevê os fluxos `expedition:<id>` e `market`, mas `RNG_STREAMS` é uma lista fechada de três nomes (`council`, `morale`, `horde`), e nada no estado gera identificadores.
 **GDD:** §14.3 (itens 1 e 3), §14.11.
-**Depende de:** V3A-T2 (decisão 9). **Da v0.2 usa:** o gerador com fluxos nomeados (V2B-T2) e a migração por `schemaVersion` (V2B-T1).
+**Depende de:** V3A-T2 (decisão 9) e a Fase G da v0.2 publicada (cumprido em 2026-10-05, §0.8): o passo desta tarefa é o 12 → 13, em `migrations/v12.ts`, com a forma nova em `migrations/v13.ts`. **Da v0.2 usa:** o gerador com fluxos nomeados (V2B-T2) e a migração por `schemaVersion` (V2B-T1).
 **Decisões:** 9.
 **Trilha:** motor.
 **Entregáveis:** `packages/engine/src/random.ts` (famílias de fluxo e `dropStream`), **novo** `packages/engine/src/ids.ts` (`nextId`), `types.ts`, `state.ts`, `migrations.ts`, **novo** `migrations/v<N+1>.ts` e o passo em `migrations/v<N>.ts`, `migrations/shape.ts` (chaves de `rng`), `test-helpers.ts`, `random.property.test.ts`, `fixtures.test.ts`, `purity.test.ts`; [README do motor](../packages/engine/README.md); GDD §14.11.
 
-- [ ] V3B-T1.1 Retratos que faltarem (V3A-T1.5): acrescentar os cenários a `fixtures.test.ts` **antes** de subir a versão, para que os arquivos congelados da versão anterior exercitem o que a v0.2 deixa no estado.
-- [ ] V3B-T1.2 Identidades: `nextId(draft, kind)` devolve `<kind>-<n>` a partir de um contador em `state.ids` (`Record<string, number>`, vazio até o primeiro uso, como `rng`). Só comandos e eventos da linha do tempo criam entidades; `deriveViewState` e `nextEventAt` nunca. Se a v0.2 já tiver um contador para o `instanceId` das cartas (V3A-T1.4), generalizar aquele em vez de criar outro.
+- [ ] V3B-T1.1 Retratos que faltarem (V3A-T1.5): conferir se há estoque acima do cap em algum cenário e se uma partida migrada em Camponês ou em Rei de Ferro faz falta, e acrescentar os cenários a `fixtures.test.ts` **antes** de subir a versão, para que os arquivos congelados da versão anterior exercitem o que a v0.2 deixa no estado.
+- [ ] V3B-T1.2 Identidades: `nextId(draft, kind)` devolve `<kind>-<n>` a partir de um contador em `state.ids` (`Record<string, number>`, vazio até o primeiro uso, como `rng`). Só comandos e eventos da linha do tempo criam entidades; `deriveViewState` e `nextEventAt` nunca. O `instanceId` das cartas fica como está: é o id da carta mais `stats.cardsDrawn` ("collapsedWell-3"), já publicado em recibos e eventos. `ids` nasce só para as entidades da v0.3.
 - [ ] V3B-T1.3 Famílias de fluxo: além dos nomes fixos, `random.ts` aceita `expedition:<id>` e `caravan:<id>` (lista `RNG_STREAM_FAMILIES`). A semente continua sendo o FNV-1a de `seed + ':' + nome`, então dois envios com identificadores diferentes sorteiam sequências independentes. Um nome fora da lista e das famílias lança erro: é defeito de código.
 - [ ] V3B-T1.4 Fim de vida: `dropStream(draft, nome)` apaga o fluxo quando a entidade termina. Um identificador nunca é reutilizado (o contador só sobe), então um fluxo apagado não renasce com a mesma sequência.
 - [ ] V3B-T1.5 Forma: a guarda de `rng` em `migrations/shape.ts` passa a conferir as chaves (nome fixo ou família conhecida) e os quatro inteiros de 32 bits de cada fluxo. O passo de migração acrescenta `ids: {}` e não muda mais nada. `RNG_VERSION` não muda: o algoritmo é o mesmo.
@@ -405,7 +417,7 @@ Esperado: os retratos da versão anterior migram, avançam 30 dias e aceitam ord
 
 **Pronto quando:** identificadores e fluxos por entidade existem, com propriedade e migração provadas, e nenhuma regra de jogo mudou (o golden do cenário de 7 dias só ganha o campo `ids`).
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.3, docs/decisions/0015-…md, docs/roadmap-v0.3.md V3B-T1 e packages/engine/README.md (Sorteios e Versões do estado). Apresente o plano (retratos que faltam, contador de identidades, famílias de fluxo, fim de vida, guarda de forma, passo de migração) e espere aprovação. Propriedade com fluxos que nascem e morrem antes do código."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §14.3, docs/decisions/0017-…md, docs/roadmap-v0.3.md V3B-T1 e packages/engine/README.md (Sorteios e Versões do estado). Apresente o plano (retratos que faltam, contador de identidades, famílias de fluxo, fim de vida, guarda de forma, passo de migração) e espere aprovação. Propriedade com fluxos que nascem e morrem antes do código."
 
 ### V3B-T2 · Simulador pronto para a Guilda `S`
 
@@ -470,13 +482,13 @@ Nesta fase os heróis ainda não têm o que fazer: as expedições são da Fase 
 **Trilha:** motor.
 **Entregáveis:** **novo** `packages/content/src/heroes.ts` (classes, traços, heróis nomeados, `xpToNext`), `ids.ts` (`HERO_CLASS_IDS`, `HERO_TRAIT_IDS`), `balance.ts` (**novo** `heroes`), `schemas.ts`, `chronicle.ts`, `index.ts`, `content.test.ts`; **novos** `packages/engine/src/heroes.ts` (derivações puras) e `wages.ts` (soldo e atraso); `economy.ts`, `timeline.ts`, `advance.ts`, `commands.ts` (**novo** `dismissHero`), `rejections.ts`, `types.ts`, `state.ts`, `migrations.ts`, `migrations/v<N>.ts`, `view.ts`, `test-helpers.ts`; `packages/protocol/src/commands.ts`, `view.ts`, `protocol.test.ts`; `tests/server/scenarios.test.ts`.
 
-- [ ] V3C-T1.1 Conteúdo: quatro classes (`warrior`, `archer`, `mage`, `cleric`) com os seis atributos-base **inteiros** (vida, ataque, defesa, velocidade, perícia, vontade) aprovados no ADR 0015. Oito traços do Apêndice D, cada um com `label`, `text` e **só os efeitos que a v0.3 usa**; o que é de outra versão (aura de comandante do Veterano, por exemplo) não entra nem como campo. `balance.heroes: { wagePerHour: 2; arrears: { discontentAfterMs: 12 h de jogo; leaveAfterMs: 24 h de jogo; leaveEveryMs: 1 dia de jogo; discontentFactor: 4/5 }; maxLevel: 10; levelBonus: 8/100; xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700] }`. A tabela de experiência é `100 × n^1,5` arredondado para baixo, **escrita número a número**: o motor não calcula potência fracionária. Teste de conteúdo: toda classe tem os seis atributos positivos; a tabela é crescente e tem `maxLevel − 1` entradas.
-- [ ] V3C-T1.2 Estado: `guild: { heroes: Hero[]; wageArrears: { sinceMs } | null }`, com `Hero = { id; name; classId; level; xp; traits; status: 'idle'; joinedAtMs; discontent: boolean }`. Os estados `expedition`, `escort`, `injured` e `captured` entram com as tarefas que os usam. A migração cria `guild` vazio. Atributos e poder são **derivados** (`heroes.ts`) e nunca gravados.
-- [ ] V3C-T1.3 Soldo (premissa 3): consumo contínuo de ouro, `wagePerHour × heróis que recebem`, somado ao saldo do ouro como o consumo de comida é somado ao da comida. O `breakdown` do ouro diz "−12/h (soldo de 2 heróis)" já em tempo real. O instante em que o ouro acaba com soldo a pagar é evento da linha do tempo (`timeline.ts`): abre o atraso (`wageArrearsStarted`). Não há dívida: o que não foi pago não é cobrado depois. O atraso fecha no primeiro instante em que o saldo de ouro volta a ser positivo (`wageArrearsEnded`). Ouro que chega e sai no mesmo instante não faz o atraso oscilar.
-- [ ] V3C-T1.4 Consequências, cada uma um evento com hora marcada: em `sinceMs + discontentAfterMs`, todo herói sem o traço Leal fica Descontente (`heroDiscontent`; atributos ×4/5 enquanto durar o atraso); a partir de `sinceMs + leaveAfterMs`, parte **um** herói a cada `leaveEveryMs` (`heroLeft`): o que chegou por último entre os que estão no feudo e não são Leais. O critério é fixo, sem sorteio. Fechado o atraso, todos deixam de estar Descontentes.
+- [ ] V3C-T1.1 Conteúdo: quatro classes (`warrior`, `archer`, `mage`, `cleric`) com os seis atributos-base **inteiros** (vida, ataque, defesa, velocidade, perícia, vontade) aprovados no ADR 0017. Oito traços do Apêndice D, cada um com `label`, `text` e **só os efeitos que a v0.3 usa**; o que é de outra versão (aura de comandante do Veterano, por exemplo) não entra nem como campo. `balance.heroes: { wagePerHour: 2; arrears: { discontentAfterRealMs: 12 h reais; leaveAfterRealMs: 24 h reais; leaveEveryRealMs: 2 h reais; resumeWithinRealMs: 2 h reais; discontentFactor: 4/5 }; maxLevel: 10; levelBonus: 8/100; xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700] }`. A tabela de experiência é `100 × n^1,5` arredondado para baixo, **escrita número a número**: o motor não calcula potência fracionária. Teste de conteúdo: toda classe tem os seis atributos positivos; a tabela é crescente e tem `maxLevel − 1` entradas. Os prazos do atraso seguem a recomendação da decisão 3 (tempo real, com os nomes no molde de `famineDesertionAfterRealMs`, `famineDesertionEveryRealMs` e `famineResumeWithinRealMs`); se o autor preferir tempo de jogo, os campos perdem o `Real` e os números são os do GDD (12 h, 24 h e um dia de jogo).
+- [ ] V3C-T1.2 Estado: `guild: { heroes: Hero[]; wageArrears: { sinceMs; carriedMs; departed } | null; lastWageArrears: { endedAtMs; lastedMs; departed } | null }`, com `Hero = { id; name; classId; level; xp; traits; status: 'idle'; joinedAtMs; discontent: boolean }`. Os estados `expedition`, `escort`, `injured` e `captured` entram com as tarefas que os usam. A migração cria `guild` vazio. Atributos e poder são **derivados** (`heroes.ts`) e nunca gravados. O atraso copia o desenho que a V2G-T2 deu à fome (`settlement.famine` e `settlement.lastFamine`): `carriedMs` é o quanto ele já tinha durado quando reabre dentro da janela, e `departed`, quantos heróis o prazo já cobrou.
+- [ ] V3C-T1.3 Soldo (premissa 3): consumo contínuo de ouro, `wagePerHour × heróis que recebem`, somado ao saldo do ouro como o consumo de comida é somado ao da comida. O `breakdown` do ouro diz "−12/h (soldo de 2 heróis)" já em tempo real. O instante em que o ouro acaba com soldo a pagar é evento da linha do tempo (`timeline.ts`): abre o atraso (`wageArrearsStarted`). Não há dívida: o que não foi pago não é cobrado depois. O atraso fecha no primeiro instante em que o saldo de ouro volta a ser positivo (`wageArrearsEnded`). Ouro que chega e sai no mesmo instante não faz o atraso oscilar, e o atraso que reabre dentro da janela (`resumeWithinRealMs`) é o mesmo: os prazos continuam de onde estavam.
+- [ ] V3C-T1.4 Consequências, **cobradas na virada do dia de jogo**, como a deserção por fome (decisão 3; ADR 0016: sem instante novo na linha do tempo). A cada virada, com a duração do atraso (`agora − sinceMs + carriedMs`) e os prazos convertidos por `realToGameMs`: passadas 12 h reais, todo herói sem o traço Leal fica Descontente (`heroDiscontent`; atributos ×4/5 enquanto durar o atraso); passadas 24 h reais, partem os heróis que o prazo já deve (um, e mais um a cada 2 h reais) menos os que já partiram (`heroLeft`): o que chegou por último entre os que estão no feudo e não são Leais. O critério é fixo, sem sorteio. O plano da tarefa diz o que acontece com o que não pôde ser cobrado (só restam Leais, ou o herói da vez está fora): perdoado, como o aldeão que o piso segurou, ou devido para a volta. Fechado o atraso, todos deixam de estar Descontentes; reaberto dentro da janela, voltam a estar na virada seguinte, sem esperar de novo as 12 h.
 - [ ] V3C-T1.5 Comando `dismissHero { heroId }`: recusas `HERO_NOT_FOUND` e `HERO_BUSY` (a segunda só passa a acontecer na Fase D). Evento `heroDismissed`. Sem devolução de ouro.
 - [ ] V3C-T1.6 `ViewState`: `guild.heroes[]` com `id`, `name`, `classLabel`, `level`, `xp`, `xpToNext`, `traits: Array<{ label, text }>`, `statusText`, `power`, `powerBreakdown`, `wagePerHour`, `discontent`; `guild.heroLimit`; `guild.wage: { perHour; coveredForSeconds: number | null; arrears: null | { secondsElapsed; text; discontentInSeconds: number | null; nextDepartureInSeconds: number | null } }`. `coveredForSeconds` é o número que "Antes de partir" vai mostrar: por quanto tempo o ouro paga a equipe.
-- [ ] V3C-T1.7 Testes: soldo exato em milésimos; ouro acabando no instante previsto; atraso que abre, dura 12 h e 24 h de jogo e fecha; herói Leal que fica; dispensa durante o atraso; um ritmo diferente de 1; 30 dias sem acesso com dois heróis e ouro insuficiente; propriedade de divisão de intervalo com o atraso no caminho; golden regravado de propósito. Como ainda não há como ganhar um herói, os testes criam um por um auxiliar de `test-helpers.ts`. Integração: `dismissHero` reenviado devolve o recibo.
+- [ ] V3C-T1.7 Testes: soldo exato em milésimos; ouro acabando no instante previsto; atraso que abre, dura 12 h e 24 h reais nos três ritmos e fecha; atraso que fecha e reabre dentro e fora da janela; herói Leal que fica; dispensa durante o atraso; um ritmo diferente de 1; 30 dias sem acesso com dois heróis e ouro insuficiente; propriedade de divisão de intervalo com o atraso no caminho; golden regravado de propósito. Como ainda não há como ganhar um herói, os testes criam um por um auxiliar de `test-helpers.ts`. Integração: `dismissHero` reenviado devolve o recibo.
 
 **Diversão:** o ouro deixa de ser o recurso que só acumula (6.626 parados no 3× da v0.1). O teste é o autor olhar o ouro e dizer por quantas horas ele paga a equipe, só com o que a tela mostra.
 
@@ -492,23 +504,23 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** o soldo sai do ouro no `ViewState` com a explicação, o atraso abre e fecha em instantes exatos registrados na Crônica, as consequências acontecem com o jogador fora, e a propriedade continua exata.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.1 e Apêndice D, docs/decisions/0015-…md, docs/roadmap-v0.3.md V3C-T1 e Apêndice B, e packages/engine/README.md. Apresente o plano por subtarefa (conteúdo; estado e migração; soldo como consumo contínuo; atraso e consequências; dispensa; ViewState) e espere aprovação. É tarefa L: uma subtarefa por bloco, em branch, testes primeiro. Nada de expedição, equipamento ou comandante."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.1 e Apêndice D, docs/decisions/0017-…md, docs/roadmap-v0.3.md V3C-T1 e Apêndice B, e packages/engine/README.md. Apresente o plano por subtarefa (conteúdo; estado e migração; soldo como consumo contínuo; atraso e consequências; dispensa; ViewState) e espere aprovação. É tarefa L: uma subtarefa por bloco, em branch, testes primeiro. Nada de expedição, equipamento ou comandante."
 
 ### V3C-T3 · A carta "Estrangeira ferida" `M`
 
 **Objetivo:** a primeira carta roteirizada do jogo entrega o primeiro herói, sem custo, na data marcada, também para quem está fora e também nas partidas que já passaram da data (critério 1).
 **GDD:** §2.2 (dia real 2), §7.1 (cartas roteirizadas furam o sorteio), §9.1 ("o primeiro herói chega grátis"), §12.3, Apêndice B (carta 1), §16.2.
-**Depende de:** V3C-T1. **Da v0.2 usa:** o motor do Conselho (V2D-T1) com `scripted`, que o ADR 0014 diz que o motor aceita e o catálogo não usa; `autoResolve` por dificuldade; continuação e efeito adiado; a fronteira da migração.
+**Depende de:** V3C-T1. **Da v0.2 usa:** o motor do Conselho (V2D-T1) com `scripted`, que o motor já entrega no sorteio da audiência (`scriptedCard`, em `packages/engine/src/council.ts`) e que nenhuma carta usa; `autoResolve` por dificuldade; continuação e efeito adiado; a fronteira da migração.
 **Decisões:** 6.
 **Trilha:** motor.
-**Entregáveis:** `packages/content/src/council.ts` † (efeito `addHero`), **novo** `packages/content/src/cards/scripted.ts` (a pasta `cards/` é †), `heroes.ts` (Edda, Guerreira Leal; Rolf, Arqueiro Prudente), `chronicle.ts` (`heroJoined`), `content.test.ts`; `packages/engine/src/council.ts` †, `heroes.ts`, `migrations/v<N>.ts`, `view.ts`, `scenario.test.ts`; **novo** `docs/content-v0.3.md` (inventário, começando por esta carta, com a ficha da §13.4).
+**Entregáveis:** `packages/content/src/council.ts` (efeito `addHero`), **novo** `packages/content/src/cards/scripted.ts` (acrescentado a `cards/index.ts`), `heroes.ts` (Edda, Guerreira Leal; Rolf, Arqueiro Prudente), `chronicle.ts` (`heroJoined`), `schemas.ts`, `council.test.ts`; `packages/engine/src/council.ts`, `heroes.ts`, `migrations/v<N>.ts`, `view.ts`, `scenario.test.ts`; **novo** `docs/content-v0.3.md` (inventário, começando por esta carta, com a ficha da §13.4).
 
-- [ ] V3C-T3.1 Efeito `addHero { heroId; afterDays? }`: cria o herói nomeado do conteúdo com `nextId`. Com `afterDays`, o herói chega depois, como efeito adiado (o mecanismo que a v0.2 usa para efeitos que acontecem mais tarde; conferir o nome em V3A-T1.4). O limite de heróis (premissa 5) não barra um `addHero` de carta: uma recompensa nunca se perde.
+- [ ] V3C-T3.1 Efeito `addHero { heroId; afterDays? }`: cria o herói nomeado do conteúdo com `nextId`. Com `afterDays`, o herói chega depois, como efeito adiado (a v0.2 tem `council.delayed`, que serve aos efeitos **escondidos**; o herói prometido não é segredo, então o plano da tarefa diz se o reusa com a promessa à vista ou cria uma lista própria). `addHero` entra em `COUNCIL_EFFECT_TYPES` e no schema das cartas. O limite de heróis (premissa 5) não barra um `addHero` de carta: uma recompensa nunca se perde.
 - [ ] V3C-T3.2 A carta (premissa 6): `scripted: { atGameDay: 13 }`, ano 1. "Acolher": Edda entra agora. "Cuidar e deixar partir": +40 ouro, +5 de moral por 1 dia de jogo, e Rolf chega 1 dia de jogo depois. Nenhuma opção tem custo. `autoResolve`: Camponês e Senhor "Acolher"; Rei de Ferro "Cuidar e deixar partir". O texto segue a ficha da §13.4 e é aprovado pelo autor.
-- [ ] V3C-T3.3 Prioridade: a carta roteirizada vencida entra antes do sorteio e antes de uma continuação agendada; com 2 pendentes, espera a primeira vaga, sem se perder. Expira em 24 h reais como as outras, e a expiração também entrega um herói.
-- [ ] V3C-T3.4 Partidas antigas: o passo de migração agenda a carta para `context.boundaryMs + intervalo do Conselho` em toda partida que **já passou** do dia 13 do ano 1 e ainda não tem herói. Uma vez por partida, marcada por flag. Sem isso, quem joga desde a v0.1 nunca receberia o primeiro herói.
-- [ ] V3C-T3.5 Teste de conteúdo: a proibição de "herói" nas cartas dá lugar a "nenhuma referência a ferro, exército, combate, presságio ou relíquia"; todo `addHero` aponta para um herói que existe; nenhuma carta cria herói com custo.
-- [ ] V3C-T3.6 Testes: cenário no motor nas três dificuldades (responder cada opção; expirar); partida nova, partida migrada antes e depois do dia 13; ano 2 (não repete); propriedade com a carta e o efeito adiado no caminho; integração: responder, reenviar e responder de novo dá **um** herói.
+- [ ] V3C-T3.3 Prioridade: o motor já entrega a roteirizada **no sorteio da audiência**, na frente das sorteadas, uma vez por partida (`stats['cardsDrawn:<id>']`), e só com lugar na mesa. Provar com esta carta: em partida nova o dia 13 é dia de audiência (elas caem nos dias 5, 9, 13…), e a carta chega nele; com a mesa cheia, ou com uma continuação vencida reservando o lugar, ela espera a audiência seguinte, sem se perder; ela consome o sorteio daquela audiência. **A dizer no plano da tarefa:** se esperar até 4 dias de jogo com a mesa cheia basta para o critério 1, ou se a roteirizada passa a reservar lugar como uma continuação (é mudança de regra do Conselho, com golden). Expira em 24 h reais como as outras, e a expiração também entrega um herói.
+- [ ] V3C-T3.4 Partidas antigas: o motor entrega sozinho a roteirizada cujo dia já passou (`atGameDay` menor ou igual ao dia de jogo, e a carta nunca saiu), na primeira audiência depois de ela entrar no catálogo. **O passo de migração não agenda nada.** O que a tarefa prova: uma partida que já passou do dia 13 recebe a carta na primeira audiência com lugar depois da publicação, uma vez, esteja no ano 1 ou em outro; e uma partida migrada com a cadência fora dos dias 5, 9 e 13 a recebe na primeira audiência a partir do dia 13. Sem isso, quem joga desde a v0.1 nunca receberia o primeiro herói.
+- [ ] V3C-T3.5 Teste de conteúdo (`packages/content/src/council.test.ts`): a expressão regular de "nenhum texto fala de herói, Mercado, ferro…" hoje barra também `mercador`, `arqueiro`, `mapa`, `expedição`, `guilda` e `taverna`. Ela dá lugar a "nenhuma referência a ferro, exército, combate, presságio ou relíquia", afrouxada aqui só no que esta carta usa (herói e classe) e de novo em V3F-T1; todo `addHero` aponta para um herói que existe; nenhuma carta cria herói com custo.
+- [ ] V3C-T3.6 Testes: cenário no motor nas três dificuldades (responder cada opção; expirar); partida nova, partida migrada antes e depois do dia 13; ano 2 (não repete); propriedade com a carta e o efeito adiado no caminho; integração: responder, reenviar e responder de novo dá **um** herói. A carta nova consome uma audiência e muda o sorteio de todas as sementes: seguir a receita "Uma carta nova" do README do motor (goldens, retratos, `COUNCIL_SCENARIO_SEED`, `WELL_FIRST_SEED`, cobertura por estação e a do simulador).
 
 **Diversão:** é o momento em que o feudo ganha um rosto. As duas opções têm de parecer boas: uma guerreira leal agora, ou ouro e um arqueiro amanhã. O teste é o autor hesitar.
 
@@ -524,7 +536,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** critério 1 da §16.2 provado por cenário no motor nas três dificuldades e por integração, em partida nova e em partida migrada.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §7.1, §9.1 e Apêndice B, docs/decisions/0014 e 0015, docs/roadmap-v0.3.md V3C-T3 e §13.4. Escreva primeiro a ficha da carta em docs/content-v0.3.md e me mostre. Depois apresente o plano (efeito addHero, carta roteirizada, prioridade, partidas migradas) e espere aprovação. Testes de cenário antes do código."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §7.1, §9.1 e Apêndice B, docs/decisions/0014 e 0017, docs/roadmap-v0.3.md V3C-T3 e §13.4. Escreva primeiro a ficha da carta em docs/content-v0.3.md e me mostre. Depois apresente o plano (efeito addHero, carta roteirizada, prioridade, partidas migradas) e espere aprovação. Testes de cenário antes do código."
 
 ### V3C-T2 · Taverna: candidatos, contratação, moral e festival `M`
 
@@ -533,7 +545,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 **Depende de:** V3C-T1, V3C-T3. **Da v0.2 usa:** a fórmula da moral com termos e efeitos temporários (V2C-T4, V2D-T1), o gate do Salão, o cap e o início automático nas obras, o fluxo de sorteio fixo.
 **Decisões:** 4, 5, 10.
 **Trilha:** motor.
-**Entregáveis:** `packages/content/src/ids.ts` e `buildings.ts` (`tavern`: `requires: { townHall: 3 }`, 180 madeira, 60 pedra e 120 ouro, 15 min, nível máximo 5), `balance.ts` (**novo** `tavern`), `heroes.ts` (modelos de candidato e lista de nomes), `chronicle.ts` (`heroHired`, `festivalHeld`, `festivalEnded`); **novo** `packages/engine/src/tavern.ts`; `morale.ts` †, `random.ts` (`tavern` em `RNG_STREAMS`), `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `hireHero`, `holdFestival`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo; `packages/sim-cli/src/bots/policies.ts`.
+**Entregáveis:** `packages/content/src/ids.ts` e `buildings.ts` (`tavern`: `requires: { townHall: 3 }`, 180 madeira, 60 pedra e 120 ouro, 15 min, nível máximo 5), `balance.ts` (**novo** `tavern`), `heroes.ts` (modelos de candidato e lista de nomes), `chronicle.ts` (`heroHired`, `festivalHeld`, `festivalEnded`); **novo** `packages/engine/src/tavern.ts`; `morale.ts`, `random.ts` (`tavern` em `RNG_STREAMS`), `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `hireHero`, `holdFestival`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo; `packages/sim-cli/src/bots/policies.ts`.
 
 - [ ] V3C-T2.1 Conteúdo (premissas 4, 5 e 10): `tavern: { offersByLevel: [2, 2, 3, 3, 3]; rotationMs: 12 dias de jogo; moralePerLevel: 5; heroLimitBase: 1; heroLimitPerLevel: 1; festival: { cost: { food: 100, gold: 50 }; morale: 15; durationMs: 24 h de jogo; perSeason: 1 } }`. Modelos de candidato com classe, um ou dois traços, nível inicial, peso e **preço fixo** entre 80 e 300 ouro. Lista de nomes. Teste de conteúdo: nomes únicos; todo modelo com preço na faixa; pesos inteiros.
 - [ ] V3C-T2.2 Rotação: as primeiras ofertas nascem no instante em que a Taverna Nv1 fica pronta (a conclusão de uma obra é evento da linha do tempo). Depois, `nextRotationAtMs += rotationMs`, sempre, como a cadência do Conselho. Cada rotação sorteia no fluxo `tavern`: modelo por `pickWeighted` na ordem do conteúdo, nome entre os que nenhum herói vivo usa. Quem não foi contratado sai. A rotação não gera linha na Crônica.
@@ -558,7 +570,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** a Taverna oferece candidatos reproduzíveis pela semente, contratar cobra uma vez e respeita o limite, e a moral mostra os termos da Taverna e do festival.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.7, §6.1 e §9.1, docs/decisions/0015-…md, docs/roadmap-v0.3.md V3C-T2 e Apêndice B, e packages/engine/src/random.ts. Apresente o plano (conteúdo, rotação ancorada, contratação, termos da moral, festival, ViewState) e espere aprovação. Testes primeiro."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.7, §6.1 e §9.1, docs/decisions/0017-…md, docs/roadmap-v0.3.md V3C-T2 e Apêndice B, e packages/engine/src/random.ts. Apresente o plano (conteúdo, rotação ancorada, contratação, termos da moral, festival, ViewState) e espere aprovação. Testes primeiro."
 
 ### V3C-T4 · Heróis e Taverna na interface `M`
 
@@ -594,9 +606,9 @@ pnpm test:e2e 09-guilda
 **Depende de:** V3C-T1 a V3C-T4.
 **Entregáveis:** relatório da revisão; `docs/balance-v0.3.md` com a rodada; correções com regressão.
 
-- [ ] V3C-T5.1 Revisor independente (Apêndice A.4) tenta: contratar duas vezes a mesma oferta; contratar no instante da rotação; ouro que chega e sai no instante em que o atraso abriria; dispensar o herói que estava para partir; carta da estrangeira com 2 pendentes, na virada do ano e em partida migrada; inferir a próxima rotação pela resposta HTTP.
+- [ ] V3C-T5.1 Revisor independente (Apêndice A.4) tenta: contratar duas vezes a mesma oferta; contratar no instante da rotação; ouro que chega e sai no instante em que o atraso abriria; atraso que fecha e reabre dentro da janela; dispensar o herói que estava para partir; carta da estrangeira com 2 pendentes, na virada do ano e em partida migrada; inferir a próxima rotação pela resposta HTTP.
 - [ ] V3C-T5.2 Simulador, 50 sementes × perfis × ritmos × dificuldades: hora do primeiro herói, horas de atraso, heróis que partiram, ouro parado. **O perfil Preguiçoso não pode perder herói só por ter ficado fora uma noite**: se perder, a proteção é regra e vai ao autor (premissa 3).
-- [ ] V3C-T5.3 Desempenho: tamanho do estado e da visão com seis heróis, contra a linha de base de V3A-T1.8.
+- [ ] V3C-T5.3 Desempenho: tamanho do estado e da visão com seis heróis, contra a linha de base de V3A-T1.8. E o teto: cada nível vendido da Taverna cabe no depósito nas três dificuldades (§0.5, "nível alcançável").
 - [ ] V3C-T5.4 O autor joga no ritmo 3: recebe a estrangeira, constrói a Taverna, contrata, deixa o ouro acabar e volta. Registrar o que ele entendeu e o que não. Mesclar `v3c-herois` só com a aprovação dele.
 
 **Pronto quando:** defeitos confirmados corrigidos com teste; a meta "primeiro herói no dia 2" do GDD §15.2 medida; o autor jogou e aprovou.
@@ -613,13 +625,13 @@ A expedição é a mecânica central da v0.3 (GDD §9). O que o jogador deve con
 
 **Como a expedição cabe no determinismo.** Uma expedição é um grafo do conteúdo percorrido por **eventos da linha do tempo**. O fim de cada nó é um instante marcado em `nextEventAt`; é nele, e só nele, que o motor sorteia, no fluxo `expedition:<id>` (V3B-T1). A encruzilhada grava um prazo, convertido de tempo real para tempo de jogo no instante em que a equipe chega; o prazo também é um evento da linha do tempo, e nele a Postura decide. Nada depende de quando alguém consultou: avançar 10 h de uma vez ou em dez pedaços dá o mesmo relatório.
 
-### V3D-T0 · Sessão de decisões, lote 2 → ADR 0016 `S`
+### V3D-T0 · Sessão de decisões, lote 2 → ADR 0018 `S`
 
 **Objetivo:** fechar com o autor as decisões das expedições, do Mercado, dos Mestres e das cartas antes do código.
 **Depende de:** V3C-T5.
 **Decisões:** 11 a 21.
 **Trilha:** documentos.
-**Entregáveis:** **novo** `docs/decisions/0016-expedicoes-mercado-mestres-e-cartas-na-v0.3.md`; GDD §5.4, §5.9, §8.2, §9.2 a §9.4, §12.2 e Apêndices B e C corrigidos; §9 deste roadmap atualizada.
+**Entregáveis:** **novo** `docs/decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md`; GDD §5.4, §5.9, §8.2, §9.2 a §9.4, §12.2 e Apêndices B e C corrigidos; §9 deste roadmap atualizada.
 
 - [ ] V3D-T0.1 Apresentar cada decisão com a premissa da §9 como padrão. Para a 12 e a 19, mostrar o catálogo da §13.2 e o lote da §13.3 e perguntar quem escreve (premissa: o agente escreve, o autor aprova grafo a grafo e carta a carta).
 - [ ] V3D-T0.2 Levar ao autor o que a Fase C mostrou: horas de atraso do soldo por perfil, ouro parado, se o Preguiçoso perdeu herói.
@@ -627,7 +639,7 @@ A expedição é a mecânica central da v0.3 (GDD §9). O que o jogador deve con
 
 **Pronto quando:** nenhuma tarefa de D, E ou F tem decisão aberta.
 
-**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md §9, §13 e §0.6, docs/balance-v0.3.md e GAME_DESIGN.md §5.9, §9 e Apêndices B, C e D. Vamos fechar o lote 2: uma decisão por vez, com a sua recomendação como padrão; registre em docs/decisions/0016-…md e corrija o GDD."
+**Prompt sugerido:** "Leia CLAUDE.md, docs/roadmap-v0.3.md §9, §13 e §0.6, docs/balance-v0.3.md e GAME_DESIGN.md §5.9, §9 e Apêndices B, C e D. Vamos fechar o lote 2: uma decisão por vez, com a sua recomendação como padrão; registre em docs/decisions/0018-…md e corrija o GDD."
 
 ### V3D-T1 · Motor das expedições `L`
 
@@ -637,7 +649,7 @@ A expedição é a mecânica central da v0.3 (GDD §9). O que o jogador deve con
 **Decisões:** 1, 7, 9, 11, 12, 13.
 **Fica para outra tarefa:** o que o desfecho faz ao herói, experiência e itens (V3D-T2); o catálogo de verdade e os textos (V3D-T3). Esta tarefa usa **dois grafos de teste**.
 **Trilha:** motor.
-**Entregáveis:** `packages/content/src/ids.ts` e `buildings.ts` (`guild`: `requires: { townHall: 3 }`, 300 madeira, 100 pedra e 200 ouro, 20 min, nível máximo 4 nesta versão), **novo** `packages/content/src/expeditions.ts` (tipos, `ExpeditionModelSchema`, `balance.expeditions`), **nova** pasta `packages/content/src/missions/` (dois grafos de teste), `chronicle.ts`, `content.test.ts`; **novo** `packages/engine/src/expeditions.ts`; `heroes.ts` (poder da equipe), `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `sendExpedition`, `chooseExpeditionPath`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; `packages/protocol/src/commands.ts`, `view.ts`, `index.ts` (protocolo 3, se preciso); servidor (versão mínima do cliente: conferir onde a v0.2 a pôs); `packages/client-sdk/src/client.ts`; **novo** `packages/server/test/expeditions.test.ts`.
+**Entregáveis:** `packages/content/src/ids.ts` e `buildings.ts` (`guild`: `requires: { townHall: 3 }`, 300 madeira, 100 pedra e 200 ouro, 20 min, nível máximo 4 nesta versão), **novo** `packages/content/src/expeditions.ts` (tipos, `ExpeditionModelSchema`, `balance.expeditions`), **nova** pasta `packages/content/src/missions/` (dois grafos de teste), `chronicle.ts`, `content.test.ts`; **novo** `packages/engine/src/expeditions.ts`; `heroes.ts` (poder da equipe), `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `sendExpedition`, `chooseExpeditionPath`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; `packages/protocol/src/commands.ts`, `view.ts`, `index.ts` (protocolo 3), `protocol.test.ts`; `packages/server/src/plugins/errors.ts` (o 426 já compara `X-Lords-Protocol`: conferir que nada mais muda); `packages/client-sdk/src/client.ts`; `packages/web/src/game/gameSession.ts` (`CACHE_VERSION` acompanha o protocolo); **novo** `packages/server/test/expeditions.test.ts`.
 
 - [ ] V3D-T1.1 Conteúdo: um **modelo** tem `id`, `label`, `riskLabel`, `requires` (nível da Guilda, tamanho da equipe, nível mínimo, classes, destino descoberto) e três **variantes**. Uma variante é um grafo: `start` e `nodes`, cada nó com `kind` (`travel`, `encounter`, `discovery`, `crossroads`, `hazard`, `camp`, `boss`, `return`), `title`, `durationMs`, e conforme o tipo: `difficulty` e os pesos dos atributos, `onDisaster` (`injury` ou `capture`), `rewards`, `next`, ou, na encruzilhada, `options` (cada uma com `id`, `label`, `hint`, `requires?` e `next`) e **`posture: { cautious; balanced; bold }`**, a opção de cada Postura marcada editorialmente, como no Apêndice C do GDD. `balance.expeditions: { crossroadsWaitRealMs: 6 h; summerDuration: 17/20; outcome: { full: 13/10; success: 1/1; setback: 7/10 }; luck: { min: 85; max: 115 }; slotsByGuildLevel: [1, 2, 2, 3]; reportsKept: 3 }`.
 - [ ] V3D-T1.2 Teste de conteúdo: grafo acíclico; todo caminho chega a um nó `return`; de 3 a 5 nós de profundidade; duração de 10 a 45 min de jogo por nó; três variantes por modelo; toda encruzilhada com as três Posturas apontando para opções que existem; a opção da Cautelosa **sem requisito**; todo nó com `difficulty` tem `onDisaster`; nenhuma recompensa de versão futura (ferro, arma, relíquia, planta, unidade, presságio).
@@ -648,7 +660,7 @@ A expedição é a mecânica central da v0.3 (GDD §9). O que o jogador deve con
 - [ ] V3D-T1.7 Encruzilhada: ao chegar, `status = atCrossroads`, `decidesAtMs = agora + crossroadsWaitRealMs × timeScale`, evento `expeditionAtCrossroads` e uma entrada em `pendingDecisions`. Comando `chooseExpeditionPath { expeditionId; optionId }`: recusas `EXPEDITION_NOT_WAITING`, `CROSSROADS_DECIDED` (o prazo resolve **antes** de um comando no mesmo instante), `INVALID_OPTION`, `OPTION_LOCKED` ("requer um Guerreiro na equipe"). No prazo, vale a opção marcada para a Postura da expedição; se ela estiver bloqueada para esta equipe, vale a da Cautelosa. Eventos `expeditionPathChosen` e `expeditionPostureDecided`, com o nome de quem decidiu. A equipe parada na encruzilhada continua recebendo soldo.
 - [ ] V3D-T1.8 Retorno: no nó `return`, os recursos do saque entram no estoque cortados no cap, com o corte contado como na v0.2; os heróis voltam a `idle`; o `log` vira um relatório em `guild.reports` (os mais antigos saem); o fluxo `expedition:<id>` é apagado. Evento `expeditionReturned` com os totais.
 - [ ] V3D-T1.9 `ViewState`: `guild.slots`; `guild.available[]` (cada modelo com `label`, `riskText`, `durationSeconds`, `requirementsText`, `locked`, `lockedReason`, e o que a premissa 13 deixa ver do primeiro trecho); `guild.expeditions[]` (onde está, quanto falta, o que já aconteceu, e na encruzilhada as opções com `label`, `hint`, `locked`, `lockedReason`, `decidesInSeconds`, `postureLabel` e `postureOptionLabel`); `guild.reports[]`; `pendingDecisions` com `{ kind: 'crossroads'; id; title; expiresInSeconds }`. **Não saem:** a dificuldade e o conteúdo dos nós depois de uma encruzilhada não alcançada, a sorte, o fluxo.
-- [ ] V3D-T1.10 Protocolo: se V3A-T1.4 mostrou que `pendingDecisions` é uma união fechada, `protocol` passa a **3** e o servidor responde `426 UPGRADE_REQUIRED` a um cliente anterior, com a mesma frase da v0.2. Se a lista for aberta, registrar por que o protocolo não sobe.
+- [ ] V3D-T1.10 Protocolo: `pendingDecisions` é uma lista fechada no protocolo 2 (§0.7), então `PROTOCOL_VERSION` passa a **3**: `PendingDecisionSchema` vira união por `kind` (`card` e `crossroads`); o teste de `protocol.test.ts` que hoje recusa `crossroads` passa a aceitá-lo e a recusar um terceiro tipo; o histórico do número em `packages/protocol/src/index.ts` ganha a linha do 3; e o servidor responde `426 UPGRADE_REQUIRED` a um cliente anterior, com a mesma frase da v0.2. O cache do app muda de marca com o protocolo (`CACHE_VERSION`): a visão guardada é descartada, e o cursor e a última visita continuam (QA-14).
 - [ ] V3D-T1.11 Testes: os dois grafos de teste percorridos de ponta a ponta; o prazo da encruzilhada nos três ritmos (6 h reais em todos); escolha no instante do prazo; Postura com opção bloqueada; duas expedições simultâneas e uma terceira enviada no meio; envio no verão e virada de estação no caminho; 30 dias sem acesso com a equipe na encruzilhada; propriedade de divisão de intervalo com nós, sorteios e prazo no caminho, inclusive com o fluxo nascendo e sendo apagado; mesma semente, mesmo relatório; integração: enviar, reenviar, escolher em duas abas, escolher depois do prazo.
 
 **Diversão:** nada ainda para ler: é a máquina. O que ela tem de garantir para a diversão vir depois: nenhuma encruzilhada decide sem o jogador ter tido 6 h reais, a Postura nunca escolhe o que a equipe não pode fazer, e o que foi mostrado antes do envio é o que vale.
@@ -665,7 +677,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** critério 2 da §16.2 provado no motor nos três ritmos e por integração; a propriedade vale com expedições; a mesma semente dá o mesmo relatório.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.2 e Apêndice C, docs/decisions/0015 e 0016, docs/roadmap-v0.3.md V3D-T1 e Apêndice B, packages/engine/README.md e packages/server/README.md. Apresente o plano por subtarefa (conteúdo e schema; estado e migração; envio; percurso por eventos; resolução em inteiros; encruzilhada e Postura; retorno; ViewState; protocolo) e espere aprovação. É tarefa L: uma subtarefa por bloco, em branch, testes primeiro. Nada de exército, sabotagem ou mapa gráfico."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.2 e Apêndice C, docs/decisions/0017 e 0018, docs/roadmap-v0.3.md V3D-T1 e Apêndice B, packages/engine/README.md e packages/server/README.md. Apresente o plano por subtarefa (conteúdo e schema; estado e migração; envio; percurso por eventos; resolução em inteiros; encruzilhada e Postura; retorno; ViewState; protocolo) e espere aprovação. É tarefa L: uma subtarefa por bloco, em branch, testes primeiro. Nada de exército, sabotagem ou mapa gráfico."
 
 ### V3D-T2 · Desfechos: ferimento, captura, Resgate, experiência e equipamento `M`
 
@@ -675,14 +687,14 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 **Decisões:** 8, 14, 15.
 **Fica de fora:** desgaste e reparo de item (Ferreiro, v0.4); relíquias e plantas (v0.5); morte fora de Rei de Ferro.
 **Trilha:** motor.
-**Entregáveis:** **novo** `packages/content/src/items.ts` (espaços, raridades, catálogo), `heroes.ts`, `expeditions.ts`, `tiles.ts` † (destinos descobríveis), `balance.ts` (`injuries`), `chronicle.ts`; `packages/engine/src/expeditions.ts`, `heroes.ts`, `threat.ts` †, `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `equipItem`, `unequipItem`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo.
+**Entregáveis:** **novo** `packages/content/src/items.ts` (espaços, raridades, catálogo), `heroes.ts`, `expeditions.ts`, `tiles.ts` (destinos descobríveis), `balance.ts` (`injuries`), `chronicle.ts`; `packages/engine/src/expeditions.ts`, `heroes.ts`, `threat.ts`, `timeline.ts`, `advance.ts`, `commands.ts` (**novos** `equipItem`, `unequipItem`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo.
 
 - [ ] V3D-T2.1 Ferimento (premissa 8): Revés fere um herói de leve (2 h de jogo); Desastre, de forma grave (12 h de jogo) ou captura, **conforme o nó marca** em `onDisaster`. Quem sofre é sorteado no fluxo da expedição entre os da equipe. O herói ferido termina a expedição, mas não parte em outra até `untilMs`, que é evento da linha do tempo (`heroRecovered`).
 - [ ] V3D-T2.2 Dificuldade: Camponês troca toda captura por ferimento grave; Senhor segue o que o nó marca; em Rei de Ferro, onde o nó marca captura, o herói **morre** (`heroDied`), e os itens dele voltam ao inventário. Cada caso com frase própria na Crônica.
 - [ ] V3D-T2.3 Captura e Resgate: o capturado sai da equipe, não recebe soldo e não tem prazo nesta versão. Enquanto houver um capturado, o modelo "Resgate" fica disponível (2 h de jogo, 2 nós, 2 heróis); o sucesso devolve o herói (`heroRescued`). Se todos os heróis de uma expedição forem capturados, ela termina ali e o saque se perde.
 - [ ] V3D-T2.4 Experiência e nível: cada nó dá experiência do conteúdo, proporcional ao desfecho; subir de nível é evento (`heroLeveledUp`); o nível entra nos atributos como fração (`(100 + 8 × (nível − 1)) / 100`, premissa 7), sem compor.
 - [ ] V3D-T2.5 Equipamento (premissa 15): três espaços (`weapon`, `armor`, `accessory`), quatro raridades. Itens vêm do saque e de objetivos. `guild.inventory` tem teto do conteúdo; item achado com o inventário cheio vira ouro pelo valor do conteúdo, com linha na Crônica. Comandos `equipItem { heroId; itemId }` e `unequipItem { heroId; slot }`: recusas `HERO_BUSY`, `ITEM_NOT_FOUND`, `WRONG_SLOT`. O bônus do item entra no poder como fator, com a explicação.
-- [ ] V3D-T2.6 Mundo: a recompensa `revealTile` acrescenta um destino à lista (tiles abstratos, sem mapa); o sucesso no Covil dos Lobos desliga o tile de ameaça e tira 30 da Ameaça (`threatTileCleared`). Pela premissa 14, o Covil volta a ficar ativo na virada do ano. A regra de visibilidade da v0.2 continua: sem Torre, o jogador sabe que limpou o Covil, e não o número da Ameaça.
+- [ ] V3D-T2.6 Mundo: a recompensa `revealTile` acrescenta um destino à lista (tiles abstratos, sem mapa); o sucesso no Covil dos Lobos desliga o tile de ameaça (`map.tiles.wolfDen.threatActive` passa a falso; o campo já existe no estado, e hoje nada o desliga) e tira 30 da Ameaça (`threatTileCleared`). Pela premissa 14, o Covil volta a ficar ativo na virada do ano. A regra de visibilidade da v0.2 continua: sem Torre, o jogador sabe que limpou o Covil, e não o número da Ameaça.
 - [ ] V3D-T2.7 `ViewState`: em cada herói, `statusText` ("Ferido: volta em 1h10", "Capturado nas Ruínas"), `equipment` e o que cada item soma; `guild.inventory[]`; em cada relatório, quem se feriu, quem subiu de nível e o que foi achado.
 - [ ] V3D-T2.8 Testes: cada desfecho nas três dificuldades; ferido que se recupera no instante exato; captura seguida de Resgate; equipe inteira capturada; nível 10 não passa; inventário cheio; equipar durante a expedição é recusado; Covil limpo e a virada do ano; propriedade; golden do relatório.
 
@@ -699,7 +711,7 @@ pnpm --filter @lotg/engine test -- threat
 
 **Pronto quando:** um cenário roteirizado passa por Revés, Desastre com captura, Resgate, nível novo e item equipado, nas três dificuldades, e limpar o Covil muda a Ameaça.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §8.2, §9.1 a §9.3 e §12.1, docs/decisions/0015 e 0016, docs/roadmap-v0.3.md V3D-T2 e Apêndice B. Apresente o plano (ferimento, dificuldade, captura e Resgate, experiência, itens, tiles) e espere aprovação. Primeiro os testes de cada desfecho por dificuldade."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §8.2, §9.1 a §9.3 e §12.1, docs/decisions/0017 e 0018, docs/roadmap-v0.3.md V3D-T2 e Apêndice B. Apresente o plano (ferimento, dificuldade, captura e Resgate, experiência, itens, tiles) e espere aprovação. Primeiro os testes de cada desfecho por dificuldade."
 
 ### V3D-T3 · Catálogo de expedições e o relatório nó a nó `L`
 
@@ -732,7 +744,7 @@ pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy explo
 
 **Pronto quando:** critério 3 da §16.2 provado por golden; os grafos aprovados pelo autor no inventário; a cobertura e a distribuição dos desfechos registradas.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.3, §9.4, Apêndices C e E e §18.3, docs/decisions/0016-…md, docs/roadmap-v0.3.md V3D-T3 e §13. Escreva os grafos em docs/content-v0.3.md com a ficha da §13.4, um modelo por vez, e espere a minha aprovação antes de transcrever para packages/content. Tom de crônica medieval, frases curtas, português do Brasil."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §9.3, §9.4, Apêndices C e E e §18.3, docs/decisions/0018-…md, docs/roadmap-v0.3.md V3D-T3 e §13. Escreva os grafos em docs/content-v0.3.md com a ficha da §13.4, um modelo por vez, e espere a minha aprovação antes de transcrever para packages/content. Tom de crônica medieval, frases curtas, português do Brasil."
 
 ### V3D-T4 · Expedições na interface `M`
 
@@ -772,7 +784,7 @@ GAME_TIME_SCALE=3 pnpm test:e2e 09-guilda -g "ritmo"
 - [ ] V3D-T5.1 Revisor independente tenta: escolher depois do prazo; enviar o mesmo herói duas vezes (duplo clique, duas abas, reenvio); inferir pelo `ViewState` ou pela resposta HTTP o que há depois da encruzilhada; mudar o resultado de uma expedição enviando outra; migração no meio de uma espera; virada de ano e de estação com a equipe fora.
 - [ ] V3D-T5.2 Revisão editorial grafo a grafo: opção dominante, Postura que nunca muda nada, risco que não corresponde ao rótulo, frase fora do tom.
 - [ ] V3D-T5.3 Simulador, perfis de 1 e 2 visitas por dia em cada ritmo: encruzilhadas decididas pelo jogador e pela Postura, horas de herói ocioso, desfechos, capturas e Resgates. Se quase toda encruzilhada cair na Postura no perfil de 2 visitas, a janela está errada: vai ao autor.
-- [ ] V3D-T5.4 Desempenho: tamanho do estado e da visão com três expedições e três relatórios guardados.
+- [ ] V3D-T5.4 Desempenho: tamanho do estado e da visão com três expedições e três relatórios guardados. E o teto: cada nível vendido da Guilda cabe no depósito nas três dificuldades.
 - [ ] V3D-T5.5 O autor joga, no ritmo 3, uma Patrulha e o Covil dos Lobos até o relatório, e diz a cada passo o que esperava. Mesclar `v3d-expedicoes` só com a aprovação dele.
 
 **Pronto quando:** defeitos confirmados corrigidos com teste; nenhuma opção dominante, conferido grafo a grafo; o autor jogou e aprovou.
@@ -821,7 +833,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** critério 4 da §16.2 provado por unidade, propriedade e integração, e a visão explica cada preço.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.9 e §4.1, docs/decisions/0016-…md, docs/roadmap-v0.3.md V3E-T1 e Apêndice B, e packages/engine/src/random.ts. Apresente o plano (conteúdo, passeio do preço em inteiros, volume diário, comando trade, ViewState) e espere aprovação. Primeiro o teste 'nenhuma sequência de compra e venda dá lucro' e o do limite diário."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.9 e §4.1, docs/decisions/0018-…md, docs/roadmap-v0.3.md V3E-T1 e Apêndice B, e packages/engine/src/random.ts. Apresente o plano (conteúdo, passeio do preço em inteiros, volume diário, comando trade, ViewState) e espere aprovação. Primeiro o teste 'nenhuma sequência de compra e venda dá lucro' e o do limite diário."
 
 ### V3E-T2 · Caravanas `M`
 
@@ -851,7 +863,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 
 **Pronto quando:** critério 5 da §16.2 provado por cenário com semente fixa em que uma caravana é emboscada, e pela matriz QA-10.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.9, docs/decisions/0016-…md, docs/roadmap-v0.3.md V3E-T2 e Apêndice B. Apresente o plano (envio com preço fixado, chegada como evento, emboscada sorteada no fluxo da caravana, escolta) e espere aprovação. Primeiro a matriz QA-10 como teste."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.9, docs/decisions/0018-…md, docs/roadmap-v0.3.md V3E-T2 e Apêndice B. Apresente o plano (envio com preço fixado, chegada como evento, emboscada sorteada no fluxo da caravana, escolta) e espere aprovação. Primeiro a matriz QA-10 como teste."
 
 ### V3E-T3 · Mestres `M`
 
@@ -860,7 +872,7 @@ TEST_DATABASE_URL=postgres://lotg:lotg@localhost:5433/lotg_test pnpm test:integr
 **Depende de:** V3E-T2. **Da v0.2 usa:** a conta única da produção (ADR 0013, 13a), a adaptação por coortes e a experiência do ofício (V2C-T3), o piso de população e as regras de quem parte ou se fere (V2C-T4, V2E-T3), a habitação.
 **Decisões:** 18.
 **Trilha:** motor.
-**Entregáveis:** **novo** `packages/content/src/masters.ts` (Mestres nomeados e `balance.masters`), `chronicle.ts`, `expeditions.ts` (recompensa `addMaster`); **novo** `packages/engine/src/masters.ts`; `economy.ts`, `population.ts`, `morale.ts` †, `commands.ts` (**novo** `assignMaster`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo.
+**Entregáveis:** **novo** `packages/content/src/masters.ts` (Mestres nomeados e `balance.masters`), `chronicle.ts`, `expeditions.ts` (recompensa `addMaster`); **novo** `packages/engine/src/masters.ts`; `economy.ts`, `population.ts`, `morale.ts`, `commands.ts` (**novo** `assignMaster`), `rejections.ts`, `types.ts`, `migrations/v<N>.ts`, `view.ts`; protocolo.
 
 - [ ] V3E-T3.1 Conteúdo (premissa 18): `masters: { bonus: 3/20; maxPerBuilding: 1 }` e uma lista de Mestres nomeados, cada um com nome e ofício de origem (só narrativa: o bônus vale em qualquer edifício produtivo).
 - [ ] V3E-T3.2 Estado: `settlement.masters[]` com `id`, `name`, `building` (ou `null`) e `adaptingUntilMs`; `settlement.mastersWaiting[]` para quem chegou sem vaga. O Mestre conta como habitante (casa e comida) e, quando alocado, como um trabalhador do edifício.
@@ -884,7 +896,7 @@ pnpm --filter @lotg/engine test -- population
 
 **Pronto quando:** um Mestre chega por expedição, trabalha, soma 15% com a explicação, e nenhuma regra de perda de população o alcança.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.3 e §5.4, docs/decisions/0013 e 0016, docs/roadmap-v0.3.md V3E-T3 e Apêndice B. Apresente o plano (estado, chegada com e sem vaga, fator na conta única, adaptação, proteção) e espere aprovação. Testes primeiro."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §5.3 e §5.4, docs/decisions/0013 e 0018, docs/roadmap-v0.3.md V3E-T3 e Apêndice B. Apresente o plano (estado, chegada com e sem vaga, fator na conta única, adaptação, proteção) e espere aprovação. Testes primeiro."
 
 ### V3E-T4 · Mercado, caravanas e Mestres na interface `M`
 
@@ -920,7 +932,7 @@ pnpm test:e2e 10-mercado
 **Depende de:** V3E-T1 a V3E-T4.
 
 - [ ] V3E-T5.1 Revisor independente tenta: lucro por compra e venda repetidas, no mesmo dia e atravessando a virada; passar do volume diário com duas abas; comprar acima do cap; saber o desfecho da caravana antes da chegada; escoltar com um herói em expedição; Mestre perdido por deserção, incursão ou falta de vaga.
-- [ ] V3E-T5.2 Simulador, a matriz inteira: desperdício e excedente parado contra a linha de base de V3A-T1; parcela do volume diário usada; ouro ganho por venda, por caravana e pela mina; emboscadas. Se o Mercado virar a melhor fonte de ouro em todo perfil, ou não for usado em nenhum, vai ao autor.
+- [ ] V3E-T5.2 Simulador, a matriz inteira: desperdício e excedente parado contra a linha de base de V3A-T1; parcela do volume diário usada; ouro ganho por venda, por caravana e pela mina; emboscadas. Se o Mercado virar a melhor fonte de ouro em todo perfil, ou não for usado em nenhum, vai ao autor. Medir também o **ouro parado no fim da semana** contra a linha de base (V3A-T1.7): é o que o autor deixou para a v0.3 resolver (C-5, ADR 0016). E o teto: cada nível vendido do Mercado cabe no depósito nas três dificuldades.
 - [ ] V3E-T5.3 O autor joga, no ritmo 3: vende um excedente, manda uma caravana sem escolta e outra com, recebe um Mestre e o aloca. Mesclar `v3e-mercado` só com a aprovação dele.
 
 **Pronto quando:** defeitos confirmados corrigidos com teste; a pergunta do GDD §17.2 respondida com números; o autor jogou e aprovou.
@@ -942,13 +954,13 @@ O que o jogador deve conseguir ao fim da fase: receber uma carta em que um traç
 **Depende de:** V3E-T5; V3C-T3 (efeito `addHero`). **Da v0.2 usa:** o motor do Conselho inteiro (flags, continuações com prioridade, efeitos adiados e ocultos, `autoResolve`, cadência ancorada, virada de ano) e o lote 1 de 21 cartas.
 **Decisões:** 19, 21.
 **Trilha:** motor e documentos.
-**Entregáveis:** `packages/content/src/council.ts` † (efeitos e requisitos novos), `packages/content/src/cards/` † (uma cadeia por arquivo: **novos** `mysterious-merchant.ts`, `refugees.ts`, `white-wolf.ts`, `kings-collector.ts`; `scripted.ts`; as avulsas no arquivo de avulsas da v0.2), `chronicle.ts`; `packages/engine/src/council.ts` †, `market.ts`, `expeditions.ts`, `view.ts`; `docs/content-v0.3.md`; testes de conteúdo e goldens; política do bot.
+**Entregáveis:** `packages/content/src/council.ts` (efeitos e requisitos novos), `packages/content/src/cards/` (uma cadeia por arquivo: **novos** `mysterious-merchant.ts`, `refugees.ts`, `white-wolf.ts`, `kings-collector.ts`; `scripted.ts`; as avulsas em `cards/standalone.ts`, e todas na lista de `cards/index.ts`, cuja ordem faz parte do sorteio), `chronicle.ts`; `packages/engine/src/council.ts`, `market.ts`, `expeditions.ts`, `view.ts`; `docs/content-v0.3.md`; testes de conteúdo e goldens; política do bot.
 
 - [ ] V3F-T1.1 Efeitos novos, cada um com teste: `addMaster`; `revealTile` (acrescenta um destino à lista); `unlockExpedition` (abre uma expedição especial, uma vez); `marketPrice { resource; factor; durationDays }` (multiplica o preço exibido por alguns dias de jogo, com a sua linha na explicação do preço); `setFlag` a partir do desfecho de uma expedição (é assim que "O Lobo Branco" sabe que o Covil foi limpo).
 - [ ] V3F-T1.2 Efeito com sorteio, `chance { ratio; then; else }` (a "Praga nos campos" do Apêndice B): **nunca é resolvido no comando**, porque `applyCommand` não sorteia. A resposta agenda o efeito para a virada de dia seguinte, e é nesse evento da linha do tempo que o motor sorteia, no fluxo `council`. A carta diz a chance em palavras e em número; o resultado vira evento (`cardEffectApplied`) no instante em que acontece.
 - [ ] V3F-T1.3 Requisitos novos: `heroTrait` e `heroClass` em opções ("Negociar: requer um herói Carismático"), satisfeitos por um herói da equipe que não esteja capturado; `buildings` com Taverna, Mercado e Guilda; `flags` gravadas por expedições. A opção bloqueada diz o que falta. As três opções de `autoResolve` continuam sem custo e sem requisito.
 - [ ] V3F-T1.4 O lote 2 (premissa 19, §13.3): **4 cadeias de 3 cartas** ("O Mercador Misterioso", "Os Refugiados", "O Lobo Branco", "O Cobrador do Rei"), **2 roteirizadas** ("Estrangeira ferida", já entregue em V3C-T3, e "O mercador itinerante") e **10 avulsas**: 24 modelos. Com as 21 do lote 1, o jogo fica com **45 das 60** cartas da meta do GDD.
-- [ ] V3F-T1.5 Adaptações registradas no inventário e no ADR 0016: "O Lobo Branco" sem relíquia, presságio nem cerco; "O Cobrador do Rei" sem batalha; "A Filha do Ferreiro" não entra (exige o Ferreiro).
+- [ ] V3F-T1.5 Adaptações registradas no inventário e no ADR 0018: "O Lobo Branco" sem relíquia, presságio nem cerco; "O Cobrador do Rei" sem batalha; "A Filha do Ferreiro" não entra (exige o Ferreiro).
 - [ ] V3F-T1.6 Convivência com o lote 1: a avulsa "Mais bocas à mesa" da v0.2 trata de refugiados sem Mestre. Ela e a cadeia "Os Refugiados" se excluem por flag (`notFlags`), para o jogador não receber as duas no mesmo ano.
 - [ ] V3F-T1.7 Para cada carta, a ficha da §13.4, escrita primeiro em `docs/content-v0.3.md`, apresentada ao autor em lotes de 5 e só então transcrita. Para cada opção, um cenário em que ela é a escolha razoável e um em que é ruim.
 - [ ] V3F-T1.8 Cadeias: percorrer cada ramo (aceitar, recusar, expirar, com e sem o herói que abre a opção extra); a continuação chega no prazo com 2 pendentes na frente; a cadeia atravessa estação e ano. "Sua escolha voltou" vale como na v0.2.
@@ -969,7 +981,7 @@ pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy explo
 
 **Pronto quando:** as 24 cartas aprovadas pelo autor no inventário, duas cadeias provadas de ponta a ponta por cenário, e a cobertura por posse registrada.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §7, Apêndices B e D e §18.3, docs/decisions/0014 e 0016, docs/content-v0.2.md, docs/roadmap-v0.3.md V3F-T1 e §13. Primeiro apresente o plano dos efeitos e requisitos novos e espere aprovação. Depois escreva as cartas em docs/content-v0.3.md com a ficha da §13.4, cinco por vez, e espere a minha aprovação de cada lote antes de transcrever. Tom de crônica medieval, frases curtas."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §7, Apêndices B e D e §18.3, docs/decisions/0014 e 0018, docs/content-v0.2.md, docs/roadmap-v0.3.md V3F-T1 e §13. Primeiro apresente o plano dos efeitos e requisitos novos e espere aprovação. Depois escreva as cartas em docs/content-v0.3.md com a ficha da §13.4, cinco por vez, e espere a minha aprovação de cada lote antes de transcrever. Tom de crônica medieval, frases curtas."
 
 ### V3F-T2 · Objetivos do Senhor da v0.3 `S`
 
@@ -996,7 +1008,7 @@ pnpm test:e2e 05-teclado-e-temas -g "objetivos"
 
 **Pronto quando:** um cenário roteirizado conclui os objetivos 11 a 16 na ordem aprovada, em partida nova e migrada.
 
-**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §12.2, docs/decisions/0016-…md e docs/roadmap-v0.3.md V3F-T2. Adicione os objetivos 11 a 16 com condições novas no conteúdo e no motor, teste de cenário completo e o teste em navegador por teclado."
+**Prompt sugerido:** "Leia CLAUDE.md, GAME_DESIGN.md §12.2, docs/decisions/0018-…md e docs/roadmap-v0.3.md V3F-T2. Adicione os objetivos 11 a 16 com condições novas no conteúdo e no motor, teste de cenário completo e o teste em navegador por teclado."
 
 ### V3F-T3 · Retorno e "Antes de partir" com a Guilda `M`
 
@@ -1005,13 +1017,13 @@ pnpm test:e2e 05-teclado-e-temas -g "objetivos"
 **Depende de:** V3F-T1. **Da v0.2 usa:** `beforeLeaving` (V2C-T6) e o Retorno em três blocos (V2D-T4).
 **Decisões:** 21.
 **Trilha:** app.
-**Entregáveis:** `packages/web/src/game/beforeLeaving.ts` †, `game/returnReport.ts`, `components/Today.tsx`, `tabs/Today.tsx`, `notifications/policy.ts`, `workbench/StatusBar.tsx`; `packages/protocol/src/report.ts`; `tests/e2e/03-retorno-e-conexao.spec.ts`.
+**Entregáveis:** `packages/web/src/game/beforeLeaving.ts`, `game/returnReport.ts`, `components/Today.tsx`, `tabs/Today.tsx`, `notifications/policy.ts`, `workbench/StatusBar.tsx`; `packages/protocol/src/report.ts`; `tests/e2e/03-retorno-e-conexao.spec.ts`.
 
 - [ ] V3F-T3.1 "Antes de partir" ganha, na ordem de prioridade e ainda com o teto de cinco itens: encruzilhada esperando ("A equipe espera nas Ruínas: a Postura decide em 2h → Escolher caminho"); ouro que não paga o soldo por 24 h reais ("O ouro paga a equipe por mais 5h → Vender excedente"); herói livre com expedição disponível ("Edda está livre → Enviar em Patrulha"); recurso cheio em menos de 8 h, agora com a saída do Mercado ("Madeira cheia em 3h → Vender: cabem 140 hoje"); candidato que sai na rotação. Todos os números vêm da visão.
 - [ ] V3F-T3.2 Retorno em três blocos: "prosperou" recebe expedição concluída com o saque, nível novo, caravana que chegou, Mestre que chegou, venda feita; "custou" recebe herói ferido, capturado ou que partiu, soldo em atraso, emboscada; "ainda pode decidir" recebe a encruzilhada pendente, o herói livre e o volume de hoje sem uso com o estoque perto do cap. A expedição decidida pela Postura entra no bloco do seu desfecho, com a marca "decidido pela Postura".
 - [ ] V3F-T3.3 Cada item de "custou" tem a próxima ação ("Rolf foi capturado no Pântano → Enviar o Resgate").
 - [ ] V3F-T3.4 Avisos: encruzilhada e captura são essenciais (GDD §13.5); retorno de expedição, chegada de caravana e nível novo só em "Todas". O limite de 3 avisos por hora continua.
-- [ ] V3F-T3.5 Testes: unidade das funções puras com visões e eventos sintéticos (cada regra, ordem, teto, nenhum item); navegador: saltar 6 h com uma expedição que voltou, um herói ferido, uma caravana emboscada e uma encruzilhada esperando, e conferir os três blocos e os botões.
+- [ ] V3F-T3.5 Testes: unidade das funções puras com visões e eventos sintéticos (cada regra, ordem, teto, nenhum item); navegador: saltar 6 h com uma expedição que voltou, um herói ferido, uma caravana emboscada e uma encruzilhada esperando, e conferir os três blocos e os botões. Cada item novo de "Antes de partir" e do Relatório tem o teste do **estado de risco** dele, e não só do caso feliz: na v0.2 a tela deu o feudo por preparado sem razão quatro vezes, e o Relatório pôs número na coluna errada três (§11.3, linha A).
 
 **Diversão:** é a mecânica mais barata e mais importante para quem joga uma vez por dia: sair com a equipe ocupada e o ouro garantido, e voltar para uma história. O teste é o autor, em dois minutos, dizer se deixou o feudo e a equipe preparados só com a aba Hoje.
 
@@ -1157,10 +1169,10 @@ Entregas que não aparecem nos cinco critérios e continuam obrigatórias: soldo
 
 | ID | Cenário | Resultado a verificar | Tarefas |
 |---|---|---|---|
-| QA-01 | Carregar uma partida da v0.2 com carta pendente, continuação agendada, efeito de moral, incursão marcada, ferido, planejada automática e estoque acima do cap | Migrada uma vez por passo; nada perdido nem pago de novo; a carta da estrangeira agendada a partir da fronteira; nenhum evento da v0.3 antes da fronteira | V3B-T1, V3C-T3, e cada tarefa que sobe a versão |
+| QA-01 | Carregar uma partida da v0.2 com carta pendente, continuação agendada, efeito de moral, incursão marcada, ferido, planejada automática, estoque acima do cap e uma fome dentro da janela de reabertura | Migrada uma vez por passo; nada perdido nem pago de novo; a carta da estrangeira chega na primeira audiência com lugar depois da fronteira, uma vez; nenhum evento da v0.3 antes da fronteira | V3B-T1, V3C-T3, e cada tarefa que sobe a versão |
 | QA-02 | Avançar 30 dias de uma vez, por horas e com cortes aleatórios, com heróis em expedição, soldo em atraso, Mercado, caravana e Mestre | Estado, fluxos de sorteio (inclusive os que nascem e morrem), restos e eventos iguais; entrada não mutada | V3C-T5, V3D-T5, V3E-T5 |
 | QA-03 | No mesmo instante: fim de nó, prazo de encruzilhada, chegada de caravana, ouro acabando, virada de dia (preço e volume), rotação da Taverna e carta expirando | Ordem documentada (§0.7), nenhuma cobrança duplicada, nenhum laço | V3D-T5, V3E-T5 |
-| QA-04 | Ouro acaba e volta; 12 h e 24 h de jogo em atraso; herói Leal; herói em expedição; ouro que chega por recompensa; dispensa | Instantes exatos; um herói por dia de jogo; Leal fica; sem dívida; sem oscilação | V3C-T1 |
+| QA-04 | Ouro acaba e volta; 12 h e 24 h em atraso (reais, pela decisão 3), nos três ritmos; o atraso que fecha e reabre dentro da janela; herói Leal; herói em expedição; ouro que chega por recompensa; dispensa | O atraso abre e fecha em instantes exatos; as consequências são cobradas na virada do dia; um herói por passo; Leal fica; sem dívida; sem oscilação; o atraso reaberto continua de onde estava | V3C-T1 |
 | QA-05 | Contratar com duplo clique, em duas abas, no instante da rotação, no limite e sem ouro | Uma contratação e uma cobrança; recusa com o motivo; oferta que saiu não volta | V3C-T2, V3C-T4 |
 | QA-06 | Encruzilhada: o jogador escolhe; o prazo vence no clique; outra aba escolhe; a opção da Postura está bloqueada; 6 h reais em cada ritmo | Uma decisão; mesmo identificador, mesmo recibo; a Cautelosa como reserva; o prazo igual nos três ritmos | V3D-T1, V3D-T4 |
 | QA-07 | A mesma expedição com a mesma semente; duas simultâneas; uma terceira enviada no meio | Mesmo relatório (golden); os sorteios de uma não mudam os das outras | V3B-T1, V3D-T1 |
@@ -1183,7 +1195,7 @@ Entregas que não aparecem nos cinco critérios e continuam obrigatórias: soldo
 | Sinal | Como medir | Como usar |
 |---|---|---|
 | Equipe alcançável | Hora do primeiro herói, da Guilda, da Taverna e do segundo herói | "Primeiro herói no dia 2" é meta do GDD; o resto mostra travas |
-| Ouro com destino | Ouro parado; ouro por fonte (mina, venda, caravana, saque) e por destino (soldo, contratação, obras) | O ouro parado tem de cair em relação à linha de base; nenhuma fonte pode dominar em todo perfil |
+| Ouro com destino | Ouro parado; ouro por fonte (mina, venda, caravana, saque) e por destino (soldo, contratação, obras) | O ouro parado tem de cair em relação à linha de base: é a pendência C-5 da v0.2, que o autor deixou para esta versão (ADR 0016). Nenhuma fonte pode dominar em todo perfil |
 | Soldo suportável | Horas de soldo em atraso; heróis que partiram | No perfil Preguiçoso, zero partidas causadas só por ausência |
 | Equipe ocupada | Horas de herói ocioso com expedição disponível | Detector de tédio da v0.3 |
 | Encruzilhada viva | Decididas pelo jogador ÷ todas, por perfil | Se a Postura decide quase tudo em 2 visitas por dia, a janela está errada |
@@ -1207,7 +1219,7 @@ Entregas que não aparecem nos cinco critérios e continuam obrigatórias: soldo
 
 - [ ] Os cinco critérios do GDD têm prova automática e evidência manual, por critério, com data e navegador.
 - [ ] Soldo, Taverna, expedições, desfechos, equipamento, Mercado, caravanas, Mestres, cartas e objetivos têm os seus cenários integrados cobertos (§8.2).
-- [ ] ADRs 0015 e 0016 aprovados, ou "aplicados por delegação" com as pendências escritas; proposta descartada não aparece como funcionalidade entregue.
+- [ ] ADRs 0017 e 0018 aprovados, ou "aplicados por delegação" com as pendências escritas; proposta descartada não aparece como funcionalidade entregue.
 - [ ] Um feudo novo e um migrado da v0.2 completam um ano e a virada seguinte sem travas, com equipe.
 - [ ] Os grafos e as 24 cartas aprovados; o que falta para as 60 cartas está no inventário e no roadmap da v0.4.
 - [ ] Matriz de balanceamento rodada; extremos analisados; playtest registrado, ou a ausência dele escrita; zero P0 e P1 abertos.
@@ -1219,33 +1231,33 @@ Entregas que não aparecem nos cinco critérios e continuam obrigatórias: soldo
 
 ## 9. Decisões que esperam o autor, com premissas recomendadas
 
-Os números são estáveis para referência nas tarefas. **Estado em 2026-10-02: nenhuma foi respondida.** São perguntas com uma recomendação: o agente não as aplica sem a resposta do autor, salvo se ele pedir a execução por delegação (§0.6). Cada decisão respondida vira linha de um ADR e deixa de ser pergunta para as tarefas.
+Os números são estáveis para referência nas tarefas. **Estado em 2026-10-05: nenhuma das decisões de regra (1 a 21) foi respondida; a 22 foi, no ADR 0016.** As premissas 1, 2, 3, 6 e 14 foram revistas nessa data, com o motor e os números de hoje e com o que o autor respondeu sobre a v0.2. São perguntas com uma recomendação: o agente não as aplica sem a resposta do autor, salvo se ele pedir a execução por delegação (§0.6). Cada decisão respondida vira linha de um ADR e deixa de ser pergunta para as tarefas.
 
 Como ler: a coluna "Premissa recomendada" é o que vale se o autor disser "pode ser"; a coluna "Por quê, alternativa e o que validar" diz de onde ela vem, o que foi descartado e que medição a confirma ou derruba.
 
-### 9.1 Lote 1: heróis, Taverna e fundação (V3A-T2 → ADR 0015)
+### 9.1 Lote 1: heróis, Taverna e fundação (V3A-T2 → ADR 0017)
 
 | # | Decisão | Trava | Premissa recomendada | Por quê, alternativa e o que validar | Registro |
 |---|---|---|---|---|---|
-| 1 | **Relógios da v0.3** | V3C-T1, V3C-T2, V3D-T1, V3E-T1, V3E-T2 | Tudo é **tempo de jogo** e escala com o ritmo (soldo por hora de jogo, atraso de 12 h e 24 h, ferimento de 2 h e 12 h, rotação da Taverna, festival, duração dos nós, viagem da caravana, dia do Mercado), **exceto a espera da encruzilhada: 6 h reais** em qualquer ritmo, convertidas com `settings.timeScale` na chegada ao nó | É a regra do ADR 0013 (decisão 1) com a mesma exceção do ADR 0014: só é real a janela que depende de uma pessoa responder. Em tempo de jogo, no Rápido a espera seria de 2 h reais e a Postura decidiria quase sempre. Alternativa: tudo em tempo de jogo. Validar: parcela das encruzilhadas decididas pelo jogador no perfil de 2 visitas | a decidir |
-| 2 | **Como a v0.3 chega à produção** | Fase B em diante | §0.8: a v0.3 só sobe a versão do estado depois de a v0.2 estar publicada e migrada; A, B e G no `main`; C a F em branch de fase, mesclado quando o autor jogou e aprovou | Empilhar versões de estado nunca publicadas foi o que obrigou a primeira publicação da v0.2 a ir em dois passos. Alternativa: tudo no `main` local sem `push`, como na v0.2, com uma publicação em passos depois | a decidir |
-| 3 | **O soldo quando falta ouro** | V3C-T1 | Soldo é consumo **contínuo**: 2 ouro por hora de jogo por herói (no feudo, em expedição ou em escolta; capturado não recebe). Quando o ouro acaba, abre o **atraso** no instante exato, como a fome. **Não há dívida.** Com 12 h de jogo contínuas em atraso, todo herói sem o traço Leal fica Descontente (atributos ×0,8). A partir de 24 h, parte **um herói por dia de jogo**: o que chegou por último entre os que estão no feudo; Leal nunca parte; quem está fora só pode partir depois de voltar. O atraso fecha quando o saldo de ouro volta a ser positivo. Dispensar um herói é sempre possível, sem devolução. **Sem piso de heróis** | É o GDD §9.1 lido com o modelo que o motor já tem para a fome: instante exato, nada negativo, nada recalculado. Alternativas: cobrança por dia, na virada; dívida paga depois; prazos em tempo real. **O que validar: no Rápido, 12 h e 24 h de jogo são 4 h e 8 h reais.** Se o perfil Preguiçoso perder herói só por ter dormido, a proteção é regra nova e volta ao autor | a decidir |
+| 1 | **Relógios da v0.3** | V3C-T1, V3C-T2, V3D-T1, V3E-T1, V3E-T2 | Tudo é **tempo de jogo** e escala com o ritmo (soldo por hora de jogo, ferimento de 2 h e 12 h, rotação da Taverna, festival, duração dos nós, viagem da caravana, dia do Mercado), **com duas exceções em tempo real**, iguais em qualquer ritmo e convertidas com `settings.timeScale` quando o prazo nasce: a **espera da encruzilhada, de 6 h reais**, e os **prazos do soldo em atraso** (decisão 3) | É a regra do ADR 0013 (decisão 1) com o critério que o autor fixou em 2026-10-05, ao levar a deserção por fome e o aviso da Torre para tempo real (ADR 0016, itens 2 e 4): é real a janela que depende de uma pessoa responder e o prazo de uma perda por ausência. Em tempo de jogo, no Rápido a espera da encruzilhada seria de 2 h reais e a Postura decidiria quase sempre. Alternativa: tudo em tempo de jogo. Validar: parcela das encruzilhadas decididas pelo jogador no perfil de 2 visitas | a decidir |
+| 2 | **Como a v0.3 chega à produção** | Fase B em diante | §0.8: a v0.3 só sobe a versão do estado sobre a v0.2 publicada e migrada (cumprido em 2026-10-05: o estado em produção é o 12), e nenhuma fase sobe o estado em cima de outra ainda não publicada; um commit local por tarefa e `push` só quando o autor mandar, como na Fase G; A, B e G no `main`; C a F em branch de fase, mesclado quando o autor jogou e aprovou | Há pessoas jogando: todo `push` no `main` é uma publicação para elas. Empilhar versões de estado nunca publicadas foi o que obrigou a primeira publicação da v0.2 a ir em dois passos. Alternativa: `push` por fase assim que o portão fecha, como nas Fases A a E da v0.2, quando não havia jogadores | a decidir |
+| 3 | **O soldo quando falta ouro** | V3C-T1 | Soldo é consumo **contínuo**: 2 ouro por hora de jogo por herói (no feudo, em expedição ou em escolta; capturado não recebe). Quando o ouro acaba, abre o **atraso** no instante exato, como a fome. **Não há dívida.** **As consequências seguem o desenho que a deserção por fome ganhou na Fase G da v0.2: prazos em tempo real, cobrados na virada do dia de jogo.** Com **12 h reais** em atraso, todo herói sem o traço Leal fica Descontente (atributos ×0,8). A partir de **24 h reais**, parte **um herói a cada 2 h reais**: o que chegou por último entre os que estão no feudo; Leal nunca parte; quem está fora só pode partir depois de voltar. O atraso fecha quando o saldo de ouro volta a ser positivo, e **o atraso que reabre em menos de 2 h reais é o mesmo**: continua de onde estava. Dispensar um herói é sempre possível, sem devolução. **Sem piso de heróis** | É o GDD §9.1 lido com o modelo que o motor tem para a fome, e com o que o autor decidiu para ela em 2026-10-05 (ADR 0016, itens 2 e 3; V2G-T2): no ritmo Normal os números são os do GDD, e nos outros ritmos valem os mesmos em horas reais. Copiar o desenho da fome reaproveita estado, conversão e testes já provados. A versão 0.1 deste plano recomendava tempo de jogo, e essa passa a ser a primeira alternativa: no Rápido seriam 4 h e 8 h reais, e uma noite de sono custaria um herói. Outras alternativas: cada consequência em instante próprio da linha do tempo, e não na virada; cobrança do soldo por dia; dívida paga depois. **O que validar:** o perfil Preguiçoso não perde herói por uma noite fora em nenhum ritmo; no Tranquilo, 12 h reais são 6 h de jogo: conferir que o aviso de "Antes de partir" chega a tempo | a decidir |
 | 4 | **Taverna: quantos heróis ela oferece, e de quanto em quanto tempo** | V3C-T2 | **2 candidatos** nos níveis 1 e 2, **3** a partir do nível 3. Rotação a cada **12 dias de jogo** (um dia real no Normal, 8 h no Rápido), ancorada como a cadência do Conselho; quem não foi contratado sai. Preço **fixo por modelo**, de 80 a 300 ouro, sem sorteio de preço; um Carismático no feudo dá 20% de desconto. Sorteio no fluxo `tavern` | O GDD diz "2–3 candidatos por dia". Lido como dia de jogo, no Rápido a lista trocaria a cada 40 minutos. Alternativas: sempre 3; rotação por dia de jogo. Validar: o jogador de 2 visitas vê cada lista ao menos uma vez | a decidir |
 | 5 | **Limite de heróis** | V3C-T1, V3C-T2 | `1 + nível da Taverna`: 1 sem Taverna, 6 no nível 5. Uma recompensa de carta ou de expedição **nunca** é barrada pelo limite | O GDD não dá limite. Sem ele, o estado e a visão não têm teto, e os níveis 4 e 5 da Taverna venderiam só moral. Alternativa: sem limite, e o soldo limita. Validar: quantos heróis o perfil Dedicado sustenta | a decidir |
-| 6 | **A "Estrangeira ferida" como primeira carta roteirizada** | V3C-T3 | Chega no início do **dia 13 de jogo do ano 1** (o começo do dia real 2 no Normal; 8 h reais no Rápido), antes dos lobos do dia 16. "Acolher": Edda, Guerreira Leal, entra agora. "Cuidar e deixar partir": +40 ouro, +5 de moral por 1 dia de jogo, e Rolf, Arqueiro Prudente, chega 1 dia de jogo depois. Nenhuma opção tem custo. `autoResolve`: Camponês e Senhor "Acolher"; Rei de Ferro "Cuidar e deixar partir". **Partidas que já passaram do dia 13 recebem a carta no primeiro instante do Conselho depois da migração**, uma vez. O soldo conta desde a chegada | É a carta 1 do Apêndice B do GDD. As duas opções dão herói: ninguém fica sem equipe porque a carta expirou. Sem a regra das partidas antigas, quem joga desde a v0.1 nunca teria o primeiro herói. Alternativas: depois dos lobos (dia 18), com a estrangeira ferida por eles; só partidas novas. Validar: o autor hesita entre as duas opções | a decidir |
+| 6 | **A "Estrangeira ferida" como primeira carta roteirizada** | V3C-T3 | Chega no início do **dia 13 de jogo do ano 1** (o começo do dia real 2 no Normal; 8 h reais no Rápido), antes dos lobos do dia 16. "Acolher": Edda, Guerreira Leal, entra agora. "Cuidar e deixar partir": +40 ouro, +5 de moral por 1 dia de jogo, e Rolf, Arqueiro Prudente, chega 1 dia de jogo depois. Nenhuma opção tem custo. `autoResolve`: Camponês e Senhor "Acolher"; Rei de Ferro "Cuidar e deixar partir". **Partidas que já passaram do dia 13 recebem a carta na primeira audiência do Conselho com lugar depois da publicação**, uma vez (o motor já trata assim toda carta roteirizada). O soldo conta desde a chegada | É a carta 1 do Apêndice B do GDD. As duas opções dão herói: ninguém fica sem equipe porque a carta expirou. Sem a regra das partidas antigas, quem joga desde a v0.1 nunca teria o primeiro herói. Alternativas: depois dos lobos (dia 18), com a estrangeira ferida por eles; só partidas novas. Validar: o autor hesita entre as duas opções | a decidir |
 | 7 | **"Poder da equipe" e atributos em inteiros** | V3C-T1, V3D-T1 | Atributos-base **inteiros** por classe. Nível: `atributo × (100 + 8 × (nível − 1)) / 100`, **sem compor**. Experiência por tabela escrita no conteúdo (100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700). Poder: `Σ (ataque + defesa + vida ÷ 10)` em milésimos, vezes os fatores de classe, traço e item como frações, com **um arredondamento para baixo no fim**. Sorte: um inteiro de 85 a 115, uma vez por nó. Desfecho por multiplicação cruzada contra 1,3, 1,0 e 0,7. Um traço que "desloca a razão" entra como fator do poder naquele nó. Classe conta só em poder, requisito de nó e opção de carta | `100 × n^1,5`, `vida/10`, "+8%" e "±15%" não são inteiros do jeito que o GDD escreve, e o motor não usa ponto flutuante (§14.3). Alternativas: +8% composto; sorte contínua. Validar: os atributos-base propostos em V3A-T2.5 dão Sucesso à equipe mínima na Patrulha em mais de 9 de 10 sementes | a decidir |
 | 8 | **Ferimento, captura e morte por dificuldade** | V3D-T2 | Leve: 2 h de jogo. Grave: 12 h de jogo. No Desastre, **o nó diz** se fere ou captura (`onDisaster`), marcado editorialmente. Camponês: toda captura vira ferimento grave. Senhor: como marcado. Rei de Ferro: onde está marcado captura, o herói morre. O capturado não recebe soldo e fica até o Resgate, **sem prazo** nesta versão. Quem sofre é sorteado no fluxo da expedição | A tabela do GDD §12.1 diz "Não / Não (captura) / Sim", e o §9.2 diz "ferimento grave ou captura" sem dizer qual. Marcar no nó é simples e revisável, como o `autoResolve` das cartas. Alternativas: sortear entre ferir e capturar; capturado com prazo. Validar: capturas por ano no perfil Regular | a decidir |
 | 9 | **Sorteio por expedição e por caravana** | V3B-T1 | Fluxos `expedition:<id>` e `caravan:<id>`, que nascem no primeiro sorteio e são **apagados** quando a entidade termina; `tavern` e `market` são fluxos fixos. Identificadores por contador no estado, nunca reutilizados. **Um comando nunca sorteia**: a variante do grafo sai de uma conta sobre a semente, o modelo e o número de envios | É o que o GDD §14.3 prevê. Com um fluxo só, a ordem entre duas expedições mudaria a sorte das duas. Apagar o fluxo mantém o estado com teto. Alternativa: um fluxo `expedition` para todas. Validar: QA-07 | a decidir |
 | 10 | **Taverna: moral e festival** | V3C-T2 | +5 de moral por nível, termo permanente. Festival por comando: 100 comida e 50 ouro (o custo da carta "Festival da Colheita" do GDD), +15 de moral por 24 h de jogo (12 dias de jogo), **um por estação** | O GDD dá o efeito e não dá custo nem limite. Sem limite, o festival seria moral comprada sem fim. O registro da v0.2 já anotava a duração do festival como dúvida aberta. Alternativas: custo que cresce com o nível; sem limite. Validar: moral média com e sem Taverna | a decidir |
 
-### 9.2 Lote 2: expedições, Mercado, Mestres e cartas (V3D-T0 → ADR 0016)
+### 9.2 Lote 2: expedições, Mercado, Mestres e cartas (V3D-T0 → ADR 0018)
 
 | # | Decisão | Trava | Premissa recomendada | Por quê, alternativa e o que validar | Registro |
 |---|---|---|---|---|---|
 | 11 | **Encruzilhada e Postura** | V3D-T1 | A opção de cada Postura é **marcada em cada encruzilhada** (`posture: { cautious; balanced; bold }`), como o Apêndice C do GDD já faz. A opção da Cautelosa nunca tem requisito. Se a opção marcada estiver bloqueada para a equipe, vale a da Cautelosa. O prazo resolve **antes** de um comando no mesmo instante. A equipe parada continua recebendo soldo | "Melhor valor esperado" calculado no motor é ambíguo e não testável; é a mesma lição da opção automática das cartas (ADR 0014, decisão 9). Alternativa: o motor calcula. Validar: revisão grafo a grafo; a Equilibrada não é a melhor para toda equipe | a decidir |
 | 12 | **Quais expedições entram, e como aparecem** | V3D-T1, V3D-T3 | Seis modelos, três variantes cada. Primeira entrega: Patrulha dos Arredores, Floresta Antiga, Covil dos Lobos e Resgate. Segunda: Ruínas de Vel'Thar e Pântano Nebuloso. **Ficam fora:** Mina Abandonada (ferro), Acampamento de Saqueadores (batalha), Sabotagem e Caçada ao Dragão. Recompensa de versão futura vira item da raridade equivalente. Um destino aparece **por descoberta, não por data**: Patrulha e Floresta com a Guilda Nv1; o Covil é conhecido desde a v0.2; as Ruínas são reveladas por uma Patrulha ou por carta; o Pântano, pelas Ruínas, e pede Guilda Nv3. **A Guilda vai até o nível 4 nesta versão** | O §9.3 do GDD mistura mecânicas de três versões, e a coluna "Disponível: dia N" está no ritmo Normal sem dizer se é data ou gate. O nível 5 da Guilda não mudaria nada que o jogador vê (ADR 0014, decisão 11). Alternativas: os dez modelos; disponibilidade por dia de jogo. Validar: cobertura por estação (V3D-T3.6) | a decidir |
 | 13 | **O que o jogador sabe antes de enviar** | V3D-T1, V3D-T4 | Duração total, risco em palavra (Baixo, Médio, Alto), poder da equipe e a dificuldade do **primeiro trecho**, até a primeira encruzilhada. O que vem depois aparece como "?" até a equipe chegar. Cada opção de encruzilhada traz uma pista do risco e da recompensa | Pilar 3 do GDD ("nada de dados ocultos sem pista") contra a graça de explorar. Alternativas: o grafo inteiro à vista; só o rótulo de risco. Validar: o autor prevê o desfecho do primeiro nó | a decidir |
-| 14 | **Covil limpo e Ameaça** | V3D-T2 | Limpar o Covil: Ameaça −30, e o tile para de somar +5 por dia. **Na virada do ano os lobos voltam**: o tile fica ativo de novo | O Covil é o único tile de ameaça até a v0.4. Limpo para sempre, Torre e Paliçada perderiam a função no ano 2. Alternativas: limpo para sempre; volta depois de N dias. Validar: Ameaça média por estação com e sem a expedição | a decidir |
+| 14 | **Covil limpo e Ameaça** | V3D-T2 | Limpar o Covil: Ameaça −30, e o tile para de somar os seus +2 por dia (`threatActive` passa a falso). **Na virada do ano os lobos voltam**: o tile fica ativo de novo | O Covil é o único tile de ameaça até a v0.4. Limpo para sempre, Torre e Paliçada perderiam a função no ano 2. Alternativas: limpo para sempre; volta depois de N dias. **A conferir com os números que o autor confirmou** (ADR 0016: +2 por tile, +3 no outono, −35 por incursão, sorteio só acima de 40): com o Covil limpo só o outono soma. Validar a Ameaça média por estação com e sem a expedição, e se limpar o Covil na primavera deixa o feudo sem incursão nenhuma até o outono | a decidir |
 | 15 | **Equipamento e custo de enviar** | V3D-T2 | Três espaços, quatro raridades (Lendário fora). Itens vêm de expedições e objetivos. **Sem desgaste nem reparo. Sem venda de item.** Inventário com teto de 30; item achado com o inventário cheio vira ouro pelo valor do conteúdo. **Enviar uma expedição não custa provisões**: custa o tempo e o soldo da equipe | Reparo é do Ferreiro (v0.4); o teto limita o estado. O GDD §5.1 cita "expedições" entre os usos da comida, e o §9 não dá número. Alternativas: itens à venda no Mercado; comida por herói por expedição. Validar: horas de herói ocioso | a decidir |
 | 16 | **Mercado: preço, margem e volume diário** | V3E-T1 | Comida, madeira e pedra. Bases do GDD (1,0, 1,2 e 2,0), em milésimos de ouro. O jogador compra pelo preço do dia e vende a **85%** dele. **O dia do Mercado é o dia de jogo**: preço e volume mudam na virada. Volume: **`200 × nível` por recurso por dia, somando compra e venda**. Passeio diário de até ±5%, com reversão de um décimo da distância à base, limitado entre 60% e 160% da base. Comida ×1,3 no outono e no inverno. Compra que não cabe no cap é recusada inteira. Os preços só andam depois que o Mercado existe. A ordem leva o dia da cotação e é recusada se o dia virou | O GDD dá os números e deixa em aberto o que é "diário", como a margem se divide e até onde o passeio vai. No Rápido um dia dura 40 minutos: o volume por visita é o de um dia, e é isso que impede uma visita de esvaziar o estoque. Alternativas: volume por dia real; margem dividida entre compra e venda. Validar: nenhuma sequência no mesmo dia dá lucro. **Comprar comida no fim do verão e vender no outono dá lucro, e é intencional**: fica à vista no aviso de estação e é limitado pelo volume e pelo cap | a decidir |
 | 17 | **Caravanas** | V3E-T2 | Mercado Nv2. Só venda, um recurso, até 300 unidades, 4 h de jogo. Preço: o de venda do dia ×1,4, **fixado no envio**. Uma caravana por vez; duas a partir do Mercado Nv4. Não conta no volume diário. Emboscada sorteada na chegada: **`máx(2, 10 − 5 × nível da Torre)` por cento**; zero com escolta. A emboscada leva **metade** da carga. A escolta ocupa um herói até a chegada | Com a Torre no nível 2, o máximo da v0.2, "−5% por nível" zeraria o risco e a escolta não serviria para nada: o piso de 2% mantém a escolha e o critério 5. O GDD não diz quanto se perde. Alternativas: "−5%" como redução relativa (10%, 9,5%, 9%); perda total. Validar: QA-10 | a decidir |
@@ -1256,10 +1268,10 @@ Como ler: a coluna "Premissa recomendada" é o que vale se o autor disser "pode 
 
 ### 9.3 Atos do autor, que não são decisões de regra
 
-| # | O que é | Trava | Recomendação | Estado em 2026-10-02 |
+| # | O que é | Trava | Recomendação | Estado em 2026-10-05 |
 |---|---|---|---|---|
-| 22 | **Confirmar as 18 decisões aplicadas por delegação na v0.2** ([pendencias-v0.2.md](pendencias-v0.2.md), seção 2), e aprovar as 21 cartas do lote 1 | Nenhuma tarefa; mas uma resposta diferente pode mudar uma premissa daqui | Antes da Fase C (V3A-T2.2). Resposta diferente vira um commit próprio, com conteúdo, golden e GDD | pendente |
-| 23 | **Operação:** publicar a v0.2 em dois passos; backup externo; cópia do `RECOVERY_CODE_SECRET` fora do Coolify; ensaio de reversão com duas imagens | A chegada de qualquer migração de estado à produção | Antes de publicar a Fase B da v0.3 | pendente |
+| 22 | **Confirmar as 18 decisões aplicadas por delegação na v0.2** ([pendencias-v0.2.md](pendencias-v0.2.md), seção 2), e aprovar as 21 cartas do lote 1 | — | — | **Respondida em 2026-10-05** ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)) e **aplicada no mesmo dia** pela Fase G da v0.2: os ADRs 0013 a 0015 valem como confirmados, com dez mudanças, todas no ar; as 21 cartas aprovadas, com os sete problemas corrigidos (V2G-T4) |
+| 23 | **Operação:** backup fora do servidor; cópia do `RECOVERY_CODE_SECRET` fora do Coolify; ensaio de reversão com duas imagens; evidência manual por critério de aceitação da v0.2 | A chegada de qualquer migração de estado da v0.3 à produção | Antes de publicar a Fase B da v0.3 | pendente. A Fase G da v0.2 foi publicada em 2026-10-05, com backup manual antes do `push`; o lançamento da v0.2.0 (tag e release) estava em curso ao fim desta revisão (V3A-T1.1) |
 | 24 | **Os oito pontos do ADR 0012 e o vínculo GitHub** | Nenhuma | O vínculo continua desligado; a página de apresentação não ganha texto sobre a Guilda antes do fechamento (V3G-T4.2) | pendente |
 
 **Registro:** para cada decisão, o ADR guarda o que foi aplicado, a data, a alternativa descartada, a razão, a tarefa afetada e a seção do GDD. Escolhas novas de regra vão ao ADR e ao GDD antes do código.
@@ -1268,59 +1280,66 @@ Como ler: a coluna "Premissa recomendada" é o que vale se o autor disser "pode 
 
 ## 10. Dívidas conhecidas, herdadas da v0.2
 
-Lidas em 2026-10-02 no roadmap da v0.2 (§9 e §11), em `pendencias-v0.2.md`, no `deploy/README.md` e no código do commit `e3d478e`. **A v0.2 não tinha terminado**: V3A-T1.10 confere cada linha e acrescenta as que as Fases C a F deixarem. "Bloqueia" quer dizer: precisa estar resolvida antes da tarefa indicada.
+Lidas em 2026-10-02 no roadmap da v0.2 (§9 e §11), em `pendencias-v0.2.md`, no `deploy/README.md` e no código do commit `e3d478e`, e **revistas em 2026-10-05**, de manhã contra o commit `061d856` e à tarde contra o `6788c41`, com a Fase G fechada (as linhas marcadas com ✔ foram conferidas no código). As outras continuam como foram lidas: V3A-T1.10 confere cada linha. "Bloqueia" quer dizer: precisa estar resolvida antes da tarefa indicada.
 
 ### 10.1 Código
 
 | Onde | O que é | Bloqueia a v0.3? |
 |---|---|---|
-| `packages/engine/src/random.ts` (`RNG_STREAMS` com três nomes fixos) | Não há fluxo por entidade (`expedition:<id>`, `caravan:<id>`) nem como apagar um fluxo | **Sim**: V3B-T1 |
-| `packages/engine/src/types.ts`, `state.ts` | Nada no estado gera identificadores de entidade | **Sim**: V3B-T1 |
-| `packages/protocol/src/view.ts` (`pendingDecisions`) | Era `z.array(z.never())` em `e3d478e`; a v0.2 a troca por cartas. Se for união fechada, a encruzilhada quebra o app antigo | **Sim**: V3D-T1 (protocolo 3) |
-| `packages/content/src/content.test.ts` e o schema das cartas † | A v0.2 proíbe herói e Mercado nas cartas, e os efeitos são só recursos, moral, flags e continuação | **Sim**: V3C-T3 e V3F-T1 afrouxam de propósito |
-| Carta `scripted` | O ADR 0014 diz que o motor aceita e o catálogo não usa: caminho sem carta de verdade | **Sim**: V3C-T3 é o primeiro uso |
-| Torre de Vigia e Paliçada até o nível 2 | "−5% por nível" na caravana zera o risco | Decisão 17 |
-| `packages/web/src/game/returnReport.ts` | O Relatório só é montado ao abrir a página depois de 4 h; uma aba aberta a noite inteira não recebe | Não; pesa mais com encruzilhadas e capturas |
+| ✔ `packages/engine/src/random.ts` (`RNG_STREAMS` com três nomes fixos) | Não há fluxo por entidade (`expedition:<id>`, `caravan:<id>`) nem como apagar um fluxo | **Sim**: V3B-T1 |
+| ✔ `packages/engine/src/types.ts`, `state.ts` | Nada no estado gera identificadores de entidade (o `instanceId` das cartas usa `stats.cardsDrawn`) | **Sim**: V3B-T1 |
+| ✔ `packages/protocol/src/view.ts` (`pendingDecisions`) | É uma lista fechada: `z.strictObject` com `kind: z.literal('card')`, e `protocol.test.ts` recusa `crossroads`. A encruzilhada quebra o parse do app antigo | **Sim**: V3D-T1 (protocolo 3, confirmado) |
+| ✔ `packages/content/src/council.test.ts` e `COUNCIL_EFFECT_TYPES` (`packages/content/src/council.ts`) | Um teste barra por expressão regular herói, Mercado, mercador, arqueiro, mapa, expedição, guilda e taverna nos textos das cartas, e os efeitos são só recursos, moral, flags e continuação | **Sim**: V3C-T3 e V3F-T1 afrouxam de propósito |
+| ✔ Carta `scripted` | O motor a entrega no sorteio da audiência (`scriptedCard`), e nenhuma carta do catálogo a usa: caminho sem carta de verdade | **Sim**: V3C-T3 é o primeiro uso |
+| ✔ Torre de Vigia e Paliçada até o nível 2 (`maxLevel: 2`) | "−5% por nível" na caravana zera o risco | Decisão 17 |
+| `packages/web/src/game/returnReport.ts` | **Resolvida na v0.2:** a aba que fica aberta e fora de vista por 4 h ou mais também conta a ausência (`away`, guardado no cache) e, na volta, um aviso leva ao relatório | Não |
 | `packages/web` (notificações) | **Nada chega com a aba fechada.** A encruzilhada espera 6 h reais e a carta, 24 h: quem fecha a aba só sabe ao voltar | Não. Notificação com a aba fechada pede *service worker* e é decisão de arquitetura: não entra sem ADR |
 | `docs/perf-v0.1.md`, tabela `commands` | Cada recibo guarda a resposta inteira (cerca de 3,4 kB na v0.1). A visão da v0.3 leva heróis, expedições, relatórios, itens e preços | Não; medir em V3A-T1.8 e V3G-T1.6 |
 | `packages/engine/src/advance.ts` | Custo de `advanceTo` depois de dias sem acesso. No 3× são 36 viradas de dia por dia real, e a v0.3 acrescenta preço e volume a cada uma | Não; medir |
 | [README do motor](../packages/engine/README.md), "Limite conhecido" | Refazer a história de uma partida migrada exige o estado gravado em cada fronteira, que só um backup tem | Não; cada passo da v0.3 que cria prazo aumenta o limite |
 | `docs/balance-v0.2.md` | As faixas do simulador são valores medidos com folga, não metas aprovadas; a meta de 30 a 40 habitantes do GDD não é atingida no ritmo 1 (26) | Não; V3G-T1 |
-| Registro da v0.2, V2B-T0 | Três dúvidas de regra sem ADR: experiência do ofício com menos trabalhadores que o nível; duração do festival; frio e moral no mesmo instante ou na virada | A do festival é a decisão 10; as outras, conferir em V3A-T1 |
-| `CLAUDE.md` | Ficou para trás na integração da Fase B da v0.2 | Não; V3A-T1.12 lista, quem integra corrige |
+| Registro da v0.2, V2B-T0 | Três dúvidas de regra sem ADR: experiência do ofício com menos trabalhadores que o nível; duração do festival; frio e moral no mesmo instante ou na virada. As leituras de regra da v0.2 foram confirmadas em bloco pelo autor (ADR 0016) | A do festival é a decisão 10 |
+| `CLAUDE.md` | Reescrito no fechamento da v0.2 (V2F-T4). Fica para trás de novo a cada fase que ninguém integra | Não; a integração de cada fase o atualiza (§0.4) |
 | `.prettierignore` (`*.md`) | O Prettier não confere Markdown: tabelas e links de documentos passam sem verificação automática | Não; links por script (§0.9) |
 | `packages/server/src/games/commands.ts` | Relógio para trás grava `server_time` regredido | Não |
 | `packages/web/src/workbench/EditorTabs.tsx` | Botões de fechar aba dentro do `tablist`; a v0.3 traz duas abas novas | Não |
 | `packages/web/src/tabs/Settings.tsx` | A Hora da Vigília é guardada e não muda nada (v0.4) | Não |
 | App (GDD §13.6) | "Baixar cópia da partida (JSON)" não existe | Não |
+| ✔ `packages/protocol/src/view.ts` (`ViewStateSchema` fechado na raiz) | O cache gravado por uma versão do app não é lido pela seguinte quando a raiz da visão ganha um campo (`guild`, `tavern`, `market`, `masters`): a visão guardada é descartada a cada fase da v0.3 que acrescenta um | Não; é o comportamento previsto, e o cursor continua. O Retorno depois da atualização é cenário de teste (QA-14) |
+| ✔ `packages/engine/src/seasonView.test.ts` (um caso marcado com `it.fails`) | Resto da pendência C-8: a fome que abre no caminho corta a Serraria, e a conta da lenha ainda diz que a lenha dá. Pelo mesmo motivo, "Antes de partir" pode dizer "A comida acaba em X" com o saldo de agora positivo | Não; pesa em V3F-T3, que acrescenta previsões (o ouro que paga a equipe) à mesma tela |
+| `packages/engine/src/plannedView.ts` | "as Habitações já está no nível máximo": concordância errada em um texto de espera hoje inalcançável (Registro da V2G-T5) | Não |
+| Aviso da Torre no ritmo Tranquilo (Registro da V2G-T3) | No inverno, com a Torre Nv1, a obra da Paliçada cabe no aviso sem folga nenhuma; num ritmo acima de 3, fora dos oferecidos, a antecedência passaria do prazo da incursão | Não; lembrar ao escolher a janela de qualquer aviso novo |
 
 ### 10.2 Operação
 
 | O que é | Bloqueia a v0.3? |
 |---|---|
-| **A v0.2 não foi publicada.** A produção roda a `v0.1.0`, que não confere a versão do estado; a primeira publicação vai em dois passos e nunca foi ensaiada com imagens | **Sim**, para qualquer fase da v0.3 chegar à produção (decisões 2 e 23) |
+| **Há pessoas jogando em produção**, com o estado na versão 12 desde 2026-10-05. Nenhum estado de produção tinha passado pelo passo 11 → 12 antes da publicação, e ninguém conferiu depois se alguma partida foi recusada (V3A-T1.1) | Não bloqueia código; cada fase da v0.3 que sobe o estado chega a partidas vivas (decisões 2 e 23) |
 | Backups no mesmo disco do banco; sem registro de cópia do `RECOVERY_CODE_SECRET` fora do Coolify | Idem |
 | A reversão nunca foi ensaiada atravessando uma migração de estado | Idem |
 | Restaurar um backup tira a sessão de quem jogou depois dele (`deploy/README.md`, "O que a restauração custa a quem joga") | Não; é o custo conhecido do último recurso |
 | Deploy automático a cada `push` no `main` | Decisão 2 |
 | `deploy/analytics/ops.sql` nunca rodou em produção; não tem consulta de ritmo, dificuldade, heróis ou expedições | Para o playtest (V3G-T3) |
 | Avisos do Coolify sem canal; e-mail de alerta do GitHub não conferido | Não; conferir antes de um playtest |
+| O lançamento da v0.2.0 (versão dos pacotes, tag e release), a pedido do autor, estava em curso por outra sessão ao fim desta revisão | Não; conferir em V3A-T1.1 |
 
 ### 10.3 Verificação
 
 | O que não foi verificado | Bloqueia a v0.3? |
 |---|---|
-| **Ninguém além do autor jogou o jogo.** Os playtests da v0.1 e da v0.2 não aconteceram | Não bloqueia código. Tira o chão de toda afirmação sobre diversão (§11.4) |
-| O autor não jogou nem aprovou nenhuma fase da v0.2; as 21 cartas e as frases de dificuldade e de ritmo não foram lidas por ele | Decisão 22 |
+| **Não houve playtest estruturado.** Há pessoas jogando em produção desde o início de outubro de 2026, e o autor jogou quatro dias (ADR 0016), mas sem convite, formulário, consultas nem relatório: os playtests da v0.1 e da v0.2 continuam por fazer | Não bloqueia código. Tira o chão de toda afirmação sobre diversão (§11.4) |
+| O autor confirmou a v0.2 **em bloco**, com quatro dias de jogo e sem ler item por item (ADR 0016). As reescritas das sete cartas e das três descrições das dificuldades ele aprovou uma a uma (V2G-T4, V2G-T5); três frases novas da Fase G (duas do painel da moral, uma da conta da lenha) não foram lidas por ele, e ninguém jogou com os números novos | Não; vai para `docs/pendencias-v0.3.md` (V3A-T1.11) |
 | Firefox e Safari sem evidência; celular e leitor de tela nunca usados | Não; V3G-T2 registra |
-| `pnpm capture:landing` não foi rodado depois de as boas-vindas ficarem mais largas | Não; V3G-T4.2 |
+| **Resolvida na Fase G:** as capturas da página de apresentação foram refeitas com a bancada da v0.2 (V2G-T6.4). A figura ficou mais alta e mais densa, e uma linha a mais na árvore derruba a conferência da captura | Não; V3G-T4.2 refaz com a Guilda, e a árvore **vai** ganhar linhas (Guilda, Mercado) |
+| O mesmo desequilíbrio que a V2G-T4 corrigiu em cartas da primavera existe em três cartas de verão e de outono; as tabelas da seção 4.2 de `docs/content-v0.2.md` estão velhas (Registro da V2G-T4) | Não; V3F-T1 mexe no catálogo e é o lugar de corrigir |
+| A matriz do simulador não mede a deserção por fome: nenhum bot passa fome (Registro da V2G-T2) | Não; o mesmo vai valer para o soldo em atraso se nenhum bot ficar sem ouro: V3B-T2 e V3C-T5.2 precisam de um perfil que fique |
 | Expurgo de sete dias em produção | Não |
 
 ---
 
 ## 11. O que a v0.2 ensinou
 
-**Como ler esta seção.** Ela foi escrita em 2026-10-02, com a v0.2 pela metade: a Fase B estava concluída e revisada, e as Fases C a F estavam sendo implementadas. A §11.1 traz as lições que **já se leem** no roadmap da v0.2 (§10 e §11), nos ADRs 0013 e 0014, em `pendencias-v0.2.md`, no `deploy/README.md` e no histórico do Git. A §11.2 descreve o modo de trabalho em que a v0.2 foi feita. A §11.3 foi preenchida no fechamento enxuto da v0.2, em 2026-10-02. A §11.4 diz o que não existe.
+**Como ler esta seção.** As §11.1 a §11.4 foram escritas em 2026-10-02, com a v0.2 pela metade: a Fase B estava concluída e revisada, e as Fases C a F estavam sendo implementadas. A §11.1 traz as lições que **já se liam** no roadmap da v0.2 (§10 e §11), nos ADRs 0013 e 0014, em `pendencias-v0.2.md`, no `deploy/README.md` e no histórico do Git. A §11.2 descreve o modo de trabalho em que a v0.2 foi feita. A §11.3 foi preenchida no fechamento enxuto da v0.2, na mesma data. A §11.4 diz o que não existe. **A §11.5 é de 2026-10-05:** o que mudou depois de a v0.2 ir ao ar, de outras pessoas jogarem e de o autor responder às pendências. Onde ela e as anteriores divergem, vale ela.
 
 As dez lições do MVP ([roadmap da v0.2, §10](roadmap-v0.2.md)) continuam valendo e não são repetidas aqui.
 
@@ -1328,9 +1347,9 @@ As dez lições do MVP ([roadmap da v0.2, §10](roadmap-v0.2.md)) continuam vale
 
 | # | Lição | Evidência | O que muda na v0.3 |
 |---|---|---|---|
-| 1 | **As decisões de regra foram aplicadas sem o autor, e nenhuma foi confirmada** | ADRs 0013 e 0014, estado "aplicada por delegação"; `pendencias-v0.2.md`, seção 2 (18 linhas) | As premissas da §9 são escritas para poderem ser aplicadas sem conversa: número, alternativa e o que validar. A §0.6 diz o que fazer com e sem o autor. A decisão 22 abre a v0.3 |
+| 1 | **As decisões de regra foram aplicadas sem o autor, e nenhuma foi confirmada** | ADRs 0013 e 0014, estado "aplicada por delegação"; `pendencias-v0.2.md`, seção 2 (18 linhas) | As premissas da §9 são escritas para poderem ser aplicadas sem conversa: número, alternativa e o que validar. A §0.6 diz o que fazer com e sem o autor. A decisão 22, que pedia a confirmação delas, foi respondida em 2026-10-05 (§11.5) |
 | 2 | **A revisão independente achou dez defeitos depois de todos os portões verdes** | Dez commits "V2B: corrige …" (`b686d72` a `e3d478e`), depois de 1.613 testes de unidade, 358 de integração e 56 em navegador passarem | Uma revisão por fase continua sendo tarefa (V3B-T3, V3C-T5, V3D-T5, V3E-T5, V3F-T4). Cada correção é um commit com o defeito no título |
-| 3 | **Publicar virou um problema de ordem** | `deploy/README.md`, "A primeira publicação da v0.2 vai em dois passos" (`a453b62`): a imagem da `v0.1.0` não confere a versão do estado e gravaria por cima de partidas migradas | Decisão 2: a v0.3 não sobe a versão do estado antes de a v0.2 estar publicada e migrada; cada fase é publicável sozinha |
+| 3 | **Publicar virou um problema de ordem** | `deploy/README.md`, "A primeira publicação da v0.2 vai em dois passos" (`a453b62`): a imagem da `v0.1.0` não confere a versão do estado e gravaria por cima de partidas migradas | Decisão 2: a v0.3 não sobe a versão do estado antes de a v0.2 estar publicada e migrada (cumprido em 2026-10-05, com a Fase G); cada fase é publicável sozinha |
 | 4 | **A fronteira da migração é de cada passo, não da primeira migração** | `b686d72`; README do motor, "A fronteira é de cada passo" | Todo passo da v0.3 que cria prazo conta de `context.boundaryMs` e é testado sobre partida com `migratedAtMs: null` e com fronteira antiga (§0.5, §0.7) |
 | 5 | **O número da versão não é salvo-conduto** | `6e1fd38`: o estado da versão atual nunca era conferido; um campo a menos virava `NaN` e depois `null` no banco | Cada lista nova (heróis, expedições, itens, caravanas, Mestres) entra na guarda de forma, inclusive os objetos de dentro |
 | 6 | **Os retratos de estado eram todos iguais** | `782d2a0`: todos Senhor, ritmo 1 e sem fronteira | V3A-T1.5 e V3B-T1.1: os retratos têm de trazer o que a produção terá, antes de subir a versão |
@@ -1338,7 +1357,7 @@ As dez lições do MVP ([roadmap da v0.2, §10](roadmap-v0.2.md)) continuam vale
 | 8 | **O bot só é honesto se o teste proibir o atalho** | `e3d478e`: o bot econômico calculava com números de `@lotg/content` e não via a fome | As políticas novas leem só a visão. Consequência para o motor: a visão tem de trazer o que um jogador precisa para decidir (poder contra dificuldade, preço contra base) |
 | 9 | **Uma espera antes de um diálogo deixa acionar duas vezes** | `4c8dd56`: "Nova partida" acionada duas vezes fundava dois feudos | Contratar, enviar expedição e negociar rodam um fluxo por vez e leem a conta depois da espera; cada um tem teste de duplo acionamento (QA-05, QA-06, QA-09) |
 | 10 | **O cache de outra versão guarda o cursor, não a visão** | `090bccf`: a volta depois de uma atualização virava avisos avulsos e abria no Feudo | O protocolo 3 vai descartar a visão de novo: o Retorno depois da atualização é cenário de teste (QA-14) |
-| 11 | **Só é tempo real a janela que depende de uma pessoa responder** | ADR 0013, decisão 1; ADR 0014, decisão 1 (24 h reais para a carta) | Decisão 1: a espera da encruzilhada é a segunda, e a última, constante de tempo real |
+| 11 | **Só é tempo real a janela que depende de uma pessoa responder** | ADR 0013, decisão 1; ADR 0014, decisão 1 (24 h reais para a carta) | Decisão 1: a espera da encruzilhada é mais uma. Em 2026-10-05 o autor estendeu o critério às perdas por ausência (ADR 0016; §11.5, lição 19), e a decisão 3 segue por aí |
 | 12 | **Calcular "melhor" no motor é ambíguo; marcar no conteúdo é simples e revisável** | ADR 0014, decisão 9 (`autoResolve` por carta) | Decisões 8 e 11: a Postura e o desfecho do Desastre são marcados em cada nó |
 | 13 | **Cada nível vendido tem de mudar algo que o jogador vê** | ADR 0014, decisão 11 (Torre e Paliçada até o nível 2) | Decisões 4, 5, 12 e 17: cada nível de Taverna, Mercado e Guilda tem efeito visível; a Guilda para no nível 4 |
 | 14 | **Prazo fixado no início mantém a linha do tempo simples** | ADR 0013, decisão 13 (obras e recrutamento) | A duração da expedição e o preço da caravana são fixados no envio |
@@ -1371,7 +1390,7 @@ O que isso ensina, e o que muda na v0.3:
 
 ### 11.3 O que o fechamento da v0.2 ensinou
 
-> **Preenchida em 2026-10-02, no fechamento enxuto da v0.2** (V2F-T5), com as Fases A a E no `main`, antes de o autor jogar, antes de qualquer playtest e com o balanceamento da Ameaça (V2F-T1) ainda em curso. As fontes são [pendencias-v0.2.md](pendencias-v0.2.md), [relatorio-v0.2.md](relatorio-v0.2.md), o Registro do [roadmap da v0.2](roadmap-v0.2.md) (§11) e o histórico do Git. A V3A-T1.9 confere estas linhas e completa o que o autor responder depois (B, I e J).
+> **Preenchida em 2026-10-02, no fechamento enxuto da v0.2** (V2F-T5), com as Fases A a E no `main`, antes de o autor jogar, antes de qualquer playtest e com o balanceamento da Ameaça (V2F-T1) ainda em curso. As fontes são [pendencias-v0.2.md](pendencias-v0.2.md), [relatorio-v0.2.md](relatorio-v0.2.md), o Registro do [roadmap da v0.2](roadmap-v0.2.md) (§11) e o histórico do Git. **Em 2026-10-05 as linhas B e I foram superadas** (o autor jogou quatro dias e respondeu às pendências; ver a §11.5); a J continua valendo.
 
 | # | Pergunta | Onde procurar | Lição, evidência e o que muda na v0.3 |
 |---|---|---|---|
@@ -1391,14 +1410,43 @@ O que isso ensina, e o que muda na v0.3:
 
 ### 11.4 O que não há: lição de playtest
 
-**Não há nenhuma lição de playtest neste documento.** Na data em que foi escrito, ninguém além do autor tinha jogado o jogo, e a v0.2 nem o autor: o playtest da v0.1 (V2A-T1) não aconteceu, e o da v0.2 (V2F-T3) também não, embora a versão já esteja publicada por fase. O que existe são [o convite](playtest/convite-v0.2.md) e [o formulário](playtest/formulario-v0.2.md) da v0.2, prontos.
+**Não há nenhuma lição de playtest neste documento.** O playtest da v0.1 (V2A-T1) não aconteceu, e o da v0.2 (V2F-T3) também não. Desde o início de outubro de 2026 há outras pessoas jogando em produção, e o autor jogou quatro dias antes de responder às pendências (ADR 0016); mas ninguém foi convidado com roteiro, e não há formulário respondido, consulta rodada nem relatório. O que se sabe dessas pessoas é o que o autor disse: até ali estava tudo bem. O que existe são [o convite](playtest/convite-v0.2.md) e [o formulário](playtest/formulario-v0.2.md) da v0.2, prontos.
 
 Consequências, ditas com todas as letras:
 
 - Toda linha "Diversão" deste plano é uma **hipótese**. O teste que ela propõe é sempre o autor, e o autor não é o público.
 - A tabela de tensões e alívios (§0.2) vem do GDD e do simulador, não de pessoas.
 - O simulador mede tédio e desespero de um bot. Ele não mede se alguém lembra o nome de um herói.
-- Se a v0.3 começar antes de haver um playtest, ela constrói a segunda versão seguida sobre uma base que nenhuma pessoa de fora avaliou. Isso é uma escolha do autor, e fica registrada aqui para não parecer um descuido.
+- Se a v0.3 começar antes de haver um playtest estruturado, ela constrói a segunda versão seguida sobre uma base que ninguém de fora avaliou com método. Isso é uma escolha do autor, e fica registrada aqui para não parecer um descuido. Haver gente jogando torna o playtest mais barato (as pessoas já estão lá) e a migração mais cara (as partidas delas atravessam cada passo).
+
+### 11.5 O que mudou entre 2026-10-02 e 2026-10-05
+
+Escrita nas revisões de 2026-10-05 deste plano, a partir do [ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), do Registro do [roadmap da v0.2](roadmap-v0.2.md) (§11, linhas V2G e "Lançamento da v0.2.0"), de `GET /v1/version` em produção e do histórico do Git.
+
+**Os fatos:**
+
+- **A v0.2 está no ar, inteira.** As Fases A a E foram publicadas por fase em 2026-10-02 e 2026-10-03; a Fase G, em 2026-10-05, com backup manual antes do `push`. A produção responde `protocol: 2`, com o estado na versão 12.
+- **Há outras pessoas jogando**, além do autor.
+- **O autor jogou quatro dias e respondeu às pendências** em uma sessão de perguntas, em quatro rodadas. Confirmou os ADRs 0013 a 0015 e a maior parte das cerca de 50 dúvidas em bloco, e trocou dez pontos.
+- **A v0.2 ganhou uma Fase G** para aplicar essas respostas, e ela fechou no mesmo dia: sete tarefas, quinze commits, das 09:49 às 13:11. Entraram os depósitos em 1.000 e o ouro do objetivo 4; a deserção por fome em tempo real com a fome que reabre (versão 12 do estado); o aviso da Torre em tempo real; os sete problemas das cartas; as descrições das dificuldades; três ajustes do app; as capturas da página de apresentação; e dois defeitos das previsões.
+
+**As lições**, continuando a numeração da §11.1:
+
+| # | Lição | Evidência | O que muda na v0.3 |
+|---|---|---|---|
+| 19 | **Perda por ausência conta tempo real.** No ritmo Rápido, um prazo em tempo de jogo acaba antes de a pessoa voltar | ADR 0016, itens 2 e 4: a deserção por fome (12 h reais de carência, depois um aldeão a cada 2 h reais) e o aviso da Torre (1 h e 2 h reais) deixaram o tempo de jogo | A recomendação da decisão 3 mudou: os prazos do soldo em atraso em tempo real. Todo prazo novo que tira algo de quem está fora é levado ao autor primeiro em tempo real, com o tempo de jogo como alternativa |
+| 20 | **Uma penalidade que fecha e reabre zera o próprio prazo, e isso é um furo** | ADR 0016, item 3 (pendência C-4): uma troca de ofício de um instante fechava a fome e recomeçava a contagem da deserção | O atraso do soldo já nasce com a janela: reaberto em menos de 2 h reais, é o mesmo (decisão 3, V3C-T1.3, QA-04). O revisor de cada fase procura o mesmo furo em toda penalidade nova |
+| 21 | **O autor responde a perguntas curtas com opções, não a documentos longos** | ADR 0016: cerca de 50 dúvidas fechadas em quatro rodadas, das que mudam o jogo para as de apresentação | É o formato de V3A-T2 e V3D-T0 (§0.6). `docs/pendencias-v0.3.md` é o registro, não a leitura obrigatória |
+| 22 | **Quem joga confirma em bloco; o que precisa de leitura item a item tem de ser mostrado antes** | ADR 0016: os itens B-4 a B-15, C-6, C-9 a C-18 e DE-9 a DE-18 foram confirmados "com base em quatro dias de jogo, sem ler item por item"; os sete problemas das cartas vieram da revisão, não da leitura do autor | Grafos e cartas são mostrados em lotes pequenos antes de entrar em `content` (V3D-T3.3, V3F-T1.7). O que entrar sem essa leitura fica escrito como rascunho, não como aprovado |
+| 23 | **Com gente jogando, fazer o commit e publicar são atos separados** | Fase G da v0.2: um commit local por tarefa, e `push` só quando o autor mandar; todo `push` no `main` é implantado sozinho | §0.8 e decisão 2. Cada passo de migração da v0.3 encontra partidas vivas: o que ele dá ou tira é decisão de regra |
+| 24 | **O ouro sem destino ficou para a v0.3 de propósito** | ADR 0016 (pendência C-5): nenhum custo nem teto da v0.2 mudou por causa do ouro que empilha | "Ouro com destino" (§8.3) é critério de fechamento: V3A-T1.7 mede a linha de base, e V3E-T5.2 e V3G-T1 medem a queda |
+| 25 | **Um nível anunciado que ninguém alcança é defeito, e só jogando se achou** | ADR 0016, item 1 (pendência C-1): em Senhor o Salão Nv8 ficava fora de alcance por 2 de madeira | §0.5, "nível alcançável": todo nível vendido de Taverna, Guilda e Mercado cabe no depósito nas três dificuldades, conferido por teste de conteúdo e na revisão da fase |
+| 26 | **Uma regra do motor pode mudar com a versão no ar** | A Fase G mudou regra de partidas em andamento depois de publicada a versão: estado novo, goldens regravados, GDD | A v0.3 não trata a v0.2 como congelada: o Apêndice B.0 foi reconferido depois da Fase G, e cada tarefa confere o mapa antes de planejar (§0.4) |
+| 27 | **Com o autor respondendo na hora, uma fase de sete tarefas e uma versão de estado coube em uma manhã** | Fase G: do registro das respostas ao `push` em cerca de três horas e meia, com as reescritas das cartas e das descrições aprovadas uma a uma no caminho | O gargalo da v0.2 foi a espera pelas decisões, não o código nem os testes (a CI inteira leva 4 minutos e meio). As sessões V3A-T2 e V3D-T0 vêm **antes** do código das fases que travam, e o que precisa de aprovação (cartas, grafos) é mostrado em lotes pequenos |
+| 28 | **Um passo de migração pode mudar a regra sem cobrar o passado** | V2G-T2, passo 11 → 12: a partida em fome entrou com a contagem que a regra nova já teria cobrado, e ninguém saiu do feudo em bloco na primeira virada; o que a regra antiga não cobrou ficou perdoado | É o modelo dos passos da v0.3 que encontram partidas vivas (§0.8): a carta da estrangeira chega a quem já passou do dia 13, mas nenhum soldo é cobrado de antes da fronteira |
+| 29 | **Uma piora medida e aceita fica escrita como piora** | Registro da V2G-T1 e da V2G-T4: o Preguiçoso no Tranquilo perde gente; três células da matriz saíram da faixa antiga por uma semente em 50 | A linha de base da v0.3 (V3A-T1.7) parte dos números da seção 20 de `balance-v0.2.md`, com essas pioras dentro; o que a v0.3 piorar entra no Registro do mesmo jeito, e não some em uma faixa alargada |
+
+**O que continua sem resposta:** o que as outras pessoas acharam (não há playtest estruturado, §11.4); se os números da Fase G se sustentam com gente jogando (ninguém jogou com eles antes da publicação, e a matriz do simulador não mede a deserção); se alguma partida de produção tropeçou no passo 11 → 12; e as decisões 1 a 21 deste plano.
 
 ---
 
@@ -1408,6 +1456,8 @@ Preencher ao fechar cada tarefa. Com trilhas em paralelo, cada fase ganha també
 
 | Tarefa | Data | Commit | Sessões | O que foi feito e desvios | O que não foi verificado |
 |---|---|---|---|---|---|
+| Revisão 0.2 do plano (não é tarefa) | 2026-10-05 | base `061d856` | uma | Plano conferido contra o código: os caminhos que a versão 0.1 marcava com a cruz (†) existem com o nome previsto, e a marca saiu; Apêndice B.0 reescrito como mapa do que a v0.2 entregou; ADRs da v0.3 renumerados para 0017 e 0018; §0.8, §10 e §9.3 trazidos ao estado de 2026-10-05 (v0.2 no ar, pessoas jogando, Fase G em curso); protocolo 3 confirmado para V3D-T1; V3C-T3 ajustada ao que o motor já faz com a carta roteirizada; premissas 1, 2, 3, 6 e 14 revistas (a 3 mudou de recomendação: atraso do soldo em tempo real); V3A-T1 reduzida; §11.5 nova. Nenhuma regra, nenhum código e nenhum outro documento mudou | **Nenhum teste foi rodado**: a conferência foi por leitura do código e do README do motor. Não foram lidos: `seasons[].effects`, as políticas do simulador por dentro, as dívidas da §10.1 sem ✔. A Fase G da v0.2 não tinha fechado: o que ela mudar invalida partes do Apêndice B.0 (V3A-T1.3). Durante a revisão, a V2G-T2 estava sendo implementada por outra sessão na mesma árvore de trabalho, sem commit (estado na versão 12, retratos novos de fome): nada dela foi lido, e tudo o que este plano afirma do código foi conferido contra o commit `061d856`. Nenhuma decisão foi levada ao autor |
+| Revisão 0.3 do plano, com V3A-T1.1 a V3A-T1.5 | 2026-10-05 | base `6788c41` | uma | Plano trazido ao estado de depois da Fase G da v0.2, fechada e publicada no mesmo dia: estado na versão 12 (o primeiro passo da v0.3 é o 12 → 13), cinco constantes de tempo real por `realToGameMs`, a forma nova da fome. As subtarefas de conferência de V3A-T1 (1 a 5) foram feitas aqui: onde estamos, os números de versão, o Apêndice B.0 depois da Fase G, os três contratos e os 23 retratos da versão 12, lidos um a um. A decisão 3 e V3C-T1 passaram a copiar o desenho da fome (prazos reais cobrados na virada do dia; `carriedMs` e o registro do último atraso). §0.8, §9.3, §10 e §11.5 atualizados; quatro lições novas (26 a 29); dívidas novas tiradas do Registro da Fase G. Nenhuma regra, nenhum código e nenhum outro documento mudou | **Nenhum teste foi rodado** nesta revisão (o portão é V3A-T1.6). Não conferido: estoque acima do cap nos retratos; se alguma partida de produção foi recusada no passo 11 → 12; `seasons[].effects`; as políticas do simulador por dentro; as dívidas da §10.1 sem ✔. O lançamento da v0.2.0 (versão dos pacotes, tag e release) estava sendo feito por outra sessão na mesma árvore de trabalho: nada dele foi lido, e o que este plano afirma do código foi conferido contra o commit `6788c41`. Nenhuma decisão foi levada ao autor |
 | V3A-T1 | | | | | |
 | V3A-T2 | | | | | |
 | V3B-T1 | | | | | |
@@ -1443,7 +1493,7 @@ Preencher ao fechar cada tarefa. Com trilhas em paralelo, cada fase ganha també
 
 ## 13. Conteúdo proposto: expedições e o lote 2 do Conselho
 
-**Estado:** proposta para as decisões 12, 19 e 21. Nenhum número, nome ou texto daqui vai para `content` sem a curadoria de V3D-T3 e V3F-T1 e o registro no ADR 0016. As tarefas continuam válidas se uma proposta for recusada.
+**Estado:** proposta para as decisões 12, 19 e 21. Nenhum número, nome ou texto daqui vai para `content` sem a curadoria de V3D-T3 e V3F-T1 e o registro no ADR 0018. As tarefas continuam válidas se uma proposta for recusada.
 
 ### 13.1 Cinco ideias de experiência e onde entram
 
@@ -1591,9 +1641,9 @@ Quartel, Ferreiro, ferro, armas, formações, comandante de ala, Conselho de Gue
 
 ```
 Leia CLAUDE.md, as seções do GAME_DESIGN.md indicadas na tarefa, a tarefa <ID> em docs/roadmap-v0.3.md,
-o Apêndice B do roadmap e os ADRs que a tarefa consome (docs/decisions/0013 a 0016, os que existirem).
+o Apêndice B do roadmap e os ADRs que a tarefa consome (docs/decisions/0013 a 0018, os que existirem).
 Trabalhe só nessa tarefa. Se uma decisão que ela consome ainda não tem ADR, pare e me pergunte,
-apresentando a premissa recomendada da §9 como padrão. Confira no código os caminhos marcados com †.
+apresentando a premissa recomendada da §9 como padrão. Confira o mapa de arquivos do Apêndice B.0 contra o código.
 Se for M ou L, apresente um plano (arquivos, nomes de eventos/recusas/campos do ViewState, passo de
 migração, testes) antes de codar e espere a minha aprovação.
 Escreva os testes antes da implementação onde houver regra de jogo ou contrato de API.
@@ -1663,9 +1713,9 @@ as contagens de testes, o que quebrou e o que não foi rodado. Não dê push.
 ### A.7 Sessão típica (exemplo com V3A-T1, a primeira)
 
 1. Você: prompt da tarefa V3A-T1.
-2. Agente: lê, roda `git status`, `git log` e `git worktree list`, e mostra a tabela "previsto e encontrado" dos caminhos marcados com †. Você confere o que saiu diferente.
-3. Agente: confere os contratos de V3A-T1.4 no código e corrige o Apêndice B.0; roda o portão inteiro e a matriz do simulador; mede o tamanho do estado e da visão.
-4. Agente: escreve `docs/balance-v0.3.md` (seção 1) e `docs/pendencias-v0.3.md`; preenche a §11.3 com o que os registros da v0.2 dizem, ou escreve que não há o que dizer.
+2. Agente: lê, roda `git status -sb` e `git log`, consulta `GET /v1/version` em produção e confirma o commit de partida e a versão do estado. Você confere, e responde às duas perguntas de V3A-T1.1.
+3. Agente: roda o portão inteiro e a matriz do simulador nas três dificuldades; mede o tamanho do estado e da visão e o custo do avanço.
+4. Agente: escreve `docs/balance-v0.3.md` (seção 1) e `docs/pendencias-v0.3.md`; revisa a §10.
 5. Agente: confere links e âncoras por script, marca V3A-T1.1 a V3A-T1.12, preenche a linha do Registro e faz o commit `V3A-T1: confere a herança da v0.2 e mede a linha de base`.
 6. Você: lê `docs/pendencias-v0.3.md` e abre a sessão de decisões (V3A-T2).
 
@@ -1677,39 +1727,37 @@ Referência única dos **nomes propostos** para estado, comandos, eventos, recus
 
 ### B.0 O que a v0.2 entrega e a v0.3 usa
 
-**Não conferido.** Esta tabela foi escrita a partir dos ADRs 0013 e 0014 e do Apêndice B do roadmap da v0.2, em uma árvore que só tinha a Fase B. V3A-T1 a confere no código e troca este aviso por "conferido em <data>, commit <sha>".
+**Conferido em 2026-10-05, no commit `6788c41`** (estado na versão 12, protocolo 2), depois de a Fase G da v0.2 fechar: uma primeira leitura de manhã, no commit `061d856`, e a reconferência à tarde das linhas que a Fase G tocou. Foi leitura do código e do [README do motor](../packages/engine/README.md); nenhum teste foi rodado para esta conferência.
 
-| Mecânica da v0.3 | O que ela usa da v0.2 | Entregue em | O que conferir ao abrir a v0.3 |
+| Mecânica da v0.3 | O que ela usa da v0.2 | Onde está | O que a conferência achou |
 |---|---|---|---|
-| Toda tarefa que muda o estado | Migração por `schemaVersion`: `migrateState`, um passo por versão, retratos congelados, fronteira por passo (`context.boundaryMs`), recusa de versão futura | V2B-T1 (existia em `e3d478e`) | `CURRENT_SCHEMA_VERSION` ao fim da v0.2; cenários de `fixtures.test.ts` |
-| Taverna, Mercado, expedições, caravanas, efeito com sorteio | Gerador com semente e fluxos nomeados (`council`, `morale`, `horde`); só `advanceTo` sorteia | V2B-T2 (existia em `e3d478e`) | Se algum fluxo ganhou nome novo; como a v0.2 gera `instanceId` |
-| Carta da estrangeira e lote 2 | Conselho: sorteio ponderado, 2 pendentes, expiração em 24 h reais, `autoResolve`, flags, continuações com prioridade, efeitos adiados e ocultos, `scripted` aceito pelo motor | V2D-T1, V2D-T2 | Forma de `council`; tipos de `Effect`; teste de conteúdo das cartas; arquivo das avulsas |
-| Moral da Taverna, festival, traço Devoto, recompensas em moral | Fórmula diária da moral com termos, e efeitos temporários com duração em dias de jogo | V2C-T4, V2D-T1 | Nome do campo dos efeitos; como um termo novo entra em `morale.terms` |
-| Covil limpo, destinos descobertos, risco da caravana | Tiles abstratos em lista, Ameaça de 0 a 100, Torre de Vigia até o nível 2 | V2E-T1 | Se um tile pode ficar inativo; o que a visão mostra sem Torre |
-| Mestre que não é ferido; herói com `untilMs` | Ferido que não trabalha e volta em instante marcado | V2E-T3 | Como a incursão escolhe quem fere |
-| Saque de expedição, compra no Mercado | Caps de armazenamento; ganho discreto cortado e contado | V2C-T2 | O ponto de entrada único de recursos (`storage.ts` †) |
-| Mestres | Conta única da produção em frações; adaptação por coortes; experiência do ofício; piso de população | V2C-T1, V2C-T3, V2C-T4 | Onde um fator novo entra; como a deserção escolhe quem sai |
-| Expedição 15% mais rápida no verão; comida mais cara no outono | Estações com efeito; prazo fixado no início | V2C-T1 | A forma de `seasons[].effects` |
-| Encruzilhada como decisão pendente | `pendingDecisions` com cartas; protocolo 2; `426` para cliente anterior | V2D-T1 | União fechada ou lista aberta; onde o servidor compara a versão do cliente |
-| Morte e captura por dificuldade | `settings.difficulty`; `balance.difficulties` | V2B-T3 (existia em `e3d478e`) | — |
-| Textos de classe e de traço | `GET /v1/catalog` | V2B-T3 (existia em `e3d478e`) | A v0.3 **não** acrescenta nada ao catálogo: a visão continua autossuficiente (GDD §14.5). Reavaliar só se o tamanho da visão pedir |
-| "Antes de partir" e Retorno com a Guilda | `beforeLeaving`; `ReturnReport.blocks` | V2C-T6, V2D-T4 | Assinaturas e a ordem de prioridade |
-| Políticas novas dos bots | Bots como listas de políticas; matriz por ritmo; faixas | V2B-T4 (existia em `e3d478e`), V2F-T1 | Colunas do CSV; faixas em vigor |
-| Objetivos 11 a 16 | Objetivos 5 a 10 e as condições novas | V2E-T4 | Recompensa em moral temporária; regra dos 3 ativos |
+| Toda tarefa que muda o estado | Migração por `schemaVersion`: `migrateState`, um passo por versão, retratos congelados, fronteira por passo (`context.boundaryMs`), recusa de versão futura | `packages/engine/src/migrations.ts`, `migrations/v1.ts` a `v12.ts`, `migrations/shape.ts`, `__fixtures__/` | `CURRENT_SCHEMA_VERSION` é **12** desde a V2G-T2; o primeiro passo da v0.3 é o 12 → 13. Vinte e três cenários de retrato na versão 12 (V3A-T1.5). A receita de uma versão nova está no README do motor, "Uma mecânica que muda o estado sobe a versão" |
+| Taverna, Mercado, expedições, caravanas, efeito com sorteio | Gerador com semente e fluxos nomeados; só `advanceTo` sorteia | `packages/engine/src/random.ts` | `RNG_STREAMS` é a lista fechada `council`, `morale`, `horde`; `RNG_VERSION` 1. A API é interna (`nextInt`, `chance`, `pickWeighted`), o fluxo nasce no primeiro uso, e **não há fluxo por entidade nem como apagar um fluxo**. `purity.test.ts` barra `random.ts` em comando, visão, `nextEventAt`, criação e migração |
+| Identidade de herói, expedição, item, caravana e Mestre | Nada | `packages/engine/src/types.ts` (`stats`) | Não há contador de identidade. O `instanceId` de uma carta é o id dela mais `stats.cardsDrawn` ("collapsedWell-3"), e fica como está |
+| Carta da estrangeira e lote 2 | Conselho: sorteio ponderado, 2 pendentes, expiração em 24 h reais, `autoResolve`, flags, continuações com prioridade, efeitos escondidos | Motor: `council.ts` (regras), `councilTurn.ts` (sorteio), `councilView.ts` (visão). Conteúdo: `council.ts` (tipos), `cards/index.ts` (a lista, cuja ordem faz parte do sorteio), `cards/standalone.ts` (avulsas), uma cadeia por arquivo (`commonGranary.ts`, `thawBridge.ts`, `palisadePromise.ts`), `council.test.ts` | Estado `council`: `pending`, `flags`, `seenThisYear`, `nextDrawAtMs`, `scheduled`, `delayed`, `expired`. Efeitos (`COUNCIL_EFFECT_TYPES`): `resources`, `morale`, `setFlag`, `clearFlag`, `scheduleCard`. Requisitos de carta: `seasons`, `minDay`, `buildings`, `flags`, `notFlags`, `moralRange`; de opção: `building`, `resources`. **`scripted: { atGameDay }` já funciona:** a roteirizada cujo dia chegou sai no sorteio da audiência, na frente das sorteadas, uma vez por partida e com lugar na mesa; nenhuma carta a usa. São 21 cartas, sete delas reescritas na V2G-T4 sem mudar id. Não há efeito que dê aldeão ou herói. O teste "nenhum texto fala de herói, Mercado, ferro…" barra as palavras da v0.3 |
+| Moral da Taverna, festival, traço Devoto, recompensas em moral | Fórmula diária da moral com termos, e efeitos temporários com duração em viradas de dia | Motor: `morale.ts`, `moraleTurn.ts`, `moraleView.ts` | Os efeitos temporários ficam em `settlement.moraleEffects` (não no Conselho) e entram por `addMoraleEffect`. Os termos saem em `morale.terms`, com os ids em `MORALE_TERM_IDS` no protocolo: um termo novo entra na lista dos dois lados |
+| Covil limpo, destinos descobertos, risco da caravana | Tiles abstratos, Ameaça de 0 a 100, Torre de Vigia e Paliçada | Motor: `threat.ts`, `hordeTurn.ts`, `raids.ts`, `threatView.ts`. Conteúdo: `tiles.ts`, `balance.threat` | `map: { tiles: Record<string, { type; threatActive }>; threat }`: **o tile já tem `threatActive`**, hoje sempre verdadeiro. Ameaça: +2 por tile ativo por dia, +3 no outono, −35 por incursão, média a partir de 70, sorteio acima de 40 (confirmados no ADR 0016). Torre e Paliçada com `maxLevel: 2`. Sem Torre nada da Ameaça sai na visão (`ThreatView` é união fechada por `known`). O aviso da Torre conta tempo real desde a V2G-T3 (`watchtowerLevels[].warningRealMs`, 1 h e 2 h), sem campo novo no estado |
+| Mestre que não é ferido; herói com `untilMs` | Ferido que não trabalha e volta em instante marcado | Motor: `raids.ts`, `population.ts` (`releaseExcessWorkers`, `ableVillagers`) | `settlement.injured`; quem está sem ofício se fere primeiro; o ferido que sara é evento da linha do tempo e vem antes da virada do dia |
+| Saque de expedição, compra no Mercado | Caps de armazenamento; ganho discreto cortado e contado | Motor: `storage.ts` (`storeResource`), `storageView.ts` | Todo ganho discreto entra por `storeResource`: entra o que cabe, e o corte é desperdício contado. Celeiro e Armazém no nível 1 guardam 1.000 desde a V2G-T1 |
+| Mestres | Conta única da produção em frações; adaptação; experiência do ofício; piso de população | Motor: `economy.ts` (`productionRate`, `productionFactors`), `craft.ts`, `population.ts`, `moraleTurn.ts` (partidas e deserção) | Um fator novo entra em `productionFactors` e aparece sozinho na explicação da visão. A deserção por fome é cobrada na virada do dia (`moraleTurn.ts`): saem os que o prazo real já deve menos os que já saíram, e o que o piso impediu fica perdoado. Como ela escolhe quem sai não foi lido: conferir no plano de V3E-T3, que protege o Mestre |
+| Expedição 15% mais rápida no verão; comida mais cara no outono | Estações com efeito; prazo fixado no início | Conteúdo: `balance.seasons`. Motor: `seasonView.ts`, `construction.ts` | **Não lido nesta revisão:** a forma de `seasons[].effects` é conferida no plano de V3D-T1 e de V3E-T1 |
+| Soldo em atraso | Consumo contínuo com instante exato de esgotamento; fome e frio | Motor: `famine.ts`, `cold.ts`, `scarcity.ts` (`settleScarcity`), `scarcityView.ts`, `timeline.ts` | O molde existe para a comida e para a lenha. Desde a V2G-T2 a fome é `famine: { sinceMs; carriedMs; deserted }`, com `lastFamine: { endedAtMs; lastedMs; deserted }` para a que reabre dentro de `famineResumeWithinRealMs`; os prazos reais entram por `realToGameMs` (`units.ts`). O atraso do soldo copia esse desenho (V3C-T1.2) |
+| Encruzilhada como decisão pendente | `pendingDecisions` com cartas; protocolo 2; `426` | `packages/protocol/src/view.ts` (`PendingDecisionSchema`), `index.ts` (`PROTOCOL_VERSION`), `packages/server/src/plugins/errors.ts` | **Lista fechada:** só `kind: 'card'`. O protocolo sobe para 3 em V3D-T1. O 426 é decidido por `X-Lords-Protocol` |
+| Morte e captura por dificuldade | `settings.difficulty`; `balance.difficulties` | Conteúdo: `balance.ts` | Três linhas da dificuldade mudam regra hoje: armazenamento, deserção por fome e `autoResolve` |
+| Textos de classe e de traço | `GET /v1/catalog` | `packages/server/src/catalog.ts` | O catálogo traz só as opções de nova partida. A v0.3 **não** acrescenta nada a ele: a visão continua autossuficiente (GDD §14.5). Reavaliar só se o tamanho da visão pedir |
+| "Antes de partir" e Retorno com a Guilda | Itens com ação, teto de cinco; três blocos | `packages/web/src/game/beforeLeaving.ts` (`leavingItems`, `beforeLeaving(view, skip)`, `MAX_LEAVING_ITEMS`, `LEAVING_HORIZON_SECONDS`, `defenseCommand`), `returnReport.ts` (`buildBlocks`, `pendingItems`, `costAction`), `packages/protocol/src/report.ts` | As duas funções só leem a visão e os eventos. A ordem de prioridade de `leavingItems` é conferida no plano de V3F-T3 |
+| Políticas novas dos bots | Bots como listas de políticas; matriz por ritmo; faixas | `packages/sim-cli/src/bots/` (`economico.ts`, `preguicoso.ts`, `policies.ts`, `index.ts`), `report.ts`, `matrix.ts`, `bands.ts`, `coverage.ts`, `perf.ts` | Duas estratégias, `economico` e `preguicoso`; os perfis de visitas saem de `--sessions-per-day`. Não há `explorador` (V3B-T2). Um teste barra `@lotg/content` nos bots |
+| Objetivos 11 a 16 | Objetivos 1 a 10 | Motor: `objectives.ts`, `objectivesView.ts`. Conteúdo: `objectives.ts` | Dez objetivos, até três ativos; recompensa em recurso (pelo depósito) ou em moral temporária. Os objetivos da v0.2 não subiram a versão do estado |
+| Abas, árvore e paleta novas | A bancada | `packages/web/src/tabs/` (`Fief`, `Today`, `Council`, `Chronicle`, `Settings`, `About`), `components/`, `palette/commands.ts`, `ui/treeModel.ts`, `workbench/` | Não há `tabs/Guild.tsx` nem `tabs/Market.tsx`. O painel da Ameaça é `components/ThreatPanel.tsx`, e a carta, `components/CouncilCard.tsx` |
+| Testes em navegador | Playwright com servidor de teste | `tests/e2e/01-entrada` a `08-ameaca`, `helpers.ts`, `server.ts` | Os arquivos novos da v0.3 são o 09 (Guilda) e o 10 (Mercado). O conselho fica em recesso e a Horda calada por padrão; a v0.3 vai precisar de rotas de teste equivalentes para pôr um herói, uma encruzilhada e um preço na tela sem depender da semente |
 
-**Caminhos marcados com † neste documento** (previstos pela v0.2, inexistentes em `e3d478e`):
+**A visão é montada por mecânica.** `packages/engine/src/view.ts` junta o que cada `*View.ts` calcula (`councilView.ts`, `moraleView.ts`, `threatView.ts`, `storageView.ts`, `craftView.ts`, `plannedView.ts`, `objectivesView.ts`, `scarcityView.ts`, `seasonView.ts`). Onde uma tarefa deste plano lista `view.ts` entre os entregáveis, o esperado é um arquivo de visão novo por mecânica (por exemplo `guildView.ts`, `marketView.ts`), no mesmo desenho; o mesmo vale para o sorteio de cada assunto, que na v0.2 mora em um `*Turn.ts`.
 
-| Pacote | Caminhos |
-|---|---|
-| `packages/engine/src/` | `storage.ts`, `cold.ts`, `morale.ts`, `council.ts`, `threat.ts`, `raids.ts` |
-| `packages/content/src/` | `council.ts`, `cards/`, `tiles.ts` |
-| `packages/web/src/` | `tabs/Council.tsx`, `components/CouncilCard.tsx`, `components/ThreatPanel.tsx`, `game/beforeLeaving.ts` |
-| `tests/e2e/` | `07-conselho.spec.ts`, `08-ameaca.spec.ts` (os arquivos novos da v0.3 presumem os números 09 e 10) |
-| `docs/` | `content-v0.2.md`, `acceptance-v0.2.md`, `manual-test-v0.2.md`, `relatorio-v0.2.md`, `playtest/relatorio-v0.1.md`, `playtest/relatorio-v0.2.md` |
+**Previsto e encontrado.** Os caminhos que a versão 0.1 marcava com a cruz (†) existem todos, com o nome previsto: no motor, `storage.ts`, `cold.ts`, `morale.ts`, `council.ts`, `threat.ts` e `raids.ts`; no conteúdo, `council.ts`, `cards/` e `tiles.ts`; no app, `tabs/Council.tsx`, `components/CouncilCard.tsx`, `components/ThreatPanel.tsx` e `game/beforeLeaving.ts`; nos testes em navegador, `07-conselho.spec.ts` e `08-ameaca.spec.ts`; nos documentos, `content-v0.2.md`, `acceptance-v0.2.md`, `manual-test-v0.2.md` e `relatorio-v0.2.md`. **Não existem** `docs/playtest/relatorio-v0.1.md` nem `relatorio-v0.2.md`: não houve playtest.
 
 ### B.1 `GameState`: o que a v0.3 acrescenta, por tarefa
 
-**Cada tarefa que muda a forma do estado sobe `schemaVersion` e escreve o seu passo de migração.** O bloco mostra só os campos novos, na forma ao fim da v0.3; o resto é o estado da v0.2.
+**Cada tarefa que muda a forma do estado sobe `schemaVersion` e escreve o seu passo de migração.** A v0.2 fechou na versão 12: a v0.3 começa na 13 (V3B-T1). O bloco mostra só os campos novos, na forma ao fim da v0.3; o resto é o estado da v0.2.
 
 ```ts
 type GameState = {
@@ -1725,7 +1773,8 @@ type GameState = {
   };
   guild: {
     heroes: Hero[];                                    // V3C-T1
-    wageArrears: { sinceMs: number } | null;           // V3C-T1
+    wageArrears: { sinceMs: number; carriedMs: number; departed: number } | null;                 // V3C-T1: no molde de settlement.famine
+    lastWageArrears: { endedAtMs: number; lastedMs: number; departed: number } | null;          // V3C-T1: no molde de settlement.lastFamine
     tavernOffers: Array<{ offerId: string; templateId: string; name: string; price: number }>;  // V3C-T2
     tavern: { nextRotationAtMs: number | null; festival: { untilMs: number } | null; festivalSeason: string | null };  // V3C-T2
     expeditions: Expedition[];                         // V3D-T1
@@ -1782,14 +1831,14 @@ Atributos, poder, limite de heróis, lugares de expedição, preço exibido e ri
 | `assignMaster` | `{ masterId, building }` | V3E-T3 | `MASTER_NOT_FOUND`, `BUILDING_HAS_MASTER`, `NOT_A_PRODUCTION_BUILDING` |
 | `answerCard` (estendido) | o mesmo | V3F-T1 | `OPTION_LOCKED` passa a citar o traço ou a classe que falta |
 
-Os códigos novos entram em `REJECTION_CODES` no motor **e** no protocolo. O protocolo valida só a forma (identificadores como texto, quantidades como inteiros positivos); quem confere contra o conteúdo é o motor. `protocol` passa a **3** em V3D-T1 se `pendingDecisions` for uma união fechada.
+Os códigos novos entram em `REJECTION_CODES` no motor **e** no protocolo. O protocolo valida só a forma (identificadores como texto, quantidades como inteiros positivos); quem confere contra o conteúdo é o motor. `protocol` passa a **3** em V3D-T1: `pendingDecisions` é uma lista fechada (§0.7).
 
 ### B.3 Eventos novos (`EVENT_TYPES` e `chronicleTemplates`)
 
 | Evento | Quando | Tarefa |
 |---|---|---|
 | `wageArrearsStarted`, `wageArrearsEnded` | O ouro acaba ou volta com soldo a pagar | V3C-T1 |
-| `heroDiscontent`, `heroLeft`, `heroDismissed` | 12 h e 24 h de jogo em atraso; dispensa | V3C-T1 |
+| `heroDiscontent`, `heroLeft`, `heroDismissed` | Os prazos do atraso que a decisão 3 fixar; dispensa | V3C-T1 |
 | `heroJoined` | Herói que chega por carta ou recompensa | V3C-T3 |
 | `heroHired`, `festivalHeld`, `festivalEnded` | Taverna | V3C-T2 |
 | `expeditionSent`, `expeditionNodeResolved`, `expeditionAtCrossroads`, `expeditionPathChosen`, `expeditionPostureDecided`, `expeditionReturned` | Ciclo de uma expedição | V3D-T1 |
@@ -1826,17 +1875,17 @@ A rotação da Taverna e a mudança diária de preço **não** geram evento: mud
 | Arquivo | O que entra | Tarefa |
 |---|---|---|
 | **novo** `heroes.ts`; `ids.ts`; `balance.ts` | Classes, atributos-base, traços, heróis nomeados, `xpToNext`, `balance.heroes` | V3C-T1 |
-| `council.ts` †, **novo** `cards/scripted.ts` | Efeito `addHero`; a carta "Estrangeira ferida" | V3C-T3 |
+| `council.ts`, **novo** `cards/scripted.ts` | Efeito `addHero`; a carta "Estrangeira ferida" | V3C-T3 |
 | `buildings.ts`, `balance.ts`, `heroes.ts` | `tavern`; `balance.tavern`; modelos de candidato e lista de nomes | V3C-T2 |
 | `buildings.ts`, **novo** `expeditions.ts`, **nova** pasta `missions/` | `guild`; tipos, schema e `balance.expeditions`; dois grafos de teste | V3D-T1 |
-| **novo** `items.ts`; `balance.ts`; `tiles.ts` † | Itens, raridades, `balance.injuries`; destinos descobríveis | V3D-T2 |
+| **novo** `items.ts`; `balance.ts`; `tiles.ts` | Itens, raridades, `balance.injuries`; destinos descobríveis | V3D-T2 |
 | `missions/*.ts` | Os seis modelos, três variantes cada | V3D-T3 |
 | `buildings.ts`, `balance.ts` | `market`; `balance.market`, com `caravan` | V3E-T1, V3E-T2 |
 | **novo** `masters.ts` | Mestres nomeados; `balance.masters` | V3E-T3 |
-| `council.ts` †, `cards/*.ts` † | Efeitos e requisitos novos; o lote 2 | V3F-T1 |
+| `council.ts`, `cards/*.ts` | Efeitos e requisitos novos; o lote 2 | V3F-T1 |
 | `objectives.ts` | Objetivos 11 a 16 e condições novas | V3F-T2 |
 | `chronicle.ts` | Eventos e marcadores da B.3 | cada tarefa |
 
 ---
 
-**Próximo passo (2026-10-02):** fechar a v0.2. Depois, V3A-T1: conferir este plano contra o código, medir a linha de base e abrir `docs/pendencias-v0.3.md`. Nada desta versão começa a mudar o estado do jogo antes de a v0.2 estar publicada e migrada (§0.8), e publicar continua sendo uma ação separada, só com autorização do autor.
+**Próximo passo (2026-10-05):** a v0.2 fechou e está no ar. A v0.3 começa por **V3A-T1, a partir da subtarefa 6**: rodar o portão, medir a linha de base com a v0.2 inteira e abrir `docs/pendencias-v0.3.md`. Em seguida, **V3A-T2**: o lote 1 de decisões (1 a 10), em rodadas curtas de perguntas, que é o que destrava as Fases B e C. Nenhum código da v0.3 depende de mais nada da v0.2; publicar continua sendo uma ação separada, só com autorização do autor.
