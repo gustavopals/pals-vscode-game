@@ -162,7 +162,7 @@ describe('objetivos', () => {
     }
   });
 
-  it('o cenário roteirizado conclui os quatro primeiros, com +20 ouro, +30 madeira, +40 comida e o desbloqueio', () => {
+  it('o cenário roteirizado conclui os quatro primeiros, com +20 ouro, +30 madeira, +40 comida e o desbloqueio com +50 ouro', () => {
     const { state, events } = objectivesScenario();
     expect(state.objectives).toEqual({
       active: ['buildWatchtower', 'answerFirstCard', 'buildGranaryOrWarehouse'],
@@ -173,7 +173,7 @@ describe('objetivos', () => {
       '+20 ouro.',
       '+30 madeira.',
       '+40 comida.',
-      'desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+      '+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     ]);
     expect(state.settlement.buildings.townHall).toBe(2);
   });
@@ -229,7 +229,7 @@ describe('objetivos da v0.2: a sequência inteira', () => {
     '+20 ouro.',
     '+30 madeira.',
     '+40 comida.',
-    'desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+    '+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     '+40 pedra.',
     '+10 de moral por 1 dia de jogo.',
     '+60 madeira.',

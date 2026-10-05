@@ -103,11 +103,11 @@ describe('capacidade (GDD §5.5)', () => {
   });
 
   it.each([
-    [1, 900_000, 1_125_000, 720_000],
-    [2, 1_500_000, 1_875_000, 1_200_000],
-    [3, 2_100_000, 2_625_000, 1_680_000],
-    [8, 5_100_000, 6_375_000, 4_080_000],
-  ])('no nível %i o depósito guarda 900 mais 600 por nível', (level, lord, peasant, ironKing) => {
+    [1, 1_000_000, 1_250_000, 800_000],
+    [2, 1_600_000, 2_000_000, 1_280_000],
+    [3, 2_200_000, 2_750_000, 1_760_000],
+    [8, 5_200_000, 6_500_000, 4_160_000],
+  ])('no nível %i o depósito guarda 1.000 mais 600 por nível', (level, lord, peasant, ironKing) => {
     for (const [difficulty, expected] of [
       ['lord', lord],
       ['peasant', peasant],
@@ -123,9 +123,9 @@ describe('capacidade (GDD §5.5)', () => {
   it('o Celeiro guarda a comida; o Armazém, a madeira e a pedra, cada uma com o seu limite', () => {
     const state = withDifficulty('lord', 2, 1);
     expect(RESOURCE_IDS.map((id) => storageCapacity(state, id))).toEqual([
-      1_500_000,
-      900_000,
-      900_000,
+      1_600_000,
+      1_000_000,
+      1_000_000,
       null,
     ]);
   });
@@ -196,14 +196,14 @@ describe('o instante em que o estoque enche', () => {
   it('com o depósito construído, a frase fala dele e o limite é o dele', () => {
     const start = woodcutters(3, (draft) => {
       draft.settlement.buildings.warehouse = 1;
-      draft.settlement.resources.wood = 880_000;
+      draft.settlement.resources.wood = 980_000;
     });
     const { events } = advanceTo(start, HOUR);
     const [filled] = eventsOfType(events, 'storageFilled');
     // Faltam 20 a 24 por hora: 50 minutos.
     expect(filled).toMatchObject({
       atMs: 50 * MINUTE,
-      data: { resource: 'wood', building: 'warehouse', level: 1, cap: 900 },
+      data: { resource: 'wood', building: 'warehouse', level: 1, cap: 1000 },
     });
     expect(filled?.text).toBe(
       'No 1º dia da Primavera, o Armazém de Pedra Alta encheu: não cabe mais madeira, e o que chegar se perde.',
@@ -741,7 +741,7 @@ describe('construir o Celeiro e o Armazém', () => {
         data: { building: 'granary', level: 1 },
       },
     ]);
-    expect(storageCapacity(state, 'food')).toBe(900_000);
+    expect(storageCapacity(state, 'food')).toBe(1_000_000);
     // A madeira e a pedra continuam com o limite inicial: o Celeiro só guarda comida.
     expect(storageCapacity(state, 'wood')).toBe(500_000);
   });
@@ -757,8 +757,8 @@ describe('construir o Celeiro e o Armazém', () => {
     );
     const { state, events } = advanceTo(started.state, 15 * MINUTE);
     expect(types(events)).toEqual(['constructionFinished']);
-    expect(storageCapacity(state, 'wood')).toBe(1_500_000);
-    expect(storageCapacity(state, 'stone')).toBe(1_500_000);
+    expect(storageCapacity(state, 'wood')).toBe(1_600_000);
+    expect(storageCapacity(state, 'stone')).toBe(1_600_000);
   });
 
   it('cancelar a construção devolve 80% e deixa o edifício no chão, com frase própria', () => {
@@ -802,7 +802,7 @@ describe('construir o Celeiro e o Armazém', () => {
       fromLevel: 0,
       targetLevel: 1,
       durationSeconds: 600,
-      effect: 'Capacidade de comida: 500 → 900.',
+      effect: 'Capacidade de comida: 500 → 1.000.',
       cost: [
         { resource: 'wood', amount: 160, missing: 40 },
         { resource: 'stone', amount: 80, missing: 15 },
@@ -812,7 +812,7 @@ describe('construir o Celeiro e o Armazém', () => {
 
   it('a obra que amplia o depósito no instante em que o estoque chegaria ao limite: ele não enche', () => {
     // 6 habitantes e 2 fazendeiros: +18 por hora. Faltam 3 de comida: 10 minutos, que é quando
-    // o Celeiro fica pronto. A obra vem primeiro no instante, e o limite passa a 900.
+    // o Celeiro fica pronto. A obra vem primeiro no instante, e o limite passa a 1.000.
     const start = hall2((draft) => {
       draft.settlement.population.villagers = 6;
       draft.settlement.workers.farm = 2;
@@ -827,18 +827,18 @@ describe('construir o Celeiro e o Armazém', () => {
     // Sem a obra, no mesmo instante, a Despensa enche.
     const without = advanceTo(start, 10 * MINUTE);
     expect(types(without.events)).toEqual(['storageFilled']);
-    // E o Celeiro novo enche mais tarde, no limite dele: faltam 400, a 18 por hora no primeiro
+    // E o Celeiro novo enche mais tarde, no limite dele: faltam 500, a 18 por hora no primeiro
     // dia e um pouco mais a cada virada, com a experiência da Fazenda e a moral em 60
     // (24 × mestria × moral − 6).
     const fillsAt = reachedAt(
       10 * MINUTE,
-      400_000,
+      500_000,
       (day) => withMorale(24 * masteryOnDay(day), moraleOn(day)) - 6_000,
     );
-    expect(fillsAt).toBeLessThan(10 * MINUTE + Math.ceil((400_000 * HOUR) / 18_000));
+    expect(fillsAt).toBeLessThan(10 * MINUTE + Math.ceil((500_000 * HOUR) / 18_000));
     const later = advanceTo(state, 30 * HOUR);
     expect(eventsOfType(later.events, 'storageFilled')).toMatchObject([
-      { atMs: fillsAt, data: { cap: 900, level: 1 } },
+      { atMs: fillsAt, data: { cap: 1000, level: 1 } },
     ]);
   });
 
@@ -895,12 +895,12 @@ describe('custo que não cabe no depósito', () => {
   });
 
   it('com o Armazém pequeno demais, a frase manda ampliá-lo', () => {
-    // Salão 5→6: 1.575 de madeira; o Armazém no nível 1 guarda 900.
+    // Salão 5→6: 1.575 de madeira; o Armazém no nível 1 guarda 1.000.
     const state = hall(5, (draft) => {
       draft.settlement.buildings.warehouse = 1;
     });
     expect(refuse(state, command('startConstruction', { building: 'townHall' })).message).toBe(
-      'A obra pede 1.575 de madeira e o Armazém só guarda 900: amplie o Armazém primeiro.',
+      'A obra pede 1.575 de madeira e o Armazém só guarda 1.000: amplie o Armazém primeiro.',
     );
   });
 
@@ -919,7 +919,7 @@ describe('custo que não cabe no depósito', () => {
   });
 
   it('quando o que não cabe é a obra do próprio depósito, a frase não manda ampliá-lo', () => {
-    // Armazém 7→8 em Rei de Ferro: 4.295 de madeira, e no nível 7 ele guarda 3.600.
+    // Armazém 7→8 em Rei de Ferro: 4.295 de madeira, e no nível 7 ele guarda 3.680.
     const state = hall(8, (draft) => {
       draft.settings.difficulty = 'ironKing';
       draft.settlement.buildings.warehouse = 7;
@@ -927,7 +927,7 @@ describe('custo que não cabe no depósito', () => {
     expect(refuse(state, command('startConstruction', { building: 'warehouse' }))).toEqual({
       code: 'EXCEEDS_STORAGE',
       message:
-        'A obra pede 4.295 de madeira e o Armazém só guarda 3.600: não há como juntar tanto.',
+        'A obra pede 4.295 de madeira e o Armazém só guarda 3.680: não há como juntar tanto.',
     });
   });
 
@@ -984,9 +984,9 @@ describe('a visão do armazenamento', () => {
     ['lord', 0, 500, '500 iniciais', 'Despensa'],
     ['ironKing', 0, 400, '500 iniciais × 0,8 (Rei de Ferro) = 400', 'Despensa'],
     ['peasant', 0, 625, '500 iniciais × 1,25 (Camponês) = 625', 'Despensa'],
-    ['lord', 2, 1500, 'Celeiro Nv2: 1.500', 'Celeiro'],
-    ['ironKing', 2, 1200, 'Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200', 'Celeiro'],
-    ['peasant', 2, 1875, 'Celeiro Nv2: 1.500 × 1,25 (Camponês) = 1.875', 'Celeiro'],
+    ['lord', 2, 1600, 'Celeiro Nv2: 1.600', 'Celeiro'],
+    ['ironKing', 2, 1280, 'Celeiro Nv2: 1.600 × 0,8 (Rei de Ferro) = 1.280', 'Celeiro'],
+    ['peasant', 2, 2000, 'Celeiro Nv2: 1.600 × 1,25 (Camponês) = 2.000', 'Celeiro'],
   ] as const)('%s com o Celeiro no nível %i: %i', (difficulty, level, cap, breakdown, label) => {
     const state = gameWith((draft) => {
       draft.settings.difficulty = difficulty;
@@ -1044,7 +1044,7 @@ describe('a visão do armazenamento', () => {
     const full = (edit: (draft: GameState) => void = () => {}) =>
       woodcutters(3, (draft) => {
         draft.settlement.buildings.townHall = 2;
-        draft.settlement.resources.wood = 5_100_000;
+        draft.settlement.resources.wood = 5_200_000;
         edit(draft);
       });
     expect(row(full(), 'wood')).toMatchObject({
@@ -1098,18 +1098,19 @@ describe('a visão do armazenamento', () => {
   });
 
   it('sem obra por fazer que leve o material, a frase manda trocar de ofício, e não "gastar"', () => {
-    // O fim das obras em Senhor: o Salão no nível 7 (o nível 8 pede 5.102 de madeira, e o
-    // Armazém no nível máximo guarda 5.100) e todo o resto no nível 8, preso à regra "nível do
-    // Salão mais um". Nenhum botão gasta madeira: a saída que resta é tirar gente da Serraria.
+    // O fim das obras em Senhor: o Salão e os depósitos no nível máximo (o Armazém guarda 5.200,
+    // e a obra do Salão para o nível 8, que pede 5.102 de madeira, cabe) e todo o resto no nível
+    // 9, preso à regra "nível do Salão mais um". Nenhum botão gasta madeira: a saída que resta é
+    // tirar gente da Serraria.
     const ended = (edit: (draft: GameState) => void = () => {}) =>
       woodcutters(3, (draft) => {
         draft.settlement.buildings = {
-          townHall: 7,
-          farm: 8,
-          lumberMill: 8,
-          quarry: 8,
-          goldMine: 8,
-          housing: 8,
+          townHall: 8,
+          farm: 9,
+          lumberMill: 9,
+          quarry: 9,
+          goldMine: 9,
+          housing: 9,
           granary: 8,
           warehouse: 8,
           watchtower: 2,
@@ -1122,13 +1123,26 @@ describe('a visão do armazenamento', () => {
       /^Armazém cheio: [\d.,]+\/h de madeira indo ao chão\. Ponha parte dos lenhadores em outro ofício\.$/;
     const none = ended();
     expect(BUILDING_IDS.filter((building) => upgradeStillPossible(none, building))).toEqual([]);
-    expect(row(none, 'wood')).toMatchObject({ full: true, cap: 5100 });
+    expect(row(none, 'wood')).toMatchObject({ full: true, cap: 5200 });
     expect(row(none, 'wood').fullNote).toMatch(moveHands);
 
-    // Com o Armazém um nível abaixo ainda há obra: a dele, e depois dela a do Salão.
+    // Um passo antes, com o Salão no nível 7, o Armazém um nível abaixo e o resto no nível 8,
+    // ainda há obra: a do Armazém, depois dela a do Salão (que só cabe no Armazém do nível 8) e,
+    // depois da do Salão, a dos edifícios que esperam por ele.
     const oneLeft = ended((draft) => {
-      draft.settlement.buildings.warehouse = 7;
+      draft.settlement.buildings = {
+        ...draft.settlement.buildings,
+        townHall: 7,
+        farm: 8,
+        lumberMill: 8,
+        quarry: 8,
+        goldMine: 8,
+        housing: 8,
+        warehouse: 7,
+      };
     });
+    expect(row(oneLeft, 'wood').cap).toBe(4600);
+    expect(upgradeQuote(oneLeft, 'townHall').blocked?.code).toBe('EXCEEDS_STORAGE');
     expect(upgradeStillPossible(oneLeft, 'warehouse')).toBe(true);
     expect(upgradeStillPossible(oneLeft, 'townHall')).toBe(true);
     expect(upgradeStillPossible(oneLeft, 'farm')).toBe(true);
@@ -1136,9 +1150,9 @@ describe('a visão do armazenamento', () => {
 
     // Com a última obra em curso, o feudo ainda está construindo.
     const lastOne = ended((draft) => {
-      draft.settlement.buildings.farm = 7;
+      draft.settlement.buildings.farm = 8;
       draft.settlement.constructionQueues = [
-        { building: 'farm', targetLevel: 8, startedAtMs: 0, finishesAtMs: SPRING + HOUR },
+        { building: 'farm', targetLevel: 9, startedAtMs: 0, finishesAtMs: SPRING + HOUR },
         null,
       ];
     });
@@ -1146,16 +1160,25 @@ describe('a visão do armazenamento', () => {
     expect(row(lastOne, 'wood').fullNote).toMatch(/Gaste madeira\.$/);
 
     // Em Rei de Ferro o Armazém para no nível 7: a obra do nível 8 pede 4.295 e ele guarda
-    // 3.600. A frase não manda ampliar o que a lista de obras recusa. Com o Salão no nível 6
-    // ainda há o que pagar (o nível 7 pede 2.834); no nível 7, mais nada.
+    // 3.680. A frase não manda ampliar o que a lista de obras recusa. Com o Salão no nível 6
+    // ainda há o que pagar (o nível 7 pede 2.834); no nível 7, mais nada: a obra do nível 8 pede
+    // 5.102, e com ela param no nível 8 os edifícios que esperam o Salão.
     const ironKing = (townHall: number) =>
       ended((draft) => {
         draft.settings.difficulty = 'ironKing';
-        draft.settlement.buildings.warehouse = 7;
-        draft.settlement.buildings.granary = 7;
-        draft.settlement.buildings.townHall = townHall;
+        draft.settlement.buildings = {
+          ...draft.settlement.buildings,
+          townHall,
+          farm: 8,
+          lumberMill: 8,
+          quarry: 8,
+          goldMine: 8,
+          housing: 8,
+          granary: 7,
+          warehouse: 7,
+        };
       });
-    expect(row(ironKing(6), 'wood').cap).toBe(3600);
+    expect(row(ironKing(6), 'wood').cap).toBe(3680);
     expect(upgradeStillPossible(ironKing(6), 'warehouse')).toBe(false);
     expect(row(ironKing(6), 'wood').fullNote).toMatch(/indo ao chão\. Gaste madeira\.$/);
     expect(row(ironKing(7), 'wood').fullNote).toMatch(moveHands);
@@ -1412,8 +1435,8 @@ describe('a visão do armazenamento', () => {
       quarry: null,
       goldMine: null,
       housing: null,
-      granary: 'Capacidade de comida: 500 → 900.',
-      warehouse: 'Capacidade de madeira e de pedra: 500 → 900 cada.',
+      granary: 'Capacidade de comida: 500 → 1.000.',
+      warehouse: 'Capacidade de madeira e de pedra: 500 → 1.000 cada.',
       // A Torre de Vigia também diz o que dá (threat.test.ts).
       watchtower:
         'Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência.',
@@ -1427,8 +1450,8 @@ describe('a visão do armazenamento', () => {
       draft.settlement.buildings.granary = 2;
     });
     expect(effects(iron)).toMatchObject({
-      granary: 'Capacidade de comida: 1.200 → 1.680.',
-      warehouse: 'Capacidade de madeira e de pedra: 720 → 1.200 cada.',
+      granary: 'Capacidade de comida: 1.280 → 1.760.',
+      warehouse: 'Capacidade de madeira e de pedra: 800 → 1.280 cada.',
     });
   });
 
@@ -1456,23 +1479,26 @@ describe('a visão do armazenamento', () => {
   });
 });
 
-describe('objetivo 4: a recompensa é o desbloqueio', () => {
-  it('concluir não credita recurso nenhum, e a frase diz o que foi liberado', () => {
+describe('objetivo 4: a recompensa é o desbloqueio e 50 de ouro (ADR 0016, item 7)', () => {
+  it('concluir credita 50 de ouro e mais nada, e a frase diz o ouro e o que foi liberado', () => {
     const start = gameWith((draft) => {
       draft.settlement.buildings.townHall = 2;
       draft.objectives = { active: ['townHallLevel2'], completed: [] };
     });
     const { state, events } = accept(start, command('renameSettlement', { name: 'Vau Alto' }));
-    expect(state.settlement.resources).toEqual(start.settlement.resources);
+    expect(state.settlement.resources).toEqual({
+      ...start.settlement.resources,
+      gold: start.settlement.resources.gold + 50_000,
+    });
     const [completed] = eventsOfType(events, 'objectiveCompleted');
-    expect(completed?.data).toEqual({ objective: 'townHallLevel2' });
+    expect(completed?.data).toEqual({ objective: 'townHallLevel2', gained_gold: 50 });
     expect(completed?.text).toBe(
-      'No 1º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+      'No 1º dia da Primavera, cumpriu-se um objetivo: Alcance o Salão do Senhor Nv2. Recompensa: +50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     );
     const view = deriveViewState(state, 0);
     expect(view.objectives.find((entry) => entry.id === 'townHallLevel2')).toMatchObject({
       status: 'completed',
-      reward: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
+      reward: '+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
     });
     // E o que a frase promete é verdade: as duas obras deixam de estar presas ao Salão.
     const blocked = Object.fromEntries(
@@ -1480,6 +1506,22 @@ describe('objetivo 4: a recompensa é o desbloqueio', () => {
     );
     expect(blocked.granary).not.toBe('GATE_LOCKED');
     expect(blocked.warehouse).not.toBe('GATE_LOCKED');
+  });
+
+  it('quem já tinha concluído não recebe o ouro depois: não há pagamento retroativo', () => {
+    const start = gameWith((draft) => {
+      draft.settlement.buildings.townHall = 2;
+      draft.objectives = {
+        active: ['buildWatchtower', 'answerFirstCard', 'buildGranaryOrWarehouse'],
+        completed: ['allocateFarmers', 'upgradeHousing', 'recruitVillagers', 'townHallLevel2'],
+      };
+    });
+    const { state, events } = accept(start, command('renameSettlement', { name: 'Vau Alto' }));
+    expect(state.settlement.resources.gold).toBe(start.settlement.resources.gold);
+    expect(eventsOfType(events, 'objectiveCompleted')).toEqual([]);
+    const later = advanceTo(state, DAY);
+    expect(eventsOfType(later.events, 'objectiveCompleted')).toEqual([]);
+    expect(later.state.objectives.completed).toEqual(start.objectives.completed);
   });
 
   it('quem libera a obra é o Salão, não o objetivo', () => {
@@ -1780,7 +1822,10 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
 
   it('as obras que nenhum depósito comporta são as conhecidas (docs/balance-v0.2.md, seção 4)', () => {
     // Não é a regra desejada: é o retrato das travas que a auditoria achou, para que mexer em
-    // custo ou em capacidade mude esta lista de propósito. Todas ficam além do Salão no nível 7.
+    // custo ou em capacidade mude esta lista de propósito. Com o nível 1 dos depósitos em 1.000
+    // (ADR 0016, item 1), Senhor deixou de ter trava: o Armazém no nível 8 guarda 5.200, e as
+    // obras mais caras pedem 5.102 (Salão 7→8) e 5.154 (Pedreira e Mina de Ouro 9→10). Em Rei de
+    // Ferro todas ficam além do Salão no nível 7.
     const deadEnds = (difficulty: DifficultyId) =>
       builders.flatMap((building) => {
         const { initialLevel, maxLevel } = buildings[building];
@@ -1792,8 +1837,8 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
     expect(warehouseReach('peasant')).toBe(8);
     expect(deadEnds('peasant')).toEqual([]);
     expect(warehouseReach('lord')).toBe(8);
-    expect(deadEnds('lord')).toEqual(['townHall 7→8', 'quarry 9→10', 'goldMine 9→10']);
-    // O Armazém de Rei de Ferro para no nível 7: o nível 8 custa 4.295 e ele guarda 3.600.
+    expect(deadEnds('lord')).toEqual([]);
+    // O Armazém de Rei de Ferro para no nível 7: o nível 8 custa 4.295 e ele guarda 3.680.
     expect(warehouseReach('ironKing')).toBe(7);
     expect(deadEnds('ironKing')).toEqual([
       'townHall 7→8',
@@ -1860,11 +1905,11 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
   });
 
   it('o teto de cada edifício em cada dificuldade, e o que o catálogo anuncia além dele', () => {
-    // Também não é a regra desejada: é o retrato que vai ao autor (docs/balance-v0.2.md, seção
-    // 9.5). Só em Camponês o catálogo inteiro é alcançável. Em Senhor o Salão para no nível 7
-    // por 2 de madeira (a obra do nível 8 pede 5.102 e o Armazém no máximo guarda 5.100), e com
-    // ele param no nível 8 os cinco edifícios presos à regra "nível do Salão mais um".
-    expect(ceilings('peasant')).toEqual({
+    // Também não é a regra desejada: é o retrato que vai ao autor (docs/balance-v0.2.md, seções
+    // 9.5 e 10). Em Camponês e em Senhor o Salão chega ao nível máximo, o 8: em Senhor a obra pede
+    // 5.102 de madeira e o Armazém no nível 8 guarda 5.200 (ADR 0016, item 1). O que o catálogo
+    // anuncia além disso é o nível 10 dos cinco edifícios presos à regra "nível do Salão mais um".
+    const hallAtEight = {
       townHall: 8,
       farm: 9,
       lumberMill: 9,
@@ -1875,46 +1920,36 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       warehouse: 8,
       watchtower: 2,
       palisade: 2,
-    });
-    expect(unreachable('peasant')).toEqual([
-      'farm 10',
-      'lumberMill 10',
-      'quarry 10',
-      'goldMine 10',
-      'housing 10',
-    ]);
-    const stuckAtSeven = {
+    };
+    const beyondEight = ['farm 10', 'lumberMill 10', 'quarry 10', 'goldMine 10', 'housing 10'];
+    expect(ceilings('peasant')).toEqual(hallAtEight);
+    expect(unreachable('peasant')).toEqual(beyondEight);
+    expect(ceilings('lord')).toEqual(hallAtEight);
+    expect(unreachable('lord')).toEqual(beyondEight);
+    // Rei de Ferro continua com o teto mais baixo: o Armazém para no nível 7, onde guarda 3.680,
+    // e o Salão para no 7 (o nível 8 pede 5.102). Com ele param no nível 8 os cinco edifícios.
+    expect(ceilings('ironKing')).toEqual({
       townHall: 7,
       farm: 8,
       lumberMill: 8,
       quarry: 8,
       goldMine: 8,
       housing: 8,
-    };
-    expect(ceilings('lord')).toEqual({
-      ...stuckAtSeven,
-      granary: 8,
-      warehouse: 8,
-      watchtower: 2,
-      palisade: 2,
-    });
-    expect(ceilings('ironKing')).toEqual({
-      ...stuckAtSeven,
       granary: 7,
       warehouse: 7,
       watchtower: 2,
       palisade: 2,
     });
-    const beyondSeven = [
+    expect(unreachable('ironKing')).toEqual([
       'townHall 8',
       'farm 9–10',
       'lumberMill 9–10',
       'quarry 9–10',
       'goldMine 9–10',
       'housing 9–10',
-    ];
-    expect(unreachable('lord')).toEqual(beyondSeven);
-    expect(unreachable('ironKing')).toEqual([...beyondSeven, 'granary 8', 'warehouse 8']);
+      'granary 8',
+      'warehouse 8',
+    ]);
   });
 });
 

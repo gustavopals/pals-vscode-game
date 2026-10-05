@@ -67,9 +67,10 @@ export type ObjectiveDef = {
 // GDD §12.2, na ordem em que são revelados. Os de 1 a 4 são os da v0.1 e não mudam de id; os de
 // 5 a 10 são os da v0.2 (ADR 0014, decisão 12): cada um ensina uma ferramenta nova, e nenhum
 // depende de herói nem de soldado. O id é o que fica gravado nas partidas: nunca se troca.
-// O objetivo 4 recompensa o desbloqueio, como no GDD: na v0.1 dava +50 ouro, porque os edifícios
-// ainda não existiam (ADR 0002). Quem libera a obra é o Salão no nível 2 (`requires`, em
-// buildings.ts), que é a própria condição do objetivo.
+// O objetivo 4 recompensa o desbloqueio e mais 50 de ouro (ADR 0016, item 7): na v0.1 dava só o
+// ouro, porque os edifícios ainda não existiam (ADR 0002), e a v0.2 nasceu só com o desbloqueio.
+// Quem libera a obra é o Salão no nível 2 (`requires`, em buildings.ts), que é a própria condição
+// do objetivo. Quem já tinha cumprido o objetivo antes da volta do ouro não recebe nada depois.
 export const objectives: readonly ObjectiveDef[] = [
   {
     id: 'allocateFarmers',
@@ -97,7 +98,7 @@ export const objectives: readonly ObjectiveDef[] = [
     title: 'Alcance o Salão do Senhor Nv2',
     hint: 'O Salão dita até onde os outros edifícios podem crescer.',
     condition: { type: 'buildingLevel', building: 'townHall', level: 2 },
-    reward: {},
+    reward: { gold: 50 },
     rewardText: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
   },
   {

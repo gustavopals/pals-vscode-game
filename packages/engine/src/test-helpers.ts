@@ -163,7 +163,7 @@ export function dealt(
 }
 
 /**
- * Celeiro e Armazém no nível máximo (5.100 de cada recurso em Senhor): para os cenários que não
+ * Celeiro e Armazém no nível máximo (5.200 de cada recurso em Senhor): para os cenários que não
  * são sobre o limite de estoque e precisam de onde guardar o que produzem.
  */
 export function roomy(draft: GameState): void {

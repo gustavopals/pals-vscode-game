@@ -52,8 +52,8 @@ type StorageRow = Pick<
 >;
 
 /**
- * De onde vem o limite, termo a termo: "500 iniciais", "Celeiro Nv2: 1.500" e, quando a
- * dificuldade mexe, "Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200".
+ * De onde vem o limite, termo a termo: "500 iniciais", "Celeiro Nv2: 1.600" e, quando a
+ * dificuldade mexe, "Celeiro Nv2: 1.600 × 0,8 (Rei de Ferro) = 1.280".
  */
 function capBreakdown(state: GameState, resource: ResourceId): string | null {
   const store = storeOf(resource);
@@ -303,7 +303,8 @@ export function storageRow(
 
 /**
  * O que a obra de um depósito muda, para ficar ao lado do custo: "Capacidade de comida: 500 →
- * 900." ou "Capacidade de madeira e de pedra: 500 → 900 cada." `null` para os outros edifícios.
+ * 1.000." ou "Capacidade de madeira e de pedra: 500 → 1.000 cada." `null` para os outros
+ * edifícios.
  */
 export function storageEffect(
   state: GameState,

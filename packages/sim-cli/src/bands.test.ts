@@ -148,16 +148,16 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3, em Senhor: de 69 a 75 aldeões conforme a semente, Salão
-    // Nv7, até 5.100 de madeira e 5.100 de pedra no Armazém, até 163.954 de ouro parado (com as
+    // Regular, 7 dias reais, ritmo 3, em Senhor: de 72 a 75 aldeões conforme a semente, Salão
+    // Nv8, até 5.200 de madeira e 5.200 de pedra no Armazém, até 148.487 de ouro parado (com as
     // obras esgotadas o bot manda todo mundo para a Mina) e até 33 h de jogo seguidas com um
     // recurso indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 62, max: 83 },
-      townHallMin: 7,
+      villagers: { min: 64, max: 83 },
+      townHallMin: 8,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 5_355, stone: 5_355, gold: 172_152 },
+      surplusMax: { wood: 5_460, stone: 5_460, gold: 155_912 },
       wasteStreakMax: 35,
     });
   });

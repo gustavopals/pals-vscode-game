@@ -171,7 +171,7 @@ describe('resumo para a árvore', () => {
 
 describe('estoque ao lado dos custos', () => {
   it('uma linha com o que há de cada recurso, nos nomes do servidor', () => {
-    expect(stockLine(councilView)).toBe('900 comida · 296 madeira · 85 pedra · 358 ouro');
+    expect(stockLine(councilView)).toBe('1.000 comida · 296 madeira · 85 pedra · 358 ouro');
   });
 });
 

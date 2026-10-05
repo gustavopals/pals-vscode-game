@@ -29,3 +29,6 @@ deploy/backups/
 
 # Saída dos exemplos do simulador (README)
 /semana*.csv
+
+# Árvores de trabalho de agentes de código.
+.claude/worktrees/

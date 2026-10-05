@@ -407,7 +407,7 @@ export type UpgradeView = {
   blockedReason: string | null;
   planned: boolean;
   /**
-   * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 900."; "Mostra a
+   * O que a obra muda, ao lado do que ela custa: "Capacidade de comida: 500 → 1.000."; "Mostra a
    * Ameaça com a explicação e avisa de uma incursão 20 min antes."; "Segura ataques leves, sem
    * perda nem ferido; os médios passam, mas com metade do estrago." Os edifícios de
    * armazenamento, a Torre de Vigia e a Paliçada trazem a frase; nos outros é `null`.
@@ -934,7 +934,7 @@ export type ViewState = {
     /** Limite do estoque, em unidades; `null` para o que não tem limite (o ouro). */
     cap: number | null;
     /**
-     * De onde vem o limite: "500 iniciais" ou "Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200".
+     * De onde vem o limite: "500 iniciais" ou "Celeiro Nv2: 1.600 × 0,8 (Rei de Ferro) = 1.280".
      * `null` sem limite.
      */
     capBreakdown: string | null;

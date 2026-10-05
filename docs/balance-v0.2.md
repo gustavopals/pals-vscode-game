@@ -3844,3 +3844,138 @@ As rodadas 17.1 e 17.2 foram medidas antes da Ameaça reequilibrada (seção 16)
 - **Contra a linha de base da seção 16**, saíam da faixa só excedentes parados, quase todos por uma semente, e uma célula por muitas: a semana do Tranquilo do Preguiçoso, nas três dificuldades, em 22 e em 3 das 50 sementes, com dezenas de unidades acima do teto (em Senhor, 145 de madeira e 62 de ouro contra 117 e 52; o teto do ouro vinha de 49 parados). É o preguiçoso mostrando a Paliçada por +20: mais braços nos dias em 80, um pouco mais de estoque no fim da semana. Em Camponês, a semana do Tranquilo do Regular passou de 0 para 1 h de jogo de madeira indo ao chão em uma semente.
 - **O Regular no ritmo Normal**, em Senhor: de 63 a 73 aldeões na semana (eram 63 a 71 na seção 16), Salão no nível 7 em toda semente. A pior sequência de desperdício do Regular no Normal ficou em 8 h; a meta continua cumprida no Normal e no Tranquilo.
 - Os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram refeitos sobre esta rodada; os que a seção 16 tinha mudado e as cartas não mexem (o Armazém no Rápido, a pior sequência do ano do Rápido) ficaram como a seção 16 os deixou.
+
+## 18. A capacidade de 1.000 e os 50 de ouro do objetivo 4 (2026-10-05)
+
+Duas respostas do autor às pendências da v0.2 ([ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), itens 1 e 7) mudam dois números do conteúdo, e só eles:
+
+- **O nível 1 do Celeiro e do Armazém guarda 1.000**, e não 900 (`balance.storage`). Os 600 por nível, os 500 iniciais e os fatores de dificuldade não mudam. É o ajuste que a seção 9.8, item 1, deixou por simular.
+- **O objetivo 4 (Salão no nível 2) volta a creditar 50 de ouro**, além do desbloqueio. Não há pagamento retroativo nem passo de migração: quem já o cumpriu fica como está.
+
+As seções anteriores não foram reescritas: os 900, os 5.100 e o Salão parado no nível 7 em Senhor que elas citam são as medidas da época.
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commit | o da tarefa V2G-T1 (`V2G-T1: …`), o primeiro depois de `276077b` |
+| Identificação | Motor 0.1.0 · estado v11 · conteúdo `632fae516da42341` |
+| Dificuldades | Camponês, Senhor e Rei de Ferro |
+| Sementes | 50 fixas: `pedra-alta-001` a `pedra-alta-050` |
+| Máquina | Intel Core i7-12700T, Linux 6.6 (WSL2), Node 22.22.3 |
+
+O comando é o da seção 15.2, nas três dificuldades (`pnpm -s sim -- --matrix --difficulty <dificuldade>`). As políticas dos bots não foram tocadas.
+
+### 18.1 O teto de cada edifício
+
+O teste do motor (`storage.test.ts`, "o teto de cada edifício em cada dificuldade") dá, pelo caminho de compras mais favorável:
+
+| Edifício | Nível máximo do catálogo | Camponês | Senhor | Rei de Ferro |
+|---|---:|---:|---:|---:|
+| Salão do Senhor | 8 | 8 | **8** (era 7) | 7 |
+| Fazenda, Serraria, Pedreira, Mina de Ouro, Habitações | 10 | 9 | **9** (era 8) | 8 |
+| Celeiro, Armazém | 8 | 8 | 8 | 7 |
+| Torre de Vigia, Paliçada | 2 | 2 | 2 | 2 |
+
+- **Senhor:** o Armazém no nível 8 guarda 1.000 + 7 × 600 = 5.200, e a obra do Salão para o nível 8 pede 5.102 de madeira: cabe, com 98 de folga. Senhor fica com o teto de Camponês, e deixa de ter obra que nenhum depósito comporta (as mais caras do catálogo, a Pedreira e a Mina de Ouro do nível 9 para o 10, pedem 5.154; quem as segura é a regra do "nível do Salão mais um"). A armadilha das 2 unidades da seção 9.5 acabou: com o Armazém no nível 7 (4.600) a frase manda ampliá-lo, e ampliado ele comporta a obra.
+- **Rei de Ferro continua com o teto mais baixo.** O Armazém no nível 7 guarda 4.600 × 0,8 = 3.680 (eram 3.600), e a obra do nível 8 dele pede 4.295: ele para no 7, e com ele o Salão (5.102) e os cinco edifícios presos ao Salão. As obras que nenhum depósito comporta são as mesmas seis de antes.
+- **O nível 10** dos cinco edifícios continua anunciado e inalcançável nas três dificuldades (Salão com máximo 8).
+
+### 18.2 A linha de base, antes e depois
+
+Menor e maior valor das 50 sementes; "antes" é a linha de base da seção 17.3. Em negrito, o que piorou (menos gente no pior caso, Salão mais baixo, sequência de desperdício mais longa). Nenhuma célula tem hora de fome nem de frio, nenhuma partida perde gente e nenhum bot dá ordem recusada, antes e depois. No ritmo Normal as duas janelas são a mesma partida (uma linha só).
+
+**Senhor**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 33 a 35 → 36 a 38 | 6 → 7 | 3.900 → 3.400 | 2.405 → 3.400 | 13.492 → 7.497 | **63 → 72** |
+| 7 dias | Rápido 3× | Regular | 69 a 75 → 72 a 75 | 7 → 8 | 5.100 → 5.200 | 5.100 → 5.200 | 163.954 → 148.487 | 33 |
+| 7 dias | Rápido 3× | Dedicado | 74 a 75 → 84 a 85 | 7 → 8 | 4.230 → 4.225 | 5.100 → 5.200 | 291.313 → 324.520 | 39 → 15 |
+| 7 dias | Normal 1× | Preguiçoso | 21 a 27 → 31 a 33 | 3 → 5 | 2.611 → 1.136 | 2.700 → 2.647 | 1.092 → 1.139 | 21 → 16 |
+| 7 dias | Normal 1× | Regular | 63 a 73 → 64 a 73 | 7 | 4.939 → 4.512 | 4.952 → 4.643 | 20.012 → 23.277 | **8 → 9** |
+| 7 dias | Normal 1× | Dedicado | 74 a 75 → 84 | 7 → 8 | 5.063 → 5.200 | 5.100 → 5.200 | 39.071 → 21.575 | 3 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | **26 → 20** | **4 → 3** | 150 → 1.071 | 1.004 → 1.576 | 63 → 30 | 6 → 5,5 |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 | 5 → 6 | 2.700 → 1.037 | 1.526 → 1.244 | 988 → 979 | 2,5 → 1,5 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 56 a 64 → 59 a 65 | 6 | 1.949 → 1.781 | 785 → 1.163 | 475 → 940 | 1 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 13 → 16 | 3 | 194 | 353 → 517 | 428 → 304 | 63 |
+| Ano de jogo | Rápido 3× | Regular | 24 a 30 → 27 a 30 | 5 | 761 → 783 | 1.043 → 1.114 | 2.598 → 3.052 | 9 |
+| Ano de jogo | Rápido 3× | Dedicado | 51 a 55 | 6 | 1.836 → 1.809 | 1.966 → 2.172 | 16.449 → 13.041 | 18 → 15 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | **59 a 61 → 52 a 56** | 6 | 4.337 → 4.185 | 1.042 → 1.855 | 6.437 → 3.936 | 8,5 → 7 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 74 a 75 → 84 | 7 → 8 | 4.770 → 5.200 | 5.100 → 5.200 | 40.037 → 22.534 | **2,5 → 3** |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 74 a 75 → 84 a 85 | 7 → 8 | 5.100 → 5.200 | 5.100 → 5.200 | 46.689 → 31.125 | **3 → 3,5** |
+
+**Camponês**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 33 a 35 → 36 a 38 | 6 → 7 | 4.125 → 4.250 | 2.915 → 4.250 | 13.548 → 7.524 | 63 |
+| 7 dias | Rápido 3× | Regular | 70 a 76 → 72 a 76 | 8 | 5.625 → 5.636 | 6.375 → 6.500 | 150.980 → 152.495 | 33 |
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 | 8 | 5.904 → 5.985 | 6.375 → 6.500 | 320.835 → 322.690 | 15 |
+| 7 dias | Normal 1× | Preguiçoso | 21 a 27 → 31 a 33 | 3 → 5 | 2.859 → 1.435 | 3.375 → 3.056 | 768 → 1.165 | 22 → 13 |
+| 7 dias | Normal 1× | Regular | 60 a 72 → 65 a 73 | 7 | 4.970 → 5.056 | 4.885 → 5.033 | 20.892 → 20.286 | **6 → 8** |
+| 7 dias | Normal 1× | Dedicado | 84 a 85 | 8 | 6.375 → 6.500 | 6.375 → 6.500 | 19.061 → 20.217 | **2 → 3** |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | **26 → 20** | **4 → 3** | 453 → 1.727 | 1.379 → 2.067 | 63 → 30 | 4,5 → 3 |
+| 7 dias | Tranquilo 0,5× | Regular | **51 a 54 → 50 a 54** | 6 | 1.566 → 1.008 | 1.014 → 1.115 | 989 → 935 | 1 → 0 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 57 a 64 → 58 a 65 | 6 | 1.199 → 1.519 | 1.311 → 1.220 | 889 → 1.234 | **0 → 1** |
+| Ano de jogo | Rápido 3× | Preguiçoso | 13 → 16 | 3 | 325 → 363 | 495 → 517 | 405 → 202 | 60 |
+| Ano de jogo | Rápido 3× | Regular | 24 a 30 → 27 a 30 | 5 | 916 → 641 | 1.300 → 1.104 | 2.638 → 3.560 | 6 |
+| Ano de jogo | Rápido 3× | Dedicado | **52 a 55 → 48 a 55** | 6 | 1.809 → 1.872 | 3.025 → 3.297 | 14.885 → 13.868 | 9 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | **59 a 61 → 52 a 56** | 7 | 2.012 → 1.549 | 755 → 685 | 4.079 → 2.004 | 8 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 a 85 | 8 | 6.375 → 6.500 | 6.375 → 6.500 | 20.045 → 21.275 | **3 → 3,5** |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 | 8 | 6.375 → 6.500 | 6.375 → 6.500 | 31.564 → 33.473 | **2 → 2,5** |
+
+**Rei de Ferro**
+
+| Janela | Ritmo | Perfil | População | Salão (mínimo) | Madeira parada | Pedra parada | Ouro parado | Pior sequência (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 33 a 35 → 36 a 38 | 6 → 7 | 3.120 → 3.200 | 1.757 → 3.200 | 13.366 → 7.536 | 135 → 75 |
+| 7 dias | Rápido 3× | Regular | 70 a 75 → 72 a 75 | 7 | 3.214 → 2.804 | 3.600 → 3.680 | 165.119 → 165.302 | 24 |
+| 7 dias | Rápido 3× | Dedicado | 74 a 75 | 7 | 2.712 → 2.825 | 3.600 → 3.680 | 293.531 → 294.114 | 45 |
+| 7 dias | Normal 1× | Preguiçoso | 21 a 27 → 31 a 34 | 3 → 5 | 1.679 → 1.281 | 2.160 → 2.104 | 1.082 → 1.255 | 23 → 18 |
+| 7 dias | Normal 1× | Regular | 62 a 71 → 64 a 71 | **7 → 6** | 3.571 → 3.680 | 3.600 → 3.680 | 18.382 → 19.717 | **6 → 8** |
+| 7 dias | Normal 1× | Dedicado | 74 a 75 | 7 | 3.600 → 3.680 | 3.600 → 3.680 | 44.020 → 43.952 | 3 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | **26 → 20** | **4 → 3** | 118 → 145 | 1.184 → 940 | 63 → 30 | **4,5 → 11,5** |
+| 7 dias | Tranquilo 0,5× | Regular | **50 a 54 → 49 a 54** | 6 | 1.204 → 1.098 | 741 → 952 | 839 → 763 | 2 → 1 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 56 a 64 → 58 a 64 | 6 | 1.479 → 1.661 | 605 → 776 | 521 → 763 | 0,5 → 0 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 13 → 16 | **3 → 2** | 138 → 268 | 374 → 529 | 377 → 474 | 66 |
+| Ano de jogo | Rápido 3× | Regular | 24 a 30 → 27 a 30 | 4 | 749 → 588 | 510 → 660 | 5.532 → 6.322 | 12 → 6 |
+| Ano de jogo | Rápido 3× | Dedicado | 49 a 54 → 50 a 55 | 6 | 1.344 → 1.226 | 1.677 → 1.692 | 14.844 → 15.240 | 15 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | **59 a 61 → 48 a 53** | **7 → 6** | 1.526 → 3.200 | 1.662 → 1.956 | 3.503 → 5.802 | **4,5 → 11,5** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 74 a 75 | 7 | 3.594 → 3.680 | 3.600 → 3.680 | 44.956 → 44.169 | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 74 a 75 | 7 | 3.600 → 3.680 | 3.600 → 3.680 | 53.362 → 52.755 | 2,5 |
+
+### 18.3 O que melhorou
+
+- **Em Senhor o Salão chega ao nível 8** em toda célula em que ele parava no 7 por causa do Armazém: o Regular na semana do ritmo Rápido e no ano do Tranquilo, e o Dedicado na semana do Rápido, no Normal e no ano do Tranquilo. Nas do Dedicado e no ano do Regular a população sobe de 74 a 75 para 84 a 85. É o efeito pedido, e vem só da capacidade.
+- **O jogador de uma visita por dia, nos ritmos Rápido e Normal** (vem do ouro): na semana do Normal, de 21 a 27 aldeões e Salão no nível 3 para 31 a 33 (31 a 34 em Rei de Ferro) e nível 5, nas três dificuldades (a seção 15.4 apontava essa lentidão: faltava ouro para a Torre). Em Senhor a Torre de Vigia dele sai na hora 78 (era 82), e o Salão Nv3 e a Paliçada, na 85 (eram entre a 125 e a 133). No ano do ritmo Rápido as 50 sementes erguem a Paliçada e concluem os dez objetivos (15 delas fechavam o ano sem ela, com nove).
+- **O ouro parado** em Senhor cai onde o Salão 8 passou a ser obra e o ritmo deixa gastá-lo: no Dedicado do ritmo Normal, de 39.071 para 21.575; no ano do Tranquilo, de 40.037 para 22.534 (Regular) e de 46.689 para 31.125 (Dedicado). Na semana do Rápido o ouro continua sobrando (até 148.487 no Regular, eram 163.954; até 324.520 no Dedicado, eram 291.313): em 24 das 50 sementes do Regular as obras ainda acabam antes do fim da semana, entre as horas 142 e 168 (eram as 50, entre a 121 e a 152).
+
+### 18.4 O que piorou
+
+Rodando a matriz com cada número sozinho (o outro como era), dá para dizer de qual deles vem cada piora:
+
+1. **O Preguiçoso no ritmo Tranquilo fica mais devagar, e é o ouro que faz isso.** Na semana: de 26 para 20 aldeões e Salão do nível 4 para o 3, nas três dificuldades; no ano: de 59 a 61 para 52 a 56 em Senhor e Camponês, e de 59 a 61 para 48 a 53, com o Salão do 7 para o 6, em Rei de Ferro. Só com a capacidade nova a população não muda; só com o ouro, cai igual (em Rei de Ferro o Salão do ano cai para o 6 com qualquer um dos dois). Em Senhor, semente 001, hora a hora: os 50 de ouro chegam com o Salão no nível 2 (hora 52) e vão logo para a melhoria da Fazenda; a da Mina de Ouro, que sem eles saía na visita seguinte (hora 73), só sai um dia depois; da hora 100 à 137 o feudo rende 2,9 de ouro por hora, contra 9,5. Nas 50 sementes a Torre fica pronta na hora 137 (era 110), o Celeiro na 64 (era 57) e o Salão Nv3 na 166 (era 139). É a ordem de compras do bot, não uma regra que tire algo do jogador: o prêmio só acrescenta ouro. Mas o bot é a única medida que há, e ela piorou.
+2. **A meta de desperdício no ritmo Normal, em Senhor, deixa de ser cumprida por uma semente.** A semente 026 tem 9 h de jogo seguidas de madeira indo ao chão (a meta do GDD §15.2 é 8); nela o Armazém só fica pronto na hora 73. As outras 49 ficam dentro. Só com a capacidade o pior caso da célula cai para 6 h; só com o ouro, sobe para 10 h; com os dois, 9 h. Em Camponês e em Rei de Ferro o pior caso subiu de 6 para 8 h, ainda dentro da meta. `balance.test.ts` passou a guardar a semente e as 9 h, com o aviso de regressão.
+3. **Rei de Ferro, Regular, ritmo Normal:** o menor Salão da célula caiu do nível 7 para o 6. Com cada número sozinho ele fica no 7; é a soma dos dois caminhos.
+4. **Rei de Ferro, Preguiçoso, ano do ritmo Rápido:** o menor Salão caiu do 3 para o 2 (vem do ouro), com mais gente (16, eram 13).
+5. **O Preguiçoso no ritmo Rápido desperdiça mais pedra:** em Senhor, na semana, ele perde de 37% a 49% da pedra que produz (eram até 17%) e de 50% a 54% da comida (eram de 34% a 55%: o pior caso é o mesmo, o melhor piorou), e a pior sequência foi de 63 para 72 h de jogo. Termina com mais gente e o Salão um nível acima.
+6. **Camponês, Dedicado, ano do ritmo Rápido:** a menor população caiu de 52 para 48 (vem da capacidade: 49 só com ela).
+7. **Os lobos levam mais de um depósito mais cheio:** a incursão leve sem Paliçada leva 10% do estoque, e 10% de 1.000 são 100 (eram 90). Não é medida da matriz: apareceu no retrato `council` do motor.
+
+### 18.5 Faixas e testes
+
+`MEASURED`, em `packages/sim-cli/src/bands.ts`, passou a ser a linha de base desta rodada nas três dificuldades, com a mesma regra de folga. Com ela as 2.700 partidas ficam dentro das faixas. Os números fixados em `balance.test.ts`, `bands.test.ts` e `matrix.test.ts` foram refeitos, com o porquê ao lado; os que guardam uma piora dizem que é piora.
+
+No motor, o golden de 7 dias mudou no que os dois números explicam: +50 de ouro a partir da conclusão do objetivo 4, os limites de 1.000 e de 1.600, e, no inverno do roteiro, o frio que começa quatro dias de jogo mais tarde (o Armazém guardava 100 de madeira a mais quando o senhor tirou os lenhadores) e dura 3 h 11 min em vez de 11 h 29 min; a moral cai a "inquieto" na virada das 160 h, e não na das 152 h. O roteiro não foi mexido.
+
+### 18.6 O que fica para o autor
+
+- **O Preguiçoso do ritmo Tranquilo** (item 1 da seção 18.4): aceitar como artefato do bot, ou mexer na ordem de compras dele (política "obra mais barata"), o que esta tarefa não podia fazer.
+- **A semente 026 no ritmo Normal** (item 2): uma em 50, por uma hora de jogo. A meta do GDD §15.2 é do autor.
+- **Rei de Ferro continua parando no Salão 7.** O ADR 0016 diz que é para continuar assim; fica aqui só o registro de que nada mudou ali além dos 80 a mais no Armazém.
+
+### 18.7 Limites desta medição
+
+- A atribuição de cada piora a um dos dois números vem de duas rodadas extras da matriz (só a capacidade; só o ouro), com 50 sementes por célula, que não ficaram guardadas no repositório.
+- A explicação do item 1 vem da leitura hora a hora de uma semente (001); as 50 sementes da célula dão as mesmas horas de Torre e de Salão, mas só uma foi lida.
+- Ninguém jogou com os números novos. As partidas em produção ganham a capacidade no instante em que a imagem nova subir; quem já tem o objetivo 4 cumprido não recebe o ouro.

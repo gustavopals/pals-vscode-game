@@ -26,10 +26,10 @@
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 720000,
+   "food": 800000,
    "wood": 241204,
    "stone": 299811,
-   "gold": 170000
+   "gold": 220000
   },
   "accumulators": {
    "food": 714000,
@@ -155,7 +155,7 @@
  "stats": {
   "cardsDrawn": 4,
   "cardsDrawn:thawBridgePlea": 1,
-  "wasted_food": 989676,
+  "wasted_food": 909676,
   "cardsDrawn:masonsMeal": 1,
   "wasted_wood": 852008,
   "constructionsStarted:townHall": 1,

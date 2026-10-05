@@ -223,9 +223,11 @@ export function gateRequirement(
  * resolve com outra obra. A fila ocupada e a falta de recurso não contam: passam sozinhas. Com
  * o edifício em obras, a resposta é sim: o feudo ainda está construindo.
  *
- * É o que separa "gaste madeira" de um conselho que nenhum botão cumpre: em Senhor, com o
- * Armazém no nível máximo, a obra do Salão para o nível 8 pede mais do que ele guarda, e com
- * ela ficam presas as dos edifícios que esperam o Salão.
+ * É o que separa "gaste madeira" de um conselho que nenhum botão cumpre: em Rei de Ferro, com o
+ * Armazém no nível a que ele chega (o 7, onde guarda 3.680), a obra do Salão para o nível 8 pede
+ * mais do que ele guarda (5.102 de madeira), e com ela ficam presas as dos edifícios que esperam
+ * o Salão. Em Senhor a obra cabe desde que o nível 1 dos depósitos guarda 1.000 (ADR 0016): lá
+ * as obras acabam com o Salão no nível máximo.
  */
 export function upgradeStillPossible(
   state: GameState,

@@ -251,7 +251,7 @@ export function storageNotice(row: ResourceRow): string | null {
 
 /**
  * De onde vem o limite, com o nome do lugar onde o recurso fica: "Despensa: 500 iniciais",
- * "Celeiro Nv2: 1.500". Os dois textos vêm do servidor; aqui só se evita dizer o nome duas vezes.
+ * "Celeiro Nv2: 1.600". Os dois textos vêm do servidor; aqui só se evita dizer o nome duas vezes.
  */
 export function capExplanation(row: ResourceRow): string | null {
   const { capBreakdown, storageLabel } = row;

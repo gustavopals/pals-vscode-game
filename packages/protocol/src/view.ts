@@ -64,7 +64,7 @@ const UpgradeSchema = z.strictObject({
   blockedCode: RejectionCodeSchema.nullable(),
   blockedReason: z.string().nullable(),
   planned: z.boolean(),
-  /** O que a obra muda, ao lado do custo: "Capacidade de comida: 500 → 900."; `null` sem frase. */
+  /** O que a obra muda, ao lado do custo: "Capacidade de comida: 500 → 1.000."; `null` sem frase. */
   effect: z.string().nullable(),
 });
 
@@ -496,7 +496,7 @@ export const ViewStateSchema = z.strictObject({
       stock: z.number(),
       /** Limite do estoque, em unidades; `null` para o que não tem limite (o ouro). */
       cap: z.number().nullable(),
-      /** De onde vem o limite: "500 iniciais", "Celeiro Nv2: 1.500 × 0,8 (Rei de Ferro) = 1.200". */
+      /** De onde vem o limite: "500 iniciais", "Celeiro Nv2: 1.600 × 0,8 (Rei de Ferro) = 1.280". */
       capBreakdown: z.string().nullable(),
       /** O edifício que amplia o limite deste recurso; `null` sem limite. */
       storageBuilding: buildingId.nullable(),

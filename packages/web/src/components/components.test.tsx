@@ -926,7 +926,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(text(note ?? '')).toContain('Despensa: comida no limite de 500 em 4 h.');
     // Custo e benefício lado a lado: o que a obra pede, quanto leva e o que ela muda.
     expect(text(note ?? '')).toContain(
-      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 900.',
+      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 1.000.',
     );
     // O Celeiro ainda espera o Salão: o botão está lá, desabilitado, com o motivo do servidor.
     expect(text(note ?? '')).toContain('Melhore antes o Salão do Senhor para o nível 2.');
@@ -950,7 +950,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
       'Pátio cheio: 72/h de madeira indo ao chão. Construa o Armazém ou gaste madeira. Hoje já se perderam 24.',
     );
     expect(text(note ?? '')).toContain(
-      '160 madeira, 80 pedra · 10 min · Capacidade de madeira e de pedra: 500 → 900 cada.',
+      '160 madeira, 80 pedra · 10 min · Capacidade de madeira e de pedra: 500 → 1.000 cada.',
     );
     expect(buttons(note ?? '')).toEqual(['<button type="button">Construir Armazém</button>']);
   });
@@ -1005,9 +1005,9 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
       withUpgrade(unlockedView, 'granary', { fromLevel: 1, targetLevel: 2 }),
       'food',
       {
-        stock: 900,
-        cap: 900,
-        capBreakdown: 'Celeiro Nv1: 900',
+        stock: 1000,
+        cap: 1000,
+        capBreakdown: 'Celeiro Nv1: 1.000',
         storageLabel: 'Celeiro',
         perHour: 31,
         full: true,
@@ -1019,7 +1019,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     );
     const page = fief({ view: built });
     // O nome do lugar não se repete na explicação do limite.
-    expect(row(page, 'Comida')).toContain('data-tip="Celeiro Nv1: 900"');
+    expect(row(page, 'Comida')).toContain('data-tip="Celeiro Nv1: 1.000"');
     const [note] = notes(page);
     expect(buttons(note ?? '')).toEqual([
       '<button type="button" disabled>Ampliar Celeiro</button>',
@@ -1088,7 +1088,7 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(row(autumn, 'Comida')).toContain(
       'data-tip="Não enche antes da virada para o Inverno.">crescendo',
     );
-    expect(row(autumn, 'Comida')).toContain('data-tip="Celeiro Nv3: 2.100">2.100');
+    expect(row(autumn, 'Comida')).toContain('data-tip="Celeiro Nv3: 2.200">2.200');
     expect(autumn).not.toContain('storage-notes');
     // O ouro não tem limite: cresce, e não há o que explicar.
     expect(row(autumn, 'Ouro')).toContain('<span class="muted">crescendo</span>');
@@ -1126,8 +1126,8 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     expect(locked).toContain('<h3>Melhorar</h3>');
     const lockedList = text(construct(locked));
     expect(lockedList).toContain('Celeiro · 10 min');
-    expect(lockedList).toContain('Capacidade de comida: 500 → 900.');
-    expect(lockedList).toContain('Capacidade de madeira e de pedra: 500 → 900 cada.');
+    expect(lockedList).toContain('Capacidade de comida: 500 → 1.000.');
+    expect(lockedList).toContain('Capacidade de madeira e de pedra: 500 → 1.000 cada.');
     expect(lockedList).toContain('Melhore antes o Salão do Senhor para o nível 2.');
     // Nada de "Nv0": o que não existe se constrói.
     expect(locked).not.toContain('Nv0');
@@ -1199,9 +1199,9 @@ describe('aba Feudo: armazenamento (GDD §5.5)', () => {
     );
   });
 
-  it('o objetivo do Salão diz o que ele libera', () => {
+  it('o objetivo do Salão diz o ouro que rende e o que ele libera', () => {
     expect(fief({ view: unlockedView })).toContain(
-      'Recompensa: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+      'Recompensa: +50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     );
   });
 });

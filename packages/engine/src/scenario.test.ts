@@ -202,17 +202,27 @@ describe('cenário golden de 7 dias', () => {
       incoming: null,
     });
     // A moral: a fome a derruba a "inquieto" e ela se refaz quando o senhor volta à Fazenda; no
-    // inverno, o frio a derruba de novo e ela volta. Os lobos não pesam: a única incursão sofrida
-    // é a do roteiro, com o povo contente. Ninguém deserta (o golden da fome longa, com gente que
-    // parte, é o retrato `famine`, e a regra está em `morale.test.ts` e `famine.test.ts`).
+    // inverno, o frio a derruba de novo e ela volta. Com o Armazém guardando 1.000 de madeira, a
+    // lenha dura até o fim do 8º dia do inverno (159 h 48 min): a virada das 160 h ainda pega o
+    // frio, que acaba às 163 h, com os lenhadores de volta. Os lobos não pesam: a única incursão
+    // sofrida é a do roteiro, com o povo contente. Ninguém deserta (o golden da fome longa, com
+    // gente que parte, é o retrato `famine`, e a regra está em `morale.test.ts` e
+    // `famine.test.ts`).
     const bands = events
       .filter((event) => event.type === 'moraleBandChanged')
       .map((event) => [event.atMs / HOUR, event.data.band]);
     expect(bands).toEqual([
       [92, 'restless'],
       [98, 'content'],
-      [152, 'restless'],
+      [160, 'restless'],
       [164, 'content'],
+    ]);
+    const cold = events
+      .filter((event) => event.type === 'coldStarted' || event.type === 'coldEnded')
+      .map((event) => [event.type, Math.floor(event.atMs / HOUR)]);
+    expect(cold).toEqual([
+      ['coldStarted', 159],
+      ['coldEnded', 163],
     ]);
     expect(events.filter((event) => event.type === 'villagerDeserted')).toEqual([]);
     expect(state.settlement.morale).toBe(60);

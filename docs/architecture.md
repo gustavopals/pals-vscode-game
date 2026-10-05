@@ -326,7 +326,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 |---|---|
 | Ritmos Rápido (3×), Normal (1×) e Tranquilo (0,5×); o "Rápido 2×" do GDD saiu. Tudo é tempo de jogo, menos a expiração da carta | [ADR 0013](decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 1 e 2 |
 | Partidas da v0.1 migradas, com a fronteira de cada passo e o estoque acima do limite preservado | ADR 0013, decisão 4; pendência B-4 |
-| O objetivo 4 volta a desbloquear (Celeiro, Armazém e Torre de Vigia), no lugar dos 50 de ouro do [ADR 0002](decisions/0002-objetivo-4-v01.md) | ADR 0014, decisão 12 |
+| O objetivo 4 desbloqueia (Celeiro, Armazém e Torre de Vigia) e dá 50 de ouro: a v0.2 saiu só com o desbloqueio, no lugar do ouro do [ADR 0002](decisions/0002-objetivo-4-v01.md), e o ouro voltou em 2026-10-05, sem pagamento retroativo | ADR 0014, decisão 12; [ADR 0016](decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), item 7 |
 | A Crônica também não traz o fecho diário do desperdício | [ADR 0015](decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md) |
 | Primeiro lote de 21 cartas, e não 60; nenhuma roteirizada; a carta do herói fica para a v0.3 | [ADR 0014](decisions/0014-conselho-e-ameaca-na-v0.2.md), decisões 7 e 8 |
 | Torre e Paliçada até o nível 2; a Ameaça cai a cada incursão; incursões sorteadas pela Ameaça | ADR 0014, decisões 10 e 11 |

@@ -157,7 +157,7 @@ test.describe('governar o feudo', () => {
     ).toContainText('Faltam 30 madeira e 35 pedra.');
     // O Celeiro entra na lista como obra nova, com o que muda e o que o libera.
     await expect(list.getByRole('option').filter({ hasText: 'Construir: Celeiro' })).toContainText(
-      'Capacidade de comida: 500 → 900. Melhore antes o Salão do Senhor para o nível 2.',
+      'Capacidade de comida: 500 → 1.000. Melhore antes o Salão do Senhor para o nível 2.',
     );
     await list.getByRole('combobox').fill('salão');
     await page.keyboard.press('Enter');
@@ -639,7 +639,7 @@ test.describe('armazenamento', () => {
 
     // O Celeiro já está na lista, em "Construir", esperando o Salão: o motivo vem escrito.
     await expect(fief(page).getByRole('heading', { name: 'Construir', level: 3 })).toBeVisible();
-    await expect(construct).toContainText('Capacidade de comida: 500 → 900.');
+    await expect(construct).toContainText('Capacidade de comida: 500 → 1.000.');
     await expect(construct).toContainText('Melhore antes o Salão do Senhor para o nível 2.');
     await expect(construct.getByRole('button', { name: 'Construir Celeiro' })).toBeDisabled();
     // O limite de cada recurso tem explicação; o ouro não tem limite.
@@ -700,7 +700,7 @@ test.describe('armazenamento', () => {
     await expect(notes).toContainText('Despensa: comida no limite de 500 em 7 h.');
     // Custo e benefício lado a lado, e o botão que ordena a obra.
     await expect(notes).toContainText(
-      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 900.',
+      '160 madeira, 80 pedra · 10 min · Capacidade de comida: 500 → 1.000.',
     );
     await notes.getByRole('button', { name: 'Construir Celeiro' }).click();
 
@@ -714,21 +714,23 @@ test.describe('armazenamento', () => {
     );
     await expect(tree(page).locator('[data-node="resource:food"]')).not.toContainText('cheio');
 
-    // O Celeiro de pé: o limite sobe para 900, e a previsão volta sem alarme.
+    // O Celeiro de pé: o limite sobe para 1.000, e a previsão volta sem alarme.
     await world.passTime(11 * MINUTE, page);
     await expect(fief(page).getByText('Os pedreiros estão livres.')).toBeVisible();
-    await expect(food.getByRole('cell').nth(1)).toHaveText(/^900/);
-    expect((await explanation(food.locator('.explained').first())).text).toBe('Celeiro Nv1: 900');
-    await expect(food).toContainText('cheio em 13 h');
+    await expect(food.getByRole('cell').nth(1)).toHaveText(/^1\.000/);
+    expect((await explanation(food.locator('.explained').first())).text).toBe('Celeiro Nv1: 1.000');
+    await expect(food).toContainText('cheio em 15 h');
     await expect(food.locator('.codicon-warning')).toHaveCount(0);
     await expect(notes).toHaveCount(0);
     await expect(fief(page).getByText(/ergueu-se o Celeiro em Pedra Alta/)).toBeVisible();
     // O edifício erguido sai da lista "Construir" e passa a ser melhoria.
     await expect(fief(page).getByText('Celeiro Nv1 → Nv2')).toBeVisible();
 
-    // Quinze horas depois o Celeiro encheu: a tela diz quanto vai ao chão e o que fazer.
-    await world.passTime(15 * HOUR, page);
-    expect(await stock(page, 'Comida')).toBe(900);
+    // Dezesseis horas depois o Celeiro encheu (com o limite em 1.000 ele enche pouco mais de 15 h
+    // depois de erguido; com 900, quinze horas bastavam): a tela diz quanto vai ao chão e o que
+    // fazer.
+    await world.passTime(16 * HOUR, page);
+    expect(await stock(page, 'Comida')).toBe(1000);
     await expect(food).toContainText('cheio: a produção está se perdendo');
     await expect(food.locator('.codicon-warning')).toBeVisible();
     // A taxa continua sendo o saldo da produção; o estoque é que não sobe mais. Oito dias de
@@ -741,12 +743,12 @@ test.describe('armazenamento', () => {
     await expect(notes).toContainText(
       'Celeiro cheio: 64/h de comida indo ao chão. Amplie o Celeiro, recrute aldeões ou ponha parte dos lavradores em outro ofício.',
     );
-    await expect(notes).toContainText('Capacidade de comida: 900 → 1.500.');
+    await expect(notes).toContainText('Capacidade de comida: 1.000 → 1.600.');
     // A ampliação custa mais do que há: o botão espera, com o que falta escrito.
     await expect(notes.getByRole('button', { name: 'Ampliar Celeiro' })).toBeDisabled();
     await expect(notes).toContainText(/Faltam \d+ madeira e \d+ pedra\./);
     await expect(tree(page).locator('[data-node="resource:food"]')).toContainText(
-      '900/900 ⚠ cheio, perde 64/h',
+      '1.000/1.000 ⚠ cheio, perde 64/h',
     );
     await expect(fief(page).getByText(/o Celeiro de Pedra Alta encheu/)).toBeVisible();
     // O fecho diário do desperdício não é linha da Crônica.
@@ -766,15 +768,15 @@ test.describe('armazenamento', () => {
     const today = back.getByRole('tabpanel', { name: 'Hoje' });
     await expect(today.getByText('Você esteve fora por 5 horas.')).toBeVisible();
     const row = today.getByRole('row', { name: /^Comida/ });
-    // O estoque não saiu de 900: o que a Fazenda rendeu em cinco horas (de 64 a 65 por hora,
+    // O estoque não saiu de 1.000: o que a Fazenda rendeu em cinco horas (de 64 a 65 por hora,
     // com a experiência subindo a cada dia) não coube.
     await expect(row.getByRole('cell')).toHaveText([
-      '900',
+      '1.000',
       /^\+32[2-6]$/,
       '—',
       '—',
       /^−32[2-6]$/,
-      '900',
+      '1.000',
     ]);
     // A perda está em "O que exigiu um preço", em uma linha só, com o botão da próxima ação.
     const waste = today

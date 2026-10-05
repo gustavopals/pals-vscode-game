@@ -802,7 +802,7 @@ describe('answerCard', () => {
   it('pela porta do jogo, o depósito que uma carta enche vira linha da Crônica uma vez', () => {
     const start = fed();
     start.settlement.buildings.granary = 1;
-    start.settlement.resources.food = 880_000;
+    start.settlement.resources.food = 980_000;
     start.council.flags = { 'commonGranary.open': true, 'commonGranary.shared': true };
     const { state: waiting, instanceId } = dealt(start, 'commonGranaryOutcome');
     const { state, events } = accept(
@@ -811,7 +811,7 @@ describe('answerCard', () => {
     );
     expect(events.map((event) => event.type)).toEqual(['cardAnswered', 'storageFilled']);
     expect(events[0]?.data).toMatchObject({ gained_food: 20, lost_food: 20 });
-    expect(state.settlement.resources.food).toBe(900_000);
+    expect(state.settlement.resources.food).toBe(1_000_000);
     // O desfecho apaga o que a cadeia gravou no caminho e deixa só como ela terminou.
     expect(state.council.flags).toEqual({ 'commonGranary.stocked': true });
   });
@@ -1252,12 +1252,12 @@ describe('o Conselho na visão', () => {
 
     const full = fed();
     full.settlement.buildings.granary = 1;
-    full.settlement.resources.food = 880_000;
+    full.settlement.resources.food = 980_000;
     const outcome = (state: GameState) =>
       deriveViewState(dealt(state, 'commonGranaryOutcome').state, 0).council.pending[0]?.options[0]
         ?.effectsText;
     expect(outcome(full)).toBe('+40 comida (só cabem 20 no Celeiro: o resto se perde)');
-    full.settlement.resources.food = 900_000;
+    full.settlement.resources.food = 1_000_000;
     expect(outcome(full)).toBe('+40 comida (não cabe: o Celeiro está cheio, e tudo se perde)');
     full.settlement.resources.food = 100_000;
     expect(outcome(full)).toBe('+40 comida');

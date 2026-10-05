@@ -158,7 +158,7 @@ export function deadlineAlert(
   return `${expiresSoon(card, elapsedSeconds) ? '⚠ ' : ''}${cardDeadline(card, elapsedSeconds)}`;
 }
 
-/** O estoque em uma linha, para ler ao lado dos custos: "900 comida · 296 madeira · 85 pedra". */
+/** O estoque em uma linha, para ler ao lado dos custos: "1.000 comida · 296 madeira · 85 pedra". */
 export function stockLine(view: ViewState): string {
   return view.resources
     .map((row) => `${formatNumber(row.stock)} ${row.label.toLowerCase()}`)

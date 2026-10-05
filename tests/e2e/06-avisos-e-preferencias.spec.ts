@@ -141,7 +141,7 @@ test.describe('avisos', () => {
     // Uma linha para cada um, com a recompensa como a lista dos objetivos a diz.
     await expect(notices.getByRole('listitem')).toHaveText([
       'Aloque 2 aldeões na Fazenda: +20 ouro.',
-      'Alcance o Salão do Senhor Nv2: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+      'Alcance o Salão do Senhor Nv2: +50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     ]);
     // "Ver" leva à lista dos objetivos, no feudo, onde os seguintes acabaram de aparecer.
     await notices.getByRole('button', { name: 'Ver' }).click();

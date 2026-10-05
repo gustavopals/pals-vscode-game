@@ -59,7 +59,7 @@ export type DifficultyDef = {
 
 /**
  * O que um edifício de armazenamento guarda (GDD §5.5). A capacidade é em unidades e vale para
- * **cada** recurso da lista: o Armazém guarda 900 de madeira e 900 de pedra.
+ * **cada** recurso da lista: o Armazém no nível 1 guarda 1.000 de madeira e 1.000 de pedra.
  */
 export type StorageDef = {
   readonly resources: readonly ResourceId[];
@@ -365,13 +365,13 @@ export const balance: Balance = {
     buildings: {
       granary: {
         resources: ['food'],
-        level1: 900,
+        level1: 1000,
         perLevel: 600,
         unbuilt: { label: 'Despensa', article: 'a' },
       },
       warehouse: {
         resources: ['wood', 'stone'],
-        level1: 900,
+        level1: 1000,
         perLevel: 600,
         unbuilt: { label: 'Pátio', article: 'o' },
       },

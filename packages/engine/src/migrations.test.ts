@@ -1028,12 +1028,14 @@ describe('versão 3 → 4', () => {
     const state = migrated(fixture);
     expect(state.objectives).toEqual(before.objectives);
     expect(state.objectives.completed).toContain('townHallLevel2');
-    // O ouro é o que a v0.1 deixou, com os +50 da recompensa antiga.
+    // O ouro é o que a v0.1 deixou, com os +50 da recompensa antiga. A frase da recompensa é a
+    // do conteúdo de hoje, que voltou a dar o ouro (ADR 0016, item 7), mas nada é creditado a
+    // quem já concluiu: nem aqui, nem na linha do tempo (abaixo).
     expect(state.settlement.resources.gold).toBe(before.settlement.resources.gold);
     const view = deriveViewState(state, state.lastProcessedAt);
     expect(view.objectives.find((entry) => entry.id === 'townHallLevel2')).toMatchObject({
       status: 'completed',
-      reward: 'desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
+      reward: '+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia',
     });
     // A Paliçada também nasce no nível 0, mas pede o Salão no nível 3: fica na lista, presa.
     const unbuilt = view.constructions.available.filter((entry) => entry.fromLevel === 0);
@@ -1052,7 +1054,7 @@ describe('versão 3 → 4', () => {
     expect(events.filter((event) => event.type === 'objectiveCompleted')).toEqual([]);
   });
 
-  it('quem ainda não concluiu o objetivo 4 conclui pela regra nova: sem ouro, com o desbloqueio', () => {
+  it('quem ainda não concluiu o objetivo 4 conclui pela regra de hoje: os 50 de ouro e o desbloqueio', () => {
     const state = migrated(named('state-v3-fresh.json'));
     expect(state.objectives.completed).toEqual([]);
     const ahead = { ...state, settlement: { ...state.settlement } };
@@ -1065,8 +1067,8 @@ describe('versão 3 → 4', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.state.objectives.completed).toEqual(['allocateFarmers', 'townHallLevel2']);
-      // Só os +20 do primeiro objetivo.
-      expect(result.state.settlement.resources.gold).toBe(state.settlement.resources.gold + 20_000);
+      // Os +20 do primeiro objetivo e os +50 do quarto (ADR 0016, item 7).
+      expect(result.state.settlement.resources.gold).toBe(state.settlement.resources.gold + 70_000);
     }
   });
 

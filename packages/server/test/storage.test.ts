@@ -145,10 +145,10 @@ describe('o limite na visão, em tempo real', () => {
       targetLevel: 1,
       blockedCode: 'GATE_LOCKED',
       blockedReason: 'Melhore antes o Salão do Senhor para o nível 2.',
-      effect: 'Capacidade de comida: 500 → 900.',
+      effect: 'Capacidade de comida: 500 → 1.000.',
     });
     expect(upgradeOf(view, 'warehouse').effect).toBe(
-      'Capacidade de madeira e de pedra: 500 → 900 cada.',
+      'Capacidade de madeira e de pedra: 500 → 1.000 cada.',
     );
   });
 
@@ -397,17 +397,17 @@ describe('obra que não cabe no depósito, e o Armazém que a destrava', () => {
     await wait(normal, who, 10 * MINUTE);
     const built = await viewOf(normal, who);
     expect(resource(built, 'wood')).toMatchObject({
-      cap: 720,
-      capBreakdown: 'Armazém Nv1: 900 × 0,8 (Rei de Ferro) = 720',
+      cap: 800,
+      capBreakdown: 'Armazém Nv1: 1.000 × 0,8 (Rei de Ferro) = 800',
       storageLabel: 'Armazém',
     });
-    expect(resource(built, 'stone').cap).toBe(720);
+    expect(resource(built, 'stone').cap).toBe(800);
     // A comida continua na Despensa: o Armazém não a guarda.
     expect(resource(built, 'food')).toMatchObject({ cap: 400, storageLabel: 'Despensa' });
     expect(upgradeOf(built, 'townHall').blockedCode).toBe('INSUFFICIENT_RESOURCES');
     expect(upgradeOf(built, 'warehouse')).toMatchObject({
       fromLevel: 1,
-      effect: 'Capacidade de madeira e de pedra: 720 → 1.200 cada.',
+      effect: 'Capacidade de madeira e de pedra: 800 → 1.280 cada.',
     });
     const founded = (await eventsOf(normal, who)).filter(
       (event) => event.type === 'buildingFounded',

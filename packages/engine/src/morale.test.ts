@@ -1247,11 +1247,11 @@ describe('a moral na visão', () => {
           draft.settlement.buildings.granary = level;
         }),
       ).morale.foodReserve.text;
-    expect(built(1, 40)).toBe(
-      'Com 960 de comida guardada (o que 40 habitantes comem em 24 h), a moral ganha 10. Faltam 920. O Celeiro só guarda 900: amplie o Celeiro.',
+    expect(built(1, 45)).toBe(
+      'Com 1.080 de comida guardada (o que 45 habitantes comem em 24 h), a moral ganha 10. Faltam 1.040. O Celeiro só guarda 1.000: amplie o Celeiro.',
     );
-    expect(built(2, 40)).toBe(
-      'Com 960 de comida guardada (o que 40 habitantes comem em 24 h), a moral ganha 10. Faltam 920.',
+    expect(built(2, 45)).toBe(
+      'Com 1.080 de comida guardada (o que 45 habitantes comem em 24 h), a moral ganha 10. Faltam 1.040.',
     );
   });
 

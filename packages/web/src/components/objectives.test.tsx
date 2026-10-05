@@ -129,7 +129,7 @@ describe('painel dos objetivos', () => {
         '☑ Cumprido: Inicie a melhoria das Habitações Sem teto, ninguém vem morar no feudo. Recompensa: +30 madeira. ' +
         '☑ Cumprido: Recrute 3 aldeões Mais braços, mais colheita, mais madeira. Recompensa: +40 comida. ' +
         '☑ Cumprido: Alcance o Salão do Senhor Nv2 O Salão dita até onde os outros edifícios podem crescer. ' +
-        'Recompensa: desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
+        'Recompensa: +50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia.',
     );
   });
 

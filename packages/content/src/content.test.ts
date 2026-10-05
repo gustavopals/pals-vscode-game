@@ -755,16 +755,16 @@ describe('armazenamento (GDD §5.5)', () => {
   const { storage, difficulties } = balance;
   const stores = Object.entries(storage.buildings);
 
-  it('500 por recurso antes do edifício; Celeiro e Armazém guardam 900 e mais 600 por nível', () => {
+  it('500 por recurso antes do edifício; Celeiro e Armazém guardam 1.000 e mais 600 por nível', () => {
     expect(storage.baseCapacity).toBe(500);
     expect(storage.buildings.granary).toMatchObject({
       resources: ['food'],
-      level1: 900,
+      level1: 1000,
       perLevel: 600,
     });
     expect(storage.buildings.warehouse).toMatchObject({
       resources: ['wood', 'stone'],
-      level1: 900,
+      level1: 1000,
       perLevel: 600,
     });
     expect(Object.keys(storage.buildings)).toEqual(['granary', 'warehouse']);
@@ -1099,12 +1099,12 @@ describe('objetivos', () => {
     ]);
   });
 
-  it('as recompensas são as do GDD §12.2: recurso, o desbloqueio do Salão ou moral por um dia', () => {
+  it('as recompensas são as do GDD §12.2: recurso, o desbloqueio do Salão com 50 de ouro ou moral por um dia', () => {
     expect(objectives.map((objective) => objective.reward)).toEqual([
       { gold: 20 },
       { wood: 30 },
       { food: 40 },
-      {},
+      { gold: 50 },
       { stone: 40 },
       {},
       { wood: 60 },
@@ -1191,9 +1191,10 @@ describe('objetivos', () => {
     }
   });
 
-  it('o objetivo 4 promete o que o Salão no nível 2 libera, e só isso', () => {
+  it('o objetivo 4 promete o que o Salão no nível 2 libera e credita 50 de ouro (ADR 0016, item 7)', () => {
     const fourth = objectives.find((objective) => objective.id === 'townHallLevel2');
     expect(fourth?.condition).toEqual({ type: 'buildingLevel', building: 'townHall', level: 2 });
+    expect(fourth?.reward).toEqual({ gold: 50 });
     const unlocked = BUILDING_IDS.filter((id) => buildings[id].requires.townHall === 2);
     expect(unlocked).toEqual(['granary', 'warehouse', 'watchtower']);
     for (const id of unlocked) {

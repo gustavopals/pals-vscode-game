@@ -28,6 +28,7 @@
 - Detalhes que a implementação da Torre de Vigia e da Ameaça (V2E-T1) fixou, ainda na 0.7: §6.1 e §6.2 (a Torre no nível 0, o custo do nível 2, a recusa do teto e o que a obra dá ao lado do custo), §8.2 (a virada em que a Ameaça sobe e os dias de outono que contam, a névoa de informação na visão e na Crônica, as marcas de 40 e 70, o aviso pelo nível que a Torre tem naquele instante), §12.2 (a frase do objetivo 4) e §14.11 (a forma de `map` e de `horde` na v0.2).
 - Detalhes que a implementação dos objetivos da v0.2 (V2E-T4) fixou, ainda na 0.7: §12.2 (como cada objetivo de 5 a 10 se cumpre, o que já foi feito contar, os prêmios pelo depósito e pela moral, o que a tela diz de cada um e a partida que vem da v0.1).
 - Detalhes que a implementação do armazenamento (V2C-T2) fixou, ainda na 0.7: §5.5 (o instante de encher como linha da Crônica, o fecho diário do desperdício fora dela, [ADR 0015](docs/decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md), o custo que não cabe no depósito e a previsão de "cheio em"), §6.1 e §6.2 (edifício no nível 0 e o expoente do custo), §12.2 (objetivo 4), §14.5 e §15.4.
+- Respostas do autor às pendências da v0.2, em 2026-10-05, ainda na 0.7 ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), itens 1 e 7; os outros itens entram com as tarefas deles): §5.5 (o nível 1 do Celeiro e do Armazém guarda 1.000, e não 900) e §12.2 (o objetivo 4 volta a dar 50 de ouro, além do desbloqueio).
 
 ### Índice
 
@@ -263,21 +264,21 @@ madeira líquida/h          = produção − habitantes × 0,5 no inverno (lenha
 
 | Edifício | Capacidade nível 1 | Por nível adicional |
 |---|---:|---:|
-| Celeiro (comida) | 900 | +600 |
-| Armazém (madeira e pedra — cada; ferro a partir da `[v0.4]`) | 900 | +600 |
+| Celeiro (comida) | 1.000 | +600 |
+| Armazém (madeira e pedra — cada; ferro a partir da `[v0.4]`) | 1.000 | +600 |
 
 ```
 cap = máx(500, capacidade do edifício) × fator da dificuldade        (em milésimos, arredondado para baixo)
 ```
 
-Os 500 são a capacidade inicial de cada recurso (§5.2), que vale enquanto o edifício não existe; o fator da dificuldade é ×1,25, ×1,0 ou ×0,8 (§12.1). O ouro não tem cap. O Celeiro e o Armazém nascem **no nível 0** (ainda não construídos) e são erguidos depois do Salão Nv2 (§6.1, §6.2). Contrato ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 4 e 17):
+Os 500 são a capacidade inicial de cada recurso (§5.2), que vale enquanto o edifício não existe; o fator da dificuldade é ×1,25, ×1,0 ou ×0,8 (§12.1). O ouro não tem cap. O nível 1 guardava 900 até 2026-10-05 ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), item 1): com 1.000, o Armazém no nível 8 guarda 5.200 em Senhor, e a obra do Salão para o nível 8, que pede 5.102 de madeira, passa a caber. Em Rei de Ferro o Armazém para no nível 7 (guarda 3.680, e o nível 8 dele pede 4.295), e com ele o Salão. O Celeiro e o Armazém nascem **no nível 0** (ainda não construídos) e são erguidos depois do Salão Nv2 (§6.1, §6.2). Contrato ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisões 4 e 17):
 
 - **O instante em que o estoque enche** é um evento da linha do tempo (§5.8), no milissegundo exato, e vira uma linha na Crônica **uma vez por episódio**: "o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde". Um estoque que sai do limite (gasto, consumo, depósito ampliado) e volta a ele abre outro episódio.
 - Produção acima do cap é **desperdício contado**: o estoque para no cap e o que deixou de entrar soma no total do dia, sem perder fração. Há um evento de desperdício por dia de jogo em que ao menos uma unidade inteira se perdeu, com os totais por recurso (a fração passa para o dia seguinte), e é ele que gera a linha "Celeiro cheio: 120 comida desperdiçadas" no Relatório. Esse fecho diário **não é linha da Crônica**: sai em `GET /events` e no Relatório ([ADR 0015](docs/decisions/0015-cronica-sem-o-fecho-diario-do-desperdicio.md)).
 - Ganhos discretos (recompensa de objetivo, devolução de cancelamento, efeito de carta) são cortados no cap, e o corte também é contado. A tela de cancelamento mostra quanto da devolução entra e quanto se perderia. O evento do ganho leva o que entrou e o que não coube: a linha da Crônica de um objetivo com a recompensa cortada diz o que foi ao chão ("Recompensa: +40 comida. Faltou lugar no depósito, e foi ao chão: 35,2 de comida."), e o Relatório mostra a recompensa inteira em Recebido e o corte em Perdido, sem contá-lo como produção.
 - **Estoque herdado:** em uma partida migrada da v0.1, o estoque que já estava acima do cap **fica**; só deixa de receber produção enquanto estiver acima (e essa produção conta como desperdício). Pode ser gasto, e a comida com saldo negativo cai normalmente. Nada é cortado na migração, e nenhuma linha de "encheu" sai na fronteira.
 - **Custo que não cabe:** uma obra cujo custo passa do cap de um recurso, e que o estoque não paga, não pode começar. O motivo diz quanto ela pede, quanto o depósito guarda e o que fazer ("A obra pede 875 de madeira e o Pátio só guarda 500: construa o Armazém primeiro"), em vez de mandar esperar o que nunca chega. Quem tem estoque herdado que cobre o custo pode gastar.
-- O painel mostra **"cheio em 7 h"** para que o jogador planeje a próxima sessão. A previsão não olha além do próximo instante marcado que muda a taxa daquele recurso (virada de estação, fim da obra do edifício que o produz ou do depósito, chegada de um aldeão, comida ou lenha acabando): se o enchimento cai depois, o painel diz "Não enche antes da virada para o Outono." Cheio e perdendo produção, diz quanto vai ao chão por hora e o que fazer: ampliar o depósito ou gastar. A comida, que nenhuma obra custa, só se gasta recrutando: para ela a frase diz "recrute aldeões" (quando uma ordem cabe agora) "ou ponha parte dos lavradores em outro ofício", que troca o que iria ao chão por outro recurso, e nunca "gaste comida", ação que nenhum botão tem. A madeira e a pedra seguem a mesma regra quando o feudo já não tem obra que as leve (tudo no teto, preso ao Salão que não sobe, ou com o custo acima do que o depósito guarda): a frase deixa de mandar gastar ou ampliar e diz "ponha parte dos lenhadores em outro ofício". Ao lado do custo, a obra de um depósito mostra o que ela muda ("Capacidade de comida: 500 → 900").
+- O painel mostra **"cheio em 7 h"** para que o jogador planeje a próxima sessão. A previsão não olha além do próximo instante marcado que muda a taxa daquele recurso (virada de estação, fim da obra do edifício que o produz ou do depósito, chegada de um aldeão, comida ou lenha acabando): se o enchimento cai depois, o painel diz "Não enche antes da virada para o Outono." Cheio e perdendo produção, diz quanto vai ao chão por hora e o que fazer: ampliar o depósito ou gastar. A comida, que nenhuma obra custa, só se gasta recrutando: para ela a frase diz "recrute aldeões" (quando uma ordem cabe agora) "ou ponha parte dos lavradores em outro ofício", que troca o que iria ao chão por outro recurso, e nunca "gaste comida", ação que nenhum botão tem. A madeira e a pedra seguem a mesma regra quando o feudo já não tem obra que as leve (tudo no teto, preso ao Salão que não sobe, ou com o custo acima do que o depósito guarda): a frase deixa de mandar gastar ou ampliar e diz "ponha parte dos lenhadores em outro ofício". Ao lado do custo, a obra de um depósito mostra o que ela muda ("Capacidade de comida: 500 → 1.000").
 
 Antes de o edifício existir, a comida fica na **Despensa** e a madeira e a pedra, no **Pátio**: são os nomes que as frases usam no lugar de Celeiro e Armazém.
 
@@ -767,7 +768,7 @@ Uma lista curta de objetivos sempre visível no painel, com recompensas pequenas
 1. Aloque 2 aldeões na Fazenda ("comida é o que mantém todo o resto") → +20 ouro
 2. Inicie a melhoria das Habitações → +30 madeira
 3. Recrute 3 aldeões → +40 comida
-4. Alcance Salão Nv2 → desbloqueio: Celeiro, Armazém, Torre de Vigia
+4. Alcance Salão Nv2 → +50 ouro e o desbloqueio: Celeiro, Armazém, Torre de Vigia
 5. Construa a Torre de Vigia ("ver o inimigo é metade da batalha") → +40 pedra (`buildWatchtower`)
 6. Responda à primeira carta do Conselho → +10 moral por 1 dia de jogo (`answerFirstCard`)
 7. Construa o Celeiro ou o Armazém ("amplie o estoque antes que a produção vá para o chão") → +60 madeira (`buildGranaryOrWarehouse`)
@@ -775,7 +776,7 @@ Uma lista curta de objetivos sempre visível no painel, com recompensas pequenas
 9. Construa a Paliçada → +100 madeira (`buildPalisade`)
 10. Atravesse o inverno sem passar frio → +15 moral por 1 dia de jogo (`surviveWinterWithoutCold`)
 
-Os objetivos 5 a 10 são os da v0.2 ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 12): cada um ensina uma ferramenta nova quando ela resolve um problema que o jogador já sentiu, e nenhum depende de herói ou de soldado. O objetivo 4 volta a recompensar o desbloqueio (na v0.1 dava +50 ouro, [ADR 0002](docs/decisions/0002-objetivo-4-v01.md)): não credita recurso nenhum, e quem libera as obras é o próprio Salão Nv2 (§6.1). Quem o concluiu na v0.1 fica com o ouro que recebeu e pode construir. A frase da recompensa é "desbloqueia o Celeiro, o Armazém e a Torre de Vigia".
+Os objetivos 5 a 10 são os da v0.2 ([ADR 0014](docs/decisions/0014-conselho-e-ameaca-na-v0.2.md), decisão 12): cada um ensina uma ferramenta nova quando ela resolve um problema que o jogador já sentiu, e nenhum depende de herói ou de soldado. O objetivo 4 recompensa o desbloqueio e **+50 ouro** ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md), item 7). Na v0.1 dava só o ouro ([ADR 0002](docs/decisions/0002-objetivo-4-v01.md)), e a v0.2 foi publicada só com o desbloqueio, sem creditar recurso nenhum; quem libera as obras é o próprio Salão Nv2 (§6.1). Não há pagamento retroativo: quem o concluiu na v0.1 fica com o ouro que recebeu, quem o concluiu na v0.2 antes de 2026-10-05 fica sem ele, e os dois podem construir. A frase da recompensa é "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia".
 
 Como cada um se cumpre na v0.2, e o que a tela diz dele:
 
@@ -826,7 +827,7 @@ O navegador reserva alguns atalhos de editor (`Ctrl+Shift+P`, `Ctrl+P`, `Ctrl+W`
 LORDS OF THE GUILD
 ├── Hoje em Pedra Alta                        ● 2 decisões
 ├── Feudo: Pedra Alta · Outono, dia 9
-│   ├── Recursos        comida 412/1500 (+29/h) · madeira 655/900 ⚠ cheio em 4h
+│   ├── Recursos        comida 412/1600 (+29/h) · madeira 655/1000 ⚠ cheio em 6h
 │   ├── Trabalhadores   14/18 alocados · 4 livres
 │   ├── Construções     Muralha Nv2→3 · 00:42
 │   └── Conselho        1 carta pendente (expira em 14h)
@@ -847,10 +848,10 @@ PEDRA ALTA · Salão Nv3 · Outono, dia 9 do Ano 1          ⚠ Cerco em 2d 05h 
 Moral 68 (Contente) · Aldeões 18 · Soldados 28 · Habitação 46/50 · Livres 4 · Heróis 3
 
 RECURSOS        ESTOQUE   CAP    /HORA   TENDÊNCIA
-Comida            412    1500    +29     cheio em 37h
-Madeira           655     900    +55     cheio em 4h ⚠
-Pedra             210     900    +22
-Ferro              24     900     +0
+Comida            412    1600    +29     cheio em 41h
+Madeira           655    1000    +55     cheio em 6h ⚠
+Pedra             210    1000    +22
+Ferro              24    1000     +0
 Ouro              318      —     +13     (soldos de heróis: −6/h incluídos)
 Armas               6      —      +0
 
@@ -1236,7 +1237,7 @@ Outras metas: população 30–40 no dia 7 (Regular); primeiro herói no dia 2; 
 
 Bots com estratégias (`econômico`, `militar`, `explorador`, `preguiçoso`) jogam anos inteiros em segundos, emitindo CSV com recursos, população, exército, resultado do cerco e Legado por semente. Um teste de CI roda 50 sementes por perfil e falha se as metas da §15.2 saírem da faixa. É assim que os números deste documento serão corrigidos, não por achismo. Os mesmos bots rodam contra um servidor local pelo `client-sdk` para teste de carga (ex.: 300 bots em polling de 30 s) e de regressão da API.
 
-**Na v0.2** existem o `econômico` e o `preguiçoso`. Um bot é uma lista de políticas ("recrutar", "obra mais barata", "comida primeiro"), e cada mecânica nova entra como uma política a mais; uma política só lê o `ViewState`, como o jogador. A matriz de balanceamento (`pnpm -s sim -- --matrix`) joga três perfis de visita (1, 2 e 4 sessões por dia real) em cada ritmo oferecido (§4.2), com 50 sementes fixas, em duas janelas que não se misturam: 7 dias reais e um ano de jogo completo, na dificuldade pedida; há faixas para as três (§12.1). A de Senhor roda inteira na CI, e as outras duas, com as primeiras sementes. O bot econômico prepara o feudo para o tempo que o perfil passa fora: um jogador sabe quando volta, e o bot recebe esse prazo de quem o monta. Enquanto o autor não fixa metas por ritmo, as faixas são o valor medido com uma folga explícita, inclusive um teto de excedente parado por material, e os sinais de tédio (fila de obras ociosa, aldeões sem ofício, excedente parado, a hora em que as obras acabam) saem em todo relatório, com a hora de cada marco de progresso (Salão nos níveis 2, 3 e 4, Celeiro, Armazém). A meta de desperdício da §15.2 é medida em toda partida como a maior sequência de horas de jogo seguidas com um recurso indo ao chão, e a matriz diz, célula a célula do perfil Regular, se ela cabe nas 8 h. Na rodada da Fase C ela é cumprida nos ritmos Normal e Tranquilo, nas três dificuldades; no ritmo Rápido, em que 8 h de jogo são 2 h 40 reais e a ausência de quem joga duas vezes por dia vale 36 h de jogo, não é, e o que passa dela fica guardado em teste, para não piorar calado. `pnpm -s sim -- --perf` mede o motor na volta de ausências longas ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5; [docs/balance-v0.2.md](docs/balance-v0.2.md)).
+**Na v0.2** existem o `econômico` e o `preguiçoso`. Um bot é uma lista de políticas ("recrutar", "obra mais barata", "comida primeiro"), e cada mecânica nova entra como uma política a mais; uma política só lê o `ViewState`, como o jogador. A matriz de balanceamento (`pnpm -s sim -- --matrix`) joga três perfis de visita (1, 2 e 4 sessões por dia real) em cada ritmo oferecido (§4.2), com 50 sementes fixas, em duas janelas que não se misturam: 7 dias reais e um ano de jogo completo, na dificuldade pedida; há faixas para as três (§12.1). A de Senhor roda inteira na CI, e as outras duas, com as primeiras sementes. O bot econômico prepara o feudo para o tempo que o perfil passa fora: um jogador sabe quando volta, e o bot recebe esse prazo de quem o monta. Enquanto o autor não fixa metas por ritmo, as faixas são o valor medido com uma folga explícita, inclusive um teto de excedente parado por material, e os sinais de tédio (fila de obras ociosa, aldeões sem ofício, excedente parado, a hora em que as obras acabam) saem em todo relatório, com a hora de cada marco de progresso (Salão nos níveis 2, 3 e 4, Celeiro, Armazém). A meta de desperdício da §15.2 é medida em toda partida como a maior sequência de horas de jogo seguidas com um recurso indo ao chão, e a matriz diz, célula a célula do perfil Regular, se ela cabe nas 8 h. Na rodada da Fase C ela é cumprida nos ritmos Normal e Tranquilo, nas três dificuldades; no ritmo Rápido, em que 8 h de jogo são 2 h 40 reais e a ausência de quem joga duas vezes por dia vale 36 h de jogo, não é, e o que passa dela fica guardado em teste, para não piorar calado. Com a capacidade de 1.000 e os 50 de ouro do objetivo 4 ([ADR 0016](docs/decisions/0016-respostas-do-autor-as-pendencias-da-v0.2.md)), em Senhor, no ritmo Normal, uma das 50 sementes voltou a passar dela, com 9 h de madeira (docs/balance-v0.2.md, seção 18). `pnpm -s sim -- --perf` mede o motor na volta de ausências longas ([ADR 0013](docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 5; [docs/balance-v0.2.md](docs/balance-v0.2.md)).
 
 ### 15.4 Testes automatizados
 

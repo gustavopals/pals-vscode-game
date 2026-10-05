@@ -365,8 +365,8 @@ describe('barra de status', () => {
       expect(result.tooltip).toBe('Pátio: madeira no limite de 500 em 3 h.');
       expect(result.target).toBe('fief');
       expect(result.alarm).toBeUndefined();
-      // No golden das duas filas o Celeiro enche em menos de cinco horas.
-      expect(statusBar({ ...base, view: queuesView }).text).toBe('$(archive) Comida: cheio em 4 h');
+      // No golden das duas filas o Celeiro enche em menos de sete horas.
+      expect(statusBar({ ...base, view: queuesView }).text).toBe('$(archive) Comida: cheio em 6 h');
     });
 
     it('a 8 h ou mais de encher, a obra continua na linha', () => {
@@ -865,7 +865,7 @@ describe('árvore', () => {
       expect(locked?.tooltip).toBe(
         [
           '160 madeira, 80 pedra · 10 min',
-          'Capacidade de comida: 500 → 900.',
+          'Capacidade de comida: 500 → 1.000.',
           'Melhore antes o Salão do Senhor para o nível 2.',
         ].join('\n'),
       );
@@ -1256,7 +1256,7 @@ describe('árvore', () => {
     expect(find(tree, 'resource:food')?.tooltip).toBe(
       [
         'Fazenda: 10 trabalhadores × 10 × 1,2 (Nv2) × 1,3 (outono) = 156/h; consumo 18 × 1 = 18/h',
-        'Celeiro Nv3: 2.100',
+        'Celeiro Nv3: 2.200',
         'Não enche antes da virada para o Inverno.',
       ].join('\n'),
     );
@@ -1290,7 +1290,7 @@ describe('árvore', () => {
       command: { id: 'lords.openPanel', args: ['fief'] },
     });
     expect(find(tree, 'resource:wood')).toMatchObject({
-      description: '90/900 (−9/h) · acaba em 10 h',
+      description: '90/1.000 (−9/h) · acaba em 10 h',
     });
     expect(find(tree, 'resource:wood')?.tooltip).toContain('−9/h (lenha de 18 habitantes)');
   });
@@ -1342,7 +1342,7 @@ describe('árvore', () => {
     const tree = buildTree({ ...input, view: enough });
     expect(find(tree, 'hearth')?.description).toBe('9/h de madeira');
     expect(find(tree, 'hearth')?.tooltip).toContain('O estoque e a Serraria dão conta.');
-    expect(find(tree, 'resource:wood')?.description).toBe('900/900 (−9/h)');
+    expect(find(tree, 'resource:wood')?.description).toBe('900/1.000 (−9/h)');
   });
 
   it('com frio, o feudo avisa com ícone e texto próprios, diferentes dos da fome', () => {
@@ -1368,7 +1368,7 @@ describe('árvore', () => {
     expect(food?.description).toMatch(/\(\+[\d,]+\/h\) · acaba em 8 h$/);
     expect(food?.tooltip?.split('\n')).toEqual([
       row?.breakdown,
-      'Celeiro Nv3: 2.100',
+      'Celeiro Nv3: 2.200',
       'Não enche antes da virada para o Inverno.',
       FOOD_RUNS_OUT_AHEAD.text,
     ]);

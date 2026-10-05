@@ -94,7 +94,7 @@ const DESCRIPTION_MAX = 60;
 
 type ResourceRow = ViewState['resources'][number];
 
-/** "655/900" para o que tem limite, "318" para o ouro. */
+/** "655/1.000" para o que tem limite, "318" para o ouro. */
 const stockOverCap = (row: ResourceRow) =>
   row.cap === null
     ? formatNumber(row.stock)
@@ -102,9 +102,9 @@ const stockOverCap = (row: ResourceRow) =>
 
 /**
  * O que a linha de um recurso diz depois do nome (GDD §13.2). Em regra, o estoque sobre o limite
- * e a taxa: "412/1.500 (+29/h)". Com o depósito cheio e perdendo produção, ou a menos de uma
- * ausência de encher, o alerta toma o lugar da taxa, para caber na barra lateral: "655/900 ⚠
- * cheio em 4 h". A previsão distante fica na tabela do painel; a árvore só fala do que é urgente.
+ * e a taxa: "412/1.600 (+29/h)". Com o depósito cheio e perdendo produção, ou a menos de uma
+ * ausência de encher, o alerta toma o lugar da taxa, para caber na barra lateral: "655/1.000 ⚠
+ * cheio em 6 h". A previsão distante fica na tabela do painel; a árvore só fala do que é urgente.
  */
 function resourceLine(view: ViewState, row: ResourceRow): string {
   if (isWasting(row) || fillsSoon(row)) {

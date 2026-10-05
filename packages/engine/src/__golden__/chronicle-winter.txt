@@ -9,5 +9,5 @@
 604800000	seasonChanged	Chega a Primavera a Pedra Alta.
 604800000	moraleBandChanged	No 1º dia da Primavera, os resmungos cessaram em Pedra Alta. O povo está contente.
 604800000	coldEnded	No 1º dia da Primavera, o gelo cedeu em Pedra Alta. O frio passou.
-608094977	storageFilled	No 1º dia da Primavera, o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.
-612000000	storageWasted	No 1º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 172 de comida.
+610364824	storageFilled	No 1º dia da Primavera, o Celeiro de Pedra Alta encheu: não cabe mais comida, e o que chegar se perde.
+612000000	storageWasted	No 1º dia da Primavera, a produção de Pedra Alta não coube nos depósitos e foi ao chão: 72 de comida.

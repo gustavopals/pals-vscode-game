@@ -164,12 +164,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // O Preguiçoso, com uma visita por dia, também chega aos dez nos ritmos Tranquilo e Normal.
     // No Rápido parte das sementes fecha o ano sem a Paliçada (o Salão não chega ao nível 3 a
     // tempo), e ficam nove. Com a Ameaça reequilibrada os lobos levam menos e o Salão sobe antes
-    // (eram nove ou dez no Normal e oito a dez no Rápido; docs/balance-v0.2.md, seção 16).
+    // (eram nove ou dez no Normal e oito a dez no Rápido; docs/balance-v0.2.md, seção 16). Com
+    // os 50 de ouro do objetivo 4 (ADR 0016, item 7) a Paliçada sai a tempo também no Rápido, e
+    // as 50 sementes chegam aos dez (seção 18).
     const lazy = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.objectivesDone;
     expect(lazy('year/0.5/preguicoso')).toEqual({ min: 10, max: 10 });
     expect(lazy('year/1/preguicoso')).toEqual({ min: 10, max: 10 });
-    expect(lazy('year/3/preguicoso')).toEqual({ min: 9, max: 10 });
+    expect(lazy('year/3/preguicoso')).toEqual({ min: 10, max: 10 });
     expect(lazy('week/3/preguicoso')).toEqual({ min: 10, max: 10 });
   });
 
@@ -180,19 +182,30 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // deixa planejada antes de o Salão a liberar, e ela começa sozinha: em Senhor, com 2
     // sessões por dia, fica pronta entre as horas 32 e 43 no Normal, 55 e 61 no Tranquilo e na
     // hora 20 no Rápido (docs/balance-v0.2.md, seção 15). O nível 2 continua sendo o da folga.
+    // Com os dois números do ADR 0016 (seção 18): entre as horas 32 e 42 no Normal e 55 e 57 no
+    // Tranquilo.
     const tower = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.watchtower;
-    expect(tower('year/1/regular')).toEqual({ min: 32, max: 43 });
-    expect(tower('year/0.5/regular')).toEqual({ min: 55, max: 61 });
+    expect(tower('year/1/regular')).toEqual({ min: 32, max: 42 });
+    expect(tower('year/0.5/regular')).toEqual({ min: 55, max: 57 });
     expect(tower('year/3/regular')).toEqual({ min: 20, max: 20 });
     expect(tower('week/3/regular')).toEqual({ min: 20, max: 20 });
     // O Preguiçoso, com uma visita por dia, agora chega lá dentro da semana em todo ritmo e em
     // toda semente. No Normal a demora é do ouro: a Torre custa 50, e o Preguiçoso não mexe em
     // quem já trabalha para pôr gente na Mina. Com os lobos levando menos (seção 16), a hora é
     // a mesma em toda semente.
-    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 50 });
-    expect(tower('week/1/preguicoso')).toEqual({ min: 82, max: 82 });
-    expect(tower('week/0.5/preguicoso')).toEqual({ min: 110, max: 110 });
+    //
+    // Os 50 de ouro do objetivo 4 (ADR 0016, item 7) mexem nisso para os dois lados (seção 18).
+    // No Normal a Torre chega quatro horas antes (era na hora 82). No Tranquilo chega 27 horas
+    // DEPOIS (era na hora 110). Na semente 001, hora a hora: o ouro cai na conclusão do Salão
+    // no nível 2 e vai logo para a melhoria da Fazenda, que sem ele não tinha como começar; a
+    // da Mina de Ouro, que sem ele saía na visita seguinte (hora 73), só sai um dia depois, e
+    // da hora 100 à 137 o feudo rende um terço do ouro por hora (2,9 contra 9,5). É a ordem de
+    // compras deste bot, que as políticas não deixam mexer aqui; fica medido para não passar
+    // calado.
+    expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 51 });
+    expect(tower('week/1/preguicoso')).toEqual({ min: 78, max: 78 });
+    expect(tower('week/0.5/preguicoso')).toEqual({ min: 137, max: 137 });
     // A Ameaça não satura: com +2 por dia, −35 por incursão e as médias a partir de 70, ela
     // oscila, e nenhuma partida de um ano de jogo ou mais termina perto do máximo. Até a revisão
     // das Fases D e E (+5 e −10) ela chegava a 100 em toda partida e ficava entre 90 e 100
@@ -210,12 +223,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Torre mostrando o risco, e ela ficava pronta entre as horas 73 e 121 no ritmo Normal, na
     // 49 ou 50 no Rápido e entre a 109 e a 169 no Tranquilo. Com a Torre cedo e o objetivo
     // "Construa a Paliçada", em Senhor, com 2 sessões por dia: entre as horas 48 e 55 no
-    // Normal, na 25 no Rápido e entre a 83 e a 86 no Tranquilo (seção 16).
+    // Normal, na 25 no Rápido e entre a 83 e a 86 no Tranquilo (seção 16). Com os dois números
+    // do ADR 0016 (seção 18): entre as horas 49 e 53 no Normal e entre a 82 e a 85 no Tranquilo.
     const palisade = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.palisade;
-    expect(palisade('year/1/regular')).toEqual({ min: 48, max: 55 });
+    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 53 });
     expect(palisade('year/3/regular')).toEqual({ min: 25, max: 25 });
-    expect(palisade('year/0.5/regular')).toEqual({ min: 83, max: 86 });
+    expect(palisade('year/0.5/regular')).toEqual({ min: 82, max: 85 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
       const tower = cell.measure.milestones.watchtower;
       const wall = cell.measure.milestones.palisade;
@@ -261,7 +275,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 63 a 73 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 64 a 73 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
@@ -278,14 +292,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // nível 7 em toda semente: a defesa chega cedo, e os lobos levam menos (seção 15). Com a
     // Ameaça reequilibrada, entre 63 e 71 (seção 16). Com as cartas corrigidas (os pilares de
     // pedra da Ponte e a Paliçada mostrada aos aldeões por +20, seção 17), entre 63 e 73: os
-    // dias em 80 trazem colonos.
+    // dias em 80 trazem colonos. Com os dois números do ADR 0016 (seção 18), entre 64 e 73.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 56, max: 81 });
+    expect(band?.villagers).toEqual({ min: 57, max: 81 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Normal e Tranquilo; no Rápido, não', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Normal, por 49 das 50 sementes; no Rápido, não', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -310,6 +324,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // e no ritmo Normal as 50 sementes ficam dentro da meta: o pior caso é de 8 h de madeira.
     // No Rápido a semana continua em 33 h, e o ano caiu de 18 para 15 (seção 15); com a Ameaça
     // reequilibrada, para 9 (seção 16).
+    //
+    // REGRESSÃO MEDIDA, com os dois números do ADR 0016 (seção 18): no ritmo Normal uma das 50
+    // sementes (026) volta a passar da meta, com 9 h de jogo seguidas de madeira indo ao chão.
+    // É o mesmo caso de antes dos objetivos da v0.2: nela o Armazém só fica pronto na hora 73.
+    // Rodando cada número sozinho, a capacidade de 1.000 baixa o pior caso da célula para 6 h, e
+    // os 50 de ouro do objetivo 4 o levam a 10 h; juntos, 9 h. Nenhum número além dos dois foi
+    // mexido e o bot não foi tocado: fica à espera do autor.
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -319,12 +340,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     );
     expect(over).toEqual({
       'week/3/regular': 33,
+      'week/1/regular': 9,
       'year/3/regular': 9,
+      'year/1/regular': 9,
     });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
-      'week/1/regular',
       'week/0.5/regular',
-      'year/1/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -334,7 +355,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual([]);
+    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-026']);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

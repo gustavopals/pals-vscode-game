@@ -11,3 +11,5 @@ __golden__/
 # Retratos de estado gravados pelo motor de cada versão: congelados, nunca reformatados.
 __fixtures__/
 .vitest/
+# Árvores de trabalho de agentes de código: não são do repositório.
+.claude/worktrees/

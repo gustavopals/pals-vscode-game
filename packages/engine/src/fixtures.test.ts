@@ -330,12 +330,12 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('cold').settlement.famine).toBeNull();
     expect(of('cold').settlement.resources.wood).toBe(0);
     expect(of('cold').settlement.recruitmentQueue.length).toBe(1);
-    // O armazenamento: um depósito construído, outro em obra, um estoque no limite (720 de
+    // O armazenamento: um depósito construído, outro em obra, um estoque no limite (800 de
     // comida, em Rei de Ferro) e desperdício no total e no contador que a Crônica ainda não
     // relatou.
     expect(of('storage').settlement.buildings.granary).toBe(1);
     expect(of('storage').settlement.constructionQueues[0]?.building).toBe('warehouse');
-    expect(of('storage').settlement.resources.food).toBe(720_000);
+    expect(of('storage').settlement.resources.food).toBe(800_000);
     expect(of('storage').stats.wasted_food).toBeGreaterThan(0);
     expect(of('storage').stats.wasted_wood).toBeGreaterThan(0);
     expect(of('storage').settlement.wasted.food).toBeGreaterThan(0);

@@ -1096,11 +1096,11 @@ describe('construir, cancelar e planejar', () => {
     expect(byLabel.get('Construir: Celeiro')).toMatchObject({
       icon: 'lock',
       description: '160 madeira, 80 pedra · 10 min',
-      detail: 'Capacidade de comida: 500 → 900. Melhore antes o Salão do Senhor para o nível 2.',
+      detail: 'Capacidade de comida: 500 → 1.000. Melhore antes o Salão do Senhor para o nível 2.',
       value: 'granary',
     });
     expect(byLabel.get('Construir: Armazém')?.detail).toBe(
-      'Capacidade de madeira e de pedra: 500 → 900 cada. Melhore antes o Salão do Senhor para o nível 2.',
+      'Capacidade de madeira e de pedra: 500 → 1.000 cada. Melhore antes o Salão do Senhor para o nível 2.',
     );
     expect([...byLabel.keys()].some((label) => label.includes('Nv0'))).toBe(false);
   });

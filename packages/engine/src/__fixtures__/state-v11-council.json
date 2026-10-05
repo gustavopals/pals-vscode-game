@@ -32,7 +32,7 @@
  "settlement": {
   "name": "Pedra Alta",
   "resources": {
-   "food": 900000,
+   "food": 1000000,
    "wood": 500000,
    "stone": 85000,
    "gold": 730597
@@ -164,7 +164,7 @@
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
-  "wasted_food": 2516841,
+  "wasted_food": 2396841,
   "cardsDrawn:masonsMeal": 1,
   "raids_suffered": 2,
   "wasted_wood": 531842,

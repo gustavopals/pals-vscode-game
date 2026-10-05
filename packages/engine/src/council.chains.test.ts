@@ -279,14 +279,14 @@ describe('"O Celeiro Comum", de ponta a ponta', () => {
       'reserve',
     ).state;
     state = advanceTo(state, 4 * DAY).state;
-    // O Celeiro no nível 3 guarda 2.100: com 2.080, só cabem 20 dos 40.
-    state.settlement.resources.food = 2_080_000;
+    // O Celeiro no nível 3 guarda 2.200: com 2.180, só cabem 20 dos 40.
+    state.settlement.resources.food = 2_180_000;
     expect(shown(state, 'commonGranaryOutcome')?.options[0]?.effectsText).toBe(
       '+40 comida (só cabem 20 no Celeiro: o resto se perde)',
     );
     const end = choose(state, 'commonGranaryOutcome', 'accept');
     expect(end.events[0]?.data).toMatchObject({ gained_food: 20, lost_food: 20 });
-    expect(units(end.state, 'food')).toBe(2100);
+    expect(units(end.state, 'food')).toBe(2200);
   });
 });
 
@@ -701,14 +701,14 @@ describe('"A Ponte do Degelo", de ponta a ponta', () => {
     let state = choose(opened(), 'thawBridgePlea', 'timber').state;
     state = choose(advanceTo(state, 2 * DAY).state, 'thawBridgeSlab', 'piers').state;
     state = advanceTo(state, 6 * DAY - 1).state;
-    state.settlement.resources.food = 2_050_000;
+    state.settlement.resources.food = 2_150_000;
     const { state: after, events } = advanceTo(state, 6 * DAY);
     const applied = eventsOfType(events, 'cardEffectApplied')[0];
     const gained = Number(applied?.data.gained_food);
     const lost = Number(applied?.data.lost_food);
     expect(gained + lost).toBe(90);
     expect(lost).toBeGreaterThan(0);
-    expect(units(after, 'food')).toBe(2100);
+    expect(units(after, 'food')).toBe(2200);
   });
 });
 
