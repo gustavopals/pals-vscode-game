@@ -103,15 +103,15 @@
  "council": {
   "pending": [
    {
-    "instanceId": "masonsMeal-1",
-    "cardId": "masonsMeal",
+    "instanceId": "sawmillRest-1",
+    "cardId": "sawmillRest",
     "drawnAtMs": 28800000,
     "expiresAtMs": 288000000,
     "origin": null
    },
    {
-    "instanceId": "springNews-2",
-    "cardId": "springNews",
+    "instanceId": "neighborsWatch-2",
+    "cardId": "neighborsWatch",
     "drawnAtMs": 57600000,
     "expiresAtMs": 316800000,
     "origin": null
@@ -119,8 +119,8 @@
   ],
   "flags": {},
   "seenThisYear": [
-   "masonsMeal",
-   "springNews"
+   "sawmillRest",
+   "neighborsWatch"
   ],
   "nextDrawAtMs": 172800000,
   "scheduled": [],
@@ -149,8 +149,8 @@
  },
  "stats": {
   "cardsDrawn": 2,
-  "cardsDrawn:masonsMeal": 1,
-  "cardsDrawn:springNews": 1,
+  "cardsDrawn:sawmillRest": 1,
+  "cardsDrawn:neighborsWatch": 1,
   "wasted_wood": 291104,
   "raids_suffered": 1
  }

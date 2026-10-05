@@ -35,7 +35,7 @@
    "food": 1000000,
    "wood": 500000,
    "stone": 85000,
-   "gold": 730597
+   "gold": 730153
   },
   "accumulators": {
    "food": 1162300,
@@ -74,8 +74,8 @@
   "lastFamine": null,
   "cold": null,
   "wasted": {
-   "food": 18841,
-   "wood": 6842,
+   "food": 18853,
+   "wood": 7044,
    "stone": 0,
    "gold": 0
   },
@@ -165,11 +165,11 @@
   "cardsAnswered": 2,
   "cardsDrawn:commonGranaryPlanks": 1,
   "cardsDrawn:commonGranaryShare": 1,
-  "wasted_food": 2396841,
+  "wasted_food": 2392853,
   "cardsDrawn:masonsMeal": 1,
   "raids_suffered": 2,
-  "wasted_wood": 531842,
   "coldSpellsThisSeason": 0,
+  "wasted_wood": 531044,
   "threatCrossed:40": 1,
   "cardsExpired": 1
  }

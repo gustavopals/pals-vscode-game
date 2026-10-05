@@ -103,8 +103,8 @@
  "council": {
   "pending": [
    {
-    "instanceId": "thawBridgePlea-1",
-    "cardId": "thawBridgePlea",
+    "instanceId": "springSeeds-1",
+    "cardId": "springSeeds",
     "drawnAtMs": 28800000,
     "expiresAtMs": 115200000,
     "origin": null
@@ -119,7 +119,7 @@
   ],
   "flags": {},
   "seenThisYear": [
-   "thawBridgePlea",
+   "springSeeds",
    "sawmillRest"
   ],
   "nextDrawAtMs": 86400000,
@@ -160,7 +160,7 @@
  },
  "stats": {
   "cardsDrawn": 2,
-  "cardsDrawn:thawBridgePlea": 1,
+  "cardsDrawn:springSeeds": 1,
   "cardsDrawn:sawmillRest": 1
  }
 }
