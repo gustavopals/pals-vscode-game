@@ -925,6 +925,65 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
       await app.close();
     }
   });
+
+  // A guarda da versão 13 confere os nomes dos fluxos, e a da 12 não conferia. Um estado da
+  // versão 12 com um fluxo que nenhum motor escreveu (`market`, de uma imagem futura revertida
+  // ou de uma edição à mão) é recusado no fim da migração, sem ser gravado por cima.
+  it.each([
+    ['um fluxo desconhecido', 'market', /rng\.market: chave fora do esperado/],
+    [
+      'um fluxo de entidade que nenhum contador deu',
+      'expedition:expedition-5',
+      /rng\.expedition:expedition-5: fluxo de uma entidade além do contador/,
+    ],
+  ])(
+    'com %s no gerador: a leitura responde 500 sem gravar, e o job segue com as outras e diz a causa',
+    async (_, stream, cause) => {
+      const clock = fakeClock();
+      const app = await createTestApp({ clock });
+      try {
+        await truncateAll(app.pool);
+        const strange = v12State('week-scripted');
+        strange.settlement.name = 'Nome Que Não Vai Para o Log';
+        strange.rng = { ...strange.rng, [stream]: [1, 2, 3, 4] };
+        const bad = await insertV12(app, strange, 2 * HOUR);
+        const good = await insertV12(app, v12State('migrated-3x'), 2 * HOUR);
+        const before = await rowOf(app, bad.id);
+        expect(before).toMatchObject({ schemaVersion: 12, stateVersion: 7 });
+
+        const view = await call<ApiError>(app, 'GET', `/games/${bad.id}/view`, {
+          token: bad.token,
+        });
+        expect(view.status).toBe(500);
+        expect(view.body.code).toBe('INTERNAL');
+        expect(JSON.stringify(view.body)).not.toContain('Nome Que');
+        const command = await send<ApiError>(
+          app,
+          bad.token,
+          bad.id,
+          order('setWorkers', { building: 'farm', count: 0 }),
+        );
+        expect(command.status).toBe(500);
+        expect(await rowOf(app, bad.id)).toEqual(before);
+        expect(await countRows(app.pool, 'commands', `game_id = '${bad.id}'`)).toBe(0);
+
+        clock.advance(HOUR);
+        const report = await advanceStaleGames(app.ctx);
+        expect(report).toMatchObject({ advanced: 1, failed: 1, failedGameIds: [bad.id] });
+        expect(report.firstFailure?.name).toBe('StateMigrationError');
+        expect(report.firstFailure?.message).toMatch(cause);
+        expect(JSON.stringify(report)).not.toContain('Nome Que');
+        // A ilegível fica como estava; a outra foi migrada e avançada.
+        expect(await rowOf(app, bad.id)).toEqual(before);
+        expect(await rowOf(app, good.id)).toMatchObject({
+          schemaVersion: CURRENT,
+          stateVersion: 8,
+        });
+      } finally {
+        await app.close();
+      }
+    },
+  );
 });
 
 describe('recibos da versão anterior', () => {
