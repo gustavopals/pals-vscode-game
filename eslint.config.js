@@ -78,10 +78,16 @@ export default tseslint.config(
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      // Árvores de trabalho de agentes de código: cópias do repositório, com a própria configuração.
+      '.claude/**',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    // Com uma árvore de trabalho dentro do repositório há dois candidatos a raiz: fixa esta.
+    languageOptions: { parserOptions: { tsconfigRootDir: import.meta.dirname } },
+  },
   {
     files: ['**/*.{js,mjs}'],
     languageOptions: {
