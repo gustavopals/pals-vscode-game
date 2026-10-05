@@ -57,6 +57,12 @@ export const positiveNumber: Shape = (value, path) =>
     ? null
     : problem(path, 'número maior que zero', value);
 
+/** Inteiro sem sinal de 32 bits: uma palavra do estado de um fluxo de sorteio. */
+export const uint32: Shape = (value, path) =>
+  Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= 0xffff_ffff
+    ? null
+    : problem(path, 'inteiro sem sinal de 32 bits', value);
+
 export const text: Shape = (value, path) =>
   typeof value === 'string' ? null : problem(path, 'texto', value);
 
@@ -118,6 +124,30 @@ export function recordOf(item: Shape): Shape {
       }
     }
     return null;
+  };
+}
+
+/**
+ * Objeto com chaves livres **dentro de uma regra** (`accepts`) e valores de uma forma só: os
+ * fluxos de sorteio e os contadores de identidade, que nascem com o uso. `expected` descreve a
+ * regra na mensagem; a chave recusada aparece só no caminho, como em `exactObject`.
+ */
+export function keyedRecordOf(
+  accepts: (key: string) => boolean,
+  expected: string,
+  item: Shape,
+): Shape {
+  const record = recordOf(item);
+  return (value, path) => {
+    if (!isPlainObject(value)) {
+      return problem(path, 'objeto', value);
+    }
+    for (const key of Object.keys(value)) {
+      if (!accepts(key)) {
+        return `${join(path, key)}: chave fora do esperado (${expected})`;
+      }
+    }
+    return record(value, path);
   };
 }
 

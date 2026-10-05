@@ -27,6 +27,8 @@ Um arquivo por cenário e por versão do `GameState`: `state-v<versão>-<cenári
 | `week-scripted` | O cenário roteirizado de 7 dias (o golden do motor): ano 2, feudo renomeado |
 | `week-bot-3x` | Só na versão 1: o bot econômico do simulador, 7 dias reais no ritmo 3 (ano 4, estoque alto) |
 | `migrated-3x` | A partir da versão 2: o `week-bot-3x` da versão 1 migrado (Senhor, ritmo 3) e jogado por mais cinco dias de jogo. `migratedAtMs` numérico e bem anterior a `lastProcessedAt`; obra em curso, uma planejada, um recruta a caminho |
+| `migrated-peasant-3x` | A partir da versão 12 (gravado para o passo 12 → 13): o `peasant-3x` da versão 2 migrado no ano 3 (Camponês, ritmo 3) e jogado por mais oito dias de jogo. A comida e a madeira **muito acima do limite** que os depósitos trouxeram depois (o estoque herdado fica como está e não recebe produção), um lenhador mandado à Pedreira, o Salão em obra e um recruta a caminho, no meio de um trecho |
+| `migrated-iron-king-half` | A partir da versão 12 (idem): o `iron-king-half` da versão 2 migrado nos primeiros minutos (Rei de Ferro, ritmo 0,5) e jogado por mais seis dias de jogo. `migratedAtMs` numérico e bem anterior a `lastProcessedAt`; a comida no limite do Rei de Ferro e desperdício no total |
 | `iron-king-half` | A partir da versão 2: Rei de Ferro no ritmo 0,5 (o único não inteiro), com obra, planejada e recruta, no meio de um trecho |
 | `peasant-3x` | A partir da versão 2: Camponês no ritmo 3, nascido na versão (`migratedAtMs: null`) e já no ano 3 |
 

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
+import { storageCapacity } from './storage';
 import {
   command,
   councilScenario,
@@ -23,15 +24,19 @@ import type { GameState } from './types';
 
 const YEAR = 84 * DAY;
 
-// O retrato da versão 1 que o bot do simulador deixou, como texto: o cenário `migrated-3x`
-// parte dele.
-const weekBot3x = Object.values(
-  import.meta.glob<string>('./__fixtures__/state-v1-week-bot-3x.json', {
-    query: '?raw',
-    import: 'default',
-    eager: true,
-  }),
-)[0] as string;
+// Retratos congelados de versões anteriores, como texto: os cenários `migrated-*` partem deles.
+const frozen = import.meta.glob<string>(
+  './__fixtures__/state-v{1-week-bot-3x,2-peasant-3x,2-iron-king-half}.json',
+  { query: '?raw', import: 'default', eager: true },
+);
+
+function frozenState(name: string): unknown {
+  const text = frozen[`./__fixtures__/${name}.json`];
+  if (text === undefined) {
+    throw new Error(`Falta o retrato ${name}.`);
+  }
+  return JSON.parse(text) as unknown;
+}
 
 /**
  * Retratos do estado **na versão atual**, um por cenário, gravados em
@@ -302,7 +307,7 @@ const scenarios: Record<string, () => GameState> = {
   // estoque alto), migrado e jogado por mais cinco dias de jogo. A fronteira ficou para trás;
   // há obra em curso, uma planejada e um recruta a caminho.
   'migrated-3x': () => {
-    const migrated = migrateState(JSON.parse(weekBot3x), { timeScale: 3 });
+    const migrated = migrateState(frozenState('state-v1-week-bot-3x'), { timeScale: 3 });
     return play(migrated, [
       // As Habitações estavam cheias e presas ao Salão: primeiro a obra que abre o caminho.
       command('startConstruction', { building: 'townHall' }),
@@ -315,6 +320,35 @@ const scenarios: Record<string, () => GameState> = {
       { at: migrated.lastProcessedAt + 5 * DAY + 37 * MINUTE },
       command('startConstruction', { building: 'lumberMill' }),
       { at: migrated.lastProcessedAt + 5 * DAY + 37 * MINUTE + 11_003 },
+    ]).state;
+  },
+
+  // Uma partida em Camponês que a migração alcançou no ano 3, no ritmo Rápido, com a comida e a
+  // madeira muito acima do limite que os depósitos trouxeram depois (o estoque herdado fica como
+  // está e não recebe produção). Jogada por mais oito dias de jogo: um lenhador vai à Pedreira,
+  // o Salão entra em obra e um recruta está a caminho, no meio de um trecho de produção.
+  'migrated-peasant-3x': () => {
+    const migrated = migrateState(frozenState('state-v2-peasant-3x'), { timeScale: 3 });
+    return play(migrated, [
+      command('setWorkers', { building: 'lumberMill', count: 1 }),
+      command('setWorkers', { building: 'quarry', count: 1 }),
+      { at: migrated.lastProcessedAt + 8 * DAY + 9 * MINUTE },
+      command('startConstruction', { building: 'townHall' }),
+      command('recruitVillagers', { quantity: 1 }),
+      { at: migrated.lastProcessedAt + 8 * DAY + 9 * MINUTE + 2_719 },
+    ]).state;
+  },
+
+  // Uma partida em Rei de Ferro no ritmo Tranquilo que a migração alcançou nos primeiros
+  // minutos, com a obra, a planejada e o recruta que trazia, e que seguiu por seis dias de jogo
+  // (um lenhador posto na Serraria no fim): a fronteira ficou para trás, e os prazos de tempo
+  // real contaram no ritmo que não é inteiro.
+  'migrated-iron-king-half': () => {
+    const migrated = migrateState(frozenState('state-v2-iron-king-half'), { timeScale: 0.5 });
+    return play(migrated, [
+      { at: migrated.lastProcessedAt + 6 * DAY + 21 * MINUTE },
+      command('setWorkers', { building: 'lumberMill', count: 1 }),
+      { at: migrated.lastProcessedAt + 6 * DAY + 21 * MINUTE + 40_507 },
     ]).state;
   },
 
@@ -572,6 +606,26 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // Partida que nasceu nesta versão e já vai longe: sem fronteira, e no ano 3 ou depois.
     expect(all.some((state) => state.migratedAtMs === null && state.clock.year >= 3)).toBe(true);
     // O ritmo da produção (3) e o único que não é inteiro (0,5), além do 1 dos outros cenários.
+    // Partida migrada fora de Senhor: em Camponês, com estoque herdado acima do limite dos
+    // depósitos (e uma obra em curso); e em Rei de Ferro, no ritmo que não é inteiro.
+    const peasant = of('migrated-peasant-3x');
+    expect(peasant.settings).toMatchObject({ difficulty: 'peasant', timeScale: 3 });
+    expect(peasant.migratedAtMs).not.toBeNull();
+    for (const resource of ['food', 'wood'] as const) {
+      expect(peasant.settlement.resources[resource]).toBeGreaterThan(
+        storageCapacity(peasant, resource) ?? Infinity,
+      );
+    }
+    expect(peasant.settlement.constructionQueues[0]?.building).toBe('townHall');
+    const ironKing = of('migrated-iron-king-half');
+    expect(ironKing.settings).toMatchObject({ difficulty: 'ironKing', timeScale: 0.5 });
+    expect((ironKing.migratedAtMs ?? Infinity) + DAY).toBeLessThan(ironKing.lastProcessedAt);
+    // E o estoque herdado acima do limite também em Senhor, nos três recursos que têm depósito.
+    for (const resource of ['food', 'wood', 'stone'] as const) {
+      expect(of('migrated-3x').settlement.resources[resource]).toBeGreaterThan(
+        storageCapacity(of('migrated-3x'), resource) ?? Infinity,
+      );
+    }
     expect(new Set(all.map((state) => state.settings.timeScale))).toEqual(new Set([1, 3, 0.5]));
     expect(new Set(all.map((state) => state.settings.difficulty))).toEqual(new Set(DIFFICULTY_IDS));
   });

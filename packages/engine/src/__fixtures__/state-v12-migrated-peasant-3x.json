@@ -1,0 +1,158 @@
+{
+ "schemaVersion": 12,
+ "seed": "fixture-peasant-3x",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "peasant",
+  "timeScale": 3
+ },
+ "migratedAtMs": 1246380777,
+ "clock": {
+  "gameTimeMs": 1304523496,
+  "yearStartMs": 1209600000,
+  "year": 3
+ },
+ "lastProcessedAt": 1304523496,
+ "rng": {
+  "council": [
+   3865679283,
+   3576740175,
+   2850841787,
+   2647745833
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 8785422,
+   "wood": 5459470,
+   "stone": 28024,
+   "gold": 160000
+  },
+  "accumulators": {
+   "food": 50288,
+   "wood": 1920176,
+   "stone": 3328995,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0
+  },
+  "constructionQueues": [
+   {
+    "building": "townHall",
+    "targetLevel": 2,
+    "startedAtMs": 1304520777,
+    "finishesAtMs": 1305120777
+   },
+   null
+  ],
+  "planned": [
+   {
+    "building": "farm",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [
+   {
+    "finishesAtMs": 1305480777
+   }
+  ],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 14265,
+   "wood": 3887,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 32,
+   "lumberMill": 32,
+   "quarry": 32,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "lastFamine": null
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "wasted_food": 553265,
+  "wasted_wood": 140887,
+  "cardsDrawn": 1,
+  "cardsDrawn:springNews": 1,
+  "constructionsStarted:townHall": 1
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "springNews-1",
+    "cardId": "springNews",
+    "drawnAtMs": 1281600000,
+    "expiresAtMs": 1540800000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "springNews"
+  ],
+  "nextDrawAtMs": 1310400000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 16
+ },
+ "horde": {
+  "scheduledRaids": []
+ }
+}

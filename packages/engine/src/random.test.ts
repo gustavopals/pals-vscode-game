@@ -2,14 +2,20 @@ import { describe, expect, it } from 'vitest';
 
 import { applyCommand } from './commands';
 import { currentShape } from './migrations';
+import { nextId } from './ids';
 import {
   chance,
+  dropStream,
+  type EntityRngStream,
+  entityStream,
   hashText,
   nextInt,
   nextUint32,
   pickWeighted,
+  RNG_STREAM_FAMILIES,
   RNG_STREAMS,
   RNG_VERSION,
+  type RngStream,
   seedStream,
   type StreamWords,
   utf8Bytes,
@@ -399,6 +405,215 @@ describe('fluxos nomeados', () => {
     });
     expect(() => nextInt(state, 'council', 6)).toThrow('Fluxo de sorteio corrompido: council.');
     expect(state.rng.council).toEqual(words);
+  });
+});
+
+describe('fluxos de entidade', () => {
+  /** Um nome qualquer, como chegaria de um código que burlou o tipo. */
+  const unsafe = (name: string) => name as RngStream;
+
+  it('as famílias são a expedição e a caravana, e os fluxos fixos continuam os três da v0.2', () => {
+    expect(RNG_STREAM_FAMILIES).toEqual(['expedition', 'caravan']);
+    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde']);
+  });
+
+  it('o fluxo de uma entidade nasce no primeiro sorteio, da semente e do nome `família:id`', () => {
+    const state = newGame('pedra-alta');
+    const stream = entityStream('expedition', nextId(state, 'expedition'));
+    expect(stream).toBe('expedition:expedition-1');
+    expect(state.rng).toEqual({});
+
+    const expected = [...seedStream('pedra-alta', 'expedition:expedition-1')] as StreamWords;
+    const first = nextUint32(expected);
+    expect(nextInt(state, stream, UINT32_RANGE)).toBe(first);
+    expect(state.rng).toEqual({ 'expedition:expedition-1': expected });
+  });
+
+  it('vetores gravados: as primeiras saídas dos fluxos de entidade da semente "pedra-alta"', () => {
+    const state = newGame('pedra-alta');
+    const first = (stream: EntityRngStream) => take(4, () => nextInt(state, stream, UINT32_RANGE));
+    expect({
+      'expedition:expedition-1': first('expedition:expedition-1'),
+      'expedition:expedition-2': first('expedition:expedition-2'),
+      'caravan:caravan-1': first('caravan:caravan-1'),
+    }).toMatchInlineSnapshot(`
+      {
+        "caravan:caravan-1": [
+          3811812927,
+          3759711478,
+          828746227,
+          986300108,
+        ],
+        "expedition:expedition-1": [
+          1778056456,
+          372964464,
+          3940736016,
+          542322518,
+        ],
+        "expedition:expedition-2": [
+          225934325,
+          888362012,
+          273433069,
+          2332107258,
+        ],
+      }
+    `);
+  });
+
+  it('duas entidades sorteiam sequências independentes, e nenhuma desloca a outra nem os fixos', () => {
+    const alone = newGame('independência');
+    const firstAlone = take(40, () => nextInt(alone, 'expedition:expedition-1', 1000));
+
+    const mixed = newGame('independência');
+    const firstMixed: number[] = [];
+    const secondMixed: number[] = [];
+    for (let index = 0; index < 40; index += 1) {
+      take(index % 4, () => secondMixed.push(nextInt(mixed, 'expedition:expedition-2', 1000)));
+      firstMixed.push(nextInt(mixed, 'expedition:expedition-1', 1000));
+      take(index % 3, () => nextInt(mixed, 'caravan:caravan-1', 6));
+      take(index % 2, () => chance(mixed, 'council', { num: 1, den: 2 }));
+    }
+    expect(firstMixed).toEqual(firstAlone);
+    expect(mixed.rng['expedition:expedition-1']).toEqual(alone.rng['expedition:expedition-1']);
+    expect(secondMixed.slice(0, 40)).not.toEqual(firstMixed);
+
+    // Com os mesmos números no nome, a família também separa: a caravana 1 não é a expedição 1.
+    const families = newGame('independência');
+    const asCaravan = take(40, () => nextInt(families, 'caravan:expedition-1', 1000));
+    expect(asCaravan).not.toEqual(firstAlone);
+  });
+
+  it('salvar e recarregar no meio continua a sequência de uma entidade', () => {
+    const straight = newGame('salvo');
+    const expected = take(10, () => nextInt(straight, 'caravan:caravan-3', 1000));
+
+    let saved = newGame('salvo');
+    const got: number[] = [];
+    for (let index = 0; index < 10; index += 1) {
+      got.push(nextInt(saved, 'caravan:caravan-3', 1000));
+      saved = JSON.parse(JSON.stringify(saved)) as GameState;
+    }
+    expect(got).toEqual(expected);
+    expect(saved).toStrictEqual(straight);
+    expect(currentShape(saved, '')).toBeNull();
+  });
+
+  it.each([
+    'tavern',
+    'market',
+    'hero:hero-1',
+    'expedition',
+    'expedition:',
+    'expedition:1',
+    'expedition:expedition',
+    'expedition:expedition-0',
+    'expedition:expedition-01',
+    'expedition:expedition-1 ',
+    'expedition:expedition-1:2',
+    ':expedition-1',
+    'council:council-1',
+    'Expedition:expedition-1',
+    'constructor',
+    '__proto__',
+    '',
+  ])('um nome fora dos fixos e das famílias lança erro e não cria fluxo: "%s"', (name) => {
+    const state = newGame();
+    const message = `Fluxo de sorteio desconhecido: ${name}.`;
+    expect(() => nextInt(state, unsafe(name), 6)).toThrow(message);
+    expect(() => chance(state, unsafe(name), { num: 1, den: 2 })).toThrow(message);
+    expect(() => pickWeighted(state, unsafe(name), [{ weight: 1 }])).toThrow(message);
+    expect(state.rng).toEqual({});
+    expect(Object.keys(state.rng)).toEqual([]);
+  });
+
+  it('`entityStream` monta o nome e recusa família ou identificador fora da forma', () => {
+    expect(entityStream('caravan', 'caravan-12')).toBe('caravan:caravan-12');
+    // O identificador é o de `nextId`, de qualquer tipo de entidade.
+    expect(entityStream('expedition', 'hero-4')).toBe('expedition:hero-4');
+    expect(() => entityStream('caravan', 'caravan')).toThrow('Fluxo de sorteio desconhecido');
+    expect(() => entityStream('caravan', '')).toThrow('Fluxo de sorteio desconhecido');
+    expect(() => entityStream('tavern' as 'caravan', 'tavern-1')).toThrow(
+      'Fluxo de sorteio desconhecido: tavern:tavern-1.',
+    );
+  });
+
+  it('recusa um fluxo de entidade gravado fora da forma em vez de recomeçar da semente', () => {
+    const state = gameWith((draft) => {
+      draft.rng['expedition:expedition-1'] = [0, 0, 0, 0];
+    });
+    expect(() => nextInt(state, 'expedition:expedition-1', 6)).toThrow(
+      'Fluxo de sorteio corrompido: expedition:expedition-1.',
+    );
+  });
+});
+
+describe('dropStream', () => {
+  it('apaga só o fluxo da entidade que terminou', () => {
+    const state = newGame();
+    nextInt(state, 'council', 6);
+    nextInt(state, 'expedition:expedition-1', 6);
+    nextInt(state, 'expedition:expedition-2', 6);
+    nextInt(state, 'caravan:caravan-1', 6);
+    const before = cloneState(state);
+
+    dropStream(state, 'expedition:expedition-1');
+    expect(Object.keys(state.rng)).toEqual([
+      'council',
+      'expedition:expedition-2',
+      'caravan:caravan-1',
+    ]);
+    expect(state.rng.council).toEqual(before.rng.council);
+    expect(state.rng['expedition:expedition-2']).toEqual(before.rng['expedition:expedition-2']);
+    expect({ ...state, rng: {} }).toStrictEqual({ ...before, rng: {} });
+    expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBeNull();
+  });
+
+  it('apagar o fluxo de quem nunca sorteou, ou apagar duas vezes, não faz nada', () => {
+    const state = newGame();
+    nextInt(state, 'morale', 6);
+    const before = cloneState(state);
+    dropStream(state, 'caravan:caravan-7');
+    expect(state).toStrictEqual(before);
+    nextInt(state, 'caravan:caravan-7', 6);
+    dropStream(state, 'caravan:caravan-7');
+    dropStream(state, 'caravan:caravan-7');
+    expect(state).toStrictEqual(before);
+  });
+
+  it.each([...RNG_STREAMS])('apagar o fluxo fixo %s lança erro e não apaga nada', (stream) => {
+    const state = newGame();
+    nextInt(state, stream, 6);
+    const before = cloneState(state);
+    expect(() => dropStream(state, stream as unknown as EntityRngStream)).toThrow(
+      `O fluxo de sorteio ${stream} é fixo e não pode ser apagado.`,
+    );
+    expect(state).toStrictEqual(before);
+  });
+
+  it.each(['tavern', 'hero:hero-1', 'expedition:', 'constructor', ''])(
+    'apagar um nome desconhecido lança erro: "%s"',
+    (name) => {
+      const state = newGame();
+      expect(() => dropStream(state, name as EntityRngStream)).toThrow(
+        `Fluxo de sorteio desconhecido: ${name}.`,
+      );
+    },
+  );
+
+  it('um fluxo apagado e reaberto com o mesmo nome repetiria a sequência: por isso o id não volta', () => {
+    const state = newGame('renasce');
+    const id = nextId(state, 'expedition');
+    const first = take(5, () => nextInt(state, entityStream('expedition', id), 1000));
+    dropStream(state, entityStream('expedition', id));
+    // É o que o contador impede: o mesmo nome recomeça da semente.
+    const reborn = cloneState(state);
+    expect(take(5, () => nextInt(reborn, entityStream('expedition', id), 1000))).toEqual(first);
+    // A entidade seguinte recebe outro identificador, outro nome e outra sequência.
+    const next = nextId(state, 'expedition');
+    expect(next).not.toBe(id);
+    expect(take(5, () => nextInt(state, entityStream('expedition', next), 1000))).not.toEqual(
+      first,
+    );
   });
 });
 

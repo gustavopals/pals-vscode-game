@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 12;
+const CURRENT = 13;
 
 type StoredState = {
   schemaVersion: number;
@@ -803,6 +803,124 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
       expect(row.state.settlement.population.villagers).toBe(10);
       await renew(app, game);
       expect(await deserters(app, game)).toEqual([10, 10]);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () => {
+  type V12State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids?: Record<string, number>;
+  };
+
+  /** Um retrato da versão 12, como o motor da v0.2 publicada o gravou. */
+  function v12State(name: string): V12State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v12-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V12State;
+  }
+
+  async function insertV12(app: TestApp, state: V12State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // As três dificuldades e os três ritmos; partidas migradas (uma com estoque herdado acima do
+  // limite) e nascidas na versão 12; os três fluxos de sorteio em uso.
+  it.each([
+    ['week-scripted'],
+    ['migrated-3x'],
+    ['migrated-peasant-3x'],
+    ['migrated-iron-king-half'],
+    ['raid-announced'],
+    ['famine-resumed'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com os contadores de identidade a mais',
+    async (name) => {
+      const before = v12State(name);
+      expect(before.ids).toBeUndefined();
+      const game = await insertV12(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 12, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V12State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 12, campo por campo, com a fronteira nova e os contadores vazios:
+      // nenhum estoque, prazo, carta, incursão ou sorteio muda.
+      expect(row.state).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+        ids: {},
+      });
+      expect(row.state.rng).toEqual(before.rng);
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+      // Nada do gerador nem dos contadores sai na visão.
+      expect(Object.keys(reply.body.view)).not.toContain('ids');
+      expect(Object.keys(reply.body.view)).not.toContain('rng');
+    },
+  );
+
+  it('uma ordem como primeiro contato migra, aplica e grava tudo em uma escrita só', async () => {
+    const before = v12State('migrated-peasant-3x');
+    const game = await insertV12(server, before);
+    const reply = await send<CommandAccepted>(
+      server,
+      game.token,
+      game.id,
+      order('renameSettlement', { name: 'Vau do Corvo' }),
+    );
+    expect(reply.status).toBe(200);
+    expect(reply.body.stateVersion).toBe('8');
+    const row = (await rowOf(server, game.id)) as Row & { state: V12State };
+    expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+    expect(row.state.ids).toEqual({});
+    expect(row.state.settlement.name).toBe('Vau do Corvo');
+    // O estoque herdado acima do limite continua como estava.
+    expect(row.state.settlement.resources.food).toBe(before.settlement.resources.food);
+  });
+
+  it('o job de avanço migra a partida de quem não voltou, e um dia real depois nada da v0.3 apareceu', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v12State('migrated-iron-king-half');
+      // Parada há duas horas: o job a enxerga.
+      const game = await insertV12(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V12State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      // Um dia real no ritmo Tranquilo: doze horas de jogo depois do retrato.
+      expect(row.state.lastProcessedAt).toBe(before.lastProcessedAt + DAY / 2);
+      // Nenhuma regra de hoje cria entidade: contadores vazios e só os fluxos fixos no gerador.
+      expect(row.state.ids).toEqual({});
+      for (const stream of Object.keys(row.state.rng)) {
+        expect(['council', 'morale', 'horde']).toContain(stream);
+      }
     } finally {
       await app.close();
     }

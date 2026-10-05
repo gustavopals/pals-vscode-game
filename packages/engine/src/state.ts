@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 12,
+    schemaVersion: 13,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -42,6 +42,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
     clock: { gameTimeMs: 0, yearStartMs: 0, year: 1 },
     lastProcessedAt: 0,
     rng: {},
+    ids: {},
     settlement: {
       name: settings.settlementName,
       resources: amountsToMilli(balance.initial.resources),

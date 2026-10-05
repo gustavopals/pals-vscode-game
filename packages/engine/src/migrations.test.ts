@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { advanceTo } from './advance';
 import { applyCommand } from './commands';
 import { CATALOG, eligibleCards } from './council';
+import { nextId } from './ids';
 import {
   CURRENT_SCHEMA_VERSION,
   currentShape,
@@ -34,7 +35,15 @@ import { stateV7, v7ToV8 } from './migrations/v7';
 import { stateV8, v8ToV9 } from './migrations/v8';
 import { stateV9, v9ToV10 } from './migrations/v9';
 import { stateV10, v10ToV11 } from './migrations/v10';
-import { stateV11 } from './migrations/v11';
+import { stateV11, v11ToV12 } from './migrations/v11';
+import { stateV12 } from './migrations/v12';
+import {
+  idsShape,
+  RNG_FIXED_STREAMS_V13,
+  RNG_STREAM_FAMILIES_V13,
+  rngShape,
+} from './migrations/v13';
+import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
 import {
@@ -90,12 +99,22 @@ const named = (name: string) => {
 };
 
 /**
- * Um estado como a versão 11 o gravava, a partir de um da versão atual: a fome só com a data em
- * que começou, e sem o registro da última fome. É o ponto de partida de quem monta, à mão, um
- * estado de uma versão anterior.
+ * Um estado como a versão 12 o gravava, a partir de um da versão atual: sem os contadores de
+ * identidade. É o ponto de partida de quem monta, à mão, um estado de uma versão anterior.
+ */
+function asVersion12(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 12;
+  delete old.ids;
+  return old;
+}
+
+/**
+ * Um estado como a versão 11 o gravava: a fome só com a data em que começou, e sem o registro
+ * da última fome.
  */
 function asVersion11(state: GameState): Draft {
-  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  const old = asVersion12(state);
   old.schemaVersion = 11;
   if (old.settlement.famine !== null) {
     old.settlement.famine = { sinceMs: old.settlement.famine.sinceMs };
@@ -268,6 +287,31 @@ const FROZEN: Record<string, string> = {
   'state-v11-storage.json': '38ec7bfa',
   'state-v11-threat.json': '31a068fc',
   'state-v11-week-scripted.json': 'ea01677f',
+  'state-v12-cold.json': 'db902d4f',
+  'state-v12-construction.json': '3ac692c5',
+  'state-v12-council-hidden.json': 'c71b448e',
+  'state-v12-council.json': 'de94a45b',
+  'state-v12-crafts.json': 'f7960a29',
+  'state-v12-famine-3x.json': '06efb957',
+  'state-v12-famine-ended.json': '2191b27f',
+  'state-v12-famine-half.json': '736e2dba',
+  'state-v12-famine-resumed.json': '415520d7',
+  'state-v12-famine.json': 'c1c32f99',
+  'state-v12-fresh.json': 'd4914a28',
+  'state-v12-iron-king-half.json': 'aa999800',
+  'state-v12-migrated-3x.json': '29861af0',
+  'state-v12-migrated-iron-king-half.json': '4925dc2f',
+  'state-v12-migrated-peasant-3x.json': '6e33bd0c',
+  'state-v12-morale.json': '11983191',
+  'state-v12-objectives.json': '322c5925',
+  'state-v12-palisade.json': '5d9c23d3',
+  'state-v12-peasant-3x.json': '4724c9e8',
+  'state-v12-queues.json': '99ee3343',
+  'state-v12-raid-announced.json': '5eb4fa0a',
+  'state-v12-raid.json': '8a8c4c97',
+  'state-v12-storage.json': 'b12227a9',
+  'state-v12-threat.json': 'ddd4a1f6',
+  'state-v12-week-scripted.json': '5d2450d1',
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -453,6 +497,44 @@ describe('a forma da versão atual', () => {
       (state) =>
         (state.settlement.injured = [{ untilMs: 7_200_000, building: null, raidId: 'threat-1' }]),
     ],
+    ['os contadores de identidade ausentes', (state) => delete state.ids],
+    ['os contadores de identidade nulos', (state) => (state.ids = null)],
+    ['um contador de identidade negativo', (state) => (state.ids = { hero: -1 })],
+    ['um contador de identidade quebrado', (state) => (state.ids = { hero: 1.5 })],
+    ['um contador de identidade em texto', (state) => (state.ids = { hero: '3' })],
+    ['um contador de identidade sem tipo', (state) => (state.ids = { '': 3 })],
+    ['um contador de um tipo fora da forma', (state) => (state.ids = { 'hero-1': 3 })],
+    ['um fluxo de sorteio de nome desconhecido', (state) => (state.rng = { tavern: [1, 2, 3, 4] })],
+    [
+      'um fluxo de uma família desconhecida',
+      (state) => (state.rng = { 'hero:hero-1': [1, 2, 3, 4] }),
+    ],
+    [
+      'um fluxo de família sem identificador',
+      (state) => (state.rng = { 'expedition:': [1, 2, 3, 4] }),
+    ],
+    [
+      'um fluxo de família com identificador sem número',
+      (state) => (state.rng = { 'expedition:expedition': [1, 2, 3, 4] }),
+    ],
+    [
+      'um fluxo de família com o número zero',
+      (state) => (state.rng = { 'caravan:caravan-0': [1, 2, 3, 4] }),
+    ],
+    [
+      'um fluxo fixo com sufixo de entidade',
+      (state) => (state.rng = { 'council:council-1': [1, 2, 3, 4] }),
+    ],
+    ['um fluxo com três palavras', (state) => (state.rng = { council: [1, 2, 3] })],
+    ['um fluxo com cinco palavras', (state) => (state.rng = { council: [1, 2, 3, 4, 5] })],
+    ['um fluxo com uma palavra negativa', (state) => (state.rng = { morale: [1, -2, 3, 4] })],
+    ['um fluxo com uma palavra quebrada', (state) => (state.rng = { morale: [1, 2.5, 3, 4] })],
+    [
+      'um fluxo com uma palavra acima de 32 bits',
+      (state) => (state.rng = { horde: [1, 2, 3, 0x1_0000_0000] }),
+    ],
+    ['um fluxo todo zero', (state) => (state.rng = { horde: [0, 0, 0, 0] })],
+    ['um fluxo que não é lista', (state) => (state.rng = { horde: { 0: 1 } })],
     ['a chave de limite da versão 1', (state) => (state.settings.capsEnabled = false)],
     ['uma dificuldade desconhecida', (state) => (state.settings.difficulty = 'normal')],
     ['um ritmo zero', (state) => (state.settings.timeScale = 0)],
@@ -527,6 +609,75 @@ describe('a forma da versão atual', () => {
       /settings\.vigilHourLocal: esperado inteiro a partir de zero, veio texto/,
     );
     expect(() => migrateState(stored, { timeScale: 1 })).not.toThrow(/Nome Que/);
+  });
+
+  it('conhece os mesmos fluxos de sorteio que o gerador, fixos e de família', () => {
+    expect(RNG_FIXED_STREAMS_V13).toEqual([...RNG_STREAMS]);
+    expect(RNG_STREAM_FAMILIES_V13).toEqual([...RNG_STREAM_FAMILIES]);
+    // Tudo o que o gerador e o contador escrevem cabe na forma: os fluxos fixos, um fluxo de
+    // cada família (com o identificador que `nextId` dá) e os contadores.
+    const draft = JSON.parse(JSON.stringify(newGame())) as GameState;
+    for (const stream of RNG_STREAMS) {
+      nextInt(draft, stream, 6);
+    }
+    for (const family of RNG_STREAM_FAMILIES) {
+      nextInt(draft, entityStream(family, nextId(draft, family)), 6);
+      nextInt(draft, entityStream(family, nextId(draft, 'hero')), 6);
+    }
+    expect(Object.keys(draft.rng)).toEqual([
+      'council',
+      'morale',
+      'horde',
+      'expedition:expedition-1',
+      'expedition:hero-1',
+      'caravan:caravan-1',
+      'caravan:hero-2',
+    ]);
+    expect(draft.ids).toEqual({ expedition: 1, hero: 2, caravan: 1 });
+    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
+    // O maior valor de cada palavra e um contador em zero também cabem.
+    const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
+    edge.rng = { council: [0xffff_ffff, 0, 0, 0], 'caravan:caravan-120': [0, 0, 0, 1] };
+    edge.ids = { caravan: 120, masterBuilder: 0 };
+    expect(currentShape(edge, '')).toBeNull();
+  });
+
+  it('a mensagem de um fluxo ou de um contador fora da forma cita o caminho e a regra', () => {
+    const broken = (edit: (state: Draft) => void) => {
+      const state = JSON.parse(JSON.stringify(newGame())) as Draft;
+      edit(state);
+      return currentShape(state, '');
+    };
+    expect(broken((state) => (state.rng = { tavern: [1, 2, 3, 4] }))).toBe(
+      'rng.tavern: chave fora do esperado (um de council, morale, horde, ou expedition:<tipo>-<n>, caravan:<tipo>-<n>)',
+    );
+    expect(broken((state) => (state.rng = { council: [1, 2, 3] }))).toBe(
+      'rng.council: esperada lista de 4 itens, veio de 3',
+    );
+    expect(broken((state) => (state.rng = { council: [1, 2, -3, 4] }))).toBe(
+      'rng.council.2: esperado inteiro sem sinal de 32 bits, veio inteiro',
+    );
+    expect(broken((state) => (state.rng = { council: [0, 0, 0, 0] }))).toBe(
+      'rng.council: esperado um fluxo de sorteio com alguma palavra diferente de zero',
+    );
+    expect(broken((state) => (state.ids = { 'hero-1': 3 }))).toBe(
+      'ids.hero-1: chave fora do esperado (um tipo de entidade, só letras, começando por minúscula)',
+    );
+    expect(broken((state) => (state.ids = { hero: -1 }))).toBe(
+      'ids.hero: esperado inteiro a partir de zero, veio inteiro',
+    );
+  });
+
+  it('a versão seguinte estende a lista de fluxos sem mexer na desta', () => {
+    // É o que a versão da Taverna e a do Mercado vão fazer: a forma delas parte das listas
+    // desta, com um nome a mais, e a desta continua recusando o nome novo.
+    const next = rngShape([...RNG_FIXED_STREAMS_V13, 'tavern'], RNG_STREAM_FAMILIES_V13);
+    const rng = { tavern: [1, 2, 3, 4], 'expedition:expedition-2': [5, 6, 7, 8] };
+    expect(next(rng, 'rng')).toBeNull();
+    expect(rngShape(RNG_FIXED_STREAMS_V13, RNG_STREAM_FAMILIES_V13)(rng, 'rng')).toMatch(
+      /^rng\.tavern: chave fora do esperado/,
+    );
+    expect(idsShape({ hero: 3 }, 'ids')).toBeNull();
   });
 
   it('conhece as mesmas dificuldades que o conteúdo', () => {
@@ -2015,6 +2166,23 @@ describe('versão 10 → 11', () => {
 
 describe('versão 11 → 12', () => {
   const version11 = fixtures.filter((fixture) => fixture.version === 11);
+  // Só os passos até a fome em tempo real, sem o que as versões seguintes acrescentaram.
+  const famine: MigrationChain = {
+    steps: [
+      v1ToV2,
+      v2ToV3,
+      v3ToV4,
+      v4ToV5,
+      v5ToV6,
+      v6ToV7,
+      v7ToV8,
+      v8ToV9,
+      v9ToV10,
+      v10ToV11,
+      v11ToV12,
+    ],
+    shape: stateV12,
+  };
   const DAY = 2 * HOUR;
   const lastTurn = (ms: number) => Math.floor(ms / DAY) * DAY;
   const nextTurn = (ms: number) => lastTurn(ms) + DAY;
@@ -2066,7 +2234,11 @@ describe('versão 11 → 12', () => {
     '$name: só muda a fome aberta, que ganha o que já durou antes e os desertores cobrados, e acrescenta a última fome, vazia',
     (fixture) => {
       const before = read(fixture) as Draft;
-      const after = migrated(fixture);
+      const after = migrateWith(
+        read(fixture),
+        { timeScale: fixture.timeScale },
+        famine,
+      ) as unknown as GameState;
       expect(after.schemaVersion).toBe(12);
       expect(after.settlement.lastFamine).toBeNull();
       if (before.settlement.famine === null) {
@@ -2265,6 +2437,94 @@ describe('versão 11 → 12', () => {
         stepMs: 2 * HOUR * pace.timeScale,
       });
     }
+  });
+});
+
+describe('versão 12 → 13', () => {
+  const version12 = fixtures.filter((fixture) => fixture.version === 12);
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v12-fresh.json'));
+    expect(fresh.ids).toEqual({});
+    expect(newGame().ids).toEqual({});
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version12)('$name: só acrescenta os contadores de identidade, vazios', (fixture) => {
+    const before = read(fixture) as Draft;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(13);
+    expect(after.ids).toStrictEqual({});
+    // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
+    // muda, e o gerador fica palavra por palavra como estava.
+    expect(after.rng).toStrictEqual(before.rng);
+    const rest: Partial<GameState> = { ...after };
+    delete rest.ids;
+    expect({ ...rest, schemaVersion: 12 }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it.each(version12)(
+    '$name: nada acontece na fronteira, e a partida segue como seguiria sem o passo',
+    (fixture) => {
+      const state = migrated(fixture);
+      // Nenhum prazo novo: o próximo evento é o que a partida já tinha marcado.
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
+      // Nenhuma regra de hoje cria entidade: um mês real depois os contadores continuam vazios
+      // e o gerador só tem os fluxos fixos.
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month).state;
+      expect(later.ids).toEqual({});
+      for (const stream of Object.keys(later.rng)) {
+        expect(RNG_STREAMS).toContain(stream);
+      }
+    },
+  );
+
+  it('os retratos cobrem os três fluxos em uso, as três dificuldades e os três ritmos, e partidas migradas fora de Senhor', () => {
+    const states = version12.map((fixture) => read(fixture) as unknown as GameState);
+    expect(new Set(states.flatMap((state) => Object.keys(state.rng)))).toEqual(
+      new Set(RNG_STREAMS),
+    );
+    const migratedOnes = states.filter((state) => state.migratedAtMs !== null);
+    expect(
+      migratedOnes
+        .map((state) => `${state.settings.difficulty}@${state.settings.timeScale}`)
+        .sort(),
+    ).toEqual(['ironKing@0.5', 'lord@3', 'peasant@3']);
+  });
+
+  it('um estado da versão 12 com um fluxo que o gerador não conhece é recusado, sem gravar por cima', () => {
+    // A forma da versão 12 deixava passar qualquer nome e qualquer lista de inteiros em `rng`;
+    // a da 13 confere. Nenhum motor escreveu isto, mas se existir, a migração para e avisa.
+    for (const rng of [{ market: [1, 2, 3, 4] }, { council: [1, 2, 3] }, { horde: [0, 0, 0, 0] }]) {
+      const old = asVersion12(newGame());
+      old.rng = rng;
+      const copy = JSON.parse(JSON.stringify(old)) as unknown;
+      let caught: unknown;
+      try {
+        migrateState(old, { timeScale: 1 });
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(StateMigrationError);
+      expect((caught as StateMigrationError).reason).toBe('invalid');
+      expect((caught as StateMigrationError).message).toMatch(/fora da forma \(rng\./);
+      expect(old).toEqual(copy);
+    }
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const old = asVersion12(advanceTo(newGame(), 400 * HOUR).state);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(400 * HOUR);
   });
 });
 

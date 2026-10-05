@@ -1,12 +1,21 @@
 import { buildings, councilCards, objectives } from '@lotg/content';
 
 import { advanceTo, advanceWith, processEventsAt, processEventsWith } from './advance';
-import { isDayBoundary } from './clock';
+import { DAY_MS, isDayBoundary } from './clock';
 import { applyCommand } from './commands';
 import { cardOf, CATALOG, type Catalog, deliverCard, DRAW_INTERVAL_MS } from './council';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
-import { chance, nextInt, pickWeighted } from './random';
+import { nextId } from './ids';
+import {
+  chance,
+  dropStream,
+  type EntityRngStream,
+  entityStream,
+  nextInt,
+  pickWeighted,
+  type RngStreamFamily,
+} from './random';
 import { cloneState, createInitialState } from './state';
 import type { Command, CommandResult, GameEvent, GameSettings, GameState } from './types';
 import { MILLI } from './units';
@@ -954,6 +963,112 @@ export function advanceWithDailyDraws(
   return advanceWith(state, gameTimeMs, (draft, atMs, events) => {
     if (isDayBoundary(atMs)) {
       syntheticDayTurn(draft, atMs, events);
+    }
+    processEventsAt(draft, atMs, events);
+  });
+}
+
+/** Tipo dos eventos das entidades sintéticas: não existe no conteúdo nem chega a jogador nenhum. */
+export const SYNTHETIC_ENTITY = 'syntheticEntity' as GameEvent['type'];
+
+/** Uma entidade do roteiro sintético: nasce na virada do dia `bornOnDay` e vive `lifeDays`. */
+export type SyntheticEntityPlan = {
+  /** O dia de jogo (a virada de número tal desde a fundação) em que ela nasce. */
+  bornOnDay: number;
+  family: RngStreamFamily;
+  /** Por quantas viradas ela sorteia antes de terminar; a última é a do fim. A partir de 1. */
+  lifeDays: number;
+};
+
+/** Uma entidade sintética viva, como fica no estado entre uma virada e outra. */
+export type SyntheticEntity = { id: string; stream: EntityRngStream; endsOnDay: number };
+
+/** O estado com as entidades sintéticas: um campo que só o cenário de teste escreve. */
+export type SyntheticEntityState = GameState & { syntheticEntities?: SyntheticEntity[] };
+
+export const syntheticEntitiesOf = (state: GameState): SyntheticEntity[] =>
+  (state as SyntheticEntityState).syntheticEntities ?? [];
+
+/**
+ * A virada de dia das entidades sintéticas, na ordem que toda mecânica com entidades segue:
+ *
+ * 1. nascem as do roteiro marcadas para este dia, na ordem do roteiro, cada uma com o
+ *    identificador de `nextId` (o tipo é o nome da família);
+ * 2. cada entidade viva, **na ordem do identificador**, sorteia no próprio fluxo: um dado de mil
+ *    faces, que vai para o evento, e um achado de madeira, que mexe no estoque e, por ele, nas
+ *    taxas, nos limites e em tudo o que vem depois;
+ * 3. as que chegaram ao último dia terminam, e o fluxo delas é apagado.
+ *
+ * Nenhuma regra do jogo é assim. O número de sorteios de cada entidade não depende do estoque
+ * nem das outras: é o que deixa comparar os sorteios dela com e sem uma vizinha.
+ */
+function syntheticEntityTurn(
+  draft: GameState,
+  atMs: number,
+  events: GameEvent[],
+  plan: readonly SyntheticEntityPlan[],
+): void {
+  const day = atMs / DAY_MS;
+  const holder = draft as SyntheticEntityState;
+  const alive = holder.syntheticEntities ?? [];
+  const emit = (data: Record<string, string | number>) =>
+    events.push({ type: SYNTHETIC_ENTITY, atMs, text: 'Entidade sintética de teste.', data });
+
+  for (const entry of plan) {
+    if (entry.bornOnDay === day) {
+      const id = nextId(draft, entry.family);
+      alive.push({
+        id,
+        stream: entityStream(entry.family, id),
+        endsOnDay: day + entry.lifeDays - 1,
+      });
+      emit({ step: 'born', entity: id });
+    }
+  }
+  // A ordem do identificador: o tipo e, dentro dele, o número (e não o texto: 10 vem depois de 9).
+  const number = (id: string) => Number(id.slice(id.lastIndexOf('-') + 1));
+  alive.sort((a, b) => {
+    const [kindA, kindB] = [a.id.split('-')[0] ?? '', b.id.split('-')[0] ?? ''];
+    return kindA === kindB ? number(a.id) - number(b.id) : kindA < kindB ? -1 : 1;
+  });
+  for (const entity of alive) {
+    const roll = nextInt(draft, entity.stream, 1000);
+    const found = chance(draft, entity.stream, { num: 2, den: 5 }) ? (roll % 7) + 1 : 0;
+    draft.settlement.resources.wood += found * MILLI;
+    emit({ step: 'drew', entity: entity.id, roll, found });
+  }
+  const remaining: SyntheticEntity[] = [];
+  for (const entity of alive) {
+    if (entity.endsOnDay <= day) {
+      dropStream(draft, entity.stream);
+      emit({ step: 'ended', entity: entity.id });
+    } else {
+      remaining.push(entity);
+    }
+  }
+  holder.syntheticEntities = remaining;
+}
+
+/**
+ * `advanceTo` com entidades que nascem, sorteiam nos próprios fluxos e terminam, segundo um
+ * roteiro (`plan`), além dos sorteios diários nos três fluxos fixos de `advanceWithDailyDraws`.
+ * É o laço do jogo, com os eventos de verdade processados logo depois. O motor ainda não tem
+ * entidade nenhuma: este cenário prova a divisão de intervalo com fluxos que nascem e morrem no
+ * caminho antes de a primeira expedição existir.
+ *
+ * As entidades vivas ficam em um campo a mais do estado (`syntheticEntities`), que só existe
+ * aqui: tudo o que o cenário precisa lembrar entre dois avanços está no estado, e não em quem
+ * chamou. O roteiro tem de ser o mesmo em todo avanço da mesma partida.
+ */
+export function advanceWithEntities(
+  state: GameState,
+  gameTimeMs: number,
+  plan: readonly SyntheticEntityPlan[],
+): { state: GameState; events: GameEvent[] } {
+  return advanceWith(state, gameTimeMs, (draft, atMs, events) => {
+    if (isDayBoundary(atMs)) {
+      syntheticDayTurn(draft, atMs, events);
+      syntheticEntityTurn(draft, atMs, events, plan);
     }
     processEventsAt(draft, atMs, events);
   });

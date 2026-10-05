@@ -15,6 +15,11 @@ import type { GameState } from './types';
  * usado, então sortear em um não desloca os outros e o estado continua JSON puro: salvar e
  * recarregar segue a mesma sequência.
  *
+ * Há fluxos **fixos**, um por assunto (`RNG_STREAMS`), e fluxos **de entidade**, um por entidade
+ * que nasce e morre durante a partida (`RNG_STREAM_FAMILIES`): `expedition:<id>`,
+ * `caravan:<id>`. O fluxo de uma entidade é apagado quando ela termina (`dropStream`), e o
+ * identificador dela nunca é reutilizado (`ids.ts`), então um fluxo apagado não renasce.
+ *
  * Quem sorteia é `advanceTo`, em eventos com hora marcada na linha do tempo. `deriveViewState`,
  * `nextEventAt`, as recusas e os recibos nunca sorteiam, e o estado do gerador nunca sai no
  * `ViewState`: quem lê a tela não pode prever nem rerrolar o que vem.
@@ -28,11 +33,48 @@ import type { GameState } from './types';
 export const RNG_VERSION = 1;
 
 /**
- * Fluxos da v0.2: as cartas do Conselho, as chegadas e partidas por moral e as incursões por
- * Ameaça. Um fluxo novo entra aqui junto com a primeira mecânica que sorteia nele.
+ * Fluxos fixos, os da v0.2: as cartas do Conselho, as chegadas e partidas por moral e as
+ * incursões por Ameaça. Um fluxo novo entra aqui junto com a primeira mecânica que sorteia nele.
  */
 export const RNG_STREAMS = ['council', 'morale', 'horde'] as const;
-export type RngStream = (typeof RNG_STREAMS)[number];
+export type FixedRngStream = (typeof RNG_STREAMS)[number];
+
+/**
+ * Famílias de fluxo de entidade (GDD §14.3; ADR 0017, decisão 9): cada expedição e cada
+ * caravana sorteia no próprio fluxo, `<família>:<id>`, com o `id` que `nextId` deu a ela. Duas
+ * entidades nunca dividem um fluxo, então a ordem em que são processadas e a existência de
+ * uma não mudam a sorte da outra.
+ */
+export const RNG_STREAM_FAMILIES = ['expedition', 'caravan'] as const;
+export type RngStreamFamily = (typeof RNG_STREAM_FAMILIES)[number];
+export type EntityRngStream = `${RngStreamFamily}:${string}`;
+
+/** O nome de um fluxo: um dos fixos, ou o de uma entidade de uma família conhecida. */
+export type RngStream = FixedRngStream | EntityRngStream;
+
+/** A forma dos identificadores de `nextId`: `<kind>-<n>`, com `n` a partir de 1. */
+const ENTITY_ID = /^[a-z][A-Za-z]*-[1-9][0-9]*$/;
+
+const isFixedStream = (name: string): name is FixedRngStream =>
+  (RNG_STREAMS as readonly string[]).includes(name);
+
+function isEntityStream(name: string): name is EntityRngStream {
+  const colon = name.indexOf(':');
+  return (
+    colon > 0 &&
+    (RNG_STREAM_FAMILIES as readonly string[]).includes(name.slice(0, colon)) &&
+    ENTITY_ID.test(name.slice(colon + 1))
+  );
+}
+
+/** O nome do fluxo da entidade `id` (um identificador de `nextId`) na família `family`. */
+export function entityStream(family: RngStreamFamily, id: string): EntityRngStream {
+  const name = `${family}:${id}`;
+  if (!isEntityStream(name)) {
+    throw new Error(`Fluxo de sorteio desconhecido: ${name}.`);
+  }
+  return name;
+}
 
 /** Estado de um fluxo: quatro inteiros sem sinal de 32 bits, nunca todos zero. */
 export type StreamWords = [number, number, number, number];
@@ -129,7 +171,12 @@ function isStreamWords(stored: number[]): stored is StreamWords {
 
 /** O estado do fluxo dentro do rascunho, criado a partir da semente na primeira vez. */
 function wordsOf(draft: GameState, stream: RngStream): StreamWords {
-  const stored = draft.rng[stream];
+  if (!isFixedStream(stream) && !isEntityStream(stream)) {
+    // Um nome fora da lista e das famílias é defeito de código: o tipo já o barra, e um nome
+    // montado em tempo de execução não pode abrir um fluxo que ninguém conhece.
+    throw new Error(`Fluxo de sorteio desconhecido: ${String(stream)}.`);
+  }
+  const stored = Object.hasOwn(draft.rng, stream) ? draft.rng[stream] : undefined;
   if (stored === undefined) {
     const fresh = seedStream(draft.seed, stream);
     draft.rng[stream] = fresh;
@@ -140,6 +187,28 @@ function wordsOf(draft: GameState, stream: RngStream): StreamWords {
     throw new Error(`Fluxo de sorteio corrompido: ${stream}.`);
   }
   return stored;
+}
+
+/**
+ * Apaga o fluxo de uma entidade que terminou (a expedição que voltou, a caravana que chegou):
+ * o estado não cresce com as que já não existem. Só fluxos de família; apagar um fluxo fixo, ou
+ * um nome desconhecido, lança erro. Apagar o fluxo de uma entidade que nunca sorteou não faz
+ * nada. Altera `draft.rng`.
+ *
+ * Um fluxo apagado e usado de novo recomeçaria da semente e repetiria a mesma sequência. Isso
+ * nunca acontece porque o identificador da entidade não volta: o contador de `ids.ts` só sobe.
+ */
+export function dropStream(draft: GameState, stream: EntityRngStream): void {
+  if (!isEntityStream(stream)) {
+    throw new Error(
+      isFixedStream(stream)
+        ? `O fluxo de sorteio ${String(stream)} é fixo e não pode ser apagado.`
+        : `Fluxo de sorteio desconhecido: ${String(stream)}.`,
+    );
+  }
+  if (Object.hasOwn(draft.rng, stream)) {
+    delete draft.rng[stream];
+  }
 }
 
 /**

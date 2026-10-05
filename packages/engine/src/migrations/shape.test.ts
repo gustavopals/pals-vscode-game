@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   exactObject,
   integer,
+  keyedRecordOf,
   listOf,
   literal,
   natural,
@@ -12,6 +13,7 @@ import {
   positiveNumber,
   recordOf,
   text,
+  uint32,
 } from './shape';
 
 describe('guardas de forma', () => {
@@ -26,6 +28,13 @@ describe('guardas de forma', () => {
     ['nullable(natural)', nullable(natural), [null, 4], [-4, undefined, 'x']],
     ['listOf(natural)', listOf(natural), [[], [1, 2]], [[1, -2], {}, null, 'lista']],
     ['recordOf(natural)', recordOf(natural), [{}, { a: 1 }], [{ a: -1 }, [], null, 3]],
+    ['uint32', uint32, [0, 1, 4_294_967_295], [-1, 4_294_967_296, 0.5, '1', null, Number.NaN]],
+    [
+      'keyedRecordOf',
+      keyedRecordOf((key) => key.startsWith('a'), 'uma chave com a', natural),
+      [{}, { a: 1, ab: 2 }],
+      [{ b: 1 }, { a: 1, '': 2 }, { a: -1 }, [], null, 3],
+    ],
   ])('%s aceita o que deve e recusa o resto', (_, shape, good, bad) => {
     for (const value of good) {
       expect(shape(value, 'campo')).toBeNull();
@@ -67,5 +76,14 @@ describe('guardas de forma', () => {
 
   it('para no primeiro problema, na ordem das chaves declaradas', () => {
     expect(villager({ name: 1, age: -1, home: 3 }, '')).toBe('name: esperado texto, veio inteiro');
+  });
+
+  it('keyedRecordOf diz a chave recusada no caminho e a regra, e confere os valores das aceitas', () => {
+    const shape = keyedRecordOf((key) => key !== 'x', 'qualquer chave menos x', natural);
+    expect(shape({ a: 1, x: 2 }, 'ids')).toBe(
+      'ids.x: chave fora do esperado (qualquer chave menos x)',
+    );
+    expect(shape({ a: -1 }, 'ids')).toBe('ids.a: esperado inteiro a partir de zero, veio inteiro');
+    expect(shape([], 'ids')).toBe('ids: esperado objeto, veio lista');
   });
 });

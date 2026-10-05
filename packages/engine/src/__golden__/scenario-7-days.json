@@ -570,7 +570,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -594,6 +594,7 @@
       300506819
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
@@ -743,7 +744,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -767,6 +768,7 @@
       739925977
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta",
      "resources": {
@@ -931,7 +933,7 @@
    "day": 3,
    "eventsSoFar": 127,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -961,6 +963,7 @@
       278988267
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
@@ -1131,7 +1134,7 @@
    "day": 4,
    "eventsSoFar": 177,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1161,6 +1164,7 @@
       1421741259
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
@@ -1345,7 +1349,7 @@
    "day": 5,
    "eventsSoFar": 222,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1375,6 +1379,7 @@
       3353586740
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
@@ -1569,7 +1574,7 @@
    "day": 6,
    "eventsSoFar": 270,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1599,6 +1604,7 @@
       1142548171
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {
@@ -1794,7 +1800,7 @@
    "day": 7,
    "eventsSoFar": 318,
    "state": {
-    "schemaVersion": 12,
+    "schemaVersion": 13,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1824,6 +1830,7 @@
       152010001
      ]
     },
+    "ids": {},
     "settlement": {
      "name": "Pedra Alta do Norte",
      "resources": {

@@ -1143,7 +1143,8 @@ type GameState = {
   migratedAtMs: number | null;                               // fronteira da atualização mais recente (§15.4); null em partida nova
   clock: { gameTimeMs: number; yearStartMs: number; year: number };
   lastProcessedAt: number;                                   // tempo de jogo
-  rng: Record<string, number[]>;                             // estado por fluxo: 4 inteiros de 32 bits; vazio até o primeiro sorteio
+  rng: Record<string, number[]>;                             // estado por fluxo: 4 inteiros de 32 bits; vazio até o primeiro sorteio. Fluxos fixos e de entidade (`expedition:<id>`, `caravan:<id>`), apagados quando a entidade termina `[v0.3]`
+  ids: Record<string, number>;                               // contadores de identidade por tipo de entidade (`hero-1`, `expedition-2`…); só sobem, nunca reutilizados; vazio até a primeira entidade `[v0.3]`
   settlement: {
     name: string;
     morale: number;                                            // 0 – 100; só muda na virada do dia (§5.7) `[v0.2]`

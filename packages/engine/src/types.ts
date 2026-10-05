@@ -170,7 +170,7 @@ export type InjuredVillager = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 12;
+  schemaVersion: 13;
   seed: string;
   settings: GameSettings;
   /**
@@ -186,9 +186,16 @@ export type GameState = {
   lastProcessedAt: number;
   /**
    * Estado dos fluxos de sorteio, por nome: quatro inteiros de 32 bits cada (`random.ts`). Um
-   * fluxo só aparece aqui depois do primeiro sorteio nele. Nunca sai no `ViewState`.
+   * fluxo só aparece aqui depois do primeiro sorteio nele, e o de uma entidade (`expedition:<id>`,
+   * `caravan:<id>`) sai quando ela termina. Nunca sai no `ViewState`.
    */
   rng: Record<string, number[]>;
+  /**
+   * Contadores de identidade, por tipo de entidade: quantos identificadores `<tipo>-<n>` já
+   * foram dados (`ids.ts`). Um tipo só aparece aqui depois da primeira entidade dele, e o
+   * contador só sobe: um identificador nunca é reutilizado.
+   */
+  ids: Record<string, number>;
   settlement: {
     name: string;
     resources: Record<ResourceId, number>;

@@ -32,6 +32,7 @@ describe('pureza do motor', () => {
     expect(names).toContain('./migrations.ts');
     expect(names).toContain('./migrations/v1.ts');
     expect(names).toContain('./random.ts');
+    expect(names).toContain('./ids.ts');
     expect(names.length).toBeGreaterThan(10);
   });
 
@@ -85,6 +86,41 @@ describe('pureza do motor', () => {
       .filter(([, text]) => /from '(\.\.?\/)+random'/.test(text))
       .map(([path]) => path);
     expect(draws).toEqual(expect.arrayContaining(['./hordeTurn.ts']));
+  });
+
+  it('quem mostra, agenda ou carrega o estado não importa o contador de identidades', () => {
+    // Só uma ordem aceita e um evento da linha do tempo criam entidades. A visão, as previsões,
+    // a linha do tempo, as recusas, o estado inicial e a migração nunca: uma leitura a cada 30
+    // segundos não pode gastar um identificador. `commands.ts` fica de fora desta lista de
+    // propósito: contratar e enviar são ordens.
+    const neverCreate =
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random)(\.ts|\/)/;
+    const guarded = sources.filter(([path]) => neverCreate.test(path));
+    expect(guarded.map(([path]) => path)).toEqual(
+      expect.arrayContaining([
+        './view.ts',
+        './seasonView.ts',
+        './moraleView.ts',
+        './councilView.ts',
+        './threatView.ts',
+        './storageView.ts',
+        './craftProjection.ts',
+        './rejections.ts',
+        './timeline.ts',
+        './state.ts',
+        './migrations.ts',
+        './migrations/v12.ts',
+        './migrations/v13.ts',
+        './random.ts',
+      ]),
+    );
+    const offenders = guarded
+      .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text) || /\bnextId\(/.test(text))
+      .map(([path]) => path);
+    expect(offenders).toEqual([]);
+    // E o contador não sorteia nem lê nada além do estado: não importa módulo nenhum do motor.
+    const ids = sources.find(([path]) => path === './ids.ts')?.[1] ?? '';
+    expect([...ids.matchAll(/from '([^']+)'/g)].map((match) => match[1])).toEqual(['./types']);
   });
 });
 
