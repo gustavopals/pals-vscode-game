@@ -131,12 +131,14 @@ function recoveryAfter(state: GameState, at: number): number | null {
  * o frio abertos acabam na cópia no instante em que acabariam no motor (`relieveScarcity`): dali
  * em diante as taxas já não levam a penalidade.
  *
- * A projeção comum para quando a comida ou a lenha acabam: daí em diante "cheio em", "acaba em"
- * e o início das obras não adivinham. Com `throughScarcity`, ela atravessa esse instante como o
- * motor: abre a fome ou o frio na cópia, com a penalidade e o peso na moral, e segue. É a
- * pergunta do fim da escassez aberta: o frio que abre minutos antes de os lavradores renderem
- * inteiro não impede a fome de acabar ali, e a visão que parasse nele mandaria pôr mais gente
- * na Fazenda à toa.
+ * A projeção comum para quando a comida ou a lenha acabam: daí em diante "cheio em" e o início
+ * das obras não adivinham. Com `throughScarcity`, ela atravessa esse instante como o motor: abre
+ * a fome ou o frio na cópia, com a penalidade e o peso na moral, e segue, mesmo com o ofício e
+ * a moral acomodados, enquanto houver comida ou lenha por acabar. São duas perguntas. O fim da
+ * escassez aberta: o frio que abre minutos antes de os lavradores renderem inteiro não impede a
+ * fome de acabar ali, e a visão que parasse nele mandaria pôr mais gente na Fazenda à toa. E o
+ * começo da segunda escassez ("acaba em"): a lenha que acaba antes da comida não tira o prazo
+ * da comida, só o adianta.
  */
 function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
   const stretches: Stretch[] = [];
@@ -145,22 +147,29 @@ function stretchesOf(state: GameState, throughScarcity = false): Stretch[] {
   for (;;) {
     const rates = netRates(current);
     const settled = craftSettled(current) && moraleSettled(current, at);
-    if (settled || stretches.length + 1 >= MAX_STRETCHES) {
-      stretches.push({ atMs: at, state: current, rates, untilMs: Infinity });
-      return stretches;
-    }
     const scarce =
       at +
       Math.min(
         foodRunsOutIn(current, rates) ?? Infinity,
         woodRunsOutIn(current, rates) ?? Infinity,
       );
-    const step = Math.min(
-      nextDayBoundary(at),
-      nextAdaptationEndAt(current) ?? Infinity,
-      // Na cópia o relógio não anda: o prazo do ferido é comparado com o instante da projeção.
-      recoveryAfter(current, at) ?? Infinity,
-    );
+    // Acomodado, o ofício não muda mais nada sozinho. Só a projeção que atravessa a escassez
+    // ainda tem o que andar: a comida ou a lenha que acabam mais adiante abrem a fome ou o frio,
+    // e a penalidade e a moral voltam a mexer nas taxas.
+    const done = settled && (!throughScarcity || scarce === Infinity);
+    if (done || stretches.length + 1 >= MAX_STRETCHES) {
+      stretches.push({ atMs: at, state: current, rates, untilMs: Infinity });
+      return stretches;
+    }
+    const step = settled
+      ? // Nenhuma virada muda nada até lá: o trecho vai direto ao instante em que algo acaba.
+        Infinity
+      : Math.min(
+          nextDayBoundary(at),
+          nextAdaptationEndAt(current) ?? Infinity,
+          // Na cópia o relógio não anda: o prazo do ferido é comparado com o instante da projeção.
+          recoveryAfter(current, at) ?? Infinity,
+        );
     if (scarce <= step && !throughScarcity) {
       stretches.push({ atMs: at, state: current, rates, untilMs: scarce });
       return stretches;
@@ -281,6 +290,13 @@ export function inMs(value: number | null): Deadline | null {
  * que passam a render inteiro podem virar o saldo antes de a despensa esvaziar: aí o alarme de
  * "acaba em" não toca.
  *
+ * `foodRunsOutIn` e `woodRunsOutIn` são o instante em que a fome e o frio abrem. A conta
+ * atravessa o começo da outra escassez no caminho, como o motor: no inverno, a lenha que acaba
+ * antes da comida abre o frio na cópia, com a penalidade e o peso na moral, e a comida acaba
+ * mais cedo por isso; a visão que parasse ali diria "−10/h" sem prazo nenhum. Como toda
+ * previsão, não conta com quem chega nem com quem parte: a fome longa que faz desertar muda as
+ * bocas e a lareira, e o prazo da lenha além dela é o de um feudo de que ninguém partiu.
+ *
  * O prazo da lenha conta com a madeira que a próxima obra automática leva quando começar: o
  * motor a inicia sozinho, sem olhar a lareira (GDD §6.3).
  *
@@ -300,7 +316,70 @@ export type CraftOutlook = {
 
 type AutoStart = NonNullable<CraftOutlook['autoStart']>;
 
-const woodRunsOut: Probe<Deadline> = (state, rates) => inMs(woodRunsOutIn(state, rates));
+const inFamine = (state: GameState) => state.settlement.famine !== null;
+const inCold = (state: GameState) => state.settlement.cold !== null;
+
+/**
+ * Em quantos ms, a contar de `start`, a fome (ou o frio) abre nos trechos da projeção que
+ * atravessa a escassez: o começo do primeiro trecho que a encontra aberta depois de um que não
+ * a tinha. É o instante em que a comida (ou a lenha) acaba, ou a virada em que o saldo fica
+ * negativo com o estoque vazio. `null` quando não abre; a que já está aberta no começo não
+ * conta, só a que voltar a abrir depois de acabar.
+ */
+function opensIn(
+  stretches: readonly Stretch[],
+  start: number,
+  open: (state: GameState) => boolean,
+): number | null {
+  let wasOpen = true;
+  for (const stretch of stretches) {
+    const isOpen = open(stretch.state);
+    if (isOpen && !wasOpen) {
+      return stretch.atMs - start;
+    }
+    wasOpen = isOpen;
+  }
+  return null;
+}
+
+/** Em quantos ms a comida ou a lenha acabam, o que vier primeiro, com as taxas deste estado. */
+const somethingRunsOut: Probe<Deadline> = (state, rates) => {
+  const first = Math.min(
+    foodRunsOutIn(state, rates) ?? Infinity,
+    woodRunsOutIn(state, rates) ?? Infinity,
+  );
+  return first === Infinity ? null : { inMs: first };
+};
+
+/**
+ * "Em quantos ms a fome (ou o frio) abre?", para o feudo de `state`: a resposta de `opensIn` na
+ * projeção que atravessa a escassez (`through`, feita só se for preciso), com dois cuidados.
+ *
+ * Enquanto nada acaba, as duas projeções andam os mesmos trechos: no feudo em que a projeção
+ * comum (`forecast`) não vê a comida nem a lenha acabando, nenhuma escassez abre, e a outra nem
+ * é feita.
+ *
+ * A escassez que abre primeiro tem o prazo de sempre, caia onde cair. A que abre **depois** de
+ * outra só tem prazo dentro da estação de agora: a projeção não vira a estação, e do outro lado
+ * dela a fome e o frio que a cópia carrega já não são os do motor (o frio acaba na primavera).
+ * Além da virada, a visão não adivinha.
+ */
+function scarcityOpenings(
+  state: GameState,
+  forecast: CraftForecast,
+  through: () => Stretch[],
+): (open: (draft: GameState) => boolean) => number | null {
+  const now = state.lastProcessedAt;
+  const seasonEnd = nextSeasonBoundary(now);
+  const first = forecast.find(somethingRunsOut)?.inMs ?? null;
+  return (open) => {
+    if (first === null) {
+      return null;
+    }
+    const found = opensIn(through(), now, open);
+    return found === null || found <= first || now + found < seasonEnd ? found : null;
+  };
+}
 
 /**
  * Quando a lenha acaba se a próxima obra automática começar antes: a projeção vai até o instante
@@ -337,32 +416,30 @@ function woodRunsOutAfter(
   for (const [resource, amount] of positiveEntries(cost)) {
     paid.settlement.resources[resource] -= amount * MILLI;
   }
-  const rest = craftForecast(paid).find(woodRunsOut)?.inMs ?? null;
+  const opens = scarcityOpenings(paid, craftForecast(paid), () => stretchesOf(paid, true));
+  const rest = opens(inCold);
   return rest === null ? null : autoStart.inMs + rest;
 }
 
 export function craftOutlook(state: GameState, forecast: CraftForecast): CraftOutlook {
+  const now = state.lastProcessedAt;
   const autoStart = forecast.find(nextAutoStart);
   // A projeção anda na estação de agora: além da virada, a conta é outra.
-  const seasonEnd = nextSeasonBoundary(state.lastProcessedAt);
+  const seasonEnd = nextSeasonBoundary(now);
   const { famine, cold } = state.settlement;
-  // O fim da escassez aberta não para no começo da outra: a projeção que a atravessa.
+  // O começo e o fim de uma escassez não param no começo da outra: a projeção que a atravessa.
   let through: Stretch[] | null = null;
+  const crossing = () => (through ??= stretchesOf(state, true));
   const over = (ended: (draft: GameState) => boolean): number | null => {
-    through ??= stretchesOf(state, true);
     const probe: Probe<Deadline> = (draft) => (ended(draft) ? { inMs: 0 } : null);
-    return findIn(through, state.lastProcessedAt, probe, seasonEnd)?.inMs ?? null;
+    return findIn(crossing(), now, probe, seasonEnd)?.inMs ?? null;
   };
+  const opens = scarcityOpenings(state, forecast, crossing);
   return {
-    famineEndsIn: famine === null ? null : over((draft) => draft.settlement.famine === null),
-    coldEndsIn: cold === null ? null : over((draft) => draft.settlement.cold === null),
-    foodRunsOutIn: forecast.find((draft, rates) => inMs(foodRunsOutIn(draft, rates)))?.inMs ?? null,
-    woodRunsOutIn: woodRunsOutAfter(
-      state,
-      forecast,
-      autoStart,
-      forecast.find(woodRunsOut)?.inMs ?? null,
-    ),
+    famineEndsIn: famine === null ? null : over((draft) => !inFamine(draft)),
+    coldEndsIn: cold === null ? null : over((draft) => !inCold(draft)),
+    foodRunsOutIn: opens(inFamine),
+    woodRunsOutIn: woodRunsOutAfter(state, forecast, autoStart, opens(inCold)),
     autoStart,
   };
 }

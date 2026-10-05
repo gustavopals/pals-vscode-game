@@ -545,7 +545,10 @@ export type FirewoodView = {
   reserved: number;
   /**
    * Quanto falta guardar para a lareira não apagar, já com o que a Serraria junta até lá e sem
-   * o que as obras automáticas levam; 0 quando o estoque e a Serraria cobrem.
+   * o que as obras automáticas levam; 0 quando o estoque e a Serraria cobrem. É o maior entre o
+   * que falta na soma do prazo inteiro e o que falta antes disso, quando a Serraria só alcança
+   * a lareira mais adiante (depois da virada do dia que muda a moral, ou do fim de uma
+   * adaptação): aí pode ser positivo com `winterProduction + stock` acima de `winterTotal`.
    */
   missing: number;
   /** A conta em uma frase, pronta para exibir. */
@@ -979,8 +982,11 @@ export type ViewState = {
     /** Saldo líquido por hora, com uma casa decimal. */
     perHour: number;
     /**
-     * Segundos até o estoque acabar; `null` quando não está caindo. Vale para a comida e, no
-     * inverno, para a madeira que a lareira queima.
+     * Segundos até o estoque acabar; `null` quando não acaba. Vale para a comida e, no inverno,
+     * para a madeira que a lareira queima. Conta com o que a outra escassez muda no caminho: a
+     * lenha que acaba antes abre o frio, e a comida acaba mais cedo por isso (e pode ter prazo
+     * com o saldo de agora ainda positivo). O prazo que cai depois de a outra escassez abrir só
+     * vem dentro da estação de agora.
      */
     depletesInSeconds: number | null;
     breakdown: string;

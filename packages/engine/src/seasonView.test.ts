@@ -512,6 +512,188 @@ describe('inverno na visão', () => {
   });
 });
 
+// Os dois defeitos das previsões que as pendências da v0.2 registram em C-8
+// (docs/pendencias-v0.2.md), com os casos de lá: a conta da lenha que somava o inverno inteiro
+// sem olhar a ordem dos acontecimentos, e o "acaba em" que vinha vazio para a escassez que abre
+// depois da outra.
+describe('previsões do inverno que olham a ordem dos acontecimentos (C-8)', () => {
+  /** 10 habitantes, com vaga nas casas e ninguém em ofício nenhum, no primeiro instante do inverno. */
+  const tenAt = (edit: (draft: GameState) => void) =>
+    gameAt(WINTER, (draft) => {
+      draft.settlement.population.villagers = 10;
+      draft.settlement.buildings.housing = 2;
+      draft.settlement.workers = { farm: 0, lumberMill: 0, quarry: 0, goldMine: 0 };
+      edit(draft);
+    });
+
+  const row = (derived: ViewState, id: 'food' | 'wood') => {
+    const found = derived.resources.find((entry) => entry.id === id);
+    if (found === undefined) {
+      throw new Error(`A visão não trouxe a linha de ${id}.`);
+    }
+    return found;
+  };
+
+  /** Os instantes, em ms de inverno, dos eventos de um tipo até a primavera. */
+  const winterEvents = (state: GameState, type: 'coldStarted' | 'famineStarted') =>
+    advanceTo(state, YEAR - 1)
+      .events.filter((event) => event.type === type)
+      .map((event) => event.atMs - WINTER);
+
+  /** Um lenhador, comida de sobra, a moral em zero e o pátio com `wood` milésimos de madeira. */
+  const lateLumberMill = (wood: number) =>
+    tenAt((draft) => {
+      draft.settlement.workers.lumberMill = 1;
+      draft.settlement.resources.food = 400_000;
+      draft.settlement.resources.wood = wood;
+      draft.settlement.morale = 0;
+    });
+
+  it('a conta da lenha não diz "dão conta" quando a Serraria só alcança a lareira depois de a lenha acabar', () => {
+    // A lareira queima 5 por hora. Com a moral em zero o lenhador entrega 8 × 0,8 × 0,75 = 4,8;
+    // a virada do dia, em 2 h, sobe a moral e ele passa a cobrir a lareira. Até lá faltam 0,4, e
+    // o pátio tem 0,3: a lenha acaba em 1 h 30 min, antes de a Serraria alcançar a lareira. Na
+    // soma do inverno inteiro a Serraria repõe 143 dos 120, e a conta que só somava dizia "dão
+    // conta".
+    const state = lateLumberMill(300);
+    const derived = view(state);
+    expect(row(derived, 'wood')).toMatchObject({ perHour: -0.2, depletesInSeconds: 5400 });
+    expect(derived.winter?.firewood).toEqual({
+      perHour: 5,
+      winterTotal: 120,
+      winterProduction: 143,
+      stock: 0,
+      gathered: 0,
+      reserved: 0,
+      missing: 1,
+      text: 'Até a Primavera a lareira ainda queima 120 de madeira. A Serraria repõe 143 e há 0 em estoque, mas a reposição só alcança a lareira mais adiante: antes disso faltam 1 de madeira.',
+    });
+    // É o que o motor faz: o frio abre em 1 h 30 min.
+    expect(winterEvents(state, 'coldStarted')).toEqual([90 * MINUTE]);
+  });
+
+  it('com a madeira que a conta pede a mais, o frio não abre e a conta fecha', () => {
+    const state = lateLumberMill(1_300);
+    expect(view(state).winter?.firewood).toMatchObject({
+      stock: 1,
+      missing: 0,
+      text: 'Até a Primavera a lareira ainda queima 120 de madeira. O estoque e a Serraria dão conta.',
+    });
+    expect(winterEvents(state, 'coldStarted')).toEqual([]);
+  });
+
+  it('a obra automática só pesa na conta do instante em que começa', () => {
+    // O mesmo feudo com dois mineiros, 80,3 de madeira e a Fazenda planejada como automática:
+    // custa 80 de madeira e 40 de ouro.
+    const withPlan = (gold: number) =>
+      accept(
+        tenAt((draft) => {
+          draft.settlement.workers = { farm: 0, lumberMill: 1, quarry: 0, goldMine: 2 };
+          draft.settlement.resources = { food: 400_000, wood: 80_300, stone: 100_000, gold };
+          draft.settlement.morale = 0;
+        }),
+        command('planConstruction', { building: 'farm', autoStart: true }),
+      ).state;
+    // Com 39 de ouro a obra começa em dez minutos, antes de a Serraria alcançar a lareira: leva
+    // os 80, e os 0,3 que sobram não pagam os 0,4 que faltam até a virada.
+    const soon = withPlan(39_000);
+    expect(view(soon).winter?.firewood).toMatchObject({
+      stock: 80,
+      reserved: 80,
+      missing: 1,
+      text: 'Até a Primavera a lareira ainda queima 120 de madeira. A Serraria repõe 143 e há 80 em estoque, mas a obra planejada da Fazenda leva 80 quando começar sozinha, e a reposição só alcança a lareira mais adiante: antes disso faltam 1 de madeira. Mande gente para a Serraria ou desligue o início automático.',
+    });
+    expect(winterEvents(soon, 'coldStarted')).toHaveLength(1);
+    // Sem ouro nenhum ela só começa horas depois da virada, com a Serraria já à frente da
+    // lareira: a conta fecha, e o frio não abre.
+    const later = withPlan(0);
+    expect(view(later).winter?.firewood).toMatchObject({
+      stock: 80,
+      reserved: 80,
+      missing: 0,
+      text: 'Até a Primavera a lareira ainda queima 120 de madeira. O estoque e a Serraria dão conta, mesmo com os 80 que a obra planejada da Fazenda leva.',
+    });
+    expect(winterEvents(later, 'coldStarted')).toEqual([]);
+  });
+
+  it('a lenha que acaba antes não tira o prazo da comida', () => {
+    // Ninguém na Fazenda, 50 de comida e 10 de madeira: o frio abre em 2 h e a fome, em 5 h. A
+    // moral cai de 60 para 50 na próxima virada, e a projeção, que por isso anda trecho a
+    // trecho, parava no frio: a comida aparecia com −10/h e sem prazo.
+    const state = tenAt((draft) => {
+      draft.settlement.resources.food = 50_000;
+      draft.settlement.resources.wood = 10_000;
+      draft.settlement.morale = 60;
+    });
+    const derived = view(state);
+    expect(row(derived, 'wood')).toMatchObject({ perHour: -5, depletesInSeconds: 2 * 3600 });
+    expect(row(derived, 'food')).toMatchObject({ perHour: -10, depletesInSeconds: 5 * 3600 });
+    expect(winterEvents(state, 'coldStarted')).toEqual([2 * HOUR]);
+    expect(winterEvents(state, 'famineStarted')).toEqual([5 * HOUR]);
+    // No ritmo 3 os mesmos prazos, no relógio de quem joga.
+    expect(row(view(state, 3), 'food')).toMatchObject({ perHour: -30, depletesInSeconds: 6000 });
+  });
+
+  it('o frio que abre no caminho adianta o prazo da comida: a Fazenda rende menos com ele', () => {
+    // Dois lavradores entregam 8,4 das 10 por hora: pelo saldo de agora, os 50 de comida
+    // durariam 31 h, além da primavera. O frio abre em 2 h, corta a Fazenda e pesa na moral: a
+    // fome chega em 14 h, ainda no inverno, e o prazo anunciado é esse.
+    const state = tenAt((draft) => {
+      draft.settlement.workers.farm = 2;
+      draft.settlement.resources.food = 50_000;
+      draft.settlement.resources.wood = 10_000;
+      draft.settlement.morale = 60;
+    });
+    const food = row(view(state), 'food');
+    const [famineAt] = winterEvents(state, 'famineStarted');
+    expect(food.perHour).toBe(-1.6);
+    expect(famineAt).toBeGreaterThan(14 * HOUR);
+    expect(famineAt).toBeLessThan(14 * HOUR + 2 * MINUTE);
+    expect(food.depletesInSeconds).toBe(Math.floor((famineAt ?? 0) / 1000));
+  });
+
+  it('a fome que abre no caminho dá prazo à lenha que hoje ainda sobra', () => {
+    // Um lenhador cobre a lareira com folga (+1,7/h), mas a comida acaba em 1 h: a fome corta a
+    // Serraria e derruba a moral, a madeira passa a cair, e o frio abre perto das 9 h 36 min.
+    const state = tenAt((draft) => {
+      draft.settlement.workers.lumberMill = 1;
+      draft.settlement.resources.food = 10_000;
+      draft.settlement.resources.wood = 3_000;
+      draft.settlement.morale = 60;
+    });
+    const derived = view(state);
+    expect(row(derived, 'food')).toMatchObject({ perHour: -10, depletesInSeconds: 3600 });
+    const wood = row(derived, 'wood');
+    const [coldAt] = winterEvents(state, 'coldStarted');
+    expect(wood.perHour).toBe(1.7);
+    expect(coldAt).toBeGreaterThan(9 * HOUR + 36 * MINUTE);
+    expect(coldAt).toBeLessThan(9 * HOUR + 37 * MINUTE);
+    expect(wood.depletesInSeconds).toBe(Math.floor((coldAt ?? 0) / 1000));
+  });
+
+  it('a escassez que só abriria depois da primavera, atrás de outra, continua sem prazo', () => {
+    // O frio abre em 1 h 30 min. A comida acabaria 40 h depois de agora, com o inverno pela
+    // metade disso: do outro lado da virada a conta é outra, e a visão não adivinha.
+    const derived = view(lateLumberMill(300));
+    expect(row(derived, 'food')).toMatchObject({ perHour: -10, depletesInSeconds: null });
+  });
+
+  // C-8, o que ficou: a conta da lenha é feita com a Serraria de agora e a moral da próxima
+  // virada, e não vê a fome que abre no caminho e corta a Serraria. O prazo da madeira já a vê
+  // (o teste acima); a conta ainda diz "dão conta". Fechar isso pede tirar `missing` da projeção
+  // trecho a trecho, e não da soma.
+  it.fails('a conta da lenha vê a fome que abre no caminho e corta a Serraria', () => {
+    const state = tenAt((draft) => {
+      draft.settlement.workers.lumberMill = 1;
+      draft.settlement.resources.food = 10_000;
+      draft.settlement.resources.wood = 3_000;
+      draft.settlement.morale = 60;
+    });
+    expect(winterEvents(state, 'coldStarted')).toHaveLength(1);
+    expect(view(state).winter?.firewood.missing).toBeGreaterThan(0);
+  });
+});
+
 describe('calendário: a próxima estação que queima lenha', () => {
   /**
    * Fim do verão, 20º dia: 18 habitantes, ninguém na Serraria e 60 de madeira. Faltam 4 dias de
