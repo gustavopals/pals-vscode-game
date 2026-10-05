@@ -141,6 +141,60 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase C: heróis no feudo (V3C-T1)
+
+Vêm da implementação de V3C-T1 (heróis, soldo e atraso; estado na versão 14). Nenhuma foi perguntada ao autor. **Nenhuma regra dá um herói a ninguém ainda**: tudo abaixo só passa a valer para quem joga depois da carta de V3C-T3.
+
+**C-1. O herói não tem gênero no estado, e a ficha diz "Edda — Guerreiro", "Isolda — Mago, Veterano, Ganancioso".**
+- Enquanto isso: cada classe e cada traço têm um rótulo só, no masculino (`heroClasses`, `heroTraits`), e o herói guarda só nome, classe e traços. O ADR 0017 fala em "Edda, Guerreira Leal".
+- Onde: `packages/content/src/heroes.ts`; `Hero` em `packages/engine/src/types.ts`; `guildView.ts` (`classLabel`, `traits[].label`).
+- Se decidir diferente: (a) **recomendada:** o herói ganha um campo de forma de tratamento, e a classe e os traços, as duas formas; é um campo novo no estado, e o lugar de fazê-lo é V3C-T3, que traz os heróis nomeados, antes de qualquer publicação da Fase C (depois de publicado, é mais um passo de migração). (b) Rótulos neutros de propósito ("Guerreiro(a)" não; algo como "da Guarda"), sem campo. (c) Deixar como está.
+
+**C-2. O teto da lista de heróis é 12 (`balance.heroes.rosterCap`), e é o agente que o escolheu.**
+- Enquanto isso: a guarda do estado recusa uma lista maior. O limite de contratação continua `1 + nível da Taverna` (até 6), e a recompensa de carta ou de expedição não é barrada por ele; o teto de 12 é o único número que barraria também uma recompensa. Nesta tarefa nada põe herói no feudo, então nada é barrado ainda.
+- Onde: `packages/content/src/balance.ts`; `packages/engine/src/migrations/v14.ts` (`HERO_ROSTER_CAP_V14`); GDD §9.1; roadmap, §0.7, "Estado de tamanho limitado".
+- Se decidir diferente: outro número é conteúdo, mais a constante da guarda. **O que acontece com a recompensa que chegaria com a lista cheia** (o herói não entra? vira ouro?) é pergunta do plano de V3C-T3 e de V3D-T2; sem teto nenhum, o estado e a visão não têm tamanho máximo.
+
+**C-3. Quem chega no meio de um atraso antigo paga um passo do prazo na virada seguinte.**
+- Enquanto isso: com só Leais no feudo, o que o prazo cobraria fica perdoado a cada virada (`departed` acompanha os devidos). Um herói que não é Leal e chega com o atraso já passado das 24 h reais fica Descontente na primeira virada e é devido no primeiro passo de 2 h reais depois dela: não sai em bloco pelo que ficou para trás, mas também não ganha as 24 h de carência de novo.
+- Onde: `turnWages`, em `packages/engine/src/wages.ts`; teste "só Leais…" em `wages.test.ts`.
+- Se decidir diferente: dar a cada herói a própria carência pede guardar, por herói, desde quando ele está sem soldo; é campo novo e outra conta.
+
+**C-4. Enquanto o atraso dura, o que a Mina entrega vai inteiro para o soldo, e o cofre fica em zero.**
+- Enquanto isso: é o molde do frio com a madeira. Com três heróis (6 por hora) e um mineiro (uns 4), o atraso fica aberto para os três, o ouro não se acumula e ninguém é "o herói pago": todos ficam Descontentes e partem na ordem de chegada, até a Mina cobrir quem sobrou. Não há dívida.
+- Onde: `flowRate`, em `packages/engine/src/economy.ts`; README do motor, "Heróis e soldo".
+- Se decidir diferente: pagar herói por herói (os primeiros recebem, o último fica em atraso) pede um atraso por herói. Deixar o ouro da Mina acumular durante o atraso faria o atraso fechar e reabrir a cada milésimo: não fecha a conta exata.
+
+**C-5. Com o saldo de ouro exatamente em zero e o cofre vazio, o atraso não abre; se já estava aberto, não fecha.**
+- Enquanto isso: é a mesma folga da fome (a que abre com saldo negativo e fecha com saldo positivo), e é a frase do GDD: "fecha quando o saldo de ouro volta a ser positivo". O caso é a Mina rendendo exatamente o soldo: quem já estava em atraso continua, embora o soldo de agora esteja sendo pago.
+- Onde: `goldRunsOutIn` e `goldCoversWages`, em `economy.ts`.
+- Se decidir diferente: fechar com saldo zero pede cuidado para o atraso não oscilar no mesmo instante; é mudança de regra e de golden.
+
+**C-6. O atraso que fecha e reabre tira o Descontente até a virada seguinte.**
+- Enquanto isso: fechado o atraso, ninguém fica Descontente; reaberto dentro da janela, a duração e os heróis cobrados continuam, e o Descontente volta na próxima virada do dia, com outra linha na Crônica. Um ganho pequeno de ouro logo depois de cada virada deixa os heróis sem a penalidade pela maior parte do dia de jogo, sem atrasar as partidas. Hoje o jogador não tem como pôr ouro no cofre quando quer; com o Mercado (Fase E), terá.
+- Onde: `settleWageArrears` e `turnWages`, em `wages.ts`.
+- Se decidir diferente: manter o Descontente enquanto o registro do último atraso estiver dentro da janela é mudança pequena, de regra e de golden; conferir em V3E-T5.
+
+**C-7. As frases dos traços não têm números e falam de efeitos que ainda não existem.**
+- Enquanto isso: só o Leal tem efeito no motor (`effects.loyalInArrears`). As frases dos outros sete dizem em palavras o que o ADR 0017 prevê para a v0.3 ("Rende mais quando a ordem é de ousadia…"), sem número. Não aparecem para ninguém até haver herói com o traço.
+- Onde: `packages/content/src/heroes.ts`; o schema recusa dígito na frase.
+- Se decidir diferente: cada frase é reescrita na tarefa que implementa o efeito (V3C-T2, V3D-T1, V3D-T2, V3F-T1), com o número vindo do campo do efeito.
+
+**C-8. `HERO_BUSY` não entrou.**
+- Enquanto isso: `dismissHero` só recusa com `HERO_NOT_FOUND`. O teste das recusas exige que toda recusa seja alcançável, e nesta fase todo herói está no feudo.
+- Onde: `packages/engine/src/commands.test.ts`; roadmap, Apêndice B.2.
+- Se decidir diferente: nada a decidir; entra em V3D-T1, com o primeiro herói fora do feudo.
+
+**C-9. As quatro colunas do simulador desta tarefa continuam vazias.**
+- Enquanto isso: `heroes`, `wages_paid`, `wage_arrears_hours` e `heroes_departed` saem vazias. Nenhum bot tem como ter herói antes de V3C-T3, e `wages_paid` pede um total que nem a visão nem os eventos trazem (o soldo é consumo contínuo, como a comida).
+- Onde: `packages/sim-cli/src/report.ts` (`RESERVED_COLUMNS`).
+- Se decidir diferente: V3C-T5 as preenche; para `wages_paid` o motor teria de contar o soldo pago em `stats`, o que muda os retratos.
+
+**C-10. `CLAUDE.md` foi atualizado nos fatos que a tarefa tornou falsos.**
+- Enquanto isso: a versão do estado (14), a lista das constantes de tempo real (mais as quatro do soldo), a ordem fixa do instante (a cobrança do soldo e o atraso em `settleScarcity`) e o parágrafo "A v0.3 está em execução". Nenhuma regra de trabalho mudou.
+- Onde: `CLAUDE.md`, "Estado", "Detalhes que não são óbvios", "Persistência" e "Motor".
+- Se decidir diferente: reverter é um commit.
+
 ### Fase B: fundação da Guilda
 
 Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum defeito confirmado, sete riscos e quatro dúvidas. Os riscos R3, R4a, R6 e R7 e a dúvida D3 foram corrigidos em commits próprios. O que ficou:
@@ -166,6 +220,19 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C (V3C-T1)
+
+Do mais arriscado para o menos.
+
+1. **Nenhuma partida de verdade tem herói.** Não existe ordem nem evento que dê um; todo teste põe heróis por um auxiliar (`addHero`, no motor; `enlistHeroes`, direto no banco de teste). O soldo, o atraso e as consequências nunca foram vistos em uma partida jogada do começo, e o app não mostra nada da guilda (a interface é V3C-T4): nos testes em navegador a visão traz a guilda vazia.
+2. **O simulador não mede o soldo.** Nenhum bot tem herói; a matriz passou sem mudança de faixa porque nada mudou para quem não tem herói. Tudo o que o ADR 0017 manda validar no simulador (o Preguiçoso não perde herói por uma noite fora; o aviso chega antes das 12 h reais no Tranquilo; quantos heróis o Dedicado sustenta) continua por fazer, em V3C-T5.
+3. **O backup do banco de produção e a passagem de partidas de produção pelo passo 13 → 14.** Nada foi enviado. O passo só foi exercitado nos 25 retratos da versão 13 e nos casos de integração.
+4. **"Por quanto tempo o ouro paga a equipe" foi conferido contra o motor em feudos simples** (os três ritmos, com e sem um mineiro e a moral subindo no caminho), não por propriedade: a fome ou o frio que abrem no caminho, a virada de estação e uma obra da Mina terminando não têm teste que compare o segundo anunciado com o do motor. A previsão é pela estação de agora, como a da comida.
+5. **O tamanho do estado e da visão com a lista cheia** (12 heróis) não foi medido; a medição por fase é de V3C-T5. `--perf` não foi rodado.
+6. **A visão guardada no navegador por uma versão anterior do app** é descartada ao primeiro campo novo (`guild`), como em toda adição ao `ViewState`; é o comportamento esperado (roadmap, §0.7, "Compatibilidade"), e não foi conferido em navegador nesta tarefa.
+7. **As frases novas** (cinco da Crônica, duas do fim do atraso, oito dos traços, a do atraso na visão) não foram lidas pelo autor.
+8. **`pnpm test:e2e:landing`, `pnpm capture:landing` e `pnpm docker:build`** não rodaram: nada da página, da aparência do app ou da imagem mudou.
 
 ### Fase B
 
