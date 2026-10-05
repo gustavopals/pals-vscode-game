@@ -9,6 +9,7 @@ import {
   RESOURCE_IDS,
 } from '@lotg/content';
 
+import { promiseHero } from './arrivals';
 import { emit } from './chronicle';
 import { DAY_MS, isYearBoundary, nextDayBoundary, seasonAt } from './clock';
 import { amountsData, constructionOf, missingResources, payResources } from './construction';
@@ -171,7 +172,10 @@ export function eligibleCards(
 
 /**
  * A carta roteirizada que fura o sorteio de `atMs`: a primeira do catálogo cujo dia chegou e
- * que ainda não saiu nesta partida. Nenhuma carta da v0.2 é roteirizada (ADR 0014, decisão 8).
+ * que ainda não saiu nesta partida. O dia conta da fundação e não tem teto: a partida que já
+ * passou dele (a que vem de uma versão anterior, ou a que encontrou a mesa cheia) recebe a carta
+ * na primeira audiência com lugar, uma vez, no ano que for. A primeira roteirizada do jogo é
+ * "Estrangeira ferida" (ADR 0017, decisão 6).
  */
 export function scriptedCard(state: GameState, atMs: number, catalog: Catalog): CouncilCard | null {
   return (
@@ -278,6 +282,8 @@ type Outcome = {
   /** O que o limite do depósito cortou de um ganho. */
   lost: Record<ResourceId, number>;
   morale: { amount: number; durationDays: number } | null;
+  /** O herói com nome que a opção trouxe ou prometeu, e em quantos dias de jogo ele chega. */
+  hero: { namedHeroId: string; afterDays: number } | null;
 };
 
 const noOutcome = (): Outcome => ({
@@ -285,12 +291,13 @@ const noOutcome = (): Outcome => ({
   gained: { food: 0, wood: 0, stone: 0, gold: 0 },
   lost: { food: 0, wood: 0, stone: 0, gold: 0 },
   morale: null,
+  hero: null,
 });
 
 const toUnits = (milli: Record<ResourceId, number>): ResourceAmounts =>
   Object.fromEntries(RESOURCE_IDS.map((id) => [id, milli[id] / MILLI]));
 
-function outcomeData(outcome: Outcome): Record<string, number> {
+function outcomeData(outcome: Outcome): Record<string, string | number> {
   return {
     ...amountsData('spent', toUnits(outcome.spent)),
     ...amountsData('gained', toUnits(outcome.gained)),
@@ -298,6 +305,9 @@ function outcomeData(outcome: Outcome): Record<string, number> {
     ...(outcome.morale === null
       ? {}
       : { morale: outcome.morale.amount, moraleDays: outcome.morale.durationDays }),
+    ...(outcome.hero === null
+      ? {}
+      : { hero: outcome.hero.namedHeroId, heroAfterDays: outcome.hero.afterDays }),
   };
 }
 
@@ -321,6 +331,9 @@ function insertByTime<T extends { atMs: number }>(list: T[], entry: T): void {
  *   dia. Não mexe na moral na hora (GDD §5.7).
  * - **Flags:** gravadas e apagadas; só outras cartas as leem.
  * - **Continuação:** entra na lista de agendadas, com a escolha que a pediu.
+ * - **Herói:** entra na lista dos prometidos (`guild.arriving`), para agora ou para `afterDays`
+ *   dias de jogo depois, contados deste instante. Quem cria o herói é `settleHeroArrivals`, que
+ *   a ordem e o instante chamam logo em seguida: a linha da chegada vem depois da da carta.
  */
 function applyEffects(
   draft: GameState,
@@ -373,6 +386,12 @@ function applyEffects(
           previousInstanceId: instanceId,
         });
         break;
+      case 'addHero': {
+        const afterDays = effect.afterDays ?? 0;
+        promiseHero(draft, effect.heroId, atMs + afterDays * DAY_MS);
+        outcome.hero = { namedHeroId: effect.heroId, afterDays };
+        break;
+      }
     }
   }
 }

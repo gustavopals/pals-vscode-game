@@ -4,10 +4,12 @@ import type {
   EnemyId,
   GameEventType,
   HeroClassId,
+  HeroGenderId,
   HeroStatusId,
   HeroTraitId,
   MoraleBandId,
   MoraleTermId,
+  NamedHeroId,
   ProductionBuildingId,
   RaidSizeId,
   ResourceId,
@@ -21,10 +23,12 @@ export type {
   EnemyId,
   GameEventType,
   HeroClassId,
+  HeroGenderId,
   HeroStatusId,
   HeroTraitId,
   MoraleBandId,
   MoraleTermId,
+  NamedHeroId,
   ProductionBuildingId,
   RaidSizeId,
   ResourceId,
@@ -167,6 +171,14 @@ export type InjuredVillager = {
   building: ProductionBuildingId | null;
 };
 
+/** Um herói prometido por uma carta, a caminho do feudo (`guild.arriving`). */
+export type ArrivingHero = {
+  /** O herói com nome do conteúdo; o que o conteúdo já não tem sai da lista sem chegar. */
+  namedHeroId: NamedHeroId;
+  /** Quando ele chega, em tempo de jogo. */
+  atMs: number;
+};
+
 /**
  * Um herói a serviço do feudo (GDD §9.1; ADR 0017). Só o que não se deriva: os atributos e o
  * poder saem da classe, do nível e do Descontente, em `heroes.ts`, e nunca são gravados.
@@ -175,6 +187,8 @@ export type Hero = {
   /** `hero-<n>`, de `nextId(draft, 'hero')`: nunca reutilizado. */
   id: string;
   name: string;
+  /** A forma de tratamento: a ficha diz "Guerreira" ou "Guerreiro" conforme o nome. */
+  gender: HeroGenderId;
   classId: HeroClassId;
   /** De 1 ao nível máximo do conteúdo. */
   level: number;
@@ -201,7 +215,7 @@ export type Hero = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 14;
+  schemaVersion: 15;
   seed: string;
   settings: GameSettings;
   /**
@@ -353,6 +367,15 @@ export type GameState = {
   guild: {
     /** Os heróis, na ordem em que chegaram; nunca mais do que `balance.heroes.rosterCap`. */
     heroes: Hero[];
+    /**
+     * Os heróis com nome que uma carta prometeu e que ainda não chegaram, em ordem de instante
+     * (ADR 0017, decisão 6): `namedHeroId` é o de `namedHeroes`, no conteúdo, e `atMs`, o
+     * instante de jogo em que ele chega. Quem tem o instante vencido espera lugar na lista de
+     * heróis, que está no teto, e entra assim que um lugar abrir: uma recompensa nunca se perde.
+     * Não é segredo: a visão diz quem vem e quando. Nunca mais do que
+     * `balance.heroes.arrivingCap`.
+     */
+    arriving: ArrivingHero[];
     /**
      * O soldo em atraso, aberto no instante em que o ouro acabou com soldo a pagar, no molde
      * de `settlement.famine`. `sinceMs` é o instante em que abriu, ou reabriu; `carriedMs`, o
@@ -984,6 +1007,18 @@ export type WageArrearsView = {
   nextDepartureInSeconds: number | null;
 };
 
+/** Um herói a caminho do feudo: quem é e em quanto tempo real chega. */
+export type ArrivingHeroView = {
+  name: string;
+  /** "Arqueiro". */
+  classLabel: string;
+  traits: Array<{ label: string; text: string }>;
+  /** Segundos reais até ele chegar; zero quando o prazo já venceu e ele espera lugar. */
+  arrivesInSeconds: number;
+  /** Por que ele ainda não entrou, com o prazo vencido; `null` enquanto está a caminho. */
+  blockedReason: string | null;
+};
+
 /**
  * Os heróis e o soldo deles (GDD §9.1). O edifício da Guilda, os lugares de expedição e as
  * expedições entram com a Fase D.
@@ -993,6 +1028,8 @@ export type GuildView = {
   heroLimit: number;
   /** Na ordem em que chegaram. */
   heroes: HeroView[];
+  /** Os heróis que uma carta prometeu e que ainda não chegaram, na ordem em que chegam. */
+  arriving: ArrivingHeroView[];
   wage: {
     /** O soldo de toda a equipe, em ouro por hora real. Zero sem herói. */
     perHour: number;

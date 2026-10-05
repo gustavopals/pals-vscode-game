@@ -379,8 +379,12 @@ describe('carta roteirizada', () => {
     expect(scriptedCard(later.state, 3 * YEAR, catalog)).toBeNull();
   });
 
-  it('nenhuma carta do jogo é roteirizada na v0.2', () => {
-    expect(councilCards.filter((entry) => entry.scripted !== undefined)).toEqual([]);
+  it('a única roteirizada do jogo é a "Estrangeira ferida", no 13º dia (stranger.test.ts a segue de ponta a ponta)', () => {
+    expect(
+      councilCards
+        .filter((entry) => entry.scripted !== undefined)
+        .map((entry) => [entry.id, entry.scripted?.atGameDay]),
+    ).toEqual([['woundedStranger', 13]]);
   });
 });
 

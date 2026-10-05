@@ -1,0 +1,120 @@
+# Conteúdo da v0.3: cartas do Conselho
+
+Data: 2026-10-05\
+Tarefa: V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md) (decisões 5 e 6 do [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md)); o lote 2 entra aqui com V3F-T1\
+Formato: a ficha da [§13.4 do roadmap da v0.3](roadmap-v0.3.md), que é a da v0.2 ([content-v0.2.md](content-v0.2.md)) com os campos de equipe e de herói
+
+**Estado da curadoria: rascunho, não lido pelo autor.** A carta deste documento foi escrita pelo agente e entrou no jogo sem aprovação: o autor escolheu "escrevo e sigo; você revisa depois" ([ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md); pendência A-7 de [pendencias-v0.3.md](pendencias-v0.3.md)). Texto, números e nomes são conteúdo, e trocar qualquer um deles é editar `packages/content/src/cards/scripted.ts` ou `heroes.ts` e regravar os goldens. **Os identificadores não:** `woundedStranger`, `shelter`, `tend`, `edda` e `rolf` ficam gravados no estado das partidas e estão fixados em `packages/content/src/council.test.ts`; mudar um deles depois de publicado pede passo de migração.
+
+Onde este documento e o código divergirem, vale o código.
+
+## Índice
+
+1. [O que a v0.3 acrescenta ao catálogo](#1-o-que-a-v03-acrescenta-ao-catálogo)
+2. [Regras editoriais novas](#2-regras-editoriais-novas)
+3. [Fichas das cartas](#3-fichas-das-cartas)
+4. [Heróis com nome](#4-heróis-com-nome)
+5. [O que ficou para o lote 2](#5-o-que-ficou-para-o-lote-2)
+
+## 1. O que a v0.3 acrescenta ao catálogo
+
+| # | Carta | Tipo | Quando sai | No jogo | Curadoria |
+|---:|---|---|---|---|---|
+| 22 | Estrangeira ferida | Roteirizada | No começo do 13º dia de jogo, uma vez por partida; a partida que já passou dele, na primeira audiência com lugar | sim (V3C-T3) | rascunho, não lido pelo autor |
+
+O catálogo tem 22 cartas: as 21 do primeiro lote e esta. Ela fica no fim da lista de `cards/index.ts`: não tem peso, nunca entra no sorteio por peso, e a posição dela não muda a chance de nenhuma outra. O que ela muda é a audiência em que chega: vai na frente das sorteadas, e naquela audiência o gerador não anda.
+
+Estágios da curadoria (roadmap da v0.2, §12.3): rascunho → cenário validado → aprovado → implementado → observado no playtest. Esta carta está em "implementado", com o cenário validado por teste (`packages/engine/src/stranger.test.ts`), **sem ter passado por "aprovado"**.
+
+## 2. Regras editoriais novas
+
+Cada uma tem um teste em `packages/content/src/council.test.ts`.
+
+- **O que nenhuma carta diz.** A regra da v0.2 ("nenhuma frase fala de herói, mapa, Mercado, ferro, exército ou combate") deu lugar a três, mais estreitas: (1) nenhuma carta fala de ferro, exército, combate, presságio, relíquia nem de edifício de versão futura; (2) nenhuma fala do que a v0.3 ainda não entregou (Mercado, mapa, expedição, Guilda, Taverna), e isso afrouxa de novo em V3F-T1; (3) **só a carta que entrega um herói** fala de herói, de classe ou de arma.
+- **Herói de carta é recompensa, nunca compra.** A opção com `addHero` não tem custo nem requisito, não esconde o herói em efeito escondido e dá um herói só. O schema recusa o contrário.
+- **Todo `addHero` aponta para um herói com nome que existe** (`namedHeroes`), e só uma carta roteirizada dá herói: ela sai uma vez por partida, então cada herói com nome chega no máximo uma vez.
+- **Quem chega depois chega logo:** o prazo de um herói prometido não passa do intervalo entre duas audiências.
+- **A roteirizada segue a ordem das outras cartas:** primeiro a opção que o conselho aplica sozinho em Senhor, por último a de Rei de Ferro. Como nenhuma das duas custa, a comparação "nenhuma opção sem custo é melhor em tudo" passou a contar o herói: quem chega agora vale mais do que quem chega depois.
+
+## 3. Fichas das cartas
+
+### 3.1 Roteirizada
+
+#### Estrangeira ferida (`woundedStranger`, v1)
+
+- **Dilema:** Uma guerreira leal agora, ou ouro e um arqueiro amanhã.
+- **Quando sai:** roteirizada (`scripted: { atGameDay: 13 }`), sem peso, sem requisito de estação, edifício, flag ou moral. No começo do 13º dia de jogo: 24 h reais no ritmo Normal, 8 h no Rápido, 48 h no Tranquilo; antes dos lobos do roteiro (16º dia).
+- **Repetição e virada do ano:** uma vez por partida. Não volta no ano 2 nem depois.
+- **Lugar na mesa:** pede lugar e não o reserva. Com duas cartas pendentes, ou com uma continuação vencida ocupando o lugar que sobrava, espera a audiência seguinte, sem se perder.
+- **Partidas que já existiam:** recebem a carta na primeira audiência com lugar depois da atualização, em qualquer ano, uma vez (ADR 0017, decisão 6: "Sim, a todos").
+- **Texto:** Os vigias acharam uma mulher caída à beira da estrada, de espada na mão e com um talho fundo no flanco. Diz chamar-se Edda e não pede esmola: pede um teto até a ferida fechar. A quem lhe der abrigo, oferece o braço e a palavra.
+
+| Opção | Custo e requisito | Consequência conhecida | Efeito oculto | Pista |
+|---|---|---|---|---|
+| **Acolher a estrangeira** (`shelter`) | sem custo | Edda, Guerreira (Leal), entra para o feudo agora; passa a cobrar soldo | — | Uma espada leal fica no feudo, e toda espada cobra soldo. |
+| **Cuidar e deixar partir** (`tend`) | sem custo | +40 ouro; +5 de moral por 1 dia de jogo; Rolf, Arqueiro (Prudente), chega 1 dia de jogo depois e passa a cobrar soldo | — | Ela paga o cuidado em moedas, e diz que o irmão virá agradecer. |
+
+Na tela, a consequência sai em uma frase com o tempo real do ritmo e o soldo por hora real. No ritmo Rápido: "Edda, Guerreira (Leal), entra para o feudo agora, com soldo de 6 ouro/h" e "+40 ouro; +5 de moral por 1 dia de jogo (40 min); Rolf, Arqueiro (Prudente), chega em 1 dia de jogo (40 min), com soldo de 6 ouro/h".
+
+- **Requisitos de equipe:** nenhum. Nenhuma opção pede traço, classe ou edifício.
+- **Efeitos da v0.3:**
+  - `shelter`: `addHero { heroId: 'edda' }`. Entra no instante da resposta (ou do prazo).
+  - `tend`: `resources { gold: 40 }`, `morale { amount: 5, durationDays: 1 }`, `addHero { heroId: 'rolf', afterDays: 1 }`. O ouro entra na hora; a moral vale na virada de dia seguinte; Rolf chega um dia de jogo depois da escolha, contado do instante dela (quem responde no meio do dia o recebe no meio do dia seguinte). A promessa não é segredo: a tela diz quem vem e em quanto tempo.
+  - Nenhum sorteio. Nenhuma flag, nenhuma continuação.
+- **Se ninguém responde (`autoResolve`):** Camponês: Acolher a estrangeira · Senhor: Acolher a estrangeira · Rei de Ferro: Cuidar e deixar partir. O prazo é o de toda carta, 24 h reais. **A expiração também entrega um herói**: ninguém fica sem equipe por estar fora.
+- **Limite de heróis:** o limite de contratação não barra a carta. Com a lista no teto técnico (12), o herói espera à porta e entra quando um lugar abrir; não se perde.
+- **Se o herói partir, for capturado ou morrer no meio da cadeia:** não se aplica; a carta não abre cadeia.
+- **Crônica:**
+  - Chegada: a frase geral ("o conselho de {feudo} pediu audiência: {carta}").
+  - Acolher a estrangeira: No {dia}º dia {daEstacao}, o senhor de {feudo} deu teto à estrangeira ferida. Edda jurou a espada ao feudo que a acolheu.
+    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, o conselho de {feudo} deu teto à estrangeira ferida. Edda jurou a espada ao feudo que a acolheu.
+    - Chegada da heroína (a frase geral de `heroJoined`): No {dia}º dia {daEstacao}, {heroi}, {classe}, passou a servir a {feudo}.
+  - Cuidar e deixar partir: No {dia}º dia {daEstacao}, o senhor de {feudo} mandou tratar a estrangeira e a deixou seguir viagem. Edda pagou em moedas e prometeu mandar ao feudo o irmão, arqueiro de mão firme.
+    - Ao expirar: No {dia}º dia {daEstacao}, sem palavra do senhor, as mulheres de {feudo} trataram a estrangeira, e ela seguiu viagem. Edda pagou em moedas e prometeu mandar ao feudo o irmão, arqueiro de mão firme.
+    - Chegada do arqueiro (a frase dele, em `namedHeroes.rolf.arrival`): No {dia}º dia {daEstacao}, um arqueiro bateu ao portão de {feudo}: {heroi}, irmão de Edda, vindo pagar a dívida dela. Passou a servir ao senhor.
+- **Cenários:**
+  - Acolher a estrangeira. *Faz sentido:* o feudo quer o herói já, antes dos lobos do roteiro, e quem joga uma vez por dia prefere quem nunca parte por soldo: Edda é Leal. *É ruim:* o cofre está no fim e ninguém trabalha na Mina; o soldo começa na hora, e 40 de ouro pagariam 20 horas de jogo dele.
+  - Cuidar e deixar partir. *Faz sentido:* falta ouro para uma obra agora, e um dia de jogo de espera não custa nada; ou o jogador prefere o Arqueiro (mais ataque, velocidade e perícia). *É ruim:* o feudo atrasa soldo com frequência: Rolf não é Leal, fica Descontente com 12 h reais de atraso e parte com 24 h.
+  - **Não usar o herói é a escolha razoável?** Não há opção sem herói: as duas dão um, de propósito (ADR 0017, decisão 6). Quem não quer pagar soldo dispensa o herói depois, pela ordem de dispensa.
+- **O que o agente decidiu ao escrever, e o autor pode trocar:**
+  - Os rótulos das opções ("Acolher a estrangeira"; o ADR diz "Acolher") e todo o texto.
+  - Rolf é o irmão de Edda, como no Apêndice B do GDD; a Crônica diz isso quando ele chega.
+  - Na expiração em Rei de Ferro quem trata dela são "as mulheres de {feudo}", para a frase não repetir "o conselho".
+  - A consequência na tela mostra o soldo do herói, por hora real: é o custo que a opção sem custo tem.
+
+## 4. Heróis com nome
+
+Estão em `namedHeroes` (`packages/content/src/heroes.ts`), com os identificadores em `NAMED_HERO_IDS`. Não são modelos da Taverna: só uma carta os entrega.
+
+| Id | Nome | Tratamento | Classe | Nível | Traços | Quem entrega | Frase própria de chegada |
+|---|---|---|---|---:|---|---|---|
+| `edda` | Edda | feminino | Guerreira | 1 | Leal | "Estrangeira ferida", `shelter` | não (a geral) |
+| `rolf` | Rolf | masculino | Arqueiro | 1 | Prudente | "Estrangeira ferida", `tend`, 1 dia de jogo depois | sim |
+
+**A forma de tratamento (pendência C-1, decidida pelo agente).** O herói guarda `gender` (`'f'` ou `'m'`), e cada classe e cada traço têm duas formas no conteúdo, `label` e `labelFeminine`:
+
+| Classe | `label` | `labelFeminine` |
+|---|---|---|
+| `warrior` | Guerreiro | Guerreira |
+| `archer` | Arqueiro | Arqueira |
+| `mage` | Mago | Maga |
+| `cleric` | Clérigo | Clériga |
+
+| Traço | `label` | `labelFeminine` |
+|---|---|---|
+| `brave` | Corajoso | Corajosa |
+| `prudent` | Prudente | Prudente |
+| `greedy` | Ganancioso | Gananciosa |
+| `charismatic` | Carismático | Carismática |
+| `devout` | Devoto | Devota |
+| `veteran` | Veterano | Veterana |
+| `loyal` | Leal | Leal |
+| `tracker` | Rastreador | Rastreadora |
+
+A frase de cada traço vale para as duas formas: um teste recusa "ele", "ela", "dele" e "dela" nela. Por isso a do Devoto mudou de "A fé dele levanta o ânimo do feudo." para "Tem fé, e a fé levanta o ânimo do feudo.".
+
+## 5. O que ficou para o lote 2
+
+- As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
+- Uma carta que **deixe de sair** conforme a equipe (por exemplo, só para quem não tem herói): hoje nenhum requisito de carta olha os heróis.
+- Outros heróis com nome: `arrivingCap` (4) e o teste "só roteirizada dá herói" valem enquanto os heróis de carta forem poucos e de uma vez por partida.

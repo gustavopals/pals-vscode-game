@@ -341,6 +341,179 @@ O que a tabela diz:
 - Node v24.15.0, como a seção 1; não repetida no 22 do `.nvmrc`.
 - As colunas reservadas da Guilda estão vazias: não há nada delas a medir até as Fases C a E.
 
-## 3. Rodadas das Fases C a G
+## 3. A estrangeira ferida e o primeiro soldo (V3C-T3)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3C-T5, V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com a seção 1. Nada foi medido ainda.*
+Tarefa V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md). É a primeira rodada em que **todo feudo tem um herói**: a carta roteirizada "Estrangeira ferida" chega a toda partida e entrega um, e o soldo dele passa a sair do ouro. Duas coisas mudam a economia ao mesmo tempo, e a rodada não as separa: **o soldo** (2 de ouro por hora de jogo) e **o sorteio**, porque a carta ocupa uma audiência do Conselho sem gastar o gerador, e daí em diante cada semente tira outras cartas e segue outro caminho de obras. A linha de base (`MEASURED`, em `packages/sim-cli/src/bands.ts`) foi regravada de propósito, nas três dificuldades.
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commit | A árvore da tarefa V3C-T3, no `main` local; os commits estão na linha V3C-T3 do [roadmap, §12](roadmap-v0.3.md) |
+| Identificação | Motor 0.2.0 · estado v15 · conteúdo `4c57c0f6ab502d2b` na rodada; o conteúdo que foi para o commit é o `c81a0678db8ca834`, que difere em três frases da carta (o irmão de Edda) e em nenhum número: `balance.test.ts` confere a cada `pnpm test`, com o conteúdo do commit, que as 50 sementes de Senhor medem exatamente o que está aqui |
+| Dificuldades | Camponês, Senhor e Rei de Ferro, 50 sementes cada (`pedra-alta-001` a `pedra-alta-050`) |
+| Perfis | Preguiçoso (1 visita por dia), Regular (2) e Dedicado (4), nos ritmos Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | A da seção 1, Node v24.15.0 |
+
+### 3.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix > matriz-senhor.csv 2> matriz-senhor.md
+pnpm -s sim -- --matrix --difficulty peasant > matriz-campones.csv 2> matriz-campones.md
+pnpm -s sim -- --matrix --difficulty ironKing > matriz-rei.csv 2> matriz-rei.md
+```
+
+Antes de a linha de base ser regravada os três comandos saíram com código 1 (partidas fora das faixas antigas); depois, `pnpm test` joga a matriz de Senhor inteira e as outras duas com 3 sementes, dentro das faixas novas. Os números da guilda (seção 3.3) vêm de `Summary.guild`, que o simulador passou a calcular dos eventos de cada partida; as quatro colunas da Guilda no CSV continuam reservadas até V3C-T5.
+
+### 3.2 O que os bots fazem com a carta
+
+Os dois bots leem só a visão. O `economico` paga a opção mais cara que cabe com folga e, sem nenhuma, fica com a primeira sem custo; o `preguicoso` responde sempre com a primeira sem custo. Na carta da estrangeira nenhuma opção custa, e a primeira é **"Acolher"**: **toda partida da matriz termina com Edda**, que é Leal. **Nenhum bot escolhe "Cuidar e deixar partir"**, em nenhuma dificuldade: o arqueiro, que não é Leal, o ouro da estrangeira e a chegada adiada **não passam pelo simulador**. Em Rei de Ferro é a opção que o conselho aplica sozinho, mas nenhum bot deixa a carta expirar.
+
+### 3.3 O primeiro herói e o soldo, por célula
+
+Iguais nas três dificuldades, nas 50 sementes de cada célula:
+
+| Ritmo | Perfil | A carta é do 13º dia (hora real) | Hora real do primeiro herói | Heróis no fim | Horas reais com soldo em atraso | Heróis que partiram |
+|---|---|---:|---:|---:|---:|---:|
+| Rápido 3× | Dedicado | 8 | 12 | 1 | 0 | 0 |
+| Rápido 3× | Regular | 8 | 24 | 1 | 0 | 0 |
+| Rápido 3× | Preguiçoso | 8 | **48** | 1 | 0 | 0 |
+| Normal 1× | Dedicado | 24 | 24 | 1 | 0 | 0 |
+| Normal 1× | Regular | 24 | 24 a 36 | 1 | 0 | 0 |
+| Normal 1× | Preguiçoso | 24 | **48** | 1 | **21, em toda semente** | 0 |
+| Tranquilo 0,5× | os três | 48 | 48 | 1 | 0 | 0 |
+
+O que se lê:
+
+- **Todo feudo recebe o herói, em todo perfil, ritmo e dificuldade.** É o critério 1 do GDD §16.2 visto de fora. Um teste em `balance.test.ts` confere as horas e as contagens acima a cada `pnpm test`.
+- **O Preguiçoso recebe o herói um dia real depois dos outros, no Rápido e no Normal.** A carta pede lugar na mesa e não o reserva: quem só passa pelo feudo uma vez por dia encontra na primeira visita as cartas dos dias 5 e 9 ocupando os dois lugares, e a estrangeira só chega na audiência seguinte à visita. No Rápido isso é a hora 48, e não a 24. Quem **nunca** aparece espera mais: com as duas cartas na mesa até o prazo, a estrangeira chega na audiência do 21º dia no ritmo Normal e do 45º no Rápido, e o conselho a acolhe 24 h reais depois (64 h e 53 h reais desde a fundação). Reservar lugar para a roteirizada resolveria e é mudança de regra do Conselho: está com o autor (pendência C-13).
+- **PIOROU: o Preguiçoso do ritmo Normal soma 21 h reais com o soldo em atraso, em toda semente e em toda dificuldade.** Ele não põe ninguém na Mina a tempo de pagar. Com Edda não acontece nada além de o ouro ficar em zero nesse tempo: ela é Leal, não fica Descontente e não parte. **Nenhum herói partiu em nenhuma partida da matriz**, e é por isso, não porque o soldo esteja folgado. Com um herói que não fosse Leal, 21 h passam das 12 h reais do Descontente e ficam a 3 h das 24 h em que o primeiro parte; isso é conta dos prazos sobre a medida, **não foi medido**: nenhum bot escolhe o arqueiro.
+- **O soldo de um herói não aparece no ouro parado de quem tem ouro** (seção 3.4): são 2 por hora de jogo contra milhares por dia.
+
+### 3.4 O ouro parado, antes e depois
+
+Ouro em estoque no fim da janela, nas 50 sementes de cada célula: menor / mediana / maior. "Antes" é a seção 1.3.
+
+| Ritmo | Perfil | Dificuldade | 7 dias, antes: menor / mediana / maior | 7 dias, depois | Ano de jogo, antes | Ano de jogo, depois |
+|---|---|---|---|---|---|---|
+| Rápido 3× | Preguiçoso | Senhor | 3.925 / 7.482 / 7.497 | 3.201 / 6.761 / 6.778 | 51 / 299 / 304 | 3 / 251 / 256 |
+| Rápido 3× | Preguiçoso | Camponês | 3.960 / 7.511 / 7.524 | 3.236 / 6.792 / 6.804 | 51 / 198 / 202 | 3 / 149 / 154 |
+| Rápido 3× | Preguiçoso | Rei de Ferro | 3.942 / 7.508 / 7.536 | 3.221 / 6.803 / 6.816 | 153 / 292 / 474 | 105 / 245 / 426 |
+| Rápido 3× | Regular | Senhor | 113.566 / 128.436 / 148.487 | 112.443 / 134.350 / 150.285 | 1.870 / 2.176 / 3.052 | 1.889 / 1.986 / 2.979 |
+| Rápido 3× | Regular | Camponês | 132.557 / 143.029 / 152.495 | 133.086 / 141.238 / 150.960 | 1.778 / 2.362 / 3.560 | 1.903 / 2.279 / 3.392 |
+| Rápido 3× | Regular | Rei de Ferro | 148.435 / 154.854 / 165.302 | 147.857 / 152.694 / 165.720 | 2.538 / 2.928 / 6.322 | 2.363 / 2.738 / 6.215 |
+| Rápido 3× | Dedicado | Senhor | 284.168 / 309.332 / 324.539 | 281.219 / 308.791 / 319.751 | 1.130 / 8.225 / 12.964 | 1.193 / 8.691 / 12.515 |
+| Rápido 3× | Dedicado | Camponês | 296.216 / 309.405 / 323.662 | 293.365 / 308.602 / 320.468 | 1.274 / 3.414 / 13.816 | 543 / 2.546 / 14.378 |
+| Rápido 3× | Dedicado | Rei de Ferro | 266.497 / 278.635 / 294.121 | 263.262 / 278.334 / 290.931 | 4.357 / 10.554 / 14.091 | 4.579 / 10.172 / 14.072 |
+| Normal 1× | Preguiçoso | Senhor | 1.034 / 1.066 / 1.139 | 831 / 861 / 982 | 1.034 / 1.066 / 1.139 | 831 / 861 / 982 |
+| Normal 1× | Preguiçoso | Camponês | 62 / 1.072 / 1.165 | 832 / 880 / 961 | 62 / 1.072 / 1.165 | 832 / 880 / 961 |
+| Normal 1× | Preguiçoso | Rei de Ferro | 964 / 1.000 / 1.255 | 774 / 808 / 1.025 | 964 / 1.000 / 1.255 | 774 / 808 / 1.025 |
+| Normal 1× | Regular | Senhor | 2.348 / 8.967 / 23.641 | 1.761 / 7.510 / 19.777 | 2.348 / 8.967 / 23.641 | 1.761 / 7.510 / 19.777 |
+| Normal 1× | Regular | Camponês | 188 / 3.378 / 18.058 | 297 / 4.234 / 19.614 | 188 / 3.378 / 18.058 | 297 / 4.234 / 19.614 |
+| Normal 1× | Regular | Rei de Ferro | 3.057 / 10.880 / 19.717 | 1.201 / 8.824 / 19.471 | 3.057 / 10.880 / 19.717 | 1.201 / 8.824 / 19.471 |
+| Normal 1× | Dedicado | Senhor | 2.587 / 13.399 / 21.575 | 5.293 / 12.533 / 18.559 | 2.587 / 13.399 / 21.575 | 5.293 / 12.533 / 18.559 |
+| Normal 1× | Dedicado | Camponês | 12.284 / 15.898 / 20.225 | 11.220 / 14.672 / 20.127 | 12.284 / 15.898 / 20.225 | 11.220 / 14.672 / 20.127 |
+| Normal 1× | Dedicado | Rei de Ferro | 35.003 / 38.728 / 43.766 | 33.762 / 37.839 / 43.599 | 35.003 / 38.728 / 43.766 | 33.762 / 37.839 / 43.599 |
+| Tranquilo 0,5× | Preguiçoso | Senhor | 26 / 30 / 30 | 65 / 98 / 99 | 160 / 2.714 / 3.936 | 4.552 / 4.607 / 4.634 |
+| Tranquilo 0,5× | Preguiçoso | Camponês | 26 / 30 / 30 | 268 / 282 / 283 | 527 / 774 / 2.004 | 4.457 / 4.522 / 6.250 |
+| Tranquilo 0,5× | Preguiçoso | Rei de Ferro | 26 / 30 / 30 | 50 / 51 / 84 | 828 / 3.948 / 5.802 | 57 / 705 / 4.587 |
+| Tranquilo 0,5× | Regular | Senhor | 38 / 518 / 1.044 | 4 / 177 / 1.104 | 13.128 / 17.646 / 22.535 | 8.096 / 16.904 / 21.490 |
+| Tranquilo 0,5× | Regular | Camponês | 158 / 492 / 935 | 19 / 280 / 1.104 | 12.046 / 18.462 / 21.275 | 15.031 / 18.354 / 20.062 |
+| Tranquilo 0,5× | Regular | Rei de Ferro | 45 / 279 / 730 | 14 / 419 / 1.113 | 40.471 / 42.786 / 44.215 | 37.237 / 41.698 / 43.597 |
+| Tranquilo 0,5× | Dedicado | Senhor | 53 / 244 / 940 | 3 / 168 / 897 | 23.713 / 28.208 / 32.471 | 21.667 / 27.838 / 31.643 |
+| Tranquilo 0,5× | Dedicado | Camponês | 76 / 560 / 1.237 | 42 / 470 / 1.101 | 26.509 / 29.288 / 33.840 | 25.127 / 27.968 / 33.509 |
+| Tranquilo 0,5× | Dedicado | Rei de Ferro | 59 / 265 / 763 | 13 / 224 / 588 | 40.826 / 47.260 / 53.059 | 40.647 / 47.314 / 52.092 |
+
+- **Onde o ouro sobra, o herói não o baixa.** No Dedicado do Rápido a mediana da semana vai de 309 mil para 309 mil; no Regular **sobe** (128 mil → 134 mil), pelo caminho de obras que o sorteio novo deu a cada semente. A diferença fica dentro da dispersão da célula (seção 2): **não é efeito do soldo**. O "ouro com destino" que a v0.3 promete continua por vir, com a Taverna e o Mercado.
+- **No Normal o ouro desce um pouco em quase toda célula** (Regular de Senhor: mediana de 8.967 para 7.510; Preguiçoso: de 1.066 para 861). É a ordem de grandeza do soldo de um herói em um ano de jogo (2 × 168 h = 336), somada ao sorteio.
+- **O Preguiçoso do Tranquilo foi o que mais mudou, e para melhor**, o que pede leitura: ver a seção 3.5.
+
+### 3.5 As faixas, antes e depois
+
+**Senhor** (antes → depois; só o que mudou aparece com seta):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 38 → **36 a 39** | 7 | 3.400 | 3.400 | 7.497 → **6.778** | 72 → **75** |
+| 7 dias | Rápido 3× | Regular | 72 a 75 → **72 a 76** | 8 | 5.200 → **4.324** | 5.200 | 148.487 → **150.285** | 33 |
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 | 8 | 4.225 → **5.013** | 5.200 | 324.539 → **319.751** | 15 → **18** |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 33 → **31 a 34** | 5 | 1.136 → **1.799** | 2.647 → **2.640** | 1.139 → **982** | 16 |
+| 7 dias | Normal 1× | Regular | 64 a 73 | 7 | 4.512 → **4.600** | 4.637 → **4.592** | 23.641 → **19.777** | 9 → **8** |
+| 7 dias | Normal 1× | Dedicado | 84 → **84 a 85** | 8 | 5.200 | 5.200 | 21.575 → **18.559** | 5 → **4** |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 20 → **29** | 3 → **4** | 1.071 → **339** | 1.576 → **1.599** | 30 → **99** | 5,5 → **8** |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 | 6 | 1.037 → **1.492** | 1.254 → **987** | 1.044 → **1.104** | 1 → **1,5** |
+| 7 dias | Tranquilo 0,5× | Dedicado | 60 a 65 → **56 a 64** | 6 | 1.781 → **1.884** | 1.173 → **829** | 940 → **897** | 1 → **0,5** |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 3 | 194 | 517 → **516** | 304 → **256** | 63 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 | 5 | 783 → **772** | 1.114 → **930** | 3.052 → **2.979** | 9 → **6** |
+| Ano de jogo | Rápido 3× | Dedicado | 51 a 55 → **51 a 56** | 6 | 1.650 → **2.793** | 2.091 → **2.049** | 12.964 → **12.515** | 15 → **18** |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 52 a 56 → **62 a 63** | 6 → **7** | 4.185 → **1.293** | 1.855 → **221** | 3.936 → **4.634** | 7 → **8** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 → **84 a 85** | 8 | 5.200 | 5.200 | 22.535 → **21.490** | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 → **84** | 8 | 5.200 → **5.188** | 5.200 | 32.471 → **31.643** | 4 → **3** |
+
+
+**Camponês** (antes → depois; só o que mudou aparece com seta):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 38 → **36 a 39** | 7 | 4.250 | 4.250 | 7.524 → **6.804** | 63 |
+| 7 dias | Rápido 3× | Regular | 72 a 76 | 8 | 5.636 → **5.634** | 6.500 | 152.495 → **150.960** | 33 |
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 | 8 | 5.520 → **6.052** | 6.500 | 323.662 → **320.468** | 15 |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 33 → **31 a 34** | 5 | 1.435 → **1.922** | 3.056 → **3.098** | 1.165 → **961** | 13 |
+| 7 dias | Normal 1× | Regular | 62 a 72 → **61 a 72** | 7 | 5.029 → **5.026** | 4.985 → **4.990** | 18.058 → **19.614** | 8 → **7** |
+| 7 dias | Normal 1× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 20.225 → **20.127** | 3 → **4** |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 20 → **25 a 27** | 3 | 1.727 → **1.861** | 2.067 → **2.000** | 30 → **283** | 3 → **4,5** |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 | 6 | 1.008 → **1.029** | 1.125 → **1.038** | 935 → **1.104** | 0 → **1** |
+| 7 dias | Tranquilo 0,5× | Dedicado | 58 a 65 → **57 a 64** | 6 | 1.491 → **1.406** | 1.227 → **1.201** | 1.237 → **1.101** | 1 → **0,5** |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 3 | 363 | 517 → **516** | 202 → **154** | 60 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 | 5 | 641 → **578** | 1.104 → **1.112** | 3.560 → **3.392** | 6 |
+| Ano de jogo | Rápido 3× | Dedicado | 50 a 55 → **52 a 55** | 6 | 1.915 → **2.011** | 3.307 → **2.585** | 13.816 → **14.378** | 9 → **12** |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 52 a 56 → **60 a 62** | 7 | 1.549 → **2.281** | 685 → **827** | 2.004 → **6.250** | 8 → **5,5** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 a 85 | 8 | 6.500 | 6.500 | 21.275 → **20.062** | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 33.840 → **33.509** | 2,5 → **2** |
+
+
+**Rei de Ferro** (antes → depois; só o que mudou aparece com seta):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 38 | 7 | 3.200 | 3.200 | 7.536 → **6.816** | 75 |
+| 7 dias | Rápido 3× | Regular | 72 a 75 | 7 | 2.804 | 3.680 → **3.674** | 165.302 → **165.720** | 24 |
+| 7 dias | Rápido 3× | Dedicado | 74 a 75 | 7 | 2.837 → **2.792** | 3.680 | 294.121 → **290.931** | 45 → **36** |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 34 | 5 | 1.281 → **1.760** | 2.104 → **2.124** | 1.255 → **1.025** | 18 → **19** |
+| 7 dias | Normal 1× | Regular | 64 a 71 → **59 a 72** | 6 | 3.680 → **3.662** | 3.680 | 19.717 → **19.471** | 5 → **8** |
+| 7 dias | Normal 1× | Dedicado | 74 a 75 | 7 | 3.680 | 3.680 | 43.766 → **43.599** | 3 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 20 → **29** | 3 → **4** | 145 → **142** | 940 → **1.253** | 30 → **84** | 11,5 → **8,5** |
+| 7 dias | Tranquilo 0,5× | Regular | 49 a 54 | 6 → **5** | 1.098 → **1.680** | 887 → **1.046** | 730 → **1.113** | 1 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 58 a 64 → **57 a 64** | 6 | 1.709 → **1.440** | 768 → **766** | 763 → **588** | 0 → **1** |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 2 | 268 | 529 → **517** | 474 → **426** | 66 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 | 4 | 588 | 660 → **602** | 6.322 → **6.215** | 6 |
+| Ano de jogo | Rápido 3× | Dedicado | 50 a 55 → **48 a 55** | 6 | 1.274 → **1.569** | 1.646 → **1.650** | 14.091 → **14.072** | 18 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 48 a 53 → **59 a 62** | 6 → **7** | 3.200 → **1.691** | 1.956 → **1.345** | 5.802 → **4.587** | 11,5 → **8,5** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 74 a 75 | 7 | 3.672 → **3.680** | 3.680 | 44.215 → **43.597** | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 74 a 75 | 7 | 3.680 | 3.680 | 53.059 → **52.092** | 3 → **2** |
+
+No ritmo Normal as duas janelas são a mesma partida, e a linha do ano foi omitida.
+
+**O que piorou, como piora:**
+
+- **Rei de Ferro, Regular, Normal:** a menor população cai de 64 para 59, e a maior sequência desperdiçando sobe de 5 para 8 h de jogo.
+- **Rei de Ferro, Regular, semana do Tranquilo:** o menor nível do Salão cai de 6 para 5.
+- **Senhor, Dedicado, semana do Tranquilo:** a menor população cai de 60 para 56. No Dedicado do ano do Rápido de Rei de Ferro, de 50 para 48. Em outras três células ela cai um aldeão (Camponês: Regular do Normal e Dedicado da semana do Tranquilo; Rei de Ferro: Dedicado da semana do Tranquilo).
+- **Maior sequência desperdiçando:** sobe no Preguiçoso (Senhor, Rápido, 72 → 75 h; Tranquilo, 5,5 → 8 h e 7 → 8 h), no Dedicado do Rápido de Senhor (15 → 18 h, na semana e no ano), no Dedicado do ano do Rápido de Camponês (9 → 12 h) e no Preguiçoso do Normal de Rei de Ferro (18 → 19 h). Em mais cinco células sobe até 1,5 h (estão nas tabelas).
+- **O soldo em atraso do Preguiçoso no Normal** (seção 3.3), que as faixas não medem.
+
+**O que melhorou, e por quê não é mérito da regra:**
+
+- **O Preguiçoso do Tranquilo termina com muito mais gente:** em Senhor, 20 → 29 aldeões na semana (Salão 3 → 4) e 52 a 56 → 62 a 63 no ano (Salão 6 → 7); em Rei de Ferro, 20 → 29 e 48 a 53 → 59 a 62; em Camponês, 20 → 25 a 27 e 52 a 56 → 60 a 62. Na semente 001 de Senhor, hora a hora: o herói chega na hora 48; na 72 o saldo do ouro aparece negativo (−1 por hora) pela primeira vez, e o bot, que manda os aldeões sem ofício para onde falta, passa a mandá-los para a Mina. O ouro por hora vai de zero a 7 na hora 96 (era zero até a 120), a Torre de Vigia sai na hora 80 em vez da 137, e o feudo termina a semana com 7 mineiros em vez de 3. **O soldo ensinou o bot a minerar.** É efeito da política do bot diante de um saldo negativo, não uma regra que ajude o jogador: um jogador de verdade no mesmo feudo pode não reagir assim.
+- **A meta de desperdício do Regular** (8 h de jogo seguidas; ADR 0013, decisão 17) passa a ser cumprida no Normal por todas as 50 sementes (o pior caso cai de 9 para 8 h; a seção 20 de balance-v0.2.md tinha uma semente acima) e no ano do Rápido (9 → 6 h). Só a semana do Rápido continua acima, nas mesmas 33 h. É o caminho de obras de cada semente, que o sorteio mudou; nenhum número de armazenamento foi tocado.
+
+### 3.6 Limites desta medição
+
+- **Nenhum bot escolhe o arqueiro.** O herói que pode ficar Descontente e partir, o ouro e a moral da opção, e a chegada um dia de jogo depois só estão provados no motor (`stranger.test.ts`, `stranger.property.test.ts`), não no simulador. Um perfil que escolha "Cuidar e deixar partir" e um que fique sem ouro de propósito são de V3C-T5.
+- **Um herói só.** Quantos heróis cada perfil sustenta é pergunta da Taverna (V3C-T2 e V3C-T5).
+- **O efeito do soldo e o do sorteio não foram separados.** Separá-los pede rodar a matriz com a carta e sem o soldo, o que nenhuma regra do jogo faz.
+- `--perf`, o tamanho do estado e da visão com herói, e a cobertura do Conselho em 50 sementes (`SHOW_COVERAGE=1`) não foram remedidos: o teste da cobertura passa sem mudança de número.
+- Node v24.15.0, como as seções 1 e 2.
+
+## 4. Rodadas seguintes das Fases C a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3C-T5, V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3.*

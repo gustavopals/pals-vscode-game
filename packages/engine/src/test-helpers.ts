@@ -10,7 +10,14 @@ import {
 import { advanceTo, advanceWith, processEventsAt, processEventsWith } from './advance';
 import { DAY_MS, isDayBoundary } from './clock';
 import { applyCommand } from './commands';
-import { cardOf, CATALOG, type Catalog, deliverCard, DRAW_INTERVAL_MS } from './council';
+import {
+  cardOf,
+  CATALOG,
+  type Catalog,
+  defaultOption,
+  deliverCard,
+  DRAW_INTERVAL_MS,
+} from './council';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { nextId } from './ids';
@@ -82,15 +89,17 @@ export function gameAt(atMs: number, edit: (draft: GameState) => void = () => {}
 const TEST_HERO_NAMES = ['Edda', 'Rolf', 'Brann', 'Isolda', 'Tibério', 'Mirela'];
 
 /**
- * Põe um herói no feudo, como uma carta ou a Taverna vão pôr (V3C-T3 e V3C-T2): nesta tarefa
- * ainda não há ordem nem evento que dê um herói a ninguém. O identificador sai do contador do
- * estado (`nextId`), ele chega no instante em que o rascunho está, a não ser que `joinedAtMs`
- * diga outro, e o teto da lista vale aqui como vai valer para quem contratar.
+ * Põe um herói no feudo sem passar por carta nenhuma, para os cenários do soldo, do atraso e da
+ * ficha: no jogo o primeiro chega pela "Estrangeira ferida" (`settleHeroArrivals`) e os outros
+ * virão da Taverna (V3C-T2). O identificador sai do contador do estado (`nextId`), ele chega no
+ * instante em que o rascunho está, a não ser que `joinedAtMs` diga outro, e o teto da lista
+ * vale aqui como vale para quem chega por recompensa.
  */
 export function addHero(
   draft: GameState,
   spec: {
     name?: string;
+    gender?: Hero['gender'];
     classId?: HeroClassId;
     level?: number;
     traits?: HeroTraitId[];
@@ -105,6 +114,7 @@ export function addHero(
   const hero: Hero = {
     id,
     name: spec.name ?? TEST_HERO_NAMES[heroes.length % TEST_HERO_NAMES.length] ?? id,
+    gender: spec.gender ?? 'm',
     classId: spec.classId ?? 'warrior',
     level: spec.level ?? 1,
     xp: 0,
@@ -129,9 +139,15 @@ export function heroesStart(
 ): GameState {
   const start = createInitialState(seed, { ...settings, ...changed });
   start.settlement.resources.gold = gold;
-  addHero(start, { name: 'Edda', classId: 'warrior', traits: ['loyal'] });
+  addHero(start, { name: 'Edda', gender: 'f', classId: 'warrior', traits: ['loyal'] });
   addHero(start, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
-  addHero(start, { name: 'Isolda', classId: 'mage', level: 2, traits: ['veteran', 'greedy'] });
+  addHero(start, {
+    name: 'Isolda',
+    gender: 'f',
+    classId: 'mage',
+    level: 2,
+    traits: ['veteran', 'greedy'],
+  });
   return start;
 }
 
@@ -191,6 +207,10 @@ export function councilWithoutNews(draft: GameState): void {
   councilInSession(draft);
   draft.council.seenThisYear = councilCards.map((card) => card.id);
   for (const card of councilCards) {
+    // A roteirizada não olha a lista do ano: sai uma vez por partida. Aqui ela já saiu.
+    if (card.scripted !== undefined) {
+      draft.stats[`cardsDrawn:${card.id}`] = 1;
+    }
     if (card.recurring === true) {
       for (const flag of card.requires?.notFlags ?? []) {
         draft.council.flags[flag] = true;
@@ -782,9 +802,88 @@ function answerCards(
 }
 
 /**
- * A semente do cenário do Conselho. Foi escolhida pelas cartas que tira nas três primeiras
- * audiências de um feudo com o Celeiro erguido (o poço, as tábuas e a refeição dos pedreiros):
- * o catálogo é conteúdo e muda, e quando mudar a ordem do sorteio é preciso procurar outra.
+ * Responde a toda carta da mesa como o conselho responderia sozinho (a opção de `defaultOption`,
+ * que nunca tem custo nem está trancada), salvo as cartas de `choices`, que levam a opção dita,
+ * e as de `skip`, que ficam na mesa. É o senhor que não deixa carta esperando: a mesa dele está
+ * livre para a audiência seguinte.
+ */
+export function answerTable(
+  state: GameState,
+  choices: Readonly<Record<string, string>> = {},
+  events: GameEvent[] = [],
+  skip: readonly string[] = [],
+): GameState {
+  let current = state;
+  for (const pending of state.council.pending) {
+    const card = cardOf(CATALOG, pending.cardId);
+    if (card === null || skip.includes(card.id)) {
+      continue;
+    }
+    const optionId = choices[card.id] ?? defaultOption(current, card)?.id;
+    if (optionId === undefined) {
+      continue;
+    }
+    const result = accept(
+      current,
+      command('answerCard', { instanceId: pending.instanceId, optionId }),
+    );
+    current = result.state;
+    events.push(...result.events);
+  }
+  return current;
+}
+
+/**
+ * Um senhor atento: passa pelo feudo uma vez por dia de jogo, aos 7 minutos do dia, e responde a
+ * tudo o que encontra na mesa (`answerTable`). Avança até `untilMs` e devolve o estado e todos os
+ * eventos do caminho. `skip` são as cartas que ele deixa na mesa.
+ */
+export function attentiveLord(
+  start: GameState,
+  untilMs: number,
+  choices: Readonly<Record<string, string>> = {},
+  skip: readonly string[] = [],
+): { state: GameState; events: GameEvent[] } {
+  let state = start;
+  const events: GameEvent[] = [];
+  const advance = (toMs: number) => {
+    const result = advanceTo(state, toMs);
+    state = result.state;
+    events.push(...result.events);
+  };
+  const firstVisit = Math.floor(start.lastProcessedAt / DAY) * DAY + 7 * MINUTE;
+  for (let visit = firstVisit; visit < untilMs; visit += DAY) {
+    if (visit > state.lastProcessedAt) {
+      advance(visit);
+      state = answerTable(state, choices, events, skip);
+    }
+  }
+  advance(untilMs);
+  return { state, events };
+}
+
+/**
+ * O herói prometido, a caminho: uma partida nova em Rei de Ferro, com um senhor atento. A carta
+ * da estrangeira chega na audiência do 13º dia; ele manda cuidar dela e a deixa partir, e o
+ * feudo fica parado 33 minutos depois: o ouro dela no cofre, o efeito de moral valendo e o
+ * arqueiro a um dia de jogo de distância, na lista dos prometidos.
+ */
+export function heroPromisedScenario(): GameState {
+  const start = createInitialState('fixture-hero-promised', {
+    ...settings,
+    difficulty: 'ironKing',
+  });
+  const { state } = attentiveLord(start, 12 * DAY + 40 * MINUTE + 1_234, {
+    woundedStranger: 'tend',
+  });
+  return state;
+}
+
+/**
+ * A semente do cenário do Conselho. Foi escolhida pelas cartas que tira nas duas primeiras
+ * audiências de um feudo com o Celeiro erguido (o poço e as tábuas): o catálogo é conteúdo e
+ * muda, e quando mudar a ordem do sorteio é preciso procurar outra. A terceira audiência, a do
+ * 13º dia, é da carta roteirizada e não gasta o gerador.
  */
 export const COUNCIL_SCENARIO_SEED = 'fixture-council-623';
 
@@ -795,13 +894,27 @@ export const COUNCIL_SCENARIO_SEED = 'fixture-council-623';
  *
  * - dia 5: "O poço entulhado" chega; ele deixa para depois (um efeito escondido para o dia 7);
  * - dia 9: "Tábuas para as reservas"; ele cede a madeira, e a cadeia começa;
- * - dia 11: "A vez de repartir" chega como continuação; dia 13, "A refeição dos pedreiros": a
- *   mesa fica cheia, e ninguém responde;
+ * - dia 11: "A vez de repartir" chega como continuação; dia 13, a roteirizada "Estrangeira
+ *   ferida": a mesa fica cheia, e ninguém responde;
  * - dia 47: a continuação expira (o conselho guarda o grão) e agenda o desfecho; dia 49, a
- *   refeição expira e chega "O que ficou da escolha".
+ *   carta da estrangeira expira (o conselho a acolhe, e Edda entra para o feudo) e chega "O que
+ *   ficou da escolha".
+ *
+ * Com `strangerCameBefore`, o feudo é um em que a roteirizada já saiu (só existe em teste): a
+ * audiência do dia 13 volta a ser do sorteio e traz "A refeição dos pedreiros", com uma opção
+ * trancada. É a mesa de duas cartas comuns que a visão de exemplo do app usa.
  */
-export function councilScenario(untilMs: number, seed = COUNCIL_SCENARIO_SEED): GameState {
+export function councilScenario(
+  untilMs: number,
+  seed = COUNCIL_SCENARIO_SEED,
+  strangerCameBefore = false,
+): GameState {
   let state = createInitialState(seed, { ...settings, timeScale: 3 });
+  if (strangerCameBefore) {
+    for (const card of councilCards.filter((entry) => entry.scripted !== undefined)) {
+      state.stats[`cardsDrawn:${card.id}`] = 1;
+    }
+  }
   state.settlement.buildings = { ...state.settlement.buildings, townHall: 2, granary: 1 };
   state.settlement.workers = { farm: 3, lumberMill: 1, quarry: 0, goldMine: 1 };
   state.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
@@ -836,7 +949,8 @@ const weekAnswers: Readonly<Record<string, string>> = {
   thawBridgeSlab: 'piers',
   thawBridgeCrossing: 'feast',
   moreMouths: 'close',
-  palisadePromisePlea: 'promise',
+  woundedStranger: 'shelter',
+  palisadePromisePlea: 'show',
   palisadePromiseDeadline: 'show',
 };
 

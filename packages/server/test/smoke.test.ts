@@ -173,6 +173,9 @@ describe('fluxo completo: conta → partida → comandos → view → eventos', 
       ['seasonChanged', 'Chega o Verão a Pedra Alta.'],
       ['villagerLeft', expect.stringContaining('deixou Pedra Alta')],
       ['villagerDeserted', expect.stringContaining('fugiu da fome de Pedra Alta')],
+      // A carta da estrangeira esperou lugar na mesa até o 21º dia e ninguém respondeu: no
+      // prazo, o conselho a acolheu, e o feudo abandonado ganhou a primeira heroína.
+      ['heroJoined', 'No 9º dia do Verão, Edda, guerreira, passou a servir a Pedra Alta.'],
       ['seasonChanged', 'Chega o Outono a Pedra Alta.'],
       ['seasonChanged', 'Chega o Inverno a Pedra Alta.'],
       ['yearStarted', 'Começa o ano 2 da Casa de Pedra Alta.'],

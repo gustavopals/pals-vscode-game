@@ -89,6 +89,59 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     },
   );
 
+  it('a estrangeira entrega o primeiro herói a todo feudo, em todo perfil, ritmo e dificuldade, e ninguém parte por soldo (roadmap da v0.3, V3C-T3)', () => {
+    // O critério 1 do GDD §16.2 visto pelo simulador (docs/balance-v0.3.md, seção 3). Os dois
+    // bots respondem à carta com a primeira opção sem custo, "Acolher": toda partida termina com
+    // um herói, Edda, que é Leal. Nenhum bot escolhe "Cuidar e deixar partir": o arqueiro, que
+    // não é Leal, nunca passa pela matriz.
+    for (const difficulty of DIFFICULTY_IDS) {
+      for (const run of byDifficulty[difficulty].runs) {
+        const where = `${difficulty} ${run.window}/${run.timeScale}/${run.profile.id} ${run.seed}`;
+        expect(run.summary.guild.heroes, where).toBe(1);
+        expect(run.summary.guild.departed, where).toBe(0);
+        expect(run.summary.guild.firstHeroAtHour, where).not.toBeNull();
+      }
+    }
+    // A hora real em que ela chega, em Senhor, nas 50 sementes. A carta é do 13º dia de jogo
+    // (8 h reais no Rápido, 24 h no Normal, 48 h no Tranquilo) e pede lugar na mesa; o herói
+    // entra na visita seguinte. Quem passa uma vez por dia encontra a mesa cheia com as cartas
+    // dos dias 5 e 9 na primeira visita, e só recebe a estrangeira na audiência seguinte: no
+    // Rápido e no Normal o Preguiçoso tem o herói na hora 48, e não na 24.
+    const firstHero = (key: string) => {
+      const hours = matrix.runs
+        .filter((run) => cellKey(run.window, run.timeScale, run.profile.id) === key)
+        .map((run) => run.summary.guild.firstHeroAtHour ?? Infinity);
+      return { min: Math.min(...hours), max: Math.max(...hours) };
+    };
+    expect(firstHero('week/3/dedicado')).toEqual({ min: 12, max: 12 });
+    expect(firstHero('week/3/regular')).toEqual({ min: 24, max: 24 });
+    expect(firstHero('week/3/preguicoso')).toEqual({ min: 48, max: 48 });
+    expect(firstHero('week/1/dedicado')).toEqual({ min: 24, max: 24 });
+    expect(firstHero('week/1/regular')).toEqual({ min: 24, max: 36 });
+    expect(firstHero('week/1/preguicoso')).toEqual({ min: 48, max: 48 });
+    for (const profile of PROFILES) {
+      expect(firstHero(cellKey('week', 0.5, profile.id))).toEqual({ min: 48, max: 48 });
+    }
+    // O soldo em atraso. REGRESSÃO MEDIDA: o Preguiçoso do ritmo Normal soma 21 h reais com o
+    // soldo em atraso, em toda semente (ele não põe ninguém na Mina a tempo). Edda é Leal: não
+    // fica descontente nem parte, e o custo é o ouro parado em zero nesse tempo. Com um herói
+    // que não fosse Leal, 21 h passam das 12 h reais do Descontente e ficam a 3 h das 24 h em
+    // que o primeiro parte; isso é conta dos prazos, não medida: nenhum bot escolhe o arqueiro.
+    // Nas outras células ninguém atrasa o soldo.
+    const arrears = Object.fromEntries(
+      matrix.cells.map((cell) => {
+        const hours = matrix.runs
+          .filter((run) => cellKey(run.window, run.timeScale, run.profile.id) === cell.key)
+          .map((run) => run.summary.guild.arrearsHours);
+        return [cell.key, [Math.min(...hours), Math.max(...hours)]];
+      }),
+    );
+    expect(Object.entries(arrears).filter(([, [, max]]) => (max ?? 0) > 0)).toEqual([
+      ['week/1/preguicoso', [21, 21]],
+      ['year/1/preguicoso', [21, 21]],
+    ]);
+  });
+
   it('em toda dificuldade e em todo perfil: nenhuma hora de fome, nenhuma de frio e ninguém vai embora', () => {
     for (const difficulty of DIFFICULTY_IDS) {
       for (const cell of byDifficulty[difficulty].cells) {
@@ -227,9 +280,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // da hora 100 à 137 o feudo rende um terço do ouro por hora (2,9 contra 9,5). É a ordem de
     // compras deste bot, que as políticas não deixam mexer aqui; fica medido para não passar
     // calado.
+    //
+    // Com a estrangeira e o primeiro soldo (V3C-T3; docs/balance-v0.3.md, seção 3) o Tranquilo
+    // volta atrás e passa: a Torre sai na hora 80. O soldo deixa o saldo do ouro negativo, o
+    // Preguiçoso manda os aldeões sem ofício para a Mina, que é onde falta, e o ouro que
+    // segurava a Torre aparece. É efeito da política do bot, não de regra nova.
     expect(tower('week/3/preguicoso')).toEqual({ min: 50, max: 51 });
     expect(tower('week/1/preguicoso')).toEqual({ min: 78, max: 78 });
-    expect(tower('week/0.5/preguicoso')).toEqual({ min: 137, max: 137 });
+    expect(tower('week/0.5/preguicoso')).toEqual({ min: 80, max: 80 });
     // A Ameaça não satura: com +2 por dia, −35 por incursão e as médias a partir de 70, ela
     // oscila, e nenhuma partida de um ano de jogo ou mais termina perto do máximo. Até a revisão
     // das Fases D e E (+5 e −10) ela chegava a 100 em toda partida e ficava entre 90 e 100
@@ -249,12 +307,13 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // "Construa a Paliçada", em Senhor, com 2 sessões por dia: entre as horas 48 e 55 no
     // Normal, na 25 no Rápido e entre a 83 e a 86 no Tranquilo (seção 16). Com os dois números
     // do ADR 0016 (seção 18): entre as horas 49 e 53 no Normal e entre a 82 e a 85 no Tranquilo.
-    // Com a pedra do poço a 20 (V2G-T4, seção 20): até a hora 86 no Tranquilo.
+    // Com a pedra do poço a 20 (V2G-T4, seção 20): até a hora 86 no Tranquilo. Com a estrangeira
+    // no sorteio (V3C-T3): a partir da hora 83 no Tranquilo.
     const palisade = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.palisade;
     expect(palisade('year/1/regular')).toEqual({ min: 49, max: 53 });
     expect(palisade('year/3/regular')).toEqual({ min: 25, max: 25 });
-    expect(palisade('year/0.5/regular')).toEqual({ min: 82, max: 86 });
+    expect(palisade('year/0.5/regular')).toEqual({ min: 83, max: 86 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
       const tower = cell.measure.milestones.watchtower;
       const wall = cell.measure.milestones.palisade;
@@ -324,7 +383,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Normal, por 49 das 50 sementes; no Rápido, não', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Tranquilo e Normal e no ano do Rápido; na semana do Rápido, não', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -361,6 +420,11 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // da meta, pelas mesmas 9 h, mas é outra: na 026 o Armazém passa a ficar pronto na hora 49
     // e o pior caso dela cai para 1 h; na 018, que tinha 8 h, ele sai na hora 74 (era 73) e a
     // madeira vai ao chão por 9 h. O que mudou para o bot foi a pedra do poço, de 30 para 20.
+    //
+    // Com a estrangeira no lugar do sorteio de uma audiência (V3C-T3; docs/balance-v0.3.md,
+    // seção 3) o caminho de obras de cada semente mudou outra vez, e no ritmo Normal as 50
+    // voltam a caber na meta: o pior caso é de 8 h. No ano do Rápido o pior caso cai de 9 para
+    // 6 h, e a célula também passa. Só a semana do Rápido continua acima, nas mesmas 33 h.
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -368,14 +432,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const over = Object.fromEntries(
       goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
     );
-    expect(over).toEqual({
-      'week/3/regular': 33,
-      'week/1/regular': 9,
-      'year/3/regular': 9,
-      'year/1/regular': 9,
-    });
+    expect(over).toEqual({ 'week/3/regular': 33 });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
+      'week/1/regular',
       'week/0.5/regular',
+      'year/3/regular',
+      'year/1/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -385,7 +447,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-018']);
+    expect(beyond.map((run) => run.seed)).toEqual([]);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

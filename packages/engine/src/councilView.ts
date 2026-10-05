@@ -16,7 +16,8 @@ import {
   scriptedCard,
   seatedCards,
 } from './council';
-import { durationText, plural, sentenceCase, thousands } from './format';
+import { decimal, durationText, plural, sentenceCase, thousands } from './format';
+import { classLabel, namedHeroOf, traitLabel } from './heroes';
 import { storable, storagePlace } from './storage';
 import type {
   CouncilCardView,
@@ -62,6 +63,28 @@ function gainText(state: GameState, resource: ResourceId, amount: number): strin
 }
 
 /**
+ * "Edda, Guerreira (Leal), entra para o feudo agora, com soldo de 6 ouro/h": quem a opção traz,
+ * quando (em dias de jogo e no tempo real do ritmo) e o que ele passa a custar, por hora real.
+ * A promessa de um herói não é segredo, e o soldo é o preço que a opção sem custo tem.
+ */
+function heroText(namedHeroId: string, afterDays: number | undefined, timeScale: number): string {
+  const named = namedHeroOf(namedHeroId);
+  if (named === null) {
+    return '';
+  }
+  const traits = named.traits.map((trait) => traitLabel(trait, named.gender));
+  const who = `${named.name}, ${classLabel(named)}${traits.length === 0 ? '' : ` (${traits.join(', ')})`}`;
+  const when =
+    afterDays === undefined
+      ? 'entra para o feudo agora'
+      : `chega em ${plural(afterDays, 'dia', 'dias')} de jogo (${durationText(
+          realSecondsCeil(afterDays * DAY_MS, timeScale),
+        )})`;
+  const wage = `${decimal(balance.heroes.wagePerHour * timeScale)} ${resourceName('gold')}/h`;
+  return `${who}, ${when}, com soldo de ${wage}`;
+}
+
+/**
  * O custo e a consequência conhecida de uma opção, em uma frase: "−40 madeira; +5 de moral por
  * 2 dias de jogo (1 h 20 min)". A duração de um efeito de moral conta dias de jogo, e o tempo
  * real entre parênteses é o do ritmo da partida. Flags e continuações não aparecem.
@@ -85,6 +108,11 @@ function effectsText(state: GameState, option: CouncilOption, timeScale: number)
       parts.push(
         `${signed(effect.amount)} de moral por ${plural(effect.durationDays, 'dia', 'dias')} de jogo (${real})`,
       );
+    } else if (effect.type === 'addHero') {
+      const text = heroText(effect.heroId, effect.afterDays, timeScale);
+      if (text !== '') {
+        parts.push(text);
+      }
     }
   }
   return parts.length === 0 ? 'Sem custo e sem efeito imediato.' : parts.join('; ');

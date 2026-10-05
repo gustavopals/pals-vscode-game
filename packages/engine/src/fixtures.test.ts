@@ -8,6 +8,7 @@ import { storageCapacity } from './storage';
 import {
   command,
   councilScenario,
+  heroPromisedScenario,
   craftScenario,
   DAY,
   dealt,
@@ -201,9 +202,10 @@ const scenarios: Record<string, () => GameState> = {
   // e o fluxo de sorteios `morale` já usado. No meio de um dia de jogo.
   morale: () => proudScenario(),
 
-  // O Conselho no fim de uma cadeia que ninguém acompanhou, no ritmo Rápido: uma carta na mesa,
-  // o desfecho agendado como continuação, uma carta expirada no ano, três flags e o fluxo de
-  // sorteios `council` já usado. No meio de um dia de jogo.
+  // O Conselho no fim de uma cadeia que ninguém acompanhou, no ritmo Rápido: a carta roteirizada
+  // da estrangeira na mesa, sem resposta, o desfecho agendado como continuação, uma carta
+  // expirada no ano, três flags e o fluxo de sorteios `council` já usado. No meio de um dia de
+  // jogo.
   council: () => councilScenario(47 * DAY + 30 * MINUTE + 1_234),
 
   // O Conselho logo depois de uma escolha que esconde um efeito: a mesa vazia e o efeito à
@@ -401,6 +403,9 @@ const scenarios: Record<string, () => GameState> = {
       { at: 5 * DAY + 7 * MINUTE + 1_234 },
     ]).state,
 
+  // O herói prometido por uma carta, ainda a caminho (`guild.arriving`), em Rei de Ferro.
+  'hero-promised': () => heroPromisedScenario(),
+
   // O soldo em atraso que já cobrou um herói: aberto, com um Descontente, uma Leal que fica e
   // o contador de identidades à frente da lista.
   'wage-arrears': () => wageArrearsScenario(),
@@ -520,7 +525,9 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(new Set(all0().map((state) => state.settlement.morale)).size).toBeGreaterThan(2);
     // O Conselho: cada lista do estado dele com alguma coisa dentro, em um cenário ou em outro.
     const council = of('council').council;
-    expect(council.pending.map((entry) => entry.cardId)).toEqual(['masonsMeal']);
+    expect(council.pending.map((entry) => entry.cardId)).toEqual(['woundedStranger']);
+    expect(of('council').stats['cardsDrawn:woundedStranger']).toBe(1);
+    expect(of('council').guild.heroes).toEqual([]);
     expect(council.pending[0]?.expiresAtMs).toBeGreaterThan(of('council').lastProcessedAt);
     expect(council.scheduled).toEqual([
       {
@@ -538,6 +545,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       'commonGranary.reserved',
     ]);
     expect(council.seenThisYear).toHaveLength(4);
+    // Duas audiências gastaram o gerador (o poço e as tábuas); a da estrangeira, não.
     expect(council.nextDrawAtMs).toBe(48 * DAY);
     expect(of('council').rng.council).toHaveLength(4);
     expect(of('council').stats).toMatchObject({ cardsDrawn: 4, cardsAnswered: 2, cardsExpired: 1 });
@@ -574,7 +582,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(of('week-scripted').settlement.buildings.watchtower).toBe(2);
     expect(new Set(all0().map((state) => state.map.threat)).size).toBeGreaterThan(3);
     // A Paliçada: erguida, com a obra do nível seguinte em curso e a promessa cumprida gravada;
-    // e, no cenário de 7 dias, erguida depois de prometida.
+    // e, no cenário de 7 dias, erguida antes de os aldeões perguntarem por ela.
     const palisade = of('palisade');
     expect(palisade.settlement.buildings.palisade).toBe(1);
     expect(palisade.settlement.constructionQueues[0]).toMatchObject({
@@ -668,9 +676,32 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       // Atraso aberto e registro de atraso fechado nunca andam juntos; sem herói, nenhum dos dois.
       expect(state.guild.wageArrears === null || state.guild.lastWageArrears === null).toBe(true);
       if (state.ids.hero === undefined) {
-        expect(state.guild).toEqual({ heroes: [], wageArrears: null, lastWageArrears: null });
+        expect(state.guild).toMatchObject({ heroes: [], wageArrears: null, lastWageArrears: null });
+      }
+      // Todo herói tem a forma de tratamento, e toda guilda, a lista dos prometidos.
+      expect(Array.isArray(state.guild.arriving)).toBe(true);
+      for (const hero of state.guild.heroes) {
+        expect(['f', 'm']).toContain(hero.gender);
       }
     }
+    // A carta da estrangeira (V3C-T3). O herói que chegou por ela e não por um auxiliar de
+    // teste: Edda, no cenário de 7 dias. O herói prometido, a caminho: Rolf, com o ouro da
+    // estrangeira no cofre e o efeito de moral valendo, em Rei de Ferro.
+    expect(
+      of('week-scripted').guild.heroes.map((hero) => [hero.id, hero.name, hero.gender]),
+    ).toEqual([['hero-1', 'Edda', 'f']]);
+    expect(of('week-scripted').stats['cardsDrawn:woundedStranger']).toBe(1);
+    const promised = of('hero-promised');
+    expect(promised.settings.difficulty).toBe('ironKing');
+    expect(promised.guild.heroes).toEqual([]);
+    expect(promised.guild.arriving).toEqual([{ namedHeroId: 'rolf', atMs: 13 * DAY + 7 * MINUTE }]);
+    expect(promised.guild.arriving[0]?.atMs).toBeGreaterThan(promised.lastProcessedAt);
+    expect(promised.ids).toEqual({});
+    expect(promised.settlement.moraleEffects.map((effect) => effect.id)).toContain(
+      'card:woundedStranger-3',
+    );
+    expect(promised.council.pending).toEqual([]);
+    expect(all0().filter((state) => state.guild.arriving.length > 0)).toHaveLength(1);
 
     // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,
     // o ritmo (que converte prazos de tempo real) e a dificuldade (que tem fatores próprios).

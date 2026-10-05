@@ -16,6 +16,7 @@ import type { Hero } from './types';
 const hero = (changed: Partial<Hero> = {}): Hero => ({
   id: 'hero-1',
   name: 'Edda',
+  gender: 'f',
   classId: 'warrior',
   level: 1,
   xp: 0,

@@ -11,8 +11,26 @@ import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { producerOf } from './economy';
 import { decimal, durationText, plural } from './format';
-import { heroFactors, heroLimit, heroPower, isLoyal, paidHeroes, wageRate } from './heroes';
-import type { GameState, GuildView, Hero, HeroView, WageArrearsView } from './types';
+import {
+  classLabel,
+  heroFactors,
+  heroLimit,
+  heroPower,
+  isLoyal,
+  namedHeroOf,
+  paidHeroes,
+  rosterHasRoom,
+  traitLabel,
+  wageRate,
+} from './heroes';
+import type {
+  ArrivingHeroView,
+  GameState,
+  GuildView,
+  Hero,
+  HeroView,
+  WageArrearsView,
+} from './types';
 import { MILLI, realSecondsCeil, SECOND_MS } from './units';
 import { nextDiscontentAt, nextWageDepartureAt, wageArrearsDurationAt } from './wages';
 
@@ -58,12 +76,12 @@ function heroView(hero: Hero, timeScale: number): HeroView {
   return {
     id: hero.id,
     name: hero.name,
-    classLabel: heroClasses[hero.classId].label,
+    classLabel: classLabel(hero),
     level: hero.level,
     xp: hero.xp,
     xpToNext: rules.xpToNext[hero.level - 1] ?? null,
     traits: hero.traits.map((trait) => ({
-      label: heroTraits[trait].label,
+      label: traitLabel(trait, hero.gender),
       text: heroTraits[trait].text,
     })),
     statusText: heroStatuses[hero.status].label,
@@ -90,10 +108,11 @@ function arrearsText(state: GameState): string {
   const cut = decimal(((den - num) * 100) / den);
   const sentences = [`Soldo em atraso: o cofre está vazio e ${unpaid}.`];
   if (heroes.every(isLoyal)) {
+    const women = heroes.every((hero) => hero.gender === 'f');
     sentences.push(
       heroes.length === 1
-        ? 'Ele é Leal: não fica descontente nem parte.'
-        : 'São todos Leais: não ficam descontentes nem partem.',
+        ? `${women ? 'Ela' : 'Ele'} é Leal: não fica descontente nem parte.`
+        : `São ${women ? 'todas' : 'todos'} Leais: não ficam descontentes nem partem.`,
     );
   } else {
     sentences.push(
@@ -139,10 +158,42 @@ function coveredForSeconds(
   return goldRunsOutIn === null ? null : realSecondsFloor(goldRunsOutIn, timeScale);
 }
 
+/**
+ * Os heróis prometidos, na ordem em que chegam: a promessa de uma carta não é segredo. Quem tem
+ * o prazo vencido espera lugar na lista, que está no teto, e a frase diz o que abre o lugar. O
+ * que o conteúdo já não tem não aparece: sai da lista sem chegar.
+ */
+function arrivingView(state: GameState, timeScale: number): ArrivingHeroView[] {
+  const now = state.lastProcessedAt;
+  const views: ArrivingHeroView[] = [];
+  for (const entry of state.guild.arriving) {
+    const named = namedHeroOf(entry.namedHeroId);
+    if (named === null) {
+      continue;
+    }
+    const waiting = entry.atMs <= now;
+    views.push({
+      name: named.name,
+      classLabel: classLabel(named),
+      traits: named.traits.map((trait) => ({
+        label: traitLabel(trait, named.gender),
+        text: heroTraits[trait].text,
+      })),
+      arrivesInSeconds: waiting ? 0 : realSecondsCeil(entry.atMs - now, timeScale),
+      blockedReason:
+        waiting && !rosterHasRoom(state)
+          ? `O feudo já abriga ${plural(state.guild.heroes.length, 'herói', 'heróis')}, e não cabe mais nenhum: ${named.name} espera à porta até um lugar abrir.`
+          : null,
+    });
+  }
+  return views;
+}
+
 export function guildView(state: GameState, timeScale: number, outlook: CraftOutlook): GuildView {
   return {
     heroLimit: heroLimit(),
     heroes: state.guild.heroes.map((hero) => heroView(hero, timeScale)),
+    arriving: arrivingView(state, timeScale),
     wage: {
       perHour: (wageRate(state) * timeScale) / MILLI,
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),

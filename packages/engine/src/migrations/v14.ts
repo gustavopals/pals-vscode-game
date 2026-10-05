@@ -9,6 +9,7 @@ import {
   type Shape,
   text,
 } from './shape';
+import type { MigrationStep } from './step';
 import { rngWithinIds, RNG_STREAM_FAMILIES_V13, stateV13Fields } from './v13';
 
 // Os identificadores e os tetos ficam escritos aqui, como os das outras versões: a forma de uma
@@ -66,7 +67,7 @@ const heroTraits: Shape = (value, path) => {
  * Um herói no estado da versão 14: só o que a tarefa que o trouxe usa. Ferimento, equipamento e
  * os estados de quem está fora entram com as versões das tarefas deles.
  */
-const hero: Shape = exactObject({
+export const heroV14Fields: Readonly<Record<string, Shape>> = {
   id: heroId,
   name: heroName,
   classId: oneOf(HERO_CLASS_IDS_V14),
@@ -76,30 +77,35 @@ const hero: Shape = exactObject({
   status: literal('idle'),
   joinedAtMs: natural,
   discontent: boolean,
-});
-
-/** A lista de heróis: cada um na forma, nunca mais do que o teto, nenhum identificador repetido. */
-const heroes: Shape = (value, path) => {
-  const found = listOf(hero)(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const list = value as Array<{ id: string }>;
-  if (list.length > HERO_ROSTER_CAP_V14) {
-    return `${where(path)}: esperada lista de até ${HERO_ROSTER_CAP_V14} heróis, veio de ${list.length}`;
-  }
-  return new Set(list.map((entry) => entry.id)).size === list.length
-    ? null
-    : `${where(path)}: identificador de herói repetido`;
 };
 
-const guildV14Form: Shape = exactObject({
-  heroes,
+/**
+ * Uma lista de heróis: cada um na forma dada, nunca mais do que o teto, nenhum identificador
+ * repetido. A versão seguinte passa a forma do herói dela.
+ */
+export function heroRoster(hero: Shape): Shape {
+  return (value, path) => {
+    const found = listOf(hero)(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const list = value as Array<{ id: string }>;
+    if (list.length > HERO_ROSTER_CAP_V14) {
+      return `${where(path)}: esperada lista de até ${HERO_ROSTER_CAP_V14} heróis, veio de ${list.length}`;
+    }
+    return new Set(list.map((entry) => entry.id)).size === list.length
+      ? null
+      : `${where(path)}: identificador de herói repetido`;
+  };
+}
+
+export const guildV14Fields: Readonly<Record<string, Shape>> = {
+  heroes: heroRoster(exactObject(heroV14Fields)),
   wageArrears: nullable(exactObject({ sinceMs: natural, carriedMs: natural, departed: natural })),
   lastWageArrears: nullable(
     exactObject({ endedAtMs: natural, lastedMs: natural, departed: natural }),
   ),
-});
+};
 
 type GuildV14 = {
   heroes: Array<{ id: string; joinedAtMs: number; discontent: boolean }>;
@@ -112,8 +118,12 @@ type GuildV14 = {
  * registro de atraso fechado nunca andam juntos (o que abre consome o registro), e só há herói
  * Descontente com o atraso aberto.
  */
-const guildV14: Shape = (value, path) => {
-  const found = guildV14Form(value, path);
+export function guildOf(form: Shape): Shape {
+  return (value, path) => guildConsistency(form, value, path);
+}
+
+function guildConsistency(form: Shape, value: unknown, path: string): string | null {
+  const found = form(value, path);
   if (found !== null) {
     return found;
   }
@@ -127,14 +137,16 @@ const guildV14: Shape = (value, path) => {
     return `${at}heroes.${index}.discontent: herói Descontente sem soldo em atraso`;
   }
   return null;
-};
+}
+
+const guildV14: Shape = guildOf(exactObject(guildV14Fields));
 
 /**
  * A conferência de `guild` com o resto do estado, que uma guarda de campo não alcança: todo
  * herói tem um identificador que `nextId` já deu (`1 ≤ n ≤ ids.hero`) e chegou até agora
  * (`joinedAtMs ≤ lastProcessedAt`), e nenhum atraso começou ou acabou no futuro.
  */
-const guildWithinState: Shape = (value, path) => {
+export const guildWithinState: Shape = (value, path) => {
   const { guild, ids, lastProcessedAt } = value as {
     guild: GuildV14;
     ids: Record<string, number>;
@@ -172,8 +184,7 @@ const guildWithinState: Shape = (value, path) => {
  *   janela continuar de onde ele parou.
  * - `rng` e `ids` não mudam de forma. O herói não tem fluxo de sorteio próprio.
  *
- * Quem subir `schemaVersion` para 15 acrescenta aqui o passo `v14ToV15`, com esta forma como
- * entrada, e escreve a forma nova em `v15.ts`.
+ * O passo que sai daqui é o `v14ToV15`, abaixo; a forma da versão 15 está em `v15.ts`.
  */
 export const stateV14Fields: Readonly<Record<string, Shape>> = {
   ...stateV13Fields,
@@ -186,3 +197,42 @@ const stateV14Streams: Shape = rngWithinIds(RNG_STREAM_FAMILIES_V13);
 
 export const stateV14: Shape = (value, path) =>
   stateV14Form(value, path) ?? stateV14Streams(value, path) ?? guildWithinState(value, path);
+
+/**
+ * A forma de tratamento com que um herói da versão 14 entra na 15. A versão 14 não tinha esse
+ * campo, e a ficha dizia a classe e os traços em uma forma só ("Guerreiro", "Leal"): o passo
+ * guarda a que mantém a ficha como estava. **Nenhuma partida de verdade passa por aqui com
+ * herói:** a versão 14 nunca foi publicada e nenhuma regra dela dava um herói a ninguém; só os
+ * retratos congelados e os estados de teste têm algum.
+ */
+export const HERO_GENDER_FROM_V14 = 'm';
+
+/**
+ * Versão 14 → 15: o herói ganha a forma de tratamento, e a guilda, a lista dos heróis
+ * prometidos (V3C-T3; ADR 0017, decisão 6; pendência C-1 de docs/pendencias-v0.3.md).
+ *
+ * - Cada herói que já existia ganha `gender`, com o valor fixo de `HERO_GENDER_FROM_V14`.
+ * - Entra `guild.arriving`, vazia: ninguém foi prometido a ninguém.
+ *
+ * **O passo não agenda a carta da estrangeira nem cria prazo nenhum.** A partida que já passou
+ * do dia marcado recebe a roteirizada pelo motor, na primeira audiência com lugar depois da
+ * fronteira (`scriptedCard`: o dia chegou e a carta nunca saiu). O passo não emite evento, não
+ * dá identificador a ninguém e não toca o gerador.
+ */
+export const v14ToV15: MigrationStep = {
+  from: 14,
+  summary: 'o herói ganha a forma de tratamento e a guilda, a lista dos heróis prometidos',
+  shape: stateV14,
+  migrate(state) {
+    const guild = state.guild as { heroes: Array<Record<string, unknown>> };
+    return {
+      ...state,
+      schemaVersion: 15,
+      guild: {
+        ...guild,
+        heroes: guild.heroes.map((hero) => ({ ...hero, gender: HERO_GENDER_FROM_V14 })),
+        arriving: [],
+      },
+    };
+  },
+};

@@ -477,8 +477,10 @@ describe('divisão de intervalo com fluxos de entidade que nascem e morrem', () 
     expect(polled.events).toStrictEqual(direct.events);
     expect(JSON.stringify(polled.state)).toBe(JSON.stringify(direct.state));
     // O feudo foi preparado depois da virada do dia 2: a primeira equipe do roteiro ficou no
-    // passado e não nasce. As outras três nasceram, e só a última ainda vive.
-    expect(direct.state.ids).toEqual({ expedition: 2, caravan: 1 });
+    // passado e não nasce. As outras três nasceram, e só a última ainda vive. No caminho o feudo
+    // recebeu a carta da estrangeira, que ninguém respondeu: o conselho a acolheu, e o herói
+    // dela tem o identificador dele, igual nos dois caminhos.
+    expect(direct.state.ids).toEqual({ expedition: 2, caravan: 1, hero: 1 });
     expect(syntheticEntitiesOf(direct.state).map((entity) => entity.id)).toEqual(['expedition-2']);
     expect(Object.keys(direct.state.rng).sort()).toEqual(
       [...RNG_STREAMS, 'expedition:expedition-2'].sort(),

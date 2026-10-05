@@ -16,6 +16,7 @@ import {
   countRows,
   createTestApp,
   DAY,
+  councilRecess,
   enlistHeroes,
   HOUR,
   MINUTE,
@@ -367,6 +368,8 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
     const player = await newPlayer(server, 'Rolf');
     const gameId = player.game.id;
     await quietHorde(server, gameId);
+    // Sem o Conselho: a carta da estrangeira traria outro herói no meio da conta do soldo.
+    await councilRecess(server, gameId);
     await enlistHeroes(server, gameId, [{ name: 'Rolf', classId: 'archer' }]);
     // 250 de ouro, 2 por hora: 125 h de jogo. Seis dias depois o cofre está vazio há 19 h.
     server.clock.advance(6 * DAY);

@@ -328,6 +328,20 @@ const HeroSchema = z.strictObject({
 const GuildSchema = z.strictObject({
   heroLimit: z.number(),
   heroes: z.array(HeroSchema),
+  /**
+   * Os heróis que uma carta prometeu e que ainda não chegaram, na ordem em que chegam: quem é e
+   * em quantos segundos reais chega. `blockedReason` diz por que quem já devia ter chegado
+   * ainda espera.
+   */
+  arriving: z.array(
+    z.strictObject({
+      name: z.string(),
+      classLabel: z.string(),
+      traits: z.array(z.strictObject({ label: z.string(), text: z.string() })),
+      arrivesInSeconds: z.number(),
+      blockedReason: z.string().nullable(),
+    }),
+  ),
   wage: z.strictObject({
     perHour: z.number(),
     coveredForSeconds: z.number().nullable(),

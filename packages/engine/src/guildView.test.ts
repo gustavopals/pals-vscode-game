@@ -38,6 +38,7 @@ describe('a guilda na visão', () => {
     expect(guildOf(newGame())).toEqual({
       heroLimit: 1,
       heroes: [],
+      arriving: [],
       wage: { perHour: 0, coveredForSeconds: null, arrears: null },
     });
   });
@@ -271,9 +272,11 @@ describe('o soldo em atraso na visão', () => {
 
   it('nada do que é segredo ou de outra fase sai: nem contador, nem gerador, nem campo da Guilda-edifício', () => {
     const view = deriveViewState(wageArrearsScenario(), wageArrearsScenario().lastProcessedAt);
-    expect(Object.keys(view.guild)).toEqual(['heroLimit', 'heroes', 'wage']);
+    expect(Object.keys(view.guild)).toEqual(['heroLimit', 'heroes', 'arriving', 'wage']);
     expect(Object.keys(view.guild.wage)).toEqual(['perHour', 'coveredForSeconds', 'arrears']);
     const text = JSON.stringify(view);
-    expect(text).not.toMatch(/"(ids|rng|joinedAtMs|classId|carriedMs|departed)"/);
+    expect(text).not.toMatch(
+      /"(ids|rng|joinedAtMs|classId|gender|namedHeroId|carriedMs|departed)"/,
+    );
   });
 });

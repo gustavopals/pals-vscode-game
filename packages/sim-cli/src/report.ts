@@ -472,9 +472,57 @@ export type Summary = {
    * sequência tem, e a hora real em que concluiu o último; `null` se ficou algum por cumprir.
    */
   objectives: { done: number; total: number; allDoneAtHour: number | null };
+  /**
+   * Os heróis (GDD §9.1), contados dos eventos e lidos do estado no fim: quantos servem ao
+   * feudo, a hora real em que o primeiro chegou (pela carta da estrangeira; `null` se nenhum
+   * chegou), as horas reais com o soldo em atraso (com uma casa decimal) e quantos partiram sem
+   * soldo. É o que as faixas e `docs/balance-v0.3.md` leem; as colunas do CSV continuam
+   * reservadas até V3C-T5.
+   */
+  guild: {
+    heroes: number;
+    firstHeroAtHour: number | null;
+    arrearsHours: number;
+    departed: number;
+  };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
+
+/** Horas reais, com uma casa decimal, de um intervalo de tempo de jogo no ritmo da partida. */
+function realHoursSpan(gameMs: number, timeScale: number): number {
+  return Math.round((gameMs / timeScale / 3_600_000) * 10) / 10;
+}
+
+/**
+ * Os heróis de uma partida, pelos eventos: a chegada do primeiro, o tempo com o soldo em atraso
+ * (do evento que o abre ao que o fecha; o que ainda está aberto conta até o fim) e os que
+ * partiram sem soldo.
+ */
+function guildOf(result: SimulationResult): Summary['guild'] {
+  const timeScale = result.options.timeScale ?? 1;
+  const endMs = result.finalState.lastProcessedAt;
+  const first = result.events.find((event) => event.type === 'heroJoined');
+  let arrearsMs = 0;
+  let openedAt: number | null = null;
+  for (const event of result.events) {
+    if (event.type === 'wageArrearsStarted') {
+      openedAt = event.atMs;
+    } else if (event.type === 'wageArrearsEnded' && openedAt !== null) {
+      arrearsMs += event.atMs - openedAt;
+      openedAt = null;
+    }
+  }
+  if (openedAt !== null) {
+    arrearsMs += endMs - openedAt;
+  }
+  return {
+    heroes: result.finalState.guild.heroes.length,
+    firstHeroAtHour: first === undefined ? null : realHoursSpan(first.atMs, timeScale),
+    arrearsHours: realHoursSpan(arrearsMs, timeScale),
+    departed: result.events.filter((event) => event.type === 'heroLeft').length,
+  };
+}
 
 export function summarize(result: SimulationResult): Summary {
   const { rows, options } = result;
@@ -565,6 +613,7 @@ export function summarize(result: SimulationResult): Summary {
       total: objectives.length,
       allDoneAtHour: rows.find((row) => row.objectives >= objectives.length)?.hour ?? null,
     },
+    guild: guildOf(result),
     stock,
   };
 }

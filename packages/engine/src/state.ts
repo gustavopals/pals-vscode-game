@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 14,
+    schemaVersion: 15,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -88,7 +88,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
     horde: { scheduledRaids: scriptedRaidsAfter(0) },
     // Nenhum herói no começo: o primeiro chega por uma carta do Conselho (GDD §9.1).
-    guild: { heroes: [], wageArrears: null, lastWageArrears: null },
+    guild: { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),
       completed: [],

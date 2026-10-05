@@ -5,7 +5,9 @@ import {
   accept,
   autumnScenario,
   command,
+  COUNCIL_SCENARIO_SEED,
   councilScenario,
+  heroPromisedScenario,
   craftScenario,
   DAY,
   gameWith,
@@ -543,8 +545,12 @@ describe('golden do ViewState', () => {
       impoverished: view(impoverishedScenario()),
       proud: view(proudScenario()),
       // O Conselho com a mesa cheia, no ritmo Rápido: uma continuação que lembra a escolha
-      // anterior e uma avulsa com uma opção trancada. A próxima audiência não traz carta.
-      councilTable: view(councilScenario(12 * DAY + 20 * MINUTE)),
+      // anterior e uma avulsa com uma opção trancada. A próxima audiência não traz carta. É o
+      // feudo em que a roteirizada já saiu: a audiência do 13º dia é do sorteio.
+      councilTable: view(councilScenario(12 * DAY + 20 * MINUTE, COUNCIL_SCENARIO_SEED, true)),
+      // A mesma mesa no jogo de verdade: a audiência do 13º dia traz a "Estrangeira ferida", com
+      // o herói que cada opção dá, quando ele chega e o soldo que passa a cobrar.
+      strangerAtTable: view(councilScenario(12 * DAY + 20 * MINUTE)),
       // A Ameaça vista da Torre de Vigia, no ritmo Rápido: no outono, com o covil e a estação
       // somando; com a Torre no nível 2 e uma incursão à vista (o que ela custa e o que a
       // defesa faz); e o dia seguinte a um ataque sofrido: os feridos, o que os lobos levaram
@@ -562,6 +568,8 @@ describe('golden do ViewState', () => {
       // herói já cobrado e os dois prazos até a virada que cobra o seguinte.
       guildPaid: view(guildScenario()),
       guildInArrears: view(wageArrearsScenario()),
+      // O herói prometido por uma carta, ainda a caminho: quem é e em quanto tempo chega.
+      heroPromised: view(heroPromisedScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

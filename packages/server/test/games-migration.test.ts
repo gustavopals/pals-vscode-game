@@ -42,9 +42,12 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 14;
-/** A guilda com que toda partida chega à versão 14: sem herói e sem soldo em atraso. */
-const EMPTY_GUILD = { heroes: [], wageArrears: null, lastWageArrears: null };
+const CURRENT = 15;
+/**
+ * A guilda com que toda partida chega à versão atual: sem herói, sem ninguém prometido e sem
+ * soldo em atraso.
+ */
+const EMPTY_GUILD = { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null };
 
 type StoredState = {
   schemaVersion: number;

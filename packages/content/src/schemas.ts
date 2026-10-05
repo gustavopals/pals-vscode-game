@@ -15,8 +15,10 @@ import {
   ENEMY_IDS,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
+  HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
+  NAMED_HERO_IDS,
   MORALE_BAND_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
@@ -256,6 +258,7 @@ const heroes = z
     wagePerHour: positiveInt,
     limitBase: positiveInt,
     rosterCap: positiveInt,
+    arrivingCap: positiveInt,
     arrears: z
       .strictObject({
         discontentAfterRealMs: positiveInt,
@@ -667,6 +670,7 @@ export const HeroClassesSchema = z.strictObject(
       id,
       z.strictObject({
         label,
+        labelFeminine: label,
         attributes: z.strictObject(
           Object.fromEntries(HERO_ATTRIBUTE_IDS.map((attribute) => [attribute, positiveInt])),
         ),
@@ -685,6 +689,7 @@ export const HeroTraitsSchema = z.strictObject(
       id,
       z.strictObject({
         label,
+        labelFeminine: label,
         text: label.regex(/^\p{Lu}[^0-9{}]*\.$/u),
         effects: z.strictObject({ loyalInArrears: z.literal(true).optional() }),
       }),
@@ -707,6 +712,30 @@ export const HeroStatusesSchema = z.strictObject(
   Object.fromEntries(HERO_STATUS_IDS.map((id) => [id, z.strictObject({ label })])),
 );
 
+/**
+ * Os heróis com nome próprio: um nome sem números, a forma de tratamento, uma classe e traços
+ * que existem (sem repetir) e, se houver, a frase da chegada, que diz o nome dele.
+ */
+export const NamedHeroesSchema = z.strictObject(
+  Object.fromEntries(
+    NAMED_HERO_IDS.map((id) => [
+      id,
+      z.strictObject({
+        name: label.regex(/^\p{Lu}[^0-9{}.]*$/u),
+        gender: z.enum(HERO_GENDER_IDS),
+        classId: z.enum(HERO_CLASS_IDS),
+        level: positiveInt,
+        traits: z
+          .array(z.enum(HERO_TRAIT_IDS))
+          .refine((traits) => new Set(traits).size === traits.length, 'traço repetido'),
+        arrival: chronicleTemplate
+          .refine((template) => template.includes('{heroi}'), 'a chegada não diz quem chegou')
+          .optional(),
+      }),
+    ]),
+  ),
+);
+
 const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
 /** Uma flag: identificadores separados por ponto, o primeiro sendo a cadeia: `commonGranary.open`. */
 const flag = z.string().regex(/^[a-z][A-Za-z0-9]*(\.[a-z][A-Za-z0-9]*)+$/);
@@ -726,6 +755,11 @@ export const CouncilEffectSchema = z.discriminatedUnion('type', [
   z.strictObject({ type: z.literal('setFlag'), flag }),
   z.strictObject({ type: z.literal('clearFlag'), flag }),
   z.strictObject({ type: z.literal('scheduleCard'), cardId: identifier, afterDays: positiveInt }),
+  z.strictObject({
+    type: z.literal('addHero'),
+    heroId: z.enum(NAMED_HERO_IDS),
+    afterDays: positiveInt.optional(),
+  }),
 ]);
 
 const effects = z
@@ -740,31 +774,50 @@ const effects = z
 const sentence = label.regex(/^\p{Lu}.*[.!?]$/su);
 const sentenceCount = (text: string) => text.split(/[.!?]+(?:\s+|$)/u).filter(Boolean).length;
 
-export const CouncilOptionSchema = z.strictObject({
-  id: identifier,
-  // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
-  // dizendo o mesmo número.
-  label: label.regex(
-    /^\p{Lu}\p{Ll}*(?:ar|er|ir|or|ôr)(?:\s[^\d.]*)?$/u,
-    'verbo no infinitivo, sem números',
-  ),
-  requires: z
-    .strictObject({ building: buildingId.optional(), resources: resourceAmounts.optional() })
-    .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
-    .optional(),
-  cost: resourceAmounts.optional(),
-  effects,
-  hint: sentence,
-  hidden: z
-    .strictObject({
-      afterDays: positiveInt,
-      effects: effects.min(1),
-      chronicle: chronicleTemplate,
-    })
-    .optional(),
-  chronicle: chronicleTemplate,
-  expiredChronicle: chronicleTemplate.optional(),
-});
+const givesHero = (list: ReadonlyArray<{ type: string }>) =>
+  list.filter((effect) => effect.type === 'addHero').length;
+
+export const CouncilOptionSchema = z
+  .strictObject({
+    id: identifier,
+    // Verbo no infinitivo, sem números: o custo aparece ao lado, e não pode haver dois lugares
+    // dizendo o mesmo número.
+    label: label.regex(
+      /^\p{Lu}\p{Ll}*(?:ar|er|ir|or|ôr)(?:\s[^\d.]*)?$/u,
+      'verbo no infinitivo, sem números',
+    ),
+    requires: z
+      .strictObject({ building: buildingId.optional(), resources: resourceAmounts.optional() })
+      .refine((requires) => Object.keys(requires).length > 0, 'requisito vazio')
+      .optional(),
+    cost: resourceAmounts.optional(),
+    effects,
+    hint: sentence,
+    hidden: z
+      .strictObject({
+        afterDays: positiveInt,
+        effects: effects.min(1),
+        chronicle: chronicleTemplate,
+      })
+      .optional(),
+    chronicle: chronicleTemplate,
+    expiredChronicle: chronicleTemplate.optional(),
+  })
+  .superRefine((option, context) => {
+    // Um herói de carta é recompensa, nunca compra: a opção que o dá não cobra nem exige nada
+    // (GDD §9.1: "o primeiro herói chega grátis"). E a promessa não é segredo: nunca vem
+    // escondida. Um herói por opção.
+    const known = givesHero(option.effects);
+    if (known > 1) {
+      context.addIssue({ code: 'custom', message: 'mais de um herói na mesma opção' });
+    }
+    if (known > 0 && (option.cost !== undefined || option.requires !== undefined)) {
+      context.addIssue({ code: 'custom', message: 'herói de carta com custo ou requisito' });
+    }
+    if (givesHero(option.hidden?.effects ?? []) > 0) {
+      context.addIssue({ code: 'custom', message: 'herói de carta em efeito escondido' });
+    }
+  });
 
 const moralRange = z
   .tuple([z.number().int().nonnegative(), z.number().int().nonnegative()])

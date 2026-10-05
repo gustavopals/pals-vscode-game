@@ -1,5 +1,6 @@
 import { balance } from '@lotg/content';
 
+import { settleHeroArrivals } from './arrivals';
 import { emit } from './chronicle';
 import {
   cancelConstruction,
@@ -88,6 +89,9 @@ export function applyCommand(state: GameState, command: Command, nowMs: number):
   if (rejection !== null) {
     return { ok: false, code: rejection.code, message: rejection.message };
   }
+  // O herói que a resposta a uma carta acabou de dar entra agora, e o que esperava lugar na
+  // lista entra no lugar de quem foi dispensado.
+  settleHeroArrivals(draft, nowMs, events);
   // Toda ordem pode liberar uma planejada automática (um cancelamento devolve recurso e fila,
   // uma recompensa paga um custo): a lista é conferida aqui, junto com os objetivos.
   settlePlanned(draft, nowMs, events);

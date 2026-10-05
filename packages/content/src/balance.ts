@@ -288,6 +288,11 @@ export type HeroesDef = {
    * contratação não barra) põem no feudo mais heróis do que isto.
    */
   readonly rosterCap: number;
+  /**
+   * O teto da lista de heróis prometidos que ainda não chegaram (`guild.arriving`): os que uma
+   * carta mandou vir depois e os que esperam lugar na lista cheia.
+   */
+  readonly arrivingCap: number;
   /** O soldo em atraso: o ouro acabou com soldo a pagar. */
   readonly arrears: {
     /** Atraso contínuo, em tempo real, a partir do qual quem não é Leal fica Descontente. */
@@ -656,6 +661,7 @@ export const balance: Balance = {
     wagePerHour: 2,
     limitBase: 1,
     rosterCap: 12,
+    arrivingCap: 4,
     arrears: {
       discontentAfterRealMs: 12 * HOUR_MS,
       leaveAfterRealMs: 24 * HOUR_MS,

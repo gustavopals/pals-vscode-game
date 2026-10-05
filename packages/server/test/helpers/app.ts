@@ -235,16 +235,34 @@ export async function quietHorde(target: TestApp, gameId: string): Promise<void>
   }
 }
 
+/**
+ * Põe o Conselho de uma partida de teste em recesso: a próxima audiência fica para daqui a mil
+ * anos de jogo. Nenhuma carta chega, nem a roteirizada da estrangeira, que entrega um herói. É
+ * para os testes que contam os heróis, o soldo e os eventos deles um a um. O estado é reescrito
+ * direto no banco: chame logo depois de criar a partida, antes de qualquer leitura.
+ */
+export async function councilRecess(target: TestApp, gameId: string): Promise<void> {
+  const { rowCount } = await target.pool.query(
+    `update games set state = jsonb_set(state, '{council,nextDrawAtMs}', to_jsonb($2::bigint))
+      where id = $1`,
+    [gameId, 1000 * 84 * 2 * HOUR],
+  );
+  if (rowCount !== 1) {
+    throw new Error('A partida do teste não está no banco.');
+  }
+}
+
 /** Um herói de teste, como `enlistHeroes` o grava: só o que não é igual para todos. */
 export type TestHero = {
   name: string;
+  gender?: 'f' | 'm';
   classId?: 'warrior' | 'archer' | 'mage' | 'cleric';
   traits?: string[];
 };
 
 /**
- * Põe heróis em uma partida de teste recém-criada, como uma carta ou a Taverna vão pôr
- * (V3C-T3 e V3C-T2): por enquanto nenhuma ordem e nenhum evento dão um herói a ninguém. Os
+ * Põe heróis em uma partida de teste recém-criada, sem esperar a carta da estrangeira (que dá
+ * um só, no 13º dia de jogo) nem a Taverna (V3C-T2): para os cenários do soldo e do atraso. Os
  * identificadores são `hero-1`, `hero-2`…, e o contador de identidades fica em dia. O estado é
  * reescrito direto no banco: chame logo depois de criar a partida, antes de qualquer leitura.
  */
@@ -256,6 +274,7 @@ export async function enlistHeroes(
   const roster = heroes.map((hero, index) => ({
     id: `hero-${index + 1}`,
     name: hero.name,
+    gender: hero.gender ?? 'm',
     classId: hero.classId ?? 'warrior',
     level: 1,
     xp: 0,

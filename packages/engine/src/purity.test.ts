@@ -57,9 +57,11 @@ describe('pureza do motor', () => {
     // `hordeTurn.ts`; `threat.ts` (a subida e a Paliçada), `raids.ts` (o aviso, a resolução e
     // os feridos, que a linha do tempo, o estado inicial e as previsões da visão também usam)
     // e `threatView.ts` ficam do lado de quem não sorteia. Nos heróis nada sorteia: o soldo, o
-    // atraso e quem parte (`heroes.ts`, `wages.ts`) são contas fixas, sem fluxo nenhum.
+    // atraso e quem parte (`heroes.ts`, `wages.ts`) são contas fixas, sem fluxo nenhum, e o herói
+    // que uma carta entrega (`arrivals.ts`) chega em instante marcado, com nome e traços do
+    // conteúdo.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -78,6 +80,7 @@ describe('pureza do motor', () => {
         './raids.ts',
         './heroes.ts',
         './wages.ts',
+        './arrivals.ts',
       ]),
     );
     const offenders = guarded
@@ -127,6 +130,7 @@ describe('pureza do motor', () => {
         './migrations/v12.ts',
         './migrations/v13.ts',
         './migrations/v14.ts',
+        './migrations/v15.ts',
         './random.ts',
         './morale.ts',
         './threat.ts',
@@ -138,7 +142,19 @@ describe('pureza do motor', () => {
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
-    for (const allowed of ['./commands.ts', './council.ts', './raids.ts', './advance.ts']) {
+    // `arrivals.ts` é hoje o único que cria de fato: o herói que uma carta entrega. A visão e a
+    // linha do tempo leem os heróis prometidos por `heroes.ts`, que não cria nada.
+    const creators = sources
+      .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text))
+      .map(([path]) => path);
+    expect(creators).toEqual(['./arrivals.ts']);
+    for (const allowed of [
+      './commands.ts',
+      './council.ts',
+      './raids.ts',
+      './advance.ts',
+      './arrivals.ts',
+    ]) {
       expect(guarded.map(([path]) => path)).not.toContain(allowed);
     }
     const offenders = guarded

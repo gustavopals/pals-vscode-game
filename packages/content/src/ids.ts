@@ -92,6 +92,20 @@ export type HeroTraitId = (typeof HERO_TRAIT_IDS)[number];
 export const HERO_STATUS_IDS = ['idle'] as const;
 export type HeroStatusId = (typeof HERO_STATUS_IDS)[number];
 
+/**
+ * A forma de tratamento de um herói: é o que deixa a ficha concordar com o nome ("Edda —
+ * Guerreira", "Rolf — Arqueiro"). A classe e o traço trazem um rótulo para cada uma.
+ */
+export const HERO_GENDER_IDS = ['f', 'm'] as const;
+export type HeroGenderId = (typeof HERO_GENDER_IDS)[number];
+
+/**
+ * Os heróis com nome próprio, que uma carta do Conselho entrega (GDD §9.1 e Apêndice B; ADR
+ * 0017, decisão 6). Não são modelos da Taverna. A ficha de cada um está em `namedHeroes`.
+ */
+export const NAMED_HERO_IDS = ['edda', 'rolf'] as const;
+export type NamedHeroId = (typeof NAMED_HERO_IDS)[number];
+
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };
 

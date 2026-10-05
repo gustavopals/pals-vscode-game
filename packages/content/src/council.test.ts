@@ -11,8 +11,16 @@ import {
   councilCards,
   type CouncilEffect,
   DIFFICULTY_IDS,
+  heroClasses,
+  NAMED_HERO_IDS,
+  namedHeroes,
 } from './index';
-import { BalanceSchema, CouncilCardSchema, CouncilCatalogSchema } from './schemas';
+import {
+  BalanceSchema,
+  CouncilCardSchema,
+  CouncilCatalogSchema,
+  NamedHeroesSchema,
+} from './schemas';
 
 const HOUR_MS = 3_600_000;
 
@@ -121,10 +129,11 @@ describe('Conselho: o catálogo', () => {
     expect(CouncilCatalogSchema.safeParse(councilCards).error).toBeUndefined();
   });
 
-  it('tem as 21 cartas do primeiro lote: três cadeias de 3 e as 12 avulsas, nesta ordem', () => {
+  it('tem as 21 cartas do primeiro lote (três cadeias de 3 e as 12 avulsas) e a roteirizada da v0.3, nesta ordem', () => {
     // A terceira cadeia, "A Promessa da Paliçada", entrou com a Paliçada (roadmap da v0.2,
-    // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md.
-    expect(councilCards).toHaveLength(21);
+    // V2E-T2), antes das avulsas. As fichas estão em docs/content-v0.2.md; a da roteirizada,
+    // que fica no fim e não entra no sorteio por peso, em docs/content-v0.3.md.
+    expect(councilCards).toHaveLength(22);
     expect(councilCards.map((entry) => [entry.id, entry.title])).toEqual([
       ['commonGranaryPlanks', 'Tábuas para as reservas'],
       ['commonGranaryShare', 'A vez de repartir'],
@@ -147,6 +156,7 @@ describe('Conselho: o catálogo', () => {
       ['dampFirewood', 'Lenha ainda úmida'],
       ['roofBeforeCold', 'Um teto antes do frio'],
       ['harvestFeast', 'A colheita de todos'],
+      ['woundedStranger', 'Estrangeira ferida'],
     ]);
     expect(new Set(councilCards.map((entry) => entry.title)).size).toBe(councilCards.length);
   });
@@ -191,7 +201,11 @@ describe('Conselho: o catálogo', () => {
       dampFirewood: ['sheds*', 'leave', 'split*'],
       roofBeforeCold: ['build', 'hall', 'axes*'],
       harvestFeast: ['feast', 'modest', 'store'],
+      // V3C-T3. Além dos ids, o estado guarda o herói prometido (`guild.arriving`), pelo id de
+      // `NAMED_HERO_IDS`: o motor trata o que o conteúdo já não tem como promessa que caiu.
+      woundedStranger: ['shelter', 'tend'],
     });
+    expect(NAMED_HERO_IDS).toEqual(['edda', 'rolf']);
   });
 
   it('ids únicos, e toda opção com id único dentro da carta', () => {
@@ -274,8 +288,9 @@ describe('Conselho: o catálogo', () => {
     for (const target of scheduled) {
       expect(ids).toContain(target);
     }
+    // A carta sem peso chega como continuação ou pelo roteiro, nunca pelos dois.
     for (const entry of councilCards.filter((candidate) => candidate.weight === 0)) {
-      expect(scheduled, entry.id).toContain(entry.id);
+      expect(scheduled.includes(entry.id), entry.id).toBe(entry.scripted === undefined);
     }
     // E o sorteio tem o que tirar em um feudo recém-fundado: cartas com peso que não pedem
     // estação, edifício, dia nem moral (as recorrentes só pedem a vez delas na ronda).
@@ -287,7 +302,15 @@ describe('Conselho: o catálogo', () => {
     ).toBeGreaterThanOrEqual(2);
   });
 
-  it('só usa o que a v0.2 tem: os cinco efeitos, os edifícios que existem e nenhuma carta roteirizada', () => {
+  it('só usa os efeitos e os edifícios que existem', () => {
+    expect(COUNCIL_EFFECT_TYPES).toEqual([
+      'resources',
+      'morale',
+      'setFlag',
+      'clearFlag',
+      'scheduleCard',
+      'addHero',
+    ]);
     for (const entry of councilCards) {
       for (const effect of effectsOf(entry)) {
         expect(COUNCIL_EFFECT_TYPES).toContain(effect.type);
@@ -295,18 +318,58 @@ describe('Conselho: o catálogo', () => {
       for (const building of Object.keys(entry.requires?.buildings ?? {})) {
         expect(BUILDING_IDS).toContain(building);
       }
-      // ADR 0014, decisão 8: a carta que entrega o herói fica para a v0.3.
-      expect(entry.scripted, entry.id).toBeUndefined();
     }
   });
 
-  it('nenhum texto fala de herói, Mercado, ferro, exército, combate, mapa ou edifício de versão futura', () => {
+  it('uma só carta roteirizada: a que entrega o primeiro herói, no 13º dia de jogo, sem peso nem requisito', () => {
+    // ADR 0017, decisão 6: o começo do dia real 2 no ritmo Normal, antes dos lobos do roteiro.
+    const scripted = councilCards.filter((entry) => entry.scripted !== undefined);
+    expect(scripted.map((entry) => [entry.id, entry.scripted?.atGameDay])).toEqual([
+      ['woundedStranger', 13],
+    ]);
+    const [stranger] = scripted as [CouncilCard];
+    expect(stranger.weight).toBe(0);
+    expect(stranger.requires).toBeUndefined();
+    expect(stranger.recurring).toBeUndefined();
+    // O dia marcado é dia de audiência em uma partida nova: a primeira é um intervalo depois da
+    // fundação, no começo do dia 1 + intervalo, e daí em diante de intervalo em intervalo.
+    expect((13 - 1) % balance.council.drawIntervalDays).toBe(0);
+    // E vem antes dos lobos do roteiro: o feudo tem quem o defenda na história antes do susto.
+    for (const raid of balance.raids.scripted) {
+      expect(13).toBeLessThan(raid.atGameDay);
+    }
+  });
+
+  it('nenhum texto fala de ferro, exército, combate, presságio, relíquia ou edifício de versão futura', () => {
     const future =
-      /\b(her[óo]i|her[óo]is|mercado|mercador|ferro|ferreiro|ex[ée]rcito|combate|batalha|soldado|espada|arqueiro|mapa|expedi[çc]|rel[íi]quia|guilda|taverna|quartel|muralha|horda|cerco)/iu;
+      /\b(ferro|ferreiro|ex[ée]rcito|combate|batalha|soldado|press[áa]gio|rel[íi]quia|quartel|muralha|horda|cerco)/iu;
     for (const entry of councilCards) {
       for (const text of textsOf(entry)) {
         expect(text, entry.id).not.toMatch(future);
       }
+    }
+  });
+
+  it('o que a v0.3 ainda não entregou continua fora de todo texto: Mercado, mapa, expedição, Guilda e Taverna', () => {
+    // Afrouxa de novo em V3F-T1, com o lote 2, para o que já estiver no jogo.
+    const notYet = /\b(mercado|mercador|mapa|expedi[çc]|guilda|taverna)/iu;
+    for (const entry of councilCards) {
+      for (const text of textsOf(entry)) {
+        expect(text, entry.id).not.toMatch(notYet);
+      }
+    }
+  });
+
+  it('só a carta que entrega um herói fala de herói, de classe ou de arma', () => {
+    const heroic =
+      /\b(her[óo]i|her[óo]is|hero[íi]na|guerreir|arqueir|mago|maga|cl[ée]rig|espada|arco)/iu;
+    const speaks = councilCards.filter((entry) => textsOf(entry).some((text) => heroic.test(text)));
+    expect(speaks.map((entry) => entry.id)).toEqual(['woundedStranger']);
+    for (const entry of speaks) {
+      expect(
+        effectsOf(entry).some((effect) => effect.type === 'addHero'),
+        entry.id,
+      ).toBe(true);
     }
   });
 
@@ -394,7 +457,8 @@ describe('Conselho: o catálogo', () => {
 
 /** O que uma lista de efeitos faz que o jogador vê antes de escolher: recursos e moral. */
 const known = (list: readonly CouncilEffect[]) => {
-  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0 };
+  // `hero` vale 2 para quem chega agora e 1 para quem só chega depois: a tela mostra a espera.
+  const total = { food: 0, wood: 0, stone: 0, gold: 0, morale: 0, hero: 0 };
   for (const effect of list) {
     if (effect.type === 'resources') {
       for (const [resource, amount] of Object.entries(effect.amounts)) {
@@ -403,6 +467,8 @@ const known = (list: readonly CouncilEffect[]) => {
     } else if (effect.type === 'morale') {
       // Pontos de moral vezes dias: serve para comparar "+5 por 3 dias" com "+10 por 2".
       total.morale += effect.amount * effect.durationDays;
+    } else if (effect.type === 'addHero') {
+      total.hero += effect.afterDays === undefined ? 2 : 1;
     }
   }
   return total;
@@ -600,6 +666,7 @@ describe('Conselho: quem falta não é punido (GDD §15.1, item 5)', () => {
           stone: 0,
           gold: 0,
           morale: 0,
+          hero: 0,
         });
       }
     }
@@ -1188,6 +1255,182 @@ describe('Conselho: "A Promessa da Paliçada"', () => {
   });
 });
 
+describe('Conselho: "Estrangeira ferida", a carta que entrega o primeiro herói (GDD §9.1 e Apêndice B; ADR 0017, decisão 6)', () => {
+  const stranger = card('woundedStranger');
+  const option = (id: string) => {
+    const found = stranger.options.find((entry) => entry.id === id);
+    if (found === undefined) {
+      throw new Error(`Falta a opção ${id}.`);
+    }
+    return found;
+  };
+
+  it('os heróis com nome passam pelo schema: Edda, Guerreira Leal, e Rolf, Arqueiro Prudente, os dois de nível 1', () => {
+    expect(NamedHeroesSchema.safeParse(namedHeroes).error).toBeUndefined();
+    expect(namedHeroes.edda).toEqual({
+      name: 'Edda',
+      gender: 'f',
+      classId: 'warrior',
+      level: 1,
+      traits: ['loyal'],
+    });
+    expect({ ...namedHeroes.rolf, arrival: undefined }).toEqual({
+      name: 'Rolf',
+      gender: 'm',
+      classId: 'archer',
+      level: 1,
+      traits: ['prudent'],
+      arrival: undefined,
+    });
+    expect(namedHeroes.rolf.arrival).toContain('{heroi}');
+    const names = NAMED_HERO_IDS.map((id) => namedHeroes[id].name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const id of NAMED_HERO_IDS) {
+      expect(namedHeroes[id].level, id).toBeLessThanOrEqual(balance.heroes.maxLevel);
+    }
+  });
+
+  it('o schema dos heróis com nome recusa nome com número, classe e traço que não existem e traço repetido', () => {
+    const parse = (changed: object) =>
+      NamedHeroesSchema.safeParse({ ...namedHeroes, edda: { ...namedHeroes.edda, ...changed } })
+        .success;
+    expect(parse({})).toBe(true);
+    expect(parse({ name: 'Edda 2' })).toBe(false);
+    expect(parse({ name: '' })).toBe(false);
+    expect(parse({ gender: 'x' })).toBe(false);
+    expect(parse({ classId: 'paladin' })).toBe(false);
+    expect(parse({ traits: ['cursed'] })).toBe(false);
+    expect(parse({ traits: ['loyal', 'loyal'] })).toBe(false);
+    expect(parse({ level: 0 })).toBe(false);
+    expect(parse({ arrival: 'No {dia}º dia {daEstacao}, alguém chegou a {feudo}.' })).toBe(false);
+    expect(parse({ price: 100 })).toBe(false);
+  });
+
+  it('as duas opções não têm custo nem requisito, e as duas dão um herói: acolher, agora; cuidar, um dia de jogo depois', () => {
+    expect(stranger.options.map((entry) => entry.id)).toEqual(['shelter', 'tend']);
+    for (const entry of stranger.options) {
+      expect(entry.cost, entry.id).toBeUndefined();
+      expect(entry.requires, entry.id).toBeUndefined();
+      expect(entry.hidden, entry.id).toBeUndefined();
+    }
+    expect(option('shelter').effects).toEqual([{ type: 'addHero', heroId: 'edda' }]);
+    expect(option('tend').effects).toEqual([
+      { type: 'resources', amounts: { gold: 40 } },
+      { type: 'morale', amount: 5, durationDays: 1 },
+      { type: 'addHero', heroId: 'rolf', afterDays: 1 },
+    ]);
+  });
+
+  it('sem resposta, Camponês e Senhor acolhem e Rei de Ferro cuida e deixa partir: a expiração também entrega um herói', () => {
+    expect(stranger.autoResolve).toEqual({ peasant: 'shelter', lord: 'shelter', ironKing: 'tend' });
+    for (const entry of stranger.options) {
+      expect(entry.expiredChronicle, entry.id).toContain('sem palavra do senhor');
+      expect(
+        entry.effects.filter((effect) => effect.type === 'addHero'),
+        entry.id,
+      ).toHaveLength(1);
+    }
+  });
+
+  it('a carta não abre cadeia nem grava flag: é uma vez por partida, pelo roteiro', () => {
+    for (const effect of effectsOf(stranger)) {
+      expect(['resources', 'morale', 'addHero']).toContain(effect.type);
+    }
+    expect(stranger.variants).toBeUndefined();
+  });
+
+  it('o texto diz o nome de quem chega, e a classe de cada herói concorda com ele', () => {
+    expect(stranger.text).toContain(namedHeroes.edda.name);
+    expect(heroClasses[namedHeroes.edda.classId].labelFeminine).toBe('Guerreira');
+    expect(heroClasses[namedHeroes.rolf.classId].label).toBe('Arqueiro');
+    expect(option('tend').chronicle).toContain('arqueiro');
+  });
+});
+
+describe('Conselho: o efeito que entrega um herói', () => {
+  const heroEffects = councilCards.flatMap((entry) =>
+    entry.options.flatMap((option) =>
+      [...option.effects, ...(option.hidden?.effects ?? [])].flatMap((effect) =>
+        effect.type === 'addHero' ? [{ entry, option, effect }] : [],
+      ),
+    ),
+  );
+
+  it('todo `addHero` aponta para um herói com nome que existe', () => {
+    expect(heroEffects.length).toBeGreaterThan(0);
+    for (const { entry, effect } of heroEffects) {
+      expect(NAMED_HERO_IDS, entry.id).toContain(effect.heroId);
+    }
+  });
+
+  it('nenhuma carta cria herói com custo, com requisito nem em efeito escondido', () => {
+    for (const { entry, option } of heroEffects) {
+      expect(option.cost, `${entry.id}/${option.id}`).toBeUndefined();
+      expect(option.requires, `${entry.id}/${option.id}`).toBeUndefined();
+      expect(
+        (option.hidden?.effects ?? []).some((effect) => effect.type === 'addHero'),
+        `${entry.id}/${option.id}`,
+      ).toBe(false);
+    }
+  });
+
+  it('cada herói com nome chega uma vez só: toda carta que o entrega é roteirizada, e em uma opção de cada vez', () => {
+    // Uma roteirizada sai uma vez por partida, e uma carta só aplica uma opção: é o que garante
+    // que a lista dos prometidos nunca passa do teto e que não há dois heróis com o mesmo nome.
+    for (const { entry } of heroEffects) {
+      expect(entry.scripted, entry.id).toBeDefined();
+    }
+    const cards = new Set(heroEffects.map(({ entry }) => entry.id));
+    expect(cards.size).toBeLessThanOrEqual(balance.heroes.arrivingCap);
+    for (const id of NAMED_HERO_IDS) {
+      const givers = heroEffects.filter(({ effect }) => effect.heroId === id);
+      expect(new Set(givers.map(({ entry }) => entry.id)).size, id).toBe(1);
+    }
+  });
+
+  it('quem chega depois chega em poucos dias de jogo: a promessa cabe em uma noite fora', () => {
+    for (const { entry, effect } of heroEffects) {
+      if (effect.afterDays !== undefined) {
+        expect(effect.afterDays, entry.id).toBeLessThanOrEqual(balance.council.drawIntervalDays);
+      }
+    }
+  });
+
+  it('o schema aceita herói agora e herói depois, e recusa herói desconhecido, pago, exigido, escondido ou em dobro', () => {
+    const free = (changed: object) =>
+      parses({ options: [sample.options[0], { ...sample.options[1], ...changed }] });
+    expect(free({ effects: [{ type: 'addHero', heroId: 'edda' }] })).toBe(true);
+    expect(free({ effects: [{ type: 'addHero', heroId: 'rolf', afterDays: 1 }] })).toBe(true);
+    expect(free({ effects: [{ type: 'addHero', heroId: 'merlin' }] })).toBe(false);
+    expect(free({ effects: [{ type: 'addHero', heroId: 'edda', afterDays: 0 }] })).toBe(false);
+    expect(free({ effects: [{ type: 'addHero', heroId: 'edda', price: 80 }] })).toBe(false);
+    expect(
+      free({
+        effects: [
+          { type: 'addHero', heroId: 'edda' },
+          { type: 'addHero', heroId: 'rolf' },
+        ],
+      }),
+    ).toBe(false);
+    expect(free({ effects: [{ type: 'addHero', heroId: 'edda' }], cost: { gold: 10 } })).toBe(
+      false,
+    );
+    expect(
+      free({ effects: [{ type: 'addHero', heroId: 'edda' }], requires: { building: 'granary' } }),
+    ).toBe(false);
+    expect(
+      free({
+        effects: [],
+        hidden: {
+          afterDays: 2,
+          effects: [{ type: 'addHero', heroId: 'edda' }],
+          chronicle: 'No {dia}º dia {daEstacao}, alguém chegou a {feudo}.',
+        },
+      }),
+    ).toBe(false);
+  });
+});
+
 describe('Conselho: o schema de uma carta', () => {
   it('aceita a carta de exemplo', () => {
     expect(CouncilCardSchema.safeParse(sample).error).toBeUndefined();
@@ -1247,7 +1490,7 @@ describe('Conselho: o schema de uma carta', () => {
   it('recusa efeito desconhecido, efeito zero, duração zero e dois efeitos de moral juntos', () => {
     const effects = (list: unknown[]) => withOption({ effects: list });
     expect(effects([{ type: 'resources', amounts: { food: -20 } }])).toBe(true);
-    expect(effects([{ type: 'addHero', hero: 'edda' }])).toBe(false);
+    expect(effects([{ type: 'addUnit', unit: 'militia' }])).toBe(false);
     expect(effects([{ type: 'resources', amounts: {} }])).toBe(false);
     expect(effects([{ type: 'resources', amounts: { food: 0 } }])).toBe(false);
     expect(effects([{ type: 'resources', amounts: { iron: 5 } }])).toBe(false);

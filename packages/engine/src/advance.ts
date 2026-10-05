@@ -1,3 +1,4 @@
+import { settleHeroArrivals } from './arrivals';
 import { emit } from './chronicle';
 import {
   calendarAt,
@@ -83,7 +84,7 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * acabou, o ano, a estação, o dia, a experiência do ofício, a moral: recálculo, sorteios e
  * deserção, a cobrança do soldo em atraso, o sorteio do Conselho, a subida da Ameaça, os uivos
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
- * continuações que chegam (`settleCouncil`), fim de adaptação de quem trocou de ofício, as
+ * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício, as
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), início automático
  * das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao
  * outro) e, por fim, fome, frio e soldo em atraso (`settleScarcity`). Os estoques que encheram são registrados depois de tudo, por
@@ -108,6 +109,11 @@ export function processEventsAt(
   recoverInjured(draft, atMs, events);
   processCalendar(draft, atMs, events, catalog);
   settleCouncil(draft, atMs, events, catalog);
+  // Os heróis prometidos cujo instante chegou, e o que uma carta que expirou agora acabou de
+  // dar. Depois da virada do dia: a cobrança do soldo em atraso daquela virada não alcança quem
+  // chega nela, e o lugar que um herói deixou ao partir já está aberto. Antes dos objetivos e
+  // da conta do ouro, que já encontram o herói e o soldo dele.
+  settleHeroArrivals(draft, atMs, events);
   finishAdaptations(draft, atMs);
   settleRaids(draft, atMs, events);
   settlePlanned(draft, atMs, events);

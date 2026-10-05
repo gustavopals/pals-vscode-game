@@ -4,6 +4,7 @@ import {
   DIFFICULTY_IDS,
   ENEMY_IDS,
   HERO_CLASS_IDS,
+  HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
   PRODUCTION_BUILDING_IDS,
@@ -50,8 +51,10 @@ import {
   HERO_CLASS_IDS_V14,
   HERO_MAX_LEVEL_V14,
   HERO_ROSTER_CAP_V14,
+  HERO_GENDER_FROM_V14,
   HERO_TRAIT_IDS_V14,
 } from './migrations/v14';
+import { HERO_ARRIVING_CAP_V15, HERO_GENDER_IDS_V15 } from './migrations/v15';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -107,6 +110,20 @@ const named = (name: string) => {
   }
   return found;
 };
+
+/**
+ * Um estado como a versão 14 o gravava, a partir de um da versão atual: o herói sem a forma de
+ * tratamento e a guilda sem a lista dos prometidos.
+ */
+function asVersion14(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 14;
+  delete old.guild.arriving;
+  for (const hero of old.guild.heroes as Draft[]) {
+    delete hero.gender;
+  }
+  return old;
+}
 
 /**
  * Um estado como a versão 13 o gravava, a partir de um da versão atual: sem a guilda. É o ponto
@@ -355,12 +372,42 @@ const FROZEN: Record<string, string> = {
   'state-v13-storage.json': 'fa472732',
   'state-v13-threat.json': 'ddad56f3',
   'state-v13-week-scripted.json': 'fb868f04',
+  'state-v14-cold.json': 'cd418414',
+  'state-v14-construction.json': 'c1b5df70',
+  'state-v14-council-hidden.json': '60de05bb',
+  'state-v14-council.json': '2545abc2',
+  'state-v14-crafts.json': 'd930da84',
+  'state-v14-famine-3x.json': 'e589fb16',
+  'state-v14-famine-ended.json': '2c40ba2a',
+  'state-v14-famine-half.json': 'a6282ac3',
+  'state-v14-famine-resumed.json': '667e63de',
+  'state-v14-famine.json': '59f1a64a',
+  'state-v14-fresh.json': '76912091',
+  'state-v14-guild.json': '9d351ec3',
+  'state-v14-iron-king-half.json': 'a5bcf17f',
+  'state-v14-migrated-3x.json': '7e19dcfd',
+  'state-v14-migrated-iron-king-half.json': 'd854f43c',
+  'state-v14-migrated-peasant-3x.json': '8689eca1',
+  'state-v14-morale.json': '273719a8',
+  'state-v14-objectives.json': '96a2ddc6',
+  'state-v14-palisade.json': '0a0c5a70',
+  'state-v14-peasant-3x.json': '0fe165b9',
+  'state-v14-queues.json': '9c88646c',
+  'state-v14-raid-announced.json': '13cffd8d',
+  'state-v14-raid.json': '82d3ebb8',
+  'state-v14-storage.json': 'c7cf5342',
+  'state-v14-threat.json': '0fac3cad',
+  'state-v14-wage-arrears-ended.json': '6e825c16',
+  'state-v14-wage-arrears-resumed.json': '332b3dfb',
+  'state-v14-wage-arrears.json': '61daf755',
+  'state-v14-week-scripted.json': '95987c26',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
 const HERO = {
   id: 'hero-1',
   name: 'Edda',
+  gender: 'f',
   classId: 'warrior',
   level: 1,
   xp: 0,
@@ -851,6 +898,8 @@ describe('a forma da versão atual', () => {
     expect(HERO_TRAIT_IDS_V14).toEqual([...HERO_TRAIT_IDS]);
     expect(HERO_MAX_LEVEL_V14).toBe(balance.heroes.maxLevel);
     expect(HERO_ROSTER_CAP_V14).toBe(balance.heroes.rosterCap);
+    expect(HERO_GENDER_IDS_V15).toEqual([...HERO_GENDER_IDS]);
+    expect(HERO_ARRIVING_CAP_V15).toBe(balance.heroes.arrivingCap);
     // O único estado de herói desta versão: os de quem está fora entram com as tarefas deles.
     expect(HERO_STATUS_IDS).toEqual(['idle']);
   });
@@ -907,6 +956,53 @@ describe('a forma da versão atual', () => {
       }),
     );
     expect(named).toBe('guild.heroes.0.xp: esperado inteiro a partir de zero, veio texto');
+    // A forma de tratamento: uma das duas, e nunca ausente.
+    expect(broken((state) => withHero(state, (hero) => (hero.gender = 'x')))).toBe(
+      'guild.heroes.0.gender: esperado um de f, m, veio texto',
+    );
+    expect(broken((state) => withHero(state, (hero) => delete hero.gender))).toBe(
+      'guild.heroes.0.gender: campo ausente',
+    );
+  });
+
+  it('aceita os heróis prometidos, a caminho e à espera de lugar, e recusa a lista fora da forma', () => {
+    const shaped = (arriving: unknown) => {
+      const state = JSON.parse(JSON.stringify(advanceTo(newGame(), 30 * HOUR).state)) as Draft;
+      state.guild.arriving = arriving;
+      return currentShape(state, '');
+    };
+    expect(shaped([])).toBeNull();
+    // Um a caminho e um com o prazo vencido, à espera de lugar: os dois cabem.
+    expect(
+      shaped([
+        { namedHeroId: 'edda', atMs: 20 * HOUR },
+        { namedHeroId: 'rolf', atMs: 32 * HOUR },
+      ]),
+    ).toBeNull();
+    // O identificador é conferido pela forma: o herói com nome que o conteúdo ganhar depois não
+    // pede versão nova do estado, e o que ele perder sai da lista sem chegar.
+    expect(shaped([{ namedHeroId: 'outroHeroi', atMs: 0 }])).toBeNull();
+    expect(shaped([{ namedHeroId: 'Nome Que Não Vai Para o Log', atMs: 0 }])).toBe(
+      'guild.arriving.0.namedHeroId: esperado o identificador de um herói com nome',
+    );
+    expect(shaped([{ namedHeroId: 'rolf', atMs: -1 }])).toMatch(/^guild\.arriving\.0\.atMs: /);
+    expect(shaped([{ namedHeroId: 'rolf', atMs: 1, name: 'Rolf' }])).toBe(
+      'guild.arriving.0.name: campo desconhecido',
+    );
+    expect(
+      shaped([
+        { namedHeroId: 'rolf', atMs: 32 * HOUR },
+        { namedHeroId: 'edda', atMs: 20 * HOUR },
+      ]),
+    ).toBe('guild.arriving.1.atMs: lista fora da ordem de chegada');
+    const crowd = Array.from({ length: balance.heroes.arrivingCap + 1 }, () => ({
+      namedHeroId: 'rolf',
+      atMs: 0,
+    }));
+    expect(shaped(crowd)).toBe(
+      `guild.arriving: esperada lista de até ${balance.heroes.arrivingCap} heróis a caminho, veio de ${crowd.length}`,
+    );
+    expect(shaped(crowd.slice(1))).toBeNull();
   });
 
   it('conhece os mesmos fluxos de sorteio que o gerador, fixos e de família', () => {
@@ -2793,11 +2889,12 @@ describe('versão 12 → 13', () => {
       // Nenhum prazo novo: o próximo evento é o que a partida já tinha marcado.
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(withoutObjectives(atBoundary.events)).toEqual([]);
-      // Nenhuma regra de hoje cria entidade: um mês real depois os contadores continuam vazios
-      // e o gerador só tem os fluxos fixos.
+      // A única regra de hoje que cria entidade é a carta da estrangeira, que dá um herói: um
+      // mês real depois o contador conhece esse herói e mais nada, e o gerador só tem os fluxos
+      // fixos.
       const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
       const later = advanceTo(state, state.lastProcessedAt + month).state;
-      expect(later.ids).toEqual({});
+      expect(later.ids).toEqual({ hero: 1 });
       for (const stream of Object.keys(later.rng)) {
         expect(RNG_STREAMS).toContain(stream);
       }
@@ -2853,7 +2950,8 @@ describe('versão 12 → 13', () => {
 
 describe('versão 13 → 14', () => {
   const version13 = fixtures.filter((fixture) => fixture.version === 13);
-  const EMPTY_GUILD = { heroes: [], wageArrears: null, lastWageArrears: null };
+  // A lista dos prometidos é do passo seguinte (14 → 15), conferido no bloco dele.
+  const EMPTY_GUILD = { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null };
 
   it('o que o passo escreve é o que uma partida nova tem', () => {
     const fresh = migrated(named('state-v13-fresh.json'));
@@ -2865,7 +2963,7 @@ describe('versão 13 → 14', () => {
   it.each(version13)('$name: só acrescenta a guilda, vazia', (fixture) => {
     const before = read(fixture) as Draft;
     const after = migrated(fixture);
-    expect(after.schemaVersion).toBe(14);
+    expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(after.guild).toStrictEqual(EMPTY_GUILD);
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, ninguém ganha identificador e o gerador fica palavra por palavra como estava.
@@ -2880,23 +2978,31 @@ describe('versão 13 → 14', () => {
   });
 
   it.each(version13)(
-    '$name: nada acontece na fronteira, e a partida segue sem herói, sem soldo e sem atraso',
+    '$name: nada acontece na fronteira, e até a carta da estrangeira a partida segue sem herói, sem soldo e sem atraso',
     (fixture) => {
       const state = migrated(fixture);
       // Nenhum prazo novo: o próximo evento é o que a partida já tinha marcado.
       expect(nextEventAt(state)).toBe(
-        nextEventAt({ ...state, guild: { heroes: [], wageArrears: null, lastWageArrears: null } }),
+        nextEventAt({
+          ...state,
+          guild: { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null },
+        }),
       );
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
       expect(withoutObjectives(atBoundary.events)).toEqual([]);
-      // Nenhuma regra de hoje dá herói a ninguém: um mês real depois a guilda continua vazia,
-      // nenhum evento do soldo saiu e ninguém ganhou identificador.
+      // Só a carta da estrangeira dá um herói: até ela ser resolvida (a resposta ou o prazo) a
+      // guilda continua vazia, nenhum evento do soldo sai e ninguém ganha identificador.
       const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
       const later = advanceTo(state, state.lastProcessedAt + month);
-      expect(later.state.guild).toEqual(EMPTY_GUILD);
-      expect(later.state.ids).toEqual({});
+      const resolved = later.events.find(
+        (event) => event.type === 'cardExpired' && event.data.cardId === 'woundedStranger',
+      );
+      expect(resolved).toBeDefined();
+      const before = advanceTo(state, (resolved as GameEvent).atMs - 1);
+      expect(before.state.guild).toEqual(EMPTY_GUILD);
+      expect(before.state.ids).toEqual({});
       expect(
-        later.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
+        before.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
       ).toEqual([]);
     },
   );
@@ -2926,6 +3032,171 @@ describe('versão 13 → 14', () => {
     old.guild = EMPTY_GUILD;
     expect(() => migrateState(old, { timeScale: 1 })).toThrow(StateMigrationError);
     expect(() => migrateState(old, { timeScale: 1 })).toThrow(/guild: campo desconhecido/);
+  });
+});
+
+describe('versão 14 → 15', () => {
+  const version14 = fixtures.filter((fixture) => fixture.version === 14);
+  const withHeroes = version14.filter(
+    (fixture) => (read(fixture) as Draft).guild.heroes.length > 0,
+  );
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v14-fresh.json'));
+    expect(fresh.guild).toEqual({
+      heroes: [],
+      arriving: [],
+      wageArrears: null,
+      lastWageArrears: null,
+    });
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it('há retratos da versão 14 com heróis, com o soldo em dia e em atraso', () => {
+    expect(withHeroes.length).toBeGreaterThanOrEqual(2);
+    const guilds = withHeroes.map((fixture) => (read(fixture) as Draft).guild);
+    expect(guilds.some((guild) => guild.wageArrears !== null)).toBe(true);
+    expect(guilds.some((guild) => guild.wageArrears === null)).toBe(true);
+  });
+
+  it.each(version14)(
+    '$name: só acrescenta a forma de tratamento dos heróis e a lista dos prometidos, vazia',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(15);
+      expect(after.guild.arriving).toStrictEqual([]);
+      // Quem já estava no feudo fica como estava, com o valor fixo do passo: a ficha continua
+      // dizendo a classe e os traços como dizia.
+      expect(HERO_GENDER_FROM_V14).toBe('m');
+      expect(after.guild.heroes).toStrictEqual(
+        (before.guild.heroes as Draft[]).map((hero) => ({ ...hero, gender: 'm' })),
+      );
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      // O resto é o estado antigo, campo por campo: o Conselho inclusive. O passo não põe a
+      // carta da estrangeira na mesa, não a agenda e não mexe na cadência.
+      const rest = JSON.parse(JSON.stringify(after)) as Draft;
+      delete rest.guild.arriving;
+      for (const hero of rest.guild.heroes as Draft[]) {
+        delete hero.gender;
+      }
+      expect({ ...rest, schemaVersion: 14 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+      expect(after.stats['cardsDrawn:woundedStranger']).toBeUndefined();
+    },
+  );
+
+  it.each(version14)('$name: nada acontece na fronteira, e o passo não cria prazo', (fixture) => {
+    const state = migrated(fixture);
+    const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+    expect(withoutObjectives(atBoundary.events)).toEqual([]);
+    expect(atBoundary.state.guild.heroes).toEqual(state.guild.heroes);
+    expect(atBoundary.state.ids).toEqual(state.ids);
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion14(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow.guild.heroes.map((hero) => [hero.name, hero.gender])).toEqual([['Brann', 'm']]);
+    expect(slow.guild.arriving).toEqual([]);
+  });
+
+  it('um estado da versão 14 que já traz os campos da 15 é recusado: não é da versão que diz', () => {
+    const start = newGame();
+    addHero(start);
+    const gendered = asVersion14(start);
+    (gendered.guild.heroes[0] as Draft).gender = 'f';
+    expect(() => migrateState(gendered, { timeScale: 1 })).toThrow(
+      /guild\.heroes\.0\.gender: campo desconhecido/,
+    );
+    const promised = asVersion14(newGame());
+    promised.guild.arriving = [];
+    expect(() => migrateState(promised, { timeScale: 1 })).toThrow(
+      /guild\.arriving: campo desconhecido/,
+    );
+  });
+});
+
+/**
+ * A carta da estrangeira nas partidas que já existiam (ADR 0017, decisão 6: "Sim, a todos";
+ * roadmap da v0.3, V3C-T3.4 e QA-01). Nenhum passo de migração a agenda: quem a entrega é o
+ * motor, na primeira audiência com lugar depois da fronteira. Vale para todo retrato de toda
+ * versão: os que ainda não chegaram ao 13º dia, os que já passaram dele, o que está no ano 2,
+ * os que migraram com a cadência fora dos dias 5, 9 e 13 e os que já tinham heróis.
+ */
+describe('a carta da estrangeira em toda partida que já existia', () => {
+  const old = fixtures.filter((fixture) => fixture.version < CURRENT_SCHEMA_VERSION);
+  const INTERVAL = balance.council.drawIntervalDays * 2 * HOUR;
+  const DAY_13 = 12 * 2 * HOUR;
+
+  it('os retratos cobrem antes e depois do 13º dia, o ano 2, a cadência fora dos dias 5, 9 e 13 e a mesa cheia', () => {
+    const states = old.map((fixture) => migrated(fixture));
+    expect(states.some((state) => state.lastProcessedAt < DAY_13)).toBe(true);
+    expect(states.some((state) => state.lastProcessedAt > DAY_13)).toBe(true);
+    expect(states.some((state) => state.clock.year >= 2)).toBe(true);
+    expect(states.some((state) => state.council.nextDrawAtMs % INTERVAL !== 0)).toBe(true);
+    expect(states.some((state) => state.council.pending.length > 0)).toBe(true);
+    expect(states.some((state) => state.council.scheduled.length > 0)).toBe(true);
+    expect(states.some((state) => state.guild.heroes.length > 0)).toBe(true);
+    for (const state of states) {
+      expect(state.stats['cardsDrawn:woundedStranger']).toBeUndefined();
+    }
+  });
+
+  it.each(old)(
+    '$name: a carta chega uma vez, em uma audiência depois da fronteira, e dá um herói',
+    (fixture) => {
+      const state = migrated(fixture);
+      const boundary = state.lastProcessedAt;
+      const heroesBefore = state.ids.hero ?? 0;
+      const span = Math.round(60 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, boundary + span);
+      const stranger = later.events.filter((event) => event.data.cardId === 'woundedStranger');
+      // Chega pelo roteiro, uma vez, e o conselho a resolve no prazo: ninguém respondeu.
+      expect(stranger.map((event) => event.type)).toEqual(['cardDrawn', 'cardExpired']);
+      const [drawn, expired] = stranger as [GameEvent, GameEvent];
+      expect(drawn.data.source).toBe('scripted');
+      expect(later.state.stats['cardsDrawn:woundedStranger']).toBe(1);
+      // Depois da fronteira e nunca antes do 13º dia de jogo.
+      expect(drawn.atMs).toBeGreaterThan(boundary);
+      expect(drawn.atMs).toBeGreaterThanOrEqual(DAY_13);
+      // Em uma audiência: uma virada de dia, a primeira a partir de um instante da cadência.
+      expect(drawn.atMs % (2 * HOUR)).toBe(0);
+      const sinceCadence =
+        (((drawn.atMs - state.council.nextDrawAtMs) % INTERVAL) + INTERVAL) % INTERVAL;
+      expect(sinceCadence).toBeLessThan(2 * HOUR);
+      // O prazo é o de toda carta: 24 h reais, no ritmo da partida.
+      expect(expired.atMs - drawn.atMs).toBe(Math.round(DAY_REAL * state.settings.timeScale));
+      // Um herói, e só um: o da opção que a dificuldade aplica.
+      const joined = later.events.filter((event) => event.type === 'heroJoined');
+      expect(joined).toHaveLength(1);
+      const iron = state.settings.difficulty === 'ironKing';
+      expect(expired.data.optionId).toBe(iron ? 'tend' : 'shelter');
+      expect(joined[0]?.data.namedHeroId).toBe(iron ? 'rolf' : 'edda');
+      expect(joined[0]?.atMs).toBe(expired.atMs + (iron ? 2 * HOUR : 0));
+      expect(later.state.ids.hero).toBe(heroesBefore + 1);
+      expect(later.state.guild.arriving).toEqual([]);
+    },
+  );
+
+  it.each(old)('$name: nenhum evento de herói antes da fronteira nem na fronteira', (fixture) => {
+    const state = migrated(fixture);
+    const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+    expect(
+      atBoundary.events.filter((event) =>
+        /^hero|woundedStranger/.test(`${event.type}${String(event.data.cardId)}`),
+      ),
+    ).toEqual([]);
   });
 });
 

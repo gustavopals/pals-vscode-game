@@ -112,6 +112,9 @@ describe('divisão de intervalo com heróis, soldo e atraso no caminho', () => {
     let closed = 0;
     let left = 0;
     let sour = 0;
+    let joined = 0;
+    let later = 0;
+    let promised = 0;
     fc.assert(
       fc.property(scenario, (plan) => {
         const start = prepare(plan);
@@ -131,9 +134,19 @@ describe('divisão de intervalo com heróis, soldo e atraso no caminho', () => {
         expectWageInvariants(half.state);
         expectWageInvariants(direct.state);
         expectNoOscillation(direct.events);
-        // Ninguém entra no feudo por conta própria, e o contador só conhece quem foi posto.
-        expect(direct.state.ids.hero ?? 0).toBe(plan.heroes.length);
-        expect(direct.state.guild.heroes.length).toBeLessThanOrEqual(plan.heroes.length);
+        // Só a carta da estrangeira traz alguém, e uma vez: quando ela chega e é resolvida no
+        // caminho (o conselho a acolhe ou, em Rei de Ferro, cuida dela e o arqueiro vem um dia
+        // de jogo depois), o contador conhece quem foi posto e mais um.
+        const arrivals = direct.events.filter((event) => event.type === 'heroJoined');
+        expect(arrivals.length).toBeLessThanOrEqual(1);
+        expect(direct.state.ids.hero ?? 0).toBe(plan.heroes.length + arrivals.length);
+        expect(direct.state.guild.heroes.length).toBeLessThanOrEqual(
+          plan.heroes.length + arrivals.length,
+        );
+        expect(direct.state.guild.arriving.length).toBeLessThanOrEqual(1);
+        joined += arrivals.length;
+        later += arrivals.filter((event) => event.data.namedHeroId === 'rolf').length;
+        promised += direct.state.guild.arriving.length;
         expect(JSON.stringify(start)).toBe(frozen);
 
         opened += direct.events.filter((event) => event.type === 'wageArrearsStarted').length;
@@ -148,6 +161,11 @@ describe('divisão de intervalo com heróis, soldo e atraso no caminho', () => {
     expect(closed).toBeGreaterThan(10);
     expect(sour).toBeGreaterThan(10);
     expect(left).toBeGreaterThan(10);
+    // E pela carta da estrangeira: o herói que entra na hora, o que chega um dia de jogo depois
+    // e a promessa ainda a caminho no fim do trecho.
+    expect(joined).toBeGreaterThan(10);
+    expect(later).toBeGreaterThan(0);
+    expect(promised + later).toBeGreaterThan(2);
   });
 
   it('vale em dez pedaços, com o estado passando pelo banco em cada corte', () => {

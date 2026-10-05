@@ -2,6 +2,7 @@ import { nextDayBoundary } from './clock';
 import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
 import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy';
+import { nextHeroArrivalAt } from './heroes';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { storageFillsIn } from './storage';
@@ -22,7 +23,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * Instante, em ms de jogo, do próximo evento discreto: fim de obra, chegada de aldeão,
  * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
- * escondido de carta, uma continuação que chega, o fim da adaptação de quem trocou de ofício,
+ * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício,
  * uma incursão que chega, o aviso da Torre de Vigia, um ferido que sara, o momento em que a
  * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
  * a pagar, aquele em que um estoque chega ao limite ou aquele em que uma planejada automática
@@ -54,6 +55,11 @@ export function nextEventAt(state: GameState): number | null {
   const council = nextCouncilEventAt(state);
   if (council !== null) {
     candidates.push(council);
+  }
+  // O herói que uma carta prometeu para depois: o soldo dele começa a contar nesse instante.
+  const heroArrival = nextHeroArrivalAt(state);
+  if (heroArrival !== null) {
+    candidates.push(heroArrival);
   }
   // As incursões: a que chega e o aviso da Torre para a que ninguém anunciou ainda.
   const raid = nextRaidEventAt(state);

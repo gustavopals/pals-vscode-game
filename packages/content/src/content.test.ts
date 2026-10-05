@@ -4,6 +4,7 @@ import {
   balance,
   BUILDING_IDS,
   buildings,
+  CHRONICLE_PLACEHOLDERS,
   chronicleTemplates,
   coldReliefs,
   craftGuilds,
@@ -15,6 +16,7 @@ import {
   foundingTemplates,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
+  HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
   heroAttributes,
@@ -1591,6 +1593,14 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
       }
     }
     expect(new Set(HERO_CLASS_IDS.map((id) => heroClasses[id].label)).size).toBe(4);
+    expect(
+      HERO_CLASS_IDS.map((id) => [heroClasses[id].label, heroClasses[id].labelFeminine]),
+    ).toEqual([
+      ['Guerreiro', 'Guerreira'],
+      ['Arqueiro', 'Arqueira'],
+      ['Mago', 'Maga'],
+      ['Clérigo', 'Clériga'],
+    ]);
   });
 
   it('o poder é ataque + defesa + vida ÷ 10, e no nível 1 dá os números do ADR 0017', () => {
@@ -1631,6 +1641,23 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
       'Leal',
       'Rastreador',
     ]);
+    // A ficha concorda com o nome de quem a carrega: cada traço tem a forma da heroína, igual
+    // à outra quando o adjetivo não flexiona.
+    expect(HERO_TRAIT_IDS.map((id) => heroTraits[id].labelFeminine)).toEqual([
+      'Corajosa',
+      'Prudente',
+      'Gananciosa',
+      'Carismática',
+      'Devota',
+      'Veterana',
+      'Leal',
+      'Rastreadora',
+    ]);
+    expect(HERO_GENDER_IDS).toEqual(['f', 'm']);
+    for (const id of HERO_TRAIT_IDS) {
+      // A frase do traço vale para os dois: não diz "ele" nem "ela".
+      expect(heroTraits[id].text, id).not.toMatch(/\b(ele|ela|dele|dela)\b/i);
+    }
     expect(new Set(HERO_TRAIT_IDS.map((id) => heroTraits[id].text)).size).toBe(8);
     for (const id of HERO_TRAIT_IDS) {
       expect(heroTraits[id].text, id).not.toMatch(/\d|%/);
@@ -1697,6 +1724,9 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     expect(heroes.limitBase).toBe(1);
     expect(heroes.rosterCap).toBe(12);
     expect(heroes.rosterCap).toBeGreaterThanOrEqual(heroes.limitBase);
+    // Os prometidos que ainda não chegaram: poucos, e nunca mais do que a lista inteira.
+    expect(heroes.arrivingCap).toBe(4);
+    expect(heroes.arrivingCap).toBeLessThanOrEqual(heroes.rosterCap);
     // Um mineiro de nível 1 paga dois heróis: o soldo cabe na economia do começo.
     expect(balance.production.perWorkerPerHour.goldMine).toBe(2 * heroes.wagePerHour);
   });
@@ -1774,6 +1804,13 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     for (const type of ['heroDiscontent', 'heroLeft', 'heroDismissed'] as const) {
       expect(chronicleTemplates[type], type).toContain('{heroi}');
     }
+    // O herói que chega por carta: a frase diz quem é e de que classe.
+    expect(EVENT_TYPES).toContain('heroJoined');
+    expect(chronicleTemplates.heroJoined.startsWith('No {dia}º dia {daEstacao}, ')).toBe(true);
+    for (const marker of ['{heroi}', '{classe}', '{feudo}']) {
+      expect(chronicleTemplates.heroJoined).toContain(marker);
+    }
+    expect(CHRONICLE_PLACEHOLDERS).toContain('classe');
     expect(chronicleTemplates.heroLeft).toContain('soldo');
     expect(chronicleTemplates.heroDismissed).not.toContain('soldo');
     expect(WageArrearsReliefsSchema.safeParse(wageArrearsReliefs).error).toBeUndefined();

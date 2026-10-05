@@ -654,6 +654,7 @@ describe('dispensar um herói (dismissHero)', () => {
     expect(types).toEqual(['heroDismissed', 'heroDismissed', 'heroDismissed', 'wageArrearsEnded']);
     expect(state.guild).toEqual({
       heroes: [],
+      arriving: [],
       wageArrears: null,
       lastWageArrears: {
         endedAtMs: 18 * HOUR + 7 * MINUTE,
@@ -711,6 +712,7 @@ describe('trinta dias sem acesso, dois heróis e ouro que não basta (QA-04)', (
     });
     expect(end.state.guild).toEqual({
       heroes: [],
+      arriving: [],
       wageArrears: null,
       lastWageArrears: { endedAtMs: 104 * HOUR, lastedMs: 79 * HOUR, departed: 2 },
     });

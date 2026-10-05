@@ -1,4 +1,11 @@
-import type { BuildingId, DifficultyId, ResourceAmounts, ResourceId, SeasonId } from './ids';
+import type {
+  BuildingId,
+  DifficultyId,
+  NamedHeroId,
+  ResourceAmounts,
+  ResourceId,
+  SeasonId,
+} from './ids';
 
 /**
  * O Conselho do Feudo (GDD §7; ADR 0014, decisões 1, 9, 18 e 20): os tipos de uma carta. As
@@ -6,13 +13,17 @@ import type { BuildingId, DifficultyId, ResourceAmounts, ResourceId, SeasonId } 
  * `balance.council`; o schema, em `schemas.ts` (`CouncilCardSchema` e `CouncilCatalogSchema`).
  */
 
-/** O que uma carta pode fazer na v0.2. Herói, unidade, mapa, Mercado e combate ficam de fora. */
+/**
+ * O que uma carta pode fazer. Os cinco primeiros são da v0.2; `addHero` chegou com a primeira
+ * carta roteirizada (roadmap da v0.3, V3C-T3). Unidade, mapa, Mercado e combate ficam de fora.
+ */
 export const COUNCIL_EFFECT_TYPES = [
   'resources',
   'morale',
   'setFlag',
   'clearFlag',
   'scheduleCard',
+  'addHero',
 ] as const;
 export type CouncilEffectType = (typeof COUNCIL_EFFECT_TYPES)[number];
 
@@ -29,7 +40,14 @@ export type CouncilEffect =
   | { readonly type: 'setFlag'; readonly flag: string }
   | { readonly type: 'clearFlag'; readonly flag: string }
   /** A continuação: outra carta chega `afterDays` dias de jogo depois, furando o sorteio. */
-  | { readonly type: 'scheduleCard'; readonly cardId: string; readonly afterDays: number };
+  | { readonly type: 'scheduleCard'; readonly cardId: string; readonly afterDays: number }
+  /**
+   * Um herói com nome próprio (`namedHeroes`) entra para o feudo, sem custo: agora ou, com
+   * `afterDays`, esse tanto de dias de jogo depois, contados do instante da escolha. A promessa
+   * não é segredo: a visão diz quem vem e quando. O limite de contratação não barra a chegada
+   * (ADR 0017, decisão 5). Só vale entre os efeitos conhecidos de uma opção sem custo.
+   */
+  | { readonly type: 'addHero'; readonly heroId: NamedHeroId; readonly afterDays?: number };
 
 /** Quando uma carta pode ser sorteada. Sem um campo, ele não restringe. */
 export type CouncilCardRequires = {
@@ -109,7 +127,9 @@ export type CouncilCard = {
   readonly requires?: CouncilCardRequires;
   /**
    * Carta roteirizada: chega no primeiro sorteio a partir desse dia de jogo, uma vez por
-   * partida, na frente das sorteadas. Nenhuma carta da v0.2 usa (ADR 0014, decisão 8).
+   * partida, na frente das sorteadas. O dia conta da fundação do feudo (o primeiro é 1); a
+   * partida que já passou dele recebe a carta na primeira audiência com lugar. A primeira é
+   * "Estrangeira ferida" (ADR 0017, decisão 6).
    */
   readonly scripted?: { readonly atGameDay: number };
   /**

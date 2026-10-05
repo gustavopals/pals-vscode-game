@@ -1,4 +1,13 @@
-import { balance, HERO_ATTRIBUTE_IDS, heroClasses, heroTraits, type Ratio } from '@lotg/content';
+import {
+  balance,
+  HERO_ATTRIBUTE_IDS,
+  heroClasses,
+  type HeroTraitId,
+  heroTraits,
+  type NamedHeroDef,
+  namedHeroes,
+  type Ratio,
+} from '@lotg/content';
 
 import type { GameState, Hero } from './types';
 import { MILLI } from './units';
@@ -22,6 +31,43 @@ export function isLoyal(hero: Hero): boolean {
  */
 export function isAtHome(hero: Hero): boolean {
   return hero.status === 'idle';
+}
+
+/** "Guerreira", "Arqueiro": a classe como a ficha a mostra, concordando com o herói. */
+export function classLabel(hero: Pick<Hero, 'classId' | 'gender'>): string {
+  const def = heroClasses[hero.classId];
+  return hero.gender === 'f' ? def.labelFeminine : def.label;
+}
+
+/** "Corajosa", "Leal": o traço como a ficha o mostra, concordando com o herói. */
+export function traitLabel(trait: HeroTraitId, gender: Hero['gender']): string {
+  const def = heroTraits[trait];
+  return gender === 'f' ? def.labelFeminine : def.label;
+}
+
+/** O herói com nome do conteúdo; `null` para um identificador que o conteúdo não tem (ou já não tem). */
+export function namedHeroOf(namedHeroId: string): NamedHeroDef | null {
+  return Object.hasOwn(namedHeroes, namedHeroId)
+    ? namedHeroes[namedHeroId as keyof typeof namedHeroes]
+    : null;
+}
+
+/**
+ * Cabe mais um herói na lista: o teto é `balance.heroes.rosterCap`, o único número que faz uma
+ * recompensa esperar. O limite de contratação (`heroLimit`) é outro, menor, e só barra a Taverna.
+ */
+export function rosterHasRoom(state: GameState): boolean {
+  return state.guild.heroes.length < rules.rosterCap;
+}
+
+/**
+ * Instante, em ms de jogo, em que o próximo herói prometido chega; `null` sem nenhum a caminho.
+ * Quem já tem o instante vencido espera lugar na lista e não entra aqui: o lugar abre em uma
+ * virada de dia ou por uma ordem, que já são instantes do motor.
+ */
+export function nextHeroArrivalAt(state: GameState): number | null {
+  const next = state.guild.arriving.find((entry) => entry.atMs > state.lastProcessedAt);
+  return next === undefined ? null : next.atMs;
 }
 
 /**

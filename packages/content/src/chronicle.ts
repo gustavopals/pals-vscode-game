@@ -38,6 +38,7 @@ export const EVENT_TYPES = [
   'heroDiscontent',
   'heroLeft',
   'heroDismissed',
+  'heroJoined',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -60,6 +61,7 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {inimigo} quem ataca, em minúscula: "lobos" (de `enemies`)
  * {bando} o que os vigias contaram: "uma matilha pequena" (de `enemies`)
  * {heroi} o nome de um herói: "Edda"
+ * {classe} a classe dele, em minúscula e concordando com o nome: "guerreira", "arqueiro"
  *
  * Nas frases de uma incursão, {perda} é tudo o que ela custou, feridos inclusive ("18 de comida,
  * 12 de madeira e um aldeão ferido"), {nivel} é o nível da Paliçada que a teria detido e
@@ -91,6 +93,7 @@ export const CHRONICLE_PLACEHOLDERS = [
   'inimigo',
   'bando',
   'heroi',
+  'classe',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -178,6 +181,9 @@ export const chronicleTemplates: Record<GameEventType, string> = {
   heroLeft:
     'No {dia}º dia {daEstacao}, {heroi} cansou de esperar o soldo, juntou as armas e deixou {feudo}.',
   heroDismissed: 'No {dia}º dia {daEstacao}, o senhor de {feudo} dispensou {heroi}.',
+  // Um herói que chega por carta (GDD §9.1). O herói com nome pode trazer a frase dele
+  // (`namedHeroes[].arrival`), para quando chega depois da escolha que o prometeu.
+  heroJoined: 'No {dia}º dia {daEstacao}, {heroi}, {classe}, passou a servir a {feudo}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',

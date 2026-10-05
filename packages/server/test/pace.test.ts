@@ -292,6 +292,36 @@ function atPace(view: ViewState, pace: number): ViewState {
       ...decision,
       expiresInSeconds: deadline(decision.expiresInSeconds),
     })),
+    // Os heróis são os mesmos; o soldo é uma taxa, e o tempo que o ouro ainda o paga, a
+    // chegada de quem foi prometido e o tempo que um atraso já dura são prazos. (Os dois prazos
+    // das consequências do atraso contam tempo real e não se convertem assim; nestes cenários a
+    // única heroína é Leal, e os dois são `null`.)
+    guild: {
+      ...view.guild,
+      heroes: view.guild.heroes.map((hero) => ({
+        ...hero,
+        wagePerHour: scaled(hero.wagePerHour),
+      })),
+      arriving: view.guild.arriving.map((hero) => ({
+        ...hero,
+        arrivesInSeconds: up(hero.arrivesInSeconds),
+      })),
+      wage: {
+        ...view.guild.wage,
+        perHour: scaled(view.guild.wage.perHour),
+        coveredForSeconds:
+          view.guild.wage.coveredForSeconds === null
+            ? null
+            : down(view.guild.wage.coveredForSeconds),
+        arrears:
+          view.guild.wage.arrears === null
+            ? null
+            : {
+                ...view.guild.wage.arrears,
+                secondsElapsed: down(view.guild.wage.arrears.secondsElapsed),
+              },
+      },
+    },
     // A Ameaça é a mesma; a próxima subida e a chegada de uma incursão são prazos.
     threat: view.threat.known
       ? {

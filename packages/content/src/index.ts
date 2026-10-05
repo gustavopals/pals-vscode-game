@@ -49,8 +49,8 @@ export type {
   RaidTemplates,
   WageArrearsRelief,
 } from './chronicle';
-export { heroAttributes, heroClasses, heroStatuses, heroTraits } from './heroes';
-export type { HeroClassDef, HeroTraitDef, HeroTraitEffects } from './heroes';
+export { heroAttributes, heroClasses, heroStatuses, heroTraits, namedHeroes } from './heroes';
+export type { HeroClassDef, HeroTraitDef, HeroTraitEffects, NamedHeroDef } from './heroes';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {
   CouncilCard,

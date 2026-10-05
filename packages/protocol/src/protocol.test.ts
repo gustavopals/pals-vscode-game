@@ -16,6 +16,7 @@ import {
   injuredLoss,
   injuryTemplates,
   moraleBandTemplates,
+  namedHeroes,
   objectives,
   raidSizes,
   raidTemplates,
@@ -1107,6 +1108,7 @@ describe('ViewStateSchema', () => {
       {
         id: 'hero-1',
         name: 'Edda',
+        gender: 'f',
         classId: 'warrior',
         level: 1,
         xp: 0,
@@ -1118,6 +1120,7 @@ describe('ViewStateSchema', () => {
       {
         id: 'hero-2',
         name: 'Rolf',
+        gender: 'm',
         classId: 'archer',
         level: 2,
         xp: 40,
@@ -1129,6 +1132,7 @@ describe('ViewStateSchema', () => {
       {
         id: 'hero-3',
         name: 'Isolda',
+        gender: 'f',
         classId: 'mage',
         level: 10,
         xp: 0,
@@ -1147,9 +1151,9 @@ describe('ViewStateSchema', () => {
     const paid = deriveViewState(fed.state, 0);
     expect(ViewStateSchema.safeParse(paid).error).toBeUndefined();
     expect(paid.guild.heroes.map((hero) => [hero.name, hero.classLabel, hero.level])).toEqual([
-      ['Edda', 'Guerreiro', 1],
+      ['Edda', 'Guerreira', 1],
       ['Rolf', 'Arqueiro', 2],
-      ['Isolda', 'Mago', 10],
+      ['Isolda', 'Maga', 10],
     ]);
     expect(paid.guild.heroes[2]?.xpToNext).toBeNull();
     expect(paid.guild.wage).toMatchObject({ perHour: 6, arrears: null });
@@ -1674,6 +1678,7 @@ describe('contentHash', () => {
         heroAttributes,
         heroTraits,
         heroStatuses,
+        namedHeroes,
         wageArrearsReliefs,
       }),
     ]);
@@ -1703,6 +1708,7 @@ describe('contentHash', () => {
       'injuredLoss',
       'injuryTemplates',
       'moraleBandTemplates',
+      'namedHeroes',
       'objectives',
       'raidSizes',
       'raidTemplates',

@@ -17,6 +17,7 @@ import {
   injuredLoss,
   injuryTemplates,
   moraleBandTemplates,
+  namedHeroes,
   objectives,
   raidSizes,
   raidTemplates,
@@ -606,6 +607,7 @@ describe('resumo de uma partida', () => {
             heroAttributes,
             heroTraits,
             heroStatuses,
+            namedHeroes,
             wageArrearsReliefs,
           }),
         )

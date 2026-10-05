@@ -23,6 +23,7 @@ import {
   MINUTE,
   newPlayer,
   order,
+  quietHorde,
   renew,
   send,
   signUp,
@@ -492,6 +493,174 @@ describe('o que a opção esconde', () => {
   });
 });
 
+describe('a carta da estrangeira entrega o primeiro herói (roadmap da v0.3, V3C-T3; GDD §16.2, critério 1)', () => {
+  const STRANGER = 'Estrangeira ferida';
+
+  /** Responde a toda carta da mesa com a opção que o conselho aplicaria, menos a da estrangeira. */
+  async function clearTable(server: TestApp, who: Session & { game: { id: string } }) {
+    const view = await viewOf(server, who, who.game.id);
+    for (const card of view.council.pending.filter((entry) => entry.title !== STRANGER)) {
+      const reply = await send<CommandAccepted>(
+        server,
+        who.token,
+        who.game.id,
+        order('answerCard', { instanceId: card.instanceId, optionId: card.defaultOptionId }),
+      );
+      expect(reply.status, JSON.stringify(reply.body)).toBe(200);
+    }
+  }
+
+  /** Uma partida nova, jogada até a audiência do 13º dia de jogo com a mesa livre. */
+  async function playerWithStranger(server: TestApp, pace: number) {
+    const who = await newPlayer(server);
+    await quietHorde(server, who.game.id);
+    for (let audience = 1; audience <= 3; audience += 1) {
+      await wait(server, who, AUDIENCE / pace);
+      await clearTable(server, who);
+    }
+    const view = await viewOf(server, who, who.game.id);
+    const card = view.council.pending.find((entry) => entry.title === STRANGER);
+    if (card === undefined) {
+      throw new Error('O teste esperava a carta da estrangeira na mesa.');
+    }
+    return { who, view, card };
+  }
+
+  const heroesInDb = async (server: TestApp, gameId: string) => {
+    const { rows } = await server.pool.query<{
+      heroes: Array<{ id: string; name: string }>;
+      issued: number | null;
+    }>(
+      `select state -> 'guild' -> 'heroes' as heroes, (state -> 'ids' ->> 'hero')::int as issued
+         from games where id = $1`,
+      [gameId],
+    );
+    return { heroes: rows[0]?.heroes ?? [], issued: rows[0]?.issued ?? 0 };
+  };
+  const joinedRows = (server: TestApp, gameId: string) =>
+    countRows(server.pool, 'game_events', `game_id = '${gameId}' and kind = 'heroJoined'`);
+
+  it('partida nova: a carta chega na audiência do 13º dia, sem custo; responder, reenviar e responder de novo dá um herói', async () => {
+    const { who, view, card } = await playerWithStranger(normal, 1);
+    // 24 h reais no ritmo Normal: a terceira audiência. A carta diz quem cada opção traz.
+    expect(card.expiresInSeconds).toBe(24 * 3600);
+    expect(card.defaultOptionId).toBe('shelter');
+    expect(card.options.map((option) => [option.id, option.cost, option.locked])).toEqual([
+      ['shelter', [], false],
+      ['tend', [], false],
+    ]);
+    expect(card.options[0]?.effectsText).toBe(
+      'Edda, Guerreira (Leal), entra para o feudo agora, com soldo de 2 ouro/h',
+    );
+    expect(view.guild).toMatchObject({ heroes: [], arriving: [] });
+    expect(await heroesInDb(normal, who.game.id)).toEqual({ heroes: [], issued: 0 });
+    const gold = stock(view, 'gold');
+
+    const answer = order('answerCard', { instanceId: card.instanceId, optionId: 'shelter' });
+    const first = await send<CommandAccepted>(normal, who.token, who.game.id, answer);
+    expect(first.status, JSON.stringify(first.body)).toBe(200);
+    expect(first.body.events.map((event) => event.type)).toEqual(['cardAnswered', 'heroJoined']);
+    expect(first.body.events[1]).toMatchObject({
+      text: 'No 13º dia da Primavera, Edda, guerreira, passou a servir a Pedra Alta.',
+      data: { heroId: 'hero-1', namedHeroId: 'edda' },
+    });
+    expect(
+      first.body.view.guild.heroes.map((hero) => [hero.id, hero.name, hero.classLabel]),
+    ).toEqual([['hero-1', 'Edda', 'Guerreira']]);
+    expect(first.body.view.guild.wage.perHour).toBe(2);
+    // Nada foi cobrado pela resposta.
+    expect(stock(first.body.view, 'gold')).toBe(gold);
+
+    // Duplo clique, "Tentar de novo": o mesmo comando devolve o recibo, e não outro herói.
+    const again = await send<CommandAccepted>(normal, who.token, who.game.id, answer);
+    expect(again.status).toBe(200);
+    expect(again.headers[REPLAYED]).toBe('true');
+    expect(again.body).toEqual(first.body);
+
+    // Outra ordem para a mesma carta, com outra opção: ela já saiu da mesa.
+    await wait(normal, who, 10 * MINUTE);
+    for (const optionId of ['tend', 'shelter']) {
+      const late = await send<GameRuleError>(
+        normal,
+        who.token,
+        who.game.id,
+        order('answerCard', { instanceId: card.instanceId, optionId }),
+      );
+      expect(late.status).toBe(422);
+      expect(late.body.details.code).toBe('CARD_NOT_PENDING');
+    }
+    expect(await heroesInDb(normal, who.game.id)).toMatchObject({
+      heroes: [{ id: 'hero-1', name: 'Edda' }],
+      issued: 1,
+    });
+    expect(await joinedRows(normal, who.game.id)).toBe(1);
+    expect(await chronicleOf(normal, who, who.game.id)).toContain(
+      'No 13º dia da Primavera, Edda, guerreira, passou a servir a Pedra Alta.',
+    );
+
+    // Um ano de jogo depois (7 dias reais), com o jogador fora: a carta não volta, e o feudo
+    // continua com a mesma heroína (ela é Leal: fica, com ou sem soldo).
+    normal.clock.advance(7 * 24 * HOUR);
+    await runJobsOnce(normal.ctx);
+    await renew(normal, who);
+    const later = await viewOf(normal, who, who.game.id);
+    expect(later.guild.heroes.map((hero) => hero.name)).toEqual(['Edda']);
+    expect(await joinedRows(normal, who.game.id)).toBe(1);
+    const drawn = (await eventsOf(normal, who, who.game.id)).filter(
+      (event) => event.type === 'cardDrawn' && event.data.cardId === 'woundedStranger',
+    );
+    expect(drawn).toHaveLength(1);
+  });
+
+  it('dois clientes respondem ao mesmo tempo, um com cada opção: um vence, e o feudo fica com um herói só', async () => {
+    const { who, card } = await playerWithStranger(normal, 1);
+    const replies = await Promise.all(
+      ['shelter', 'tend'].map((optionId) =>
+        send<CommandAccepted | GameRuleError>(
+          normal,
+          who.token,
+          who.game.id,
+          order('answerCard', { instanceId: card.instanceId, optionId }),
+        ),
+      ),
+    );
+    expect(replies.map((reply) => reply.status).sort()).toEqual([200, 422]);
+    // Dois dias de jogo depois, quem quer que tenha vencido: um herói, e nenhum a caminho.
+    await wait(normal, who, 4 * HOUR);
+    const view = await viewOf(normal, who, who.game.id);
+    expect(view.guild.heroes).toHaveLength(1);
+    expect(view.guild.arriving).toEqual([]);
+    expect(await heroesInDb(normal, who.game.id)).toMatchObject({ issued: 1 });
+    expect(await joinedRows(normal, who.game.id)).toBe(1);
+  });
+
+  it('com o jogador fora, no ritmo Rápido: o job grava a carta, a expiração e o herói, uma vez cada', async () => {
+    const who = await newPlayer(fast);
+    await quietHorde(fast, who.game.id);
+    // Três dias reais sem ninguém: as cartas dos dias 5 e 9 enchem a mesa, a estrangeira espera
+    // lugar, chega, e o conselho a acolhe no prazo.
+    for (let hour = 0; hour < 72; hour += 6) {
+      fast.clock.advance(6 * HOUR);
+      await runJobsOnce(fast.ctx);
+    }
+    await renew(fast, who);
+    const events = await eventsOf(fast, who, who.game.id);
+    const story = events.filter(
+      (event) => event.data.cardId === 'woundedStranger' || event.type === 'heroJoined',
+    );
+    expect(story.map((event) => event.type)).toEqual(['cardDrawn', 'cardExpired', 'heroJoined']);
+    expect(story[1]?.data).toMatchObject({ optionId: 'shelter', hero: 'edda' });
+    // 24 h reais de prazo, no ritmo da partida; a heroína entra no instante em que ele acaba.
+    expect((story[1]?.atMs ?? 0) - (story[0]?.atMs ?? 0)).toBe(24 * HOUR * PACE);
+    expect(story[2]?.atMs).toBe(story[1]?.atMs);
+    const view = await viewOf(fast, who, who.game.id);
+    expect(view.guild.heroes.map((hero) => [hero.name, hero.classLabel])).toEqual([
+      ['Edda', 'Guerreira'],
+    ]);
+    expect(await joinedRows(fast, who.game.id)).toBe(1);
+  });
+});
+
 describe('protocolo 2: o app antigo não sabe ler cartas', () => {
   it('o cliente do protocolo 1 recebe 426 com o aviso de recarregar, em leitura e em ordem', async () => {
     expect(PROTOCOL_VERSION).toBe(2);
@@ -589,7 +758,7 @@ describe('uma partida gravada antes do Conselho (versão 7 do estado)', () => {
       'select schema_version, state from games where id = $1',
       [game.id],
     );
-    expect(rows[0]?.schema_version).toBe(14);
+    expect(rows[0]?.schema_version).toBe(15);
     const nextDrawAtMs = rows[0]?.state.council?.nextDrawAtMs ?? 0;
     // A primeira virada de dia a partir de um intervalo inteiro depois da fronteira.
     expect(nextDrawAtMs % DAY).toBe(0);
@@ -607,5 +776,74 @@ describe('uma partida gravada antes do Conselho (versão 7 do estado)', () => {
     expect(arrived.council.pending[0]?.expiresInSeconds).toBe(24 * 3600);
     const drawn = cardsOnly(await eventsOf(normal, game, game.id));
     expect(drawn.map((event) => [event.type, event.atMs])).toEqual([['cardDrawn', nextDrawAtMs]]);
+  });
+
+  it('a partida que já passou do 13º dia recebe a estrangeira na primeira audiência depois da fronteira, e o herói prometido chega uma vez (V3C-T3.4)', async () => {
+    // O mesmo feudo que veio da v0.1, no ano 4: a carta do roteiro nunca tinha saído.
+    const before = v7State('migrated-3x');
+    const game = await insertGame(normal, before);
+    const first = await viewOf(normal, game, game.id);
+    // Na fronteira, nada: nem carta, nem herói. O passo de migração não agenda coisa alguma.
+    expect(first.council.pending).toEqual([]);
+    expect(first.guild).toMatchObject({ heroes: [], arriving: [] });
+    await wait(normal, game, (first.council.nextCardInSeconds ?? 0) * 1000);
+    const arrived = await viewOf(normal, game, game.id);
+    expect(arrived.council.pending.map((card) => card.title)).toEqual(['Estrangeira ferida']);
+    const [card] = arrived.council.pending;
+    const drawn = cardsOnly(await eventsOf(normal, game, game.id));
+    expect(drawn.map((event) => [event.type, event.data.cardId, event.data.source])).toEqual([
+      ['cardDrawn', 'woundedStranger', 'scripted'],
+    ]);
+
+    // "Cuidar e deixar partir": o ouro agora, e o arqueiro um dia de jogo depois (40 minutos
+    // reais no ritmo desta partida).
+    const answer = order('answerCard', { instanceId: card?.instanceId ?? '', optionId: 'tend' });
+    const tended = await send<CommandAccepted>(normal, game.token, game.id, answer);
+    expect(tended.status, JSON.stringify(tended.body)).toBe(200);
+    // (A primeira resposta desta partida também cumpre um Objetivo do Senhor, na mesma ordem.)
+    expect(
+      tended.body.events.map((event) => event.type).filter((type) => /^(card|hero)/.test(type)),
+    ).toEqual(['cardAnswered']);
+    expect(tended.body.events[0]?.data).toMatchObject({ hero: 'rolf', heroAfterDays: 1 });
+    expect(tended.body.view.guild.heroes).toEqual([]);
+    expect(tended.body.view.guild.arriving).toMatchObject([
+      { name: 'Rolf', classLabel: 'Arqueiro', arrivesInSeconds: DAY / PACE / 1000 },
+    ]);
+    const again = await send<CommandAccepted>(normal, game.token, game.id, answer);
+    expect(again.headers[REPLAYED]).toBe('true');
+    expect(again.body).toEqual(tended.body);
+
+    // Um segundo antes ele ainda está a caminho; na hora, chega. Uma vez.
+    await wait(normal, game, DAY / PACE - 1000);
+    expect((await viewOf(normal, game, game.id)).guild).toMatchObject({
+      heroes: [],
+      arriving: [{ name: 'Rolf', arrivesInSeconds: 1 }],
+    });
+    await wait(normal, game, 1000);
+    const there = await viewOf(normal, game, game.id);
+    expect(there.guild.heroes.map((hero) => [hero.id, hero.name, hero.classLabel])).toEqual([
+      ['hero-1', 'Rolf', 'Arqueiro'],
+    ]);
+    expect(there.guild.arriving).toEqual([]);
+    const joined = (await eventsOf(normal, game, game.id)).filter(
+      (event) => event.type === 'heroJoined',
+    );
+    expect(joined).toHaveLength(1);
+    expect(joined[0]?.atMs).toBe((tended.body.events[0]?.atMs ?? 0) + DAY);
+
+    // Um ano de jogo depois, com o job avançando a partida: a carta não se repete.
+    normal.clock.advance(3 * 24 * HOUR);
+    await runJobsOnce(normal.ctx);
+    await renew(normal, game);
+    const all = await eventsOf(normal, game, game.id);
+    expect(
+      all.filter((event) => event.type === 'cardDrawn' && event.data.cardId === 'woundedStranger'),
+    ).toHaveLength(1);
+    expect(all.filter((event) => event.type === 'heroJoined')).toHaveLength(1);
+    const { rows } = await normal.pool.query<{ issued: string | null }>(
+      `select state -> 'ids' ->> 'hero' as issued from games where id = $1`,
+      [game.id],
+    );
+    expect(rows[0]?.issued).toBe('1');
   });
 });
