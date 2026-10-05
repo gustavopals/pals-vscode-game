@@ -30,6 +30,16 @@ export const heroClasses: Record<HeroClassId, HeroClassDef> = {
   },
 };
 
+/** Como a explicação do poder chama cada atributo, no meio de uma conta: minúscula, sem ponto. */
+export const heroAttributes: Record<HeroAttributeId, { readonly label: string }> = {
+  health: { label: 'vida' },
+  attack: { label: 'ataque' },
+  defense: { label: 'defesa' },
+  speed: { label: 'velocidade' },
+  skill: { label: 'perícia' },
+  will: { label: 'vontade' },
+};
+
 /**
  * O que um traço muda nas regras, **só com o que já existe no jogo**. Um efeito entra aqui com a
  * tarefa que o implementa (os das expedições, na Fase D; o do Devoto e o do Carismático, com a

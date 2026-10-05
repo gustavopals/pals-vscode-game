@@ -6,12 +6,12 @@ import { CURRENT_SCHEMA_VERSION, migrateState } from './migrations';
 import { createInitialState } from './state';
 import { storageCapacity } from './storage';
 import {
-  addHero,
   command,
   councilScenario,
   craftScenario,
   DAY,
   dealt,
+  heroesStart,
   HOUR,
   MINUTE,
   newGame,
@@ -20,6 +20,8 @@ import {
   proudScenario,
   runWeekScenario,
   settings,
+  wageArrearsPaid,
+  wageArrearsScenario,
 } from './test-helpers';
 import type { GameState } from './types';
 
@@ -37,44 +39,6 @@ function frozenState(name: string): unknown {
     throw new Error(`Falta o retrato ${name}.`);
   }
   return JSON.parse(text) as unknown;
-}
-
-/**
- * Um feudo recém-fundado com três heróis, como as cartas e a Taverna vão pôr: Edda, Guerreira
- * Leal; Rolf, Arqueiro Prudente; e Isolda, Maga Veterana e Gananciosa, de nível 2. Os três
- * chegam no mesmo instante, com `gold` milésimos de ouro no cofre.
- */
-function heroesStart(
-  seed: string,
-  gold: number,
-  changed: Partial<typeof settings> = {},
-): GameState {
-  const start = createInitialState(seed, { ...settings, ...changed });
-  start.settlement.resources.gold = gold;
-  addHero(start, { name: 'Edda', classId: 'warrior', traits: ['loyal'] });
-  addHero(start, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
-  addHero(start, { name: 'Isolda', classId: 'mage', level: 2, traits: ['veteran', 'greedy'] });
-  return start;
-}
-
-/**
- * O soldo em atraso há mais de um dia real, no ritmo Normal: os 20 de ouro do cofre e os 20 do
- * primeiro objetivo pagam os três heróis por 6 h 40 de jogo; às 20 h Rolf e Isolda ficam
- * Descontentes, e às 32 h Isolda, a de identificador mais alto entre os que não são Leais (os
- * três chegaram juntos), parte. O feudo fica parado às 33 h 13 de jogo.
- */
-function arrearsScenario(): GameState {
-  return play(heroesStart('fixture-wage-arrears', 20_000), [
-    command('setWorkers', { building: 'farm', count: 3 }),
-    { at: 33 * HOUR + 13 * MINUTE + 2_345 },
-  ]).state;
-}
-
-/** O mesmo feudo logo depois de chegarem `gold` milésimos de ouro, `afterMs` adiante. */
-function arrearsPaid(gold: number, afterMs: number): GameState {
-  const paid = arrearsScenario();
-  paid.settlement.resources.gold = gold;
-  return advanceTo(paid, paid.lastProcessedAt + afterMs).state;
 }
 
 /**
@@ -439,15 +403,15 @@ const scenarios: Record<string, () => GameState> = {
 
   // O soldo em atraso que já cobrou um herói: aberto, com um Descontente, uma Leal que fica e
   // o contador de identidades à frente da lista.
-  'wage-arrears': () => arrearsScenario(),
+  'wage-arrears': () => wageArrearsScenario(),
 
   // O atraso que fechou há 18 minutos de jogo, com 3 de ouro que chegaram: o registro do último
   // atraso guarda quando fechou, quanto durou e o herói cobrado, e ninguém está Descontente.
-  'wage-arrears-ended': () => arrearsPaid(3_000, 18 * MINUTE),
+  'wage-arrears-ended': () => wageArrearsPaid(3_000, 18 * MINUTE),
 
   // O atraso que reabriu dentro da janela: os 3 de ouro pagaram 45 minutos de jogo de dois
   // heróis, e o atraso continua de onde parou, com a duração e o herói cobrado que trazia.
-  'wage-arrears-resumed': () => arrearsPaid(3_000, 46 * MINUTE),
+  'wage-arrears-resumed': () => wageArrearsPaid(3_000, 46 * MINUTE),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {

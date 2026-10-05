@@ -30,6 +30,7 @@ import { councilView } from './councilView';
 import { type CraftForecast, craftForecast, craftOutlook } from './craftProjection';
 import { craftRow, handsClause, workersRulesView } from './craftView';
 import { decimal, durationText, plural } from './format';
+import { guildView } from './guildView';
 import { paidHeroes, wageRate } from './heroes';
 import { moraleAt } from './morale';
 import { moraleView, recruitmentMoraleNote } from './moraleView';
@@ -446,5 +447,6 @@ export function deriveViewState(
     objectives: objectivesView(state, timeScale),
     ...councilView(state, timeScale),
     threat: threatView(state, timeScale),
+    guild: guildView(state, timeScale, outlook),
   };
 }

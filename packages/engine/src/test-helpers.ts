@@ -118,6 +118,57 @@ export function addHero(
 }
 
 /**
+ * Um feudo recém-fundado com três heróis, como as cartas e a Taverna vão pôr: Edda, Guerreira
+ * Leal; Rolf, Arqueiro Prudente; e Isolda, Maga Veterana e Gananciosa, de nível 2. Os três
+ * chegam no mesmo instante, com `gold` milésimos de ouro no cofre.
+ */
+export function heroesStart(
+  seed: string,
+  gold: number,
+  changed: Partial<typeof settings> = {},
+): GameState {
+  const start = createInitialState(seed, { ...settings, ...changed });
+  start.settlement.resources.gold = gold;
+  addHero(start, { name: 'Edda', classId: 'warrior', traits: ['loyal'] });
+  addHero(start, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
+  addHero(start, { name: 'Isolda', classId: 'mage', level: 2, traits: ['veteran', 'greedy'] });
+  return start;
+}
+
+/**
+ * A guilda com o soldo quase coberto, no ritmo Rápido: os três heróis de `heroesStart`, 60 de
+ * ouro no cofre e um mineiro, que paga dois deles. O ouro cai devagar e tem prazo. Parado no
+ * 6º dia de jogo, no meio de um trecho.
+ */
+export function guildScenario(): GameState {
+  return play(heroesStart('fixture-guild-view', 60_000, { timeScale: 3 }), [
+    command('setWorkers', { building: 'farm', count: 3 }),
+    command('setWorkers', { building: 'goldMine', count: 1 }),
+    { at: 5 * DAY + 7 * MINUTE + 1_234 },
+  ]).state;
+}
+
+/**
+ * O soldo em atraso há mais de um dia real, no ritmo Normal: os 20 de ouro do cofre e os 20 do
+ * primeiro objetivo pagam os três heróis por 6 h 40 de jogo; às 20 h Rolf e Isolda ficam
+ * Descontentes, e às 32 h Isolda, a de identificador mais alto entre os que não são Leais (os
+ * três chegaram juntos), parte. O feudo fica parado às 33 h 13 de jogo.
+ */
+export function wageArrearsScenario(): GameState {
+  return play(heroesStart('fixture-wage-arrears', 20_000), [
+    command('setWorkers', { building: 'farm', count: 3 }),
+    { at: 33 * HOUR + 13 * MINUTE + 2_345 },
+  ]).state;
+}
+
+/** O mesmo feudo logo depois de chegarem `gold` milésimos de ouro, `afterMs` adiante. */
+export function wageArrearsPaid(gold: number, afterMs: number): GameState {
+  const paid = wageArrearsScenario();
+  paid.settlement.resources.gold = gold;
+  return advanceTo(paid, paid.lastProcessedAt + afterMs).state;
+}
+
+/**
  * O Conselho de um feudo fundado no instante zero que chegou até aqui jogando: a próxima
  * audiência é a primeira da cadência depois de agora. Chame depois de pôr o relógio no lugar.
  */

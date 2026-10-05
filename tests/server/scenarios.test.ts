@@ -274,6 +274,13 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
     // O servidor de teste roda no ritmo 1: dois heróis, 4 de ouro por hora.
     expect((await goldOf())?.breakdown).toMatch(/−4\/h \(soldo de 2 heróis\)$/);
     expect((await goldOf())?.perHour).toBe(-4);
+    const before = (await viewOf(server, player.token, gameId)).view.guild;
+    expect(before.heroes.map((hero) => [hero.id, hero.name, hero.classLabel, hero.power])).toEqual([
+      ['hero-1', 'Edda', 'Guerreiro', 42],
+      ['hero-2', 'Rolf', 'Arqueiro', 36],
+    ]);
+    // 250 de ouro a 4 por hora: 62 h 30 de soldo pago.
+    expect(before.wage).toEqual({ perHour: 4, coveredForSeconds: 225_000, arrears: null });
 
     server.clock.advance(30 * MINUTE);
     await renew(server, player);
@@ -292,6 +299,8 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
     const gold = original.body.view.resources.find((row) => row.id === 'gold');
     expect(gold).toMatchObject({ stock: 248, perHour: -2 });
     expect(gold?.breakdown).toMatch(/−2\/h \(soldo de 1 herói\)$/);
+    expect(original.body.view.guild.heroes.map((hero) => hero.name)).toEqual(['Edda']);
+    expect(original.body.view.guild.wage.perHour).toBe(2);
 
     // O duplo clique: a mesma ordem, com o mesmo commandId, devolve o recibo sem reaplicar.
     server.clock.advance(10 * MINUTE);
@@ -372,6 +381,15 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
       // Descontente na primeira virada com 12 h reais de atraso: 137 h, a virada das 138 h.
       ['heroDiscontent', 138 * HOUR],
     ]);
+    const { view } = await viewOf(server, player.token, gameId);
+    expect(view.guild.heroes[0]).toMatchObject({ name: 'Rolf', discontent: true, power: 28.8 });
+    expect(view.guild.wage).toMatchObject({
+      perHour: 2,
+      coveredForSeconds: 0,
+      // 144 h de jogo menos as 125 h pagas: 19 h de atraso; o primeiro parte com 24 h.
+      arrears: { secondsElapsed: 19 * 3600, discontentInSeconds: null },
+    });
+    expect(view.guild.wage.arrears?.nextDepartureInSeconds).toBe(6 * 3600);
     const chronicle = await call<{ entries: Array<{ text: string }> }>(
       server,
       'GET',

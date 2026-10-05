@@ -9,6 +9,7 @@ import {
   craftScenario,
   DAY,
   gameWith,
+  guildScenario,
   HOUR,
   impoverishedScenario,
   MINUTE,
@@ -22,6 +23,7 @@ import {
   raidInSightScenario,
   watchScenario,
   winterColdScenario,
+  wageArrearsScenario,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -555,6 +557,11 @@ describe('golden do ViewState', () => {
       // por erguer: a opção de mostrar a obra vem trancada, com o motivo.
       palisadeRaised: view(palisadeScenario()),
       palisadePromiseDue: view(promiseDueScenario()),
+      // A guilda: três heróis com o soldo em dia, no ritmo Rápido (a Mina cobre quase tudo, e o
+      // ouro tem prazo); e o soldo em atraso no ritmo Normal, com um Descontente, uma Leal, um
+      // herói já cobrado e os dois prazos até a virada que cobra o seguinte.
+      guildPaid: view(guildScenario()),
+      guildInArrears: view(wageArrearsScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

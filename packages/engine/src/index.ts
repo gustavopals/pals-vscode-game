@@ -30,6 +30,9 @@ export type {
   GameEventType,
   GameSettings,
   GameState,
+  GuildView,
+  Hero,
+  HeroView,
   InjuredVillager,
   MapTile,
   MoraleBandId,
@@ -58,4 +61,5 @@ export type {
   TileTypeId,
   UpgradeView,
   ViewState,
+  WageArrearsView,
 } from './types';

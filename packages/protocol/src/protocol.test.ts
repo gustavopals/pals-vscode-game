@@ -8,6 +8,7 @@ import {
   DIFFICULTY_IDS,
   enemies,
   foundingTemplates,
+  heroAttributes,
   heroClasses,
   heroStatuses,
   heroTraits,
@@ -1094,6 +1095,152 @@ describe('ViewStateSchema', () => {
     }
   });
 
+  it('aceita a guilda: os heróis, o soldo, o atraso com os prazos, a dispensa e os eventos deles', () => {
+    // Nenhuma ordem dá um herói ainda (V3C-T3 e V3C-T2): o teste os põe na fundação, como o
+    // motor os grava, com o contador de identidades em dia.
+    const HOUR = 3_600_000;
+    const order = (type: Command['type'], payload: unknown) =>
+      ({ commandId: uuid, type, payload }) as Command;
+    const start = createInitialState('guilda', settings);
+    start.settlement.resources.gold = 6_000;
+    start.guild.heroes = [
+      {
+        id: 'hero-1',
+        name: 'Edda',
+        classId: 'warrior',
+        level: 1,
+        xp: 0,
+        traits: ['loyal'],
+        status: 'idle',
+        joinedAtMs: 0,
+        discontent: false,
+      },
+      {
+        id: 'hero-2',
+        name: 'Rolf',
+        classId: 'archer',
+        level: 2,
+        xp: 40,
+        traits: ['prudent', 'tracker'],
+        status: 'idle',
+        joinedAtMs: 0,
+        discontent: false,
+      },
+      {
+        id: 'hero-3',
+        name: 'Isolda',
+        classId: 'mage',
+        level: 10,
+        xp: 0,
+        traits: [],
+        status: 'idle',
+        joinedAtMs: 0,
+        discontent: false,
+      },
+    ];
+    start.ids = { hero: 3 };
+    const fed = applyCommand(start, order('setWorkers', { building: 'farm', count: 3 }), 0);
+    if (!fed.ok) {
+      throw new Error(fed.message);
+    }
+
+    const paid = deriveViewState(fed.state, 0);
+    expect(ViewStateSchema.safeParse(paid).error).toBeUndefined();
+    expect(paid.guild.heroes.map((hero) => [hero.name, hero.classLabel, hero.level])).toEqual([
+      ['Edda', 'Guerreiro', 1],
+      ['Rolf', 'Arqueiro', 2],
+      ['Isolda', 'Mago', 10],
+    ]);
+    expect(paid.guild.heroes[2]?.xpToNext).toBeNull();
+    expect(paid.guild.wage).toMatchObject({ perHour: 6, arrears: null });
+    expect(typeof paid.guild.wage.coveredForSeconds).toBe('number');
+
+    // Em toda hora de jogo de dois dias reais a visão passa pelo contrato: o soldo em dia, o
+    // atraso aberto, os Descontentes, os que partem e a Leal que fica.
+    const told: Array<{ type: string }> = [];
+    let state = fed.state;
+    let sawArrears = false;
+    let sawDiscontent = false;
+    for (let hour = 1; hour <= 48; hour += 1) {
+      const step = advanceTo(state, hour * HOUR);
+      state = step.state;
+      told.push(...step.events);
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(ViewStateSchema.safeParse(view).error, `hora ${hour}`).toBeUndefined();
+      sawArrears ||= view.guild.wage.arrears?.nextDepartureInSeconds !== undefined;
+      sawDiscontent ||= view.guild.heroes.some((hero) => hero.discontent);
+    }
+    expect(sawArrears && sawDiscontent).toBe(true);
+    expect(deriveViewState(state, state.lastProcessedAt).guild.heroes.map((h) => h.name)).toEqual([
+      'Edda',
+    ]);
+    const dismissed = applyCommand(
+      state,
+      order('dismissHero', { heroId: 'hero-1' }),
+      state.lastProcessedAt,
+    );
+    if (!dismissed.ok) {
+      throw new Error(dismissed.message);
+    }
+    told.push(...dismissed.events);
+    expect(
+      ViewStateSchema.safeParse(deriveViewState(dismissed.state, state.lastProcessedAt)).error,
+    ).toBeUndefined();
+    const guildTypes = [
+      'wageArrearsStarted',
+      'heroDiscontent',
+      'heroLeft',
+      'heroDismissed',
+      'wageArrearsEnded',
+    ];
+    const guildEvents = told.filter((event) => guildTypes.includes(event.type));
+    expect(new Set(guildEvents.map((event) => event.type))).toEqual(new Set(guildTypes));
+    for (const [index, event] of guildEvents.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-05T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    // A recusa do motor passa pelo contrato com o código novo.
+    const refused = applyCommand(
+      dismissed.state,
+      order('dismissHero', { heroId: 'hero-1' }),
+      state.lastProcessedAt,
+    );
+    expect(refused).toMatchObject({ ok: false, code: 'HERO_NOT_FOUND' });
+  });
+
+  it('recusa na guilda o que é de outra fase ou não é para o jogador ver', () => {
+    const view = deriveViewState(createInitialState('s', settings), 0);
+    const hero = {
+      id: 'hero-1',
+      name: 'Edda',
+      classLabel: 'Guerreiro',
+      level: 1,
+      xp: 0,
+      xpToNext: 100,
+      traits: [{ label: 'Leal', text: 'Nunca parte.' }],
+      statusText: 'No feudo',
+      power: 42,
+      powerBreakdown: '42',
+      wagePerHour: 2,
+      discontent: false,
+    };
+    const parse = (guild: unknown) => ViewStateSchema.safeParse({ ...view, guild }).success;
+    expect(parse({ ...view.guild, heroes: [hero] })).toBe(true);
+    expect(parse({ ...view.guild, built: true })).toBe(false);
+    expect(parse({ ...view.guild, level: 1 })).toBe(false);
+    expect(parse({ ...view.guild, slots: 2 })).toBe(false);
+    expect(parse({ ...view.guild, expeditions: [] })).toBe(false);
+    expect(parse({ ...view.guild, heroes: [{ ...hero, equipment: {} }] })).toBe(false);
+    expect(parse({ ...view.guild, heroes: [{ ...hero, joinedAtMs: 0 }] })).toBe(false);
+    expect(parse({ ...view.guild, heroes: [{ ...hero, classId: 'warrior' }] })).toBe(false);
+    expect(parse({ ...view.guild, wage: { ...view.guild.wage, debt: 12 } })).toBe(false);
+    const withoutGuild = Object.fromEntries(
+      Object.entries(view).filter(([key]) => key !== 'guild'),
+    );
+    expect(ViewStateSchema.safeParse(withoutGuild).success).toBe(false);
+  });
+
   it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual(['dayStarted', 'storageWasted']);
     // O estoque que encheu é notícia: continua na Crônica.
@@ -1524,6 +1671,7 @@ describe('contentHash', () => {
         injuryTemplates,
         injuredLoss,
         heroClasses,
+        heroAttributes,
         heroTraits,
         heroStatuses,
         wageArrearsReliefs,
@@ -1547,6 +1695,7 @@ describe('contentHash', () => {
       'craftGuilds',
       'enemies',
       'foundingTemplates',
+      'heroAttributes',
       'heroClasses',
       'heroStatuses',
       'heroTraits',

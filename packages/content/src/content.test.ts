@@ -17,6 +17,7 @@ import {
   HERO_CLASS_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
+  heroAttributes,
   heroClasses,
   heroStatuses,
   heroTraits,
@@ -48,6 +49,7 @@ import {
   CutRewardTemplatesSchema,
   EnemiesSchema,
   FoundingTemplatesSchema,
+  HeroAttributesSchema,
   HeroClassesSchema,
   HeroStatusesSchema,
   HeroTraitsSchema,
@@ -1667,6 +1669,21 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     expect(traits({ effects: { loyalInArrears: false } })).toBe(false);
     const seven = Object.fromEntries(Object.entries(heroTraits).filter(([id]) => id !== 'tracker'));
     expect(HeroTraitsSchema.safeParse(seven).success).toBe(false);
+  });
+
+  it('cada atributo tem o nome com que entra na conta do poder, em minúscula', () => {
+    expect(HeroAttributesSchema.safeParse(heroAttributes).error).toBeUndefined();
+    expect(HERO_ATTRIBUTE_IDS.map((id) => heroAttributes[id].label)).toEqual([
+      'vida',
+      'ataque',
+      'defesa',
+      'velocidade',
+      'perícia',
+      'vontade',
+    ]);
+    expect(
+      HeroAttributesSchema.safeParse({ ...heroAttributes, will: { label: 'Vontade.' } }).success,
+    ).toBe(false);
   });
 
   it('o estado de um herói tem rótulo: nesta fase, só "no feudo"', () => {

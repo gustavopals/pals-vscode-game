@@ -934,6 +934,79 @@ export type ThreatView =
       defense: ThreatDefenseView;
     };
 
+/** Um herói na visão (GDD §9.1): a ficha, com o poder explicado e o soldo no relógio de quem joga. */
+export type HeroView = {
+  /** O identificador que `dismissHero` recebe. */
+  id: string;
+  name: string;
+  /** "Guerreiro". */
+  classLabel: string;
+  level: number;
+  /** Experiência acumulada no nível de agora. */
+  xp: number;
+  /** Quanto falta juntar, no total, para o nível seguinte; `null` no nível máximo. */
+  xpToNext: number | null;
+  /** Os traços, com o nome e a frase do que cada um faz nesta versão. */
+  traits: Array<{ label: string; text: string }>;
+  /** "No feudo". */
+  statusText: string;
+  /** O poder do herói agora, com nível e Descontente: ataque + defesa + vida ÷ 10, vezes os fatores. */
+  power: number;
+  /** "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1,08 (Nv2) × 0,8 (descontente) = 36,288". */
+  powerBreakdown: string;
+  /** O soldo dele, em ouro por hora real. */
+  wagePerHour: number;
+  /** Descontente com o soldo em atraso: os atributos valem menos enquanto o atraso durar. */
+  discontent: boolean;
+};
+
+/**
+ * O soldo em atraso na visão (GDD §9.1). Os prazos são segundos reais até a **virada de dia**
+ * que cobra cada consequência: é nela, e não no instante exato do prazo, que acontece.
+ */
+export type WageArrearsView = {
+  /**
+   * Há quantos segundos reais o atraso dura, na conta dos prazos: o que reabre pouco depois de
+   * fechar é o mesmo, e o que ele já tinha durado antes entra aqui.
+   */
+  secondsElapsed: number;
+  /** O que o atraso custa, os prazos em tempo real e o que fazer, em frases prontas. */
+  text: string;
+  /**
+   * Segundos reais até quem não é Leal ficar Descontente; `null` quando não há quem fique
+   * (todos já estão, ou são Leais).
+   */
+  discontentInSeconds: number | null;
+  /**
+   * Segundos reais até o próximo herói partir; `null` quando ninguém parte (no feudo só há
+   * Leais).
+   */
+  nextDepartureInSeconds: number | null;
+};
+
+/**
+ * Os heróis e o soldo deles (GDD §9.1). O edifício da Guilda, os lugares de expedição e as
+ * expedições entram com a Fase D.
+ */
+export type GuildView = {
+  /** Quantos heróis o feudo pode contratar. Uma recompensa pode passar dele; a contratação, não. */
+  heroLimit: number;
+  /** Na ordem em que chegaram. */
+  heroes: HeroView[];
+  wage: {
+    /** O soldo de toda a equipe, em ouro por hora real. Zero sem herói. */
+    perHour: number;
+    /**
+     * Por quantos segundos reais o ouro ainda paga a equipe, contando o que a Mina entrega e o
+     * que o ofício e a moral mudam sozinhos, pela estação de agora. `null` sem herói e quando
+     * o ouro não acaba; zero com o soldo em atraso.
+     */
+    coveredForSeconds: number | null;
+    /** O atraso aberto; `null` com o soldo em dia. */
+    arrears: WageArrearsView | null;
+  };
+};
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -1189,6 +1262,8 @@ export type ViewState = {
   council: CouncilView;
   /** A Ameaça, vista (ou não) pela Torre de Vigia. */
   threat: ThreatView;
+  /** Os heróis a serviço do feudo e o soldo deles. */
+  guild: GuildView;
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
    * Conselho. É o resumo para a barra de status, a árvore e os avisos; a carta inteira está em

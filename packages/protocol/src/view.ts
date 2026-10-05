@@ -302,6 +302,46 @@ const PendingDecisionSchema = z.strictObject({
   expiresInSeconds: z.number(),
 });
 
+/** Um herói, como a ficha o mostra: o poder explicado e o soldo em ouro por hora real. */
+const HeroSchema = z.strictObject({
+  /** O identificador que `dismissHero` recebe. */
+  id: z.string(),
+  name: z.string(),
+  classLabel: z.string(),
+  level: z.number(),
+  xp: z.number(),
+  /** Quanto falta juntar, no total, para o nível seguinte; `null` no nível máximo. */
+  xpToNext: z.number().nullable(),
+  traits: z.array(z.strictObject({ label: z.string(), text: z.string() })),
+  statusText: z.string(),
+  power: z.number(),
+  powerBreakdown: z.string(),
+  wagePerHour: z.number(),
+  discontent: z.boolean(),
+});
+
+/**
+ * Os heróis e o soldo deles. `coveredForSeconds` é por quanto tempo real o ouro ainda paga a
+ * equipe (`null` sem herói e quando o ouro não acaba; zero com o soldo em atraso). No atraso, os
+ * dois prazos são segundos reais até a virada de dia que cobra cada consequência.
+ */
+const GuildSchema = z.strictObject({
+  heroLimit: z.number(),
+  heroes: z.array(HeroSchema),
+  wage: z.strictObject({
+    perHour: z.number(),
+    coveredForSeconds: z.number().nullable(),
+    arrears: z
+      .strictObject({
+        secondsElapsed: z.number(),
+        text: z.string(),
+        discontentInSeconds: z.number().nullable(),
+        nextDepartureInSeconds: z.number().nullable(),
+      })
+      .nullable(),
+  }),
+});
+
 /**
  * A Torre de Vigia, como o painel da Ameaça a mostra: o que ela faz hoje e o que o próximo nível
  * passaria a fazer. O custo e o botão da obra estão em `constructions.available`.
@@ -630,6 +670,8 @@ export const ViewStateSchema = z.strictObject({
   council: CouncilSchema,
   /** A Ameaça, vista (ou não) pela Torre de Vigia. */
   threat: ThreatSchema,
+  /** Os heróis a serviço do feudo e o soldo deles. */
+  guild: GuildSchema,
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
    * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`.

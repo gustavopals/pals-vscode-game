@@ -692,6 +692,16 @@ export const HeroTraitsSchema = z.strictObject(
   ),
 );
 
+/** Como a explicação do poder chama cada atributo: no meio de uma conta, em minúscula. */
+export const HeroAttributesSchema = z.strictObject(
+  Object.fromEntries(
+    HERO_ATTRIBUTE_IDS.map((id) => [
+      id,
+      z.strictObject({ label: label.regex(/^\p{Ll}[^.{}]*$/u) }),
+    ]),
+  ),
+);
+
 /** Como a ficha diz o que o herói está fazendo: um rótulo por estado. */
 export const HeroStatusesSchema = z.strictObject(
   Object.fromEntries(HERO_STATUS_IDS.map((id) => [id, z.strictObject({ label })])),
