@@ -27,7 +27,7 @@ export function inventoryHasRoom(state: GameState): boolean {
 
 /**
  * Guarda um item no arsenal. Com o arsenal cheio, o item **vira ouro pelo valor do conteúdo**,
- * com linha na Crônica (o ouro não tem teto de depósito); um item que o conteúdo já não tem não
+ * com linha na Crônica (o ouro entra pelo depósito, como todo ganho discreto); um item que o conteúdo já não tem não
  * vale nada e some sem linha. Diz se o item ficou no arsenal.
  */
 export function stowItem(draft: GameState, item: Item, atMs: number, events: GameEvent[]): boolean {
@@ -39,14 +39,23 @@ export function stowItem(draft: GameState, item: Item, atMs: number, events: Gam
   if (def === null) {
     return false;
   }
-  storeResource(draft, 'gold', def.value * MILLI);
+  // Como todo ganho discreto: entra o que o depósito aceita, e o evento diz o que entrou e o
+  // que não coube (`gained_gold`, `lost_gold`). O ouro não tem teto hoje; se um dia tiver, a
+  // conta já está certa (revisão da Fase D, A14).
+  const price = def.value * MILLI;
+  const stored = storeResource(draft, 'gold', price);
   draft.stats.itemsSold = (draft.stats.itemsSold ?? 0) + 1;
   emit(
     events,
     draft,
     atMs,
     'itemSold',
-    { itemId: item.id, defId: item.defId, gained_gold: def.value },
+    {
+      itemId: item.id,
+      defId: item.defId,
+      ...(stored > 0 ? { gained_gold: stored / MILLI } : {}),
+      ...(price > stored ? { lost_gold: (price - stored) / MILLI } : {}),
+    },
     { item: def.label, preco: def.value },
   );
   return false;
