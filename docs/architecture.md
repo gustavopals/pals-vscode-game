@@ -345,7 +345,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 | Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| Mecânicas de versões futuras (heróis, Taverna, expedições, Mercado, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
+| Mecânicas de versões futuras (expedições, ferimento e equipamento, a Guilda-edifício, Mercado, caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
 
 ## 13. Limites conhecidos
 
@@ -381,3 +381,25 @@ Conferidos no código e nos registros em 2026-10-02. Não são decisões: são c
 | Nenhum estado de produção passou pelas migrações antes de elas irem ao ar | [pendencias-v0.2.md](pendencias-v0.2.md), seção 5 |
 | A carga com 50 bots e o volume da tabela `commands` não foram medidos com a visão da v0.2 | Idem |
 | As capturas da página de apresentação mostram a bancada de antes da v0.2 | Roadmap da v0.2, V2F-T4.2 |
+
+## 14. A Guilda (Fase C da v0.3, fechada em 2026-10-06)
+
+O que a Fase C da v0.3 construiu por cima do retrato das seções 1 a 13. Está no `main` **local**, com o estado na versão 16, e **não está em produção**: por resposta do autor de 2026-10-06, a primeira publicação da v0.3 é a do fim da Fase D, e a produção salta do estado 12 direto para o dela ([ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), "Respostas de 2026-10-06"). O detalhe está no [README do motor](../packages/engine/README.md), "Heróis e soldo", "A carta roteirizada" e "Taverna"; as medições, em [balance-v0.3.md](balance-v0.3.md), seções 3 a 5.
+
+**Estado** (versões 14 a 16, um passo de migração por tarefa, nenhum com prazo, evento, identificador ou sorteio): `state.guild` com `heroes` (teto `balance.heroes.rosterCap`), `arriving` (os heróis com nome que uma carta prometeu), `wageArrears` e `lastWageArrears` (no molde de `famine` e `lastFamine`), `tavernOffers` e `tavern` (`nextRotationAtMs`, `festival`, `lastFestivalAtMs`); `settlement.buildings.tavern`; o fluxo fixo `tavern` em `state.rng`. Atributos, poder, limite de heróis e preço exibido são derivados, nunca gravados.
+
+| Peça | Onde | O que faz |
+|---|---|---|
+| Soldo e atraso | `economy.ts` (`netRates`, `goldCoversWages`), `wages.ts`, `scarcity.ts` | O soldo é consumo contínuo de ouro, em tempo de jogo. O atraso abre no instante em que o ouro acaba com soldo a pagar e fecha quando o saldo deixa de ser negativo: é o último passo de `settleScarcity`. As consequências (Descontente com 12 h reais, um herói a cada 2 h reais depois das 24 h, o Leal nunca) são cobradas em `turnWages`, **na virada do dia**, logo depois da deserção por fome. Os quatro prazos são tempo real, convertidos por `realToGameMs` |
+| O que venceu é cobrado | `wageLedgerAt` (`wages.ts`), `famineLedgerAt` (`famine.ts`) | A virada que encontra o atraso (ou a fome) fechado **há menos de 2 h reais** ainda cobra o que a duração já devia. Vale para o soldo e para a deserção por fome da v0.2; confirmado pelo autor em 2026-10-06 |
+| Heróis que chegam | `arrivals.ts` (`promiseHero`, `settleHeroArrivals`), `heroes.ts` | O único lugar que cria herói por carta. A chegada é um instante da linha do tempo, logo depois do Conselho fora do sorteio; o teto da lista faz a recompensa esperar, nunca se perder |
+| A carta roteirizada | `councilTurn.ts`; conteúdo em `cards/scripted.ts` | "Estrangeira ferida", no 13º dia de jogo, na frente das sorteadas, uma vez por partida; pede lugar na mesa sem reservá-lo; chega também às partidas que já passaram do dia |
+| Taverna | `tavern.ts` (contas), `tavernTurn.ts` (rotação e fim do festival: o único que sorteia e cria `offer-<n>`), `tavernOrders.ts` (`hireHero`, `holdFestival`: não sorteiam) | A rotação é ancorada na inauguração e tem instante próprio em `nextEventAt`, processado depois das incursões e antes das planejadas; o festival acaba em uma virada de dia. A moral ganhou os termos `tavern` e `devout` |
+| Visão | `guildView.ts`, `tavernView.ts` | `guild` (heróis com o poder explicado, os prometidos, o soldo com `coveredForSeconds`, `afterArrivals`, `arrears` e `lingering`, e as frases `text` e `dismissText`) e `tavern` (sempre presente). Prazos em segundos reais; o modelo do candidato (`templateId`), o gerador e o objeto `ids` não saem. O protocolo continua 2: a visão cresceu por adição |
+| Servidor | sem rota nova | As ordens `dismissHero`, `hireHero` e `holdFestival` passam pelo caminho de todo comando (seção 11); as recusas são do motor (`HERO_NOT_FOUND`, `TAVERN_REQUIRED`, `OFFER_GONE`, `HERO_LIMIT`, `FESTIVAL_ALREADY_HELD`, `INSUFFICIENT_RESOURCES`) |
+| App | `tabs/Guild.tsx`, `components/HeroesPanel.tsx` e `TavernPanel.tsx`, `ui/guild.ts`, `game/intent.ts` | A aba fixa `#/guilda`; a linha "Guilda" na árvore; o soldo em atraso na barra de status, depois da fome e do frio; `lords.hireHero`, `lords.dismissHero` e `lords.holdFestival` na paleta, todos por `controller.prepare`. "Tentar de novo" vale só para o feudo e a intenção em que nasceu (`intentOf`) |
+| Simulador | `bots/explorador.ts`, `bots/policies.ts` (`contratar`, `dar festival`) | O perfil Explorador está na rodada padrão da matriz, com faixa; as colunas `heroes`, `wage_arrears_hours` e `heroes_departed` são medidas |
+
+**O que ainda não existe, e é erro antecipar:** expedições, encruzilhada e Postura, ferimento, captura, experiência ganha, equipamento e inventário, o edifício Guilda (Fase D); Mercado, caravanas e Mestres (Fase E); o lote 2 de cartas e os objetivos 11 a 16 (Fase F). Na Fase C todo herói está no feudo (`status: 'idle'`), e cinco dos oito traços ainda não têm efeito ([pendencias-v0.3.md](pendencias-v0.3.md), C-58).
+
+**Limites conhecidos da fase:** ninguém além dos testes e dos bots jogou com heróis (o roteiro de 15 minutos para o autor está em [pendencias-v0.3.md](pendencias-v0.3.md), seção 7); nenhuma partida de produção passou pelos passos 12 → 16; o ouro parado não caiu ([balance-v0.3.md](balance-v0.3.md), seção 5).
