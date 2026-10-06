@@ -73,7 +73,7 @@ function HeroSheet(props: {
   const rescue = hero.captive && hero.nextRescued ? rescueDestination(guild) : null;
   const rescueBlocked = rescue === null ? null : blockedReason(rescue);
   return (
-    <li class="hero" aria-busy={props.busy || props.arming}>
+    <li class="hero" data-hero={hero.id} aria-busy={props.busy || props.arming}>
       <p class="hero-name">
         <Icon name={HERO_ICON} /> <strong>{hero.name}</strong> · {hero.classLabel} · Nv{hero.level}
         <Traits traits={hero.traits} />
@@ -111,7 +111,7 @@ function HeroSheet(props: {
             type="button"
             disabled={props.disabled}
             aria-describedby={about}
-            data-testid="send-rescue"
+            data-rescue={rescue.modelId}
             onClick={() => props.actions.run('lords.sendExpedition', rescue.modelId)}
           >
             Enviar o Resgate<span class="sr-only"> de {guild.rescueTargetName ?? hero.name}</span>

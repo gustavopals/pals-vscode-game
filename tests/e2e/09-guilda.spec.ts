@@ -550,25 +550,24 @@ test.describe('a Guilda na interface', () => {
     expect(waiting.guild.built).toBe(true);
     expect(waiting.pendingDecisions).toHaveLength(1);
     const [decision] = waiting.pendingDecisions;
-    expect(decision).toMatchObject({
-      kind: 'crossroads',
-      title: 'Floresta Antiga: A trilha se divide',
-    });
+    if (decision === undefined) {
+      throw new Error('O cenário esperava a encruzilhada entre as decisões pendentes.');
+    }
+    // O título é o do servidor: o cenário não escreve frase do conteúdo.
+    expect(decision.kind).toBe('crossroads');
     expect(waiting.guild.heroes.map((hero) => hero.atHome)).toEqual([false]);
     expect(waiting.guild.expeditions[0]?.crossroads?.postureLabel).toBe('Cautelosa');
 
     await page.getByRole('tab', { name: 'Hoje' }).click();
     const decisions = page.getByRole('region', { name: 'Decisões pendentes (1)' });
-    await expect(decisions).toContainText('Guilda: “Floresta Antiga: A trilha se divide”');
+    await expect(decisions).toContainText(`Guilda: “${decision.title}”`);
     await expect(decisions).toContainText('expira em');
     // O que a Postura fará sem resposta está ao lado do prazo, na frase do servidor.
     await expect(decisions).toContainText(
       waiting.guild.expeditions[0]?.crossroads?.postureText ?? 'sem a frase da Postura',
     );
     await expect(
-      decisions.getByRole('button', {
-        name: 'Escolher caminho: Floresta Antiga: A trilha se divide',
-      }),
+      decisions.getByRole('button', { name: `Escolher caminho: ${decision.title}` }),
     ).toBeVisible();
     // A barra de status conta a encruzilhada como decisão pendente, e o clique leva à Guilda.
     await expect(statusBar(page)).toContainText('1 decisão pendente');
@@ -598,22 +597,26 @@ test.describe('a Guilda na interface', () => {
 // interface. A equipe é posta no feudo pela rota de teste (`world.hero`), com nome escolhido
 // aqui, e não pelo sorteio da Taverna: os cenários não dependem de quem a semente ofereceu.
 // A variante do grafo de uma expedição enviada pela tela sai de uma conta sobre a semente: os
-// cenários leem do servidor o que a tela tem de mostrar, em vez de citar um nó. A encruzilhada
-// é posta pela rota de teste (`world.crossroads`), sempre a da primeira variante da Floresta
-// Antiga; daí em diante a escolha, o prazo, o nó seguinte e a volta são os do motor.
+// cenários leem do servidor o que a tela tem de mostrar, em vez de citar um nó. Em parte dos
+// cenários a encruzilhada é posta pela rota de teste (`world.crossroads`), sempre a da primeira
+// variante da Floresta Antiga; daí em diante a escolha, o prazo, o nó seguinte e a volta são os
+// do motor. Os cenários de "a jornada inteira", mais abaixo, chegam à encruzilhada por um envio
+// de verdade, feito pela tela.
 
 const expeditions = (page: Page) => guild(page).getByRole('region', { name: 'Expedições' });
 const reports = (page: Page) => guild(page).getByRole('region', { name: 'Relatórios' });
 const arsenal = (page: Page) => guild(page).getByRole('region', { name: 'Arsenal' });
 const destinations = (page: Page) => expeditions(page).getByRole('list', { name: 'Destinos' });
 const away = (page: Page) => expeditions(page).getByRole('list', { name: 'Fora do feudo' });
-const crossroadsCard = (page: Page) =>
-  guild(page).getByRole('article', { name: 'A trilha se divide' });
-/** A linha de um destino: a que traz o nome dele sozinho, e não qualquer linha que o cite. */
-const destinationRow = (page: Page, label: string) =>
-  destinations(page)
-    .getByRole('listitem')
-    .filter({ has: page.getByText(label, { exact: true }) });
+/**
+ * A folha de uma encruzilhada e a linha de um destino, achadas pelo que o servidor chama de
+ * identificador (`data-crossroads`, `data-destination`), e não por uma frase do conteúdo escrita
+ * aqui: trocar o título de um nó ou o nome de um destino não quebra cenário nenhum (revisão da
+ * Fase D, A22).
+ */
+const crossroadsCard = (page: Page) => guild(page).locator('article[data-crossroads]');
+const destinationRow = (page: Page, modelId: string) =>
+  destinations(page).locator(`[data-destination="${modelId}"]`);
 
 /** Funda o feudo com a Guilda dos Aventureiros de pé e a equipe pedida no feudo. */
 async function openGuild(
@@ -648,7 +651,7 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     await guildTab(page).click();
     // O destino mostra o que o servidor mandou: o risco, o que a equipe precisa, o primeiro
     // trecho e a régua dele. O que vem depois não está na tela.
-    const row = destinationRow(page, patrol.label);
+    const row = destinationRow(page, patrol.modelId);
     await expect(row).toContainText(`Risco: ${patrol.riskText.toLowerCase()}`);
     await expect(row).toContainText(patrol.requirementsText);
     await expect(row).toContainText(patrol.firstStretchText);
@@ -759,10 +762,10 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     if (expedition === undefined || crossroads === null || crossroads === undefined) {
       throw new Error('O cenário esperava a equipe na encruzilhada.');
     }
-    const deadline = `xpira em ${Math.floor(crossroads.decidesInSeconds / 3600)} h`;
+    const hoursLeft = `${Math.floor(crossroads.decidesInSeconds / 3600)} h`;
 
     // A barra de status, o título da aba do navegador, a árvore e a aba Hoje anunciam a decisão.
-    await expect(statusBar(first)).toContainText(`1 decisão pendente · e${deadline}`);
+    await expect(statusBar(first)).toContainText(`1 decisão pendente · expira em ${hoursLeft}`);
     await expect(first).toHaveTitle(/^\(1\) Pedra Alta/);
     await expect(tree(first).locator('[data-node="guild"]')).toContainText(
       '1 herói · 1 expedição na encruzilhada',
@@ -783,7 +786,7 @@ test.describe('as expedições na interface (V3D-T4)', () => {
       await guildTab(page).click();
       const card = crossroadsCard(page);
       await expect(card).toContainText(`Encruzilhada · ${expedition.label}`);
-      await expect(card).toContainText(`E${deadline}`);
+      await expect(card).toContainText(`A espera acaba em ${hoursLeft}`);
       await expect(card).toContainText(crossroads.text);
       await expect(card).toContainText(crossroads.postureText);
       for (const option of crossroads.options) {
@@ -922,7 +925,8 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     if (decided === undefined) {
       throw new Error('O cenário esperava a linha da Postura na Crônica.');
     }
-    expect(decided.text).toContain('cautelosa');
+    // A Postura é dita com a palavra que a visão mandou, no meio da frase.
+    expect(decided.text).toContain(crossroads.postureLabel.toLowerCase());
     expect(await eventsOf(page, request, 'expeditionPathChosen')).toHaveLength(0);
     await page.getByRole('tab', { name: 'Feudo' }).click();
     await expect(fief(page).getByRole('region', { name: 'Crônica' })).toContainText(decided.text);
@@ -1004,7 +1008,7 @@ test.describe('as expedições na interface (V3D-T4)', () => {
       if (seconds === undefined) {
         throw new Error('O cenário esperava a equipe na encruzilhada.');
       }
-      return { seconds, text: `xpira em ${Math.floor(seconds / 3600)} h` };
+      return { seconds, text: `${Math.floor(seconds / 3600)} h` };
     };
     const start = await hours();
     // Seis horas menos o minuto que passou: a API não dividiu o prazo pelo ritmo.
@@ -1012,15 +1016,15 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     expect(start.seconds).toBeLessThanOrEqual(6 * 3600);
     await guildTab(page).click();
     // A tela escreve o prazo que a API deu, sem converter de novo.
-    await expect(crossroadsCard(page)).toContainText(`E${start.text}`);
-    await expect(statusBar(page)).toContainText(`e${start.text}`);
+    await expect(crossroadsCard(page)).toContainText(`A espera acaba em ${start.text}`);
+    await expect(statusBar(page)).toContainText(`expira em ${start.text}`);
 
     // Três horas de relógio depois, faltam três: na API e na tela.
     await world.passTime(3 * HOUR, page);
     const middle = await hours();
     expect(middle.seconds).toBeGreaterThan(3 * 3600 - 180);
     expect(middle.seconds).toBeLessThanOrEqual(3 * 3600);
-    await expect(crossroadsCard(page)).toContainText(`E${middle.text}`);
+    await expect(crossroadsCard(page)).toContainText(`A espera acaba em ${middle.text}`);
     expect((await eventsOf(page, request, 'expeditionPostureDecided')).length).toBe(0);
 
     // Passadas as seis horas anunciadas, a Postura decidiu: nem antes, nem três vezes depois.

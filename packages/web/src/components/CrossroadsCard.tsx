@@ -35,6 +35,7 @@ function Path(props: {
       <button
         type="button"
         class="card-choice"
+        data-path={option.id}
         disabled={props.disabled || option.locked}
         aria-describedby={about}
         onClick={() =>
@@ -97,6 +98,8 @@ export function CrossroadsCard(props: {
   return (
     <article
       class="council-card crossroads-card"
+      // Para quem procura a folha sem conhecer o título dela (que é frase do conteúdo).
+      data-crossroads={expedition.id}
       aria-labelledby={title}
       aria-busy={props.choosing}
     >

@@ -296,7 +296,7 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
       expect(shown).toContain(posture.text);
     }
     // Rolf é o único que pode partir: já vem marcado na Patrulha, com o que vale contra ela.
-    expect(markup).toMatch(/type="checkbox" checked/);
+    expect(markup).toMatch(/type="checkbox" data-hero="hero-2" checked/);
     expect(shown).toMatch(/Rolf · Arqueiro Nv1 · Prudente\s?Vale [\d,]+ contra o primeiro trecho/);
     // A régua da equipe marcada vem com ícone e palavra.
     expect(shown).toMatch(/(Com folga|No limite|Arriscado)\. A equipe marcada vale [\d,]+/);
@@ -323,9 +323,9 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
     // tem Rolf e Brann prontos, vem Brann.
     const marked = [
       ...panel(heroCapturedView).matchAll(
-        /type="checkbox"( checked)? aria-labelledby="send-patrol-(hero-\d)-line"/g,
+        /type="checkbox" data-hero="(hero-\d)"( checked)? aria-labelledby="send-patrol-/g,
       ),
-    ].map((match) => [match[2], match[1] !== undefined]);
+    ].map((match) => [match[1], match[2] !== undefined]);
     expect(marked).toEqual([
       ['hero-2', false],
       ['hero-3', true],

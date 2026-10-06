@@ -57,7 +57,7 @@ export function ExpeditionReport(props: { report: Report; open: boolean }) {
   const { report } = props;
   const anchor = reportAnchor(report.expeditionId);
   return (
-    <li class="expedition-report">
+    <li class="expedition-report" data-report={report.expeditionId}>
       <details open={props.open}>
         <summary id={anchor}>
           <Icon name={report.lost ? 'error' : REPORT_ICON} /> <strong>{report.label}</strong> ·{' '}

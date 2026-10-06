@@ -81,7 +81,7 @@ function Ongoing(props: {
   const { expedition, elapsed } = props;
   const ends = stretchEnds(expedition, elapsed);
   return (
-    <li class="expedition">
+    <li class="expedition" data-expedition={expedition.id}>
       <p class="hero-name">
         <Icon name={EXPEDITION_ICON} /> <strong>{expedition.label}</strong> ·{' '}
         {teamLine(expedition.teamNames)} · Postura {expedition.postureLabel}
@@ -153,6 +153,7 @@ function SendForm(props: {
             <label key={hero.id} class="choice-option">
               <input
                 type="checkbox"
+                data-hero={hero.id}
                 checked={team.includes(hero.id)}
                 aria-labelledby={line}
                 aria-describedby={about}
@@ -181,6 +182,7 @@ function SendForm(props: {
           <label key={entry.id} class="choice-option">
             <input
               type="radio"
+              data-posture={entry.id}
               name={`${name}-posture`}
               value={entry.id}
               checked={entry.id === posture}
@@ -242,7 +244,7 @@ function DestinationRow(props: {
   const about = domId('send', destination.modelId, 'about');
   const open = canSend(destination);
   return (
-    <li class="destination" aria-busy={props.busy}>
+    <li class="destination" data-destination={destination.modelId} aria-busy={props.busy}>
       <p class="hero-name">
         <Icon name={destination.rescue ? 'heart' : 'location'} />{' '}
         <strong>{destination.label}</strong> · Risco: {destination.riskText.toLowerCase()} ·{' '}
