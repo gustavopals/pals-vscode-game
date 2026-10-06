@@ -69,7 +69,7 @@ export function FiefTab(props: {
           <ObjectivesPanel view={view} online={props.online} actions={actions} />
           {/* Na coluna das obras: a saída da névoa é uma delas, a Torre de Vigia. */}
           <ThreatPanel view={view} elapsed={elapsed} disabled={disabled} actions={actions} />
-          <ChroniclePanel chronicle={props.chronicle} actions={actions} />
+          <ChroniclePanel chronicle={props.chronicle} guild={view.guild} actions={actions} />
         </div>
       </div>
     </div>

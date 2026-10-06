@@ -445,9 +445,8 @@ export function cardDecisions(
 }
 
 /**
- * As expedições paradas em uma encruzilhada, na ordem da visão. Por enquanto o app só as lista,
- * com o prazo, e leva à aba Guilda: a tela de escolha do caminho é da tarefa da interface das
- * expedições (V3D-T4). Sem resposta, a Postura da expedição decide no prazo.
+ * As expedições paradas em uma encruzilhada, na ordem da visão. Sem resposta, a Postura da
+ * expedição decide no prazo. O que fala de equipe, de caminho e da aba Guilda lê só estas.
  */
 export function crossroadsDecisions(
   view: Pick<ViewState, 'pendingDecisions'>,
@@ -487,12 +486,13 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
  *
  * A fome e o frio passam na frente das decisões pendentes: o conselho traz cartas o tempo todo, e
  * quem não responde na hora tem quase sempre uma à espera; se ela tomasse a linha, o alarme da
- * fome nunca apareceria. A carta não se perde por isso: continua no contador do título, no ícone
- * do Feudo, na linha "Hoje" da árvore e na aba do Conselho.
+ * fome nunca apareceria. A carta (e a encruzilhada) não se perde por isso: continua no contador
+ * do título, no ícone do Feudo, na linha "Hoje" da árvore e na aba dela.
  *
- * As decisões pendentes são as cartas do Conselho: a linha diz quantas esperam e o prazo da que
- * vence primeiro (a lista já vem do prazo mais curto ao mais longo), a explicação dá o título e
- * o prazo de cada uma, e o clique leva à aba do Conselho. No título da aba do navegador elas
+ * As decisões pendentes são as cartas do Conselho e, desde a v0.3, as encruzilhadas de
+ * expedição: a linha diz quantas esperam e o prazo da que vence primeiro, a explicação dá o
+ * título e o prazo de cada uma, e o clique leva à aba da que vence primeiro (Conselho ou
+ * Guilda). No título da aba do navegador elas
  * entram no contador, e não como assunto: "(1) Pedra Alta", ou "(1) Fome em Pedra Alta" quando
  * há fome.
  */
@@ -554,22 +554,37 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       title: `Soldo em atraso em ${name}`,
     };
   }
-  const decisions = cardDecisions(view);
+  // As decisões pendentes são as cartas do Conselho e as encruzilhadas de expedição, juntas:
+  // a linha conta as duas e traz o prazo da que vence primeiro; o clique leva à aba dela.
+  const decisions = [...view.pendingDecisions].sort(
+    (a, b) => a.expiresInSeconds - b.expiresInSeconds,
+  );
   const soonest = decisions[0];
   if (soonest !== undefined) {
     const pending = pendingDecisionsLabel(decisions.length);
     const each = decisions.map(
       (decision) => `"${decision.title}" ${expiresIn(decision.expiresInSeconds, elapsedSeconds)}`,
     );
+    const cards = cardDecisions(view).length;
+    const crossroads = decisions.length - cards;
+    const where = [
+      ...(cards === 0
+        ? []
+        : [cards === 1 ? 'A carta espera na aba Conselho.' : 'As cartas esperam na aba Conselho.']),
+      ...(crossroads === 0
+        ? []
+        : [
+            crossroads === 1
+              ? 'A equipe espera na encruzilhada, na aba Guilda.'
+              : 'As equipes esperam na encruzilhada, na aba Guilda.',
+          ]),
+    ];
     return {
       bar: {
-        text: `$(law) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
-        tooltip:
-          `${name}: ${each.join('; ')}. ` +
-          (decisions.length === 1
-            ? 'A carta espera na aba Conselho.'
-            : 'As cartas esperam na aba Conselho.'),
-        target: 'council',
+        // O ícone é o do assunto que vence primeiro: a carta ou a encruzilhada.
+        text: `$(${soonest.kind === 'card' ? 'law' : 'git-compare'}) ${pending} · ${expiresIn(soonest.expiresInSeconds, elapsedSeconds)}`,
+        tooltip: `${name}: ${each.join('; ')}. ${where.join(' ')}`,
+        target: soonest.kind === 'card' ? 'council' : 'guild',
       },
       title: null,
     };
@@ -702,7 +717,7 @@ export function documentTitle(input: StatusBarInput): string {
     return stripIcons(statusBar(input).text);
   }
   const online = input.connection.kind === 'online';
-  const waiting = input.pending + (online ? cardDecisions(input.view).length : 0);
+  const waiting = input.pending + (online ? input.view.pendingDecisions.length : 0);
   const news = waiting > 0 ? `(${waiting}) ` : '';
   const name = input.view.settlement.name;
   const topic = online ? statusTopic(input.view, input.elapsedSeconds).title : null;

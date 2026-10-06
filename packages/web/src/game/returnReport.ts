@@ -7,7 +7,9 @@ import {
 } from '@lotg/protocol';
 
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
+import { rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
+import { TAVERN_SECTION } from '../ui/guild';
 import { peopleMoved } from '../ui/morale';
 import {
   isObjectiveCompleted,
@@ -104,6 +106,21 @@ export function costAction(
     // O ataque já passou: o que se pode fazer é mudar o desfecho do próximo.
     return toAction(defenseCommand(view));
   }
+  if (topic === 'hero:captured') {
+    // Quem ficou em cativeiro só volta com um Resgate: se a Guilda o oferece agora, é o botão.
+    const rescue = rescueDestination(view.guild);
+    return rescue === null
+      ? { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' }
+      : { command: 'lords.sendExpedition', arg: rescue.modelId, label: 'Enviar o Resgate' };
+  }
+  if (topic === 'hero:died') {
+    // Quem morreu não volta: o que há a fazer é ver quem a Taverna oferece.
+    return { command: 'lords.openPanel', arg: TAVERN_SECTION, label: 'Ver a Taverna' };
+  }
+  if (topic === 'hero:injured' || topic === 'expedition:lost') {
+    // O ferido se recupera sozinho, e a equipe perdida não volta: a Guilda diz quem pode partir.
+    return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
+  }
   if (topic === 'wage') {
     // O atraso já fechou, ou quem partiu já partiu: o que há a ver é a equipe e o soldo dela.
     return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
@@ -126,10 +143,12 @@ export function costAction(
 }
 
 /**
- * "Você ainda pode decidir", com a visão de agora: as cartas do Conselho à espera, da que vence
- * primeiro à última (a ordem da visão), cada uma com o prazo em tempo real e, quando é a
- * continuação de outra, a frase do servidor que lembra a escolha; depois as obras que não
- * começam sozinhas e os aldeões livres, nas frases e com os botões de "Antes de partir".
+ * "Você ainda pode decidir", com a visão de agora: no topo, as equipes paradas em uma
+ * encruzilhada, com o prazo real e o que a Postura fará; depois as cartas do Conselho à espera,
+ * da que vence primeiro à última (a ordem da visão), cada uma com o prazo em tempo real e,
+ * quando é a continuação de outra, a frase do servidor que lembra a escolha; depois as obras
+ * que não começam sozinhas, os aldeões livres e os heróis sem jornada, nas frases e com os
+ * botões de "Antes de partir".
  */
 export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportItem[] {
   const cards = cardDecisions(view).map((decision): ReturnReportItem => {
@@ -146,23 +165,34 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       action: { command: 'lords.openPanel', arg: 'council', label: 'Decidir' },
     };
   });
-  // A equipe parada em uma encruzilhada: o prazo e o caminho para a aba Guilda. A escolha do
-  // caminho na tela é da tarefa da interface das expedições; sem resposta, a Postura decide.
-  const crossroads = crossroadsDecisions(view).map((decision): ReturnReportItem => ({
-    text: `Guilda: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
-    topic: `crossroads:${decision.id}`,
-    ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
-    action: { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
-  }));
+  // A equipe parada em uma encruzilhada vem primeiro: é a decisão de prazo mais curto que o
+  // jogo tem, e sem resposta a Postura decide por ele. A linha diz o prazo real e o que a
+  // Postura fará, na frase do servidor; o botão abre a lista dos caminhos.
+  const crossroads = crossroadsDecisions(view).map((decision): ReturnReportItem => {
+    const posture = view.guild.expeditions.find((expedition) => expedition.id === decision.id)
+      ?.crossroads?.postureText;
+    return {
+      text:
+        `Guilda: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.` +
+        (posture === undefined ? '' : ` ${posture}`),
+      topic: `crossroads:${decision.id}`,
+      ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
+      action: {
+        command: 'lords.chooseExpeditionPath',
+        arg: decision.id,
+        label: 'Escolher caminho',
+      },
+    };
+  });
   const works = leavingItems(view)
-    .filter((item) => item.id === 'queue' || item.id === 'idle')
+    .filter((item) => item.id === 'queue' || item.id === 'idle' || item.id === 'expedition')
     .map((item): ReturnReportItem => ({
       text: item.text,
       topic: item.id,
       severity: item.severity,
       action: toAction(item.command),
     }));
-  return [...cards, ...crossroads, ...works];
+  return [...crossroads, ...cards, ...works];
 }
 
 /**
@@ -238,6 +268,30 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     case 'heroDiscontent':
     case 'heroLeft':
       return { block: 'cost', topic: 'wage' };
+    // As expedições (GDD §9.2 a §9.4). A equipe que voltou é o feudo trabalhando sem o senhor: a
+    // frase da Crônica diz o que ela trouxe, com os totais do evento (o saque entra na tabela
+    // como "recebido", nunca como produção). O herói resgatado, o que sarou, o que subiu de
+    // nível, o item achado, o destino revelado e o Covil limpo são ganhos. Quem se feriu, quem
+    // ficou em cativeiro, quem morreu e a equipe que não voltou são o preço, cada um com a
+    // próxima ação. A partida, a chegada à encruzilhada, quem decidiu e o nó que deu errado
+    // ficam na Crônica da ausência e no relatório da expedição: aqui seriam a mesma história
+    // contada duas vezes (o tratamento completo é da V3F-T3).
+    case 'expeditionReturned':
+    case 'heroRescued':
+    case 'heroRecovered':
+    case 'heroLeveledUp':
+    case 'itemFound':
+    case 'destinationRevealed':
+    case 'threatTileCleared':
+      return { block: 'prospered', topic: 'expedition' };
+    case 'heroInjured':
+      return { block: 'cost', topic: 'hero:injured' };
+    case 'heroCaptured':
+      return { block: 'cost', topic: 'hero:captured' };
+    case 'heroDied':
+      return { block: 'cost', topic: 'hero:died' };
+    case 'expeditionLost':
+      return { block: 'cost', topic: 'expedition:lost' };
     default:
       // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.

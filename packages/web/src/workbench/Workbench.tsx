@@ -15,7 +15,7 @@ import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
-import { cardDecisions } from '../ui/format';
+import { reportLinks } from '../ui/expeditions';
 import { buildTree } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
@@ -86,7 +86,13 @@ function TabContent(props: {
     case 'about':
       return <AboutTab server={controller.server} actions={actions} />;
     case 'chronicle':
-      return <ChronicleTab document={controller.chronicleDocument} actions={actions} />;
+      return (
+        <ChronicleTab
+          document={controller.chronicleDocument}
+          reports={reportLinks(controller.view?.guild, controller.chronicle)}
+          actions={actions}
+        />
+      );
     case 'today':
     case 'fief':
     case 'council':
@@ -124,6 +130,7 @@ function TabContent(props: {
             online={online}
             retryInSeconds={retryInSeconds}
             busy={controller.guildOrders}
+            focusedReport={controller.reportInFocus}
             actions={actions}
           />
         );
@@ -173,7 +180,7 @@ export function Workbench(props: {
   // As decisões à espera: sem ligação a visão é a guardada, e as cartas dela não são anunciadas.
   const decisions =
     controller.connection.kind === 'online' && controller.view !== null
-      ? cardDecisions(controller.view).length
+      ? controller.view.pendingDecisions.length
       : 0;
 
   useEffect(() => {

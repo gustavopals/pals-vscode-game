@@ -17,6 +17,7 @@ import {
   wageOf,
   xpLine,
 } from '../ui/guild';
+import { expeditionsOwnText, itemsFor, rescueDestination, slotLine } from '../ui/expeditions';
 import type { Actions } from './actions';
 import { formatNumber } from './format';
 import { Explained, Icon } from './shared';
@@ -41,14 +42,26 @@ export function Traits(props: { traits: ReadonlyArray<{ label: string; text: str
 
 /**
  * A ficha de um herói (GDD §9.1): o nome, a classe, o nível e os traços em uma linha; embaixo, o
- * poder com a conta do servidor, a experiência, o soldo e onde ele está. O Descontente tem ícone
- * e palavra: nada é dito só pela cor. "Dispensar" passa por `lords.dismissHero`, que confirma.
+ * poder com a conta do servidor, a experiência, o soldo e onde ele está (no feudo, em expedição,
+ * em recuperação com o prazo, em cativeiro), na frase do servidor. O Descontente tem ícone e
+ * palavra: nada é dito só pela cor. "Dispensar" passa por `lords.dismissHero`, que confirma.
+ * Quem está em cativeiro ganha "Enviar o Resgate" quando a Guilda o oferece; o equipamento vem
+ * recolhido logo abaixo.
  */
-function HeroSheet(props: { hero: Hero; disabled: boolean; busy: boolean; actions: Actions }) {
-  const { hero } = props;
+function HeroSheet(props: {
+  hero: Hero;
+  guild: ViewState['guild'];
+  disabled: boolean;
+  busy: boolean;
+  /** Uma troca de equipamento deste herói está a caminho do servidor. */
+  arming: boolean;
+  actions: Actions;
+}) {
+  const { hero, guild } = props;
   const about = elementId(hero.id, 'about');
+  const rescue = hero.captive ? rescueDestination(guild) : null;
   return (
-    <li class="hero" aria-busy={props.busy}>
+    <li class="hero" aria-busy={props.busy || props.arming}>
       <p class="hero-name">
         <Icon name={HERO_ICON} /> <strong>{hero.name}</strong> · {hero.classLabel} · Nv{hero.level}
         <Traits traits={hero.traits} />
@@ -73,7 +86,89 @@ function HeroSheet(props: { hero: Hero; disabled: boolean; busy: boolean; action
           Dispensar<span class="sr-only"> {hero.name}</span>
         </button>
       </div>
+      {rescue === null ? null : (
+        <p class="hero-gear">
+          <button
+            type="button"
+            disabled={props.disabled}
+            aria-describedby={about}
+            onClick={() => props.actions.run('lords.sendExpedition', rescue.modelId)}
+          >
+            Enviar o Resgate<span class="sr-only"> de {hero.name}</span>
+          </button>
+        </p>
+      )}
+      <Gear
+        hero={hero}
+        guild={guild}
+        disabled={props.disabled || props.arming}
+        actions={props.actions}
+      />
     </li>
+  );
+}
+
+/**
+ * O equipamento de um herói (GDD §9.1): três espaços, cada um com o que ele leva e o que isso
+ * soma, na frase do servidor. Fica recolhido em uma linha, que já diz quantos espaços estão
+ * ocupados. Com o herói no feudo, o espaço ocupado tem "Desequipar" e o vazio, "Equipar", quando
+ * o arsenal tem item para ele; a lista do comando `lords.equipItem` pergunta qual. Fora do
+ * feudo, o equipamento só se lê: quem está em expedição ou em cativeiro troca na volta.
+ */
+function Gear(props: {
+  hero: Hero;
+  guild: ViewState['guild'];
+  disabled: boolean;
+  actions: Actions;
+}) {
+  const { hero, guild } = props;
+  const worn = hero.equipment.filter((entry) => entry.item !== null).length;
+  // Sem nada equipado e sem nada no arsenal não há o que mostrar: a ficha fica curta.
+  if (worn === 0 && guild.inventory.length === 0) {
+    return null;
+  }
+  return (
+    <details class="hero-gear">
+      <summary>
+        Equipamento: {worn} de {hero.equipment.length}
+        <span class="sr-only"> de {hero.name}</span>
+      </summary>
+      <ul class="gear" aria-label={`Equipamento de ${hero.name}`}>
+        {hero.equipment.map((entry) => {
+          const id = elementId(hero.id, `slot-${entry.slot}`);
+          return (
+            <li key={entry.slot} class="gear-slot">
+              <span id={id}>{slotLine(entry)}</span>
+              {!hero.atHome ? null : entry.item !== null ? (
+                <button
+                  type="button"
+                  class="link"
+                  disabled={props.disabled}
+                  aria-describedby={id}
+                  onClick={() =>
+                    props.actions.run('lords.unequipItem', { heroId: hero.id, slot: entry.slot })
+                  }
+                >
+                  Desequipar<span class="sr-only"> {entry.item.label}</span>
+                </button>
+              ) : itemsFor(guild, entry.slot).length === 0 ? null : (
+                <button
+                  type="button"
+                  class="link"
+                  disabled={props.disabled}
+                  aria-describedby={id}
+                  onClick={() =>
+                    props.actions.run('lords.equipItem', { heroId: hero.id, slot: entry.slot })
+                  }
+                >
+                  Equipar<span class="sr-only"> {entry.slotLabel.toLowerCase()}</span>
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </details>
   );
 }
 
@@ -203,9 +298,12 @@ export function HeroesPanel(props: {
       <h2 id="heroes-title">
         {guild.heroes.length === 0 ? 'Heróis' : `Heróis · ${heroCount(guild.heroes.length)}`}
       </h2>
-      <p class={empty ? 'guild-empty' : 'muted hint'}>
-        {empty ? <Icon name={GUILD_ICON} /> : null} {guild.text}
-      </p>
+      {/* Com equipe e a Guilda dos Aventureiros de pé, a frase é das expedições, e está lá. */}
+      {expeditionsOwnText(guild) ? null : (
+        <p class={empty ? 'guild-empty' : 'muted hint'}>
+          {empty ? <Icon name={GUILD_ICON} /> : null} {guild.text}
+        </p>
+      )}
       <Wage view={view} elapsed={elapsed} disabled={props.disabled} actions={props.actions} />
       {guild.heroes.length === 0 ? null : (
         <ul class="heroes" aria-label="A equipe">
@@ -213,12 +311,19 @@ export function HeroesPanel(props: {
             <HeroSheet
               key={hero.id}
               hero={hero}
+              guild={guild}
               disabled={props.disabled}
               busy={props.busy.has(`dismiss:${hero.id}`)}
+              arming={props.busy.has(`equipment:${hero.id}`)}
               actions={props.actions}
             />
           ))}
         </ul>
+      )}
+      {guild.captiveText === null ? null : (
+        <p class="muted hint">
+          <Icon name="lock" /> {guild.captiveText}
+        </p>
       )}
       {guild.arriving.length === 0 ? null : (
         <ul class="heroes" aria-label="A caminho do feudo">

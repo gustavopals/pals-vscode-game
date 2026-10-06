@@ -16,14 +16,28 @@ function goToLine(n: number): void {
 /**
  * Uma linha da Crônica. A de uma carta que continua outra traz, logo abaixo, "Sua escolha
  * voltou" e a frase da escolha (roadmap da v0.2, V2D-T4.3): lê-se ali mesmo de onde a história
- * vem, e o botão leva à linha da escolha, sem reler dezenas de entradas.
+ * vem, e o botão leva à linha da escolha, sem reler dezenas de entradas. A de uma expedição com
+ * relatório guardado traz "Ver o relatório", que abre a folha dela na aba Guilda.
  */
-function Line(props: { line: ChronicleLine }) {
+function Line(props: { line: ChronicleLine; report: string | undefined; actions: Actions }) {
   const { n, text, echo } = props.line;
+  const { report } = props;
   return (
     // O foco só chega aqui pelo botão de uma continuação: a linha não entra na ordem do Tab.
     <li id={chronicleAnchor(n)} tabIndex={-1}>
       {text}
+      {report === undefined ? null : (
+        <>
+          {' '}
+          <button
+            type="button"
+            class="link"
+            onClick={() => props.actions.run('lords.openReport', report)}
+          >
+            Ver o relatório
+          </button>
+        </>
+      )}
       {echo === undefined ? null : (
         <span class="chronicle-echo">
           <Icon name="history" />{' '}
@@ -46,8 +60,20 @@ function Line(props: { line: ChronicleLine }) {
   );
 }
 
-/** A Crônica inteira do feudo, como texto formatado, com o download em Markdown. */
-export function ChronicleTab(props: { document: Loadable<string>; actions: Actions }) {
+/**
+ * A Crônica inteira do feudo, como texto formatado, com o download em Markdown.
+ *
+ * A linha de uma expedição liga ao relatório dela **enquanto ele estiver guardado**
+ * (`reports`: a frase da linha e a expedição, montadas com os eventos recentes e os relatórios
+ * da visão, `reportLinks`). O documento é só texto: a ligação é achada pela frase, palavra por
+ * palavra. Quando o relatório sai da lista dos guardados, a linha continua legível sozinha.
+ */
+export function ChronicleTab(props: {
+  document: Loadable<string>;
+  /** As linhas que têm relatório guardado: a frase e a expedição. */
+  reports?: ReadonlyMap<string, string>;
+  actions: Actions;
+}) {
   const { document: chronicle, actions } = props;
   if (chronicle.status === 'error') {
     return (
@@ -89,7 +115,12 @@ export function ChronicleTab(props: { document: Loadable<string>; actions: Actio
             return (
               <ul key={index}>
                 {block.items.map((line) => (
-                  <Line key={line.n} line={line} />
+                  <Line
+                    key={line.n}
+                    line={line}
+                    report={props.reports?.get(line.text)}
+                    actions={actions}
+                  />
                 ))}
               </ul>
             );

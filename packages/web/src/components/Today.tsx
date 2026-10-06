@@ -4,6 +4,7 @@ import type { ComponentChildren } from 'preact';
 import { beforeLeaving, leavingItems, type LeavingSeverity } from '../game/beforeLeaving';
 import { coveredTopics, currentBlocks } from '../game/returnReport';
 import { cardDeadline, expiresSoon, nextAudience } from '../ui/council';
+import { CROSSROADS_ICON } from '../ui/expeditions';
 import { moraleBurdened, moraleIcon, moraleSince } from '../ui/morale';
 import type { Actions } from './actions';
 import { formatAway, formatNumber, formatSigned } from './format';
@@ -246,28 +247,36 @@ function PendingDecisions(props: {
           <ul class="decisions">
             {decisions.map((decision) => {
               const soon = expiresSoon(decision, elapsed);
-              // A encruzilhada de uma expedição só é anunciada, com o prazo, e leva à aba Guilda:
-              // a escolha do caminho na tela chega com a interface das expedições.
+              // A encruzilhada de uma expedição diz o prazo e o que a Postura fará sem resposta,
+              // na frase do servidor; "Escolher caminho" abre a lista das opções.
               const crossroads = decision.kind === 'crossroads';
+              const posture = crossroads
+                ? view.guild.expeditions.find((expedition) => expedition.id === decision.id)
+                    ?.crossroads?.postureText
+                : undefined;
               return (
                 <li
                   key={decision.id}
                   class={soon ? 'leaving-item leaving-warning' : 'leaving-item leaving-info'}
                 >
                   <p>
-                    <Icon name={soon ? 'warning' : crossroads ? 'compass' : 'law'} />{' '}
+                    <Icon name={soon ? 'warning' : crossroads ? CROSSROADS_ICON : 'law'} />{' '}
                     {soon ? <span class="sr-only">Atenção: </span> : null}
                     {crossroads ? 'Guilda' : 'Conselho'}: “{decision.title}” ·{' '}
                     <span class="decision-deadline">{cardDeadline(decision, elapsed)}</span>
+                    {posture === undefined ? null : <span class="muted">. {posture}</span>}
                   </p>
                   <button
                     type="button"
-                    aria-label={`${crossroads ? 'Ver a Guilda' : 'Decidir'}: ${decision.title}`}
+                    aria-label={`${crossroads ? 'Escolher caminho' : 'Decidir'}: ${decision.title}`}
+                    disabled={crossroads && !props.online}
                     onClick={() =>
-                      props.actions.run('lords.openPanel', crossroads ? 'guild' : 'council')
+                      crossroads
+                        ? props.actions.run('lords.chooseExpeditionPath', decision.id)
+                        : props.actions.run('lords.openPanel', 'council')
                     }
                   >
-                    {crossroads ? 'Ver a Guilda' : 'Decidir'}
+                    {crossroads ? 'Escolher caminho' : 'Decidir'}
                   </button>
                 </li>
               );

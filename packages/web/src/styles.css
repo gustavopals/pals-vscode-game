@@ -1198,6 +1198,182 @@ progress::-webkit-progress-value {
   margin-top: 8px;
 }
 
+/* --- Expedições ----------------------------------------------------------- */
+
+/*
+ * Uma equipe fora do feudo e um destino: as mesmas linhas da ficha de um herói, sem a coluna
+ * do botão. O que é longo (o percurso, a montagem do envio, cada relatório, o equipamento)
+ * fica recolhido em uma linha e abre com um clique ou com Enter.
+ */
+.expedition,
+.destination {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.expedition > p,
+.destination > p,
+.destination > .hero-sheet {
+  min-width: 0;
+}
+
+.destination > .blocked {
+  margin-top: 4px;
+}
+
+.guild-sub {
+  margin: 14px 0 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.85em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.expedition-log,
+.send-form,
+.hero-gear {
+  margin-top: 6px;
+}
+
+.expedition-log > summary,
+.send-form > summary,
+.hero-gear > summary,
+.expedition-report summary {
+  cursor: pointer;
+}
+
+.expedition-log > summary,
+.hero-gear > summary {
+  color: var(--vscode-descriptionForeground);
+}
+
+.send-form > summary {
+  font-weight: 600;
+}
+
+.send-form .choice {
+  margin-top: 8px;
+}
+
+.send-form .choice-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 6px;
+  margin: 4px 0 0;
+  padding: 2px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.send-form .choice-option input {
+  margin: 4px 0 0;
+  accent-color: var(--vscode-button-background);
+}
+
+/* O botão de enviar ao lado da régua da equipe: o custo e o risco antes do clique. */
+.send-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+.send-foot > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.team-fit {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A encruzilhada é a folha de uma carta, dentro da linha da expedição. */
+.crossroads-card {
+  margin-top: 10px;
+}
+
+/* O percurso, passo a passo: o nó e o desfecho em uma linha, a frase embaixo. */
+.report-steps {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.report-step {
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid var(--vscode-panel-border);
+}
+
+.report-step + .report-step {
+  margin-top: 4px;
+}
+
+.report-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
+
+.report-outcome {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.92em;
+  white-space: nowrap;
+}
+
+.report-outcome.warning {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.report-step-text {
+  max-width: 68ch;
+}
+
+.report-step-note {
+  font-size: 0.92em;
+}
+
+.expedition-reports {
+  margin-top: 6px;
+}
+
+.expedition-report {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.report-close {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--vscode-panel-border);
+}
+
+.report-close > p + p {
+  margin-top: 3px;
+}
+
+/* O equipamento de um herói: ocupa a largura da ficha, abaixo das duas linhas dela. */
+.hero > .hero-gear {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.gear {
+  margin-top: 4px;
+}
+
+.gear-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 12px;
+  padding: 2px 0;
+}
+
 /* --- Movimento ------------------------------------------------------------ */
 
 /* Não há animações. Se alguma for acrescentada, quem pediu menos movimento não a vê. */

@@ -32,8 +32,16 @@ import {
   storageAlert,
   truncate,
   upgradeName,
-  cardDecisions,
 } from './format';
+import {
+  CROSSROADS_ICON,
+  EXPEDITION_ICON,
+  EXPEDITION_NODE,
+  expeditionLines,
+  expeditionProgress,
+  EXPEDITIONS_SECTION,
+  sendable,
+} from './expeditions';
 import {
   arrivalLine,
   festivalCost,
@@ -431,8 +439,10 @@ function councilNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
- * A Guilda (GDD §13.2: "Guilda · 3 heróis"): a equipe, quem está a caminho e, com o soldo em
- * atraso, o alerta por extenso. Uma linha por herói, com a classe, o nível e o soldo, e o botão
+ * A Guilda (GDD §13.2: "Guilda · 3 heróis · 1 expedição na encruzilhada"): a equipe, quem está
+ * a caminho, as expedições (primeiro as que esperam na encruzilhada) e, com o soldo em atraso,
+ * o alerta por extenso. Uma linha por expedição fora do feudo, com onde ela está e o botão
+ * "Escolher" quando espera a palavra do jogador. Uma linha por herói, com a classe, o nível e o soldo, e o botão
  * "Dispensar" (que confirma); uma por herói prometido, com o prazo; e, com a Taverna de pé, a
  * linha dela com os candidatos, cada um com o preço e o botão "Contratar". O clique leva à aba
  * Guilda; as ordens saem dos botões. Sem herói e sem Taverna o grupo é uma linha só, e a
@@ -466,7 +476,28 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
       icon: 'watch',
       command: open,
     })),
+    // Uma linha por expedição fora do feudo: onde está e quanto falta. A que espera na
+    // encruzilhada leva o botão "Escolher", que abre a lista das opções; o clique só navega.
+    ...guild.expeditions.map((expedition): TreeNode => ({
+      id: `${EXPEDITION_NODE}${expedition.id}`,
+      label: expedition.label,
+      description:
+        (expedition.crossroads === null ? '' : '● ') +
+        expeditionProgress(expedition, elapsedSeconds),
+      tooltip: expeditionLines(expedition, elapsedSeconds).join('\n'),
+      icon: expedition.crossroads === null ? EXPEDITION_ICON : CROSSROADS_ICON,
+      command: { id: 'lords.openPanel', args: [EXPEDITIONS_SECTION] },
+      ...(expedition.crossroads === null
+        ? {}
+        : {
+            contextValue: 'lords.crossroads',
+            actionHints: { 'lords.chooseExpeditionPath': expedition.crossroads.postureText },
+          }),
+    })),
   ];
+  // Há para onde mandar alguém agora: a linha "Guilda" ganha o botão "Enviar", que pergunta o
+  // destino, a equipe e a Postura.
+  const canSendNow = sendable(guild).length > 0;
   if (tavern.level > 0) {
     const { festival } = tavern;
     children.push({
@@ -516,6 +547,7 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
       wageAlert(guild, LEAVING_HORIZON_SECONDS, elapsedSeconds) === null ? GUILD_ICON : 'warning',
     expanded: true,
     command: open,
+    ...(canSendNow ? { contextValue: 'lords.guild' } : {}),
     children,
   };
 }
@@ -668,8 +700,9 @@ export function buildTree(input: TreeInput): TreeNode[] {
   // As decisões pendentes passam na frente (GDD §13.2: "● 2 decisões"), com as novidades ao lado.
   // Sem ligação a visão é a guardada, e a carta dela pode já ter saído da mesa: não é anunciada.
   const waiting = [
-    ...(cardDecisions(view).length > 0 && !offline
-      ? [pendingDecisionsLabel(cardDecisions(view).length)]
+    // As cartas do Conselho e as encruzilhadas de expedição, somadas.
+    ...(view.pendingDecisions.length > 0 && !offline
+      ? [pendingDecisionsLabel(view.pendingDecisions.length)]
       : []),
     ...(input.unseen > 0
       ? [`${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`]

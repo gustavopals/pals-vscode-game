@@ -40,8 +40,11 @@ import {
   decideNotice,
   decideNotifications,
   eventIcon,
+  crossroadsNotice,
+  isCrossroadsArrival,
   isDecision,
   isEssential,
+  isExpeditionEnd,
   isRaidAlarm,
   isRaidOutcome,
   isSeasonTurn,
@@ -64,6 +67,7 @@ import {
   EMPTY_COUNCIL_LOG,
   isCouncilEvent,
 } from '../ui/council';
+import { waitingExpeditions } from '../ui/expeditions';
 import { cardDecisions, documentTitle, formatAway, type StatusBarInput } from '../ui/format';
 import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
 import { THREAT_SECTION } from '../ui/threat';
@@ -240,6 +244,8 @@ export class Controller {
    * Enquanto uma está aqui, o botão dela fica ocupado e um segundo acionamento não vira ordem.
    */
   guildOrders: ReadonlySet<string> = new Set();
+  /** O relatório de expedição que a aba Guilda mostra aberto, a pedido do jogador; ver `showReport`. */
+  reportInFocus: string | null = null;
 
   private notificationHistory: number[] = [];
   /**
@@ -256,6 +262,12 @@ export class Controller {
    * sai de cena.
    */
   private cardToasts = new Map<string, number>();
+  /**
+   * Os avisos de encruzilhada que estão à vista, pelo identificador da expedição: quando a
+   * equipe deixa de esperar (o caminho foi escolhido, aqui ou em outra aba, ou o prazo acabou e
+   * a Postura decidiu), "Escolher caminho" deixou de fazer sentido e o aviso sai de cena.
+   */
+  private crossroadsToasts = new Map<string, number>();
   /**
    * O alarme dos vigias que está à vista ("lobos a caminho"): quando a incursão chega, ou a
    * visão deixa de trazê-la, ele não tem mais o que avisar e sai de cena. Quem fala depois é o
@@ -583,6 +595,8 @@ export class Controller {
       this.dropWatchToast();
       this.answering = new Set();
       this.guildOrders = new Set();
+      this.reportInFocus = null;
+      this.dropCrossroadsToasts(() => true);
       // O "Tentar de novo" de uma ordem dada ao feudo anterior não fica para o seguinte.
       this.dropRetryToasts();
       await this.openGame();
@@ -677,6 +691,9 @@ export class Controller {
       // A carta que já não espera resposta leva embora o aviso que a anunciou.
       const pending = new Set(cardDecisions(view).map((decision) => decision.id));
       this.dropCardToasts((instanceId) => !pending.has(instanceId));
+      // E a encruzilhada que já foi decidida, o aviso que a anunciou.
+      const waiting = new Set(waitingExpeditions(view.guild).map((expedition) => expedition.id));
+      this.dropCrossroadsToasts((expeditionId) => !waiting.has(expeditionId));
       if (view.threat.incoming === null) {
         // A incursão anunciada já chegou: "a caminho" deixou de ser verdade.
         this.dropRaidToast();
@@ -839,6 +856,10 @@ export class Controller {
    * o lote em que ele chegou: vários objetivos cumpridos de uma vez saem em um aviso só.
    */
   private notify(event: GameEvent, batch: GameEvent[]): void {
+    if (isCrossroadsArrival(event)) {
+      this.notifyCrossroads(event);
+      return;
+    }
     if (isDecision(event)) {
       this.notifyCard(event);
       return;
@@ -893,11 +914,18 @@ export class Controller {
       // O que vem da mata (os uivos, o relato dos vigias, o desfecho de um ataque) leva ao
       // painel da Ameaça, que fica abaixo da dobra da aba Feudo.
       // O que é da equipe (o soldo em atraso, o herói que chegou ou partiu) leva à aba Guilda.
-      action: {
-        label: 'Ver',
-        route: isGuildEvent(event) ? 'guild' : 'fief',
-        ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
-      },
+      // A expedição que voltou, ou que se perdeu, leva ao relatório dela.
+      action: isExpeditionEnd(event)
+        ? {
+            label: 'Ver o relatório',
+            route: 'guild',
+            command: { id: 'lords.openReport', arg: String(event.data.expeditionId) },
+          }
+        : {
+            label: 'Ver',
+            route: isGuildEvent(event) ? 'guild' : 'fief',
+            ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
+          },
     });
     if (isWatchReport(event)) {
       this.watchToast = id;
@@ -977,6 +1005,53 @@ export class Controller {
   }
 
   /**
+   * "Encruzilhada em <expedição>: <título>", com o prazo real (e a hora do relógio em que ele
+   * acaba), o que a Postura faz sem resposta, na frase do servidor, e o botão "Escolher caminho"
+   * (GDD §13.5), que abre a lista das opções pelo comando `lords.chooseExpeditionPath`. A
+   * expedição é a da visão, que chega antes dos eventos: se a equipe já não espera (outra aba
+   * escolheu, ou o prazo acabou antes de esta página ler), não há o que escolher e o aviso não
+   * sai. Também não sai para quem já está na aba Guilda, com a encruzilhada à vista. O aviso não
+   * entra no contador de novidades: quem a conta é o contador de decisões pendentes.
+   */
+  private notifyCrossroads(event: GameEvent): void {
+    const expedition = this.view?.guild.expeditions.find(
+      (entry) => entry.id === event.data.expeditionId,
+    );
+    const notice =
+      expedition === undefined
+        ? null
+        : crossroadsNotice(expedition, { now: this.viewReceivedAt, timeZone: this.timezone() });
+    if (expedition === undefined || notice === null) {
+      return;
+    }
+    if (this.visible && this.route === 'guild') {
+      return;
+    }
+    const id = this.announce({
+      kind: 'info',
+      icon: eventIcon(event),
+      ...notice,
+      action: {
+        label: 'Escolher caminho',
+        route: 'guild',
+        command: { id: 'lords.chooseExpeditionPath', arg: { expeditionId: expedition.id } },
+      },
+      counted: false,
+    });
+    this.crossroadsToasts.set(expedition.id, id);
+  }
+
+  /** Tira de cena os avisos de encruzilhada das expedições que `gone` aponta. */
+  private dropCrossroadsToasts(gone: (expeditionId: string) => boolean): void {
+    for (const [expeditionId, toastId] of [...this.crossroadsToasts]) {
+      if (gone(expeditionId)) {
+        this.crossroadsToasts.delete(expeditionId);
+        this.dismissToast(toastId);
+      }
+    }
+  }
+
+  /**
    * Um aviso do jogo: no canto da página, com o botão que leva ao assunto ("Ver" ou "Decidir")
    * e "Silenciar 2h", e, com a aba em segundo plano, no contador do título e (se o jogador
    * pediu) pelo navegador.
@@ -998,7 +1073,16 @@ export class Controller {
      * O botão do aviso e a aba a que ele leva. Com `section`, a página e o foco vão também até
      * essa seção da aba (um argumento de `lords.openPanel`).
      */
-    action: { label: string; route: 'today' | 'fief' | 'council' | 'guild'; section?: string };
+    action: {
+      label: string;
+      route: 'today' | 'fief' | 'council' | 'guild';
+      section?: string;
+      /**
+       * Em vez de só navegar, o botão executa este comando do app (que leva à aba e abre o que
+       * for preciso): "Escolher caminho" abre a lista das opções; "Ver o relatório", a folha.
+       */
+      command?: { id: string; arg?: unknown };
+    };
     /**
      * O aviso entra no contador de novidades com a aba em segundo plano. A carta nova não entra:
      * ela já é contada como decisão pendente.
@@ -1017,7 +1101,9 @@ export class Controller {
           run: () => {
             this.dropGameToasts();
             this.navigate(notice.action.route);
-            if (notice.action.section !== undefined) {
+            if (notice.action.command !== undefined) {
+              this.runCommand(notice.action.command.id, notice.action.command.arg);
+            } else if (notice.action.section !== undefined) {
               this.runCommand('lords.openPanel', notice.action.section);
             }
           },
@@ -1049,6 +1135,7 @@ export class Controller {
   /** Tira de cena todos os avisos do jogo, e esquece quais eram os de carta, estação e vigias. */
   private dropGameToasts(): void {
     this.cardToasts.clear();
+    this.crossroadsToasts.clear();
     this.seasonToast = null;
     this.raidToast = null;
     this.watchToast = null;
@@ -1529,6 +1616,57 @@ export class Controller {
   /** Dá um festival na Taverna (ADR 0017, decisão 10). */
   holdFestival(): Promise<boolean> {
     return this.guildOrder('festival', 'holdFestival', {});
+  }
+
+  /**
+   * Envia uma expedição (GDD §9.2): o destino, a equipe e a Postura que o comando
+   * `lords.sendExpedition` juntou. A trava é a do destino: o duplo clique em "Enviar" não manda
+   * duas equipes ao mesmo lugar.
+   */
+  sendExpedition(
+    modelId: string,
+    heroIds: string[],
+    posture: Extract<Command, { type: 'sendExpedition' }>['payload']['posture'],
+  ): Promise<boolean> {
+    return this.guildOrder(`send:${modelId}`, 'sendExpedition', { modelId, heroIds, posture });
+  }
+
+  /**
+   * Escolhe o caminho de uma expedição parada na encruzilhada. É o único caminho da escolha: o
+   * painel, a árvore, o aviso, a aba Hoje e a paleta chegam aqui por
+   * `lords.chooseExpeditionPath`. A trava é a da expedição: enquanto uma escolha está a caminho,
+   * outra para a mesma encruzilhada não vira ordem. A recusa do servidor (o prazo acabou e a
+   * Postura decidiu, ou outra aba escolheu) vira aviso com a frase dele, e a visão que veio na
+   * recusa toma a tela: a encruzilhada que já foi decidida some.
+   */
+  chooseExpeditionPath(expeditionId: string, optionId: string): Promise<boolean> {
+    return this.guildOrder(`path:${expeditionId}`, 'chooseExpeditionPath', {
+      expeditionId,
+      optionId,
+    });
+  }
+
+  /** Equipa o herói com um item do arsenal; o espaço é o do item. */
+  equipItem(heroId: string, itemId: string): Promise<boolean> {
+    return this.guildOrder(`equipment:${heroId}`, 'equipItem', { heroId, itemId });
+  }
+
+  /** Devolve ao arsenal o que o herói leva em um espaço. */
+  unequipItem(
+    heroId: string,
+    slot: Extract<Command, { type: 'unequipItem' }>['payload']['slot'],
+  ): Promise<boolean> {
+    return this.guildOrder(`equipment:${heroId}`, 'unequipItem', { heroId, slot });
+  }
+
+  /**
+   * O relatório de expedição que o jogador pediu para ver (a linha da Crônica, o aviso da volta):
+   * a aba Guilda o mostra aberto. Não é estado do jogo: só diz à aba qual folha abrir.
+   */
+  showReport(expeditionId: string): void {
+    this.reportInFocus = expeditionId;
+    this.navigate('guild');
+    this.changes.emit();
   }
 
   private setGuildOrder(key: string, busy: boolean): void {

@@ -104,6 +104,18 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.offer':
       // O preço e o soldo do candidato estão na linha e na dica do botão.
       return [{ label: `Contratar ${node.label}`, text: 'Contratar', command: 'lords.hireHero' }];
+    case 'lords.crossroads':
+      // A encruzilhada se lê na aba Guilda (o clique na linha); o botão abre a lista dos caminhos.
+      return [
+        {
+          label: `Escolher caminho: ${node.label}`,
+          text: 'Escolher',
+          command: 'lords.chooseExpeditionPath',
+        },
+      ];
+    case 'lords.guild':
+      // "Enviar" pergunta o destino, a equipe e a Postura: nada parte no primeiro clique.
+      return [{ label: 'Enviar expedição', text: 'Enviar', command: 'lords.sendExpedition' }];
     case 'lords.tavern':
       return [
         { label: 'Dar um festival na Taverna', text: 'Festival', command: 'lords.holdFestival' },

@@ -1,7 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import { COUNCIL_ICON } from '../ui/council';
-import { clockTime, formatDuration } from '../ui/format';
+import { clockDeadline, clockTime, formatApprox, formatDuration } from '../ui/format';
 import { LEAVING_HORIZON_SECONDS } from '../game/beforeLeaving';
 import {
   arrearsDeadlines,
@@ -11,6 +11,7 @@ import {
   wageRisk,
   wageRiskLine,
 } from '../ui/guild';
+import { CROSSROADS_ICON, type Expedition, ITEM_ICON, REPORT_ICON } from '../ui/expeditions';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
@@ -39,6 +40,9 @@ const ALARMS: ReadonlyArray<GameEvent['type']> = [
   'wageArrearsStarted',
   'heroDiscontent',
   'heroLeft',
+  // O herói que ficou em cativeiro e o que não volta mais (GDD §9.1): a equipe perdeu alguém.
+  'heroCaptured',
+  'heroDied',
 ];
 /**
  * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
@@ -68,6 +72,14 @@ const GUILD: ReadonlyArray<GameEvent['type']> = [
   'heroLeft',
   'heroJoined',
   'festivalEnded',
+  'expeditionAtCrossroads',
+  'expeditionPostureDecided',
+  'expeditionReturned',
+  'expeditionLost',
+  'heroCaptured',
+  'heroDied',
+  'heroLeveledUp',
+  'itemFound',
 ];
 /** O desfecho de uma incursão: depois dele, o alarme que a anunciou já não tem o que avisar. */
 const RAID_OUTCOMES: ReadonlyArray<GameEvent['type']> = ['raidSuffered', 'raidRepelled'];
@@ -77,12 +89,19 @@ const RAID_OUTCOMES: ReadonlyArray<GameEvent['type']> = ['raidSuffered', 'raidRe
  */
 const SEASON_TURN: GameEvent['type'] = 'seasonChanged';
 /**
+ * A equipe que chegou a uma encruzilhada (GDD §9.2 e §13.5): espera a palavra do jogador, com
+ * prazo, e sem ela a Postura decide. É um aviso essencial, como a carta nova, com o botão
+ * "Escolher caminho"; também não entra no contador de novidades: enquanto espera, quem a conta
+ * é o contador de decisões pendentes.
+ */
+const CROSSROADS: GameEvent['type'] = 'expeditionAtCrossroads';
+/**
  * Uma carta nova do Conselho (GDD §13.5): espera uma decisão do jogador, com prazo. Chega no
  * nível "Essenciais", sem o tom de alarme: nada se quebrou, o feudo pede uma resposta. O aviso
  * leva o botão "Decidir", e a carta não entra no contador de novidades: enquanto espera, quem a
  * conta é o contador de decisões pendentes, que vem da visão.
  */
-const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn'];
+const DECISIONS: ReadonlyArray<GameEvent['type']> = ['cardDrawn', CROSSROADS];
 /**
  * O que se ouve da mata antes de qualquer ataque (GDD §8.2). O relato dos vigias: a Ameaça
  * cruzou uma marca; só chega a quem tem a Torre de Vigia, que foi erguida para isto: saber
@@ -116,6 +135,14 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'cardEffectApplied',
   // O festival acabou: a moral deixa de contá-lo na próxima virada.
   'festivalEnded',
+  // As expedições (GDD §9.2): a equipe que voltou (a frase diz o que trouxe; o aviso leva ao
+  // relatório), a que não voltou, a Postura que decidiu no prazo, o herói que subiu de nível e
+  // o item achado. Nada disso pede ação imediata: só em "Todas".
+  'expeditionReturned',
+  'expeditionLost',
+  'expeditionPostureDecided',
+  'heroLeveledUp',
+  'itemFound',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -153,6 +180,16 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   heroLeft: 'sign-out',
   heroJoined: 'person-add',
   festivalEnded: GUILD_ICON,
+  // As expedições: a encruzilhada e a Postura que decidiu levam o ícone da encruzilhada; a
+  // volta, o do relatório; quem ficou para trás, o da perda; o nível novo e o item, os deles.
+  expeditionAtCrossroads: CROSSROADS_ICON,
+  expeditionPostureDecided: CROSSROADS_ICON,
+  expeditionReturned: REPORT_ICON,
+  expeditionLost: 'error',
+  heroCaptured: 'lock',
+  heroDied: 'error',
+  heroLeveledUp: 'star-full',
+  itemFound: ITEM_ICON,
 };
 
 export type PolicyInput = {
@@ -336,9 +373,48 @@ export function wageAhead(event: GameEvent, view: ViewState | null): string[] {
   return risk === null ? [] : [wageRiskLine(risk)];
 }
 
-/** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */
+/**
+ * O evento traz uma decisão à espera do jogador: uma carta nova do Conselho ou uma equipe que
+ * chegou a uma encruzilhada.
+ */
 export function isDecision(event: GameEvent): boolean {
   return DECISIONS.includes(event.type);
+}
+
+/** O evento é a chegada de uma equipe a uma encruzilhada. */
+export function isCrossroadsArrival(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === CROSSROADS;
+}
+
+/** O evento fala de uma expedição que tem (ou pode ter) relatório: a volta e a perda da equipe. */
+export function isExpeditionEnd(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === 'expeditionReturned' || event.type === 'expeditionLost';
+}
+
+/**
+ * O que o aviso da encruzilhada diz (GDD §13.5): qual expedição espera, o prazo real (e a hora
+ * do relógio em que ele acaba: o aviso fica na tela, e "em 5 h" envelhece) e o que a Postura
+ * faz sem resposta, na frase do servidor. Tudo é da visão, que chega antes dos eventos.
+ */
+export function crossroadsNotice(
+  expedition: Expedition,
+  when?: { now: number; timeZone?: string },
+): { text: string; details: string[] } | null {
+  const { crossroads } = expedition;
+  if (crossroads === null) {
+    return null;
+  }
+  const until =
+    when === undefined
+      ? null
+      : clockDeadline(when.now, when.now + crossroads.decidesInSeconds * 1000, when.timeZone);
+  return {
+    text: `Encruzilhada em ${expedition.label}: ${crossroads.title}`,
+    details: [
+      `A equipe espera a sua palavra por ${formatApprox(crossroads.decidesInSeconds)}${until === null ? '' : `, até ${until}`}.`,
+      crossroads.postureText,
+    ],
+  };
 }
 
 function wanted(

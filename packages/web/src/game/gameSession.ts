@@ -10,6 +10,7 @@ import {
 } from '@lotg/protocol';
 
 import { Emitter, type KeyValueStore } from '../services/store';
+import { expeditionDeadlines } from '../ui/expeditions';
 import { type Connection, pollIntervalMs, retryDelayMs } from './connection';
 import { buildReturnReport, shouldShowReturnReport } from './returnReport';
 
@@ -217,8 +218,9 @@ export function isSessionLoss(error: unknown): boolean {
 /**
  * Os prazos da Guilda e da Taverna que mudam a tela quando vencem, em segundos reais, como a
  * visão os traz: o herói prometido que chega, a lista de candidatos que troca, o festival que
- * acaba, o ouro que deixa de pagar o soldo (com a equipe de agora e com quem está a caminho) e a
- * partida que o atraso fechado ainda cobra. Só os prazos **à frente**: zero é um estado que
+ * acaba, o ouro que deixa de pagar o soldo (com a equipe de agora e com quem está a caminho), a
+ * partida que o atraso fechado ainda cobra e os prazos das expedições (o fim do nó de agora, o
+ * prazo da encruzilhada e o ferido que sara: `expeditionDeadlines`). Só os prazos **à frente**: zero é um estado que
  * dura (quem espera lugar à porta, o soldo em atraso), não um instante, e leria o servidor sem
  * parar.
  */
@@ -231,6 +233,10 @@ export function guildDeadlines(view: ViewState): number[] {
     guild.wage.coveredForSeconds,
     guild.wage.afterArrivals?.coveredForSeconds,
     guild.wage.lingering?.departureInSeconds,
+    // O fim do nó de cada expedição (é quando o relatório cresce ou a equipe chega à
+    // encruzilhada), o prazo de cada encruzilhada (é quando a Postura decide) e a recuperação
+    // de cada herói ferido (é quando ele volta a poder partir).
+    ...expeditionDeadlines(guild),
   ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
 }
 

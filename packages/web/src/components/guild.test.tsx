@@ -385,12 +385,13 @@ describe('aba Guilda', () => {
   it('sem ligação: modo leitura, dito por extenso, com todos os botões de ordem desabilitados', () => {
     const markup = tab(tavernOpenView, false);
     expect(text(markup)).toContain(
-      'Sem ligação com o reino: a equipe, os candidatos e os prazos são os do último estado conhecido do feudo.',
+      'Sem ligação com o reino: a equipe, as expedições, os candidatos e os prazos são os do último estado conhecido do feudo.',
     );
+    // As ordens da equipe e da Taverna, e a obra da Guilda dos Aventureiros, que ainda não existe.
     const orders = buttons(markup).filter((button) =>
-      /Contratar|Dispensar|festival/.test(button.label),
+      /Contratar|Dispensar|festival|Construir/.test(button.label),
     );
-    expect(orders).toHaveLength(4);
+    expect(orders).toHaveLength(5);
     expect(orders.every((button) => button.disabled)).toBe(true);
     expect(text(tab(tavernOpenView))).not.toContain('Sem ligação');
   });

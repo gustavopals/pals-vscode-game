@@ -1,5 +1,6 @@
 import type { ViewState } from '@lotg/protocol';
 
+import { expeditionsTreeParts } from './expeditions';
 import { formatApprox, formatCost, formatDuration, formatNumber, remainingNow } from './format';
 
 /**
@@ -216,6 +217,8 @@ export function guildTreeLine(guild: Guild, horizonSeconds: number, elapsedSecon
   return [
     heroCount(guild.heroes.length),
     ...(guild.arriving.length > 0 ? [`${guild.arriving.length} a caminho`] : []),
+    // As expedições: primeiro as que esperam a palavra do jogador na encruzilhada.
+    ...expeditionsTreeParts(guild),
     ...(alert === null ? [] : [`⚠ ${alert}`]),
   ].join(' · ');
 }

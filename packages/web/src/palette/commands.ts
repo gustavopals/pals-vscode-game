@@ -36,6 +36,39 @@ import {
   upgradeName,
 } from '../ui/format';
 import {
+  armableHeroes,
+  ARSENAL_ANCHOR,
+  ARSENAL_SECTION,
+  canSend,
+  CROSSROADS_ICON,
+  crossroadsDeadline,
+  crossroadsSecondsLeft,
+  type Destination,
+  DESTINATION_NODE,
+  destinationTerms,
+  eligibleHeroes,
+  type Expedition,
+  EXPEDITION_NODE,
+  EXPEDITIONS_ANCHOR,
+  EXPEDITIONS_SECTION,
+  heroFitPower,
+  isPostureOption,
+  type Item,
+  ITEM_ICON,
+  itemLine,
+  type Posture,
+  reportAnchor,
+  REPORTS_ANCHOR,
+  REPORTS_SECTION,
+  sendable,
+  slotLine,
+  teamFit,
+  teamLine,
+  teamSize,
+  waitingExpeditions,
+  wornIn,
+} from '../ui/expeditions';
+import {
   festivalCost,
   type Hero,
   HERO_NODE,
@@ -101,6 +134,9 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [OBJECTIVES_SECTION]: { route: 'fief', anchor: OBJECTIVES_ANCHOR },
   [CONSTRUCTIONS_SECTION]: { route: 'fief', anchor: CONSTRUCTIONS_ANCHOR },
   [TAVERN_SECTION]: { route: 'guild', anchor: TAVERN_ANCHOR },
+  [EXPEDITIONS_SECTION]: { route: 'guild', anchor: EXPEDITIONS_ANCHOR },
+  [REPORTS_SECTION]: { route: 'guild', anchor: REPORTS_ANCHOR },
+  [ARSENAL_SECTION]: { route: 'guild', anchor: ARSENAL_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';
@@ -191,6 +227,85 @@ export function guildRequest(
   }
   const { id } = record;
   return typeof id === 'string' && id.startsWith(prefix) ? id.slice(prefix.length) : undefined;
+}
+
+const POSTURE_IDS: ReadonlyArray<Posture['id']> = ['cautious', 'balanced', 'bold'];
+const SLOT_IDS: ReadonlyArray<Item['slot']> = ['weapon', 'armor', 'accessory'];
+
+/**
+ * A expedição e o caminho que quem chamou `lords.chooseExpeditionPath` já escolheu: o painel
+ * manda os dois (`{ expeditionId, optionId }`); o aviso, a expedição; a árvore, a linha
+ * (`expedition:<id>`); a aba Hoje, o identificador sozinho; a paleta, nada.
+ */
+export function expeditionRequest(arg: unknown): { expeditionId?: string; optionId?: string } {
+  if (typeof arg === 'string') {
+    return arg === '' ? {} : { expeditionId: arg };
+  }
+  if (typeof arg !== 'object' || arg === null) {
+    return {};
+  }
+  const { id, expeditionId, optionId } = arg as Record<string, unknown>;
+  if (typeof expeditionId === 'string') {
+    return { expeditionId, ...(typeof optionId === 'string' ? { optionId } : {}) };
+  }
+  return typeof id === 'string' && id.startsWith(EXPEDITION_NODE)
+    ? { expeditionId: id.slice(EXPEDITION_NODE.length) }
+    : {};
+}
+
+/**
+ * O que quem chamou `lords.sendExpedition` já escolheu: o painel manda o destino, a equipe e a
+ * Postura; um botão "Enviar o Resgate", o destino sozinho (como texto ou em `{ modelId }`); a
+ * árvore e a paleta, nada.
+ */
+export function sendRequest(arg: unknown): {
+  modelId?: string;
+  heroIds?: string[];
+  posture?: Posture['id'];
+} {
+  if (typeof arg === 'string') {
+    return arg === '' ? {} : { modelId: arg };
+  }
+  if (typeof arg !== 'object' || arg === null) {
+    return {};
+  }
+  const { id, modelId, heroIds, posture } = arg as Record<string, unknown>;
+  if (typeof modelId !== 'string') {
+    return typeof id === 'string' && id.startsWith(DESTINATION_NODE)
+      ? { modelId: id.slice(DESTINATION_NODE.length) }
+      : {};
+  }
+  const team =
+    Array.isArray(heroIds) && heroIds.every((heroId) => typeof heroId === 'string')
+      ? (heroIds as string[])
+      : undefined;
+  const known = POSTURE_IDS.find((entry) => entry === posture);
+  return {
+    modelId,
+    ...(team === undefined ? {} : { heroIds: team }),
+    ...(known === undefined ? {} : { posture: known }),
+  };
+}
+
+/**
+ * O herói, o item e o espaço que quem chamou `lords.equipItem` ou `lords.unequipItem` já
+ * escolheu: a ficha manda o herói e o espaço; o arsenal, o item; a paleta, nada.
+ */
+export function equipRequest(arg: unknown): {
+  heroId?: string;
+  itemId?: string;
+  slot?: Item['slot'];
+} {
+  if (typeof arg !== 'object' || arg === null) {
+    return {};
+  }
+  const { heroId, itemId, slot } = arg as Record<string, unknown>;
+  const known = SLOT_IDS.find((entry) => entry === slot);
+  return {
+    ...(typeof heroId === 'string' ? { heroId } : {}),
+    ...(typeof itemId === 'string' ? { itemId } : {}),
+    ...(known === undefined ? {} : { slot: known }),
+  };
 }
 
 /**
@@ -1009,6 +1124,629 @@ export function createCommands(
     await controller.holdFestival();
   });
 
+  // --- Expedições ----------------------------------------------------------------
+
+  const seeExpeditions = {
+    label: 'Ver as expedições',
+    run: () => controller.runCommand('lords.openPanel', EXPEDITIONS_SECTION),
+  };
+
+  /** A expedição ainda espera na encruzilhada, na visão de agora. */
+  const waitingNow = (expeditionId: string): Expedition | undefined =>
+    controller.view?.guild.expeditions.find(
+      (entry) => entry.id === expeditionId && entry.crossroads !== null,
+    );
+
+  /**
+   * A encruzilhada saiu da tela sem a escolha do jogador: diz por quê. Se o prazo que a lista
+   * mostrava já venceu (com a folga do relógio), a Postura decidiu; se não, outra aba ou outro
+   * navegador escolheu. Nada foi enviado.
+   */
+  const explainDecided = (expedition: Expedition, decidesAt: number) => {
+    const expired = controller.now() >= decidesAt - EXPIRY_SLACK_MS;
+    const posture = expedition.crossroads?.postureLabel ?? expedition.postureLabel;
+    controller.toast({
+      kind: 'warning',
+      text: expired
+        ? `O prazo da encruzilhada de "${expedition.label}" acabou antes da sua palavra, e a Postura ${posture} decidiu. Nada foi enviado: a Crônica conta o caminho.`
+        : `A encruzilhada de "${expedition.label}" já foi decidida: em outra aba ou em outro navegador. Nada foi enviado.`,
+      actions: [seeExpeditions],
+    });
+  };
+
+  /**
+   * A lista dos caminhos de uma encruzilhada, para quem decide pelo teclado: a situação no alto,
+   * com o prazo real e o que a Postura faz sem resposta (na frase do servidor), e cada opção com
+   * a pista e, bloqueada, o requisito. O que já vem marcado é a opção da Postura: `Enter` sem
+   * ler faz o que aconteceria de qualquer modo. A lista fecha sozinha, sem enviar nada, se a
+   * equipe deixar de esperar com ela aberta (o prazo venceu, ou outra aba escolheu). `null` é
+   * "nada a enviar".
+   */
+  const pickPath = async (expedition: Expedition): Promise<string | null> => {
+    const { crossroads } = expedition;
+    if (crossroads === null) {
+      return null;
+    }
+    const decidesAt = controller.now() + crossroadsSecondsLeft(crossroads, elapsed()) * 1000;
+    const gone = new AbortController();
+    const stop = controller.onChange(() => {
+      if (waitingNow(expedition.id) === undefined) {
+        gone.abort();
+      }
+    });
+    try {
+      const optionId = await dialogs.pick<string>({
+        title: `Encruzilhada: ${expedition.label}`,
+        placeholder: 'Que caminho a equipe toma?',
+        detail: [
+          `${crossroads.title} · ${teamLine(expedition.teamNames)}`,
+          crossroads.text,
+          `${capitalize(crossroadsDeadline(crossroads, elapsed()))}. ${crossroads.postureText}`,
+        ],
+        items: crossroads.options.map((option) => ({
+          // Cadeado: a equipe não pode tomar este caminho, e o detalhe diz o que ele pede.
+          icon: option.locked ? 'lock' : 'check',
+          label: option.label,
+          detail: [
+            option.locked ? (option.lockedReason ?? 'A equipe não pode tomar este caminho.') : null,
+            option.hint,
+            isPostureOption(crossroads, option)
+              ? `É o que a Postura ${crossroads.postureLabel} escolhe, se o prazo acabar.`
+              : null,
+          ]
+            .filter((line) => line !== null)
+            .join(' '),
+          value: option.id,
+        })),
+        selected: Math.max(
+          0,
+          crossroads.options.findIndex((option) => isPostureOption(crossroads, option)),
+        ),
+        signal: gone.signal,
+      });
+      if (
+        gone.signal.aborted ||
+        (optionId !== undefined && waitingNow(expedition.id) === undefined)
+      ) {
+        explainDecided(expedition, decidesAt);
+        return null;
+      }
+      return optionId ?? null;
+    } finally {
+      stop();
+    }
+  };
+
+  /**
+   * "Escolher caminho da expedição": o único caminho da escolha (GDD §13.6). O painel já mostrou
+   * a encruzilhada inteira e manda a expedição e a opção do botão clicado; a árvore, o aviso e a
+   * aba Hoje mandam a expedição, e a lista pergunta o caminho; a paleta pergunta a expedição
+   * (quando há mais de uma esperando) e depois o caminho. Mesmo bloqueada, a opção escolhida
+   * segue: quem recusa é o servidor, com o motivo atualizado.
+   */
+  const chooseExpeditionPath = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const request = expeditionRequest(arg);
+      if (request.expeditionId !== undefined && request.optionId !== undefined) {
+        await controller.chooseExpeditionPath(request.expeditionId, request.optionId);
+        return;
+      }
+      const waiting = waitingExpeditions(view.guild);
+      if (request.expeditionId !== undefined && waitingNow(request.expeditionId) === undefined) {
+        // A linha, o aviso ou o botão eram de uma encruzilhada que já foi decidida.
+        controller.toast({
+          kind: 'warning',
+          text: 'Esta equipe já não espera na encruzilhada: o caminho foi escolhido, ou o prazo acabou e a Postura decidiu.',
+          actions: [seeExpeditions],
+        });
+        return;
+      }
+      if (waiting.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: 'Nenhuma equipe espera em uma encruzilhada agora.',
+          actions: [seeExpeditions],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      let expedition = waiting.find((entry) => entry.id === request.expeditionId);
+      if (expedition === undefined) {
+        const opened = controller.now();
+        const since = elapsed();
+        expedition =
+          waiting.length === 1
+            ? waiting[0]
+            : await dialogs.pick<Expedition>({
+                title: 'Escolher caminho da expedição',
+                placeholder: 'Qual equipe?',
+                items: waiting.map((entry) => ({
+                  icon: CROSSROADS_ICON,
+                  label: entry.label,
+                  description:
+                    entry.crossroads === null ? '' : crossroadsDeadline(entry.crossroads, since),
+                  detail: `${teamLine(entry.teamNames)} · ${entry.crossroads?.title ?? entry.nodeTitle}`,
+                  value: entry,
+                })),
+              });
+        if (expedition === undefined) {
+          return;
+        }
+        if (!sameGame(gameId)) {
+          sessionEnded('a escolha do caminho');
+          return;
+        }
+        if (waitingNow(expedition.id) === undefined) {
+          explainDecided(
+            expedition,
+            opened +
+              (expedition.crossroads === null
+                ? 0
+                : crossroadsSecondsLeft(expedition.crossroads, since) * 1000),
+          );
+          return;
+        }
+        // A visão pode ter mudado com a lista aberta: vale a encruzilhada de agora.
+        expedition = waitingNow(expedition.id) ?? expedition;
+      }
+      const optionId = await pickPath(expedition);
+      if (optionId === null) {
+        return;
+      }
+      // Depois da espera: a conta e a visão de agora.
+      if (!sameGame(gameId)) {
+        sessionEnded('a escolha do caminho');
+        return;
+      }
+      await controller.chooseExpeditionPath(expedition.id, optionId);
+    },
+    (arg) => expeditionRequest(arg).expeditionId,
+  );
+
+  /** O destino ainda está na lista da Guilda, na visão de agora. */
+  const destinationNow = (modelId: string): Destination | undefined =>
+    controller.view?.guild.available.find((entry) => entry.modelId === modelId);
+
+  const destinationGone = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'Este destino já não está na lista da Guilda. Nada foi enviado.',
+      actions: [seeExpeditions],
+    });
+
+  /**
+   * A equipe de um destino, herói por herói: cada lista traz quem ainda pode entrar, com a
+   * ficha e o que ele vale contra o primeiro trecho, e, com gente bastante, a opção de partir
+   * com quem já foi marcado (com a régua da equipe, nos números da visão). Depois de cada lista
+   * a conta e a visão são lidas de novo: quem deixou de poder partir sai da equipe. `null` é
+   * desistência, ou nada a enviar.
+   */
+  const pickTeam = async (modelId: string, gameId: string | null): Promise<string[] | null> => {
+    const chosen: string[] = [];
+    for (;;) {
+      const guild = controller.view?.guild;
+      const destination = destinationNow(modelId);
+      if (guild === undefined || destination === undefined) {
+        destinationGone();
+        return null;
+      }
+      const eligible = eligibleHeroes(guild, destination);
+      // Quem saiu do feudo, ou se feriu, com a lista aberta já não está na equipe.
+      const team = chosen.filter((heroId) => eligible.some((hero) => hero.id === heroId));
+      chosen.splice(0, chosen.length, ...team);
+      const remaining = eligible.filter((hero) => !chosen.includes(hero.id));
+      const full = chosen.length >= destination.teamMax || remaining.length === 0;
+      const enough = chosen.length >= destination.teamMin;
+      if (full) {
+        return enough ? chosen : null;
+      }
+      const names = teamLine(
+        chosen.map((heroId) => eligible.find((hero) => hero.id === heroId)?.name ?? heroId),
+      );
+      const fit = teamFit(destination, chosen);
+      const DONE = '';
+      const picked = await dialogs.pick<string>({
+        title: `Enviar expedição: ${destination.label}`,
+        placeholder:
+          chosen.length === 0
+            ? `Quem vai? A equipe leva ${teamSize(destination)}.`
+            : `Mais alguém? A equipe leva ${teamSize(destination)}.`,
+        detail: [
+          destination.requirementsText,
+          destination.firstStretchText,
+          ...(destination.fit === null ? [] : [destination.fit.text]),
+        ],
+        items: [
+          ...(enough
+            ? [
+                {
+                  icon: 'check',
+                  label: `Partir com ${names}`,
+                  ...(fit === null ? {} : { detail: fit.text }),
+                  value: DONE,
+                },
+              ]
+            : []),
+          ...remaining.map((hero) => {
+            const power = heroFitPower(destination, hero.id);
+            return {
+              icon: 'person',
+              label: `${hero.name} · ${sheetLine(hero)}`,
+              description:
+                power === null
+                  ? `poder ${formatNumber(hero.power)}`
+                  : `vale ${formatNumber(power)} contra o primeiro trecho`,
+              detail: [...traitLines(hero.traits), hero.equipment.map(slotLine).join(' · ')].join(
+                ' ',
+              ),
+              value: hero.id,
+            };
+          }),
+        ],
+      });
+      if (picked === undefined) {
+        return null;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('o envio da expedição');
+        return null;
+      }
+      if (picked === DONE) {
+        return chosen;
+      }
+      chosen.push(picked);
+    }
+  };
+
+  /**
+   * "Enviar expedição…": o único caminho do envio (GDD §13.6). O painel já mostrou o destino, a
+   * equipe marcada e a Postura, e manda os três; a paleta, a árvore e "Antes de partir"
+   * perguntam em listas, uma de cada vez: o destino (com a duração, o risco e o primeiro
+   * trecho), a equipe e a Postura (com o que cada uma faz na encruzilhada, na frase do
+   * servidor). Depois de cada lista a conta e a visão são lidas de novo. Mesmo bloqueado, o
+   * envio pedido segue: quem recusa é o servidor, com o motivo atualizado.
+   */
+  const sendExpedition = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const request = sendRequest(arg);
+      if (
+        request.modelId !== undefined &&
+        request.heroIds !== undefined &&
+        request.posture !== undefined
+      ) {
+        await controller.sendExpedition(request.modelId, request.heroIds, request.posture);
+        return;
+      }
+      const { guild } = view;
+      if (!guild.built || guild.available.length === 0) {
+        // Sem a Guilda dos Aventureiros, a frase do servidor diz o que a abre.
+        controller.toast({ kind: 'info', text: guild.text, actions: [seeExpeditions] });
+        return;
+      }
+      if (request.modelId !== undefined && destinationNow(request.modelId) === undefined) {
+        destinationGone();
+        return;
+      }
+      const gameId = controller.session.gameId;
+      let destination = guild.available.find((entry) => entry.modelId === request.modelId);
+      if (destination === undefined) {
+        if (sendable(guild).length === 0) {
+          // Nenhum destino pode partir agora: o motivo é o do servidor, ou a falta de gente.
+          const blocked = guild.available.find((entry) => entry.locked);
+          controller.toast({
+            kind: 'info',
+            text:
+              blocked?.lockedReason ??
+              'Nenhum herói pode partir agora: quem está no feudo não basta para nenhum destino.',
+            actions: [seeExpeditions],
+          });
+          return;
+        }
+        destination = await dialogs.pick<Destination>({
+          title: 'Enviar expedição',
+          placeholder: 'Para onde?',
+          detail: [guild.text],
+          items: guild.available.map((entry) => {
+            const open = canSend(guild, entry);
+            return {
+              // Cadeado: o destino não pode partir agora, e o detalhe diz por quê.
+              icon: open ? 'check' : 'lock',
+              label: entry.label,
+              description: capitalize(destinationTerms(entry)),
+              detail: [
+                entry.lockedReason ??
+                  (open ? null : 'Falta gente no feudo para a equipe que este destino pede.'),
+                entry.requirementsText,
+                entry.firstStretchText,
+                entry.durationNote === '' ? null : entry.durationNote,
+              ]
+                .filter((line) => line !== null)
+                .join(' '),
+              value: entry,
+            };
+          }),
+          selected: Math.max(
+            0,
+            guild.available.findIndex((entry) => canSend(guild, entry)),
+          ),
+        });
+        if (destination === undefined) {
+          return;
+        }
+        if (!sameGame(gameId)) {
+          sessionEnded('o envio da expedição');
+          return;
+        }
+      }
+      const { modelId } = destination;
+      const heroIds = await pickTeam(modelId, gameId);
+      if (heroIds === null) {
+        const now = controller.view?.guild;
+        const still = destinationNow(modelId);
+        if (
+          sameGame(gameId) &&
+          now !== undefined &&
+          still !== undefined &&
+          eligibleHeroes(now, still).length < still.teamMin
+        ) {
+          controller.toast({
+            kind: 'info',
+            text: `Falta gente no feudo para "${still.label}". ${still.requirementsText}`,
+            actions: [seeExpeditions],
+          });
+        }
+        return;
+      }
+      const postures = controller.view?.guild.postures ?? [];
+      const posture = await dialogs.pick<Posture['id']>({
+        title: `Enviar expedição: ${destination.label}`,
+        placeholder: 'Com que Postura? É ela que decide na encruzilhada, sem a sua palavra.',
+        items: postures.map((entry) => ({
+          icon: 'compass',
+          label: entry.label,
+          detail: entry.text,
+          value: entry.id,
+        })),
+        // A do meio já vem marcada: nem a mais segura, nem a mais arriscada.
+        selected: Math.floor(Math.max(0, postures.length - 1) / 2),
+      });
+      if (posture === undefined) {
+        return;
+      }
+      // Depois da espera: a conta e a visão de agora.
+      if (!sameGame(gameId)) {
+        sessionEnded('o envio da expedição');
+        return;
+      }
+      if (destinationNow(modelId) === undefined) {
+        destinationGone();
+        return;
+      }
+      await controller.sendExpedition(modelId, heroIds, posture);
+    },
+    (arg) => sendRequest(arg).modelId,
+  );
+
+  const itemGone = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'Este item já não está no arsenal. Nada foi enviado.',
+      actions: [
+        {
+          label: 'Ver o arsenal',
+          run: () => controller.runCommand('lords.openPanel', ARSENAL_SECTION),
+        },
+      ],
+    });
+
+  /**
+   * "Equipar herói…": o herói recebe um item do arsenal; o espaço é o do item, e o que ele
+   * levava nesse espaço volta ao arsenal. O painel manda o herói e o espaço (a lista pergunta o
+   * item) ou o item (a lista pergunta o herói); a paleta pergunta os dois. Cada lista diz o que
+   * o item soma, na frase do servidor, e o que o herói leva hoje.
+   */
+  const equipItem = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const request = equipRequest(arg);
+      if (request.heroId !== undefined && request.itemId !== undefined) {
+        await controller.equipItem(request.heroId, request.itemId);
+        return;
+      }
+      const { guild } = view;
+      if (guild.inventory.length === 0) {
+        controller.toast({ kind: 'info', text: guild.inventoryText, actions: [seeGuild] });
+        return;
+      }
+      const heroes = armableHeroes(guild);
+      if (heroes.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text:
+            guild.heroes.length === 0
+              ? guild.text
+              : 'Nenhum herói está no feudo agora: quem está fora só troca de equipamento na volta.',
+          actions: [seeGuild],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      let hero = heroes.find((entry) => entry.id === request.heroId);
+      if (request.heroId !== undefined && hero === undefined) {
+        heroGone();
+        return;
+      }
+      let item = guild.inventory.find((entry) => entry.id === request.itemId);
+      if (request.itemId !== undefined && item === undefined) {
+        itemGone();
+        return;
+      }
+      if (item === undefined) {
+        const slot = request.slot;
+        const candidates =
+          slot === undefined
+            ? guild.inventory
+            : guild.inventory.filter((entry) => entry.slot === slot);
+        if (candidates.length === 0) {
+          controller.toast({
+            kind: 'info',
+            text: 'O arsenal não tem item para este espaço.',
+            actions: [seeGuild],
+          });
+          return;
+        }
+        item = await dialogs.pick<Item>({
+          title: hero === undefined ? 'Equipar herói' : `Equipar ${hero.name}`,
+          placeholder: 'Qual item do arsenal?',
+          detail: [guild.inventoryText],
+          items: candidates.map((entry) => ({
+            icon: ITEM_ICON,
+            label: itemLine(entry),
+            description: entry.bonusText,
+            detail: entry.text,
+            value: entry,
+          })),
+        });
+        if (item === undefined) {
+          return;
+        }
+        if (!sameGame(gameId)) {
+          sessionEnded('a troca de equipamento');
+          return;
+        }
+      }
+      if (hero === undefined) {
+        const chosen = item;
+        const now = armableHeroes(controller.view?.guild ?? guild);
+        hero =
+          now.length === 1
+            ? now[0]
+            : await dialogs.pick<Hero>({
+                title: `Equipar: ${chosen.label}`,
+                placeholder: `Quem leva? ${chosen.bonusText}`,
+                items: now.map((entry) => {
+                  const worn = wornIn(entry, chosen.slot);
+                  return {
+                    icon: 'person',
+                    label: `${entry.name} · ${sheetLine(entry)}`,
+                    description: `poder ${formatNumber(entry.power)}`,
+                    detail:
+                      worn === null
+                        ? `${chosen.slotLabel}: vazio.`
+                        : `${chosen.slotLabel}: ${worn.label} (${worn.bonusText}), que volta ao arsenal.`,
+                    value: entry,
+                  };
+                }),
+              });
+        if (hero === undefined) {
+          return;
+        }
+        if (!sameGame(gameId)) {
+          sessionEnded('a troca de equipamento');
+          return;
+        }
+      }
+      // Depois da espera: o herói e o item de agora.
+      if (heroNow(hero.id) === undefined) {
+        heroGone();
+        return;
+      }
+      if (controller.view?.guild.inventory.some((entry) => entry.id === item.id) !== true) {
+        itemGone();
+        return;
+      }
+      await controller.equipItem(hero.id, item.id);
+    },
+    (arg) => {
+      const request = equipRequest(arg);
+      return request.heroId ?? request.itemId;
+    },
+  );
+
+  /**
+   * "Desequipar herói…": o item de um espaço volta ao arsenal. O painel manda o herói e o
+   * espaço; a paleta pergunta de quem e o quê, em uma lista só (um item por linha).
+   */
+  const unequipItem = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const request = equipRequest(arg);
+      if (request.heroId !== undefined && request.slot !== undefined) {
+        await controller.unequipItem(request.heroId, request.slot);
+        return;
+      }
+      const worn = armableHeroes(view.guild).flatMap((hero) =>
+        hero.equipment.flatMap((entry) =>
+          entry.item === null ? [] : [{ hero, slot: entry.slot, item: entry.item }],
+        ),
+      );
+      if (worn.length === 0) {
+        controller.toast({
+          kind: 'info',
+          text: 'Nenhum herói no feudo leva item agora.',
+          actions: [seeGuild],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const picked = await dialogs.pick<(typeof worn)[number]>({
+        title: 'Desequipar herói',
+        placeholder: 'O que volta ao arsenal?',
+        detail: [view.guild.inventoryText],
+        items: worn.map((entry) => ({
+          icon: ITEM_ICON,
+          label: `${entry.hero.name} · ${entry.item.label}`,
+          description: entry.item.bonusText,
+          detail: `${entry.item.slotLabel} · ${entry.item.rarityLabel}. ${entry.item.text}`,
+          value: entry,
+        })),
+      });
+      if (picked === undefined) {
+        return;
+      }
+      if (!sameGame(gameId)) {
+        sessionEnded('a troca de equipamento');
+        return;
+      }
+      if (heroNow(picked.hero.id) === undefined) {
+        heroGone();
+        return;
+      }
+      await controller.unequipItem(picked.hero.id, picked.slot);
+    },
+    (arg) => equipRequest(arg).heroId,
+  );
+
+  /** "Ver o relatório": a aba Guilda, com a folha dessa expedição aberta e à vista. */
+  const openReport = (arg?: unknown) => {
+    const expeditionId = typeof arg === 'string' ? arg : expeditionRequest(arg).expeditionId;
+    const kept = controller.view?.guild.reports.some(
+      (report) => report.expeditionId === expeditionId,
+    );
+    if (expeditionId === undefined || kept !== true) {
+      // O relatório já saiu da lista dos guardados: a linha da Crônica continua valendo sozinha.
+      controller.navigate('guild');
+      env.reveal(REPORTS_ANCHOR);
+      return;
+    }
+    controller.showReport(expeditionId);
+    env.reveal(reportAnchor(expeditionId));
+  };
+
   const renameSettlement = async () => {
     const view = requireView();
     if (view === null) {
@@ -1469,6 +2207,34 @@ export function createCommands(
       run: holdFestival,
     },
     {
+      id: 'lords.sendExpedition',
+      title: 'Enviar expedição…',
+      palette: true,
+      when: hasGame,
+      run: sendExpedition,
+    },
+    {
+      id: 'lords.chooseExpeditionPath',
+      title: 'Escolher caminho da expedição…',
+      palette: true,
+      when: hasGame,
+      run: chooseExpeditionPath,
+    },
+    {
+      id: 'lords.equipItem',
+      title: 'Equipar herói…',
+      palette: true,
+      when: hasGame,
+      run: equipItem,
+    },
+    {
+      id: 'lords.unequipItem',
+      title: 'Desequipar herói…',
+      palette: true,
+      when: hasGame,
+      run: unequipItem,
+    },
+    {
       id: 'lords.renameSettlement',
       title: 'Renomear o feudo',
       palette: true,
@@ -1587,6 +2353,7 @@ export function createCommands(
           : controller.defaultRoute(),
       );
     }),
+    hidden('lords.openReport', openReport),
     hidden('lords.workersIncrease', step(1)),
     hidden('lords.workersDecrease', step(-1)),
     hidden('lords.showCommands', () => env.openPalette()),

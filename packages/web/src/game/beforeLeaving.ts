@@ -17,6 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
+import { crossroadsDeadline, readyHeroes, sendable, waitingExpeditions } from '../ui/expeditions';
 import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
@@ -474,6 +475,59 @@ function wageItem(view: ViewState): LeavingItem | null {
   return { id: 'wage', severity: urgency(risk.seconds), text: wageRiskLine(risk), command };
 }
 
+/**
+ * As equipes paradas em uma encruzilhada (GDD §9.2): cada uma espera a palavra do jogador até o
+ * prazo, e depois a Postura decide por ele. Um item por expedição, com o prazo real e o que a
+ * Postura fará, na frase do servidor: quem sai agora sabe o que acontece sem ele. O que vence
+ * antes de uma ausência comum é urgente; o resto, um alerta: a decisão vai ser tomada de um
+ * jeito ou de outro. O botão abre a lista dos caminhos.
+ */
+function crossroadsItems(view: ViewState): LeavingItem[] {
+  return waitingExpeditions(view.guild).flatMap((expedition) => {
+    const { crossroads } = expedition;
+    if (crossroads === null) {
+      return [];
+    }
+    return [
+      {
+        id: `crossroads:${expedition.id}`,
+        severity: urgency(crossroads.decidesInSeconds),
+        text:
+          `A equipe de “${expedition.label}” espera na encruzilhada: ` +
+          `${crossroadsDeadline(crossroads, 0)}. ${crossroads.postureText}`,
+        command: {
+          id: 'lords.chooseExpeditionPath',
+          arg: expedition.id,
+          label: 'Escolher caminho',
+        },
+      },
+    ];
+  });
+}
+
+/**
+ * Herói no feudo, pronto, com destino aberto e gente bastante para ele: quem recebe soldo e não
+ * sai não traz nada enquanto o jogador está longe. É sugestão, como os aldeões livres. O botão
+ * abre o envio, que pergunta o destino, a equipe e a Postura.
+ */
+function idleHeroesItem(view: ViewState): LeavingItem | null {
+  const { guild } = view;
+  if (sendable(guild).length === 0) {
+    return null;
+  }
+  const ready = readyHeroes(guild);
+  const names = joinList(ready.map((hero) => hero.name));
+  return {
+    id: 'expedition',
+    severity: 'info',
+    text:
+      ready.length === 1
+        ? `${names} está no feudo, sem jornada, e há expedição que pode partir.`
+        : `${names} estão no feudo, sem jornada, e há expedição que pode partir.`,
+    command: { id: 'lords.sendExpedition', label: 'Enviar expedição' },
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -490,8 +544,9 @@ function idleItem(view: ViewState): LeavingItem | null {
 
 /**
  * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
- * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, os depósitos que enchem, as obras
- * que não começam sozinhas e os aldeões livres. O
+ * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, as equipes que esperam em
+ * uma encruzilhada, os depósitos que enchem, as obras que não começam sozinhas, os aldeões
+ * livres e os heróis sem jornada. O
  * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState): LeavingItem[] {
@@ -501,9 +556,11 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     foodItem(view),
     firewoodItem(view),
     wageItem(view),
+    ...crossroadsItems(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
+    idleHeroesItem(view),
   ].filter((item) => item !== null);
 }
 

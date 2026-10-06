@@ -528,6 +528,8 @@ describe('toda ação da interface tem um comando', () => {
       'lords.offer',
       'lords.blockedOffer',
       'lords.tavern',
+      'lords.crossroads',
+      'lords.guild',
       'lords.threatBuild',
       'lords.threatUpgrade',
       'lords.linkReminder',

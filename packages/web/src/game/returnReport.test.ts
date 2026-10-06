@@ -732,7 +732,7 @@ describe('"Você ainda pode decidir": só a visão de agora', () => {
     expect(pendingItems(proudView).map((item) => item.topic)).not.toContain('storage:granary');
   });
 
-  it('a encruzilhada de uma expedição entra depois das cartas, com o prazo e o caminho para a aba Guilda (protocolo 3)', () => {
+  it('a encruzilhada de uma expedição vem no topo, antes das cartas, com o prazo, o que a Postura fará e "Escolher caminho" (V3D-T4)', () => {
     // A visão do motor com uma equipe parada na Floresta Antiga: a decisão vem em
     // `pendingDecisions` com `kind: 'crossroads'`, e o app antigo a recusaria.
     const [crossroads] = expeditionCrossroadsView.pendingDecisions;
@@ -740,13 +740,18 @@ describe('"Você ainda pode decidir": só a visão de agora', () => {
     expect(ViewStateSchema.safeParse(expeditionCrossroadsView).success).toBe(true);
     const items = pendingItems(expeditionCrossroadsView);
     expect(items[0]).toEqual({
-      text: 'Guilda: “Floresta Antiga: A trilha se divide” · expira em 5 h.',
+      // A frase do que a Postura fará é a do servidor.
+      text: 'Guilda: “Floresta Antiga: A trilha se divide” · expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
       topic: 'crossroads:expedition-2',
       // Cinco horas: menos do que uma ausência comum, e por isso com o sinal de aviso.
       severity: 'warning',
-      action: { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
+      action: {
+        command: 'lords.chooseExpeditionPath',
+        arg: 'expedition-2',
+        label: 'Escolher caminho',
+      },
     });
-    // Com uma carta na mesa, a carta vem antes; a encruzilhada não vira carta.
+    // Com uma carta na mesa, a encruzilhada continua no topo; ela não vira carta.
     const both: ViewState = {
       ...withCards(expeditionCrossroadsView, [mealCard]),
       pendingDecisions: [
@@ -758,11 +763,10 @@ describe('"Você ainda pode decidir": só a visão de agora', () => {
       pendingItems(both)
         .map((item) => item.topic)
         .slice(0, 2),
-    ).toEqual([`card:${mealCard.instanceId}`, 'crossroads:expedition-2']);
+    ).toEqual(['crossroads:expedition-2', `card:${mealCard.instanceId}`]);
     expect(cardDecisions(both).map((decision) => decision.kind)).toEqual(['card']);
     expect(crossroadsDecisions(both).map((decision) => decision.id)).toEqual(['expedition-2']);
-    // O que fala de carta só conta carta: a barra de status e o título não anunciam a
-    // encruzilhada como carta do Conselho.
+    // O que fala de carta só conta carta: a aba Conselho não anuncia a encruzilhada.
     expect(cardDecisions(expeditionCrossroadsView)).toEqual([]);
   });
 

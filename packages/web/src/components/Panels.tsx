@@ -1,5 +1,6 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
+import { reportOf } from '../ui/expeditions';
 import { capitalize } from '../ui/format';
 import { moraleBurdened, moraleIcon, reserveNote, termAmount } from '../ui/morale';
 import type { Actions } from './actions';
@@ -154,7 +155,17 @@ export function RecruitPanel(props: {
   );
 }
 
-export function ChroniclePanel(props: { chronicle: GameEvent[]; actions: Actions }) {
+/**
+ * A Crônica recente. A linha que fala de uma expedição cujo relatório ainda está guardado leva
+ * a ele ("Ver o relatório"); depois que o relatório sai da lista, a linha continua legível
+ * sozinha, sem o botão.
+ */
+export function ChroniclePanel(props: {
+  chronicle: GameEvent[];
+  /** A guilda da visão: diz quais relatórios ainda estão guardados. */
+  guild?: ViewState['guild'] | null;
+  actions: Actions;
+}) {
   const lines = props.chronicle.slice(-10).reverse();
   return (
     <section aria-labelledby="chronicle-title">
@@ -168,9 +179,26 @@ export function ChroniclePanel(props: { chronicle: GameEvent[]; actions: Actions
         <p class="muted">Ainda não há nada a contar.</p>
       ) : (
         <ol class="chronicle" reversed>
-          {lines.map((event) => (
-            <li key={event.seq}>{event.text}</li>
-          ))}
+          {lines.map((event) => {
+            const report = reportOf(props.guild, event);
+            return (
+              <li key={event.seq}>
+                {event.text}
+                {report === null ? null : (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      class="link"
+                      onClick={() => props.actions.run('lords.openReport', report)}
+                    >
+                      Ver o relatório
+                    </button>
+                  </>
+                )}
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
