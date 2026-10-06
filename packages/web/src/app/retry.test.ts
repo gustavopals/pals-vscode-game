@@ -1,6 +1,7 @@
+import type { ViewState } from '@lotg/protocol';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { makeController, settle, tavernOpenView } from '../test-helpers';
+import { councilView, fakeApi, makeController, settle, tavernOpenView } from '../test-helpers';
 import type { Controller, Toast, ToastAction } from './controller';
 
 /**
@@ -19,10 +20,39 @@ afterEach(() => {
   }
 });
 
-async function opened() {
-  const made = makeController({ signedIn: true });
+/** Uma API cujas respostas a `POST /commands` esperam `release()`: a ordem fica a caminho. */
+function gatedApi() {
+  const api = fakeApi();
+  let gate: Promise<void> | null = null;
+  let open = () => {};
+  const gated: typeof fetch = async (input, init) => {
+    if (gate !== null && String(input).endsWith('/commands')) {
+      await gate;
+    }
+    return api.fetch(input, init);
+  };
+  return {
+    api,
+    fetch: gated,
+    hold: () => {
+      gate = new Promise<void>((resolve) => {
+        open = resolve;
+      });
+    },
+    release: () => {
+      gate = null;
+      open();
+    },
+  };
+}
+
+async function opened(view: ViewState = tavernOpenView, gate?: ReturnType<typeof gatedApi>) {
+  const made = makeController({
+    signedIn: true,
+    ...(gate === undefined ? {} : { api: gate.api, overrides: { fetch: gate.fetch } }),
+  });
   created.push(made.controller);
-  made.api.state.view = tavernOpenView;
+  made.api.state.view = view;
   await made.controller.start();
   await settle(made.controller);
   return made;
@@ -127,5 +157,121 @@ describe('"Tentar de novo" e a troca de feudo ou de conta', () => {
     await retryOf(made.controller).run();
     await settle(made.controller);
     expect(sent(made)).toEqual([{ type: 'dismissHero', payload: { heroId: 'hero-1' } }]);
+    expect(retries(made.controller)).toEqual([]);
+  });
+});
+
+describe('"Tentar de novo" e uma ordem nova da mesma intenção', () => {
+  it('o festival aceito pelo painel tira de cena a retentativa antiga, e o botão antigo já não envia outra', async () => {
+    const made = await opened();
+    await failedOffline(made, () => made.controller.holdFestival());
+    const stale = retryOf(made.controller);
+
+    // A rede voltou e o jogador clica no painel: é uma ordem nova, com outro `commandId`.
+    expect(await made.controller.holdFestival()).toBe(true);
+    expect(sent(made)).toEqual([{ type: 'holdFestival', payload: {} }]);
+    expect(retries(made.controller)).toEqual([]);
+
+    // O clique que ainda estivesse a caminho no aviso antigo não vira um segundo festival.
+    await stale.run();
+    await settle(made.controller);
+    expect(sent(made)).toHaveLength(1);
+    expect(made.controller.toasts).toEqual([]);
+  });
+
+  it('vale para as obras: a ordem nova para o mesmo edifício aposenta a retentativa da anterior', async () => {
+    const made = await opened();
+    await failedOffline(made, () =>
+      made.controller.order('startConstruction', { building: 'farm' }),
+    );
+    const stale = retryOf(made.controller);
+
+    expect(await made.controller.order('planConstruction', { building: 'farm' })).toBe(true);
+    expect(retries(made.controller)).toEqual([]);
+    await stale.run();
+    await settle(made.controller);
+    expect(sent(made)).toEqual([{ type: 'planConstruction', payload: { building: 'farm' } }]);
+  });
+
+  it('vale para os trabalhadores: a contagem antiga não volta por cima da nova', async () => {
+    const made = await opened();
+    await failedOffline(made, () =>
+      made.controller.order('setWorkers', { building: 'farm', count: 2 }),
+    );
+    const stale = retryOf(made.controller);
+
+    expect(await made.controller.order('setWorkers', { building: 'farm', count: 3 })).toBe(true);
+    expect(retries(made.controller)).toEqual([]);
+    await stale.run();
+    await settle(made.controller);
+    expect(sent(made)).toEqual([{ type: 'setWorkers', payload: { building: 'farm', count: 3 } }]);
+  });
+
+  it('vale para as cartas: a resposta nova à mesma carta aposenta a retentativa da outra opção', async () => {
+    const made = await opened(councilView);
+    await failedOffline(made, () => made.controller.answerCard('masonsMeal-4', 'bread'));
+    const stale = retryOf(made.controller);
+
+    expect(await made.controller.answerCard('masonsMeal-4', 'feast')).toBe(true);
+    expect(retries(made.controller)).toEqual([]);
+    await stale.run();
+    await settle(made.controller);
+    expect(sent(made)).toEqual([
+      { type: 'answerCard', payload: { instanceId: 'masonsMeal-4', optionId: 'feast' } },
+    ]);
+  });
+
+  it('a ordem para outro alvo não mexe na retentativa: cada intenção tem a sua', async () => {
+    const made = await opened();
+    await failedOffline(made, () =>
+      made.controller.order('setWorkers', { building: 'farm', count: 2 }),
+    );
+    expect(await made.controller.order('setWorkers', { building: 'quarry', count: 1 })).toBe(true);
+    expect(retries(made.controller)).toHaveLength(1);
+    await retryOf(made.controller).run();
+    await settle(made.controller);
+    expect(sent(made)).toEqual([
+      { type: 'setWorkers', payload: { building: 'quarry', count: 1 } },
+      { type: 'setWorkers', payload: { building: 'farm', count: 2 } },
+    ]);
+  });
+
+  it('a ordem nova que também falha deixa um aviso só, com a ordem nova', async () => {
+    const made = await opened();
+    await failedOffline(made, () =>
+      made.controller.order('setWorkers', { building: 'farm', count: 2 }),
+    );
+    await failedOffline(made, () =>
+      made.controller.order('setWorkers', { building: 'farm', count: 3 }),
+    );
+    await retryOf(made.controller).run();
+    await settle(made.controller);
+    expect(sent(made)).toEqual([{ type: 'setWorkers', payload: { building: 'farm', count: 3 } }]);
+  });
+
+  it('a retentativa respeita a trava: com ela a caminho, nem o painel nem um segundo clique no aviso enviam outra', async () => {
+    const gate = gatedApi();
+    const made = await opened(tavernOpenView, gate);
+    await failedOffline(made, () => made.controller.hireHero('offer-1'));
+    const retry = retryOf(made.controller);
+
+    const posts = () =>
+      made.api.state.requests.filter((entry) => entry.endsWith('/commands')).length;
+    const before = posts();
+    gate.hold();
+    const first = retry.run();
+    await settle();
+    expect(made.controller.guildOrders.has('hire:offer-1')).toBe(true);
+    // O botão do painel está ocupado, e o aviso clicado duas vezes não manda duas.
+    expect(await made.controller.hireHero('offer-1')).toBe(false);
+    await retry.run();
+    gate.release();
+    await first;
+    await settle(made.controller);
+
+    expect(posts() - before).toBe(1);
+    expect(sent(made)).toEqual([{ type: 'hireHero', payload: { offerId: 'offer-1' } }]);
+    expect(made.controller.guildOrders.size).toBe(0);
+    expect(made.controller.toasts).toEqual([]);
   });
 });

@@ -28,6 +28,7 @@ import {
   type SessionTarget,
   StaleOrderError,
 } from '../game/gameSession';
+import { intentOf } from '../game/intent';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
@@ -140,6 +141,25 @@ export type Toast = {
    * só vale para a conta e o feudo em que nasceu: a troca de um ou de outro o tira de cena.
    */
   retry?: true;
+  /**
+   * A intenção da ordem que o aviso guarda (`game/intent.ts`): uma ordem nova da mesma intenção
+   * o tira de cena.
+   */
+  intent?: string;
+};
+
+/** Como `attempt` trata uma ação que é uma ordem ao feudo. */
+export type AttemptOptions = {
+  /**
+   * A intenção da ordem. Uma tentativa nova aposenta o "Tentar de novo" que uma anterior da
+   * mesma intenção deixou: o aviso sai de cena e o botão dele, se ainda for acionado, não envia.
+   */
+  intent?: string;
+  /**
+   * A trava da ordem: enquanto devolver verdadeiro (a mesma ordem está a caminho), nem um
+   * acionamento novo nem o "Tentar de novo" enviam outra.
+   */
+  busy?: () => boolean;
 };
 
 /** Um documento carregado sob demanda (Crônica, dados do servidor). */
@@ -250,6 +270,11 @@ export class Controller {
   private expectedSignOut = false;
   private queue: Promise<void> = Promise.resolve();
   private nextToastId = 1;
+  /**
+   * A tentativa mais nova de cada intenção (`game/intent.ts`). O "Tentar de novo" de uma
+   * tentativa só envia enquanto ela for a mais nova da sua intenção.
+   */
+  private intentTurns = new Map<string, number>();
   /** A consulta de versão em andamento: quem depende do que o servidor tem ligado espera por ela. */
   private serverInfo: Promise<void> = Promise.resolve();
   /** A leitura do catálogo em andamento: quem a pede de novo espera pela mesma. */
@@ -1021,6 +1046,14 @@ export class Controller {
     }
   }
 
+  /** Tira de cena o "Tentar de novo" que uma ordem da mesma intenção deixou. */
+  private dropRetryOf(intent: string): void {
+    if (this.toasts.some((toast) => toast.intent === intent)) {
+      this.toasts = this.toasts.filter((toast) => toast.intent !== intent);
+      this.changes.emit();
+    }
+  }
+
   private connectionChanged(connection: Connection): void {
     if (connection.kind === 'unauthenticated') {
       void this.account.handleUnauthenticated();
@@ -1143,6 +1176,8 @@ export class Controller {
     game?: boolean;
     /** Um aviso com "Tentar de novo": sai de cena com a troca de feudo ou de conta. */
     retry?: boolean;
+    /** A intenção da ordem que o aviso guarda. */
+    intent?: string | undefined;
   }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
@@ -1160,6 +1195,7 @@ export class Controller {
         sticky: actions.length > 0,
         ...(input.game === true ? { game: true as const } : {}),
         ...(input.retry === true ? { retry: true as const } : {}),
+        ...(input.intent === undefined ? {} : { intent: input.intent }),
       },
     ].slice(-4);
     this.changes.emit();
@@ -1177,8 +1213,38 @@ export class Controller {
    * Roda uma ação do jogador e mostra o que deu errado: a recusa do motor é um aviso, com a
    * frase que veio do servidor; falta de rede é um erro com "Tentar de novo", que repete a
    * mesma ação (a mesma ordem, com o mesmo `commandId`).
+   *
+   * Com `intent`, a ação é uma ordem ao feudo, e cada chamada daqui é uma **tentativa nova** do
+   * jogador: ela aposenta o "Tentar de novo" que uma tentativa anterior da mesma intenção
+   * deixou. Sem isso, a ordem refeita pelo painel e a retentativa antiga seriam duas ordens,
+   * com dois `commandId`, para um pedido só.
    */
-  async attempt(action: () => Promise<void>): Promise<boolean> {
+  async attempt(action: () => Promise<void>, options: AttemptOptions = {}): Promise<boolean> {
+    const { intent } = options;
+    if (options.busy?.() === true) {
+      return false;
+    }
+    let turn = 0;
+    if (intent !== undefined) {
+      turn = (this.intentTurns.get(intent) ?? 0) + 1;
+      this.intentTurns.set(intent, turn);
+    }
+    return this.runAttempt(action, options, turn);
+  }
+
+  /** Uma tentativa ou a retentativa dela: `turn` diz de qual tentativa da intenção se trata. */
+  private async runAttempt(
+    action: () => Promise<void>,
+    options: AttemptOptions,
+    turn: number,
+  ): Promise<boolean> {
+    const { intent } = options;
+    if (options.busy?.() === true) {
+      return false;
+    }
+    if (intent !== undefined) {
+      this.dropRetryOf(intent);
+    }
     try {
       await action();
       return true;
@@ -1197,7 +1263,18 @@ export class Controller {
           kind: 'error',
           text: message,
           retry: true,
-          actions: [{ label: 'Tentar de novo', run: () => this.attempt(action).then(() => {}) }],
+          intent,
+          actions: [
+            {
+              label: 'Tentar de novo',
+              run: async () => {
+                // Uma tentativa mais nova da mesma intenção já tomou o lugar desta.
+                if (intent === undefined || this.intentTurns.get(intent) === turn) {
+                  await this.runAttempt(action, options, turn);
+                }
+              },
+            },
+          ],
         });
       } else {
         this.toast({ kind: 'error', text: message });
@@ -1329,7 +1406,9 @@ export class Controller {
     payload: Extract<Command, { type: T }>['payload'],
   ): Promise<boolean> {
     // O TypeScript não relaciona `T` entre duas funções genéricas; os tipos são os mesmos.
-    return this.attempt(this.prepare(type, payload as never));
+    return this.attempt(this.prepare(type, payload as never), {
+      intent: intentOf(type, payload),
+    });
   }
 
   /**
@@ -1342,11 +1421,12 @@ export class Controller {
    * veio na recusa toma a tela: a carta que saiu da mesa some.
    */
   async answerCard(instanceId: string, optionId: string): Promise<boolean> {
-    if (this.answering.has(instanceId)) {
-      return false;
-    }
     const send = this.prepare('answerCard', { instanceId, optionId });
     let answered = false;
+    const options: AttemptOptions = {
+      intent: intentOf('answerCard', { instanceId, optionId }),
+      busy: () => this.answering.has(instanceId),
+    };
     const attempted = await this.attempt(async () => {
       answered = false;
       this.setAnswering(instanceId, true);
@@ -1366,7 +1446,7 @@ export class Controller {
       } finally {
         this.setAnswering(instanceId, false);
       }
-    });
+    }, options);
     return attempted && answered;
   }
 
@@ -1378,10 +1458,21 @@ export class Controller {
    * Enquanto a resposta não volta, a ordem fica em `guildOrders` e um segundo acionamento dela
    * (o duplo clique) não vira ordem. A recusa do servidor vira aviso com a frase dele.
    */
-  private async guildOrder(key: string, send: () => Promise<void>): Promise<boolean> {
-    if (this.guildOrders.has(key)) {
+  private async guildOrder<T extends CommandType>(
+    key: string,
+    type: T,
+    payload: Extract<Command, { type: T }>['payload'],
+  ): Promise<boolean> {
+    const options: AttemptOptions = {
+      intent: intentOf(type, payload),
+      busy: () => this.guildOrders.has(key),
+    };
+    if (options.busy?.() === true) {
+      // Antes de `prepare`: o acionamento que a trava segura não gasta um `commandId`.
       return false;
     }
+    // O TypeScript não relaciona `T` entre duas funções genéricas; os tipos são os mesmos.
+    const send = this.prepare(type, payload as never);
     let done = false;
     const attempted = await this.attempt(async () => {
       done = false;
@@ -1401,23 +1492,23 @@ export class Controller {
       } finally {
         this.setGuildOrder(key, false);
       }
-    });
+    }, options);
     return attempted && done;
   }
 
   /** Contrata o candidato `offerId` da Taverna (GDD §9.1). */
   hireHero(offerId: string): Promise<boolean> {
-    return this.guildOrder(`hire:${offerId}`, this.prepare('hireHero', { offerId }));
+    return this.guildOrder(`hire:${offerId}`, 'hireHero', { offerId });
   }
 
   /** Dispensa o herói `heroId`. Quem confirma com o jogador é o comando, antes de chegar aqui. */
   dismissHero(heroId: string): Promise<boolean> {
-    return this.guildOrder(`dismiss:${heroId}`, this.prepare('dismissHero', { heroId }));
+    return this.guildOrder(`dismiss:${heroId}`, 'dismissHero', { heroId });
   }
 
   /** Dá um festival na Taverna (ADR 0017, decisão 10). */
   holdFestival(): Promise<boolean> {
-    return this.guildOrder('festival', this.prepare('holdFestival', {}));
+    return this.guildOrder('festival', 'holdFestival', {});
   }
 
   private setGuildOrder(key: string, busy: boolean): void {

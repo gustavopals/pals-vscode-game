@@ -58,6 +58,14 @@ O `ViewState` de exemplo dos testes é o golden do motor, importado por caminho 
 | `src/ui/` | Árvore e barra de status como dados (`treeModel.ts`, `format.ts`); a troca de ofício e a experiência como texto (`workers.ts`); a moral como texto e ícone (`morale.ts`); o Conselho como texto (`council.ts`); a Guilda e a Taverna como texto (`guild.ts`); a Ameaça como texto e ícone (`threat.ts`); os objetivos como texto e o comando de cada um (`objectives.ts`) |
 | `src/theme/` | `themes.css`: o **único** arquivo com cores. Os três temas são valores para as variáveis `--vscode-*` que o resto do CSS usa |
 
+## Ordens e "Tentar de novo"
+
+Toda ordem nasce em `controller.prepare(tipo, payload)`, que fixa o `commandId`, e roda por `controller.attempt`, que mostra o que deu errado: a recusa do motor é um aviso com a frase do servidor; a falta de rede é um erro com **"Tentar de novo"**, que reenvia a mesma ordem, com o mesmo `commandId`. Três regras valem para toda ordem (obras, trabalhadores, cartas, Guilda), e estão provadas em `app/retry.test.ts`:
+
+- **A ordem é do feudo em que foi dada.** `prepare` guarda a conta e a partida abertas (`session.targetKey`); se uma ou outra trocar antes do envio, o envio recusa com `StaleOrderError`, sem tocar a rede. E a troca de feudo ou de conta tira de cena todo aviso com "Tentar de novo" (`Toast.retry`).
+- **Uma intenção, uma ordem viva.** `game/intent.ts` (`intentOf`) diz o que a ordem quis mexer, sem o valor escolhido: os trabalhadores de um edifício, a obra de um edifício (iniciar, cancelar, planejar, desplanejar e o início automático são uma intenção só), a resposta a uma carta, um candidato, um herói, o festival. Uma tentativa nova da mesma intenção (o jogador refez o pedido pelo painel) aposenta a retentativa antiga: o aviso sai de cena e o botão dele, se ainda for acionado, não envia (`intentTurns`). Sem isso seriam duas ordens, com dois `commandId`, para um pedido só.
+- **A retentativa respeita a trava.** As ordens que têm trava (`controller.answering`, `controller.guildOrders`) a passam a `attempt` em `busy`: com a ordem a caminho, nem um acionamento novo nem o "Tentar de novo" enviam outra.
+
 ## Dificuldade e ritmo (GDD §13.9)
 
 - **As opções vêm do servidor.** `controller.loadCatalog()` lê `GET /v1/catalog` (sem sessão) e guarda `newGame` em `controller.catalog`: rótulos, frases, a marca de recomendado e `defaults`, que é o que vem marcado. O app não escreve rótulo, frase nem número de regra, e marca por `defaults`, não por `recommended` (o servidor de teste roda no ritmo Normal). A resposta é sempre conferida com `CatalogResponseSchema`, também em produção.
