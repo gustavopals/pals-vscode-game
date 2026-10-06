@@ -816,7 +816,8 @@ export const balance: Balance = {
   // para o Sucesso Pleno, 1 para o Sucesso, 0,7 para o Revés. O Sucesso Pleno traz o saque do nó
   // e mais um quarto, o Sucesso, o saque, o Revés, metade, e o Desastre, nada; a experiência
   // segue as mesmas partes, mas o Desastre ainda ensina um quarto. A Guilda sustenta 1, 2, 2 e 3
-  // expedições. Um caminho tem de 2 a 5 nós (a Patrulha tem 2), cada um de 5 a 45 minutos de jogo.
+  // expedições. Um caminho tem de 2 a 5 nós (a Patrulha tem 2), cada um de 5 a 60 minutos de jogo
+  // (o Pântano Nebuloso tem cinco nós em cinco horas; pendência D-5).
   expeditions: {
     crossroadsWaitRealMs: 6 * HOUR_MS,
     outcome: {
@@ -846,7 +847,7 @@ export const balance: Balance = {
       maxDepth: 5,
       maxSteps: 8,
       minNodeMs: 5 * MINUTE_MS,
-      maxNodeMs: 45 * MINUTE_MS,
+      maxNodeMs: 60 * MINUTE_MS,
     },
   },
   // GDD §9.1 (ADR 0017, decisão 8): o ferimento leve dura 2 h de jogo e o grave, 12 h de jogo.

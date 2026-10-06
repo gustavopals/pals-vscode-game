@@ -31,7 +31,9 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
-     "lootLost": false
+     "lootLost": false,
+     "standout": null,
+     "lesson": null
     },
     {
      "nodeId": "fork",
@@ -52,7 +54,9 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
-     "lootLost": false
+     "lootLost": false,
+     "standout": null,
+     "lesson": null
     },
     {
      "nodeId": "deepWoods",
@@ -66,7 +70,7 @@
       "stone": 0,
       "gold": 35
      },
-     "xp": 25,
+     "xp": 27,
      "harm": null,
      "leveled": [],
      "found": [
@@ -75,7 +79,9 @@
      "revealed": null,
      "cleared": null,
      "rescued": null,
-     "lootLost": false
+     "lootLost": false,
+     "standout": "Edda",
+     "lesson": null
     }
    ],
    "loot": {
@@ -131,7 +137,9 @@
      "revealed": "ruins",
      "cleared": null,
      "rescued": null,
-     "lootLost": false
+     "lootLost": false,
+     "standout": "Rolf",
+     "lesson": null
     }
    ],
    "loot": {
@@ -164,13 +172,25 @@
    "log": [
     {
      "title": "Rastros na estrada velha",
-     "text": "No 2º dia da Primavera, a patrulha de Pedra Alta seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
+     "text": "No 2º dia da Primavera, Rolf seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
      "outcomeLabel": "Sucesso",
      "notes": [
       "Caminho novo: Ruínas de Vel'Thar."
-     ]
+     ],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "A volta ao portão",
+     "text": "No 2º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
     }
    ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": "Caminho novo: Ruínas de Vel'Thar.",
    "lootText": "Trouxe 25 de ouro.",
    "itemsText": null,
    "lost": false
@@ -188,23 +208,39 @@
      "title": "A trilha sob os carvalhos",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 15 de madeira.",
      "outcomeLabel": "Sem incidentes",
-     "notes": []
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
     },
     {
      "title": "A trilha se divide",
      "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
      "outcomeLabel": "Caminho escolhido",
-     "notes": []
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
     },
     {
      "title": "O javali da mata fechada",
-     "text": "No 1º dia da Primavera, a expedição de Pedra Alta abateu o javali da mata fechada e cortou a melhor madeira do bosque. Trouxe 83 de madeira e 35 de ouro.",
+     "text": "No 1º dia da Primavera, Edda abateu o javali da mata fechada, e a expedição de Pedra Alta cortou a melhor madeira do bosque. Trouxe 83 de madeira e 35 de ouro.",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
       "Achado: Gibão acolchoado."
-     ]
+     ],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta pela trilha",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
     }
    ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": null,
    "lootText": "Trouxe 98 de madeira e 35 de ouro. Faltou lugar no depósito, e foi ao chão: 98 de madeira.",
    "itemsText": "Para o arsenal: Gibão acolchoado.",
    "lost": false

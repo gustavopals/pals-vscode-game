@@ -25,6 +25,7 @@ import {
   powerAgainst,
   teamNames,
 } from './expeditions';
+import { lessonOf, standoutOf, trialTemplate } from './expeditionReport';
 import { joinList } from './format';
 import { itemDefOf } from './heroes';
 import { nextId } from './ids';
@@ -129,7 +130,8 @@ const hasTracker = (team: readonly Hero[]): boolean =>
  * O Desastre não deixa trazer nada: não sorteia cobiça, quantidade nem item. O saque que a
  * cobiça perdeu também não sorteia quantidade nem item. O item só vem a partir do Sucesso.
  *
- * Sorteado tudo, o que o nó faz, sem sorteio, na ordem das linhas da Crônica: a frase do nó; o
+ * Sorteado tudo, o que o nó faz, sem sorteio, na ordem das linhas da Crônica: a frase do nó
+ * (com quem se destacou e, no Revés e no Desastre, a lição: `expeditionReport.ts`); o
  * dano a quem foi sorteado; o item; o destino revelado; o tile limpo; o cativo solto; e a
  * experiência de **quem continua na equipe**, com os níveis. O poder é o da equipe **como chegou
  * ao nó**, com os pesos dele: quem ficou Descontente no caminho rende menos aqui, e quem se fere
@@ -160,7 +162,14 @@ function resolveStage(
     const result = outcomeOf(powerAgainst(team, trial, expedition.posture), luck, trial.difficulty);
     entry.outcome = result;
     share = rules.lootShare[result];
-    template = trial.outcomes[result];
+    // Quem se destacou e, no Revés e no Desastre, o que o desfecho ensina: contas sobre a equipe
+    // como chegou ao nó, sem sorteio, guardadas no registro para o relatório dizer o mesmo.
+    entry.standout = standoutOf(team, trial, expedition.posture)?.name ?? null;
+    entry.lesson =
+      result === 'setback' || result === 'disaster'
+        ? lessonOf(draft, team, trial, expedition.posture)
+        : null;
+    template = trialTemplate(trial, result, entry.lesson);
     // 2. Quem sofre.
     harm = harmOf(draft, result, trial.onDisaster);
     if (harm !== null) {
@@ -218,7 +227,10 @@ function resolveStage(
     events,
     draft,
     atMs,
-    'expeditionNodeResolved',
+    // O Revés e o Desastre têm o tipo deles: é o que a Crônica mostra de um nó (pendência D-12).
+    entry.outcome === 'setback' || entry.outcome === 'disaster'
+      ? 'expeditionNodeFailed'
+      : 'expeditionNodeResolved',
     {
       expeditionId: expedition.id,
       modelId: expedition.modelId,
@@ -231,6 +243,7 @@ function resolveStage(
       no: node.title,
       desfecho: expeditionOutcomes[entry.outcome].label.toLowerCase(),
       herois: teamNames(team),
+      heroi: entry.standout ?? teamNames(team),
     },
     template,
   );

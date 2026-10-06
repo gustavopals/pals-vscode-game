@@ -5,6 +5,7 @@ import type {
   ExpeditionOutcomeId,
   HeroAttributeId,
   HeroClassId,
+  HeroTraitId,
   ItemId,
   PostureId,
   Ratio,
@@ -14,6 +15,7 @@ import { oldForest } from './missions/oldForest';
 import { patrol } from './missions/patrol';
 import { rescue } from './missions/rescue';
 import { ruins } from './missions/ruins';
+import { swamp } from './missions/swamp';
 import { wolfDen } from './missions/wolfDen';
 
 /**
@@ -32,9 +34,11 @@ import { wolfDen } from './missions/wolfDen';
  * Revés); a **limpeza** de um tile de ameaça; e a **libertação** de quem está em cativeiro há
  * mais tempo.
  */
+export type ExpeditionItemDrop = { readonly chance: Ratio; readonly from: readonly ItemId[] };
+
 export type ExpeditionReward = {
   readonly resources?: Partial<Record<ResourceId, { readonly min: number; readonly max: number }>>;
-  readonly item?: { readonly chance: Ratio; readonly from: readonly ItemId[] };
+  readonly item?: ExpeditionItemDrop;
   readonly reveals?: ExpeditionModelId;
   /** A chave do tile no estado (`startingTiles[].id`). */
   readonly clearsTile?: string;
@@ -47,14 +51,22 @@ export type ExpeditionReward = {
  * `skill: 3/2`). `onDisaster` é o que o Desastre faz a um herói, marcado editorialmente (ADR
  * 0017, decisão 8): ferimento grave ou captura, que a dificuldade da partida ainda pode trocar
  * (`balance.difficulties[].heroCapture`). `xp` é a experiência que o nó dá a cada herói que
- * continua na equipe, antes da parte do desfecho (`balance.expeditions.xpShare`). `outcomes` é a
- * frase de cada desfecho, para a Crônica e para o relatório.
+ * continua na equipe, antes da parte do desfecho (`balance.expeditions.xpShare`).
+ *
+ * **O relatório (GDD §9.4).** `outcomes` é a frase de cada desfecho, para a Crônica e para o
+ * relatório: diz o que aconteceu e, em `{heroi}`, quem se destacou (o herói de maior poder
+ * contra o nó; o motor escolhe, sem sorteio). `helps` é a classe que este nó favorece, marcada
+ * aqui (o teste confere que é a de maior poder contra os pesos do nó), e `lesson`, a frase que o
+ * Revés e o Desastre ganham **quando a equipe não tinha essa classe**: diz o que teria ajudado,
+ * só com o que o jogador pode saber.
  */
 export type ExpeditionTrial = {
   readonly difficulty: number;
   readonly xp: number;
   readonly weights?: Partial<Record<HeroAttributeId, Ratio>>;
   readonly onDisaster: ExpeditionDisasterId;
+  readonly helps: HeroClassId;
+  readonly lesson: string;
   readonly outcomes: Record<ExpeditionOutcomeId, string>;
 };
 
@@ -76,14 +88,18 @@ export type ExpeditionStageNode = {
   readonly next: string;
 };
 
+/** O requisito de uma opção de encruzilhada: uma classe ou um traço, nunca os dois. */
+export type ExpeditionOptionRequires =
+  { readonly heroClass: HeroClassId } | { readonly trait: HeroTraitId };
+
 /** Uma opção de encruzilhada: o que a equipe faz, a pista do risco e da recompensa e para onde leva. */
 export type ExpeditionOption = {
   readonly id: string;
   readonly label: string;
   /** A pista (ADR 0018, decisão 13): o que o jogador sabe do caminho antes de escolher. */
   readonly hint: string;
-  /** O que a equipe precisa ter para tomar este caminho: um herói da classe. */
-  readonly requires?: { readonly heroClass: HeroClassId };
+  /** O que a equipe precisa ter para tomar este caminho: um herói da classe, ou um com o traço. */
+  readonly requires?: ExpeditionOptionRequires;
   readonly next: string;
 };
 
@@ -157,11 +173,11 @@ export type ExpeditionModelDef = {
 };
 
 /**
- * Os modelos, na ordem em que a Guilda os mostra. **Provisórios** (V3D-T1 e V3D-T2): cinco
- * destinos com três variantes cada, para a máquina das expedições ter o que percorrer e os
- * desfechos terem onde acontecer (o Covil limpa o tile, o Resgate liberta, as Ruínas capturam e
- * rendem item). O catálogo de verdade (os seis modelos do ADR 0018, com os textos) é de V3D-T3.
- * Rascunho que o autor não leu.
+ * Os modelos, na ordem em que a Guilda os mostra: do mais perto ao mais longe, e do que rende
+ * menos ao que rende mais. É o catálogo da v0.3 (V3D-T3; ADR 0018, decisão 12): seis destinos,
+ * três variantes cada, dezoito grafos, cada um com a ficha em `docs/content-v0.3.md`.
+ * **Os ids de modelo, de nó e de opção são estáveis** (`expeditions.test.ts` os fixa): uma
+ * expedição em curso guarda os três. Rascunho que o autor não leu.
  */
 export const expeditionModels: readonly ExpeditionModelDef[] = [
   patrol,
@@ -169,6 +185,7 @@ export const expeditionModels: readonly ExpeditionModelDef[] = [
   wolfDen,
   rescue,
   ruins,
+  swamp,
 ];
 
 /** As Posturas, como a tela as mostra: o nome, em minúscula para o meio da frase, e o que cada uma faz. */
@@ -248,6 +265,17 @@ export const expeditionTexts = {
   postureFallsBack:
     'Sem resposta, a Postura {postura} escolheria "{marcada}", que esta equipe não pode tomar: vale o caminho seguro, {opcao}.',
   optionNeedsClass: 'requer {classe} na equipe',
+  /** `{traco}` é o traço como a ficha o mostra: "Rastreador". */
+  optionNeedsTrait: 'requer na equipe alguém com o traço {traco}',
+  /**
+   * O que a equipe vale contra o primeiro trecho (ADR 0018, decisão 13): `{folga}` é o poder com
+   * que nem a pior sorte tira o Sucesso, e `{risco}`, o poder abaixo do qual a pior sorte dá
+   * Desastre. A tela soma o poder de quem o senhor escolher.
+   */
+  fit: 'Contra o primeiro trecho, com {folga} de poder a equipe passa com folga; abaixo de {risco}, arrisca um Desastre.',
+  fitComfortable: 'folgada',
+  fitTight: 'justa',
+  fitRisky: 'arriscada',
   /** O estado de uma expedição em uma frase. */
   traveling: 'A caminho: {no}.',
   waiting: 'Parada na encruzilhada, à espera da sua palavra.',
@@ -263,6 +291,22 @@ export const expeditionTexts = {
   reportCleared: 'Limpo: {lugar}.',
   reportRescued: '{heroi} ganhou a liberdade.',
   reportLootLost: 'A cobiça pesou: o que a equipe juntou neste trecho ficou pelo caminho.',
+  /**
+   * O que o Revés e o Desastre ensinam quando não é a classe que faltou (essa frase é do nó,
+   * `trial.lesson`): o herói que rende mais em outra Postura, o que partiu com espaço vago
+   * havendo item no arsenal e, sem nada disso, a força que faltou.
+   */
+  lessonPosture: '{heroi} rende mais quando a ordem é a Postura {postura}.',
+  lessonItem: '{heroi} partiu com espaço vago no equipamento, e havia o que levar no arsenal.',
+  lessonStrength: 'A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.',
+  /** O fecho do relatório: o que a jornada custou, e o que ela deixou além do saque. */
+  lossesNone: 'Sem perdas: todos voltaram inteiros.',
+  losses: 'O preço: {perdas}.',
+  lossLight: '{heroi}, com um ferimento leve',
+  lossSevere: '{heroi}, com um ferimento grave',
+  lossCaptured: '{heroi}, em cativeiro',
+  lossDied: '{heroi}, que não voltou',
+  lossLoot: 'parte do saque, perdida no caminho',
   /** O fecho do relatório. */
   lootAllLost: 'Ninguém da equipe voltou: o que traziam se perdeu.',
   lootItems: 'Para o arsenal: {itens}.',
@@ -270,6 +314,8 @@ export const expeditionTexts = {
   lootNone: 'Voltou de mãos vazias.',
   loot: 'Trouxe {saque}.',
   lootCut: 'Trouxe {saque}. Faltou lugar no depósito, e foi ao chão: {perda}.',
+  /** Quem se destaca em um registro antigo, que não guardou o nome. */
+  theTeam: 'a equipe',
   /** Quem decidiu em uma encruzilhada, no relatório. */
   decidedByPlayer: 'Por ordem do senhor: {opcao}.',
   decidedByPosture: 'Sem palavra do senhor, a Postura {postura} decidiu: {opcao}.',

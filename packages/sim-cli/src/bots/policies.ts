@@ -552,55 +552,91 @@ const BOT_POSTURE = 'balanced';
 type Offer = ViewState['guild']['available'][number];
 type HeroCard = ViewState['guild']['heroes'][number];
 
-const powerOf = (team: readonly HeroCard[]): number =>
-  team.reduce((sum, hero) => sum + hero.power, 0);
+/**
+ * O que um herói vale **contra o primeiro trecho do destino**: o número que a tela mostra ao lado
+ * dele no envio (`heroFit`, com os pesos da prova); sem ele, o poder da ficha.
+ */
+function fitOf(offer: Offer, hero: HeroCard): number {
+  return offer.heroFit.find((entry) => entry.heroId === hero.id)?.power ?? hero.power;
+}
+
+const powerOf = (offer: Offer, team: readonly HeroCard[]): number =>
+  team.reduce((sum, hero) => sum + fitOf(offer, hero), 0);
 
 /**
- * A equipe passa o primeiro trecho com folga: o poder dela cobre a maior dificuldade à vista. É
- * a conta que um jogador cuidadoso faz com o que a tela mostra (o poder de cada herói e a
- * dificuldade de cada nó): com a sorte neutra é Sucesso, e nem a pior sorte leva ao Desastre.
- * Um destino cujo primeiro trecho não tem prova não entra na conta: a tela não diz o que vem
- * depois dele.
+ * A equipe passa o primeiro trecho **com folga**: o poder dela chega ao que a tela diz que nem a
+ * pior sorte tira o Sucesso (`fit.comfortPower`; ADR 0018, decisão 13). Quando o primeiro trecho
+ * não tem prova, a tela não diz o que vem depois dele: o bot só chama de folga a equipe completa,
+ * do tamanho máximo que o destino aceita.
  */
 function passesWithRoom(team: readonly HeroCard[], offer: Offer): boolean {
-  const difficulty = offer.firstStretchDifficulty;
-  return difficulty !== null && powerOf(team) >= difficulty;
+  return offer.fit === null
+    ? team.length === offer.teamMax
+    : powerOf(offer, team) >= offer.fit.comfortPower;
 }
 
 /**
+ * As classes que o destino exige, lidas da frase que a tela mostra ("Ao menos um Mago na
+ * equipe."), e a conferência pela ficha do herói ("Mago", "Maga"): o bot lê como uma pessoa.
+ */
+function requiredClasses(offer: Offer): string[] {
+  return [...offer.requirementsText.matchAll(/Ao menos um (\p{L}+) na equipe/gu)].map(
+    (match) => match[1] ?? '',
+  );
+}
+
+const isOfClass = (hero: HeroCard, label: string): boolean =>
+  hero.classLabel.slice(0, 3) === label.slice(0, 3);
+
+/**
  * A equipe que o bot mandaria a um destino, entre os que podem partir (`canDepart`: o ferido não
- * vai) e têm o nível pedido, no tamanho mínimo: **a mais fraca que ainda passa com folga**, para
- * a experiência não ficar toda com os mesmos; se nenhuma passa, a mais forte. `null` quando não
- * há gente bastante.
+ * vai) e têm o nível pedido: primeiro quem o destino exige (um de cada classe pedida), depois
+ * **a menor e mais fraca que ainda passa com folga**, para a experiência não ficar toda com os
+ * mesmos; se nenhuma passa, a maior e mais forte que houver. `null` quando não há gente
+ * bastante, ou falta a classe exigida.
  */
 function teamFor(view: ViewState, offer: Offer): HeroCard[] | null {
   const fit = view.guild.heroes
     .filter((hero) => hero.canDepart && hero.level >= offer.teamMinLevel)
-    .sort((a, b) => a.power - b.power);
-  if (fit.length < offer.teamMin) {
+    .sort((a, b) => fitOf(offer, a) - fitOf(offer, b));
+  const needed: HeroCard[] = [];
+  for (const label of requiredClasses(offer)) {
+    const hero = fit.find((entry) => isOfClass(entry, label) && !needed.includes(entry));
+    if (hero === undefined) {
+      return null;
+    }
+    needed.push(hero);
+  }
+  const others = fit.filter((hero) => !needed.includes(hero));
+  if (needed.length + others.length < offer.teamMin) {
     return null;
   }
-  for (let start = 0; start + offer.teamMin <= fit.length; start += 1) {
-    const team = fit.slice(start, start + offer.teamMin);
-    if (passesWithRoom(team, offer)) {
-      return team;
+  for (let size = Math.max(offer.teamMin, needed.length); size <= offer.teamMax; size += 1) {
+    const free = size - needed.length;
+    for (let start = 0; start + free <= others.length; start += 1) {
+      const team = [...needed, ...others.slice(start, start + free)];
+      if (passesWithRoom(team, offer)) {
+        return team;
+      }
     }
   }
-  return fit.slice(-offer.teamMin);
+  const size = Math.min(offer.teamMax, needed.length + others.length);
+  return [...needed, ...others.slice(others.length - (size - needed.length))];
 }
 
 /**
  * Envia expedições enquanto houver destino aberto e gente pronta no feudo. A escolha, só com o
  * que a visão mostra:
  *
- * 1. **o destino mais difícil que a equipe passa com folga** (`passesWithRoom`): as Ruínas, o
- *    Resgate quando há quem resgatar, o Covil dos Lobos com dois heróis, a Patrulha;
+ * 1. **a expedição de maior recompensa que a equipe passa com folga** (`passesWithRoom`). A
+ *    lista da Guilda vai do destino mais perto ao mais longe, e do que rende menos ao que rende
+ *    mais: o bot a lê de trás para a frente e fica com o primeiro que passa;
  * 2. sem nenhum assim, **o primeiro destino aberto** (a Patrulha dos Arredores), com quem está
- *    à mão, como antes: é o que dá experiência à equipe até ela passar os outros.
+ *    à mão: é o que dá experiência à equipe até ela passar os outros.
  *
  * A equipe é a de `teamFor`: quem pode partir (**o ferido não vai**) e tem o nível que o destino
- * pede, a mais fraca que ainda passa com folga. Uma ordem recusada encerra a política nesta
- * visita: a visão não diz mais do que isso, e o bot não insiste.
+ * pede. Uma ordem recusada encerra a política nesta visita: a visão não diz mais do que isso, e
+ * o bot não insiste.
  */
 export const enviarExpedicoes: Policy = {
   name: 'enviar expedições',
@@ -613,12 +649,8 @@ export const enviarExpedicoes: Policy = {
         return team === null ? [] : [{ offer, team }];
       });
       const [first] = staffed;
-      const [hardest] = staffed
-        .filter(({ offer, team }) => passesWithRoom(team, offer))
-        .sort(
-          (a, b) => (b.offer.firstStretchDifficulty ?? 0) - (a.offer.firstStretchDifficulty ?? 0),
-        );
-      const choice = hardest ?? first;
+      const richest = [...staffed].reverse().find(({ offer, team }) => passesWithRoom(team, offer));
+      const choice = richest ?? first;
       if (choice === undefined) {
         return current;
       }
@@ -676,21 +708,42 @@ export const equiparMelhor: Policy = {
   },
 };
 
+/** `expedition-12` → 12: o número de ordem da expedição, que a visão traz no identificador. */
+const expeditionNumber = (id: string): number => Number(id.slice(id.lastIndexOf('-') + 1));
+
 /**
- * Responde às encruzilhadas que encontra na visita, pela Postura: a opção que a visão diz que
- * valeria no fim do prazo (`postureOptionId`, já a da Cautelosa quando a marcada está fora do
- * alcance da equipe). O bot não lê as pistas: decide o que a Postura decidiria, só que antes, e
- * a equipe não fica parada até o prazo.
+ * Responde às encruzilhadas que encontra na visita, **em metade delas**; a outra metade fica
+ * para a Postura, que decide no fim do prazo (ADR 0018, decisão 11). É o que deixa a matriz
+ * medir, por perfil de visitas, quantas encruzilhadas o jogador decide e quantas a Postura
+ * decide (e quantas das que ele decidiria vencem antes da visita seguinte).
+ *
+ * - **Expedição de número par: deixa com a Postura.** O bot não responde, e a equipe espera.
+ * - **De número ímpar: escolhe**, com o que a tela mostra. Se alguém da equipe está ferido, o
+ *   último caminho da lista, que é o seguro; se não, o do meio; e, uma vez em cada duas, o
+ *   primeiro, o mais ambicioso. Uma opção bloqueada (a equipe não tem a classe ou o traço) dá
+ *   lugar à seguinte.
+ *
+ * A ordem das opções é a da tela: do caminho mais ambicioso ao mais seguro.
  */
 export const escolherCaminho: Policy = {
   name: 'escolher o caminho',
   run: async (view, act) => {
     let current = view;
     for (const expedition of view.guild.expeditions) {
-      if (expedition.crossroads !== null) {
+      const number = expeditionNumber(expedition.id);
+      if (expedition.crossroads === null || number % 2 === 0) {
+        continue;
+      }
+      const open = expedition.crossroads.options.filter((option) => !option.locked);
+      const hurt = view.guild.heroes.some(
+        (hero) => expedition.teamNames.includes(hero.name) && hero.injury !== null,
+      );
+      const wanted = hurt ? open.length - 1 : number % 4 === 1 ? 0 : Math.min(1, open.length - 1);
+      const option = open[wanted] ?? open.at(-1);
+      if (option !== undefined) {
         current = await act('chooseExpeditionPath', {
           expeditionId: expedition.id,
-          optionId: expedition.crossroads.postureOptionId,
+          optionId: option.id,
         });
       }
     }

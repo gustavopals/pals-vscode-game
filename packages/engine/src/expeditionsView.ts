@@ -2,6 +2,7 @@ import {
   balance,
   type ExpeditionModelDef,
   expeditionModels,
+  type ExpeditionTrial,
   expeditionOutcomes,
   expeditionPostures,
   expeditionTexts,
@@ -32,8 +33,9 @@ import {
   teamSizeText,
   variantOf,
 } from './expeditions';
+import { lessonText, trialTemplate } from './expeditionReport';
 import { durationText, fillText, joinList, sentenceCase } from './format';
-import { canDepart } from './heroes';
+import { canDepart, heroPowerRatio, powerWeights } from './heroes';
 import { tileWithArticle } from './outcomes';
 import { describeLoss } from './storage';
 import type {
@@ -116,21 +118,37 @@ function firstStretchText(variant: ExpeditionVariant): string {
   return parts.join(' · ');
 }
 
-/** A maior dificuldade do primeiro trecho, até a primeira encruzilhada; `null` sem prova nele. */
-function firstStretchDifficulty(variant: ExpeditionVariant): number | null {
-  let hardest: number | null = null;
+/**
+ * A prova mais dura do primeiro trecho, até a primeira encruzilhada: a de maior dificuldade (no
+ * empate, a primeira). `null` quando o trecho não tem prova.
+ */
+function firstStretchTrial(variant: ExpeditionVariant): ExpeditionTrial | null {
+  let hardest: ExpeditionTrial | null = null;
   let nodeId = variant.start;
   for (let steps = 0; steps <= rules.graph.maxSteps; steps += 1) {
     const node = nodeIn(variant, nodeId);
     if (node === null || node.kind === 'crossroads' || node.kind === 'return') {
       break;
     }
-    if (node.trial !== undefined) {
-      hardest = Math.max(hardest ?? 0, node.trial.difficulty);
+    if (node.trial !== undefined && node.trial.difficulty > (hardest?.difficulty ?? 0)) {
+      hardest = node.trial;
     }
     nodeId = node.next;
   }
   return hardest;
+}
+
+/**
+ * O que a equipe precisa valer contra uma prova (ADR 0018, decisão 13), em poder inteiro:
+ * `comfort` é o menor poder com que **nem a pior sorte** tira o Sucesso, e `risk`, o menor com
+ * que a pior sorte ainda dá Revés (abaixo dele, pode dar Desastre). São a dificuldade vezes os
+ * limiares do conteúdo, com a sorte no mínimo, arredondados para cima.
+ */
+function fitThresholds(difficulty: number): { comfort: number; risk: number } {
+  const { luck, outcome } = rules;
+  const needed = ({ num, den }: { num: number; den: number }) =>
+    Math.ceil((difficulty * luck.base * num) / (luck.min * den));
+  return { comfort: needed(outcome.success), risk: needed(outcome.setback) };
 }
 
 function requirementsText(model: ExpeditionModelDef): string {
@@ -177,6 +195,9 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       notes.push(fillText(expeditionTexts.summer, { estacao: season.label }));
     }
     const blocked = destinationBlock(state, model.id);
+    const trial = firstStretchTrial(variant);
+    const fit = trial === null ? null : fitThresholds(trial.difficulty);
+    const weights = powerWeights(trial?.weights);
     views.push({
       modelId: model.id,
       label: model.label,
@@ -187,7 +208,22 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       teamMin: model.requires.teamMin,
       teamMax: model.requires.teamMax,
       teamMinLevel: model.requires.minHeroLevel,
-      firstStretchDifficulty: firstStretchDifficulty(variant),
+      firstStretchDifficulty: trial?.difficulty ?? null,
+      fit:
+        fit === null
+          ? null
+          : {
+              comfortPower: fit.comfort,
+              riskPower: fit.risk,
+              text: fillText(expeditionTexts.fit, { folga: fit.comfort, risco: fit.risk }),
+            },
+      // O poder de cada herói que pode partir **contra a prova mais dura do primeiro trecho**,
+      // com os pesos dela; sem prova à vista, o poder da ficha. A Postura fica de fora: o traço
+      // que rende mais em uma delas só entra depois do envio.
+      heroFit: state.guild.heroes.filter(canDepart).map((hero) => {
+        const { num, den } = heroPowerRatio(hero, weights);
+        return { heroId: hero.id, power: Math.floor(num / den) / MILLI };
+      }),
       locked: blocked !== null,
       lockedReason: blocked?.message ?? null,
       firstStretchText: firstStretchText(variant),
@@ -282,27 +318,114 @@ function logView(
         text: fillText(template, { opcao: option.label, postura: posture }),
         outcomeLabel,
         notes: [],
+        standoutName: null,
+        lessonText: null,
       });
       continue;
     }
     if (node.kind === 'return') {
       continue;
     }
+    const { trial } = node;
+    const outcome = entry.outcome === 'passed' || entry.outcome === 'chosen' ? null : entry.outcome;
+    // A mesma frase da Crônica: a do desfecho, com quem se destacou e, no desfecho ruim, a lição.
     const template =
-      node.trial === undefined || entry.outcome === 'passed' || entry.outcome === 'chosen'
+      trial === undefined || outcome === null
         ? node.text
-        : node.trial.outcomes[entry.outcome];
+        : trialTemplate(trial, outcome, entry.lesson);
     const found = gainedText(entry.gained);
     views.push({
       title: node.title,
-      text: `${narrate('expeditionNodeResolved', state, entry.atMs, {}, template)}${
-        found === '' ? '' : ` ${fillText(expeditionTexts.loot, { saque: found })}`
-      }`,
+      text: `${narrate(
+        'expeditionNodeResolved',
+        state,
+        entry.atMs,
+        { heroi: entry.standout ?? expeditionTexts.theTeam },
+        template,
+      )}${found === '' ? '' : ` ${fillText(expeditionTexts.loot, { saque: found })}`}`,
       outcomeLabel,
       notes: logNotes(state, entry),
+      standoutName: entry.standout,
+      lessonText:
+        trial !== undefined && entry.lesson !== null ? lessonText(entry.lesson, trial) : null,
     });
   }
   return views;
+}
+
+/**
+ * O caminho de volta, como o último passo do relatório de quem voltou: a frase do nó de retorno
+ * do grafo, com a data da chegada. `null` quando o conteúdo já não tem o grafo.
+ */
+function returnStep(state: GameState, report: ExpeditionReport): ExpeditionLogView | null {
+  const variant = variantOf(report.modelId, report.variant);
+  const node = Object.values(variant?.nodes ?? {}).find((entry) => entry.kind === 'return');
+  if (node === undefined || node.kind !== 'return') {
+    return null;
+  }
+  return {
+    title: node.title,
+    text: narrate('expeditionReturned', state, report.returnedAtMs, {}, node.text),
+    outcomeLabel: expeditionOutcomes.passed.label,
+    notes: [],
+    standoutName: null,
+    lessonText: null,
+  };
+}
+
+/**
+ * O que a jornada custou, em uma frase: quem se feriu, quem ficou em cativeiro, quem não voltou
+ * e o saque que se perdeu no caminho. "Sem perdas…" quando nada disso aconteceu.
+ */
+function lossesText(report: ExpeditionReport): string {
+  const losses: string[] = [];
+  for (const { harm } of report.log) {
+    if (harm !== null) {
+      const template = {
+        light: expeditionTexts.lossLight,
+        severe: expeditionTexts.lossSevere,
+        captured: expeditionTexts.lossCaptured,
+        died: expeditionTexts.lossDied,
+      }[harm.kind];
+      losses.push(fillText(template, { heroi: harm.heroName }));
+    }
+  }
+  if (report.log.some((entry) => entry.lootLost)) {
+    losses.push(expeditionTexts.lossLoot);
+  }
+  // Cada perda já tem vírgula dentro ("Rolf, com um ferimento leve"): entre elas, ponto e vírgula.
+  return losses.length === 0
+    ? expeditionTexts.lossesNone
+    : fillText(expeditionTexts.losses, { perdas: losses.join('; ') });
+}
+
+/**
+ * O que a jornada deixou além do saque, uma frase por fato, na ordem em que aconteceu: o caminho
+ * novo, o tile limpo, o cativo solto e quem subiu de nível. `null` sem nenhum.
+ */
+function deedsText(state: GameState, report: ExpeditionReport): string | null {
+  const deeds: string[] = [];
+  for (const entry of report.log) {
+    if (entry.revealed !== null) {
+      deeds.push(
+        fillText(expeditionTexts.reportRevealed, { destino: expeditionLabel(entry.revealed) }),
+      );
+    }
+    if (entry.cleared !== null) {
+      deeds.push(
+        fillText(expeditionTexts.reportCleared, {
+          lugar: tileWithArticle(state, entry.cleared) ?? '',
+        }),
+      );
+    }
+    if (entry.rescued !== null) {
+      deeds.push(fillText(expeditionTexts.reportRescued, { heroi: entry.rescued }));
+    }
+    for (const { heroName, level } of entry.leveled) {
+      deeds.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));
+    }
+  }
+  return deeds.length === 0 ? null : deeds.join(' ');
 }
 
 function crossroadsView(
@@ -423,7 +546,12 @@ function reportView(state: GameState, report: ExpeditionReport): ExpeditionRepor
     label: expeditionLabel(report.modelId),
     postureLabel: expeditionPostures[report.posture].label,
     teamNames: [...report.heroNames],
-    log: logView(state, report, report.log),
+    log: [
+      ...logView(state, report, report.log),
+      ...(report.lost ? [] : [returnStep(state, report)].filter((step) => step !== null)),
+    ],
+    lossesText: lossesText(report),
+    deedsText: deedsText(state, report),
     lootText: report.lost
       ? expeditionTexts.lootAllLost
       : brought === ''

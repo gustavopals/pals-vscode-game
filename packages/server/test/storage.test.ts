@@ -248,7 +248,7 @@ describe('o desperdício do dia (ADR 0015)', () => {
     expect(events.filter((event) => event.type === 'storageFilled')).toHaveLength(1);
 
     // A Crônica conta que o depósito encheu, e não repete o fecho de cada dia.
-    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual(['dayStarted', 'storageWasted']);
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toContain('storageWasted');
     const chronicle = await chronicleOf(normal, who);
     // (As cartas do Conselho e os uivos dos lobos também são linhas da Crônica; aqui só
     // interessa o depósito.)

@@ -12,7 +12,7 @@
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Edda e Rolf.",
    "No 9º dia da Primavera, Edda sarou das feridas e já pode partir de Pedra Alta outra vez.",
    "No 10º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 85 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Edda e Rolf."
   ],
   "reports": [
    {
@@ -26,20 +26,42 @@
     "log": [
      {
       "title": "A subida pela pedreira solta",
-      "text": "No 10º dia da Primavera, a expedição de Pedra Alta subiu a pedreira solta sem rolar uma pedra, e achou no caminho o que os lobos tinham arrastado. Trouxe 18 de ouro.",
+      "text": "No 10º dia da Primavera, Edda achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
       "outcomeLabel": "Sucesso pleno",
-      "notes": []
+      "notes": [],
+      "standoutName": "Edda",
+      "lessonText": null
      },
      {
-      "title": "A matilha na toca",
-      "text": "No 10º dia da Primavera, a expedição de Pedra Alta entrou na toca com fogo e aço. A matilha fugiu serra acima, e o Covil ficou vazio. Trouxe 67 de ouro.",
+      "title": "A boca da toca",
+      "text": "Por ordem do senhor: Enfumaçar a toca e esperar na saída.",
+      "outcomeLabel": "Caminho escolhido",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
+     },
+     {
+      "title": "A matilha na fumaça",
+      "text": "No 10º dia da Primavera, Edda esperou na saída da toca enfumaçada, e nenhum lobo passou. O Covil ficou vazio. Trouxe 25 de ouro.",
       "outcomeLabel": "Sucesso pleno",
       "notes": [
        "Limpo: o Covil de Lobos."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": null
+     },
+     {
+      "title": "A descida da serra",
+      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
-    "lootText": "Trouxe 85 de ouro.",
+    "lossesText": "Sem perdas: todos voltaram inteiros.",
+    "deedsText": "Limpo: o Covil de Lobos.",
+    "lootText": "Trouxe 43 de ouro.",
     "itemsText": null,
     "lost": false
    },
@@ -53,14 +75,26 @@
     ],
     "log": [
      {
-      "title": "O guardião da cripta",
-      "text": "No 3º dia da Primavera, o guardião da cripta de Vel'Thar fechou a porta de pedra sobre a expedição de Pedra Alta. Nem todos ficaram do lado de fora.",
+      "title": "O Guardião de Pedra",
+      "text": "No 3º dia da Primavera, o Guardião de Pedra derrubou Edda, e a porta da câmara desceu: a expedição de Pedra Alta foi desbaratada e fugiu das ruínas sem o tesouro. Um Guerreiro teria aparado os golpes do Guardião de Pedra.",
       "outcomeLabel": "Desastre",
       "notes": [
        "Edda sofreu um ferimento grave."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": "Um Guerreiro teria aparado os golpes do Guardião de Pedra."
+     },
+     {
+      "title": "A volta pela estrada dos mortos",
+      "text": "No 3º dia da Primavera, a expedição de Pedra Alta deixou as Ruínas de Vel'Thar.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
+    "lossesText": "O preço: Edda, com um ferimento grave.",
+    "deedsText": null,
     "lootText": "Voltou de mãos vazias.",
     "itemsText": null,
     "lost": false
@@ -77,23 +111,39 @@
       "title": "A trilha sob os carvalhos",
       "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 17 de madeira.",
       "outcomeLabel": "Sem incidentes",
-      "notes": []
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      },
      {
       "title": "A trilha se divide",
       "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
       "outcomeLabel": "Caminho escolhido",
-      "notes": []
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      },
      {
       "title": "O javali da mata fechada",
-      "text": "No 1º dia da Primavera, o javali da mata fechada dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Trouxe 43 de madeira e 12 de ouro.",
+      "text": "No 1º dia da Primavera, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 43 de madeira e 12 de ouro.",
       "outcomeLabel": "Revés",
       "notes": [
        "Edda sofreu um ferimento leve."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+     },
+     {
+      "title": "A volta pela trilha",
+      "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
+    "lossesText": "O preço: Edda, com um ferimento leve.",
+    "deedsText": null,
     "lootText": "Trouxe 60 de madeira e 12 de ouro.",
     "itemsText": null,
     "lost": false
@@ -151,9 +201,9 @@
    "No 3º dia da Primavera, Edda caiu em cativeiro em \"Ruínas de Vel'Thar\". Só um resgate traz de volta a Pedra Alta quem ficou lá.",
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf.",
    "No 4º dia da Primavera, a expedição \"Resgate\" abriu o cativeiro: Edda ganhou a liberdade e volta a servir a Pedra Alta.",
-   "No 4º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta com 36 de ouro. A equipe está de novo no feudo: Rolf e Brann.",
+   "No 4º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf e Brann.",
    "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 12º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 74 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "No 12º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 46 de ouro. A equipe está de novo no feudo: Edda e Rolf."
   ],
   "reports": [
    {
@@ -167,20 +217,42 @@
     "log": [
      {
       "title": "A subida pela pedreira solta",
-      "text": "No 11º dia da Primavera, a expedição de Pedra Alta subiu a pedreira solta sem rolar uma pedra, e achou no caminho o que os lobos tinham arrastado. Trouxe 23 de ouro.",
+      "text": "No 11º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
       "outcomeLabel": "Sucesso pleno",
-      "notes": []
+      "notes": [],
+      "standoutName": "Rolf",
+      "lessonText": null
      },
      {
-      "title": "A matilha na toca",
-      "text": "No 11º dia da Primavera, a expedição de Pedra Alta entrou na toca com fogo e aço. A matilha fugiu serra acima, e o Covil ficou vazio. Trouxe 51 de ouro.",
-      "outcomeLabel": "Sucesso pleno",
+      "title": "A boca da toca",
+      "text": "Por ordem do senhor: Enfumaçar a toca e esperar na saída.",
+      "outcomeLabel": "Caminho escolhido",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
+     },
+     {
+      "title": "A matilha na fumaça",
+      "text": "No 11º dia da Primavera, Rolf segurou a saída da toca enfumaçada, e a matilha se desfez serra acima. Trouxe 23 de ouro.",
+      "outcomeLabel": "Sucesso",
       "notes": [
        "Limpo: o Covil de Lobos."
-      ]
+      ],
+      "standoutName": "Rolf",
+      "lessonText": null
+     },
+     {
+      "title": "A descida da serra",
+      "text": "No 12º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
-    "lootText": "Trouxe 74 de ouro.",
+    "lossesText": "Sem perdas: todos voltaram inteiros.",
+    "deedsText": "Limpo: o Covil de Lobos.",
+    "lootText": "Trouxe 46 de ouro.",
     "itemsText": null,
     "lost": false
    },
@@ -194,21 +266,43 @@
     ],
     "log": [
      {
-      "title": "A chegada com a troca da guarda",
-      "text": "No 3º dia da Primavera, a expedição de Pedra Alta chegou ao cativeiro sem ser vista e contou os guardas um a um.",
+      "title": "A noite sem fogo",
+      "text": "No 3º dia da Primavera, Brann manteve a expedição de Pedra Alta quieta e sem fogo a noite toda, a um grito do bando. Amanheceram perto, inteiros e sem serem vistos.",
       "outcomeLabel": "Sucesso pleno",
-      "notes": []
+      "notes": [],
+      "standoutName": "Brann",
+      "lessonText": null
      },
      {
-      "title": "A jaula no pátio",
-      "text": "No 4º dia da Primavera, a expedição de Pedra Alta rendeu os guardas, abriu a porta do cativeiro e ainda levou a bolsa do carcereiro. Trouxe 36 de ouro.",
+      "title": "A gaiola no meio do acampamento",
+      "text": "Por ordem do senhor: Rastejar pela vala até a gaiola.",
+      "outcomeLabel": "Caminho escolhido",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
+     },
+     {
+      "title": "A vala até a gaiola",
+      "text": "No 4º dia da Primavera, Brann rastejou pela vala até a gaiola e tirou as travas uma a uma. O bando só achou a gaiola vazia.",
       "outcomeLabel": "Sucesso pleno",
       "notes": [
        "Edda ganhou a liberdade."
-      ]
+      ],
+      "standoutName": "Brann",
+      "lessonText": null
+     },
+     {
+      "title": "A fuga para casa",
+      "text": "No 4º dia da Primavera, a expedição de resgate tomou o caminho de Pedra Alta, sem olhar para trás.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
-    "lootText": "Trouxe 36 de ouro.",
+    "lossesText": "Sem perdas: todos voltaram inteiros.",
+    "deedsText": "Edda ganhou a liberdade.",
+    "lootText": "Voltou de mãos vazias.",
     "itemsText": null,
     "lost": false
    },
@@ -222,14 +316,26 @@
     ],
     "log": [
      {
-      "title": "O guardião da cripta",
-      "text": "No 3º dia da Primavera, o guardião da cripta de Vel'Thar fechou a porta de pedra sobre a expedição de Pedra Alta. Nem todos ficaram do lado de fora.",
+      "title": "O Guardião de Pedra",
+      "text": "No 3º dia da Primavera, o Guardião de Pedra derrubou Edda, e a porta da câmara desceu: a expedição de Pedra Alta foi desbaratada e fugiu das ruínas sem o tesouro. Um Guerreiro teria aparado os golpes do Guardião de Pedra.",
       "outcomeLabel": "Desastre",
       "notes": [
        "Edda ficou em cativeiro."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": "Um Guerreiro teria aparado os golpes do Guardião de Pedra."
+     },
+     {
+      "title": "A volta pela estrada dos mortos",
+      "text": "No 3º dia da Primavera, a expedição de Pedra Alta deixou as Ruínas de Vel'Thar.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
+    "lossesText": "O preço: Edda, em cativeiro.",
+    "deedsText": null,
     "lootText": "Voltou de mãos vazias.",
     "itemsText": null,
     "lost": false
@@ -287,7 +393,7 @@
    "No 3º dia da Primavera, Edda tombou em \"Ruínas de Vel'Thar\" e não se levantou. Pedra Alta guarda as armas que ficaram.",
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf.",
    "No 10º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 85 de ouro. A equipe está de novo no feudo: Rolf e Brann."
+   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Rolf e Brann."
   ],
   "reports": [
    {
@@ -301,20 +407,42 @@
     "log": [
      {
       "title": "A subida pela pedreira solta",
-      "text": "No 10º dia da Primavera, a expedição de Pedra Alta subiu a pedreira solta sem rolar uma pedra, e achou no caminho o que os lobos tinham arrastado. Trouxe 18 de ouro.",
+      "text": "No 10º dia da Primavera, Brann achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
       "outcomeLabel": "Sucesso pleno",
-      "notes": []
+      "notes": [],
+      "standoutName": "Brann",
+      "lessonText": null
      },
      {
-      "title": "A matilha na toca",
-      "text": "No 10º dia da Primavera, a expedição de Pedra Alta entrou na toca com fogo e aço. A matilha fugiu serra acima, e o Covil ficou vazio. Trouxe 67 de ouro.",
+      "title": "A boca da toca",
+      "text": "Por ordem do senhor: Enfumaçar a toca e esperar na saída.",
+      "outcomeLabel": "Caminho escolhido",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
+     },
+     {
+      "title": "A matilha na fumaça",
+      "text": "No 10º dia da Primavera, Brann esperou na saída da toca enfumaçada, e nenhum lobo passou. O Covil ficou vazio. Trouxe 25 de ouro.",
       "outcomeLabel": "Sucesso pleno",
       "notes": [
        "Limpo: o Covil de Lobos."
-      ]
+      ],
+      "standoutName": "Brann",
+      "lessonText": null
+     },
+     {
+      "title": "A descida da serra",
+      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
-    "lootText": "Trouxe 85 de ouro.",
+    "lossesText": "Sem perdas: todos voltaram inteiros.",
+    "deedsText": "Limpo: o Covil de Lobos.",
+    "lootText": "Trouxe 43 de ouro.",
     "itemsText": null,
     "lost": false
    },
@@ -328,14 +456,26 @@
     ],
     "log": [
      {
-      "title": "O guardião da cripta",
-      "text": "No 3º dia da Primavera, o guardião da cripta de Vel'Thar fechou a porta de pedra sobre a expedição de Pedra Alta. Nem todos ficaram do lado de fora.",
+      "title": "O Guardião de Pedra",
+      "text": "No 3º dia da Primavera, o Guardião de Pedra derrubou Edda, e a porta da câmara desceu: a expedição de Pedra Alta foi desbaratada e fugiu das ruínas sem o tesouro. Um Guerreiro teria aparado os golpes do Guardião de Pedra.",
       "outcomeLabel": "Desastre",
       "notes": [
        "Edda não voltou."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": "Um Guerreiro teria aparado os golpes do Guardião de Pedra."
+     },
+     {
+      "title": "A volta pela estrada dos mortos",
+      "text": "No 3º dia da Primavera, a expedição de Pedra Alta deixou as Ruínas de Vel'Thar.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
+    "lossesText": "O preço: Edda, que não voltou.",
+    "deedsText": null,
     "lootText": "Voltou de mãos vazias.",
     "itemsText": null,
     "lost": false
@@ -352,23 +492,39 @@
       "title": "A trilha sob os carvalhos",
       "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 17 de madeira.",
       "outcomeLabel": "Sem incidentes",
-      "notes": []
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      },
      {
       "title": "A trilha se divide",
       "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
       "outcomeLabel": "Caminho escolhido",
-      "notes": []
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      },
      {
       "title": "O javali da mata fechada",
-      "text": "No 1º dia da Primavera, o javali da mata fechada dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Trouxe 43 de madeira e 12 de ouro.",
+      "text": "No 1º dia da Primavera, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 43 de madeira e 12 de ouro.",
       "outcomeLabel": "Revés",
       "notes": [
        "Edda sofreu um ferimento leve."
-      ]
+      ],
+      "standoutName": "Edda",
+      "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+     },
+     {
+      "title": "A volta pela trilha",
+      "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+      "outcomeLabel": "Sem incidentes",
+      "notes": [],
+      "standoutName": null,
+      "lessonText": null
      }
     ],
+    "lossesText": "O preço: Edda, com um ferimento leve.",
+    "deedsText": null,
     "lootText": "Trouxe 60 de madeira e 12 de ouro. Faltou lugar no depósito, e foi ao chão: 60 de madeira.",
     "itemsText": null,
     "lost": false

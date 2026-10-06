@@ -205,7 +205,7 @@ describe('o equipamento (ADR 0018, decisão 15)', () => {
   });
 });
 
-describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', () => {
+describe('os modelos e os desfechos (ADR 0018, decisões 12 e 14)', () => {
   it('toda prova dá experiência, e a parte dela desce com o desfecho sem zerar', () => {
     for (const model of expeditionModels) {
       for (const node of stagesOf(model)) {
@@ -230,18 +230,18 @@ describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', 
     expect(den.access).toEqual({ kind: 'tile', tileId: 'wolfDen' });
     expect(startingTiles.map((tile) => tile.id)).toContain('wolfDen');
     for (const variant of den.variants) {
-      // Três nós: a subida, a toca e a volta.
-      expect(Object.keys(variant.nodes)).toHaveLength(3);
+      // A subida, a encruzilhada diante da toca, os três jeitos de acabar o serviço e a volta.
+      // O ousado e o do meio limpam o tile; o cauteloso, nunca.
       const clearing = Object.values(variant.nodes).filter(
         (node) => node.kind !== 'crossroads' && node.kind !== 'return' && node.rewards?.clearsTile,
       );
-      expect(clearing).toHaveLength(1);
+      expect(clearing).toHaveLength(2);
     }
     expect(stagesOf(den).every((node) => node.trial?.onDisaster !== 'capture')).toBe(true);
     expect(balance.threat.tileClearedDrop).toBe(30);
   });
 
-  it('o Resgate: 2 h, 2 heróis, risco alto, só com alguém em cativeiro; um nó liberta', () => {
+  it('o Resgate: 2 h, 2 heróis, risco alto, só com alguém em cativeiro; os três jeitos de entrar libertam', () => {
     const rescue = modelOf('rescue');
     expect(rescue.durationMs).toBe(2 * HOUR);
     expect(rescue.requires).toMatchObject({ teamMin: 2, teamMax: 2 });
@@ -251,7 +251,16 @@ describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', 
       const freeing = Object.values(variant.nodes).filter(
         (node) => node.kind !== 'crossroads' && node.kind !== 'return' && node.rewards?.rescues,
       );
-      expect(freeing).toHaveLength(1);
+      expect(freeing).toHaveLength(3);
+      // O cativeiro é onde o Desastre captura, por qualquer dos três caminhos.
+      expect(
+        freeing.every(
+          (node) =>
+            node.kind !== 'crossroads' &&
+            node.kind !== 'return' &&
+            node.trial?.onDisaster === 'capture',
+        ),
+      ).toBe(true);
     }
   });
 
@@ -268,14 +277,25 @@ describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', 
     }
   });
 
-  it('todo destino por descoberta é revelado por um destino aberto, e todo tile limpo existe', () => {
-    const open = expeditionModels.filter((model) => model.access.kind === 'open');
-    const revealed = new Set(
-      open.flatMap((model) => stagesOf(model).map((node) => node.rewards?.reveals)),
+  it('todo destino por descoberta é revelado por um destino que se alcança a partir de um aberto, e todo tile limpo existe', () => {
+    // A Patrulha (aberta) revela as Ruínas, e as Ruínas revelam o Pântano: a cadeia fecha.
+    const reachable = new Set<string>(
+      expeditionModels.filter((model) => model.access.kind === 'open').map((model) => model.id),
     );
+    for (let round = 0; round < expeditionModels.length; round += 1) {
+      for (const model of expeditionModels) {
+        if (reachable.has(model.id)) {
+          for (const node of stagesOf(model)) {
+            if (node.rewards?.reveals !== undefined) {
+              reachable.add(node.rewards.reveals);
+            }
+          }
+        }
+      }
+    }
     for (const model of expeditionModels) {
       if (model.access.kind === 'discovered') {
-        expect(revealed.has(model.id), model.id).toBe(true);
+        expect(reachable.has(model.id), model.id).toBe(true);
       }
       if (model.access.kind === 'tile') {
         expect(startingTiles.map((tile) => tile.id)).toContain(model.access.tileId);
@@ -289,11 +309,11 @@ describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', 
     }
   });
 
-  it('a captura só está marcada onde alguém prende: no Resgate e nas Ruínas', () => {
+  it('a captura só está marcada onde alguém prende: no Resgate, nas Ruínas e no Pântano', () => {
     const capturing = expeditionModels
       .filter((model) => stagesOf(model).some((node) => node.trial?.onDisaster === 'capture'))
       .map((model) => model.id);
-    expect(capturing).toEqual(['rescue', 'ruins']);
+    expect(capturing).toEqual(['rescue', 'ruins', 'swamp']);
   });
 
   it('o schema recusa prova sem experiência, recompensa vazia, chance acima de 1, item repetido e acesso desconhecido', () => {
@@ -329,7 +349,7 @@ describe('os modelos provisórios dos desfechos (ADR 0018, decisões 12 e 14)', 
     for (const model of expeditionModels) {
       for (const node of stagesOf(model)) {
         expect(node.durationMs).toBeGreaterThanOrEqual(5 * MINUTE);
-        expect(node.durationMs).toBeLessThanOrEqual(45 * MINUTE);
+        expect(node.durationMs).toBeLessThanOrEqual(60 * MINUTE);
       }
     }
   });

@@ -159,12 +159,20 @@ export const EXPEDITION_DISASTER_IDS = ['injury', 'capture'] as const;
 export type ExpeditionDisasterId = (typeof EXPEDITION_DISASTER_IDS)[number];
 
 /**
- * Os modelos de expedição (GDD §9.3; ADR 0018, decisão 12). O id fica gravado no estado
- * (`guild.expeditions[].modelId`, `guild.reports[].modelId`): mudar um deles pede passo de
- * migração. **Os grafos desta lista são provisórios** (V3D-T1): o catálogo de verdade, com os
- * seis modelos, é de V3D-T3. A ficha de cada um está em `expeditionModels`.
+ * Os modelos de expedição (GDD §9.3; ADR 0018, decisão 12): os seis da v0.3 (V3D-T3). O id fica
+ * gravado no estado (`guild.expeditions[].modelId`, `guild.reports[].modelId`,
+ * `map.discovered`), e com ele a variante, a chave do nó e a da opção: **são estáveis**, fixados
+ * em `expeditions.test.ts`, e mudar um deles pede passo de migração. A ficha de cada um está em
+ * `expeditionModels`.
  */
-export const EXPEDITION_MODEL_IDS = ['patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins'] as const;
+export const EXPEDITION_MODEL_IDS = [
+  'patrol',
+  'oldForest',
+  'wolfDen',
+  'rescue',
+  'ruins',
+  'swamp',
+] as const;
 export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];
 
 /** A gravidade de um ferimento de herói (ADR 0017, decisão 8): leve no Revés, grave no Desastre. */

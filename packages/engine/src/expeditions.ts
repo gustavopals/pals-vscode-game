@@ -11,6 +11,7 @@ import {
   expeditionTexts,
   type ExpeditionVariant,
   heroClasses,
+  heroTraits,
   POSTURE_IDS,
   type PostureId,
   type Ratio,
@@ -161,6 +162,8 @@ export function logEntry(
     cleared: null,
     rescued: null,
     lootLost: false,
+    standout: null,
+    lesson: null,
   };
 }
 
@@ -228,14 +231,23 @@ export function powerAgainst(
 
 /**
  * Por que a equipe não pode tomar uma opção de encruzilhada, sem ponto ("requer um Guerreiro na
- * equipe"), ou `null` quando pode.
+ * equipe", "requer na equipe alguém com o traço Rastreador"), ou `null` quando pode.
  */
 export function optionLock(team: readonly Hero[], option: ExpeditionOption): string | null {
-  const needed = option.requires?.heroClass;
-  if (needed === undefined || team.some((hero) => hero.classId === needed)) {
+  const { requires } = option;
+  if (requires === undefined) {
     return null;
   }
-  return fillText(expeditionTexts.optionNeedsClass, { classe: `um ${heroClasses[needed].label}` });
+  if ('trait' in requires) {
+    const { trait } = requires;
+    return team.some((hero) => hero.traits.includes(trait))
+      ? null
+      : fillText(expeditionTexts.optionNeedsTrait, { traco: heroTraits[trait].label });
+  }
+  const needed = requires.heroClass;
+  return team.some((hero) => hero.classId === needed)
+    ? null
+    : fillText(expeditionTexts.optionNeedsClass, { classe: `um ${heroClasses[needed].label}` });
 }
 
 /** O que a Postura faz em uma encruzilhada: a opção que vale, a marcada e se valeu a reserva. */

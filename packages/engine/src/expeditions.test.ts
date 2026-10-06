@@ -480,7 +480,8 @@ describe('o percurso por eventos da linha do tempo', () => {
       crossroads: null,
     });
     expect(entry).toMatchObject({ nodeId: 'fences', atMs: 10 * MINUTE, optionId: null });
-    // Um Guerreiro de nível 1 contra dificuldade 30: Sucesso ou Sucesso Pleno em toda sorte.
+    // Um Guerreiro de nível 1 contra dificuldade 36: Sucesso ou Sucesso Pleno em 30 das 31
+    // sortes, e nesta semente é uma delas.
     expect(['full', 'success']).toContain(entry?.outcome);
     const found = entry?.gained.gold ?? 0;
     expect(found).toBeGreaterThanOrEqual(15);
@@ -493,9 +494,11 @@ describe('o percurso por eventos da linha do tempo', () => {
       found_gold: found,
     });
     // A frase é a do desfecho, do conteúdo.
+    // A frase é a do desfecho, do conteúdo, e diz quem se destacou: a única da patrulha.
     expect(nodeEvent?.text).toMatch(
-      /^No 1º dia da Primavera, a patrulha de Pedra Alta deu a volta/,
+      /^No 1º dia da Primavera, Edda (deu a volta nas|chegou tarde às) cercas de Pedra Alta/,
     );
+    expect(entry?.standout).toBe('Edda');
     // O fluxo dela nasceu no primeiro sorteio, e só ele.
     expect(Object.keys(resolved.state.rng)).toEqual(['expedition:expedition-1']);
     // O saque ainda não entrou: a equipe está no caminho de volta.
@@ -818,6 +821,8 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
       decidedBy: 'player',
       gained: { food: 0, wood: 0, stone: 0, gold: 0 },
       xp: 0,
+      standout: null,
+      lesson: null,
       harm: null,
       leveled: [],
       found: [],
@@ -965,8 +970,12 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
           for (const classId of ['warrior', 'archer', 'mage', 'cleric'] as const) {
             for (const posture of ['cautious', 'balanced', 'bold'] as const) {
               const choice = postureChoice([hero({ classId })], node, posture);
-              const needed = choice?.option.requires?.heroClass;
-              expect(needed === undefined || needed === classId).toBe(true);
+              const requires = choice?.option.requires;
+              // O herói do teste não tem traço: uma opção que pede um nunca é a que vale.
+              expect(
+                requires === undefined ||
+                  ('heroClass' in requires && requires.heroClass === classId),
+              ).toBe(true);
             }
           }
         }
@@ -1072,16 +1081,20 @@ describe('duas expedições ao mesmo tempo, e uma terceira no meio (QA-07)', () 
     const third = send(second.state, 'patrol', ['hero-3'], 'balanced', 0);
     const done = advanceTo(third.state, HOUR);
     const mine = ofExpeditions(done.events);
-    expect(mine.map((event) => [event.atMs / MINUTE, event.type, event.data.expeditionId])).toEqual(
-      [
-        [10, 'expeditionNodeResolved', 'expedition-1'],
-        [10, 'expeditionNodeResolved', 'expedition-2'],
-        [10, 'expeditionNodeResolved', 'expedition-3'],
-        [15, 'expeditionReturned', 'expedition-1'],
-        [15, 'expeditionReturned', 'expedition-2'],
-        [15, 'expeditionReturned', 'expedition-3'],
-      ],
-    );
+    // A ronda pelas cercas pode dar Revés a quem não é Guerreiro: o tipo do evento muda, a
+    // ordem não.
+    const kind = (event: GameEvent) =>
+      event.type === 'expeditionNodeFailed' ? 'expeditionNodeResolved' : event.type;
+    expect(
+      mine.map((event) => [event.atMs / MINUTE, kind(event), event.data.expeditionId]),
+    ).toEqual([
+      [10, 'expeditionNodeResolved', 'expedition-1'],
+      [10, 'expeditionNodeResolved', 'expedition-2'],
+      [10, 'expeditionNodeResolved', 'expedition-3'],
+      [15, 'expeditionReturned', 'expedition-1'],
+      [15, 'expeditionReturned', 'expedition-2'],
+      [15, 'expeditionReturned', 'expedition-3'],
+    ]);
     // Três fluxos, três sortes: não é a mesma sequência repetida.
     const found = done.state.guild.reports.map((report) => report.loot.resources.gold);
     expect(found).toHaveLength(3);
@@ -1329,10 +1342,21 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         teamMin: 1,
         teamMax: 1,
         teamMinLevel: 1,
-        firstStretchDifficulty: 30,
+        firstStretchDifficulty: 36,
+        // 36 ÷ 0,85 = 42,4: com 43 nem a pior sorte tira o Sucesso; 36 × 0,7 ÷ 0,85 = 29,6.
+        fit: {
+          comfortPower: 43,
+          riskPower: 30,
+          text: 'Contra o primeiro trecho, com 43 de poder a equipe passa com folga; abaixo de 30, arrisca um Desastre.',
+        },
+        // Edda, Guerreira, e Rolf, Arqueiro, contra a ronda (os pesos de sempre).
+        heroFit: [
+          { heroId: 'hero-1', power: 42 },
+          { heroId: 'hero-2', power: 36 },
+        ],
         locked: false,
         lockedReason: null,
-        firstStretchText: 'A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta.',
+        firstStretchText: 'A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.',
       },
       {
         modelId: 'oldForest',
@@ -1345,6 +1369,12 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         teamMax: 2,
         teamMinLevel: 1,
         firstStretchDifficulty: null,
+        // Sem prova à vista não há régua: o poder de cada um é o da ficha.
+        fit: null,
+        heroFit: [
+          { heroId: 'hero-1', power: 42 },
+          { heroId: 'hero-2', power: 36 },
+        ],
         locked: false,
         lockedReason: null,
         firstStretchText:
@@ -1422,6 +1452,8 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
           text: `No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe ${wood} de madeira.`,
           outcomeLabel: 'Sem incidentes',
           notes: [],
+          standoutName: null,
+          lessonText: null,
         },
       ],
       crossroads: {
@@ -1436,14 +1468,14 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
           {
             id: 'thicket',
             label: 'Abrir caminho pela mata fechada',
-            hint: 'Madeira boa e pegadas grandes; é preciso quem abra o caminho no braço.',
+            hint: 'A melhor madeira do bosque, e pegadas grandes na lama; é serviço para mais de um, com quem abra o caminho no braço.',
             locked: false,
             lockedReason: null,
           },
           {
             id: 'stream',
             label: 'Seguir o riacho',
-            hint: 'Chão escorregadio e alguma lenha; quem tem perícia passa melhor.',
+            hint: 'Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.',
             locked: false,
             lockedReason: null,
           },
@@ -1475,7 +1507,19 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       ['A trilha sob os carvalhos', 'Sem incidentes'],
       ['A trilha se divide', 'Caminho escolhido'],
       ['O javali da mata fechada', expect.stringMatching(/^(Revés|Desastre)$/)],
+      // Quem voltou tem o caminho de volta como último passo.
+      ['A volta pela trilha', 'Sem incidentes'],
     ]);
+    // O passo do javali diz quem se destacou e o que o desfecho ensina: Edda foi sozinha, sem
+    // traço nem item no arsenal, e é Guerreira (a classe que o nó pede): faltou força.
+    expect(report?.log[2]).toMatchObject({
+      standoutName: 'Edda',
+      lessonText: expeditionTexts.lessonStrength,
+    });
+    expect(report?.log[2]?.text).toContain('Edda');
+    expect(report?.log[2]?.text).toContain(expeditionTexts.lessonStrength);
+    expect(report?.lossesText).toMatch(/^O preço: Edda, com um ferimento (leve|grave)\.$/);
+    expect(report?.deedsText).toBeNull();
     expect(report?.log[1]?.text).toBe(
       'Sem palavra do senhor, a Postura Ousada decidiu: Abrir caminho pela mata fechada.',
     );
@@ -1564,7 +1608,8 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
           0,
           (draft) => {
             for (let count = 0; count < model.requires.teamMin; count += 1) {
-              addHero(draft, { level: 3 });
+              // As classes que o modelo exige primeiro (o Pântano pede um Mago).
+              addHero(draft, { level: 3, classId: model.requires.classes[count] ?? 'warrior' });
             }
             everyDestinationOpen(draft);
           },

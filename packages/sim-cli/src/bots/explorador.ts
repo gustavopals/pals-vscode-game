@@ -15,7 +15,7 @@ import { botOf, type Bot, type Policy } from './types';
  * Bot explorador: o perfil do GDD §15.3 que cuida do feudo como o econômico e, além disso, usa a
  * Guilda. As políticas dele são as do `economico`, na mesma ordem, **mais** as que cada mecânica
  * da v0.3 traz (roadmap da v0.3, §0.5). Hoje, as da Taverna (V3C-T2), as das expedições
- * (V3D-T1) e as dos desfechos (V3D-T2):
+ * (V3D-T1), as dos desfechos (V3D-T2) e as do catálogo (V3D-T3):
  *
  * - **erguer a Guilda**: quando há um herói a quem enviar; e melhorá-la quando há mais gente
  *   livre do que lugares. Só o explorador a ergue: nos outros bots ela fica fora da corrida das
@@ -23,12 +23,14 @@ import { botOf, type Bot, type Policy } from './types';
  * - **contratar**: enquanto o ouro pagar o preço de um candidato e 24 horas reais de soldo da
  *   equipe já com ele;
  * - **dar festival**: um por estação, quando o estoque paga três vezes o custo;
- * - **escolher o caminho**: na encruzilhada que encontra, a opção que a Postura tomaria;
+ * - **escolher o caminho**: responde a metade das encruzilhadas que encontra (o caminho do meio,
+ *   às vezes o mais ambicioso, o seguro com alguém ferido) e deixa a outra metade para a
+ *   Postura, que decide no fim do prazo (V3D-T3);
  * - **equipar o melhor item**: o que soma mais vai para o herói mais forte que ganha com ele
  *   (V3D-T2);
- * - **enviar expedições**: o destino mais difícil que a equipe passa com folga (as Ruínas, o
- *   Resgate quando há um cativo, o Covil dos Lobos com dois heróis) e, sem nenhum, o primeiro
- *   aberto; quem está ferido não vai.
+ * - **enviar expedições**: a de maior recompensa que a equipe passa com folga, pelo que a tela
+ *   diz do primeiro trecho (o poder de cada herói contra a prova e o poder que dá folga); sem
+ *   nenhuma, o primeiro destino aberto; quem está ferido não vai (V3D-T3).
  *
  * As próximas (vender no Mercado, mandar caravanas) entram com a Fase E.
  *

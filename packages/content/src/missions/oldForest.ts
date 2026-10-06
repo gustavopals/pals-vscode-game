@@ -7,12 +7,17 @@ import type {
 
 /**
  * "Floresta Antiga" (GDD §9.3; ADR 0018, decisão 12): uma hora de jogo, três nós, um ou dois
- * heróis, risco de baixo a médio. **Grafo provisório de V3D-T1**: uma encruzilhada de três
- * opções, uma delas com requisito de classe, para a máquina das expedições ter onde parar,
- * esperar e deixar a Postura decidir. As duas primeiras variantes têm o mesmo primeiro trecho e
- * a mesma encruzilhada, com ramos diferentes adiante: é o que o teste de névoa usa (duas
- * expedições iguais até a encruzilhada dão a mesma visão). O catálogo de verdade é de V3D-T3.
- * Rascunho que o autor não leu.
+ * heróis, risco de baixo a médio. Rende madeira, algum ouro e, na mata fechada, um item comum.
+ *
+ * É a primeira encruzilhada do jogo, e a lição dela é **a equipe decide o caminho**: o caminho
+ * de quem vai sozinho (o riacho, o barranco) não é o de quem vai em dupla (a mata fechada, que
+ * pede um Guerreiro e é demais para um só), e o ninho é de Arqueiro. Voltar com o que já se tem
+ * é a escolha de quem foi sem a classe certa.
+ *
+ * As duas primeiras variantes têm o mesmo primeiro trecho e a mesma encruzilhada, com ramos
+ * diferentes adiante: antes da encruzilhada o jogador não sabe em qual das duas está (é o que o
+ * teste de névoa usa). A ficha de cada grafo está em `docs/content-v0.3.md`. Rascunho que o
+ * autor não leu.
  */
 
 const MINUTE_MS = 60_000;
@@ -34,14 +39,14 @@ const fork: ExpeditionCrossroadsNode = {
     {
       id: 'thicket',
       label: 'Abrir caminho pela mata fechada',
-      hint: 'Madeira boa e pegadas grandes; é preciso quem abra o caminho no braço.',
+      hint: 'A melhor madeira do bosque, e pegadas grandes na lama; é serviço para mais de um, com quem abra o caminho no braço.',
       requires: { heroClass: 'warrior' },
       next: 'deepWoods',
     },
     {
       id: 'stream',
       label: 'Seguir o riacho',
-      hint: 'Chão escorregadio e alguma lenha; quem tem perícia passa melhor.',
+      hint: 'Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.',
       next: 'glade',
     },
     {
@@ -80,16 +85,18 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 55,
-            xp: 20,
+            xp: 22,
             onDisaster: 'injury',
+            helps: 'warrior',
+            lesson: 'Um Guerreiro teria aguentado a carga do javali de frente.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} abateu o javali da mata fechada e cortou a melhor madeira do bosque.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} abateu o javali da mata fechada, e a expedição de {feudo} cortou a melhor madeira do bosque.',
               success:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} espantou o javali da mata fechada e trabalhou em paz.',
+                'No {dia}º dia {daEstacao}, {heroi} espantou o javali da mata fechada, e a expedição de {feudo} trabalhou em paz.',
               setback:
-                'No {dia}º dia {daEstacao}, o javali da mata fechada dispersou a expedição de {feudo}: metade da madeira ficou para trás.',
+                'No {dia}º dia {daEstacao}, o javali da mata fechada passou por {heroi} e dispersou a expedição de {feudo}: metade da madeira ficou para trás.',
               disaster:
-                'No {dia}º dia {daEstacao}, o javali da mata fechada pôs a expedição de {feudo} para correr, sem uma tora sequer.',
+                'No {dia}º dia {daEstacao}, o javali da mata fechada derrubou {heroi} e pôs a expedição de {feudo} para correr, sem uma tora sequer.',
             },
           },
           rewards: {
@@ -106,18 +113,20 @@ export const oldForest: ExpeditionModelDef = {
           title: 'As pedras do riacho',
           durationMs: 25 * MINUTE_MS,
           trial: {
-            difficulty: 36,
-            xp: 20,
-            weights: { skill: { num: 1, den: 2 } },
+            difficulty: 46,
+            xp: 22,
+            weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
+            helps: 'archer',
+            lesson: 'Um Arqueiro teria escolhido as pedras secas.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} passou as pedras do riacho sem um escorregão e achou uma clareira de troncos secos.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} passou as pedras do riacho sem um escorregão e achou do outro lado uma clareira de troncos secos.',
               success:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} passou as pedras do riacho e encheu os ombros de lenha.',
+                'No {dia}º dia {daEstacao}, {heroi} passou as pedras do riacho, e a expedição de {feudo} encheu os ombros de lenha.',
               setback:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} escorregou nas pedras do riacho e perdeu metade da carga na água.',
+                'No {dia}º dia {daEstacao}, {heroi} escorregou nas pedras do riacho, e metade da carga foi para a água.',
               disaster:
-                'No {dia}º dia {daEstacao}, as pedras do riacho derrubaram a expedição de {feudo}, e a carga desceu com a correnteza.',
+                'No {dia}º dia {daEstacao}, as pedras do riacho derrubaram {heroi}, e a carga inteira desceu com a correnteza.',
             },
           },
           rewards: { resources: { wood: { min: 40, max: 60 } } },
@@ -137,16 +146,18 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 58,
-            xp: 20,
+            xp: 22,
             onDisaster: 'injury',
+            helps: 'warrior',
+            lesson: 'Um Guerreiro teria feito os lenhadores pensarem duas vezes.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} fez os lenhadores sem senhor largarem os machados e a pilha de toras.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} encarou os lenhadores sem senhor da mata fechada, e eles largaram os machados e a pilha de toras.',
               success:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} dividiu a mata com os lenhadores sem senhor, à força de cara feia.',
+                'No {dia}º dia {daEstacao}, {heroi} dividiu a mata fechada com os lenhadores sem senhor, à força de cara feia.',
               setback:
-                'No {dia}º dia {daEstacao}, os lenhadores sem senhor ficaram com a melhor parte, e a expedição de {feudo}, com as sobras.',
+                'No {dia}º dia {daEstacao}, os lenhadores sem senhor não se assustaram com {heroi}: ficaram com a melhor parte, e a expedição de {feudo}, com as sobras.',
               disaster:
-                'No {dia}º dia {daEstacao}, os lenhadores sem senhor tomaram da expedição de {feudo} até o que ela trazia.',
+                'No {dia}º dia {daEstacao}, os lenhadores sem senhor cercaram {heroi} e tomaram da expedição de {feudo} até o que ela já trazia.',
             },
           },
           rewards: { resources: { wood: { min: 70, max: 100 }, gold: { min: 10, max: 20 } } },
@@ -194,7 +205,7 @@ export const oldForest: ExpeditionModelDef = {
             {
               id: 'leave',
               label: 'Dar meia-volta',
-              hint: 'Sem risco; voltam de mãos quase vazias.',
+              hint: 'Sem risco; voltam de mãos vazias.',
               next: 'home',
             },
           ],
@@ -205,21 +216,29 @@ export const oldForest: ExpeditionModelDef = {
           title: 'O ninho no alto',
           durationMs: 25 * MINUTE_MS,
           trial: {
-            difficulty: 40,
-            xp: 20,
-            weights: { skill: { num: 1, den: 1 } },
+            difficulty: 50,
+            xp: 22,
+            weights: { skill: { num: 3, den: 2 } },
             onDisaster: 'injury',
+            helps: 'archer',
+            lesson: 'Um Arqueiro teria achado os galhos que aguentam o peso.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} subiu ao ninho do tronco oco e desceu com o que a gralha tinha juntado em anos.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} subiu ao ninho do tronco oco e desceu com tudo o que a gralha tinha juntado em anos.',
               success:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} alcançou o ninho do tronco oco e trouxe as moedas da gralha.',
+                'No {dia}º dia {daEstacao}, {heroi} alcançou o ninho do tronco oco e trouxe as moedas da gralha.',
               setback:
-                'No {dia}º dia {daEstacao}, um galho cedeu sob a expedição de {feudo}, e metade do achado do ninho ficou no mato.',
+                'No {dia}º dia {daEstacao}, um galho cedeu sob {heroi}, e metade do achado do ninho ficou no mato.',
               disaster:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} despencou do tronco oco antes de tocar o ninho.',
+                'No {dia}º dia {daEstacao}, {heroi} despencou do tronco oco antes de tocar o ninho.',
             },
           },
-          rewards: { resources: { gold: { min: 30, max: 50 } } },
+          rewards: {
+            resources: { gold: { min: 30, max: 50 } },
+            item: {
+              chance: { num: 1, den: 2 },
+              from: ['huntingSpear', 'paddedJerkin', 'luckyCharm'],
+            },
+          },
           next: 'home',
         },
         ravineFloor: {
@@ -227,17 +246,19 @@ export const oldForest: ExpeditionModelDef = {
           title: 'O fundo do barranco',
           durationMs: 25 * MINUTE_MS,
           trial: {
-            difficulty: 38,
-            xp: 20,
+            difficulty: 40,
+            xp: 22,
             onDisaster: 'injury',
+            helps: 'warrior',
+            lesson: 'Um Guerreiro teria ficado entre o urso e a carga.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} achou o fundo do barranco vazio e os troncos prontos para levar.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} desceu na frente e achou o fundo do barranco vazio, com os troncos prontos para levar.',
               success:
-                'No {dia}º dia {daEstacao}, a expedição de {feudo} afugentou o urso do barranco e levou os troncos.',
+                'No {dia}º dia {daEstacao}, {heroi} afugentou o urso do barranco, e a expedição de {feudo} levou os troncos.',
               setback:
-                'No {dia}º dia {daEstacao}, o urso do barranco só deixou a expedição de {feudo} sair com metade dos troncos.',
+                'No {dia}º dia {daEstacao}, o urso do barranco avançou sobre {heroi} e só deixou a expedição de {feudo} sair com metade dos troncos.',
               disaster:
-                'No {dia}º dia {daEstacao}, o urso do barranco expulsou a expedição de {feudo}, que largou tudo na subida.',
+                'No {dia}º dia {daEstacao}, o urso do barranco derrubou {heroi} e expulsou a expedição de {feudo}, que largou tudo na subida.',
             },
           },
           rewards: { resources: { wood: { min: 50, max: 70 } } },

@@ -21,7 +21,7 @@ import {
   deliverCard,
   DRAW_INTERVAL_MS,
 } from './council';
-import { modelOf, nextVariant } from './expeditions';
+import { isPosture, modelOf, nextVariant } from './expeditions';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { nextId } from './ids';
@@ -349,6 +349,50 @@ export function send(
 }
 
 /**
+ * Leva uma expedição em curso (a primeira, ou a do identificador dado) até a encruzilhada do
+ * grafo e responde por ela: a opção dada, a que uma Postura marca (`'cautious'`, `'balanced'`,
+ * `'bold'`) ou, sem nada, a que a Postura da expedição marca. Devolve o estado logo depois da escolha, os
+ * eventos do caminho e o instante da chegada. Para os testes que querem o que há além da
+ * encruzilhada sem esperar o prazo.
+ */
+export function throughCrossroads(
+  state: GameState,
+  optionId?: string,
+  expeditionId?: string,
+): { state: GameState; events: GameEvent[]; arrivedAt: number } {
+  let current = state;
+  const events: GameEvent[] = [];
+  for (let steps = 0; steps < 10; steps += 1) {
+    const expedition = current.guild.expeditions.find(
+      (entry) => expeditionId === undefined || entry.id === expeditionId,
+    );
+    if (expedition === undefined) {
+      throw new Error('Não há expedição em curso.');
+    }
+    if (expedition.crossroads !== null) {
+      const node = modelOf(expedition.modelId)?.variants[expedition.variant]?.nodes[
+        expedition.nodeId
+      ];
+      const how = isPosture(optionId) ? optionId : expedition.posture;
+      const marked = node?.kind === 'crossroads' ? node.posture[how] : '';
+      const arrivedAt = current.lastProcessedAt;
+      const chosen = accept(
+        current,
+        command('chooseExpeditionPath', {
+          expeditionId: expedition.id,
+          optionId: optionId === undefined || isPosture(optionId) ? marked : optionId,
+        }),
+      );
+      return { state: chosen.state, events: [...events, ...chosen.events], arrivedAt };
+    }
+    const advanced = advanceTo(current, expedition.nodeEndsAtMs ?? current.lastProcessedAt);
+    current = advanced.state;
+    events.push(...advanced.events);
+  }
+  throw new Error('A expedição não chegou a uma encruzilhada.');
+}
+
+/**
  * A Guilda dos Aventureiros recém-inaugurada, pelo caminho do jogo: a ordem da obra no canteiro
  * (`tavernSite`) e o avanço até o instante exato em que ela fica pronta. Devolve o estado e esse
  * instante.
@@ -540,13 +584,13 @@ export function heroCapturedScenario(): GameState {
     { seed: 'fixture-hero-captured' },
   );
   const sent = send(start, 'ruins', ['hero-1', 'hero-2'], 'balanced', 0).state;
-  const crypt = expeditionAtNode(weakened(sent, ['hero-1', 'hero-2']), 'crypt');
+  const crypt = expeditionAtNode(weakened(sent, ['hero-1', 'hero-2']), 'stoneGuardian');
   return advanceTo(crypt.state, crypt.endsAt + 50 * MINUTE + 321).state;
 }
 
 /**
- * O Covil de Lobos limpo, com a Torre de Vigia de pé: Edda e Rolf, de nível 10, venceram a toca
- * (Sucesso Pleno certo), a Ameaça caiu e o tile parou de somar. A equipe já voltou; o relatório
+ * O Covil de Lobos limpo, com a Torre de Vigia de pé: Edda e Rolf, de nível 10, enfumaçaram a toca
+ * por ordem do senhor (Sucesso Pleno certo), a Ameaça caiu e o tile parou de somar. A equipe já voltou; o relatório
  * está guardado. Parado no dia seguinte, no meio de um trecho.
  */
 export function denClearedScenario(): GameState {
@@ -562,7 +606,9 @@ export function denClearedScenario(): GameState {
     { seed: 'fixture-den-cleared', timeScale: 0.5 },
   );
   const sent = send(start, 'wolfDen', ['hero-1', 'hero-2'], 'bold', 0);
-  return advanceTo(sent.state, sent.state.lastProcessedAt + 3 * HOUR + 654).state;
+  // Na boca da toca, o senhor manda enfumaçá-la: o caminho do meio, que limpa o Covil.
+  const chosen = throughCrossroads(sent.state, 'smokeOut');
+  return advanceTo(chosen.state, sent.state.lastProcessedAt + 3 * HOUR + 654).state;
 }
 
 /**

@@ -71,6 +71,7 @@ import {
   HERO_STATUS_IDS_V17,
   POSTURE_IDS_V17,
 } from './migrations/v17';
+import { EXPEDITION_LESSON_KINDS_V19 } from './migrations/v19';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -86,7 +87,7 @@ import {
   runWeekScenario,
 } from './test-helpers';
 import { nextEventAt } from './timeline';
-import type { BuildingId, GameEvent, GameState } from './types';
+import type { BuildingId, ExpeditionLessonKind, GameEvent, GameState } from './types';
 import { REJECTION_CODES } from './types';
 import { deriveViewState } from './view';
 
@@ -139,8 +140,43 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
-/** Tira de um estado, no lugar, o que o passo 17 → 18 acrescenta. */
+/** Tira de um estado, no lugar, o que o passo 18 → 19 acrescenta: o destaque e a lição de cada registro. */
+function stripReport(copy: Draft): void {
+  if (copy.guild === undefined) {
+    return;
+  }
+  for (const journey of [
+    ...((copy.guild.expeditions ?? []) as Draft[]),
+    ...((copy.guild.reports ?? []) as Draft[]),
+  ]) {
+    for (const entry of journey.log as Draft[]) {
+      delete entry.standout;
+      delete entry.lesson;
+    }
+  }
+}
+
+/**
+ * Um estado como a versão 18 o gravava, a partir de um da versão atual: sem quem se destacou e
+ * sem a lição em cada registro do percurso.
+ */
+function asVersion18(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 18;
+  stripReport(old);
+  return old;
+}
+
+/** O que o passo 18 → 19 acrescenta a toda partida, tirado de um estado migrado. */
+function withoutReport<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  stripReport(copy);
+  return copy as T;
+}
+
+/** Tira de um estado, no lugar, o que o passo 17 → 18 acrescenta (e, com ele, o do 18 → 19). */
 function stripOutcomes(copy: Draft): void {
+  stripReport(copy);
   if (copy.map !== undefined) {
     delete copy.map.discovered;
   }
@@ -637,6 +673,44 @@ const FROZEN: Record<string, string> = {
   'state-v17-wage-arrears-resumed.json': '8cb9d17d',
   'state-v17-wage-arrears.json': 'cc3b8d30',
   'state-v17-week-scripted.json': '36025a0e',
+  'state-v18-cold.json': 'cfa20556',
+  'state-v18-construction.json': '5e2bef3b',
+  'state-v18-council-hidden.json': '66b61d1a',
+  'state-v18-council.json': 'cc71b8f2',
+  'state-v18-crafts.json': '8286854f',
+  'state-v18-den-cleared.json': 'cb885c5c',
+  'state-v18-expedition-crossroads.json': 'ff1684af',
+  'state-v18-expedition-returning.json': '5d002fa6',
+  'state-v18-expedition.json': '1a589ff6',
+  'state-v18-famine-3x.json': '73b980d7',
+  'state-v18-famine-ended.json': 'fbb8bb6d',
+  'state-v18-famine-half.json': '0ce2d748',
+  'state-v18-famine-resumed.json': 'd34c1c73',
+  'state-v18-famine.json': '22a2b5d3',
+  'state-v18-fresh.json': '582a6d22',
+  'state-v18-guild.json': 'fc004220',
+  'state-v18-hero-captured.json': '6313dfd7',
+  'state-v18-hero-injured.json': '96668071',
+  'state-v18-hero-promised.json': '140a86c3',
+  'state-v18-iron-king-half.json': 'b57a32b0',
+  'state-v18-migrated-3x.json': 'ac520711',
+  'state-v18-migrated-iron-king-half.json': '149bc93b',
+  'state-v18-migrated-peasant-3x.json': 'c91135f0',
+  'state-v18-morale.json': 'd77fe827',
+  'state-v18-objectives.json': '4d435947',
+  'state-v18-palisade.json': '0cb75a8b',
+  'state-v18-peasant-3x.json': 'ebe6f01b',
+  'state-v18-queues.json': '5ac6e823',
+  'state-v18-raid-announced.json': '2d1f5d66',
+  'state-v18-raid.json': '180f1343',
+  'state-v18-storage.json': '55bd699d',
+  'state-v18-tavern-busy.json': 'fa6df009',
+  'state-v18-tavern.json': 'b4391c8c',
+  'state-v18-threat.json': 'c20fb376',
+  'state-v18-wage-arrears-ended.json': '2b6d4bb4',
+  'state-v18-wage-arrears-resumed.json': 'e6e339f4',
+  'state-v18-wage-arrears.json': '7e149885',
+  'state-v18-week-scripted.json': '6c05a807',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -4329,5 +4403,152 @@ describe('versão 17 → 18', () => {
     expect(() => migrateState(armed, { timeScale: 1 })).toThrow(
       /guild\.heroes\.0\.equipment: campo desconhecido/,
     );
+  });
+});
+
+describe('versão 18 → 19', () => {
+  const version18 = fixtures.filter((fixture) => fixture.version === 18);
+  const withJourneys = version18.filter((fixture) => {
+    const { guild } = read(fixture) as Draft;
+    return guild.expeditions.length + guild.reports.length > 0;
+  });
+
+  it('há retratos da versão 18 com expedição em curso, com relatório e com um nó que deu errado', () => {
+    expect(withJourneys.length).toBeGreaterThan(2);
+    const entries = withJourneys.flatMap((fixture) => {
+      const { guild } = read(fixture) as Draft;
+      return [...guild.expeditions, ...guild.reports].flatMap(
+        (journey: Draft) => journey.log as Draft[],
+      );
+    });
+    expect(entries.some((entry) => entry.outcome === 'setback')).toBe(true);
+    expect(entries.some((entry) => entry.outcome === 'chosen')).toBe(true);
+    expect(entries.some((entry) => entry.outcome === 'passed')).toBe(true);
+  });
+
+  it('os tipos de lição da forma são os do motor', () => {
+    const kinds: ExpeditionLessonKind[] = ['class', 'posture', 'item', 'strength'];
+    expect(EXPEDITION_LESSON_KINDS_V19).toEqual(kinds);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v18-fresh.json'));
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version18)(
+    '$name: só acrescenta a cada registro do percurso o destaque e a lição, vazios',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      for (const journey of [...after.guild.expeditions, ...after.guild.reports]) {
+        for (const entry of journey.log) {
+          // Nada é reconstituído: a versão 18 não escolhia quem se destacava.
+          expect(entry.standout).toBeNull();
+          expect(entry.lesson).toBeNull();
+        }
+      }
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, herói, expedição ou
+      // relatório muda, ninguém ganha identificador e o gerador fica palavra por palavra.
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect({ ...withoutReport(after), schemaVersion: 18 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version18)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('expedition'))).toEqual([]);
+      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(atBoundary.state.rng).toStrictEqual(before.rng);
+    },
+  );
+
+  it.each(withJourneys)(
+    '$name: a expedição em curso termina pelas regras novas, e o relatório antigo continua legível',
+    (fixture) => {
+      const state = migrated(fixture);
+      // O relatório gravado pela versão 18 não tem destaque: a visão não deixa lacuna à vista.
+      const view = deriveViewState(state, state.lastProcessedAt);
+      const texts = [...view.guild.reports, ...view.guild.expeditions].flatMap((journey) =>
+        journey.log.map((step) => step.text),
+      );
+      for (const text of texts) {
+        expect(text).not.toMatch(/[{}]/);
+      }
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month);
+      // Toda expedição que estava em curso voltou ou se perdeu: nenhuma fica presa, mesmo com o
+      // grafo trocado debaixo dela (o catálogo mudou na mesma tarefa).
+      for (const expedition of state.guild.expeditions) {
+        expect(later.state.guild.expeditions.map((entry) => entry.id)).not.toContain(expedition.id);
+        const ended = later.events.filter(
+          (event) =>
+            (event.type === 'expeditionReturned' || event.type === 'expeditionLost') &&
+            event.data.expeditionId === expedition.id,
+        );
+        expect(ended).toHaveLength(1);
+      }
+      expect(currentShape(JSON.parse(JSON.stringify(later.state)), '')).toBeNull();
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion18(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 18 que já traz os campos da 19 é recusado, e a 19 recusa o destaque fora de uma prova e a lição fora de um desfecho ruim', () => {
+    const journey = read(named('state-v18-hero-injured.json')) as Draft;
+    const entry = journey.guild.reports[0].log.find((step: Draft) => step.outcome === 'setback');
+    expect(entry).toBeDefined();
+    entry.standout = 'Edda';
+    expect(() => migrateState(journey, { timeScale: 3 })).toThrow(/standout: campo desconhecido/);
+    const current = migrated(named('state-v18-hero-injured.json'));
+    const broken = (edit: (step: Draft) => void, outcome: string): string | null => {
+      const copy = JSON.parse(JSON.stringify(current)) as Draft;
+      edit(copy.guild.reports[0].log.find((step: Draft) => step.outcome === outcome));
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined, 'setback')).toBeNull();
+    expect(broken((step) => (step.standout = 'Edda'), 'setback')).toBeNull();
+    expect(
+      broken(
+        (step) => (step.lesson = { kind: 'strength', heroName: null, posture: null }),
+        'setback',
+      ),
+    ).toBeNull();
+    expect(broken((step) => (step.standout = 'Edda'), 'chosen')).toMatch(/standout/);
+    expect(
+      broken((step) => (step.lesson = { kind: 'class', heroName: null, posture: null }), 'passed'),
+    ).toMatch(/lesson/);
+    expect(
+      broken((step) => (step.lesson = { kind: 'luck', heroName: null, posture: null }), 'setback'),
+    ).toMatch(/lesson\.kind/);
+    expect(
+      broken((step) => (step.lesson = { kind: 'item', heroName: null, posture: null }), 'setback'),
+    ).toMatch(/lesson\.heroName/);
+    expect(
+      broken(
+        (step) => (step.lesson = { kind: 'posture', heroName: 'Edda', posture: null }),
+        'setback',
+      ),
+    ).toMatch(/lesson\.posture/);
   });
 });

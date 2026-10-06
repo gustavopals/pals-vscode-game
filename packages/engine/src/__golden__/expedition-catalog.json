@@ -1,0 +1,392 @@
+{
+ "patrol": {
+  "variant": "C",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Patrulha dos Arredores. A equipe: Edda.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Edda seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. O cofre ainda estava lá.",
+   "expeditionReturned: No 1º dia da Primavera, a expedição \"Patrulha dos Arredores\" voltou a Pedra Alta com 33 de ouro. A equipe está de novo no feudo: Edda."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Patrulha dos Arredores",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda"
+   ],
+   "log": [
+    {
+     "title": "Rastros na estrada velha",
+     "text": "No 1º dia da Primavera, Edda seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. O cofre ainda estava lá. Trouxe 33 de ouro.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta ao portão",
+     "text": "No 1º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": null,
+   "lootText": "Trouxe 33 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "oldForest": {
+  "variant": "C",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Floresta Antiga. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, a expedição de Pedra Alta contornou a orla da Floresta Antiga até achar por onde entrar.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Floresta Antiga\" parou em uma encruzilhada: O tronco oco. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Floresta Antiga\": descer o barranco.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Edda desceu na frente e achou o fundo do barranco vazio, com os troncos prontos para levar.",
+   "expeditionReturned: No 1º dia da Primavera, a expedição \"Floresta Antiga\" voltou a Pedra Alta com 87 de madeira. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Floresta Antiga",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A orla da floresta",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta contornou a orla da Floresta Antiga até achar por onde entrar.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "O tronco oco",
+     "text": "Por ordem do senhor: Descer o barranco.",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "O fundo do barranco",
+     "text": "No 1º dia da Primavera, Edda desceu na frente e achou o fundo do barranco vazio, com os troncos prontos para levar. Trouxe 87 de madeira.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta pela trilha",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": null,
+   "lootText": "Trouxe 87 de madeira.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "wolfDen": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Covil dos Lobos. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Covil dos Lobos\" parou em uma encruzilhada: A boca da toca. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Covil dos Lobos\": enfumaçar a toca e esperar na saída.",
+   "expeditionNodeFailed: No 1º dia da Primavera, o vento virou a fumaça contra Edda, e a matilha saiu da toca inteira e furiosa. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.",
+   "heroInjured: No 1º dia da Primavera, Edda sofreu um ferimento leve em \"Covil dos Lobos\". Termina a jornada, mas depois precisa de descanso.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 35 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Covil dos Lobos",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A subida pela pedreira solta",
+     "text": "No 1º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "A boca da toca",
+     "text": "Por ordem do senhor: Enfumaçar a toca e esperar na saída.",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "A matilha na fumaça",
+     "text": "No 1º dia da Primavera, o vento virou a fumaça contra Edda, e a matilha saiu da toca inteira e furiosa. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 12 de ouro.",
+     "outcomeLabel": "Revés",
+     "notes": [
+      "Edda sofreu um ferimento leve."
+     ],
+     "standoutName": "Edda",
+     "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+    },
+    {
+     "title": "A descida da serra",
+     "text": "No 2º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "O preço: Edda, com um ferimento leve.",
+   "deedsText": null,
+   "lootText": "Trouxe 35 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "rescue": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Resgate. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf achou a trilha dos captores e levou a expedição de Pedra Alta até o acampamento deles.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Resgate\" parou em uma encruzilhada: O acampamento ao pé do morro. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Resgate\": entrar à noite e cortar as cordas.",
+   "expeditionNodeFailed: No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e o cativo ficou amarrado. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.",
+   "heroInjured: No 1º dia da Primavera, Rolf sofreu um ferimento leve em \"Resgate\". Termina a jornada, mas depois precisa de descanso.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta com 14 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Resgate",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A trilha dos captores",
+     "text": "No 1º dia da Primavera, Rolf achou a trilha dos captores e levou a expedição de Pedra Alta até o acampamento deles.",
+     "outcomeLabel": "Sucesso",
+     "notes": [],
+     "standoutName": "Rolf",
+     "lessonText": null
+    },
+    {
+     "title": "O acampamento ao pé do morro",
+     "text": "Por ordem do senhor: Entrar à noite e cortar as cordas.",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "As cordas no escuro",
+     "text": "No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e o cativo ficou amarrado. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 14 de ouro.",
+     "outcomeLabel": "Revés",
+     "notes": [
+      "Rolf sofreu um ferimento leve."
+     ],
+     "standoutName": "Rolf",
+     "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+    },
+    {
+     "title": "A fuga para casa",
+     "text": "No 2º dia da Primavera, a expedição de resgate tomou o caminho de Pedra Alta, sem olhar para trás.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "O preço: Rolf, com um ferimento leve.",
+   "deedsText": null,
+   "lootText": "Trouxe 14 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ },
+ "ruins": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Ruínas de Vel'Thar. A equipe: Edda, Rolf e Isolda.",
+   "expeditionNodeResolved: No 1º dia da Primavera, a expedição de Pedra Alta subiu a trilha até as Ruínas de Vel'Thar e desceu a escadaria da entrada.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" parou em uma encruzilhada: A escadaria desaba atrás de vocês. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Ruínas de Vel'Thar\": atravessar a Galeria Inundada.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Edda atravessou a Galeria Inundada na frente e matou o que se mexia debaixo da água. A expedição de Pedra Alta tirou do fundo pedra lavrada e moedas.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Edda quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta.",
+   "itemFound: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" achou um item: Lâmina de Vel'Thar.",
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta com 190 de pedra e 133 de ouro e um item (Lâmina de Vel'Thar). A equipe está de novo no feudo: Edda, Rolf e Isolda."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Ruínas de Vel'Thar",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf",
+    "Isolda"
+   ],
+   "log": [
+    {
+     "title": "A trilha até as ruínas",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta subiu a trilha até as Ruínas de Vel'Thar e desceu a escadaria da entrada.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "A escadaria desaba atrás de vocês",
+     "text": "Por ordem do senhor: Atravessar a Galeria Inundada.",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "A Galeria Inundada",
+     "text": "No 1º dia da Primavera, Edda atravessou a Galeria Inundada na frente e matou o que se mexia debaixo da água. A expedição de Pedra Alta tirou do fundo pedra lavrada e moedas. Trouxe 87 de pedra e 47 de ouro.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "O Guardião de Pedra",
+     "text": "No 2º dia da Primavera, Edda quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta. Trouxe 103 de pedra e 86 de ouro.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [
+      "Achado: Lâmina de Vel'Thar."
+     ],
+     "standoutName": "Edda",
+     "lessonText": null
+    },
+    {
+     "title": "A volta pela estrada dos mortos",
+     "text": "No 2º dia da Primavera, a expedição de Pedra Alta deixou as Ruínas de Vel'Thar.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "Sem perdas: todos voltaram inteiros.",
+   "deedsText": null,
+   "lootText": "Trouxe 190 de pedra e 133 de ouro.",
+   "itemsText": "Para o arsenal: Lâmina de Vel'Thar.",
+   "lost": false
+  }
+ },
+ "swamp": {
+  "variant": "A",
+  "events": [
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Pântano Nebuloso. A equipe: Edda, Rolf e Isolda.",
+   "expeditionNodeResolved: No 1º dia da Primavera, a expedição de Pedra Alta entrou no Pântano Nebuloso pela trilha de estacas que os turfeiros deixaram.",
+   "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Isolda achou a passagem do atoleiro, e a expedição de Pedra Alta atravessou com lama pelo joelho.",
+   "expeditionAtCrossroads: No 2º dia da Primavera, a expedição \"Pântano Nebuloso\" parou em uma encruzilhada: As luzes sobre a água. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 2º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Pântano Nebuloso\": contornar pela margem dos salgueiros.",
+   "expeditionNodeFailed: No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta gastou a tarde para tirar gente da água. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.",
+   "heroInjured: No 2º dia da Primavera, Isolda sofreu um ferimento leve em \"Pântano Nebuloso\". Termina a jornada, mas depois precisa de descanso.",
+   "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
+   "expeditionNodeFailed: No 3º dia da Primavera, a névoa da bruxa do charco entrou nos olhos de Edda: a expedição de Pedra Alta saiu da cabana às cegas, com o que estava à mão. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.",
+   "heroInjured: No 3º dia da Primavera, Edda sofreu um ferimento leve em \"Pântano Nebuloso\". Termina a jornada, mas depois precisa de descanso.",
+   "heroLeveledUp: No 3º dia da Primavera, Edda aprendeu com a estrada: chegou ao nível 2.",
+   "heroLeveledUp: No 3º dia da Primavera, Rolf aprendeu com a estrada: chegou ao nível 2.",
+   "heroLeveledUp: No 3º dia da Primavera, Isolda aprendeu com a estrada: chegou ao nível 2.",
+   "heroRecovered: No 3º dia da Primavera, Isolda sarou das feridas e já pode partir de Pedra Alta outra vez.",
+   "expeditionReturned: No 3º dia da Primavera, a expedição \"Pântano Nebuloso\" voltou a Pedra Alta com 78 de ouro. A equipe está de novo no feudo: Edda, Rolf e Isolda."
+  ],
+  "report": {
+   "expeditionId": "expedition-1",
+   "label": "Pântano Nebuloso",
+   "postureLabel": "Equilibrada",
+   "teamNames": [
+    "Edda",
+    "Rolf",
+    "Isolda"
+   ],
+   "log": [
+    {
+     "title": "A trilha de estacas",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou no Pântano Nebuloso pela trilha de estacas que os turfeiros deixaram.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "O atoleiro",
+     "text": "No 2º dia da Primavera, Isolda achou a passagem do atoleiro, e a expedição de Pedra Alta atravessou com lama pelo joelho.",
+     "outcomeLabel": "Sucesso",
+     "notes": [],
+     "standoutName": "Isolda",
+     "lessonText": null
+    },
+    {
+     "title": "As luzes sobre a água",
+     "text": "Por ordem do senhor: Contornar pela margem dos salgueiros.",
+     "outcomeLabel": "Caminho escolhido",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    },
+    {
+     "title": "A margem dos salgueiros",
+     "text": "No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta gastou a tarde para tirar gente da água. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 19 de ouro.",
+     "outcomeLabel": "Revés",
+     "notes": [
+      "Isolda sofreu um ferimento leve."
+     ],
+     "standoutName": "Edda",
+     "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+    },
+    {
+     "title": "A bruxa do charco",
+     "text": "No 3º dia da Primavera, a névoa da bruxa do charco entrou nos olhos de Edda: a expedição de Pedra Alta saiu da cabana às cegas, com o que estava à mão. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 59 de ouro.",
+     "outcomeLabel": "Revés",
+     "notes": [
+      "Edda sofreu um ferimento leve.",
+      "Edda chegou ao nível 2.",
+      "Rolf chegou ao nível 2.",
+      "Isolda chegou ao nível 2."
+     ],
+     "standoutName": "Edda",
+     "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
+    },
+    {
+     "title": "A volta pelas estacas",
+     "text": "No 3º dia da Primavera, a expedição de Pedra Alta saiu do Pântano Nebuloso pela trilha de estacas, com lama até a cintura.",
+     "outcomeLabel": "Sem incidentes",
+     "notes": [],
+     "standoutName": null,
+     "lessonText": null
+    }
+   ],
+   "lossesText": "O preço: Isolda, com um ferimento leve; Edda, com um ferimento leve.",
+   "deedsText": "Edda chegou ao nível 2. Rolf chegou ao nível 2. Isolda chegou ao nível 2.",
+   "lootText": "Trouxe 78 de ouro.",
+   "itemsText": null,
+   "lost": false
+  }
+ }
+}

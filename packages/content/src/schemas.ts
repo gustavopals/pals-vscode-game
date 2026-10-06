@@ -1228,8 +1228,16 @@ const expeditionTrial = z.strictObject({
     .refine((weights) => Object.keys(weights).length > 0, 'pesos sem atributo nenhum')
     .optional(),
   onDisaster: z.enum(EXPEDITION_DISASTER_IDS),
+  helps: z.enum(HERO_CLASS_IDS),
+  lesson: expeditionProse,
+  // A frase de cada desfecho diz quem se destacou: `{heroi}` é obrigatório.
   outcomes: z.strictObject(
-    Object.fromEntries(EXPEDITION_OUTCOME_IDS.map((id) => [id, expeditionSentence])),
+    Object.fromEntries(
+      EXPEDITION_OUTCOME_IDS.map((id) => [
+        id,
+        expeditionSentence.refine((text) => text.includes('{heroi}'), 'desfecho sem {heroi}'),
+      ]),
+    ),
   ),
 });
 
@@ -1259,7 +1267,12 @@ const expeditionCrossroadsNode = z
           id: identifier,
           label: expeditionTitle,
           hint: expeditionProse,
-          requires: z.strictObject({ heroClass: z.enum(HERO_CLASS_IDS) }).optional(),
+          requires: z
+            .union([
+              z.strictObject({ heroClass: z.enum(HERO_CLASS_IDS) }),
+              z.strictObject({ trait: z.enum(HERO_TRAIT_IDS) }),
+            ])
+            .optional(),
           next: identifier,
         }),
       )

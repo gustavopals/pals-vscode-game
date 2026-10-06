@@ -20370,10 +20370,21 @@
           "teamMin": 1,
           "teamMax": 1,
           "teamMinLevel": 1,
-          "firstStretchDifficulty": 30,
+          "firstStretchDifficulty": 36,
+          "fit": {
+            "comfortPower": 43,
+            "riskPower": 30,
+            "text": "Contra o primeiro trecho, com 43 de poder a equipe passa com folga; abaixo de 30, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 36
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
+          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta."
         },
         {
           "modelId": "oldForest",
@@ -20386,6 +20397,13 @@
           "teamMax": 2,
           "teamMinLevel": 1,
           "firstStretchDifficulty": null,
+          "fit": null,
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 36
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
@@ -20395,15 +20413,26 @@
           "label": "Covil dos Lobos",
           "riskText": "Médio",
           "durationSeconds": 2040,
-          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
           "requirementsText": "Equipe: 2 heróis.",
           "teamMin": 2,
           "teamMax": 2,
           "teamMinLevel": 1,
-          "firstStretchDifficulty": 66,
+          "firstStretchDifficulty": 84,
+          "fit": {
+            "comfortPower": 99,
+            "riskPower": 70,
+            "text": "Contra o primeiro trecho, com 99 de poder a equipe passa com folga; abaixo de 70, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-2",
+              "power": 50
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 55) · A matilha na toca (dificuldade 66). Depois, o caminho de volta."
+          "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
         }
       ],
       "expeditions": [
@@ -20664,7 +20693,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 1837,
+        "stock": 1831,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -21417,10 +21446,16 @@
           "teamMin": 1,
           "teamMax": 1,
           "teamMinLevel": 1,
-          "firstStretchDifficulty": 28,
+          "firstStretchDifficulty": 40,
+          "fit": {
+            "comfortPower": 48,
+            "riskPower": 33,
+            "text": "Contra o primeiro trecho, com 48 de poder a equipe passa com folga; abaixo de 33, arrisca um Desastre."
+          },
+          "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "O vau do riacho (dificuldade 28). Depois, o caminho de volta."
+          "firstStretchText": "O vau do riacho (dificuldade 40). Depois, o caminho de volta."
         },
         {
           "modelId": "oldForest",
@@ -21433,6 +21468,8 @@
           "teamMax": 2,
           "teamMinLevel": 1,
           "firstStretchDifficulty": null,
+          "fit": null,
+          "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
@@ -21442,30 +21479,42 @@
           "label": "Covil dos Lobos",
           "riskText": "Médio",
           "durationSeconds": 7200,
-          "durationNote": "",
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
           "requirementsText": "Equipe: 2 heróis.",
           "teamMin": 2,
           "teamMax": 2,
           "teamMinLevel": 1,
-          "firstStretchDifficulty": 74,
+          "firstStretchDifficulty": 76,
+          "fit": {
+            "comfortPower": 90,
+            "riskPower": 63,
+            "text": "Contra o primeiro trecho, com 90 de poder a equipe passa com folga; abaixo de 63, arrisca um Desastre."
+          },
+          "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 58) · Os filhotes e os vigias (dificuldade 74). Depois, o caminho de volta."
+          "firstStretchText": "A noite na serra (dificuldade 76). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
         },
         {
           "modelId": "ruins",
           "label": "Ruínas de Vel'Thar",
           "riskText": "Médio",
           "durationSeconds": 10800,
-          "durationNote": "",
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
           "requirementsText": "Equipe: de 2 a 3 heróis. Todos no nível 2 ou acima.",
           "teamMin": 2,
           "teamMax": 3,
           "teamMinLevel": 2,
-          "firstStretchDifficulty": 92,
+          "firstStretchDifficulty": 70,
+          "fit": {
+            "comfortPower": 83,
+            "riskPower": 58,
+            "text": "Contra o primeiro trecho, com 83 de poder a equipe passa com folga; abaixo de 58, arrisca um Desastre."
+          },
+          "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "Os saqueadores no portão caído (dificuldade 52) · O salão das lajes falsas (dificuldade 56) · O guardião da cripta (dificuldade 92). Depois, o caminho de volta."
+          "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
         }
       ],
       "expeditions": [
@@ -21485,7 +21534,9 @@
               "title": "A trilha sob os carvalhos",
               "text": "No 21º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 13 de madeira.",
               "outcomeLabel": "Sem incidentes",
-              "notes": []
+              "notes": [],
+              "standoutName": null,
+              "lessonText": null
             }
           ],
           "crossroads": {
@@ -21500,14 +21551,14 @@
               {
                 "id": "thicket",
                 "label": "Abrir caminho pela mata fechada",
-                "hint": "Madeira boa e pegadas grandes; é preciso quem abra o caminho no braço.",
+                "hint": "A melhor madeira do bosque, e pegadas grandes na lama; é serviço para mais de um, com quem abra o caminho no braço.",
                 "locked": false,
                 "lockedReason": null
               },
               {
                 "id": "stream",
                 "label": "Seguir o riacho",
-                "hint": "Chão escorregadio e alguma lenha; quem tem perícia passa melhor.",
+                "hint": "Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.",
                 "locked": false,
                 "lockedReason": null
               },
@@ -21533,14 +21584,26 @@
           "log": [
             {
               "title": "A ronda pelas cercas",
-              "text": "No 21º dia da Primavera, a patrulha de Pedra Alta deu a volta nas cercas e pôs para correr dois ladrões de galinha, que largaram a bolsa. Trouxe 31 de ouro.",
-              "outcomeLabel": "Sucesso pleno",
+              "text": "No 21º dia da Primavera, Rolf deu a volta nas cercas de Pedra Alta e recolheu o que os ladrões deixaram cair na fuga. Trouxe 25 de ouro.",
+              "outcomeLabel": "Sucesso",
               "notes": [
                 "Caminho novo: Ruínas de Vel'Thar."
-              ]
+              ],
+              "standoutName": "Rolf",
+              "lessonText": null
+            },
+            {
+              "title": "A volta ao portão",
+              "text": "No 21º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+              "outcomeLabel": "Sem incidentes",
+              "notes": [],
+              "standoutName": null,
+              "lessonText": null
             }
           ],
-          "lootText": "Trouxe 31 de ouro.",
+          "lossesText": "Sem perdas: todos voltaram inteiros.",
+          "deedsText": "Caminho novo: Ruínas de Vel'Thar.",
+          "lootText": "Trouxe 25 de ouro.",
           "itemsText": null,
           "lost": false
         }
@@ -21593,7 +21656,7 @@
           "name": "Rolf",
           "classLabel": "Arqueiro",
           "level": 1,
-          "xp": 15,
+          "xp": 12,
           "xpToNext": 100,
           "traits": [
             {
@@ -22533,10 +22596,21 @@
           "teamMin": 1,
           "teamMax": 1,
           "teamMinLevel": 1,
-          "firstStretchDifficulty": 30,
+          "firstStretchDifficulty": 36,
+          "fit": {
+            "comfortPower": 43,
+            "riskPower": 30,
+            "text": "Contra o primeiro trecho, com 43 de poder a equipe passa com folga; abaixo de 30, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-3",
+              "power": 42
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
+          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta."
         },
         {
           "modelId": "oldForest",
@@ -22549,6 +22623,13 @@
           "teamMax": 2,
           "teamMinLevel": 1,
           "firstStretchDifficulty": null,
+          "fit": null,
+          "heroFit": [
+            {
+              "heroId": "hero-3",
+              "power": 42
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
@@ -22558,15 +22639,26 @@
           "label": "Covil dos Lobos",
           "riskText": "Médio",
           "durationSeconds": 12240,
-          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
           "requirementsText": "Equipe: 2 heróis.",
           "teamMin": 2,
           "teamMax": 2,
           "teamMinLevel": 1,
           "firstStretchDifficulty": 70,
+          "fit": {
+            "comfortPower": 83,
+            "riskPower": 58,
+            "text": "Contra o primeiro trecho, com 83 de poder a equipe passa com folga; abaixo de 58, arrisca um Desastre."
+          },
+          "heroFit": [
+            {
+              "heroId": "hero-3",
+              "power": 42
+            }
+          ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 52) · A loba velha (dificuldade 70). Depois, o caminho de volta."
+          "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
         }
       ],
       "expeditions": [
@@ -22585,21 +22677,27 @@
               "title": "A trilha sob os carvalhos",
               "text": "No 18º dia do Verão, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 19 de madeira.",
               "outcomeLabel": "Sem incidentes",
-              "notes": []
+              "notes": [],
+              "standoutName": null,
+              "lessonText": null
             },
             {
               "title": "A trilha se divide",
               "text": "Sem palavra do senhor, a Postura Ousada decidiu: Abrir caminho pela mata fechada.",
               "outcomeLabel": "Caminho escolhido",
-              "notes": []
+              "notes": [],
+              "standoutName": null,
+              "lessonText": null
             },
             {
               "title": "O javali da mata fechada",
-              "text": "No 19º dia do Verão, o javali da mata fechada dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Trouxe 36 de madeira e 11 de ouro.",
+              "text": "No 19º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 36 de madeira e 11 de ouro.",
               "outcomeLabel": "Revés",
               "notes": [
                 "Edda sofreu um ferimento leve."
-              ]
+              ],
+              "standoutName": "Edda",
+              "lessonText": "A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."
             }
           ],
           "crossroads": null
@@ -22627,7 +22725,7 @@
           "name": "Edda",
           "classLabel": "Guerreira",
           "level": 1,
-          "xp": 10,
+          "xp": 11,
           "xpToNext": 100,
           "traits": [
             {

@@ -395,6 +395,10 @@ const ExpeditionLogSchema = z.strictObject({
   text: z.string(),
   outcomeLabel: z.string(),
   notes: z.array(z.string()),
+  /** Quem se destacou em um nó com prova, pelo nome; `null` no resto. `text` já o diz. */
+  standoutName: z.string().nullable(),
+  /** O que o Revés ou o Desastre ensina, a frase que `text` já traz; `null` no resto. */
+  lessonText: z.string().nullable(),
 });
 
 const GuildSchema = z.strictObject({
@@ -438,6 +442,16 @@ const GuildSchema = z.strictObject({
       teamMinLevel: z.number(),
       /** A maior dificuldade do primeiro trecho, a que `firstStretchText` escreve; `null` sem prova. */
       firstStretchDifficulty: z.number().nullable(),
+      /**
+       * O que a equipe precisa valer contra a prova mais dura do primeiro trecho: com
+       * `comfortPower` ou mais, nem a pior sorte tira o Sucesso; abaixo de `riskPower`, a pior
+       * sorte dá Desastre. `null` quando o trecho não tem prova.
+       */
+      fit: z
+        .strictObject({ comfortPower: z.number(), riskPower: z.number(), text: z.string() })
+        .nullable(),
+      /** O poder de cada herói que pode partir, contra essa prova: a equipe vale a soma. */
+      heroFit: z.array(z.strictObject({ heroId: z.string(), power: z.number() })),
       locked: z.boolean(),
       lockedReason: z.string().nullable(),
       firstStretchText: z.string(),
@@ -488,7 +502,12 @@ const GuildSchema = z.strictObject({
       label: z.string(),
       postureLabel: z.string(),
       teamNames: z.array(z.string()),
+      /** Um passo por nó e por escolha; o último é o caminho de volta, de quem voltou. */
       log: z.array(ExpeditionLogSchema),
+      /** O que a jornada custou; "Sem perdas…" quando nada. */
+      lossesText: z.string(),
+      /** O que ela deixou além do saque: caminho novo, tile limpo, cativo solto, níveis; `null` sem nenhum. */
+      deedsText: z.string().nullable(),
       lootText: z.string(),
       /** O que foi para o arsenal e o que virou ouro; `null` sem item. */
       itemsText: z.string().nullable(),
@@ -931,12 +950,16 @@ export type ViewState = z.infer<typeof ViewStateSchema>;
 
 /**
  * Eventos que existem, saem em `GET /events` e servem ao Relatório de Retorno, mas não são
- * linhas da Crônica: a virada de dia (ADR 0007) e o fecho diário do desperdício (ADR 0015). O
- * servidor os deixa fora de `GET /chronicle` e de `/chronicle.md`; o app, da Crônica recente.
+ * linhas da Crônica: a virada de dia (ADR 0007), o fecho diário do desperdício (ADR 0015) e o nó
+ * de expedição que deu certo (`expeditionNodeResolved`; pendência D-12 da v0.3: a Crônica leva a
+ * partida, a encruzilhada, o nó que terminou em Revés ou Desastre, `expeditionNodeFailed`, e a
+ * volta; o nó a nó inteiro fica no relatório). O servidor os deixa fora de `GET /chronicle` e
+ * de `/chronicle.md`; o app, da Crônica recente.
  */
 export const CHRONICLE_HIDDEN_EVENT_TYPES = [
   'dayStarted',
   'storageWasted',
+  'expeditionNodeResolved',
 ] as const satisfies ReadonlyArray<(typeof EVENT_TYPES)[number]>;
 
 /** Evento de jogo como a API o entrega: com a sequência na partida e o instante real (UTC). */

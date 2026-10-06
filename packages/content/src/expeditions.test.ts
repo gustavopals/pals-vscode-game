@@ -17,7 +17,9 @@ import {
   expeditionTemplates,
   expeditionTexts,
   type ExpeditionVariant,
+  HERO_CLASS_IDS,
   HERO_TRAIT_IDS,
+  heroClasses,
   heroTraits,
   POSTURE_IDS,
   SEASON_IDS,
@@ -75,6 +77,127 @@ const everyVariant = (): Array<[string, ExpeditionModelDef, ExpeditionVariant]> 
         [`${model.id}/${index}`, model, variant] as [string, ExpeditionModelDef, ExpeditionVariant],
     ),
   );
+
+/**
+ * Os ids publicados do catálogo (V3D-T3): o estado de uma partida guarda o modelo, a variante
+ * (a posição na lista), a chave do nó e a da opção. **Acrescentar é livre; trocar ou tirar um
+ * destes pede passo de migração**, como os ids das cartas (`council.test.ts`).
+ */
+const STABLE_IDS: Record<
+  string,
+  Array<{ start: string; nodes: string[]; options: Record<string, string[]> }>
+> = {
+  patrol: [
+    {
+      start: 'fences',
+      nodes: ['fences', 'home'],
+      options: {},
+    },
+    {
+      start: 'ford',
+      nodes: ['ford', 'home'],
+      options: {},
+    },
+    {
+      start: 'oldRoad',
+      nodes: ['oldRoad', 'home'],
+      options: {},
+    },
+  ],
+  oldForest: [
+    {
+      start: 'trail',
+      nodes: ['trail', 'fork', 'deepWoods', 'glade', 'home'],
+      options: { fork: ['thicket', 'stream', 'turnBack'] },
+    },
+    {
+      start: 'trail',
+      nodes: ['trail', 'fork', 'deepWoods', 'glade', 'home'],
+      options: { fork: ['thicket', 'stream', 'turnBack'] },
+    },
+    {
+      start: 'edge',
+      nodes: ['edge', 'hollow', 'nest', 'ravineFloor', 'home'],
+      options: { hollow: ['climb', 'ravine', 'leave'] },
+    },
+  ],
+  wolfDen: [
+    {
+      start: 'climb',
+      nodes: ['climb', 'mouth', 'oldWolf', 'smoke', 'home'],
+      options: { mouth: ['enterDen', 'smokeOut', 'retreat'] },
+    },
+    {
+      start: 'gorge',
+      nodes: ['gorge', 'twoMouths', 'crag', 'narrowDen', 'brushfire', 'home'],
+      options: { twoMouths: ['shootFromAbove', 'blockAndEnter', 'burnBrush'] },
+    },
+    {
+      start: 'nightCamp',
+      nodes: ['nightCamp', 'cubs', 'sheWolf', 'pack', 'home'],
+      options: { cubs: ['killSheWolf', 'driveAway', 'retreat'] },
+    },
+  ],
+  rescue: [
+    {
+      start: 'captorsTrail',
+      nodes: ['captorsTrail', 'campAtHill', 'noonFight', 'nightRopes', 'guardChange', 'home'],
+      options: { campAtHill: ['stormAtNoon', 'cutRopesAtNight', 'waitForGuardChange'] },
+    },
+    {
+      start: 'watchedFord',
+      nodes: ['watchedFord', 'ruinedTower', 'oakDoor', 'backWall', 'gap', 'home'],
+      options: { ruinedTower: ['breakDoor', 'climbBackWall', 'passFileThroughGap'] },
+    },
+    {
+      start: 'firelessNight',
+      nodes: ['firelessNight', 'cage', 'duel', 'stampede', 'ditch', 'home'],
+      options: { cage: ['challengeChief', 'looseHorses', 'crawlByDitch'] },
+    },
+  ],
+  ruins: [
+    {
+      start: 'ruinsTrail',
+      nodes: ['ruinsTrail', 'stairway', 'corridor', 'gallery', 'stoneGuardian', 'home'],
+      options: { stairway: ['inscriptionsCorridor', 'floodedGallery', 'retreat'] },
+    },
+    {
+      start: 'fallenGate',
+      nodes: ['fallenGate', 'threeArches', 'bones', 'falseFloor', 'cryptGuardian', 'home'],
+      options: { threeArches: ['ossuary', 'falseFloorHall', 'retreat'] },
+    },
+    {
+      start: 'deadRoad',
+      nodes: [
+        'deadRoad',
+        'cisternAndTower',
+        'seals',
+        'cistern',
+        'courtyard',
+        'facelessSentinel',
+        'home',
+      ],
+      options: { cisternAndTower: ['readSeals', 'descendCistern', 'gatherCourtyard'] },
+    },
+  ],
+  swamp: [
+    {
+      start: 'stakeTrail',
+      nodes: ['stakeTrail', 'mire', 'lights', 'openWater', 'willows', 'marshWitch', 'home'],
+      options: { lights: ['crossOpenWater', 'followWillows', 'retreat'] },
+    },
+    {
+      start: 'rottenRaft',
+      nodes: ['rottenRaft', 'fever', 'sunkenVillage', 'dragLair', 'chapel', 'drownedOne', 'home'],
+      options: { sunkenVillage: ['followDragMarks', 'diveForBell', 'retreat'] },
+    },
+    {
+      start: 'oldDike',
+      nodes: ['oldDike', 'callingFog', 'hangingTree', 'curse', 'canal', 'mudSerpent', 'home'],
+      options: { hangingTree: ['liftCurse', 'takeCanal', 'retreat'] },
+    },
+  ],
+};
 
 describe('a Guilda dos Aventureiros (GDD §6.1; ADR 0018, decisão 12)', () => {
   const { storage, difficulties, construction } = balance;
@@ -187,13 +310,13 @@ describe('os números das expedições (ADR 0017, decisões 1 e 7; ADR 0018, dec
     ]);
   });
 
-  it('os limites do grafo: de 2 a 5 nós em um caminho, de 5 a 45 minutos de jogo cada um', () => {
+  it('os limites do grafo: de 2 a 5 nós em um caminho, de 5 a 60 minutos de jogo cada um (pendência D-5)', () => {
     expect(rules.graph).toEqual({
       minDepth: 2,
       maxDepth: 5,
       maxSteps: 8,
       minNodeMs: 5 * MINUTE,
-      maxNodeMs: 45 * MINUTE,
+      maxNodeMs: 60 * MINUTE,
     });
     expect(rules.teamMax).toBe(4);
   });
@@ -238,7 +361,14 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
   it('passa pelo schema, na ordem de EXPEDITION_MODEL_IDS, com três variantes por modelo', () => {
     expect(CatalogSchema.safeParse(expeditionModels).error).toBeUndefined();
     expect(expeditionModels.map((model) => model.id)).toEqual([...EXPEDITION_MODEL_IDS]);
-    expect(EXPEDITION_MODEL_IDS).toEqual(['patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins']);
+    expect(EXPEDITION_MODEL_IDS).toEqual([
+      'patrol',
+      'oldForest',
+      'wolfDen',
+      'rescue',
+      'ruins',
+      'swamp',
+    ]);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
       // Três grafos diferentes de verdade.
@@ -247,7 +377,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
   });
 
   it.each(everyVariant())(
-    '%s: todo caminho chega a um retorno, com 2 a 5 nós de 5 a 45 minutos, e cabe na duração anunciada',
+    '%s: todo caminho chega a um retorno, com 2 a 5 nós de 5 a 60 minutos, e cabe na duração anunciada',
     (_name, model, variant) => {
       const paths = pathsOf(variant);
       expect(paths.length).toBeGreaterThan(0);
@@ -305,13 +435,54 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
         expect(EXPEDITION_DISASTER_IDS).toContain(node.trial.onDisaster);
         expect(Object.keys(node.trial.outcomes)).toEqual([...EXPEDITION_OUTCOME_IDS]);
         expect(Number.isInteger(node.trial.difficulty)).toBe(true);
+        // O relatório (GDD §9.4): cada desfecho diz quem se destacou, sem palavra que só sirva a
+        // um herói ou só a uma heroína logo depois do nome.
+        for (const sentence of Object.values(node.trial.outcomes)) {
+          expect(sentence).toContain('{heroi}');
+          expect(sentence).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
+          expect(sentence).not.toMatch(/\{heroi\},? (sozinh[oa]|ferid[oa]|cansad[oa]|cercad[oa])/);
+        }
+        // A lição diz a classe que o nó favorece, pelo nome que a ficha mostra.
+        expect(node.trial.lesson).toContain(heroClasses[node.trial.helps].label);
       }
     },
   );
 
-  it('nenhuma recompensa nem frase é de versão futura: só recursos, e nada de ferro, arma, relíquia, planta, unidade ou presságio', () => {
+  it.each(everyVariant())(
+    '%s: a classe que cada prova diz favorecer é a de maior poder contra os pesos do nó',
+    (_name, _model, variant) => {
+      for (const [key, node] of Object.entries(variant.nodes)) {
+        if (node.kind === 'crossroads' || node.kind === 'return' || node.trial === undefined) {
+          continue;
+        }
+        const weights = { ...balance.heroes.power, ...node.trial.weights };
+        // Em sexagésimos, para não somar frações: os denominadores do conteúdo dividem 60.
+        const power = (classId: (typeof HERO_CLASS_IDS)[number]) =>
+          Object.entries(weights).reduce(
+            (sum, [attribute, weight]) =>
+              sum +
+              (heroClasses[classId].attributes[attribute as keyof typeof weights] *
+                60 *
+                (weight?.num ?? 0)) /
+                (weight?.den ?? 1),
+            0,
+          );
+        const best = Math.max(...HERO_CLASS_IDS.map(power));
+        expect(power(node.trial.helps), key).toBe(best);
+        expect(
+          HERO_CLASS_IDS.filter((id) => power(id) === best),
+          key,
+        ).toHaveLength(1);
+      }
+    },
+  );
+
+  it('nenhuma recompensa nem frase é de versão futura: nada de ferro, arma, relíquia, planta, unidade, presságio ou exército', () => {
     const text = JSON.stringify(expeditionModels);
-    expect(text).not.toMatch(/ferro|\barma|relíquia|planta\b|unidade|presságio|mestre|mercado/i);
+    // "Armadilha" é do Apêndice C do GDD e não é arma: a palavra inteira é que fica de fora.
+    expect(text).not.toMatch(
+      /\bferros?\b|\barmas?\b|relíquia|\bplantas?\b|\bunidades?\b|presságio|exército|\bmestres?\b|\bmercado/i,
+    );
     for (const [, , variant] of everyVariant()) {
       for (const node of Object.values(variant.nodes)) {
         if (node.kind === 'crossroads' || node.kind === 'return' || node.rewards === undefined) {
@@ -324,7 +495,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     }
   });
 
-  it('a Patrulha dos Arredores: 15 minutos, dois nós, um herói, risco baixo, com dificuldade que um herói de nível 1 enfrenta (ADR 0017)', () => {
+  it('a Patrulha dos Arredores: 15 minutos, dois nós, um herói, risco baixo, sem encruzilhada, e revela as Ruínas', () => {
     const model = expeditionModels.find((entry) => entry.id === 'patrol');
     expect(model).toMatchObject({
       label: 'Patrulha dos Arredores',
@@ -336,12 +507,14 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       const [path] = pathsOf(variant);
       expect(pathsOf(variant)).toHaveLength(1);
       expect(path?.map((node) => node.kind === 'crossroads')).toEqual([false, false]);
-      for (const node of path ?? []) {
-        if (node.kind !== 'crossroads' && node.kind !== 'return' && node.trial !== undefined) {
-          // Com até 36, um Guerreiro de nível 1 tem ao menos Sucesso em 30 de 31 sortes.
-          expect(node.trial.difficulty).toBeLessThanOrEqual(36);
-        }
+      const [stage] = path ?? [];
+      if (stage === undefined || stage.kind === 'crossroads' || stage.kind === 'return') {
+        throw new Error('A Patrulha começa em uma prova.');
       }
+      // A calibragem (o Guerreiro de nível 1 passa em mais de 9 de 10) é conferida no motor,
+      // que sabe a conta do poder: `expeditions.calibration.test.ts`.
+      expect(stage.trial).toBeDefined();
+      expect(stage.rewards?.reveals).toBe('ruins');
     }
   });
 
@@ -373,6 +546,129 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(a?.nodes.fork).toEqual(b?.nodes.fork);
     expect(a?.nodes.deepWoods).not.toEqual(b?.nodes.deepWoods);
     expect(a?.nodes.glade).not.toEqual(b?.nodes.glade);
+  });
+
+  it('o catálogo da v0.3: duração, nós, equipe, risco e como cada destino aparece (ADR 0018, decisão 12)', () => {
+    const table = expeditionModels.map((model) => {
+      const depths = model.variants.flatMap((variant) =>
+        pathsOf(variant).map((path) => path.filter((node) => node.kind !== 'crossroads').length),
+      );
+      return [
+        model.label,
+        model.durationMs / MINUTE,
+        Math.max(...depths),
+        `${model.requires.teamMin}-${model.requires.teamMax}`,
+        model.requires.minHeroLevel,
+        model.requires.classes.join(','),
+        model.riskLabel,
+        model.requires.guildLevel,
+        model.access.kind,
+      ];
+    });
+    // "Nós" conta o que a equipe atravessa no caminho mais longo, com o retorno e sem a
+    // encruzilhada. O Resgate tem a chegada, o cativeiro e a volta (pendências D-5 e D-16).
+    expect(table).toEqual([
+      ['Patrulha dos Arredores', 15, 2, '1-1', 1, '', 'Baixo', 1, 'open'],
+      ['Floresta Antiga', 60, 3, '1-2', 1, '', 'Baixo a médio', 1, 'open'],
+      ['Covil dos Lobos', 120, 3, '2-2', 1, '', 'Médio', 1, 'tile'],
+      ['Resgate', 120, 3, '2-2', 1, '', 'Alto', 1, 'captive'],
+      ["Ruínas de Vel'Thar", 180, 4, '2-3', 2, '', 'Médio', 1, 'discovered'],
+      ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
+    ]);
+  });
+
+  it('a descoberta: a Patrulha revela as Ruínas, as Ruínas revelam o Pântano, e nada revela outra coisa', () => {
+    const reveals = new Map<string, Set<string>>();
+    for (const [, model, variant] of everyVariant()) {
+      for (const node of Object.values(variant.nodes)) {
+        if (node.kind !== 'crossroads' && node.kind !== 'return' && node.rewards?.reveals) {
+          reveals.set(model.id, (reveals.get(model.id) ?? new Set()).add(node.rewards.reveals));
+        }
+      }
+    }
+    expect([...reveals].map(([from, to]) => [from, [...to]])).toEqual([
+      ['patrol', ['ruins']],
+      ['ruins', ['swamp']],
+    ]);
+    // Toda variante dos dois tem a revelação em todo caminho que chega ao fim da jornada.
+    for (const id of ['patrol', 'ruins'] as const) {
+      for (const variant of expeditionModels.find((entry) => entry.id === id)?.variants ?? []) {
+        expect(
+          Object.values(variant.nodes).some(
+            (node) => node.kind !== 'crossroads' && node.kind !== 'return' && node.rewards?.reveals,
+          ),
+        ).toBe(true);
+      }
+    }
+    // Só o Covil limpa o tile, e só o Resgate liberta: em toda variante, por algum caminho.
+    for (const [name, model, variant] of everyVariant()) {
+      const stages = Object.values(variant.nodes).filter(
+        (node) => node.kind !== 'crossroads' && node.kind !== 'return',
+      );
+      expect(
+        stages.some((node) => 'rewards' in node && node.rewards?.clearsTile === 'wolfDen'),
+        name,
+      ).toBe(model.id === 'wolfDen');
+      expect(
+        stages.some((node) => 'rewards' in node && node.rewards?.rescues === true),
+        name,
+      ).toBe(model.id === 'rescue');
+    }
+  });
+
+  it('as encruzilhadas: uma em cada variante de três nós ou mais, de duas a três opções com verbo no infinitivo, e requisito em parte delas', () => {
+    for (const model of expeditionModels) {
+      let required = 0;
+      for (const variant of model.variants) {
+        const crossroads = Object.values(variant.nodes).filter(
+          (node) => node.kind === 'crossroads',
+        );
+        expect(crossroads.length, model.id).toBe(model.id === 'patrol' ? 0 : 1);
+        for (const node of crossroads) {
+          if (node.kind !== 'crossroads') {
+            continue;
+          }
+          expect(node.options.length).toBeGreaterThanOrEqual(2);
+          expect(node.options.length).toBeLessThanOrEqual(3);
+          for (const option of node.options) {
+            expect(option.label, option.id).toMatch(/^\p{Lu}\p{L}*[aeio]r\b/u);
+            required += option.requires === undefined ? 0 : 1;
+          }
+          // As três Posturas tomam caminhos diferentes: a escolha da Postura no envio importa.
+          expect(new Set(Object.values(node.posture)).size).toBe(3);
+        }
+      }
+      if (model.id !== 'patrol') {
+        // Parte das opções, nunca todas: em cada modelo há ao menos uma com requisito.
+        expect(required, model.id).toBeGreaterThanOrEqual(1);
+      }
+    }
+    // Requisito de classe e de traço: os dois existem no catálogo.
+    const requirements = everyVariant().flatMap(([, , variant]) =>
+      Object.values(variant.nodes).flatMap((node) =>
+        node.kind === 'crossroads' ? node.options.flatMap((option) => option.requires ?? []) : [],
+      ),
+    );
+    expect(requirements.some((entry) => 'heroClass' in entry)).toBe(true);
+    expect(requirements.some((entry) => 'trait' in entry)).toBe(true);
+  });
+
+  it('os ids de modelo, de nó e de opção são estáveis: uma expedição em curso guarda os três, e mudar um pede passo de migração', () => {
+    const published = Object.fromEntries(
+      expeditionModels.map((model) => [
+        model.id,
+        model.variants.map((variant) => ({
+          start: variant.start,
+          nodes: Object.keys(variant.nodes),
+          options: Object.fromEntries(
+            Object.entries(variant.nodes).flatMap(([key, node]) =>
+              node.kind === 'crossroads' ? [[key, node.options.map((option) => option.id)]] : [],
+            ),
+          ),
+        })),
+      ]),
+    );
+    expect(published).toEqual(STABLE_IDS);
   });
 
   it('os tipos de nó são os oito do GDD §9.2, com a encruzilhada e o retorno', () => {
@@ -425,7 +721,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       return nodesOf(variant)[variant.start as string] as Loose;
     };
     expect(broken((models) => (start(models).durationMs = 4 * MINUTE))).toBe(true);
-    expect(broken((models) => (start(models).durationMs = 46 * MINUTE))).toBe(true);
+    expect(broken((models) => (start(models).durationMs = 61 * MINUTE))).toBe(true);
     expect(broken((models) => ((models[0] as Loose).durationMs = 16 * MINUTE))).toBe(true);
     expect(broken((models) => ((models[0] as Loose).variants as Loose[]).pop())).toBe(true);
     // Seis nós em fila: mais fundo do que o limite.
@@ -465,6 +761,23 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
       broken((models) => (fork(models).options = [(fork(models).options as Loose[])[2]])),
     ).toBe(true);
     expect(broken((models) => delete (trial(models).trial as Loose).onDisaster)).toBe(true);
+    // A prova sem a classe que favorece, sem a lição, ou com um desfecho que não diz quem se destacou.
+    expect(broken((models) => delete (trial(models).trial as Loose).helps)).toBe(true);
+    expect(broken((models) => delete (trial(models).trial as Loose).lesson)).toBe(true);
+    expect(
+      broken(
+        (models) =>
+          (((trial(models).trial as Loose).outcomes as Loose).success =
+            'No {dia}º dia {daEstacao}, a patrulha voltou.'),
+      ),
+    ).toBe(true);
+    // O requisito de uma opção é uma classe ou um traço que existem, nunca os dois.
+    const thicket = (models: Loose[]) => (fork(models).options as Loose[])[0] as Loose;
+    expect(broken((models) => (thicket(models).requires = { trait: 'tracker' }))).toBe(false);
+    expect(broken((models) => (thicket(models).requires = { trait: 'sleepy' }))).toBe(true);
+    expect(
+      broken((models) => (thicket(models).requires = { heroClass: 'warrior', trait: 'brave' })),
+    ).toBe(true);
     expect(
       broken((models) => delete ((trial(models).trial as Loose).outcomes as Loose).setback),
     ).toBe(true);

@@ -9,6 +9,7 @@ import {
   positive,
   type Shape,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { mapV9Fields } from './v9';
 import { guildOf, guildWithinState, heroRoster, heroV14Fields } from './v14';
 import { HERO_GENDER_IDS_V15 } from './v15';
@@ -119,30 +120,30 @@ const hero: Shape = (value, path) => {
   return null;
 };
 
-const logEntry: Shape = (value, path) => {
-  const found = exactObject({
-    nodeId: contentKey,
-    atMs: natural,
-    outcome: oneOf(EXPEDITION_LOG_OUTCOMES_V17),
-    optionId: nullable(contentKey),
-    decidedBy: nullable(oneOf(CROSSROADS_DECIDERS_V17)),
-    gained: amounts,
-    xp: natural,
-    harm: nullable(exactObject({ heroName: nonEmptyName, kind: oneOf(HERO_HARM_IDS_V18) })),
-    leveled: capped(
-      exactObject({ heroName: nonEmptyName, level: positive }),
-      EXPEDITION_TEAM_CAP_V17,
-      'heróis',
-    ),
-    found: capped(contentKey, 1, 'itens'),
-    revealed: nullable(contentKey),
-    cleared: nullable(contentKey),
-    rescued: nullable(nonEmptyName),
-    lootLost: boolean,
-  })(value, path);
-  if (found !== null) {
-    return found;
-  }
+/** Os campos de um registro do percurso da versão 18: a versão seguinte parte deles. */
+export const logEntryV18Fields: Readonly<Record<string, Shape>> = {
+  nodeId: contentKey,
+  atMs: natural,
+  outcome: oneOf(EXPEDITION_LOG_OUTCOMES_V17),
+  optionId: nullable(contentKey),
+  decidedBy: nullable(oneOf(CROSSROADS_DECIDERS_V17)),
+  gained: amounts,
+  xp: natural,
+  harm: nullable(exactObject({ heroName: nonEmptyName, kind: oneOf(HERO_HARM_IDS_V18) })),
+  leveled: capped(
+    exactObject({ heroName: nonEmptyName, level: positive }),
+    EXPEDITION_TEAM_CAP_V17,
+    'heróis',
+  ),
+  found: capped(contentKey, 1, 'itens'),
+  revealed: nullable(contentKey),
+  cleared: nullable(contentKey),
+  rescued: nullable(nonEmptyName),
+  lootLost: boolean,
+};
+
+/** O que só se vê olhando dois campos de um registro: uma escolha não é uma prova, e vice-versa. */
+export const logEntryV18Rules: Shape = (value, path) => {
   const entry = value as {
     outcome: string;
     optionId: string | null;
@@ -166,22 +167,9 @@ const logEntry: Shape = (value, path) => {
   return null;
 };
 
-/** O percurso: cada registro na forma, em ordem de instante, nunca mais do que o teto. */
-const log: Shape = (value, path) => {
-  const found = capped(logEntry, EXPEDITION_LOG_CAP_V17, 'registros')(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const list = value as Array<{ atMs: number }>;
-  const index = list.findIndex((entry, at) => at > 0 && entry.atMs < (list[at - 1]?.atMs ?? 0));
-  return index === -1 ? null : `${where(path)}.${index}.atMs: percurso fora da ordem`;
-};
-
-/** O saque: os recursos e os itens, no máximo um por registro do percurso. */
-const loot: Shape = exactObject({
-  resources: amounts,
-  items: capped(item, EXPEDITION_LOG_CAP_V17, 'itens'),
-});
+const logEntryV18Form: Shape = exactObject(logEntryV18Fields);
+const logEntry: Shape = (value, path) =>
+  logEntryV18Form(value, path) ?? logEntryV18Rules(value, path);
 
 type ExpeditionV18 = {
   id: string;
@@ -191,49 +179,6 @@ type ExpeditionV18 = {
   loot: { items: Array<{ id: string }> };
 };
 
-const expedition: Shape = (value, path) => {
-  const found = exactObject({
-    id: expeditionId,
-    modelId: contentKey,
-    variant: variantIndex,
-    heroIds: cappedUnique(heroIdRef, EXPEDITION_TEAM_CAP_V17, 'heróis'),
-    posture: oneOf(POSTURE_IDS_V17),
-    sentAtMs: natural,
-    durationFactor: exactObject({ num: positive, den: positive }),
-    status: oneOf(EXPEDITION_STATUS_IDS_V17),
-    nodeId: contentKey,
-    nodeEndsAtMs: nullable(natural),
-    crossroads: nullable(exactObject({ decidesAtMs: natural })),
-    loot,
-    log,
-  })(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const entry = value as ExpeditionV18;
-  const waiting = entry.status === 'atCrossroads';
-  if (waiting !== (entry.crossroads !== null)) {
-    return `${where(path)}.crossroads: só a expedição parada na encruzilhada tem prazo de decisão`;
-  }
-  if (waiting === (entry.nodeEndsAtMs !== null)) {
-    return `${where(path)}.nodeEndsAtMs: a expedição em um nó tem o fim dele, e a parada na encruzilhada, não`;
-  }
-  return null;
-};
-
-/** As expedições em curso: cada uma na forma, nunca mais do que o teto, em ordem de identificador. */
-const expeditions: Shape = (value, path) => {
-  const found = capped(expedition, EXPEDITION_SLOTS_CAP_V17, 'expedições')(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const numbers = (value as ExpeditionV18[]).map((entry) => Number(entry.id.slice(11)));
-  const index = numbers.findIndex((number, at) => at > 0 && number <= (numbers[at - 1] ?? 0));
-  return index === -1
-    ? null
-    : `${where(path)}.${index}.id: expedições fora da ordem de identificador`;
-};
-
 type ReportV18 = {
   expeditionId: string;
   lost: boolean;
@@ -241,53 +186,123 @@ type ReportV18 = {
   loot: { resources: Record<string, number>; items: Array<{ id: string; defId: string }> };
 };
 
-/** Um relatório: a forma e, no de quem não voltou, o saque vazio; o vendido saiu do saque. */
-const report: Shape = (value, path) => {
-  const found = exactObject({
-    expeditionId,
-    modelId: contentKey,
-    variant: variantIndex,
-    heroNames: cappedUnique(nonEmptyName, EXPEDITION_TEAM_CAP_V17, 'nomes'),
-    posture: oneOf(POSTURE_IDS_V17),
-    sentAtMs: natural,
-    returnedAtMs: natural,
-    log,
-    loot,
-    wasted: amounts,
-    sold: capped(contentKey, EXPEDITION_LOG_CAP_V17, 'itens'),
-    lost: boolean,
-  })(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const entry = value as ReportV18;
-  const carried = entry.loot.items.map((piece) => piece.defId);
-  for (const defId of entry.sold) {
-    const index = carried.indexOf(defId);
-    if (index === -1) {
-      return `${where(path)}.sold: item vendido que não estava no saque`;
-    }
-    carried.splice(index, 1);
-  }
-  const empty =
-    entry.loot.items.length === 0 &&
-    Object.values(entry.loot.resources).every((amount) => amount === 0);
-  return entry.lost && !empty
-    ? `${where(path)}.loot: relatório de quem não voltou com saque`
-    : null;
-};
+/** O saque: os recursos e os itens, no máximo um por registro do percurso. */
+const loot: Shape = exactObject({
+  resources: amounts,
+  items: capped(item, EXPEDITION_LOG_CAP_V17, 'itens'),
+});
 
-/** Os relatórios guardados: cada um na forma, nunca mais do que o teto, nenhuma expedição repetida. */
-const reports: Shape = (value, path) => {
-  const found = capped(report, EXPEDITION_REPORTS_CAP_V17, 'relatórios')(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const list = value as ReportV18[];
-  return new Set(list.map((entry) => entry.expeditionId)).size === list.length
-    ? null
-    : `${where(path)}: relatório repetido`;
-};
+/**
+ * As guardas das expedições em curso e dos relatórios, montadas sobre a guarda de um registro
+ * do percurso: a versão que muda o registro (a 19) monta as dela com a mesma função.
+ */
+export function expeditionShapesOf(entryShape: Shape): { expeditions: Shape; reports: Shape } {
+  /** O percurso: cada registro na forma, em ordem de instante, nunca mais do que o teto. */
+  const log: Shape = (value, path) => {
+    const found = capped(entryShape, EXPEDITION_LOG_CAP_V17, 'registros')(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const list = value as Array<{ atMs: number }>;
+    const index = list.findIndex((entry, at) => at > 0 && entry.atMs < (list[at - 1]?.atMs ?? 0));
+    return index === -1 ? null : `${where(path)}.${index}.atMs: percurso fora da ordem`;
+  };
+
+  const expedition: Shape = (value, path) => {
+    const found = exactObject({
+      id: expeditionId,
+      modelId: contentKey,
+      variant: variantIndex,
+      heroIds: cappedUnique(heroIdRef, EXPEDITION_TEAM_CAP_V17, 'heróis'),
+      posture: oneOf(POSTURE_IDS_V17),
+      sentAtMs: natural,
+      durationFactor: exactObject({ num: positive, den: positive }),
+      status: oneOf(EXPEDITION_STATUS_IDS_V17),
+      nodeId: contentKey,
+      nodeEndsAtMs: nullable(natural),
+      crossroads: nullable(exactObject({ decidesAtMs: natural })),
+      loot,
+      log,
+    })(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const entry = value as ExpeditionV18;
+    const waiting = entry.status === 'atCrossroads';
+    if (waiting !== (entry.crossroads !== null)) {
+      return `${where(path)}.crossroads: só a expedição parada na encruzilhada tem prazo de decisão`;
+    }
+    if (waiting === (entry.nodeEndsAtMs !== null)) {
+      return `${where(path)}.nodeEndsAtMs: a expedição em um nó tem o fim dele, e a parada na encruzilhada, não`;
+    }
+    return null;
+  };
+
+  /** As expedições em curso: cada uma na forma, nunca mais do que o teto, em ordem de identificador. */
+  const expeditions: Shape = (value, path) => {
+    const found = capped(expedition, EXPEDITION_SLOTS_CAP_V17, 'expedições')(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const numbers = (value as ExpeditionV18[]).map((entry) => Number(entry.id.slice(11)));
+    const index = numbers.findIndex((number, at) => at > 0 && number <= (numbers[at - 1] ?? 0));
+    return index === -1
+      ? null
+      : `${where(path)}.${index}.id: expedições fora da ordem de identificador`;
+  };
+
+  /** Um relatório: a forma e, no de quem não voltou, o saque vazio; o vendido saiu do saque. */
+  const report: Shape = (value, path) => {
+    const found = exactObject({
+      expeditionId,
+      modelId: contentKey,
+      variant: variantIndex,
+      heroNames: cappedUnique(nonEmptyName, EXPEDITION_TEAM_CAP_V17, 'nomes'),
+      posture: oneOf(POSTURE_IDS_V17),
+      sentAtMs: natural,
+      returnedAtMs: natural,
+      log,
+      loot,
+      wasted: amounts,
+      sold: capped(contentKey, EXPEDITION_LOG_CAP_V17, 'itens'),
+      lost: boolean,
+    })(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const entry = value as ReportV18;
+    const carried = entry.loot.items.map((piece) => piece.defId);
+    for (const defId of entry.sold) {
+      const index = carried.indexOf(defId);
+      if (index === -1) {
+        return `${where(path)}.sold: item vendido que não estava no saque`;
+      }
+      carried.splice(index, 1);
+    }
+    const empty =
+      entry.loot.items.length === 0 &&
+      Object.values(entry.loot.resources).every((amount) => amount === 0);
+    return entry.lost && !empty
+      ? `${where(path)}.loot: relatório de quem não voltou com saque`
+      : null;
+  };
+
+  /** Os relatórios guardados: cada um na forma, nunca mais do que o teto, nenhuma expedição repetida. */
+  const reports: Shape = (value, path) => {
+    const found = capped(report, EXPEDITION_REPORTS_CAP_V17, 'relatórios')(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const list = value as ReportV18[];
+    return new Set(list.map((entry) => entry.expeditionId)).size === list.length
+      ? null
+      : `${where(path)}: relatório repetido`;
+  };
+
+  return { expeditions, reports };
+}
+
+const { expeditions, reports } = expeditionShapesOf(logEntry);
 
 export const guildV18Fields: Readonly<Record<string, Shape>> = {
   ...guildV17Fields,
@@ -392,8 +407,7 @@ export const outcomesWithinState: Shape = (value, path) => {
  * - `ids` não muda de forma, e ganha o contador `item` com o primeiro item achado. `rng` não
  *   muda.
  *
- * Quem subir `schemaVersion` para 19 acrescenta aqui o passo `v18ToV19`, com esta forma como
- * entrada, e escreve a forma nova em `v19.ts`.
+ * O passo que sai daqui é o `v18ToV19`, abaixo; a forma da versão 19 está em `v19.ts`.
  */
 export const stateV18Fields: Readonly<Record<string, Shape>> = {
   ...stateV17Fields,
@@ -412,3 +426,46 @@ export const stateV18: Shape = (value, path) =>
   tavernWithinState(value, path) ??
   expeditionsWithinState(value, path) ??
   outcomesWithinState(value, path);
+
+/** O que um registro do percurso da versão 18 ganha na 19: ninguém destacado, nenhuma lição. */
+const logToV19 = (log: unknown): StoredState[] =>
+  (log as StoredState[]).map((entry) => ({ ...entry, standout: null, lesson: null }));
+
+/**
+ * Versão 18 → 19: o relatório nó a nó (V3D-T3; GDD §9.4). Cada registro do percurso ganha
+ * `standout` (quem se destacou no nó) e `lesson` (o que o Revés ou o Desastre ensina), que o
+ * motor passa a escolher na resolução do nó.
+ *
+ * - Os registros que já existiam, nas expedições em curso e nos relatórios guardados, entram com
+ *   os dois em `null`: a versão 18 não os escolhia, e **nada é reconstituído** (a equipe pode já
+ *   ser outra). O relatório antigo continua legível, sem o nome de quem se destacou.
+ * - O nó em que uma equipe está agora é resolvido pelas regras novas no fim dele.
+ *
+ * **O passo não cria prazo, não emite evento, não dá identificador a ninguém e não toca o
+ * gerador.** O catálogo de expedições mudou na mesma tarefa: a expedição em curso cujo nó o
+ * conteúdo deixou de ter volta para casa com o que juntou (`enterNode`, `stepExpedition`), e o
+ * registro de um nó que sumiu fica fora do relatório; isso é regra do motor, não do passo.
+ */
+export const v18ToV19: MigrationStep = {
+  from: 18,
+  summary: 'registros do percurso sem destaque nem lição',
+  shape: stateV18,
+  migrate(state) {
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 19,
+      guild: {
+        ...guild,
+        expeditions: (guild.expeditions as StoredState[]).map((expedition) => ({
+          ...expedition,
+          log: logToV19(expedition.log),
+        })),
+        reports: (guild.reports as StoredState[]).map((report) => ({
+          ...report,
+          log: logToV19(report.log),
+        })),
+      },
+    };
+  },
+};

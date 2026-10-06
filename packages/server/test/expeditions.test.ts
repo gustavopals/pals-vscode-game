@@ -1,5 +1,6 @@
 import {
   type ApiError,
+  type ChronicleResponse,
   type CommandAccepted,
   type EventsResponse,
   PROTOCOL_VERSION,
@@ -19,6 +20,7 @@ import {
   order,
   quietHorde,
   renew,
+  rewriteState,
   send,
   tavernSite,
   type TestApp,
@@ -185,7 +187,9 @@ describe('enviar uma expedição e reenviar a ordem', () => {
     });
     const events = await eventsOf(player.token, gameId);
     const mine = events.filter((event) => event.type.startsWith('expedition'));
-    expect(mine.map((event) => event.type)).toEqual([
+    // O nó da Patrulha tem um tipo quando dá certo e outro no Revés (a Crônica só mostra o
+    // segundo): uma Guerreira de nível 1 passa em 30 das 31 sortes da ronda pelas cercas.
+    expect(mine.map((event) => event.type.replace('NodeFailed', 'NodeResolved'))).toEqual([
       'expeditionSent',
       'expeditionNodeResolved',
       'expeditionReturned',
@@ -201,6 +205,91 @@ describe('enviar uma expedição e reenviar a ordem', () => {
         `game_id = '${gameId}' and type = 'sendExpedition' and response_status = 200`,
       ),
     ).toBe(1);
+  });
+
+  it('a Crônica guarda o nó que deu certo e mostra o que deu errado, com a mesma frase no relatório e no Markdown (V3D-T3.5)', async () => {
+    const { player, gameId } = await openGuild('Guiomar');
+    const patrol = (heroId: string) =>
+      send<CommandAccepted>(
+        server,
+        player.token,
+        gameId,
+        order('sendExpedition', { modelId: 'patrol', heroIds: [heroId], posture: 'balanced' }),
+      );
+    // 1. Edda, de nível 10: Sucesso Pleno em toda a sorte, nas três variantes da Patrulha.
+    await rewriteState(server, gameId, (state) => {
+      Object.assign(state.guild.heroes[0] ?? {}, { level: 10 });
+    });
+    expect((await patrol('hero-1')).status).toBe(200);
+    server.clock.advance(20 * MINUTE);
+    await renew(server, player);
+    // 2. Rolf, Descontente e com o cofre vazio, na ronda pelas cercas: 28,8 contra 36 não chega
+    //    ao Sucesso com sorte nenhuma. A variante é uma conta sobre a semente e o contador de
+    //    envios: o teste procura o contador que dá a das cercas, pelo que a tela mostra.
+    for (let sent = 0; sent < 3; sent += 1) {
+      await rewriteState(server, gameId, (state) => {
+        state.stats['expeditionsSent:patrol'] = sent;
+      });
+      const offer = (await viewOf(player.token, gameId)).guild.available.find(
+        (entry) => entry.modelId === 'patrol',
+      );
+      if (offer?.firstStretchText.startsWith('A ronda pelas cercas')) {
+        break;
+      }
+    }
+    await rewriteState(server, gameId, (state) => {
+      Object.assign(state.guild.heroes[1] ?? {}, { discontent: true });
+      state.guild.wageArrears = { sinceMs: state.lastProcessedAt, carriedMs: 0, departed: 0 };
+      state.guild.lastWageArrears = null;
+      state.settlement.resources.gold = 0;
+      state.settlement.workers.goldMine = 0;
+    });
+    expect((await patrol('hero-2')).status).toBe(200);
+    server.clock.advance(20 * MINUTE);
+    await renew(server, player);
+
+    const events = await eventsOf(player.token, gameId);
+    const nodes = events.filter((event) => event.type.startsWith('expeditionNode'));
+    expect(nodes.map((event) => event.type)).toEqual([
+      'expeditionNodeResolved',
+      'expeditionNodeFailed',
+    ]);
+    const [won, lost] = nodes;
+    expect(won?.text).toContain('Edda');
+    expect(lost?.text).toContain('Rolf');
+    // A Crônica: o nó que deu certo fica de fora, e o que deu errado é linha dela.
+    const chronicle = await call<ChronicleResponse>(
+      server,
+      'GET',
+      `/games/${gameId}/chronicle?limit=200`,
+      { token: player.token },
+    );
+    expect(chronicle.status).toBe(200);
+    const lines = chronicle.body.entries.map((event) => event.text);
+    expect(chronicle.body.entries.map((event) => event.type)).not.toContain(
+      'expeditionNodeResolved',
+    );
+    expect(lines).toContain(lost?.text);
+    expect(lines).not.toContain(won?.text);
+    // A partida e a volta das duas continuam lá.
+    for (const type of ['expeditionSent', 'expeditionReturned']) {
+      expect(chronicle.body.entries.filter((event) => event.type === type)).toHaveLength(2);
+    }
+    const markdown = await call<string>(server, 'GET', `/games/${gameId}/chronicle.md`, {
+      token: player.token,
+    });
+    expect(markdown.body).toContain(lost?.text);
+    expect(markdown.body).not.toContain(won?.text);
+    // O relatório traz as duas, e a frase do nó é a mesma da Crônica, com o que ele rendeu.
+    const view = await viewOf(player.token, gameId);
+    const [second, first] = view.guild.reports;
+    expect(first?.log[0]?.text.startsWith(won?.text ?? '?')).toBe(true);
+    expect(second?.log[0]?.text.startsWith(lost?.text ?? '?')).toBe(true);
+    expect(second?.log[0]).toMatchObject({ standoutName: 'Rolf' });
+    expect(second?.log[0]?.lessonText).not.toBeNull();
+    expect(lost?.text).toContain(second?.log[0]?.lessonText);
+    expect(second?.log.at(-1)?.title).toBe('A volta ao portão');
+    expect(second?.lossesText).toMatch(/^O preço: Rolf, com um ferimento (leve|grave)\.$/);
   });
 
   it('nada do que é segredo sai pela API: nem a variante, nem a chave de nó, nem o gerador (QA-18)', async () => {

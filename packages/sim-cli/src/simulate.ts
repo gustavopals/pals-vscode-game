@@ -278,7 +278,7 @@ export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): v
       counts.crossroadsByPlayer += 1;
     } else if (event.type === 'expeditionPostureDecided') {
       counts.crossroadsByPosture += 1;
-    } else if (event.type === 'expeditionNodeResolved') {
+    } else if (event.type === 'expeditionNodeResolved' || event.type === 'expeditionNodeFailed') {
       const outcome = String(event.data.outcome);
       if (
         outcome === 'full' ||

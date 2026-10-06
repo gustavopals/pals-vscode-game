@@ -8,6 +8,7 @@ import {
   INJURY_SEVERITY_IDS,
   ITEM_SLOT_IDS,
   items,
+  type PostureId,
 } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
@@ -32,6 +33,7 @@ import {
   AUTUMN,
   DAY,
   expeditionAtNode,
+  throughCrossroads,
   giveItem,
   guildHall,
   HOUR,
@@ -122,7 +124,7 @@ function atCrypt(difficulty: DifficultyId, team: string[] = ['hero-1', 'hero-2']
     only(weak).heroIds = [...team];
     heroOf(weak, 'hero-2').status = 'idle';
   }
-  return placeAt(weak, 'crypt');
+  return placeAt(weak, 'stoneGuardian');
 }
 
 describe('quem sofre o desfecho (ADR 0017, decisão 8 e "Os oito traços")', () => {
@@ -387,7 +389,9 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     expect(report?.heroNames).toEqual([heroOf(home.state, other).name, victim.name]);
     expect(report?.lost).toBe(false);
     const reportView = deriveViewState(home.state, home.state.lastProcessedAt).guild.reports[0];
-    expect(reportView?.log.at(-1)?.notes).toEqual([`${victim.name} ficou em cativeiro.`]);
+    // O último passo do relatório é o caminho de volta; o do guardião é o anterior.
+    expect(reportView?.log.at(-2)?.notes).toEqual([`${victim.name} ficou em cativeiro.`]);
+    expect(reportView?.lossesText).toBe(`O preço: ${victim.name}, em cativeiro.`);
     expect(shaped(home.state)).toBeNull();
   });
 
@@ -413,7 +417,8 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     const home = advanceTo(after.state, endsAt + 45 * MINUTE).state;
     expect(home.guild.reports[0]?.heroNames).toContain(name);
     const view = deriveViewState(home, home.lastProcessedAt).guild.reports[0];
-    expect(view?.log.at(-1)?.notes).toEqual([`${name} não voltou.`]);
+    expect(view?.log.at(-2)?.notes).toEqual([`${name} não voltou.`]);
+    expect(view?.lossesText).toBe(`O preço: ${name}, que não voltou.`);
   });
 
   it('a equipe inteira capturada: a expedição termina ali, e o saque se perde', () => {
@@ -516,9 +521,10 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
     const start = withCaptive();
     expect(paidHeroes(start)).toBe(2);
     const sent = send(start, 'rescue', ['hero-2', 'hero-3'], 'bold', 0);
-    // Dois Guerreiros de nível 10 (144,48) contra 55 e 78: Sucesso Pleno em toda a sorte.
+    // Dois Guerreiros de nível 10 contra a trilha (165,12 contra 90) e, pelo caminho seguro, a
+    // troca da guarda (154,8 contra 78): Sucesso Pleno em toda a sorte.
     const cellAt = sent.state.lastProcessedAt + 90 * MINUTE;
-    const before = advanceTo(sent.state, cellAt - 1);
+    const before = advanceTo(throughCrossroads(sent.state, 'waitForGuardChange').state, cellAt - 1);
     expect(heroOf(before.state, 'hero-1').status).toBe('captured');
     const after = advanceTo(before.state, cellAt);
     const [line] = ofType(after.events, 'heroRescued');
@@ -535,7 +541,8 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
     const view = deriveViewState(home, home.lastProcessedAt).guild;
     expect(view.available.map((offer) => offer.modelId)).not.toContain('rescue');
     expect(view.heroes[0]).toMatchObject({ statusText: 'No feudo', canDepart: true });
-    expect(view.reports[0]?.log.at(-1)?.notes).toEqual(['Edda ganhou a liberdade.']);
+    expect(view.reports[0]?.log.at(-2)?.notes).toEqual(['Edda ganhou a liberdade.']);
+    expect(view.reports[0]?.deedsText).toBe('Edda ganhou a liberdade.');
   });
 
   it('com mais de um cativo, liberta quem está lá há mais tempo', () => {
@@ -548,7 +555,10 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
     });
     expect(shaped(start)).toBeNull();
     const sent = send(start, 'rescue', ['hero-2', 'hero-3'], 'bold', 0);
-    const after = advanceTo(sent.state, sent.state.lastProcessedAt + 90 * MINUTE);
+    const after = advanceTo(
+      throughCrossroads(sent.state, 'waitForGuardChange').state,
+      sent.state.lastProcessedAt + 90 * MINUTE,
+    );
     expect(ofType(after.events, 'heroRescued').map((event) => event.data.heroId)).toEqual([
       'hero-4',
     ]);
@@ -562,13 +572,13 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
   it('o Revés no cativeiro não liberta ninguém', () => {
     const start = withCaptive();
     const sent = send(start, 'rescue', ['hero-2', 'hero-3'], 'bold', 0);
-    const placed = placeAt(sent.state, 'cell');
-    // Dois Guerreiros de nível 1 e 2 somam 87,36... fraco demais para garantir; um só, de nível
-    // 4 (52,08), contra 78: de 0,57 a 0,77. Para o Revés certo usa-se 78 × 0,7 ÷ 0,85 = 64,3
-    // ou mais e menos de 78 ÷ 1,15 = 67,8: um Guerreiro de nível 8 vale 65,52.
+    const placed = placeAt(sent.state, 'guardChange');
+    // A troca da guarda pede 78, com a perícia pesando metade: um Guerreiro vale 45 por nível 1.
+    // Para o Revés certo é preciso 78 × 0,7 ÷ 0,85 = 64,3 ou mais e menos de 78 ÷ 1,15 = 67,8:
+    // um Guerreiro de nível 7 vale 66,6.
     only(placed.state).heroIds = ['hero-2'];
     heroOf(placed.state, 'hero-3').status = 'idle';
-    heroOf(placed.state, 'hero-2').level = 8;
+    heroOf(placed.state, 'hero-2').level = 7;
     const after = advanceTo(placed.state, placed.endsAt);
     expect(only(after.state).log.at(-1)).toMatchObject({ outcome: 'setback', rescued: null });
     expect(ofType(after.events, 'heroRescued')).toEqual([]);
@@ -629,7 +639,7 @@ describe('experiência e nível (GDD §9.1; ADR 0017, decisão 7)', () => {
     const sent = send(start, 'ruins', ['hero-2', 'hero-3'], 'bold', 0);
     only(sent.state).heroIds = ['hero-2', 'hero-3', 'hero-1'];
     heroOf(sent.state, 'hero-1').status = 'expedition';
-    const placed = placeAt(sent.state, 'crypt');
+    const placed = placeAt(sent.state, 'stoneGuardian');
     const after = advanceTo(placed.state, placed.endsAt);
     // 99 + 75 = 174: passa os 100 do nível 1 e fica com 74 no nível 2.
     expect(heroOf(after.state, 'hero-1')).toMatchObject({ level: 2, xp: 74 });
@@ -812,7 +822,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     expect(ofType(home.events, 'expeditionReturned')[0]?.text).toContain(`um item (${label})`);
     const view = deriveViewState(home.state, home.state.lastProcessedAt).guild;
     expect(view.reports[0]?.itemsText).toBe(`Para o arsenal: ${label}.`);
-    expect(view.reports[0]?.log.at(-1)?.notes).toContain(`Achado: ${label}.`);
+    expect(view.reports[0]?.log.at(-2)?.notes).toContain(`Achado: ${label}.`);
     expect(view.inventory.map((entry) => entry.label)).toEqual([label]);
   });
 
@@ -981,7 +991,12 @@ describe('o Covil dos Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () 
       edit(draft);
     });
     const sent = send(start, 'wolfDen', ['hero-1', 'hero-2'], 'bold', 0);
-    return { sent, clearsAt: sent.state.lastProcessedAt + 90 * MINUTE };
+    // A subida (40 minutos), a escolha na boca da toca, na hora, e a matilha na fumaça (45): com
+    // os dois no nível 10, Sucesso Pleno em toda a sorte nos dois nós.
+    return {
+      sent: { ...sent, state: throughCrossroads(sent.state, 'smokeOut').state },
+      clearsAt: sent.state.lastProcessedAt + 85 * MINUTE,
+    };
   }
 
   it('o sucesso na toca desliga o tile e tira 30 da Ameaça, no instante do nó', () => {
@@ -1071,24 +1086,23 @@ describe('o Covil dos Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () 
       draft.settlement.buildings.guild = 2;
       addHero(draft, { name: 'Isolda', gender: 'f', level: 10 });
     });
-    // A segunda equipe parte dez minutos depois, com o Covil ainda ativo.
-    const second = send(
-      advanceTo(sent.state, 10 * MINUTE).state,
-      'wolfDen',
-      ['hero-3', 'hero-4'],
-      'bold',
-      0,
-    );
+    // A segunda equipe parte quando a primeira escolhe o caminho, com o Covil ainda ativo, e
+    // toma o mesmo caminho quarenta minutos atrás dela.
+    const second = send(sent.state, 'wolfDen', ['hero-3', 'hero-4'], 'bold', 0);
     const first = advanceTo(second.state, clearsAt);
     expect(first.state.map.threat).toBe(50);
-    const both = advanceTo(first.state, clearsAt + 10 * MINUTE);
+    const both = advanceTo(
+      // Ela já esperava na boca da toca: a ordem chega agora, e a fumaça leva 45 minutos.
+      throughCrossroads(first.state, 'smokeOut', 'expedition-2').state,
+      clearsAt + 45 * MINUTE,
+    );
     expect(both.state.map.threat).toBe(50);
     expect(ofType(both.events, 'threatTileCleared')).toEqual([]);
     expect(both.state.guild.expeditions.at(-1)?.log.at(-1)).toMatchObject({
       outcome: 'full',
       cleared: null,
     });
-    const home = advanceTo(both.state, clearsAt + HOUR).state;
+    const home = advanceTo(both.state, clearsAt + 2 * HOUR).state;
     const view = deriveViewState(home, home.lastProcessedAt).guild;
     const offer = view.available.find((entry) => entry.modelId === 'wolfDen');
     expect(offer).toMatchObject({
@@ -1395,6 +1409,14 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
     };
     const go = (state: GameState, modelId: string, heroIds: string[], variant: number): GameState =>
       send(state, modelId, heroIds, 'bold', variant).state;
+    /** Até a encruzilhada, e o caminho que a Postura dada marca, por ordem do senhor. */
+    const cross = (state: GameState, how: PostureId): GameState => {
+      const step = throughCrossroads(state, how);
+      lines.push(
+        ...step.events.filter((event) => told.test(event.type)).map((event) => event.text),
+      );
+      return step.state;
+    };
 
     let state = hall(2, { difficulty, seed: 'roteiro-desfechos' }, (draft) => {
       draft.map.discovered = [];
@@ -1419,7 +1441,7 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
     // 4. Edda e Rolf, enfraquecidos, diante do guardião da cripta: Desastre certo.
     const crypt = placeAt(
       weaken(go(state, 'ruins', ['hero-1', 'hero-2'], 0), ['hero-1', 'hero-2']),
-      'crypt',
+      'stoneGuardian',
     );
     state = run(crypt.state, crypt.endsAt);
     const afterCrypt = state;
@@ -1440,19 +1462,23 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
     });
     const rescueRefused = captive === undefined ? refuse(state, rescueOrder).code : null;
     if (captive !== undefined) {
-      state = run(order(state, rescueOrder), state.lastProcessedAt + 2 * HOUR);
+      // Diante do cativeiro, o caminho seguro: com dois de nível 10, Sucesso Pleno certo.
+      state = run(cross(order(state, rescueOrder), 'cautious'), state.lastProcessedAt + 2 * HOUR);
     }
     // Quem se feriu de forma grave sara antes da última jornada.
     state = run(state, state.lastProcessedAt + 13 * HOUR);
     const threatBefore = state.map.threat;
-    // 6. O Covil: dois de nível 10, Sucesso Pleno certo.
+    // 6. O Covil: dois de nível 10 pelo caminho do meio, Sucesso Pleno certo.
     const team = state.guild.heroes.filter((hero) => hero.status === 'idle').slice(0, 2);
     state = run(
-      go(
-        state,
-        'wolfDen',
-        team.map((hero) => hero.id),
-        0,
+      cross(
+        go(
+          state,
+          'wolfDen',
+          team.map((hero) => hero.id),
+          0,
+        ),
+        'balanced',
       ),
       state.lastProcessedAt + 2 * HOUR,
     );

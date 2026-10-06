@@ -117,6 +117,26 @@ const pass = async (player: Player, ms: number) => {
   await renew(server, player);
 };
 
+/**
+ * Leva a expedição em curso até a encruzilhada (o primeiro nó dura 45 minutos, no máximo) e
+ * responde por ela com a opção da posição dada na lista que a tela mostra (-1: a última).
+ */
+async function throughCrossroads(player: Player, position: number): Promise<void> {
+  await pass(player, 46 * MINUTE);
+  const [expedition] = (await viewOf(player)).guild.expeditions;
+  const option = expedition?.crossroads?.options.at(position);
+  if (expedition === undefined || option === undefined) {
+    throw new Error('O teste esperava a equipe parada em uma encruzilhada.');
+  }
+  const chosen = await send<CommandAccepted>(
+    server,
+    player.token,
+    player.game.id,
+    order('chooseExpeditionPath', { expeditionId: expedition.id, optionId: option.id }),
+  );
+  expect(chosen.status).toBe(200);
+}
+
 describe('equipar um herói e reenviar a ordem', () => {
   it('um item, um dono: o duplo clique devolve o recibo, e a outra aba já não encontra o item', async () => {
     const player = await campaign('Aldara', 'lord');
@@ -201,7 +221,7 @@ describe('equipar um herói e reenviar a ordem', () => {
       'select schema_version from games where id = $1',
       [gameId],
     );
-    expect(row.rows[0]?.schema_version).toBe(18);
+    expect(row.rows[0]?.schema_version).toBe(19);
   });
 
   it('nada do que é segredo sai pela API: nem a chave do item no conteúdo, nem o cativeiro, nem o prazo cru', async () => {
@@ -249,11 +269,16 @@ describe('o cenário roteirizado dos desfechos pela API (V3D-T2, "Pronto quando"
         if (expedition === undefined) {
           throw new Error('O teste esperava a expedição em curso.');
         }
+        // A primeira variante das Ruínas, diante do Guardião de Pedra: a equipe já passou pela
+        // encruzilhada (o caminho não importa aqui).
         Object.assign(expedition, {
-          nodeId: 'crypt',
+          variant: 0,
+          status: 'traveling',
+          nodeId: 'stoneGuardian',
           nodeEndsAtMs: state.lastProcessedAt + 10 * MINUTE,
+          crossroads: null,
         });
-        // Dois Clérigos de nível 1, Descontentes: 51,2 contra 88 a 92 é Desastre em toda a sorte.
+        // Dois Clérigos de nível 1, Descontentes: 51,2 contra 92 é Desastre em toda a sorte.
         for (const entry of state.guild.heroes.slice(0, 2)) {
           Object.assign(entry, { classId: 'cleric', level: 1, discontent: true });
         }
@@ -303,7 +328,10 @@ describe('o cenário roteirizado dos desfechos pela API (V3D-T2, "Pronto quando"
       );
       if (difficulty === 'lord') {
         expect(rescue.status).toBe(200);
-        await pass(player, 2 * HOUR + 5 * MINUTE);
+        // Diante do cativeiro, o caminho seguro (o último da lista): com dois de nível 10,
+        // Sucesso Pleno em toda a sorte, nas três variantes.
+        await throughCrossroads(player, -1);
+        await pass(player, 80 * MINUTE);
         const rescued = await viewOf(player);
         expect(rescued.guild.heroes.filter((entry) => entry.captive)).toEqual([]);
         expect(rescued.guild.captiveText).toBeNull();
@@ -335,7 +363,9 @@ describe('o cenário roteirizado dos desfechos pela API (V3D-T2, "Pronto quando"
         order('sendExpedition', { modelId: 'wolfDen', heroIds: team.slice(0, 2), posture: 'bold' }),
       );
       expect(den.status).toBe(200);
-      await pass(player, 2 * HOUR + 5 * MINUTE);
+      // Na boca da toca, o caminho do meio, que limpa o Covil nas três variantes.
+      await throughCrossroads(player, 1);
+      await pass(player, 85 * MINUTE);
       const after = await viewOf(player);
       if (!after.threat.known) {
         throw new Error('O teste esperava a Torre de Vigia de pé.');
@@ -360,7 +390,10 @@ describe('o cenário roteirizado dos desfechos pela API (V3D-T2, "Pronto quando"
       // E o destino fecha até a virada do ano.
       const offer = after.guild.available.find((entry) => entry.modelId === 'wolfDen');
       expect(offer?.locked).toBe(true);
-      expect(after.guild.reports[0]?.log.at(-1)?.notes).toContain('Limpo: o Covil de Lobos.');
+      // O último passo do relatório é o caminho de volta; o da toca é o anterior.
+      expect(after.guild.reports[0]?.log.at(-2)?.notes).toContain('Limpo: o Covil de Lobos.');
+      expect(after.guild.reports[0]?.deedsText).toContain('Limpo: o Covil de Lobos.');
+      expect(after.guild.reports[0]?.lossesText).toBe('Sem perdas: todos voltaram inteiros.');
     },
   );
 });

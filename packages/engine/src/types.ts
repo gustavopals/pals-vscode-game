@@ -305,6 +305,29 @@ export type ExpeditionLogEntry = {
   rescued: string | null;
   /** O saque do nó se perdeu no caminho (o Ganancioso). */
   lootLost: boolean;
+  /**
+   * Quem se destacou em um nó com prova, pelo nome: o herói de maior poder contra o nó, como a
+   * equipe chegou a ele (no empate, o de menor identificador). `null` no resto.
+   */
+  standout: string | null;
+  /**
+   * O que o Revés ou o Desastre ensina, escolhido na resolução do nó por um critério fixo, sem
+   * sorteio: a classe que o nó pede e a equipe não tinha, o herói que rende mais em outra
+   * Postura, o herói que partiu com espaço vago havendo item no arsenal, ou só a falta de força.
+   * `null` no Sucesso, no Sucesso Pleno e no que não é prova.
+   */
+  lesson: ExpeditionLesson | null;
+};
+
+/** Os motivos que o relatório dá para um desfecho ruim, na ordem em que o motor os procura. */
+export type ExpeditionLessonKind = 'class' | 'posture' | 'item' | 'strength';
+
+export type ExpeditionLesson = {
+  kind: ExpeditionLessonKind;
+  /** O herói de quem a lição fala (`posture` e `item`); `null` nas outras. */
+  heroName: string | null;
+  /** A Postura em que ele renderia mais (`posture`); `null` nas outras. */
+  posture: PostureId | null;
 };
 
 /**
@@ -374,7 +397,7 @@ export type ExpeditionReport = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 18;
+  schemaVersion: 19;
   seed: string;
   settings: GameSettings;
   /**
@@ -1324,6 +1347,19 @@ export type ExpeditionOfferView = {
    * com folga, sem ler o número em uma frase.
    */
   firstStretchDifficulty: number | null;
+  /**
+   * O que a equipe precisa valer contra a prova mais dura do primeiro trecho (ADR 0018, decisão
+   * 13); `null` quando o trecho não tem prova. Com `comfortPower` ou mais, nem a pior sorte tira
+   * o Sucesso ("folgada"); abaixo de `riskPower`, a pior sorte dá Desastre ("arriscada"); entre
+   * os dois, a equipe vai "justa". `text` diz o mesmo em uma frase.
+   */
+  fit: { comfortPower: number; riskPower: number; text: string } | null;
+  /**
+   * O poder de cada herói que pode partir agora **contra essa prova**, com os pesos dela (a
+   * perícia que um nó pesa não aparece no poder da ficha). A equipe vale a soma. Sem prova à
+   * vista, é o poder da ficha.
+   */
+  heroFit: Array<{ heroId: string; power: number }>;
   /** A ordem de envio seria recusada agora para qualquer equipe. */
   locked: boolean;
   lockedReason: string | null;
@@ -1337,9 +1373,17 @@ export type ExpeditionOfferView = {
  */
 export type ExpeditionLogView = {
   title: string;
+  /**
+   * A frase do passo, a mesma da Crônica: o que aconteceu, quem se destacou e, no Revés e no
+   * Desastre, o que teria ajudado; depois, o que o nó rendeu.
+   */
   text: string;
   outcomeLabel: string;
   notes: string[];
+  /** Quem se destacou em um nó com prova, pelo nome; `null` no resto. */
+  standoutName: string | null;
+  /** O que o desfecho ruim ensina, a frase que `text` já traz; `null` no resto. */
+  lessonText: string | null;
 };
 
 /** A encruzilhada em que uma expedição espera: as opções, o prazo real e o que a Postura fará. */
@@ -1389,7 +1433,12 @@ export type ExpeditionReportView = {
   label: string;
   postureLabel: string;
   teamNames: string[];
+  /** O percurso, um passo por nó e por escolha; o último é o caminho de volta, de quem voltou. */
   log: ExpeditionLogView[];
+  /** "O preço: Rolf, com um ferimento leve."; "Sem perdas: todos voltaram inteiros." */
+  lossesText: string;
+  /** "Caminho novo: Ruínas de Vel'Thar. Edda chegou ao nível 2."; `null` sem nenhum. */
+  deedsText: string | null;
   /** "Trouxe 22 de ouro."; "Ninguém da equipe voltou: o que traziam se perdeu." */
   lootText: string;
   /** "Para o arsenal: Lança de caça."; `null` sem item. */

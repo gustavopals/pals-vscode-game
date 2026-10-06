@@ -1559,7 +1559,16 @@ describe('ViewStateSchema', () => {
       statusText: 'Parada na encruzilhada, à espera da sua palavra.',
       nodeTitle: 'A trilha se divide',
       nodeEndsInSeconds: null,
-      log: [{ title: 'A trilha', text: 'Passou.', outcomeLabel: 'Sem incidentes', notes: [] }],
+      log: [
+        {
+          title: 'A trilha',
+          text: 'Passou.',
+          outcomeLabel: 'Sem incidentes',
+          notes: [],
+          standoutName: null,
+          lessonText: null,
+        },
+      ],
       crossroads: {
         title: 'A trilha se divide',
         text: 'A trilha se parte em duas.',
@@ -1626,11 +1635,21 @@ describe('ViewStateSchema', () => {
       teamMax: 1,
       teamMinLevel: 1,
       firstStretchDifficulty: 30,
+      fit: { comfortPower: 36, riskPower: 25, text: 'Com 36 de poder a equipe passa com folga.' },
+      heroFit: [{ heroId: 'hero-1', power: 42 }],
       locked: false,
       lockedReason: null,
       firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
     };
     expect(parse({ ...view.guild, available: [offer] })).toBe(true);
+    // Sem prova no primeiro trecho não há régua; a sorte e os pesos do nó nunca saem.
+    expect(parse({ ...view.guild, available: [{ ...offer, fit: null, heroFit: [] }] })).toBe(true);
+    expect(
+      parse({ ...view.guild, available: [{ ...offer, fit: { ...offer.fit, luckMin: 85 } }] }),
+    ).toBe(false);
+    expect(
+      parse({ ...view.guild, available: [{ ...offer, weights: { skill: { num: 1, den: 1 } } }] }),
+    ).toBe(false);
     expect(parse({ ...view.guild, available: [{ ...offer, variant: 1 }] })).toBe(false);
     expect(parse({ ...view.guild, available: [{ ...offer, nodes: {} }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, equipment: {} }] })).toBe(false);
@@ -1646,8 +1665,14 @@ describe('ViewStateSchema', () => {
     expect(ViewStateSchema.safeParse(withoutGuild).success).toBe(false);
   });
 
-  it('os eventos que ficam fora da Crônica são a virada de dia e o fecho do desperdício', () => {
-    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual(['dayStarted', 'storageWasted']);
+  it('os eventos que ficam fora da Crônica são a virada de dia, o fecho do desperdício e o nó de expedição que deu certo', () => {
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).toEqual([
+      'dayStarted',
+      'storageWasted',
+      'expeditionNodeResolved',
+    ]);
+    // O nó que terminou em Revés ou Desastre é linha da Crônica (pendência D-12 da v0.3).
+    expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('expeditionNodeFailed');
     // O estoque que encheu é notícia: continua na Crônica.
     expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain('storageFilled');
   });

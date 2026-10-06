@@ -44,6 +44,7 @@ export const EVENT_TYPES = [
   'festivalEnded',
   'expeditionSent',
   'expeditionNodeResolved',
+  'expeditionNodeFailed',
   'expeditionAtCrossroads',
   'expeditionPathChosen',
   'expeditionPostureDecided',
@@ -241,6 +242,10 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, partiu de {feudo} uma expedição: {expedicao}. A equipe: {herois}.',
   expeditionNodeResolved:
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" passou por {no}: {desfecho}.',
+  // O nó que terminou em Revés ou Desastre: é o que a Crônica mostra de um nó (o que deu certo
+  // fica no relatório; pendência D-12). A frase de verdade é a do desfecho, no grafo.
+  expeditionNodeFailed:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" sofreu em {no}: {desfecho}.',
   expeditionAtCrossroads:
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" parou em uma encruzilhada: {no}. A equipe espera a palavra do senhor de {feudo}.',
   expeditionPathChosen:
