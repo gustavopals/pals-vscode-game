@@ -4,13 +4,14 @@
 
 ## 1. O mais importante
 
-Em cinco linhas, por ordem de importância:
+Em seis linhas, por ordem de importância:
 
 1. **O backup fora do servidor, a cópia do `RECOVERY_CODE_SECRET` e o ensaio de reversão continuam por fazer, e a v0.3 vai subir a versão do estado em produção assim mesmo** (seção 3; dúvida A-2). O roadmap dizia que esses atos bloqueavam a chegada de qualquer migração de estado à produção; a autorização de `push` de 2026-10-05 não os cumpre. O agente faz um backup manual no servidor antes de cada `push` que sobe o estado: é o mínimo, não o substituto.
 2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. "Versão estável" foi lido como o fim de uma fase com o portão inteiro verde; publicar a Fase C sozinha cobra soldo de heróis que ainda não têm trabalho. Se a régua for outra (por exemplo, só depois da Fase D), basta dizer.
 3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
+6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
 
 - **Para jogar em desenvolvimento:** `pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web` e abrir `http://localhost:5173`.
 
@@ -141,6 +142,55 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase C: a carta da estrangeira (V3C-T3)
+
+Vêm da implementação de V3C-T3 (a carta roteirizada "Estrangeira ferida", o efeito `addHero`, os heróis com nome; estado na versão 15). **Nenhuma foi perguntada ao autor.** As quatro primeiras o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. **Daqui em diante toda partida ganha um herói e passa a pagar soldo.**
+
+**C-11. O herói prometido ("Rolf chega 1 dia de jogo depois") fica em uma lista própria da guilda, e chega em um instante exato.** *(Decidida pelo agente.)*
+- Enquanto isso: `guild.arriving` guarda `{ namedHeroId, atMs }`. Não foi reusado `council.delayed`, que é dos efeitos **escondidos** e nunca sai na visão: a promessa de um herói não é segredo, e a visão mostra quem vem e em quanto tempo (`guild.arriving[]`). "Um dia de jogo depois" conta do instante da escolha, e não é uma virada de dia: quem responde no meio do dia recebe o herói no meio do dia seguinte. A chegada é um instante novo da linha do tempo (`nextHeroArrivalAt`).
+- Onde: `packages/engine/src/arrivals.ts`, `heroes.ts`, `timeline.ts`; README do motor, "Heróis e soldo".
+- Se decidir diferente: fazer a chegada cair sempre em uma virada de dia tira um instante da linha do tempo e deixa o prazo desigual (de zero a um dia de jogo a mais); é mudança de regra e de golden.
+
+**C-12. O herói que chega entra na ordem do instante logo depois do Conselho.** *(Decidida pelo agente.)*
+- Enquanto isso: `settleHeroArrivals` roda depois de `settleCouncil` e antes do fim das adaptações, das incursões, dos objetivos e da conta do ouro. Consequências: a carta que expira dá o herói no mesmo instante; a virada de dia em que ele chega **não** cobra dele o soldo em atraso que já existia; o sorteio do Conselho e a moral daquela virada não o veem (uma carta do lote 2 que pergunte por um herói só o encontra na audiência seguinte); o soldo dele já entra na conta do ouro daquele instante.
+- Onde: `processEventsAt`, em `packages/engine/src/advance.ts`; `stranger.test.ts`, "a ordem do instante".
+- Se decidir diferente: pôr a chegada junto dos aldeões que chegam, antes da virada, faz a virada cobrar de quem acabou de entrar um atraso antigo e pede outra saída para o herói dado por uma carta que expira.
+
+**C-13. A roteirizada não reserva lugar na mesa: com duas cartas pendentes, espera a audiência seguinte.** *(Decidida pelo orquestrador; é a pergunta que V3C-T3.3 deixava para o plano.)*
+- Enquanto isso: a regra do Conselho não mudou. A carta não se perde, mas **atrasa para quem não responde às cartas dos dias 5 e 9**. Medido: quem passa pelo feudo uma vez por dia (o Preguiçoso do simulador) tem o herói na hora real 48 no ritmo Rápido e no Normal, e não na 24; quem nunca aparece o recebe pelo conselho 64 h reais depois da fundação no ritmo Normal (a carta chega na audiência do 21º dia e expira no 33º) e cerca de 53 h no Rápido. Quem responde às cartas a recebe na audiência do 13º dia: 8 h reais no Rápido, 24 h no Normal, 48 h no Tranquilo. O critério 1 do GDD §16.2 ("o primeiro herói chega pela carta do dia 2") vale para quem joga; para quem falta, é o dia 3.
+- Onde: `drawCard`, em `packages/engine/src/councilTurn.ts`; `stranger.test.ts`, "prioridade"; [balance-v0.3.md](balance-v0.3.md), seção 3.3; GDD §7.1.
+- Se decidir diferente: (a) **a roteirizada reserva lugar**, como a continuação vencida: a audiência do 13º dia a entrega sempre que houver **um** lugar, e, com a mesa cheia, a primeira carta que sair abre o lugar para ela (por expiração ou por resposta), sem esperar audiência. É mudança de regra do Conselho, de golden e de GDD. (b) A roteirizada ignora o limite de duas e chega como terceira carta: muda `maxPending` para ela e a tela do Conselho. (c) Fica como está.
+
+**C-14. O texto da carta, os rótulos das opções e as frases da Crônica são rascunho do agente.**
+- Enquanto isso: a ficha está em [content-v0.3.md](content-v0.3.md), marcada "rascunho, não lido pelo autor". "Acolher" virou "Acolher a estrangeira". Rolf é o irmão de Edda, como no Apêndice B do GDD. A opção mostra na tela o soldo que o herói passa a cobrar ("…, com soldo de 6 ouro/h").
+- Onde: `packages/content/src/cards/scripted.ts`, `heroes.ts` (`namedHeroes`), `chronicle.ts` (`heroJoined`).
+- Se decidir diferente: texto e números são conteúdo, e trocar é regravar goldens. Os identificadores (`woundedStranger`, `shelter`, `tend`, `edda`, `rolf`) ficam no estado das partidas: depois de publicados, só mudam com passo de migração.
+
+**C-15. Nenhum bot escolhe "Cuidar e deixar partir", e o Preguiçoso do ritmo Normal atrasa o soldo por 21 h reais.**
+- Enquanto isso: os dois bots ficam com a primeira opção sem custo, "Acolher", em toda dificuldade: toda partida da matriz termina com Edda, que é Leal, e **ninguém parte por soldo porque ela não parte, não porque o soldo esteja folgado**. O Preguiçoso do Normal soma 21 h reais de atraso em toda semente e dificuldade; com um herói que não fosse Leal isso passaria das 12 h do Descontente e ficaria a 3 h de perdê-lo (conta dos prazos, não medida). A linha de base do simulador foi regravada de propósito, nas três dificuldades, e algumas células pioraram (Rei de Ferro, Regular do Normal: menor população de 64 para 59).
+- Onde: [balance-v0.3.md](balance-v0.3.md), seção 3; `packages/sim-cli/src/balance.test.ts`, "a estrangeira entrega o primeiro herói…".
+- Se decidir diferente: um perfil de bot que escolha o arqueiro e um que fique sem ouro são de V3C-T5; se o atraso do Preguiçoso incomodar, a alavanca é de conteúdo (o soldo, os prazos, ou o ouro inicial), nunca o bot.
+
+**C-16. Os heróis que já existiam na versão 14 entram na 15 com a forma de tratamento masculina.**
+- Enquanto isso: `HERO_GENDER_FROM_V14 = 'm'`, valor fixo do passo. A versão 14 dizia a classe em uma forma só ("Guerreiro"), e a ficha continua como estava. **Nenhuma partida de verdade passa por aqui com herói**: a versão 14 nunca foi publicada e nenhuma regra dela dava herói a ninguém; só os retratos e os estados de teste têm algum (inclusive uma "Edda" e uma "Isolda" de teste, que na 15 migrada continuam "Guerreiro" e "Mago").
+- Onde: `packages/engine/src/migrations/v14.ts` (`v14ToV15`).
+- Se decidir diferente: nada a decidir enquanto a 14 não tiver ido à produção.
+
+**C-17. A regra "nenhuma carta fala de…" virou três, e a palavra "espada" voltou a ser permitida na carta do herói.**
+- Enquanto isso: (1) nenhuma carta fala de ferro, exército, combate, presságio, relíquia nem de edifício de versão futura; (2) nenhuma fala de Mercado, mapa, expedição, Guilda ou Taverna, até V3F-T1; (3) só a carta com `addHero` fala de herói, classe ou arma. "Soldado", "batalha", "quartel", "muralha", "horda" e "cerco" continuam barradas em todas.
+- Onde: `packages/content/src/council.test.ts`; [content-v0.3.md](content-v0.3.md), seção 2.
+- Se decidir diferente: é editorial; cada regra é uma expressão regular no teste.
+
+**C-18. A história do cenário de 7 dias (o golden do motor) mudou, e uma cadeia ficou mais curta nela.**
+- Enquanto isso: a carta ocupa a audiência do 21º dia (as do 13º e do 17º encontram a mesa cheia), e dali em diante o sorteio é outro. O roteiro continua passando pelas três cadeias, mas "A Promessa da Paliçada" agora é perguntada com a Paliçada já de pé, e o senhor do roteiro a mostra em vez de prometer e ser cobrado: a carta "O prazo da paliçada" não aparece mais no golden. O caminho de quem promete e cumpre continua provado em `council.chains.test.ts`. Nenhuma das 58 ordens do roteiro mudou de resultado.
+- Onde: `packages/engine/src/test-helpers.ts` (`weekAnswers`), `scenario.test.ts`, `__golden__/scenario-7-days.json`.
+- Se decidir diferente: dá para procurar outras respostas ou outro instante da Paliçada que devolvam a cadeia inteira ao golden; é trabalho de teste, não de regra.
+
+**C-19. O simulador mede a guilda de cada partida, mas as colunas do CSV continuam vazias.**
+- Enquanto isso: `Summary.guild` (heróis no fim, hora real do primeiro, horas com o soldo em atraso, heróis que partiram) sai dos eventos e é conferido em `balance.test.ts`. As colunas `heroes`, `wages_paid`, `wage_arrears_hours` e `heroes_departed` do CSV seguem reservadas (pendência C-9).
+- Onde: `packages/sim-cli/src/report.ts`.
+- Se decidir diferente: V3C-T5 liga as colunas ao que já é medido.
+
 ### Fase C: heróis no feudo (V3C-T1)
 
 Vêm da implementação de V3C-T1 (heróis, soldo e atraso; estado na versão 14). Nenhuma foi perguntada ao autor. **Nenhuma regra dá um herói a ninguém ainda**: tudo abaixo só passa a valer para quem joga depois da carta de V3C-T3.
@@ -149,11 +199,13 @@ Vêm da implementação de V3C-T1 (heróis, soldo e atraso; estado na versão 14
 - Enquanto isso: cada classe e cada traço têm um rótulo só, no masculino (`heroClasses`, `heroTraits`), e o herói guarda só nome, classe e traços. O ADR 0017 fala em "Edda, Guerreira Leal".
 - Onde: `packages/content/src/heroes.ts`; `Hero` em `packages/engine/src/types.ts`; `guildView.ts` (`classLabel`, `traits[].label`).
 - Se decidir diferente: (a) **recomendada:** o herói ganha um campo de forma de tratamento, e a classe e os traços, as duas formas; é um campo novo no estado, e o lugar de fazê-lo é V3C-T3, que traz os heróis nomeados, antes de qualquer publicação da Fase C (depois de publicado, é mais um passo de migração). (b) Rótulos neutros de propósito ("Guerreiro(a)" não; algo como "da Guarda"), sem campo. (c) Deixar como está.
+- **Decidida pelo agente em V3C-T3, pela opção (a), para o autor rever:** o herói guarda `gender` (`'f'` ou `'m'`), cada classe e cada traço têm `label` e `labelFeminine` no conteúdo, e a visão escolhe: "Edda — Guerreira", "Rolf — Arqueiro", "Isolda — Maga, Veterana, Gananciosa". A frase do Devoto perdeu o "dele". O estado subiu para a versão 15 (pendência C-16). Trocar de ideia depois de publicar é outro passo de migração.
 
 **C-2. O teto da lista de heróis é 12 (`balance.heroes.rosterCap`), e é o agente que o escolheu.**
 - Enquanto isso: a guarda do estado recusa uma lista maior. O limite de contratação continua `1 + nível da Taverna` (até 6), e a recompensa de carta ou de expedição não é barrada por ele; o teto de 12 é o único número que barraria também uma recompensa. Nesta tarefa nada põe herói no feudo, então nada é barrado ainda.
 - Onde: `packages/content/src/balance.ts`; `packages/engine/src/migrations/v14.ts` (`HERO_ROSTER_CAP_V14`); GDD §9.1; roadmap, §0.7, "Estado de tamanho limitado".
 - Se decidir diferente: outro número é conteúdo, mais a constante da guarda. **O que acontece com a recompensa que chegaria com a lista cheia** (o herói não entra? vira ouro?) é pergunta do plano de V3C-T3 e de V3D-T2; sem teto nenhum, o estado e a visão não têm tamanho máximo.
+- **Decidida pelo agente em V3C-T3, para o autor rever:** o teto de 12 fica, e a recompensa **espera, não se perde**. O herói de uma carta que encontra a lista cheia fica entre os prometidos (`guild.arriving`), com a tela dizendo que ele espera à porta, e entra no instante em que um lugar abrir: a virada de dia em que um herói parte sem soldo, ou a ordem de dispensa. Na prática é impossível hoje (o limite de contratação chega a 6 com a Taverna no teto, e só uma carta dá herói), e está provado por teste (`stranger.test.ts`, "o teto da lista de heróis não tira a recompensa de ninguém"). A lista dos prometidos tem o teto dela, `arrivingCap` (4), também do agente; a recompensa de expedição (V3D-T2) ainda vai precisar da mesma resposta.
 
 **C-3. Quem chega no meio de um atraso antigo paga um passo do prazo na virada seguinte.**
 - Enquanto isso: com só Leais no feudo, o que o prazo cobraria fica perdoado a cada virada (`departed` acompanha os devidos). Um herói que não é Leal e chega com o atraso já passado das 24 h reais fica Descontente na primeira virada e é devido no primeiro passo de 2 h reais depois dela: não sai em bloco pelo que ficou para trás, mas também não ganha as 24 h de carência de novo.
@@ -220,6 +272,19 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C (V3C-T3)
+
+Do mais arriscado para o menos.
+
+1. **O texto da carta não foi lido pelo autor**, nem os nomes, nem as frases da Crônica, nem a frase da opção na tela (seção 5, C-14).
+2. **A opção "Cuidar e deixar partir" não passa pelo simulador.** O arqueiro, o ouro, a moral e a chegada adiada estão provados no motor e na integração, e nenhum bot os joga; o que o soldo faz a um herói que não é Leal em uma partida de bot não foi medido (C-15).
+3. **Nenhuma partida de produção passou pelos passos 13 → 14 → 15.** Nada foi enviado. Toda partida em produção (na versão 12) vai receber a carta na primeira audiência com lugar depois da publicação e, 24 h reais depois, se ninguém responder, um herói com soldo. O backup manual antes do `push` continua sendo do autor (A-2).
+4. **O app não mostra nada da guilda.** A carta aparece na aba Conselho pelo que já existia, com a frase da opção; o herói acolhido, o prometido ("Rolf chega em…") e o soldo só existem na visão. Os testes em navegador rodam com o conselho em recesso e **não exercitam a carta**: passaram sem mudança. A interface é V3C-T4.
+5. **A divisão de intervalo com o herói adiado** foi provada por propriedade com uma carta só e um herói só; a lista dos prometidos com dois ou mais ao mesmo tempo só tem teste de forma.
+6. **O herói que espera lugar (lista no teto)** só foi exercitado com heróis postos por auxiliar de teste: nenhuma partida chega a 12 heróis.
+7. **A rodada do simulador foi feita com o conteúdo de antes do último ajuste de texto** (três frases; nenhum número). O teste da linha de base confere Senhor com o conteúdo do commit; Camponês e Rei de Ferro, só com 3 sementes.
+8. **`--perf`, o tamanho do estado e da visão com herói, `SHOW_COVERAGE=1`, `pnpm test:e2e:landing`, `pnpm capture:landing` e `pnpm docker:build`** não rodaram.
 
 ### Fase C (V3C-T1)
 
