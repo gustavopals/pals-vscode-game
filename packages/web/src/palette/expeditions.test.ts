@@ -707,6 +707,33 @@ describe('"Ver o relatório"', () => {
     expect(revealed).toEqual([`report-${report?.expeditionId}`]);
   });
 
+  it('o pedido vale até chegar relatório novo, ou até o jogador sair da aba: depois, o mais novo volta a vir aberto (revisão, A7)', async () => {
+    const made = await setup(heroInjuredView);
+    const { run, controller } = made;
+    const [report] = heroInjuredView.guild.reports;
+    if (report === undefined) {
+      throw new Error('Sem relatório guardado.');
+    }
+    await run('lords.openReport', report.expeditionId);
+    expect(controller.reportInFocus).toBe(report.expeditionId);
+    // Uma leitura que não traz relatório novo não desfaz o pedido.
+    await serverShows(made, { ...heroInjuredView });
+    expect(controller.reportInFocus).toBe(report.expeditionId);
+    // Outra jornada voltou: o relatório dela é o mais novo, e é ele que vem aberto.
+    const newer = { ...report, expeditionId: 'expedition-77' };
+    await serverShows(made, {
+      ...heroInjuredView,
+      guild: { ...heroInjuredView.guild, reports: [newer, report] },
+    });
+    expect(controller.reportInFocus).toBeNull();
+    // E sair da aba Guilda também desfaz o pedido.
+    await run('lords.openReport', report.expeditionId);
+    expect(controller.reportInFocus).toBe(report.expeditionId);
+    controller.navigate('fief');
+    controller.navigate('guild');
+    expect(controller.reportInFocus).toBeNull();
+  });
+
   it('o relatório que já saiu da lista leva só à seção dos relatórios', async () => {
     const { run, controller, revealed } = await setup(heroInjuredView);
     await run('lords.openReport', 'expedition-0');

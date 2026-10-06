@@ -244,8 +244,11 @@ export class Controller {
    * Enquanto uma está aqui, o botão dela fica ocupado e um segundo acionamento não vira ordem.
    */
   guildOrders: ReadonlySet<string> = new Set();
-  /** O relatório de expedição que a aba Guilda mostra aberto, a pedido do jogador; ver `showReport`. */
-  reportInFocus: string | null = null;
+  /**
+   * O relatório que o jogador pediu para ver, e qual era o mais novo quando ele pediu; ver
+   * `showReport` e `reportInFocus`.
+   */
+  private reportAsked: { expeditionId: string; newestThen: string | null } | null = null;
 
   private notificationHistory: number[] = [];
   /**
@@ -507,6 +510,10 @@ export class Controller {
   navigate(requested: Route): void {
     const route = resolveRoute(requested, this.hasGame, this.defaultRoute());
     this.openIfClosable(route);
+    if (this.route === 'guild' && route !== 'guild') {
+      // Saiu da aba Guilda: o relatório pedido para ver já foi visto.
+      this.reportAsked = null;
+    }
     this.route = route;
     if (route === 'today' || route === 'fief') {
       this.unseen = 0;
@@ -595,7 +602,7 @@ export class Controller {
       this.dropWatchToast();
       this.answering = new Set();
       this.guildOrders = new Set();
-      this.reportInFocus = null;
+      this.reportAsked = null;
       this.dropCrossroadsToasts(() => true);
       // O "Tentar de novo" de uma ordem dada ao feudo anterior não fica para o seguinte.
       this.dropRetryToasts();
@@ -1664,9 +1671,23 @@ export class Controller {
    * a aba Guilda o mostra aberto. Não é estado do jogo: só diz à aba qual folha abrir.
    */
   showReport(expeditionId: string): void {
-    this.reportInFocus = expeditionId;
     this.navigate('guild');
+    this.reportAsked = { expeditionId, newestThen: this.newestReport() };
     this.changes.emit();
+  }
+
+  private newestReport(): string | null {
+    return this.view?.guild.reports[0]?.expeditionId ?? null;
+  }
+
+  /**
+   * O relatório de expedição que a aba Guilda mostra aberto, a pedido do jogador. O pedido vale
+   * enquanto o relatório mais novo for o mesmo de quando ele foi feito e o jogador não sair da
+   * aba: quando outra jornada volta, é o relatório dela que vem aberto, como sem pedido nenhum.
+   */
+  get reportInFocus(): string | null {
+    const asked = this.reportAsked;
+    return asked !== null && asked.newestThen === this.newestReport() ? asked.expeditionId : null;
   }
 
   private setGuildOrder(key: string, busy: boolean): void {
