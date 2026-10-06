@@ -12,6 +12,7 @@ Em seis linhas, por ordem de importância:
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
+7. **A Taverna está no motor e no servidor, e ainda não tem tela** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** o app de hoje já mostra a obra da Taverna na lista de construções, e erguê-la soma moral, mas contratar e dar festival só existem pela API até a V3C-T4: a Fase C não deve ir ao ar sem ela (C-31); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
 
 - **Para jogar em desenvolvimento:** `pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web` e abrir `http://localhost:5173`.
 
@@ -122,8 +123,8 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0018, "O conteúdo narrativo: o que 'escrevo e sigo' muda"; roadmap, V3D-T3.3 e V3F-T1.7.
 - Se decidir diferente: cada reescrita é mostrada antes de entrar. Texto e números são fáceis de trocar; os ids de carta, de opção e de modelo de expedição, depois de publicados, só mudam com passo de migração.
 
-**A-8. O sorteio dos modelos da Taverna é com ou sem reposição dentro de uma rotação?**
-- Enquanto isso: nada foi implementado. Os pesos do ADR 0017 foram pensados para sorteio sem reposição (a mesma oferta não aparece duas vezes na mesma lista); a escolha é do plano de V3C-T2.
+**A-8. O sorteio dos modelos da Taverna é com ou sem reposição dentro de uma rotação?** *(Fechada em V3C-T2 pelo orquestrador da execução: sem reposição. Ver C-20.)*
+- Enquanto isso: implementado sem reposição. Os pesos do ADR 0017 foram pensados para sorteio sem reposição (a mesma oferta não aparece duas vezes na mesma lista); a escolha é do plano de V3C-T2.
 - Onde: ADR 0017, "Detalhes que as premissas deixavam abertos" e "Modelos de candidato da Taverna".
 - Se decidir diferente: com reposição, dois candidatos iguais podem aparecer juntos, e os pesos precisam de outra conta.
 
@@ -141,6 +142,95 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Enquanto isso: é a leitura do agente. Se o catálogo de V3D-T3 não condicionar a revelação ao desfecho, o traço fica sem efeito e sai dos modelos de candidato.
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
+
+### Fase C: a Taverna (V3C-T2)
+
+Vêm da implementação de V3C-T2 (o edifício, os candidatos em rotação, `hireHero`, a moral, `holdFestival`; estado na versão 16). **Nenhuma foi perguntada ao autor.** A C-20 o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. As quatro primeiras depois dela são as que pedem resposta.
+
+**C-20. O sorteio dos candidatos é sem reposição dentro de uma lista, e nenhum candidato repete o nome de quem já serve.** *(Decidida pelo orquestrador; fecha a A-8.)*
+- Enquanto isso: em uma rotação, dois candidatos nunca são o mesmo modelo, e nenhum tem o nome de um herói do feudo, de um prometido por carta ou de outro candidato da lista. De uma rotação para a outra pode haver repetição: o mesmo modelo, e o nome de um candidato que saiu sem ser contratado.
+- Onde: `drawOffers`, em `packages/engine/src/tavernTurn.ts`; `tavern.test.ts`, "em uma rotação ninguém repete".
+- Se decidir diferente: com reposição, os pesos do ADR 0017 pedem outra conta; mexer na ordem dos modelos ou dos nomes muda quem toda Taverna oferece, como uma carta nova muda o sorteio do Conselho.
+
+**C-21. No ritmo Rápido a lista de candidatos troca a cada 8 h reais: quem visita duas vezes por dia perde uma de cada três listas.** *(Pergunta para o autor.)*
+- Enquanto isso: vale o ADR 0017, decisão 4: rotação de 12 dias de jogo, que são 24 h reais no Normal, 48 h no Tranquilo e 8 h no Rápido. O mesmo ADR pede para validar que "o jogador de duas visitas vê cada lista da Taverna ao menos uma vez": no Rápido, o ritmo de produção, isso **não vale por conta** (12 h entre visitas contra 8 h de lista), e o simulador não conta listas vistas. "Depois eu vejo" tem preço, como a tarefa quer; no Rápido o preço é perder candidatos sem nunca tê-los visto.
+- Onde: `balance.tavern.rotationMs`; [balance-v0.3.md](balance-v0.3.md), seção 4.6.
+- Se decidir diferente: a rotação em tempo real (como o prazo de uma carta) seria a sexta constante de tempo real do motor; uma rotação mais longa em tempo de jogo (36 dias de jogo dá 24 h reais no Rápido e três dias reais no Normal) muda o Normal junto. As duas são mudança de conteúdo, de golden e de GDD.
+
+**C-22. Com a Taverna na fila de obras, o Salão sobe mais devagar e a meta de desperdício do Regular volta a falhar no ritmo Normal.** *(Regressão medida; pergunta para o autor.)*
+- Enquanto isso: nenhum número foi mexido para compensar, e os bots Regular, Dedicado e Preguiçoso não foram tocados. As faixas foram regravadas com o que o jogo faz hoje. Em Senhor: o Salão termina um nível abaixo no Regular da semana do Tranquilo (50 de 50 sementes), no Preguiçoso do ano do Tranquilo (38 de 50) e no Regular da semana do Rápido (4 de 50); a meta de 8 h de jogo sem desperdício falha no Normal em uma semente (10 h), no ano do Rápido em duas (9 h), e a semana do Rápido sobe de 33 para 36 h.
+- Onde: [balance-v0.3.md](balance-v0.3.md), seção 4.5; `packages/sim-cli/src/balance.test.ts`, "a meta de desperdício".
+- Se decidir diferente: é o bot escolhendo a obra mais barata; um jogador que queira o Salão primeiro o terá. Se o atraso incomodar no jogo, as saídas são de conteúdo (a curva de custo da Taverna, ou o pré-requisito de cada nível), nunca no bot.
+
+**C-23. O ouro parado subiu, e contratar não o gasta.** *(Medida; é o número que a v0.3 promete baixar.)*
+- Enquanto isso: em Senhor, na semana do Rápido, o Regular termina com até 212 mil de ouro parado (eram 150 mil) e o Explorador, que contrata os cinco heróis que a Taverna deixa, com até 239 mil. A moral da Taverna traz mais gente e mais produção; o soldo de seis heróis é de 36 de ouro por hora real contra 2.500 da Mina.
+- Onde: [balance-v0.3.md](balance-v0.3.md), seção 4.4.
+- Se decidir diferente: nada a decidir agora. O que o plano tem para gastar ouro são as expedições e o Mercado (Fases D e E); se depois delas o número continuar assim, a pergunta volta com a medida.
+
+**C-31. O app de hoje já deixa erguer a Taverna, e ainda não tem onde contratar.** *(Para quem decide o `push`.)*
+- Enquanto isso: a obra aparece na lista de construções da aba Feudo como a de qualquer edifício (presa ao Salão no nível 3), e erguê-la soma moral, que a tela já explica termo a termo. Os candidatos, a contratação e o festival não têm tela: só a API. A aba Guilda é a V3C-T4.
+- Onde: `tests/e2e/09-guilda.spec.ts` (o que há em navegador); roadmap, V3C-T4.
+- Se decidir diferente: publicar a Fase C sem a V3C-T4 entrega um edifício de 360 de material cuja metade do efeito é invisível. A leitura do agente é que a V3C-T4 vem antes do `push`.
+
+**C-24. A troca dos candidatos tem instante próprio na linha do tempo, e entra na ordem do instante depois das incursões.** *(Decidida pelo agente; é a proposta da §0.7 do roadmap.)*
+- Enquanto isso: a rotação conta do instante em que a obra da Taverna termina, que quase nunca é uma virada de dia, e é processada no instante exato (`nextTavernRotationAt`, um candidato de `nextEventAt`). Na ordem do instante vem depois das obras, da virada do dia, dos heróis que chegam e das incursões, e antes das planejadas e dos objetivos: a lista nasce com o número de candidatos do nível daquele instante e sem o nome de quem acabou de chegar.
+- Onde: `processEventsAt`, em `packages/engine/src/advance.ts`; README do motor, "Taverna"; `tavern.test.ts`.
+- Se decidir diferente: cobrar a rotação na virada do dia seguinte tira um instante da linha do tempo e deixa o candidato na tela até 2 h de jogo depois de trocado.
+
+**C-25. Subir o nível da Taverna não mexe na lista que está na mesa: o terceiro candidato vem na troca seguinte.** *(Decidida pelo agente.)*
+- Enquanto isso: o número de candidatos é o do nível no instante da rotação. Quem chega ao nível 3 espera até 12 dias de jogo pelo terceiro.
+- Onde: `offersPerRotation`, `rotateOffers`.
+- Se decidir diferente: sortear o candidato que falta no fim da obra é um sorteio a mais em um instante que já existe; a lista passaria a ter candidatos de idades diferentes.
+
+**C-26. O festival dura 12 viradas de dia e acaba na décima terceira, sem instante próprio; dado na estação seguinte com o anterior em curso, troca o efeito.** *(Decidida pelo agente.)*
+- Enquanto isso: "24 h de jogo (12 dias de jogo)" do ADR 0017 não é contradição com o roadmap: o dia de jogo tem 2 h. O festival é um efeito temporário de moral como os das cartas: não mexe na moral na hora, conta em doze viradas e a seguinte o encerra, com a linha `festivalEnded` na Crônica. "Um por estação" olha o instante do último festival dado: no primeiro instante da estação nova o feudo pode festejar de novo, mesmo com o anterior ainda valendo, e o efeito é trocado, não somado (a moral não chega a +30). O custo não cresce com o nível da Taverna.
+- Onde: `holdFestival`, em `packages/engine/src/tavernOrders.ts`; `endFestival`, em `tavernTurn.ts`.
+- Se decidir diferente: somar dois festivais, ou exigir que o anterior tenha acabado, é mudança de regra pequena, com golden.
+
+**C-27. O estado guarda o instante do último festival e o preço cheio de cada oferta; o Apêndice B do roadmap foi ajustado.** *(Decidida pelo agente.)*
+- Enquanto isso: `guild.tavern` é `{ nextRotationAtMs, festival: { untilMs } | null, lastFestivalAtMs }` (o apêndice previa `festivalSeason: string`), e cada oferta, `{ offerId, templateId, name, gender, price }` (o apêndice não tinha `gender`). O preço gravado é o do modelo no instante da rotação: mudar o preço de um modelo no conteúdo só vale da troca seguinte em diante. O desconto do Carismático não é gravado: é conta da hora.
+- Onde: `packages/engine/src/types.ts`; `migrations/v16.ts`.
+- Se decidir diferente: ler o preço do conteúdo a cada vez faz uma oferta mudar de preço na tela depois de uma publicação.
+
+**C-28. A visão `tavern` existe sempre: sem Taverna, vem com nível zero, listas vazias e a frase que diz o que a abre.** *(Decidida pelo agente.)*
+- Enquanto isso: a interface de V3C-T4 não precisa de frase própria para "sem Taverna": o texto vem do motor ("A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.").
+- Onde: `packages/engine/src/tavernView.ts`.
+- Se decidir diferente: `tavern: null` economiza cerca de 400 bytes por visão e empurra a frase para o app.
+
+**C-29. O perfil Explorador entrou na rodada padrão da matriz; o Regular e o Dedicado continuam com o bot econômico.** *(Decidida pelo agente; era o plano escrito em `matrix.ts` desde a Fase B.)*
+- Enquanto isso: a matriz tem quatro perfis e 24 células por dificuldade, e a suíte ficou cerca de um terço mais lenta nessa parte. O Regular e o Explorador visitam o feudo com a mesma cadência: a diferença entre as células é a contratação. A meta de desperdício do GDD §15.2 continua cobrada só do Regular. O Dedicado e o Preguiçoso não contratam (V3C-T2.7 pedia isso do Preguiçoso).
+- Onde: `PROFILES`, em `packages/sim-cli/src/matrix.ts`; `bots/explorador.ts`.
+- Se decidir diferente: dar a política de contratar ao econômico faria as três células medirem a Guilda e tiraria a comparação.
+
+**C-30. Os 24 nomes dos candidatos, as frases da Crônica e as da tela da Taverna são rascunho do agente.**
+- Enquanto isso: estão no jogo e em [content-v0.3.md](content-v0.3.md), marcados "rascunho, não lido pelo autor". Doze nomes de mulher e doze de homem, medievais portugueses, nenhum igual ao de um herói de carta.
+- Onde: `heroNames` e `tavernCandidates`, em `packages/content/src/heroes.ts`; `chronicle.ts`.
+- Se decidir diferente: trocar um nome é conteúdo; **mexer na ordem da lista muda o sorteio de toda Taverna**, e o golden.
+
+**C-32. Com a Taverna, a cama vazia que o bot deixa nas Habitações é ocupada por um colono.**
+- Enquanto isso: os bots deixam uma cama livre para a moral não cair com as casas cheias. Com a moral acima de 80, que a Taverna dá sem carta nenhuma, um colono chega e ocupa a cama: as casas enchem, a moral perde 10 e volta a subir quando o bot amplia as Habitações. O teste que cobrava "as casas nunca enchem" passou a cobrar isso só de quem não tem Taverna.
+- Onde: `packages/sim-cli/src/bots/bots.test.ts`.
+- Se decidir diferente: é regra da v0.2 (o colono atraído pela fama) encontrando a moral da v0.3. Se o vaivém incomodar no jogo, a pergunta é de regra: o colono deve vir quando só resta uma cama?
+
+**C-33. A coluna `wages_paid` do simulador continua vazia.**
+- Enquanto isso: `heroes`, `wage_arrears_hours` e `heroes_departed` são medidas. O jogo não conta o soldo pago em lugar nenhum, e somar amostras de hora em hora daria um número que parece exato e não é.
+- Onde: `MEASURED_COLUMNS`, em `packages/sim-cli/src/report.ts`.
+- Se decidir diferente: um contador em `stats` é uma linha no motor e um golden; fica para quando alguém precisar do número.
+
+**C-34. O limite de contratação conta todo herói do feudo, o da carta também.**
+- Enquanto isso: com a Taverna no nível 1 e Edda no feudo, o jogador contrata um herói, não dois. É a leitura do ADR 0017, decisão 5 ("1 + nível da Taverna"), em que o "1" é o lugar do herói da carta.
+- Onde: `heroLimitBlock`, em `packages/engine/src/tavern.ts`.
+- Se decidir diferente: contar só os contratados daria sete heróis no nível 5.
+
+**C-35. Um estado com a Taverna de pé e sem rotação marcada é acomodado na fronteira do primeiro avanço.**
+- Enquanto isso: só existe posto à mão, em teste (`/__test/raise`); a lista nasce ancorada no instante em que o estado estava. No jogo a Taverna só fica de pé pelo fim de uma obra.
+- Onde: `advanceWith`, em `packages/engine/src/advance.ts`.
+- Se decidir diferente: nada a decidir; fica registrado porque é um sorteio fora de um instante marcado, em um estado que o jogo não produz.
+
+**C-36. `CLAUDE.md` foi atualizado nos fatos que a tarefa tornou falsos.**
+- Enquanto isso: o estado na versão 16, o fluxo `tavern`, a Taverna na ordem do instante e na lista do que existe, as rotas de teste novas e o parágrafo do estado da v0.3. Nenhuma regra de trabalho mudou.
+- Onde: `CLAUDE.md`.
+- Se decidir diferente: é o ritual de conclusão de tarefa ("procurar o que a tarefa tornou falso"); se preferir rever essas edições antes, o diff está no commit de documentos da tarefa.
 
 ### Fase C: a carta da estrangeira (V3C-T3)
 
@@ -272,6 +362,20 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C (V3C-T2)
+
+Do mais arriscado para o menos.
+
+1. **Ninguém viu a Taverna em uma tela.** Não há interface (V3C-T4). Em navegador há um cenário só, pela API (`09-guilda.spec.ts`): a obra na lista de construções, a Taverna posta de pé por uma rota de teste, os candidatos e uma contratação com duplo envio.
+2. **Nenhum herói que não é Leal ficou sem soldo no simulador.** O Explorador nunca atrasa o soldo, e os outros perfis só têm Edda. A premissa "o Preguiçoso não perde herói por uma noite fora" continua sem medida (C-15, e a seção 4.6 de balance-v0.3.md).
+3. **Nenhuma partida de produção passou pelos passos 13 → 16.** Nada foi enviado. O backup manual antes do `push` continua sendo do autor (A-2).
+4. **O texto não foi lido pelo autor**: os nomes, as frases da Crônica e as da tela (C-30).
+5. **A rotação no instante exato da virada de estação, do ano e de uma incursão** só está coberta pela propriedade (instantes quaisquer, 150 feudos), não por um teste escrito para cada encontro. Há teste do instante exato para a obra que termina na rotação, para a ordem dada na rotação e para o festival na virada de estação.
+6. **O desconto do Carismático com o Carismático fora do feudo** não existe ainda: todo herói está no feudo até a Fase D.
+7. **Camponês e Rei de Ferro**: as 50 sementes rodaram uma vez, para a linha de base; a cada `pnpm test` só 3 sementes conferem.
+8. **Um teste do motor falhou uma vez e passou na repetição**, antes de qualquer mudança desta tarefa (`pnpm --filter @lotg/engine test`: 1 falha em 4.491 na primeira execução, nenhuma na segunda). O nome do teste não ficou registrado e a falha não se repetiu nas execuções seguintes.
+9. **`SHOW_COVERAGE=1`, `pnpm test:e2e:landing`, `pnpm capture:landing` e `pnpm docker:build`** não rodaram. A aba Feudo ganhou uma linha na lista de construções (a Taverna); as capturas da página de apresentação não foram refeitas.
 
 ### Fase C (V3C-T3)
 

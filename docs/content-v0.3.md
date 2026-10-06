@@ -1,7 +1,7 @@
-# Conteúdo da v0.3: cartas do Conselho
+# Conteúdo da v0.3: cartas do Conselho, heróis e Taverna
 
 Data: 2026-10-05\
-Tarefa: V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md) (decisões 5 e 6 do [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md)); o lote 2 entra aqui com V3F-T1\
+Tarefas: V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md) (decisões 5 e 6 do [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md)) e V3C-T2 (a Taverna: decisões 4, 5 e 10; seção 5); o lote 2 entra aqui com V3F-T1\
 Formato: a ficha da [§13.4 do roadmap da v0.3](roadmap-v0.3.md), que é a da v0.2 ([content-v0.2.md](content-v0.2.md)) com os campos de equipe e de herói
 
 **Estado da curadoria: rascunho, não lido pelo autor.** A carta deste documento foi escrita pelo agente e entrou no jogo sem aprovação: o autor escolheu "escrevo e sigo; você revisa depois" ([ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md); pendência A-7 de [pendencias-v0.3.md](pendencias-v0.3.md)). Texto, números e nomes são conteúdo, e trocar qualquer um deles é editar `packages/content/src/cards/scripted.ts` ou `heroes.ts` e regravar os goldens. **Os identificadores não:** `woundedStranger`, `shelter`, `tend`, `edda` e `rolf` ficam gravados no estado das partidas e estão fixados em `packages/content/src/council.test.ts`; mudar um deles depois de publicado pede passo de migração.
@@ -14,7 +14,8 @@ Onde este documento e o código divergirem, vale o código.
 2. [Regras editoriais novas](#2-regras-editoriais-novas)
 3. [Fichas das cartas](#3-fichas-das-cartas)
 4. [Heróis com nome](#4-heróis-com-nome)
-5. [O que ficou para o lote 2](#5-o-que-ficou-para-o-lote-2)
+5. [A Taverna: candidatos, nomes e frases](#5-a-taverna-candidatos-nomes-e-frases)
+6. [O que ficou para o lote 2](#6-o-que-ficou-para-o-lote-2)
 
 ## 1. O que a v0.3 acrescenta ao catálogo
 
@@ -113,7 +114,62 @@ Estão em `namedHeroes` (`packages/content/src/heroes.ts`), com os identificador
 
 A frase de cada traço vale para as duas formas: um teste recusa "ele", "ela", "dele" e "dela" nela. Por isso a do Devoto mudou de "A fé dele levanta o ânimo do feudo." para "Tem fé, e a fé levanta o ânimo do feudo.".
 
-## 5. O que ficou para o lote 2
+## 5. A Taverna: candidatos, nomes e frases
+
+**Rascunho, não lido pelo autor** (V3C-T2; pendência C-30). Os números são os do ADR 0017 ("Modelos de candidato da Taverna"), copiados; os nomes e as frases são do agente.
+
+**Os modelos de candidato** (`tavernCandidates`, em `packages/content/src/heroes.ts`; ids em `TAVERN_CANDIDATE_IDS`, **na ordem do sorteio**). O id fica gravado no estado (`guild.tavernOffers[].templateId`): mudar um pede passo de migração, e mexer na ordem muda quem toda Taverna oferece.
+
+| # | `id` | Classe | Traços | Nível | Peso | Preço (ouro) |
+|---:|---|---|---|---:|---:|---:|
+| 1 | `braveWarrior` | Guerreiro | Corajoso | 1 | 5 | 110 |
+| 2 | `steadyWarrior` | Guerreiro | Prudente | 1 | 4 | 120 |
+| 3 | `veteranWarrior` | Guerreiro | Veterano, Leal | 2 | 1 | 300 |
+| 4 | `trackerArcher` | Arqueiro | Rastreador | 1 | 5 | 100 |
+| 5 | `greedyArcher` | Arqueiro | Ganancioso | 1 | 4 | 80 |
+| 6 | `veteranArcher` | Arqueiro | Veterano, Prudente | 2 | 2 | 220 |
+| 7 | `greedyMage` | Mago | Ganancioso | 1 | 3 | 140 |
+| 8 | `learnedMage` | Mago | Prudente, Carismático | 1 | 2 | 200 |
+| 9 | `devoutCleric` | Clérigo | Devoto | 1 | 4 | 130 |
+| 10 | `charismaticCleric` | Clérigo | Carismático | 1 | 3 | 160 |
+
+O teste de conteúdo confere a tabela contra o ADR, a soma dos pesos (33), a faixa de preço (80 a 300), o nível do Veterano (2) e que o desconto do Carismático dá preço inteiro em todo modelo.
+
+**Os nomes** (`heroNames`, **na ordem do sorteio**): 24, medievais portugueses, doze de cada forma de tratamento, alternados. A classe e os traços concordam com o nome ("Elvira — Clériga, Devota"). Nenhum é o de um herói de carta, e a lista é maior que o teto de heróis (12), de prometidos (4) e de candidatos (3) somados, para sempre sobrar um nome que ninguém usa.
+
+| Feminino | Masculino |
+|---|---|
+| Aldara, Brites, Elvira, Guiomar, Leonor, Mafalda, Mécia, Sancha, Teresa, Urraca, Violante, Aldonça | Afonso, Bernardo, Diogo, Egas, Fernão, Gonçalo, Lopo, Martim, Nuno, Rui, Soeiro, Vasco |
+
+**As frases da Crônica** (`chronicleTemplates`):
+
+| Evento | Frase |
+|---|---|
+| `heroHired` | No {dia}º dia {daEstacao}, {heroi}, {classe}, aceitou na Taverna o soldo de {feudo}. O senhor pagou {preco} de ouro pelo trato. |
+| `festivalHeld` | No {dia}º dia {daEstacao}, o senhor de {feudo} mandou abrir os barris da Taverna: houve festival, e o povo cantou até tarde. |
+| `festivalEnded` | No {dia}º dia {daEstacao}, os barris secaram em {feudo}: o festival ficou para trás, e o povo voltou ao trabalho. |
+
+`{preco}` é marcador novo: o ouro pago, já com o desconto. A troca dos candidatos não tem linha na Crônica.
+
+**As frases da tela e das recusas** (montadas no motor, com os números do conteúdo):
+
+| Onde | Frase |
+|---|---|
+| A Taverna, sem o Salão no nível 3 | A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais. |
+| A Taverna, com o Salão no nível 3 | Erga a Taverna: nela o feudo contrata heróis e dá festivais. |
+| A Taverna erguida | Taverna Nv1: abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral. |
+| A obra, na lista | Abriga 3 heróis, traz 2 candidatos a cada troca e soma 10 à moral. |
+| O preço com desconto | 88 de ouro: 110, menos 20% por Mécia, Carismática |
+| O festival | +15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação. |
+| O termo da moral | Taverna Nv2 · Fé de Elvira · Festival na Taverna |
+| `TAVERN_REQUIRED` | Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3. |
+| `OFFER_GONE` | Esse candidato já não está na Taverna: a lista trocou, ou ele já foi contratado. |
+| `HERO_LIMIT` | A Taverna Nv1 abriga 2 heróis, e o feudo já os tem: melhore a Taverna ou dispense um herói. |
+| `FESTIVAL_ALREADY_HELD` | Um festival por estação: na Primavera o feudo já festejou. |
+
+Os efeitos de traço que a Taverna trouxe: o Carismático multiplica o preço dos candidatos por 4/5, uma vez (`effects.tavernPrice`), e o Devoto soma 5 de moral enquanto está no feudo (`effects.morale`). As frases dos dois traços não mudaram.
+
+## 6. O que ficou para o lote 2
 
 - As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
 - Uma carta que **deixe de sair** conforme a equipe (por exemplo, só para quem não tem herói): hoje nenhum requisito de carta olha os heróis.

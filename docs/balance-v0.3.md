@@ -514,6 +514,244 @@ No ritmo Normal as duas janelas são a mesma partida, e a linha do ano foi omiti
 - `--perf`, o tamanho do estado e da visão com herói, e a cobertura do Conselho em 50 sementes (`SHOW_COVERAGE=1`) não foram remedidos: o teste da cobertura passa sem mudança de número.
 - Node v24.15.0, como as seções 1 e 2.
 
-## 4. Rodadas seguintes das Fases C a G
+## 4. A Taverna: candidatos, contratação, moral e festival (V3C-T2)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3C-T5, V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3.*
+Tarefa V3C-T2 do [roadmap da v0.3](roadmap-v0.3.md). É a primeira rodada com a **Taverna** e a primeira em que um bot **contrata**. Três coisas mudam a economia, e a rodada separa a terceira das outras duas:
+
+1. **A obra da Taverna entrou na lista de construções de todo feudo.** Os três bots a erguem e a melhoram sem política nova: `obra mais barata` a escolhe quando ela é a mais barata, como faz com a Fazenda. São cinco obras a mais na fila, que disputam madeira, pedra e ouro com o Salão.
+2. **A Taverna soma moral sem prazo**: +5 por nível, +25 no nível 5. Um feudo com comida guardada passa a 85, e acima de 80 cada virada de dia pode trazer um colono.
+3. **O bot `explorador` contrata e dá festival**; o `economico` e o `preguicoso`, não. O perfil **Explorador** (2 visitas por dia, como o Regular) entrou na rodada padrão da matriz, com faixa própria: a célula dele ao lado da do Regular é o que a contratação muda.
+
+A linha de base (`MEASURED`, em `packages/sim-cli/src/bands.ts`) foi regravada de propósito, nas três dificuldades, com as 24 células de cada uma (eram 18).
+
+| | |
+|---|---|
+| Data | 2026-10-05 |
+| Commit | A árvore da tarefa V3C-T2, no `main` local; os commits estão na linha V3C-T2 do [roadmap, §12](roadmap-v0.3.md) |
+| Identificação | Motor 0.2.0 · estado v16 · conteúdo `13c1be459b007c6a` |
+| Dificuldades | Camponês, Senhor e Rei de Ferro, 50 sementes cada (`pedra-alta-001` a `pedra-alta-050`) |
+| Perfis | Preguiçoso (1 visita por dia, bot `preguicoso`), Regular (2, `economico`), Dedicado (4, `economico`) e **Explorador** (2, `explorador`), nos ritmos Rápido 3×, Normal 1× e Tranquilo 0,5× |
+| Máquina | A da seção 1, Node v24.15.0 |
+
+### 4.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix > matriz-senhor.csv 2> matriz-senhor.md
+pnpm -s sim -- --matrix --difficulty peasant > matriz-campones.csv 2> matriz-campones.md
+pnpm -s sim -- --matrix --difficulty ironKing > matriz-rei.csv 2> matriz-rei.md
+pnpm -s sim -- --perf
+```
+
+Antes de a linha de base ser regravada os três primeiros saíram com código 1 (partidas fora das faixas da seção 3); depois, `pnpm test` joga a matriz de Senhor inteira e as outras duas com 3 sementes, dentro das faixas novas. Cada matriz leva de 2 a 3 minutos com os quatro perfis (a de Senhor levava 1 min 53 s com três). O relatório ganhou a tabela **Guilda** em cada janela, tirada de `Summary.guild`; no CSV, `heroes`, `wage_arrears_hours` e `heroes_departed` passaram a ser medidas (`wages_paid` continua reservada: o jogo não conta o soldo pago em lugar nenhum).
+
+### 4.2 O que os bots fazem com a Taverna
+
+Todos leem só a visão.
+
+- **A obra.** Nenhum bot tem política para a Taverna: ela é um edifício da lista, e `obra mais barata` a ergue e a melhora nos três. Em Senhor, o Regular a tem pronta entre as horas reais 25 e 27 no Rápido, 51 e 59 no Normal e 88 e 97 no Tranquilo, sempre uma ou duas visitas depois do Salão no nível 3; o Dedicado, entre a 19 e a 23, a 44 e a 49 e a 78 e a 89; o Preguiçoso, entre a 55 e a 59, a 91 e a 95 e na 150. No primeiro ano do Rápido o Preguiçoso nem sempre chega a ela.
+- **Contratar** (`contratar`, só no `explorador`): enquanto o ouro pagar o preço do candidato **e** 24 horas reais de soldo da equipe inteira, já com ele, na ordem da lista, só o que a visão diz que pode. Não olha classe nem traço, e não dispensa. Nenhuma ordem saiu para ser recusada em partida nenhuma.
+- **Festival** (`dar festival`, só no `explorador`): um por estação, quando o estoque paga três vezes o custo.
+- **O `preguicoso` nunca contrata e nunca dá festival** (registrado, V3C-T2.7); o `economico` também não. Os dois medem o jogador que tem a Taverna e não a usa.
+
+### 4.3 A Guilda, por célula
+
+**Senhor, 7 dias reais:**
+
+| Ritmo | Perfil | Heróis no fim | Contratados | Partiram sem soldo | Soldo em atraso (h) | Primeiro herói (h) | Taverna (nível) | Taverna pronta (h) | Festivais | Excedente de ouro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 1 | 0 | 0 | 0 | 48 | 5 | 55 a 59 | 0 | 2.074 a 5.918 |
+| Rápido 3× | Regular | 1 | 0 | 0 | 0 | 24 | 5 | 25 a 27 | 0 | 159.093 a 211.754 |
+| Rápido 3× | Dedicado | 1 | 0 | 0 | 0 | 12 | 5 | 19 a 23 | 0 | 319.205 a 366.691 |
+| Rápido 3× | Explorador | 6 | 5 | 0 | 0 | 24 | 5 | 25 a 27 | 8 a 9 | 172.009 a 239.360 |
+| Normal 1× | Preguiçoso | 1 | 0 | 0 | 21 | 48 | 4 | 91 a 95 | 0 | 3 a 268 |
+| Normal 1× | Regular | 1 | 0 | 0 | 0 | 24 a 36 | 5 | 51 a 59 | 0 | 8.283 a 23.840 |
+| Normal 1× | Dedicado | 1 | 0 | 0 | 0 | 24 | 5 | 44 a 49 | 0 | 4.399 a 19.802 |
+| Normal 1× | Explorador | 6 | 5 | 0 | 0 | 24 a 36 | 5 | 51 a 59 | 2 a 3 | 6.593 a 26.449 |
+| Tranquilo 0,5× | Preguiçoso | 1 | 0 | 0 | 0 | 48 | 1 | 150 | 0 | 120 a 154 |
+| Tranquilo 0,5× | Regular | 1 | 0 | 0 | 0 | 48 | 4 a 5 | 88 a 97 | 0 | 6 a 1.233 |
+| Tranquilo 0,5× | Dedicado | 1 | 0 | 0 | 0 | 48 | 5 | 78 a 89 | 0 | 68 a 745 |
+| Tranquilo 0,5× | Explorador | 3 a 5 | 2 a 4 | 0 | 0 | 48 | 4 | 88 a 97 | 0 a 1 | 260 a 1.206 |
+
+**Senhor, um ano de jogo:**
+
+| Ritmo | Perfil | Heróis no fim | Contratados | Partiram sem soldo | Soldo em atraso (h) | Primeiro herói (h) | Taverna (nível) | Taverna pronta (h) | Festivais | Excedente de ouro |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Preguiçoso | 1 | 0 | 0 | 0 | 48 | 0 a 1 | 55 a — | 0 | 3 a 253 |
+| Rápido 3× | Regular | 1 | 0 | 0 | 0 | 24 | 3 | 25 a 27 | 0 | 1.859 a 3.000 |
+| Rápido 3× | Dedicado | 1 | 0 | 0 | 0 | 12 | 5 | 19 a 23 | 0 | 332 a 13.499 |
+| Rápido 3× | Explorador | 3 | 2 | 0 | 0 | 24 | 3 | 25 a 27 | 1 a 2 | 1.349 a 2.718 |
+| Normal 1× | Preguiçoso | 1 | 0 | 0 | 21 | 48 | 4 | 91 a 95 | 0 | 3 a 268 |
+| Normal 1× | Regular | 1 | 0 | 0 | 0 | 24 a 36 | 5 | 51 a 59 | 0 | 8.283 a 23.840 |
+| Normal 1× | Dedicado | 1 | 0 | 0 | 0 | 24 | 5 | 44 a 49 | 0 | 4.399 a 19.802 |
+| Normal 1× | Explorador | 6 | 5 | 0 | 0 | 24 a 36 | 5 | 51 a 59 | 2 a 3 | 6.593 a 26.449 |
+| Tranquilo 0,5× | Preguiçoso | 1 | 0 | 0 | 0 | 48 | 5 | 150 | 0 | 3.190 a 10.670 |
+| Tranquilo 0,5× | Regular | 1 | 0 | 0 | 0 | 48 | 5 | 88 a 97 | 0 | 11.000 a 20.021 |
+| Tranquilo 0,5× | Dedicado | 1 | 0 | 0 | 0 | 48 | 5 | 78 a 89 | 0 | 26.232 a 32.859 |
+| Tranquilo 0,5× | Explorador | 6 | 5 | 0 | 0 | 48 | 5 | 88 a 97 | 2 a 3 | 11.281 a 23.668 |
+
+- **Ninguém perde herói**, em perfil, ritmo ou dificuldade nenhuma (72 células, 50 sementes cada): zero heróis que partem e zero dispensados. **O Preguiçoso não perdeu herói.** Ele só tem Edda, que é Leal; a pergunta do ADR 0017 ("o perfil Preguiçoso não perde herói por uma noite fora") continua **sem resposta medida** para um herói que não é Leal, porque nenhum bot chega a ter um e ficar sem ouro (seção 4.7).
+- **O soldo em atraso** só aparece onde já aparecia: 21 h reais no Preguiçoso do ritmo Normal, em toda semente, nas três dificuldades, com Edda. **O Explorador nunca atrasa o soldo**: a política guarda um dia de soldo no cofre antes de contratar.
+- **O Explorador enche a Taverna.** Onde a partida chega à Taverna no nível 5, ele termina com os seis heróis (cinco contratados e Edda): na semana do Rápido e do Normal e no ano do Normal e do Tranquilo, em toda semente de Senhor. No ano do Rápido (56 h reais) a Taverna fica no nível 3 e ele termina com três; na semana do Tranquilo, com três a cinco. Em Camponês, no Normal, uma parte das sementes termina com cinco; em Rei de Ferro, na semana do Tranquilo, com dois a cinco.
+- **Festivais:** oito ou nove na semana do Rápido (três anos de jogo, doze estações), dois ou três no Normal e no ano do Tranquilo, um ou dois no ano do Rápido, nenhum ou um na semana do Tranquilo.
+- **"Primeiro herói"** é o da carta em todo perfil: a Taverna fica pronta depois dela.
+
+### 4.4 O ouro parado: contratar não o gasta
+
+É o número que a v0.3 promete baixar (seção 1.3). **A Taverna sozinha o fez subir, e a contratação não o trouxe de volta.**
+
+| Célula (Senhor) | Antes (seção 3) | Regular, com a Taverna | Explorador, que contrata |
+|---|---:|---:|---:|
+| 7 dias, Rápido 3× | 150.285 | 211.754 | 239.360 |
+| 7 dias, Normal 1× | 19.777 | 23.840 | 26.449 |
+| 7 dias, Tranquilo 0,5× | 1.104 | 1.233 | 1.206 |
+| Ano de jogo, Rápido 3× | 2.979 | 3.000 | 2.718 |
+| Ano de jogo, Tranquilo 0,5× | 21.490 | 20.021 | 23.668 |
+
+- **Por que subiu.** A moral da Taverna rende mais em todo ofício (o fator da moral na produção vai de 1,05, com a moral em 60, a 1,175, com ela em 85) e traz colonos: o Regular da semana do Rápido termina com 75 a 85 aldeões (eram 72 a 76), e com as obras esgotadas o bot manda todo mundo para a Mina. Na semente 001, no fim da semana, são 66 mineiros rendendo 2.780 de ouro por hora real.
+- **Por que contratar não resolve.** Cinco heróis custam de 80 a 300 de ouro cada um, uma vez, e 6 de ouro por hora real de soldo cada um no Rápido: na mesma semente, o soldo dos seis heróis é de 36 por hora contra 2.508 da Mina. Em uma semana são cerca de 4 mil de ouro de soldo, 644 de contratação e 450 de festivais, contra 200 mil parados. **A Taverna é um sumidouro de ouro duas ordens de grandeza menor do que a Mina do fim de jogo.** O que pode gastar o ouro, pelo plano, são as expedições e o Mercado (Fases D e E).
+- **O Explorador termina a semana do Rápido com mais ouro parado do que o Regular** em parte das sementes (o máximo é 239 mil contra 212 mil): os festivais somam +15 de moral em nove das doze estações, e a moral rende ouro.
+
+### 4.5 As faixas, antes e depois
+
+**Senhor** (antes → depois; só o que mudou aparece com seta; o Explorador é novo e não tem "antes"):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 39 → **41 a 60** | 7 | 3.400 | 3.400 | 6.778 → **5.918** | 75 |
+| 7 dias | Rápido 3× | Regular | 72 a 76 → **75 a 85** | 8 → **7** | 4.324 → **3.889** | 5.200 | 150.285 → **211.754** | 33 → **36** |
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 → **85** | 8 | 5.013 → **4.225** | 5.200 | 319.751 → **366.691** | 18 → **42** |
+| 7 dias | Rápido 3× | Explorador | 75 a 85 | 7 | 5.200 | 5.200 | 239.360 | 33 |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 34 → **31 a 35** | 5 | 1.799 → **1.068** | 2.640 → **2.270** | 982 → **268** | 16 → **28** |
+| 7 dias | Normal 1× | Regular | 64 a 73 → **64 a 75** | 7 | 4.600 → **4.036** | 4.592 → **4.541** | 19.777 → **23.840** | 8 → **10** |
+| 7 dias | Normal 1× | Dedicado | 84 a 85 | 8 | 5.200 | 5.200 | 18.559 → **19.802** | 4 → **3** |
+| 7 dias | Normal 1× | Explorador | 64 a 75 | 7 | 4.409 | 4.529 | 26.449 | 9 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 29 | 4 | 339 → **116** | 1.599 → **1.225** | 99 → **154** | 8 |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 → **45 a 54** | 6 → **5** | 1.492 → **1.641** | 987 → **1.133** | 1.104 → **1.233** | 1,5 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 56 a 64 → **54 a 59** | 6 | 1.884 → **1.075** | 829 → **694** | 897 → **745** | 0,5 → **1** |
+| 7 dias | Tranquilo 0,5× | Explorador | 49 a 54 | 5 | 1.087 | 756 | 1.206 | 2 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 3 | 194 → **177** | 516 | 256 → **253** | 63 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 | 5 | 772 → **778** | 930 → **805** | 2.979 → **3.000** | 6 → **9** |
+| Ano de jogo | Rápido 3× | Dedicado | 51 a 56 → **51 a 63** | 6 | 2.793 → **1.770** | 2.049 → **2.006** | 12.515 → **13.499** | 18 |
+| Ano de jogo | Rápido 3× | Explorador | 27 a 35 | 5 | 783 | 854 | 2.718 | 9 |
+| Ano de jogo | Normal 1× | Preguiçoso | 31 a 34 → **31 a 35** | 5 | 1.799 → **1.068** | 2.640 → **2.270** | 982 → **268** | 16 → **28** |
+| Ano de jogo | Normal 1× | Regular | 64 a 73 → **64 a 75** | 7 | 4.600 → **4.036** | 4.592 → **4.541** | 19.777 → **23.840** | 8 → **10** |
+| Ano de jogo | Normal 1× | Dedicado | 84 a 85 | 8 | 5.200 | 5.200 | 18.559 → **19.802** | 4 → **3** |
+| Ano de jogo | Normal 1× | Explorador | 64 a 75 | 7 | 4.409 | 4.529 | 26.449 | 9 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 62 a 63 → **59 a 66** | 7 → **6** | 1.293 → **4.600** | 221 → **2.278** | 4.634 → **10.670** | 8 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 a 85 | 8 | 5.200 | 5.200 | 21.490 → **20.021** | 3 → **5,5** |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 → **84 a 85** | 8 | 5.188 → **5.200** | 5.200 | 31.643 → **32.859** | 3 → **5,5** |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 84 a 85 | 8 | 5.200 | 5.200 | 23.668 | 5 |
+
+**Camponês** (antes → depois; só o que mudou aparece com seta; o Explorador é novo e não tem "antes"):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 39 → **41 a 60** | 7 | 4.250 | 4.250 | 6.804 → **5.954** | 63 |
+| 7 dias | Rápido 3× | Regular | 72 a 76 → **84 a 85** | 8 | 5.634 → **6.500** | 6.500 | 150.960 → **229.537** | 33 |
+| 7 dias | Rápido 3× | Dedicado | 84 a 85 → **85** | 8 | 6.052 → **5.752** | 6.500 | 320.468 → **378.434** | 15 → **30** |
+| 7 dias | Rápido 3× | Explorador | 85 | 8 | 5.480 | 6.500 | 250.116 | 33 |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 34 → **31 a 35** | 5 | 1.922 → **1.273** | 3.098 → **2.825** | 961 → **262** | 13 → **18** |
+| 7 dias | Normal 1× | Regular | 61 a 72 → **65 a 77** | 7 | 5.026 → **4.999** | 4.990 → **5.740** | 19.614 → **23.083** | 7 → **8** |
+| 7 dias | Normal 1× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 20.127 → **21.901** | 4 |
+| 7 dias | Normal 1× | Explorador | 65 a 76 | 7 | 5.074 | 5.525 | 25.376 | 10 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 25 a 27 | 3 | 1.861 → **1.704** | 2.000 | 283 → **167** | 4,5 |
+| 7 dias | Tranquilo 0,5× | Regular | 50 a 54 → **45 a 54** | 6 → **5** | 1.029 → **1.555** | 1.038 → **989** | 1.104 → **1.283** | 1 |
+| 7 dias | Tranquilo 0,5× | Dedicado | 57 a 64 → **54 a 60** | 6 | 1.406 → **1.032** | 1.201 → **742** | 1.101 → **838** | 0,5 |
+| 7 dias | Tranquilo 0,5× | Explorador | 45 a 54 | 5 | 1.139 | 859 | 1.222 | 1,5 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 3 | 363 | 516 | 154 → **150** | 60 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 → **22 a 29** | 5 | 578 → **781** | 1.112 → **1.076** | 3.392 → **2.836** | 6 → **3** |
+| Ano de jogo | Rápido 3× | Dedicado | 52 a 55 → **53 a 64** | 6 | 2.011 → **1.905** | 2.585 → **3.616** | 14.378 → **14.831** | 12 → **9** |
+| Ano de jogo | Rápido 3× | Explorador | 22 a 35 | 5 | 784 | 1.179 | 2.468 | 3 |
+| Ano de jogo | Normal 1× | Preguiçoso | 31 a 34 → **31 a 35** | 5 | 1.922 → **1.273** | 3.098 → **2.825** | 961 → **262** | 13 → **18** |
+| Ano de jogo | Normal 1× | Regular | 61 a 72 → **65 a 77** | 7 | 5.026 → **4.999** | 4.990 → **5.740** | 19.614 → **23.083** | 7 → **8** |
+| Ano de jogo | Normal 1× | Dedicado | 84 a 85 | 8 | 6.500 | 6.500 | 20.127 → **21.901** | 4 |
+| Ano de jogo | Normal 1× | Explorador | 65 a 76 | 7 | 5.074 | 5.525 | 25.376 | 10 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 60 a 62 | 7 | 2.281 → **1.149** | 827 → **1.233** | 6.250 → **5.517** | 5,5 → **8,5** |
+| Ano de jogo | Tranquilo 0,5× | Regular | 84 a 85 | 8 | 6.500 | 6.500 | 20.062 → **19.800** | 3 → **4** |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 84 a 85 | 8 | 6.500 → **6.499** | 6.500 | 33.509 → **35.524** | 2 |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 84 a 85 | 8 | 6.500 | 6.500 | 26.109 | 3,5 |
+
+**Rei de Ferro** (antes → depois; só o que mudou aparece com seta; o Explorador é novo e não tem "antes"):
+
+| Janela | Ritmo | Perfil | População | Salão (mín.) | Madeira parada (máx.) | Pedra parada (máx.) | Ouro parado (máx.) | Maior sequência desperdiçando (h de jogo) |
+|---|---|---|---|---|---|---|---|---|
+| 7 dias | Rápido 3× | Preguiçoso | 36 a 38 → **41 a 60** | 7 | 3.200 | 3.200 | 6.816 → **5.951** | 75 → **114** |
+| 7 dias | Rápido 3× | Regular | 72 a 75 → **75** | 7 | 2.804 → **2.780** | 3.674 → **3.680** | 165.720 → **228.153** | 24 → **72** |
+| 7 dias | Rápido 3× | Dedicado | 74 a 75 → **75** | 7 | 2.792 → **3.423** | 3.680 | 290.931 → **332.386** | 36 → **33** |
+| 7 dias | Rápido 3× | Explorador | 75 | 7 | 2.780 | 3.680 | 247.030 | 69 |
+| 7 dias | Normal 1× | Preguiçoso | 31 a 34 → **28 a 32** | 5 → **4** | 1.760 → **677** | 2.124 → **1.845** | 1.025 → **1.384** | 19 → **21** |
+| 7 dias | Normal 1× | Regular | 59 a 72 → **64 a 73** | 6 → **7** | 3.662 → **3.680** | 3.680 → **2.782** | 19.471 → **22.940** | 8 → **9** |
+| 7 dias | Normal 1× | Dedicado | 74 a 75 | 7 | 3.680 → **3.672** | 3.680 | 43.599 → **44.570** | 3 |
+| 7 dias | Normal 1× | Explorador | 65 a 74 | 7 | 3.200 | 2.790 | 24.403 | 8 |
+| 7 dias | Tranquilo 0,5× | Preguiçoso | 29 → **27** | 4 → **3** | 142 → **1.280** | 1.253 → **1.280** | 84 → **102** | 8,5 |
+| 7 dias | Tranquilo 0,5× | Regular | 49 a 54 → **44 a 54** | 5 | 1.680 → **1.052** | 1.046 → **925** | 1.113 → **1.033** | 1 → **3** |
+| 7 dias | Tranquilo 0,5× | Dedicado | 57 a 64 → **54 a 59** | 6 → **5** | 1.440 → **2.625** | 766 → **1.011** | 588 → **1.335** | 1 → **0** |
+| 7 dias | Tranquilo 0,5× | Explorador | 47 a 54 | 5 | 1.368 | 865 | 960 | 1,5 |
+| Ano de jogo | Rápido 3× | Preguiçoso | 16 | 2 | 268 | 517 | 426 | 66 |
+| Ano de jogo | Rápido 3× | Regular | 27 a 30 | 4 → **5** | 588 → **632** | 602 → **589** | 6.215 → **2.753** | 6 |
+| Ano de jogo | Rápido 3× | Dedicado | 48 a 55 → **52 a 61** | 6 | 1.569 → **1.571** | 1.650 → **1.795** | 14.072 → **16.222** | 18 → **12** |
+| Ano de jogo | Rápido 3× | Explorador | 29 a 35 | 5 | 607 | 591 | 3.106 | 6 |
+| Ano de jogo | Normal 1× | Preguiçoso | 31 a 34 → **28 a 32** | 5 → **4** | 1.760 → **677** | 2.124 → **1.845** | 1.025 → **1.384** | 19 → **21** |
+| Ano de jogo | Normal 1× | Regular | 59 a 72 → **64 a 73** | 6 → **7** | 3.662 → **3.680** | 3.680 → **2.782** | 19.471 → **22.940** | 8 → **9** |
+| Ano de jogo | Normal 1× | Dedicado | 74 a 75 | 7 | 3.680 → **3.672** | 3.680 | 43.599 → **44.570** | 3 |
+| Ano de jogo | Normal 1× | Explorador | 65 a 74 | 7 | 3.200 | 2.790 | 24.403 | 8 |
+| Ano de jogo | Tranquilo 0,5× | Preguiçoso | 59 a 62 → **62 a 64** | 7 → **6** | 1.691 → **1.220** | 1.345 → **470** | 4.587 → **6.456** | 8,5 |
+| Ano de jogo | Tranquilo 0,5× | Regular | 74 a 75 | 7 | 3.680 | 3.680 | 43.597 → **43.982** | 3 |
+| Ano de jogo | Tranquilo 0,5× | Dedicado | 74 a 75 → **75** | 7 | 3.680 → **3.647** | 3.680 | 52.092 → **55.609** | 2 → **2,5** |
+| Ano de jogo | Tranquilo 0,5× | Explorador | 74 a 75 | 7 | 3.680 | 3.680 | 49.473 | 4 |
+
+**O que piorou**, do mais grave para o menos. Nenhum número além dos da Taverna foi mexido, e os bots Regular, Dedicado e Preguiçoso não foram tocados:
+
+- **O Salão sobe mais devagar em três células de Senhor.** No Regular da semana do Tranquilo ele termina no nível 5 nas 50 sementes (era 6); no Preguiçoso do ano do Tranquilo, no nível 6 em 38 das 50 (era 7); no Regular da semana do Rápido, no nível 7 em 4 das 50 (era 8). As cinco obras da Taverna somam 2.846 de madeira, 949 de pedra e 1.897 de ouro, e `obra mais barata` as põe na frente do Salão quando são as mais baratas. É o bot escolhendo pelo preço; um jogador que queira o Salão primeiro o terá. Em Camponês e em Rei de Ferro o padrão é o mesmo.
+- **A meta de desperdício do Regular** (8 h de jogo seguidas; ADR 0013, decisão 17) **volta a ser descumprida em três células**: no ritmo Normal, uma das 50 sementes (021) tem 10 h seguidas de madeira indo ao chão; no ano do Rápido, duas (012 e 018) têm 9 h; e a semana do Rápido sobe de 33 para 36 h. Na seção 3 só a semana do Rápido passava. Mais gente produz mais antes de os depósitos crescerem, e as obras da Taverna entram na fila na frente das do Armazém.
+- **O desperdício do Dedicado na semana do Rápido** mais que dobra: a maior sequência vai de 18 para 42 h de jogo.
+- **O Preguiçoso do ritmo Normal** passa de 16 para 28 h seguidas desperdiçando (pedra), e o do ano do Tranquilo termina com o Armazém cheio (4.600 de madeira parada, eram 1.293) à espera da pedra do Salão.
+- **O ouro parado** sobe nas células de fim de jogo (seção 4.4).
+
+**O que melhorou:** a população. O Preguiçoso da semana do Rápido termina com 41 a 60 aldeões (eram 36 a 39), e o Regular, com 75 a 85. Não há fome, frio nem aldeão que parte em célula nenhuma, como antes.
+
+### 4.6 As premissas do ADR 0017 que a rodada devia validar
+
+O ADR pede que estas voltem ao autor "como pergunta pontual, com o número medido" se o resultado for ruim.
+
+| Premissa | Resultado |
+|---|---|
+| O Preguiçoso não perde herói por uma noite fora, em nenhum ritmo | **Não medida.** Ninguém perde herói, mas o único herói do Preguiçoso é Leal (seção 4.3) |
+| O jogador de duas visitas vê cada lista da Taverna ao menos uma vez | **Não vale no ritmo Rápido, por conta, e a rodada não a mede.** A lista troca a cada 12 dias de jogo: 24 h reais no Normal, 48 h no Tranquilo e **8 h no Rápido**. Quem visita de 12 em 12 horas vê duas de cada três listas no Rápido; quem visita uma vez por dia, uma de cada três. O simulador não conta listas vistas. Vai ao autor (pendências, C-21) |
+| Quantos heróis o perfil Dedicado sustenta | **Não medida no Dedicado**, que joga com o bot `economico` e não contrata. O Explorador, com 2 visitas, sustenta os seis lugares da Taverna no nível 5 sem atrasar o soldo, nos três ritmos |
+| Moral com e sem Taverna | A Taverna no nível 5 soma 25. Na semente 001 da semana do Rápido, a moral do Regular nas horas 24, 48, 96 e 168 é 60, 70, 85 e 75 (o 75 é com as casas cheias); antes da Taverna o teto sem carta era 60. A matriz mede a moral **mínima** de cada partida (50 no Rápido e no Normal, 40 no Tranquilo, como antes), não a média |
+
+### 4.7 Tamanho do estado e da visão, e custo do avanço
+
+`pnpm -s sim -- --perf`, no mesmo formato da seção 1.5 (Motor 0.2.0 · estado v16 · conteúdo `13c1be459b007c6a` · ritmo 3× · Node v24.15.0 · linux x64 · 9 repetições por medida):
+
+| Feudo | Ausência (dias reais) | Viradas de dia de jogo | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Eventos emitidos | Estado (bytes) | Visão (bytes) | Habitantes na volta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Feudo novo, sem nenhuma ordem | 1 | 36 | 1,2 | 2,2 | 0,5 | 47 | 2.145 | 16.879 | 4 |
+| Feudo novo, sem nenhuma ordem | 7 | 252 | 4,8 | 8,2 | 0,5 | 374 | 2.836 | 17.772 | 3 |
+| Feudo novo, sem nenhuma ordem | 30 | 1.080 | 14 | 15,9 | 0,5 | 1.579 | 2.896 | 17.593 | 3 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 0,9 | 1,4 | 0,7 | 87 | 3.794 | 19.777 | 22 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 4,7 | 5,4 | 0,6 | 609 | 3.861 | 20.510 | 22 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 19,3 | 28,5 | 0,5 | 2.641 | 4.107 | 20.474 | 9 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 0,8 | 1 | 0,3 | 61 | 4.364 | 20.039 | 79 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 3,9 | 4,5 | 0,3 | 575 | 4.057 | 18.689 | 85 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 16,9 | 19,8 | 0,6 | 2.740 | 4.338 | 19.102 | 64 |
+
+- **O estado foi de 2,0 a 3,5 kB (seção 1.5) para 2,1 a 4,4 kB**, e a visão, de 15,5 a 18,5 kB para 16,9 a 20,5 kB. São os feudos do bot `economico`: um herói, a Taverna erguida e três candidatos na mesa. A linha de base somava as Fases B e C inteiras; não foi medida a parte de cada tarefa.
+- **Com seis heróis** (o Explorador no fim da semana do Rápido, semente 001): **5.069 bytes de estado e 22.408 de visão**; o Regular da mesma semente, com um herói, 4.381 e 22.411. O teto do teste de desempenho subiu de 4.000 para 5.500 bytes de estado (`perf.test.ts`).
+- Os tempos são indicativos, como na seção 1.5: outro processo de testes rodava na máquina.
+
+### 4.8 Limites desta medição
+
+- **Nenhum herói que não é Leal ficou sem soldo.** O Descontente e a partida por soldo de um herói contratado só estão provados no motor (`wages.test.ts`), não no simulador. Um perfil que contrate sem guardar o soldo, ou que fique sem ouro de propósito, é de V3C-T5.
+- **O Dedicado e o Preguiçoso não contratam.** Quantos heróis sustenta quem visita quatro vezes por dia, e o que acontece a quem contrata e some por uma semana, não foram medidos.
+- **A política de contratar não escolhe.** Ela pega o primeiro candidato que cabe no cofre: a matriz não mede o valor de um traço nem de uma classe (não há o que eles façam antes da Fase D).
+- **Listas vistas por visita** não são contadas (seção 4.6).
+- **O efeito da obra, o da moral e o do sorteio não foram separados entre si**: o Regular e o Explorador separam só a contratação. Rodar a matriz com a Taverna sem a moral dela não é regra do jogo.
+- **Camponês e Rei de Ferro** rodaram com as 50 sementes para regravar a linha de base; a cada `pnpm test`, só Senhor confere as 50, e as outras duas, 3.
+- A cobertura do Conselho em 50 sementes (`SHOW_COVERAGE=1`) não foi remedida: o teste dela passa sem mudança de número.
+- Node v24.15.0, como as seções 1 a 3.
+
+## 5. Rodadas seguintes das Fases C a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3C-T5, V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3 e 4.*

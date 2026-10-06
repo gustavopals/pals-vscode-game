@@ -20,7 +20,7 @@ pnpm -s sim -- --perf
 | `--seed` | obrigatória | Semente da partida |
 | `--days` | `7` | Dias reais simulados; no ritmo Normal, 7 dias são um ano de jogo |
 | `--game-year` | — | No lugar de `--days`: a partida dura um ano de jogo completo, o que dá 56 h reais no ritmo 3, 7 dias no 1 e 14 dias no 0,5. Recusado em um ritmo em que o ano não fecha em horas reais inteiras |
-| `--strategy` | `economico` | Bot que joga as sessões: `economico`, `preguicoso` ou `explorador` (o da Guilda; hoje joga como o `economico`) |
+| `--strategy` | `economico` | Bot que joga as sessões: `economico`, `preguicoso` ou `explorador` (o da Guilda: o `economico`, mais contratar na Taverna e dar festival) |
 | `--sessions-per-day` | `2` | Sessões por dia real, a intervalos iguais, a primeira na criação da partida. O bot econômico prepara o feudo para o tempo até a visita seguinte (12 h com 2 sessões, 6 h com 4) |
 | `--time-scale` | `1` | Ritmo: horas de jogo por hora real. Qualquer número positivo (`3`, `0.5`) |
 | `--difficulty` | `lord` | Dificuldade da partida: `peasant`, `lord` ou `ironKing`. Muda o limite do estoque e a deserção por fome |
@@ -48,10 +48,12 @@ Um bot joga uma sessão: recebe a visão e uma função para dar ordens, `(view,
 |---|---|---|
 | `economico` | `erguer a Paliçada`, `seguir os objetivos`, `erguer a Torre`, `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `responder a carta`, `alocar por demanda`, `guardar lenha` | Quem cuida do feudo a cada visita, investe no povo o que sobra, reequilibra os ofícios e deixa o feudo arrumado para o tempo que vai passar fora |
 | `preguicoso` | `erguer a Paliçada`, `seguir os objetivos`, `erguer a Torre`, `obra mais barata`, `ampliar o estoque`, `planejar automáticas`, `recrutar`, `responder a carta sem gastar`, `comida primeiro`, `ocupar os livres`, `guardar lenha` | Quem passa uma vez por dia e decide o mínimo (GDD §15.2) |
-| `explorador` | As do `economico`, na mesma ordem. As políticas da Guilda (contratar, enviar expedições, escolher o caminho, vender no Mercado, mandar caravanas) entram aqui, cada uma na tarefa da sua mecânica (roadmap da v0.3, §0.5) | Quem cuida do feudo como o econômico e usa a Guilda (GDD §15.3). **Hoje é igual ao `economico`**: `src/bots/explorador.test.ts` confere que as partidas dos dois são idênticas (ordens, eventos, estado final e CSV), e falha de propósito quando a primeira política nova entrar |
+| `explorador` | As do `economico`, na mesma ordem, com `contratar` e `dar festival` antes de `alocar por demanda`. As outras políticas da Guilda (enviar expedições, escolher o caminho, vender no Mercado, mandar caravanas) entram aqui, cada uma na tarefa da sua mecânica (roadmap da v0.3, §0.5) | Quem cuida do feudo como o econômico e usa a Guilda (GDD §15.3). Sem Taverna as duas políticas novas não têm o que fazer, e a partida é a do `economico`, ordem por ordem; com ela, contrata sem nenhuma ordem recusada (`src/bots/explorador.test.ts`) |
 
 | Política | O que faz |
 |---|---|
+| `contratar` | Contrata na Taverna enquanto o ouro pagar o preço do candidato **e** 24 horas reais de soldo da equipe inteira, já com ele. Percorre a lista na ordem da tela e só pede o que a visão diz que pode (`tavern.offers[].blockedReason` vazio): o limite de heróis e o ouro já vêm conferidos, e nenhuma ordem sai para ser recusada. Lê o preço já com o desconto (`price`), o soldo do candidato (`wagePerHour`) e o da equipe (`guild.wage.perHour`). Não olha classe nem traço, e não dispensa ninguém: é assim que a matriz mede quantos heróis cada perfil sustenta. Só o `explorador` a tem |
+| `dar festival` | Dá o festival da Taverna quando a visão diz que pode (`tavern.festival.available`: um por estação) e o estoque paga três vezes o custo, como as cartas pagas. Só o `explorador` a tem |
 | `responder a carta` | Responde a toda carta do Conselho que está na mesa (`council.pending`), como quem investe no povo o que sobra. Entre as opções pagas que o feudo alcança (`locked` e `affordable`, como a tela mostra) e que cabem **com folga**, a mais cara; no empate, a primeira da carta. Cabe com folga a opção cujo custo, em cada recurso, está entrando (`resources[].perHour` positivo), cabe três vezes no estoque e não tira o material da próxima obra (a mais barata das que só esperam recurso ou fila), a comida da reserva do recrutamento nem a madeira que a lareira vai queimar (a conta da lenha da visão); com fome, a comida não vai para carta. Sem nenhuma, a primeira opção sem custo da carta, que no conteúdo é a que não arrisca. Se a resposta deixa entrar uma continuação, responde a ela também: o bot percorre as cadeias quando tem folga e nunca deixa uma carta expirar. Vem **depois** das obras e do recrutamento na lista: o que ele gasta com o Conselho é o que sobrou da visita. Ele decide pelo custo e pelo estoque; não lê a pista nem a consequência conhecida, que a visão traz só em texto (`effectsText`) |
 | `responder a carta sem gastar` | A primeira opção sem custo de cada carta, sempre: a de quem decide o mínimo. Nunca paga e nunca deixa expirar; por isso também nunca abre uma cadeia que começa por uma opção paga |
 | `recrutar` | Recruta quantos aldeões couberem na ordem, guardando uma reserva de comida. Com 20 aldeões ou mais, deixa uma cama vazia nas Habitações: com as casas cheias a moral cai (`morale.terms`), e a queda custa a todos os ofícios mais do que o último par de braços rende |
@@ -118,7 +120,7 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 | `commands_accepted`, `commands_refused` | Ordens aceitas e recusadas pelo motor, acumuladas desde a criação da partida |
 | `refused_by_code` | As recusas por motivo, acumuladas: `HOUSING_FULL:1;QUEUE_BUSY:2`. Vazio sem recusas |
 
-**Colunas das mecânicas.** O cabeçalho termina com as colunas das mecânicas, em ordem fixa, para o formato não mudar a cada mecânica (`MECHANIC_COLUMNS`, em `src/report.ts`): primeiro as 14 da v0.2, depois as 19 da Guilda (v0.3). **Uma coluna nova entra sempre no fim**: nenhuma coluna antiga muda de lugar. As que ainda ninguém mede saem **vazias** (e não zero: zero seria uma medida) e formam `RESERVED_COLUMNS`; a tarefa de cada uma a acrescenta a `MEASURED_COLUMNS`, lendo da visão, e ela sai da lista das reservadas sem mudar de lugar. Com a incursão de lobos (V2E-T3) todas as colunas da v0.2 passaram a ser medidas; as reservadas de hoje são as da Guilda (roadmap da v0.3, V3B-T2.2), na segunda tabela abaixo.
+**Colunas das mecânicas.** O cabeçalho termina com as colunas das mecânicas, em ordem fixa, para o formato não mudar a cada mecânica (`MECHANIC_COLUMNS`, em `src/report.ts`): primeiro as 14 da v0.2, depois as 19 da Guilda (v0.3). **Uma coluna nova entra sempre no fim**: nenhuma coluna antiga muda de lugar. As que ainda ninguém mede saem **vazias** (e não zero: zero seria uma medida) e formam `RESERVED_COLUMNS`; a tarefa de cada uma a acrescenta a `MEASURED_COLUMNS`, lendo da visão, e ela sai da lista das reservadas sem mudar de lugar. Com a incursão de lobos (V2E-T3) todas as colunas da v0.2 passaram a ser medidas. Das da Guilda (roadmap da v0.3, V3B-T2.2), na segunda tabela abaixo, **três são medidas desde a Taverna (V3C-T2)**: `heroes`, `wage_arrears_hours` e `heroes_departed`; as outras 16 continuam reservadas. Além delas, o CSV de uma partida ganhou a coluna `tavern`, o nível do edifício, entre os níveis dos outros.
 
 | Coluna | Significado | Tarefa |
 |---|---|---|
@@ -135,10 +137,10 @@ Uma linha por hora real (168 linhas de dados em 7 dias), com o retrato do feudo 
 
 | Coluna | Significado previsto | Tarefa |
 |---|---|---|
-| `heroes` | Heróis a serviço do feudo naquela hora; na matriz, os do fim da partida | V3C-T1 |
-| `wages_paid` | Ouro pago em soldo, em unidades, acumulado | V3C-T1 |
-| `wage_arrears_hours` | Horas reais com soldo em atraso, acumuladas: é o sinal de "o ouro não paga a equipe" | V3C-T1 |
-| `heroes_departed` | Heróis que partiram, acumulados | V3C-T1 |
+| `heroes` | **Medida.** Heróis a serviço do feudo naquela hora, lidos da visão; na matriz, os do fim da partida | V3C-T1 |
+| `wages_paid` | Ouro pago em soldo, em unidades, acumulado. **Continua reservada**: o jogo não conta o soldo pago em lugar nenhum, e somar amostras de hora em hora daria um número que parece exato e não é | V3C-T1 |
+| `wage_arrears_hours` | **Medida.** Horas reais com soldo em atraso, acumuladas: é o sinal de "o ouro não paga a equipe". No CSV de uma partida, as horas que terminaram em atraso (uma amostra por hora, como a fome e o frio); na matriz, a duração exata, pelos eventos | V3C-T1 |
+| `heroes_departed` | **Medida.** Heróis que partiram (sem soldo ou dispensados), contados dos eventos, acumulados | V3C-T1 |
 | `expeditions_sent` | Expedições enviadas, acumuladas | V3D-T1 |
 | `outcomes_full_success`, `outcomes_success`, `outcomes_setback`, `outcomes_disaster` | Nós de expedição resolvidos com cada desfecho (Sucesso Pleno, Sucesso, Revés, Desastre), acumulados | V3D-T1 |
 | `crossroads_by_player`, `crossroads_by_stance` | Encruzilhadas decididas pelo jogador (o bot, em uma visita) e pela Postura (ninguém respondeu a tempo), acumuladas | V3D-T1 |
@@ -204,13 +206,13 @@ As tabelas desta medida estão em [docs/content-v0.2.md](../../docs/content-v0.2
 pnpm -s sim -- --matrix > matriz.csv 2> matriz.md   # as 50 sementes, em Senhor; cerca de 23 s
 pnpm -s sim -- --matrix --difficulty peasant > camponês.csv 2> camponês.md
 pnpm -s sim -- --matrix --seeds 5 > /dev/null       # só as 5 primeiras: uma olhada rápida
-pnpm -s sim -- --matrix --profile explorador > explorador.csv 2> explorador.md   # só o perfil da Guilda, sem faixa
+pnpm -s sim -- --matrix --profile explorador > explorador.csv 2> explorador.md   # só o perfil da Guilda
 ```
 
 A matriz do roadmap da v0.2 (§7.3) joga, na dificuldade pedida (o padrão é Senhor; a rodada completa são três comandos, um por dificuldade):
 
 - **três perfis de visita** (GDD §15.2): Preguiçoso, 1 sessão por dia real, com o bot `preguicoso`; Regular, 2 sessões, com o `economico`; Dedicado, 4 sessões, com o `economico`;
-  - **O perfil Explorador** (GDD §15.3: 2 sessões por dia com o bot `explorador`) existe (`EXPLORER_PROFILE`, em `src/matrix.ts`) e **fica fora da rodada padrão** enquanto o bot for igual ao econômico: a célula dele seria a do Regular repetida, e a matriz do `pnpm test` cresceria um terço sem medir nada novo. Roda a pedido, com `--profile explorador` (`--profile` aceita também `preguicoso`, `regular` e `dedicado`, e joga só aquele perfil) ou `runMatrix({ profiles })`, sem faixa. Entra em `PROFILES`, com faixa própria, na tarefa que lhe der a primeira política da Guilda;
+- **o perfil Explorador** (GDD §15.3): 2 sessões por dia com o bot `explorador`. Entrou na rodada padrão, com faixa própria, com a Taverna (V3C-T2), quando o bot ganhou as primeiras políticas que o econômico não tem. A célula dele ao lado da do Regular, mesma cadência de visitas e outro bot, diz o que a Guilda muda. A meta de desperdício do GDD §15.2 continua cobrada só do Regular. `--profile` aceita os quatro nomes e joga só aquele perfil;
 - **cada ritmo que o jogo oferece** (`balance.paces`): hoje 3, 1 e 0,5;
 - **50 sementes fixas**: `pedra-alta-001` a `pedra-alta-050`;
 - **duas janelas, em tabelas separadas**, porque não têm o mesmo denominador: **7 dias reais** (em que o ritmo 3 atravessa três anos de jogo e o 0,5, meio ano) e **um ano de jogo** (56 h reais no ritmo 3, 7 dias no 1, 14 dias no 0,5). No ritmo 1 as duas são a mesma partida, jogada uma vez.
@@ -248,7 +250,7 @@ O comando sai com código 1 se alguma partida ficar fora da faixa. **As três di
 1. Se a mudança **não** pretendia mexer na economia, é uma regressão: ajuste os números em `@lotg/content`, nunca o bot.
 2. Se a mudança é uma mecânica que muda a economia de propósito, a linha de base é regravada de propósito, como um golden: rode `pnpm -s sim -- --matrix` em cada dificuldade, confira o que mudou e por quê, copie o bloco "Linha de base medida nesta rodada" de cada uma para `MEASURED` e registre a rodada, com as tabelas, em `docs/balance-v0.2.md` (na v0.3, em [docs/balance-v0.3.md](../../docs/balance-v0.3.md)). Nada regrava a linha de base sozinho. Várias expectativas de `balance.test.ts`, `matrix.test.ts` e `bands.test.ts` trazem números escritos da rodada (a hora da Torre e da Paliçada, as linhas do relatório, a faixa de uma célula): elas falham junto e são atualizadas uma a uma, com o porquê no comentário.
 
-**A rodada de agora é a da carta "Estrangeira ferida" (V3C-T3; balance-v0.3.md, seção 3).** Desde ela todo feudo da matriz tem um herói com soldo, e `balance.test.ts` confere também a guilda de cada partida, por `Summary.guild` (os heróis no fim, a hora real do primeiro, as horas com o soldo em atraso e os que partiram): um herói em toda partida, nenhum que parte, e 21 h de atraso no Preguiçoso do ritmo Normal, que fica registrado como regressão medida. As quatro colunas da Guilda no CSV (`heroes`, `wages_paid`, `wage_arrears_hours`, `heroes_departed`) continuam reservadas até V3C-T5.
+**A rodada de agora é a da Taverna (V3C-T2; balance-v0.3.md, seção 4).** Todo bot ergue a Taverna, porque ela está na lista de obras como qualquer edifício e `obra mais barata` a escolhe; só o Explorador contrata e dá festival. O relatório ganhou a tabela **Guilda** em cada janela (heróis no fim, contratados, os que partiram sem soldo, horas de atraso, a hora do primeiro herói, o nível da Taverna, a hora em que ela ficou pronta, os festivais e o ouro parado), tirada de `Summary.guild`, e `balance.test.ts` confere a guilda de cada partida: ninguém parte por soldo em perfil nenhum, o Explorador enche os lugares da Taverna sem atrasar o soldo, e o Preguiçoso do ritmo Normal continua com 21 h de atraso, com Edda, que é Leal. A rodada anterior é a da carta "Estrangeira ferida" (V3C-T3; seção 3).
 
 A matriz já pesa na suíte. Se passar a incomodar, o primeiro corte é nas sementes de Senhor; a matriz completa continua saindo pelo comando.
 
