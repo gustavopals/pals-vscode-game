@@ -1743,6 +1743,9 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     // Os prometidos que ainda não chegaram: poucos, e nunca mais do que a lista inteira.
     expect(heroes.arrivingCap).toBe(4);
     expect(heroes.arrivingCap).toBeLessThanOrEqual(heroes.rosterCap);
+    // Um herói com nome é prometido uma vez só (`promiseHero`): cabendo todos na lista dos
+    // prometidos, o teto dela nunca tira a recompensa de ninguém.
+    expect(Object.keys(namedHeroes).length).toBeLessThanOrEqual(heroes.arrivingCap);
     // Um mineiro de nível 1 paga dois heróis: o soldo cabe na economia do começo.
     expect(balance.production.perWorkerPerHour.goldMine).toBe(2 * heroes.wagePerHour);
   });

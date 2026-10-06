@@ -1,3 +1,5 @@
+import { balance } from '@lotg/content';
+
 import { emit } from './chronicle';
 import { classLabel, namedHeroOf, rosterHasRoom } from './heroes';
 import { nextId } from './ids';
@@ -43,15 +45,32 @@ export function admitHero(draft: GameState, spec: HeroSpec, atMs: number): Hero 
 
 /**
  * Promete um herói com nome para `atMs`: entra na lista em ordem de instante, e quem empata
- * fica depois de quem já estava.
+ * fica depois de quem já estava. Diz se prometeu.
+ *
+ * **Um herói com nome é um só.** Quem já foi prometido, ou já serve ao feudo (os nomes dos
+ * heróis de carta não são sorteados para candidato nenhum: teste de conteúdo), não é prometido
+ * de novo. Com isso a lista nunca tem mais entradas do que heróis com nome, e eles cabem todos
+ * em `balance.heroes.arrivingCap` (teste de conteúdo): **o teto nunca tira a recompensa de
+ * ninguém**. A última guarda, a da lista cheia, só existe para o estado nunca sair da forma
+ * (a guarda de forma recusaria gravá-lo, e a partida pararia); chegar a ela é defeito de
+ * conteúdo, não de jogada.
  */
-export function promiseHero(draft: GameState, namedHeroId: string, atMs: number): void {
-  const { arriving } = draft.guild;
+export function promiseHero(draft: GameState, namedHeroId: string, atMs: number): boolean {
+  const { arriving, heroes } = draft.guild;
+  const named = namedHeroOf(namedHeroId);
+  if (
+    arriving.some((entry) => entry.namedHeroId === namedHeroId) ||
+    (named !== null && heroes.some((hero) => hero.name === named.name)) ||
+    arriving.length >= balance.heroes.arrivingCap
+  ) {
+    return false;
+  }
   const index = arriving.findIndex((entry) => entry.atMs > atMs);
   arriving.splice(index === -1 ? arriving.length : index, 0, {
     namedHeroId: namedHeroId as GameState['guild']['arriving'][number]['namedHeroId'],
     atMs,
   });
+  return true;
 }
 
 /**

@@ -2,6 +2,7 @@ import { balance, councilCards, DIFFICULTY_IDS, namedHeroes } from '@lotg/conten
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { promiseHero } from './arrivals';
 import { CATALOG, dueContinuations, freeSeats, gameDayAt, scriptedCard } from './council';
 import { currentShape } from './migrations';
 import { cloneState, createInitialState } from './state';
@@ -619,6 +620,40 @@ describe('o teto da lista de heróis não tira a recompensa de ninguém (ADR 001
     expect(later.events.filter((event) => event.type === 'heroJoined')).toEqual([]);
     expect(later.state.guild).toMatchObject({ heroes: [], arriving: [] });
     expect(later.state.ids).toEqual({});
+  });
+});
+
+describe('a promessa nunca passa do teto nem se repete (revisão da Fase C, M-R3)', () => {
+  it('o mesmo herói com nome não é prometido duas vezes, nem a quem já o tem no feudo', () => {
+    const draft = cloneState(gameAt(HOUR));
+    expect(promiseHero(draft, 'rolf', 3 * HOUR)).toBe(true);
+    expect(promiseHero(draft, 'rolf', 2 * HOUR)).toBe(false);
+    expect(draft.guild.arriving).toEqual([{ namedHeroId: 'rolf', atMs: 3 * HOUR }]);
+    // Edda já serve ao feudo: a promessa não cria outra.
+    const served = advanceTo(
+      (() => {
+        const start = cloneState(gameAt(HOUR));
+        promiseHero(start, 'edda', HOUR);
+        return start;
+      })(),
+      HOUR + 1,
+    ).state;
+    expect(served.guild.heroes.map((hero) => hero.name)).toEqual([namedHeroes.edda.name]);
+    const again = cloneState(served);
+    expect(promiseHero(again, 'edda', 5 * HOUR)).toBe(false);
+    expect(again.guild.arriving).toEqual([]);
+  });
+
+  it('a lista dos prometidos nunca passa de arrivingCap, e o estado continua na forma', () => {
+    const draft = cloneState(gameAt(HOUR));
+    for (let round = 0; round < balance.heroes.arrivingCap + 3; round += 1) {
+      promiseHero(draft, 'edda', (round + 2) * HOUR);
+      promiseHero(draft, 'rolf', (round + 2) * HOUR);
+    }
+    expect(draft.guild.arriving.length).toBeLessThanOrEqual(balance.heroes.arrivingCap);
+    expect(() => currentShape(draft)).not.toThrow();
+    // Os heróis com nome cabem todos na lista: o teto nunca tira a recompensa de ninguém.
+    expect(Object.keys(namedHeroes).length).toBeLessThanOrEqual(balance.heroes.arrivingCap);
   });
 });
 

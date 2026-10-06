@@ -179,6 +179,12 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `heroArrearsMs`, `turnWages`, `nextDiscontentAt` e `nextWageDepartureAt`, em `packages/engine/src/wages.ts`.
 - Se decidir diferente: (a) prazos só do atraso, como antes, e a tela passa a dizer o prazo de verdade do recém-chegado; (b) guardar o devido (a sugestão original), aceitando a partida em bloco.
 
+**C-51. Um herói com nome é prometido uma vez só, e a lista dos prometidos cumpre o teto.** *(Endurecimento; revisão M-R3.)*
+- O risco: `promiseHero` não olhava `arrivingCap`; uma quinta promessa só era barrada pela guarda de forma, ao gravar, com erro 500 em toda escrita daquela partida. E o mesmo herói com nome podia ser prometido duas vezes.
+- Enquanto isso: quem já foi prometido ou já serve ao feudo (pelo nome: os nomes de carta nunca são sorteados para candidato) não é prometido de novo, e a carta que o daria não diz que deu. Com isso a lista tem no máximo um lugar por herói com nome, e um teste de conteúdo exige que eles caibam todos no teto: a recompensa nunca é perdida por ele. Nenhuma carta de hoje chega a esses casos.
+- Onde: `promiseHero`, em `packages/engine/src/arrivals.ts`; `packages/content/src/content.test.ts`.
+- Se decidir diferente: se algum dia uma carta puder dar "outro" herói com o mesmo nome (um irmão, um retorno), o herói precisa de um identificador de origem no estado.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

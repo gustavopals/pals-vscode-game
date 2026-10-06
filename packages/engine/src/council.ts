@@ -388,8 +388,9 @@ function applyEffects(
         break;
       case 'addHero': {
         const afterDays = effect.afterDays ?? 0;
-        promiseHero(draft, effect.heroId, atMs + afterDays * DAY_MS);
-        outcome.hero = { namedHeroId: effect.heroId, afterDays };
+        if (promiseHero(draft, effect.heroId, atMs + afterDays * DAY_MS)) {
+          outcome.hero = { namedHeroId: effect.heroId, afterDays };
+        }
         break;
       }
     }
