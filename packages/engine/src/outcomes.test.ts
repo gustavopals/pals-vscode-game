@@ -841,7 +841,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     expect(['huntingSpear', 'paddedJerkin', 'luckyCharm']).toContain(item?.defId);
     const label = items[item?.defId as keyof typeof items].label;
     expect(ofType(after.events, 'itemFound')[0]?.text).toBe(
-      `No 1º dia da Primavera, a expedição "Floresta Antiga" achou um item: ${label}.`,
+      `No 1º dia da Primavera, a expedição "Floresta Antiga" pôs na bagagem um achado: ${label}.`,
     );
     expect(ofType(home.events, 'expeditionReturned')[0]?.text).toContain(`um item (${label})`);
     const view = deriveViewState(home.state, home.state.lastProcessedAt).guild;
@@ -868,7 +868,7 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
     expect(home.state.guild.inventory.map((item) => item.id)).not.toContain('item-31');
     const [sold] = ofType(home.events, 'itemSold');
     expect(sold?.text).toBe(
-      "No 1º dia da Primavera, não havia lugar no arsenal de Pedra Alta para mais um item: Lâmina de Vel'Thar foi vendido por 120 de ouro.",
+      "No 1º dia da Primavera, o arsenal de Pedra Alta não tinha onde guardar mais nada: Lâmina de Vel'Thar foi a um mascate, por 120 de ouro.",
     );
     expect(sold?.data).toMatchObject({ defId: 'veltharBlade', gained_gold: 120 });
     // 120 de ouro a mais, fora o soldo de três heróis por dez minutos (1 de ouro).

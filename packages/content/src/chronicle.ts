@@ -270,9 +270,10 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" abriu o cativeiro: {heroi} ganhou a liberdade e volta a servir a {feudo}.',
   heroLeveledUp:
     'No {dia}º dia {daEstacao}, {heroi} aprendeu com a estrada: chegou ao nível {nivel}.',
-  itemFound: 'No {dia}º dia {daEstacao}, a expedição "{expedicao}" achou um item: {item}.',
+  itemFound:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" pôs na bagagem um achado: {item}.',
   itemSold:
-    'No {dia}º dia {daEstacao}, não havia lugar no arsenal de {feudo} para mais um item: {item} foi vendido por {preco} de ouro.',
+    'No {dia}º dia {daEstacao}, o arsenal de {feudo} não tinha onde guardar mais nada: {item} foi a um mascate, por {preco} de ouro.',
   itemEquipped:
     'No {dia}º dia {daEstacao}, {heroi} passou a levar um item do arsenal de {feudo}: {item}.',
   itemUnequipped:
