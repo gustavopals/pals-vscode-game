@@ -12,7 +12,7 @@ Em seis linhas, por ordem de importância:
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
-7. **A Taverna está no motor e no servidor, e ainda não tem tela** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** o app de hoje já mostra a obra da Taverna na lista de construções, e erguê-la soma moral, mas contratar e dar festival só existem pela API até a V3C-T4: a Fase C não deve ir ao ar sem ela (C-31); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
+7. **A Taverna está no motor, no servidor e, desde a V3C-T4, na tela (a aba Guilda)** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** a aba Guilda existe, mas ninguém além dos testes a usou, e seis frases dela são rascunho (C-37 a C-45; a C-31 está resolvida); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
 
 - **Para jogar em desenvolvimento:** `pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web` e abrir `http://localhost:5173`.
 
@@ -143,6 +143,55 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase C: a interface da Guilda (V3C-T4)
+
+Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.
+
+**C-37. A aba diz "Sua equipe ainda não tem para onde ir", mas não diz "abre com o Salão Nv3".** *(Desvio do texto do roadmap, V3C-T4.5.)*
+- Enquanto isso: a frase da visão é "Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre." O edifício da Guilda só existe na Fase D: prometer o nível do Salão hoje seria um número de regra de um edifício que o conteúdo não tem.
+- Onde: `guildTexts.noDestination`, em `packages/content/src/heroes.ts`; `guild.text` na visão.
+- Se decidir diferente: é trocar a frase no conteúdo (e o golden); a V3D-T1, que cria o edifício, troca a frase por uma com o requisito de verdade.
+
+**C-38. Quatro frases novas no conteúdo são rascunho do agente.**
+- Enquanto isso: `guildTexts.noHeroes` ("Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna."), `awaited`, `noDestination` (C-37) e `dismiss` ("Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora."). Nenhuma traz número nem data, e um teste do motor barra isso.
+- Onde: `packages/content/src/heroes.ts`; as frases de ligação do app estão em `packages/web/src/ui/guild.ts`.
+- Se decidir diferente: mudança de conteúdo e golden no mesmo commit. "O primeiro costuma chegar pelo Conselho" dá uma pista da carta roteirizada sem dizer o dia; se preferir não dar pista nenhuma, é uma frase.
+
+**C-39. A aba Guilda é fixa e vem depois do Conselho; o GDD §13.1 a cita antes.**
+- Enquanto isso: as abas fixas são Hoje, Feudo, Conselho, Guilda. Em 720 px as quatro cabem.
+- Onde: `visibleTabs`, em `packages/web/src/app/router.ts`.
+- Se decidir diferente: é a ordem de uma lista e dos testes que a conferem.
+
+**C-40. O soldo em atraso entra na barra de status depois da fome e do frio e antes das cartas.**
+- Enquanto isso: sem ligação > incursão à vista > fome e frio > soldo em atraso > decisões pendentes > depósito > obra. O roadmap põe "frio, fome ou soldo em atraso" no mesmo degrau; quando a fome e o atraso coincidem, a linha é a da fome, e o atraso continua no cabeçalho, na árvore e na aba.
+- Onde: `statusTopic`, em `packages/web/src/ui/format.ts`.
+- Se decidir diferente: uma linha "Fome e soldo em atraso", como já existe "Fome e frio".
+
+**C-41. Contratar e dar festival pelo painel não pedem confirmação; dispensar pede sempre.**
+- Enquanto isso: no painel o preço e o soldo (ou o custo e o efeito do festival) estão ao lado do botão, e a ordem segue, como "Construir". O botão "Contratar" da árvore também contrata direto, com o preço na linha e na dica. Pela paleta, contratar mostra a lista com os preços, e o festival confirma (pela árvore também). O duplo clique não contrata duas vezes.
+- Onde: `palette/commands.ts` (`hireHero`, `holdFestival`, `dismissHero`).
+- Se decidir diferente: uma confirmação a mais em `hireHero`, com o preço e o soldo.
+
+**C-42. O herói contratado não vira aviso; o que uma carta prometeu, sim.**
+- Enquanto isso: `heroJoined` avisa no nível "Essenciais", sem tom de alarme; `heroHired`, `heroDismissed` e `festivalHeld` não avisam em nível nenhum (são ordens do jogador), nem quando a ordem veio de outro navegador; `festivalEnded` só em "Todas". O atraso que abre, o herói descontente e o que parte são alarmes.
+- Onde: `packages/web/src/notifications/policy.ts`.
+- Se decidir diferente: mover o tipo de lista.
+
+**C-43. No Relatório de Retorno o soldo não tem coluna: está dentro da "Produção" do ouro.**
+- Enquanto isso: a nota da tabela diz "(no ouro, o soldo dos heróis: ele não é gasto de uma ordem)" quando há equipe. Os eventos da equipe caem nos blocos (quem chegou e o festival em "prosperou"; o atraso, o descontente e quem partiu em "exigiu um preço"). O tratamento completo é a V3F-T3.
+- Onde: `packages/web/src/game/returnReport.ts`, `components/Today.tsx`.
+- Se decidir diferente: nada antes da V3F-T3; a coluna pede que o motor some o soldo pago em um evento.
+
+**C-44. "Heróis N" só aparece no cabeçalho quando há herói, e "Antes de partir" só fala do soldo quando o ouro acaba em menos de um dia.**
+- Enquanto isso: o feudo sem herói não mostra "Heróis 0"; o item do soldo usa o mesmo horizonte de um dia dos outros itens e leva à Mina de Ouro (não sugere dispensar ninguém).
+- Onde: `components/Header.tsx`, `game/beforeLeaving.ts`.
+- Se decidir diferente: são duas condições.
+
+**C-45. Os ícones da Guilda são a bússola, a pessoa e a xícara.**
+- Enquanto isso: `compass` (Guilda), `person` (herói), `coffee` (Taverna), dos Codicons, que não têm caneca nem espada.
+- Onde: `packages/web/src/ui/guild.ts`.
+- Se decidir diferente: três constantes.
+
 ### Fase C: a Taverna (V3C-T2)
 
 Vêm da implementação de V3C-T2 (o edifício, os candidatos em rotação, `hireHero`, a moral, `holdFestival`; estado na versão 16). **Nenhuma foi perguntada ao autor.** A C-20 o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. As quatro primeiras depois dela são as que pedem resposta.
@@ -167,7 +216,7 @@ Vêm da implementação de V3C-T2 (o edifício, os candidatos em rotação, `hir
 - Onde: [balance-v0.3.md](balance-v0.3.md), seção 4.4.
 - Se decidir diferente: nada a decidir agora. O que o plano tem para gastar ouro são as expedições e o Mercado (Fases D e E); se depois delas o número continuar assim, a pergunta volta com a medida.
 
-**C-31. O app de hoje já deixa erguer a Taverna, e ainda não tem onde contratar.** *(Para quem decide o `push`.)*
+**C-31. O app de hoje já deixa erguer a Taverna, e ainda não tem onde contratar.** *(**Resolvida na V3C-T4**, em 2026-10-05: a aba Guilda contrata, dispensa e dá festival pelo painel, pela árvore e pela paleta. O texto abaixo fica como registro.)*
 - Enquanto isso: a obra aparece na lista de construções da aba Feudo como a de qualquer edifício (presa ao Salão no nível 3), e erguê-la soma moral, que a tela já explica termo a termo. Os candidatos, a contratação e o festival não têm tela: só a API. A aba Guilda é a V3C-T4.
 - Onde: `tests/e2e/09-guilda.spec.ts` (o que há em navegador); roadmap, V3C-T4.
 - Se decidir diferente: publicar a Fase C sem a V3C-T4 entrega um edifício de 360 de material cuja metade do efeito é invisível. A leitura do agente é que a V3C-T4 vem antes do `push`.
@@ -362,6 +411,18 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C (V3C-T4)
+
+Do mais arriscado para o menos.
+
+1. **Ninguém jogou com a aba Guilda.** O critério de diversão da tarefa ("o autor contratar o segundo herói sem perguntar o que é soldo") e a "primeira tela funcional ao autor" (V3C-T4.1) não aconteceram: a tarefa foi feita de uma vez, e quem viu a tela foram os testes e quatro capturas que o agente olhou.
+2. **Só Chromium.** Firefox, Safari e leitor de tela não foram testados. O contraste e o foco foram medidos em Chromium, nos três temas.
+3. **A estrangeira ferida em navegador vai à mesa por uma rota de teste** (`/__test/council-deal`), não pelo 13º dia de jogo: o caminho do dia 13 é coberto pelos testes do motor e do servidor (V3C-T3).
+4. **O herói que parte e o que fica descontente não têm cenário em navegador**: o do atraso para quando ele abre (aviso, barra, árvore, aba). As consequências são cobertas no motor; o aviso delas, em teste de unidade do app.
+5. **O herói prometido ("Rolf chega em…") e a Taverna sem candidatos** só têm teste de unidade, com o golden.
+6. **Em 720 px as duas colunas da aba ficam lado a lado e apertadas**; não há rolagem lateral e nada é cortado, mas ninguém julgou se a leitura é boa.
+7. **As frases novas não foram lidas pelo autor** (C-37, C-38).
 
 ### Fase C (V3C-T2)
 
