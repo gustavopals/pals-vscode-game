@@ -379,10 +379,8 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     expect(view.available.filter((offer) => offer.rescue).map((offer) => offer.modelId)).toEqual([
       'rescue',
     ]);
-    // Em cativeiro, não é dispensado nem equipado.
-    expect(refuse(after.state, command('dismissHero', { heroId: victim.id })).code).toBe(
-      'HERO_BUSY',
-    );
+    // Em cativeiro, não é equipado; dispensá-lo é desistir dele (revisão da Fase D, M-R3).
+    expect(view.heroes.find((hero) => hero.id === victim.id)?.canDismiss).toBe(true);
     expect(
       refuse(after.state, command('unequipItem', { heroId: victim.id, slot: 'weapon' })),
     ).toEqual({
@@ -1635,5 +1633,88 @@ describe('o resgatado em pleno atraso do soldo tem os prazos dele (revisão da F
     const freed = advanceTo(paid, freedAt + 3 * DAY);
     expect(heroOf(freed.state, 'hero-3').freedAtMs).toBe(freedAt);
     expect(ofHero(freed.events, 'hero-3')).toEqual([]);
+  });
+});
+
+describe('desistir de quem está em cativeiro (revisão da Fase D, M-R3)', () => {
+  /** Edda em cativeiro com a lança de caça; Rolf e Brann no feudo. */
+  function withCaptive(): GameState {
+    const { state, endsAt } = atCrypt('lord', ['hero-1']);
+    return hearten(advanceTo(state, endsAt).state);
+  }
+
+  it('a ordem é aceita: o lugar na lista fica livre, a Crônica tem a frase dela e o que o cativo levava fica lá', () => {
+    const start = withCaptive();
+    expect(heroOf(start, 'hero-1')).toMatchObject({ status: 'captured' });
+    expect(heroOf(start, 'hero-1').equipment.weapon?.defId).toBe('huntingSpear');
+    const view = deriveViewState(start, start.lastProcessedAt).guild;
+    expect(view.heroes[0]).toMatchObject({
+      captive: true,
+      canDismiss: true,
+      dismissText:
+        'Desistir de quem está em cativeiro é para sempre: nenhum Resgate parte mais por essa pessoa, e o que ela levava fica no cativeiro. O lugar na lista do feudo fica livre.',
+    });
+    expect(view.heroes[1]).toMatchObject({ canDismiss: true, dismissText: view.dismissText });
+
+    const done = accept(start, command('dismissHero', { heroId: 'hero-1' }));
+    expect(done.state.guild.heroes.map((hero) => hero.id)).toEqual(['hero-2', 'hero-3']);
+    expect(done.state.guild.inventory).toEqual(start.guild.inventory);
+    expect(done.events.map((event) => event.type)).toEqual(['heroDismissed']);
+    expect(done.events[0]).toMatchObject({
+      data: { heroId: 'hero-1', heroes: 2, captive: 1, itemsLost: 1 },
+    });
+    expect(done.events[0]?.text).toContain(
+      'o senhor de Pedra Alta desistiu de Edda: ninguém mais parte para o resgate, e o que Edda levava ficou no cativeiro.',
+    );
+    expect(shaped(done.state)).toBeNull();
+    // Sem cativo, o Resgate some da lista.
+    const after = deriveViewState(done.state, done.state.lastProcessedAt).guild;
+    expect(after.available.map((offer) => offer.modelId)).not.toContain('rescue');
+    expect(after.captiveText).toBeNull();
+  });
+
+  it('sem item, a frase não fala do que ele levava', () => {
+    const start = withCaptive();
+    heroOf(start, 'hero-1').equipment.weapon = null;
+    const done = accept(start, command('dismissHero', { heroId: 'hero-1' }));
+    expect(done.events[0]?.text).toMatch(/desistiu de Edda: ninguém mais parte para o resgate\.$/);
+    expect(done.events[0]?.data.itemsLost).toBe(0);
+  });
+
+  it('com o Resgate dele a caminho, a dispensa espera; quem está em expedição continua sem poder ser dispensado', () => {
+    const start = withCaptive();
+    for (const id of ['hero-2', 'hero-3']) {
+      Object.assign(heroOf(start, id), { classId: 'warrior', level: 10 });
+    }
+    const sent = send(start, 'rescue', ['hero-2', 'hero-3'], 'bold', 0).state;
+    expect(refuse(sent, command('dismissHero', { heroId: 'hero-1' }))).toEqual({
+      code: 'HERO_BUSY',
+      message: 'Edda está fora do feudo: há um Resgate a caminho.',
+    });
+    expect(refuse(sent, command('dismissHero', { heroId: 'hero-2' }))).toEqual({
+      code: 'HERO_BUSY',
+      message: 'Rolf está fora do feudo: a dispensa espera a volta.',
+    });
+    const view = deriveViewState(sent, sent.lastProcessedAt).guild;
+    expect(view.heroes[0]).toMatchObject({
+      canDismiss: false,
+      dismissText: 'Edda está fora do feudo: há um Resgate a caminho.',
+    });
+    expect(view.heroes[1]).toMatchObject({ canDismiss: false });
+  });
+
+  it('a lista cheia de cativos deixa de ser beco sem saída: desistir de um abre o lugar', () => {
+    const start = guildHall(0, (draft) => {
+      for (let index = 0; index < heroRules.rosterCap; index += 1) {
+        const hero = addHero(draft, { name: `Cativo ${index + 1}` });
+        hero.status = 'captured';
+        hero.captivity = { sinceMs: 0, modelId: 'ruins' };
+      }
+    });
+    expect(shaped(start)).toBeNull();
+    expect(start.guild.heroes).toHaveLength(heroRules.rosterCap);
+    const done = accept(start, command('dismissHero', { heroId: 'hero-5' }));
+    expect(done.state.guild.heroes).toHaveLength(heroRules.rosterCap - 1);
+    expect(shaped(done.state)).toBeNull();
   });
 });

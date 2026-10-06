@@ -190,6 +190,13 @@ export function accessLock(state: GameState, model: ExpeditionModelDef): string 
   return null;
 }
 
+/** Quantos Resgates estão em curso: as expedições de um modelo que só existe com um cativo. */
+export function rescuesUnderWay(state: GameState): number {
+  return state.guild.expeditions.filter(
+    (expedition) => modelOf(expedition.modelId)?.access.kind === 'captive',
+  ).length;
+}
+
 /**
  * O destino aparece na lista da Guilda: os abertos e os de tile, sempre; os de descoberta, depois
  * de revelados; o Resgate, enquanto houver um cativo. **O que não aparece não sai do servidor.**

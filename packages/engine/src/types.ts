@@ -1276,6 +1276,16 @@ export type HeroView = {
   injury: { severityLabel: string; recoversInSeconds: number } | null;
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
   captive: boolean;
+  /**
+   * Pode ser dispensado agora: quem está no feudo, e quem está em cativeiro (é desistir dele),
+   * salvo com um Resgate a caminho. Quem está em expedição espera a volta.
+   */
+  canDismiss: boolean;
+  /**
+   * O aviso para confirmar a dispensa deste herói (o do cativo diz que é para sempre e que o
+   * que ele levava se perde) ou, quando não pode, o motivo, em uma frase.
+   */
+  dismissText: string;
   /** Os três espaços, na ordem do conteúdo, com o que ele leva em cada um; `item` é `null` no vazio. */
   equipment: Array<{ slot: ItemSlotId; slotLabel: string; item: ItemView | null }>;
   /** O poder do herói agora, com nível e Descontente: ataque + defesa + vida ÷ 10, vezes os fatores. */

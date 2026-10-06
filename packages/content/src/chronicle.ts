@@ -303,6 +303,19 @@ export const heroHarmTemplates = {
 export type HeroHarmTemplate = keyof typeof heroHarmTemplates;
 
 /**
+ * Desistir de quem está em cativeiro é o mesmo evento da dispensa (`heroDismissed`), com a
+ * frase dele: `captiveWithItems` quando o herói levava algum item, que fica lá com ele.
+ * Nenhuma flexiona o herói. Rascunho que o autor não leu.
+ */
+export const heroDismissalTemplates = {
+  captive:
+    'No {dia}º dia {daEstacao}, o senhor de {feudo} desistiu de {heroi}: ninguém mais parte para o resgate.',
+  captiveWithItems:
+    'No {dia}º dia {daEstacao}, o senhor de {feudo} desistiu de {heroi}: ninguém mais parte para o resgate, e o que {heroi} levava ficou no cativeiro.',
+} as const;
+export type HeroDismissalTemplate = keyof typeof heroDismissalTemplates;
+
+/**
  * Por que o frio passou: a frase que entra em {alivio} no modelo de `coldEnded`. `firewood`
  * quando voltou a haver madeira para queimar; `thaw` quando a estação da lenha terminou.
  */

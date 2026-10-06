@@ -52,6 +52,7 @@ import type {
 } from './types';
 import { HOUR_MS, MILLI, realSecondsCeil, SECOND_MS } from './units';
 import {
+  dismissBlock,
   lingeringDeparture,
   nextDiscontentAt,
   nextWageDepartureAt,
@@ -135,6 +136,7 @@ function statusText(state: GameState, hero: Hero, timeScale: number): string {
 }
 
 function heroView(state: GameState, hero: Hero, timeScale: number): HeroView {
+  const dismissal = dismissBlock(state, hero);
   return {
     id: hero.id,
     name: hero.name,
@@ -160,6 +162,13 @@ function heroView(state: GameState, hero: Hero, timeScale: number): HeroView {
             ),
           },
     captive: isCaptive(hero),
+    canDismiss: dismissal === null,
+    dismissText:
+      dismissal !== null
+        ? dismissal.message
+        : isCaptive(hero)
+          ? guildTexts.dismissCaptive
+          : guildTexts.dismiss,
     equipment: ITEM_SLOT_IDS.map((slot) => {
       const item = hero.equipment[slot];
       return {

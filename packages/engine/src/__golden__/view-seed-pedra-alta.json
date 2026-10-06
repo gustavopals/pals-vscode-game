@@ -15566,6 +15566,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -15606,6 +15608,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -15650,6 +15654,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -16571,6 +16577,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -16611,6 +16619,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -18377,6 +18387,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -19368,6 +19380,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -19408,6 +19422,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -20475,6 +20491,8 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "canDismiss": false,
+          "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
             {
               "slot": "weapon",
@@ -20515,6 +20533,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -21639,6 +21659,8 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "canDismiss": false,
+          "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
             {
               "slot": "weapon",
@@ -21679,6 +21701,8 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "canDismiss": false,
+          "dismissText": "Rolf está fora do feudo: a dispensa espera a volta.",
           "equipment": [
             {
               "slot": "weapon",
@@ -22757,6 +22781,8 @@
             "recoversInSeconds": 14040
           },
           "captive": false,
+          "canDismiss": false,
+          "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
             {
               "slot": "weapon",
@@ -22797,6 +22823,8 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "canDismiss": false,
+          "dismissText": "Rolf está fora do feudo: a dispensa espera a volta.",
           "equipment": [
             {
               "slot": "weapon",
@@ -22837,6 +22865,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -23912,6 +23942,8 @@
             "recoversInSeconds": 1800
           },
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -23952,6 +23984,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -25107,6 +25141,8 @@
           "canDepart": false,
           "injury": null,
           "captive": true,
+          "canDismiss": true,
+          "dismissText": "Desistir de quem está em cativeiro é para sempre: nenhum Resgate parte mais por essa pessoa, e o que ela levava fica no cativeiro. O lugar na lista do feudo fica livre.",
           "equipment": [
             {
               "slot": "weapon",
@@ -25156,6 +25192,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -25205,6 +25243,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -26316,6 +26356,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",
@@ -26356,6 +26398,8 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "canDismiss": true,
+          "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
             {
               "slot": "weapon",

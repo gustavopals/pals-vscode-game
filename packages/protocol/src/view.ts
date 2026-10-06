@@ -361,6 +361,8 @@ const HeroSchema = z.strictObject({
   atHome: z.boolean(),
   /** Está no feudo e sem ferimento: pode partir em uma expedição. */
   canDepart: z.boolean(),
+  canDismiss: z.boolean(),
+  dismissText: z.string(),
   /** O ferimento que ainda não sarou, com o prazo em segundos reais; `null` sem ele. */
   injury: z.strictObject({ severityLabel: z.string(), recoversInSeconds: z.number() }).nullable(),
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */

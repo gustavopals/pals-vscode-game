@@ -9,6 +9,8 @@ import {
   expeditionModels,
   type ExpeditionStageNode,
   HERO_TRAIT_IDS,
+  guildTexts,
+  heroDismissalTemplates,
   heroHarmTemplates,
   heroTraits,
   ITEM_IDS,
@@ -95,6 +97,17 @@ describe('ferimento, captura e morte (ADR 0017, decisão 8)', () => {
       // A frase serve a Edda e a Rolf: nada de "ferido", "levado", "pronto" ou "o traz".
       expect(phrase).not.toMatch(/\b(ferido|ferida|levado|levada|pronto|pronta|dele|dela)\b/);
     }
+  });
+
+  it('desistir de quem está em cativeiro tem frase própria, com e sem item, e nenhuma flexiona o herói', () => {
+    expect(Object.keys(heroDismissalTemplates)).toEqual(['captive', 'captiveWithItems']);
+    for (const phrase of Object.values(heroDismissalTemplates)) {
+      expect(phrase).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
+      expect(phrase).toContain('{heroi}');
+      expect(phrase.replace(/\{(dia|daEstacao|feudo|heroi)\}/g, '')).not.toMatch(/[{}]/);
+      expect(phrase).not.toMatch(/\b(ele|ela|dele|dela|preso|presa|o levava|buscá-lo)\b/);
+    }
+    expect(guildTexts.dismissCaptive).not.toMatch(/\b(ele|dele|buscá-lo|preso)\b/);
   });
 
   it('o schema recusa ferimento leve mais longo que o grave e dificuldade sem a regra da captura', () => {

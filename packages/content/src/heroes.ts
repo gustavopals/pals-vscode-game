@@ -204,6 +204,11 @@ export const guildTexts = {
     'Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate.',
   dismiss:
     'Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.',
+  /** Desistir de quem está em cativeiro: o aviso antes da ordem. Não flexiona o herói. */
+  dismissCaptive:
+    'Desistir de quem está em cativeiro é para sempre: nenhum Resgate parte mais por essa pessoa, e o que ela levava fica no cativeiro. O lugar na lista do feudo fica livre.',
+  /** Por que o cativo não pode ser dispensado agora, sem ponto: já há quem o vá buscar. */
+  rescueOnTheWay: 'há um Resgate a caminho',
 } as const;
 
 /**

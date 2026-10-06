@@ -1507,6 +1507,8 @@ describe('ViewStateSchema', () => {
       canDepart: true,
       injury: null,
       captive: false,
+      canDismiss: true,
+      dismissText: 'Dispensar não devolve nada.',
       equipment: [
         { slot: 'weapon', slotLabel: 'Arma', item: null },
         { slot: 'armor', slotLabel: 'Armadura', item: null },

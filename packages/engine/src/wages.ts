@@ -1,10 +1,26 @@
-import { balance, type WageArrearsRelief, wageArrearsReliefs } from '@lotg/content';
+import {
+  balance,
+  guildTexts,
+  heroDismissalTemplates,
+  type WageArrearsRelief,
+  wageArrearsReliefs,
+} from '@lotg/content';
 
 import { emit } from './chronicle';
 import { DAY_MS, nextDayBoundary } from './clock';
 import { goldCoversWages, goldRunsOutIn } from './economy';
 import { releaseEquipment } from './equipment';
-import { isAtHome, isBeyondArrears, paidHeroes, servingSinceMs, wageRate } from './heroes';
+import { rescuesUnderWay } from './expeditions';
+import {
+  captives,
+  equippedItems,
+  isAtHome,
+  isBeyondArrears,
+  isCaptive,
+  paidHeroes,
+  servingSinceMs,
+  wageRate,
+} from './heroes';
 import { reject } from './rejections';
 import type { GameEvent, GameState, Hero, Rejection } from './types';
 import { realToGameMs } from './units';
@@ -438,11 +454,33 @@ function firstTurnFrom(state: GameState, dueAt: number): number {
 }
 
 /**
- * A ordem de dispensar um herói (GDD §9.1; ADR 0017, decisão 3): sempre possível, sem devolução
- * de ouro. Com o soldo em atraso, pode ser o que fecha a conta: `settleScarcity` confere depois
- * de toda ordem, e a dispensa não conta como herói cobrado pelo prazo.
+ * Por que o herói não pode ser dispensado agora, ou `null` quando pode. Quem está no feudo pode
+ * sempre. Quem está em expedição espera a volta. **Quem está em cativeiro pode** (revisão da
+ * Fase D, M-R3): é desistir dele, e é o que impede a lista cheia de cativos de virar beco sem
+ * saída; só não enquanto houver um Resgate a caminho que ficaria sem ninguém para soltar.
+ */
+export function dismissBlock(state: GameState, hero: Hero): Rejection | null {
+  if (isAtHome(hero)) {
+    return null;
+  }
+  if (!isCaptive(hero)) {
+    return reject('HERO_BUSY', { label: hero.name });
+  }
+  return rescuesUnderWay(state) >= captives(state).length
+    ? reject('HERO_BUSY', { label: hero.name, remedy: guildTexts.rescueOnTheWay })
+    : null;
+}
+
+/**
+ * A ordem de dispensar um herói (GDD §9.1; ADR 0017, decisão 3): sempre possível para quem está
+ * no feudo, sem devolução de ouro. Com o soldo em atraso, pode ser o que fecha a conta:
+ * `settleScarcity` confere depois de toda ordem, e a dispensa não conta como herói cobrado pelo
+ * prazo.
  *
- * Quem está fora do feudo (em expedição) não pode ser dispensado antes de voltar (`HERO_BUSY`).
+ * Quem está em expedição não pode ser dispensado antes de voltar (`HERO_BUSY`). **Dispensar
+ * quem está em cativeiro é desistir dele**: ele deixa de servir ao feudo, o lugar na lista fica
+ * livre e **o que levava fica no cativeiro** (não volta ao arsenal: está com ele). A Crônica
+ * tem a frase própria (`heroDismissalTemplates`).
  */
 export function dismissHero(
   draft: GameState,
@@ -455,10 +493,25 @@ export function dismissHero(
   if (hero === undefined) {
     return reject('HERO_NOT_FOUND');
   }
-  if (!isAtHome(hero)) {
-    return reject('HERO_BUSY', { label: hero.name });
+  const blocked = dismissBlock(draft, hero);
+  if (blocked !== null) {
+    return blocked;
   }
   guild.heroes = guild.heroes.filter((entry) => entry.id !== hero.id);
+  if (isCaptive(hero)) {
+    const itemsLost = equippedItems(hero).length;
+    draft.stats.heroesAbandoned = (draft.stats.heroesAbandoned ?? 0) + 1;
+    emit(
+      events,
+      draft,
+      nowMs,
+      'heroDismissed',
+      { heroId: hero.id, heroes: guild.heroes.length, captive: 1, itemsLost },
+      { heroi: hero.name },
+      heroDismissalTemplates[itemsLost > 0 ? 'captiveWithItems' : 'captive'],
+    );
+    return null;
+  }
   emit(
     events,
     draft,

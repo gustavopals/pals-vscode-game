@@ -98,6 +98,8 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        canDismiss: true,
+        dismissText: guildTexts.dismiss,
         equipment: [
           { slot: 'weapon', slotLabel: 'Arma', item: null },
           { slot: 'armor', slotLabel: 'Armadura', item: null },
@@ -124,6 +126,8 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        canDismiss: true,
+        dismissText: guildTexts.dismiss,
         equipment: [
           { slot: 'weapon', slotLabel: 'Arma', item: null },
           { slot: 'armor', slotLabel: 'Armadura', item: null },
@@ -148,6 +152,8 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        canDismiss: true,
+        dismissText: guildTexts.dismiss,
         equipment: [
           { slot: 'weapon', slotLabel: 'Arma', item: null },
           { slot: 'armor', slotLabel: 'Armadura', item: null },
