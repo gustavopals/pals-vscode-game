@@ -235,7 +235,6 @@ export const rescue: ExpeditionModelDef = {
             xp: 50,
             onDisaster: 'capture',
             helps: 'warrior',
-            lesson: 'Um Guerreiro teria sido o primeiro a passar pela porta.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} arrombou a porta da torre e varreu a guarda escada acima. O cativo desceu livre, e o soldo do bando desceu junto.',
               success:

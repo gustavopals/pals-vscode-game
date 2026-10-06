@@ -136,7 +136,6 @@ export const swamp: ExpeditionModelDef = {
             weights: { will: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'mage',
-            lesson: 'Um Mago teria sabido que as luzes mentem.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} levou a expedição de {feudo} pela margem dos salgueiros sem que ninguém olhasse para as luzes, e ainda achou a canoa de um turfeiro, com a bolsa dentro.',
               success:
@@ -160,7 +159,6 @@ export const swamp: ExpeditionModelDef = {
             weights: { will: { num: 3, den: 2 } },
             onDisaster: 'capture',
             helps: 'mage',
-            lesson: 'Um Mago mais firme teria desfeito a névoa da bruxa.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} desfez a névoa da bruxa do charco palavra por palavra, e ela fugiu para o fundo. A cabana ficou para a expedição de {feudo}, com tudo o que havia nela.',
               success:
@@ -315,7 +313,7 @@ export const swamp: ExpeditionModelDef = {
             xp: 80,
             onDisaster: 'capture',
             helps: 'warrior',
-            lesson: 'Um Guerreiro mais calejado teria aguentado o abraço do afogado.',
+            lesson: 'Um Guerreiro teria aguentado o abraço do afogado.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} devolveu o afogado que anda ao fundo, de onde ele não devia ter saído. A casa do senhor da aldeia ficou aberta para a expedição de {feudo}.',
               success:
@@ -352,7 +350,6 @@ export const swamp: ExpeditionModelDef = {
             weights: { will: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'mage',
-            lesson: 'Um Mago teria reconhecido que a voz do nevoeiro não era de gente.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} respondeu ao nevoeiro que chamava pelo nome, e foi o nevoeiro que se calou. A expedição de {feudo} seguiu pelo dique sem perder ninguém.',
               success:
@@ -402,7 +399,6 @@ export const swamp: ExpeditionModelDef = {
             weights: { will: { num: 3, den: 2 }, attack: { num: 1, den: 2 } },
             onDisaster: 'capture',
             helps: 'cleric',
-            lesson: 'Um Clérigo teria sabido o nome de cada enforcado.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} rezou pelos enforcados um a um, e as cordas caíram dos galhos. As oferendas entre as raízes ficaram para a expedição de {feudo}.',
               success:
@@ -455,7 +451,7 @@ export const swamp: ExpeditionModelDef = {
             weights: { skill: { num: 1, den: 2 } },
             onDisaster: 'capture',
             helps: 'warrior',
-            lesson: 'Um Guerreiro mais calejado teria segurado a cabeça da serpente.',
+            lesson: 'Um Guerreiro teria segurado a cabeça da serpente.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} cravou a serpente do lodo no tronco em que ela se enrolava. No ninho, a expedição de {feudo} achou o que ela engolira com os viajantes.',
               success:

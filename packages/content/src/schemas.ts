@@ -1229,7 +1229,7 @@ const expeditionTrial = z.strictObject({
     .optional(),
   onDisaster: z.enum(EXPEDITION_DISASTER_IDS),
   helps: z.enum(HERO_CLASS_IDS),
-  lesson: expeditionProse,
+  lesson: expeditionProse.optional(),
   // A frase de cada desfecho diz quem se destacou: `{heroi}` é obrigatório.
   outcomes: z.strictObject(
     Object.fromEntries(

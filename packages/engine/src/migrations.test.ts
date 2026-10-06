@@ -72,6 +72,7 @@ import {
   POSTURE_IDS_V17,
 } from './migrations/v17';
 import { EXPEDITION_LESSON_KINDS_V19 } from './migrations/v19';
+import { EXPEDITION_LESSON_KINDS_V20 } from './migrations/v20';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -4492,6 +4493,7 @@ describe('versão 18 → 19', () => {
   });
 
   it('os tipos de lição da forma são os do motor', () => {
+    // A versão 20 acrescentou `level`; a 19 continua com os quatro dela.
     const kinds: ExpeditionLessonKind[] = ['class', 'posture', 'item', 'strength'];
     expect(EXPEDITION_LESSON_KINDS_V19).toEqual(kinds);
   });
@@ -4677,6 +4679,24 @@ describe('versão 19 → 20', () => {
     expect(slow).toEqual(fast);
     expect(slow.migratedAtMs).toBe(20 * HOUR);
     expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('os tipos de lição da forma são os do motor, e só a versão 20 aceita a lição da equipe completa', () => {
+    const kinds: ExpeditionLessonKind[] = ['class', 'posture', 'item', 'strength', 'level'];
+    expect(EXPEDITION_LESSON_KINDS_V20).toEqual(kinds);
+    const old = read(named('state-v19-hero-injured.json')) as Draft;
+    const setback = (state: Draft): Draft =>
+      state.guild.reports[0].log.find((step: Draft) => step.outcome === 'setback');
+    expect(setback(old)).toBeDefined();
+    setback(old).lesson = { kind: 'level', heroName: null, posture: null };
+    expect(() => migrateState(old, { timeScale: 3 })).toThrow(/lesson\.kind/);
+    const current = JSON.parse(
+      JSON.stringify(migrated(named('state-v19-hero-injured.json'))),
+    ) as Draft;
+    setback(current).lesson = { kind: 'level', heroName: null, posture: null };
+    expect(currentShape(current, '')).toBeNull();
+    setback(current).lesson = { kind: 'level', heroName: 'Edda', posture: null };
+    expect(currentShape(current, '')).toMatch(/lesson\.heroName/);
   });
 
   it('um estado da versão 19 que já traz o campo da 20 é recusado, e a 20 recusa a volta no futuro ou antes da chegada', () => {

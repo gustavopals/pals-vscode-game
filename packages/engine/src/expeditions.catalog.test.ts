@@ -509,7 +509,7 @@ describe('a névoa em todo grafo com encruzilhada (ADR 0018, decisão 13)', () =
           ? [node.title]
           : node.kind === 'return' || node.trial === undefined
             ? [node.title, node.text ?? '']
-            : [node.title, node.trial.lesson, ...Object.values(node.trial.outcomes)],
+            : [node.title, ...Object.values(node.trial.outcomes)].concat(node.trial.lesson ?? []),
       );
       const choices = { [crossKey]: crossroads.posture.cautious };
       const start = ready(graph, choices);

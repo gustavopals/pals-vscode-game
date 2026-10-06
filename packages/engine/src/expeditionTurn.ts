@@ -19,6 +19,7 @@ import {
   expeditionLabel,
   heroesOf,
   logEntry,
+  modelOf,
   nodeOf,
   outcomeOf,
   postureChoice,
@@ -167,7 +168,14 @@ function resolveStage(
     entry.standout = standoutOf(team, trial, expedition.posture)?.name ?? null;
     entry.lesson =
       result === 'setback' || result === 'disaster'
-        ? lessonOf(draft, team, trial, expedition.posture)
+        ? lessonOf(
+            draft,
+            team,
+            trial,
+            expedition.posture,
+            // "Mais gente" só é conselho com a equipe abaixo do tamanho máximo do destino.
+            modelOf(expedition.modelId)?.requires.teamMax ?? team.length,
+          )
         : null;
     template = trialTemplate(trial, result, entry.lesson);
     // 2. Quem sofre.

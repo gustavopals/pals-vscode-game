@@ -161,7 +161,6 @@ export const ruins: ExpeditionModelDef = {
             xp: 35,
             onDisaster: 'injury',
             helps: 'warrior',
-            lesson: 'Um Guerreiro teria ido na frente, com a água pelo peito.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} atravessou a Galeria Inundada na frente e matou o que se mexia debaixo da água. A expedição de {feudo} tirou do fundo pedra lavrada e moedas.',
               success:
@@ -363,7 +362,6 @@ export const ruins: ExpeditionModelDef = {
             weights: { will: { num: 3, den: 2 } },
             onDisaster: 'injury',
             helps: 'mage',
-            lesson: 'Um Mago teria lido os selos em vez de forçá-los.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} desfez os selos da torre um a um, sem uma faísca, e a expedição de {feudo} achou a sala do tesouro intacta.',
               success:

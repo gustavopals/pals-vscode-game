@@ -442,9 +442,60 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
           expect(sentence).toMatch(/^No \{dia\}º dia \{daEstacao\}, /);
           expect(sentence).not.toMatch(/\{heroi\},? (sozinh[oa]|ferid[oa]|cansad[oa]|cercad[oa])/);
         }
-        // A lição diz a classe que o nó favorece, pelo nome que a ficha mostra.
-        expect(node.trial.lesson).toContain(heroClasses[node.trial.helps].label);
+        // A lição, quando há, diz a classe que o nó favorece, pelo nome que a ficha mostra, e
+        // fala de quem faltou ("Um Arqueiro teria…"), nunca de quem estava ("mais firme").
+        if (node.trial.lesson !== undefined) {
+          expect(node.trial.lesson).toMatch(
+            new RegExp(`^Um ${heroClasses[node.trial.helps].label} (teria|não teria) `),
+          );
+        }
       }
+    },
+  );
+
+  it.each(everyVariant())(
+    '%s: a prova tem lição de classe se, e só se, uma equipe pode chegar a ela sem essa classe (revisão da Fase D, B4 e B18)',
+    (_name, model, variant) => {
+      // As classes que toda equipe tem ao chegar a cada nó: as que o modelo exige e as que
+      // todo caminho até ele exige em uma opção. A lição de classe só sai quando a classe
+      // faltava: no nó a que só se chega com ela, a frase nunca apareceria.
+      const guaranteed = new Map<string, Set<string>>();
+      const visit = (key: string, held: Set<string>): void => {
+        const node = variant.nodes[key];
+        if (node === undefined) {
+          return;
+        }
+        const before = guaranteed.get(key);
+        const now = before === undefined ? held : new Set([...before].filter((id) => held.has(id)));
+        guaranteed.set(key, now);
+        if (node.kind === 'return') {
+          return;
+        }
+        if (node.kind === 'crossroads') {
+          for (const option of node.options) {
+            const needs =
+              option.requires !== undefined && 'heroClass' in option.requires
+                ? [option.requires.heroClass]
+                : [];
+            visit(option.next, new Set([...held, ...needs]));
+          }
+          return;
+        }
+        visit(node.next, held);
+      };
+      visit(variant.start, new Set(model.requires.classes));
+      let trials = 0;
+      for (const [key, node] of Object.entries(variant.nodes)) {
+        if (node.kind === 'crossroads' || node.kind === 'return' || node.trial === undefined) {
+          continue;
+        }
+        trials += 1;
+        const always = guaranteed.get(key)?.has(node.trial.helps) === true;
+        expect(node.trial.lesson === undefined, `${key}: lição de ${node.trial.helps}`).toBe(
+          always,
+        );
+      }
+      expect(trials).toBeGreaterThan(0);
     },
   );
 
@@ -780,7 +831,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(broken((models) => delete (trial(models).trial as Loose).onDisaster)).toBe(true);
     // A prova sem a classe que favorece, sem a lição, ou com um desfecho que não diz quem se destacou.
     expect(broken((models) => delete (trial(models).trial as Loose).helps)).toBe(true);
-    expect(broken((models) => delete (trial(models).trial as Loose).lesson)).toBe(true);
+    expect(broken((models) => ((trial(models).trial as Loose).lesson = ''))).toBe(true);
     expect(
       broken(
         (models) =>

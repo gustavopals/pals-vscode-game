@@ -16,11 +16,13 @@ import { applyCommand } from './commands';
 import {
   durationFactorAt,
   expeditionSlots,
+  modelOf,
   nextVariant,
   outcomeOf,
   postureChoice,
   slotsAtLevel,
 } from './expeditions';
+import { lessonOf, lessonText } from './expeditionReport';
 import { heroPower, teamPower } from './heroes';
 import { currentShape } from './migrations';
 import { entityStream } from './random';
@@ -2128,5 +2130,51 @@ describe('a visão diz quem pode ir e se alguma equipe é possível (revisão da
     }
     expect(sendable).toBeGreaterThan(10);
     expect(unsendable).toBeGreaterThan(10);
+  });
+});
+
+describe('a lição da força só aconselha o que o jogador pode fazer (revisão da Fase D, B3, B4 e B18)', () => {
+  const state = hall();
+  const [edda, rolf] = state.guild.heroes as [Hero, Hero];
+  const trialOf = (modelId: string, variant: number, nodeId: string) => {
+    const node = modelOf(modelId)?.variants[variant]?.nodes[nodeId];
+    if (node === undefined || node.kind === 'crossroads' || node.kind === 'return') {
+      throw new Error(`Sem prova em ${modelId}/${variant}/${nodeId}.`);
+    }
+    if (node.trial === undefined) {
+      throw new Error(`Sem prova em ${modelId}/${variant}/${nodeId}.`);
+    }
+    return node.trial;
+  };
+
+  it('com lugar para mais um na equipe, "mais gente, ou gente mais calejada"; com a equipe completa, só "gente mais calejada"', () => {
+    // A ronda pelas cercas favorece o Guerreiro, e Edda é Guerreira: não é a classe que falta.
+    const fences = trialOf('patrol', 0, 'fences');
+    const alone = lessonOf(state, [edda], fences, 'balanced', 2);
+    expect(alone).toEqual({ kind: 'strength', heroName: null, posture: null });
+    expect(lessonText(alone, fences)).toBe(
+      'A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.',
+    );
+    const full = lessonOf(state, [edda], fences, 'balanced', 1);
+    expect(full).toEqual({ kind: 'level', heroName: null, posture: null });
+    expect(lessonText(full, fences)).toBe(
+      'A prova pedia mais do que a equipe tinha: gente mais calejada.',
+    );
+    expect(lessonOf(state, [edda, rolf], fences, 'balanced', 2).kind).toBe('level');
+  });
+
+  it('a lição de classe só sai de um nó que a tem: no nó a que só se chega com a classe, quem a perdeu no caminho recebe a da força', () => {
+    // O javali da mata fechada só se alcança com um Guerreiro (a opção o exige): o nó não tem
+    // lição de classe. Se o Guerreiro ficou pelo caminho, o Arqueiro que sobrou não ouve "um
+    // Guerreiro teria…" de uma frase que não existe.
+    const boar = trialOf('oldForest', 0, 'deepWoods');
+    expect(boar.helps).toBe('warrior');
+    expect(boar.lesson).toBeUndefined();
+    expect(lessonOf(state, [rolf], boar, 'balanced', 2).kind).toBe('strength');
+    // No vau da Patrulha, que favorece o Arqueiro, Edda sozinha ouve a lição da classe.
+    const ford = trialOf('patrol', 1, 'ford');
+    const lesson = lessonOf(state, [edda], ford, 'balanced', 1);
+    expect(lesson.kind).toBe('class');
+    expect(lessonText(lesson, ford)).toBe(ford.lesson);
   });
 });

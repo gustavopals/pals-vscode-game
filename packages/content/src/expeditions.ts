@@ -58,7 +58,10 @@ export type ExpeditionReward = {
  * contra o nó; o motor escolhe, sem sorteio). `helps` é a classe que este nó favorece, marcada
  * aqui (o teste confere que é a de maior poder contra os pesos do nó), e `lesson`, a frase que o
  * Revés e o Desastre ganham **quando a equipe não tinha essa classe**: diz o que teria ajudado,
- * só com o que o jogador pode saber.
+ * só com o que o jogador pode saber. **O nó a que só se chega com essa classe na equipe não tem
+ * `lesson`** (o modelo a exige, ou todo caminho até ele passa por uma opção que a exige): a
+ * frase nunca sairia, e o teste de conteúdo cobra as duas metades da regra (revisão da Fase D,
+ * B4 e B18).
  */
 export type ExpeditionTrial = {
   readonly difficulty: number;
@@ -66,7 +69,7 @@ export type ExpeditionTrial = {
   readonly weights?: Partial<Record<HeroAttributeId, Ratio>>;
   readonly onDisaster: ExpeditionDisasterId;
   readonly helps: HeroClassId;
-  readonly lesson: string;
+  readonly lesson?: string;
   readonly outcomes: Record<ExpeditionOutcomeId, string>;
 };
 
@@ -313,11 +316,14 @@ export const expeditionTexts = {
   /**
    * O que o Revés e o Desastre ensinam quando não é a classe que faltou (essa frase é do nó,
    * `trial.lesson`): o herói que rende mais em outra Postura, o que partiu com espaço vago
-   * havendo item no arsenal e, sem nada disso, a força que faltou.
+   * havendo item no arsenal e, sem nada disso, a força que faltou (com ou sem lugar para mais
+   * um herói na equipe: o motor escolhe pela equipe e pelo tamanho máximo do destino).
    */
   lessonPosture: '{heroi} rende mais quando a ordem é a Postura {postura}.',
   lessonItem: '{heroi} partiu com espaço vago no equipamento, e havia o que levar no arsenal.',
   lessonStrength: 'A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada.',
+  /** A mesma lição quando a equipe já ia no tamanho máximo do destino: não há "mais gente". */
+  lessonStrengthFull: 'A prova pedia mais do que a equipe tinha: gente mais calejada.',
   /** O fecho do relatório: o que a jornada custou, e o que ela deixou além do saque. */
   lossesNone: 'Sem perdas: todos voltaram inteiros.',
   losses: 'O preço: {perdas}.',

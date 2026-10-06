@@ -205,7 +205,6 @@ export const wolfDen: ExpeditionModelDef = {
             weights: { skill: { num: 3, den: 2 } },
             onDisaster: 'injury',
             helps: 'archer',
-            lesson: 'Um Arqueiro teria acertado a loba que guia a matilha.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} derrubou do alto do penedo a loba que guiava a matilha. Os outros fugiram, e a expedição de {feudo} revirou a toca com calma.',
               success:

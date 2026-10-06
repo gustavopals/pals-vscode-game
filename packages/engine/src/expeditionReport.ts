@@ -49,12 +49,16 @@ export function standoutOf(
 /**
  * O que um Revés ou um Desastre ensina, **o primeiro que valer**, nesta ordem:
  *
- * 1. `class`: o nó favorece uma classe (`trial.helps`) e a equipe não a tinha;
+ * 1. `class`: o nó favorece uma classe (`trial.helps`), a equipe não a tinha e o nó tem a frase
+ *    para isso (`trial.lesson`; o nó a que só se chega com a classe não a tem, e a equipe que a
+ *    perdeu no caminho recebe uma das lições seguintes);
  * 2. `posture`: alguém da equipe rende mais em outra Postura (o Corajoso fora da Ousada, o
  *    Prudente fora da Cautelosa); o primeiro, na ordem da equipe;
  * 3. `item`: alguém partiu com um espaço vago havendo no arsenal um item para ele; o primeiro,
  *    na ordem da equipe;
- * 4. `strength`: nada disso; faltou força.
+ * 4. `strength`: nada disso; faltou força, e ainda cabia mais um herói na equipe (`teamMax` é o
+ *    tamanho máximo do destino);
+ * 5. `level`: faltou força, e a equipe já ia completa: "mais gente" não é conselho que se siga.
  *
  * Só usa o que o jogador pode saber: as classes e os traços da equipe, a Postura que ele
  * escolheu, o equipamento e o arsenal. Não diz a sorte nem quanto faltou.
@@ -64,8 +68,9 @@ export function lessonOf(
   team: readonly Hero[],
   trial: ExpeditionTrial,
   posture: PostureId,
+  teamMax: number,
 ): ExpeditionLesson {
-  if (!team.some((hero) => hero.classId === trial.helps)) {
+  if (trial.lesson !== undefined && !team.some((hero) => hero.classId === trial.helps)) {
     return { kind: 'class', heroName: null, posture: null };
   }
   for (const hero of team) {
@@ -82,12 +87,12 @@ export function lessonOf(
       return { kind: 'item', heroName: hero.name, posture: null };
     }
   }
-  return { kind: 'strength', heroName: null, posture: null };
+  return { kind: team.length < teamMax ? 'strength' : 'level', heroName: null, posture: null };
 }
 
 /** A lição em uma frase: a do nó quando faltou a classe, e a geral nos outros casos. */
 export function lessonText(lesson: ExpeditionLesson, trial: ExpeditionTrial): string {
-  if (lesson.kind === 'class') {
+  if (lesson.kind === 'class' && trial.lesson !== undefined) {
     return trial.lesson;
   }
   if (lesson.kind === 'posture' && lesson.posture !== null) {
@@ -99,7 +104,10 @@ export function lessonText(lesson: ExpeditionLesson, trial: ExpeditionTrial): st
   if (lesson.kind === 'item') {
     return fillText(expeditionTexts.lessonItem, { heroi: lesson.heroName ?? '' });
   }
-  return expeditionTexts.lessonStrength;
+  // A lição de classe de um nó que perdeu a frase (o conteúdo mudou) cai na da força.
+  return lesson.kind === 'level'
+    ? expeditionTexts.lessonStrengthFull
+    : expeditionTexts.lessonStrength;
 }
 
 /**

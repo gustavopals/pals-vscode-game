@@ -88,7 +88,6 @@ export const oldForest: ExpeditionModelDef = {
             xp: 22,
             onDisaster: 'injury',
             helps: 'warrior',
-            lesson: 'Um Guerreiro teria aguentado a carga do javali de frente.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} abateu o javali da mata fechada, e a expedição de {feudo} cortou a melhor madeira do bosque.',
               success:
@@ -149,7 +148,6 @@ export const oldForest: ExpeditionModelDef = {
             xp: 22,
             onDisaster: 'injury',
             helps: 'warrior',
-            lesson: 'Um Guerreiro teria feito os lenhadores pensarem duas vezes.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} encarou os lenhadores sem senhor da mata fechada, e eles largaram os machados e a pilha de toras.',
               success:
@@ -221,7 +219,6 @@ export const oldForest: ExpeditionModelDef = {
             weights: { skill: { num: 3, den: 2 } },
             onDisaster: 'injury',
             helps: 'archer',
-            lesson: 'Um Arqueiro teria achado os galhos que aguentam o peso.',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} subiu ao ninho do tronco oco e desceu com tudo o que a gralha tinha juntado em anos.',
               success:

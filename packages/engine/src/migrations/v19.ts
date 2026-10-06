@@ -22,51 +22,58 @@ export const EXPEDITION_LESSON_KINDS_V19: readonly string[] = [
   'strength',
 ];
 
-const lesson: Shape = (value, path) => {
-  const found = exactObject({
-    kind: oneOf(EXPEDITION_LESSON_KINDS_V19),
-    heroName: nullable(nonEmptyName),
-    posture: nullable(oneOf(POSTURE_IDS_V17)),
-  })(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const entry = value as { kind: string; heroName: string | null; posture: string | null };
-  const named = entry.kind === 'posture' || entry.kind === 'item';
-  if (named !== (entry.heroName !== null)) {
-    return `${where(path)}.heroName: só a lição da Postura e a do item falam de um herói`;
-  }
-  if ((entry.kind === 'posture') !== (entry.posture !== null)) {
-    return `${where(path)}.posture: só a lição da Postura diz uma Postura`;
-  }
-  return null;
-};
-
-const logEntryV19Form: Shape = exactObject({
-  ...logEntryV18Fields,
-  standout: nullable(nonEmptyName),
-  lesson: nullable(lesson),
-});
+/** A guarda de uma lição, com os tipos que a versão conhece. */
+const lessonShapeOf =
+  (kinds: readonly string[]): Shape =>
+  (value, path) => {
+    const found = exactObject({
+      kind: oneOf(kinds),
+      heroName: nullable(nonEmptyName),
+      posture: nullable(oneOf(POSTURE_IDS_V17)),
+    })(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const entry = value as { kind: string; heroName: string | null; posture: string | null };
+    const named = entry.kind === 'posture' || entry.kind === 'item';
+    if (named !== (entry.heroName !== null)) {
+      return `${where(path)}.heroName: só a lição da Postura e a do item falam de um herói`;
+    }
+    if ((entry.kind === 'posture') !== (entry.posture !== null)) {
+      return `${where(path)}.posture: só a lição da Postura diz uma Postura`;
+    }
+    return null;
+  };
 
 /**
- * Um registro do percurso da versão 19: o da 18 com quem se destacou e a lição. Só um nó com
- * prova tem destaque, e só o Revés e o Desastre ensinam.
+ * A guarda de um registro do percurso desde a versão 19: o da 18 com quem se destacou e a
+ * lição, com os tipos de lição que a versão conhece (a 20 acrescenta um). Só um nó com prova
+ * tem destaque, e só o Revés e o Desastre ensinam.
  */
-const logEntry: Shape = (value, path) => {
-  const found = logEntryV19Form(value, path) ?? logEntryV18Rules(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const entry = value as { outcome: string; standout: unknown; lesson: unknown };
-  const trial = entry.outcome !== 'chosen' && entry.outcome !== 'passed';
-  if (!trial && entry.standout !== null) {
-    return `${where(path)}.standout: só um nó com prova tem quem se destaque`;
-  }
-  if (entry.lesson !== null && entry.outcome !== 'setback' && entry.outcome !== 'disaster') {
-    return `${where(path)}.lesson: só o Revés e o Desastre ensinam`;
-  }
-  return null;
-};
+export function logEntryShapeOf(kinds: readonly string[]): Shape {
+  const form: Shape = exactObject({
+    ...logEntryV18Fields,
+    standout: nullable(nonEmptyName),
+    lesson: nullable(lessonShapeOf(kinds)),
+  });
+  return (value, path) => {
+    const found = form(value, path) ?? logEntryV18Rules(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const entry = value as { outcome: string; standout: unknown; lesson: unknown };
+    const trial = entry.outcome !== 'chosen' && entry.outcome !== 'passed';
+    if (!trial && entry.standout !== null) {
+      return `${where(path)}.standout: só um nó com prova tem quem se destaque`;
+    }
+    if (entry.lesson !== null && entry.outcome !== 'setback' && entry.outcome !== 'disaster') {
+      return `${where(path)}.lesson: só o Revés e o Desastre ensinam`;
+    }
+    return null;
+  };
+}
+
+const logEntry: Shape = logEntryShapeOf(EXPEDITION_LESSON_KINDS_V19);
 
 const { expeditions, reports } = expeditionShapesOf(logEntry);
 

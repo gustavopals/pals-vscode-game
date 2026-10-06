@@ -325,8 +325,13 @@ export type ExpeditionLogEntry = {
   lesson: ExpeditionLesson | null;
 };
 
-/** Os motivos que o relatório dá para um desfecho ruim, na ordem em que o motor os procura. */
-export type ExpeditionLessonKind = 'class' | 'posture' | 'item' | 'strength';
+/**
+ * Os motivos que o relatório dá para um desfecho ruim, na ordem em que o motor os procura. Os
+ * dois últimos são a força que faltou: `strength` quando ainda cabia mais um herói na equipe
+ * ("mais gente, ou gente mais calejada") e `level` quando ela já ia no tamanho máximo do destino
+ * ("gente mais calejada"; revisão da Fase D, B3).
+ */
+export type ExpeditionLessonKind = 'class' | 'posture' | 'item' | 'strength' | 'level';
 
 export type ExpeditionLesson = {
   kind: ExpeditionLessonKind;
