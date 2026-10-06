@@ -1442,4 +1442,67 @@ test.describe('a jornada inteira pela tela (revisão da Fase D)', () => {
       freed?.statusText ?? 'sem a situação do herói',
     );
   });
+
+  test('duas Patrulhas do mesmo herói: cada linha da Crônica abre o relatório da sua jornada, pelo identificador (A2)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuildWith(world, page, [{ name: 'Aldo', level: 10 }]);
+    const start = await serverView(page, request);
+    // O destino de um herói só, sem encruzilhada: o mais curto da lista.
+    const short = start.guild.available.find(
+      (entry) => entry.canSend && entry.teamMin === 1 && entry.teamMax === 1,
+    );
+    if (short === undefined) {
+      throw new Error('O cenário esperava um destino de um herói só.');
+    }
+    await guildTab(page).click();
+    const row = destinationRow(page, short.modelId);
+    for (const journeys of [1, 2]) {
+      await row.getByText('Montar a equipe').click();
+      await row.getByRole('button', { name: /^Enviar/ }).click();
+      await expect(away(page).locator('[data-expedition]')).toHaveCount(1);
+      await until(
+        world,
+        page,
+        request,
+        'a equipe de volta',
+        (view) => view.guild.expeditions.length === 0 && view.guild.reports.length === journeys,
+      );
+      await expect(reports(page).locator('[data-report]')).toHaveCount(journeys);
+    }
+    const returned = await eventsOf(page, request, 'expeditionReturned');
+    expect(returned).toHaveLength(2);
+    const ids = returned.map((event) => String(event.data.expeditionId));
+    expect(new Set(ids).size).toBe(2);
+
+    // Na aba Crônica, a linha da volta de cada jornada abre o relatório dela, e não o mais novo.
+    const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
+    const opened = (expeditionId: string) =>
+      reports(page).locator(`[data-report="${expeditionId}"] details`);
+    for (const [index, event] of returned.entries()) {
+      await page.getByRole('tab', { name: 'Feudo' }).click();
+      await fief(page).getByRole('button', { name: 'Abrir a Crônica' }).click();
+      const lines = chronicle.getByRole('listitem').filter({ hasText: event.text });
+      // Com as duas linhas iguais, palavra por palavra, a ordem delas é a das jornadas.
+      const same = returned.filter((other) => other.text === event.text);
+      await expect(lines).toHaveCount(same.length);
+      await lines.nth(same.indexOf(event)).getByRole('button', { name: 'Ver o relatório' }).click();
+      await expect(page).toHaveURL(/#\/guilda$/);
+      const mine = ids[index] ?? '';
+      const other = ids[1 - index] ?? '';
+      await expect(opened(mine)).toHaveAttribute('open', '');
+      await expect(opened(other)).not.toHaveAttribute('open', '');
+    }
+    // O documento que o jogador baixa não leva a marca que faz a ligação.
+    const { url, headers } = await session(page);
+    const clean = await request.get(`${url}/chronicle.md`, { headers });
+    expect(await clean.text()).not.toContain('<!--');
+    const linked = await request.get(`${url}/chronicle.md?links=1`, { headers });
+    for (const expeditionId of ids) {
+      expect(await linked.text()).toContain(`<!-- ${expeditionId} -->`);
+    }
+  });
 });
