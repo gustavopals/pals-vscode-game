@@ -17,7 +17,13 @@ import {
   wageOf,
   xpLine,
 } from '../ui/guild';
-import { expeditionsOwnText, itemsFor, rescueDestination, slotLine } from '../ui/expeditions';
+import {
+  blockedReason,
+  expeditionsOwnText,
+  itemsFor,
+  rescueDestination,
+  slotLine,
+} from '../ui/expeditions';
 import type { Actions } from './actions';
 import { formatNumber } from './format';
 import { Explained, Icon } from './shared';
@@ -45,8 +51,9 @@ export function Traits(props: { traits: ReadonlyArray<{ label: string; text: str
  * poder com a conta do servidor, a experiência, o soldo e onde ele está (no feudo, em expedição,
  * em recuperação com o prazo, em cativeiro), na frase do servidor. O Descontente tem ícone e
  * palavra: nada é dito só pela cor. "Dispensar" passa por `lords.dismissHero`, que confirma.
- * Quem está em cativeiro ganha "Enviar o Resgate" quando a Guilda o oferece; o equipamento vem
- * recolhido logo abaixo.
+ * Quem o próximo Resgate solta (a visão diz quem: `nextRescued`, `rescueTargetName`) ganha
+ * "Enviar o Resgate" quando a Guilda o oferece e alguma equipe pode ir; se nenhuma pode, o
+ * motivo do servidor fica no lugar do botão. O equipamento vem recolhido logo abaixo.
  */
 function HeroSheet(props: {
   hero: Hero;
@@ -59,7 +66,10 @@ function HeroSheet(props: {
 }) {
   const { hero, guild } = props;
   const about = elementId(hero.id, 'about');
-  const rescue = hero.captive ? rescueDestination(guild) : null;
+  // O Resgate solta quem a visão marca (`nextRescued`), e o botão fica só na ficha dele: com
+  // dois em cativeiro, o da outra ficha prometeria quem não vem.
+  const rescue = hero.captive && hero.nextRescued ? rescueDestination(guild) : null;
+  const rescueBlocked = rescue === null ? null : blockedReason(rescue);
   return (
     <li class="hero" aria-busy={props.busy || props.arming}>
       <p class="hero-name">
@@ -86,15 +96,20 @@ function HeroSheet(props: {
           Dispensar<span class="sr-only"> {hero.name}</span>
         </button>
       </div>
-      {rescue === null ? null : (
+      {rescue === null ? null : rescueBlocked !== null ? (
+        <p class="blocked">
+          <Icon name="lock" /> {rescue.label}: {rescueBlocked}
+        </p>
+      ) : (
         <p class="hero-gear">
           <button
             type="button"
             disabled={props.disabled}
             aria-describedby={about}
+            data-testid="send-rescue"
             onClick={() => props.actions.run('lords.sendExpedition', rescue.modelId)}
           >
-            Enviar o Resgate<span class="sr-only"> de {hero.name}</span>
+            Enviar o Resgate<span class="sr-only"> de {guild.rescueTargetName ?? hero.name}</span>
           </button>
         </p>
       )}

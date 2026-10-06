@@ -619,6 +619,51 @@ describe('o equipamento na ficha e o arsenal (V3D-T4.5)', () => {
     );
   });
 
+  it('com dois cativos, o botão do Resgate fica só na ficha de quem ele vai soltar, com o nome que a visão diz (revisão, A8)', () => {
+    // Rolf também caiu em cativeiro, depois de Edda: o próximo Resgate solta Edda.
+    const two: ViewState = {
+      ...heroCapturedView,
+      guild: {
+        ...heroCapturedView.guild,
+        heroes: heroCapturedView.guild.heroes.map((hero) =>
+          hero.name === 'Rolf'
+            ? { ...hero, captive: true, atHome: false, canDepart: false, nextRescued: false }
+            : hero,
+        ),
+      },
+    };
+    expect(two.guild.rescueTargetName).toBe('Edda');
+    const rescues = buttons(heroes(two)).filter((button) =>
+      button.label.startsWith('Enviar o Resgate'),
+    );
+    expect(rescues.map((button) => button.label)).toEqual(['Enviar o Resgate de Edda']);
+    // O botão está na ficha de Edda: é ela que ele descreve.
+    expect(rescues[0]?.describedBy).toBe('hero-hero-1-about');
+    // Quem a visão marca é quem manda, não a ordem da ficha: marcado Rolf, o botão é o dele.
+    const swapped: ViewState = {
+      ...two,
+      guild: {
+        ...two.guild,
+        rescueTargetName: 'Rolf',
+        heroes: two.guild.heroes.map((hero) => ({ ...hero, nextRescued: hero.name === 'Rolf' })),
+      },
+    };
+    expect(
+      buttons(heroes(swapped))
+        .filter((button) => button.label.startsWith('Enviar o Resgate'))
+        .map((button) => [button.label, button.describedBy]),
+    ).toEqual([['Enviar o Resgate de Rolf', 'hero-hero-2-about']]);
+  });
+
+  it('o Resgate que não pode partir agora diz o motivo do servidor no lugar do botão', () => {
+    const blocked = withoutTheClass(heroCapturedView, 'rescue');
+    const markup = heroes(blocked);
+    expect(buttons(markup).filter((button) => button.label.startsWith('Enviar o Resgate'))).toEqual(
+      [],
+    );
+    expect(text(markup)).toContain(CLASS_MISSING_REASON);
+  });
+
   it('com alguém em cativeiro, a ficha oferece "Enviar o Resgate" e diz o que vale para o cativo', () => {
     const { calls, actions: recorded } = recording();
     const markup = heroes(heroCapturedView);

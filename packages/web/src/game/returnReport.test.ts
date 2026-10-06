@@ -917,12 +917,12 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
     expect(cost.map((item) => [item.text, item.action?.label])).toEqual([
       ['Rolf voltou com ferimentos.', 'Ver a Guilda'],
       // Há alguém em cativeiro e a Guilda oferece o Resgate: é o botão.
-      ['Edda caiu em cativeiro.', 'Enviar o Resgate'],
+      ['Edda caiu em cativeiro.', 'Enviar o Resgate de Edda'],
     ]);
     expect(cost[1]?.action).toEqual({
       command: 'lords.sendExpedition',
       arg: 'rescue',
-      label: 'Enviar o Resgate',
+      label: 'Enviar o Resgate de Edda',
     });
     // Cada frase aparece uma vez só nos blocos.
     const all = [...texts(blocks.prospered), ...texts(cost)];

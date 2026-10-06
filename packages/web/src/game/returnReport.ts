@@ -7,7 +7,7 @@ import {
 } from '@lotg/protocol';
 
 import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
-import { rescueDestination } from '../ui/expeditions';
+import { canSend, rescueDestination } from '../ui/expeditions';
 import { formatNumber, joinList } from '../ui/format';
 import { TAVERN_SECTION } from '../ui/guild';
 import { peopleMoved } from '../ui/morale';
@@ -107,11 +107,17 @@ export function costAction(
     return toAction(defenseCommand(view));
   }
   if (topic === 'hero:captured') {
-    // Quem ficou em cativeiro só volta com um Resgate: se a Guilda o oferece agora, é o botão.
+    // Quem ficou em cativeiro só volta com um Resgate: se a Guilda o oferece e alguma equipe
+    // pode ir agora, é o botão, com o nome de quem ele solta (o que a visão diz, não o do evento).
     const rescue = rescueDestination(view.guild);
-    return rescue === null
+    const target = view.guild.rescueTargetName;
+    return rescue === null || !canSend(rescue)
       ? { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' }
-      : { command: 'lords.sendExpedition', arg: rescue.modelId, label: 'Enviar o Resgate' };
+      : {
+          command: 'lords.sendExpedition',
+          arg: rescue.modelId,
+          label: target === null ? 'Enviar o Resgate' : `Enviar o Resgate de ${target}`,
+        };
   }
   if (topic === 'hero:died') {
     // Quem morreu não volta: o que há a fazer é ver quem a Taverna oferece.
