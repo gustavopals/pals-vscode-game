@@ -266,7 +266,7 @@ function DestinationRow(props: {
         />
       ) : (
         <p class="blocked">
-          <Icon name="lock" /> Falta gente no feudo para a equipe que este destino pede.
+          <Icon name="lock" /> Quem pode partir agora não forma a equipe que este destino pede.
         </p>
       )}
     </li>

@@ -511,11 +511,11 @@ test.describe('a Guilda na interface', () => {
     await context.route('**/v1/**', (route) => route.abort('connectionrefused'));
     await page.clock.fastForward(31_000);
     await expect(guild(page)).toContainText(
-      'Sem ligação com o reino: a equipe, os candidatos e os prazos são os do último estado conhecido do feudo.',
+      'Sem ligação com o reino: a equipe, as expedições, os candidatos e os prazos são os do último estado conhecido do feudo.',
     );
     await expect(team(page)).toContainText(offer.name);
     for (const button of await guild(page)
-      .getByRole('button', { name: /^(Contratar|Dispensar|Dar um festival)/ })
+      .getByRole('button', { name: /^(Contratar|Dispensar|Dar um festival|Construir)/ })
       .all()) {
       await expect(button).toBeDisabled();
     }
@@ -525,13 +525,13 @@ test.describe('a Guilda na interface', () => {
     await expect(guild(page)).not.toContainText('Sem ligação com o reino');
   });
 
-  test('a encruzilhada de uma expedição é anunciada na aba Hoje, leva à aba Guilda e, sem resposta, a Postura decide no prazo (V3D-T1)', async ({
+  test('a encruzilhada de uma expedição é anunciada na aba Hoje e na barra de status e, sem resposta, a Postura decide no prazo (V3D-T1)', async ({
     context,
     request,
     world,
   }) => {
-    // O app ainda não envia expedição nem escolhe caminho (a interface é da V3D-T4): o que se
-    // prova aqui é que o protocolo 3 não o quebra e que a decisão à espera aparece, com o prazo.
+    // O protocolo 3 não quebra o app, e a decisão à espera aparece, com o prazo; a escolha do
+    // caminho e o envio são dos cenários de "as expedições na interface", abaixo.
     const page = await world.open(context);
     await playNow(page);
     await world.control('council-deal', { cardId: 'woundedStranger' });
@@ -561,15 +561,21 @@ test.describe('a Guilda na interface', () => {
     const decisions = page.getByRole('region', { name: 'Decisões pendentes (1)' });
     await expect(decisions).toContainText('Guilda: “Floresta Antiga: A trilha se divide”');
     await expect(decisions).toContainText('expira em');
-    await decisions
-      .getByRole('button', { name: 'Ver a Guilda: Floresta Antiga: A trilha se divide' })
-      .click();
+    // O que a Postura fará sem resposta está ao lado do prazo, na frase do servidor.
+    await expect(decisions).toContainText(
+      waiting.guild.expeditions[0]?.crossroads?.postureText ?? 'sem a frase da Postura',
+    );
+    await expect(
+      decisions.getByRole('button', {
+        name: 'Escolher caminho: Floresta Antiga: A trilha se divide',
+      }),
+    ).toBeVisible();
+    // A barra de status conta a encruzilhada como decisão pendente, e o clique leva à Guilda.
+    await expect(statusBar(page)).toContainText('1 decisão pendente');
+    await statusBar(page).locator('.status-main').click();
     await expect(page).toHaveURL(/#\/guilda$/);
-    // A ficha diz onde ela está, na frase do servidor, e a dispensa de quem está fora é recusada
-    // pelo motor, não oferecida às cegas.
+    // A ficha diz onde ela está, na frase do servidor.
     await expect(team(page).getByRole('listitem')).toContainText('Em expedição');
-    // A barra de status não anuncia a encruzilhada como carta do Conselho.
-    await expect(statusBar(page)).not.toContainText('decisão pendente');
 
     // Seis horas e um minuto depois ninguém respondeu: a Postura decidiu, e a decisão saiu.
     await world.passTime(6 * HOUR + MINUTE, page);
@@ -585,5 +591,442 @@ test.describe('a Guilda na interface', () => {
     expect(home.guild.expeditions).toEqual([]);
     expect(home.guild.reports).toHaveLength(1);
     expect(home.guild.heroes.map((hero) => hero.atHome)).toEqual([true]);
+  });
+});
+
+// V3D-T4 (GDD §9.2 a §9.4 e §13.2 a §13.6; critérios 2 e 3 do §16.2): as expedições na
+// interface. A equipe é posta no feudo pela rota de teste (`world.hero`), com nome escolhido
+// aqui, e não pelo sorteio da Taverna: os cenários não dependem de quem a semente ofereceu.
+// A variante do grafo de uma expedição enviada pela tela sai de uma conta sobre a semente: os
+// cenários leem do servidor o que a tela tem de mostrar, em vez de citar um nó. A encruzilhada
+// é posta pela rota de teste (`world.crossroads`), sempre a da primeira variante da Floresta
+// Antiga; daí em diante a escolha, o prazo, o nó seguinte e a volta são os do motor.
+
+const expeditions = (page: Page) => guild(page).getByRole('region', { name: 'Expedições' });
+const reports = (page: Page) => guild(page).getByRole('region', { name: 'Relatórios' });
+const arsenal = (page: Page) => guild(page).getByRole('region', { name: 'Arsenal' });
+const destinations = (page: Page) => expeditions(page).getByRole('list', { name: 'Destinos' });
+const away = (page: Page) => expeditions(page).getByRole('list', { name: 'Fora do feudo' });
+const crossroadsCard = (page: Page) =>
+  guild(page).getByRole('article', { name: 'A trilha se divide' });
+/** A linha de um destino: a que traz o nome dele sozinho, e não qualquer linha que o cite. */
+const destinationRow = (page: Page, label: string) =>
+  destinations(page)
+    .getByRole('listitem')
+    .filter({ has: page.getByText(label, { exact: true }) });
+
+/** Funda o feudo com a Guilda dos Aventureiros de pé e a equipe pedida no feudo. */
+async function openGuild(
+  world: World,
+  page: Page,
+  names: string[],
+  { level = 1 }: { level?: number } = {},
+) {
+  await playNow(page);
+  await world.raise('townHall', 3);
+  await world.raise('guild', level);
+  for (const name of names) {
+    await world.hero(name);
+  }
+  await world.passTime(MINUTE, page);
+}
+
+test.describe('as expedições na interface (V3D-T4)', () => {
+  test('enviar pelo painel com duplo clique envia uma vez; a equipe aparece fora do feudo e, na volta, o relatório nó a nó (critério 3)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuild(world, page, ['Aldo']);
+    const before = await serverView(page, request);
+    const patrol = before.guild.available.find((entry) => entry.modelId === 'patrol');
+    if (patrol === undefined) {
+      throw new Error('O cenário esperava a Patrulha na lista da Guilda.');
+    }
+    expect(patrol.locked).toBe(false);
+    await guildTab(page).click();
+    // O destino mostra o que o servidor mandou: o risco, o que a equipe precisa, o primeiro
+    // trecho e a régua dele. O que vem depois não está na tela.
+    const row = destinationRow(page, patrol.label);
+    await expect(row).toContainText(`Risco: ${patrol.riskText.toLowerCase()}`);
+    await expect(row).toContainText(patrol.requirementsText);
+    await expect(row).toContainText(patrol.firstStretchText);
+    await expect(row).toContainText(patrol.fit?.text ?? '');
+    // A montagem: quem vai e a Postura, cada uma com o que faz, na frase do servidor.
+    await row.getByText('Montar a equipe').click();
+    await expect(row.getByRole('checkbox', { name: /^Aldo · / })).toBeChecked();
+    for (const posture of before.guild.postures) {
+      await expect(row.getByRole('radio', { name: posture.label })).toHaveAccessibleDescription(
+        posture.text,
+      );
+    }
+    await expect(row.getByRole('radio', { name: 'Equilibrada' })).toBeChecked();
+    await row.getByRole('radio', { name: 'Cautelosa' }).check();
+    await expect(row).toContainText(/A equipe marcada vale [\d,.]+ contra o primeiro trecho/);
+
+    // As ordens que saem do navegador: o duplo clique tem de virar uma só.
+    const orders = commandPosts(page);
+    await row.getByRole('button', { name: /^Enviar/ }).dblclick();
+    await expect(away(page).getByRole('listitem')).toHaveCount(1);
+    await expect(away(page)).toContainText(`${patrol.label} · Aldo · Postura Cautelosa`);
+    expect(orders.map((order) => order.type)).toEqual(['sendExpedition']);
+    expect(await eventsOf(page, request, 'expeditionSent')).toHaveLength(1);
+    await expect(toasts(page).getByRole('alert')).toHaveCount(0);
+    // A equipe está fora: a ficha diz, a árvore conta, e o único lugar da Guilda está ocupado.
+    const sent = await serverView(page, request);
+    expect(sent.guild.expeditions).toHaveLength(1);
+    await expect(team(page).getByRole('listitem')).toContainText('Em expedição');
+    await expect(tree(page).locator('[data-node="guild"]')).toContainText(
+      '1 herói · 1 expedição em viagem',
+    );
+    await expect(row).toContainText(sent.guild.available[0]?.lockedReason ?? 'sem motivo');
+    await expect(row.getByRole('button', { name: /^Enviar/ })).toHaveCount(0);
+    expect(await cutTreeRows(page)).toEqual([]);
+
+    // Vinte minutos depois a Patrulha voltou: o relatório está na aba, nó a nó.
+    await world.passTime(20 * MINUTE, page);
+    const home = await serverView(page, request);
+    expect(home.guild.expeditions).toEqual([]);
+    const [report] = home.guild.reports;
+    if (report === undefined) {
+      throw new Error('O cenário esperava o relatório da Patrulha.');
+    }
+    await expect(away(page)).toHaveCount(0);
+    const sheet = reports(page).getByRole('listitem').first();
+    await expect(sheet).toContainText(`${report.label} · Aldo · Postura Cautelosa`);
+    const steps = sheet.getByRole('list', { name: `O percurso de ${report.label}` });
+    await expect(steps.getByRole('listitem')).toHaveCount(report.log.length);
+    for (const [index, step] of report.log.entries()) {
+      const line = steps.getByRole('listitem').nth(index);
+      await expect(line).toContainText(step.title);
+      // O desfecho em palavra e em ícone: nada é dito só pela cor.
+      await expect(line.locator('.report-outcome')).toHaveText(step.outcomeLabel);
+      await expect(line.locator('.report-outcome .codicon')).toHaveCount(1);
+      if (step.standoutName !== null) {
+        await expect(line).toContainText(`Destaque: ${step.standoutName}`);
+      }
+      if (step.lessonText !== null) {
+        await expect(line).toContainText(`Lição: ${step.lessonText}`);
+      }
+    }
+    // No fim, o que trouxe e o que custou, nas frases do servidor.
+    await expect(sheet).toContainText(report.lootText);
+    await expect(sheet).toContainText(report.lossesText);
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+
+    // A linha da Crônica liga ao relatório enquanto ele está guardado.
+    const [returned] = [
+      ...(await eventsOf(page, request, 'expeditionReturned')),
+      ...(await eventsOf(page, request, 'expeditionLost')),
+    ];
+    if (returned === undefined) {
+      throw new Error('O cenário esperava a linha da volta na Crônica.');
+    }
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    const recent = fief(page).getByRole('region', { name: 'Crônica' });
+    const line = recent.getByRole('listitem').filter({ hasText: returned.text });
+    await line.getByRole('button', { name: 'Ver o relatório' }).click();
+    await expect(page).toHaveURL(/#\/guilda$/);
+    await expect(sheet.getByRole('list', { name: `O percurso de ${report.label}` })).toBeVisible();
+    // E na aba Crônica, a mesma linha tem o mesmo botão.
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    await fief(page).getByRole('button', { name: 'Abrir a Crônica' }).click();
+    const chronicle = page.getByRole('tabpanel', { name: 'Crônica' });
+    await expect(
+      chronicle
+        .getByRole('listitem')
+        .filter({ hasText: returned.text })
+        .getByRole('button', { name: 'Ver o relatório' }),
+    ).toBeVisible();
+  });
+
+  test('escolher o caminho pelo painel: todas as superfícies mostram a decisão; em duas abas, uma escolhe e a outra é recusada e vê a encruzilhada sumir', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const first = await world.open(context);
+    await playNow(first);
+    await world.hero('Aldo');
+    await world.crossroads('balanced');
+    await world.passTime(MINUTE, first);
+    const second = await world.open(context);
+    await expect(second.getByRole('heading', { name: 'Pedra Alta', level: 1 })).toBeVisible();
+    const view = await serverView(first, request);
+    const [expedition] = view.guild.expeditions;
+    const crossroads = expedition?.crossroads;
+    if (expedition === undefined || crossroads === null || crossroads === undefined) {
+      throw new Error('O cenário esperava a equipe na encruzilhada.');
+    }
+    const deadline = `xpira em ${Math.floor(crossroads.decidesInSeconds / 3600)} h`;
+
+    // A barra de status, o título da aba do navegador, a árvore e a aba Hoje anunciam a decisão.
+    await expect(statusBar(first)).toContainText(`1 decisão pendente · e${deadline}`);
+    await expect(first).toHaveTitle(/^\(1\) Pedra Alta/);
+    await expect(tree(first).locator('[data-node="guild"]')).toContainText(
+      '1 herói · 1 expedição na encruzilhada',
+    );
+    const treeRow = tree(first).locator(`[data-node="expedition:${expedition.id}"]`);
+    await expect(treeRow).toContainText('na encruzilhada');
+    await first.getByRole('tab', { name: 'Hoje' }).click();
+    const decisions = first.getByRole('region', { name: 'Decisões pendentes (1)' });
+    await expect(decisions).toContainText(crossroads.postureText);
+    await expect(decisions.getByRole('button', { name: /^Escolher caminho/ })).toBeVisible();
+    await expect(first.getByRole('region', { name: 'Antes de partir' })).toContainText(
+      'espera na encruzilhada',
+    );
+
+    // A folha da encruzilhada: o título, a situação, cada caminho com a pista, o prazo real e
+    // o que a Postura fará sem resposta.
+    for (const page of [first, second]) {
+      await guildTab(page).click();
+      const card = crossroadsCard(page);
+      await expect(card).toContainText(`Encruzilhada · ${expedition.label}`);
+      await expect(card).toContainText(`E${deadline}`);
+      await expect(card).toContainText(crossroads.text);
+      await expect(card).toContainText(crossroads.postureText);
+      for (const option of crossroads.options) {
+        await expect(card.getByRole('button', { name: option.label })).toBeEnabled();
+        await expect(card).toContainText(option.hint);
+      }
+      await expect(card).toContainText(
+        `Sem resposta, é este o caminho da Postura ${crossroads.postureLabel}.`,
+      );
+    }
+
+    // A primeira aba escolhe, com um clique e uma ordem.
+    const [stream, other] = [
+      crossroads.options.find((option) => option.id === crossroads.postureOptionId),
+      crossroads.options.find((option) => option.id !== crossroads.postureOptionId),
+    ];
+    if (stream === undefined || other === undefined) {
+      throw new Error('O cenário esperava dois caminhos.');
+    }
+    const orders = commandPosts(first);
+    await crossroadsCard(first).getByRole('button', { name: other.label }).click();
+    await expect(crossroadsCard(first)).toHaveCount(0);
+    expect(orders.map((order) => order.type)).toEqual(['chooseExpeditionPath']);
+    await expect(statusBar(first)).not.toContainText('decisão pendente');
+    await expect(away(first).getByRole('listitem')).toHaveCount(1);
+
+    // A segunda aba ainda mostra a encruzilhada e clica: o servidor recusa, com a frase dele, e
+    // a visão que vem na recusa toma a tela: a encruzilhada some.
+    const refusal = second.waitForResponse(
+      (response) => response.url().endsWith('/commands') && response.request().method() === 'POST',
+    );
+    await crossroadsCard(second).getByRole('button', { name: stream.label }).click();
+    const refused = await refusal;
+    expect(refused.status()).toBe(422);
+    const body = (await refused.json()) as { message: string; details: { code: string } };
+    expect(body.details.code).toBe('CROSSROADS_DECIDED');
+    await expect(toasts(second).getByRole('status')).toHaveText(body.message);
+    await expect(crossroadsCard(second)).toHaveCount(0);
+    await second.getByRole('tab', { name: 'Hoje' }).click();
+    await expect(second.getByRole('tabpanel', { name: 'Hoje' })).not.toContainText('Guilda: “');
+    // Uma escolha só valeu, e a Crônica a conta.
+    const chosen = await eventsOf(first, request, 'expeditionPathChosen');
+    expect(chosen).toHaveLength(1);
+    expect((await serverView(first, request)).pendingDecisions).toEqual([]);
+  });
+
+  test('pela paleta e só com o teclado, nos três temas: escolher o caminho, e a encruzilhada com contraste (QA-15)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    // Três heróis e três lugares na Guilda: uma encruzilhada para cada tema.
+    await openGuild(world, page, ['Aldo', 'Berta', 'Caio'], { level: 4 });
+    for (const [index, theme] of THEMES.entries()) {
+      await applyTheme(page, theme);
+      await world.crossroads('balanced');
+      await world.passTime(MINUTE, page);
+      const waiting = (await serverView(page, request)).guild.expeditions.find(
+        (entry) => entry.crossroads !== null,
+      );
+      const crossroads = waiting?.crossroads;
+      if (waiting === undefined || crossroads === null || crossroads === undefined) {
+        throw new Error('O cenário esperava a equipe na encruzilhada.');
+      }
+      // Pelo teclado até a aba: a folha da encruzilhada no tema, com contraste e sem transbordar.
+      await palette(page, 'Ir para a Guilda');
+      await expect(crossroadsCard(page)).toBeVisible();
+      expect(await lowContrast(page), `contraste no tema ${theme}`).toEqual([]);
+      expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+      // F1, o nome do comando, Enter: a lista dos caminhos, com a situação, o prazo, o que a
+      // Postura fará e a pista de cada um. A opção da Postura já vem marcada.
+      await palette(page, 'Escolher caminho da expedição');
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toContainText(`Encruzilhada: ${waiting.label}`);
+      await expect(dialog).toContainText(crossroads.text);
+      await expect(dialog).toContainText(crossroads.postureText);
+      for (const option of crossroads.options) {
+        await expect(dialog).toContainText(option.label);
+        await expect(dialog).toContainText(option.hint);
+      }
+      await expect(dialog.getByRole('option', { selected: true })).toContainText(
+        crossroads.postureOptionLabel,
+      );
+      // Uma seta para baixo e Enter: o caminho seguinte ao da Postura.
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await expect(dialog).toHaveCount(0);
+      await expect(crossroadsCard(page)).toHaveCount(0);
+      expect(await eventsOf(page, request, 'expeditionPathChosen')).toHaveLength(index + 1);
+    }
+    expect(await eventsOf(page, request, 'expeditionPostureDecided')).toHaveLength(0);
+  });
+
+  test('o prazo vence com a lista aberta: ela fecha sem enviar, e a Crônica conta que a Postura decidiu (critério 2)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await playNow(page);
+    await world.hero('Aldo');
+    // Duas horas de prazo, com a Postura Cautelosa.
+    await world.crossroads('cautious', 2 * HOUR);
+    await world.passTime(MINUTE, page);
+    const view = await serverView(page, request);
+    const [expedition] = view.guild.expeditions;
+    const crossroads = expedition?.crossroads;
+    if (expedition === undefined || crossroads === null || crossroads === undefined) {
+      throw new Error('O cenário esperava a equipe na encruzilhada.');
+    }
+    expect(crossroads.postureLabel).toBe('Cautelosa');
+    await guildTab(page).click();
+    await expect(crossroadsCard(page)).toContainText(crossroads.postureText);
+    const orders = commandPosts(page);
+    // Pela árvore: o botão da linha da expedição abre a lista dos caminhos.
+    const treeRow = tree(page).locator(`[data-node="expedition:${expedition.id}"]`);
+    await treeRow.hover();
+    await treeRow.getByRole('button', { name: /^Escolher caminho/ }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText(`Encruzilhada: ${expedition.label}`);
+    await expect(dialog).toContainText(crossroads.postureText);
+
+    // O relógio passa do prazo com a lista aberta: ela fecha sozinha, a tela avisa e nada sai.
+    await world.passTime(2 * HOUR + MINUTE, page);
+    await expect(dialog).toHaveCount(0);
+    await expect(toasts(page)).toContainText(
+      `O prazo da encruzilhada de "${expedition.label}" acabou antes da sua palavra, e a Postura Cautelosa decidiu.`,
+    );
+    expect(orders).toEqual([]);
+    await expect(crossroadsCard(page)).toHaveCount(0);
+    await expect(statusBar(page)).not.toContainText('decisão pendente');
+
+    // Quem decidiu foi a Postura, e a Crônica diz isso com a frase do servidor.
+    const [decided] = await eventsOf(page, request, 'expeditionPostureDecided');
+    if (decided === undefined) {
+      throw new Error('O cenário esperava a linha da Postura na Crônica.');
+    }
+    expect(decided.text).toContain('cautelosa');
+    expect(await eventsOf(page, request, 'expeditionPathChosen')).toHaveLength(0);
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    await expect(fief(page).getByRole('region', { name: 'Crônica' })).toContainText(decided.text);
+  });
+
+  test('equipar pelo arsenal e desequipar pela ficha: o item muda de lugar, o poder acompanha, e cada clique é uma ordem', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuild(world, page, ['Aldo']);
+    await world.item('huntingSpear');
+    await world.passTime(MINUTE, page);
+    const before = await serverView(page, request);
+    const [item] = before.guild.inventory;
+    const [hero] = before.guild.heroes;
+    if (item === undefined || hero === undefined) {
+      throw new Error('O cenário esperava um item no arsenal e um herói no feudo.');
+    }
+    await guildTab(page).click();
+    // O arsenal diz o que o item é e o que soma, nas frases do servidor.
+    await expect(arsenal(page)).toContainText(before.guild.inventoryText);
+    await expect(arsenal(page)).toContainText(
+      `${item.label} · ${item.slotLabel} · ${item.rarityLabel}`,
+    );
+    await expect(arsenal(page)).toContainText(item.bonusText);
+    const orders = commandPosts(page);
+    // Um herói só no feudo: "Equipar" vai direto a ele.
+    await arsenal(page)
+      .getByRole('button', { name: `Equipar ${item.label}` })
+      .click();
+    await expect(arsenal(page).getByRole('listitem')).toHaveCount(0);
+    const armed = await serverView(page, request);
+    expect(armed.guild.inventory).toEqual([]);
+    expect(armed.guild.heroes[0]?.power).toBeGreaterThan(hero.power);
+    // A ficha mostra os três espaços, com o item e o que ele soma.
+    const sheet = team(page).getByRole('listitem').first();
+    await sheet.getByText('Equipamento: 1 de 3').click();
+    const gear = sheet.getByRole('list', { name: `Equipamento de ${hero.name}` });
+    await expect(gear.getByRole('listitem')).toHaveCount(3);
+    await expect(gear).toContainText(`${item.slotLabel}: ${item.label} (${item.bonusText})`);
+    // O número é o do servidor, escrito à moda daqui (vírgula decimal).
+    await expect(sheet).toContainText(
+      `Poder ${String(armed.guild.heroes[0]?.power).replace('.', ',')}`,
+    );
+    // Desequipar devolve o item ao arsenal.
+    await gear.getByRole('button', { name: `Desequipar ${item.label}` }).click();
+    await expect(arsenal(page).getByRole('listitem')).toHaveCount(1);
+    expect(orders.map((order) => order.type)).toEqual(['equipItem', 'unequipItem']);
+    const after = await serverView(page, request);
+    expect(after.guild.inventory.map((entry) => entry.label)).toEqual([item.label]);
+    expect(after.guild.heroes[0]?.power).toBe(hero.power);
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+  });
+
+  test('ritmo Rápido: o prazo da encruzilhada na tela é o da API, em horas de relógio, e a Postura decide na hora anunciada', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    // O feudo é fundado no Rápido pelas boas-vindas: o cenário roda com a suíte e também com
+    // `GAME_TIME_SCALE=3 pnpm test:e2e 09-guilda -g "ritmo"`, que sobe o servidor como o da produção.
+    await page
+      .getByRole('tabpanel', { name: 'Boas-vindas' })
+      .getByRole('radiogroup', { name: 'Ritmo' })
+      .getByRole('radio', { name: /^Rápido/ })
+      .check();
+    await playNow(page);
+    expect((await serverView(page, request)).settlement.paceLabel).toMatch(/^Rápido/);
+    await world.hero('Aldo');
+    // O prazo de uma encruzilhada é de 6 horas de relógio em qualquer ritmo.
+    await world.crossroads('balanced');
+    await world.passTime(MINUTE, page);
+    const hours = async () => {
+      const view = await serverView(page, request);
+      const seconds = view.guild.expeditions[0]?.crossroads?.decidesInSeconds;
+      if (seconds === undefined) {
+        throw new Error('O cenário esperava a equipe na encruzilhada.');
+      }
+      return { seconds, text: `xpira em ${Math.floor(seconds / 3600)} h` };
+    };
+    const start = await hours();
+    // Seis horas menos o minuto que passou: a API não dividiu o prazo pelo ritmo.
+    expect(start.seconds).toBeGreaterThan(6 * 3600 - 120);
+    expect(start.seconds).toBeLessThanOrEqual(6 * 3600);
+    await guildTab(page).click();
+    // A tela escreve o prazo que a API deu, sem converter de novo.
+    await expect(crossroadsCard(page)).toContainText(`E${start.text}`);
+    await expect(statusBar(page)).toContainText(`e${start.text}`);
+
+    // Três horas de relógio depois, faltam três: na API e na tela.
+    await world.passTime(3 * HOUR, page);
+    const middle = await hours();
+    expect(middle.seconds).toBeGreaterThan(3 * 3600 - 180);
+    expect(middle.seconds).toBeLessThanOrEqual(3 * 3600);
+    await expect(crossroadsCard(page)).toContainText(`E${middle.text}`);
+    expect((await eventsOf(page, request, 'expeditionPostureDecided')).length).toBe(0);
+
+    // Passadas as seis horas anunciadas, a Postura decidiu: nem antes, nem três vezes depois.
+    await world.passTime(3 * HOUR + MINUTE, page);
+    expect((await serverView(page, request)).pendingDecisions).toEqual([]);
+    expect(await eventsOf(page, request, 'expeditionPostureDecided')).toHaveLength(1);
+    await expect(crossroadsCard(page)).toHaveCount(0);
   });
 });

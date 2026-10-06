@@ -1463,7 +1463,9 @@ export function createCommands(
               description: capitalize(destinationTerms(entry)),
               detail: [
                 entry.lockedReason ??
-                  (open ? null : 'Falta gente no feudo para a equipe que este destino pede.'),
+                  (open
+                    ? null
+                    : 'Quem pode partir agora não forma a equipe que este destino pede.'),
                 entry.requirementsText,
                 entry.firstStretchText,
                 entry.durationNote === '' ? null : entry.durationNote,
@@ -1499,7 +1501,7 @@ export function createCommands(
         ) {
           controller.toast({
             kind: 'info',
-            text: `Falta gente no feudo para "${still.label}". ${still.requirementsText}`,
+            text: `Quem pode partir agora não forma a equipe de "${still.label}". ${still.requirementsText}`,
             actions: [seeExpeditions],
           });
         }

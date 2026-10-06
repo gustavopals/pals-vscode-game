@@ -314,7 +314,7 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
   it('sem gente bastante para um destino, a linha diz isso em vez de oferecer o envio', () => {
     // O Covil pede dois, e só Rolf pode partir.
     const shown = text(panel(heroInjuredView));
-    expect(shown).toContain('Falta gente no feudo para a equipe que este destino pede.');
+    expect(shown).toContain('Quem pode partir agora não forma a equipe que este destino pede.');
     // Com a Guilda de pé e ninguém livre, todo destino diz o mesmo, ou o motivo do servidor.
     const sends = buttons(panel(heroInjuredView)).filter((button) =>
       button.label.startsWith('Enviar'),

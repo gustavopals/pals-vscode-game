@@ -73,6 +73,17 @@ export type World = {
    */
   crossroads(posture?: 'cautious' | 'balanced' | 'bold', expiresInMs?: number): Promise<void>;
   /**
+   * Põe um herói no feudo, pronto, sem carta nem Taverna (`/__test/hero`): a equipe de um cenário
+   * das expedições, com o nome, a classe e o nível pedidos, sem traço e sem item. Daí em diante
+   * tudo o que acontece a ele é do motor.
+   */
+  hero(
+    name: string,
+    options?: { classId?: 'warrior' | 'archer' | 'mage' | 'cleric'; level?: number },
+  ): Promise<void>;
+  /** Põe um item do conteúdo no arsenal do feudo (`/__test/item`), pelo nome interno dele. */
+  item(defId: string): Promise<void>;
+  /**
    * Põe o estoque de um recurso de todos os feudos em um valor, em unidades (`/__test/stock`):
    * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
    * leva para juntá-los. Daí em diante a produção, o consumo e o soldo são os do motor.
@@ -164,6 +175,12 @@ export const test = base.extend<{ world: World }>({
             posture,
             ...(expiresInMs === undefined ? {} : { expiresInMs }),
           });
+        },
+        hero: async (name, options = {}) => {
+          await control('hero', { name, ...options });
+        },
+        item: async (defId) => {
+          await control('item', { defId });
         },
         threat: async (level) => {
           await control('threat', { level });

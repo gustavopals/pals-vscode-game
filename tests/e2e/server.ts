@@ -253,6 +253,81 @@ control.post('/__test/crossroads', async (request) => {
 });
 
 /**
+ * Põe um herói no feudo de todos os reinos, pronto, sem carta nem Taverna: é como um cenário das
+ * expedições tem equipe sem depender de quem o sorteio da Taverna ofereceu (o nome de um
+ * candidato dentro de uma frase já quebrou um teste, em uma semente em sete). O herói nasce com
+ * o identificador seguinte do contador do estado, no nível e com a classe pedidos, sem traço e
+ * sem item; daí em diante o soldo, o poder, a experiência e o que acontece a ele em uma
+ * expedição são os do motor. O teto da lista de heróis do motor continua valendo: a rota não
+ * passa de doze.
+ */
+control.post('/__test/hero', async (request) => {
+  const {
+    name,
+    classId = 'warrior',
+    level = 1,
+    gender = 'm',
+  } = request.body as { name: string; classId?: string; level?: number; gender?: 'f' | 'm' };
+  type Stored = {
+    lastProcessedAt: number;
+    ids: Record<string, number>;
+    guild: { heroes: unknown[] };
+  };
+  const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    if (state.guild.heroes.length >= 12) {
+      continue;
+    }
+    const number = (state.ids.hero ?? 0) + 1;
+    state.ids.hero = number;
+    state.guild.heroes.push({
+      id: `hero-${number}`,
+      name,
+      gender,
+      classId,
+      level,
+      xp: 0,
+      traits: [],
+      status: 'idle',
+      injury: null,
+      captivity: null,
+      equipment: { weapon: null, armor: null, accessory: null },
+      joinedAtMs: state.lastProcessedAt,
+      discontent: false,
+    });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
+ * Põe um item do conteúdo no arsenal de todos os feudos, com o identificador seguinte do
+ * contador do estado: é como um cenário do equipamento tem o que equipar sem depender do item
+ * que uma expedição sorteou. Daí em diante equipar, desequipar e o que o item soma ao poder são
+ * os do motor.
+ */
+control.post('/__test/item', async (request) => {
+  const { defId } = request.body as { defId: string };
+  type Stored = { ids: Record<string, number>; guild: { inventory: unknown[] } };
+  const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    const number = (state.ids.item ?? 0) + 1;
+    state.ids.item = number;
+    state.guild.inventory.push({ id: `item-${number}`, defId });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+  }
+  return { ok: true };
+});
+
+/**
  * Põe a Ameaça de todos os feudos em um valor, sem passar pelos dias: é como um teste tem a
  * Ameaça perto de uma marca da Crônica sem jogar as dezenas de horas que ela leva para subir
  * (a subida de verdade é coberta pelo cenário da Torre de Vigia e pelos testes do motor). Só o

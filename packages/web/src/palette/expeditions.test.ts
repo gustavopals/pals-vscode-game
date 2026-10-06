@@ -373,7 +373,7 @@ describe('enviar expedição', () => {
     expect(destinations?.items[0]?.detail).toContain(patrol?.firstStretchText);
     // O Covil pede dois e só há um: cadeado, com o motivo.
     expect(destinations?.items[2]).toMatchObject({ icon: 'lock', label: den?.label });
-    expect(destinations?.items[2]?.detail).toContain('Falta gente no feudo');
+    expect(destinations?.items[2]?.detail).toContain('não forma a equipe');
     // A equipe: quem pode partir, com o que vale contra o primeiro trecho.
     expect(team?.title).toBe('Enviar expedição: Patrulha dos Arredores');
     expect(team?.placeholder).toBe('Quem vai? A equipe leva 1 herói.');
