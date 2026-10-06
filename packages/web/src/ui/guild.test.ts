@@ -7,6 +7,7 @@ import { buildReturnReport, costAction } from '../game/returnReport';
 import {
   arrearsAhead,
   decideNotifications,
+  discontentNotice,
   eventIcon,
   isEssential,
   isGuildEvent,
@@ -394,6 +395,69 @@ describe('a política de avisos da equipe (GDD §13.5)', () => {
       'heroLeft',
       'wageArrearsEnded',
     ]);
+  });
+
+  // Revisão da Fase C (A-R3): um descontente por herói na mesma virada gastava os três avisos
+  // da hora e escondia quem partiu e a fome.
+  it('vários descontentes do mesmo lote são um aviso só, e não escondem quem partiu nem a fome', () => {
+    const decided = decideNotifications(
+      input({
+        events: [
+          event('heroDiscontent', 1),
+          event('heroDiscontent', 2),
+          event('heroDiscontent', 3),
+          event('heroLeft', 4),
+          event('famineStarted', 5),
+        ],
+      }),
+    );
+    // O que tira algo do jogador passa na frente; o primeiro descontente fala por todos.
+    expect(decided.show.map((entry) => [entry.type, entry.seq])).toEqual([
+      ['heroLeft', 4],
+      ['famineStarted', 5],
+      ['heroDiscontent', 1],
+    ]);
+    // Os descontentes agrupados não viram contador: o aviso deles já os conta.
+    expect(decided.badge).toBe(0);
+    expect(decided.history).toHaveLength(3);
+  });
+
+  it('com um aviso só de espaço, quem partiu passa na frente do descontente e do que só informa', () => {
+    const decided = decideNotifications(
+      input({
+        level: 'all',
+        history: [now - 1000, now - 2000],
+        events: [
+          event('constructionFinished', 1),
+          event('heroDiscontent', 2),
+          event('wageArrearsEnded', 3),
+          event('heroLeft', 4),
+        ],
+      }),
+    );
+    expect(decided.show.map((entry) => entry.type)).toEqual(['heroLeft']);
+    expect(decided.badge).toBe(3);
+    // Sem perda no lote, o descontente continua na frente do que só informa.
+    expect(shown('all', 'constructionFinished', 'heroDiscontent')).toEqual([
+      'heroDiscontent',
+      'constructionFinished',
+    ]);
+  });
+
+  it('o aviso dos descontentes: um diz a frase da Crônica; vários, quantos e uma linha por herói', () => {
+    const one = [gameEvent(1, 'heroDiscontent', 'Rolf anda descontente.')];
+    expect(discontentNotice(one)).toEqual({ text: 'Rolf anda descontente.', details: [] });
+    const three = [
+      ...one,
+      gameEvent(2, 'heroLeft', 'Isolda deixou o feudo.'),
+      gameEvent(3, 'heroDiscontent', 'Mécia anda descontente.'),
+      gameEvent(4, 'heroDiscontent', 'Bento anda descontente.'),
+    ];
+    expect(discontentNotice(three)).toEqual({
+      text: '3 heróis ficaram descontentes.',
+      details: ['Rolf anda descontente.', 'Mécia anda descontente.', 'Bento anda descontente.'],
+    });
+    expect(discontentNotice([])).toBeNull();
   });
 
   it('o herói que uma carta prometeu avisa no nível essencial, sem tom de alarme; o contratado e o dispensado não avisam', () => {

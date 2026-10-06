@@ -34,6 +34,8 @@ import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
   arrearsAhead,
+  discontentNotice,
+  isHeroDiscontent,
   wageAhead,
   decideNotice,
   decideNotifications,
@@ -847,6 +849,17 @@ export class Controller {
     }
     if (isObjectiveCompleted(event)) {
       this.notifyObjectives(event, batch);
+      return;
+    }
+    // Os heróis que ficaram descontentes na mesma virada saem em um aviso só.
+    const discontent = isHeroDiscontent(event) ? discontentNotice(batch) : null;
+    if (discontent !== null) {
+      this.announce({
+        kind: 'warning',
+        icon: eventIcon(event),
+        ...discontent,
+        action: { label: 'Ver', route: 'guild' },
+      });
       return;
     }
     // A virada de estação repete o que muda, como o aviso de uma hora antes; o ataque sofrido

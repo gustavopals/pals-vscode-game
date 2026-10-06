@@ -418,6 +418,31 @@ describe('os avisos da equipe no controlador (GDD §13.5)', () => {
     ]);
   });
 
+  // Revisão da Fase C (A-R3).
+  it('três heróis descontentes na mesma virada são um aviso, e quem partiu e a fome continuam à vista', async () => {
+    const made = await setup(guildPaidView);
+    await serverShows(
+      made,
+      guildArrearsView,
+      event(1, 'heroDiscontent', 'Rolf anda descontente.'),
+      event(2, 'heroDiscontent', 'Mécia anda descontente.'),
+      event(3, 'heroDiscontent', 'Bento anda descontente.'),
+      event(4, 'heroLeft', 'Isolda deixou o feudo.'),
+      event(5, 'famineStarted', 'A fome chegou.'),
+    );
+    expect(
+      made.controller.toasts.map((toast) => [toast.kind, toast.text, toast.details ?? []]),
+    ).toEqual([
+      ['warning', 'Isolda deixou o feudo.', []],
+      ['warning', 'A fome chegou.', []],
+      [
+        'warning',
+        '3 heróis ficaram descontentes.',
+        ['Rolf anda descontente.', 'Mécia anda descontente.', 'Bento anda descontente.'],
+      ],
+    ]);
+  });
+
   // Revisão da Fase C (A-R1): a boa notícia que não é a história toda diz o resto.
   it('o atraso que fecha devendo uma partida avisa com tom de alerta e diz quem parte; o herói que chega com o cofre curto leva o prazo', async () => {
     const lingering = {

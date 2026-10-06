@@ -175,7 +175,8 @@ export type PolicyInput = {
 export type PolicyOutput = {
   /**
    * Eventos que viram notificação agora. Vários objetivos cumpridos no mesmo lote contam como
-   * um aviso só: aqui sai o primeiro deles, e quem o mostra fala de todos.
+   * um aviso só: aqui sai o primeiro deles, e quem o mostra fala de todos. O mesmo vale para os
+   * heróis que ficaram descontentes (`discontentNotice`).
    */
   show: GameEvent[];
   /**
@@ -362,21 +363,46 @@ function wanted(
   );
 }
 
+/** O evento é um herói que ficou descontente com o soldo em atraso. */
+export function isHeroDiscontent(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === 'heroDiscontent';
+}
+
 /**
- * Com pouco espaço: primeiro os alarmes; depois as cartas novas, os alívios, a virada de
- * estação, o relato dos vigias e o herói que chegou; depois o resto.
+ * Os heróis que ficaram descontentes em um lote, ditos de uma vez: a virada do dia que cobra o
+ * atraso marca todos juntos, um evento por herói. Um só sai com a frase da Crônica; vários, com
+ * a contagem e uma linha para cada um, nas frases do servidor. `null` sem nenhum no lote.
+ */
+export function discontentNotice(batch: GameEvent[]): { text: string; details: string[] } | null {
+  const [first, ...others] = batch.filter(isHeroDiscontent);
+  if (first === undefined) {
+    return null;
+  }
+  return others.length === 0
+    ? { text: first.text, details: [] }
+    : {
+        text: `${others.length + 1} heróis ficaram descontentes.`,
+        details: [first, ...others].map((event) => event.text),
+      };
+}
+
+/**
+ * Com pouco espaço: primeiro os alarmes do que se perdeu ou está para se perder (quem partiu, a
+ * fome, o frio, a incursão, o atraso que abre); depois o alarme que só conta um estado (o herói
+ * descontente: ele continua no feudo); depois as cartas novas, os alívios, a virada de estação,
+ * o relato dos vigias e o herói que chegou; depois o resto.
  */
 function rank(event: GameEvent): number {
   if (isEssential(event)) {
-    return 0;
+    return isHeroDiscontent(event) ? 1 : 0;
   }
   return isDecision(event) ||
     isRelief(event) ||
     isSeasonTurn(event) ||
     isWatchReport(event) ||
     isHeroArrival(event)
-    ? 1
-    : 2;
+    ? 2
+    : 3;
 }
 
 /** Quantos eventos sem aviso viram badge de novidade: as cartas novas ficam de fora. */
@@ -396,11 +422,15 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   // aparece, e concluir um revela o seguinte) são uma notícia só: o primeiro fala por todos, e
   // os outros não gastam os avisos da hora nem entram no contador.
   const firstObjective = input.events.find(isObjectiveCompleted);
+  // Os heróis que ficam descontentes na mesma virada também: um aviso por herói gastaria os
+  // três da hora e esconderia quem partiu e a fome.
+  const firstDiscontent = input.events.find(isHeroDiscontent);
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
-      !(isObjectiveCompleted(event) && event !== firstObjective),
+      !(isObjectiveCompleted(event) && event !== firstObjective) &&
+      !(isHeroDiscontent(event) && event !== firstDiscontent),
   );
   if (input.discreetMode || candidates.length === 0) {
     return { show: [], badge: 0, history };
