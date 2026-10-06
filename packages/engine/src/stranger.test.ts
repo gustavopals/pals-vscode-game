@@ -651,7 +651,7 @@ describe('a promessa nunca passa do teto nem se repete (revisão da Fase C, M-R3
       promiseHero(draft, 'rolf', (round + 2) * HOUR);
     }
     expect(draft.guild.arriving.length).toBeLessThanOrEqual(balance.heroes.arrivingCap);
-    expect(() => currentShape(draft)).not.toThrow();
+    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
     // Os heróis com nome cabem todos na lista: o teto nunca tira a recompensa de ninguém.
     expect(Object.keys(namedHeroes).length).toBeLessThanOrEqual(balance.heroes.arrivingCap);
   });
