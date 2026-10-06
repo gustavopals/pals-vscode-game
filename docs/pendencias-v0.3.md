@@ -170,6 +170,15 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `resumeDiscontent`, em `packages/engine/src/wages.ts`.
 - Se decidir diferente: emitir a linha também na retomada é uma chamada a `emit`; o risco é a Crônica repetir a frase a cada vaivém.
 
+**C-50. Os prazos do atraso contam, para cada herói, do atraso vivido por ele.** *(Mudança de regra, decidida pelo orquestrador e formulada pelo agente; para o autor rever. Revisão M-R1.)*
+- O defeito: a tela promete 12 h reais até o Descontente e 24 h até a partida, mas os prazos eram só do atraso. Um herói contratado em um atraso de dois dias ficava Descontente e partia na virada seguinte, menos de 2 h depois de pago o preço dele.
+- Enquanto isso: o atraso vivido por um herói é `min(duração do atraso, tempo desde a chegada dele)`. Ele só fica Descontente com 12 h reais vividas e só **pode** partir com 24 h. Os devidos continuam sendo os do atraso (um a cada 2 h reais depois das 24 h); parte o último a chegar **entre os que já podem**. Se ninguém pode ainda (só Leais, ou só recém-chegados), o devido daquela virada fica perdoado, como já ficava com só Leais.
+- **Onde o agente se afastou da sugestão do orquestrador**, que era não perdoar enquanto houvesse quem fosse se tornar elegível: guardar o devido faria dois recém-chegados partirem **na mesma virada** ao completarem as 24 h (em bloco, o que a regra do perdão existe para impedir). Com o perdão, o recém-chegado parte no primeiro passo de 2 h que vencer depois das 24 h dele: entre 24 h e 26 h reais vividas, mais a espera pela virada; dois que chegam juntos partem com um passo de diferença. A promessa da tela ("com 24 h, parte um herói a cada 2 h") se cumpre, e `nextDepartureInSeconds` diz a virada exata (testado nos três ritmos).
+- Aproximação conhecida: o estado não guarda os intervalos em que um atraso retomado esteve fechado; quem chegou durante um deles conta também o resto do intervalo (no máximo 2 h reais).
+- A frase do atraso ganha, só quando há um herói assim: "Para quem chegou com o atraso já aberto, os dois prazos contam da chegada." Rascunho do agente.
+- Onde: `heroArrearsMs`, `turnWages`, `nextDiscontentAt` e `nextWageDepartureAt`, em `packages/engine/src/wages.ts`.
+- Se decidir diferente: (a) prazos só do atraso, como antes, e a tela passa a dizer o prazo de verdade do recém-chegado; (b) guardar o devido (a sugestão original), aceitando a partida em bloco.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

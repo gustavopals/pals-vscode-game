@@ -1,7 +1,7 @@
 import { balance, type WageArrearsRelief, wageArrearsReliefs } from '@lotg/content';
 
 import { emit } from './chronicle';
-import { nextDayBoundary } from './clock';
+import { DAY_MS, nextDayBoundary } from './clock';
 import { goldCoversWages, goldRunsOutIn } from './economy';
 import { isAtHome, isLoyal, wageRate } from './heroes';
 import { reject } from './rejections';
@@ -46,17 +46,18 @@ export function wageArrearsDurationAt(state: GameState, atMs: number): number {
  * A conta que a virada do dia em `atMs` cobra: a do atraso aberto ou, sem ele, a do que fechou
  * há menos de `resumeWithinRealMs` (o que reabrir dali é o mesmo atraso, e a virada o cobra
  * como tal). `durationMs` é a duração que conta para os prazos (a do fechado parou no instante
- * em que ele fechou) e `departed`, os heróis que ele já cobrou. `null` sem nada a cobrar.
+ * em que ele fechou), `untilMs`, o instante até onde ela foi contada, e `departed`, os heróis
+ * que ele já cobrou. `null` sem nada a cobrar.
  */
-export function wageLedgerAt(
-  state: GameState,
-  atMs: number,
-): { open: boolean; durationMs: number; departed: number } | null {
+export type WageLedger = { open: boolean; durationMs: number; untilMs: number; departed: number };
+
+export function wageLedgerAt(state: GameState, atMs: number): WageLedger | null {
   const { wageArrears, lastWageArrears } = state.guild;
   if (wageArrears !== null) {
     return {
       open: true,
       durationMs: wageArrearsDurationAt(state, atMs),
+      untilMs: atMs,
       departed: wageArrears.departed,
     };
   }
@@ -67,10 +68,26 @@ export function wageLedgerAt(
     return {
       open: false,
       durationMs: lastWageArrears.lastedMs,
+      untilMs: lastWageArrears.endedAtMs,
       departed: lastWageArrears.departed,
     };
   }
   return null;
+}
+
+/**
+ * O atraso **vivido por um herói**: a duração da conta, limitada ao tempo desde que ele chegou.
+ * É o que os prazos dele leem (revisão da Fase C, M-R1): quem entra em um atraso velho só fica
+ * Descontente depois de `discontentAfterRealMs` de atraso com ele no feudo, e só pode partir
+ * depois de `leaveAfterRealMs`. Para quem já estava quando o atraso abriu, é a duração inteira.
+ *
+ * A conta é `min(duração, até − chegada)`: o começo que vale para ele é o maior entre o começo
+ * efetivo do atraso (`sinceMs − carriedMs`) e a chegada. O estado não guarda os intervalos em
+ * que um atraso retomado esteve fechado, então quem chegou **durante** um deles conta também o
+ * resto desse intervalo: no máximo a janela de retomada, a favor do prazo e contra o herói.
+ */
+export function heroArrearsMs(ledger: WageLedger, hero: Hero): number {
+  return Math.max(0, Math.min(ledger.durationMs, ledger.untilMs - hero.joinedAtMs));
 }
 
 /**
@@ -198,25 +215,27 @@ export function settleWageArrears(
  */
 function resumeDiscontent(draft: GameState, atMs: number): void {
   const { guild } = draft;
-  if (wageArrearsDurationAt(draft, atMs) < wageArrearsPace(draft).discontentAfterMs) {
+  const ledger = wageLedgerAt(draft, atMs);
+  if (ledger === null) {
     return;
   }
-  if (guild.heroes.some((hero) => !hero.discontent && !isLoyal(hero))) {
-    guild.heroes = guild.heroes.map((hero) =>
-      hero.discontent || isLoyal(hero) ? hero : { ...hero, discontent: true },
-    );
+  const { discontentAfterMs } = wageArrearsPace(draft);
+  const sours = (hero: Hero) =>
+    !hero.discontent && !isLoyal(hero) && heroArrearsMs(ledger, hero) >= discontentAfterMs;
+  if (guild.heroes.some(sours)) {
+    guild.heroes = guild.heroes.map((hero) => (sours(hero) ? { ...hero, discontent: true } : hero));
   }
 }
 
 /**
- * Quem parte primeiro: entre os que estão no feudo e não são Leais, o que chegou por último
- * (o maior `joinedAtMs`); no empate, o de maior número no identificador. Sem sorteio.
+ * Quem parte primeiro: entre os que estão no feudo, o que chegou por último (o maior
+ * `joinedAtMs`); no empate, o de maior número no identificador. Sem sorteio.
  */
 function lastArrived(heroes: readonly Hero[]): Hero | null {
   const number = (hero: Hero) => Number(hero.id.slice(hero.id.lastIndexOf('-') + 1));
   let last: Hero | null = null;
   for (const hero of heroes) {
-    if (!isAtHome(hero) || isLoyal(hero)) {
+    if (!isAtHome(hero)) {
       continue;
     }
     if (
@@ -232,19 +251,25 @@ function lastArrived(heroes: readonly Hero[]): Hero | null {
 
 /**
  * As consequências do atraso, cobradas na virada do dia de jogo (GDD §9.1; ADR 0017, decisão 3),
- * sem sorteio e em ordem fixa:
+ * sem sorteio e em ordem fixa. **Os prazos de cada herói contam do atraso vivido por ele**
+ * (`heroArrearsMs`): para quem já estava no feudo é a duração do atraso; para quem chegou
+ * depois, conta da chegada.
  *
- * 1. **Descontente.** Com o atraso durando `discontentAfterRealMs` ou mais, todo herói que não
- *    é Leal e ainda não está Descontente passa a estar, na ordem do identificador, com uma
- *    linha para cada um. O atraso que reabriu dentro da janela já chega com a duração que
- *    tinha, e quem deixou de estar Descontente quando ele fechou volta a estar no instante em
- *    que ele reabre (`resumeDiscontent`), sem linha: a virada só anuncia quem nunca esteve.
- * 2. **Partidas.** A partir de `leaveAfterRealMs`, partem os heróis que o prazo já deve e que
- *    este atraso ainda não cobrou, um a um: o que chegou por último entre os que estão no feudo
- *    e não são Leais. **Não há piso de heróis.** Se o devido não pode partir porque os que não
- *    são Leais estão todos fora, ele **continua devido** enquanto o atraso durar e parte na
- *    primeira virada em que houver quem; se só restam Leais (ou ninguém), a conta fecha no que
- *    era devido, perdoada, como o aldeão que o piso da população segurou.
+ * 1. **Descontente.** Todo herói que não é Leal, ainda não está Descontente e já viveu
+ *    `discontentAfterRealMs` de atraso passa a estar, na ordem do identificador, com uma linha
+ *    para cada um. O atraso que reabriu dentro da janela já chega com a duração que tinha, e
+ *    quem deixou de estar Descontente quando ele fechou volta a estar no instante em que ele
+ *    reabre (`resumeDiscontent`), sem linha: a virada só anuncia quem nunca esteve.
+ * 2. **Partidas.** Os devidos são os do atraso (`wageDeparturesOwedAt`: a partir de
+ *    `leaveAfterRealMs`, mais um a cada `leaveEveryRealMs`). Partem os que o prazo deve e este
+ *    atraso ainda não cobrou, um a um: o que chegou por último entre os que **podem partir**
+ *    (não são Leais e já viveram `leaveAfterRealMs` de atraso) e estão no feudo. **Não há piso
+ *    de heróis.** Se quem pode partir está todo fora, o devido **continua devido** e parte na
+ *    primeira virada em que houver quem. Se **ninguém pode partir ainda** (só restam Leais, ou
+ *    quem chegou há pouco), a conta fecha no que era devido, perdoada, como o aldeão que o piso
+ *    da população segurou: o recém-chegado não herda o que ficou para trás, e parte no primeiro
+ *    passo do prazo que vencer depois das `leaveAfterRealMs` dele. Por isso ninguém parte em
+ *    bloco, e ninguém parte antes do prazo que a tela anunciou.
  *
  * **O atraso que fechou dentro da janela também é cobrado** (`wageLedgerAt`): o que reabrir dali
  * é o mesmo atraso, então a virada que o encontra fechado há menos de `resumeWithinRealMs`
@@ -262,24 +287,27 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
   if (ledger === null) {
     return;
   }
-  if (ledger.open && ledger.durationMs >= wageArrearsPace(draft).discontentAfterMs) {
+  const { discontentAfterMs, leaveAfterMs } = wageArrearsPace(draft);
+  if (ledger.open) {
     for (const hero of guild.heroes) {
-      if (hero.discontent || isLoyal(hero)) {
+      if (hero.discontent || isLoyal(hero) || heroArrearsMs(ledger, hero) < discontentAfterMs) {
         continue;
       }
       hero.discontent = true;
       emit(events, draft, atMs, 'heroDiscontent', { heroId: hero.id }, { heroi: hero.name });
     }
   }
+  const mayLeave = (hero: Hero) => !isLoyal(hero) && heroArrearsMs(ledger, hero) >= leaveAfterMs;
   const owed = wageDeparturesOwedAt(draft, atMs);
   let { departed } = ledger;
   while (departed < owed) {
-    if (guild.heroes.every(isLoyal)) {
-      // Só restam Leais, ou ninguém: o que o prazo devia fica perdoado.
+    const due = guild.heroes.filter(mayLeave);
+    if (due.length === 0) {
+      // Ninguém pode partir ainda (só Leais, ou quem chegou há pouco): o devido fica perdoado.
       departed = owed;
       break;
     }
-    const leaver = lastArrived(guild.heroes);
+    const leaver = lastArrived(due);
     if (leaver === null) {
       // Quem poderia partir está fora: continua devido para a virada em que tiver voltado.
       break;
@@ -303,38 +331,69 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
 }
 
 /**
- * A virada de dia em que quem não é Leal fica Descontente, em ms de jogo: a primeira em que o
- * atraso já dura `discontentAfterRealMs`. `null` sem atraso e quando não há quem fique (todos
- * já estão, ou são Leais). É o prazo que a visão mostra, e não um instante da linha do tempo.
+ * A virada de dia em que o próximo herói fica Descontente, em ms de jogo: a primeira em que
+ * algum dos que ainda não estão (e não são Leais) já viveu `discontentAfterRealMs` de atraso.
+ * `null` sem atraso e quando não há quem fique (todos já estão, ou são Leais). É o prazo que a
+ * visão mostra, e não um instante da linha do tempo.
  */
 export function nextDiscontentAt(state: GameState): number | null {
   const { wageArrears, heroes } = state.guild;
-  if (wageArrears === null || heroes.every((hero) => hero.discontent || isLoyal(hero))) {
+  if (wageArrears === null) {
     return null;
   }
-  const dueAt =
-    wageArrears.sinceMs + wageArrearsPace(state).discontentAfterMs - wageArrears.carriedMs;
-  return firstTurnFrom(state, dueAt);
+  const { discontentAfterMs } = wageArrearsPace(state);
+  const started = wageArrears.sinceMs - wageArrears.carriedMs;
+  let dueAt: number | null = null;
+  for (const hero of heroes) {
+    if (hero.discontent || isLoyal(hero)) {
+      continue;
+    }
+    const heroDueAt = Math.max(started, hero.joinedAtMs) + discontentAfterMs;
+    dueAt = dueAt === null ? heroDueAt : Math.min(dueAt, heroDueAt);
+  }
+  return dueAt === null ? null : firstTurnFrom(state, dueAt);
 }
 
 /**
- * A virada de dia que cobra a próxima partida, em ms de jogo: a primeira em que o prazo deve
- * mais um herói do que este atraso já cobrou. `null` sem atraso e quando ninguém pode partir
- * (não há herói no feudo que não seja Leal).
+ * A virada de dia que cobra a próxima partida, em ms de jogo, se o atraso durar até lá e
+ * ninguém chegar nem for dispensado: refaz, virada a virada, a conta de `turnWages` (os devidos
+ * do prazo, quem já pode partir, e o devido que fica perdoado enquanto ninguém pode). `null`
+ * sem atraso e quando ninguém pode partir (não há herói no feudo que não seja Leal).
  */
 export function nextWageDepartureAt(state: GameState): number | null {
   const { wageArrears, heroes } = state.guild;
-  if (wageArrears === null || lastArrived(heroes) === null) {
+  if (wageArrears === null) {
     return null;
   }
   const { leaveAfterMs, leaveEveryMs } = wageArrearsPace(state);
-  // O instante em que o atraso passa a dever `departed + 1` heróis.
-  const dueAt =
-    wageArrears.sinceMs +
-    leaveAfterMs +
-    wageArrears.departed * leaveEveryMs -
-    wageArrears.carriedMs;
-  return firstTurnFrom(state, dueAt);
+  const started = wageArrears.sinceMs - wageArrears.carriedMs;
+  const mayLeaveAt = (hero: Hero) => Math.max(started, hero.joinedAtMs) + leaveAfterMs;
+  const leavers = heroes.filter((hero) => !isLoyal(hero));
+  const first =
+    lastArrived(leavers) === null ? null : Math.min(...leavers.filter(isAtHome).map(mayLeaveAt));
+  if (first === null) {
+    return null;
+  }
+  const owedAt = (atMs: number) =>
+    atMs - started < leaveAfterMs
+      ? 0
+      : Math.floor((atMs - started - leaveAfterMs) / leaveEveryMs) + 1;
+  let { departed } = wageArrears;
+  // Da primeira virada depois de agora até um passo do prazo depois de alguém poder partir.
+  const lastTurn = nextDayBoundary(Math.max(first, state.lastProcessedAt) + leaveEveryMs);
+  for (let turn = nextDayBoundary(state.lastProcessedAt); turn <= lastTurn; turn += DAY_MS) {
+    const owed = owedAt(turn);
+    if (owed <= departed) {
+      continue;
+    }
+    if (leavers.some((hero) => isAtHome(hero) && mayLeaveAt(hero) <= turn)) {
+      return turn;
+    }
+    if (!leavers.some((hero) => mayLeaveAt(hero) <= turn)) {
+      departed = owed;
+    }
+  }
+  return null;
 }
 
 /** A primeira virada de dia depois de agora que cai em `dueAt` ou depois dele. */

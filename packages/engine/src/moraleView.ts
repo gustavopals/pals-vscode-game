@@ -327,8 +327,7 @@ function populationNotes(
   if (settlement.famine === null && difficulty.famineDesertion && canLose) {
     // A fome que acabou há menos que a janela ainda é cobrada na virada (`famineLedgerAt`).
     const turn = nextDayBoundary(state.lastProcessedAt - 1);
-    const due =
-      famineDesertionsOwedAt(state, turn) - (famineLedgerAt(state, turn)?.deserted ?? 0);
+    const due = famineDesertionsOwedAt(state, turn) - (famineLedgerAt(state, turn)?.deserted ?? 0);
     if (due > 0) {
       const left = durationText(realSecondsCeil(turn - now, timeScale));
       notes.push(

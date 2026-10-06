@@ -445,18 +445,20 @@ describe('as consequências do atraso contam tempo real e são cobradas na virad
     // Às 40 h o prazo "deve" 9 heróis; a conta fechou em cada virada.
     expect(end.state.guild.wageArrears).toEqual({ sinceMs: 0, carriedMs: 0, departed: 9 });
 
-    // Quem chega no meio de um atraso antigo não sai em bloco com o que ficou perdoado: na
-    // virada seguinte fica Descontente e paga um passo do prazo, não os nove.
+    // Quem chega no meio de um atraso antigo não herda o que ficou perdoado nem os prazos já
+    // vencidos: os dele contam da chegada (12 h até o Descontente, 24 h até poder partir).
     const joined = JSON.parse(JSON.stringify(advanceTo(end.state, 41 * HOUR).state)) as GameState;
     addHero(joined, { name: 'Brann' });
     addHero(joined, { name: 'Mirela' });
-    const next = advanceTo(joined, 42 * HOUR);
+    expect(brief(advanceTo(joined, 52 * HOUR).events)).toEqual([]);
+    const next = advanceTo(joined, 68 * HOUR);
     expect(brief(next.events)).toEqual([
-      ['heroDiscontent', 42 * HOUR, 'hero-2'],
-      ['heroDiscontent', 42 * HOUR, 'hero-3'],
-      ['heroLeft', 42 * HOUR, 'hero-3'],
+      ['heroDiscontent', 54 * HOUR, 'hero-2'],
+      ['heroDiscontent', 54 * HOUR, 'hero-3'],
+      ['heroLeft', 66 * HOUR, 'hero-3'],
+      ['heroLeft', 68 * HOUR, 'hero-2'],
     ]);
-    expect(next.state.guild.wageArrears?.departed).toBe(10);
+    expect(next.state.guild.wageArrears?.departed).toBe(23);
   });
 });
 
@@ -948,5 +950,97 @@ describe('o atraso fechado logo antes da virada não escapa da cobrança (revis�
       carriedMs: 27 * HOUR - SINCE,
       departed: 2,
     });
+  });
+});
+
+describe('quem chega com o atraso já velho tem os prazos dele (revisão da Fase C, M-R1)', () => {
+  /** Edda, Leal, com o cofre vazio desde o zero; `lateMs` depois chegam os heróis de `names`. */
+  function latecomers(timeScale: number, lateMs: number, names: string[]): GameState {
+    const old = advanceTo(
+      court(timeScale, (draft) => void addHero(draft, { name: 'Edda', traits: ['loyal'] })),
+      lateMs,
+    ).state;
+    const draft = JSON.parse(JSON.stringify(old)) as GameState;
+    for (const name of names) {
+      addHero(draft, { name });
+    }
+    return draft;
+  }
+  const realSeconds = (gameMs: number, timeScale: number) => gameMs / timeScale / 1000;
+
+  it.each(PACES)(
+    'ritmo %s: só fica Descontente com 12 h reais de atraso vividas por ele, e só parte com 24 h; a tela diz o segundo',
+    (timeScale) => {
+      // O atraso tem 30 h reais e meia hora de jogo quando Rolf chega.
+      const joined = 30 * HOUR * timeScale + 30 * MINUTE;
+      const state = latecomers(timeScale, joined, ['Rolf']);
+      const { arrears } = deriveViewState(state, joined).guild.wage;
+      expect(arrears?.text).toContain(
+        'Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.',
+      );
+      const sourAt = turnFrom(joined + 12 * HOUR * timeScale);
+      expect(nextDiscontentAt(state)).toBe(sourAt);
+      expect(arrears?.discontentInSeconds).toBe(realSeconds(sourAt - joined, timeScale));
+      expect(advanceTo(state, sourAt - 1).state.guild.heroes[1]?.discontent).toBe(false);
+      const sour = advanceTo(state, sourAt);
+      expect(brief(sour.events)).toEqual([['heroDiscontent', sourAt, 'hero-2']]);
+
+      const goneAt = nextWageDepartureAt(state) ?? -1;
+      expect(arrears?.nextDepartureInSeconds).toBe(realSeconds(goneAt - joined, timeScale));
+      // Nunca antes das 24 h reais dele; no máximo um passo de 2 h reais e uma virada depois.
+      expect(goneAt - joined).toBeGreaterThanOrEqual(24 * HOUR * timeScale);
+      expect(goneAt - joined).toBeLessThan(26 * HOUR * timeScale + DAY);
+      expect(advanceTo(state, goneAt - 1).state.guild.heroes).toHaveLength(2);
+      const gone = advanceTo(sour.state, goneAt);
+      expect(brief(gone.events)).toEqual([['heroLeft', goneAt, 'hero-2']]);
+      // O prazo dito continua certo no meio do caminho.
+      const midway = advanceTo(state, sourAt + 7 * MINUTE).state;
+      expect(nextWageDepartureAt(midway)).toBe(goneAt);
+      expect(nextDiscontentAt(midway)).toBeNull();
+    },
+  );
+
+  it('dois que chegam juntos não partem em bloco: um por passo do prazo', () => {
+    const joined = 30 * HOUR + 30 * MINUTE;
+    const state = latecomers(1, joined, ['Rolf', 'Brann']);
+    const end = advanceTo(state, joined + 40 * HOUR);
+    const left = brief(end.events).filter(([type]) => type === 'heroLeft');
+    // Elegíveis às 54 h 30: a virada das 56 h cobra um, a das 58 h o outro, o último a chegar primeiro.
+    expect(left).toEqual([
+      ['heroLeft', 56 * HOUR, 'hero-3'],
+      ['heroLeft', 58 * HOUR, 'hero-2'],
+    ]);
+  });
+
+  it('com um veterano e um recém-chegado, parte o veterano que o prazo deve; o recém-chegado espera o dele', () => {
+    const start = court(1, (draft) => void addHero(draft, { name: 'Rolf' }));
+    const open = advanceTo(start, 23 * HOUR).state;
+    const draft = JSON.parse(JSON.stringify(open)) as GameState;
+    addHero(draft, { name: 'Brann' });
+    expect(nextWageDepartureAt(draft)).toBe(24 * HOUR);
+    const end = advanceTo(draft, 23 * HOUR + 30 * HOUR);
+    expect(brief(end.events)).toEqual([
+      ['heroLeft', 24 * HOUR, 'hero-1'],
+      ['heroDiscontent', 36 * HOUR, 'hero-2'],
+      ['heroLeft', 48 * HOUR, 'hero-2'],
+      ['wageArrearsEnded', 48 * HOUR],
+    ]);
+  });
+
+  it('quem foi contratado com o atraso fechado há pouco não parte no lugar de ninguém', () => {
+    const start = court(
+      1,
+      (draft) => void addHero(draft, { name: 'Rolf', traits: ['loyal'] }),
+      30 * MINUTE,
+    );
+    // 24 h 30 de atraso só com um Leal: nada a cobrar. O ouro chega, o atraso fecha, e um
+    // herói novo entra com o soldo em dia.
+    const open = advanceTo(start, 25 * HOUR).state;
+    const paid = advanceTo(withGold(open, 500_000), 25 * HOUR + 10 * MINUTE).state;
+    const draft = JSON.parse(JSON.stringify(paid)) as GameState;
+    addHero(draft, { name: 'Brann' });
+    const end = advanceTo(draft, 40 * HOUR);
+    expect(brief(end.events)).toEqual([]);
+    expect(end.state.guild.heroes).toHaveLength(2);
   });
 });

@@ -119,6 +119,11 @@ function arrearsText(state: GameState): string {
     sentences.push(
       `Com ${realText(arrears.discontentAfterRealMs)} de atraso, quem não é Leal fica descontente e perde ${cut}% dos atributos; com ${realText(arrears.leaveAfterRealMs)}, parte um herói a cada ${realText(arrears.leaveEveryRealMs)}, o que chegou por último. As duas coisas acontecem na virada do dia.`,
     );
+    const { wageArrears } = state.guild;
+    const started = wageArrears === null ? 0 : wageArrears.sinceMs - wageArrears.carriedMs;
+    if (heroes.some((hero) => !isLoyal(hero) && hero.joinedAtMs > started)) {
+      sentences.push('Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.');
+    }
   }
   const mine = buildingWithArticle(producerOf('gold'));
   sentences.push(
