@@ -28,7 +28,7 @@ import {
   type SessionTarget,
   StaleOrderError,
 } from '../game/gameSession';
-import { intentOf } from '../game/intent';
+import { intentsOf } from '../game/intent';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
@@ -150,19 +150,20 @@ export type Toast = {
    */
   retry?: true;
   /**
-   * A intenção da ordem que o aviso guarda (`game/intent.ts`): uma ordem nova da mesma intenção
-   * o tira de cena.
+   * As intenções da ordem que o aviso guarda (`game/intent.ts`): uma ordem nova com alguma
+   * delas o tira de cena.
    */
-  intent?: string;
+  intents?: readonly string[];
 };
 
 /** Como `attempt` trata uma ação que é uma ordem ao feudo. */
 export type AttemptOptions = {
   /**
-   * A intenção da ordem. Uma tentativa nova aposenta o "Tentar de novo" que uma anterior da
-   * mesma intenção deixou: o aviso sai de cena e o botão dele, se ainda for acionado, não envia.
+   * As intenções da ordem (`intentsOf`): o que ela disputa. Uma tentativa nova aposenta o
+   * "Tentar de novo" que uma anterior com alguma intenção em comum deixou: o aviso sai de cena e
+   * o botão dele, se ainda for acionado, não envia.
    */
-  intent?: string;
+  intents?: readonly string[];
   /**
    * A trava da ordem: enquanto devolver verdadeiro (a mesma ordem está a caminho), nem um
    * acionamento novo nem o "Tentar de novo" enviam outra.
@@ -291,9 +292,11 @@ export class Controller {
   private nextToastId = 1;
   /**
    * A tentativa mais nova de cada intenção (`game/intent.ts`). O "Tentar de novo" de uma
-   * tentativa só envia enquanto ela for a mais nova da sua intenção.
+   * tentativa só envia enquanto ela for a mais nova de todas as intenções da ordem.
    */
   private intentTurns = new Map<string, number>();
+  /** O número da última tentativa: cada `attempt` é uma tentativa nova. */
+  private attemptTurn = 0;
   /** A consulta de versão em andamento: quem depende do que o servidor tem ligado espera por ela. */
   private serverInfo: Promise<void> = Promise.resolve();
   /** A leitura do catálogo em andamento: quem a pede de novo espera pela mesma. */
@@ -1185,10 +1188,12 @@ export class Controller {
     }
   }
 
-  /** Tira de cena o "Tentar de novo" que uma ordem da mesma intenção deixou. */
-  private dropRetryOf(intent: string): void {
-    if (this.toasts.some((toast) => toast.intent === intent)) {
-      this.toasts = this.toasts.filter((toast) => toast.intent !== intent);
+  /** Tira de cena o "Tentar de novo" que uma ordem com alguma destas intenções deixou. */
+  private dropRetryOf(intents: readonly string[]): void {
+    const disputed = (toast: Toast) =>
+      toast.intents?.some((intent) => intents.includes(intent)) === true;
+    if (this.toasts.some(disputed)) {
+      this.toasts = this.toasts.filter((toast) => !disputed(toast));
       this.changes.emit();
     }
   }
@@ -1315,8 +1320,8 @@ export class Controller {
     game?: boolean;
     /** Um aviso com "Tentar de novo": sai de cena com a troca de feudo ou de conta. */
     retry?: boolean;
-    /** A intenção da ordem que o aviso guarda. */
-    intent?: string | undefined;
+    /** As intenções da ordem que o aviso guarda. */
+    intents?: readonly string[] | undefined;
   }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
@@ -1334,7 +1339,7 @@ export class Controller {
         sticky: actions.length > 0,
         ...(input.game === true ? { game: true as const } : {}),
         ...(input.retry === true ? { retry: true as const } : {}),
-        ...(input.intent === undefined ? {} : { intent: input.intent }),
+        ...(input.intents === undefined ? {} : { intents: input.intents }),
       },
     ].slice(-4);
     this.changes.emit();
@@ -1353,19 +1358,19 @@ export class Controller {
    * frase que veio do servidor; falta de rede é um erro com "Tentar de novo", que repete a
    * mesma ação (a mesma ordem, com o mesmo `commandId`).
    *
-   * Com `intent`, a ação é uma ordem ao feudo, e cada chamada daqui é uma **tentativa nova** do
+   * Com `intents`, a ação é uma ordem ao feudo, e cada chamada daqui é uma **tentativa nova** do
    * jogador: ela aposenta o "Tentar de novo" que uma tentativa anterior da mesma intenção
    * deixou. Sem isso, a ordem refeita pelo painel e a retentativa antiga seriam duas ordens,
    * com dois `commandId`, para um pedido só.
    */
   async attempt(action: () => Promise<void>, options: AttemptOptions = {}): Promise<boolean> {
-    const { intent } = options;
     if (options.busy?.() === true) {
       return false;
     }
-    let turn = 0;
-    if (intent !== undefined) {
-      turn = (this.intentTurns.get(intent) ?? 0) + 1;
+    // Esta tentativa passa a ser a mais nova de cada intenção que a ordem disputa.
+    this.attemptTurn += 1;
+    const turn = this.attemptTurn;
+    for (const intent of options.intents ?? []) {
       this.intentTurns.set(intent, turn);
     }
     return this.runAttempt(action, options, turn);
@@ -1377,13 +1382,11 @@ export class Controller {
     options: AttemptOptions,
     turn: number,
   ): Promise<boolean> {
-    const { intent } = options;
+    const intents = options.intents ?? [];
     if (options.busy?.() === true) {
       return false;
     }
-    if (intent !== undefined) {
-      this.dropRetryOf(intent);
-    }
+    this.dropRetryOf(intents);
     try {
       await action();
       return true;
@@ -1402,13 +1405,13 @@ export class Controller {
           kind: 'error',
           text: message,
           retry: true,
-          intent,
+          intents,
           actions: [
             {
               label: 'Tentar de novo',
               run: async () => {
-                // Uma tentativa mais nova da mesma intenção já tomou o lugar desta.
-                if (intent === undefined || this.intentTurns.get(intent) === turn) {
+                // Uma tentativa mais nova de alguma das intenções já tomou o lugar desta.
+                if (intents.every((intent) => this.intentTurns.get(intent) === turn)) {
                   await this.runAttempt(action, options, turn);
                 }
               },
@@ -1546,7 +1549,7 @@ export class Controller {
   ): Promise<boolean> {
     // O TypeScript não relaciona `T` entre duas funções genéricas; os tipos são os mesmos.
     return this.attempt(this.prepare(type, payload as never), {
-      intent: intentOf(type, payload),
+      intents: intentsOf(type, payload),
     });
   }
 
@@ -1563,7 +1566,7 @@ export class Controller {
     const send = this.prepare('answerCard', { instanceId, optionId });
     let answered = false;
     const options: AttemptOptions = {
-      intent: intentOf('answerCard', { instanceId, optionId }),
+      intents: intentsOf('answerCard', { instanceId, optionId }),
       busy: () => this.answering.has(instanceId),
     };
     const attempted = await this.attempt(async () => {
@@ -1603,7 +1606,7 @@ export class Controller {
     payload: Extract<Command, { type: T }>['payload'],
   ): Promise<boolean> {
     const options: AttemptOptions = {
-      intent: intentOf(type, payload),
+      intents: intentsOf(type, payload),
       busy: () => this.guildOrders.has(key),
     };
     if (options.busy?.() === true) {

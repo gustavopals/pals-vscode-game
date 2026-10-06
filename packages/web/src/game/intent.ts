@@ -37,3 +37,19 @@ export function intentOf(type: CommandType, payload: Command['payload']): string
     fields.heroId;
   return typeof target === 'string' ? `${family}:${target}` : family;
 }
+
+/**
+ * Todas as disputas de uma ordem: a intenção dela e, no envio de uma expedição, cada herói da
+ * equipe. Um herói só parte em uma jornada: `[Rolf → Floresta]` aposenta o "Tentar de novo" de
+ * `[Rolf → Patrulha]`, que depois enviaria Rolf sem o jogador querer. Duas ordens disputam a
+ * mesma coisa quando têm alguma destas chaves em comum. Como `intentOf`, só agrupa pelo que vem
+ * na própria ordem: nenhuma regra de jogo.
+ */
+export function intentsOf(type: CommandType, payload: Command['payload']): string[] {
+  const { heroIds } = payload as Record<string, unknown>;
+  const heroes =
+    type === 'sendExpedition' && Array.isArray(heroIds)
+      ? heroIds.filter((heroId): heroId is string => typeof heroId === 'string')
+      : [];
+  return [intentOf(type, payload), ...heroes.map((heroId) => `${type}:hero:${heroId}`)];
+}

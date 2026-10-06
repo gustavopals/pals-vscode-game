@@ -1,7 +1,14 @@
 import type { ViewState } from '@lotg/protocol';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { councilView, fakeApi, makeController, settle, tavernOpenView } from '../test-helpers';
+import {
+  councilView,
+  denClearedView,
+  fakeApi,
+  makeController,
+  settle,
+  tavernOpenView,
+} from '../test-helpers';
 import type { Controller, Toast, ToastAction } from './controller';
 
 /**
@@ -218,6 +225,38 @@ describe('"Tentar de novo" e uma ordem nova da mesma intenção', () => {
     await settle(made.controller);
     expect(sent(made)).toEqual([
       { type: 'answerCard', payload: { instanceId: 'masonsMeal-4', optionId: 'feast' } },
+    ]);
+  });
+
+  it('vale para os envios que dividem um herói: [Rolf → Patrulha] sem rede não parte depois de [Rolf → Floresta] (revisão, A12)', async () => {
+    const made = await opened(denClearedView);
+    const send = (modelId: string, heroIds: string[]) =>
+      made.controller.sendExpedition(modelId, heroIds, 'balanced');
+    await failedOffline(made, () => send('patrol', ['hero-2']));
+    const stale = retryOf(made.controller);
+
+    // O jogador muda de ideia: Rolf vai à Floresta, com Edda. É outro destino, o mesmo herói.
+    expect(await send('oldForest', ['hero-1', 'hero-2'])).toBe(true);
+    expect(retries(made.controller)).toEqual([]);
+    await stale.run();
+    await settle(made.controller);
+    expect(sent(made).map((order) => order.payload)).toEqual([
+      { modelId: 'oldForest', heroIds: ['hero-1', 'hero-2'], posture: 'balanced' },
+    ]);
+  });
+
+  it('o envio de outra equipe a outro destino não mexe na retentativa', async () => {
+    const made = await opened(denClearedView);
+    const send = (modelId: string, heroIds: string[]) =>
+      made.controller.sendExpedition(modelId, heroIds, 'balanced');
+    await failedOffline(made, () => send('patrol', ['hero-2']));
+    expect(await send('oldForest', ['hero-1'])).toBe(true);
+    expect(retries(made.controller)).toHaveLength(1);
+    await retryOf(made.controller).run();
+    await settle(made.controller);
+    expect(sent(made).map((order) => order.payload)).toEqual([
+      { modelId: 'oldForest', heroIds: ['hero-1'], posture: 'balanced' },
+      { modelId: 'patrol', heroIds: ['hero-2'], posture: 'balanced' },
     ]);
   });
 

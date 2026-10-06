@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { intentOf } from './intent';
+import { intentOf, intentsOf } from './intent';
 
 describe('a intenção de uma ordem', () => {
   it('é o alvo, sem o valor escolhido', () => {
@@ -49,6 +49,31 @@ describe('a intenção de uma ordem', () => {
     ).toBe(
       intentOf('sendExpedition', { modelId: 'patrol', heroIds: ['hero-2'], posture: 'cautious' }),
     );
+    // O envio também disputa cada herói da equipe: outro destino com o mesmo herói é a mesma
+    // disputa (revisão, A12); outra equipe para outro destino, não.
+    const patrolRolf = intentsOf('sendExpedition', {
+      modelId: 'patrol',
+      heroIds: ['hero-2'],
+      posture: 'bold',
+    });
+    const forestBoth = intentsOf('sendExpedition', {
+      modelId: 'oldForest',
+      heroIds: ['hero-1', 'hero-2'],
+      posture: 'bold',
+    });
+    const forestEdda = intentsOf('sendExpedition', {
+      modelId: 'oldForest',
+      heroIds: ['hero-1'],
+      posture: 'bold',
+    });
+    const shared = (a: string[], b: string[]) => a.filter((entry) => b.includes(entry));
+    expect(shared(patrolRolf, forestBoth)).toEqual(['sendExpedition:hero:hero-2']);
+    expect(shared(patrolRolf, forestEdda)).toEqual([]);
+    expect(patrolRolf[0]).toBe(
+      intentOf('sendExpedition', { modelId: 'patrol', heroIds: [], posture: 'bold' }),
+    );
+    // As outras ordens têm uma intenção só.
+    expect(intentsOf('setWorkers', { building: 'farm', count: 2 })).toEqual(['setWorkers:farm']);
     // Equipar e desequipar mexem no mesmo herói: a ordem nova aposenta a retentativa da outra.
     expect(intentOf('equipItem', { heroId: 'hero-1', itemId: 'item-1' })).toBe(
       intentOf('unequipItem', { heroId: 'hero-1', slot: 'weapon' }),
