@@ -191,6 +191,11 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `goldCoversWages`, em `packages/engine/src/economy.ts`; GDD §9.1 ("deixa de ser negativo").
 - Se decidir diferente: voltar ao "positivo" é uma linha; a tela teria de dizer que pagar o soldo inteiro não basta.
 
+**C-53. `balance.tavern.festival.perSeason` saiu do conteúdo.** *(Limpeza; revisão M-Q5. Não muda regra.)*
+- O que era: o ADR 0017 (decisão 10) escreve `perSeason: 1` entre os números do festival, mas o motor nunca o leu: "um por estação" é `festivalHeldThisSeason`, que compara o último festival com o começo da estação. O schema só aceitava o valor 1, para ninguém achar que trocá-lo mudaria algo.
+- Enquanto isso: o campo não existe; a regra é a mesma. O texto do ADR ficou como registro da decisão.
+- Se decidir diferente: dois festivais por estação pedem um contador no estado (versão nova e passo de migração), e aí o campo volta com o motor lendo.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

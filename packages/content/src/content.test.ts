@@ -1929,7 +1929,6 @@ describe('Taverna (GDD §5.7, §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10)', ()
       cost: { food: 100, gold: 50 },
       morale: 15,
       durationMs: 24 * HOUR,
-      perSeason: 1,
       moraleLabel: 'Festival na Taverna',
     });
     expect(tavern.festival.durationMs / calendar.dayMs).toBe(12);
@@ -2032,7 +2031,10 @@ describe('Taverna (GDD §5.7, §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10)', ()
     expect(parse({ heroLimitPerLevel: 3 })).toBe(false);
     const festival = (changed: object) => parse({ festival: { ...tavern.festival, ...changed } });
     expect(festival({ durationMs: calendar.dayMs + 1 })).toBe(false);
-    expect(festival({ perSeason: 2 })).toBe(false);
+    // "Um por estação" é regra do motor (`festivalHeldThisSeason`), e não um número: o conteúdo
+    // não oferece um campo que o motor ignoraria (revisão da Fase C, M-Q5).
+    expect(festival({ perSeason: 1 })).toBe(false);
+    expect(Object.keys(tavern.festival)).not.toContain('perSeason');
     expect(festival({ morale: 0 })).toBe(false);
     expect(festival({ cost: {} })).toBe(false);
     expect(festival({ moraleLabel: 'festival.' })).toBe(false);

@@ -299,8 +299,6 @@ export type TavernDef = {
     readonly morale: number;
     /** Quanto dura, em tempo de jogo: um número inteiro de dias de jogo. */
     readonly durationMs: number;
-    /** Quantos festivais cabem em uma estação. O motor só conhece um. */
-    readonly perSeason: 1;
     /** O nome do termo na conta da moral. */
     readonly moraleLabel: string;
   };
@@ -715,7 +713,6 @@ export const balance: Balance = {
       cost: { food: 100, gold: 50 },
       morale: 15,
       durationMs: 24 * HOUR_MS,
-      perSeason: 1,
       moraleLabel: 'Festival na Taverna',
     },
   },

@@ -311,7 +311,6 @@ const tavern = z.strictObject({
     cost: resourceAmounts,
     morale: positiveInt,
     durationMs: positiveInt,
-    perSeason: z.literal(1),
     moraleLabel: label.regex(/^\p{Lu}[^.{}]*$/u),
   }),
 });
