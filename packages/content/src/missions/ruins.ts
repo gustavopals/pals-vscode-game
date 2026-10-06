@@ -43,26 +43,27 @@ const home: ExpeditionReturnNode = {
   text: "No {dia}º dia {daEstacao}, a expedição de {feudo} deixou as Ruínas de Vel'Thar.",
 };
 
+/** Recuar depois de um trecho que rendeu algo: o que a equipe já traz é pouco, e é dela. */
 const retreatHint = 'Sem risco; o saque fica pequeno.';
 
 const stoneGuardian: ExpeditionStageNode = {
   kind: 'boss',
-  title: 'O Guardião de Pedra',
+  title: 'O guardião de pedra',
   durationMs: 45 * MINUTE_MS,
   trial: {
     difficulty: 92,
     xp: 60,
     onDisaster: 'capture',
     helps: 'warrior',
-    lesson: 'Um Guerreiro teria aparado os golpes do Guardião de Pedra.',
+    lesson: 'Um Guerreiro teria aparado os golpes do guardião de pedra.',
     outcomes: {
-      full: 'No {dia}º dia {daEstacao}, {heroi} quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de {feudo}.',
+      full: 'No {dia}º dia {daEstacao}, {heroi} quebrou o guardião de pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de {feudo}.',
       success:
-        'No {dia}º dia {daEstacao}, {heroi} segurou o Guardião de Pedra o bastante para a expedição de {feudo} esvaziar a câmara que ele guardava.',
+        'No {dia}º dia {daEstacao}, {heroi} segurou o guardião de pedra o bastante para a expedição de {feudo} esvaziar a câmara que ele guardava.',
       setback:
-        'No {dia}º dia {daEstacao}, o Guardião de Pedra jogou {heroi} contra a parede: a expedição de {feudo} recuou com o que tinha nas mãos, sem chegar à câmara.',
+        'No {dia}º dia {daEstacao}, o guardião de pedra jogou {heroi} contra a parede: a expedição de {feudo} recuou com o que tinha nas mãos, sem chegar à câmara.',
       disaster:
-        'No {dia}º dia {daEstacao}, o Guardião de Pedra derrubou {heroi}, e a porta da câmara desceu: a expedição de {feudo} foi desbaratada e fugiu das ruínas sem o tesouro.',
+        'No {dia}º dia {daEstacao}, o guardião de pedra derrubou {heroi}, e a porta da câmara desceu: a expedição de {feudo} foi desbaratada e fugiu das ruínas sem o tesouro.',
     },
   },
   rewards: {
@@ -93,8 +94,8 @@ export const ruins: ExpeditionModelDef = {
         },
         stairway: {
           kind: 'crossroads',
-          title: 'A escadaria desaba atrás de vocês',
-          text: 'A escadaria desaba atrás de vocês. Adiante, um corredor de paredes escritas; à direita, uma galeria com água parada; e, entre os escombros, uma fresta por onde ainda se sai.',
+          title: 'A escadaria desaba',
+          text: 'A escadaria desaba às costas da expedição. Adiante, um corredor de paredes escritas; à direita, uma galeria com água parada; e, entre os escombros, uma fresta por onde ainda se sai.',
           options: [
             {
               id: 'inscriptionsCorridor',
@@ -111,8 +112,9 @@ export const ruins: ExpeditionModelDef = {
             },
             {
               id: 'retreat',
-              label: 'Recuar com o que têm',
-              hint: retreatHint,
+              // Até aqui a equipe não achou nada: a pista não promete saque (revisão, B6).
+              label: 'Sair pela fresta',
+              hint: 'Sem risco; voltam de mãos vazias.',
               next: 'home',
             },
           ],
@@ -166,9 +168,9 @@ export const ruins: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} abriu passagem pela Galeria Inundada, e a expedição de {feudo} carregou o que achou nas bordas.',
               setback:
-                'No {dia}º dia {daEstacao}, algo puxou {heroi} para o fundo da Galeria Inundada: a expedição de {feudo} atravessou, mas largou metade da carga na água.',
+                'No {dia}º dia {daEstacao}, algo puxou {heroi} para o fundo da Galeria Inundada: a expedição de {feudo} atravessou, mas largou na água metade do que tirara da galeria.',
               disaster:
-                'No {dia}º dia {daEstacao}, a Galeria Inundada quase ficou com {heroi}: a expedição de {feudo} chegou ao outro lado sem carga nenhuma.',
+                'No {dia}º dia {daEstacao}, a Galeria Inundada quase ficou com {heroi}: a expedição de {feudo} chegou ao outro lado sem nada do que a galeria guardava.',
             },
           },
           rewards: { resources: { stone: { min: 50, max: 70 }, gold: { min: 30, max: 40 } } },
@@ -207,7 +209,7 @@ export const ruins: ExpeditionModelDef = {
         threeArches: {
           kind: 'crossroads',
           title: 'O pátio dos três arcos',
-          text: 'O pátio tem três arcos. O primeiro desce a um ossário de onde vem um canto baixo; o segundo dá em um salão de lajes desiguais; o terceiro é por onde vocês entraram.',
+          text: 'O pátio tem três arcos. O primeiro desce a um ossário de onde vem um canto baixo; o segundo dá em um salão de lajes desiguais; o terceiro é o da entrada.',
           options: [
             {
               id: 'ossuary',
@@ -248,7 +250,7 @@ export const ruins: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o canto do ossário entrou na cabeça de {heroi}: a expedição de {feudo} andou em círculos e saiu com metade do achado.',
               disaster:
-                'No {dia}º dia {daEstacao}, o canto do ossário levou {heroi} para o meio das ossadas, e a expedição de {feudo} largou tudo para ir buscar.',
+                'No {dia}º dia {daEstacao}, o canto do ossário levou {heroi} para o meio das ossadas, e a expedição de {feudo} deixou os túmulos fechados para ir buscar quem se perdia.',
             },
           },
           rewards: {
@@ -276,9 +278,9 @@ export const ruins: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} levou a expedição de {feudo} pelo salão das lajes falsas, pisando onde o chão aguentava.',
               setback:
-                'No {dia}º dia {daEstacao}, uma laje falsa se abriu sob {heroi}: a expedição de {feudo} perdeu no buraco metade do que carregava.',
+                'No {dia}º dia {daEstacao}, uma laje falsa se abriu sob {heroi}: a expedição de {feudo} perdeu no buraco metade da pedra do salão.',
               disaster:
-                'No {dia}º dia {daEstacao}, o chão do salão cedeu inteiro sob {heroi}, e a carga da expedição de {feudo} foi para o fundo.',
+                'No {dia}º dia {daEstacao}, o chão do salão cedeu inteiro sob {heroi}, e a pedra das paredes ficou onde estava.',
             },
           },
           rewards: { resources: { stone: { min: 40, max: 70 }, gold: { min: 20, max: 40 } } },
@@ -396,9 +398,9 @@ export const ruins: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} manteve o ninho da cisterna encurralado enquanto a expedição de {feudo} carregava a pedra.',
               setback:
-                'No {dia}º dia {daEstacao}, o ninho da cisterna acordou em cima de {heroi}: a expedição de {feudo} subiu a corda com metade da carga.',
+                'No {dia}º dia {daEstacao}, o ninho da cisterna acordou em cima de {heroi}: a expedição de {feudo} subiu a corda com metade do que a cisterna dava.',
               disaster:
-                'No {dia}º dia {daEstacao}, o ninho da cisterna cobriu {heroi}, e a expedição de {feudo} cortou a corda da carga para puxar gente.',
+                'No {dia}º dia {daEstacao}, o ninho da cisterna cobriu {heroi}, e a expedição de {feudo} deixou no fundo o que a cisterna dava, para puxar gente.',
             },
           },
           rewards: { resources: { stone: { min: 50, max: 70 }, gold: { min: 20, max: 30 } } },

@@ -63,7 +63,7 @@ Em 31 sortes:
 | Resgate | C | A vala até a gaiola | 80 | perícia ×0,5 | Guerreiro | captura | 0/4/27/0 | 0/25/6/0 | 14/17/0/0 |
 | Ruínas de Vel'Thar | A | O Corredor das Inscrições | 110 | perícia ×1,5 | Arqueiro | fere | 0/0/31/0 | 0/21/10/0 | 31/0/0/0 |
 | Ruínas de Vel'Thar | A | A Galeria Inundada | 72 | o padrão | Guerreiro | fere | 0/11/20/0 | 4/26/1/0 | 31/0/0/0 |
-| Ruínas de Vel'Thar | A | O Guardião de Pedra | 92 | o padrão | Guerreiro | captura | 0/0/22/9 | 0/6/25/0 | 30/1/0/0 |
+| Ruínas de Vel'Thar | A | O guardião de pedra | 92 | o padrão | Guerreiro | captura | 0/0/22/9 | 0/6/25/0 | 30/1/0/0 |
 | Ruínas de Vel'Thar | B | Os saqueadores no portão caído | 70 | o padrão | Guerreiro | fere | 0/14/17/0 | 7/24/0/0 | 31/0/0/0 |
 | Ruínas de Vel'Thar | B | O ossário que canta | 104 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 0/22/9/0 | 0/4/27/0 | 31/0/0/0 |
 | Ruínas de Vel'Thar | B | O salão das lajes falsas | 84 | perícia ×1 | Arqueiro | fere | 0/18/13/0 | 12/19/0/0 | 31/0/0/0 |
@@ -118,7 +118,7 @@ Em 31 sortes:
 | Resgate | C | Rastejar pela vala até a gaiola | Cautelosa | — | Guerreiro + Guerreiro Nv1 (passa em 87%) | Guerreiro + Guerreiro Nv5, com brave (passa em 100%) | 40 de 72 |
 | Ruínas de Vel'Thar | A | Seguir pelo Corredor das Inscrições | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Clérigo + Clérigo Nv2 (passa em 0%) | 51 de 60 |
 | Ruínas de Vel'Thar | A | Atravessar a Galeria Inundada | Equilibrada | Guerreiro | Guerreiro + Clérigo Nv2 (passa em 0%) | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 8 de 60 |
-| Ruínas de Vel'Thar | A | Recuar com o que têm | Cautelosa | — | Clérigo + Clérigo Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 1 de 60 |
+| Ruínas de Vel'Thar | A | Sair pela fresta | Cautelosa | — | Clérigo + Clérigo Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv6 (passa em 100%) | 1 de 60 |
 | Ruínas de Vel'Thar | B | Descer ao ossário | Ousada | — | Clérigo + Clérigo Nv4 (passa em 58%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 46 de 60 |
 | Ruínas de Vel'Thar | B | Atravessar o salão das lajes falsas | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 0%) | Clérigo + Clérigo Nv4 (passa em 58%) | 14 de 60 |
 | Ruínas de Vel'Thar | B | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 0 de 60 |

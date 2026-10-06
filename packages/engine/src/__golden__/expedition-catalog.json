@@ -242,11 +242,11 @@
   "events": [
    "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Ruínas de Vel'Thar. A equipe: Edda, Rolf e Isolda.",
    "expeditionNodeResolved: No 1º dia da Primavera, a expedição de Pedra Alta subiu a trilha até as Ruínas de Vel'Thar e desceu a escadaria da entrada.",
-   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" parou em uma encruzilhada: A escadaria desaba atrás de vocês. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" parou em uma encruzilhada: A escadaria desaba. A equipe espera a palavra do senhor de Pedra Alta.",
    "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Ruínas de Vel'Thar\": atravessar a Galeria Inundada.",
    "expeditionNodeResolved: No 1º dia da Primavera, Edda atravessou a Galeria Inundada na frente e matou o que se mexia debaixo da água. A expedição de Pedra Alta tirou do fundo pedra lavrada e moedas.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionNodeResolved: No 2º dia da Primavera, Edda quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta.",
+   "expeditionNodeResolved: No 2º dia da Primavera, Edda quebrou o guardião de pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta.",
    "itemFound: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" achou um item: Lâmina de Vel'Thar.",
    "expeditionReturned: No 2º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta com 190 de pedra e 133 de ouro e um item (Lâmina de Vel'Thar). A equipe está de novo no feudo: Edda, Rolf e Isolda."
   ],
@@ -270,7 +270,7 @@
      "lessonText": null
     },
     {
-     "title": "A escadaria desaba atrás de vocês",
+     "title": "A escadaria desaba",
      "text": "Por ordem do senhor: Atravessar a Galeria Inundada.",
      "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
@@ -288,8 +288,8 @@
      "lessonText": null
     },
     {
-     "title": "O Guardião de Pedra",
-     "text": "No 2º dia da Primavera, Edda quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta. Trouxe 103 de pedra e 86 de ouro.",
+     "title": "O guardião de pedra",
+     "text": "No 2º dia da Primavera, Edda quebrou o guardião de pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta. Trouxe 103 de pedra e 86 de ouro.",
      "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
