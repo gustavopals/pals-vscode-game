@@ -229,6 +229,10 @@ Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Re
 **D-29. O app não mostra nada dos desfechos.**
 - Enquanto isso: a aba Guilda continua a de V3C-T4, sem destinos, expedições, relatórios, arsenal nem equipamento; a ficha do herói mostra `statusText`, que já diz "Em recuperação…" e "Em cativeiro…". Os avisos e a árvore não sabem dos eventos novos. É de V3D-T4.
 
+**D-30. Um teste de propriedade ganhou limite de tempo próprio.**
+- Enquanto isso: `random.property.test.ts`, "advanceTo(t3) é idêntico a advanceTo(t2) seguido de advanceTo(t3)" (500 execuções), leva uns 10 s sozinho e passou dos 30 s do limite padrão dentro do `pnpm verify`, **rodando sozinho**, sem que nada nele tivesse mudado: a suíte ficou uns 8% mais pesada com os desfechos (de 488 s para 529 a 545 s), e a matriz do simulador disputa a máquina com ele. O teste passou a ter 90 s de limite. As 500 execuções e o que ele confere não mudaram. Na V3D-T1 o mesmo teste já tinha estourado uma vez, com a integração e o navegador rodando junto.
+- Se decidir diferente: voltar ao limite padrão e aliviar a suíte de outro jeito (menos sementes na matriz do `pnpm test`, ou a matriz em um projeto separado do Vitest).
+
 ### Fase D: o motor das expedições (V3D-T1)
 
 Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, o percurso por eventos, a resolução em inteiros, a encruzilhada e a Postura, a volta, a visão e o protocolo 3; estado na versão 17). **Nenhuma foi perguntada ao autor.** As quatro primeiras o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. D-5, D-7, D-10 e D-11 são as que mais pedem resposta.

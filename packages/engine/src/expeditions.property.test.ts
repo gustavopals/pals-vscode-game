@@ -39,7 +39,18 @@ const scenario = fc.record({
       afterRealMs: fc.integer({ min: 1, max: HOUR }),
       // Os cinco destinos: as Ruínas só depois de uma Patrulha as revelar, o Resgate só com um
       // cativo, o Covil só enquanto não foi limpo. A ordem recusada não muda nada.
-      model: fc.constantFrom('patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins', 'patrol'),
+      // A Floresta Antiga pesa mais: é o único destino com encruzilhada, e o teste conta as
+      // decididas pela Postura e as escolhidas pelo senhor.
+      model: fc.constantFrom(
+        'patrol',
+        'oldForest',
+        'oldForest',
+        'oldForest',
+        'oldForest',
+        'wolfDen',
+        'rescue',
+        'ruins',
+      ),
       posture: fc.constantFrom<PostureId>('cautious', 'balanced', 'bold'),
       teamSize: fc.constantFrom(1, 2, 2, 3),
       answer: fc.constantFrom('none', 'first', 'last', 'posture'),

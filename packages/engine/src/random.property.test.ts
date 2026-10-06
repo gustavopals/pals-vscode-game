@@ -130,7 +130,11 @@ describe('divisão de intervalo com sorteios no caminho', () => {
       ),
       { numRuns: 500 },
     );
-  });
+    // Sozinho, este teste leva uns 10 s; no `pnpm verify`, com a matriz do simulador e as outras
+    // propriedades disputando a máquina, já passou dos 30 s do limite padrão duas vezes (V3D-T1
+    // e V3D-T2) sem que nada nele tivesse mudado. O limite próprio é para a carga, não para a
+    // regra: as 500 execuções continuam as mesmas.
+  }, 90_000);
 
   it('um mês de uma vez ou em até dez pedaços quaisquer consome o gerador igual', () => {
     fc.assert(

@@ -151,7 +151,16 @@ test.describe('a Ameaça e a Torre de Vigia', () => {
     await expect(row.locator('button')).toHaveCount(0);
     // …porque nada disso saiu do servidor: a resposta sem Torre só tem a névoa, a Torre e a defesa.
     const fog = await serverThreat(page, request);
-    expect(Object.keys(fog).sort()).toEqual(['defense', 'incoming', 'known', 'text', 'watchtower']);
+    // (`clearedText` é o que o jogador sabe por ter feito: o Covil que uma expedição dele limpou.)
+    expect(Object.keys(fog).sort()).toEqual([
+      'clearedText',
+      'defense',
+      'incoming',
+      'known',
+      'text',
+      'watchtower',
+    ]);
+    expect(fog.clearedText).toBeNull();
     expect(fog.known).toBe(false);
     // A Torre já está em "Construir", com o que ela dá ao lado do custo, esperando o Salão.
     await expect(listed).toContainText(
