@@ -295,6 +295,11 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
     expect(shown).toMatch(/Rolf · Arqueiro Nv1 · Prudente\s?Vale [\d,]+ contra o primeiro trecho/);
     // A régua da equipe marcada vem com ícone e palavra.
     expect(shown).toMatch(/(Com folga|No limite|Arriscado)\. A equipe marcada vale [\d,]+/);
+    // A palavra da régua é dita uma vez só (revisão, A24): em negrito, antes do número.
+    expect(shown).toMatch(
+      /(Com folga|No limite|Arriscado)\. A equipe marcada vale [\d,]+ contra o primeiro trecho\.( |$)/,
+    );
+    expect(shown).not.toMatch(/trecho: (com folga|no limite|arriscado)/);
     // O que o botão manda ao comando: o destino, a equipe marcada e a Postura marcada. (O
     // clique em si é dos testes em navegador: a montagem guarda o que está marcado.)
     const { guild } = heroInjuredView;

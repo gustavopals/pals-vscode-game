@@ -199,7 +199,7 @@ function SendForm(props: {
         <div id={`${name}-terms`}>
           {fit === null ? null : (
             <p class={fit.level === 'risk' ? 'team-fit warning' : 'team-fit'}>
-              <Icon name={fit.icon} /> <strong>{fit.label}.</strong> {fit.text}
+              <Icon name={fit.icon} /> <strong>{fit.label}.</strong> {fit.worth}
             </p>
           )}
           {fits ? null : (

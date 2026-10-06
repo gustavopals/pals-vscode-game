@@ -276,7 +276,9 @@ export type TeamFit = {
   /** "Com folga", "No limite", "Arriscado": a palavra que acompanha o ícone. */
   label: string;
   icon: string;
-  /** "A equipe marcada vale 51 contra o primeiro trecho: no limite." */
+  /** "A equipe marcada vale 51 contra o primeiro trecho.": para onde a palavra já está ao lado. */
+  worth: string;
+  /** "A equipe marcada vale 51 contra o primeiro trecho: no limite.": a frase sozinha. */
   text: string;
 };
 
@@ -292,12 +294,14 @@ export function teamFit(destination: Destination, heroIds: readonly string[]): T
   const level = power >= fit.comfortPower ? 'comfort' : power >= fit.riskPower ? 'tight' : 'risk';
   const label = { comfort: 'Com folga', tight: 'No limite', risk: 'Arriscado' }[level];
   const icon = { comfort: 'pass', tight: 'circle-large-outline', risk: 'warning' }[level];
+  const worth = `A equipe marcada vale ${formatNumber(power)} contra o primeiro trecho`;
   return {
     power,
     level,
     label,
     icon,
-    text: `A equipe marcada vale ${formatNumber(power)} contra o primeiro trecho: ${label.toLowerCase()}.`,
+    worth: `${worth}.`,
+    text: `${worth}: ${label.toLowerCase()}.`,
   };
 }
 
