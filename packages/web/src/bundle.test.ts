@@ -78,6 +78,15 @@ function phrases(value: unknown, found: Set<string> = new Set()): Set<string> {
   return found;
 }
 
+/**
+ * Um valor do conteúdo como o minificador o escreveria dentro do pacote: um objeto de
+ * JavaScript, com as chaves sem aspas ("rosterCap:12"). É contra essa forma que os marcadores
+ * de número são conferidos.
+ */
+function asJavaScript(value: unknown): string {
+  return JSON.stringify(value).replace(/"([A-Za-z_$][\w$]*)":/g, '$1:');
+}
+
 describe('o pacote do app', () => {
   it('é compilado inteiro, com o protocolo dentro', () => {
     expect(code.length).toBeGreaterThan(50_000);
@@ -136,6 +145,82 @@ describe('o pacote do app', () => {
     expect(
       [...new Set(flags), ...hidden, ...keys].filter((secret) => code.includes(secret)),
     ).toEqual([]);
+  });
+
+  // Revisão da Fase C (A-R8): a Guilda e a Taverna têm números e segredos próprios, e os
+  // marcadores acima são todos de antes delas.
+  it('não leva nenhum número de regra da Guilda nem da Taverna (v0.3)', () => {
+    const { heroes, tavern } = content.balance;
+    const markers = [
+      // `wagePerHour` é também um campo da visão: o que não pode chegar é o número do conteúdo.
+      `wagePerHour:${heroes.wagePerHour},`,
+      'limitBase:',
+      'rosterCap:',
+      'arrivingCap:',
+      'discontentAfterRealMs:',
+      'leaveAfterRealMs:',
+      'leaveEveryRealMs:',
+      'resumeWithinRealMs:',
+      'discontentFactor:',
+      'levelBonus:',
+      'offersByLevel:',
+      'rotationMs:',
+      'moralePerLevel:',
+      'heroLimitPerLevel:',
+      'moraleLabel:',
+    ];
+    // Os marcadores são do conteúdo de hoje: se um nome mudar lá, o marcador velho passaria
+    // para sempre. A tabela, escrita como um objeto de JavaScript, tem de conter cada um.
+    const leaked = asJavaScript({ heroes, tavern });
+    expect(markers.filter((marker) => !leaked.includes(marker))).toEqual([]);
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    // Os efeitos dos traços e os atributos das classes, que a ficha só mostra em frase.
+    const traitKeys = [
+      ...new Set(Object.values(content.heroTraits).flatMap((trait) => Object.keys(trait.effects))),
+    ];
+    expect(traitKeys.length).toBeGreaterThanOrEqual(3);
+    // "morale" é palavra da visão; dos efeitos, o que denuncia é a chave com o número.
+    const traitEffects = Object.values(content.heroTraits)
+      .filter((trait) => Object.keys(trait.effects).length > 0)
+      .map((trait) => asJavaScript(trait.effects).slice(1, -1));
+    expect(
+      [...traitKeys.filter((key) => key !== 'morale'), ...traitEffects].filter((secret) =>
+        code.includes(secret),
+      ),
+    ).toEqual([]);
+    const classes = Object.values(content.heroClasses).map((entry) =>
+      asJavaScript(entry.attributes),
+    );
+    expect(classes.filter((attributes) => code.includes(attributes))).toEqual([]);
+  });
+
+  it('não leva o que a Taverna e as cartas escondem dos heróis: modelos de candidato, pesos, preços cheios e quem tem nome', () => {
+    // O modelo de um candidato diz o peso dele no sorteio e o preço sem desconto; o evento da
+    // contratação já deixou de levá-lo (`templateId`), e o pacote não pode trazê-lo de volta.
+    const templates = content.tavernCandidates.flatMap((candidate) => [
+      candidate.id,
+      `weight:${candidate.weight},price:${candidate.price}`,
+    ]);
+    expect(content.TAVERN_CANDIDATE_IDS.length).toBeGreaterThanOrEqual(10);
+    expect(templates.filter((secret) => code.includes(secret))).toEqual([]);
+    // A visão fala em oferta (`offerId`), nunca em modelo, e não diz que um herói tem nome.
+    expect(
+      ['templateId', 'namedHeroId', 'tavernCandidates', 'namedHeroes', 'heroNames'].filter((key) =>
+        code.includes(key),
+      ),
+    ).toEqual([]);
+    // Quem uma carta pode trazer e os nomes que a Taverna sorteia: fora de qualquer frase, como
+    // um texto solto (entre aspas ou crases), que é como uma lista vazada apareceria.
+    const names = [
+      ...Object.keys(content.namedHeroes),
+      ...Object.values(content.namedHeroes).map((hero) => hero.name),
+      ...content.heroNames.map((entry) => entry.name),
+    ];
+    expect(names.length).toBeGreaterThan(20);
+    const loose = (name: string) => new RegExp(`["'\`]${name}["'\`]`).test(code);
+    expect(names.filter(loose)).toEqual([]);
+    // A carta roteirizada: o dia em que ela sai não é do app.
+    expect(code.includes('atGameDay')).toBe(false);
   });
 
   it('não leva nenhuma frase do conteúdo', () => {
