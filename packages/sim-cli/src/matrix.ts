@@ -1,4 +1,4 @@
-import { balance, type DifficultyId, RESOURCE_IDS } from '@lotg/content';
+import { balance, type DifficultyId, expeditionModels, RESOURCE_IDS } from '@lotg/content';
 
 import type { StrategyName } from './bots';
 import { type Band, bandFor, type CellKey, cellKey, checkBand } from './bands';
@@ -17,7 +17,7 @@ import {
   type WasteResource,
   worstWasteStreak,
 } from './report';
-import { simulate } from './simulate';
+import { type ExpeditionCounts, noExpeditions, type OutcomeCounts, simulate } from './simulate';
 
 const HOUR_MS = 3_600_000;
 const WEEK_REAL_HOURS = 7 * 24;
@@ -29,11 +29,18 @@ export const MATRIX_SEEDS: readonly string[] = Array.from(
 );
 
 export type Profile = {
-  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador';
+  readonly id: 'preguicoso' | 'regular' | 'dedicado' | 'explorador' | 'ousado';
   readonly label: string;
   /** Visitas por dia real, a intervalos iguais, a primeira na criação da partida. */
   readonly sessionsPerDay: number;
   readonly strategy: StrategyName;
+  /**
+   * Em **metade das partidas** (as de semente de número ímpar na lista) o jogador faz uma visita
+   * a mais quando uma equipe para em uma encruzilhada (`SimulationOptions.crossroadsVisit`). É
+   * o que deixa a matriz medir, no mesmo perfil de visitas, as encruzilhadas que o jogador decide
+   * e as que a Postura decide (revisão da Fase D, M-D2).
+   */
+  readonly crossroadsVisits?: 'half';
 };
 
 /**
@@ -47,7 +54,27 @@ export const EXPLORER_PROFILE: Profile = {
   label: 'Explorador',
   sessionsPerDay: 2,
   strategy: 'explorador',
+  crossroadsVisits: 'half',
 };
+
+/**
+ * O perfil que arrisca (revisão da Fase D, M-R2): 2 sessões por dia com o bot `ousado`, que
+ * envia entre o risco e a folga, alterna as Posturas, patrulha até revelar um caminho e manda o
+ * Resgate. **Fora da rodada padrão e sem faixa**: roda a pedido (`--profile ousado`), para medir
+ * o Desastre, a captura e o Resgate, que o Explorador não vê.
+ */
+export const BOLD_PROFILE: Profile = {
+  id: 'ousado',
+  label: 'Ousado',
+  sessionsPerDay: 2,
+  strategy: 'ousado',
+  crossroadsVisits: 'half',
+};
+
+/** A partida de uma semente joga com a visita extra da encruzilhada: metade delas, as ímpares. */
+export function playsCrossroadsVisit(profile: Profile, seedIndex: number): boolean {
+  return profile.crossroadsVisits === 'half' && seedIndex % 2 === 0;
+}
 
 /**
  * Os perfis de visita do GDD §15.2, cada um com o bot que joga as suas sessões, e o da Guilda.
@@ -62,8 +89,8 @@ export const PROFILES: readonly Profile[] = [
 ];
 export type ProfileId = Profile['id'];
 
-/** Todo perfil que a matriz sabe jogar. Hoje são os da rodada padrão: nenhum roda só a pedido. */
-export const KNOWN_PROFILES: readonly Profile[] = PROFILES;
+/** Todo perfil que a matriz sabe jogar: os da rodada padrão e o Ousado, que só roda a pedido. */
+export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, BOLD_PROFILE];
 
 /**
  * As duas janelas de medida. Não se comparam entre si: em 7 dias reais o ritmo 3 atravessa três
@@ -193,6 +220,8 @@ export type MatrixCell = {
   gameYears: number;
   seeds: number;
   measure: CellMeasure;
+  /** As expedições da célula, somadas nas sementes: ver `ExpeditionTotals`. */
+  expeditions: ExpeditionTotals;
   /** `null` quando não há faixa para a célula (outra dificuldade, ritmo fora do conteúdo). */
   band: Band | null;
   /** Uma frase por problema, com quantas sementes o tiveram; vazio quando a célula está dentro. */
@@ -218,6 +247,70 @@ export type MatrixResult = {
   runs: MatrixRun[];
   cells: MatrixCell[];
 };
+
+/**
+ * As expedições de uma célula, **somadas** nas sementes (as faixas de menor a maior escondem o
+ * que importa aqui: quantas vezes cada coisa aconteceu no total). As encruzilhadas saem também
+ * separadas pelas partidas com e sem a visita extra do jogador.
+ */
+export type ExpeditionTotals = {
+  sent: number;
+  byModel: Record<string, { sent: number; outcomes: OutcomeCounts }>;
+  crossroads: { player: number; posture: number };
+  /** As partidas em que o jogador atende o aviso da encruzilhada, e as que só têm as sessões do dia. */
+  crossroadsWithVisit: { player: number; posture: number; runs: number; extraVisits: number };
+  crossroadsWithoutVisit: { player: number; posture: number; runs: number };
+  fates: ExpeditionCounts['fates'];
+  /** Herói-horas reais com herói parado no feudo, somadas. */
+  heroIdleHours: number;
+  /** Quantas partidas a célula somou. */
+  runs: number;
+};
+
+function expeditionTotalsOf(profile: Profile, summaries: Summary[]): ExpeditionTotals {
+  const totals: ExpeditionTotals = {
+    sent: 0,
+    byModel: {},
+    crossroads: { player: 0, posture: 0 },
+    crossroadsWithVisit: { player: 0, posture: 0, runs: 0, extraVisits: 0 },
+    crossroadsWithoutVisit: { player: 0, posture: 0, runs: 0 },
+    fates: noExpeditions().fates,
+    heroIdleHours: 0,
+    runs: summaries.length,
+  };
+  summaries.forEach(({ expeditions }, index) => {
+    totals.sent += expeditions.sent;
+    totals.heroIdleHours += expeditions.heroIdleHours;
+    totals.crossroads.player += expeditions.crossroadsByPlayer;
+    totals.crossroads.posture += expeditions.crossroadsByPosture;
+    const side = playsCrossroadsVisit(profile, index)
+      ? totals.crossroadsWithVisit
+      : totals.crossroadsWithoutVisit;
+    side.player += expeditions.crossroadsByPlayer;
+    side.posture += expeditions.crossroadsByPosture;
+    side.runs += 1;
+    totals.crossroadsWithVisit.extraVisits += expeditions.extraVisits;
+    for (const key of Object.keys(totals.fates) as Array<keyof ExpeditionCounts['fates']>) {
+      totals.fates[key] += expeditions.fates[key];
+    }
+    for (const [id, counts] of Object.entries(expeditions.byModel)) {
+      const model = (totals.byModel[id] ??= {
+        sent: 0,
+        outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+      });
+      model.sent += counts.sent;
+      for (const outcome of Object.keys(model.outcomes) as Array<keyof OutcomeCounts>) {
+        model.outcomes[outcome] += counts.outcomes[outcome];
+      }
+    }
+  });
+  return totals;
+}
+
+/** "12 de 40 (30%)", ou "—" sem nenhuma. */
+export function shareText(part: number, whole: number): string {
+  return whole === 0 ? '—' : `${part} de ${whole} (${Math.round((part * 100) / whole)}%)`;
+}
 
 function rangeOf(values: number[]): Range {
   return { min: Math.min(...values), max: Math.max(...values) };
@@ -366,7 +459,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
       const realHours = windowRealHours(window.id, timeScale);
       for (const profile of profiles) {
         const summaries: Summary[] = [];
-        for (const seed of seeds) {
+        for (const [seedIndex, seed] of seeds.entries()) {
           const id = `${timeScale}/${profile.id}/${realHours}/${seed}`;
           let summary = played.get(id);
           if (summary === undefined) {
@@ -379,6 +472,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
                 sessionsPerDay: profile.sessionsPerDay,
                 timeScale,
                 difficulty,
+                crossroadsVisit: playsCrossroadsVisit(profile, seedIndex),
               }),
             );
             played.set(id, summary);
@@ -398,6 +492,7 @@ export async function runMatrix(options: MatrixOptions = {}): Promise<MatrixResu
           gameYears: gameYearsIn(realHours, timeScale),
           seeds: seeds.length,
           measure: measureOf(summaries),
+          expeditions: expeditionTotalsOf(profile, summaries),
           band,
           violations: band === null ? [] : violationsOf(key, band, summaries, seeds),
         });
@@ -502,6 +597,92 @@ function seedsLine(seeds: readonly string[]): string {
   return seeds.length === 1
     ? `1 semente (${first})`
     : `${seeds.length} sementes (${first} a ${last})`;
+}
+
+/** Como a tabela chama cada destino: o nome do conteúdo, pela chave que os eventos trazem. */
+function modelLabel(modelId: string): string {
+  return expeditionModels.find((model) => model.id === modelId)?.label ?? modelId;
+}
+
+/**
+ * As expedições de uma janela, **somadas nas sementes de cada célula** (revisão da Fase D,
+ * M-D2): o que aconteceu a quem partiu, quem decidiu nas encruzilhadas (com e sem a visita extra
+ * do jogador) e os desfechos dos nós com prova, por destino. Só as células em que alguém enviou
+ * uma expedição aparecem.
+ */
+export function expeditionTables(cells: readonly MatrixCell[]): string {
+  const sending = cells.filter((cell) => cell.expeditions.sent > 0);
+  if (sending.length === 0) {
+    return 'Nenhuma expedição enviada nesta janela.';
+  }
+  const who = (cell: MatrixCell) => [cell.paceLabel, cell.profile.label];
+  const totals = table(
+    [
+      'Ritmo',
+      'Perfil',
+      'Partidas',
+      'Expedições',
+      'Encruzilhadas: jogador ÷ todas',
+      'Com a visita extra',
+      'Só as sessões do dia',
+      'Visitas extras',
+      'Feridos',
+      'Cativos',
+      'Mortos',
+      'Resgatados',
+      'Covil limpo',
+      'Equipes perdidas',
+      'Herói ocioso (herói-h)',
+    ],
+    sending.map((cell) => {
+      const { expeditions: all } = cell;
+      const { crossroads, crossroadsWithVisit: withVisit, crossroadsWithoutVisit: without } = all;
+      return [
+        ...who(cell),
+        String(all.runs),
+        formatInt(all.sent),
+        shareText(crossroads.player, crossroads.player + crossroads.posture),
+        withVisit.runs === 0
+          ? '—'
+          : shareText(withVisit.player, withVisit.player + withVisit.posture),
+        shareText(without.player, without.player + without.posture),
+        formatInt(withVisit.extraVisits),
+        formatInt(all.fates.injured),
+        formatInt(all.fates.captured),
+        formatInt(all.fates.died),
+        formatInt(all.fates.rescued),
+        formatInt(all.fates.tilesCleared),
+        formatInt(all.fates.lost),
+        formatInt(all.heroIdleHours),
+      ];
+    }),
+  );
+  const models = expeditionModels
+    .map((model) => model.id)
+    .filter((id) => sending.some((cell) => cell.expeditions.byModel[id] !== undefined));
+  const outcomes = table(
+    ['Ritmo', 'Perfil', ...models.map((id) => `${modelLabel(id)}: envios · P/S/R/D`)],
+    sending.map((cell) => [
+      ...who(cell),
+      ...models.map((id) => {
+        const model = cell.expeditions.byModel[id];
+        if (model === undefined) {
+          return '—';
+        }
+        const { full, success, setback, disaster } = model.outcomes;
+        return `${model.sent} · ${full}/${success}/${setback}/${disaster}`;
+      }),
+    ]),
+  );
+  return [
+    'Somas das sementes de cada célula. As encruzilhadas: quantas o jogador decidiu, de todas as decididas; nas partidas "com a visita extra" ele volta quando a equipe para (metade das sementes dos perfis da Guilda), e nas outras só tem as sessões do dia.',
+    '',
+    totals,
+    '',
+    'Por destino, os envios e os desfechos dos nós com prova (Sucesso Pleno / Sucesso / Revés / Desastre):',
+    '',
+    outcomes,
+  ].join('\n');
 }
 
 /**
@@ -689,6 +870,7 @@ export function formatMatrix(result: MatrixResult): string {
       `### Desperdício por recurso: ${window.label.toLowerCase()}\n\n${waste}`,
       `### Lobos: ${window.label.toLowerCase()}\n\n${raids}`,
       `### Guilda: ${window.label.toLowerCase()}\n\n${guild}`,
+      `### Expedições: ${window.label.toLowerCase()}\n\n${expeditionTables(cells)}`,
     ].join('\n\n');
   });
 

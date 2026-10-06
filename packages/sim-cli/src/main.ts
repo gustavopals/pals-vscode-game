@@ -1,4 +1,5 @@
 import { parseCli, USAGE } from './cli';
+import { formatExpeditionStudy, runExpeditionStudy } from './expeditionStudy';
 import { formatMatrix, matrixCsv, runMatrix } from './matrix';
 import { formatPerf, runPerf } from './perf';
 import { formatRemoteReport, runRemote } from './remote';
@@ -29,6 +30,11 @@ async function main(): Promise<void> {
 
   if (command.mode === 'perf') {
     process.stdout.write(formatPerf(await runPerf(command.options)));
+    return;
+  }
+
+  if (command.mode === 'expeditions') {
+    process.stdout.write(formatExpeditionStudy(await runExpeditionStudy(command.options)));
     return;
   }
 

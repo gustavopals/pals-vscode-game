@@ -66,7 +66,7 @@ describe('linha de comando: modo em processo', () => {
 
   it('recusa estratégia e opção desconhecidas, e argumento solto', () => {
     expect(() => parseCli(['--seed', 's', '--strategy', 'guerreiro'])).toThrow(
-      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador.',
+      'Estratégia desconhecida: guerreiro. Disponíveis: economico, preguicoso, explorador, ousado.',
     );
     expect(() => parseCli(['--seed', 's', '--strategy', 'toString'])).toThrow(
       /Estratégia desconhecida/,
@@ -160,7 +160,7 @@ describe('linha de comando: matriz', () => {
     });
     // O nome é o do perfil, não o do bot: `economico` joga dois perfis.
     expect(() => parseCli(['--matrix', '--profile', 'economico'])).toThrow(
-      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador.',
+      'Perfil desconhecido: economico. Disponíveis: preguicoso, regular, dedicado, explorador, ousado.',
     );
     expect(() => parseCli(['--seed', 's', '--profile', 'explorador'])).toThrow(
       '--profile não vale com o modo em processo.',
@@ -277,10 +277,37 @@ describe('texto de uso', () => {
     expect(USAGE).toContain('pnpm -s sim -- --perf\n');
     expect(USAGE).toContain('Há faixas para as três dificuldades');
     expect(USAGE).toContain('--matrix [--seeds 50] [--difficulty lord] [--profile explorador]');
-    expect(USAGE).toContain('economico, preguicoso e explorador');
+    expect(USAGE).toContain('economico, preguicoso, explorador e ousado');
+    expect(USAGE).toContain('--expeditions [--seeds 10] [--difficulty lord]');
     expect(USAGE).toContain('--days 7 | --game-year');
     expect(USAGE).toContain('--remote <url>');
     expect(USAGE).toContain('--smoke <url> [--keep]');
     expect(USAGE).toMatch(/conta é excluída no fim/);
+  });
+});
+
+describe('linha de comando: o estudo das expedições (revisão da Fase D, M-D2)', () => {
+  it('--expeditions joga 10 sementes em Senhor por padrão, e aceita --seeds e --difficulty', () => {
+    expect(parseCli(['--expeditions'])).toEqual({
+      mode: 'expeditions',
+      options: { seeds: MATRIX_SEEDS.slice(0, 10), difficulty: 'lord' },
+    });
+    expect(parseCli(['--expeditions', '--seeds', '3', '--difficulty', 'ironKing'])).toEqual({
+      mode: 'expeditions',
+      options: { seeds: MATRIX_SEEDS.slice(0, 3), difficulty: 'ironKing' },
+    });
+    expect(() => parseCli(['--expeditions', '--seeds', '51'])).toThrow('--seeds vai até 50');
+    expect(() => parseCli(['--expeditions', '--profile', 'ousado'])).toThrow();
+  });
+
+  it('o bot ousado é uma estratégia e um perfil da matriz, fora da rodada padrão', () => {
+    expect(parseCli(['--seed', 's', '--strategy', 'ousado'])).toMatchObject({
+      mode: 'simulate',
+      options: { strategy: 'ousado' },
+    });
+    expect(parseCli(['--matrix', '--seeds', '1', '--profile', 'ousado'])).toMatchObject({
+      mode: 'matrix',
+      options: { profiles: [{ id: 'ousado', strategy: 'ousado' }] },
+    });
   });
 });

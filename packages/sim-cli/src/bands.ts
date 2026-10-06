@@ -55,11 +55,14 @@ function measured(
 
 /**
  * Linha de base medida: 50 sementes por célula, em cada dificuldade. As faixas saem daqui, pela
- * regra de `SLACK`. **A rodada de agora é a do catálogo de expedições (V3D-T3), em
- * docs/balance-v0.3.md, seção 8**: só as células do Explorador mudaram (os dezoito grafos de
- * verdade, com encruzilhada em quase todos, e o bot que envia a expedição de maior recompensa
- * que a equipe passa com folga e deixa metade das encruzilhadas para a Postura); as dos outros
- * perfis são as da Taverna, linha a linha. A rodada anterior é a dos desfechos (V3D-T2), na
+ * regra de `SLACK`. **A rodada de agora é a da revisão da Fase D (V3D-T5), em
+ * docs/balance-v0.3.md, seção 9**: só as células do Explorador mudaram (o catálogo recalibrado,
+ * a Patrulha que rende pouco, os bônus de item que somam, o bot que ergue a Guilda na frente
+ * das outras obras e, em metade das sementes, a visita extra de quem atende o aviso da
+ * encruzilhada); as dos outros perfis são as da Taverna, linha a linha. A anterior é a do
+ * catálogo de expedições (V3D-T3), na seção 8 (os dezoito grafos de verdade, com encruzilhada
+ * em quase todos, e o bot que envia a expedição de maior recompensa que a equipe passa com
+ * folga e deixa metade das encruzilhadas para a Postura). Antes dela, a dos desfechos (V3D-T2), na
  * seção 7 (o Explorador passou a melhorar a Guilda, a ir ao Covil de Lobos e a equipar itens;
  * e o Covil limpo mexe na Ameaça), e antes dela a do motor das
  * expedições (V3D-T1), na seção 6, e antes dela a da Taverna (V3C-T2), em docs/balance-v0.3.md, seção
@@ -91,79 +94,79 @@ const MEASURED: Record<DifficultyId, Partial<Record<CellKey, Baseline>>> = {
     'week/3/preguicoso': measured([41, 60], 7, 0, 0, 4250, 4250, 5954, 63),
     'week/3/regular': measured([84, 85], 8, 0, 0, 6500, 6500, 229537, 33),
     'week/3/dedicado': measured([85, 85], 8, 0, 0, 5752, 6500, 378434, 30),
-    'week/3/explorador': measured([85, 85], 8, 0, 0, 5715, 6500, 233873, 33),
+    'week/3/explorador': measured([85, 85], 8, 0, 0, 6224, 6500, 296541, 33),
     'week/1/preguicoso': measured([31, 35], 5, 0, 0, 1273, 2825, 262, 18),
     'week/1/regular': measured([65, 77], 7, 0, 0, 4999, 5740, 23083, 8),
     'week/1/dedicado': measured([84, 85], 8, 0, 0, 6500, 6500, 21901, 4),
-    'week/1/explorador': measured([60, 81], 7, 0, 0, 5750, 5019, 18219, 9),
+    'week/1/explorador': measured([64, 80], 7, 0, 0, 5094, 5000, 24367, 9),
     'week/0.5/preguicoso': measured([25, 27], 3, 0, 0, 1704, 2000, 167, 4.5),
     'week/0.5/regular': measured([45, 54], 5, 0, 0, 1555, 989, 1283, 1),
     'week/0.5/dedicado': measured([54, 60], 6, 0, 0, 1032, 742, 838, 0.5),
-    'week/0.5/explorador': measured([44, 52], 5, 0, 0, 1356, 940, 1089, 1.5),
+    'week/0.5/explorador': measured([45, 55], 5, 0, 0, 1168, 1005, 1025, 1.5),
     'year/3/preguicoso': measured([16, 16], 3, 0, 0, 363, 516, 150, 60),
     'year/3/regular': measured([22, 29], 5, 0, 0, 781, 1076, 2836, 3),
     'year/3/dedicado': measured([53, 64], 6, 0, 0, 1905, 3616, 14831, 9),
-    'year/3/explorador': measured([22, 35], 5, 0, 0, 817, 1407, 2468, 3),
+    'year/3/explorador': measured([22, 37], 5, 0, 0, 1167, 1407, 1895, 3),
     'year/1/preguicoso': measured([31, 35], 5, 0, 0, 1273, 2825, 262, 18),
     'year/1/regular': measured([65, 77], 7, 0, 0, 4999, 5740, 23083, 8),
     'year/1/dedicado': measured([84, 85], 8, 0, 0, 6500, 6500, 21901, 4),
-    'year/1/explorador': measured([60, 81], 7, 0, 0, 5750, 5019, 18219, 9),
+    'year/1/explorador': measured([64, 80], 7, 0, 0, 5094, 5000, 24367, 9),
     'year/0.5/preguicoso': measured([60, 62], 7, 0, 0, 1149, 1233, 5517, 8.5),
     'year/0.5/regular': measured([84, 85], 8, 0, 0, 6500, 6500, 19800, 4),
     'year/0.5/dedicado': measured([84, 85], 8, 0, 0, 6499, 6500, 35524, 2),
-    'year/0.5/explorador': measured([84, 85], 8, 0, 0, 6500, 6500, 17733, 3.5),
+    'year/0.5/explorador': measured([84, 85], 8, 0, 0, 6500, 6500, 23119, 5),
   },
   lord: {
     'week/3/preguicoso': measured([41, 60], 7, 0, 0, 3400, 3400, 5918, 75),
     'week/3/regular': measured([75, 85], 7, 0, 0, 3889, 5200, 211754, 36),
     'week/3/dedicado': measured([85, 85], 8, 0, 0, 4225, 5200, 366691, 42),
-    'week/3/explorador': measured([83, 85], 8, 0, 0, 4432, 5200, 232893, 51),
+    'week/3/explorador': measured([85, 85], 8, 0, 0, 4420, 5200, 286522, 39),
     'week/1/preguicoso': measured([31, 35], 5, 0, 0, 1068, 2270, 268, 28),
     'week/1/regular': measured([64, 75], 7, 0, 0, 4036, 4541, 23840, 10),
     'week/1/dedicado': measured([84, 85], 8, 0, 0, 5200, 5200, 19802, 3),
-    'week/1/explorador': measured([66, 75], 7, 0, 0, 4668, 4600, 25548, 10),
+    'week/1/explorador': measured([66, 77], 7, 0, 0, 5200, 5200, 19874, 9),
     'week/0.5/preguicoso': measured([29, 29], 4, 0, 0, 116, 1225, 154, 8),
     'week/0.5/regular': measured([45, 54], 5, 0, 0, 1641, 1133, 1233, 1.5),
     'week/0.5/dedicado': measured([54, 59], 6, 0, 0, 1075, 694, 745, 1),
-    'week/0.5/explorador': measured([44, 52], 5, 0, 0, 1166, 863, 1086, 1.5),
+    'week/0.5/explorador': measured([45, 54], 5, 0, 0, 794, 897, 1219, 1.5),
     'year/3/preguicoso': measured([16, 16], 3, 0, 0, 177, 516, 253, 63),
     'year/3/regular': measured([27, 30], 5, 0, 0, 778, 805, 3000, 9),
     'year/3/dedicado': measured([51, 63], 6, 0, 0, 1770, 2006, 13499, 18),
-    'year/3/explorador': measured([25, 35], 5, 0, 0, 694, 898, 1978, 3),
+    'year/3/explorador': measured([23, 37], 5, 0, 0, 722, 1011, 3075, 3),
     'year/1/preguicoso': measured([31, 35], 5, 0, 0, 1068, 2270, 268, 28),
     'year/1/regular': measured([64, 75], 7, 0, 0, 4036, 4541, 23840, 10),
     'year/1/dedicado': measured([84, 85], 8, 0, 0, 5200, 5200, 19802, 3),
-    'year/1/explorador': measured([66, 75], 7, 0, 0, 4668, 4600, 25548, 10),
+    'year/1/explorador': measured([66, 77], 7, 0, 0, 5200, 5200, 19874, 9),
     'year/0.5/preguicoso': measured([59, 66], 6, 0, 0, 4600, 2278, 10670, 8),
     'year/0.5/regular': measured([84, 85], 8, 0, 0, 5200, 5200, 20021, 5.5),
     'year/0.5/dedicado': measured([84, 85], 8, 0, 0, 5200, 5200, 32859, 5.5),
-    'year/0.5/explorador': measured([84, 85], 8, 0, 0, 5200, 5200, 16032, 7),
+    'year/0.5/explorador': measured([84, 85], 8, 0, 0, 5200, 5200, 20652, 5.5),
   },
   ironKing: {
     'week/3/preguicoso': measured([41, 60], 7, 0, 0, 3200, 3200, 5951, 114),
     'week/3/regular': measured([75, 75], 7, 0, 0, 2780, 3680, 228153, 72),
     'week/3/dedicado': measured([75, 75], 7, 0, 0, 3423, 3680, 332386, 33),
-    'week/3/explorador': measured([75, 75], 7, 0, 0, 3042, 3680, 239731, 66),
+    'week/3/explorador': measured([75, 75], 7, 0, 0, 3042, 3680, 277021, 63),
     'week/1/preguicoso': measured([28, 32], 4, 0, 0, 677, 1845, 1384, 21),
     'week/1/regular': measured([64, 73], 7, 0, 0, 3680, 2782, 22940, 9),
     'week/1/dedicado': measured([74, 75], 7, 0, 0, 3672, 3680, 44570, 3),
-    'week/1/explorador': measured([64, 75], 7, 0, 0, 3680, 3618, 24113, 9),
+    'week/1/explorador': measured([65, 75], 7, 0, 0, 3680, 3680, 23824, 9),
     'week/0.5/preguicoso': measured([27, 27], 3, 0, 0, 1280, 1280, 102, 8.5),
     'week/0.5/regular': measured([44, 54], 5, 0, 0, 1052, 925, 1033, 3),
     'week/0.5/dedicado': measured([54, 59], 5, 0, 0, 2625, 1011, 1335, 0),
-    'week/0.5/explorador': measured([44, 54], 5, 0, 0, 1397, 910, 1120, 1),
+    'week/0.5/explorador': measured([44, 55], 5, 0, 0, 1397, 793, 1026, 1),
     'year/3/preguicoso': measured([16, 16], 2, 0, 0, 268, 517, 426, 66),
     'year/3/regular': measured([27, 30], 5, 0, 0, 632, 589, 2753, 6),
     'year/3/dedicado': measured([52, 61], 6, 0, 0, 1571, 1795, 16222, 12),
-    'year/3/explorador': measured([29, 35], 5, 0, 0, 649, 587, 2560, 6),
+    'year/3/explorador': measured([29, 39], 5, 0, 0, 649, 904, 2693, 6),
     'year/1/preguicoso': measured([28, 32], 4, 0, 0, 677, 1845, 1384, 21),
     'year/1/regular': measured([64, 73], 7, 0, 0, 3680, 2782, 22940, 9),
     'year/1/dedicado': measured([74, 75], 7, 0, 0, 3672, 3680, 44570, 3),
-    'year/1/explorador': measured([64, 75], 7, 0, 0, 3680, 3618, 24113, 9),
+    'year/1/explorador': measured([65, 75], 7, 0, 0, 3680, 3680, 23824, 9),
     'year/0.5/preguicoso': measured([62, 64], 6, 0, 0, 1220, 470, 6456, 8.5),
     'year/0.5/regular': measured([74, 75], 7, 0, 0, 3680, 3680, 43982, 3),
     'year/0.5/dedicado': measured([75, 75], 7, 0, 0, 3647, 3680, 55609, 2.5),
-    'year/0.5/explorador': measured([74, 75], 7, 0, 0, 3680, 3680, 43976, 3),
+    'year/0.5/explorador': measured([74, 75], 7, 0, 0, 3680, 3680, 45031, 3),
   },
 };
 

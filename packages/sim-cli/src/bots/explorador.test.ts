@@ -28,18 +28,22 @@ const withTavern: ReadonlyArray<Omit<SimulationOptions, 'strategy'>> = [
 ];
 
 describe('bot explorador', () => {
-  it('as políticas são as do econômico, na ordem, com a Guilda antes das obras e contratar, festejar, escolher o caminho e enviar antes da alocação', () => {
+  it('as políticas são as do econômico, na ordem, com a Guilda na frente de todas as obras (e de novo depois das cartas) e contratar, festejar, escolher o caminho e enviar antes da alocação', () => {
     const names = (policies: typeof exploradorPolicies) => policies.map((policy) => policy.name);
+    // A Guilda vem na frente de tudo (revisão da Fase D, M-R1): é a obra que dá trabalho a quem
+    // já recebe soldo. E de novo depois das cartas: a que promete um herói acabou de ser
+    // respondida, e a obra fica planejada nesta visita.
     expect(names(exploradorPolicies)).toEqual([
+      'erguer a Guilda',
       'erguer a Paliçada',
       'seguir os objetivos',
       'erguer a Torre',
-      'erguer a Guilda',
       'obra mais barata',
       'ampliar o estoque',
       'planejar automáticas',
       'recrutar',
       'responder a carta',
+      'erguer a Guilda',
       'contratar',
       'dar festival',
       'escolher o caminho',

@@ -7,7 +7,7 @@ import {
   equiparMelhor,
   erguerGuilda,
   escolherCaminho,
-  obraMaisBarata,
+  responderCartas,
 } from './policies';
 import { botOf, type Bot, type Policy } from './types';
 
@@ -17,7 +17,7 @@ import { botOf, type Bot, type Policy } from './types';
  * da v0.3 traz (roadmap da v0.3, §0.5). Hoje, as da Taverna (V3C-T2), as das expedições
  * (V3D-T1), as dos desfechos (V3D-T2) e as do catálogo (V3D-T3):
  *
- * - **erguer a Guilda**: quando há um herói a quem enviar; e melhorá-la quando há mais gente
+ * - **erguer a Guilda**: quando há um herói a quem enviar, ou um prometido a caminho; e melhorá-la quando há mais gente
  *   livre do que lugares. Só o explorador a ergue: nos outros bots ela fica fora da corrida das
  *   obras, porque a quem não envia expedições ela não serve de nada;
  * - **contratar**: enquanto o ouro pagar o preço de um candidato e 24 horas reais de soldo da
@@ -34,8 +34,9 @@ import { botOf, type Bot, type Policy } from './types';
  *
  * As próximas (vender no Mercado, mandar caravanas) entram com a Fase E.
  *
- * A Guilda entra logo antes de `obra mais barata`: com uma fila só, é a obra que dá trabalho a
- * quem já recebe soldo. As outras entram depois das obras, do recrutamento e das cartas, e antes da alocação: o bot
+ * A Guilda entra **na frente de todas as obras** (revisão da Fase D, M-R1): com uma fila só, é a
+ * obra que dá trabalho a quem já recebe soldo, e antes ela esperava a Paliçada, os objetivos e
+ * a Torre. As outras entram depois das obras, do recrutamento e das cartas, e antes da alocação: o bot
  * gasta com a Guilda o que sobrou da visita, e reparte os aldeões já sabendo o soldo que passou
  * a dever (a visão mostra o saldo do ouro com ele). **A obra da Taverna não tem política
  * própria**: ela está na lista de obras como qualquer outro edifício, e `obra mais barata` a
@@ -49,13 +50,30 @@ import { botOf, type Bot, type Policy } from './types';
  *
  * Como toda política, as novas só leem o `ViewState` ("Bot honesto", §0.7).
  */
-export const exploradorPolicies: readonly Policy[] = economicoPolicies.flatMap((policy) =>
-  policy === obraMaisBarata
-    ? [erguerGuilda, policy]
-    : policy === alocarPorDemanda
-      ? [contratar, darFestival, escolherCaminho, equiparMelhor, enviarExpedicoes, policy]
-      : [policy],
+export const exploradorPolicies: readonly Policy[] = guildPolicies(
+  escolherCaminho,
+  enviarExpedicoes,
 );
+
+/**
+ * As políticas de um bot da Guilda: as do econômico, com a Guilda na frente de todas as obras
+ * e, antes da alocação, as da Taverna, a resposta às encruzilhadas, o equipamento e o envio. O
+ * que muda de um bot da Guilda para outro é como ele responde e como ele envia.
+ */
+export function guildPolicies(choosePath: Policy, send: Policy): readonly Policy[] {
+  return [
+    erguerGuilda,
+    ...economicoPolicies.flatMap((policy) =>
+      policy === alocarPorDemanda
+        ? [contratar, darFestival, choosePath, equiparMelhor, send, policy]
+        : policy === responderCartas
+          ? // De novo depois das cartas: a que promete um herói acabou de ser respondida, e a
+            // Guilda fica planejada nesta visita, não na seguinte.
+            [policy, erguerGuilda]
+          : [policy],
+    ),
+  ];
+}
 
 export const explorador = botOf(exploradorPolicies);
 

@@ -507,9 +507,13 @@ export const contratar: Policy = {
 };
 
 /**
- * Ergue a Guilda dos Aventureiros quando há a quem enviar, e a melhora quando há mais gente
- * pronta no feudo (somada às equipes que já saíram) do que lugares para expedição: sem herói ela não serve de nada, e um nível a
- * mais só rende com uma segunda equipe para mandar. Tudo lido da visão: o edifício
+ * Ergue a Guilda dos Aventureiros quando há a quem enviar **ou alguém prometido a caminho**
+ * (o herói que uma carta deu chega em poucos dias de jogo, e a obra fica pronta para ele), e a
+ * melhora quando há mais gente pronta no feudo (somada às equipes que já saíram) do que lugares
+ * para expedição: sem herói ela não serve de nada, e um nível a mais só rende com uma segunda
+ * equipe para mandar. O explorador a põe **na frente das outras obras**: é ela que dá trabalho
+ * a quem já recebe soldo (revisão da Fase D, M-R1: no ano do Rápido a Guilda só ficava pronta
+ * na última visita, e o ano inteiro passava sem expedição). Tudo lido da visão: o edifício
  * (`guild.building`), os lugares e quem está no feudo. Se a obra não pode começar agora por
  * falta de recurso ou de fila, fica planejada como automática; presa ao Salão ou no teto, não há
  * o que planejar. Como as outras obras, não gasta a madeira da lareira.
@@ -523,17 +527,19 @@ export const erguerGuilda: Policy = {
     // Mais gente pronta do que lugares: há uma equipe que ficaria parada nesta visita.
     const wanted = guild.built
       ? idle + guild.expeditions.length > guild.slots
-      : guild.heroes.length > 0;
+      : guild.heroes.length > 0 || guild.arriving.length > 0;
     if (upgrade === undefined || !wanted || !keepsFirewood(view, upgrade)) {
       return view;
     }
     if (upgrade.blockedCode === null) {
       return act('startConstruction', { building: upgrade.building });
     }
+    // Presa ao Salão, a Guilda **por erguer** fica planejada assim mesmo: começa sozinha no
+    // instante em que o Salão chega ao nível que a abre, sem esperar a visita seguinte.
     const canWait =
       !upgrade.planned &&
       upgrade.blockedCode !== 'MAX_LEVEL' &&
-      upgrade.blockedCode !== 'GATE_LOCKED' &&
+      (upgrade.blockedCode !== 'GATE_LOCKED' || !guild.built) &&
       upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
       upgrade.blockedCode !== 'EXCEEDS_STORAGE';
     return canWait
@@ -548,6 +554,9 @@ export const erguerGuilda: Policy = {
 
 /** A Postura com que o bot envia: a do meio. */
 const BOT_POSTURE = 'balanced';
+
+/** `expedition-12` → 12: o número de ordem da expedição, que a visão traz no identificador. */
+const expeditionNumber = (id: string): number => Number(id.slice(id.lastIndexOf('-') + 1));
 
 type Offer = ViewState['guild']['available'][number];
 type HeroCard = ViewState['guild']['heroes'][number];
@@ -576,41 +585,29 @@ function passesWithRoom(team: readonly HeroCard[], offer: Offer): boolean {
 }
 
 /**
- * As classes que o destino exige, lidas da frase que a tela mostra ("Ao menos um Mago na
- * equipe."), e a conferência pela ficha do herói ("Mago", "Maga"): o bot lê como uma pessoa.
- */
-function requiredClasses(offer: Offer): string[] {
-  return [...offer.requirementsText.matchAll(/Ao menos um (\p{L}+) na equipe/gu)].map(
-    (match) => match[1] ?? '',
-  );
-}
-
-const isOfClass = (hero: HeroCard, label: string): boolean =>
-  hero.classLabel.slice(0, 3) === label.slice(0, 3);
-
-/**
- * A equipe que o bot mandaria a um destino, entre os que podem partir (`canDepart`: o ferido não
- * vai) e têm o nível pedido: primeiro quem o destino exige (um de cada classe pedida), depois
- * **a menor e mais fraca que ainda passa com folga**, para a experiência não ficar toda com os
- * mesmos; se nenhuma passa, a maior e mais forte que houver. `null` quando não há gente
- * bastante, ou falta a classe exigida.
+ * A equipe que o bot mandaria a um destino. A tela diz quem pode ir (`eligibleHeroIds`: está
+ * pronto e tem o nível pedido; o ferido não vai), se alguma equipe serve (`canSend`) e a menor
+ * que serve (`suggestedTeam`, que já leva quem o destino exige): o bot parte dela. Quem a tela
+ * sugere fica; os outros lugares vão para **a menor e mais fraca equipe que ainda passa com
+ * folga**, para a experiência não ficar toda com os mesmos; se nenhuma passa, a maior e mais
+ * forte que houver. `null` quando a tela diz que nenhuma equipe serve.
  */
 function teamFor(view: ViewState, offer: Offer): HeroCard[] | null {
-  const fit = view.guild.heroes
-    .filter((hero) => hero.canDepart && hero.level >= offer.teamMinLevel)
-    .sort((a, b) => fitOf(offer, a) - fitOf(offer, b));
-  const needed: HeroCard[] = [];
-  for (const label of requiredClasses(offer)) {
-    const hero = fit.find((entry) => isOfClass(entry, label) && !needed.includes(entry));
-    if (hero === undefined) {
-      return null;
-    }
-    needed.push(hero);
-  }
-  const others = fit.filter((hero) => !needed.includes(hero));
-  if (needed.length + others.length < offer.teamMin) {
+  if (!offer.canSend) {
     return null;
   }
+  const fit = view.guild.heroes
+    .filter((hero) => offer.eligibleHeroIds.includes(hero.id))
+    .sort((a, b) => fitOf(offer, a) - fitOf(offer, b));
+  // Quem o destino exige: a equipe sugerida tem um de cada classe pedida, e a classe a tela só
+  // diz em frase. O bot fica com os sugeridos que têm a classe dita em "Ao menos um … na equipe".
+  const labels = [...offer.requirementsText.matchAll(/Ao menos um (\p{L}+) na equipe/gu)].map(
+    (match) => (match[1] ?? '').slice(0, 3),
+  );
+  const needed = fit.filter(
+    (hero) => offer.suggestedTeam.includes(hero.id) && labels.includes(hero.classLabel.slice(0, 3)),
+  );
+  const others = fit.filter((hero) => !needed.includes(hero));
   for (let size = Math.max(offer.teamMin, needed.length); size <= offer.teamMax; size += 1) {
     const free = size - needed.length;
     for (let start = 0; start + free <= others.length; start += 1) {
@@ -669,6 +666,119 @@ export const enviarExpedicoes: Policy = {
 };
 
 /**
+ * Quantos destinos a Guilda mostra desde o primeiro dia, sem contar o Resgate: a Patrulha, a
+ * Floresta e o Covil. É o que qualquer jogador vê ao erguê-la; enquanto a lista não passar
+ * disso, nenhuma jornada revelou um caminho novo.
+ */
+const DESTINATIONS_FROM_THE_START = 3;
+
+/** O número da próxima expedição, lido dos identificadores que a tela mostra. */
+function nextExpeditionNumber(view: ViewState): number {
+  const numbers = [
+    ...view.guild.expeditions.map((expedition) => expedition.id),
+    ...view.guild.reports.map((report) => report.expeditionId),
+  ].map(expeditionNumber);
+  return Math.max(0, ...numbers) + 1;
+}
+
+/** Quem pode ir a um destino, do mais forte ao mais fraco contra o primeiro trecho. */
+function strongestFor(view: ViewState, offer: Offer): HeroCard[] {
+  return view.guild.heroes
+    .filter((hero) => offer.eligibleHeroIds.includes(hero.id))
+    .sort((a, b) => fitOf(offer, b) - fitOf(offer, a));
+}
+
+/**
+ * A equipe do ousado: a que a tela sugere (a menor que serve) e, enquanto ela ficar abaixo do
+ * poder em que a pior sorte dá Desastre (`fit.riskPower`), mais um dos mais fortes, até o
+ * tamanho máximo. Fica **entre o risco e a folga** quando dá; `null` quando nem a equipe cheia
+ * chega ao risco (nem o ousado manda gente para o Desastre certo) ou nenhuma equipe serve.
+ */
+function boldTeam(view: ViewState, offer: Offer): HeroCard[] | null {
+  if (!offer.canSend) {
+    return null;
+  }
+  const ranked = strongestFor(view, offer);
+  const team = ranked.filter((hero) => offer.suggestedTeam.includes(hero.id));
+  if (offer.fit === null) {
+    return team;
+  }
+  for (const hero of ranked) {
+    if (powerOf(offer, team) >= offer.fit.riskPower || team.length >= offer.teamMax) {
+      break;
+    }
+    if (!team.includes(hero)) {
+      team.push(hero);
+    }
+  }
+  return powerOf(offer, team) >= offer.fit.riskPower ? team : null;
+}
+
+/**
+ * Envia expedições como quem arrisca (revisão da Fase D, M-R2): é o bot que faz a matriz ver o
+ * Desastre, a captura e o Resgate, que o explorador, sempre com folga, nunca vê. A cada lugar
+ * livre, a primeira destas que valer, só com o que a tela mostra:
+ *
+ * 1. **o Resgate**, quando há alguém em cativeiro (a tela o marca), com os mais fortes;
+ * 2. **a Patrulha, até ela revelar um caminho**: enquanto a lista só tem os destinos de sempre,
+ *    o primeiro deles, com o herói mais fraco que serve;
+ * 3. **o destino mais rico em que a equipe fica entre o risco e a folga** (`boldTeam`), lendo a
+ *    lista de trás para a frente;
+ * 4. sem nenhum, o primeiro destino aberto, com a equipe que a tela sugere.
+ *
+ * **As Posturas se alternam** pelo número da expedição: Cautelosa, Equilibrada, Ousada, na
+ * ordem em que a tela as lista.
+ */
+export const enviarExpedicoesOusado: Policy = {
+  name: 'enviar expedições (ousado)',
+  run: async (view, act) => {
+    let current = view;
+    for (let round = 0; round < current.guild.slots; round += 1) {
+      const open = current.guild.available.filter((offer) => offer.canSend);
+      const rescue = open.find((offer) => offer.rescue);
+      const patrol = open.find((offer) => !offer.rescue);
+      const known = current.guild.available.filter((offer) => !offer.rescue).length;
+      const byId = (ids: readonly string[]) =>
+        current.guild.heroes.filter((hero) => ids.includes(hero.id));
+      let choice: { offer: Offer; team: HeroCard[] } | undefined;
+      if (rescue !== undefined) {
+        choice = { offer: rescue, team: strongestFor(current, rescue).slice(0, rescue.teamMax) };
+      } else if (patrol !== undefined && known <= DESTINATIONS_FROM_THE_START) {
+        choice = {
+          offer: patrol,
+          team: strongestFor(current, patrol).slice(-patrol.teamMin),
+        };
+      } else {
+        for (const offer of [...open].reverse()) {
+          const team = offer.rescue ? null : boldTeam(current, offer);
+          if (team !== null) {
+            choice = { offer, team };
+            break;
+          }
+        }
+        choice ??=
+          patrol === undefined ? undefined : { offer: patrol, team: byId(patrol.suggestedTeam) };
+      }
+      if (choice === undefined || choice.team.length === 0) {
+        return current;
+      }
+      const postures = current.guild.postures;
+      const posture = postures[nextExpeditionNumber(current) % postures.length]?.id ?? BOT_POSTURE;
+      const before = current.guild.expeditions.length;
+      current = await act('sendExpedition', {
+        modelId: choice.offer.modelId,
+        heroIds: choice.team.map((hero) => hero.id),
+        posture,
+      });
+      if (current.guild.expeditions.length === before) {
+        return current;
+      }
+    }
+    return current;
+  },
+};
+
+/**
  * Equipa o melhor item do arsenal: para cada item, do que soma mais ao que soma menos, o herói
  * mais forte que está no feudo e leva naquele espaço nada, ou algo que soma menos. Equipar por
  * cima devolve o anterior ao arsenal, e a rodada seguinte o oferece a outro. Tudo lido da
@@ -708,9 +818,6 @@ export const equiparMelhor: Policy = {
   },
 };
 
-/** `expedition-12` → 12: o número de ordem da expedição, que a visão traz no identificador. */
-const expeditionNumber = (id: string): number => Number(id.slice(id.lastIndexOf('-') + 1));
-
 /**
  * Responde às encruzilhadas que encontra na visita, **em metade delas**; a outra metade fica
  * para a Postura, que decide no fim do prazo (ADR 0018, decisão 11). É o que deixa a matriz
@@ -725,31 +832,42 @@ const expeditionNumber = (id: string): number => Number(id.slice(id.lastIndexOf(
  *
  * A ordem das opções é a da tela: do caminho mais ambicioso ao mais seguro.
  */
-export const escolherCaminho: Policy = {
-  name: 'escolher o caminho',
-  run: async (view, act) => {
-    let current = view;
-    for (const expedition of view.guild.expeditions) {
-      const number = expeditionNumber(expedition.id);
-      if (expedition.crossroads === null || number % 2 === 0) {
-        continue;
+export const escolherCaminho: Policy = escolherCaminhoEm('half');
+
+/**
+ * A mesma política respondendo a **toda** encruzilhada que encontra (`'all'`): é a que mede
+ * quantas encruzilhadas um jogador com tantas visitas por dia chega a decidir antes do prazo
+ * (revisão da Fase D, M-D2). Nas de número par escolhe o caminho do meio.
+ */
+export const escolherTodoCaminho: Policy = escolherCaminhoEm('all');
+
+function escolherCaminhoEm(share: 'half' | 'all'): Policy {
+  return {
+    name: share === 'all' ? 'escolher todo caminho' : 'escolher o caminho',
+    run: async (view, act) => {
+      let current = view;
+      for (const expedition of view.guild.expeditions) {
+        const number = expeditionNumber(expedition.id);
+        if (expedition.crossroads === null || (share === 'half' && number % 2 === 0)) {
+          continue;
+        }
+        const open = expedition.crossroads.options.filter((option) => !option.locked);
+        const hurt = view.guild.heroes.some(
+          (hero) => expedition.teamNames.includes(hero.name) && hero.injury !== null,
+        );
+        const wanted = hurt ? open.length - 1 : number % 4 === 1 ? 0 : Math.min(1, open.length - 1);
+        const option = open[wanted] ?? open.at(-1);
+        if (option !== undefined) {
+          current = await act('chooseExpeditionPath', {
+            expeditionId: expedition.id,
+            optionId: option.id,
+          });
+        }
       }
-      const open = expedition.crossroads.options.filter((option) => !option.locked);
-      const hurt = view.guild.heroes.some(
-        (hero) => expedition.teamNames.includes(hero.name) && hero.injury !== null,
-      );
-      const wanted = hurt ? open.length - 1 : number % 4 === 1 ? 0 : Math.min(1, open.length - 1);
-      const option = open[wanted] ?? open.at(-1);
-      if (option !== undefined) {
-        current = await act('chooseExpeditionPath', {
-          expeditionId: expedition.id,
-          optionId: option.id,
-        });
-      }
-    }
-    return current;
-  },
-};
+      return current;
+    },
+  };
+}
 
 /**
  * Quanto do estoque o festival pode levar: o bot só o dá quando o custo cabe três vezes em cada

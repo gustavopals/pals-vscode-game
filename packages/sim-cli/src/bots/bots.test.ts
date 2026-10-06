@@ -19,9 +19,11 @@ import {
   contratar,
   darFestival,
   enviarExpedicoes,
+  enviarExpedicoesOusado,
   equiparMelhor,
   erguerGuilda,
   escolherCaminho,
+  escolherTodoCaminho,
   alocarPorDemandaFor,
   ampliarEstoque,
   comidaPrimeiro,
@@ -194,20 +196,25 @@ describe('um bot é uma lista de políticas', () => {
       guardarLenha,
     ]);
     // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2, V3C-T2 e V3D-T1) é o econômico mais as
-    // políticas da Guilda: erguer a Guilda dos Aventureiros antes da obra mais barata, e
-    // contratar, dar festival, escolher o caminho, equipar o melhor item (V3D-T2) e enviar
-    // expedições antes da alocação.
-    expect(strategyPolicies.explorador).toEqual(
-      strategyPolicies.economico.flatMap((policy) =>
-        policy === obraMaisBarata
-          ? [erguerGuilda, policy]
+    // políticas da Guilda: erguer a Guilda dos Aventureiros na frente de todas as obras e de
+    // novo depois das cartas (revisão da Fase D, M-R1), e contratar, dar festival, escolher o
+    // caminho, equipar o melhor item (V3D-T2) e enviar expedições antes da alocação.
+    const guildBot = (choose: Policy, send: Policy) => [
+      erguerGuilda,
+      ...strategyPolicies.economico.flatMap((policy) =>
+        policy === responderCartas
+          ? [policy, erguerGuilda]
           : policy === alocarPorDemanda
-            ? [contratar, darFestival, escolherCaminho, equiparMelhor, enviarExpedicoes, policy]
+            ? [contratar, darFestival, choose, equiparMelhor, send, policy]
             : [policy],
       ),
-    );
+    ];
+    expect(strategyPolicies.explorador).toEqual(guildBot(escolherCaminho, enviarExpedicoes));
+    // O ousado (revisão da Fase D, M-R2) é o explorador que arrisca: muda só como responde às
+    // encruzilhadas (a todas) e como envia (entre o risco e a folga, alternando as Posturas).
+    expect(strategyPolicies.ousado).toEqual(guildBot(escolherTodoCaminho, enviarExpedicoesOusado));
     expect(strategyPolicies.explorador).not.toBe(strategyPolicies.economico);
-    expect(Object.keys(strategies)).toEqual(['economico', 'preguicoso', 'explorador']);
+    expect(Object.keys(strategies)).toEqual(['economico', 'preguicoso', 'explorador', 'ousado']);
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
     const names = [
       responderCartas,
@@ -2672,6 +2679,7 @@ describe('bot honesto', () => {
       'economico.ts',
       'explorador.ts',
       'index.ts',
+      'ousado.ts',
       'policies.ts',
       'preguicoso.ts',
       'types.ts',

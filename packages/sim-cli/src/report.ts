@@ -793,7 +793,9 @@ function guildLine({ guild, expeditions }: Summary): string {
       ? 'sem a Guilda dos Aventureiros'
       : `Guilda dos Aventureiros Nv${expeditions.guildLevel}`,
     `${expeditions.sent} expedições: ${outcomes.full} sucessos plenos, ${outcomes.success} sucessos, ${outcomes.setback} reveses, ${outcomes.disaster} desastres`,
-    `encruzilhadas: ${expeditions.crossroadsByPlayer} pelo jogador, ${expeditions.crossroadsByPosture} pela Postura`,
+    `encruzilhadas: ${expeditions.crossroadsByPlayer} pelo jogador, ${expeditions.crossroadsByPosture} pela Postura${
+      expeditions.extraVisits === 0 ? '' : ` (${expeditions.extraVisits} visitas extras)`
+    }`,
     `${expeditions.heroIdleHours} herói-horas paradas`,
     `${expeditions.lootGold} de ouro em saques`,
     fatesText(expeditions.fates),

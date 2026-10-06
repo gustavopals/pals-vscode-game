@@ -1,6 +1,7 @@
 import { DIFFICULTY_IDS, type DifficultyId } from '@lotg/content';
 
 import { KNOWN_PROFILES, MATRIX_SEEDS, type MatrixOptions, windowRealHours } from './matrix';
+import type { StudyOptions } from './expeditionStudy';
 import type { PerfOptions } from './perf';
 import type { RemoteOptions } from './remote';
 import { type SimulationOptions, strategies, type StrategyName } from './simulate';
@@ -10,6 +11,7 @@ export const USAGE = `Uso:
   pnpm -s sim -- --seed <semente> [--days 7 | --game-year] [--strategy economico] [--sessions-per-day 2] [--time-scale 1] [--difficulty lord]
   pnpm -s sim -- --matrix [--seeds 50] [--difficulty lord] [--profile explorador]
   pnpm -s sim -- --perf
+  pnpm -s sim -- --expeditions [--seeds 10] [--difficulty lord]
   pnpm -s sim -- --remote <url> [--bots 50] [--minutes 2] [--poll-ms 2000] [--strategy economico]
   pnpm -s sim -- --smoke <url> [--keep]
 
@@ -24,9 +26,13 @@ jogo oferece, com os perfis de 1, 2 e 4 sessões por dia, o da Guilda e as 50 se
 Há faixas para as três dificuldades; o comando sai com erro se alguma partida ficar fora delas.
 Com --profile, a matriz joga só aquele perfil: preguicoso, regular, dedicado ou explorador (2
 sessões por dia com o bot explorador, que além de cuidar do feudo contrata na Taverna e dá
-festival). As estratégias de --strategy são economico, preguicoso e explorador.
+festival) ou ousado (o explorador que arrisca; sem faixa). As estratégias de --strategy são
+economico, preguicoso, explorador e ousado.
 Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
 advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
+Com --expeditions, joga o estudo das expedições: 7 dias reais em cada ritmo, com 1, 2, 4 e 6
+visitas por dia (e 2 mais a visita de quem atende o aviso da encruzilhada), com o explorador que
+responde a toda encruzilhada e com o ousado, que arrisca. Sem faixa: é medição, em Markdown.
 Com --remote, os bots jogam contra um servidor pela API e o relatório traz p50 e p95 por endpoint.
 Com --smoke, uma conta e uma partida são criadas no servidor para conferir concorrência e
 idempotência das ordens; a conta é excluída no fim, a menos que --keep seja passado.
@@ -36,6 +42,7 @@ export type CliCommand =
   | { mode: 'simulate'; options: SimulationOptions }
   | { mode: 'matrix'; options: MatrixOptions }
   | { mode: 'perf'; options: PerfOptions }
+  | { mode: 'expeditions'; options: StudyOptions }
   | { mode: 'remote'; options: RemoteOptions }
   | { mode: 'smoke'; options: SmokeOptions };
 
@@ -52,7 +59,7 @@ const VALUE_OPTIONS = new Set([
   'strategy',
 ]);
 /** Opções sem valor. */
-const FLAGS = new Set(['keep', 'matrix', 'game-year', 'perf']);
+const FLAGS = new Set(['keep', 'matrix', 'game-year', 'perf', 'expeditions']);
 
 type RawArgs = { values: Record<string, string>; flags: Set<string> };
 
@@ -167,6 +174,18 @@ export function parseCli(argv: string[]): CliCommand {
   if (args.flags.has('perf')) {
     onlyFor(args, '--perf', ['perf']);
     return { mode: 'perf', options: {} };
+  }
+
+  if (args.flags.has('expeditions')) {
+    onlyFor(args, '--expeditions', ['seeds', 'difficulty', 'expeditions']);
+    const count = positiveNumber(values.seeds ?? '10', 'seeds');
+    if (count > MATRIX_SEEDS.length) {
+      throw new Error(`--seeds vai até ${MATRIX_SEEDS.length}: a lista de sementes é fixa.`);
+    }
+    return {
+      mode: 'expeditions',
+      options: { seeds: MATRIX_SEEDS.slice(0, count), difficulty: difficultyOf(args) },
+    };
   }
 
   if (args.flags.has('matrix')) {

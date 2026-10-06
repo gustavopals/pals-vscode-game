@@ -1,10 +1,16 @@
 import { economico, economicoFor, economicoPolicies } from './economico';
 import { explorador, exploradorFor, exploradorPolicies } from './explorador';
+import { ousado, ousadoFor, ousadoPolicies } from './ousado';
 import { preguicoso, preguicosoPolicies } from './preguicoso';
 import type { Bot, Policy } from './types';
 
 /** Os bots, pelo nome que a linha de comando aceita em `--strategy`. */
-export const strategies = { economico, preguicoso, explorador } satisfies Record<string, Bot>;
+export const strategies = {
+  economico,
+  preguicoso,
+  explorador,
+  ousado,
+} satisfies Record<string, Bot>;
 export type StrategyName = keyof typeof strategies;
 
 /** As políticas de cada bot, na ordem em que ele as aplica a cada sessão. */
@@ -12,6 +18,7 @@ export const strategyPolicies: Record<StrategyName, readonly Policy[]> = {
   economico: economicoPolicies,
   preguicoso: preguicosoPolicies,
   explorador: exploradorPolicies,
+  ousado: ousadoPolicies,
 };
 
 const HOURS_PER_DAY = 24;
@@ -20,6 +27,7 @@ const HOURS_PER_DAY = 24;
 const awayAware: Partial<Record<StrategyName, (awayHours: number) => Bot>> = {
   economico: economicoFor,
   explorador: exploradorFor,
+  ousado: ousadoFor,
 };
 
 /**

@@ -80,8 +80,10 @@ function summary(overrides: Partial<Summary> = {}): Summary {
     expeditions: {
       sent: 0,
       outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+      byModel: {},
       crossroadsByPlayer: 0,
       crossroadsByPosture: 0,
+      extraVisits: 0,
       heroIdleHours: 0,
       fates: {
         injured: 0,

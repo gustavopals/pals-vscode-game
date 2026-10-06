@@ -3,14 +3,17 @@ import { describe, expect, it } from 'vitest';
 
 import { identityLine } from './identity';
 import {
+  BOLD_PROFILE,
   EXPLORER_PROFILE,
   formatMatrix,
   gameYearsIn,
   KNOWN_PROFILES,
+  playsCrossroadsVisit,
   MATRIX_SEEDS,
   matrixCsv,
   PROFILES,
   runMatrix,
+  shareText,
   violationsOf,
   windowRealHours,
   YEAR_GAME_HOURS,
@@ -49,13 +52,23 @@ describe('matriz de balanceamento: o que é jogado', () => {
     // Entrou em PROFILES com a primeira política da Guilda (contratar na Taverna): a mesma
     // cadência de visitas do Regular, com outro bot.
     expect(PROFILES).toContain(EXPLORER_PROFILE);
-    expect(KNOWN_PROFILES).toEqual(PROFILES);
+    // O Ousado (revisão da Fase D, M-R2) é conhecido, mas só roda a pedido e não tem faixa.
+    expect(KNOWN_PROFILES).toEqual([...PROFILES, BOLD_PROFILE]);
+    expect(PROFILES).not.toContain(BOLD_PROFILE);
     expect(EXPLORER_PROFILE).toEqual({
       id: 'explorador',
       label: 'Explorador',
       sessionsPerDay: 2,
       strategy: 'explorador',
+      // Em metade das partidas o jogador volta quando a equipe para em uma encruzilhada.
+      crossroadsVisits: 'half',
     });
+    expect(seeds.map((_, index) => playsCrossroadsVisit(EXPLORER_PROFILE, index))).toEqual(
+      seeds.map((_, index) => index % 2 === 0),
+    );
+    for (const profile of PROFILES.filter((entry) => entry.id !== 'explorador')) {
+      expect(playsCrossroadsVisit(profile, 0), profile.id).toBe(false);
+    }
     expect(strategies).toHaveProperty(EXPLORER_PROFILE.strategy);
 
     const explorer = await runMatrix({ seeds, profiles: [EXPLORER_PROFILE] });
@@ -493,5 +506,59 @@ describe('CSV da matriz', () => {
     );
     expect(withoutSeed.size).toBeGreaterThan(matrix.cells.length);
     expect(withoutSeed.size).toBeLessThanOrEqual(lines.length - 1);
+  });
+});
+
+describe('as expedições na matriz (revisão da Fase D, M-D2 e M-R2)', () => {
+  it('a célula do Explorador soma as expedições das sementes, por destino, e separa as encruzilhadas das partidas com e sem a visita extra', async () => {
+    const result = await runMatrix({
+      seeds: MATRIX_SEEDS.slice(0, 4),
+      profiles: [EXPLORER_PROFILE],
+      timeScales: [3],
+    });
+    const week = result.cells.find((cell) => cell.key === 'week/3/explorador');
+    const totals = week?.expeditions;
+    expect(totals?.runs).toBe(4);
+    expect(totals?.sent).toBeGreaterThan(0);
+    // Os envios por destino somam os envios da célula.
+    expect(Object.values(totals?.byModel ?? {}).reduce((sum, model) => sum + model.sent, 0)).toBe(
+      totals?.sent,
+    );
+    // Metade das partidas tem a visita extra, e é nelas que o jogador decide.
+    expect(totals?.crossroadsWithVisit.runs).toBe(2);
+    expect(totals?.crossroadsWithoutVisit.runs).toBe(2);
+    expect(totals?.crossroadsWithVisit.extraVisits).toBeGreaterThan(0);
+    expect(totals?.crossroadsWithVisit.player).toBeGreaterThan(0);
+    // Com duas sessões por dia e o prazo de 6 h reais, a Postura decide tudo o que sobra.
+    expect(totals?.crossroadsWithoutVisit.player).toBe(0);
+    expect(totals?.crossroadsWithoutVisit.posture).toBeGreaterThan(0);
+    expect((totals?.crossroads.player ?? 0) + (totals?.crossroads.posture ?? 0)).toBe(
+      (totals?.crossroadsWithVisit.player ?? 0) +
+        (totals?.crossroadsWithVisit.posture ?? 0) +
+        (totals?.crossroadsWithoutVisit.posture ?? 0),
+    );
+    const report = formatMatrix(result);
+    expect(report).toContain('### Expedições: 7 dias reais');
+    expect(report).toContain('Encruzilhadas: jogador ÷ todas');
+    expect(report).toContain('Floresta Antiga: envios · P/S/R/D');
+  });
+
+  it('o Ousado roda a pedido, sem faixa, e manda a Patrulha até ela revelar um caminho', async () => {
+    const result = await runMatrix({
+      seeds: MATRIX_SEEDS.slice(0, 2),
+      profiles: [BOLD_PROFILE],
+      timeScales: [3],
+    });
+    expect(result.cells.every((cell) => cell.band === null && cell.violations.length === 0)).toBe(
+      true,
+    );
+    const week = result.cells.find((cell) => cell.key === 'week/3/ousado');
+    expect(week?.expeditions.byModel.patrol?.sent ?? 0).toBeGreaterThan(0);
+    expect(formatMatrix(result)).toContain('Nenhuma faixa definida para esta rodada.');
+  });
+
+  it('shareText: a parte, o todo e o percentual; sem nenhuma, um traço', () => {
+    expect(shareText(3, 12)).toBe('3 de 12 (25%)');
+    expect(shareText(0, 0)).toBe('—');
   });
 });

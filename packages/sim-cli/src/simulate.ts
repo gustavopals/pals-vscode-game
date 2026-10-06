@@ -54,6 +54,13 @@ export type SimulationOptions = {
    * nome de `strategy`.
    */
   bot?: Bot;
+  /**
+   * O jogador que volta quando a equipe para (revisão da Fase D, M-D2): além das sessões do
+   * dia, uma **visita extra** ao fim da hora real em que uma expedição chega a uma encruzilhada,
+   * uma por encruzilhada. É o jogador que atende o aviso do jogo; o simulador o lê da visão
+   * (`pendingDecisions`), como o bot lê tudo. Sem isto, só as sessões do dia.
+   */
+  crossroadsVisit?: boolean;
 };
 
 /**
@@ -213,12 +220,18 @@ function addReportedWaste(reported: Record<ResourceId, number>, events: GameEven
 /** Os heróis de uma partida, hora a hora: ver `HourRow.guild`. */
 export type GuildCounts = { heroes: number; arrearsHours: number; departed: number };
 
+export type OutcomeCounts = { full: number; success: number; setback: number; disaster: number };
+
 /** As expedições de uma partida, hora a hora: ver `HourRow.expeditions`. */
 export type ExpeditionCounts = {
   sent: number;
-  outcomes: { full: number; success: number; setback: number; disaster: number };
+  outcomes: OutcomeCounts;
+  /** Os envios e os desfechos dos nós com prova, por destino (a chave do modelo, dos eventos). */
+  byModel: Record<string, { sent: number; outcomes: OutcomeCounts }>;
   crossroadsByPlayer: number;
   crossroadsByPosture: number;
+  /** As visitas extras que o jogador fez por causa de uma encruzilhada (`crossroadsVisit`). */
+  extraVisits: number;
   heroIdleHours: number;
   /** O que os desfechos fizeram aos heróis e ao mundo (V3D-T2), acumulado, pelos eventos. */
   fates: {
@@ -238,8 +251,10 @@ export function noExpeditions(): ExpeditionCounts {
   return {
     sent: 0,
     outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+    byModel: {},
     crossroadsByPlayer: 0,
     crossroadsByPosture: 0,
+    extraVisits: 0,
     heroIdleHours: 0,
     fates: {
       injured: 0,
@@ -272,8 +287,14 @@ export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): v
     if (fate !== undefined) {
       counts.fates[fate] += 1;
     }
+    const model = (): { sent: number; outcomes: OutcomeCounts } =>
+      (counts.byModel[String(event.data.modelId)] ??= {
+        sent: 0,
+        outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+      });
     if (event.type === 'expeditionSent') {
       counts.sent += 1;
+      model().sent += 1;
     } else if (event.type === 'expeditionPathChosen') {
       counts.crossroadsByPlayer += 1;
     } else if (event.type === 'expeditionPostureDecided') {
@@ -287,6 +308,7 @@ export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): v
         outcome === 'disaster'
       ) {
         counts.outcomes[outcome] += 1;
+        model().outcomes[outcome] += 1;
       }
     }
   }
@@ -377,6 +399,12 @@ function rowAt(
     expeditions: {
       ...expeditions,
       outcomes: { ...expeditions.outcomes },
+      byModel: Object.fromEntries(
+        Object.entries(expeditions.byModel).map(([id, counts]) => [
+          id,
+          { sent: counts.sent, outcomes: { ...counts.outcomes } },
+        ]),
+      ),
       fates: { ...expeditions.fates },
     },
     commandsAccepted: commands.accepted,
@@ -430,6 +458,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
   };
   const guild: GuildCounts = { heroes: 0, arrearsHours: 0, departed: 0 };
   const expeditions = noExpeditions();
+  const visitedCrossroads = new Set<string>();
   let commandCount = 0;
 
   const order: Act = async (type, payload) => {
@@ -485,9 +514,21 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       guild.arrearsHours += 1;
     }
     // E a equipe parada: quantos heróis estavam no feudo, sem tarefa, ao fim desta hora.
-    expeditions.heroIdleHours += deriveViewState(state, state.lastProcessedAt, {
-      timeScale,
-    }).guild.heroes.filter((hero) => hero.atHome).length;
+    const atHourEnd = deriveViewState(state, state.lastProcessedAt, { timeScale });
+    expeditions.heroIdleHours += atHourEnd.guild.heroes.filter((hero) => hero.atHome).length;
+    // O jogador que atende o aviso: uma visita a mais por encruzilhada que apareceu nesta hora.
+    if (options.crossroadsVisit === true && hour < realHours) {
+      const waiting = atHourEnd.pendingDecisions
+        .filter((decision) => decision.kind === 'crossroads')
+        .map((decision) => decision.id);
+      if (waiting.some((id) => !visitedCrossroads.has(id))) {
+        expeditions.extraVisits += 1;
+        await bot(atHourEnd, act);
+      }
+      for (const id of waiting) {
+        visitedCrossroads.add(id);
+      }
+    }
     rows.push(
       rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids, guild, expeditions),
     );
