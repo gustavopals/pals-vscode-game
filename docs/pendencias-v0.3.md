@@ -184,6 +184,7 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - O risco: `promiseHero` não olhava `arrivingCap`; uma quinta promessa só era barrada pela guarda de forma, ao gravar, com erro 500 em toda escrita daquela partida. E o mesmo herói com nome podia ser prometido duas vezes.
 - Enquanto isso: quem já foi prometido ou já serve ao feudo (pelo nome: os nomes de carta nunca são sorteados para candidato) não é prometido de novo, e a carta que o daria não diz que deu. Com isso a lista tem no máximo um lugar por herói com nome, e um teste de conteúdo exige que eles caibam todos no teto: a recompensa nunca é perdida por ele. Nenhuma carta de hoje chega a esses casos.
 - Onde: `promiseHero`, em `packages/engine/src/arrivals.ts`; `packages/content/src/content.test.ts`.
+- Um efeito de teste, não de jogo: os retratos da guilda na versão 14 foram montados à mão com heróis chamados Edda e Rolf, e neles a carta da estrangeira já não dá um segundo herói do mesmo nome; `migrations.test.ts` diz isso. Nenhuma partida real tinha herói antes da carta.
 - Se decidir diferente: se algum dia uma carta puder dar "outro" herói com o mesmo nome (um irmão, um retorno), o herói precisa de um identificador de origem no estado.
 
 **C-52. O atraso fecha com o saldo de ouro exatamente em zero.** *(Mudança de regra e de uma frase do GDD §9.1; revisão M-R6.)*
@@ -211,6 +212,29 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - "Soldo em atraso: o cofre está vazio e N heróis não recebem" era dita também com a Mina pagando parte do soldo. Agora, com a Mina entregando ouro: "Soldo em atraso: o cofre está vazio, e o que a Mina de Ouro entrega paga só parte do soldo de 3 heróis."
 - "o atraso fecha quando o ouro voltar a sobrar" virou "quando o ouro voltar a pagar a equipe inteira" (C-52: o saldo em zero fecha).
 - Onde: `wageArrearsTexts`, em `packages/content/src/heroes.ts` (também a frase de quem espera à porta); `arrearsText`, em `packages/engine/src/guildView.ts`. As frases da Taverna e da moral continuam montadas no motor, como já eram.
+
+**C-57. Dúvida: pagar 2 h reais de soldo zera um atraso de qualquer idade.** *(Revisão M-R2; nada mudou.)*
+- Enquanto isso: é a janela da decisão 3. Um atraso de três dias, com os heróis Descontentes e um deles para partir, vira um atraso novo se o soldo ficar em dia por 2 h reais seguidas: no ritmo Rápido, com um herói, são 8 de ouro (12 de soldo no cofre para dois). Os prazos de 12 h e 24 h recomeçam do zero.
+- Onde: `balance.heroes.arrears.resumeWithinRealMs`; `stepWageArrears`.
+- Se decidir diferente: uma janela maior (ou proporcional à duração do atraso) é um número do conteúdo; "perdoar só depois de pagar tanto quanto se deveu" seria dívida, que a decisão 3 recusou.
+
+**C-58. Dúvida: cinco traços prometem efeitos que só existem nas Fases D e F, e a Taverna cobra por eles.** *(Revisão M-R5; nada mudou. Importa para a publicação.)*
+- Enquanto isso: Corajoso, Prudente, Ganancioso, Rastreador e Carismático têm frase na ficha ("Rende mais quando a ordem é de ousadia…") e entram no preço do candidato, mas na Fase C só o Leal, o Devoto, o Veterano (pelo nível) e o desconto do Carismático fazem alguma coisa. Quem contrata hoje um Rastreador paga por um efeito que o jogo ainda não tem.
+- **A Fase C não deve ser publicada sozinha sem isso dito a quem joga** (uma nota na ficha, ou a publicação junto com a Fase D). É a mesma ressalva do item 2 do topo deste arquivo (soldo de heróis sem trabalho), agora com dinheiro do jogador em cima.
+- Onde: `heroTraits`, em `packages/content/src/heroes.ts` (`effects: {}`); `tavernCandidates`.
+- Se decidir diferente: (a) publicar a Fase C só com a D; (b) a ficha dizer "vale nas expedições, que ainda não abriram" enquanto o efeito não existir; (c) tirar da rotação, até a Fase D, os modelos cujo único traço não faz nada.
+
+**C-59. Dúvida: dispensar quem estava para partir não poupa o próximo.** *(Revisão M-Q1; nada mudou.)*
+- Enquanto isso: a dispensa não conta como herói cobrado pelo prazo (`departed` não sobe). Se a virada devia levar Rolf e o senhor o dispensa um minuto antes, a virada leva o seguinte da fila. É coerente com "dispensar não é pagar", mas pode surpreender quem dispensou para "escolher quem sai".
+- Onde: `dismissHero` e `turnWages`, em `packages/engine/src/wages.ts`; teste "durante o atraso: dispensar não conta como herói cobrado".
+- Se decidir diferente: a dispensa durante o atraso passa a contar como um devido cobrado (uma linha), e a tela diz isso na confirmação.
+
+**C-60. Dúvida de nome: `departed` conta também os perdoados.** *(Revisão M-Q2; nada mudou.)*
+- Enquanto isso: `wageArrears.departed` (e `famine.deserted`, o molde) é "até onde a conta do prazo já foi cobrada", e sobe também quando ninguém parte (só Leais; desde C-50, só recém-chegados). O evento `wageArrearsEnded` leva esse número em `data.departed`, e o Relatório de Retorno não deve lê-lo como "heróis que partiram": para isso há os eventos `heroLeft`.
+- Se decidir diferente: renomear o campo é versão nova do estado e passo de migração; só vale a pena junto de outra mudança de forma.
+
+**C-61. Registrado, sem ação: `offer-7` e `hero-3` deixam inferir os contadores.** *(Revisão M-Q4.)*
+- Os identificadores que a visão mostra são `<tipo>-<n>`, e o maior `n` visto diz quantas ofertas e heróis a partida já criou. É inofensivo (não revela sorteio futuro), e o `CLAUDE.md` foi ajustado para dizer que é o objeto `ids` que não sai na visão.
 
 ### Fase C: a interface da Guilda (V3C-T4)
 
@@ -485,6 +509,15 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C: correções da revisão (V3C-T5)
+
+- **Nenhuma partida real passou pelas regras novas.** A cobrança do atraso e da fome fechados dentro da janela (C-47, C-48) só foi exercitada em teste; a da fome muda partidas vivas da v0.2 no dia em que for publicada.
+- **A matriz do simulador não mede nada disso**: nenhum bot passa 12 h reais com fome nem com o soldo em atraso. As faixas continuaram verdes no `pnpm test` depois de cada correção, mas os números da matriz não foram comparados um a um com os de `docs/balance-v0.3.md`, seção 4.
+- **O app não mostra os dois campos novos** (`guild.wage.afterArrivals` e `guild.wage.lingering`) nem foi ajustado para os eventos com `spent_`: os testes do app passam porque o Relatório já soma `spent_<recurso>` de qualquer evento, mas não há teste do relatório com `heroHired` e `festivalHeld`.
+- **O termo da fome na moral** continua evitável com o vaivém de C-48.
+- A propriedade de divisão de intervalo (`wages.property.test.ts`) passou sem mudança, mas os geradores dela não foram estendidos para pôr heróis que chegam no meio de um atraso nem para fechar o atraso logo antes de uma virada: esses dois casos têm só os testes de exemplo de `wages.test.ts` (inteiro contra aos pedaços em um deles).
+- `pnpm capture:landing`, `test:e2e:landing`, `--perf` e `docker:build`: não rodados (nenhuma tela mudou).
 
 ### Fase C (V3C-T4)
 
