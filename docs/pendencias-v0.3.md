@@ -2,12 +2,30 @@
 
 > **Para ler primeiro.** Em 2026-10-05, com a v0.2 fechada e no ar, o autor respondeu em uma sessão de perguntas às decisões de regra da v0.3 (ADRs [0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e [0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md)) e pediu a implementação da versão inteira nesta execução, tudo no `main`, com `push` quando houver versão estável. Este documento é a caixa de entrada dele, no formato de [pendencias-v0.2.md](pendencias-v0.2.md): o que foi decidido e de que modo, o que só ele pode fazer, as dúvidas que a implementação levantar e o que ficar sem verificação. É registro, não leitura obrigatória: o que precisar de resposta chega como pergunta curta com opções. Nasceu na tarefa V3A-T1 do [roadmap da v0.3](roadmap-v0.3.md) e cresce a cada fase.
 
+## 0. Respostas do autor em 2026-10-06
+
+Com a Fase C implementada e revista, o autor respondeu em sessão de perguntas a três pontos. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), seção "Respostas de 2026-10-06". O que segue abaixo, das seções 1 a 6, **não foi reescrito**: onde o texto diz "para o autor confirmar", "enquanto isso" ou "se decidir diferente" nos itens desta tabela, leia com ela por cima.
+
+| Item | Pergunta | Resposta |
+|---|---|---|
+| **C-47** e **C-48**, o furo da virada | A virada do dia deve cobrar o que o prazo já devia quando o atraso do soldo (ou a fome) fechou há menos de 2 h reais? | **"Manter: o que venceu é cobrado."** A correção fica como está, no soldo **e na fome da v0.2**: se o prazo venceu enquanto havia fome ou atraso, resolver depois não desfaz; a virada seguinte dentro da janela cobra o que já era devido. A mudança de regra da v0.2 em partidas vivas (C-48) está **confirmada** |
+| **C-57**, a janela do atraso (revisão M-R2) | Pagar 2 h reais de soldo zera um atraso de qualquer idade? | **"Fica assim."** 2 h reais sem atraso e o prazo recomeça do zero, como a fome |
+| **A-3** e **C-58**, a publicação | A Fase C vai ao ar sozinha? | **Não.** O agente não tem permissão de `push` (a política da sessão nega), e o autor escolheu: o agente segue com commits locais; **ao fechar a Fase D (expedições), o agente faz o backup manual do banco e avisa, e o autor roda `git push origin main`**. O motivo é o das dúvidas A-3 e C-58: a Fase C sozinha cobra soldo de heróis sem trabalho e vende traços cujo efeito só existe com as expedições |
+
+**O que a resposta da publicação muda, e fica registrado:**
+
+- **A produção salta do estado 12 direto para o da Fase D.** O migrador roda os passos em sequência (12 → 13 → … → o da Fase D) na primeira leitura de cada partida ou no job de avanço; a imagem que está no ar recusa um estado de versão futura com `500`, sem gravar nada.
+- **A regra "uma fase não sobe o estado em cima de outra não publicada"** (roadmap, §0.8; ADR 0017, decisão 2) **deixa de valer entre as Fases B, C e D**, por decisão do autor. Nenhuma das três vai ao ar em separado, e não há imagem intermediária para servir de destino de reversão: o ponto de retorno é o backup de antes do `push` e a imagem da `v0.2.0`.
+- **"Versão estável" deixou de ser "todo fim de fase"** (a interpretação do agente na dúvida A-3): a primeira publicação da v0.3 é a do fim da Fase D, e quem dá o `push` é o autor.
+- **O ato 23 continua por fazer** (backup fora do servidor, cópia do `RECOVERY_CODE_SECRET`, ensaio de reversão): a resposta não o cumpre, e agora a primeira migração a chegar à produção atravessa de uma vez os passos 12 → 16 e os que a Fase D acrescentar (A-2).
+- **O que não muda:** as outras dúvidas da Fase C (C-1 a C-46, C-49 a C-56, C-59 a C-66) continuam sem resposta do autor, e o autor **não jogou a fase** (V3C-T5.4): o roteiro de 15 minutos está na seção 7.
+
 ## 1. O mais importante
 
 Em seis linhas, por ordem de importância:
 
 1. **O backup fora do servidor, a cópia do `RECOVERY_CODE_SECRET` e o ensaio de reversão continuam por fazer, e a v0.3 vai subir a versão do estado em produção assim mesmo** (seção 3; dúvida A-2). O roadmap dizia que esses atos bloqueavam a chegada de qualquer migração de estado à produção; a autorização de `push` de 2026-10-05 não os cumpre. O agente faz um backup manual no servidor antes de cada `push` que sobe o estado: é o mínimo, não o substituto.
-2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. "Versão estável" foi lido como o fim de uma fase com o portão inteiro verde; publicar a Fase C sozinha cobra soldo de heróis que ainda não têm trabalho. Se a régua for outra (por exemplo, só depois da Fase D), basta dizer.
+2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. **Respondido em 2026-10-06 (seção 0): a Fase C não vai ao ar sozinha.** O agente segue com commits locais, e a primeira publicação da v0.3 é a do fim da Fase D, com o `push` dado pelo autor depois do backup manual; a produção salta do estado 12 direto para o da Fase D.
 3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
@@ -98,7 +116,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: roadmap, §0.6 e §9.3 (ato 23); ADR 0017, "Consequências"; [deploy/README.md](../deploy/README.md), "Antes de um deploy que sobe a versão do estado".
 - Se decidir diferente: se o ato 23 tiver de vir antes, nenhuma fase que sobe o estado (da B em diante) é publicada até ele ser feito; os commits continuam no `main` local.
 
-**A-3. "Versão estável" é o fim de uma fase com o portão inteiro verde?**
+**A-3. "Versão estável" é o fim de uma fase com o portão inteiro verde?** **Respondida em 2026-10-06: a primeira publicação da v0.3 é a do fim da Fase D, pelo autor (seção 0).**
 - Enquanto isso: é essa a leitura. Cada fase que fecha com `pnpm verify`, integração, navegador e a matriz do simulador verdes pode ser publicada. Consequência dita: publicar a Fase C sozinha entrega a quem joga heróis que cobram soldo e ainda não têm trabalho (a Guilda é da Fase D).
 - Onde: ADR 0017, decisão 2 e "Consequências".
 - Se decidir diferente: com a régua "só depois da Fase D" (ou "só no fim da versão"), as fases se acumulam no `main` local e a publicação seguinte sobe várias versões do estado de uma vez, em passos, um por fase.
@@ -147,7 +165,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 
 Vêm das revisões independentes da Fase C. Cada item diz o que a correção **mudou de regra**; os de "dúvida" não mudaram nada e só pedem resposta. **Nenhuma foi perguntada ao autor**: as de regra foram decididas pelo orquestrador ou pelo agente das correções, e os commits são os `V3C: corrige …`.
 
-**C-47. A virada do dia cobra também o atraso do soldo que fechou há menos de 2 h reais.** *(Mudança de regra; revisão M-D1.)*
+**C-47. A virada do dia cobra também o atraso do soldo que fechou há menos de 2 h reais.** *(Mudança de regra; revisão M-D1.)* **Respondida em 2026-10-06: "Manter: o que venceu é cobrado" (seção 0).**
 - O defeito: a virada só cobrava o atraso **aberto** naquele instante. Pôr três aldeões na Mina um segundo antes de cada virada e tirá-los um segundo depois fechava e reabria o mesmo atraso para sempre: trinta dias de jogo, sessenta horas de atraso contadas, nenhum herói Descontente na virada, nenhum herói partindo.
 - Enquanto isso: a virada que encontra o atraso fechado **dentro da janela de retomada** (a mesma das 2 h reais da decisão 3) cobra as partidas que a duração dele já devia e ainda não tinha cobrado. Ninguém fica Descontente com o atraso fechado. Fora da janela, nada.
 - **A consequência que o autor precisa conhecer:** quem paga de verdade um atraso velho pode perder um herói mesmo assim. Se o atraso passou das 24 h reais (ou de mais um passo de 2 h) depois da última virada e o ouro chegou antes da seguinte, o herói que o prazo já devia parte nessa virada, com o soldo em dia. Pagar antes de o prazo vencer é o que o segura. Não há como o motor distinguir o pagamento de verdade do truque sem olhar o futuro.
@@ -155,7 +173,7 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `wageLedgerAt` e `turnWages`, em `packages/engine/src/wages.ts`; README do motor, "Heróis e soldo".
 - Se decidir diferente: (a) cobrar só quando o atraso **reabrir** dentro da janela (ninguém que pagou e ficou em dia perde herói; a partida passa a acontecer no instante em que o ouro acaba de novo, fora da virada, e a ordem do instante ganha um passo); (b) aceitar o truque como jogada legítima (ele pede presença em toda virada) e voltar à regra antiga.
 
-**C-48. A deserção por fome da v0.2 tinha o mesmo furo, e foi corrigida do mesmo jeito: é mudança de regra em partidas vivas.** *(Mudança de regra da v0.2, feita pelo agente no espírito do ADR 0016, item 3; para o autor confirmar. Revisão M-D1b.)*
+**C-48. A deserção por fome da v0.2 tinha o mesmo furo, e foi corrigida do mesmo jeito: é mudança de regra em partidas vivas.** *(Mudança de regra da v0.2, feita pelo agente no espírito do ADR 0016, item 3; para o autor confirmar. Revisão M-D1b.)* **Confirmada pelo autor em 2026-10-06: "Manter: o que venceu é cobrado" (seção 0).**
 - O defeito, reproduzido: fome aberta, e todos os aldeões mandados à Fazenda um segundo antes de cada virada e tirados um segundo depois. Em doze dias de jogo no ritmo 1 a fome fechou e reabriu doze vezes, contou mais de 20 h, e **ninguém desertou**. A janela do ADR 0016 guardava a duração, mas a virada só cobrava a fome aberta.
 - Enquanto isso: a virada que encontra a fome fechada **há menos de 2 h reais** cobra os desertores que a duração dela já devia; a conta fica em `lastFamine.deserted`. O piso de 3 e a dificuldade Camponês valem como antes. Nenhuma forma de estado mudou, não há passo de migração, e nenhum golden nem retrato mudou.
 - **Quem joga de verdade sente assim:** se a fome passou das 12 h reais (ou de mais um passo de 2 h) depois da última virada e a comida voltou antes da seguinte, o aldeão que já era devido deserta nessa virada, com a despensa cheia. A aba da moral avisa antes ("A fome acabou há pouco, mas já devia um aldeão: ele deserta na próxima virada do dia, em 1 h."). O texto do aviso é rascunho do agente.
@@ -213,12 +231,12 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - "o atraso fecha quando o ouro voltar a sobrar" virou "quando o ouro voltar a pagar a equipe inteira" (C-52: o saldo em zero fecha).
 - Onde: `wageArrearsTexts`, em `packages/content/src/heroes.ts` (também a frase de quem espera à porta); `arrearsText`, em `packages/engine/src/guildView.ts`. As frases da Taverna e da moral continuam montadas no motor, como já eram.
 
-**C-57. Dúvida: pagar 2 h reais de soldo zera um atraso de qualquer idade.** *(Revisão M-R2; nada mudou.)*
+**C-57. Dúvida: pagar 2 h reais de soldo zera um atraso de qualquer idade.** *(Revisão M-R2; nada mudou.)* **Respondida em 2026-10-06: "Fica assim" (seção 0).**
 - Enquanto isso: é a janela da decisão 3. Um atraso de três dias, com os heróis Descontentes e um deles para partir, vira um atraso novo se o soldo ficar em dia por 2 h reais seguidas: no ritmo Rápido, com um herói, são 8 de ouro (12 de soldo no cofre para dois). Os prazos de 12 h e 24 h recomeçam do zero.
 - Onde: `balance.heroes.arrears.resumeWithinRealMs`; `stepWageArrears`.
 - Se decidir diferente: uma janela maior (ou proporcional à duração do atraso) é um número do conteúdo; "perdoar só depois de pagar tanto quanto se deveu" seria dívida, que a decisão 3 recusou.
 
-**C-58. Dúvida: cinco traços prometem efeitos que só existem nas Fases D e F, e a Taverna cobra por eles.** *(Revisão M-R5; nada mudou. Importa para a publicação.)*
+**C-58. Dúvida: cinco traços prometem efeitos que só existem nas Fases D e F, e a Taverna cobra por eles.** *(Revisão M-R5; nada mudou. Importa para a publicação.)* **Respondida em 2026-10-06: a Fase C é publicada só com a D, opção (a) (seção 0).**
 - Enquanto isso: Corajoso, Prudente, Ganancioso, Rastreador e Carismático têm frase na ficha ("Rende mais quando a ordem é de ousadia…") e entram no preço do candidato, mas na Fase C só o Leal, o Devoto, o Veterano (pelo nível) e o desconto do Carismático fazem alguma coisa. Quem contrata hoje um Rastreador paga por um efeito que o jogo ainda não tem.
 - **A Fase C não deve ser publicada sozinha sem isso dito a quem joga** (uma nota na ficha, ou a publicação junto com a Fase D). É a mesma ressalva do item 2 do topo deste arquivo (soldo de heróis sem trabalho), agora com dinheiro do jogador em cima.
 - Onde: `heroTraits`, em `packages/content/src/heroes.ts` (`effects: {}`); `tavernCandidates`.
@@ -636,3 +654,40 @@ Do mais arriscado para o menos. A lista cresce a cada fase.
 8. **Estoque acima do limite nos retratos de estado da versão 12** e a cobertura de partidas migradas (um cenário só, Senhor no ritmo 3): herdados de V3A-T1.5, são a primeira coisa a olhar em V3B-T1.1.
 9. **As dívidas da §10.1 do roadmap** foram reconferidas por busca no código, não por execução: nenhum teste foi escrito para elas.
 10. **Os documentos em Markdown desta tarefa** tiveram links e âncoras conferidos por roteiro; não foram vistos em um visualizador.
+
+## 7. Roteiro de 15 minutos para o autor jogar a Fase C (V3C-T5.4)
+
+É a subtarefa V3C-T5.4 do roadmap, que **não aconteceu**: o autor recebe a estrangeira, ergue a Taverna, contrata, deixa o ouro acabar e volta. No molde de [manual-test-v0.2.md](manual-test-v0.2.md), jeito B (o servidor de teste, de relógio adiantável), no ritmo **Rápido**. O que ele entender e o que não entender volta para a seção 5 deste arquivo.
+
+> **Estado em 2026-10-06.** Ninguém executou este roteiro. Os comandos foram montados a partir de `tests/e2e/server.ts` e de `tests/e2e/09-guilda.spec.ts`, que usa as mesmas rotas, e **não foram rodados à mão** por quem escreveu. As rotas `/__test` valem para todos os feudos do `db_test`, que o servidor de teste **esvazia ao subir**: não rode junto com `pnpm test:integration` nem `pnpm test:e2e`. Se um passo não funcionar como está escrito, anote e corrija aqui.
+
+**Preparação (2 min).**
+
+```bash
+pnpm dev:up
+# terminal 1: a API de teste na porta 3100, com o Rápido como padrão
+GAME_TIME_SCALE=3 pnpm --filter @lotg/server exec tsx ../../tests/e2e/server.ts
+# terminal 2: o app falando com ela
+LOTG_API_URL=http://127.0.0.1:3100 pnpm dev:web
+# terminal 3: os atalhos
+API=http://127.0.0.1:3100
+t() { curl -s -X POST $API/__test/$1 -H 'content-type: application/json' -d "${2:-{\}}"; echo; }
+```
+
+Abra `http://localhost:5173` em uma janela anônima, escolha **Senhor** e **Rápido** e clique em **Jogar agora**. Depois, `t council-recess` e `t horde-quiet`, para nenhuma outra carta nem os lobos entrarem no caminho. Depois de cada atalho, a tela muda na leitura seguinte (até 30 s) ou ao recarregar.
+
+| # | Minutos | O que fazer | O que observar e anotar |
+|---|---|---|---|
+| 1 | 3 | **A estrangeira.** `t council-deal '{"cardId":"woundedStranger"}'`. Abra a aba **Conselho** e leia as duas opções. Antes de responder, abra a aba **Guilda**. Responda **"Cuidar e deixar partir"** (é a que dá o arqueiro, que não é Leal: só com ele o resto do roteiro mostra o Descontente e a partida). `t advance '{"ms":2460000}'` (41 minutos reais: um dia de jogo) | A carta diz, antes do clique, quem vem, quando e quanto custa de soldo? A aba Guilda sem herói explica como o primeiro chega? Depois da resposta, Rolf aparece como "chega em…" na aba e na árvore? Ao chegar: aviso, linha na Crônica, "Heróis 1" no cabeçalho, o soldo na linha do ouro. **Em produção esta carta chega sozinha, na audiência do 13º dia de jogo (8 h reais no Rápido), e a quem já passou dele, na primeira audiência com lugar** |
+| 2 | 2 | **A Taverna.** A obra de verdade pede o Salão no nível 3. Atalho: `t raise '{"building":"townHall","level":3}'` e `t raise '{"building":"tavern","level":1}'`. (Sem atalho: com o Salão no 3, a obra custa 180 de madeira, 60 de pedra e 120 de ouro e leva 5 minutos reais no Rápido.) | Antes do atalho: a aba Guilda diz o que abre a Taverna? Depois: dois candidatos, cada um com classe, traços, preço e soldo; "troca em…"; a moral ganhou o termo "Taverna Nv1" (na virada seguinte); o limite passou a 2 heróis. As frases dos traços dizem o que eles fazem **hoje**? (Cinco deles só têm efeito com as expedições: C-58) |
+| 3 | 3 | **Contratar e festejar.** `t stock '{"resource":"gold","amount":400}'` e `t stock '{"resource":"food","amount":400}'`. Contrate um candidato pelo painel. Tente contratar o outro. Dê o **festival**. Abra a paleta (F1) e procure "dispensar": abra a confirmação e cancele | O preço e o soldo conferem com o que saiu do ouro? O segundo candidato fica bloqueado **com o motivo** (o limite de heróis)? "O ouro paga a equipe por mais…" faz sentido? O festival diz custo, efeito e que é um por estação? Contratar e festival não pedem confirmação (C-41): fez falta? |
+| 4 | 3 | **O ouro acaba.** Deixe a Mina de Ouro sem ninguém e rode `t stock '{"resource":"gold","amount":0}'`. Olhe a barra de status, a árvore, a aba Guilda e, na aba **Hoje**, "Antes de partir". Depois `t advance '{"ms":46800000}'` (13 h reais) e, em seguida, `t advance '{"ms":43200000}'` (mais 12 h: 25 h de atraso) | O atraso abre na hora, com aviso? A aba diz "Descontentes em…" e "Um herói parte em…" com prazos que você entende sem conta? Com 13 h: os dois ficam Descontentes (nenhum é Leal), o poder cai, a Crônica diz. Com 25 h: **parte o que chegou por último** (o contratado); Rolf é o seguinte, 2 h reais depois (`t advance '{"ms":7200000}'` mostra, e aí o atraso fecha por não haver mais a quem pagar). Era o que você esperava de "sem dívida"? |
+| 5 | 2 | **A volta.** No console do navegador, o trecho de "O Relatório de Retorno depois de um salto" de [manual-test-v0.2.md](manual-test-v0.2.md), e recarregue. Depois `t stock '{"resource":"gold","amount":300}'` | O Relatório de Retorno conta o atraso, o Descontente e quem partiu em "O que exigiu um preço"? Com o ouro de volta: o atraso fecha com aviso de alívio, e ninguém mais está Descontente? Se a aba mostrar "O soldo voltou a ser pago, mas o atraso já devia um herói: … parte na próxima virada do dia", é a regra que você confirmou em 2026-10-06 ("o que venceu é cobrado"): a frase explica? |
+
+**Três perguntas para responder no fim** (uma linha cada):
+
+1. Você soube, em algum momento, **o que fazer com um herói**? (Na Fase C a resposta certa é "nada ainda": a tela diz isso de um jeito aceitável?)
+2. Os prazos do atraso (12 h, 24 h, 2 h, em tempo real) pareceram justos para quem some uma noite?
+3. Qual frase você reescreveria primeiro?
+
+**O que este roteiro não mostra:** a carta chegando sozinha no 13º dia; a rotação dos candidatos (8 h reais no Rápido; `t advance '{"ms":28800000}'` a mostra); a Taverna acima do nível 1; o herói prometido que espera lugar; o jogo em outro ritmo.
