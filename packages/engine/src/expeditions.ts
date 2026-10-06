@@ -395,28 +395,112 @@ export function teamBlock(
     }
     team.push(hero);
   }
+  const shortfall = teamShortfall(model, team);
+  return shortfall === null
+    ? null
+    : reject('TEAM_INVALID', { label: model.label, remedy: shortfall });
+}
+
+/**
+ * O que falta a uma equipe para o que o modelo pede, sem ponto ("a jornada pede 2 heróis",
+ * "Rolf ainda não chegou ao nível 3", "falta um Mago"), ou `null` quando ela serve: o tamanho,
+ * depois o nível, depois a classe. **É a fonte única**: a recusa da ordem (`teamBlock`) e o que
+ * a visão diz de cada destino (`teamOutlook`) saem daqui.
+ */
+export function teamShortfall(model: ExpeditionModelDef, team: readonly Hero[]): string | null {
   const { requires } = model;
   if (team.length < requires.teamMin || team.length > requires.teamMax) {
-    return reject('TEAM_INVALID', {
-      label: model.label,
-      remedy: `a jornada pede ${teamSizeText(requires)}`,
-    });
+    return fillText(expeditionTexts.shortSize, { equipe: teamSizeText(requires) });
   }
   const green = team.find((hero) => hero.level < requires.minHeroLevel);
   if (green !== undefined) {
-    return reject('TEAM_INVALID', {
-      label: model.label,
-      remedy: `${green.name} ainda não chegou ao nível ${requires.minHeroLevel}`,
+    return fillText(expeditionTexts.shortLevel, {
+      heroi: green.name,
+      nivel: requires.minHeroLevel,
     });
   }
   const missing = requires.classes.find((needed) => !team.some((hero) => hero.classId === needed));
   if (missing !== undefined) {
-    return reject('TEAM_INVALID', {
-      label: model.label,
-      remedy: `falta um ${heroClasses[missing].label}`,
-    });
+    return fillText(expeditionTexts.shortClass, { classe: `um ${heroClasses[missing].label}` });
   }
   return null;
+}
+
+/** Quem pode ir a um destino, a equipe que o motor montaria e, sem equipe possível, o que falta. */
+export type TeamOutlook = {
+  /** Quem pode ir, na ordem da lista do feudo: está pronto e tem o nível que o modelo pede. */
+  eligible: Hero[];
+  /** A menor equipe que serve, com os mais fortes contra o primeiro trecho; vazia sem nenhuma. */
+  suggested: Hero[];
+  /** O que falta para haver uma equipe, sem ponto; `null` quando há. */
+  shortfall: string | null;
+};
+
+/**
+ * A equipe que o feudo pode mandar a um destino **agora**, pelo que o modelo pede (o tamanho, o
+ * nível e a classe; o destino fechado é conta de `destinationBlock`).
+ *
+ * - **Quem pode ir**: quem está pronto (`canDepart`) e tem o nível do modelo.
+ * - **A equipe sugerida** é a menor que serve: um herói de cada classe exigida (o de maior
+ *   `power`; no empate, o que chegou antes) e, até o tamanho mínimo, os de maior `power` que
+ *   sobram. Se alguma equipe serve, esta serve: as classes exigidas são distintas, e o resto do
+ *   modelo só pede gente.
+ * - **O que falta** vem de `teamShortfall`, a mesma conta da recusa da ordem, sobre essa equipe;
+ *   quando falta gente, a frase diz quantos podem partir.
+ *
+ * `power` é o poder de cada herói contra a prova mais dura do primeiro trecho (o que a visão
+ * mostra em `heroFit`). Não sorteia e não muda nada.
+ */
+export function teamOutlook(
+  state: GameState,
+  model: ExpeditionModelDef,
+  power: (hero: Hero) => number,
+): TeamOutlook {
+  const { requires } = model;
+  const eligible = state.guild.heroes.filter(
+    (hero) => canDepart(hero) && hero.level >= requires.minHeroLevel,
+  );
+  // Do mais forte ao mais fraco; a ordenação é estável, e o empate fica na ordem de chegada.
+  const ranked = [...eligible].sort((a, b) => power(b) - power(a));
+  const picked: Hero[] = [];
+  for (const needed of requires.classes) {
+    const found = ranked.find((hero) => hero.classId === needed && !picked.includes(hero));
+    if (found !== undefined) {
+      picked.push(found);
+    }
+  }
+  for (const hero of ranked) {
+    if (picked.length >= requires.teamMin) {
+      break;
+    }
+    if (!picked.includes(hero)) {
+      picked.push(hero);
+    }
+  }
+  // Na ordem da lista do feudo: é a ordem em que a ordem de envio os receberia da tela.
+  const suggested = eligible.filter((hero) => picked.includes(hero));
+  const shortfall = teamShortfall(model, suggested);
+  if (shortfall === null) {
+    return { eligible, suggested, shortfall: null };
+  }
+  const short = eligible.length < requires.teamMin;
+  return {
+    eligible,
+    suggested: [],
+    shortfall: short
+      ? fillText(
+          eligible.length === 0 ? expeditionTexts.shortNobody : expeditionTexts.shortPeople,
+          {
+            pedido: `${teamSizeText(requires)}${
+              requires.minHeroLevel > 1
+                ? fillText(expeditionTexts.shortAtLevel, { nivel: requires.minHeroLevel })
+                : ''
+            }`,
+            prontos: plural(eligible.length, 'pode', 'podem'),
+          },
+        )
+      : shortfall,
+  };
 }
 
 /**

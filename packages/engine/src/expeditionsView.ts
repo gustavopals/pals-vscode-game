@@ -30,6 +30,7 @@ import {
   postureChoice,
   scaledDuration,
   slotsAtLevel,
+  teamOutlook,
   teamSizeText,
   variantOf,
 } from './expeditions';
@@ -49,6 +50,7 @@ import type {
   ExpeditionReportView,
   ExpeditionView,
   GameState,
+  Hero,
   PendingDecisionView,
   PostureView,
   ResourceId,
@@ -198,6 +200,12 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
     const trial = firstStretchTrial(variant);
     const fit = trial === null ? null : fitThresholds(trial.difficulty);
     const weights = powerWeights(trial?.weights);
+    // O poder de um herói contra a prova mais dura do primeiro trecho, em milésimos inteiros.
+    const against = (hero: Hero): number => {
+      const { num, den } = heroPowerRatio(hero, weights);
+      return Math.floor(num / den);
+    };
+    const outlook = teamOutlook(state, model, against);
     views.push({
       modelId: model.id,
       label: model.label,
@@ -220,12 +228,23 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       // O poder de cada herói que pode partir **contra a prova mais dura do primeiro trecho**,
       // com os pesos dela; sem prova à vista, o poder da ficha. A Postura fica de fora: o traço
       // que rende mais em uma delas só entra depois do envio.
-      heroFit: state.guild.heroes.filter(canDepart).map((hero) => {
-        const { num, den } = heroPowerRatio(hero, weights);
-        return { heroId: hero.id, power: Math.floor(num / den) / MILLI };
-      }),
+      heroFit: state.guild.heroes
+        .filter(canDepart)
+        .map((hero) => ({ heroId: hero.id, power: against(hero) / MILLI })),
       locked: blocked !== null,
       lockedReason: blocked?.message ?? null,
+      eligibleHeroIds: outlook.eligible.map((hero) => hero.id),
+      canSend: blocked === null && outlook.shortfall === null,
+      suggestedTeam:
+        blocked === null && outlook.shortfall === null
+          ? outlook.suggested.map((hero) => hero.id)
+          : [],
+      sendBlockedReason:
+        blocked !== null
+          ? blocked.message
+          : outlook.shortfall === null
+            ? null
+            : fillText(expeditionTexts.noTeam, { motivo: outlook.shortfall }),
       firstStretchText: firstStretchText(variant),
       rescue: model.access.kind === 'captive',
     });

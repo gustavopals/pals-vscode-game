@@ -20400,6 +20400,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -20423,6 +20429,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -20450,6 +20462,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
@@ -21478,6 +21496,10 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "O vau do riacho (dificuldade 40). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -21496,6 +21518,10 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -21518,6 +21544,10 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A noite na serra (dificuldade 76). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -21540,6 +21570,10 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
@@ -22644,6 +22678,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-3"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -22667,6 +22707,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-3"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -22694,6 +22740,12 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "eligibleHeroIds": [
+            "hero-3"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
@@ -23808,6 +23860,14 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-2"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -23831,6 +23891,14 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-2"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -23858,6 +23926,12 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Nenhuma equipe do feudo serve agora: a jornada pede 2 heróis, e só 1 pode partir agora.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
@@ -24962,6 +25036,15 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2",
+            "hero-3"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-3"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -24989,6 +25072,15 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2",
+            "hero-3"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-3"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -25020,6 +25112,16 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2",
+            "hero-3"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-2",
+            "hero-3"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -25051,6 +25153,16 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-2",
+            "hero-3"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-2",
+            "hero-3"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "O vau vigiado (dificuldade 72). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": true
         },
@@ -25082,6 +25194,10 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Nenhuma equipe do feudo serve agora: a jornada pede de 2 a 3 heróis no nível 2 ou acima, e ninguém pode partir agora.",
           "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
@@ -26216,6 +26332,15 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-1",
+            "hero-2"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-1"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "Rastros na estrada velha (dificuldade 42). Depois, o caminho de volta.",
           "rescue": false
         },
@@ -26243,6 +26368,15 @@
           ],
           "locked": false,
           "lockedReason": null,
+          "eligibleHeroIds": [
+            "hero-1",
+            "hero-2"
+          ],
+          "canSend": true,
+          "suggestedTeam": [
+            "hero-1"
+          ],
+          "sendBlockedReason": null,
           "firstStretchText": "A orla da floresta. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
@@ -26274,6 +26408,13 @@
           ],
           "locked": true,
           "lockedReason": "Esse destino ainda não está ao alcance do feudo: o Covil de Lobos está limpo até a virada do ano.",
+          "eligibleHeroIds": [
+            "hero-1",
+            "hero-2"
+          ],
+          "canSend": false,
+          "suggestedTeam": [],
+          "sendBlockedReason": "Esse destino ainda não está ao alcance do feudo: o Covil de Lobos está limpo até a virada do ano.",
           "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }

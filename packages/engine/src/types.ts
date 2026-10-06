@@ -1376,9 +1376,33 @@ export type ExpeditionOfferView = {
    * vista, é o poder da ficha.
    */
   heroFit: Array<{ heroId: string; power: number }>;
-  /** A ordem de envio seria recusada agora para qualquer equipe. */
+  /** A ordem de envio seria recusada agora para qualquer equipe, pelo destino (não pela equipe). */
   locked: boolean;
   lockedReason: string | null;
+  /**
+   * Quem pode ir a este destino agora, na ordem da lista do feudo: está pronto e tem o nível
+   * que o modelo pede. A classe exigida é da equipe, não de cada um (`canSend` e
+   * `suggestedTeam` contam com ela).
+   */
+  eligibleHeroIds: string[];
+  /**
+   * Existe agora uma equipe que a ordem de envio aceitaria: o destino está aberto, há lugar na
+   * Guilda e os heróis prontos cobrem o tamanho, o nível e a classe que o modelo pede. É a
+   * mesma conta da recusa da ordem (`teamShortfall`).
+   */
+  canSend: boolean;
+  /**
+   * A equipe que o motor montaria: a menor que serve, com um herói de cada classe exigida e os
+   * mais fortes contra o primeiro trecho. Vazia quando `canSend` é falso. É o que a tela marca
+   * de saída.
+   */
+  suggestedTeam: string[];
+  /**
+   * Por que nenhuma equipe pode partir agora, em uma frase: a de `lockedReason` quando o
+   * destino está fechado, ou o que falta à equipe ("Nenhuma equipe do feudo serve agora: falta
+   * um Mago."). `null` quando `canSend`.
+   */
+  sendBlockedReason: string | null;
   /** Os nós do primeiro trecho, com a dificuldade de cada um, e o que vem depois dele. */
   firstStretchText: string;
   /**

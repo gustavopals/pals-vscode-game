@@ -458,6 +458,14 @@ const GuildSchema = z.strictObject({
       heroFit: z.array(z.strictObject({ heroId: z.string(), power: z.number() })),
       locked: z.boolean(),
       lockedReason: z.string().nullable(),
+      /** Quem pode ir agora: está pronto e tem o nível que o modelo pede. */
+      eligibleHeroIds: z.array(z.string()),
+      /** Existe agora uma equipe que a ordem de envio aceitaria (tamanho, nível, classe, lugar). */
+      canSend: z.boolean(),
+      /** A menor equipe que serve, a que a tela marca de saída; vazia sem `canSend`. */
+      suggestedTeam: z.array(z.string()),
+      /** Por que nenhuma equipe pode partir agora, em uma frase; `null` com `canSend`. */
+      sendBlockedReason: z.string().nullable(),
       firstStretchText: z.string(),
       /** É o Resgate: só existe com alguém em cativeiro, e é o que o traz de volta. */
       rescue: z.boolean(),

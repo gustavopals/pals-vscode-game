@@ -260,6 +260,21 @@ export const expeditionTexts = {
   lockedRescueUnderWay: 'já há um Resgate a caminho de quem está em cativeiro',
   /** O tile de ameaça já tem uma equipe a caminho: `{lugar}` é o tile, com artigo. */
   lockedTileUnderWay: 'outra equipe já partiu para limpar {lugar}',
+  /**
+   * O que falta a uma equipe para o destino, sem ponto: entra na recusa da ordem ("Essa equipe
+   * não serve para …: {isto}.") e no que a tela diz do destino ("Nenhuma equipe do feudo serve
+   * agora: {isto}."). `{equipe}` é "2 heróis" ou "de 1 a 2 heróis"; `{classe}`, "um Mago".
+   */
+  shortSize: 'a jornada pede {equipe}',
+  shortLevel: '{heroi} ainda não chegou ao nível {nivel}',
+  shortClass: 'falta {classe}',
+  /** Falta gente: `{pedido}` é o que a jornada pede; `{prontos}`, "1 pode" ou "2 podem". */
+  shortPeople: 'a jornada pede {pedido}, e só {prontos} partir agora',
+  shortNobody: 'a jornada pede {pedido}, e ninguém pode partir agora',
+  /** O que entra em `{pedido}` quando o modelo pede nível: `{nivel}`. */
+  shortAtLevel: ' no nível {nivel} ou acima',
+  /** A frase da tela quando nenhuma equipe serve: `{motivo}` é uma das de cima. */
+  noTeam: 'Nenhuma equipe do feudo serve agora: {motivo}.',
   /** Por que um herói não pode partir. */
   heroAway: 'já está em expedição',
   heroInjured: 'ainda se recupera dos ferimentos',

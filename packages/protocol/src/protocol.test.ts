@@ -1660,6 +1660,10 @@ describe('ViewStateSchema', () => {
       heroFit: [{ heroId: 'hero-1', power: 42 }],
       locked: false,
       lockedReason: null,
+      eligibleHeroIds: ['hero-1'],
+      canSend: true,
+      suggestedTeam: ['hero-1'],
+      sendBlockedReason: null,
       firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
       rescue: false,
     };

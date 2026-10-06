@@ -12,6 +12,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo, stateAtNextMoraleTurn } from './advance';
+import { applyCommand } from './commands';
 import {
   durationFactorAt,
   expeditionSlots,
@@ -1358,6 +1359,11 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         ],
         locked: false,
         lockedReason: null,
+        // A Patrulha leva um só: o motor sugere a mais forte.
+        eligibleHeroIds: ['hero-1', 'hero-2'],
+        canSend: true,
+        suggestedTeam: ['hero-1'],
+        sendBlockedReason: null,
         firstStretchText: 'A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.',
         rescue: false,
       },
@@ -1380,6 +1386,10 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         ],
         locked: false,
         lockedReason: null,
+        eligibleHeroIds: ['hero-1', 'hero-2'],
+        canSend: true,
+        suggestedTeam: ['hero-1'],
+        sendBlockedReason: null,
         firstStretchText:
           'A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.',
         rescue: false,
@@ -1976,5 +1986,147 @@ describe('a expedição que ficou sem caminho volta para casa na fronteira (revi
     const still = advanceTo(sound, sound.lastProcessedAt + 1);
     expect(ofExpeditions(still.events)).toEqual([]);
     expect(only(still.state).status).toBe('atCrossroads');
+  });
+});
+
+describe('a visão diz quem pode ir e se alguma equipe é possível (revisão da Fase D, A1)', () => {
+  const offerOf = (state: GameState, modelId: string) => {
+    const offer = deriveViewState(state, state.lastProcessedAt).guild.available.find(
+      (entry) => entry.modelId === modelId,
+    );
+    if (offer === undefined) {
+      throw new Error(`A Guilda não oferece ${modelId}.`);
+    }
+    return offer;
+  };
+  const order = (modelId: string, heroIds: string[]) =>
+    command('sendExpedition', { modelId, heroIds, posture: 'balanced' });
+
+  /** Guilda no nível 3, todos os destinos abertos, e os heróis de `classes`, na ordem. */
+  function roster(classes: Array<Hero['classId']>, edit: (draft: GameState) => void = () => {}) {
+    return guildHall(
+      0,
+      (draft) => {
+        for (const classId of classes) {
+          addHero(draft, { classId });
+        }
+        draft.map.discovered = ['ruins', 'swamp'];
+        edit(draft);
+      },
+      { level: 3 },
+    );
+  }
+
+  it('o Pântano sem Mago: nenhuma equipe serve, a frase diz o que falta, e é a mesma falta da recusa', () => {
+    const state = roster(['warrior', 'archer', 'cleric']);
+    expect(offerOf(state, 'swamp')).toMatchObject({
+      locked: false,
+      eligibleHeroIds: ['hero-1', 'hero-2', 'hero-3'],
+      canSend: false,
+      suggestedTeam: [],
+      sendBlockedReason: 'Nenhuma equipe do feudo serve agora: falta um Mago.',
+    });
+    expect(refuse(state, order('swamp', ['hero-1', 'hero-2', 'hero-3']))).toEqual({
+      code: 'TEAM_INVALID',
+      message: 'Essa equipe não serve para Pântano Nebuloso: falta um Mago.',
+    });
+  });
+
+  it('com um Mago, a equipe sugerida o leva, com os dois mais fortes, na ordem da lista; e a ordem a aceita', () => {
+    // O Clérigo é o mais fraco dos cinco: fica de fora. O Mago entra por ser exigido.
+    const state = roster(['cleric', 'warrior', 'mage', 'archer', 'warrior']);
+    const offer = offerOf(state, 'swamp');
+    expect(offer).toMatchObject({ canSend: true, sendBlockedReason: null });
+    expect(offer.suggestedTeam).toHaveLength(3);
+    expect(offer.suggestedTeam).toContain('hero-3');
+    expect(offer.suggestedTeam).not.toContain('hero-1');
+    expect(offer.suggestedTeam).toEqual([...offer.suggestedTeam].sort());
+    expect(accept(state, order('swamp', offer.suggestedTeam)).state.guild.expeditions).toHaveLength(
+      1,
+    );
+  });
+
+  it('falta gente: a frase diz quantos a jornada pede e quantos podem partir', () => {
+    const one = roster(['warrior']);
+    expect(offerOf(one, 'wolfDen')).toMatchObject({
+      canSend: false,
+      suggestedTeam: [],
+      sendBlockedReason:
+        'Nenhuma equipe do feudo serve agora: a jornada pede 2 heróis, e só 1 pode partir agora.',
+    });
+    const none = roster(['warrior'], (draft) => {
+      const [hero] = draft.guild.heroes;
+      if (hero !== undefined) {
+        hero.status = 'injured';
+        hero.injury = { severity: 'light', untilMs: HOUR };
+      }
+    });
+    expect(offerOf(none, 'patrol')).toMatchObject({
+      eligibleHeroIds: [],
+      canSend: false,
+      sendBlockedReason:
+        'Nenhuma equipe do feudo serve agora: a jornada pede 1 herói, e ninguém pode partir agora.',
+    });
+  });
+
+  it('o destino fechado: o motivo é o do destino, e ninguém é sugerido', () => {
+    const state = roster(['warrior', 'warrior'], (draft) => {
+      draft.settlement.buildings.guild = 1;
+    });
+    const offer = offerOf(state, 'swamp');
+    expect(offer.locked).toBe(true);
+    expect(offer).toMatchObject({
+      canSend: false,
+      suggestedTeam: [],
+      sendBlockedReason: offer.lockedReason,
+    });
+  });
+
+  it('em todo destino e em vários feudos: a equipe sugerida é aceita, e sem canSend nenhuma equipe é', () => {
+    const subsets = (ids: string[]): string[][] =>
+      ids.reduce<string[][]>((all, id) => [...all, ...all.map((set) => [...set, id])], [[]]);
+    const rosters: Array<Array<Hero['classId']>> = [
+      [],
+      ['warrior'],
+      ['mage'],
+      ['archer', 'cleric'],
+      ['warrior', 'archer', 'cleric'],
+      ['mage', 'mage', 'mage'],
+      ['cleric', 'warrior', 'mage', 'archer', 'warrior'],
+    ];
+    let sendable = 0;
+    let unsendable = 0;
+    for (const classes of rosters) {
+      const state = roster(classes, (draft) => {
+        everyDestinationOpen(draft);
+        // Um ferido e um novato de nível baixo não mudam a regra: só a conta.
+        const last = draft.guild.heroes[classes.length - 1];
+        if (classes.length >= 5 && last !== undefined) {
+          last.status = 'injured';
+          last.injury = { severity: 'severe', untilMs: HOUR };
+        }
+      });
+      const ids = state.guild.heroes.map((hero) => hero.id);
+      for (const offer of deriveViewState(state, 0).guild.available) {
+        if (offer.canSend) {
+          sendable += 1;
+          expect(offer.sendBlockedReason).toBeNull();
+          expect(offer.suggestedTeam.length).toBe(offer.teamMin);
+          for (const heroId of offer.suggestedTeam) {
+            expect(offer.eligibleHeroIds).toContain(heroId);
+          }
+          expect(applyCommand(state, order(offer.modelId, offer.suggestedTeam), 0).ok).toBe(true);
+        } else {
+          unsendable += 1;
+          expect(offer.suggestedTeam).toEqual([]);
+          expect(offer.sendBlockedReason).not.toBeNull();
+          for (const team of subsets(ids)) {
+            expect(applyCommand(state, order(offer.modelId, team), 0).ok).toBe(false);
+          }
+        }
+      }
+    }
+    expect(sendable).toBeGreaterThan(10);
+    expect(unsendable).toBeGreaterThan(10);
   });
 });
