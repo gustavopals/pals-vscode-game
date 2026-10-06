@@ -456,6 +456,8 @@ export function fakeApi() {
     githubDevice: true,
     /** O que `GET /catalog` responde; `null` é um servidor de uma versão anterior (404). */
     catalog: catalogFixture() as CatalogResponse | null,
+    /** O id da próxima partida fundada (`POST /games`); sem ele, todas nascem com `GAME_ID`. */
+    nextGameId: null as string | null,
     /** Os corpos de `POST /games`, na ordem em que chegaram. */
     gameRequests: [] as CreateGameRequest[],
     recoveryCode: 'PEDR-7F3A-K9QD-M2XW-4HTB',
@@ -483,7 +485,7 @@ export function fakeApi() {
   });
   const tokens = () => ({ accessToken: 'acesso', refreshToken: 'renovacao', expiresIn: 900 });
   const game = (settlementName: string, request: Partial<CreateGameRequest> = {}): GameSummary => ({
-    id: GAME_ID,
+    id: state.nextGameId ?? GAME_ID,
     status: 'active',
     settlementName,
     // Sem os campos no corpo, valem os padrões do servidor de mentira.

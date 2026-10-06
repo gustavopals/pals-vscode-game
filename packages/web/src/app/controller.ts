@@ -26,6 +26,7 @@ import {
   isSessionLoss,
   OfflineError,
   type SessionTarget,
+  StaleOrderError,
 } from '../game/gameSession';
 import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
@@ -134,6 +135,11 @@ export type Toast = {
   sticky: boolean;
   /** Um aviso do jogo (um acontecimento do feudo): "Silenciar 2h" o tira da tela com os outros. */
   game?: true;
+  /**
+   * O aviso guarda uma ação para "Tentar de novo" (uma ordem que não chegou ao servidor). Ele
+   * só vale para a conta e o feudo em que nasceu: a troca de um ou de outro o tira de cena.
+   */
+  retry?: true;
 };
 
 /** Um documento carregado sob demanda (Crônica, dados do servidor). */
@@ -549,6 +555,8 @@ export class Controller {
       this.dropWatchToast();
       this.answering = new Set();
       this.guildOrders = new Set();
+      // O "Tentar de novo" de uma ordem dada ao feudo anterior não fica para o seguinte.
+      this.dropRetryToasts();
       await this.openGame();
     }
     if (state.kind === 'signedOut') {
@@ -1005,6 +1013,14 @@ export class Controller {
     }
   }
 
+  /** Tira de cena os avisos com "Tentar de novo": a ação que guardam era de outro feudo. */
+  private dropRetryToasts(): void {
+    if (this.toasts.some((toast) => toast.retry === true)) {
+      this.toasts = this.toasts.filter((toast) => toast.retry !== true);
+      this.changes.emit();
+    }
+  }
+
   private connectionChanged(connection: Connection): void {
     if (connection.kind === 'unauthenticated') {
       void this.account.handleUnauthenticated();
@@ -1125,6 +1141,8 @@ export class Controller {
     details?: string[];
     /** Um aviso do jogo: sai de cena com "Silenciar 2h". */
     game?: boolean;
+    /** Um aviso com "Tentar de novo": sai de cena com a troca de feudo ou de conta. */
+    retry?: boolean;
   }): number {
     const id = this.nextToastId;
     this.nextToastId += 1;
@@ -1141,6 +1159,7 @@ export class Controller {
         actions,
         sticky: actions.length > 0,
         ...(input.game === true ? { game: true as const } : {}),
+        ...(input.retry === true ? { retry: true as const } : {}),
       },
     ].slice(-4);
     this.changes.emit();
@@ -1170,12 +1189,14 @@ export class Controller {
         // já tenha sido dispensado (um aviso igual ao que está à vista só o substitui).
         this.warnedUpgrade = true;
         this.askToReload();
-      } else if (isGameRuleError(error)) {
+      } else if (isGameRuleError(error) || error instanceof StaleOrderError) {
+        // A ordem de outro feudo não tem "Tentar de novo": repetir não a faria valer aqui.
         this.toast({ kind: 'warning', text: message });
       } else if (code === 'NETWORK') {
         this.toast({
           kind: 'error',
           text: message,
+          retry: true,
           actions: [{ label: 'Tentar de novo', run: () => this.attempt(action).then(() => {}) }],
         });
       } else {
@@ -1275,6 +1296,10 @@ export class Controller {
    * chamar a função de novo ("Tentar de novo" depois de uma falha de rede) reenvia a mesma
    * ordem, e o servidor responde com o recibo se ela já tinha chegado. Uma intenção nova do
    * jogador pede outra chamada a `prepare`.
+   *
+   * A ordem é do feudo que estava aberto quando foi preparada. Se a partida ou a conta trocarem
+   * antes do envio (um "Tentar de novo" que ficou para trás), ela não segue para o feudo novo:
+   * o envio recusa com `StaleOrderError`, sem tocar a rede.
    */
   prepare<T extends CommandType>(
     type: T,
@@ -1282,7 +1307,13 @@ export class Controller {
   ): () => Promise<void> {
     const commandId = (this.options.randomUUID ?? randomUUID)();
     const command = { commandId, type, payload } as Command;
-    return () => this.send(command);
+    const origin = this.session.targetKey;
+    return async () => {
+      if (this.session.targetKey !== origin) {
+        throw new StaleOrderError();
+      }
+      await this.send(command);
+    };
   }
 
   async send(command: Command): Promise<void> {

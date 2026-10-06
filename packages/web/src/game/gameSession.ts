@@ -223,6 +223,17 @@ export class OfflineError extends Error {
 }
 
 /**
+ * A ordem foi preparada para outro feudo (ou outra conta) e não foi enviada: uma ordem só vale
+ * para a partida em que o jogador a deu.
+ */
+export class StaleOrderError extends Error {
+  constructor() {
+    super('Essa ordem era de outro feudo e não foi enviada.');
+    this.name = 'StaleOrderError';
+  }
+}
+
+/**
  * A partida aberta nesta máquina: ciclo de atualização, cache para o modo sem conexão e envio
  * de comandos (GDD §14.10). Não conhece o navegador; usa só temporizadores e o `client-sdk`.
  */
@@ -299,6 +310,14 @@ export class GameSession {
 
   get gameId(): string | null {
     return this.target?.gameId ?? null;
+  }
+
+  /**
+   * A conta e a partida abertas, em um texto só (`null` sem partida). Serve para conferir se
+   * uma ordem preparada antes ainda é para o feudo que está na tela.
+   */
+  get targetKey(): string | null {
+    return this.target === null ? null : cacheKey(this.target);
   }
 
   /**
