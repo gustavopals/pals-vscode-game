@@ -128,6 +128,16 @@ Para saber em que versão as partidas estão:
 select schema_version, status, count(*) from games group by 1, 2 order by 1, 2;
 ```
 
+### A primeira publicação da v0.3: do estado 12 ao 20 de uma vez (nota de 2026-10-06)
+
+**Esta publicação, a da Fase D da v0.3, é diferente das anteriores:** a produção roda a **v0.2.0 (estado 12, protocolo 2)** e saltará para o **estado 20 e o protocolo 3 em um `push` só**, passando pelos oito passos de migração (12 → 13 → … → 20) na primeira leitura de cada partida ou no job de avanço (ADR 0017, "Respostas de 2026-10-06"; as Fases B, C e D não vão ao ar em separado). O que isso pede, além dos passos 0 a 3 acima:
+
+- **A imagem que está no ar recusa estado futuro com `500`, sem gravar nada** (V2B-T1 em diante). Na janela da troca, quem tiver uma partida já migrada pelo contêiner novo e cair no contêiner antigo vê um erro passageiro; nada se corrompe. É por isso que o backup é o ponto de retorno e não a imagem.
+- **O ponto de retorno é o backup manual do banco feito imediatamente antes do `push`**, com o nome do arquivo anotado, e **o SHA `7bff36b`**, que é o que está no ar (fim da Fase G da v0.2). Reverter a imagem para esse SHA sem restaurar o backup deixa o jogo fora do ar (a imagem velha recusa o estado 13 em diante); restaurar o backup perde o que se jogou depois dele (a seção "O que a restauração custa a quem joga").
+- **O app antigo que estiver aberto receberá `426` ("Recarregue a página")** na próxima chamada: o protocolo passou de 2 para 3 (`pendingDecisions` ganhou a encruzilhada, e o app da v0.2 não a lê). Quem recarrega, entra.
+- **Quem faz o `push` é o autor**, depois do backup (resposta de 2026-10-06; o agente não tem permissão de `push`). Depois do deploy: `GET /v1/version` (`builtAt` novo, `protocol` 3) e, com o SQL da seção acima, esperar o job migrar as partidas ativas (pouco mais de uma hora) e conferir `schema_version = 20`.
+- **O ato 23 continua por fazer** (cópia do backup fora do servidor, cópia do `RECOVERY_CODE_SECRET` fora do Coolify e o ensaio de reversão com imagens atravessando uma migração de estado): nada disto foi exercitado, e esta migração é a primeira que atravessa oito passos de uma vez em produção.
+
 ### A primeira publicação da v0.2 vai em dois passos
 
 A produção roda a imagem da `v0.1.0`, que não confere a versão do estado, e a v0.2 inteira foi escrita no `main` local, sem publicar nada ([ADR 0013](../docs/decisions/0013-regras-da-v0.2-tempo-ritmo-migracao-e-economia.md), decisão 3). Um `push` só, com tudo, levaria a produção da `v0.1.0` direto para um estado de versão maior que 2, e isso junta os dois casos que esta seção manda evitar:

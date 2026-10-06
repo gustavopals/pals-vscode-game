@@ -469,7 +469,7 @@ O que a terceira tarefa da Fase D construiu por cima das seções 15 e 16: **os 
 
 ## 18. As correções da revisão independente da Fase D (V3D-T5, 2026-10-06)
 
-O que as duas revisões da Fase D mudaram por cima das seções 15 a 17, no motor, no conteúdo, no protocolo, no servidor e no simulador. Está no `main` **local**, com o estado na versão 20, e **não está em produção**. O app ainda não usa os campos novos da visão. As decisões estão em [pendencias-v0.3.md](pendencias-v0.3.md), D-54 a D-72, e a medição, em [balance-v0.3.md](balance-v0.3.md), seção 9.
+O que as duas revisões da Fase D mudaram por cima das seções 15 a 17, no motor, no conteúdo, no protocolo, no servidor e no simulador. Está no `main` **local**, com o estado na versão 20, e **não está em produção**. O app passou a usar os campos novos da visão nas correções do app (seção 19). As decisões estão em [pendencias-v0.3.md](pendencias-v0.3.md), D-54 a D-72, e a medição, em [balance-v0.3.md](balance-v0.3.md), seção 9.
 
 | O quê | Onde | Como ficou |
 |---|---|---|
@@ -487,3 +487,22 @@ O que as duas revisões da Fase D mudaram por cima das seções 15 a 17, no moto
 | O simulador | `bots/ousado.ts`, `bots/policies.ts`, `simulate.ts` (`crossroadsVisit`), `matrix.ts`, `expeditionStudy.ts` | O bot `ousado`, a visita extra da encruzilhada, as tabelas de expedições da matriz e o modo `--expeditions` |
 
 **Limites conhecidos:** com uma visita por dia o jogador continua sem decidir encruzilhada nenhuma, e com duas visitas **a 12 h exatas uma da outra** decide todas (a janela passou de 6 h a 12 h reais por resposta do autor, pendência D-71; um jogador de duas visitas irregulares decide menos, e isso não foi medido); a captura quase não acontece nem com o bot que arrisca, porque a regra dos desfechos não deixa quem passa ser capturado (D-66); o app não usa os campos novos; nada disto foi jogado por uma pessoa.
+
+## 19. A Fase D fechada (V3D-T5, 2026-10-06)
+
+O que existe ao fim da Fase D, por cima das seções 14 a 18, e o que ela deixa para as seguintes. Está no `main` **local**, com o **estado na versão 20** e o **protocolo 3**, e **não está em produção**: a produção roda a v0.2.0 (estado 12, protocolo 2) até o autor publicar, e a publicação salta de uma vez as Fases B, C e D ([deploy/README.md](../deploy/README.md), "A primeira publicação da v0.3"). A lista "o que ainda não existe" da seção 14 é de antes da Fase D: **hoje o que ainda é erro antecipar** são o Mercado, as caravanas e os Mestres (Fase E), o lote 2 de cartas e os objetivos 11 a 16 (Fase F), a escolta e, das versões seguintes, desgaste e reparo de item, relíquias, exército e mapa gráfico.
+
+| O quê | Onde | Como ficou |
+|---|---|---|
+| A Guilda e as expedições | `packages/engine/src/expeditions*.ts`, `expeditionTurn.ts`, `expeditionOrders.ts` | Seção 15 |
+| Os desfechos, a experiência, o equipamento e o Covil limpo | `outcomes.ts`, `heroes.ts`, `items.ts`, `threat*.ts` | Seção 16 |
+| O catálogo, o relatório e a lição | `packages/content/src/missions/`, `expeditionReport.ts` | Seção 17 |
+| A interface | `packages/web` (`ui/expeditions.ts`, `components/ExpeditionsPanel.tsx`, `CrossroadsCard.tsx`, `ExpeditionReport.tsx`, `ArsenalPanel.tsx`, `palette/`) | Seção 15, "App", mais as correções do app: o envio lê `eligibleHeroIds`, `canSend`, `suggestedTeam` e `sendBlockedReason` da visão (nenhuma conta de equipe no cliente), as Posturas e os espaços de equipamento vêm de `guild.postures` e `guild.equipmentSlots`, a Crônica liga a linha ao relatório pela marca do identificador, a encruzilhada diz "a espera acaba em…" e a barra de status a mostra quando o prazo está perto |
+| As correções da revisão | commits `V3D: corrige …` | Seção 18 |
+| O prazo da encruzilhada | `balance.expeditions.crossroadsWaitRealMs` | **12 h reais** em qualquer ritmo, por resposta do autor de 2026-10-06 (era 6 h). O prazo de uma equipe já parada **é o que está gravado no estado**: mudar a constante não mexe nas equipes que já esperam, e não há passo de migração (`expeditions.test.ts`) |
+
+**Os relógios da fase** (seção 7): a única constante de tempo real da v0.3 além dos prazos do soldo em atraso é a espera da encruzilhada, convertida com `realToGameMs` quando a equipe chega ao nó; todo o resto das expedições (duração dos nós, ferimento, a viagem) é tempo de jogo e escala com o ritmo.
+
+**Tamanhos** ([balance-v0.3.md](balance-v0.3.md), seção 10.6): com seis heróis, três expedições em curso e três relatórios guardados, o estado fica em 6,1 a 6,7 kB e a visão em 26,6 a 28,8 kB; cada recibo de comando guarda uma visão inteira.
+
+**Limites conhecidos da fase:** com uma visita por dia o jogador não decide encruzilhada nenhuma, e com duas visitas a 12 h exatas decide todas (nada se mediu com visitas irregulares); quase ninguém é capturado no simulador (nenhum cativo nas 150 partidas do bot que arrisca, em Senhor, na rodada de agora; um na anterior); **o ouro parado não caiu** (a decisão é depois da Fase E); os 18 grafos, os rótulos de risco e as frases do relatório são rascunho que o autor não leu; **ninguém além dos testes e dos bots usou a tela das expedições** (o roteiro de 15 minutos está em [pendencias-v0.3.md](pendencias-v0.3.md), seção 8); a migração 12 → 20 só foi provada pelos retratos congelados e pelos testes de integração, nunca em uma partida de produção.
