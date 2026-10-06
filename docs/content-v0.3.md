@@ -16,7 +16,8 @@ Onde este documento e o código divergirem, vale o código.
 4. [Heróis com nome](#4-heróis-com-nome)
 5. [A Taverna: candidatos, nomes e frases](#5-a-taverna-candidatos-nomes-e-frases)
 6. [Expedições: os dois grafos provisórios](#6-expedições-os-dois-grafos-provisórios)
-7. [O que ficou para o lote 2](#7-o-que-ficou-para-o-lote-2)
+7. [Desfechos: os três grafos provisórios, os itens e as frases](#7-desfechos-os-três-grafos-provisórios-os-itens-e-as-frases)
+8. [O que ficou para o lote 2](#8-o-que-ficou-para-o-lote-2)
 
 ## 1. O que a v0.3 acrescenta ao catálogo
 
@@ -231,7 +232,37 @@ retorno   return      20 min   "A volta pela trilha"
 
 **As outras frases** (`expeditionPostures`, `expeditionOutcomes`, `expeditionTexts`, `expeditionTemplates`, e os seis modelos de frase da Crônica em `chronicleTemplates`): os nomes das Posturas (Cautelosa, Equilibrada, Ousada) e dos desfechos (Sucesso pleno, Sucesso, Revés, Desastre) são os do GDD; as frases da Guilda e da Crônica são do agente, e nenhuma escreve número de regra (o teste de conteúdo confere).
 
-## 7. O que ficou para o lote 2
+## 7. Desfechos: os três grafos provisórios, os itens e as frases
+
+**Rascunho, não lido pelo autor, e provisório** (V3D-T2; pendências D-22 e D-23). O que a tarefa dos desfechos precisou escrever para ter onde acontecer: três grafos mínimos, o catálogo de itens e as frases do que o desfecho faz ao herói e ao mundo. **O catálogo de expedições de verdade é de V3D-T3**, que reescreve os cinco grafos.
+
+**Os identificadores ficam gravados no estado:** os modelos `wolfDen`, `rescue` e `ruins` (`guild.expeditions[].modelId`, `hero.captivity.modelId`, `map.discovered`) e os doze itens de `ITEM_IDS` (`guild.inventory[].defId`, `hero.equipment`). Um teste de conteúdo fixa a lista dos itens; mudar um desses nomes pede passo de migração.
+
+| Modelo | `id` | Duração | Equipe | Risco | Como aparece (`access`) | Variantes |
+|---|---|---:|---|---|---|---|
+| Covil dos Lobos | `wolfDen` | 2 h | 2 heróis | Médio | `tile`: conhecido desde sempre; fecha enquanto o Covil está limpo | três, sem encruzilhada: a subida (perigo, 45 min, dificuldade 52 a 58, perícia pesa meio), a toca (chefe, 45 min, 66, 70 e 74; do Sucesso em diante **limpa o Covil**) e a volta (30 min). Lobo fere, não captura |
+| Resgate | `rescue` | 2 h | 2 heróis | Alto | `captive`: só com um herói em cativeiro | três, sem encruzilhada: a chegada (perigo, 45 min, 52 a 58), o cativeiro (chefe, 45 min, 78, 80 e 82; do Sucesso em diante **liberta um cativo**; o Desastre é marcado `capture`) e a volta (30 min) |
+| Ruínas de Vel'Thar | `ruins` | 3 h | 2 a 3 heróis, nível 2 | Médio | `discovered`: depois de uma Patrulha as revelar | três, sem encruzilhada: os saqueadores (48 a 52), o salão das lajes falsas (perigo, 56 a 62), o guardião da cripta (chefe, 88 a 92; **o único nó com captura**; uma chance em duas de um item raro) e a volta, 45 min cada |
+
+A Patrulha dos Arredores ganhou a recompensa `reveals: 'ruins'` nas três variantes (do Sucesso em diante; com um Rastreador, também no Revés), e a mata fechada da Floresta Antiga (variante 0), uma chance em três de um item comum. Toda prova ganhou `xp`: 12 na Patrulha, 20 na Floresta, 25 e 40 no Covil, 30 e 45 no Resgate, 35, 40 e 60 nas Ruínas.
+
+**Os itens** (`packages/content/src/items.ts`; ADR 0018, decisão 15): um por espaço e raridade, todos como fator do poder.
+
+| Espaço | Comum (+5%, 30 de ouro) | Incomum (+8%, 60) | Raro (+12%, 120) | Épico (+15%, 250) |
+|---|---|---|---|---|
+| Arma | Lança de caça | Arco de freixo | Lâmina de Vel'Thar | Cajado de brasa |
+| Armadura | Gibão acolchoado | Couro fervido | Cota rebitada | Placas do guardião |
+| Acessório | Amuleto de osso | Corno de batedor | Medalha do peregrino | Sinete do rei velho |
+
+Cada item tem uma frase de crônica, sem número ("Aço antigo, tirado das ruínas sem um ponto de ferrugem."). **Só os comuns e os raros são achados hoje**; os incomuns e os épicos esperam o catálogo de V3D-T3 e os objetivos 11 e 16 (V3F-T2).
+
+**As frases dos desfechos** (`chronicleTemplates`, `heroHarmTemplates`, `expeditionTexts`, `guildTexts`, `equipmentTexts`, `injurySeverities`, `itemSlots`, `itemRarities`): catorze eventos novos na Crônica (o ferimento leve, o grave e o que a dificuldade pôs no lugar da captura; a cura; a captura; a morte; o Resgate; o nível; o item achado, vendido, equipado e devolvido; o destino revelado; o Covil limpo e os lobos que voltam; a expedição que não voltou). **Nenhuma flexiona o herói** (servem a Edda e a Rolf: "sofreu um ferimento leve", "caiu em cativeiro", "tombou"), e um teste de conteúdo barra "ferido", "levado" e "pronto" nelas. As notas do relatório ("Edda ficou em cativeiro.", "Achado: Lança de caça.") e as frases do arsenal não escrevem número de regra.
+
+**Frase de traço ajustada:** a do Carismático perdeu "abre caminhos no conselho" (é do lote 2 de cartas, V3F-T1) e ficou "Sabe negociar: barateia quem a Taverna oferece." As dos outros traços não mudaram: desde esta tarefa fazem o que dizem.
+
+**O que estes grafos não têm:** encruzilhada, ficha da §13.4 do roadmap, o teste editorial do ADR 0018, e calibragem: os números foram postos para os desfechos acontecerem em teste, não para o jogo. Com a equipe mínima as Ruínas nunca chegam ao Desastre (a conta do ADR 0017 já dizia), e o Resgate com dois heróis de nível 1 falha mais da metade das vezes.
+
+## 8. O que ficou para o lote 2
 
 - As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
 - Uma carta que **deixe de sair** conforme a equipe (por exemplo, só para quem não tem herói): hoje nenhum requisito de carta olha os heróis.

@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 17) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 18) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -427,3 +427,22 @@ O que a primeira tarefa da Fase D construiu por cima da seção 14: **o motor da
 **O que ainda não existe, e é erro antecipar:** o que o desfecho faz ao herói (ferimento, captura, Resgate, morte), experiência, itens e inventário, destinos descobertos e o Covil limpo (V3D-T2); o catálogo e os textos (V3D-T3); a interface (V3D-T4).
 
 **Limites conhecidos:** os grafos e as frases são provisórios e o autor não os leu; nenhuma partida do simulador encontra uma encruzilhada; o critério 2 do GDD §16.2 está provado no motor e por integração, e em navegador só o anúncio e o prazo; o Relatório de Retorno não foi conferido com uma expedição na ausência.
+
+## 16. Os desfechos das expedições (V3D-T2, 2026-10-06)
+
+O que a segunda tarefa da Fase D construiu por cima da seção 15: **o que o desfecho de um nó faz ao herói e ao mundo**. Está no `main` **local**, com o estado na versão 18 e o protocolo ainda 3 (a visão só cresceu por adição), e não está em produção. O detalhe está no [README do motor](../packages/engine/README.md), "Desfechos"; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), D-16 a D-29; a medição, em [balance-v0.3.md](balance-v0.3.md), seção 7.
+
+**Estado** (versão 18; o passo `v17ToV18` não cria prazo, evento, identificador nem sorteio): em cada herói, `status` com `injured` e `captured`, `injury`, `captivity` e `equipment`; `guild.inventory` (até 30 itens); `map.discovered` (os destinos revelados); em cada expedição, `loot.items` e, em cada registro do percurso, o que o nó fez (`xp`, `harm`, `leveled`, `found`, `revealed`, `cleared`, `rescued`, `lootLost`); em cada relatório, `sold` e `lost`. A guarda confere que nenhum item está em dois lugares.
+
+| Peça | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `items.ts`, `balance.injuries`, `balance.equipment`, `expeditions.xpShare`, `threat.tileClearedDrop`, `threat.seasonEnemy`, `difficulties[].heroCapture`, `heroTraits[].effects`, `missions/` | Doze itens (três espaços, quatro raridades); 2 h e 12 h de jogo de ferimento; a captura por dificuldade; os efeitos do Ganancioso, do Prudente, do Corajoso e do Rastreador; `access` em cada modelo; **três modelos provisórios** a mais (Covil dos Lobos, Resgate, Ruínas de Vel'Thar) |
+| Desfecho | `outcomes.ts` | Não sorteia nem dá identificador: o que o desfecho faz a um herói (`harmOf`, `applyHarm`), a experiência e os níveis (`grantXp`), o Resgate, o destino revelado, o Covil limpo e os lobos que voltam na virada do ano, o herói que sara |
+| Sorteios do nó | `expeditionTurn.ts` (`resolveStage`) | A ordem fixa: a sorte, quem sofre, a cobiça do Ganancioso, as quantidades do saque e o item. O item nasce ali, com `nextId(draft, 'item')`. A equipe inteira capturada ou morta encerra a expedição sem saque (`endLost`) |
+| Equipamento | `equipment.ts` | O arsenal, `equipItem` e `unequipItem` (não sorteiam nem criam nada), o item que não cabe e vira ouro, e a devolução do que levava quem deixa o feudo |
+| Linha do tempo | `timeline.ts`, `advance.ts` | O herói ferido que sara é instante de `nextEventAt`, processado **logo depois dos aldeões feridos que saram e antes da virada do dia**. Os lobos voltam ao Covil na virada do ano, antes de a Ameaça subir |
+| Ameaça | `threat.ts` (`raidingEnemy`), `hordeTurn.ts` | Com o Covil limpo a Ameaça só sobe no outono, e só no outono há sorteio de incursão (os lobos descem a serra) |
+| Visão | `guildView.ts`, `expeditionsView.ts`, `threatView.ts` | Em cada herói `statusText`, `canDepart`, `injury`, `captive` e `equipment`; `guild.inventory`; `notes` em cada passo de relatório; `teamMinLevel` e `firstStretchDifficulty` em cada destino; `threat.clearedText`. **Névoa:** o destino por revelar e o Resgate sem cativo não aparecem; a chave do item no conteúdo, o cativeiro e os prazos crus não saem |
+| Protocolo e servidor | `packages/protocol`; sem rota nova | Duas ordens novas e três recusas (`ITEM_NOT_FOUND`, `WRONG_SLOT`, `INVENTORY_FULL`); a visão cresceu por adição, e o protocolo continua 3 |
+| App | nada | **Não mostra nada disto** além do `statusText` do herói: a interface é de V3D-T4 |
+| Simulador | `bots/policies.ts` (`enviar expedições`, `equipar o melhor item`, `erguer a Guilda`) | O `explorador` envia o destino mais difícil que a equipe passa com folga, equipa o melhor item, não envia ferido e melhora a Guilda. O resumo de uma partida conta feridos, cativos, mortos, resgatados, níveis, itens e o Covil limpo |

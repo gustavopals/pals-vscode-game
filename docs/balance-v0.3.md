@@ -1008,6 +1008,96 @@ Colunas: população (menor e maior), Salão, horas de fome, horas de frio, made
 - `--perf` e os bytes do estado e da visão com expedições em curso **não foram medidos** nesta tarefa (a seção 5.6 é a última medição); o estado ganhou até três expedições de até oito registros e três relatórios, com teto na guarda.
 - As três matrizes rodaram uma vez cada, antes da atualização de `MEASURED`; depois dela, quem confere as 3.600 partidas é o `pnpm test`.
 
-## 7. Rodadas seguintes das Fases D a G
+## 7. Os desfechos (V3D-T2)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4, 5 e 6.*
+Rodada de 2026-10-06, com o estado na versão 18: ferimento, captura, experiência, itens, destinos por descoberta e o Covil limpo no motor, e o Explorador com as políticas novas (o destino mais difícil que a equipe passa com folga, equipar o melhor item, não enviar ferido, melhorar a Guilda). **Só o bot do Explorador mudou**: as células dos outros três perfis são as da seção 4, linha a linha, e quem as confere é o `pnpm test`.
+
+### 7.1 Comandos
+
+```bash
+for d in lord peasant ironKing; do
+  pnpm -s sim -- --matrix --profile explorador --difficulty $d > matriz-$d.csv 2> matriz-$d.md
+done
+pnpm -s sim -- --seed pedra-alta-001 --days 7 --time-scale 3 --strategy explorador > semana.csv
+```
+
+A medição da seção 7.3 saiu de um roteiro avulso sobre `simulate` (não ficou no repositório): um ano de jogo (168 h de jogo), 30 sementes (`pedra-alta-001` a `030`), duas visitas por dia, o `explorador` contra o `economico`, nos três ritmos e nas três dificuldades (540 partidas). A Ameaça é lida do estado, hora real a hora real; as incursões, os envios e os desfechos, dos eventos.
+
+### 7.2 As faixas do Explorador, antes e depois
+
+Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro parados, e a maior sequência desperdiçando um recurso, em horas de jogo. "Antes" é a seção 6.4.
+
+| Dificuldade | Célula | Antes (V3D-T1) | Depois (V3D-T2) |
+|---|---|---|---|
+| Senhor | week/3 | [75, 85], 8, 0, 0, 4180, 5200, 239152, 33 | [85, 85], 8, 0, 0, 4180, 5200, 236783, **54** |
+| Senhor | week/1 e year/1 | [65, 75], 7, 0, 0, 3957, 4156, 25501, 9 | [**59**, 75], 7, 0, 0, 4600, 4588, 24543, 10 |
+| Senhor | week/0.5 | [44, 52], 5, 0, 0, 1137, 865, 1083, 1.5 | [44, 52], 5, 0, 0, 1137, 921, 1083, 1.5 |
+| Senhor | year/3 | [25, 35], 5, 0, 0, 694, 898, 1995, 3 | [25, 35], 5, 0, 0, 694, 898, 2064, 3 |
+| Senhor | year/0.5 | [84, 85], 8, 0, 0, 5200, 5200, 22354, 4.5 | [84, 85], 8, 0, 0, 5200, 5200, 16346, 5 |
+| Camponês | week/3 | [85, 85], 8, 0, 0, 5480, 6500, 251529, 33 | [85, 85], 8, 0, 0, 5480, 6500, 234242, 33 |
+| Camponês | week/1 e year/1 | [63, 77], 7, 0, 0, 4898, 5750, 21652, 10 | [**59**, 76], 7, 0, 0, 5750, 5000, 19239, 9 |
+| Camponês | week/0.5 | [48, 52], 5, 0, 0, 1160, 851, 1086, 1 | [**44**, 52], 5, 0, 0, 1114, 832, 1066, 1 |
+| Camponês | year/3 | [22, 35], 5, 0, 0, 817, 1407, 2468, 3 | igual |
+| Camponês | year/0.5 | [84, 85], 8, 0, 0, 6500, 6500, 24803, 4 | [84, 85], 8, 0, 0, 6500, 6500, 16672, 3.5 |
+| Rei de Ferro | week/3 | [75, 75], 7, 0, 0, 2780, 3680, 245992, 69 | [75, 75], 7, 0, 0, 2780, 3680, 243650, 69 |
+| Rei de Ferro | week/1 e year/1 | [64, 75], 7, 0, 0, 3537, 3654, 24869, 9 | [64, 75], 7, 0, 0, 3680, 3680, 24074, 9 |
+| Rei de Ferro | week/0.5 | [45, 54], 5, 0, 0, 1343, 920, 1118, 1 | [44, 54], 5, 0, 0, 1343, 920, 1181, 1 |
+| Rei de Ferro | year/3 | [29, 35], 5, 0, 0, 741, 590, 2560, 6 | [29, 35], 5, 0, 0, 649, 587, 2560, 6 |
+| Rei de Ferro | year/0.5 | [74, 75], 7, 0, 0, 3680, 3680, 47569, 3.5 | [75, 75], 7, 0, 0, 3680, 3680, 44193, 3.5 |
+
+**O que piorou, e por quê.** A Guilda deixou de ser uma obra só: o Explorador agora a leva até o nível 4 (480/160/320, 768/256/512 e 1.229/410/819 de material), e essas três obras disputam a fila com o Armazém e com as Habitações.
+
+- **A menor população caiu no Normal** (de 65 para 59 em Senhor, de 63 para 59 em Camponês) e no Tranquilo de Camponês (de 48 para 44): na pior semente, as Habitações esperam a Guilda.
+- **A maior sequência desperdiçando subiu no Rápido de 7 dias, em Senhor, de 33 para 54 horas de jogo**: é pedra indo ao chão enquanto a fila está com a Guilda. Nas outras células ficou igual ou caiu.
+- **O ouro parado caiu pouco**, e onde caiu mais foi no ano do Tranquilo (de 22.354 para 16.346 em Senhor): são as obras da Guilda. No Rápido de 7 dias ele continua em 236.783: o retrato das seções 4.4, 5.5 e 6.4 não mudou, e não era esta tarefa que o mudaria.
+- Nenhuma célula ganhou fome, frio nem um Salão mais baixo.
+
+### 7.3 O ano do Explorador e o do Regular, lado a lado
+
+Um ano de jogo, 30 sementes, médias por partida. "Ameaça" é a média da estação (primavera/verão/outono/inverno), o valor no fim do ano e o maior fim de ano das 30.
+
+| Dificuldade | Ritmo | Perfil | Ameaça P/V/O/I | Fim (máx.) | Incursões no ano (P/V/O/I) | Envios | Reveses | Desastres | Feridos | Cativos | Níveis | Itens | Covil limpo (1ª vez) |
+|---|---:|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Senhor | 3 | Explorador | 12/37/61/52 | 47 (70) | 5,5 (1,0/0,6/2,6/1,3) | 0,1 | 0,0 | 0 | 0,0 | 0 | 0,0 | 0,0 | 2 de 30 (dia 73) |
+| Senhor | 3 | Regular | 12/37/61/54 | 49 (70) | 5,6 (1,0/0,6/2,6/1,3) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | nunca |
+| Senhor | 1 | Explorador | 12/36/41/41 | 42 (75) | **3,2** (1,0/0,6/1,2/0,4) | 10,4 | 1,5 | 0 | 1,5 | 0 | 1,2 | 0,0 | 30 de 30 (dia 53) |
+| Senhor | 1 | Regular | 12/37/60/55 | 49 (70) | 5,6 (1,0/0,6/2,6/1,3) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | nunca |
+| Senhor | 0,5 | Explorador | 12/15/36/43 | 43 (74) | **2,1** (1,0/0,0/0,7/0,3) | 39,1 | 3,9 | 0 | 3,9 | 0 | 3,6 | 0,3 | 30 de 30 (dia 34) |
+| Senhor | 0,5 | Regular | 12/37/60/55 | 49 (70) | 5,6 (1,0/0,6/2,6/1,3) | 0 | 0 | 0 | 0 | 0 | 0 | 0 | nunca |
+| Camponês | 3 | Explorador | 12/37/61/40 | 37 (70) | 5,3 (1,0/0,6/2,6/1,1) | 0,5 | 0,1 | 0 | 0,1 | 0 | 0,0 | 0,0 | 12 de 30 (dia 73) |
+| Camponês | 1 | Explorador | 12/37/41/41 | 42 (75) | 3,3 (1,0/0,6/1,3/0,3) | 9,9 | 1,1 | 0 | 1,1 | 0 | 0,8 | 0,0 | 30 de 30 (dia 54) |
+| Camponês | 0,5 | Explorador | 12/16/36/42 | 43 (74) | 2,1 (1,0/0,0/0,8/0,3) | 39,5 | 4,0 | 0 | 4,0 | 0 | 3,5 | 0,2 | 30 de 30 (dia 35) |
+| Rei de Ferro | 3 | Explorador | 12/37/61/46 | 42 (70) | 5,4 (1,0/0,6/2,6/1,2) | 0,3 | 0,1 | 0 | 0,1 | 0 | 0,0 | 0,0 | 7 de 30 (dia 73) |
+| Rei de Ferro | 1 | Explorador | 12/37/40/40 | 40 (75) | 3,2 (1,0/0,6/1,2/0,4) | 10,4 | 1,6 | 0 | 1,6 | 0 | 0,8 | 0,0 | 30 de 30 (dia 52) |
+| Rei de Ferro | 0,5 | Explorador | 12/26/40/43 | 43 (74) | 2,5 (1,0/0,2/0,8/0,5) | 37,6 | 4,0 | 0 | 4,0 | 0 | 3,8 | 0,4 | 30 de 30 (dia 40) |
+
+O Regular de Camponês e de Rei de Ferro mede o mesmo que o de Senhor (12/37/60/55, 5,6 incursões, nenhum envio), e ficou fora da tabela.
+
+### 7.4 O Covil limpo: a validação que a decisão 14 pedia
+
+A pergunta do ADR 0018: **limpar o Covil na primavera deixa o feudo sem incursão nenhuma até o outono?**
+
+- **Sim.** Depois de o Covil ser limpo, nenhuma das 270 partidas do Explorador teve incursão na primavera, e no verão só as que já estavam marcadas quando a equipe venceu a toca (0,1 por partida, só em Rei de Ferro no Tranquilo). **No outono elas voltam**: 0,7 a 0,8 por ano, contra 2,6 de quem não limpou; e no inverno chegam 0,3 a 0,5, as que o outono marcou nos últimos dias.
+- **Quando o jogador chega lá:** no Tranquilo, no dia 34 a 40 de jogo (verão) em todas as sementes; no Normal, no dia 52 a 54 (o começo do outono); **no Rápido quase nunca dentro do primeiro ano** (2, 12 e 7 de 30 sementes, no dia 73, já no inverno), porque a Guilda só fica de pé depois de 50 horas reais.
+- **O ano inteiro:** as incursões caem de 5,6 para 2,1 (Tranquilo) ou 3,2 (Normal). A Ameaça média do outono cai de 60 para 36 a 41, e a do inverno, de 55 para 40 a 43. **Ela não satura**: o maior fim de ano das 30 sementes é 74 ou 75 (era 70 para quem não limpa).
+- **A primeira medição desta tarefa deu outra resposta, e a regra mudou por causa dela.** Com o motor só sorteando incursão com um tile ativo (como na v0.2), o Covil limpo dava nenhuma incursão até a virada do ano, e o outono somava 3 por dia sem nada que fizesse a Ameaça cair: ela chegava ao inverno em 79 a 85 de média e ao fim do ano em 100, e o teste "a Ameaça não satura" da matriz falhou. A regra que entrou (**no outono os lobos descem a serra, com o Covil limpo ou não**: `threat.seasonEnemy`) é a que faz valer a frase do ADR. É decisão do agente, e está em [pendencias-v0.3.md](pendencias-v0.3.md), D-24.
+
+### 7.5 Capturas por ano: zero, e o que isso quer dizer
+
+**Nenhum herói foi capturado, nem morreu, em nenhuma das 270 partidas do Explorador**, e nenhum nó terminou em Desastre. Não é a regra que está errada: é o bot, que só manda uma equipe a um destino mais duro quando o poder dela cobre a maior dificuldade à vista, e com isso a pior sorte dá Revés. A captura só está marcada no Resgate e nas Ruínas de Vel'Thar, e as Ruínas pedem dois heróis de nível 2 com mais de 88 de poder: em um ano, com 10 a 40 Patrulhas, a equipe sobe 1 a 4 níveis no total, e o bot não chega lá.
+
+- A validação do ADR 0018, "capturas por ano no perfil Regular", **fica sem resposta do simulador**. Pede um bot que arrisque (enviar com o poder abaixo da dificuldade), ou gente jogando. É de V3D-T3, com o catálogo, e de V3D-T5.
+- O que foi medido dos desfechos é o Revés: 1,1 a 1,6 feridos leves por ano no Normal e 4 no Tranquilo, sempre na toca do Covil ou na Patrulha de um herói fraco.
+- **Itens:** 0,2 a 0,4 por ano no Tranquilo, zero no resto. O bot não vai à Floresta Antiga (o primeiro trecho dela não tem prova) nem às Ruínas, que são os dois lugares onde há item.
+
+### 7.6 Limites desta medição
+
+- **Os cinco grafos são provisórios**, e três deles foram escritos para os desfechos acontecerem em teste: nenhum número daqui diz como as expedições de verdade se comportam.
+- A matriz inteira (os quatro perfis, 3.600 partidas) **não foi rodada**: só a do Explorador, uma vez por dificuldade, antes da atualização de `MEASURED`. As células dos outros perfis não mudaram de regra que os alcance, **com uma exceção que a matriz não mede**: nenhum deles limpa o Covil.
+- A seção 7.3 é de 30 sementes, não de 50, e de um perfil de duas visitas por dia.
+- `--perf` e os bytes do estado e da visão com itens, feridos e cativos **não foram medidos**. O estado ganhou até 30 itens no arsenal, três por herói e os campos novos em até oito registros por expedição, tudo com teto na guarda.
+- A parcela das encruzilhadas decididas pelo jogador continua zero de zero (seção 6.5).
+
+## 8. Rodadas seguintes das Fases D a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4, 5, 6 e 7.*

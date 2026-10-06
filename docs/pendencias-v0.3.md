@@ -161,6 +161,74 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase D: os desfechos (V3D-T2)
+
+Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Resgate, experiência e nível, equipamento, destinos por descoberta e o Covil limpo; estado na versão 18, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-16, D-17, D-24 e D-25 são as que mais pedem resposta; a D-24 é a validação que a decisão 14 do ADR 0018 mandava voltar ao autor.
+
+**D-16. O Resgate tem dois nós de prova e o caminho de volta, e não "2 nós".** *(Pergunta para o autor; é a mesma conta da D-5.)*
+- Enquanto isso: o ADR 0018 diz "Resgate: 2 h de jogo, 2 nós, 2 heróis", e o teto do conteúdo é de 45 minutos por nó: dois nós dão 1 h 30. O grafo provisório tem a chegada (45 min), o cativeiro (45 min) e a volta (30 min). O Covil dos Lobos, com "3 nós", coube: a subida, a toca e a volta.
+- Onde: `packages/content/src/missions/rescue.ts`.
+- Se decidir diferente: com "2 nós" contando o retorno, o Resgate dura 1 h 30, ou o teto por nó sobe para 60 minutos em `balance.expeditions.graph`.
+
+**D-17. O cativo conta no limite de contratação.** *(Pergunta para o autor.)*
+- Enquanto isso: quem está em cativeiro continua na lista de heróis e continua contando em `heroLimit` (não recebe soldo, mas ocupa o lugar): assim ninguém contrata no lugar dele e depois o resgata por cima do teto. **A consequência: com a Taverna no nível 1 (limite de dois), quem perde um herói fica com um só, e o Resgate pede dois.** A saída é melhorar a Taverna (o limite sobe para três) e contratar. O cativo não pode ser dispensado (`HERO_BUSY`), então o lugar dele só abre com o Resgate.
+- Onde: `heroLimit` e `paidHeroes`, em `packages/engine/src/heroes.ts`; `outcomes.test.ts`, "em Senhor o herói fica em cativeiro".
+- Se decidir diferente: não contar o cativo no limite é uma linha em `heroLimit` (e o feudo pode passar do limite quando ele volta, como já passa com um herói de carta); deixar dispensar o cativo é tirar a recusa em `dismissHero` (o que ele levava se perderia com ele).
+
+**D-18. Quem o Resgate devolve, e quando.**
+- Enquanto isso: o cativo **há mais tempo** (no empate, quem chegou antes ao feudo), e ele volta **no fim do nó do cativeiro**, pronto, sem esperar a equipe chegar em casa: não entra na equipe (não luta, não ganha experiência, não pode ser capturado de novo na volta). Um Resgate liberta um herói; com dois cativos, são dois Resgates.
+- Onde: `captives`, em `heroes.ts`; `rescueCaptive`, em `outcomes.ts`.
+
+**D-19. O herói resgatado em pleno atraso de soldo é cobrado como se nunca tivesse saído.**
+- Enquanto isso: em cativeiro o atraso não o alcança. Solto com o atraso aberto, os prazos dele contam do começo do atraso (ou da chegada dele ao feudo, o que for mais tarde): ele pode voltar e, na virada seguinte, ficar Descontente ou até partir. Não há teste para esse caso.
+- Se decidir diferente: contar os prazos dele a partir do Resgate pede guardar o instante da volta no herói (um campo novo, versão nova).
+
+**D-20. O saque e a experiência por desfecho (fecha a D-7).** *(Decidida pelo orquestrador: "Pleno > Sucesso > Revés > Desastre".)*
+- Enquanto isso: o saque do nó vem em **5/4 no Sucesso Pleno**, inteiro no Sucesso, metade no Revés e nada no Desastre (`balance.expeditions.lootShare`); a experiência, nas mesmas partes, mas o Desastre ainda dá **1/4** (`xpShare`: a derrota ensina). A experiência é de **cada herói que continua na equipe**, inteira para cada um (não se divide); quem foi capturado ou morreu no nó não a recebe. Um nó sem prova não dá experiência.
+- Onde: `packages/content/src/balance.ts`; `resolveStage`, em `expeditionTurn.ts`.
+- Os números de experiência por nó (12 na Patrulha, 20 na Floresta, 25 e 40 no Covil, 30 e 45 no Resgate, 35, 40 e 60 nas Ruínas) são do agente: com eles um herói precisa de sete a oito Patrulhas para o nível 2.
+
+**D-21. Os traços: o que foi implementado e a frase que foi ajustada.**
+- Implementados, como o ADR 0017 os lê: o **Ganancioso** (recursos de cada nó × 5/4, uma vez por equipe; 10% de perder o saque do nó, recursos e item, sorteado depois de quem sofre e antes das quantidades), o **Prudente** (não é sorteado para o ferimento leve em nó `hazard`), o **Corajoso** (pesa 6 contra 5 no sorteio de quem sofre) e o **Rastreador** (a revelação de um destino vem também no Revés). O **Veterano** não tem efeito em tempo de execução.
+- **Frase ajustada:** a do Carismático dizia "abre caminhos no conselho e barateia quem a Taverna oferece"; ficou "Sabe negociar: barateia quem a Taverna oferece." O que ele abre nas cartas é de V3F-T1, e a frase volta a dizê-lo quando existir. As outras frases já diziam o que agora vale.
+- **O sorteio da cobiça fica depois de quem sofre**, e não logo depois da sorte: o ADR diz "depois da sorte", e a ordem fixada é sorte → quem sofre → cobiça → quantidades → item. Trocar a ordem muda o desfecho de toda partida (golden).
+
+**D-22. Os itens são doze, todos como fator do poder, e três épicos somam 52%.** *(Pergunta para o autor só quanto aos números.)*
+- Enquanto isso: quatro itens por espaço, um de cada raridade: +5%, +8%, +12% e +15% de poder; valem 30, 60, 120 e 250 de ouro. O bônus é um fator (ADR 0017, decisão 7), e os fatores se multiplicam: três épicos dão × 1,52. Não há item com ponto de atributo: o espaço só decide o que troca com o quê. Nomes e frases são rascunho ([content-v0.3.md](content-v0.3.md), seção 7).
+- **De onde vêm hoje:** da mata fechada da Floresta Antiga (um comum, uma chance em três, do Sucesso em diante) e do guardião das Ruínas (um raro, uma em duas). Nenhum incomum nem épico é achado em lugar nenhum: são de V3D-T3 e dos objetivos (V3F-T2).
+- **O que foi decidido sem pergunta:** o item de quem deixa o feudo (morre, parte sem soldo, é dispensado) **volta ao arsenal**; o do cativo fica com ele; desequipar com o arsenal cheio é recusado (`INVENTORY_FULL`, uma recusa que o roadmap não listava), para uma ordem nunca vender um item; o item que **chega** com o arsenal cheio vira ouro pelo valor.
+
+**D-23. Os destinos por descoberta e os três grafos provisórios.**
+- Enquanto isso: os destinos revelados moram em `map.discovered` (são lugares; o mapa gráfico da v0.5 os herda). Cada modelo diz como aparece (`access`). **Toda Patrulha com Sucesso revela as Ruínas de Vel'Thar**: o ADR diz "uma Patrulha ou uma carta"; a carta é de V3F-T1. O Pântano Nebuloso não existe ainda.
+- O Covil dos Lobos, o Resgate e as Ruínas são **três variantes mínimas cada, sem encruzilhada**, escritas para os desfechos terem onde acontecer (o Covil limpa o tile, o Resgate liberta, as Ruínas capturam e rendem item). As dificuldades das Ruínas são as do exemplo do ADR 0017 (50, 60 e 90). Os identificadores `wolfDen`, `rescue` e `ruins` ficam gravados no estado e são os que V3D-T3 deve manter.
+- **A captura só é possível no Resgate e nas Ruínas**, e a conta do ADR 0017 já dizia: a equipe mínima das Ruínas nunca chega ao Desastre. No simulador ninguém foi capturado (D-24).
+
+**D-24. O Covil limpo deixa o feudo sem incursão até o outono, e no outono os lobos descem a serra assim mesmo.** *(Pergunta para o autor: é a validação que a decisão 14 do ADR 0018 mandava voltar a ele; **o agente criou uma regra para fechá-la**.)*
+- **O que a decisão diz, e o que faltava.** "O tile para de somar os seus +2 por dia", "com o Covil limpo, só o outono soma", e a pergunta: "limpar o Covil na primavera deixa o feudo sem incursão nenhuma até o outono?". O motor da v0.2 só sorteava incursão com um tile ativo (`prowlingEnemy`: sem tile, "não há quem ataque"), e ninguém podia limpar um tile. Com o Covil limpo isso dava **nenhuma incursão até a virada do ano**, com o outono somando 3 por dia e nada fazendo a Ameaça cair: na primeira medição ela chegava ao inverno em 79 a 85 de média (contra 55 de quem não limpou) e o ano novo começava com ela no teto. O teste "a Ameaça não satura" da matriz (docs/balance-v0.2.md, seção 16) falhou com 100.
+- **A regra que entrou:** no outono os lobos descem a serra, **com o Covil limpo ou não** (`balance.threat.seasonEnemy: { autumn: 'wolves' }`, `raidingEnemy`). Com o Covil limpo, a primavera, o verão e o inverno não têm subida nem sorteio; o outono tem os dois, como sempre teve. É a leitura que faz valer a frase do ADR ("sem incursão até o outono") e mantém a Ameaça oscilando.
+- **O que o simulador mediu com ela** ([balance-v0.3.md](balance-v0.3.md), seção 7): a resposta à pergunta é **sim**: quem limpa o Covil na primavera ou no verão não vê incursão até o outono (só a que já estava marcada), e no outono elas voltam.
+- Se decidir diferente: (a) sem lobo nenhum até a virada do ano (tirar `seasonEnemy`) e o outono sem somar com o Covil limpo; (b) o Covil limpo dura N dias, e não até a virada; (c) limpo para sempre, com outro tile de ameaça entrando no ano 2.
+
+**D-25. A descrição das dificuldades não diz que em Rei de Ferro o herói morre.** *(Pergunta para o autor.)*
+- Enquanto isso: as três frases de `balance.difficulties[].description` foram aprovadas pelo autor (ADR 0016, item 6) e um teste as fixa: não foram mexidas. Quem escolhe Rei de Ferro na criação da partida não lê que heróis podem morrer, nem quem escolhe Camponês, que ninguém fica em cativeiro. A ficha do herói e a Crônica só dizem depois.
+- Se decidir diferente: uma oração a mais em cada frase ("heróis podem morrer", "um herói pode cair em cativeiro", "nenhum herói fica em cativeiro"), com o teste de conteúdo e os dois cenários em navegador que citam as frases.
+
+**D-26. O ferido no feudo é gente do feudo, e o ferimento não tira poder.**
+- Enquanto isso: quem se recupera recebe soldo (ADR 0017), pode ser equipado e dispensado, pode partir por soldo em atraso, e a fé do Devoto ferido conta na moral. Só não parte em expedição. **Quem se fere no meio de uma jornada continua valendo o mesmo** nos nós seguintes: o ADR só diz que ele "termina a expedição". Ferido de novo, fica com o prazo mais longo e a gravidade maior (os prazos não se somam).
+- O ferimento conta **tempo de jogo** (2 h e 12 h): no Rápido são 40 minutos e 4 horas reais; no Tranquilo, 4 horas e um dia.
+
+**D-27. O que os eventos dos desfechos levam.**
+- Enquanto isso: `threatTileCleared` leva só o tile e a expedição, **sem o número da Ameaça** (sem Torre o jogador não o conhece). `itemSold` leva `gained_gold`, a chave que o Relatório de Retorno já soma. `heroInjured` leva `severity` e `spared`. `expeditionNodeResolved` ganhou `lootLost`. Nenhum evento leva a chave do item no conteúdo além de `defId`, que **sai na API** em `data` (como `modelId`): é o nome interno de um item que o jogador acabou de achar, não um segredo.
+- As linhas da Crônica cresceram: um nó pode render a frase dele, a do ferimento, a do item, a do destino e uma por herói que subiu de nível. Vale o que a D-12 já dizia sobre o tamanho.
+
+**D-28. A visão ganhou três números para o bot, e o bot ficou cauteloso.**
+- Enquanto isso: `teamMinLevel` e `firstStretchDifficulty` em cada destino e `bonusPercent` em cada item são os mesmos números que `requirementsText`, `firstStretchText` e `bonusText` já diziam em frase. O explorador envia **o destino mais difícil que a equipe passa com folga** (o poder cobre a maior dificuldade à vista), com a equipe mais fraca que ainda passa; sem nenhum, a Patrulha. Equipa o melhor item no herói mais forte que ganha com ele, não envia ferido, e melhora a Guilda quando há mais gente pronta do que lugares (o que a D-11 dizia que ele não fazia).
+- **O que isto deixa sem resposta:** como ele só vai com folga, **nunca teve um Desastre, e ninguém foi capturado em nenhuma das 270 partidas medidas do Explorador**. A pergunta do ADR 0018, "capturas por ano", não tem resposta do simulador: pede um bot que arrisque, ou gente jogando. A Floresta Antiga continua sem visita (o primeiro trecho dela não tem prova, e o bot não sabe o que vem depois).
+- A D-1 pedia um campo para "sua equipe vale 51 contra 60": continua sem ele (o poder da equipe **contra o nó**, com os pesos e a Postura). O bot soma o poder da ficha.
+
+**D-29. O app não mostra nada dos desfechos.**
+- Enquanto isso: a aba Guilda continua a de V3C-T4, sem destinos, expedições, relatórios, arsenal nem equipamento; a ficha do herói mostra `statusText`, que já diz "Em recuperação…" e "Em cativeiro…". Os avisos e a árvore não sabem dos eventos novos. É de V3D-T4.
+
 ### Fase D: o motor das expedições (V3D-T1)
 
 Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, o percurso por eventos, a resolução em inteiros, a encruzilhada e a Postura, a volta, a visão e o protocolo 3; estado na versão 17). **Nenhuma foi perguntada ao autor.** As quatro primeiras o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. D-5, D-7, D-10 e D-11 são as que mais pedem resposta.
@@ -195,7 +263,7 @@ Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, 
 - Onde: `nextVariant`, em `packages/engine/src/expeditions.ts`.
 - Se decidir diferente: zerar na virada do ano faz todo ano começar pela mesma variante; é um campo novo no estado (versão nova).
 
-**D-7. O saque por desfecho: inteiro no Sucesso Pleno e no Sucesso, metade no Revés, nada no Desastre, e só o do nó.** *(Pergunta para o autor.)*
+**D-7. O saque por desfecho: inteiro no Sucesso Pleno e no Sucesso, metade no Revés, nada no Desastre, e só o do nó.** *(Pergunta para o autor. **Mudou em V3D-T2:** o Sucesso Pleno passou a trazer 5/4; ver a D-20.)*
 - Enquanto isso: `balance.expeditions.lootShare` é número novo, do agente. O GDD diz "Revés (saque parcial)" e "Desastre (saque perdido)"; a leitura é que o Desastre perde **o saque daquele nó**, e a equipe volta com o que já tinha juntado antes. **O Sucesso Pleno e o Sucesso trazem o mesmo**: o que os distingue (experiência, achados) é de V3D-T2. As quantidades são sorteadas em uma faixa por nó (por exemplo, de 15 a 25 de ouro).
 - Onde: `resolveStage`, em `packages/engine/src/expeditionTurn.ts`.
 - Se decidir diferente: "Desastre perde tudo o que a equipe trazia" é uma linha em `resolveStage`; um bônus de saque no Sucesso Pleno é um número em `lootShare` (hoje o schema não deixa passar de 1).
@@ -628,6 +696,17 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase D: os desfechos (V3D-T2)
+
+- **O autor não leu nem jogou nada disto.** Os doze itens, os três grafos provisórios e as frases dos desfechos são rascunho.
+- **A captura, a morte e o Resgate só acontecem em teste.** O simulador não passou por nenhum dos três nas 270 partidas do Explorador (D-28), e o teste de propriedade das expedições, que sorteia os cenários a cada execução, passa por eles só de vez em quando (em duas execuções medidas: uma morte, nenhuma captura, seis Resgates de um cativo posto no começo). O que os prova são os testes de `outcomes.test.ts`, com o desfecho garantido pela conta, e a divisão de intervalo em volta do Desastre na cripta, nas três dificuldades e nos três ritmos.
+- **Os desfechos garantidos são postos à mão**: os testes põem a equipe diante do nó (`expeditionAtNode`) e a enfraquecem (`weakened`: Clérigos de nível 1, Descontentes, com o cofre vazio). Nenhum teste chega ao Desastre com captura jogando do começo: com os números de hoje a equipe mínima das Ruínas não chega lá.
+- **O herói resgatado com o soldo em atraso** (D-19) e **o ferido que parte por soldo em atraso** não têm teste.
+- **A previsão da moral** continua andando sem as expedições: não conta com quem volta ferido nem com o Devoto que volta.
+- **O Relatório de Retorno do app** não foi conferido com os eventos novos (`itemSold` soma ouro por `gained_gold`; os outros não são classificados nos blocos). É de V3D-T4 e V3F-T3.
+- **A matriz inteira (os quatro perfis) não foi rodada nesta tarefa**: só a do Explorador, nas três dificuldades, porque só o bot dele mudou; as células dos outros perfis são conferidas pelo `pnpm test`, que roda a matriz reduzida.
+- **Nenhuma partida de produção passou pelo passo 17 → 18**: a produção está no estado 12. O que o prova são os 35 retratos congelados da versão 17 e o teste de integração da migração.
 
 ### Fase D: o motor das expedições (V3D-T1)
 
