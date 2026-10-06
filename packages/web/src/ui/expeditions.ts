@@ -1,6 +1,6 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
-import { expiresIn, formatApprox, formatDuration, formatNumber, remainingNow } from './format';
+import { formatApprox, formatDuration, formatNumber, remainingNow } from './format';
 import { joinList } from './format';
 
 /**
@@ -105,12 +105,17 @@ export function crossroadsOverdue(
   return crossroadsSecondsLeft(crossroads, elapsedSeconds) <= 0;
 }
 
-/** "expira em 5 h": o prazo real da encruzilhada, no mesmo texto das cartas do Conselho. */
+/**
+ * "a espera acaba em 5 h": o prazo real da encruzilhada. Não é o texto das cartas do Conselho
+ * ("expira em"): a encruzilhada não expira, é a espera da equipe que acaba, e aí a Postura
+ * decide. Com o prazo vencido no relógio desta página, "a espera acabou".
+ */
 export function crossroadsDeadline(
   crossroads: Pick<Crossroads, 'decidesInSeconds'>,
   elapsedSeconds: number,
 ): string {
-  return expiresIn(crossroads.decidesInSeconds, elapsedSeconds);
+  const left = crossroadsSecondsLeft(crossroads, elapsedSeconds);
+  return left <= 0 ? 'a espera acabou' : `a espera acaba em ${formatApprox(left)}`;
 }
 
 /**

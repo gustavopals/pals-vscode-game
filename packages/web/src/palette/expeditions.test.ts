@@ -227,7 +227,7 @@ describe('escolher o caminho', () => {
     expect(list?.detail).toEqual([
       'A trilha se divide · Edda e Rolf',
       crossroads?.text,
-      'Expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      'A espera acaba em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
     ]);
     expect(list?.items.map((item) => item.label)).toEqual(
       crossroads?.options.map((option) => option.label),
@@ -403,8 +403,8 @@ describe('escolher o caminho', () => {
     await run('lords.chooseExpeditionPath');
     expect(picks()[0]?.title).toBe('Escolher caminho da expedição');
     expect(picks()[0]?.items.map((item) => [item.label, item.description])).toEqual([
-      ['Floresta Antiga', 'expira em 5 h'],
-      ['Covil de Lobos', 'expira em 5 h'],
+      ['Floresta Antiga', 'a espera acaba em 5 h'],
+      ['Covil de Lobos', 'a espera acaba em 5 h'],
     ]);
     expect(orders()).toEqual([path('expedition-3', 'thicket')]);
   });

@@ -123,7 +123,7 @@ describe('a encruzilhada (V3D-T4.1 e T4.3; GDD §9.2)', () => {
     const { crossroads } = waiting(expeditionCrossroadsView);
     const shown = text(markup);
     expect(shown).toContain('Encruzilhada · Floresta Antiga');
-    expect(shown).toContain('Expira em 5 h');
+    expect(shown).toContain('A espera acaba em 5 h');
     expect(shown).toContain('A trilha se divide');
     expect(shown).toContain('Edda e Rolf · Postura Equilibrada');
     expect(shown).toContain(crossroads.text);
@@ -194,7 +194,7 @@ describe('a encruzilhada (V3D-T4.1 e T4.3; GDD §9.2)', () => {
   it('com o prazo vencido no relógio da página, avisa e não deixa enviar', () => {
     const { crossroads } = waiting(expeditionCrossroadsView);
     const markup = card(expeditionCrossroadsView, { elapsed: crossroads.decidesInSeconds + 1 });
-    expect(text(markup)).toContain('Prazo encerrado');
+    expect(text(markup)).toContain('A espera acabou');
     expect(text(markup)).toContain(
       'O prazo acabou: a Postura Equilibrada está decidindo, e a Crônica conta o caminho. Nada mais é enviado daqui.',
     );

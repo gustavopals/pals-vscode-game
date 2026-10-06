@@ -108,14 +108,15 @@ describe('a encruzilhada como texto', () => {
   it('o prazo é o da visão, em tempo real, descontado o tempo desde a leitura', () => {
     const { crossroads } = waitingOf(expeditionCrossroadsView);
     expect(crossroads.decidesInSeconds).toBe(19_198);
-    expect(crossroadsDeadline(crossroads, 0)).toBe('expira em 5 h');
-    expect(crossroadsDeadline(crossroads, 4 * 3600)).toBe('expira em 1 h');
+    // A encruzilhada não expira: é a espera da equipe que acaba (revisão, A26).
+    expect(crossroadsDeadline(crossroads, 0)).toBe('a espera acaba em 5 h');
+    expect(crossroadsDeadline(crossroads, 4 * 3600)).toBe('a espera acaba em 1 h');
     // Perto é menos de uma hora (limiar de apresentação): o prazo inteiro não nasce em aviso.
     expect(crossroadsSoon(crossroads, 0)).toBe(false);
     expect(crossroadsSoon(crossroads, 19_198 - 3599)).toBe(true);
     expect(crossroadsOverdue(crossroads, 19_197)).toBe(false);
     expect(crossroadsOverdue(crossroads, 19_198)).toBe(true);
-    expect(crossroadsDeadline(crossroads, 20_000)).toBe('prazo encerrado');
+    expect(crossroadsDeadline(crossroads, 20_000)).toBe('a espera acabou');
   });
 
   it('a opção da Postura é a que a visão marca, e a frase do que ela faz é a do servidor', () => {
@@ -130,13 +131,13 @@ describe('a encruzilhada como texto', () => {
 
   it('onde a equipe está e quanto falta: a encruzilhada com o prazo, o trecho com o tempo', () => {
     const { expedition } = waitingOf(expeditionCrossroadsView);
-    expect(expeditionProgress(expedition, 0)).toBe('na encruzilhada · expira em 5 h');
+    expect(expeditionProgress(expedition, 0)).toBe('na encruzilhada · a espera acaba em 5 h');
     expect(stretchEnds(expedition, 0)).toBeNull();
     expect(expeditionLines(expedition, 0)).toEqual([
       'Edda e Rolf · Postura Equilibrada',
       'Parada na encruzilhada, à espera da sua palavra.',
       'A trilha se parte em duas diante de um carvalho tombado. À esquerda, a mata fecha; à direita, ouve-se água.',
-      'Expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      'A espera acaba em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
     ]);
     const [traveling] = expeditionTravelingView.guild.expeditions;
     if (traveling === undefined || traveling.nodeEndsInSeconds === null) {
@@ -388,7 +389,7 @@ describe('a árvore: "Guilda · 3 heróis · 1 expedição na encruzilhada" (GDD
     const waiting = find(tree(expeditionCrossroadsView), 'expedition:expedition-2');
     expect(waiting).toMatchObject({
       label: 'Floresta Antiga',
-      description: '● na encruzilhada · expira em 5 h',
+      description: '● na encruzilhada · a espera acaba em 5 h',
       contextValue: 'lords.crossroads',
       command: { id: 'lords.openPanel', args: ['expeditions'] },
       // A dica do botão diz o que acontece sem resposta, na frase do servidor.
