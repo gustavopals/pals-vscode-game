@@ -671,6 +671,23 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(published).toEqual(STABLE_IDS);
   });
 
+  it('dentro de uma variante nenhum id de opção se repete: a ordem de escolher o caminho só diz a expedição e a opção (revisão da Fase D, M-R7)', () => {
+    // `chooseExpeditionPath` identifica a encruzilhada pela expedição: em um grafo com duas
+    // encruzilhadas e a mesma chave de opção nas duas, a ordem atrasada de uma aba velha
+    // decidiria a segunda. Chaves únicas por variante tornam a ordem atrasada uma recusa.
+    for (const model of expeditionModels) {
+      for (const [index, variant] of model.variants.entries()) {
+        const ids = Object.values(variant.nodes).flatMap((node) =>
+          node.kind === 'crossroads' ? node.options.map((option) => option.id) : [],
+        );
+        expect(
+          ids.filter((id, at) => ids.indexOf(id) !== at),
+          `${model.id}, variante ${index}`,
+        ).toEqual([]);
+      }
+    }
+  });
+
   it('os tipos de nó são os oito do GDD §9.2, com a encruzilhada e o retorno', () => {
     expect(EXPEDITION_NODE_KINDS).toEqual([
       'travel',
