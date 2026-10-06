@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 19;
+const CURRENT = 20;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -83,6 +83,8 @@ function beforeOutcomes<T>(state: T): T {
     delete hero.injury;
     delete hero.captivity;
     delete hero.equipment;
+    // E a volta do cativeiro, da versão 20 (revisão da Fase D).
+    delete hero.freedAtMs;
   }
   return copy as T;
 }
@@ -1514,6 +1516,61 @@ describe('uma partida gravada na versão 17 (V3D-T2; ADR 0017, decisão 8; ADR 0
       await app.close();
     }
   });
+});
+
+describe('uma partida gravada na versão 19 (revisão da Fase D, M-D1; ADR 0017, decisão 3)', () => {
+  type V19Hero = { id: string; status: string; joinedAtMs: number; freedAtMs?: unknown };
+  type V19State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    guild: { heroes: V19Hero[] };
+  };
+
+  /** Um retrato da versão 19, como o motor do catálogo de expedições o gravou. */
+  function v19State(name: string): V19State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v19-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V19State;
+  }
+
+  // Com um cativo, com um ferido, com o soldo em atraso e com uma expedição na encruzilhada.
+  it.each([['hero-captured'], ['hero-injured'], ['wage-arrears'], ['expedition-crossroads']])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com a volta do cativeiro vazia em cada herói',
+    async (name) => {
+      const before = v19State(name);
+      expect(before.guild.heroes.length).toBeGreaterThan(0);
+      expect(before.guild.heroes.every((hero) => hero.freedAtMs === undefined)).toBe(true);
+      const game = await insertGame(server, before, {
+        timeScale: before.settings.timeScale,
+        stateVersion: 7,
+      });
+      await server.pool.query('update games set difficulty = $2 where id = $1', [
+        game.id,
+        before.settings.difficulty,
+      ]);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 19, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V19State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // Nada é reconstituído: ninguém ganha um instante de volta que a versão 19 não guardava.
+      expect(row.state.guild.heroes.map((hero) => [hero.id, hero.status, hero.freedAtMs])).toEqual(
+        before.guild.heroes.map((hero) => [hero.id, hero.status, null]),
+      );
+      // O passo não dá identificador a ninguém e não toca o gerador.
+      expect(row.state.ids).toEqual(before.ids);
+      expect(row.state.rng).toEqual(before.rng);
+      // A segunda leitura não grava de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.stateVersion).toBe('8');
+    },
+  );
 });
 
 describe('recibos da versão anterior', () => {
