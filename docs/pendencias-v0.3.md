@@ -201,7 +201,7 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 **C-54. A visão ganhou `guild.wage.afterArrivals`, e o app ainda não o mostra.** *(Campo novo; revisão A-R1.)*
 - O risco: com o cofre vazio e um herói prometido a caminho, nada avisava que o soldo dele abre o atraso na chegada (`coveredForSeconds` só conta quem já está).
 - Enquanto isso: o motor e o protocolo trazem `afterArrivals: { perHour, coveredForSeconds }` (o soldo e o prazo do ouro contando quem chega; `null` sem ninguém a caminho). A conta é pelo saldo de agora, sem refazer a projeção do ofício: pode divergir um pouco de `coveredForSeconds` quando a moral ou a mestria mudam no caminho.
-- O que falta: a aba Guilda, "Antes de partir" e o aviso lerem o campo. É do agente das correções do app.
+- **Feito no app (C-62):** a aba Guilda, "Antes de partir", a árvore e os avisos leem o campo, e `wage.lingering` também.
 - Onde: `afterArrivals`, em `packages/engine/src/guildView.ts`; `packages/protocol/src/view.ts`; roadmap, Apêndice B.4.
 
 **C-55. Os eventos `heroHired` e `festivalHeld` levam o total gasto, e `heroHired` deixou de levar o modelo.** *(Revisões A-D1 e M-R4; não mudam regra.)*
@@ -236,6 +236,36 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 **C-61. Registrado, sem ação: `offer-7` e `hero-3` deixam inferir os contadores.** *(Revisão M-Q4.)*
 - Os identificadores que a visão mostra são `<tipo>-<n>`, e o maior `n` visto diz quantas ofertas e heróis a partida já criou. É inofensivo (não revela sorteio futuro), e o `CLAUDE.md` foi ajustado para dizer que é o objeto `ids` que não sai na visão.
 
+### Fase C: correções da revisão da interface (V3C-T5, app)
+
+Vêm da revisão independente da interface da Fase C: três defeitos (A-D1 a A-D3) e oito riscos (A-R1 a A-R8) corrigidos no app e nos testes em navegador, um commit por item, cada um com teste de regressão. **Nenhuma muda regra**; o motor e o servidor não foram tocados. As três primeiras são respostas já dadas; as outras, escolhas do agente para o autor rever.
+
+**C-62. Decididas na revisão (Q1 a Q3), sem mudança de código além do título.**
+- Q1: a prioridade da barra de status fica como o código está: sem ligação > incursão à vista > fome e frio > soldo em atraso > decisões pendentes > depósito > obra (segue o ADR 0016; é a C-40). A frase da subtarefa V3C-T4.3 no roadmap foi corrigida para dizer isso.
+- Q2: o painel sem herói chama-se "Heróis", com a frase da visão embaixo; "Heróis · nenhum herói" saiu. Com equipe continua "Heróis · 3 heróis". O festival pelo painel continua sem confirmação, com o custo ao lado do botão (é a C-41).
+- Q3: `festivalEnded` e `heroDismissed` continuam só na Crônica (`festivalEnded` avisa só no nível "Todas"; é a C-42).
+
+**C-63. "Tentar de novo" passou a valer só para o feudo e a intenção em que nasceu, em toda ordem.** *(Revisões A-D2 e A-D3; defeito anterior à Guilda.)*
+- Enquanto isso: a ordem preparada para um feudo não é enviada a outro (o envio recusa, com "Essa ordem era de outro feudo e não foi enviada."), e a troca de feudo ou de conta tira de cena todo aviso com "Tentar de novo". Uma ordem nova da mesma intenção aposenta a retentativa antiga: o aviso some e o botão dele não envia mais.
+- A escolha do agente: **o que é "a mesma intenção"** (`intentOf`, em `packages/web/src/game/intent.ts`). Os trabalhadores de um edifício; a obra de um edifício (iniciar, cancelar, planejar, desplanejar e o início automático contam como uma só); a resposta a uma carta, qualquer que seja a opção; um candidato; um herói; o festival; o recrutamento; o nome do feudo. Consequência: o recrutamento de 1 aldeão que falhou sem rede e um recrutamento novo de 5 não convivem (o velho é aposentado).
+- Onde: `controller.attempt`, `prepare` e `accountChanged`, em `packages/web/src/app/controller.ts`; `app/retry.test.ts`; README do app, "Ordens e 'Tentar de novo'".
+- Se decidir diferente: a chave é uma função de dez linhas; agrupar menos (a ordem inteira, com o valor) deixa a retentativa velha conviver com a nova quando o valor muda.
+
+**C-64. O soldo de quem está a caminho e a partida do atraso fechado estão na tela; as frases de ligação são do agente.** *(Revisão A-R1 e A-R2; fecha o que faltava da C-54.)*
+- Enquanto isso: "Com quem está a caminho, o soldo passa a 2/h de ouro: o ouro paga a equipe por mais 3 h." (aba Guilda e explicação do cabeçalho e da árvore); "Com quem está a caminho, o ouro paga a equipe por mais 3 h: depois disso o soldo atrasa." ("Antes de partir", que agora tem o item também sem herói no feudo); a frase do servidor de `wage.lingering` seguida de "A virada vem em 40 min." (aba, "Antes de partir" com o botão "Ver a Guilda", e o aviso do atraso que fecha, que nesse caso sai com tom de alerta). O herói que chega com o ouro pagando menos de um dia leva o prazo no aviso, sem tom de alerta.
+- A linha "Guilda" da árvore: "3 heróis · ⚠ ouro para 1 h de soldo" quando o ouro acaba dentro do horizonte de "Antes de partir" (um dia, o mesmo dos outros itens: a constante é uma só, `LEAVING_HORIZON_SECONDS`), "· ⚠ um herói parte em 40 min" com o atraso fechado que ainda cobra, e "· ⚠ soldo em atraso" como antes. Com alerta, o ícone do grupo é o de aviso. **Com isso a linha passa a mostrar o alerta em todo feudo cujo ouro pague a equipe por menos de um dia**, que é o caso do golden `guildPaid` (23 h).
+- Onde: `packages/web/src/ui/guild.ts` (`wageOutlook`, `wageRisk`, `wageAlert`, `arrivalsCoverage`, `lingeringLine`), `game/beforeLeaving.ts`, `components/HeroesPanel.tsx`, `notifications/policy.ts` (`wageAhead`).
+- Se decidir diferente: são frases e um horizonte; nenhum número de regra está no app.
+
+**C-65. Os heróis descontentes da mesma virada são um aviso só, e quem partiu passa na frente.** *(Revisão A-R3.)*
+- Enquanto isso: "3 heróis ficaram descontentes.", com uma linha da Crônica para cada um; um só continua saindo com a frase dele. Com pouco espaço (três avisos por hora), a ordem é: o que se perdeu ou está para se perder (quem partiu, a fome, o frio, a incursão, o atraso que abre) > o herói descontente > cartas, alívios, estação, vigias e o herói que chegou > o resto. Os descontentes agrupados não entram no contador de novidades.
+- Onde: `decideNotifications`, `discontentNotice` e `rank`, em `packages/web/src/notifications/policy.ts`.
+- Se decidir diferente: é a ordem de uma função; a moral que desce de faixa ficou no primeiro grupo, como estava.
+
+**C-66. A trava dos comandos da Guilda na paleta é por alvo.** *(Revisão A-R7.)*
+- Enquanto isso: com a contratação de um candidato a caminho, o clique em outro candidato vira ordem (antes sumia em silêncio); o mesmo candidato duas vezes continua sendo uma ordem só. Na dispensa, com uma a caminho, a de outro herói abre a confirmação dele.
+- Onde: `oneAtATime`, em `packages/web/src/palette/commands.ts`.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.
@@ -255,23 +285,23 @@ Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a
 - Onde: `visibleTabs`, em `packages/web/src/app/router.ts`.
 - Se decidir diferente: é a ordem de uma lista e dos testes que a conferem.
 
-**C-40. O soldo em atraso entra na barra de status depois da fome e do frio e antes das cartas.**
+**C-40. O soldo em atraso entra na barra de status depois da fome e do frio e antes das cartas.** *(Mantida pelo autor na revisão da Fase C: C-62, Q1.)*
 - Enquanto isso: sem ligação > incursão à vista > fome e frio > soldo em atraso > decisões pendentes > depósito > obra. O roadmap põe "frio, fome ou soldo em atraso" no mesmo degrau; quando a fome e o atraso coincidem, a linha é a da fome, e o atraso continua no cabeçalho, na árvore e na aba.
 - Onde: `statusTopic`, em `packages/web/src/ui/format.ts`.
 - Se decidir diferente: uma linha "Fome e soldo em atraso", como já existe "Fome e frio".
 
-**C-41. Contratar e dar festival pelo painel não pedem confirmação; dispensar pede sempre.**
+**C-41. Contratar e dar festival pelo painel não pedem confirmação; dispensar pede sempre.** *(O festival sem confirmação foi mantido na revisão: C-62, Q2.)*
 - Enquanto isso: no painel o preço e o soldo (ou o custo e o efeito do festival) estão ao lado do botão, e a ordem segue, como "Construir". O botão "Contratar" da árvore também contrata direto, com o preço na linha e na dica. Pela paleta, contratar mostra a lista com os preços, e o festival confirma (pela árvore também). O duplo clique não contrata duas vezes.
 - Onde: `palette/commands.ts` (`hireHero`, `holdFestival`, `dismissHero`).
 - Se decidir diferente: uma confirmação a mais em `hireHero`, com o preço e o soldo.
 
-**C-42. O herói contratado não vira aviso; o que uma carta prometeu, sim.**
+**C-42. O herói contratado não vira aviso; o que uma carta prometeu, sim.** *(`festivalEnded` e `heroDismissed` mantidos só na Crônica: C-62, Q3.)*
 - Enquanto isso: `heroJoined` avisa no nível "Essenciais", sem tom de alarme; `heroHired`, `heroDismissed` e `festivalHeld` não avisam em nível nenhum (são ordens do jogador), nem quando a ordem veio de outro navegador; `festivalEnded` só em "Todas". O atraso que abre, o herói descontente e o que parte são alarmes.
 - Onde: `packages/web/src/notifications/policy.ts`.
 - Se decidir diferente: mover o tipo de lista.
 
 **C-43. No Relatório de Retorno o soldo não tem coluna: está dentro da "Produção" do ouro.**
-- Enquanto isso: a nota da tabela diz "(no ouro, o soldo dos heróis: ele não é gasto de uma ordem)" quando há equipe. Os eventos da equipe caem nos blocos (quem chegou e o festival em "prosperou"; o atraso, o descontente e quem partiu em "exigiu um preço"). O tratamento completo é a V3F-T3.
+- Enquanto isso: a nota da tabela diz "(no ouro, o soldo dos heróis também: ele corre sozinho, não é gasto de uma ordem)" quando há equipe, e que o trato de uma contratação e o custo de um festival estão em "Gasto" (os eventos passaram a trazer `spent_<recurso>`; revisão A-D1, com teste em `game/returnReport.test.ts`). Os eventos da equipe caem nos blocos (quem chegou e o festival em "prosperou"; o atraso, o descontente e quem partiu em "exigiu um preço"). O tratamento completo é a V3F-T3.
 - Onde: `packages/web/src/game/returnReport.ts`, `components/Today.tsx`.
 - Se decidir diferente: nada antes da V3F-T3; a coluna pede que o motor some o soldo pago em um evento.
 
@@ -514,10 +544,20 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 
 - **Nenhuma partida real passou pelas regras novas.** A cobrança do atraso e da fome fechados dentro da janela (C-47, C-48) só foi exercitada em teste; a da fome muda partidas vivas da v0.2 no dia em que for publicada.
 - **A matriz do simulador não mede nada disso**: nenhum bot passa 12 h reais com fome nem com o soldo em atraso. As faixas continuaram verdes no `pnpm test` depois de cada correção, mas os números da matriz não foram comparados um a um com os de `docs/balance-v0.3.md`, seção 4.
-- **O app não mostra os dois campos novos** (`guild.wage.afterArrivals` e `guild.wage.lingering`) nem foi ajustado para os eventos com `spent_`: os testes do app passam porque o Relatório já soma `spent_<recurso>` de qualquer evento, mas não há teste do relatório com `heroHired` e `festivalHeld`.
+- *(Resolvido pelas correções do app, C-62 a C-66: os dois campos estão na tela e o relatório tem o teste.)* **O app não mostra os dois campos novos** (`guild.wage.afterArrivals` e `guild.wage.lingering`) nem foi ajustado para os eventos com `spent_`: os testes do app passam porque o Relatório já soma `spent_<recurso>` de qualquer evento, mas não há teste do relatório com `heroHired` e `festivalHeld`.
 - **O termo da fome na moral** continua evitável com o vaivém de C-48.
 - A propriedade de divisão de intervalo (`wages.property.test.ts`) passou sem mudança, e os geradores dela **não** foram estendidos para as regras novas. O que as cobre é `wages.test.ts`, "as regras da revisão e a divisão de intervalo": o atraso cobrado fechado e os heróis que chegam a um atraso velho, nos três ritmos, com o corte em um milissegundo qualquer (300 cortes cada), sobre dois cenários fixos, e não sobre feudos quaisquer. A fome cobrada fechada (C-48) não tem teste de corte próprio.
 - `pnpm capture:landing`, `test:e2e:landing`, `--perf` e `docker:build`: não rodados (nenhuma tela mudou).
+
+### Fase C: correções da revisão da interface (V3C-T5, app)
+
+- **Ninguém viu as telas novas além dos testes**: o aviso do soldo de quem está a caminho, o da partida que o atraso fechado ainda cobra e a linha "⚠ ouro para 1 h de soldo" da árvore só têm teste de unidade (o HTML e as frases), sem cenário em navegador: nenhum cenário de `tests/e2e` leva o feudo a esses estados. Contraste, foco e 720 px dessas três peças não foram medidos em separado (usam as classes de aviso que já existiam).
+- **`wage.lingering` nunca apareceu em uma visão de verdade no app**: o golden do motor que o app importa não tem nenhuma visão com ele preenchido, e os testes o põem à mão. O mesmo para `afterArrivals` com prazo curto (o golden traz 6 dias).
+- **"Tentar de novo" depois da troca de feudo ou de conta e a retentativa aposentada** (C-63) só têm teste de unidade, com a API de mentira; nenhum cenário em navegador derruba a rede no meio de uma ordem da Guilda.
+- **O cenário do duplo clique em navegador** agora confere que saiu um `POST /commands` só. Com as duas travas do cliente desligadas à mão ele falha; com uma só desligada (a de `controller.guildOrders`) ele passa, porque a outra (`oneAtATime`) segura sozinha: o cenário prova o resultado, não cada trava.
+- **O teste do pacote** (`bundle.test.ts`) confere os marcadores novos contra o conteúdo de hoje, mas não houve um vazamento de verdade para prová-los: nenhum build com `@lotg/content` importado no app foi feito para ver o teste falhar.
+- **As leituras antecipadas** (`guildDeadlines`) foram provadas com relógio de mentira e a API de mentira, não contra o servidor: nenhum cenário em navegador espera a chegada de um herói prometido ou a troca da lista sem `world.passTime`.
+- As frases de ligação novas (C-64, C-65) não foram lidas pelo autor.
 
 ### Fase C (V3C-T4)
 
