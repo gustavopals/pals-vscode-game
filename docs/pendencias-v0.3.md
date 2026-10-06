@@ -166,7 +166,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 
 ### Fase D: correções da revisão independente (V3D-T5)
 
-Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, servidor e simulador; app e editorial dos 18 grafos), aplicadas em 2026-10-06 ao motor, ao conteúdo, ao protocolo, ao servidor e ao simulador, um commit `V3D: corrige …` por achado. **Estado na versão 20; protocolo ainda 3** (a visão só cresceu por adição). **Nenhuma foi perguntada ao autor.** As que mudam regra de jogo e pedem a palavra dele são a D-54, a D-58, a D-59, a D-62, a D-65, a D-66 e a D-71. Os achados A-* do app ficaram para a tarefa seguinte, que usa os campos novos da visão (D-70).
+Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, servidor e simulador; app e editorial dos 18 grafos), aplicadas em 2026-10-06 ao motor, ao conteúdo, ao protocolo, ao servidor e ao simulador, um commit `V3D: corrige …` por achado. **Estado na versão 20; protocolo ainda 3** (a visão só cresceu por adição). **Nenhuma foi perguntada ao autor.** As que mudam regra de jogo e pedem a palavra dele são a D-54, a D-58, a D-59, a D-62, a D-65, a D-66 e a D-71. Os achados A-* do app foram corrigidos na tarefa seguinte, com os campos novos da visão (D-70): estão em "Fase D: correções da revisão independente no app", logo abaixo (D-73 a D-76).
 
 **D-54. A variante de uma expedição é previsível e dá a volta.** *(Pergunta para o autor: é a decisão 9 do ADR 0017; revisão, M-R5.)*
 - Enquanto isso: a variante sai de uma conta sobre a semente, o modelo e quantas vezes ele já foi enviado, e passa pelas três antes de repetir (0, 1, 2, 0, 1, 2…). Depois de três envios do mesmo destino, o "o que vem além da encruzilhada só se sabe lá" deixa de ser segredo para quem anota. Nada foi mudado: é a regra do ADR.
@@ -233,7 +233,7 @@ Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, se
 **D-69. As frases dos grafos, depois da revisão editorial.** *(Rascunho, não lido pelo autor; revisão, B2, B5 a B7, B9, B13, B16, B17, B19 a B22, B24 e B25.)*
 - Enquanto isso: quatro regras passaram a ser cobradas por teste de conteúdo: nenhuma frase diz "o cativo", "vocês" nem "capela"; "metade" só aparece em frase de Revés e fica amarrada a `lootShare.setback`; o Desastre de um nó a que a equipe chega com saque não diz que ela ficou sem nada; e a opção que promete "o que têm" só existe depois de um trecho que rende algo. A frase da Postura Ousada diz a regra inteira ("arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."), e um teste confere que o caminho da Ousada é, nas quinze encruzilhadas, o que mais pode render. As fichas de [content-v0.3.md](content-v0.3.md), seção 6, foram regeradas e continuam "rascunho, não lido pelo autor".
 
-**D-70. A visão ganhou campos para o app não decidir nada, e a Crônica em Markdown liga a linha ao relatório.** *(Revisão, A1, A2, A8, A23 e M-R3; o app ainda não os usa.)*
+**D-70. A visão ganhou campos para o app não decidir nada, e a Crônica em Markdown liga a linha ao relatório.** *(Revisão, A1, A2, A8, A23 e M-R3; **o app passou a usá-los na tarefa seguinte: D-73**.)*
 - Em cada destino de `guild.available[]`: `eligibleHeroIds` (quem pode ir: está pronto e tem o nível), `canSend` (existe agora uma equipe que a ordem aceitaria), `suggestedTeam` (a menor que serve, com um herói de cada classe exigida e os mais fortes contra o primeiro trecho) e `sendBlockedReason` ("Nenhuma equipe do feudo serve agora: falta um Mago."). A conta do que falta é a mesma da recusa de `sendExpedition` (`teamShortfall`).
 - Em cada herói: `canDismiss`, `dismissText` e `nextRescued` (é quem o próximo Resgate solta). Em `guild`: `rescueTargetName` e `equipmentSlots` (os espaços, com `id` e `label`, como `postures`).
 - `GET /games/:id/chronicle.md?links=1` põe no fim de cada linha de expedição a marca ` <!-- expedition-<n> -->`; `splitChronicleLink`, em `@lotg/protocol`, a separa. Sem `links`, o documento sai limpo (é o que o jogador baixa). O relatório da visão já trazia `expeditionId`.
@@ -247,6 +247,36 @@ Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, se
 - Enquanto isso: o perfil Explorador da matriz joga **metade das sementes** com uma visita a mais quando uma equipe para em uma encruzilhada (lida de `pendingDecisions`), e o `.md` da matriz ganhou as tabelas de expedições (por destino e desfecho, encruzilhadas com e sem a visita extra, cativos, mortos, resgatados, Covil limpo, herói ocioso). Entrou o bot `ousado` (envia entre o risco e a folga, alterna as Posturas, patrulha até revelar um caminho, manda o Resgate), **sem faixa**, e o modo `--expeditions`, que joga 1, 2, 4 e 6 visitas por dia. O explorador ergue a Guilda na frente das outras obras, quando há herói ou um prometido a caminho, e a deixa planejada mesmo presa ao Salão.
 - **O ano do Rápido continua quase sem expedição** (M-R1): com 2 visitas por dia o ano tem 5 visitas; na semente 001 o herói chega na hora 25, a Guilda fica pronta na hora 37 e sai **uma** expedição, na última visita (antes desta correção, com o catálogo recalibrado, não saía nenhuma). A faixa `year/3/explorador` continua calibrando um ano assim; é o perfil de visitas, não a regra.
 - As 18 faixas do Explorador foram remedidas de propósito ([balance-v0.3.md](balance-v0.3.md), seção 9.6).
+
+### Fase D: correções da revisão independente no app (V3D-T5, app)
+
+Vêm da lista **A** da revisão independente do app (A1 a A27), aplicada em 2026-10-06 ao app (`packages/web`) e aos testes em navegador, um commit `V3D: corrige …` por achado, cada um com o teste que falha primeiro. Nada do motor, do conteúdo, do protocolo nem do servidor foi tocado: os campos da visão já existiam (D-70). **Nenhuma foi perguntada ao autor.** As que são decisão de tela e ele pode querer trocar são a D-51 e a D-47 (acima, atualizadas) e a D-74.
+
+**D-73. O envio, o Resgate e a dispensa leem a visão; o app deixou de contar heróis.** *(Revisão, A1, A8, A23 e o pedido de dispensar o cativo.)*
+- O defeito: `canSend`, a equipe marcada e "há expedição que pode partir" saíam de uma contagem do app (quem está pronto, com o nível, contra o mínimo). O Pântano pede um Mago; sem Mago a tela oferecia o envio, com equipe marcada, e o servidor recusava.
+- Agora: o painel, a árvore, a paleta e "Antes de partir" leem `canSend`, `eligibleHeroIds`, `suggestedTeam` e `sendBlockedReason`. O destino sem equipe possível mostra a frase do servidor, com cadeado. As Posturas e os espaços de equipamento válidos são os de `guild.postures` e `guild.equipmentSlots` (um teste lê as fontes do app e falha se um identificador deles aparecer escrito). "Enviar o Resgate" fica só na ficha de quem a visão marca (`nextRescued`), com o nome de `rescueTargetName`; "Dispensar" aparece com `canDismiss` (inclusive no cativo), e a confirmação mostra o `dismissText` **daquele herói**.
+- **A conta que sobrou no app, de propósito:** o botão "Enviar" da montagem confere se a quantidade marcada está entre `teamMin` e `teamMax` (números da visão). A visão não diz se uma equipe *qualquer* serve, só se *alguma* serve e qual é a sugerida: a equipe que o jogador troca à mão e que não serve (tirou a Maga) é recusada pelo servidor, com a frase dele. A régua (`teamFit`, D-49) continua somando `heroFit`.
+- Se decidir diferente: o motor validar a equipe marcada pediria uma rota de consulta (a visão não sabe quem o jogador marcou); não foi feito.
+
+**D-74. O que o agente decidiu na tela, além do que a revisão pedia.** *(Pergunta para o autor só se algo incomodar.)*
+- **A paleta abre a lista da equipe com "Partir com … · a equipe sugerida"** quando há o que escolher (mais gente do que a sugestão). Com um herói só, ou com a equipe forçada, a lista é a de antes.
+- **A montagem do envio atravessa as leituras** (A11): a chave é só o destino. Enquanto o jogador não mexe nas caixas, vale a sugestão **de agora**; depois que mexe, vale o que ele marcou, sem quem deixou de poder partir. (O primeiro conserto, só a chave, deixava a sugestão antiga marcada: o cenário em navegador das equipes de dois e três pegou.)
+- **"Tentar de novo" de um envio** (A12) é aposentado por outro envio **com algum herói em comum**, e não por qualquer envio: o de outra equipe a outro destino continua valendo.
+- **A conta dos três avisos da hora** (A13) deixou de gastar um com a encruzilhada **e com a carta** que não chegam a aparecer (o jogador já está na aba dela, ou ela já não espera): a carta tinha o mesmo defeito.
+- **Os heróis perdidos na mesma expedição** (A10) saem em um aviso: "3 heróis não voltaram da mesma expedição.", com a frase da Crônica de cada um embaixo. Um só sai com a frase dele. Continuam alarmes, na frente de tudo.
+- **"A espera acaba em 5 h"** (A26) vale onde a tela fala só da encruzilhada (a folha, a árvore, a paleta, "Antes de partir"). Na barra de status e em "Decisões pendentes" a linha é a mesma das cartas, e continua "expira em".
+- **O limiar de "prazo perto" é de 1 h** (`CROSSROADS_NEAR_SECONDS`, em `ui/format.ts`): decide o sinal de aviso na folha (antes, toda encruzilhada nascia em aviso, porque o limiar era de 8 h e o prazo é de 6), o perigo em "Antes de partir" (D-51) e a linha dividida da barra (D-47). É número de apresentação, do app; o autor pode pedir outro.
+- **O relatório pedido para ver** (A7) deixa de valer quando chega um relatório novo ou quando o jogador sai da aba Guilda.
+- **No Relatório de Retorno** (A6), o lugar limpo que voltou a ser ocupado na virada do ano (`threatTileRestored`) está em "O que exigiu um preço", com a defesa como próxima ação; o item vendido por falta de lugar, em "O feudo prosperou".
+- **Frases de ligação novas, escritas no app** (nenhuma traz número de regra; `bundle.test.ts` continua passando, e ganhou marcadores para itens e recompensas, A25): "Partir com … · a equipe sugerida", "… já não pode partir para "…": a equipe mudou com a escolha aberta. Nada foi enviado.", "N heróis não voltaram da mesma expedição.", "a espera acaba em … / a espera acabou", "N equipes esperam na encruzilhada: a primeira espera acaba em … (“…”). Sem resposta, a Postura de cada uma decide.", "· encruzilhada: 5 min" (barra de status), "Nenhum herói está no feudo agora: quem está fora só troca de equipamento na volta." (arsenal) e "Enviar o Resgate de …". Saiu "Quem pode partir agora não forma a equipe que este destino pede.": o motivo é o do servidor. São rascunho, como as da D-52.
+
+**D-75. Os testes em navegador ganharam dois atalhos e deixaram de escrever frases do conteúdo.** *(Revisão, A17 a A22.)*
+- `world.reveal(modelId)` (`/__test/reveal`) põe um destino na lista dos descobertos, e `world.captive(nome)` (`/__test/captive`) põe em cativeiro um herói que está no feudo. São os únicos atalhos dos cenários novos, além de `world.hero` (com classe e nível): o envio, a chegada à encruzilhada, a escolha, o prazo, o Resgate e a volta são do motor, pela tela. Os heróis são de nível 10 para a jornada não depender da semente (a variante do grafo e a sorte saem dela); cada cenário novo rodou 8 vezes seguidas, com sementes diferentes.
+- A tela é achada por atributos (`data-destination`, `data-expedition`, `data-crossroads`, `data-path`, `data-report`, `data-hero`, `data-posture`, `data-rescue`) e pelo que o servidor manda, não por "A trilha se divide" nem "Floresta Antiga" escritos no teste. **O que continua escrito:** o cenário do critério 1 cita a carta da estrangeira pelo título e pela opção (é da Fase C), e os rótulos que são do app ("Montar a equipe", "Escolher caminho", "Ver o relatório").
+
+**D-76. O que a revisão apontou e não é do app.**
+- **A14** (o item vendido e o total do evento) é do motor, e já estava corrigido quando esta tarefa começou (`equipment.ts`); o app só passou a mostrar a frase e a contar o ouro como recebido (A6).
+- **A21** não consta do relatório da revisão (a numeração pula de A20 para A22): nada a fazer.
 
 ### Fase D: as expedições na interface (V3D-T4)
 
@@ -270,7 +300,7 @@ Vêm da implementação de V3D-T4 (a aba Guilda com as expedições, a encruzilh
 - **O que continua valendo da D-40:** com uma ou duas visitas por dia, o aviso só serve a quem está com a página aberta; quem volta depois de 6 h lê na Crônica que a Postura decidiu.
 
 **D-49. A régua da equipe marcada é uma conta do app sobre três números da visão.** *(Pergunta para o autor só se a D-42 mudar.)*
-- Enquanto isso: na montagem do envio a tela soma o `heroFit` de quem está marcado e compara com `fit.comfortPower` e `fit.riskPower`: "Com folga", "No limite" ou "Arriscado", com ícone e palavra, e a frase "A equipe marcada vale 51 contra o primeiro trecho". A soma e a comparação estão em `teamFit` (`ui/expeditions.ts`); nenhum limiar é do app. Como na D-42, a Postura fica de fora (o traço que rende mais em uma delas não entra), e por isso a palavra pode ser um pouco pessimista para um Corajoso na Ousada.
+- Enquanto isso: na montagem do envio a tela soma o `heroFit` de quem está marcado e compara com `fit.comfortPower` e `fit.riskPower`: "Com folga", "No limite" ou "Arriscado", com ícone e palavra, e a frase "A equipe marcada vale 51 contra o primeiro trecho" (a palavra é dita uma vez só desde a revisão, A24). A soma e a comparação estão em `teamFit` (`ui/expeditions.ts`); nenhum limiar é do app. Como na D-42, a Postura fica de fora (o traço que rende mais em uma delas não entra), e por isso a palavra pode ser um pouco pessimista para um Corajoso na Ousada.
 - Se decidir diferente: o motor pode mandar a palavra pronta por equipe, mas teria de receber a equipe (a visão não sabe quem o jogador marcou); ou a tela mostra só os números.
 
 **D-50. No Relatório de Retorno, o nó que deu errado fica só na Crônica.**
@@ -283,10 +313,10 @@ Vêm da implementação de V3D-T4 (a aba Guilda com as expedições, a encruzilh
 - Se decidir diferente: a posição é uma linha em `leavingItems` (`game/beforeLeaving.ts`); o limiar, uma constante.
 
 **D-52. O que a tela decide sem perguntar, e as frases que são do app.**
-- A montagem do envio já traz a equipe mínima e a Postura do meio (Equilibrada) marcadas, e "Enviar" não confirma: a expedição não custa recurso, e cada Postura tem a frase dela ao lado. **Quem clica sem ler envia com a Equilibrada.**
+- A montagem do envio já traz a equipe que a visão sugere (`suggestedTeam`; antes da D-73, a equipe mínima contada pelo app) e a Postura do meio (Equilibrada) marcadas, e "Enviar" não confirma: a expedição não custa recurso, e cada Postura tem a frase dela ao lado. **Quem clica sem ler envia com a Equilibrada.**
 - "Equipar", com um herói só no feudo, vai direto a ele; equipar por cima de um item devolve o anterior ao arsenal sem aviso (a lista diz "…, que volta ao arsenal").
-- O botão "Dispensar" continua habilitado para quem está fora do feudo: a recusa é a do servidor (`HERO_BUSY`), como antes.
-- A linha da Crônica liga ao relatório pela frase, com os 20 eventos mais recentes do app: uma linha mais antiga que isso, de um relatório ainda guardado, fica sem o botão.
+- ~~O botão "Dispensar" continua habilitado para quem está fora do feudo~~ **Mudou na D-73:** o botão só aparece em quem a visão diz que pode ser dispensado (`canDismiss`).
+- ~~A linha da Crônica liga ao relatório pela frase, com os 20 eventos mais recentes do app~~ **Mudou com a revisão (A2):** na aba Crônica a ligação é pelo identificador que o documento traz (`?links=1`), em qualquer linha de expedição com relatório guardado, por mais antiga que seja.
 - **Frases de ligação novas, escritas no app** (nenhuma traz número de regra; `bundle.test.ts` continua passando): "Montar a equipe", "Quem vai (…)", "Com folga / No limite / Arriscado", "A equipe marcada vale N contra o primeiro trecho", "Quem pode partir agora não forma a equipe que este destino pede.", "Sem resposta, é este o caminho da Postura X.", "O prazo acabou: a Postura X está decidindo, e a Crônica conta o caminho. Nada mais é enviado daqui.", "O trecho de agora termina em …", "Destaque:", "Lição:", "Equipamento: N de 3", "Enviar o Resgate", "A equipe de “X” espera na encruzilhada: …", "X está no feudo, sem jornada, e há expedição que pode partir." e os avisos dos comandos. São rascunho, como as da V3C-T4 (C-38).
 
 **D-53. A frase nova da recusa de contratação com a lista de heróis no teto** (da resposta à D-17).
@@ -910,10 +940,20 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - **A régua dos rótulos é do agente**, e a calibragem continua tratando os nós como independentes, com a equipe inteira, sem traço e sem item.
 - **A captura e o Resgate quase não acontecem nem com o bot ousado**: nas 600 partidas do estudo (300 por dificuldade, metade delas do ousado), um cativo e um resgatado em Senhor, duas mortes em Rei de Ferro. O Desastre é raro porque nem o ousado manda equipe abaixo do risco do primeiro trecho, e a regra dos desfechos não deixa quem passa ser capturado (D-66).
 - **O estudo das expedições roda com 10 sementes por linha**, 7 dias reais, em Senhor e em Rei de Ferro; Camponês não foi rodado.
-- **Os campos novos da visão não são usados pelo app**: a tela continua decidindo a equipe como antes, até a tarefa do app; nada em navegador prova `canSend`, `suggestedTeam`, `nextRescued`, `canDismiss` nem `?links=1`.
+- ~~Os campos novos da visão não são usados pelo app~~ **Resolvido na tarefa do app (D-73):** `canSend`, `suggestedTeam`, `sendBlockedReason`, `nextRescued` e `?links=1` têm cenário em navegador; `canDismiss` no cativo, só teste de unidade.
 - **Desistir do cativo, o segundo Resgate recusado e a equipe sem caminho** só têm teste de motor; nenhum de integração nem em navegador.
 - **O item vendido com o cofre no teto** (A14) não tem teste que falhe: o ouro não tem teto.
 - A matriz dos outros três perfis não foi rodada à parte (o `pnpm test` a confere); `--perf`, os bytes do estado e da visão com os campos novos, `pnpm docker:build`, `pnpm capture:landing` e `pnpm test:e2e:landing` não foram rodados.
+
+### Fase D: correções da revisão independente no app (V3D-T5, app)
+
+- **Ninguém leu as frases novas** (D-74) nem viu a tela: o autor continua sem ter visto a encruzilhada (D-45).
+- **Só em Chromium.** Firefox, Safari, leitor de tela e toque não foram testados.
+- **Sem cenário em navegador:** a dispensa de um cativo com a frase dele, a linha dividida da barra de status (A15), a linha única das encruzilhadas com mais de uma equipe (A5), o aviso agrupado de heróis perdidos (A10), o relatório pedido que deixa de valer (A7), o "Tentar de novo" de dois envios com o mesmo herói (A12) e a paleta relendo a equipe (A9). Todos têm teste de unidade, sem DOM.
+- **A equipe trocada à mão que o servidor recusa** (tirar a Maga da equipe do Pântano e enviar) não tem cenário em navegador: a recusa com a frase do servidor é a de toda ordem.
+- **Duas linhas da Crônica iguais, palavra por palavra, em navegador:** o cenário das duas Patrulhas trata o caso, mas as duas voltas caem em dias de jogo diferentes e as frases saem diferentes; frases iguais só estão provadas no teste de unidade.
+- **O estado da montagem do envio** (o que fica marcado quando a visão muda com a tela aberta) só está provado pelo cenário das equipes de dois e três; não há teste de unidade com DOM.
+- As capturas da página de apresentação foram refeitas por `pnpm capture:landing` e saíram iguais às guardadas (a aba Feudo e a barra de status de um feudo sem Guilda não mudaram); `pnpm docker:build` e a integração não foram rodados (nada do motor, do servidor nem das imagens foi tocado).
 
 ### Fase D: a interface (V3D-T4) e as três respostas de 2026-10-06
 
