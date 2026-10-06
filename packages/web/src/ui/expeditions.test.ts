@@ -276,7 +276,7 @@ describe('o equipamento e o arsenal', () => {
 
   it('os itens do arsenal por espaço, e quem pode trocar de equipamento: quem está no feudo', () => {
     const guild = guildOf(heroInjuredView);
-    expect(itemsFor(guild, 'accessory').map((item) => item.label)).toEqual(['Amuleto de osso']);
+    expect(itemsFor(guild, 'accessory').map((item) => item.label)).toEqual(['Figa de azeviche']);
     expect(itemsFor(guild, 'weapon')).toEqual([]);
     // A heroína em recuperação está no feudo e pode ser equipada; o cativo, não.
     expect(armableHeroes(guild).map((hero) => hero.name)).toEqual(['Edda', 'Rolf']);

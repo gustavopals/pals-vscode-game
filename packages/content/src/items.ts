@@ -5,7 +5,8 @@ import type { ItemId, ItemRarityId, ItemSlotId, Ratio } from './ids';
  * catálogo enxuto. Um item vem do saque de uma expedição; equipado, multiplica o poder de quem o
  * leva, como os outros fatores do herói. **Sem desgaste, sem reparo e sem venda**: o único jeito
  * de um item virar ouro é não caber no arsenal (`balance.equipment.inventoryCap`).
- * Rascunho que o autor não leu.
+ * **Nenhum item é relíquia** (as relíquias são da Capela, na v0.5): nem o nome, nem a chave, nem
+ * a frase de um item repete uma delas (revisão da Fase D, B23). Rascunho que o autor não leu.
  */
 export type ItemDef = {
   /** "Lança de caça": como a ficha e a Crônica o chamam. */
@@ -102,8 +103,8 @@ export const items: Record<ItemId, ItemDef> = {
     value: 250,
   },
   luckyCharm: {
-    label: 'Amuleto de osso',
-    text: 'Um dente de lobo num cordão. Quem o leva jura que anda com mais sorte.',
+    label: 'Figa de azeviche',
+    text: 'Uma mãozinha fechada de pedra preta, num cordão. Quem a leva jura que anda com mais sorte.',
     slot: 'accessory',
     rarity: 'common',
     power: { num: 21, den: 20 },
@@ -117,17 +118,17 @@ export const items: Record<ItemId, ItemDef> = {
     power: { num: 27, den: 25 },
     value: 60,
   },
-  pilgrimRelic: {
-    label: 'Medalha do peregrino',
-    text: 'Gasta de tanto ser beijada. Dá firmeza a quem duvida.',
+  travelerMedal: {
+    label: 'Medalha do viajante',
+    text: 'Gasta de tanto roçar no cordão, por mais estradas do que o dono contava. Dá firmeza a quem duvida.',
     slot: 'accessory',
     rarity: 'rare',
     power: { num: 28, den: 25 },
     value: 120,
   },
-  oldKingSignet: {
-    label: 'Sinete do rei velho',
-    text: 'Um anel pesado, com um selo que já ninguém obedece e todos ainda respeitam.',
+  captainChain: {
+    label: 'Corrente do capitão',
+    text: 'Elos grossos de prata, de quem já comandou homens. Quem a leva é ouvido primeiro.',
     slot: 'accessory',
     rarity: 'epic',
     power: { num: 23, den: 20 },

@@ -33,7 +33,7 @@ const MINUTE_MS = 60_000;
 /** O que os três guardiões guardam: um item raro, sempre que vencidos. */
 const guardianHoard: ExpeditionItemDrop = {
   chance: { num: 1, den: 1 },
-  from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+  from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
 };
 
 const home: ExpeditionReturnNode = {
@@ -147,7 +147,7 @@ export const ruins: ExpeditionModelDef = {
             resources: { stone: { min: 30, max: 50 }, gold: { min: 30, max: 50 } },
             item: {
               chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'stoneGuardian',
@@ -256,7 +256,7 @@ export const ruins: ExpeditionModelDef = {
             resources: { stone: { min: 40, max: 60 }, gold: { min: 30, max: 50 } },
             item: {
               chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'cryptGuardian',
@@ -378,7 +378,7 @@ export const ruins: ExpeditionModelDef = {
             resources: { gold: { min: 60, max: 90 } },
             item: {
               chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'facelessSentinel',

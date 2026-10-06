@@ -214,8 +214,8 @@ export const ITEM_IDS = [
   'wardenPlate',
   'luckyCharm',
   'trackerHorn',
-  'pilgrimRelic',
-  'oldKingSignet',
+  'travelerMedal',
+  'captainChain',
 ] as const;
 export type ItemId = (typeof ITEM_IDS)[number];
 

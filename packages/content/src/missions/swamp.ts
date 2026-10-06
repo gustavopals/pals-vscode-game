@@ -20,7 +20,7 @@ const MINUTE_MS = 60_000;
 /** O que os três chefes do pântano guardam: um item épico, sempre que vencidos. */
 const swampHoard: ExpeditionItemDrop = {
   chance: { num: 1, den: 1 },
-  from: ['emberStaff', 'wardenPlate', 'oldKingSignet'],
+  from: ['emberStaff', 'wardenPlate', 'captainChain'],
 };
 
 const home: ExpeditionReturnNode = {
@@ -121,7 +121,7 @@ export const swamp: ExpeditionModelDef = {
             resources: { gold: { min: 80, max: 120 } },
             item: {
               chance: { num: 1, den: 3 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'marshWitch',
@@ -277,7 +277,7 @@ export const swamp: ExpeditionModelDef = {
             resources: { gold: { min: 80, max: 120 } },
             item: {
               chance: { num: 1, den: 3 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'drownedOne',
@@ -417,7 +417,7 @@ export const swamp: ExpeditionModelDef = {
             resources: { gold: { min: 80, max: 120 } },
             item: {
               chance: { num: 1, den: 3 },
-              from: ['veltharBlade', 'riveredMail', 'pilgrimRelic'],
+              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
             },
           },
           next: 'mudSerpent',

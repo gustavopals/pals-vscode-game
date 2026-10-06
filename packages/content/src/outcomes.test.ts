@@ -147,6 +147,22 @@ describe('os traços cumprem o que a frase promete (ADR 0017, "Os oito traços")
 });
 
 describe('o equipamento (ADR 0018, decisão 15)', () => {
+  it('nenhum item é relíquia: nem a chave, nem o nome, nem a frase repetem as da Capela (revisão da Fase D, B23)', () => {
+    // As relíquias do GDD, Apêndice D, são da v0.5: Chifre dos Ancestrais, Coração de Carvalho,
+    // Olho do Vigia, Selo do Rei Antigo, Osso de Lobo, Lâmpada do Eremita, Pedra de Sal e Manto
+    // do Inverno. Um item que as lembre promete o que esta versão não tem.
+    const echoes =
+      /rel[ií]quia|\b(selo|sinete|rei|osso de lobo|dente de lobo|chifre|ancestrais|coração de carvalho|olho do vigia|eremita|pedra de sal|manto)\b/i;
+    for (const id of ITEM_IDS) {
+      expect(id, id).not.toMatch(/relic|signet|king|wolf|bone/i);
+      expect(items[id].label, id).not.toMatch(echoes);
+      expect(items[id].text, id).not.toMatch(echoes);
+    }
+  });
+
+  // Em 2026-10-06 (revisão da Fase D, B23) saíram `pilgrimRelic` e `oldKingSignet` e entraram
+  // `travelerMedal` e `captainChain`, sem passo de migração: nenhuma versão publicada tem itens
+  // (a produção está no estado 12), e nenhum retrato congelado guarda um item com essas chaves.
   it('os ids dos itens estão fixados: ficam gravados no estado', () => {
     expect(ITEM_IDS).toEqual([
       'huntingSpear',
@@ -159,8 +175,8 @@ describe('o equipamento (ADR 0018, decisão 15)', () => {
       'wardenPlate',
       'luckyCharm',
       'trackerHorn',
-      'pilgrimRelic',
-      'oldKingSignet',
+      'travelerMedal',
+      'captainChain',
     ]);
     expect(Object.keys(items)).toEqual([...ITEM_IDS]);
   });
