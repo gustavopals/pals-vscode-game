@@ -14,7 +14,7 @@ import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council
 import { drawCard } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
-import { settleExpeditions } from './expeditionTurn';
+import { recallStranded, settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
 import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
@@ -238,8 +238,12 @@ export function advanceWith(
   // e sem rotação marcada, ou com a rotação vencida (só existe posto à mão, em teste), ganha a
   // lista de candidatos aqui, ancorada neste instante: assim o resultado não depende de quando
   // alguém olhou depois.
+  // E para as expedições: a equipe cujo destino, trecho ou encruzilhada o conteúdo deixou de
+  // ter (o catálogo mudou entre duas publicações) volta para casa aqui, com o que juntou, antes
+  // das planejadas e da conta do ouro, que já contam com o saque (`recallStranded`).
   announceRaids(draft, draft.lastProcessedAt, events);
   settleTavern(draft, draft.lastProcessedAt, events);
+  recallStranded(draft, draft.lastProcessedAt, events);
   if (hasStartablePlan(draft) || hasUnsettledObjectives(draft)) {
     settlePlanned(draft, draft.lastProcessedAt, events);
   }

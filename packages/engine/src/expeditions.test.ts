@@ -22,6 +22,7 @@ import {
 } from './expeditions';
 import { heroPower, teamPower } from './heroes';
 import { currentShape } from './migrations';
+import { entityStream } from './random';
 import { storageCapacity } from './storage';
 import { cloneState } from './state';
 import {
@@ -1857,5 +1858,123 @@ describe('o estado gravado das expedições (a guarda da versão 17)', () => {
     expect(chronicleTemplates.expeditionSent).toBeDefined();
     expect(rules.graph.maxSteps).toBe(8);
     expect(Math.max(...rules.slotsByGuildLevel)).toBe(3);
+  });
+});
+
+describe('a expedição que ficou sem caminho volta para casa na fronteira (revisão da Fase D, M-R6)', () => {
+  const shaped = (state: GameState) => currentShape(JSON.parse(JSON.stringify(state)), '');
+  const stream = entityStream('expedition', 'expedition-1');
+
+  /**
+   * Edda na Floresta Antiga, parada na encruzilhada com a lenha do primeiro trecho. `damage`
+   * faz do estado o que ele seria se o conteúdo mudasse debaixo dela: é o conteúdo de mentira
+   * (um modelo, um nó ou uma encruzilhada que o jogo não tem).
+   */
+  function strandedBy(damage: (expedition: Expedition) => void): GameState {
+    const sent = send(hall(), 'oldForest', ['hero-1'], 'balanced', 0).state;
+    const waiting = cloneState(advanceTo(sent, only(sent).nodeEndsAtMs ?? 0).state);
+    expect(only(waiting).status).toBe('atCrossroads');
+    expect(only(waiting).loot.resources.wood).toBeGreaterThan(0);
+    expect(Object.hasOwn(waiting.rng, stream)).toBe(true);
+    // Lugar no depósito para a lenha: a volta cortada pelo depósito cheio tem o teste dela.
+    waiting.settlement.resources.wood = 100_000;
+    damage(only(waiting));
+    expect(shaped(waiting)).toBeNull();
+    return waiting;
+  }
+
+  const cases: Array<[string, (expedition: Expedition) => void]> = [
+    ['o modelo já não existe', (expedition) => (expedition.modelId = 'sunkenAbbey')],
+    ['a encruzilhada já não existe', (expedition) => (expedition.nodeId = 'oldOak')],
+    // "Parada na encruzilhada" de um nó que o conteúdo passou a tratar como trecho comum.
+    ['o nó deixou de ser encruzilhada', (expedition) => (expedition.nodeId = 'trail')],
+    [
+      'o nó em que ela andava já não existe',
+      (expedition) =>
+        Object.assign(expedition, {
+          status: 'traveling',
+          nodeId: 'oldOak',
+          crossroads: null,
+          nodeEndsAtMs: (expedition.crossroads?.decidesAtMs ?? 0) + HOUR,
+        }),
+    ],
+    [
+      'o nó em que ela andava virou encruzilhada',
+      (expedition) =>
+        Object.assign(expedition, {
+          status: 'traveling',
+          crossroads: null,
+          nodeEndsAtMs: (expedition.crossroads?.decidesAtMs ?? 0) + HOUR,
+        }),
+    ],
+  ];
+
+  it.each(cases)(
+    '%s: a equipe volta no instante da fronteira, com o que tinha',
+    (_name, damage) => {
+      const state = strandedBy(damage);
+      const boundary = state.lastProcessedAt;
+      const wood = only(state).loot.resources.wood;
+      const before = state.settlement.resources.wood;
+      const after = advanceTo(state, boundary + 1);
+      const lines = ofExpeditions(after.events);
+      expect(lines.map((event) => [event.type, event.atMs])).toEqual([
+        ['expeditionReturned', boundary],
+      ]);
+      expect(lines[0]?.text).toContain('já não levava a parte alguma: a equipe deu meia-volta');
+      expect(lines[0]?.text).toContain(`${wood} de madeira`);
+      expect(lines[0]?.text).toContain('De novo no feudo: Edda.');
+      expect(lines[0]?.text).not.toMatch(/[{}]/);
+      // Os heróis livres, o saque no depósito, o relatório guardado e o fluxo apagado.
+      expect(after.state.guild.expeditions).toEqual([]);
+      expect(after.state.guild.heroes[0]?.status).toBe('idle');
+      expect(after.state.settlement.resources.wood - before).toBeGreaterThanOrEqual(
+        wood * 1000 - 5,
+      );
+      expect(after.state.guild.reports.at(-1)).toMatchObject({
+        expeditionId: 'expedition-1',
+        lost: false,
+      });
+      expect(Object.hasOwn(after.state.rng, stream)).toBe(false);
+      expect(shaped(after.state)).toBeNull();
+      // A tela não fica com uma encruzilhada sem opções, e a visão do relatório não deixa lacuna.
+      const view = deriveViewState(after.state, after.state.lastProcessedAt);
+      expect(view.guild.expeditions).toEqual([]);
+      expect(view.pendingDecisions.filter((entry) => entry.kind === 'crossroads')).toEqual([]);
+      expect(JSON.stringify(view.guild.reports)).not.toMatch(/[{}]{2}|\{[a-zA-Z]+\}/);
+    },
+  );
+
+  it.each(cases)(
+    '%s: quem olha um milissegundo depois e quem só volta no dia seguinte veem o mesmo',
+    (_name, damage) => {
+      const state = strandedBy(damage);
+      const boundary = state.lastProcessedAt;
+      const once = advanceTo(state, boundary + DAY);
+      const first = advanceTo(state, boundary + 1);
+      const second = advanceTo(first.state, boundary + DAY);
+      expect(second.state).toEqual(once.state);
+      expect([...first.events, ...second.events]).toEqual(once.events);
+      // E a entrada fica como estava.
+      expect(only(state).id).toBe('expedition-1');
+    },
+  );
+
+  it('de mãos vazias, a frase diz isso; e a expedição que tem caminho não é tocada', () => {
+    const state = strandedBy((expedition) => {
+      expedition.modelId = 'sunkenAbbey';
+      expedition.loot.resources.wood = 0;
+    });
+    const [line] = ofExpeditions(advanceTo(state, state.lastProcessedAt + 1).events);
+    expect(line?.text).toContain('chegou a Pedra Alta de mãos vazias');
+    const full = strandedBy((expedition) => (expedition.modelId = 'sunkenAbbey'));
+    full.settlement.resources.wood = storageCapacity(full, 'wood') ?? 0;
+    const [cut] = ofExpeditions(advanceTo(full, full.lastProcessedAt + 1).events);
+    expect(cut?.text).toContain('já não levava a parte alguma');
+    expect(cut?.text).toContain('Faltou lugar no depósito, e foi ao chão');
+    const sound = strandedBy(() => undefined);
+    const still = advanceTo(sound, sound.lastProcessedAt + 1);
+    expect(ofExpeditions(still.events)).toEqual([]);
+    expect(only(still.state).status).toBe('atCrossroads');
   });
 });

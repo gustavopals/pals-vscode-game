@@ -329,8 +329,10 @@ export const expeditionTexts = {
 
 /**
  * As outras frases da Crônica de uma expedição: o mesmo evento com outra frase. O prazo que
- * venceu com a opção da Postura fora do alcance da equipe; a volta de mãos vazias; e a volta em
- * que o saque não coube no depósito.
+ * venceu com a opção da Postura fora do alcance da equipe; a volta de mãos vazias; a volta em
+ * que o saque não coube no depósito; e a volta de quem ficou sem caminho (`recalled`,
+ * `recalledCut` e `recalledEmpty`: o destino, o trecho ou a encruzilhada em que a equipe estava deixou de
+ * existir no jogo, e ela volta com o que tinha).
  */
 export const expeditionTemplates = {
   postureFallback:
@@ -339,4 +341,10 @@ export const expeditionTemplates = {
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" voltou a {feudo} de mãos vazias. A equipe está de novo no feudo: {herois}.',
   returnedCut:
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" voltou a {feudo} com {saque}. Faltou lugar no depósito, e foi ao chão: {perda}. A equipe está de novo no feudo: {herois}.',
+  recalled:
+    'No {dia}º dia {daEstacao}, a trilha da expedição "{expedicao}" já não levava a parte alguma: a equipe deu meia-volta e chegou a {feudo} com {saque}. De novo no feudo: {herois}.',
+  recalledCut:
+    'No {dia}º dia {daEstacao}, a trilha da expedição "{expedicao}" já não levava a parte alguma: a equipe deu meia-volta e chegou a {feudo} com {saque}. Faltou lugar no depósito, e foi ao chão: {perda}. De novo no feudo: {herois}.',
+  recalledEmpty:
+    'No {dia}º dia {daEstacao}, a trilha da expedição "{expedicao}" já não levava a parte alguma: a equipe deu meia-volta e chegou a {feudo} de mãos vazias. De novo no feudo: {herois}.',
 } as const;

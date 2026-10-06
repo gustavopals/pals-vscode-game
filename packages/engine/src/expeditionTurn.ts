@@ -394,6 +394,7 @@ function returnHome(
   expedition: Expedition,
   atMs: number,
   events: GameEvent[],
+  recalled = false,
 ): void {
   const team = heroesOf(draft, expedition.heroIds);
   const stored = noAmounts();
@@ -439,7 +440,13 @@ function returnHome(
       saque: describeLoot(expedition.loot),
       perda: describeLoss(lost),
     },
-    empty ? expeditionTemplates.returnedEmpty : cut ? expeditionTemplates.returnedCut : undefined,
+    empty
+      ? expeditionTemplates[recalled ? 'recalledEmpty' : 'returnedEmpty']
+      : cut
+        ? expeditionTemplates[recalled ? 'recalledCut' : 'returnedCut']
+        : recalled
+          ? expeditionTemplates.recalled
+          : undefined,
   );
   // Depois da linha da volta: o item que não cabe no arsenal vira ouro, com a linha dele.
   const sold = carried.filter((item) => !stowItem(draft, item, atMs, events));
@@ -506,6 +513,45 @@ function decideByPosture(
     fallback ? expeditionTemplates.postureFallback : undefined,
   );
   enterNode(draft, expedition, choice.option.next, atMs, events);
+}
+
+/**
+ * A expedição ficou sem caminho: o conteúdo já não tem o modelo, a variante ou o nó em que ela
+ * está, ou o nó já não é do tipo que o estado diz (a equipe "parada na encruzilhada" de um nó
+ * que deixou de ser encruzilhada, ou de uma encruzilhada que perdeu as opções).
+ */
+function isStranded(draft: GameState, expedition: Expedition): boolean {
+  const node = nodeOf(expedition);
+  if (node === null) {
+    return true;
+  }
+  if (expedition.status === 'atCrossroads') {
+    return (
+      node.kind !== 'crossroads' ||
+      postureChoice(heroesOf(draft, expedition.heroIds), node, expedition.posture) === null
+    );
+  }
+  return node.kind === 'crossroads';
+}
+
+/**
+ * Manda para casa, **neste instante**, toda expedição que ficou sem caminho (`isStranded`): os
+ * heróis voltam ao feudo, o saque que ela tinha entra no depósito, o relatório fica, o fluxo de
+ * sorteio dela é apagado e a Crônica diz o que houve (`expeditionTemplates.recalled`). Não
+ * sorteia nada.
+ *
+ * É a acomodação **na fronteira** (`advanceWith`, antes de o tempo andar; revisão da Fase D,
+ * M-R6): o conteúdo só muda entre uma publicação e outra, e sem isto a equipe ficava parada até
+ * o prazo, com a tela dizendo "Parada na encruzilhada" e nenhuma opção a escolher. Em um estado
+ * em repouso não há o que fazer, e nada muda.
+ */
+export function recallStranded(draft: GameState, atMs: number, events: GameEvent[]): void {
+  for (const id of draft.guild.expeditions.map((entry) => entry.id)) {
+    const expedition = draft.guild.expeditions.find((entry) => entry.id === id);
+    if (expedition !== undefined && isStranded(draft, expedition)) {
+      returnHome(draft, expedition, atMs, events, true);
+    }
+  }
 }
 
 /** O que uma expedição tem a fazer em `atMs`, uma coisa por vez; diz se fez algo. */
