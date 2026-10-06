@@ -1,7 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import { expiresIn, formatApprox, formatDuration, formatNumber, remainingNow } from './format';
-import { FULL_SOON_SECONDS, joinList } from './format';
+import { joinList } from './format';
 
 /**
  * As expedições como texto (GDD §9.2 a §9.4, §13.2 a §13.6): o que a aba Guilda, a árvore, a
@@ -113,12 +113,21 @@ export function crossroadsDeadline(
   return expiresIn(crossroads.decidesInSeconds, elapsedSeconds);
 }
 
-/** O prazo acaba antes de uma ausência comum: ganha o sinal de aviso, com ícone e palavra. */
+/**
+ * Abaixo disto, o prazo de uma encruzilhada está **perto**: a folha ganha o sinal de aviso,
+ * "Antes de partir" a trata como perigo e a barra de status a mostra mesmo com a fome, o frio
+ * ou o soldo na linha. É escolha de apresentação, como `FULL_SOON_SECONDS`, e não regra: o
+ * prazo já vem do servidor em tempo real. Não serve o limiar da ausência comum: o prazo inteiro
+ * de uma encruzilhada é mais curto do que ela, e toda encruzilhada estaria "perto".
+ */
+export const CROSSROADS_NEAR_SECONDS = 60 * 60;
+
+/** O prazo está perto (`CROSSROADS_NEAR_SECONDS`): ganha o sinal de aviso, com ícone e palavra. */
 export function crossroadsSoon(
   crossroads: Pick<Crossroads, 'decidesInSeconds'>,
   elapsedSeconds: number,
 ): boolean {
-  return crossroadsSecondsLeft(crossroads, elapsedSeconds) < FULL_SOON_SECONDS;
+  return crossroadsSecondsLeft(crossroads, elapsedSeconds) < CROSSROADS_NEAR_SECONDS;
 }
 
 /** A opção que a Postura toma sozinha se o prazo acabar. */

@@ -214,9 +214,14 @@ describe('a encruzilhada (V3D-T4.1 e T4.3; GDD §9.2)', () => {
     ).toBe(true);
   });
 
-  it('o prazo curto ganha ícone e palavra de aviso; nada é dito só pela cor', () => {
-    const markup = card(expeditionCrossroadsView);
-    expect(markup).toMatch(/card-deadline warning[^>]*>\s*<span class="codicon codicon-warning"/);
+  it('o prazo perto ganha ícone e palavra de aviso; o prazo inteiro, não: nada é dito só pela cor', () => {
+    // Faltam cinco horas: relógio, sem o tom de aviso (antes, toda encruzilhada nascia em aviso).
+    const calm = card(expeditionCrossroadsView);
+    expect(calm).toMatch(/card-deadline"[^>]*>\s*<span class="codicon codicon-watch"/);
+    // Falta menos de uma hora: o aviso, com ícone.
+    const { crossroads } = waiting(expeditionCrossroadsView);
+    const near = card(expeditionCrossroadsView, { elapsed: crossroads.decidesInSeconds - 600 });
+    expect(near).toMatch(/card-deadline warning[^>]*>\s*<span class="codicon codicon-warning"/);
   });
 });
 

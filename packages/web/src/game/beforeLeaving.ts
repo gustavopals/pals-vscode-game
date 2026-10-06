@@ -17,7 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
-import { crossroadsDeadline, sendable, waitingExpeditions } from '../ui/expeditions';
+import { CROSSROADS_NEAR_SECONDS, sendable, waitingExpeditions } from '../ui/expeditions';
 import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
@@ -477,32 +477,48 @@ function wageItem(view: ViewState): LeavingItem | null {
 
 /**
  * As equipes paradas em uma encruzilhada (GDD §9.2): cada uma espera a palavra do jogador até o
- * prazo, e depois a Postura decide por ele. Um item por expedição, com o prazo real e o que a
- * Postura fará, na frase do servidor: quem sai agora sabe o que acontece sem ele. O que vence
- * antes de uma ausência comum é urgente; o resto, um alerta: a decisão vai ser tomada de um
- * jeito ou de outro. O botão abre a lista dos caminhos.
+ * prazo, e depois a Postura decide por ele. **Uma linha para todas**: com uma, a equipe, o
+ * prazo real e o que a Postura fará, na frase do servidor; com várias, quantas são e o prazo da
+ * que vence primeiro. Quem sai agora sabe o que acontece sem ele, e três encruzilhadas não
+ * empurram a lenha e o soldo para fora das cinco linhas. É perigo só com o prazo perto
+ * (`CROSSROADS_NEAR_SECONDS`); antes disso, alerta: a decisão vai ser tomada de um jeito ou de
+ * outro, a Postura está lá para isso. O botão abre a lista dos caminhos (com várias equipes, a
+ * lista pergunta antes qual).
  */
-function crossroadsItems(view: ViewState): LeavingItem[] {
-  return waitingExpeditions(view.guild).flatMap((expedition) => {
-    const { crossroads } = expedition;
-    if (crossroads === null) {
-      return [];
-    }
-    return [
-      {
-        id: `crossroads:${expedition.id}`,
-        severity: urgency(crossroads.decidesInSeconds),
-        text:
-          `A equipe de “${expedition.label}” espera na encruzilhada: ` +
-          `${crossroadsDeadline(crossroads, 0)}. ${crossroads.postureText}`,
-        command: {
-          id: 'lords.chooseExpeditionPath',
-          arg: expedition.id,
-          label: 'Escolher caminho',
-        },
+function crossroadsItem(view: ViewState): LeavingItem | null {
+  const waiting = waitingExpeditions(view.guild)
+    .flatMap((expedition) =>
+      expedition.crossroads === null ? [] : [{ expedition, crossroads: expedition.crossroads }],
+    )
+    .sort((a, b) => a.crossroads.decidesInSeconds - b.crossroads.decidesInSeconds);
+  const [first] = waiting;
+  if (first === undefined) {
+    return null;
+  }
+  const severity: LeavingSeverity =
+    first.crossroads.decidesInSeconds < CROSSROADS_NEAR_SECONDS ? 'danger' : 'warning';
+  const ends = `a espera acaba em ${formatApprox(first.crossroads.decidesInSeconds)}`;
+  if (waiting.length === 1) {
+    return {
+      id: 'crossroads',
+      severity,
+      text: `A equipe de “${first.expedition.label}” espera na encruzilhada: ${ends}. ${first.crossroads.postureText}`,
+      command: {
+        id: 'lords.chooseExpeditionPath',
+        arg: first.expedition.id,
+        label: 'Escolher caminho',
       },
-    ];
-  });
+    };
+  }
+  return {
+    id: 'crossroads',
+    severity,
+    text:
+      `${waiting.length} equipes esperam na encruzilhada: a primeira espera acaba em ` +
+      `${formatApprox(first.crossroads.decidesInSeconds)} (“${first.expedition.label}”). ` +
+      'Sem resposta, a Postura de cada uma decide.',
+    command: { id: 'lords.chooseExpeditionPath', label: 'Escolher caminho' },
+  };
 }
 
 /**
@@ -546,21 +562,22 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: no topo, as equipes que esperam
- * em uma encruzilhada (IDEIA-08, "a equipe espera por você": é a única coisa da lista que só o
- * jogador decide, e que outra coisa decide por ele se ele sair); depois a incursão à vista (ou,
- * sem nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, os depósitos que
- * enchem, as obras que não começam sozinhas, os aldeões livres e os heróis sem jornada. O
- * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
+ * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha e o soldo; depois **a linha das
+ * encruzilhadas** (uma só, para todas as equipes à espera: ela tem reserva, a Postura, e por
+ * isso vem depois do que só o jogador resolve, e antes dos alertas); depois os depósitos que
+ * enchem, as obras que não começam sozinhas, os aldeões livres e os heróis sem jornada. Em
+ * "Decisões pendentes", na mesma aba, a encruzilhada continua no topo. O Relatório de Retorno
+ * tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState): LeavingItem[] {
   return [
-    ...crossroadsItems(view),
     raidItem(view),
     threatItem(view),
     foodItem(view),
     firewoodItem(view),
     wageItem(view),
+    crossroadsItem(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),
@@ -571,10 +588,13 @@ export function leavingItems(view: ViewState): LeavingItem[] {
 /**
  * O que preparar antes de sair, em até cinco itens, na ordem de `leavingItems`. Lista vazia: o
  * feudo está preparado para a ausência. `skip` são os assuntos que o Relatório de Retorno, logo
- * acima, já trouxe com o mesmo botão: a aba não diz duas vezes a mesma coisa.
+ * acima, já trouxe com o mesmo botão: a aba não diz duas vezes a mesma coisa. O relatório traz
+ * as encruzilhadas uma a uma (`crossroads:<expedição>`), todas: com alguma lá, a linha delas
+ * não se repete aqui.
  */
 export function beforeLeaving(view: ViewState, skip: readonly string[] = []): LeavingItem[] {
+  const crossroadsCovered = skip.some((topic) => topic.startsWith('crossroads:'));
   return leavingItems(view)
-    .filter((item) => !skip.includes(item.id))
+    .filter((item) => !skip.includes(item.id) && !(item.id === 'crossroads' && crossroadsCovered))
     .slice(0, MAX_LEAVING_ITEMS);
 }

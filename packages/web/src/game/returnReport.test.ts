@@ -982,6 +982,6 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
     expect(waiting.pending[0]?.topic).toBe('crossroads:expedition-2');
     expect(
       beforeLeaving(expeditionCrossroadsView, coveredTopics(waiting)).map((item) => item.id),
-    ).not.toContain('crossroads:expedition-2');
+    ).not.toContain('crossroads');
   });
 });

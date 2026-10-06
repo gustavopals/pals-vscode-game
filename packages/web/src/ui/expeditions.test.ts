@@ -110,7 +110,9 @@ describe('a encruzilhada como texto', () => {
     expect(crossroads.decidesInSeconds).toBe(19_198);
     expect(crossroadsDeadline(crossroads, 0)).toBe('expira em 5 h');
     expect(crossroadsDeadline(crossroads, 4 * 3600)).toBe('expira em 1 h');
-    expect(crossroadsSoon(crossroads, 0)).toBe(true);
+    // Perto é menos de uma hora (limiar de apresentação): o prazo inteiro não nasce em aviso.
+    expect(crossroadsSoon(crossroads, 0)).toBe(false);
+    expect(crossroadsSoon(crossroads, 19_198 - 3599)).toBe(true);
     expect(crossroadsOverdue(crossroads, 19_197)).toBe(false);
     expect(crossroadsOverdue(crossroads, 19_198)).toBe(true);
     expect(crossroadsDeadline(crossroads, 20_000)).toBe('prazo encerrado');

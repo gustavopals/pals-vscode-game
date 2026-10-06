@@ -10,6 +10,7 @@ import {
   expeditionCrossroadsView,
   expeditionReturningView,
   expeditionTravelingView,
+  guildArrearsView,
   FOOD_RUNS_OUT_AHEAD,
   guildPaidView,
   heroCapturedView,
@@ -39,6 +40,7 @@ import {
   MAX_LEAVING_ITEMS,
   storageCommand,
 } from './beforeLeaving';
+import { CROSSROADS_NEAR_SECONDS } from '../ui/expeditions';
 
 const HOUR = 3600;
 
@@ -789,49 +791,95 @@ describe('antes de partir', () => {
 
 describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
   const guildItems = (view: ViewState) =>
-    leavingItems(view).filter(
-      (item) => item.id.startsWith('crossroads:') || item.id === 'expedition',
-    );
+    leavingItems(view).filter((item) => item.id === 'crossroads' || item.id === 'expedition');
+  const [waitingExpedition] = expeditionCrossroadsView.guild.expeditions;
+  if (waitingExpedition === undefined || waitingExpedition.crossroads === null) {
+    throw new Error('Sem equipe na encruzilhada.');
+  }
+  const waitingCrossroads = waitingExpedition.crossroads;
+  /** A mesma visão com as equipes à espera trocadas: cada uma com o seu prazo, em segundos. */
+  const waitingFor = (...deadlines: number[]): ViewState => ({
+    ...expeditionCrossroadsView,
+    guild: {
+      ...expeditionCrossroadsView.guild,
+      expeditions: deadlines.map((decidesInSeconds, index) => ({
+        ...waitingExpedition,
+        id: `expedition-${index + 2}`,
+        label: index === 0 ? waitingExpedition.label : `Jornada ${index + 1}`,
+        crossroads: { ...waitingCrossroads, decidesInSeconds },
+      })),
+    },
+  });
 
   it('estado de risco: uma equipe espera na encruzilhada, e o item diz o prazo e o que a Postura fará', () => {
     const [item] = guildItems(expeditionCrossroadsView);
     expect(item).toEqual({
-      id: 'crossroads:expedition-2',
-      // Cinco horas: vence antes de uma ausência comum.
-      severity: 'danger',
-      text: 'A equipe de “Floresta Antiga” espera na encruzilhada: expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      id: 'crossroads',
+      // Cinco horas: a Postura está lá para decidir, e ainda há tempo. É alerta, não perigo.
+      severity: 'warning',
+      text: 'A equipe de “Floresta Antiga” espera na encruzilhada: a espera acaba em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
       command: {
         id: 'lords.chooseExpeditionPath',
         arg: 'expedition-2',
         label: 'Escolher caminho',
       },
     });
-    // A encruzilhada vem no topo da lista (IDEIA-08: "a equipe espera por você").
-    expect(ids(beforeLeaving(expeditionCrossroadsView))[0]).toBe('crossroads:expedition-2');
-    const hungry = withResource(expeditionCrossroadsView, 'food', {
+  });
+
+  it('o prazo de verdade (seis horas) é alerta; só o prazo perto, abaixo do limiar da tela, é perigo (revisão, A4)', () => {
+    // O prazo cheio de uma encruzilhada e o de uma ausência comum: nenhum dos dois é "perto".
+    expect(guildItems(waitingFor(6 * HOUR))[0]?.severity).toBe('warning');
+    expect(guildItems(waitingFor(CROSSROADS_NEAR_SECONDS))[0]?.severity).toBe('warning');
+    expect(guildItems(waitingFor(CROSSROADS_NEAR_SECONDS - 1))[0]?.severity).toBe('danger');
+    expect(guildItems(waitingFor(40 * 60))[0]).toMatchObject({
+      severity: 'danger',
+      text: expect.stringContaining('a espera acaba em 40 min'),
+    });
+    // O limiar é de apresentação, do app, e fica abaixo do prazo que o servidor dá.
+    expect(CROSSROADS_NEAR_SECONDS).toBeLessThan(waitingCrossroads.decidesInSeconds);
+  });
+
+  it('várias equipes à espera são uma linha só, com o prazo da primeira; o botão pergunta qual (revisão, A5)', () => {
+    const items = guildItems(waitingFor(3 * HOUR, 40 * 60, 5 * HOUR));
+    expect(items).toEqual([
+      {
+        id: 'crossroads',
+        severity: 'danger',
+        text: '3 equipes esperam na encruzilhada: a primeira espera acaba em 40 min (“Jornada 2”). Sem resposta, a Postura de cada uma decide.',
+        // Sem argumento: a lista do comando pergunta qual equipe.
+        command: { id: 'lords.chooseExpeditionPath', label: 'Escolher caminho' },
+      },
+    ]);
+  });
+
+  it('a linha das encruzilhadas vem depois da incursão, da fome, do frio e do soldo, e antes dos alertas; nada disso fica de fora das cinco linhas (revisão, A5 e A16)', () => {
+    // Três equipes à espera, a comida acabando e um depósito cheio.
+    const hungry = withResource(waitingFor(3 * HOUR, 4 * HOUR, 5 * HOUR), 'food', {
       stock: 5,
       perHour: -5,
       depletesInSeconds: HOUR,
     });
-    expect(ids(leavingItems(hungry)).slice(0, 2)).toEqual(['crossroads:expedition-2', 'food']);
+    const order = ids(leavingItems(hungry));
+    expect(order.filter((id) => id === 'crossroads')).toHaveLength(1);
+    expect(order.indexOf('food')).toBeLessThan(order.indexOf('crossroads'));
+    // O soldo em atraso também passa na frente; os depósitos e as obras vêm depois.
+    const everything = ids(
+      leavingItems({
+        ...hungry,
+        guild: { ...hungry.guild, wage: guildArrearsView.guild.wage },
+        resources: hungry.resources.map((row) =>
+          row.id === 'stone' ? { ...row, full: true, wastingPerHour: 4 } : row,
+        ),
+      }),
+    );
+    expect(everything.slice(0, 4)).toEqual(['food', 'wage', 'crossroads', 'storage:warehouse']);
   });
 
-  it('com o prazo longo, é alerta, não urgência: a decisão vai ser tomada de um jeito ou de outro', () => {
-    const [expedition] = expeditionCrossroadsView.guild.expeditions;
-    if (expedition === undefined || expedition.crossroads === null) {
-      throw new Error('Sem equipe na encruzilhada.');
-    }
-    const late: ViewState = {
-      ...expeditionCrossroadsView,
-      guild: {
-        ...expeditionCrossroadsView.guild,
-        expeditions: [
-          { ...expedition, crossroads: { ...expedition.crossroads, decidesInSeconds: 10 * HOUR } },
-        ],
-      },
-    };
-    expect(guildItems(late)[0]).toMatchObject({ severity: 'warning' });
-    expect(guildItems(late)[0]?.text).toContain('expira em 10 h');
+  it('o que o Relatório de Retorno já trouxe, encruzilhada por encruzilhada, a lista não repete', () => {
+    expect(ids(beforeLeaving(expeditionCrossroadsView, ['crossroads:expedition-2']))).not.toContain(
+      'crossroads',
+    );
+    expect(ids(beforeLeaving(expeditionCrossroadsView, ['card:x']))).toContain('crossroads');
   });
 
   it('fora do estado de risco: a equipe em viagem, sem encruzilhada, não gera item', () => {
@@ -859,9 +907,7 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
     // Rolf está no feudo, mas o único lugar da Guilda está ocupado.
     expect(guildItems(expeditionTravelingView)).toEqual([]);
     // Todos fora: ninguém pronto.
-    expect(guildItems(expeditionCrossroadsView).map((item) => item.id)).toEqual([
-      'crossroads:expedition-2',
-    ]);
+    expect(guildItems(expeditionCrossroadsView).map((item) => item.id)).toEqual(['crossroads']);
     // Só a heroína em recuperação no feudo: ela não pode partir.
     const onlyInjured: ViewState = {
       ...heroInjuredView,
