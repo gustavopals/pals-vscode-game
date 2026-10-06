@@ -1369,4 +1369,77 @@ test.describe('a jornada inteira pela tela (revisão da Fase D)', () => {
     await fief(page).getByRole('button', { name: 'Abrir a Crônica' }).click();
     await expect(page.getByRole('tabpanel', { name: 'Crônica' })).toContainText(decided.text);
   });
+
+  test('"Enviar o Resgate" na ficha de quem está em cativeiro monta a equipe, e o herói volta ao feudo (A20)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuildWith(world, page, [
+      { name: 'Aldo' },
+      { name: 'Berta', level: 10 },
+      { name: 'Caio', level: 10 },
+    ]);
+    await world.captive('Aldo');
+    await world.passTime(MINUTE, page);
+    const held = await serverView(page, request);
+    const captive = held.guild.heroes.find((hero) => hero.captive);
+    const rescue = held.guild.available.find((entry) => entry.rescue);
+    if (captive === undefined || rescue === undefined) {
+      throw new Error('O cenário esperava um cativo e o Resgate na lista da Guilda.');
+    }
+    expect(held.guild.rescueTargetName).toBe(captive.name);
+    expect(captive.nextRescued).toBe(true);
+    expect(rescue.canSend).toBe(true);
+    await guildTab(page).click();
+    // O botão está na ficha do cativo, e só nela; a frase do cativeiro é a do servidor.
+    await expect(heroes(page)).toContainText(held.guild.captiveText ?? 'sem a frase do cativeiro');
+    await expect(heroes(page).locator('[data-rescue]')).toHaveCount(1);
+    const button = heroes(page).locator(`[data-hero="${captive.id}"] [data-rescue]`);
+    await expect(button).toHaveAccessibleName(`Enviar o Resgate de ${captive.name}`);
+    const orders = commandPosts(page);
+    await button.click();
+    // A lista pergunta a equipe, um herói por vez, e depois a Postura.
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText(rescue.label);
+    await expect(dialog.getByRole('option')).toHaveCount(2);
+    await page.keyboard.press('Enter');
+    await expect(dialog.getByRole('option')).toHaveCount(1);
+    await page.keyboard.press('Enter');
+    await expect(dialog.getByRole('option')).toHaveCount(held.guild.postures.length);
+    await page.keyboard.press('Enter');
+    await expect(dialog).toHaveCount(0);
+    await expect(away(page).locator('[data-expedition]')).toHaveCount(1);
+    expect(sendsIn(orders)).toEqual([
+      { modelId: rescue.modelId, heroIds: [...rescue.eligibleHeroIds].sort() },
+    ]);
+    // Com a equipe a caminho, o Resgate desse cativo não parte de novo: o botão sai da ficha.
+    await expect(heroes(page).locator('[data-rescue]')).toHaveCount(0);
+
+    // Na encruzilhada, o jogador escolhe o caminho da Postura pela folha; depois, a volta.
+    const arrived = await until(world, page, request, 'a equipe na encruzilhada', (view) =>
+      view.guild.expeditions.some((entry) => entry.crossroads !== null),
+    );
+    const { crossroads } = waitingIn(arrived);
+    await crossroadsCard(page).locator(`[data-path="${crossroads.postureOptionId}"]`).click();
+    await expect(crossroadsCard(page)).toHaveCount(0);
+    const home = await until(
+      world,
+      page,
+      request,
+      'a equipe de volta',
+      (view) => view.guild.expeditions.length === 0,
+    );
+    // O herói está de volta: no feudo, fora do cativeiro, e a Guilda já não oferece o Resgate.
+    const freed = home.guild.heroes.find((hero) => hero.id === captive.id);
+    expect(freed).toMatchObject({ captive: false, atHome: true });
+    expect(home.guild.rescueTargetName).toBeNull();
+    expect(home.guild.available.some((entry) => entry.rescue)).toBe(false);
+    expect(await eventsOf(page, request, 'heroRescued')).toHaveLength(1);
+    await expect(heroes(page).locator('[data-rescue]')).toHaveCount(0);
+    await expect(heroes(page).locator(`[data-hero="${captive.id}"]`)).toContainText(
+      freed?.statusText ?? 'sem a situação do herói',
+    );
+  });
 });
