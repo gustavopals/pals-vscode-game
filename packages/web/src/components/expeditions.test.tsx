@@ -17,6 +17,7 @@ import {
   heroInjuredView,
   initialView,
   tavernOpenView,
+  withDestination,
   withoutTheClass,
 } from '../test-helpers';
 import { defaultPosture, defaultTeam, keptReports, sendArg } from '../ui/expeditions';
@@ -342,6 +343,44 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
       button.label.startsWith('Enviar'),
     );
     expect(sends).toHaveLength(2);
+  });
+
+  it('a montagem de um destino continua a mesma quando muda quem pode partir: a chave é só o destino (revisão, A11)', () => {
+    // As chaves dos destinos, lidas dos nós que o painel devolve, sem desenhar os filhos.
+    const keys = (view: ViewState): unknown[] => {
+      const found: unknown[] = [];
+      const visit = (child: ComponentChild): void => {
+        if (Array.isArray(child)) {
+          child.forEach(visit);
+          return;
+        }
+        if (typeof child !== 'object' || child === null || !('type' in child)) {
+          return;
+        }
+        const vnode = child as {
+          type: unknown;
+          key: unknown;
+          props: { destination?: unknown; children?: ComponentChild };
+        };
+        if (typeof vnode.type === 'function' && vnode.props.destination !== undefined) {
+          found.push(vnode.key);
+          return;
+        }
+        visit(vnode.props.children);
+      };
+      visit(ExpeditionsPanel({ view, elapsed: 0, disabled: false, busy: NONE, actions }));
+      return found;
+    };
+    const before = keys(denClearedView);
+    expect(before).toEqual(denClearedView.guild.available.map((entry) => entry.modelId));
+    // Um ferido sarou, outra equipe voltou: quem pode ir mudou, e a montagem aberta não se refaz.
+    const after = keys(
+      withDestination(denClearedView, 'oldForest', {
+        eligibleHeroIds: ['hero-1'],
+        suggestedTeam: ['hero-1'],
+      }),
+    );
+    expect(after).toEqual(before);
   });
 
   it('todos os lugares ocupados: cada destino traz o motivo do servidor, com cadeado, e nenhum envio', () => {

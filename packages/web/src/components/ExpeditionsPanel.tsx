@@ -323,10 +323,10 @@ export function ExpeditionsPanel(props: {
           <ul class="heroes" aria-label="Destinos">
             {guild.available.map((destination) => (
               <DestinationRow
-                // A equipe que pode partir muda a montagem: a chave a refaz do zero.
-                key={`${destination.modelId}:${eligibleHeroes(guild, destination)
-                  .map((hero) => hero.id)
-                  .join(',')}`}
+                // A chave é só o destino: a montagem aberta (quem está marcado, a Postura)
+                // atravessa as leituras. Quem deixa de poder partir sai da equipe marcada
+                // sozinho; quem passa a poder aparece, sem marca.
+                key={destination.modelId}
                 guild={guild}
                 destination={destination}
                 disabled={props.disabled}
