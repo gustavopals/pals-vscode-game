@@ -979,6 +979,21 @@ describe('as expedições nos avisos (roadmap da v0.3, V3D-T4; GDD §13.5)', () 
     expect(lossNotice(famine, [famine])).toBeNull();
   });
 
+  it('o aviso que esta página não mostraria não ocupa lugar entre os três da hora (revisão, A13)', () => {
+    const alarms = [event('famineStarted', 2), event('villagerLeft', 3), event('coldStarted', 4)];
+    // A encruzilhada que o jogador já vê na aba Guilda: quem chama diz que ela não vira aviso.
+    const result = decideNotifications(
+      input({ events: [crossroads, ...alarms], unshown: (entry) => entry === crossroads }),
+    );
+    expect(result.show).toEqual(alarms);
+    expect(result.history).toHaveLength(3);
+    expect(result.badge).toBe(0);
+    // Sozinha, não gasta nada.
+    expect(decideNotifications(input({ events: [crossroads], unshown: () => true }))).toMatchObject(
+      { show: [], badge: 0, history: [] },
+    );
+  });
+
   it('a volta da expedição, o nível novo e o item achado só avisam em "Todas"', () => {
     const quiet = [
       event('expeditionReturned', 1),

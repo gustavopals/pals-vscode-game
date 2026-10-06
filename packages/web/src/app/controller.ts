@@ -832,6 +832,8 @@ export class Controller {
       history: this.notificationHistory,
       // A visão chega antes dos eventos: a estação dela é a que vale agora.
       season: this.view?.calendar.season ?? null,
+      // A decisão que não vai virar aviso aqui não ocupa um dos avisos da hora.
+      unshown: (event) => isDecision(event) && !this.decisionAnnounced(event),
     });
     this.notificationHistory = decision.history;
     this.unseen += decision.badge;
@@ -993,6 +995,25 @@ export class Controller {
   }
 
   /**
+   * A carta nova ou a encruzilhada vira aviso nesta página? Só se ainda espera na visão (que
+   * chega antes dos eventos) e o jogador não a tem à vista, na aba dela: lá ela apareceu na
+   * frente dele, e um aviso por cima só atrapalharia a leitura. É perguntado antes da conta dos
+   * avisos da hora (`decideNotifications`, `unshown`): o que não vai aparecer não ocupa lugar.
+   */
+  private decisionAnnounced(event: GameEvent): boolean {
+    if (isCrossroadsArrival(event)) {
+      const waits = this.view?.guild.expeditions.some(
+        (entry) => entry.id === event.data.expeditionId && entry.crossroads !== null,
+      );
+      return waits === true && !(this.visible && this.route === 'guild');
+    }
+    const pending = this.view?.council.pending.some(
+      (entry) => entry.instanceId === event.data.instanceId,
+    );
+    return pending === true && !(this.visible && this.route === 'council');
+  }
+
+  /**
    * "Nova carta do Conselho: <título>", com o prazo (e a hora do relógio em que ele acaba: o
    * aviso fica na tela, e "por 23 h" envelhece), o que o conselho faz sozinho e o botão
    * "Decidir", que leva à aba do Conselho (GDD §13.5). A carta é a da visão, que chega antes dos
@@ -1005,12 +1026,7 @@ export class Controller {
     const card = this.view?.council.pending.find(
       (entry) => entry.instanceId === event.data.instanceId,
     );
-    if (card === undefined) {
-      return;
-    }
-    if (this.visible && this.route === 'council') {
-      // O jogador está olhando a mesa do conselho: a carta apareceu na frente dele, e um aviso
-      // por cima dela só atrapalharia a leitura.
+    if (card === undefined || !this.decisionAnnounced(event)) {
       return;
     }
     const id = this.announce({
@@ -1040,10 +1056,7 @@ export class Controller {
       expedition === undefined
         ? null
         : crossroadsNotice(expedition, { now: this.viewReceivedAt, timeZone: this.timezone() });
-    if (expedition === undefined || notice === null) {
-      return;
-    }
-    if (this.visible && this.route === 'guild') {
+    if (expedition === undefined || notice === null || !this.decisionAnnounced(event)) {
       return;
     }
     const id = this.announce({

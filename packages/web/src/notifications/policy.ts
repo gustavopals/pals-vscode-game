@@ -207,6 +207,12 @@ export type PolicyInput = {
    * só a última é novidade. Sem ela, toda virada passa.
    */
   season?: string | null;
+  /**
+   * Os eventos que esta página não mostraria como aviso mesmo liberados: a carta e a
+   * encruzilhada que o jogador já tem à vista, ou que já não esperam. Ficam de fora antes da
+   * conta: não ocupam um dos três avisos da hora nem viram contador.
+   */
+  unshown?: (event: GameEvent) => boolean;
 };
 
 export type PolicyOutput = {
@@ -545,6 +551,7 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
+      input.unshown?.(event) !== true &&
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
       !(isObjectiveCompleted(event) && event !== firstObjective) &&
       !(isHeroDiscontent(event) && event !== firstDiscontent) &&

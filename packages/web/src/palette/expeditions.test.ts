@@ -815,6 +815,28 @@ describe('os avisos das expedições (GDD §13.5)', () => {
     expect(made.controller.toasts).toEqual([]);
   });
 
+  it('a encruzilhada que não vira aviso (o jogador já a vê na aba Guilda) não gasta um dos avisos da hora (revisão, A13)', async () => {
+    const made = await setup(expeditionTravelingView);
+    const { controller } = made;
+    controller.navigate('guild');
+    await serverShows(made, expeditionCrossroadsView, arrived(1));
+    expect(controller.toasts).toEqual([]);
+    // Três alarmes na mesma hora: os três cabem, porque a encruzilhada não ocupou lugar.
+    controller.navigate('fief');
+    await serverShows(
+      made,
+      expeditionCrossroadsView,
+      gameEvent(2, 'famineStarted', 'A fome chegou.'),
+      gameEvent(3, 'villagerLeft', 'Um aldeão partiu.'),
+      gameEvent(4, 'coldStarted', 'O frio entrou nas casas.'),
+    );
+    expect(controller.toasts.map((toast) => toast.text)).toEqual([
+      'A fome chegou.',
+      'Um aldeão partiu.',
+      'O frio entrou nas casas.',
+    ]);
+  });
+
   it('a volta de uma expedição, em "Todas", leva ao relatório dela', async () => {
     const made = await setup(expeditionTravelingView);
     const { controller, revealed } = made;
