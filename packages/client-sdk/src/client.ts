@@ -473,8 +473,16 @@ export function createClient(options: ClientOptions) {
       return get(ChronicleResponseSchema, `/games/${gameId}/chronicle${suffix}`);
     },
 
-    getChronicleMarkdown: async (gameId: string): Promise<string> => {
-      const response = await send('GET', `/games/${gameId}/chronicle.md`, {
+    /**
+     * A Crônica em Markdown. Com `links`, cada linha de expedição traz no fim a marca que a
+     * liga ao relatório (`splitChronicleLink`, em `@lotg/protocol`); sem ele, o documento limpo.
+     */
+    getChronicleMarkdown: async (
+      gameId: string,
+      options: { links?: boolean } = {},
+    ): Promise<string> => {
+      const suffix = options.links === true ? '?links=1' : '';
+      const response = await send('GET', `/games/${gameId}/chronicle.md${suffix}`, {
         auth: true,
         retry: true,
       });

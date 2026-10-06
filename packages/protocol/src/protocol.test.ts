@@ -44,6 +44,8 @@ import {
   canonicalJson,
   CatalogResponseSchema,
   CHRONICLE_HIDDEN_EVENT_TYPES,
+  chronicleLinkSuffix,
+  ChronicleMarkdownQuerySchema,
   contentHash,
   type Command,
   CommandAcceptedSchema,
@@ -59,8 +61,10 @@ import {
   GameEventSchema,
   GameRuleErrorSchema,
   GithubAuthResponseSchema,
+  isExpeditionId,
   PROTOCOL_VERSION,
   type RejectionCode,
+  splitChronicleLink,
   StateVersionSchema,
   type ViewState,
   ViewResponseSchema,
@@ -2212,5 +2216,30 @@ describe('os espaços de equipamento do protocolo são os do conteúdo', () => {
   it.each([...ITEM_SLOT_IDS])('desequipar aceita o espaço %s', (slot) => {
     const order = { commandId: uuid, type: 'unequipItem', payload: { heroId: 'hero-1', slot } };
     expect(CommandSchema.safeParse(order).success).toBe(true);
+  });
+});
+
+describe('a marca que liga a Crônica ao relatório de uma expedição', () => {
+  it('vai e volta: a frase fica inteira, e só um identificador de expedição vira marca', () => {
+    const text =
+      'No 3º dia da Primavera, a expedição "Patrulha dos Arredores" voltou a Pedra Alta.';
+    const line = `${text}${chronicleLinkSuffix('expedition-12')}`;
+    expect(line.endsWith(' <!-- expedition-12 -->')).toBe(true);
+    expect(splitChronicleLink(line)).toEqual({ text, expeditionId: 'expedition-12' });
+    expect(splitChronicleLink(text)).toEqual({ text, expeditionId: null });
+    // Só no fim da linha, e só na forma do identificador.
+    expect(splitChronicleLink(`${text} <!-- expedition-0 -->`).expeditionId).toBeNull();
+    expect(splitChronicleLink(`<!-- expedition-1 --> ${text}`).expeditionId).toBeNull();
+    expect(isExpeditionId('expedition-7')).toBe(true);
+    for (const bad of ['expedition-07', 'expedition-', 'hero-1', 'expedition-1 -->', 7, null]) {
+      expect(isExpeditionId(bad)).toBe(false);
+    }
+  });
+
+  it('a consulta do Markdown só aceita links=0 ou links=1', () => {
+    expect(ChronicleMarkdownQuerySchema.safeParse({}).success).toBe(true);
+    expect(ChronicleMarkdownQuerySchema.safeParse({ links: '1' }).success).toBe(true);
+    expect(ChronicleMarkdownQuerySchema.safeParse({ links: 'sim' }).success).toBe(false);
+    expect(ChronicleMarkdownQuerySchema.safeParse({ link: '1' }).success).toBe(false);
   });
 });

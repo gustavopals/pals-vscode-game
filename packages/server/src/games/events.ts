@@ -43,8 +43,13 @@ export async function readChronicleMarkdown(
   ctx: AppContext,
   accountId: string,
   gameId: string,
+  options: { links?: boolean } = {},
 ): Promise<string> {
   return withGameReading(ctx, accountId, gameId, async (reading, tx) =>
-    chronicleMarkdown(reading.state.settlement.name, await chronicleRows(tx, reading.game.id)),
+    chronicleMarkdown(
+      reading.state.settlement.name,
+      await chronicleRows(tx, reading.game.id),
+      options,
+    ),
   );
 }

@@ -43,6 +43,7 @@ export * from './commands';
 export * from './view';
 export * from './errors';
 export * from './api';
+export * from './chronicleLink';
 export * from './report';
 export { canonicalJson } from './canonical';
 export { contentHash } from './contentHash';

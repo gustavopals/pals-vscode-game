@@ -1,3 +1,5 @@
+import { chronicleLinkSuffix, isExpeditionId } from '@lotg/protocol';
+
 /** O que o Markdown da Crônica precisa de uma linha de `game_events`. */
 export type ChronicleRow = {
   kind: string;
@@ -23,8 +25,17 @@ const ECHO_LABELS: Record<string, string> = {
  * desfecho da carta anterior, palavra por palavra. A ligação fica em texto: vale para quem lê o
  * arquivo baixado, e é por essa citação que o app acha a linha e leva o leitor até ela. Nada
  * aqui é regra de jogo: só se juntam duas linhas que os eventos já ligavam pela ocorrência.
+ *
+ * **A ligação com o relatório de uma expedição** (revisão da Fase D, A2): com `links`, a linha
+ * de um evento de expedição leva no fim a marca de `chronicleLinkSuffix`, com o identificador
+ * dela. Duas linhas de frase igual (duas Patrulhas do mesmo herói no mesmo dia) ficam com
+ * marcas diferentes, e o app deixa de procurar o relatório pela frase.
  */
-export function chronicleMarkdown(settlementName: string, rows: readonly ChronicleRow[]): string {
+export function chronicleMarkdown(
+  settlementName: string,
+  rows: readonly ChronicleRow[],
+  options: { links?: boolean } = {},
+): string {
   const lines = [`# Crônica de ${settlementName}`, '', '## Ano 1', ''];
   if (rows.length === 0) {
     lines.push('*Ainda não há nada a contar.*');
@@ -36,7 +47,13 @@ export function chronicleMarkdown(settlementName: string, rows: readonly Chronic
     if (row.kind === 'yearStarted') {
       lines.push('', `## Ano ${data.year}`, '');
     }
-    lines.push(`- ${text}`);
+    // A marca que liga a linha ao relatório da expedição: só a pedido (`?links=1`), invisível
+    // no documento, e só o identificador que o evento já levava.
+    const link =
+      options.links === true && isExpeditionId(data.expeditionId)
+        ? chronicleLinkSuffix(data.expeditionId)
+        : '';
+    lines.push(`- ${text}${link}`);
     if (row.kind === 'cardDrawn' && typeof data.previousInstanceId === 'string') {
       const previous = outcomes.get(data.previousInstanceId);
       const label = previous === undefined ? undefined : ECHO_LABELS[previous.kind];

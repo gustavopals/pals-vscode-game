@@ -634,7 +634,7 @@ describe('demais chamadas', () => {
       if (call.path.includes('/events')) {
         return { status: 200, body: { events: [], lastSeq: 7, hasMore: false } };
       }
-      if (call.path.endsWith('chronicle.md')) {
+      if (call.path.includes('chronicle.md')) {
         return { status: 200, body: '# Crônica' };
       }
       if (call.path.includes('/chronicle')) {
@@ -654,6 +654,7 @@ describe('demais chamadas', () => {
     expect(await client.getChronicle(gameId, { limit: 10, year: 2 })).toEqual({ entries: [] });
     expect(await client.getChronicle(gameId)).toEqual({ entries: [] });
     expect(await client.getChronicleMarkdown(gameId)).toBe('"# Crônica"');
+    expect(await client.getChronicleMarkdown(gameId, { links: true })).toBe('"# Crônica"');
     expect(await client.createRecoveryCode()).toBe('PEDR-7F3A-K9QD-M2XW-4HTB');
     expect(calls.map((call) => call.path)).toEqual([
       '/games',
@@ -662,6 +663,7 @@ describe('demais chamadas', () => {
       `/games/${gameId}/chronicle?limit=10&year=2`,
       `/games/${gameId}/chronicle`,
       `/games/${gameId}/chronicle.md`,
+      `/games/${gameId}/chronicle.md?links=1`,
       '/auth/recovery-code',
     ]);
   });

@@ -233,6 +233,15 @@ export const ChronicleQuerySchema = z.strictObject({
 });
 export type ChronicleQuery = z.infer<typeof ChronicleQuerySchema>;
 
+/**
+ * `GET /games/:id/chronicle.md`: com `links=1`, cada linha de expedição leva no fim a marca de
+ * `chronicleLink.ts`, que liga a linha ao relatório. Sem ele, o documento sai limpo.
+ */
+export const ChronicleMarkdownQuerySchema = z.strictObject({
+  links: z.enum(['0', '1']).optional(),
+});
+export type ChronicleMarkdownQuery = z.infer<typeof ChronicleMarkdownQuerySchema>;
+
 /** As últimas linhas da Crônica, da mais antiga para a mais recente. */
 export const ChronicleResponseSchema = z.strictObject({ entries: z.array(GameEventSchema) });
 export type ChronicleResponse = z.infer<typeof ChronicleResponseSchema>;

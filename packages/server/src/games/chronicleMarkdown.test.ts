@@ -1,3 +1,4 @@
+import { splitChronicleLink } from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import { type ChronicleRow, chronicleMarkdown } from './chronicleMarkdown';
@@ -112,5 +113,52 @@ describe('"Sua escolha voltou" (V2D-T4.3)', () => {
     const markdown = chronicleMarkdown('Pedra Alta', [shareDrawn, planksAnswered, draw, orphan]);
     expect(markdown).not.toContain('voltou: “');
     expect(markdown.split('\n').filter((line) => line.startsWith('  - '))).toEqual([]);
+  });
+});
+
+describe('a ligação com o relatório de uma expedição (revisão da Fase D, A2)', () => {
+  const sent = (expeditionId: string) =>
+    row(
+      'expeditionSent',
+      'No 3º dia da Primavera, partiu de Pedra Alta uma expedição: Patrulha dos Arredores. A equipe: Edda.',
+      {
+        expeditionId,
+        modelId: 'patrol',
+      },
+    );
+  const rows = [
+    row('constructionFinished', 'Os pedreiros ergueram a Guilda.'),
+    sent('expedition-1'),
+    sent('expedition-2'),
+    row('heroCaptured', 'Rolf caiu em cativeiro.', {
+      heroId: 'hero-2',
+      expeditionId: 'expedition-2',
+    }),
+    // Um identificador fora da forma não vira marca: nada que venha do banco entra cru no documento.
+    row('expeditionReturned', 'A expedição voltou.', { expeditionId: 'expedition-3 --> <b>' }),
+  ];
+
+  it('sem pedir, o documento sai limpo: é o que o jogador baixa', () => {
+    const markdown = chronicleMarkdown('Pedra Alta', rows);
+    expect(markdown).not.toContain('<!--');
+    expect(chronicleMarkdown('Pedra Alta', rows, { links: false })).toBe(markdown);
+  });
+
+  it('com links, cada linha de expedição leva a marca dela, e duas frases iguais ficam distintas', () => {
+    const lines = chronicleMarkdown('Pedra Alta', rows, { links: true })
+      .split('\n')
+      .filter((line) => line.startsWith('- '))
+      .map((line) => splitChronicleLink(line.slice(2)));
+    expect(lines.map((line) => line.expeditionId)).toEqual([
+      null,
+      'expedition-1',
+      'expedition-2',
+      'expedition-2',
+      null,
+    ]);
+    // A frase volta inteira, sem a marca, e as duas partidas têm a mesma.
+    expect(lines[1]?.text).toBe(lines[2]?.text);
+    expect(lines[1]?.text).toBe(rows[1]?.payload.text);
+    expect(lines[4]?.text).toBe('A expedição voltou.');
   });
 });

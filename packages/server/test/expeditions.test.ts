@@ -4,6 +4,7 @@ import {
   type CommandAccepted,
   type EventsResponse,
   PROTOCOL_VERSION,
+  splitChronicleLink,
   type ViewResponse,
 } from '@lotg/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -280,9 +281,33 @@ describe('enviar uma expedição e reenviar a ordem', () => {
     });
     expect(markdown.body).toContain(lost?.text);
     expect(markdown.body).not.toContain(won?.text);
+    expect(markdown.body).not.toContain('<!--');
+    // Com `links=1`, cada linha de expedição diz de qual é, e o relatório tem o mesmo
+    // identificador: o app liga a linha ao relatório sem procurar pela frase (revisão, A2).
+    const linked = await call<string>(server, 'GET', `/games/${gameId}/chronicle.md?links=1`, {
+      token: player.token,
+    });
+    expect(linked.status).toBe(200);
+    const marks = linked.body
+      .split('\n')
+      .filter((line) => line.startsWith('- '))
+      .map((line) => splitChronicleLink(line.slice(2)));
+    const marked = marks.filter((line) => line.expeditionId !== null);
+    expect(new Set(marked.map((line) => line.expeditionId))).toEqual(
+      new Set(['expedition-1', 'expedition-2']),
+    );
+    expect(marked.find((line) => line.text === lost?.text)?.expeditionId).toBe(
+      lost?.data.expeditionId,
+    );
+    expect(marks.map((line) => line.text).join('\n')).not.toContain('<!--');
+    const bad = await call<unknown>(server, 'GET', `/games/${gameId}/chronicle.md?links=sim`, {
+      token: player.token,
+    });
+    expect(bad.status).toBe(400);
     // O relatório traz as duas, e a frase do nó é a mesma da Crônica, com o que ele rendeu.
     const view = await viewOf(player.token, gameId);
     const [second, first] = view.guild.reports;
+    expect([first?.expeditionId, second?.expeditionId]).toEqual(['expedition-1', 'expedition-2']);
     expect(first?.log[0]?.text.startsWith(won?.text ?? '?')).toBe(true);
     expect(second?.log[0]?.text.startsWith(lost?.text ?? '?')).toBe(true);
     expect(second?.log[0]).toMatchObject({ standoutName: 'Rolf' });

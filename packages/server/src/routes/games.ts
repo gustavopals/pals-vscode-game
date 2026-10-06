@@ -1,4 +1,5 @@
 import {
+  ChronicleMarkdownQuerySchema,
   ChronicleQuerySchema,
   CommandRequestSchema,
   type CreateGameResponse,
@@ -97,7 +98,10 @@ export function registerGameRoutes(app: FastifyInstance, ctx: AppContext): void 
 
   app.get('/games/:id/chronicle.md', async (request, reply) => {
     const identity = await requireIdentity(ctx, request);
-    const markdown = await readChronicleMarkdown(ctx, identity.accountId, gameIdOf(request));
+    const { links } = ChronicleMarkdownQuerySchema.parse(request.query);
+    const markdown = await readChronicleMarkdown(ctx, identity.accountId, gameIdOf(request), {
+      links: links === '1',
+    });
     return reply.header('content-type', 'text/markdown; charset=utf-8').send(markdown);
   });
 }
