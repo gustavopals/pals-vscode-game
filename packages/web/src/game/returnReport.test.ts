@@ -746,15 +746,19 @@ describe('"Você ainda pode decidir": só a visão de agora', () => {
     const items = pendingItems(expeditionCrossroadsView);
     expect(items[0]).toEqual({
       // A frase do que a Postura fará é a do servidor.
-      text: 'Guilda: “Floresta Antiga: A trilha se divide” · expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      text: 'Guilda: “Floresta Antiga: A trilha se divide” · expira em 11 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
       topic: 'crossroads:expedition-2',
-      // Cinco horas: menos do que uma ausência comum, e por isso com o sinal de aviso.
-      severity: 'warning',
+      // Onze horas: mais do que uma ausência comum, e por isso sem o sinal de aviso.
       action: {
         command: 'lords.chooseExpeditionPath',
         arg: 'expedition-2',
         label: 'Escolher caminho',
       },
+    });
+    // Dez horas depois da leitura faltam menos de duas: aí a linha ganha o sinal de aviso.
+    expect(pendingItems(expeditionCrossroadsView, 10 * 3600)[0]).toMatchObject({
+      topic: 'crossroads:expedition-2',
+      severity: 'warning',
     });
     // Com uma carta na mesa, a encruzilhada continua no topo; ela não vira carta.
     const both: ViewState = {

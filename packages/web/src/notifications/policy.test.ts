@@ -1056,12 +1056,14 @@ describe('as expedições nos avisos (roadmap da v0.3, V3D-T4; GDD §13.5)', () 
     expect(notice).toEqual({
       text: 'Encruzilhada em Floresta Antiga: A trilha se divide',
       details: [
-        'A equipe espera a sua palavra por 5 h, até as 17:19.',
+        'A equipe espera a sua palavra por 11 h, até as 23:19.',
         'Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
       ],
     });
     // Sem o relógio, só o prazo; para a equipe que não espera, nada.
-    expect(crossroadsNotice(expedition)?.details[0]).toBe('A equipe espera a sua palavra por 5 h.');
+    expect(crossroadsNotice(expedition)?.details[0]).toBe(
+      'A equipe espera a sua palavra por 11 h.',
+    );
     expect(crossroadsNotice({ ...expedition, crossroads: null })).toBeNull();
   });
 });

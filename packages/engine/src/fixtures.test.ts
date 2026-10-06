@@ -796,7 +796,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(traveling.guild.expeditions[0]?.nodeEndsAtMs).toBeGreaterThan(traveling.lastProcessedAt);
     expect(traveling.ids).toEqual({ hero: 2, expedition: 1 });
     expect(Object.keys(traveling.rng).filter((key) => key.startsWith('expedition:'))).toEqual([]);
-    // Na encruzilhada: o prazo de 6 h reais marcado, o fluxo da expedição em uso, o relatório
+    // Na encruzilhada: o prazo de 12 h reais marcado, o fluxo da expedição em uso, o relatório
     // de uma Patrulha que já voltou e o fluxo dela apagado.
     const waiting = of('expedition-crossroads');
     expect(waiting.settings.timeScale).toBe(1);
@@ -812,7 +812,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     });
     expect(stopped?.log).toHaveLength(1);
     expect((stopped?.crossroads?.decidesAtMs ?? 0) - waiting.lastProcessedAt).toBe(
-      6 * HOUR - 40 * MINUTE - 2_345,
+      12 * HOUR - 40 * MINUTE - 2_345,
     );
     expect(Object.keys(waiting.rng).filter((key) => key.includes(':'))).toEqual([
       'expedition:expedition-2',

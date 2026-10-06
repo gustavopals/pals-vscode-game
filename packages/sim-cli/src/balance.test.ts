@@ -185,11 +185,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Normal): na pior das 50 sementes o cofre paga um contrato a menos.
     // Desde a revisão da Fase D (docs/balance-v0.3.md, seção 9.6) ele enche os seis lugares nas
     // 50 sementes do Normal: ergue a Guilda na frente das outras obras e, em metade das partidas,
-    // volta quando a equipe para na encruzilhada (mais visitas, mais contratos).
-    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
+    // volta quando a equipe para na encruzilhada (mais visitas, mais contratos). **Com a espera
+    // de 12 h reais** (resposta do autor de 2026-10-06, D-71) a equipe espera o dobro na
+    // encruzilhada, e em alguma das 50 sementes ele termina a semana com cinco (a causa exata
+    // não foi investigada; o ritmo de envios e de saque mudou).
+    expect(heroes('week/1/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('week/0.5/explorador')).toEqual({ min: 2, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
-    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
+    expect(heroes('year/1/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
     // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
     // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.

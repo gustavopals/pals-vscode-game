@@ -123,7 +123,7 @@ describe('a encruzilhada (V3D-T4.1 e T4.3; GDD §9.2)', () => {
     const { crossroads } = waiting(expeditionCrossroadsView);
     const shown = text(markup);
     expect(shown).toContain('Encruzilhada · Floresta Antiga');
-    expect(shown).toContain('A espera acaba em 5 h');
+    expect(shown).toContain('A espera acaba em 11 h');
     expect(shown).toContain('A trilha se divide');
     expect(shown).toContain('Edda e Rolf · Postura Equilibrada');
     expect(shown).toContain(crossroads.text);
@@ -891,7 +891,7 @@ describe('a aba Hoje: a encruzilhada é uma decisão pendente (V3D-T4.3)', () =>
     const markup = today(expeditionCrossroadsView);
     const shown = text(markup);
     expect(shown).toContain('Decisões pendentes (1)');
-    expect(shown).toContain('Guilda: “Floresta Antiga: A trilha se divide” · expira em 5 h');
+    expect(shown).toContain('Guilda: “Floresta Antiga: A trilha se divide” · expira em 11 h');
     expect(shown).toContain('Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.');
     expect(buttons(markup).map((button) => button.label)).toContain('Escolher caminho');
   });

@@ -67,7 +67,7 @@ export type World = {
   /**
    * Põe a equipe do feudo parada em uma encruzilhada, agora, sem depender da semente
    * (`/__test/crossroads`): a Guilda dos Aventureiros de pé e o primeiro herói que está no feudo
-   * na encruzilhada da Floresta Antiga, com a Postura e o prazo pedidos (6 horas de relógio, se
+   * na encruzilhada da Floresta Antiga, com a Postura e o prazo pedidos (12 horas de relógio, se
    * nenhum for dado). O feudo precisa ter um herói. Daí em diante a escolha e o prazo são os do
    * motor.
    */

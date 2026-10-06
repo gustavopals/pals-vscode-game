@@ -543,7 +543,7 @@ test.describe('a Guilda na interface', () => {
     await letter.getByRole('button', { name: 'Acolher a estrangeira', exact: true }).click();
     await expect(letter).toHaveCount(0);
 
-    // A equipe é posta na encruzilhada da Floresta Antiga, com a Postura Cautelosa e 6 h de prazo.
+    // A equipe é posta na encruzilhada da Floresta Antiga, com a Postura Cautelosa e 12 h de prazo.
     await world.crossroads('cautious');
     await world.passTime(MINUTE, page);
     const waiting = await serverView(page, request);
@@ -576,8 +576,8 @@ test.describe('a Guilda na interface', () => {
     // A ficha diz onde ela está, na frase do servidor.
     await expect(team(page).getByRole('listitem')).toContainText('Em expedição');
 
-    // Seis horas e um minuto depois ninguém respondeu: a Postura decidiu, e a decisão saiu.
-    await world.passTime(6 * HOUR + MINUTE, page);
+    // Doze horas e um minuto depois ninguém respondeu: a Postura decidiu, e a decisão saiu.
+    await world.passTime(12 * HOUR + MINUTE, page);
     const decided = await serverView(page, request);
     expect(decided.pendingDecisions).toEqual([]);
     const types = (await gameEvents(page, request)).map((event) => event.type);
@@ -999,7 +999,7 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     await playNow(page);
     expect((await serverView(page, request)).settlement.paceLabel).toMatch(/^Rápido/);
     await world.hero('Aldo');
-    // O prazo de uma encruzilhada é de 6 horas de relógio em qualquer ritmo.
+    // O prazo de uma encruzilhada é de 12 horas de relógio em qualquer ritmo.
     await world.crossroads('balanced');
     await world.passTime(MINUTE, page);
     const hours = async () => {
@@ -1011,24 +1011,24 @@ test.describe('as expedições na interface (V3D-T4)', () => {
       return { seconds, text: `${Math.floor(seconds / 3600)} h` };
     };
     const start = await hours();
-    // Seis horas menos o minuto que passou: a API não dividiu o prazo pelo ritmo.
-    expect(start.seconds).toBeGreaterThan(6 * 3600 - 120);
-    expect(start.seconds).toBeLessThanOrEqual(6 * 3600);
+    // Doze horas menos o minuto que passou: a API não dividiu o prazo pelo ritmo.
+    expect(start.seconds).toBeGreaterThan(12 * 3600 - 120);
+    expect(start.seconds).toBeLessThanOrEqual(12 * 3600);
     await guildTab(page).click();
     // A tela escreve o prazo que a API deu, sem converter de novo.
     await expect(crossroadsCard(page)).toContainText(`A espera acaba em ${start.text}`);
     await expect(statusBar(page)).toContainText(`expira em ${start.text}`);
 
-    // Três horas de relógio depois, faltam três: na API e na tela.
-    await world.passTime(3 * HOUR, page);
+    // Seis horas de relógio depois, faltam seis: na API e na tela.
+    await world.passTime(6 * HOUR, page);
     const middle = await hours();
-    expect(middle.seconds).toBeGreaterThan(3 * 3600 - 180);
-    expect(middle.seconds).toBeLessThanOrEqual(3 * 3600);
+    expect(middle.seconds).toBeGreaterThan(6 * 3600 - 180);
+    expect(middle.seconds).toBeLessThanOrEqual(6 * 3600);
     await expect(crossroadsCard(page)).toContainText(`A espera acaba em ${middle.text}`);
     expect((await eventsOf(page, request, 'expeditionPostureDecided')).length).toBe(0);
 
-    // Passadas as seis horas anunciadas, a Postura decidiu: nem antes, nem três vezes depois.
-    await world.passTime(3 * HOUR + MINUTE, page);
+    // Passadas as doze horas anunciadas, a Postura decidiu: nem antes, nem três vezes depois.
+    await world.passTime(6 * HOUR + MINUTE, page);
     expect((await serverView(page, request)).pendingDecisions).toEqual([]);
     expect(await eventsOf(page, request, 'expeditionPostureDecided')).toHaveLength(1);
     await expect(crossroadsCard(page)).toHaveCount(0);

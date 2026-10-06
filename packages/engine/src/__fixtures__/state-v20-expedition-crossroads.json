@@ -205,7 +205,7 @@
     "nodeId": "fork",
     "nodeEndsAtMs": null,
     "crossroads": {
-     "decidesAtMs": 172500000
+     "decidesAtMs": 194100000
     },
     "loot": {
      "resources": {

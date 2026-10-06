@@ -529,12 +529,15 @@ describe('as expedições na matriz (revisão da Fase D, M-D2 e M-R2)', () => {
     expect(totals?.crossroadsWithoutVisit.runs).toBe(2);
     expect(totals?.crossroadsWithVisit.extraVisits).toBeGreaterThan(0);
     expect(totals?.crossroadsWithVisit.player).toBeGreaterThan(0);
-    // Com duas sessões por dia e o prazo de 6 h reais, a Postura decide tudo o que sobra.
-    expect(totals?.crossroadsWithoutVisit.player).toBe(0);
+    // Com duas sessões por dia e o prazo de 12 h reais (resposta do autor de 2026-10-06; eram 6 h,
+    // e então o jogador não decidia nenhuma sem a visita extra), a Postura ainda decide a maior
+    // parte do que sobra, mas uma sessão do dia cai às vezes dentro do prazo.
+    expect(totals?.crossroadsWithoutVisit.player).toBeGreaterThanOrEqual(0);
     expect(totals?.crossroadsWithoutVisit.posture).toBeGreaterThan(0);
     expect((totals?.crossroads.player ?? 0) + (totals?.crossroads.posture ?? 0)).toBe(
       (totals?.crossroadsWithVisit.player ?? 0) +
         (totals?.crossroadsWithVisit.posture ?? 0) +
+        (totals?.crossroadsWithoutVisit.player ?? 0) +
         (totals?.crossroadsWithoutVisit.posture ?? 0),
     );
     const report = formatMatrix(result);

@@ -215,8 +215,8 @@ describe('a divisão de intervalo com expedições no caminho', () => {
             }
             state = stored(ordered.state);
             expectInvariants(state);
-            // Ora um passo curto, ora um que atravessa o prazo de 6 h reais da encruzilhada.
-            const realMs = index % 3 === 2 ? 7 * HOUR + step.afterRealMs : step.afterRealMs;
+            // Ora um passo curto, ora um que atravessa o prazo de 12 h reais da encruzilhada.
+            const realMs = index % 3 === 2 ? 13 * HOUR + step.afterRealMs : step.afterRealMs;
             const target = state.lastProcessedAt + Math.round(realMs * plan.timeScale);
             const span = target - state.lastProcessedAt;
             const middle = state.lastProcessedAt + Math.floor((span * (cuts[index] ?? 500)) / 1000);

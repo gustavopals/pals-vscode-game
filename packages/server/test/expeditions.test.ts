@@ -30,8 +30,8 @@ import { resetTestDb } from './helpers/db';
 
 // As expedições pela API (roadmap da v0.3, V3D-T1.11; QA-06, QA-14 e QA-18): enviar e reenviar,
 // escolher o caminho em duas abas, escolher depois do prazo, e o 426 a quem ainda fala o
-// protocolo de antes da encruzilhada. O servidor de teste roda no ritmo 1: as 6 h reais do
-// prazo são 6 h de jogo.
+// protocolo de antes da encruzilhada. O servidor de teste roda no ritmo 1: as 12 h reais do
+// prazo são 12 h de jogo.
 
 let server: TestApp;
 
@@ -330,14 +330,14 @@ describe('enviar uma expedição e reenviar a ordem', () => {
       );
       expect(text).not.toContain('expedition:expedition-');
     }
-    // A encruzilhada está entre as decisões à espera, com o prazo real de 6 h menos o minuto
+    // A encruzilhada está entre as decisões à espera, com o prazo real de 12 h menos o minuto
     // que passou.
     expect(view.pendingDecisions).toEqual([
       {
         kind: 'crossroads',
         id: 'expedition-1',
         title: expect.stringContaining('Floresta Antiga: ') as string,
-        expiresInSeconds: 6 * 3600 - 60,
+        expiresInSeconds: 12 * 3600 - 60,
       },
     ]);
     // A dificuldade só aparece do primeiro trecho, na lista de destinos.
@@ -416,14 +416,14 @@ describe('a encruzilhada: duas abas, uma decisão (QA-06)', () => {
   });
 });
 
-describe('depois do prazo de 6 h reais, a Postura já decidiu', () => {
+describe('depois do prazo de 12 h reais, a Postura já decidiu', () => {
   it('a escolha tardia é recusada com CROSSROADS_DECIDED, e a Crônica diz que a Postura decidiu', async () => {
     const { player, gameId, crossroads } = await toCrossroads('Elvira', 'cautious');
-    expect(crossroads.decidesInSeconds).toBe(6 * 3600 - 60);
+    expect(crossroads.decidesInSeconds).toBe(12 * 3600 - 60);
     expect(crossroads.postureLabel).toBe('Cautelosa');
     const safe = crossroads.postureOptionId;
     // Cinco minutos antes do prazo a equipe ainda espera.
-    server.clock.advance(6 * HOUR - 6 * MINUTE);
+    server.clock.advance(12 * HOUR - 6 * MINUTE);
     await renew(server, player);
     const waiting = await viewOf(player.token, gameId);
     expect(waiting.pendingDecisions).toHaveLength(1);

@@ -286,7 +286,7 @@ export function formatExpeditionStudy(result: StudyResult): string {
     '',
     `${identityLine()} · dificuldade ${result.difficultyLabel} (${result.difficulty}) · ${result.seeds.length} sementes (${first} a ${last}) · 7 dias reais por partida`,
     '',
-    'Somas das sementes de cada linha. O Explorador daqui responde a toda encruzilhada que encontra na visita: a parte que fica para a Postura é a que venceu (6 h reais) antes de ele voltar. "A do aviso" é uma visita a mais, ao fim da hora em que uma equipe para em uma encruzilhada.',
+    `Somas das sementes de cada linha. O Explorador daqui responde a toda encruzilhada que encontra na visita: a parte que fica para a Postura é a que venceu (${balance.expeditions.crossroadsWaitRealMs / 3_600_000} h reais) antes de ele voltar. "A do aviso" é uma visita a mais, ao fim da hora em que uma equipe para em uma encruzilhada.`,
     '',
     '## Encruzilhadas por cadência de visitas',
     '',

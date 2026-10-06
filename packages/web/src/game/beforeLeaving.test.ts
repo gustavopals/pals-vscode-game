@@ -817,7 +817,7 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
       id: 'crossroads',
       // Cinco horas: a Postura está lá para decidir, e ainda há tempo. É alerta, não perigo.
       severity: 'warning',
-      text: 'A equipe de “Floresta Antiga” espera na encruzilhada: a espera acaba em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      text: 'A equipe de “Floresta Antiga” espera na encruzilhada: a espera acaba em 11 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
       command: {
         id: 'lords.chooseExpeditionPath',
         arg: 'expedition-2',

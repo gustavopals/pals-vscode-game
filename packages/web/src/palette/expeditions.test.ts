@@ -227,7 +227,7 @@ describe('escolher o caminho', () => {
     expect(list?.detail).toEqual([
       'A trilha se divide · Edda e Rolf',
       crossroads?.text,
-      'A espera acaba em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      'A espera acaba em 11 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
     ]);
     expect(list?.items.map((item) => item.label)).toEqual(
       crossroads?.options.map((option) => option.label),
@@ -313,7 +313,7 @@ describe('escolher o caminho', () => {
     const { run, answers, picks, orders, posts, controller } = made;
     answers.push(async () => {
       // Com a lista aberta, o prazo acaba e a leitura seguinte traz a equipe já a caminho.
-      time.advance((19_198 + 1) * 1000);
+      time.advance((40_798 + 1) * 1000);
       await serverShows(made, expeditionTravelingView);
       return 'thicket';
     });
@@ -403,8 +403,8 @@ describe('escolher o caminho', () => {
     await run('lords.chooseExpeditionPath');
     expect(picks()[0]?.title).toBe('Escolher caminho da expedição');
     expect(picks()[0]?.items.map((item) => [item.label, item.description])).toEqual([
-      ['Floresta Antiga', 'a espera acaba em 5 h'],
-      ['Covil de Lobos', 'a espera acaba em 5 h'],
+      ['Floresta Antiga', 'a espera acaba em 11 h'],
+      ['Covil de Lobos', 'a espera acaba em 11 h'],
     ]);
     expect(orders()).toEqual([path('expedition-3', 'thicket')]);
   });
@@ -782,7 +782,7 @@ describe('os avisos das expedições (GDD §13.5)', () => {
       icon: 'git-compare',
       text: 'Encruzilhada em Floresta Antiga: A trilha se divide',
     });
-    expect(toast?.details?.[0]).toMatch(/^A equipe espera a sua palavra por 5 h, até /);
+    expect(toast?.details?.[0]).toMatch(/^A equipe espera a sua palavra por 11 h, até /);
     expect(toast?.details?.[1]).toBe(
       'Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
     );

@@ -687,7 +687,7 @@ describe('o percurso por eventos da linha do tempo', () => {
       lost_wood: brought - 1,
     });
     expect(returned?.text).toBe(
-      `No 4º dia da Primavera, a expedição "Floresta Antiga" voltou a Pedra Alta com ${brought} de madeira. Faltou lugar no depósito, e foi ao chão: ${brought - 1} de madeira. A equipe está de novo no feudo: Edda.`,
+      `No 7º dia da Primavera, a expedição "Floresta Antiga" voltou a Pedra Alta com ${brought} de madeira. Faltou lugar no depósito, e foi ao chão: ${brought - 1} de madeira. A equipe está de novo no feudo: Edda.`,
     );
   });
 
@@ -762,21 +762,21 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
         kind: 'crossroads',
         id: 'expedition-1',
         title: 'Floresta Antiga: A trilha se divide',
-        expiresInSeconds: 6 * 3600,
+        expiresInSeconds: 12 * 3600,
       },
     ]);
     expect(currentShape(JSON.parse(JSON.stringify(arrived.state)), '')).toBeNull();
   });
 
   it.each([3, 1, 0.5])(
-    'no ritmo %s o prazo é de 6 h reais: convertido quando a equipe chega, e é nele que a Postura decide',
+    'no ritmo %s o prazo é de 12 h reais: convertido quando a equipe chega, e é nele que a Postura decide',
     (timeScale) => {
       const { state, arrivedAt } = atFork(['hero-1'], 'balanced', { timeScale });
       const decidesAt = arrivedAt + WAIT_REAL * timeScale;
       expect(only(state).crossroads).toEqual({ decidesAtMs: decidesAt });
       const view = deriveViewState(state, arrivedAt, { timeScale });
-      expect(view.guild.expeditions[0]?.crossroads?.decidesInSeconds).toBe(6 * 3600);
-      expect(view.pendingDecisions[0]?.expiresInSeconds).toBe(6 * 3600);
+      expect(view.guild.expeditions[0]?.crossroads?.decidesInSeconds).toBe(12 * 3600);
+      expect(view.pendingDecisions[0]?.expiresInSeconds).toBe(12 * 3600);
       // Um milissegundo antes, a equipe ainda espera.
       const before = advanceTo(state, decidesAt - 1);
       expect(types(before.events)).toEqual([]);
@@ -791,6 +791,30 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
         nodeEndsAtMs: decidesAt + 25 * MINUTE,
         crossroads: null,
       });
+    },
+  );
+
+  it.each([3, 1, 0.5])(
+    'no ritmo %s a equipe que já estava parada quando o prazo passou de 6 h a 12 h reais mantém o dela: o prazo é gravado no estado, sem passo de migração',
+    (timeScale) => {
+      // A partida de antes da regra de 12 h (resposta do autor de 2026-10-06, pendência D-71):
+      // a equipe chegou à encruzilhada com `decidesAtMs` de 6 h reais convertidas no nascimento.
+      const { state, arrivedAt } = atFork(['hero-1'], 'balanced', { timeScale });
+      const legacy = cloneState(state);
+      const oldDecidesAt = arrivedAt + 6 * HOUR * timeScale;
+      only(legacy).crossroads = { decidesAtMs: oldDecidesAt };
+      // O estado é da forma da versão de agora: nada a migrar.
+      expect(currentShape(JSON.parse(JSON.stringify(legacy)), '')).toBeNull();
+      const view = deriveViewState(legacy, arrivedAt, { timeScale });
+      expect(view.guild.expeditions[0]?.crossroads?.decidesInSeconds).toBe(6 * 3600);
+      // Um milissegundo antes do prazo velho a equipe ainda espera; no instante, a Postura decide.
+      const before = advanceTo(legacy, oldDecidesAt - 1);
+      expect(only(before.state).status).toBe('atCrossroads');
+      const decided = advanceTo(before.state, oldDecidesAt);
+      expect(types(decided.events)).toEqual(['expeditionPostureDecided']);
+      // Uma equipe que chega agora ganha o prazo novo, de 12 h.
+      expect(only(state).crossroads?.decidesAtMs).toBe(arrivedAt + WAIT_REAL * timeScale);
+      expect(WAIT_REAL).toBe(12 * HOUR);
     },
   );
 
@@ -958,7 +982,7 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
     const [event] = ofExpeditions(decided.events);
     expect(event?.data).toMatchObject({ optionId: 'turnBack', decidedBy: 'posture', fallback: 1 });
     expect(event?.text).toBe(
-      'No 4º dia da Primavera, sem palavra do senhor de Pedra Alta, a expedição "Floresta Antiga" não pôde tomar o caminho da postura ousada e foi pelo seguro: voltar com o que já têm.',
+      'No 7º dia da Primavera, sem palavra do senhor de Pedra Alta, a expedição "Floresta Antiga" não pôde tomar o caminho da postura ousada e foi pelo seguro: voltar com o que já têm.',
     );
     expect(only(decided.state)).toMatchObject({ status: 'returning', nodeId: 'home' });
     expect(only(decided.state).log.at(-1)).toMatchObject({
@@ -1064,7 +1088,7 @@ describe('duas expedições ao mesmo tempo, e uma terceira no meio (QA-07)', () 
       'expedition-2',
       'expedition-3',
     ]);
-    const end = advanceTo(third.state, 12 * HOUR).state;
+    const end = advanceTo(third.state, 14 * HOUR).state;
     const crowded = end.guild.reports.find((report) => report.expeditionId === 'expedition-1');
     expect(crowded).toEqual(alone);
     // E a segunda, sozinha, dá o mesmo que no meio das outras.
@@ -1073,7 +1097,7 @@ describe('duas expedições ao mesmo tempo, e uma terceira no meio (QA-07)', () 
       start.ids.expedition = 1;
       const sent = send(start, 'oldForest', ['hero-2'], 'cautious', 0);
       expect(sent.expedition.id).toBe('expedition-2');
-      return advanceTo(sent.state, 12 * HOUR).state.guild.reports[0];
+      return advanceTo(sent.state, 14 * HOUR).state.guild.reports[0];
     })();
     expect(end.guild.reports.find((report) => report.expeditionId === 'expedition-2')).toEqual(
       secondAlone,
@@ -1154,7 +1178,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
     nextVariantIs(start, 'patrol', 0);
     nextVariantIs(start, 'oldForest', 0);
     const state = cloneState(start);
-    // A Patrulha sai 15 min antes de T; a Floresta chega à encruzilhada 6 h reais antes de T.
+    // A Patrulha sai 15 min antes de T; a Floresta chega à encruzilhada 12 h reais antes de T.
     state.guild.heroes.forEach((entry) => (entry.status = 'expedition'));
     state.ids.expedition = 2;
     const blank = { food: 0, wood: 0, stone: 0, gold: 0 };
@@ -1295,7 +1319,7 @@ describe('a expedição e o soldo', () => {
       draft.settlement.resources.gold = 0;
     });
     const sent = send(start, 'oldForest', ['hero-1'], 'cautious', 0);
-    // Com a escolha do senhor adiada ao limite, Edda fica fora pelas 6 h do prazo.
+    // Com a escolha do senhor adiada ao limite, Edda fica fora pelas 12 h do prazo.
     const end = advanceTo(sent.state, 5 * HOUR);
     expect(end.state.guild.wageArrears).not.toBeNull();
     expect(end.state.guild.heroes.map((entry) => entry.name)).toEqual(['Edda', 'Rolf']);
@@ -1375,7 +1399,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         label: 'Floresta Antiga',
         riskText: 'Baixo a médio',
         durationSeconds: 60 * 60,
-        durationNote: 'Sem contar a espera em uma encruzilhada, que dura até 6 h.',
+        durationNote: 'Sem contar a espera em uma encruzilhada, que dura até 12 h.',
         requirementsText: 'Equipe: de 1 a 2 heróis.',
         teamMin: 1,
         teamMax: 2,
@@ -1477,7 +1501,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       crossroads: {
         title: 'A trilha se divide',
         text: 'A trilha se parte em duas diante de um carvalho tombado. À esquerda, a mata fecha; à direita, ouve-se água.',
-        decidesInSeconds: 6 * 3600,
+        decidesInSeconds: 12 * 3600,
         postureLabel: 'Ousada',
         postureOptionId: 'thicket',
         postureOptionLabel: 'Abrir caminho pela mata fechada',
@@ -1572,7 +1596,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         entry.expiresInSeconds,
       ]),
     ).toEqual([
-      ['crossroads', 6 * 3600],
+      ['crossroads', 12 * 3600],
       ['card', 24 * 3600],
     ]);
   });
@@ -1788,7 +1812,7 @@ describe('o estado gravado das expedições (a guarda da versão 17)', () => {
         draft.rng['expedition:expedition-2'] = [1, 2, 3, 4];
       }),
     ).toBe('rng.expedition:expedition-2: fluxo de uma expedição que não está em curso');
-    const home = advanceTo(state, state.lastProcessedAt + 12 * HOUR).state;
+    const home = advanceTo(state, state.lastProcessedAt + 14 * HOUR).state;
     expect(
       check(home, (draft) => {
         draft.rng['expedition:expedition-1'] = [1, 2, 3, 4];
@@ -1855,7 +1879,7 @@ describe('o estado gravado das expedições (a guarda da versão 17)', () => {
     expect(check(state, (d) => ((d.guild as Record<string, unknown>).caravans = []))).toMatch(
       /guild.caravans: campo desconhecido/,
     );
-    const home = advanceTo(state, state.lastProcessedAt + 12 * HOUR).state;
+    const home = advanceTo(state, state.lastProcessedAt + 14 * HOUR).state;
     expect(
       check(home, (d) => {
         const [report] = d.guild.reports;

@@ -812,14 +812,14 @@ export const balance: Balance = {
     },
   },
   // GDD §9.2 (ADR 0017, decisões 1 e 7; ADR 0018, decisões 11 a 13). A espera da encruzilhada é
-  // de 6 h reais em qualquer ritmo. O desfecho compara `poder × sorte` com a dificuldade: 1,3
+  // de 12 h reais em qualquer ritmo. O desfecho compara `poder × sorte` com a dificuldade: 1,3
   // para o Sucesso Pleno, 1 para o Sucesso, 0,7 para o Revés. O Sucesso Pleno traz o saque do nó
   // e mais um quarto, o Sucesso, o saque, o Revés, metade, e o Desastre, nada; a experiência
   // segue as mesmas partes, mas o Desastre ainda ensina um quarto. A Guilda sustenta 1, 2, 2 e 3
   // expedições. Um caminho tem de 2 a 5 nós (a Patrulha tem 2), cada um de 5 a 60 minutos de jogo
   // (o Pântano Nebuloso tem cinco nós em cinco horas; pendência D-5).
   expeditions: {
-    crossroadsWaitRealMs: 6 * HOUR_MS,
+    crossroadsWaitRealMs: 12 * HOUR_MS,
     outcome: {
       full: { num: 13, den: 10 },
       success: SAME,

@@ -270,7 +270,7 @@ describe('a Guilda dos Aventureiros (GDD §6.1; ADR 0018, decisão 12)', () => {
 describe('os números das expedições (ADR 0017, decisões 1 e 7; ADR 0018, decisão 11)', () => {
   it('valem os do ADR: 6 h reais de espera, limiares 1,3, 1 e 0,7, sorte de 85 a 115, 1, 2, 2 e 3 expedições, 3 relatórios', () => {
     expect(BalanceSchema.safeParse(balance).error).toBeUndefined();
-    expect(rules.crossroadsWaitRealMs).toBe(6 * HOUR);
+    expect(rules.crossroadsWaitRealMs).toBe(12 * HOUR);
     expect(rules.outcome).toEqual({
       full: { num: 13, den: 10 },
       success: { num: 1, den: 1 },

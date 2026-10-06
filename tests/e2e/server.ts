@@ -196,7 +196,7 @@ control.post('/__test/stock', async (request) => {
  * foi emitido. É para os cenários em navegador da interface das expedições (V3D-T4).
  */
 control.post('/__test/crossroads', async (request) => {
-  const { posture = 'balanced', expiresInMs = 6 * 3_600_000 } = (request.body ?? {}) as {
+  const { posture = 'balanced', expiresInMs = 12 * 3_600_000 } = (request.body ?? {}) as {
     posture?: 'cautious' | 'balanced' | 'bold';
     expiresInMs?: number;
   };
