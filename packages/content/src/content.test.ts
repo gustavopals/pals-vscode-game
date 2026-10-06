@@ -152,22 +152,31 @@ describe('dificuldades', () => {
     expect(DIFFICULTY_IDS.filter((id) => difficulties[id].recommended)).toEqual(['lord']);
   });
 
+  /** A primeira frase de cada descrição: a da v0.2, aprovada pelo autor (ADR 0016, item 6). */
+  const firstSentence = (text: string) => text.slice(0, text.indexOf('.') + 1);
+  /** O que vem depois dela: a frase dos heróis em expedição (v0.3, pendência D-25). */
+  const heroSentence = (text: string) => text.slice(text.indexOf('.') + 1).trim();
+
   it('a frase de cada uma diz o que muda nesta versão, com o número do fator', () => {
     for (const id of DIFFICULTY_IDS) {
       const { description, famineDesertion } = difficulties[id];
-      // Uma frase só, que fala das três linhas da v0.2: armazenamento, fome e Conselho.
+      // Duas frases: a das três linhas da v0.2 (armazenamento, fome e Conselho) e a dos heróis.
       expect(description.endsWith('.'), id).toBe(true);
-      expect(description.slice(0, -1), id).not.toContain('.');
-      expect(description, id).toContain('Conselho');
-      expect(description, id).toContain('fome');
-      expect(description.includes('ninguém deserta por fome'), id).toBe(!famineDesertion);
+      expect(
+        description.split('.').filter((part) => part.trim() !== ''),
+        id,
+      ).toHaveLength(2);
+      const first = firstSentence(description);
+      expect(first, id).toContain('Conselho');
+      expect(first, id).toContain('fome');
+      expect(first.includes('ninguém deserta por fome'), id).toBe(!famineDesertion);
       // O percentual escrito é o do fator: mudar um sem o outro quebra aqui.
       const percent = Math.round(Math.abs(factor(id) - 1) * 100);
       if (percent === 0) {
         expect(description, id).not.toMatch(/\d/);
       } else {
         const direction = factor(id) > 1 ? 'a mais' : 'a menos';
-        expect(description, id).toContain(`${percent}% ${direction}`);
+        expect(first, id).toContain(`${percent}% ${direction}`);
       }
     }
   });
@@ -175,11 +184,33 @@ describe('dificuldades', () => {
   it('a frase diz o que o Conselho faz por quem falta (ADR 0016, item 6): as aprovadas pelo autor', () => {
     // Em Camponês e em Senhor a opção que o conselho aplica sozinho nunca tira recurso nem
     // moral (a regra está nos testes das cartas); em Rei de Ferro ele aplica a mais dura.
-    expect(DIFFICULTY_IDS.map((id) => difficulties[id].description)).toEqual([
+    // As três continuam palavra por palavra: a v0.3 só acrescentou uma frase depois delas.
+    expect(DIFFICULTY_IDS.map((id) => firstSentence(difficulties[id].description))).toEqual([
       'O Celeiro e o Armazém guardam 25% a mais, ninguém deserta por fome e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
       'O feudo como foi pensado: a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, decide sem cobrar nada do feudo.',
       'O Celeiro e o Armazém guardam 20% a menos, a fome longa faz aldeões desertarem e o Conselho, sem resposta sua, escolhe o caminho mais duro.',
     ]);
+  });
+
+  it('a segunda frase diz o destino dos heróis em expedição, e é a regra de captura da dificuldade (pendência D-25; rascunho)', () => {
+    expect(DIFFICULTY_IDS.map((id) => heroSentence(difficulties[id].description))).toEqual([
+      'Em expedição, seus heróis só se ferem.',
+      'Em expedição, seus heróis podem ser capturados, e um resgate os traz de volta.',
+      'Em expedição, seus heróis podem morrer.',
+    ]);
+    // A frase segue a regra: trocar `heroCapture` sem trocar a frase quebra aqui.
+    const says = { injury: /só se ferem/, capture: /capturados/, death: /morrer/ } as const;
+    for (const id of DIFFICULTY_IDS) {
+      const { description, heroCapture } = difficulties[id];
+      const sentence = heroSentence(description);
+      expect(sentence, id).toMatch(says[heroCapture]);
+      expect(sentence, id).not.toMatch(/\d/);
+      for (const other of Object.keys(says) as Array<keyof typeof says>) {
+        if (other !== heroCapture) {
+          expect(sentence, id).not.toMatch(says[other]);
+        }
+      }
+    }
   });
 
   it('o schema recusa uma dificuldade a menos, um campo a mais e duas recomendadas', () => {

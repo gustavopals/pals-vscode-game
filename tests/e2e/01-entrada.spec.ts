@@ -243,6 +243,13 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
     await expect(
       difficulty(page).getByRole('radio', { name: 'Camponês' }),
     ).toHaveAccessibleDescription(/ninguém deserta por fome/);
+    // A v0.3 acrescentou a cada dificuldade o destino dos heróis em expedição.
+    await expect(
+      difficulty(page).getByRole('radio', { name: 'Camponês' }),
+    ).toHaveAccessibleDescription(/seus heróis só se ferem/);
+    await expect(
+      difficulty(page).getByRole('radio', { name: 'Senhor (recomendado)' }),
+    ).toHaveAccessibleDescription(/podem ser capturados, e um resgate os traz de volta/);
     await expect(
       pace(page).getByRole('radio', { name: 'Tranquilo: um ano em 14 dias' }),
     ).toHaveAccessibleDescription(/uma vez por dia/);
@@ -329,6 +336,8 @@ test.describe('dificuldade e ritmo ao fundar o feudo', () => {
       'Dificuldade: Rei de Ferro · Ritmo: Rápido: um ano em 56 horas (não mudam durante o ano)',
     );
     await expect(game).toContainText(/escolhe o caminho mais duro/);
+    // A frase dos heróis em expedição (v0.3): em Rei de Ferro eles podem morrer.
+    await expect(game).toContainText(/seus heróis podem morrer/);
     await expect(game.getByRole('radio')).toHaveCount(0);
     await expect(game.getByRole('button', { name: 'Nova partida…' })).toBeVisible();
   });

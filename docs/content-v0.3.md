@@ -929,6 +929,12 @@ Cada item tem uma frase de crônica, sem número ("Aço antigo, tirado das ruín
 
 **Frase de traço ajustada:** a do Carismático perdeu "abre caminhos no conselho" (é do lote 2 de cartas, V3F-T1) e ficou "Sabe negociar: barateia quem a Taverna oferece." As dos outros traços não mudaram: desde esta tarefa fazem o que dizem.
 
+**As frases das respostas de 2026-10-06** (rascunho, não lido pelo autor; pendências D-17 e D-25):
+
+- A do cativo na ficha (`guildTexts.captiveNote`), trocada com a regra: "Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate."
+- A segunda frase da descrição de cada dificuldade (`balance.difficulties[].description`), depois da que a v0.2 aprovou: "Em expedição, seus heróis só se ferem." (Camponês); "Em expedição, seus heróis podem ser capturados, e um resgate os traz de volta." (Senhor); "Em expedição, seus heróis podem morrer." (Rei de Ferro).
+- A recusa da contratação com a lista de heróis no teto: "A guarda do feudo abriga 12 heróis, e o feudo já os tem: resgate quem está em cativeiro ou dispense um herói."
+
 ## 8. O que ficou para o lote 2
 
 - As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
