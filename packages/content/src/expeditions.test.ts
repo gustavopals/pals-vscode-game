@@ -499,6 +499,153 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     },
   );
 
+  describe('o que as frases dos grafos não dizem (revisão editorial da Fase D)', () => {
+    /** Todas as frases de um grafo que o jogador lê, com o lugar de cada uma. */
+    const phrasesOf = (variant: ExpeditionVariant): Array<[string, string]> =>
+      Object.entries(variant.nodes).flatMap(([key, node]): Array<[string, string]> => {
+        if (node.kind === 'crossroads') {
+          return [
+            [`${key}.title`, node.title],
+            [`${key}.text`, node.text],
+            ...node.options.flatMap((option): Array<[string, string]> => [
+              [`${key}.${option.id}.label`, option.label],
+              [`${key}.${option.id}.hint`, option.hint],
+            ]),
+          ];
+        }
+        if (node.kind === 'return' || node.trial === undefined) {
+          return [
+            [`${key}.title`, node.title],
+            [`${key}.text`, node.text ?? ''],
+          ];
+        }
+        return [
+          [`${key}.title`, node.title],
+          ...(node.trial.lesson === undefined
+            ? []
+            : ([[`${key}.lesson`, node.trial.lesson]] as Array<[string, string]>)),
+          ...Object.entries(node.trial.outcomes).map(([id, sentence]): [string, string] => [
+            `${key}.${id}`,
+            sentence,
+          ]),
+        ];
+      });
+
+    it.each(everyVariant())(
+      '%s: quem está em cativeiro não tem gênero na frase, ninguém fala a "vocês", e não há capela',
+      (_name, _model, variant) => {
+        for (const [where, phrase] of phrasesOf(variant)) {
+          // Edda também pode ser capturada: "o cativo" não serve (B9).
+          expect(phrase, where).not.toMatch(/\bcativ[oa]s?\b|\bprisioneir[oa]s?\b/i);
+          // A Crônica fala do feudo, não com o jogador (B22).
+          expect(phrase, where).not.toMatch(/\bvocês?\b|\bsua equipe\b/i);
+          // A Capela é um edifício da v0.5: não é cenário desta versão (B24).
+          expect(phrase, where).not.toMatch(/\bcapelas?\b/i);
+        }
+      },
+    );
+
+    it.each(everyVariant())(
+      '%s: "metade" só aparece em frase de Revés, falando do saque, e o Revés rende mesmo a metade',
+      (_name, _model, variant) => {
+        // As frases escrevem a fração de `balance.expeditions.lootShare.setback`: se o número
+        // mudar, este teste aponta cada frase que passou a mentir (B19).
+        const { setback } = balance.expeditions.lootShare;
+        for (const [where, phrase] of phrasesOf(variant)) {
+          if (!/\bmetade\b/i.test(phrase)) {
+            continue;
+          }
+          expect(where, phrase).toMatch(/\.setback$/);
+          expect(setback.num * 2, phrase).toBe(setback.den);
+        }
+      },
+    );
+
+    it.each(everyVariant())(
+      '%s: o Desastre de um nó a que a equipe já chega com saque não diz que ela ficou sem nada',
+      (_name, _model, variant) => {
+        // O Desastre zera o saque **do nó**; o que veio dos nós anteriores continua com a equipe,
+        // e a volta ainda diz "voltou com N" (B2). Marca os nós alcançáveis depois de um saque.
+        const afterLoot = new Set<string>();
+        const visit = (key: string, carrying: boolean): void => {
+          const node = variant.nodes[key];
+          if (node === undefined || node.kind === 'return') {
+            return;
+          }
+          if (node.kind === 'crossroads') {
+            for (const option of node.options) {
+              visit(option.next, carrying);
+            }
+            return;
+          }
+          if (carrying) {
+            afterLoot.add(key);
+          }
+          visit(node.next, carrying || node.rewards?.resources !== undefined);
+        };
+        visit(variant.start, false);
+        const everything =
+          /sem nada[.,:;]|sem nada$|largou tudo|de mãos vazias|carga inteira|sem carga nenhuma|até o que (ela )?já trazia|sem uma tora sequer|não levou nada[.,:;]|sem levar nada[.,:;]/;
+        for (const key of afterLoot) {
+          const node = variant.nodes[key];
+          if (
+            node === undefined ||
+            node.kind === 'crossroads' ||
+            node.kind === 'return' ||
+            node.trial === undefined
+          ) {
+            continue;
+          }
+          expect(node.trial.outcomes.disaster, key).not.toMatch(everything);
+        }
+      },
+    );
+
+    it.each(everyVariant())(
+      '%s: a opção que promete "o que têm" ou saque pequeno só existe depois de um trecho que rende algo',
+      (_name, _model, variant) => {
+        // "Recuar com o que têm" de mãos vazias é promessa falsa (B6).
+        const yields = (key: string, seen = new Set<string>()): boolean => {
+          // Há algum nó com saque **antes** de `key`, por algum caminho?
+          let found = false;
+          const walk = (at: string, carrying: boolean): void => {
+            if (at === key) {
+              found ||= carrying;
+              return;
+            }
+            const node = variant.nodes[at];
+            if (node === undefined || node.kind === 'return' || seen.has(`${at}:${carrying}`)) {
+              return;
+            }
+            seen.add(`${at}:${carrying}`);
+            if (node.kind === 'crossroads') {
+              for (const option of node.options) {
+                walk(option.next, carrying);
+              }
+              return;
+            }
+            walk(node.next, carrying || node.rewards?.resources !== undefined);
+          };
+          walk(variant.start, false);
+          return found;
+        };
+        for (const [key, node] of Object.entries(variant.nodes)) {
+          if (node.kind !== 'crossroads') {
+            continue;
+          }
+          for (const option of node.options) {
+            const promises = /com o que (já )?têm|saque fica pequeno/i.test(
+              `${option.label} ${option.hint}`,
+            );
+            if (promises) {
+              expect(yields(key), `${key}.${option.id}`).toBe(true);
+            }
+          }
+        }
+      },
+    );
+  });
+
   it.each(everyVariant())(
     '%s: a classe que cada prova diz favorecer é a de maior poder contra os pesos do nó',
     (_name, _model, variant) => {
