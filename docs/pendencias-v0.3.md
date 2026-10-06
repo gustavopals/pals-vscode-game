@@ -12,7 +12,7 @@ Em seis linhas, por ordem de importância:
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
-7. **A Taverna está no motor, no servidor e, desde a V3C-T4, na tela (a aba Guilda)** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** a aba Guilda existe, mas ninguém além dos testes a usou, e seis frases dela são rascunho (C-37 a C-45; a C-31 está resolvida); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
+7. **A Taverna está no motor, no servidor e, desde a V3C-T4, na tela (a aba Guilda)** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** a aba Guilda existe, mas ninguém além dos testes a usou, e seis frases dela são rascunho (C-37 a C-46; a C-31 está resolvida); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
 
 - **Para jogar em desenvolvimento:** `pnpm dev:up`, `pnpm dev:api`, `pnpm dev:web` e abrir `http://localhost:5173`.
 
@@ -191,6 +191,11 @@ Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a
 - Enquanto isso: `compass` (Guilda), `person` (herói), `coffee` (Taverna), dos Codicons, que não têm caneca nem espada.
 - Onde: `packages/web/src/ui/guild.ts`.
 - Se decidir diferente: três constantes.
+
+**C-46. Uma ordem da Guilda aceita não ganha aviso de confirmação.**
+- Enquanto isso: quem contrata, dispensa ou dá festival vê o resultado na aba Guilda, na árvore e na linha do ouro; a Crônica registra a frase. Pela paleta, com outra aba à vista, o único sinal é a árvore. A resposta a uma carta, que é o caso parecido, mostra a frase da Crônica por alguns segundos; aqui não, porque o aviso ficaria por cima da coluna da Taverna, onde está o botão seguinte.
+- Onde: `controller.guildOrder`, em `packages/web/src/app/controller.ts`.
+- Se decidir diferente: um aviso curto com a frase do evento (`heroHired`, `heroDismissed`, `festivalHeld`), como `tellOwnAnswers` faz com a carta.
 
 ### Fase C: a Taverna (V3C-T2)
 
