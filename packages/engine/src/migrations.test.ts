@@ -7,6 +7,7 @@ import {
   HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
+  namedHeroes,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   RESOURCE_IDS,
@@ -3495,13 +3496,23 @@ describe('a carta da estrangeira em toda partida que já existia', () => {
       expect(expired.atMs - drawn.atMs).toBe(Math.round(DAY_REAL * state.settings.timeScale));
       // Um herói, e só um: o da opção que a dificuldade aplica.
       const joined = later.events.filter((event) => event.type === 'heroJoined');
-      expect(joined).toHaveLength(1);
       const iron = state.settings.difficulty === 'ironKing';
       expect(expired.data.optionId).toBe(iron ? 'tend' : 'shelter');
+      expect(later.state.guild.arriving).toEqual([]);
+      // Os retratos da guilda na versão 14 foram montados à mão, com heróis de teste chamados
+      // Edda e Rolf (no jogo, ninguém tinha herói antes desta carta). Um herói com nome é um
+      // só (`promiseHero`): quem já o tem no feudo não ganha outro.
+      const promised = namedHeroes[iron ? 'rolf' : 'edda'].name;
+      if (state.guild.heroes.some((hero) => hero.name === promised)) {
+        expect(joined).toEqual([]);
+        expect(expired.data.hero).toBeUndefined();
+        expect(later.state.ids.hero).toBe(heroesBefore);
+        return;
+      }
+      expect(joined).toHaveLength(1);
       expect(joined[0]?.data.namedHeroId).toBe(iron ? 'rolf' : 'edda');
       expect(joined[0]?.atMs).toBe(expired.atMs + (iron ? 2 * HOUR : 0));
       expect(later.state.ids.hero).toBe(heroesBefore + 1);
-      expect(later.state.guild.arriving).toEqual([]);
     },
   );
 
