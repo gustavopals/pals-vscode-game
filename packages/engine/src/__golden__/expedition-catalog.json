@@ -17,6 +17,7 @@
     {
      "title": "Rastros na estrada velha",
      "text": "No 1º dia da Primavera, Edda seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. O cofre ainda estava lá. Trouxe 33 de ouro.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [],
      "standoutName": "Edda",
@@ -25,6 +26,7 @@
     {
      "title": "A volta ao portão",
      "text": "No 1º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -60,6 +62,7 @@
     {
      "title": "A orla da floresta",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta contornou a orla da Floresta Antiga até achar por onde entrar.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -68,6 +71,7 @@
     {
      "title": "O tronco oco",
      "text": "Por ordem do senhor: Descer o barranco.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -76,6 +80,7 @@
     {
      "title": "O fundo do barranco",
      "text": "No 1º dia da Primavera, Edda desceu na frente e achou o fundo do barranco vazio, com os troncos prontos para levar. Trouxe 87 de madeira.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [],
      "standoutName": "Edda",
@@ -84,6 +89,7 @@
     {
      "title": "A volta pela trilha",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -121,6 +127,7 @@
     {
      "title": "A subida pela pedreira solta",
      "text": "No 1º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [],
      "standoutName": "Rolf",
@@ -129,6 +136,7 @@
     {
      "title": "A boca da toca",
      "text": "Por ordem do senhor: Enfumaçar a toca e esperar na saída.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -137,6 +145,7 @@
     {
      "title": "A matilha na fumaça",
      "text": "No 1º dia da Primavera, o vento virou a fumaça contra Edda, e a matilha saiu da toca inteira e furiosa. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 12 de ouro.",
+     "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
       "Edda sofreu um ferimento leve."
@@ -147,6 +156,7 @@
     {
      "title": "A descida da serra",
      "text": "No 2º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -184,6 +194,7 @@
     {
      "title": "A trilha dos captores",
      "text": "No 1º dia da Primavera, Rolf achou a trilha dos captores e levou a expedição de Pedra Alta até o acampamento deles.",
+     "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [],
      "standoutName": "Rolf",
@@ -192,6 +203,7 @@
     {
      "title": "O acampamento ao pé do morro",
      "text": "Por ordem do senhor: Entrar à noite e cortar as cordas.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -200,6 +212,7 @@
     {
      "title": "As cordas no escuro",
      "text": "No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e o cativo ficou amarrado. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 14 de ouro.",
+     "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
       "Rolf sofreu um ferimento leve."
@@ -210,6 +223,7 @@
     {
      "title": "A fuga para casa",
      "text": "No 2º dia da Primavera, a expedição de resgate tomou o caminho de Pedra Alta, sem olhar para trás.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -249,6 +263,7 @@
     {
      "title": "A trilha até as ruínas",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta subiu a trilha até as Ruínas de Vel'Thar e desceu a escadaria da entrada.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -257,6 +272,7 @@
     {
      "title": "A escadaria desaba atrás de vocês",
      "text": "Por ordem do senhor: Atravessar a Galeria Inundada.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -265,6 +281,7 @@
     {
      "title": "A Galeria Inundada",
      "text": "No 1º dia da Primavera, Edda atravessou a Galeria Inundada na frente e matou o que se mexia debaixo da água. A expedição de Pedra Alta tirou do fundo pedra lavrada e moedas. Trouxe 87 de pedra e 47 de ouro.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [],
      "standoutName": "Edda",
@@ -273,6 +290,7 @@
     {
      "title": "O Guardião de Pedra",
      "text": "No 2º dia da Primavera, Edda quebrou o Guardião de Pedra pelo joelho, e ele não se levantou. A câmara atrás dele ficou aberta para a expedição de Pedra Alta. Trouxe 103 de pedra e 86 de ouro.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
       "Achado: Lâmina de Vel'Thar."
@@ -283,6 +301,7 @@
     {
      "title": "A volta pela estrada dos mortos",
      "text": "No 2º dia da Primavera, a expedição de Pedra Alta deixou as Ruínas de Vel'Thar.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -329,6 +348,7 @@
     {
      "title": "A trilha de estacas",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou no Pântano Nebuloso pela trilha de estacas que os turfeiros deixaram.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -337,6 +357,7 @@
     {
      "title": "O atoleiro",
      "text": "No 2º dia da Primavera, Isolda achou a passagem do atoleiro, e a expedição de Pedra Alta atravessou com lama pelo joelho.",
+     "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [],
      "standoutName": "Isolda",
@@ -345,6 +366,7 @@
     {
      "title": "As luzes sobre a água",
      "text": "Por ordem do senhor: Contornar pela margem dos salgueiros.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -353,6 +375,7 @@
     {
      "title": "A margem dos salgueiros",
      "text": "No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta gastou a tarde para tirar gente da água. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 19 de ouro.",
+     "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
       "Isolda sofreu um ferimento leve."
@@ -363,6 +386,7 @@
     {
      "title": "A bruxa do charco",
      "text": "No 3º dia da Primavera, a névoa da bruxa do charco entrou nos olhos de Edda: a expedição de Pedra Alta saiu da cabana às cegas, com o que estava à mão. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 59 de ouro.",
+     "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [
       "Edda sofreu um ferimento leve.",
@@ -376,6 +400,7 @@
     {
      "title": "A volta pelas estacas",
      "text": "No 3º dia da Primavera, a expedição de Pedra Alta saiu do Pântano Nebuloso pela trilha de estacas, com lama até a cintura.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,

@@ -173,6 +173,7 @@
     {
      "title": "Rastros na estrada velha",
      "text": "No 2º dia da Primavera, Rolf seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
+     "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [
       "Caminho novo: Ruínas de Vel'Thar."
@@ -183,6 +184,7 @@
     {
      "title": "A volta ao portão",
      "text": "No 2º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -207,6 +209,7 @@
     {
      "title": "A trilha sob os carvalhos",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 15 de madeira.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,
@@ -215,6 +218,7 @@
     {
      "title": "A trilha se divide",
      "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
+     "outcome": "chosen",
      "outcomeLabel": "Caminho escolhido",
      "notes": [],
      "standoutName": null,
@@ -223,6 +227,7 @@
     {
      "title": "O javali da mata fechada",
      "text": "No 1º dia da Primavera, Edda abateu o javali da mata fechada, e a expedição de Pedra Alta cortou a melhor madeira do bosque. Trouxe 83 de madeira e 35 de ouro.",
+     "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [
       "Achado: Gibão acolchoado."
@@ -233,6 +238,7 @@
     {
      "title": "A volta pela trilha",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta deixou a Floresta Antiga.",
+     "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],
      "standoutName": null,

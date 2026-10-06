@@ -1563,6 +1563,7 @@ describe('ViewStateSchema', () => {
         {
           title: 'A trilha',
           text: 'Passou.',
+          outcome: 'passed',
           outcomeLabel: 'Sem incidentes',
           notes: [],
           standoutName: null,
@@ -1621,9 +1622,20 @@ describe('ViewStateSchema', () => {
         crossroads: { ...expedition.crossroads, decidesAtMs: 1 },
       }),
     ).toBe(false);
+    // Do registro cru do percurso, a chave do nó e a sorte não saem. O desfecho sai, em palavra
+    // (`outcomeLabel`) e em chave (`outcome`, para o ícone da tela): os dois dizem o mesmo.
+    for (const raw of [{ nodeId: 'fork' }, { luck: 12 }, { optionId: 'stream' }]) {
+      expect(
+        withExpedition({ ...expedition, log: [{ ...expedition.log[0], ...raw }] }),
+        Object.keys(raw)[0],
+      ).toBe(false);
+    }
     expect(
       withExpedition({ ...expedition, log: [{ ...expedition.log[0], outcome: 'full' }] }),
-    ).toBe(false);
+    ).toBe(true);
+    expect(withExpedition({ ...expedition, log: [{ ...expedition.log[0], outcome: 'won' }] })).toBe(
+      false,
+    );
     const offer = {
       modelId: 'patrol',
       label: 'Patrulha dos Arredores',
@@ -1640,6 +1652,7 @@ describe('ViewStateSchema', () => {
       locked: false,
       lockedReason: null,
       firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
+      rescue: false,
     };
     expect(parse({ ...view.guild, available: [offer] })).toBe(true);
     // Sem prova no primeiro trecho não há régua; a sorte e os pesos do nó nunca saem.

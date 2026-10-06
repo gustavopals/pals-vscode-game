@@ -227,6 +227,7 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       locked: blocked !== null,
       lockedReason: blocked?.message ?? null,
       firstStretchText: firstStretchText(variant),
+      rescue: model.access.kind === 'captive',
     });
   }
   return views;
@@ -316,6 +317,7 @@ function logView(
       views.push({
         title: node.title,
         text: fillText(template, { opcao: option.label, postura: posture }),
+        outcome: entry.outcome,
         outcomeLabel,
         notes: [],
         standoutName: null,
@@ -343,6 +345,7 @@ function logView(
         { heroi: entry.standout ?? expeditionTexts.theTeam },
         template,
       )}${found === '' ? '' : ` ${fillText(expeditionTexts.loot, { saque: found })}`}`,
+      outcome: entry.outcome,
       outcomeLabel,
       notes: logNotes(state, entry),
       standoutName: entry.standout,
@@ -366,6 +369,7 @@ function returnStep(state: GameState, report: ExpeditionReport): ExpeditionLogVi
   return {
     title: node.title,
     text: narrate('expeditionReturned', state, report.returnedAtMs, {}, node.text),
+    outcome: 'passed',
     outcomeLabel: expeditionOutcomes.passed.label,
     notes: [],
     standoutName: null,

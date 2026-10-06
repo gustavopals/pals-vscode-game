@@ -1357,6 +1357,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         locked: false,
         lockedReason: null,
         firstStretchText: 'A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.',
+        rescue: false,
       },
       {
         modelId: 'oldForest',
@@ -1379,6 +1380,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         lockedReason: null,
         firstStretchText:
           'A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.',
+        rescue: false,
       },
     ]);
   });
@@ -1450,6 +1452,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         {
           title: 'A trilha sob os carvalhos',
           text: `No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe ${wood} de madeira.`,
+          outcome: 'passed',
           outcomeLabel: 'Sem incidentes',
           notes: [],
           standoutName: null,
@@ -1517,6 +1520,13 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       lessonText: expeditionTexts.lessonStrength,
     });
     expect(report?.log[2]?.text).toContain('Edda');
+    // O desfecho vai também como chave, para a tela pôr um ícone ao lado da palavra.
+    expect(report?.log.map((entry) => entry.outcome)).toEqual([
+      'passed',
+      'chosen',
+      expect.stringMatching(/^(setback|disaster)$/),
+      'passed',
+    ]);
     expect(report?.log[2]?.text).toContain(expeditionTexts.lessonStrength);
     expect(report?.lossesText).toMatch(/^O preço: Edda, com um ferimento (leve|grave)\.$/);
     expect(report?.deedsText).toBeNull();

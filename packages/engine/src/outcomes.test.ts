@@ -374,6 +374,10 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     });
     expect(view.captiveText).toContain('não recebe soldo');
     expect(view.available.map((offer) => offer.modelId)).toContain('rescue');
+    // A tela acha o Resgate pela marca, sem conhecer o nome do modelo.
+    expect(view.available.filter((offer) => offer.rescue).map((offer) => offer.modelId)).toEqual([
+      'rescue',
+    ]);
     // Em cativeiro, não é dispensado nem equipado.
     expect(refuse(after.state, command('dismissHero', { heroId: victim.id })).code).toBe(
       'HERO_BUSY',
@@ -569,6 +573,10 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
     const home = advanceTo(after.state, after.state.lastProcessedAt + 30 * MINUTE).state;
     const view = deriveViewState(home, home.lastProcessedAt).guild;
     expect(view.available.map((offer) => offer.modelId)).toContain('rescue');
+    // A tela acha o Resgate pela marca, sem conhecer o nome do modelo.
+    expect(view.available.filter((offer) => offer.rescue).map((offer) => offer.modelId)).toEqual([
+      'rescue',
+    ]);
   });
 
   it('o Revés no cativeiro não liberta ninguém', () => {

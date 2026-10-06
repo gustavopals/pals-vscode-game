@@ -20384,7 +20384,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta."
+          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
+          "rescue": false
         },
         {
           "modelId": "oldForest",
@@ -20406,7 +20407,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         },
         {
           "modelId": "wolfDen",
@@ -20432,7 +20434,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         }
       ],
       "expeditions": [
@@ -21455,7 +21458,8 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "O vau do riacho (dificuldade 40). Depois, o caminho de volta."
+          "firstStretchText": "O vau do riacho (dificuldade 40). Depois, o caminho de volta.",
+          "rescue": false
         },
         {
           "modelId": "oldForest",
@@ -21472,7 +21476,8 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         },
         {
           "modelId": "wolfDen",
@@ -21493,7 +21498,8 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A noite na serra (dificuldade 76). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "A noite na serra (dificuldade 76). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         },
         {
           "modelId": "ruins",
@@ -21514,7 +21520,8 @@
           "heroFit": [],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "Os saqueadores no portão caído (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         }
       ],
       "expeditions": [
@@ -21533,6 +21540,7 @@
             {
               "title": "A trilha sob os carvalhos",
               "text": "No 21º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 13 de madeira.",
+              "outcome": "passed",
               "outcomeLabel": "Sem incidentes",
               "notes": [],
               "standoutName": null,
@@ -21585,6 +21593,7 @@
             {
               "title": "A ronda pelas cercas",
               "text": "No 21º dia da Primavera, Rolf deu a volta nas cercas de Pedra Alta e recolheu o que os ladrões deixaram cair na fuga. Trouxe 25 de ouro.",
+              "outcome": "success",
               "outcomeLabel": "Sucesso",
               "notes": [
                 "Caminho novo: Ruínas de Vel'Thar."
@@ -21595,6 +21604,7 @@
             {
               "title": "A volta ao portão",
               "text": "No 21º dia da Primavera, a patrulha de Pedra Alta tomou o caminho de casa.",
+              "outcome": "passed",
               "outcomeLabel": "Sem incidentes",
               "notes": [],
               "standoutName": null,
@@ -22610,7 +22620,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta."
+          "firstStretchText": "A ronda pelas cercas (dificuldade 36). Depois, o caminho de volta.",
+          "rescue": false
         },
         {
           "modelId": "oldForest",
@@ -22632,7 +22643,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         },
         {
           "modelId": "wolfDen",
@@ -22658,7 +22670,8 @@
           ],
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+          "firstStretchText": "As sentinelas da garganta (dificuldade 70). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "rescue": false
         }
       ],
       "expeditions": [
@@ -22676,6 +22689,7 @@
             {
               "title": "A trilha sob os carvalhos",
               "text": "No 18º dia do Verão, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 19 de madeira.",
+              "outcome": "passed",
               "outcomeLabel": "Sem incidentes",
               "notes": [],
               "standoutName": null,
@@ -22684,6 +22698,7 @@
             {
               "title": "A trilha se divide",
               "text": "Sem palavra do senhor, a Postura Ousada decidiu: Abrir caminho pela mata fechada.",
+              "outcome": "chosen",
               "outcomeLabel": "Caminho escolhido",
               "notes": [],
               "standoutName": null,
@@ -22692,6 +22707,7 @@
             {
               "title": "O javali da mata fechada",
               "text": "No 19º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 36 de madeira e 11 de ouro.",
+              "outcome": "setback",
               "outcomeLabel": "Revés",
               "notes": [
                 "Edda sofreu um ferimento leve."

@@ -1365,6 +1365,11 @@ export type ExpeditionOfferView = {
   lockedReason: string | null;
   /** Os nós do primeiro trecho, com a dificuldade de cada um, e o que vem depois dele. */
   firstStretchText: string;
+  /**
+   * É o Resgate: o destino que só existe com alguém em cativeiro e que o traz de volta. A tela
+   * o oferece ao lado de quem está lá ("Enviar o Resgate"), sem conhecer o nome do modelo.
+   */
+  rescue: boolean;
 };
 
 /**
@@ -1378,6 +1383,12 @@ export type ExpeditionLogView = {
    * Desastre, o que teria ajudado; depois, o que o nó rendeu.
    */
   text: string;
+  /**
+   * O desfecho do passo, para a tela escolher o ícone que acompanha a palavra (nada é dito só
+   * pela cor): os quatro de uma prova, `passed` no trecho sem prova e `chosen` na escolha de
+   * uma encruzilhada. `outcomeLabel` é a palavra.
+   */
+  outcome: 'full' | 'success' | 'setback' | 'disaster' | 'passed' | 'chosen';
   outcomeLabel: string;
   notes: string[];
   /** Quem se destacou em um nó com prova, pelo nome; `null` no resto. */

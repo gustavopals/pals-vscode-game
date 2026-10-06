@@ -393,6 +393,8 @@ const HeroSchema = z.strictObject({
 const ExpeditionLogSchema = z.strictObject({
   title: z.string(),
   text: z.string(),
+  /** O desfecho do passo, para o ícone ao lado da palavra (`outcomeLabel`). */
+  outcome: z.enum(['full', 'success', 'setback', 'disaster', 'passed', 'chosen']),
   outcomeLabel: z.string(),
   notes: z.array(z.string()),
   /** Quem se destacou em um nó com prova, pelo nome; `null` no resto. `text` já o diz. */
@@ -455,6 +457,8 @@ const GuildSchema = z.strictObject({
       locked: z.boolean(),
       lockedReason: z.string().nullable(),
       firstStretchText: z.string(),
+      /** É o Resgate: só existe com alguém em cativeiro, e é o que o traz de volta. */
+      rescue: z.boolean(),
     }),
   ),
   /**
