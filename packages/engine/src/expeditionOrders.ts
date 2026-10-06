@@ -9,6 +9,7 @@ import {
   expeditionLabel,
   heroesOf,
   isPosture,
+  logEntry,
   modelOf,
   nextVariant,
   nodeOf,
@@ -80,7 +81,7 @@ export function sendExpedition(
     nodeId: start,
     nodeEndsAtMs: null,
     crossroads: null,
-    loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 } },
+    loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 }, items: [] },
     log: [],
   };
   for (const hero of team) {
@@ -147,12 +148,9 @@ export function chooseExpeditionPath(
     return reject('OPTION_LOCKED', { remedy: lock, crossroads: true });
   }
   expedition.log.push({
-    nodeId: expedition.nodeId,
-    atMs: nowMs,
-    outcome: 'chosen',
+    ...logEntry(expedition.nodeId, nowMs, 'chosen'),
     optionId: option.id,
     decidedBy: 'player',
-    gained: { food: 0, wood: 0, stone: 0, gold: 0 },
   });
   draft.stats.crossroadsChosen = (draft.stats.crossroadsChosen ?? 0) + 1;
   emit(

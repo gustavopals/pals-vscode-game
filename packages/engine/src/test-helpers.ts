@@ -2,8 +2,11 @@ import {
   balance,
   buildings,
   councilCards,
+  expeditionModels,
   type HeroClassId,
   type HeroTraitId,
+  type ItemId,
+  items,
   objectives,
 } from '@lotg/content';
 
@@ -40,6 +43,7 @@ import type {
   GameSettings,
   GameState,
   Hero,
+  Item,
 } from './types';
 import { MILLI } from './units';
 import { deriveViewState } from './view';
@@ -129,11 +133,35 @@ export function addHero(
     xp: 0,
     traits: spec.traits ?? [],
     status: 'idle',
+    injury: null,
+    captivity: null,
+    equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: spec.joinedAtMs ?? draft.lastProcessedAt,
     discontent: false,
   };
   heroes.push(hero);
   return hero;
+}
+
+/**
+ * Põe um item no arsenal, como uma expedição o traria: o identificador sai do contador do
+ * estado (`nextId`). Para os cenários do equipamento, que não querem depender de um sorteio.
+ */
+export function giveItem(draft: GameState, defId: ItemId): Item {
+  const item: Item = { id: nextId(draft, 'item'), defId };
+  draft.guild.inventory.push(item);
+  return item;
+}
+
+/**
+ * Põe um item novo direto no espaço dele em um herói, sem passar pelo arsenal: para os cenários
+ * que querem o herói já equipado.
+ */
+export function wear(draft: GameState, hero: Hero, defId: ItemId): Item {
+  const item = giveItem(draft, defId);
+  draft.guild.inventory.pop();
+  hero.equipment[items[defId].slot] = item;
+  return item;
 }
 
 /**
@@ -200,8 +228,9 @@ export function wageArrearsPaid(gold: number, afterMs: number): GameState {
  */
 export const NO_TAVERN: Pick<
   GameState['guild'],
-  'tavernOffers' | 'tavern' | 'expeditions' | 'reports'
+  'tavernOffers' | 'tavern' | 'expeditions' | 'reports' | 'inventory'
 > = {
+  inventory: [],
   tavernOffers: [],
   tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
   expeditions: [],
@@ -400,6 +429,140 @@ export function expeditionReturningScenario(): GameState {
   const patrol = send(advanceTo(forest.state, decidesAt + 20 * MINUTE).state, 'patrol', ['hero-2']);
   const resolved = patrol.state.guild.expeditions[0]?.nodeEndsAtMs ?? decidesAt;
   return advanceTo(patrol.state, resolved + 3 * MINUTE + 456).state;
+}
+
+/**
+ * Abre todos os destinos do conteúdo para os testes que percorrem o catálogo inteiro: revela os
+ * que aparecem por descoberta e põe no feudo um herói em cativeiro, que é o que faz o Resgate
+ * aparecer. O cativo fica no fim da lista de heróis, depois de quem o teste já pôs.
+ */
+export function everyDestinationOpen(draft: GameState): void {
+  draft.map.discovered = expeditionModels
+    .filter((model) => model.access.kind === 'discovered')
+    .map((model) => model.id);
+  const captive = addHero(draft, { name: 'Cativo' });
+  captive.status = 'captured';
+  captive.captivity = { sinceMs: draft.lastProcessedAt, modelId: 'ruins' };
+}
+
+/**
+ * Põe a única expedição em curso no nó dado, a dez minutos de jogo do fim dele, e devolve o
+ * estado e esse instante. Para os testes que querem o desfecho de um nó sem depender dos
+ * anteriores. O estado continua na forma.
+ */
+export function expeditionAtNode(
+  state: GameState,
+  nodeId: string,
+): { state: GameState; endsAt: number } {
+  const next = cloneState(state);
+  const [expedition] = next.guild.expeditions;
+  if (expedition === undefined) {
+    throw new Error('Não há expedição em curso.');
+  }
+  const endsAt = next.lastProcessedAt + 10 * MINUTE;
+  Object.assign(expedition, {
+    nodeId,
+    status: 'traveling',
+    nodeEndsAtMs: endsAt,
+    crossroads: null,
+  });
+  return { state: next, endsAt };
+}
+
+/**
+ * Enfraquece os heróis dados para o desfecho ruim ser certo, sem procurar semente: viram
+ * Clérigos de nível 1, Descontentes, com o cofre vazio e o soldo em atraso aberto agora. Um
+ * vale 25,6 e dois, 51,2: contra 90 é Desastre em toda a faixa da sorte, e um só contra 30 é
+ * Revés em toda ela.
+ */
+export function weakened(state: GameState, heroIds: readonly string[]): GameState {
+  const next = cloneState(state);
+  for (const hero of next.guild.heroes) {
+    if (heroIds.includes(hero.id)) {
+      Object.assign(hero, { classId: 'cleric', level: 1, discontent: true });
+    }
+  }
+  next.guild.wageArrears = { sinceMs: next.lastProcessedAt, carriedMs: 0, departed: 0 };
+  next.guild.lastWageArrears = null;
+  next.settlement.resources.gold = 0;
+  return next;
+}
+
+/**
+ * Uma heroína em recuperação, no ritmo Rápido: Edda, de nível 2, foi sozinha à Floresta Antiga,
+ * tomou a mata fechada por ordem do senhor, sofreu um Revés (certo: 45,36 contra 55), ganhou a
+ * experiência dele e voltou. Está no feudo há dez minutos de jogo, ferida de leve, com o prazo
+ * de sarar marcado. Rolf ficou no feudo, com um item do arsenal, e outro item espera dono.
+ */
+export function heroInjuredScenario(): GameState {
+  const start = guildHall(
+    30 * DAY + HOUR,
+    (draft) => {
+      addHero(draft, { name: 'Edda', gender: 'f', level: 2, traits: ['loyal'] });
+      addHero(draft, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+      giveItem(draft, 'ashBow');
+      giveItem(draft, 'luckyCharm');
+    },
+    { seed: 'fixture-hero-injured', timeScale: 3 },
+  );
+  const armed = accept(start, command('equipItem', { heroId: 'hero-2', itemId: 'item-1' })).state;
+  const sent = send(armed, 'oldForest', ['hero-1'], 'bold', 0);
+  const fork = advanceTo(sent.state, sent.expedition.nodeEndsAtMs ?? 0).state;
+  const chosen = accept(
+    fork,
+    command('chooseExpeditionPath', { expeditionId: 'expedition-1', optionId: 'thicket' }),
+  ).state;
+  const resolvedAt = chosen.guild.expeditions[0]?.nodeEndsAtMs ?? 0;
+  return advanceTo(chosen, resolvedAt + 30 * MINUTE + 789).state;
+}
+
+/**
+ * Um herói em cativeiro, em Senhor: Edda e Rolf, cada um com um item, foram às Ruínas de
+ * Vel'Thar, e o guardião da cripta os venceu (Desastre certo, com os dois enfraquecidos). Um
+ * ficou em cativeiro, com o item que levava; o outro voltou e está no feudo. Brann ficou em
+ * casa. O soldo está em atraso desde a cripta, e o Resgate aparece na lista da Guilda.
+ */
+export function heroCapturedScenario(): GameState {
+  const start = guildHall(
+    50 * DAY + HOUR,
+    (draft) => {
+      addHero(draft, { name: 'Edda', gender: 'f', level: 2 });
+      addHero(draft, { name: 'Rolf', classId: 'archer', level: 2, traits: ['tracker'] });
+      addHero(draft, { name: 'Brann', traits: ['loyal'] });
+      draft.map.discovered = ['ruins'];
+      const [edda, rolf] = draft.guild.heroes;
+      if (edda !== undefined && rolf !== undefined) {
+        wear(draft, edda, 'huntingSpear');
+        wear(draft, rolf, 'paddedJerkin');
+      }
+    },
+    { seed: 'fixture-hero-captured' },
+  );
+  const sent = send(start, 'ruins', ['hero-1', 'hero-2'], 'balanced', 0).state;
+  const crypt = expeditionAtNode(weakened(sent, ['hero-1', 'hero-2']), 'crypt');
+  return advanceTo(crypt.state, crypt.endsAt + 50 * MINUTE + 321).state;
+}
+
+/**
+ * O Covil de Lobos limpo, com a Torre de Vigia de pé: Edda e Rolf, de nível 10, venceram a toca
+ * (Sucesso Pleno certo), a Ameaça caiu e o tile parou de somar. A equipe já voltou; o relatório
+ * está guardado. Parado no dia seguinte, no meio de um trecho.
+ */
+export function denClearedScenario(): GameState {
+  const start = guildHall(
+    10 * DAY + HOUR,
+    (draft) => {
+      addHero(draft, { name: 'Edda', gender: 'f', level: 10, traits: ['loyal'] });
+      addHero(draft, { name: 'Rolf', classId: 'archer', level: 10, traits: ['greedy'] });
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+      draft.settlement.buildings.watchtower = 1;
+      draft.map.threat = 46;
+    },
+    { seed: 'fixture-den-cleared', timeScale: 0.5 },
+  );
+  const sent = send(start, 'wolfDen', ['hero-1', 'hero-2'], 'bold', 0);
+  return advanceTo(sent.state, sent.state.lastProcessedAt + 3 * HOUR + 654).state;
 }
 
 /**

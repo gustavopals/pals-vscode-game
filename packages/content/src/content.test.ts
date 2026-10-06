@@ -499,6 +499,8 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(threat.max).toBe(100);
     expect(threat.perActiveTilePerDay).toBe(2);
     expect(threat.seasonPerDay).toEqual({ autumn: 3 });
+    // No outono os lobos descem a serra, com o Covil limpo ou não (ADR 0018, decisão 14).
+    expect(threat.seasonEnemy).toEqual({ autumn: 'wolves' });
   });
 
   it('a Crônica fala dela ao cruzar 40 e 70: a primeira marca é onde as incursões começam, e a segunda, onde elas ficam médias', () => {
@@ -620,6 +622,7 @@ describe('Ameaça, Torre de Vigia e Paliçada (GDD §8.2; ADR 0014, decisões 10
     expect(parse({ chronicleMarks: [] })).toBe(false);
     expect(parse({ perActiveTilePerDay: 0 })).toBe(false);
     expect(parse({ seasonPerDay: { harvest: 3 } })).toBe(false);
+    expect(parse({ seasonEnemy: { autumn: 'dragons' } })).toBe(false);
     expect(parse({ mediumRaidAbove: 40 })).toBe(false);
     expect(parse({ mediumRaidAbove: 101 })).toBe(false);
     expect(parse({ watchtowerLevels: [] })).toBe(false);
@@ -1692,8 +1695,11 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
         charismatic: ['tavernPrice'],
         devout: ['morale'],
         // Os dois traços de Postura das expedições (V3D-T1; ADR 0017, "Os oito traços").
-        brave: ['expeditionPower'],
-        prudent: ['expeditionPower'],
+        brave: ['expeditionPower', 'harmWeight'],
+        prudent: ['expeditionPower', 'dodgesSetbackIn'],
+        // O que o desfecho de um nó faz com o saque e com a revelação (V3D-T2).
+        greedy: ['greed'],
+        tracker: ['revealsOnSetback'],
       };
       expect(Object.keys(heroTraits[id].effects), id).toEqual(expected[id] ?? []);
     }
@@ -1739,9 +1745,11 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     ).toBe(false);
   });
 
-  it('o estado de um herói tem rótulo: no feudo ou em expedição', () => {
+  it('o estado de um herói tem rótulo: no feudo, em expedição, em recuperação ou em cativeiro', () => {
     expect(HeroStatusesSchema.safeParse(heroStatuses).error).toBeUndefined();
-    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition']);
+    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured']);
+    expect(heroStatuses.injured.label).toBe('Em recuperação');
+    expect(heroStatuses.captured.label).toBe('Em cativeiro');
     expect(heroStatuses.idle.label).toBe('No feudo');
     expect(heroStatuses.expedition.label).toBe('Em expedição');
   });

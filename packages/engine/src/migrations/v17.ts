@@ -1,3 +1,4 @@
+import type { MigrationStep, StoredState } from './step';
 import {
   boolean,
   exactObject,
@@ -55,28 +56,28 @@ export const EXPEDITION_LOG_CAP_V17 = 8;
 export const EXPEDITION_TEAM_CAP_V17 = 4;
 /** Quantas variantes de grafo um modelo tem (`balance.expeditions.variantsPerModel`). */
 export const EXPEDITION_VARIANTS_V17 = 3;
-const RESOURCE_IDS_V17: readonly string[] = ['food', 'wood', 'stone', 'gold'];
+export const RESOURCE_IDS_V17: readonly string[] = ['food', 'wood', 'stone', 'gold'];
 /** Quantas filas de obras o estado guarda, abertas ou não. */
-const QUEUES = 2;
+export const QUEUES = 2;
 
-const EXPEDITION_ID = /^expedition-([1-9][0-9]*)$/;
-const HERO_ID = /^hero-([1-9][0-9]*)$/;
+export const EXPEDITION_ID = /^expedition-([1-9][0-9]*)$/;
+export const HERO_ID = /^hero-([1-9][0-9]*)$/;
 /** A chave de um modelo, de um nó ou de uma opção no conteúdo. */
-const CONTENT_KEY = /^[a-z][A-Za-z0-9]*$/;
+export const CONTENT_KEY = /^[a-z][A-Za-z0-9]*$/;
 
-const where = (path: string) => (path === '' ? 'estado' : path);
+export const where = (path: string) => (path === '' ? 'estado' : path);
 
-const each = (keys: readonly string[], shape: Shape) =>
+export const each = (keys: readonly string[], shape: Shape) =>
   exactObject(Object.fromEntries(keys.map((key) => [key, shape])));
 
-const expeditionId: Shape = (value, path) =>
+export const expeditionId: Shape = (value, path) =>
   typeof value === 'string' &&
   EXPEDITION_ID.test(value) &&
   Number.isSafeInteger(Number(value.slice(11)))
     ? null
     : `${where(path)}: esperado um identificador de expedição (expedition-<n>)`;
 
-const heroIdRef: Shape = (value, path) =>
+export const heroIdRef: Shape = (value, path) =>
   typeof value === 'string' && HERO_ID.test(value)
     ? null
     : `${where(path)}: esperado um identificador de herói (hero-<n>)`;
@@ -86,26 +87,26 @@ const heroIdRef: Shape = (value, path) =>
  * guarda confere a **forma**, e não a lista do conteúdo: os grafos crescem, e um grafo novo não
  * é uma versão nova do estado. A expedição cujo grafo o conteúdo já não tem volta para casa.
  */
-const contentKey: Shape = (value, path) =>
+export const contentKey: Shape = (value, path) =>
   typeof value === 'string' && CONTENT_KEY.test(value)
     ? null
     : `${where(path)}: esperada a chave de um modelo, de um nó ou de uma opção`;
 
-const variantIndex: Shape = (value, path) =>
+export const variantIndex: Shape = (value, path) =>
   Number.isSafeInteger(value) &&
   (value as number) >= 0 &&
   (value as number) < EXPEDITION_VARIANTS_V17
     ? null
     : `${where(path)}: esperada uma variante de 0 a ${EXPEDITION_VARIANTS_V17 - 1}`;
 
-const amounts: Shape = each(RESOURCE_IDS_V17, natural);
+export const amounts: Shape = each(RESOURCE_IDS_V17, natural);
 
-const nonEmptyName: Shape = (value, path) =>
+export const nonEmptyName: Shape = (value, path) =>
   text(value, path) ??
   ((value as string).trim() === '' ? `${where(path)}: esperado um nome, veio texto vazio` : null);
 
 /** Uma lista sem repetição e com teto. */
-function cappedUnique(item: Shape, cap: number, what: string): Shape {
+export function cappedUnique(item: Shape, cap: number, what: string): Shape {
   return (value, path) => {
     const found = listOf(item)(value, path);
     if (found !== null) {
@@ -361,8 +362,7 @@ export const expeditionsWithinState: Shape = (value, path) => {
  * - `rng` não muda de forma, mas a guarda passa a exigir que todo fluxo `expedition:<id>` seja
  *   de uma expedição em curso. `ids` não muda de forma.
  *
- * Quem subir `schemaVersion` para 18 acrescenta aqui o passo `v17ToV18`, com esta forma como
- * entrada, e escreve a forma nova em `v18.ts`.
+ * O passo que sai daqui é o `v17ToV18`, abaixo; a forma da versão 18 está em `v18.ts`.
  */
 export const settlementV17Fields: Readonly<Record<string, Shape>> = {
   ...settlementV12Fields,
@@ -400,3 +400,80 @@ export const stateV17: Shape = (value, path) =>
   guildWithinState(value, path) ??
   tavernWithinState(value, path) ??
   expeditionsWithinState(value, path);
+
+/** O que um registro do percurso da versão 17 ganha na 18: nada aconteceu a ninguém. */
+const LOG_FROM_V17 = {
+  xp: 0,
+  harm: null,
+  leveled: [],
+  found: [],
+  revealed: null,
+  cleared: null,
+  rescued: null,
+  lootLost: false,
+} as const;
+
+const logToV18 = (log: unknown): StoredState[] =>
+  (log as StoredState[]).map((entry) => ({
+    ...entry,
+    ...LOG_FROM_V17,
+    leveled: [],
+    found: [],
+  }));
+
+const lootToV18 = (loot: unknown): StoredState => ({ ...(loot as StoredState), items: [] });
+
+/**
+ * Versão 17 → 18: os desfechos das expedições (V3D-T2; ADR 0017, decisão 8; ADR 0018, decisões
+ * 14 e 15).
+ *
+ * - Cada herói que já existia entra **sem ferimento, sem cativeiro e sem equipamento**
+ *   (`injury: null`, `captivity: null`, os três espaços vazios). O estado dele não muda: quem
+ *   estava no feudo continua pronto, quem estava em expedição continua nela.
+ * - Entra `guild.inventory`, vazio: nenhum item foi achado.
+ * - Entra `map.discovered`, vazio: nenhum destino foi revelado. Os tiles ficam como estavam.
+ * - As expedições em curso continuam de onde estavam: o saque ganha a lista de itens, vazia, e
+ *   cada registro do percurso ganha os campos do que o nó fez à equipe e ao mundo, todos
+ *   neutros (a versão 17 não feria, não dava experiência e não achava item). Os relatórios
+ *   guardados ganham os mesmos campos, mais `sold` vazio e `lost: false`.
+ *
+ * **O passo não cria prazo, não emite evento, não dá identificador a ninguém e não toca o
+ * gerador.** A experiência de um nó que a versão 17 já resolveu não é paga depois, e o nó em que
+ * uma equipe está agora é resolvido pelas regras novas no fim dele.
+ */
+export const v17ToV18: MigrationStep = {
+  from: 17,
+  summary: 'heróis sem ferimento, cativeiro nem equipamento; arsenal e destinos revelados vazios',
+  shape: stateV17,
+  migrate(state) {
+    const guild = state.guild as StoredState;
+    const map = state.map as StoredState;
+    return {
+      ...state,
+      schemaVersion: 18,
+      map: { ...map, discovered: [] },
+      guild: {
+        ...guild,
+        heroes: (guild.heroes as StoredState[]).map((hero) => ({
+          ...hero,
+          injury: null,
+          captivity: null,
+          equipment: { weapon: null, armor: null, accessory: null },
+        })),
+        inventory: [],
+        expeditions: (guild.expeditions as StoredState[]).map((expedition) => ({
+          ...expedition,
+          loot: lootToV18(expedition.loot),
+          log: logToV18(expedition.log),
+        })),
+        reports: (guild.reports as StoredState[]).map((report) => ({
+          ...report,
+          loot: lootToV18(report.loot),
+          log: logToV18(report.log),
+          sold: [],
+          lost: false,
+        })),
+      },
+    };
+  },
+};

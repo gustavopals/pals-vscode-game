@@ -158,9 +158,9 @@ describe('os números das expedições (ADR 0017, decisões 1 e 7; ADR 0018, dec
     expect(rules.variantsPerModel).toBe(3);
   });
 
-  it('o Revés traz metade do saque do nó e o Desastre, nada (GDD §9.2)', () => {
+  it('o Sucesso Pleno traz o saque do nó e mais um quarto, o Revés, metade, e o Desastre, nada (GDD §9.2; pendência D-7)', () => {
     expect(rules.lootShare).toEqual({
-      full: { num: 1, den: 1 },
+      full: { num: 5, den: 4 },
       success: { num: 1, den: 1 },
       setback: { num: 1, den: 2 },
       disaster: { num: 0, den: 1 },
@@ -208,7 +208,11 @@ describe('os números das expedições (ADR 0017, decisões 1 e 7; ADR 0018, dec
     expect(parse((e) => ((e.outcome as Loose).setback = { num: 11, den: 10 }))).toBe(false);
     expect(parse((e) => ((e.luck as Loose).base = 120))).toBe(false);
     expect(parse((e) => ((e.lootShare as Loose).disaster = { num: 1, den: 1 }))).toBe(false);
-    expect(parse((e) => ((e.lootShare as Loose).full = { num: 3, den: 2 }))).toBe(false);
+    expect(parse((e) => ((e.lootShare as Loose).full = { num: 5, den: 2 }))).toBe(false);
+    expect(parse((e) => ((e.lootShare as Loose).success = { num: 9, den: 10 }))).toBe(false);
+    expect(parse((e) => ((e.lootShare as Loose).full = { num: 9, den: 10 }))).toBe(false);
+    expect(parse((e) => ((e.xpShare as Loose).disaster = { num: 2, den: 1 }))).toBe(false);
+    expect(parse((e) => ((e.xpShare as Loose).disaster = { num: 0, den: 1 }))).toBe(false);
     expect(parse((e) => (e.slotsByGuildLevel = [2, 1]))).toBe(false);
     expect(parse((e) => (e.crossroadsWaitRealMs = 0))).toBe(false);
     expect(parse((e) => ((e.graph as Loose).minDepth = 9))).toBe(false);
@@ -234,7 +238,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
   it('passa pelo schema, na ordem de EXPEDITION_MODEL_IDS, com três variantes por modelo', () => {
     expect(CatalogSchema.safeParse(expeditionModels).error).toBeUndefined();
     expect(expeditionModels.map((model) => model.id)).toEqual([...EXPEDITION_MODEL_IDS]);
-    expect(EXPEDITION_MODEL_IDS).toEqual(['patrol', 'oldForest']);
+    expect(EXPEDITION_MODEL_IDS).toEqual(['patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins']);
     for (const model of expeditionModels) {
       expect(model.variants, model.id).toHaveLength(3);
       // Três grafos diferentes de verdade.
@@ -313,7 +317,9 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
         if (node.kind === 'crossroads' || node.kind === 'return' || node.rewards === undefined) {
           continue;
         }
-        expect(Object.keys(node.rewards)).toEqual(['resources']);
+        // V3D-T2: além dos recursos, um item, um destino revelado, um tile limpo e um cativo solto.
+        const known = ['resources', 'item', 'reveals', 'clearsTile', 'rescues'];
+        expect(Object.keys(node.rewards).filter((key) => !known.includes(key))).toEqual([]);
       }
     }
   });

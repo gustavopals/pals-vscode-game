@@ -127,12 +127,77 @@ const named = (name: string) => {
   return found;
 };
 
+/** Os campos que o passo 17 → 18 põe em cada registro do percurso de uma expedição. */
+const LOG_FIELDS_V18 = [
+  'xp',
+  'harm',
+  'leveled',
+  'found',
+  'revealed',
+  'cleared',
+  'rescued',
+  'lootLost',
+] as const;
+
+/** Tira de um estado, no lugar, o que o passo 17 → 18 acrescenta. */
+function stripOutcomes(copy: Draft): void {
+  if (copy.map !== undefined) {
+    delete copy.map.discovered;
+  }
+  if (copy.guild === undefined) {
+    return;
+  }
+  delete copy.guild.inventory;
+  for (const hero of (copy.guild.heroes ?? []) as Draft[]) {
+    delete hero.injury;
+    delete hero.captivity;
+    delete hero.equipment;
+  }
+  const journeys = [...((copy.guild.expeditions ?? []) as Draft[])];
+  for (const report of (copy.guild.reports ?? []) as Draft[]) {
+    delete report.sold;
+    delete report.lost;
+    journeys.push(report);
+  }
+  for (const journey of journeys) {
+    delete journey.loot.items;
+    for (const entry of journey.log as Draft[]) {
+      for (const field of LOG_FIELDS_V18) {
+        delete entry[field];
+      }
+    }
+  }
+}
+
+/**
+ * Um estado como a versão 17 o gravava, a partir de um da versão atual: os heróis sem ferimento,
+ * cativeiro nem equipamento, sem o arsenal, sem os destinos revelados e sem o que o percurso de
+ * uma expedição passou a registrar.
+ */
+function asVersion17(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 17;
+  stripOutcomes(old);
+  return old;
+}
+
+/**
+ * O que o passo 17 → 18 acrescenta a toda partida, tirado de um estado migrado: é o que deixa
+ * os blocos dos passos anteriores compararem o resto, campo por campo, com o estado antigo. O
+ * que o passo escreve é conferido no bloco dele.
+ */
+function withoutOutcomes<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  stripOutcomes(copy);
+  return copy as T;
+}
+
 /**
  * Um estado como a versão 16 o gravava, a partir de um da versão atual: sem a Guilda dos
  * Aventureiros entre os edifícios e sem as expedições e os relatórios na guilda.
  */
 function asVersion16(state: GameState): Draft {
-  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  const old = asVersion17(state);
   old.schemaVersion = 16;
   delete old.settlement.buildings.guild;
   delete old.guild.expeditions;
@@ -146,7 +211,8 @@ function asVersion16(state: GameState): Draft {
  * que o passo escreve é conferido no bloco dele.
  */
 function withoutGuildHall<T extends Partial<GameState>>(state: T): T {
-  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  // E, com ela, o que o passo seguinte (17 → 18) acrescenta.
+  const copy = withoutOutcomes(state) as Draft;
   delete copy.settlement.buildings.guild;
   if (copy.guild !== undefined) {
     delete copy.guild.expeditions;
@@ -536,6 +602,41 @@ const FROZEN: Record<string, string> = {
   'state-v16-wage-arrears-resumed.json': 'd3c8c13c',
   'state-v16-wage-arrears.json': '6ce2ffb1',
   'state-v16-week-scripted.json': '6e145557',
+  'state-v17-cold.json': '3da6e029',
+  'state-v17-construction.json': 'a907a5ba',
+  'state-v17-council-hidden.json': '68834c95',
+  'state-v17-council.json': '1717915b',
+  'state-v17-crafts.json': '77e3bb70',
+  'state-v17-expedition-crossroads.json': 'b9c93b7a',
+  'state-v17-expedition-returning.json': '2e3077a8',
+  'state-v17-expedition.json': '7175cda9',
+  'state-v17-famine-3x.json': 'c7a6221e',
+  'state-v17-famine-ended.json': '3e735268',
+  'state-v17-famine-half.json': 'cb810c8b',
+  'state-v17-famine-resumed.json': 'b96c1892',
+  'state-v17-famine.json': '9d6d76b8',
+  'state-v17-fresh.json': 'd87ccb87',
+  'state-v17-guild.json': '6836e8d9',
+  'state-v17-hero-promised.json': 'd50a2516',
+  'state-v17-iron-king-half.json': '81b2dabb',
+  'state-v17-migrated-3x.json': '8e750a9e',
+  'state-v17-migrated-iron-king-half.json': 'd645e5f0',
+  'state-v17-migrated-peasant-3x.json': 'ddcec6b7',
+  'state-v17-morale.json': '1b184218',
+  'state-v17-objectives.json': 'c9dd5af4',
+  'state-v17-palisade.json': '6e32e662',
+  'state-v17-peasant-3x.json': 'f13d1260',
+  'state-v17-queues.json': 'b0b297e0',
+  'state-v17-raid-announced.json': '5feebb49',
+  'state-v17-raid.json': '8f082f60',
+  'state-v17-storage.json': '75fe9872',
+  'state-v17-tavern-busy.json': '920f9568',
+  'state-v17-tavern.json': '1074cd39',
+  'state-v17-threat.json': '7b67fe07',
+  'state-v17-wage-arrears-ended.json': 'f5157ad9',
+  'state-v17-wage-arrears-resumed.json': '8cb9d17d',
+  'state-v17-wage-arrears.json': 'cc3b8d30',
+  'state-v17-week-scripted.json': '36025a0e',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -548,6 +649,9 @@ const HERO = {
   xp: 0,
   traits: ['loyal'],
   status: 'idle',
+  injury: null,
+  captivity: null,
+  equipment: { weapon: null, armor: null, accessory: null },
   joinedAtMs: 0,
   discontent: false,
 } as const;
@@ -887,8 +991,24 @@ describe('a forma da versão atual', () => {
     ['as expedições que não são lista', (state) => (state.guild.expeditions = {})],
     ['uma expedição que não é objeto', (state) => (state.guild.expeditions = ['expedition-1'])],
     ['um relatório que não é objeto', (state) => (state.guild.reports = [null])],
-    // Nada da Fase D além desta tarefa, nem da Fase E (regra 6 do CLAUDE.md).
-    ['a guilda com o inventário', (state) => (state.guild.inventory = [])],
+    // Os desfechos (versão 18).
+    ['a guilda sem o arsenal', (state) => delete state.guild.inventory],
+    ['o arsenal que não é lista', (state) => (state.guild.inventory = {})],
+    ['um item sem o identificador', (state) => (state.guild.inventory = [{ defId: 'ashBow' }])],
+    [
+      'um item com desgaste',
+      (state) => {
+        state.ids = { item: 1 };
+        state.guild.inventory = [{ id: 'item-1', defId: 'ashBow', durability: 10 }];
+      },
+    ],
+    [
+      'um item além do contador',
+      (state) => (state.guild.inventory = [{ id: 'item-1', defId: 'ashBow' }]),
+    ],
+    ['o mapa sem os destinos revelados', (state) => delete state.map.discovered],
+    ['um destino revelado que não é chave', (state) => (state.map.discovered = ['Ruínas!'])],
+    // Nada da Fase E (regra 6 do CLAUDE.md).
     ['o estado com o Mercado', (state) => (state.market = { prices: {} })],
     ['os Mestres no feudo', (state) => (state.settlement.masters = [])],
     // A Taverna (versão 16).
@@ -1026,9 +1146,34 @@ describe('a forma da versão atual', () => {
     ],
     // Os estados de quem está fora entram com as tarefas deles.
     ['um herói em expedição', (state) => withHero(state, (hero) => (hero.status = 'expedition'))],
-    ['um herói ferido', (state) => withHero(state, (hero) => (hero.status = 'injured'))],
-    ['um herói com ferimento', (state) => withHero(state, (hero) => (hero.injury = null))],
-    ['um herói com equipamento', (state) => withHero(state, (hero) => (hero.equipment = {}))],
+    ['um herói em escolta', (state) => withHero(state, (hero) => (hero.status = 'escort'))],
+    [
+      'um herói em recuperação sem ferimento',
+      (state) => withHero(state, (hero) => (hero.status = 'injured')),
+    ],
+    ['um herói sem o ferimento', (state) => withHero(state, (hero) => delete hero.injury)],
+    ['um herói sem o cativeiro', (state) => withHero(state, (hero) => delete hero.captivity)],
+    ['um herói sem os espaços', (state) => withHero(state, (hero) => (hero.equipment = {}))],
+    [
+      'um herói com um quarto espaço',
+      (state) => withHero(state, (hero) => (hero.equipment = { ...hero.equipment, ring: null })),
+    ],
+    [
+      'um herói pronto com ferimento',
+      (state) =>
+        withHero(state, (hero) => (hero.injury = { severity: 'light', untilMs: 9_999_999 })),
+    ],
+    [
+      'um herói com ferimento de gravidade desconhecida',
+      (state) =>
+        withHero(state, (hero) =>
+          Object.assign(hero, {
+            status: 'injured',
+            injury: { severity: 'mortal', untilMs: 9_999_999 },
+          }),
+        ),
+    ],
+    ['um herói morto na lista', (state) => withHero(state, (hero) => (hero.status = 'dead'))],
     ['um herói com atributos gravados', (state) => withHero(state, (hero) => (hero.power = 42))],
     [
       'um herói sem a data de chegada',
@@ -1156,9 +1301,9 @@ describe('a forma da versão atual', () => {
     expect(HERO_ROSTER_CAP_V14).toBe(balance.heroes.rosterCap);
     expect(HERO_GENDER_IDS_V15).toEqual([...HERO_GENDER_IDS]);
     expect(HERO_ARRIVING_CAP_V15).toBe(balance.heroes.arrivingCap);
-    // Os estados de herói desta versão: no feudo e em expedição (versão 17); escolta, ferimento
-    // e captura entram com as tarefas deles.
-    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition']);
+    // Os estados de herói desta versão: no feudo e em expedição (versão 17), em recuperação e
+    // em cativeiro (versão 18); a escolta entra com a tarefa dela.
+    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition', 'injured', 'captured']);
   });
 
   it('aceita a guilda cheia: o teto de heróis, de todas as classes, todos os traços e níveis, com o atraso aberto', () => {
@@ -1200,11 +1345,17 @@ describe('a forma da versão atual', () => {
     expect(broken((state) => withHero(state, (hero) => (hero.level = 11)))).toBe(
       'guild.heroes.0.level: esperado um nível de 1 a 10',
     );
+    expect(broken((state) => withHero(state, (hero) => (hero.status = 'escort')))).toBe(
+      'guild.heroes.0.status: esperado um de idle, expedition, injured, captured, veio texto',
+    );
     expect(broken((state) => withHero(state, (hero) => (hero.status = 'captured')))).toBe(
-      'guild.heroes.0.status: esperado um de idle, expedition, veio texto',
+      'guild.heroes.0.captivity: só o herói em cativeiro tem cativeiro',
     );
     expect(broken((state) => withHero(state, (hero) => (hero.equipment = {})))).toBe(
-      'guild.heroes.0.equipment: campo desconhecido',
+      'guild.heroes.0.equipment.weapon: campo ausente',
+    );
+    expect(broken((state) => withHero(state, (hero) => (hero.durability = 3)))).toBe(
+      'guild.heroes.0.durability: campo desconhecido',
     );
     const named = broken((state) =>
       withHero(state, (hero) => {
@@ -3358,7 +3509,7 @@ describe('versão 14 → 15', () => {
       // Quem já estava no feudo fica como estava, com o valor fixo do passo: a ficha continua
       // dizendo a classe e os traços como dizia.
       expect(HERO_GENDER_FROM_V14).toBe('m');
-      expect(after.guild.heroes).toStrictEqual(
+      expect(withoutOutcomes(after).guild.heroes).toStrictEqual(
         (before.guild.heroes as Draft[]).map((hero) => ({ ...hero, gender: 'm' })),
       );
       expect(after.rng).toStrictEqual(before.rng);
@@ -3555,7 +3706,7 @@ describe('versão 16 → 17', () => {
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
     const { expeditions } = balance;
     expect(BUILDING_IDS_V17).toEqual([...BUILDING_IDS]);
-    expect(HERO_STATUS_IDS_V17).toEqual([...HERO_STATUS_IDS]);
+    expect(HERO_STATUS_IDS_V17).toEqual(['idle', 'expedition']);
     expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
     expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
     expect(CROSSROADS_DECIDERS_V17).toEqual(['player', 'posture', 'cautiousFallback']);
@@ -3581,7 +3732,7 @@ describe('versão 16 → 17', () => {
     (fixture) => {
       const before = read(fixture) as Draft;
       const after = migrated(fixture);
-      expect(after.schemaVersion).toBe(17);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.settlement.buildings.guild).toBe(0);
       expect(after.guild.expeditions).toStrictEqual([]);
       expect(after.guild.reports).toStrictEqual([]);
@@ -4021,5 +4172,162 @@ describe('estados que o motor não aceita', () => {
     expect(message).toContain('settlement.name: esperado texto, veio inteiro');
     expect(message).not.toContain('Nome Que Não Vai Para o Log');
     expect(message).not.toContain('semente-secreta');
+  });
+});
+
+describe('versão 17 → 18', () => {
+  const version17 = fixtures.filter((fixture) => fixture.version === 17);
+  const withHeroes = version17.filter(
+    (fixture) => (read(fixture) as Draft).guild.heroes.length > 0,
+  );
+  const withJourneys = version17.filter((fixture) => {
+    const { guild } = read(fixture) as Draft;
+    return guild.expeditions.length + guild.reports.length > 0;
+  });
+
+  it('há retratos da versão 17 com herói, com expedição em curso e com relatório', () => {
+    expect(withHeroes.length).toBeGreaterThan(0);
+    expect(withJourneys.length).toBeGreaterThan(0);
+    expect(version17.some((fixture) => (read(fixture) as Draft).guild.reports.length > 0)).toBe(
+      true,
+    );
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v17-fresh.json'));
+    expect(fresh.guild.inventory).toEqual([]);
+    expect(fresh.map.discovered).toEqual([]);
+    expect(newGame().guild.inventory).toEqual([]);
+    expect(newGame().map.discovered).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version17)(
+    '$name: só acrescenta o arsenal e os destinos vazios, e a cada herói e a cada registro o que nada aconteceu',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.guild.inventory).toStrictEqual([]);
+      expect(after.map.discovered).toStrictEqual([]);
+      for (const hero of after.guild.heroes) {
+        expect(hero.injury).toBeNull();
+        expect(hero.captivity).toBeNull();
+        expect(hero.equipment).toStrictEqual({ weapon: null, armor: null, accessory: null });
+      }
+      // Quem estava no feudo continua pronto, e quem estava em expedição continua nela.
+      expect(after.guild.heroes.map((hero) => hero.status)).toStrictEqual(
+        (before.guild.heroes as Draft[]).map((hero) => hero.status),
+      );
+      for (const journey of [...after.guild.expeditions, ...after.guild.reports]) {
+        expect(journey.loot.items).toStrictEqual([]);
+        for (const entry of journey.log) {
+          expect(entry).toMatchObject({
+            xp: 0,
+            harm: null,
+            leveled: [],
+            found: [],
+            revealed: null,
+            cleared: null,
+            rescued: null,
+            lootLost: false,
+          });
+        }
+      }
+      for (const report of after.guild.reports) {
+        expect(report).toMatchObject({ sold: [], lost: false });
+      }
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, tile, expedição ou
+      // relatório muda, ninguém ganha identificador e o gerador fica palavra por palavra.
+      expect(after.map.tiles).toStrictEqual(before.map.tiles);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect({ ...withoutOutcomes(after), schemaVersion: 17 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version17)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      const mine =
+        /^(hero(Injured|Recovered|Captured|Died|Rescued|LeveledUp)|item|destination|threatTile)/;
+      expect(atBoundary.events.filter((event) => mine.test(event.type))).toEqual([]);
+      expect(state.ids.item).toBeUndefined();
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.guild.inventory).toEqual([]);
+      expect(view.guild.captiveText).toBeNull();
+      expect(view.guild.heroes.every((hero) => hero.injury === null && !hero.captive)).toBe(true);
+      expect(view.guild.available.map((offer) => offer.modelId)).not.toContain('rescue');
+      expect(view.guild.available.map((offer) => offer.modelId)).not.toContain('ruins');
+      expect(view.threat.clearedText).toBeNull();
+      // O soldo de ninguém muda com o passo.
+      expect(view.guild.wage.perHour).toBe(
+        state.guild.heroes.length * balance.heroes.wagePerHour * state.settings.timeScale,
+      );
+    },
+  );
+
+  it.each(withJourneys)(
+    '$name: a expedição em curso continua de onde estava e termina pelas regras novas',
+    (fixture) => {
+      const state = migrated(fixture);
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month);
+      // Toda expedição que estava em curso voltou ou se perdeu: nenhuma fica presa.
+      for (const expedition of state.guild.expeditions) {
+        expect(later.state.guild.expeditions.map((entry) => entry.id)).not.toContain(expedition.id);
+        const ended = later.events.filter(
+          (event) =>
+            (event.type === 'expeditionReturned' || event.type === 'expeditionLost') &&
+            event.data.expeditionId === expedition.id,
+        );
+        expect(ended).toHaveLength(1);
+      }
+      expect(currentShape(JSON.parse(JSON.stringify(later.state)), '')).toBeNull();
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion17(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow.guild.heroes).toMatchObject([
+      { name: 'Brann', status: 'idle', injury: null, captivity: null },
+    ]);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 17 que já traz os campos da 18 é recusado: não é da versão que diz', () => {
+    const stocked = asVersion17(newGame());
+    stocked.guild.inventory = [];
+    expect(() => migrateState(stocked, { timeScale: 1 })).toThrow(
+      /guild\.inventory: campo desconhecido/,
+    );
+    const mapped = asVersion17(newGame());
+    mapped.map.discovered = [];
+    expect(() => migrateState(mapped, { timeScale: 1 })).toThrow(
+      /map\.discovered: campo desconhecido/,
+    );
+    const staffed = newGame();
+    addHero(staffed);
+    const hurt = asVersion17(staffed);
+    hurt.guild.heroes[0].status = 'injured';
+    expect(() => migrateState(hurt, { timeScale: 1 })).toThrow(/guild\.heroes\.0\.status/);
+    const armed = asVersion17(staffed);
+    armed.guild.heroes[0].equipment = { weapon: null, armor: null, accessory: null };
+    expect(() => migrateState(armed, { timeScale: 1 })).toThrow(
+      /guild\.heroes\.0\.equipment: campo desconhecido/,
+    );
   });
 });

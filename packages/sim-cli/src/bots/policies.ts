@@ -508,7 +508,7 @@ export const contratar: Policy = {
 
 /**
  * Ergue a Guilda dos Aventureiros quando há a quem enviar, e a melhora quando há mais gente
- * livre no feudo do que lugares para expedição: sem herói ela não serve de nada, e um nível a
+ * pronta no feudo (somada às equipes que já saíram) do que lugares para expedição: sem herói ela não serve de nada, e um nível a
  * mais só rende com uma segunda equipe para mandar. Tudo lido da visão: o edifício
  * (`guild.building`), os lugares e quem está no feudo. Se a obra não pode começar agora por
  * falta de recurso ou de fila, fica planejada como automática; presa ao Salão ou no teto, não há
@@ -519,9 +519,10 @@ export const erguerGuilda: Policy = {
   run: async (view, act) => {
     const { guild } = view;
     const upgrade = view.constructions.available.find((entry) => entry.building === guild.building);
-    const idle = guild.heroes.filter((hero) => hero.atHome).length;
+    const idle = guild.heroes.filter((hero) => hero.canDepart).length;
+    // Mais gente pronta do que lugares: há uma equipe que ficaria parada nesta visita.
     const wanted = guild.built
-      ? guild.expeditions.length >= guild.slots && idle > 0
+      ? idle + guild.expeditions.length > guild.slots
       : guild.heroes.length > 0;
     if (upgrade === undefined || !wanted || !keepsFirewood(view, upgrade)) {
       return view;
@@ -548,34 +549,126 @@ export const erguerGuilda: Policy = {
 /** A Postura com que o bot envia: a do meio. */
 const BOT_POSTURE = 'balanced';
 
+type Offer = ViewState['guild']['available'][number];
+type HeroCard = ViewState['guild']['heroes'][number];
+
+const powerOf = (team: readonly HeroCard[]): number =>
+  team.reduce((sum, hero) => sum + hero.power, 0);
+
 /**
- * Envia expedições enquanto houver destino aberto e gente livre no feudo: o primeiro destino da
- * lista que a visão diz que está aberto (`locked` falso; com a Guilda no nível 1, a Patrulha dos
- * Arredores), com a menor equipe que ele aceita, na ordem em que os heróis chegaram. Uma ordem
- * recusada (a equipe não serve) encerra a política nesta visita: a visão não diz mais do que
- * isso, e o bot não insiste.
+ * A equipe passa o primeiro trecho com folga: o poder dela cobre a maior dificuldade à vista. É
+ * a conta que um jogador cuidadoso faz com o que a tela mostra (o poder de cada herói e a
+ * dificuldade de cada nó): com a sorte neutra é Sucesso, e nem a pior sorte leva ao Desastre.
+ * Um destino cujo primeiro trecho não tem prova não entra na conta: a tela não diz o que vem
+ * depois dele.
+ */
+function passesWithRoom(team: readonly HeroCard[], offer: Offer): boolean {
+  const difficulty = offer.firstStretchDifficulty;
+  return difficulty !== null && powerOf(team) >= difficulty;
+}
+
+/**
+ * A equipe que o bot mandaria a um destino, entre os que podem partir (`canDepart`: o ferido não
+ * vai) e têm o nível pedido, no tamanho mínimo: **a mais fraca que ainda passa com folga**, para
+ * a experiência não ficar toda com os mesmos; se nenhuma passa, a mais forte. `null` quando não
+ * há gente bastante.
+ */
+function teamFor(view: ViewState, offer: Offer): HeroCard[] | null {
+  const fit = view.guild.heroes
+    .filter((hero) => hero.canDepart && hero.level >= offer.teamMinLevel)
+    .sort((a, b) => a.power - b.power);
+  if (fit.length < offer.teamMin) {
+    return null;
+  }
+  for (let start = 0; start + offer.teamMin <= fit.length; start += 1) {
+    const team = fit.slice(start, start + offer.teamMin);
+    if (passesWithRoom(team, offer)) {
+      return team;
+    }
+  }
+  return fit.slice(-offer.teamMin);
+}
+
+/**
+ * Envia expedições enquanto houver destino aberto e gente pronta no feudo. A escolha, só com o
+ * que a visão mostra:
  *
- * Tudo vem da visão: os destinos e o que cada um pede, quem está no feudo e os lugares da
- * Guilda. O bot não olha a dificuldade do primeiro trecho nem o poder da equipe: é o jogador que
- * manda quem está à mão, e é assim que a matriz mede o que a expedição rende e custa.
+ * 1. **o destino mais difícil que a equipe passa com folga** (`passesWithRoom`): as Ruínas, o
+ *    Resgate quando há quem resgatar, o Covil dos Lobos com dois heróis, a Patrulha;
+ * 2. sem nenhum assim, **o primeiro destino aberto** (a Patrulha dos Arredores), com quem está
+ *    à mão, como antes: é o que dá experiência à equipe até ela passar os outros.
+ *
+ * A equipe é a de `teamFor`: quem pode partir (**o ferido não vai**) e tem o nível que o destino
+ * pede, a mais fraca que ainda passa com folga. Uma ordem recusada encerra a política nesta
+ * visita: a visão não diz mais do que isso, e o bot não insiste.
  */
 export const enviarExpedicoes: Policy = {
   name: 'enviar expedições',
   run: async (view, act) => {
     let current = view;
     for (let round = 0; round < current.guild.slots; round += 1) {
-      const offer = current.guild.available.find((entry) => !entry.locked);
-      const free = current.guild.heroes.filter((hero) => hero.atHome).map((hero) => hero.id);
-      if (offer === undefined || free.length < offer.teamMin) {
+      const open = current.guild.available.filter((entry) => !entry.locked);
+      const staffed = open.flatMap((offer) => {
+        const team = teamFor(current, offer);
+        return team === null ? [] : [{ offer, team }];
+      });
+      const [first] = staffed;
+      const [hardest] = staffed
+        .filter(({ offer, team }) => passesWithRoom(team, offer))
+        .sort(
+          (a, b) => (b.offer.firstStretchDifficulty ?? 0) - (a.offer.firstStretchDifficulty ?? 0),
+        );
+      const choice = hardest ?? first;
+      if (choice === undefined) {
         return current;
       }
       const before = current.guild.expeditions.length;
       current = await act('sendExpedition', {
-        modelId: offer.modelId,
-        heroIds: free.slice(0, offer.teamMin),
+        modelId: choice.offer.modelId,
+        heroIds: choice.team.map((hero) => hero.id),
         posture: BOT_POSTURE,
       });
       if (current.guild.expeditions.length === before) {
+        return current;
+      }
+    }
+    return current;
+  },
+};
+
+/**
+ * Equipa o melhor item do arsenal: para cada item, do que soma mais ao que soma menos, o herói
+ * mais forte que está no feudo e leva naquele espaço nada, ou algo que soma menos. Equipar por
+ * cima devolve o anterior ao arsenal, e a rodada seguinte o oferece a outro. Tudo lido da
+ * visão: o arsenal, os espaços de cada herói e o que cada item soma.
+ */
+export const equiparMelhor: Policy = {
+  name: 'equipar o melhor item',
+  run: async (view, act) => {
+    let current = view;
+    // Cada troca melhora o espaço de alguém: o número de trocas é limitado pelos itens.
+    for (let round = 0; round < 12; round += 1) {
+      const heroes = current.guild.heroes
+        .filter((hero) => hero.atHome)
+        .sort((a, b) => b.power - a.power);
+      const stock = [...current.guild.inventory].sort((a, b) => b.bonusPercent - a.bonusPercent);
+      let order: { heroId: string; itemId: string } | null = null;
+      for (const item of stock) {
+        const taker = heroes.find((hero) => {
+          const worn = hero.equipment.find((entry) => entry.slot === item.slot)?.item ?? null;
+          return worn === null || worn.bonusPercent < item.bonusPercent;
+        });
+        if (taker !== undefined) {
+          order = { heroId: taker.id, itemId: item.id };
+          break;
+        }
+      }
+      if (order === null) {
+        return current;
+      }
+      const before = current.guild.inventory.map((item) => item.id).join();
+      current = await act('equipItem', order);
+      if (current.guild.inventory.map((item) => item.id).join() === before) {
         return current;
       }
     }

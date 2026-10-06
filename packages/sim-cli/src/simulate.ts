@@ -220,6 +220,17 @@ export type ExpeditionCounts = {
   crossroadsByPlayer: number;
   crossroadsByPosture: number;
   heroIdleHours: number;
+  /** O que os desfechos fizeram aos heróis e ao mundo (V3D-T2), acumulado, pelos eventos. */
+  fates: {
+    injured: number;
+    captured: number;
+    died: number;
+    rescued: number;
+    levelUps: number;
+    itemsFound: number;
+    tilesCleared: number;
+    lost: number;
+  };
 };
 
 /** O começo da contagem: nada enviado, nada resolvido. */
@@ -230,12 +241,37 @@ export function noExpeditions(): ExpeditionCounts {
     crossroadsByPlayer: 0,
     crossroadsByPosture: 0,
     heroIdleHours: 0,
+    fates: {
+      injured: 0,
+      captured: 0,
+      died: 0,
+      rescued: 0,
+      levelUps: 0,
+      itemsFound: 0,
+      tilesCleared: 0,
+      lost: 0,
+    },
   };
 }
 
 /** Conta, dos eventos, os envios, os desfechos dos nós com dificuldade e quem decidiu nas encruzilhadas. */
+const FATE_EVENTS: Partial<Record<GameEvent['type'], keyof ExpeditionCounts['fates']>> = {
+  heroInjured: 'injured',
+  heroCaptured: 'captured',
+  heroDied: 'died',
+  heroRescued: 'rescued',
+  heroLeveledUp: 'levelUps',
+  itemFound: 'itemsFound',
+  threatTileCleared: 'tilesCleared',
+  expeditionLost: 'lost',
+};
+
 export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): void {
   for (const event of events) {
+    const fate = FATE_EVENTS[event.type];
+    if (fate !== undefined) {
+      counts.fates[fate] += 1;
+    }
     if (event.type === 'expeditionSent') {
       counts.sent += 1;
     } else if (event.type === 'expeditionPathChosen') {
@@ -338,7 +374,11 @@ function rowAt(
     raids: { ...raids, lost: { ...raids.lost } },
     objectives: view.objectives.filter((objective) => objective.status === 'completed').length,
     guild: { ...guild, heroes: view.guild.heroes.length },
-    expeditions: { ...expeditions, outcomes: { ...expeditions.outcomes } },
+    expeditions: {
+      ...expeditions,
+      outcomes: { ...expeditions.outcomes },
+      fates: { ...expeditions.fates },
+    },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };

@@ -60,6 +60,10 @@ describe('a guilda na visão', () => {
       heroLimit: 1,
       heroes: [],
       arriving: [],
+      inventory: [],
+      inventoryCap: 30,
+      inventoryText: 'O arsenal está vazio: os itens vêm das expedições.',
+      captiveText: null,
       wage: {
         perHour: 0,
         coveredForSeconds: null,
@@ -91,6 +95,14 @@ describe('a guilda na visão', () => {
         traits: [{ label: 'Leal', text: 'Nunca fica descontente nem parte por soldo em atraso.' }],
         statusText: 'No feudo',
         atHome: true,
+        canDepart: true,
+        injury: null,
+        captive: false,
+        equipment: [
+          { slot: 'weapon', slotLabel: 'Arma', item: null },
+          { slot: 'armor', slotLabel: 'Armadura', item: null },
+          { slot: 'accessory', slotLabel: 'Acessório', item: null },
+        ],
         power: 42,
         powerBreakdown: '(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42',
         wagePerHour: 2,
@@ -109,6 +121,14 @@ describe('a guilda na visão', () => {
         ],
         statusText: 'No feudo',
         atHome: true,
+        canDepart: true,
+        injury: null,
+        captive: false,
+        equipment: [
+          { slot: 'weapon', slotLabel: 'Arma', item: null },
+          { slot: 'armor', slotLabel: 'Armadura', item: null },
+          { slot: 'accessory', slotLabel: 'Acessório', item: null },
+        ],
         power: 37.8,
         powerBreakdown: '(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8',
         wagePerHour: 2,
@@ -125,6 +145,14 @@ describe('a guilda na visão', () => {
         traits: [],
         statusText: 'No feudo',
         atHome: true,
+        canDepart: true,
+        injury: null,
+        captive: false,
+        equipment: [
+          { slot: 'weapon', slotLabel: 'Arma', item: null },
+          { slot: 'armor', slotLabel: 'Armadura', item: null },
+          { slot: 'accessory', slotLabel: 'Acessório', item: null },
+        ],
         power: 55.04,
         powerBreakdown: '(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1,72 (Nv10) = 55,04',
         wagePerHour: 2,
@@ -431,6 +459,10 @@ describe('o soldo em atraso na visão', () => {
       'heroLimit',
       'heroes',
       'arriving',
+      'inventory',
+      'inventoryCap',
+      'inventoryText',
+      'captiveText',
       'wage',
     ]);
     expect(Object.keys(view.guild.wage)).toEqual([
@@ -442,7 +474,7 @@ describe('o soldo em atraso na visão', () => {
     ]);
     const text = JSON.stringify(view);
     expect(text).not.toMatch(
-      /"(ids|rng|joinedAtMs|classId|gender|namedHeroId|carriedMs|departed)"/,
+      /"(ids|rng|joinedAtMs|classId|gender|namedHeroId|carriedMs|departed|defId|captivity|untilMs)"/,
     );
   });
 });

@@ -19,6 +19,7 @@ import {
   contratar,
   darFestival,
   enviarExpedicoes,
+  equiparMelhor,
   erguerGuilda,
   escolherCaminho,
   alocarPorDemandaFor,
@@ -194,13 +195,14 @@ describe('um bot é uma lista de políticas', () => {
     ]);
     // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2, V3C-T2 e V3D-T1) é o econômico mais as
     // políticas da Guilda: erguer a Guilda dos Aventureiros antes da obra mais barata, e
-    // contratar, dar festival, escolher o caminho e enviar expedições antes da alocação.
+    // contratar, dar festival, escolher o caminho, equipar o melhor item (V3D-T2) e enviar
+    // expedições antes da alocação.
     expect(strategyPolicies.explorador).toEqual(
       strategyPolicies.economico.flatMap((policy) =>
         policy === obraMaisBarata
           ? [erguerGuilda, policy]
           : policy === alocarPorDemanda
-            ? [contratar, darFestival, escolherCaminho, enviarExpedicoes, policy]
+            ? [contratar, darFestival, escolherCaminho, equiparMelhor, enviarExpedicoes, policy]
             : [policy],
       ),
     );
@@ -1483,6 +1485,7 @@ describe('política "erguer a Paliçada"', () => {
         raidRisk: 'A regra das incursões.',
         raidCosts: [],
         incoming,
+        clearedText: null,
         watchtower: { ...view.threat.watchtower, level: 1 },
         defense: view.threat.defense,
       },

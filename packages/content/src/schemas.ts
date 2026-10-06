@@ -5,19 +5,27 @@ import {
   cutRewardTemplates,
   EVENT_TYPES,
   foundingTemplates,
+  heroHarmTemplates,
   injuryTemplates,
   wageArrearsReliefs,
 } from './chronicle';
 import { COUNCIL_EFFECT_TYPES } from './council';
 import type { ExpeditionsDef } from './balance';
 import { expeditionTemplates, expeditionTexts } from './expeditions';
+import { equipmentTexts } from './items';
 import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
   EXPEDITION_DISASTER_IDS,
   EXPEDITION_MODEL_IDS,
+  EXPEDITION_NODE_KINDS,
   EXPEDITION_OUTCOME_IDS,
+  HERO_CAPTURE_RULE_IDS,
+  INJURY_SEVERITY_IDS,
+  ITEM_IDS,
+  ITEM_RARITY_IDS,
+  ITEM_SLOT_IDS,
   POSTURE_IDS,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
@@ -71,6 +79,7 @@ const difficulty = z.strictObject({
   recommended: z.boolean(),
   storageCapacity: ratio,
   famineDesertion: z.boolean(),
+  heroCapture: z.enum(HERO_CAPTURE_RULE_IDS),
 });
 
 const storageBuilding = z.strictObject({
@@ -129,8 +138,10 @@ const morale = z
 const threat = z
   .strictObject({
     max: positiveInt,
+    tileClearedDrop: positiveInt,
     perActiveTilePerDay: positiveInt,
     seasonPerDay: z.partialRecord(z.enum(SEASON_IDS), positiveInt),
+    seasonEnemy: z.partialRecord(z.enum(SEASON_IDS), z.enum(ENEMY_IDS)),
     chronicleMarks: z
       .array(positiveInt)
       .min(1)
@@ -347,9 +358,14 @@ const expeditions = z.strictObject({
       Object.fromEntries(
         EXPEDITION_OUTCOME_IDS.map((id) => [
           id,
-          ratioOrZero.refine(({ num, den }) => num <= den, 'desfecho que multiplica o saque'),
+          // O Sucesso Pleno pode trazer mais do que o nó guarda; nunca o dobro.
+          ratioOrZero.refine(({ num, den }) => num <= 2 * den, 'desfecho que dobra o saque'),
         ]),
       ),
+    )
+    .refine(
+      ({ success }) => success !== undefined && success.num === success.den,
+      'o Sucesso traz o saque do nó, nem mais nem menos',
     )
     .refine((share) => {
       const values = EXPEDITION_OUTCOME_IDS.map((id) => share[id] ?? { num: 0, den: 1 });
@@ -359,6 +375,17 @@ const expeditions = z.strictObject({
           value.num * (values[index - 1]?.den ?? 1) <= (values[index - 1]?.num ?? 0) * value.den,
       );
     }, 'desfecho pior que traz mais saque'),
+  // A experiência segue a mesma ordem, mas todo desfecho ensina alguma coisa.
+  xpShare: z
+    .strictObject(Object.fromEntries(EXPEDITION_OUTCOME_IDS.map((id) => [id, ratio])))
+    .refine((share) => {
+      const values = EXPEDITION_OUTCOME_IDS.map((id) => share[id] ?? { num: 0, den: 1 });
+      return values.every(
+        (value, index) =>
+          index === 0 ||
+          value.num * (values[index - 1]?.den ?? 1) <= (values[index - 1]?.num ?? 0) * value.den,
+      );
+    }, 'desfecho pior que ensina mais'),
   slotsByGuildLevel: z
     .array(positiveInt)
     .min(1)
@@ -480,6 +507,19 @@ const balanceFields = z.strictObject({
   heroes,
   tavern,
   expeditions,
+  // Os ferimentos (ADR 0017, decisão 8): o grave dura mais que o leve.
+  injuries: z
+    .strictObject({
+      durationMs: z.strictObject(
+        Object.fromEntries(INJURY_SEVERITY_IDS.map((id) => [id, positiveInt])),
+      ),
+      harmWeight: positiveInt,
+    })
+    .refine(
+      ({ durationMs }) => (durationMs.light ?? 0) < (durationMs.severe ?? 0),
+      'ferimento leve que dura mais que o grave',
+    ),
+  equipment: z.strictObject({ inventoryCap: positiveInt }),
 });
 
 /**
@@ -815,6 +855,16 @@ export const HeroTraitsSchema = z.strictObject(
               ratio: ratio.refine(({ num, den }) => num >= den, 'traço que tira poder'),
             })
             .optional(),
+          harmWeight: positiveInt.optional(),
+          dodgesSetbackIn: z.array(z.enum(EXPEDITION_NODE_KINDS)).min(1).optional(),
+          // O Ganancioso traz mais, e a chance de perder o saque do nó é uma chance, não certeza.
+          greed: z
+            .strictObject({
+              ratio: ratio.refine(({ num, den }) => num >= den, 'traço que diminui o saque'),
+              lossPercent: positiveInt.max(99),
+            })
+            .optional(),
+          revealsOnSetback: z.literal(true).optional(),
         }),
       }),
     ]),
@@ -1139,20 +1189,40 @@ const expeditionSentence = chronicleTemplate.regex(/^\p{Lu}.*\.$/u);
 /** Uma frase inteira sem lacuna nem número: o que a tela diz de uma encruzilhada ou de um caminho. */
 const expeditionProse = label.regex(/^\p{Lu}[^0-9{}]*\.$/u);
 
-/** O saque de um nó: só recursos, cada um com uma faixa em ordem. Nada de versão futura cabe aqui. */
-const expeditionReward = z.strictObject({
-  resources: z
-    .partialRecord(
-      resourceId,
-      z
-        .strictObject({ min: positiveInt, max: positiveInt })
-        .refine(({ min, max }) => min <= max, 'faixa de saque fora de ordem'),
-    )
-    .refine((amounts) => Object.keys(amounts).length > 0, 'saque sem recurso nenhum'),
-});
+/**
+ * O que um nó rende: recursos, cada um com uma faixa em ordem; um item, com uma chance de
+ * verdade e uma lista sem repetição; a revelação de um destino; a limpeza de um tile; a
+ * libertação de um cativo. Ao menos uma coisa. Nada de versão futura cabe aqui.
+ */
+const expeditionReward = z
+  .strictObject({
+    resources: z
+      .partialRecord(
+        resourceId,
+        z
+          .strictObject({ min: positiveInt, max: positiveInt })
+          .refine(({ min, max }) => min <= max, 'faixa de saque fora de ordem'),
+      )
+      .refine((amounts) => Object.keys(amounts).length > 0, 'saque sem recurso nenhum')
+      .optional(),
+    item: z
+      .strictObject({
+        chance: ratio.refine(({ num, den }) => num <= den, 'chance acima de 1'),
+        from: z
+          .array(z.enum(ITEM_IDS))
+          .min(1)
+          .refine((list) => new Set(list).size === list.length, 'item repetido na lista'),
+      })
+      .optional(),
+    reveals: z.enum(EXPEDITION_MODEL_IDS).optional(),
+    clearsTile: identifier.optional(),
+    rescues: z.literal(true).optional(),
+  })
+  .refine((reward) => Object.keys(reward).length > 0, 'recompensa sem nada');
 
 const expeditionTrial = z.strictObject({
   difficulty: positiveInt,
+  xp: positiveInt,
   weights: z
     .partialRecord(z.enum(HERO_ATTRIBUTE_IDS), ratio)
     .refine((weights) => Object.keys(weights).length > 0, 'pesos sem atributo nenhum')
@@ -1330,6 +1400,12 @@ export function expeditionModelsSchema(rules: ExpeditionsDef) {
           ({ classes, teamMax }) => classes.length <= teamMax,
           'mais classes exigidas do que cabem na equipe',
         ),
+      access: z.discriminatedUnion('kind', [
+        z.strictObject({ kind: z.literal('open') }),
+        z.strictObject({ kind: z.literal('discovered') }),
+        z.strictObject({ kind: z.literal('captive') }),
+        z.strictObject({ kind: z.literal('tile'), tileId: identifier }),
+      ]),
       variants: z
         .array(z.strictObject({ start: identifier, nodes: z.record(identifier, expeditionNode) }))
         .length(rules.variantsPerModel),
@@ -1388,4 +1464,46 @@ export const ExpeditionTextsSchema = z.strictObject(
 /** As outras frases da Crônica de uma expedição: só marcadores conhecidos. */
 export const ExpeditionTemplatesSchema = z.strictObject(
   Object.fromEntries(Object.keys(expeditionTemplates).map((key) => [key, expeditionSentence])),
+);
+
+/**
+ * Os itens (ADR 0018, decisão 15): um por id, na ordem de `ITEM_IDS`, cada um com um espaço, uma
+ * raridade, um fator que nunca tira poder e um valor em ouro. A frase não traz número.
+ */
+export const ItemsSchema = z
+  .strictObject(
+    Object.fromEntries(
+      ITEM_IDS.map((id) => [
+        id,
+        z.strictObject({
+          label: expeditionTitle,
+          text: label.regex(/^\p{Lu}[^0-9{}]*\.$/u),
+          slot: z.enum(ITEM_SLOT_IDS),
+          rarity: z.enum(ITEM_RARITY_IDS),
+          power: ratio.refine(({ num, den }) => num > den, 'item que não soma poder'),
+          value: positiveInt,
+        }),
+      ]),
+    ),
+  )
+  .refine(
+    (catalog) => new Set(Object.values(catalog).map((item) => item.label)).size === ITEM_IDS.length,
+    'dois itens com o mesmo nome',
+  );
+
+export const ItemSlotsSchema = z.strictObject(
+  Object.fromEntries(ITEM_SLOT_IDS.map((id) => [id, z.strictObject({ label: expeditionTitle })])),
+);
+
+export const ItemRaritiesSchema = z.strictObject(
+  Object.fromEntries(ITEM_RARITY_IDS.map((id) => [id, z.strictObject({ label: expeditionTitle })])),
+);
+
+export const EquipmentTextsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(equipmentTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
+);
+
+/** As frases do ferimento de um herói: uma frase inteira da Crônica para cada caso. */
+export const HeroHarmTemplatesSchema = z.strictObject(
+  Object.fromEntries(Object.keys(heroHarmTemplates).map((key) => [key, expeditionSentence])),
 );

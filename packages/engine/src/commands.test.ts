@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
+import { balance } from '@lotg/content';
+
 import { applyCommand } from './commands';
 import { describeAmounts, reject } from './rejections';
 import {
@@ -10,6 +12,7 @@ import {
   command,
   dealt,
   gameWith,
+  giveItem,
   HOUR,
   newGame,
   play,
@@ -18,6 +21,7 @@ import {
   guildHall,
   send,
   tavernScenario,
+  wear,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
@@ -153,6 +157,14 @@ describe('catálogo de recusas', () => {
     'collapsedWell',
   );
   const staffed = gameWith((draft) => void addHero(draft));
+  // O arsenal no teto, e Edda com uma lança: não há onde pôr o que ela devolvesse.
+  const crammed = gameWith((draft) => {
+    const edda = addHero(draft);
+    wear(draft, edda, 'huntingSpear');
+    for (let count = 0; count < balance.equipment.inventoryCap; count += 1) {
+      giveItem(draft, 'luckyCharm');
+    }
+  });
   // A Taverna Nv1 aberta agora, com dois candidatos (`offer-1` e `offer-2`) e ouro de sobra; a
   // mesma já com os dois heróis que ela abriga; e a mesma depois de um festival.
   const tavern = tavernScenario().state;
@@ -268,6 +280,11 @@ describe('catálogo de recusas', () => {
       pastFork,
       command('chooseExpeditionPath', { expeditionId: 'expedition-1', optionId: 'thicket' }),
     ],
+    // O arsenal está vazio.
+    ITEM_NOT_FOUND: [staffed, command('equipItem', { heroId: 'hero-1', itemId: 'item-1' })],
+    // Edda não leva arma nenhuma.
+    WRONG_SLOT: [staffed, command('unequipItem', { heroId: 'hero-1', slot: 'weapon' })],
+    INVENTORY_FULL: [crammed, command('unequipItem', { heroId: 'hero-1', slot: 'weapon' })],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

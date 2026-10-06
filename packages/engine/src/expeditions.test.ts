@@ -30,6 +30,7 @@ import {
   AUTUMN,
   command,
   DAY,
+  everyDestinationOpen,
   guildHall,
   HOUR,
   MINUTE,
@@ -84,6 +85,9 @@ const hero = (spec: Partial<Hero>): Hero => ({
   xp: 0,
   traits: [],
   status: 'idle',
+  injury: null,
+  captivity: null,
+  equipment: { weapon: null, armor: null, accessory: null },
   joinedAtMs: 0,
   discontent: false,
   ...spec,
@@ -264,7 +268,7 @@ describe('enviar uma expedição (sendExpedition)', () => {
       nodeId: 'fences',
       nodeEndsAtMs: 10 * MINUTE,
       crossroads: null,
-      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 } },
+      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 }, items: [] },
       log: [],
     });
     expect(state.guild.heroes.map((entry) => entry.status)).toEqual(['expedition', 'idle']);
@@ -532,8 +536,10 @@ describe('o percurso por eventos da linha do tempo', () => {
         sentAtMs: 0,
         returnedAtMs: 15 * MINUTE,
         log: expedition.log,
-        loot: { resources: { food: 0, wood: 0, stone: 0, gold: found } },
+        loot: { resources: { food: 0, wood: 0, stone: 0, gold: found }, items: [] },
         wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
+        sold: [],
+        lost: false,
       },
     ]);
     expect(home.state.stats.expeditionsReturned).toBe(1);
@@ -605,10 +611,11 @@ describe('o percurso por eventos da linha do tempo', () => {
     const entry = only(after.state).log.at(-1);
     // 2 × 42 × 1,16 = 97,44 contra 55: razão 1,506 com a pior sorte.
     expect(entry?.outcome).toBe('full');
-    expect(entry?.gained.wood).toBeGreaterThanOrEqual(60);
-    expect(entry?.gained.wood).toBeLessThanOrEqual(90);
-    expect(entry?.gained.gold).toBeGreaterThanOrEqual(20);
-    expect(entry?.gained.gold).toBeLessThanOrEqual(30);
+    // O Sucesso Pleno traz o saque do nó e mais um quarto: 60 a 90 de madeira viram 75 a 112.
+    expect(entry?.gained.wood).toBeGreaterThanOrEqual(75);
+    expect(entry?.gained.wood).toBeLessThanOrEqual(112);
+    expect(entry?.gained.gold).toBeGreaterThanOrEqual(25);
+    expect(entry?.gained.gold).toBeLessThanOrEqual(37);
     expect(ofExpeditions(after.events)[0]?.text).toContain('abateu o javali');
   });
 
@@ -646,7 +653,8 @@ describe('o percurso por eventos da linha do tempo', () => {
     const home = advanceTo(after.state, at + 20 * MINUTE);
     const [report] = home.state.guild.reports;
     expect(report?.loot.resources.wood).toBe(trailWood + (entry?.gained.wood ?? 0));
-    expect(home.state.guild.heroes[0]?.status).toBe('idle');
+    // Quem sofre o desfecho volta ferido: fica no feudo, em recuperação (V3D-T2).
+    expect(home.state.guild.heroes[0]?.status).toBe('injured');
   });
 
   it('o saque que não cabe no depósito é desperdício contado, e a frase diz o que foi ao chão', () => {
@@ -809,6 +817,14 @@ describe('a encruzilhada (ADR 0018, decisão 11)', () => {
       optionId: 'stream',
       decidedBy: 'player',
       gained: { food: 0, wood: 0, stone: 0, gold: 0 },
+      xp: 0,
+      harm: null,
+      leveled: [],
+      found: [],
+      revealed: null,
+      cleared: null,
+      rescued: null,
+      lootLost: false,
     });
     // A ordem não sorteia.
     expect(chosen.state.rng).toEqual(waited.rng);
@@ -1136,7 +1152,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
         nodeId: 'home',
         nodeEndsAtMs: T,
         crossroads: null,
-        loot: { resources: { ...blank, gold: 20 } },
+        loot: { resources: { ...blank, gold: 20 }, items: [] },
         log: [],
       },
       {
@@ -1151,7 +1167,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
         nodeId: 'fork',
         nodeEndsAtMs: null,
         crossroads: { decidesAtMs: T },
-        loot: { resources: { ...blank } },
+        loot: { resources: { ...blank }, items: [] },
         log: [],
       },
     ];
@@ -1217,7 +1233,7 @@ describe('no mesmo instante: fim de nó, prazo de encruzilhada, virada de dia, r
           nodeId: 'home',
           nodeEndsAtMs: T,
           crossroads: null,
-          loot: { resources: { ...blank } },
+          loot: { resources: { ...blank }, items: [] },
           log: [],
         },
       ];
@@ -1295,7 +1311,14 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       'Equilibrada',
       'Ousada',
     ]);
-    expect(view.available).toEqual([
+    // O Covil dos Lobos é conhecido desde sempre e vem depois (V3D-T2); as Ruínas e o Resgate
+    // só aparecem por descoberta e com um cativo.
+    expect(view.available.map((offer) => offer.modelId)).toEqual([
+      'patrol',
+      'oldForest',
+      'wolfDen',
+    ]);
+    expect(view.available.slice(0, 2)).toEqual([
       {
         modelId: 'patrol',
         label: 'Patrulha dos Arredores',
@@ -1305,6 +1328,8 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         requirementsText: 'Equipe: 1 herói.',
         teamMin: 1,
         teamMax: 1,
+        teamMinLevel: 1,
+        firstStretchDifficulty: 30,
         locked: false,
         lockedReason: null,
         firstStretchText: 'A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta.',
@@ -1318,6 +1343,8 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
         requirementsText: 'Equipe: de 1 a 2 heróis.',
         teamMin: 1,
         teamMax: 2,
+        teamMinLevel: 1,
+        firstStretchDifficulty: null,
         locked: false,
         lockedReason: null,
         firstStretchText:
@@ -1328,7 +1355,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
 
   it('a duração anunciada é em tempo real e é a que vale: no ritmo 3, um terço; no verão, 17/20', () => {
     const fast = deriveViewState(hall({ timeScale: 3 }), 0, { timeScale: 3 }).guild.available;
-    expect(fast.map((offer) => offer.durationSeconds)).toEqual([5 * 60, 20 * 60]);
+    expect(fast.map((offer) => offer.durationSeconds)).toEqual([5 * 60, 20 * 60, 40 * 60]);
     const summer = hall({}, () => {}, SUMMER);
     const offers = deriveViewState(summer, SUMMER).guild.available;
     expect(offers[0]?.durationSeconds).toBe(12 * 60 + 45);
@@ -1394,6 +1421,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
           title: 'A trilha sob os carvalhos',
           text: `No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe ${wood} de madeira.`,
           outcomeLabel: 'Sem incidentes',
+          notes: [],
         },
       ],
       crossroads: {
@@ -1538,10 +1566,13 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
             for (let count = 0; count < model.requires.teamMin; count += 1) {
               addHero(draft, { level: 3 });
             }
+            everyDestinationOpen(draft);
           },
           { level: 4 },
         );
-        const team = start.guild.heroes.map((entry) => entry.id);
+        const team = start.guild.heroes
+          .filter((entry) => entry.status === 'idle')
+          .map((entry) => entry.id);
         let state = send(start, model.id, team, 'balanced', index).state;
         const reached = new Set<string>([only(state).nodeId]);
         // Anda até a primeira encruzilhada (ou até voltar).
@@ -1747,12 +1778,12 @@ describe('o estado gravado das expedições (a guarda da versão 17)', () => {
         d.guild.expeditions[0]!.log = Array.from({ length: 9 }, () => ({ ...entry! }));
       }),
     ).toMatch(/lista de até 8 registros/);
-    // Um campo de outra tarefa não entra antes dela (regra 6 do CLAUDE.md).
+    // Um campo de outra versão não entra antes dela (regra 6 do CLAUDE.md).
     expect(
-      check(state, (d) => ((d.guild.expeditions[0]!.loot as Record<string, unknown>).items = [])),
-    ).toMatch(/loot.items: campo desconhecido/);
-    expect(check(state, (d) => ((d.guild as Record<string, unknown>).inventory = []))).toMatch(
-      /guild.inventory: campo desconhecido/,
+      check(state, (d) => ((d.guild.expeditions[0]!.loot as Record<string, unknown>).relics = [])),
+    ).toMatch(/loot.relics: campo desconhecido/);
+    expect(check(state, (d) => ((d.guild as Record<string, unknown>).caravans = []))).toMatch(
+      /guild.caravans: campo desconhecido/,
     );
     const home = advanceTo(state, state.lastProcessedAt + 12 * HOUR).state;
     expect(

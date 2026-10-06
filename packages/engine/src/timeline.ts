@@ -3,7 +3,7 @@ import { nextCouncilEventAt } from './council';
 import { nextAdaptationEndAt } from './craft';
 import { nextExpeditionEventAt } from './expeditions';
 import { foodRunsOutIn, goldRunsOutIn, netRates, woodRunsOutIn } from './economy';
-import { nextHeroArrivalAt } from './heroes';
+import { nextHeroArrivalAt, nextHeroRecoveryAt } from './heroes';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { storageFillsIn } from './storage';
@@ -27,7 +27,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
  * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício,
  * uma incursão que chega, o aviso da Torre de Vigia, a troca dos candidatos da Taverna, o fim de um nó de expedição, o
- * prazo de uma encruzilhada, um ferido que sara, o momento em que a
+ * prazo de uma encruzilhada, um ferido que sara, um herói ferido que sara, o momento em que a
  * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
  * a pagar, aquele em que um estoque chega ao limite ou aquele em que uma planejada automática
  * junta o custo. As consequências do soldo em atraso são cobradas na virada do dia. Nunca devolve um instante
@@ -85,6 +85,11 @@ export function nextEventAt(state: GameState): number | null {
   const recovery = nextRecoveryAt(state);
   if (recovery !== null) {
     candidates.push(recovery);
+  }
+  // O herói ferido que sara volta a poder partir exatamente nesse instante.
+  const heroRecovery = nextHeroRecoveryAt(state);
+  if (heroRecovery !== null) {
+    candidates.push(heroRecovery);
   }
   const rates = netRates(state);
   const foodRunsOut = foodRunsOutIn(state, rates);

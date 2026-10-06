@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -713,7 +713,8 @@
        "threatActive": true
       }
      },
-     "threat": 24
+     "threat": 24,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": [
@@ -730,6 +731,7 @@
     "guild": {
      "heroes": [],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -769,7 +771,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -911,7 +913,8 @@
        "threatActive": true
       }
      },
-     "threat": 18
+     "threat": 18,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": []
@@ -919,6 +922,7 @@
     "guild": {
      "heroes": [],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -974,7 +978,7 @@
    "day": 3,
    "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1120,7 +1124,8 @@
        "threatActive": true
       }
      },
-     "threat": 42
+     "threat": 42,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": []
@@ -1138,11 +1143,19 @@
         "loyal"
        ],
        "status": "idle",
+       "injury": null,
+       "captivity": null,
+       "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+       },
        "joinedAtMs": 172800000,
        "discontent": false
       }
      ],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1205,7 +1218,7 @@
    "day": 4,
    "eventsSoFar": 176,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1351,7 +1364,8 @@
        "threatActive": true
       }
      },
-     "threat": 66
+     "threat": 66,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": [
@@ -1378,11 +1392,19 @@
         "loyal"
        ],
        "status": "idle",
+       "injury": null,
+       "captivity": null,
+       "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+       },
        "joinedAtMs": 172800000,
        "discontent": false
       }
      ],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1448,7 +1470,7 @@
    "day": 5,
    "eventsSoFar": 224,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1597,7 +1619,8 @@
        "threatActive": true
       }
      },
-     "threat": 56
+     "threat": 56,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": []
@@ -1615,11 +1638,19 @@
         "loyal"
        ],
        "status": "idle",
+       "injury": null,
+       "captivity": null,
+       "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+       },
        "joinedAtMs": 172800000,
        "discontent": false
       }
      ],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1689,7 +1720,7 @@
    "day": 6,
    "eventsSoFar": 272,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1861,7 +1892,8 @@
        "threatActive": true
       }
      },
-     "threat": 46
+     "threat": 46,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": []
@@ -1879,11 +1911,19 @@
         "loyal"
        ],
        "status": "idle",
+       "injury": null,
+       "captivity": null,
+       "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+       },
        "joinedAtMs": 172800000,
        "discontent": false
       }
      ],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],
@@ -1957,7 +1997,7 @@
    "day": 7,
    "eventsSoFar": 323,
    "state": {
-    "schemaVersion": 17,
+    "schemaVersion": 18,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2107,7 +2147,8 @@
        "threatActive": true
       }
      },
-     "threat": 70
+     "threat": 70,
+     "discovered": []
     },
     "horde": {
      "scheduledRaids": []
@@ -2125,11 +2166,19 @@
         "loyal"
        ],
        "status": "idle",
+       "injury": null,
+       "captivity": null,
+       "equipment": {
+        "weapon": null,
+        "armor": null,
+        "accessory": null
+       },
        "joinedAtMs": 172800000,
        "discontent": false
       }
      ],
      "arriving": [],
+     "inventory": [],
      "wageArrears": null,
      "lastWageArrears": null,
      "tavernOffers": [],

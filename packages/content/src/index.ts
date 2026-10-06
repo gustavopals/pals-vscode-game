@@ -7,8 +7,10 @@ export type {
   CouncilDef,
   CraftDef,
   DifficultyDef,
+  EquipmentDef,
   ExpeditionsDef,
   HeroesDef,
+  InjuriesDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,
@@ -35,6 +37,7 @@ export {
   cutRewardTemplates,
   EVENT_TYPES,
   foundingTemplates,
+  heroHarmTemplates,
   idleVillager,
   injuredLoss,
   injuryTemplates,
@@ -48,6 +51,7 @@ export type {
   ColdRelief,
   FoundingEventType,
   GameEventType,
+  HeroHarmTemplate,
   RaidTemplates,
   WageArrearsRelief,
 } from './chronicle';
@@ -58,6 +62,7 @@ export {
   heroNames,
   heroStatuses,
   heroTraits,
+  injurySeverities,
   namedHeroes,
   tavernCandidates,
   wageArrearsTexts,
@@ -77,6 +82,7 @@ export {
   expeditionTexts,
 } from './expeditions';
 export type {
+  ExpeditionAccess,
   ExpeditionCrossroadsNode,
   ExpeditionModelDef,
   ExpeditionNode,
@@ -89,6 +95,8 @@ export type {
   ExpeditionTrial,
   ExpeditionVariant,
 } from './expeditions';
+export { equipmentTexts, itemRarities, items, itemSlots } from './items';
+export type { ItemDef } from './items';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {
   CouncilCard,

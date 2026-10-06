@@ -1,28 +1,54 @@
 import {
   balance,
+  type ExpeditionOutcomeId,
   expeditionOutcomes,
   expeditionPostures,
   type ExpeditionStageNode,
   expeditionTemplates,
+  heroTraits,
+  type Ratio,
   RESOURCE_IDS,
   type ResourceId,
 } from '@lotg/content';
 
 import { emit } from './chronicle';
 import { lowerFirst } from './council';
+import { stowItem } from './equipment';
 import {
   enterNode,
   expeditionLabel,
   heroesOf,
+  logEntry,
   nodeOf,
   outcomeOf,
   postureChoice,
   powerAgainst,
   teamNames,
 } from './expeditions';
-import { dropStream, entityStream, nextInt } from './random';
+import { joinList } from './format';
+import { itemDefOf } from './heroes';
+import { nextId } from './ids';
+import {
+  applyHarm,
+  clearTile,
+  grantXp,
+  type Harm,
+  harmCandidates,
+  harmOf,
+  rescueCaptive,
+  revealDestination,
+} from './outcomes';
+import { chance, dropStream, entityStream, nextInt, pickWeighted, type RngStream } from './random';
 import { describeLoss, storeResource } from './storage';
-import type { Expedition, ExpeditionLogEntry, GameEvent, GameState } from './types';
+import type {
+  Expedition,
+  ExpeditionLogEntry,
+  ExpeditionReport,
+  GameEvent,
+  GameState,
+  Hero,
+  Item,
+} from './types';
 import { MILLI } from './units';
 
 /**
@@ -38,11 +64,6 @@ const { expeditions: rules } = balance;
 
 const noAmounts = (): Record<ResourceId, number> => ({ food: 0, wood: 0, stone: 0, gold: 0 });
 
-/** "22 de ouro e 15 de madeira", a partir de unidades inteiras. */
-function describeUnits(amounts: Record<ResourceId, number>): string {
-  return describeLoss(amounts);
-}
-
 /** As chaves `<prefixo>_<recurso>` de um evento, só para o que é maior que zero. */
 function amountKeys(prefix: string, amounts: Record<ResourceId, number>): Record<string, number> {
   return Object.fromEntries(
@@ -54,19 +75,68 @@ function amountKeys(prefix: string, amounts: Record<ResourceId, number>): Record
 }
 
 /**
- * Resolve o nó em que a equipe está, no instante em que ele termina (ADR 0017, decisão 7).
+ * Sorteia quem sofre, no fluxo dado. **Só se sorteia o que pode acontecer**: sem candidato
+ * ninguém sofre, e com um só é ele, nos dois casos sem gastar o fluxo.
+ */
+export function drawVictim(
+  draft: GameState,
+  stream: RngStream,
+  candidates: ReadonlyArray<{ hero: Hero; weight: number }>,
+): Hero | null {
+  const live = candidates.filter((entry) => entry.weight > 0);
+  if (live.length <= 1) {
+    return live[0]?.hero ?? null;
+  }
+  return pickWeighted(draft, stream, live)?.hero ?? null;
+}
+
+/** A parte de um desfecho que só vem a partir do Sucesso: item, revelação, tile limpo, cativo solto. */
+const succeeded = (outcome: ExpeditionLogEntry['outcome']): boolean =>
+  outcome === 'full' || outcome === 'success' || outcome === 'passed';
+
+/** O traço de saque da equipe (o Ganancioso): o primeiro da equipe que o tem; dois não somam. */
+function lootTrait(team: readonly Hero[]): { ratio: Ratio; lossPercent: number } | null {
+  for (const hero of team) {
+    for (const trait of hero.traits) {
+      const { greed } = heroTraits[trait].effects;
+      if (greed !== undefined) {
+        return greed;
+      }
+    }
+  }
+  return null;
+}
+
+const hasTracker = (team: readonly Hero[]): boolean =>
+  team.some((hero) => hero.traits.some((trait) => heroTraits[trait].effects.revealsOnSetback));
+
+/**
+ * Resolve o nó em que a equipe está, no instante em que ele termina (ADR 0017, decisões 7 e 8).
  *
- * **A ordem dos sorteios dentro do nó é fixa**, todos no fluxo da expedição:
+ * **A ordem dos sorteios dentro do nó é fixa**, todos no fluxo da expedição, e **só se sorteia o
+ * que pode acontecer**:
  *
  * 1. a **sorte**, um inteiro de `luck.min` a `luck.max`, uma vez, só em nó com dificuldade;
- * 2. (quem sofre o desfecho entra aqui, com V3D-T2: nesta tarefa o desfecho não toca o herói);
- * 3. as **quantidades do saque**, na ordem dos recursos do conteúdo, cada uma um inteiro da
- *    faixa do nó. Só se sorteia o que pode acontecer: a faixa de um valor só não gasta sorteio,
- *    e o desfecho que não deixa trazer nada (o Desastre) não sorteia quantidade nenhuma.
+ * 2. **quem sofre** o desfecho, por peso (`harmCandidates`), só no Revés e no Desastre, e só com
+ *    mais de um candidato (com um só é ele; sem nenhum, ninguém);
+ * 3. **a cobiça** do Ganancioso: com um na equipe, em nó com dificuldade que renderia algo, a
+ *    chance de o saque do nó se perder;
+ * 4. as **quantidades do saque**, na ordem dos recursos do conteúdo, cada uma um inteiro da
+ *    faixa do nó (a faixa de um valor só não gasta sorteio);
+ * 5. o **item**: a chance de achar um (a chance certa não gasta sorteio) e, achado, qual da
+ *    lista (a lista de um só não gasta sorteio).
  *
- * O desfecho decide a parte do saque do nó que a equipe traz (`lootShare`) e a frase. O poder é
- * o da equipe **neste instante**, com os pesos do nó: quem ficou Descontente no caminho rende
- * menos aqui.
+ * O Desastre não deixa trazer nada: não sorteia cobiça, quantidade nem item. O saque que a
+ * cobiça perdeu também não sorteia quantidade nem item. O item só vem a partir do Sucesso.
+ *
+ * Sorteado tudo, o que o nó faz, sem sorteio, na ordem das linhas da Crônica: a frase do nó; o
+ * dano a quem foi sorteado; o item; o destino revelado; o tile limpo; o cativo solto; e a
+ * experiência de **quem continua na equipe**, com os níveis. O poder é o da equipe **como chegou
+ * ao nó**, com os pesos dele: quem ficou Descontente no caminho rende menos aqui, e quem se fere
+ * aqui ainda lutou.
+ *
+ * **Se ninguém da equipe fica de pé** (todos capturados ou mortos), a expedição termina aqui e o
+ * saque se perde (`endLost`).
  */
 function resolveStage(
   draft: GameState,
@@ -77,21 +147,39 @@ function resolveStage(
 ): void {
   const stream = entityStream('expedition', expedition.id);
   const team = heroesOf(draft, expedition.heroIds);
-  const { trial } = node;
-  let outcome: ExpeditionLogEntry['outcome'] = 'passed';
+  const label = expeditionLabel(expedition.modelId);
+  const { trial, rewards } = node;
+  const entry = logEntry(expedition.nodeId, atMs, 'passed');
   let share = { num: 1, den: 1 };
   let template = node.text;
+  let victim: Hero | null = null;
+  let harm: Harm | null = null;
   if (trial !== undefined) {
+    // 1. A sorte.
     const luck = rules.luck.min + nextInt(draft, stream, rules.luck.max - rules.luck.min + 1);
     const result = outcomeOf(powerAgainst(team, trial, expedition.posture), luck, trial.difficulty);
-    outcome = result;
+    entry.outcome = result;
     share = rules.lootShare[result];
     template = trial.outcomes[result];
+    // 2. Quem sofre.
+    harm = harmOf(draft, result, trial.onDisaster);
+    if (harm !== null) {
+      victim = drawVictim(draft, stream, harmCandidates(team, node.kind, harm));
+    }
   }
-  const gained = noAmounts();
-  if (node.rewards !== undefined && share.num > 0) {
+  const greed = lootTrait(team);
+  const yields =
+    share.num > 0 &&
+    (rewards?.resources !== undefined || (rewards?.item !== undefined && succeeded(entry.outcome)));
+  // 3. A cobiça.
+  if (trial !== undefined && greed !== null && yields) {
+    entry.lootLost = chance(draft, stream, { num: greed.lossPercent, den: 100 });
+  }
+  const found: Item[] = [];
+  if (yields && !entry.lootLost) {
+    // 4. As quantidades.
     for (const resource of RESOURCE_IDS) {
-      const range = node.rewards.resources[resource];
+      const range = rewards?.resources?.[resource];
       if (range === undefined) {
         continue;
       }
@@ -99,18 +187,33 @@ function resolveStage(
         range.max > range.min
           ? range.min + nextInt(draft, stream, range.max - range.min + 1)
           : range.min;
-      gained[resource] = Math.floor((amount * share.num) / share.den);
-      expedition.loot.resources[resource] += gained[resource];
+      const boost = greed?.ratio ?? { num: 1, den: 1 };
+      entry.gained[resource] = Math.floor(
+        (amount * share.num * boost.num) / (share.den * boost.den),
+      );
+      expedition.loot.resources[resource] += entry.gained[resource];
+    }
+    // 5. O item.
+    const drop = rewards?.item;
+    if (drop !== undefined && succeeded(entry.outcome)) {
+      const got = drop.chance.num >= drop.chance.den || chance(draft, stream, drop.chance);
+      const defId = !got
+        ? undefined
+        : drop.from.length > 1
+          ? drop.from[nextInt(draft, stream, drop.from.length)]
+          : drop.from[0];
+      if (defId !== undefined) {
+        // Um instante da linha do tempo cria a entidade: o item nasce com o identificador dele.
+        const item: Item = { id: nextId(draft, 'item'), defId };
+        found.push(item);
+        expedition.loot.items.push(item);
+        entry.found.push(defId);
+      }
     }
   }
-  expedition.log.push({
-    nodeId: expedition.nodeId,
-    atMs,
-    outcome,
-    optionId: null,
-    decidedBy: null,
-    gained,
-  });
+  if (victim !== null && harm !== null) {
+    entry.harm = { heroName: victim.name, kind: harm.kind };
+  }
   emit(
     events,
     draft,
@@ -119,28 +222,159 @@ function resolveStage(
     {
       expeditionId: expedition.id,
       modelId: expedition.modelId,
-      outcome,
-      ...amountKeys('found', gained),
+      outcome: entry.outcome,
+      ...amountKeys('found', entry.gained),
+      ...(entry.lootLost ? { lootLost: 1 } : {}),
     },
     {
-      expedicao: expeditionLabel(expedition.modelId),
+      expedicao: label,
       no: node.title,
-      desfecho: expeditionOutcomes[outcome].label.toLowerCase(),
+      desfecho: expeditionOutcomes[entry.outcome].label.toLowerCase(),
       herois: teamNames(team),
     },
     template,
   );
+  if (victim !== null && harm !== null) {
+    applyHarm(draft, expedition, victim, harm, label, atMs, events);
+  }
+  for (const item of found) {
+    emit(
+      events,
+      draft,
+      atMs,
+      'itemFound',
+      {
+        expeditionId: expedition.id,
+        modelId: expedition.modelId,
+        itemId: item.id,
+        defId: item.defId,
+      },
+      { expedicao: label, item: itemDefOf(item)?.label ?? '' },
+    );
+  }
+  const reveals = rewards?.reveals;
+  if (
+    reveals !== undefined &&
+    (succeeded(entry.outcome) || (entry.outcome === 'setback' && hasTracker(team))) &&
+    revealDestination(draft, reveals)
+  ) {
+    entry.revealed = reveals;
+    emit(
+      events,
+      draft,
+      atMs,
+      'destinationRevealed',
+      { expeditionId: expedition.id, modelId: expedition.modelId, revealed: reveals },
+      { expedicao: label, destino: expeditionLabel(reveals) },
+    );
+  }
+  if (succeeded(entry.outcome)) {
+    const tileId = rewards?.clearsTile;
+    if (tileId !== undefined && clearTile(draft, expedition, tileId, label, atMs, events)) {
+      entry.cleared = tileId;
+    }
+    if (rewards?.rescues === true) {
+      entry.rescued = rescueCaptive(draft, expedition, label, atMs, events)?.name ?? null;
+    }
+  }
+  const standing = heroesOf(draft, expedition.heroIds);
+  if (trial !== undefined) {
+    const ratio = rules.xpShare[entry.outcome as ExpeditionOutcomeId];
+    entry.xp = Math.floor((trial.xp * ratio.num) / ratio.den);
+    entry.leveled = grantXp(draft, standing, entry.xp, atMs, events);
+  }
+  expedition.log.push(entry);
+  if (standing.length === 0) {
+    endLost(draft, expedition, atMs, events);
+    return;
+  }
   enterNode(draft, expedition, node.next, atMs, events);
+}
+
+/** Os nomes de quem foi: quem voltou, na ordem da equipe, e depois quem o percurso levou. */
+function reportNames(expedition: Expedition, team: readonly Hero[]): string[] {
+  const names = team.map((hero) => hero.name);
+  for (const { harm } of expedition.log) {
+    if (
+      harm !== null &&
+      (harm.kind === 'captured' || harm.kind === 'died') &&
+      !names.includes(harm.heroName)
+    ) {
+      names.push(harm.heroName);
+    }
+  }
+  return names;
+}
+
+/** Fecha a expedição neste instante: sai da lista, e o fluxo de sorteio dela é apagado por último. */
+function close(draft: GameState, expedition: Expedition, report: ExpeditionReport): void {
+  const { guild } = draft;
+  guild.reports.push(report);
+  guild.reports = guild.reports.slice(-rules.reportsKept);
+  guild.expeditions = guild.expeditions.filter((entry) => entry.id !== expedition.id);
+  // O último passo da expedição neste instante: nada mais sorteia no fluxo dela, e o
+  // identificador nunca volta, então o fluxo não renasce (README do motor, "O que a fundação
+  // não prova", R1).
+  dropStream(draft, entityStream('expedition', expedition.id));
+}
+
+/**
+ * Ninguém da equipe ficou de pé (todos capturados ou mortos): a expedição termina no nó, sem
+ * caminho de volta, e **o saque se perde** (os recursos e os itens que ela trazia). O relatório
+ * fica, dizendo isso, e a Crônica tem a linha dela.
+ */
+function endLost(
+  draft: GameState,
+  expedition: Expedition,
+  atMs: number,
+  events: GameEvent[],
+): void {
+  draft.stats.expeditionsLost = (draft.stats.expeditionsLost ?? 0) + 1;
+  emit(
+    events,
+    draft,
+    atMs,
+    'expeditionLost',
+    { expeditionId: expedition.id, modelId: expedition.modelId },
+    { expedicao: expeditionLabel(expedition.modelId) },
+  );
+  close(draft, expedition, {
+    expeditionId: expedition.id,
+    modelId: expedition.modelId,
+    variant: expedition.variant,
+    heroNames: reportNames(expedition, []),
+    posture: expedition.posture,
+    sentAtMs: expedition.sentAtMs,
+    returnedAtMs: atMs,
+    log: expedition.log,
+    loot: { resources: noAmounts(), items: [] },
+    wasted: noAmounts(),
+    sold: [],
+    lost: true,
+  });
+}
+
+/** "22 de ouro e um item (Lança de caça)": o saque em palavras, com os itens. */
+function describeLoot(loot: Expedition['loot']): string {
+  const parts: string[] = [];
+  if (RESOURCE_IDS.some((resource) => loot.resources[resource] > 0)) {
+    parts.push(describeLoss(loot.resources));
+  }
+  const labels = loot.items.map((item) => itemDefOf(item)?.label ?? 'um item sem nome');
+  if (labels.length === 1) {
+    parts.push(`um item (${labels[0]})`);
+  } else if (labels.length > 1) {
+    parts.push(`${labels.length} itens (${joinList(labels)})`);
+  }
+  return parts.join(' e ');
 }
 
 /**
  * A equipe volta para casa: o saque entra no estoque pelo depósito (o que não cabe é
- * desperdício contado, como todo ganho discreto), os heróis voltam a ficar no feudo, o percurso
- * vira relatório (os mais antigos saem) e a expedição deixa a lista.
- *
- * **Apagar o fluxo de sorteio é o último passo dela neste instante**: nada sorteia em
- * `expedition:<id>` depois do `dropStream`, e o identificador nunca volta, então o fluxo não
- * renasce (README do motor, "O que a fundação não prova", R1).
+ * desperdício contado, como todo ganho discreto), os itens vão para o arsenal (o que não cabe
+ * vira ouro, com linha na Crônica), os heróis voltam a ficar no feudo (**quem se feriu e ainda
+ * não sarou fica em recuperação**), o percurso vira relatório (os mais antigos saem) e a
+ * expedição deixa a lista.
  */
 function returnHome(
   draft: GameState,
@@ -148,7 +382,6 @@ function returnHome(
   atMs: number,
   events: GameEvent[],
 ): void {
-  const { guild } = draft;
   const team = heroesOf(draft, expedition.heroIds);
   const stored = noAmounts();
   const wasted = noAmounts();
@@ -158,25 +391,11 @@ function returnHome(
     wasted[resource] = milli - stored[resource];
   }
   for (const hero of team) {
-    hero.status = 'idle';
+    hero.status = hero.injury === null ? 'idle' : 'injured';
   }
-  guild.reports.push({
-    expeditionId: expedition.id,
-    modelId: expedition.modelId,
-    variant: expedition.variant,
-    heroNames: team.map((hero) => hero.name),
-    posture: expedition.posture,
-    sentAtMs: expedition.sentAtMs,
-    returnedAtMs: atMs,
-    log: expedition.log,
-    loot: expedition.loot,
-    wasted,
-  });
-  guild.reports = guild.reports.slice(-rules.reportsKept);
-  guild.expeditions = guild.expeditions.filter((entry) => entry.id !== expedition.id);
   draft.stats.expeditionsReturned = (draft.stats.expeditionsReturned ?? 0) + 1;
-  const { resources } = expedition.loot;
-  const empty = RESOURCE_IDS.every((resource) => resources[resource] === 0);
+  const { resources, items: carried } = expedition.loot;
+  const empty = carried.length === 0 && RESOURCE_IDS.every((resource) => resources[resource] === 0);
   const cut = RESOURCE_IDS.some((resource) => wasted[resource] > 0);
   const lost = Object.fromEntries(
     RESOURCE_IDS.map((resource) => [resource, wasted[resource] / MILLI]),
@@ -191,6 +410,7 @@ function returnHome(
       modelId: expedition.modelId,
       heroes: team.length,
       heroIds: expedition.heroIds.join(','),
+      ...(carried.length > 0 ? { items: carried.length } : {}),
       ...amountKeys('loot', resources),
       ...Object.fromEntries(
         RESOURCE_IDS.filter((resource) => stored[resource] > 0).map((resource) => [
@@ -203,13 +423,27 @@ function returnHome(
     {
       expedicao: expeditionLabel(expedition.modelId),
       herois: teamNames(team),
-      saque: describeUnits(resources),
+      saque: describeLoot(expedition.loot),
       perda: describeLoss(lost),
     },
     empty ? expeditionTemplates.returnedEmpty : cut ? expeditionTemplates.returnedCut : undefined,
   );
-  // O último passo da expedição neste instante: nada mais sorteia no fluxo dela.
-  dropStream(draft, entityStream('expedition', expedition.id));
+  // Depois da linha da volta: o item que não cabe no arsenal vira ouro, com a linha dele.
+  const sold = carried.filter((item) => !stowItem(draft, item, atMs, events));
+  close(draft, expedition, {
+    expeditionId: expedition.id,
+    modelId: expedition.modelId,
+    variant: expedition.variant,
+    heroNames: reportNames(expedition, team),
+    posture: expedition.posture,
+    sentAtMs: expedition.sentAtMs,
+    returnedAtMs: atMs,
+    log: expedition.log,
+    loot: expedition.loot,
+    wasted,
+    sold: sold.map((item) => item.defId),
+    lost: false,
+  });
 }
 
 /**
@@ -233,12 +467,9 @@ function decideByPosture(
   }
   const fallback = choice.blocked !== null;
   expedition.log.push({
-    nodeId: expedition.nodeId,
-    atMs,
-    outcome: 'chosen',
+    ...logEntry(expedition.nodeId, atMs, 'chosen'),
     optionId: choice.option.id,
     decidedBy: fallback ? 'cautiousFallback' : 'posture',
-    gained: noAmounts(),
   });
   draft.stats.crossroadsByPosture = (draft.stats.crossroadsByPosture ?? 0) + 1;
   emit(

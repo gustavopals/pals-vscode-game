@@ -19,6 +19,8 @@ const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'DIFFICULTY_IDS',
   'ENEMY_IDS',
   'EVENT_TYPES',
+  // Os espaços de equipamento (V3D-T2): o schema da visão os usa, como usa os recursos.
+  'ITEM_SLOT_IDS',
   'MORALE_BAND_IDS',
   'MORALE_TERM_IDS',
   'PRODUCTION_BUILDING_IDS',

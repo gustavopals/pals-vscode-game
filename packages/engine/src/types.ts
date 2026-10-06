@@ -6,8 +6,11 @@ import type {
   GameEventType,
   HeroClassId,
   HeroGenderId,
+  HeroHarmId,
   HeroStatusId,
   HeroTraitId,
+  InjurySeverityId,
+  ItemSlotId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -28,8 +31,11 @@ export type {
   GameEventType,
   HeroClassId,
   HeroGenderId,
+  HeroHarmId,
   HeroStatusId,
   HeroTraitId,
+  InjurySeverityId,
+  ItemSlotId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -140,7 +146,10 @@ export type DelayedCardEffect = {
  */
 export type MapTile = {
   type: TileTypeId;
-  /** Ativo, o tile faz a Ameaça subir a cada dia de jogo. Não há como limpá-lo nesta versão. */
+  /**
+   * Ativo, o tile faz a Ameaça subir a cada dia de jogo. Uma expedição pode limpá-lo, e na
+   * virada do ano ele volta a ficar ativo (ADR 0018, decisão 14).
+   */
   threatActive: boolean;
 };
 
@@ -185,6 +194,28 @@ export type ArrivingHero = {
 };
 
 /**
+ * Um item (GDD §9.1; ADR 0018, decisão 15): o que foi achado, e o que ele é no conteúdo. Mora no
+ * arsenal (`guild.inventory`), em um espaço de um herói (`hero.equipment`) ou no saque de uma
+ * expedição em curso.
+ */
+export type Item = {
+  /** `item-<n>`, de `nextId(draft, 'item')`: nunca reutilizado. É o que `equipItem` recebe. */
+  id: string;
+  /** O item do conteúdo (`items`). */
+  defId: string;
+};
+
+/** O ferimento de um herói (ADR 0017, decisão 8): não parte em outra expedição até `untilMs`. */
+export type HeroInjury = {
+  severity: InjurySeverityId;
+  /** O instante de jogo em que ele sara: é um evento da linha do tempo. */
+  untilMs: number;
+};
+
+/** O cativeiro de um herói: desde quando, e em que expedição ficou. Sem prazo nesta versão. */
+export type HeroCaptivity = { sinceMs: number; modelId: string };
+
+/**
  * Um herói a serviço do feudo (GDD §9.1; ADR 0017). Só o que não se deriva: os atributos e o
  * poder saem da classe, do nível e do Descontente, em `heroes.ts`, e nunca são gravados.
  */
@@ -200,8 +231,20 @@ export type Hero = {
   /** Experiência acumulada no nível de agora. */
   xp: number;
   traits: HeroTraitId[];
-  /** O que ele está fazendo: no feudo (`idle`) ou em uma expedição (`expedition`). */
+  /**
+   * O que ele está fazendo: no feudo e pronto (`idle`), em uma expedição (`expedition`), no
+   * feudo se recuperando de um ferimento (`injured`) ou em cativeiro (`captured`).
+   */
   status: HeroStatusId;
+  /**
+   * O ferimento que ainda não sarou; `null` sem ele. Quem se fere em uma expedição a termina
+   * (`status` continua `expedition`) e, na volta, fica `injured` até `untilMs`.
+   */
+  injury: HeroInjury | null;
+  /** O cativeiro; `null` fora dele. Só `status: 'captured'` o tem. */
+  captivity: HeroCaptivity | null;
+  /** O que ele leva em cada espaço; `null` no espaço vazio. */
+  equipment: Record<ItemSlotId, Item | null>;
   /** Quando chegou, em tempo de jogo: quem chegou por último é o primeiro a partir sem soldo. */
   joinedAtMs: number;
   /**
@@ -246,6 +289,22 @@ export type ExpeditionLogEntry = {
   decidedBy: CrossroadsDecider | null;
   /** O que o nó rendeu, em unidades inteiras, já com a parte que o desfecho deixa. */
   gained: Record<ResourceId, number>;
+  /** A experiência que cada herói que continuou na equipe ganhou no nó. */
+  xp: number;
+  /** Quem sofreu o desfecho, pelo nome, e o que sofreu; `null` quando ninguém. */
+  harm: { heroName: string; kind: HeroHarmId } | null;
+  /** Quem subiu de nível com a experiência do nó, e para qual. */
+  leveled: Array<{ heroName: string; level: number }>;
+  /** Os itens achados no nó, pelo item do conteúdo. */
+  found: string[];
+  /** O destino que o nó revelou (o modelo do conteúdo); `null` no resto. */
+  revealed: string | null;
+  /** O tile de ameaça que o nó limpou (a chave do tile); `null` no resto. */
+  cleared: string | null;
+  /** Quem o nó tirou do cativeiro, pelo nome; `null` no resto. */
+  rescued: string | null;
+  /** O saque do nó se perdeu no caminho (o Ganancioso). */
+  lootLost: boolean;
 };
 
 /**
@@ -276,11 +335,14 @@ export type Expedition = {
    * prazo de tempo real do conteúdo convertido quando a equipe chegou. `null` fora dela.
    */
   crossroads: { decidesAtMs: number } | null;
-  /** O saque juntado até aqui, em unidades inteiras: entra no feudo na volta. */
-  loot: { resources: Record<ResourceId, number> };
+  /** O saque juntado até aqui: recursos em unidades inteiras e itens. Entra no feudo na volta. */
+  loot: ExpeditionLoot;
   /** Um registro por nó resolvido e por encruzilhada decidida, na ordem. */
   log: ExpeditionLogEntry[];
 };
+
+/** O saque de uma expedição: recursos em unidades inteiras e os itens achados. */
+export type ExpeditionLoot = { resources: Record<ResourceId, number>; items: Item[] };
 
 /** O relatório de uma expedição que voltou: o registro dela e o que entrou no feudo. */
 export type ExpeditionReport = {
@@ -293,10 +355,14 @@ export type ExpeditionReport = {
   sentAtMs: number;
   returnedAtMs: number;
   log: ExpeditionLogEntry[];
-  /** O saque trazido, em unidades inteiras. */
-  loot: { resources: Record<ResourceId, number> };
+  /** O saque trazido: recursos em unidades inteiras e itens. Vazio quando ninguém voltou. */
+  loot: ExpeditionLoot;
   /** O que não coube no depósito na volta, em milésimos. */
   wasted: Record<ResourceId, number>;
+  /** Os itens que não couberam no arsenal e viraram ouro, pelo item do conteúdo. */
+  sold: string[];
+  /** Ninguém da equipe voltou (todos capturados ou mortos): o saque se perdeu. */
+  lost: boolean;
 };
 
 /**
@@ -308,7 +374,7 @@ export type ExpeditionReport = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 17;
+  schemaVersion: 18;
   seed: string;
   settings: GameSettings;
   /**
@@ -450,7 +516,16 @@ export type GameState = {
    * chave de cada um, e a Ameaça, de 0 a 100. Ela só muda na virada de cada dia de jogo e só sai
    * na visão de quem tem a Torre de Vigia.
    */
-  map: { tiles: Record<string, MapTile>; threat: number };
+  map: {
+    tiles: Record<string, MapTile>;
+    threat: number;
+    /**
+     * Os destinos que uma expedição revelou (os modelos do conteúdo), na ordem em que foram
+     * achados, sem repetição (ADR 0018, decisão 12): é o que abre um destino por descoberta.
+     * Moram no mapa: são lugares, e o mapa gráfico da v0.5 os herda.
+     */
+    discovered: string[];
+  };
   /** As incursões marcadas, em ordem de chegada (GDD §8.2). */
   horde: { scheduledRaids: ScheduledRaid[] };
   /**
@@ -469,6 +544,11 @@ export type GameState = {
      * `balance.heroes.arrivingCap`.
      */
     arriving: ArrivingHero[];
+    /**
+     * O arsenal: os itens sem dono, na ordem em que chegaram; nunca mais do que
+     * `balance.equipment.inventoryCap`. O que um herói leva está em `hero.equipment`.
+     */
+    inventory: Item[];
     /**
      * O soldo em atraso, aberto no instante em que o ouro acabou com soldo a pagar, no molde
      * de `settlement.famine`. `sinceMs` é o instante em que abriu, ou reabriu; `carriedMs`, o
@@ -585,7 +665,11 @@ export type Command =
       commandId: string;
       type: 'chooseExpeditionPath';
       payload: { expeditionId: string; optionId: string };
-    };
+    }
+  /** Põe um item do arsenal no espaço dele em um herói que está no feudo (GDD §9.1). */
+  | { commandId: string; type: 'equipItem'; payload: { heroId: string; itemId: string } }
+  /** Devolve ao arsenal o que um herói leva em um espaço (GDD §9.1). */
+  | { commandId: string; type: 'unequipItem'; payload: { heroId: string; slot: ItemSlotId } };
 
 export type CommandType = Command['type'];
 
@@ -627,6 +711,9 @@ export const REJECTION_CODES = [
   'TEAM_INVALID',
   'EXPEDITION_NOT_WAITING',
   'CROSSROADS_DECIDED',
+  'ITEM_NOT_FOUND',
+  'WRONG_SLOT',
+  'INVENTORY_FULL',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1060,6 +1147,11 @@ export type ThreatView =
       text: string;
       /** Sem Torre não há aviso: sempre `null`. */
       incoming: null;
+      /**
+       * O que o jogador sabe por ter feito: "O Covil de Lobos está limpo até a virada do ano."
+       * `null` sem tile limpo. Não diz o número da Ameaça.
+       */
+      clearedText: string | null;
       watchtower: ThreatWatchtowerView;
       defense: ThreatDefenseView;
     }
@@ -1107,9 +1199,29 @@ export type ThreatView =
       raidCosts: string[];
       /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
       incoming: ThreatIncomingView | null;
+      /** "O Covil de Lobos está limpo até a virada do ano."; `null` sem tile limpo. */
+      clearedText: string | null;
       watchtower: ThreatWatchtowerView;
       defense: ThreatDefenseView;
     };
+
+/** Um item na visão: o nome, o espaço, a raridade e o que soma, em palavras. */
+export type ItemView = {
+  /** O identificador que `equipItem` recebe. */
+  id: string;
+  label: string;
+  /** A frase de crônica do item. */
+  text: string;
+  slot: ItemSlotId;
+  /** "Arma". */
+  slotLabel: string;
+  /** "Raro". */
+  rarityLabel: string;
+  /** "+12% de poder". */
+  bonusText: string;
+  /** O mesmo ganho, em pontos percentuais: 12. É o que deixa comparar dois itens do mesmo espaço. */
+  bonusPercent: number;
+};
 
 /** Um herói na visão (GDD §9.1): a ficha, com o poder explicado e o soldo no relógio de quem joga. */
 export type HeroView = {
@@ -1125,10 +1237,18 @@ export type HeroView = {
   xpToNext: number | null;
   /** Os traços, com o nome e a frase do que cada um faz nesta versão. */
   traits: Array<{ label: string; text: string }>;
-  /** "No feudo", "Em expedição". */
+  /** "No feudo", "Em expedição", "Em recuperação: volta a poder partir em 1 h 10 min", "Em cativeiro desde …". */
   statusText: string;
-  /** Está no feudo e pode partir em uma expedição, ou ser dispensado. */
+  /** Está no feudo (pronto ou em recuperação): pode ser dispensado e equipado. */
   atHome: boolean;
+  /** Está no feudo e sem ferimento: pode partir em uma expedição. */
+  canDepart: boolean;
+  /** O ferimento que ainda não sarou, com o prazo em segundos reais; `null` sem ele. */
+  injury: { severityLabel: string; recoversInSeconds: number } | null;
+  /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
+  captive: boolean;
+  /** Os três espaços, na ordem do conteúdo, com o que ele leva em cada um; `item` é `null` no vazio. */
+  equipment: Array<{ slot: ItemSlotId; slotLabel: string; item: ItemView | null }>;
   /** O poder do herói agora, com nível e Descontente: ataque + defesa + vida ÷ 10, vezes os fatores. */
   power: number;
   /** "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1,08 (Nv2) × 0,8 (descontente) = 36,288". */
@@ -1196,6 +1316,14 @@ export type ExpeditionOfferView = {
   requirementsText: string;
   teamMin: number;
   teamMax: number;
+  /** O nível que todo herói da equipe precisa ter: o mesmo que `requirementsText` diz. */
+  teamMinLevel: number;
+  /**
+   * A maior dificuldade do primeiro trecho, a mesma que `firstStretchText` escreve; `null` quando
+   * o trecho não tem prova. Com o `power` de cada herói, é o que deixa dizer se a equipe passa
+   * com folga, sem ler o número em uma frase.
+   */
+  firstStretchDifficulty: number | null;
   /** A ordem de envio seria recusada agora para qualquer equipe. */
   locked: boolean;
   lockedReason: string | null;
@@ -1203,8 +1331,16 @@ export type ExpeditionOfferView = {
   firstStretchText: string;
 };
 
-/** Um passo do relatório: o nó, a frase e o desfecho em palavra. */
-export type ExpeditionLogView = { title: string; text: string; outcomeLabel: string };
+/**
+ * Um passo do relatório: o nó, a frase e o desfecho em palavra. `notes` é o que o passo fez à
+ * equipe e ao mundo, uma frase por fato: quem se feriu, quem subiu de nível, o que foi achado.
+ */
+export type ExpeditionLogView = {
+  title: string;
+  text: string;
+  outcomeLabel: string;
+  notes: string[];
+};
 
 /** A encruzilhada em que uma expedição espera: as opções, o prazo real e o que a Postura fará. */
 export type CrossroadsView = {
@@ -1254,8 +1390,12 @@ export type ExpeditionReportView = {
   postureLabel: string;
   teamNames: string[];
   log: ExpeditionLogView[];
-  /** "Trouxe 22 de ouro." */
+  /** "Trouxe 22 de ouro."; "Ninguém da equipe voltou: o que traziam se perdeu." */
   lootText: string;
+  /** "Para o arsenal: Lança de caça."; `null` sem item. */
+  itemsText: string | null;
+  /** Ninguém da equipe voltou. */
+  lost: boolean;
 };
 
 /**
@@ -1292,6 +1432,14 @@ export type GuildView = {
   heroes: HeroView[];
   /** Os heróis que uma carta prometeu e que ainda não chegaram, na ordem em que chegam. */
   arriving: ArrivingHeroView[];
+  /** O arsenal: os itens sem dono, na ordem em que chegaram. */
+  inventory: ItemView[];
+  /** Quantos itens o arsenal guarda. */
+  inventoryCap: number;
+  /** "Arsenal: 3 de 30 itens.", ou o que acontece com ele vazio ou cheio. */
+  inventoryText: string;
+  /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */
+  captiveText: string | null;
   wage: {
     /** O soldo de toda a equipe, em ouro por hora real. Zero sem herói. */
     perHour: number;

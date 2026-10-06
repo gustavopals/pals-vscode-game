@@ -126,8 +126,9 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   FESTIVAL_ALREADY_HELD: ({ label }) =>
     `Um festival por estação: ${label ?? 'nesta'} o feudo já festejou.`,
   // As expedições (GDD §9.2). `label` é o nome do herói que está fora do feudo.
-  HERO_BUSY: ({ label = 'Esse herói' }) =>
-    `${label} está fora do feudo: a dispensa espera a volta.`,
+  // `remedy` é o que espera por ele: a dispensa, por padrão; o arsenal, em uma ordem de equipar.
+  HERO_BUSY: ({ label = 'Esse herói', remedy = 'a dispensa espera a volta' }) =>
+    `${label} está fora do feudo: ${remedy}.`,
   // `label` é o edifício com artigo; `remedy`, o que o abre.
   GUILD_REQUIRED: ({ label = 'a Guilda dos Aventureiros', remedy }) =>
     `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
@@ -150,6 +151,13 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // O prazo acabou e a Postura decidiu, ou a ordem já tinha sido dada (em outra aba, por exemplo).
   CROSSROADS_DECIDED: () =>
     'Essa encruzilhada já foi decidida, e a equipe seguiu caminho. A Crônica conta por onde.',
+  // O equipamento (GDD §9.1; ADR 0018, decisão 15).
+  ITEM_NOT_FOUND: () => 'Esse item já não está no arsenal do feudo.',
+  // `label` é o nome do herói.
+  WRONG_SLOT: ({ label = 'Esse herói' }) => `${label} não leva nada nesse espaço.`,
+  // `count` é o teto do arsenal.
+  INVENTORY_FULL: ({ count = 0 }) =>
+    `O arsenal guarda ${count} itens e está cheio: equipe outro herói com o que sobra antes de devolver mais um.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

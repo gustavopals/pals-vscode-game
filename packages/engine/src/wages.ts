@@ -3,7 +3,8 @@ import { balance, type WageArrearsRelief, wageArrearsReliefs } from '@lotg/conte
 import { emit } from './chronicle';
 import { DAY_MS, nextDayBoundary } from './clock';
 import { goldCoversWages, goldRunsOutIn } from './economy';
-import { isAtHome, isLoyal, wageRate } from './heroes';
+import { releaseEquipment } from './equipment';
+import { isAtHome, isBeyondArrears, paidHeroes, wageRate } from './heroes';
 import { reject } from './rejections';
 import type { GameEvent, GameState, Hero, Rejection } from './types';
 import { realToGameMs } from './units';
@@ -196,7 +197,7 @@ export function settleWageArrears(
       hero.discontent ? { ...hero, discontent: false } : hero,
     );
   }
-  const reason: WageArrearsRelief = guild.heroes.length === 0 ? 'noHeroes' : 'paid';
+  const reason: WageArrearsRelief = paidHeroes(draft) === 0 ? 'noHeroes' : 'paid';
   emit(
     events,
     draft,
@@ -222,7 +223,7 @@ function resumeDiscontent(draft: GameState, atMs: number): void {
   }
   const { discontentAfterMs } = wageArrearsPace(draft);
   const sours = (hero: Hero) =>
-    !hero.discontent && !isLoyal(hero) && heroArrearsMs(ledger, hero) >= discontentAfterMs;
+    !hero.discontent && !isBeyondArrears(hero) && heroArrearsMs(ledger, hero) >= discontentAfterMs;
   if (guild.heroes.some(sours)) {
     guild.heroes = guild.heroes.map((hero) => (sours(hero) ? { ...hero, discontent: true } : hero));
   }
@@ -254,7 +255,7 @@ function lastArrived(heroes: readonly Hero[]): Hero | null {
 function mayLeaveNow(state: GameState, ledger: WageLedger): Hero[] {
   const { leaveAfterMs } = wageArrearsPace(state);
   return state.guild.heroes.filter(
-    (hero) => !isLoyal(hero) && heroArrearsMs(ledger, hero) >= leaveAfterMs,
+    (hero) => !isBeyondArrears(hero) && heroArrearsMs(ledger, hero) >= leaveAfterMs,
   );
 }
 
@@ -318,7 +319,11 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
   const { discontentAfterMs } = wageArrearsPace(draft);
   if (ledger.open) {
     for (const hero of guild.heroes) {
-      if (hero.discontent || isLoyal(hero) || heroArrearsMs(ledger, hero) < discontentAfterMs) {
+      if (
+        hero.discontent ||
+        isBeyondArrears(hero) ||
+        heroArrearsMs(ledger, hero) < discontentAfterMs
+      ) {
         continue;
       }
       hero.discontent = true;
@@ -340,6 +345,8 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
       break;
     }
     guild.heroes = guild.heroes.filter((hero) => hero.id !== leaver.id);
+    // O que ele levava é do feudo: volta ao arsenal.
+    releaseEquipment(draft, leaver, atMs, events);
     departed += 1;
     emit(
       events,
@@ -372,7 +379,7 @@ export function nextDiscontentAt(state: GameState): number | null {
   const started = wageArrears.sinceMs - wageArrears.carriedMs;
   let dueAt: number | null = null;
   for (const hero of heroes) {
-    if (hero.discontent || isLoyal(hero)) {
+    if (hero.discontent || isBeyondArrears(hero)) {
       continue;
     }
     const heroDueAt = Math.max(started, hero.joinedAtMs) + discontentAfterMs;
@@ -395,7 +402,7 @@ export function nextWageDepartureAt(state: GameState): number | null {
   const { leaveAfterMs, leaveEveryMs } = wageArrearsPace(state);
   const started = wageArrears.sinceMs - wageArrears.carriedMs;
   const mayLeaveAt = (hero: Hero) => Math.max(started, hero.joinedAtMs) + leaveAfterMs;
-  const leavers = heroes.filter((hero) => !isLoyal(hero));
+  const leavers = heroes.filter((hero) => !isBeyondArrears(hero));
   const first =
     lastArrived(leavers) === null ? null : Math.min(...leavers.filter(isAtHome).map(mayLeaveAt));
   if (first === null) {
@@ -459,5 +466,7 @@ export function dismissHero(
     { heroId: hero.id, heroes: guild.heroes.length },
     { heroi: hero.name },
   );
+  // O que ele levava é do feudo: volta ao arsenal.
+  releaseEquipment(draft, hero, nowMs, events);
   return null;
 }

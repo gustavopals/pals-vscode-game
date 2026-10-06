@@ -43,6 +43,7 @@ describe('bot explorador', () => {
       'contratar',
       'dar festival',
       'escolher o caminho',
+      'equipar o melhor item',
       'enviar expedições',
       'alocar por demanda',
       'guardar lenha',
@@ -52,6 +53,7 @@ describe('bot explorador', () => {
       'contratar',
       'dar festival',
       'escolher o caminho',
+      'equipar o melhor item',
       'enviar expedições',
     ];
     expect(names(exploradorPolicies).filter((name) => !own.includes(name))).toEqual(

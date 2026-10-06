@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 17,
+    schemaVersion: 18,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -84,6 +84,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
         ]),
       ),
       threat: 0,
+      // Nenhum destino revelado: os que aparecem por descoberta esperam uma expedição.
+      discovered: [],
     },
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
     horde: { scheduledRaids: scriptedRaidsAfter(0) },
@@ -92,6 +94,8 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
     guild: {
       heroes: [],
       arriving: [],
+      // Nenhum item achado ainda: o arsenal nasce vazio.
+      inventory: [],
       wageArrears: null,
       lastWageArrears: null,
       tavernOffers: [],

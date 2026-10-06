@@ -12,9 +12,12 @@ import {
   craftScenario,
   DAY,
   dealt,
+  denClearedScenario,
   expeditionCrossroadsScenario,
   expeditionReturningScenario,
   expeditionTravelingScenario,
+  heroCapturedScenario,
+  heroInjuredScenario,
   heroesStart,
   HOUR,
   MINUTE,
@@ -443,6 +446,16 @@ const scenarios: Record<string, () => GameState> = {
   // Duas de uma vez, em Rei de Ferro no ritmo 0,5: uma voltando com o saque, depois de a
   // Postura decidir e de um nó com dificuldade; a outra, no primeiro nó.
   'expedition-returning': () => expeditionReturningScenario(),
+
+  // Os desfechos (versão 18). Uma heroína em recuperação no feudo, com o prazo de sarar
+  // marcado, a experiência do Revés, um item equipado em outro herói e um no arsenal.
+  'hero-injured': () => heroInjuredScenario(),
+
+  // Um herói em cativeiro, com o item que levava, depois de um Desastre nas Ruínas reveladas.
+  'hero-captured': () => heroCapturedScenario(),
+
+  // O Covil de Lobos limpo, com a Torre: o tile inativo e a Ameaça depois da queda.
+  'den-cleared': () => denClearedScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -586,6 +599,7 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     expect(threat.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 18,
+      discovered: [],
     });
     expect(threat.settlement.buildings.watchtower).toBe(1);
     expect(threat.settlement.constructionQueues[0]).toMatchObject({
@@ -833,7 +847,54 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     // Nos outros retratos a Guilda dos Aventureiros não existe: nenhuma expedição, nenhum
     // relatório, nenhum fluxo de expedição.
     const withGuild = all0().filter((state) => state.settlement.buildings.guild > 0);
-    expect(withGuild).toHaveLength(3);
+    expect(withGuild).toHaveLength(6);
+
+    // Os desfechos (versão 18): o que o próximo passo de migração precisa encontrar.
+    const injured = of('hero-injured');
+    expect(injured.settings.timeScale).toBe(3);
+    expect(injured.guild.heroes[0]).toMatchObject({ name: 'Edda', status: 'injured', level: 2 });
+    expect(injured.guild.heroes[0]?.injury?.severity).toBe('light');
+    expect(injured.guild.heroes[0]?.injury?.untilMs).toBeGreaterThan(injured.lastProcessedAt);
+    expect(injured.guild.heroes[0]?.xp).toBeGreaterThan(0);
+    expect(injured.guild.heroes[1]?.equipment.weapon).toEqual({ id: 'item-1', defId: 'ashBow' });
+    expect(injured.guild.inventory).toEqual([{ id: 'item-2', defId: 'luckyCharm' }]);
+    expect(injured.guild.reports[0]?.log.at(-1)?.harm).toEqual({ heroName: 'Edda', kind: 'light' });
+    expect(injured.ids).toMatchObject({ hero: 2, item: 2, expedition: 1 });
+
+    const captured = of('hero-captured');
+    const captive = captured.guild.heroes.find((hero) => hero.status === 'captured');
+    expect(captive?.captivity).toMatchObject({ modelId: 'ruins' });
+    expect(Object.values(captive?.equipment ?? {}).filter((item) => item !== null)).toHaveLength(1);
+    expect(captured.guild.heroes.map((hero) => hero.status).sort()).toEqual([
+      'captured',
+      'idle',
+      'idle',
+    ]);
+    expect(captured.map.discovered).toEqual(['ruins']);
+    expect(captured.guild.wageArrears).not.toBeNull();
+    expect(captured.guild.reports[0]?.heroNames).toHaveLength(2);
+    expect(captured.guild.reports[0]?.lost).toBe(false);
+
+    const cleared = of('den-cleared');
+    expect(cleared.settings.timeScale).toBe(0.5);
+    expect(cleared.map.tiles.wolfDen?.threatActive).toBe(false);
+    // 46, mais 2 da virada de dia que caiu antes da toca, menos os 30 do Covil limpo.
+    expect(cleared.map.threat).toBe(18);
+    expect(cleared.settlement.buildings.watchtower).toBe(1);
+    expect(cleared.guild.reports[0]?.log.at(-1)?.cleared).toBe('wolfDen');
+    expect(cleared.guild.expeditions).toEqual([]);
+    // Nos outros retratos nada disso existe: ninguém em cativeiro, nenhum item, e o Covil
+    // ativo. (As Ruínas já foram reveladas onde uma Patrulha voltou com sucesso.)
+    expect(of('expedition-crossroads').map.discovered).toEqual(['ruins']);
+    expect(of('fresh').map.discovered).toEqual([]);
+    for (const state of all0().filter(
+      (entry) => entry !== injured && entry !== captured && entry !== cleared,
+    )) {
+      expect(state.guild.inventory).toEqual([]);
+      expect(state.ids.item).toBeUndefined();
+      expect(state.guild.heroes.every((hero) => hero.captivity === null)).toBe(true);
+      expect(state.map.tiles.wolfDen?.threatActive).toBe(true);
+    }
     for (const state of all0().filter((entry) => entry.settlement.buildings.guild === 0)) {
       expect(state.guild.expeditions).toEqual([]);
       expect(state.guild.reports).toEqual([]);

@@ -36,6 +36,9 @@ export function admitHero(draft: GameState, spec: HeroSpec, atMs: number): Hero 
     xp: 0,
     traits: [...spec.traits],
     status: 'idle',
+    injury: null,
+    captivity: null,
+    equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: atMs,
     discontent: false,
   };

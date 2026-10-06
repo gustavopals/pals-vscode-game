@@ -118,6 +118,17 @@ export function prowlingEnemy(state: GameState): EnemyId | null {
   return null;
 }
 
+/**
+ * Quem a virada de dia de `turnMs` pode mandar contra o feudo (ADR 0018, decisão 14): quem ronda
+ * a partir de um tile ativo (`prowlingEnemy`) ou, sem nenhum, quem a **estação do dia que
+ * acabou** faz descer (`threat.seasonEnemy`: no outono os lobos descem a serra, com o Covil limpo
+ * ou não). `null` quando ninguém ataca: com o Covil limpo, fora do outono, nenhuma incursão é
+ * sorteada. É a mesma estação que `threatSources` usa para a subida.
+ */
+export function raidingEnemy(state: GameState, turnMs: number): EnemyId | null {
+  return prowlingEnemy(state) ?? rules.seasonEnemy[seasonAt(Math.max(0, turnMs - 1)).id] ?? null;
+}
+
 /** Um termo da subida de uma virada de dia: um tile ativo, ou a estação do dia que acabou. */
 export type ThreatSource =
   | { kind: 'tile'; tileId: string; type: TileTypeId; amount: number }

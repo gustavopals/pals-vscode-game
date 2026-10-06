@@ -29,15 +29,23 @@ const scenario = fc.record({
   gold: fc.integer({ min: 0, max: 400_000 }),
   wood: fc.integer({ min: 100_000, max: 499_000 }),
   warmUpMs: fc.nat(2 * DAY_REAL),
+  // Às vezes o feudo já começa com alguém em cativeiro e um item no arsenal.
+  captive: fc.boolean(),
+  // Às vezes a equipe é fraca (três Clérigos): os Reveses e os Desastres passam a acontecer.
+  weak: fc.boolean(),
   visits: fc.array(
     fc.record({
       // Em tempo real: no ritmo 3 são até 3 h de jogo por visita.
       afterRealMs: fc.integer({ min: 1, max: HOUR }),
-      model: fc.constantFrom('patrol', 'oldForest'),
+      // Os cinco destinos: as Ruínas só depois de uma Patrulha as revelar, o Resgate só com um
+      // cativo, o Covil só enquanto não foi limpo. A ordem recusada não muda nada.
+      model: fc.constantFrom('patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins', 'patrol'),
       posture: fc.constantFrom<PostureId>('cautious', 'balanced', 'bold'),
-      teamSize: fc.constantFrom(1, 2),
+      teamSize: fc.constantFrom(1, 2, 2, 3),
       answer: fc.constantFrom('none', 'first', 'last', 'posture'),
       dismiss: fc.boolean(),
+      // O que o senhor faz com o arsenal na visita: nada, equipa o primeiro item, ou desequipa.
+      gear: fc.constantFrom('none', 'equip', 'equip', 'unequip'),
     }),
     { minLength: 6, maxLength: 12 },
   ),
@@ -60,20 +68,40 @@ function prepare(plan: Scenario): GameState {
   state.settlement.resources.wood = plan.wood;
   const names = ['Edda', 'Rolf', 'Brann'];
   const classes = ['warrior', 'archer', 'mage'] as const;
-  const traits = [['brave'], ['prudent'], ['loyal']] as const;
+  const traits = [['brave', 'greedy'], ['prudent', 'tracker'], ['loyal']] as const;
   state.ids.hero = 3;
   state.guild.heroes = names.map((name, index) => ({
     id: `hero-${index + 1}`,
     name,
     gender: 'm',
-    classId: classes[index] ?? 'warrior',
-    level: 1 + index,
-    xp: 0,
+    classId: plan.weak ? 'cleric' : (classes[index] ?? 'warrior'),
+    level: 2 + index,
+    xp: 90,
     traits: [...(traits[index] ?? [])],
     status: 'idle',
+    injury: null,
+    captivity: null,
+    equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: 0,
     discontent: false,
   }));
+  if (plan.captive) {
+    state.ids.hero = 4;
+    state.ids.item = 1;
+    state.guild.inventory = [{ id: 'item-1', defId: 'ashBow' }];
+    state.map.discovered = ['ruins'];
+    const [edda] = state.guild.heroes;
+    if (edda !== undefined) {
+      state.guild.heroes.push({
+        ...edda,
+        id: 'hero-4',
+        name: 'Isolda',
+        traits: [],
+        status: 'captured',
+        captivity: { sinceMs: 0, modelId: 'ruins' },
+      });
+    }
+  }
   return advanceTo(state, Math.round(plan.warmUpMs * plan.timeScale)).state;
 }
 
@@ -97,7 +125,22 @@ function visit(state: GameState, plan: Visit): { state: GameState; events: GameE
       command('chooseExpeditionPath', { expeditionId: expedition.id, optionId: option ?? '' }),
     );
   }
-  const free = view.guild.heroes.filter((hero) => hero.atHome).map((hero) => hero.id);
+  const home = view.guild.heroes.filter((hero) => hero.atHome);
+  const [firstItem] = view.guild.inventory;
+  const [firstHome] = home;
+  if (plan.gear === 'equip' && firstItem !== undefined && firstHome !== undefined) {
+    orders.push(command('equipItem', { heroId: firstHome.id, itemId: firstItem.id }));
+  }
+  if (plan.gear === 'unequip') {
+    for (const hero of home) {
+      const worn = hero.equipment.find((entry) => entry.item !== null);
+      if (worn !== undefined) {
+        orders.push(command('unequipItem', { heroId: hero.id, slot: worn.slot }));
+        break;
+      }
+    }
+  }
+  const free = view.guild.heroes.filter((hero) => hero.canDepart).map((hero) => hero.id);
   orders.push(
     command('sendExpedition', {
       modelId: plan.model,
@@ -145,6 +188,7 @@ describe('a divisão de intervalo com expedições no caminho', () => {
     let returned = 0;
     let decided = 0;
     let chosen = 0;
+    const seen: Record<string, number> = {};
     fc.assert(
       fc.property(
         scenario,
@@ -154,6 +198,9 @@ describe('a divisão de intervalo com expedições no caminho', () => {
           for (const [index, step] of plan.visits.entries()) {
             const ordered = visit(state, step);
             chosen += ordered.events.filter((e) => e.type === 'expeditionPathChosen').length;
+            for (const event of ordered.events) {
+              seen[event.type] = (seen[event.type] ?? 0) + 1;
+            }
             state = stored(ordered.state);
             expectInvariants(state);
             // Ora um passo curto, ora um que atravessa o prazo de 6 h reais da encruzilhada.
@@ -172,6 +219,9 @@ describe('a divisão de intervalo com expedições no caminho', () => {
             expectInvariants(direct.state);
             returned += direct.events.filter((e) => e.type === 'expeditionReturned').length;
             decided += direct.events.filter((e) => e.type === 'expeditionPostureDecided').length;
+            for (const event of direct.events) {
+              seen[event.type] = (seen[event.type] ?? 0) + 1;
+            }
             state = direct.state;
           }
         },
@@ -182,6 +232,12 @@ describe('a divisão de intervalo com expedições no caminho', () => {
     expect(returned).toBeGreaterThan(100);
     expect(decided).toBeGreaterThan(20);
     expect(chosen).toBeGreaterThan(20);
+    // E pelos desfechos: gente ferida que sarou, níveis, itens achados e equipados, destinos
+    // revelados, o Covil limpo, e, onde a dificuldade deixa, cativos, mortos e resgatados.
+    // Só o que acontece às dezenas é exigido: o sorteio do fast-check muda a cada execução.
+    const common = ['heroInjured', 'heroRecovered', 'itemEquipped', 'destinationRevealed'];
+    const missing = common.filter((type) => (seen[type] ?? 0) === 0);
+    expect(missing, JSON.stringify(seen)).toEqual([]);
   });
 
   it('cortes de um milissegundo em volta de cada instante de uma expedição não mudam nada', () => {
@@ -237,7 +293,7 @@ describe('a divisão de intervalo com expedições no caminho', () => {
           expect(view.guild.expeditions.map((entry) => entry.id)).toEqual(
             state.guild.expeditions.map((entry) => entry.id),
           );
-          const free = view.guild.heroes.filter((hero) => hero.atHome).map((hero) => hero.id);
+          const free = view.guild.heroes.filter((hero) => hero.canDepart).map((hero) => hero.id);
           for (const offer of view.guild.available) {
             const team = free.slice(0, offer.teamMin);
             const result = applyCommand(
@@ -254,8 +310,14 @@ describe('a divisão de intervalo com expedições no caminho', () => {
               expect(result.ok).toBe(false);
               expect(!result.ok && result.message).toBe(offer.lockedReason);
             } else {
-              // Com o destino aberto, só a equipe pode faltar.
-              expect(result.ok).toBe(team.length >= offer.teamMin);
+              // Com o destino aberto, só a equipe pode faltar: gente de menos, ou alguém abaixo
+              // do nível que a jornada pede.
+              if (team.length < offer.teamMin) {
+                expect(result.ok).toBe(false);
+              }
+              if (!result.ok) {
+                expect(result.code).toBe('TEAM_INVALID');
+              }
             }
           }
           for (const expedition of view.guild.expeditions) {

@@ -121,6 +121,33 @@ export const ChooseExpeditionPathCommandSchema = command(
   }),
 );
 
+/** Os espaços de equipamento (`ITEM_SLOT_IDS`, em `@lotg/content`): o teste confere que coincidem. */
+const ITEM_SLOT_IDS = ['weapon', 'armor', 'accessory'] as const;
+
+/**
+ * Equipar um herói com um item do arsenal. `heroId` e `itemId` são os que a visão mostrava
+ * (`guild.heroes[].id` e `guild.inventory[].id`). O espaço é o do item: a ordem não o escolhe.
+ */
+export const EquipItemCommandSchema = command(
+  'equipItem',
+  z.strictObject({
+    heroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+    itemId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+  }),
+);
+
+/**
+ * Devolver ao arsenal o que um herói leva em um espaço. `slot` é um dos três espaços
+ * (`guild.heroes[].equipment[].slot`); se há algo nele é com o motor.
+ */
+export const UnequipItemCommandSchema = command(
+  'unequipItem',
+  z.strictObject({
+    heroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+    slot: z.enum(ITEM_SLOT_IDS),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -137,6 +164,8 @@ export const CommandSchema = z.discriminatedUnion('type', [
   HoldFestivalCommandSchema,
   SendExpeditionCommandSchema,
   ChooseExpeditionPathCommandSchema,
+  EquipItemCommandSchema,
+  UnequipItemCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

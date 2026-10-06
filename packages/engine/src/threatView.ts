@@ -1,4 +1,5 @@
 import {
+  expeditionTexts,
   balance,
   buildings,
   enemies,
@@ -11,13 +12,23 @@ import {
 
 import { DAY_MS, nextDayBoundary } from './clock';
 import { constructionOf } from './construction';
-import { decimal, durationText, joinList, plural, sentenceCase, shareText } from './format';
+import {
+  decimal,
+  durationText,
+  fillText,
+  joinList,
+  plural,
+  sentenceCase,
+  shareText,
+} from './format';
+import { clearedTiles, tileWithArticle } from './outcomes';
 import {
   isThreatWatched,
   palisadeAgainst,
   palisadeLevel,
   type PalisadeOutcome,
   prowlingEnemy,
+  raidingEnemy,
   raidChancePercent,
   raidSizeAt,
   threatSources,
@@ -326,7 +337,8 @@ function incomingCostText(
  * diz quanto dura o ferimento e o que a moral perde. Vazio sem quem ataque.
  */
 function raidCostsView(state: GameState, timeScale: number): string[] {
-  const enemy = prowlingEnemy(state);
+  // Com o Covil limpo ainda há o que dizer do ataque: os lobos descem a serra no outono.
+  const enemy = prowlingEnemy(state) ?? Object.values(rules.seasonEnemy)[0] ?? null;
   if (enemy === null) {
     return [];
   }
@@ -515,6 +527,20 @@ function trendText(level: number, rise: number, forecast: TurnForecast, day: str
   return `Sobe ${rise} ${day}${capped}, e ${fall}: ${going}`;
 }
 
+/**
+ * O que o jogador sabe por ter feito (ADR 0018, decisão 14): o tile que uma expedição dele
+ * limpou está limpo até a virada do ano. Não diz o número da Ameaça: vale com e sem Torre.
+ */
+function clearedText(state: GameState): string | null {
+  const sentences = clearedTiles(state).flatMap((tileId) => {
+    const place = tileWithArticle(state, tileId);
+    return place === null
+      ? []
+      : [sentenceCase(fillText(expeditionTexts.tileCleared, { lugar: place }))];
+  });
+  return sentences.length === 0 ? null : sentences.join(' ');
+}
+
 export function threatView(state: GameState, timeScale: number): ThreatView {
   const watchtower = watchtowerView(state);
   const defense = defenseView(state);
@@ -523,6 +549,7 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
       known: false,
       text: `Sem uma ${tower.label}, ninguém sabe o que ronda o feudo.`,
       incoming: null,
+      clearedText: clearedText(state),
       watchtower,
       defense,
     };
@@ -537,7 +564,12 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
   const incoming = incomingView(state, timeScale);
   const forecast = nextTurnForecast(state, turn, rise);
   const { nextLevel } = forecast;
-  const risk = raidRiskView(forecast.risen, incoming, timeScale);
+  // Sem quem ataque (o Covil limpo, fora do outono), a virada do dia não sorteia incursão.
+  const prowled = raidingEnemy(state, turn) !== null;
+  const risk =
+    prowled || incoming !== null
+      ? raidRiskView(forecast.risen, incoming, timeScale)
+      : { chancePercent: 0, text: clearedText(state) ?? '' };
 
   return {
     known: true,
@@ -565,6 +597,7 @@ export function threatView(state: GameState, timeScale: number): ThreatView {
     raidRisk: risk.text,
     raidCosts: raidCostsView(state, timeScale),
     incoming,
+    clearedText: clearedText(state),
     watchtower,
     defense,
   };

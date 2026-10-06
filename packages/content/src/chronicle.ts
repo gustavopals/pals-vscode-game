@@ -48,6 +48,20 @@ export const EVENT_TYPES = [
   'expeditionPathChosen',
   'expeditionPostureDecided',
   'expeditionReturned',
+  'expeditionLost',
+  'heroInjured',
+  'heroRecovered',
+  'heroCaptured',
+  'heroDied',
+  'heroRescued',
+  'heroLeveledUp',
+  'itemFound',
+  'itemSold',
+  'itemEquipped',
+  'itemUnequipped',
+  'destinationRevealed',
+  'threatTileCleared',
+  'threatTileRestored',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -78,6 +92,9 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {desfecho} o desfecho de um nó, em minúscula: "sucesso pleno"
  * {postura} a Postura da expedição, em minúscula: "cautelosa"
  * {saque} o que a expedição trouxe: "22 de ouro e 15 de madeira"
+ * {item} o nome de um item: "Lança de caça"
+ * {destino} o nome de um destino revelado: "Ruínas de Vel'Thar"
+ * {lugar} um tile do mapa, com artigo: "o Covil de Lobos"
  *
  * Nas frases de uma incursão, {perda} é tudo o que ela custou, feridos inclusive ("18 de comida,
  * 12 de madeira e um aldeão ferido"), {nivel} é o nível da Paliçada que a teria detido e
@@ -117,6 +134,9 @@ export const CHRONICLE_PLACEHOLDERS = [
   'desfecho',
   'postura',
   'saque',
+  'item',
+  'destino',
+  'lugar',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -229,10 +249,53 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, sem palavra do senhor de {feudo}, a expedição "{expedicao}" seguiu a postura {postura}: {opcao}.',
   expeditionReturned:
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" voltou a {feudo} com {saque}. A equipe está de novo no feudo: {herois}.',
+  // O que o desfecho de um nó faz ao herói e ao mundo (GDD §9.1 e §9.2; ADR 0017, decisão 8;
+  // ADR 0018, decisões 14 e 15). O ferimento tem uma frase por gravidade em `heroHarmTemplates`,
+  // e a volta de quem perdeu alguém, em `expeditionTemplates`.
+  expeditionLost:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" não voltou a {feudo}: ninguém da equipe ficou de pé, e o que traziam se perdeu.',
+  heroInjured: 'No {dia}º dia {daEstacao}, {heroi} voltou de "{expedicao}" com ferimentos.',
+  heroRecovered:
+    'No {dia}º dia {daEstacao}, {heroi} sarou das feridas e já pode partir de {feudo} outra vez.',
+  heroCaptured:
+    'No {dia}º dia {daEstacao}, {heroi} caiu em cativeiro em "{expedicao}". Só um resgate traz de volta a {feudo} quem ficou lá.',
+  heroDied:
+    'No {dia}º dia {daEstacao}, {heroi} tombou em "{expedicao}" e não se levantou. {feudo} guarda as armas que ficaram.',
+  heroRescued:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" abriu o cativeiro: {heroi} ganhou a liberdade e volta a servir a {feudo}.',
+  heroLeveledUp:
+    'No {dia}º dia {daEstacao}, {heroi} aprendeu com a estrada: chegou ao nível {nivel}.',
+  itemFound: 'No {dia}º dia {daEstacao}, a expedição "{expedicao}" achou um item: {item}.',
+  itemSold:
+    'No {dia}º dia {daEstacao}, não havia lugar no arsenal de {feudo} para mais um item: {item} foi vendido por {preco} de ouro.',
+  itemEquipped:
+    'No {dia}º dia {daEstacao}, {heroi} passou a levar um item do arsenal de {feudo}: {item}.',
+  itemUnequipped:
+    'No {dia}º dia {daEstacao}, {heroi} devolveu um item ao arsenal de {feudo}: {item}.',
+  destinationRevealed:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" achou o caminho de um lugar novo: {destino}.',
+  threatTileCleared:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" limpou {lugar}. Dali já não sai quem ronde {feudo}, até a virada do ano.',
+  threatTileRestored:
+    'No {dia}º dia {daEstacao}, com o ano novo, voltou a haver movimento: {lugar} está ocupado outra vez.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
 };
+
+/**
+ * O ferimento de um herói é o mesmo evento com uma frase por caso (ADR 0017, decisão 8): leve,
+ * grave e `spared`, o ferimento grave que a dificuldade pôs no lugar de uma captura.
+ */
+export const heroHarmTemplates = {
+  light:
+    'No {dia}º dia {daEstacao}, {heroi} sofreu um ferimento leve em "{expedicao}". Termina a jornada, mas depois precisa de descanso.',
+  severe:
+    'No {dia}º dia {daEstacao}, {heroi} sofreu um ferimento grave em "{expedicao}". Termina a jornada, mas vai demorar a pegar em armas de novo.',
+  spared:
+    'No {dia}º dia {daEstacao}, por pouco {heroi} não ficou em cativeiro em "{expedicao}": a equipe conseguiu a fuga, ao preço de um ferimento grave.',
+} as const;
+export type HeroHarmTemplate = keyof typeof heroHarmTemplates;
 
 /**
  * Por que o frio passou: a frase que entra em {alivio} no modelo de `coldEnded`. `firewood`

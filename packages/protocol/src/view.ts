@@ -3,6 +3,7 @@ import {
   DIFFICULTY_IDS,
   ENEMY_IDS,
   EVENT_TYPES,
+  ITEM_SLOT_IDS,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
   PRODUCTION_BUILDING_IDS,
@@ -53,6 +54,9 @@ export const REJECTION_CODES = [
   'TEAM_INVALID',
   'EXPEDITION_NOT_WAITING',
   'CROSSROADS_DECIDED',
+  'ITEM_NOT_FOUND',
+  'WRONG_SLOT',
+  'INVENTORY_FULL',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -326,6 +330,21 @@ const PendingDecisionSchema = z.discriminatedUnion('kind', [
   }),
 ]);
 
+/**
+ * Um item, como a tela o mostra: o nome, a frase, o espaço, a raridade e o que soma, em
+ * palavras. `id` é o que `equipItem` recebe.
+ */
+const ItemSchema = z.strictObject({
+  id: z.string(),
+  label: z.string(),
+  text: z.string(),
+  slot: z.enum(ITEM_SLOT_IDS),
+  slotLabel: z.string(),
+  rarityLabel: z.string(),
+  bonusText: z.string(),
+  bonusPercent: z.number(),
+});
+
 /** Um herói, como a ficha o mostra: o poder explicado e o soldo em ouro por hora real. */
 const HeroSchema = z.strictObject({
   /** O identificador que `dismissHero` recebe. */
@@ -338,8 +357,22 @@ const HeroSchema = z.strictObject({
   xpToNext: z.number().nullable(),
   traits: z.array(z.strictObject({ label: z.string(), text: z.string() })),
   statusText: z.string(),
-  /** Está no feudo: pode partir em uma expedição ou ser dispensado. */
+  /** Está no feudo, pronto ou em recuperação: pode ser dispensado e equipado. */
   atHome: z.boolean(),
+  /** Está no feudo e sem ferimento: pode partir em uma expedição. */
+  canDepart: z.boolean(),
+  /** O ferimento que ainda não sarou, com o prazo em segundos reais; `null` sem ele. */
+  injury: z.strictObject({ severityLabel: z.string(), recoversInSeconds: z.number() }).nullable(),
+  /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
+  captive: z.boolean(),
+  /** Os três espaços, com o que ele leva em cada um; `item` é `null` no espaço vazio. */
+  equipment: z.array(
+    z.strictObject({
+      slot: z.enum(ITEM_SLOT_IDS),
+      slotLabel: z.string(),
+      item: ItemSchema.nullable(),
+    }),
+  ),
   power: z.number(),
   powerBreakdown: z.string(),
   wagePerHour: z.number(),
@@ -352,11 +385,16 @@ const HeroSchema = z.strictObject({
  * quem ainda vai chegar: isso é `afterArrivals`. No atraso, os dois prazos são segundos reais
  * até a virada de dia que cobra cada consequência.
  */
-/** Um passo do percurso de uma expedição: o nó, a frase e o desfecho em palavra. */
+/**
+ * Um passo do percurso de uma expedição: o nó, a frase e o desfecho em palavra. `notes` é o que
+ * o passo fez à equipe e ao mundo, uma frase por fato (quem se feriu, quem subiu de nível, o que
+ * foi achado).
+ */
 const ExpeditionLogSchema = z.strictObject({
   title: z.string(),
   text: z.string(),
   outcomeLabel: z.string(),
+  notes: z.array(z.string()),
 });
 
 const GuildSchema = z.strictObject({
@@ -396,6 +434,10 @@ const GuildSchema = z.strictObject({
       requirementsText: z.string(),
       teamMin: z.number(),
       teamMax: z.number(),
+      /** O nível que todo herói da equipe precisa ter. */
+      teamMinLevel: z.number(),
+      /** A maior dificuldade do primeiro trecho, a que `firstStretchText` escreve; `null` sem prova. */
+      firstStretchDifficulty: z.number().nullable(),
       locked: z.boolean(),
       lockedReason: z.string().nullable(),
       firstStretchText: z.string(),
@@ -448,6 +490,10 @@ const GuildSchema = z.strictObject({
       teamNames: z.array(z.string()),
       log: z.array(ExpeditionLogSchema),
       lootText: z.string(),
+      /** O que foi para o arsenal e o que virou ouro; `null` sem item. */
+      itemsText: z.string().nullable(),
+      /** Ninguém da equipe voltou. */
+      lost: z.boolean(),
     }),
   ),
   /** O que dispensar um herói custa (sem devolução), para a confirmação da ordem. */
@@ -468,6 +514,12 @@ const GuildSchema = z.strictObject({
       blockedReason: z.string().nullable(),
     }),
   ),
+  /** O arsenal: os itens sem dono, na ordem em que chegaram, o teto e a frase dele. */
+  inventory: z.array(ItemSchema),
+  inventoryCap: z.number(),
+  inventoryText: z.string(),
+  /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */
+  captiveText: z.string().nullable(),
   wage: z.strictObject({
     perHour: z.number(),
     coveredForSeconds: z.number().nullable(),
@@ -605,6 +657,8 @@ const ThreatSchema = z.discriminatedUnion('known', [
     text: z.string(),
     /** Sem Torre não há aviso: sempre `null`. */
     incoming: z.null(),
+    /** O tile que uma expedição do jogador limpou, sem o número da Ameaça; `null` sem nenhum. */
+    clearedText: z.string().nullable(),
     watchtower: ThreatWatchtowerSchema,
     defense: ThreatDefenseSchema,
   }),
@@ -646,6 +700,7 @@ const ThreatSchema = z.discriminatedUnion('known', [
     raidCosts: z.array(z.string()),
     /** A incursão que os vigias já avistaram; `null` quando não há nenhuma à vista. */
     incoming: ThreatIncomingSchema.nullable(),
+    clearedText: z.string().nullable(),
     watchtower: ThreatWatchtowerSchema,
     defense: ThreatDefenseSchema,
   }),

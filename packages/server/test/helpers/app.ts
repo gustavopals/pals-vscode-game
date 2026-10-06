@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import type { GameState } from '@lotg/engine';
 import type {
   AuthResponse,
   Command,
@@ -280,6 +281,7 @@ export type TestHero = {
   gender?: 'f' | 'm';
   classId?: 'warrior' | 'archer' | 'mage' | 'cleric';
   traits?: string[];
+  level?: number;
 };
 
 /**
@@ -298,10 +300,13 @@ export async function enlistHeroes(
     name: hero.name,
     gender: hero.gender ?? 'm',
     classId: hero.classId ?? 'warrior',
-    level: 1,
+    level: hero.level ?? 1,
     xp: 0,
     traits: hero.traits ?? [],
     status: 'idle',
+    injury: null,
+    captivity: null,
+    equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: 0,
     discontent: false,
   }));
@@ -316,6 +321,33 @@ export async function enlistHeroes(
   if (rowCount !== 1) {
     throw new Error('A partida do teste não está no banco, ou já tem heróis.');
   }
+}
+
+/**
+ * Reescreve o estado gravado de uma partida de teste, direto no banco: lê o JSON, deixa o teste
+ * mexer nele e grava de volta, sem tocar em `state_version`. É para pôr a partida em uma
+ * situação que o jogo levaria dias para alcançar (um arsenal com itens, uma equipe diante do
+ * último nó). O estado tem de sair na forma: a leitura seguinte o confere e responde `500` se
+ * não estiver.
+ */
+export async function rewriteState(
+  target: TestApp,
+  gameId: string,
+  edit: (state: GameState) => void,
+): Promise<void> {
+  const found = await target.pool.query<{ state: GameState }>(
+    'select state from games where id = $1',
+    [gameId],
+  );
+  const state = found.rows[0]?.state;
+  if (state === undefined) {
+    throw new Error('A partida do teste não está no banco.');
+  }
+  edit(state);
+  await target.pool.query('update games set state = $2::jsonb where id = $1', [
+    gameId,
+    JSON.stringify(state),
+  ]);
 }
 
 /**

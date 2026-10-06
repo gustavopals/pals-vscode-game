@@ -5,12 +5,16 @@ import type {
   ExpeditionOutcomeId,
   HeroAttributeId,
   HeroClassId,
+  ItemId,
   PostureId,
   Ratio,
   ResourceId,
 } from './ids';
 import { oldForest } from './missions/oldForest';
 import { patrol } from './missions/patrol';
+import { rescue } from './missions/rescue';
+import { ruins } from './missions/ruins';
+import { wolfDen } from './missions/wolfDen';
 
 /**
  * As expedições como dados (GDD §9.2 e §9.3; ADR 0018, decisões 11 a 13). Um **modelo** é um
@@ -20,20 +24,35 @@ import { patrol } from './missions/patrol';
  * `balance.expeditions`.
  */
 
-/** O saque de um nó: de quanto a quanto de cada recurso, em unidades inteiras. */
+/**
+ * O que um nó rende (GDD §9.2; ADR 0018, decisões 12, 14 e 15). Os **recursos** vêm em uma faixa,
+ * em unidades inteiras, e o desfecho decide a parte (`balance.expeditions.lootShare`). O resto só
+ * vem **a partir do Sucesso** (e de um nó sem prova): um **item**, com a chance e a lista de onde
+ * sai um, por igual; a **revelação** de um destino (com um Rastreador na equipe, também no
+ * Revés); a **limpeza** de um tile de ameaça; e a **libertação** de quem está em cativeiro há
+ * mais tempo.
+ */
 export type ExpeditionReward = {
-  readonly resources: Partial<Record<ResourceId, { readonly min: number; readonly max: number }>>;
+  readonly resources?: Partial<Record<ResourceId, { readonly min: number; readonly max: number }>>;
+  readonly item?: { readonly chance: Ratio; readonly from: readonly ItemId[] };
+  readonly reveals?: ExpeditionModelId;
+  /** A chave do tile no estado (`startingTiles[].id`). */
+  readonly clearsTile?: string;
+  readonly rescues?: true;
 };
 
 /**
  * A prova de um nó com dificuldade (GDD §9.2; ADR 0017, decisão 7). `weights` troca ou acrescenta
  * pesos de atributo **só neste nó**, sobre os de `balance.heroes.power` ("perícia pesa ×1,5" é
  * `skill: 3/2`). `onDisaster` é o que o Desastre faz a um herói, marcado editorialmente (ADR
- * 0017, decisão 8); o efeito sobre o herói entra com V3D-T2. `outcomes` é a frase de cada
- * desfecho, para a Crônica e para o relatório.
+ * 0017, decisão 8): ferimento grave ou captura, que a dificuldade da partida ainda pode trocar
+ * (`balance.difficulties[].heroCapture`). `xp` é a experiência que o nó dá a cada herói que
+ * continua na equipe, antes da parte do desfecho (`balance.expeditions.xpShare`). `outcomes` é a
+ * frase de cada desfecho, para a Crônica e para o relatório.
  */
 export type ExpeditionTrial = {
   readonly difficulty: number;
+  readonly xp: number;
   readonly weights?: Partial<Record<HeroAttributeId, Ratio>>;
   readonly onDisaster: ExpeditionDisasterId;
   readonly outcomes: Record<ExpeditionOutcomeId, string>;
@@ -110,6 +129,18 @@ export type ExpeditionRequires = {
   readonly classes: readonly HeroClassId[];
 };
 
+/**
+ * Quando um destino aparece na Guilda (ADR 0018, decisão 12): por descoberta, nunca por data.
+ * `open`: desde que a Guilda o alcance. `discovered`: depois de uma expedição o revelar
+ * (`map.discovered`, no estado). `captive`: enquanto houver um herói em cativeiro. `tile`:
+ * conhecido desde sempre, e só há o que fazer lá enquanto o tile de ameaça estiver ativo.
+ */
+export type ExpeditionAccess =
+  | { readonly kind: 'open' }
+  | { readonly kind: 'discovered' }
+  | { readonly kind: 'captive' }
+  | { readonly kind: 'tile'; readonly tileId: string };
+
 export type ExpeditionModelDef = {
   readonly id: ExpeditionModelId;
   readonly label: string;
@@ -121,15 +152,24 @@ export type ExpeditionModelDef = {
    */
   readonly durationMs: number;
   readonly requires: ExpeditionRequires;
+  readonly access: ExpeditionAccess;
   readonly variants: readonly ExpeditionVariant[];
 };
 
 /**
- * Os modelos, na ordem em que a Guilda os mostra. **Provisórios** (V3D-T1): dois destinos com
- * três variantes cada, para a máquina das expedições ter o que percorrer. O catálogo de verdade
- * (os seis modelos do ADR 0018, com os textos) é de V3D-T3. Rascunho que o autor não leu.
+ * Os modelos, na ordem em que a Guilda os mostra. **Provisórios** (V3D-T1 e V3D-T2): cinco
+ * destinos com três variantes cada, para a máquina das expedições ter o que percorrer e os
+ * desfechos terem onde acontecer (o Covil limpa o tile, o Resgate liberta, as Ruínas capturam e
+ * rendem item). O catálogo de verdade (os seis modelos do ADR 0018, com os textos) é de V3D-T3.
+ * Rascunho que o autor não leu.
  */
-export const expeditionModels: readonly ExpeditionModelDef[] = [patrol, oldForest];
+export const expeditionModels: readonly ExpeditionModelDef[] = [
+  patrol,
+  oldForest,
+  wolfDen,
+  rescue,
+  ruins,
+];
 
 /** As Posturas, como a tela as mostra: o nome, em minúscula para o meio da frase, e o que cada uma faz. */
 export const expeditionPostures: Record<
@@ -192,6 +232,17 @@ export const expeditionTexts = {
   needsClass: 'Ao menos {classe} na equipe.',
   /** Por que um destino está fechado. */
   lockedGuild: 'Pede a Guilda dos Aventureiros no nível {nivel}.',
+  /** O tile de ameaça do destino está limpo: `{lugar}` é o tile, com artigo. Sem ponto: entra em uma recusa. */
+  lockedCleared: '{lugar} está limpo até a virada do ano',
+  /** O mesmo, como frase inteira, para o painel da Ameaça: `{lugar}` com maiúscula. */
+  tileCleared: '{lugar} está limpo: dali ninguém ronda o feudo até a virada do ano.',
+  /** O Resgate, sem ninguém em cativeiro. Só a recusa da ordem o diz: o destino nem aparece. */
+  lockedNoCaptive: 'não há ninguém em cativeiro',
+  lockedUnknown: 'a Guilda não conhece esse caminho',
+  /** Por que um herói não pode partir. */
+  heroAway: 'já está em expedição',
+  heroInjured: 'ainda se recupera dos ferimentos',
+  heroCaptured: 'está em cativeiro',
   /** A encruzilhada. */
   postureDecides: 'Sem resposta, a Postura {postura} escolhe: {opcao}.',
   postureFallsBack:
@@ -201,7 +252,21 @@ export const expeditionTexts = {
   traveling: 'A caminho: {no}.',
   waiting: 'Parada na encruzilhada, à espera da sua palavra.',
   returning: 'De volta para casa.',
+  /** O que um passo do relatório diz além da frase do nó. */
+  reportLight: '{heroi} sofreu um ferimento leve.',
+  reportSevere: '{heroi} sofreu um ferimento grave.',
+  reportCaptured: '{heroi} ficou em cativeiro.',
+  reportDied: '{heroi} não voltou.',
+  reportLeveled: '{heroi} chegou ao nível {nivel}.',
+  reportFound: 'Achado: {item}.',
+  reportRevealed: 'Caminho novo: {destino}.',
+  reportCleared: 'Limpo: {lugar}.',
+  reportRescued: '{heroi} ganhou a liberdade.',
+  reportLootLost: 'A cobiça pesou: o que a equipe juntou neste trecho ficou pelo caminho.',
   /** O fecho do relatório. */
+  lootAllLost: 'Ninguém da equipe voltou: o que traziam se perdeu.',
+  lootItems: 'Para o arsenal: {itens}.',
+  lootItemsSold: 'Sem lugar no arsenal, viraram ouro: {itens}.',
   lootNone: 'Voltou de mãos vazias.',
   loot: 'Trouxe {saque}.',
   lootCut: 'Trouxe {saque}. Faltou lugar no depósito, e foi ao chão: {perda}.',

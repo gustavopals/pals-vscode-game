@@ -64,8 +64,11 @@ describe('pureza do motor', () => {
     // ficam do lado de quem não sorteia. Nas expedições, mora em `expeditionTurn.ts` (o fim de
     // um nó); `expeditions.ts` (as contas, e a variante do grafo, que sai de um hash),
     // `expeditionOrders.ts` (enviar e escolher o caminho) e `expeditionsView.ts` não sorteiam.
+    // Nos desfechos (V3D-T2), quem sofre, a cobiça e o item são sorteados no mesmo
+    // `expeditionTurn.ts`; `outcomes.ts` (o que o desfecho faz ao herói e ao mundo) e
+    // `equipment.ts` (o arsenal e as ordens de equipar) não sorteiam.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|hash)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hash)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -130,7 +133,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|hash)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hash)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -163,6 +166,8 @@ describe('pureza do motor', () => {
         './tavernView.ts',
         './expeditions.ts',
         './expeditionsView.ts',
+        './equipment.ts',
+        './outcomes.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
@@ -174,7 +179,14 @@ describe('pureza do motor', () => {
       .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text))
       .map(([path]) => path);
     // E, desde V3D-T1, `expeditionOrders.ts`: a ordem de envio dá o identificador à expedição.
-    expect(creators).toEqual(['./arrivals.ts', './expeditionOrders.ts', './tavernTurn.ts']);
+    // Desde V3D-T2, `expeditionTurn.ts`: o item achado no fim de um nó nasce com o dele, em um
+    // instante da linha do tempo. As ordens de equipar (`equipment.ts`) não criam nada.
+    expect(creators).toEqual([
+      './arrivals.ts',
+      './expeditionOrders.ts',
+      './expeditionTurn.ts',
+      './tavernTurn.ts',
+    ]);
     for (const allowed of [
       './commands.ts',
       './council.ts',

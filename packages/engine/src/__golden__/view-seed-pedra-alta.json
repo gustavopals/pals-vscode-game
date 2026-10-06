@@ -700,6 +700,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -743,6 +744,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -1505,6 +1510,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -1548,6 +1554,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -2347,6 +2357,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -2390,6 +2401,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -3252,6 +3267,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -3295,6 +3311,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -4156,6 +4176,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -4199,6 +4220,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -5232,6 +5257,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -5275,6 +5301,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -6147,6 +6177,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -6190,6 +6221,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -7058,6 +7093,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -7101,6 +7137,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -7960,6 +8000,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -8003,6 +8044,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -8960,6 +9005,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -9003,6 +9049,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -9943,6 +9993,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -9986,6 +10037,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -10872,6 +10927,7 @@
         "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
       ],
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 1,
@@ -10915,6 +10971,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -11776,6 +11836,7 @@
         "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 65,9 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
         "defenseText": "Sem Paliçada, nada segura este ataque."
       },
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 2,
@@ -11819,6 +11880,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -12716,6 +12781,7 @@
         "Quem se fere fica 40 min sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (1 h 20 min)."
       ],
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 1,
@@ -12759,6 +12825,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -13620,6 +13690,7 @@
         "costText": "Sem defesa, uma matilha grande leva 15% do estoque de comida e madeira (hoje, 75 de comida e 63 de madeira) e fere 2 aldeões, que ficam 40 min sem trabalhar.",
         "defenseText": "A Paliçada Nv1 não segura um ataque deste tamanho: ele passa, mas com metade do estrago."
       },
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 2,
@@ -13663,6 +13734,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -14568,6 +14643,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -14611,6 +14687,10 @@
       "heroLimit": 1,
       "heroes": [],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -15425,6 +15505,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -15482,6 +15563,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
@@ -15502,6 +15603,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
@@ -15526,6 +15647,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 37.8,
           "powerBreakdown": "(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8",
           "wagePerHour": 6,
@@ -15533,6 +15674,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 18,
         "coveredForSeconds": 83015,
@@ -16365,6 +16510,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -16422,6 +16568,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
@@ -16442,6 +16608,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 28.8,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) × 0,8 (descontente) = 28,8",
           "wagePerHour": 2,
@@ -16449,6 +16635,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": 0,
@@ -17206,6 +17396,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -17262,6 +17453,10 @@
           "blockedReason": null
         }
       ],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -18121,6 +18316,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -18178,6 +18374,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
@@ -18185,6 +18401,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 6,
         "coveredForSeconds": null,
@@ -19087,6 +19307,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -19139,11 +19360,31 @@
           "traits": [
             {
               "label": "Carismática",
-              "text": "Sabe negociar: abre caminhos no conselho e barateia quem a Taverna oferece."
+              "text": "Sabe negociar: barateia quem a Taverna oferece."
             }
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
@@ -19164,6 +19405,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
@@ -19171,6 +19432,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": null,
@@ -20057,6 +20322,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -20103,6 +20369,8 @@
           "requirementsText": "Equipe: 1 herói.",
           "teamMin": 1,
           "teamMax": 1,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 30,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
@@ -20116,9 +20384,26 @@
           "requirementsText": "Equipe: de 1 a 2 heróis.",
           "teamMin": 1,
           "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": null,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        },
+        {
+          "modelId": "wolfDen",
+          "label": "Covil dos Lobos",
+          "riskText": "Médio",
+          "durationSeconds": 2040,
+          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: 2 heróis.",
+          "teamMin": 2,
+          "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 66,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A subida pela pedreira solta (dificuldade 55) · A matilha na toca (dificuldade 66). Depois, o caminho de volta."
         }
       ],
       "expeditions": [
@@ -20155,6 +20440,26 @@
           ],
           "statusText": "Em expedição",
           "atHome": false,
+          "canDepart": false,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
@@ -20175,6 +20480,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
@@ -20182,6 +20507,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 12,
         "coveredForSeconds": null,
@@ -20335,7 +20664,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 1831,
+        "stock": 1837,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -21040,6 +21369,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -21086,6 +21416,8 @@
           "requirementsText": "Equipe: 1 herói.",
           "teamMin": 1,
           "teamMax": 1,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 28,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "O vau do riacho (dificuldade 28). Depois, o caminho de volta."
@@ -21099,9 +21431,41 @@
           "requirementsText": "Equipe: de 1 a 2 heróis.",
           "teamMin": 1,
           "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": null,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        },
+        {
+          "modelId": "wolfDen",
+          "label": "Covil dos Lobos",
+          "riskText": "Médio",
+          "durationSeconds": 7200,
+          "durationNote": "",
+          "requirementsText": "Equipe: 2 heróis.",
+          "teamMin": 2,
+          "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 74,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A subida pela pedreira solta (dificuldade 58) · Os filhotes e os vigias (dificuldade 74). Depois, o caminho de volta."
+        },
+        {
+          "modelId": "ruins",
+          "label": "Ruínas de Vel'Thar",
+          "riskText": "Médio",
+          "durationSeconds": 10800,
+          "durationNote": "",
+          "requirementsText": "Equipe: de 2 a 3 heróis. Todos no nível 2 ou acima.",
+          "teamMin": 2,
+          "teamMax": 3,
+          "teamMinLevel": 2,
+          "firstStretchDifficulty": 92,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "Os saqueadores no portão caído (dificuldade 52) · O salão das lajes falsas (dificuldade 56) · O guardião da cripta (dificuldade 92). Depois, o caminho de volta."
         }
       ],
       "expeditions": [
@@ -21120,7 +21484,8 @@
             {
               "title": "A trilha sob os carvalhos",
               "text": "No 21º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 13 de madeira.",
-              "outcomeLabel": "Sem incidentes"
+              "outcomeLabel": "Sem incidentes",
+              "notes": []
             }
           ],
           "crossroads": {
@@ -21168,11 +21533,16 @@
           "log": [
             {
               "title": "A ronda pelas cercas",
-              "text": "No 21º dia da Primavera, a patrulha de Pedra Alta deu a volta nas cercas e pôs para correr dois ladrões de galinha, que largaram a bolsa. Trouxe 25 de ouro.",
-              "outcomeLabel": "Sucesso pleno"
+              "text": "No 21º dia da Primavera, a patrulha de Pedra Alta deu a volta nas cercas e pôs para correr dois ladrões de galinha, que largaram a bolsa. Trouxe 31 de ouro.",
+              "outcomeLabel": "Sucesso pleno",
+              "notes": [
+                "Caminho novo: Ruínas de Vel'Thar."
+              ]
             }
           ],
-          "lootText": "Trouxe 25 de ouro."
+          "lootText": "Trouxe 31 de ouro.",
+          "itemsText": null,
+          "lost": false
         }
       ],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
@@ -21193,6 +21563,26 @@
           ],
           "statusText": "Em expedição",
           "atHome": false,
+          "canDepart": false,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
@@ -21203,7 +21593,7 @@
           "name": "Rolf",
           "classLabel": "Arqueiro",
           "level": 1,
-          "xp": 0,
+          "xp": 15,
           "xpToNext": 100,
           "traits": [
             {
@@ -21213,6 +21603,26 @@
           ],
           "statusText": "Em expedição",
           "atHome": false,
+          "canDepart": false,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 2,
@@ -21220,6 +21630,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": null,
@@ -22071,6 +22485,7 @@
       "known": false,
       "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
       "incoming": null,
+      "clearedText": null,
       "watchtower": {
         "building": "watchtower",
         "level": 0,
@@ -22117,6 +22532,8 @@
           "requirementsText": "Equipe: 1 herói.",
           "teamMin": 1,
           "teamMax": 1,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 30,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
@@ -22130,9 +22547,26 @@
           "requirementsText": "Equipe: de 1 a 2 heróis.",
           "teamMin": 1,
           "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": null,
           "locked": true,
           "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
           "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        },
+        {
+          "modelId": "wolfDen",
+          "label": "Covil dos Lobos",
+          "riskText": "Médio",
+          "durationSeconds": 12240,
+          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: 2 heróis.",
+          "teamMin": 2,
+          "teamMax": 2,
+          "teamMinLevel": 1,
+          "firstStretchDifficulty": 70,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A subida pela pedreira solta (dificuldade 52) · A loba velha (dificuldade 70). Depois, o caminho de volta."
         }
       ],
       "expeditions": [
@@ -22150,17 +22584,22 @@
             {
               "title": "A trilha sob os carvalhos",
               "text": "No 18º dia do Verão, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 19 de madeira.",
-              "outcomeLabel": "Sem incidentes"
+              "outcomeLabel": "Sem incidentes",
+              "notes": []
             },
             {
               "title": "A trilha se divide",
               "text": "Sem palavra do senhor, a Postura Ousada decidiu: Abrir caminho pela mata fechada.",
-              "outcomeLabel": "Caminho escolhido"
+              "outcomeLabel": "Caminho escolhido",
+              "notes": []
             },
             {
               "title": "O javali da mata fechada",
               "text": "No 19º dia do Verão, o javali da mata fechada dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Trouxe 36 de madeira e 11 de ouro.",
-              "outcomeLabel": "Revés"
+              "outcomeLabel": "Revés",
+              "notes": [
+                "Edda sofreu um ferimento leve."
+              ]
             }
           ],
           "crossroads": null
@@ -22188,7 +22627,7 @@
           "name": "Edda",
           "classLabel": "Guerreira",
           "level": 1,
-          "xp": 0,
+          "xp": 10,
           "xpToNext": 100,
           "traits": [
             {
@@ -22196,8 +22635,31 @@
               "text": "Nunca fica descontente nem parte por soldo em atraso."
             }
           ],
-          "statusText": "Em expedição",
+          "statusText": "Em expedição, com ferimentos",
           "atHome": false,
+          "canDepart": false,
+          "injury": {
+            "severityLabel": "Ferimento leve",
+            "recoversInSeconds": 14040
+          },
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 1,
@@ -22218,6 +22680,26 @@
           ],
           "statusText": "Em expedição",
           "atHome": false,
+          "canDepart": false,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 1,
@@ -22238,6 +22720,26 @@
           ],
           "statusText": "No feudo",
           "atHome": true,
+          "canDepart": true,
+          "injury": null,
+          "captive": false,
+          "equipment": [
+            {
+              "slot": "weapon",
+              "slotLabel": "Arma",
+              "item": null
+            },
+            {
+              "slot": "armor",
+              "slotLabel": "Armadura",
+              "item": null
+            },
+            {
+              "slot": "accessory",
+              "slotLabel": "Acessório",
+              "item": null
+            }
+          ],
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 1,
@@ -22245,6 +22747,10 @@
         }
       ],
       "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
       "wage": {
         "perHour": 3,
         "coveredForSeconds": null,

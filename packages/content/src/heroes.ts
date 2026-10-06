@@ -1,4 +1,6 @@
 import type {
+  ExpeditionNodeKind,
+  InjurySeverityId,
   PostureId,
   HeroAttributeId,
   HeroClassId,
@@ -76,6 +78,21 @@ export type HeroTraitEffects = {
    * Postura** (ADR 0017, "Os oito traços": o Corajoso na Ousada, o Prudente na Cautelosa).
    */
   readonly expeditionPower?: { readonly posture: PostureId; readonly ratio: Ratio };
+  /**
+   * O peso do herói no sorteio de quem sofre o desfecho de um nó, no lugar de
+   * `balance.injuries.harmWeight` (o Corajoso se expõe mais).
+   */
+  readonly harmWeight?: number;
+  /** Nos nós destes tipos, o herói não é sorteado para o ferimento leve de um Revés (o Prudente). */
+  readonly dodgesSetbackIn?: readonly ExpeditionNodeKind[];
+  /**
+   * Com um herói destes na equipe, os **recursos** do saque de cada nó são multiplicados por
+   * `ratio`, uma vez (dois não somam); e, em cada nó com dificuldade que renderia algo, há
+   * `lossPercent` por cento de o saque **daquele nó** se perder (o Ganancioso).
+   */
+  readonly greed?: { readonly ratio: Ratio; readonly lossPercent: number };
+  /** Com um herói destes na equipe, a revelação de um destino vem também no Revés (o Rastreador). */
+  readonly revealsOnSetback?: true;
 };
 
 /** Um traço de herói (GDD, Apêndice D; ADR 0017, "Os oito traços"). */
@@ -94,24 +111,27 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
     label: 'Corajoso',
     labelFeminine: 'Corajosa',
     text: 'Rende mais quando a ordem é de ousadia, e se fere com mais facilidade.',
-    effects: { expeditionPower: { posture: 'bold', ratio: { num: 11, den: 10 } } },
+    effects: { expeditionPower: { posture: 'bold', ratio: { num: 11, den: 10 } }, harmWeight: 6 },
   },
   prudent: {
     label: 'Prudente',
     labelFeminine: 'Prudente',
     text: 'Rende mais quando a ordem é de cautela, e não cai em armadilha simples.',
-    effects: { expeditionPower: { posture: 'cautious', ratio: { num: 11, den: 10 } } },
+    effects: {
+      expeditionPower: { posture: 'cautious', ratio: { num: 11, den: 10 } },
+      dodgesSetbackIn: ['hazard'],
+    },
   },
   greedy: {
     label: 'Ganancioso',
     labelFeminine: 'Gananciosa',
     text: 'Volta com mais saque, e às vezes o perde no caminho.',
-    effects: {},
+    effects: { greed: { ratio: { num: 5, den: 4 }, lossPercent: 10 } },
   },
   charismatic: {
     label: 'Carismático',
     labelFeminine: 'Carismática',
-    text: 'Sabe negociar: abre caminhos no conselho e barateia quem a Taverna oferece.',
+    text: 'Sabe negociar: barateia quem a Taverna oferece.',
     effects: { tavernPrice: { num: 4, den: 5 } },
   },
   devout: {
@@ -136,7 +156,7 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
     label: 'Rastreador',
     labelFeminine: 'Rastreadora',
     text: 'Acha o caminho de volta a um lugar mesmo quando a jornada vai mal.',
-    effects: {},
+    effects: { revealsOnSetback: true },
   },
 };
 
@@ -144,6 +164,14 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
 export const heroStatuses: Record<HeroStatusId, { readonly label: string }> = {
   idle: { label: 'No feudo' },
   expedition: { label: 'Em expedição' },
+  injured: { label: 'Em recuperação' },
+  captured: { label: 'Em cativeiro' },
+};
+
+/** Como a ficha chama cada gravidade de ferimento. */
+export const injurySeverities: Record<InjurySeverityId, { readonly label: string }> = {
+  light: { label: 'Ferimento leve' },
+  severe: { label: 'Ferimento grave' },
 };
 
 /**
@@ -165,6 +193,15 @@ export const guildTexts = {
     'Sua equipe ainda não tem para onde ir: erga a Guilda dos Aventureiros, e ela abre as expedições. Até lá, os heróis ficam no feudo, e o soldo corre.',
   /** Dispensar quem está fora do feudo não é possível. */
   busy: 'Quem está fora do feudo não pode ser dispensado antes de voltar.',
+  /** O estado de quem se recupera: `{prazo}` é o tempo real até poder partir de novo. */
+  injured: 'Em recuperação: volta a poder partir em {prazo}',
+  /** Ferido em plena jornada: termina a expedição e só depois descansa. */
+  injuredAway: 'Em expedição, com ferimentos',
+  /** O estado de quem está em cativeiro: `{expedicao}` é a jornada em que ficou. */
+  captured: 'Em cativeiro desde "{expedicao}"',
+  /** O que dizer do cativo, com o Resgate à mão. */
+  captiveNote:
+    'Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Continua contando no limite de heróis.',
   dismiss:
     'Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.',
 } as const;

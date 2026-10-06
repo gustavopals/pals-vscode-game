@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 17;
+const CURRENT = 18;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -65,6 +65,27 @@ const EMPTY_GUILD = {
   lastWageArrears: null,
   ...EMPTY_TAVERN,
 };
+
+/**
+ * Um estado gravado sem o que o passo 17 → 18 acrescenta a toda partida (V3D-T2): os destinos
+ * revelados, o arsenal e, em cada herói, o ferimento, o cativeiro e o equipamento. É o que deixa
+ * os blocos dos passos anteriores compararem o resto, campo por campo, com o retrato antigo; o
+ * que o passo escreve é conferido no bloco dele.
+ */
+function beforeOutcomes<T>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as {
+    map?: { discovered?: unknown };
+    guild?: { inventory?: unknown; heroes?: Array<Record<string, unknown>> };
+  };
+  delete copy.map?.discovered;
+  delete copy.guild?.inventory;
+  for (const hero of copy.guild?.heroes ?? []) {
+    delete hero.injury;
+    delete hero.captivity;
+    delete hero.equipment;
+  }
+  return copy as T;
+}
 
 /**
  * O feudo de um estado anterior à versão 16, com a Taverna por construir a mais e, desde a
@@ -897,7 +918,7 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       // O estado é o da versão 12, campo por campo, com a fronteira nova e os contadores vazios:
       // nenhum estoque, prazo, carta, incursão ou sorteio muda.
-      expect(row.state).toEqual({
+      expect(beforeOutcomes(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -1070,7 +1091,7 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       // O estado é o da versão 13, campo por campo, com a fronteira nova, a guilda vazia e a
       // Taverna por construir:
       // nenhum estoque, prazo, carta, incursão, contador ou sorteio muda.
-      expect(row.state).toEqual({
+      expect(beforeOutcomes(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -1100,7 +1121,7 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
       const row = (await rowOf(app, game.id)) as Row & { state: V13State };
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
       expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
-      expect(row.state.guild).toEqual(EMPTY_GUILD);
+      expect(beforeOutcomes(row.state).guild).toEqual(EMPTY_GUILD);
       expect(row.state.ids).toEqual({});
       expect(
         await countRows(
@@ -1171,7 +1192,7 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
       // O estado é o da versão 15, campo por campo, com a fronteira nova, o edifício no nível
       // zero e a Taverna vazia: nenhum herói, prometido, atraso, estoque, contador ou sorteio
       // muda, e o fluxo da Taverna só nasce com a primeira rotação.
-      expect(row.state).toEqual({
+      expect(beforeOutcomes(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -1289,7 +1310,7 @@ describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13
       // O estado é o da versão 16, campo por campo, com a fronteira nova, o edifício no nível
       // zero e as duas listas vazias: nenhum herói, oferta, festival, estoque, contador ou
       // sorteio muda, e todos continuam no feudo.
-      expect(row.state).toEqual({
+      expect(beforeOutcomes(row.state)).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
@@ -1350,6 +1371,145 @@ describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13
           `game_id = '${game.id}' and kind like 'expedition%'`,
         ),
       ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 17 (V3D-T2; ADR 0017, decisão 8; ADR 0018, decisões 14 e 15)', () => {
+  type V17Hero = { id: string; status: string; injury?: unknown; equipment?: unknown };
+  type V17State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    map: { tiles: unknown; threat: number; discovered?: unknown };
+    guild: {
+      heroes: V17Hero[];
+      inventory?: unknown;
+      expeditions: Array<{ id: string; loot: { items?: unknown }; log: unknown[] }>;
+      reports: Array<{ expeditionId: string; sold?: unknown; lost?: unknown }>;
+    };
+  };
+
+  /** Um retrato da versão 17, como o motor das expedições o gravou. */
+  function v17State(name: string): V17State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v17-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V17State;
+  }
+
+  async function insertV17(app: TestApp, state: V17State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // Os três ritmos e as três dificuldades; com heróis no feudo, com uma expedição em viagem, com
+  // uma parada na encruzilhada e um relatório guardado, e com duas de uma vez.
+  it.each([
+    ['week-scripted'],
+    ['guild'],
+    ['tavern-busy'],
+    ['expedition'],
+    ['expedition-crossroads'],
+    ['expedition-returning'],
+    ['migrated-peasant-3x'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com o arsenal e os destinos vazios a mais',
+    async (name) => {
+      const before = v17State(name);
+      expect(before.guild.inventory).toBeUndefined();
+      expect(before.map.discovered).toBeUndefined();
+      const game = await insertV17(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 17, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V17State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(row.state.guild.inventory).toEqual([]);
+      expect(row.state.map.discovered).toEqual([]);
+      // Ninguém ganha identificador, e o gerador fica palavra por palavra como estava.
+      expect(row.state.rng).toEqual(before.rng);
+      expect(row.state.ids).toEqual(before.ids);
+      // Os heróis são os mesmos, no mesmo estado, sem ferimento nem equipamento.
+      expect(row.state.guild.heroes.map((hero) => [hero.id, hero.status])).toEqual(
+        before.guild.heroes.map((hero) => [hero.id, hero.status]),
+      );
+      for (const hero of row.state.guild.heroes) {
+        expect(hero).toMatchObject({
+          injury: null,
+          captivity: null,
+          equipment: { weapon: null, armor: null, accessory: null },
+        });
+      }
+      // As expedições em curso continuam de onde estavam, com o saque sem item nenhum.
+      expect(row.state.guild.expeditions.map((entry) => entry.id)).toEqual(
+        before.guild.expeditions.map((entry) => entry.id),
+      );
+      for (const expedition of row.state.guild.expeditions) {
+        expect(expedition.loot.items).toEqual([]);
+      }
+      for (const report of row.state.guild.reports) {
+        expect(report).toMatchObject({ sold: [], lost: false });
+      }
+
+      // A visão: o arsenal vazio, ninguém ferido nem em cativeiro, e nenhum destino por
+      // descoberta nem o Resgate na lista.
+      const { guild, threat } = reply.body.view;
+      expect(guild.inventory).toEqual([]);
+      expect(guild.captiveText).toBeNull();
+      expect(guild.heroes.every((hero) => hero.injury === null && !hero.captive)).toBe(true);
+      expect(guild.available.map((offer) => offer.modelId)).not.toContain('rescue');
+      expect(guild.available.map((offer) => offer.modelId)).not.toContain('ruins');
+      expect(threat.clearedText).toBeNull();
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: a equipe parada na encruzilhada segue pela Postura e volta pelas regras novas', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v17State('expedition-crossroads');
+      expect(before.guild.expeditions).toHaveLength(1);
+      const game = await insertV17(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V17State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      // Um dia real depois a expedição acabou: voltou (ou se perdeu), e o relatório dela ficou.
+      expect(row.state.guild.expeditions).toEqual([]);
+      expect(row.state.guild.reports.map((entry) => entry.expeditionId)).toContain(
+        before.guild.expeditions[0]?.id,
+      );
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and kind in ('expeditionReturned', 'expeditionLost')`,
+        ),
+      ).toBe(1);
     } finally {
       await app.close();
     }

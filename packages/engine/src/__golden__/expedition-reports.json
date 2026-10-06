@@ -23,7 +23,15 @@
       "wood": 15,
       "stone": 0,
       "gold": 0
-     }
+     },
+     "xp": 0,
+     "harm": null,
+     "leveled": [],
+     "found": [],
+     "revealed": null,
+     "cleared": null,
+     "rescued": null,
+     "lootLost": false
     },
     {
      "nodeId": "fork",
@@ -36,7 +44,15 @@
       "wood": 0,
       "stone": 0,
       "gold": 0
-     }
+     },
+     "xp": 0,
+     "harm": null,
+     "leveled": [],
+     "found": [],
+     "revealed": null,
+     "cleared": null,
+     "rescued": null,
+     "lootLost": false
     },
     {
      "nodeId": "deepWoods",
@@ -46,26 +62,44 @@
      "decidedBy": null,
      "gained": {
       "food": 0,
-      "wood": 67,
+      "wood": 83,
       "stone": 0,
-      "gold": 28
-     }
+      "gold": 35
+     },
+     "xp": 25,
+     "harm": null,
+     "leveled": [],
+     "found": [
+      "paddedJerkin"
+     ],
+     "revealed": null,
+     "cleared": null,
+     "rescued": null,
+     "lootLost": false
     }
    ],
    "loot": {
     "resources": {
      "food": 0,
-     "wood": 82,
+     "wood": 98,
      "stone": 0,
-     "gold": 28
-    }
+     "gold": 35
+    },
+    "items": [
+     {
+      "id": "item-1",
+      "defId": "paddedJerkin"
+     }
+    ]
    },
    "wasted": {
     "food": 0,
-    "wood": 82000,
+    "wood": 98000,
     "stone": 0,
     "gold": 0
-   }
+   },
+   "sold": [],
+   "lost": false
   },
   {
    "expeditionId": "expedition-2",
@@ -89,7 +123,15 @@
       "wood": 0,
       "stone": 0,
       "gold": 25
-     }
+     },
+     "xp": 12,
+     "harm": null,
+     "leveled": [],
+     "found": [],
+     "revealed": "ruins",
+     "cleared": null,
+     "rescued": null,
+     "lootLost": false
     }
    ],
    "loot": {
@@ -98,14 +140,17 @@
      "wood": 0,
      "stone": 0,
      "gold": 25
-    }
+    },
+    "items": []
    },
    "wasted": {
     "food": 0,
     "wood": 0,
     "stone": 0,
     "gold": 0
-   }
+   },
+   "sold": [],
+   "lost": false
   }
  ],
  "view": [
@@ -120,10 +165,15 @@
     {
      "title": "Rastros na estrada velha",
      "text": "No 2º dia da Primavera, a patrulha de Pedra Alta seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
-     "outcomeLabel": "Sucesso"
+     "outcomeLabel": "Sucesso",
+     "notes": [
+      "Caminho novo: Ruínas de Vel'Thar."
+     ]
     }
    ],
-   "lootText": "Trouxe 25 de ouro."
+   "lootText": "Trouxe 25 de ouro.",
+   "itemsText": null,
+   "lost": false
   },
   {
    "expeditionId": "expedition-1",
@@ -137,20 +187,27 @@
     {
      "title": "A trilha sob os carvalhos",
      "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 15 de madeira.",
-     "outcomeLabel": "Sem incidentes"
+     "outcomeLabel": "Sem incidentes",
+     "notes": []
     },
     {
      "title": "A trilha se divide",
      "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
-     "outcomeLabel": "Caminho escolhido"
+     "outcomeLabel": "Caminho escolhido",
+     "notes": []
     },
     {
      "title": "O javali da mata fechada",
-     "text": "No 1º dia da Primavera, a expedição de Pedra Alta abateu o javali da mata fechada e cortou a melhor madeira do bosque. Trouxe 67 de madeira e 28 de ouro.",
-     "outcomeLabel": "Sucesso pleno"
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta abateu o javali da mata fechada e cortou a melhor madeira do bosque. Trouxe 83 de madeira e 35 de ouro.",
+     "outcomeLabel": "Sucesso pleno",
+     "notes": [
+      "Achado: Gibão acolchoado."
+     ]
     }
    ],
-   "lootText": "Trouxe 82 de madeira e 28 de ouro. Faltou lugar no depósito, e foi ao chão: 82 de madeira."
+   "lootText": "Trouxe 98 de madeira e 35 de ouro. Faltou lugar no depósito, e foi ao chão: 98 de madeira.",
+   "itemsText": "Para o arsenal: Gibão acolchoado.",
+   "lost": false
   }
  ]
 }

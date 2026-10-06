@@ -5,13 +5,16 @@ import {
   heroClasses,
   type HeroTraitId,
   heroTraits,
+  ITEM_SLOT_IDS,
+  type ItemDef,
+  items,
   type NamedHeroDef,
   namedHeroes,
   type PostureId,
   type Ratio,
 } from '@lotg/content';
 
-import type { GameState, Hero } from './types';
+import type { GameState, Hero, Item } from './types';
 import { MILLI } from './units';
 
 /**
@@ -28,12 +31,76 @@ export function isLoyal(hero: Hero): boolean {
 }
 
 /**
- * O herói está no feudo. Só quem está pode partir por soldo em atraso, ser dispensado e sair em
- * expedição: quem está fora (em expedição; em escolta, da Fase E em diante) só parte depois de
- * voltar.
+ * O herói está no feudo, pronto ou se recuperando de um ferimento. Só quem está pode partir por
+ * soldo em atraso, ser dispensado e equipado, e só a fé de quem está levanta o ânimo: quem está
+ * fora (em expedição, em cativeiro; em escolta, da Fase E em diante) espera a volta.
  */
 export function isAtHome(hero: Hero): boolean {
+  return hero.status === 'idle' || hero.status === 'injured';
+}
+
+/** O herói pode partir em uma expedição: está no feudo e sem ferimento (ADR 0017, decisão 8). */
+export function canDepart(hero: Hero): boolean {
   return hero.status === 'idle';
+}
+
+/** O herói está em cativeiro: não recebe soldo, e o atraso do soldo não o alcança. */
+export function isCaptive(hero: Hero): boolean {
+  return hero.status === 'captured';
+}
+
+/**
+ * Quem o soldo em atraso não alcança: o Leal, por traço, e o cativo, que não recebe soldo e não
+ * está no feudo para se queixar nem para partir (ADR 0017, decisão 3).
+ */
+export function isBeyondArrears(hero: Hero): boolean {
+  return isLoyal(hero) || isCaptive(hero);
+}
+
+/**
+ * Os heróis em cativeiro, do que está lá há mais tempo ao mais recente; no empate, na ordem da
+ * lista (a de chegada ao feudo). O primeiro é quem um Resgate liberta.
+ */
+export function captives(state: GameState): Hero[] {
+  return state.guild.heroes
+    .filter(isCaptive)
+    .map((hero, index) => ({ hero, index }))
+    .sort(
+      (a, b) =>
+        (a.hero.captivity?.sinceMs ?? 0) - (b.hero.captivity?.sinceMs ?? 0) || a.index - b.index,
+    )
+    .map(({ hero }) => hero);
+}
+
+/** O item do conteúdo; `null` para um identificador que o conteúdo não tem (ou já não tem). */
+export function itemDefOf(item: Pick<Item, 'defId'>): ItemDef | null {
+  return Object.hasOwn(items, item.defId) ? items[item.defId as keyof typeof items] : null;
+}
+
+/** O que um herói leva, na ordem dos espaços do conteúdo. */
+export function equippedItems(hero: Hero): Item[] {
+  const worn: Item[] = [];
+  for (const slot of ITEM_SLOT_IDS) {
+    const item = hero.equipment[slot];
+    if (item !== null) {
+      worn.push(item);
+    }
+  }
+  return worn;
+}
+
+/**
+ * Instante, em ms de jogo, em que o próximo herói ferido sara; `null` sem ferido. É um evento
+ * da linha do tempo: o herói volta a poder partir exatamente nele.
+ */
+export function nextHeroRecoveryAt(state: GameState): number | null {
+  let next: number | null = null;
+  for (const hero of state.guild.heroes) {
+    if (hero.injury !== null && (next === null || hero.injury.untilMs < next)) {
+      next = hero.injury.untilMs;
+    }
+  }
+  return next;
 }
 
 /** "Guerreira", "Arqueiro": a classe como a ficha a mostra, concordando com o herói. */
@@ -74,11 +141,11 @@ export function nextHeroArrivalAt(state: GameState): number | null {
 }
 
 /**
- * Quantos heróis recebem soldo: todos os que servem ao feudo, estejam nele ou fora. O único
- * que não recebe é o capturado (ADR 0017, decisão 3), e a captura é da Fase D.
+ * Quantos heróis recebem soldo: todos os que servem ao feudo, estejam nele, em expedição ou
+ * feridos. O único que não recebe é o cativo (ADR 0017, decisão 3).
  */
 export function paidHeroes(state: GameState): number {
-  return state.guild.heroes.length;
+  return state.guild.heroes.filter((hero) => !isCaptive(hero)).length;
 }
 
 /** O soldo de toda a equipe, em milésimos de ouro por hora de jogo. */
@@ -110,7 +177,11 @@ export function traitMorale(hero: Hero): number {
  * Um fator do poder de um herói: a fração que entra na conta e o nome com que ele aparece na
  * explicação do número ("× 1,08 (Nv2)").
  */
-export type HeroFactor = { id: 'level' | 'discontent' | 'trait'; ratio: Ratio; label: string };
+export type HeroFactor = {
+  id: 'level' | 'discontent' | 'trait' | 'item';
+  ratio: Ratio;
+  label: string;
+};
 
 /**
  * Os fatores que multiplicam os atributos de um herói agora, na ordem em que a explicação os
@@ -118,8 +189,8 @@ export type HeroFactor = { id: 'level' | 'discontent' | 'trait'; ratio: Ratio; l
  * atraso o Descontente e, **em uma expedição enviada com a Postura dada**, o traço que rende
  * mais nela (o Corajoso na Ousada, o Prudente na Cautelosa; ADR 0017, "Os oito traços"). É **a**
  * lista: `heroPower` e `teamPower` multiplicam todos e a visão escreve um termo para cada um
- * que mexe. Sem Postura (a ficha do herói no feudo) nenhum traço entra. Item entra aqui com a
- * tarefa dele.
+ * que mexe. Sem Postura (a ficha do herói no feudo) nenhum traço entra. Por último, **cada item
+ * que ele leva**, na ordem dos espaços (ADR 0018, decisão 15): o item vale na ficha e em todo nó.
  */
 export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroFactor[] {
   const { levelBonus, arrears } = rules;
@@ -143,6 +214,12 @@ export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroF
           label: traitLabel(trait, hero.gender).toLowerCase(),
         });
       }
+    }
+  }
+  for (const item of equippedItems(hero)) {
+    const def = itemDefOf(item);
+    if (def !== null) {
+      factors.push({ id: 'item', ratio: def.power, label: def.label.toLowerCase() });
     }
   }
   return factors;

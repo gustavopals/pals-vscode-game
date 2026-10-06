@@ -7,6 +7,7 @@ import {
   expeditionTexts,
   type ExpeditionVariant,
   heroClasses,
+  items as itemDefs,
   POSTURE_IDS,
 } from '@lotg/content';
 
@@ -20,6 +21,7 @@ import {
   expeditionsText,
   guildLevel,
   heroesOf,
+  isKnownDestination,
   nextVariant,
   nodeIn,
   nodeOf,
@@ -30,7 +32,9 @@ import {
   teamSizeText,
   variantOf,
 } from './expeditions';
-import { durationText, fillText, sentenceCase } from './format';
+import { durationText, fillText, joinList, sentenceCase } from './format';
+import { canDepart } from './heroes';
+import { tileWithArticle } from './outcomes';
 import { describeLoss } from './storage';
 import type {
   BuildingId,
@@ -112,6 +116,23 @@ function firstStretchText(variant: ExpeditionVariant): string {
   return parts.join(' · ');
 }
 
+/** A maior dificuldade do primeiro trecho, até a primeira encruzilhada; `null` sem prova nele. */
+function firstStretchDifficulty(variant: ExpeditionVariant): number | null {
+  let hardest: number | null = null;
+  let nodeId = variant.start;
+  for (let steps = 0; steps <= rules.graph.maxSteps; steps += 1) {
+    const node = nodeIn(variant, nodeId);
+    if (node === null || node.kind === 'crossroads' || node.kind === 'return') {
+      break;
+    }
+    if (node.trial !== undefined) {
+      hardest = Math.max(hardest ?? 0, node.trial.difficulty);
+    }
+    nodeId = node.next;
+  }
+  return hardest;
+}
+
 function requirementsText(model: ExpeditionModelDef): string {
   const { requires } = model;
   const sentences = [fillText(expeditionTexts.team, { equipe: teamSizeText(requires) })];
@@ -143,7 +164,8 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
   const views: ExpeditionOfferView[] = [];
   for (const model of expeditionModels) {
     const variant = model.variants[nextVariant(state, model)];
-    if (variant === undefined) {
+    // O destino que ainda não foi revelado, e o Resgate sem cativo, não saem do servidor.
+    if (variant === undefined || !isKnownDestination(state, model)) {
       continue;
     }
     const hasCrossroads = Object.values(variant.nodes).some((node) => node.kind === 'crossroads');
@@ -164,6 +186,8 @@ function offersView(state: GameState, timeScale: number): ExpeditionOfferView[] 
       requirementsText: requirementsText(model),
       teamMin: model.requires.teamMin,
       teamMax: model.requires.teamMax,
+      teamMinLevel: model.requires.minHeroLevel,
+      firstStretchDifficulty: firstStretchDifficulty(variant),
       locked: blocked !== null,
       lockedReason: blocked?.message ?? null,
       firstStretchText: firstStretchText(variant),
@@ -182,6 +206,52 @@ function gainedText(gained: Record<ResourceId, number>): string {
  * Crônica, com a data do instante em que aconteceu. Um registro de um nó que o conteúdo já não
  * tem fica de fora.
  */
+const itemLabel = (defId: string): string =>
+  Object.hasOwn(itemDefs, defId) ? itemDefs[defId as keyof typeof itemDefs].label : 'um item';
+
+/**
+ * O que um passo fez à equipe e ao mundo, uma frase por fato, na ordem em que aconteceu: o
+ * saque que a cobiça perdeu, quem sofreu, o que foi achado, o destino revelado, o tile limpo, o
+ * cativo solto e quem subiu de nível. Só nomes e fatos: nenhum número de regra.
+ */
+function logNotes(state: GameState, entry: ExpeditionLogEntry): string[] {
+  const notes: string[] = [];
+  if (entry.lootLost) {
+    notes.push(expeditionTexts.reportLootLost);
+  }
+  if (entry.harm !== null) {
+    const template = {
+      light: expeditionTexts.reportLight,
+      severe: expeditionTexts.reportSevere,
+      captured: expeditionTexts.reportCaptured,
+      died: expeditionTexts.reportDied,
+    }[entry.harm.kind];
+    notes.push(fillText(template, { heroi: entry.harm.heroName }));
+  }
+  for (const defId of entry.found) {
+    notes.push(fillText(expeditionTexts.reportFound, { item: itemLabel(defId) }));
+  }
+  if (entry.revealed !== null) {
+    notes.push(
+      fillText(expeditionTexts.reportRevealed, { destino: expeditionLabel(entry.revealed) }),
+    );
+  }
+  if (entry.cleared !== null) {
+    notes.push(
+      fillText(expeditionTexts.reportCleared, {
+        lugar: tileWithArticle(state, entry.cleared) ?? '',
+      }),
+    );
+  }
+  if (entry.rescued !== null) {
+    notes.push(fillText(expeditionTexts.reportRescued, { heroi: entry.rescued }));
+  }
+  for (const { heroName, level } of entry.leveled) {
+    notes.push(fillText(expeditionTexts.reportLeveled, { heroi: heroName, nivel: level }));
+  }
+  return notes;
+}
+
 function logView(
   state: GameState,
   source: Pick<Expedition, 'modelId' | 'variant' | 'posture'>,
@@ -211,6 +281,7 @@ function logView(
         title: node.title,
         text: fillText(template, { opcao: option.label, postura: posture }),
         outcomeLabel,
+        notes: [],
       });
       continue;
     }
@@ -228,6 +299,7 @@ function logView(
         found === '' ? '' : ` ${fillText(expeditionTexts.loot, { saque: found })}`
       }`,
       outcomeLabel,
+      notes: logNotes(state, entry),
     });
   }
   return views;
@@ -311,6 +383,33 @@ function expeditionView(
   };
 }
 
+/**
+ * "Para o arsenal: Lança de caça." e, para o que não coube, "Sem lugar no arsenal, viraram ouro:
+ * Arco de freixo."; `null` sem item. Os vendidos saem da lista dos guardados pela ordem.
+ */
+function itemsText(report: ExpeditionReport): string | null {
+  const sold = [...report.sold];
+  const kept: string[] = [];
+  for (const item of report.loot.items) {
+    const index = sold.indexOf(item.defId);
+    if (index === -1) {
+      kept.push(itemLabel(item.defId));
+    } else {
+      sold.splice(index, 1);
+    }
+  }
+  const parts: string[] = [];
+  if (kept.length > 0) {
+    parts.push(fillText(expeditionTexts.lootItems, { itens: joinList(kept) }));
+  }
+  if (report.sold.length > 0) {
+    parts.push(
+      fillText(expeditionTexts.lootItemsSold, { itens: joinList(report.sold.map(itemLabel)) }),
+    );
+  }
+  return parts.length === 0 ? null : parts.join(' ');
+}
+
 function reportView(state: GameState, report: ExpeditionReport): ExpeditionReportView {
   const { resources } = report.loot;
   const brought = describeLoss(resources);
@@ -325,12 +424,15 @@ function reportView(state: GameState, report: ExpeditionReport): ExpeditionRepor
     postureLabel: expeditionPostures[report.posture].label,
     teamNames: [...report.heroNames],
     log: logView(state, report, report.log),
-    lootText:
-      brought === ''
+    lootText: report.lost
+      ? expeditionTexts.lootAllLost
+      : brought === ''
         ? expeditionTexts.lootNone
         : lost === ''
           ? fillText(expeditionTexts.loot, { saque: brought })
           : fillText(expeditionTexts.lootCut, { saque: brought, perda: lost }),
+    itemsText: itemsText(report),
+    lost: report.lost,
   };
 }
 
@@ -340,7 +442,7 @@ export function guildReadyText(state: GameState): string {
   if (state.guild.expeditions.length >= expeditionSlots(state)) {
     return fillText(expeditionTexts.full, { expedicoes: slots });
   }
-  if (!state.guild.heroes.some((hero) => hero.status === 'idle')) {
+  if (!state.guild.heroes.some(canDepart)) {
     return expeditionTexts.noneHome;
   }
   return fillText(expeditionTexts.ready, { expedicoes: slots });

@@ -91,10 +91,10 @@ export const HERO_TRAIT_IDS = [
 export type HeroTraitId = (typeof HERO_TRAIT_IDS)[number];
 
 /**
- * O que um herói está fazendo: no feudo ou em expedição (V3D-T1). Escolta, ferimento e captura
- * entram com as tarefas que os usam.
+ * O que um herói está fazendo: no feudo, em expedição (V3D-T1), ferido no feudo ou em cativeiro
+ * (V3D-T2). A escolta entra com a tarefa que a usa.
  */
-export const HERO_STATUS_IDS = ['idle', 'expedition'] as const;
+export const HERO_STATUS_IDS = ['idle', 'expedition', 'injured', 'captured'] as const;
 export type HeroStatusId = (typeof HERO_STATUS_IDS)[number];
 
 /**
@@ -164,8 +164,52 @@ export type ExpeditionDisasterId = (typeof EXPEDITION_DISASTER_IDS)[number];
  * migração. **Os grafos desta lista são provisórios** (V3D-T1): o catálogo de verdade, com os
  * seis modelos, é de V3D-T3. A ficha de cada um está em `expeditionModels`.
  */
-export const EXPEDITION_MODEL_IDS = ['patrol', 'oldForest'] as const;
+export const EXPEDITION_MODEL_IDS = ['patrol', 'oldForest', 'wolfDen', 'rescue', 'ruins'] as const;
 export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];
+
+/** A gravidade de um ferimento de herói (ADR 0017, decisão 8): leve no Revés, grave no Desastre. */
+export const INJURY_SEVERITY_IDS = ['light', 'severe'] as const;
+export type InjurySeverityId = (typeof INJURY_SEVERITY_IDS)[number];
+
+/**
+ * O que acontece ao herói onde um nó marca captura, conforme a dificuldade (ADR 0017, decisão 8):
+ * ferimento grave no lugar dela, a captura, ou a morte.
+ */
+export const HERO_CAPTURE_RULE_IDS = ['injury', 'capture', 'death'] as const;
+export type HeroCaptureRuleId = (typeof HERO_CAPTURE_RULE_IDS)[number];
+
+/** O que um desfecho fez a um herói: os dois ferimentos, a captura e a morte. */
+export const HERO_HARM_IDS = ['light', 'severe', 'captured', 'died'] as const;
+export type HeroHarmId = (typeof HERO_HARM_IDS)[number];
+
+/** Os espaços de equipamento de um herói (GDD §9.1; ADR 0018, decisão 15). */
+export const ITEM_SLOT_IDS = ['weapon', 'armor', 'accessory'] as const;
+export type ItemSlotId = (typeof ITEM_SLOT_IDS)[number];
+
+/** As raridades de item desta versão, da mais comum à mais rara (o Lendário fica fora). */
+export const ITEM_RARITY_IDS = ['common', 'uncommon', 'rare', 'epic'] as const;
+export type ItemRarityId = (typeof ITEM_RARITY_IDS)[number];
+
+/**
+ * Os itens (GDD §9.1; ADR 0018, decisão 15). O id fica gravado no estado
+ * (`guild.inventory[].defId`, `hero.equipment`): mudar um deles pede passo de migração. A ficha
+ * de cada um está em `items`.
+ */
+export const ITEM_IDS = [
+  'huntingSpear',
+  'ashBow',
+  'veltharBlade',
+  'emberStaff',
+  'paddedJerkin',
+  'boiledLeather',
+  'riveredMail',
+  'wardenPlate',
+  'luckyCharm',
+  'trackerHorn',
+  'pilgrimRelic',
+  'oldKingSignet',
+] as const;
+export type ItemId = (typeof ITEM_IDS)[number];
 
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };

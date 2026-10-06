@@ -2,7 +2,7 @@ import { balance } from '@lotg/content';
 
 import { soundHowls } from './raids';
 import { chance } from './random';
-import { prowlingEnemy, raidChancePercent, raidSizeAt, turnThreat } from './threat';
+import { raidChancePercent, raidingEnemy, raidSizeAt, turnThreat } from './threat';
 import type { GameEvent, GameState } from './types';
 
 /**
@@ -16,7 +16,8 @@ import type { GameEvent, GameState } from './types';
  *    depois (outra virada de dia), do tamanho que a Ameaça dá, e é do inimigo que ronda o feudo.
  *
  * **Só se sorteia o que pode acontecer**: com uma incursão já marcada (a do roteiro conta), com
- * a Ameaça no limiar ou abaixo dele, ou sem tile ativo, o fluxo não anda. Há, portanto, no
+ * a Ameaça no limiar ou abaixo dele, ou sem quem ataque (nenhum tile ativo, e fora da estação em
+ * que os lobos descem a serra: `raidingEnemy`), o fluxo não anda. Há, portanto, no
  * máximo uma incursão marcada por vez, e a primeira de toda partida nova é a do roteiro.
  *
  * O sorteio não vira evento nem linha: a incursão marcada só aparece quando os vigias da Torre
@@ -35,7 +36,7 @@ export function turnHorde(draft: GameState, atMs: number, events: GameEvent[]): 
 function drawRaid(draft: GameState, atMs: number): void {
   const { horde, stats } = draft;
   const percent = raidChancePercent(draft.map.threat);
-  const enemy = prowlingEnemy(draft);
+  const enemy = raidingEnemy(draft, atMs);
   if (horde.scheduledRaids.length > 0 || percent <= 0 || enemy === null) {
     return;
   }

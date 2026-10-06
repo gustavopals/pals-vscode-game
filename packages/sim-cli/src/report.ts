@@ -771,6 +771,20 @@ function threatLine({ threat, milestones }: Summary): string {
  * sucessos, 0 reveses, 0 desastres · encruzilhadas: 0 pelo jogador, 0 pela Postura · 212
  * herói-horas paradas · 180 de ouro em saques". Os nós contados são os que têm dificuldade.
  */
+/** "3 feridos, 0 cativos, 0 mortos, 0 resgatados, 4 níveis, 1 item, Covil limpo 1 vez, 0 equipes perdidas". */
+function fatesText(fates: ExpeditionCounts['fates']): string {
+  return [
+    `${fates.injured} feridos`,
+    `${fates.captured} cativos`,
+    `${fates.died} mortos`,
+    `${fates.rescued} resgatados`,
+    `${fates.levelUps} níveis`,
+    `${fates.itemsFound} itens`,
+    `Covil limpo ${fates.tilesCleared} vez(es)`,
+    `${fates.lost} equipes perdidas`,
+  ].join(', ');
+}
+
 function guildLine({ guild, expeditions }: Summary): string {
   const { outcomes } = expeditions;
   return [
@@ -782,6 +796,7 @@ function guildLine({ guild, expeditions }: Summary): string {
     `encruzilhadas: ${expeditions.crossroadsByPlayer} pelo jogador, ${expeditions.crossroadsByPosture} pela Postura`,
     `${expeditions.heroIdleHours} herói-horas paradas`,
     `${expeditions.lootGold} de ouro em saques`,
+    fatesText(expeditions.fates),
   ].join(' · ');
 }
 

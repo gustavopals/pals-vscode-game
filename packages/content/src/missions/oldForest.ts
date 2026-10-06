@@ -67,6 +67,7 @@ export const oldForest: ExpeditionModelDef = {
   riskLabel: 'Baixo a médio',
   durationMs: 60 * MINUTE_MS,
   requires: { guildLevel: 1, teamMin: 1, teamMax: 2, minHeroLevel: 1, classes: [] },
+  access: { kind: 'open' },
   variants: [
     {
       start: 'trail',
@@ -79,6 +80,7 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 55,
+            xp: 20,
             onDisaster: 'injury',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} abateu o javali da mata fechada e cortou a melhor madeira do bosque.',
@@ -90,7 +92,13 @@ export const oldForest: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o javali da mata fechada pôs a expedição de {feudo} para correr, sem uma tora sequer.',
             },
           },
-          rewards: { resources: { wood: { min: 60, max: 90 }, gold: { min: 20, max: 30 } } },
+          rewards: {
+            resources: { wood: { min: 60, max: 90 }, gold: { min: 20, max: 30 } },
+            item: {
+              chance: { num: 1, den: 3 },
+              from: ['huntingSpear', 'paddedJerkin', 'luckyCharm'],
+            },
+          },
           next: 'home',
         },
         glade: {
@@ -99,6 +107,7 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 36,
+            xp: 20,
             weights: { skill: { num: 1, den: 2 } },
             onDisaster: 'injury',
             outcomes: {
@@ -128,6 +137,7 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 58,
+            xp: 20,
             onDisaster: 'injury',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} fez os lenhadores sem senhor largarem os machados e a pilha de toras.',
@@ -196,6 +206,7 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 40,
+            xp: 20,
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
             outcomes: {
@@ -217,6 +228,7 @@ export const oldForest: ExpeditionModelDef = {
           durationMs: 25 * MINUTE_MS,
           trial: {
             difficulty: 38,
+            xp: 20,
             onDisaster: 'injury',
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, a expedição de {feudo} achou o fundo do barranco vazio e os troncos prontos para levar.',

@@ -74,6 +74,7 @@ describe('a Ameaça sobe na virada do dia de jogo (GDD §8.2)', () => {
     expect(state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
+      discovered: [],
     });
     // Os lobos do ano 1 (`threat.raids.test.ts`); as outras incursões a Ameaça sorteia depois.
     expect(state.horde.scheduledRaids.map((entry) => entry.id)).toEqual(['wolvesYear1']);
@@ -461,6 +462,7 @@ describe('névoa de informação: a visão sem a Torre de Vigia', () => {
       known: false,
       text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
       incoming: null,
+      clearedText: null,
       watchtower: {
         building: 'watchtower',
         level: 0,
@@ -494,6 +496,7 @@ describe('névoa de informação: a visão sem a Torre de Vigia', () => {
       );
     }
     expect(Object.keys(view(hunted)).sort()).toEqual([
+      'clearedText',
       'defense',
       'incoming',
       'known',
@@ -546,6 +549,7 @@ describe('a visão com a Torre de Vigia', () => {
         'Quem se fere fica 2 h sem trabalhar e volta ao ofício sozinho. Um ataque com perdas tira 10 da moral por 2 dias de jogo (4 h).',
       ],
       incoming: null,
+      clearedText: null,
       watchtower: {
         building: 'watchtower',
         level: 1,

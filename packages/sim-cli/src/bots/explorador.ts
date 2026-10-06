@@ -4,6 +4,7 @@ import {
   contratar,
   darFestival,
   enviarExpedicoes,
+  equiparMelhor,
   erguerGuilda,
   escolherCaminho,
   obraMaisBarata,
@@ -13,8 +14,8 @@ import { botOf, type Bot, type Policy } from './types';
 /**
  * Bot explorador: o perfil do GDD §15.3 que cuida do feudo como o econômico e, além disso, usa a
  * Guilda. As políticas dele são as do `economico`, na mesma ordem, **mais** as que cada mecânica
- * da v0.3 traz (roadmap da v0.3, §0.5). Hoje, as da Taverna (V3C-T2) e as das expedições
- * (V3D-T1):
+ * da v0.3 traz (roadmap da v0.3, §0.5). Hoje, as da Taverna (V3C-T2), as das expedições
+ * (V3D-T1) e as dos desfechos (V3D-T2):
  *
  * - **erguer a Guilda**: quando há um herói a quem enviar; e melhorá-la quando há mais gente
  *   livre do que lugares. Só o explorador a ergue: nos outros bots ela fica fora da corrida das
@@ -23,7 +24,11 @@ import { botOf, type Bot, type Policy } from './types';
  *   equipe já com ele;
  * - **dar festival**: um por estação, quando o estoque paga três vezes o custo;
  * - **escolher o caminho**: na encruzilhada que encontra, a opção que a Postura tomaria;
- * - **enviar expedições**: o primeiro destino aberto, com quem está livre no feudo.
+ * - **equipar o melhor item**: o que soma mais vai para o herói mais forte que ganha com ele
+ *   (V3D-T2);
+ * - **enviar expedições**: o destino mais difícil que a equipe passa com folga (as Ruínas, o
+ *   Resgate quando há um cativo, o Covil dos Lobos com dois heróis) e, sem nenhum, o primeiro
+ *   aberto; quem está ferido não vai.
  *
  * As próximas (vender no Mercado, mandar caravanas) entram com a Fase E.
  *
@@ -46,7 +51,7 @@ export const exploradorPolicies: readonly Policy[] = economicoPolicies.flatMap((
   policy === obraMaisBarata
     ? [erguerGuilda, policy]
     : policy === alocarPorDemanda
-      ? [contratar, darFestival, escolherCaminho, enviarExpedicoes, policy]
+      ? [contratar, darFestival, escolherCaminho, equiparMelhor, enviarExpedicoes, policy]
       : [policy],
 );
 

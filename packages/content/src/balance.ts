@@ -4,6 +4,8 @@ import type {
   EnemyId,
   ExpeditionOutcomeId,
   HeroAttributeId,
+  HeroCaptureRuleId,
+  InjurySeverityId,
   MoraleBandId,
   ProductionBuildingId,
   RaidSizeId,
@@ -62,6 +64,11 @@ export type DifficultyDef = {
   readonly storageCapacity: Ratio;
   /** A fome longa faz aldeões partirem (GDD §5.6). */
   readonly famineDesertion: boolean;
+  /**
+   * O que acontece ao herói onde um nó de expedição marca captura (GDD §12.1; ADR 0017,
+   * decisão 8): ferimento grave no lugar dela, a captura, ou a morte.
+   */
+  readonly heroCapture: HeroCaptureRuleId;
 };
 
 /**
@@ -209,10 +216,18 @@ export type PalisadeLevelDef = {
  */
 export type ThreatDef = {
   readonly max: number;
+  /** Quanto a Ameaça cai quando uma expedição limpa um tile de ameaça (ADR 0018, decisão 14). */
+  readonly tileClearedDrop: number;
   /** Quanto cada tile de ameaça ativo soma a cada dia de jogo. */
   readonly perActiveTilePerDay: number;
   /** Quanto cada dia de jogo de uma estação soma a mais: no outono os lobos descem a serra. */
   readonly seasonPerDay: Partial<Record<SeasonId, number>>;
+  /**
+   * Quem desce sobre o feudo em uma estação que soma à Ameaça, **mesmo sem tile de ameaça
+   * ativo**: no outono os lobos descem a serra, com o Covil limpo ou não (ADR 0018, decisão 14).
+   * Só as estações de `seasonPerDay` podem estar aqui.
+   */
+  readonly seasonEnemy: Partial<Record<SeasonId, EnemyId>>;
   /**
    * As marcas que, cruzadas para cima, viram linha na Crônica de quem tem a Torre, em ordem
    * crescente: a Ameaça sobe todo dia, e a Crônica só fala dela nestes dois momentos.
@@ -371,8 +386,13 @@ export type ExpeditionsDef = {
   readonly outcome: Record<Exclude<ExpeditionOutcomeId, 'disaster'>, Ratio>;
   /** A sorte: um inteiro de `min` a `max`, uma vez por nó com dificuldade; `base` é o valor neutro. */
   readonly luck: { readonly min: number; readonly max: number; readonly base: number };
-  /** A parte do saque do nó que cada desfecho deixa a equipe trazer. */
+  /**
+   * A parte do saque do nó que cada desfecho deixa a equipe trazer (pendência D-7): mais do que
+   * o nó guarda no Sucesso Pleno, tudo no Sucesso, uma parte no Revés, nada no Desastre.
+   */
   readonly lootShare: Record<ExpeditionOutcomeId, { readonly num: number; readonly den: number }>;
+  /** A parte da experiência do nó que cada desfecho dá a quem continua na equipe: a derrota ensina. */
+  readonly xpShare: Record<ExpeditionOutcomeId, Ratio>;
   /** Quantas expedições saem ao mesmo tempo em cada nível da Guilda dos Aventureiros. */
   readonly slotsByGuildLevel: readonly number[];
   /** Quantos relatórios de expedições concluídas o feudo guarda. */
@@ -393,6 +413,22 @@ export type ExpeditionsDef = {
     readonly minNodeMs: number;
     readonly maxNodeMs: number;
   };
+};
+
+/**
+ * Os ferimentos dos heróis (GDD §9.1; ADR 0017, decisão 8). Tempo de jogo: escala com o ritmo.
+ * `harmWeight` é o peso de um herói comum no sorteio de quem sofre o desfecho; o traço que se
+ * expõe mais traz o dele (`heroTraits[].effects.harmWeight`).
+ */
+export type InjuriesDef = {
+  readonly durationMs: Record<InjurySeverityId, number>;
+  readonly harmWeight: number;
+};
+
+/** O equipamento (GDD §9.1; ADR 0018, decisão 15): o teto do arsenal do feudo. */
+export type EquipmentDef = {
+  /** Quantos itens o arsenal guarda sem dono. O que passa disso vira ouro pelo valor do item. */
+  readonly inventoryCap: number;
 };
 
 export type Balance = {
@@ -454,6 +490,8 @@ export type Balance = {
   readonly heroes: HeroesDef;
   readonly tavern: TavernDef;
   readonly expeditions: ExpeditionsDef;
+  readonly injuries: InjuriesDef;
+  readonly equipment: EquipmentDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -638,6 +676,7 @@ export const balance: Balance = {
       recommended: false,
       storageCapacity: { num: 5, den: 4 },
       famineDesertion: false,
+      heroCapture: 'injury',
     },
     lord: {
       label: 'Senhor',
@@ -646,6 +685,7 @@ export const balance: Balance = {
       recommended: true,
       storageCapacity: { num: 1, den: 1 },
       famineDesertion: true,
+      heroCapture: 'capture',
     },
     ironKing: {
       label: 'Rei de Ferro',
@@ -654,6 +694,7 @@ export const balance: Balance = {
       recommended: false,
       storageCapacity: { num: 4, den: 5 },
       famineDesertion: true,
+      heroCapture: 'death',
     },
   },
   // GDD §4.2 (ADR 0013, decisão 2). A descrição é a conta "ano de jogo ÷ ritmo", conferida pelo
@@ -699,8 +740,10 @@ export const balance: Balance = {
   // incursão é leve, e as médias vêm com o outono (docs/balance-v0.2.md, seção 16).
   threat: {
     max: 100,
+    tileClearedDrop: 30,
     perActiveTilePerDay: 2,
     seasonPerDay: { autumn: 3 },
+    seasonEnemy: { autumn: 'wolves' },
     chronicleMarks: [40, 70],
     raidChanceAbove: 40,
     mediumRaidAbove: 70,
@@ -770,9 +813,10 @@ export const balance: Balance = {
   },
   // GDD §9.2 (ADR 0017, decisões 1 e 7; ADR 0018, decisões 11 a 13). A espera da encruzilhada é
   // de 6 h reais em qualquer ritmo. O desfecho compara `poder × sorte` com a dificuldade: 1,3
-  // para o Sucesso Pleno, 1 para o Sucesso, 0,7 para o Revés. O Revés traz metade do saque do
-  // nó e o Desastre, nada. A Guilda sustenta 1, 2, 2 e 3 expedições. Um caminho tem de 2 a 5 nós
-  // (a Patrulha tem 2), cada um de 5 a 45 minutos de jogo.
+  // para o Sucesso Pleno, 1 para o Sucesso, 0,7 para o Revés. O Sucesso Pleno traz o saque do nó
+  // e mais um quarto, o Sucesso, o saque, o Revés, metade, e o Desastre, nada; a experiência
+  // segue as mesmas partes, mas o Desastre ainda ensina um quarto. A Guilda sustenta 1, 2, 2 e 3
+  // expedições. Um caminho tem de 2 a 5 nós (a Patrulha tem 2), cada um de 5 a 45 minutos de jogo.
   expeditions: {
     crossroadsWaitRealMs: 6 * HOUR_MS,
     outcome: {
@@ -782,10 +826,16 @@ export const balance: Balance = {
     },
     luck: { min: 85, max: 115, base: 100 },
     lootShare: {
-      full: SAME,
+      full: { num: 5, den: 4 },
       success: SAME,
       setback: { num: 1, den: 2 },
       disaster: { num: 0, den: 1 },
+    },
+    xpShare: {
+      full: { num: 5, den: 4 },
+      success: SAME,
+      setback: { num: 1, den: 2 },
+      disaster: { num: 1, den: 4 },
     },
     slotsByGuildLevel: [1, 2, 2, 3],
     reportsKept: 3,
@@ -799,4 +849,12 @@ export const balance: Balance = {
       maxNodeMs: 45 * MINUTE_MS,
     },
   },
+  // GDD §9.1 (ADR 0017, decisão 8): o ferimento leve dura 2 h de jogo e o grave, 12 h de jogo.
+  // No sorteio de quem sofre o desfecho, um herói comum pesa 5; o Corajoso pesa 6.
+  injuries: {
+    durationMs: { light: 2 * HOUR_MS, severe: 12 * HOUR_MS },
+    harmWeight: 5,
+  },
+  // GDD §9.1 (ADR 0018, decisão 15): o arsenal guarda 30 itens.
+  equipment: { inventoryCap: 30 },
 };

@@ -1,29 +1,38 @@
 import {
   balance,
   buildings,
+  equipmentTexts,
   guildTexts,
   heroAttributes,
   heroClasses,
   heroStatuses,
   heroTraits,
+  injurySeverities,
+  ITEM_SLOT_IDS,
+  itemRarities,
+  itemSlots,
   type Ratio,
   wageArrearsTexts,
 } from '@lotg/content';
 
 import { buildingWithArticle } from './construction';
 import { type ExpeditionsView, expeditionsView, guildReadyText } from './expeditionsView';
-import { guildLevel } from './expeditions';
+import { expeditionLabel, guildLevel } from './expeditions';
 import type { CraftOutlook } from './craftProjection';
 import { netRates, producerOf, productionRate, stockBalance } from './economy';
 import { storageCapacity } from './storage';
 import { decimal, durationText, fillText, plural } from './format';
 import {
+  canDepart,
+  captives,
   classLabel,
   heroFactors,
   heroLimit,
   heroPower,
   isAtHome,
-  isLoyal,
+  isBeyondArrears,
+  isCaptive,
+  itemDefOf,
   namedHeroOf,
   paidHeroes,
   rosterHasRoom,
@@ -36,6 +45,8 @@ import type {
   GuildView,
   Hero,
   HeroView,
+  Item,
+  ItemView,
   WageArrearsView,
 } from './types';
 import { HOUR_MS, MILLI, realSecondsCeil, SECOND_MS } from './units';
@@ -84,7 +95,45 @@ function powerBreakdown(hero: Hero): string {
   return `(${base})${factors} = ${decimal(heroPower(hero) / MILLI, 3)}`;
 }
 
-function heroView(hero: Hero, timeScale: number): HeroView {
+/**
+ * Um item como a tela o mostra; `null` para o que o conteúdo já não tem. `bonusText` é o ganho
+ * de poder em pontos percentuais, o mesmo fator que entra na conta do poder de quem o leva.
+ */
+function itemView(item: Item): ItemView | null {
+  const def = itemDefOf(item);
+  if (def === null) {
+    return null;
+  }
+  const { num, den } = def.power;
+  return {
+    id: item.id,
+    label: def.label,
+    text: def.text,
+    slot: def.slot,
+    slotLabel: itemSlots[def.slot].label,
+    rarityLabel: itemRarities[def.rarity].label,
+    bonusText: fillText(equipmentTexts.bonus, { percentual: decimal(((num - den) * 100) / den) }),
+    bonusPercent: ((num - den) * 100) / den,
+  };
+}
+
+/** "Em recuperação: volta a poder partir em 1 h 10 min", "Em cativeiro desde …", ou o rótulo do estado. */
+function statusText(state: GameState, hero: Hero, timeScale: number): string {
+  if (hero.status === 'injured' && hero.injury !== null) {
+    return fillText(guildTexts.injured, {
+      prazo: durationText(realSecondsCeil(hero.injury.untilMs - state.lastProcessedAt, timeScale)),
+    });
+  }
+  if (hero.status === 'captured' && hero.captivity !== null) {
+    return fillText(guildTexts.captured, { expedicao: expeditionLabel(hero.captivity.modelId) });
+  }
+  if (hero.status === 'expedition' && hero.injury !== null) {
+    return guildTexts.injuredAway;
+  }
+  return heroStatuses[hero.status].label;
+}
+
+function heroView(state: GameState, hero: Hero, timeScale: number): HeroView {
   return {
     id: hero.id,
     name: hero.name,
@@ -96,11 +145,32 @@ function heroView(hero: Hero, timeScale: number): HeroView {
       label: traitLabel(trait, hero.gender),
       text: heroTraits[trait].text,
     })),
-    statusText: heroStatuses[hero.status].label,
+    statusText: statusText(state, hero, timeScale),
     atHome: isAtHome(hero),
+    canDepart: canDepart(hero),
+    injury:
+      hero.injury === null
+        ? null
+        : {
+            severityLabel: injurySeverities[hero.injury.severity].label,
+            recoversInSeconds: realSecondsCeil(
+              hero.injury.untilMs - state.lastProcessedAt,
+              timeScale,
+            ),
+          },
+    captive: isCaptive(hero),
+    equipment: ITEM_SLOT_IDS.map((slot) => {
+      const item = hero.equipment[slot];
+      return {
+        slot,
+        slotLabel: itemSlots[slot].label,
+        item: item === null ? null : itemView(item),
+      };
+    }),
     power: heroPower(hero) / MILLI,
     powerBreakdown: powerBreakdown(hero),
-    wagePerHour: rules.wagePerHour * timeScale,
+    // O cativo não recebe soldo (ADR 0017, decisão 3).
+    wagePerHour: isCaptive(hero) ? 0 : rules.wagePerHour * timeScale,
     discontent: hero.discontent,
   };
 }
@@ -136,7 +206,7 @@ function arrearsText(state: GameState): string {
   const sentences: string[] = [
     mined ? texts.partlyPaid : paid === 1 ? texts.unpaidOne : texts.unpaidMany,
   ];
-  if (heroes.every(isLoyal)) {
+  if (heroes.every(isBeyondArrears)) {
     const women = heroes.every((hero) => hero.gender === 'f');
     if (heroes.length === 1) {
       sentences.push(women ? texts.loyalShe : texts.loyalHe);
@@ -146,7 +216,7 @@ function arrearsText(state: GameState): string {
   } else {
     sentences.push(texts.deadlines);
     const started = wageArrears === null ? 0 : wageArrears.sinceMs - wageArrears.carriedMs;
-    if (heroes.some((hero) => !isLoyal(hero) && hero.joinedAtMs > started)) {
+    if (heroes.some((hero) => !isBeyondArrears(hero) && hero.joinedAtMs > started)) {
       sentences.push(texts.latecomers);
     }
   }
@@ -300,6 +370,17 @@ function guildText(state: GameState, arriving: ArrivingHeroView[]): string {
     : guildTexts.guildUnbuilt;
 }
 
+/** "Arsenal: 3 de 30 itens.", ou o que acontece com ele vazio ou cheio. */
+function inventoryText(state: GameState): string {
+  const count = state.guild.inventory.length;
+  const cap = balance.equipment.inventoryCap;
+  if (count === 0) {
+    return equipmentTexts.inventoryEmpty;
+  }
+  const summary = fillText(equipmentTexts.inventory, { quantidade: count, teto: cap });
+  return count >= cap ? `${summary} ${equipmentTexts.inventoryFull}` : summary;
+}
+
 /** A visão da Guilda e as decisões que as expedições deixam à espera do jogador. */
 export function guildView(
   state: GameState,
@@ -313,8 +394,12 @@ export function guildView(
     ...expeditions,
     dismissText: guildTexts.dismiss,
     heroLimit: heroLimit(state),
-    heroes: state.guild.heroes.map((hero) => heroView(hero, timeScale)),
+    heroes: state.guild.heroes.map((hero) => heroView(state, hero, timeScale)),
     arriving,
+    inventory: state.guild.inventory.flatMap((item) => itemView(item) ?? []),
+    inventoryCap: balance.equipment.inventoryCap,
+    inventoryText: inventoryText(state),
+    captiveText: captives(state).length > 0 ? guildTexts.captiveNote : null,
     wage: {
       perHour: (wageRate(state) * timeScale) / MILLI,
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),

@@ -10,6 +10,7 @@ import {
   unplanConstruction,
 } from './construction';
 import { answerCard } from './council';
+import { equipItem, unequipItem } from './equipment';
 import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
 import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
@@ -81,6 +82,10 @@ function dispatch(
       );
     case 'chooseExpeditionPath':
       return chooseExpeditionPath(draft, payload.expeditionId, payload.optionId, nowMs, events);
+    case 'equipItem':
+      return equipItem(draft, payload.heroId, payload.itemId, nowMs, events);
+    case 'unequipItem':
+      return unequipItem(draft, payload.heroId, payload.slot, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

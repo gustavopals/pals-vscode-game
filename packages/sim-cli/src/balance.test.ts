@@ -176,7 +176,10 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // soldo; na semana do Tranquilo (meio ano de jogo) ele tem de três a cinco.
     const heroes = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
-    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 6 });
+    // Desde V3D-T2 o Explorador leva a Guilda até o nível 4 (320, 512 e 819 de ouro): em uma
+    // das 50 sementes do Rápido de 7 dias o cofre não paga o sexto contrato com um dia de soldo
+    // de folga, e ele termina com cinco.
+    expect(heroes('week/3/explorador')).toEqual({ min: 5, max: 6 });
     expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
     expect(heroes('week/0.5/explorador')).toEqual({ min: 3, max: 5 });
     expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });

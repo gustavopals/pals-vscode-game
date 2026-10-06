@@ -147,6 +147,8 @@ const BLIND = {
   known: false,
   text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
   incoming: null,
+  // Nenhum tile limpo por uma expedição (V3D-T2).
+  clearedText: null,
   defense: {
     building: 'palisade',
     palisadeLevel: 0,
@@ -336,6 +338,7 @@ describe('com a Torre de Vigia', () => {
     expect(seen.threat).toMatchObject({ known: true, level: 20 });
     expect(unseen.threat).toMatchObject(BLIND);
     expect(Object.keys(unseen.threat).sort()).toEqual([
+      'clearedText',
       'defense',
       'incoming',
       'known',
@@ -374,12 +377,13 @@ describe('uma partida gravada antes da Ameaça (estado na versão 8)', () => {
 
     const row = await storedState(fast, game.id);
     // Gravada na versão atual: a 9 trouxe a Ameaça, e a 10, a Paliçada por construir.
-    expect(row.schema_version).toBe(17);
-    expect(row.state.schemaVersion).toBe(17);
+    expect(row.schema_version).toBe(18);
+    expect(row.state.schemaVersion).toBe(18);
     expect(row.state.settlement.buildings.palisade).toBe(0);
     expect(row.state.map).toEqual({
       tiles: { wolfDen: { type: 'wolfDen', threatActive: true } },
       threat: 0,
+      discovered: [],
     });
     expect(row.state.horde).toEqual({ scheduledRaids: [] });
     expect(row.state.settlement.buildings.watchtower).toBe(0);

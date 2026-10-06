@@ -20,7 +20,9 @@ export const tileTypes: Record<TileTypeId, TileTypeDef> = {
 
 /**
  * Os tiles com que todo feudo nasce: o Covil de Lobos, ativo desde o dia 1 (ADR 0014, decisão
- * 11). `id` é a chave do tile no estado; não há como limpar um tile nesta versão.
+ * 11). `id` é a chave do tile no estado. Uma expedição pode limpar um tile de ameaça
+ * (`rewards.clearsTile`), e na virada do ano os que nascem ativos voltam a ficar (ADR 0018,
+ * decisão 14).
  */
 export const startingTiles: ReadonlyArray<{
   readonly id: string;

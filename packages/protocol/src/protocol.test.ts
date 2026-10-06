@@ -26,6 +26,7 @@ import {
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
+  ITEM_SLOT_IDS,
 } from '@lotg/content';
 import type {
   Command as EngineCommand,
@@ -126,6 +127,8 @@ describe('CommandSchema', () => {
       type: 'chooseExpeditionPath',
       payload: { expeditionId: 'expedition-3', optionId: 'stream' },
     },
+    { commandId: uuid, type: 'equipItem', payload: { heroId: 'hero-1', itemId: 'item-4' } },
+    { commandId: uuid, type: 'unequipItem', payload: { heroId: 'hero-1', slot: 'armor' } },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -348,6 +351,34 @@ describe('CommandSchema', () => {
         payload: { expeditionId: 'expedition-1', optionId: 'stream\u0000' },
       },
     ],
+    [
+      'equipar sem dizer o item',
+      { commandId: uuid, type: 'equipItem', payload: { heroId: 'hero-1' } },
+    ],
+    [
+      'equipar escolhendo o espaço pelo cliente',
+      {
+        commandId: uuid,
+        type: 'equipItem',
+        payload: { heroId: 'hero-1', itemId: 'item-1', slot: 'weapon' },
+      },
+    ],
+    [
+      'equipar com texto que o banco não guarda',
+      { commandId: uuid, type: 'equipItem', payload: { heroId: 'hero-1', itemId: 'item\u0000' } },
+    ],
+    [
+      'desequipar um espaço que não existe',
+      { commandId: uuid, type: 'unequipItem', payload: { heroId: 'hero-1', slot: 'ring' } },
+    ],
+    [
+      'desequipar dizendo o item',
+      {
+        commandId: uuid,
+        type: 'unequipItem',
+        payload: { heroId: 'hero-1', slot: 'weapon', itemId: 'item-1' },
+      },
+    ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);
   });
@@ -523,6 +554,7 @@ describe('ViewStateSchema', () => {
       known: false,
       text: 'Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.',
       incoming: null,
+      clearedText: null,
       watchtower: view.threat.watchtower,
       defense: {
         building: 'palisade',
@@ -1238,6 +1270,9 @@ describe('ViewStateSchema', () => {
         xp: 0,
         traits: ['loyal'],
         status: 'idle',
+        injury: null,
+        captivity: null,
+        equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: 0,
         discontent: false,
       },
@@ -1250,6 +1285,9 @@ describe('ViewStateSchema', () => {
         xp: 40,
         traits: ['prudent', 'tracker'],
         status: 'idle',
+        injury: null,
+        captivity: null,
+        equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: 0,
         discontent: false,
       },
@@ -1262,6 +1300,9 @@ describe('ViewStateSchema', () => {
         xp: 0,
         traits: [],
         status: 'idle',
+        injury: null,
+        captivity: null,
+        equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: 0,
         discontent: false,
       },
@@ -1460,18 +1501,56 @@ describe('ViewStateSchema', () => {
       traits: [{ label: 'Leal', text: 'Nunca parte.' }],
       statusText: 'No feudo',
       atHome: true,
+      canDepart: true,
+      injury: null,
+      captive: false,
+      equipment: [
+        { slot: 'weapon', slotLabel: 'Arma', item: null },
+        { slot: 'armor', slotLabel: 'Armadura', item: null },
+        { slot: 'accessory', slotLabel: 'Acessório', item: null },
+      ],
       power: 42,
       powerBreakdown: '42',
       wagePerHour: 2,
       discontent: false,
     };
+    const item = {
+      id: 'item-1',
+      label: 'Arco de freixo',
+      text: 'Atira longe.',
+      slot: 'weapon',
+      slotLabel: 'Arma',
+      rarityLabel: 'Incomum',
+      bonusText: '+8% de poder',
+      bonusPercent: 8,
+    };
     const parse = (guild: unknown) => ViewStateSchema.safeParse({ ...view, guild }).success;
     expect(parse({ ...view.guild, heroes: [hero] })).toBe(true);
-    // A Guilda dos Aventureiros e as expedições (V3D-T1) já são da visão; o que é das tarefas
-    // seguintes (itens, ferimento) e o que a névoa esconde (a variante, a chave de nó, a
-    // dificuldade, o prazo em tempo de jogo, a sorte) continuam recusados.
+    // A Guilda dos Aventureiros, as expedições (V3D-T1) e os desfechos (V3D-T2: o arsenal, o
+    // ferimento, o cativeiro) já são da visão; o que é de outra fase (a caravana, o desgaste) e
+    // o que a névoa esconde (a variante, a chave de nó, a chave do item no conteúdo, o prazo em
+    // tempo de jogo, a sorte) continuam recusados.
     expect(parse({ ...view.guild, built: true, level: 1, slots: 2, expeditions: [] })).toBe(true);
-    expect(parse({ ...view.guild, inventory: [] })).toBe(false);
+    expect(parse({ ...view.guild, inventory: [item] })).toBe(true);
+    expect(parse({ ...view.guild, inventory: [{ ...item, defId: 'ashBow' }] })).toBe(false);
+    expect(parse({ ...view.guild, inventory: [{ ...item, durability: 9 }] })).toBe(false);
+    expect(parse({ ...view.guild, inventory: [{ ...item, slot: 'ring' }] })).toBe(false);
+    expect(parse({ ...view.guild, caravans: [] })).toBe(false);
+    expect(
+      parse({
+        ...view.guild,
+        heroes: [{ ...hero, injury: { severityLabel: 'Ferimento leve', recoversInSeconds: 60 } }],
+      }),
+    ).toBe(true);
+    expect(
+      parse({
+        ...view.guild,
+        heroes: [{ ...hero, injury: { severity: 'light', untilMs: 7_200_000 } }],
+      }),
+    ).toBe(false);
+    expect(
+      parse({ ...view.guild, heroes: [{ ...hero, captivity: { sinceMs: 0, modelId: 'ruins' } }] }),
+    ).toBe(false);
     const expedition = {
       id: 'expedition-1',
       label: 'Floresta Antiga',
@@ -1480,7 +1559,7 @@ describe('ViewStateSchema', () => {
       statusText: 'Parada na encruzilhada, à espera da sua palavra.',
       nodeTitle: 'A trilha se divide',
       nodeEndsInSeconds: null,
-      log: [{ title: 'A trilha', text: 'Passou.', outcomeLabel: 'Sem incidentes' }],
+      log: [{ title: 'A trilha', text: 'Passou.', outcomeLabel: 'Sem incidentes', notes: [] }],
       crossroads: {
         title: 'A trilha se divide',
         text: 'A trilha se parte em duas.',
@@ -1509,6 +1588,7 @@ describe('ViewStateSchema', () => {
       { nodeEndsAtMs: 0 },
       { luck: 100 },
       { loot: { resources: {} } },
+      { heroIds: ['hero-1'] },
     ]) {
       expect(withExpedition({ ...expedition, ...leak }), Object.keys(leak)[0]).toBe(false);
     }
@@ -1544,6 +1624,8 @@ describe('ViewStateSchema', () => {
       requirementsText: 'Equipe: 1 herói.',
       teamMin: 1,
       teamMax: 1,
+      teamMinLevel: 1,
+      firstStretchDifficulty: 30,
       locked: false,
       lockedReason: null,
       firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
@@ -1552,6 +1634,9 @@ describe('ViewStateSchema', () => {
     expect(parse({ ...view.guild, available: [{ ...offer, variant: 1 }] })).toBe(false);
     expect(parse({ ...view.guild, available: [{ ...offer, nodes: {} }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, equipment: {} }] })).toBe(false);
+    expect(parse({ ...view.guild, available: [{ ...offer, access: { kind: 'open' } }] })).toBe(
+      false,
+    );
     expect(parse({ ...view.guild, heroes: [{ ...hero, joinedAtMs: 0 }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, classId: 'warrior' }] })).toBe(false);
     expect(parse({ ...view.guild, wage: { ...view.guild.wage, debt: 12 } })).toBe(false);
@@ -2077,5 +2162,12 @@ describe('contentHash', () => {
     expect(hashed).toContain(raidTemplates.wolves.howl.unwatched);
     expect(hashed).toContain(injuryTemplates.villagerRecovered.worker);
     expect(hashed).toContain(injuredLoss.one);
+  });
+});
+
+describe('os espaços de equipamento do protocolo são os do conteúdo', () => {
+  it.each([...ITEM_SLOT_IDS])('desequipar aceita o espaço %s', (slot) => {
+    const order = { commandId: uuid, type: 'unequipItem', payload: { heroId: 'hero-1', slot } };
+    expect(CommandSchema.safeParse(order).success).toBe(true);
   });
 });

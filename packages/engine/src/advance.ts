@@ -18,6 +18,7 @@ import { settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
 import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
+import { recoverHeroes, restoreTiles } from './outcomes';
 import { hasStartablePlan, settlePlanned } from './planned';
 import { finishRecruitments } from './population';
 import { announceRaids, recoverInjured, settleRaids } from './raids';
@@ -48,6 +49,9 @@ function processCalendar(
     emit(events, draft, atMs, 'yearStarted', { year: date.year });
     // O Conselho esquece as cartas vistas no ano que acabou; o resto da história continua.
     turnCouncilYear(draft, atMs);
+    // Os lobos voltam ao Covil que uma expedição limpou (ADR 0018, decisão 14): antes de a
+    // Ameaça subir nesta virada, que já conta o tile.
+    restoreTiles(draft, atMs, events);
   }
   if (isSeasonBoundary(atMs)) {
     // A estação que acabou entra na conta das atravessadas sem frio, e a nova começa a dela.
@@ -82,7 +86,8 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Eventos discretos cujo instante é exatamente `atMs`, em ordem fixa: obras concluídas, aldeões
- * que chegam (os recrutas e os feridos que saram), virada do dia (o desperdício do dia que
+ * que chegam (os recrutas e os feridos que saram), heróis feridos que saram (`recoverHeroes`),
+ * virada do dia (o desperdício do dia que
  * acabou, o ano, a estação, o dia, a experiência do ofício, a moral: recálculo, sorteios e
  * deserção, a cobrança do soldo em atraso, o sorteio do Conselho, a subida da Ameaça, os uivos
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
@@ -98,7 +103,9 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * A incursão vem depois das obras (a Paliçada que termina no instante do ataque já conta) e
  * depois da virada do dia (a moral daquele instante é a de antes do ataque). O ferido que sara
  * vem antes da virada: ele ficou fora o dia inteiro, e a contagem da experiência do ofício já o
- * encontra de volta.
+ * encontra de volta. O herói ferido que sara vem logo depois dele, pela mesma razão do lado das
+ * expedições: quem sara em um instante já pode partir na ordem dada nesse instante, e nada do
+ * que vem depois na ordem (a virada, as cartas, as expedições) o encontra ainda ferido.
  *
  * `catalog` são as cartas do Conselho: o jogo usa as do conteúdo; outro catálogo só existe em
  * teste (`processEventsWith`).
@@ -112,6 +119,7 @@ export function processEventsAt(
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
   recoverInjured(draft, atMs, events);
+  recoverHeroes(draft, atMs, events);
   processCalendar(draft, atMs, events, catalog);
   settleCouncil(draft, atMs, events, catalog);
   // Os heróis prometidos cujo instante chegou, e o que uma carta que expirou agora acabou de

@@ -20,10 +20,18 @@ import { emit } from './chronicle';
 import { seasonAt } from './clock';
 import { buildingWithArticle } from './construction';
 import { fillText, joinList, plural } from './format';
-import { isAtHome, teamPower } from './heroes';
+import { canDepart, captives, teamPower } from './heroes';
 import { hashText } from './hash';
 import { reject } from './rejections';
-import type { Expedition, GameEvent, GameState, Hero, Rejection } from './types';
+import { tileWithArticle } from './outcomes';
+import type {
+  Expedition,
+  ExpeditionLogEntry,
+  GameEvent,
+  GameState,
+  Hero,
+  Rejection,
+} from './types';
 import { MILLI, realToGameMs } from './units';
 
 /**
@@ -129,6 +137,64 @@ export function heroesOf(state: GameState, heroIds: readonly string[]): Hero[] {
   return team;
 }
 
+/**
+ * Um registro do percurso sem nada além do nó, do instante e do desfecho: quem o escreve põe
+ * por cima o que aconteceu (`gained`, `harm`, a opção de uma escolha…).
+ */
+export function logEntry(
+  nodeId: string,
+  atMs: number,
+  outcome: ExpeditionLogEntry['outcome'],
+): ExpeditionLogEntry {
+  return {
+    nodeId,
+    atMs,
+    outcome,
+    optionId: null,
+    decidedBy: null,
+    gained: { food: 0, wood: 0, stone: 0, gold: 0 },
+    xp: 0,
+    harm: null,
+    leveled: [],
+    found: [],
+    revealed: null,
+    cleared: null,
+    rescued: null,
+    lootLost: false,
+  };
+}
+
+/**
+ * Por que o destino não está aberto pelo que o mundo diz dele, sem ponto, ou `null` quando
+ * está (ADR 0018, decisão 12): o que aparece por descoberta e ainda não foi revelado, o Resgate
+ * sem ninguém em cativeiro, e o tile de ameaça que está limpo.
+ */
+export function accessLock(state: GameState, model: ExpeditionModelDef): string | null {
+  const { access } = model;
+  if (access.kind === 'discovered') {
+    return state.map.discovered.includes(model.id) ? null : expeditionTexts.lockedUnknown;
+  }
+  if (access.kind === 'captive') {
+    return captives(state).length > 0 ? null : expeditionTexts.lockedNoCaptive;
+  }
+  if (access.kind === 'tile') {
+    return state.map.tiles[access.tileId]?.threatActive === true
+      ? null
+      : fillText(expeditionTexts.lockedCleared, {
+          lugar: tileWithArticle(state, access.tileId) ?? 'o lugar',
+        });
+  }
+  return null;
+}
+
+/**
+ * O destino aparece na lista da Guilda: os abertos e os de tile, sempre; os de descoberta, depois
+ * de revelados; o Resgate, enquanto houver um cativo. **O que não aparece não sai do servidor.**
+ */
+export function isKnownDestination(state: GameState, model: ExpeditionModelDef): boolean {
+  return model.access.kind === 'tile' || accessLock(state, model) === null;
+}
+
 /** "Edda", "Edda e Rolf". */
 export function teamNames(team: ReadonlyArray<{ name: string }>): string {
   return joinList(team.map((hero) => hero.name));
@@ -218,7 +284,8 @@ export function guildRequired(state: GameState): Rejection {
 /**
  * Por que **nenhuma** equipe poderia partir para um destino agora, ou `null` quando alguma pode:
  * sem a Guilda, com todos os lugares ocupados, ou com o destino fora do alcance (o conteúdo não
- * o tem, ou ele pede um nível maior da Guilda). É a primeira parte das recusas de
+ * o tem, ele pede um nível maior da Guilda, ainda não foi revelado, não há cativo a resgatar,
+ * ou o tile dele está limpo). É a primeira parte das recusas de
  * `sendExpedition`, na ordem, e é o que a visão mostra em cada destino.
  */
 export function destinationBlock(state: GameState, modelId: unknown): Rejection | null {
@@ -246,7 +313,8 @@ export function destinationBlock(state: GameState, modelId: unknown): Rejection 
       remedy: `pede ${buildingWithArticle('guild')} no nível ${model.requires.guildLevel}`,
     });
   }
-  return null;
+  const lock = accessLock(state, model);
+  return lock === null ? null : reject('EXPEDITION_LOCKED', { remedy: lock });
 }
 
 /** "1 herói", "de 1 a 2 heróis". */
@@ -258,8 +326,8 @@ export function teamSizeText({ teamMin, teamMax }: ExpeditionModelDef['requires'
 
 /**
  * Por que esta equipe não serve para o destino, ou `null` quando serve: um herói que já não
- * serve ao feudo (`HERO_NOT_FOUND`), um que está fora (`HERO_UNAVAILABLE`, com o nome e o
- * motivo) e, por último, o que o modelo pede e a equipe não tem (`TEAM_INVALID`: o tamanho, o
+ * serve ao feudo (`HERO_NOT_FOUND`), um que não pode partir (`HERO_UNAVAILABLE`, com o nome e o
+ * motivo: está em expedição, em cativeiro, ou ainda se recupera de um ferimento) e, por último, o que o modelo pede e a equipe não tem (`TEAM_INVALID`: o tamanho, o
  * nível ou a classe, dizendo o que falta).
  */
 export function teamBlock(
@@ -277,8 +345,16 @@ export function teamBlock(
     if (hero === undefined) {
       return reject('HERO_NOT_FOUND');
     }
-    if (!isAtHome(hero)) {
-      return reject('HERO_UNAVAILABLE', { label: hero.name, remedy: 'já está em expedição' });
+    if (!canDepart(hero)) {
+      return reject('HERO_UNAVAILABLE', {
+        label: hero.name,
+        remedy:
+          hero.status === 'injured'
+            ? expeditionTexts.heroInjured
+            : hero.status === 'captured'
+              ? expeditionTexts.heroCaptured
+              : expeditionTexts.heroAway,
+      });
     }
     team.push(hero);
   }
