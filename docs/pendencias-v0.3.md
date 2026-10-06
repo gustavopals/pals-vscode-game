@@ -164,6 +164,90 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase D: correções da revisão independente (V3D-T5)
+
+Vêm das duas revisões independentes da Fase D (motor, conteúdo, protocolo, servidor e simulador; app e editorial dos 18 grafos), aplicadas em 2026-10-06 ao motor, ao conteúdo, ao protocolo, ao servidor e ao simulador, um commit `V3D: corrige …` por achado. **Estado na versão 20; protocolo ainda 3** (a visão só cresceu por adição). **Nenhuma foi perguntada ao autor.** As que mudam regra de jogo e pedem a palavra dele são a D-54, a D-58, a D-59, a D-62, a D-65, a D-66 e a D-71. Os achados A-* do app ficaram para a tarefa seguinte, que usa os campos novos da visão (D-70).
+
+**D-54. A variante de uma expedição é previsível e dá a volta.** *(Pergunta para o autor: é a decisão 9 do ADR 0017; revisão, M-R5.)*
+- Enquanto isso: a variante sai de uma conta sobre a semente, o modelo e quantas vezes ele já foi enviado, e passa pelas três antes de repetir (0, 1, 2, 0, 1, 2…). Depois de três envios do mesmo destino, o "o que vem além da encruzilhada só se sabe lá" deixa de ser segredo para quem anota. Nada foi mudado: é a regra do ADR.
+- Se decidir diferente: sortear a variante no envio pede um sorteio em uma ordem (que hoje não sorteia) ou um fluxo próprio da Guilda, sorteado na virada do dia; ou a conta passa a misturar o ano de jogo, e a ordem muda de um ano para o outro.
+
+**D-55. Quem não manda `X-Lords-Protocol` é atendido.** *(Revisão, M-R8.)*
+- Enquanto isso: o servidor só responde `426` a quem manda **outro** número; sem o cabeçalho, atende. É de propósito: o monitor de saúde e um `curl` não mandam nada. Um cliente antigo de verdade sempre manda o dele.
+- Se decidir diferente: exigir o cabeçalho em toda rota de partida quebra o monitor e os roteiros de operação, que teriam de mandá-lo.
+
+**D-56. `fit` e `firstStretchDifficulty` entregam a dificuldade exata do primeiro trecho.** *(Revisão, M-Q1.)*
+- Enquanto isso: é o que a decisão 13 do ADR 0018 manda mostrar (o primeiro trecho, com a dificuldade). Com o `power` de cada herói, o jogador faz a conta inteira do primeiro nó, menos a sorte. Nada do que vem depois da encruzilhada sai.
+- Se decidir diferente: mostrar só as palavras ("folgada", "justa", "arriscada") é tirar dois campos da visão e a frase do primeiro trecho.
+
+**D-57. A escolha que chega tarde, com o relatório já fora da lista, responde "não espera ordem" em vez de "já foi decidida".** *(Revisão, M-Q2; cosmético.)*
+- Enquanto isso: `chooseExpeditionPath` procura a escolha na expedição e no relatório; o feudo guarda três relatórios, e uma ordem para uma expedição mais antiga do que isso recebe `EXPEDITION_NOT_WAITING`. A frase é verdadeira, só menos precisa.
+
+**D-58. A guarda de forma não confere o item contra o conteúdo.** *(Revisão, M-Q3; avaliado e não mudado.)*
+- Enquanto isso: a forma aceita um item em um espaço que não é o dele (uma arma em `armor`), uma chave de item que o conteúdo não tem e um destino desconhecido em `map.discovered`. **É de propósito**: a forma de uma versão não importa `@lotg/content` (o catálogo cresce, e a forma antiga não pode acompanhá-lo), como já vale para os heróis com nome, os candidatos e os modelos. O motor nunca escreve esses estados, e sobrevive a eles: o item que o conteúdo não tem não soma poder nem vale ouro, e a expedição de um destino que sumiu volta para casa (D-61).
+- Se decidir diferente: uma tabela de chave → espaço escrita no arquivo da versão fecharia o primeiro caso, ao preço de um passo de migração a cada item novo.
+
+**D-59. Quem se fere continua lutando com o poder inteiro até o fim da jornada.** *(Revisão, M-Q4; regra já documentada, do ADR 0017, decisão 8.)*
+- Enquanto isso: o ferimento só impede a **próxima** partida. O herói ferido no primeiro nó vale o mesmo no chefe.
+- Se decidir diferente: um fator de ferimento no poder é um fator a mais em `heroFactors` e uma recalibragem de todo grafo de três nós ou mais.
+
+**D-60. O estado subiu para a versão 20: o herói guarda quando voltou do cativeiro.** *(Revisão, M-D1; defeito confirmado e corrigido.)*
+- O defeito: o resgatado em pleno atraso do soldo voltava devendo o atraso inteiro, ficava Descontente e partia na virada de dia seguinte. `heroArrearsMs` contava da chegada ao feudo, e o tempo de cativeiro entrava na conta.
+- Enquanto isso: o Resgate grava `freedAtMs` no herói, e os prazos do atraso contam, para ele, do maior entre a chegada e a volta (`servingSinceMs`). A frase do atraso diz "Para quem chegou, ou voltou do cativeiro, com o atraso já aberto, os dois prazos contam da chegada dele." No passo `v19ToV20` todos entram com `null`, e **nada é reconstituído**: quem foi resgatado antes da fronteira continua como a versão 19 o contava (nenhuma partida publicada tem herói). A ordem de quem parte primeiro continua sendo a da chegada ao feudo.
+- A versão 20 também aceita um tipo de lição a mais (`level`, D-64). Os 38 retratos da versão 19 ficaram congelados.
+
+**D-61. A expedição que ficou sem caminho volta para casa na fronteira, e não no prazo.** *(Revisão, M-R6.)*
+- Enquanto isso: quando o conteúdo deixa de ter o modelo, o nó ou a encruzilhada em que uma equipe está (o catálogo mudou entre duas publicações), `advanceWith` a manda para casa **antes de o tempo andar**: os heróis ficam livres, o saque que ela tinha entra no depósito, o fluxo de sorteio é apagado e a Crônica diz "a trilha da expedição … já não levava a parte alguma: a equipe deu meia-volta e chegou a … com …". Antes a equipe ficava parada até o prazo, com a tela dizendo "Parada na encruzilhada" e nenhuma opção a escolher. Fecha o que a D-13 deixava para o prazo.
+- O que não se pegou: o conteúdo que muda **o que há depois** de um nó que continua existindo (uma opção que some de uma encruzilhada em que ninguém está) não precisa de nada; a opção que some com a equipe parada ali cai na Postura ou, sem a opção dela, na Cautelosa, como sempre.
+
+**D-62. Dá para desistir de quem está em cativeiro, e o que ele levava se perde.** *(Pergunta para o autor: regra nova; revisão, M-R3.)*
+- O risco: o cativo não podia ser dispensado e conta no teto da lista (12): com a lista cheia de cativos não havia saída.
+- Enquanto isso: `dismissHero` aceita o cativo. Ele deixa de servir ao feudo, o lugar na lista fica livre e **os itens dele ficam no cativeiro** (não voltam ao arsenal: estão com ele; devolvê-los faria da dispensa um jeito de recuperar o equipamento sem Resgate). A Crônica tem frase própria ("o senhor de … desistiu de …: ninguém mais parte para o resgate, e o que … levava ficou no cativeiro."), e a visão traz, por herói, `canDismiss` e `dismissText` (o aviso do cativo diz que é para sempre). **Com um Resgate a caminho que ficaria sem ninguém para soltar, a dispensa espera** (`HERO_BUSY`: "há um Resgate a caminho").
+- Se decidir diferente: os itens voltarem ao arsenal é trocar uma linha por `releaseEquipment`; o cativo não contar no teto da lista é a outra saída, e deixaria a lista crescer sem limite.
+
+**D-63. Um Resgate por cativo, e uma equipe por vez no Covil.** *(Revisão, M-R4.)*
+- Enquanto isso: a ordem de enviar recusa o Resgate quando já há tantos em curso quantos são os cativos ("já há um Resgate a caminho de quem está em cativeiro") e o envio a um tile de ameaça com outra equipe a caminho dele ("outra equipe já partiu para limpar o Covil de Lobos"), com `EXPEDITION_LOCKED`. Antes a segunda equipe arriscava a pele para voltar sem ninguém, ou sem tirar mais 30 da Ameaça. O destino continua na lista, fechado, com o motivo.
+- Uma partida gravada antes pode ter as duas equipes a caminho: a segunda continua voltando de mãos vazias, como antes (há teste).
+
+**D-64. As lições do relatório: a da força tem duas frases, e a de classe só existe onde pode aparecer.** *(Revisão, B3, B4 e B18.)*
+- Enquanto isso: "mais gente, ou gente mais calejada" só sai quando ainda cabia mais um herói na equipe; com a equipe no tamanho máximo do destino, "gente mais calejada" (tipo de lição novo no estado, `level`). A lição de classe (`trial.lesson`) passou a ser opcional no conteúdo, e um teste cobra a regra: **existe se, e só se, uma equipe pode chegar ao nó sem a classe**. Saíram onze frases que nunca apareceriam (o nó só se alcança por uma opção, ou em um modelo, que exige a classe) e as três que diziam "um Mago mais firme…", "um Guerreiro mais calejado…".
+- A equipe que perde a classe no caminho (o Guerreiro capturado antes do nó que só se alcança com Guerreiro) recebe a lição da força.
+
+**D-65. Os bônus de item de um herói passam a somar entre si.** *(Pergunta para o autor: muda a regra do ADR 0018, decisão 15; revisão, B15.)*
+- O risco: os itens multiplicavam o poder um a um, entre si e com o nível e o traço. Uma equipe de nível 2 com nove raros valia 244 contra a bruxa do Pântano (170), sempre com Sucesso.
+- Enquanto isso: os itens de um herói entram na conta como **um fator só**, 1 mais a soma dos bônus: três raros valem +36% (eram 1,12³ = +40,5%); raro e comum, +17%. O nível e o traço continuam multiplicando. A explicação do poder escreve o fator único ("× 1,36 (lâmina de vel'thar + cota rebitada + medalha do viajante)"). Com um item só nada muda.
+- Se decidir diferente: voltar a multiplicar é desfazer um bloco de `heroFactors`; um teto por herói seria um número novo no conteúdo.
+
+**D-66. O que cada rótulo de risco promete, e a Patrulha que rende pouco.** *(Pergunta para o autor: números e régua do agente; revisão, B10, B11 e B12.)*
+- O risco: os rótulos não ordenavam o risco (a equipe mínima passava nas Ruínas, "Médio", em 18%, e no Resgate, "Alto", em 47%), a calibragem só media a Equilibrada, e a Patrulha repetida rendia mais por hora de herói do que qualquer outro destino.
+- Enquanto isso: a calibragem mede as três Posturas e fixa a régua de cada rótulo ([balance-v0.3.md](balance-v0.3.md), seção 9.2). Mudaram dificuldades em cinco modelos (a tabela está lá) e a Patrulha passou a render **de 1 a 3 de ouro e 2 de experiência** (eram 12 a 28 e 12). Com isso ela fica abaixo de todos os outros destinos por hora de herói, em recurso e em experiência, e continua sendo a única que revela as Ruínas.
+- **Um limite da regra dos desfechos, que a régua respeita e o autor deve conhecer:** no mesmo nó, quem pode chegar ao Desastre nunca chega ao Sucesso (o Desastre pede menos de 70% da dificuldade com a pior sorte; o Sucesso, 100% com a melhor). Por isso a equipe mínima só é capturada onde não passa: "Alto" promete captura **na Ousada** para a mínima e, na Equilibrada, para quem vai mais fraco do que ela. Captura na Equilibrada para a mínima exigiria um caminho em que ela nunca passa, ou mudar os limiares do ADR 0017, decisão 7.
+- Se decidir diferente: a Patrulha render mais pede que os outros destinos rendam mais também (o Covil rende 9 por hora de herói: o que ele dá é a Ameaça que cai); o rendimento decrescente da Patrulha repetida seria regra nova.
+
+**D-67. O Covil tem um nome só: o do tile.** *(Revisão, B8.)*
+- Enquanto isso: o modelo de expedição passou a se chamar "Covil de Lobos", como o tile publicado na v0.2. O GDD §9.3 e o ADR 0018 escrevem "Covil dos Lobos" para a jornada; o GDD ganhou a nota. A linha da Crônica deixou de trazer os dois nomes.
+
+**D-68. Os itens: três deixaram de parecer relíquia, e a escada das raridades mudou.** *(Revisão, B14 e B23.)*
+- Enquanto isso: `pilgrimRelic` virou `travelerMedal` ("Medalha do viajante"), `oldKingSignet` virou `captainChain` ("Corrente do capitão"), e o "Amuleto de osso", com o dente de lobo, virou a "Figa de azeviche" (as relíquias da v0.5 têm um Selo do Rei Antigo e um Osso de Lobo). **Sem passo de migração**: nenhuma versão publicada tem itens (a produção está no estado 12), e nenhum retrato congelado guarda essas chaves. O incomum passou a cair na Floresta (os lenhadores sem senhor, 1 em 4) e no meio das Ruínas (1 em 2, onde caía raro); os guardiões das Ruínas dão o raro em 2 de cada 3 vitórias, e não em todas. O ninho da gralha rende moedas e, com sorte, a figa.
+
+**D-69. As frases dos grafos, depois da revisão editorial.** *(Rascunho, não lido pelo autor; revisão, B2, B5 a B7, B9, B13, B16, B17, B19 a B22, B24 e B25.)*
+- Enquanto isso: quatro regras passaram a ser cobradas por teste de conteúdo: nenhuma frase diz "o cativo", "vocês" nem "capela"; "metade" só aparece em frase de Revés e fica amarrada a `lootShare.setback`; o Desastre de um nó a que a equipe chega com saque não diz que ela ficou sem nada; e a opção que promete "o que têm" só existe depois de um trecho que rende algo. A frase da Postura Ousada diz a regra inteira ("arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."), e um teste confere que o caminho da Ousada é, nas quinze encruzilhadas, o que mais pode render. As fichas de [content-v0.3.md](content-v0.3.md), seção 6, foram regeradas e continuam "rascunho, não lido pelo autor".
+
+**D-70. A visão ganhou campos para o app não decidir nada, e a Crônica em Markdown liga a linha ao relatório.** *(Revisão, A1, A2, A8, A23 e M-R3; o app ainda não os usa.)*
+- Em cada destino de `guild.available[]`: `eligibleHeroIds` (quem pode ir: está pronto e tem o nível), `canSend` (existe agora uma equipe que a ordem aceitaria), `suggestedTeam` (a menor que serve, com um herói de cada classe exigida e os mais fortes contra o primeiro trecho) e `sendBlockedReason` ("Nenhuma equipe do feudo serve agora: falta um Mago."). A conta do que falta é a mesma da recusa de `sendExpedition` (`teamShortfall`).
+- Em cada herói: `canDismiss`, `dismissText` e `nextRescued` (é quem o próximo Resgate solta). Em `guild`: `rescueTargetName` e `equipmentSlots` (os espaços, com `id` e `label`, como `postures`).
+- `GET /games/:id/chronicle.md?links=1` põe no fim de cada linha de expedição a marca ` <!-- expedition-<n> -->`; `splitChronicleLink`, em `@lotg/protocol`, a separa. Sem `links`, o documento sai limpo (é o que o jogador baixa). O relatório da visão já trazia `expeditionId`.
+- Se decidir diferente: a marca no documento baixado, ou a aba Crônica lendo `GET /chronicle` (que já traz `seq` e `data.expeditionId`) em vez do Markdown.
+
+**D-71. A janela de 6 h reais da encruzilhada: com uma ou duas visitas por dia, o jogador não decide nenhuma.** *(Pergunta para o autor: é a pergunta de V3D-T5.3; os números estão em [balance-v0.3.md](balance-v0.3.md), seção 9.3.)*
+- Medido em 10 sementes, 7 dias reais, em Senhor, com o bot respondendo a toda encruzilhada que encontra: **0% com 1 e com 2 visitas por dia, nos três ritmos; 100% com 4 e com 6, e 100% com 2 visitas mais a de quem atende o aviso.** A equipe chega à encruzilhada em minutos (de jogo) depois de partir, e o prazo vence 6 h reais depois: quem volta em 12 h encontra a Postura já decidida; quem volta em 6 h, não.
+- A leitura do agente: a janela não é pequena para quem atende o aviso nem para quem visita de 6 em 6 horas; ela é **exatamente a que separa o perfil de 2 visitas dos outros**. Para o jogador de 2 visitas por dia, a encruzilhada é, na prática, a Postura. Se a intenção é que ele decida ao menos parte delas, a janela teria de passar de 12 h; se a intenção é que a Postura seja a decisão de quem não está (e a encruzilhada, o prêmio de quem atende o aviso), está certa. **A decisão é do autor; nada foi mudado.**
+
+**D-72. O simulador: o bot ousado, a visita extra e o estudo das expedições.** *(Revisão, M-D2, M-R1 e M-R2; só bot e relatório.)*
+- Enquanto isso: o perfil Explorador da matriz joga **metade das sementes** com uma visita a mais quando uma equipe para em uma encruzilhada (lida de `pendingDecisions`), e o `.md` da matriz ganhou as tabelas de expedições (por destino e desfecho, encruzilhadas com e sem a visita extra, cativos, mortos, resgatados, Covil limpo, herói ocioso). Entrou o bot `ousado` (envia entre o risco e a folga, alterna as Posturas, patrulha até revelar um caminho, manda o Resgate), **sem faixa**, e o modo `--expeditions`, que joga 1, 2, 4 e 6 visitas por dia. O explorador ergue a Guilda na frente das outras obras, quando há herói ou um prometido a caminho, e a deixa planejada mesmo presa ao Salão.
+- **O ano do Rápido continua quase sem expedição** (M-R1): com 2 visitas por dia o ano tem 5 visitas; na semente 001 o herói chega na hora 25, a Guilda fica pronta na hora 37 e sai **uma** expedição, na última visita (antes desta correção, com o catálogo recalibrado, não saía nenhuma). A faixa `year/3/explorador` continua calibrando um ano assim; é o perfil de visitas, não a regra.
+- As 18 faixas do Explorador foram remedidas de propósito ([balance-v0.3.md](balance-v0.3.md), seção 9.6).
+
 ### Fase D: as expedições na interface (V3D-T4)
 
 Vêm da implementação de V3D-T4 (a aba Guilda com as expedições, a encruzilhada, o relatório, o equipamento e o arsenal; a paleta, a árvore, a barra de status, os avisos, a aba Hoje, o Relatório de Retorno e "Antes de partir"; estado ainda na versão 19, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-45, D-47 e D-51 são as que mais pedem resposta. O que cada superfície mostra está no [README do app](../packages/web/README.md), "As expedições".
@@ -453,7 +537,7 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Enquanto isso: o atraso vivido por um herói é `min(duração do atraso, tempo desde a chegada dele)`. Ele só fica Descontente com 12 h reais vividas e só **pode** partir com 24 h. Os devidos continuam sendo os do atraso (um a cada 2 h reais depois das 24 h); parte o último a chegar **entre os que já podem**. Se ninguém pode ainda (só Leais, ou só recém-chegados), o devido daquela virada fica perdoado, como já ficava com só Leais.
 - **Onde o agente se afastou da sugestão do orquestrador**, que era não perdoar enquanto houvesse quem fosse se tornar elegível: guardar o devido faria dois recém-chegados partirem **na mesma virada** ao completarem as 24 h (em bloco, o que a regra do perdão existe para impedir). Com o perdão, o recém-chegado parte no primeiro passo de 2 h que vencer depois das 24 h dele: entre 24 h e 26 h reais vividas, mais a espera pela virada; dois que chegam juntos partem com um passo de diferença. A promessa da tela ("com 24 h, parte um herói a cada 2 h") se cumpre, e `nextDepartureInSeconds` diz a virada exata (testado nos três ritmos).
 - Aproximação conhecida: o estado não guarda os intervalos em que um atraso retomado esteve fechado; quem chegou durante um deles conta também o resto do intervalo (no máximo 2 h reais).
-- A frase do atraso ganha, só quando há um herói assim: "Para quem chegou com o atraso já aberto, os dois prazos contam da chegada." Rascunho do agente.
+- A frase do atraso ganha, só quando há um herói assim (desde a revisão da Fase D, "Para quem chegou, ou voltou do cativeiro, …": D-60): "Para quem chegou com o atraso já aberto, os dois prazos contam da chegada." Rascunho do agente.
 - Onde: `heroArrearsMs`, `turnWages`, `nextDiscontentAt` e `nextWageDepartureAt`, em `packages/engine/src/wages.ts`.
 - Se decidir diferente: (a) prazos só do atraso, como antes, e a tela passa a dizer o prazo de verdade do recém-chegado; (b) guardar o devido (a sugestão original), aceitando a partida em bloco.
 
@@ -816,6 +900,17 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase D: correções da revisão independente (V3D-T5)
+
+- **Ninguém leu as frases novas**, nem as fichas regeradas; as frases de `recalled`, de quem desiste do cativo, as lições e as pistas reescritas são rascunho.
+- **A régua dos rótulos é do agente**, e a calibragem continua tratando os nós como independentes, com a equipe inteira, sem traço e sem item.
+- **A captura e o Resgate quase não acontecem nem com o bot ousado**: nas 600 partidas do estudo (300 por dificuldade, metade delas do ousado), um cativo e um resgatado em Senhor, duas mortes em Rei de Ferro. O Desastre é raro porque nem o ousado manda equipe abaixo do risco do primeiro trecho, e a regra dos desfechos não deixa quem passa ser capturado (D-66).
+- **O estudo das expedições roda com 10 sementes por linha**, 7 dias reais, em Senhor e em Rei de Ferro; Camponês não foi rodado.
+- **Os campos novos da visão não são usados pelo app**: a tela continua decidindo a equipe como antes, até a tarefa do app; nada em navegador prova `canSend`, `suggestedTeam`, `nextRescued`, `canDismiss` nem `?links=1`.
+- **Desistir do cativo, o segundo Resgate recusado e a equipe sem caminho** só têm teste de motor; nenhum de integração nem em navegador.
+- **O item vendido com o cofre no teto** (A14) não tem teste que falhe: o ouro não tem teto.
+- A matriz dos outros três perfis não foi rodada à parte (o `pnpm test` a confere); `--perf`, os bytes do estado e da visão com os campos novos, `pnpm docker:build`, `pnpm capture:landing` e `pnpm test:e2e:landing` não foram rodados.
 
 ### Fase D: a interface (V3D-T4) e as três respostas de 2026-10-06
 

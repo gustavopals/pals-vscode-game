@@ -1261,6 +1261,259 @@ Colunas: população (menor e maior), Salão, horas de fome, horas de frio, made
 - `--perf` e os bytes do estado e da visão **não foram medidos** nesta tarefa. O registro do percurso ganhou dois campos pequenos; a visão de cada destino ganhou `fit` e um número por herói que pode partir; o relatório ganhou um passo e duas frases.
 - A parcela das encruzilhadas decididas pelo jogador é a de um bot que quer responder a metade delas: com um jogador que quer responder a todas, os números de quatro visitas dobram, e os de uma e duas visitas continuam zero.
 
-## 9. Rodadas seguintes das Fases D a G
+## 9. Revisão da Fase D (V3D-T5)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4, 5, 6, 7 e 8.*
+Rodada de 2026-10-06, com o estado na versão 20 e o `contentHash` `b4e14e2cb8d28c44`: o que as duas revisões independentes da Fase D mudaram no conteúdo e no bot, e as respostas com número às perguntas de V3D-T5.3. As decisões do agente estão em [pendencias-v0.3.md](pendencias-v0.3.md), "Fase D: correções da revisão independente" (D-54 a D-72). **Nada aqui foi lido pelo autor.**
+
+### 9.1 Comandos
+
+```bash
+pnpm --filter @lotg/engine test -- calibration     # a calibragem, exata, agora nas três Posturas; quatro tabelas em __golden__/expedition-calibration.md
+for d in lord peasant ironKing; do
+  pnpm -s sim -- --matrix --profile explorador --difficulty $d > matriz-$d.csv 2> matriz-$d.md
+done
+pnpm -s sim -- --expeditions --difficulty lord > estudo-lord.md          # 10 sementes, 7 dias reais, 1, 2, 4 e 6 visitas por dia
+pnpm -s sim -- --expeditions --difficulty ironKing > estudo-ironKing.md
+pnpm -s sim -- --seed pedra-alta-001 --game-year --time-scale 3 --strategy explorador 2>&1 >/dev/null | grep Guilda
+```
+
+O modo `--expeditions`, o bot `ousado` e a visita extra da encruzilhada entraram nesta rodada (seção 9.7). As fichas de [content-v0.3.md](content-v0.3.md), seção 6, foram regeradas do conteúdo e do golden da calibragem por um roteiro avulso, que não ficou no repositório.
+
+### 9.2 Os rótulos de risco, nas três Posturas
+
+A revisão editorial achou que os rótulos não ordenavam o risco (a equipe mínima passava nas Ruínas, "Médio", em 18%, e no Resgate, "Alto", em 47%) e que a calibragem só media a Equilibrada. **O que cada rótulo promete agora**, e o teste confere (`expeditions.calibration.test.ts`), para a equipe mínima:
+
+| Rótulo | Na Equilibrada, a mínima passa | Desastre | Captura |
+|---|---|---|---|
+| Baixo | em 9 de cada 10 ou mais, em qualquer Postura | nunca, nem para a equipe fraca, em Postura nenhuma | nunca |
+| Baixo a médio | em 6 de cada 10 ou mais | nunca na Cautelosa nem na Equilibrada; na Ousada existe e não passa de 15% | nunca |
+| Médio | em pelo menos um quarto e em não mais de dois terços (o Revés é comum) | até 10% na Equilibrada; possível para quem vai fraco ou ousa | nunca na Cautelosa |
+| Alto | em menos de um quarto | possível | **acontece**: na Ousada para a mínima; também na Equilibrada para quem vai mais fraco do que ela |
+
+E os rótulos ordenam: na Equilibrada, a mínima passa mais em todo destino de um rótulo do que em qualquer destino do rótulo seguinte.
+
+A distribuição exata, depois da recalibragem (as 31 sortes de cada nó, enumeradas; "passa" é nenhuma prova abaixo do Sucesso):
+
+| Patrulha dos Arredores | Baixo | Fraca: Clérigo Nv1 | 51% | 51% / 49% / 0% | 51% / 49% / 0% | 0% / 0% |
+| Patrulha dos Arredores | Baixo | Mínima: Guerreiro Nv1 | 99% | 99% / 1% / 0% | 99% / 1% / 0% | 0% / 0% |
+| Patrulha dos Arredores | Baixo | Com folga: Guerreiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| Floresta Antiga | Baixo a médio | Fraca: Clérigo Nv1 | 100% | 34% / 62% / 3% | 100% / 0% / 0% | 0% / 0% |
+| Floresta Antiga | Baixo a médio | Mínima: Guerreiro Nv1 | 100% | 76% / 24% / 0% | 33% / 59% / 8% | 0% / 0% |
+| Floresta Antiga | Baixo a médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| Covil de Lobos | Médio | Fraca: Clérigo + Clérigo Nv1 | 52% | 19% / 77% / 3% | 6% / 59% / 34% | 0% / 0% |
+| Covil de Lobos | Médio | Mínima: Guerreiro + Arqueiro Nv1 | 89% | 45% / 55% / 0% | 8% / 92% / 0% | 0% / 0% |
+| Covil de Lobos | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 94% / 6% / 0% | 56% / 44% / 0% | 0% / 0% |
+| Resgate | Alto | Fraca: Clérigo + Clérigo Nv1 | 7% | 0% / 84% / 16% | 7% / 71% / 22% | 16% / 22% |
+| Resgate | Alto | Mínima: Guerreiro + Arqueiro Nv1 | 57% | 24% / 76% / 0% | 19% / 77% / 4% | 0% / 4% |
+| Resgate | Alto | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 83% / 17% / 0% | 53% / 47% / 0% | 0% / 0% |
+| Ruínas de Vel'Thar | Médio | Fraca: Clérigo + Clérigo Nv2 | 82% | 34% / 64% / 1% | 35% / 59% / 6% | 1% / 6% |
+| Ruínas de Vel'Thar | Médio | Mínima: Guerreiro + Arqueiro Nv2 | 100% | 29% / 71% / 0% | 41% / 59% / 0% | 0% / 0% |
+| Ruínas de Vel'Thar | Médio | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
+| Pântano Nebuloso | Alto | Fraca: Mago + Clérigo + Clérigo Nv1 | 59% | 6% / 92% / 2% | 16% / 69% / 15% | 2% / 15% |
+| Pântano Nebuloso | Alto | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 80% | 20% / 80% / 0% | 53% / 44% / 2% | 0% / 2% |
+| Pântano Nebuloso | Alto | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 100% | 76% / 24% / 0% | 74% / 26% / 0% | 0% / 0% |
+
+## Cada prova, para as três equipes
+
+**O que mudou para caber na régua** (antes → depois):
+
+| Destino | Nó | O que mudou |
+|---|---|---|
+| Patrulha | as três variantes | ouro: 15 a 25, 12 a 22 e 18 a 28 → **1 a 3, 1 a 2 e 2 a 3**; experiência: 12 → **2** |
+| Floresta Antiga | O javali da mata fechada; Os lenhadores sem senhor | dificuldade 55 → **52**; 58 → **54** (o Guerreiro sozinho na Ousada: Desastre em 20% → 8%) |
+| Covil de Lobos B | A matilha sob o penedo | perícia ×1,5 → **×1** (flechar do alto deixou de ser mais seguro e mais rico do que fechar uma boca) |
+| Ruínas | O guardião de pedra; A sentinela sem rosto | 92 → **89**; 112 → **105** (a mínima: 18% → 29%). O guardião da cripta fica em 116: abaixo disso nenhuma dupla de nível 2 é capturada |
+| Resgate | A trilha dos captores; As cordas no escuro; A parede dos fundos; A noite sem fogo; Os cavalos soltos | 90 → **96**; 96 → **102**; 104 → **114**; 78 → **80**; 106 → **114** (a mínima: 47% → 24%; a equipe fraca passa a poder ser capturada na Equilibrada) |
+| Pântano | O afogado que anda | 120 → **122** (a equipe fraca passa a poder ser capturada na Equilibrada); os três nós do meio rendem 10 de ouro a mais |
+
+**Um limite da regra dos desfechos** (ADR 0017, decisão 7), que a régua respeita: no mesmo nó, quem pode chegar ao Desastre nunca chega ao Sucesso. O Desastre pede menos de 70% da dificuldade com a pior sorte (poder abaixo de 82% da dificuldade); o Sucesso, 100% com a melhor (poder a partir de 87%). As duas faixas não se cruzam. Por isso a equipe mínima só é capturada em um nó que ela nunca vence, e "captura na Equilibrada para a mínima" pediria um caminho da Equilibrada em que ela nunca passa. A régua do "Alto" promete o que a regra permite; mexer nos limiares é decisão do autor (pendência D-66).
+
+**A Patrulha por hora de herói** (revisão, B10). O que cada destino rende em média, na Equilibrada, por hora de jogo de cada herói que vai (recursos somados; a experiência é a de cada herói):
+
+| Modelo | Duração | Equipe | Recursos por hora de herói | Experiência por hora, de cada herói |
+|---|---:|---|---:|---:|
+| Patrulha dos Arredores | 15 min | Mínima: Guerreiro Nv1 | 8,3 | 8,3 |
+| Patrulha dos Arredores | 15 min | Com folga: Guerreiro Nv3 | 9,3 | 9,3 |
+| Floresta Antiga | 60 min | Mínima: Guerreiro Nv1 | 59,3 | 12,1 |
+| Floresta Antiga | 60 min | Com folga: Guerreiro + Arqueiro Nv3 | 37,5 | 18,3 |
+| Covil de Lobos | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 8,6 | 29,4 |
+| Covil de Lobos | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 10,9 | 36,9 |
+| Resgate | 120 min | Mínima: Guerreiro + Arqueiro Nv1 | 4,5 | 27,8 |
+| Resgate | 120 min | Com folga: Guerreiro + Arqueiro Nv3 | 6,1 | 36,7 |
+| Ruínas de Vel'Thar | 180 min | Mínima: Guerreiro + Arqueiro Nv2 | 33,3 | 30,3 |
+| Ruínas de Vel'Thar | 180 min | Com folga: Guerreiro + Arqueiro + Mago Nv4 | 33,6 | 45,1 |
+| Pântano Nebuloso | 300 min | Mínima: Mago + Guerreiro + Arqueiro Nv1 | 8,6 | 30,5 |
+| Pântano Nebuloso | 300 min | Com folga: Mago + Guerreiro + Arqueiro Nv3 | 11,3 | 38,7 |
+
+A Patrulha fica abaixo de todos os outros em recurso e em experiência, e o teste cobra isso (o Resgate fica de fora da comparação de recursos: o que ele rende é quem volta). A margem sobre o Covil e o Pântano é pequena de propósito: os dois rendem pouco ouro porque o que dão é a Ameaça que cai e o item épico.
+
+### 9.3 Quantas encruzilhadas o jogador decide, por visitas por dia
+
+**A pergunta de V3D-T5.3.** Em Senhor, 10 sementes, 7 dias reais por partida, com o explorador que responde a **toda** encruzilhada que encontra na visita (a parte que fica para a Postura é a que venceu, 6 h reais depois de a equipe parar, antes de ele voltar):
+
+| Ritmo | Bot | Visitas | Anos de jogo | Expedições | Encruzilhadas: jogador ÷ todas | Visitas extras | Herói ocioso (herói-h por partida) | Heróis no fim | Ouro no fim |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Explorador (responde a tudo) | 1 visita por dia | 3 | 50 | 0 de 50 (0%) | 0 | 418 | 6 | 63414 a 88666 |
+| Rápido 3× | Explorador (responde a tudo) | 2 visitas por dia | 3 | 234 | 0 de 234 (0%) | 0 | 391 | 6 | 177163 a 212073 |
+| Rápido 3× | Explorador (responde a tudo) | 2 visitas e a do aviso | 3 | 1569 | 1554 de 1554 (100%) | 1080 | 388 | 6 | 294734 a 300526 |
+| Rápido 3× | Explorador (responde a tudo) | 4 visitas por dia | 3 | 320 | 255 de 255 (100%) | 0 | 424 | 6 | 342165 a 365890 |
+| Rápido 3× | Explorador (responde a tudo) | 6 visitas por dia | 3 | 481 | 416 de 416 (100%) | 0 | 426 | 6 | 403363 a 419358 |
+| Normal 1× | Explorador (responde a tudo) | 1 visita por dia | 1 | 24 | 0 de 18 (0%) | 0 | 193 | 2 a 5 | 96 a 1818 |
+| Normal 1× | Explorador (responde a tudo) | 2 visitas por dia | 1 | 110 | 0 de 103 (0%) | 0 | 303 | 5 a 6 | 2615 a 14875 |
+| Normal 1× | Explorador (responde a tudo) | 2 visitas e a do aviso | 1 | 136 | 119 de 119 (100%) | 65 | 417 | 6 | 1099 a 15530 |
+| Normal 1× | Explorador (responde a tudo) | 4 visitas por dia | 1 | 194 | 174 de 174 (100%) | 0 | 334 | 6 | 7927 a 12868 |
+| Normal 1× | Explorador (responde a tudo) | 6 visitas por dia | 1 | 358 | 285 de 285 (100%) | 0 | 323 | 6 | 8865 a 21124 |
+| Tranquilo 0,5× | Explorador (responde a tudo) | 1 visita por dia | 0,5 | 3 | 0 de 3 (0%) | 0 | 144 | 1 a 3 | 85 a 640 |
+| Tranquilo 0,5× | Explorador (responde a tudo) | 2 visitas por dia | 0,5 | 41 | 0 de 32 (0%) | 0 | 140 | 2 a 4 | 276 a 1024 |
+| Tranquilo 0,5× | Explorador (responde a tudo) | 2 visitas e a do aviso | 0,5 | 48 | 35 de 35 (100%) | 34 | 176 | 3 a 5 | 545 a 877 |
+| Tranquilo 0,5× | Explorador (responde a tudo) | 4 visitas por dia | 0,5 | 80 | 64 de 64 (100%) | 0 | 181 | 4 a 5 | 141 a 1034 |
+| Tranquilo 0,5× | Explorador (responde a tudo) | 6 visitas por dia | 0,5 | 159 | 114 de 114 (100%) | 0 | 188 | 4 a 6 | 438 a 993 |
+
+O que se lê:
+
+- **Com 1 ou 2 visitas por dia o jogador não decide encruzilhada nenhuma, nos três ritmos.** A equipe chega à encruzilhada minutos depois de partir (15 a 60 minutos de jogo), e o prazo vence 6 h reais depois; quem volta em 12 h ou 24 h encontra a Postura decidida.
+- **Com 4 ou 6 visitas por dia decide todas.** Com as visitas de 6 em 6 horas, a seguinte cai sempre dentro do prazo.
+- **Com 2 visitas e a do aviso, decide todas**: o jogador que volta quando a equipe para (uma visita a mais ao fim da hora em que a encruzilhada aparece) nunca perde o prazo. No Rápido isso são 108 visitas extras por partida em 7 dias, mais do que as 14 do dia a dia: é outro jogador.
+- Na matriz padrão o Explorador joga metade das sementes com a visita extra e responde a metade das encruzilhadas, por desenho do bot: decide 51% a 58% nas partidas com a visita e 0% nas outras (seção 9.6).
+
+**A janela de 6 h está errada?** Os números dizem que ela é **exatamente a fronteira entre o perfil de 2 visitas por dia e os outros**: abaixo de 4 visitas por dia a encruzilhada é, na prática, a Postura escolhida no envio; de 4 em diante, ou atendendo o aviso, é uma decisão do jogador. O critério do roadmap ("se quase toda encruzilhada cair na Postura no perfil de 2 visitas, a janela está errada: vai ao autor") **é atendido: todas caem na Postura**. Para o perfil de 2 visitas decidir, a janela teria de passar das 12 h reais. A decisão é do autor (pendência D-71); o conteúdo não foi mexido.
+
+### 9.4 Capturas, mortes e Resgates por ano
+
+O explorador nunca viu um Desastre, porque só envia com folga. O bot `ousado` (envia entre o risco e a folga, alterna as três Posturas, patrulha até revelar um caminho, manda o Resgate) é o que deveria ver. Em Senhor, 10 sementes por linha, 7 dias reais:
+
+| Ritmo | Bot | Visitas | Nós com prova: P/S/R/D | Feridos | Cativos | Mortos | Resgatados | Equipes perdidas | Covil limpo | Capturas por ano | Resgates por ano | Mortes por ano |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Ousado | 1 visita por dia | 7/29/18/1 | 19 | 0 | 0 | 0 | 0 | 5 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 2 visitas por dia | 76/146/70/4 | 72 | 1 | 0 | 1 | 0 | 10 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 2 visitas e a do aviso | 1197/341/155/6 | 152 | 0 | 0 | 0 | 0 | 16 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 4 visitas por dia | 82/169/96/2 | 96 | 0 | 0 | 0 | 0 | 25 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 6 visitas por dia | 182/229/117/2 | 119 | 0 | 0 | 0 | 0 | 20 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 1 visita por dia | 9/18/6/0 | 6 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 2 visitas por dia | 21/56/38/1 | 38 | 0 | 0 | 0 | 0 | 7 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 2 visitas e a do aviso | 25/66/29/1 | 30 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 4 visitas por dia | 21/75/39/2 | 41 | 0 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 6 visitas por dia | 39/122/60/3 | 61 | 0 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 1 visita por dia | 1/2/0/0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 2 visitas por dia | 8/31/9/0 | 9 | 0 | 0 | 0 | 0 | 5 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 2 visitas e a do aviso | 7/31/7/1 | 8 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 4 visitas por dia | 7/41/18/2 | 19 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 6 visitas por dia | 16/62/37/2 | 39 | 0 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
+
+Em Rei de Ferro, as mesmas linhas:
+
+| Ritmo | Bot | Visitas | Nós com prova: P/S/R/D | Feridos | Cativos | Mortos | Resgatados | Equipes perdidas | Covil limpo | Capturas por ano | Resgates por ano | Mortes por ano |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Ousado | 1 visita por dia | 8/25/14/0 | 14 | 0 | 0 | 0 | 0 | 3 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 2 visitas por dia | 36/107/54/3 | 57 | 0 | 0 | 0 | 0 | 14 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 2 visitas e a do aviso | 450/269/131/5 | 132 | 0 | 0 | 0 | 0 | 20 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 4 visitas por dia | 66/185/112/3 | 112 | 0 | 1 | 0 | 0 | 21 | 0 | 0 | 0 |
+| Rápido 3× | Ousado | 6 visitas por dia | 197/236/110/4 | 111 | 0 | 1 | 0 | 0 | 20 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 1 visita por dia | 2/8/1/0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 2 visitas por dia | 23/64/40/0 | 38 | 0 | 0 | 0 | 0 | 7 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 2 visitas e a do aviso | 18/74/52/1 | 47 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 4 visitas por dia | 9/63/32/2 | 34 | 0 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
+| Normal 1× | Ousado | 6 visitas por dia | 116/156/55/3 | 55 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 1 visita por dia | 1/2/0/0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 2 visitas por dia | 7/19/8/0 | 8 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 2 visitas e a do aviso | 6/26/6/0 | 6 | 0 | 0 | 0 | 0 | 5 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 4 visitas por dia | 10/43/16/0 | 14 | 0 | 0 | 0 | 0 | 10 | 0 | 0 | 0 |
+| Tranquilo 0,5× | Ousado | 6 visitas por dia | 15/65/40/3 | 42 | 0 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+
+O que se lê:
+
+- **Mesmo arriscando, quase ninguém é capturado**: um cativo e um resgatado em 150 partidas do ousado em Senhor; nenhum cativo e duas mortes em Rei de Ferro. "Por ano" arredonda para zero em toda linha.
+- **O Desastre é raro** (de 0 a 6 por linha, em dezenas a centenas de nós com prova), e o Revés é o desfecho ruim de verdade: de um quinto a um terço dos nós do ousado nas cadências do dia a dia (na linha da visita extra do Rápido, 9%).
+- O motivo é o limite da seção 9.2: o ousado não manda equipe abaixo do risco do **primeiro** trecho, e nos nós que capturam (os chefes e os cativeiros) quem pode ser capturado é quem não tem chance de passar. A captura fica para a equipe fraca demais para o destino, que um jogador prudente não manda.
+- **Em Rei de Ferro o herói morre onde em Senhor seria capturado**: as duas mortes são isso. Nenhuma equipe inteira se perdeu.
+
+### 9.5 Desfechos por destino
+
+Os envios do ousado e os desfechos dos nós com prova (Sucesso Pleno / Sucesso / Revés / Desastre), em Senhor:
+
+| Ritmo | Bot | Visitas | Patrulha dos Arredores: envios · P/S/R/D | Floresta Antiga: envios · P/S/R/D | Covil de Lobos: envios · P/S/R/D | Resgate: envios · P/S/R/D | Ruínas de Vel'Thar: envios · P/S/R/D | Pântano Nebuloso: envios · P/S/R/D |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Rápido 3× | Ousado | 1 visita por dia | 16 · 1/9/6/0 | 18 · 0/2/4/1 | 16 · 6/18/8/0 | — | — | — |
+| Rápido 3× | Ousado | 2 visitas por dia | 12 · 1/9/2/0 | 82 · 0/9/22/0 | 55 · 26/49/20/2 | 1 · 1/1/0/0 | 40 · 17/26/20/2 | 35 · 31/52/6/0 |
+| Rápido 3× | Ousado | 2 visitas e a do aviso | 12 · 1/9/2/0 | 648 · 50/120/91/6 | 35 · 15/42/13/0 | — | 464 · 599/133/42/0 | 234 · 532/37/7/0 |
+| Rápido 3× | Ousado | 4 visitas por dia | 10 · 2/8/0/0 | 136 · 1/23/27/2 | 49 · 26/54/18/0 | — | 94 · 31/75/50/0 | 14 · 22/9/1/0 |
+| Rápido 3× | Ousado | 6 visitas por dia | 12 · 2/7/3/0 | 265 · 1/50/55/1 | 39 · 10/52/15/1 | — | 95 · 64/69/35/0 | 63 · 105/51/9/0 |
+| Normal 1× | Ousado | 1 visita por dia | 10 · 2/8/0/0 | 2 · 0/0/1/0 | 12 · 7/10/5/0 | — | — | — |
+| Normal 1× | Ousado | 2 visitas por dia | 12 · 2/8/2/0 | 48 · 0/4/15/0 | 34 · 14/32/12/1 | — | 13 · 4/10/9/0 | 2 · 1/2/0/0 |
+| Normal 1× | Ousado | 2 visitas e a do aviso | 12 · 2/8/2/0 | 100 · 0/24/22/1 | 15 · 7/21/2/0 | — | 9 · 4/9/2/0 | 7 · 12/4/1/0 |
+| Normal 1× | Ousado | 4 visitas por dia | 12 · 2/8/2/0 | 160 · 3/34/32/2 | 15 · 9/20/1/0 | — | 9 · 4/7/2/0 | 4 · 3/6/2/0 |
+| Normal 1× | Ousado | 6 visitas por dia | 10 · 2/8/0/0 | 272 · 3/66/48/3 | 15 · 5/21/4/0 | — | 17 · 11/13/7/0 | 14 · 18/14/1/0 |
+| Tranquilo 0,5× | Ousado | 1 visita por dia | 3 · 1/2/0/0 | — | — | — | — | — |
+| Tranquilo 0,5× | Ousado | 2 visitas por dia | 10 · 2/8/0/0 | 7 · 0/2/1/0 | 20 · 6/21/8/0 | — | — | — |
+| Tranquilo 0,5× | Ousado | 2 visitas e a do aviso | 10 · 2/8/0/0 | 23 · 0/3/4/1 | 14 · 5/20/3/0 | — | — | — |
+| Tranquilo 0,5× | Ousado | 4 visitas por dia | 13 · 1/9/3/0 | 52 · 0/5/8/2 | 16 · 6/21/4/0 | — | 6 · 0/5/3/0 | 1 · 0/1/0/0 |
+| Tranquilo 0,5× | Ousado | 6 visitas por dia | 11 · 1/9/1/0 | 106 · 0/22/27/2 | 19 · 10/24/4/0 | — | 13 · 5/7/5/0 | — |
+
+- **O ousado chega às Ruínas e ao Pântano** com 2 visitas por dia no Rápido e no Normal (no Tranquilo, que em 7 dias é meio ano de jogo, só com 4 ou mais). O explorador só chega às Ruínas com a visita do aviso ou com 4 visitas ou mais: a Patrulha, que as revela, é o destino que rende menos, e ele vai sempre ao de maior recompensa que passa com folga.
+- **A Floresta é onde o ousado mais sofre Revés** (0/9/22/0 no Rápido com 2 visitas): ele vai com a menor equipe que serve, e a pista da mata fechada avisa que é serviço para mais de um. A causa não foi medida à parte.
+- **O Resgate aconteceu uma vez**, e deu certo.
+
+### 9.6 O Explorador na matriz: as faixas, antes e depois, e o ouro parado
+
+A rodada padrão, 50 sementes por célula. **Só as células do Explorador mudaram**; as dos outros perfis não envolvem expedições. Em Senhor (população, Salão, excedente de madeira, pedra e ouro, e a maior sequência desperdiçando, em horas de jogo):
+
+| Célula | Antes (seção 8) | Depois |
+|---|---|---|
+| `week/3/explorador` | 83 a 85 · Salão 8 · 4.432 · 5.200 · 232.893 · 51 | 85 · Salão 8 · 4.420 · 5.200 · **286.522** · 39 |
+| `week/1/explorador` e `year/1/explorador` | 66 a 75 · Salão 7 · 4.668 · 4.600 · 25.548 · 10 | 66 a 77 · Salão 7 · 5.200 · 5.200 · **19.874** · 9 |
+| `week/0.5/explorador` | 44 a 52 · Salão 5 · 1.166 · 863 · 1.086 · 1,5 | 45 a 54 · Salão 5 · 794 · 897 · 1.219 · 1,5 |
+| `year/3/explorador` | 25 a 35 · Salão 5 · 694 · 898 · 1.978 · 3 | 23 a 37 · Salão 5 · 722 · 1.011 · **3.075** · 3 |
+| `year/0.5/explorador` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 16.032 · 7 | 84 a 85 · Salão 8 · 5.200 · 5.200 · **20.652** · 5,5 |
+
+Nenhuma hora de fome nem de frio, em nenhuma dificuldade. As linhas de Camponês e de Rei de Ferro estão em `packages/sim-cli/src/bands.ts`.
+
+Duas medidas de `balance.test.ts` mudaram com o bot: **o Explorador enche os seis lugares de herói nas 50 sementes do Normal** (eram de 4 a 6), e **a partida que terminava o ano com a Ameaça em 90 termina em 92** (a mesma: Senhor, Tranquilo, semente 047, com o Covil limpo no ano; é o caso da pendência D-24, e por que são dois pontos a mais não foi investigado). Continua sendo a única de um ano ou mais que termina em 80 ou acima.
+
+**As expedições do Explorador**, somadas nas 50 sementes de cada célula, em Senhor:
+
+| Janela | Ritmo | Expedições | Encruzilhadas: jogador ÷ todas | Com a visita extra | Só as sessões do dia | Covil limpo | Herói ocioso (herói-h) |
+|---|---|---:|---|---|---|---:|---:|
+| 7 dias reais | Rápido 3× | 1.240 | 336 de 1.240 (27%) | 336 de 654 (51%) | 0 de 586 (0%) | 104 | 22.637 |
+| 7 dias reais | Normal 1× | 643 | 174 de 604 (29%) | 174 de 337 (52%) | 0 de 267 (0%) | 42 | 17.049 |
+| 7 dias reais | Tranquilo 0,5× | 210 | 54 de 168 (32%) | 54 de 93 (58%) | 0 de 75 (0%) | 22 | 8.486 |
+| Um ano de jogo | Rápido 3× | 50 | 25 de 50 (50%) | 25 de 25 (100%) | 0 de 25 (0%) | 12 | 2.050 |
+| Um ano de jogo | Tranquilo 0,5× | 1.996 | 455 de 1.739 (26%) | 455 de 917 (50%) | 0 de 822 (0%) | 50 | 33.288 |
+
+Nenhum cativo, nenhum morto, nenhuma equipe perdida: o Explorador só envia com folga.
+
+**O ano do Rápido** (revisão, M-R1): 50 expedições em 50 partidas, **uma por partida**. O ano dura 56 h reais, cinco visitas; na semente 001 o herói da carta chega na hora 25, e a Guilda fica pronta na hora 37, entre a quarta e a quinta visita. O bot passou a erguer a Guilda na frente das outras obras, com o herói ainda a caminho, e a deixá-la planejada mesmo presa ao Salão; antes disso, na mesma semente e com o catálogo recalibrado, o ano fechava sem expedição nenhuma. A faixa `year/3/explorador` continua medindo um ano com uma expedição: é o que o perfil de 2 visitas por dia alcança no Rápido.
+
+**O ouro parado, contra a linha de base da seção 1.3** (ouro em estoque no fim da janela, em Senhor: menor, mediana e maior das 50 sementes):
+
+| Janela | Ritmo | Regular da v0.2 (seção 1.3) | Explorador agora |
+|---|---|---|---|
+| 7 dias reais | Rápido 3× | 113.566 · 128.436 · 148.487 | 177.163 · **238.908** · 286.522 |
+| Um ano de jogo | Rápido 3× | 1.870 · 2.176 · 3.052 | 1.321 · **1.715** · 3.075 |
+| 7 dias reais e um ano | Normal 1× | 2.348 · 8.967 · 23.641 | 801 · **9.434** · 19.874 |
+| 7 dias reais | Tranquilo 0,5× | 38 · 518 · 1.044 | 355 · **713** · 1.219 |
+| Um ano de jogo | Tranquilo 0,5× | 13.128 · 17.646 · 22.535 | 5.251 · **14.177** · 20.652 |
+
+**O ouro parado não caiu.** No primeiro ano de jogo ele fica onde estava (um quinto a menos no Rápido e no Tranquilo, o mesmo no Normal); na semana do Rápido, três anos de jogo, quase dobra: seis heróis custam 12 de ouro por hora de jogo, as expedições trazem ouro, e o feudo continua sem ter onde gastá-lo depois que as obras acabam. É o que as seções 4.4 e 5.5 já diziam; o destino do ouro é o Mercado (Fase E).
+
+### 9.7 O que entrou no simulador
+
+Só bot e relatório; nenhuma regra do jogo mudou por causa disto.
+
+- **A visita extra da encruzilhada** (`crossroadsVisit`): além das sessões do dia, o bot joga uma sessão ao fim da hora real em que uma equipe para em uma encruzilhada, uma por encruzilhada, lendo `pendingDecisions`. No perfil Explorador da matriz vale para **metade das sementes** (as de número ímpar na lista).
+- **As tabelas de expedições no `.md` da matriz**: por célula, as somas das sementes (expedições, encruzilhadas com e sem a visita extra, feridos, cativos, mortos, resgatados, Covil limpo, equipes perdidas, herói ocioso) e, por destino, os envios e os desfechos.
+- **O bot `ousado`**, com o perfil `ousado` da matriz (`--profile ousado`), fora da rodada padrão e sem faixa.
+- **O modo `--expeditions`**: as cadências de 1, 2, 4 e 6 visitas por dia, e 2 mais a do aviso, com o explorador que responde a tudo e com o ousado.
+- **O explorador** ergue a Guilda na frente das outras obras (e de novo depois de responder às cartas), com herói no feudo ou prometido, e monta a equipe com o que a visão passou a dizer (`eligibleHeroIds`, `canSend`, `suggestedTeam`).
+
+### 9.8 Limites desta medição
+
+- O estudo tem **10 sementes por linha** e só Senhor e Rei de Ferro. Com 150 partidas do ousado por dificuldade, "um cativo" não é uma taxa: é a ordem de grandeza.
+- **A visita extra é um jogador ideal**: volta em até uma hora, toda vez. Um jogador de verdade atende parte dos avisos.
+- O bot responde às encruzilhadas com uma regra fixa (o caminho do meio, às vezes o ambicioso), sem pesar a pista: os desfechos por destino medem o grafo com esse bot, não a melhor escolha.
+- A calibragem continua tratando os nós como independentes, com a equipe inteira em todos, sem traço e sem item; a régua dos rótulos e a do rendimento por hora são do agente.
+- Camponês não foi rodado no estudo; a matriz dos outros três perfis não foi rodada à parte (o `pnpm test` a confere contra as faixas).
+- `--perf` e os bytes do estado e da visão com os campos novos não foram medidos nesta rodada.
+
+## 10. Rodadas seguintes das Fases E a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 9.*

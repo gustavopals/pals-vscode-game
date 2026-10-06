@@ -1957,6 +1957,8 @@ type ExpeditionReport = {
 type Caravan = { id: string; resource: 'food' | 'wood' | 'stone'; amount: number; unitPrice: number; arrivesAtMs: number; escortHeroId: string | null };
 ```
 
+**Versão 20 (revisão da Fase D, V3D-T5, feito):** o herói ganha `freedAtMs: number | null` (quando voltou do cativeiro pela última vez; os prazos do soldo em atraso contam, para ele, do maior entre a chegada e a volta), e a lição de um registro do percurso (`log[].lesson.kind`, da versão 19) aceita `'level'` além de `'class' | 'posture' | 'item' | 'strength'`. O passo `v19ToV20` põe `null` em todos e não reconstitui nada.
+
 Atributos, poder, limite de heróis, lugares de expedição, preço exibido e risco da caravana são **derivados** em funções puras e nunca gravados. Diferença em relação ao esboço do GDD §14.11: `tavernOffers` guarda o modelo e o nome, não o herói inteiro; `market.prices` não tem ferro.
 
 ### B.2 Comandos novos
@@ -1993,6 +1995,8 @@ Os códigos novos entram em `REJECTION_CODES` no motor **e** no protocolo. O pro
 
 A rotação da Taverna e a mudança diária de preço **não** geram evento: mudam só a visão. Marcadores novos para os modelos de frase: `{heroi}` (**feito** em V3C-T1), `{classe}` (**feito** em V3C-T3: a classe em minúscula, concordando com o herói), `{preco}` (**feito** em V3C-T2: o ouro pago em uma contratação), `{expedicao}`, `{herois}`, `{no}`, `{desfecho}`, `{postura}` e `{saque}` (**feitos** em V3D-T1), `{item}`, `{mestre}` (acrescentar em `CHRONICLE_PLACEHOLDERS`).
 
+**Revisão da Fase D (V3D-T5, feito):** nenhum tipo de evento novo. `heroDismissed` leva `captive: 1` e `itemsLost` quando o dispensado estava em cativeiro, com a frase de `heroDismissalTemplates`; `expeditionReturned` tem as frases `recalled`, `recalledCut` e `recalledEmpty` para a equipe que ficou sem caminho; `itemSold` leva `gained_gold` e `lost_gold` pelo que o depósito aceitou. `GET /chronicle.md?links=1` marca cada linha de expedição com ` <!-- expedition-<n> -->`.
+
 ### B.4 `ViewState`: campos novos
 
 | Onde | Campo | Tarefa |
@@ -2011,6 +2015,7 @@ A rotação da Taverna e a mudança diária de preço **não** geram evento: mud
 | `guild` | em cada herói `canDepart`, `injury: { severityLabel; recoversInSeconds } \| null`, `captive` e `equipment: Array<{ slot; slotLabel; item \| null }>`; `inventory: Array<{ id; label; text; slot; slotLabel; rarityLabel; bonusText; bonusPercent }>`, `inventoryCap`, `inventoryText`, `captiveText`; em cada passo de relatório, `notes[]`; em cada relatório, `itemsText` e `lost`; em cada destino, `teamMinLevel` e `firstStretchDifficulty` | V3D-T2 (feito) |
 | `threat` | `clearedText` (com e sem Torre: "O Covil de Lobos está limpo…", sem o número) | V3D-T2 (feito) |
 | `guild` | **Feito (adição, o protocolo não sobe):** em cada passo de expedição e de relatório, `outcome` (`full`, `success`, `setback`, `disaster`, `passed`, `chosen`: a chave do desfecho, para a tela pôr um ícone ao lado de `outcomeLabel`); em cada destino, `rescue` (é o Resgate) | V3D-T4 |
+| `guild` | **Feito (adição, o protocolo não sobe; o app ainda não usa):** em cada destino de `available[]`, `eligibleHeroIds`, `canSend`, `suggestedTeam` e `sendBlockedReason` (quem pode ir, se alguma equipe serve, a menor que serve e, sem nenhuma, a frase do que falta; a mesma conta da recusa de `sendExpedition`); em cada herói, `canDismiss`, `dismissText` e `nextRescued`; `rescueTargetName` (quem o próximo Resgate solta) e `equipmentSlots: Array<{ id; label }>` | Revisão da Fase D (V3D-T5) |
 | raiz | `market: { level; quoteDay; nextChangeInSeconds; prices: Array<{ resource; buy; sell; baseText; trend; breakdown; remainingToday; maxBuyable; maxSellable }> }` | V3E-T1 |
 | `market` | `caravans: Array<{ id; text; arrivesInSeconds; escortName }>`; `caravanOffer: { available; blockedReason; maxUnits; priceRatioText; tripSeconds; riskText; riskBreakdown }` | V3E-T2 |
 | raiz | `masters: Array<{ id; name; buildingLabel; adaptationEndsInSeconds; bonusPercent }>`; `mastersWaiting: number` | V3E-T3 |

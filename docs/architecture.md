@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 19) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 20) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -466,3 +466,24 @@ O que a terceira tarefa da Fase D construiu por cima das seções 15 e 16: **os 
 | Simulador | `bots/policies.ts` | O `explorador` envia a expedição de maior recompensa que a equipe passa com folga, pela régua da visão, e responde a metade das encruzilhadas |
 
 **Limites conhecidos:** com uma ou duas visitas por dia o jogador não decide encruzilhada nenhuma (o prazo é de 6 h reais); ninguém é capturado no simulador; o bot quase não patrulha, e com isso as Ruínas e o Pântano quase não aparecem; o app não mostra destinos, régua nem relatório (V3D-T4); os dezoito grafos e as frases são rascunho que o autor não leu.
+
+## 18. As correções da revisão independente da Fase D (V3D-T5, 2026-10-06)
+
+O que as duas revisões da Fase D mudaram por cima das seções 15 a 17, no motor, no conteúdo, no protocolo, no servidor e no simulador. Está no `main` **local**, com o estado na versão 20, e **não está em produção**. O app ainda não usa os campos novos da visão. As decisões estão em [pendencias-v0.3.md](pendencias-v0.3.md), D-54 a D-72, e a medição, em [balance-v0.3.md](balance-v0.3.md), seção 9.
+
+| O quê | Onde | Como ficou |
+|---|---|---|
+| Estado 20 | `migrations/v19.ts` (`v19ToV20`), `migrations/v20.ts` | O herói ganha `freedAtMs` (a volta do cativeiro; `null` na migração, nada reconstituído), e a lição de um registro do percurso aceita o tipo `level`. O passo não cria prazo, evento, identificador nem sorteio |
+| O resgatado e o soldo em atraso | `heroes.ts` (`servingSinceMs`), `wages.ts`, `outcomes.ts` (`rescueCaptive`) | Os prazos do atraso contam, para ele, do maior entre a chegada e a volta |
+| Desistir do cativo | `wages.ts` (`dismissBlock`, `dismissHero`) | A dispensa aceita quem está em cativeiro; o que ele levava se perde; com um Resgate a caminho, espera |
+| Envios que arriscariam por nada | `expeditions.ts` (`accessLock`, `rescuesUnderWay`) | Um Resgate por cativo; uma equipe por vez em um tile de ameaça |
+| A equipe sem caminho | `expeditionTurn.ts` (`recallStranded`), chamada por `advanceWith` na fronteira | Volta para casa antes de o tempo andar, com o que tinha |
+| A equipe possível | `expeditions.ts` (`teamShortfall`, `teamOutlook`), `expeditionsView.ts` | Uma fonte só para a recusa da ordem e para `eligibleHeroIds`, `canSend`, `suggestedTeam` e `sendBlockedReason` |
+| Os itens | `heroes.ts` (`heroFactors`) | Os bônus de item de um herói somam entre si, em um fator só |
+| As lições | `expeditionReport.ts`; `trial.lesson` opcional no conteúdo | A da força tem duas frases (`strength`, `level`); a de classe só existe onde pode aparecer |
+| A Crônica e o relatório | `@lotg/protocol` (`chronicleLink.ts`), `chronicleMarkdown.ts`, `GET /chronicle.md?links=1` | Cada linha de expedição leva a marca com o identificador dela; sem `links`, o documento sai limpo |
+| O catálogo | `packages/content/src/missions/*.ts`, `items.ts`, `expeditions.ts` | Dificuldades recalibradas, a Patrulha com pouco ouro, "Covil de Lobos", três itens renomeados, a escada das raridades e as frases da revisão editorial; quatro regras editoriais cobradas por teste |
+| A calibragem | `expeditions.calibration.test.ts` | As três Posturas, a régua de cada rótulo, a ordem dos rótulos e o rendimento por hora de herói |
+| O simulador | `bots/ousado.ts`, `bots/policies.ts`, `simulate.ts` (`crossroadsVisit`), `matrix.ts`, `expeditionStudy.ts` | O bot `ousado`, a visita extra da encruzilhada, as tabelas de expedições da matriz e o modo `--expeditions` |
+
+**Limites conhecidos:** com uma ou duas visitas por dia o jogador continua sem decidir encruzilhada nenhuma (a janela de 6 h reais não foi mexida: pendência D-71); a captura quase não acontece nem com o bot que arrisca, porque a regra dos desfechos não deixa quem passa ser capturado (D-66); o app não usa os campos novos; nada disto foi jogado por uma pessoa.
