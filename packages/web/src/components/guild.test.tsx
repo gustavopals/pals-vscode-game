@@ -399,6 +399,8 @@ describe('os heróis fora da aba Guilda (GDD §13.3)', () => {
     );
     const sheet = text(markup);
     expect(sheet).toContain('no ouro, o soldo dos heróis');
+    // O que uma ordem da Guilda cobrou não está na produção: a nota diz onde está.
+    expect(sheet).toContain('o trato de uma contratação e o custo de um festival estão em Gasto.');
     expect(sheet).toContain('O cofre secou: o soldo atrasou.');
     expect(sheet).toContain('Isolda deixou o feudo.');
     // Sem equipe e sem evento dela, a nota não fala de soldo.

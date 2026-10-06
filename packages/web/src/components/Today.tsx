@@ -355,9 +355,12 @@ function StockTable(props: {
       </table>
       <p class="muted hint">
         Produção já desconta o que o feudo consumiu
-        {props.wage ? ' (no ouro, o soldo dos heróis: ele não é gasto de uma ordem)' : ''}. Gasto e
-        recebido vêm das ordens e dos acontecimentos da ausência. Perdido é o que não coube no
-        depósito e foi ao chão, da produção ou de uma recompensa.
+        {props.wage
+          ? ' (no ouro, o soldo dos heróis também: ele corre sozinho, não é gasto de uma ordem)'
+          : ''}
+        . Gasto e recebido vêm das ordens e dos acontecimentos da ausência
+        {props.wage ? ': o trato de uma contratação e o custo de um festival estão em Gasto' : ''}.
+        Perdido é o que não coube no depósito e foi ao chão, da produção ou de uma recompensa.
         {raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
       </p>
     </>

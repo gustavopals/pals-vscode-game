@@ -607,6 +607,28 @@ describe('a incursão no relatório (GDD §8.2, §12.3 e critério 4 da §16.2)'
     });
   });
 
+  // Revisão da Fase C (A-D1): a contratação e o festival dizem nos eventos o que gastaram
+  // (`spent_<recurso>`), e a conta os põe em "Gasto". Antes, os 130 de ouro e os 100 de comida
+  // apareciam como produção negativa. A dispensa não cobra nada.
+  it('a conta dos estoques: a contratação e o festival são gasto, não produção', () => {
+    const before = withResource(withResource(calm, 'gold', { stock: 500 }), 'food', { stock: 500 });
+    const after = withResource(withResource(calm, 'gold', { stock: 370 }), 'food', { stock: 400 });
+    const events = [
+      event('heroHired', 'Edda fechou trato na Taverna.', {
+        price: 90,
+        fullPrice: 90,
+        spent_gold: 90,
+      }),
+      event('festivalHeld', 'A Taverna abriu os barris.', { spent_food: 100, spent_gold: 40 }),
+      event('heroDismissed', 'O senhor dispensou Rolf.', { heroes: 1 }),
+    ];
+    const report = buildReturnReport(before, after, events, 6 * HOUR);
+    const row = (id: string) => report.resources.find((entry) => entry.id === id);
+    expect(row('gold')).toMatchObject({ delta: -130, spent: 130, produced: 0 });
+    expect(row('food')).toMatchObject({ delta: -100, spent: 100, produced: 0 });
+    expect(ReturnReportSchema.safeParse(report).error).toBeUndefined();
+  });
+
   it('a conta dos estoques: o que os lobos levaram tem a sua parcela, e a produção não o paga', () => {
     const before = withResource(withResource(calm, 'food', { stock: 300 }), 'wood', { stock: 125 });
     // 60 de comida e 20 de madeira produzidas; os lobos levaram 30 e 12,5.
