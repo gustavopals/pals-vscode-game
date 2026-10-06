@@ -188,14 +188,33 @@ export function arrivalLine(arriving: ArrivingHero, elapsedSeconds: number): str
 }
 
 /**
- * O que a linha "Guilda" da árvore diz (GDD §13.2: "Guilda · 3 heróis"): a equipe, quem está a
- * caminho e, com o soldo em atraso, o alerta por extenso.
+ * O alerta do soldo em poucas palavras, para a linha da árvore: o atraso aberto; a partida que
+ * o atraso fechado ainda cobra, com o prazo; ou o ouro que acaba dentro de `horizonSeconds`
+ * (contando quem está a caminho). `null` quando não há o que alertar.
  */
-export function guildTreeLine(guild: Guild): string {
+export function wageAlert(guild: Guild, horizonSeconds: number, elapsedSeconds = 0): string | null {
+  const { arrears, lingering } = guild.wage;
+  if (arrears !== null) {
+    return 'soldo em atraso';
+  }
+  if (lingering !== null) {
+    return `um herói parte em ${formatApprox(remainingNow(lingering.departureInSeconds, elapsedSeconds))}`;
+  }
+  const risk = wageRisk(guild, horizonSeconds, elapsedSeconds);
+  return risk === null ? null : `ouro para ${formatApprox(risk.seconds)} de soldo`;
+}
+
+/**
+ * O que a linha "Guilda" da árvore diz (GDD §13.2: "Guilda · 3 heróis"): a equipe, quem está a
+ * caminho e o alerta do soldo por extenso (`wageAlert`). `horizonSeconds` é o horizonte de
+ * "Antes de partir", dado por quem monta a árvore: o prazo do ouro só entra na linha dentro dele.
+ */
+export function guildTreeLine(guild: Guild, horizonSeconds: number, elapsedSeconds = 0): string {
+  const alert = wageAlert(guild, horizonSeconds, elapsedSeconds);
   return [
     heroCount(guild.heroes.length),
     ...(guild.arriving.length > 0 ? [`${guild.arriving.length} a caminho`] : []),
-    ...(guild.wage.arrears !== null ? ['⚠ soldo em atraso'] : []),
+    ...(alert === null ? [] : [`⚠ ${alert}`]),
   ].join(' · ');
 }
 

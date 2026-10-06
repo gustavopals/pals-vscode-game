@@ -1,7 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import type { AccountState } from '../account/accountService';
-import { beforeLeaving } from '../game/beforeLeaving';
+import { beforeLeaving, LEAVING_HORIZON_SECONDS } from '../game/beforeLeaving';
 import type { Connection } from '../game/connection';
 import {
   COUNCIL_ICON,
@@ -39,6 +39,7 @@ import {
   GUILD_ICON,
   guildLines,
   guildTreeLine,
+  wageAlert,
   HERO_ICON,
   HERO_NODE,
   OFFER_NODE,
@@ -504,9 +505,11 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
   return {
     id: 'guild',
     label: 'Guilda',
-    description: guildTreeLine(guild),
+    description: guildTreeLine(guild, LEAVING_HORIZON_SECONDS, elapsedSeconds),
     tooltip: guildLines(guild, elapsedSeconds).join('\n'),
-    icon: guild.wage.arrears === null ? GUILD_ICON : 'warning',
+    // O alerta não vai só pelo ícone: a linha o diz por extenso.
+    icon:
+      wageAlert(guild, LEAVING_HORIZON_SECONDS, elapsedSeconds) === null ? GUILD_ICON : 'warning',
     expanded: true,
     command: open,
     children,

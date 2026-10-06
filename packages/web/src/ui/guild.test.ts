@@ -174,9 +174,9 @@ describe('a Guilda na árvore (GDD §13.2)', () => {
   });
 
   it('"Guilda · 3 heróis": uma linha por herói, com a classe, o nível e o soldo, e o botão que dispensa (com confirmação)', () => {
-    const node = guildOf(guildPaidView);
+    const node = guildOf(coveredFor(null));
     expect(node.description).toBe('3 heróis');
-    expect(guildTreeLine(guildPaidView.guild)).toBe('3 heróis');
+    expect(guildTreeLine(coveredFor(null).guild, DAY)).toBe('3 heróis');
     expect(node.children?.map((child) => [child.id, child.label, child.description])).toEqual([
       ['hero:hero-1', 'Edda', 'Guerreira Nv1 · 6/h'],
       ['hero:hero-2', 'Rolf', 'Arqueiro Nv1 · 6/h'],
@@ -198,6 +198,48 @@ describe('a Guilda na árvore (GDD §13.2)', () => {
     expect(find(nodes, 'hero:hero-2')?.description).toBe('Arqueiro Nv1 · 2/h · ⚠ descontente');
     expect(find(nodes, 'fief')?.description).toContain('soldo em atraso');
     expect(find(nodes, 'fief')?.tooltip).toContain(guildArrearsView.guild.wage.arrears?.text);
+  });
+
+  // Revisão da Fase C (A-R2): com o ouro a uma hora de acabar, a linha não pode dizer só
+  // "3 heróis". O horizonte é o de "Antes de partir"; além dele, a linha fica como era.
+  it('o ouro que acaba dentro do horizonte de "Antes de partir" aparece na linha da Guilda, com o prazo e o ícone de alerta', () => {
+    const soon = find(tree(coveredFor(3600)), 'guild');
+    expect(soon).toMatchObject({
+      description: '3 heróis · ⚠ ouro para 1 h de soldo',
+      icon: 'warning',
+    });
+    // O prazo anda com o relógio da página.
+    expect(find(tree(coveredFor(3 * 3600), 3600), 'guild')?.description).toBe(
+      '3 heróis · ⚠ ouro para 2 h de soldo',
+    );
+    expect(find(tree(guildPaidView), 'guild')?.description).toBe(
+      '3 heróis · ⚠ ouro para 23 h de soldo',
+    );
+    const far = find(tree(coveredFor(30 * 3600)), 'guild');
+    expect(far).toMatchObject({ description: '3 heróis', icon: 'compass' });
+    expect(find(tree(coveredFor(null)), 'guild')).toMatchObject({
+      description: '3 heróis',
+      icon: 'compass',
+    });
+    // O horizonte é de quem pergunta.
+    expect(guildTreeLine(coveredFor(3600).guild, 1800)).toBe('3 heróis');
+  });
+
+  it('a linha conta o soldo de quem está a caminho, e diz quem parte com o atraso já fechado', () => {
+    const broke = withWage(heroPromisedView, {
+      afterArrivals: { perHour: 2, coveredForSeconds: 3 * 3600 },
+    });
+    expect(find(tree(broke), 'guild')).toMatchObject({
+      description: 'nenhum herói · 1 a caminho · ⚠ ouro para 3 h de soldo',
+      icon: 'warning',
+    });
+    const lingering = withWage(coveredFor(null), {
+      lingering: { text: 'Isolda parte na próxima virada do dia.', departureInSeconds: 40 * 60 },
+    });
+    expect(find(tree(lingering), 'guild')).toMatchObject({
+      description: '3 heróis · ⚠ um herói parte em 40 min',
+      icon: 'warning',
+    });
   });
 
   it('o herói prometido tem a linha dele, com o prazo, e nenhum botão', () => {
