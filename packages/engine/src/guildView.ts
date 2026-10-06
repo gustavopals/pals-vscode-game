@@ -10,7 +10,8 @@ import {
 
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
-import { producerOf } from './economy';
+import { netRates, producerOf, stockBalance } from './economy';
+import { storageCapacity } from './storage';
 import { decimal, durationText, plural } from './format';
 import {
   classLabel,
@@ -32,7 +33,7 @@ import type {
   HeroView,
   WageArrearsView,
 } from './types';
-import { MILLI, realSecondsCeil, SECOND_MS } from './units';
+import { HOUR_MS, MILLI, realSecondsCeil, SECOND_MS } from './units';
 import { nextDiscontentAt, nextWageDepartureAt, wageArrearsDurationAt } from './wages';
 
 /**
@@ -165,6 +166,55 @@ function coveredForSeconds(
 }
 
 /**
+ * O soldo depois de chegarem os prometidos que têm instante marcado (`wage.afterArrivals`):
+ * quanto a equipe passa a custar e por quanto tempo real o ouro a paga, somando o soldo de cada
+ * um a partir do instante em que chega. A conta é pelo **saldo de agora** (o que a Mina entrega
+ * hoje), trecho a trecho, em inteiros; se a projeção do ofício já diz que o ouro acaba antes da
+ * primeira chegada, vale o prazo dela, o mesmo de `coveredForSeconds`. Quem espera lugar à
+ * porta não entra na conta: não tem instante. `null` sem ninguém a caminho.
+ */
+function afterArrivals(
+  state: GameState,
+  timeScale: number,
+  outlook: CraftOutlook,
+): GuildView['wage']['afterArrivals'] {
+  const now = state.lastProcessedAt;
+  const coming = state.guild.arriving.filter(
+    (entry) => entry.atMs > now && namedHeroOf(entry.namedHeroId) !== null,
+  );
+  if (coming.length === 0) {
+    return null;
+  }
+  const wage = rules.wagePerHour * MILLI;
+  const perHour = ((wageRate(state) + coming.length * wage) * timeScale) / MILLI;
+  if (state.guild.wageArrears !== null) {
+    return { perHour, coveredForSeconds: 0 };
+  }
+  const first = coming[0]?.atMs ?? now;
+  if (outlook.goldRunsOutIn !== null && now + outlook.goldRunsOutIn <= first) {
+    return { perHour, coveredForSeconds: realSecondsFloor(outlook.goldRunsOutIn, timeScale) };
+  }
+  const cap = (storageCapacity(state, 'gold') ?? Infinity) * HOUR_MS;
+  let balance = stockBalance(state, 'gold');
+  let rate = netRates(state).gold;
+  let at = now;
+  const runsOutAt = () => (rate < 0 ? at + Math.max(0, Math.floor(balance / -rate)) : Infinity);
+  for (const entry of coming) {
+    if (runsOutAt() <= entry.atMs) {
+      break;
+    }
+    balance = Math.min(Math.max(balance, cap), balance + rate * (entry.atMs - at));
+    rate -= wage;
+    at = entry.atMs;
+  }
+  const out = runsOutAt();
+  return {
+    perHour,
+    coveredForSeconds: out === Infinity ? null : realSecondsFloor(out - now, timeScale),
+  };
+}
+
+/**
  * Os heróis prometidos, na ordem em que chegam: a promessa de uma carta não é segredo. Quem tem
  * o prazo vencido espera lugar na lista, que está no teto, e a frase diz o que abre o lugar. O
  * que o conteúdo já não tem não aparece: sai da lista sem chegar.
@@ -218,6 +268,7 @@ export function guildView(state: GameState, timeScale: number, outlook: CraftOut
     wage: {
       perHour: (wageRate(state) * timeScale) / MILLI,
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),
+      afterArrivals: afterArrivals(state, timeScale, outlook),
       arrears: arrearsView(state, timeScale),
     },
   };

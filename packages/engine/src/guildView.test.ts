@@ -41,7 +41,7 @@ describe('a guilda na visão', () => {
       heroLimit: 1,
       heroes: [],
       arriving: [],
-      wage: { perHour: 0, coveredForSeconds: null, arrears: null },
+      wage: { perHour: 0, coveredForSeconds: null, afterArrivals: null, arrears: null },
     });
   });
 
@@ -145,7 +145,12 @@ describe('a guilda na visão', () => {
       addHero(draft);
     });
     const { wage } = guildOf(state);
-    expect(wage).toEqual({ perHour: 4, coveredForSeconds: null, arrears: null });
+    expect(wage).toEqual({
+      perHour: 4,
+      coveredForSeconds: null,
+      afterArrivals: null,
+      arrears: null,
+    });
   });
 
   it('ver o mesmo estado em outro ritmo muda só o relógio: os prazos e o soldo por hora', () => {
@@ -272,6 +277,65 @@ describe('o soldo em atraso na visão', () => {
     expect(guildOf(ended).wage.coveredForSeconds).toBe(27 * 60);
   });
 
+  it.each(PACES)(
+    'ritmo %s: com o cofre vazio e um herói a caminho, a visão avisa que o soldo dele abre o atraso na chegada (revisão, A-R1)',
+    (timeScale) => {
+      const state = court(timeScale, (draft) => {
+        draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: HOUR });
+      });
+      const { wage } = guildOf(state);
+      // Hoje não há a quem pagar; quando Rolf chegar, há, e o cofre não cobre um instante.
+      expect(wage).toMatchObject({ perHour: 0, coveredForSeconds: null, arrears: null });
+      expect(wage.afterArrivals).toEqual({
+        perHour: 2 * timeScale,
+        coveredForSeconds: 3600 / timeScale,
+      });
+      // É o que o motor faz, no segundo dito.
+      const opensAt = (wage.afterArrivals?.coveredForSeconds ?? 0) * 1000 * timeScale;
+      expect(advanceTo(state, opensAt - 1).state.guild.wageArrears).toBeNull();
+      expect(advanceTo(state, opensAt).state.guild.wageArrears).not.toBeNull();
+    },
+  );
+
+  it('com quem chega, o prazo do ouro encurta: a conta soma o soldo de cada um no instante em que ele chega', () => {
+    // 20 de ouro e Edda no feudo: 2 por hora de jogo, 10 h. Rolf chega em 4 h: sobram 12 de
+    // ouro, a 4 por hora, mais 3 h.
+    const state = court(1, (draft) => {
+      draft.settlement.resources.gold = 20_000;
+      addHero(draft, { name: 'Edda', traits: ['loyal'] });
+      draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: 4 * HOUR });
+    });
+    const { wage } = guildOf(state);
+    expect(wage.coveredForSeconds).toBe(10 * 3600);
+    expect(wage.afterArrivals).toEqual({ perHour: 4, coveredForSeconds: 7 * 3600 });
+    expect(advanceTo(state, 7 * HOUR - 1).state.guild.wageArrears).toBeNull();
+    expect(advanceTo(state, 7 * HOUR).state.guild.wageArrears).not.toBeNull();
+    // O ouro acaba antes de ele chegar: o prazo é o de hoje.
+    const late = court(1, (draft) => {
+      draft.settlement.resources.gold = 20_000;
+      addHero(draft, { name: 'Edda', traits: ['loyal'] });
+      draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: 30 * HOUR });
+    });
+    expect(guildOf(late).wage.afterArrivals).toEqual({ perHour: 4, coveredForSeconds: 10 * 3600 });
+    // A Mina cobre os dois: o ouro não acaba, com ou sem ele.
+    const rich = court(1, (draft) => {
+      draft.settlement.workers.goldMine = 2;
+      addHero(draft, { name: 'Edda', traits: ['loyal'] });
+      draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: HOUR });
+    });
+    expect(guildOf(rich).wage.afterArrivals).toEqual({ perHour: 4, coveredForSeconds: null });
+    // Sem ninguém a caminho o campo não existe; com o atraso aberto o prazo é zero.
+    expect(guildOf(guildScenario()).wage.afterArrivals).toBeNull();
+    const open = advanceTo(
+      court(1, (draft) => {
+        addHero(draft);
+        draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: 30 * HOUR });
+      }),
+      HOUR,
+    ).state;
+    expect(guildOf(open).wage.afterArrivals).toEqual({ perHour: 4, coveredForSeconds: 0 });
+  });
+
   it('a frase do alto da aba: como o primeiro herói chega, quem está a caminho e, com equipe, que ainda não há para onde ir', () => {
     expect(guildOf(newGame()).text).toBe(guildTexts.noHeroes);
     const promised = gameAt(0, (draft) => {
@@ -296,7 +360,12 @@ describe('o soldo em atraso na visão', () => {
       'arriving',
       'wage',
     ]);
-    expect(Object.keys(view.guild.wage)).toEqual(['perHour', 'coveredForSeconds', 'arrears']);
+    expect(Object.keys(view.guild.wage)).toEqual([
+      'perHour',
+      'coveredForSeconds',
+      'afterArrivals',
+      'arrears',
+    ]);
     const text = JSON.stringify(view);
     expect(text).not.toMatch(
       /"(ids|rng|joinedAtMs|classId|gender|namedHeroId|carriedMs|departed)"/,

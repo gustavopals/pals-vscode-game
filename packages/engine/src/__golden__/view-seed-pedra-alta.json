@@ -689,6 +689,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -1435,6 +1436,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -2218,6 +2220,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -3064,6 +3067,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -3909,6 +3913,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -4926,6 +4931,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -5782,6 +5788,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -6634,6 +6641,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -7477,6 +7485,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -8418,6 +8427,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -9342,6 +9352,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -10212,6 +10223,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -11057,6 +11069,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -11938,6 +11951,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -12783,6 +12797,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -13672,6 +13687,7 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -14532,6 +14548,7 @@
       "wage": {
         "perHour": 18,
         "coveredForSeconds": 83015,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -15387,6 +15404,7 @@
       "wage": {
         "perHour": 4,
         "coveredForSeconds": 0,
+        "afterArrivals": null,
         "arrears": {
           "secondsElapsed": 95582,
           "text": "Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a sobrar. Para isso, ponha gente na Mina de Ouro ou dispense um herói.",
@@ -16141,6 +16159,10 @@
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
+        "afterArrivals": {
+          "perHour": 2,
+          "coveredForSeconds": 527218
+        },
         "arrears": null
       }
     },
@@ -17001,6 +17023,7 @@
       "wage": {
         "perHour": 6,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },
@@ -17926,6 +17949,7 @@
       "wage": {
         "perHour": 4,
         "coveredForSeconds": null,
+        "afterArrivals": null,
         "arrears": null
       }
     },

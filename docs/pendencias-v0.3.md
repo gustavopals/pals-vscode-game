@@ -196,6 +196,16 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Enquanto isso: o campo não existe; a regra é a mesma. O texto do ADR ficou como registro da decisão.
 - Se decidir diferente: dois festivais por estação pedem um contador no estado (versão nova e passo de migração), e aí o campo volta com o motor lendo.
 
+**C-54. A visão ganhou `guild.wage.afterArrivals`, e o app ainda não o mostra.** *(Campo novo; revisão A-R1.)*
+- O risco: com o cofre vazio e um herói prometido a caminho, nada avisava que o soldo dele abre o atraso na chegada (`coveredForSeconds` só conta quem já está).
+- Enquanto isso: o motor e o protocolo trazem `afterArrivals: { perHour, coveredForSeconds }` (o soldo e o prazo do ouro contando quem chega; `null` sem ninguém a caminho). A conta é pelo saldo de agora, sem refazer a projeção do ofício: pode divergir um pouco de `coveredForSeconds` quando a moral ou a mestria mudam no caminho.
+- O que falta: a aba Guilda, "Antes de partir" e o aviso lerem o campo. É do agente das correções do app.
+- Onde: `afterArrivals`, em `packages/engine/src/guildView.ts`; `packages/protocol/src/view.ts`; roadmap, Apêndice B.4.
+
+**C-55. Os eventos `heroHired` e `festivalHeld` levam o total gasto, e `heroHired` deixou de levar o modelo.** *(Revisões A-D1 e M-R4; não mudam regra.)*
+- `spent_gold` na contratação e `spent_food`, `spent_gold` no festival, pelo mesmo ajudante das obras: o Relatório de Retorno já soma `spent_<recurso>` de todo evento, então o preço do herói e o custo do festival saem sozinhos da conta da produção. O teste do relatório com esses dois eventos é do agente do app.
+- `templateId` saiu de `heroHired.data`: o servidor entrega `data` inteiro, e o modelo diria os pesos do sorteio. O teste de névoa do servidor olha agora a resposta da ordem, `GET /events` e a Crônica depois da contratação.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

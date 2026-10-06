@@ -1088,6 +1088,15 @@ export type GuildView = {
      * o ouro não acaba; zero com o soldo em atraso.
      */
     coveredForSeconds: number | null;
+    /**
+     * O soldo **depois de chegarem os heróis prometidos** que têm instante marcado: quanto a
+     * equipe passa a custar, em ouro por hora real, e por quantos segundos reais o ouro ainda a
+     * paga contando o soldo de cada um a partir do instante em que chega, pelo saldo de agora.
+     * `coveredForSeconds` é `null` quando o ouro não acaba nem com eles e zero com o atraso
+     * aberto. `null` sem ninguém a caminho. Sem isto, o cofre vazio e um herói a uma hora de
+     * distância não avisariam nada: hoje não há soldo, e na chegada o atraso abre.
+     */
+    afterArrivals: { perHour: number; coveredForSeconds: number | null } | null;
     /** O atraso aberto; `null` com o soldo em dia. */
     arrears: WageArrearsView | null;
   };

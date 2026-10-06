@@ -326,8 +326,9 @@ const HeroSchema = z.strictObject({
 
 /**
  * Os heróis e o soldo deles. `coveredForSeconds` é por quanto tempo real o ouro ainda paga a
- * equipe (`null` sem herói e quando o ouro não acaba; zero com o soldo em atraso). No atraso, os
- * dois prazos são segundos reais até a virada de dia que cobra cada consequência.
+ * equipe (`null` sem herói e quando o ouro não acaba; zero com o soldo em atraso), sem contar
+ * quem ainda vai chegar: isso é `afterArrivals`. No atraso, os dois prazos são segundos reais
+ * até a virada de dia que cobra cada consequência.
  */
 const GuildSchema = z.strictObject({
   /** A situação da equipe em uma frase: como o primeiro herói chega, ou o que a equipe espera. */
@@ -353,6 +354,17 @@ const GuildSchema = z.strictObject({
   wage: z.strictObject({
     perHour: z.number(),
     coveredForSeconds: z.number().nullable(),
+    /**
+     * O soldo depois de chegarem os heróis prometidos com instante marcado: quanto a equipe
+     * passa a custar por hora real e por quantos segundos reais o ouro ainda a paga contando o
+     * soldo de cada um desde a chegada. `null` sem ninguém a caminho.
+     */
+    afterArrivals: z
+      .strictObject({
+        perHour: z.number(),
+        coveredForSeconds: z.number().nullable(),
+      })
+      .nullable(),
     arrears: z
       .strictObject({
         secondsElapsed: z.number(),
