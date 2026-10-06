@@ -270,6 +270,66 @@ describe('o pacote do app', () => {
     // Os títulos, as frases e as pistas dos nós são frases do conteúdo: o teste abaixo as barra.
   });
 
+  // Revisão da Fase D (A25): os itens e o que cada nó rende têm números próprios, e os
+  // marcadores acima não os conheciam.
+  it('não leva os itens nem as recompensas das expedições: bônus, valor, raridade, chance de achado e faixas de saque (v0.3)', () => {
+    // O teto do arsenal: `inventoryCap` é também um campo da visão; o que não pode chegar é o
+    // número do conteúdo, escrito como a tabela o escreve.
+    const { equipment } = content.balance;
+    const cap = `inventoryCap:${equipment.inventoryCap}}`;
+    expect(asJavaScript({ equipment })).toContain(cap);
+    expect(code.includes(cap)).toBe(false);
+    // Cada item: o fator do poder, o valor em ouro e a chave dele (a visão só fala em `item-<n>`
+    // e mostra o bônus em frase).
+    const defs = Object.entries(content.items);
+    expect(defs.length).toBeGreaterThanOrEqual(9);
+    const itemSecrets = defs.flatMap(([id, def]) => [
+      id,
+      `power:${asJavaScript(def.power)},value:${def.value}`,
+    ]);
+    // Os marcadores são do conteúdo de hoje: a tabela, escrita como JavaScript, contém cada um.
+    const table = asJavaScript(content.items);
+    expect(itemSecrets.filter((secret) => secret.includes(':') && !table.includes(secret))).toEqual(
+      [],
+    );
+    // O que cada nó rende: a chance e a lista de onde sai um item, e a faixa de cada recurso.
+    const rewardSecrets: string[] = [];
+    for (const model of content.expeditionModels) {
+      for (const variant of model.variants) {
+        for (const node of Object.values(variant.nodes)) {
+          const rewards = 'rewards' in node ? node.rewards : undefined;
+          if (rewards === undefined) {
+            continue;
+          }
+          if (rewards.item !== undefined) {
+            rewardSecrets.push(`chance:${asJavaScript(rewards.item.chance)}`);
+          }
+          for (const [resource, range] of Object.entries(rewards.resources ?? {})) {
+            rewardSecrets.push(`${resource}:${asJavaScript(range)}`);
+          }
+        }
+      }
+    }
+    expect(rewardSecrets.filter((secret) => secret.startsWith('chance:')).length).toBeGreaterThan(
+      5,
+    );
+    expect(
+      rewardSecrets.filter((secret) => /\{min:\d+,max:\d+\}/.test(secret)).length,
+    ).toBeGreaterThan(20);
+    const loose = (secret: string) =>
+      secret.includes(':') ? code.includes(secret) : new RegExp(`["'\`]${secret}["'\`]`).test(code);
+    expect([...new Set([...itemSecrets, ...rewardSecrets])].filter(loose)).toEqual([]);
+    // As chaves que só o conteúdo tem: de onde sai o item, o que o nó revela, limpa e solta, e a
+    // tabela das raridades. (`rescue` e `rarityLabel` são da visão; estas, não.)
+    expect(
+      ['clearsTile', 'reveals:', 'rescues:', 'itemRarities', 'ITEM_RARITY_IDS', 'ITEM_IDS'].filter(
+        (key) => code.includes(key),
+      ),
+    ).toEqual([]);
+    // E nenhuma raridade solta entre aspas: a visão manda a palavra pronta (`rarityLabel`).
+    expect(content.ITEM_RARITY_IDS.filter(loose)).toEqual([]);
+  });
+
   it('não leva nenhuma frase do conteúdo', () => {
     const secret = Object.entries(content)
       .filter(([name]) => !ALLOWED_CONTENT_EXPORTS.includes(name))
