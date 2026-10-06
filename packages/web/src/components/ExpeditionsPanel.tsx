@@ -129,12 +129,17 @@ function SendForm(props: {
 }) {
   const { guild, destination } = props;
   const eligible = eligibleHeroes(guild, destination);
-  const [picked, setPicked] = useState<string[]>(() => defaultTeam(destination));
+  // `null` enquanto o jogador não mexeu nas caixas: vale a equipe que a visão sugere **agora**
+  // (a montagem atravessa as leituras, e a sugestão muda quando alguém parte ou volta).
+  const [picked, setPicked] = useState<string[] | null>(null);
   const [posture, setPosture] = useState<Posture['id'] | undefined>(() =>
     defaultPosture(guild.postures),
   );
-  // Quem deixou de poder partir (saiu, feriu-se) com a tela aberta já não está na equipe.
-  const team = picked.filter((heroId) => eligible.some((hero) => hero.id === heroId));
+  // Depois que ele mexeu, vale o que marcou; quem deixou de poder partir (saiu, feriu-se) com
+  // a tela aberta já não está na equipe.
+  const team = (picked ?? defaultTeam(destination)).filter((heroId) =>
+    eligible.some((hero) => hero.id === heroId),
+  );
   const fits = teamFits(destination, team.length);
   const fit = teamFit(destination, team);
   const name = domId('send', destination.modelId);

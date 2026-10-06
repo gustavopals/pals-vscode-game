@@ -81,6 +81,16 @@ export type World = {
     name: string,
     options?: { classId?: 'warrior' | 'archer' | 'mage' | 'cleric'; level?: number },
   ): Promise<void>;
+  /**
+   * Revela um destino ao feudo (`/__test/reveal`), pelo identificador dele: o que pede três
+   * heróis ou uma classe entra na lista da Guilda sem as jornadas que o descobrem.
+   */
+  reveal(modelId: string): Promise<void>;
+  /**
+   * Põe em cativeiro o herói com este nome, que está no feudo e pronto (`/__test/captive`): o
+   * cenário do Resgate tem um cativo sem depender de um Desastre. Daí em diante é do motor.
+   */
+  captive(name: string): Promise<void>;
   /** Põe um item do conteúdo no arsenal do feudo (`/__test/item`), pelo nome interno dele. */
   item(defId: string): Promise<void>;
   /**
@@ -178,6 +188,13 @@ export const test = base.extend<{ world: World }>({
         },
         hero: async (name, options = {}) => {
           await control('hero', { name, ...options });
+        },
+        reveal: async (modelId) => {
+          await control('reveal', { modelId });
+        },
+        captive: async (name) => {
+          const result = (await control('captive', { name })) as { placed: number };
+          expect(result.placed, `${name} em cativeiro`).toBeGreaterThan(0);
         },
         item: async (defId) => {
           await control('item', { defId });

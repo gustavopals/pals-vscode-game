@@ -1093,7 +1093,130 @@ function waitingIn(view: ServerView) {
   return { expedition, crossroads };
 }
 
+/** Os heróis marcados na montagem de um destino, pelo identificador. */
+const marked = (row: ReturnType<typeof destinationRow>) =>
+  row
+    .locator('input[data-hero]:checked')
+    .evaluateAll((boxes) => boxes.map((box) => box.getAttribute('data-hero') ?? ''));
+
+/** As ordens de envio que saíram, com o que cada uma mandou. */
+const sendsIn = (orders: Array<{ type: string }>) =>
+  (orders as Array<{ type: string; payload: { modelId: string; heroIds: string[] } }>)
+    .filter((order) => order.type === 'sendExpedition')
+    .map((order) => ({
+      modelId: order.payload.modelId,
+      heroIds: [...order.payload.heroIds].sort(),
+    }));
+
 test.describe('a jornada inteira pela tela (revisão da Fase D)', () => {
+  test('equipes de três e de dois montadas pelas caixas de marcação e enviadas; o destino que pede uma classe diz o motivo do servidor até ela chegar ao feudo (A17)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    // Três heróis, nenhum Mago, e a Guilda no nível que o Pântano pede.
+    await openGuildWith(world, page, [{ name: 'Aldo' }, { name: 'Berta' }, { name: 'Caio' }], {
+      level: 3,
+    });
+    await world.reveal('swamp');
+    await world.passTime(MINUTE, page);
+    const without = await serverView(page, request);
+    const blocked = without.guild.available.find((entry) => entry.modelId === 'swamp');
+    if (blocked === undefined) {
+      throw new Error('O cenário esperava o destino que pede uma classe na lista da Guilda.');
+    }
+    // Há gente bastante, no nível pedido: pela contagem a equipe serviria. Quem diz que não é o
+    // servidor, com o motivo.
+    expect(blocked.locked).toBe(false);
+    expect(blocked.eligibleHeroIds.length).toBeGreaterThanOrEqual(blocked.teamMin);
+    expect(blocked.canSend).toBe(false);
+    expect(blocked.suggestedTeam).toEqual([]);
+    if (blocked.sendBlockedReason === null) {
+      throw new Error('O cenário esperava o motivo do servidor.');
+    }
+    await guildTab(page).click();
+    const classy = destinationRow(page, blocked.modelId);
+    await expect(classy).toContainText(blocked.sendBlockedReason);
+    await expect(classy.locator('input[data-hero]')).toHaveCount(0);
+    await expect(classy.getByRole('button', { name: /^Enviar/ })).toHaveCount(0);
+    // A paleta também não monta equipe nenhuma para ele: diz o mesmo motivo.
+    const orders = commandPosts(page);
+    await palette(page, 'Enviar expedição');
+    const list = page.getByRole('dialog');
+    await list.getByRole('option').filter({ hasText: blocked.label }).click();
+    await expect(list).toHaveCount(0);
+    await expect(toasts(page)).toContainText(blocked.sendBlockedReason);
+    expect(orders).toEqual([]);
+
+    // Chegam uma Maga e mais um braço: agora há equipe, e a tela a traz marcada.
+    await world.hero('Dora', { classId: 'mage' });
+    await world.hero('Enzo');
+    await world.passTime(MINUTE, page);
+    const ready = await serverView(page, request);
+    const open = ready.guild.available.find((entry) => entry.modelId === blocked.modelId);
+    const mage = ready.guild.heroes.find((hero) => hero.name === 'Dora');
+    if (open === undefined || mage === undefined) {
+      throw new Error('O cenário esperava o destino e a Maga na visão.');
+    }
+    expect(open.canSend).toBe(true);
+    expect(open.sendBlockedReason).toBeNull();
+    expect(open.teamMin).toBe(3);
+    expect(open.suggestedTeam).toHaveLength(3);
+    expect(open.suggestedTeam).toContain(mage.id);
+    await classy.getByText('Montar a equipe').click();
+    // As caixas: uma por herói que o servidor lista, e marcadas as da equipe que ele sugere.
+    await expect(classy.locator('input[data-hero]')).toHaveCount(open.eligibleHeroIds.length);
+    expect((await marked(classy)).sort()).toEqual([...open.suggestedTeam].sort());
+    // O jogador troca um: tira um dos sugeridos (não a Maga) e põe quem tinha ficado de fora.
+    const out = open.suggestedTeam.find((heroId) => heroId !== mage.id);
+    const into = open.eligibleHeroIds.find((heroId) => !open.suggestedTeam.includes(heroId));
+    if (out === undefined || into === undefined) {
+      throw new Error('O cenário esperava ter quem trocar na equipe.');
+    }
+    const send = classy.getByRole('button', { name: /^Enviar/ });
+    await classy.locator(`input[data-hero="${out}"]`).uncheck();
+    // Com dois marcados a equipe não tem o tamanho que o destino pede: nada se envia.
+    await expect(send).toBeDisabled();
+    await classy.locator(`input[data-hero="${into}"]`).check();
+    await expect(send).toBeEnabled();
+    const three = [...open.suggestedTeam.filter((heroId) => heroId !== out), into].sort();
+    expect((await marked(classy)).sort()).toEqual(three);
+    await send.click();
+    await expect(away(page).locator('[data-expedition]')).toHaveCount(1);
+    expect(sendsIn(orders)).toEqual([{ modelId: open.modelId, heroIds: three }]);
+    const first = await serverView(page, request);
+    const nameOf = (heroId: string) =>
+      ready.guild.heroes.find((hero) => hero.id === heroId)?.name ?? heroId;
+    expect([...(first.guild.expeditions[0]?.teamNames ?? [])].sort()).toEqual(
+      three.map(nameOf).sort(),
+    );
+
+    // Os dois que ficaram formam a equipe do destino de dois: já vêm marcados, e partem. (A
+    // montagem desse destino existia desde o começo, com outra sugestão: a que vale é a de agora.)
+    const pair = first.guild.available.find(
+      (entry) => entry.canSend && entry.teamMin === 2 && entry.teamMax === 2,
+    );
+    if (pair === undefined) {
+      throw new Error('O cenário esperava um destino de dois heróis que pudesse partir.');
+    }
+    expect(pair.suggestedTeam).toHaveLength(2);
+    const duo = destinationRow(page, pair.modelId);
+    await duo.getByText('Montar a equipe').click();
+    expect((await marked(duo)).sort()).toEqual([...pair.suggestedTeam].sort());
+    await duo.getByRole('button', { name: /^Enviar/ }).click();
+    await expect(away(page).locator('[data-expedition]')).toHaveCount(2);
+    expect(sendsIn(orders)).toEqual([
+      { modelId: open.modelId, heroIds: three },
+      { modelId: pair.modelId, heroIds: [...pair.suggestedTeam].sort() },
+    ]);
+    const both = await serverView(page, request);
+    expect(both.guild.expeditions.map((entry) => entry.teamNames.length).sort()).toEqual([2, 3]);
+    expect(await eventsOf(page, request, 'expeditionSent')).toHaveLength(2);
+    await expect(toasts(page).getByRole('alert')).toHaveCount(0);
+    expect(await overflow(page)).toEqual({ page: 0, content: 0 });
+  });
+
   test('critério 2 inteiro: enviar pela tela, a equipe chega à encruzilhada, o aviso "Escolher caminho" abre a escolha, e o relatório traz o passo escolhido (A18 e A19)', async ({
     context,
     request,

@@ -329,6 +329,68 @@ control.post('/__test/item', async (request) => {
 });
 
 /**
+ * Revela um destino a todos os feudos, como uma expedição que achou o caminho dele: é como um
+ * cenário tem na lista da Guilda o destino que pede três heróis ou uma classe, sem jogar as
+ * jornadas que o descobrem (qual nó o revela depende da variante, que sai da semente). Só a
+ * lista dos descobertos muda; daí em diante quem pode ir, o motivo de quem não pode e o envio
+ * são os do motor.
+ */
+control.post('/__test/reveal', async (request) => {
+  const { modelId } = request.body as { modelId: string };
+  type Stored = { map: { discovered: string[] } };
+  const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
+  for (const game of games.rows) {
+    const { state } = game;
+    if (!state.map.discovered.includes(modelId)) {
+      state.map.discovered.push(modelId);
+      await pool.query('update games set state = $2::jsonb where id = $1', [
+        game.id,
+        JSON.stringify(state),
+      ]);
+    }
+  }
+  return { ok: true };
+});
+
+/**
+ * Põe em cativeiro o herói de todos os feudos com o nome pedido, que precisa estar no feudo e
+ * pronto: é como um cenário do Resgate tem um cativo sem depender de um Desastre com captura,
+ * que é sorte. O cativeiro é gravado como o motor o grava (desde o último instante processado,
+ * na Floresta Antiga); daí em diante o Resgate na lista da Guilda, quem ele solta e a volta do
+ * herói são os do motor.
+ */
+control.post('/__test/captive', async (request) => {
+  const { name } = request.body as { name: string };
+  type Stored = {
+    lastProcessedAt: number;
+    guild: {
+      heroes: Array<{
+        name: string;
+        status: string;
+        captivity: { sinceMs: number; modelId: string } | null;
+      }>;
+    };
+  };
+  const games = await pool.query<{ id: string; state: Stored }>('select id, state from games');
+  let placed = 0;
+  for (const game of games.rows) {
+    const { state } = game;
+    const hero = state.guild.heroes.find((entry) => entry.name === name && entry.status === 'idle');
+    if (hero === undefined) {
+      continue;
+    }
+    hero.status = 'captured';
+    hero.captivity = { sinceMs: state.lastProcessedAt, modelId: 'oldForest' };
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+    placed += 1;
+  }
+  return { ok: true, placed };
+});
+
+/**
  * Põe a Ameaça de todos os feudos em um valor, sem passar pelos dias: é como um teste tem a
  * Ameaça perto de uma marca da Crônica sem jogar as dezenas de horas que ela leva para subir
  * (a subida de verdade é coberta pelo cenário da Torre de Vigia e pelos testes do motor). Só o
