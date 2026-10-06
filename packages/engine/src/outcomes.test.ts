@@ -1097,7 +1097,25 @@ describe('o Covil dos Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () 
     });
     // A segunda equipe parte quando a primeira escolhe o caminho, com o Covil ainda ativo, e
     // toma o mesmo caminho quarenta minutos atrás dela.
-    const second = send(sent.state, 'wolfDen', ['hero-3', 'hero-4'], 'bold', 0);
+    // Desde a revisão da Fase D (M-R4) a ordem recusa a segunda equipe; uma partida gravada
+    // antes pode ter as duas a caminho, e é esse estado que se monta aqui, à mão.
+    expect(
+      refuse(
+        sent.state,
+        command('sendExpedition', {
+          modelId: 'wolfDen',
+          heroIds: ['hero-3', 'hero-4'],
+          posture: 'bold',
+        }),
+      ).code,
+    ).toBe('EXPEDITION_LOCKED');
+    const alone = cloneState(sent.state);
+    const [ahead] = alone.guild.expeditions.splice(0, 1);
+    const second = send(alone, 'wolfDen', ['hero-3', 'hero-4'], 'bold', 0);
+    if (ahead !== undefined) {
+      second.state.guild.expeditions.unshift(ahead);
+    }
+    expect(shaped(second.state)).toBeNull();
     const first = advanceTo(second.state, clearsAt);
     expect(first.state.map.threat).toBe(50);
     const both = advanceTo(
@@ -1716,5 +1734,76 @@ describe('desistir de quem está em cativeiro (revisão da Fase D, M-R3)', () =>
     const done = accept(start, command('dismissHero', { heroId: 'hero-5' }));
     expect(done.state.guild.heroes).toHaveLength(heroRules.rosterCap - 1);
     expect(shaped(done.state)).toBeNull();
+  });
+});
+
+describe('a equipe que arriscaria por nada não parte (revisão da Fase D, M-R4)', () => {
+  /** Guilda no nível 2 (dois lugares), Edda em cativeiro e quatro Guerreiros fortes no feudo. */
+  function twoSlots(extraCaptive = false): GameState {
+    const { state, endsAt } = atCrypt('lord', ['hero-1']);
+    const next = hearten(advanceTo(state, endsAt).state);
+    next.settlement.buildings.guild = 2;
+    addHero(next, { name: 'Isolda', gender: 'f' });
+    addHero(next, { name: 'Tomas' });
+    for (const id of ['hero-2', 'hero-3', 'hero-4', 'hero-5']) {
+      Object.assign(heroOf(next, id), { classId: 'warrior', level: 10 });
+    }
+    if (extraCaptive) {
+      const other = addHero(next, { name: 'Ulric' });
+      other.status = 'captured';
+      other.captivity = { sinceMs: next.lastProcessedAt, modelId: 'ruins' };
+    }
+    expect(shaped(next)).toBeNull();
+    return next;
+  }
+  const order = (modelId: string, heroIds: string[]) =>
+    command('sendExpedition', { modelId, heroIds, posture: 'balanced' });
+  const offer = (state: GameState, modelId: string) =>
+    deriveViewState(state, state.lastProcessedAt).guild.available.find(
+      (entry) => entry.modelId === modelId,
+    );
+
+  it('um cativo, um Resgate: o segundo é recusado, e a oferta continua na lista dizendo por quê', () => {
+    const first = send(twoSlots(), 'rescue', ['hero-2', 'hero-3']).state;
+    expect(refuse(first, order('rescue', ['hero-4', 'hero-5']))).toEqual({
+      code: 'EXPEDITION_LOCKED',
+      message:
+        'Esse destino ainda não está ao alcance do feudo: já há um Resgate a caminho de quem está em cativeiro.',
+    });
+    expect(offer(first, 'rescue')).toMatchObject({
+      locked: true,
+      lockedReason:
+        'Esse destino ainda não está ao alcance do feudo: já há um Resgate a caminho de quem está em cativeiro.',
+    });
+  });
+
+  it('dois cativos, dois Resgates: o segundo parte', () => {
+    const first = send(twoSlots(true), 'rescue', ['hero-2', 'hero-3']).state;
+    expect(offer(first, 'rescue')).toMatchObject({ locked: false });
+    const second = accept(first, order('rescue', ['hero-4', 'hero-5']));
+    expect(second.state.guild.expeditions.map((entry) => entry.modelId)).toEqual([
+      'rescue',
+      'rescue',
+    ]);
+  });
+
+  it('o Covil com uma equipe a caminho não recebe outra; limpo, fica fechado até a virada do ano', () => {
+    const first = send(twoSlots(), 'wolfDen', ['hero-2', 'hero-3']).state;
+    const reason =
+      'Esse destino ainda não está ao alcance do feudo: outra equipe já partiu para limpar o Covil de Lobos.';
+    expect(refuse(first, order('wolfDen', ['hero-4', 'hero-5']))).toEqual({
+      code: 'EXPEDITION_LOCKED',
+      message: reason,
+    });
+    expect(offer(first, 'wolfDen')).toMatchObject({ locked: true, lockedReason: reason });
+    // Com o Covil já limpo, a recusa é a de sempre.
+    const cleared = twoSlots();
+    const den = cleared.map.tiles.wolfDen;
+    if (den !== undefined) {
+      den.threatActive = false;
+    }
+    expect(refuse(cleared, order('wolfDen', ['hero-4', 'hero-5'])).message).toBe(
+      'Esse destino ainda não está ao alcance do feudo: o Covil de Lobos está limpo até a virada do ano.',
+    );
   });
 });

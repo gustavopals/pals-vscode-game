@@ -170,7 +170,8 @@ export function logEntry(
 /**
  * Por que o destino não está aberto pelo que o mundo diz dele, sem ponto, ou `null` quando
  * está (ADR 0018, decisão 12): o que aparece por descoberta e ainda não foi revelado, o Resgate
- * sem ninguém em cativeiro, e o tile de ameaça que está limpo.
+ * sem ninguém em cativeiro ou com tantos Resgates em curso quantos são os cativos, e o tile de
+ * ameaça que está limpo ou que já tem uma equipe a caminho (revisão da Fase D, M-R4).
  */
 export function accessLock(state: GameState, model: ExpeditionModelDef): string | null {
   const { access } = model;
@@ -178,14 +179,25 @@ export function accessLock(state: GameState, model: ExpeditionModelDef): string 
     return state.map.discovered.includes(model.id) ? null : expeditionTexts.lockedUnknown;
   }
   if (access.kind === 'captive') {
-    return captives(state).length > 0 ? null : expeditionTexts.lockedNoCaptive;
+    const held = captives(state).length;
+    if (held === 0) {
+      return expeditionTexts.lockedNoCaptive;
+    }
+    // Um Resgate solta um cativo: a equipe a mais arriscaria a pele para voltar sem ninguém.
+    return rescuesUnderWay(state) >= held ? expeditionTexts.lockedRescueUnderWay : null;
   }
   if (access.kind === 'tile') {
-    return state.map.tiles[access.tileId]?.threatActive === true
-      ? null
-      : fillText(expeditionTexts.lockedCleared, {
-          lugar: tileWithArticle(state, access.tileId) ?? 'o lugar',
-        });
+    const lugar = tileWithArticle(state, access.tileId) ?? 'o lugar';
+    if (state.map.tiles[access.tileId]?.threatActive !== true) {
+      return fillText(expeditionTexts.lockedCleared, { lugar });
+    }
+    // O tile só se limpa uma vez por ano: a segunda equipe arriscaria por nada.
+    const { tileId } = access;
+    const underWay = state.guild.expeditions.some((expedition) => {
+      const other = modelOf(expedition.modelId)?.access;
+      return other?.kind === 'tile' && other.tileId === tileId;
+    });
+    return underWay ? fillText(expeditionTexts.lockedTileUnderWay, { lugar }) : null;
   }
   return null;
 }
@@ -202,7 +214,13 @@ export function rescuesUnderWay(state: GameState): number {
  * de revelados; o Resgate, enquanto houver um cativo. **O que não aparece não sai do servidor.**
  */
 export function isKnownDestination(state: GameState, model: ExpeditionModelDef): boolean {
-  return model.access.kind === 'tile' || accessLock(state, model) === null;
+  if (model.access.kind === 'tile') {
+    return true;
+  }
+  if (model.access.kind === 'captive') {
+    return captives(state).length > 0;
+  }
+  return accessLock(state, model) === null;
 }
 
 /** "Edda", "Edda e Rolf". */

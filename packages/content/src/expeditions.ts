@@ -256,6 +256,10 @@ export const expeditionTexts = {
   /** O Resgate, sem ninguém em cativeiro. Só a recusa da ordem o diz: o destino nem aparece. */
   lockedNoCaptive: 'não há ninguém em cativeiro',
   lockedUnknown: 'a Guilda não conhece esse caminho',
+  /** O Resgate com tantas equipes a caminho quantos são os cativos: a segunda voltaria sem ninguém. */
+  lockedRescueUnderWay: 'já há um Resgate a caminho de quem está em cativeiro',
+  /** O tile de ameaça já tem uma equipe a caminho: `{lugar}` é o tile, com artigo. */
+  lockedTileUnderWay: 'outra equipe já partiu para limpar {lugar}',
   /** Por que um herói não pode partir. */
   heroAway: 'já está em expedição',
   heroInjured: 'ainda se recupera dos ferimentos',
