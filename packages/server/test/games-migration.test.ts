@@ -42,12 +42,31 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 15;
+const CURRENT = 16;
 /**
- * A guilda com que toda partida chega à versão atual: sem herói, sem ninguém prometido e sem
- * soldo em atraso.
+ * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
+ * marcada e sem festival, porque o edifício entra por construir.
  */
-const EMPTY_GUILD = { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null };
+const EMPTY_TAVERN = {
+  tavernOffers: [],
+  tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+};
+/**
+ * A guilda com que toda partida chega à versão atual: sem herói, sem ninguém prometido, sem
+ * soldo em atraso e com a Taverna vazia.
+ */
+const EMPTY_GUILD = {
+  heroes: [],
+  arriving: [],
+  wageArrears: null,
+  lastWageArrears: null,
+  ...EMPTY_TAVERN,
+};
+
+/** O feudo de um estado anterior à versão 16, com a Taverna por construir a mais. */
+function withTavernSite<T extends { buildings: Record<string, number> }>(settlement: T): T {
+  return { ...settlement, buildings: { ...settlement.buildings, tavern: 0 } };
+}
 
 type StoredState = {
   schemaVersion: number;
@@ -86,7 +105,7 @@ function v1State(name: FixtureName): StoredState {
 /**
  * O feudo de um retrato da versão 1 depois de migrado e antes de o tempo andar: o que o jogador
  * tinha, mais o que cada versão acrescentou vazio (o frio fechado, o Celeiro, o Armazém, a Torre
- * de Vigia e a Paliçada por construir, nenhum desperdício, a segunda fila de obras livre e as
+ * de Vigia, a Paliçada e a Taverna por construir, nenhum desperdício, a segunda fila de obras livre e as
  * planejadas como manuais). O estoque fica como estava, mesmo acima do limite. Só para os
  * retratos sem fome: a fome aberta ganha campos (ver "uma partida gravada na versão 11, em fome").
  */
@@ -104,6 +123,7 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       warehouse: 0,
       watchtower: 0,
       palisade: 0,
+      tavern: 0,
     },
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     constructionQueues: [...constructionQueues, null],
@@ -785,7 +805,10 @@ describe('uma partida gravada na versão 11, em fome (V2G-T2; ADR 0016, itens 2 
     expect((await getView(server, other)).status).toBe(200);
     const after = (await rowOf(server, other.id)) as Row & { state: Starving };
     expect(after.schemaVersion).toBe(CURRENT);
-    expect(after.state.settlement).toEqual({ ...calm.settlement, lastFamine: null });
+    expect(after.state.settlement).toEqual({
+      ...withTavernSite(calm.settlement),
+      lastFamine: null,
+    });
   });
 
   it('o job de avanço migra a partida em fome de quem não voltou, com a mesma contagem', async () => {
@@ -872,8 +895,10 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         ids: {},
-        // A guilda é do passo seguinte (13 → 14), conferido no bloco dele, abaixo.
+        // A guilda é dos passos seguintes (13 → 14 e 15 → 16), conferidos nos blocos deles,
+        // abaixo; a Taverna por construir é do 15 → 16.
         guild: EMPTY_GUILD,
+        settlement: withTavernSite(before.settlement),
       });
       expect(row.state.rng).toEqual(before.rng);
 
@@ -1035,13 +1060,16 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
 
       const row = (await rowOf(server, game.id)) as Row & { state: V13State };
       expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
-      // O estado é o da versão 13, campo por campo, com a fronteira nova e a guilda vazia:
+      // O estado é o da versão 13, campo por campo, com a fronteira nova, a guilda vazia e a
+      // Taverna por construir:
       // nenhum estoque, prazo, carta, incursão, contador ou sorteio muda.
       expect(row.state).toEqual({
         ...before,
         schemaVersion: CURRENT,
         migratedAtMs: before.lastProcessedAt,
         guild: EMPTY_GUILD,
+        // A Taverna por construir é do passo 15 → 16, conferido no bloco dele, abaixo.
+        settlement: withTavernSite(before.settlement),
       });
 
       // A leitura seguinte não migra nem escreve de novo.
@@ -1072,6 +1100,123 @@ describe('uma partida gravada na versão 13 (V3C-T1; ADR 0017, decisões 3 e 5)'
           app.pool,
           'game_events',
           `game_id = '${game.id}' and (kind like 'wageArrears%' or kind like 'hero%')`,
+        ),
+      ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 10)', () => {
+  type V15State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    guild: { heroes: Array<{ id: string }>; arriving: unknown[]; tavern?: unknown };
+  };
+
+  /** Um retrato da versão 15, como o motor da carta da estrangeira o gravou. */
+  function v15State(name: string): V15State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v15-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V15State;
+  }
+
+  async function insertV15(app: TestApp, state: V15State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // As três dificuldades e os três ritmos; a guilda vazia, com heróis, com um herói prometido
+  // e com o soldo em atraso; partidas nascidas na versão 15 e migradas até ela.
+  it.each([
+    ['week-scripted'],
+    ['guild'],
+    ['hero-promised'],
+    ['wage-arrears'],
+    ['migrated-iron-king-half'],
+    ['migrated-peasant-3x'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com a Taverna por construir a mais',
+    async (name) => {
+      const before = v15State(name);
+      expect(before.guild.tavern).toBeUndefined();
+      expect(before.settlement.buildings.tavern).toBeUndefined();
+      const game = await insertV15(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 15, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V15State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 15, campo por campo, com a fronteira nova, o edifício no nível
+      // zero e a Taverna vazia: nenhum herói, prometido, atraso, estoque, contador ou sorteio
+      // muda, e o fluxo da Taverna só nasce com a primeira rotação.
+      expect(row.state).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+        settlement: withTavernSite(before.settlement),
+        guild: { ...before.guild, ...EMPTY_TAVERN },
+      });
+      expect(Object.keys(row.state.rng)).not.toContain('tavern');
+
+      // A visão traz a Taverna por erguer: sem candidato, sem rotação e sem festival em curso.
+      expect(reply.body.view.tavern).toMatchObject({
+        level: 0,
+        offers: [],
+        nextRotationInSeconds: null,
+        festival: { available: false, activeForSeconds: null },
+      });
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: um dia real depois a Taverna continua por erguer e os heróis são os mesmos', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v15State('week-scripted');
+      expect(before.guild.heroes).toHaveLength(1);
+      const game = await insertV15(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V15State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      expect(row.state.lastProcessedAt).toBe(before.lastProcessedAt + DAY);
+      // Ninguém mandou erguer a Taverna: nada dela acontece sozinho.
+      expect(row.state.settlement.buildings.tavern).toBe(0);
+      expect(row.state.guild).toMatchObject(EMPTY_TAVERN);
+      expect(row.state.guild.heroes.map((hero) => hero.id)).toEqual(
+        before.guild.heroes.map((hero) => hero.id),
+      );
+      expect(row.state.ids).toEqual(before.ids);
+      expect(Object.keys(row.state.rng)).not.toContain('tavern');
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and kind in ('heroHired', 'festivalHeld', 'festivalEnded')`,
         ),
       ).toBe(0);
     } finally {

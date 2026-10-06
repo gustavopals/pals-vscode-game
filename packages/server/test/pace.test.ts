@@ -322,6 +322,24 @@ function atPace(view: ViewState, pace: number): ViewState {
               },
       },
     },
+    // A Taverna é a mesma: o soldo de um candidato é uma taxa; a troca da lista e o que resta
+    // do festival, prazos. Os preços e o custo do festival são de jogo.
+    tavern: {
+      ...view.tavern,
+      offers: view.tavern.offers.map((offer) => ({
+        ...offer,
+        wagePerHour: scaled(offer.wagePerHour),
+      })),
+      nextRotationInSeconds:
+        view.tavern.nextRotationInSeconds === null ? null : up(view.tavern.nextRotationInSeconds),
+      festival: {
+        ...view.tavern.festival,
+        activeForSeconds:
+          view.tavern.festival.activeForSeconds === null
+            ? null
+            : up(view.tavern.festival.activeForSeconds),
+      },
+    },
     // A Ameaça é a mesma; a próxima subida e a chegada de uma incursão são prazos.
     threat: view.threat.known
       ? {
@@ -424,6 +442,9 @@ function withoutRateTexts(view: ViewState): ViewState {
         entry.building === 'watchtower' ? { ...entry, effect: '' } : entry,
       ),
     },
+    // A frase do festival diz em tempo real quanto dura a moral dele (um dia de jogo): os
+    // números são conferidos; a frase, por extenso em `tavern.test.ts`, no motor.
+    tavern: { ...view.tavern, festival: { ...view.tavern.festival, effectText: '' } },
     // A frase dos feridos diz em quanto tempo real eles saram.
     population: {
       ...view.population,
