@@ -8,8 +8,9 @@ import type {
 /**
  * "Ruínas de Vel'Thar" (GDD §9.3 e Apêndice C; ADR 0018, decisão 12): três horas de jogo,
  * quatro nós, dois ou três heróis de nível 2 ou mais, risco médio. Só aparece depois de uma
- * Patrulha a revelar. Rende pedra, ouro e, vencido o guardião, um item raro; do guardião em
- * diante revela o Pântano Nebuloso.
+ * Patrulha a revelar. Rende pedra, ouro, um item incomum no meio do caminho e, vencido o
+ * guardião, em duas de cada três vezes um item raro; do guardião em diante revela o Pântano
+ * Nebuloso.
  *
  * **A primeira variante é o grafo do Apêndice C do GDD**, com o item raro no lugar da planta da
  * Capela: a escadaria desaba, e a equipe escolhe entre o Corredor das Inscrições (perícia), a
@@ -30,16 +31,19 @@ import type {
 
 const MINUTE_MS = 60_000;
 
-/** O que os três guardiões guardam: um item raro, sempre que vencidos. */
+/**
+ * O que os três guardiões guardam: um item raro, em duas de cada três vitórias (não em todas:
+ * com o raro certo a progressão pulava o incomum; revisão da Fase D, B14).
+ */
 const guardianHoard: ExpeditionItemDrop = {
-  chance: { num: 1, den: 1 },
+  chance: { num: 2, den: 3 },
   from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
 };
 
-/** O que há no meio do caminho, antes do guardião. */
+/** O que há no meio do caminho, antes do guardião: um item incomum, em metade das vezes. */
 const ruinsFind: ExpeditionItemDrop = {
   chance: { num: 1, den: 2 },
-  from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
+  from: ['ashBow', 'boiledLeather', 'trackerHorn'],
 };
 
 const home: ExpeditionReturnNode = {

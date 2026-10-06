@@ -116,14 +116,14 @@ Em 31 sortes:
 | Resgate | C | Desafiar o chefe do bando | Ousada | traço brave | Guerreiro + Guerreiro Nv5, com brave (passa em 100%) | Arqueiro + Arqueiro Nv2, com brave (passa em 0%) | 3 de 72 |
 | Resgate | C | Soltar os cavalos e entrar na confusão | Equilibrada | — | Arqueiro + Arqueiro Nv5 (passa em 100%) | Guerreiro + Guerreiro Nv1 (passa em 26%) | 11 de 72 |
 | Resgate | C | Rastejar pela vala até a gaiola | Cautelosa | — | Guerreiro + Guerreiro Nv1 (passa em 87%) | Guerreiro + Guerreiro Nv5, com brave (passa em 100%) | 58 de 72 |
-| Ruínas de Vel'Thar | A | Seguir pelo Corredor das Inscrições | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Clérigo + Clérigo Nv2 (passa em 0%) | 51 de 60 |
-| Ruínas de Vel'Thar | A | Atravessar a Galeria Inundada | Equilibrada | Guerreiro | Guerreiro + Clérigo Nv2 (passa em 10%) | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 8 de 60 |
+| Ruínas de Vel'Thar | A | Seguir pelo Corredor das Inscrições | Ousada | — | Arqueiro + Mago + Clérigo Nv6 (passa em 100%) | Clérigo + Clérigo Nv2 (passa em 0%) | 48 de 60 |
+| Ruínas de Vel'Thar | A | Atravessar a Galeria Inundada | Equilibrada | Guerreiro | Guerreiro + Clérigo Nv2 (passa em 10%) | Guerreiro + Arqueiro + Mago Nv2 (passa em 100%) | 11 de 60 |
 | Ruínas de Vel'Thar | A | Sair pela fresta | Cautelosa | — | Clérigo + Clérigo Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 1 de 60 |
-| Ruínas de Vel'Thar | B | Descer ao ossário | Ousada | — | Clérigo + Clérigo Nv4 (passa em 58%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 46 de 60 |
-| Ruínas de Vel'Thar | B | Atravessar o salão das lajes falsas | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 0%) | Clérigo + Clérigo Nv4 (passa em 58%) | 14 de 60 |
+| Ruínas de Vel'Thar | B | Descer ao ossário | Ousada | — | Clérigo + Clérigo Nv3 (passa em 32%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 42 de 60 |
+| Ruínas de Vel'Thar | B | Atravessar o salão das lajes falsas | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 0%) | Clérigo + Clérigo Nv3 (passa em 29%) | 19 de 60 |
 | Ruínas de Vel'Thar | B | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 0 de 60 |
-| Ruínas de Vel'Thar | C | Romper os selos da torre | Ousada | Mago | Mago + Clérigo Nv2 (passa em 3%) | Guerreiro + Arqueiro Nv2 (não pode) | 32 de 60 |
-| Ruínas de Vel'Thar | C | Descer à cisterna | Equilibrada | — | Guerreiro + Arqueiro + Clérigo Nv4 (passa em 100%) | Mago + Clérigo Nv2 (passa em 3%) | 28 de 60 |
+| Ruínas de Vel'Thar | C | Romper os selos da torre | Ousada | Mago | Mago + Clérigo Nv2 (passa em 3%) | Arqueiro + Mago Nv2 (passa em 35%) | 31 de 60 |
+| Ruínas de Vel'Thar | C | Descer à cisterna | Equilibrada | — | Guerreiro + Arqueiro + Clérigo Nv4 (passa em 100%) | Mago + Clérigo Nv2 (passa em 3%) | 29 de 60 |
 | Ruínas de Vel'Thar | C | Catar a pedra do pátio e voltar | Cautelosa | — | — | Guerreiro + Arqueiro + Mago Nv3 (passa em 100%) | 0 de 60 |
 | Pântano Nebuloso | A | Atravessar o charco, direto à ilha | Ousada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 84%) | Mago + Clérigo + Clérigo Nv1 (passa em 0%) | 5 de 20 |
 | Pântano Nebuloso | A | Contornar pela margem dos salgueiros | Equilibrada | — | Mago + Clérigo + Clérigo Nv1 (passa em 43%) | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 15 de 20 |

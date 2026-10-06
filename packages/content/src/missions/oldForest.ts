@@ -158,7 +158,11 @@ export const oldForest: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, os lenhadores sem senhor cercaram {heroi} e puseram a expedição de {feudo} para fora da mata fechada, sem um cavaco dela.',
             },
           },
-          rewards: { resources: { wood: { min: 70, max: 100 }, gold: { min: 10, max: 20 } } },
+          rewards: {
+            resources: { wood: { min: 70, max: 100 }, gold: { min: 10, max: 20 } },
+            // O que os lenhadores largam na fuga: é onde a Floresta dá um item incomum.
+            item: { chance: { num: 1, den: 4 }, from: ['boiledLeather', 'trackerHorn'] },
+          },
           next: 'home',
         },
         glade: {

@@ -1082,6 +1082,42 @@ describe('as frases das expedições', () => {
     expect(expeditionPostures.bold.text).toContain('maior ganho');
   });
 
+  it('a progressão dos itens não pula o incomum: ele cai na Floresta e nas Ruínas, e nenhum raro é certo (revisão da Fase D, B14)', () => {
+    /** As quedas de item de um modelo: a raridade de cada item possível e se a queda é certa. */
+    const dropsOf = (modelId: string) =>
+      expeditionModels
+        .filter((model) => model.id === modelId)
+        .flatMap((model) => model.variants)
+        .flatMap((variant) => Object.values(variant.nodes))
+        .flatMap((node) =>
+          node.kind === 'crossroads' || node.kind === 'return' || node.rewards?.item === undefined
+            ? []
+            : [node.rewards.item],
+        )
+        .flatMap((drop) =>
+          drop.from.map((id) => ({
+            rarity: items[id].rarity,
+            certain: drop.chance.num >= drop.chance.den,
+          })),
+        );
+    const raritiesOf = (modelId: string) => new Set(dropsOf(modelId).map((drop) => drop.rarity));
+    expect([...raritiesOf('oldForest')].sort()).toEqual(['common', 'uncommon']);
+    expect(raritiesOf('ruins').has('uncommon')).toBe(true);
+    expect(raritiesOf('ruins').has('rare')).toBe(true);
+    // Nenhum raro cai sempre: quem vence o guardião pode sair sem ele.
+    for (const model of expeditionModels) {
+      for (const drop of dropsOf(model.id)) {
+        if (drop.rarity === 'rare') {
+          expect(drop.certain, model.id).toBe(false);
+        }
+      }
+    }
+    // E o épico continua só no fundo do Pântano.
+    for (const model of expeditionModels) {
+      expect(raritiesOf(model.id).has('epic'), model.id).toBe(model.id === 'swamp');
+    }
+  });
+
   it('nenhuma frase da Guilda escreve número de regra: prazos, lugares e dificuldades entram por lacuna', () => {
     for (const [key, text] of Object.entries(expeditionTexts)) {
       expect(text, key).not.toMatch(/\d/);
