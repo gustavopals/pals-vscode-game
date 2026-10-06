@@ -191,7 +191,12 @@ export const expeditionModels: readonly ExpeditionModelDef[] = [
   swamp,
 ];
 
-/** As Posturas, como a tela as mostra: o nome, em minúscula para o meio da frase, e o que cada uma faz. */
+/**
+ * As Posturas, como a tela as mostra: o nome, em minúscula para o meio da frase, e o que cada
+ * uma faz. **A frase diz a regra inteira** (ADR 0018, decisão 11): a Postura toma o caminho
+ * marcado para ela e, se ele pede o que a equipe não tem, o seguro. O teste de conteúdo confere
+ * que o caminho da Ousada é, em toda encruzilhada, o que mais pode render (revisão, B13).
+ */
 export const expeditionPostures: Record<
   PostureId,
   { readonly label: string; readonly text: string }
@@ -202,11 +207,11 @@ export const expeditionPostures: Record<
   },
   balanced: {
     label: 'Equilibrada',
-    text: 'Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho.',
+    text: 'Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o caminho escolhido pede o que ela não tem, vale o seguro.',
   },
   bold: {
     label: 'Ousada',
-    text: 'Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho.',
+    text: 'Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro.',
   },
 };
 

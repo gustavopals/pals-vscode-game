@@ -20,6 +20,7 @@ import {
   HERO_CLASS_IDS,
   HERO_TRAIT_IDS,
   heroClasses,
+  items,
   heroTraits,
   POSTURE_IDS,
   SEASON_IDS,
@@ -1039,6 +1040,46 @@ describe('as frases das expedições', () => {
     expect(expeditionPostures.cautious.label).toBe('Cautelosa');
     expect(expeditionPostures.balanced.label).toBe('Equilibrada');
     expect(expeditionPostures.bold.label).toBe('Ousada');
+  });
+
+  it('o caminho da Ousada é, em toda encruzilhada, o que mais pode render; e a frase da Postura diz o que acontece quando ele está fora do alcance (revisão da Fase D, B13)', () => {
+    // O que um caminho pode render de melhor: o teto de cada recurso de cada nó até o retorno
+    // (pelo melhor ramo, se houver outra encruzilhada) e o valor do item mais caro de cada nó.
+    const best = (variant: ExpeditionVariant, key: string): number => {
+      const node = variant.nodes[key];
+      if (node === undefined || node.kind === 'return') {
+        return 0;
+      }
+      if (node.kind === 'crossroads') {
+        return Math.max(...node.options.map((option) => best(variant, option.next)));
+      }
+      const resources = Object.values(node.rewards?.resources ?? {}).reduce(
+        (sum, range) => sum + range.max,
+        0,
+      );
+      const item = Math.max(0, ...(node.rewards?.item?.from ?? []).map((id) => items[id].value));
+      return resources + item + best(variant, node.next);
+    };
+    let crossroads = 0;
+    for (const [name, , variant] of everyVariant()) {
+      for (const node of Object.values(variant.nodes)) {
+        if (node.kind !== 'crossroads') {
+          continue;
+        }
+        crossroads += 1;
+        const worth = new Map(
+          node.options.map((option) => [option.id, best(variant, option.next)]),
+        );
+        const bold = worth.get(node.posture.bold) ?? -1;
+        expect(bold, `${name}: ${node.posture.bold}`).toBe(Math.max(...worth.values()));
+        expect(bold, name).toBeGreaterThan(worth.get(node.posture.cautious) ?? Infinity);
+      }
+    }
+    expect(crossroads).toBe(15);
+    for (const id of ['balanced', 'bold'] as const) {
+      expect(expeditionPostures[id].text).toMatch(/pede o que ela não tem, vale o seguro\.$/);
+    }
+    expect(expeditionPostures.bold.text).toContain('maior ganho');
   });
 
   it('nenhuma frase da Guilda escreve número de regra: prazos, lugares e dificuldades entram por lacuna', () => {
