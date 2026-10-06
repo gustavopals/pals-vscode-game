@@ -313,16 +313,20 @@ export function goldRunsOutIn(state: GameState, rates = netRates(state)): number
 }
 
 /**
- * Há ouro para o soldo: o saldo é positivo, ou o estoque é positivo e cobre ao menos um instante
- * de soldo. É a condição que fecha o atraso; como é o contrário exato da que o abre
- * (`goldRunsOutIn(...) === 0`), o atraso nunca fecha e reabre no mesmo instante.
+ * Há ouro para o soldo: o saldo **não é negativo** (a Mina paga a equipe inteira), ou o estoque
+ * é positivo e cobre ao menos um instante de soldo. É a condição que fecha o atraso, e é o
+ * contrário exato da que o abre (`goldRunsOutIn(...) === 0`, que pede saldo negativo): o atraso
+ * nunca fecha e reabre no mesmo instante.
+ *
+ * **O saldo exatamente em zero fecha** (revisão da Fase C, M-R6), ao contrário da fome e do
+ * frio, que pedem saldo positivo: com um mineiro para cada dois heróis a Mina entrega o soldo
+ * inteiro, ninguém deixa de receber, e manter o atraso aberto faria partir heróis pagos. A fome
+ * e o frio cortam a produção enquanto duram, e o saldo deles muda ao fechar; o atraso não mexe
+ * em taxa nenhuma, então o saldo que o fecha é o mesmo que o mantém fechado.
  */
 export function goldCoversWages(state: GameState, rates = netRates(state)): boolean {
-  if (rates.gold > 0) {
+  if (rates.gold >= 0) {
     return true;
   }
-  if (state.settlement.resources.gold <= 0) {
-    return false;
-  }
-  return rates.gold === 0 || coversFor(state, 'gold', rates.gold) >= 1;
+  return state.settlement.resources.gold > 0 && coversFor(state, 'gold', rates.gold) >= 1;
 }

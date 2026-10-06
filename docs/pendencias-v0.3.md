@@ -185,6 +185,12 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `promiseHero`, em `packages/engine/src/arrivals.ts`; `packages/content/src/content.test.ts`.
 - Se decidir diferente: se algum dia uma carta puder dar "outro" herói com o mesmo nome (um irmão, um retorno), o herói precisa de um identificador de origem no estado.
 
+**C-52. O atraso fecha com o saldo de ouro exatamente em zero.** *(Mudança de regra e de uma frase do GDD §9.1; revisão M-R6.)*
+- O risco: um mineiro rende exatamente o soldo de dois heróis. Com o atraso aberto e o saldo em zero, os heróis recebiam o soldo inteiro e o atraso continuava aberto ("fecha quando o saldo volta a ser positivo"): ficavam Descontentes e partiam pagos.
+- Enquanto isso: fecha quando o saldo **deixa de ser negativo**. Continua sendo o contrário exato da condição que abre (que pede saldo negativo), e a divisão de intervalo continua exata (o saldo só muda em instantes de evento ou de ordem). A fome e o frio não mudaram: pedem saldo positivo, porque cortam a produção enquanto duram.
+- Onde: `goldCoversWages`, em `packages/engine/src/economy.ts`; GDD §9.1 ("deixa de ser negativo").
+- Se decidir diferente: voltar ao "positivo" é uma linha; a tela teria de dizer que pagar o soldo inteiro não basta.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

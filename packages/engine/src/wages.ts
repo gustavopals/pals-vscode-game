@@ -107,7 +107,7 @@ export function wageDeparturesOwedAt(state: GameState, atMs: number): number {
 /**
  * Por que o atraso fecharia agora, ou `null` se ele continua: `noHeroes` quando já não há a
  * quem pagar (o último herói partiu ou foi dispensado), `paid` quando há ouro de novo para a
- * equipe, no saldo ou no estoque.
+ * equipe: o saldo já não é negativo, ou o estoque cobre o soldo.
  */
 export function wageArrearsRelief(state: GameState): WageArrearsRelief | null {
   if (wageRate(state) === 0) {
@@ -125,9 +125,10 @@ export function wageArrearsRelief(state: GameState): WageArrearsRelief | null {
  * Abre no instante exato em que o ouro não cobre nem mais um milissegundo de soldo. Enquanto
  * dura, o ouro não fica negativo e **não há dívida**: só se paga o que existe (`flowRate`), e o
  * que a Mina entrega vai inteiro para o soldo. Fecha no primeiro instante de evento ou de comando
- * em que o saldo de ouro é positivo, ou em que o estoque voltou a cobrir ao menos um instante de
- * soldo (um ganho discreto: recompensa, carta), ou em que não há mais herói. É o contrário exato
- * da condição que abre: o atraso nunca fecha e reabre no mesmo passo.
+ * em que o saldo de ouro deixa de ser negativo (a Mina paga a equipe inteira; o zero exato
+ * fecha), ou em que o estoque voltou a cobrir ao menos um instante de soldo (um ganho discreto:
+ * recompensa, carta), ou em que não há mais herói. É o contrário exato da condição que abre: o
+ * atraso nunca fecha e reabre no mesmo passo.
  *
  * **O atraso que reabre logo é o mesmo.** O que fecha deixa em `lastWageArrears` o instante, a
  * duração e os heróis que tinha cobrado; o que abre antes de a janela (`resumeWithinRealMs`)

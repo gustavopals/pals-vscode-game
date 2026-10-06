@@ -1044,3 +1044,51 @@ describe('quem chega com o atraso já velho tem os prazos dele (revisão da Fase
     expect(end.state.guild.heroes).toHaveLength(2);
   });
 });
+
+describe('o atraso fecha quando a Mina paga o soldo inteiro (revisão da Fase C, M-R6)', () => {
+  it('saldo de ouro exatamente em zero: os heróis estão pagos, o atraso fecha e não reabre', () => {
+    const mined = court(1, (draft) => {
+      draft.settlement.workers.goldMine = 1;
+      addHero(draft, { name: 'Edda' });
+      addHero(draft, { name: 'Rolf' });
+      addHero(draft, { name: 'Brann' });
+    });
+    const open = advanceTo(mined, HOUR).state;
+    expect(open.guild.wageArrears).not.toBeNull();
+    // Um mineiro rende o soldo de dois heróis: dispensado o terceiro, o saldo é zero.
+    const even = accept(open, command('dismissHero', { heroId: 'hero-3' }));
+    expect(netRates(even.state).gold).toBe(0);
+    expect(goldCoversWages(even.state)).toBe(true);
+    expect(brief(even.events)).toEqual([
+      ['heroDismissed', HOUR, 'hero-3'],
+      ['wageArrearsEnded', HOUR],
+    ]);
+    expect(guildEvents(even.events).at(-1)?.data).toMatchObject({ reason: 'paid' });
+    expect(deriveViewState(even.state, HOUR).guild.wage).toMatchObject({
+      coveredForSeconds: null,
+      arrears: null,
+    });
+    // Até a virada o saldo fica em zero e o cofre, vazio: o atraso não reabre.
+    const still = advanceTo(even.state, DAY - 1);
+    expect(still.state.settlement.resources.gold).toBe(0);
+    expect(still.state.guild.wageArrears).toBeNull();
+    // Daí em diante ninguém fica Descontente nem parte, de uma vez ou aos pedaços.
+    const later = advanceTo(even.state, 80 * HOUR);
+    expect(brief([...still.events, ...later.events])).toEqual([]);
+    expect(later.state.guild.heroes).toHaveLength(2);
+    const pieces = advanceTo(advanceTo(even.state, 17 * HOUR + 7).state, 80 * HOUR);
+    expect(pieces.state).toStrictEqual(later.state);
+  });
+
+  it('com o cofre vazio e o saldo em zero o atraso nem abre', () => {
+    const even = court(1, (draft) => {
+      draft.settlement.workers.goldMine = 1;
+      addHero(draft);
+      addHero(draft);
+    });
+    expect(netRates(even).gold).toBe(0);
+    const end = advanceTo(even, 80 * HOUR);
+    expect(brief(end.events)).toEqual([]);
+    expect(end.state.guild.wageArrears).toBeNull();
+  });
+});
