@@ -41,6 +41,17 @@ const tavern = (page: Page) => guild(page).getByRole('region', { name: 'Taverna'
 const team = (page: Page) => heroes(page).getByRole('list', { name: 'A equipe' });
 const candidates = (page: Page) => tavern(page).getByRole('list', { name: 'Candidatos' });
 
+/** As ordens (`POST …/commands`) que a página mandar daqui em diante, na ordem em que saem. */
+function commandPosts(page: Page): Array<{ type: string; commandId: string }> {
+  const sent: Array<{ type: string; commandId: string }> = [];
+  page.on('request', (outgoing) => {
+    if (outgoing.method() === 'POST' && outgoing.url().endsWith('/commands')) {
+      sent.push(outgoing.postDataJSON() as { type: string; commandId: string });
+    }
+  });
+  return sent;
+}
+
 /** Os eventos de um tipo, na ordem em que aconteceram. */
 async function eventsOf(page: Page, request: APIRequestContext, type: string) {
   return (await gameEvents(page, request)).filter((event) => event.type === type);
@@ -206,11 +217,18 @@ test.describe('a Guilda na interface', () => {
     await expect(row).toContainText(`soldo de ${offer.wagePerHour}/h`);
     await expect(tavern(page)).toContainText(/A lista de candidatos troca em \d+ h/);
     const before = await gold(page, request);
+    // As ordens que saem do navegador: o duplo clique tem de virar uma só. Sem a trava do
+    // cliente sairiam duas, e o servidor recusaria a segunda (o resultado final seria o mesmo,
+    // com um aviso de recusa na tela).
+    const orders = commandPosts(page);
 
     await row.getByRole('button', { name: `Contratar ${offer.name}` }).dblclick();
     await expect(team(page).getByRole('listitem')).toHaveCount(1);
     await expect(team(page)).toContainText(offer.name);
     await expect(row).toHaveCount(0);
+    expect(orders.map((order) => order.type)).toEqual(['hireHero']);
+    await expect(toasts(page).getByRole('status')).toHaveCount(0);
+    await expect(toasts(page).getByRole('alert')).toHaveCount(0);
     await expect(candidates(page).getByRole('listitem')).toHaveCount(view.tavern.offers.length - 1);
     // Uma contratação e uma cobrança: o ouro desceu o preço, uma vez.
     expect(await eventsOf(page, request, 'heroHired')).toHaveLength(1);
@@ -305,8 +323,17 @@ test.describe('a Guilda na interface', () => {
     await expect(team(first)).toContainText(offer.name);
     // A segunda aba ainda mostra o candidato e clica: o servidor recusa, com a frase dele, e a
     // visão que vem na recusa toma a tela.
+    const refusal = second.waitForResponse(
+      (response) => response.url().endsWith('/commands') && response.request().method() === 'POST',
+    );
     await hire(second).click();
+    const refused = await refusal;
+    expect(refused.status()).toBe(422);
+    const { message } = (await refused.json()) as { message: string };
+    expect(message.length).toBeGreaterThan(10);
+    // O aviso é a frase do servidor, palavra por palavra: o app não escreve a recusa.
     await expect(toasts(second).getByRole('status')).toHaveCount(1);
+    await expect(toasts(second).getByRole('status')).toHaveText(message);
     await expect(hire(second)).toHaveCount(0);
     await expect(team(second).getByRole('listitem')).toHaveCount(1);
     expect(await eventsOf(first, request, 'heroHired')).toHaveLength(1);
