@@ -282,7 +282,13 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
       ['hero-2', 'Rolf', 'Arqueiro', 36],
     ]);
     // 250 de ouro a 4 por hora: 62 h 30 de soldo pago.
-    expect(before.wage).toEqual({ perHour: 4, coveredForSeconds: 225_000, arrears: null });
+    expect(before.wage).toEqual({
+      perHour: 4,
+      coveredForSeconds: 225_000,
+      afterArrivals: null,
+      arrears: null,
+      lingering: null,
+    });
 
     server.clock.advance(30 * MINUTE);
     await renew(server, player);
