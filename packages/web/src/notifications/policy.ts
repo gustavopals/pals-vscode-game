@@ -213,7 +213,8 @@ export type PolicyOutput = {
   /**
    * Eventos que viram notificação agora. Vários objetivos cumpridos no mesmo lote contam como
    * um aviso só: aqui sai o primeiro deles, e quem o mostra fala de todos. O mesmo vale para os
-   * heróis que ficaram descontentes (`discontentNotice`).
+   * heróis que ficaram descontentes (`discontentNotice`) e para os que uma mesma expedição
+   * perdeu (`lossNotice`).
    */
   show: GameEvent[];
   /**
@@ -462,6 +463,38 @@ export function discontentNotice(batch: GameEvent[]): { text: string; details: s
       };
 }
 
+/** O evento é um herói que a equipe perdeu em uma expedição: ficou em cativeiro, ou não volta. */
+export function isHeroLoss(event: Pick<GameEvent, 'type'>): boolean {
+  return event.type === 'heroCaptured' || event.type === 'heroDied';
+}
+
+/** A expedição de uma perda; a perda sem expedição conhecida não se agrupa com nenhuma outra. */
+const lossGroup = (event: GameEvent): string =>
+  typeof event.data.expeditionId === 'string' ? event.data.expeditionId : `seq:${event.seq}`;
+
+/**
+ * Os heróis que uma mesma expedição perdeu, ditos de uma vez: um Desastre com dois ou três
+ * capturados e mortos chega como um evento por herói, e um aviso por herói gastaria os três da
+ * hora. `event` é a primeira perda daquela expedição no lote: sozinha, sai com a frase da
+ * Crônica; com outras, com a contagem e uma linha para cada herói, nas frases do servidor.
+ * `null` se `event` não é uma perda.
+ */
+export function lossNotice(
+  event: GameEvent,
+  batch: GameEvent[],
+): { text: string; details: string[] } | null {
+  if (!isHeroLoss(event)) {
+    return null;
+  }
+  const group = batch.filter((entry) => isHeroLoss(entry) && lossGroup(entry) === lossGroup(event));
+  return group.length <= 1
+    ? { text: event.text, details: [] }
+    : {
+        text: `${group.length} heróis não voltaram da mesma expedição.`,
+        details: group.map((entry) => entry.text),
+      };
+}
+
 /**
  * Com pouco espaço: primeiro os alarmes do que se perdeu ou está para se perder (quem partiu, a
  * fome, o frio, a incursão, o atraso que abre); depois o alarme que só conta um estado (o herói
@@ -501,12 +534,21 @@ export function decideNotifications(input: PolicyInput): PolicyOutput {
   // Os heróis que ficam descontentes na mesma virada também: um aviso por herói gastaria os
   // três da hora e esconderia quem partiu e a fome.
   const firstDiscontent = input.events.find(isHeroDiscontent);
+  // E os heróis que uma mesma expedição perdeu: a primeira perda de cada expedição fala por
+  // todas as dela (`lossNotice`). Continuam alarmes, na frente de tudo.
+  const firstLosses = new Map<string, GameEvent>();
+  for (const event of input.events) {
+    if (isHeroLoss(event) && !firstLosses.has(lossGroup(event))) {
+      firstLosses.set(lossGroup(event), event);
+    }
+  }
   const candidates = input.events.filter(
     (event) =>
       wanted(event, input.level, input.season) &&
       !(isRaidAlarm(event) && settled.has(event.data.raidId)) &&
       !(isObjectiveCompleted(event) && event !== firstObjective) &&
-      !(isHeroDiscontent(event) && event !== firstDiscontent),
+      !(isHeroDiscontent(event) && event !== firstDiscontent) &&
+      !(isHeroLoss(event) && firstLosses.get(lossGroup(event)) !== event),
   );
   if (input.discreetMode || candidates.length === 0) {
     return { show: [], badge: 0, history };

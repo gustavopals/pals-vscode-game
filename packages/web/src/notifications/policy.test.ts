@@ -29,6 +29,7 @@ import {
   isRelief,
   isSeasonTurn,
   isWatchReport,
+  lossNotice,
   moraleBandDirection,
   type PolicyInput,
   raidAftermath,
@@ -943,6 +944,39 @@ describe('as expedições nos avisos (roadmap da v0.3, V3D-T4; GDD §13.5)', () 
       ]);
       expect(eventIcon(lost)).toBeDefined();
     }
+  });
+
+  it('os heróis que uma mesma expedição perdeu saem em um aviso só, e as perdas continuam na frente (revisão, A10)', () => {
+    const lost = (type: GameEvent['type'], seq: number, expeditionId: string): GameEvent => ({
+      ...event(type, seq),
+      data: { expeditionId, heroId: `hero-${seq}` },
+    });
+    // Um Desastre leva três heróis da expedição 4; a fome começa no mesmo lote.
+    const disaster = [
+      lost('heroDied', 1, 'expedition-4'),
+      lost('heroCaptured', 2, 'expedition-4'),
+      lost('heroDied', 3, 'expedition-4'),
+    ];
+    const famine = event('famineStarted', 4);
+    const result = decideNotifications(input({ events: [...disaster, famine, crossroads] }));
+    // Um aviso pela expedição, um pela fome, e ainda cabe a encruzilhada.
+    expect(result.show.map((entry) => entry.type)).toEqual([
+      'heroDied',
+      'famineStarted',
+      'expeditionAtCrossroads',
+    ]);
+    expect(result.badge).toBe(0);
+    // Quem mostra o primeiro fala de todos, nas frases do servidor.
+    expect(lossNotice(disaster[0] as GameEvent, [...disaster, famine])).toEqual({
+      text: '3 heróis não voltaram da mesma expedição.',
+      details: ['heroDied 1', 'heroCaptured 2', 'heroDied 3'],
+    });
+    // Duas expedições são duas notícias; uma perda sozinha sai com a frase da Crônica.
+    const two = [lost('heroDied', 1, 'expedition-4'), lost('heroCaptured', 2, 'expedition-5')];
+    expect(decideNotifications(input({ events: two })).show).toEqual(two);
+    expect(lossNotice(two[0] as GameEvent, two)).toEqual({ text: 'heroDied 1', details: [] });
+    // O que não é perda não tem aviso de perda.
+    expect(lossNotice(famine, [famine])).toBeNull();
   });
 
   it('a volta da expedição, o nível novo e o item achado só avisam em "Todas"', () => {

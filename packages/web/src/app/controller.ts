@@ -35,6 +35,7 @@ import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
   arrearsAhead,
   discontentNotice,
+  lossNotice,
   isHeroDiscontent,
   wageAhead,
   decideNotice,
@@ -886,6 +887,17 @@ export class Controller {
         kind: 'warning',
         icon: eventIcon(event),
         ...discontent,
+        action: { label: 'Ver', route: 'guild' },
+      });
+      return;
+    }
+    // Os heróis que uma mesma expedição perdeu também: a primeira perda fala por todas.
+    const loss = lossNotice(event, batch);
+    if (loss !== null) {
+      this.announce({
+        kind: 'warning',
+        icon: eventIcon(event),
+        ...loss,
         action: { label: 'Ver', route: 'guild' },
       });
       return;
