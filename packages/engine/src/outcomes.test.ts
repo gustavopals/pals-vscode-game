@@ -742,9 +742,9 @@ describe('o equipamento (GDD §9.1; ADR 0018, decisão 15)', () => {
       defId: 'veltharBlade',
     });
     expect(swapped.guild.inventory.map((item) => item.id)).toEqual(['item-1', 'item-3']);
-    // Dois itens, dois fatores: 42 × 28/25 × 21/20 = 49,392.
+    // Dois itens, um fator: os bônus somam (+12% e +5%), 42 × 1,17 = 49,14 (revisão, B15).
     const both = accept(swapped, command('equipItem', { heroId: 'hero-1', itemId: 'item-3' }));
-    expect(heroPower(heroOf(both.state, 'hero-1'))).toBe(49_392);
+    expect(heroPower(heroOf(both.state, 'hero-1'))).toBe(49_140);
     expect(shaped(both.state)).toBeNull();
   });
 
@@ -1820,5 +1820,38 @@ describe('a equipe que arriscaria por nada não parte (revisão da Fase D, M-R4)
     expect(refuse(cleared, order('wolfDen', ['hero-4', 'hero-5'])).message).toBe(
       'Esse destino ainda não está ao alcance do feudo: o Covil de Lobos está limpo até a virada do ano.',
     );
+  });
+});
+
+describe('os bônus de item de um herói somam entre si (revisão da Fase D, B15)', () => {
+  it('três raros valem +36%, e não 1,12³: um fator só, e a explicação o escreve assim', () => {
+    const state = hall(1, {}, (draft) => {
+      const edda = heroOf(draft, 'hero-1');
+      wear(draft, edda, 'veltharBlade');
+      wear(draft, edda, 'riveredMail');
+      wear(draft, edda, 'travelerMedal');
+      wear(draft, heroOf(draft, 'hero-2'), 'huntingSpear');
+    });
+    // Guerreira de nível 1: 42. Com +12% três vezes, somados: 42 × 1,36 = 57,12 (e não 59,007).
+    expect(heroPower(heroOf(state, 'hero-1'))).toBe(57_120);
+    // Um item só vale o que valia: 42 × 1,05.
+    expect(heroPower(heroOf(state, 'hero-2'))).toBe(44_100);
+    const [edda, rolf] = deriveViewState(state, 0).guild.heroes;
+    expect(edda?.power).toBe(57.12);
+    expect(edda?.powerBreakdown).toBe(
+      "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) × 1,36 (lâmina de vel'thar + cota rebitada + medalha do viajante) = 57,12",
+    );
+    expect(rolf?.powerBreakdown).toContain('× 1,05 (lança de caça) = 44,1');
+  });
+
+  it('o nível e o traço continuam multiplicando: só os itens somam entre si', () => {
+    const state = hall(3, {}, (draft) => {
+      const edda = heroOf(draft, 'hero-1');
+      edda.traits = ['brave'];
+      wear(draft, edda, 'huntingSpear');
+      wear(draft, edda, 'paddedJerkin');
+    });
+    // 42 × 1,16 (Nv3) × 1,10 (dois comuns, somados) = 53,592.
+    expect(heroPower(heroOf(state, 'hero-1'))).toBe(53_592);
   });
 });

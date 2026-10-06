@@ -210,8 +210,10 @@ export type HeroFactor = {
  * atraso o Descontente e, **em uma expedição enviada com a Postura dada**, o traço que rende
  * mais nela (o Corajoso na Ousada, o Prudente na Cautelosa; ADR 0017, "Os oito traços"). É **a**
  * lista: `heroPower` e `teamPower` multiplicam todos e a visão escreve um termo para cada um
- * que mexe. Sem Postura (a ficha do herói no feudo) nenhum traço entra. Por último, **cada item
- * que ele leva**, na ordem dos espaços (ADR 0018, decisão 15): o item vale na ficha e em todo nó.
+ * que mexe. Sem Postura (a ficha do herói no feudo) nenhum traço entra. Por último, **os itens
+ * que ele leva, em um fator só**: 1 mais a soma dos bônus de cada um, na ordem dos espaços (ADR
+ * 0018, decisão 15, com a nota da revisão da Fase D, B15: os bônus de item de um herói **somam**
+ * entre si, não se multiplicam). Vale na ficha e em todo nó.
  */
 export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroFactor[] {
   const { levelBonus, arrears } = rules;
@@ -237,11 +239,24 @@ export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroF
       }
     }
   }
+  // Os itens entram como **um fator só**: 1 + a soma do que cada um acrescenta. Somar em vez de
+  // multiplicar é o que impede três itens raros de valerem mais do que a soma deles.
+  let bonus: Ratio = { num: 0, den: 1 };
+  const labels: string[] = [];
   for (const item of equippedItems(hero)) {
     const def = itemDefOf(item);
     if (def !== null) {
-      factors.push({ id: 'item', ratio: def.power, label: def.label.toLowerCase() });
+      const { num, den } = def.power;
+      bonus = reduced(bonus.num * den + (num - den) * bonus.den, bonus.den * den);
+      labels.push(def.label.toLowerCase());
     }
+  }
+  if (labels.length > 0) {
+    factors.push({
+      id: 'item',
+      ratio: { num: bonus.den + bonus.num, den: bonus.den },
+      label: labels.join(' + '),
+    });
   }
   return factors;
 }
