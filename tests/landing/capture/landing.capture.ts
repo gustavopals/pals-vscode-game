@@ -18,11 +18,11 @@ const MINUTE = 60_000;
 /*
  * A janela larga do herói e a estreita dos celulares, em pixels de CSS; as capturas saem em 2×.
  * A larga é alta o bastante para a árvore lateral aparecer inteira, com os objetivos abertos como
- * um jogador novo os vê, e ainda sobrar abaixo dela a faixa em que a página põe o rótulo da barra
- * de status; a estreita mostra os quatro ofícios e corta antes do título seguinte. Se uma delas
+ * um jogador novo os vê (desde a V3C-T4, com a linha "Guilda"), e ainda sobrar abaixo dela a
+ * faixa em que a página põe o rótulo da barra de status; a estreita mostra os quatro ofícios e corta antes do título seguinte. Se uma delas
  * mudar, mudam juntos `width` e `height` da imagem em packages/landing/index.html.
  */
-const WIDE = { width: 1040, height: 720 };
+const WIDE = { width: 1040, height: 742 };
 const NARROW = { width: 480, height: 780 };
 
 /**
@@ -36,11 +36,11 @@ const NARROW = { width: 480, height: 780 };
  * falha, porque o rótulo da barra de status ocupa a faixa livre abaixo da árvore.
  */
 const REGIONS = {
-  tree: { x: 4.6, y: 4.8, w: 28.8, h: 84.4 },
-  table: { x: 35, y: 25.8, w: 30.2, h: 18 },
-  steppers: { x: 35, y: 60.8, w: 30.2, h: 35.8 },
-  work: { x: 68.3, y: 25.8, w: 30.2, h: 11.6 },
-  status: { x: 0, y: 96.5, w: 100, h: 3.5 },
+  tree: { x: 4.6, y: 4.6, w: 28.8, h: 85 },
+  table: { x: 35, y: 25, w: 30.2, h: 17.5 },
+  steppers: { x: 35, y: 59, w: 30.2, h: 37.7 },
+  work: { x: 68.3, y: 25, w: 30.2, h: 11.2 },
+  status: { x: 0, y: 96.6, w: 100, h: 3.4 },
 } as const;
 const TOLERANCE = 1.5;
 
