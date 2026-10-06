@@ -250,6 +250,43 @@ export const heroCapturedView = golden.heroCaptured as unknown as ViewState;
 export const denClearedView = golden.denCleared as unknown as ViewState;
 
 /**
+ * O motivo que o servidor dá a um destino sem equipe possível. É frase inventada, de propósito:
+ * o que os testes conferem é que a tela a repete, não o texto do conteúdo.
+ */
+export const CLASS_MISSING_REASON =
+  'Nenhuma equipe do feudo serve agora: a jornada pede uma classe que ninguém aqui tem.';
+
+/** A mesma visão com um destino trocado em alguns campos. */
+export function withDestination(
+  view: ViewState,
+  modelId: string,
+  patch: Partial<ViewState['guild']['available'][number]>,
+): ViewState {
+  return {
+    ...view,
+    guild: {
+      ...view.guild,
+      available: view.guild.available.map((entry) =>
+        entry.modelId === modelId ? { ...entry, ...patch } : entry,
+      ),
+    },
+  };
+}
+
+/**
+ * O destino que pede uma classe que o feudo não tem (o Pântano sem Mago): há gente bastante, no
+ * nível pedido, e mesmo assim nenhuma equipe serve. Quem diz isso é a visão (`canSend`,
+ * `suggestedTeam`, `sendBlockedReason`); nenhuma contagem de heróis o descobre.
+ */
+export function withoutTheClass(view: ViewState, modelId: string): ViewState {
+  return withDestination(view, modelId, {
+    canSend: false,
+    suggestedTeam: [],
+    sendBlockedReason: CLASS_MISSING_REASON,
+  });
+}
+
+/**
  * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera
  * (obra anterior do edifício, fila, recurso, depósito e nível de outro edifício).
  */

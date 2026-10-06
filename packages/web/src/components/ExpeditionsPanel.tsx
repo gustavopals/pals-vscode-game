@@ -2,6 +2,7 @@ import type { ViewState } from '@lotg/protocol';
 import { useState } from 'preact/hooks';
 
 import {
+  blockedReason,
   canSend,
   defaultPosture,
   defaultTeam,
@@ -128,7 +129,7 @@ function SendForm(props: {
 }) {
   const { guild, destination } = props;
   const eligible = eligibleHeroes(guild, destination);
-  const [picked, setPicked] = useState<string[]>(() => defaultTeam(guild, destination));
+  const [picked, setPicked] = useState<string[]>(() => defaultTeam(destination));
   const [posture, setPosture] = useState<Posture['id'] | undefined>(() =>
     defaultPosture(guild.postures),
   );
@@ -225,8 +226,10 @@ function SendForm(props: {
 /**
  * Um destino que a Guilda conhece (ADR 0018, decisão 13): o risco em palavra, a duração real, o
  * que a equipe precisa ter, o que se vê do primeiro trecho e a régua dele, tudo nas frases e
- * nos números do servidor. Bloqueado, diz o motivo, com cadeado; sem gente bastante no feudo,
- * também. O que vem depois da primeira encruzilhada não está aqui: não sai do servidor.
+ * nos números do servidor. Quando nenhuma equipe do feudo pode partir (o lugar na Guilda, a
+ * gente que falta, a classe que falta), a linha diz o motivo do servidor, com cadeado, em vez de
+ * oferecer o envio: quem sabe se há equipe é a visão (`canSend`), não uma contagem daqui. O que
+ * vem depois da primeira encruzilhada não está aqui: não sai do servidor.
  */
 function DestinationRow(props: {
   guild: Guild;
@@ -237,7 +240,7 @@ function DestinationRow(props: {
 }) {
   const { guild, destination } = props;
   const about = domId('send', destination.modelId, 'about');
-  const open = canSend(guild, destination);
+  const open = canSend(destination);
   return (
     <li class="destination" aria-busy={props.busy}>
       <p class="hero-name">
@@ -252,11 +255,7 @@ function DestinationRow(props: {
         {destination.fit === null ? null : <p class="muted">{destination.fit.text}</p>}
         {destination.durationNote === '' ? null : <p class="muted">{destination.durationNote}</p>}
       </div>
-      {destination.locked ? (
-        <p class="blocked">
-          <Icon name="lock" /> {destination.lockedReason}
-        </p>
-      ) : open ? (
+      {open ? (
         <SendForm
           guild={guild}
           destination={destination}
@@ -266,7 +265,7 @@ function DestinationRow(props: {
         />
       ) : (
         <p class="blocked">
-          <Icon name="lock" /> Quem pode partir agora não forma a equipe que este destino pede.
+          <Icon name="lock" /> {blockedReason(destination)}
         </p>
       )}
     </li>

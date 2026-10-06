@@ -25,6 +25,7 @@ import {
   unlockedView,
   winterWith,
   withFoodAhead,
+  withoutTheClass,
   withPlanned,
   withQueues,
   withResource,
@@ -870,6 +871,12 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
       },
     };
     expect(guildItems(onlyInjured)).toEqual([]);
+  });
+
+  it('fora do estado de risco: gente pronta, mas nenhum destino aceita a equipe que há (revisão, A1)', () => {
+    // Dois heróis prontos e destinos de um herói só: a contagem diria que há expedição a partir.
+    const view = withoutTheClass(withoutTheClass(denClearedView, 'patrol'), 'oldForest');
+    expect(guildItems(view)).toEqual([]);
   });
 
   it('todo item das expedições tem uma ação que é um comando', () => {

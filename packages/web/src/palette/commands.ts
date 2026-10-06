@@ -39,10 +39,12 @@ import {
   armableHeroes,
   ARSENAL_ANCHOR,
   ARSENAL_SECTION,
+  blockedReason,
   canSend,
   CROSSROADS_ICON,
   crossroadsDeadline,
   crossroadsSecondsLeft,
+  defaultTeam,
   type Destination,
   DESTINATION_NODE,
   destinationTerms,
@@ -1322,8 +1324,10 @@ export function createCommands(
    * A equipe de um destino, herói por herói: cada lista traz quem ainda pode entrar, com a
    * ficha e o que ele vale contra o primeiro trecho, e, com gente bastante, a opção de partir
    * com quem já foi marcado (com a régua da equipe, nos números da visão). Depois de cada lista
-   * a conta e a visão são lidas de novo: quem deixou de poder partir sai da equipe. `null` é
-   * desistência, ou nada a enviar.
+   * a conta e a visão são lidas de novo: quem deixou de poder partir sai da equipe. Quem pode
+   * entrar é quem a visão lista para o destino; se ela diz que nenhuma equipe serve, nada é
+   * perguntado. Havendo escolha a fazer, a primeira lista abre com a equipe que a visão sugere,
+   * pronta para partir. `null` é desistência, ou nada a enviar.
    */
   const pickTeam = async (modelId: string, gameId: string | null): Promise<string[] | null> => {
     const chosen: string[] = [];
@@ -1332,6 +1336,10 @@ export function createCommands(
       const destination = destinationNow(modelId);
       if (guild === undefined || destination === undefined) {
         destinationGone();
+        return null;
+      }
+      if (!canSend(destination)) {
+        // Nenhuma equipe serve agora: quem chamou diz o motivo do servidor.
         return null;
       }
       const eligible = eligibleHeroes(guild, destination);
@@ -1349,6 +1357,12 @@ export function createCommands(
       );
       const fit = teamFit(destination, chosen);
       const DONE = '';
+      // A equipe sugerida só é oferta quando há o que escolher além dela.
+      const SUGGESTED = ' ';
+      const suggested = defaultTeam(destination);
+      const offerSuggested =
+        chosen.length === 0 && suggested.length > 0 && suggested.length < eligible.length;
+      const suggestedFit = teamFit(destination, suggested);
       const picked = await dialogs.pick<string>({
         title: `Enviar expedição: ${destination.label}`,
         placeholder:
@@ -1361,6 +1375,21 @@ export function createCommands(
           ...(destination.fit === null ? [] : [destination.fit.text]),
         ],
         items: [
+          ...(offerSuggested
+            ? [
+                {
+                  icon: 'check',
+                  label: `Partir com ${teamLine(
+                    suggested.map(
+                      (heroId) => eligible.find((hero) => hero.id === heroId)?.name ?? heroId,
+                    ),
+                  )}`,
+                  description: 'a equipe sugerida',
+                  ...(suggestedFit === null ? {} : { detail: suggestedFit.text }),
+                  value: SUGGESTED,
+                },
+              ]
+            : []),
           ...(enough
             ? [
                 {
@@ -1397,6 +1426,14 @@ export function createCommands(
       }
       if (picked === DONE) {
         return chosen;
+      }
+      if (picked === SUGGESTED) {
+        // A sugestão é a da visão de agora: a lista pode ter ficado aberta um bom tempo.
+        const now = destinationNow(modelId);
+        if (now === undefined || !canSend(now)) {
+          continue;
+        }
+        return defaultTeam(now);
       }
       chosen.push(picked);
     }
@@ -1439,13 +1476,11 @@ export function createCommands(
       let destination = guild.available.find((entry) => entry.modelId === request.modelId);
       if (destination === undefined) {
         if (sendable(guild).length === 0) {
-          // Nenhum destino pode partir agora: o motivo é o do servidor, ou a falta de gente.
-          const blocked = guild.available.find((entry) => entry.locked);
+          // Nenhum destino pode partir agora: o motivo é o do servidor, o do primeiro destino.
+          const [first] = guild.available;
           controller.toast({
             kind: 'info',
-            text:
-              blocked?.lockedReason ??
-              'Nenhum herói pode partir agora: quem está no feudo não basta para nenhum destino.',
+            text: (first === undefined ? null : blockedReason(first)) ?? guild.text,
             actions: [seeExpeditions],
           });
           return;
@@ -1455,17 +1490,13 @@ export function createCommands(
           placeholder: 'Para onde?',
           detail: [guild.text],
           items: guild.available.map((entry) => {
-            const open = canSend(guild, entry);
             return {
               // Cadeado: o destino não pode partir agora, e o detalhe diz por quê.
-              icon: open ? 'check' : 'lock',
+              icon: canSend(entry) ? 'check' : 'lock',
               label: entry.label,
               description: capitalize(destinationTerms(entry)),
               detail: [
-                entry.lockedReason ??
-                  (open
-                    ? null
-                    : 'Quem pode partir agora não forma a equipe que este destino pede.'),
+                blockedReason(entry),
                 entry.requirementsText,
                 entry.firstStretchText,
                 entry.durationNote === '' ? null : entry.durationNote,
@@ -1477,7 +1508,7 @@ export function createCommands(
           }),
           selected: Math.max(
             0,
-            guild.available.findIndex((entry) => canSend(guild, entry)),
+            guild.available.findIndex((entry) => canSend(entry)),
           ),
         });
         if (destination === undefined) {
@@ -1493,15 +1524,10 @@ export function createCommands(
       if (heroIds === null) {
         const now = controller.view?.guild;
         const still = destinationNow(modelId);
-        if (
-          sameGame(gameId) &&
-          now !== undefined &&
-          still !== undefined &&
-          eligibleHeroes(now, still).length < still.teamMin
-        ) {
+        if (sameGame(gameId) && now !== undefined && still !== undefined && !canSend(still)) {
           controller.toast({
             kind: 'info',
-            text: `Quem pode partir agora não forma a equipe de "${still.label}". ${still.requirementsText}`,
+            text: `"${still.label}": ${blockedReason(still) ?? still.requirementsText}`,
             actions: [seeExpeditions],
           });
         }

@@ -17,7 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
-import { crossroadsDeadline, readyHeroes, sendable, waitingExpeditions } from '../ui/expeditions';
+import { crossroadsDeadline, sendable, waitingExpeditions } from '../ui/expeditions';
 import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
@@ -506,16 +506,19 @@ function crossroadsItems(view: ViewState): LeavingItem[] {
 }
 
 /**
- * Herói no feudo, pronto, com destino aberto e gente bastante para ele: quem recebe soldo e não
- * sai não traz nada enquanto o jogador está longe. É sugestão, como os aldeões livres. O botão
- * abre o envio, que pergunta o destino, a equipe e a Postura.
+ * Herói no feudo com destino que o aceita e que pode partir agora: quem recebe soldo e não sai
+ * não traz nada enquanto o jogador está longe. É sugestão, como os aldeões livres. Quais
+ * destinos podem partir e quem cada um aceita é o que a visão diz (`canSend`,
+ * `eligibleHeroIds`): a lista não conta heróis nem confere o que a jornada pede. O botão abre o
+ * envio, que pergunta o destino, a equipe e a Postura.
  */
 function idleHeroesItem(view: ViewState): LeavingItem | null {
   const { guild } = view;
-  if (sendable(guild).length === 0) {
+  const wanted = new Set(sendable(guild).flatMap((destination) => destination.eligibleHeroIds));
+  const ready = guild.heroes.filter((hero) => wanted.has(hero.id));
+  if (ready.length === 0) {
     return null;
   }
-  const ready = readyHeroes(guild);
   const names = joinList(ready.map((hero) => hero.name));
   return {
     id: 'expedition',

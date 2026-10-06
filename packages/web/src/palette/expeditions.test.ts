@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { Controller } from '../app/controller';
 import type { PickOptions } from '../app/dialogs';
 import {
+  CLASS_MISSING_REASON,
   denClearedView,
   expeditionCrossroadsView,
   expeditionTravelingView,
@@ -14,6 +15,7 @@ import {
   scriptedDialogs,
   settle,
   tavernOpenView,
+  withoutTheClass,
 } from '../test-helpers';
 import {
   bindCommands,
@@ -373,7 +375,7 @@ describe('enviar expedição', () => {
     expect(destinations?.items[0]?.detail).toContain(patrol?.firstStretchText);
     // O Covil pede dois e só há um: cadeado, com o motivo.
     expect(destinations?.items[2]).toMatchObject({ icon: 'lock', label: den?.label });
-    expect(destinations?.items[2]?.detail).toContain('não forma a equipe');
+    expect(destinations?.items[2]?.detail).toContain(den?.sendBlockedReason);
     // A equipe: quem pode partir, com o que vale contra o primeiro trecho.
     expect(team?.title).toBe('Enviar expedição: Patrulha dos Arredores');
     expect(team?.placeholder).toBe('Quem vai? A equipe leva 1 herói.');
@@ -396,7 +398,7 @@ describe('enviar expedição', () => {
   it('a equipe de mais de um: a lista volta até a equipe fechar, ou até "Partir com…"', async () => {
     // A Floresta leva de 1 a 2: Edda, depois Rolf, e a equipe está cheia.
     const full = await setup(denClearedView);
-    full.answers.push(1, 0, 1, 1);
+    full.answers.push(1, 1, 1, 1);
     await full.run('lords.sendExpedition');
     expect(full.picks()).toHaveLength(4);
     // Com gente bastante marcada, a primeira linha é partir com quem já foi escolhido.
@@ -408,9 +410,45 @@ describe('enviar expedição', () => {
     expect(full.orders()).toEqual([sent('oldForest', ['hero-1', 'hero-2'], 'balanced')]);
     // Ou só com Edda.
     const alone = await setup(denClearedView);
-    alone.answers.push(1, 0, 0, 0);
+    alone.answers.push(1, 1, 0, 0);
     await alone.run('lords.sendExpedition');
     expect(alone.orders()).toEqual([sent('oldForest', ['hero-1'], 'cautious')]);
+  });
+
+  it('havendo escolha, a primeira lista abre com a equipe que a visão sugere, pronta para partir', async () => {
+    // Na Patrulha de quem tem Rolf e Brann prontos, a visão sugere Brann, o segundo da ficha.
+    const { run, answers, picks, orders } = await setup(heroCapturedView);
+    answers.push(0, 0, 1);
+    await run('lords.sendExpedition');
+    expect(picks()[1]?.items.map((item) => [item.label, item.description])[0]).toEqual([
+      'Partir com Brann',
+      'a equipe sugerida',
+    ]);
+    expect(picks()[1]?.items).toHaveLength(3);
+    expect(orders()).toEqual([sent('patrol', ['hero-3'], 'balanced')]);
+  });
+
+  it('o destino que pede uma classe que o feudo não tem: cadeado, o motivo do servidor e nenhuma lista de equipe (revisão, A1)', async () => {
+    const view = withoutTheClass(denClearedView, 'oldForest');
+    // Pela paleta: o destino vem com cadeado e o motivo; escolhido mesmo assim, nada se pergunta.
+    const palette = await setup(view);
+    palette.answers.push(1);
+    await palette.run('lords.sendExpedition');
+    expect(palette.picks()).toHaveLength(1);
+    expect(palette.picks()[0]?.items[1]).toMatchObject({ icon: 'lock' });
+    expect(palette.picks()[0]?.items[1]?.detail).toContain(CLASS_MISSING_REASON);
+    expect(palette.toasts()).toEqual([`"Floresta Antiga": ${CLASS_MISSING_REASON}`]);
+    expect(palette.orders()).toEqual([]);
+    // Com o destino dado (um botão, a árvore): o mesmo aviso, sem lista.
+    const direct = await setup(view);
+    await direct.run('lords.sendExpedition', 'oldForest');
+    expect(direct.picks()).toEqual([]);
+    expect(direct.toasts()).toEqual([`"Floresta Antiga": ${CLASS_MISSING_REASON}`]);
+    // Sem nenhum destino que possa partir, a paleta diz o motivo do servidor e não abre lista.
+    const none = await setup(withoutTheClass(withoutTheClass(view, 'patrol'), 'wolfDen'));
+    await none.run('lords.sendExpedition');
+    expect(none.picks()).toEqual([]);
+    expect(none.toasts()).toEqual([CLASS_MISSING_REASON]);
   });
 
   it('"Enviar o Resgate" já traz o destino: a lista começa pela equipe', async () => {

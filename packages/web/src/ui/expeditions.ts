@@ -186,37 +186,44 @@ export function destinationTerms(destination: Destination): string {
   return `risco ${destination.riskText.toLowerCase()} · ${durationLine(destination)}`;
 }
 
-/** Os heróis que podem partir agora, na ordem da ficha. */
-export function readyHeroes(guild: Guild): Hero[] {
-  return guild.heroes.filter((hero) => hero.canDepart);
+/**
+ * Os heróis que este destino aceita agora, na ordem da ficha: os que a visão lista em
+ * `eligibleHeroIds`. Quem serve (a prontidão, o nível, o que mais a jornada pedir) é conta do
+ * servidor; a tela só deixa marcar quem ele trouxe.
+ */
+export function eligibleHeroes(guild: Guild, destination: Destination): Hero[] {
+  return guild.heroes.filter((hero) => destination.eligibleHeroIds.includes(hero.id));
 }
 
 /**
- * Os heróis que este destino aceita: os que podem partir e têm o nível que ele pede (o nível
- * mínimo vem da visão). É a lista de quem a tela de envio deixa marcar.
+ * Alguma equipe do feudo pode partir para este destino agora: é o que a visão diz (`canSend`).
+ * O app não conta heróis para descobrir isso: a jornada pode pedir o que a contagem não vê.
  */
-export function eligibleHeroes(guild: Guild, destination: Destination): Hero[] {
-  return readyHeroes(guild).filter((hero) => hero.level >= destination.teamMinLevel);
-}
-
-/** O destino pode partir agora com quem está no feudo: aberto e com gente bastante. */
-export function canSend(guild: Guild, destination: Destination): boolean {
-  return !destination.locked && eligibleHeroes(guild, destination).length >= destination.teamMin;
+export function canSend(destination: Pick<Destination, 'canSend'>): boolean {
+  return destination.canSend;
 }
 
 /** Os destinos que podem partir agora. */
 export function sendable(guild: Guild): Destination[] {
-  return guild.available.filter((destination) => canSend(guild, destination));
+  return guild.available.filter(canSend);
 }
 
 /**
- * A equipe que a tela de envio já traz marcada: os primeiros que o destino aceita, até o mínimo
- * que ele pede. Enviar fica a dois cliques (abrir e confirmar); trocar é desmarcar e marcar.
+ * Por que nenhuma equipe pode partir para este destino agora, na frase do servidor: o lugar na
+ * Guilda, o destino fora de alcance, a gente que falta, a classe que falta. `null` quando pode.
  */
-export function defaultTeam(guild: Guild, destination: Destination): string[] {
-  return eligibleHeroes(guild, destination)
-    .slice(0, destination.teamMin)
-    .map((hero) => hero.id);
+export function blockedReason(
+  destination: Pick<Destination, 'canSend' | 'sendBlockedReason' | 'lockedReason'>,
+): string | null {
+  return destination.canSend ? null : (destination.sendBlockedReason ?? destination.lockedReason);
+}
+
+/**
+ * A equipe que a tela de envio já traz marcada: a que a visão sugere (`suggestedTeam`), a menor
+ * que serve. Enviar fica a dois cliques (abrir e confirmar); trocar é desmarcar e marcar.
+ */
+export function defaultTeam(destination: Pick<Destination, 'suggestedTeam'>): string[] {
+  return [...destination.suggestedTeam];
 }
 
 /**

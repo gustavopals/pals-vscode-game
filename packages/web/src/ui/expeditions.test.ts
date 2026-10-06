@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { guildDeadlines } from '../game/gameSession';
 import {
+  CLASS_MISSING_REASON,
   denClearedView,
   expeditionCrossroadsView,
   expeditionReturningView,
@@ -13,13 +14,16 @@ import {
   heroInjuredView,
   initialView,
   tavernOpenView,
+  withoutTheClass,
 } from '../test-helpers';
 import {
   armableHeroes,
+  blockedReason,
   canSend,
   crossroadsDeadline,
   crossroadsOverdue,
   crossroadsSoon,
+  defaultTeam,
   destinationTerms,
   eligibleHeroes,
   expeditionDeadlines,
@@ -32,7 +36,6 @@ import {
   itemsFor,
   outcomeIcon,
   outcomeIsBad,
-  readyHeroes,
   reportLinks,
   reportOf,
   rescueDestination,
@@ -149,20 +152,33 @@ describe('a encruzilhada como texto', () => {
 });
 
 describe('os destinos e a equipe', () => {
-  it('quem pode partir é quem a visão diz, e o destino filtra pelo nível que ele pede', () => {
-    expect(readyHeroes(guildOf(heroInjuredView)).map((hero) => hero.name)).toEqual(['Rolf']);
-    expect(readyHeroes(guildOf(heroCapturedView)).map((hero) => hero.name)).toEqual([
-      'Rolf',
-      'Brann',
-    ]);
-    // As Ruínas pedem o nível 2: Rolf e Brann, de nível 1, não entram na lista delas.
+  it('quem pode ir a um destino é quem a visão lista, na ordem da ficha', () => {
+    expect(
+      eligibleHeroes(guildOf(heroInjuredView), destination(heroInjuredView, 'patrol')).map(
+        (hero) => hero.name,
+      ),
+    ).toEqual(['Rolf']);
+    // As Ruínas não aceitam ninguém do feudo: a lista da visão vem vazia, com o motivo.
     const ruins = destination(heroCapturedView, 'ruins');
-    expect(ruins.teamMinLevel).toBe(2);
+    expect(ruins.eligibleHeroIds).toEqual([]);
     expect(eligibleHeroes(guildOf(heroCapturedView), ruins)).toEqual([]);
-    expect(canSend(guildOf(heroCapturedView), ruins)).toBe(false);
+    expect(canSend(ruins)).toBe(false);
+    // A lista da visão manda, não o nível nem a prontidão da ficha: só quem ela traz.
+    const picky = { ...destination(denClearedView, 'oldForest'), eligibleHeroIds: ['hero-2'] };
+    expect(eligibleHeroes(guildOf(denClearedView), picky).map((hero) => hero.name)).toEqual([
+      'Rolf',
+    ]);
+    const reversed = {
+      ...destination(denClearedView, 'oldForest'),
+      eligibleHeroIds: ['hero-2', 'hero-1'],
+    };
+    expect(eligibleHeroes(guildOf(denClearedView), reversed).map((hero) => hero.name)).toEqual([
+      'Edda',
+      'Rolf',
+    ]);
   });
 
-  it('um destino pode partir quando está aberto e há gente bastante no feudo', () => {
+  it('um destino pode partir quando a visão diz que alguma equipe serve', () => {
     // Um herói pronto: a Patrulha e a Floresta saem; o Covil pede dois.
     expect(sendable(guildOf(heroInjuredView)).map((entry) => entry.modelId)).toEqual([
       'patrol',
@@ -176,6 +192,31 @@ describe('os destinos e a equipe', () => {
     // Sem a Guilda dos Aventureiros não há destino nenhum na visão.
     expect(sendable(guildOf(guildPaidView))).toEqual([]);
     expect(guildOf(guildPaidView).available).toEqual([]);
+  });
+
+  it('o destino que pede uma classe que o feudo não tem não pode partir, por mais gente que haja (revisão, A1)', () => {
+    // Dois heróis prontos, no nível pedido, e a Floresta leva de 1 a 2: pela contagem, serviria.
+    const view = withoutTheClass(denClearedView, 'oldForest');
+    const forest = destination(view, 'oldForest');
+    expect(forest.eligibleHeroIds).toHaveLength(2);
+    expect(forest.teamMin).toBe(1);
+    expect(canSend(forest)).toBe(false);
+    expect(sendable(guildOf(view)).map((entry) => entry.modelId)).toEqual(['patrol']);
+    // Nenhuma equipe vem marcada, e o motivo é o do servidor.
+    expect(defaultTeam(forest)).toEqual([]);
+    expect(blockedReason(forest)).toBe(CLASS_MISSING_REASON);
+  });
+
+  it('a equipe que já vem marcada é a que a visão sugere', () => {
+    expect(defaultTeam(destination(heroCapturedView, 'wolfDen'))).toEqual(['hero-2', 'hero-3']);
+    // A sugestão não é "os primeiros da lista": na Patrulha, a visão manda Brann, o segundo.
+    expect(destination(heroCapturedView, 'patrol').eligibleHeroIds).toEqual(['hero-2', 'hero-3']);
+    expect(defaultTeam(destination(heroCapturedView, 'patrol'))).toEqual(['hero-3']);
+    // O destino aberto e o bloqueado: sem motivo, ou com o do servidor.
+    expect(blockedReason(destination(heroCapturedView, 'patrol'))).toBeNull();
+    expect(blockedReason(destination(heroInjuredView, 'wolfDen'))).toBe(
+      destination(heroInjuredView, 'wolfDen').sendBlockedReason,
+    );
   });
 
   it('o tamanho da equipe em palavras, com os números da visão', () => {
@@ -363,6 +404,12 @@ describe('a árvore: "Guilda · 3 heróis · 1 expedição na encruzilhada" (GDD
     expect(find(tree(heroInjuredView), 'guild')?.contextValue).toBe('lords.guild');
     expect(find(tree(expeditionTravelingView), 'guild')?.contextValue).toBeUndefined();
     expect(find(tree(tavernOpenView), 'guild')?.contextValue).toBeUndefined();
+  });
+
+  it('a linha "Guilda" não ganha "Enviar" quando a visão diz que nenhuma equipe serve (revisão, A1)', () => {
+    const view = withoutTheClass(withoutTheClass(denClearedView, 'patrol'), 'oldForest');
+    expect(find(tree(view), 'guild')?.contextValue).toBeUndefined();
+    expect(find(tree(denClearedView), 'guild')?.contextValue).toBe('lords.guild');
   });
 
   it('a linha "Hoje" conta a encruzilhada como decisão pendente', () => {

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { ChronicleTab } from '../tabs/Chronicle';
 import { GuildTab } from '../tabs/Guild';
 import {
+  CLASS_MISSING_REASON,
   denClearedView,
   expeditionCrossroadsView,
   expeditionReturningView,
@@ -16,6 +17,7 @@ import {
   heroInjuredView,
   initialView,
   tavernOpenView,
+  withoutTheClass,
 } from '../test-helpers';
 import { defaultPosture, defaultTeam, reportLinks, sendArg } from '../ui/expeditions';
 import type { Actions } from './actions';
@@ -299,23 +301,43 @@ describe('o painel Expedições (V3D-T4.2 e T4.6)', () => {
     if (patrol === undefined) {
       throw new Error('Sem a Patrulha.');
     }
-    expect(defaultTeam(guild, patrol)).toEqual(['hero-2']);
+    expect(defaultTeam(patrol)).toEqual(['hero-2']);
     expect(defaultPosture(guild.postures)).toBe('balanced');
-    expect(sendArg(patrol, defaultTeam(guild, patrol), defaultPosture(guild.postures))).toEqual({
+    expect(sendArg(patrol, defaultTeam(patrol), defaultPosture(guild.postures))).toEqual({
       modelId: 'patrol',
       heroIds: ['hero-2'],
       posture: 'balanced',
     });
-    // Com dois prontos, o Covil (dois heróis) já traz os dois marcados.
-    const den = denClearedView.guild.available.find((entry) => entry.modelId === 'oldForest');
-    expect(den === undefined ? [] : defaultTeam(denClearedView.guild, den)).toEqual(['hero-1']);
+    // A equipe marcada é a que a visão sugere, não os primeiros da lista: na Patrulha de quem
+    // tem Rolf e Brann prontos, vem Brann.
+    const marked = [
+      ...panel(heroCapturedView).matchAll(
+        /type="checkbox"( checked)? aria-labelledby="send-patrol-(hero-\d)-line"/g,
+      ),
+    ].map((match) => [match[2], match[1] !== undefined]);
+    expect(marked).toEqual([
+      ['hero-2', false],
+      ['hero-3', true],
+    ]);
   });
 
-  it('sem gente bastante para um destino, a linha diz isso em vez de oferecer o envio', () => {
+  it('o destino que pede uma classe que o feudo não tem diz o motivo do servidor e não oferece o envio (revisão, A1)', () => {
+    // Dois heróis prontos e uma jornada de 1 a 2: pela contagem a tela abriria a montagem.
+    const view = withoutTheClass(denClearedView, 'oldForest');
+    const shown = text(panel(view));
+    expect(shown).toContain(CLASS_MISSING_REASON);
+    expect(panel(view)).not.toContain('id="send-oldForest-posture"');
+    // Só a Patrulha continua com envio; o Covil, limpo, e a Floresta dizem cada um o seu motivo.
+    expect(buttons(panel(view)).filter((button) => button.label.startsWith('Enviar'))).toHaveLength(
+      1,
+    );
+  });
+
+  it('sem gente bastante para um destino, a linha diz o motivo do servidor em vez de oferecer o envio', () => {
     // O Covil pede dois, e só Rolf pode partir.
-    const shown = text(panel(heroInjuredView));
-    expect(shown).toContain('Quem pode partir agora não forma a equipe que este destino pede.');
-    // Com a Guilda de pé e ninguém livre, todo destino diz o mesmo, ou o motivo do servidor.
+    const den = heroInjuredView.guild.available.find((entry) => entry.modelId === 'wolfDen');
+    expect(den?.sendBlockedReason).not.toBeNull();
+    expect(text(panel(heroInjuredView))).toContain(den?.sendBlockedReason ?? '');
     const sends = buttons(panel(heroInjuredView)).filter((button) =>
       button.label.startsWith('Enviar'),
     );
