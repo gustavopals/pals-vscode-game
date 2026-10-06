@@ -177,7 +177,7 @@
    "expeditionNodeResolved: No 1º dia da Primavera, Rolf achou a trilha dos captores e levou a expedição de Pedra Alta até o acampamento deles.",
    "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Resgate\" parou em uma encruzilhada: O acampamento ao pé do morro. A equipe espera a palavra do senhor de Pedra Alta.",
    "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Resgate\": entrar à noite e cortar as cordas.",
-   "expeditionNodeFailed: No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e o cativo ficou amarrado. A prova pedia mais do que a equipe tinha: gente mais calejada.",
+   "expeditionNodeFailed: No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e as cordas ficaram por cortar. A prova pedia mais do que a equipe tinha: gente mais calejada.",
    "heroInjured: No 1º dia da Primavera, Rolf sofreu um ferimento leve em \"Resgate\". Termina a jornada, mas depois precisa de descanso.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
    "expeditionReturned: No 2º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta com 14 de ouro. A equipe está de novo no feudo: Edda e Rolf."
@@ -211,7 +211,7 @@
     },
     {
      "title": "As cordas no escuro",
-     "text": "No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e o cativo ficou amarrado. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 14 de ouro.",
+     "text": "No 1º dia da Primavera, um cão latiu quando Rolf tocou a carroça: a expedição de Pedra Alta fugiu no escuro, e as cordas ficaram por cortar. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 14 de ouro.",
      "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [

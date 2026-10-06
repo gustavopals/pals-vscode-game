@@ -51,9 +51,9 @@ export const rescue: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} achou a trilha dos captores e levou a expedição de {feudo} até o acampamento deles.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} pisou em um laço dos captores: a expedição de {feudo} perdeu tempo e chegou com o acampamento alerta.',
+                'No {dia}º dia {daEstacao}, {heroi} pisou em um laço dos captores: a expedição de {feudo} chegou ao acampamento mancando.',
               disaster:
-                'No {dia}º dia {daEstacao}, a trilha dos captores era uma cilada, e {heroi} caiu nela: a expedição de {feudo} chegou ao acampamento ferida e anunciada.',
+                'No {dia}º dia {daEstacao}, a trilha dos captores era uma cilada, e {heroi} caiu nela: a expedição de {feudo} chegou ao acampamento sangrando.',
             },
           },
           next: 'campAtHill',
@@ -61,7 +61,7 @@ export const rescue: ExpeditionModelDef = {
         campAtHill: {
           kind: 'crossroads',
           title: 'O acampamento ao pé do morro',
-          text: 'Os captores acampam ao pé de um morro. O cativo está amarrado a uma carroça; o cofre do bando fica na tenda do meio.',
+          text: 'Os captores acampam ao pé de um morro. Quem eles levaram está nas cordas, junto a uma carroça, à vista; o cofre do bando fica na tenda do meio.',
           options: [
             {
               id: 'stormAtNoon',
@@ -72,7 +72,7 @@ export const rescue: ExpeditionModelDef = {
             {
               id: 'cutRopesAtNight',
               label: 'Entrar à noite e cortar as cordas',
-              hint: 'Silêncio e mão leve; dá para soltar o cativo e encher os bolsos na saída.',
+              hint: 'Silêncio e mão leve; dá para cortar as cordas da carroça e encher os bolsos na saída.',
               next: 'nightRopes',
             },
             {
@@ -99,13 +99,13 @@ export const rescue: ExpeditionModelDef = {
             helps: 'warrior',
             lesson: 'Um Guerreiro teria segurado o bando enquanto as cordas eram cortadas.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} rompeu o bando ao meio-dia, de frente. Os captores largaram o cativo e o cofre para salvar a pele.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} rompeu o bando ao meio-dia, de frente. Os captores largaram a carroça e o cofre para salvar a pele.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} abriu caminho até a carroça em pleno dia, e a expedição de {feudo} saiu do acampamento com o cativo e o cofre.',
+                'No {dia}º dia {daEstacao}, {heroi} abriu caminho até a carroça em pleno dia, e a expedição de {feudo} saiu do acampamento com quem veio buscar e com o cofre.',
               setback:
-                'No {dia}º dia {daEstacao}, o bando fechou em volta de {heroi} antes da carroça: a expedição de {feudo} recuou com o que agarrou, e o cativo ficou.',
+                'No {dia}º dia {daEstacao}, o bando fechou em volta de {heroi} antes da carroça: a expedição de {feudo} recuou com o que agarrou, e as cordas da carroça continuaram atadas.',
               disaster:
-                'No {dia}º dia {daEstacao}, o bando fechou sobre {heroi} no meio do acampamento: a expedição de {feudo} foi desbaratada, e o cativo ficou onde estava.',
+                'No {dia}º dia {daEstacao}, o bando fechou sobre {heroi} no meio do acampamento: a expedição de {feudo} foi desbaratada, e as cordas da carroça continuaram atadas.',
             },
           },
           rewards: {
@@ -132,11 +132,11 @@ export const rescue: ExpeditionModelDef = {
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} cortou as cordas no escuro sem um estalo, e a expedição de {feudo} ainda esvaziou os alforjes do bando antes de sumir.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} cortou as cordas no escuro, e a expedição de {feudo} deixou o acampamento com o cativo.',
+                'No {dia}º dia {daEstacao}, {heroi} cortou as cordas no escuro, e a expedição de {feudo} deixou o acampamento com quem veio buscar.',
               setback:
-                'No {dia}º dia {daEstacao}, um cão latiu quando {heroi} tocou a carroça: a expedição de {feudo} fugiu no escuro, e o cativo ficou amarrado.',
+                'No {dia}º dia {daEstacao}, um cão latiu quando {heroi} tocou a carroça: a expedição de {feudo} fugiu no escuro, e as cordas ficaram por cortar.',
               disaster:
-                'No {dia}º dia {daEstacao}, o acampamento acordou em cima de {heroi}: a expedição de {feudo} foi desbaratada no escuro, e o cativo ficou amarrado.',
+                'No {dia}º dia {daEstacao}, o acampamento acordou em cima de {heroi}: a expedição de {feudo} foi desbaratada no escuro, e as cordas ficaram por cortar.',
             },
           },
           rewards: { resources: { gold: { min: 20, max: 40 } }, rescues: true },
@@ -154,9 +154,9 @@ export const rescue: ExpeditionModelDef = {
             helps: 'warrior',
             lesson: 'Um Guerreiro teria calado a sentinela que sobrou.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} chegou à carroça na troca da guarda, e ninguém do bando deu pela falta do cativo antes do amanhecer.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} chegou à carroça na troca da guarda, e ninguém do bando deu pela carroça vazia antes do amanhecer.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} aproveitou a troca da guarda, e a expedição de {feudo} levou o cativo pelo lado do morro.',
+                'No {dia}º dia {daEstacao}, {heroi} aproveitou a troca da guarda, e a expedição de {feudo} saiu pelo lado do morro com quem veio buscar.',
               setback:
                 'No {dia}º dia {daEstacao}, a guarda trocou mais cedo do que {heroi} contava: a expedição de {feudo} teve de largar a carroça e correr.',
               disaster:
@@ -188,9 +188,9 @@ export const rescue: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} forçou a passagem no vau vigiado, e a expedição de {feudo} seguiu para a torre.',
               setback:
-                'No {dia}º dia {daEstacao}, as sentinelas do vau seguraram {heroi} o bastante para tocar a corneta: a torre soube que vinha gente.',
+                'No {dia}º dia {daEstacao}, as sentinelas do vau seguraram {heroi} no meio da água: a expedição de {feudo} atravessou aos trancos, com mais de um arranhão.',
               disaster:
-                'No {dia}º dia {daEstacao}, as sentinelas do vau derrubaram {heroi} na água, e a expedição de {feudo} atravessou ferida e esperada.',
+                'No {dia}º dia {daEstacao}, as sentinelas do vau derrubaram {heroi} na água, e a expedição de {feudo} atravessou sangrando.',
             },
           },
           next: 'ruinedTower',
@@ -198,7 +198,7 @@ export const rescue: ExpeditionModelDef = {
         ruinedTower: {
           kind: 'crossroads',
           title: 'A torre em ruínas',
-          text: 'O cativo está no alto de uma torre meio caída. A porta é de carvalho, a parede dos fundos está rachada, e há uma fresta ao nível do chão.',
+          text: 'A cela fica no alto de uma torre meio caída. A porta é de carvalho, a parede dos fundos está rachada, e há uma fresta ao nível do chão.',
           options: [
             {
               id: 'breakDoor',
@@ -216,7 +216,7 @@ export const rescue: ExpeditionModelDef = {
             {
               id: 'passFileThroughGap',
               label: 'Passar a lima pela fresta e esperar',
-              hint: 'Paciência e nervos, com a ronda passando ao lado; o cativo serra a própria saída, e é só o que se leva.',
+              hint: 'Paciência e nervos, com a ronda passando ao lado; quem está na cela serra a própria saída, e é só o que se leva.',
               next: 'gap',
             },
           ],
@@ -236,7 +236,7 @@ export const rescue: ExpeditionModelDef = {
             onDisaster: 'capture',
             helps: 'warrior',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} arrombou a porta da torre e varreu a guarda escada acima. O cativo desceu livre, e o soldo do bando desceu junto.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} arrombou a porta da torre e varreu a guarda escada acima. A cela ficou vazia, e o soldo do bando desceu a escada junto.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} arrombou a porta da torre e venceu a guarda degrau a degrau, até a cela.',
               setback:
@@ -267,13 +267,13 @@ export const rescue: ExpeditionModelDef = {
             helps: 'archer',
             lesson: 'Um Arqueiro teria subido a parede e jogado a corda.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} escalou a parede dos fundos, rendeu o carcereiro dormindo e desceu com o cativo e com a bolsa dele.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} escalou a parede dos fundos, rendeu o carcereiro dormindo e desceu com a bolsa do homem e com quem veio buscar.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} escalou a parede dos fundos e desceu o cativo por uma corda.',
+                'No {dia}º dia {daEstacao}, {heroi} escalou a parede dos fundos, abriu a cela e fez a descida por uma corda, com quem veio buscar.',
               setback:
                 'No {dia}º dia {daEstacao}, uma pedra da parede cedeu sob {heroi}, e o barulho acordou a torre: a expedição de {feudo} largou a corda e correu.',
               disaster:
-                'No {dia}º dia {daEstacao}, {heroi} caiu da parede dos fundos aos pés da ronda: a expedição de {feudo} foi desbaratada, e o cativo ficou no alto.',
+                'No {dia}º dia {daEstacao}, {heroi} caiu da parede dos fundos aos pés da ronda: a expedição de {feudo} foi desbaratada, e a cela continuou trancada lá no alto.',
             },
           },
           rewards: { resources: { gold: { min: 15, max: 30 } }, rescues: true },
@@ -291,13 +291,13 @@ export const rescue: ExpeditionModelDef = {
             helps: 'mage',
             lesson: 'Um Mago teria esperado sem tremer, com a ronda a dois passos.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} passou a lima pela fresta e esperou imóvel, ronda após ronda. Antes do amanhecer o cativo estava do lado de fora.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} passou a lima pela fresta e esperou imóvel, ronda após ronda. Antes do amanhecer a cela estava vazia.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} passou a lima pela fresta, e o cativo serrou a própria saída.',
+                'No {dia}º dia {daEstacao}, {heroi} passou a lima pela fresta, e quem estava na cela serrou a própria saída.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} perdeu a calma com a ronda tão perto e se afastou da fresta: a lima não chegou ao cativo.',
+                'No {dia}º dia {daEstacao}, {heroi} perdeu a calma com a ronda tão perto e se afastou da fresta: a lima não chegou à cela.',
               disaster:
-                'No {dia}º dia {daEstacao}, a ronda deu com {heroi} junto à fresta: a expedição de {feudo} foi desbaratada, e a lima nunca chegou ao cativo.',
+                'No {dia}º dia {daEstacao}, a ronda deu com {heroi} junto à fresta: a expedição de {feudo} foi desbaratada, e a lima nunca chegou à cela.',
             },
           },
           rewards: { rescues: true },
@@ -325,9 +325,9 @@ export const rescue: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} segurou o ânimo da expedição de {feudo} em uma noite sem fogo, à vista das fogueiras do bando.',
               setback:
-                'No {dia}º dia {daEstacao}, o frio venceu {heroi}, que acendeu um fogo pequeno: o bando viu a luz e dobrou a guarda.',
+                'No {dia}º dia {daEstacao}, o frio venceu {heroi}, e um fogo pequeno foi aceso às escondidas: a expedição de {feudo} amanheceu moída, sem ter dormido.',
               disaster:
-                'No {dia}º dia {daEstacao}, a noite sem fogo quebrou {heroi}: a expedição de {feudo} amanheceu doente, cansada e com o bando à procura dela.',
+                'No {dia}º dia {daEstacao}, a noite sem fogo quebrou {heroi}: a expedição de {feudo} amanheceu doente e sem forças.',
             },
           },
           next: 'cage',
@@ -335,12 +335,12 @@ export const rescue: ExpeditionModelDef = {
         cage: {
           kind: 'crossroads',
           title: 'A gaiola no meio do acampamento',
-          text: 'O cativo está em uma gaiola de madeira no meio do acampamento, entre as tendas e os cavalos. O chefe do bando bebe sentado em cima do cofre.',
+          text: 'A gaiola fica no meio do acampamento, entre as tendas e os cavalos, com gente dentro. O chefe do bando bebe sentado em cima do cofre.',
           options: [
             {
               id: 'challengeChief',
               label: 'Desafiar o chefe do bando',
-              hint: 'Um contra um, diante de todos, valendo o cativo e o cofre; só quem não conhece o medo propõe uma coisa dessas.',
+              hint: 'Um desafio diante de todos, valendo a gaiola e o cofre; a equipe põe na roda quem tiver de melhor. Só quem não conhece o medo propõe uma coisa dessas.',
               requires: { trait: 'brave' },
               next: 'duel',
             },
@@ -353,7 +353,7 @@ export const rescue: ExpeditionModelDef = {
             {
               id: 'crawlByDitch',
               label: 'Rastejar pela vala até a gaiola',
-              hint: 'Devagar e na lama, por baixo dos olhos do bando; o cativo, e nada além dele.',
+              hint: 'Devagar e na lama, por baixo dos olhos do bando, e no fim as travas da gaiola para arrancar no braço; abre a gaiola, e nada além disso.',
               next: 'ditch',
             },
           ],
@@ -374,7 +374,7 @@ export const rescue: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} derrubou o chefe do bando no duelo, e o bando cumpriu a palavra dele a contragosto.',
               setback:
-                'No {dia}º dia {daEstacao}, o duelo entre {heroi} e o chefe do bando acabou sem vencedor: a expedição de {feudo} saiu viva, com o que lhe atiraram, e sem o cativo.',
+                'No {dia}º dia {daEstacao}, o duelo entre {heroi} e o chefe do bando acabou sem vencedor: a expedição de {feudo} saiu viva, com o que lhe atiraram, e com a gaiola ainda fechada.',
               disaster:
                 'No {dia}º dia {daEstacao}, {heroi} perdeu o duelo com o chefe do bando, e o bando cobrou a aposta na hora: a expedição de {feudo} foi desbaratada, e a gaiola continuou fechada.',
             },
@@ -403,7 +403,7 @@ export const rescue: ExpeditionModelDef = {
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} soltou os cavalos e atravessou o acampamento na poeira: abriu a gaiola, e ainda catou o que o bando largou na correria.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} abriu a gaiola no meio da confusão dos cavalos, e a expedição de {feudo} sumiu com o cativo.',
+                'No {dia}º dia {daEstacao}, {heroi} abriu a gaiola no meio da confusão dos cavalos, e a expedição de {feudo} sumiu com quem estava nela.',
               setback:
                 'No {dia}º dia {daEstacao}, os cavalos correram para o lado errado, e {heroi} ficou à vista: a expedição de {feudo} fugiu com o que pegou, e a gaiola ficou fechada.',
               disaster:
@@ -427,7 +427,7 @@ export const rescue: ExpeditionModelDef = {
             outcomes: {
               full: 'No {dia}º dia {daEstacao}, {heroi} rastejou pela vala até a gaiola e tirou as travas uma a uma. O bando só achou a gaiola vazia.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} chegou à gaiola pela vala, e a expedição de {feudo} voltou por ela com o cativo.',
+                'No {dia}º dia {daEstacao}, {heroi} chegou à gaiola pela vala, e a expedição de {feudo} voltou por ela com quem veio buscar.',
               setback:
                 'No {dia}º dia {daEstacao}, {heroi} atolou na vala a poucos passos da gaiola, e a expedição de {feudo} teve de voltar antes da ronda.',
               disaster:
