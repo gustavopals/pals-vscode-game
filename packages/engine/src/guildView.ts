@@ -1,5 +1,6 @@
 import {
   balance,
+  guildTexts,
   heroAttributes,
   heroClasses,
   heroStatuses,
@@ -189,11 +190,26 @@ function arrivingView(state: GameState, timeScale: number): ArrivingHeroView[] {
   return views;
 }
 
+/**
+ * A frase do alto da aba Guilda, pela equipe: sem herói, como o primeiro chega (ou que há um
+ * prometido a caminho); com herói, que ainda não há para onde mandá-lo. Só escolhe entre as
+ * frases do conteúdo: não promete data nem conta nada.
+ */
+function guildText(state: GameState, arriving: ArrivingHeroView[]): string {
+  if (state.guild.heroes.length > 0) {
+    return guildTexts.noDestination;
+  }
+  return arriving.length > 0 ? guildTexts.awaited : guildTexts.noHeroes;
+}
+
 export function guildView(state: GameState, timeScale: number, outlook: CraftOutlook): GuildView {
+  const arriving = arrivingView(state, timeScale);
   return {
+    text: guildText(state, arriving),
+    dismissText: guildTexts.dismiss,
     heroLimit: heroLimit(state),
     heroes: state.guild.heroes.map((hero) => heroView(hero, timeScale)),
-    arriving: arrivingView(state, timeScale),
+    arriving,
     wage: {
       perHour: (wageRate(state) * timeScale) / MILLI,
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),

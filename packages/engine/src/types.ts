@@ -1066,6 +1066,13 @@ export type ArrivingHeroView = {
  * expedições entram com a Fase D.
  */
 export type GuildView = {
+  /**
+   * A situação da equipe em uma frase, para o alto da aba Guilda: sem herói, como o primeiro
+   * chega; com herói, que ainda não há para onde mandá-lo (as expedições são da Fase D).
+   */
+  text: string;
+  /** O que dispensar um herói custa, para a confirmação da ordem: sem devolução. */
+  dismissText: string;
   /** Quantos heróis o feudo pode contratar. Uma recompensa pode passar dele; a contratação, não. */
   heroLimit: number;
   /** Na ordem em que chegaram. */

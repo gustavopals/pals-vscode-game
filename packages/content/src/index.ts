@@ -51,6 +51,7 @@ export type {
   WageArrearsRelief,
 } from './chronicle';
 export {
+  guildTexts,
   heroAttributes,
   heroClasses,
   heroNames,

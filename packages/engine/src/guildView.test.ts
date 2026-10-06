@@ -1,4 +1,4 @@
-import { balance } from '@lotg/content';
+import { balance, guildTexts } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -36,6 +36,8 @@ function court(timeScale: number, edit: (draft: GameState) => void): GameState {
 describe('a guilda na visão', () => {
   it('sem herói: o limite de um, a lista vazia e nenhum soldo', () => {
     expect(guildOf(newGame())).toEqual({
+      text: guildTexts.noHeroes,
+      dismissText: guildTexts.dismiss,
       heroLimit: 1,
       heroes: [],
       arriving: [],
@@ -270,9 +272,30 @@ describe('o soldo em atraso na visão', () => {
     expect(guildOf(ended).wage.coveredForSeconds).toBe(27 * 60);
   });
 
+  it('a frase do alto da aba: como o primeiro herói chega, quem está a caminho e, com equipe, que ainda não há para onde ir', () => {
+    expect(guildOf(newGame()).text).toBe(guildTexts.noHeroes);
+    const promised = gameAt(0, (draft) => {
+      draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: DAY });
+    });
+    expect(guildOf(promised).text).toBe(guildTexts.awaited);
+    expect(guildOf(guildScenario()).text).toBe(guildTexts.noDestination);
+    // Nenhuma promete data nem traz número de regra: a Guilda-edifício é de outra fase.
+    expect(guildOf(guildScenario()).dismissText).toBe(guildTexts.dismiss);
+    for (const text of Object.values(guildTexts)) {
+      expect(text).not.toMatch(/\d|\bdias?\b|\bhoras\b|amanhã|em breve/i);
+    }
+  });
+
   it('nada do que é segredo ou de outra fase sai: nem contador, nem gerador, nem campo da Guilda-edifício', () => {
     const view = deriveViewState(wageArrearsScenario(), wageArrearsScenario().lastProcessedAt);
-    expect(Object.keys(view.guild)).toEqual(['heroLimit', 'heroes', 'arriving', 'wage']);
+    expect(Object.keys(view.guild)).toEqual([
+      'text',
+      'dismissText',
+      'heroLimit',
+      'heroes',
+      'arriving',
+      'wage',
+    ]);
     expect(Object.keys(view.guild.wage)).toEqual(['perHour', 'coveredForSeconds', 'arrears']);
     const text = JSON.stringify(view);
     expect(text).not.toMatch(

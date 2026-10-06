@@ -330,6 +330,10 @@ const HeroSchema = z.strictObject({
  * dois prazos são segundos reais até a virada de dia que cobra cada consequência.
  */
 const GuildSchema = z.strictObject({
+  /** A situação da equipe em uma frase: como o primeiro herói chega, ou o que a equipe espera. */
+  text: z.string(),
+  /** O que dispensar um herói custa (sem devolução), para a confirmação da ordem. */
+  dismissText: z.string(),
   heroLimit: z.number(),
   heroes: z.array(HeroSchema),
   /**

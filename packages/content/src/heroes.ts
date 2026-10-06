@@ -140,6 +140,23 @@ export const heroStatuses: Record<HeroStatusId, { readonly label: string }> = {
 };
 
 /**
+ * O que a aba Guilda diz no alto, conforme a equipe (GDD §13.1): como o primeiro herói chega,
+ * quem já foi prometido e, com gente no feudo, que ainda não há para onde mandá-la. Nenhuma
+ * frase promete data nem número: a Guilda dos Aventureiros e as expedições são de outra fase.
+ * Rascunho que o autor não leu.
+ */
+export const guildTexts = {
+  noHeroes:
+    'Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.',
+  awaited:
+    'Nenhum herói serve ao feudo ainda, mas há quem tenha dado a palavra e esteja a caminho.',
+  noDestination:
+    'Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.',
+  dismiss:
+    'Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.',
+} as const;
+
+/**
  * Um herói com nome próprio (GDD §9.1 e Apêndice B; ADR 0017, decisão 6): quem uma carta do
  * Conselho entrega, com o efeito `addHero`. Chega sem custo; o soldo conta desde a chegada.
  */
