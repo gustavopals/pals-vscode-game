@@ -1492,7 +1492,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
           {
             id: 'stream',
             label: 'Seguir o riacho',
-            hint: 'Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.',
+            hint: 'O riacho leva à lenha boa da outra margem; se houver pedra molhada no caminho, quem tem perícia passa melhor.',
             locked: false,
             lockedReason: null,
           },

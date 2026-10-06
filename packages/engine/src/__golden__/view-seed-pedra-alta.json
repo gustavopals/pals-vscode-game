@@ -21960,7 +21960,7 @@
               {
                 "id": "stream",
                 "label": "Seguir o riacho",
-                "hint": "Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.",
+                "hint": "O riacho leva à lenha boa da outra margem; se houver pedra molhada no caminho, quem tem perícia passa melhor.",
                 "locked": false,
                 "lockedReason": null
               },
@@ -23139,7 +23139,7 @@
             },
             {
               "title": "O javali da mata fechada",
-              "text": "No 19º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 36 de madeira e 11 de ouro.",
+              "text": "No 19º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira da mata ficou para trás. A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada. Trouxe 36 de madeira e 11 de ouro.",
               "outcome": "setback",
               "outcomeLabel": "Revés",
               "notes": [
@@ -24341,7 +24341,7 @@
             },
             {
               "title": "O javali da mata fechada",
-              "text": "No 7º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Edda partiu com espaço vago no equipamento, e havia o que levar no arsenal. Trouxe 32 de madeira e 12 de ouro.",
+              "text": "No 7º dia do Verão, o javali da mata fechada passou por Edda e dispersou a expedição de Pedra Alta: metade da madeira da mata ficou para trás. Edda partiu com espaço vago no equipamento, e havia o que levar no arsenal. Trouxe 32 de madeira e 12 de ouro.",
               "outcome": "setback",
               "outcomeLabel": "Revés",
               "notes": [

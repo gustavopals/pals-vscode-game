@@ -46,7 +46,7 @@ const fork: ExpeditionCrossroadsNode = {
     {
       id: 'stream',
       label: 'Seguir o riacho',
-      hint: 'Chão escorregadio e lenha boa na outra margem; quem tem perícia passa melhor.',
+      hint: 'O riacho leva à lenha boa da outra margem; se houver pedra molhada no caminho, quem tem perícia passa melhor.',
       next: 'glade',
     },
     {
@@ -93,9 +93,9 @@ export const oldForest: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} espantou o javali da mata fechada, e a expedição de {feudo} trabalhou em paz.',
               setback:
-                'No {dia}º dia {daEstacao}, o javali da mata fechada passou por {heroi} e dispersou a expedição de {feudo}: metade da madeira ficou para trás.',
+                'No {dia}º dia {daEstacao}, o javali da mata fechada passou por {heroi} e dispersou a expedição de {feudo}: metade da madeira da mata ficou para trás.',
               disaster:
-                'No {dia}º dia {daEstacao}, o javali da mata fechada derrubou {heroi} e pôs a expedição de {feudo} para correr, sem uma tora sequer.',
+                'No {dia}º dia {daEstacao}, o javali da mata fechada derrubou {heroi} e pôs a expedição de {feudo} para correr, sem tocar na madeira dali.',
             },
           },
           rewards: {
@@ -123,9 +123,9 @@ export const oldForest: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} passou as pedras do riacho, e a expedição de {feudo} encheu os ombros de lenha.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} escorregou nas pedras do riacho, e metade da carga foi para a água.',
+                'No {dia}º dia {daEstacao}, {heroi} escorregou nas pedras do riacho, e metade da lenha da outra margem foi para a água.',
               disaster:
-                'No {dia}º dia {daEstacao}, as pedras do riacho derrubaram {heroi}, e a carga inteira desceu com a correnteza.',
+                'No {dia}º dia {daEstacao}, as pedras do riacho derrubaram {heroi}, e a lenha da outra margem ficou onde estava.',
             },
           },
           rewards: { resources: { wood: { min: 40, max: 60 } } },
@@ -155,7 +155,7 @@ export const oldForest: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, os lenhadores sem senhor não se assustaram com {heroi}: ficaram com a melhor parte, e a expedição de {feudo}, com as sobras.',
               disaster:
-                'No {dia}º dia {daEstacao}, os lenhadores sem senhor cercaram {heroi} e tomaram da expedição de {feudo} até o que ela já trazia.',
+                'No {dia}º dia {daEstacao}, os lenhadores sem senhor cercaram {heroi} e puseram a expedição de {feudo} para fora da mata fechada, sem um cavaco dela.',
             },
           },
           rewards: { resources: { wood: { min: 70, max: 100 }, gold: { min: 10, max: 20 } } },
@@ -231,10 +231,8 @@ export const oldForest: ExpeditionModelDef = {
           },
           rewards: {
             resources: { gold: { min: 30, max: 50 } },
-            item: {
-              chance: { num: 1, den: 2 },
-              from: ['huntingSpear', 'paddedJerkin', 'luckyCharm'],
-            },
+            // Uma gralha junta o que brilha e cabe no bico: moedas e, com sorte, um amuleto.
+            item: { chance: { num: 1, den: 2 }, from: ['luckyCharm'] },
           },
           next: 'home',
         },
@@ -255,7 +253,7 @@ export const oldForest: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o urso do barranco avançou sobre {heroi} e só deixou a expedição de {feudo} sair com metade dos troncos.',
               disaster:
-                'No {dia}º dia {daEstacao}, o urso do barranco derrubou {heroi} e expulsou a expedição de {feudo}, que largou tudo na subida.',
+                'No {dia}º dia {daEstacao}, o urso do barranco derrubou {heroi} e expulsou a expedição de {feudo}, que largou os troncos na subida.',
             },
           },
           rewards: { resources: { wood: { min: 50, max: 70 } } },
