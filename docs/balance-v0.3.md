@@ -1376,7 +1376,7 @@ O que se lê:
 - **Com 2 visitas e a do aviso, decide todas**: o jogador que volta quando a equipe para (uma visita a mais ao fim da hora em que a encruzilhada aparece) nunca perde o prazo. No Rápido isso são 108 visitas extras por partida em 7 dias, mais do que as 14 do dia a dia: é outro jogador.
 - Na matriz padrão o Explorador joga metade das sementes com a visita extra e responde a metade das encruzilhadas, por desenho do bot: decide 51% a 58% nas partidas com a visita e 0% nas outras (seção 9.6).
 
-**A janela de 6 h está errada?** Os números dizem que ela é **exatamente a fronteira entre o perfil de 2 visitas por dia e os outros**: abaixo de 4 visitas por dia a encruzilhada é, na prática, a Postura escolhida no envio; de 4 em diante, ou atendendo o aviso, é uma decisão do jogador. O critério do roadmap ("se quase toda encruzilhada cair na Postura no perfil de 2 visitas, a janela está errada: vai ao autor") **é atendido: todas caem na Postura**. Para o perfil de 2 visitas decidir, a janela teria de passar das 12 h reais. A decisão é do autor (pendência D-71); o conteúdo não foi mexido.
+**(Resposta do autor, 2026-10-06: a janela passou a 12 h; o antes e o depois estão na seção 10.3.)** **A janela de 6 h está errada?** Os números dizem que ela é **exatamente a fronteira entre o perfil de 2 visitas por dia e os outros**: abaixo de 4 visitas por dia a encruzilhada é, na prática, a Postura escolhida no envio; de 4 em diante, ou atendendo o aviso, é uma decisão do jogador. O critério do roadmap ("se quase toda encruzilhada cair na Postura no perfil de 2 visitas, a janela está errada: vai ao autor") **é atendido: todas caem na Postura**. Para o perfil de 2 visitas decidir, a janela teria de passar das 12 h reais. A decisão é do autor (pendência D-71); o conteúdo não foi mexido.
 
 ### 9.4 Capturas, mortes e Resgates por ano
 
@@ -1514,6 +1514,138 @@ Só bot e relatório; nenhuma regra do jogo mudou por causa disto.
 - Camponês não foi rodado no estudo; a matriz dos outros três perfis não foi rodada à parte (o `pnpm test` a confere contra as faixas).
 - `--perf` e os bytes do estado e da visão com os campos novos não foram medidos nesta rodada.
 
-## 10. Rodadas seguintes das Fases E a G
+## 10. Fase D fechada (V3D-T5.3 e T5.4)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 9.*
+Rodada de 2026-10-06, com o estado na versão 20, `crossroadsWaitRealMs` em **12 h reais** (resposta do autor, terceira rodada do dia: pendência D-71) e o `contentHash` `1ee9d576039d3adf`. Responde às subtarefas T5.3 (as encruzilhadas, os desfechos, o ouro parado) e T5.4 (desempenho, tamanhos e o teto da Guilda), depois da mudança de 6 h para 12 h. **Nada aqui foi lido pelo autor.** As faixas do Explorador foram remedidas de propósito, e as dos outros perfis não mexeram.
+
+### 10.1 Comandos
+
+```bash
+for d in lord peasant ironKing; do
+  pnpm -s sim -- --matrix --difficulty $d > matriz-$d.csv 2> matriz-$d.md      # 1.200 partidas cada, 3 perfis de visita e o Explorador
+done
+pnpm -s sim -- --matrix --profile explorador --difficulty lord > explorador-lord.csv 2> explorador-lord.md
+pnpm -s sim -- --expeditions --difficulty lord > estudo-lord.md                  # 10 sementes, 7 dias reais, 1, 2, 4 e 6 visitas por dia
+pnpm -s sim -- --expeditions --difficulty ironKing > estudo-ironKing.md
+pnpm -s sim -- --perf > perf.md                                                  # com a máquina quieta
+```
+
+As saídas desta rodada ficaram no diretório descartável da sessão; o que vale está nas tabelas abaixo e na linha de base de `packages/sim-cli/src/bands.ts`.
+
+### 10.2 As faixas: só o Explorador mexeu
+
+**Os perfis que não usam a Guilda (Preguiçoso, Regular e Dedicado) não mudaram em nenhuma das 54 células** (18 por dificuldade, de 24): a linha de base é idêntica, valor a valor, nas três dificuldades, conferida célula a célula contra `MEASURED`. Mudaram **as células do Explorador**, que é o único perfil que ergue a Guilda e envia: as cinco que mudam em cada dificuldade (`week/3`, `week/1`, `week/0.5`, `year/1` e `year/0.5`; `year/3` não mudou). `week/1` e `year/1` são a mesma partida no ritmo 1. A linha de base foi regravada de propósito (`MEASURED`, seguindo o README do simulador), e a matriz saiu com **código 1 antes** em Senhor (excedente de madeira acima do limite em duas sementes do Explorador) e em Rei de Ferro (a maior sequência desperdiçando comida e madeira acima do limite), e **0 em Camponês** (os valores mexeram, mas dentro da folga das faixas velhas); **depois de regravar**, a suíte do simulador passa (`pnpm --filter @lotg/sim-cli test`, 13 arquivos, 331 testes).
+
+Em Senhor (população, Salão, madeira, pedra e ouro parados, maior sequência desperdiçando em horas de jogo):
+
+| Célula | Antes (6 h) | Depois (12 h) |
+|---|---|---|
+| `week/3/explorador` | 85 · Salão 8 · 4.420 · 5.200 · 286.522 · 39 | 85 · Salão 8 · 4.211 · 5.200 · 282.613 · 33 |
+| `week/1/explorador` e `year/1/explorador` | 66 a 77 · Salão 7 · 5.200 · 5.200 · 19.874 · 9 | 65 a 77 · Salão 7 · 5.200 · 4.600 · 20.806 · 10 |
+| `week/0.5/explorador` | 45 a 54 · Salão 5 · 794 · 897 · 1.219 · 1,5 | 45 a 54 · Salão 5 · **1.159** · 910 · 1.216 · 1,5 |
+| `year/0.5/explorador` | 84 a 85 · Salão 8 · 5.200 · 5.200 · 20.652 · 5,5 | 84 a 85 · Salão 8 · 5.200 · 5.200 · 19.032 · 5,5 |
+
+Em Camponês e em Rei de Ferro as mesmas cinco células mexem, na mesma ordem de grandeza e nem sempre na mesma direção (a linha inteira está em `bands.ts`); em Rei de Ferro, `week/3` passa a 69 h seguidas desperdiçando (eram 63) e `year/0.5` a 6 (eram 3). Nenhuma hora de fome nem de frio, em nenhuma célula, em nenhuma dificuldade. **A mudança vem de uma só causa**: a equipe espera na encruzilhada até o dobro, então cada expedição ocupa o lugar por mais tempo e o cofre recebe o saque mais tarde. Uma medida de `balance.test.ts` mudou com ela: **o Explorador do Normal termina a semana com cinco ou seis heróis** (eram sempre seis), em alguma das 50 sementes; a causa exata não foi investigada.
+
+### 10.3 Quantas encruzilhadas o jogador decide, por visitas por dia
+
+A pergunta de V3D-T5.3, de novo, depois da mudança. Em Senhor, 10 sementes, 7 dias reais, o Explorador que responde a **toda** encruzilhada que encontra na visita; "decididas pelo jogador ÷ todas" (as duas contagens são as que o bot encontrou em cada linha). **Antes** é a seção 9.3 (6 h); **depois**, esta rodada (12 h):
+
+| Ritmo | Visitas por dia | Antes (6 h) | Depois (12 h) |
+|---|---|---|---|
+| Rápido 3× | 1 | 0 de 50 (0%) | **0 de 50 (0%)** |
+| Rápido 3× | 2 | 0 de 234 (0%) | **114 de 114 (100%)** |
+| Rápido 3× | 4 | 255 de 255 (100%) | 255 de 255 (100%) |
+| Rápido 3× | 6 | 416 de 416 (100%) | 416 de 416 (100%) |
+| Normal 1× | 1 | 0 de 18 (0%) | **0 de 18 (0%)** |
+| Normal 1× | 2 | 0 de 103 (0%) | **42 de 42 (100%)** |
+| Normal 1× | 4 | 174 de 174 (100%) | 174 de 174 (100%) |
+| Normal 1× | 6 | 285 de 285 (100%) | 285 de 285 (100%) |
+| Tranquilo 0,5× | 1 | 0 de 3 (0%) | **0 de 3 (0%)** |
+| Tranquilo 0,5× | 2 | 0 de 32 (0%) | **14 de 14 (100%)** |
+| Tranquilo 0,5× | 4 | 64 de 64 (100%) | 64 de 64 (100%) |
+| Tranquilo 0,5× | 6 | 114 de 114 (100%) | 114 de 114 (100%) |
+
+O que se lê, **com todas as letras**:
+
+- **Quem visita duas vezes por dia passa a decidir todas** (de 0% a 100% nos três ritmos). **Quem visita uma vez por dia continua sem decidir nenhuma**: uma visita a cada 24 h contra uma espera de 12 h. O pedido do autor (a janela de 6 h deixava de fora quem visita 1 ou 2 vezes por dia) é atendido para o de duas visitas; o de uma visita só passaria a decidir com uma janela de 24 h ou mais, que ninguém propôs.
+- **O 100% das duas visitas é a borda**: as duas visitas do bot são de 12 em 12 h exatas, e a equipe chega à encruzilhada minutos depois de uma visita, então a visita seguinte cai sempre antes do prazo (que vence 12 h depois da chegada). Um jogador de verdade, com duas visitas irregulares (de manhã e à noite, 14 h e 10 h), perderia a encruzilhada de uma equipe que parou logo depois de uma visita de 10 h e foi deixada para a visita seguinte, 14 h depois, e decide menos que 100%. **Isso não foi medido**: o simulador só tem a cadência exata.
+- **O custo aparece nos envios**: com duas visitas por dia, o Rápido passa de 234 a 120 expedições em 7 dias, o Normal de 110 a 59 e o Tranquilo de 41 a 24, porque a equipe que espera a visita seguinte, em vez de a Postura decidir às 6 h, volta um dia depois e só é enviada de novo na visita seguinte a isso. Herói ocioso, em herói-hora por partida, quase não mexe (Rápido 391 a 384, Normal 303 a 300, Tranquilo 140 a 153) e **o ouro no fim fica na mesma ordem de grandeza** (Rápido, duas visitas: 177 a 212 mil antes, 169 a 212 mil depois).
+- **Na matriz padrão** (50 sementes, metade com a visita extra, o resto só com as sessões do dia, em Senhor), a parte decidida pelo jogador sobe: Rápido de 27% (336 de 1.240) a **53% (479 de 904)**, Normal de 29% a **57% (229 de 403)** e Tranquilo de 32% a **68% (63 de 92)**; **nas partidas sem a visita extra, de 0% a 50% (143 de 286), 55% e 71%**. Em Rei de Ferro, 54%, 58% e 79%.
+
+### 10.4 Desfechos, capturas, Resgates e mortes (o bot `ousado`)
+
+Em Senhor e em Rei de Ferro, 10 sementes por linha, 7 dias reais, as quinze linhas do bot `ousado` (cinco cadências em cada um dos três ritmos), somadas:
+
+| Dificuldade | Nós com prova: Pleno / Sucesso / Revés / Desastre | Feridos | Cativos | Mortos | Resgatados | Equipes perdidas | Covil limpo |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Senhor (6 h, seção 9.4) | (por linha) | — | 1 | 0 | 1 | 0 | — |
+| **Senhor (12 h)** | 1.623 / 1.304 / 626 / 24 | 633 | **0** | **0** | **0** | 0 | 153 |
+| Rei de Ferro (6 h, seção 9.4) | (por linha) | — | 0 | 2 | 0 | 0 | — |
+| **Rei de Ferro (12 h)** | 922 / 1.265 / 616 / 22 | 616 | **0** | **2** | **0** | 0 | 140 |
+
+- **Capturas, Resgates e mortes continuam em zero ou quase**: nenhum cativo e nenhum Resgate nas 150 partidas do `ousado` em Senhor desta rodada (na anterior, um e um) e duas mortes em Rei de Ferro (como antes). Nenhuma equipe inteira se perdeu. O motivo é o da seção 9.4: o bot não manda equipe abaixo do risco do primeiro trecho, e os nós que capturam (chefes e cativeiros) só capturam quem não tinha chance; o Desastre é raro (de 22 a 24 nós em mais de 3.500 com prova). **Não se mede aqui o que acontece a quem manda equipe fraca de propósito.**
+- **O Explorador (o bot prudente, 15 linhas, as mesmas cadências)**: 1.661 / 601 / 149 / 3 em Senhor e 1.616 / 611 / 166 / 0 em Rei de Ferro, sem cativo, morto, resgatado nem equipe perdida; o Covil de Lobos foi limpo 144 e 141 vezes.
+- **Por destino** (estudo de Senhor): com uma e duas visitas por dia o Explorador só envia a Floresta Antiga e o Covil de Lobos (e, às vezes, a Patrulha); **as Ruínas e o Pântano só aparecem com quatro ou mais visitas por dia**, como na seção 9.5. A tabela por destino não é reproduzida aqui.
+
+### 10.5 Herói ocioso e ouro parado
+
+**Herói ocioso** (herói-hora por partida, Senhor, estudo `--expeditions`, Explorador que responde a tudo, em Rápido, Normal e Tranquilo): com uma visita por dia, 358, 171 e 140 (antes 418, 193 e 144); com duas, 384, 300 e 153 (antes 391, 303 e 140); com quatro e com seis, igual ao da seção 9.3 (424 e 426; 334 e 323; 181 e 188). Mudar a janela não criou ociosidade nova.
+
+**O ouro parado, contra a linha de base da seção 1.3** (ouro em estoque no fim da janela, em Senhor, as 50 sementes: menor, mediana e maior). **O ouro parado NÃO caiu de forma que se meça como vitória**; o que mexe é pequeno e vai nas duas direções:
+
+| Janela e ritmo | Regular da v0.2 (seção 1.3) | Regular agora (soldo e carta, sem Guilda) | Explorador agora (12 h) |
+|---|---|---|---|
+| 7 dias, Rápido | 113.566 · 128.436 · 148.487 | 159.093 · 177.665 · 211.754 | 169.768 · **243.978** · 282.613 |
+| Ano de jogo, Rápido | 1.870 · 2.176 · 3.052 | 1.859 · 2.065 · 3.000 | 1.285 · **1.689** · 3.075 |
+| 7 dias e ano, Normal | 2.348 · 8.967 · 23.641 | 8.283 · 16.708 · 23.840 | 862 · **9.324** · 20.806 |
+| 7 dias, Tranquilo | 38 · 518 · 1.044 | 6 · 882 · 1.233 | 29 · **701** · 1.216 |
+| Ano de jogo, Tranquilo | 13.128 · 17.646 · 22.535 | 11.000 · 14.838 · 20.021 | 5.891 · **11.962** · 19.032 |
+
+- **No ano de jogo, que é onde o jogador de verdade está, o Explorador termina com menos que o Regular da v0.2: a mediana cai 22% no Rápido (2.176 a 1.689) e 32% no Tranquilo (17.646 a 11.962), e fica igual no Normal (8.967 a 9.324); o maior valor não cai (3.052 a 3.075 no Rápido).** Quem duas visitas por dia joga um ano com a Guilda ainda termina com de 1,3 a 3,1 mil de ouro sem destino no Rápido (a promessa a baixar era de 1,9 a 3,1 mil).
+- **Na semana do Rápido, três anos de jogo, subiu**: a mediana vai de 128 mil a 244 mil (+90%), como nas seções 5.5 e 9.6, porque seis heróis custam 12 de ouro por hora e as expedições trazem ouro, e depois das obras o feudo continua sem onde gastá-lo.
+- **A mudança de 6 h para 12 h moveu o ouro pouco**: o maior valor do Explorador na semana do Rápido foi de 286.522 a 282.613 (−1%). **Quem decide o que fazer com o ouro é o Mercado (Fase E), e a resposta do autor de 2026-10-06 (C-23) é medir após a Fase E e então decidir**: a V3E-T5.2 leva propostas concretas antes de V3G-T1.
+
+### 10.6 Desempenho e tamanhos (V3D-T5.4)
+
+`pnpm -s sim -- --perf`, com a máquina quieta (nenhum outro processo de teste ou de matriz rodando), Motor 0.2.0 · estado v20 · conteúdo `1ee9d576039d3adf` · ritmo 3× · Node v24.15.0 · linux x64 · 9 repetições por medida:
+
+| Feudo | Ausência (dias reais) | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Estado (bytes) | Visão (bytes) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Feudo novo, sem nenhuma ordem | 1 | 1,2 | 1,4 | 0,5 | 2.216 | 18.605 |
+| Feudo novo, sem nenhuma ordem | 30 | 13,6 | 15,8 | 0,5 | 3.073 | 19.865 |
+| Feudo de 2 dias reais (bot econômico) | 7 | 4,5 | 4,7 | 0,5 | 4.038 | 22.650 |
+| Feudo de 2 dias reais (bot econômico) | 30 | 16,7 | 25,1 | 0,4 | 4.284 | 22.531 |
+| Feudo de 7 dias reais (bot econômico) | 7 | 4,9 | 7,4 | 0,4 | 4.234 | 20.774 |
+| Feudo de 7 dias reais (bot econômico) | 30 | 19,4 | 19,9 | 0,7 | **4.515** | 21.214 |
+
+(As nove linhas completas, com os eventos e os habitantes, estão no formato das seções 1.5 e 5.6 e foram vistas; aqui só as que contam.) **Contra a seção 5.6 (Fase C fechada): `advanceTo` de 30 dias reais fora, 13,6 a 19,4 ms (eram 14,1 a 17,5), sem diferença que se meça; o estado do bot econômico, o maior dos nove cenários, 4.515 bytes (eram 4.364: +151); a visão, no maior, 22.650 (eram 20.894: +1.756).** O teto de `perf.test.ts` (estado abaixo de 5.500 bytes) vale para esses cenários e continua com folga.
+
+**Com seis heróis, três expedições em curso e três relatórios guardados** (roteiro descartável de teste do motor, Guilda no nível 4, Senhor, ritmo 3; JSON do estado e da visão em bytes UTF-8):
+
+| Situação | Estado | Visão | `state.guild` | `view.guild` |
+|---|---:|---:|---:|---:|
+| 6 heróis, nenhuma expedição | 3.352 | 22.844 | 1.692 | 7.987 |
+| 6 heróis, 3 relatórios guardados, nada em curso | 5.144 | 26.345 | 3.381 | 11.340 |
+| **+ 3 expedições em curso (viajando)** | **6.133** | **26.622** | 4.340 | 11.617 |
+| + 3 em curso, com uma ou duas paradas na encruzilhada (20 min depois) | **6.692** | **28.827** | 4.732 | 13.597 |
+
+- **O maior caso medido é de 6,7 kB de estado e 28,8 kB de visão.** Contra a linha de base da v0.2 (seção 1.5: 3,3 a 3,5 kB e 16,9 a 17,4 kB) é o dobro do estado e +66% da visão; contra a seção 5.6 (Taverna cheia, seis heróis: 5,5 e 25,5 kB), +1,2 kB e +3,4 kB. **Longe do dimensionamento do GDD §14 (visão de 100 kB)**, e cada recibo de comando guarda uma visão inteira: a tabela `commands` cresce na mesma proporção (28,8 kB por ordem contra 17 a 18 kB da v0.2), e o volume real em produção continua sem medida.
+- **Os três relatórios guardados pesam 1,8 kB de estado e 3,5 kB de visão** (cerca de 600 bytes e 1,2 kB por relatório); cada expedição em curso viajando, cerca de 330 bytes de estado e 90 de visão, e a equipe parada na encruzilhada acrescenta uma folha de caminhos à visão (mais 2,2 kB na medida com duas paradas).
+- **O teto de `perf.test.ts` não cobre este caso** (o bot econômico não manda expedição): um jogador com a Guilda cheia passa de 5.500 bytes de estado. O teto fica como está e vale para o que o simulador mede; o limite real do estado é o dos tetos de lista do conteúdo (`reportsKept`, `slotsByGuildLevel`, `rosterCap`, o arsenal de 30).
+
+**O teto da Guilda (roadmap, §0.5, "nível alcançável").** Confirmado por teste de conteúdo que roda em todo `pnpm test`: `packages/content/src/expeditions.test.ts`, "cada nível vendido da Guilda cabe no depósito nas três dificuldades, com o Armazém que o Salão daquele nível deixa erguer" (passa nesta rodada, com o prazo da encruzilhada em 12 h, que não entra na conta). Nenhum custo de nível da Guilda fica acima do depósito de Camponês, Senhor ou Rei de Ferro.
+
+### 10.7 Limites desta medição
+
+- **Dez sementes por linha** nos estudos de expedição e só Senhor e Rei de Ferro (Camponês entrou só na matriz padrão). "Um cativo" ou "duas mortes" não são taxas.
+- **A cadência de duas visitas é exata (12 h), e é por isso que dá 100%.** A pergunta "quanto decide um jogador de duas visitas irregulares" não tem medida; a conta mostra que decide menos que isso, e que o de uma visita por dia não decide.
+- **O custo de a equipe esperar mais** aparece nos envios (a metade com duas visitas) e nas células do Explorador; **ninguém jogou** a diferença, e se a espera de 12 h é boa para o jogador de duas visitas, que agora decide, mas envia menos, é pergunta que só o autor responde jogando.
+- **O Explorador é prudente e o `ousado` não chega a ser imprudente**: nenhum dos dois mostra captura nem morte em número que importe, e a regra dos desfechos continua a limitar o que se mede (D-66).
+- **A seção 9.3 dizia que, para o perfil de 2 visitas decidir, a janela teria de "passar das 12 h".** Com 12 h exatas e duas visitas exatamente de 12 em 12 h, ele já decide todas: a visita seguinte cai sempre antes do prazo, que nasce depois da visita que enviou a equipe. A previsão estava certa na direção e errada na borda; é um efeito da cadência exata do bot, não uma propriedade do jogo.
+- Os tempos de `--perf` são de uma rodada, nove repetições, indicativos.
+- A matriz do Camponês saiu **dentro das faixas** só depois de regravar as cinco células do Explorador; as 24 células de cada dificuldade foram conferidas, e as dos perfis sem Guilda, comparadas uma a uma com a linha de base antiga, e são idênticas.
+
+## 11. Rodadas seguintes das Fases E a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1 e 3 a 10.*

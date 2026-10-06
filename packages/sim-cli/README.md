@@ -262,6 +262,8 @@ O comando sai com código 1 se alguma partida ficar fora da faixa. **As três di
 
 A matriz já pesa na suíte. Se passar a incomodar, o primeiro corte é nas sementes de Senhor; a matriz completa continua saindo pelo comando.
 
+**A Fase D fechou com a linha de base do Explorador remedida de propósito (V3D-T5; balance-v0.3.md, seção 10).** O prazo da encruzilhada passou de 6 h a 12 h reais por resposta do autor de 2026-10-06 (pendência D-71), e as cinco células do Explorador que mexem em cada dificuldade (`week/3`, `week/1`, `year/1`, `week/0.5` e `year/0.5`) foram regravadas em `MEASURED`; as dos perfis sem Guilda ficaram idênticas, e a conferência é: rodar a matriz nas três dificuldades e comparar, célula a célula, o bloco "Linha de base medida nesta rodada" com `MEASURED`. O estudo de expedições lê o prazo do conteúdo (`balance.expeditions.crossroadsWaitRealMs`) ao escrever o cabeçalho.
+
 ## Desempenho do motor em ausências longas
 
 ```bash
