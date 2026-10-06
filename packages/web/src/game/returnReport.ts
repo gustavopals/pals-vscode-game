@@ -6,7 +6,7 @@ import {
   type ViewState,
 } from '@lotg/protocol';
 
-import { cardDeadline, expiresSoon } from '../ui/council';
+import { cardDeadline, cardDecisions, crossroadsDecisions, expiresSoon } from '../ui/council';
 import { formatNumber, joinList } from '../ui/format';
 import { peopleMoved } from '../ui/morale';
 import {
@@ -110,7 +110,7 @@ export function costAction(
   }
   if (topic === 'council') {
     // A carta que expirou já foi decidida; o que se pode fazer é não deixar a próxima expirar.
-    const waiting = view.pendingDecisions.length;
+    const waiting = cardDecisions(view).length;
     return {
       command: 'lords.openPanel',
       arg: 'council',
@@ -132,7 +132,7 @@ export function costAction(
  * começam sozinhas e os aldeões livres, nas frases e com os botões de "Antes de partir".
  */
 export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportItem[] {
-  const cards = view.pendingDecisions.map((decision): ReturnReportItem => {
+  const cards = cardDecisions(view).map((decision): ReturnReportItem => {
     const follows = view.council.pending.find((card) => card.instanceId === decision.id)
       ?.followsFrom?.text;
     return {
@@ -146,6 +146,14 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       action: { command: 'lords.openPanel', arg: 'council', label: 'Decidir' },
     };
   });
+  // A equipe parada em uma encruzilhada: o prazo e o caminho para a aba Guilda. A escolha do
+  // caminho na tela é da tarefa da interface das expedições; sem resposta, a Postura decide.
+  const crossroads = crossroadsDecisions(view).map((decision): ReturnReportItem => ({
+    text: `Guilda: “${decision.title}” · ${cardDeadline(decision, elapsedSeconds)}.`,
+    topic: `crossroads:${decision.id}`,
+    ...(expiresSoon(decision, elapsedSeconds) ? { severity: 'warning' as const } : {}),
+    action: { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
+  }));
   const works = leavingItems(view)
     .filter((item) => item.id === 'queue' || item.id === 'idle')
     .map((item): ReturnReportItem => ({
@@ -154,7 +162,7 @@ export function pendingItems(view: ViewState, elapsedSeconds = 0): ReturnReportI
       severity: item.severity,
       action: toAction(item.command),
     }));
-  return [...cards, ...works];
+  return [...cards, ...crossroads, ...works];
 }
 
 /**

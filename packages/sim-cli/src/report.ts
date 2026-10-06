@@ -12,7 +12,14 @@ import {
 
 import { strategyPolicies } from './bots';
 import { identityLine } from './identity';
-import { type HourRow, type RaidCounts, realHoursOf, type SimulationResult } from './simulate';
+import {
+  type ExpeditionCounts,
+  type HourRow,
+  noExpeditions,
+  type RaidCounts,
+  realHoursOf,
+  type SimulationResult,
+} from './simulate';
 
 /** Os materiais em que se mede o excedente parado. A comida fica de fora: ela é consumida. */
 export const SURPLUS_RESOURCES = RESOURCE_IDS.filter(
@@ -317,6 +324,42 @@ const MEASURED_COLUMNS: Partial<
     hour: (row) => row.guild.departed,
     run: (summary) => summary.guild.departed + summary.guild.dismissed,
   },
+  // As expedições (V3D-T1), contadas dos eventos: os envios, os nós com dificuldade por
+  // desfecho e quem decidiu em cada encruzilhada (o bot, em uma visita, ou a Postura, no
+  // prazo). A equipe parada é uma amostra ao fim de cada hora real: quantos heróis estavam no
+  // feudo, sem tarefa, somados hora a hora.
+  expeditions_sent: {
+    hour: (row) => row.expeditions.sent,
+    run: (summary) => summary.expeditions.sent,
+  },
+  outcomes_full_success: {
+    hour: (row) => row.expeditions.outcomes.full,
+    run: (summary) => summary.expeditions.outcomes.full,
+  },
+  outcomes_success: {
+    hour: (row) => row.expeditions.outcomes.success,
+    run: (summary) => summary.expeditions.outcomes.success,
+  },
+  outcomes_setback: {
+    hour: (row) => row.expeditions.outcomes.setback,
+    run: (summary) => summary.expeditions.outcomes.setback,
+  },
+  outcomes_disaster: {
+    hour: (row) => row.expeditions.outcomes.disaster,
+    run: (summary) => summary.expeditions.outcomes.disaster,
+  },
+  crossroads_by_player: {
+    hour: (row) => row.expeditions.crossroadsByPlayer,
+    run: (summary) => summary.expeditions.crossroadsByPlayer,
+  },
+  crossroads_by_stance: {
+    hour: (row) => row.expeditions.crossroadsByPosture,
+    run: (summary) => summary.expeditions.crossroadsByPosture,
+  },
+  hero_idle_hours: {
+    hour: (row) => row.expeditions.heroIdleHours,
+    run: (summary) => summary.expeditions.heroIdleHours,
+  },
 };
 
 /** O que as incursões levaram, somados os recursos, em unidades inteiras. */
@@ -508,6 +551,13 @@ export type Summary = {
     tavernLevel: number;
     tavernAtHour: number | null;
   };
+  /**
+   * As expedições da partida (GDD §9.2), como a última hora as conta: os envios, os desfechos
+   * dos nós com dificuldade, as encruzilhadas decididas pelo bot e pela Postura, as herói-horas
+   * reais com herói parado no feudo, o nível final da Guilda dos Aventureiros e o ouro que os
+   * saques puseram no cofre, em unidades.
+   */
+  expeditions: ExpeditionCounts & { guildLevel: number; lootGold: number };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
 };
@@ -646,6 +696,13 @@ export function summarize(result: SimulationResult): Summary {
       allDoneAtHour: rows.find((row) => row.objectives >= objectives.length)?.hour ?? null,
     },
     guild: guildOf(result),
+    expeditions: {
+      ...(rows.at(-1)?.expeditions ?? noExpeditions()),
+      guildLevel: result.finalState.settlement.buildings.guild,
+      lootGold: result.events
+        .filter((event) => event.type === 'expeditionReturned')
+        .reduce((sum, event) => sum + Number(event.data.gained_gold ?? 0), 0),
+    },
     stock,
   };
 }
@@ -707,6 +764,25 @@ function threatLine({ threat, milestones }: Summary): string {
   return threat.watchtower === 0
     ? `${level} · sem Torre de Vigia: o jogador nunca a viu`
     : `${level} · Torre de Vigia Nv${threat.watchtower}, erguida na hora ${milestones.watchtower ?? '?'}`;
+}
+
+/**
+ * "Guilda: 3 heróis · Guilda dos Aventureiros Nv1 · 9 expedições: 7 sucessos plenos, 2
+ * sucessos, 0 reveses, 0 desastres · encruzilhadas: 0 pelo jogador, 0 pela Postura · 212
+ * herói-horas paradas · 180 de ouro em saques". Os nós contados são os que têm dificuldade.
+ */
+function guildLine({ guild, expeditions }: Summary): string {
+  const { outcomes } = expeditions;
+  return [
+    `Guilda: ${guild.heroes} heróis`,
+    expeditions.guildLevel === 0
+      ? 'sem a Guilda dos Aventureiros'
+      : `Guilda dos Aventureiros Nv${expeditions.guildLevel}`,
+    `${expeditions.sent} expedições: ${outcomes.full} sucessos plenos, ${outcomes.success} sucessos, ${outcomes.setback} reveses, ${outcomes.disaster} desastres`,
+    `encruzilhadas: ${expeditions.crossroadsByPlayer} pelo jogador, ${expeditions.crossroadsByPosture} pela Postura`,
+    `${expeditions.heroIdleHours} herói-horas paradas`,
+    `${expeditions.lootGold} de ouro em saques`,
+  ].join(' · ');
 }
 
 /**
@@ -804,6 +880,7 @@ export function formatSummary(result: SimulationResult, control?: SimulationResu
     councilLine(summary),
     threatLine(summary),
     raidsLine(summary),
+    guildLine(summary),
     `Fila ociosa: ${idleLine(summary)}`,
     ...(control === undefined
       ? []

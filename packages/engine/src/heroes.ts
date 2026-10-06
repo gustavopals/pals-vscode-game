@@ -1,11 +1,13 @@
 import {
   balance,
   HERO_ATTRIBUTE_IDS,
+  type HeroAttributeId,
   heroClasses,
   type HeroTraitId,
   heroTraits,
   type NamedHeroDef,
   namedHeroes,
+  type PostureId,
   type Ratio,
 } from '@lotg/content';
 
@@ -26,8 +28,9 @@ export function isLoyal(hero: Hero): boolean {
 }
 
 /**
- * O herói está no feudo. Só quem está pode partir por soldo em atraso e ser dispensado: quem
- * está fora (em expedição ou em escolta, da Fase D em diante) só parte depois de voltar.
+ * O herói está no feudo. Só quem está pode partir por soldo em atraso, ser dispensado e sair em
+ * expedição: quem está fora (em expedição; em escolta, da Fase E em diante) só parte depois de
+ * voltar.
  */
 export function isAtHome(hero: Hero): boolean {
   return hero.status === 'idle';
@@ -107,15 +110,18 @@ export function traitMorale(hero: Hero): number {
  * Um fator do poder de um herói: a fração que entra na conta e o nome com que ele aparece na
  * explicação do número ("× 1,08 (Nv2)").
  */
-export type HeroFactor = { id: 'level' | 'discontent'; ratio: Ratio; label: string };
+export type HeroFactor = { id: 'level' | 'discontent' | 'trait'; ratio: Ratio; label: string };
 
 /**
  * Os fatores que multiplicam os atributos de um herói agora, na ordem em que a explicação os
- * mostra: o nível (`+levelBonus` por nível acima do primeiro, **sem compor**) e, com o soldo em
- * atraso, o Descontente. É **a** lista: `heroPower` multiplica todos e a visão escreve um termo
- * para cada um que mexe. Classe, traço e item entram aqui com as tarefas deles.
+ * mostra: o nível (`+levelBonus` por nível acima do primeiro, **sem compor**), com o soldo em
+ * atraso o Descontente e, **em uma expedição enviada com a Postura dada**, o traço que rende
+ * mais nela (o Corajoso na Ousada, o Prudente na Cautelosa; ADR 0017, "Os oito traços"). É **a**
+ * lista: `heroPower` e `teamPower` multiplicam todos e a visão escreve um termo para cada um
+ * que mexe. Sem Postura (a ficha do herói no feudo) nenhum traço entra. Item entra aqui com a
+ * tarefa dele.
  */
-export function heroFactors(hero: Hero): HeroFactor[] {
+export function heroFactors(hero: Hero, posture: PostureId | null = null): HeroFactor[] {
   const { levelBonus, arrears } = rules;
   const factors: HeroFactor[] = [
     {
@@ -127,38 +133,107 @@ export function heroFactors(hero: Hero): HeroFactor[] {
   if (hero.discontent) {
     factors.push({ id: 'discontent', ratio: arrears.discontentFactor, label: 'descontente' });
   }
+  if (posture !== null) {
+    for (const trait of hero.traits) {
+      const boost = heroTraits[trait].effects.expeditionPower;
+      if (boost !== undefined && boost.posture === posture) {
+        factors.push({
+          id: 'trait',
+          ratio: boost.ratio,
+          label: traitLabel(trait, hero.gender).toLowerCase(),
+        });
+      }
+    }
+  }
   return factors;
 }
 
+/** Os pesos de atributo de uma conta de poder: os do conteúdo, e por cima os que um nó troca. */
+export type PowerWeights = Partial<Record<HeroAttributeId, Ratio>>;
+
 /**
- * O poder-base de uma classe, em fração de milésimos: a soma dos atributos que o conteúdo pesa
- * (`balance.heroes.power`: ataque + defesa + vida ÷ 10), cada um com o peso dele.
+ * Os pesos que valem em um nó: os de `balance.heroes.power` (ataque, defesa e vida ÷ 10) com os
+ * do nó por cima. Um peso do nó **troca** o do atributo, ou o acrescenta quando o atributo não
+ * pesava ("perícia pesa ×1,5" é `skill: 3/2` somado aos padrões).
  */
-function basePower(hero: Hero): Ratio {
+export function powerWeights(nodeWeights: PowerWeights = {}): PowerWeights {
+  return { ...rules.power, ...nodeWeights };
+}
+
+function gcd(a: number, b: number): number {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    [x, y] = [y, x % y];
+  }
+  return x === 0 ? 1 : x;
+}
+
+/** Uma fração na forma mais simples: é o que mantém numerador e denominador pequenos na soma. */
+function reduced(num: number, den: number): Ratio {
+  const divisor = gcd(num, den);
+  const ratio = { num: num / divisor, den: den / divisor };
+  if (!Number.isSafeInteger(ratio.num) || !Number.isSafeInteger(ratio.den)) {
+    // Atributos, pesos e fatores do conteúdo estão longe disto: é defeito de conteúdo.
+    throw new Error('A conta do poder passou do maior inteiro seguro.');
+  }
+  return ratio;
+}
+
+/**
+ * O poder de um herói como fração exata, em milésimos: a soma dos atributos que os pesos
+ * contam, cada um vezes o peso dele, vezes os fatores de `heroFactors`. Sem arredondar.
+ */
+export function heroPowerRatio(
+  hero: Hero,
+  weights: PowerWeights = rules.power,
+  posture: PostureId | null = null,
+): Ratio {
   const { attributes } = heroClasses[hero.classId];
-  let num = 0;
-  let den = 1;
+  let sum: Ratio = { num: 0, den: 1 };
   for (const attribute of HERO_ATTRIBUTE_IDS) {
-    const weight = rules.power[attribute];
+    const weight = weights[attribute];
     if (weight === undefined) {
       continue;
     }
-    num = num * weight.den + attributes[attribute] * MILLI * weight.num * den;
-    den *= weight.den;
+    sum = reduced(
+      sum.num * weight.den + attributes[attribute] * MILLI * weight.num * sum.den,
+      sum.den * weight.den,
+    );
   }
-  return { num, den };
+  for (const { ratio } of heroFactors(hero, posture)) {
+    sum = reduced(sum.num * ratio.num, sum.den * ratio.den);
+  }
+  return sum;
 }
 
 /**
  * O poder de um herói, em milésimos (ADR 0017, decisão 7): o poder-base da classe vezes os
  * fatores de `heroFactors`, em frações, com **um** arredondamento para baixo no fim. Um
- * Guerreiro de nível 1 vale 42.000; no nível 2, 45.360; Descontente, 4/5 disso.
+ * Guerreiro de nível 1 vale 42.000; no nível 2, 45.360; Descontente, 4/5 disso. É o poder
+ * **geral**, o da ficha: com os pesos do conteúdo e sem Postura.
  */
 export function heroPower(hero: Hero): number {
-  let { num, den } = basePower(hero);
-  for (const { ratio } of heroFactors(hero)) {
-    num *= ratio.num;
-    den *= ratio.den;
-  }
+  const { num, den } = heroPowerRatio(hero);
   return Math.floor(num / den);
+}
+
+/**
+ * O poder de uma equipe contra um nó, em milésimos (ADR 0017, decisão 7; a conta do peso de
+ * atributo é do plano de V3D-T1, pendência A-5): `Σ por herói Σ por atributo (atributo × peso)`,
+ * com os pesos do nó por cima dos padrões, vezes os fatores de cada herói (nível, Descontente e
+ * o traço da Postura), tudo em frações, com **um** arredondamento para baixo no fim da soma.
+ */
+export function teamPower(
+  heroes: readonly Hero[],
+  nodeWeights: PowerWeights | undefined,
+  posture: PostureId,
+): number {
+  const weights = powerWeights(nodeWeights);
+  let sum: Ratio = { num: 0, den: 1 };
+  for (const hero of heroes) {
+    const power = heroPowerRatio(hero, weights, posture);
+    sum = reduced(sum.num * power.den + power.num * sum.den, sum.den * power.den);
+  }
+  return Math.floor(sum.num / sum.den);
 }

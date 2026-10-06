@@ -18,6 +18,9 @@ import {
   alocarPorDemanda,
   contratar,
   darFestival,
+  enviarExpedicoes,
+  erguerGuilda,
+  escolherCaminho,
   alocarPorDemandaFor,
   ampliarEstoque,
   comidaPrimeiro,
@@ -189,11 +192,16 @@ describe('um bot é uma lista de políticas', () => {
       ocuparLivres,
       guardarLenha,
     ]);
-    // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2 e V3C-T2) é o econômico mais as políticas
-    // da Guilda: contratar e dar festival, antes da alocação.
+    // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2, V3C-T2 e V3D-T1) é o econômico mais as
+    // políticas da Guilda: erguer a Guilda dos Aventureiros antes da obra mais barata, e
+    // contratar, dar festival, escolher o caminho e enviar expedições antes da alocação.
     expect(strategyPolicies.explorador).toEqual(
       strategyPolicies.economico.flatMap((policy) =>
-        policy === alocarPorDemanda ? [contratar, darFestival, policy] : [policy],
+        policy === obraMaisBarata
+          ? [erguerGuilda, policy]
+          : policy === alocarPorDemanda
+            ? [contratar, darFestival, escolherCaminho, enviarExpedicoes, policy]
+            : [policy],
       ),
     );
     expect(strategyPolicies.explorador).not.toBe(strategyPolicies.economico);

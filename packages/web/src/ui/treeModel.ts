@@ -32,6 +32,7 @@ import {
   storageAlert,
   truncate,
   upgradeName,
+  cardDecisions,
 } from './format';
 import {
   arrivalLine,
@@ -667,8 +668,8 @@ export function buildTree(input: TreeInput): TreeNode[] {
   // As decisões pendentes passam na frente (GDD §13.2: "● 2 decisões"), com as novidades ao lado.
   // Sem ligação a visão é a guardada, e a carta dela pode já ter saído da mesa: não é anunciada.
   const waiting = [
-    ...(view.pendingDecisions.length > 0 && !offline
-      ? [pendingDecisionsLabel(view.pendingDecisions.length)]
+    ...(cardDecisions(view).length > 0 && !offline
+      ? [pendingDecisionsLabel(cardDecisions(view).length)]
       : []),
     ...(input.unseen > 0
       ? [`${input.unseen} ${input.unseen === 1 ? 'novidade' : 'novidades'}`]

@@ -1,0 +1,156 @@
+{
+ "reports": [
+  {
+   "expeditionId": "expedition-1",
+   "modelId": "oldForest",
+   "variant": 0,
+   "heroNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "posture": "bold",
+   "sentAtMs": 0,
+   "returnedAtMs": 3600000,
+   "log": [
+    {
+     "nodeId": "trail",
+     "atMs": 900000,
+     "outcome": "passed",
+     "optionId": null,
+     "decidedBy": null,
+     "gained": {
+      "food": 0,
+      "wood": 15,
+      "stone": 0,
+      "gold": 0
+     }
+    },
+    {
+     "nodeId": "fork",
+     "atMs": 900000,
+     "outcome": "chosen",
+     "optionId": "thicket",
+     "decidedBy": "player",
+     "gained": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 0
+     }
+    },
+    {
+     "nodeId": "deepWoods",
+     "atMs": 2400000,
+     "outcome": "full",
+     "optionId": null,
+     "decidedBy": null,
+     "gained": {
+      "food": 0,
+      "wood": 67,
+      "stone": 0,
+      "gold": 28
+     }
+    }
+   ],
+   "loot": {
+    "resources": {
+     "food": 0,
+     "wood": 82,
+     "stone": 0,
+     "gold": 28
+    }
+   },
+   "wasted": {
+    "food": 0,
+    "wood": 82000,
+    "stone": 0,
+    "gold": 0
+   }
+  },
+  {
+   "expeditionId": "expedition-2",
+   "modelId": "patrol",
+   "variant": 2,
+   "heroNames": [
+    "Rolf"
+   ],
+   "posture": "cautious",
+   "sentAtMs": 10800000,
+   "returnedAtMs": 11700000,
+   "log": [
+    {
+     "nodeId": "oldRoad",
+     "atMs": 11400000,
+     "outcome": "success",
+     "optionId": null,
+     "decidedBy": null,
+     "gained": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0,
+      "gold": 25
+     }
+    }
+   ],
+   "loot": {
+    "resources": {
+     "food": 0,
+     "wood": 0,
+     "stone": 0,
+     "gold": 25
+    }
+   },
+   "wasted": {
+    "food": 0,
+    "wood": 0,
+    "stone": 0,
+    "gold": 0
+   }
+  }
+ ],
+ "view": [
+  {
+   "expeditionId": "expedition-2",
+   "label": "Patrulha dos Arredores",
+   "postureLabel": "Cautelosa",
+   "teamNames": [
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "Rastros na estrada velha",
+     "text": "No 2º dia da Primavera, a patrulha de Pedra Alta seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
+     "outcomeLabel": "Sucesso"
+    }
+   ],
+   "lootText": "Trouxe 25 de ouro."
+  },
+  {
+   "expeditionId": "expedition-1",
+   "label": "Floresta Antiga",
+   "postureLabel": "Ousada",
+   "teamNames": [
+    "Edda",
+    "Rolf"
+   ],
+   "log": [
+    {
+     "title": "A trilha sob os carvalhos",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 15 de madeira.",
+     "outcomeLabel": "Sem incidentes"
+    },
+    {
+     "title": "A trilha se divide",
+     "text": "Por ordem do senhor: Abrir caminho pela mata fechada.",
+     "outcomeLabel": "Caminho escolhido"
+    },
+    {
+     "title": "O javali da mata fechada",
+     "text": "No 1º dia da Primavera, a expedição de Pedra Alta abateu o javali da mata fechada e cortou a melhor madeira do bosque. Trouxe 67 de madeira e 28 de ouro.",
+     "outcomeLabel": "Sucesso pleno"
+    }
+   ],
+   "lootText": "Trouxe 82 de madeira e 28 de ouro. Faltou lugar no depósito, e foi ao chão: 82 de madeira."
+  }
+ ]
+}

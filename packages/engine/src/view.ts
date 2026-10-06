@@ -58,6 +58,7 @@ import {
 } from './seasonView';
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
+import { guildEffect } from './expeditionsView';
 import { tavernEffect, tavernView } from './tavernView';
 import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
@@ -173,7 +174,8 @@ function upgradeEffect(state: GameState, building: BuildingId, targetLevel: numb
     storageEffect(state, building, targetLevel) ??
     watchtowerEffect(building, targetLevel) ??
     palisadeEffect(building, targetLevel) ??
-    tavernEffect(building, targetLevel)
+    tavernEffect(building, targetLevel) ??
+    guildEffect(building, targetLevel)
   );
 }
 
@@ -323,6 +325,8 @@ export function deriveViewState(
   // O feudo como a próxima virada do dia vai encontrá-lo, e a moral que ela vai calcular: a
   // conta da moral e a da lenha saem daqui.
   const atTurn = stateAtNextMoraleTurn(state);
+  const council = councilView(state, timeScale);
+  const guild = guildView(state, timeScale, outlook);
   const nextMorale = moraleAt(atTurn, atTurn.lastProcessedAt);
   // O feudo como a próxima virada de estação deve encontrá-lo: daqui saem a previsão da comida
   // e a da lenha da estação que vem.
@@ -447,9 +451,13 @@ export function deriveViewState(
     morale: moraleView(state, atTurn, timeScale, outlook),
     winter: winterView(state, firewood),
     objectives: objectivesView(state, timeScale),
-    ...councilView(state, timeScale),
+    council: council.council,
+    // As cartas e as encruzilhadas, do prazo mais curto ao mais longo; no empate, a carta antes.
+    pendingDecisions: [...council.pendingDecisions, ...guild.pendingDecisions].sort(
+      (a, b) => a.expiresInSeconds - b.expiresInSeconds,
+    ),
     threat: threatView(state, timeScale),
-    guild: guildView(state, timeScale, outlook),
+    guild: guild.guild,
     tavern: tavernView(state, timeScale),
   };
 }

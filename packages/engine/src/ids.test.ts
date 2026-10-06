@@ -187,7 +187,17 @@ describe('um identificador nunca se repete', () => {
           for (const stream of Object.keys(state.rng)) {
             expect(living.has(stream)).toBe(true);
           }
-          expect(currentShape(throughBank(state), '')).toBeNull();
+          // A forma gravada: desde a versão 17 o fluxo de uma expedição só cabe com ela em
+          // curso em `guild.expeditions`, o que este roteiro sintético não tem
+          // (`expeditions.property.test.ts` prova o mesmo com expedições de verdade). Aqui a
+          // conferência vale para o resto: os contadores e os fluxos das caravanas vivas.
+          const stored = throughBank(state);
+          for (const stream of Object.keys(stored.rng)) {
+            if (stream.startsWith('expedition:')) {
+              delete stored.rng[stream];
+            }
+          }
+          expect(currentShape(stored, '')).toBeNull();
         },
       ),
       { numRuns: 300 },
@@ -232,13 +242,14 @@ describe('quem não cria identidades', () => {
     .filter(([path]) => path.includes(`/state-v${CURRENT_SCHEMA_VERSION}-`))
     .map(([path, text]) => [path.replace(/^.*state-v\d+-|\.json$/g, ''), text] as const);
 
-  /** O mesmo retrato com entidades já criadas, duas delas vivas e com o fluxo em uso. */
+  /** O mesmo retrato com entidades já criadas, uma delas viva e com o fluxo em uso. */
   const withEntities = (text: string) => {
     const state = JSON.parse(text) as GameState;
     for (const kind of ['hero', 'expedition', 'expedition', 'caravan', 'item']) {
       nextId(state, kind);
     }
-    nextInt(state, entityStream('expedition', 'expedition-2'), 6);
+    // O fluxo de uma expedição só cabe na forma com ela em curso (versão 17): os retratos
+    // `expedition-*` trazem as de verdade, vivas e com o fluxo em uso. Aqui sorteia a caravana.
     nextInt(state, entityStream('caravan', 'caravan-1'), 6);
     return state;
   };

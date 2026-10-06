@@ -116,6 +116,16 @@ describe('CommandSchema', () => {
     { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-2' } },
     { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-7' } },
     { commandId: uuid, type: 'holdFestival', payload: {} },
+    {
+      commandId: uuid,
+      type: 'sendExpedition',
+      payload: { modelId: 'patrol', heroIds: ['hero-1'], posture: 'balanced' },
+    },
+    {
+      commandId: uuid,
+      type: 'chooseExpeditionPath',
+      payload: { expeditionId: 'expedition-3', optionId: 'stream' },
+    },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -274,6 +284,70 @@ describe('CommandSchema', () => {
       'festival com a duração escolhida pelo cliente',
       { commandId: uuid, type: 'holdFestival', payload: { days: 30 } },
     ],
+    [
+      'expedição sem Postura',
+      {
+        commandId: uuid,
+        type: 'sendExpedition',
+        payload: { modelId: 'patrol', heroIds: ['hero-1'] },
+      },
+    ],
+    [
+      'expedição com Postura desconhecida',
+      {
+        commandId: uuid,
+        type: 'sendExpedition',
+        payload: { modelId: 'patrol', heroIds: ['hero-1'], posture: 'reckless' },
+      },
+    ],
+    [
+      'expedição com a equipe que não é lista',
+      {
+        commandId: uuid,
+        type: 'sendExpedition',
+        payload: { modelId: 'patrol', heroIds: 'hero-1', posture: 'bold' },
+      },
+    ],
+    [
+      'expedição com a variante escolhida pelo cliente',
+      {
+        commandId: uuid,
+        type: 'sendExpedition',
+        payload: { modelId: 'patrol', heroIds: ['hero-1'], posture: 'bold', variant: 2 },
+      },
+    ],
+    [
+      'expedição com uma equipe sem fim',
+      {
+        commandId: uuid,
+        type: 'sendExpedition',
+        payload: {
+          modelId: 'patrol',
+          heroIds: Array.from({ length: 13 }, (_, index) => `hero-${index + 1}`),
+          posture: 'bold',
+        },
+      },
+    ],
+    [
+      'escolha de caminho sem dizer qual',
+      { commandId: uuid, type: 'chooseExpeditionPath', payload: { expeditionId: 'expedition-1' } },
+    ],
+    [
+      'escolha de caminho com o nó de destino escolhido pelo cliente',
+      {
+        commandId: uuid,
+        type: 'chooseExpeditionPath',
+        payload: { expeditionId: 'expedition-1', optionId: 'stream', next: 'glade' },
+      },
+    ],
+    [
+      'escolha de caminho com texto que o banco não guarda',
+      {
+        commandId: uuid,
+        type: 'chooseExpeditionPath',
+        payload: { expeditionId: 'expedition-1', optionId: 'stream\u0000' },
+      },
+    ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);
   });
@@ -423,11 +497,16 @@ describe('ViewStateSchema', () => {
       parses({ council: { ...view.council, pending: [{ ...card, followsFrom }] } });
     expect(following(from)).toBe(true);
     expect(following({ ...from, flag: 'commonGranary.open' })).toBe(false);
+    // A lista de decisões é fechada por tipo: a carta e, desde o protocolo 3, a encruzilhada.
+    // Um terceiro tipo, ou um campo a mais, é recusado.
+    const decision = { id: 'x', title: 'y', expiresInSeconds: 1 };
+    expect(parses({ pendingDecisions: [{ kind: 'crossroads', ...decision }] })).toBe(true);
+    expect(parses({ pendingDecisions: [{ kind: 'card', ...decision }] })).toBe(true);
+    expect(parses({ pendingDecisions: [{ kind: 'caravan', ...decision }] })).toBe(false);
     expect(
-      parses({
-        pendingDecisions: [{ kind: 'crossroads', id: 'x', title: 'y', expiresInSeconds: 1 }],
-      }),
+      parses({ pendingDecisions: [{ kind: 'crossroads', ...decision, nodeId: 'fork' }] }),
     ).toBe(false);
+    expect(parses({ pendingDecisions: [{ ...decision }] })).toBe(false);
     expect(parses({ pendingDecisions: [] })).toBe(true);
     const without: Partial<typeof view> = { ...view };
     delete without.council;
@@ -1380,6 +1459,7 @@ describe('ViewStateSchema', () => {
       xpToNext: 100,
       traits: [{ label: 'Leal', text: 'Nunca parte.' }],
       statusText: 'No feudo',
+      atHome: true,
       power: 42,
       powerBreakdown: '42',
       wagePerHour: 2,
@@ -1387,10 +1467,90 @@ describe('ViewStateSchema', () => {
     };
     const parse = (guild: unknown) => ViewStateSchema.safeParse({ ...view, guild }).success;
     expect(parse({ ...view.guild, heroes: [hero] })).toBe(true);
-    expect(parse({ ...view.guild, built: true })).toBe(false);
-    expect(parse({ ...view.guild, level: 1 })).toBe(false);
-    expect(parse({ ...view.guild, slots: 2 })).toBe(false);
-    expect(parse({ ...view.guild, expeditions: [] })).toBe(false);
+    // A Guilda dos Aventureiros e as expedições (V3D-T1) já são da visão; o que é das tarefas
+    // seguintes (itens, ferimento) e o que a névoa esconde (a variante, a chave de nó, a
+    // dificuldade, o prazo em tempo de jogo, a sorte) continuam recusados.
+    expect(parse({ ...view.guild, built: true, level: 1, slots: 2, expeditions: [] })).toBe(true);
+    expect(parse({ ...view.guild, inventory: [] })).toBe(false);
+    const expedition = {
+      id: 'expedition-1',
+      label: 'Floresta Antiga',
+      postureLabel: 'Equilibrada',
+      teamNames: ['Edda'],
+      statusText: 'Parada na encruzilhada, à espera da sua palavra.',
+      nodeTitle: 'A trilha se divide',
+      nodeEndsInSeconds: null,
+      log: [{ title: 'A trilha', text: 'Passou.', outcomeLabel: 'Sem incidentes' }],
+      crossroads: {
+        title: 'A trilha se divide',
+        text: 'A trilha se parte em duas.',
+        decidesInSeconds: 21_600,
+        postureLabel: 'Equilibrada',
+        postureOptionId: 'stream',
+        postureOptionLabel: 'Seguir o riacho',
+        postureText: 'Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+        options: [
+          {
+            id: 'stream',
+            label: 'Seguir o riacho',
+            hint: 'Lenha.',
+            locked: false,
+            lockedReason: null,
+          },
+        ],
+      },
+    };
+    const withExpedition = (entry: unknown) => parse({ ...view.guild, expeditions: [entry] });
+    expect(withExpedition(expedition)).toBe(true);
+    for (const leak of [
+      { variant: 0 },
+      { nodeId: 'fork' },
+      { modelId: 'oldForest' },
+      { nodeEndsAtMs: 0 },
+      { luck: 100 },
+      { loot: { resources: {} } },
+    ]) {
+      expect(withExpedition({ ...expedition, ...leak }), Object.keys(leak)[0]).toBe(false);
+    }
+    const [option] = expedition.crossroads.options;
+    for (const leak of [
+      { next: 'glade' },
+      { difficulty: 36 },
+      { requires: { heroClass: 'warrior' } },
+    ]) {
+      expect(
+        withExpedition({
+          ...expedition,
+          crossroads: { ...expedition.crossroads, options: [{ ...option, ...leak }] },
+        }),
+        Object.keys(leak)[0],
+      ).toBe(false);
+    }
+    expect(
+      withExpedition({
+        ...expedition,
+        crossroads: { ...expedition.crossroads, decidesAtMs: 1 },
+      }),
+    ).toBe(false);
+    expect(
+      withExpedition({ ...expedition, log: [{ ...expedition.log[0], outcome: 'full' }] }),
+    ).toBe(false);
+    const offer = {
+      modelId: 'patrol',
+      label: 'Patrulha dos Arredores',
+      riskText: 'Baixo',
+      durationSeconds: 900,
+      durationNote: '',
+      requirementsText: 'Equipe: 1 herói.',
+      teamMin: 1,
+      teamMax: 1,
+      locked: false,
+      lockedReason: null,
+      firstStretchText: 'A ronda (dificuldade 30). Depois, o caminho de volta.',
+    };
+    expect(parse({ ...view.guild, available: [offer] })).toBe(true);
+    expect(parse({ ...view.guild, available: [{ ...offer, variant: 1 }] })).toBe(false);
+    expect(parse({ ...view.guild, available: [{ ...offer, nodes: {} }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, equipment: {} }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, joinedAtMs: 0 }] })).toBe(false);
     expect(parse({ ...view.guild, heroes: [{ ...hero, classId: 'warrior' }] })).toBe(false);
@@ -1611,7 +1771,8 @@ describe('contratos da API', () => {
     expect(API_ERROR_STATUS.COMMAND_ID_CONFLICT).toBe(409);
     expect(API_ERROR_STATUS.SESSION_REVOKED).toBe(401);
     expect(API_ERROR_STATUS.UPGRADE_REQUIRED).toBe(426);
-    expect(PROTOCOL_VERSION).toBe(2);
+    // 3 desde as expedições: a encruzilhada entrou em `pendingDecisions` (V3D-T1.10).
+    expect(PROTOCOL_VERSION).toBe(3);
   });
 });
 

@@ -22,14 +22,14 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
-  // O Celeiro, o Armazém, a Torre de Vigia, a Paliçada e a Taverna nascem no nível 0: ainda não
+  // O Celeiro, o Armazém, a Torre de Vigia, a Paliçada, a Taverna e a Guilda nascem no nível 0: ainda não
   // foram construídos.
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 16,
+    schemaVersion: 17,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -96,6 +96,9 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       lastWageArrears: null,
       tavernOffers: [],
       tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+      // A Guilda dos Aventureiros ainda não existe: nenhuma expedição, nenhum relatório.
+      expeditions: [],
+      reports: [],
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

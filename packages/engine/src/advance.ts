@@ -14,6 +14,7 @@ import { CATALOG, type Catalog, settleCouncil, turnCouncilYear } from './council
 import { drawCard } from './councilTurn';
 import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
+import { settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
 import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
@@ -87,7 +88,9 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
  * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício, as
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), a Taverna
- * (`settleTavern`: o festival que acabou e a troca dos candidatos), início automático
+ * (`settleTavern`: o festival que acabou e a troca dos candidatos), as expedições
+ * (`settleExpeditions`: os nós que terminam, os prazos de encruzilhada e as equipes que voltam,
+ * na ordem do identificador), início automático
  * das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao
  * outro) e, por fim, fome, frio e soldo em atraso (`settleScarcity`). Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
@@ -124,6 +127,13 @@ export function processEventsAt(
   // nível de agora e sem repetir o nome de ninguém que acabou de chegar. Antes das planejadas e
   // dos objetivos, que já a encontram trocada.
   settleTavern(draft, atMs, events);
+  // As expedições: os nós que terminam, os prazos de encruzilhada e as equipes que voltam, na
+  // ordem do identificador. Depois da virada do dia (o poder da equipe é o deste instante, já
+  // com o Descontente que a virada marcou, e quem volta agora não é cobrado pelo soldo em atraso
+  // desta virada: estava fora) e depois das incursões e da Taverna, que não dependem delas.
+  // Antes das planejadas, dos objetivos e da conta do ouro: o saque que entra agora já paga a
+  // obra que esperava recurso e o soldo, e o atraso que abriria neste instante nem abre.
+  settleExpeditions(draft, atMs, events);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }

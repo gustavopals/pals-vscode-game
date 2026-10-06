@@ -1,4 +1,5 @@
 import type {
+  PostureId,
   HeroAttributeId,
   HeroClassId,
   HeroGenderId,
@@ -70,6 +71,11 @@ export type HeroTraitEffects = {
   readonly tavernPrice?: Ratio;
   /** Moral do feudo, somada uma vez por herói destes presente no feudo (ADR 0017, "Os oito traços"). */
   readonly morale?: number;
+  /**
+   * O poder do herói é multiplicado por esta fração nos nós de uma expedição **enviada com esta
+   * Postura** (ADR 0017, "Os oito traços": o Corajoso na Ousada, o Prudente na Cautelosa).
+   */
+  readonly expeditionPower?: { readonly posture: PostureId; readonly ratio: Ratio };
 };
 
 /** Um traço de herói (GDD, Apêndice D; ADR 0017, "Os oito traços"). */
@@ -88,13 +94,13 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
     label: 'Corajoso',
     labelFeminine: 'Corajosa',
     text: 'Rende mais quando a ordem é de ousadia, e se fere com mais facilidade.',
-    effects: {},
+    effects: { expeditionPower: { posture: 'bold', ratio: { num: 11, den: 10 } } },
   },
   prudent: {
     label: 'Prudente',
     labelFeminine: 'Prudente',
     text: 'Rende mais quando a ordem é de cautela, e não cai em armadilha simples.',
-    effects: {},
+    effects: { expeditionPower: { posture: 'cautious', ratio: { num: 11, den: 10 } } },
   },
   greedy: {
     label: 'Ganancioso',
@@ -137,12 +143,13 @@ export const heroTraits: Record<HeroTraitId, HeroTraitDef> = {
 /** Como a ficha diz o que o herói está fazendo. */
 export const heroStatuses: Record<HeroStatusId, { readonly label: string }> = {
   idle: { label: 'No feudo' },
+  expedition: { label: 'Em expedição' },
 };
 
 /**
  * O que a aba Guilda diz no alto, conforme a equipe (GDD §13.1): como o primeiro herói chega,
- * quem já foi prometido e, com gente no feudo, que ainda não há para onde mandá-la. Nenhuma
- * frase promete data nem número: a Guilda dos Aventureiros e as expedições são de outra fase.
+ * quem já foi prometido e, com gente no feudo e sem a Guilda dos Aventureiros, o que a abre. Com
+ * a Guilda de pé, a frase é de `expeditionTexts`. Nenhuma frase promete data.
  * Rascunho que o autor não leu.
  */
 export const guildTexts = {
@@ -150,8 +157,14 @@ export const guildTexts = {
     'Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.',
   awaited:
     'Nenhum herói serve ao feudo ainda, mas há quem tenha dado a palavra e esteja a caminho.',
-  noDestination:
-    'Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.',
+  /** Com herói e sem a Guilda, antes de o Salão a deixar erguer: `{nivel}` é o nível do Salão. */
+  guildLocked:
+    'Sua equipe ainda não tem para onde ir: as expedições pedem a Guilda dos Aventureiros, que o feudo aprende a erguer com o Salão do Senhor no nível {nivel}. Até lá, os heróis ficam no feudo, e o soldo corre.',
+  /** Com herói, sem a Guilda, e o Salão já a deixa erguer. */
+  guildUnbuilt:
+    'Sua equipe ainda não tem para onde ir: erga a Guilda dos Aventureiros, e ela abre as expedições. Até lá, os heróis ficam no feudo, e o soldo corre.',
+  /** Dispensar quem está fora do feudo não é possível. */
+  busy: 'Quem está fora do feudo não pode ser dispensado antes de voltar.',
   dismiss:
     'Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.',
 } as const;

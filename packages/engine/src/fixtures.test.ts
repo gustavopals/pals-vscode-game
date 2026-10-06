@@ -12,6 +12,9 @@ import {
   craftScenario,
   DAY,
   dealt,
+  expeditionCrossroadsScenario,
+  expeditionReturningScenario,
+  expeditionTravelingScenario,
   heroesStart,
   HOUR,
   MINUTE,
@@ -428,6 +431,18 @@ const scenarios: Record<string, () => GameState> = {
   // festival em curso (com o efeito de moral e o instante em que foi dado) e a segunda lista de
   // candidatos na mesa.
   'tavern-busy': () => tavernBusyScenario(),
+
+  // As expedições (V3D-T1). Em viagem: a Guilda no nível 1, erguida por uma obra, uma equipe no
+  // meio do primeiro nó, no verão, com o fator de duração fixado e sem fluxo de sorteio ainda.
+  expedition: () => expeditionTravelingScenario(),
+
+  // Parada na encruzilhada: o prazo da Postura marcado, o fluxo `expedition:<id>` em uso, e o
+  // relatório de uma Patrulha que já voltou (com o fluxo dela apagado).
+  'expedition-crossroads': () => expeditionCrossroadsScenario(),
+
+  // Duas de uma vez, em Rei de Ferro no ritmo 0,5: uma voltando com o saque, depois de a
+  // Postura decidir e de um nó com dificuldade; a outra, no primeiro nó.
+  'expedition-returning': () => expeditionReturningScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -746,6 +761,83 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       expect(state.guild.tavernOffers).toEqual([]);
       expect(state.guild.tavern.nextRotationAtMs).toBeNull();
       expect(state.rng.tavern).toBeUndefined();
+    }
+
+    // As expedições (V3D-T1). Em viagem: a Guilda erguida por uma obra, Edda fora, o fator do
+    // verão fixado, o fim do nó marcado e nenhum fluxo de sorteio ainda.
+    const traveling = of('expedition');
+    expect(traveling.settings.timeScale).toBe(3);
+    expect(traveling.settlement.buildings.guild).toBe(1);
+    expect(traveling.guild.heroes.map((hero) => hero.status)).toEqual(['expedition', 'idle']);
+    expect(traveling.guild.expeditions).toHaveLength(1);
+    expect(traveling.guild.expeditions[0]).toMatchObject({
+      id: 'expedition-1',
+      modelId: 'patrol',
+      posture: 'bold',
+      durationFactor: { num: 17, den: 20 },
+      status: 'traveling',
+      crossroads: null,
+      log: [],
+    });
+    expect(traveling.guild.expeditions[0]?.nodeEndsAtMs).toBeGreaterThan(traveling.lastProcessedAt);
+    expect(traveling.ids).toEqual({ hero: 2, expedition: 1 });
+    expect(Object.keys(traveling.rng).filter((key) => key.startsWith('expedition:'))).toEqual([]);
+    // Na encruzilhada: o prazo de 6 h reais marcado, o fluxo da expedição em uso, o relatório
+    // de uma Patrulha que já voltou e o fluxo dela apagado.
+    const waiting = of('expedition-crossroads');
+    expect(waiting.settings.timeScale).toBe(1);
+    expect(waiting.guild.expeditions).toHaveLength(1);
+    const [stopped] = waiting.guild.expeditions;
+    expect(stopped).toMatchObject({
+      id: 'expedition-2',
+      modelId: 'oldForest',
+      heroIds: ['hero-1', 'hero-2'],
+      posture: 'balanced',
+      status: 'atCrossroads',
+      nodeEndsAtMs: null,
+    });
+    expect(stopped?.log).toHaveLength(1);
+    expect((stopped?.crossroads?.decidesAtMs ?? 0) - waiting.lastProcessedAt).toBe(
+      6 * HOUR - 40 * MINUTE - 2_345,
+    );
+    expect(Object.keys(waiting.rng).filter((key) => key.includes(':'))).toEqual([
+      'expedition:expedition-2',
+    ]);
+    expect(waiting.guild.reports.map((report) => report.expeditionId)).toEqual(['expedition-1']);
+    expect(waiting.guild.reports[0]?.heroNames).toEqual(['Rolf']);
+    expect(waiting.ids).toEqual({ hero: 2, expedition: 2 });
+    // Voltando: duas de uma vez em Rei de Ferro no ritmo 0,5, com a Guilda no nível 2. A da
+    // Floresta passou pela encruzilhada sem resposta (a Postura decidiu) e por um nó com
+    // dificuldade; a Patrulha está no primeiro nó. Os dois fluxos... só o de quem já sorteou.
+    const returning = of('expedition-returning');
+    expect(returning.settings).toMatchObject({ difficulty: 'ironKing', timeScale: 0.5 });
+    expect(returning.settlement.buildings.guild).toBe(2);
+    expect(returning.guild.expeditions.map((entry) => [entry.id, entry.status])).toEqual([
+      ['expedition-1', 'returning'],
+      ['expedition-2', 'traveling'],
+    ]);
+    expect(returning.guild.expeditions[0]?.log.map((entry) => entry.outcome)).toEqual([
+      'passed',
+      'chosen',
+      expect.stringMatching(/^(full|success|setback|disaster)$/),
+    ]);
+    expect(returning.guild.expeditions[0]?.log[1]?.decidedBy).toBe('posture');
+    expect(returning.guild.heroes.map((hero) => hero.status)).toEqual([
+      'expedition',
+      'expedition',
+      'idle',
+    ]);
+    expect(Object.keys(returning.rng).filter((key) => key.includes(':'))).toEqual([
+      'expedition:expedition-1',
+    ]);
+    // Nos outros retratos a Guilda dos Aventureiros não existe: nenhuma expedição, nenhum
+    // relatório, nenhum fluxo de expedição.
+    const withGuild = all0().filter((state) => state.settlement.buildings.guild > 0);
+    expect(withGuild).toHaveLength(3);
+    for (const state of all0().filter((entry) => entry.settlement.buildings.guild === 0)) {
+      expect(state.guild.expeditions).toEqual([]);
+      expect(state.guild.reports).toEqual([]);
+      expect(state.ids.expedition).toBeUndefined();
     }
 
     // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,

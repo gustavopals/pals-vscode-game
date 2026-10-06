@@ -132,8 +132,9 @@ describe('cabeçalhos e sessão', () => {
     ]);
     expect(calls[1]?.headers.authorization).toBeUndefined();
     expect(calls[1]?.headers['x-lords-protocol']).toBe(String(PROTOCOL_VERSION));
-    // O protocolo 2 é o do Conselho: é o número que diz ao servidor que o app sabe ler cartas.
-    expect(PROTOCOL_VERSION).toBe(2);
+    // O protocolo 2 é o do Conselho (o app sabe ler cartas); o 3, o das expedições (sabe ler a
+    // encruzilhada entre as decisões pendentes). É o número que o servidor confere.
+    expect(PROTOCOL_VERSION).toBe(3);
   });
 
   it('com validação ligada, um catálogo fora do contrato é recusado', async () => {

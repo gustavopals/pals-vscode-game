@@ -524,4 +524,65 @@ test.describe('a Guilda na interface', () => {
     await guild(page).getByRole('button', { name: 'Tentar agora' }).click();
     await expect(guild(page)).not.toContainText('Sem ligação com o reino');
   });
+
+  test('a encruzilhada de uma expedição é anunciada na aba Hoje, leva à aba Guilda e, sem resposta, a Postura decide no prazo (V3D-T1)', async ({
+    page,
+    request,
+    world,
+  }) => {
+    // O app ainda não envia expedição nem escolhe caminho (a interface é da V3D-T4): o que se
+    // prova aqui é que o protocolo 3 não o quebra e que a decisão à espera aparece, com o prazo.
+    await playNow(page);
+    await world.control('council-deal', { cardId: 'woundedStranger' });
+    await world.passTime(MINUTE, page);
+    await page.getByRole('tab', { name: 'Conselho' }).click();
+    const letter = page
+      .getByRole('tabpanel', { name: 'Conselho' })
+      .getByRole('article', { name: 'Estrangeira ferida' });
+    await letter.getByRole('button', { name: 'Acolher a estrangeira', exact: true }).click();
+    await expect(letter).toHaveCount(0);
+
+    // A equipe é posta na encruzilhada da Floresta Antiga, com a Postura Cautelosa e 6 h de prazo.
+    await world.crossroads('cautious');
+    await world.passTime(MINUTE, page);
+    const waiting = await serverView(page, request);
+    expect(waiting.guild.built).toBe(true);
+    expect(waiting.pendingDecisions).toHaveLength(1);
+    const [decision] = waiting.pendingDecisions;
+    expect(decision).toMatchObject({
+      kind: 'crossroads',
+      title: 'Floresta Antiga: A trilha se divide',
+    });
+    expect(waiting.guild.heroes.map((hero) => hero.atHome)).toEqual([false]);
+    expect(waiting.guild.expeditions[0]?.crossroads?.postureLabel).toBe('Cautelosa');
+
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    const decisions = page.getByRole('region', { name: 'Decisões pendentes (1)' });
+    await expect(decisions).toContainText('Guilda: “Floresta Antiga: A trilha se divide”');
+    await expect(decisions).toContainText('expira em');
+    await decisions
+      .getByRole('button', { name: 'Ver a Guilda: Floresta Antiga: A trilha se divide' })
+      .click();
+    await expect(page).toHaveURL(/#\/guilda$/);
+    // A ficha diz onde ela está, na frase do servidor, e a dispensa de quem está fora é recusada
+    // pelo motor, não oferecida às cegas.
+    await expect(team(page).getByRole('listitem')).toContainText('Em expedição');
+    // A barra de status não anuncia a encruzilhada como carta do Conselho.
+    await expect(statusBar(page)).not.toContainText('decisão pendente');
+
+    // Seis horas e um minuto depois ninguém respondeu: a Postura decidiu, e a decisão saiu.
+    await world.passTime(6 * HOUR + MINUTE, page);
+    const decided = await serverView(page, request);
+    expect(decided.pendingDecisions).toEqual([]);
+    const types = (await gameEvents(page, request)).map((event) => event.type);
+    expect(types).toContain('expeditionPostureDecided');
+    await page.getByRole('tab', { name: 'Hoje' }).click();
+    await expect(page.getByRole('tabpanel', { name: 'Hoje' })).not.toContainText('Guilda: “');
+    // Meia hora depois a equipe voltou: o relatório está na visão, e a heroína, no feudo.
+    await world.passTime(30 * MINUTE, page);
+    const home = await serverView(page, request);
+    expect(home.guild.expeditions).toEqual([]);
+    expect(home.guild.reports).toHaveLength(1);
+    expect(home.guild.heroes.map((hero) => hero.atHome)).toEqual([true]);
+  });
 });

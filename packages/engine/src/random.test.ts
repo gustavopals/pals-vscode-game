@@ -577,11 +577,20 @@ describe('fluxos de entidade', () => {
   });
 
   it('sorteia no fluxo de toda entidade já criada, da primeira à do contador', () => {
-    const state = issued('todas', { expedition: 3 });
+    const state = issued('todas', { expedition: 3, caravan: 3 });
     for (const number of [1, 2, 3]) {
       nextInt(state, entityStream('expedition', `expedition-${number}`), 6);
+      nextInt(state, entityStream('caravan', `caravan-${number}`), 6);
     }
-    expect(Object.keys(state.rng)).toHaveLength(3);
+    expect(Object.keys(state.rng)).toHaveLength(6);
+    // Desde a versão 17 a guarda de forma só aceita o fluxo de uma expedição **em curso**
+    // (`expeditions.test.ts`): gravado, este estado só passa sem os das expedições.
+    expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBe(
+      'rng.expedition:expedition-1: fluxo de uma expedição que não está em curso',
+    );
+    for (const number of [1, 2, 3]) {
+      dropStream(state, entityStream('expedition', `expedition-${number}`));
+    }
     expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBeNull();
   });
 
@@ -614,6 +623,9 @@ describe('dropStream', () => {
     expect(state.rng.council).toEqual(before.rng.council);
     expect(state.rng['expedition:expedition-2']).toEqual(before.rng['expedition:expedition-2']);
     expect({ ...state, rng: {} }).toStrictEqual({ ...before, rng: {} });
+    // O fluxo de uma caravana viva cabe na forma gravada; o de uma expedição só cabe com ela em
+    // curso (versão 17), o que os testes das expedições conferem.
+    dropStream(state, 'expedition:expedition-2');
     expect(currentShape(JSON.parse(JSON.stringify(state)), '')).toBeNull();
   });
 

@@ -246,23 +246,28 @@ function PendingDecisions(props: {
           <ul class="decisions">
             {decisions.map((decision) => {
               const soon = expiresSoon(decision, elapsed);
+              // A encruzilhada de uma expedição só é anunciada, com o prazo, e leva à aba Guilda:
+              // a escolha do caminho na tela chega com a interface das expedições.
+              const crossroads = decision.kind === 'crossroads';
               return (
                 <li
                   key={decision.id}
                   class={soon ? 'leaving-item leaving-warning' : 'leaving-item leaving-info'}
                 >
                   <p>
-                    <Icon name={soon ? 'warning' : 'law'} />{' '}
+                    <Icon name={soon ? 'warning' : crossroads ? 'compass' : 'law'} />{' '}
                     {soon ? <span class="sr-only">Atenção: </span> : null}
-                    Conselho: “{decision.title}” ·{' '}
+                    {crossroads ? 'Guilda' : 'Conselho'}: “{decision.title}” ·{' '}
                     <span class="decision-deadline">{cardDeadline(decision, elapsed)}</span>
                   </p>
                   <button
                     type="button"
-                    aria-label={`Decidir: ${decision.title}`}
-                    onClick={() => props.actions.run('lords.openPanel', 'council')}
+                    aria-label={`${crossroads ? 'Ver a Guilda' : 'Decidir'}: ${decision.title}`}
+                    onClick={() =>
+                      props.actions.run('lords.openPanel', crossroads ? 'guild' : 'council')
+                    }
                   >
-                    Decidir
+                    {crossroads ? 'Ver a Guilda' : 'Decidir'}
                   </button>
                 </li>
               );

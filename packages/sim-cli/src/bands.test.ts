@@ -77,6 +77,15 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       tavernLevel: 0,
       tavernAtHour: null,
     },
+    expeditions: {
+      sent: 0,
+      outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+      crossroadsByPlayer: 0,
+      crossroadsByPosture: 0,
+      heroIdleHours: 0,
+      guildLevel: 0,
+      lootGold: 0,
+    },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };

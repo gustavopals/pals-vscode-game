@@ -11,6 +11,7 @@ import {
   type Shape,
   text,
 } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { settlementV12Fields } from './v12';
 import { rngShape, rngWithinIds, RNG_FIXED_STREAMS_V13, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildOf, guildWithinState } from './v14';
@@ -90,17 +91,17 @@ const tavernOffers: Shape = (value, path) => {
     : `${where(path)}: identificador de oferta repetido`;
 };
 
-const guildV16: Shape = guildOf(
-  exactObject({
-    ...guildV15Fields,
-    tavernOffers,
-    tavern: exactObject({
-      nextRotationAtMs: nullable(natural),
-      festival: nullable(exactObject({ untilMs: natural })),
-      lastFestivalAtMs: nullable(natural),
-    }),
+export const guildV16Fields: Readonly<Record<string, Shape>> = {
+  ...guildV15Fields,
+  tavernOffers,
+  tavern: exactObject({
+    nextRotationAtMs: nullable(natural),
+    festival: nullable(exactObject({ untilMs: natural })),
+    lastFestivalAtMs: nullable(natural),
   }),
-);
+};
+
+const guildV16: Shape = guildOf(exactObject(guildV16Fields));
 
 type TavernState = {
   settlement: { buildings: { tavern: number } };
@@ -170,8 +171,7 @@ export const tavernWithinState: Shape = (value, path) => {
  *   último festival dado.
  * - `rng` aceita o fluxo fixo `tavern`, o dos candidatos. `ids` não muda de forma.
  *
- * Quem subir `schemaVersion` para 17 acrescenta aqui o passo `v16ToV17`, com esta forma como
- * entrada, e escreve a forma nova em `v17.ts`.
+ * O passo que sai daqui é o `v16ToV17`, abaixo; a forma da versão 17 está em `v17.ts`.
  */
 export const settlementV16Fields: Readonly<Record<string, Shape>> = {
   ...settlementV12Fields,
@@ -208,3 +208,36 @@ export const stateV16: Shape = (value, path) =>
   stateV16Streams(value, path) ??
   guildWithinState(value, path) ??
   tavernWithinState(value, path);
+
+/**
+ * Versão 16 → 17: a Guilda dos Aventureiros e as expedições (V3D-T1; ADR 0018, decisões 11 a
+ * 13).
+ *
+ * - `settlement.buildings` ganha a Guilda (`guild`) no nível 0: ninguém a tinha. Quem já tem o
+ *   Salão no nível 3 pode erguê-la logo depois da migração.
+ * - `guild.expeditions` e `guild.reports` entram vazias: nenhuma expedição em curso, nenhum
+ *   relatório guardado.
+ * - O herói passa a poder estar em expedição (`status`); todos continuam no feudo, como estavam.
+ *
+ * **O passo não cria prazo nenhum**, e por isso não usa a fronteira. Não emite evento, não dá
+ * identificador a ninguém e não toca o gerador: o fluxo de uma expedição nasce no primeiro
+ * sorteio dela, no fim de um nó com dificuldade. O soldo de ninguém muda.
+ */
+export const v16ToV17: MigrationStep = {
+  from: 16,
+  summary: 'Guilda dos Aventureiros no nível 0, sem expedições e sem relatórios',
+  shape: stateV16,
+  migrate(state) {
+    const settlement = state.settlement as StoredState;
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 17,
+      settlement: {
+        ...settlement,
+        buildings: { ...(settlement.buildings as StoredState), guild: 0 },
+      },
+      guild: { ...guild, expeditions: [], reports: [] },
+    };
+  },
+};

@@ -15,6 +15,7 @@ import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
+import { cardDecisions } from '../ui/format';
 import { buildTree } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
@@ -171,7 +172,9 @@ export function Workbench(props: {
   const title = controller.title(elapsed);
   // As decisões à espera: sem ligação a visão é a guardada, e as cartas dela não são anunciadas.
   const decisions =
-    controller.connection.kind === 'online' ? (controller.view?.pendingDecisions.length ?? 0) : 0;
+    controller.connection.kind === 'online' && controller.view !== null
+      ? cardDecisions(controller.view).length
+      : 0;
 
   useEffect(() => {
     document.title = title;

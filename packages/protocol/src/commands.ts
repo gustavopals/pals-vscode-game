@@ -90,6 +90,37 @@ export const HireHeroCommandSchema = command(
 /** O festival da Taverna: a ordem não leva nada. Um por estação, e quem confere é o motor. */
 export const HoldFestivalCommandSchema = command('holdFestival', z.strictObject({}));
 
+const POSTURE_IDS = ['cautious', 'balanced', 'bold'] as const;
+
+/**
+ * O envio de uma expedição. `modelId` é o destino que a visão mostrava
+ * (`guild.available[].modelId`), `heroIds`, a equipe (`guild.heroes[].id`), e `posture`, quem
+ * decide na encruzilhada se o senhor não responder. O protocolo só confere a forma: textos de
+ * tamanho razoável, uma lista curta sem conferir quem está nela, e uma das três Posturas. Se o
+ * destino existe, se há lugar na Guilda e se a equipe serve é com o motor.
+ */
+export const SendExpeditionCommandSchema = command(
+  'sendExpedition',
+  z.strictObject({
+    modelId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+    heroIds: z.array(z.string().min(1).max(60).refine(isStorableText, UNSTORABLE)).max(12),
+    posture: z.enum(POSTURE_IDS),
+  }),
+);
+
+/**
+ * A escolha do caminho em uma encruzilhada. `expeditionId` e `optionId` são os que a visão
+ * mostrava (`guild.expeditions[].id` e `crossroads.options[].id`). Se a equipe ainda espera e
+ * se pode tomar o caminho é com o motor.
+ */
+export const ChooseExpeditionPathCommandSchema = command(
+  'chooseExpeditionPath',
+  z.strictObject({
+    expeditionId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+    optionId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -104,6 +135,8 @@ export const CommandSchema = z.discriminatedUnion('type', [
   DismissHeroCommandSchema,
   HireHeroCommandSchema,
   HoldFestivalCommandSchema,
+  SendExpeditionCommandSchema,
+  ChooseExpeditionPathCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

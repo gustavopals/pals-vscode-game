@@ -381,6 +381,8 @@ describe('edifícios', () => {
       // 6 no GDD, contando a Muralha de Pedra e o Baluarte; 2 nesta versão.
       ['palisade', 2],
       ['tavern', 5],
+      // 5 no GDD; 4 nesta versão (ADR 0018, decisão 12).
+      ['guild', 4],
     ]);
   });
 
@@ -447,9 +449,12 @@ describe('edifícios', () => {
     }
   });
 
-  it('só a Torre e a Paliçada têm um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
+  it('só a Torre, a Paliçada e a Guilda têm um teto que é o desta versão, e a recusa diz isso sem prometer data', () => {
     const noted = BUILDING_IDS.filter((id) => buildings[id].maxLevelNote !== undefined);
-    expect(noted).toEqual(['watchtower', 'palisade']);
+    expect(noted).toEqual(['watchtower', 'palisade', 'guild']);
+    expect(buildings.guild.maxLevelNote).toBe(
+      'O nível seguinte chega em uma versão futura do jogo.',
+    );
     expect(buildings.watchtower.maxLevelNote).toBe(
       'Os níveis seguintes chegam em versões futuras do jogo.',
     );
@@ -467,7 +472,7 @@ describe('edifícios', () => {
     expect(parse('Os níveis seguintes chegam depois')).toBe(false);
   });
 
-  it('os edifícios são os oito de antes, a Torre de Vigia, a Paliçada e a Taverna', () => {
+  it('os edifícios são os oito de antes, a Torre de Vigia, a Paliçada, a Taverna e a Guilda', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -480,6 +485,7 @@ describe('edifícios', () => {
       'watchtower',
       'palisade',
       'tavern',
+      'guild',
     ]);
   });
 });
@@ -1685,6 +1691,9 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
         loyal: ['loyalInArrears'],
         charismatic: ['tavernPrice'],
         devout: ['morale'],
+        // Os dois traços de Postura das expedições (V3D-T1; ADR 0017, "Os oito traços").
+        brave: ['expeditionPower'],
+        prudent: ['expeditionPower'],
       };
       expect(Object.keys(heroTraits[id].effects), id).toEqual(expected[id] ?? []);
     }
@@ -1730,10 +1739,11 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     ).toBe(false);
   });
 
-  it('o estado de um herói tem rótulo: nesta fase, só "no feudo"', () => {
+  it('o estado de um herói tem rótulo: no feudo ou em expedição', () => {
     expect(HeroStatusesSchema.safeParse(heroStatuses).error).toBeUndefined();
-    expect(HERO_STATUS_IDS).toEqual(['idle']);
+    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition']);
     expect(heroStatuses.idle.label).toBe('No feudo');
+    expect(heroStatuses.expedition.label).toBe('Em expedição');
   });
 
   it('o soldo é de 2 de ouro por hora de jogo por herói, e um herói sozinho começa cabendo no feudo', () => {

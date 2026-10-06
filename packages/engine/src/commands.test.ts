@@ -15,6 +15,8 @@ import {
   play,
   refuse,
   starve,
+  guildHall,
+  send,
   tavernScenario,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
@@ -160,6 +162,27 @@ describe('catálogo de recusas', () => {
     addHero(draft);
   }).state;
   const feasted = accept(tavern, command('holdFestival', {})).state;
+  // A Guilda dos Aventureiros Nv1 com Edda e Rolf no feudo; a mesma com Edda na Patrulha (o
+  // único lugar ocupado); e a Nv2 com Edda na Floresta, antes e depois de escolher o caminho.
+  const hall = guildHall(0, (draft) => {
+    addHero(draft);
+    addHero(draft, { classId: 'archer' });
+  });
+  const patrolling = send(hall, 'patrol', ['hero-1']).state;
+  const roomy2 = guildHall(
+    0,
+    (draft) => {
+      addHero(draft);
+      addHero(draft, { classId: 'archer' });
+    },
+    { level: 2 },
+  );
+  const inForest = send(roomy2, 'oldForest', ['hero-1'], 'balanced', 0);
+  const atFork = advanceTo(inForest.state, inForest.expedition.nodeEndsAtMs ?? 0).state;
+  const pastFork = accept(
+    atFork,
+    command('chooseExpeditionPath', { expeditionId: inForest.expedition.id, optionId: 'stream' }),
+  ).state;
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
@@ -208,6 +231,43 @@ describe('catálogo de recusas', () => {
     OFFER_GONE: [tavern, command('hireHero', { offerId: 'offer-9' })],
     HERO_LIMIT: [lodged, command('hireHero', { offerId: firstOffer?.offerId ?? '' })],
     FESTIVAL_ALREADY_HELD: [feasted, command('holdFestival', {})],
+    // Edda está na Patrulha.
+    HERO_BUSY: [patrolling, command('dismissHero', { heroId: 'hero-1' })],
+    GUILD_REQUIRED: [
+      staffed,
+      command('sendExpedition', { modelId: 'patrol', heroIds: ['hero-1'], posture: 'balanced' }),
+    ],
+    // A Guilda Nv1 sustenta uma expedição, e Edda já está em uma.
+    EXPEDITION_LIMIT: [
+      patrolling,
+      command('sendExpedition', { modelId: 'patrol', heroIds: ['hero-2'], posture: 'balanced' }),
+    ],
+    EXPEDITION_LOCKED: [
+      hall,
+      command('sendExpedition', { modelId: 'dragonHunt', heroIds: ['hero-1'], posture: 'bold' }),
+    ],
+    HERO_UNAVAILABLE: [
+      atFork,
+      command('sendExpedition', { modelId: 'patrol', heroIds: ['hero-1'], posture: 'balanced' }),
+    ],
+    // A Patrulha é de um herói só.
+    TEAM_INVALID: [
+      hall,
+      command('sendExpedition', {
+        modelId: 'patrol',
+        heroIds: ['hero-1', 'hero-2'],
+        posture: 'balanced',
+      }),
+    ],
+    // A Patrulha não tem encruzilhada: a equipe está a caminho.
+    EXPEDITION_NOT_WAITING: [
+      patrolling,
+      command('chooseExpeditionPath', { expeditionId: 'expedition-1', optionId: 'stream' }),
+    ],
+    CROSSROADS_DECIDED: [
+      pastFork,
+      command('chooseExpeditionPath', { expeditionId: 'expedition-1', optionId: 'thicket' }),
+    ],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

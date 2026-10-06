@@ -1,4 +1,9 @@
-import { type GameEvent, ReturnReportSchema, type ViewState } from '@lotg/protocol';
+import {
+  type GameEvent,
+  ReturnReportSchema,
+  type ViewState,
+  ViewStateSchema,
+} from '@lotg/protocol';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -20,6 +25,8 @@ import {
   withResource,
   withUpgrade,
 } from '../test-helpers';
+import { expeditionCrossroadsView } from '../test-helpers';
+import { cardDecisions, crossroadsDecisions } from '../ui/format';
 import { beforeLeaving, leavingItems } from './beforeLeaving';
 import {
   buildReturnReport,
@@ -723,6 +730,40 @@ describe('"Você ainda pode decidir": só a visão de agora', () => {
     ]);
     // O que é previsão (a comida que acaba, o depósito que enche) fica em "Antes de partir".
     expect(pendingItems(proudView).map((item) => item.topic)).not.toContain('storage:granary');
+  });
+
+  it('a encruzilhada de uma expedição entra depois das cartas, com o prazo e o caminho para a aba Guilda (protocolo 3)', () => {
+    // A visão do motor com uma equipe parada na Floresta Antiga: a decisão vem em
+    // `pendingDecisions` com `kind: 'crossroads'`, e o app antigo a recusaria.
+    const [crossroads] = expeditionCrossroadsView.pendingDecisions;
+    expect(crossroads).toMatchObject({ kind: 'crossroads', id: 'expedition-2' });
+    expect(ViewStateSchema.safeParse(expeditionCrossroadsView).success).toBe(true);
+    const items = pendingItems(expeditionCrossroadsView);
+    expect(items[0]).toEqual({
+      text: 'Guilda: “Floresta Antiga: A trilha se divide” · expira em 5 h.',
+      topic: 'crossroads:expedition-2',
+      // Cinco horas: menos do que uma ausência comum, e por isso com o sinal de aviso.
+      severity: 'warning',
+      action: { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
+    });
+    // Com uma carta na mesa, a carta vem antes; a encruzilhada não vira carta.
+    const both: ViewState = {
+      ...withCards(expeditionCrossroadsView, [mealCard]),
+      pendingDecisions: [
+        ...withCards(expeditionCrossroadsView, [mealCard]).pendingDecisions,
+        ...expeditionCrossroadsView.pendingDecisions,
+      ],
+    };
+    expect(
+      pendingItems(both)
+        .map((item) => item.topic)
+        .slice(0, 2),
+    ).toEqual([`card:${mealCard.instanceId}`, 'crossroads:expedition-2']);
+    expect(cardDecisions(both).map((decision) => decision.kind)).toEqual(['card']);
+    expect(crossroadsDecisions(both).map((decision) => decision.id)).toEqual(['expedition-2']);
+    // O que fala de carta só conta carta: a barra de status e o título não anunciam a
+    // encruzilhada como carta do Conselho.
+    expect(cardDecisions(expeditionCrossroadsView)).toEqual([]);
   });
 
   it('o relatório guarda o bloco do instante em que foi montado', () => {

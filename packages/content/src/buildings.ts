@@ -29,7 +29,7 @@ export type BuildingDef = {
 const MINUTE_MS = 60_000;
 
 // GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5), a Torre
-// de Vigia e a Paliçada (§8.2) e, da v0.3, a Taverna (§9.1). O que cada nível da Torre dá está em
+// de Vigia e a Paliçada (§8.2) e, da v0.3, a Taverna (§9.1) e a Guilda dos Aventureiros (§9.2). O que cada nível da Torre dá está em
 // `balance.threat.watchtowerLevels`; o que cada nível da Paliçada segura, em
 // `balance.threat.palisadeLevels`.
 export const buildings: Record<BuildingId, BuildingDef> = {
@@ -150,5 +150,19 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     maxLevel: 5,
     produces: null,
     requires: { townHall: 3 },
+  },
+  // A Guilda dos Aventureiros (GDD §6.1 e §9.2; ADR 0018, decisão 12): abre as expedições, e
+  // cada nível diz quantas saem ao mesmo tempo (`balance.expeditions.slotsByGuildLevel`). Vai
+  // até o nível 4 nesta versão: o 5 do GDD não mudaria nada que o jogador vê.
+  guild: {
+    label: 'Guilda dos Aventureiros',
+    article: 'a',
+    baseCost: { wood: 300, stone: 100, gold: 200 },
+    baseDurationMs: 20 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 4,
+    produces: null,
+    requires: { townHall: 3 },
+    maxLevelNote: 'O nível seguinte chega em uma versão futura do jogo.',
   },
 };

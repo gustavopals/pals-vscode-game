@@ -223,6 +223,51 @@ describe('o pacote do app', () => {
     expect(code.includes('atGameDay')).toBe(false);
   });
 
+  it('não leva os grafos das expedições: nem número de regra, nem dificuldade, nem chave de nó, nem o que vem depois de uma encruzilhada (v0.3)', () => {
+    const { expeditions } = content.balance;
+    const markers = [
+      'crossroadsWaitRealMs:',
+      'lootShare:',
+      'slotsByGuildLevel:',
+      'reportsKept:',
+      'variantsPerModel:',
+      'minNodeMs:',
+      'maxSteps:',
+    ];
+    const leaked = asJavaScript({ expeditions });
+    expect(markers.filter((marker) => !leaked.includes(marker))).toEqual([]);
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    // O efeito de estação que encurta a jornada.
+    expect(code.includes('expeditionDuration')).toBe(false);
+    // Os grafos: as chaves que só o conteúdo tem, e cada nó escrito como um objeto.
+    expect(
+      ['expeditionModels', 'onDisaster', 'riskLabel', 'minHeroLevel', 'guildLevel'].filter((key) =>
+        code.includes(key),
+      ),
+    ).toEqual([]);
+    const secrets: string[] = [];
+    for (const model of content.expeditionModels) {
+      for (const variant of model.variants) {
+        for (const [key, node] of Object.entries(variant.nodes)) {
+          // A chave do nó e a de cada opção, soltas entre aspas, como um grafo vazado as traria.
+          secrets.push(key);
+          if (node.kind === 'crossroads') {
+            secrets.push(...node.options.map((option) => option.id));
+          } else if (node.kind !== 'return' && node.trial !== undefined) {
+            secrets.push(`difficulty:${node.trial.difficulty},`);
+          }
+        }
+      }
+    }
+    expect(secrets.length).toBeGreaterThan(20);
+    const loose = (secret: string) =>
+      secret.includes(':') ? code.includes(secret) : new RegExp(`["'\`]${secret}["'\`]`).test(code);
+    // Chaves que também são palavras comuns do app ficam de fora da conferência por aspas.
+    const common = new Set(['home', 'leave', 'edge', 'trail', 'stream', 'fork', 'nest', 'climb']);
+    expect([...new Set(secrets)].filter((secret) => !common.has(secret)).filter(loose)).toEqual([]);
+    // Os títulos, as frases e as pistas dos nós são frases do conteúdo: o teste abaixo as barra.
+  });
+
   it('não leva nenhuma frase do conteúdo', () => {
     const secret = Object.entries(content)
       .filter(([name]) => !ALLOWED_CONTENT_EXPORTS.includes(name))

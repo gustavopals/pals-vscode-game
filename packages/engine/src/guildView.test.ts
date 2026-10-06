@@ -1,4 +1,10 @@
-import { balance, guildTexts, wageArrearsTexts } from '@lotg/content';
+import {
+  balance,
+  buildings,
+  expeditionPostures,
+  guildTexts,
+  wageArrearsTexts,
+} from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -37,6 +43,19 @@ describe('a guilda na visão', () => {
   it('sem herói: o limite de um, a lista vazia e nenhum soldo', () => {
     expect(guildOf(newGame())).toEqual({
       text: guildTexts.noHeroes,
+      // Sem a Guilda dos Aventureiros: nenhum lugar, nenhum destino, nenhuma expedição.
+      building: 'guild',
+      built: false,
+      level: 0,
+      slots: 0,
+      postures: [
+        { id: 'cautious', ...expeditionPostures.cautious },
+        { id: 'balanced', ...expeditionPostures.balanced },
+        { id: 'bold', ...expeditionPostures.bold },
+      ],
+      available: [],
+      expeditions: [],
+      reports: [],
       dismissText: guildTexts.dismiss,
       heroLimit: 1,
       heroes: [],
@@ -71,6 +90,7 @@ describe('a guilda na visão', () => {
         xpToNext: 100,
         traits: [{ label: 'Leal', text: 'Nunca fica descontente nem parte por soldo em atraso.' }],
         statusText: 'No feudo',
+        atHome: true,
         power: 42,
         powerBreakdown: '(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42',
         wagePerHour: 2,
@@ -88,6 +108,7 @@ describe('a guilda na visão', () => {
           { label: 'Ganancioso', text: 'Volta com mais saque, e às vezes o perde no caminho.' },
         ],
         statusText: 'No feudo',
+        atHome: true,
         power: 37.8,
         powerBreakdown: '(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8',
         wagePerHour: 2,
@@ -103,6 +124,7 @@ describe('a guilda na visão', () => {
         xpToNext: null,
         traits: [],
         statusText: 'No feudo',
+        atHome: true,
         power: 55.04,
         powerBreakdown: '(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1,72 (Nv10) = 55,04',
         wagePerHour: 2,
@@ -377,18 +399,34 @@ describe('o soldo em atraso na visão', () => {
       draft.guild.arriving.push({ namedHeroId: 'rolf', atMs: DAY });
     });
     expect(guildOf(promised).text).toBe(guildTexts.awaited);
-    expect(guildOf(guildScenario()).text).toBe(guildTexts.noDestination);
-    // Nenhuma promete data nem traz número de regra: a Guilda-edifício é de outra fase.
+    // Com equipe e sem a Guilda dos Aventureiros: o que a abre é o Salão no nível do conteúdo.
+    expect(guildOf(guildScenario()).text).toBe(
+      guildTexts.guildLocked.replace('{nivel}', String(buildings.guild.requires.townHall)),
+    );
+    const hallReady = gameAt(0, (draft) => {
+      addHero(draft);
+      draft.settlement.buildings.townHall = 3;
+    });
+    expect(guildOf(hallReady).text).toBe(guildTexts.guildUnbuilt);
+    // Nenhuma promete data nem escreve número de regra: o nível entra pela lacuna.
     expect(guildOf(guildScenario()).dismissText).toBe(guildTexts.dismiss);
     for (const text of Object.values(guildTexts)) {
       expect(text).not.toMatch(/\d|\bdias?\b|\bhoras\b|amanhã|em breve/i);
     }
   });
 
-  it('nada do que é segredo ou de outra fase sai: nem contador, nem gerador, nem campo da Guilda-edifício', () => {
+  it('nada do que é segredo sai: nem contador, nem gerador, nem o que o herói guarda só para o motor', () => {
     const view = deriveViewState(wageArrearsScenario(), wageArrearsScenario().lastProcessedAt);
     expect(Object.keys(view.guild)).toEqual([
       'text',
+      'building',
+      'built',
+      'level',
+      'slots',
+      'postures',
+      'available',
+      'expeditions',
+      'reports',
       'dismissText',
       'heroLimit',
       'heroes',

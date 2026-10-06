@@ -1,6 +1,7 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import {
+  cardDecisions,
   clockDeadline,
   expiresIn,
   FULL_SOON_SECONDS,
@@ -11,7 +12,7 @@ import {
   remainingNow,
 } from './format';
 
-export { pendingDecisionsLabel } from './format';
+export { cardDecisions, crossroadsDecisions, pendingDecisionsLabel } from './format';
 
 /**
  * O Conselho do Feudo como texto (GDD §7 e §13.2). Tudo o que é regra vem pronto em `council` e
@@ -134,9 +135,9 @@ export function nextAudience(council: Council, elapsedSeconds: number): string {
  * ela não traz assunto.
  */
 export function councilSummary(view: ViewState, elapsedSeconds: number): string {
-  const { council, pendingDecisions } = view;
-  // `pendingDecisions` vem do prazo mais curto ao mais longo: a primeira é a que vence antes.
-  const soonest = pendingDecisions[0];
+  const { council } = view;
+  // As cartas vêm do prazo mais curto ao mais longo: a primeira é a que vence antes.
+  const soonest = cardDecisions(view)[0];
   if (soonest !== undefined) {
     return `${pendingCards(council.pending.length)} (${deadlineAlert(soonest, elapsedSeconds)})`;
   }

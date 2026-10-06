@@ -28,12 +28,13 @@ const withTavern: ReadonlyArray<Omit<SimulationOptions, 'strategy'>> = [
 ];
 
 describe('bot explorador', () => {
-  it('as políticas são as do econômico, na ordem, com contratar e dar festival antes da alocação', () => {
+  it('as políticas são as do econômico, na ordem, com a Guilda antes das obras e contratar, festejar, escolher o caminho e enviar antes da alocação', () => {
     const names = (policies: typeof exploradorPolicies) => policies.map((policy) => policy.name);
     expect(names(exploradorPolicies)).toEqual([
       'erguer a Paliçada',
       'seguir os objetivos',
       'erguer a Torre',
+      'erguer a Guilda',
       'obra mais barata',
       'ampliar o estoque',
       'planejar automáticas',
@@ -41,16 +42,27 @@ describe('bot explorador', () => {
       'responder a carta',
       'contratar',
       'dar festival',
+      'escolher o caminho',
+      'enviar expedições',
       'alocar por demanda',
       'guardar lenha',
     ]);
-    expect(
-      names(exploradorPolicies).filter((name) => name !== 'contratar' && name !== 'dar festival'),
-    ).toEqual(names(economicoPolicies));
-    // O econômico e o preguiçoso nunca contratam nem dão festival (V3C-T2.7).
+    const own = [
+      'erguer a Guilda',
+      'contratar',
+      'dar festival',
+      'escolher o caminho',
+      'enviar expedições',
+    ];
+    expect(names(exploradorPolicies).filter((name) => !own.includes(name))).toEqual(
+      names(economicoPolicies),
+    );
+    // O econômico e o preguiçoso nunca contratam nem dão festival (V3C-T2.7), e não erguem a
+    // Guilda dos Aventureiros nem enviam expedições (V3D-T1).
     for (const policies of [economicoPolicies, preguicosoPolicies]) {
-      expect(names(policies)).not.toContain('contratar');
-      expect(names(policies)).not.toContain('dar festival');
+      for (const name of own) {
+        expect(names(policies)).not.toContain(name);
+      }
     }
   });
 

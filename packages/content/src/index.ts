@@ -7,6 +7,7 @@ export type {
   CouncilDef,
   CraftDef,
   DifficultyDef,
+  ExpeditionsDef,
   HeroesDef,
   MoraleBandDef,
   MoraleDef,
@@ -68,6 +69,26 @@ export type {
   NamedHeroDef,
   TavernCandidateDef,
 } from './heroes';
+export {
+  expeditionModels,
+  expeditionOutcomes,
+  expeditionPostures,
+  expeditionTemplates,
+  expeditionTexts,
+} from './expeditions';
+export type {
+  ExpeditionCrossroadsNode,
+  ExpeditionModelDef,
+  ExpeditionNode,
+  ExpeditionOption,
+  ExpeditionRequires,
+  ExpeditionReturnNode,
+  ExpeditionReward,
+  ExpeditionStageKind,
+  ExpeditionStageNode,
+  ExpeditionTrial,
+  ExpeditionVariant,
+} from './expeditions';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {
   CouncilCard,

@@ -18,6 +18,7 @@ import {
   deliverCard,
   DRAW_INTERVAL_MS,
 } from './council';
+import { modelOf, nextVariant } from './expeditions';
 import { addMoraleEffect, famineDesertionsOwedAt } from './morale';
 import { scriptedRaidsAfter } from './raids';
 import { nextId } from './ids';
@@ -31,7 +32,15 @@ import {
   type RngStreamFamily,
 } from './random';
 import { cloneState, createInitialState } from './state';
-import type { Command, CommandResult, GameEvent, GameSettings, GameState, Hero } from './types';
+import type {
+  Command,
+  CommandResult,
+  Expedition,
+  GameEvent,
+  GameSettings,
+  GameState,
+  Hero,
+} from './types';
 import { MILLI } from './units';
 import { deriveViewState } from './view';
 
@@ -185,12 +194,18 @@ export function wageArrearsPaid(gold: number, afterMs: number): GameState {
 }
 
 /**
- * O que `guild` guarda da Taverna em um feudo que ainda não a ergueu: nenhum candidato, nenhuma
- * rotação marcada, nenhum festival. Para os testes que conferem a guilda inteira.
+ * O que `guild` guarda da Taverna e da Guilda dos Aventureiros em um feudo que ainda não as
+ * ergueu: nenhum candidato, nenhuma rotação marcada, nenhum festival, nenhuma expedição e nenhum
+ * relatório. Para os testes que conferem a guilda inteira.
  */
-export const NO_TAVERN: Pick<GameState['guild'], 'tavernOffers' | 'tavern'> = {
+export const NO_TAVERN: Pick<
+  GameState['guild'],
+  'tavernOffers' | 'tavern' | 'expeditions' | 'reports'
+> = {
   tavernOffers: [],
   tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+  expeditions: [],
+  reports: [],
 };
 
 /**
@@ -242,6 +257,149 @@ export function tavernScenario(
   const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? atMs;
   const opened = advanceTo(ordered.state, opensAt);
   return { state: opened.state, events: [...ordered.events, ...opened.events], opensAt };
+}
+
+/**
+ * O feudo com a Guilda dos Aventureiros de pé, posta à mão no nível `level`: o canteiro da
+ * Taverna (`tavernSite`: Salão no nível 3, depósitos e cofre cheios, objetivos cumpridos,
+ * Conselho e Horda calados) com a Guilda erguida. Os heróis entram pelo `edit`, com `addHero`.
+ */
+export function guildHall(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string; level?: number } = {},
+): GameState {
+  const { level = 1, ...rest } = custom;
+  return tavernSite(
+    atMs,
+    (draft) => {
+      draft.settlement.buildings.guild = level;
+      edit(draft);
+    },
+    rest,
+  );
+}
+
+/**
+ * Faz o próximo envio de um modelo sair com a variante pedida, mexendo só no contador de envios
+ * (a variante é uma conta sobre a semente, o modelo e esse contador). Para os testes que querem
+ * um grafo certo sem depender da semente.
+ */
+export function nextVariantIs(draft: GameState, modelId: string, variant: number): void {
+  const model = modelOf(modelId);
+  if (model === null) {
+    throw new Error(`Modelo de expedição desconhecido: ${modelId}.`);
+  }
+  for (let sent = 0; sent < model.variants.length; sent += 1) {
+    draft.stats[`expeditionsSent:${modelId}`] = sent;
+    if (nextVariant(draft, model) === variant) {
+      return;
+    }
+  }
+  throw new Error(`Não há contador que dê a variante ${variant} de ${modelId}.`);
+}
+
+/** Envia uma expedição no instante em que o estado está e devolve o estado, os eventos e ela. */
+export function send(
+  state: GameState,
+  modelId: string,
+  heroIds: string[],
+  posture: Expedition['posture'] = 'balanced',
+  variant: number | null = null,
+): { state: GameState; events: GameEvent[]; expedition: Expedition } {
+  const start = cloneState(state);
+  if (variant !== null) {
+    nextVariantIs(start, modelId, variant);
+  }
+  const sent = accept(start, command('sendExpedition', { modelId, heroIds, posture }));
+  const expedition = sent.state.guild.expeditions.at(-1);
+  if (expedition === undefined) {
+    throw new Error('A ordem foi aceita e não há expedição.');
+  }
+  return { ...sent, expedition };
+}
+
+/**
+ * A Guilda dos Aventureiros recém-inaugurada, pelo caminho do jogo: a ordem da obra no canteiro
+ * (`tavernSite`) e o avanço até o instante exato em que ela fica pronta. Devolve o estado e esse
+ * instante.
+ */
+export function guildOpened(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string } = {},
+): { state: GameState; opensAt: number } {
+  const ordered = accept(
+    tavernSite(atMs, edit, custom),
+    command('startConstruction', { building: 'guild' }),
+  );
+  const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? atMs;
+  return { state: advanceTo(ordered.state, opensAt).state, opensAt };
+}
+
+/** Edda, Guerreira Leal, e Rolf, Arqueiro Prudente, postos no feudo, com lavradores e mineiros. */
+function cardHeroes(draft: GameState): void {
+  addHero(draft, { name: 'Edda', gender: 'f', traits: ['loyal'] });
+  addHero(draft, { name: 'Rolf', classId: 'archer', traits: ['prudent'] });
+  Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+}
+
+/**
+ * Uma expedição em viagem, no ritmo Rápido, no verão: a Guilda acabou de abrir, Edda saiu em
+ * Patrulha com a Postura Ousada e está no meio do primeiro nó, com o fator de duração do verão
+ * fixado. O fluxo de sorteio dela ainda não nasceu: nenhum nó terminou. Rolf ficou no feudo.
+ */
+export function expeditionTravelingScenario(): GameState {
+  const { state, opensAt } = guildOpened(SUMMER + 3 * DAY + HOUR, cardHeroes, {
+    seed: 'fixture-expedition',
+    timeScale: 3,
+  });
+  const sent = send(state, 'patrol', ['hero-1'], 'bold').state;
+  return advanceTo(sent, opensAt + 4 * MINUTE + 1_234).state;
+}
+
+/**
+ * Uma equipe parada na encruzilhada, no ritmo Normal: Rolf já fez uma Patrulha (o relatório
+ * está guardado, e o fluxo dela, apagado), e depois os dois foram à Floresta Antiga com a
+ * Postura Equilibrada. Chegaram à encruzilhada há 40 minutos de jogo: o fluxo da expedição já
+ * sorteou a lenha da trilha, e o prazo da Postura está a mais de 5 h.
+ */
+export function expeditionCrossroadsScenario(): GameState {
+  const { state, opensAt } = guildOpened(20 * DAY + HOUR, cardHeroes, {
+    seed: 'fixture-expedition-crossroads',
+  });
+  const patrol = send(state, 'patrol', ['hero-2'], 'cautious').state;
+  const back = advanceTo(patrol, opensAt + 20 * MINUTE).state;
+  // A variante é pedida: a trilha dela rende lenha, e é esse sorteio que põe o fluxo em uso.
+  const forest = send(back, 'oldForest', ['hero-1', 'hero-2'], 'balanced', 0);
+  const arrivesAt = forest.expedition.nodeEndsAtMs ?? opensAt;
+  return advanceTo(forest.state, arrivesAt + 40 * MINUTE + 2_345).state;
+}
+
+/**
+ * Duas expedições de uma vez, em Rei de Ferro, no ritmo Tranquilo, com a Guilda no nível 2: Edda
+ * foi sozinha à Floresta Antiga com a Postura Ousada, ninguém respondeu na encruzilhada, a
+ * Postura decidiu no prazo, o nó seguinte foi resolvido e ela está no caminho de volta, com o
+ * saque; Rolf saiu em Patrulha há pouco e está no primeiro nó. Brann ficou no feudo.
+ */
+export function expeditionReturningScenario(): GameState {
+  const first = guildOpened(
+    40 * DAY + HOUR,
+    (draft) => {
+      cardHeroes(draft);
+      addHero(draft, { name: 'Brann', traits: ['brave'] });
+    },
+    { seed: 'fixture-expedition-returning', difficulty: 'ironKing', timeScale: 0.5 },
+  );
+  const upgraded = accept(first.state, command('startConstruction', { building: 'guild' }));
+  const opensAt = upgraded.state.settlement.constructionQueues[0]?.finishesAtMs ?? first.opensAt;
+  const forest = send(advanceTo(upgraded.state, opensAt).state, 'oldForest', ['hero-1'], 'bold');
+  const arrivesAt = forest.expedition.nodeEndsAtMs ?? opensAt;
+  const decidesAt = arrivesAt + balance.expeditions.crossroadsWaitRealMs * 0.5;
+  // Vinte minutos depois de a Postura decidir, Rolf sai em Patrulha.
+  const patrol = send(advanceTo(forest.state, decidesAt + 20 * MINUTE).state, 'patrol', ['hero-2']);
+  const resolved = patrol.state.guild.expeditions[0]?.nodeEndsAtMs ?? decidesAt;
+  return advanceTo(patrol.state, resolved + 3 * MINUTE + 456).state;
 }
 
 /**

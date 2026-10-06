@@ -661,15 +661,16 @@ describe('a carta da estrangeira entrega o primeiro herói (roadmap da v0.3, V3C
   });
 });
 
-describe('protocolo 2: o app antigo não sabe ler cartas', () => {
+describe('o app de um protocolo antigo não sabe ler cartas', () => {
   it('o cliente do protocolo 1 recebe 426 com o aviso de recarregar, em leitura e em ordem', async () => {
-    expect(PROTOCOL_VERSION).toBe(2);
+    // O protocolo 2 trouxe as cartas; o 3, a encruzilhada (`expeditions.test.ts`).
+    expect(PROTOCOL_VERSION).toBe(3);
     const { who, card } = await playerWithCard(normal, 1);
     const old = { [PROTOCOL]: '1' };
     const expected = {
       code: 'UPGRADE_REQUIRED',
       message: 'Há uma versão nova do jogo. Recarregue a página.',
-      details: { protocol: 2 },
+      details: { protocol: PROTOCOL_VERSION },
     };
 
     const read = await call<ApiError>(normal, 'GET', `/games/${who.game.id}/view`, {
@@ -700,7 +701,9 @@ describe('protocolo 2: o app antigo não sabe ler cartas', () => {
     });
     expect(current.status).toBe(200);
     expect((await call(normal, 'GET', '/version')).status).toBe(200);
-    expect((await call<{ protocol: number }>(normal, 'GET', '/version')).body.protocol).toBe(2);
+    expect((await call<{ protocol: number }>(normal, 'GET', '/version')).body.protocol).toBe(
+      PROTOCOL_VERSION,
+    );
   });
 });
 
@@ -758,7 +761,7 @@ describe('uma partida gravada antes do Conselho (versão 7 do estado)', () => {
       'select schema_version, state from games where id = $1',
       [game.id],
     );
-    expect(rows[0]?.schema_version).toBe(16);
+    expect(rows[0]?.schema_version).toBe(17);
     const nextDrawAtMs = rows[0]?.state.council?.nextDrawAtMs ?? 0;
     // A primeira virada de dia a partir de um intervalo inteiro depois da fronteira.
     expect(nextDrawAtMs % DAY).toBe(0);

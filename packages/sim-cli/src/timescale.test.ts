@@ -169,6 +169,8 @@ describe('simulação no ritmo 3', () => {
         perHour: null,
         gross: null,
         raids: { ...entry.raids, announced: 0 },
+        // A equipe parada é uma amostra por hora real: no ritmo 3 há um terço das amostras.
+        expeditions: { ...entry.expeditions, heroIdleHours: 0 },
       });
       expect(pictured(row)).toStrictEqual(pictured(same));
       expect(row.raids.announced).toBeGreaterThanOrEqual(same.raids.announced);

@@ -10,6 +10,7 @@ import {
   unplanConstruction,
 } from './construction';
 import { answerCard } from './council';
+import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
 import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
@@ -69,6 +70,17 @@ function dispatch(
       return hireHero(draft, payload.offerId, nowMs, events);
     case 'holdFestival':
       return holdFestival(draft, nowMs, events);
+    case 'sendExpedition':
+      return sendExpedition(
+        draft,
+        payload.modelId,
+        payload.heroIds,
+        payload.posture,
+        nowMs,
+        events,
+      );
+    case 'chooseExpeditionPath':
+      return chooseExpeditionPath(draft, payload.expeditionId, payload.optionId, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

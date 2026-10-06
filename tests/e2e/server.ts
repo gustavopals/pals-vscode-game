@@ -152,7 +152,8 @@ control.post('/__test/horde-quiet', async () => {
  * o Salão do Senhor leva para liberá-las (a obra de verdade é coberta pelos cenários da Torre e
  * pelos testes do servidor). Só o nível muda; daí em diante o aviso, a defesa e o desfecho são
  * os do motor. Serve também à Taverna: posta de pé assim, ela ganha os candidatos no primeiro
- * avanço do motor (a leitura seguinte), ancorados no instante em que o estado estava.
+ * avanço do motor (a leitura seguinte), ancorados no instante em que o estado estava. E à Guilda
+ * dos Aventureiros, que abre os destinos na leitura seguinte.
  */
 control.post('/__test/raise', async (request) => {
   const { building, level } = request.body as { building: string; level: number };
@@ -182,6 +183,73 @@ control.post('/__test/stock', async (request) => {
     [resource, Math.trunc(amount)],
   );
   return { ok: true };
+});
+
+/**
+ * Põe a equipe de todos os feudos parada em uma encruzilhada, agora, sem depender da semente
+ * (a variante do grafo de uma expedição sai de uma conta sobre ela): ergue a Guilda dos
+ * Aventureiros, se ainda não está de pé, e grava uma expedição à Floresta Antiga na encruzilhada
+ * da primeira variante, com o primeiro herói que está no feudo, a Postura pedida e o prazo pedido
+ * (6 horas de relógio, se nenhum for dado). O feudo sem herói no feudo fica como está. Daí em
+ * diante o motor cuida dela: a escolha, o prazo, o nó seguinte e a volta são os de verdade. Só
+ * não há a linha da partida nem a da chegada à encruzilhada na Crônica, porque nenhum evento
+ * foi emitido. É para os cenários em navegador da interface das expedições (V3D-T4).
+ */
+control.post('/__test/crossroads', async (request) => {
+  const { posture = 'balanced', expiresInMs = 6 * 3_600_000 } = (request.body ?? {}) as {
+    posture?: 'cautious' | 'balanced' | 'bold';
+    expiresInMs?: number;
+  };
+  type Stored = {
+    lastProcessedAt: number;
+    ids: Record<string, number>;
+    settlement: { buildings: Record<string, number> };
+    guild: {
+      heroes: Array<{ id: string; status: string }>;
+      expeditions: unknown[];
+    };
+  };
+  const games = await pool.query<{
+    id: string;
+    created_at: Date;
+    time_scale: string;
+    state: Stored;
+  }>('select id, created_at, time_scale, state from games');
+  let placed = 0;
+  for (const game of games.rows) {
+    const { state } = game;
+    const hero = state.guild.heroes.find((entry) => entry.status === 'idle');
+    if (hero === undefined) {
+      continue;
+    }
+    const scale = Number(game.time_scale);
+    const nowMs = Math.floor((clock().getTime() - game.created_at.getTime()) * scale);
+    const number = (state.ids.expedition ?? 0) + 1;
+    hero.status = 'expedition';
+    state.ids.expedition = number;
+    state.settlement.buildings.guild = Math.max(1, state.settlement.buildings.guild ?? 0);
+    state.guild.expeditions.push({
+      id: `expedition-${number}`,
+      modelId: 'oldForest',
+      variant: 0,
+      heroIds: [hero.id],
+      posture,
+      sentAtMs: state.lastProcessedAt,
+      durationFactor: { num: 1, den: 1 },
+      status: 'atCrossroads',
+      nodeId: 'fork',
+      nodeEndsAtMs: null,
+      crossroads: { decidesAtMs: nowMs + Math.max(1, Math.round(expiresInMs * scale)) },
+      loot: { resources: { food: 0, wood: 0, stone: 0, gold: 0 } },
+      log: [],
+    });
+    await pool.query('update games set state = $2::jsonb where id = $1', [
+      game.id,
+      JSON.stringify(state),
+    ]);
+    placed += 1;
+  }
+  return { ok: true, placed };
 });
 
 /**

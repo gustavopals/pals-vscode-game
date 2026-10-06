@@ -8,6 +8,9 @@ import {
   COUNCIL_SCENARIO_SEED,
   councilScenario,
   heroPromisedScenario,
+  expeditionCrossroadsScenario,
+  expeditionReturningScenario,
+  expeditionTravelingScenario,
   tavernBusyScenario,
   tavernOpenScenario,
   craftScenario,
@@ -159,6 +162,7 @@ describe('deriveViewState', () => {
       'watchtower',
       'palisade',
       'tavern',
+      'guild',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -579,6 +583,13 @@ describe('golden do ViewState', () => {
       // Taverna e do festival na conta da moral.
       tavernOpen: view(tavernOpenScenario()),
       tavernBusy: view(tavernBusyScenario()),
+      // As expedições: uma equipe em viagem, no verão e no ritmo Rápido, com os destinos
+      // fechados (o lugar da Guilda está ocupado); uma parada na encruzilhada, com as opções, o
+      // prazo real, o que a Postura fará e o relatório de uma Patrulha que já voltou; e duas de
+      // uma vez, uma delas voltando com o saque depois de a Postura decidir.
+      expeditionTraveling: view(expeditionTravelingScenario()),
+      expeditionCrossroads: view(expeditionCrossroadsScenario()),
+      expeditionReturning: view(expeditionReturningScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

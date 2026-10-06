@@ -13,6 +13,7 @@ export const BUILDING_IDS = [
   'watchtower',
   'palisade',
   'tavern',
+  'guild',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 
@@ -90,10 +91,10 @@ export const HERO_TRAIT_IDS = [
 export type HeroTraitId = (typeof HERO_TRAIT_IDS)[number];
 
 /**
- * O que um herói está fazendo. Na Fase C só existe "no feudo": expedição, escolta, ferimento e
- * captura entram com as tarefas que os usam.
+ * O que um herói está fazendo: no feudo ou em expedição (V3D-T1). Escolta, ferimento e captura
+ * entram com as tarefas que os usam.
  */
-export const HERO_STATUS_IDS = ['idle'] as const;
+export const HERO_STATUS_IDS = ['idle', 'expedition'] as const;
 export type HeroStatusId = (typeof HERO_STATUS_IDS)[number];
 
 /**
@@ -128,6 +129,43 @@ export const TAVERN_CANDIDATE_IDS = [
   'charismaticCleric',
 ] as const;
 export type TavernCandidateId = (typeof TAVERN_CANDIDATE_IDS)[number];
+
+/**
+ * A Postura de uma expedição (GDD §9.2; ADR 0018, decisão 11): quem decide na encruzilhada
+ * quando o senhor não responde no prazo. Os rótulos estão em `expeditionPostures`.
+ */
+export const POSTURE_IDS = ['cautious', 'balanced', 'bold'] as const;
+export type PostureId = (typeof POSTURE_IDS)[number];
+
+/** Os tipos de nó de um grafo de expedição (GDD §9.2). */
+export const EXPEDITION_NODE_KINDS = [
+  'travel',
+  'encounter',
+  'discovery',
+  'crossroads',
+  'hazard',
+  'camp',
+  'boss',
+  'return',
+] as const;
+export type ExpeditionNodeKind = (typeof EXPEDITION_NODE_KINDS)[number];
+
+/** Os desfechos de um nó com dificuldade (GDD §9.2), do melhor ao pior. */
+export const EXPEDITION_OUTCOME_IDS = ['full', 'success', 'setback', 'disaster'] as const;
+export type ExpeditionOutcomeId = (typeof EXPEDITION_OUTCOME_IDS)[number];
+
+/** O que o Desastre de um nó faz a um herói (ADR 0017, decisão 8): marcado em cada nó. */
+export const EXPEDITION_DISASTER_IDS = ['injury', 'capture'] as const;
+export type ExpeditionDisasterId = (typeof EXPEDITION_DISASTER_IDS)[number];
+
+/**
+ * Os modelos de expedição (GDD §9.3; ADR 0018, decisão 12). O id fica gravado no estado
+ * (`guild.expeditions[].modelId`, `guild.reports[].modelId`): mudar um deles pede passo de
+ * migração. **Os grafos desta lista são provisórios** (V3D-T1): o catálogo de verdade, com os
+ * seis modelos, é de V3D-T3. A ficha de cada um está em `expeditionModels`.
+ */
+export const EXPEDITION_MODEL_IDS = ['patrol', 'oldForest'] as const;
+export type ExpeditionModelId = (typeof EXPEDITION_MODEL_IDS)[number];
 
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };

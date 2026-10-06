@@ -1,5 +1,6 @@
 import {
   balance,
+  buildings,
   guildTexts,
   heroAttributes,
   heroClasses,
@@ -10,6 +11,8 @@ import {
 } from '@lotg/content';
 
 import { buildingWithArticle } from './construction';
+import { type ExpeditionsView, expeditionsView, guildReadyText } from './expeditionsView';
+import { guildLevel } from './expeditions';
 import type { CraftOutlook } from './craftProjection';
 import { netRates, producerOf, productionRate, stockBalance } from './economy';
 import { storageCapacity } from './storage';
@@ -19,6 +22,7 @@ import {
   heroFactors,
   heroLimit,
   heroPower,
+  isAtHome,
   isLoyal,
   namedHeroOf,
   paidHeroes,
@@ -93,6 +97,7 @@ function heroView(hero: Hero, timeScale: number): HeroView {
       text: heroTraits[trait].text,
     })),
     statusText: heroStatuses[hero.status].label,
+    atHome: isAtHome(hero),
     power: heroPower(hero) / MILLI,
     powerBreakdown: powerBreakdown(hero),
     wagePerHour: rules.wagePerHour * timeScale,
@@ -278,20 +283,34 @@ function arrivingView(state: GameState, timeScale: number): ArrivingHeroView[] {
 
 /**
  * A frase do alto da aba Guilda, pela equipe: sem herói, como o primeiro chega (ou que há um
- * prometido a caminho); com herói, que ainda não há para onde mandá-lo. Só escolhe entre as
- * frases do conteúdo: não promete data nem conta nada.
+ * prometido a caminho); com herói e sem a Guilda dos Aventureiros, o que a abre (o nível do
+ * Salão, ou a obra); com ela, quantas expedições sustenta e o que falta para enviar. Só escolhe
+ * entre as frases do conteúdo e preenche as lacunas.
  */
 function guildText(state: GameState, arriving: ArrivingHeroView[]): string {
-  if (state.guild.heroes.length > 0) {
-    return guildTexts.noDestination;
+  if (state.guild.heroes.length === 0) {
+    return arriving.length > 0 ? guildTexts.awaited : guildTexts.noHeroes;
   }
-  return arriving.length > 0 ? guildTexts.awaited : guildTexts.noHeroes;
+  if (guildLevel(state) > 0) {
+    return guildReadyText(state);
+  }
+  const townHall = buildings.guild.requires.townHall;
+  return townHall !== undefined && state.settlement.buildings.townHall < townHall
+    ? fillText(guildTexts.guildLocked, { nivel: townHall })
+    : guildTexts.guildUnbuilt;
 }
 
-export function guildView(state: GameState, timeScale: number, outlook: CraftOutlook): GuildView {
+/** A visão da Guilda e as decisões que as expedições deixam à espera do jogador. */
+export function guildView(
+  state: GameState,
+  timeScale: number,
+  outlook: CraftOutlook,
+): { guild: GuildView; pendingDecisions: ExpeditionsView['pendingDecisions'] } {
   const arriving = arrivingView(state, timeScale);
-  return {
+  const { pendingDecisions, ...expeditions } = expeditionsView(state, timeScale);
+  const guild: GuildView = {
     text: guildText(state, arriving),
+    ...expeditions,
     dismissText: guildTexts.dismiss,
     heroLimit: heroLimit(state),
     heroes: state.guild.heroes.map((hero) => heroView(hero, timeScale)),
@@ -304,4 +323,5 @@ export function guildView(state: GameState, timeScale: number, outlook: CraftOut
       lingering: lingeringView(state, timeScale),
     },
   };
+  return { guild, pendingDecisions };
 }

@@ -540,6 +540,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -682,6 +715,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -1272,6 +1329,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -1430,6 +1520,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -2015,6 +2129,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 279
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 92
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 10
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -2215,6 +2362,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -2811,6 +2982,39 @@
           "blockedReason": "Faltam 120 madeira.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 240
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 240 madeira.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -3063,6 +3267,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -3636,6 +3864,39 @@
           "blockedReason": "Faltam 180 madeira.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 300
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 300 madeira.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -3910,6 +4171,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -4677,6 +4962,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 99
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 175
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -4929,6 +5247,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -5535,6 +5877,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -5787,6 +6162,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -6355,6 +6754,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 300
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 100
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 200
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -6641,6 +7073,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -7226,6 +7682,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -7486,6 +7975,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -8071,6 +8584,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 4
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 15
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -8429,6 +8975,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -9014,6 +9584,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 4
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 15
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -9355,6 +9958,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -9951,6 +10578,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -10227,6 +10887,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -10790,6 +11474,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -11074,6 +11791,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -11670,6 +12411,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -11957,6 +12731,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -12520,6 +13318,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -12804,6 +13635,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -13389,6 +14244,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 9
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 9 ouro.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -13695,6 +14583,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -14280,6 +15192,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 142
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -14494,7 +15439,31 @@
       }
     },
     "guild": {
-      "text": "Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "text": "Sua equipe ainda não tem para onde ir: as expedições pedem a Guilda dos Aventureiros, que o feudo aprende a erguer com o Salão do Senhor no nível 3. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [
@@ -14512,6 +15481,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
@@ -14531,6 +15501,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 36,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
           "wagePerHour": 6,
@@ -14554,6 +15525,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 37.8,
           "powerBreakdown": "(22 de ataque + 6 de defesa + 70 de vida ÷ 10) × 1,08 (Nv2) = 37,8",
           "wagePerHour": 6,
@@ -15142,6 +16114,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 192
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 200
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -15374,7 +16379,31 @@
       }
     },
     "guild": {
-      "text": "Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "text": "Sua equipe ainda não tem para onde ir: as expedições pedem a Guilda dos Aventureiros, que o feudo aprende a erguer com o Salão do Senhor no nível 3. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [
@@ -15392,6 +16421,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 2,
@@ -15411,6 +16441,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 28.8,
           "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) × 0,8 (descontente) = 28,8",
           "wagePerHour": 2,
@@ -15999,6 +17030,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -16157,6 +17221,30 @@
     },
     "guild": {
       "text": "Nenhum herói serve ao feudo ainda, mas há quem tenha dado a palavra e esteja a caminho.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 1,
       "heroes": [],
@@ -16758,6 +17846,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Abriga 3 heróis, traz 2 candidatos a cada troca e soma 10 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -17014,7 +18135,31 @@
       }
     },
     "guild": {
-      "text": "Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "text": "Sua equipe ainda não tem para onde ir: erga a Guilda dos Aventureiros, e ela abre as expedições. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 2,
       "heroes": [
@@ -17032,6 +18177,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 42,
           "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
           "wagePerHour": 6,
@@ -17655,6 +18801,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Abriga 3 heróis, traz 2 candidatos a cada troca e soma 10 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
         }
       ]
     },
@@ -17922,7 +19101,31 @@
       }
     },
     "guild": {
-      "text": "Sua equipe ainda não tem para onde ir: as expedições esperam a Guilda dos Aventureiros, que o feudo ainda não sabe erguer. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "text": "Sua equipe ainda não tem para onde ir: erga a Guilda dos Aventureiros, e ela abre as expedições. Até lá, os heróis ficam no feudo, e o soldo corre.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
       "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
       "heroLimit": 2,
       "heroes": [
@@ -17940,6 +19143,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
@@ -17959,6 +19163,7 @@
             }
           ],
           "statusText": "No feudo",
+          "atHome": true,
           "power": 32,
           "powerBreakdown": "(9 de ataque + 13 de defesa + 100 de vida ÷ 10) × 1 (Nv1) = 32",
           "wagePerHour": 2,
@@ -18033,6 +19238,3045 @@
         "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
         "blockedReason": "Um festival por estação: no Verão o feudo já festejou.",
         "activeForSeconds": 1498
+      }
+    }
+  },
+  "expeditionTraveling": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Rápido: um ano em 56 horas"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "summer",
+      "seasonLabel": "Verão",
+      "dayOfSeason": 4,
+      "dayOfYear": 28,
+      "secondsToNextDay": 720,
+      "secondsToNextSeason": 48720,
+      "seasonEffects": "Verão: madeira e pedra × 1,15.",
+      "nextSeason": {
+        "id": "autumn",
+        "label": "Outono",
+        "secondsUntil": 48720,
+        "changes": [
+          "A produção de comida passa de × 1 para × 1,3.",
+          "A produção de madeira e pedra passa de × 1,15 para × 1.",
+          "A produção de ouro passa de × 1 para × 1,1."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": 138.8,
+          "stockAtTurn": 1600,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +138,81/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 106320,
+        "firewood": {
+          "perHour": 7.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2500,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 15,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1010,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": 24854,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 75,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 30 × 1 (Nv1) = 90/h; consumo 5 × 3 = 15/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2500,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 1,15 (verão) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 900,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 15 × 1 (Nv1) × 1,15 (verão) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 1801,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 12,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) = 24/h; −12/h (soldo de 2 heróis)"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 2400,
+      "adaptationText": "Quem troca de ofício produz metade por 40 min.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 90,
+        "perWorkerPerHour": 30,
+        "breakdown": "3 trabalhadores × 30 × 1 (Nv1) = 90/h",
+        "perNewWorkerPerHour": 15,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 27.6,
+        "breakdown": "0 trabalhadores × 24 × 1 (Nv1) × 1,15 (verão) = 0/h",
+        "perNewWorkerPerHour": 13.8,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 17.25,
+        "breakdown": "0 trabalhadores × 15 × 1 (Nv1) × 1,15 (verão) = 0/h",
+        "perNewWorkerPerHour": 8.625,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 24,
+        "perWorkerPerHour": 12,
+        "breakdown": "2 trabalhadores × 12 × 1 (Nv1) = 24/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 120,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 160,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 80,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1013,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 480,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 320,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 2 expedições por vez."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 400,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 8 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 8 h) = 60",
+      "nextUpdateInSeconds": 720,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 8 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 201533520,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 201533520,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 2 h 40 min e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "A Guilda dos Aventureiros sustenta 1 expedição por vez, e não há lugar para outra agora.",
+      "building": "guild",
+      "built": true,
+      "level": 1,
+      "slots": 1,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [
+        {
+          "modelId": "patrol",
+          "label": "Patrulha dos Arredores",
+          "riskText": "Baixo",
+          "durationSeconds": 255,
+          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: 1 herói.",
+          "teamMin": 1,
+          "teamMax": 1,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
+        },
+        {
+          "modelId": "oldForest",
+          "label": "Floresta Antiga",
+          "riskText": "Baixo a médio",
+          "durationSeconds": 1020,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 1 a 2 heróis.",
+          "teamMin": 1,
+          "teamMax": 2,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        }
+      ],
+      "expeditions": [
+        {
+          "id": "expedition-1",
+          "label": "Patrulha dos Arredores",
+          "postureLabel": "Ousada",
+          "teamNames": [
+            "Edda"
+          ],
+          "statusText": "A caminho: Rastros na estrada velha.",
+          "nodeTitle": "Rastros na estrada velha",
+          "nodeEndsInSeconds": 90,
+          "log": [],
+          "crossroads": null
+        }
+      ],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [
+        {
+          "id": "hero-1",
+          "name": "Edda",
+          "classLabel": "Guerreira",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Leal",
+              "text": "Nunca fica descontente nem parte por soldo em atraso."
+            }
+          ],
+          "statusText": "Em expedição",
+          "atHome": false,
+          "power": 42,
+          "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
+          "wagePerHour": 6,
+          "discontent": false
+        },
+        {
+          "id": "hero-2",
+          "name": "Rolf",
+          "classLabel": "Arqueiro",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Prudente",
+              "text": "Rende mais quando a ordem é de cautela, e não cai em armadilha simples."
+            }
+          ],
+          "statusText": "No feudo",
+          "atHome": true,
+          "power": 36,
+          "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
+          "wagePerHour": 6,
+          "discontent": false
+        }
+      ],
+      "arriving": [],
+      "wage": {
+        "perHour": 12,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    }
+  },
+  "expeditionCrossroads": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 22,
+      "dayOfYear": 22,
+      "secondsToNextDay": 5098,
+      "secondsToNextSeason": 19498,
+      "seasonEffects": "Primavera: comida × 1,2; recrutamento com prazo × 0,8.",
+      "nextSeason": {
+        "id": "summer",
+        "label": "Verão",
+        "secondsUntil": 19498,
+        "changes": [
+          "A produção de comida passa de × 1,2 para × 1.",
+          "A produção de madeira e pedra passa de × 1 para × 1,15.",
+          "O recrutamento volta ao prazo de sempre."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": 28,
+          "stockAtTurn": 1233,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +28,01/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 365098,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2500,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 15,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1050,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Verão.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 33.3,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 10 × 1 (Nv1) × 1,012 (mestria 4) × 1,2 (primavera) × 1,05 (moral 60) = 38,25/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2500,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 8 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 900,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 1831,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 4.5,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 4 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 8,5/h; −4/h (soldo de 2 heróis)"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 38.253,
+        "perWorkerPerHour": 12.751,
+        "breakdown": "3 trabalhadores × 10 × 1 (Nv1) × 1,012 (mestria 4) × 1,2 (primavera) × 1,05 (moral 60) = 38,25/h",
+        "perNewWorkerPerHour": 6.375,
+        "experience": 4,
+        "masteryBonusPercent": 1.2,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 8.4,
+        "breakdown": "0 trabalhadores × 8 × 1 (Nv1) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 4.2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 5.25,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 2.625,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 8.5,
+        "perWorkerPerHour": 4.25,
+        "breakdown": "2 trabalhadores × 4 × 1 (Nv1) × 1,012 (mestria 4) × 1,05 (moral 60) = 8,5/h",
+        "perNewWorkerPerHour": 2.125,
+        "experience": 4,
+        "masteryBonusPercent": 1.2,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3038,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 480,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 320,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 2 expedições por vez."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 960,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 5098,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 60.",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 604646698,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 604646698,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [
+      {
+        "kind": "crossroads",
+        "id": "expedition-2",
+        "title": "Floresta Antiga: A trilha se divide",
+        "expiresInSeconds": 19198
+      }
+    ],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "A Guilda dos Aventureiros sustenta 1 expedição por vez, e não há lugar para outra agora.",
+      "building": "guild",
+      "built": true,
+      "level": 1,
+      "slots": 1,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [
+        {
+          "modelId": "patrol",
+          "label": "Patrulha dos Arredores",
+          "riskText": "Baixo",
+          "durationSeconds": 900,
+          "durationNote": "",
+          "requirementsText": "Equipe: 1 herói.",
+          "teamMin": 1,
+          "teamMax": 1,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "O vau do riacho (dificuldade 28). Depois, o caminho de volta."
+        },
+        {
+          "modelId": "oldForest",
+          "label": "Floresta Antiga",
+          "riskText": "Baixo a médio",
+          "durationSeconds": 3600,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
+          "requirementsText": "Equipe: de 1 a 2 heróis.",
+          "teamMin": 1,
+          "teamMax": 2,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        }
+      ],
+      "expeditions": [
+        {
+          "id": "expedition-2",
+          "label": "Floresta Antiga",
+          "postureLabel": "Equilibrada",
+          "teamNames": [
+            "Edda",
+            "Rolf"
+          ],
+          "statusText": "Parada na encruzilhada, à espera da sua palavra.",
+          "nodeTitle": "A trilha se divide",
+          "nodeEndsInSeconds": null,
+          "log": [
+            {
+              "title": "A trilha sob os carvalhos",
+              "text": "No 21º dia da Primavera, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 13 de madeira.",
+              "outcomeLabel": "Sem incidentes"
+            }
+          ],
+          "crossroads": {
+            "title": "A trilha se divide",
+            "text": "A trilha se parte em duas diante de um carvalho tombado. À esquerda, a mata fecha; à direita, ouve-se água.",
+            "decidesInSeconds": 19198,
+            "postureLabel": "Equilibrada",
+            "postureOptionId": "stream",
+            "postureOptionLabel": "Seguir o riacho",
+            "postureText": "Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.",
+            "options": [
+              {
+                "id": "thicket",
+                "label": "Abrir caminho pela mata fechada",
+                "hint": "Madeira boa e pegadas grandes; é preciso quem abra o caminho no braço.",
+                "locked": false,
+                "lockedReason": null
+              },
+              {
+                "id": "stream",
+                "label": "Seguir o riacho",
+                "hint": "Chão escorregadio e alguma lenha; quem tem perícia passa melhor.",
+                "locked": false,
+                "lockedReason": null
+              },
+              {
+                "id": "turnBack",
+                "label": "Voltar com o que já têm",
+                "hint": "Sem risco; o saque fica pequeno.",
+                "locked": false,
+                "lockedReason": null
+              }
+            ]
+          }
+        }
+      ],
+      "reports": [
+        {
+          "expeditionId": "expedition-1",
+          "label": "Patrulha dos Arredores",
+          "postureLabel": "Cautelosa",
+          "teamNames": [
+            "Rolf"
+          ],
+          "log": [
+            {
+              "title": "A ronda pelas cercas",
+              "text": "No 21º dia da Primavera, a patrulha de Pedra Alta deu a volta nas cercas e pôs para correr dois ladrões de galinha, que largaram a bolsa. Trouxe 25 de ouro.",
+              "outcomeLabel": "Sucesso pleno"
+            }
+          ],
+          "lootText": "Trouxe 25 de ouro."
+        }
+      ],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [
+        {
+          "id": "hero-1",
+          "name": "Edda",
+          "classLabel": "Guerreira",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Leal",
+              "text": "Nunca fica descontente nem parte por soldo em atraso."
+            }
+          ],
+          "statusText": "Em expedição",
+          "atHome": false,
+          "power": 42,
+          "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
+          "wagePerHour": 2,
+          "discontent": false
+        },
+        {
+          "id": "hero-2",
+          "name": "Rolf",
+          "classLabel": "Arqueiro",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Prudente",
+              "text": "Rende mais quando a ordem é de cautela, e não cai em armadilha simples."
+            }
+          ],
+          "statusText": "Em expedição",
+          "atHome": false,
+          "power": 36,
+          "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
+          "wagePerHour": 2,
+          "discontent": false
+        }
+      ],
+      "arriving": [],
+      "wage": {
+        "perHour": 4,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    }
+  },
+  "expeditionReturning": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "ironKing",
+      "difficultyLabel": "Rei de Ferro",
+      "paceLabel": "Tranquilo: um ano em 14 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "summer",
+      "seasonLabel": "Verão",
+      "dayOfSeason": 19,
+      "dayOfYear": 43,
+      "secondsToNextDay": 3960,
+      "secondsToNextSeason": 75960,
+      "seasonEffects": "Verão: madeira e pedra × 1,15.",
+      "nextSeason": {
+        "id": "autumn",
+        "label": "Outono",
+        "secondsUntil": 75960,
+        "changes": [
+          "A produção de comida passa de × 1 para × 1,3.",
+          "A produção de madeira e pedra passa de × 1,15 para × 1.",
+          "A produção de ouro passa de × 1 para × 1,1."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": 19.9,
+          "stockAtTurn": 1280,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Outono será de +19,94/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 421560,
+        "firewood": {
+          "perHour": 1.25,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2020,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 15,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1118,
+        "cap": 1280,
+        "capBreakdown": "Celeiro Nv2: 1.600 × 0,8 (Rei de Ferro) = 1.280",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": 41748,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 13.6,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 5 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 16,13/h; consumo 5 × 0,5 = 2,5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2020,
+        "cap": 2240,
+        "capBreakdown": "Armazém Nv4: 2.800 × 0,8 (Rei de Ferro) = 2.240",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 4 × 1 (Nv1) × 1,15 (verão) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 740,
+        "cap": 2240,
+        "capBreakdown": "Armazém Nv4: 2.800 × 0,8 (Rei de Ferro) = 2.240",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 2,5 × 1 (Nv1) × 1,15 (verão) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 1490,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 1.3,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 2 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 4,3/h; −3/h (soldo de 3 heróis)"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 14400,
+      "adaptationText": "Quem troca de ofício produz metade por 4 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 16.128,
+        "perWorkerPerHour": 5.376,
+        "breakdown": "3 trabalhadores × 5 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 16,13/h",
+        "perNewWorkerPerHour": 2.688,
+        "experience": 8,
+        "masteryBonusPercent": 2.4,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 4.83,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) × 1,15 (verão) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 2.415,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 3.0185,
+        "breakdown": "0 trabalhadores × 2,5 × 1 (Nv1) × 1,15 (verão) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 1.509,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 4.3005,
+        "perWorkerPerHour": 2.15,
+        "breakdown": "2 trabalhadores × 2 × 1 (Nv1) × 1,024 (mestria 8) × 1,05 (moral 60) = 4,3/h",
+        "perNewWorkerPerHour": 1.075,
+        "experience": 8,
+        "masteryBonusPercent": 2.4,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2700,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 600,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 960,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2700,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.280 → 1.760."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 6075,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 2.240 → 2.720 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1440,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 2400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 768,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 256,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 512,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 5400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 2 expedições por vez."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 2400,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 48 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 48 h) = 60",
+      "nextUpdateInSeconds": 3960,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 60.",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 48 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (4 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (4 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 1208984760,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 1208984760,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 16 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "A Guilda dos Aventureiros sustenta 2 expedições por vez, e não há lugar para outra agora.",
+      "building": "guild",
+      "built": true,
+      "level": 2,
+      "slots": 2,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe vai atrás do maior ganho."
+        }
+      ],
+      "available": [
+        {
+          "modelId": "patrol",
+          "label": "Patrulha dos Arredores",
+          "riskText": "Baixo",
+          "durationSeconds": 1530,
+          "durationNote": "No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: 1 herói.",
+          "teamMin": 1,
+          "teamMax": 1,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A ronda pelas cercas (dificuldade 30). Depois, o caminho de volta."
+        },
+        {
+          "modelId": "oldForest",
+          "label": "Floresta Antiga",
+          "riskText": "Baixo a médio",
+          "durationSeconds": 6120,
+          "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
+          "requirementsText": "Equipe: de 1 a 2 heróis.",
+          "teamMin": 1,
+          "teamMax": 2,
+          "locked": true,
+          "lockedReason": "A Guilda dos Aventureiros Nv2 sustenta 2 expedições por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
+          "firstStretchText": "A trilha sob os carvalhos. Depois, uma encruzilhada: o que vem além dela só se sabe lá."
+        }
+      ],
+      "expeditions": [
+        {
+          "id": "expedition-1",
+          "label": "Floresta Antiga",
+          "postureLabel": "Ousada",
+          "teamNames": [
+            "Edda"
+          ],
+          "statusText": "De volta para casa.",
+          "nodeTitle": "A volta pela trilha",
+          "nodeEndsInSeconds": 1680,
+          "log": [
+            {
+              "title": "A trilha sob os carvalhos",
+              "text": "No 18º dia do Verão, a expedição de Pedra Alta entrou na Floresta Antiga e juntou a lenha caída pelo caminho. Trouxe 19 de madeira.",
+              "outcomeLabel": "Sem incidentes"
+            },
+            {
+              "title": "A trilha se divide",
+              "text": "Sem palavra do senhor, a Postura Ousada decidiu: Abrir caminho pela mata fechada.",
+              "outcomeLabel": "Caminho escolhido"
+            },
+            {
+              "title": "O javali da mata fechada",
+              "text": "No 19º dia do Verão, o javali da mata fechada dispersou a expedição de Pedra Alta: metade da madeira ficou para trás. Trouxe 36 de madeira e 11 de ouro.",
+              "outcomeLabel": "Revés"
+            }
+          ],
+          "crossroads": null
+        },
+        {
+          "id": "expedition-2",
+          "label": "Patrulha dos Arredores",
+          "postureLabel": "Equilibrada",
+          "teamNames": [
+            "Rolf"
+          ],
+          "statusText": "A caminho: Rastros na estrada velha.",
+          "nodeTitle": "Rastros na estrada velha",
+          "nodeEndsInSeconds": 510,
+          "log": [],
+          "crossroads": null
+        }
+      ],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [
+        {
+          "id": "hero-1",
+          "name": "Edda",
+          "classLabel": "Guerreira",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Leal",
+              "text": "Nunca fica descontente nem parte por soldo em atraso."
+            }
+          ],
+          "statusText": "Em expedição",
+          "atHome": false,
+          "power": 42,
+          "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
+          "wagePerHour": 1,
+          "discontent": false
+        },
+        {
+          "id": "hero-2",
+          "name": "Rolf",
+          "classLabel": "Arqueiro",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Prudente",
+              "text": "Rende mais quando a ordem é de cautela, e não cai em armadilha simples."
+            }
+          ],
+          "statusText": "Em expedição",
+          "atHome": false,
+          "power": 36,
+          "powerBreakdown": "(18 de ataque + 9 de defesa + 90 de vida ÷ 10) × 1 (Nv1) = 36",
+          "wagePerHour": 1,
+          "discontent": false
+        },
+        {
+          "id": "hero-3",
+          "name": "Brann",
+          "classLabel": "Guerreiro",
+          "level": 1,
+          "xp": 0,
+          "xpToNext": 100,
+          "traits": [
+            {
+              "label": "Corajoso",
+              "text": "Rende mais quando a ordem é de ousadia, e se fere com mais facilidade."
+            }
+          ],
+          "statusText": "No feudo",
+          "atHome": true,
+          "power": 42,
+          "powerBreakdown": "(14 de ataque + 16 de defesa + 120 de vida ÷ 10) × 1 (Nv1) = 42",
+          "wagePerHour": 1,
+          "discontent": false
+        }
+      ],
+      "arriving": [],
+      "wage": {
+        "perHour": 3,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 48 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   }

@@ -1,0 +1,180 @@
+{
+ "schemaVersion": 17,
+ "seed": "fixture-iron-king-half",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "ironKing",
+  "timeScale": 0.5
+ },
+ "migratedAtMs": 119003,
+ "clock": {
+  "gameTimeMs": 44619510,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 44619510,
+ "rng": {
+  "council": [
+   3362863373,
+   776226623,
+   4102013560,
+   709395892
+  ]
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 400000,
+   "wood": 70047,
+   "stone": 178218,
+   "gold": 260000
+  },
+  "accumulators": {
+   "food": 3286710,
+   "wood": 929400,
+   "stone": 1204560,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 6
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 1,
+   "quarry": 2,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 2,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0,
+   "guild": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [
+   {
+    "building": "lumberMill",
+    "targetLevel": 2,
+    "autoStart": false
+   }
+  ],
+  "recruitmentQueue": [],
+  "famine": null,
+  "cold": null,
+  "wasted": {
+   "food": 14350,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 24,
+   "lumberMill": 0,
+   "quarry": 24,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [
+   {
+    "building": "lumberMill",
+    "count": 1,
+    "untilMs": 51779003
+   }
+  ],
+  "morale": 60,
+  "moraleEffects": [],
+  "injured": [],
+  "lastFamine": null
+ },
+ "objectives": {
+  "active": [
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower"
+  ],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:housing": 1,
+  "villagersRecruited": 1,
+  "wasted_food": 135350,
+  "cardsDrawn": 1,
+  "cardsDrawn:thawBridgePlea": 1
+ },
+ "council": {
+  "pending": [
+   {
+    "instanceId": "thawBridgePlea-1",
+    "cardId": "thawBridgePlea",
+    "drawnAtMs": 36000000,
+    "expiresAtMs": 79200000,
+    "origin": null
+   }
+  ],
+  "flags": {},
+  "seenThisYear": [
+   "thawBridgePlea"
+  ],
+  "nextDrawAtMs": 64800000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 12
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "ids": {},
+ "guild": {
+  "heroes": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "arriving": [],
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  },
+  "expeditions": [],
+  "reports": []
+ }
+}

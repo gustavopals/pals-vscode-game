@@ -61,9 +61,11 @@ describe('pureza do motor', () => {
     // que uma carta entrega (`arrivals.ts`) chega em instante marcado, com nome e traços do
     // conteúdo. Na Taverna, o sorteio mora em `tavernTurn.ts` (a rotação dos candidatos);
     // `tavern.ts` (as contas), `tavernOrders.ts` (contratar e dar festival) e `tavernView.ts`
-    // ficam do lado de quem não sorteia.
+    // ficam do lado de quem não sorteia. Nas expedições, mora em `expeditionTurn.ts` (o fim de
+    // um nó); `expeditions.ts` (as contas, e a variante do grafo, que sai de um hash),
+    // `expeditionOrders.ts` (enviar e escolher o caminho) e `expeditionsView.ts` não sorteiam.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|hash)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -86,6 +88,9 @@ describe('pureza do motor', () => {
         './tavern.ts',
         './tavernOrders.ts',
         './tavernView.ts',
+        './expeditions.ts',
+        './expeditionOrders.ts',
+        './expeditionsView.ts',
       ]),
     );
     const offenders = guarded
@@ -101,6 +106,10 @@ describe('pureza do motor', () => {
     // ordem não sorteia.
     expect(draws).toContain('./tavernTurn.ts');
     expect(draws).not.toContain('./tavernOrders.ts');
+    // Nas expedições, só o fim de um nó (`expeditionTurn.ts`): enviar e escolher o caminho são
+    // ordens.
+    expect(draws).toContain('./expeditionTurn.ts');
+    expect(draws).not.toContain('./expeditionOrders.ts');
   });
 
   it('quem mostra, agenda ou carrega o estado não importa o contador de identidades', () => {
@@ -121,7 +130,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|hash)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -141,6 +150,7 @@ describe('pureza do motor', () => {
         './migrations/v14.ts',
         './migrations/v15.ts',
         './migrations/v16.ts',
+        './migrations/v17.ts',
         './random.ts',
         './morale.ts',
         './threat.ts',
@@ -151,6 +161,8 @@ describe('pureza do motor', () => {
         './wages.ts',
         './tavern.ts',
         './tavernView.ts',
+        './expeditions.ts',
+        './expeditionsView.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
@@ -161,7 +173,8 @@ describe('pureza do motor', () => {
     const creators = sources
       .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text))
       .map(([path]) => path);
-    expect(creators).toEqual(['./arrivals.ts', './tavernTurn.ts']);
+    // E, desde V3D-T1, `expeditionOrders.ts`: a ordem de envio dá o identificador à expedição.
+    expect(creators).toEqual(['./arrivals.ts', './expeditionOrders.ts', './tavernTurn.ts']);
     for (const allowed of [
       './commands.ts',
       './council.ts',
@@ -170,6 +183,8 @@ describe('pureza do motor', () => {
       './arrivals.ts',
       './tavernOrders.ts',
       './tavernTurn.ts',
+      './expeditionOrders.ts',
+      './expeditionTurn.ts',
     ]) {
       expect(guarded.map(([path]) => path)).not.toContain(allowed);
     }

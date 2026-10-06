@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 16;
+const CURRENT = 17;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -50,6 +50,9 @@ const CURRENT = 16;
 const EMPTY_TAVERN = {
   tavernOffers: [],
   tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+  // E as expedições (V3D-T1, versão 17): nenhuma em curso, nenhum relatório.
+  expeditions: [],
+  reports: [],
 };
 /**
  * A guilda com que toda partida chega à versão atual: sem herói, sem ninguém prometido, sem
@@ -63,9 +66,12 @@ const EMPTY_GUILD = {
   ...EMPTY_TAVERN,
 };
 
-/** O feudo de um estado anterior à versão 16, com a Taverna por construir a mais. */
+/**
+ * O feudo de um estado anterior à versão 16, com a Taverna por construir a mais e, desde a
+ * versão 17, a Guilda dos Aventureiros também.
+ */
 function withTavernSite<T extends { buildings: Record<string, number> }>(settlement: T): T {
-  return { ...settlement, buildings: { ...settlement.buildings, tavern: 0 } };
+  return { ...settlement, buildings: { ...settlement.buildings, tavern: 0, guild: 0 } };
 }
 
 type StoredState = {
@@ -124,6 +130,7 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       watchtower: 0,
       palisade: 0,
       tavern: 0,
+      guild: 0,
     },
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     constructionQueues: [...constructionQueues, null],
@@ -1217,6 +1224,130 @@ describe('uma partida gravada na versão 15 (V3C-T2; ADR 0017, decisões 4, 5 e 
           app.pool,
           'game_events',
           `game_id = '${game.id}' and kind in ('heroHired', 'festivalHeld', 'festivalEnded')`,
+        ),
+      ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13)', () => {
+  type V16State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    guild: { heroes: Array<{ id: string; status: string }>; expeditions?: unknown };
+  };
+
+  /** Um retrato da versão 16, como o motor da Taverna o gravou. */
+  function v16State(name: string): V16State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v16-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V16State;
+  }
+
+  async function insertV16(app: TestApp, state: V16State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // As três dificuldades e os três ritmos; com heróis, com a Taverna aberta e em festa, com o
+  // soldo em atraso; partidas nascidas na versão 16 e migradas até ela.
+  it.each([
+    ['week-scripted'],
+    ['guild'],
+    ['tavern'],
+    ['tavern-busy'],
+    ['wage-arrears'],
+    ['migrated-iron-king-half'],
+    ['migrated-peasant-3x'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com a Guilda por construir a mais',
+    async (name) => {
+      const before = v16State(name);
+      expect(before.guild.expeditions).toBeUndefined();
+      expect(before.settlement.buildings.guild).toBeUndefined();
+      const game = await insertV16(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 16, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V16State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 16, campo por campo, com a fronteira nova, o edifício no nível
+      // zero e as duas listas vazias: nenhum herói, oferta, festival, estoque, contador ou
+      // sorteio muda, e todos continuam no feudo.
+      expect(row.state).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+        settlement: {
+          ...before.settlement,
+          buildings: { ...before.settlement.buildings, guild: 0 },
+        },
+        guild: { ...before.guild, expeditions: [], reports: [] },
+      });
+      expect(Object.keys(row.state.rng).filter((key) => key.includes(':'))).toEqual([]);
+      expect(row.state.guild.heroes.every((hero) => hero.status === 'idle')).toBe(true);
+
+      // A visão traz a Guilda por erguer: sem lugar, sem destino, sem expedição, e só cartas
+      // entre as decisões à espera.
+      expect(reply.body.view.guild).toMatchObject({
+        built: false,
+        level: 0,
+        slots: 0,
+        available: [],
+        expeditions: [],
+        reports: [],
+      });
+      expect(reply.body.view.pendingDecisions.every((entry) => entry.kind === 'card')).toBe(true);
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: um dia real depois a Guilda continua por erguer e ninguém saiu em expedição', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v16State('tavern');
+      expect(before.guild.heroes).toHaveLength(1);
+      const game = await insertV16(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V16State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      // Ninguém mandou erguer a Guilda: nada dela acontece sozinho.
+      expect(row.state.settlement.buildings.guild).toBe(0);
+      expect(row.state.guild).toMatchObject({ expeditions: [], reports: [] });
+      expect(row.state.guild.heroes.map((hero) => [hero.id, hero.status])).toEqual(
+        before.guild.heroes.map((hero) => [hero.id, 'idle']),
+      );
+      expect(row.state.ids.expedition).toBeUndefined();
+      expect(
+        await countRows(
+          app.pool,
+          'game_events',
+          `game_id = '${game.id}' and kind like 'expedition%'`,
         ),
       ).toBe(0);
     } finally {

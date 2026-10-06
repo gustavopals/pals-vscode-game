@@ -142,16 +142,30 @@ function blockingDepots(view: ViewState): BuildingId[] {
 
 /**
  * Os edifícios que não entram na corrida das obras: cada um tem a política que decide quando
- * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`)
- * e a Paliçada (`erguer a Paliçada`), como a visão os aponta: o edifício que amplia cada
- * recurso, o edifício da Torre e o da defesa.
+ * ele vale a obra. São os depósitos (`ampliar o estoque`), a Torre de Vigia (`erguer a Torre`),
+ * a Paliçada (`erguer a Paliçada`) e a Guilda dos Aventureiros (`erguer a Guilda`, que só o
+ * explorador tem: a quem não envia expedições ela não serve de nada), como a visão os aponta: o
+ * edifício que amplia cada recurso, o da Torre, o da defesa e o da Guilda.
  */
 function sideBuildings(view: ViewState): Set<BuildingId | null> {
   return new Set([
     ...depotsOf(view),
     view.threat.watchtower.building,
     view.threat.defense.building,
+    view.guild.building,
   ]);
+}
+
+/**
+ * A lista de obras sem a Guilda dos Aventureiros, a não ser que ela já esteja entre as
+ * planejadas: só quem envia expedições a quer (`erguer a Guilda`), e o custo dela não entra na
+ * conta de quem não a ergue (o que a próxima obra pede, a obra que um objetivo manda planejar,
+ * o que falta juntar).
+ */
+function inTheRace(view: ViewState): Upgrade[] {
+  return view.constructions.available.filter(
+    (upgrade) => upgrade.building !== view.guild.building || upgrade.planned,
+  );
 }
 
 /**
@@ -346,7 +360,7 @@ function optionPrice(option: CardOption): number {
  * recurso ou fila, que é a que o bot inicia primeiro (`obra mais barata`). Zero sem nenhuma.
  */
 function nextUpgradeNeeds(view: ViewState, resource: ResourceId): number {
-  const [next] = view.constructions.available
+  const [next] = inTheRace(view)
     .filter((upgrade) => reachable(upgrade) && upgrade.blockedCode !== 'ALREADY_UPGRADING')
     .sort((a, b) => price(a) - price(b));
   return next?.cost.find((cost) => cost.resource === resource)?.amount ?? 0;
@@ -489,6 +503,105 @@ export const contratar: Policy = {
       tried.add(offer.offerId);
       current = await act('hireHero', { offerId: offer.offerId });
     }
+  },
+};
+
+/**
+ * Ergue a Guilda dos Aventureiros quando há a quem enviar, e a melhora quando há mais gente
+ * livre no feudo do que lugares para expedição: sem herói ela não serve de nada, e um nível a
+ * mais só rende com uma segunda equipe para mandar. Tudo lido da visão: o edifício
+ * (`guild.building`), os lugares e quem está no feudo. Se a obra não pode começar agora por
+ * falta de recurso ou de fila, fica planejada como automática; presa ao Salão ou no teto, não há
+ * o que planejar. Como as outras obras, não gasta a madeira da lareira.
+ */
+export const erguerGuilda: Policy = {
+  name: 'erguer a Guilda',
+  run: async (view, act) => {
+    const { guild } = view;
+    const upgrade = view.constructions.available.find((entry) => entry.building === guild.building);
+    const idle = guild.heroes.filter((hero) => hero.atHome).length;
+    const wanted = guild.built
+      ? guild.expeditions.length >= guild.slots && idle > 0
+      : guild.heroes.length > 0;
+    if (upgrade === undefined || !wanted || !keepsFirewood(view, upgrade)) {
+      return view;
+    }
+    if (upgrade.blockedCode === null) {
+      return act('startConstruction', { building: upgrade.building });
+    }
+    const canWait =
+      !upgrade.planned &&
+      upgrade.blockedCode !== 'MAX_LEVEL' &&
+      upgrade.blockedCode !== 'GATE_LOCKED' &&
+      upgrade.blockedCode !== 'ALREADY_UPGRADING' &&
+      upgrade.blockedCode !== 'EXCEEDS_STORAGE';
+    return canWait
+      ? act('planConstruction', {
+          building: upgrade.building,
+          autoStart: true,
+          targetLevel: upgrade.targetLevel,
+        })
+      : view;
+  },
+};
+
+/** A Postura com que o bot envia: a do meio. */
+const BOT_POSTURE = 'balanced';
+
+/**
+ * Envia expedições enquanto houver destino aberto e gente livre no feudo: o primeiro destino da
+ * lista que a visão diz que está aberto (`locked` falso; com a Guilda no nível 1, a Patrulha dos
+ * Arredores), com a menor equipe que ele aceita, na ordem em que os heróis chegaram. Uma ordem
+ * recusada (a equipe não serve) encerra a política nesta visita: a visão não diz mais do que
+ * isso, e o bot não insiste.
+ *
+ * Tudo vem da visão: os destinos e o que cada um pede, quem está no feudo e os lugares da
+ * Guilda. O bot não olha a dificuldade do primeiro trecho nem o poder da equipe: é o jogador que
+ * manda quem está à mão, e é assim que a matriz mede o que a expedição rende e custa.
+ */
+export const enviarExpedicoes: Policy = {
+  name: 'enviar expedições',
+  run: async (view, act) => {
+    let current = view;
+    for (let round = 0; round < current.guild.slots; round += 1) {
+      const offer = current.guild.available.find((entry) => !entry.locked);
+      const free = current.guild.heroes.filter((hero) => hero.atHome).map((hero) => hero.id);
+      if (offer === undefined || free.length < offer.teamMin) {
+        return current;
+      }
+      const before = current.guild.expeditions.length;
+      current = await act('sendExpedition', {
+        modelId: offer.modelId,
+        heroIds: free.slice(0, offer.teamMin),
+        posture: BOT_POSTURE,
+      });
+      if (current.guild.expeditions.length === before) {
+        return current;
+      }
+    }
+    return current;
+  },
+};
+
+/**
+ * Responde às encruzilhadas que encontra na visita, pela Postura: a opção que a visão diz que
+ * valeria no fim do prazo (`postureOptionId`, já a da Cautelosa quando a marcada está fora do
+ * alcance da equipe). O bot não lê as pistas: decide o que a Postura decidiria, só que antes, e
+ * a equipe não fica parada até o prazo.
+ */
+export const escolherCaminho: Policy = {
+  name: 'escolher o caminho',
+  run: async (view, act) => {
+    let current = view;
+    for (const expedition of view.guild.expeditions) {
+      if (expedition.crossroads !== null) {
+        current = await act('chooseExpeditionPath', {
+          expeditionId: expedition.id,
+          optionId: expedition.crossroads.postureOptionId,
+        });
+      }
+    }
+    return current;
   },
 };
 
@@ -797,7 +910,7 @@ async function pursue(view: ViewState, objective: Objective, act: Act): Promise<
     if (view.constructions.planned.some((plan) => plan.autoStart)) {
       return view;
     }
-    const [cheapest] = view.constructions.available
+    const [cheapest] = inTheRace(view)
       .filter((upgrade) => !upgrade.planned && !deadEnd(upgrade))
       .filter((upgrade) => woodIsSafe || !costsWood(upgrade))
       .sort((a, b) => price(a) - price(b));
@@ -1222,7 +1335,7 @@ export const ocuparLivres: Policy = {
       return view;
     }
     const missing = (resource: ResourceId) =>
-      view.constructions.available
+      inTheRace(view)
         .filter(reachable)
         .flatMap((upgrade) => upgrade.cost)
         .filter((cost) => cost.resource === resource)

@@ -231,6 +231,13 @@ export function withWage(view: ViewState, patch: Partial<ViewState['guild']['wag
 }
 export const tavernOpenView = golden.tavernOpen as unknown as ViewState;
 export const tavernBusyView = golden.tavernBusy as unknown as ViewState;
+/**
+ * As expedições, como o motor as mostra (V3D-T1): uma equipe em viagem, com os destinos
+ * fechados; uma parada na encruzilhada, com a decisão entre as pendentes; e duas de uma vez.
+ */
+export const expeditionTravelingView = golden.expeditionTraveling as unknown as ViewState;
+export const expeditionCrossroadsView = golden.expeditionCrossroads as unknown as ViewState;
+export const expeditionReturningView = golden.expeditionReturning as unknown as ViewState;
 
 /**
  * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera

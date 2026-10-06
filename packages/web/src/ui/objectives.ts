@@ -1,6 +1,6 @@
 import type { GameEvent, ViewState } from '@lotg/protocol';
 
-import { isNewBuilding } from './format';
+import { cardDecisions, isNewBuilding } from './format';
 import { buildingWork, workTerms } from './threat';
 
 /**
@@ -152,7 +152,7 @@ export function objectiveAction(
         : { command: 'lords.recruit', label: 'Recrutar aldeões', text: 'Recrutar' };
     }
     case 'council':
-      return view.pendingDecisions.length > 0
+      return cardDecisions(view).length > 0
         ? {
             command: 'lords.openPanel',
             arg: 'council',

@@ -45,6 +45,14 @@ export const REJECTION_CODES = [
   'OFFER_GONE',
   'HERO_LIMIT',
   'FESTIVAL_ALREADY_HELD',
+  'HERO_BUSY',
+  'GUILD_REQUIRED',
+  'EXPEDITION_LIMIT',
+  'EXPEDITION_LOCKED',
+  'HERO_UNAVAILABLE',
+  'TEAM_INVALID',
+  'EXPEDITION_NOT_WAITING',
+  'CROSSROADS_DECIDED',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -298,13 +306,25 @@ const CouncilSchema = z.strictObject({
   rulesText: z.string(),
 });
 
-/** Uma decisão à espera do jogador: hoje, só as cartas do Conselho. `id` é o `instanceId`. */
-const PendingDecisionSchema = z.strictObject({
-  kind: z.literal('card'),
-  id: z.string(),
-  title: z.string(),
-  expiresInSeconds: z.number(),
-});
+/**
+ * Uma decisão à espera do jogador, uma união fechada por `kind`: uma carta do Conselho (`id` é o
+ * `instanceId`) ou uma expedição parada em uma encruzilhada (`id` é o da expedição). Um tipo
+ * novo de decisão sobe o protocolo: o app que não o conhece recusaria a visão inteira.
+ */
+const PendingDecisionSchema = z.discriminatedUnion('kind', [
+  z.strictObject({
+    kind: z.literal('card'),
+    id: z.string(),
+    title: z.string(),
+    expiresInSeconds: z.number(),
+  }),
+  z.strictObject({
+    kind: z.literal('crossroads'),
+    id: z.string(),
+    title: z.string(),
+    expiresInSeconds: z.number(),
+  }),
+]);
 
 /** Um herói, como a ficha o mostra: o poder explicado e o soldo em ouro por hora real. */
 const HeroSchema = z.strictObject({
@@ -318,6 +338,8 @@ const HeroSchema = z.strictObject({
   xpToNext: z.number().nullable(),
   traits: z.array(z.strictObject({ label: z.string(), text: z.string() })),
   statusText: z.string(),
+  /** Está no feudo: pode partir em uma expedição ou ser dispensado. */
+  atHome: z.boolean(),
   power: z.number(),
   powerBreakdown: z.string(),
   wagePerHour: z.number(),
@@ -330,9 +352,104 @@ const HeroSchema = z.strictObject({
  * quem ainda vai chegar: isso é `afterArrivals`. No atraso, os dois prazos são segundos reais
  * até a virada de dia que cobra cada consequência.
  */
-const GuildSchema = z.strictObject({
-  /** A situação da equipe em uma frase: como o primeiro herói chega, ou o que a equipe espera. */
+/** Um passo do percurso de uma expedição: o nó, a frase e o desfecho em palavra. */
+const ExpeditionLogSchema = z.strictObject({
+  title: z.string(),
   text: z.string(),
+  outcomeLabel: z.string(),
+});
+
+const GuildSchema = z.strictObject({
+  /**
+   * A situação da equipe em uma frase: como o primeiro herói chega, o que abre a Guilda dos
+   * Aventureiros ou quantas expedições ela sustenta.
+   */
+  text: z.string(),
+  /** O edifício da Guilda dos Aventureiros, como `constructions.available` o chama. */
+  building: buildingId,
+  /** A Guilda dos Aventureiros está erguida. */
+  built: z.boolean(),
+  level: z.number(),
+  /** Quantas expedições ela sustenta ao mesmo tempo; zero sem ela. */
+  slots: z.number(),
+  /** As Posturas, para a escolha no envio. */
+  postures: z.array(
+    z.strictObject({
+      id: z.enum(['cautious', 'balanced', 'bold']),
+      label: z.string(),
+      text: z.string(),
+    }),
+  ),
+  /**
+   * Os destinos que a Guilda conhece, com o que o jogador sabe antes de enviar: a duração de
+   * quem enviasse agora, em segundos reais, o risco em palavra, o que a equipe precisa ter e o
+   * primeiro trecho, até a primeira encruzilhada. O que vem depois dela não sai do servidor.
+   */
+  available: z.array(
+    z.strictObject({
+      /** O identificador que `sendExpedition` recebe. */
+      modelId: z.string(),
+      label: z.string(),
+      riskText: z.string(),
+      durationSeconds: z.number(),
+      durationNote: z.string(),
+      requirementsText: z.string(),
+      teamMin: z.number(),
+      teamMax: z.number(),
+      locked: z.boolean(),
+      lockedReason: z.string().nullable(),
+      firstStretchText: z.string(),
+    }),
+  ),
+  /**
+   * As expedições em curso: onde a equipe está, quanto falta para o nó de agora (segundos
+   * reais; `null` na encruzilhada), o que já aconteceu e, parada em uma encruzilhada, as
+   * opções com a pista de cada uma, o prazo real e o que a Postura fará sem resposta.
+   */
+  expeditions: z.array(
+    z.strictObject({
+      /** O identificador que `chooseExpeditionPath` recebe. */
+      id: z.string(),
+      label: z.string(),
+      postureLabel: z.string(),
+      teamNames: z.array(z.string()),
+      statusText: z.string(),
+      nodeTitle: z.string(),
+      nodeEndsInSeconds: z.number().nullable(),
+      log: z.array(ExpeditionLogSchema),
+      crossroads: z
+        .strictObject({
+          title: z.string(),
+          text: z.string(),
+          decidesInSeconds: z.number(),
+          postureLabel: z.string(),
+          postureOptionId: z.string(),
+          postureOptionLabel: z.string(),
+          postureText: z.string(),
+          options: z.array(
+            z.strictObject({
+              id: z.string(),
+              label: z.string(),
+              hint: z.string(),
+              locked: z.boolean(),
+              lockedReason: z.string().nullable(),
+            }),
+          ),
+        })
+        .nullable(),
+    }),
+  ),
+  /** Os relatórios guardados, do mais novo ao mais antigo, nó a nó. */
+  reports: z.array(
+    z.strictObject({
+      expeditionId: z.string(),
+      label: z.string(),
+      postureLabel: z.string(),
+      teamNames: z.array(z.string()),
+      log: z.array(ExpeditionLogSchema),
+      lootText: z.string(),
+    }),
+  ),
   /** O que dispensar um herói custa (sem devolução), para a confirmação da ordem. */
   dismissText: z.string(),
   heroLimit: z.number(),
@@ -750,7 +867,8 @@ export const ViewStateSchema = z.strictObject({
   tavern: TavernSchema,
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
-   * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`.
+   * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`, e a
+   * encruzilhada, em `guild.expeditions[].crossroads`.
    */
   pendingDecisions: z.array(PendingDecisionSchema),
 });

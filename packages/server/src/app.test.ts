@@ -47,7 +47,7 @@ describe('esqueleto do servidor', () => {
 
   it('GET /v1/version informa servidor, protocolo e hash do conteúdo', async () => {
     const response = await app.inject({ url: '/v1/version' });
-    expect(response.json()).toMatchObject({ server: '0.2.0', protocol: 2 });
+    expect(response.json()).toMatchObject({ server: '0.2.0', protocol: 3 });
     expect(response.json().contentHash).toMatch(/^[0-9a-f]{16}$/);
     expect(Number.isNaN(Date.parse(response.json().builtAt))).toBe(false);
   });
@@ -104,9 +104,17 @@ describe('esqueleto do servidor', () => {
     expect(response.json()).toMatchObject({
       code: 'UPGRADE_REQUIRED',
       message: 'Há uma versão nova do jogo. Recarregue a página.',
-      details: { protocol: 2 },
+      details: { protocol: 3 },
     });
-    const same = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '2' } });
+    // O app do protocolo 2 (a aba aberta desde antes das expedições) não sabe ler a encruzilhada
+    // em `pendingDecisions`: recebe o mesmo aviso.
+    const previous = await app.inject({
+      url: '/v1/version',
+      headers: { 'x-lords-protocol': '2' },
+    });
+    expect(previous.statusCode).toBe(426);
+    expect(previous.json()).toMatchObject({ code: 'UPGRADE_REQUIRED', details: { protocol: 3 } });
+    const same = await app.inject({ url: '/v1/version', headers: { 'x-lords-protocol': '3' } });
     expect(same.statusCode).toBe(200);
   });
 

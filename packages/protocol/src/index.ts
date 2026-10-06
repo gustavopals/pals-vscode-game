@@ -8,8 +8,13 @@ export const PROTOCOL_PACKAGE_VERSION = '0.2.0';
  * - **2:** o Conselho do Feudo (ADR 0014). `pendingDecisions` deixou de ser sempre vazio e o
  *   `ViewState` ganhou `council`: o app da versão 1 recusa a visão inteira ao ver uma carta, e
  *   por isso recebe o 426 com a instrução de recarregar a página, em vez de quebrar.
+ * - **3:** as expedições (ADR 0018, decisão 11). `pendingDecisions` era uma lista fechada, só de
+ *   cartas, e passou a trazer também a encruzilhada (`kind: 'crossroads'`): o app da versão 2
+ *   recusaria a visão inteira ao ver uma, e por isso recebe o 426. O `ViewState` ganhou os
+ *   campos da Guilda dos Aventureiros (`guild.built`, `available`, `expeditions`, `reports`), e
+ *   os comandos, `sendExpedition` e `chooseExpeditionPath`.
  */
-export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSION = 3;
 
 export const API_PREFIX = '/v1';
 

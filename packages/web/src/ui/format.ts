@@ -431,6 +431,30 @@ function mostPressingStorage(view: ViewState): ResourceRow | null {
     );
 }
 
+type PendingDecision = ViewState['pendingDecisions'][number];
+
+/**
+ * As cartas do Conselho à espera de resposta, na ordem da visão (do prazo mais curto ao mais
+ * longo). `pendingDecisions` traz também as encruzilhadas de expedição desde o protocolo 3: o que
+ * fala de carta, de audiência e da aba Conselho lê só estas.
+ */
+export function cardDecisions(
+  view: Pick<ViewState, 'pendingDecisions'>,
+): Array<Extract<PendingDecision, { kind: 'card' }>> {
+  return view.pendingDecisions.filter((decision) => decision.kind === 'card');
+}
+
+/**
+ * As expedições paradas em uma encruzilhada, na ordem da visão. Por enquanto o app só as lista,
+ * com o prazo, e leva à aba Guilda: a tela de escolha do caminho é da tarefa da interface das
+ * expedições (V3D-T4). Sem resposta, a Postura da expedição decide no prazo.
+ */
+export function crossroadsDecisions(
+  view: Pick<ViewState, 'pendingDecisions'>,
+): Array<Extract<PendingDecision, { kind: 'crossroads' }>> {
+  return view.pendingDecisions.filter((decision) => decision.kind === 'crossroads');
+}
+
 /** "1 decisão pendente", "2 decisões pendentes". */
 export function pendingDecisionsLabel(count: number): string {
   return `${count} ${count === 1 ? 'decisão pendente' : 'decisões pendentes'}`;
@@ -530,7 +554,7 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
       title: `Soldo em atraso em ${name}`,
     };
   }
-  const decisions = view.pendingDecisions;
+  const decisions = cardDecisions(view);
   const soonest = decisions[0];
   if (soonest !== undefined) {
     const pending = pendingDecisionsLabel(decisions.length);
@@ -678,7 +702,7 @@ export function documentTitle(input: StatusBarInput): string {
     return stripIcons(statusBar(input).text);
   }
   const online = input.connection.kind === 'online';
-  const waiting = input.pending + (online ? input.view.pendingDecisions.length : 0);
+  const waiting = input.pending + (online ? cardDecisions(input.view).length : 0);
   const news = waiting > 0 ? `(${waiting}) ` : '';
   const name = input.view.settlement.name;
   const topic = online ? statusTopic(input.view, input.elapsedSeconds).title : null;

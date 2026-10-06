@@ -60,7 +60,18 @@ export type World = {
    * uma delas, ou a Taverna, que ganha os candidatos na leitura seguinte (o motor os sorteia
    * no primeiro avanço, como na inauguração).
    */
-  raise(building: 'watchtower' | 'palisade' | 'townHall' | 'tavern', level: number): Promise<void>;
+  raise(
+    building: 'watchtower' | 'palisade' | 'townHall' | 'tavern' | 'guild',
+    level: number,
+  ): Promise<void>;
+  /**
+   * Põe a equipe do feudo parada em uma encruzilhada, agora, sem depender da semente
+   * (`/__test/crossroads`): a Guilda dos Aventureiros de pé e o primeiro herói que está no feudo
+   * na encruzilhada da Floresta Antiga, com a Postura e o prazo pedidos (6 horas de relógio, se
+   * nenhum for dado). O feudo precisa ter um herói. Daí em diante a escolha e o prazo são os do
+   * motor.
+   */
+  crossroads(posture?: 'cautious' | 'balanced' | 'bold', expiresInMs?: number): Promise<void>;
   /**
    * Põe o estoque de um recurso de todos os feudos em um valor, em unidades (`/__test/stock`):
    * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
@@ -147,6 +158,12 @@ export const test = base.extend<{ world: World }>({
         },
         stock: async (resource, amount) => {
           await control('stock', { resource, amount });
+        },
+        crossroads: async (posture = 'balanced', expiresInMs) => {
+          await control('crossroads', {
+            posture,
+            ...(expiresInMs === undefined ? {} : { expiresInMs }),
+          });
         },
         threat: async (level) => {
           await control('threat', { level });

@@ -42,6 +42,12 @@ export const EVENT_TYPES = [
   'heroHired',
   'festivalHeld',
   'festivalEnded',
+  'expeditionSent',
+  'expeditionNodeResolved',
+  'expeditionAtCrossroads',
+  'expeditionPathChosen',
+  'expeditionPostureDecided',
+  'expeditionReturned',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -66,6 +72,12 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {heroi} o nome de um herói: "Edda"
  * {classe} a classe dele, em minúscula e concordando com o nome: "guerreira", "arqueiro"
  * {preco} o ouro que uma contratação custou, já com o desconto: "88"
+ * {expedicao} o nome de uma expedição: "Patrulha dos Arredores"
+ * {herois} quem vai nela, pelo nome: "Edda e Rolf"
+ * {no} o título de um nó do caminho: "A ronda pelas cercas"
+ * {desfecho} o desfecho de um nó, em minúscula: "sucesso pleno"
+ * {postura} a Postura da expedição, em minúscula: "cautelosa"
+ * {saque} o que a expedição trouxe: "22 de ouro e 15 de madeira"
  *
  * Nas frases de uma incursão, {perda} é tudo o que ela custou, feridos inclusive ("18 de comida,
  * 12 de madeira e um aldeão ferido"), {nivel} é o nível da Paliçada que a teria detido e
@@ -99,6 +111,12 @@ export const CHRONICLE_PLACEHOLDERS = [
   'heroi',
   'classe',
   'preco',
+  'expedicao',
+  'herois',
+  'no',
+  'desfecho',
+  'postura',
+  'saque',
 ] as const;
 export type ChroniclePlaceholder = (typeof CHRONICLE_PLACEHOLDERS)[number];
 
@@ -196,6 +214,21 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou abrir os barris da Taverna: houve festival, e o povo cantou até tarde.',
   festivalEnded:
     'No {dia}º dia {daEstacao}, os barris secaram em {feudo}: o festival ficou para trás, e o povo voltou ao trabalho.',
+  // As expedições (GDD §9.2 e §9.4). Estas são as frases gerais: cada nó do grafo traz a dele
+  // (`text`, ou a do desfecho, em `trial.outcomes`), e as variantes do prazo e da volta estão em
+  // `expeditionTemplates`.
+  expeditionSent:
+    'No {dia}º dia {daEstacao}, partiu de {feudo} uma expedição: {expedicao}. A equipe: {herois}.',
+  expeditionNodeResolved:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" passou por {no}: {desfecho}.',
+  expeditionAtCrossroads:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" parou em uma encruzilhada: {no}. A equipe espera a palavra do senhor de {feudo}.',
+  expeditionPathChosen:
+    'No {dia}º dia {daEstacao}, o senhor de {feudo} mandou dizer à expedição "{expedicao}": {opcao}.',
+  expeditionPostureDecided:
+    'No {dia}º dia {daEstacao}, sem palavra do senhor de {feudo}, a expedição "{expedicao}" seguiu a postura {postura}: {opcao}.',
+  expeditionReturned:
+    'No {dia}º dia {daEstacao}, a expedição "{expedicao}" voltou a {feudo} com {saque}. A equipe está de novo no feudo: {herois}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',

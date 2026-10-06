@@ -9,10 +9,16 @@ import {
   wageArrearsReliefs,
 } from './chronicle';
 import { COUNCIL_EFFECT_TYPES } from './council';
+import type { ExpeditionsDef } from './balance';
+import { expeditionTemplates, expeditionTexts } from './expeditions';
 import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
+  EXPEDITION_DISASTER_IDS,
+  EXPEDITION_MODEL_IDS,
+  EXPEDITION_OUTCOME_IDS,
+  POSTURE_IDS,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
   HERO_GENDER_IDS,
@@ -54,6 +60,8 @@ const seasonEffects = z.strictObject({
   production: perResource(ratio),
   recruitmentDuration: ratio,
   constructionDuration: ratio,
+  // Uma estação pode encurtar a jornada, nunca alongá-la além do anunciado fora dela.
+  expeditionDuration: ratio.refine(({ num, den }) => num <= den, 'estação que alonga a expedição'),
   firewoodPerVillagerPerHour: ratioOrZero,
 });
 
@@ -315,6 +323,67 @@ const tavern = z.strictObject({
   }),
 });
 
+/**
+ * As expedições (ADR 0017, decisões 1 e 7; ADR 0018, decisões 11 a 13): os limiares do desfecho
+ * descem do Sucesso Pleno ao Revés, a sorte tem o valor neutro dentro da faixa, o saque nunca
+ * cresce com um desfecho pior, um nível a mais da Guilda nunca sustenta menos expedições, e os
+ * limites do grafo estão em ordem.
+ */
+const expeditions = z.strictObject({
+  crossroadsWaitRealMs: positiveInt,
+  outcome: z
+    .strictObject({ full: ratio, success: ratio, setback: ratio })
+    .refine(
+      ({ full, success, setback }) =>
+        full.num * success.den > success.num * full.den &&
+        success.num * setback.den > setback.num * success.den,
+      'limiares de desfecho fora de ordem',
+    ),
+  luck: z
+    .strictObject({ min: positiveInt, max: positiveInt, base: positiveInt })
+    .refine(({ min, max, base }) => min <= base && base <= max, 'sorte neutra fora da faixa'),
+  lootShare: z
+    .strictObject(
+      Object.fromEntries(
+        EXPEDITION_OUTCOME_IDS.map((id) => [
+          id,
+          ratioOrZero.refine(({ num, den }) => num <= den, 'desfecho que multiplica o saque'),
+        ]),
+      ),
+    )
+    .refine((share) => {
+      const values = EXPEDITION_OUTCOME_IDS.map((id) => share[id] ?? { num: 0, den: 1 });
+      return values.every(
+        (value, index) =>
+          index === 0 ||
+          value.num * (values[index - 1]?.den ?? 1) <= (values[index - 1]?.num ?? 0) * value.den,
+      );
+    }, 'desfecho pior que traz mais saque'),
+  slotsByGuildLevel: z
+    .array(positiveInt)
+    .min(1)
+    .refine(
+      (slots) => slots.every((count, index) => index === 0 || count >= (slots[index - 1] ?? 0)),
+      'nível da Guilda que sustenta menos expedições que o anterior',
+    ),
+  reportsKept: positiveInt,
+  variantsPerModel: positiveInt,
+  teamMax: positiveInt,
+  graph: z
+    .strictObject({
+      minDepth: positiveInt,
+      maxDepth: positiveInt,
+      maxSteps: positiveInt,
+      minNodeMs: positiveInt,
+      maxNodeMs: positiveInt,
+    })
+    .refine(
+      ({ minDepth, maxDepth, maxSteps, minNodeMs, maxNodeMs }) =>
+        minDepth <= maxDepth && maxDepth <= maxSteps && minNodeMs <= maxNodeMs,
+      'limites do grafo fora de ordem',
+    ),
+});
+
 const balanceFields = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
@@ -410,6 +479,7 @@ const balanceFields = z.strictObject({
   raids,
   heroes,
   tavern,
+  expeditions,
 });
 
 /**
@@ -464,6 +534,7 @@ export const BuildingsSchema = z.strictObject({
   watchtower: BuildingSchema,
   palisade: BuildingSchema,
   tavern: BuildingSchema,
+  guild: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -737,6 +808,13 @@ export const HeroTraitsSchema = z.strictObject(
             .refine(({ num, den }) => num <= den, 'desconto que encarece')
             .optional(),
           morale: positiveInt.optional(),
+          // Um traço que rende mais em uma Postura: nunca rende menos.
+          expeditionPower: z
+            .strictObject({
+              posture: z.enum(POSTURE_IDS),
+              ratio: ratio.refine(({ num, den }) => num >= den, 'traço que tira poder'),
+            })
+            .optional(),
         }),
       }),
     ]),
@@ -1053,3 +1131,261 @@ export const CouncilCatalogSchema = z.array(CouncilCardSchema).superRefine((card
 });
 
 export { COUNCIL_EFFECT_TYPES, EVENT_TYPES, OBJECTIVE_CONDITION_TYPES };
+
+/** O título de um nó, de uma opção ou de um modelo: começa em maiúscula, sem ponto nem lacuna. */
+const expeditionTitle = label.regex(/^\p{Lu}[^.{}]*$/u);
+/** Uma frase inteira da Crônica: começa em maiúscula, termina em ponto e só usa marcadores conhecidos. */
+const expeditionSentence = chronicleTemplate.regex(/^\p{Lu}.*\.$/u);
+/** Uma frase inteira sem lacuna nem número: o que a tela diz de uma encruzilhada ou de um caminho. */
+const expeditionProse = label.regex(/^\p{Lu}[^0-9{}]*\.$/u);
+
+/** O saque de um nó: só recursos, cada um com uma faixa em ordem. Nada de versão futura cabe aqui. */
+const expeditionReward = z.strictObject({
+  resources: z
+    .partialRecord(
+      resourceId,
+      z
+        .strictObject({ min: positiveInt, max: positiveInt })
+        .refine(({ min, max }) => min <= max, 'faixa de saque fora de ordem'),
+    )
+    .refine((amounts) => Object.keys(amounts).length > 0, 'saque sem recurso nenhum'),
+});
+
+const expeditionTrial = z.strictObject({
+  difficulty: positiveInt,
+  weights: z
+    .partialRecord(z.enum(HERO_ATTRIBUTE_IDS), ratio)
+    .refine((weights) => Object.keys(weights).length > 0, 'pesos sem atributo nenhum')
+    .optional(),
+  onDisaster: z.enum(EXPEDITION_DISASTER_IDS),
+  outcomes: z.strictObject(
+    Object.fromEntries(EXPEDITION_OUTCOME_IDS.map((id) => [id, expeditionSentence])),
+  ),
+});
+
+const expeditionStageNode = z
+  .strictObject({
+    kind: z.enum(['travel', 'encounter', 'discovery', 'hazard', 'camp', 'boss']),
+    title: expeditionTitle,
+    durationMs: positiveInt,
+    text: expeditionSentence.optional(),
+    trial: expeditionTrial.optional(),
+    rewards: expeditionReward.optional(),
+    next: identifier,
+  })
+  .refine(
+    (node) => (node.text === undefined) !== (node.trial === undefined),
+    'nó com a frase e a prova, ou sem nenhuma das duas',
+  );
+
+const expeditionCrossroadsNode = z
+  .strictObject({
+    kind: z.literal('crossroads'),
+    title: expeditionTitle,
+    text: expeditionProse,
+    options: z
+      .array(
+        z.strictObject({
+          id: identifier,
+          label: expeditionTitle,
+          hint: expeditionProse,
+          requires: z.strictObject({ heroClass: z.enum(HERO_CLASS_IDS) }).optional(),
+          next: identifier,
+        }),
+      )
+      .min(2),
+    posture: z.strictObject(Object.fromEntries(POSTURE_IDS.map((id) => [id, identifier]))),
+  })
+  .superRefine((node, context) => {
+    for (const posture of POSTURE_IDS) {
+      const option = node.options.find((entry) => entry.id === node.posture[posture]);
+      if (option === undefined) {
+        context.addIssue({ code: 'custom', message: `Postura ${posture} sem opção que exista` });
+      } else if (posture === 'cautious' && option.requires !== undefined) {
+        context.addIssue({ code: 'custom', message: 'opção da Cautelosa com requisito' });
+      }
+    }
+  });
+
+const expeditionReturnNode = z.strictObject({
+  kind: z.literal('return'),
+  title: expeditionTitle,
+  durationMs: positiveInt,
+  text: expeditionSentence,
+});
+
+const expeditionNode = z.union([
+  expeditionStageNode,
+  expeditionCrossroadsNode,
+  expeditionReturnNode,
+]);
+type ParsedExpeditionNode = z.infer<typeof expeditionNode>;
+
+/** Os nós para onde um nó leva: o seguinte, os das opções, ou nenhum no retorno. */
+function expeditionExits(node: ParsedExpeditionNode): string[] {
+  if (node.kind === 'return') {
+    return [];
+  }
+  return node.kind === 'crossroads' ? node.options.map((option) => option.next) : [node.next];
+}
+
+/**
+ * Um grafo: o nó de partida existe, todo `next` leva a um nó que existe, não há ciclo, todo nó é
+ * alcançado, todo caminho termina em um retorno e cabe nos limites (profundidade, passos e
+ * duração por nó), e as opções de encruzilhada não repetem identificador no grafo. Devolve os
+ * problemas e a duração do caminho mais longo.
+ */
+function inspectExpeditionGraph(
+  variant: { start: string; nodes: Record<string, ParsedExpeditionNode> },
+  rules: ExpeditionsDef['graph'],
+): { problems: string[]; longestMs: number } {
+  const problems: string[] = [];
+  const { nodes, start } = variant;
+  if (!Object.hasOwn(nodes, start)) {
+    return { problems: ['nó de partida que não existe'], longestMs: 0 };
+  }
+  const options = new Set<string>();
+  for (const [key, node] of Object.entries(nodes)) {
+    for (const exit of expeditionExits(node)) {
+      if (!Object.hasOwn(nodes, exit)) {
+        problems.push(`${key}: leva a um nó que não existe`);
+      }
+    }
+    if (node.kind === 'crossroads') {
+      for (const option of node.options) {
+        if (options.has(option.id)) {
+          problems.push(`${key}: opção repetida no grafo`);
+        }
+        options.add(option.id);
+      }
+    } else if (node.durationMs < rules.minNodeMs || node.durationMs > rules.maxNodeMs) {
+      problems.push(`${key}: duração fora da faixa`);
+    }
+  }
+  if (problems.length > 0) {
+    return { problems, longestMs: 0 };
+  }
+  const reached = new Set<string>();
+  let longestMs = 0;
+  const walk = (key: string, trail: string[], depth: number, elapsedMs: number): void => {
+    if (trail.includes(key)) {
+      problems.push(`${key}: ciclo`);
+      return;
+    }
+    reached.add(key);
+    const node = nodes[key] as ParsedExpeditionNode;
+    const timed = node.kind !== 'crossroads';
+    const nextDepth = depth + (timed ? 1 : 0);
+    const nextElapsed = elapsedMs + (node.kind === 'crossroads' ? 0 : node.durationMs);
+    const path = [...trail, key];
+    if (node.kind === 'return') {
+      longestMs = Math.max(longestMs, nextElapsed);
+      if (nextDepth < rules.minDepth || nextDepth > rules.maxDepth) {
+        problems.push(`${path.join(' → ')}: profundidade fora da faixa`);
+      }
+      if (path.length > rules.maxSteps) {
+        problems.push(`${path.join(' → ')}: caminho com passos demais`);
+      }
+      return;
+    }
+    for (const exit of expeditionExits(node)) {
+      walk(exit, path, nextDepth, nextElapsed);
+    }
+  };
+  walk(start, [], 0, 0);
+  for (const key of Object.keys(nodes)) {
+    if (!reached.has(key)) {
+      problems.push(`${key}: nó que nenhum caminho alcança`);
+    }
+  }
+  return { problems, longestMs };
+}
+
+/**
+ * O catálogo de expedições, conferido contra os limites de `balance.expeditions` (roadmap da
+ * v0.3, V3D-T1.2): os modelos na ordem de `EXPEDITION_MODEL_IDS`, o número de variantes de cada
+ * um, a equipe dentro do teto, o nível da Guilda que existe e, em cada variante, um grafo
+ * acíclico em que todo caminho chega a um retorno dentro dos limites. A duração anunciada do
+ * modelo é a do caminho mais longo de qualquer variante.
+ */
+export function expeditionModelsSchema(rules: ExpeditionsDef) {
+  const model = z
+    .strictObject({
+      id: z.enum(EXPEDITION_MODEL_IDS),
+      label: expeditionTitle,
+      riskLabel: expeditionTitle,
+      durationMs: positiveInt,
+      requires: z
+        .strictObject({
+          guildLevel: positiveInt.max(rules.slotsByGuildLevel.length),
+          teamMin: positiveInt,
+          teamMax: positiveInt.max(rules.teamMax),
+          minHeroLevel: positiveInt,
+          classes: z
+            .array(z.enum(HERO_CLASS_IDS))
+            .refine((list) => new Set(list).size === list.length, 'classe repetida'),
+        })
+        .refine(({ teamMin, teamMax }) => teamMin <= teamMax, 'equipe mínima acima da máxima')
+        .refine(
+          ({ classes, teamMax }) => classes.length <= teamMax,
+          'mais classes exigidas do que cabem na equipe',
+        ),
+      variants: z
+        .array(z.strictObject({ start: identifier, nodes: z.record(identifier, expeditionNode) }))
+        .length(rules.variantsPerModel),
+    })
+    .superRefine((entry, context) => {
+      let longestMs = 0;
+      for (const [index, variant] of entry.variants.entries()) {
+        const found = inspectExpeditionGraph(variant, rules.graph);
+        longestMs = Math.max(longestMs, found.longestMs);
+        for (const problem of found.problems) {
+          context.addIssue({ code: 'custom', message: `variante ${index}: ${problem}` });
+        }
+      }
+      if (context.issues.length === 0 && longestMs !== entry.durationMs) {
+        context.addIssue({
+          code: 'custom',
+          message: 'duração anunciada diferente da do caminho mais longo',
+        });
+      }
+    });
+  return z
+    .array(model)
+    .refine(
+      (list) =>
+        list.length === EXPEDITION_MODEL_IDS.length &&
+        list.every((entry, index) => entry.id === EXPEDITION_MODEL_IDS[index]),
+      'modelos fora da ordem de EXPEDITION_MODEL_IDS',
+    );
+}
+
+/** As Posturas: um nome sem ponto e uma frase sem números para cada uma. */
+export const ExpeditionPosturesSchema = z.strictObject(
+  Object.fromEntries(
+    POSTURE_IDS.map((id) => [
+      id,
+      z.strictObject({ label: expeditionTitle, text: expeditionProse }),
+    ]),
+  ),
+);
+
+/** Os rótulos do relatório: um por desfecho, mais o do nó sem prova e o da escolha. */
+export const ExpeditionOutcomesSchema = z.strictObject(
+  Object.fromEntries(
+    [...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen'].map((id) => [
+      id,
+      z.strictObject({ label: expeditionTitle }),
+    ]),
+  ),
+);
+
+/** As frases da Guilda sobre as expedições: nenhum número de regra escrito, só lacunas. */
+export const ExpeditionTextsSchema = z.strictObject(
+  Object.fromEntries(Object.keys(expeditionTexts).map((key) => [key, label.regex(/^[^0-9]*$/)])),
+);
+
+/** As outras frases da Crônica de uma expedição: só marcadores conhecidos. */
+export const ExpeditionTemplatesSchema = z.strictObject(
+  Object.fromEntries(Object.keys(expeditionTemplates).map((key) => [key, expeditionSentence])),
+);

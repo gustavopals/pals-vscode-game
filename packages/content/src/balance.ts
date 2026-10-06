@@ -2,6 +2,7 @@ import type {
   BuildingId,
   DifficultyId,
   EnemyId,
+  ExpeditionOutcomeId,
   HeroAttributeId,
   MoraleBandId,
   ProductionBuildingId,
@@ -24,6 +25,11 @@ export type SeasonEffects = {
   readonly recruitmentDuration: Ratio;
   /** Fator sobre o prazo de uma obra **iniciada** nesta estação. */
   readonly constructionDuration: Ratio;
+  /**
+   * Fator sobre a duração dos nós de uma expedição **enviada** nesta estação (GDD §4.1: no verão
+   * elas são 15% mais rápidas). Fixado no envio: a duração mostrada antes é a que vale.
+   */
+  readonly expeditionDuration: Ratio;
   /**
    * Lenha: madeira queimada por habitante por hora de jogo, em fração (1/2 é meia unidade).
    * Zero nas estações em que ninguém acende a lareira.
@@ -348,6 +354,47 @@ export type HeroesDef = {
   readonly power: Partial<Record<HeroAttributeId, Ratio>>;
 };
 
+/**
+ * As expedições (GDD §9.2; ADR 0017, decisões 1, 7 e 9; ADR 0018, decisões 11 a 13). Os grafos
+ * estão em `expeditionModels`; o fator de duração do verão, em `calendar.seasons[].effects`.
+ */
+export type ExpeditionsDef = {
+  /**
+   * Quanto a equipe espera a palavra do senhor em uma encruzilhada, em **tempo real**: igual em
+   * qualquer ritmo, convertido quando a equipe chega ao nó.
+   */
+  readonly crossroadsWaitRealMs: number;
+  /**
+   * Os limiares do desfecho: a razão mínima entre `poder × sorte` e a dificuldade para cada um.
+   * Abaixo do Revés é Desastre.
+   */
+  readonly outcome: Record<Exclude<ExpeditionOutcomeId, 'disaster'>, Ratio>;
+  /** A sorte: um inteiro de `min` a `max`, uma vez por nó com dificuldade; `base` é o valor neutro. */
+  readonly luck: { readonly min: number; readonly max: number; readonly base: number };
+  /** A parte do saque do nó que cada desfecho deixa a equipe trazer. */
+  readonly lootShare: Record<ExpeditionOutcomeId, { readonly num: number; readonly den: number }>;
+  /** Quantas expedições saem ao mesmo tempo em cada nível da Guilda dos Aventureiros. */
+  readonly slotsByGuildLevel: readonly number[];
+  /** Quantos relatórios de expedições concluídas o feudo guarda. */
+  readonly reportsKept: number;
+  /** Quantas variantes de grafo cada modelo tem. */
+  readonly variantsPerModel: number;
+  /** O maior número de heróis de uma equipe. */
+  readonly teamMax: number;
+  /**
+   * Os limites de um grafo. A profundidade conta os nós que a equipe atravessa em um caminho,
+   * com o retorno e sem as encruzilhadas; `maxSteps` conta todos, e é o teto do registro que a
+   * expedição guarda no estado.
+   */
+  readonly graph: {
+    readonly minDepth: number;
+    readonly maxDepth: number;
+    readonly maxSteps: number;
+    readonly minNodeMs: number;
+    readonly maxNodeMs: number;
+  };
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -406,6 +453,7 @@ export type Balance = {
   readonly raids: RaidsDef;
   readonly heroes: HeroesDef;
   readonly tavern: TavernDef;
+  readonly expeditions: ExpeditionsDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -518,6 +566,7 @@ export const balance: Balance = {
           production: { food: { num: 6, den: 5 }, wood: SAME, stone: SAME, gold: SAME },
           recruitmentDuration: { num: 4, den: 5 },
           constructionDuration: SAME,
+          expeditionDuration: SAME,
           firewoodPerVillagerPerHour: NO_FIREWOOD,
         },
       },
@@ -535,6 +584,7 @@ export const balance: Balance = {
           },
           recruitmentDuration: SAME,
           constructionDuration: SAME,
+          expeditionDuration: { num: 17, den: 20 },
           firewoodPerVillagerPerHour: NO_FIREWOOD,
         },
       },
@@ -552,6 +602,7 @@ export const balance: Balance = {
           },
           recruitmentDuration: SAME,
           constructionDuration: SAME,
+          expeditionDuration: SAME,
           firewoodPerVillagerPerHour: NO_FIREWOOD,
         },
       },
@@ -569,6 +620,7 @@ export const balance: Balance = {
           },
           recruitmentDuration: SAME,
           constructionDuration: { num: 3, den: 2 },
+          expeditionDuration: SAME,
           firewoodPerVillagerPerHour: { num: 1, den: 2 },
         },
       },
@@ -714,6 +766,37 @@ export const balance: Balance = {
       morale: 15,
       durationMs: 24 * HOUR_MS,
       moraleLabel: 'Festival na Taverna',
+    },
+  },
+  // GDD §9.2 (ADR 0017, decisões 1 e 7; ADR 0018, decisões 11 a 13). A espera da encruzilhada é
+  // de 6 h reais em qualquer ritmo. O desfecho compara `poder × sorte` com a dificuldade: 1,3
+  // para o Sucesso Pleno, 1 para o Sucesso, 0,7 para o Revés. O Revés traz metade do saque do
+  // nó e o Desastre, nada. A Guilda sustenta 1, 2, 2 e 3 expedições. Um caminho tem de 2 a 5 nós
+  // (a Patrulha tem 2), cada um de 5 a 45 minutos de jogo.
+  expeditions: {
+    crossroadsWaitRealMs: 6 * HOUR_MS,
+    outcome: {
+      full: { num: 13, den: 10 },
+      success: SAME,
+      setback: { num: 7, den: 10 },
+    },
+    luck: { min: 85, max: 115, base: 100 },
+    lootShare: {
+      full: SAME,
+      success: SAME,
+      setback: { num: 1, den: 2 },
+      disaster: { num: 0, den: 1 },
+    },
+    slotsByGuildLevel: [1, 2, 2, 3],
+    reportsKept: 3,
+    variantsPerModel: 3,
+    teamMax: 4,
+    graph: {
+      minDepth: 2,
+      maxDepth: 5,
+      maxSteps: 8,
+      minNodeMs: 5 * MINUTE_MS,
+      maxNodeMs: 45 * MINUTE_MS,
     },
   },
 };

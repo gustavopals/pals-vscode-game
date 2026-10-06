@@ -124,6 +124,13 @@ export type HourRow = {
    * dispensados.
    */
   guild: GuildCounts;
+  /**
+   * As expedições até aqui (GDD §9.2), contadas dos eventos: as enviadas, os nós com
+   * dificuldade por desfecho, as encruzilhadas decididas pelo bot e as que a Postura decidiu
+   * no prazo; e as herói-horas reais com herói parado no feudo, uma amostra ao fim de cada hora
+   * (quantos heróis estavam sem tarefa naquele instante).
+   */
+  expeditions: ExpeditionCounts;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -206,6 +213,49 @@ function addReportedWaste(reported: Record<ResourceId, number>, events: GameEven
 /** Os heróis de uma partida, hora a hora: ver `HourRow.guild`. */
 export type GuildCounts = { heroes: number; arrearsHours: number; departed: number };
 
+/** As expedições de uma partida, hora a hora: ver `HourRow.expeditions`. */
+export type ExpeditionCounts = {
+  sent: number;
+  outcomes: { full: number; success: number; setback: number; disaster: number };
+  crossroadsByPlayer: number;
+  crossroadsByPosture: number;
+  heroIdleHours: number;
+};
+
+/** O começo da contagem: nada enviado, nada resolvido. */
+export function noExpeditions(): ExpeditionCounts {
+  return {
+    sent: 0,
+    outcomes: { full: 0, success: 0, setback: 0, disaster: 0 },
+    crossroadsByPlayer: 0,
+    crossroadsByPosture: 0,
+    heroIdleHours: 0,
+  };
+}
+
+/** Conta, dos eventos, os envios, os desfechos dos nós com dificuldade e quem decidiu nas encruzilhadas. */
+export function addExpeditions(counts: ExpeditionCounts, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type === 'expeditionSent') {
+      counts.sent += 1;
+    } else if (event.type === 'expeditionPathChosen') {
+      counts.crossroadsByPlayer += 1;
+    } else if (event.type === 'expeditionPostureDecided') {
+      counts.crossroadsByPosture += 1;
+    } else if (event.type === 'expeditionNodeResolved') {
+      const outcome = String(event.data.outcome);
+      if (
+        outcome === 'full' ||
+        outcome === 'success' ||
+        outcome === 'setback' ||
+        outcome === 'disaster'
+      ) {
+        counts.outcomes[outcome] += 1;
+      }
+    }
+  }
+}
+
 /** Conta, dos eventos, os heróis que partiram: os que o soldo em atraso levou e os dispensados. */
 function addDepartures(guild: GuildCounts, events: GameEvent[]): void {
   for (const event of events) {
@@ -254,6 +304,7 @@ function rowAt(
   cards: CardCounts,
   raids: RaidCounts,
   guild: GuildCounts,
+  expeditions: ExpeditionCounts,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -287,6 +338,7 @@ function rowAt(
     raids: { ...raids, lost: { ...raids.lost } },
     objectives: view.objectives.filter((objective) => objective.status === 'completed').length,
     guild: { ...guild, heroes: view.guild.heroes.length },
+    expeditions: { ...expeditions, outcomes: { ...expeditions.outcomes } },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };
@@ -337,6 +389,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     lost: { food: 0, wood: 0, stone: 0, gold: 0 },
   };
   const guild: GuildCounts = { heroes: 0, arrearsHours: 0, departed: 0 };
+  const expeditions = noExpeditions();
   let commandCount = 0;
 
   const order: Act = async (type, payload) => {
@@ -349,6 +402,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       // A resposta a uma carta, e a continuação que ela deixa entrar na mesa.
       addCards(cards, result.events);
       addDepartures(guild, result.events);
+      addExpeditions(expeditions, result.events);
       commands.accepted += 1;
     } else {
       commands.refused[result.code] = (commands.refused[result.code] ?? 0) + 1;
@@ -374,6 +428,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       addCards(cards, advanced.events);
       addRaids(raids, advanced.events);
       addDepartures(guild, advanced.events);
+      addExpeditions(expeditions, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
@@ -384,11 +439,18 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     addCards(cards, advanced.events);
     addRaids(raids, advanced.events);
     addDepartures(guild, advanced.events);
+    addExpeditions(expeditions, advanced.events);
     // O atraso é amostrado ao fim da hora, como o frio e a fome.
     if (state.guild.wageArrears !== null) {
       guild.arrearsHours += 1;
     }
-    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids, guild));
+    // E a equipe parada: quantos heróis estavam no feudo, sem tarefa, ao fim desta hora.
+    expeditions.heroIdleHours += deriveViewState(state, state.lastProcessedAt, {
+      timeScale,
+    }).guild.heroes.filter((hero) => hero.atHome).length;
+    rows.push(
+      rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids, guild, expeditions),
+    );
   }
 
   return {

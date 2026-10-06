@@ -64,7 +64,7 @@ import {
   EMPTY_COUNCIL_LOG,
   isCouncilEvent,
 } from '../ui/council';
-import { documentTitle, formatAway, type StatusBarInput } from '../ui/format';
+import { cardDecisions, documentTitle, formatAway, type StatusBarInput } from '../ui/format';
 import { isObjectiveCompleted, OBJECTIVES_SECTION, objectivesCompleted } from '../ui/objectives';
 import { THREAT_SECTION } from '../ui/threat';
 import { APP_NAME, APP_VERSION } from '../version';
@@ -675,7 +675,7 @@ export class Controller {
       const { id, changes } = view.calendar.nextSeason;
       this.seasonChanges.set(id, changes);
       // A carta que já não espera resposta leva embora o aviso que a anunciou.
-      const pending = new Set(view.pendingDecisions.map((decision) => decision.id));
+      const pending = new Set(cardDecisions(view).map((decision) => decision.id));
       this.dropCardToasts((instanceId) => !pending.has(instanceId));
       if (view.threat.incoming === null) {
         // A incursão anunciada já chegou: "a caminho" deixou de ser verdade.

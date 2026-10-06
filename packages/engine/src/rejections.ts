@@ -20,6 +20,8 @@ type RejectionParams = {
   remedy?: string;
   /** Uma frase inteira a mais, depois da recusa: o porquê de um teto que é só desta versão. */
   note?: string | undefined;
+  /** A recusa fala de uma encruzilhada de expedição, e não de uma carta do Conselho. */
+  crossroads?: boolean;
 };
 
 /** "40 madeira e 10 pedra". */
@@ -94,14 +96,18 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // O prazo acabou e o conselho aplicou a opção da dificuldade: a Crônica diz qual.
   CARD_EXPIRED: () =>
     'O prazo dessa carta acabou e o conselho decidiu sozinho. A Crônica conta o que foi feito.',
-  // `label` é o título da carta.
-  INVALID_OPTION: ({ label }) =>
-    label === undefined
-      ? 'Essa carta não tem essa opção.'
-      : `A carta "${label}" não tem essa opção.`,
-  // `remedy` é o que a opção exige, sem ponto: "requer o Celeiro".
-  OPTION_LOCKED: ({ remedy = 'falta o que ela exige' }) =>
-    `Essa opção ainda está fora do alcance do feudo: ${remedy}.`,
+  // `label` é o título da carta, ou o da encruzilhada.
+  INVALID_OPTION: ({ label, crossroads }) =>
+    crossroads === true
+      ? `A encruzilhada "${label}" não tem esse caminho.`
+      : label === undefined
+        ? 'Essa carta não tem essa opção.'
+        : `A carta "${label}" não tem essa opção.`,
+  // `remedy` é o que a opção exige, sem ponto: "requer o Celeiro", "requer um Guerreiro na equipe".
+  OPTION_LOCKED: ({ remedy = 'falta o que ela exige', crossroads }) =>
+    crossroads === true
+      ? `Esse caminho está fora do alcance da equipe: ${remedy}.`
+      : `Essa opção ainda está fora do alcance do feudo: ${remedy}.`,
   // Os heróis (GDD §9.1). O herói da ordem já não serve ao feudo: partiu sem soldo, ou foi
   // dispensado em outra aba.
   HERO_NOT_FOUND: () => 'Esse herói já não está a serviço do feudo.',
@@ -119,6 +125,31 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `label` é a estação de agora, com "em": "no Verão".
   FESTIVAL_ALREADY_HELD: ({ label }) =>
     `Um festival por estação: ${label ?? 'nesta'} o feudo já festejou.`,
+  // As expedições (GDD §9.2). `label` é o nome do herói que está fora do feudo.
+  HERO_BUSY: ({ label = 'Esse herói' }) =>
+    `${label} está fora do feudo: a dispensa espera a volta.`,
+  // `label` é o edifício com artigo; `remedy`, o que o abre.
+  GUILD_REQUIRED: ({ label = 'a Guilda dos Aventureiros', remedy }) =>
+    `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
+  // `label` é a Guilda com o nível ("Guilda dos Aventureiros Nv1"); `count`, quantas ela sustenta.
+  EXPEDITION_LIMIT: ({ label = 'Guilda dos Aventureiros', count = 0, remedy }) =>
+    `A ${label} sustenta ${count === 1 ? '1 expedição' : `${count} expedições`} por vez${
+      remedy === undefined ? '' : `: ${remedy}`
+    }.`,
+  // `remedy` é o que abre o destino, sem ponto: "pede a Guilda dos Aventureiros no nível 3".
+  EXPEDITION_LOCKED: ({ remedy = 'a Guilda não conhece esse caminho' }) =>
+    `Esse destino ainda não está ao alcance do feudo: ${remedy}.`,
+  // `label` é o nome do herói; `remedy`, o motivo: "já está em expedição".
+  HERO_UNAVAILABLE: ({ label = 'Esse herói', remedy = 'está fora do feudo' }) =>
+    `${label} não pode partir agora: ${remedy}.`,
+  // `label` é o destino; `remedy`, o que falta: "vai 1 herói", "falta um Mago".
+  TEAM_INVALID: ({ label, remedy = 'escolha quem vai' }) =>
+    `Essa equipe não serve${label === undefined ? '' : ` para ${label}`}: ${remedy}.`,
+  // A expedição já voltou, ou nunca parou em uma encruzilhada.
+  EXPEDITION_NOT_WAITING: () => 'Essa expedição não espera ordem em uma encruzilhada.',
+  // O prazo acabou e a Postura decidiu, ou a ordem já tinha sido dada (em outra aba, por exemplo).
+  CROSSROADS_DECIDED: () =>
+    'Essa encruzilhada já foi decidida, e a equipe seguiu caminho. A Crônica conta por onde.',
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

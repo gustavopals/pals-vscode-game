@@ -434,8 +434,7 @@ function firstTurnFrom(state: GameState, dueAt: number): number {
  * de ouro. Com o soldo em atraso, pode ser o que fecha a conta: `settleScarcity` confere depois
  * de toda ordem, e a dispensa não conta como herói cobrado pelo prazo.
  *
- * Nesta fase todo herói está no feudo. A recusa de quem está fora (`HERO_BUSY`) entra com a
- * primeira tarefa que tira um herói do feudo, na Fase D.
+ * Quem está fora do feudo (em expedição) não pode ser dispensado antes de voltar (`HERO_BUSY`).
  */
 export function dismissHero(
   draft: GameState,
@@ -447,6 +446,9 @@ export function dismissHero(
   const hero = guild.heroes.find((entry) => entry.id === heroId);
   if (hero === undefined) {
     return reject('HERO_NOT_FOUND');
+  }
+  if (!isAtHome(hero)) {
+    return reject('HERO_BUSY', { label: hero.name });
   }
   guild.heroes = guild.heroes.filter((entry) => entry.id !== hero.id);
   emit(

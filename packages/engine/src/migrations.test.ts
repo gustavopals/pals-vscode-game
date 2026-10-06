@@ -3,11 +3,13 @@ import {
   BUILDING_IDS,
   DIFFICULTY_IDS,
   ENEMY_IDS,
+  EXPEDITION_OUTCOME_IDS,
   HERO_CLASS_IDS,
   HERO_GENDER_IDS,
   HERO_STATUS_IDS,
   HERO_TRAIT_IDS,
   namedHeroes,
+  POSTURE_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   RESOURCE_IDS,
@@ -57,6 +59,18 @@ import {
 } from './migrations/v14';
 import { HERO_ARRIVING_CAP_V15, HERO_GENDER_IDS_V15 } from './migrations/v15';
 import { BUILDING_IDS_V16, RNG_FIXED_STREAMS_V16, TAVERN_OFFERS_CAP_V16 } from './migrations/v16';
+import {
+  BUILDING_IDS_V17,
+  CROSSROADS_DECIDERS_V17,
+  EXPEDITION_LOG_CAP_V17,
+  EXPEDITION_LOG_OUTCOMES_V17,
+  EXPEDITION_REPORTS_CAP_V17,
+  EXPEDITION_SLOTS_CAP_V17,
+  EXPEDITION_TEAM_CAP_V17,
+  EXPEDITION_VARIANTS_V17,
+  HERO_STATUS_IDS_V17,
+  POSTURE_IDS_V17,
+} from './migrations/v17';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -114,11 +128,39 @@ const named = (name: string) => {
 };
 
 /**
+ * Um estado como a versão 16 o gravava, a partir de um da versão atual: sem a Guilda dos
+ * Aventureiros entre os edifícios e sem as expedições e os relatórios na guilda.
+ */
+function asVersion16(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 16;
+  delete old.settlement.buildings.guild;
+  delete old.guild.expeditions;
+  delete old.guild.reports;
+  return old;
+}
+
+/**
+ * O que o passo 16 → 17 acrescenta a toda partida, tirado de um estado migrado: é o que deixa
+ * os blocos dos passos anteriores compararem o resto, campo por campo, com o estado antigo. O
+ * que o passo escreve é conferido no bloco dele.
+ */
+function withoutGuildHall<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  delete copy.settlement.buildings.guild;
+  if (copy.guild !== undefined) {
+    delete copy.guild.expeditions;
+    delete copy.guild.reports;
+  }
+  return copy as T;
+}
+
+/**
  * Um estado como a versão 15 o gravava, a partir de um da versão atual: sem a Taverna entre os
  * edifícios e sem os candidatos, a rotação e o festival na guilda.
  */
 function asVersion15(state: GameState): Draft {
-  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  const old = asVersion16(state);
   old.schemaVersion = 15;
   delete old.settlement.buildings.tavern;
   delete old.guild.tavernOffers;
@@ -132,7 +174,8 @@ function asVersion15(state: GameState): Draft {
  * que o passo escreve é conferido no bloco dele.
  */
 function withoutTavern<T extends Partial<GameState>>(state: T): T {
-  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  // E, com ela, o que o passo seguinte (16 → 17) acrescenta.
+  const copy = withoutGuildHall(state) as Draft;
   delete copy.settlement.buildings.tavern;
   if (copy.guild !== undefined) {
     delete copy.guild.tavernOffers;
@@ -461,6 +504,38 @@ const FROZEN: Record<string, string> = {
   'state-v15-wage-arrears-resumed.json': 'ccd0f7f3',
   'state-v15-wage-arrears.json': '13364041',
   'state-v15-week-scripted.json': '71a56805',
+  'state-v16-cold.json': '0e039536',
+  'state-v16-construction.json': '7e62d853',
+  'state-v16-council-hidden.json': '52813bc4',
+  'state-v16-council.json': '6f8ebc6c',
+  'state-v16-crafts.json': '61fab3b3',
+  'state-v16-famine-3x.json': '84667a25',
+  'state-v16-famine-ended.json': 'c6c5ae49',
+  'state-v16-famine-half.json': '7aed28f8',
+  'state-v16-famine-resumed.json': 'a996eba1',
+  'state-v16-famine.json': 'fd9aec6f',
+  'state-v16-fresh.json': '0e9f449e',
+  'state-v16-guild.json': 'bf5b9c56',
+  'state-v16-hero-promised.json': '01a3c9cd',
+  'state-v16-iron-king-half.json': '4f6521ae',
+  'state-v16-migrated-3x.json': '05dfb1bf',
+  'state-v16-migrated-iron-king-half.json': 'dceca9e9',
+  'state-v16-migrated-peasant-3x.json': '9ded15e6',
+  'state-v16-morale.json': '318d9543',
+  'state-v16-objectives.json': '9ec839e3',
+  'state-v16-palisade.json': 'cdd828fd',
+  'state-v16-peasant-3x.json': 'a112e05d',
+  'state-v16-queues.json': 'f0c5b68d',
+  'state-v16-raid-announced.json': 'df8561d4',
+  'state-v16-raid.json': '8e23e1ed',
+  'state-v16-storage.json': '26a8695b',
+  'state-v16-tavern-busy.json': '32b482d3',
+  'state-v16-tavern.json': '0b496c98',
+  'state-v16-threat.json': '439fe87c',
+  'state-v16-wage-arrears-ended.json': '791a2fd2',
+  'state-v16-wage-arrears-resumed.json': 'd3c8c13c',
+  'state-v16-wage-arrears.json': '6ce2ffb1',
+  'state-v16-week-scripted.json': '6e145557',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -545,6 +620,7 @@ const buildingIds: BuildingId[] = [
   'watchtower',
   'palisade',
   'tavern',
+  'guild',
 ];
 
 describe('a lista de passos', () => {
@@ -802,8 +878,19 @@ describe('a forma da versão atual', () => {
     ['a guilda sem o atraso', (state) => delete state.guild.wageArrears],
     ['a guilda sem o registro do último atraso', (state) => delete state.guild.lastWageArrears],
     // Nada da Fase D antes da Fase D (regra 6 do CLAUDE.md).
-    ['a guilda com as expedições', (state) => (state.guild.expeditions = [])],
-    ['a guilda com os relatórios de expedição', (state) => (state.guild.reports = [])],
+    // As expedições (versão 17). O que só se vê olhando dois campos (a equipe, os prazos, o
+    // fluxo de sorteio de quem já voltou) está em `expeditions.test.ts`.
+    ['a guilda sem as expedições', (state) => delete state.guild.expeditions],
+    ['a guilda sem os relatórios de expedição', (state) => delete state.guild.reports],
+    ['a Guilda ausente dos edifícios', (state) => delete state.settlement.buildings.guild],
+    ['a Guilda com nível quebrado', (state) => (state.settlement.buildings.guild = 1.5)],
+    ['as expedições que não são lista', (state) => (state.guild.expeditions = {})],
+    ['uma expedição que não é objeto', (state) => (state.guild.expeditions = ['expedition-1'])],
+    ['um relatório que não é objeto', (state) => (state.guild.reports = [null])],
+    // Nada da Fase D além desta tarefa, nem da Fase E (regra 6 do CLAUDE.md).
+    ['a guilda com o inventário', (state) => (state.guild.inventory = [])],
+    ['o estado com o Mercado', (state) => (state.market = { prices: {} })],
+    ['os Mestres no feudo', (state) => (state.settlement.masters = [])],
     // A Taverna (versão 16).
     ['a Taverna ausente dos edifícios', (state) => delete state.settlement.buildings.tavern],
     ['a Taverna com nível quebrado', (state) => (state.settlement.buildings.tavern = 0.5)],
@@ -1069,8 +1156,9 @@ describe('a forma da versão atual', () => {
     expect(HERO_ROSTER_CAP_V14).toBe(balance.heroes.rosterCap);
     expect(HERO_GENDER_IDS_V15).toEqual([...HERO_GENDER_IDS]);
     expect(HERO_ARRIVING_CAP_V15).toBe(balance.heroes.arrivingCap);
-    // O único estado de herói desta versão: os de quem está fora entram com as tarefas deles.
-    expect(HERO_STATUS_IDS).toEqual(['idle']);
+    // Os estados de herói desta versão: no feudo e em expedição (versão 17); escolta, ferimento
+    // e captura entram com as tarefas deles.
+    expect(HERO_STATUS_IDS).toEqual(['idle', 'expedition']);
   });
 
   it('aceita a guilda cheia: o teto de heróis, de todas as classes, todos os traços e níveis, com o atraso aberto', () => {
@@ -1113,7 +1201,7 @@ describe('a forma da versão atual', () => {
       'guild.heroes.0.level: esperado um nível de 1 a 10',
     );
     expect(broken((state) => withHero(state, (hero) => (hero.status = 'captured')))).toBe(
-      'guild.heroes.0.status: esperado o valor fixo "idle", veio texto',
+      'guild.heroes.0.status: esperado um de idle, expedition, veio texto',
     );
     expect(broken((state) => withHero(state, (hero) => (hero.equipment = {})))).toBe(
       'guild.heroes.0.equipment: campo desconhecido',
@@ -1201,7 +1289,16 @@ describe('a forma da versão atual', () => {
       'caravan:caravan-2',
     ]);
     expect(draft.ids).toEqual({ expedition: 2, hero: 2, caravan: 2 });
-    expect(currentShape(JSON.parse(JSON.stringify(draft)), '')).toBeNull();
+    // Gravado, o fluxo de uma expedição só cabe com ela em curso (versão 17; os testes das
+    // expedições conferem o caso de verdade): sem expedição nenhuma, a guarda o recusa, e o
+    // resto cabe.
+    const saved = JSON.parse(JSON.stringify(draft)) as GameState;
+    expect(currentShape(saved, '')).toBe(
+      'rng.expedition:expedition-1: fluxo de uma expedição que não está em curso',
+    );
+    delete saved.rng['expedition:expedition-1'];
+    delete saved.rng['expedition:expedition-2'];
+    expect(currentShape(saved, '')).toBeNull();
     // O maior valor de cada palavra e um contador em zero também cabem.
     const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
     edge.rng = { council: [0xffff_ffff, 0, 0, 0], 'caravan:caravan-120': [0, 0, 0, 1] };
@@ -1241,10 +1338,17 @@ describe('a forma da versão atual', () => {
     expect(broken((state) => (state.rng = { 'caravan:caravan-1': [1, 2, 3, 4] }))).toBe(
       'rng.caravan:caravan-1: fluxo de uma entidade além do contador de ids.caravan',
     );
+    // Dentro do contador, mas sem a expedição em curso: desde a versão 17 também não cabe.
     expect(
       broken((state) => {
         state.ids = { expedition: 5 };
         state.rng = { 'expedition:expedition-5': [1, 2, 3, 4] };
+      }),
+    ).toBe('rng.expedition:expedition-5: fluxo de uma expedição que não está em curso');
+    expect(
+      broken((state) => {
+        state.ids = { caravan: 5 };
+        state.rng = { 'caravan:caravan-5': [1, 2, 3, 4] };
       }),
     ).toBeNull();
     expect(broken((state) => (state.ids = { 'hero-1': 3 }))).toBe(
@@ -1833,9 +1937,11 @@ describe('versão 3 → 4', () => {
       'watchtower',
       'palisade',
       'tavern',
+      'guild',
     ]);
     const storage = unbuilt.filter(
-      (entry) => entry.building !== 'palisade' && entry.building !== 'tavern',
+      (entry) =>
+        entry.building !== 'palisade' && entry.building !== 'tavern' && entry.building !== 'guild',
     );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
@@ -3315,7 +3421,7 @@ describe('versão 15 → 16', () => {
   const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
-    expect(BUILDING_IDS_V16).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V16, 'guild']).toEqual([...BUILDING_IDS]);
     expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
     expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_FIXED_STREAMS_V13, 'tavern']);
   });
@@ -3334,7 +3440,7 @@ describe('versão 15 → 16', () => {
     (fixture) => {
       const before = read(fixture) as Draft;
       const after = migrated(fixture);
-      expect(after.schemaVersion).toBe(16);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.settlement.buildings.tavern).toBe(0);
       expect(after.guild.tavernOffers).toStrictEqual([]);
       expect(after.guild.tavern).toStrictEqual(NO_TAVERN);
@@ -3439,6 +3545,170 @@ describe('versão 15 → 16', () => {
       // A rotação conta da inauguração, não da fronteira.
       expect(opened.guild.tavern.nextRotationAtMs).toBe(opensAt + balance.tavern.rotationMs);
       expect(currentShape(JSON.parse(JSON.stringify(opened)), '')).toBeNull();
+    }
+  });
+});
+
+describe('versão 16 → 17', () => {
+  const version16 = fixtures.filter((fixture) => fixture.version === 16);
+
+  it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
+    const { expeditions } = balance;
+    expect(BUILDING_IDS_V17).toEqual([...BUILDING_IDS]);
+    expect(HERO_STATUS_IDS_V17).toEqual([...HERO_STATUS_IDS]);
+    expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
+    expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
+    expect(CROSSROADS_DECIDERS_V17).toEqual(['player', 'posture', 'cautiousFallback']);
+    expect(EXPEDITION_SLOTS_CAP_V17).toBe(Math.max(...expeditions.slotsByGuildLevel));
+    expect(EXPEDITION_REPORTS_CAP_V17).toBe(expeditions.reportsKept);
+    expect(EXPEDITION_LOG_CAP_V17).toBe(expeditions.graph.maxSteps);
+    expect(EXPEDITION_TEAM_CAP_V17).toBe(expeditions.teamMax);
+    expect(EXPEDITION_VARIANTS_V17).toBe(expeditions.variantsPerModel);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v16-fresh.json'));
+    expect(fresh.settlement.buildings.guild).toBe(0);
+    expect(fresh.guild.expeditions).toEqual([]);
+    expect(fresh.guild.reports).toEqual([]);
+    expect(newGame().guild.expeditions).toEqual([]);
+    expect(newGame().guild.reports).toEqual([]);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version16)(
+    '$name: só acrescenta a Guilda no nível 0, sem expedições e sem relatórios',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(17);
+      expect(after.settlement.buildings.guild).toBe(0);
+      expect(after.guild.expeditions).toStrictEqual([]);
+      expect(after.guild.reports).toStrictEqual([]);
+      // Todos continuam no feudo, como estavam.
+      expect(after.guild.heroes.every((hero) => hero.status === 'idle')).toBe(true);
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, herói, oferta, carta
+      // ou incursão muda, ninguém ganha identificador e o gerador fica palavra por palavra como
+      // estava (o fluxo de uma expedição só nasce no primeiro sorteio dela).
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect({ ...withoutGuildHall(after), schemaVersion: 16 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version16)(
+    '$name: nada acontece na fronteira, o passo não cria prazo, e sem a obra nenhuma expedição existe',
+    (fixture) => {
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.guild).toMatchObject({
+        built: false,
+        level: 0,
+        slots: 0,
+        available: [],
+        expeditions: [],
+        reports: [],
+      });
+      expect(view.pendingDecisions.every((entry) => entry.kind === 'card')).toBe(true);
+      // O soldo de ninguém muda com o passo.
+      expect(view.guild.wage.perHour).toBe(
+        state.guild.heroes.length * balance.heroes.wagePerHour * state.settings.timeScale,
+      );
+      // Um mês real depois, sem ninguém mandar erguê-la: nenhuma expedição, nenhum
+      // identificador e nenhum fluxo de expedição.
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month);
+      expect(later.state.settlement.buildings.guild).toBe(0);
+      expect(later.state.guild.expeditions).toEqual([]);
+      expect(later.state.guild.reports).toEqual([]);
+      expect(later.state.ids.expedition).toBeUndefined();
+      expect(Object.keys(later.state.rng).filter((key) => key.includes(':'))).toEqual([]);
+      expect(later.events.filter((event) => event.type.startsWith('expedition'))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion16(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow.guild.heroes.map((hero) => [hero.name, hero.status])).toEqual([['Brann', 'idle']]);
+    expect(slow.guild.expeditions).toEqual([]);
+  });
+
+  it('um estado da versão 16 que já traz os campos da 17 é recusado: não é da versão que diz', () => {
+    const built = asVersion16(newGame());
+    built.settlement.buildings.guild = 0;
+    expect(() => migrateState(built, { timeScale: 1 })).toThrow(
+      /settlement\.buildings\.guild: campo desconhecido/,
+    );
+    const sent = asVersion16(newGame());
+    sent.guild.expeditions = [];
+    expect(() => migrateState(sent, { timeScale: 1 })).toThrow(
+      /guild\.expeditions: campo desconhecido/,
+    );
+    const staffed = newGame();
+    addHero(staffed);
+    const away = asVersion16(staffed);
+    away.guild.heroes[0].status = 'expedition';
+    expect(() => migrateState(away, { timeScale: 1 })).toThrow(/guild\.heroes\.0\.status/);
+  });
+
+  it('a partida migrada com o Salão no nível 3 ergue a Guilda e envia uma Patrulha, que volta', () => {
+    const ready = version16
+      .map((fixture) => migrated(fixture))
+      .filter(
+        (state) =>
+          state.settlement.buildings.townHall >= 3 &&
+          state.settlement.constructionQueues[0] === null,
+      );
+    expect(ready.length).toBeGreaterThan(0);
+    for (const state of ready) {
+      const draft = JSON.parse(JSON.stringify(state)) as GameState;
+      Object.assign(draft.settlement.resources, { wood: 400_000, stone: 400_000, gold: 400_000 });
+      if (draft.guild.heroes.length === 0) {
+        addHero(draft);
+      }
+      const ordered = applyCommand(
+        draft,
+        command('startConstruction', { building: 'guild' }),
+        draft.lastProcessedAt,
+      );
+      expect(ordered.ok).toBe(true);
+      if (!ordered.ok) {
+        continue;
+      }
+      const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? 0;
+      const opened = advanceTo(ordered.state, opensAt).state;
+      expect(opened.settlement.buildings.guild).toBe(1);
+      const free = opened.guild.heroes.find((hero) => hero.status === 'idle');
+      if (free === undefined) {
+        continue;
+      }
+      const sent = applyCommand(
+        opened,
+        command('sendExpedition', { modelId: 'patrol', heroIds: [free.id], posture: 'balanced' }),
+        opensAt,
+      );
+      expect(sent.ok).toBe(true);
+      if (!sent.ok) {
+        continue;
+      }
+      expect(currentShape(JSON.parse(JSON.stringify(sent.state)), '')).toBeNull();
+      const back = advanceTo(sent.state, opensAt + HOUR);
+      expect(back.events.map((event) => event.type)).toContain('expeditionReturned');
+      expect(back.state.guild.reports).toHaveLength(1);
+      expect(currentShape(JSON.parse(JSON.stringify(back.state)), '')).toBeNull();
     }
   });
 });

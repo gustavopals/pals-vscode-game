@@ -715,8 +715,11 @@ describe('cache', () => {
     it('a visão em forma válida, mas com outra marca (ou sem marca), também é descartada', async () => {
       // '1.2' é a marca do app do protocolo 1, de antes do Conselho: a visão dele não tinha
       // cartas nem decisões pendentes, e o cache dele é descartado pela marca (protocolo 2).
+      // '2.2' é a do app do protocolo 2, de antes das expedições: a visão dele não tinha os
+      // campos da Guilda dos Aventureiros nem a encruzilhada entre as decisões (protocolo 3).
       expect(CACHE_VERSION).not.toBe('1.2');
-      for (const version of [undefined, '1.1', '1.2', `${PROTOCOL_VERSION + 1}.2`, 2]) {
+      expect(CACHE_VERSION).toBe('3.2');
+      for (const version of [undefined, '1.1', '1.2', '2.2', `${PROTOCOL_VERSION + 1}.2`, 2]) {
         const stale = { ...cachedNow(), ...(version === undefined ? {} : { version }) };
         if (version === undefined) {
           delete (stale as Partial<GameCache>).version;
@@ -751,6 +754,27 @@ describe('cache', () => {
         expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
         session.stop();
       }
+    });
+
+    it('o cache do app do protocolo 2 é descartado pela marca, e o cursor dos eventos fica (QA-14)', async () => {
+      // A aba aberta desde antes das expedições recebe 426 e recarrega; o app novo encontra o
+      // cache antigo: a visão guardada não é exibida, mas a partida não volta inteira como
+      // novidade.
+      const cached = { ...cachedNow(), version: '2.2', lastSeq: 3 } as unknown as GameCache;
+      const { session, state, seen, store } = setup(cached);
+      state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
+      state.fail = new NetworkError('fora');
+      await session.start(target);
+      expect(session.view).toBeNull();
+      expect(seen.views).toEqual([]);
+      state.fail = null;
+      await session.syncNow();
+      expect(session.view).toEqual(view);
+      expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
+      const saved = store.get<GameCache>(cacheKey(target));
+      expect(saved?.version).toBe(CACHE_VERSION);
+      expect(saved?.lastSeq).toBe(4);
+      session.stop();
     });
 
     it('com a marca atual e a forma atual, o cache é exibido', async () => {
