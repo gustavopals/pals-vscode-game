@@ -3,7 +3,7 @@ import { balance } from '@lotg/content';
 import { admitHero } from './arrivals';
 import { emit } from './chronicle';
 import { DAY_MS } from './clock';
-import { payResources } from './construction';
+import { amountsData, payResources } from './construction';
 import { classLabel } from './heroes';
 import { addMoraleEffect } from './morale';
 import { reject } from './rejections';
@@ -86,6 +86,7 @@ export function hireHero(
       price,
       fullPrice: full,
       heroes: guild.heroes.length,
+      ...amountsData('spent', { gold: price }),
     },
     { heroi: hero.name, classe: classLabel(hero).toLowerCase(), preco: price },
   );
@@ -97,7 +98,9 @@ export function hireHero(
  * (`TAVERN_REQUIRED`), um festival já dado nesta estação (`FESTIVAL_ALREADY_HELD`) e o custo
  * (`INSUFFICIENT_RESOURCES`).
  *
- * Aceita, cobra o custo e grava o efeito temporário de moral, pelo mecanismo de sempre
+ * Aceita, cobra o custo (o evento leva os totais, `spent_<recurso>`, como toda ordem que cobra:
+ * é com eles que o Relatório de Retorno separa o gasto da produção) e grava o efeito temporário
+ * de moral, pelo mecanismo de sempre
  * (`addMoraleEffect`): ele **não mexe na moral na hora**, entra na conta das viradas de dia
  * seguintes, uma por dia de jogo da duração, e a virada que já não o conta encerra o festival
  * (`tavernTurn.ts`). Um festival dado com o da estação anterior ainda em curso troca o efeito:
@@ -124,6 +127,7 @@ export function holdFestival(
   emit(events, draft, nowMs, 'festivalHeld', {
     morale: festival.morale,
     days: festival.durationMs / DAY_MS,
+    ...amountsData('spent', festival.cost),
   });
   return null;
 }

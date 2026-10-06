@@ -343,6 +343,8 @@ describe('contratar (hireHero)', () => {
           price: 100,
           fullPrice: 100,
           heroes: 1,
+          // O total gasto, como em toda ordem que cobra: é o que o Relatório de Retorno lê.
+          spent_gold: 100,
         },
       },
     ]);
@@ -517,7 +519,9 @@ describe('contratar (hireHero)', () => {
     ]);
     const hired = accept(one, command('hireHero', { offerId: 'offer-1' }));
     expect(gold(hired.state)).toBe(gold(one) - 80_000);
-    expect(hired.events[0]).toMatchObject({ data: { price: 80, fullPrice: 100 } });
+    expect(hired.events[0]).toMatchObject({
+      data: { price: 80, fullPrice: 100, spent_gold: 80 },
+    });
     expect(hired.events[0]?.text).toContain('pagou 80 de ouro');
     // O ouro que paga o preço com desconto e não paga o cheio basta.
     const tight = cloneState(one);
@@ -613,7 +617,7 @@ describe('o festival (holdFestival; ADR 0017, decisão 10)', () => {
         type: 'festivalHeld',
         atMs: opensAt,
         text: 'No 1º dia da Primavera, o senhor de Pedra Alta mandou abrir os barris da Taverna: houve festival, e o povo cantou até tarde.',
-        data: { morale: 15, days: 12 },
+        data: { morale: 15, days: 12, spent_food: 100, spent_gold: 50 },
       },
     ]);
     expect(held.state.settlement.morale).toBe(state.settlement.morale);
