@@ -14,6 +14,7 @@ import {
   refuse,
   roomy,
   starve,
+  NO_TAVERN,
 } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { GameEvent, GameState } from './types';
@@ -661,6 +662,7 @@ describe('dispensar um herói (dismissHero)', () => {
         lastedMs: 13 * HOUR + 7 * MINUTE,
         departed: 0,
       },
+      ...NO_TAVERN,
     });
     // Sem herói não há soldo: nada mais acontece, por mais que o tempo passe.
     expect(guildEvents(advanceTo(state, 200 * HOUR).events)).toEqual([]);
@@ -715,6 +717,7 @@ describe('trinta dias sem acesso, dois heróis e ouro que não basta (QA-04)', (
       arriving: [],
       wageArrears: null,
       lastWageArrears: { endedAtMs: 104 * HOUR, lastedMs: 79 * HOUR, departed: 2 },
+      ...NO_TAVERN,
     });
     expect(end.state.settlement.resources.gold).toBe(0);
     // Em tempo real: 20 h 40 até o Descontente, 32 h 40 até a primeira partida.

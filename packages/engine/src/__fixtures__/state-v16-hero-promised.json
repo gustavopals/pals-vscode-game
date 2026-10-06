@@ -1,0 +1,176 @@
+{
+ "schemaVersion": 16,
+ "seed": "fixture-hero-promised",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "ironKing",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 88801234,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 88801234,
+ "rng": {
+  "council": [
+   388747780,
+   1968173857,
+   232819591,
+   4243425027
+  ]
+ },
+ "ids": {},
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 56665,
+   "wood": 120000,
+   "stone": 100000,
+   "gold": 290000
+  },
+  "accumulators": {
+   "food": -170000,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "population": {
+   "villagers": 5
+  },
+  "workers": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "buildings": {
+   "townHall": 1,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 0,
+   "warehouse": 0,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 0,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 40,
+  "moraleEffects": [
+   {
+    "id": "card:collapsedWell-2:later",
+    "label": "Carta: O poço entulhado",
+    "amount": -10,
+    "untilMs": 93600000
+   },
+   {
+    "id": "card:woundedStranger-3",
+    "label": "Carta: Estrangeira ferida",
+    "amount": 5,
+    "untilMs": 94020000
+   }
+  ],
+  "injured": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {
+   "routine.masonsMeal": true
+  },
+  "seenThisYear": [
+   "masonsMeal",
+   "collapsedWell",
+   "woundedStranger"
+  ],
+  "nextDrawAtMs": 115200000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 24
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "wolvesYear1",
+    "atMs": 108000000,
+    "kind": "scripted",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [],
+  "arriving": [
+   {
+    "namedHeroId": "rolf",
+    "atMs": 94020000
+   }
+  ],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [],
+  "tavern": {
+   "nextRotationAtMs": null,
+   "festival": null,
+   "lastFestivalAtMs": null
+  }
+ },
+ "objectives": {
+  "active": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers"
+  ],
+  "completed": []
+ },
+ "stats": {
+  "cardsDrawn": 3,
+  "cardsDrawn:masonsMeal": 1,
+  "cardsAnswered": 3,
+  "cardsDrawn:collapsedWell": 1,
+  "cardsDrawn:woundedStranger": 1
+ }
+}

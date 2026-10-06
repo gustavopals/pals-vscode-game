@@ -10,6 +10,7 @@ import {
   foundingTemplates,
   heroAttributes,
   heroClasses,
+  heroNames,
   heroStatuses,
   heroTraits,
   idleVillager,
@@ -21,6 +22,7 @@ import {
   raidSizes,
   raidTemplates,
   startingTiles,
+  tavernCandidates,
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
@@ -112,6 +114,8 @@ describe('CommandSchema', () => {
       payload: { instanceId: 'collapsedWell-3', optionId: 'repair' },
     },
     { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-2' } },
+    { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-7' } },
+    { commandId: uuid, type: 'holdFestival', payload: {} },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -239,6 +243,36 @@ describe('CommandSchema', () => {
     [
       'dispensa com devolução pedida',
       { commandId: uuid, type: 'dismissHero', payload: { heroId: 'hero-1', refund: true } },
+    ],
+    ['contratação sem dizer de quem', { commandId: uuid, type: 'hireHero', payload: {} }],
+    [
+      'contratação de uma oferta sem identificador',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: '' } },
+    ],
+    [
+      'contratação com a oferta que não é texto',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: 7 } },
+    ],
+    [
+      'contratação com um identificador grande demais',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: 'x'.repeat(61) } },
+    ],
+    [
+      'contratação com caractere de controle',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-1\u0000' } },
+    ],
+    [
+      'contratação com o preço escolhido pelo cliente',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-1', price: 1 } },
+    ],
+    [
+      'contratação com o herói escolhido pelo cliente',
+      { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-1', classId: 'mage' } },
+    ],
+    ['festival sem payload', { commandId: uuid, type: 'holdFestival' }],
+    [
+      'festival com a duração escolhida pelo cliente',
+      { commandId: uuid, type: 'holdFestival', payload: { days: 30 } },
     ],
   ])('recusa %s', (_, command) => {
     expect(CommandSchema.safeParse(command).success).toBe(false);
@@ -1030,9 +1064,20 @@ describe('ViewStateSchema', () => {
     expect(ViewStateSchema.safeParse(withMorale({ band: 'furious' })).success).toBe(false);
     expect(
       ViewStateSchema.safeParse(
-        withMorale({ terms: [{ id: 'tavern', label: 'Taverna', amount: 5 }] }),
+        withMorale({ terms: [{ id: 'market', label: 'Mercado', amount: 5 }] }),
       ).success,
     ).toBe(false);
+    // Os termos da Taverna e do herói Devoto (V3C-T2) são do contrato.
+    expect(
+      ViewStateSchema.safeParse(
+        withMorale({
+          terms: [
+            { id: 'tavern', label: 'Taverna Nv1', amount: 5 },
+            { id: 'devout', label: 'Fé de Elvira', amount: 5 },
+          ],
+        }),
+      ).success,
+    ).toBe(true);
     expect(
       ViewStateSchema.safeParse(withMorale({ next: { ...view.morale.next, band: undefined } }))
         .success,
@@ -1211,6 +1256,117 @@ describe('ViewStateSchema', () => {
       state.lastProcessedAt,
     );
     expect(refused).toMatchObject({ ok: false, code: 'HERO_NOT_FOUND' });
+  });
+
+  it('aceita a Taverna: sem ela, com candidatos, a contratação, o festival e os eventos deles', () => {
+    const HOUR = 3_600_000;
+    const order = (type: Command['type'], payload: unknown) =>
+      ({ commandId: uuid, type, payload }) as Command;
+    const start = createInitialState('taverna', settings);
+    const none = deriveViewState(start, 0);
+    expect(ViewStateSchema.safeParse(none).error).toBeUndefined();
+    expect(none.tavern).toMatchObject({ level: 0, offers: [], nextRotationInSeconds: null });
+    expect(none.tavern.festival.available).toBe(false);
+
+    start.settlement.buildings.townHall = 3;
+    Object.assign(start.settlement.resources, {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 900_000,
+    });
+    let state = start;
+    const told: Array<{ type: string }> = [];
+    const run = (command: Command) => {
+      const result = applyCommand(state, command, state.lastProcessedAt);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      told.push(...result.events);
+    };
+    const pass = (toMs: number) => {
+      const step = advanceTo(state, toMs);
+      state = step.state;
+      told.push(...step.events);
+      const view = deriveViewState(state, toMs);
+      expect(ViewStateSchema.safeParse(view).error, `instante ${toMs}`).toBeUndefined();
+      return view;
+    };
+    run(order('setWorkers', { building: 'farm', count: 3 }));
+    run(order('startConstruction', { building: 'tavern' }));
+    const open = pass(HOUR);
+    expect(open.tavern.level).toBe(1);
+    expect(open.tavern.offers).toHaveLength(2);
+    expect(open.guild.heroLimit).toBe(2);
+    expect(open.morale.terms.map((term) => term.id)).toContain('tavern');
+    const [offer] = open.tavern.offers;
+    run(order('hireHero', { offerId: offer?.offerId }));
+    run(order('holdFestival', {}));
+    const after = pass(HOUR);
+    expect(after.guild.heroes.map((hero) => hero.name)).toEqual([offer?.name]);
+    expect(after.tavern.offers).toHaveLength(1);
+    expect(after.tavern.festival).toMatchObject({ available: false });
+    expect(typeof after.tavern.festival.activeForSeconds).toBe('number');
+    // Hora a hora por quinze dias de jogo: a rotação e o fim do festival passam pelo contrato.
+    for (let hour = 2; hour <= 30; hour += 1) {
+      pass(hour * HOUR);
+    }
+    const tavernTypes = ['heroHired', 'festivalHeld', 'festivalEnded'];
+    const tavernEvents = told.filter((event) => tavernTypes.includes(event.type));
+    expect(tavernEvents.map((event) => event.type)).toEqual(tavernTypes);
+    for (const [index, event] of tavernEvents.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-05T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    // As recusas do motor passam pelo contrato com os códigos novos.
+    const refuse = (command: Command) => applyCommand(state, command, state.lastProcessedAt);
+    expect(refuse(order('hireHero', { offerId: offer?.offerId }))).toMatchObject({
+      ok: false,
+      code: 'OFFER_GONE',
+    });
+    expect(refuse(order('holdFestival', {}))).toMatchObject({
+      ok: false,
+      code: 'FESTIVAL_ALREADY_HELD',
+    });
+    expect(applyCommand(start, order('hireHero', { offerId: 'offer-1' }), 0)).toMatchObject({
+      ok: false,
+      code: 'TAVERN_REQUIRED',
+    });
+  });
+
+  it('recusa na Taverna o que não é para o jogador ver: o modelo, o gerador e a próxima rotação', () => {
+    const view = deriveViewState(createInitialState('s', settings), 0);
+    const offer = {
+      offerId: 'offer-1',
+      name: 'Aldara',
+      classLabel: 'Guerreira',
+      level: 1,
+      traits: [{ label: 'Corajosa', text: 'Rende mais.' }],
+      price: 110,
+      priceText: '110 de ouro',
+      wagePerHour: 2,
+      affordable: true,
+      blockedReason: null,
+    };
+    const parse = (tavern: unknown) => ViewStateSchema.safeParse({ ...view, tavern }).success;
+    expect(parse({ ...view.tavern, level: 1, offers: [offer] })).toBe(true);
+    expect(parse({ ...view.tavern, offers: [{ ...offer, templateId: 'braveWarrior' }] })).toBe(
+      false,
+    );
+    expect(parse({ ...view.tavern, offers: [{ ...offer, weight: 5 }] })).toBe(false);
+    expect(parse({ ...view.tavern, offers: [{ ...offer, gender: 'f' }] })).toBe(false);
+    expect(parse({ ...view.tavern, nextOffers: [offer] })).toBe(false);
+    expect(parse({ ...view.tavern, nextRotationAtMs: 86_400_000 })).toBe(false);
+    expect(parse({ ...view.tavern, rng: [1, 2, 3, 4] })).toBe(false);
+    expect(parse({ ...view.tavern, festival: { ...view.tavern.festival, untilMs: 1 } })).toBe(
+      false,
+    );
+    const withoutTavern = Object.fromEntries(
+      Object.entries(view).filter(([key]) => key !== 'tavern'),
+    );
+    expect(ViewStateSchema.safeParse(withoutTavern).success).toBe(false);
   });
 
   it('recusa na guilda o que é de outra fase ou não é para o jogador ver', () => {
@@ -1679,6 +1835,8 @@ describe('contentHash', () => {
         heroTraits,
         heroStatuses,
         namedHeroes,
+        tavernCandidates,
+        heroNames,
         wageArrearsReliefs,
       }),
     ]);
@@ -1702,6 +1860,7 @@ describe('contentHash', () => {
       'foundingTemplates',
       'heroAttributes',
       'heroClasses',
+      'heroNames',
       'heroStatuses',
       'heroTraits',
       'idleVillager',
@@ -1713,6 +1872,7 @@ describe('contentHash', () => {
       'raidSizes',
       'raidTemplates',
       'startingTiles',
+      'tavernCandidates',
       'threatMarkTemplates',
       'tileTypes',
       'wageArrearsReliefs',

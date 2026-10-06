@@ -15,6 +15,7 @@ import {
   play,
   refuse,
   starve,
+  tavernScenario,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
 
@@ -150,6 +151,15 @@ describe('catálogo de recusas', () => {
     'collapsedWell',
   );
   const staffed = gameWith((draft) => void addHero(draft));
+  // A Taverna Nv1 aberta agora, com dois candidatos (`offer-1` e `offer-2`) e ouro de sobra; a
+  // mesma já com os dois heróis que ela abriga; e a mesma depois de um festival.
+  const tavern = tavernScenario().state;
+  const [firstOffer] = tavern.guild.tavernOffers;
+  const lodged = tavernScenario(0, (draft) => {
+    addHero(draft);
+    addHero(draft);
+  }).state;
+  const feasted = accept(tavern, command('holdFestival', {})).state;
   const unknown = { commandId: 'x', type: 'siege', payload: {} } as unknown as Command;
   const bogus = { building: 'keep' } as unknown as { building: 'farm' };
 
@@ -193,6 +203,11 @@ describe('catálogo de recusas', () => {
     ],
     // O feudo tem a Edda (`hero-1`); a ordem fala de um herói que já partiu.
     HERO_NOT_FOUND: [staffed, command('dismissHero', { heroId: 'hero-2' })],
+    TAVERN_REQUIRED: [rich, command('hireHero', { offerId: 'offer-1' })],
+    // A lista só tem as ofertas 1 e 2.
+    OFFER_GONE: [tavern, command('hireHero', { offerId: 'offer-9' })],
+    HERO_LIMIT: [lodged, command('hireHero', { offerId: firstOffer?.offerId ?? '' })],
+    FESTIVAL_ALREADY_HELD: [feasted, command('holdFestival', {})],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

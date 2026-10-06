@@ -93,13 +93,18 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // O critério 1 do GDD §16.2 visto pelo simulador (docs/balance-v0.3.md, seção 3). Os dois
     // bots respondem à carta com a primeira opção sem custo, "Acolher": toda partida termina com
     // um herói, Edda, que é Leal. Nenhum bot escolhe "Cuidar e deixar partir": o arqueiro, que
-    // não é Leal, nunca passa pela matriz.
+    // não é Leal, nunca passa pela matriz. Só o Explorador tem mais de um herói: os que ele
+    // contrata na Taverna (V3C-T2), conferidos no teste seguinte.
     for (const difficulty of DIFFICULTY_IDS) {
       for (const run of byDifficulty[difficulty].runs) {
         const where = `${difficulty} ${run.window}/${run.timeScale}/${run.profile.id} ${run.seed}`;
-        expect(run.summary.guild.heroes, where).toBe(1);
-        expect(run.summary.guild.departed, where).toBe(0);
-        expect(run.summary.guild.firstHeroAtHour, where).not.toBeNull();
+        const { guild } = run.summary;
+        expect(guild.heroes, where).toBe(1 + guild.hired);
+        if (run.profile.id !== 'explorador') {
+          expect(guild.hired, where).toBe(0);
+        }
+        expect(guild.departed, where).toBe(0);
+        expect(guild.firstHeroAtHour, where).not.toBeNull();
       }
     }
     // A hora real em que ela chega, em Senhor, nas 50 sementes. A carta é do 13º dia de jogo
@@ -140,6 +145,58 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
       ['week/1/preguicoso', [21, 21]],
       ['year/1/preguicoso', [21, 21]],
     ]);
+  });
+
+  it('a Taverna: todo perfil a ergue, só o Explorador contrata, e nenhum herói parte por soldo (roadmap da v0.3, V3C-T2)', () => {
+    // docs/balance-v0.3.md, seção 4. A Taverna é uma obra como as outras: `obra mais barata` a
+    // ergue nos três bots. Só o Explorador contrata (enquanto o ouro paga o preço e 24 h reais
+    // de soldo da equipe) e dá festival (com folga de três vezes o custo).
+    for (const difficulty of DIFFICULTY_IDS) {
+      for (const run of byDifficulty[difficulty].runs) {
+        const where = `${difficulty} ${run.window}/${run.timeScale}/${run.profile.id} ${run.seed}`;
+        const { guild } = run.summary;
+        // A premissa 3 do ADR 0017, medida: ninguém perde herói, nem o Preguiçoso, nem o
+        // Explorador com a Taverna cheia. E nenhum bot dispensa.
+        expect(guild.departed, where).toBe(0);
+        expect(guild.dismissed, where).toBe(0);
+        // Nunca mais heróis do que a Taverna abriga.
+        expect(guild.heroes, where).toBeLessThanOrEqual(1 + guild.tavernLevel);
+        if (run.profile.id === 'explorador') {
+          // Quem contrata não atrasa o soldo: a política guarda um dia de soldo no cofre.
+          expect(guild.arrearsHours, where).toBe(0);
+          expect(guild.hired, where).toBeGreaterThan(0);
+        } else {
+          expect(guild.festivals, where).toBe(0);
+        }
+      }
+    }
+    // Em Senhor, nas 50 sementes: quantos heróis o Explorador tem no fim. Onde a partida chega
+    // à Taverna no nível 5 ele enche os seis lugares; no ano do Rápido (56 h reais) a Taverna
+    // fica no nível 3 e ele termina com três, porque o cofre só paga dois contratos e um dia de
+    // soldo; na semana do Tranquilo (meio ano de jogo) ele tem de três a cinco.
+    const heroes = (key: string) =>
+      matrix.cells.find((cell) => cell.key === key)?.measure.guild.heroes;
+    expect(heroes('week/3/explorador')).toEqual({ min: 6, max: 6 });
+    expect(heroes('week/1/explorador')).toEqual({ min: 6, max: 6 });
+    expect(heroes('week/0.5/explorador')).toEqual({ min: 3, max: 5 });
+    expect(heroes('year/3/explorador')).toEqual({ min: 3, max: 3 });
+    expect(heroes('year/1/explorador')).toEqual({ min: 6, max: 6 });
+    expect(heroes('year/0.5/explorador')).toEqual({ min: 6, max: 6 });
+    // A hora real em que a Taverna fica pronta, no perfil de 2 sessões por dia: logo depois do
+    // Salão no nível 3. O Preguiçoso do primeiro ano do Rápido nem sempre chega a ela.
+    const tavernAt = (key: string) =>
+      matrix.cells.find((cell) => cell.key === key)?.measure.guild.tavernAtHour;
+    expect(tavernAt('week/3/regular')).toEqual({ min: 25, max: 27 });
+    expect(tavernAt('week/1/regular')).toEqual({ min: 51, max: 59 });
+    expect(tavernAt('week/0.5/regular')).toEqual({ min: 88, max: 97 });
+    expect(tavernAt('week/3/explorador')).toEqual(tavernAt('week/3/regular'));
+    expect(tavernAt('year/3/preguicoso')).toEqual({ min: 55, max: null });
+    // O ouro parado continua sendo o sinal mais alto da matriz: contratar cinco heróis não o
+    // gasta. Na semana do Rápido o Explorador termina com mais ouro parado do que o Regular.
+    const gold = (key: string) =>
+      matrix.cells.find((cell) => cell.key === key)?.measure.surplus.gold.max ?? 0;
+    expect(gold('week/3/explorador')).toBeGreaterThan(150_000);
+    expect(gold('week/3/regular')).toBeGreaterThan(150_000);
   });
 
   it('em toda dificuldade e em todo perfil: nenhuma hora de fome, nenhuma de frio e ninguém vai embora', () => {
@@ -308,11 +365,12 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Normal, na 25 no Rápido e entre a 83 e a 86 no Tranquilo (seção 16). Com os dois números
     // do ADR 0016 (seção 18): entre as horas 49 e 53 no Normal e entre a 82 e a 85 no Tranquilo.
     // Com a pedra do poço a 20 (V2G-T4, seção 20): até a hora 86 no Tranquilo. Com a estrangeira
-    // no sorteio (V3C-T3): a partir da hora 83 no Tranquilo.
+    // no sorteio (V3C-T3): a partir da hora 83 no Tranquilo. Com a Taverna na lista de obras
+    // (V3C-T2): até a hora 56 no Normal e até a 26 no Rápido.
     const palisade = (key: string) =>
       matrix.cells.find((cell) => cell.key === key)?.measure.milestones.palisade;
-    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 53 });
-    expect(palisade('year/3/regular')).toEqual({ min: 25, max: 25 });
+    expect(palisade('year/1/regular')).toEqual({ min: 49, max: 56 });
+    expect(palisade('year/3/regular')).toEqual({ min: 25, max: 26 });
     expect(palisade('year/0.5/regular')).toEqual({ min: 83, max: 86 });
     for (const cell of matrix.cells.filter((entry) => entry.profile.id !== 'preguicoso')) {
       const tower = cell.measure.milestones.watchtower;
@@ -359,7 +417,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     }
   });
 
-  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 64 a 73 aldeões no dia 7, acima dos 40 da meta', () => {
+  it('no ritmo 1 o perfil Regular passa do que a v0.1 cobrava: de 64 a 75 aldeões no dia 7, acima dos 40 da meta', () => {
     // A v0.1 cobrava 20 a 40 aldeões e o Salão no nível 3 (GDD §15.2: "população 30–40 no dia 7").
     // Com a segunda fila e as planejadas automáticas (V2C-T5) as obras não esperam mais a visita,
     // e o mesmo perfil chegou a 45 aldeões e ao Salão no nível 6. Com a experiência do ofício
@@ -377,13 +435,15 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // Ameaça reequilibrada, entre 63 e 71 (seção 16). Com as cartas corrigidas (os pilares de
     // pedra da Ponte e a Paliçada mostrada aos aldeões por +20, seção 17), entre 63 e 73: os
     // dias em 80 trazem colonos. Com os dois números do ADR 0016 (seção 18), entre 64 e 73.
+    // Com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4), entre 64 e 75: a moral que ela
+    // soma mantém o feudo acima dos 80, e os colonos vêm.
     const band = bandFor(cellKey('week', 1, 'regular'));
-    expect(band?.villagers).toEqual({ min: 57, max: 81 });
+    expect(band?.villagers).toEqual({ min: 57, max: 83 });
     expect(band?.townHallMin).toBe(7);
     expect(band?.famineHoursMax).toBe(0);
   });
 
-  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida nos ritmos Tranquilo e Normal e no ano do Rápido; na semana do Rápido, não', () => {
+  it('a meta de desperdício (ADR 0013, decisão 17) é cumprida no ritmo Tranquilo; no Normal e no Rápido, não (regressão medida com a Taverna)', () => {
     // GDD §15.2 (ritmo Normal, dificuldade Senhor): com 2 sessões por dia, nenhum recurso passa
     // de 8 h de jogo seguidas indo ao chão. Até a rodada da Fase C só uma das seis células do
     // Regular a cumpria; o que faltava era o bot parar de produzir para o depósito cheio
@@ -425,6 +485,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     // seção 3) o caminho de obras de cada semente mudou outra vez, e no ritmo Normal as 50
     // voltam a caber na meta: o pior caso é de 8 h. No ano do Rápido o pior caso cai de 9 para
     // 6 h, e a célula também passa. Só a semana do Rápido continua acima, nas mesmas 33 h.
+    //
+    // REGRESSÃO MEDIDA com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4): três células
+    // voltam a passar da meta. No ritmo Normal uma das 50 sementes (021) tem 10 h de jogo
+    // seguidas de madeira indo ao chão; no ano do Rápido, duas (012 e 018) têm 9 h; e a semana
+    // do Rápido sobe de 33 para 36 h. A Taverna soma até 25 de moral, a moral acima de 80 traz
+    // colonos e a produção cresce antes de os depósitos crescerem; e as cinco obras dela entram
+    // na fila na frente das do Armazém quando são as mais baratas. Nenhum número além dos da
+    // Taverna foi mexido e os bots Regular e Dedicado não foram tocados: fica à espera do autor.
     expect(WASTE_STREAK_GOAL).toEqual({ sessionsPerDay: 2, gameHours: 8 });
     const goal = wasteGoalCells(matrix.cells);
     expect(goal).toHaveLength(WINDOWS.length * paces.length);
@@ -432,12 +500,14 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
     const over = Object.fromEntries(
       goal.filter(({ met }) => !met).map(({ cell, gameHours }) => [cell.key, gameHours]),
     );
-    expect(over).toEqual({ 'week/3/regular': 33 });
+    expect(over).toEqual({
+      'week/3/regular': 36,
+      'week/1/regular': 10,
+      'year/3/regular': 9,
+      'year/1/regular': 10,
+    });
     expect(goal.filter(({ met }) => met).map(({ cell }) => cell.key)).toEqual([
-      'week/1/regular',
       'week/0.5/regular',
-      'year/3/regular',
-      'year/1/regular',
       'year/0.5/regular',
     ]);
     const beyond = matrix.runs.filter(
@@ -447,7 +517,7 @@ describe('faixas de balanceamento por ritmo (roadmap da v0.2, V2B-T4)', () => {
         run.profile.id === 'regular' &&
         Math.max(...Object.values(run.summary.wasteStreakGameHours)) > WASTE_STREAK_GOAL.gameHours,
     );
-    expect(beyond.map((run) => run.seed)).toEqual([]);
+    expect(beyond.map((run) => run.seed)).toEqual(['pedra-alta-021']);
     // Nas outras dificuldades, com as 3 sementes que a suíte joga: dentro nos ritmos Normal e
     // Tranquilo, acima no Rápido (em Rei de Ferro, só na semana).
     const overIn = (difficulty: 'peasant' | 'ironKing') =>

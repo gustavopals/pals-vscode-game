@@ -23,6 +23,10 @@ import { botOf, type Policy } from './types';
  * opção sem custo, a que não arrisca), acode a comida só pela fazenda e manda quem está sem
  * ofício, todo mundo junto, para um lugar só. Só reequilibra quem já trabalha por necessidade:
  * a comida que falta e, com o inverno à vista, a lenha que falta.
+ *
+ * **Nunca contrata na Taverna e nunca dá festival** (roadmap da v0.3, V3C-T2.7): o herói dele é
+ * o que a carta da estrangeira entrega. A Taverna ele ergue, sem querer, quando ela é a obra
+ * mais barata da lista: é o que a matriz mede de quem tem a Taverna e não a usa.
  */
 export const preguicosoPolicies: readonly Policy[] = [
   erguerPalicada,

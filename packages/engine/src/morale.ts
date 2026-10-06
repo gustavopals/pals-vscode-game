@@ -3,6 +3,7 @@ import { balance, type MoraleBandDef, type MoraleTermId } from '@lotg/content';
 import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { consumptionRate, stockBalance } from './economy';
 import { famineDurationAt } from './famine';
+import { isAtHome, traitMorale } from './heroes';
 import { housingCapacity } from './population';
 import type { GameState, MoraleEffect } from './types';
 import { HOUR_MS, MILLI, realToGameMs } from './units';
@@ -33,12 +34,15 @@ export function moraleBand(value: number): MoraleBandDef {
 }
 
 /**
- * Um termo da conta da moral. `famineDays` leva os dias inteiros de fome que o termo conta, e
- * `effect`, o efeito temporário de onde ele vem: é o que a explicação precisa para dar nome a cada um.
+ * Um termo da conta da moral. `famineDays` leva os dias inteiros de fome que o termo conta,
+ * `tavern`, o nível da Taverna, `devout`, o nome do herói cuja fé o soma, e `effect`, o efeito
+ * temporário de onde ele vem: é o que a explicação precisa para dar nome a cada um.
  */
 export type MoraleTerm =
-  | { id: Exclude<MoraleTermId, 'famineDays' | 'effect'>; amount: number }
+  | { id: Exclude<MoraleTermId, 'famineDays' | 'effect' | 'tavern' | 'devout'>; amount: number }
   | { id: 'famineDays'; amount: number; days: number }
+  | { id: 'tavern'; amount: number; level: number }
+  | { id: 'devout'; amount: number; heroName: string }
   | { id: 'effect'; amount: number; effect: MoraleEffect };
 
 /**
@@ -126,6 +130,22 @@ export function moraleTermsAt(state: GameState, atMs: number): MoraleTerm[] {
   }
   if (coldCountsAt(state, atMs)) {
     terms.push({ id: 'cold', amount: rules.cold });
+  }
+  // A Taverna (GDD §5.7; ADR 0017, decisão 10): um termo permanente, pelo nível de agora.
+  const tavernLevel = settlement.buildings.tavern;
+  if (tavernLevel > 0) {
+    terms.push({
+      id: 'tavern',
+      amount: balance.tavern.moralePerLevel * tavernLevel,
+      level: tavernLevel,
+    });
+  }
+  // O traço Devoto: um termo por herói que o tem e está no feudo, na ordem em que chegaram.
+  for (const hero of state.guild.heroes) {
+    const amount = isAtHome(hero) ? traitMorale(hero) : 0;
+    if (amount !== 0) {
+      terms.push({ id: 'devout', amount, heroName: hero.name });
+    }
   }
   for (const effect of effectsAt(state, atMs)) {
     terms.push({ id: 'effect', amount: effect.amount, effect });

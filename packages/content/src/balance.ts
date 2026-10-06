@@ -278,6 +278,34 @@ export type RaidsDef = {
  * o ritmo; os quatro prazos do atraso (`…RealMs`) são **tempo real**, iguais em qualquer ritmo:
  * o motor os converte com o ritmo da partida.
  */
+/**
+ * A Taverna (GDD §5.7, §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10). Tudo aqui é **tempo de jogo**
+ * e escala com o ritmo. O custo e o prazo da obra estão em `buildings.tavern`; os modelos de
+ * candidato e os nomes, em `tavernCandidates` e `heroNames`.
+ */
+export type TavernDef = {
+  /** Quantos candidatos cada rotação traz, por nível da Taverna (o índice 0 é o nível 1). */
+  readonly offersByLevel: readonly number[];
+  /** De quanto em quanto tempo de jogo a lista de candidatos troca, a partir da inauguração. */
+  readonly rotationMs: number;
+  /** Moral permanente por nível da Taverna. */
+  readonly moralePerLevel: number;
+  /** Heróis que o feudo pode contratar a mais, por nível (somado a `heroes.limitBase`). */
+  readonly heroLimitPerLevel: number;
+  /** O festival, por ordem do senhor (`holdFestival`). */
+  readonly festival: {
+    readonly cost: ResourceAmounts;
+    /** Moral somada enquanto o festival durar, como efeito temporário. */
+    readonly morale: number;
+    /** Quanto dura, em tempo de jogo: um número inteiro de dias de jogo. */
+    readonly durationMs: number;
+    /** Quantos festivais cabem em uma estação. O motor só conhece um. */
+    readonly perSeason: 1;
+    /** O nome do termo na conta da moral. */
+    readonly moraleLabel: string;
+  };
+};
+
 export type HeroesDef = {
   /** Ouro por hora de jogo, por herói que recebe. */
   readonly wagePerHour: number;
@@ -379,6 +407,7 @@ export type Balance = {
   readonly threat: ThreatDef;
   readonly raids: RaidsDef;
   readonly heroes: HeroesDef;
+  readonly tavern: TavernDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -673,5 +702,21 @@ export const balance: Balance = {
     levelBonus: { num: 8, den: 100 },
     xpToNext: [100, 282, 519, 800, 1118, 1469, 1852, 2262, 2700],
     power: { attack: SAME, defense: SAME, health: { num: 1, den: 10 } },
+  },
+  // GDD §5.7, §6.1 e §9.1 (ADR 0017, decisões 4, 5 e 10). 24 h de jogo são 12 dias de jogo: a
+  // rotação e o festival duram o mesmo, um dia real no Normal e 8 h no Rápido. O teste de
+  // conteúdo confere as contas contra `calendar.dayMs` e a lista contra `buildings.tavern`.
+  tavern: {
+    offersByLevel: [2, 2, 3, 3, 3],
+    rotationMs: 24 * HOUR_MS,
+    moralePerLevel: 5,
+    heroLimitPerLevel: 1,
+    festival: {
+      cost: { food: 100, gold: 50 },
+      morale: 15,
+      durationMs: 24 * HOUR_MS,
+      perSeason: 1,
+      moraleLabel: 'Festival na Taverna',
+    },
   },
 };

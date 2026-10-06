@@ -12,6 +12,7 @@ export const BUILDING_IDS = [
   'warehouse',
   'watchtower',
   'palisade',
+  'tavern',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
 
@@ -31,8 +32,9 @@ export type MoraleBandId = (typeof MORALE_BAND_IDS)[number];
 
 /**
  * Os termos da conta da moral (GDD §5.7), na ordem em que a explicação os mostra: a base, a
- * comida guardada, a fome (e cada dia inteiro dela), as casas cheias, o frio e os efeitos
- * temporários (cartas do Conselho, incursões, objetivos).
+ * comida guardada, a fome (e cada dia inteiro dela), as casas cheias, o frio, a Taverna (um
+ * termo permanente por nível), a fé de cada herói Devoto presente no feudo e os efeitos
+ * temporários (cartas do Conselho, incursões, objetivos, o festival da Taverna).
  */
 export const MORALE_TERM_IDS = [
   'base',
@@ -41,6 +43,8 @@ export const MORALE_TERM_IDS = [
   'famineDays',
   'housingFull',
   'cold',
+  'tavern',
+  'devout',
   'effect',
 ] as const;
 export type MoraleTermId = (typeof MORALE_TERM_IDS)[number];
@@ -105,6 +109,25 @@ export type HeroGenderId = (typeof HERO_GENDER_IDS)[number];
  */
 export const NAMED_HERO_IDS = ['edda', 'rolf'] as const;
 export type NamedHeroId = (typeof NAMED_HERO_IDS)[number];
+
+/**
+ * Os modelos de candidato que a Taverna oferece (GDD §9.1; ADR 0017, "Modelos de candidato da
+ * Taverna"), **na ordem do sorteio**. A ficha de cada um está em `tavernCandidates`. O id fica
+ * gravado no estado (`guild.tavernOffers[].templateId`): mudar um deles pede passo de migração.
+ */
+export const TAVERN_CANDIDATE_IDS = [
+  'braveWarrior',
+  'steadyWarrior',
+  'veteranWarrior',
+  'trackerArcher',
+  'greedyArcher',
+  'veteranArcher',
+  'greedyMage',
+  'learnedMage',
+  'devoutCleric',
+  'charismaticCleric',
+] as const;
+export type TavernCandidateId = (typeof TAVERN_CANDIDATE_IDS)[number];
 
 /** Fração exata: o motor só faz conta com inteiros, então 1,6 vira 16/10. */
 export type Ratio = { readonly num: number; readonly den: number };

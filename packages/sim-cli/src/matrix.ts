@@ -36,21 +36,11 @@ export type Profile = {
   readonly strategy: StrategyName;
 };
 
-/** Os perfis de visita do GDD §15.2, cada um com o bot que joga as suas sessões. */
-export const PROFILES: readonly Profile[] = [
-  { id: 'preguicoso', label: 'Preguiçoso', sessionsPerDay: 1, strategy: 'preguicoso' },
-  { id: 'regular', label: 'Regular', sessionsPerDay: 2, strategy: 'economico' },
-  { id: 'dedicado', label: 'Dedicado', sessionsPerDay: 4, strategy: 'economico' },
-];
-export type ProfileId = Profile['id'];
-
 /**
- * O perfil da Guilda (GDD §15.3): 2 sessões por dia, como o Regular, com o bot `explorador`.
- * **Fica fora de `PROFILES`** enquanto o explorador for igual ao econômico (roadmap da v0.3,
- * V3B-T2): a célula dele seria a do Regular repetida, e a matriz do `pnpm test` cresceria um
- * terço sem medir nada novo. Roda a pedido (`MatrixOptions.profiles`, `--matrix --profile
- * explorador`), sem faixa. Entra em `PROFILES`, com faixa própria, na tarefa que der ao
- * explorador a primeira política que o econômico não tem.
+ * O perfil da Guilda (GDD §15.3): 2 sessões por dia, como o Regular, com o bot `explorador`,
+ * que além de cuidar do feudo contrata na Taverna e dá festival. **Entrou na rodada padrão com
+ * a Taverna (V3C-T2)**, com faixa própria: a célula dele ao lado da do Regular, mesma cadência
+ * de visitas e outro bot, é o que diz o que a Guilda muda na economia.
  */
 export const EXPLORER_PROFILE: Profile = {
   id: 'explorador',
@@ -59,8 +49,21 @@ export const EXPLORER_PROFILE: Profile = {
   strategy: 'explorador',
 };
 
-/** Todo perfil que a matriz sabe jogar: os de sempre e os que só rodam a pedido. */
-export const KNOWN_PROFILES: readonly Profile[] = [...PROFILES, EXPLORER_PROFILE];
+/**
+ * Os perfis de visita do GDD §15.2, cada um com o bot que joga as suas sessões, e o da Guilda.
+ * O Preguiçoso, o Regular e o Dedicado não contratam: são o jogador que ergue a Taverna e não a
+ * usa.
+ */
+export const PROFILES: readonly Profile[] = [
+  { id: 'preguicoso', label: 'Preguiçoso', sessionsPerDay: 1, strategy: 'preguicoso' },
+  { id: 'regular', label: 'Regular', sessionsPerDay: 2, strategy: 'economico' },
+  { id: 'dedicado', label: 'Dedicado', sessionsPerDay: 4, strategy: 'economico' },
+  EXPLORER_PROFILE,
+];
+export type ProfileId = Profile['id'];
+
+/** Todo perfil que a matriz sabe jogar. Hoje são os da rodada padrão: nenhum roda só a pedido. */
+export const KNOWN_PROFILES: readonly Profile[] = PROFILES;
 
 /**
  * As duas janelas de medida. Não se comparam entre si: em 7 dias reais o ritmo 3 atravessa três
@@ -163,6 +166,21 @@ export type CellMeasure = {
     lostWood: Range;
     threatFinal: Range;
   };
+  /**
+   * Os heróis e a Taverna de cada partida (GDD §9.1): os heróis no fim, os contratados, os que
+   * partiram sem soldo, as horas reais com o soldo em atraso, a hora real do primeiro herói, o
+   * nível final da Taverna, a hora real em que ela ficou pronta e os festivais dados.
+   */
+  guild: {
+    heroes: Range;
+    hired: Range;
+    departed: Range;
+    arrearsHours: Range;
+    firstHeroAtHour: OptionalRange;
+    tavernLevel: Range;
+    tavernAtHour: OptionalRange;
+    festivals: Range;
+  };
 };
 
 export type MatrixCell = {
@@ -261,8 +279,25 @@ function measureOf(summaries: Summary[]): CellMeasure {
       lostWood: range((summary) => summary.raids.lost.wood),
       threatFinal: range((summary) => summary.threat.final),
     },
+    guild: {
+      heroes: range((summary) => summary.guild.heroes),
+      hired: range((summary) => summary.guild.hired),
+      departed: range((summary) => summary.guild.departed),
+      arrearsHours: range((summary) => summary.guild.arrearsHours),
+      firstHeroAtHour: optional((summary) => summary.guild.firstHeroAtHour),
+      tavernLevel: range((summary) => summary.guild.tavernLevel),
+      tavernAtHour: optional((summary) => summary.guild.tavernAtHour),
+      festivals: range((summary) => summary.guild.festivals),
+    },
   };
 }
+
+/**
+ * O perfil que a meta de desperdício do GDD §15.2 cobra: o Regular. O Explorador visita o feudo
+ * com a mesma cadência, mas é outro jogador (contrata, dá festival), e a célula dele não entra
+ * na meta: tem a faixa dela.
+ */
+const WASTE_GOAL_PROFILE: ProfileId = 'regular';
 
 /**
  * As células que a meta de desperdício cobra (`WASTE_STREAK_GOAL`: o perfil de 2 sessões por
@@ -273,7 +308,11 @@ export function wasteGoalCells(
   cells: readonly MatrixCell[],
 ): Array<{ cell: MatrixCell; gameHours: number; met: boolean }> {
   return cells
-    .filter((cell) => cell.profile.sessionsPerDay === WASTE_STREAK_GOAL.sessionsPerDay)
+    .filter(
+      (cell) =>
+        cell.profile.id === WASTE_GOAL_PROFILE &&
+        cell.profile.sessionsPerDay === WASTE_STREAK_GOAL.sessionsPerDay,
+    )
     .map((cell) => {
       const gameHours = cell.measure.wasteStreakWorst.max;
       return { cell, gameHours, met: gameHours <= WASTE_STREAK_GOAL.gameHours };
@@ -616,11 +655,40 @@ export function formatMatrix(result: MatrixResult): string {
         formatRange(cell.measure.raids.threatFinal),
       ]),
     );
+    const guild = table(
+      [
+        'Ritmo',
+        'Perfil',
+        'Heróis no fim',
+        'Contratados',
+        'Partiram sem soldo',
+        'Soldo em atraso (h)',
+        'Primeiro herói (h)',
+        'Taverna (nível)',
+        'Taverna pronta (h)',
+        'Festivais',
+        surplusTitle('gold'),
+      ],
+      cells.map((cell) => [
+        cell.paceLabel,
+        profileOf(cell),
+        formatRange(cell.measure.guild.heroes),
+        formatRange(cell.measure.guild.hired),
+        formatRange(cell.measure.guild.departed),
+        formatRange(cell.measure.guild.arrearsHours),
+        formatOptional(cell.measure.guild.firstHeroAtHour),
+        formatRange(cell.measure.guild.tavernLevel),
+        formatOptional(cell.measure.guild.tavernAtHour),
+        formatRange(cell.measure.guild.festivals),
+        formatRange(cell.measure.surplus.gold),
+      ]),
+    );
     return [
       `## ${window.label}\n\n${measures}${bands}`,
       `### Progresso: ${window.label.toLowerCase()}\n\n${progress}`,
       `### Desperdício por recurso: ${window.label.toLowerCase()}\n\n${waste}`,
       `### Lobos: ${window.label.toLowerCase()}\n\n${raids}`,
+      `### Guilda: ${window.label.toLowerCase()}\n\n${guild}`,
     ].join('\n\n');
   });
 

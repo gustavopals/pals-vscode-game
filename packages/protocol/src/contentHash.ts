@@ -9,6 +9,7 @@ import {
   foundingTemplates,
   heroAttributes,
   heroClasses,
+  heroNames,
   heroStatuses,
   heroTraits,
   idleVillager,
@@ -20,6 +21,7 @@ import {
   raidSizes,
   raidTemplates,
   startingTiles,
+  tavernCandidates,
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
@@ -46,7 +48,7 @@ import { canonicalJson } from './canonical';
  * incursões entram as frases de cada inimigo (o aviso, o desfecho, o conselho) e as de quem se
  * fere e sara; os números (o roteiro, o estrago, o ferimento, a moral) estão em `balance.raids`.
  * Dos heróis entram as classes, os traços, os rótulos de estado, os heróis com nome que as
- * cartas entregam e as frases do fim do soldo em atraso; os números (soldo, prazos, nível, experiência, poder) estão em `balance.heroes`.
+ * cartas entregam, os modelos de candidato e os nomes da Taverna (na ordem do sorteio) e as frases do fim do soldo em atraso; os números (soldo, prazos, nível, experiência, poder) estão em `balance.heroes`.
  */
 function hashedContent(): Record<string, unknown> {
   return {
@@ -73,6 +75,8 @@ function hashedContent(): Record<string, unknown> {
     heroTraits,
     heroStatuses,
     namedHeroes,
+    tavernCandidates,
+    heroNames,
     wageArrearsReliefs,
   };
 }

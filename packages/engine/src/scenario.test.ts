@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { HOUR, MINUTE, runWeekScenario as runScenario } from './test-helpers';
+import { HOUR, MINUTE, NO_TAVERN, runWeekScenario as runScenario } from './test-helpers';
 import { deriveViewState } from './view';
 
 const DAY_REAL = 24 * HOUR;
@@ -339,6 +339,7 @@ describe('cenário golden de 7 dias', () => {
       arriving: [],
       wageArrears: null,
       lastWageArrears: null,
+      ...NO_TAVERN,
     });
     expect(state.ids).toEqual({ hero: 1 });
     expect(state.stats['cardsDrawn:woundedStranger']).toBe(1);

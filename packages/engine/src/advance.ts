@@ -23,6 +23,7 @@ import { announceRaids, recoverInjured, settleRaids } from './raids';
 import { settleScarcity } from './scarcity';
 import { turnSeasonWatch } from './seasonWatch';
 import { cloneState } from './state';
+import { settleTavern } from './tavernTurn';
 import { announceFilled, fullStores, isStorageFull, reportWaste } from './storage';
 import { nextEventAt } from './timeline';
 import { turnWages } from './wages';
@@ -85,7 +86,8 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * deserção, a cobrança do soldo em atraso, o sorteio do Conselho, a subida da Ameaça, os uivos
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
  * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício, as
- * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), início automático
+ * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), a Taverna
+ * (`settleTavern`: o festival que acabou e a troca dos candidatos), início automático
  * das planejadas, objetivos (`settlePlanned`, que repete os dois enquanto um der motivo ao
  * outro) e, por fim, fome, frio e soldo em atraso (`settleScarcity`). Os estoques que encheram são registrados depois de tudo, por
  * `advanceWith` e por `applyCommand` (`announceFilled`).
@@ -96,13 +98,15 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * encontra de volta.
  *
  * `catalog` são as cartas do Conselho: o jogo usa as do conteúdo; outro catálogo só existe em
- * teste (`processEventsWith`).
+ * teste (`processEventsWith`). `forecast` é das previsões da visão (`stateAtNextMoraleTurn`): a
+ * Taverna não troca os candidatos, porque uma previsão não sorteia.
  */
 export function processEventsAt(
   draft: GameState,
   atMs: number,
   events: GameEvent[],
   catalog: Catalog = CATALOG,
+  forecast = false,
 ): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
@@ -116,9 +120,21 @@ export function processEventsAt(
   settleHeroArrivals(draft, atMs, events);
   finishAdaptations(draft, atMs);
   settleRaids(draft, atMs, events);
+  // A Taverna: o festival que acabou e a troca dos candidatos, com o sorteio dela. Depois de
+  // tudo o que muda quem está no feudo neste instante (a obra que a ergue ou a amplia, o herói
+  // que parte sem soldo, o que chega por carta): a lista nasce com o número de candidatos do
+  // nível de agora e sem repetir o nome de ninguém que acabou de chegar. Antes das planejadas e
+  // dos objetivos, que já a encontram trocada. Uma previsão da visão não sorteia: fica de fora.
+  if (!forecast) {
+    settleTavern(draft, atMs, events);
+  }
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }
+
+/** O processador das previsões da visão: o do jogo, sem o sorteio da Taverna. */
+const forecastEventsAt: EventProcessor = (draft, atMs, events) =>
+  processEventsAt(draft, atMs, events, CATALOG, true);
 
 /** O processador de eventos do jogo com outro catálogo de cartas: só para os testes do Conselho. */
 export function processEventsWith(catalog: Catalog): EventProcessor {
@@ -139,13 +155,22 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * avança sem nenhuma. No jogo toda incursão chega em uma virada de dia, que não é processada
  * aqui; tirar as marcadas garante que nem um estado fora desse padrão conte, pela conta da
  * moral, o que a névoa esconde.
+ *
+ * **A Taverna não troca os candidatos.** A rotação é um sorteio fora da virada do dia, e uma
+ * previsão não sorteia: a cópia avança sem rotação marcada e sem o passo da Taverna. Quem ela
+ * oferece não entra na conta da moral; o nível dela e o festival, que entram, não dependem da
+ * rotação.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
-  const blind: GameState = { ...state, horde: { ...state.horde, scheduledRaids: [] } };
+  const blind: GameState = {
+    ...state,
+    horde: { ...state.horde, scheduledRaids: [] },
+    guild: { ...state.guild, tavern: { ...state.guild.tavern, nextRotationAtMs: null } },
+  };
   // Um milissegundo antes da virada o estado está em repouso e o próximo evento é ela mesma:
   // o último milissegundo é um trecho de taxas constantes, como em `advanceWith`.
-  const draft = cloneState(advanceTo(blind, turn - 1).state);
+  const draft = cloneState(advanceWith(blind, turn - 1, forecastEventsAt).state);
   applyContinuous(draft, turn - draft.lastProcessedAt);
   draft.lastProcessedAt = turn;
   draft.clock.gameTimeMs = turn;

@@ -19,12 +19,12 @@ Com --time-scale, dias, sessões e linhas do CSV continuam em tempo real; o jogo
 Com --game-year, a partida dura um ano de jogo completo: 56 h reais no ritmo 3, 14 dias no 0,5.
 Com --difficulty, a partida nasce em peasant, lord ou ironKing.
 Com --matrix, joga a matriz de balanceamento: 7 dias reais e um ano de jogo, em cada ritmo que o
-jogo oferece, com os perfis de 1, 2 e 4 sessões por dia e as 50 sementes fixas (--seeds N usa só
-as N primeiras). O CSV, uma linha por partida, sai na saída padrão; as tabelas, na saída de erro.
+jogo oferece, com os perfis de 1, 2 e 4 sessões por dia, o da Guilda e as 50 sementes fixas
+(--seeds N usa só as N primeiras). O CSV, uma linha por partida, sai na saída padrão; as tabelas, na saída de erro.
 Há faixas para as três dificuldades; o comando sai com erro se alguma partida ficar fora delas.
 Com --profile, a matriz joga só aquele perfil: preguicoso, regular, dedicado ou explorador (2
-sessões por dia com o bot explorador, que hoje joga como o economico; fica fora da rodada padrão
-e não tem faixa). As estratégias de --strategy são economico, preguicoso e explorador.
+sessões por dia com o bot explorador, que além de cuidar do feudo contrata na Taverna e dá
+festival). As estratégias de --strategy são economico, preguicoso e explorador.
 Com --perf, mede o motor na volta de ausências de 1, 7 e 30 dias reais no ritmo 3: o tempo de um
 advanceTo, os eventos emitidos e o tamanho do estado e da visão. A tabela sai na saída padrão.
 Com --remote, os bots jogam contra um servidor pela API e o relatório traz p50 e p95 por endpoint.

@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import { applyCommand } from './commands';
 import { DAY_MS } from './clock';
-import { RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
+import { RNG_STREAM_FAMILIES } from './random';
+
+/**
+ * Os fluxos em que o cenário sintético sorteia: os três fixos da v0.2. O da Taverna (`tavern`,
+ * V3C-T2) só nasce com a Taverna erguida, que estes cenários não têm.
+ */
+const RNG_STREAMS = ['council', 'morale', 'horde'] as const;
 import {
   advanceWithDailyDraws,
   advanceWithEntities,

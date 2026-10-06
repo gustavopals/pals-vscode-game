@@ -185,6 +185,66 @@ export function wageArrearsPaid(gold: number, afterMs: number): GameState {
 }
 
 /**
+ * O que `guild` guarda da Taverna em um feudo que ainda não a ergueu: nenhum candidato, nenhuma
+ * rotação marcada, nenhum festival. Para os testes que conferem a guilda inteira.
+ */
+export const NO_TAVERN: Pick<GameState['guild'], 'tavernOffers' | 'tavern'> = {
+  tavernOffers: [],
+  tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+};
+
+/**
+ * O canteiro da Taverna: um feudo posto em `atMs` com o Salão no nível 3, os depósitos erguidos
+ * e cheios o bastante para as obras dela e o ouro para contratar, os objetivos cumpridos e o
+ * Conselho e a Horda calados (para nenhuma carta e nenhum lobo caírem no meio da conta). Ninguém
+ * trabalha: o estoque só muda com o que os cinco aldeões comem. Falta dar a ordem da obra.
+ * `custom` troca a semente, o ritmo ou a dificuldade.
+ */
+export function tavernSite(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string } = {},
+): GameState {
+  const { seed = 'pedra-alta', ...rest } = custom;
+  const draft = cloneState(createInitialState(seed, { ...settings, ...rest }));
+  draft.lastProcessedAt = atMs;
+  draft.clock.gameTimeMs = atMs;
+  draft.clock.year = Math.floor(atMs / YEAR) + 1;
+  draft.clock.yearStartMs = Math.floor(atMs / YEAR) * YEAR;
+  draft.objectives = { active: [], completed: objectives.map((objective) => objective.id) };
+  quietCouncil(draft);
+  quietHorde(draft);
+  Object.assign(draft.settlement.buildings, { townHall: 3, granary: 2, warehouse: 4 });
+  Object.assign(draft.settlement.resources, {
+    food: 1_000_000,
+    wood: 2_800_000,
+    stone: 1_000_000,
+    gold: 2_000_000,
+  });
+  edit(draft);
+  return draft;
+}
+
+/**
+ * A Taverna recém-inaugurada, pelo caminho do jogo: a ordem da obra no canteiro (`tavernSite`)
+ * e o avanço até o instante exato em que ela fica pronta, que é o do primeiro sorteio de
+ * candidatos. Devolve o estado, os eventos do caminho e esse instante.
+ */
+export function tavernScenario(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string } = {},
+): { state: GameState; events: GameEvent[]; opensAt: number } {
+  const ordered = accept(
+    tavernSite(atMs, edit, custom),
+    command('startConstruction', { building: 'tavern' }),
+  );
+  const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? atMs;
+  const opened = advanceTo(ordered.state, opensAt);
+  return { state: opened.state, events: [...ordered.events, ...opened.events], opensAt };
+}
+
+/**
  * O Conselho de um feudo fundado no instante zero que chegou até aqui jogando: a próxima
  * audiência é a primeira da cadência depois de agora. Chame depois de pôr o relógio no lugar.
  */

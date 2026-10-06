@@ -117,6 +117,13 @@ export type HourRow = {
   raids: RaidCounts;
   /** Objetivos do Senhor concluídos até aqui, como a visão os mostra (GDD §12.2). */
   objectives: number;
+  /**
+   * A Guilda até aqui (GDD §9.1): os heróis a serviço do feudo nesta hora, como a visão os
+   * mostra; as horas reais que terminaram com o soldo em atraso, contadas uma a uma (uma
+   * amostra ao fim de cada hora); e, dos eventos, os heróis que partiram, sem soldo ou
+   * dispensados.
+   */
+  guild: GuildCounts;
   /** Ordens aceitas pelo motor até aqui. */
   commandsAccepted: number;
   /** Ordens recusadas pelo motor até aqui, por código de recusa. */
@@ -196,6 +203,18 @@ function addReportedWaste(reported: Record<ResourceId, number>, events: GameEven
   }
 }
 
+/** Os heróis de uma partida, hora a hora: ver `HourRow.guild`. */
+export type GuildCounts = { heroes: number; arrearsHours: number; departed: number };
+
+/** Conta, dos eventos, os heróis que partiram: os que o soldo em atraso levou e os dispensados. */
+function addDepartures(guild: GuildCounts, events: GameEvent[]): void {
+  for (const event of events) {
+    if (event.type === 'heroLeft' || event.type === 'heroDismissed') {
+      guild.departed += 1;
+    }
+  }
+}
+
 /** Conta, dos eventos, as cartas do Conselho que chegaram, foram respondidas e expiraram. */
 function addCards(cards: CardCounts, events: GameEvent[]): void {
   for (const event of events) {
@@ -234,6 +253,7 @@ function rowAt(
   reportedWaste: Record<ResourceId, number>,
   cards: CardCounts,
   raids: RaidCounts,
+  guild: GuildCounts,
 ): HourRow {
   const view = deriveViewState(state, state.lastProcessedAt, { timeScale });
   const byResource = <T>(pick: (row: (typeof view.resources)[number]) => T) =>
@@ -266,6 +286,7 @@ function rowAt(
     cards: { ...cards },
     raids: { ...raids, lost: { ...raids.lost } },
     objectives: view.objectives.filter((objective) => objective.status === 'completed').length,
+    guild: { ...guild, heroes: view.guild.heroes.length },
     commandsAccepted: commands.accepted,
     commandsRefused: { ...commands.refused },
   };
@@ -315,6 +336,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     injured: 0,
     lost: { food: 0, wood: 0, stone: 0, gold: 0 },
   };
+  const guild: GuildCounts = { heroes: 0, arrearsHours: 0, departed: 0 };
   let commandCount = 0;
 
   const order: Act = async (type, payload) => {
@@ -326,6 +348,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       events.push(...result.events);
       // A resposta a uma carta, e a continuação que ela deixa entrar na mesa.
       addCards(cards, result.events);
+      addDepartures(guild, result.events);
       commands.accepted += 1;
     } else {
       commands.refused[result.code] = (commands.refused[result.code] ?? 0) + 1;
@@ -350,6 +373,7 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
       addReportedWaste(reportedWaste, advanced.events);
       addCards(cards, advanced.events);
       addRaids(raids, advanced.events);
+      addDepartures(guild, advanced.events);
       await bot(deriveViewState(state, state.lastProcessedAt, { timeScale }), act);
       nextSessionMs += sessionEveryMs;
     }
@@ -359,7 +383,12 @@ export async function simulate(options: SimulationOptions): Promise<SimulationRe
     addReportedWaste(reportedWaste, advanced.events);
     addCards(cards, advanced.events);
     addRaids(raids, advanced.events);
-    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids));
+    addDepartures(guild, advanced.events);
+    // O atraso é amostrado ao fim da hora, como o frio e a fome.
+    if (state.guild.wageArrears !== null) {
+      guild.arrearsHours += 1;
+    }
+    rows.push(rowAt(state, hour, timeScale, commands, reportedWaste, cards, raids, guild));
   }
 
   return {

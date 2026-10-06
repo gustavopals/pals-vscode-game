@@ -187,7 +187,8 @@ const MECHANIC_COLUMNS = [
     task: 'V2E-T4',
     meaning: 'Objetivos do Senhor concluídos, acumulados',
   },
-  // A Guilda (v0.3). Reservadas: saem vazias até a tarefa indicada medir cada uma.
+  // A Guilda (v0.3). As três dos heróis são medidas desde V3C-T2; as outras são reservadas e
+  // saem vazias até a tarefa indicada medir cada uma.
   {
     name: 'heroes',
     task: 'V3C-T1',
@@ -197,7 +198,8 @@ const MECHANIC_COLUMNS = [
   {
     name: 'wage_arrears_hours',
     task: 'V3C-T1',
-    meaning: 'Horas reais com soldo em atraso, acumuladas: o ouro não pagou a equipe',
+    meaning:
+      'Horas reais com soldo em atraso, acumuladas: o ouro não pagou a equipe. No CSV de uma partida, as horas que terminaram em atraso; na matriz, a duração exata, pelos eventos',
   },
   {
     name: 'heroes_departed',
@@ -301,6 +303,20 @@ const MEASURED_COLUMNS: Partial<
   villagers_injured: { hour: (row) => row.raids.injured, run: (summary) => summary.raids.injured },
   // Os Objetivos do Senhor, lidos da visão: os concluídos até a hora, e os da partida na matriz.
   objectives_done: { hour: (row) => row.objectives, run: (summary) => summary.objectives.done },
+  // Os heróis (V3C-T2): os da hora, lidos da visão, e os do fim da partida; o atraso, amostrado
+  // ao fim de cada hora no CSV de uma partida e exato, pelos eventos, na matriz; e quem partiu,
+  // sem soldo ou dispensado, contado dos eventos. `wages_paid` continua reservada: o jogo não
+  // conta o soldo pago em lugar nenhum, e somar amostras de hora em hora daria um número que
+  // parece exato e não é.
+  heroes: { hour: (row) => row.guild.heroes, run: (summary) => summary.guild.heroes },
+  wage_arrears_hours: {
+    hour: (row) => row.guild.arrearsHours,
+    run: (summary) => summary.guild.arrearsHours,
+  },
+  heroes_departed: {
+    hour: (row) => row.guild.departed,
+    run: (summary) => summary.guild.departed + summary.guild.dismissed,
+  },
 };
 
 /** O que as incursões levaram, somados os recursos, em unidades inteiras. */
@@ -473,17 +489,24 @@ export type Summary = {
    */
   objectives: { done: number; total: number; allDoneAtHour: number | null };
   /**
-   * Os heróis (GDD §9.1), contados dos eventos e lidos do estado no fim: quantos servem ao
-   * feudo, a hora real em que o primeiro chegou (pela carta da estrangeira; `null` se nenhum
-   * chegou), as horas reais com o soldo em atraso (com uma casa decimal) e quantos partiram sem
-   * soldo. É o que as faixas e `docs/balance-v0.3.md` leem; as colunas do CSV continuam
-   * reservadas até V3C-T5.
+   * Os heróis e a Taverna (GDD §9.1), contados dos eventos e lidos do estado no fim: quantos
+   * servem ao feudo, a hora real em que o primeiro chegou (pela carta da estrangeira ou pela
+   * Taverna; `null` se nenhum chegou), as horas reais com o soldo em atraso (com uma casa
+   * decimal), quantos partiram sem soldo e quantos foram dispensados, quantos foram
+   * contratados, quantos festivais houve, o nível final da Taverna e a hora real em que ela
+   * ficou pronta (`null` se não ficou). É o que as faixas, as colunas dos heróis no CSV e
+   * `docs/balance-v0.3.md` leem.
    */
   guild: {
     heroes: number;
     firstHeroAtHour: number | null;
     arrearsHours: number;
     departed: number;
+    dismissed: number;
+    hired: number;
+    festivals: number;
+    tavernLevel: number;
+    tavernAtHour: number | null;
   };
   /** Estoque final de cada recurso, em unidades. */
   stock: Record<ResourceId, number>;
@@ -502,7 +525,11 @@ function realHoursSpan(gameMs: number, timeScale: number): number {
 function guildOf(result: SimulationResult): Summary['guild'] {
   const timeScale = result.options.timeScale ?? 1;
   const endMs = result.finalState.lastProcessedAt;
-  const first = result.events.find((event) => event.type === 'heroJoined');
+  const first = result.events.find(
+    (event) => event.type === 'heroJoined' || event.type === 'heroHired',
+  );
+  const count = (type: GameEventType) =>
+    result.events.filter((event) => event.type === type).length;
   let arrearsMs = 0;
   let openedAt: number | null = null;
   for (const event of result.events) {
@@ -520,7 +547,12 @@ function guildOf(result: SimulationResult): Summary['guild'] {
     heroes: result.finalState.guild.heroes.length,
     firstHeroAtHour: first === undefined ? null : realHoursSpan(first.atMs, timeScale),
     arrearsHours: realHoursSpan(arrearsMs, timeScale),
-    departed: result.events.filter((event) => event.type === 'heroLeft').length,
+    departed: count('heroLeft'),
+    dismissed: count('heroDismissed'),
+    hired: count('heroHired'),
+    festivals: count('festivalHeld'),
+    tavernLevel: result.finalState.settlement.buildings.tavern,
+    tavernAtHour: hourOfLevel(result.rows, 'tavern', 1),
   };
 }
 

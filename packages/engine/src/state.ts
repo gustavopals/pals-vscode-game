@@ -22,14 +22,14 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   if (!DIFFICULTY_IDS.includes(settings.difficulty)) {
     throw new Error(`Dificuldade desconhecida: ${String(settings.difficulty)}.`);
   }
-  // O Celeiro, o Armazém, a Torre de Vigia e a Paliçada nascem no nível 0: ainda não foram
-  // construídos.
+  // O Celeiro, o Armazém, a Torre de Vigia, a Paliçada e a Taverna nascem no nível 0: ainda não
+  // foram construídos.
   const levels = Object.fromEntries(
     BUILDING_IDS.map((id) => [id, buildings[id].initialLevel]),
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 15,
+    schemaVersion: 16,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -88,7 +88,15 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
     // A incursão do roteiro do ano 1 nasce marcada; as outras são sorteadas pela Ameaça.
     horde: { scheduledRaids: scriptedRaidsAfter(0) },
     // Nenhum herói no começo: o primeiro chega por uma carta do Conselho (GDD §9.1).
-    guild: { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null },
+    // A Taverna ainda não existe: nenhum candidato, nenhuma rotação marcada, nenhum festival.
+    guild: {
+      heroes: [],
+      arriving: [],
+      wageArrears: null,
+      lastWageArrears: null,
+      tavernOffers: [],
+      tavern: { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null },
+    },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),
       completed: [],

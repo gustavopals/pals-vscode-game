@@ -24,6 +24,7 @@ import {
   RAID_SIZE_IDS,
   RESOURCE_IDS,
   SEASON_IDS,
+  TAVERN_CANDIDATE_IDS,
   TILE_TYPE_IDS,
 } from './ids';
 import { OBJECTIVE_CONDITION_TYPES } from './objectives';
@@ -290,6 +291,31 @@ const heroes = z
   )
   .refine(({ limitBase, rosterCap }) => rosterCap >= limitBase, 'teto abaixo do limite inicial');
 
+/**
+ * A Taverna (ADR 0017, decisões 4, 5 e 10): toda rotação traz ao menos um candidato, um nível a
+ * mais nunca traz menos, e o festival soma moral. Que a duração do festival é um número inteiro
+ * de dias de jogo, `BalanceSchema` confere, porque a conta precisa do calendário.
+ */
+const tavern = z.strictObject({
+  offersByLevel: z
+    .array(positiveInt)
+    .min(1)
+    .refine(
+      (offers) => offers.every((count, index) => index === 0 || count >= (offers[index - 1] ?? 0)),
+      'nível da Taverna que traz menos candidatos que o anterior',
+    ),
+  rotationMs: positiveInt,
+  moralePerLevel: positiveInt,
+  heroLimitPerLevel: positiveInt,
+  festival: z.strictObject({
+    cost: resourceAmounts,
+    morale: positiveInt,
+    durationMs: positiveInt,
+    perSeason: z.literal(1),
+    moraleLabel: label.regex(/^\p{Lu}[^.{}]*$/u),
+  }),
+});
+
 const balanceFields = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
@@ -384,6 +410,7 @@ const balanceFields = z.strictObject({
   threat,
   raids,
   heroes,
+  tavern,
 });
 
 /**
@@ -391,13 +418,25 @@ const balanceFields = z.strictObject({
  * jogo: em todo ritmo oferecido o aviso mais longo cabe nesse prazo. Ninguém avisa do que ainda
  * não foi sorteado.
  */
-export const BalanceSchema = balanceFields.refine(
-  ({ paces, threat: { raidLeadMs, watchtowerLevels } }) =>
-    paces.every(({ timeScale }) =>
-      watchtowerLevels.every((level) => level.warningRealMs * timeScale <= raidLeadMs),
-    ),
-  'aviso da Torre maior que o prazo da incursão em um ritmo oferecido',
-);
+export const BalanceSchema = balanceFields
+  .refine(
+    ({ paces, threat: { raidLeadMs, watchtowerLevels } }) =>
+      paces.every(({ timeScale }) =>
+        watchtowerLevels.every((level) => level.warningRealMs * timeScale <= raidLeadMs),
+      ),
+    'aviso da Torre maior que o prazo da incursão em um ritmo oferecido',
+  )
+  // O festival é um efeito temporário da moral, e esses contam em viradas de dia.
+  .refine(
+    ({ calendar, tavern: { festival } }) => festival.durationMs % calendar.dayMs === 0,
+    'festival que não dura um número inteiro de dias de jogo',
+  )
+  // O teto da lista de heróis nunca fica abaixo do que a Taverna no nível máximo contrata.
+  .refine(
+    ({ heroes, tavern: { offersByLevel, heroLimitPerLevel } }) =>
+      heroes.limitBase + offersByLevel.length * heroLimitPerLevel <= heroes.rosterCap,
+    'limite de contratação acima do teto da lista de heróis',
+  );
 
 export const BuildingSchema = z
   .strictObject({
@@ -425,6 +464,7 @@ export const BuildingsSchema = z.strictObject({
   warehouse: BuildingSchema,
   watchtower: BuildingSchema,
   palisade: BuildingSchema,
+  tavern: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -691,7 +731,14 @@ export const HeroTraitsSchema = z.strictObject(
         label,
         labelFeminine: label,
         text: label.regex(/^\p{Lu}[^0-9{}]*\.$/u),
-        effects: z.strictObject({ loyalInArrears: z.literal(true).optional() }),
+        effects: z.strictObject({
+          loyalInArrears: z.literal(true).optional(),
+          // Um desconto: nunca encarece.
+          tavernPrice: ratio
+            .refine(({ num, den }) => num <= den, 'desconto que encarece')
+            .optional(),
+          morale: positiveInt.optional(),
+        }),
       }),
     ]),
   ),
@@ -735,6 +782,44 @@ export const NamedHeroesSchema = z.strictObject(
     ]),
   ),
 );
+
+/**
+ * Os modelos de candidato da Taverna, na ordem de `TAVERN_CANDIDATE_IDS`: classe e traços que
+ * existem (um ou dois, sem repetir), peso inteiro e preço fixo na faixa da decisão 4 do ADR
+ * 0017 (de 80 a 300 de ouro).
+ */
+export const TavernCandidatesSchema = z
+  .array(
+    z.strictObject({
+      id: z.enum(TAVERN_CANDIDATE_IDS),
+      classId: z.enum(HERO_CLASS_IDS),
+      traits: z
+        .array(z.enum(HERO_TRAIT_IDS))
+        .min(1)
+        .max(2)
+        .refine((traits) => new Set(traits).size === traits.length, 'traço repetido'),
+      level: positiveInt,
+      weight: positiveInt,
+      price: positiveInt.min(80).max(300),
+    }),
+  )
+  .refine(
+    (list) =>
+      list.length === TAVERN_CANDIDATE_IDS.length &&
+      list.every((entry, index) => entry.id === TAVERN_CANDIDATE_IDS[index]),
+    'modelos fora da ordem de TAVERN_CANDIDATE_IDS',
+  );
+
+/** Os nomes dos candidatos: um nome próprio sem números e a forma de tratamento; nenhum repetido. */
+export const HeroNamesSchema = z
+  .array(
+    z.strictObject({
+      name: label.regex(/^\p{Lu}[^0-9{}.]*$/u),
+      gender: z.enum(HERO_GENDER_IDS),
+    }),
+  )
+  .min(1)
+  .refine((list) => new Set(list.map((entry) => entry.name)).size === list.length, 'nome repetido');
 
 const identifier = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
 /** Uma flag: identificadores separados por ponto, o primeiro sendo a cadeia: `commonGranary.open`. */

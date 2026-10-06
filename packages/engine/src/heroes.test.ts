@@ -109,8 +109,13 @@ describe('quem é Leal, quem está no feudo, quem recebe e quantos cabem', () =>
     expect(wageRate(state)).toBe(6_000);
   });
 
-  it('sem Taverna o feudo contrata um herói', () => {
-    expect(heroLimit()).toBe(1);
-    expect(heroLimit()).toBe(balance.heroes.limitBase);
+  it('sem Taverna o feudo contrata um herói, e cada nível dela abre mais um lugar', () => {
+    expect(heroLimit(newGame())).toBe(1);
+    expect(heroLimit(newGame())).toBe(balance.heroes.limitBase);
+    const withTavern = (level: number) =>
+      gameWith((draft) => {
+        draft.settlement.buildings.tavern = level;
+      });
+    expect([1, 2, 3, 4, 5].map((level) => heroLimit(withTavern(level)))).toEqual([2, 3, 4, 5, 6]);
   });
 });

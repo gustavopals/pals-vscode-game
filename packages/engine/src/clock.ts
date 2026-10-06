@@ -65,6 +65,12 @@ export function nextSeasonBoundary(ms: number): number {
   return yearStart + (span.firstDay + span.season.days) * DAY_MS;
 }
 
+/** O instante em que começou a estação em vigor em `ms`. Na virada, é o próprio `ms`. */
+export function seasonStartAt(ms: number): number {
+  const yearStart = Math.floor(ms / YEAR_MS) * YEAR_MS;
+  return yearStart + seasonSpan(dayIndex(ms)).firstDay * DAY_MS;
+}
+
 export function isDayBoundary(ms: number): boolean {
   return ms % DAY_MS === 0;
 }

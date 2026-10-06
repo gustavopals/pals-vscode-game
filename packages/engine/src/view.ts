@@ -58,6 +58,7 @@ import {
 } from './seasonView';
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
+import { tavernEffect, tavernView } from './tavernView';
 import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
   ActiveConstructionView,
@@ -164,14 +165,15 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
 
 /**
  * O que a obra muda, para ficar ao lado do custo: a capacidade de um depósito, o que a Torre de
- * Vigia passa a ver, o que a Paliçada passa a segurar. `null` nos edifícios cujo efeito já está
+ * Vigia passa a ver, o que a Paliçada passa a segurar, o que a Taverna passa a dar. `null` nos edifícios cujo efeito já está
  * em outro lugar da tela.
  */
 function upgradeEffect(state: GameState, building: BuildingId, targetLevel: number): string | null {
   return (
     storageEffect(state, building, targetLevel) ??
     watchtowerEffect(building, targetLevel) ??
-    palisadeEffect(building, targetLevel)
+    palisadeEffect(building, targetLevel) ??
+    tavernEffect(building, targetLevel)
   );
 }
 
@@ -448,5 +450,6 @@ export function deriveViewState(
     ...councilView(state, timeScale),
     threat: threatView(state, timeScale),
     guild: guildView(state, timeScale, outlook),
+    tavern: tavernView(state, timeScale),
   };
 }

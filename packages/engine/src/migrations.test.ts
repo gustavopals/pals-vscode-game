@@ -55,6 +55,7 @@ import {
   HERO_TRAIT_IDS_V14,
 } from './migrations/v14';
 import { HERO_ARRIVING_CAP_V15, HERO_GENDER_IDS_V15 } from './migrations/v15';
+import { BUILDING_IDS_V16, RNG_FIXED_STREAMS_V16, TAVERN_OFFERS_CAP_V16 } from './migrations/v16';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -112,11 +113,39 @@ const named = (name: string) => {
 };
 
 /**
+ * Um estado como a versão 15 o gravava, a partir de um da versão atual: sem a Taverna entre os
+ * edifícios e sem os candidatos, a rotação e o festival na guilda.
+ */
+function asVersion15(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 15;
+  delete old.settlement.buildings.tavern;
+  delete old.guild.tavernOffers;
+  delete old.guild.tavern;
+  return old;
+}
+
+/**
+ * O que o passo 15 → 16 acrescenta a toda partida, tirado de um estado migrado: é o que deixa
+ * os blocos dos passos anteriores compararem o resto, campo por campo, com o estado antigo. O
+ * que o passo escreve é conferido no bloco dele.
+ */
+function withoutTavern<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  delete copy.settlement.buildings.tavern;
+  if (copy.guild !== undefined) {
+    delete copy.guild.tavernOffers;
+    delete copy.guild.tavern;
+  }
+  return copy as T;
+}
+
+/**
  * Um estado como a versão 14 o gravava, a partir de um da versão atual: o herói sem a forma de
  * tratamento e a guilda sem a lista dos prometidos.
  */
 function asVersion14(state: GameState): Draft {
-  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  const old = asVersion15(state);
   old.schemaVersion = 14;
   delete old.guild.arriving;
   for (const hero of old.guild.heroes as Draft[]) {
@@ -130,7 +159,7 @@ function asVersion14(state: GameState): Draft {
  * de partida de quem monta, à mão, um estado de uma versão anterior.
  */
 function asVersion13(state: GameState): Draft {
-  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  const old = asVersion15(state);
   old.schemaVersion = 13;
   delete old.guild;
   return old;
@@ -401,6 +430,36 @@ const FROZEN: Record<string, string> = {
   'state-v14-wage-arrears-resumed.json': '332b3dfb',
   'state-v14-wage-arrears.json': '61daf755',
   'state-v14-week-scripted.json': '95987c26',
+  'state-v15-cold.json': '6180ec82',
+  'state-v15-construction.json': 'ad9face1',
+  'state-v15-council-hidden.json': '3f30b688',
+  'state-v15-council.json': 'f8ac5860',
+  'state-v15-crafts.json': '13599c29',
+  'state-v15-famine-3x.json': '934c0cab',
+  'state-v15-famine-ended.json': 'bf3f22b3',
+  'state-v15-famine-half.json': 'b2403b7c',
+  'state-v15-famine-resumed.json': 'bd98b6b7',
+  'state-v15-famine.json': '70f843b5',
+  'state-v15-fresh.json': '0423481e',
+  'state-v15-guild.json': '5100b83a',
+  'state-v15-hero-promised.json': '0519cd01',
+  'state-v15-iron-king-half.json': '901b8076',
+  'state-v15-migrated-3x.json': '6daa08c3',
+  'state-v15-migrated-iron-king-half.json': '88494819',
+  'state-v15-migrated-peasant-3x.json': '21f205da',
+  'state-v15-morale.json': '9f26686f',
+  'state-v15-objectives.json': 'bc741e05',
+  'state-v15-palisade.json': 'ab54e2ab',
+  'state-v15-peasant-3x.json': 'b971148f',
+  'state-v15-queues.json': 'acf43adf',
+  'state-v15-raid-announced.json': 'b14e13fc',
+  'state-v15-raid.json': '4362872d',
+  'state-v15-storage.json': '86f9f93f',
+  'state-v15-threat.json': 'ea00f5c0',
+  'state-v15-wage-arrears-ended.json': 'db76a61c',
+  'state-v15-wage-arrears-resumed.json': 'ccd0f7f3',
+  'state-v15-wage-arrears.json': '13364041',
+  'state-v15-week-scripted.json': '71a56805',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -416,6 +475,29 @@ const HERO = {
   joinedAtMs: 0,
   discontent: false,
 } as const;
+
+/** Um candidato da Taverna como o motor o grava. */
+const OFFER = {
+  offerId: 'offer-1',
+  templateId: 'braveWarrior',
+  name: 'Aldara',
+  gender: 'f',
+  price: 110,
+} as const;
+
+/** Põe a Taverna com um candidato bom no estado e deixa o teste estragá-lo. */
+function withOffer(state: Draft, damage: (offer: Draft) => unknown): void {
+  const offer: Draft = { ...OFFER };
+  state.settlement.buildings.tavern = 1;
+  state.ids = { ...state.ids, offer: 1 };
+  state.guild.tavernOffers = [offer];
+  state.guild.tavern = {
+    nextRotationAtMs: state.lastProcessedAt + 86_400_000,
+    festival: null,
+    lastFestivalAtMs: null,
+  };
+  damage(offer);
+}
 
 /** Põe um herói bom no estado e deixa o teste estragá-lo. */
 function withHero(state: Draft, damage: (hero: Draft) => unknown): void {
@@ -461,6 +543,7 @@ const buildingIds: BuildingId[] = [
   'warehouse',
   'watchtower',
   'palisade',
+  'tavern',
 ];
 
 describe('a lista de passos', () => {
@@ -620,7 +703,7 @@ describe('a forma da versão atual', () => {
     ['um contador de identidade em texto', (state) => (state.ids = { hero: '3' })],
     ['um contador de identidade sem tipo', (state) => (state.ids = { '': 3 })],
     ['um contador de um tipo fora da forma', (state) => (state.ids = { 'hero-1': 3 })],
-    ['um fluxo de sorteio de nome desconhecido', (state) => (state.rng = { tavern: [1, 2, 3, 4] })],
+    ['um fluxo de sorteio de nome desconhecido', (state) => (state.rng = { market: [1, 2, 3, 4] })],
     [
       'um fluxo de uma família desconhecida',
       (state) => (state.rng = { 'hero:hero-1': [1, 2, 3, 4] }),
@@ -719,7 +802,92 @@ describe('a forma da versão atual', () => {
     ['a guilda sem o registro do último atraso', (state) => delete state.guild.lastWageArrears],
     // Nada da Fase D antes da Fase D (regra 6 do CLAUDE.md).
     ['a guilda com as expedições', (state) => (state.guild.expeditions = [])],
-    ['a guilda com as ofertas da Taverna', (state) => (state.guild.tavernOffers = [])],
+    ['a guilda com os relatórios de expedição', (state) => (state.guild.reports = [])],
+    // A Taverna (versão 16).
+    ['a Taverna ausente dos edifícios', (state) => delete state.settlement.buildings.tavern],
+    ['a Taverna com nível quebrado', (state) => (state.settlement.buildings.tavern = 0.5)],
+    ['a guilda sem as ofertas da Taverna', (state) => delete state.guild.tavernOffers],
+    ['a guilda sem a Taverna', (state) => delete state.guild.tavern],
+    ['a Taverna sem a próxima rotação', (state) => delete state.guild.tavern.nextRotationAtMs],
+    ['a Taverna com um campo a mais', (state) => (state.guild.tavern.festivalSeason = 'spring')],
+    [
+      'um festival em curso sem prazo',
+      (state) => {
+        state.settlement.buildings.tavern = 1;
+        state.guild.tavern = { nextRotationAtMs: 7_200_000, festival: {}, lastFestivalAtMs: 0 };
+      },
+    ],
+    [
+      'um candidato sem Taverna',
+      (state) => withOffer(state, () => (state.settlement.buildings.tavern = 0)),
+    ],
+    [
+      'uma rotação marcada sem Taverna',
+      (state) => (state.guild.tavern.nextRotationAtMs = 7_200_000),
+    ],
+    ['um festival dado sem Taverna', (state) => (state.guild.tavern.lastFestivalAtMs = 0)],
+    [
+      'uma rotação vencida e não processada',
+      (state) => {
+        state.settlement.buildings.tavern = 1;
+        state.guild.tavern.nextRotationAtMs = state.lastProcessedAt;
+      },
+    ],
+    [
+      'um festival em curso sem festival dado',
+      (state) => {
+        state.settlement.buildings.tavern = 1;
+        state.guild.tavern.festival = { untilMs: 7_200_000 };
+      },
+    ],
+    [
+      'um festival dado depois de agora',
+      (state) => {
+        state.settlement.buildings.tavern = 1;
+        state.guild.tavern.lastFestivalAtMs = state.lastProcessedAt + 1;
+      },
+    ],
+    ['um candidato sem nome', (state) => withOffer(state, (offer) => delete offer.name)],
+    ['um candidato de nome vazio', (state) => withOffer(state, (offer) => (offer.name = ' '))],
+    ['um candidato sem modelo', (state) => withOffer(state, (offer) => delete offer.templateId)],
+    [
+      'um candidato de modelo fora da forma',
+      (state) => withOffer(state, (offer) => (offer.templateId = 'Brave Warrior')),
+    ],
+    [
+      'um candidato sem forma de tratamento',
+      (state) => withOffer(state, (offer) => delete offer.gender),
+    ],
+    ['um candidato de preço zero', (state) => withOffer(state, (offer) => (offer.price = 0))],
+    [
+      'um candidato de preço quebrado',
+      (state) => withOffer(state, (offer) => (offer.price = 87.5)),
+    ],
+    [
+      'um candidato com um campo a mais',
+      (state) => withOffer(state, (offer) => (offer.classId = 'mage')),
+    ],
+    [
+      'um candidato com identificador fora da forma',
+      (state) => withOffer(state, (offer) => (offer.offerId = 'offer-01')),
+    ],
+    [
+      'um candidato além do contador de identidades',
+      (state) => withOffer(state, (offer) => (offer.offerId = 'offer-2')),
+    ],
+    [
+      'dois candidatos com o mesmo identificador',
+      (state) =>
+        withOffer(state, () => state.guild.tavernOffers.push({ ...state.guild.tavernOffers[0] })),
+    ],
+    [
+      'mais candidatos do que a maior lista da Taverna',
+      (state) =>
+        withOffer(state, () => {
+          state.ids.offer = 4;
+          state.guild.tavernOffers = [1, 2, 3, 4].map((n) => ({ ...OFFER, offerId: `offer-${n}` }));
+        }),
+    ],
     ['a lista de heróis que não é lista', (state) => (state.guild.heroes = {})],
     [
       'um herói que não é objeto',
@@ -1006,7 +1174,9 @@ describe('a forma da versão atual', () => {
   });
 
   it('conhece os mesmos fluxos de sorteio que o gerador, fixos e de família', () => {
-    expect(RNG_FIXED_STREAMS_V13).toEqual([...RNG_STREAMS]);
+    expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_STREAMS]);
+    // A versão 13 continua com os três de antes: a Taverna só entra na 16.
+    expect(RNG_FIXED_STREAMS_V13).toEqual(['council', 'morale', 'horde']);
     expect(RNG_STREAM_FAMILIES_V13).toEqual([...RNG_STREAM_FAMILIES]);
     // Tudo o que o gerador e o contador escrevem cabe na forma: os fluxos fixos, um fluxo de
     // cada família (com o identificador que `nextId` dá) e os contadores.
@@ -1023,6 +1193,7 @@ describe('a forma da versão atual', () => {
       'council',
       'morale',
       'horde',
+      'tavern',
       'expedition:expedition-1',
       'expedition:expedition-2',
       'caravan:caravan-1',
@@ -1043,8 +1214,8 @@ describe('a forma da versão atual', () => {
       edit(state);
       return currentShape(state, '');
     };
-    expect(broken((state) => (state.rng = { tavern: [1, 2, 3, 4] }))).toBe(
-      'rng.tavern: chave fora do esperado (um de council, morale, horde, ou expedition:expedition-<n>, caravan:caravan-<n>)',
+    expect(broken((state) => (state.rng = { market: [1, 2, 3, 4] }))).toBe(
+      'rng.market: chave fora do esperado (um de council, morale, horde, tavern, ou expedition:expedition-<n>, caravan:caravan-<n>)',
     );
     expect(broken((state) => (state.rng = { council: [1, 2, 3] }))).toBe(
       'rng.council: esperada lista de 4 itens, veio de 3',
@@ -1660,8 +1831,11 @@ describe('versão 3 → 4', () => {
       'warehouse',
       'watchtower',
       'palisade',
+      'tavern',
     ]);
-    const storage = unbuilt.filter((entry) => entry.building !== 'palisade');
+    const storage = unbuilt.filter(
+      (entry) => entry.building !== 'palisade' && entry.building !== 'tavern',
+    );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
     }
@@ -2872,7 +3046,8 @@ describe('versão 12 → 13', () => {
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, e o gerador fica palavra por palavra como estava.
     expect(after.rng).toStrictEqual(before.rng);
-    const rest: Partial<GameState> = { ...after };
+    // A Taverna é do passo 15 → 16, conferido no bloco dele.
+    const rest: Partial<GameState> = { ...withoutTavern(after) };
     delete rest.ids;
     // A guilda é do passo seguinte (13 → 14), conferido no bloco dele.
     delete rest.guild;
@@ -2904,7 +3079,7 @@ describe('versão 12 → 13', () => {
   it('os retratos cobrem os três fluxos em uso, as três dificuldades e os três ritmos, e partidas migradas fora de Senhor', () => {
     const states = version12.map((fixture) => read(fixture) as unknown as GameState);
     expect(new Set(states.flatMap((state) => Object.keys(state.rng)))).toEqual(
-      new Set(RNG_STREAMS),
+      new Set(RNG_FIXED_STREAMS_V13),
     );
     const migratedOnes = states.filter((state) => state.migratedAtMs !== null);
     expect(
@@ -2951,12 +3126,13 @@ describe('versão 12 → 13', () => {
 describe('versão 13 → 14', () => {
   const version13 = fixtures.filter((fixture) => fixture.version === 13);
   // A lista dos prometidos é do passo seguinte (14 → 15), conferido no bloco dele.
+  // E a Taverna, do 15 → 16: as comparações da guilda a deixam de fora (`withoutTavern`).
   const EMPTY_GUILD = { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null };
 
   it('o que o passo escreve é o que uma partida nova tem', () => {
     const fresh = migrated(named('state-v13-fresh.json'));
-    expect(fresh.guild).toEqual(EMPTY_GUILD);
-    expect(newGame().guild).toEqual(EMPTY_GUILD);
+    expect(withoutTavern(fresh).guild).toEqual(EMPTY_GUILD);
+    expect(withoutTavern(newGame()).guild).toEqual(EMPTY_GUILD);
     expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
   });
 
@@ -2964,12 +3140,12 @@ describe('versão 13 → 14', () => {
     const before = read(fixture) as Draft;
     const after = migrated(fixture);
     expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
-    expect(after.guild).toStrictEqual(EMPTY_GUILD);
+    expect(withoutTavern(after).guild).toStrictEqual(EMPTY_GUILD);
     // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, carta ou incursão
     // muda, ninguém ganha identificador e o gerador fica palavra por palavra como estava.
     expect(after.rng).toStrictEqual(before.rng);
     expect(after.ids).toStrictEqual(before.ids);
-    const rest: Partial<GameState> = { ...after };
+    const rest: Partial<GameState> = { ...withoutTavern(after) };
     delete rest.guild;
     expect({ ...rest, schemaVersion: 13 }).toStrictEqual({
       ...before,
@@ -2985,7 +3161,13 @@ describe('versão 13 → 14', () => {
       expect(nextEventAt(state)).toBe(
         nextEventAt({
           ...state,
-          guild: { heroes: [], arriving: [], wageArrears: null, lastWageArrears: null },
+          guild: {
+            ...state.guild,
+            heroes: [],
+            arriving: [],
+            wageArrears: null,
+            lastWageArrears: null,
+          },
         }),
       );
       const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
@@ -2999,7 +3181,7 @@ describe('versão 13 → 14', () => {
       );
       expect(resolved).toBeDefined();
       const before = advanceTo(state, (resolved as GameEvent).atMs - 1);
-      expect(before.state.guild).toEqual(EMPTY_GUILD);
+      expect(withoutTavern(before.state).guild).toEqual(EMPTY_GUILD);
       expect(before.state.ids).toEqual({});
       expect(
         before.events.filter((event) => /^(wageArrears|hero)/.test(event.type)).map((e) => e.type),
@@ -3024,7 +3206,7 @@ describe('versão 13 → 14', () => {
     expect(old).toEqual(copy);
     expect(slow).toEqual(fast);
     expect(slow.migratedAtMs).toBe(400 * HOUR);
-    expect(slow.guild).toEqual(EMPTY_GUILD);
+    expect(withoutTavern(slow).guild).toEqual(EMPTY_GUILD);
   });
 
   it('um estado da versão 13 que já traz a guilda é recusado: não é da versão que diz', () => {
@@ -3043,7 +3225,7 @@ describe('versão 14 → 15', () => {
 
   it('o que o passo escreve é o que uma partida nova tem', () => {
     const fresh = migrated(named('state-v14-fresh.json'));
-    expect(fresh.guild).toEqual({
+    expect(withoutTavern(fresh).guild).toEqual({
       heroes: [],
       arriving: [],
       wageArrears: null,
@@ -3064,7 +3246,7 @@ describe('versão 14 → 15', () => {
     (fixture) => {
       const before = read(fixture) as Draft;
       const after = migrated(fixture);
-      expect(after.schemaVersion).toBe(15);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
       expect(after.guild.arriving).toStrictEqual([]);
       // Quem já estava no feudo fica como estava, com o valor fixo do passo: a ficha continua
       // dizendo a classe e os traços como dizia.
@@ -3076,7 +3258,7 @@ describe('versão 14 → 15', () => {
       expect(after.ids).toStrictEqual(before.ids);
       // O resto é o estado antigo, campo por campo: o Conselho inclusive. O passo não põe a
       // carta da estrangeira na mesa, não a agenda e não mexe na cadência.
-      const rest = JSON.parse(JSON.stringify(after)) as Draft;
+      const rest = withoutTavern(after) as Draft;
       delete rest.guild.arriving;
       for (const hero of rest.guild.heroes as Draft[]) {
         delete hero.gender;
@@ -3127,6 +3309,139 @@ describe('versão 14 → 15', () => {
   });
 });
 
+describe('versão 15 → 16', () => {
+  const version15 = fixtures.filter((fixture) => fixture.version === 15);
+  const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
+
+  it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
+    expect(BUILDING_IDS_V16).toEqual([...BUILDING_IDS]);
+    expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
+    expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_FIXED_STREAMS_V13, 'tavern']);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v15-fresh.json'));
+    expect(fresh.settlement.buildings.tavern).toBe(0);
+    expect(fresh.guild.tavernOffers).toEqual([]);
+    expect(fresh.guild.tavern).toEqual(NO_TAVERN);
+    expect(newGame().guild.tavern).toEqual(NO_TAVERN);
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version15)(
+    '$name: só acrescenta a Taverna no nível 0, sem candidatos, sem rotação e sem festival',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(16);
+      expect(after.settlement.buildings.tavern).toBe(0);
+      expect(after.guild.tavernOffers).toStrictEqual([]);
+      expect(after.guild.tavern).toStrictEqual(NO_TAVERN);
+      // O resto é o estado antigo, campo por campo: nenhum estoque, prazo, herói, carta ou
+      // incursão muda, ninguém ganha identificador e o gerador fica palavra por palavra como
+      // estava (o fluxo `tavern` só nasce no primeiro sorteio, na inauguração).
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.ids).toStrictEqual(before.ids);
+      expect({ ...withoutTavern(after), schemaVersion: 15 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version15)(
+    '$name: nada acontece na fronteira, o passo não cria prazo, e sem a obra a Taverna nunca sorteia',
+    (fixture) => {
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(withoutObjectives(atBoundary.events)).toEqual([]);
+      expect(atBoundary.state.guild.tavern).toEqual(NO_TAVERN);
+      // A moral de ninguém muda: o termo da Taverna só existe com ela erguida.
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.morale.terms.map((term) => term.id)).not.toContain('tavern');
+      expect(view.tavern.level).toBe(0);
+      expect(view.tavern.offers).toEqual([]);
+      expect(view.tavern.nextRotationInSeconds).toBeNull();
+      // O limite de contratação continua em um herói.
+      expect(view.guild.heroLimit).toBe(balance.heroes.limitBase);
+      // Um mês real depois, sem ninguém mandar erguê-la: nenhum candidato, nenhuma oferta com
+      // identificador e nenhum fluxo `tavern`.
+      const month = Math.round(30 * DAY_REAL * state.settings.timeScale);
+      const later = advanceTo(state, state.lastProcessedAt + month);
+      expect(later.state.settlement.buildings.tavern).toBe(0);
+      expect(later.state.guild.tavernOffers).toEqual([]);
+      expect(later.state.guild.tavern).toEqual(NO_TAVERN);
+      expect(later.state.ids.offer).toBeUndefined();
+      expect(later.state.rng.tavern).toBeUndefined();
+      expect(later.events.filter((event) => /^(heroHired|festival)/.test(event.type))).toEqual([]);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion15(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow.guild.heroes.map((hero) => hero.name)).toEqual(['Brann']);
+    expect(slow.guild.tavern).toEqual(NO_TAVERN);
+  });
+
+  it('um estado da versão 15 que já traz os campos da 16 é recusado: não é da versão que diz', () => {
+    const built = asVersion15(newGame());
+    built.settlement.buildings.tavern = 0;
+    expect(() => migrateState(built, { timeScale: 1 })).toThrow(
+      /settlement\.buildings\.tavern: campo desconhecido/,
+    );
+    const offered = asVersion15(newGame());
+    offered.guild.tavernOffers = [];
+    expect(() => migrateState(offered, { timeScale: 1 })).toThrow(
+      /guild\.tavernOffers: campo desconhecido/,
+    );
+    const drawn = asVersion15(newGame());
+    drawn.rng = { tavern: [1, 2, 3, 4] };
+    expect(() => migrateState(drawn, { timeScale: 1 })).toThrow(
+      /rng\.tavern: chave fora do esperado/,
+    );
+  });
+
+  it('a partida migrada com o Salão no nível 3 ergue a Taverna, e os candidatos nascem quando ela fica pronta', () => {
+    const ready = version15
+      .map((fixture) => migrated(fixture))
+      .filter(
+        (state) =>
+          state.settlement.buildings.townHall >= 3 &&
+          state.settlement.constructionQueues[0] === null,
+      );
+    expect(ready.length).toBeGreaterThan(0);
+    for (const state of ready) {
+      const draft = JSON.parse(JSON.stringify(state)) as GameState;
+      Object.assign(draft.settlement.resources, { wood: 400_000, stone: 400_000, gold: 400_000 });
+      const ordered = applyCommand(
+        draft,
+        command('startConstruction', { building: 'tavern' }),
+        draft.lastProcessedAt,
+      );
+      expect(ordered.ok).toBe(true);
+      if (!ordered.ok) {
+        continue;
+      }
+      const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? 0;
+      expect(advanceTo(ordered.state, opensAt - 1).state.guild.tavernOffers).toEqual([]);
+      const opened = advanceTo(ordered.state, opensAt).state;
+      expect(opened.settlement.buildings.tavern).toBe(1);
+      expect(opened.guild.tavernOffers).toHaveLength(balance.tavern.offersByLevel[0] ?? 0);
+      // A rotação conta da inauguração, não da fronteira.
+      expect(opened.guild.tavern.nextRotationAtMs).toBe(opensAt + balance.tavern.rotationMs);
+      expect(currentShape(JSON.parse(JSON.stringify(opened)), '')).toBeNull();
+    }
+  });
+});
+
 /**
  * A carta da estrangeira nas partidas que já existiam (ADR 0017, decisão 6: "Sim, a todos";
  * roadmap da v0.3, V3C-T3.4 e QA-01). Nenhum passo de migração a agenda: quem a entrega é o
@@ -3135,7 +3450,8 @@ describe('versão 14 → 15', () => {
  * os que migraram com a cadência fora dos dias 5, 9 e 13 e os que já tinham heróis.
  */
 describe('a carta da estrangeira em toda partida que já existia', () => {
-  const old = fixtures.filter((fixture) => fixture.version < CURRENT_SCHEMA_VERSION);
+  // Até a versão 14: a carta nasceu com a 15, e os retratos dela em diante já a trazem.
+  const old = fixtures.filter((fixture) => fixture.version < 15);
   const INTERVAL = balance.council.drawIntervalDays * 2 * HOUR;
   const DAY_13 = 12 * 2 * HOUR;
 

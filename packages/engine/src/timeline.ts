@@ -6,6 +6,7 @@ import { nextHeroArrivalAt } from './heroes';
 import { autoStartsIn } from './planned';
 import { nextRaidEventAt, nextRecoveryAt } from './raids';
 import { storageFillsIn } from './storage';
+import { nextTavernRotationAt } from './tavern';
 import type { GameState } from './types';
 
 /**
@@ -24,7 +25,7 @@ export function nextAutoStartAt(state: GameState, rates = netRates(state)): numb
  * virada de dia (que cobre estação, ano, a contagem da experiência do ofício, o sorteio do
  * Conselho, a subida da Ameaça e o sorteio da incursão), uma carta que expira, um efeito
  * escondido de carta, uma continuação que chega, um herói prometido que chega, o fim da adaptação de quem trocou de ofício,
- * uma incursão que chega, o aviso da Torre de Vigia, um ferido que sara, o momento em que a
+ * uma incursão que chega, o aviso da Torre de Vigia, a troca dos candidatos da Taverna, um ferido que sara, o momento em que a
  * comida acaba, aquele em que a madeira acaba na lareira, aquele em que o ouro acaba com soldo
  * a pagar, aquele em que um estoque chega ao limite ou aquele em que uma planejada automática
  * junta o custo. As consequências do soldo em atraso são cobradas na virada do dia. Nunca devolve um instante
@@ -65,6 +66,12 @@ export function nextEventAt(state: GameState): number | null {
   const raid = nextRaidEventAt(state);
   if (raid !== null) {
     candidates.push(raid);
+  }
+  // A Taverna troca os candidatos em instante próprio, ancorado na inauguração: quase nunca é
+  // uma virada de dia. O fim do festival é da virada do dia, que já está na lista.
+  const rotation = nextTavernRotationAt(state);
+  if (rotation !== null) {
+    candidates.push(rotation);
   }
   // O ferido que sara volta ao ofício: a taxa do edifício dele muda nesse instante.
   const recovery = nextRecoveryAt(state);

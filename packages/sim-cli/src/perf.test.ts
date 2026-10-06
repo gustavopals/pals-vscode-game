@@ -45,7 +45,9 @@ describe('medida de desempenho das ausências longas (roadmap da v0.2, V2C-T7.4)
   it('o estado é pequeno e a visão é várias vezes maior do que ele', () => {
     for (const measure of report.measures) {
       expect(measure.stateBytes).toBeGreaterThan(500);
-      expect(measure.stateBytes).toBeLessThan(4_000);
+      // O teto subiu com a Taverna (V3C-T2): os candidatos da rotação, o festival e os heróis
+      // contratados. A linha de base por fase está em docs/balance-v0.3.md.
+      expect(measure.stateBytes).toBeLessThan(5_500);
       expect(measure.viewBytes).toBeGreaterThan(measure.stateBytes * 3);
       expect(measure.viewBytes).toBeLessThan(40_000);
     }

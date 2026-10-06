@@ -21,6 +21,7 @@ import {
   HERO_TRAIT_IDS,
   heroAttributes,
   heroClasses,
+  heroNames,
   heroStatuses,
   heroTraits,
   idleVillager,
@@ -29,6 +30,7 @@ import {
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
   moraleBandTemplates,
+  namedHeroes,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
@@ -38,6 +40,8 @@ import {
   RESOURCE_IDS,
   SEASON_IDS,
   startingTiles,
+  TAVERN_CANDIDATE_IDS,
+  tavernCandidates,
   threatMarkTemplates,
   TILE_TYPE_IDS,
   tileTypes,
@@ -53,6 +57,7 @@ import {
   FoundingTemplatesSchema,
   HeroAttributesSchema,
   HeroClassesSchema,
+  HeroNamesSchema,
   HeroStatusesSchema,
   HeroTraitsSchema,
   IdleVillagerSchema,
@@ -66,6 +71,7 @@ import {
   ThreatMarkTemplatesSchema,
   TileTypesSchema,
   WageArrearsReliefsSchema,
+  TavernCandidatesSchema,
 } from './schemas';
 
 describe('schemas do conteúdo', () => {
@@ -373,6 +379,7 @@ describe('edifícios', () => {
       ['watchtower', 2],
       // 6 no GDD, contando a Muralha de Pedra e o Baluarte; 2 nesta versão.
       ['palisade', 2],
+      ['tavern', 5],
     ]);
   });
 
@@ -459,7 +466,7 @@ describe('edifícios', () => {
     expect(parse('Os níveis seguintes chegam depois')).toBe(false);
   });
 
-  it('os edifícios são os oito de antes, a Torre de Vigia e a Paliçada', () => {
+  it('os edifícios são os oito de antes, a Torre de Vigia, a Paliçada e a Taverna', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -471,6 +478,7 @@ describe('edifícios', () => {
       'warehouse',
       'watchtower',
       'palisade',
+      'tavern',
     ]);
   });
 });
@@ -1028,6 +1036,8 @@ describe('moral (GDD §5.6 e §5.7)', () => {
       'famineDays',
       'housingFull',
       'cold',
+      'tavern',
+      'devout',
       'effect',
     ]);
   });
@@ -1670,10 +1680,16 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
     const loyal = HERO_TRAIT_IDS.filter((id) => heroTraits[id].effects.loyalInArrears === true);
     expect(loyal).toEqual(['loyal']);
     for (const id of HERO_TRAIT_IDS) {
-      expect(Object.keys(heroTraits[id].effects), id).toEqual(
-        id === 'loyal' ? ['loyalInArrears'] : [],
-      );
+      const expected: Partial<Record<typeof id, string[]>> = {
+        loyal: ['loyalInArrears'],
+        charismatic: ['tavernPrice'],
+        devout: ['morale'],
+      };
+      expect(Object.keys(heroTraits[id].effects), id).toEqual(expected[id] ?? []);
     }
+    // O Carismático barateia a Taverna em um quinto; o Devoto soma 5 de moral (ADR 0017).
+    expect(heroTraits.charismatic.effects.tavernPrice).toEqual({ num: 4, den: 5 });
+    expect(heroTraits.devout.effects.morale).toBe(5);
     expect(heroTraits.loyal.text).toContain('soldo');
   });
 
@@ -1821,5 +1837,214 @@ describe('heróis e soldo (GDD §9.1 e Apêndice D; ADR 0017, decisões 3, 5 e 7
       WageArrearsReliefsSchema.safeParse({ ...wageArrearsReliefs, paid: 'Pago em {moeda}.' })
         .success,
     ).toBe(false);
+  });
+});
+
+describe('Taverna (GDD §5.7, §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10)', () => {
+  const { tavern, heroes, calendar, storage, difficulties, construction } = balance;
+  const HOUR = 3_600_000;
+
+  it('o edifício: nasce no nível 0, pede o Salão no nível 3, custa 180, 60 e 120, leva 15 min e vai ao nível 5', () => {
+    const def = buildings.tavern;
+    expect(def.label).toBe('Taverna');
+    expect(def.article).toBe('a');
+    expect(def.initialLevel).toBe(0);
+    expect(def.maxLevel).toBe(5);
+    expect(def.requires).toEqual({ townHall: 3 });
+    expect(def.baseCost).toEqual({ wood: 180, stone: 60, gold: 120 });
+    expect(def.baseDurationMs).toBe(15 * 60_000);
+    expect(def.produces).toBeNull();
+    // O teto é o do GDD: não há frase de "nesta versão".
+    expect(def.maxLevelNote).toBeUndefined();
+  });
+
+  it('cada nível vendido da Taverna cabe no depósito nas três dificuldades, com o Armazém que o Salão daquele nível deixa erguer', () => {
+    const def = buildings.tavern;
+    const { num, den } = construction.costFactor;
+    const warehouse = storage.buildings.warehouse;
+    if (warehouse === undefined) {
+      throw new Error('Falta o Armazém no conteúdo.');
+    }
+    const costs: Array<Record<string, number>> = [];
+    for (let target = 1; target <= def.maxLevel; target += 1) {
+      const steps = target - 1;
+      // arredondar(base × fator^obras), como o motor.
+      const cost = Object.fromEntries(
+        Object.entries(def.baseCost).map(([resource, base]) => [
+          resource,
+          Math.floor((2 * base * num ** steps + den ** steps) / (2 * den ** steps)),
+        ]),
+      );
+      costs.push(cost);
+      // O Salão que a obra pede: o do pré-requisito, e nunca mais de um nível abaixo do alvo.
+      const townHall = Math.max(
+        def.requires.townHall ?? 1,
+        target - construction.gateLevelsAboveTownHall,
+      );
+      expect(townHall, `nível ${target}`).toBeLessThanOrEqual(buildings.townHall.maxLevel);
+      // O Armazém que esse Salão deixa erguer, e o que ele guarda.
+      const level = Math.min(
+        buildings.warehouse.maxLevel,
+        townHall + construction.gateLevelsAboveTownHall,
+      );
+      const stored = warehouse.level1 + warehouse.perLevel * (level - 1);
+      for (const id of DIFFICULTY_IDS) {
+        const factor = difficulties[id].storageCapacity;
+        const cap = Math.floor((stored * factor.num) / factor.den);
+        for (const resource of warehouse.resources) {
+          expect(cost[resource] ?? 0, `nível ${target}, ${id}, ${resource}`).toBeLessThanOrEqual(
+            cap,
+          );
+        }
+      }
+    }
+    // O ouro não tem depósito: nenhum nível fica preso por ele.
+    expect(Object.keys(storage.buildings)).toEqual(['granary', 'warehouse']);
+    expect(costs).toEqual([
+      { wood: 180, stone: 60, gold: 120 },
+      { wood: 288, stone: 96, gold: 192 },
+      { wood: 461, stone: 154, gold: 307 },
+      { wood: 737, stone: 246, gold: 492 },
+      { wood: 1180, stone: 393, gold: 786 },
+    ]);
+  });
+
+  it('os números são os do ADR 0017: candidatos por nível, rotação de 12 dias de jogo, moral e limite por nível', () => {
+    expect(tavern.offersByLevel).toEqual([2, 2, 3, 3, 3]);
+    expect(tavern.offersByLevel).toHaveLength(buildings.tavern.maxLevel);
+    expect(tavern.rotationMs).toBe(12 * calendar.dayMs);
+    expect(tavern.rotationMs).toBe(24 * HOUR);
+    expect(tavern.moralePerLevel).toBe(5);
+    expect(tavern.heroLimitPerLevel).toBe(1);
+    // 1 sem Taverna, 6 no nível 5, e a lista de heróis guarda mais do que isso.
+    expect(heroes.limitBase + buildings.tavern.maxLevel * tavern.heroLimitPerLevel).toBe(6);
+    expect(heroes.rosterCap).toBeGreaterThanOrEqual(6);
+  });
+
+  it('o festival custa 100 de comida e 50 de ouro, dá 15 de moral por 24 h de jogo (12 dias de jogo), um por estação', () => {
+    expect(tavern.festival).toEqual({
+      cost: { food: 100, gold: 50 },
+      morale: 15,
+      durationMs: 24 * HOUR,
+      perSeason: 1,
+      moraleLabel: 'Festival na Taverna',
+    });
+    expect(tavern.festival.durationMs / calendar.dayMs).toBe(12);
+    // Cabe em qualquer estação, e a comida do custo cabe na despensa de qualquer dificuldade.
+    for (const season of calendar.seasons) {
+      expect(season.days * calendar.dayMs, season.id).toBeGreaterThanOrEqual(
+        tavern.festival.durationMs,
+      );
+    }
+    for (const id of DIFFICULTY_IDS) {
+      const { num, den } = difficulties[id].storageCapacity;
+      expect(tavern.festival.cost.food ?? 0, id).toBeLessThanOrEqual(
+        (storage.baseCapacity * num) / den,
+      );
+    }
+  });
+
+  it('os dez modelos de candidato são os do ADR 0017, na ordem do sorteio, com peso inteiro e preço de 80 a 300', () => {
+    expect(TavernCandidatesSchema.safeParse(tavernCandidates).error).toBeUndefined();
+    expect(tavernCandidates.map((entry) => entry.id)).toEqual([...TAVERN_CANDIDATE_IDS]);
+    expect(
+      tavernCandidates.map(({ id, classId, traits, level, weight, price }) => [
+        id,
+        classId,
+        traits.join('+'),
+        level,
+        weight,
+        price,
+      ]),
+    ).toEqual([
+      ['braveWarrior', 'warrior', 'brave', 1, 5, 110],
+      ['steadyWarrior', 'warrior', 'prudent', 1, 4, 120],
+      ['veteranWarrior', 'warrior', 'veteran+loyal', 2, 1, 300],
+      ['trackerArcher', 'archer', 'tracker', 1, 5, 100],
+      ['greedyArcher', 'archer', 'greedy', 1, 4, 80],
+      ['veteranArcher', 'archer', 'veteran+prudent', 2, 2, 220],
+      ['greedyMage', 'mage', 'greedy', 1, 3, 140],
+      ['learnedMage', 'mage', 'prudent+charismatic', 1, 2, 200],
+      ['devoutCleric', 'cleric', 'devout', 1, 4, 130],
+      ['charismaticCleric', 'cleric', 'charismatic', 1, 3, 160],
+    ]);
+    expect(tavernCandidates.reduce((sum, entry) => sum + entry.weight, 0)).toBe(33);
+    for (const entry of tavernCandidates) {
+      expect(Number.isInteger(entry.weight), entry.id).toBe(true);
+      expect(entry.price, entry.id).toBeGreaterThanOrEqual(80);
+      expect(entry.price, entry.id).toBeLessThanOrEqual(300);
+      expect(entry.level, entry.id).toBeLessThanOrEqual(heroes.maxLevel);
+      // O Veterano chega um nível acima, escrito no modelo.
+      expect(entry.level, entry.id).toBe(entry.traits.includes('veteran') ? 2 : 1);
+      // O desconto do Carismático dá um preço inteiro em todo modelo.
+      const { num, den } = heroTraits.charismatic.effects.tavernPrice ?? { num: 1, den: 1 };
+      expect((entry.price * num) % den, entry.id).toBe(0);
+    }
+    // A rotação é sem reposição: há mais modelos do que candidatos na maior lista.
+    expect(tavernCandidates.length).toBeGreaterThan(Math.max(...tavern.offersByLevel));
+  });
+
+  it('os nomes dos candidatos são únicos, nenhum é de um herói de carta, e sobram para o feudo mais cheio', () => {
+    expect(HeroNamesSchema.safeParse(heroNames).error).toBeUndefined();
+    const names = heroNames.map((entry) => entry.name);
+    expect(new Set(names).size).toBe(names.length);
+    for (const named of Object.values(namedHeroes)) {
+      expect(names).not.toContain(named.name);
+    }
+    // Todo herói vivo, todo prometido e todo candidato com um nome diferente, e ainda sobra um.
+    expect(names.length).toBeGreaterThan(
+      heroes.rosterCap + heroes.arrivingCap + Math.max(...tavern.offersByLevel),
+    );
+    expect(heroNames.filter((entry) => entry.gender === 'f')).toHaveLength(names.length / 2);
+    expect(HERO_GENDER_IDS).toEqual(['f', 'm']);
+  });
+
+  it('o schema recusa nome repetido, modelo fora da ordem, preço fora da faixa e três traços', () => {
+    const first = heroNames[0];
+    expect(HeroNamesSchema.safeParse([...heroNames, first]).success).toBe(false);
+    expect(HeroNamesSchema.safeParse([{ name: 'Edda 2', gender: 'f' }]).success).toBe(false);
+    const changed = (index: number, patch: object) =>
+      TavernCandidatesSchema.safeParse(
+        tavernCandidates.map((entry, at) => (at === index ? { ...entry, ...patch } : entry)),
+      ).success;
+    expect(changed(0, {})).toBe(true);
+    expect(changed(0, { price: 79 })).toBe(false);
+    expect(changed(0, { price: 301 })).toBe(false);
+    expect(changed(0, { weight: 1.5 })).toBe(false);
+    expect(changed(0, { traits: [] })).toBe(false);
+    expect(changed(0, { traits: ['brave', 'loyal', 'devout'] })).toBe(false);
+    expect(changed(0, { traits: ['brave', 'brave'] })).toBe(false);
+    expect(TavernCandidatesSchema.safeParse([...tavernCandidates].reverse()).success).toBe(false);
+    expect(TavernCandidatesSchema.safeParse(tavernCandidates.slice(1)).success).toBe(false);
+  });
+
+  it('o schema recusa lista de candidatos que desce, festival de meio dia e limite acima do teto da lista', () => {
+    const parse = (changed: object) =>
+      BalanceSchema.safeParse({ ...balance, tavern: { ...tavern, ...changed } }).success;
+    expect(parse({})).toBe(true);
+    expect(parse({ offersByLevel: [2, 2, 3, 3, 2] })).toBe(false);
+    expect(parse({ offersByLevel: [] })).toBe(false);
+    expect(parse({ rotationMs: 0 })).toBe(false);
+    expect(parse({ moralePerLevel: 0 })).toBe(false);
+    expect(parse({ heroLimitPerLevel: 3 })).toBe(false);
+    const festival = (changed: object) => parse({ festival: { ...tavern.festival, ...changed } });
+    expect(festival({ durationMs: calendar.dayMs + 1 })).toBe(false);
+    expect(festival({ perSeason: 2 })).toBe(false);
+    expect(festival({ morale: 0 })).toBe(false);
+    expect(festival({ cost: {} })).toBe(false);
+    expect(festival({ moraleLabel: 'festival.' })).toBe(false);
+  });
+
+  it('a Crônica tem a frase da contratação, do festival e do fim dele', () => {
+    for (const type of ['heroHired', 'festivalHeld', 'festivalEnded'] as const) {
+      expect(EVENT_TYPES).toContain(type);
+      expect(chronicleTemplates[type].startsWith('No {dia}º dia {daEstacao}, '), type).toBe(true);
+      expect(chronicleTemplates[type], type).toContain('{feudo}');
+      expect(chronicleTemplates[type], type).not.toMatch(/\d/);
+    }
+    for (const marker of ['{heroi}', '{classe}', '{preco}']) {
+      expect(chronicleTemplates.heroHired).toContain(marker);
+    }
+    expect(CHRONICLE_PLACEHOLDERS).toContain('preco');
   });
 });

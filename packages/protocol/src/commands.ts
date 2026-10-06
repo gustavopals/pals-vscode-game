@@ -77,6 +77,19 @@ export const DismissHeroCommandSchema = command(
   z.strictObject({ heroId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE) }),
 );
 
+/**
+ * A contratação de um candidato da Taverna. `offerId` é o identificador que a visão mostrava
+ * (`tavern.offers[].offerId`). O protocolo só confere que é um texto de tamanho razoável; se a
+ * oferta ainda está na lista, se há lugar e se há ouro é com o motor.
+ */
+export const HireHeroCommandSchema = command(
+  'hireHero',
+  z.strictObject({ offerId: z.string().min(1).max(60).refine(isStorableText, UNSTORABLE) }),
+);
+
+/** O festival da Taverna: a ordem não leva nada. Um por estação, e quem confere é o motor. */
+export const HoldFestivalCommandSchema = command('holdFestival', z.strictObject({}));
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -89,6 +102,8 @@ export const CommandSchema = z.discriminatedUnion('type', [
   RenameSettlementCommandSchema,
   AnswerCardCommandSchema,
   DismissHeroCommandSchema,
+  HireHeroCommandSchema,
+  HoldFestivalCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

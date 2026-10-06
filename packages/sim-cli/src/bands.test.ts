@@ -66,7 +66,17 @@ function summary(overrides: Partial<Summary> = {}): Summary {
       palisade: 0,
     },
     objectives: { done: 4, total: 10, allDoneAtHour: null },
-    guild: { heroes: 1, firstHeroAtHour: 36, arrearsHours: 0, departed: 0 },
+    guild: {
+      heroes: 1,
+      firstHeroAtHour: 36,
+      arrearsHours: 0,
+      departed: 0,
+      dismissed: 0,
+      hired: 0,
+      festivals: 0,
+      tavernLevel: 0,
+      tavernAtHour: null,
+    },
     stock: { food: 162, wood: 10_017, stone: 4_190, gold: 1_637 },
     ...overrides,
   };
@@ -149,17 +159,18 @@ describe('conferência de uma partida contra a faixa', () => {
 describe('faixas a partir da linha de base medida', () => {
   it('a folga é pequena e explícita: 10% na população, 5% nos tetos', () => {
     expect(SLACK).toEqual({ villagersPercent: 10, ceilingPercent: 5 });
-    // Regular, 7 dias reais, ritmo 3, em Senhor: de 72 a 76 aldeões conforme a semente, Salão
-    // Nv8, até 4.324 de madeira e 5.200 de pedra no Armazém, até 150.285 de ouro parado (com as
-    // obras esgotadas o bot manda todo mundo para a Mina) e até 33 h de jogo seguidas com um
-    // recurso indo ao chão.
+    // Regular, 7 dias reais, ritmo 3, em Senhor, com a Taverna (V3C-T2): de 75 a 85 aldeões
+    // conforme a semente, Salão Nv7 (em 4 das 50 sementes ele não chega ao 8 dentro da semana),
+    // até 3.889 de madeira e 5.200 de pedra no Armazém, até 211.754 de ouro parado (com as obras
+    // esgotadas o bot manda todo mundo para a Mina) e até 36 h de jogo seguidas com um recurso
+    // indo ao chão.
     expect(bandFor(cellKey('week', 3, 'regular'))).toEqual({
-      villagers: { min: 64, max: 84 },
-      townHallMin: 8,
+      villagers: { min: 67, max: 94 },
+      townHallMin: 7,
       famineHoursMax: 0,
       coldHoursMax: 0,
-      surplusMax: { wood: 4_541, stone: 5_460, gold: 157_800 },
-      wasteStreakMax: 35,
+      surplusMax: { wood: 4_084, stone: 5_460, gold: 222_342 },
+      wasteStreakMax: 38,
     });
   });
 

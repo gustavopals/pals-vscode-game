@@ -207,6 +207,21 @@ export type Hero = {
 };
 
 /**
+ * Um candidato que a Taverna oferece até a próxima rotação (GDD §9.1; ADR 0017, decisão 4). O
+ * sorteio já aconteceu, na rotação: contratar só cria o herói daqui, sem sortear nada.
+ */
+export type TavernOffer = {
+  /** `offer-<n>`, de `nextId(draft, 'offer')`: nunca reutilizado. É o que `hireHero` recebe. */
+  offerId: string;
+  /** O modelo do conteúdo (`tavernCandidates`): a classe, os traços e o nível. */
+  templateId: string;
+  name: string;
+  gender: HeroGenderId;
+  /** O preço cheio, em ouro, como o modelo o dava na rotação. O desconto é conta da hora. */
+  price: number;
+};
+
+/**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
@@ -215,7 +230,7 @@ export type Hero = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 15;
+  schemaVersion: 16;
   seed: string;
   settings: GameSettings;
   /**
@@ -391,6 +406,25 @@ export type GameState = {
      * de um atraso ser retomado.
      */
     lastWageArrears: { endedAtMs: number; lastedMs: number; departed: number } | null;
+    /**
+     * Os candidatos da Taverna desta rotação, na ordem em que foram sorteados (ADR 0017,
+     * decisão 4). Quem é contratado sai; quem sobra sai na rotação seguinte. Vazia sem Taverna.
+     * Nunca mais do que a maior lista de `balance.tavern.offersByLevel`.
+     */
+    tavernOffers: TavernOffer[];
+    /**
+     * A Taverna além do edifício (que está em `settlement.buildings.tavern`).
+     * `nextRotationAtMs` é o instante de jogo da próxima troca de candidatos, ancorado na
+     * inauguração: anda `balance.tavern.rotationMs` por vez, sempre; `null` sem Taverna.
+     * `festival` é o festival em curso: `untilMs` é o do efeito de moral dele, e a virada de dia
+     * que já não o conta o encerra. `lastFestivalAtMs` é o instante do último festival dado, e
+     * é o que faz valer "um por estação"; `null` enquanto o feudo nunca deu um.
+     */
+    tavern: {
+      nextRotationAtMs: number | null;
+      festival: { untilMs: number } | null;
+      lastFestivalAtMs: number | null;
+    };
   };
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
@@ -443,7 +477,11 @@ export type Command =
       payload: { instanceId: string; optionId: string };
     }
   /** Dispensa um herói que está no feudo, sem devolução (GDD §9.1). `heroId` é o da visão. */
-  | { commandId: string; type: 'dismissHero'; payload: { heroId: string } };
+  | { commandId: string; type: 'dismissHero'; payload: { heroId: string } }
+  /** Contrata um candidato da Taverna (GDD §9.1). `offerId` é o da visão. */
+  | { commandId: string; type: 'hireHero'; payload: { offerId: string } }
+  /** Dá um festival na Taverna (GDD §5.7 e §6.1): um por estação. */
+  | { commandId: string; type: 'holdFestival'; payload: Record<string, never> };
 
 export type CommandType = Command['type'];
 
@@ -473,6 +511,10 @@ export const REJECTION_CODES = [
   'INVALID_OPTION',
   'OPTION_LOCKED',
   'HERO_NOT_FOUND',
+  'TAVERN_REQUIRED',
+  'OFFER_GONE',
+  'HERO_LIMIT',
+  'FESTIVAL_ALREADY_HELD',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1044,6 +1086,52 @@ export type GuildView = {
   };
 };
 
+/** Um candidato da Taverna na visão: a ficha, o preço de agora e por que não dá para contratar. */
+export type TavernOfferView = {
+  /** O identificador que `hireHero` recebe. */
+  offerId: string;
+  name: string;
+  /** "Arqueira". */
+  classLabel: string;
+  level: number;
+  traits: Array<{ label: string; text: string }>;
+  /** O ouro que a contratação cobra agora, já com o desconto de um Carismático no feudo. */
+  price: number;
+  /** "110 de ouro", ou "88 de ouro: 110, menos 20% por Mécia, Carismática". */
+  priceText: string;
+  /** O soldo dele depois de contratado, em ouro por hora real. */
+  wagePerHour: number;
+  /** O ouro do cofre paga o preço. */
+  affordable: boolean;
+  /** Por que a contratação seria recusada agora; `null` quando pode. */
+  blockedReason: string | null;
+};
+
+/**
+ * A Taverna na visão (GDD §6.1 e §9.1). Existe sempre: sem o edifício, `level` é zero, `text`
+ * diz como erguê-la e as listas vêm vazias. Só saem os candidatos **desta** rotação: os da
+ * próxima ainda não foram sorteados, e o gerador nunca sai do servidor.
+ */
+export type TavernView = {
+  level: number;
+  /** O que a Taverna dá no nível de agora, ou como obtê-la. */
+  text: string;
+  offers: TavernOfferView[];
+  /** Segundos reais até a lista trocar; `null` sem Taverna. */
+  nextRotationInSeconds: number | null;
+  festival: {
+    /** A ordem `holdFestival` seria aceita agora. */
+    available: boolean;
+    cost: ResourceCostView[];
+    /** "+15 de moral por 8 h, a partir da virada do dia. Um festival por estação." */
+    effectText: string;
+    /** Por que o festival seria recusado agora; `null` quando pode. */
+    blockedReason: string | null;
+    /** Segundos reais até a moral deixar de contar o festival em curso; `null` sem festival. */
+    activeForSeconds: number | null;
+  };
+};
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -1301,6 +1389,8 @@ export type ViewState = {
   threat: ThreatView;
   /** Os heróis a serviço do feudo e o soldo deles. */
   guild: GuildView;
+  /** A Taverna: os candidatos, a troca da lista e o festival. */
+  tavern: TavernView;
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
    * Conselho. É o resumo para a barra de status, a árvore e os avisos; a carta inteira está em

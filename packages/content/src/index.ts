@@ -18,6 +18,7 @@ export type {
   SeasonDef,
   SeasonEffects,
   StorageDef,
+  TavernDef,
   ThreatDef,
   WatchtowerLevelDef,
 } from './balance';
@@ -49,8 +50,22 @@ export type {
   RaidTemplates,
   WageArrearsRelief,
 } from './chronicle';
-export { heroAttributes, heroClasses, heroStatuses, heroTraits, namedHeroes } from './heroes';
-export type { HeroClassDef, HeroTraitDef, HeroTraitEffects, NamedHeroDef } from './heroes';
+export {
+  heroAttributes,
+  heroClasses,
+  heroNames,
+  heroStatuses,
+  heroTraits,
+  namedHeroes,
+  tavernCandidates,
+} from './heroes';
+export type {
+  HeroClassDef,
+  HeroTraitDef,
+  HeroTraitEffects,
+  NamedHeroDef,
+  TavernCandidateDef,
+} from './heroes';
 export { COUNCIL_EFFECT_TYPES } from './council';
 export type {
   CouncilCard,

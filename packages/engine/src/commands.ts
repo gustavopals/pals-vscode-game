@@ -16,6 +16,7 @@ import { reject } from './rejections';
 import { settleScarcity } from './scarcity';
 import { cloneState } from './state';
 import { announceFilled, fullStores } from './storage';
+import { hireHero, holdFestival } from './tavernOrders';
 import type { Command, CommandResult, GameEvent, GameState, Rejection } from './types';
 import { dismissHero } from './wages';
 
@@ -64,6 +65,10 @@ function dispatch(
       return answerCard(draft, payload.instanceId, payload.optionId, nowMs, events);
     case 'dismissHero':
       return dismissHero(draft, payload.heroId, nowMs, events);
+    case 'hireHero':
+      return hireHero(draft, payload.offerId, nowMs, events);
+    case 'holdFestival':
+      return holdFestival(draft, nowMs, events);
     default:
       return reject('UNKNOWN_COMMAND');
   }

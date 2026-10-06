@@ -327,8 +327,8 @@ describe('pickWeighted', () => {
 });
 
 describe('fluxos nomeados', () => {
-  it('os fluxos da v0.2 são o Conselho, a moral e a Horda', () => {
-    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde']);
+  it('os fluxos fixos são os da v0.2 (o Conselho, a moral e a Horda) e o da Taverna', () => {
+    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern']);
   });
 
   it('sortear em um fluxo não desloca os outros', () => {
@@ -419,9 +419,9 @@ describe('fluxos de entidade', () => {
   /** Um nome qualquer, como chegaria de um código que burlou o tipo. */
   const unsafe = (name: string) => name as RngStream;
 
-  it('as famílias são a expedição e a caravana, e os fluxos fixos continuam os três da v0.2', () => {
+  it('as famílias são a expedição e a caravana, e os fluxos fixos são os três da v0.2 e o da Taverna', () => {
     expect(RNG_STREAM_FAMILIES).toEqual(['expedition', 'caravan']);
-    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde']);
+    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern']);
   });
 
   it('o fluxo de uma entidade nasce no primeiro sorteio, da semente e do nome `família:id`', () => {
@@ -506,8 +506,8 @@ describe('fluxos de entidade', () => {
   });
 
   it.each([
-    'tavern',
     'market',
+    'guild',
     'hero:hero-1',
     'expedition',
     'expedition:',
@@ -639,7 +639,7 @@ describe('dropStream', () => {
     expect(state).toStrictEqual(before);
   });
 
-  it.each(['tavern', 'hero:hero-1', 'expedition:', 'constructor', ''])(
+  it.each(['market', 'hero:hero-1', 'expedition:', 'constructor', ''])(
     'apagar um nome desconhecido lança erro: "%s"',
     (name) => {
       const state = newGame();

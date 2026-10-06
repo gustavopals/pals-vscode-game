@@ -59,9 +59,11 @@ describe('pureza do motor', () => {
     // e `threatView.ts` ficam do lado de quem não sorteia. Nos heróis nada sorteia: o soldo, o
     // atraso e quem parte (`heroes.ts`, `wages.ts`) são contas fixas, sem fluxo nenhum, e o herói
     // que uma carta entrega (`arrivals.ts`) chega em instante marcado, com nome e traços do
-    // conteúdo.
+    // conteúdo. Na Taverna, o sorteio mora em `tavernTurn.ts` (a rotação dos candidatos);
+    // `tavern.ts` (as contas), `tavernOrders.ts` (contratar e dar festival) e `tavernView.ts`
+    // ficam do lado de quem não sorteia.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -81,6 +83,9 @@ describe('pureza do motor', () => {
         './heroes.ts',
         './wages.ts',
         './arrivals.ts',
+        './tavern.ts',
+        './tavernOrders.ts',
+        './tavernView.ts',
       ]),
     );
     const offenders = guarded
@@ -92,6 +97,10 @@ describe('pureza do motor', () => {
       .filter(([, text]) => /from '(\.\.?\/)+random'/.test(text))
       .map(([path]) => path);
     expect(draws).toEqual(expect.arrayContaining(['./hordeTurn.ts']));
+    // Na Taverna, só a rotação (`tavernTurn.ts`): contratar e dar festival são ordens, e uma
+    // ordem não sorteia.
+    expect(draws).toContain('./tavernTurn.ts');
+    expect(draws).not.toContain('./tavernOrders.ts');
   });
 
   it('quem mostra, agenda ou carrega o estado não importa o contador de identidades', () => {
@@ -112,7 +121,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -131,6 +140,7 @@ describe('pureza do motor', () => {
         './migrations/v13.ts',
         './migrations/v14.ts',
         './migrations/v15.ts',
+        './migrations/v16.ts',
         './random.ts',
         './morale.ts',
         './threat.ts',
@@ -139,21 +149,27 @@ describe('pureza do motor', () => {
         './pace.ts',
         './heroes.ts',
         './wages.ts',
+        './tavern.ts',
+        './tavernView.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.
-    // `arrivals.ts` é hoje o único que cria de fato: o herói que uma carta entrega. A visão e a
-    // linha do tempo leem os heróis prometidos por `heroes.ts`, que não cria nada.
+    // Dois criam de fato: `arrivals.ts`, o herói (o que uma carta entrega e o que a Taverna
+    // vende, pela mesma porta), e `tavernTurn.ts`, a oferta de cada candidato, na rotação. A
+    // visão e a linha do tempo leem os heróis prometidos por `heroes.ts` e a Taverna por
+    // `tavern.ts`, que não criam nada.
     const creators = sources
       .filter(([, text]) => /from '(\.\.?\/)+ids'/.test(text))
       .map(([path]) => path);
-    expect(creators).toEqual(['./arrivals.ts']);
+    expect(creators).toEqual(['./arrivals.ts', './tavernTurn.ts']);
     for (const allowed of [
       './commands.ts',
       './council.ts',
       './raids.ts',
       './advance.ts',
       './arrivals.ts',
+      './tavernOrders.ts',
+      './tavernTurn.ts',
     ]) {
       expect(guarded.map(([path]) => path)).not.toContain(allowed);
     }

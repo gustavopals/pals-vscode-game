@@ -507,6 +507,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 60
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -655,6 +688,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -1176,6 +1235,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 60
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -1340,6 +1432,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -1856,6 +1974,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 159
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 52
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -2062,6 +2213,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -2589,6 +2766,39 @@
           "blockedReason": "Faltam 140 madeira.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 120
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 120 madeira.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -2847,6 +3057,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -3351,6 +3587,39 @@
           "blockedReason": "Faltam 200 madeira.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 180 madeira.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -3631,6 +3900,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -4329,6 +4624,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 95
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -4587,6 +4915,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 25
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -5124,6 +5478,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -5382,6 +5769,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -5881,6 +6294,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 180
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 60
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 120
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -6173,6 +6619,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 100
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 50
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -6689,6 +7161,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -6955,6 +7460,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -7471,6 +8002,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -7835,6 +8399,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -8351,6 +8941,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -8698,6 +9321,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -9225,6 +9874,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -9507,6 +10189,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -10001,6 +10709,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -10291,6 +11032,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -10818,6 +11585,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -11111,6 +11911,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -11605,6 +12431,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Passa a segurar também os ataques médios, sem perda nem ferido."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -11895,6 +12754,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -12411,6 +13296,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -12723,6 +13641,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
       }
     }
   },
@@ -13239,6 +14183,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 60
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 62
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -13522,6 +14499,32 @@
         "perHour": 18,
         "coveredForSeconds": 83015,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -14038,6 +15041,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 72
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 120
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -14321,6 +15357,32 @@
           "discontentInSeconds": null,
           "nextDepartureInSeconds": 2818
         }
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 50
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   },
@@ -14832,6 +15894,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 60
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
         }
       ]
     },
@@ -15009,6 +16104,32 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "arrears": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "A Taverna abre com o Salão do Senhor Nv3: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 44
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
+        "activeForSeconds": null
       }
     }
   }

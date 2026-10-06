@@ -69,6 +69,10 @@ function termLabel(term: MoraleTerm, reserveText: string): string {
       return 'Casas cheias';
     case 'cold':
       return 'Frio';
+    case 'tavern':
+      return `${buildings.tavern.label} Nv${term.level}`;
+    case 'devout':
+      return `Fé de ${term.heroName}`;
     case 'effect':
       return term.effect.label;
   }

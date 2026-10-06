@@ -17,6 +17,7 @@ import {
   injuredLoss,
   injuryTemplates,
   moraleBandTemplates,
+  heroNames,
   namedHeroes,
   objectives,
   raidSizes,
@@ -25,6 +26,7 @@ import {
   threatMarkTemplates,
   tileTypes,
   wageArrearsReliefs,
+  tavernCandidates,
 } from '@lotg/content';
 import {
   applyCommand,
@@ -63,7 +65,7 @@ const HEADER =
   'hour,real_day,year,season,day_of_season,food,wood,stone,gold,' +
   'food_per_hour,wood_per_hour,stone_per_hour,gold_per_hour,' +
   'villagers,capacity,free,in_training,' +
-  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,' +
+  'townHall,farm,lumberMill,quarry,goldMine,housing,granary,warehouse,watchtower,palisade,tavern,' +
   'famine,' +
   'queue_idle,planned_idle,commands_accepted,commands_refused,refused_by_code,' +
   'wasted_food,wasted_wood,wasted_stone,cold,morale,cards_seen,cards_answered,cards_expired,' +
@@ -117,7 +119,7 @@ describe('CSV de uma partida', () => {
     expect(lines.every((line) => line.split(',').length === columns)).toBe(true);
   });
 
-  it('as colunas das mecânicas fecham o cabeçalho: as da v0.2, todas medidas, e depois as da Guilda, reservadas', () => {
+  it('as colunas das mecânicas fecham o cabeçalho: as da v0.2, todas medidas, e depois as da Guilda, medidas as dos heróis e reservadas as outras', () => {
     expect(HEADER.endsWith(MECHANIC_COLUMN_NAMES.join(','))).toBe(true);
     const reserved: string[] = RESERVED_COLUMNS.map((column) => column.name);
     expect(MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name))).toEqual([
@@ -135,19 +137,25 @@ describe('CSV de uma partida', () => {
       'raids_repelled',
       'villagers_injured',
       'objectives_done',
-    ]);
-    // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
-    // dos objetivos (V2E-T4) já nasceu medida. As reservadas de hoje são as da Guilda (roadmap
-    // da v0.3, V3B-T2.2), e vêm todas depois das da v0.2: nenhuma coluna antiga mudou de lugar.
-    expect(MECHANIC_COLUMN_NAMES.slice(0, V02_MECHANIC_COLUMN_COUNT)).toEqual(
-      MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name)),
-    );
-    expect(reserved).toEqual(MECHANIC_COLUMN_NAMES.slice(V02_MECHANIC_COLUMN_COUNT));
-    expect(reserved).toEqual([
+      // As dos heróis, medidas desde a Taverna (V3C-T2).
       'heroes',
-      'wages_paid',
       'wage_arrears_hours',
       'heroes_departed',
+    ]);
+    // Com a incursão de lobos (V2E-T3) a última coluna reservada da v0.2 passou a ser medida; a
+    // dos objetivos (V2E-T4) já nasceu medida. As da Guilda (roadmap da v0.3, V3B-T2.2) vêm
+    // todas depois das da v0.2: nenhuma coluna antiga mudou de lugar. Delas, três são medidas;
+    // as outras continuam reservadas.
+    const measured = MECHANIC_COLUMN_NAMES.filter((name) => !reserved.includes(name));
+    expect(MECHANIC_COLUMN_NAMES.slice(0, V02_MECHANIC_COLUMN_COUNT)).toEqual(
+      measured.slice(0, V02_MECHANIC_COLUMN_COUNT),
+    );
+    expect(MECHANIC_COLUMN_NAMES.slice(V02_MECHANIC_COLUMN_COUNT)).toEqual(
+      expect.arrayContaining(reserved),
+    );
+    expect(reserved).toEqual([
+      // O jogo não conta o soldo pago em lugar nenhum: fica reservada.
+      'wages_paid',
       'expeditions_sent',
       'outcomes_full_success',
       'outcomes_success',
@@ -165,7 +173,7 @@ describe('CSV de uma partida', () => {
       'masters',
     ]);
     expect(RESERVED_COLUMNS.map((column) => column.task)).toEqual([
-      ...Array.from({ length: 4 }, () => 'V3C-T1'),
+      'V3C-T1',
       ...Array.from({ length: 8 }, () => 'V3D-T1'),
       ...Array.from({ length: 4 }, () => 'V3E-T1'),
       'V3E-T2',
@@ -191,6 +199,9 @@ describe('CSV de uma partida', () => {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
       for (const name of ['cards_seen', 'cards_answered', 'cards_expired']) {
+        expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
+      }
+      for (const name of ['heroes', 'wage_arrears_hours', 'heroes_departed']) {
         expect(cells[header.indexOf(name)], name).toMatch(/^\d+$/);
       }
     }
@@ -608,6 +619,8 @@ describe('resumo de uma partida', () => {
             heroTraits,
             heroStatuses,
             namedHeroes,
+            tavernCandidates,
+            heroNames,
             wageArrearsReliefs,
           }),
         )

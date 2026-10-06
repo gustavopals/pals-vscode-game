@@ -25,6 +25,10 @@ import { type Bot, botOf, type Policy } from './types';
  * para o chão) e, com o inverno à vista, reforça a Serraria até a conta da lenha fechar. A
  * lista é a de quem joga duas vezes por dia, o perfil que o bot imita por padrão.
  *
+ * Da Guilda ele só tem o que o jogo dá a todos: o herói da carta da estrangeira e a Taverna,
+ * que `obra mais barata` ergue como qualquer outro edifício. **Não contrata nem dá festival**:
+ * quem faz isso é o `explorador`, e a diferença entre os dois é o que a contratação custa.
+ *
  * A Paliçada vem na frente de tudo: é a defesa, e só entra quando a Ameaça que a Torre mostra
  * passou do limiar das incursões (sem Torre o bot não sabe de nada, e não a ergue).
  *

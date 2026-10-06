@@ -16,6 +16,8 @@ import { describe, expect, it } from 'vitest';
 import { botFor, strategies, strategyPolicies } from './index';
 import {
   alocarPorDemanda,
+  contratar,
+  darFestival,
   alocarPorDemandaFor,
   ampliarEstoque,
   comidaPrimeiro,
@@ -187,9 +189,13 @@ describe('um bot é uma lista de políticas', () => {
       ocuparLivres,
       guardarLenha,
     ]);
-    // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2) é o econômico mais as políticas da
-    // Guilda, que ainda não existem: a lista é igual, e é uma cópia, para crescer sozinha.
-    expect(strategyPolicies.explorador).toEqual(strategyPolicies.economico);
+    // O explorador (GDD §15.3; roadmap da v0.3, V3B-T2 e V3C-T2) é o econômico mais as políticas
+    // da Guilda: contratar e dar festival, antes da alocação.
+    expect(strategyPolicies.explorador).toEqual(
+      strategyPolicies.economico.flatMap((policy) =>
+        policy === alocarPorDemanda ? [contratar, darFestival, policy] : [policy],
+      ),
+    );
     expect(strategyPolicies.explorador).not.toBe(strategyPolicies.economico);
     expect(Object.keys(strategies)).toEqual(['economico', 'preguicoso', 'explorador']);
     expect(Object.keys(strategies)).toEqual(Object.keys(strategyPolicies));
@@ -2318,9 +2324,12 @@ describe('os bots jogando contra o motor', () => {
           feudo.pass(2);
           morales.push(feudo.view().morale.value);
         }
-        // O bot deixa uma cama vazia quando o feudo é grande: as casas não ficam cheias.
+        // O bot deixa uma cama vazia quando o feudo é grande. Até a Taverna (V3C-T2) isso
+        // bastava para as casas nunca encherem; com a moral que ela soma, o feudo passa dos 80
+        // e um colono vem ocupar a cama que sobrou (GDD §5.7). O feudo nunca passa das vagas.
         const { villagers, capacity } = feudo.view().population;
-        if (villagers >= 20) {
+        expect(villagers).toBeLessThanOrEqual(capacity);
+        if (villagers >= 20 && feudo.view().tavern.level === 0) {
           expect(villagers).toBeLessThan(capacity);
         }
       }
@@ -2332,11 +2341,10 @@ describe('os bots jogando contra o motor', () => {
       // sem gastar: só passa da base com o que uma carta dá de graça e com o prêmio de um
       // objetivo. O maior é mostrar aos aldeões a Paliçada que ele já ergueu, quando o pedido da
       // cerca chega: +20 por três dias, 80 (V2DE; antes, o inverno sem frio, +15, era o teto).
-      if (strategy === 'economico') {
-        expect(Math.max(...morales)).toBeGreaterThanOrEqual(80);
-      } else {
-        expect(Math.max(...morales)).toBeLessThanOrEqual(80);
-      }
+      // Com a Taverna (V3C-T2) os dois passam dos 80: ela é a obra mais barata da lista em
+      // algum momento, os dois a erguem, e cada nível soma 5 à moral, sem prazo.
+      expect(Math.max(...morales)).toBeGreaterThanOrEqual(80);
+      expect(feudo.view().tavern.level).toBeGreaterThan(0);
       // Com o feudo crescido, a comida guardada vale o bônus quase sempre.
       const late = morales.slice(-90);
       expect(late.filter((value) => value >= 60).length).toBeGreaterThan(80);

@@ -4,15 +4,42 @@ import { nextId } from './ids';
 import type { GameEvent, GameState, Hero } from './types';
 
 /**
- * Os heróis que chegam ao feudo por recompensa (GDD §9.1; ADR 0017, decisões 5 e 6): a promessa
- * de uma carta e a entrada na lista. É o único lugar do motor que cria um herói; só uma ordem
- * aceita e um evento da linha do tempo chegam aqui, nunca a visão nem `nextEventAt`. Nada aqui
- * sorteia.
+ * Os heróis que chegam ao feudo (GDD §9.1; ADR 0017, decisões 5 e 6): a promessa de uma carta,
+ * a entrada na lista e, pela mesma porta (`admitHero`), o herói que a Taverna vende. É o único
+ * lugar do motor que cria um herói; só uma ordem aceita e um evento da linha do tempo chegam
+ * aqui, nunca a visão nem `nextEventAt`. Nada aqui sorteia.
  *
  * Toda chegada passa pela lista dos prometidos (`guild.arriving`), mesmo a de quem entra na
  * hora: a carta promete, e `settleHeroArrivals` entrega no mesmo instante. Assim há um caminho
  * só, e a linha da chegada vem depois da linha da carta que a causou.
  */
+
+/** O que define um herói que entra no feudo: o resto (identificador, experiência, estado) nasce aqui. */
+export type HeroSpec = Pick<Hero, 'name' | 'gender' | 'classId' | 'level'> & {
+  readonly traits: readonly Hero['traits'][number][];
+};
+
+/**
+ * Põe um herói na lista, com `nextId(draft, 'hero')` e o soldo contando desde `atMs`
+ * (`joinedAtMs`). É o caminho de todo herói: o que uma carta entrega e o que a Taverna vende.
+ * Quem chama já conferiu o lugar (o teto da lista, ou o limite de contratação) e emite o evento.
+ */
+export function admitHero(draft: GameState, spec: HeroSpec, atMs: number): Hero {
+  const hero: Hero = {
+    id: nextId(draft, 'hero'),
+    name: spec.name,
+    gender: spec.gender,
+    classId: spec.classId,
+    level: spec.level,
+    xp: 0,
+    traits: [...spec.traits],
+    status: 'idle',
+    joinedAtMs: atMs,
+    discontent: false,
+  };
+  draft.guild.heroes.push(hero);
+  return hero;
+}
 
 /**
  * Promete um herói com nome para `atMs`: entra na lista em ordem de instante, e quem empata
@@ -56,19 +83,7 @@ export function settleHeroArrivals(draft: GameState, atMs: number, events: GameE
     if (named === null) {
       continue;
     }
-    const hero: Hero = {
-      id: nextId(draft, 'hero'),
-      name: named.name,
-      gender: named.gender,
-      classId: named.classId,
-      level: named.level,
-      xp: 0,
-      traits: [...named.traits],
-      status: 'idle',
-      joinedAtMs: atMs,
-      discontent: false,
-    };
-    guild.heroes.push(hero);
+    const hero = admitHero(draft, named, atMs);
     emit(
       events,
       draft,

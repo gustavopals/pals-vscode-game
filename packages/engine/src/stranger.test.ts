@@ -19,6 +19,7 @@ import {
   refuse,
   settings,
   YEAR,
+  NO_TAVERN,
 } from './test-helpers';
 import { nextEventAt } from './timeline';
 import type { DifficultyId, GameEvent, GameSettings, GameState } from './types';
@@ -103,6 +104,7 @@ describe('a carta chega pelo roteiro, na audiência do 13º dia de jogo', () => 
         arriving: [],
         wageArrears: null,
         lastWageArrears: null,
+        ...NO_TAVERN,
       });
       expect(at.state.ids).toEqual({});
     },

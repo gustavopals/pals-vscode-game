@@ -105,6 +105,20 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // Os heróis (GDD §9.1). O herói da ordem já não serve ao feudo: partiu sem soldo, ou foi
   // dispensado em outra aba.
   HERO_NOT_FOUND: () => 'Esse herói já não está a serviço do feudo.',
+  // A Taverna (GDD §6.1 e §9.1). `label` é o edifício com artigo; `remedy`, o que o abre.
+  TAVERN_REQUIRED: ({ label = 'a Taverna', remedy }) =>
+    `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
+  // O candidato saiu na troca da lista, ou já foi contratado (em outra aba, por exemplo).
+  OFFER_GONE: () =>
+    'Esse candidato já não está na Taverna: a lista trocou, ou ele já foi contratado.',
+  // `label` é a Taverna com o nível ("Taverna Nv1"); `count`, quantos heróis ela abriga.
+  HERO_LIMIT: ({ label = 'Taverna', count = 0, remedy }) =>
+    `A ${label} abriga ${count === 1 ? '1 herói' : `${count} heróis`}, e o feudo já os tem${
+      remedy === undefined ? '' : `: ${remedy}`
+    }.`,
+  // `label` é a estação de agora, com "em": "no Verão".
+  FESTIVAL_ALREADY_HELD: ({ label }) =>
+    `Um festival por estação: ${label ?? 'nesta'} o feudo já festejou.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

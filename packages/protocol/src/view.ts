@@ -41,6 +41,10 @@ export const REJECTION_CODES = [
   'INVALID_OPTION',
   'OPTION_LOCKED',
   'HERO_NOT_FOUND',
+  'TAVERN_REQUIRED',
+  'OFFER_GONE',
+  'HERO_LIMIT',
+  'FESTIVAL_ALREADY_HELD',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -353,6 +357,41 @@ const GuildSchema = z.strictObject({
         nextDepartureInSeconds: z.number().nullable(),
       })
       .nullable(),
+  }),
+});
+
+/**
+ * A Taverna. Existe sempre: sem o edifício, `level` é zero, `text` diz como erguê-la e as listas
+ * vêm vazias. `offers` são os candidatos **desta** rotação, com o preço de agora (já com o
+ * desconto de um Carismático no feudo) e o soldo em ouro por hora real; os da próxima rotação
+ * não saem do servidor. `nextRotationInSeconds` são segundos reais até a lista trocar.
+ */
+const TavernSchema = z.strictObject({
+  level: z.number(),
+  text: z.string(),
+  offers: z.array(
+    z.strictObject({
+      /** O identificador que `hireHero` recebe. */
+      offerId: z.string(),
+      name: z.string(),
+      classLabel: z.string(),
+      level: z.number(),
+      traits: z.array(z.strictObject({ label: z.string(), text: z.string() })),
+      price: z.number(),
+      priceText: z.string(),
+      wagePerHour: z.number(),
+      affordable: z.boolean(),
+      blockedReason: z.string().nullable(),
+    }),
+  ),
+  nextRotationInSeconds: z.number().nullable(),
+  festival: z.strictObject({
+    available: z.boolean(),
+    cost: z.array(ResourceCostSchema),
+    effectText: z.string(),
+    blockedReason: z.string().nullable(),
+    /** Segundos reais até a moral deixar de contar o festival em curso; `null` sem festival. */
+    activeForSeconds: z.number().nullable(),
   }),
 });
 
@@ -686,6 +725,8 @@ export const ViewStateSchema = z.strictObject({
   threat: ThreatSchema,
   /** Os heróis a serviço do feudo e o soldo deles. */
   guild: GuildSchema,
+  /** A Taverna: os candidatos, a troca da lista e o festival. */
+  tavern: TavernSchema,
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
    * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`.

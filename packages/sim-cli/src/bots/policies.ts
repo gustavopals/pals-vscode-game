@@ -9,7 +9,8 @@ import type {
 import type { Act, Policy } from './types';
 
 /**
- * As políticas dos bots. Cada bot (`economico.ts`, `preguicoso.ts`) é uma lista delas, em ordem.
+ * As políticas dos bots. Cada bot (`economico.ts`, `preguicoso.ts`, `explorador.ts`) é uma lista
+ * delas, em ordem.
  * Uma mecânica nova entra aqui como uma política nova, com teste, e depois na lista dos bots que
  * a usam.
  *
@@ -449,6 +450,68 @@ export const responderCartas: Policy = {
 export const responderCartasSemGastar: Policy = {
   name: 'responder a carta sem gastar',
   run: (view, act) => answerPending(view, act, (_current, card) => firstFree(card)),
+};
+
+/**
+ * Por quantas horas reais de soldo o cofre tem de responder, além do preço, para o bot contratar
+ * um candidato: o soldo de um dia inteiro da equipe com o novo herói. É a folga de quem não
+ * quer ver o soldo atrasar na primeira noite.
+ */
+const HIRE_WAGE_HOURS = 24;
+
+/**
+ * Contrata na Taverna enquanto o ouro pagar o preço do candidato **e** 24 horas reais de soldo
+ * da equipe inteira, já com ele. Percorre a lista na ordem em que a Taverna a mostra e só pede o
+ * que a visão diz que pode (`blockedReason` vazio): o limite de heróis e o ouro já vêm conferidos,
+ * e nenhuma ordem sai para ser recusada. Tudo vem da visão: o preço já com o desconto, o soldo
+ * de cada um por hora real e o da equipe.
+ *
+ * A política não olha a classe nem os traços: contrata quem couber no cofre, e é assim que a
+ * matriz mede quantos heróis cada perfil sustenta. Não dispensa ninguém.
+ */
+export const contratar: Policy = {
+  name: 'contratar',
+  run: async (view, act) => {
+    let current = view;
+    const tried = new Set<string>();
+    for (;;) {
+      const gold = stockOf(current, 'gold');
+      const team = current.guild.wage.perHour;
+      const offer = current.tavern.offers.find(
+        (candidate) =>
+          !tried.has(candidate.offerId) &&
+          candidate.blockedReason === null &&
+          gold >= candidate.price + HIRE_WAGE_HOURS * (team + candidate.wagePerHour),
+      );
+      if (offer === undefined) {
+        return current;
+      }
+      tried.add(offer.offerId);
+      current = await act('hireHero', { offerId: offer.offerId });
+    }
+  },
+};
+
+/**
+ * Quanto do estoque o festival pode levar: o bot só o dá quando o custo cabe três vezes em cada
+ * recurso que ele pede, como as cartas pagas. É festa com o que sobra, nunca com a comida da
+ * mesa nem com o ouro do soldo.
+ */
+const FESTIVAL_SPEND_SHARE = 3;
+
+/**
+ * Dá o festival da Taverna quando a visão diz que pode (um por estação) e o estoque paga três
+ * vezes o custo. O que o festival rende, a moral, a visão mostra depois, na conta dela.
+ */
+export const darFestival: Policy = {
+  name: 'dar festival',
+  run: async (view, act) => {
+    const { festival } = view.tavern;
+    const spare = festival.cost.every(
+      (cost) => stockOf(view, cost.resource) >= FESTIVAL_SPEND_SHARE * cost.amount,
+    );
+    return festival.available && spare ? act('holdFestival', {}) : view;
+  },
 };
 
 /**

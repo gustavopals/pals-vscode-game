@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -637,7 +637,8 @@
       "granary": 0,
       "warehouse": 0,
       "watchtower": 0,
-      "palisade": 0
+      "palisade": 0,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -729,7 +730,13 @@
      "heroes": [],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -759,7 +766,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -817,7 +824,8 @@
       "granary": 0,
       "warehouse": 1,
       "watchtower": 1,
-      "palisade": 0
+      "palisade": 0,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -908,7 +916,13 @@
      "heroes": [],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -954,7 +968,7 @@
    "day": 3,
    "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1020,7 +1034,8 @@
       "granary": 1,
       "warehouse": 1,
       "watchtower": 1,
-      "palisade": 0
+      "palisade": 0,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -1122,7 +1137,13 @@
      ],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -1175,7 +1196,7 @@
    "day": 4,
    "eventsSoFar": 176,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1241,7 +1262,8 @@
       "granary": 1,
       "warehouse": 1,
       "watchtower": 1,
-      "palisade": 1
+      "palisade": 1,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -1352,7 +1374,13 @@
      ],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -1408,7 +1436,7 @@
    "day": 5,
    "eventsSoFar": 224,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1474,7 +1502,8 @@
       "granary": 1,
       "warehouse": 1,
       "watchtower": 2,
-      "palisade": 2
+      "palisade": 2,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -1579,7 +1608,13 @@
      ],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -1639,7 +1674,7 @@
    "day": 6,
    "eventsSoFar": 272,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1711,7 +1746,8 @@
       "granary": 2,
       "warehouse": 1,
       "watchtower": 2,
-      "palisade": 2
+      "palisade": 2,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -1833,7 +1869,13 @@
      ],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [
@@ -1897,7 +1939,7 @@
    "day": 7,
    "eventsSoFar": 323,
    "state": {
-    "schemaVersion": 15,
+    "schemaVersion": 16,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1969,7 +2011,8 @@
       "granary": 2,
       "warehouse": 1,
       "watchtower": 2,
-      "palisade": 2
+      "palisade": 2,
+      "tavern": 0
      },
      "constructionQueues": [
       null,
@@ -2069,7 +2112,13 @@
      ],
      "arriving": [],
      "wageArrears": null,
-     "lastWageArrears": null
+     "lastWageArrears": null,
+     "tavernOffers": [],
+     "tavern": {
+      "nextRotationAtMs": null,
+      "festival": null,
+      "lastFestivalAtMs": null
+     }
     },
     "objectives": {
      "active": [

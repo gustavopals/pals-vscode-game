@@ -84,12 +84,23 @@ export function wageRate(state: GameState): number {
 }
 
 /**
- * Quantos heróis o feudo pode contratar (ADR 0017, decisão 5): `limitBase` sem Taverna; cada
- * nível dela soma um, quando ela existir (V3C-T2, que passa a receber o estado aqui). O limite barra a contratação; a recompensa
- * de uma carta ou de uma expedição não é barrada por ele, só pelo teto da lista.
+ * Quantos heróis o feudo pode contratar (ADR 0017, decisão 5): `limitBase` sem Taverna, e cada
+ * nível dela soma `heroLimitPerLevel` (1 sem Taverna, 6 no nível 5). Derivado do nível, nunca
+ * gravado: o lugar abre no instante em que a obra da Taverna termina. O limite barra a
+ * contratação; a recompensa de uma carta ou de uma expedição não é barrada por ele, só pelo
+ * teto da lista.
  */
-export function heroLimit(): number {
-  return rules.limitBase;
+export function heroLimit(state: GameState): number {
+  return rules.limitBase + state.settlement.buildings.tavern * balance.tavern.heroLimitPerLevel;
+}
+
+/**
+ * A moral que um herói soma ao feudo pelos traços dele (o Devoto; ADR 0017, "Os oito traços"):
+ * zero para quem não tem traço assim. Só conta com o herói no feudo; quem decide é a conta da
+ * moral (`moraleTermsAt`).
+ */
+export function traitMorale(hero: Hero): number {
+  return hero.traits.reduce((sum, trait) => sum + (heroTraits[trait].effects.morale ?? 0), 0);
 }
 
 /**

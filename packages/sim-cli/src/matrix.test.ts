@@ -31,24 +31,25 @@ describe('matriz de balanceamento: o que é jogado', () => {
     expect(new Set(MATRIX_SEEDS).size).toBe(50);
   });
 
-  it('os perfis são 1, 2 e 4 sessões por dia real, cada um com um bot que existe', () => {
+  it('os perfis são 1, 2 e 4 sessões por dia real e o da Guilda, cada um com um bot que existe', () => {
     expect(
       PROFILES.map((profile) => [profile.id, profile.sessionsPerDay, profile.strategy]),
     ).toEqual([
       ['preguicoso', 1, 'preguicoso'],
       ['regular', 2, 'economico'],
       ['dedicado', 4, 'economico'],
+      ['explorador', 2, 'explorador'],
     ]);
     for (const profile of PROFILES) {
       expect(strategies).toHaveProperty(profile.strategy);
     }
   });
 
-  it('o perfil explorador roda na matriz a pedido, sem faixa, e hoje mede o mesmo que o Regular (roadmap da v0.3, V3B-T2)', async () => {
-    // Fora da rodada padrão enquanto o bot for igual ao econômico: a célula seria a do Regular
-    // repetida. Quando ganhar a primeira política da Guilda, entra em PROFILES com faixa.
-    expect(PROFILES).not.toContain(EXPLORER_PROFILE);
-    expect(KNOWN_PROFILES).toEqual([...PROFILES, EXPLORER_PROFILE]);
+  it('o perfil explorador está na rodada padrão, com faixa, e mede o que o Regular não mede: a contratação (roadmap da v0.3, V3C-T2)', async () => {
+    // Entrou em PROFILES com a primeira política da Guilda (contratar na Taverna): a mesma
+    // cadência de visitas do Regular, com outro bot.
+    expect(PROFILES).toContain(EXPLORER_PROFILE);
+    expect(KNOWN_PROFILES).toEqual(PROFILES);
     expect(EXPLORER_PROFILE).toEqual({
       id: 'explorador',
       label: 'Explorador',
@@ -66,16 +67,29 @@ describe('matriz de balanceamento: o que é jogado', () => {
       'year/1/explorador',
       'year/0.5/explorador',
     ]);
-    expect(explorer.cells.every((cell) => cell.band === null)).toBe(true);
+    expect(explorer.cells.every((cell) => cell.band !== null)).toBe(true);
     expect(explorer.runs).toHaveLength(6 * seeds.length);
-    const regular = matrix.runs.filter((run) => run.profile.id === 'regular');
-    expect(explorer.runs.map((run) => run.summary)).toEqual(regular.map((run) => run.summary));
-    expect(explorer.cells.map((cell) => cell.measure)).toEqual(
-      matrix.cells.filter((cell) => cell.profile.id === 'regular').map((cell) => cell.measure),
-    );
+    // Jogado sozinho ou na rodada padrão, mede o mesmo.
+    const inMatrix = matrix.runs.filter((run) => run.profile.id === 'explorador');
+    expect(explorer.runs.map((run) => run.summary)).toEqual(inMatrix.map((run) => run.summary));
+    // O Regular não contrata; o Explorador, sim, em toda célula, sem perder ninguém.
+    for (const cell of matrix.cells) {
+      const { hired, heroes, departed } = cell.measure.guild;
+      if (cell.profile.id === 'explorador') {
+        expect(hired.min, cell.key).toBeGreaterThan(0);
+        expect(heroes.min, cell.key).toBeGreaterThan(1);
+      } else {
+        expect(hired, cell.key).toEqual({ min: 0, max: 0 });
+        expect(heroes, cell.key).toEqual({ min: 1, max: 1 });
+      }
+      expect(departed, cell.key).toEqual({ min: 0, max: 0 });
+    }
     const text = formatMatrix(explorer);
     expect(text).toContain('| Explorador (2/dia, explorador) |');
-    expect(text).toContain('Nenhuma faixa definida para esta rodada.');
+    expect(text).toContain('### Guilda: 7 dias reais');
+    expect(text).toContain(
+      '| Ritmo | Perfil | Heróis no fim | Contratados | Partiram sem soldo | Soldo em atraso (h) | Primeiro herói (h) | Taverna (nível) | Taverna pronta (h) | Festivais | Excedente de ouro |',
+    );
     expect(matrixCsv(explorer).split('\n')[1]).toContain(
       'week,3,explorador,explorador,2,lord,pedra-alta-001,',
     );
@@ -146,10 +160,14 @@ describe('matriz de balanceamento: o que é jogado', () => {
   it('um ritmo fora do conteúdo pode ser medido, sem faixa', async () => {
     const odd = await runMatrix({ seeds: seeds.slice(0, 1), timeScales: [2] });
     expect(odd.cells.map((cell) => cell.paceLabel)).toEqual(
-      Array.from({ length: 6 }, () => 'Ritmo 2×'),
+      Array.from({ length: 2 * PROFILES.length }, () => 'Ritmo 2×'),
     );
     expect(odd.cells.every((cell) => cell.band === null)).toBe(true);
-    expect(odd.cells[3]).toMatchObject({ window: 'year', realHours: 84, gameYears: 1 });
+    expect(odd.cells[PROFILES.length]).toMatchObject({
+      window: 'year',
+      realHours: 84,
+      gameYears: 1,
+    });
     expect(formatMatrix(odd)).toContain('Nenhuma faixa definida para esta rodada.');
     expect(formatMatrix(odd)).toContain('| sem faixa |');
   });
@@ -187,7 +205,7 @@ describe('relatório da matriz', () => {
       '| Desperdiçando (h) | Maior sequência desperdiçando (h de jogo) | Recusas | Faixa |',
     );
     expect(text).toContain(
-      '| Rápido 3× | Regular | 64 a 84 | ≥ 8 | ≤ 0 | ≤ 0 | ≤ 4.541 | ≤ 5.460 | ≤ 157.800 | ≤ 35 | 0 |',
+      '| Rápido 3× | Regular | 67 a 94 | ≥ 7 | ≤ 0 | ≤ 0 | ≤ 4.084 | ≤ 5.460 | ≤ 222.342 | ≤ 38 | 0 |',
     );
     expect(text).toContain('Todas as partidas dentro das faixas.');
     expect(text).not.toContain('**fora**');
@@ -201,13 +219,15 @@ describe('relatório da matriz', () => {
       '| Janela | Ritmo | Perfil | Comida (h de jogo) | Madeira (h de jogo) | Pedra (h de jogo) | Meta | Veredito |',
     );
     const rows = goal.split('\n').filter((line) => line.includes('| Regular |'));
+    // A meta é do Regular: o Explorador visita com a mesma cadência e não entra nela.
+    expect(goal).not.toContain('| Explorador |');
     expect(rows).toEqual([
-      '| 7 dias reais | Rápido 3× | Regular | 3 a 18 | 3 a 15 | 0 a 18 | ≤ 8 | **acima** |',
-      '| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
+      '| 7 dias reais | Rápido 3× | Regular | 27 a 33 | 15 a 33 | 0 a 27 | ≤ 8 | **acima** |',
+      '| 7 dias reais | Normal 1× | Regular | 0 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
       '| 7 dias reais | Tranquilo 0,5× | Regular | 0 | 0 a 1,5 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 a 3 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 7 | 0 | ≤ 8 | dentro |',
-      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 a 2 | 1,5 a 2 | 0 a 0,5 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Rápido 3× | Regular | 0 | 0 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Normal 1× | Regular | 0 a 3 | 0 a 3 | 0 | ≤ 8 | dentro |',
+      '| Um ano de jogo | Tranquilo 0,5× | Regular | 0 | 1,5 a 5,5 | 0 a 0,5 | ≤ 8 | dentro |',
     ]);
     // A meta não é faixa: a rodada continua "dentro das faixas" com células acima dela.
     expect(text).toContain('Todas as partidas dentro das faixas.');
@@ -218,7 +238,7 @@ describe('relatório da matriz', () => {
     expect(lines).toHaveLength(matrix.cells.length);
     // Com as cartas do Conselho as sementes já não dão a mesma partida: a população é uma faixa.
     expect(lines[1]).toBe(
-      "  'week/3/regular': measured([72, 74], 8, 0, 0, 4286, 4942, 140913, 18),",
+      "  'week/3/regular': measured([75, 77], 7, 0, 0, 2377, 4966, 204853, 33),",
     );
   });
 
@@ -235,23 +255,26 @@ describe('relatório da matriz', () => {
     // semana ainda construindo (eram as três, entre as horas 121 e 151, com o Salão parado no
     // nível 7). No primeiro ano (56 h reais) ainda há o que construir. O Preguiçoso chega à
     // Torre nas horas 50 e 51 e ergue a Paliçada na hora 54, a tempo dos dez objetivos.
+    // Com a Taverna (V3C-T2) há cinco obras a mais na lista, e elas passam na frente do Salão
+    // quando são as mais baratas: o Salão chega ao nível 4 uma hora depois (35), e nenhuma das
+    // três sementes esgota as obras dentro da semana.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 34 | 15 | 37 | 20 | 25 | 154 a — | 52 a 56 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 53 a 58 | 7 | 10 | 56 |',
     );
     expect(year).toContain(
-      '| Rápido 3× | Regular | 11 | 24 | 34 | 15 | 37 | 20 | 25 | — | 31 a 32 | 7 | 10 | 56 |',
+      '| Rápido 3× | Regular | 11 | 24 | 35 | 15 | 37 | 20 | 25 | — | 33 a 34 | 7 | 10 | 56 |',
     );
     expect(year).toContain(
       '| Rápido 3× | Preguiçoso | 29 | 53 a 55 | — | 31 | 33 | 50 a 51 | 54 a 55 | — | 16 | 7 | 10 | 56 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.milestones).toMatchObject({
-      townHall4: { min: 34, max: 34 },
+      townHall4: { min: 35, max: 35 },
       granary: { min: 15, max: 15 },
       watchtower: { min: 20, max: 20 },
       palisade: { min: 25, max: 25 },
     });
-    expect(cell?.measure.exhaustedAtHour).toEqual({ min: 154, max: null });
+    expect(cell?.measure.exhaustedAtHour).toEqual({ min: null, max: null });
     expect(cell?.measure.villagersMin).toEqual({ min: 7, max: 7 });
     expect(cell?.measure.objectivesDone).toEqual({ min: 10, max: 10 });
     expect(cell?.measure.objectivesAllDoneAtHour).toEqual({ min: 56, max: 56 });
@@ -275,7 +298,7 @@ describe('relatório da matriz', () => {
     // Ameaça termina entre 39 e 60. Até a Ameaça ser reequilibrada (revisão das Fases D e E)
     // eram de 7 a 10 sofridas e de 39 a 44 repelidas, com a Ameaça entre 90 e 100.
     expect(week).toContain(
-      '| Rápido 3× | Regular | 1 a 2 | 17 a 18 | 18 a 19 | 1 a 2 | 30 a 118 | 25 a 54 | 39 a 60 |',
+      '| Rápido 3× | Regular | 1 a 2 | 17 a 18 | 18 a 19 | 1 a 2 | 30 a 119 | 25 a 42 | 39 a 60 |',
     );
     const cell = matrix.cells.find((entry) => entry.key === 'week/3/regular');
     expect(cell?.measure.raids).toMatchObject({
@@ -301,13 +324,16 @@ describe('relatório da matriz', () => {
     // colhe e do que corta, e o Regular, bem menos. Com os 50 de ouro do objetivo 4 (ADR 0016,
     // item 7) o Preguiçoso termina a semana com mais gente e o Salão um nível acima, e perde
     // mais do que produz: eram de 35% a 37% da comida e até 17% da pedra.
+    // REGRESSÃO MEDIDA com a Taverna (V3C-T2; docs/balance-v0.3.md, seção 4): a moral que ela
+    // soma traz mais gente, e o Regular do ritmo 3 passou a perder de 7% a 15% da comida e até
+    // 28% da madeira (eram até 6% e até 9%), com sequências de até 33 h de jogo.
     expect(week).toContain(
-      '| Rápido 3× | Preguiçoso | 51% a 53% | 54% a 56% | 37% a 48% | 63 a 72 | 63 | 45 a 57 |',
+      '| Rápido 3× | Preguiçoso | 51% a 54% | 57% a 61% | 38% a 49% | 63 a 75 | 63 | 42 a 45 |',
     );
     expect(week).toContain(
-      '| Rápido 3× | Regular | 0% a 6% | 1% a 9% | 0% a 10% | 3 a 18 | 3 a 15 | 0 a 18 |',
+      '| Rápido 3× | Regular | 7% a 15% | 8% a 28% | 0% a 17% | 27 a 33 | 15 a 33 | 0 a 27 |',
     );
-    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 1% | 0% | 0 | 0 a 1,5 | 0 |');
+    expect(week).toContain('| Tranquilo 0,5× | Regular | 0% | 0% a 3% | 0% | 0 | 0 a 1,5 | 0 |');
   });
 
   it('diz o que saiu da faixa, marca a célula e aponta o que fazer', () => {
@@ -344,11 +370,11 @@ describe('problemas de uma célula', () => {
     expect(
       violationsOf(cell.key, cell.band, [fine, piled, { ...piled, villagers: 3 }], seeds),
     ).toEqual([
-      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 4541 (2 de 3 sementes, a primeira pedra-alta-002)',
-      'week/3/regular: população 3, fora da faixa de 64 a 84 (1 de 3 sementes, a primeira pedra-alta-003)',
+      'week/3/regular: excedente parado de madeira: 50000, acima do limite de 4084 (2 de 3 sementes, a primeira pedra-alta-002)',
+      'week/3/regular: população 3, fora da faixa de 67 a 94 (1 de 3 sementes, a primeira pedra-alta-003)',
     ]);
     expect(violationsOf(cell.key, cell.band, [empty, empty, empty], seeds)).toEqual([
-      'week/3/regular: população 3, fora da faixa de 64 a 84 (3 de 3 sementes, a primeira pedra-alta-001)',
+      'week/3/regular: população 3, fora da faixa de 67 a 94 (3 de 3 sementes, a primeira pedra-alta-001)',
     ]);
   });
 });
@@ -414,7 +440,7 @@ describe('CSV da matriz', () => {
     // As colunas das mecânicas: o desperdício por recurso, o frio e a moral são medidos (o
     // total, as horas e a menor moral da partida); as outras saem vazias até a tarefa de cada
     // uma. Hoje as reservadas são as da Guilda.
-    expect(RESERVED_COLUMNS).toHaveLength(19);
+    expect(RESERVED_COLUMNS).toHaveLength(16);
     const header = (lines[0] ?? '').split(',');
     for (const line of lines.slice(1)) {
       const cells = line.split(',');

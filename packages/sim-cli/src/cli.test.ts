@@ -148,7 +148,7 @@ describe('linha de comando: matriz', () => {
     });
   });
 
-  it('--profile joga só um perfil; o explorador roda a pedido, fora da rodada padrão', () => {
+  it('--profile joga só um perfil da rodada', () => {
     const padrao = parseCli(['--matrix']);
     expect(padrao.mode === 'matrix' && padrao.options.profiles).toBeUndefined();
     expect(parseCli(['--matrix', '--seeds', '1', '--profile', 'explorador'])).toEqual({

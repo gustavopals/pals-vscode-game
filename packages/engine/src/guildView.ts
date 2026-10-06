@@ -191,7 +191,7 @@ function arrivingView(state: GameState, timeScale: number): ArrivingHeroView[] {
 
 export function guildView(state: GameState, timeScale: number, outlook: CraftOutlook): GuildView {
   return {
-    heroLimit: heroLimit(),
+    heroLimit: heroLimit(state),
     heroes: state.guild.heroes.map((hero) => heroView(hero, timeScale)),
     arriving: arrivingView(state, timeScale),
     wage: {
