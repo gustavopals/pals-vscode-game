@@ -33,7 +33,7 @@
    "food": 1050419,
    "wood": 2500000,
    "stone": 900000,
-   "gold": 1831627
+   "gold": 1809627
   },
   "accumulators": {
    "food": 878285,
@@ -159,7 +159,7 @@
     "gender": "m",
     "classId": "archer",
     "level": 1,
-    "xp": 12,
+    "xp": 2,
     "traits": [
      "prudent"
     ],
@@ -265,9 +265,9 @@
        "food": 0,
        "wood": 0,
        "stone": 0,
-       "gold": 25
+       "gold": 3
       },
-      "xp": 12,
+      "xp": 2,
       "harm": null,
       "leveled": [],
       "found": [],
@@ -284,7 +284,7 @@
       "food": 0,
       "wood": 0,
       "stone": 0,
-      "gold": 25
+      "gold": 3
      },
      "items": []
     },

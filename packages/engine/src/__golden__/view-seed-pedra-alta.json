@@ -21074,7 +21074,7 @@
       {
         "id": "gold",
         "label": "Ouro",
-        "stock": 1831,
+        "stock": 1809,
         "cap": null,
         "capBreakdown": null,
         "storageBuilding": null,
@@ -21986,7 +21986,7 @@
           "log": [
             {
               "title": "A ronda pelas cercas",
-              "text": "No 21º dia da Primavera, Rolf deu a volta nas cercas de Pedra Alta e recolheu o que os ladrões deixaram cair na fuga. Trouxe 25 de ouro.",
+              "text": "No 21º dia da Primavera, Rolf deu a volta nas cercas de Pedra Alta e recolheu o que os ladrões deixaram cair na fuga. Trouxe 3 de ouro.",
               "outcome": "success",
               "outcomeLabel": "Sucesso",
               "notes": [
@@ -22007,7 +22007,7 @@
           ],
           "lossesText": "Sem perdas: todos voltaram inteiros.",
           "deedsText": "Caminho novo: Ruínas de Vel'Thar.",
-          "lootText": "Trouxe 25 de ouro.",
+          "lootText": "Trouxe 3 de ouro.",
           "itemsText": null,
           "lost": false
         }
@@ -22063,7 +22063,7 @@
           "name": "Rolf",
           "classLabel": "Arqueiro",
           "level": 1,
-          "xp": 12,
+          "xp": 2,
           "xpToNext": 100,
           "traits": [
             {

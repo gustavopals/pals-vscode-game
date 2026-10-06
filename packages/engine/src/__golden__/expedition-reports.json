@@ -128,9 +128,9 @@
       "food": 0,
       "wood": 0,
       "stone": 0,
-      "gold": 25
+      "gold": 3
      },
-     "xp": 12,
+     "xp": 2,
      "harm": null,
      "leveled": [],
      "found": [],
@@ -147,7 +147,7 @@
      "food": 0,
      "wood": 0,
      "stone": 0,
-     "gold": 25
+     "gold": 3
     },
     "items": []
    },
@@ -172,7 +172,7 @@
    "log": [
     {
      "title": "Rastros na estrada velha",
-     "text": "No 2º dia da Primavera, Rolf seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 25 de ouro.",
+     "text": "No 2º dia da Primavera, Rolf seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram. Trouxe 3 de ouro.",
      "outcome": "success",
      "outcomeLabel": "Sucesso",
      "notes": [
@@ -193,7 +193,7 @@
    ],
    "lossesText": "Sem perdas: todos voltaram inteiros.",
    "deedsText": "Caminho novo: Ruínas de Vel'Thar.",
-   "lootText": "Trouxe 25 de ouro.",
+   "lootText": "Trouxe 3 de ouro.",
    "itemsText": null,
    "lost": false
   },

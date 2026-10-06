@@ -489,8 +489,9 @@ describe('o percurso por eventos da linha do tempo', () => {
     // sortes, e nesta semente é uma delas.
     expect(['full', 'success']).toContain(entry?.outcome);
     const found = entry?.gained.gold ?? 0;
-    expect(found).toBeGreaterThanOrEqual(15);
-    expect(found).toBeLessThanOrEqual(25);
+    // A Patrulha rende umas poucas moedas (revisão da Fase D, B10).
+    expect(found).toBeGreaterThanOrEqual(1);
+    expect(found).toBeLessThanOrEqual(3);
     expect(expedition.loot.resources).toEqual({ food: 0, wood: 0, stone: 0, gold: found });
     expect(nodeEvent?.data).toEqual({
       expeditionId: 'expedition-1',

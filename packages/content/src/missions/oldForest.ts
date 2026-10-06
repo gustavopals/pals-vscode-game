@@ -84,7 +84,7 @@ export const oldForest: ExpeditionModelDef = {
           title: 'O javali da mata fechada',
           durationMs: 25 * MINUTE_MS,
           trial: {
-            difficulty: 55,
+            difficulty: 52,
             xp: 22,
             onDisaster: 'injury',
             helps: 'warrior',
@@ -144,7 +144,7 @@ export const oldForest: ExpeditionModelDef = {
           title: 'Os lenhadores sem senhor',
           durationMs: 25 * MINUTE_MS,
           trial: {
-            difficulty: 58,
+            difficulty: 54,
             xp: 22,
             onDisaster: 'injury',
             helps: 'warrior',

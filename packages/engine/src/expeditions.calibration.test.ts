@@ -25,8 +25,9 @@ import type { Hero } from './types';
  * A calibragem do catálogo (roadmap da v0.3, V3D-T3.4 e T3.6): para cada modelo, a distribuição
  * **exata** dos desfechos de equipes de referência, com a sorte enumerada de ponta a ponta (de
  * `luck.min` a `luck.max`, um valor por nó, independentes), sem amostrar. O teste confere que o
- * rótulo de risco de cada modelo diz a verdade e que nenhuma opção de encruzilhada é a melhor
- * para toda equipe.
+ * rótulo de risco de cada modelo diz a verdade **nas três Posturas**, que os rótulos ordenam o
+ * risco, que nenhuma opção de encruzilhada é a melhor para toda equipe e que a Patrulha não
+ * domina por hora de herói (revisão da Fase D, B10 a B12).
  *
  * As tabelas ficam em `__golden__/expedition-calibration.md`: são as de `docs/balance-v0.3.md`,
  * seção 8, e as das fichas de `docs/content-v0.3.md`. Mexer em uma dificuldade, em um peso ou em
@@ -200,6 +201,49 @@ function modelOdds(model: ExpeditionModelDef, kind: TeamKind, posture: PostureId
 }
 
 const percent = (value: number): string => `${Math.round(value * 100)}%`;
+
+type Yield = { resources: number; xp: number };
+
+/**
+ * O que um caminho rende em média, com a sorte enumerada: os recursos (todos somados, na parte
+ * que cada desfecho deixa trazer) e a experiência de cada herói.
+ */
+function pathYield(
+  team: readonly Hero[],
+  stages: readonly ExpeditionStageNode[],
+  posture: PostureId,
+): Yield {
+  const total: Yield = { resources: 0, xp: 0 };
+  for (const node of stages) {
+    const odds = trialOdds(team, node, posture);
+    const share = (table: typeof rules.lootShare) =>
+      OUTCOMES.reduce((sum, id) => sum + (odds[id] * table[id].num) / table[id].den, 0);
+    for (const range of Object.values(node.rewards?.resources ?? {})) {
+      total.resources += (share(rules.lootShare) * (range.min + range.max)) / 2;
+    }
+    if (node.trial !== undefined) {
+      total.xp += share(rules.xpShare) * node.trial.xp;
+    }
+  }
+  return total;
+}
+
+/**
+ * O rendimento de um modelo **por hora de jogo de cada herói** que vai, na média das variantes:
+ * é o que diz se vale mais mandar um herói a este destino ou a outro no mesmo tempo. A duração
+ * é a anunciada (sem a espera das encruzilhadas).
+ */
+function yieldPerHeroHour(model: ExpeditionModelDef, kind: TeamKind, posture: PostureId): Yield {
+  const team = referenceTeam(model, kind);
+  const hours = model.durationMs / 3_600_000;
+  const sum: Yield = { resources: 0, xp: 0 };
+  for (const variant of model.variants) {
+    const got = pathYield(team, stagesFrom(variant, variant.start, team, posture), posture);
+    sum.resources += got.resources / model.variants.length;
+    sum.xp += got.xp / model.variants.length;
+  }
+  return { resources: sum.resources / (team.length * hours), xp: sum.xp / hours };
+}
 
 /**
  * A régua do teste para comparar caminhos, **que não é regra do jogo**: o que um caminho rende
@@ -390,45 +434,121 @@ describe('a calibragem do catálogo (roadmap da v0.3, V3D-T3.6)', () => {
     expect(new Set(best).size).toBe(3);
   });
 
+  /**
+   * **O que cada rótulo de risco promete** (revisão da Fase D, B11 e B12), medido nas três
+   * Posturas para a equipe mínima (e, onde dito, para a fraca):
+   *
+   * - **Baixo**: a mínima passa em 9 de cada 10 em qualquer Postura, e nem ela nem a fraca chegam
+   *   ao Desastre em Postura nenhuma.
+   * - **Baixo a médio**: a mínima passa em 6 de cada 10 na Equilibrada e não chega ao Desastre na
+   *   Cautelosa nem na Equilibrada; na Ousada o Desastre existe e não é frequente (até 15%).
+   *   Ninguém é capturado.
+   * - **Médio**: na Equilibrada a mínima passa em pelo menos um quarto das vezes e em não mais
+   *   de dois terços (o Revés é comum) e quase nunca chega ao Desastre (até 10%); o Desastre é
+   *   possível para quem vai fraco ou ousa; a Cautelosa não captura a mínima.
+   * - **Alto**: na Equilibrada a mínima passa em menos de um quarto das vezes; **a captura
+   *   acontece**: na Ousada para a mínima, e também na Equilibrada para quem vai mais fraco do
+   *   que ela.
+   *
+   * E os rótulos ordenam o risco: na Equilibrada, a mínima passa mais em todo destino de um
+   * rótulo do que em qualquer destino do rótulo seguinte.
+   *
+   * **Um limite da regra dos desfechos, que a régua respeita:** no mesmo nó, quem pode chegar ao
+   * Desastre nunca chega ao Sucesso (o Desastre pede menos de 70% da dificuldade com a pior
+   * sorte, e o Sucesso, 100% com a melhor: `0,7 ÷ 0,85 < 1 ÷ 1,15` não se cruzam). Por isso a
+   * equipe mínima só é capturada onde ela não passa, e "captura na Equilibrada para a mínima"
+   * exigiria um caminho da Equilibrada em que ela nunca passa.
+   */
+  const RISK_ORDER = ['Baixo', 'Baixo a médio', 'Médio', 'Alto'];
+
   it.each(expeditionModels.map((model) => [model.label, model] as const))(
-    '%s: o rótulo de risco diz a verdade para a equipe mínima, e a equipe com folga passa',
+    '%s: o rótulo de risco diz a verdade para a equipe mínima nas três Posturas, e a equipe com folga passa',
     (_label, model) => {
-      const min = modelOdds(model, 'min', 'balanced');
-      const ample = modelOdds(model, 'ample', 'balanced');
+      const of = (kind: TeamKind, posture: PostureId) => modelOdds(model, kind, posture);
+      const min = of('min', 'balanced');
+      const ample = of('ample', 'balanced');
       const anyPosture = (kind: TeamKind, key: keyof PathOdds) =>
-        Math.max(...POSTURE_IDS.map((posture) => modelOdds(model, kind, posture)[key]));
+        Math.max(...POSTURE_IDS.map((posture) => of(kind, posture)[key]));
       // Nenhum modelo em que a mínima nunca passa, nem em que nunca falha.
       expect(min.pass).toBeGreaterThan(0);
       expect(min.pass).toBeLessThan(1);
       expect(ample.pass).toBeGreaterThanOrEqual(0.75);
       expect(ample.pass).toBeGreaterThanOrEqual(min.pass);
+      expect(RISK_ORDER).toContain(model.riskLabel);
       if (model.riskLabel === 'Baixo') {
-        // A mínima quase sempre passa, e ninguém chega ao Desastre.
-        expect(min.pass).toBeGreaterThanOrEqual(0.9);
+        for (const posture of POSTURE_IDS) {
+          expect(of('min', posture).pass, posture).toBeGreaterThanOrEqual(0.9);
+        }
         expect(anyPosture('min', 'disaster')).toBe(0);
         expect(anyPosture('weak', 'disaster')).toBe(0);
       } else if (model.riskLabel === 'Baixo a médio') {
         expect(min.pass).toBeGreaterThanOrEqual(0.6);
         expect(min.pass).toBeLessThanOrEqual(0.95);
         expect(min.disaster).toBe(0);
+        expect(of('min', 'cautious').disaster).toBe(0);
+        // A Ousada arrisca, mas o Desastre não é frequente (B12).
+        expect(of('min', 'bold').disaster).toBeGreaterThan(0);
+        expect(of('min', 'bold').disaster).toBeLessThanOrEqual(0.15);
+        expect(anyPosture('min', 'capture')).toBe(0);
+        expect(anyPosture('weak', 'capture')).toBe(0);
       } else if (model.riskLabel === 'Médio') {
-        // O Revés é comum para a mínima, e o Desastre é possível para quem vai fraco ou ousa.
-        expect(min.setback + min.disaster).toBeGreaterThanOrEqual(0.3);
-        expect(min.pass).toBeGreaterThanOrEqual(0.15);
+        expect(min.pass).toBeGreaterThanOrEqual(0.25);
+        expect(min.pass).toBeLessThanOrEqual(2 / 3);
+        expect(min.disaster).toBeLessThanOrEqual(0.1);
         expect(
           Math.max(anyPosture('min', 'disaster'), anyPosture('weak', 'disaster')),
         ).toBeGreaterThan(0);
-        expect(ample.pass - min.pass).toBeGreaterThanOrEqual(0.2);
-      } else if (model.riskLabel === 'Alto') {
-        // A mínima falha com frequência, e a captura acontece.
-        expect(min.pass).toBeLessThanOrEqual(0.5);
-        expect(anyPosture('min', 'capture')).toBeGreaterThan(0);
+        expect(of('min', 'cautious').capture).toBe(0);
         expect(ample.pass - min.pass).toBeGreaterThanOrEqual(0.2);
       } else {
-        throw new Error(`Rótulo de risco sem régua: ${model.riskLabel}.`);
+        expect(min.pass).toBeLessThan(0.25);
+        // A captura acontece: para a mínima na Ousada, e na Equilibrada para quem vai mais fraco.
+        expect(of('min', 'bold').capture).toBeGreaterThan(0);
+        expect(of('weak', 'balanced').capture).toBeGreaterThan(0);
+        expect(ample.pass - min.pass).toBeGreaterThanOrEqual(0.2);
       }
     },
   );
+
+  it('os rótulos ordenam o risco: na Equilibrada, a mínima passa mais em todo destino de um rótulo do que em qualquer destino do seguinte (B11)', () => {
+    const passes = RISK_ORDER.map((label) =>
+      expeditionModels
+        .filter((model) => model.riskLabel === label)
+        .map((model) => modelOdds(model, 'min', 'balanced').pass),
+    );
+    for (const [index, safer] of passes.entries()) {
+      expect(safer.length, RISK_ORDER[index]).toBeGreaterThan(0);
+      const riskier = passes[index + 1];
+      if (riskier !== undefined) {
+        expect(Math.min(...safer), RISK_ORDER[index]).toBeGreaterThan(Math.max(...riskier));
+      }
+    }
+  });
+
+  it('a Patrulha é a porta de entrada, não a mina de ouro: por hora de herói rende menos recurso e menos experiência do que qualquer outro destino (B10)', () => {
+    const patrol = expeditionModels.find((model) => model.id === 'patrol') as ExpeditionModelDef;
+    for (const kind of ['min', 'ample'] as const) {
+      const base = yieldPerHeroHour(patrol, kind, 'balanced');
+      for (const model of expeditionModels) {
+        // O Resgate não vai atrás de saque: o que ele rende é quem volta.
+        if (model.id === 'patrol' || model.access.kind === 'captive') {
+          continue;
+        }
+        const other = yieldPerHeroHour(model, kind, 'balanced');
+        expect(other.resources, `${model.id}, ${kind}: recursos`).toBeGreaterThan(base.resources);
+        expect(other.xp, `${model.id}, ${kind}: experiência`).toBeGreaterThan(base.xp);
+      }
+    }
+    // E continua sendo a única que revela as Ruínas, em toda variante.
+    for (const variant of patrol.variants) {
+      const node = variant.nodes[variant.start];
+      expect(
+        node !== undefined && node.kind !== 'crossroads' && node.kind !== 'return'
+          ? node.rewards?.reveals
+          : undefined,
+      ).toBe('ruins');
+    }
+  });
 
   it('nas Ruínas, o guardião captura: a pendência A-6 (com o guardião em 90 ninguém era capturado)', () => {
     const ruins = expeditionModels.find((model) => model.id === 'ruins') as ExpeditionModelDef;
@@ -574,8 +694,25 @@ describe('as tabelas da calibragem (golden)', () => {
     show(`\n${lines.join('\n')}\n`);
   });
 
-  it('as três tabelas são as do arquivo', async () => {
-    expect(written).toHaveLength(3);
+  it('o rendimento por hora de jogo de cada herói, na Equilibrada', () => {
+    const lines = [
+      '| Modelo | Duração | Equipe | Recursos por hora de herói | Experiência por hora, de cada herói |',
+      '|---|---:|---|---:|---:|',
+    ];
+    const one = (value: number): string => value.toFixed(1).replace('.', ',');
+    for (const model of expeditionModels) {
+      for (const kind of ['min', 'ample'] as const) {
+        const got = yieldPerHeroHour(model, kind, 'balanced');
+        lines.push(
+          `| ${model.label} | ${model.durationMs / 60_000} min | ${TEAM_LABELS[kind]}: ${teamText(referenceTeam(model, kind))} | ${one(got.resources)} | ${one(got.xp)} |`,
+        );
+      }
+    }
+    show(`\n${lines.join('\n')}\n`);
+  });
+
+  it('as quatro tabelas são as do arquivo', async () => {
+    expect(written).toHaveLength(4);
     await expect(
       [
         '# Calibragem do catálogo de expedições\n',
@@ -586,6 +723,8 @@ describe('as tabelas da calibragem (golden)', () => {
         written[1],
         '## Cada opção de encruzilhada',
         written[2],
+        '## Por hora de jogo de cada herói',
+        written[3],
       ].join('\n'),
     ).toMatchFileSnapshot('./__golden__/expedition-calibration.md');
   });

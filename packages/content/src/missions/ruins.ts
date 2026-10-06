@@ -36,6 +36,12 @@ const guardianHoard: ExpeditionItemDrop = {
   from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
 };
 
+/** O que há no meio do caminho, antes do guardião. */
+const ruinsFind: ExpeditionItemDrop = {
+  chance: { num: 1, den: 2 },
+  from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
+};
+
 const home: ExpeditionReturnNode = {
   kind: 'return',
   title: 'A volta pela estrada dos mortos',
@@ -51,7 +57,7 @@ const stoneGuardian: ExpeditionStageNode = {
   title: 'O guardião de pedra',
   durationMs: 45 * MINUTE_MS,
   trial: {
-    difficulty: 92,
+    difficulty: 89,
     xp: 60,
     onDisaster: 'capture',
     helps: 'warrior',
@@ -147,10 +153,7 @@ export const ruins: ExpeditionModelDef = {
           },
           rewards: {
             resources: { stone: { min: 30, max: 50 }, gold: { min: 30, max: 50 } },
-            item: {
-              chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
-            },
+            item: ruinsFind,
           },
           next: 'stoneGuardian',
         },
@@ -255,10 +258,7 @@ export const ruins: ExpeditionModelDef = {
           },
           rewards: {
             resources: { stone: { min: 40, max: 60 }, gold: { min: 30, max: 50 } },
-            item: {
-              chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
-            },
+            item: ruinsFind,
           },
           next: 'cryptGuardian',
         },
@@ -376,10 +376,7 @@ export const ruins: ExpeditionModelDef = {
           },
           rewards: {
             resources: { gold: { min: 60, max: 90 } },
-            item: {
-              chance: { num: 1, den: 2 },
-              from: ['veltharBlade', 'riveredMail', 'travelerMedal'],
-            },
+            item: ruinsFind,
           },
           next: 'facelessSentinel',
         },
@@ -419,7 +416,7 @@ export const ruins: ExpeditionModelDef = {
           title: 'A sentinela sem rosto',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 112,
+            difficulty: 105,
             xp: 60,
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'capture',

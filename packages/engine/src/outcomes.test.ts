@@ -619,18 +619,19 @@ describe('experiência e nível (GDD §9.1; ADR 0017, decisão 7)', () => {
     return { at, after: advanceTo(sent.state, at) };
   };
 
-  it('cada prova dá a experiência do nó, na parte do desfecho: 12 no Sucesso Pleno vira 15', () => {
-    // Um Guerreiro de nível 9 (68,88) contra 30: Sucesso Pleno em toda a sorte.
+  it('cada prova dá a experiência do nó, na parte do desfecho: os 2 da ronda, no Sucesso Pleno, são 2,5, para baixo', () => {
+    // Um Guerreiro de nível 9 (68,88) contra 36: Sucesso Pleno em toda a sorte. A Patrulha dá
+    // pouca experiência de propósito (revisão da Fase D, B10): 2 × 5/4 = 2,5, arredondado para 2.
     const { after } = patrol((hero) => (hero.level = 9));
-    expect(only(after.state).log[0]).toMatchObject({ outcome: 'full', xp: 15, leveled: [] });
-    expect(heroOf(after.state, 'hero-1')).toMatchObject({ level: 9, xp: 15 });
+    expect(only(after.state).log[0]).toMatchObject({ outcome: 'full', xp: 2, leveled: [] });
+    expect(heroOf(after.state, 'hero-1')).toMatchObject({ level: 9, xp: 2 });
     expect(ofType(after.events, 'heroLeveledUp')).toEqual([]);
   });
 
   it('quem junta o que o nível pede sobe, leva o resto e ganha linha na Crônica', () => {
-    const { at, after } = patrol((hero) => Object.assign(hero, { level: 5, xp: 1_110 }));
-    // 1.110 + 15 = 1.125; o nível 5 pede 1.118: sobe para o 6 com 7.
-    expect(heroOf(after.state, 'hero-1')).toMatchObject({ level: 6, xp: 7 });
+    const { at, after } = patrol((hero) => Object.assign(hero, { level: 5, xp: 1_117 }));
+    // 1.117 + 2 = 1.119; o nível 5 pede 1.118: sobe para o 6 com 1.
+    expect(heroOf(after.state, 'hero-1')).toMatchObject({ level: 6, xp: 1 });
     expect(only(after.state).log[0]?.leveled).toEqual([{ heroName: 'Edda', level: 6 }]);
     expect(ofType(after.events, 'heroLeveledUp')).toMatchObject([
       {
@@ -897,9 +898,9 @@ describe('o saque e os traços (ADR 0017, "Os oito traços"; pendência D-7)', (
     for (let index = 0; index < 12; index += 1) {
       const entry = only(fences([], `pleno-${index}`).state).log[0];
       expect(entry?.outcome).toBe('full');
-      // De 15 a 25 de ouro, vezes 5/4, para baixo: de 18 a 31.
-      expect(entry?.gained.gold).toBeGreaterThanOrEqual(18);
-      expect(entry?.gained.gold).toBeLessThanOrEqual(31);
+      // De 1 a 3 de ouro, vezes 5/4, para baixo: de 1 a 3.
+      expect(entry?.gained.gold).toBeGreaterThanOrEqual(1);
+      expect(entry?.gained.gold).toBeLessThanOrEqual(3);
     }
   });
 
@@ -914,9 +915,9 @@ describe('o saque e os traços (ADR 0017, "Os oito traços"; pendência D-7)', (
         expect(entry.gained.gold).toBe(0);
         expect(ofType(run.events, 'expeditionNodeResolved')[0]?.data.lootLost).toBe(1);
       } else {
-        // De 15 a 25, vezes 5/4 do Sucesso Pleno, vezes 5/4 da cobiça: de 23 a 39.
-        expect(entry?.gained.gold).toBeGreaterThanOrEqual(23);
-        expect(entry?.gained.gold).toBeLessThanOrEqual(39);
+        // De 1 a 3, vezes 5/4 do Sucesso Pleno, vezes 5/4 da cobiça, para baixo: de 1 a 4.
+        expect(entry?.gained.gold).toBeGreaterThanOrEqual(1);
+        expect(entry?.gained.gold).toBeLessThanOrEqual(4);
       }
     }
     const view = deriveViewState(lost[0]!.state, lost[0]!.state.lastProcessedAt).guild;
@@ -1463,7 +1464,7 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
     let state = hall(2, { difficulty, seed: 'roteiro-desfechos' }, (draft) => {
       draft.map.discovered = [];
       draft.map.threat = 60;
-      Object.assign(heroOf(draft, 'hero-3'), { level: 5, xp: 1_110 });
+      Object.assign(heroOf(draft, 'hero-3'), { level: 5, xp: 1_117 });
       giveItem(draft, 'ashBow');
     });
     // 1. Brann patrulha: Sucesso Pleno certo, as Ruínas reveladas e um nível novo.
@@ -1534,7 +1535,7 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
         campaign(difficulty);
       // A Patrulha: as Ruínas e o nível 6.
       expect(afterPatrol.map.discovered).toEqual(['ruins']);
-      expect(heroOf(afterPatrol, 'hero-3')).toMatchObject({ level: 6, xp: 7 });
+      expect(heroOf(afterPatrol, 'hero-3')).toMatchObject({ level: 6, xp: 1 });
       // O Revés: Edda ferida de leve, em recuperação no feudo.
       expect(heroOf(afterWoods, 'hero-1')).toMatchObject({
         status: 'injured',

@@ -11,6 +11,10 @@ import type { ExpeditionModelDef, ExpeditionReturnNode } from '../expeditions';
  * (Mago). Um Guerreiro de nível 1 passa em mais de nove de cada dez (ADR 0017); um Clérigo
  * sozinho, em metade. Ninguém chega ao Desastre aqui.
  *
+ * **É a porta de entrada, não a mina de ouro** (revisão da Fase D, B10): rende umas poucas
+ * moedas e quase nenhuma experiência, de propósito. Por hora de herói fica abaixo de todos os outros destinos
+ * (o teste da calibragem confere); o que ela dá de único é a segurança e o caminho das Ruínas.
+ *
  * A ficha de cada grafo está em `docs/content-v0.3.md`. Rascunho que o autor não leu.
  */
 
@@ -40,7 +44,7 @@ export const patrol: ExpeditionModelDef = {
           durationMs: 10 * MINUTE_MS,
           trial: {
             difficulty: 36,
-            xp: 12,
+            xp: 2,
             onDisaster: 'injury',
             helps: 'warrior',
             lesson: 'Um Guerreiro teria feito os ladrões largarem a bolsa só de chegar perto.',
@@ -54,7 +58,7 @@ export const patrol: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, {heroi} caiu na emboscada dos ladrões junto às cercas de {feudo} e voltou sem nada.',
             },
           },
-          rewards: { resources: { gold: { min: 15, max: 25 } }, reveals: 'ruins' },
+          rewards: { resources: { gold: { min: 1, max: 3 } }, reveals: 'ruins' },
           next: 'home',
         },
         home,
@@ -69,13 +73,13 @@ export const patrol: ExpeditionModelDef = {
           durationMs: 10 * MINUTE_MS,
           trial: {
             difficulty: 40,
-            xp: 12,
+            xp: 2,
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'archer',
             lesson: 'Um Arqueiro teria lido a correnteza antes de pôr o pé na água.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} atravessou o vau de pé enxuto e achou, na outra margem, a carga de um mascate que a enchente levou.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} atravessou o vau de pé enxuto e achou, na outra margem, umas moedas da carga que a enchente tirou de um mascate.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} atravessou o vau e recolheu o que a enchente tinha deixado na margem.',
               setback:
@@ -84,7 +88,7 @@ export const patrol: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, a correnteza derrubou {heroi} no meio do vau, e o riacho ficou com tudo.',
             },
           },
-          rewards: { resources: { gold: { min: 12, max: 22 } }, reveals: 'ruins' },
+          rewards: { resources: { gold: { min: 1, max: 2 } }, reveals: 'ruins' },
           next: 'home',
         },
         home,
@@ -99,13 +103,13 @@ export const patrol: ExpeditionModelDef = {
           durationMs: 10 * MINUTE_MS,
           trial: {
             difficulty: 42,
-            xp: 12,
+            xp: 2,
             weights: { will: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'mage',
             lesson: 'Um Mago não teria perdido o rastro quando a luz baixou e o medo subiu.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. O cofre ainda estava lá.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} seguiu os rastros da estrada velha, sem se deixar enganar, até um acampamento vazio. Uma bolsa esquecida ainda estava lá.',
               success:
                 'No {dia}º dia {daEstacao}, {heroi} seguiu os rastros da estrada velha e voltou com o que os salteadores esqueceram.',
               setback:
@@ -114,7 +118,7 @@ export const patrol: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, os rastros da estrada velha levaram {heroi} direto a quem os tinha deixado. Não sobrou nada para trazer.',
             },
           },
-          rewards: { resources: { gold: { min: 18, max: 28 } }, reveals: 'ruins' },
+          rewards: { resources: { gold: { min: 2, max: 3 } }, reveals: 'ruins' },
           next: 'home',
         },
         home,

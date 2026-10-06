@@ -40,7 +40,7 @@ export const rescue: ExpeditionModelDef = {
           title: 'A trilha dos captores',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 90,
+            difficulty: 96,
             xp: 30,
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
@@ -123,7 +123,7 @@ export const rescue: ExpeditionModelDef = {
           title: 'As cordas no escuro',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 96,
+            difficulty: 102,
             xp: 45,
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'capture',
@@ -260,7 +260,7 @@ export const rescue: ExpeditionModelDef = {
           title: 'A parede dos fundos',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 104,
+            difficulty: 114,
             xp: 45,
             weights: { skill: { num: 3, den: 2 } },
             onDisaster: 'capture',
@@ -314,7 +314,7 @@ export const rescue: ExpeditionModelDef = {
           title: 'A noite sem fogo',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 78,
+            difficulty: 80,
             xp: 30,
             weights: { will: { num: 3, den: 2 }, attack: { num: 1, den: 2 } },
             onDisaster: 'injury',
@@ -394,7 +394,7 @@ export const rescue: ExpeditionModelDef = {
           title: 'Os cavalos soltos',
           durationMs: 45 * MINUTE_MS,
           trial: {
-            difficulty: 106,
+            difficulty: 114,
             xp: 45,
             weights: { speed: { num: 1, den: 1 }, skill: { num: 1, den: 2 } },
             onDisaster: 'capture',

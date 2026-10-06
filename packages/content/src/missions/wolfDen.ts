@@ -203,7 +203,9 @@ export const wolfDen: ExpeditionModelDef = {
           trial: {
             difficulty: 104,
             xp: 45,
-            weights: { skill: { num: 3, den: 2 } },
+            // Perícia ×1, e não ×1,5: com ×1,5 flechar do alto era mais seguro **e** mais rico do
+            // que fechar uma boca, para toda equipe com Arqueiro (revisão da Fase D, B1).
+            weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'archer',
             outcomes: {

@@ -146,7 +146,7 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, as luzes levaram {heroi} para longe dos salgueiros, e a expedição de {feudo} se perdeu na bruma atrás.',
             },
           },
-          rewards: { resources: { gold: { min: 30, max: 50 } } },
+          rewards: { resources: { gold: { min: 40, max: 60 } } },
           next: 'marshWitch',
         },
         marshWitch: {
@@ -301,7 +301,7 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, {heroi} quase não voltou da torre afundada, e o cofre das esmolas ficou onde estava.',
             },
           },
-          rewards: { resources: { gold: { min: 40, max: 60 } } },
+          rewards: { resources: { gold: { min: 50, max: 70 } } },
           next: 'drownedOne',
         },
         drownedOne: {
@@ -309,7 +309,7 @@ export const swamp: ExpeditionModelDef = {
           title: 'O afogado que anda',
           durationMs: 60 * MINUTE_MS,
           trial: {
-            difficulty: 120,
+            difficulty: 122,
             xp: 80,
             onDisaster: 'capture',
             helps: 'warrior',
@@ -438,7 +438,7 @@ export const swamp: ExpeditionModelDef = {
                 'No {dia}º dia {daEstacao}, o canal escuro ferveu em volta de {heroi}, e a expedição de {feudo} saiu dele quebrada.',
             },
           },
-          rewards: { resources: { gold: { min: 30, max: 50 } } },
+          rewards: { resources: { gold: { min: 40, max: 60 } } },
           next: 'mudSerpent',
         },
         mudSerpent: {
