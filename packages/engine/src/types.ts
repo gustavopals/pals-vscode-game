@@ -1541,6 +1541,11 @@ export type GuildView = {
   inventory: ItemView[];
   /** Quantos itens o arsenal guarda. */
   inventoryCap: number;
+  /**
+   * Os espaços de equipamento de um herói, na ordem do conteúdo, com o nome de cada um: o `id`
+   * é o que `unequipItem` recebe em `slot`. Como `postures`, é para a tela não escrever a lista.
+   */
+  equipmentSlots: Array<{ id: ItemSlotId; label: string }>;
   /** "Arsenal: 3 de 30 itens.", ou o que acontece com ele vazio ou cheio. */
   inventoryText: string;
   /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */

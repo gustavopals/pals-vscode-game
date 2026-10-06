@@ -62,6 +62,12 @@ describe('a guilda na visão', () => {
       arriving: [],
       inventory: [],
       inventoryCap: 30,
+      // Os espaços de equipamento vêm sempre, na ordem do conteúdo: a tela não escreve a lista.
+      equipmentSlots: [
+        { id: 'weapon', label: 'Arma' },
+        { id: 'armor', label: 'Armadura' },
+        { id: 'accessory', label: 'Acessório' },
+      ],
       inventoryText: 'O arsenal está vazio: os itens vêm das expedições.',
       captiveText: null,
       rescueTargetName: null,
@@ -471,6 +477,7 @@ describe('o soldo em atraso na visão', () => {
       'arriving',
       'inventory',
       'inventoryCap',
+      'equipmentSlots',
       'inventoryText',
       'captiveText',
       'rescueTargetName',

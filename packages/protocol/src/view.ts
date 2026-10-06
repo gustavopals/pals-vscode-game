@@ -552,6 +552,8 @@ const GuildSchema = z.strictObject({
   /** O arsenal: os itens sem dono, na ordem em que chegaram, o teto e a frase dele. */
   inventory: z.array(ItemSchema),
   inventoryCap: z.number(),
+  /** Os espaços de equipamento, na ordem, com o nome: o `id` é o `slot` de `unequipItem`. */
+  equipmentSlots: z.array(z.strictObject({ id: z.enum(ITEM_SLOT_IDS), label: z.string() })),
   inventoryText: z.string(),
   /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */
   captiveText: z.string().nullable(),

@@ -411,6 +411,7 @@ export function guildView(
     arriving,
     inventory: state.guild.inventory.flatMap((item) => itemView(item) ?? []),
     inventoryCap: balance.equipment.inventoryCap,
+    equipmentSlots: ITEM_SLOT_IDS.map((id) => ({ id, label: itemSlots[id].label })),
     inventoryText: inventoryText(state),
     captiveText: target === null ? null : guildTexts.captiveNote,
     rescueTargetName: target?.name ?? null,

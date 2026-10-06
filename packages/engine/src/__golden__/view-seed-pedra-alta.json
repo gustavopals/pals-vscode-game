@@ -746,6 +746,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -1557,6 +1571,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -2405,6 +2433,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -3316,6 +3358,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -4226,6 +4282,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -5308,6 +5378,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -6229,6 +6313,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -7146,6 +7244,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -8054,6 +8166,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -9060,6 +9186,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -10049,6 +10189,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -10984,6 +11138,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -11894,6 +12062,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -12840,6 +13022,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -13750,6 +13946,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -14704,6 +14914,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -15701,6 +15925,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -16669,6 +16907,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -17488,6 +17740,20 @@
       ],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -18440,6 +18706,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -19478,6 +19758,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -20610,6 +20904,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -21797,6 +22105,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -22983,6 +23305,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -24147,6 +24483,20 @@
         }
       ],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "Arsenal: 1 de 30 itens.",
       "captiveText": null,
       "rescueTargetName": null,
@@ -25432,6 +25782,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": "Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate.",
       "rescueTargetName": "Edda",
@@ -26615,6 +26979,20 @@
       "arriving": [],
       "inventory": [],
       "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
       "rescueTargetName": null,
