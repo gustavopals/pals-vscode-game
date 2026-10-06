@@ -17,7 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
-import { arrearsDeadlines, arrearsSince } from '../ui/guild';
+import { arrearsDeadlines, arrearsSince, lingeringLine, wageRisk, wageRiskLine } from '../ui/guild';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
 /**
@@ -434,17 +434,16 @@ function threatItem(view: ViewState): LeavingItem | null {
 
 /**
  * O soldo (GDD §9.1; IDEIA-10): com o atraso aberto, há quanto tempo e o que ele cobra a
- * seguir; com o ouro acabando antes de um dia, por quanto tempo ele ainda paga a equipe. Os
- * prazos são os da visão (`guild.wage`), em tempo real. Sem este item a lista diria que o feudo
+ * seguir; com o atraso fechado e uma partida ainda por cobrar (`wage.lingering`), quem parte e
+ * quando; com o ouro acabando antes de um dia, por quanto tempo ele ainda paga a equipe,
+ * contando o soldo de quem está a caminho (`wage.afterArrivals`). Os prazos são os da visão
+ * (`guild.wage`), em tempo real. Sem este item a lista diria que o feudo
  * está preparado com os heróis prestes a ficar sem soldo. O botão leva à Mina de Ouro: é o que
  * a frase do servidor aponta, e dispensar um herói não é sugestão que a lista faça sozinha.
  */
 function wageItem(view: ViewState): LeavingItem | null {
   const { guild } = view;
-  const { arrears, coveredForSeconds } = guild.wage;
-  if (guild.heroes.length === 0) {
-    return null;
-  }
+  const { arrears } = guild.wage;
   const command = allocateTo(view, 'gold');
   if (arrears !== null) {
     const next = arrearsDeadlines(arrears, 0);
@@ -455,15 +454,24 @@ function wageItem(view: ViewState): LeavingItem | null {
       command,
     };
   }
-  if (coveredForSeconds === null || coveredForSeconds >= LEAVING_HORIZON_SECONDS) {
+  // O atraso fechou, mas a próxima virada ainda leva um herói: a Mina já não muda isso, e o
+  // botão leva à Guilda, onde está quem parte.
+  const lingering = lingeringLine(guild, 0);
+  if (lingering !== null) {
+    return {
+      id: 'wage',
+      severity: 'danger',
+      text: lingering,
+      command: { id: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
+    };
+  }
+  // O prazo conta quem ainda vai chegar: o herói prometido que encontra o cofre vazio abre o
+  // atraso sozinho, mesmo sem ninguém no feudo hoje.
+  const risk = wageRisk(guild, LEAVING_HORIZON_SECONDS);
+  if (risk === null) {
     return null;
   }
-  return {
-    id: 'wage',
-    severity: urgency(coveredForSeconds),
-    text: `O ouro paga a equipe por mais ${formatApprox(coveredForSeconds)}: depois disso o soldo atrasa.`,
-    command,
-  };
+  return { id: 'wage', severity: urgency(risk.seconds), text: wageRiskLine(risk), command };
 }
 
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */

@@ -225,6 +225,10 @@ type PlannedRow = Constructions['planned'][number];
 export const guildPaidView = golden.guildPaid as unknown as ViewState;
 export const guildArrearsView = golden.guildInArrears as unknown as ViewState;
 export const heroPromisedView = golden.heroPromised as unknown as ViewState;
+/** A mesma visão com campos do soldo (`guild.wage`) trocados: os prazos são postos à mão. */
+export function withWage(view: ViewState, patch: Partial<ViewState['guild']['wage']>): ViewState {
+  return { ...view, guild: { ...view.guild, wage: { ...view.guild.wage, ...patch } } };
+}
 export const tavernOpenView = golden.tavernOpen as unknown as ViewState;
 export const tavernBusyView = golden.tavernBusy as unknown as ViewState;
 

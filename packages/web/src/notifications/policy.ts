@@ -2,7 +2,15 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import { COUNCIL_ICON } from '../ui/council';
 import { clockTime, formatDuration } from '../ui/format';
-import { arrearsDeadlines, GUILD_ICON, HERO_ICON } from '../ui/guild';
+import { LEAVING_HORIZON_SECONDS } from '../game/beforeLeaving';
+import {
+  arrearsDeadlines,
+  GUILD_ICON,
+  HERO_ICON,
+  lingeringLine,
+  wageRisk,
+  wageRiskLine,
+} from '../ui/guild';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
@@ -299,6 +307,32 @@ export function arrearsAhead(view: ViewState | null): string[] {
     return [];
   }
   return arrearsDeadlines(arrears, 0).map((line) => `${line}.`);
+}
+
+/**
+ * O que o aviso de um herói que chegou e o do atraso que fechou dizem além da frase da Crônica,
+ * quando a boa notícia não é a história toda. O herói que chega: se o soldo dele já encontra o
+ * atraso aberto, os prazos do atraso; se o ouro paga a equipe por menos do que o horizonte de
+ * "Antes de partir", por quanto tempo. O atraso que fecha: se a próxima virada ainda cobra uma
+ * partida (`wage.lingering`), quem parte e quando. Tudo é da visão, que chega antes dos
+ * eventos; no caso comum, nada.
+ */
+export function wageAhead(event: GameEvent, view: ViewState | null): string[] {
+  if (view === null) {
+    return [];
+  }
+  if (event.type === 'wageArrearsEnded') {
+    const lingering = lingeringLine(view.guild, 0);
+    return lingering === null ? [] : [lingering];
+  }
+  if (event.type !== 'heroJoined') {
+    return [];
+  }
+  if (view.guild.wage.arrears !== null) {
+    return arrearsAhead(view);
+  }
+  const risk = wageRisk(view.guild, LEAVING_HORIZON_SECONDS);
+  return risk === null ? [] : [wageRiskLine(risk)];
 }
 
 /** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */

@@ -13,6 +13,7 @@ import {
   initialView,
   tavernBusyView,
   tavernOpenView,
+  withWage,
 } from '../test-helpers';
 import type { Actions } from './actions';
 import { Header } from './Header';
@@ -226,6 +227,43 @@ describe('painel dos heróis (GDD §9.1 e §13.1)', () => {
     const blocked = text(heroes(waiting));
     expect(blocked).toContain('A caminho: à porta.');
     expect(blocked).toContain('O feudo já abriga 6 heróis: Rolf espera à porta.');
+  });
+
+  // Revisão da Fase C (A-R1): o painel diz o que o soldo vira com quem está a caminho, mesmo
+  // sem ninguém no feudo, e alerta quando o ouro não o paga por um dia.
+  it('o soldo de quem está a caminho: quanto passa a custar e por quanto tempo o ouro paga; curto, é alerta com o botão da Mina', () => {
+    const calm = heroes(heroPromisedView);
+    expect(text(calm)).toContain(
+      'Com quem está a caminho, o soldo passa a 2/h de ouro: o ouro paga a equipe por mais 6 dias.',
+    );
+    expect(calm).not.toContain('banner-warning');
+    const broke = withWage(heroPromisedView, {
+      afterArrivals: { perHour: 2, coveredForSeconds: 3 * 3600 },
+    });
+    const markup = heroes(broke);
+    expect(markup).toContain('banner-warning');
+    expect(text(markup)).toContain('o ouro paga a equipe por mais 3 h.');
+    expect(buttons(markup).map((button) => button.label)).toContain('Alocar na Mina de Ouro');
+    expect(
+      clicks((spy) => (
+        <HeroesPanel view={broke} elapsed={0} disabled={false} busy={NONE} actions={spy} />
+      )),
+    ).toContainEqual(['lords.allocateWorkers', 'goldMine']);
+  });
+
+  it('o atraso fechado que ainda cobra uma partida: o painel diz quem parte e em quanto tempo', () => {
+    const view = withWage(guildPaidView, {
+      lingering: {
+        text: 'O soldo voltou a ser pago, mas Isolda parte na próxima virada do dia.',
+        departureInSeconds: 40 * 60,
+      },
+    });
+    const markup = heroes(view);
+    expect(markup).toContain('banner-warning');
+    expect(text(markup)).toContain(
+      'O soldo voltou a ser pago, mas Isolda parte na próxima virada do dia. A virada vem em 40 min.',
+    );
+    expect(heroes(guildPaidView)).not.toContain('banner-warning');
   });
 
   it('"Dispensar" manda o comando com o herói (que confirma antes); sem ligação e com a ordem a caminho, fica desabilitado', () => {

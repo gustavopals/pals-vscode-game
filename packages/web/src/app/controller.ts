@@ -34,6 +34,7 @@ import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
   arrearsAhead,
+  wageAhead,
   decideNotice,
   decideNotifications,
   eventIcon,
@@ -856,7 +857,8 @@ export class Controller {
         ? raidAftermath(this.view)
         : event.type === 'wageArrearsStarted'
           ? arrearsAhead(this.view)
-          : [];
+          : // O herói que chega com o cofre curto e o atraso que fecha devendo uma partida.
+            wageAhead(event, this.view);
     if (isRaidOutcome(event)) {
       // O desfecho toma o lugar do alarme que o anunciou.
       this.dropRaidToast();
@@ -866,7 +868,12 @@ export class Controller {
       this.dropWatchToast();
     }
     const id = this.announce({
-      kind: isEssential(event) ? 'warning' : 'info',
+      // A boa notícia que traz uma perda a caminho (o atraso fechou, mas alguém ainda parte)
+      // não sai com tom de alívio.
+      kind:
+        isEssential(event) || (event.type === 'wageArrearsEnded' && details.length > 0)
+          ? 'warning'
+          : 'info',
       icon: eventIcon(event),
       text: event.text,
       details,

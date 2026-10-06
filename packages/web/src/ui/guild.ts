@@ -87,6 +87,79 @@ export function wageCoverage(guild: Guild, elapsedSeconds: number): string | nul
 }
 
 /**
+ * Quando o ouro deixa de pagar a equipe: em quantos segundos (como a visão chegou) e se o prazo
+ * já conta o soldo de quem ainda vai chegar (`wage.afterArrivals`). `null` quando o ouro não
+ * acaba, sem equipe nem prometido, e com o atraso aberto, que tem os prazos dele.
+ */
+export type WageOutlook = { seconds: number; arrivals: boolean };
+
+export function wageOutlook(guild: Guild): WageOutlook | null {
+  const { wage } = guild;
+  if (wage.arrears !== null) {
+    return null;
+  }
+  const now = guild.heroes.length === 0 ? null : wage.coveredForSeconds;
+  const ahead = wage.afterArrivals?.coveredForSeconds ?? null;
+  if (ahead !== null && (now === null || ahead < now)) {
+    return { seconds: ahead, arrivals: true };
+  }
+  return now === null ? null : { seconds: now, arrivals: false };
+}
+
+/**
+ * O prazo de `wageOutlook` quando cai dentro de `horizonSeconds`: é o que pede preparo antes de
+ * sair. O horizonte é de quem pergunta ("Antes de partir" usa o dele); aqui não há número.
+ */
+export function wageRisk(
+  guild: Guild,
+  horizonSeconds: number,
+  elapsedSeconds = 0,
+): WageOutlook | null {
+  const outlook = wageOutlook(guild);
+  if (outlook === null) {
+    return null;
+  }
+  const seconds = remainingNow(outlook.seconds, elapsedSeconds);
+  return seconds < horizonSeconds ? { ...outlook, seconds } : null;
+}
+
+/** "O ouro paga a equipe por mais 5 h: depois disso o soldo atrasa.", para quem vai sair. */
+export function wageRiskLine(risk: WageOutlook): string {
+  return (
+    `${risk.arrivals ? 'Com quem está a caminho, o' : 'O'} ouro paga a equipe por mais ` +
+    `${formatApprox(risk.seconds)}: depois disso o soldo atrasa.`
+  );
+}
+
+/**
+ * O soldo depois que os prometidos chegarem (`wage.afterArrivals`): quanto a equipe passa a
+ * custar e por quanto tempo o ouro a paga. `null` sem ninguém a caminho e com o atraso aberto.
+ */
+export function arrivalsCoverage(guild: Guild, elapsedSeconds: number): string | null {
+  const { afterArrivals, arrears } = guild.wage;
+  if (afterArrivals === null || arrears !== null) {
+    return null;
+  }
+  const start = `Com quem está a caminho, o soldo passa a ${wageOf(afterArrivals.perHour)} de ouro`;
+  if (afterArrivals.coveredForSeconds === null) {
+    return `${start}, e o ouro continua pagando sem prazo.`;
+  }
+  const left = remainingNow(afterArrivals.coveredForSeconds, elapsedSeconds);
+  return `${start}: o ouro paga a equipe por mais ${formatApprox(left)}.`;
+}
+
+/**
+ * O atraso que fechou e ainda cobra uma partida (`wage.lingering`): a frase do servidor, que diz
+ * quem parte, e em quanto tempo vem a virada. `null` no caso comum.
+ */
+export function lingeringLine(guild: Guild, elapsedSeconds: number): string | null {
+  const { lingering } = guild.wage;
+  return lingering === null
+    ? null
+    : `${lingering.text} A virada vem em ${formatApprox(remainingNow(lingering.departureInSeconds, elapsedSeconds))}.`;
+}
+
+/**
  * O atraso em prazos, com os números da visão: há quanto tempo dura, em quanto tempo os heróis
  * ficam descontentes e em quanto tempo parte o próximo. Um prazo que a visão não traz (ninguém
  * mais a ficar descontente, ninguém a partir) não ganha frase.
@@ -130,10 +203,14 @@ export function guildTreeLine(guild: Guild): string {
 export function guildLines(guild: Guild, elapsedSeconds: number): string[] {
   const { wage } = guild;
   const coverage = wageCoverage(guild, elapsedSeconds);
+  const ahead = arrivalsCoverage(guild, elapsedSeconds);
+  const lingering = lingeringLine(guild, elapsedSeconds);
   return [
     guild.text,
     ...(guild.heroes.length === 0 ? [] : [`Soldo da equipe: ${wageOf(wage.perHour)} de ouro.`]),
     ...(coverage === null ? [] : [coverage]),
+    ...(ahead === null ? [] : [ahead]),
+    ...(lingering === null ? [] : [lingering]),
     ...(wage.arrears === null
       ? []
       : [

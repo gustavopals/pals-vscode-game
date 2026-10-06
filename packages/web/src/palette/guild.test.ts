@@ -12,6 +12,7 @@ import {
   settle,
   tavernBusyView,
   tavernOpenView,
+  withWage,
 } from '../test-helpers';
 import { bindCommands, type CommandEnv, createCommands, paletteItems } from './commands';
 
@@ -414,6 +415,31 @@ describe('os avisos da equipe no controlador (GDD §13.5)', () => {
     expect(made.controller.toasts.map((toast) => [toast.kind, toast.text])).toEqual([
       ['warning', 'Isolda deixou o feudo.'],
       ['info', 'Edda passou a servir.'],
+    ]);
+  });
+
+  // Revisão da Fase C (A-R1): a boa notícia que não é a história toda diz o resto.
+  it('o atraso que fecha devendo uma partida avisa com tom de alerta e diz quem parte; o herói que chega com o cofre curto leva o prazo', async () => {
+    const lingering = {
+      text: 'O soldo voltou a ser pago, mas Isolda parte na próxima virada do dia.',
+      departureInSeconds: 40 * 60,
+    };
+    const made = await setup(guildArrearsView);
+    await serverShows(
+      made,
+      withWage(guildPaidView, { lingering }),
+      event(1, 'wageArrearsEnded', 'O soldo voltou a ser pago.'),
+      event(2, 'heroJoined', 'Rolf passou a servir.'),
+    );
+    expect(
+      made.controller.toasts.map((toast) => [toast.kind, toast.text, toast.details ?? []]),
+    ).toEqual([
+      ['warning', 'O soldo voltou a ser pago.', [`${lingering.text} A virada vem em 40 min.`]],
+      [
+        'info',
+        'Rolf passou a servir.',
+        ['O ouro paga a equipe por mais 23 h: depois disso o soldo atrasa.'],
+      ],
     ]);
   });
 

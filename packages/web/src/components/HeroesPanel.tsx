@@ -1,9 +1,12 @@
 import type { ViewState } from '@lotg/protocol';
 
-import { allocateTo } from '../game/beforeLeaving';
+import { allocateTo, LEAVING_HORIZON_SECONDS } from '../game/beforeLeaving';
 import {
   arrearsDeadlines,
   arrearsSince,
+  arrivalsCoverage,
+  lingeringLine,
+  wageRisk,
   arrivalLine,
   type ArrivingHero,
   GUILD_ICON,
@@ -105,17 +108,53 @@ function Wage(props: { view: ViewState; elapsed: number; disabled: boolean; acti
   const { guild } = view;
   const { arrears } = guild.wage;
   const coverage = wageCoverage(guild, elapsed);
-  if (guild.heroes.length === 0) {
+  // Quem está a caminho também vai receber: o soldo e o prazo do ouro com eles, mesmo sem
+  // ninguém no feudo hoje. E o atraso que fechou devendo uma partida diz quem parte.
+  const ahead = arrivalsCoverage(guild, elapsed);
+  const short = wageRisk(guild, LEAVING_HORIZON_SECONDS, elapsed)?.arrivals === true;
+  const lingering = lingeringLine(guild, elapsed);
+  if (guild.heroes.length === 0 && ahead === null && lingering === null) {
     return null;
   }
   const mine = allocateTo(view, 'gold');
   return (
     <>
-      <p class="guild-wage">
-        <Icon name="credit-card" /> Soldo da equipe:{' '}
-        <strong class="num">{wageOf(guild.wage.perHour)}</strong> de ouro
-        {coverage === null ? '.' : `. ${coverage}`}
-      </p>
+      {guild.heroes.length === 0 ? null : (
+        <p class="guild-wage">
+          <Icon name="credit-card" /> Soldo da equipe:{' '}
+          <strong class="num">{wageOf(guild.wage.perHour)}</strong> de ouro
+          {coverage === null ? '.' : `. ${coverage}`}
+        </p>
+      )}
+      {ahead === null ? null : short ? (
+        <div class="banner banner-warning guild-arrears">
+          <p>
+            <span role="status">
+              <Icon name="warning" /> {ahead}
+            </span>
+          </p>
+          <button
+            type="button"
+            disabled={props.disabled}
+            onClick={() => props.actions.run(mine.id, mine.arg)}
+          >
+            {mine.label}
+          </button>
+        </div>
+      ) : (
+        <p class="guild-wage muted">
+          <Icon name="credit-card" /> {ahead}
+        </p>
+      )}
+      {lingering === null ? null : (
+        <div class="banner banner-warning guild-arrears">
+          <p>
+            <span role="status">
+              <Icon name="warning" /> {lingering}
+            </span>
+          </p>
+        </div>
+      )}
       {arrears === null ? null : (
         <div class="banner banner-warning guild-arrears">
           <div>

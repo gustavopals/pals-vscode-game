@@ -13,6 +13,7 @@ import {
   isHeroArrival,
   isRelief,
   type PolicyInput,
+  wageAhead,
 } from '../notifications/policy';
 import {
   gameEvent,
@@ -22,18 +23,22 @@ import {
   initialView,
   tavernBusyView,
   tavernOpenView,
+  withWage,
 } from '../test-helpers';
 import { rowActions } from '../workbench/Tree';
 import { documentTitle, statusBar } from './format';
 import {
   arrearsDeadlines,
   arrearsSince,
+  arrivalsCoverage,
   guildLines,
   guildTreeLine,
   heroCount,
+  lingeringLine,
   sheetLine,
   tavernTreeLine,
   wageCoverage,
+  wageRisk,
   xpLine,
 } from './guild';
 import { buildTree, type TreeNode } from './treeModel';
@@ -50,6 +55,7 @@ const account: AccountState = {
   hasRecoveryCode: false,
   gameId: 'partida-1',
 };
+const DAY = 24 * 3600;
 const online = { kind: 'online' } as const;
 const offline = { kind: 'offline', retryInMs: 5000, attempt: 1 } as const;
 
@@ -394,6 +400,121 @@ describe('"Antes de partir" e o soldo (roadmap da v0.3, §11.3-A)', () => {
     expect(wage(initialView)).toBeUndefined();
     expect(wage(tavernOpenView)).toBeUndefined();
     expect(wage(coveredFor(30 * 3600))).toBeUndefined();
+  });
+});
+
+// Revisão da Fase C (A-R1): a tela não pode tranquilizar com um herói a caminho e o cofre
+// vazio, nem com o atraso fechado e uma partida ainda por cobrar.
+describe('o soldo de quem está a caminho e a partida que o atraso fechado ainda cobra', () => {
+  const wage = (view: ViewState) => leavingItems(view).find((item) => item.id === 'wage');
+  /** O herói prometido chega, e com o soldo dele o ouro acaba em `seconds`. */
+  const promisedBroke = (seconds: number | null) =>
+    withWage(heroPromisedView, { afterArrivals: { perHour: 2, coveredForSeconds: seconds } });
+  const LINGERING = {
+    text: 'O soldo voltou a ser pago, mas o atraso já devia um herói: Isolda parte na próxima virada do dia.',
+    departureInSeconds: 40 * 60,
+  };
+  const lingering = withWage(coveredFor(null), { lingering: LINGERING });
+
+  it('"Antes de partir" avisa do prometido que chega com o cofre vazio, mesmo sem herói no feudo', () => {
+    expect(heroPromisedView.guild.heroes).toEqual([]);
+    expect(wage(promisedBroke(3 * 3600))).toEqual({
+      id: 'wage',
+      severity: 'danger',
+      text: 'Com quem está a caminho, o ouro paga a equipe por mais 3 h: depois disso o soldo atrasa.',
+      command: { id: 'lords.allocateWorkers', arg: 'goldMine', label: 'Alocar na Mina de Ouro' },
+    });
+    const today = find(tree(promisedBroke(3 * 3600)), 'today');
+    expect(today?.description).not.toBe('pronto para a ausência');
+    // O prazo do golden é de dias, e o ouro que não acaba não tem prazo: sem item.
+    expect(wage(heroPromisedView)).toBeUndefined();
+    expect(wage(promisedBroke(null))).toBeUndefined();
+  });
+
+  it('com herói no feudo, o prazo que vale é o que conta quem ainda vai chegar', () => {
+    const view = withWage(coveredFor(30 * 3600), {
+      afterArrivals: { perHour: 24, coveredForSeconds: 6 * 3600 },
+    });
+    expect(wage(view)).toMatchObject({
+      severity: 'danger',
+      text: 'Com quem está a caminho, o ouro paga a equipe por mais 6 h: depois disso o soldo atrasa.',
+    });
+    // O ouro acaba antes de alguém chegar: o prazo é o da equipe de agora, na frase de sempre.
+    const before = withWage(coveredFor(5 * 3600), {
+      afterArrivals: { perHour: 24, coveredForSeconds: 5 * 3600 },
+    });
+    expect(wage(before)?.text).toBe(
+      'O ouro paga a equipe por mais 5 h: depois disso o soldo atrasa.',
+    );
+  });
+
+  it('"Antes de partir" diz quem parte na próxima virada com o atraso já fechado, e leva à Guilda', () => {
+    expect(wage(lingering)).toEqual({
+      id: 'wage',
+      severity: 'danger',
+      text: `${LINGERING.text} A virada vem em 40 min.`,
+      command: { id: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' },
+    });
+  });
+
+  it('as frases: o soldo depois das chegadas e a partida que ainda vem', () => {
+    expect(arrivalsCoverage(heroPromisedView.guild, 0)).toBe(
+      'Com quem está a caminho, o soldo passa a 2/h de ouro: o ouro paga a equipe por mais 6 dias.',
+    );
+    expect(arrivalsCoverage(promisedBroke(3 * 3600).guild, 3600)).toBe(
+      'Com quem está a caminho, o soldo passa a 2/h de ouro: o ouro paga a equipe por mais 2 h.',
+    );
+    expect(arrivalsCoverage(promisedBroke(null).guild, 0)).toBe(
+      'Com quem está a caminho, o soldo passa a 2/h de ouro, e o ouro continua pagando sem prazo.',
+    );
+    expect(arrivalsCoverage(guildPaidView.guild, 0)).toBeNull();
+    // Com o atraso aberto falam as frases do atraso.
+    expect(
+      arrivalsCoverage(
+        withWage(guildArrearsView, { afterArrivals: { perHour: 20, coveredForSeconds: 0 } }).guild,
+        0,
+      ),
+    ).toBeNull();
+    expect(lingeringLine(lingering.guild, 600)).toBe(`${LINGERING.text} A virada vem em 30 min.`);
+    expect(lingeringLine(guildPaidView.guild, 0)).toBeNull();
+    // A explicação da Guilda (cabeçalho e árvore) leva as duas.
+    expect(guildLines(promisedBroke(3 * 3600).guild, 0)).toContain(
+      'Com quem está a caminho, o soldo passa a 2/h de ouro: o ouro paga a equipe por mais 3 h.',
+    );
+    expect(guildLines(lingering.guild, 0)).toContain(`${LINGERING.text} A virada vem em 40 min.`);
+  });
+
+  it('o prazo do soldo dentro de um horizonte: o da equipe de agora ou o de quem vai chegar', () => {
+    expect(wageRisk(coveredFor(5 * 3600).guild, DAY)).toEqual({
+      seconds: 5 * 3600,
+      arrivals: false,
+    });
+    expect(wageRisk(coveredFor(30 * 3600).guild, DAY)).toBeNull();
+    expect(wageRisk(promisedBroke(3 * 3600).guild, DAY)).toEqual({
+      seconds: 3 * 3600,
+      arrivals: true,
+    });
+    expect(wageRisk(initialView.guild, DAY)).toBeNull();
+    expect(wageRisk(guildArrearsView.guild, DAY)).toBeNull();
+  });
+
+  it('os avisos: o herói que chega com o cofre curto e o atraso que fecha devendo uma partida dizem isso', () => {
+    expect(wageAhead(gameEvent(1, 'heroJoined'), coveredFor(5 * 3600))).toEqual([
+      'O ouro paga a equipe por mais 5 h: depois disso o soldo atrasa.',
+    ]);
+    expect(wageAhead(gameEvent(1, 'heroJoined'), coveredFor(30 * 3600))).toEqual([]);
+    expect(
+      wageAhead(
+        gameEvent(1, 'heroJoined'),
+        withArrears({ discontentInSeconds: 3600, nextDepartureInSeconds: null }),
+      ),
+    ).toEqual(['Descontentes em 1 h.']);
+    expect(wageAhead(gameEvent(2, 'wageArrearsEnded'), lingering)).toEqual([
+      `${LINGERING.text} A virada vem em 40 min.`,
+    ]);
+    expect(wageAhead(gameEvent(2, 'wageArrearsEnded'), guildPaidView)).toEqual([]);
+    expect(wageAhead(gameEvent(3, 'heroLeft'), lingering)).toEqual([]);
+    expect(wageAhead(gameEvent(1, 'heroJoined'), null)).toEqual([]);
   });
 });
 
