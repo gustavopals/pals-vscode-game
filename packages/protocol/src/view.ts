@@ -367,6 +367,8 @@ const HeroSchema = z.strictObject({
   injury: z.strictObject({ severityLabel: z.string(), recoversInSeconds: z.number() }).nullable(),
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
   captive: z.boolean(),
+  /** É quem o próximo Resgate solta: entre os cativos, o que está lá há mais tempo. */
+  nextRescued: z.boolean(),
   /** Os três espaços, com o que ele leva em cada um; `item` é `null` no espaço vazio. */
   equipment: z.array(
     z.strictObject({
@@ -553,6 +555,8 @@ const GuildSchema = z.strictObject({
   inventoryText: z.string(),
   /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */
   captiveText: z.string().nullable(),
+  /** Quem o próximo Resgate solta, pelo nome; `null` sem ninguém em cativeiro. */
+  rescueTargetName: z.string().nullable(),
   wage: z.strictObject({
     perHour: z.number(),
     coveredForSeconds: z.number().nullable(),

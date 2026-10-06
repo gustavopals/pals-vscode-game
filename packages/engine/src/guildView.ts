@@ -135,7 +135,7 @@ function statusText(state: GameState, hero: Hero, timeScale: number): string {
   return heroStatuses[hero.status].label;
 }
 
-function heroView(state: GameState, hero: Hero, timeScale: number): HeroView {
+function heroView(state: GameState, hero: Hero, timeScale: number, target: Hero | null): HeroView {
   const dismissal = dismissBlock(state, hero);
   return {
     id: hero.id,
@@ -162,6 +162,7 @@ function heroView(state: GameState, hero: Hero, timeScale: number): HeroView {
             ),
           },
     captive: isCaptive(hero),
+    nextRescued: target !== null && hero.id === target.id,
     canDismiss: dismissal === null,
     dismissText:
       dismissal !== null
@@ -398,18 +399,21 @@ export function guildView(
   outlook: CraftOutlook,
 ): { guild: GuildView; pendingDecisions: ExpeditionsView['pendingDecisions'] } {
   const arriving = arrivingView(state, timeScale);
+  // Quem o próximo Resgate solta: o primeiro de `captives`, a mesma lista de `rescueCaptive`.
+  const [target = null] = captives(state);
   const { pendingDecisions, ...expeditions } = expeditionsView(state, timeScale);
   const guild: GuildView = {
     text: guildText(state, arriving),
     ...expeditions,
     dismissText: guildTexts.dismiss,
     heroLimit: heroLimit(state),
-    heroes: state.guild.heroes.map((hero) => heroView(state, hero, timeScale)),
+    heroes: state.guild.heroes.map((hero) => heroView(state, hero, timeScale, target)),
     arriving,
     inventory: state.guild.inventory.flatMap((item) => itemView(item) ?? []),
     inventoryCap: balance.equipment.inventoryCap,
     inventoryText: inventoryText(state),
-    captiveText: captives(state).length > 0 ? guildTexts.captiveNote : null,
+    captiveText: target === null ? null : guildTexts.captiveNote,
+    rescueTargetName: target?.name ?? null,
     wage: {
       perHour: (wageRate(state) * timeScale) / MILLI,
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),

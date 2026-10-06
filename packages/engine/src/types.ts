@@ -1277,6 +1277,11 @@ export type HeroView = {
   /** Está em cativeiro: não recebe soldo e só volta com um Resgate. */
   captive: boolean;
   /**
+   * É quem o próximo Resgate solta: entre os cativos, o que está lá há mais tempo. Com dois
+   * cativos, só um tem a marca; a tela põe "Enviar o Resgate" na ficha dele.
+   */
+  nextRescued: boolean;
+  /**
    * Pode ser dispensado agora: quem está no feudo, e quem está em cativeiro (é desistir dele),
    * salvo com um Resgate a caminho. Quem está em expedição espera a volta.
    */
@@ -1540,6 +1545,11 @@ export type GuildView = {
   inventoryText: string;
   /** O que dizer de quem está em cativeiro; `null` sem ninguém lá. */
   captiveText: string | null;
+  /**
+   * Quem o próximo Resgate que der certo solta: quem está em cativeiro há mais tempo, pelo
+   * nome. `null` sem ninguém lá. É o mesmo herói que traz `nextRescued` na ficha.
+   */
+  rescueTargetName: string | null;
   wage: {
     /** O soldo de toda a equipe, em ouro por hora real. Zero sem herói. */
     perHour: number;

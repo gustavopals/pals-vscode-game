@@ -1511,6 +1511,7 @@ describe('ViewStateSchema', () => {
       canDepart: true,
       injury: null,
       captive: false,
+      nextRescued: false,
       canDismiss: true,
       dismissText: 'Dispensar não devolve nada.',
       equipment: [

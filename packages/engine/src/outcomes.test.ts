@@ -559,6 +559,16 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
       captivity: { sinceMs: 1, modelId: 'ruins' },
     });
     expect(shaped(start)).toBeNull();
+    // A tela sabe de antemão quem o Resgate solta: só Isolda tem a marca (revisão, A8).
+    const before = deriveViewState(start, start.lastProcessedAt).guild;
+    expect(before.rescueTargetName).toBe('Isolda');
+    expect(before.heroes.filter((hero) => hero.captive).map((hero) => hero.name)).toEqual([
+      'Edda',
+      'Isolda',
+    ]);
+    expect(before.heroes.filter((hero) => hero.nextRescued).map((hero) => hero.name)).toEqual([
+      'Isolda',
+    ]);
     const sent = send(start, 'rescue', ['hero-2', 'hero-3'], 'bold', 0);
     const after = advanceTo(
       throughCrossroads(sent.state, 'waitForGuardChange').state,
@@ -571,6 +581,11 @@ describe('o Resgate (GDD §9.3; ADR 0018, decisão 12)', () => {
     // Ainda há quem buscar: o Resgate continua na lista.
     const home = advanceTo(after.state, after.state.lastProcessedAt + 30 * MINUTE).state;
     const view = deriveViewState(home, home.lastProcessedAt).guild;
+    // E a marca passou para quem ficou.
+    expect(view.rescueTargetName).toBe('Edda');
+    expect(view.heroes.filter((hero) => hero.nextRescued).map((hero) => hero.name)).toEqual([
+      'Edda',
+    ]);
     expect(view.available.map((offer) => offer.modelId)).toContain('rescue');
     // A tela acha o Resgate pela marca, sem conhecer o nome do modelo.
     expect(view.available.filter((offer) => offer.rescue).map((offer) => offer.modelId)).toEqual([

@@ -64,6 +64,7 @@ describe('a guilda na visão', () => {
       inventoryCap: 30,
       inventoryText: 'O arsenal está vazio: os itens vêm das expedições.',
       captiveText: null,
+      rescueTargetName: null,
       wage: {
         perHour: 0,
         coveredForSeconds: null,
@@ -98,6 +99,7 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        nextRescued: false,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [
@@ -126,6 +128,7 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        nextRescued: false,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [
@@ -152,6 +155,7 @@ describe('a guilda na visão', () => {
         canDepart: true,
         injury: null,
         captive: false,
+        nextRescued: false,
         canDismiss: true,
         dismissText: guildTexts.dismiss,
         equipment: [
@@ -469,6 +473,7 @@ describe('o soldo em atraso na visão', () => {
       'inventoryCap',
       'inventoryText',
       'captiveText',
+      'rescueTargetName',
       'wage',
     ]);
     expect(Object.keys(view.guild.wage)).toEqual([

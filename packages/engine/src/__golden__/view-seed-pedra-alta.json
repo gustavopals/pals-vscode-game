@@ -748,6 +748,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -1558,6 +1559,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -2405,6 +2407,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -3315,6 +3318,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -4224,6 +4228,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -5305,6 +5310,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -6225,6 +6231,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -7141,6 +7148,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -8048,6 +8056,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -9053,6 +9062,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -10041,6 +10051,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -10975,6 +10986,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -11884,6 +11896,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -12829,6 +12842,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -13738,6 +13752,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -14691,6 +14706,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -15566,6 +15582,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -15608,6 +15625,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -15654,6 +15672,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -15684,6 +15703,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 18,
         "coveredForSeconds": 83015,
@@ -16577,6 +16597,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -16619,6 +16640,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -16649,6 +16671,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": 0,
@@ -17467,6 +17490,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 0,
         "coveredForSeconds": null,
@@ -18387,6 +18411,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -18417,6 +18442,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 6,
         "coveredForSeconds": null,
@@ -19380,6 +19406,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -19422,6 +19449,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -19452,6 +19480,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": null,
@@ -20509,6 +20538,7 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": false,
           "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
@@ -20551,6 +20581,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -20581,6 +20612,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 12,
         "coveredForSeconds": null,
@@ -21693,6 +21725,7 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": false,
           "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
@@ -21735,6 +21768,7 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": false,
           "dismissText": "Rolf está fora do feudo: a dispensa espera a volta.",
           "equipment": [
@@ -21765,6 +21799,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 4,
         "coveredForSeconds": null,
@@ -22833,6 +22868,7 @@
             "recoversInSeconds": 14040
           },
           "captive": false,
+          "nextRescued": false,
           "canDismiss": false,
           "dismissText": "Edda está fora do feudo: a dispensa espera a volta.",
           "equipment": [
@@ -22875,6 +22911,7 @@
           "canDepart": false,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": false,
           "dismissText": "Rolf está fora do feudo: a dispensa espera a volta.",
           "equipment": [
@@ -22917,6 +22954,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -22947,6 +22985,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 3,
         "coveredForSeconds": null,
@@ -24016,6 +24055,7 @@
             "recoversInSeconds": 1800
           },
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -24058,6 +24098,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -24108,6 +24149,7 @@
       "inventoryCap": 30,
       "inventoryText": "Arsenal: 1 de 30 itens.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 12,
         "coveredForSeconds": null,
@@ -25257,6 +25299,7 @@
           "canDepart": false,
           "injury": null,
           "captive": true,
+          "nextRescued": true,
           "canDismiss": true,
           "dismissText": "Desistir de quem está em cativeiro é para sempre: nenhum Resgate parte mais por essa pessoa, e o que ela levava fica no cativeiro. O lugar na lista do feudo fica livre.",
           "equipment": [
@@ -25308,6 +25351,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -25359,6 +25403,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -25389,6 +25434,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": "Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate.",
+      "rescueTargetName": "Edda",
       "wage": {
         "perHour": 4,
         "coveredForSeconds": 0,
@@ -26497,6 +26543,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -26539,6 +26586,7 @@
           "canDepart": true,
           "injury": null,
           "captive": false,
+          "nextRescued": false,
           "canDismiss": true,
           "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
           "equipment": [
@@ -26569,6 +26617,7 @@
       "inventoryCap": 30,
       "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
       "captiveText": null,
+      "rescueTargetName": null,
       "wage": {
         "perHour": 2,
         "coveredForSeconds": null,
