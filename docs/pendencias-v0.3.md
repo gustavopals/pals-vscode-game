@@ -163,6 +163,13 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - A matriz do simulador: não mexeu (nenhum bot passa fome por 12 h reais; ver o Registro).
 - Se decidir diferente: as mesmas alternativas de C-47.
 
+**C-49. O atraso que reabre dentro da janela devolve o Descontente na hora, sem linha na Crônica.** *(Mudança de regra; revisão M-D2.)*
+- O defeito: fechado o atraso, ninguém fica Descontente; reaberto no mesmo instante (ouro que entra e sai), o herói só voltava a estar Descontente na virada seguinte. Duas ordens davam um dia de jogo de poder inteiro.
+- Enquanto isso: ao reabrir dentro da janela, com a duração contada já nas 12 h reais, quem não é Leal volta a estar Descontente naquele instante. A Crônica não repete "ficou descontente": a linha é da virada em que ele ficou.
+- Limite conhecido: no vaivém de C-47 (fechar antes de toda virada), o herói passa a estar Descontente sem que a Crônica tenha dito isso alguma vez, porque nenhuma virada o encontrou com o atraso aberto. A ficha dele mostra o estado.
+- Onde: `resumeDiscontent`, em `packages/engine/src/wages.ts`.
+- Se decidir diferente: emitir a linha também na retomada é uma chamada a `emit`; o risco é a Crônica repetir a frase a cada vaivém.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

@@ -480,7 +480,7 @@ describe('o atraso que reabre logo é o mesmo', () => {
   }
 
   it.each(PACES)(
-    'ritmo %s: dentro da janela de 2 h reais continua de onde parou, e o Descontente volta na virada seguinte',
+    'ritmo %s: dentro da janela de 2 h reais continua de onde parou, e quem estava Descontente volta a estar na hora, sem linha nova',
     (timeScale) => {
       const window = 2 * HOUR * timeScale;
       const { paid, paidAt, reopensAt } = reopening(timeScale, window - 1_800);
@@ -497,11 +497,14 @@ describe('o atraso que reabre logo é o mesmo', () => {
       expect(back.state.guild.lastWageArrears).toBeNull();
       // O tempo com o soldo em dia não conta; o que já tinha contado não se perde.
       expect(wageArrearsDurationAt(back.state, reopensAt)).toBe(paidAt);
-      expect(back.state.guild.heroes[0]?.discontent).toBe(false);
-      // Na virada seguinte ele volta a estar Descontente, sem esperar de novo as 12 h.
+      // Enquanto o soldo esteve em dia ele não estava Descontente; reaberto o mesmo atraso, que
+      // já passou das 12 h, volta a estar no mesmo instante, e a Crônica não repete a linha.
+      const justBefore = advanceTo(paid, reopensAt - 1).state;
+      expect(justBefore.guild.heroes[0]?.discontent).toBe(false);
+      expect(back.state.guild.heroes[0]?.discontent).toBe(true);
       const turn = turnFrom(reopensAt + 1);
       const sour = advanceTo(back.state, turn);
-      expect(brief(sour.events)).toEqual([['heroDiscontent', turn, 'hero-1']]);
+      expect(brief(sour.events)).toEqual([]);
       expect(sour.state.guild.heroes[0]?.discontent).toBe(true);
     },
   );
@@ -541,9 +544,9 @@ describe('o atraso que reabre logo é o mesmo', () => {
     expect(brief(back.events)).toEqual([
       ['wageArrearsEnded', 25 * HOUR],
       ['wageArrearsStarted', 25 * HOUR + 30 * MINUTE],
-      // A virada das 26 h encontra 25 h 30 de atraso contado: Descontente de novo, e ninguém parte.
-      ['heroDiscontent', 26 * HOUR, 'hero-1'],
+      // Descontente de novo no instante em que reabre, sem linha; na virada das 26 h ninguém parte.
     ]);
+    expect(back.state.guild.heroes.map((hero) => hero.discontent)).toEqual([true]);
     expect(back.state.guild.wageArrears).toEqual({
       sinceMs: 25 * HOUR + 30 * MINUTE,
       carriedMs: 25 * HOUR,
@@ -559,7 +562,7 @@ describe('o atraso que reabre logo é o mesmo', () => {
     ]);
   });
 
-  it('duas mudanças no mesmo instante que fecham e reabrem o atraso deixam a duração e os cobrados como estavam', () => {
+  it('duas mudanças no mesmo instante que fecham e reabrem o atraso deixam a duração, os cobrados e o Descontente como estavam', () => {
     const start = court(1, (draft) => {
       addHero(draft);
       addHero(draft);
@@ -569,6 +572,8 @@ describe('o atraso que reabre logo é o mesmo', () => {
     // O ouro chega e uma ordem qualquer acomoda o feudo: o atraso fecha.
     const paid = accept(withGold(open, 50_000), command('renameSettlement', { name: 'Vau' }));
     expect(brief(paid.events)).toEqual([['wageArrearsEnded', 25 * HOUR]]);
+    expect(open.guild.heroes.map((hero) => hero.discontent)).toEqual([true]);
+    expect(paid.state.guild.heroes.map((hero) => hero.discontent)).toEqual([false]);
     // No mesmo instante o ouro sai, e a ordem seguinte o reabre: é o mesmo atraso.
     const spent = accept(withGold(paid.state, 0), command('renameSettlement', { name: 'Vau 2' }));
     expect(brief(spent.events)).toEqual([['wageArrearsStarted', 25 * HOUR]]);
@@ -578,6 +583,30 @@ describe('o atraso que reabre logo é o mesmo', () => {
       departed: 1,
     });
     expect(wageArrearsDurationAt(spent.state, 25 * HOUR)).toBe(lasted);
+    // Fechar e reabrir na mesma hora não tira o Descontente de ninguém (revisão, M-D2).
+    expect(spent.state.guild.heroes.map((hero) => hero.discontent)).toEqual([true]);
+  });
+
+  it('o atraso retomado antes das 12 h não deixa ninguém Descontente, e o Leal nunca fica', () => {
+    const start = court(1, (draft) => {
+      addHero(draft, { name: 'Edda', traits: ['loyal'] });
+      addHero(draft, { name: 'Rolf' });
+    });
+    const young = advanceTo(start, 11 * HOUR).state;
+    const paid = accept(withGold(young, 50_000), command('renameSettlement', { name: 'Vau' }));
+    const back = accept(withGold(paid.state, 0), command('renameSettlement', { name: 'Vau 2' }));
+    expect(back.state.guild.wageArrears).toMatchObject({ carriedMs: 11 * HOUR });
+    expect(back.state.guild.heroes.map((hero) => hero.discontent)).toEqual([false, false]);
+    const old = advanceTo(start, 15 * HOUR).state;
+    const again = accept(
+      withGold(
+        accept(withGold(old, 50_000), command('renameSettlement', { name: 'Vau' })).state,
+        0,
+      ),
+      command('renameSettlement', { name: 'Vau 2' }),
+    );
+    expect(again.state.guild.heroes.map((hero) => hero.discontent)).toEqual([false, true]);
+    expect(brief(again.events)).toEqual([['wageArrearsStarted', 15 * HOUR]]);
   });
 });
 

@@ -152,8 +152,9 @@ export function stepWageArrears(draft: GameState, atMs: number): boolean {
  * depois da fome e do frio. `before` é o atraso que o instante encontrou: a Crônica só registra
  * o que mudou entre o começo e o fim dele.
  *
- * Fechado o atraso, ninguém continua Descontente. A lista de heróis é trocada, não alterada: a
- * previsão da visão chama `settleScarcity` em uma cópia que divide os heróis com o estado.
+ * Fechado o atraso, ninguém continua Descontente; reaberto dentro da janela, quem já estava
+ * volta a estar (`resumeDiscontent`). A lista de heróis é trocada, não alterada: a previsão da
+ * visão chama `settleScarcity` em uma cópia que divide os heróis com o estado.
  */
 export function settleWageArrears(
   draft: GameState,
@@ -165,6 +166,7 @@ export function settleWageArrears(
   if (before === null) {
     if (guild.wageArrears !== null) {
       emit(events, draft, atMs, 'wageArrearsStarted', { heroes: guild.heroes.length });
+      resumeDiscontent(draft, atMs);
     }
     return;
   }
@@ -186,6 +188,24 @@ export function settleWageArrears(
     {},
     wageArrearsReliefs[reason],
   );
+}
+
+/**
+ * O atraso que reabre dentro da janela é o mesmo, e quem ele já tinha deixado Descontente volta
+ * a estar **no instante em que reabre**, sem linha nova na Crônica (a linha é da virada em que
+ * ficou). Sem isso, fechar e reabrir o atraso tiraria o Descontente de graça até a virada
+ * seguinte. Em um atraso novo a duração é zero e ninguém muda. Troca a lista, não os heróis.
+ */
+function resumeDiscontent(draft: GameState, atMs: number): void {
+  const { guild } = draft;
+  if (wageArrearsDurationAt(draft, atMs) < wageArrearsPace(draft).discontentAfterMs) {
+    return;
+  }
+  if (guild.heroes.some((hero) => !hero.discontent && !isLoyal(hero))) {
+    guild.heroes = guild.heroes.map((hero) =>
+      hero.discontent || isLoyal(hero) ? hero : { ...hero, discontent: true },
+    );
+  }
 }
 
 /**
@@ -217,7 +237,8 @@ function lastArrived(heroes: readonly Hero[]): Hero | null {
  * 1. **Descontente.** Com o atraso durando `discontentAfterRealMs` ou mais, todo herói que não
  *    é Leal e ainda não está Descontente passa a estar, na ordem do identificador, com uma
  *    linha para cada um. O atraso que reabriu dentro da janela já chega com a duração que
- *    tinha: quem deixou de estar Descontente quando ele fechou volta a estar nesta virada.
+ *    tinha, e quem deixou de estar Descontente quando ele fechou volta a estar no instante em
+ *    que ele reabre (`resumeDiscontent`), sem linha: a virada só anuncia quem nunca esteve.
  * 2. **Partidas.** A partir de `leaveAfterRealMs`, partem os heróis que o prazo já deve e que
  *    este atraso ainda não cobrou, um a um: o que chegou por último entre os que estão no feudo
  *    e não são Leais. **Não há piso de heróis.** Se o devido não pode partir porque os que não

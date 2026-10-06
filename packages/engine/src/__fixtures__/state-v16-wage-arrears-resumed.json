@@ -165,7 +165,7 @@
     ],
     "status": "idle",
     "joinedAtMs": 0,
-    "discontent": false
+    "discontent": true
    }
   ],
   "arriving": [],
