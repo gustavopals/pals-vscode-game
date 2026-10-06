@@ -15407,7 +15407,7 @@
         "afterArrivals": null,
         "arrears": {
           "secondsElapsed": 95582,
-          "text": "Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a sobrar. Para isso, ponha gente na Mina de Ouro ou dispense um herói.",
+          "text": "Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente na Mina de Ouro ou dispense um herói.",
           "discontentInSeconds": null,
           "nextDepartureInSeconds": 2818
         }

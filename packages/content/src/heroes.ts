@@ -157,6 +157,35 @@ export const guildTexts = {
 } as const;
 
 /**
+ * As frases do soldo em atraso na aba Guilda (GDD §9.1; ADR 0017, decisão 3), com lacunas que o
+ * motor preenche: `{quantidade}` e `{herois}` ("3 heróis"), `{mina}` ("a Mina de Ouro"; "n{mina}"
+ * dá "na Mina de Ouro"), os prazos em tempo real como o conteúdo os dá (`{descontente}`,
+ * `{partida}`, `{passo}`), `{corte}` (o que o Descontente perde, em pontos percentuais) e
+ * `{heroi}`. Nenhum número de regra é escrito aqui. Rascunho que o autor não leu.
+ */
+export const wageArrearsTexts = {
+  /** Ninguém na Mina: o soldo não é pago a ninguém. */
+  unpaidOne: 'Soldo em atraso: o cofre está vazio e {quantidade} herói não recebe.',
+  unpaidMany: 'Soldo em atraso: o cofre está vazio e {quantidade} heróis não recebem.',
+  /** A Mina entrega ouro, mas menos do que o soldo: paga-se em parte. */
+  partlyPaid:
+    'Soldo em atraso: o cofre está vazio, e o que {mina} entrega paga só parte do soldo de {herois}.',
+  loyalHe: 'Ele é Leal: não fica descontente nem parte.',
+  loyalShe: 'Ela é Leal: não fica descontente nem parte.',
+  loyalAllHe: 'São todos Leais: não ficam descontentes nem partem.',
+  loyalAllShe: 'São todas Leais: não ficam descontentes nem partem.',
+  deadlines:
+    'Com {descontente} de atraso, quem não é Leal fica descontente e perde {corte}% dos atributos; com {partida}, parte um herói a cada {passo}, o que chegou por último. As duas coisas acontecem na virada do dia.',
+  /** Só quando há um herói que chegou depois de o atraso abrir. */
+  latecomers: 'Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.',
+  remedy:
+    'O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente n{mina} ou dispense um herói.',
+  /** O herói prometido que encontra a lista de heróis no teto. */
+  waitingAtDoor:
+    'O feudo já abriga {herois}, e não cabe mais nenhum: {heroi} espera à porta até um lugar abrir.',
+} as const;
+
+/**
  * Um herói com nome próprio (GDD §9.1 e Apêndice B; ADR 0017, decisão 6): quem uma carta do
  * Conselho entrega, com o efeito `addHero`. Chega sem custo; o soldo conta desde a chegada.
  */

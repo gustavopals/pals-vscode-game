@@ -1,4 +1,4 @@
-import { balance, guildTexts } from '@lotg/content';
+import { balance, guildTexts, wageArrearsTexts } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -217,9 +217,37 @@ describe('o soldo em atraso na visão', () => {
       return guildOf(open).wage.arrears?.text;
     });
     expect(texts[0]).toBe(
-      'Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a sobrar. Para isso, ponha gente na Mina de Ouro ou dispense um herói.',
+      'Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente na Mina de Ouro ou dispense um herói.',
     );
     expect(new Set(texts).size).toBe(1);
+  });
+
+  it('com a Mina pagando parte do soldo, a frase não diz que ninguém recebe (revisão, M-Q3)', () => {
+    const mined = advanceTo(
+      court(1, (draft) => {
+        draft.settlement.workers.goldMine = 1;
+        addHero(draft);
+        addHero(draft, { traits: ['loyal'] });
+        addHero(draft);
+      }),
+      1,
+    ).state;
+    const text = guildOf(mined).wage.arrears?.text ?? '';
+    expect(text).toContain(
+      'Soldo em atraso: o cofre está vazio, e o que a Mina de Ouro entrega paga só parte do soldo de 3 heróis.',
+    );
+    expect(text).not.toContain('não recebe');
+  });
+
+  it('as frases do atraso moram no conteúdo: o motor só preenche as lacunas', () => {
+    const open = advanceTo(
+      court(1, (draft) => void addHero(draft)),
+      1,
+    ).state;
+    const text = guildOf(open).wage.arrears?.text ?? '';
+    expect(text).not.toMatch(/[{}]/);
+    expect(text.startsWith(wageArrearsTexts.unpaidOne.replace('{quantidade}', '1'))).toBe(true);
+    expect(text).toContain(wageArrearsTexts.remedy.replaceAll('{mina}', 'a Mina de Ouro'));
   });
 
   it('o Descontente aparece na ficha, com o poder menor e o termo na conta', () => {
@@ -253,7 +281,7 @@ describe('o soldo em atraso na visão', () => {
     const { arrears } = guildOf(open).wage;
     expect(arrears).toMatchObject({ discontentInSeconds: null, nextDepartureInSeconds: null });
     expect(arrears?.text).toBe(
-      'Soldo em atraso: o cofre está vazio e 1 herói não recebe. Ele é Leal: não fica descontente nem parte. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a sobrar. Para isso, ponha gente na Mina de Ouro ou dispense um herói.',
+      'Soldo em atraso: o cofre está vazio e 1 herói não recebe. Ele é Leal: não fica descontente nem parte. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente na Mina de Ouro ou dispense um herói.',
     );
     const both = advanceTo(
       court(1, (draft) => {

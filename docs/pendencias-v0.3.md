@@ -206,6 +206,11 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - `spent_gold` na contratação e `spent_food`, `spent_gold` no festival, pelo mesmo ajudante das obras: o Relatório de Retorno já soma `spent_<recurso>` de todo evento, então o preço do herói e o custo do festival saem sozinhos da conta da produção. O teste do relatório com esses dois eventos é do agente do app.
 - `templateId` saiu de `heroHired.data`: o servidor entrega `data` inteiro, e o modelo diria os pesos do sorteio. O teste de névoa do servidor olha agora a resposta da ordem, `GET /events` e a Crônica depois da contratação.
 
+**C-56. As frases do soldo em atraso foram para o conteúdo, e duas mudaram.** *(Texto; revisão M-Q3. Rascunho do agente.)*
+- "Soldo em atraso: o cofre está vazio e N heróis não recebem" era dita também com a Mina pagando parte do soldo. Agora, com a Mina entregando ouro: "Soldo em atraso: o cofre está vazio, e o que a Mina de Ouro entrega paga só parte do soldo de 3 heróis."
+- "o atraso fecha quando o ouro voltar a sobrar" virou "quando o ouro voltar a pagar a equipe inteira" (C-52: o saldo em zero fecha).
+- Onde: `wageArrearsTexts`, em `packages/content/src/heroes.ts` (também a frase de quem espera à porta); `arrearsText`, em `packages/engine/src/guildView.ts`. As frases da Taverna e da moral continuam montadas no motor, como já eram.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

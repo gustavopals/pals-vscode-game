@@ -59,6 +59,7 @@ export {
   heroTraits,
   namedHeroes,
   tavernCandidates,
+  wageArrearsTexts,
 } from './heroes';
 export type {
   HeroClassDef,

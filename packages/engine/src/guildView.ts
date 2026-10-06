@@ -6,13 +6,14 @@ import {
   heroStatuses,
   heroTraits,
   type Ratio,
+  wageArrearsTexts,
 } from '@lotg/content';
 
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
-import { netRates, producerOf, stockBalance } from './economy';
+import { netRates, producerOf, productionRate, stockBalance } from './economy';
 import { storageCapacity } from './storage';
-import { decimal, durationText, plural } from './format';
+import { decimal, durationText, fillText, plural } from './format';
 import {
   classLabel,
   heroFactors,
@@ -101,36 +102,46 @@ const realText = (realMs: number): string => durationText(realMs / SECOND_MS);
  * O atraso em frases: o que ele é, o que os prazos cobram (em tempo real, como o conteúdo os
  * dá, iguais em qualquer ritmo), quem fica e o que fecha a conta. Os prazos que andam
  * (`discontentInSeconds`, `nextDepartureInSeconds`) ficam fora da frase: a tela os conta.
+ *
+ * As frases são as de `wageArrearsTexts`, no conteúdo: aqui só se escolhe qual vale e se
+ * preenchem as lacunas. A primeira diz a verdade sobre a Mina: com ela parada ninguém recebe;
+ * com ela entregando menos do que o soldo, paga-se em parte.
  */
 function arrearsText(state: GameState): string {
-  const { heroes } = state.guild;
+  const { heroes, wageArrears } = state.guild;
   const { arrears } = rules;
-  const unpaid = plural(paidHeroes(state), 'herói não recebe', 'heróis não recebem');
+  const texts = wageArrearsTexts;
+  const paid = paidHeroes(state);
   const { num, den } = arrears.discontentFactor;
-  const cut = decimal(((den - num) * 100) / den);
-  const sentences = [`Soldo em atraso: o cofre está vazio e ${unpaid}.`];
+  const values = {
+    quantidade: paid,
+    herois: plural(paid, 'herói', 'heróis'),
+    mina: buildingWithArticle(producerOf('gold')),
+    descontente: realText(arrears.discontentAfterRealMs),
+    partida: realText(arrears.leaveAfterRealMs),
+    passo: realText(arrears.leaveEveryRealMs),
+    corte: decimal(((den - num) * 100) / den),
+  };
+  const mined = productionRate(state, producerOf('gold')) > 0;
+  const sentences: string[] = [
+    mined ? texts.partlyPaid : paid === 1 ? texts.unpaidOne : texts.unpaidMany,
+  ];
   if (heroes.every(isLoyal)) {
     const women = heroes.every((hero) => hero.gender === 'f');
-    sentences.push(
-      heroes.length === 1
-        ? `${women ? 'Ela' : 'Ele'} é Leal: não fica descontente nem parte.`
-        : `São ${women ? 'todas' : 'todos'} Leais: não ficam descontentes nem partem.`,
-    );
+    if (heroes.length === 1) {
+      sentences.push(women ? texts.loyalShe : texts.loyalHe);
+    } else {
+      sentences.push(women ? texts.loyalAllShe : texts.loyalAllHe);
+    }
   } else {
-    sentences.push(
-      `Com ${realText(arrears.discontentAfterRealMs)} de atraso, quem não é Leal fica descontente e perde ${cut}% dos atributos; com ${realText(arrears.leaveAfterRealMs)}, parte um herói a cada ${realText(arrears.leaveEveryRealMs)}, o que chegou por último. As duas coisas acontecem na virada do dia.`,
-    );
-    const { wageArrears } = state.guild;
+    sentences.push(texts.deadlines);
     const started = wageArrears === null ? 0 : wageArrears.sinceMs - wageArrears.carriedMs;
     if (heroes.some((hero) => !isLoyal(hero) && hero.joinedAtMs > started)) {
-      sentences.push('Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.');
+      sentences.push(texts.latecomers);
     }
   }
-  const mine = buildingWithArticle(producerOf('gold'));
-  sentences.push(
-    `O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a sobrar. Para isso, ponha gente n${mine} ou dispense um herói.`,
-  );
-  return sentences.join(' ');
+  sentences.push(texts.remedy);
+  return fillText(sentences.join(' '), values);
 }
 
 function arrearsView(state: GameState, timeScale: number): WageArrearsView | null {
@@ -238,7 +249,10 @@ function arrivingView(state: GameState, timeScale: number): ArrivingHeroView[] {
       arrivesInSeconds: waiting ? 0 : realSecondsCeil(entry.atMs - now, timeScale),
       blockedReason:
         waiting && !rosterHasRoom(state)
-          ? `O feudo já abriga ${plural(state.guild.heroes.length, 'herói', 'heróis')}, e não cabe mais nenhum: ${named.name} espera à porta até um lugar abrir.`
+          ? fillText(wageArrearsTexts.waitingAtDoor, {
+              herois: plural(state.guild.heroes.length, 'herói', 'heróis'),
+              heroi: named.name,
+            })
           : null,
     });
   }

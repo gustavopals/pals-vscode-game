@@ -57,3 +57,13 @@ export function durationText(seconds: number): string {
 export function shareText(ratio: { num: number; den: number }): string {
   return ratio.num * 2 === ratio.den ? 'metade' : `${decimal((ratio.num * 100) / ratio.den)}%`;
 }
+
+/**
+ * Preenche as lacunas `{nome}` de uma frase do conteúdo. Uma lacuna sem valor fica como está:
+ * um teste do conteúdo confere que toda frase só usa lacunas conhecidas.
+ */
+export function fillText(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{([^}]*)\}/g, (marker, name: string) =>
+    Object.hasOwn(values, name) ? String(values[name]) : marker,
+  );
+}

@@ -31,6 +31,7 @@ import {
   MORALE_TERM_IDS,
   moraleBandTemplates,
   namedHeroes,
+  wageArrearsTexts,
   OBJECTIVE_CONDITION_TYPES,
   objectives,
   PRODUCTION_BUILDING_IDS,
@@ -1984,6 +1985,28 @@ describe('Taverna (GDD §5.7, §6.1 e §9.1; ADR 0017, decisões 4, 5 e 10)', ()
     }
     // A rotação é sem reposição: há mais modelos do que candidatos na maior lista.
     expect(tavernCandidates.length).toBeGreaterThan(Math.max(...tavern.offersByLevel));
+  });
+
+  it('as frases do soldo em atraso só têm lacunas conhecidas e nenhum número de regra', () => {
+    const known = [
+      'quantidade',
+      'herois',
+      'mina',
+      'descontente',
+      'partida',
+      'passo',
+      'corte',
+      'heroi',
+    ];
+    for (const [id, text] of Object.entries(wageArrearsTexts)) {
+      for (const [, name] of text.matchAll(/\{([^}]*)\}/g)) {
+        expect(known, `${id}: {${name}}`).toContain(name);
+      }
+      expect(text.replace(/\{[^}]*\}/g, ''), id).not.toMatch(/\d/);
+      expect(text, id).toMatch(/\.$/);
+    }
+    expect(wageArrearsTexts.deadlines).toContain('{descontente}');
+    expect(wageArrearsTexts.remedy).toContain('n{mina}');
   });
 
   it('os nomes dos candidatos são únicos, nenhum é de um herói de carta, e sobram para o feudo mais cheio', () => {
