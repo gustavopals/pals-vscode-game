@@ -774,6 +774,31 @@ describe('o equipamento na ficha e o arsenal (V3D-T4.5)', () => {
     ).toContain('O arsenal está vazio: os itens vêm das expedições.');
     expect(html(<ArsenalPanel view={guildPaidView} disabled={false} actions={actions} />)).toBe('');
   });
+
+  it('com todos fora do feudo, "Equipar" fica desabilitado e o painel diz por quê (revisão, A27)', () => {
+    const away: ViewState = {
+      ...heroInjuredView,
+      guild: {
+        ...heroInjuredView.guild,
+        heroes: heroInjuredView.guild.heroes.map((hero) => ({ ...hero, atHome: false })),
+      },
+    };
+    const markup = html(<ArsenalPanel view={away} disabled={false} actions={actions} />);
+    const [equip] = buttons(markup).filter((button) => button.label.startsWith('Equipar'));
+    expect(equip?.disabled).toBe(true);
+    expect(text(markup)).toContain(
+      'Nenhum herói está no feudo agora: quem está fora só troca de equipamento na volta.',
+    );
+    // O motivo está ligado ao botão, para quem chega nele pelo teclado ou pelo leitor de tela.
+    expect(equip?.describedBy?.split(' ')).toContain('arsenal-nobody');
+    expect(markup).toContain('id="arsenal-nobody"');
+    // Com alguém no feudo, nada disso aparece.
+    const home = html(<ArsenalPanel view={heroInjuredView} disabled={false} actions={actions} />);
+    expect(home).not.toContain('arsenal-nobody');
+    expect(buttons(home).find((button) => button.label.startsWith('Equipar'))?.disabled).toBe(
+      false,
+    );
+  });
 });
 
 /** Todos os botões de uma árvore de componentes, com o texto e o clique, sem DOM. */
