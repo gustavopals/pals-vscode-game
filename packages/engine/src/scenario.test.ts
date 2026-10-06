@@ -336,6 +336,7 @@ describe('cenário golden de 7 dias', () => {
           captivity: null,
           equipment: { weapon: null, armor: null, accessory: null },
           joinedAtMs: 48 * HOUR,
+          freedAtMs: null,
           discontent: false,
         },
       ],

@@ -137,6 +137,7 @@ export function addHero(
     captivity: null,
     equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: spec.joinedAtMs ?? draft.lastProcessedAt,
+    freedAtMs: null,
     discontent: false,
   };
   heroes.push(hero);

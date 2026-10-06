@@ -490,8 +490,8 @@ describe('uma partida gravada antes da Paliçada (estado na versão 9)', () => {
     expect(palisade(view)?.blockedCode).not.toBe('GATE_LOCKED');
 
     const row = await storedState(fast, game.id);
-    expect(row.schema_version).toBe(19);
-    expect(row.state.schemaVersion).toBe(19);
+    expect(row.schema_version).toBe(20);
+    expect(row.state.schemaVersion).toBe(20);
     // A Paliçada da versão 10, a Taverna da 16 e a Guilda dos Aventureiros da 17 entram por construir.
     expect(row.state.settlement.buildings).toEqual({
       ...before.settlement.buildings,

@@ -331,6 +331,7 @@ describe('contratar (hireHero)', () => {
         captivity: null,
         equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: opensAt,
+        freedAtMs: null,
         discontent: false,
       },
     ]);

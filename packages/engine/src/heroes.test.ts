@@ -26,6 +26,7 @@ const hero = (changed: Partial<Hero> = {}): Hero => ({
   captivity: null,
   equipment: { weapon: null, armor: null, accessory: null },
   joinedAtMs: 0,
+  freedAtMs: null,
   discontent: false,
   ...changed,
 });

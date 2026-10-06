@@ -294,6 +294,7 @@ control.post('/__test/hero', async (request) => {
       captivity: null,
       equipment: { weapon: null, armor: null, accessory: null },
       joinedAtMs: state.lastProcessedAt,
+      freedAtMs: null,
       discontent: false,
     });
     await pool.query('update games set state = $2::jsonb where id = $1', [

@@ -94,6 +94,7 @@ function prepare(plan: Scenario): GameState {
     captivity: null,
     equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: 0,
+    freedAtMs: null,
     discontent: false,
   }));
   if (plan.captive) {

@@ -211,7 +211,8 @@ export function recoverHeroes(draft: GameState, atMs: number, events: GameEvent[
 
 /**
  * Liberta quem está em cativeiro **há mais tempo** (no empate, quem chegou antes ao feudo): ele
- * volta ao feudo neste instante, pronto, com o que levava, e o soldo dele volta a correr.
+ * volta ao feudo neste instante, pronto, com o que levava, e o soldo dele volta a correr. O
+ * instante fica gravado nele (`freedAtMs`): o atraso do soldo que correu com ele preso não conta.
  * Devolve o herói, ou `null` quando já não há ninguém lá.
  */
 export function rescueCaptive(
@@ -227,6 +228,8 @@ export function rescueCaptive(
   }
   hero.status = 'idle';
   hero.captivity = null;
+  // Os prazos do soldo em atraso contam, para ele, deste instante (`servingSinceMs`).
+  hero.freedAtMs = atMs;
   draft.stats.heroesRescued = (draft.stats.heroesRescued ?? 0) + 1;
   emit(
     events,

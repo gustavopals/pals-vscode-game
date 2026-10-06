@@ -36,6 +36,7 @@ import {
   namedHeroOf,
   paidHeroes,
   rosterHasRoom,
+  servingSinceMs,
   traitLabel,
   wageRate,
 } from './heroes';
@@ -216,7 +217,7 @@ function arrearsText(state: GameState): string {
   } else {
     sentences.push(texts.deadlines);
     const started = wageArrears === null ? 0 : wageArrears.sinceMs - wageArrears.carriedMs;
-    if (heroes.some((hero) => !isBeyondArrears(hero) && hero.joinedAtMs > started)) {
+    if (heroes.some((hero) => !isBeyondArrears(hero) && servingSinceMs(hero) > started)) {
       sentences.push(texts.latecomers);
     }
   }

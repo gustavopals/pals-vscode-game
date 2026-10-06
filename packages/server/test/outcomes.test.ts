@@ -72,6 +72,7 @@ const hero = (id: string, name: string, gender: 'f' | 'm') => ({
   captivity: null,
   equipment: { weapon: null, armor: null, accessory: null },
   joinedAtMs: 0,
+  freedAtMs: null,
   discontent: false,
 });
 
@@ -221,7 +222,7 @@ describe('equipar um herói e reenviar a ordem', () => {
       'select schema_version from games where id = $1',
       [gameId],
     );
-    expect(row.rows[0]?.schema_version).toBe(19);
+    expect(row.rows[0]?.schema_version).toBe(20);
   });
 
   it('nada do que é segredo sai pela API: nem a chave do item no conteúdo, nem o cativeiro, nem o prazo cru', async () => {

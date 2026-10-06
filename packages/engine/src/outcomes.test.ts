@@ -50,6 +50,7 @@ import { nextEventAt } from './timeline';
 import type { Expedition, GameEvent, GameState, Hero } from './types';
 import { MILLI } from './units';
 import { deriveViewState } from './view';
+import { nextDiscontentAt, nextWageDepartureAt } from './wages';
 
 /**
  * Os desfechos das expedições (V3D-T2; GDD §9.1, §9.2 e §12.1; ADR 0017, decisão 8 e "Os oito
@@ -1552,5 +1553,87 @@ describe('o cenário roteirizado dos desfechos, nas três dificuldades (V3D-T2, 
     await expect(`${JSON.stringify(golden, null, 1)}\n`).toMatchFileSnapshot(
       './__golden__/expedition-outcomes.json',
     );
+  });
+});
+
+describe('o resgatado em pleno atraso do soldo tem os prazos dele (revisão da Fase D, M-D1)', () => {
+  const turnFrom = (atMs: number): number => Math.ceil(atMs / DAY) * DAY;
+
+  /**
+   * Edda e Rolf, Guerreiros Leais de nível 10, e Brann em cativeiro desde o começo; o cofre
+   * vazio e ninguém na Mina. Trinta horas reais de atraso depois, os dois vão buscá-lo, e a
+   * troca da guarda (154,8 contra 78) é Sucesso Pleno em toda a sorte.
+   */
+  function rescuedLate(timeScale: number) {
+    const start = guildHall(
+      10 * DAY,
+      (draft) => {
+        addHero(draft, { name: 'Edda', gender: 'f', level: 10, traits: ['loyal'] });
+        addHero(draft, { name: 'Rolf', level: 10, traits: ['loyal'] });
+        const brann = addHero(draft, { name: 'Brann', classId: 'archer' });
+        brann.status = 'captured';
+        brann.captivity = { sinceMs: draft.lastProcessedAt, modelId: 'ruins' };
+        draft.settlement.resources.gold = 0;
+      },
+      { difficulty: 'lord', timeScale },
+    );
+    const late = advanceTo(start, 10 * DAY + 30 * HOUR * timeScale).state;
+    expect(late.guild.wageArrears).not.toBeNull();
+    const sent = send(late, 'rescue', ['hero-1', 'hero-2'], 'cautious', 0);
+    const placed = placeAt(sent.state, 'guardChange');
+    return { state: placed.state, freedAt: placed.endsAt };
+  }
+
+  const ofHero = (events: GameEvent[], heroId: string) =>
+    events
+      .filter((event) => event.type === 'heroDiscontent' || event.type === 'heroLeft')
+      .filter((event) => event.data.heroId === heroId)
+      .map((event) => [event.type, event.atMs]);
+
+  it.each([3, 1, 0.5])(
+    'ritmo %s: volta sem dever o atraso que correu com ele preso; fica Descontente 12 h reais depois da volta e só parte com 24 h',
+    (timeScale) => {
+      const { state, freedAt } = rescuedLate(timeScale);
+      const freed = advanceTo(state, freedAt);
+      expect(ofType(freed.events, 'heroRescued').map((event) => event.atMs)).toEqual([freedAt]);
+      expect(heroOf(freed.state, 'hero-3')).toMatchObject({ status: 'idle', freedAtMs: freedAt });
+      expect(shaped(freed.state)).toBeNull();
+
+      const sourAt = turnFrom(freedAt + 12 * HOUR * timeScale);
+      // Nunca antes das 24 h reais dele; no máximo um passo de 2 h reais e uma virada depois
+      // (a conta que ninguém podia pagar fica perdoada: `turnWages`).
+      const goneAt = nextWageDepartureAt(freed.state) ?? -1;
+      expect(goneAt - freedAt).toBeGreaterThanOrEqual(24 * HOUR * timeScale);
+      expect(goneAt - freedAt).toBeLessThan(26 * HOUR * timeScale + DAY);
+      expect(nextDiscontentAt(freed.state)).toBe(sourAt);
+      // A tela diz os dois prazos certos, e que eles contam da volta.
+      const { arrears } = deriveViewState(freed.state, freedAt, { timeScale }).guild.wage;
+      expect(arrears?.discontentInSeconds).toBe((sourAt - freedAt) / timeScale / 1000);
+      expect(arrears?.nextDepartureInSeconds).toBe((goneAt - freedAt) / timeScale / 1000);
+      expect(arrears?.text).toContain('ou voltou do cativeiro');
+
+      // A virada seguinte à volta não cobra nada dele.
+      const nextTurn = turnFrom(freedAt + 1);
+      expect(
+        ofHero(advanceTo(freed.state, Math.min(nextTurn, sourAt - 1)).events, 'hero-3'),
+      ).toEqual([]);
+      expect(ofHero(advanceTo(freed.state, sourAt - 1).events, 'hero-3')).toEqual([]);
+      expect(ofHero(advanceTo(freed.state, goneAt - 1).events, 'hero-3')).toEqual([
+        ['heroDiscontent', sourAt],
+      ]);
+      expect(ofHero(advanceTo(freed.state, goneAt).events, 'hero-3')).toEqual([
+        ['heroDiscontent', sourAt],
+        ['heroLeft', goneAt],
+      ]);
+    },
+  );
+
+  it('quem volta com o soldo em dia não muda nada: o instante fica gravado e nenhum prazo corre', () => {
+    const { state, freedAt } = rescuedLate(1);
+    const paid = cloneState(state);
+    paid.settlement.resources.gold = 2_000_000;
+    const freed = advanceTo(paid, freedAt + 3 * DAY);
+    expect(heroOf(freed.state, 'hero-3').freedAtMs).toBe(freedAt);
+    expect(ofHero(freed.events, 'hero-3')).toEqual([]);
   });
 });

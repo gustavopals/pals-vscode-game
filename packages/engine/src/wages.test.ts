@@ -985,7 +985,7 @@ describe('quem chega com o atraso já velho tem os prazos dele (revisão da Fase
       const state = latecomers(timeScale, joined, ['Rolf']);
       const { arrears } = deriveViewState(state, joined).guild.wage;
       expect(arrears?.text).toContain(
-        'Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.',
+        'Para quem chegou, ou voltou do cativeiro, com o atraso já aberto, os dois prazos contam da chegada dele.',
       );
       const sourAt = turnFrom(joined + 12 * HOUR * timeScale);
       expect(nextDiscontentAt(state)).toBe(sourAt);

@@ -40,6 +40,7 @@ export function admitHero(draft: GameState, spec: HeroSpec, atMs: number): Hero 
     captivity: null,
     equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: atMs,
+    freedAtMs: null,
     discontent: false,
   };
   draft.guild.heroes.push(hero);

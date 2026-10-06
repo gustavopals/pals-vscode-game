@@ -4,7 +4,7 @@ import { emit } from './chronicle';
 import { DAY_MS, nextDayBoundary } from './clock';
 import { goldCoversWages, goldRunsOutIn } from './economy';
 import { releaseEquipment } from './equipment';
-import { isAtHome, isBeyondArrears, paidHeroes, wageRate } from './heroes';
+import { isAtHome, isBeyondArrears, paidHeroes, servingSinceMs, wageRate } from './heroes';
 import { reject } from './rejections';
 import type { GameEvent, GameState, Hero, Rejection } from './types';
 import { realToGameMs } from './units';
@@ -77,7 +77,8 @@ export function wageLedgerAt(state: GameState, atMs: number): WageLedger | null 
 }
 
 /**
- * O atraso **vivido por um herói**: a duração da conta, limitada ao tempo desde que ele chegou.
+ * O atraso **vivido por um herói**: a duração da conta, limitada ao tempo desde que ele chegou
+ * ou, para quem esteve em cativeiro, desde que voltou (`servingSinceMs`; revisão da Fase D, M-D1).
  * É o que os prazos dele leem (revisão da Fase C, M-R1): quem entra em um atraso velho só fica
  * Descontente depois de `discontentAfterRealMs` de atraso com ele no feudo, e só pode partir
  * depois de `leaveAfterRealMs`. Para quem já estava quando o atraso abriu, é a duração inteira.
@@ -88,7 +89,7 @@ export function wageLedgerAt(state: GameState, atMs: number): WageLedger | null 
  * resto desse intervalo: no máximo a janela de retomada, a favor do prazo e contra o herói.
  */
 export function heroArrearsMs(ledger: WageLedger, hero: Hero): number {
-  return Math.max(0, Math.min(ledger.durationMs, ledger.untilMs - hero.joinedAtMs));
+  return Math.max(0, Math.min(ledger.durationMs, ledger.untilMs - servingSinceMs(hero)));
 }
 
 /**
@@ -382,7 +383,7 @@ export function nextDiscontentAt(state: GameState): number | null {
     if (hero.discontent || isBeyondArrears(hero)) {
       continue;
     }
-    const heroDueAt = Math.max(started, hero.joinedAtMs) + discontentAfterMs;
+    const heroDueAt = Math.max(started, servingSinceMs(hero)) + discontentAfterMs;
     dueAt = dueAt === null ? heroDueAt : Math.min(dueAt, heroDueAt);
   }
   return dueAt === null ? null : firstTurnFrom(state, dueAt);
@@ -401,7 +402,7 @@ export function nextWageDepartureAt(state: GameState): number | null {
   }
   const { leaveAfterMs, leaveEveryMs } = wageArrearsPace(state);
   const started = wageArrears.sinceMs - wageArrears.carriedMs;
-  const mayLeaveAt = (hero: Hero) => Math.max(started, hero.joinedAtMs) + leaveAfterMs;
+  const mayLeaveAt = (hero: Hero) => Math.max(started, servingSinceMs(hero)) + leaveAfterMs;
   const leavers = heroes.filter((hero) => !isBeyondArrears(hero));
   const first =
     lastArrived(leavers) === null ? null : Math.min(...leavers.filter(isAtHome).map(mayLeaveAt));

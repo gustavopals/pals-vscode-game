@@ -227,7 +227,8 @@ export const wageArrearsTexts = {
   deadlines:
     'Com {descontente} de atraso, quem não é Leal fica descontente e perde {corte}% dos atributos; com {partida}, parte um herói a cada {passo}, o que chegou por último. As duas coisas acontecem na virada do dia.',
   /** Só quando há um herói que chegou depois de o atraso abrir. */
-  latecomers: 'Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.',
+  latecomers:
+    'Para quem chegou, ou voltou do cativeiro, com o atraso já aberto, os dois prazos contam da chegada dele.',
   remedy:
     'O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente n{mina} ou dispense um herói.',
   /** O atraso fechou há pouco, e a virada do dia ainda cobra o herói que o prazo já devia. */

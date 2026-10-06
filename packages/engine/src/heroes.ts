@@ -58,6 +58,15 @@ export function isBeyondArrears(hero: Hero): boolean {
 }
 
 /**
+ * Desde quando o herói está no feudo para viver um atraso de soldo, em ms de jogo: a chegada
+ * ou, para quem já esteve em cativeiro, a volta dele, o que for mais tarde. É de onde contam os
+ * prazos do atraso de quem entrou (ou voltou) com a conta já aberta.
+ */
+export function servingSinceMs(hero: Pick<Hero, 'joinedAtMs' | 'freedAtMs'>): number {
+  return Math.max(hero.joinedAtMs, hero.freedAtMs ?? 0);
+}
+
+/**
  * Os heróis em cativeiro, do que está lá há mais tempo ao mais recente; no empate, na ordem da
  * lista (a de chegada ao feudo). O primeiro é quem um Resgate liberta.
  */

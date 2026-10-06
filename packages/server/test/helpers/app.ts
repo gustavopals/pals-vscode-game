@@ -308,6 +308,7 @@ export async function enlistHeroes(
     captivity: null,
     equipment: { weapon: null, armor: null, accessory: null },
     joinedAtMs: 0,
+    freedAtMs: null,
     discontent: false,
   }));
   const { rowCount } = await target.pool.query(

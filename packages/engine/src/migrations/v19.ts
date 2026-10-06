@@ -1,4 +1,5 @@
 import { exactObject, literal, nullable, oneOf, type Shape } from './shape';
+import type { MigrationStep, StoredState } from './step';
 import { rngWithinIds, RNG_STREAM_FAMILIES_V13 } from './v13';
 import { guildOf, guildWithinState } from './v14';
 import { tavernWithinState } from './v16';
@@ -81,8 +82,7 @@ export const guildV19Fields: Readonly<Record<string, Shape>> = {
  * destacou no nó, pelo nome) e `lesson` (o que o Revés ou o Desastre ensina: o tipo, o herói e
  * a Postura de que fala). Nada mais muda de forma; `ids` e `rng` ficam como estavam.
  *
- * Quem subir `schemaVersion` para 20 acrescenta aqui o passo `v19ToV20`, com esta forma como
- * entrada, e escreve a forma nova em `v20.ts`.
+ * O passo que sai daqui é o `v19ToV20`, abaixo; a forma da versão 20 está em `v20.ts`.
  */
 export const stateV19Fields: Readonly<Record<string, Shape>> = {
   ...stateV18Fields,
@@ -100,3 +100,32 @@ export const stateV19: Shape = (value, path) =>
   tavernWithinState(value, path) ??
   expeditionsWithinState(value, path) ??
   outcomesWithinState(value, path);
+
+/**
+ * Versão 19 → 20: o instante da volta do cativeiro (revisão da Fase D, M-D1; ADR 0017, decisão
+ * 3). Cada herói ganha `freedAtMs`, e os prazos do soldo em atraso passam a contar, para quem
+ * foi resgatado, do maior entre a chegada e a volta.
+ *
+ * - Todos entram com `null`: a versão 19 não guardava a volta, e **nada é reconstituído**. Quem
+ *   foi resgatado antes da fronteira continua com os prazos contados da chegada, como a versão
+ *   19 os contava; quem for resgatado depois dela tem os dele.
+ *
+ * **O passo não cria prazo, não emite evento, não dá identificador a ninguém e não toca o
+ * gerador.**
+ */
+export const v19ToV20: MigrationStep = {
+  from: 19,
+  summary: 'heróis sem o instante da volta do cativeiro',
+  shape: stateV19,
+  migrate(state) {
+    const guild = state.guild as StoredState;
+    return {
+      ...state,
+      schemaVersion: 20,
+      guild: {
+        ...guild,
+        heroes: (guild.heroes as StoredState[]).map((hero) => ({ ...hero, freedAtMs: null })),
+      },
+    };
+  },
+};

@@ -89,36 +89,41 @@ type HeroV18 = {
  * ele não está ferido nem Descontente; quem se recupera no feudo tem o ferimento, e quem está
  * pronto não tem nenhum (quem se fere em uma expedição continua nela, com o ferimento).
  */
-const hero: Shape = (value, path) => {
-  const found = exactObject({
-    ...heroV14Fields,
-    gender: oneOf(HERO_GENDER_IDS_V15),
-    status: oneOf(HERO_STATUS_IDS_V18),
-    injury: nullable(exactObject({ severity: oneOf(INJURY_SEVERITY_IDS_V18), untilMs: natural })),
-    captivity: nullable(exactObject({ sinceMs: natural, modelId: contentKey })),
-    equipment: exactObject(
-      Object.fromEntries(ITEM_SLOT_IDS_V18.map((slot) => [slot, nullable(item)])),
-    ),
-  })(value, path);
-  if (found !== null) {
-    return found;
-  }
-  const entry = value as HeroV18;
-  const captive = entry.status === 'captured';
-  if (captive !== (entry.captivity !== null)) {
-    return `${where(path)}.captivity: só o herói em cativeiro tem cativeiro`;
-  }
-  if (captive && (entry.injury !== null || entry.discontent)) {
-    return `${where(path)}.status: herói em cativeiro ferido ou Descontente`;
-  }
-  if (entry.status === 'injured' && entry.injury === null) {
-    return `${where(path)}.injury: herói em recuperação sem ferimento`;
-  }
-  if (entry.status === 'idle' && entry.injury !== null) {
-    return `${where(path)}.injury: herói pronto com ferimento`;
-  }
-  return null;
-};
+export const heroShapeOf =
+  (extra: Readonly<Record<string, Shape>> = {}): Shape =>
+  (value, path) => {
+    const found = exactObject({
+      ...heroV14Fields,
+      ...extra,
+      gender: oneOf(HERO_GENDER_IDS_V15),
+      status: oneOf(HERO_STATUS_IDS_V18),
+      injury: nullable(exactObject({ severity: oneOf(INJURY_SEVERITY_IDS_V18), untilMs: natural })),
+      captivity: nullable(exactObject({ sinceMs: natural, modelId: contentKey })),
+      equipment: exactObject(
+        Object.fromEntries(ITEM_SLOT_IDS_V18.map((slot) => [slot, nullable(item)])),
+      ),
+    })(value, path);
+    if (found !== null) {
+      return found;
+    }
+    const entry = value as HeroV18;
+    const captive = entry.status === 'captured';
+    if (captive !== (entry.captivity !== null)) {
+      return `${where(path)}.captivity: só o herói em cativeiro tem cativeiro`;
+    }
+    if (captive && (entry.injury !== null || entry.discontent)) {
+      return `${where(path)}.status: herói em cativeiro ferido ou Descontente`;
+    }
+    if (entry.status === 'injured' && entry.injury === null) {
+      return `${where(path)}.injury: herói em recuperação sem ferimento`;
+    }
+    if (entry.status === 'idle' && entry.injury !== null) {
+      return `${where(path)}.injury: herói pronto com ferimento`;
+    }
+    return null;
+  };
+
+const hero: Shape = heroShapeOf();
 
 /** Os campos de um registro do percurso da versão 18: a versão seguinte parte deles. */
 export const logEntryV18Fields: Readonly<Record<string, Shape>> = {

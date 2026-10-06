@@ -248,6 +248,12 @@ export type Hero = {
   /** Quando chegou, em tempo de jogo: quem chegou por último é o primeiro a partir sem soldo. */
   joinedAtMs: number;
   /**
+   * Quando voltou do cativeiro pela última vez, em tempo de jogo; `null` para quem nunca esteve
+   * lá. Os prazos do soldo em atraso contam, para ele, do maior entre a chegada e a volta: o
+   * atraso que correu com ele preso não é dele (revisão da Fase D, M-D1).
+   */
+  freedAtMs: number | null;
+  /**
    * Descontente com o soldo em atraso (GDD §9.1): os atributos valem uma fração enquanto o
    * atraso durar. Só a virada do dia o marca, e ele some quando o atraso fecha.
    */
@@ -397,7 +403,7 @@ export type ExpeditionReport = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 19;
+  schemaVersion: 20;
   seed: string;
   settings: GameSettings;
   /**

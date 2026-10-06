@@ -1,0 +1,239 @@
+{
+ "schemaVersion": 20,
+ "seed": "fixture-tavern-busy",
+ "settings": {
+  "settlementName": "Pedra Alta",
+  "timezone": "America/Sao_Paulo",
+  "vigilHourLocal": 20,
+  "difficulty": "lord",
+  "timeScale": 1
+ },
+ "migratedAtMs": null,
+ "clock": {
+  "gameTimeMs": 308102345,
+  "yearStartMs": 0,
+  "year": 1
+ },
+ "lastProcessedAt": 308102345,
+ "rng": {
+  "tavern": [
+   1483046170,
+   1024422686,
+   761242228,
+   3710935906
+  ],
+  "morale": [
+   3310778374,
+   1993313562,
+   3973170540,
+   3889240866
+  ]
+ },
+ "ids": {
+  "hero": 2,
+  "offer": 4
+ },
+ "settlement": {
+  "name": "Pedra Alta",
+  "resources": {
+   "food": 1600000,
+   "wood": 2620000,
+   "stone": 940000,
+   "gold": 1874876
+  },
+  "accumulators": {
+   "food": 3149470,
+   "wood": 0,
+   "stone": 0,
+   "gold": 2335785
+  },
+  "population": {
+   "villagers": 7
+  },
+  "workers": {
+   "farm": 3,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 2
+  },
+  "buildings": {
+   "townHall": 3,
+   "farm": 1,
+   "lumberMill": 1,
+   "quarry": 1,
+   "goldMine": 1,
+   "housing": 1,
+   "granary": 2,
+   "warehouse": 4,
+   "watchtower": 0,
+   "palisade": 0,
+   "tavern": 1,
+   "guild": 0
+  },
+  "constructionQueues": [
+   null,
+   null
+  ],
+  "planned": [],
+  "recruitmentQueue": [],
+  "famine": null,
+  "lastFamine": null,
+  "cold": null,
+  "wasted": {
+   "food": 53123,
+   "wood": 0,
+   "stone": 0,
+   "gold": 0
+  },
+  "craftExperience": {
+   "farm": 48,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 48
+  },
+  "craftMasteredYear": {
+   "farm": 0,
+   "lumberMill": 0,
+   "quarry": 0,
+   "goldMine": 0
+  },
+  "adaptation": [],
+  "morale": 85,
+  "moraleEffects": [
+   {
+    "id": "festival",
+    "label": "Festival na Taverna",
+    "amount": 15,
+    "untilMs": 306900000
+   }
+  ],
+  "injured": []
+ },
+ "council": {
+  "pending": [],
+  "flags": {},
+  "seenThisYear": [],
+  "nextDrawAtMs": 604800000000,
+  "scheduled": [],
+  "delayed": [],
+  "expired": []
+ },
+ "map": {
+  "tiles": {
+   "wolfDen": {
+    "type": "wolfDen",
+    "threatActive": true
+   }
+  },
+  "threat": 24,
+  "discovered": []
+ },
+ "horde": {
+  "scheduledRaids": [
+   {
+    "id": "never",
+    "atMs": 604800000000,
+    "kind": "threat",
+    "enemy": "wolves",
+    "size": "light",
+    "announcedAtMs": null
+   }
+  ]
+ },
+ "guild": {
+  "heroes": [
+   {
+    "id": "hero-1",
+    "name": "Mécia",
+    "gender": "f",
+    "classId": "cleric",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "charismatic"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 219600000,
+    "freedAtMs": null,
+    "discontent": false
+   },
+   {
+    "id": "hero-2",
+    "name": "Nuno",
+    "gender": "m",
+    "classId": "cleric",
+    "level": 1,
+    "xp": 0,
+    "traits": [
+     "devout"
+    ],
+    "status": "idle",
+    "injury": null,
+    "captivity": null,
+    "equipment": {
+     "weapon": null,
+     "armor": null,
+     "accessory": null
+    },
+    "joinedAtMs": 220500000,
+    "freedAtMs": null,
+    "discontent": false
+   }
+  ],
+  "arriving": [],
+  "inventory": [],
+  "wageArrears": null,
+  "lastWageArrears": null,
+  "tavernOffers": [
+   {
+    "offerId": "offer-3",
+    "templateId": "trackerArcher",
+    "name": "Diogo",
+    "gender": "m",
+    "price": 100
+   },
+   {
+    "offerId": "offer-4",
+    "templateId": "steadyWarrior",
+    "name": "Guiomar",
+    "gender": "f",
+    "price": 120
+   }
+  ],
+  "tavern": {
+   "nextRotationAtMs": 393300000,
+   "festival": {
+    "untilMs": 306900000
+   },
+   "lastFestivalAtMs": 220500000
+  },
+  "expeditions": [],
+  "reports": []
+ },
+ "objectives": {
+  "active": [],
+  "completed": [
+   "allocateFarmers",
+   "upgradeHousing",
+   "recruitVillagers",
+   "townHallLevel2",
+   "buildWatchtower",
+   "answerFirstCard",
+   "buildGranaryOrWarehouse",
+   "planAutoStart",
+   "buildPalisade",
+   "surviveWinterWithoutCold"
+  ]
+ },
+ "stats": {
+  "constructionsStarted:tavern": 1,
+  "wasted_food": 87123
+ }
+}

@@ -140,8 +140,34 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
-/** Tira de um estado, no lugar, o que o passo 18 → 19 acrescenta: o destaque e a lição de cada registro. */
+/** Tira de um estado, no lugar, o que o passo 19 → 20 acrescenta: a volta do cativeiro de cada herói. */
+function stripFreed(copy: Draft): void {
+  for (const hero of (copy.guild?.heroes ?? []) as Draft[]) {
+    delete hero.freedAtMs;
+  }
+}
+
+/** Um estado como a versão 19 o gravava, a partir de um da versão atual: os heróis sem a volta do cativeiro. */
+function asVersion19(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 19;
+  stripFreed(old);
+  return old;
+}
+
+/** O que o passo 19 → 20 acrescenta a toda partida, tirado de um estado migrado. */
+function withoutFreed<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  stripFreed(copy);
+  return copy as T;
+}
+
+/**
+ * Tira de um estado, no lugar, o que o passo 18 → 19 acrescenta: o destaque e a lição de cada
+ * registro (e, com eles, o do 19 → 20).
+ */
 function stripReport(copy: Draft): void {
+  stripFreed(copy);
   if (copy.guild === undefined) {
     return;
   }
@@ -711,6 +737,44 @@ const FROZEN: Record<string, string> = {
   'state-v18-wage-arrears-resumed.json': 'e6e339f4',
   'state-v18-wage-arrears.json': '7e149885',
   'state-v18-week-scripted.json': '6c05a807',
+  'state-v19-cold.json': '1dfdc887',
+  'state-v19-construction.json': '8deadfa4',
+  'state-v19-council-hidden.json': 'ce84078b',
+  'state-v19-council.json': '81c3e37f',
+  'state-v19-crafts.json': 'e852e5ec',
+  'state-v19-den-cleared.json': '91c99fae',
+  'state-v19-expedition-crossroads.json': '5a082b2c',
+  'state-v19-expedition-returning.json': 'f9818189',
+  'state-v19-expedition.json': 'a4e40c07',
+  'state-v19-famine-3x.json': '6322a898',
+  'state-v19-famine-ended.json': '324d158e',
+  'state-v19-famine-half.json': '8f6d794d',
+  'state-v19-famine-resumed.json': '0595702c',
+  'state-v19-famine.json': '3f30e66c',
+  'state-v19-fresh.json': 'f1bb19e3',
+  'state-v19-guild.json': '3a065c81',
+  'state-v19-hero-captured.json': '5579ba85',
+  'state-v19-hero-injured.json': '4561d173',
+  'state-v19-hero-promised.json': '741560ac',
+  'state-v19-iron-king-half.json': 'f1362ef3',
+  'state-v19-migrated-3x.json': '81e9d6ca',
+  'state-v19-migrated-iron-king-half.json': '5b5d6da4',
+  'state-v19-migrated-peasant-3x.json': 'f02f4c45',
+  'state-v19-morale.json': '1a367180',
+  'state-v19-objectives.json': '0929144e',
+  'state-v19-palisade.json': 'ca99018a',
+  'state-v19-peasant-3x.json': '7d5430e8',
+  'state-v19-queues.json': '2bcc52a6',
+  'state-v19-raid-announced.json': '270f8bb3',
+  'state-v19-raid.json': '00f3b784',
+  'state-v19-storage.json': 'a8efe6ce',
+  'state-v19-tavern-busy.json': '702db4b4',
+  'state-v19-tavern.json': '69b91e03',
+  'state-v19-threat.json': '2ab1c329',
+  'state-v19-wage-arrears-ended.json': '74158009',
+  'state-v19-wage-arrears-resumed.json': '65b5dcab',
+  'state-v19-wage-arrears.json': 'fae2f7be',
+  'state-v19-week-scripted.json': 'bb4cbfda',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -727,6 +791,7 @@ const HERO = {
   captivity: null,
   equipment: { weapon: null, armor: null, accessory: null },
   joinedAtMs: 0,
+  freedAtMs: null,
   discontent: false,
 } as const;
 
@@ -4550,5 +4615,92 @@ describe('versão 18 → 19', () => {
         'setback',
       ),
     ).toMatch(/lesson\.posture/);
+  });
+});
+
+describe('versão 19 → 20', () => {
+  const version19 = fixtures.filter((fixture) => fixture.version === 19);
+  const withHeroes = version19.filter(
+    (fixture) => (read(fixture) as Draft).guild.heroes.length > 0,
+  );
+
+  it('há retratos da versão 19 com heróis, com um cativo e com o soldo em atraso', () => {
+    expect(withHeroes.length).toBeGreaterThan(5);
+    const states = withHeroes.map((fixture) => read(fixture) as Draft);
+    expect(
+      states.some((state) => state.guild.heroes.some((hero: Draft) => hero.status === 'captured')),
+    ).toBe(true);
+    expect(states.some((state) => state.guild.wageArrears !== null)).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v19-fresh.json'));
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version19)('$name: só acrescenta a cada herói a volta do cativeiro, vazia', (fixture) => {
+    const before = read(fixture) as Draft;
+    const after = migrated(fixture);
+    expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    for (const hero of after.guild.heroes) {
+      // Nada é reconstituído: a versão 19 não guardava a volta.
+      expect(hero.freedAtMs).toBeNull();
+    }
+    expect(after.rng).toStrictEqual(before.rng);
+    expect(after.ids).toStrictEqual(before.ids);
+    expect({ ...withoutFreed(after), schemaVersion: 19 }).toStrictEqual({
+      ...before,
+      migratedAtMs: before.lastProcessedAt,
+    });
+  });
+
+  it.each(version19)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const state = migrated(fixture);
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('hero'))).toEqual([]);
+      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(atBoundary.state.rng).toStrictEqual(before.rng);
+    },
+  );
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    addHero(start, { name: 'Brann' });
+    const old = asVersion19(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 19 que já traz o campo da 20 é recusado, e a 20 recusa a volta no futuro ou antes da chegada', () => {
+    const old = read(named('state-v19-hero-captured.json')) as Draft;
+    old.guild.heroes[0].freedAtMs = null;
+    expect(() => migrateState(old, { timeScale: 3 })).toThrow(/freedAtMs: campo desconhecido/);
+    const current = migrated(named('state-v19-hero-captured.json'));
+    const broken = (edit: (hero: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(current)) as Draft;
+      edit(copy.guild.heroes[0]);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((hero) => (hero.freedAtMs = hero.joinedAtMs))).toBeNull();
+    expect(broken((hero) => (hero.freedAtMs = current.lastProcessedAt + 1))).toMatch(
+      /freedAtMs: herói que voltou do cativeiro depois de agora/,
+    );
+    expect(
+      broken((hero) => {
+        hero.joinedAtMs = 10;
+        hero.freedAtMs = 9;
+      }),
+    ).toMatch(/freedAtMs: herói que voltou do cativeiro antes de chegar/);
+    expect(broken((hero) => (hero.freedAtMs = -1))).toMatch(/freedAtMs/);
+    expect(broken((hero) => delete hero.freedAtMs)).toMatch(/freedAtMs/);
   });
 });

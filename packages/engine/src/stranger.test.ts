@@ -208,6 +208,7 @@ describe.each(DIFFICULTY_IDS)('responder à carta, em %s', (difficulty) => {
         captivity: null,
         equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: DAY_13 + 7 * MINUTE,
+        freedAtMs: null,
         discontent: false,
       },
     ]);
@@ -301,6 +302,7 @@ describe.each(DIFFICULTY_IDS)('responder à carta, em %s', (difficulty) => {
         captivity: null,
         equipment: { weapon: null, armor: null, accessory: null },
         joinedAtMs: now + DAY,
+        freedAtMs: null,
         discontent: false,
       },
     ]);
