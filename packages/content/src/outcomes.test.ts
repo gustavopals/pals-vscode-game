@@ -251,7 +251,7 @@ describe('os modelos e os desfechos (ADR 0018, decisões 12 e 14)', () => {
     });
   });
 
-  it('o Covil dos Lobos: 2 h, 2 heróis, risco médio, conhecido desde sempre; o último nó limpa o tile, e lobo não captura', () => {
+  it('o Covil de Lobos: 2 h, 2 heróis, risco médio, conhecido desde sempre; o último nó limpa o tile, e lobo não captura', () => {
     const den = modelOf('wolfDen');
     expect(den.durationMs).toBe(2 * HOUR);
     expect(den.requires).toMatchObject({ teamMin: 2, teamMax: 2, guildLevel: 1 });

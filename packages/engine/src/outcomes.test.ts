@@ -1007,7 +1007,7 @@ describe('o saque e os traços (ADR 0017, "Os oito traços"; pendência D-7)', (
   });
 });
 
-describe('o Covil dos Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () => {
+describe('o Covil de Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () => {
   /** Edda e Rolf, de nível 10, a caminho do Covil, com a Ameaça em `level`. */
   function toTheDen(level: number, edit: (draft: GameState) => void = () => {}) {
     const start = hall(10, {}, (draft) => {
@@ -1034,7 +1034,7 @@ describe('o Covil dos Lobos e a Ameaça (GDD §8.2; ADR 0018, decisão 14)', () 
     expect(only(after.state).log.at(-1)).toMatchObject({ outcome: 'full', cleared: 'wolfDen' });
     const [line] = ofType(after.events, 'threatTileCleared');
     expect(line?.text).toBe(
-      'No 1º dia da Primavera, a expedição "Covil dos Lobos" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.',
+      'No 1º dia da Primavera, a expedição "Covil de Lobos" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.',
     );
     // A virada do dia seguinte não soma nada: é primavera, e o tile está limpo.
     const nextDay = advanceTo(after.state, DAY).state;

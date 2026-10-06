@@ -12,9 +12,9 @@ Gerado por `expeditions.calibration.test.ts`; não edite à mão. As equipes de 
 | Floresta Antiga | Baixo a médio | Fraca: Clérigo Nv1 | 100% | 34% / 62% / 3% | 100% / 0% / 0% | 0% / 0% |
 | Floresta Antiga | Baixo a médio | Mínima: Guerreiro Nv1 | 100% | 76% / 24% / 0% | 33% / 46% / 20% | 0% / 0% |
 | Floresta Antiga | Baixo a médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 100% / 0% / 0% | 0% / 0% |
-| Covil dos Lobos | Médio | Fraca: Clérigo + Clérigo Nv1 | 52% | 19% / 77% / 3% | 6% / 59% / 34% | 0% / 0% |
-| Covil dos Lobos | Médio | Mínima: Guerreiro + Arqueiro Nv1 | 89% | 45% / 55% / 0% | 17% / 83% / 0% | 0% / 0% |
-| Covil dos Lobos | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 94% / 6% / 0% | 63% / 37% / 0% | 0% / 0% |
+| Covil de Lobos | Médio | Fraca: Clérigo + Clérigo Nv1 | 52% | 19% / 77% / 3% | 6% / 59% / 34% | 0% / 0% |
+| Covil de Lobos | Médio | Mínima: Guerreiro + Arqueiro Nv1 | 89% | 45% / 55% / 0% | 17% / 83% / 0% | 0% / 0% |
+| Covil de Lobos | Médio | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 94% / 6% / 0% | 63% / 37% / 0% | 0% / 0% |
 | Resgate | Alto | Fraca: Clérigo + Clérigo Nv1 | 8% | 0% / 100% / 0% | 7% / 71% / 22% | 0% / 22% |
 | Resgate | Alto | Mínima: Guerreiro + Arqueiro Nv1 | 65% | 47% / 53% / 0% | 22% / 74% / 4% | 0% / 4% |
 | Resgate | Alto | Com folga: Guerreiro + Arqueiro Nv3 | 100% | 100% / 0% / 0% | 53% / 47% / 0% | 0% / 0% |
@@ -39,16 +39,16 @@ Em 31 sortes:
 | Floresta Antiga | B | Os lenhadores sem senhor | 58 | o padrão | Guerreiro | fere | 0/0/0/31 | 0/0/19/12 | 31/0/0/0 |
 | Floresta Antiga | C | O ninho no alto | 50 | perícia ×1,5 | Arqueiro | fere | 0/2/29/0 | 0/17/14/0 | 31/0/0/0 |
 | Floresta Antiga | C | O fundo do barranco | 40 | o padrão | Guerreiro | fere | 0/0/28/3 | 0/20/11/0 | 31/0/0/0 |
-| Covil dos Lobos | A | A subida pela pedreira solta | 84 | perícia ×1 | Arqueiro | fere | 0/11/20/0 | 4/26/1/0 | 19/12/0/0 |
-| Covil dos Lobos | A | O lobo velho no fundo da toca | 90 | o padrão | Guerreiro | fere | 0/0/17/14 | 0/0/31/0 | 0/16/15/0 |
-| Covil dos Lobos | A | A matilha na fumaça | 86 | perícia ×0,5 | Guerreiro | fere | 0/0/31/0 | 0/18/13/0 | 6/25/0/0 |
-| Covil dos Lobos | B | As sentinelas da garganta | 70 | o padrão | Guerreiro | fere | 0/6/25/0 | 0/26/5/0 | 15/16/0/0 |
-| Covil dos Lobos | B | A matilha sob o penedo | 104 | perícia ×1,5 | Arqueiro | fere | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
-| Covil dos Lobos | B | A toca apertada | 80 | o padrão | Guerreiro | fere | 0/0/28/3 | 0/13/18/0 | 1/26/4/0 |
-| Covil dos Lobos | B | O fogo no mato | 60 | perícia ×0,5 | Guerreiro | fere | 7/24/0/0 | 27/4/0/0 | 31/0/0/0 |
-| Covil dos Lobos | C | A noite na serra | 76 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 20/11/0/0 | 1/26/4/0 | 16/15/0/0 |
-| Covil dos Lobos | C | A loba e a cria | 94 | o padrão | Guerreiro | fere | 0/0/13/18 | 0/0/31/0 | 0/12/19/0 |
-| Covil dos Lobos | C | A matilha de volta da caça | 94 | vontade ×1 | Mago | fere | 0/18/13/0 | 0/16/15/0 | 3/26/2/0 |
+| Covil de Lobos | A | A subida pela encosta de pedra solta | 84 | perícia ×1 | Arqueiro | fere | 0/11/20/0 | 4/26/1/0 | 19/12/0/0 |
+| Covil de Lobos | A | O lobo velho no fundo da toca | 90 | o padrão | Guerreiro | fere | 0/0/17/14 | 0/0/31/0 | 0/16/15/0 |
+| Covil de Lobos | A | A matilha na fumaça | 86 | perícia ×0,5 | Guerreiro | fere | 0/0/31/0 | 0/18/13/0 | 6/25/0/0 |
+| Covil de Lobos | B | As sentinelas da garganta | 70 | o padrão | Guerreiro | fere | 0/6/25/0 | 0/26/5/0 | 15/16/0/0 |
+| Covil de Lobos | B | A matilha sob o penedo | 104 | perícia ×1,5 | Arqueiro | fere | 0/0/31/0 | 0/19/12/0 | 8/23/0/0 |
+| Covil de Lobos | B | A toca apertada | 80 | o padrão | Guerreiro | fere | 0/0/28/3 | 0/13/18/0 | 1/26/4/0 |
+| Covil de Lobos | B | O fogo no mato | 60 | perícia ×0,5 | Guerreiro | fere | 7/24/0/0 | 27/4/0/0 | 31/0/0/0 |
+| Covil de Lobos | C | A noite na serra | 76 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 20/11/0/0 | 1/26/4/0 | 16/15/0/0 |
+| Covil de Lobos | C | A loba e a cria | 94 | o padrão | Guerreiro | fere | 0/0/13/18 | 0/0/31/0 | 0/12/19/0 |
+| Covil de Lobos | C | A matilha de volta da caça | 94 | vontade ×1 | Mago | fere | 0/18/13/0 | 0/16/15/0 | 3/26/2/0 |
 | Resgate | A | A trilha dos captores | 90 | perícia ×1 | Arqueiro | fere | 0/3/28/0 | 0/24/7/0 | 13/18/0/0 |
 | Resgate | A | O bando ao meio-dia | 96 | o padrão | Guerreiro | captura | 0/0/11/20 | 0/0/29/2 | 0/9/22/0 |
 | Resgate | A | As cordas no escuro | 96 | perícia ×1 | Arqueiro | captura | 0/0/31/0 | 0/18/13/0 | 6/25/0/0 |
@@ -98,15 +98,15 @@ Em 31 sortes:
 | Floresta Antiga | C | Subir ao ninho | Ousada | Arqueiro | Arqueiro Nv1 (passa em 90%) | Guerreiro + Arqueiro Nv1 (passa em 100%) | 4 de 52 |
 | Floresta Antiga | C | Descer o barranco | Equilibrada | — | Guerreiro + Guerreiro Nv1 (passa em 100%) | Arqueiro Nv1 (passa em 13%) | 45 de 52 |
 | Floresta Antiga | C | Dar meia-volta | Cautelosa | — | Clérigo Nv1 (passa em 100%) | Guerreiro + Arqueiro Nv1 (passa em 100%) | 3 de 52 |
-| Covil dos Lobos | A | Entrar na toca atrás do lobo velho | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 3 de 36 |
-| Covil dos Lobos | A | Enfumaçar a toca e esperar na saída | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 74%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 31 de 36 |
-| Covil dos Lobos | A | Recuar com o que têm | Cautelosa | — | Clérigo + Clérigo Nv1 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 2 de 36 |
-| Covil dos Lobos | B | Flechar a matilha do alto do penedo | Ousada | Arqueiro | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Guerreiro Nv1 (não pode) | 16 de 36 |
-| Covil dos Lobos | B | Fechar uma boca com pedras e entrar pela outra | Equilibrada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Arqueiro + Arqueiro Nv1 (passa em 13%) | 16 de 36 |
-| Covil dos Lobos | B | Queimar o mato em volta e descer | Cautelosa | — | Clérigo + Clérigo Nv1 (passa em 100%) | Arqueiro + Arqueiro Nv5 (passa em 100%) | 4 de 36 |
-| Covil dos Lobos | C | Matar a loba antes que a matilha volte | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Clérigo + Clérigo Nv3 (passa em 0%) | 3 de 36 |
-| Covil dos Lobos | C | Espantar a matilha serra acima | Equilibrada | — | Mago + Clérigo Nv3 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 33 de 36 |
-| Covil dos Lobos | C | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | 0 de 36 |
+| Covil de Lobos | A | Entrar na toca atrás do lobo velho | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Arqueiro + Arqueiro Nv2 (passa em 0%) | 3 de 36 |
+| Covil de Lobos | A | Enfumaçar a toca e esperar na saída | Equilibrada | — | Arqueiro + Arqueiro Nv2 (passa em 74%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 31 de 36 |
+| Covil de Lobos | A | Recuar com o que têm | Cautelosa | — | Clérigo + Clérigo Nv1 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 2 de 36 |
+| Covil de Lobos | B | Flechar a matilha do alto do penedo | Ousada | Arqueiro | Arqueiro + Arqueiro Nv2 (passa em 100%) | Guerreiro + Guerreiro Nv1 (não pode) | 16 de 36 |
+| Covil de Lobos | B | Fechar uma boca com pedras e entrar pela outra | Equilibrada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Arqueiro + Arqueiro Nv1 (passa em 13%) | 16 de 36 |
+| Covil de Lobos | B | Queimar o mato em volta e descer | Cautelosa | — | Clérigo + Clérigo Nv1 (passa em 100%) | Arqueiro + Arqueiro Nv5 (passa em 100%) | 4 de 36 |
+| Covil de Lobos | C | Matar a loba antes que a matilha volte | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | Clérigo + Clérigo Nv3 (passa em 0%) | 3 de 36 |
+| Covil de Lobos | C | Espantar a matilha serra acima | Equilibrada | — | Mago + Clérigo Nv3 (passa em 100%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 33 de 36 |
+| Covil de Lobos | C | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Guerreiro Nv5 (passa em 100%) | 0 de 36 |
 | Resgate | A | Atacar ao meio-dia e levar também o cofre | Ousada | — | Guerreiro + Guerreiro Nv5 (passa em 94%) | Arqueiro + Arqueiro Nv1 (passa em 0%) | 1 de 36 |
 | Resgate | A | Entrar à noite e cortar as cordas | Equilibrada | — | Arqueiro + Arqueiro Nv5 (passa em 100%) | Guerreiro + Clérigo Nv1 (passa em 19%) | 11 de 36 |
 | Resgate | A | Esperar a troca da guarda | Cautelosa | — | Guerreiro + Clérigo Nv1 (passa em 61%) | Guerreiro + Guerreiro Nv5 (passa em 100%) | 24 de 36 |

@@ -11,13 +11,13 @@
    "No 3º dia da Primavera, por pouco Edda não ficou em cativeiro em \"Ruínas de Vel'Thar\": a equipe conseguiu a fuga, ao preço de um ferimento grave.",
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Edda e Rolf.",
    "No 9º dia da Primavera, Edda sarou das feridas e já pode partir de Pedra Alta outra vez.",
-   "No 10º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "No 10º dia da Primavera, a expedição \"Covil de Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
+   "No 11º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Edda e Rolf."
   ],
   "reports": [
    {
     "expeditionId": "expedition-4",
-    "label": "Covil dos Lobos",
+    "label": "Covil de Lobos",
     "postureLabel": "Ousada",
     "teamNames": [
      "Edda",
@@ -25,8 +25,8 @@
     ],
     "log": [
      {
-      "title": "A subida pela pedreira solta",
-      "text": "No 10º dia da Primavera, Edda achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
+      "title": "A subida pela encosta de pedra solta",
+      "text": "No 10º dia da Primavera, Edda achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
       "outcome": "full",
       "outcomeLabel": "Sucesso pleno",
       "notes": [],
@@ -55,7 +55,7 @@
      },
      {
       "title": "A descida da serra",
-      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil de Lobos.",
       "outcome": "passed",
       "outcomeLabel": "Sem incidentes",
       "notes": [],
@@ -212,13 +212,13 @@
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf.",
    "No 4º dia da Primavera, a expedição \"Resgate\" abriu o cativeiro: Edda ganhou a liberdade e volta a servir a Pedra Alta.",
    "No 4º dia da Primavera, a expedição \"Resgate\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf e Brann.",
-   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 12º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 46 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "No 11º dia da Primavera, a expedição \"Covil de Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
+   "No 12º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 46 de ouro. A equipe está de novo no feudo: Edda e Rolf."
   ],
   "reports": [
    {
     "expeditionId": "expedition-5",
-    "label": "Covil dos Lobos",
+    "label": "Covil de Lobos",
     "postureLabel": "Ousada",
     "teamNames": [
      "Edda",
@@ -226,8 +226,8 @@
     ],
     "log": [
      {
-      "title": "A subida pela pedreira solta",
-      "text": "No 11º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
+      "title": "A subida pela encosta de pedra solta",
+      "text": "No 11º dia da Primavera, Rolf achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
       "outcome": "full",
       "outcomeLabel": "Sucesso pleno",
       "notes": [],
@@ -256,7 +256,7 @@
      },
      {
       "title": "A descida da serra",
-      "text": "No 12º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "text": "No 12º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil de Lobos.",
       "outcome": "passed",
       "outcomeLabel": "Sem incidentes",
       "notes": [],
@@ -412,13 +412,13 @@
    "No 2º dia da Primavera, Edda sarou das feridas e já pode partir de Pedra Alta outra vez.",
    "No 3º dia da Primavera, Edda tombou em \"Ruínas de Vel'Thar\" e não se levantou. Pedra Alta guarda as armas que ficaram.",
    "No 3º dia da Primavera, a expedição \"Ruínas de Vel'Thar\" voltou a Pedra Alta de mãos vazias. A equipe está de novo no feudo: Rolf.",
-   "No 10º dia da Primavera, a expedição \"Covil dos Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
-   "No 11º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Rolf e Brann."
+   "No 10º dia da Primavera, a expedição \"Covil de Lobos\" limpou o Covil de Lobos. Dali já não sai quem ronde Pedra Alta, até a virada do ano.",
+   "No 11º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 43 de ouro. A equipe está de novo no feudo: Rolf e Brann."
   ],
   "reports": [
    {
     "expeditionId": "expedition-4",
-    "label": "Covil dos Lobos",
+    "label": "Covil de Lobos",
     "postureLabel": "Ousada",
     "teamNames": [
      "Rolf",
@@ -426,8 +426,8 @@
     ],
     "log": [
      {
-      "title": "A subida pela pedreira solta",
-      "text": "No 10º dia da Primavera, Brann achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
+      "title": "A subida pela encosta de pedra solta",
+      "text": "No 10º dia da Primavera, Brann achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 18 de ouro.",
       "outcome": "full",
       "outcomeLabel": "Sucesso pleno",
       "notes": [],
@@ -456,7 +456,7 @@
      },
      {
       "title": "A descida da serra",
-      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+      "text": "No 11º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil de Lobos.",
       "outcome": "passed",
       "outcomeLabel": "Sem incidentes",
       "notes": [],

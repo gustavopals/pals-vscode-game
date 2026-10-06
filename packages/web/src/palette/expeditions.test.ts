@@ -330,7 +330,7 @@ describe('escolher o caminho', () => {
       ...expeditionCrossroadsView,
       guild: {
         ...expeditionCrossroadsView.guild,
-        expeditions: [expedition, { ...expedition, id: 'expedition-3', label: 'Covil dos Lobos' }],
+        expeditions: [expedition, { ...expedition, id: 'expedition-3', label: 'Covil de Lobos' }],
       },
     };
     const { run, answers, picks, orders } = await setup(two);
@@ -339,7 +339,7 @@ describe('escolher o caminho', () => {
     expect(picks()[0]?.title).toBe('Escolher caminho da expedição');
     expect(picks()[0]?.items.map((item) => [item.label, item.description])).toEqual([
       ['Floresta Antiga', 'expira em 5 h'],
-      ['Covil dos Lobos', 'expira em 5 h'],
+      ['Covil de Lobos', 'expira em 5 h'],
     ]);
     expect(orders()).toEqual([path('expedition-3', 'thicket')]);
   });

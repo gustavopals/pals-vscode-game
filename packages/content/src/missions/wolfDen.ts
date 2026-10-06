@@ -1,7 +1,8 @@
 import type { ExpeditionModelDef, ExpeditionReturnNode } from '../expeditions';
 
 /**
- * "Covil dos Lobos" (GDD §9.3; ADR 0018, decisões 12 e 14): duas horas de jogo, três nós, dois
+ * "Covil de Lobos" (GDD §9.3, onde a jornada se chama "Covil dos Lobos": aqui vale o nome do
+ * tile, publicado na v0.2; revisão da Fase D, B8; ADR 0018, decisões 12 e 14): duas horas de jogo, três nós, dois
  * heróis, risco médio. Vencida a matilha, o tile de ameaça fica limpo até a virada do ano e a
  * Ameaça cai (`balance.threat.tileClearedDrop`). O destino é conhecido desde sempre, e só há o
  * que fazer lá enquanto o Covil estiver ativo.
@@ -21,12 +22,12 @@ const home: ExpeditionReturnNode = {
   kind: 'return',
   title: 'A descida da serra',
   durationMs: 35 * MINUTE_MS,
-  text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} desceu a serra do Covil dos Lobos.',
+  text: 'No {dia}º dia {daEstacao}, a expedição de {feudo} desceu a serra do Covil de Lobos.',
 };
 
 export const wolfDen: ExpeditionModelDef = {
   id: 'wolfDen',
-  label: 'Covil dos Lobos',
+  label: 'Covil de Lobos',
   riskLabel: 'Médio',
   durationMs: 120 * MINUTE_MS,
   requires: { guildLevel: 1, teamMin: 2, teamMax: 2, minHeroLevel: 1, classes: [] },
@@ -37,7 +38,7 @@ export const wolfDen: ExpeditionModelDef = {
       nodes: {
         climb: {
           kind: 'hazard',
-          title: 'A subida pela pedreira solta',
+          title: 'A subida pela encosta de pedra solta',
           durationMs: 40 * MINUTE_MS,
           trial: {
             difficulty: 84,
@@ -47,13 +48,13 @@ export const wolfDen: ExpeditionModelDef = {
             helps: 'archer',
             lesson: 'Um Arqueiro teria visto de baixo qual pedra estava solta.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} achou o caminho firme na pedreira solta, e a expedição de {feudo} chegou à toca sem que um lobo desse o alarme.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} achou o caminho firme na encosta de pedra solta, e a expedição de {feudo} chegou à toca sem que um lobo desse o alarme.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} puxou a expedição de {feudo} pedreira acima, até a boca da toca.',
+                'No {dia}º dia {daEstacao}, {heroi} puxou a expedição de {feudo} encosta acima, até a boca da toca.',
               setback:
-                'No {dia}º dia {daEstacao}, a pedreira solta cedeu sob {heroi}: a expedição de {feudo} chegou à toca arranhada e com a matilha de pé.',
+                'No {dia}º dia {daEstacao}, a pedra solta cedeu sob {heroi}: a expedição de {feudo} chegou à toca arranhada, e metade do que achara na subida rolou serra abaixo.',
               disaster:
-                'No {dia}º dia {daEstacao}, a pedreira solta rolou com {heroi}, e a expedição de {feudo} chegou à toca sangrando.',
+                'No {dia}º dia {daEstacao}, a encosta rolou com {heroi}: a expedição de {feudo} chegou à toca sangrando, sem nada do que achara na subida.',
             },
           },
           rewards: { resources: { gold: { min: 10, max: 20 } } },
@@ -67,7 +68,7 @@ export const wolfDen: ExpeditionModelDef = {
             {
               id: 'enterDen',
               label: 'Entrar na toca atrás do lobo velho',
-              hint: 'O chefe da matilha está lá dentro, com tudo o que os lobos arrastaram; no escuro, ganha quem aguenta o tranco.',
+              hint: 'O chefe da matilha está lá dentro, com tudo o que os lobos arrastaram; no escuro ganha quem aguenta o tranco, e dupla verde não aguenta.',
               next: 'oldWolf',
             },
             {
@@ -102,7 +103,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o lobo velho fez {heroi} recuar no escuro: a expedição de {feudo} saiu da toca com metade do achado e a matilha inteira.',
               disaster:
-                'No {dia}º dia {daEstacao}, o lobo velho derrubou {heroi} no fundo da toca, e a expedição de {feudo} saiu de lá sem nada.',
+                'No {dia}º dia {daEstacao}, o lobo velho derrubou {heroi} no fundo da toca, e a expedição de {feudo} saiu de lá sem tocar no que havia entre os ossos.',
             },
           },
           rewards: {
@@ -133,7 +134,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o vento virou a fumaça contra {heroi}, e a matilha saiu da toca inteira e furiosa.',
               disaster:
-                'No {dia}º dia {daEstacao}, a matilha saiu da fumaça por cima de {heroi}, e a expedição de {feudo} largou tudo para descer a serra.',
+                'No {dia}º dia {daEstacao}, a matilha saiu da fumaça por cima de {heroi}, e a expedição de {feudo} desceu a serra sem nada da toca.',
             },
           },
           rewards: { resources: { gold: { min: 20, max: 35 } }, clearsTile: 'wolfDen' },
@@ -160,9 +161,9 @@ export const wolfDen: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} abriu passagem entre as sentinelas da garganta para a expedição de {feudo}.',
               setback:
-                'No {dia}º dia {daEstacao}, uma sentinela escapou de {heroi} e uivou: a expedição de {feudo} chegou à toca com a matilha à espera.',
+                'No {dia}º dia {daEstacao}, uma sentinela mordeu fundo antes de cair diante de {heroi}: a expedição de {feudo} passou a garganta, e metade do que achou nela ficou para trás.',
               disaster:
-                'No {dia}º dia {daEstacao}, as sentinelas da garganta cercaram {heroi}, e a expedição de {feudo} só passou deixando sangue na pedra.',
+                'No {dia}º dia {daEstacao}, as sentinelas da garganta cercaram {heroi}: a expedição de {feudo} só passou deixando sangue na pedra, e nada trouxe dali.',
             },
           },
           rewards: { resources: { gold: { min: 10, max: 20 } } },
@@ -171,12 +172,12 @@ export const wolfDen: ExpeditionModelDef = {
         twoMouths: {
           kind: 'crossroads',
           title: 'A toca de duas bocas',
-          text: 'A toca tem duas bocas, uma de cada lado de um penedo. Do alto do penedo se vê a matilha inteira deitada ao sol.',
+          text: 'A toca tem duas bocas, uma de cada lado de um penedo. Do alto do penedo se vê a matilha inteira, junta diante da toca.',
           options: [
             {
               id: 'shootFromAbove',
               label: 'Flechar a matilha do alto do penedo',
-              hint: 'Lá de cima os lobos não alcançam ninguém, e sobra tempo para revirar a toca; só serve a quem tem arqueiro.',
+              hint: 'Do alto se acerta de longe, enquanto a matilha não achar a subida; quem a vencer revira a toca com calma. Só serve a quem tem arqueiro.',
               requires: { heroClass: 'archer' },
               next: 'crag',
             },
@@ -212,7 +213,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, a matilha achou o caminho do penedo antes de {heroi} acabar com as flechas: a expedição de {feudo} desceu às pressas, com metade do achado.',
               disaster:
-                'No {dia}º dia {daEstacao}, a matilha subiu o penedo por trás de {heroi}, e a expedição de {feudo} saltou de lá sem levar nada.',
+                'No {dia}º dia {daEstacao}, a matilha subiu o penedo por trás de {heroi}, e a expedição de {feudo} saltou de lá sem pôr a mão na toca.',
             },
           },
           rewards: {
@@ -242,7 +243,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, os lobos derrubaram as pedras da outra boca enquanto {heroi} lutava: a matilha escapou, mordendo.',
               disaster:
-                'No {dia}º dia {daEstacao}, a toca apertada virou contra {heroi}: sem espaço para o golpe, a expedição de {feudo} saiu de costas e de mãos vazias.',
+                'No {dia}º dia {daEstacao}, a toca apertada virou contra {heroi}: sem espaço para o golpe, a expedição de {feudo} saiu de costas, sem nada da toca.',
             },
           },
           rewards: { resources: { gold: { min: 25, max: 40 } }, clearsTile: 'wolfDen' },
@@ -266,7 +267,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o fogo correu para o lado de {heroi}, e a expedição de {feudo} desceu a serra tossindo.',
               disaster:
-                'No {dia}º dia {daEstacao}, o fogo cercou {heroi}, e a expedição de {feudo} largou a carga para sair do mato.',
+                'No {dia}º dia {daEstacao}, o fogo cercou {heroi}, e a expedição de {feudo} saiu do mato sem ver o que a matilha guardava cá fora.',
             },
           },
           rewards: { resources: { gold: { min: 10, max: 15 } } },
@@ -310,7 +311,7 @@ export const wolfDen: ExpeditionModelDef = {
             {
               id: 'killSheWolf',
               label: 'Matar a loba antes que a matilha volte',
-              hint: 'Uma loba com cria vale por três; lá dentro está tudo o que a matilha juntou.',
+              hint: 'Uma loba com cria vale por três, e dupla verde não dá conta dela; lá dentro está tudo o que a matilha juntou.',
               next: 'sheWolf',
             },
             {
@@ -343,7 +344,7 @@ export const wolfDen: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} pôs a loba para correr com a cria na boca, e a matilha foi atrás dela.',
               setback:
-                'No {dia}º dia {daEstacao}, a loba segurou {heroi} à entrada até a matilha voltar: a expedição de {feudo} fugiu com metade do que tinha pegado.',
+                'No {dia}º dia {daEstacao}, a loba segurou {heroi} à entrada até a matilha voltar: a expedição de {feudo} fugiu com metade do que tinha pegado na toca.',
               disaster:
                 'No {dia}º dia {daEstacao}, a loba derrubou {heroi} à entrada da toca, e a matilha chegou a tempo de acabar o serviço. Nada saiu de lá.',
             },
@@ -376,7 +377,7 @@ export const wolfDen: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, {heroi} hesitou quando a matilha voltou, e os lobos perceberam: ficaram com a toca, e a expedição de {feudo}, com as mordidas.',
               disaster:
-                'No {dia}º dia {daEstacao}, a matilha não teve medo de {heroi} nem das tochas, e a expedição de {feudo} desceu a serra correndo, sem nada.',
+                'No {dia}º dia {daEstacao}, a matilha não teve medo de {heroi} nem das tochas, e a expedição de {feudo} desceu a serra correndo, sem nada da toca.',
             },
           },
           rewards: { resources: { gold: { min: 15, max: 25 } }, clearsTile: 'wolfDen' },

@@ -106,18 +106,18 @@
  "wolfDen": {
   "variant": "A",
   "events": [
-   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Covil dos Lobos. A equipe: Edda e Rolf.",
-   "expeditionNodeResolved: No 1º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme.",
-   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Covil dos Lobos\" parou em uma encruzilhada: A boca da toca. A equipe espera a palavra do senhor de Pedra Alta.",
-   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Covil dos Lobos\": enfumaçar a toca e esperar na saída.",
+   "expeditionSent: No 1º dia da Primavera, partiu de Pedra Alta uma expedição: Covil de Lobos. A equipe: Edda e Rolf.",
+   "expeditionNodeResolved: No 1º dia da Primavera, Rolf achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme.",
+   "expeditionAtCrossroads: No 1º dia da Primavera, a expedição \"Covil de Lobos\" parou em uma encruzilhada: A boca da toca. A equipe espera a palavra do senhor de Pedra Alta.",
+   "expeditionPathChosen: No 1º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Covil de Lobos\": enfumaçar a toca e esperar na saída.",
    "expeditionNodeFailed: No 1º dia da Primavera, o vento virou a fumaça contra Edda, e a matilha saiu da toca inteira e furiosa. A prova pedia mais do que a equipe tinha: gente mais calejada.",
-   "heroInjured: No 1º dia da Primavera, Edda sofreu um ferimento leve em \"Covil dos Lobos\". Termina a jornada, mas depois precisa de descanso.",
+   "heroInjured: No 1º dia da Primavera, Edda sofreu um ferimento leve em \"Covil de Lobos\". Termina a jornada, mas depois precisa de descanso.",
    "dayStarted: Amanhece o 2º dia da Primavera em Pedra Alta.",
-   "expeditionReturned: No 2º dia da Primavera, a expedição \"Covil dos Lobos\" voltou a Pedra Alta com 35 de ouro. A equipe está de novo no feudo: Edda e Rolf."
+   "expeditionReturned: No 2º dia da Primavera, a expedição \"Covil de Lobos\" voltou a Pedra Alta com 35 de ouro. A equipe está de novo no feudo: Edda e Rolf."
   ],
   "report": {
    "expeditionId": "expedition-1",
-   "label": "Covil dos Lobos",
+   "label": "Covil de Lobos",
    "postureLabel": "Equilibrada",
    "teamNames": [
     "Edda",
@@ -125,8 +125,8 @@
    ],
    "log": [
     {
-     "title": "A subida pela pedreira solta",
-     "text": "No 1º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
+     "title": "A subida pela encosta de pedra solta",
+     "text": "No 1º dia da Primavera, Rolf achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 23 de ouro.",
      "outcome": "full",
      "outcomeLabel": "Sucesso pleno",
      "notes": [],
@@ -155,7 +155,7 @@
     },
     {
      "title": "A descida da serra",
-     "text": "No 2º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+     "text": "No 2º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil de Lobos.",
      "outcome": "passed",
      "outcomeLabel": "Sem incidentes",
      "notes": [],

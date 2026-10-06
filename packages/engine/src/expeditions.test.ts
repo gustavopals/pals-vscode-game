@@ -1329,7 +1329,7 @@ describe('a visão das expedições (ADR 0018, decisão 13)', () => {
       'Equilibrada',
       'Ousada',
     ]);
-    // O Covil dos Lobos é conhecido desde sempre e vem depois (V3D-T2); as Ruínas e o Resgate
+    // O Covil de Lobos é conhecido desde sempre e vem depois (V3D-T2); as Ruínas e o Resgate
     // só aparecem por descoberta e com um cativo.
     expect(view.available.map((offer) => offer.modelId)).toEqual([
       'patrol',

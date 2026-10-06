@@ -20763,7 +20763,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 2040,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
@@ -20791,7 +20791,7 @@
           "canSend": false,
           "suggestedTeam": [],
           "sendBlockedReason": "A Guilda dos Aventureiros Nv1 sustenta 1 expedição por vez: espere uma equipe voltar ou melhore a Guilda dos Aventureiros.",
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "firstStretchText": "A subida pela encosta de pedra solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         }
       ],
@@ -21867,7 +21867,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 7200,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
@@ -23075,7 +23075,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 12240,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
@@ -24279,7 +24279,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 2040,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h. No Verão os caminhos estão secos: a jornada fica mais curta.",
@@ -25478,7 +25478,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 7200,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
@@ -25514,7 +25514,7 @@
             "hero-3"
           ],
           "sendBlockedReason": null,
-          "firstStretchText": "A subida pela pedreira solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
+          "firstStretchText": "A subida pela encosta de pedra solta (dificuldade 84). Depois, uma encruzilhada: o que vem além dela só se sabe lá.",
           "rescue": false
         },
         {
@@ -26792,7 +26792,7 @@
         },
         {
           "modelId": "wolfDen",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "riskText": "Médio",
           "durationSeconds": 14400,
           "durationNote": "Sem contar a espera em uma encruzilhada, que dura até 6 h.",
@@ -26833,7 +26833,7 @@
       "reports": [
         {
           "expeditionId": "expedition-1",
-          "label": "Covil dos Lobos",
+          "label": "Covil de Lobos",
           "postureLabel": "Ousada",
           "teamNames": [
             "Edda",
@@ -26841,8 +26841,8 @@
           ],
           "log": [
             {
-              "title": "A subida pela pedreira solta",
-              "text": "No 11º dia da Primavera, Rolf achou o caminho firme na pedreira solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 17 de ouro.",
+              "title": "A subida pela encosta de pedra solta",
+              "text": "No 11º dia da Primavera, Rolf achou o caminho firme na encosta de pedra solta, e a expedição de Pedra Alta chegou à toca sem que um lobo desse o alarme. Trouxe 17 de ouro.",
               "outcome": "full",
               "outcomeLabel": "Sucesso pleno",
               "notes": [],
@@ -26871,7 +26871,7 @@
             },
             {
               "title": "A descida da serra",
-              "text": "No 12º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil dos Lobos.",
+              "text": "No 12º dia da Primavera, a expedição de Pedra Alta desceu a serra do Covil de Lobos.",
               "outcome": "passed",
               "outcomeLabel": "Sem incidentes",
               "notes": [],

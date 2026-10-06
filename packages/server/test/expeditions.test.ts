@@ -115,7 +115,7 @@ describe('enviar uma expedição e reenviar a ordem', () => {
     expect(before.guild.available.map((offer) => [offer.modelId, offer.locked])).toEqual([
       ['patrol', false],
       ['oldForest', false],
-      // O Covil dos Lobos é conhecido desde sempre (V3D-T2); as Ruínas e o Resgate, não.
+      // O Covil de Lobos é conhecido desde sempre (V3D-T2); as Ruínas e o Resgate, não.
       ['wolfDen', false],
     ]);
     expect(before.guild.heroes.map((hero) => hero.atHome)).toEqual([true, true]);

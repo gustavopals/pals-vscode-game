@@ -60,7 +60,7 @@ function measured(
  * verdade, com encruzilhada em quase todos, e o bot que envia a expedição de maior recompensa
  * que a equipe passa com folga e deixa metade das encruzilhadas para a Postura); as dos outros
  * perfis são as da Taverna, linha a linha. A rodada anterior é a dos desfechos (V3D-T2), na
- * seção 7 (o Explorador passou a melhorar a Guilda, a ir ao Covil dos Lobos e a equipar itens;
+ * seção 7 (o Explorador passou a melhorar a Guilda, a ir ao Covil de Lobos e a equipar itens;
  * e o Covil limpo mexe na Ameaça), e antes dela a do motor das
  * expedições (V3D-T1), na seção 6, e antes dela a da Taverna (V3C-T2), em docs/balance-v0.3.md, seção
  * 4, com o antes e o depois de cada célula e o que piorou: todo bot passou a erguer a Taverna

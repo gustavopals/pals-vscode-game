@@ -621,7 +621,7 @@ describe('o catálogo de expedições (roadmap da v0.3, V3D-T1.2)', () => {
     expect(table).toEqual([
       ['Patrulha dos Arredores', 15, 2, '1-1', 1, '', 'Baixo', 1, 'open'],
       ['Floresta Antiga', 60, 3, '1-2', 1, '', 'Baixo a médio', 1, 'open'],
-      ['Covil dos Lobos', 120, 3, '2-2', 1, '', 'Médio', 1, 'tile'],
+      ['Covil de Lobos', 120, 3, '2-2', 1, '', 'Médio', 1, 'tile'],
       ['Resgate', 120, 3, '2-2', 1, '', 'Alto', 1, 'captive'],
       ["Ruínas de Vel'Thar", 180, 4, '2-3', 2, '', 'Médio', 1, 'discovered'],
       ['Pântano Nebuloso', 300, 5, '3-3', 1, 'mage', 'Alto', 3, 'discovered'],
