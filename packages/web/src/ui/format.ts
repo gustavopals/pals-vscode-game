@@ -398,8 +398,8 @@ export type StatusBarOutput = {
    * A aba a que o clique leva (um argumento de `lords.openPanel`); sem ela, vale a aba em que o
    * app abriria. `threat` é o painel da Ameaça, na aba Feudo: a página e o foco vão até ele.
    */
-  target?: 'today' | 'fief' | 'council' | 'threat';
-  /** Fome ou frio: a linha ganha o destaque de aviso. */
+  target?: 'today' | 'fief' | 'council' | 'guild' | 'threat';
+  /** Fome, frio ou soldo em atraso: a linha ganha o destaque de aviso. */
   alarm?: boolean;
 };
 
@@ -448,7 +448,7 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
 
 /**
  * O assunto de maior prioridade do feudo (GDD §13.5; ADR 0016, item 8): incursão a caminho > fome
- * e frio > decisões pendentes > depósito cheio ou a menos de 8 h de encher > obra em andamento >
+ * e frio > soldo em atraso > decisões pendentes > depósito cheio ou a menos de 8 h de encher > obra em andamento >
  * produção de comida. A fome e o frio têm cada um o seu ícone e o seu texto; juntos, dividem a
  * linha e a explicação traz os dois. Com duas obras em curso, aparece a que termina primeiro, e a
  * outra entra como "+1 obra".
@@ -508,6 +508,26 @@ function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
     return {
       bar: { text: `$(flame) Frio em ${name}`, tooltip: cold.text, alarm: true },
       title: `Frio em ${name}`,
+    };
+  }
+  // O soldo em atraso fica com a fome e o frio (GDD §9.1): tem prazo, custa heróis e não se
+  // resolve sozinho. Os prazos são os da visão; a explicação é a frase do servidor.
+  const { arrears } = view.guild.wage;
+  if (arrears !== null) {
+    const next =
+      arrears.nextDepartureInSeconds !== null
+        ? ` · um herói parte em ${formatApprox(remainingNow(arrears.nextDepartureInSeconds, elapsedSeconds))}`
+        : arrears.discontentInSeconds !== null
+          ? ` · descontentes em ${formatApprox(remainingNow(arrears.discontentInSeconds, elapsedSeconds))}`
+          : '';
+    return {
+      bar: {
+        text: `$(warning) Soldo em atraso${next}`,
+        tooltip: `${name}: ${arrears.text}`,
+        alarm: true,
+        target: 'guild',
+      },
+      title: `Soldo em atraso em ${name}`,
     };
   }
   const decisions = view.pendingDecisions;

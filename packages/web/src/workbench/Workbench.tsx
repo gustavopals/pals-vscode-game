@@ -11,6 +11,7 @@ import type { ThemeId } from '../services/preferences';
 import { AboutTab } from '../tabs/About';
 import { ChronicleTab } from '../tabs/Chronicle';
 import { CouncilTab } from '../tabs/Council';
+import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
@@ -88,6 +89,7 @@ function TabContent(props: {
     case 'today':
     case 'fief':
     case 'council':
+    case 'guild':
       if (view === null) {
         return (
           <main class="loading">
@@ -109,6 +111,18 @@ function TabContent(props: {
             retryInSeconds={retryInSeconds}
             answering={controller.answering}
             record={controller.councilLog}
+            actions={actions}
+          />
+        );
+      }
+      if (route === 'guild') {
+        return (
+          <GuildTab
+            view={view}
+            elapsed={elapsed}
+            online={online}
+            retryInSeconds={retryInSeconds}
+            busy={controller.guildOrders}
             actions={actions}
           />
         );

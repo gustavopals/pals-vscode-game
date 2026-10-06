@@ -33,6 +33,23 @@ import {
   truncate,
   upgradeName,
 } from './format';
+import {
+  arrivalLine,
+  festivalCost,
+  GUILD_ICON,
+  guildLines,
+  guildTreeLine,
+  HERO_ICON,
+  HERO_NODE,
+  OFFER_NODE,
+  offerTerms,
+  sheetLine,
+  TAVERN_ICON,
+  TAVERN_SECTION,
+  tavernTreeLine,
+  traitLines,
+  wageOf,
+} from './guild';
 import { moraleIcon, moraleLines, moraleTreeLine } from './morale';
 import {
   activeObjectives,
@@ -410,6 +427,92 @@ function councilNode(view: ViewState, elapsedSeconds: number): TreeNode {
 }
 
 /**
+ * A Guilda (GDD §13.2: "Guilda · 3 heróis"): a equipe, quem está a caminho e, com o soldo em
+ * atraso, o alerta por extenso. Uma linha por herói, com a classe, o nível e o soldo, e o botão
+ * "Dispensar" (que confirma); uma por herói prometido, com o prazo; e, com a Taverna de pé, a
+ * linha dela com os candidatos, cada um com o preço e o botão "Contratar". O clique leva à aba
+ * Guilda; as ordens saem dos botões. Sem herói e sem Taverna o grupo é uma linha só, e a
+ * explicação dela é a frase do servidor que diz como o primeiro herói chega.
+ */
+function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
+  const { guild, tavern } = view;
+  const open = { id: 'lords.openPanel', args: ['guild'] };
+  const children: TreeNode[] = [
+    ...guild.heroes.map((hero): TreeNode => ({
+      id: `${HERO_NODE}${hero.id}`,
+      label: hero.name,
+      description:
+        `${hero.classLabel} Nv${hero.level} · ${wageOf(hero.wagePerHour)}` +
+        (hero.discontent ? ' · ⚠ descontente' : ''),
+      tooltip: [sheetLine(hero), ...traitLines(hero.traits), hero.powerBreakdown].join('\n'),
+      icon: HERO_ICON,
+      contextValue: 'lords.hero',
+      command: open,
+      actionHints: { 'lords.dismissHero': 'pede confirmação' },
+    })),
+    ...guild.arriving.map((arriving, index): TreeNode => ({
+      id: `arriving:${index}`,
+      label: arriving.name,
+      description: `${arriving.classLabel} · ${arrivalLine(arriving, elapsedSeconds)}`,
+      tooltip: [...traitLines(arriving.traits), arriving.blockedReason]
+        .filter((line) => line !== null)
+        .join('\n'),
+      icon: 'watch',
+      command: open,
+    })),
+  ];
+  if (tavern.level > 0) {
+    const { festival } = tavern;
+    children.push({
+      id: 'tavern',
+      label: 'Taverna',
+      description: tavernTreeLine(tavern, elapsedSeconds),
+      tooltip: [tavern.text, festival.effectText, festival.blockedReason]
+        .filter((line) => line !== null)
+        .join('\n'),
+      icon: TAVERN_ICON,
+      expanded: true,
+      command: { id: 'lords.openPanel', args: [TAVERN_SECTION] },
+      // O festival só ganha botão quando pode ser dado; o custo vai na dica, e a ordem confirma.
+      ...(festival.available
+        ? {
+            contextValue: 'lords.tavern',
+            actionHints: { 'lords.holdFestival': festivalCost(tavern) },
+          }
+        : {}),
+      children: tavern.offers.map((offer): TreeNode => ({
+        id: `${OFFER_NODE}${offer.offerId}`,
+        label: offer.name,
+        description: `${offer.classLabel} · ${offer.priceText}`,
+        tooltip: [
+          sheetLine(offer),
+          ...traitLines(offer.traits),
+          offerTerms(offer),
+          offer.blockedReason,
+        ]
+          .filter((line) => line !== null)
+          .join('\n'),
+        icon: offer.blockedReason === null ? HERO_ICON : 'lock',
+        // Bloqueada, a linha não ganha botão: o motivo está na explicação e na aba.
+        contextValue: offer.blockedReason === null ? 'lords.offer' : 'lords.blockedOffer',
+        command: { id: 'lords.openPanel', args: [TAVERN_SECTION] },
+        actionHints: { 'lords.hireHero': offerTerms(offer) },
+      })),
+    });
+  }
+  return {
+    id: 'guild',
+    label: 'Guilda',
+    description: guildTreeLine(guild),
+    tooltip: guildLines(guild, elapsedSeconds).join('\n'),
+    icon: guild.wage.arrears === null ? GUILD_ICON : 'warning',
+    expanded: true,
+    command: open,
+    children,
+  };
+}
+
+/**
  * Os Objetivos do Senhor (GDD §12.2): "3 em aberto · 4 cumpridos" e uma linha por objetivo em
  * aberto, com o progresso e a recompensa. A explicação de cada linha é o porquê, a recompensa e o
  * que falta agora, nas frases do servidor. O clique só navega; o botão da linha é o comando que
@@ -547,6 +650,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
   }
   const { calendar, settlement } = view;
   const cold = view.winter?.cold ?? null;
+  const { arrears } = view.guild.wage;
   const { incoming } = view.threat;
   const offline = input.connection.kind === 'offline';
   // O que "Antes de partir" tem a dizer, para quem está em outra aba: quantos itens e, se algum
@@ -599,9 +703,16 @@ export function buildTree(input: TreeInput): TreeNode[] {
         `${calendar.seasonLabel}, dia ${calendar.dayOfSeason}` +
         (view.famine ? ' · fome' : '') +
         (cold ? ' · frio' : '') +
+        (arrears ? ' · soldo em atraso' : '') +
         (incoming ? ' · incursão a caminho' : ''),
-      tooltip: [calendar.seasonEffects, view.famine?.text, cold?.text, incoming?.text]
-        .filter((line) => line !== undefined)
+      tooltip: [
+        calendar.seasonEffects,
+        view.famine?.text,
+        cold?.text,
+        arrears?.text,
+        incoming?.text,
+      ]
+        .filter((line) => line !== undefined && line !== null)
         .join('\n'),
       icon: view.famine ? 'warning' : cold ? 'flame' : 'shield',
       expanded: true,
@@ -611,6 +722,7 @@ export function buildTree(input: TreeInput): TreeNode[] {
         workersNode(view),
         constructionsNode(view, input.elapsedSeconds),
         councilNode(view, input.elapsedSeconds),
+        guildNode(view, input.elapsedSeconds),
         moraleNode(view, input.elapsedSeconds),
         threatNode(view, input.elapsedSeconds),
         ...hearthNode(view),

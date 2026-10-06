@@ -96,6 +96,18 @@ export function rowActions(node: TreeNode): RowAction[] {
     case 'lords.card':
       // A carta se lê na aba do Conselho (o clique na linha); o botão abre a lista das opções.
       return [{ label: `Decidir: ${node.label}`, text: 'Decidir', command: 'lords.answerCard' }];
+    case 'lords.hero':
+      // A dispensa pede confirmação no comando: o botão da linha não dispensa sozinho.
+      return [
+        { label: `Dispensar ${node.label}`, text: 'Dispensar', command: 'lords.dismissHero' },
+      ];
+    case 'lords.offer':
+      // O preço e o soldo do candidato estão na linha e na dica do botão.
+      return [{ label: `Contratar ${node.label}`, text: 'Contratar', command: 'lords.hireHero' }];
+    case 'lords.tavern':
+      return [
+        { label: 'Dar um festival na Taverna', text: 'Festival', command: 'lords.holdFestival' },
+      ];
     default:
       return [];
   }

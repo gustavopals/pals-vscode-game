@@ -36,6 +36,20 @@ import {
   upgradeName,
 } from '../ui/format';
 import {
+  festivalCost,
+  type Hero,
+  HERO_NODE,
+  OFFER_NODE,
+  offerTerms,
+  rotationLine,
+  sheetLine,
+  TAVERN_ANCHOR,
+  TAVERN_SECTION,
+  type TavernOffer,
+  traitLines,
+  wageOf,
+} from '../ui/guild';
+import {
   CONSTRUCTIONS_ANCHOR,
   CONSTRUCTIONS_SECTION,
   OBJECTIVES_ANCHOR,
@@ -86,6 +100,7 @@ const SECTIONS: Record<string, { route: Route; anchor: string }> = {
   [THREAT_SECTION]: { route: 'fief', anchor: THREAT_ANCHOR },
   [OBJECTIVES_SECTION]: { route: 'fief', anchor: OBJECTIVES_ANCHOR },
   [CONSTRUCTIONS_SECTION]: { route: 'fief', anchor: CONSTRUCTIONS_ANCHOR },
+  [TAVERN_SECTION]: { route: 'guild', anchor: TAVERN_ANCHOR },
 };
 
 export const PALETTE_PREFIX = 'Lords: ';
@@ -155,6 +170,27 @@ export function cardRequest(arg: unknown): { instanceId?: string; optionId?: str
   return typeof id === 'string' && id.startsWith(CARD_NODE)
     ? { instanceId: id.slice(CARD_NODE.length) }
     : {};
+}
+
+/**
+ * O herói ou o candidato que quem chamou o comando já escolheu: o painel manda o identificador
+ * (`{ heroId }`, `{ offerId }`); a árvore, a linha (`hero:<id>`, `offer:<id>`); a paleta, nada.
+ */
+export function guildRequest(
+  arg: unknown,
+  field: 'heroId' | 'offerId',
+  prefix: string,
+): string | undefined {
+  if (typeof arg !== 'object' || arg === null) {
+    return undefined;
+  }
+  const record = arg as Record<string, unknown>;
+  const direct = record[field];
+  if (typeof direct === 'string') {
+    return direct;
+  }
+  const { id } = record;
+  return typeof id === 'string' && id.startsWith(prefix) ? id.slice(prefix.length) : undefined;
 }
 
 /**
@@ -688,6 +724,276 @@ export function createCommands(
     }
   };
 
+  // --- Guilda ------------------------------------------------------------------
+
+  const seeTavern = {
+    label: 'Ver a Taverna',
+    run: () => controller.runCommand('lords.openPanel', TAVERN_SECTION),
+  };
+  const seeGuild = { label: 'Ver a Guilda', run: () => controller.navigate('guild') };
+
+  /**
+   * Um fluxo por vez (roadmap da v0.3, §11.1, lição 9): enquanto um diálogo espera, ou a ordem
+   * está a caminho, um segundo acionamento do mesmo comando (duplo clique, `Enter` repetido na
+   * paleta) não abre outro fluxo. Sem a trava, dois fluxos se intercalariam na fila de diálogos
+   * e a segunda resposta contrataria, ou dispensaria, outra vez.
+   */
+  const oneAtATime = (flow: (arg?: unknown) => Promise<void>) => {
+    let running = false;
+    return async (arg?: unknown) => {
+      if (running) {
+        return;
+      }
+      running = true;
+      try {
+        await flow(arg);
+      } finally {
+        running = false;
+      }
+    };
+  };
+
+  /**
+   * A partida em que um fluxo começou. Depois de qualquer espera (um diálogo aberto), o fluxo lê
+   * de novo a conta e a visão: se a sessão acabou ou o feudo é outro, nada é enviado.
+   */
+  const sameGame = (gameId: string | null) =>
+    gameId !== null &&
+    controller.account.state.kind !== 'signedOut' &&
+    controller.session.gameId === gameId &&
+    controller.view !== null;
+
+  const sessionEnded = (what: string) =>
+    controller.toast({
+      kind: 'warning',
+      text: `A sessão terminou, ou o feudo mudou, com ${what} em aberto: nada foi enviado.`,
+    });
+
+  /** O candidato ainda está à mesa na visão de agora. */
+  const offerNow = (offerId: string) =>
+    controller.view?.tavern.offers.find((entry) => entry.offerId === offerId);
+
+  const offerGone = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'Este candidato já não está à mesa da Taverna: foi contratado, ou a lista trocou. Nada foi enviado.',
+      actions: [seeTavern],
+    });
+
+  /**
+   * A lista dos candidatos, para quem contrata pela paleta: cada um com o preço de agora e o
+   * soldo, os traços com a explicação e, se houver, o que impede a contratação. A lista fecha
+   * sozinha, sem enviar nada, se os candidatos mudarem com ela aberta.
+   */
+  const pickOffer = async (view: ViewState): Promise<TavernOffer | undefined> => {
+    const listed = view.tavern.offers.map((offer) => offer.offerId).join(',');
+    const changed = new AbortController();
+    const stop = controller.onChange(() => {
+      const now = controller.view?.tavern.offers.map((offer) => offer.offerId).join(',');
+      if (now !== listed) {
+        changed.abort();
+      }
+    });
+    try {
+      const rotation = rotationLine(view.tavern, elapsed());
+      const offer = await dialogs.pick<TavernOffer>({
+        title: 'Contratar herói',
+        placeholder: rotation === null ? 'Quem?' : `Quem? A lista ${rotation}.`,
+        items: view.tavern.offers.map((entry) => ({
+          // Cadeado: a contratação está bloqueada, e o detalhe diz por quê.
+          icon: entry.blockedReason === null ? 'check' : 'lock',
+          label: `${entry.name} · ${sheetLine(entry)}`,
+          description: offerTerms(entry),
+          detail: [
+            ...traitLines(entry.traits),
+            ...(entry.blockedReason === null ? [] : [entry.blockedReason]),
+          ].join(' '),
+          value: entry,
+        })),
+        signal: changed.signal,
+      });
+      if (changed.signal.aborted) {
+        controller.toast({
+          kind: 'warning',
+          text: 'A lista de candidatos da Taverna mudou com a escolha aberta: nada foi enviado.',
+          actions: [seeTavern],
+        });
+        return undefined;
+      }
+      return offer;
+    } finally {
+      stop();
+    }
+  };
+
+  /**
+   * "Contratar herói": o único caminho da contratação. O painel e a árvore já mostraram o preço
+   * e mandam o candidato; a paleta pergunta qual. Mesmo bloqueada, a ordem segue: quem recusa é
+   * o servidor, com o motivo atualizado.
+   */
+  const hireHero = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const requested = guildRequest(arg, 'offerId', OFFER_NODE);
+    if (requested !== undefined) {
+      if (offerNow(requested) === undefined) {
+        offerGone();
+        return;
+      }
+      await controller.hireHero(requested);
+      return;
+    }
+    if (view.tavern.offers.length === 0) {
+      const rotation = rotationLine(view.tavern, elapsed());
+      controller.toast({
+        kind: 'info',
+        // Sem Taverna, a frase do servidor diz como erguê-la.
+        text:
+          view.tavern.level === 0
+            ? view.tavern.text
+            : `Nenhum candidato à mesa da Taverna agora${rotation === null ? '' : `: a lista ${rotation}`}.`,
+        actions: [seeTavern],
+      });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const offer = await pickOffer(view);
+    if (offer === undefined) {
+      return;
+    }
+    // Depois da espera: a conta e a visão de agora.
+    if (!sameGame(gameId)) {
+      sessionEnded('a contratação');
+      return;
+    }
+    if (offerNow(offer.offerId) === undefined) {
+      offerGone();
+      return;
+    }
+    await controller.hireHero(offer.offerId);
+  });
+
+  /** O herói ainda serve ao feudo na visão de agora. */
+  const heroNow = (heroId: string) =>
+    controller.view?.guild.heroes.find((entry) => entry.id === heroId);
+
+  const heroGone = () =>
+    controller.toast({
+      kind: 'warning',
+      text: 'Este herói já não serve ao feudo: partiu ou foi dispensado. Nada foi enviado.',
+      actions: [seeGuild],
+    });
+
+  /**
+   * "Dispensar herói": sempre com confirmação, porque não há volta; a frase do que se perde é a
+   * do servidor. O painel e a árvore mandam o herói; a paleta pergunta qual (com um só, é ele).
+   */
+  const dismissHero = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    const { heroes } = view.guild;
+    const requested = guildRequest(arg, 'heroId', HERO_NODE);
+    if (requested !== undefined && heroNow(requested) === undefined) {
+      heroGone();
+      return;
+    }
+    if (heroes.length === 0) {
+      controller.toast({ kind: 'info', text: view.guild.text, actions: [seeGuild] });
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const hero =
+      heroes.find((entry) => entry.id === requested) ??
+      (heroes.length === 1
+        ? heroes[0]
+        : await dialogs.pick<Hero>({
+            title: 'Dispensar herói',
+            placeholder: 'Quem? A dispensa ainda pede confirmação.',
+            items: heroes.map((entry) => ({
+              icon: entry.discontent ? 'warning' : 'person',
+              label: `${entry.name} · ${sheetLine(entry)}`,
+              description: `soldo de ${wageOf(entry.wagePerHour)}${entry.discontent ? ' · descontente' : ''}`,
+              detail: traitLines(entry.traits).join(' '),
+              value: entry,
+            })),
+          }));
+    if (hero === undefined) {
+      return;
+    }
+    const confirmed = await dialogs.confirm({
+      title: `Dispensar ${hero.name}?`,
+      detail: [
+        `${hero.name} · ${sheetLine(hero)} · soldo de ${wageOf(hero.wagePerHour)}.`,
+        view.guild.dismissText,
+      ],
+      confirmLabel: `Dispensar ${hero.name}`,
+      cancelLabel: `Manter ${hero.name}`,
+    });
+    if (!confirmed) {
+      return;
+    }
+    // Depois da espera: a conta e a visão de agora.
+    if (!sameGame(gameId)) {
+      sessionEnded('a dispensa');
+      return;
+    }
+    if (heroNow(hero.id) === undefined) {
+      heroGone();
+      return;
+    }
+    await controller.dismissHero(hero.id);
+  });
+
+  /**
+   * "Dar um festival". O painel tem o custo e o efeito ao lado do botão e manda a ordem já
+   * confirmada; pela paleta e pela árvore, a confirmação mostra os dois antes de gastar.
+   */
+  const holdFestival = oneAtATime(async (arg) => {
+    const view = requireView();
+    if (view === null) {
+      return;
+    }
+    if ((arg as { confirmed?: unknown } | undefined)?.confirmed === true) {
+      await controller.holdFestival();
+      return;
+    }
+    const blocked = (tavern: ViewState['tavern']) =>
+      controller.toast({
+        kind: 'info',
+        text: tavern.festival.blockedReason ?? tavern.text,
+        actions: [seeTavern],
+      });
+    if (!view.tavern.festival.available) {
+      blocked(view.tavern);
+      return;
+    }
+    const gameId = controller.session.gameId;
+    const confirmed = await dialogs.confirm({
+      title: 'Dar um festival na Taverna?',
+      detail: [`Custa ${festivalCost(view.tavern)}.`, view.tavern.festival.effectText],
+      confirmLabel: 'Dar o festival',
+      cancelLabel: 'Agora não',
+    });
+    if (!confirmed) {
+      return;
+    }
+    // Depois da espera: a conta e a visão de agora.
+    if (!sameGame(gameId)) {
+      sessionEnded('o festival');
+      return;
+    }
+    const now = controller.view?.tavern;
+    if (now !== undefined && !now.festival.available) {
+      blocked(now);
+      return;
+    }
+    await controller.holdFestival();
+  });
+
   const renameSettlement = async () => {
     const view = requireView();
     if (view === null) {
@@ -1120,6 +1426,34 @@ export function createCommands(
       run: go('council'),
     },
     {
+      id: 'lords.openGuild',
+      title: 'Ir para a Guilda',
+      palette: true,
+      when: hasGame,
+      run: go('guild'),
+    },
+    {
+      id: 'lords.hireHero',
+      title: 'Contratar herói…',
+      palette: true,
+      when: hasGame,
+      run: hireHero,
+    },
+    {
+      id: 'lords.dismissHero',
+      title: 'Dispensar herói…',
+      palette: true,
+      when: hasGame,
+      run: dismissHero,
+    },
+    {
+      id: 'lords.holdFestival',
+      title: 'Dar um festival na Taverna',
+      palette: true,
+      when: hasGame,
+      run: holdFestival,
+    },
+    {
       id: 'lords.renameSettlement',
       title: 'Renomear o feudo',
       palette: true,
@@ -1233,7 +1567,9 @@ export function createCommands(
         return;
       }
       controller.navigate(
-        arg === 'today' || arg === 'fief' || arg === 'council' ? arg : controller.defaultRoute(),
+        arg === 'today' || arg === 'fief' || arg === 'council' || arg === 'guild'
+          ? arg
+          : controller.defaultRoute(),
       );
     }),
     hidden('lords.workersIncrease', step(1)),

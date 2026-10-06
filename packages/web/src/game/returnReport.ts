@@ -104,6 +104,10 @@ export function costAction(
     // O ataque já passou: o que se pode fazer é mudar o desfecho do próximo.
     return toAction(defenseCommand(view));
   }
+  if (topic === 'wage') {
+    // O atraso já fechou, ou quem partiu já partiu: o que há a ver é a equipe e o soldo dela.
+    return { command: 'lords.openPanel', arg: 'guild', label: 'Ver a Guilda' };
+  }
   if (topic === 'council') {
     // A carta que expirou já foi decidida; o que se pode fazer é não deixar a próxima expirar.
     const waiting = view.pendingDecisions.length;
@@ -211,6 +215,21 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
       return { block: 'prospered', topic: 'raid' };
     case 'raidSuffered':
       return { block: 'cost', topic: 'raid' };
+    // A equipe (GDD §9.1): o herói que uma carta prometeu e o que a Taverna trouxe são o feudo
+    // crescendo; o festival dado, o povo em festa. O soldo em atraso, o herói que ficou
+    // descontente e o que partiu são o preço de o ouro ter acabado; o atraso que fechou, alívio.
+    // O herói dispensado e o fim do festival ficam na Crônica: não são ganho nem perda.
+    case 'heroJoined':
+    case 'heroHired':
+      return { block: 'prospered', topic: 'guild' };
+    case 'festivalHeld':
+      return { block: 'prospered', topic: 'morale' };
+    case 'wageArrearsEnded':
+      return { block: 'prospered', topic: 'wage' };
+    case 'wageArrearsStarted':
+    case 'heroDiscontent':
+    case 'heroLeft':
+      return { block: 'cost', topic: 'wage' };
     default:
       // Viradas de estação e de ano, ordens dadas em outro navegador e cartas que chegaram não
       // são desfechos: ficam na Crônica da ausência. Gente e depósitos entram somados, abaixo.
@@ -380,6 +399,10 @@ export function buildBlocks(
   }
   if (after.winter !== null && after.winter.cold !== null && !started('coldStarted')) {
     price(0, 'O frio continuou durante toda a sua ausência.', 'firewood');
+  }
+
+  if (after.guild.wage.arrears !== null && !started('wageArrearsStarted')) {
+    price(0, 'O soldo dos heróis continuou em atraso durante toda a sua ausência.', 'wage');
   }
 
   return { prospered: byTime(prospered), cost: byTime(cost), pending: pendingItems(after) };

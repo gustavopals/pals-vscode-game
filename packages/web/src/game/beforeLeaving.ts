@@ -17,6 +17,7 @@ import {
   soonestConstruction,
   upgradeName,
 } from '../ui/format';
+import { arrearsDeadlines, arrearsSince } from '../ui/guild';
 import { palisadeWork, THREAT_SECTION } from '../ui/threat';
 
 /**
@@ -431,6 +432,40 @@ function threatItem(view: ViewState): LeavingItem | null {
   };
 }
 
+/**
+ * O soldo (GDD §9.1; IDEIA-10): com o atraso aberto, há quanto tempo e o que ele cobra a
+ * seguir; com o ouro acabando antes de um dia, por quanto tempo ele ainda paga a equipe. Os
+ * prazos são os da visão (`guild.wage`), em tempo real. Sem este item a lista diria que o feudo
+ * está preparado com os heróis prestes a ficar sem soldo. O botão leva à Mina de Ouro: é o que
+ * a frase do servidor aponta, e dispensar um herói não é sugestão que a lista faça sozinha.
+ */
+function wageItem(view: ViewState): LeavingItem | null {
+  const { guild } = view;
+  const { arrears, coveredForSeconds } = guild.wage;
+  if (guild.heroes.length === 0) {
+    return null;
+  }
+  const command = allocateTo(view, 'gold');
+  if (arrears !== null) {
+    const next = arrearsDeadlines(arrears, 0);
+    return {
+      id: 'wage',
+      severity: 'danger',
+      text: `${arrearsSince(arrears, 0)}${next.length === 0 ? '' : `: ${next.join(' · ').toLowerCase()}`}.`,
+      command,
+    };
+  }
+  if (coveredForSeconds === null || coveredForSeconds >= LEAVING_HORIZON_SECONDS) {
+    return null;
+  }
+  return {
+    id: 'wage',
+    severity: urgency(coveredForSeconds),
+    text: `O ouro paga a equipe por mais ${formatApprox(coveredForSeconds)}: depois disso o soldo atrasa.`,
+    command,
+  };
+}
+
 /** Quem está sem ofício não produz nada enquanto o jogador está longe. */
 function idleItem(view: ViewState): LeavingItem | null {
   const { free } = view.population;
@@ -447,7 +482,7 @@ function idleItem(view: ViewState): LeavingItem | null {
 
 /**
  * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
- * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, os depósitos que enchem, as obras
+ * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, os depósitos que enchem, as obras
  * que não começam sozinhas e os aldeões livres. O
  * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
@@ -457,6 +492,7 @@ export function leavingItems(view: ViewState): LeavingItem[] {
     threatItem(view),
     foodItem(view),
     firewoodItem(view),
+    wageItem(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),

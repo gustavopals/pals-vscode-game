@@ -31,6 +31,7 @@ import type { NewGameChoice, NewGameOptions } from '../game/newGame';
 import { isChronicleEvent } from '../game/returnReport';
 import type { BrowserNotifier } from '../notifications/browserNotifications';
 import {
+  arrearsAhead,
   decideNotice,
   decideNotifications,
   eventIcon,
@@ -40,6 +41,7 @@ import {
   isRaidOutcome,
   isSeasonTurn,
   isWatchReport,
+  isGuildEvent,
   MUTE_DURATION_MS,
   raidAftermath,
   raidAhead,
@@ -204,6 +206,11 @@ export class Controller {
    * ela não volta, os botões da carta ficam desabilitados e um segundo clique não vira ordem.
    */
   answering: ReadonlySet<string> = new Set();
+  /**
+   * As ordens da Guilda a caminho do servidor: `hire:<offerId>`, `dismiss:<heroId>` e `festival`.
+   * Enquanto uma está aqui, o botão dela fica ocupado e um segundo acionamento não vira ordem.
+   */
+  guildOrders: ReadonlySet<string> = new Set();
 
   private notificationHistory: number[] = [];
   /**
@@ -541,6 +548,7 @@ export class Controller {
       this.dropRaidToast();
       this.dropWatchToast();
       this.answering = new Set();
+      this.guildOrders = new Set();
       await this.openGame();
     }
     if (state.kind === 'signedOut') {
@@ -813,7 +821,9 @@ export class Controller {
       ? seasonArrival(event, this.seasonChanges.get(String(event.data.season)), this.view)
       : event.type === 'raidSuffered'
         ? raidAftermath(this.view)
-        : [];
+        : event.type === 'wageArrearsStarted'
+          ? arrearsAhead(this.view)
+          : [];
     if (isRaidOutcome(event)) {
       // O desfecho toma o lugar do alarme que o anunciou.
       this.dropRaidToast();
@@ -829,9 +839,10 @@ export class Controller {
       details,
       // O que vem da mata (os uivos, o relato dos vigias, o desfecho de um ataque) leva ao
       // painel da Ameaça, que fica abaixo da dobra da aba Feudo.
+      // O que é da equipe (o soldo em atraso, o herói que chegou ou partiu) leva à aba Guilda.
       action: {
         label: 'Ver',
-        route: 'fief',
+        route: isGuildEvent(event) ? 'guild' : 'fief',
         ...(isWatchReport(event) || isRaidOutcome(event) ? { section: THREAT_SECTION } : {}),
       },
     });
@@ -934,7 +945,7 @@ export class Controller {
      * O botão do aviso e a aba a que ele leva. Com `section`, a página e o foco vão também até
      * essa seção da aba (um argumento de `lords.openPanel`).
      */
-    action: { label: string; route: 'today' | 'fief' | 'council'; section?: string };
+    action: { label: string; route: 'today' | 'fief' | 'council' | 'guild'; section?: string };
     /**
      * O aviso entra no contador de novidades com a aba em segundo plano. A carta nova não entra:
      * ela já é contada como decisão pendente.
@@ -1326,6 +1337,67 @@ export class Controller {
       }
     });
     return attempted && answered;
+  }
+
+  /**
+   * Uma ordem da Guilda (contratar, dispensar, festival). É o único caminho delas: o painel, a
+   * árvore e a paleta chegam aqui pelos comandos `lords.hireHero`, `lords.dismissHero` e
+   * `lords.holdFestival`. O `commandId` nasce uma vez, em `prepare`: "Tentar de novo", depois de
+   * uma falha de rede, reenvia a mesma ordem, e o herói não é contratado nem pago duas vezes.
+   * Enquanto a resposta não volta, a ordem fica em `guildOrders` e um segundo acionamento dela
+   * (o duplo clique) não vira ordem. A recusa do servidor vira aviso com a frase dele.
+   */
+  private async guildOrder(key: string, send: () => Promise<void>): Promise<boolean> {
+    if (this.guildOrders.has(key)) {
+      return false;
+    }
+    let done = false;
+    const attempted = await this.attempt(async () => {
+      done = false;
+      this.setGuildOrder(key, true);
+      try {
+        await send();
+        done = true;
+      } catch (error) {
+        if (!isSessionLoss(error)) {
+          throw error;
+        }
+        // Quem cuida da conta já avisa que a sessão terminou; aqui se diz o que foi da ordem.
+        this.toast({
+          kind: 'warning',
+          text: 'A sessão terminou antes de a ordem chegar à Guilda: nada foi feito. Entre de novo para repetir.',
+        });
+      } finally {
+        this.setGuildOrder(key, false);
+      }
+    });
+    return attempted && done;
+  }
+
+  /** Contrata o candidato `offerId` da Taverna (GDD §9.1). */
+  hireHero(offerId: string): Promise<boolean> {
+    return this.guildOrder(`hire:${offerId}`, this.prepare('hireHero', { offerId }));
+  }
+
+  /** Dispensa o herói `heroId`. Quem confirma com o jogador é o comando, antes de chegar aqui. */
+  dismissHero(heroId: string): Promise<boolean> {
+    return this.guildOrder(`dismiss:${heroId}`, this.prepare('dismissHero', { heroId }));
+  }
+
+  /** Dá um festival na Taverna (ADR 0017, decisão 10). */
+  holdFestival(): Promise<boolean> {
+    return this.guildOrder('festival', this.prepare('holdFestival', {}));
+  }
+
+  private setGuildOrder(key: string, busy: boolean): void {
+    const next = new Set(this.guildOrders);
+    if (busy) {
+      next.add(key);
+    } else {
+      next.delete(key);
+    }
+    this.guildOrders = next;
+    this.changes.emit();
   }
 
   private setAnswering(instanceId: string, busy: boolean): void {

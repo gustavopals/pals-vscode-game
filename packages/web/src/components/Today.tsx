@@ -279,7 +279,11 @@ function PendingDecisions(props: {
  * perdido = agora. Quando uma incursão levou algo, a conta ganha a parcela dela, "Levado", e
  * continua fechando; sem incursão com perdas a coluna não existe.
  */
-function StockTable(props: { rows: ReturnReport['resources'] }) {
+function StockTable(props: {
+  rows: ReturnReport['resources'];
+  /** Houve soldo a pagar na ausência: a nota diz que ele entra no consumo do ouro. */
+  wage: boolean;
+}) {
   const raided = props.rows.some((row) => (row.raided ?? 0) > 0);
   return (
     <>
@@ -350,9 +354,11 @@ function StockTable(props: { rows: ReturnReport['resources'] }) {
         </tbody>
       </table>
       <p class="muted hint">
-        Produção já desconta o que o feudo consumiu. Gasto e recebido vêm das ordens e dos
-        acontecimentos da ausência. Perdido é o que não coube no depósito e foi ao chão, da produção
-        ou de uma recompensa.{raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
+        Produção já desconta o que o feudo consumiu
+        {props.wage ? ' (no ouro, o soldo dos heróis: ele não é gasto de uma ordem)' : ''}. Gasto e
+        recebido vêm das ordens e dos acontecimentos da ausência. Perdido é o que não coube no
+        depósito e foi ao chão, da produção ou de uma recompensa.
+        {raided ? ' Levado é o que as incursões tiraram do estoque.' : ''}
       </p>
     </>
   );
@@ -435,7 +441,15 @@ function Report(props: {
           estoques: conta só o que aconteceu enquanto você esteve fora.
         </p>
       ) : (
-        <StockTable rows={report.resources} />
+        <StockTable
+          rows={report.resources}
+          wage={
+            view.guild.heroes.length > 0 ||
+            [...blocks.prospered, ...blocks.cost].some(
+              (item) => item.topic === 'wage' || item.topic === 'guild',
+            )
+          }
+        />
       )}
       {lines === 0 ? null : (
         <details class="report-chronicle">

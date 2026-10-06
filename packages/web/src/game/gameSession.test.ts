@@ -730,6 +730,29 @@ describe('cache', () => {
       }
     });
 
+    it('a visão de antes da Guilda, mesmo com a marca atual, é descartada pela forma, e o cursor fica (v0.3, lição 10)', async () => {
+      // O `ViewState` cresceu sem o protocolo subir: a visão gravada sem `guild` e `tavern`, ou
+      // sem a frase da equipe, não passa no schema, e a tela nunca recebe uma visão pela metade.
+      const { guild, tavern: _tavern, ...beforeGuild } = view;
+      const { text: _text, ...guildWithoutText } = guild;
+      void [_tavern, _text];
+      for (const stale of [beforeGuild, { ...view, guild: guildWithoutText }]) {
+        const cached = { ...cachedNow(), view: stale, lastSeq: 3 } as unknown as GameCache;
+        const { session, state, seen } = setup(cached);
+        state.events = [event(1), event(2), event(3), event(4, 'constructionFinished')];
+        state.fail = new NetworkError('fora');
+        await session.start(target);
+        expect(session.view).toBeNull();
+        expect(seen.views).toEqual([]);
+        // A rede volta: só o que veio depois do cursor guardado é novidade.
+        state.fail = null;
+        await session.syncNow();
+        expect(session.view).toEqual(view);
+        expect(seen.events).toEqual([[event(4, 'constructionFinished')]]);
+        session.stop();
+      }
+    });
+
     it('com a marca atual e a forma atual, o cache é exibido', async () => {
       const { session, state, seen } = setup(cachedNow());
       state.fail = new NetworkError('fora');

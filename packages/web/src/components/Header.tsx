@@ -10,6 +10,7 @@ import {
   moraleTitle,
   moraleTrend,
 } from '../ui/morale';
+import { guildLines } from '../ui/guild';
 import { INJURED_ICON } from '../ui/threat';
 import { formatApprox, formatCountdown, formatNumber, remaining } from './format';
 import { Explained, Icon } from './shared';
@@ -101,6 +102,33 @@ function Injured(props: { population: ViewState['population']; elapsed: number }
   );
 }
 
+/**
+ * Os heróis, ao lado da população (GDD §13.3: "Heróis 3"), quando há equipe: a explicação é o
+ * soldo e por quanto tempo o ouro o paga, ou o atraso, nas frases da visão. Com o soldo em
+ * atraso, o ícone e a palavra dizem isso: nada é dito só pela cor.
+ */
+function Heroes(props: { view: ViewState; elapsed: number }) {
+  const { guild } = props.view;
+  if (guild.heroes.length === 0) {
+    return null;
+  }
+  return (
+    <span class="population-heroes">
+      {' '}
+      ·{' '}
+      <Explained why={guildLines(guild, props.elapsed).join(' ')}>
+        Heróis {guild.heroes.length}
+      </Explained>
+      {guild.wage.arrears === null ? null : (
+        <span class="warning">
+          {' '}
+          <Icon name="warning" /> soldo em atraso
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** O cabeçalho da aba Feudo: nome, calendário, o que a estação muda, população e moral. */
 export function Header(props: { view: ViewState; elapsed: number }) {
   const { view, elapsed } = props;
@@ -135,6 +163,7 @@ export function Header(props: { view: ViewState; elapsed: number }) {
           </span>
         ) : null}
         <Injured population={population} elapsed={elapsed} />
+        <Heroes view={view} elapsed={elapsed} />
       </p>
       <Morale morale={view.morale} elapsed={elapsed} />
     </header>

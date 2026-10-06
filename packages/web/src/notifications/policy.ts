@@ -2,6 +2,7 @@ import type { GameEvent, ViewState } from '@lotg/protocol';
 
 import { COUNCIL_ICON } from '../ui/council';
 import { clockTime, formatDuration } from '../ui/format';
+import { arrearsDeadlines, GUILD_ICON, HERO_ICON } from '../ui/guild';
 import { bandIcon } from '../ui/morale';
 import { isObjectiveCompleted, OBJECTIVE_DONE_ICON } from '../ui/objectives';
 import { DEFENSE_ICON, RAID_ICON, THREAT_ICON, THREAT_UNKNOWN_ICON } from '../ui/threat';
@@ -16,8 +17,9 @@ const HOUR_MS = 60 * 60 * 1000;
  * O que pede atenção de verdade: a fome, o frio, a gente que vai embora (o aldeão que parte
  * com a moral baixa e o que deserta na fome longa) e as incursões (GDD §13.5): o alarme dos
  * vigias, que só chega a quem tem a Torre e ainda dá tempo de agir, e o ataque que custou algo
- * ao feudo. A moral que desce de faixa também é alarme, mas isso depende do sentido da mudança:
- * ver `moraleBandDirection`.
+ * ao feudo. O soldo em atraso é da mesma família (GDD §9.1): o atraso que abre, o herói que fica
+ * descontente e o que parte por falta de soldo. A moral que desce de faixa também é alarme, mas
+ * isso depende do sentido da mudança: ver `moraleBandDirection`.
  */
 const ALARMS: ReadonlyArray<GameEvent['type']> = [
   'famineStarted',
@@ -26,14 +28,39 @@ const ALARMS: ReadonlyArray<GameEvent['type']> = [
   'villagerDeserted',
   'raidAnnounced',
   'raidSuffered',
+  'wageArrearsStarted',
+  'heroDiscontent',
+  'heroLeft',
 ];
 /**
  * O alívio de um alarme. Chega a quem recebeu o alarme, no mesmo nível, mas sem o tom de aviso:
  * quem soube que o frio entrou nas casas também fica sabendo que as lareiras voltaram a arder, e
  * quem ouviu o alarme dos vigias fica sabendo que os lobos recuaram diante da paliçada. É a
- * notícia que paga a Paliçada: chega também a quem não tem a Torre.
+ * notícia que paga a Paliçada: chega também a quem não tem a Torre. O soldo que volta a ser
+ * pago é o alívio do atraso.
  */
-const RELIEFS: ReadonlyArray<GameEvent['type']> = ['famineEnded', 'coldEnded', 'raidRepelled'];
+const RELIEFS: ReadonlyArray<GameEvent['type']> = [
+  'famineEnded',
+  'coldEnded',
+  'raidRepelled',
+  'wageArrearsEnded',
+];
+/**
+ * O herói que passou a servir ao feudo sem uma ordem dada agora: o que uma carta do Conselho
+ * prometeu (GDD §9.1). Chega no nível "Essenciais", como a carta nova, sem o tom de alarme: é a
+ * recompensa de uma decisão, e o soldo dele começa a correr. Quem o jogador contrata na Taverna
+ * não avisa: a ordem foi dele, e a resposta está na tela.
+ */
+const ARRIVALS: ReadonlyArray<GameEvent['type']> = ['heroJoined'];
+/** O que é da equipe: os avisos destes eventos levam à aba Guilda. */
+const GUILD: ReadonlyArray<GameEvent['type']> = [
+  'wageArrearsStarted',
+  'wageArrearsEnded',
+  'heroDiscontent',
+  'heroLeft',
+  'heroJoined',
+  'festivalEnded',
+];
 /** O desfecho de uma incursão: depois dele, o alarme que a anunciou já não tem o que avisar. */
 const RAID_OUTCOMES: ReadonlyArray<GameEvent['type']> = ['raidSuffered', 'raidRepelled'];
 /**
@@ -79,6 +106,8 @@ const INFORMATIVE: ReadonlyArray<GameEvent['type']> = [
   'cardExpired',
   // O que uma opção escondia aconteceu: é quando o jogador descobre a consequência da escolha.
   'cardEffectApplied',
+  // O festival acabou: a moral deixa de contá-lo na próxima virada.
+  'festivalEnded',
 ];
 /** O ícone dos dois avisos de estação: o de uma hora antes e o da virada. */
 export const SEASON_ICON = 'calendar';
@@ -109,6 +138,13 @@ const ICONS: Partial<Record<GameEvent['type'], string>> = {
   raidRepelled: DEFENSE_ICON,
   // O objetivo cumprido leva o visto, o mesmo da lista dos objetivos.
   objectiveCompleted: OBJECTIVE_DONE_ICON,
+  // O soldo e a equipe levam a bússola da Guilda; quem chega e quem parte, a pessoa.
+  wageArrearsStarted: GUILD_ICON,
+  wageArrearsEnded: GUILD_ICON,
+  heroDiscontent: HERO_ICON,
+  heroLeft: 'sign-out',
+  heroJoined: 'person-add',
+  festivalEnded: GUILD_ICON,
 };
 
 export type PolicyInput = {
@@ -241,6 +277,29 @@ export function raidAftermath(view: ViewState | null): string[] {
   return note === null ? [] : [note];
 }
 
+/** O evento é um herói que passou a servir ao feudo por promessa de uma carta. */
+export function isHeroArrival(event: GameEvent): boolean {
+  return ARRIVALS.includes(event.type);
+}
+
+/** O evento é da equipe (soldo, herói que chega ou parte): o aviso dele leva à aba Guilda. */
+export function isGuildEvent(event: GameEvent): boolean {
+  return GUILD.includes(event.type);
+}
+
+/**
+ * O que o aviso do soldo em atraso diz além da frase da Crônica: os prazos das consequências,
+ * com os números da visão (que chega antes dos eventos), e a frase do servidor, que diz o que
+ * fecha o atraso. Sem atraso aberto na visão (ele já fechou), nada.
+ */
+export function arrearsAhead(view: ViewState | null): string[] {
+  const arrears = view?.guild.wage.arrears ?? null;
+  if (arrears === null) {
+    return [];
+  }
+  return [...arrearsDeadlines(arrears, 0).map((line) => `${line}.`), arrears.text];
+}
+
 /** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */
 export function isDecision(event: GameEvent): boolean {
   return DECISIONS.includes(event.type);
@@ -263,19 +322,24 @@ function wanted(
     isRelief(event) ||
     isDecision(event) ||
     isWatchReport(event) ||
+    isHeroArrival(event) ||
     (level === 'all' && INFORMATIVE.includes(event.type))
   );
 }
 
 /**
  * Com pouco espaço: primeiro os alarmes; depois as cartas novas, os alívios, a virada de
- * estação e o relato dos vigias; depois o resto.
+ * estação, o relato dos vigias e o herói que chegou; depois o resto.
  */
 function rank(event: GameEvent): number {
   if (isEssential(event)) {
     return 0;
   }
-  return isDecision(event) || isRelief(event) || isSeasonTurn(event) || isWatchReport(event)
+  return isDecision(event) ||
+    isRelief(event) ||
+    isSeasonTurn(event) ||
+    isWatchReport(event) ||
+    isHeroArrival(event)
     ? 1
     : 2;
 }

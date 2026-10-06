@@ -217,6 +217,18 @@ type QueueRow = Constructions['queues'][number];
 type PlannedRow = Constructions['planned'][number];
 
 /**
+ * A Guilda e a Taverna nos goldens do motor (V3C-T1 a T3): três heróis pagos, com o ouro
+ * acabando em um dia; dois heróis com o soldo em atraso, um descontente e um para partir; um
+ * herói prometido por uma carta, a caminho; a Taverna de pé com dois candidatos e o festival
+ * livre; e a Taverna com a equipe cheia, os candidatos bloqueados e um festival em curso.
+ */
+export const guildPaidView = golden.guildPaid as unknown as ViewState;
+export const guildArrearsView = golden.guildInArrears as unknown as ViewState;
+export const heroPromisedView = golden.heroPromised as unknown as ViewState;
+export const tavernOpenView = golden.tavernOpen as unknown as ViewState;
+export const tavernBusyView = golden.tavernBusy as unknown as ViewState;
+
+/**
  * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera
  * (obra anterior do edifício, fila, recurso, depósito e nível de outro edifício).
  */
