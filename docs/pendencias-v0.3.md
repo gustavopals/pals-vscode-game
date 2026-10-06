@@ -4,13 +4,14 @@
 
 ## 0. Respostas do autor em 2026-10-06
 
-Com a Fase C implementada e revista, o autor respondeu em sessão de perguntas a três pontos. O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md), seção "Respostas de 2026-10-06". O que segue abaixo, das seções 1 a 6, **não foi reescrito**: onde o texto diz "para o autor confirmar", "enquanto isso" ou "se decidir diferente" nos itens desta tabela, leia com ela por cima.
+Com a Fase C implementada e revista, o autor respondeu em sessão de perguntas a três pontos; no mesmo dia, com o catálogo de expedições implementado (V3D-T3), respondeu a mais três, da Fase D (as três últimas linhas da tabela). O registro está no [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md) e no [ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md), seção "Respostas de 2026-10-06" de cada um. O que segue abaixo, das seções 1 a 6, **não foi reescrito**: onde o texto diz "para o autor confirmar", "enquanto isso" ou "se decidir diferente" nos itens desta tabela, leia com ela por cima.
 
 | Item | Pergunta | Resposta |
 |---|---|---|
 | **C-47** e **C-48**, o furo da virada | A virada do dia deve cobrar o que o prazo já devia quando o atraso do soldo (ou a fome) fechou há menos de 2 h reais? | **"Manter: o que venceu é cobrado."** A correção fica como está, no soldo **e na fome da v0.2**: se o prazo venceu enquanto havia fome ou atraso, resolver depois não desfaz; a virada seguinte dentro da janela cobra o que já era devido. A mudança de regra da v0.2 em partidas vivas (C-48) está **confirmada** |
 | **C-57**, a janela do atraso (revisão M-R2) | Pagar 2 h reais de soldo zera um atraso de qualquer idade? | **"Fica assim."** 2 h reais sem atraso e o prazo recomeça do zero, como a fome |
 | **A-3** e **C-58**, a publicação | A Fase C vai ao ar sozinha? | **Não.** O agente não tem permissão de `push` (a política da sessão nega), e o autor escolheu: o agente segue com commits locais; **ao fechar a Fase D (expedições), o agente faz o backup manual do banco e avisa, e o autor roda `git push origin main`**. O motivo é o das dúvidas A-3 e C-58: a Fase C sozinha cobra soldo de heróis sem trabalho e vende traços cujo efeito só existe com as expedições |
+| **D-24**, os lobos do outono | Com o Covil limpo, os lobos descem a serra no outono assim mesmo? | **"Manter os lobos do outono."** A regra que o agente criou na V3D-T2 (`threat.seasonEnemy`) está **confirmada**: com o Covil limpo, a primavera, o verão e o inverno não têm subida da Ameaça nem sorteio de incursão; o outono tem os dois. Nenhum código mudou |
 
 **O que a resposta da publicação muda, e fica registrado:**
 
@@ -235,7 +236,7 @@ Vêm da implementação de V3D-T3 (os seis modelos em dezoito grafos, o relatór
 
 ### Fase D: os desfechos (V3D-T2)
 
-Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Resgate, experiência e nível, equipamento, destinos por descoberta e o Covil limpo; estado na versão 18, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-16, D-17, D-24 e D-25 são as que mais pedem resposta; a D-24 é a validação que a decisão 14 do ADR 0018 mandava voltar ao autor.
+Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Resgate, experiência e nível, equipamento, destinos por descoberta e o Covil limpo; estado na versão 18, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-16, D-17, D-24 e D-25 eram as que mais pediam resposta; **a D-17, a D-24 e a D-25 foram respondidas pelo autor em 2026-10-06** (seção 0).
 
 **D-16. O Resgate tem dois nós de prova e o caminho de volta, e não "2 nós".** *(Pergunta para o autor; é a mesma conta da D-5. **Mantida em V3D-T3:** ver a D-31.)*
 - Enquanto isso: o ADR 0018 diz "Resgate: 2 h de jogo, 2 nós, 2 heróis", e o teto do conteúdo é de 45 minutos por nó: dois nós dão 1 h 30. O grafo provisório tem a chegada (45 min), o cativeiro (45 min) e a volta (30 min). O Covil dos Lobos, com "3 nós", coube: a subida, a toca e a volta.
@@ -275,7 +276,7 @@ Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Re
 - O Covil dos Lobos, o Resgate e as Ruínas são **três variantes mínimas cada, sem encruzilhada**, escritas para os desfechos terem onde acontecer (o Covil limpa o tile, o Resgate liberta, as Ruínas capturam e rendem item). As dificuldades das Ruínas são as do exemplo do ADR 0017 (50, 60 e 90). Os identificadores `wolfDen`, `rescue` e `ruins` ficam gravados no estado e são os que V3D-T3 deve manter.
 - **A captura só é possível no Resgate e nas Ruínas**, e a conta do ADR 0017 já dizia: a equipe mínima das Ruínas nunca chega ao Desastre. No simulador ninguém foi capturado (D-24).
 
-**D-24. O Covil limpo deixa o feudo sem incursão até o outono, e no outono os lobos descem a serra assim mesmo.** *(Pergunta para o autor: é a validação que a decisão 14 do ADR 0018 mandava voltar a ele; **o agente criou uma regra para fechá-la**.)*
+**D-24. O Covil limpo deixa o feudo sem incursão até o outono, e no outono os lobos descem a serra assim mesmo.** *(**Respondida pelo autor em 2026-10-06: "Manter os lobos do outono."** A regra fica como está; seção 0. Era a validação que a decisão 14 do ADR 0018 mandava voltar a ele; o agente tinha criado a regra para fechá-la.)*
 - **O que a decisão diz, e o que faltava.** "O tile para de somar os seus +2 por dia", "com o Covil limpo, só o outono soma", e a pergunta: "limpar o Covil na primavera deixa o feudo sem incursão nenhuma até o outono?". O motor da v0.2 só sorteava incursão com um tile ativo (`prowlingEnemy`: sem tile, "não há quem ataque"), e ninguém podia limpar um tile. Com o Covil limpo isso dava **nenhuma incursão até a virada do ano**, com o outono somando 3 por dia e nada fazendo a Ameaça cair: na primeira medição ela chegava ao inverno em 79 a 85 de média (contra 55 de quem não limpou) e o ano novo começava com ela no teto. O teste "a Ameaça não satura" da matriz (docs/balance-v0.2.md, seção 16) falhou com 100.
 - **A regra que entrou:** no outono os lobos descem a serra, **com o Covil limpo ou não** (`balance.threat.seasonEnemy: { autumn: 'wolves' }`, `raidingEnemy`). Com o Covil limpo, a primavera, o verão e o inverno não têm subida nem sorteio; o outono tem os dois, como sempre teve. É a leitura que faz valer a frase do ADR ("sem incursão até o outono") e mantém a Ameaça oscilando.
 - **O que o simulador mediu com ela** ([balance-v0.3.md](balance-v0.3.md), seção 7): a resposta à pergunta é **sim**: quem limpa o Covil na primavera ou no verão não vê incursão até o outono (só a que já estava marcada), e no outono elas voltam.
