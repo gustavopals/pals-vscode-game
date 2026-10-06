@@ -252,6 +252,28 @@ export async function councilRecess(target: TestApp, gameId: string): Promise<vo
   }
 }
 
+/**
+ * Deixa uma partida de teste recém-criada pronta para erguer a Taverna, sem jogar as horas que
+ * o Salão do Senhor leva para chegar ao nível 3: o Salão vai ao nível 3 e o cofre ganha o
+ * material da obra e o ouro para contratar (o que passa do limite do depósito fica como está).
+ * A obra, a lista de candidatos, a contratação e o festival são os do motor. O estado é
+ * reescrito direto no banco: chame logo depois de criar a partida, antes de qualquer leitura.
+ */
+export async function tavernSite(target: TestApp, gameId: string, gold = 900): Promise<void> {
+  const stock = { food: 400_000, wood: 400_000, stone: 400_000, gold: gold * 1000 };
+  const { rowCount } = await target.pool.query(
+    `update games
+        set state = jsonb_set(
+              jsonb_set(state, '{settlement,buildings,townHall}', '3'::jsonb),
+              '{settlement,resources}', $2::jsonb)
+      where id = $1`,
+    [gameId, JSON.stringify(stock)],
+  );
+  if (rowCount !== 1) {
+    throw new Error('A partida do teste não está no banco.');
+  }
+}
+
 /** Um herói de teste, como `enlistHeroes` o grava: só o que não é igual para todos. */
 export type TestHero = {
   name: string;

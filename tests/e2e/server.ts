@@ -151,7 +151,8 @@ control.post('/__test/horde-quiet', async () => {
  * Torre de Vigia ou a Paliçada de pé antes da hora dos lobos, sem jogar as dezenas de horas que
  * o Salão do Senhor leva para liberá-las (a obra de verdade é coberta pelos cenários da Torre e
  * pelos testes do servidor). Só o nível muda; daí em diante o aviso, a defesa e o desfecho são
- * os do motor.
+ * os do motor. Serve também à Taverna: posta de pé assim, ela ganha os candidatos no primeiro
+ * avanço do motor (a leitura seguinte), ancorados no instante em que o estado estava.
  */
 control.post('/__test/raise', async (request) => {
   const { building, level } = request.body as { building: string; level: number };
@@ -159,6 +160,26 @@ control.post('/__test/raise', async (request) => {
     `update games
         set state = jsonb_set(state, array['settlement', 'buildings', $1::text], to_jsonb($2::int))`,
     [building, level],
+  );
+  return { ok: true };
+});
+
+/**
+ * Põe o estoque de um recurso de todos os feudos em um valor, em unidades: é como um teste da
+ * Taverna tem o ouro de uma contratação ou a comida de um festival sem jogar as horas que a
+ * produção leva para juntá-los. O resto do acumulador do recurso é zerado, para o número ser
+ * exato; daí em diante a produção, o consumo, o soldo e o limite do depósito são os do motor
+ * (o que passa do limite fica como está e não recebe produção).
+ */
+control.post('/__test/stock', async (request) => {
+  const { resource, amount } = request.body as { resource: string; amount: number };
+  await pool.query(
+    `update games
+        set state = jsonb_set(
+              jsonb_set(state, array['settlement', 'resources', $1::text],
+                        to_jsonb(($2::bigint) * 1000)),
+              array['settlement', 'accumulators', $1::text], '0'::jsonb)`,
+    [resource, Math.trunc(amount)],
   );
   return { ok: true };
 });

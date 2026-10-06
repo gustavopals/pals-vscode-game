@@ -56,10 +56,17 @@ export type World = {
   wolvesRoam(): void;
   /**
    * Põe um edifício do feudo em um nível, sem obra (`/__test/raise`): a Torre de Vigia ou a
-   * Paliçada de pé antes da hora dos lobos, ou o Salão do Senhor no nível que libera a obra de
-   * uma delas.
+   * Paliçada de pé antes da hora dos lobos, o Salão do Senhor no nível que libera a obra de
+   * uma delas, ou a Taverna, que ganha os candidatos na leitura seguinte (o motor os sorteia
+   * no primeiro avanço, como na inauguração).
    */
-  raise(building: 'watchtower' | 'palisade' | 'townHall', level: number): Promise<void>;
+  raise(building: 'watchtower' | 'palisade' | 'townHall' | 'tavern', level: number): Promise<void>;
+  /**
+   * Põe o estoque de um recurso de todos os feudos em um valor, em unidades (`/__test/stock`):
+   * o ouro para contratar na Taverna ou a comida de um festival, sem jogar as horas que a Mina
+   * leva para juntá-los. Daí em diante a produção, o consumo e o soldo são os do motor.
+   */
+  stock(resource: 'food' | 'wood' | 'stone' | 'gold', amount: number): Promise<void>;
   /**
    * Põe a Ameaça de todos os feudos em um valor (`/__test/threat`), para um cenário que precisa
    * de uma marca da Crônica cedo. Daí em diante a subida e as marcas são as do motor.
@@ -137,6 +144,9 @@ export const test = base.extend<{ world: World }>({
         },
         raise: async (building, level) => {
           await control('raise', { building, level });
+        },
+        stock: async (resource, amount) => {
+          await control('stock', { resource, amount });
         },
         threat: async (level) => {
           await control('threat', { level });

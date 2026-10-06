@@ -98,15 +98,13 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * encontra de volta.
  *
  * `catalog` são as cartas do Conselho: o jogo usa as do conteúdo; outro catálogo só existe em
- * teste (`processEventsWith`). `forecast` é das previsões da visão (`stateAtNextMoraleTurn`): a
- * Taverna não troca os candidatos, porque uma previsão não sorteia.
+ * teste (`processEventsWith`).
  */
 export function processEventsAt(
   draft: GameState,
   atMs: number,
   events: GameEvent[],
   catalog: Catalog = CATALOG,
-  forecast = false,
 ): void {
   finishConstructions(draft, atMs, events);
   finishRecruitments(draft, atMs, events);
@@ -124,17 +122,17 @@ export function processEventsAt(
   // tudo o que muda quem está no feudo neste instante (a obra que a ergue ou a amplia, o herói
   // que parte sem soldo, o que chega por carta): a lista nasce com o número de candidatos do
   // nível de agora e sem repetir o nome de ninguém que acabou de chegar. Antes das planejadas e
-  // dos objetivos, que já a encontram trocada. Uma previsão da visão não sorteia: fica de fora.
-  if (!forecast) {
-    settleTavern(draft, atMs, events);
-  }
+  // dos objetivos, que já a encontram trocada.
+  settleTavern(draft, atMs, events);
   settlePlanned(draft, atMs, events);
   settleScarcity(draft, atMs, events);
 }
 
-/** O processador das previsões da visão: o do jogo, sem o sorteio da Taverna. */
-const forecastEventsAt: EventProcessor = (draft, atMs, events) =>
-  processEventsAt(draft, atMs, events, CATALOG, true);
+/**
+ * Um instante que nenhuma partida alcança: é para quando as previsões da visão empurram a
+ * rotação da Taverna, que elas não podem sortear.
+ */
+const NEVER_MS = Number.MAX_SAFE_INTEGER;
 
 /** O processador de eventos do jogo com outro catálogo de cartas: só para os testes do Conselho. */
 export function processEventsWith(catalog: Catalog): EventProcessor {
@@ -157,20 +155,21 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * moral, o que a névoa esconde.
  *
  * **A Taverna não troca os candidatos.** A rotação é um sorteio fora da virada do dia, e uma
- * previsão não sorteia: a cópia avança sem rotação marcada e sem o passo da Taverna. Quem ela
- * oferece não entra na conta da moral; o nível dela e o festival, que entram, não dependem da
- * rotação.
+ * previsão não sorteia: na cópia a próxima rotação fica para nunca, e uma Taverna que termine
+ * de ser erguida no caminho também não ganha lista (a inauguração só sorteia sem rotação
+ * marcada). Quem ela oferece não entra na conta da moral; o nível dela e o festival, que
+ * entram, não dependem da rotação.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
   const blind: GameState = {
     ...state,
     horde: { ...state.horde, scheduledRaids: [] },
-    guild: { ...state.guild, tavern: { ...state.guild.tavern, nextRotationAtMs: null } },
+    guild: { ...state.guild, tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS } },
   };
   // Um milissegundo antes da virada o estado está em repouso e o próximo evento é ela mesma:
   // o último milissegundo é um trecho de taxas constantes, como em `advanceWith`.
-  const draft = cloneState(advanceWith(blind, turn - 1, forecastEventsAt).state);
+  const draft = cloneState(advanceTo(blind, turn - 1).state);
   applyContinuous(draft, turn - draft.lastProcessedAt);
   draft.lastProcessedAt = turn;
   draft.clock.gameTimeMs = turn;
@@ -206,7 +205,13 @@ export function advanceWith(
   // E para os objetivos: quando a lista do conteúdo cresce, a partida que já tinha cumprido
   // todos recebe os novos aqui, e o que ela já fez (a Torre erguida, a carta respondida) conta
   // neste instante, com a recompensa e a linha na Crônica.
+  // E para a Taverna: no jogo ela só fica de pé pelo fim de uma obra, que é um instante
+  // processado, e a rotação marcada é sempre futura. Um estado que chega com a Taverna erguida
+  // e sem rotação marcada, ou com a rotação vencida (só existe posto à mão, em teste), ganha a
+  // lista de candidatos aqui, ancorada neste instante: assim o resultado não depende de quando
+  // alguém olhou depois.
   announceRaids(draft, draft.lastProcessedAt, events);
+  settleTavern(draft, draft.lastProcessedAt, events);
   if (hasStartablePlan(draft) || hasUnsettledObjectives(draft)) {
     settlePlanned(draft, draft.lastProcessedAt, events);
   }

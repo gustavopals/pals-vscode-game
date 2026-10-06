@@ -285,6 +285,23 @@ describe('a rotação dos candidatos (ADR 0017, decisão 4)', () => {
     expect(step.state.guild.tavern.nextRotationAtMs).toBe(opensAt + HOUR);
   });
 
+  it('a Taverna posta de pé à mão, sem obra, ganha os candidatos no primeiro avanço, ancorados no instante em que o estado estava', () => {
+    // No jogo isto não acontece: a Taverna só fica de pé pelo fim de uma obra. É o estado dos
+    // testes que erguem um edifício direto no banco (`/__test/raise`).
+    const raised = tavernSite(5 * HOUR + 7 * MINUTE, (draft) => {
+      draft.settlement.buildings.tavern = 2;
+    });
+    expect(currentShape(JSON.parse(JSON.stringify(raised)), '')).toBeNull();
+    const at = raised.lastProcessedAt;
+    const soon = advanceTo(raised, at + 1).state;
+    expect(soon.guild.tavernOffers).toHaveLength(2);
+    expect(soon.guild.tavern.nextRotationAtMs).toBe(at + ROTATION);
+    // Olhar cedo ou tarde dá no mesmo: a âncora é a do estado, não a da primeira visita.
+    const late = advanceTo(raised, at + 3 * HOUR).state;
+    expect(advanceTo(soon, at + 3 * HOUR).state).toStrictEqual(late);
+    expect(late.guild.tavernOffers).toStrictEqual(soon.guild.tavernOffers);
+  });
+
   it('a rotação é tempo de jogo: no ritmo 3 a tela diz 8 h, e no 0,5, 48 h', () => {
     const seconds = (timeScale: number) =>
       view(tavernScenario(0, () => {}, { timeScale }).state).tavern.nextRotationInSeconds;
@@ -840,6 +857,15 @@ describe('a Taverna na visão e na névoa', () => {
     expect(forecast.rng).toStrictEqual(before.rng);
     expect(forecast.ids).toStrictEqual(before.ids);
     expect(forecast.guild.tavernOffers).toStrictEqual(before.guild.tavernOffers);
+    // Nem a Taverna que fica pronta antes da virada: a cópia a vê erguida (o termo da moral
+    // conta), sem sortear a primeira lista.
+    const building = accept(tavernSite(), command('startConstruction', { building: 'tavern' }));
+    const ahead = stateAtNextMoraleTurn(building.state);
+    expect(ahead.settlement.buildings.tavern).toBe(1);
+    expect(ahead.rng).toStrictEqual({});
+    expect(ahead.ids).toStrictEqual({});
+    expect(ahead.guild.tavernOffers).toEqual([]);
+    expect(JSON.stringify(view(building.state))).not.toContain('offer-');
     // E a moral prevista é a que a virada entrega.
     expect(view(before).morale.next.value).toBe(
       advanceTo(before, 13 * DAY).state.settlement.morale,

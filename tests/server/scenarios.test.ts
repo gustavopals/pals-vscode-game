@@ -25,6 +25,7 @@ import {
   quietHorde,
   renew,
   send,
+  tavernSite,
   type TestApp,
 } from '../../packages/server/test/helpers/app';
 import { resetTestDb } from '../../packages/server/test/helpers/db';
@@ -416,6 +417,264 @@ describe('dispensar um herói com duplo clique e em duas abas (V3C-T1)', () => {
       'wageArrearsEnded',
     ]);
     expect(dismissed.body.events[1]?.data).toMatchObject({ reason: 'noHeroes' });
+  });
+});
+
+describe('a Taverna: contratar com duplo clique, em duas abas, no limite e sem ouro (V3C-T2, QA-05)', () => {
+  /** Uma partida com a Taverna recém-inaugurada: a obra e os candidatos são os do motor. */
+  const openTavern = async (name: string, gold?: number) => {
+    const player = await newPlayer(server, name);
+    const gameId = player.game.id;
+    await quietHorde(server, gameId);
+    await councilRecess(server, gameId);
+    await tavernSite(server, gameId, gold);
+    const built = await send<CommandAccepted>(
+      server,
+      player.token,
+      gameId,
+      order('startConstruction', { building: 'tavern' }),
+    );
+    expect(built.status).toBe(200);
+    expect(built.body.view.tavern).toMatchObject({ level: 0, offers: [] });
+    // A obra leva 15 minutos; vinte depois a Taverna está aberta.
+    server.clock.advance(20 * MINUTE);
+    await renew(server, player);
+    return { player, gameId };
+  };
+
+  it('o reenvio devolve o recibo: um herói, uma cobrança e uma linha na Crônica', async () => {
+    const { player, gameId } = await openTavern('Mafalda');
+    const before = await viewOf(server, player.token, gameId);
+    expect(before.view.tavern.level).toBe(1);
+    expect(before.view.tavern.offers).toHaveLength(2);
+    expect(before.view.guild.heroLimit).toBe(2);
+    const [first, second] = before.view.tavern.offers;
+    if (first === undefined || second === undefined) {
+      throw new Error('O teste esperava dois candidatos.');
+    }
+    const goldBefore = before.view.resources.find((row) => row.id === 'gold')?.stock ?? 0;
+    // A visão não leva o modelo, o gerador nem nada da próxima rotação.
+    const sent = JSON.stringify(before);
+    expect(sent).not.toContain('templateId');
+    expect(sent).not.toContain('rng');
+    expect(sent).not.toContain('nextRotationAtMs');
+
+    const hire = order('hireHero', { offerId: first.offerId });
+    const original = await send<CommandAccepted>(server, player.token, gameId, hire);
+    expect(original.status).toBe(200);
+    expect(original.headers['x-lords-replayed']).toBeUndefined();
+    expect(original.body.events.map((event) => event.type)).toEqual(['heroHired']);
+    expect(original.body.events[0]?.data).toMatchObject({
+      heroId: 'hero-1',
+      offerId: first.offerId,
+      price: first.price,
+      heroes: 1,
+    });
+    expect(original.body.events[0]?.text).toContain(`${first.name}, `);
+    expect(original.body.view.guild.heroes.map((hero) => hero.name)).toEqual([first.name]);
+    expect(original.body.view.tavern.offers.map((offer) => offer.offerId)).toEqual([
+      second.offerId,
+    ]);
+    const goldAfter = original.body.view.resources.find((row) => row.id === 'gold')?.stock ?? 0;
+    expect(goldAfter).toBe(goldBefore - first.price);
+
+    // O duplo clique: a mesma ordem, com o mesmo commandId, devolve o recibo sem reaplicar.
+    server.clock.advance(10 * MINUTE);
+    const replay = await send<CommandAccepted>(server, player.token, gameId, hire);
+    expect(replay.status).toBe(200);
+    expect(replay.headers['x-lords-replayed']).toBe('true');
+    expect(replay.body).toEqual(original.body);
+
+    // A outra aba, com a visão velha: outro commandId para a mesma oferta. O motor recusa.
+    const other = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('hireHero', { offerId: first.offerId }),
+    );
+    expect(other.status).toBe(422);
+    const gone = 'Esse candidato já não está na Taverna: a lista trocou, ou ele já foi contratado.';
+    expect(other.body).toMatchObject({
+      code: 'GAME_RULE',
+      message: gone,
+      details: { code: 'OFFER_GONE', message: gone },
+    });
+
+    // O mesmo commandId para outro candidato é conflito, e ele continua na lista.
+    const conflict = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('hireHero', { offerId: second.offerId }, hire.commandId),
+    );
+    expect(conflict.status).toBe(409);
+    expect(conflict.body.code).toBe('COMMAND_ID_CONFLICT');
+
+    const { rows } = await server.pool.query<{
+      heroes: Array<{ id: string; name: string }>;
+      offers: Array<{ offerId: string }>;
+      issued: number;
+    }>(
+      `select state -> 'guild' -> 'heroes' as heroes,
+              state -> 'guild' -> 'tavernOffers' as offers,
+              (state -> 'ids' ->> 'hero')::int as issued
+         from games where id = $1`,
+      [gameId],
+    );
+    expect(rows[0]?.heroes.map((hero) => [hero.id, hero.name])).toEqual([['hero-1', first.name]]);
+    expect(rows[0]?.offers.map((offer) => offer.offerId)).toEqual([second.offerId]);
+    expect(rows[0]?.issued).toBe(1);
+    expect(
+      await countRows(
+        server.pool,
+        'commands',
+        `game_id = '${gameId}' and type = 'hireHero' and response_status = 200`,
+      ),
+    ).toBe(1);
+    expect(
+      await countRows(server.pool, 'game_events', `game_id = '${gameId}' and kind = 'heroHired'`),
+    ).toBe(1);
+    // Uma cobrança só: dez minutos depois o cofre tem o preço a menos e o soldo de um herói.
+    const after = await viewOf(server, player.token, gameId);
+    const gold = after.view.resources.find((row) => row.id === 'gold');
+    expect(gold?.stock).toBeGreaterThan(goldBefore - first.price - 2);
+    expect(gold?.stock).toBeLessThanOrEqual(goldBefore - first.price);
+    expect(gold?.breakdown).toMatch(/−2\/h \(soldo de 1 herói\)$/);
+  });
+
+  it('no limite da Taverna, depois da troca da lista e sem ouro, a recusa diz o motivo', async () => {
+    const { player, gameId } = await openTavern('Soeiro');
+    const open = await viewOf(server, player.token, gameId);
+    const [first, second] = open.view.tavern.offers;
+    if (first === undefined || second === undefined) {
+      throw new Error('O teste esperava dois candidatos.');
+    }
+    for (const offer of [first, second]) {
+      const hired = await send<CommandAccepted>(
+        server,
+        player.token,
+        gameId,
+        order('hireHero', { offerId: offer.offerId }),
+      );
+      expect(hired.status).toBe(200);
+    }
+    // Um dia depois a lista trocou (a rotação é de 12 dias de jogo: 24 h no ritmo do teste).
+    server.clock.advance(DAY);
+    await renew(server, player);
+    const turned = await viewOf(server, player.token, gameId);
+    expect(turned.view.tavern.offers).toHaveLength(2);
+    const ids = turned.view.tavern.offers.map((offer) => offer.offerId);
+    expect(ids).not.toContain(first.offerId);
+    expect(ids).not.toContain(second.offerId);
+    // A Taverna Nv1 abriga dois heróis, e o feudo já os tem: a tela e a ordem dizem o mesmo.
+    const limit =
+      'A Taverna Nv1 abriga 2 heróis, e o feudo já os tem: melhore a Taverna ou dispense um herói.';
+    expect(turned.view.tavern.offers.map((offer) => offer.blockedReason)).toEqual([limit, limit]);
+    const full = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('hireHero', { offerId: ids[0] ?? '' }),
+    );
+    expect(full.status).toBe(422);
+    expect(full.body).toMatchObject({ code: 'GAME_RULE', details: { code: 'HERO_LIMIT' } });
+    expect(full.body.message).toBe(limit);
+    // A oferta que saiu na troca não volta.
+    const stale = await send<ApiError>(
+      server,
+      player.token,
+      gameId,
+      order('hireHero', { offerId: first.offerId }),
+    );
+    expect(stale.status).toBe(422);
+    expect(stale.body).toMatchObject({ details: { code: 'OFFER_GONE' } });
+    // A recusa grava o avanço e mais nada: continuam dois heróis.
+    const after = await viewOf(server, player.token, gameId);
+    expect(after.view.guild.heroes).toHaveLength(2);
+
+    // Outro feudo, com o cofre curto: 130 de ouro, e a obra leva 120.
+    const poor = await openTavern('Urraca', 130);
+    const view = await viewOf(server, poor.player.token, poor.gameId);
+    const [cheapest] = [...view.view.tavern.offers].sort((a, b) => a.price - b.price);
+    if (cheapest === undefined) {
+      throw new Error('O teste esperava um candidato.');
+    }
+    expect(cheapest.affordable).toBe(false);
+    const broke = await send<ApiError>(
+      server,
+      poor.player.token,
+      poor.gameId,
+      order('hireHero', { offerId: cheapest.offerId }),
+    );
+    expect(broke.status).toBe(422);
+    expect(broke.body).toMatchObject({ details: { code: 'INSUFFICIENT_RESOURCES' } });
+    expect(broke.body.message).toBe(cheapest.blockedReason);
+    expect(broke.body.message).toMatch(/^Faltam \d+ ouro\.$/);
+  });
+
+  it('o festival é dado uma vez por estação, e o reenvio não cobra de novo', async () => {
+    const { player, gameId } = await openTavern('Brites');
+    const before = await viewOf(server, player.token, gameId);
+    expect(before.view.tavern.festival).toMatchObject({ available: true, activeForSeconds: null });
+    const stock = (view: ViewResponse['view'], id: string) =>
+      view.resources.find((row) => row.id === id)?.stock ?? 0;
+    const feast = order('holdFestival', {});
+    const original = await send<CommandAccepted>(server, player.token, gameId, feast);
+    expect(original.status).toBe(200);
+    expect(original.body.events.map((event) => event.type)).toEqual(['festivalHeld']);
+    expect(stock(original.body.view, 'food')).toBe(stock(before.view, 'food') - 100);
+    expect(stock(original.body.view, 'gold')).toBe(stock(before.view, 'gold') - 50);
+    expect(original.body.view.tavern.festival.available).toBe(false);
+    expect(original.body.view.tavern.festival.activeForSeconds).toBeGreaterThan(0);
+    expect(original.body.view.morale.terms.map((term) => term.label)).toEqual(
+      expect.arrayContaining(['Taverna Nv1', 'Festival na Taverna']),
+    );
+
+    const replay = await send<CommandAccepted>(server, player.token, gameId, feast);
+    expect(replay.status).toBe(200);
+    expect(replay.headers['x-lords-replayed']).toBe('true');
+    expect(replay.body).toEqual(original.body);
+
+    const again = await send<ApiError>(server, player.token, gameId, order('holdFestival', {}));
+    expect(again.status).toBe(422);
+    expect(again.body).toMatchObject({
+      code: 'GAME_RULE',
+      message: 'Um festival por estação: na Primavera o feudo já festejou.',
+      details: { code: 'FESTIVAL_ALREADY_HELD' },
+    });
+    expect(
+      await countRows(
+        server.pool,
+        'game_events',
+        `game_id = '${gameId}' and kind = 'festivalHeld'`,
+      ),
+    ).toBe(1);
+
+    // Vinte e seis horas depois (13 dias de jogo) o festival acabou, e a Crônica conta.
+    server.clock.advance(26 * HOUR);
+    await renew(server, player);
+    const after = await viewOf(server, player.token, gameId);
+    expect(after.view.tavern.festival.activeForSeconds).toBeNull();
+    const chronicle = await call<{ entries: Array<{ text: string }> }>(
+      server,
+      'GET',
+      `/games/${gameId}/chronicle`,
+      { token: player.token },
+    );
+    expect(JSON.stringify(chronicle.body)).toContain('os barris secaram em Pedra Alta');
+    // Sem Taverna, a ordem é recusada dizendo o que falta.
+    const novice = await newPlayer(server, 'Nuno');
+    const refused = await send<ApiError>(
+      server,
+      novice.token,
+      novice.game.id,
+      order('holdFestival', {}),
+    );
+    expect(refused.status).toBe(422);
+    expect(refused.body).toMatchObject({
+      details: { code: 'TAVERN_REQUIRED' },
+      message: 'Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.',
+    });
   });
 });
 
