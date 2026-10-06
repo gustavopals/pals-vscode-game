@@ -524,11 +524,19 @@ function decideByPosture(
 }
 
 /**
- * A expedição ficou sem caminho: o conteúdo já não tem o modelo, a variante ou o nó em que ela
- * está, ou o nó já não é do tipo que o estado diz (a equipe "parada na encruzilhada" de um nó
- * que deixou de ser encruzilhada, ou de uma encruzilhada que perdeu as opções).
+ * A expedição ficou sem caminho: está a caminho ou parada em uma encruzilhada, e o conteúdo já
+ * não tem o modelo, a variante ou o nó em que ela está, ou o nó já não é do tipo que o estado
+ * diz (a equipe "parada na encruzilhada" de um nó que deixou de ser encruzilhada, ou de uma
+ * encruzilhada que perdeu as opções).
  */
 function isStranded(draft: GameState, expedition: Expedition): boolean {
+  // Quem já está voltando tem o instante da chegada marcado e termina nele, com nó ou sem nó
+  // (`stepExpedition`): é assim que `enterNode` manda para casa a equipe cujo nó de destino
+  // sumiu. Chamá-la aqui anteciparia a volta de quem parou o avanço naquele instante, e a
+  // divisão de intervalo deixaria de ser exata.
+  if (expedition.status === 'returning') {
+    return false;
+  }
   const node = nodeOf(expedition);
   if (node === null) {
     return true;

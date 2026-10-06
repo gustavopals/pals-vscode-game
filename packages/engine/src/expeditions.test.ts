@@ -1973,6 +1973,33 @@ describe('a expedição que ficou sem caminho volta para casa na fronteira (revi
     },
   );
 
+  it('a equipe que já voltava por um nó sumido não é chamada na fronteira: termina a volta no instante marcado, cortando o avanço ali ou não', () => {
+    // É o que `enterNode` deixa quando o nó de **destino** já não existe: a equipe "volta" e
+    // chega no instante seguinte. Se o avanço para exatamente no instante da chegada ao nó
+    // sumido, o seguinte não pode antecipar a volta nem trocar a frase: a divisão de intervalo
+    // tem de dar o mesmo que o avanço de uma vez.
+    const state = strandedBy((expedition) =>
+      Object.assign(expedition, {
+        status: 'returning',
+        nodeId: 'oldOak',
+        crossroads: null,
+        nodeEndsAtMs: (expedition.crossroads?.decidesAtMs ?? 0) - 1,
+      }),
+    );
+    const endsAt = only(state).nodeEndsAtMs ?? 0;
+    expect(endsAt).toBeGreaterThan(state.lastProcessedAt + 1);
+    const before = advanceTo(state, endsAt - 1);
+    expect(ofExpeditions(before.events)).toEqual([]);
+    expect(only(before.state).status).toBe('returning');
+    const after = advanceTo(before.state, endsAt + MINUTE);
+    const [line] = ofExpeditions(after.events);
+    expect([line?.type, line?.atMs]).toEqual(['expeditionReturned', endsAt]);
+    expect(line?.text).not.toContain('já não levava a parte alguma');
+    const once = advanceTo(state, endsAt + MINUTE);
+    expect(once.state).toEqual(after.state);
+    expect(once.events).toEqual([...before.events, ...after.events]);
+  });
+
   it('de mãos vazias, a frase diz isso; e a expedição que tem caminho não é tocada', () => {
     const state = strandedBy((expedition) => {
       expedition.modelId = 'sunkenAbbey';
