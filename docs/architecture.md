@@ -131,9 +131,9 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 16) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 17) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
-| Protocolo | `protocol` em `GET /version` (hoje 2); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
+| Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
 
 ### 4.2 `migrateState`
@@ -250,11 +250,13 @@ As regras ficam em `threat.ts`, `hordeTurn.ts` (o sorteio) e `raids.ts` (roteiro
 
 O comportamento medido em 2026-10-02 (a Ameaça sobe até perto do máximo e fica lá, e quase toda incursão sorteada é média) está em [balance-v0.2.md](balance-v0.2.md), seção 14.4, e é o que o balanceamento de fechamento (V2F-T1) está revendo.
 
-## 10. O catálogo, o protocolo 2 e o 426
+## 10. O catálogo, o protocolo e o 426
 
 **`GET /v1/catalog`** (V2B-T3; GDD §14.5) traz as opções de nova partida: dificuldades e ritmos com os textos do conteúdo e os padrões (`defaults`). Não tem autenticação, é montado uma vez no arranque e tem ETag fraco (SHA-256 do corpo). Os fatores de regra de cada dificuldade **não** saem: o app mostra a frase, quem aplica o fator é o motor. O catálogo só traz isso; o resto do que o app exibe vem no `ViewState`. `POST /games` aceita `difficulty` e `timeScale`; quem confere o ritmo contra os oferecidos é o servidor (`OfferedGameRequestSchema`), e não o protocolo, porque ler `balance` no protocolo levaria a tabela de números ao navegador.
 
 **Protocolo 2** (V2D-T1). O `ViewState` cresce por adição, e adição não sobe o protocolo: uma aba antiga continuou funcionando nas Fases B e C. Com o Conselho, `pendingDecisions` deixou de ser sempre vazio e passou a trazer cartas que o app do protocolo 1 não sabe ler. Por isso `PROTOCOL_VERSION` é 2, o SDK manda `X-Lords-Protocol` em toda chamada e o servidor responde `426 UPGRADE_REQUIRED` ("Há uma versão nova do jogo. Recarregue a página.") a quem manda outro número. Quem não manda o cabeçalho (o monitor de saúde, um `curl`) é atendido. As rotas continuam em `/v1`: o GDD dizia que mudanças incompatíveis iriam para `/v2` (pendência B-9).
+
+**Protocolo 3** (V3D-T1; ADR 0018, decisão 11). `pendingDecisions` é uma união **fechada** por `kind`: no protocolo 2 só havia `card`, e um teste recusava qualquer outro tipo. Com as expedições, a equipe parada em uma encruzilhada entra na lista (`kind: 'crossroads'`, com o identificador da expedição, o título e o prazo real), e o app do protocolo 2 recusaria a visão inteira ao ver uma. Por isso `PROTOCOL_VERSION` é 3, e o cliente anterior recebe o mesmo `426`, em leitura e em ordem, sem que nenhum recibo seja gravado nem reescrito (`packages/server/test/expeditions.test.ts`). `packages/server/src/plugins/errors.ts` não mudou: ele já comparava `X-Lords-Protocol` com o número. Os comandos novos (`sendExpedition`, `chooseExpeditionPath`), os campos da Guilda dos Aventureiros na visão (`guild.built`, `available`, `expeditions`, `reports`) e as recusas novas são adição e não subiriam o número sozinhos. Um terceiro tipo de decisão pendente (uma caravana, por exemplo) sobe de novo.
 
 **Ordem de implantação.** O job `deploy` implanta a API antes do app, então por alguns segundos uma aba antiga fala com a API nova: ela recebe o `426` e o aviso de recarregar. O cache do app tem a marca da versão (`CACHE_VERSION`: protocolo e formato da visão); o de outra versão é descartado, e a primeira volta depois de uma atualização sai sem a comparação dos estoques (pendência B-11).
 
@@ -345,7 +347,7 @@ Nenhuma foi respondida pelo autor; cada uma aguarda confirmação em [pendencias
 | Hora da Vigília com efeito | É guardada e não muda nada (v0.4) |
 | Notificações com a aba fechada | Nada chega com a aba fechada; com a aba em segundo plano, o título conta as novidades |
 | O Relatório de Retorno para a aba que ficou **à vista** o tempo todo | Ela recebe os avisos e as linhas da Crônica de cada acontecimento, mas não o relatório |
-| Mecânicas de versões futuras (expedições, ferimento e equipamento, a Guilda-edifício, Mercado, caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
+| Mecânicas de versões futuras (ferimento, captura e equipamento, Mercado, caravanas, Mestres, exército, mapa gráfico, níveis 3 em diante da Torre e da Paliçada). Os heróis no feudo e a Taverna existem no `main` desde a Fase C da v0.3 (seção 14), e o motor das expedições, desde a V3D-T1 (seção 15) | Fora do escopo, por regra do projeto: nem "só a estrutura" |
 
 ## 13. Limites conhecidos
 
@@ -403,3 +405,25 @@ O que a Fase C da v0.3 construiu por cima do retrato das seções 1 a 13. Está 
 **O que ainda não existe, e é erro antecipar:** expedições, encruzilhada e Postura, ferimento, captura, experiência ganha, equipamento e inventário, o edifício Guilda (Fase D); Mercado, caravanas e Mestres (Fase E); o lote 2 de cartas e os objetivos 11 a 16 (Fase F). Na Fase C todo herói está no feudo (`status: 'idle'`), e cinco dos oito traços ainda não têm efeito ([pendencias-v0.3.md](pendencias-v0.3.md), C-58).
 
 **Limites conhecidos da fase:** ninguém além dos testes e dos bots jogou com heróis (o roteiro de 15 minutos para o autor está em [pendencias-v0.3.md](pendencias-v0.3.md), seção 7); nenhuma partida de produção passou pelos passos 12 → 16; o ouro parado não caiu ([balance-v0.3.md](balance-v0.3.md), seção 5).
+
+## 15. As expedições (V3D-T1, 2026-10-06)
+
+O que a primeira tarefa da Fase D construiu por cima da seção 14: **o motor das expedições**, sem a interface, sem o catálogo e sem os desfechos sobre o herói. Está no `main` **local**, com o estado na versão 17 e o protocolo 3, e não está em produção. O detalhe está no [README do motor](../packages/engine/README.md), "Expedições"; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), "Fase D".
+
+**Estado** (versão 17; o passo `v16ToV17` não cria prazo, evento, identificador nem sorteio): `settlement.buildings.guild` (a Guilda dos Aventureiros, até o nível 4), `guild.expeditions` (até 3, em ordem de identificador), `guild.reports` (os 3 últimos) e o herói com `status: 'expedition'`. A guarda exige que todo fluxo `expedition:<id>` em `rng` seja de uma expedição em curso.
+
+| Peça | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `packages/content/src/expeditions.ts`, `missions/`, `balance.expeditions`, `buildings.guild` | Um modelo tem três variantes, e cada variante é um grafo acíclico de nós que termina em um retorno. **Dois modelos provisórios** (a Patrulha dos Arredores e a Floresta Antiga); o catálogo é de V3D-T3. `expeditionModelsSchema` confere o grafo contra os limites do conteúdo |
+| Contas | `expeditions.ts`, `heroes.ts` (`teamPower`), `hash.ts` | Não sorteiam nem dão identificador: a variante (um hash da semente e do modelo mais o número de envios), o fator de duração da estação, o poder da equipe contra um nó (com os pesos de atributo do nó), o desfecho por multiplicação cruzada, o que a Postura toma em uma encruzilhada, as recusas |
+| Ordens | `expeditionOrders.ts` | `sendExpedition` (cria a expedição com `nextId`; **não sorteia**) e `chooseExpeditionPath`. O prazo de uma encruzilhada resolve antes de um comando no mesmo instante |
+| Linha do tempo | `expeditionTurn.ts` (`settleExpeditions`), `timeline.ts` | O fim de cada nó e o prazo de cada encruzilhada são instantes de `nextEventAt`, processados **depois da Taverna e antes das planejadas**, na ordem do identificador. É o único ponto que sorteia, no fluxo `expedition:<id>`: a sorte de 85 a 115 e as quantidades do saque. Na volta o saque entra pelo depósito, o percurso vira relatório e o fluxo é apagado |
+| Encruzilhada | `enterNode`, `decideByPosture` | A equipe para e espera **6 h reais** em qualquer ritmo (convertidas quando chega). Sem resposta, vale a opção marcada no conteúdo para a Postura da expedição; se a equipe não pode tomá-la, a da Cautelosa |
+| Visão | `expeditionsView.ts`, `guildView.ts` | `guild.built`, `level`, `slots`, `postures`, `available`, `expeditions`, `reports`, `atHome` em cada herói, e a encruzilhada em `pendingDecisions`. **Névoa:** antes do envio, só o primeiro trecho, até a primeira encruzilhada; nunca a dificuldade e o conteúdo dos nós além de uma encruzilhada não decidida, a variante, a chave de um nó, a sorte ou o fluxo |
+| Protocolo e servidor | `packages/protocol`; sem rota nova | Protocolo 3 (seção 10); as duas ordens passam pelo caminho de todo comando (seção 11). Recusas novas: `HERO_BUSY`, `GUILD_REQUIRED`, `EXPEDITION_LIMIT`, `EXPEDITION_LOCKED`, `HERO_UNAVAILABLE`, `TEAM_INVALID`, `EXPEDITION_NOT_WAITING`, `CROSSROADS_DECIDED` |
+| App | `ui/format.ts` (`cardDecisions`, `crossroadsDecisions`), `components/Today.tsx`, `game/returnReport.ts` | **Não envia expedição nem escolhe caminho.** Acompanha o protocolo 3, anuncia a encruzilhada na aba Hoje e no Relatório de Retorno e leva à aba Guilda; a barra de status, a árvore e o título contam só as cartas. A interface é de V3D-T4 |
+| Simulador | `bots/policies.ts` (`erguer a Guilda`, `enviar expedições`, `escolher o caminho`) | Só o `explorador` ergue a Guilda. As oito colunas das expedições são medidas. Só as faixas do Explorador mudaram ([balance-v0.3.md](balance-v0.3.md), seção 6) |
+
+**O que ainda não existe, e é erro antecipar:** o que o desfecho faz ao herói (ferimento, captura, Resgate, morte), experiência, itens e inventário, destinos descobertos e o Covil limpo (V3D-T2); o catálogo e os textos (V3D-T3); a interface (V3D-T4).
+
+**Limites conhecidos:** os grafos e as frases são provisórios e o autor não os leu; nenhuma partida do simulador encontra uma encruzilhada; o critério 2 do GDD §16.2 está provado no motor e por integração, e em navegador só o anúncio e o prazo; o Relatório de Retorno não foi conferido com uma expedição na ausência.

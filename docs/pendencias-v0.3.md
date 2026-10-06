@@ -126,7 +126,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Detalhes que as premissas deixavam abertos"; V3C-T1.4.
 - Se decidir diferente: perdoar o que venceu com o herói fora torna a expedição um abrigo contra o atraso; é mudança de regra, de golden e de GDD em V3C-T1.
 
-**A-5. "Perícia pesa ×1,5" no nó não tem conta definida.**
+**A-5. "Perícia pesa ×1,5" no nó não tem conta definida.** *(Fechada na V3D-T1 pelo orquestrador: o peso entra na soma do poder contra o nó. Ver D-1.)*
 - Enquanto isso: nada foi implementado. Como um peso de atributo de nó vira fator do poder não está na premissa 7 nem em V3D-T1.6; a pergunta vai no plano de V3D-T1.
 - Onde: ADR 0017, "Números que o GDD não tinha"; ADR 0018, "Consequências".
 - Se decidir diferente: não há "diferente" ainda; a escolha muda a calibragem de todo grafo que usa peso de atributo.
@@ -160,6 +160,75 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Enquanto isso: é a leitura do agente. Se o catálogo de V3D-T3 não condicionar a revelação ao desfecho, o traço fica sem efeito e sai dos modelos de candidato.
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
+
+### Fase D: o motor das expedições (V3D-T1)
+
+Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, o percurso por eventos, a resolução em inteiros, a encruzilhada e a Postura, a volta, a visão e o protocolo 3; estado na versão 17). **Nenhuma foi perguntada ao autor.** As quatro primeiras o orquestrador da execução decidiu antes de a tarefa começar; as outras são do agente da tarefa. D-5, D-7, D-10 e D-11 são as que mais pedem resposta.
+
+**D-1. O peso de atributo de um nó entra na soma do poder.** *(Decidida pelo orquestrador; fecha a A-5.)*
+- Enquanto isso: o poder da equipe **contra um nó** é `Σ por herói Σ por atributo (atributo × peso)`, com os pesos padrão (ataque 1, defesa 1, vida 1/10, os de `balance.heroes.power`) e os do nó por cima: "perícia pesa ×1,5" é `skill: 3/2` e soma uma vez e meia a perícia de cada herói; um peso sobre um atributo que já pesava troca o dele. Depois entram os fatores do herói (nível, Descontente, o traço da Postura), em frações, com um arredondamento para baixo no fim da soma da equipe. O poder da ficha continua o dos pesos padrão.
+- Onde: `teamPower`, `powerWeights` e `heroPowerRatio`, em `packages/engine/src/heroes.ts`; `expeditions.test.ts`, "o poder da equipe contra um nó"; GDD §9.2.
+- Se decidir diferente: se o peso for um fator sobre o poder inteiro (×1,5 para quem tem perícia alta, por exemplo), muda `teamPower` e a calibragem de todo nó com peso; os grafos provisórios têm três.
+- Consequência para a tela: **antes do envio o jogador vê o poder geral de cada herói e a dificuldade do primeiro trecho, mas não o poder da equipe contra aquele nó** (que depende dos pesos e da Postura). Se V3D-T4 quiser mostrar "sua equipe vale 51 contra 60", a visão precisa de um campo novo.
+
+**D-2. Dos traços, só o Corajoso e o Prudente mexem na expedição por enquanto.** *(Decidida pelo orquestrador.)*
+- Enquanto isso: o Corajoso rende ×11/10 nos nós de uma expedição enviada com a Postura Ousada, e o Prudente, na Cautelosa (`heroTraits[].effects.expeditionPower`). O que depende do desfecho sobre o herói (o Corajoso que se fere mais, o Prudente que não cai em armadilha), do saque (o Ganancioso) e da revelação (o Rastreador) é de V3D-T2. O Veterano não tem efeito de expedição: o nível já vem escrito.
+- **As frases dos traços na ficha prometem o que ainda não existe** ("se fere com mais facilidade", "volta com mais saque", "acha o caminho de volta"): não foram mexidas. Enquanto a V3D-T2 não entrar, o jogador lê uma promessa sem efeito; nada disto está publicado.
+- Onde: `packages/content/src/heroes.ts`; `heroFactors`, em `packages/engine/src/heroes.ts`.
+
+**D-3. Quem está em expedição recebe soldo, não é dispensado e não parte por soldo em atraso antes de voltar.** *(Decidida pelo orquestrador; é a frase do ADR 0017.)*
+- Enquanto isso: `dismissHero` recusa com `HERO_BUSY` ("Edda está fora do feudo: a dispensa espera a volta."). O herói que o prazo do atraso deve e que está fora continua devido enquanto o atraso durar. **Quem volta exatamente em uma virada de dia não é cobrado naquela virada** (a cobrança vem antes das expedições na ordem do instante): é cobrado na seguinte. E o Descontente que a virada marca já pesa no nó resolvido naquele instante.
+- Onde: `dismissHero`, em `wages.ts`; `processEventsAt`, em `advance.ts`; `expeditions.test.ts`, "a virada do dia vem antes".
+- Se decidir diferente: cobrar quem volta na mesma virada é pôr `settleExpeditions` antes de `processCalendar`, e então o saque entraria antes da moral e o poder do nó seria o de antes do Descontente.
+
+**D-4. A Guilda vai até o nível 4 e sustenta 1, 2, 2 e 3 expedições; o nível 3 não muda nada que o jogador vê.** *(Decidida pelo orquestrador; é o ADR 0018.)*
+- Enquanto isso: com os dois grafos provisórios, o nível 3 custa 768 de madeira, 256 de pedra e 512 de ouro e não abre lugar nem destino. O Pântano Nebuloso, que pede a Guilda Nv3, é de V3D-T3. Todo nível cabe no depósito nas três dificuldades (teste de conteúdo).
+- Se decidir diferente: `slotsByGuildLevel` é um número do conteúdo. A regra "todo nível vendido muda algo que o jogador vê" (ADR 0014, decisão 11) fica descumprida no nível 3 até V3D-T3.
+
+**D-5. Um caminho tem de 2 a 5 nós, de 5 a 45 minutos cada, e não "3 a 5" e "10 a 45".** *(Pergunta para o autor.)*
+- Enquanto isso: o GDD §9.2 e o ADR 0018 dizem "3 a 5 nós de profundidade" e "10 a 45 min por nó", e o catálogo do mesmo ADR traz a Patrulha (15 minutos, 2 nós) e o Resgate (2 nós). As duas coisas não cabem juntas. O conteúdo conta os nós que a equipe atravessa em um caminho, **com o retorno e sem a encruzilhada**, e aceita de 2 a 5, com 5 minutos de mínimo (`balance.expeditions.graph`); a Patrulha é um nó de 10 minutos e a volta de 5.
+- Onde: `packages/content/src/balance.ts`; `expeditionModelsSchema`, em `schemas.ts`; GDD §9.2, com a nota.
+- Se decidir diferente: com o mínimo em 3 nós de 10 minutos, a Patrulha dura ao menos 30 minutos, e a tabela do catálogo muda.
+
+**D-6. A variante do grafo roda pelos envios de sempre, não pelos do ano.**
+- Enquanto isso: `variante = (hash(semente:modelo) + envios desse modelo) mod 3`, com o contador em `stats['expeditionsSent:<modelo>']`, que nunca zera. As três variantes saem antes de uma repetir, inclusive através da virada do ano. O ADR diz "envios desse modelo no ano": um contador por ano cresceria sem teto em `stats`, ou pediria um campo novo que zera na virada.
+- Onde: `nextVariant`, em `packages/engine/src/expeditions.ts`.
+- Se decidir diferente: zerar na virada do ano faz todo ano começar pela mesma variante; é um campo novo no estado (versão nova).
+
+**D-7. O saque por desfecho: inteiro no Sucesso Pleno e no Sucesso, metade no Revés, nada no Desastre, e só o do nó.** *(Pergunta para o autor.)*
+- Enquanto isso: `balance.expeditions.lootShare` é número novo, do agente. O GDD diz "Revés (saque parcial)" e "Desastre (saque perdido)"; a leitura é que o Desastre perde **o saque daquele nó**, e a equipe volta com o que já tinha juntado antes. **O Sucesso Pleno e o Sucesso trazem o mesmo**: o que os distingue (experiência, achados) é de V3D-T2. As quantidades são sorteadas em uma faixa por nó (por exemplo, de 15 a 25 de ouro).
+- Onde: `resolveStage`, em `packages/engine/src/expeditionTurn.ts`.
+- Se decidir diferente: "Desastre perde tudo o que a equipe trazia" é uma linha em `resolveStage`; um bônus de saque no Sucesso Pleno é um número em `lootShare` (hoje o schema não deixa passar de 1).
+
+**D-8. O fator do verão está com os outros efeitos de estação, não em `balance.expeditions`.**
+- Enquanto isso: `calendar.seasons[].effects.expeditionDuration` (17/20 no verão). O ADR 0018 lista `summerDuration` em `balance.expeditions`; ficou onde estão a duração das obras e a do recrutamento, que são lidas do mesmo jeito. O fator é fixado no envio e vale para todos os nós, mesmo depois da virada.
+
+**D-9. "Já foi decidida" ou "não espera ordem": como a recusa de `chooseExpeditionPath` escolhe.**
+- Enquanto isso: `CROSSROADS_DECIDED` quando a expedição, ou o relatório dela, já tem uma escolha registrada (o prazo venceu, ou outra aba respondeu); `EXPEDITION_NOT_WAITING` no resto (a expedição nunca parou, ou o identificador não existe). A ordem não diz **qual** encruzilhada a tela mostrava: em um grafo com duas, a ordem atrasada para a primeira, dada com a equipe a caminho da segunda, recebe `CROSSROADS_DECIDED`; dada com a equipe já parada na segunda, recebe `INVALID_OPTION` (as opções não repetem identificador no grafo: teste de conteúdo). E um relatório que já saiu da lista dos três guardados responde `EXPEDITION_NOT_WAITING`.
+- Se decidir diferente: mandar na ordem a encruzilhada que a tela mostrava é um campo novo no comando.
+
+**D-10. O app ainda não envia expedição nem escolhe caminho.** *(Pergunta para o autor só se a Fase D for publicada antes de V3D-T4.)*
+- Enquanto isso: o protocolo subiu para 3 e o app o acompanha (o cache antigo é descartado, o cursor fica). A encruzilhada aparece em "Decisões pendentes", na aba Hoje, e em "Você ainda pode decidir", no Relatório de Retorno, com o prazo e o botão "Ver a Guilda"; **a aba Guilda não mostra os destinos, as expedições nem os relatórios, e não há como responder**: sem resposta, a Postura decide. A barra de status, o título da aba, a árvore e o selo da barra de atividades contam **só as cartas**. A interface é de V3D-T4.
+- Onde: `cardDecisions` e `crossroadsDecisions`, em `packages/web/src/ui/format.ts`; `components/Today.tsx`; `game/returnReport.ts`.
+- Como nada foi publicado, ninguém vê isto: é o estado do `main` entre duas tarefas.
+
+**D-11. O bot explorador envia sempre o primeiro destino aberto, e os outros bots não erguem a Guilda.**
+- Enquanto isso: o `explorador` ergue a Guilda quando tem um herói, envia o primeiro destino da lista que a visão diz que está aberto (a Patrulha), com a menor equipe, na Postura Equilibrada, e responde a uma encruzilhada com a opção que a Postura tomaria. **Nunca vai à Floresta Antiga, nunca encontra uma encruzilhada e nunca melhora a Guilda** (a Patrulha volta antes da visita seguinte, e a política só pede outro nível com os lugares ocupados): as colunas `crossroads_by_player` e `crossroads_by_stance` saem em zero. O `economico` e o `preguicoso` não a erguem: a obra dela fica fora da corrida das obras e da conta do que juntar. O que a rodada mediu está em [balance-v0.3.md](balance-v0.3.md), seção 6.
+- Onde: `erguerGuilda`, `enviarExpedicoes`, `escolherCaminho` e `inTheRace`, em `packages/sim-cli/src/bots/policies.ts`.
+- **O que isto deixa sem resposta**, e a aprovação em bloco do ADR 0018 pedia: a parcela das encruzilhadas decididas pelo jogador no perfil de 2 visitas. Fica para V3D-T3, com o catálogo, e V3D-T5.
+
+**D-12. Os dois grafos e todas as frases das expedições são provisórios e rascunho.**
+- Enquanto isso: a Patrulha dos Arredores e a Floresta Antiga, três variantes mínimas cada, com títulos, pistas e frases do agente ([content-v0.3.md](content-v0.3.md), seção 6). O teste editorial do ADR 0018 não foi feito. Os identificadores `patrol` e `oldForest` ficam gravados no estado e são os que o catálogo de V3D-T3 deve manter.
+- As frases da Crônica: cada nó resolvido é uma linha ("a patrulha de Pedra Alta deu a volta nas cercas…"), mais a da partida, a da encruzilhada, a da decisão e a da volta. **Em uma expedição de quatro nós são sete linhas na Crônica**: pode ser demais. Tirar as dos nós da Crônica (e deixá-las só no relatório) é pôr `expeditionNodeResolved` em `CHRONICLE_HIDDEN_EVENT_TYPES`.
+
+**D-13. A expedição cujo grafo o conteúdo deixar de ter volta para casa.**
+- Enquanto isso: a guarda do estado confere a forma das chaves de modelo, de nó e de opção, não a lista do conteúdo. Se o conteúdo mudar com uma expedição em curso (V3D-T3 vai reescrever os grafos), a equipe volta com o que juntou no fim do nó, no prazo, ou no instante seguinte à chegada, e o registro de um nó que sumiu não aparece no relatório. Não há teste com um conteúdo trocado: o motor lê `expeditionModels` direto, sem catálogo por parâmetro.
+
+**D-14. O que os eventos das expedições levam, e o que o Relatório de Retorno faz com eles.**
+- Enquanto isso: `expeditionReturned` leva `gained_<recurso>` (o que entrou no estoque) e `lost_<recurso>` (o que não coube), as chaves que o Relatório de Retorno já lê para separar o recebido e o perdido da produção; `loot_<recurso>` é o que a equipe trouxe, e `found_<recurso>`, em cada nó, o que achou. Nenhum evento leva a variante nem a chave de um nó. **O Relatório de Retorno não foi conferido com uma expedição na ausência**: a conta dos estoques deve fechar pelas chaves, mas nenhum teste do app passa por ela, e os blocos ("O feudo prosperou", "O que exigiu um preço") não classificam os eventos novos. É de V3D-T4 e V3F-T3.
+
+**D-15. `hero_idle_hours` do simulador é uma amostra por hora real.**
+- Enquanto isso: ao fim de cada hora real o simulador soma quantos heróis estavam no feudo, sem tarefa. No ritmo 3 isso é uma amostra a cada 3 h de jogo: uma Patrulha de 15 minutos nunca aparece. Serve para comparar perfis, não para medir a ocupação.
 
 ### Fase C: correções da revisão independente (V3C-T5)
 
@@ -557,6 +626,19 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase D: o motor das expedições (V3D-T1)
+
+- **Ninguém jogou uma expedição pelo app**: ele não envia nem escolhe caminho (D-10). Em navegador só está provado que a encruzilhada aparece na aba Hoje com o prazo, leva à aba Guilda, e some quando a Postura decide (`09-guilda.spec.ts`, com a equipe posta na encruzilhada pela rota de teste `/__test/crossroads`). O critério 2 do GDD §16.2 está provado no motor, nos três ritmos, e por integração; **a parte "notifica" não existe**: nenhum aviso é disparado.
+- **O Relatório de Retorno com uma expedição na ausência não foi conferido** (D-14): nenhum teste do app passa por ele com os eventos novos.
+- **Os grafos, as frases e os números de saque e de dificuldade não foram lidos por ninguém** além de quem os escreveu, e o teste editorial do ADR 0018 não foi feito (D-12).
+- **Nenhuma partida do simulador encontra uma encruzilhada nem um Revés** (D-11): a parcela das encruzilhadas decididas pelo jogador, que o ADR 0018 pedia ao simulador, não foi medida.
+- **A expedição com o conteúdo trocado no meio** (D-13) não tem teste: o caminho de "volta para casa" de um grafo que sumiu só foi lido.
+- `--perf`, os bytes do estado e da visão com expedições em curso, `SHOW_COVERAGE=1`, `pnpm docker:build`, `pnpm capture:landing` e `scripts/landing-smoke.sh` **não rodaram** nesta tarefa. A aba Feudo ganhou uma linha na lista de obras (a Guilda dos Aventureiros, presa ao Salão no nível 3 em um feudo novo): as capturas da página de apresentação não foram refeitas nem conferidas.
+- As três matrizes do simulador rodaram uma vez, antes de `MEASURED` ser atualizada; depois, quem confere as faixas é o `pnpm test`.
+- **Nenhuma partida de produção passou pelos passos 12 → 17.** O passo 16 → 17 é provado pelos 32 retratos da versão 16 no motor e por sete deles na integração (`games-migration.test.ts`).
+- A revisão independente da tarefa não aconteceu: é a V3D-T5, da fase inteira.
+- Node v24.15.0 na máquina, não o 22 do `.nvmrc`; a CI não rodou (nada foi enviado).
 
 ### Fase C: o fechamento (V3C-T5.2, T5.3 e a integração)
 

@@ -918,6 +918,96 @@ Nos outros ritmos a carta é a mesma, do 13º dia de jogo: hora 8 no Rápido, on
 - A meta de desperdício do Regular continua "acima" no Rápido e no Normal (seção 4.5; pendência C-22): nada mudou.
 - `SHOW_COVERAGE=1` (a cobertura do Conselho) não foi remedida. Uma rodada só de `--perf`. Node v24.15.0.
 
-## 6. Rodadas seguintes das Fases D a G
+## 6. O motor das expedições (V3D-T1)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4 e 5.*
+Tarefa V3D-T1 do [roadmap da v0.3](roadmap-v0.3.md). A Guilda dos Aventureiros, o envio, o percurso, a encruzilhada e a volta, com **dois grafos provisórios** (a Patrulha dos Arredores e a Floresta Antiga). O que se mede aqui é a máquina com uma política mínima: os números de saque e de dificuldade são de teste, e o catálogo de V3D-T3 vai trocá-los.
+
+| | |
+|---|---|
+| Data | 2026-10-06 |
+| Identificação | Motor 0.2.0 · estado v17 · conteúdo `90513f13225b2e4c` (era `ddd52de8b881eaa1` na seção 5) |
+| Dificuldades | Camponês, Senhor e Rei de Ferro, 50 sementes cada (`pedra-alta-001` a `pedra-alta-050`) |
+| Perfis | Preguiçoso (1 visita por dia), Regular (2), Dedicado (4) e Explorador (2), nos ritmos Rápido 3×, Normal 1× e Tranquilo 0,5×: 24 células por dificuldade, 3.600 partidas |
+| Máquina | A da seção 1, Node v24.15.0 (não o 22 do `.nvmrc`) |
+
+### 6.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix --difficulty peasant > peasant.csv 2> peasant.md
+pnpm -s sim -- --matrix --difficulty lord > lord.csv 2> lord.md
+pnpm -s sim -- --matrix --difficulty ironKing > ironKing.csv 2> ironKing.md
+```
+
+As três rodaram **antes** de `MEASURED` ser atualizada e saíram com código 1, só com células do Explorador fora da faixa (o excedente parado, por poucas unidades); com a tabela nova, a prova de que nenhuma partida sai da faixa é `balance.test.ts`, no `pnpm test`. As saídas não ficaram no repositório. As médias das tabelas abaixo saíram de um roteiro descartável sobre os três CSVs.
+
+### 6.2 O que os bots fazem com a Guilda
+
+- **O `economico` e o `preguicoso` não a erguem.** A obra dela fica fora da corrida das obras (`sideBuildings`) e da conta do que juntar (`inTheRace`), como a Torre e a Paliçada: a quem não envia expedições ela não serve de nada. **As 18 células dos perfis Preguiçoso, Regular e Dedicado das três dificuldades ficaram iguais a `MEASURED`, linha a linha**: a tarefa não mexeu na economia de quem não usa a Guilda.
+- **O `explorador`** ganhou três políticas: `erguer a Guilda` (quando tem um herói; antes de `obra mais barata`), `escolher o caminho` (a opção que a Postura tomaria) e `enviar expedições` (o primeiro destino aberto, com a menor equipe, na Postura Equilibrada). Na prática ele ergue a Guilda no nível 1, envia **uma Patrulha por visita**, sempre com o herói que chegou primeiro, e nunca passa disso: a Patrulha volta antes da visita seguinte, então os lugares nunca estão ocupados quando a política pergunta se vale melhorar a Guilda, e a Floresta Antiga, o segundo destino da lista, nunca é escolhida. **Nenhuma partida da matriz encontra uma encruzilhada** (pendência D-11).
+- Nenhuma ordem do explorador é recusada (`explorador.test.ts`).
+
+### 6.3 As expedições do Explorador, por célula
+
+Média das 50 sementes; entre parênteses, a menor e a maior. Os desfechos são dos nós com dificuldade (um por Patrulha). "Herói-horas paradas" é uma amostra ao fim de cada hora real (pendência D-15).
+
+| Dificuldade | Janela | Ritmo | Enviadas | Sucesso Pleno | Sucesso | Revés | Desastre | Heróis no fim | Herói-horas paradas |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Senhor | 7 dias | Rápido 3× | 9,0 (9 a 10) | 7,1 | 2,0 | 0 | 0 | 6,0 | 672 |
+| Senhor | 7 dias | Normal 1× | 5,8 (4 a 7) | 4,6 | 1,3 | 0 | 0 | 6,0 | 452 |
+| Senhor | 7 dias | Tranquilo 0,5× | 3,5 (0 a 4) | 2,6 | 0,8 | 0 | 0 | 4,2 | 212 |
+| Senhor | 1 ano | Rápido 3× | 0,0 (0 a 1) | 0 | 0 | 0 | 0 | 3,0 | 49 |
+| Senhor | 1 ano | Normal 1× | 5,8 (4 a 7) | 4,6 | 1,3 | 0 | 0 | 6,0 | 452 |
+| Senhor | 1 ano | Tranquilo 0,5× | 17,5 (14 a 18) | 13,3 | 4,1 | 0 | 0 | 6,0 | 1.185 |
+| Camponês | 7 dias | Rápido 3× | 9,3 (7 a 10) | 7,2 | 2,0 | 0 | 0 | 6,0 | 671 |
+| Camponês | 7 dias | Normal 1× | 5,8 (2 a 8) | 4,5 | 1,3 | 0 | 0 | 6,0 | 450 |
+| Camponês | 7 dias | Tranquilo 0,5× | 3,4 (2 a 4) | 2,6 | 0,8 | 0 | 0 | 4,3 | 217 |
+| Camponês | 1 ano | Rápido 3× | 0,5 (0 a 1) | 0,4 | 0,1 | 0 | 0 | 3,0 | 48 |
+| Camponês | 1 ano | Tranquilo 0,5× | 17,4 (16 a 18) | 13,3 | 4,1 | 0 | 0 | 6,0 | 1.191 |
+| Rei de Ferro | 7 dias | Rápido 3× | 9,3 (8 a 10) | 7,3 | 2,0 | 0 | 0 | 6,0 | 684 |
+| Rei de Ferro | 7 dias | Normal 1× | 5,9 (3 a 7) | 4,6 | 1,3 | 0 | 0 | 6,0 | 457 |
+| Rei de Ferro | 7 dias | Tranquilo 0,5× | 1,9 (0 a 4) | 1,5 | 0,4 | 0 | 0 | 4,1 | 210 |
+| Rei de Ferro | 1 ano | Rápido 3× | 0,3 (0 a 1) | 0,2 | 0,1 | 0 | 0 | 3,0 | 60 |
+| Rei de Ferro | 1 ano | Tranquilo 0,5× | 15,7 (12 a 18) | 12,1 | 3,6 | 0 | 0 | 6,0 | 1.184 |
+
+(O ano no ritmo Normal é a mesma partida dos 7 dias.)
+
+- **A Guilda chega tarde.** Em 7 dias no Rápido (14 visitas) saem 9 Patrulhas: a Guilda fica pronta por volta da quinta visita. **No ano do Rápido (56 horas reais, 4 ou 5 visitas) quase ninguém envia nada**: é o jogador de duas visitas no ritmo mais rápido que menos usa a mecânica central da versão.
+- **Nenhum Revés e nenhum Desastre**: a Patrulha, com dificuldade em volta de 30, é o que o ADR 0017 pedia para o primeiro herói (ao menos Sucesso em mais de 9 de 10 sementes: aqui, em todas). É também o que a faz não ensinar nada sobre risco; os desfechos ruins só aparecem com o catálogo.
+- **A equipe continua parada.** Com seis heróis e uma Patrulha de um herói por visita, cinco ficam no feudo recebendo soldo: as herói-horas paradas quase não caem em relação a não ter Guilda. O que as baixa é a segunda equipe (a Guilda no nível 2) e destinos mais longos.
+- **Soldo em atraso: zero horas em todas as células**, e nenhum herói partiu.
+
+### 6.4 As faixas do Explorador, antes e depois
+
+Colunas: população (menor e maior), Salão, horas de fome, horas de frio, madeira, pedra e ouro parados, e a maior sequência desperdiçando. Só as 18 células do Explorador mudaram.
+
+| Dificuldade | Célula | Antes (seção 4) | Depois |
+|---|---|---|---|
+| Senhor | week/3 | [75, 85], 7, 0, 0, 5200, 5200, 239360, 33 | [75, 85], 8, 0, 0, 4180, 5200, 239152, 33 |
+| Senhor | week/1 e year/1 | [64, 75], 7, 0, 0, 4409, 4529, 26449, 9 | [65, 75], 7, 0, 0, 3957, 4156, 25501, 9 |
+| Senhor | week/0.5 | [49, 54], 5, 0, 0, 1087, 756, 1206, 2 | [44, 52], 5, 0, 0, 1137, 865, 1083, 1.5 |
+| Senhor | year/3 | [27, 35], 5, 0, 0, 783, 854, 2718, 9 | [25, 35], 5, 0, 0, 694, 898, 1995, 3 |
+| Senhor | year/0.5 | [84, 85], 8, 0, 0, 5200, 5200, 23668, 5 | [84, 85], 8, 0, 0, 5200, 5200, 22354, 4.5 |
+| Camponês | week/3 | [85, 85], 8, 0, 0, 5480, 6500, 250116, 33 | [85, 85], 8, 0, 0, 5480, 6500, 251529, 33 |
+| Camponês | week/1 e year/1 | [65, 76], 7, 0, 0, 5074, 5525, 25376, 10 | [63, 77], 7, 0, 0, 4898, 5750, 21652, 10 |
+| Camponês | week/0.5 | [45, 54], 5, 0, 0, 1139, 859, 1222, 1.5 | [48, 52], 5, 0, 0, 1160, 851, 1086, 1 |
+| Camponês | year/3 | [22, 35], 5, 0, 0, 784, 1179, 2468, 3 | [22, 35], 5, 0, 0, 817, 1407, 2468, 3 |
+| Camponês | year/0.5 | [84, 85], 8, 0, 0, 6500, 6500, 26109, 3.5 | [84, 85], 8, 0, 0, 6500, 6500, 24803, 4 |
+| Rei de Ferro | week/3 | [75, 75], 7, 0, 0, 2780, 3680, 247030, 69 | [75, 75], 7, 0, 0, 2780, 3680, 245992, 69 |
+| Rei de Ferro | week/1 e year/1 | [65, 74], 7, 0, 0, 3200, 2790, 24403, 8 | [64, 75], 7, 0, 0, 3537, 3654, 24869, 9 |
+| Rei de Ferro | week/0.5 | [47, 54], 5, 0, 0, 1368, 865, 960, 1.5 | [45, 54], 5, 0, 0, 1343, 920, 1118, 1 |
+| Rei de Ferro | year/3 | [29, 35], 5, 0, 0, 607, 591, 3106, 6 | [29, 35], 5, 0, 0, 741, 590, 2560, 6 |
+| Rei de Ferro | year/0.5 | [74, 75], 7, 0, 0, 3680, 3680, 49473, 4 | [74, 75], 7, 0, 0, 3680, 3680, 47569, 3.5 |
+
+- **A Guilda é uma obra a mais na fila** (600 de material no nível 1): o que muda nas células do Explorador é a ordem das obras, e com ela a população e o material parado, para um lado e para o outro. Nenhuma célula ganhou fome, frio ou um Salão mais baixo; em Senhor, no Rápido de 7 dias, o Salão mínimo subiu de 7 para 8.
+- **O ouro parado não caiu**, e não era para cair com esta tarefa: a Guilda custa 200 de ouro uma vez, e cada Patrulha **traz** de 12 a 28. No Rápido de 7 dias o Explorador de Senhor termina com 239.152 de ouro parado (239.360 antes). É o mesmo retrato das seções 4.4 e 5.5: quem gasta ouro, nesta versão, é o Mercado (Fase E) e, talvez, o catálogo de V3D-T3, se alguma expedição custar o que o ADR 0018 (decisão 15) diz que não custa.
+
+### 6.5 Limites desta medição
+
+- **Os grafos são provisórios**: nenhum número daqui diz como as expedições de verdade se comportam. A Floresta Antiga e a encruzilhada não aparecem em partida nenhuma da matriz.
+- **A parcela das encruzilhadas decididas pelo jogador**, que a aprovação em bloco do ADR 0018 pedia ao simulador, **não foi medida**: é zero de zero. Fica para V3D-T3 e V3D-T5, com um bot que vá a destinos com encruzilhada.
+- `--perf` e os bytes do estado e da visão com expedições em curso **não foram medidos** nesta tarefa (a seção 5.6 é a última medição); o estado ganhou até três expedições de até oito registros e três relatórios, com teto na guarda.
+- As três matrizes rodaram uma vez cada, antes da atualização de `MEASURED`; depois dela, quem confere as 3.600 partidas é o `pnpm test`.
+
+## 7. Rodadas seguintes das Fases D a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4, 5 e 6.*

@@ -1,7 +1,7 @@
-# Conteúdo da v0.3: cartas do Conselho, heróis e Taverna
+# Conteúdo da v0.3: cartas do Conselho, heróis, Taverna e expedições
 
 Data: 2026-10-05\
-Tarefas: V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md) (decisões 5 e 6 do [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md)) e V3C-T2 (a Taverna: decisões 4, 5 e 10; seção 5); o lote 2 entra aqui com V3F-T1\
+Tarefas: V3C-T3 do [roadmap da v0.3](roadmap-v0.3.md) (decisões 5 e 6 do [ADR 0017](decisions/0017-regras-da-v0.3-herois-taverna-e-soldo.md)) e V3C-T2 (a Taverna: decisões 4, 5 e 10; seção 5); o lote 2 entra aqui com V3F-T1; os dois grafos de expedição provisórios de V3D-T1 estão na seção 6\
 Formato: a ficha da [§13.4 do roadmap da v0.3](roadmap-v0.3.md), que é a da v0.2 ([content-v0.2.md](content-v0.2.md)) com os campos de equipe e de herói
 
 **Estado da curadoria: rascunho, não lido pelo autor.** A carta deste documento foi escrita pelo agente e entrou no jogo sem aprovação: o autor escolheu "escrevo e sigo; você revisa depois" ([ADR 0018](decisions/0018-expedicoes-mercado-mestres-e-cartas-na-v0.3.md); pendência A-7 de [pendencias-v0.3.md](pendencias-v0.3.md)). Texto, números e nomes são conteúdo, e trocar qualquer um deles é editar `packages/content/src/cards/scripted.ts` ou `heroes.ts` e regravar os goldens. **Os identificadores não:** `woundedStranger`, `shelter`, `tend`, `edda` e `rolf` ficam gravados no estado das partidas e estão fixados em `packages/content/src/council.test.ts`; mudar um deles depois de publicado pede passo de migração.
@@ -15,7 +15,8 @@ Onde este documento e o código divergirem, vale o código.
 3. [Fichas das cartas](#3-fichas-das-cartas)
 4. [Heróis com nome](#4-heróis-com-nome)
 5. [A Taverna: candidatos, nomes e frases](#5-a-taverna-candidatos-nomes-e-frases)
-6. [O que ficou para o lote 2](#6-o-que-ficou-para-o-lote-2)
+6. [Expedições: os dois grafos provisórios](#6-expedições-os-dois-grafos-provisórios)
+7. [O que ficou para o lote 2](#7-o-que-ficou-para-o-lote-2)
 
 ## 1. O que a v0.3 acrescenta ao catálogo
 
@@ -169,7 +170,68 @@ O teste de conteúdo confere a tabela contra o ADR, a soma dos pesos (33), a fai
 
 Os efeitos de traço que a Taverna trouxe: o Carismático multiplica o preço dos candidatos por 4/5, uma vez (`effects.tavernPrice`), e o Devoto soma 5 de moral enquanto está no feudo (`effects.morale`). As frases dos dois traços não mudaram.
 
-## 6. O que ficou para o lote 2
+## 6. Expedições: os dois grafos provisórios
+
+**Rascunho, não lido pelo autor, e provisório** (V3D-T1; pendência D-12). São os grafos de teste que o motor das expedições pede para ter o que percorrer: **o catálogo de verdade (os seis modelos do ADR 0018, três variantes cada, com as fichas da §13.4 do roadmap) é de V3D-T3**, que vai reescrever estes dois. Os títulos, as pistas e as frases são do agente. Os arquivos são `packages/content/src/missions/patrol.ts` e `oldForest.ts`; a lista, `expeditionModels`, em `expeditions.ts`.
+
+**Os identificadores ficam gravados no estado** (`guild.expeditions[].modelId` e `nodeId`, o `optionId` de uma escolha no percurso, e os mesmos nos relatórios): `patrol` e `oldForest` são os nomes que o catálogo de V3D-T3 deve manter. As chaves de nó e de opção podem mudar com o catálogo novo sem passo de migração: a expedição em curso cujo nó o conteúdo deixar de ter volta para casa com o que juntou, e o registro de um nó sumido não aparece no relatório.
+
+**O que vale para todo grafo** (`expeditionModelsSchema`, conferido contra `balance.expeditions.graph`): acíclico; todo caminho termina em um nó `return`; de 2 a 5 nós por caminho, contando o retorno e sem a encruzilhada; cada nó de 5 a 45 minutos de jogo; três variantes por modelo; toda encruzilhada marca a opção de cada Postura, e a da Cautelosa não tem requisito; todo nó com dificuldade marca o Desastre (`injury` ou `capture`) e traz a frase de cada desfecho; o saque é só de recursos, em faixas; a duração anunciada do modelo é a do caminho mais longo. Nenhuma frase fala de ferro, arma, relíquia, planta, unidade, presságio, Mestre ou Mercado.
+
+| Modelo | `id` | Duração | Equipe | Risco | Guilda | Variantes |
+|---|---|---:|---|---|---:|---|
+| Patrulha dos Arredores | `patrol` | 15 min | 1 herói | Baixo | Nv1 | três, sem encruzilhada: um nó com dificuldade (10 min) e a volta (5 min) |
+| Floresta Antiga | `oldForest` | 1 h | 1 a 2 heróis | Baixo a médio | Nv1 | três, com uma encruzilhada de três opções, uma delas pedindo uma classe |
+
+**Patrulha dos Arredores.** A dificuldade fica em volta de 30, a que o ADR 0017 recomenda para um herói de nível 1 sozinho (com até 36, um Guerreiro tem ao menos Sucesso em 30 de 31 sortes).
+
+| Variante | Nó | Tipo | Dificuldade | Peso do nó | Desastre | Saque |
+|---:|---|---|---:|---|---|---|
+| 0 | A ronda pelas cercas | encontro | 30 | — | ferimento | 15 a 25 de ouro |
+| 1 | O vau do riacho | perigo | 28 | perícia ×1/2 | ferimento | 12 a 22 de ouro |
+| 2 | Rastros na estrada velha | encontro | 32 | — | ferimento | 18 a 28 de ouro |
+
+**Floresta Antiga, variantes 0 e 1.** As duas têm o mesmo primeiro trecho e a mesma encruzilhada, com ramos diferentes adiante: é o que o teste de névoa usa (duas expedições iguais até a encruzilhada dão a mesma visão).
+
+```
+trilha    travel      15 min   "A trilha sob os carvalhos"        10 a 20 de madeira
+ └→ encruzilhada               "A trilha se divide"
+        Postura: Cautelosa → c · Equilibrada → b · Ousada → a
+      a) "Abrir caminho pela mata fechada"   requer um Guerreiro
+            pista: madeira boa e pegadas grandes; é preciso quem abra o caminho no braço
+          variante 0: encontro 25 min "O javali da mata fechada"   dificuldade 55 · 60 a 90 de madeira, 20 a 30 de ouro
+          variante 1: encontro 25 min "Os lenhadores sem senhor"   dificuldade 58 · 70 a 100 de madeira, 10 a 20 de ouro
+      b) "Seguir o riacho"
+            pista: chão escorregadio e alguma lenha; quem tem perícia passa melhor
+          variante 0: perigo 25 min "As pedras do riacho"          dificuldade 36 · perícia ×1/2 · 40 a 60 de madeira
+          variante 1: descoberta 25 min "A cabana do carvoeiro"    sem dificuldade · 30 a 50 de madeira
+      c) "Voltar com o que já têm"
+            pista: sem risco; o saque fica pequeno
+retorno   return      20 min   "A volta pela trilha"
+```
+
+**Floresta Antiga, variante 2.** Outra entrada e outra encruzilhada, com o requisito em uma classe diferente.
+
+```
+orla      travel      15 min   "A orla da floresta"                sem saque
+ └→ encruzilhada               "O tronco oco"
+        Postura: Cautelosa → c · Equilibrada → b · Ousada → a
+      a) "Subir ao ninho"                    requer um Arqueiro
+            pista: algo brilha lá em cima; é preciso olho e mão firme de arqueiro
+          perigo 25 min "O ninho no alto"                          dificuldade 40 · perícia ×1 · 30 a 50 de ouro
+      b) "Descer o barranco"
+            pista: troncos caídos lá embaixo, e quem os derrubou talvez ainda esteja por perto
+          encontro 25 min "O fundo do barranco"                    dificuldade 38 · 50 a 70 de madeira
+      c) "Dar meia-volta"
+            pista: sem risco; voltam de mãos quase vazias
+retorno   return      20 min   "A volta pela trilha"
+```
+
+**O que estes grafos não têm, e o catálogo terá:** o teste editorial do ADR 0018 (para cada opção, um cenário em que ela é a escolha razoável e um em que é ruim; a da Equilibrada não ser a melhor para toda equipe) **não foi feito**; nenhum nó marca captura; nenhuma recompensa revela destino, dá item ou experiência (V3D-T2); a Floresta sozinha com a Postura Ousada é quase sempre Revés ou Desastre para um Guerreiro de nível 1 (42 contra 55), o que é intencional como exemplo de risco, não como balanceamento.
+
+**As outras frases** (`expeditionPostures`, `expeditionOutcomes`, `expeditionTexts`, `expeditionTemplates`, e os seis modelos de frase da Crônica em `chronicleTemplates`): os nomes das Posturas (Cautelosa, Equilibrada, Ousada) e dos desfechos (Sucesso pleno, Sucesso, Revés, Desastre) são os do GDD; as frases da Guilda e da Crônica são do agente, e nenhuma escreve número de regra (o teste de conteúdo confere).
+
+## 7. O que ficou para o lote 2
 
 - As 16 cartas do lote 2 e os efeitos e requisitos novos delas (V3F-T1): requisito de traço ou de classe, destino revelado, efeito de preço, efeito com sorteio.
 - Uma carta que **deixe de sair** conforme a equipe (por exemplo, só para quem não tem herói): hoje nenhum requisito de carta olha os heróis.
