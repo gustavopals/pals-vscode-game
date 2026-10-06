@@ -9,7 +9,7 @@ import { DEFAULT_PREFERENCES, type Preferences, type ThemeId } from '../services
 import { APP_VERSION } from '../version';
 import { AboutTab } from './About';
 import { ChronicleTab } from './Chronicle';
-import { parseChronicle } from './markdown';
+import { parseChronicle, stripChronicleLinks } from './markdown';
 import { type GameSettings, SettingsTab } from './Settings';
 
 const noop = () => {};
@@ -27,6 +27,25 @@ const inputs = (markup: string, name: string) =>
 const lines = (...texts: string[]) => texts.map((text, index) => ({ n: index + 1, text }));
 
 describe('Markdown da Crônica (parseChronicle)', () => {
+  it('a marca de expedição no fim da linha vira a ligação, e sai do texto (revisão, A2)', () => {
+    const blocks = parseChronicle(
+      '- Rolf partiu. <!-- expedition-3 -->\n- A Fazenda ficou pronta.\n- Rolf voltou. <!-- expedition-3 -->',
+    );
+    expect(blocks).toEqual([
+      {
+        kind: 'list',
+        items: [
+          { n: 1, text: 'Rolf partiu.', expeditionId: 'expedition-3' },
+          { n: 2, text: 'A Fazenda ficou pronta.' },
+          { n: 3, text: 'Rolf voltou.', expeditionId: 'expedition-3' },
+        ],
+      },
+    ]);
+    expect(stripChronicleLinks('- Rolf partiu. <!-- expedition-3 -->\r\n- Fim.\n')).toBe(
+      '- Rolf partiu.\r\n- Fim.\n',
+    );
+  });
+
   it('lê o título, os anos e as linhas de cada ano', () => {
     const markdown = [
       '# Crônica de Pedra Alta',

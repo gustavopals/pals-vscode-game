@@ -1,3 +1,5 @@
+import { splitChronicleLink } from '@lotg/protocol';
+
 /**
  * "Sua escolha voltou" (roadmap da v0.2, V2D-T4.3): a nota que o servidor põe debaixo da linha de
  * uma carta que é a continuação de outra, citando a linha da escolha que a trouxe. `target` é a
@@ -5,8 +7,12 @@
  */
 export type Echo = { label: string; quote: string; target: number | null };
 
-/** Uma linha da Crônica. `n` é a posição dela no documento, a partir de 1: serve de âncora. */
-export type ChronicleLine = { n: number; text: string; echo?: Echo };
+/**
+ * Uma linha da Crônica. `n` é a posição dela no documento, a partir de 1: serve de âncora.
+ * `expeditionId` é a expedição de que a linha fala, quando o documento a marca (`?links=1`): é
+ * por ele, e nunca pela frase, que a linha liga ao relatório.
+ */
+export type ChronicleLine = { n: number; text: string; echo?: Echo; expeditionId?: string };
 
 export type Block =
   | { kind: 'title' | 'heading' | 'paragraph' | 'note'; text: string }
@@ -39,7 +45,7 @@ export function parseChronicle(markdown: string): Block[] {
     } else if (line.startsWith('# ')) {
       blocks.push({ kind: 'title', text: line.slice(2).trim() });
     } else if (line.startsWith('- ')) {
-      const text = line.slice(2).trim();
+      const { text, expeditionId } = splitChronicleLink(line.slice(2).trim());
       const parent = last?.kind === 'list' ? last.items[last.items.length - 1] : undefined;
       const echo = /^\s+- /.test(raw) && parent !== undefined ? ECHO.exec(text) : null;
       if (echo !== null && parent !== undefined && parent.echo === undefined) {
@@ -52,7 +58,11 @@ export function parseChronicle(markdown: string): Block[] {
         parent.echo = { label, quote, target: cited?.n ?? null };
         continue;
       }
-      const item: ChronicleLine = { n: lines.length + 1, text };
+      const item: ChronicleLine = {
+        n: lines.length + 1,
+        text,
+        ...(expeditionId === null ? {} : { expeditionId }),
+      };
       lines.push(item);
       if (last?.kind === 'list') {
         last.items.push(item);
@@ -70,3 +80,18 @@ export function parseChronicle(markdown: string): Block[] {
 
 /** O `id` da linha `n` na aba Crônica: é para onde "Sua escolha voltou" leva. */
 export const chronicleAnchor = (n: number): string => `cronica-${n}`;
+
+/**
+ * O documento sem as marcas de expedição: é o que o jogador baixa. As marcas só servem ao app, e
+ * o arquivo guardado tem de ser o texto limpo. As quebras de linha ficam como vieram.
+ */
+export function stripChronicleLinks(markdown: string): string {
+  return markdown
+    .split('\n')
+    .map((line) => {
+      const ending = line.endsWith('\r') ? '\r' : '';
+      const body = ending === '' ? line : line.slice(0, -1);
+      return splitChronicleLink(body).text + ending;
+    })
+    .join('\n');
+}

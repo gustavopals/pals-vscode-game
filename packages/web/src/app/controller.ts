@@ -1740,7 +1740,11 @@ export class Controller {
     return this.setPreferences({ mutedUntil: this.now() + MUTE_DURATION_MS });
   }
 
-  /** Lê a Crônica inteira em Markdown, para a aba Crônica e para o download. */
+  /**
+   * Lê a Crônica inteira em Markdown, para a aba Crônica e para o download. O documento vem com
+   * a marca de expedição em cada linha que tem uma (`links`): é por ela que a aba liga a linha
+   * ao relatório. Quem baixa o arquivo tira as marcas antes (`stripChronicleLinks`).
+   */
   async loadChronicle(): Promise<string | null> {
     const gameId = this.session.gameId;
     if (gameId === null) {
@@ -1752,7 +1756,7 @@ export class Controller {
       this.changes.emit();
     }
     try {
-      const markdown = await this.client.getChronicleMarkdown(gameId);
+      const markdown = await this.client.getChronicleMarkdown(gameId, { links: true });
       if (this.session.gameId !== gameId) {
         // O jogador saiu ou trocou de feudo enquanto a Crônica vinha: ela não é mais a dele.
         return null;

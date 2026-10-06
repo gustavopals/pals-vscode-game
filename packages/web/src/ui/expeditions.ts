@@ -379,23 +379,12 @@ export function rescueDestination(guild: Guild): Destination | null {
 }
 
 /**
- * As linhas da Crônica que têm relatório guardado: a frase do evento e a expedição de que ele
- * fala. Um evento traz a expedição em `data.expeditionId`; o relatório fica na visão por um
- * número limitado de jornadas, e depois disso a linha continua legível sozinha, sem ligação.
+ * As expedições que têm relatório guardado: é com elas que a aba Crônica casa a marca de cada
+ * linha de expedição do documento. O relatório fica na visão por um número limitado de
+ * jornadas, e depois disso a linha continua legível sozinha, sem ligação.
  */
-export function reportLinks(
-  guild: Guild | null | undefined,
-  events: readonly GameEvent[],
-): Map<string, string> {
-  const kept = new Set((guild?.reports ?? []).map((report) => report.expeditionId));
-  const links = new Map<string, string>();
-  for (const event of events) {
-    const expeditionId = event.data.expeditionId;
-    if (typeof expeditionId === 'string' && kept.has(expeditionId)) {
-      links.set(event.text, expeditionId);
-    }
-  }
-  return links;
+export function keptReports(guild: Guild | null | undefined): ReadonlySet<string> {
+  return new Set((guild?.reports ?? []).map((report) => report.expeditionId));
 }
 
 /** O relatório de que um evento fala, se ainda está guardado; `null` no resto. */

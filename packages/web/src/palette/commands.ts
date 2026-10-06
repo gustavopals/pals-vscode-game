@@ -91,6 +91,7 @@ import {
   OBJECTIVES_ANCHOR,
   OBJECTIVES_SECTION,
 } from '../ui/objectives';
+import { stripChronicleLinks } from '../tabs/markdown';
 import { THREAT_ANCHOR, THREAT_SECTION, threatRowWork } from '../ui/threat';
 import type { TreeNode } from '../ui/treeModel';
 import { allocationMessage, injuredCount, nextWorkerGain, workersCount } from '../ui/workers';
@@ -1925,7 +1926,8 @@ export function createCommands(
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
-      env.download(`cronica-${slug || 'feudo'}.md`, markdown);
+      // O arquivo é o texto limpo: as marcas de expedição só servem à aba Crônica.
+      env.download(`cronica-${slug || 'feudo'}.md`, stripChronicleLinks(markdown));
     });
 
   // --- Conta ---------------------------------------------------------------------

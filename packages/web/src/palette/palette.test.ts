@@ -2371,6 +2371,18 @@ describe('baixar a Crônica', () => {
     expect(controller.toasts).toEqual([]);
   });
 
+  it('o arquivo baixado sai sem as marcas que ligam a linha ao relatório (revisão, A2)', async () => {
+    const { run, browser, api } = await setup();
+    api.state.chronicleMarkdown =
+      '## Ano 1\n\n- Rolf partiu. <!-- expedition-3 -->\n- A Fazenda ficou pronta.\n  - Nota. <!-- expedition-4 -->\n';
+    await run('lords.downloadChronicle');
+    expect(browser.downloads.map((entry) => entry.content)).toEqual([
+      '## Ano 1\n\n- Rolf partiu.\n- A Fazenda ficou pronta.\n  - Nota.\n',
+    ]);
+    // A leitura pede as marcas ao servidor: é por elas que a aba liga a linha ao relatório.
+    expect(api.state.chronicleQueries).toEqual(['?links=1']);
+  });
+
   it('o nome do arquivo vem do nome do feudo, sem acentos nem símbolos', async () => {
     const { run, browser } = await setup({
       before: ({ api }) => {

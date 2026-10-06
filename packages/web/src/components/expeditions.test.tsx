@@ -19,7 +19,7 @@ import {
   tavernOpenView,
   withoutTheClass,
 } from '../test-helpers';
-import { defaultPosture, defaultTeam, reportLinks, sendArg } from '../ui/expeditions';
+import { defaultPosture, defaultTeam, keptReports, sendArg } from '../ui/expeditions';
 import type { Actions } from './actions';
 import { ArsenalPanel } from './ArsenalPanel';
 import { CrossroadsCard } from './CrossroadsCard';
@@ -499,7 +499,7 @@ describe('a linha da Crônica liga ao relatório enquanto ele está guardado (V3
     expect(calls).toEqual([]);
   });
 
-  it('na aba Crônica, pela frase da linha', () => {
+  it('na aba Crônica, pelo identificador que o documento traz em cada linha de expedição', () => {
     const document = {
       status: 'ready' as const,
       value: [
@@ -507,18 +507,71 @@ describe('a linha da Crônica liga ao relatório enquanto ele está guardado (V3
         '',
         '## Ano 1',
         '',
-        `- ${gone.text}`,
-        `- ${returned.text}`,
+        `- ${gone.text} <!-- expedition-99 -->`,
+        `- ${returned.text} <!-- ${report?.expeditionId} -->`,
         '',
       ].join('\n'),
     };
-    const links = reportLinks(heroInjuredView.guild, [gone, returned]);
-    const markup = html(<ChronicleTab document={document} reports={links} actions={actions} />);
+    const { calls, actions: recorded } = recording();
+    const node = (
+      <ChronicleTab
+        document={document}
+        reports={keptReports(heroInjuredView.guild)}
+        actions={recorded}
+      />
+    );
+    const markup = html(node);
     expect(buttons(markup).filter((button) => button.label === 'Ver o relatório')).toHaveLength(1);
+    // A marca não aparece no texto: é só a ligação.
+    expect(markup).not.toContain('expedition-99');
+    expect(text(markup)).toContain(`${gone.text} ${returned.text} Ver o relatório`);
     // Sem as ligações (o relatório já saiu da lista), a linha é só o texto.
     const plain = html(<ChronicleTab document={document} actions={actions} />);
     expect(buttons(plain).filter((button) => button.label === 'Ver o relatório')).toEqual([]);
     expect(text(plain)).toContain(returned.text);
+    expect(plain).not.toContain('<!--');
+    expect(calls).toEqual([]);
+  });
+
+  it('duas jornadas com a mesma frase ligam cada uma ao seu relatório, e a que não tem relatório fica sem botão (revisão, A2)', () => {
+    // Duas Patrulhas do mesmo herói no mesmo dia: as linhas são iguais, palavra por palavra.
+    const same = 'No 31º dia, Rolf voltou da Patrulha dos Arredores.';
+    const [first] = heroInjuredView.guild.reports;
+    if (first === undefined) {
+      throw new Error('Sem relatório guardado.');
+    }
+    const guild = {
+      ...heroInjuredView.guild,
+      reports: [
+        { ...first, expeditionId: 'expedition-8' },
+        { ...first, expeditionId: 'expedition-7' },
+      ],
+    };
+    const document = {
+      status: 'ready' as const,
+      value: [
+        '## Ano 1',
+        '',
+        `- ${same} <!-- expedition-3 -->`,
+        `- ${same} <!-- expedition-7 -->`,
+        `- ${same} <!-- expedition-8 -->`,
+      ].join('\n'),
+    };
+    const { calls, actions: recorded } = recording();
+    const node = (
+      <ChronicleTab document={document} reports={keptReports(guild)} actions={recorded} />
+    );
+    for (const { label, click } of allButtons(node)) {
+      if (label === 'Ver o relatório') {
+        click();
+      }
+    }
+    // A primeira linha é de uma jornada cujo relatório já saiu: sem botão. As outras duas levam
+    // cada uma ao seu, não as duas ao mais novo.
+    expect(calls).toEqual([
+      ['lords.openReport', 'expedition-7'],
+      ['lords.openReport', 'expedition-8'],
+    ]);
   });
 });
 

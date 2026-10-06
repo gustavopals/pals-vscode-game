@@ -15,7 +15,7 @@ import { GuildTab } from '../tabs/Guild';
 import { FiefTab } from '../tabs/Fief';
 import { SettingsTab } from '../tabs/Settings';
 import { TodayTab } from '../tabs/Today';
-import { reportLinks } from '../ui/expeditions';
+import { keptReports } from '../ui/expeditions';
 import { buildTree } from '../ui/treeModel';
 import { type Activity, ActivityBar } from './ActivityBar';
 import { EditorTabs } from './EditorTabs';
@@ -89,7 +89,7 @@ function TabContent(props: {
       return (
         <ChronicleTab
           document={controller.chronicleDocument}
-          reports={reportLinks(controller.view?.guild, controller.chronicle)}
+          reports={keptReports(controller.view?.guild)}
           actions={actions}
         />
       );

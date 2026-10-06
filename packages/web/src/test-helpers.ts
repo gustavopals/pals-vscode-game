@@ -511,6 +511,7 @@ export function fakeApi() {
     stateVersion: 1,
     events: [] as GameEvent[],
     chronicleMarkdown: '# Crônica de Pedra Alta\n\n## Ano 1\n\n*Ainda não há nada a contar.*\n',
+    chronicleQueries: [] as string[],
     githubDevice: true,
     /** O que `GET /catalog` responde; `null` é um servidor de uma versão anterior (404). */
     catalog: catalogFixture() as CatalogResponse | null,
@@ -678,6 +679,8 @@ export function fakeApi() {
       });
     }
     if (resource === 'chronicle.md') {
+      // O que foi pedido ao documento (`?links=1`), para o teste conferir.
+      state.chronicleQueries.push(url.search);
       return new Response(state.chronicleMarkdown, {
         status: 200,
         headers: { 'content-type': 'text/markdown; charset=utf-8' },

@@ -34,9 +34,9 @@ import {
   heroFitPower,
   isPostureOption,
   itemsFor,
+  keptReports,
   outcomeIcon,
   outcomeIsBad,
-  reportLinks,
   reportOf,
   rescueDestination,
   sendable,
@@ -347,11 +347,13 @@ describe('a linha da Crônica e o relatório', () => {
     expect(reportOf(heroInjuredView.guild, older)).toBeNull();
     expect(reportOf(heroInjuredView.guild, other)).toBeNull();
     expect(reportOf(null, returned)).toBeNull();
-    expect([...reportLinks(heroInjuredView.guild, [older, returned, other])]).toEqual([
-      ['A expedição voltou com madeira.', report.expeditionId],
-    ]);
+    // A aba Crônica casa a marca de cada linha com os relatórios guardados, pelo identificador.
+    expect([...keptReports(heroInjuredView.guild)]).toEqual(
+      heroInjuredView.guild.reports.map((entry) => entry.expeditionId),
+    );
     // Sem relatório guardado na visão, nenhuma linha liga a nada.
-    expect(reportLinks(initialView.guild, [returned]).size).toBe(0);
+    expect(keptReports(initialView.guild).size).toBe(0);
+    expect(keptReports(null).size).toBe(0);
   });
 });
 

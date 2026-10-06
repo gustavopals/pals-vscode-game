@@ -63,15 +63,16 @@ function Line(props: { line: ChronicleLine; report: string | undefined; actions:
 /**
  * A Crônica inteira do feudo, como texto formatado, com o download em Markdown.
  *
- * A linha de uma expedição liga ao relatório dela **enquanto ele estiver guardado**
- * (`reports`: a frase da linha e a expedição, montadas com os eventos recentes e os relatórios
- * da visão, `reportLinks`). O documento é só texto: a ligação é achada pela frase, palavra por
- * palavra. Quando o relatório sai da lista dos guardados, a linha continua legível sozinha.
+ * A linha de uma expedição liga ao relatório dela **enquanto ele estiver guardado**: o
+ * documento traz, em cada linha de expedição, o identificador dela (`ChronicleLine.expeditionId`,
+ * a marca de `?links=1`), e `reports` são os relatórios que a visão guarda (`keptReports`). A
+ * ligação é pelo identificador, nunca pela frase: duas jornadas com a mesma linha levam cada uma
+ * ao seu relatório. Quando ele sai da lista dos guardados, a linha continua legível sozinha.
  */
 export function ChronicleTab(props: {
   document: Loadable<string>;
-  /** As linhas que têm relatório guardado: a frase e a expedição. */
-  reports?: ReadonlyMap<string, string>;
+  /** As expedições que têm relatório guardado na visão. */
+  reports?: ReadonlySet<string>;
   actions: Actions;
 }) {
   const { document: chronicle, actions } = props;
@@ -118,7 +119,11 @@ export function ChronicleTab(props: {
                   <Line
                     key={line.n}
                     line={line}
-                    report={props.reports?.get(line.text)}
+                    report={
+                      line.expeditionId !== undefined && props.reports?.has(line.expeditionId)
+                        ? line.expeditionId
+                        : undefined
+                    }
                     actions={actions}
                   />
                 ))}
