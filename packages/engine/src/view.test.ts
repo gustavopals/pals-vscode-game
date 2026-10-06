@@ -8,6 +8,8 @@ import {
   COUNCIL_SCENARIO_SEED,
   councilScenario,
   heroPromisedScenario,
+  tavernBusyScenario,
+  tavernOpenScenario,
   craftScenario,
   DAY,
   gameWith,
@@ -571,6 +573,12 @@ describe('golden do ViewState', () => {
       guildInArrears: view(wageArrearsScenario()),
       // O herói prometido por uma carta, ainda a caminho: quem é e em quanto tempo chega.
       heroPromised: view(heroPromisedScenario()),
+      // A Taverna: aberta há pouco, no ritmo Rápido, com dois candidatos, o prazo da troca e o
+      // festival à disposição; e cheia e em festa, no ritmo Normal: os candidatos com o desconto
+      // de uma Carismática e sem lugar na equipe, o festival no último dia e os termos da
+      // Taverna e do festival na conta da moral.
+      tavernOpen: view(tavernOpenScenario()),
+      tavernBusy: view(tavernBusyScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

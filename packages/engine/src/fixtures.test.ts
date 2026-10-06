@@ -21,6 +21,8 @@ import {
   proudScenario,
   runWeekScenario,
   settings,
+  tavernBusyScenario,
+  tavernOpenScenario,
   wageArrearsPaid,
   wageArrearsScenario,
 } from './test-helpers';
@@ -417,6 +419,15 @@ const scenarios: Record<string, () => GameState> = {
   // O atraso que reabriu dentro da janela: os 3 de ouro pagaram 45 minutos de jogo de dois
   // heróis, e o atraso continua de onde parou, com a duração e o herói cobrado que trazia.
   'wage-arrears-resumed': () => wageArrearsPaid(3_000, 46 * MINUTE),
+
+  // A Taverna aberta há pouco (V3C-T2), no ritmo 3: o edifício no nível 1, os dois primeiros
+  // candidatos, a rotação marcada, o fluxo `tavern` e o contador `ids.offer` em uso.
+  tavern: () => tavernOpenScenario(),
+
+  // A Taverna cheia e em festa: um herói contratado com o desconto de uma Carismática, o
+  // festival em curso (com o efeito de moral e o instante em que foi dado) e a segunda lista de
+  // candidatos na mesa.
+  'tavern-busy': () => tavernBusyScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -702,6 +713,40 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
     );
     expect(promised.council.pending).toEqual([]);
     expect(all0().filter((state) => state.guild.arriving.length > 0)).toHaveLength(1);
+
+    // A Taverna (V3C-T2). Aberta há pouco: dois candidatos com os identificadores do contador,
+    // a rotação a 12 dias de jogo da inauguração e o fluxo `tavern` já usado. Cheia e em festa:
+    // quem foi contratado, a segunda lista, o festival em curso e o efeito de moral dele.
+    const open = of('tavern');
+    expect(open.settings.timeScale).toBe(3);
+    expect(open.settlement.buildings.tavern).toBe(1);
+    expect(open.guild.tavernOffers.map((offer) => offer.offerId)).toEqual(['offer-1', 'offer-2']);
+    expect(open.ids).toEqual({ hero: 1, offer: 2 });
+    expect(open.rng.tavern).toHaveLength(4);
+    expect(open.guild.tavern).toEqual({
+      nextRotationAtMs: 13 * DAY + 3 * HOUR + 15 * MINUTE + 12 * DAY,
+      festival: null,
+      lastFestivalAtMs: null,
+    });
+    const busy = of('tavern-busy');
+    expect(busy.guild.heroes.map((hero) => hero.id)).toEqual(['hero-1', 'hero-2']);
+    expect(busy.guild.tavernOffers.map((offer) => offer.offerId)).toEqual(['offer-3', 'offer-4']);
+    expect(busy.ids).toEqual({ hero: 2, offer: 4 });
+    const opened = 30 * DAY + HOUR + 15 * MINUTE;
+    expect(busy.guild.tavern).toEqual({
+      nextRotationAtMs: opened + 24 * DAY,
+      festival: { untilMs: opened + 12 * DAY },
+      lastFestivalAtMs: opened,
+    });
+    expect(busy.settlement.moraleEffects.map((effect) => effect.id)).toEqual(['festival']);
+    // Nos outros retratos a Taverna não existe: nenhum candidato, nenhuma rotação, nenhum fluxo.
+    const withTavern = all0().filter((state) => state.settlement.buildings.tavern > 0);
+    expect(withTavern).toHaveLength(2);
+    for (const state of all0().filter((entry) => entry.settlement.buildings.tavern === 0)) {
+      expect(state.guild.tavernOffers).toEqual([]);
+      expect(state.guild.tavern.nextRotationAtMs).toBeNull();
+      expect(state.rng.tavern).toBeUndefined();
+    }
 
     // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,
     // o ritmo (que converte prazos de tempo real) e a dificuldade (que tem fatores próprios).

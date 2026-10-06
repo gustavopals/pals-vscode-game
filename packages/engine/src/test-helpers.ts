@@ -245,6 +245,51 @@ export function tavernScenario(
 }
 
 /**
+ * A Taverna aberta há pouco, no ritmo Rápido, no 14º dia de jogo: Edda, a da carta, já serve ao
+ * feudo, três lavradores e dois mineiros trabalham, a lista tem os dois primeiros candidatos e o
+ * festival está à disposição. Parado 40 minutos de jogo depois da inauguração, no meio de um
+ * trecho.
+ */
+export function tavernOpenScenario(): GameState {
+  const { state, opensAt } = tavernScenario(
+    13 * DAY + 3 * HOUR,
+    (draft) => {
+      addHero(draft, { name: 'Edda', gender: 'f', traits: ['loyal'] });
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+    },
+    { seed: 'fixture-tavern', timeScale: 3 },
+  );
+  return advanceTo(state, opensAt + 40 * MINUTE + 1_234).state;
+}
+
+/**
+ * A Taverna cheia e em festa, no ritmo Normal: Mécia, Carismática, já servia ao feudo; o senhor
+ * contratou o primeiro candidato, com o desconto dela, e deu o festival da estação. Parado vinte
+ * minutos de jogo depois da primeira troca da lista: os candidatos são os da segunda rotação,
+ * com o desconto no preço e sem lugar na equipe (a Taverna Nv1 abriga dois heróis), e o
+ * festival está na última meia hora.
+ */
+export function tavernBusyScenario(): GameState {
+  const { state, opensAt } = tavernScenario(
+    30 * DAY + HOUR,
+    (draft) => {
+      addHero(draft, { name: 'Mécia', gender: 'f', classId: 'cleric', traits: ['charismatic'] });
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+    },
+    { seed: 'fixture-tavern-busy' },
+  );
+  const [first] = state.guild.tavernOffers;
+  if (first === undefined) {
+    throw new Error('O cenário esperava um candidato na Taverna.');
+  }
+  return play(state, [
+    command('hireHero', { offerId: first.offerId }),
+    command('holdFestival', {}),
+    { at: opensAt + balance.tavern.rotationMs + 20 * MINUTE + 2_345 },
+  ]).state;
+}
+
+/**
  * O Conselho de um feudo fundado no instante zero que chegou até aqui jogando: a próxima
  * audiência é a primeira da cadência depois de agora. Chame depois de pôr o relógio no lugar.
  */
