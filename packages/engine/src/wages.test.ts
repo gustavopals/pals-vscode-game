@@ -1,4 +1,5 @@
 import { balance } from '@lotg/content';
+import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
@@ -1098,5 +1099,63 @@ describe('o atraso fecha quando a Mina paga o soldo inteiro (revisão da Fase C,
     const end = advanceTo(even, 80 * HOUR);
     expect(brief(end.events)).toEqual([]);
     expect(end.state.guild.wageArrears).toBeNull();
+  });
+});
+
+describe('as regras da revisão e a divisão de intervalo', () => {
+  /** Avançar de uma vez ou com um corte em qualquer milissegundo: o mesmo estado e os mesmos eventos. */
+  function splitsExactly(start: GameState, endMs: number): void {
+    const direct = advanceTo(start, endMs);
+    fc.assert(
+      fc.property(fc.integer({ min: start.lastProcessedAt + 1, max: endMs - 1 }), (cut) => {
+        const half = advanceTo(start, cut);
+        const rest = advanceTo(half.state, endMs);
+        expect(rest.state).toStrictEqual(direct.state);
+        expect([...half.events, ...rest.events]).toStrictEqual(direct.events);
+      }),
+      { numRuns: 300 },
+    );
+  }
+
+  it.each(PACES)(
+    'ritmo %s: o atraso que fecha, é cobrado fechado e reabre dentro da janela',
+    (timeScale) => {
+      const start = court(
+        timeScale,
+        (draft) => {
+          addHero(draft, { name: 'Edda' });
+          addHero(draft, { name: 'Rolf' });
+          addHero(draft, { name: 'Brann' });
+        },
+        30 * MINUTE,
+      );
+      // Já com a primeira partida devida e ainda não cobrada: o ouro paga os três por 40 min
+      // de jogo, o atraso fecha, e reabre depois de uma virada, dentro da janela.
+      const open = advanceTo(start, 30 * MINUTE + 24 * HOUR * timeScale + 20 * MINUTE).state;
+      const paid = withGold(open, 4_000);
+      const end = advanceTo(paid, open.lastProcessedAt + 40 * HOUR * timeScale);
+      const types = guildEvents(end.events).map((event) => event.type);
+      expect(types).toContain('wageArrearsEnded');
+      expect(types).toContain('heroLeft');
+      splitsExactly(paid, open.lastProcessedAt + 40 * HOUR * timeScale);
+    },
+  );
+
+  it.each(PACES)('ritmo %s: heróis que chegam com o atraso já velho', (timeScale) => {
+    const old = advanceTo(
+      court(timeScale, (draft) => {
+        addHero(draft, { name: 'Edda', traits: ['loyal'] });
+        addHero(draft, { name: 'Rolf' });
+      }),
+      20 * HOUR * timeScale + 17 * MINUTE,
+    ).state;
+    const draft = JSON.parse(JSON.stringify(old)) as GameState;
+    addHero(draft, { name: 'Brann' });
+    addHero(draft, { name: 'Mirela' });
+    const endMs = draft.lastProcessedAt + 40 * HOUR * timeScale;
+    expect(
+      guildEvents(advanceTo(draft, endMs).events).filter((event) => event.type === 'heroLeft'),
+    ).toHaveLength(3);
+    splitsExactly(draft, endMs);
   });
 });

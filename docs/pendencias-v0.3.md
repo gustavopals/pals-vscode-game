@@ -516,7 +516,7 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - **A matriz do simulador não mede nada disso**: nenhum bot passa 12 h reais com fome nem com o soldo em atraso. As faixas continuaram verdes no `pnpm test` depois de cada correção, mas os números da matriz não foram comparados um a um com os de `docs/balance-v0.3.md`, seção 4.
 - **O app não mostra os dois campos novos** (`guild.wage.afterArrivals` e `guild.wage.lingering`) nem foi ajustado para os eventos com `spent_`: os testes do app passam porque o Relatório já soma `spent_<recurso>` de qualquer evento, mas não há teste do relatório com `heroHired` e `festivalHeld`.
 - **O termo da fome na moral** continua evitável com o vaivém de C-48.
-- A propriedade de divisão de intervalo (`wages.property.test.ts`) passou sem mudança, mas os geradores dela não foram estendidos para pôr heróis que chegam no meio de um atraso nem para fechar o atraso logo antes de uma virada: esses dois casos têm só os testes de exemplo de `wages.test.ts` (inteiro contra aos pedaços em um deles).
+- A propriedade de divisão de intervalo (`wages.property.test.ts`) passou sem mudança, e os geradores dela **não** foram estendidos para as regras novas. O que as cobre é `wages.test.ts`, "as regras da revisão e a divisão de intervalo": o atraso cobrado fechado e os heróis que chegam a um atraso velho, nos três ritmos, com o corte em um milissegundo qualquer (300 cortes cada), sobre dois cenários fixos, e não sobre feudos quaisquer. A fome cobrada fechada (C-48) não tem teste de corte próprio.
 - `pnpm capture:landing`, `test:e2e:landing`, `--perf` e `docker:build`: não rodados (nenhuma tela mudou).
 
 ### Fase C (V3C-T4)
