@@ -214,6 +214,26 @@ export function isSessionLoss(error: unknown): boolean {
   );
 }
 
+/**
+ * Os prazos da Guilda e da Taverna que mudam a tela quando vencem, em segundos reais, como a
+ * visão os traz: o herói prometido que chega, a lista de candidatos que troca, o festival que
+ * acaba, o ouro que deixa de pagar o soldo (com a equipe de agora e com quem está a caminho) e a
+ * partida que o atraso fechado ainda cobra. Só os prazos **à frente**: zero é um estado que
+ * dura (quem espera lugar à porta, o soldo em atraso), não um instante, e leria o servidor sem
+ * parar.
+ */
+export function guildDeadlines(view: ViewState): number[] {
+  const { guild, tavern } = view;
+  return [
+    ...guild.arriving.map((entry) => entry.arrivesInSeconds),
+    tavern.nextRotationInSeconds,
+    tavern.festival.activeForSeconds,
+    guild.wage.coveredForSeconds,
+    guild.wage.afterArrivals?.coveredForSeconds,
+    guild.wage.lingering?.departureInSeconds,
+  ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds > 0);
+}
+
 /** O comando não foi enviado porque não há ligação com o servidor. Nada fica em fila. */
 export class OfflineError extends Error {
   constructor() {
@@ -543,7 +563,8 @@ export class GameSession {
   /**
    * Quando ler o servidor de novo. Com a aba à vista, não espera o ciclo inteiro se um prazo da
    * visão (obra, planejada à espera, fim de adaptação, aldeão a caminho, virada do dia, carta do
-   * Conselho que expira, próxima audiência, incursão à vista, ferido que sara) vence antes: a
+   * Conselho que expira, próxima audiência, incursão à vista, ferido que sara, e os da Guilda:
+   * `guildDeadlines`) vence antes: a
    * contagem regressiva chegaria a zero e a tela ficaria parada nela. O segundo a mais dá ao
    * servidor tempo de virar o prazo.
    */
@@ -572,7 +593,7 @@ export class GameSession {
       view.threat.incoming?.inSeconds,
       view.population.secondsToNextRecovery,
     ].filter((seconds): seconds is number => typeof seconds === 'number' && seconds >= 0);
-    const soonest = Math.min(...deadlines, Number.POSITIVE_INFINITY);
+    const soonest = Math.min(...deadlines, ...guildDeadlines(view), Number.POSITIVE_INFINITY);
     return Math.max(MIN_POLL_MS, Math.min(poll, (soonest + 1) * 1000));
   }
 
