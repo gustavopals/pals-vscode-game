@@ -893,6 +893,49 @@ describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): n�
     expect(wood).toMatchObject({ delta: 0, received: 0, cut: 47, produced: 0 });
   });
 
+  it('o item vendido por falta de lugar vai para "prosperou" com a frase dele, e o ouro entra como recebido (revisão, A6)', () => {
+    const found = event('itemFound', 'A expedição pôs na bagagem um achado: a lança.', id);
+    const sold = event('itemSold', 'O arsenal não tinha onde guardar: a lança foi a um mascate.', {
+      itemId: 'item-9',
+      gained_gold: 15,
+    });
+    const blocks = blocksOf(heroInjuredView, heroInjuredView, [found, sold]);
+    // O achado e a venda: quem lê sabe que o item virou ouro, e não que está no arsenal.
+    expect(texts(blocks.prospered)).toEqual([found.text, sold.text]);
+    expect(texts(blocks.cost)).toEqual([]);
+    const before = withResource(heroInjuredView, 'gold', { stock: 10 });
+    const after = withResource(heroInjuredView, 'gold', { stock: 25 });
+    const report = buildReturnReport(before, after, [found, sold], 6 * HOUR);
+    expect(report.resources.find((row) => row.id === 'gold')).toMatchObject({
+      delta: 15,
+      received: 15,
+      produced: 0,
+    });
+  });
+
+  it('o lugar que voltou a ser ocupado na virada do ano vai para "custou", com a defesa como próxima ação (revisão, A6)', () => {
+    const restored = event(
+      'threatTileRestored',
+      'Com o ano novo, o Covil está ocupado outra vez.',
+      {
+        tileId: 'wolfDen',
+      },
+    );
+    const blocks = blocksOf(heroInjuredView, heroInjuredView, [restored]);
+    expect(texts(blocks.prospered)).toEqual([]);
+    expect(blocks.cost).toEqual([
+      {
+        text: restored.text,
+        topic: 'threat',
+        severity: 'warning',
+        action: costAction(heroInjuredView, 'threat'),
+      },
+    ]);
+    // A ação é a da Ameaça: a defesa do feudo (a obra da Paliçada, ou o painel dela).
+    expect(costAction(heroInjuredView, 'threat').command).toMatch(/^lords\.(build|openPanel)$/);
+    expect(costAction(heroInjuredView, 'threat')).toEqual(costAction(heroInjuredView, 'raid'));
+  });
+
   it('a volta e o que ela trouxe vão para "prosperou"; quem se feriu, foi capturado ou morreu, para "custou", com a próxima ação', () => {
     const blocks = blocksOf(heroCapturedView, heroCapturedView, [
       event('expeditionSent', 'Edda e Rolf partiram.', id),

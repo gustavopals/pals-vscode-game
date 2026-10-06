@@ -102,8 +102,9 @@ export function costAction(
     }
     return { command: 'lords.openPanel', arg: 'fief', label: 'Ver os depósitos' };
   }
-  if (topic === 'raid') {
-    // O ataque já passou: o que se pode fazer é mudar o desfecho do próximo.
+  if (topic === 'raid' || topic === 'threat') {
+    // O ataque já passou, ou o lugar limpo voltou a ser ocupado: o que se pode fazer é mudar o
+    // desfecho do próximo ataque.
     return toAction(defenseCommand(view));
   }
   if (topic === 'hero:captured') {
@@ -287,9 +288,17 @@ function placeOf(event: GameEvent): { block: 'prospered' | 'cost'; topic: string
     case 'heroRecovered':
     case 'heroLeveledUp':
     case 'itemFound':
+    case 'itemSold':
     case 'destinationRevealed':
     case 'threatTileCleared':
       return { block: 'prospered', topic: 'expedition' };
+    // (`itemSold` é o item que não coube no arsenal e foi vendido: a frase diz que ele virou
+    // ouro; sem ela, "achou um item" ficaria sozinho, e o item não está em lugar nenhum. O ouro
+    // entra na tabela como recebido, pelo total do evento.)
+    // O lugar limpo que voltou a ser ocupado na virada do ano: é da Ameaça, e a próxima ação é
+    // a da defesa.
+    case 'threatTileRestored':
+      return { block: 'cost', topic: 'threat' };
     case 'heroInjured':
       return { block: 'cost', topic: 'hero:injured' };
     case 'heroCaptured':
