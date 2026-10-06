@@ -211,7 +211,12 @@ test.describe('a Guilda na interface', () => {
     }
     await guildTab(page).click();
     // O candidato na tela é o do servidor: a ficha, o preço e o soldo, e quando a lista troca.
-    const row = candidates(page).getByRole('listitem').filter({ hasText: offer.name });
+    // A linha é a que traz o nome **sozinho** (o da ficha e o do botão), e não qualquer linha em
+    // que ele apareça: contratado um Carismático, o preço do candidato que sobra passa a dizer
+    // "menos 20% por <nome>", e um filtro pelo texto continuaria achando uma linha.
+    const row = candidates(page)
+      .getByRole('listitem')
+      .filter({ has: page.getByText(offer.name, { exact: true }) });
     await expect(row).toContainText(`${offer.name} · ${offer.classLabel} · Nv${offer.level}`);
     await expect(row).toContainText(offer.priceText);
     await expect(row).toContainText(`soldo de ${offer.wagePerHour}/h`);
