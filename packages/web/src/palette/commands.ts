@@ -44,6 +44,7 @@ import {
   CROSSROADS_ICON,
   crossroadsDeadline,
   crossroadsSecondsLeft,
+  defaultPosture,
   defaultTeam,
   type Destination,
   DESTINATION_NODE,
@@ -231,9 +232,6 @@ export function guildRequest(
   return typeof id === 'string' && id.startsWith(prefix) ? id.slice(prefix.length) : undefined;
 }
 
-const POSTURE_IDS: ReadonlyArray<Posture['id']> = ['cautious', 'balanced', 'bold'];
-const SLOT_IDS: ReadonlyArray<Item['slot']> = ['weapon', 'armor', 'accessory'];
-
 /**
  * A expedição e o caminho que quem chamou `lords.chooseExpeditionPath` já escolheu: o painel
  * manda os dois (`{ expeditionId, optionId }`); o aviso, a expedição; a árvore, a linha
@@ -258,9 +256,13 @@ export function expeditionRequest(arg: unknown): { expeditionId?: string; option
 /**
  * O que quem chamou `lords.sendExpedition` já escolheu: o painel manda o destino, a equipe e a
  * Postura; um botão "Enviar o Resgate", o destino sozinho (como texto ou em `{ modelId }`); a
- * árvore e a paleta, nada.
+ * árvore e a paleta, nada. `postures` são as Posturas que a visão oferece (`guild.postures`): só
+ * uma delas segue, e o app não tem a lista escrita.
  */
-export function sendRequest(arg: unknown): {
+export function sendRequest(
+  arg: unknown,
+  postures: ReadonlyArray<Pick<Posture, 'id'>>,
+): {
   modelId?: string;
   heroIds?: string[];
   posture?: Posture['id'];
@@ -281,7 +283,7 @@ export function sendRequest(arg: unknown): {
     Array.isArray(heroIds) && heroIds.every((heroId) => typeof heroId === 'string')
       ? (heroIds as string[])
       : undefined;
-  const known = POSTURE_IDS.find((entry) => entry === posture);
+  const known = postures.find((entry) => entry.id === posture)?.id;
   return {
     modelId,
     ...(team === undefined ? {} : { heroIds: team }),
@@ -291,9 +293,13 @@ export function sendRequest(arg: unknown): {
 
 /**
  * O herói, o item e o espaço que quem chamou `lords.equipItem` ou `lords.unequipItem` já
- * escolheu: a ficha manda o herói e o espaço; o arsenal, o item; a paleta, nada.
+ * escolheu: a ficha manda o herói e o espaço; o arsenal, o item; a paleta, nada. `slots` são os
+ * espaços que a visão traz (`guild.equipmentSlots`): só um deles segue.
  */
-export function equipRequest(arg: unknown): {
+export function equipRequest(
+  arg: unknown,
+  slots: ReadonlyArray<{ id: Item['slot'] }>,
+): {
   heroId?: string;
   itemId?: string;
   slot?: Item['slot'];
@@ -302,7 +308,7 @@ export function equipRequest(arg: unknown): {
     return {};
   }
   const { heroId, itemId, slot } = arg as Record<string, unknown>;
-  const known = SLOT_IDS.find((entry) => entry === slot);
+  const known = slots.find((entry) => entry.id === slot)?.id;
   return {
     ...(typeof heroId === 'string' ? { heroId } : {}),
     ...(typeof itemId === 'string' ? { itemId } : {}),
@@ -1453,7 +1459,7 @@ export function createCommands(
       if (view === null) {
         return;
       }
-      const request = sendRequest(arg);
+      const request = sendRequest(arg, view.guild.postures);
       if (
         request.modelId !== undefined &&
         request.heroIds !== undefined &&
@@ -1544,7 +1550,10 @@ export function createCommands(
           value: entry.id,
         })),
         // A do meio já vem marcada: nem a mais segura, nem a mais arriscada.
-        selected: Math.floor(Math.max(0, postures.length - 1) / 2),
+        selected: Math.max(
+          0,
+          postures.findIndex((entry) => entry.id === defaultPosture(postures)),
+        ),
       });
       if (posture === undefined) {
         return;
@@ -1560,7 +1569,7 @@ export function createCommands(
       }
       await controller.sendExpedition(modelId, heroIds, posture);
     },
-    (arg) => sendRequest(arg).modelId,
+    (arg) => sendRequest(arg, []).modelId,
   );
 
   const itemGone = () =>
@@ -1587,7 +1596,7 @@ export function createCommands(
       if (view === null) {
         return;
       }
-      const request = equipRequest(arg);
+      const request = equipRequest(arg, view.guild.equipmentSlots);
       if (request.heroId !== undefined && request.itemId !== undefined) {
         await controller.equipItem(request.heroId, request.itemId);
         return;
@@ -1697,7 +1706,7 @@ export function createCommands(
       await controller.equipItem(hero.id, item.id);
     },
     (arg) => {
-      const request = equipRequest(arg);
+      const request = equipRequest(arg, []);
       return request.heroId ?? request.itemId;
     },
   );
@@ -1712,7 +1721,7 @@ export function createCommands(
       if (view === null) {
         return;
       }
-      const request = equipRequest(arg);
+      const request = equipRequest(arg, view.guild.equipmentSlots);
       if (request.heroId !== undefined && request.slot !== undefined) {
         await controller.unequipItem(request.heroId, request.slot);
         return;
@@ -1756,7 +1765,7 @@ export function createCommands(
       }
       await controller.unequipItem(picked.hero.id, picked.slot);
     },
-    (arg) => equipRequest(arg).heroId,
+    (arg) => equipRequest(arg, []).heroId,
   );
 
   /** "Ver o relatório": a aba Guilda, com a folha dessa expedição aberta e à vista. */

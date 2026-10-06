@@ -138,22 +138,70 @@ describe('os comandos das expedições na paleta (GDD §13.6)', () => {
     expect(expeditionRequest('expedition-2')).toEqual({ expeditionId: 'expedition-2' });
     expect(expeditionRequest({ id: 'hero:hero-1' })).toEqual({});
     expect(expeditionRequest(undefined)).toEqual({});
-    expect(sendRequest('rescue')).toEqual({ modelId: 'rescue' });
-    expect(sendRequest({ modelId: 'patrol', heroIds: ['hero-1'], posture: 'bold' })).toEqual({
+    const { postures, equipmentSlots } = heroInjuredView.guild;
+    expect(sendRequest('rescue', postures)).toEqual({ modelId: 'rescue' });
+    expect(
+      sendRequest({ modelId: 'patrol', heroIds: ['hero-1'], posture: 'bold' }, postures),
+    ).toEqual({
       modelId: 'patrol',
       heroIds: ['hero-1'],
       posture: 'bold',
     });
     // Uma Postura que não existe, ou uma equipe que não é lista de nomes, não segue.
-    expect(sendRequest({ modelId: 'patrol', heroIds: [1], posture: 'reckless' })).toEqual({
-      modelId: 'patrol',
-    });
-    expect(sendRequest({ id: 'guild' })).toEqual({});
-    expect(equipRequest({ heroId: 'hero-1', slot: 'weapon' })).toEqual({
+    expect(sendRequest({ modelId: 'patrol', heroIds: [1], posture: 'reckless' }, postures)).toEqual(
+      {
+        modelId: 'patrol',
+      },
+    );
+    expect(sendRequest({ id: 'guild' }, postures)).toEqual({});
+    expect(equipRequest({ heroId: 'hero-1', slot: 'weapon' }, equipmentSlots)).toEqual({
       heroId: 'hero-1',
       slot: 'weapon',
     });
-    expect(equipRequest({ itemId: 'item-2', slot: 'boots' })).toEqual({ itemId: 'item-2' });
+    expect(equipRequest({ itemId: 'item-2', slot: 'boots' }, equipmentSlots)).toEqual({
+      itemId: 'item-2',
+    });
+  });
+
+  it('as Posturas e os espaços que valem são os da visão: o app não tem a lista escrita (revisão, A23)', () => {
+    const { postures, equipmentSlots } = heroInjuredView.guild;
+    // A visão que só oferece uma Postura e um espaço: o resto não segue.
+    expect(
+      sendRequest(
+        { modelId: 'patrol', heroIds: ['hero-1'], posture: 'bold' },
+        postures.slice(0, 1),
+      ),
+    ).toEqual({ modelId: 'patrol', heroIds: ['hero-1'] });
+    expect(equipRequest({ heroId: 'hero-1', slot: 'armor' }, equipmentSlots.slice(0, 1))).toEqual({
+      heroId: 'hero-1',
+    });
+    // E cada identificador da visão é aceito, seja qual for.
+    for (const posture of postures) {
+      expect(sendRequest({ modelId: 'patrol', posture: posture.id }, postures).posture).toBe(
+        posture.id,
+      );
+    }
+    for (const slot of equipmentSlots) {
+      expect(equipRequest({ slot: slot.id }, equipmentSlots).slot).toBe(slot.id);
+    }
+    // Nenhum identificador de Postura ou de espaço escrito nas fontes do app.
+    const sources = Object.fromEntries(
+      Object.entries(
+        import.meta.glob<string>('../**/*.{ts,tsx}', {
+          query: '?raw',
+          import: 'default',
+          eager: true,
+        }),
+      ).filter(([file]) => !/\.test\.tsx?$|test-helpers\.ts$/.test(file)),
+    );
+    expect(Object.keys(sources).length).toBeGreaterThan(50);
+    const ids = [...postures.map((entry) => entry.id), ...equipmentSlots.map((entry) => entry.id)];
+    expect(ids).toHaveLength(6);
+    for (const [file, source] of Object.entries(sources)) {
+      for (const id of ids) {
+        expect(source, `${file} escreve "${id}"`).not.toMatch(new RegExp(`['"\`]${id}['"\`]`));
+      }
+    }
   });
 });
 
