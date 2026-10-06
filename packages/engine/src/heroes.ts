@@ -165,6 +165,18 @@ export function heroLimit(state: GameState): number {
 }
 
 /**
+ * Quantos heróis ocupam lugar no limite de contratação: todos os que servem ao feudo **menos
+ * quem está em cativeiro** (resposta do autor de 2026-10-06 à pendência D-17: "capturado não
+ * conta no limite"). Assim dá para contratar no lugar do cativo e montar o Resgate; quando ele
+ * volta com a casa cheia entra assim mesmo, e o feudo fica acima do limite até dispensar alguém
+ * ou subir a Taverna. O cativo continua na lista de heróis, e o teto dela (`rosterHasRoom`)
+ * conta com ele.
+ */
+export function lodgedHeroes(state: GameState): number {
+  return state.guild.heroes.filter((hero) => !isCaptive(hero)).length;
+}
+
+/**
  * A moral que um herói soma ao feudo pelos traços dele (o Devoto; ADR 0017, "Os oito traços"):
  * zero para quem não tem traço assim. Só conta com o herói no feudo; quem decide é a conta da
  * moral (`moraleTermsAt`).

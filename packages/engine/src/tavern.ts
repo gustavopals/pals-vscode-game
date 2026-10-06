@@ -10,7 +10,7 @@ import {
 import { inSeason, seasonAt, seasonStartAt } from './clock';
 import { buildingWithArticle, missingResources } from './construction';
 import { plural } from './format';
-import { heroLimit, isAtHome } from './heroes';
+import { heroLimit, isAtHome, lodgedHeroes, rosterHasRoom } from './heroes';
 import { reject } from './rejections';
 import type { GameState, Hero, HeroTraitId, Rejection, TavernOffer } from './types';
 import { MILLI } from './units';
@@ -115,13 +115,21 @@ export function tavernRequired(state: GameState): Rejection {
 
 /**
  * Por que o feudo não pode contratar mais ninguém agora, ou `null` quando pode: o limite de
- * contratação (`heroLimit`) já foi alcançado, contando todos os heróis que servem ao feudo,
- * os que chegaram por carta também. A frase diz o que abre um lugar.
+ * contratação (`heroLimit`) já foi alcançado ou passado, contando os heróis que servem ao feudo
+ * (os que chegaram por carta também) **menos quem está em cativeiro** (`lodgedHeroes`); ou,
+ * com lugar no limite, a lista de heróis chegou ao teto (`rosterCap`), que conta os cativos. A
+ * frase diz o que abre um lugar.
  */
 export function heroLimitBlock(state: GameState): Rejection | null {
   const limit = heroLimit(state);
-  if (state.guild.heroes.length < limit) {
-    return null;
+  if (lodgedHeroes(state) < limit) {
+    return rosterHasRoom(state)
+      ? null
+      : reject('HERO_LIMIT', {
+          label: 'guarda do feudo',
+          count: balance.heroes.rosterCap,
+          remedy: 'resgate quem está em cativeiro ou dispense um herói',
+        });
   }
   const level = tavernLevel(state);
   const canGrow = level < buildings.tavern.maxLevel;

@@ -201,7 +201,7 @@ export const guildTexts = {
   captured: 'Em cativeiro desde "{expedicao}"',
   /** O que dizer do cativo, com o Resgate à mão. */
   captiveNote:
-    'Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Continua contando no limite de heróis.',
+    'Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate.',
   dismiss:
     'Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.',
 } as const;

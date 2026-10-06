@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 import { advanceTo } from './advance';
-import { heroLimit, heroPower, paidHeroes, wageRate } from './heroes';
+import { heroLimit, heroPower, lodgedHeroes, paidHeroes, wageRate } from './heroes';
 import { currentShape } from './migrations';
 import {
   HERO_HARM_IDS_V18,
@@ -327,7 +327,7 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     expect(shaped(after.state)).toBeNull();
   });
 
-  it('em Senhor o herói fica em cativeiro: sai da equipe, não recebe soldo, conta no limite e leva o que tinha', () => {
+  it('em Senhor o herói fica em cativeiro: sai da equipe, não recebe soldo, não ocupa lugar no limite e leva o que tinha', () => {
     const { state, endsAt } = atCrypt('lord');
     const after = advanceTo(state, endsAt);
     const [line] = ofType(after.events, 'heroCaptured');
@@ -350,7 +350,9 @@ describe('a captura, por dificuldade (QA-08; GDD §12.1)', () => {
     expect(after.state.guild.heroes).toHaveLength(3);
     expect(paidHeroes(after.state)).toBe(2);
     expect(wageRate(after.state)).toBe(2 * heroRules.wagePerHour * MILLI);
+    // Sem Taverna o limite é 1, e o cativo não ocupa lugar nele (D-17, resposta de 2026-10-06).
     expect(heroLimit(after.state)).toBe(1);
+    expect(lodgedHeroes(after.state)).toBe(2);
     // Quem ficou de pé ganha a experiência do Desastre: um quarto.
     expect(only(after.state).log.at(-1)).toMatchObject({
       outcome: 'disaster',

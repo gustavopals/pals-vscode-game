@@ -12,6 +12,7 @@ Com a Fase C implementada e revista, o autor respondeu em sessão de perguntas a
 | **C-57**, a janela do atraso (revisão M-R2) | Pagar 2 h reais de soldo zera um atraso de qualquer idade? | **"Fica assim."** 2 h reais sem atraso e o prazo recomeça do zero, como a fome |
 | **A-3** e **C-58**, a publicação | A Fase C vai ao ar sozinha? | **Não.** O agente não tem permissão de `push` (a política da sessão nega), e o autor escolheu: o agente segue com commits locais; **ao fechar a Fase D (expedições), o agente faz o backup manual do banco e avisa, e o autor roda `git push origin main`**. O motivo é o das dúvidas A-3 e C-58: a Fase C sozinha cobra soldo de heróis sem trabalho e vende traços cujo efeito só existe com as expedições |
 | **D-24**, os lobos do outono | Com o Covil limpo, os lobos descem a serra no outono assim mesmo? | **"Manter os lobos do outono."** A regra que o agente criou na V3D-T2 (`threat.seasonEnemy`) está **confirmada**: com o Covil limpo, a primavera, o verão e o inverno não têm subida da Ameaça nem sorteio de incursão; o outono tem os dois. Nenhum código mudou |
+| **D-17**, o capturado e o limite de heróis | Quem está em cativeiro ocupa lugar no limite de contratação? | **"Capturado não conta no limite."** O cativo deixa de ocupar lugar em `heroLimit`: dá para contratar um substituto e montar o Resgate. O resgatado volta mesmo com a casa cheia, e o feudo fica acima do limite (sem poder contratar) até dispensar alguém ou subir a Taverna. O teto da lista (12) continua contando os cativos. A frase da ficha (`guildTexts.captiveNote`) mudou com a regra e é rascunho |
 
 **O que a resposta da publicação muda, e fica registrado:**
 
@@ -243,7 +244,7 @@ Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Re
 - Onde: `packages/content/src/missions/rescue.ts`.
 - Se decidir diferente: com "2 nós" contando o retorno, o Resgate dura 1 h 30, ou o teto por nó sobe para 60 minutos em `balance.expeditions.graph`.
 
-**D-17. O cativo conta no limite de contratação.** *(Pergunta para o autor.)*
+**D-17. O cativo conta no limite de contratação.** *(**Respondida pelo autor em 2026-10-06: "Capturado não conta no limite."** O que segue é o que valia antes; a regra nova está na seção 0, no ADR 0017 e no README do motor, "O cativo".)*
 - Enquanto isso: quem está em cativeiro continua na lista de heróis e continua contando em `heroLimit` (não recebe soldo, mas ocupa o lugar): assim ninguém contrata no lugar dele e depois o resgata por cima do teto. **A consequência: com a Taverna no nível 1 (limite de dois), quem perde um herói fica com um só, e o Resgate pede dois.** A saída é melhorar a Taverna (o limite sobe para três) e contratar. O cativo não pode ser dispensado (`HERO_BUSY`), então o lugar dele só abre com o Resgate.
 - Onde: `heroLimit` e `paidHeroes`, em `packages/engine/src/heroes.ts`; `outcomes.test.ts`, "em Senhor o herói fica em cativeiro".
 - Se decidir diferente: não contar o cativo no limite é uma linha em `heroLimit` (e o feudo pode passar do limite quando ele volta, como já passa com um herói de carta); deixar dispensar o cativo é tirar a recusa em `dismissHero` (o que ele levava se perderia com ele).

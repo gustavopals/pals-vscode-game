@@ -460,6 +460,92 @@ describe('contratar (hireHero)', () => {
     ).toHaveLength(3);
   });
 
+  it('quem está em cativeiro não conta no limite: dá para contratar no lugar dele, e o resgatado volta por cima do limite (ADR 0017, decisão 5, resposta de 2026-10-06)', () => {
+    const capture = (draft: GameState, heroId: string): void => {
+      const hero = draft.guild.heroes.find((entry) => entry.id === heroId);
+      if (hero === undefined) {
+        throw new Error(`Sem o herói ${heroId}.`);
+      }
+      hero.status = 'captured';
+      hero.captivity = { sinceMs: draft.lastProcessedAt, modelId: 'ruins' };
+    };
+    const { state } = tavernScenario(0, (draft) => {
+      addHero(draft, { name: 'Edda' });
+      addHero(draft, { name: 'Rolf' });
+    });
+    // Dois heróis na Taverna Nv1: a casa está cheia.
+    expect(refuse(state, command('hireHero', { offerId: 'offer-1' })).code).toBe('HERO_LIMIT');
+    const taken = cloneState(state);
+    capture(taken, 'hero-2');
+    expect(currentShape(taken, '')).toBeNull();
+    // O limite continua 2, e só um dos dois o ocupa.
+    expect(heroLimit(taken)).toBe(2);
+    expect(view(taken).guild.heroLimit).toBe(2);
+    expect(view(taken).tavern.offers.map((offer) => offer.blockedReason)).toEqual([null, null]);
+    expect(view(taken).guild.captiveText).toBe(
+      'Quem está em cativeiro não recebe soldo e não tem prazo: fica lá até um Resgate dar certo. Não ocupa lugar no limite de heróis: dá para contratar outro e montar o Resgate.',
+    );
+    const hired = accept(taken, command('hireHero', { offerId: 'offer-1' })).state;
+    expect(hired.guild.heroes).toHaveLength(3);
+    // Com dois de pé a casa está cheia de novo, com o cativo fora da conta.
+    const full =
+      'A Taverna Nv1 abriga 2 heróis, e o feudo já os tem: melhore a Taverna ou dispense um herói.';
+    expect(refuse(hired, command('hireHero', { offerId: 'offer-2' }))).toEqual({
+      code: 'HERO_LIMIT',
+      message: full,
+    });
+    // O resgatado entra assim mesmo: três de pé, limite de dois, e a contratação segue barrada.
+    const back = cloneState(hired);
+    const rescued = back.guild.heroes.find((hero) => hero.id === 'hero-2');
+    if (rescued !== undefined) {
+      rescued.status = 'idle';
+      rescued.captivity = null;
+    }
+    expect(currentShape(back, '')).toBeNull();
+    expect(back.guild.heroes.filter((hero) => hero.status !== 'captured')).toHaveLength(3);
+    expect(refuse(back, command('hireHero', { offerId: 'offer-2' }))).toEqual({
+      code: 'HERO_LIMIT',
+      message: full,
+    });
+    expect(view(back).tavern.offers[0]?.blockedReason).toBe(full);
+    // Dispensar um só volta ao limite: ainda não abre lugar. Dispensar dois, ou subir a Taverna, abre.
+    const two = accept(back, command('dismissHero', { heroId: 'hero-1' })).state;
+    expect(refuse(two, command('hireHero', { offerId: 'offer-2' })).code).toBe('HERO_LIMIT');
+    const one = accept(two, command('dismissHero', { heroId: 'hero-2' })).state;
+    expect(
+      accept(one, command('hireHero', { offerId: 'offer-2' })).state.guild.heroes,
+    ).toHaveLength(2);
+    // Um nível a mais só iguala o limite aos três de pé; com dois níveis, cabe mais um.
+    expect(refuse(raisedTo(back, 2), command('hireHero', { offerId: 'offer-2' })).code).toBe(
+      'HERO_LIMIT',
+    );
+    expect(
+      accept(raisedTo(back, 3), command('hireHero', { offerId: 'offer-2' })).state.guild.heroes,
+    ).toHaveLength(4);
+  });
+
+  it('o teto da guarda vale com os cativos dentro: com a lista cheia ninguém é contratado, mesmo com lugar no limite', () => {
+    const packed = tavernScenario(0, (draft) => {
+      for (let hero = 0; hero < balance.heroes.rosterCap; hero += 1) {
+        const added = addHero(draft);
+        if (hero >= 4) {
+          added.status = 'captured';
+          added.captivity = { sinceMs: 0, modelId: 'ruins' };
+        }
+      }
+    }).state;
+    packed.settlement.buildings.tavern = 5;
+    expect(currentShape(packed, '')).toBeNull();
+    // Quatro de pé, limite de seis: o limite deixaria; o teto da lista não.
+    const message = `A guarda do feudo abriga ${balance.heroes.rosterCap} heróis, e o feudo já os tem: resgate quem está em cativeiro ou dispense um herói.`;
+    expect(refuse(packed, command('hireHero', { offerId: 'offer-1' }))).toEqual({
+      code: 'HERO_LIMIT',
+      message,
+    });
+    expect(view(packed).tavern.offers[0]?.blockedReason).toBe(message);
+    expect(packed.guild.heroes).toHaveLength(balance.heroes.rosterCap);
+  });
+
   it('no nível máximo a recusa só manda dispensar', () => {
     const full = tavernScenario(0, (draft) => {
       for (let hero = 0; hero < 6; hero += 1) {
