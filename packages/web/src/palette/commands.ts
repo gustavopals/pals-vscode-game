@@ -1168,10 +1168,14 @@ export function createCommands(
    * com o prazo real e o que a Postura faz sem resposta (na frase do servidor), e cada opção com
    * a pista e, bloqueada, o requisito. O que já vem marcado é a opção da Postura: `Enter` sem
    * ler faz o que aconteceria de qualquer modo. A lista fecha sozinha, sem enviar nada, se a
-   * equipe deixar de esperar com ela aberta (o prazo venceu, ou outra aba escolheu). `null` é
-   * "nada a enviar".
+   * equipe deixar de esperar com ela aberta (o prazo venceu, ou outra aba escolheu), e também
+   * quando a sessão termina: aí o aviso é o da sessão, não o da decisão. `null` é "nada a
+   * enviar", já avisado.
    */
-  const pickPath = async (expedition: Expedition): Promise<string | null> => {
+  const pickPath = async (
+    expedition: Expedition,
+    gameId: string | null,
+  ): Promise<string | null> => {
     const { crossroads } = expedition;
     if (crossroads === null) {
       return null;
@@ -1213,6 +1217,14 @@ export function createCommands(
         ),
         signal: gone.signal,
       });
+      if (!sameGame(gameId)) {
+        // A sessão acabou, ou o feudo é outro: a encruzilhada não foi decidida por ninguém, só
+        // deixou de ser a desta tela. Vem antes de `explainDecided`, que diria "em outra aba".
+        if (optionId !== undefined || gone.signal.aborted) {
+          sessionEnded('a escolha do caminho');
+        }
+        return null;
+      }
       if (
         gone.signal.aborted ||
         (optionId !== undefined && waitingNow(expedition.id) === undefined)
@@ -1302,13 +1314,8 @@ export function createCommands(
         // A visão pode ter mudado com a lista aberta: vale a encruzilhada de agora.
         expedition = waitingNow(expedition.id) ?? expedition;
       }
-      const optionId = await pickPath(expedition);
+      const optionId = await pickPath(expedition, gameId);
       if (optionId === null) {
-        return;
-      }
-      // Depois da espera: a conta e a visão de agora.
-      if (!sameGame(gameId)) {
-        sessionEnded('a escolha do caminho');
         return;
       }
       await controller.chooseExpeditionPath(expedition.id, optionId);

@@ -343,6 +343,20 @@ describe('escolher o caminho', () => {
     );
   });
 
+  it('a sessão termina com a lista dos caminhos aberta: diz isso, e não que outra aba decidiu (revisão, A3)', async () => {
+    const made = await setup(expeditionCrossroadsView);
+    const { run, answers, orders, toasts, controller } = made;
+    answers.push(async () => {
+      await controller.signOut();
+      return 0;
+    });
+    await run('lords.chooseExpeditionPath', 'expedition-2');
+    expect(orders()).toEqual([]);
+    expect(toasts()).toEqual([
+      'A sessão terminou, ou o feudo mudou, com a escolha do caminho em aberto: nada foi enviado.',
+    ]);
+  });
+
   it('a recusa CROSSROADS_DECIDED vira aviso com a frase do servidor, e a visão nova toma a tela', async () => {
     const { run, api, controller, toasts } = await setup(expeditionCrossroadsView);
     // O servidor já decidiu: a recusa traz a visão de agora, sem a encruzilhada.
