@@ -19,6 +19,8 @@ import {
   heroCapturedScenario,
   heroInjuredScenario,
   heroesStart,
+  marketDayScenario,
+  marketOpeningScenario,
   HOUR,
   MINUTE,
   newGame,
@@ -456,6 +458,14 @@ const scenarios: Record<string, () => GameState> = {
 
   // O Covil de Lobos limpo, com a Torre: o tile inativo e a Ameaça depois da queda.
   'den-cleared': () => denClearedScenario(),
+
+  // O Mercado (versão 21) no dia em que fica pronto: os preços na base, sem dia de cotação e
+  // sem o fluxo `market`, uma venda feita e a obra do nível 2 em curso.
+  'market-opening': () => marketOpeningScenario(),
+
+  // O Mercado em dia de feira, no outono e no ritmo 3: os preços longe da base, o de ontem
+  // guardado, o fluxo `market` em uso e o volume de hoje em parte gasto, na compra e na venda.
+  market: () => marketDayScenario(),
 };
 
 describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
@@ -899,6 +909,36 @@ describe(`retratos do estado na versão ${CURRENT_SCHEMA_VERSION}`, () => {
       expect(state.guild.expeditions).toEqual([]);
       expect(state.guild.reports).toEqual([]);
       expect(state.ids.expedition).toBeUndefined();
+    }
+
+    // O Mercado (versão 21). No dia em que fica pronto: os preços na base, sem dia de cotação
+    // nem fluxo, com uma venda feita e a obra do nível 2 em curso.
+    const opening = of('market-opening');
+    expect(opening.settlement.buildings.market).toBe(1);
+    expect(opening.market.quoteDay).toBe(0);
+    expect(opening.market.prices).toEqual(of('fresh').market.prices);
+    expect(opening.market.tradedToday).toEqual({ food: 0, wood: 120, stone: 0 });
+    expect(opening.rng.market).toBeUndefined();
+    expect(opening.settlement.constructionQueues[0]).toMatchObject({
+      building: 'market',
+      targetLevel: 2,
+    });
+    expect(opening.stats.sold_wood).toBe(120);
+    // Em dia de feira: os preços longe da base, o de ontem diferente do de hoje, o fluxo em
+    // uso e o volume gasto na compra e na venda.
+    const fair = of('market');
+    expect(fair.settings.timeScale).toBe(3);
+    expect(fair.market.quoteDay).toBe(Math.floor(fair.lastProcessedAt / DAY) + 1);
+    expect(fair.market.prices).not.toEqual(of('fresh').market.prices);
+    expect(fair.market.previousPrices).not.toEqual(fair.market.prices);
+    expect(fair.market.tradedToday).toEqual({ food: 150, wood: 0, stone: 35 });
+    expect(fair.rng.market).toBeDefined();
+    expect(fair.stats).toMatchObject({ sold_food: 150, bought_stone: 35 });
+    // Nos outros retratos o Mercado não existe, e nada dele andou.
+    for (const state of all0().filter((entry) => entry !== opening && entry !== fair)) {
+      expect(state.settlement.buildings.market).toBe(0);
+      expect(state.market).toEqual(of('fresh').market);
+      expect(state.rng.market).toBeUndefined();
     }
 
     // O que a fundação da v0.2 deixou no estado e que os próximos passos vão ler: a fronteira,

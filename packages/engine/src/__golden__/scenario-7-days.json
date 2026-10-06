@@ -579,7 +579,7 @@
    "day": 1,
    "eventsSoFar": 35,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -639,7 +639,8 @@
       "watchtower": 0,
       "palisade": 0,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -743,6 +744,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "buildWatchtower",
@@ -771,7 +790,7 @@
    "day": 2,
    "eventsSoFar": 80,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -831,7 +850,8 @@
       "watchtower": 1,
       "palisade": 0,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -934,6 +954,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -978,7 +1016,7 @@
    "day": 3,
    "eventsSoFar": 128,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1046,7 +1084,8 @@
       "watchtower": 1,
       "palisade": 0,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -1168,6 +1207,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "buildPalisade",
@@ -1219,7 +1276,7 @@
    "day": 4,
    "eventsSoFar": 176,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1287,7 +1344,8 @@
       "watchtower": 1,
       "palisade": 1,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -1418,6 +1476,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -1472,7 +1548,7 @@
    "day": 5,
    "eventsSoFar": 224,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1540,7 +1616,8 @@
       "watchtower": 2,
       "palisade": 2,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -1665,6 +1742,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -1723,7 +1818,7 @@
    "day": 6,
    "eventsSoFar": 272,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -1797,7 +1892,8 @@
       "watchtower": 2,
       "palisade": 2,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -1939,6 +2035,24 @@
      "expeditions": [],
      "reports": []
     },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
+    },
     "objectives": {
      "active": [
       "surviveWinterWithoutCold"
@@ -2001,7 +2115,7 @@
    "day": 7,
    "eventsSoFar": 323,
    "state": {
-    "schemaVersion": 20,
+    "schemaVersion": 21,
     "seed": "pedra-alta-golden",
     "settings": {
      "settlementName": "Pedra Alta",
@@ -2075,7 +2189,8 @@
       "watchtower": 2,
       "palisade": 2,
       "tavern": 0,
-      "guild": 0
+      "guild": 0,
+      "market": 0
      },
      "constructionQueues": [
       null,
@@ -2194,6 +2309,24 @@
      },
      "expeditions": [],
      "reports": []
+    },
+    "market": {
+     "prices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "previousPrices": {
+      "food": 1000,
+      "wood": 1200,
+      "stone": 2000
+     },
+     "quoteDay": 0,
+     "tradedToday": {
+      "food": 0,
+      "wood": 0,
+      "stone": 0
+     }
     },
     "objectives": {
      "active": [

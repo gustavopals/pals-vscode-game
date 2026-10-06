@@ -11,6 +11,7 @@ import type {
   HeroTraitId,
   InjurySeverityId,
   ItemSlotId,
+  MarketResourceId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -21,6 +22,7 @@ import type {
   ResourceId,
   SeasonId,
   TileTypeId,
+  TradeDirectionId,
 } from '@lotg/content';
 
 export type {
@@ -36,6 +38,7 @@ export type {
   HeroTraitId,
   InjurySeverityId,
   ItemSlotId,
+  MarketResourceId,
   MoraleBandId,
   MoraleTermId,
   NamedHeroId,
@@ -45,6 +48,7 @@ export type {
   ResourceId,
   SeasonId,
   TileTypeId,
+  TradeDirectionId,
 };
 
 /** Escolhas feitas na criação da partida. Dificuldade e ritmo não mudam durante o ano. */
@@ -400,6 +404,35 @@ export type ExpeditionReport = {
 };
 
 /**
+ * O Mercado (GDD §5.9; ADR 0018, decisão 16). Os preços são o **passeio**, em milésimos de ouro
+ * por unidade, sem o fator da estação: o que o jogador paga e recebe é derivado (`market.ts`).
+ *
+ * Sem o edifício os preços ficam na base e nada aqui muda: o preço só anda, e o dia só é
+ * marcado, na virada de um dia de jogo **com o Mercado de pé**.
+ */
+export type MarketState = {
+  /** O preço de hoje de cada recurso, entre o piso e o teto do conteúdo. */
+  prices: Record<MarketResourceId, number>;
+  /**
+   * O preço de antes do último passeio: é com ele que a visão diz se o preço subiu ou caiu. Nunca
+   * sai do servidor. Igual a `prices` enquanto os preços não andaram.
+   */
+  previousPrices: Record<MarketResourceId, number>;
+  /**
+   * O dia de jogo da cotação em vigor, contado do começo da partida (o primeiro é o 1): o da
+   * última virada que fez os preços andarem. Zero enquanto eles não andaram (sem Mercado, e no
+   * dia em que ele fica pronto). É o que a ordem `trade` devolve, para ser recusada se o dia
+   * virou entre a tela e a ordem.
+   */
+  quoteDay: number;
+  /**
+   * Unidades de cada recurso negociadas desde a última virada do dia, **somando compra e
+   * venda**. Zera junto com o passeio do preço.
+   */
+  tradedToday: Record<MarketResourceId, number>;
+};
+
+/**
  * Estado do jogo: subconjunto do GDD §14.11. Tudo é JSON puro e inteiro (menos o ritmo, em
  * `settings`). Recursos ficam em milésimos; `accumulators` guarda o resto da produção contínua
  * (em milésimos × ms), que ainda não completou um milésimo.
@@ -408,7 +441,7 @@ export type ExpeditionReport = {
  * estados gravados em produção, e eles só chegam aqui por `migrateState`.
  */
 export type GameState = {
-  schemaVersion: 20;
+  schemaVersion: 21;
   seed: string;
   settings: GameSettings;
   /**
@@ -629,6 +662,8 @@ export type GameState = {
      */
     reports: ExpeditionReport[];
   };
+  /** O Mercado além do edifício (que está em `settlement.buildings.market`). */
+  market: MarketState;
   objectives: { active: string[]; completed: string[] };
   stats: Record<string, number>;
 };
@@ -703,7 +738,22 @@ export type Command =
   /** Põe um item do arsenal no espaço dele em um herói que está no feudo (GDD §9.1). */
   | { commandId: string; type: 'equipItem'; payload: { heroId: string; itemId: string } }
   /** Devolve ao arsenal o que um herói leva em um espaço (GDD §9.1). */
-  | { commandId: string; type: 'unequipItem'; payload: { heroId: string; slot: ItemSlotId } };
+  | { commandId: string; type: 'unequipItem'; payload: { heroId: string; slot: ItemSlotId } }
+  /**
+   * Compra ou vende no Mercado, por ouro (GDD §5.9). `amount` são unidades inteiras; `quoteDay`
+   * é o da visão (`market.quoteDay`): se o dia de jogo virou desde então, o preço é outro e a
+   * ordem é recusada.
+   */
+  | {
+      commandId: string;
+      type: 'trade';
+      payload: {
+        resource: MarketResourceId;
+        direction: TradeDirectionId;
+        amount: number;
+        quoteDay: number;
+      };
+    };
 
 export type CommandType = Command['type'];
 
@@ -748,6 +798,11 @@ export const REJECTION_CODES = [
   'ITEM_NOT_FOUND',
   'WRONG_SLOT',
   'INVENTORY_FULL',
+  'MARKET_REQUIRED',
+  'INVALID_AMOUNT',
+  'PRICE_CHANGED',
+  'DAILY_VOLUME_EXCEEDED',
+  'STORAGE_FULL',
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -1636,6 +1691,57 @@ export type TavernView = {
   };
 };
 
+/** Um recurso do Mercado na visão: o preço de hoje, de onde ele vem e quanto ainda cabe negociar. */
+export type MarketPriceView = {
+  resource: MarketResourceId;
+  /** "Comida". */
+  label: string;
+  /** O que uma unidade custa hoje, em **milésimos de ouro**: a ordem cobra `amount × buy`. */
+  buy: number;
+  /** O que uma unidade rende hoje, em milésimos de ouro: a ordem paga `amount × sell`. */
+  sell: number;
+  /** "1,30": o preço de compra em ouro por unidade, pronto para exibir. */
+  buyText: string;
+  /** "1,105". */
+  sellText: string;
+  /** O preço-base, em ouro por unidade: "1,00". */
+  baseText: string;
+  /** O preço de compra de hoje contra o de ontem. `flat` enquanto os preços não andaram. */
+  trend: 'up' | 'down' | 'flat';
+  /** "1,30 = 1,00 (cotação de hoje; base 1,00) × 1,3 (Outono). A venda paga 85%: 1,105." */
+  breakdown: string;
+  /** Unidades já negociadas hoje, compra e venda somadas. */
+  tradedToday: number;
+  /** Unidades que ainda cabem no volume de hoje. */
+  remainingToday: number;
+  /** A maior compra que seria aceita agora: o volume, o ouro e o lugar no depósito. */
+  maxBuyable: number;
+  /** A maior venda que seria aceita agora: o volume e o estoque. */
+  maxSellable: number;
+  /** Por que nem uma unidade pode ser comprada agora; `null` quando pode. */
+  buyBlockedReason: string | null;
+  /** Por que nem uma unidade pode ser vendida agora; `null` quando pode. */
+  sellBlockedReason: string | null;
+};
+
+/**
+ * O Mercado na visão (GDD §5.9). Existe sempre: sem o edifício, `level` é zero, `text` diz como
+ * erguê-lo e `prices` vem vazia. Só sai o preço **de hoje**: o de amanhã ainda não foi sorteado,
+ * o de ontem só aparece como tendência, e o gerador nunca sai do servidor.
+ */
+export type MarketView = {
+  level: number;
+  /** O que o Mercado dá no nível de agora, ou como obtê-lo. */
+  text: string;
+  /** O dia da cotação: é o que a ordem `trade` devolve em `quoteDay`. */
+  quoteDay: number;
+  /** Segundos reais até o preço e o volume mudarem (a virada do dia de jogo); `null` sem Mercado. */
+  nextChangeInSeconds: number | null;
+  /** Unidades por recurso que o Mercado negocia por dia de jogo, no nível de agora; 0 sem ele. */
+  dailyVolume: number;
+  prices: MarketPriceView[];
+};
+
 /** Tudo que a interface exibe, já calculado. A UI só formata números (GDD §14.5). */
 export type ViewState = {
   settlement: {
@@ -1895,6 +2001,8 @@ export type ViewState = {
   guild: GuildView;
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernView;
+  /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
+  market: MarketView;
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: as cartas do
    * Conselho e as expedições paradas em uma encruzilhada. É o resumo para a barra de status, a

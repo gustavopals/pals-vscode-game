@@ -222,7 +222,7 @@ describe('equipar um herói e reenviar a ordem', () => {
       'select schema_version from games where id = $1',
       [gameId],
     );
-    expect(row.rows[0]?.schema_version).toBe(20);
+    expect(row.rows[0]?.schema_version).toBe(21);
   });
 
   it('nada do que é segredo sai pela API: nem a chave do item no conteúdo, nem o cativeiro, nem o prazo cru', async () => {

@@ -1524,7 +1524,9 @@ describe('Conselho: o schema de uma carta', () => {
     expect(parses({ requires: { seasons: ['autumn'], minDay: 10, moralRange: [40, 100] } })).toBe(
       true,
     );
-    expect(parses({ requires: { buildings: { market: 1 } } })).toBe(false);
+    // O Mercado existe desde a V3E-T1: uma carta já pode pedi-lo. O Quartel é da v0.4.
+    expect(parses({ requires: { buildings: { market: 1 } } })).toBe(true);
+    expect(parses({ requires: { buildings: { barracks: 1 } } })).toBe(false);
     expect(parses({ requires: { heroTrait: 'charismatic' } })).toBe(false);
     expect(parses({ requires: { moralRange: [60, 40] } })).toBe(false);
     expect(parses({ requires: {} })).toBe(false);

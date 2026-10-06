@@ -29,7 +29,7 @@ export type BuildingDef = {
 const MINUTE_MS = 60_000;
 
 // GDD §6.1 e §6.2: os seis edifícios da v0.1 e, da v0.2, o Celeiro e o Armazém (§5.5), a Torre
-// de Vigia e a Paliçada (§8.2) e, da v0.3, a Taverna (§9.1) e a Guilda dos Aventureiros (§9.2). O que cada nível da Torre dá está em
+// de Vigia e a Paliçada (§8.2) e, da v0.3, a Taverna (§9.1), a Guilda dos Aventureiros (§9.2) e o Mercado (§5.9). O que cada nível da Torre dá está em
 // `balance.threat.watchtowerLevels`; o que cada nível da Paliçada segura, em
 // `balance.threat.palisadeLevels`.
 export const buildings: Record<BuildingId, BuildingDef> = {
@@ -164,5 +164,18 @@ export const buildings: Record<BuildingId, BuildingDef> = {
     produces: null,
     requires: { townHall: 3 },
     maxLevelNote: 'O nível seguinte chega em uma versão futura do jogo.',
+  },
+  // O Mercado (GDD §5.9 e §6.1; ADR 0018, decisão 16): compra e venda de comida, madeira e
+  // pedra por ouro, com um volume diário por recurso que cresce com o nível. Os números estão
+  // em `balance.market`.
+  market: {
+    label: 'Mercado',
+    article: 'o',
+    baseCost: { wood: 150, stone: 100, gold: 150 },
+    baseDurationMs: 15 * MINUTE_MS,
+    initialLevel: 0,
+    maxLevel: 5,
+    produces: null,
+    requires: { townHall: 3 },
   },
 };

@@ -66,9 +66,11 @@ describe('pureza do motor', () => {
     // `expeditionOrders.ts` (enviar e escolher o caminho) e `expeditionsView.ts` não sorteiam.
     // Nos desfechos (V3D-T2), quem sofre, a cobiça e o item são sorteados no mesmo
     // `expeditionTurn.ts`; `outcomes.ts` (o que o desfecho faz ao herói e ao mundo) e
-    // `equipment.ts` (o arsenal e as ordens de equipar) não sorteiam.
+    // `equipment.ts` (o arsenal e as ordens de equipar) não sorteiam. No Mercado, o sorteio mora
+    // em `marketTurn.ts` (o preço de cada dia, na virada); `market.ts` (as contas),
+    // `marketOrders.ts` (comprar e vender) e `marketView.ts` não sorteiam.
     const neverDraw =
-      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hash)(\.ts|\/)/;
+      /^\.\/(view|seasonView|moraleView|morale|council|councilView|craftProjection|commands|rejections|timeline|state|migrations|units|clock|chronicle|threat|threatView|raids|heroes|wages|arrivals|tavern|tavernOrders|tavernView|expeditions|expeditionOrders|expeditionsView|equipment|outcomes|guildView|hash|market|marketOrders|marketView)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverDraw.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -94,6 +96,9 @@ describe('pureza do motor', () => {
         './expeditions.ts',
         './expeditionOrders.ts',
         './expeditionsView.ts',
+        './market.ts',
+        './marketOrders.ts',
+        './marketView.ts',
       ]),
     );
     const offenders = guarded
@@ -113,6 +118,9 @@ describe('pureza do motor', () => {
     // ordens.
     expect(draws).toContain('./expeditionTurn.ts');
     expect(draws).not.toContain('./expeditionOrders.ts');
+    // No Mercado, só a virada do dia (`marketTurn.ts`): negociar é uma ordem.
+    expect(draws).toContain('./marketTurn.ts');
+    expect(draws).not.toContain('./marketOrders.ts');
   });
 
   it('quem mostra, agenda ou carrega o estado não importa o contador de identidades', () => {
@@ -133,7 +141,7 @@ describe('pureza do motor', () => {
     // `advanceTo` em uma cópia): isso este teste de texto não vê, e quem prova é o teste de
     // comportamento de `ids.test.ts` ("quem não cria identidades"), sobre todos os retratos.
     const neverCreate =
-      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hash)(\.ts|\/)/;
+      /^\.\/(view|[A-Za-z]+View|craftProjection|rejections|timeline|state|migrations|units|clock|chronicle|format|random|morale|threat|economy|storage|pace|heroes|wages|tavern|expeditions|equipment|outcomes|hash|market|marketOrders|marketTurn)(\.ts|\/)/;
     const guarded = sources.filter(([path]) => neverCreate.test(path));
     expect(guarded.map(([path]) => path)).toEqual(
       expect.arrayContaining([
@@ -168,6 +176,12 @@ describe('pureza do motor', () => {
         './expeditionsView.ts',
         './equipment.ts',
         './outcomes.ts',
+        // O Mercado inteiro: nem a virada do dia, nem a ordem de negociar criam entidade.
+        './market.ts',
+        './marketOrders.ts',
+        './marketTurn.ts',
+        './marketView.ts',
+        './migrations/v21.ts',
       ]),
     );
     // Os módulos de regra que criam (ou vão criar) entidades não entram por engano.

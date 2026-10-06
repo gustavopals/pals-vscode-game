@@ -34,6 +34,8 @@ import {
   watchScenario,
   winterColdScenario,
   wageArrearsScenario,
+  marketDayScenario,
+  marketOpeningScenario,
 } from './test-helpers';
 import type { GameState } from './types';
 import { deriveViewState } from './view';
@@ -166,6 +168,7 @@ describe('deriveViewState', () => {
       'palisade',
       'tavern',
       'guild',
+      'market',
     ]);
     const byBuilding = Object.fromEntries(available.map((entry) => [entry.building, entry]));
     expect(byBuilding.lumberMill).toMatchObject({
@@ -600,6 +603,11 @@ describe('golden do ViewState', () => {
       heroInjured: view(heroInjuredScenario()),
       heroCaptured: view(heroCapturedScenario()),
       denCleared: view(denClearedScenario()),
+      // O Mercado: no dia em que fica pronto, com os preços na base, uma venda feita e a obra do
+      // nível 2 em curso; e em dia de feira, no outono e no ritmo Rápido: os preços longe da
+      // base, a tendência de cada um, o fator da estação na comida e o volume em parte gasto.
+      marketOpening: view(marketOpeningScenario()),
+      marketDay: view(marketDayScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

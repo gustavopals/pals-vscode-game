@@ -4,6 +4,7 @@ import {
   ENEMY_IDS,
   EVENT_TYPES,
   ITEM_SLOT_IDS,
+  MARKET_RESOURCE_IDS,
   MORALE_BAND_IDS,
   MORALE_TERM_IDS,
   PRODUCTION_BUILDING_IDS,
@@ -57,6 +58,11 @@ export const REJECTION_CODES = [
   'ITEM_NOT_FOUND',
   'WRONG_SLOT',
   'INVENTORY_FULL',
+  'MARKET_REQUIRED',
+  'INVALID_AMOUNT',
+  'PRICE_CHANGED',
+  'DAILY_VOLUME_EXCEEDED',
+  'STORAGE_FULL',
 ] as const;
 export const RejectionCodeSchema = z.enum(REJECTION_CODES);
 export type RejectionCode = z.infer<typeof RejectionCodeSchema>;
@@ -625,6 +631,44 @@ const TavernSchema = z.strictObject({
 });
 
 /**
+ * O Mercado. Existe sempre: sem o edifício, `level` é zero, `text` diz como erguê-lo e `prices`
+ * vem vazia. Só sai o preço **de hoje**: o de amanhã ainda não foi sorteado, o de ontem só
+ * aparece como tendência (`trend`), e o gerador nunca sai do servidor. `buy` e `sell` são
+ * **milésimos de ouro por unidade** (inteiros): a ordem cobra `amount × buy` e paga
+ * `amount × sell`, sem outro arredondamento. `quoteDay` é o que a ordem `trade` devolve.
+ */
+const MarketSchema = z.strictObject({
+  level: z.number(),
+  text: z.string(),
+  quoteDay: z.number(),
+  /** Segundos reais até o preço e o volume mudarem; `null` sem Mercado. */
+  nextChangeInSeconds: z.number().nullable(),
+  /** Unidades por recurso por dia de jogo, no nível de agora; 0 sem Mercado. */
+  dailyVolume: z.number(),
+  prices: z.array(
+    z.strictObject({
+      resource: z.enum(MARKET_RESOURCE_IDS),
+      label: z.string(),
+      buy: z.number(),
+      sell: z.number(),
+      buyText: z.string(),
+      sellText: z.string(),
+      baseText: z.string(),
+      trend: z.enum(['up', 'down', 'flat']),
+      breakdown: z.string(),
+      tradedToday: z.number(),
+      remainingToday: z.number(),
+      /** A maior compra que seria aceita agora: o volume, o ouro e o lugar no depósito. */
+      maxBuyable: z.number(),
+      /** A maior venda que seria aceita agora: o volume e o estoque. */
+      maxSellable: z.number(),
+      buyBlockedReason: z.string().nullable(),
+      sellBlockedReason: z.string().nullable(),
+    }),
+  ),
+});
+
+/**
  * A Torre de Vigia, como o painel da Ameaça a mostra: o que ela faz hoje e o que o próximo nível
  * passaria a fazer. O custo e o botão da obra estão em `constructions.available`.
  */
@@ -959,6 +1003,8 @@ export const ViewStateSchema = z.strictObject({
   guild: GuildSchema,
   /** A Taverna: os candidatos, a troca da lista e o festival. */
   tavern: TavernSchema,
+  /** O Mercado: os preços de hoje e o volume que ainda cabe negociar. */
+  market: MarketSchema,
   /**
    * O que espera uma decisão do jogador, do prazo mais curto ao mais longo: o resumo para a
    * barra de status, a árvore e os avisos. A carta inteira está em `council.pending`, e a

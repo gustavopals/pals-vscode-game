@@ -16,6 +16,7 @@ import { finishAdaptations, tallyCraftExperience } from './craft';
 import { applyContinuous } from './economy';
 import { recallStranded, settleExpeditions } from './expeditionTurn';
 import { turnHorde } from './hordeTurn';
+import { turnMarket } from './marketTurn';
 import { turnMorale } from './moraleTurn';
 import { hasUnsettledObjectives } from './objectives';
 import { recoverHeroes, restoreTiles } from './outcomes';
@@ -74,6 +75,12 @@ function processCalendar(
   // os heróis Descontentes e, mais adiante, os faz partir. Vem antes do sorteio do Conselho
   // porque quem partiu já não está no feudo para a carta que perguntar por ele.
   turnWages(draft, atMs, events);
+  // O Mercado: o preço de cada recurso anda, com o sorteio dele, e o volume do dia volta. Só
+  // com o Mercado de pé (a obra que o ergue neste instante já terminou, lá em cima). Depois da
+  // moral e das duas cobranças, que não dependem dele; antes do sorteio do Conselho, para a
+  // carta que sair nesta virada já encontrar o preço e o volume de hoje (as cartas que mexem no
+  // preço e as que pedem o Mercado são da V3F-T1).
+  turnMarket(draft, atMs, events);
   // E, com a moral do dia já calculada (ela é um dos requisitos das cartas), o sorteio do Conselho.
   drawCard(draft, atMs, events, catalog);
   // Por último a Ameaça: sobe com os tiles ativos e com a estação do dia que acabou e, já
@@ -89,7 +96,7 @@ export type EventProcessor = (draft: GameState, atMs: number, events: GameEvent[
  * que chegam (os recrutas e os feridos que saram), heróis feridos que saram (`recoverHeroes`),
  * virada do dia (o desperdício do dia que
  * acabou, o ano, a estação, o dia, a experiência do ofício, a moral: recálculo, sorteios e
- * deserção, a cobrança do soldo em atraso, o sorteio do Conselho, a subida da Ameaça, os uivos
+ * deserção, a cobrança do soldo em atraso, o preço e o volume do Mercado, o sorteio do Conselho, a subida da Ameaça, os uivos
  * do roteiro e o sorteio da incursão), as cartas do Conselho que expiram, os efeitos escondidos que acontecem e as
  * continuações que chegam (`settleCouncil`), os heróis prometidos que chegam (`settleHeroArrivals`), fim de adaptação de quem trocou de ofício, as
  * incursões (`settleRaids`: o aviso da Torre e a resolução das que chegaram), a Taverna

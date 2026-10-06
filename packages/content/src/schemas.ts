@@ -7,6 +7,7 @@ import {
   foundingTemplates,
   heroHarmTemplates,
   injuryTemplates,
+  marketTemplates,
   wageArrearsReliefs,
 } from './chronicle';
 import { COUNCIL_EFFECT_TYPES } from './council';
@@ -26,6 +27,7 @@ import {
   ITEM_IDS,
   ITEM_RARITY_IDS,
   ITEM_SLOT_IDS,
+  MARKET_RESOURCE_IDS,
   POSTURE_IDS,
   HERO_ATTRIBUTE_IDS,
   HERO_CLASS_IDS,
@@ -411,6 +413,70 @@ const expeditions = z.strictObject({
     ),
 });
 
+const perMarketResource = <T extends z.ZodType>(value: T) =>
+  z.strictObject({ food: value, wood: value, stone: value });
+
+/** Uma fração de um preço-base que dá milésimos inteiros: é o que o piso, o teto e as marcas pedem. */
+const wholeShareOf = (price: number, { num, den }: { num: number; den: number }) =>
+  (price * num) % den === 0;
+
+const below = (a: { num: number; den: number }, b: { num: number; den: number }) =>
+  a.num * b.den < b.num * a.den;
+const ONE = { num: 1, den: 1 };
+
+/**
+ * O Mercado (ADR 0018, decisão 16). O que a forma garante, além dos tipos:
+ *
+ * - a lista do que se negocia é `MARKET_RESOURCE_IDS`, na ordem (é a ordem do sorteio);
+ * - a venda paga **menos** que a compra cobra: é o que impede o lucro de comprar e vender no
+ *   mesmo dia;
+ * - o passo cabe em um preço (menos de mil por mil), e a reversão não passa da distância inteira;
+ * - piso < marca de baixo < base < marca de cima < teto, e cada uma dá milésimos inteiros em
+ *   cada preço-base (o motor compara inteiros);
+ * - o fator de uma estação é uma fração positiva de um recurso que o Mercado negocia.
+ */
+const market = z
+  .strictObject({
+    resources: z
+      .array(z.enum(MARKET_RESOURCE_IDS))
+      .refine(
+        (list) =>
+          list.length === MARKET_RESOURCE_IDS.length &&
+          list.every((id, index) => id === MARKET_RESOURCE_IDS[index]),
+        'recursos fora da ordem de MARKET_RESOURCE_IDS',
+      ),
+    basePrice: perMarketResource(positiveInt),
+    sellRatio: ratio.refine((value) => below(value, ONE), 'venda que paga o preço de compra'),
+    dailyVolumePerLevel: positiveInt,
+    walk: z.strictObject({
+      maxStepPerMille: positiveInt.max(999),
+      reversion: ratio.refine(({ num, den }) => num <= den, 'reversão além da base'),
+      floor: ratio.refine((value) => below(value, ONE), 'piso que não fica abaixo da base'),
+      ceiling: ratio.refine((value) => below(ONE, value), 'teto que não fica acima da base'),
+    }),
+    seasonal: z.partialRecord(
+      z.enum(MARKET_RESOURCE_IDS),
+      z.partialRecord(z.enum(SEASON_IDS), ratio),
+    ),
+    swing: z.strictObject({
+      low: ratio.refine((value) => below(value, ONE), 'marca de baixo que não fica abaixo da base'),
+      high: ratio.refine((value) => below(ONE, value), 'marca de cima que não fica acima da base'),
+    }),
+  })
+  .refine(
+    ({ walk, swing }) => below(walk.floor, swing.low) && below(swing.high, walk.ceiling),
+    'marca da Crônica fora do piso e do teto',
+  )
+  .refine(
+    ({ basePrice, walk, swing }) =>
+      Object.values(basePrice).every((price) =>
+        [walk.floor, walk.ceiling, swing.low, swing.high].every((share) =>
+          wholeShareOf(price, share),
+        ),
+      ),
+    'piso, teto ou marca que não dá milésimos inteiros em um preço-base',
+  );
+
 const balanceFields = z.strictObject({
   resources: perResource(z.strictObject({ label })),
   initial: z.strictObject({
@@ -520,6 +586,7 @@ const balanceFields = z.strictObject({
       'ferimento leve que dura mais que o grave',
     ),
   equipment: z.strictObject({ inventoryCap: positiveInt }),
+  market,
 });
 
 /**
@@ -575,6 +642,7 @@ export const BuildingsSchema = z.strictObject({
   palisade: BuildingSchema,
   tavern: BuildingSchema,
   guild: BuildingSchema,
+  market: BuildingSchema,
 });
 
 export const ObjectiveConditionSchema = z.discriminatedUnion('type', [
@@ -674,6 +742,26 @@ export const CutRewardTemplatesSchema = z.strictObject(
 /** As frases do fim do soldo em atraso, uma por motivo. */
 export const WageArrearsReliefsSchema = z.strictObject(
   Object.fromEntries(Object.keys(wageArrearsReliefs).map((reason) => [reason, chronicleTemplate])),
+);
+
+/**
+ * As frases do Mercado: a compra e a venda dizem quanto, de quê e por quanto ouro; o preço que
+ * cruza uma marca diz de que recurso fala.
+ */
+export const MarketTemplatesSchema = z.strictObject(
+  Object.fromEntries(
+    Object.keys(marketTemplates).map((key) => [
+      key,
+      chronicleTemplate.refine(
+        (template) =>
+          template.includes('{recurso}') &&
+          (key === 'high' ||
+            key === 'low' ||
+            (template.includes('{quantidade}') && template.includes('{preco}'))),
+        'frase do Mercado sem o que promete',
+      ),
+    ]),
+  ),
 );
 
 /**

@@ -6,6 +6,7 @@ import type {
   HeroAttributeId,
   HeroCaptureRuleId,
   InjurySeverityId,
+  MarketResourceId,
   MoraleBandId,
   ProductionBuildingId,
   RaidSizeId,
@@ -431,6 +432,44 @@ export type EquipmentDef = {
   readonly inventoryCap: number;
 };
 
+/**
+ * O Mercado (GDD §5.9; ADR 0018, decisão 16). Os preços são **milésimos de ouro por unidade**,
+ * sempre inteiros. O dia do Mercado é o dia de jogo (ADR 0017, decisão 1): preço e volume mudam
+ * na virada, e tudo aqui escala com o ritmo. O custo e o prazo da obra estão em
+ * `buildings.market`.
+ */
+export type MarketDef = {
+  /** O que se negocia, na ordem do sorteio do preço de cada dia. */
+  readonly resources: readonly MarketResourceId[];
+  /** O preço-base de cada recurso: é onde o preço nasce e para onde a reversão o puxa. */
+  readonly basePrice: Record<MarketResourceId, number>;
+  /** A venda paga esta fração do preço de compra do dia. */
+  readonly sellRatio: Ratio;
+  /** Unidades por recurso por dia de jogo, **somando compra e venda**, por nível do Mercado. */
+  readonly dailyVolumePerLevel: number;
+  /** O passeio do preço, uma vez por dia de jogo e só com o Mercado erguido. */
+  readonly walk: {
+    /** O passo sorteado vai de menos a mais este tanto por mil do preço de ontem. */
+    readonly maxStepPerMille: number;
+    /** A fração da distância até a base que o preço volta a cada dia. */
+    readonly reversion: Ratio;
+    /** O preço nunca fica abaixo desta fração da base, nem acima da outra. */
+    readonly floor: Ratio;
+    readonly ceiling: Ratio;
+  };
+  /**
+   * O fator da estação sobre o preço negociado (GDD §4.1). Multiplica o que o jogador paga e
+   * recebe, **sem alterar o passeio**: o preço guardado não sabe em que estação está.
+   */
+  readonly seasonal: Partial<Record<MarketResourceId, Partial<Record<SeasonId, Ratio>>>>;
+  /**
+   * As marcas da Crônica (como `threat.chronicleMarks`): o preço do passeio que desce até
+   * `low` da base, ou sobe até `high`, ganha uma linha. Entre as duas, a mudança diária não é
+   * notícia.
+   */
+  readonly swing: { readonly low: Ratio; readonly high: Ratio };
+};
+
 export type Balance = {
   readonly resources: Record<ResourceId, { readonly label: string }>;
   readonly initial: {
@@ -492,6 +531,7 @@ export type Balance = {
   readonly expeditions: ExpeditionsDef;
   readonly injuries: InjuriesDef;
   readonly equipment: EquipmentDef;
+  readonly market: MarketDef;
 };
 
 const MINUTE_MS = 60_000;
@@ -858,4 +898,23 @@ export const balance: Balance = {
   },
   // GDD §9.1 (ADR 0018, decisão 15): o arsenal guarda 30 itens.
   equipment: { inventoryCap: 30 },
+  // GDD §5.9 (ADR 0018, decisão 16). Os preços em milésimos de ouro por unidade: 1,0, 1,2 e 2,0.
+  // O passo de até ±5% por dia de jogo, a volta de um décimo da distância até a base, o piso em
+  // 60% e o teto em 160% dela; a venda a 85% da compra; 200 unidades por recurso por dia e por
+  // nível. A comida custa 30% a mais no outono e no inverno (GDD §4.1). O teste de conteúdo
+  // confere que o piso, o teto e as marcas dão milésimos inteiros em cada preço-base.
+  market: {
+    resources: ['food', 'wood', 'stone'],
+    basePrice: { food: 1000, wood: 1200, stone: 2000 },
+    sellRatio: { num: 17, den: 20 },
+    dailyVolumePerLevel: 200,
+    walk: {
+      maxStepPerMille: 50,
+      reversion: { num: 1, den: 10 },
+      floor: { num: 3, den: 5 },
+      ceiling: { num: 8, den: 5 },
+    },
+    seasonal: { food: { autumn: { num: 13, den: 10 }, winter: { num: 13, den: 10 } } },
+    swing: { low: { num: 4, den: 5 }, high: { num: 5, den: 4 } },
+  },
 };

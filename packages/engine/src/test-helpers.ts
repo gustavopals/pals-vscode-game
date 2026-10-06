@@ -311,6 +311,100 @@ export function guildHall(
 }
 
 /**
+ * O feudo com o Mercado de pé, posto à mão no nível `level`: o canteiro da Taverna
+ * (`tavernSite`: Salão no nível 3, depósitos e cofre cheios, objetivos cumpridos, Conselho e
+ * Horda calados) com o Mercado erguido. Os preços estão na base e nada foi negociado: é o
+ * Mercado no dia em que fica pronto, antes da primeira virada.
+ */
+export function marketStall(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string; level?: number } = {},
+): GameState {
+  const { level = 1, ...rest } = custom;
+  return tavernSite(
+    atMs,
+    (draft) => {
+      draft.settlement.buildings.market = level;
+      edit(draft);
+    },
+    rest,
+  );
+}
+
+/**
+ * O Mercado recém-inaugurado, pelo caminho do jogo: a ordem da obra no canteiro (`tavernSite`)
+ * e o avanço até o instante exato em que ela fica pronta. Devolve o estado, os eventos do
+ * caminho e esse instante.
+ */
+export function marketScenario(
+  atMs = 0,
+  edit: (draft: GameState) => void = () => {},
+  custom: Partial<GameSettings> & { seed?: string } = {},
+): { state: GameState; events: GameEvent[]; opensAt: number } {
+  const ordered = accept(
+    tavernSite(atMs, edit, custom),
+    command('startConstruction', { building: 'market' }),
+  );
+  const opensAt = ordered.state.settlement.constructionQueues[0]?.finishesAtMs ?? atMs;
+  const opened = advanceTo(ordered.state, opensAt);
+  return { state: opened.state, events: [...ordered.events, ...opened.events], opensAt };
+}
+
+/**
+ * O Mercado no dia em que fica pronto, no ritmo Normal, no meio da primavera: os preços ainda na
+ * base, sem dia de cotação e sem o fluxo `market`, uma venda de madeira já feita e a obra do
+ * nível 2 em curso. Parado 12 minutos de jogo depois da inauguração, no meio de um trecho.
+ */
+export function marketOpeningScenario(): GameState {
+  const { state, opensAt } = marketScenario(
+    17 * DAY + 20 * MINUTE,
+    (draft) => {
+      Object.assign(draft.settlement.workers, { farm: 3, lumberMill: 2 });
+    },
+    { seed: 'fixture-market-opening' },
+  );
+  return play(state, [
+    tradeOrder(state, 'wood', 'sell', 120),
+    command('startConstruction', { building: 'market' }),
+    { at: opensAt + 12 * MINUTE + 3_456 },
+  ]).state;
+}
+
+/**
+ * O Mercado em dia de feira, no ritmo Rápido, no terceiro dia do outono: erguido cinco dias de
+ * jogo antes, com os preços já longe da base (o de hoje e o de ontem), o fator do outono sobre a
+ * comida, o fluxo `market` em uso, uma venda de comida e uma compra de pedra feitas hoje e as
+ * estatísticas das duas. Parado no meio do dia, no meio de um trecho.
+ */
+export function marketDayScenario(): GameState {
+  const { state } = marketScenario(
+    AUTUMN - 3 * DAY + HOUR,
+    (draft) => {
+      Object.assign(draft.settlement.workers, { farm: 3, goldMine: 2 });
+      draft.settlement.resources.stone = 600_000;
+    },
+    { seed: 'fixture-market', timeScale: 3 },
+  );
+  const fair = advanceTo(state, AUTUMN + 2 * DAY + 40 * MINUTE).state;
+  return play(fair, [
+    tradeOrder(fair, 'food', 'sell', 150),
+    tradeOrder(fair, 'stone', 'buy', 35),
+    { at: AUTUMN + 2 * DAY + HOUR + 7_890 },
+  ]).state;
+}
+
+/** A ordem de negociar com a cotação que o estado tem agora: é o que a tela devolveria. */
+export function tradeOrder(
+  state: GameState,
+  resource: 'food' | 'wood' | 'stone',
+  direction: 'buy' | 'sell',
+  amount: number,
+): Command {
+  return command('trade', { resource, direction, amount, quoteDay: state.market.quoteDay });
+}
+
+/**
  * Faz o próximo envio de um modelo sair com a variante pedida, mexendo só no contador de envios
  * (a variante é uma conta sobre a semente, o modelo e esse contador). Para os testes que querem
  * um grafo certo sem depender da semente.

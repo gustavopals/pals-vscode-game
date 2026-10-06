@@ -10,6 +10,7 @@ import {
   HERO_TRAIT_IDS,
   namedHeroes,
   POSTURE_IDS,
+  MARKET_RESOURCE_IDS,
   PRODUCTION_BUILDING_IDS,
   RAID_SIZE_IDS,
   RESOURCE_IDS,
@@ -72,7 +73,8 @@ import {
   POSTURE_IDS_V17,
 } from './migrations/v17';
 import { EXPEDITION_LESSON_KINDS_V19 } from './migrations/v19';
-import { EXPEDITION_LESSON_KINDS_V20 } from './migrations/v20';
+import { EXPEDITION_LESSON_KINDS_V20, MARKET_BASE_PRICES_V21 } from './migrations/v20';
+import { BUILDING_IDS_V21, MARKET_RESOURCE_IDS_V21, RNG_FIXED_STREAMS_V21 } from './migrations/v21';
 import { entityStream, nextInt, RNG_STREAM_FAMILIES, RNG_STREAMS } from './random';
 import { scriptedRaidsAfter } from './raids';
 import { famineDesertionPace, famineDesertionsOwedAt } from './morale';
@@ -141,8 +143,35 @@ const LOG_FIELDS_V18 = [
   'lootLost',
 ] as const;
 
-/** Tira de um estado, no lugar, o que o passo 19 → 20 acrescenta: a volta do cativeiro de cada herói. */
+/** Tira de um estado, no lugar, o que o passo 20 → 21 acrescenta: o Mercado, o edifício e o resto. */
+function stripMarket(copy: Draft): void {
+  delete copy.market;
+  if (copy.settlement?.buildings !== undefined) {
+    delete copy.settlement.buildings.market;
+  }
+}
+
+/** Um estado como a versão 20 o gravava, a partir de um da versão atual: sem o Mercado. */
+function asVersion20(state: GameState): Draft {
+  const old = JSON.parse(JSON.stringify(state)) as Draft;
+  old.schemaVersion = 20;
+  stripMarket(old);
+  return old;
+}
+
+/** O que o passo 20 → 21 acrescenta a toda partida, tirado de um estado migrado. */
+function withoutMarket<T extends Partial<GameState>>(state: T): T {
+  const copy = JSON.parse(JSON.stringify(state)) as Draft;
+  stripMarket(copy);
+  return copy as T;
+}
+
+/**
+ * Tira de um estado, no lugar, o que o passo 19 → 20 acrescenta: a volta do cativeiro de cada
+ * herói (e, com ela, o do 20 → 21).
+ */
 function stripFreed(copy: Draft): void {
+  stripMarket(copy);
   for (const hero of (copy.guild?.heroes ?? []) as Draft[]) {
     delete hero.freedAtMs;
   }
@@ -776,6 +805,44 @@ const FROZEN: Record<string, string> = {
   'state-v19-wage-arrears-resumed.json': '65b5dcab',
   'state-v19-wage-arrears.json': 'fae2f7be',
   'state-v19-week-scripted.json': 'bb4cbfda',
+  'state-v20-cold.json': '7d7c6e9f',
+  'state-v20-construction.json': '65074d64',
+  'state-v20-council-hidden.json': '2931024b',
+  'state-v20-council.json': 'aea16b3f',
+  'state-v20-crafts.json': '4340222c',
+  'state-v20-den-cleared.json': '266d2d4e',
+  'state-v20-expedition-crossroads.json': '5bc9435b',
+  'state-v20-expedition-returning.json': '3a1c806f',
+  'state-v20-expedition.json': 'e558c273',
+  'state-v20-famine-3x.json': '84022958',
+  'state-v20-famine-ended.json': '25e86a4e',
+  'state-v20-famine-half.json': '45950d0d',
+  'state-v20-famine-resumed.json': '399f0e6c',
+  'state-v20-famine.json': '7a8f9bac',
+  'state-v20-fresh.json': '2083dea3',
+  'state-v20-guild.json': '123386a1',
+  'state-v20-hero-captured.json': 'bf419583',
+  'state-v20-hero-injured.json': 'feaa0e31',
+  'state-v20-hero-promised.json': 'b968c86c',
+  'state-v20-iron-king-half.json': '9e595533',
+  'state-v20-migrated-3x.json': '2dccad0a',
+  'state-v20-migrated-iron-king-half.json': '10a73464',
+  'state-v20-migrated-peasant-3x.json': 'aff0e585',
+  'state-v20-morale.json': '438db640',
+  'state-v20-objectives.json': '2e073a0e',
+  'state-v20-palisade.json': '845421ca',
+  'state-v20-peasant-3x.json': '8d8eaf80',
+  'state-v20-queues.json': '887f5b66',
+  'state-v20-raid-announced.json': 'a2a8dd95',
+  'state-v20-raid.json': 'a8533ac4',
+  'state-v20-storage.json': '96302174',
+  'state-v20-tavern-busy.json': '6d2e2fe4',
+  'state-v20-tavern.json': 'd6226727',
+  'state-v20-threat.json': '9a474769',
+  'state-v20-wage-arrears-ended.json': 'a03cb145',
+  'state-v20-wage-arrears-resumed.json': 'bab1e9a7',
+  'state-v20-wage-arrears.json': '7e223b12',
+  'state-v20-week-scripted.json': 'bdf68300',
 };
 
 /** Um herói como o motor o grava: o ponto de partida dos estados estragados de propósito. */
@@ -1554,9 +1621,10 @@ describe('a forma da versão atual', () => {
   });
 
   it('conhece os mesmos fluxos de sorteio que o gerador, fixos e de família', () => {
-    expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_STREAMS]);
-    // A versão 13 continua com os três de antes: a Taverna só entra na 16.
+    expect(RNG_FIXED_STREAMS_V21).toEqual([...RNG_STREAMS]);
+    // A versão 13 continua com os três de antes: a Taverna só entra na 16, e o Mercado, na 21.
     expect(RNG_FIXED_STREAMS_V13).toEqual(['council', 'morale', 'horde']);
+    expect(RNG_FIXED_STREAMS_V16).toEqual(['council', 'morale', 'horde', 'tavern']);
     expect(RNG_STREAM_FAMILIES_V13).toEqual([...RNG_STREAM_FAMILIES]);
     // Tudo o que o gerador e o contador escrevem cabe na forma: os fluxos fixos, um fluxo de
     // cada família (com o identificador que `nextId` dá) e os contadores.
@@ -1574,6 +1642,7 @@ describe('a forma da versão atual', () => {
       'morale',
       'horde',
       'tavern',
+      'market',
       'expedition:expedition-1',
       'expedition:expedition-2',
       'caravan:caravan-1',
@@ -1589,6 +1658,10 @@ describe('a forma da versão atual', () => {
     );
     delete saved.rng['expedition:expedition-1'];
     delete saved.rng['expedition:expedition-2'];
+    // E o do Mercado só cabe depois do primeiro passeio do preço (versão 21; os testes do
+    // Mercado conferem o caso de verdade): nesta partida os preços nunca andaram.
+    expect(currentShape(saved, '')).toBe('rng.market: fluxo do Mercado sem cotação feita');
+    delete saved.rng.market;
     expect(currentShape(saved, '')).toBeNull();
     // O maior valor de cada palavra e um contador em zero também cabem.
     const edge = JSON.parse(JSON.stringify(newGame())) as Draft;
@@ -1603,8 +1676,8 @@ describe('a forma da versão atual', () => {
       edit(state);
       return currentShape(state, '');
     };
-    expect(broken((state) => (state.rng = { market: [1, 2, 3, 4] }))).toBe(
-      'rng.market: chave fora do esperado (um de council, morale, horde, tavern, ou expedition:expedition-<n>, caravan:caravan-<n>)',
+    expect(broken((state) => (state.rng = { siege: [1, 2, 3, 4] }))).toBe(
+      'rng.siege: chave fora do esperado (um de council, morale, horde, tavern, market, ou expedition:expedition-<n>, caravan:caravan-<n>)',
     );
     expect(broken((state) => (state.rng = { council: [1, 2, 3] }))).toBe(
       'rng.council: esperada lista de 4 itens, veio de 3',
@@ -2229,10 +2302,14 @@ describe('versão 3 → 4', () => {
       'palisade',
       'tavern',
       'guild',
+      'market',
     ]);
     const storage = unbuilt.filter(
       (entry) =>
-        entry.building !== 'palisade' && entry.building !== 'tavern' && entry.building !== 'guild',
+        entry.building !== 'palisade' &&
+        entry.building !== 'tavern' &&
+        entry.building !== 'guild' &&
+        entry.building !== 'market',
     );
     for (const entry of storage) {
       expect(entry.blockedCode).not.toBe('GATE_LOCKED');
@@ -3712,7 +3789,7 @@ describe('versão 15 → 16', () => {
   const NO_TAVERN = { nextRotationAtMs: null, festival: null, lastFestivalAtMs: null };
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
-    expect([...BUILDING_IDS_V16, 'guild']).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V16, 'guild', 'market']).toEqual([...BUILDING_IDS]);
     expect(TAVERN_OFFERS_CAP_V16).toBe(Math.max(...balance.tavern.offersByLevel));
     expect(RNG_FIXED_STREAMS_V16).toEqual([...RNG_FIXED_STREAMS_V13, 'tavern']);
   });
@@ -3845,7 +3922,7 @@ describe('versão 16 → 17', () => {
 
   it('os identificadores e os tetos escritos na forma são os do conteúdo de hoje', () => {
     const { expeditions } = balance;
-    expect(BUILDING_IDS_V17).toEqual([...BUILDING_IDS]);
+    expect([...BUILDING_IDS_V17, 'market']).toEqual([...BUILDING_IDS]);
     expect(HERO_STATUS_IDS_V17).toEqual(['idle', 'expedition']);
     expect(POSTURE_IDS_V17).toEqual([...POSTURE_IDS]);
     expect(EXPEDITION_LOG_OUTCOMES_V17).toEqual([...EXPEDITION_OUTCOME_IDS, 'passed', 'chosen']);
@@ -4722,5 +4799,202 @@ describe('versão 19 → 20', () => {
     ).toMatch(/freedAtMs: herói que voltou do cativeiro antes de chegar/);
     expect(broken((hero) => (hero.freedAtMs = -1))).toMatch(/freedAtMs/);
     expect(broken((hero) => delete hero.freedAtMs)).toMatch(/freedAtMs/);
+  });
+});
+
+describe('versão 20 → 21', () => {
+  const version20 = fixtures.filter((fixture) => fixture.version === 20);
+  const NO_MARKET = {
+    prices: { food: 1000, wood: 1200, stone: 2000 },
+    previousPrices: { food: 1000, wood: 1200, stone: 2000 },
+    quoteDay: 0,
+    tradedToday: { food: 0, wood: 0, stone: 0 },
+  };
+
+  it('os identificadores e os preços escritos na forma e no passo são os do conteúdo de hoje', () => {
+    expect(BUILDING_IDS_V21).toEqual([...BUILDING_IDS]);
+    expect(MARKET_RESOURCE_IDS_V21).toEqual([...MARKET_RESOURCE_IDS]);
+    expect(MARKET_RESOURCE_IDS_V21).toEqual([...balance.market.resources]);
+    expect(RNG_FIXED_STREAMS_V21).toEqual([...RNG_FIXED_STREAMS_V16, 'market']);
+    expect(MARKET_BASE_PRICES_V21).toEqual(balance.market.basePrice);
+  });
+
+  it('há retratos da versão 20 com o Salão no nível 3 ou mais, com obra em curso e com o gerador em uso', () => {
+    expect(version20.length).toBeGreaterThan(30);
+    const states = version20.map((fixture) => read(fixture) as Draft);
+    expect(states.some((state) => state.settlement.buildings.townHall >= 3)).toBe(true);
+    expect(
+      states.some((state) =>
+        state.settlement.constructionQueues.some((slot: unknown) => slot !== null),
+      ),
+    ).toBe(true);
+    expect(states.some((state) => Object.keys(state.rng).length >= 3)).toBe(true);
+  });
+
+  it('o que o passo escreve é o que uma partida nova tem', () => {
+    const fresh = migrated(named('state-v20-fresh.json'));
+    expect({ ...fresh, migratedAtMs: null }).toEqual(newGame('fixture-fresh'));
+  });
+
+  it.each(version20)(
+    '$name: só acrescenta o Mercado, por erguer, com os preços na base e nada negociado',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const after = migrated(fixture);
+      expect(after.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+      expect(after.settlement.buildings.market).toBe(0);
+      expect(after.market).toStrictEqual(NO_MARKET);
+      expect(after.rng).toStrictEqual(before.rng);
+      expect(after.rng.market).toBeUndefined();
+      expect(after.ids).toStrictEqual(before.ids);
+      expect({ ...withoutMarket(after), schemaVersion: 20 }).toStrictEqual({
+        ...before,
+        migratedAtMs: before.lastProcessedAt,
+      });
+    },
+  );
+
+  it.each(version20)(
+    '$name: nada acontece na fronteira, e o passo não cria prazo, identificador nem sorteio',
+    (fixture) => {
+      const before = read(fixture) as Draft;
+      const state = migrated(fixture);
+      expect(nextEventAt(state)).toBe(
+        nextEventAt({ ...state, market: { ...state.market, quoteDay: 99 } }),
+      );
+      const atBoundary = advanceTo(state, state.lastProcessedAt + 1);
+      expect(atBoundary.events.filter((event) => event.type.startsWith('market'))).toEqual([]);
+      expect(atBoundary.state.market).toStrictEqual(NO_MARKET);
+      expect(atBoundary.state.ids).toStrictEqual(before.ids);
+      expect(atBoundary.state.rng).toStrictEqual(before.rng);
+    },
+  );
+
+  it.each(version20)(
+    '$name: sem o Mercado, os preços não andam por mais dias que passem, e o fluxo dele não nasce',
+    (fixture) => {
+      const state = migrated(fixture);
+      const later = advanceTo(state, state.lastProcessedAt + 3 * 2 * HOUR + 7).state;
+      if (later.settlement.buildings.market === 0) {
+        expect(later.market).toStrictEqual(NO_MARKET);
+        expect(later.rng.market).toBeUndefined();
+      }
+      // A visão diz como obter o Mercado e não mostra preço nenhum.
+      const view = deriveViewState(state, state.lastProcessedAt);
+      expect(view.market).toMatchObject({
+        level: 0,
+        quoteDay: 0,
+        nextChangeInSeconds: null,
+        prices: [],
+      });
+      const listed = view.constructions.available.find((entry) => entry.building === 'market');
+      expect(listed).toMatchObject({ fromLevel: 0, targetLevel: 1 });
+      // Com o Salão no nível 3 a obra não fica presa por ele (pode ficar pela fila ou pelo custo).
+      if (state.settlement.buildings.townHall >= 3) {
+        expect(listed?.blockedCode).not.toBe('GATE_LOCKED');
+      }
+    },
+  );
+
+  it('quem já tem o Salão no nível 3 ergue o Mercado logo depois da migração, e o preço anda na primeira virada com ele de pé', () => {
+    const start = advanceTo(newGame('mercado-migrado'), 20 * HOUR).state;
+    const old = asVersion20(start);
+    old.settlement.buildings.townHall = 3;
+    old.settlement.constructionQueues = [null, null];
+    old.settlement.planned = [];
+    Object.assign(old.settlement.resources, { wood: 400_000, stone: 400_000, gold: 400_000 });
+    const state = migrateState(old, { timeScale: 1 });
+    expect(state.migratedAtMs).toBe(20 * HOUR);
+    const ordered = applyCommand(
+      state,
+      command('startConstruction', { building: 'market' }),
+      state.lastProcessedAt,
+    );
+    expect(ordered.ok).toBe(true);
+    if (!ordered.ok) {
+      return;
+    }
+    const opened = advanceTo(ordered.state, 21 * HOUR).state;
+    expect(opened.settlement.buildings.market).toBe(1);
+    expect(opened.market).toStrictEqual(NO_MARKET);
+    // A virada seguinte é a das 22 h de jogo: o 12º dia.
+    const turned = advanceTo(opened, 22 * HOUR).state;
+    expect(turned.market.quoteDay).toBe(12);
+    expect(turned.market.previousPrices).toStrictEqual(NO_MARKET.prices);
+    expect(turned.rng.market).toBeDefined();
+  });
+
+  it('o passo não altera a entrada e não depende do ritmo nem da fronteira', () => {
+    const start = advanceTo(newGame(), 20 * HOUR).state;
+    const old = asVersion20(start);
+    const copy = JSON.parse(JSON.stringify(old)) as unknown;
+    const slow = migrateState(old, { timeScale: 0.5 });
+    const fast = migrateState(old, { timeScale: 3 });
+    expect(old).toEqual(copy);
+    expect(slow).toEqual(fast);
+    expect(slow.migratedAtMs).toBe(20 * HOUR);
+    expect(slow).toEqual({ ...start, migratedAtMs: 20 * HOUR });
+  });
+
+  it('um estado da versão 20 que já traz o Mercado é recusado, e a 21 recusa o Mercado fora da forma', () => {
+    const old = read(named('state-v20-fresh.json')) as Draft;
+    old.market = NO_MARKET;
+    expect(() => migrateState(old, { timeScale: 1 })).toThrow(/market: campo desconhecido/);
+    const built = read(named('state-v20-fresh.json')) as Draft;
+    built.settlement.buildings.market = 0;
+    expect(() => migrateState(built, { timeScale: 1 })).toThrow(/buildings\.market/);
+    const streamed = read(named('state-v20-fresh.json')) as Draft;
+    streamed.rng.market = [1, 2, 3, 4];
+    expect(() => migrateState(streamed, { timeScale: 1 })).toThrow(/rng\.market/);
+
+    const current = migrated(named('state-v20-fresh.json'));
+    const broken = (edit: (state: Draft) => void): string | null => {
+      const copy = JSON.parse(JSON.stringify(current)) as Draft;
+      edit(copy);
+      return currentShape(copy, '');
+    };
+    expect(broken(() => undefined)).toBeNull();
+    expect(broken((state) => delete state.market)).toMatch(/market/);
+    expect(broken((state) => (state.market.prices.food = 0))).toMatch(/market\.prices\.food/);
+    expect(broken((state) => (state.market.prices.food = 1.5))).toMatch(/market\.prices\.food/);
+    expect(broken((state) => (state.market.prices.iron = 8000))).toMatch(/market\.prices\.iron/);
+    expect(broken((state) => delete state.market.prices.stone)).toMatch(/market\.prices\.stone/);
+    expect(broken((state) => (state.market.tradedToday.wood = -1))).toMatch(
+      /market\.tradedToday\.wood/,
+    );
+    expect(broken((state) => (state.market.quoteDay = -1))).toMatch(/market\.quoteDay/);
+    expect(broken((state) => (state.market.effects = []))).toMatch(/market\.effects/);
+    expect(broken((state) => (state.market.caravans = []))).toMatch(/market\.caravans/);
+    // Sem o edifício nada andou: nem cotação, nem negociação, nem preço diferente do de ontem.
+    expect(broken((state) => (state.market.quoteDay = 3))).toBe(
+      'market.quoteDay: cotação sem Mercado',
+    );
+    expect(broken((state) => (state.market.tradedToday.food = 5))).toBe(
+      'market.tradedToday.food: negociação sem Mercado',
+    );
+    expect(broken((state) => (state.market.prices.wood = 1300))).toBe(
+      'market.previousPrices.wood: preço que andou sem Mercado',
+    );
+    // Com o edifício, o fluxo e a cotação andam juntos.
+    const open = (edit: (state: Draft) => void) =>
+      broken((state) => {
+        state.settlement.buildings.market = 1;
+        edit(state);
+      });
+    expect(open(() => undefined)).toBeNull();
+    expect(open((state) => (state.market.tradedToday.food = 5))).toBeNull();
+    expect(open((state) => (state.market.quoteDay = 3))).toBe(
+      'market.quoteDay: cotação feita sem o fluxo do Mercado',
+    );
+    expect(open((state) => (state.rng.market = [1, 2, 3, 4]))).toBe(
+      'rng.market: fluxo do Mercado sem cotação feita',
+    );
+    expect(
+      open((state) => {
+        state.market.quoteDay = 3;
+        state.market.prices.wood = 1300;
+        state.rng.market = [1, 2, 3, 4];
+      }),
+    ).toBeNull();
   });
 });

@@ -573,6 +573,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -796,6 +829,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "afterFirstAllocation": {
@@ -1382,6 +1423,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -1621,6 +1695,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "afterObjectivesScenario": {
@@ -2202,6 +2284,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 129
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 92
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -2483,6 +2598,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "autumnBeforeWinter": {
@@ -3075,6 +3198,39 @@
           "blockedReason": "Faltam 240 madeira.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 90
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 90 madeira.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -3408,6 +3564,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "winterCold": {
@@ -3977,6 +4141,39 @@
           "blockedReason": "Faltam 300 madeira.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 150
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 150 madeira.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -4332,6 +4529,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "queuesAndPlans": {
@@ -5095,6 +5300,39 @@
           "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 125
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "QUEUE_BUSY",
+          "blockedReason": "Os pedreiros já estão ocupados: não há fila de obras livre.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -5428,6 +5666,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "crafts": {
@@ -6030,6 +6276,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -6363,6 +6642,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "impoverished": {
@@ -6927,6 +7214,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 150
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 100
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": "No Inverno, o prazo de uma obra iniciada agora é × 1,5.",
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -7294,6 +7614,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "proud": {
@@ -7875,6 +8203,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -8216,6 +8577,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "councilTable": {
@@ -8797,6 +9166,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 15
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -9236,6 +9638,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "strangerAtTable": {
@@ -9817,6 +10227,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 15
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -10239,6 +10682,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "threatWatched": {
@@ -10831,6 +11282,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -11188,6 +11672,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "threatIncoming": {
@@ -11747,6 +12239,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -12112,6 +12637,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "raidAftermath": {
@@ -12704,6 +13237,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -13072,6 +13638,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "palisadeRaised": {
@@ -13631,6 +14205,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -13996,6 +14603,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "palisadePromiseDue": {
@@ -14577,6 +15192,39 @@
           "blockedReason": "Faltam 9 ouro.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -14964,6 +15612,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "guildPaid": {
@@ -15545,6 +16201,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 92
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -15975,6 +16664,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "guildInArrears": {
@@ -16556,6 +17253,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 42
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 35
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -16962,6 +17692,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "heroPromised": {
@@ -17538,6 +18276,39 @@
           "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 30
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 3.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -17793,6 +18564,14 @@
         "blockedReason": "Erga a Taverna primeiro: ela abre com o Salão do Senhor Nv3.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "O Mercado abre com o Salão do Senhor Nv3: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "tavernOpen": {
@@ -18374,6 +19153,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -18791,6 +19603,14 @@
         "blockedReason": null,
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "tavernBusy": {
@@ -19372,6 +20192,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -19843,6 +20696,14 @@
         "blockedReason": "Um festival por estação: no Verão o feudo já festejou.",
         "activeForSeconds": 1498
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "expeditionTraveling": {
@@ -20424,6 +21285,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -20954,6 +21848,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "expeditionCrossroads": {
@@ -21535,6 +22437,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -22155,6 +23090,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "expeditionReturning": {
@@ -22736,6 +23679,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -23355,6 +24331,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "heroInjured": {
@@ -23936,6 +24920,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -24533,6 +25550,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "heroCaptured": {
@@ -25125,6 +26150,39 @@
           "blockedReason": "Faltam 320 ouro.",
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 150
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": false,
+          "blockedCode": "INSUFFICIENT_RESOURCES",
+          "blockedReason": "Faltam 150 ouro.",
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -25837,6 +26895,14 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
     }
   },
   "denCleared": {
@@ -26418,6 +27484,39 @@
           "blockedReason": null,
           "planned": false,
           "effect": "Sustenta 2 expedições por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 150,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 150,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1800,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas."
         }
       ]
     },
@@ -27029,6 +28128,2060 @@
         "blockedReason": "Erga a Taverna primeiro.",
         "activeForSeconds": null
       }
+    },
+    "market": {
+      "level": 0,
+      "text": "Erga o Mercado: nele o feudo compra e vende comida, madeira e pedra por ouro.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": null,
+      "dailyVolume": 0,
+      "prices": []
+    }
+  },
+  "marketOpening": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Normal: um ano em 7 dias"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "spring",
+      "seasonLabel": "Primavera",
+      "dayOfSeason": 18,
+      "dayOfYear": 18,
+      "secondsToNextDay": 4377,
+      "secondsToNextSeason": 47577,
+      "seasonEffects": "Primavera: comida × 1,2; recrutamento com prazo × 0,8.",
+      "nextSeason": {
+        "id": "summer",
+        "label": "Verão",
+        "secondsUntil": 47577,
+        "changes": [
+          "A produção de comida passa de × 1,2 para × 1.",
+          "A produção de madeira e pedra passa de × 1 para × 1,15.",
+          "O recrutamento volta ao prazo de sempre."
+        ],
+        "firewood": null,
+        "food": {
+          "perHour": 29.1,
+          "stockAtTurn": 1464,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Verão será de +29,15/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 393177,
+        "firewood": {
+          "perHour": 2.5,
+          "winterTotal": 60,
+          "winterProduction": 322,
+          "stock": 2297,
+          "gathered": 503,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 15,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1013,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Verão.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 31,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 36/h; consumo 5 × 1 = 5/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2297,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": "Não enche antes da virada para o Verão.",
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 16,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 2 trabalhadores × 8 × 1 (Nv1) = 16/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 740,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 5 × 1 (Nv1) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 1732,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 0 trabalhadores × 4 × 1 (Nv1) = 0/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 7200,
+      "adaptationText": "Quem troca de ofício produz metade por 2 h.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 36,
+        "perWorkerPerHour": 12,
+        "breakdown": "3 trabalhadores × 10 × 1 (Nv1) × 1,2 (primavera) = 36/h",
+        "perNewWorkerPerHour": 6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 2,
+        "grossPerHour": 16,
+        "perWorkerPerHour": 8,
+        "breakdown": "2 trabalhadores × 8 × 1 (Nv1) = 16/h",
+        "perNewWorkerPerHour": 4,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 5,
+        "breakdown": "0 trabalhadores × 5 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2.5,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 4,
+        "breakdown": "0 trabalhadores × 4 × 1 (Nv1) = 0/h",
+        "perNewWorkerPerHour": 2,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Mina de Ouro. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": {
+        "building": "market",
+        "label": "Mercado",
+        "targetLevel": 2,
+        "secondsRemaining": 627,
+        "totalSeconds": 1350,
+        "progressPercent": 53,
+        "refund": [
+          {
+            "resource": "wood",
+            "label": "Madeira",
+            "amount": 192,
+            "lost": 0
+          },
+          {
+            "resource": "stone",
+            "label": "Pedra",
+            "amount": 128,
+            "lost": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 192,
+            "lost": 0
+          }
+        ]
+      },
+      "queues": [
+        {
+          "building": "market",
+          "label": "Mercado",
+          "targetLevel": 2,
+          "secondsRemaining": 627,
+          "totalSeconds": 1350,
+          "progressPercent": 53,
+          "refund": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 192,
+              "lost": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 128,
+              "lost": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 192,
+              "lost": 0
+            }
+          ]
+        }
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 360,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 480,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1350,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 3038,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 720,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 900,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1200,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "QUEUE_LOCKED",
+          "blockedReason": "Os pedreiros já estão ocupados com outra obra. A segunda fila abre com o Salão do Senhor Nv4.",
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 960,
+      "durationNote": "Na Primavera, o prazo de um recrutamento ordenado agora é × 0,8.",
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 50,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 100,
+      "text": "Moral 50 (Contente): não mexe na produção.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 24 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 24 h) = 60",
+      "nextUpdateInSeconds": 4377,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, sobe de 50 para 60 (Contente).",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 24 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (2 h)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 604674777,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 604674777,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 8 h e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "clearedText": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o caminho escolhido pede o que ela não tem, vale o seguro."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [],
+      "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
+      "rescueTargetName": null,
+      "wage": {
+        "perHour": 0,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 24 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    },
+    "market": {
+      "level": 1,
+      "text": "Mercado Nv1: negocia até 200 de cada recurso por dia de jogo, entre compras e vendas.",
+      "quoteDay": 0,
+      "nextChangeInSeconds": 4377,
+      "dailyVolume": 200,
+      "prices": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "buy": 1000,
+          "sell": 850,
+          "buyText": "1,00",
+          "sellText": "0,85",
+          "baseText": "1,00",
+          "trend": "flat",
+          "breakdown": "1,00 (cotação de hoje; a base é 1,00). A venda paga 85%: 0,85.",
+          "tradedToday": 0,
+          "remainingToday": 200,
+          "maxBuyable": 200,
+          "maxSellable": 200,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        },
+        {
+          "resource": "wood",
+          "label": "Madeira",
+          "buy": 1200,
+          "sell": 1020,
+          "buyText": "1,20",
+          "sellText": "1,02",
+          "baseText": "1,20",
+          "trend": "flat",
+          "breakdown": "1,20 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,02.",
+          "tradedToday": 120,
+          "remainingToday": 80,
+          "maxBuyable": 80,
+          "maxSellable": 80,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        },
+        {
+          "resource": "stone",
+          "label": "Pedra",
+          "buy": 2000,
+          "sell": 1700,
+          "buyText": "2,00",
+          "sellText": "1,70",
+          "baseText": "2,00",
+          "trend": "flat",
+          "breakdown": "2,00 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,70.",
+          "tradedToday": 0,
+          "remainingToday": 200,
+          "maxBuyable": 200,
+          "maxSellable": 200,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        }
+      ]
+    }
+  },
+  "marketDay": {
+    "settlement": {
+      "name": "Pedra Alta",
+      "townHallLevel": 3,
+      "difficulty": "lord",
+      "difficultyLabel": "Senhor",
+      "paceLabel": "Rápido: um ano em 56 horas"
+    },
+    "calendar": {
+      "year": 1,
+      "season": "autumn",
+      "seasonLabel": "Outono",
+      "dayOfSeason": 3,
+      "dayOfYear": 51,
+      "secondsToNextDay": 1198,
+      "secondsToNextSeason": 51598,
+      "seasonEffects": "Outono: comida × 1,3; ouro × 1,1.",
+      "nextSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 51598,
+        "changes": [
+          "A produção de comida passa de × 1,3 para × 0,4.",
+          "A produção de madeira e pedra passa de × 1 para × 0,8.",
+          "A produção de ouro passa de × 1,1 para × 1.",
+          "O prazo de uma obra iniciada no Inverno é × 1,5.",
+          "A lareira passa a queimar 1,5 de madeira por habitante por hora; sem madeira, vem o frio."
+        ],
+        "firewood": {
+          "perHour": 7.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2650,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        },
+        "food": {
+          "perHour": 34.1,
+          "stockAtTurn": 1600,
+          "depletesInSeconds": null,
+          "text": "Com a gente de agora na Fazenda, o saldo de comida no Inverno será de +34,14/h."
+        }
+      },
+      "nextFirewoodSeason": {
+        "id": "winter",
+        "label": "Inverno",
+        "secondsUntil": 51598,
+        "firewood": {
+          "perHour": 7.5,
+          "winterTotal": 60,
+          "winterProduction": 0,
+          "stock": 2650,
+          "gathered": 0,
+          "reserved": 0,
+          "missing": 0,
+          "text": "O Inverno vai queimar 60 de madeira com 5 habitantes. O estoque e a Serraria dão conta."
+        }
+      }
+    },
+    "population": {
+      "villagers": 5,
+      "capacity": 20,
+      "free": 0,
+      "inTraining": 0,
+      "housed": 5,
+      "vacancies": 15,
+      "secondsToNextRecruit": null,
+      "injured": 0,
+      "secondsToNextRecovery": null,
+      "injuredNote": null,
+      "breakdown": "Salão do Senhor Nv3 × 5 + Habitações Nv1 × 5 = 20 vagas"
+    },
+    "resources": [
+      {
+        "id": "food",
+        "label": "Comida",
+        "stock": 1172,
+        "cap": 1600,
+        "capBreakdown": "Celeiro Nv2: 1.600",
+        "storageBuilding": "granary",
+        "storageLabel": "Celeiro",
+        "full": false,
+        "fullInSeconds": 12917,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 115.2,
+        "depletesInSeconds": null,
+        "breakdown": "Fazenda: 3 trabalhadores × 30 × 1 (Nv1) × 1,06 (mestria 20) × 1,3 (outono) × 1,05 (moral 60) = 130,22/h; consumo 5 × 3 = 15/h"
+      },
+      {
+        "id": "wood",
+        "label": "Madeira",
+        "stock": 2650,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Serraria: 0 trabalhadores × 24 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "stone",
+        "label": "Pedra",
+        "stock": 535,
+        "cap": 2800,
+        "capBreakdown": "Armazém Nv4: 2.800",
+        "storageBuilding": "warehouse",
+        "storageLabel": "Armazém",
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 0,
+        "depletesInSeconds": null,
+        "breakdown": "Pedreira: 0 trabalhadores × 15 × 1 (Nv1) × 1,05 (moral 60) = 0/h"
+      },
+      {
+        "id": "gold",
+        "label": "Ouro",
+        "stock": 2059,
+        "cap": null,
+        "capBreakdown": null,
+        "storageBuilding": null,
+        "storageLabel": null,
+        "full": false,
+        "fullInSeconds": null,
+        "fullNote": null,
+        "wastingPerHour": 0,
+        "wastedToday": 0,
+        "perHour": 29.4,
+        "depletesInSeconds": null,
+        "breakdown": "Mina de Ouro: 2 trabalhadores × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,1 (outono) × 1,05 (moral 60) = 29,38/h"
+      }
+    ],
+    "workersRules": {
+      "adaptationSeconds": 2400,
+      "adaptationText": "Quem troca de ofício produz metade por 40 min.",
+      "removalText": "Ao tirar trabalhadores, saem primeiro os que ainda estão em adaptação.",
+      "experienceText": "A experiência do ofício vai de 0 a 100: a cada virada do dia, sobe 4 no edifício com ao menos 1 trabalhador por nível e cai 8 no edifício vazio. No máximo, a produção rende 30% a mais.",
+      "experienceMax": 100,
+      "masteryMaxBonusPercent": 30
+    },
+    "workers": [
+      {
+        "building": "farm",
+        "label": "Fazenda",
+        "level": 1,
+        "resource": "food",
+        "assigned": 3,
+        "grossPerHour": 130.221,
+        "perWorkerPerHour": 43.407,
+        "breakdown": "3 trabalhadores × 30 × 1 (Nv1) × 1,06 (mestria 20) × 1,3 (outono) × 1,05 (moral 60) = 130,22/h",
+        "perNewWorkerPerHour": 21.702,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "lumberMill",
+        "label": "Serraria",
+        "level": 1,
+        "resource": "wood",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 25.2,
+        "breakdown": "0 trabalhadores × 24 × 1 (Nv1) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 12.6,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Serraria. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "quarry",
+        "label": "Pedreira",
+        "level": 1,
+        "resource": "stone",
+        "assigned": 0,
+        "grossPerHour": 0,
+        "perWorkerPerHour": 15.75,
+        "breakdown": "0 trabalhadores × 15 × 1 (Nv1) × 1,05 (moral 60) = 0/h",
+        "perNewWorkerPerHour": 7.875,
+        "experience": 0,
+        "masteryBonusPercent": 0,
+        "occupiedFrom": 1,
+        "experienceTrend": "steady",
+        "experienceNote": "Ninguém trabalha na Pedreira. Com ao menos 1 trabalhador, a experiência sobe 4 a cada virada do dia.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      },
+      {
+        "building": "goldMine",
+        "label": "Mina de Ouro",
+        "level": 1,
+        "resource": "gold",
+        "assigned": 2,
+        "grossPerHour": 29.382,
+        "perWorkerPerHour": 14.691,
+        "breakdown": "2 trabalhadores × 12 × 1 (Nv1) × 1,06 (mestria 20) × 1,1 (outono) × 1,05 (moral 60) = 29,38/h",
+        "perNewWorkerPerHour": 7.344,
+        "experience": 20,
+        "masteryBonusPercent": 6,
+        "occupiedFrom": 1,
+        "experienceTrend": "rising",
+        "experienceNote": "A experiência sobe 4 a cada virada do dia enquanto houver ao menos 1 trabalhador.",
+        "adapting": 0,
+        "adaptationEndsInSeconds": null,
+        "adaptingCohorts": [],
+        "injured": 0
+      }
+    ],
+    "constructions": {
+      "active": null,
+      "queues": [
+        null
+      ],
+      "queuesUnlocked": 1,
+      "queuesNote": "A segunda fila abre com o Salão do Senhor Nv4.",
+      "planned": [],
+      "available": [
+        {
+          "building": "townHall",
+          "label": "Salão do Senhor",
+          "fromLevel": 3,
+          "targetLevel": 4,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 486,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 324,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 324,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "farm",
+          "label": "Fazenda",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 40,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "lumberMill",
+          "label": "Serraria",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 100,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "quarry",
+          "label": "Pedreira",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 30,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 120,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "goldMine",
+          "label": "Mina de Ouro",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 80,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 160,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "housing",
+          "label": "Habitações",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 80,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 20,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 80,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": null
+        },
+        {
+          "building": "granary",
+          "label": "Celeiro",
+          "fromLevel": 2,
+          "targetLevel": 3,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 410,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 205,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Capacidade de comida: 1.600 → 2.200."
+        },
+        {
+          "building": "warehouse",
+          "label": "Armazém",
+          "fromLevel": 4,
+          "targetLevel": 5,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 1049,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 524,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 1013,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": "GATE_LOCKED",
+          "blockedReason": "Melhore antes o Salão do Senhor para o nível 4.",
+          "planned": false,
+          "effect": "Capacidade de madeira e de pedra: 2.800 → 3.400 cada."
+        },
+        {
+          "building": "watchtower",
+          "label": "Torre de Vigia",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 120,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 240,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+        },
+        {
+          "building": "palisade",
+          "label": "Paliçada",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 200,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 50,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+        },
+        {
+          "building": "tavern",
+          "label": "Taverna",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 180,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 60,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 120,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 300,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral."
+        },
+        {
+          "building": "guild",
+          "label": "Guilda dos Aventureiros",
+          "fromLevel": 0,
+          "targetLevel": 1,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 300,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 100,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 200,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 400,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Sustenta 1 expedição por vez."
+        },
+        {
+          "building": "market",
+          "label": "Mercado",
+          "fromLevel": 1,
+          "targetLevel": 2,
+          "cost": [
+            {
+              "resource": "wood",
+              "label": "Madeira",
+              "amount": 240,
+              "missing": 0
+            },
+            {
+              "resource": "stone",
+              "label": "Pedra",
+              "amount": 160,
+              "missing": 0
+            },
+            {
+              "resource": "gold",
+              "label": "Ouro",
+              "amount": 240,
+              "missing": 0
+            }
+          ],
+          "durationSeconds": 450,
+          "durationNote": null,
+          "affordable": true,
+          "blockedCode": null,
+          "blockedReason": null,
+          "planned": false,
+          "effect": "Negocia até 400 de cada recurso por dia de jogo, entre compras e vendas."
+        }
+      ]
+    },
+    "recruitment": {
+      "cost": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "amount": 50,
+          "missing": 0
+        },
+        {
+          "resource": "gold",
+          "label": "Ouro",
+          "amount": 10,
+          "missing": 0
+        }
+      ],
+      "secondsPerVillager": 400,
+      "durationNote": null,
+      "maxQuantity": 5,
+      "blockedReason": null,
+      "moraleNote": null
+    },
+    "famine": null,
+    "morale": {
+      "value": 60,
+      "band": "content",
+      "bandLabel": "Contente",
+      "multiplierPercent": 105,
+      "text": "Moral 60 (Contente): produção × 1,05.",
+      "terms": [
+        {
+          "id": "base",
+          "label": "Base",
+          "amount": 50
+        },
+        {
+          "id": "foodReserve",
+          "label": "Comida guardada para 8 h",
+          "amount": 10
+        }
+      ],
+      "breakdown": "50 (base) + 10 (comida guardada para 8 h) = 60",
+      "nextUpdateInSeconds": 1198,
+      "next": {
+        "value": 60,
+        "band": "content",
+        "bandLabel": "Contente",
+        "multiplierPercent": 105
+      },
+      "nextText": "A moral só muda na virada do dia: na próxima, continua em 60.",
+      "advice": null,
+      "foodReserve": {
+        "covered": true,
+        "holdsAtNextTurn": true,
+        "needed": 120,
+        "missing": 0,
+        "bonus": 10,
+        "text": "Há comida guardada para 8 h (120 para 5 habitantes): a moral ganha 10."
+      },
+      "notes": [],
+      "effects": []
+    },
+    "winter": null,
+    "objectives": [
+      {
+        "id": "allocateFarmers",
+        "title": "Aloque 2 aldeões na Fazenda",
+        "hint": "Comida é o que mantém todo o resto.",
+        "reward": "+20 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "workers",
+          "building": "farm"
+        }
+      },
+      {
+        "id": "upgradeHousing",
+        "title": "Inicie a melhoria das Habitações",
+        "hint": "Sem teto, ninguém vem morar no feudo.",
+        "reward": "+30 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "housing"
+        }
+      },
+      {
+        "id": "recruitVillagers",
+        "title": "Recrute 3 aldeões",
+        "hint": "Mais braços, mais colheita, mais madeira.",
+        "reward": "+40 comida",
+        "status": "completed",
+        "progress": {
+          "current": 3,
+          "target": 3
+        },
+        "missing": null,
+        "target": {
+          "kind": "recruitment"
+        }
+      },
+      {
+        "id": "townHallLevel2",
+        "title": "Alcance o Salão do Senhor Nv2",
+        "hint": "O Salão dita até onde os outros edifícios podem crescer.",
+        "reward": "+50 ouro e desbloqueia o Celeiro, o Armazém e a Torre de Vigia",
+        "status": "completed",
+        "progress": {
+          "current": 2,
+          "target": 2
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "townHall"
+        }
+      },
+      {
+        "id": "buildWatchtower",
+        "title": "Construa a Torre de Vigia",
+        "hint": "Ver o inimigo é metade da batalha.",
+        "reward": "+40 pedra",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "watchtower"
+        }
+      },
+      {
+        "id": "answerFirstCard",
+        "title": "Responda à primeira carta do Conselho",
+        "hint": "Quem se cala deixa o conselho decidir em seu lugar.",
+        "reward": "+10 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "council"
+        }
+      },
+      {
+        "id": "buildGranaryOrWarehouse",
+        "title": "Construa o Celeiro ou o Armazém",
+        "hint": "Amplie o estoque antes que a produção vá para o chão.",
+        "reward": "+60 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "granary"
+        }
+      },
+      {
+        "id": "planAutoStart",
+        "title": "Deixe uma obra marcada para começar sozinha",
+        "hint": "A obra marcada começa assim que houver recursos, mesmo com o Senhor longe.",
+        "reward": "+30 ouro",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "planned"
+        }
+      },
+      {
+        "id": "buildPalisade",
+        "title": "Construa a Paliçada",
+        "hint": "Estaca firme faz o lobo recuar de barriga vazia.",
+        "reward": "+100 madeira",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "building",
+          "building": "palisade"
+        }
+      },
+      {
+        "id": "surviveWinterWithoutCold",
+        "title": "Atravesse o inverno sem passar frio",
+        "hint": "A lareira queima madeira o inverno inteiro: guarde lenha no outono.",
+        "reward": "+15 de moral por 1 dia de jogo (40 min)",
+        "status": "completed",
+        "progress": {
+          "current": 1,
+          "target": 1
+        },
+        "missing": null,
+        "target": {
+          "kind": "season",
+          "season": "winter"
+        }
+      }
+    ],
+    "council": {
+      "pending": [],
+      "nextCardInSeconds": 201478798,
+      "blockedByPending": false,
+      "nextAudienceInSeconds": 201478798,
+      "note": null,
+      "rulesText": "O conselho pede audiência a cada 2 h 40 min e traz no máximo 2 cartas por vez. Cada carta espera 24 h pela resposta; depois, o conselho decide sozinho."
+    },
+    "pendingDecisions": [],
+    "threat": {
+      "known": false,
+      "text": "Sem uma Torre de Vigia, ninguém sabe o que ronda o feudo.",
+      "incoming": null,
+      "clearedText": null,
+      "watchtower": {
+        "building": "watchtower",
+        "level": 0,
+        "text": "Sem Torre de Vigia, ninguém vê a Ameaça crescer nem avisa de um ataque.",
+        "next": "Torre de Vigia Nv1: mostra a Ameaça com a explicação e avisa de uma incursão com 1 h de antecedência."
+      },
+      "defense": {
+        "building": "palisade",
+        "palisadeLevel": 0,
+        "text": "Sem Paliçada, nada segura um ataque.",
+        "next": "Paliçada Nv1: segura ataques leves, sem perda nem ferido; os médios passam, mas com metade do estrago."
+      }
+    },
+    "guild": {
+      "text": "Nenhum herói serve ao feudo ainda. O primeiro costuma chegar pelo Conselho: quando alguém pedir abrigo, a resposta é sua. Os seguintes, quem traz é a Taverna.",
+      "building": "guild",
+      "built": false,
+      "level": 0,
+      "slots": 0,
+      "postures": [
+        {
+          "id": "cautious",
+          "label": "Cautelosa",
+          "text": "Sem a sua palavra na encruzilhada, a equipe toma o caminho seguro."
+        },
+        {
+          "id": "balanced",
+          "label": "Equilibrada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe pesa o risco e o ganho. Se o caminho escolhido pede o que ela não tem, vale o seguro."
+        },
+        {
+          "id": "bold",
+          "label": "Ousada",
+          "text": "Sem a sua palavra na encruzilhada, a equipe arrisca o caminho de maior ganho. Se ele pede o que ela não tem, vale o seguro."
+        }
+      ],
+      "available": [],
+      "expeditions": [],
+      "reports": [],
+      "dismissText": "Dispensar não devolve nada: o que foi pago pelo trato não volta, e quem parte não fica à espera. O soldo deixa de correr na mesma hora.",
+      "heroLimit": 1,
+      "heroes": [],
+      "arriving": [],
+      "inventory": [],
+      "inventoryCap": 30,
+      "equipmentSlots": [
+        {
+          "id": "weapon",
+          "label": "Arma"
+        },
+        {
+          "id": "armor",
+          "label": "Armadura"
+        },
+        {
+          "id": "accessory",
+          "label": "Acessório"
+        }
+      ],
+      "inventoryText": "O arsenal está vazio: os itens vêm das expedições.",
+      "captiveText": null,
+      "rescueTargetName": null,
+      "wage": {
+        "perHour": 0,
+        "coveredForSeconds": null,
+        "afterArrivals": null,
+        "arrears": null,
+        "lingering": null
+      }
+    },
+    "tavern": {
+      "level": 0,
+      "text": "Erga a Taverna: nela o feudo contrata heróis e dá festivais.",
+      "offers": [],
+      "nextRotationInSeconds": null,
+      "festival": {
+        "available": false,
+        "cost": [
+          {
+            "resource": "food",
+            "label": "Comida",
+            "amount": 100,
+            "missing": 0
+          },
+          {
+            "resource": "gold",
+            "label": "Ouro",
+            "amount": 50,
+            "missing": 0
+          }
+        ],
+        "effectText": "+15 de moral por 8 h, a partir da próxima virada do dia. Um festival por estação.",
+        "blockedReason": "Erga a Taverna primeiro.",
+        "activeForSeconds": null
+      }
+    },
+    "market": {
+      "level": 1,
+      "text": "Mercado Nv1: negocia até 200 de cada recurso por dia de jogo, entre compras e vendas.",
+      "quoteDay": 51,
+      "nextChangeInSeconds": 1198,
+      "dailyVolume": 200,
+      "prices": [
+        {
+          "resource": "food",
+          "label": "Comida",
+          "buy": 1515,
+          "sell": 1287,
+          "buyText": "1,515",
+          "sellText": "1,287",
+          "baseText": "1,00",
+          "trend": "up",
+          "breakdown": "1,515 = 1,165 (cotação de hoje; a base é 1,00) × 1,3 (Outono). A venda paga 85%: 1,287.",
+          "tradedToday": 150,
+          "remainingToday": 50,
+          "maxBuyable": 50,
+          "maxSellable": 50,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        },
+        {
+          "resource": "wood",
+          "label": "Madeira",
+          "buy": 1184,
+          "sell": 1006,
+          "buyText": "1,184",
+          "sellText": "1,006",
+          "baseText": "1,20",
+          "trend": "down",
+          "breakdown": "1,184 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,006.",
+          "tradedToday": 0,
+          "remainingToday": 200,
+          "maxBuyable": 150,
+          "maxSellable": 200,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        },
+        {
+          "resource": "stone",
+          "label": "Pedra",
+          "buy": 2130,
+          "sell": 1810,
+          "buyText": "2,13",
+          "sellText": "1,81",
+          "baseText": "2,00",
+          "trend": "up",
+          "breakdown": "2,13 (cotação de hoje; a base é 2,00). A venda paga 85%: 1,81.",
+          "tradedToday": 35,
+          "remainingToday": 165,
+          "maxBuyable": 165,
+          "maxSellable": 165,
+          "buyBlockedReason": null,
+          "sellBlockedReason": null
+        }
+      ]
     }
   }
 }

@@ -16,6 +16,8 @@ import {
   idleVillager,
   injuredLoss,
   injuryTemplates,
+  MARKET_RESOURCE_IDS,
+  marketTemplates,
   moraleBandTemplates,
   namedHeroes,
   objectives,
@@ -133,6 +135,11 @@ describe('CommandSchema', () => {
     },
     { commandId: uuid, type: 'equipItem', payload: { heroId: 'hero-1', itemId: 'item-4' } },
     { commandId: uuid, type: 'unequipItem', payload: { heroId: 'hero-1', slot: 'armor' } },
+    {
+      commandId: uuid,
+      type: 'trade',
+      payload: { resource: 'wood', direction: 'sell', amount: 140, quoteDay: 37 },
+    },
   ];
 
   it.each(valid)('aceita $type', (command) => {
@@ -287,6 +294,62 @@ describe('CommandSchema', () => {
       { commandId: uuid, type: 'hireHero', payload: { offerId: 'offer-1', classId: 'mage' } },
     ],
     ['festival sem payload', { commandId: uuid, type: 'holdFestival' }],
+    [
+      'negociação sem o dia da cotação',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'wood', direction: 'sell', amount: 10 },
+      },
+    ],
+    [
+      'negociação de ouro por ouro',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'gold', direction: 'sell', amount: 10, quoteDay: 3 },
+      },
+    ],
+    [
+      'negociação de ferro, que é de outra versão',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'iron', direction: 'buy', amount: 10, quoteDay: 3 },
+      },
+    ],
+    [
+      'negociação que não é compra nem venda',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'wood', direction: 'barter', amount: 10, quoteDay: 3 },
+      },
+    ],
+    [
+      'negociação de meia unidade',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'wood', direction: 'sell', amount: 1.5, quoteDay: 3 },
+      },
+    ],
+    [
+      'negociação com o preço escolhido pelo cliente',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'wood', direction: 'sell', amount: 10, quoteDay: 3, unitPrice: 9000 },
+      },
+    ],
+    [
+      'negociação com a cotação em texto',
+      {
+        commandId: uuid,
+        type: 'trade',
+        payload: { resource: 'wood', direction: 'sell', amount: 10, quoteDay: '3' },
+      },
+    ],
     [
       'festival com a duração escolhida pelo cliente',
       { commandId: uuid, type: 'holdFestival', payload: { days: 30 } },
@@ -1496,6 +1559,129 @@ describe('ViewStateSchema', () => {
     expect(ViewStateSchema.safeParse(withoutTavern).success).toBe(false);
   });
 
+  it('aceita o Mercado: sem ele, no dia em que abre, depois do primeiro passeio do preço, e os eventos dele', () => {
+    const HOUR = 3_600_000;
+    const order = (type: Command['type'], payload: unknown) =>
+      ({ commandId: uuid, type, payload }) as Command;
+    const start = createInitialState('mercado', settings);
+    const none = deriveViewState(start, 0);
+    expect(ViewStateSchema.safeParse(none).error).toBeUndefined();
+    expect(none.market).toMatchObject({ level: 0, prices: [], nextChangeInSeconds: null });
+
+    start.settlement.buildings.townHall = 3;
+    Object.assign(start.settlement.resources, {
+      food: 400_000,
+      wood: 400_000,
+      stone: 400_000,
+      gold: 900_000,
+    });
+    let state = start;
+    const told: Array<{ type: string; data: Record<string, string | number> }> = [];
+    const run = (command: Command) => {
+      const result = applyCommand(state, command, state.lastProcessedAt);
+      if (!result.ok) {
+        throw new Error(result.message);
+      }
+      state = result.state;
+      told.push(...result.events);
+    };
+    const pass = (toMs: number) => {
+      const step = advanceTo(state, toMs);
+      state = step.state;
+      told.push(...step.events);
+      const view = deriveViewState(state, toMs);
+      expect(ViewStateSchema.safeParse(view).error, `instante ${toMs}`).toBeUndefined();
+      return view;
+    };
+    run(order('setWorkers', { building: 'farm', count: 3 }));
+    run(order('startConstruction', { building: 'market' }));
+    const open = pass(HOUR);
+    expect(open.market.level).toBe(1);
+    expect(open.market.prices.map((row) => row.resource)).toEqual([...MARKET_RESOURCE_IDS]);
+    expect(open.market.quoteDay).toBe(0);
+    run(order('trade', { resource: 'wood', direction: 'sell', amount: 100, quoteDay: 0 }));
+    run(order('trade', { resource: 'stone', direction: 'buy', amount: 20, quoteDay: 0 }));
+    // Hora a hora por quinze dias de jogo: o passeio do preço passa pelo contrato.
+    for (let hour = 2; hour <= 30; hour += 1) {
+      const view = pass(hour * HOUR);
+      expect(view.market.quoteDay).toBe(Math.floor(hour / 2) + 1);
+    }
+    const traded = told.filter((event) => event.type === 'marketTraded');
+    expect(traded.map((event) => event.data.direction)).toEqual(['sell', 'buy']);
+    for (const [index, event] of traded.entries()) {
+      const sent = { ...event, seq: index + 1, at: '2026-10-06T12:00:00.000Z' };
+      expect(GameEventSchema.safeParse(sent).error, event.type).toBeUndefined();
+      expect(CHRONICLE_HIDDEN_EVENT_TYPES).not.toContain(event.type);
+    }
+    expect(
+      GameEventSchema.safeParse({
+        seq: 3,
+        at: '2026-10-06T12:00:00.000Z',
+        type: 'marketPriceSwing',
+        atMs: 0,
+        text: 'x',
+        data: { resource: 'wood', mark: 'high', price: 1510 },
+      }).error,
+    ).toBeUndefined();
+    // As recusas do motor passam pelo contrato com os códigos novos.
+    const refuse = (command: Command) => applyCommand(state, command, state.lastProcessedAt);
+    expect(
+      refuse(order('trade', { resource: 'wood', direction: 'sell', amount: 1, quoteDay: 0 })),
+    ).toMatchObject({ ok: false, code: 'PRICE_CHANGED' });
+    const today = state.market.quoteDay;
+    expect(
+      refuse(order('trade', { resource: 'wood', direction: 'sell', amount: 201, quoteDay: today })),
+    ).toMatchObject({ ok: false, code: 'DAILY_VOLUME_EXCEEDED' });
+    expect(
+      refuse(order('trade', { resource: 'wood', direction: 'sell', amount: 0, quoteDay: today })),
+    ).toMatchObject({ ok: false, code: 'INVALID_AMOUNT' });
+    expect(
+      applyCommand(
+        createInitialState('mercado', settings),
+        order('trade', { resource: 'wood', direction: 'sell', amount: 1, quoteDay: 0 }),
+        0,
+      ),
+    ).toMatchObject({ ok: false, code: 'MARKET_REQUIRED' });
+  });
+
+  it('recusa no Mercado o que não é para o jogador ver: o preço de amanhã, o de ontem e o gerador', () => {
+    const view = deriveViewState(createInitialState('s', settings), 0);
+    const row = {
+      resource: 'wood',
+      label: 'Madeira',
+      buy: 1260,
+      sell: 1071,
+      buyText: '1,26',
+      sellText: '1,071',
+      baseText: '1,20',
+      trend: 'up',
+      breakdown: '1,26 (cotação de hoje; a base é 1,20). A venda paga 85%: 1,071.',
+      tradedToday: 0,
+      remainingToday: 200,
+      maxBuyable: 0,
+      maxSellable: 200,
+      buyBlockedReason: 'A compra não cabe.',
+      sellBlockedReason: null,
+    };
+    const parse = (market: unknown) => ViewStateSchema.safeParse({ ...view, market }).success;
+    expect(parse({ ...view.market, level: 1, prices: [row] })).toBe(true);
+    expect(parse({ ...view.market, prices: [{ ...row, trend: 'sideways' }] })).toBe(false);
+    expect(parse({ ...view.market, prices: [{ ...row, resource: 'gold' }] })).toBe(false);
+    expect(parse({ ...view.market, prices: [{ ...row, tomorrow: 1300 }] })).toBe(false);
+    expect(parse({ ...view.market, prices: [{ ...row, previousPrice: 1230 }] })).toBe(false);
+    expect(parse({ ...view.market, prices: [{ ...row, basePrice: 1200 }] })).toBe(false);
+    expect(parse({ ...view.market, previousPrices: { wood: 1230 } })).toBe(false);
+    expect(parse({ ...view.market, nextPrices: { wood: 1300 } })).toBe(false);
+    expect(parse({ ...view.market, rng: [1, 2, 3, 4] })).toBe(false);
+    // O que é de outra tarefa não entra antes dela: caravanas (V3E-T2) e efeitos de carta (V3F-T1).
+    expect(parse({ ...view.market, caravans: [] })).toBe(false);
+    expect(parse({ ...view.market, effects: [] })).toBe(false);
+    const withoutMarket = Object.fromEntries(
+      Object.entries(view).filter(([key]) => key !== 'market'),
+    );
+    expect(ViewStateSchema.safeParse(withoutMarket).success).toBe(false);
+  });
+
   it('recusa na guilda o que é de outra fase ou não é para o jogador ver', () => {
     const view = deriveViewState(createInitialState('s', settings), 0);
     const hero = {
@@ -2136,6 +2322,7 @@ describe('contentHash', () => {
         tavernCandidates,
         heroNames,
         wageArrearsReliefs,
+        marketTemplates,
       }),
     ]);
   });
@@ -2164,6 +2351,7 @@ describe('contentHash', () => {
       'idleVillager',
       'injuredLoss',
       'injuryTemplates',
+      'marketTemplates',
       'moraleBandTemplates',
       'namedHeroes',
       'objectives',
@@ -2214,6 +2402,12 @@ describe('contentHash', () => {
     expect(hashed).toContain(raidTemplates.wolves.howl.unwatched);
     expect(hashed).toContain(injuryTemplates.villagerRecovered.worker);
     expect(hashed).toContain(injuredLoss.one);
+    // E o Mercado: os preços-base, a margem, o volume, o passeio e as frases da negociação.
+    expect(hashed).toContain(`"basePrice":${canonicalJson(balance.market.basePrice)}`);
+    expect(hashed).toContain(`"sellRatio":${canonicalJson(balance.market.sellRatio)}`);
+    expect(hashed).toContain(`"dailyVolumePerLevel":${balance.market.dailyVolumePerLevel}`);
+    expect(hashed).toContain(marketTemplates.sell);
+    expect(hashed).toContain(marketTemplates.high);
   });
 });
 

@@ -158,6 +158,32 @@ const messages: Record<RejectionCode, (params: RejectionParams) => string> = {
   // `count` é o teto do arsenal.
   INVENTORY_FULL: ({ count = 0 }) =>
     `O arsenal guarda ${count} itens e está cheio: equipe outro herói com o que sobra antes de devolver mais um.`,
+  // O Mercado (GDD §5.9; ADR 0018, decisão 16). `label` é o edifício com artigo; `remedy`, o
+  // que o abre.
+  MARKET_REQUIRED: ({ label = 'o Mercado', remedy }) =>
+    `Erga ${label} primeiro${remedy === undefined ? '' : `: ${remedy}`}.`,
+  // `note` é a frase inteira de quando o que está errado não é a quantidade (o recurso que o
+  // Mercado não negocia, o sentido que não é compra nem venda).
+  INVALID_AMOUNT: ({ note }) => note ?? 'Negocie um número inteiro de unidades, a partir de 1.',
+  // O dia de jogo virou entre a tela e a ordem: a visão que vem junto traz o preço de hoje.
+  PRICE_CHANGED: () =>
+    'O dia virou e o preço do Mercado mudou: confira o preço de hoje e peça de novo.',
+  // `label` é o Mercado com o nível ("Mercado Nv1"); `count`, o volume do dia por recurso;
+  // `amount`, o que ainda cabe hoje; `resource`, o recurso em minúscula.
+  DAILY_VOLUME_EXCEEDED: ({ label = 'Mercado', count = 0, amount = 0, resource = 'recurso' }) =>
+    `O ${label} negocia ${thousands(count)} de ${resource} por dia, entre compras e vendas: ${
+      amount === 0
+        ? 'hoje não cabe mais nada. O volume volta na virada do dia'
+        : `hoje ${amount === 1 ? 'ainda cabe 1 unidade' : `ainda cabem ${thousands(amount)}`}`
+    }.`,
+  // `label` é o depósito, com artigo: "o Armazém"; `capacity`, o que ele guarda; `amount`, o
+  // que ainda cabe. A compra que não cabe é recusada inteira.
+  STORAGE_FULL: ({ label = 'o depósito', capacity = 0, amount = 0, resource = 'recurso' }) =>
+    `A compra não cabe: ${label} guarda ${thousands(capacity)} de ${resource}, e ${
+      amount === 0
+        ? 'está cheio'
+        : `só ${amount === 1 ? 'cabe mais 1 unidade' : `cabem mais ${thousands(amount)}`}`
+    }.`,
 };
 
 export function reject(code: RejectionCode, params: RejectionParams = {}): Rejection {

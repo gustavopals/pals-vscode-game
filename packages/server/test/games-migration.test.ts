@@ -42,7 +42,7 @@ import { resetTestDb, truncateAll } from './helpers/db';
 // direto no banco, a partir de retratos feitos pelo motor da v0.1 (`schema_version = 1`).
 
 const REPLAYED = 'x-lords-replayed';
-const CURRENT = 20;
+const CURRENT = 21;
 /**
  * A Taverna com que toda partida chega à versão atual (V3C-T2): sem candidato, sem rotação
  * marcada e sem festival, porque o edifício entra por construir.
@@ -76,7 +76,12 @@ function beforeOutcomes<T>(state: T): T {
   const copy = JSON.parse(JSON.stringify(state)) as {
     map?: { discovered?: unknown };
     guild?: { inventory?: unknown; heroes?: Array<Record<string, unknown>> };
+    market?: unknown;
+    settlement?: { buildings?: Record<string, unknown> };
   };
+  // E o Mercado, da versão 21 (V3E-T1): o edifício por construir e os preços na base.
+  delete copy.market;
+  delete copy.settlement?.buildings?.market;
   delete copy.map?.discovered;
   delete copy.guild?.inventory;
   for (const hero of copy.guild?.heroes ?? []) {
@@ -154,6 +159,7 @@ function migratedSettlement(before: StoredState): Record<string, unknown> {
       palisade: 0,
       tavern: 0,
       guild: 0,
+      market: 0,
     },
     wasted: { food: 0, wood: 0, stone: 0, gold: 0 },
     constructionQueues: [...constructionQueues, null],
@@ -989,10 +995,10 @@ describe('uma partida gravada na versão 12 (V3B-T1; ADR 0017, decisão 9)', () 
   });
 
   // A guarda da versão 13 confere os nomes dos fluxos, e a da 12 não conferia. Um estado da
-  // versão 12 com um fluxo que nenhum motor escreveu (`market`, de uma imagem futura revertida
+  // versão 12 com um fluxo que nenhum motor escreveu (`siege`, de uma imagem futura revertida
   // ou de uma edição à mão) é recusado no fim da migração, sem ser gravado por cima.
   it.each([
-    ['um fluxo desconhecido', 'market', /rng\.market: chave fora do esperado/],
+    ['um fluxo desconhecido', 'siege', /rng\.siege: chave fora do esperado/],
     [
       'um fluxo de entidade que nenhum contador deu',
       'expedition:expedition-5',
@@ -1372,6 +1378,123 @@ describe('uma partida gravada na versão 16 (V3D-T1; ADR 0018, decisões 11 a 13
           'game_events',
           `game_id = '${game.id}' and kind like 'expedition%'`,
         ),
+      ).toBe(0);
+    } finally {
+      await app.close();
+    }
+  });
+});
+
+describe('uma partida gravada na versão 20 (V3E-T1; ADR 0018, decisão 16)', () => {
+  type V20State = StoredState & {
+    settings: { timeScale: number; difficulty: string };
+    rng: Record<string, number[]>;
+    ids: Record<string, number>;
+    market?: unknown;
+  };
+  const NO_MARKET = {
+    prices: { food: 1000, wood: 1200, stone: 2000 },
+    previousPrices: { food: 1000, wood: 1200, stone: 2000 },
+    quoteDay: 0,
+    tradedToday: { food: 0, wood: 0, stone: 0 },
+  };
+
+  /** Um retrato da versão 20, como o motor do fim da Fase D o gravou. */
+  function v20State(name: string): V20State {
+    const url = new URL(`../../engine/src/__fixtures__/state-v20-${name}.json`, import.meta.url);
+    return JSON.parse(readFileSync(url, 'utf8')) as V20State;
+  }
+
+  async function insertV20(app: TestApp, state: V20State, staleForMs = 0): Promise<OldGame> {
+    const game = await insertGame(app, state, {
+      timeScale: state.settings.timeScale,
+      stateVersion: 7,
+      staleForMs,
+    });
+    await app.pool.query('update games set difficulty = $2 where id = $1', [
+      game.id,
+      state.settings.difficulty,
+    ]);
+    return game;
+  }
+
+  // As três dificuldades e os três ritmos; com heróis, com a Taverna, com uma expedição em
+  // curso e com um cativo; partidas nascidas na versão 20 e migradas até ela.
+  it.each([
+    ['week-scripted'],
+    ['guild'],
+    ['tavern-busy'],
+    ['expedition-crossroads'],
+    ['hero-captured'],
+    ['migrated-iron-king-half'],
+    ['migrated-peasant-3x'],
+  ])(
+    '%s: a primeira leitura a persiste na versão atual, uma vez, só com o Mercado por construir a mais',
+    async (name) => {
+      const before = v20State(name);
+      expect(before.market).toBeUndefined();
+      expect(before.settlement.buildings.market).toBeUndefined();
+      const game = await insertV20(server, before);
+      expect(await rowOf(server, game.id)).toMatchObject({ schemaVersion: 20, stateVersion: 7 });
+
+      const reply = await getView(server, game);
+      expect(reply.status).toBe(200);
+      expect(ViewResponseSchema.safeParse(reply.body).error).toBeUndefined();
+      // A migração é uma escrita do estado: a versão persistida sobe uma vez.
+      expect(reply.body.stateVersion).toBe('8');
+
+      const row = (await rowOf(server, game.id)) as Row & { state: V20State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      // O estado é o da versão 20, campo por campo, com a fronteira nova, o edifício no nível
+      // zero e o Mercado com os preços na base: nenhum estoque, contador ou sorteio muda.
+      expect(row.state).toEqual({
+        ...before,
+        schemaVersion: CURRENT,
+        migratedAtMs: before.lastProcessedAt,
+        settlement: {
+          ...before.settlement,
+          buildings: { ...before.settlement.buildings, market: 0 },
+        },
+        market: NO_MARKET,
+      });
+      expect(row.state.rng.market).toBeUndefined();
+
+      // A visão traz o Mercado por erguer, sem preço nenhum.
+      expect(reply.body.view.market).toMatchObject({
+        level: 0,
+        quoteDay: 0,
+        nextChangeInSeconds: null,
+        dailyVolume: 0,
+        prices: [],
+      });
+
+      // A leitura seguinte não migra nem escreve de novo.
+      const again = await getView(server, game);
+      expect(again.status).toBe(200);
+      expect(again.body.view).toEqual(reply.body.view);
+      expect((await rowOf(server, game.id)).xmin).toBe(row.xmin);
+    },
+  );
+
+  it('o job de avanço migra a partida de quem não voltou: um dia real depois o Mercado continua por erguer e os preços não andaram', async () => {
+    const clock = fakeClock();
+    const app = await createTestApp({ clock });
+    try {
+      await truncateAll(app.pool);
+      const before = v20State('tavern');
+      const game = await insertV20(app, before, 2 * HOUR);
+      clock.advance(DAY);
+      const report = await advanceStaleGames(app.ctx);
+      expect(report).toMatchObject({ advanced: 1, failed: 0 });
+      const row = (await rowOf(app, game.id)) as Row & { state: V20State };
+      expect(row).toMatchObject({ schemaVersion: CURRENT, stateVersion: 8 });
+      expect(row.state.migratedAtMs).toBe(before.lastProcessedAt);
+      // Ninguém mandou erguer o Mercado: nada dele acontece sozinho, por mais dias que passem.
+      expect(row.state.settlement.buildings.market).toBe(0);
+      expect(row.state.market).toEqual(NO_MARKET);
+      expect(row.state.rng.market).toBeUndefined();
+      expect(
+        await countRows(app.pool, 'game_events', `game_id = '${game.id}' and kind like 'market%'`),
       ).toBe(0);
     } finally {
       await app.close();

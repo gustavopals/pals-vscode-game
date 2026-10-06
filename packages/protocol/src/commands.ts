@@ -1,4 +1,9 @@
-import { BUILDING_IDS, PRODUCTION_BUILDING_IDS } from '@lotg/content';
+import {
+  BUILDING_IDS,
+  MARKET_RESOURCE_IDS,
+  PRODUCTION_BUILDING_IDS,
+  TRADE_DIRECTION_IDS,
+} from '@lotg/content';
 import { z } from 'zod';
 
 import { isStorableText, UNSTORABLE } from './text';
@@ -148,6 +153,23 @@ export const UnequipItemCommandSchema = command(
   }),
 );
 
+/**
+ * Uma negociação no Mercado: comprar ou vender um recurso por ouro. `quoteDay` é o dia da
+ * cotação que a visão mostrava (`market.quoteDay`): se o dia de jogo virou desde então, o motor
+ * recusa a ordem e a resposta traz a visão com o preço de hoje. O protocolo só confere a forma:
+ * um dos recursos que o Mercado negocia, um dos dois sentidos e dois inteiros de tamanho
+ * razoável. Se a quantidade vale, se cabe no volume do dia, no cofre e no depósito é com o motor.
+ */
+export const TradeCommandSchema = command(
+  'trade',
+  z.strictObject({
+    resource: z.enum(MARKET_RESOURCE_IDS),
+    direction: z.enum(TRADE_DIRECTION_IDS),
+    amount: z.number().int().min(-1_000_000).max(1_000_000),
+    quoteDay: z.number().int().min(0).max(100_000_000),
+  }),
+);
+
 /** Corpo de `POST /v1/games/:id/commands`. O `commandId` é a chave de idempotência. */
 export const CommandSchema = z.discriminatedUnion('type', [
   SetWorkersCommandSchema,
@@ -166,6 +188,7 @@ export const CommandSchema = z.discriminatedUnion('type', [
   ChooseExpeditionPathCommandSchema,
   EquipItemCommandSchema,
   UnequipItemCommandSchema,
+  TradeCommandSchema,
 ]);
 export type Command = z.infer<typeof CommandSchema>;
 export type CommandType = Command['type'];

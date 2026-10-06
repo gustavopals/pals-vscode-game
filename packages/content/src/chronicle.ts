@@ -63,6 +63,8 @@ export const EVENT_TYPES = [
   'destinationRevealed',
   'threatTileCleared',
   'threatTileRestored',
+  'marketTraded',
+  'marketPriceSwing',
   'objectiveCompleted',
   'settlementRenamed',
 ] as const;
@@ -86,7 +88,8 @@ export type GameEventType = (typeof EVENT_TYPES)[number];
  * {bando} o que os vigias contaram: "uma matilha pequena" (de `enemies`)
  * {heroi} o nome de um herói: "Edda"
  * {classe} a classe dele, em minúscula e concordando com o nome: "guerreira", "arqueiro"
- * {preco} o ouro que uma contratação custou, já com o desconto: "88"
+ * {preco} o ouro que uma contratação custou, já com o desconto: "88"; no Mercado, o ouro de uma
+ * negociação inteira, com as casas que tiver: "154,7"
  * {expedicao} o nome de uma expedição: "Patrulha dos Arredores"
  * {herois} quem vai nela, pelo nome: "Edda e Rolf"
  * {no} o título de um nó do caminho: "A ronda pelas cercas"
@@ -284,10 +287,31 @@ export const chronicleTemplates: Record<GameEventType, string> = {
     'No {dia}º dia {daEstacao}, a expedição "{expedicao}" limpou {lugar}. Dali já não sai quem ronde {feudo}, até a virada do ano.',
   threatTileRestored:
     'No {dia}º dia {daEstacao}, com o ano novo, voltou a haver movimento: {lugar} está ocupado outra vez.',
+  // O Mercado (GDD §5.9). Estas são as frases gerais: a compra e a venda têm cada uma a sua, e
+  // o preço que sobe e o que cai também, em `marketTemplates`. A mudança diária de preço não
+  // gera linha: só o preço que cruza uma das marcas de `balance.market.swing`.
+  marketTraded:
+    'No {dia}º dia {daEstacao}, o senhor de {feudo} negociou no Mercado: {quantidade} de {recurso}, por {preco} de ouro.',
+  marketPriceSwing:
+    'No {dia}º dia {daEstacao}, o preço de {recurso} mudou muito no Mercado de {feudo}.',
   objectiveCompleted:
     'No {dia}º dia {daEstacao}, cumpriu-se um objetivo: {objetivo}. Recompensa: {recompensa}.',
   settlementRenamed: 'No {dia}º dia {daEstacao}, o feudo passou a se chamar {feudo}.',
 };
+
+/**
+ * As frases do Mercado (GDD §5.9; ADR 0018, decisão 16). A negociação é o mesmo evento com uma
+ * frase por sentido: `buy`, o que o feudo comprou, e `sell`, o que vendeu; {quantidade} são as
+ * unidades e {preco}, o ouro da ordem inteira. O preço que cruza uma marca também: `high`, o que
+ * subiu até a marca de cima, e `low`, o que desceu até a de baixo.
+ */
+export const marketTemplates = {
+  buy: 'No {dia}º dia {daEstacao}, o senhor de {feudo} comprou no Mercado {quantidade} de {recurso}, por {preco} de ouro.',
+  sell: 'No {dia}º dia {daEstacao}, o senhor de {feudo} vendeu no Mercado {quantidade} de {recurso}, por {preco} de ouro.',
+  high: 'No {dia}º dia {daEstacao}, faltou {recurso} nas bancas do Mercado de {feudo}: o preço subiu muito além do costume.',
+  low: 'No {dia}º dia {daEstacao}, sobrou {recurso} nas bancas do Mercado de {feudo}: o preço caiu muito abaixo do costume.',
+} as const;
+export type MarketTemplate = keyof typeof marketTemplates;
 
 /**
  * O ferimento de um herói é o mesmo evento com uma frase por caso (ADR 0017, decisão 8): leve,

@@ -327,8 +327,8 @@ describe('pickWeighted', () => {
 });
 
 describe('fluxos nomeados', () => {
-  it('os fluxos fixos são os da v0.2 (o Conselho, a moral e a Horda) e o da Taverna', () => {
-    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern']);
+  it('os fluxos fixos são os da v0.2 (o Conselho, a moral e a Horda), o da Taverna e o do Mercado', () => {
+    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern', 'market']);
   });
 
   it('sortear em um fluxo não desloca os outros', () => {
@@ -374,6 +374,10 @@ describe('fluxos nomeados', () => {
     for (const stream of RNG_STREAMS) {
       take(30, () => nextInt(state, stream, 6));
     }
+    // O fluxo do Mercado só cabe com o Mercado de pé e a cotação feita: é o estado em que o
+    // motor sorteia nele (a virada do dia).
+    state.settlement.buildings.market = 1;
+    state.market.quoteDay = 1;
     expect(currentShape(state, '')).toBeNull();
     for (const words of Object.values(state.rng)) {
       expect(words).toHaveLength(4);
@@ -419,9 +423,9 @@ describe('fluxos de entidade', () => {
   /** Um nome qualquer, como chegaria de um código que burlou o tipo. */
   const unsafe = (name: string) => name as RngStream;
 
-  it('as famílias são a expedição e a caravana, e os fluxos fixos são os três da v0.2 e o da Taverna', () => {
+  it('as famílias são a expedição e a caravana, e os fluxos fixos são os três da v0.2, o da Taverna e o do Mercado', () => {
     expect(RNG_STREAM_FAMILIES).toEqual(['expedition', 'caravan']);
-    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern']);
+    expect(RNG_STREAMS).toEqual(['council', 'morale', 'horde', 'tavern', 'market']);
   });
 
   it('o fluxo de uma entidade nasce no primeiro sorteio, da semente e do nome `família:id`', () => {
@@ -506,7 +510,7 @@ describe('fluxos de entidade', () => {
   });
 
   it.each([
-    'market',
+    'masters',
     'guild',
     'hero:hero-1',
     'expedition',
@@ -651,7 +655,7 @@ describe('dropStream', () => {
     expect(state).toStrictEqual(before);
   });
 
-  it.each(['market', 'hero:hero-1', 'expedition:', 'constructor', ''])(
+  it.each(['masters', 'hero:hero-1', 'expedition:', 'constructor', ''])(
     'apagar um nome desconhecido lança erro: "%s"',
     (name) => {
       const state = newGame();

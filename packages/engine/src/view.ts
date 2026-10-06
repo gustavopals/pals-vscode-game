@@ -59,6 +59,7 @@ import {
 import { storable } from './storage';
 import { storageEffect, storageRow } from './storageView';
 import { guildEffect } from './expeditionsView';
+import { marketEffect, marketView } from './marketView';
 import { tavernEffect, tavernView } from './tavernView';
 import { palisadeEffect, threatView, watchtowerEffect } from './threatView';
 import type {
@@ -166,7 +167,7 @@ function durationNote(state: GameState, building: BuildingId, fromLevel: number)
 
 /**
  * O que a obra muda, para ficar ao lado do custo: a capacidade de um depósito, o que a Torre de
- * Vigia passa a ver, o que a Paliçada passa a segurar, o que a Taverna passa a dar. `null` nos edifícios cujo efeito já está
+ * Vigia passa a ver, o que a Paliçada passa a segurar, o que a Taverna passa a dar, quanto o Mercado passa a negociar. `null` nos edifícios cujo efeito já está
  * em outro lugar da tela.
  */
 function upgradeEffect(state: GameState, building: BuildingId, targetLevel: number): string | null {
@@ -175,7 +176,8 @@ function upgradeEffect(state: GameState, building: BuildingId, targetLevel: numb
     watchtowerEffect(building, targetLevel) ??
     palisadeEffect(building, targetLevel) ??
     tavernEffect(building, targetLevel) ??
-    guildEffect(building, targetLevel)
+    guildEffect(building, targetLevel) ??
+    marketEffect(building, targetLevel)
   );
 }
 
@@ -459,5 +461,6 @@ export function deriveViewState(
     threat: threatView(state, timeScale),
     guild: guild.guild,
     tavern: tavernView(state, timeScale),
+    market: marketView(state, timeScale),
   };
 }

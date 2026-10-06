@@ -414,6 +414,7 @@ describe('edifícios', () => {
       ['tavern', 5],
       // 5 no GDD; 4 nesta versão (ADR 0018, decisão 12).
       ['guild', 4],
+      ['market', 5],
     ]);
   });
 
@@ -503,7 +504,7 @@ describe('edifícios', () => {
     expect(parse('Os níveis seguintes chegam depois')).toBe(false);
   });
 
-  it('os edifícios são os oito de antes, a Torre de Vigia, a Paliçada, a Taverna e a Guilda', () => {
+  it('os edifícios são os oito de antes, a Torre de Vigia, a Paliçada, a Taverna, a Guilda e o Mercado', () => {
     expect(BUILDING_IDS).toEqual([
       'townHall',
       'farm',
@@ -517,6 +518,7 @@ describe('edifícios', () => {
       'palisade',
       'tavern',
       'guild',
+      'market',
     ]);
   });
 });

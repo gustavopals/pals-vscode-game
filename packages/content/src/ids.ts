@@ -14,8 +14,21 @@ export const BUILDING_IDS = [
   'palisade',
   'tavern',
   'guild',
+  'market',
 ] as const;
 export type BuildingId = (typeof BUILDING_IDS)[number];
+
+/**
+ * O que o Mercado negocia por ouro (GDD §5.9; ADR 0018, decisão 16), **na ordem do sorteio** do
+ * preço de cada dia. O ferro fica para a versão que o traz. A lista fica gravada no estado
+ * (`market.prices`): mudar um identificador pede passo de migração.
+ */
+export const MARKET_RESOURCE_IDS = ['food', 'wood', 'stone'] as const;
+export type MarketResourceId = (typeof MARKET_RESOURCE_IDS)[number];
+
+/** Os dois sentidos de uma negociação no Mercado: comprar com ouro, ou vender por ouro. */
+export const TRADE_DIRECTION_IDS = ['buy', 'sell'] as const;
+export type TradeDirectionId = (typeof TRADE_DIRECTION_IDS)[number];
 
 export const PRODUCTION_BUILDING_IDS = ['farm', 'lumberMill', 'quarry', 'goldMine'] as const;
 export type ProductionBuildingId = (typeof PRODUCTION_BUILDING_IDS)[number];

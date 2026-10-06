@@ -12,6 +12,7 @@ import {
 import { answerCard } from './council';
 import { equipItem, unequipItem } from './equipment';
 import { chooseExpeditionPath, sendExpedition } from './expeditionOrders';
+import { trade } from './marketOrders';
 import { settlePlanned } from './planned';
 import { recruitVillagers, setWorkers } from './population';
 import { reject } from './rejections';
@@ -86,6 +87,16 @@ function dispatch(
       return equipItem(draft, payload.heroId, payload.itemId, nowMs, events);
     case 'unequipItem':
       return unequipItem(draft, payload.heroId, payload.slot, nowMs, events);
+    case 'trade':
+      return trade(
+        draft,
+        payload.resource,
+        payload.direction,
+        payload.amount,
+        payload.quoteDay,
+        nowMs,
+        events,
+      );
     default:
       return reject('UNKNOWN_COMMAND');
   }

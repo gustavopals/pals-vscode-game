@@ -19,8 +19,10 @@ import {
   refuse,
   starve,
   guildHall,
+  marketStall,
   send,
   tavernScenario,
+  tradeOrder,
   wear,
 } from './test-helpers';
 import { type Command, REJECTION_CODES } from './types';
@@ -176,6 +178,8 @@ describe('catálogo de recusas', () => {
   const feasted = accept(tavern, command('holdFestival', {})).state;
   // A Guilda dos Aventureiros Nv1 com Edda e Rolf no feudo; a mesma com Edda na Patrulha (o
   // único lugar ocupado); e a Nv2 com Edda na Floresta, antes e depois de escolher o caminho.
+  // O Mercado Nv1 no dia em que fica pronto: os preços na base, o Armazém cheio de madeira.
+  const stall = marketStall();
   const hall = guildHall(0, (draft) => {
     addHero(draft);
     addHero(draft, { classId: 'archer' });
@@ -285,6 +289,17 @@ describe('catálogo de recusas', () => {
     // Edda não leva arma nenhuma.
     WRONG_SLOT: [staffed, command('unequipItem', { heroId: 'hero-1', slot: 'weapon' })],
     INVENTORY_FULL: [crammed, command('unequipItem', { heroId: 'hero-1', slot: 'weapon' })],
+    MARKET_REQUIRED: [rich, tradeOrder(rich, 'wood', 'sell', 10)],
+    INVALID_AMOUNT: [stall, tradeOrder(stall, 'wood', 'sell', 0)],
+    // A tela era a de ontem: o dia da cotação é outro.
+    PRICE_CHANGED: [
+      stall,
+      command('trade', { resource: 'wood', direction: 'sell', amount: 10, quoteDay: 7 }),
+    ],
+    // O Mercado Nv1 negocia 200 de cada recurso por dia.
+    DAILY_VOLUME_EXCEEDED: [stall, tradeOrder(stall, 'wood', 'sell', 201)],
+    // O Armazém Nv4 guarda 2.800 de madeira, e o canteiro já os tem.
+    STORAGE_FULL: [stall, tradeOrder(stall, 'wood', 'buy', 10)],
   };
 
   it('uma opção que o estoque não paga é recusada com o que falta', () => {

@@ -29,7 +29,7 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
   ) as Record<BuildingId, number>;
 
   return {
-    schemaVersion: 20,
+    schemaVersion: 21,
     seed,
     settings: {
       settlementName: settings.settlementName,
@@ -103,6 +103,13 @@ export function createInitialState(seed: string, settings: GameSettings): GameSt
       // A Guilda dos Aventureiros ainda não existe: nenhuma expedição, nenhum relatório.
       expeditions: [],
       reports: [],
+    },
+    // O Mercado ainda não existe: os preços nascem na base e só andam depois de ele ser erguido.
+    market: {
+      prices: { ...balance.market.basePrice },
+      previousPrices: { ...balance.market.basePrice },
+      quoteDay: 0,
+      tradedToday: { food: 0, wood: 0, stone: 0 },
     },
     objectives: {
       active: objectives.slice(0, balance.objectives.maxActive).map((objective) => objective.id),

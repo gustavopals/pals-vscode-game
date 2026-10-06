@@ -35,10 +35,11 @@ export const RNG_VERSION = 1;
 
 /**
  * Fluxos fixos: os da v0.2 (as cartas do Conselho, as chegadas e partidas por moral e as
- * incursões por Ameaça) e, da v0.3, os candidatos da Taverna (`tavern`, V3C-T2). Um fluxo novo
- * entra aqui junto com a primeira mecânica que sorteia nele.
+ * incursões por Ameaça) e, da v0.3, os candidatos da Taverna (`tavern`, V3C-T2) e o preço de
+ * cada dia no Mercado (`market`, V3E-T1). Um fluxo novo entra aqui junto com a primeira
+ * mecânica que sorteia nele.
  */
-export const RNG_STREAMS = ['council', 'morale', 'horde', 'tavern'] as const;
+export const RNG_STREAMS = ['council', 'morale', 'horde', 'tavern', 'market'] as const;
 export type FixedRngStream = (typeof RNG_STREAMS)[number];
 
 /**

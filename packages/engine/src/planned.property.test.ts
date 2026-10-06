@@ -116,6 +116,7 @@ function build(plan: Feud): GameState {
       palisade: 0,
       tavern: 0,
       guild: 0,
+      market: 0,
     };
     settlement.resources = {
       food: plan.food,

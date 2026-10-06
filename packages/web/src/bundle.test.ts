@@ -21,11 +21,14 @@ const ALLOWED_CONTENT_EXPORTS: readonly string[] = [
   'EVENT_TYPES',
   // Os espaços de equipamento (V3D-T2): o schema da visão os usa, como usa os recursos.
   'ITEM_SLOT_IDS',
+  // O que o Mercado negocia e os dois sentidos (V3E-T1): os schemas da ordem e da visão os usam.
+  'MARKET_RESOURCE_IDS',
   'MORALE_BAND_IDS',
   'MORALE_TERM_IDS',
   'PRODUCTION_BUILDING_IDS',
   'RESOURCE_IDS',
   'SEASON_IDS',
+  'TRADE_DIRECTION_IDS',
 ];
 
 type BundledModule = { id: string; exports: readonly string[] };
@@ -268,6 +271,31 @@ describe('o pacote do app', () => {
     const common = new Set(['home', 'leave', 'edge', 'trail', 'stream', 'fork', 'nest', 'climb']);
     expect([...new Set(secrets)].filter((secret) => !common.has(secret)).filter(loose)).toEqual([]);
     // Os títulos, as frases e as pistas dos nós são frases do conteúdo: o teste abaixo as barra.
+  });
+
+  it('não leva nenhum número de regra do Mercado: preços-base, margem, volume, passeio, estação e marcas (v0.3)', () => {
+    const { market } = content.balance;
+    const markers = [
+      'basePrice:{',
+      'sellRatio:{',
+      // `dailyVolume` é também um campo da visão: o que não pode chegar é a chave do conteúdo.
+      'dailyVolumePerLevel:',
+      'maxStepPerMille:',
+      'reversion:{',
+      'ceiling:{',
+      'seasonal:{',
+      'swing:{',
+    ];
+    // Os marcadores são do conteúdo de hoje: a tabela, escrita como um objeto de JavaScript,
+    // tem de conter cada um.
+    const leaked = asJavaScript({ market });
+    expect(markers.filter((marker) => !leaked.includes(marker))).toEqual([]);
+    expect(markers.filter((marker) => code.includes(marker))).toEqual([]);
+    // A tabela de preços inteira, como o minificador a escreveria, e as frases do Mercado.
+    expect(code.includes(asJavaScript(market.basePrice))).toBe(false);
+    expect(code.includes('marketTemplates')).toBe(false);
+    // O que o estado guarda e a visão nunca mostra: o preço de ontem e o fluxo do sorteio.
+    expect(['previousPrices', 'walkedPrice'].filter((key) => code.includes(key))).toEqual([]);
   });
 
   // Revisão da Fase D (A25): os itens e o que cada nó rende têm números próprios, e os

@@ -1117,6 +1117,7 @@ describe('a visão do armazenamento', () => {
           palisade: 2,
           tavern: 5,
           guild: 4,
+          market: 5,
         };
         edit(draft);
         draft.settlement.resources.wood = storageCapacity(draft, 'wood') ?? 0;
@@ -1449,6 +1450,8 @@ describe('a visão do armazenamento', () => {
       tavern: 'Abriga 2 heróis, traz 2 candidatos a cada troca e soma 5 à moral.',
       // E a Guilda dos Aventureiros, quantas expedições sustenta (expeditions.test.ts).
       guild: 'Sustenta 1 expedição por vez.',
+      // E o Mercado, quanto negocia por dia (market.test.ts).
+      market: 'Negocia até 200 de cada recurso por dia de jogo, entre compras e vendas.',
     });
     const iron = gameWith((draft) => {
       draft.settings.difficulty = 'ironKing';
@@ -1469,7 +1472,8 @@ describe('a visão do armazenamento', () => {
         entry.building !== 'watchtower' &&
         entry.building !== 'palisade' &&
         entry.building !== 'tavern' &&
-        entry.building !== 'guild',
+        entry.building !== 'guild' &&
+        entry.building !== 'market',
     );
     expect(depots).toMatchObject([
       {
@@ -1932,6 +1936,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       palisade: 2,
       tavern: 5,
       guild: 4,
+      market: 5,
     };
     const beyondEight = ['farm 10', 'lumberMill 10', 'quarry 10', 'goldMine 10', 'housing 10'];
     expect(ceilings('peasant')).toEqual(hallAtEight);
@@ -1953,6 +1958,7 @@ describe('alcançabilidade: o custo de cada obra cabe em algum depósito? (roadm
       palisade: 2,
       tavern: 5,
       guild: 4,
+      market: 5,
     });
     expect(unreachable('ironKing')).toEqual([
       'townHall 8',

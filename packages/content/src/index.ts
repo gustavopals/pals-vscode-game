@@ -11,6 +11,7 @@ export type {
   ExpeditionsDef,
   HeroesDef,
   InjuriesDef,
+  MarketDef,
   MoraleBandDef,
   MoraleDef,
   PaceDef,
@@ -42,6 +43,7 @@ export {
   idleVillager,
   injuredLoss,
   injuryTemplates,
+  marketTemplates,
   moraleBandTemplates,
   raidTemplates,
   threatMarkTemplates,
@@ -54,6 +56,7 @@ export type {
   GameEventType,
   HeroDismissalTemplate,
   HeroHarmTemplate,
+  MarketTemplate,
   RaidTemplates,
   WageArrearsRelief,
 } from './chronicle';
