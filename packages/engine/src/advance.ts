@@ -169,13 +169,23 @@ export function processEventsWith(catalog: Catalog): EventProcessor {
  * de ser erguida no caminho também não ganha lista (a inauguração só sorteia sem rotação
  * marcada). Quem ela oferece não entra na conta da moral; o nível dela e o festival, que
  * entram, não dependem da rotação.
+ *
+ * **As expedições em curso ficam de fora.** O fim de um nó sorteia a sorte e o saque, e uma
+ * previsão não sorteia: a cópia avança sem expedição nenhuma. Quem está fora continua fora na
+ * cópia, e o saque não entra: a previsão da moral não conta com a volta de um herói Devoto nem
+ * com a comida que uma equipe traria antes da virada. É o preço de a visão nunca resolver um nó
+ * antes da hora, nem deixar o desfecho transparecer por uma conta.
  */
 export function stateAtNextMoraleTurn(state: GameState): GameState {
   const turn = nextDayBoundary(state.lastProcessedAt);
   const blind: GameState = {
     ...state,
     horde: { ...state.horde, scheduledRaids: [] },
-    guild: { ...state.guild, tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS } },
+    guild: {
+      ...state.guild,
+      tavern: { ...state.guild.tavern, nextRotationAtMs: NEVER_MS },
+      expeditions: [],
+    },
   };
   // Um milissegundo antes da virada o estado está em repouso e o próximo evento é ela mesma:
   // o último milissegundo é um trecho de taxas constantes, como em `advanceWith`.

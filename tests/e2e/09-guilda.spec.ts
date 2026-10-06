@@ -526,12 +526,13 @@ test.describe('a Guilda na interface', () => {
   });
 
   test('a encruzilhada de uma expedição é anunciada na aba Hoje, leva à aba Guilda e, sem resposta, a Postura decide no prazo (V3D-T1)', async ({
-    page,
+    context,
     request,
     world,
   }) => {
     // O app ainda não envia expedição nem escolhe caminho (a interface é da V3D-T4): o que se
     // prova aqui é que o protocolo 3 não o quebra e que a decisão à espera aparece, com o prazo.
+    const page = await world.open(context);
     await playNow(page);
     await world.control('council-deal', { cardId: 'woundedStranger' });
     await world.passTime(MINUTE, page);

@@ -219,6 +219,8 @@ Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, 
 
 **D-12. Os dois grafos e todas as frases das expedições são provisórios e rascunho.**
 - Enquanto isso: a Patrulha dos Arredores e a Floresta Antiga, três variantes mínimas cada, com títulos, pistas e frases do agente ([content-v0.3.md](content-v0.3.md), seção 6). O teste editorial do ADR 0018 não foi feito. Os identificadores `patrol` e `oldForest` ficam gravados no estado e são os que o catálogo de V3D-T3 deve manter.
+- A frase do nó de retorno (`text`, em cada grafo) **ainda não é usada**: a volta sai com a frase geral de `expeditionReturned`, e o caminho de volta não entra no relatório como um passo. Fica no conteúdo para V3D-T3 decidir.
+- **As previsões da visão andam sem as expedições**: a conta da moral da próxima virada não conta com a volta de um herói Devoto nem com a comida que uma equipe traria antes dela (a cópia que prevê não pode sortear o desfecho de um nó). Se isso incomodar na tela, a saída é a visão dizer "a equipe volta antes" sem resolver nada.
 - As frases da Crônica: cada nó resolvido é uma linha ("a patrulha de Pedra Alta deu a volta nas cercas…"), mais a da partida, a da encruzilhada, a da decisão e a da volta. **Em uma expedição de quatro nós são sete linhas na Crônica**: pode ser demais. Tirar as dos nós da Crônica (e deixá-las só no relatório) é pôr `expeditionNodeResolved` em `CHRONICLE_HIDDEN_EVENT_TYPES`.
 
 **D-13. A expedição cujo grafo o conteúdo deixar de ter volta para casa.**

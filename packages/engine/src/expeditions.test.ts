@@ -11,7 +11,7 @@ import {
 } from '@lotg/content';
 import { describe, expect, it } from 'vitest';
 
-import { advanceTo } from './advance';
+import { advanceTo, stateAtNextMoraleTurn } from './advance';
 import {
   durationFactorAt,
   expeditionSlots,
@@ -1621,6 +1621,20 @@ describe('a névoa: o que não sai do servidor (QA-18)', () => {
         }
       }
     }
+  });
+
+  it('as previsões da visão não resolvem nó nenhum: a cópia que prevê a moral anda sem as expedições', () => {
+    // A Patrulha termina o nó e volta antes da próxima virada do dia. A previsão da moral avança
+    // uma cópia até a virada: se a cópia levasse a expedição, sortearia a sorte e o saque dela.
+    const sent = send(hall(), 'patrol', ['hero-1'], 'balanced', 0).state;
+    const ahead = stateAtNextMoraleTurn(sent);
+    expect(ahead.lastProcessedAt).toBe(DAY);
+    expect(ahead.rng).toEqual(sent.rng);
+    expect(ahead.guild.reports).toEqual([]);
+    expect(ahead.settlement.resources.gold).toBeLessThan(sent.settlement.resources.gold);
+    // E o jogo de verdade, no mesmo intervalo, resolve e sorteia.
+    const real = advanceTo(sent, DAY).state;
+    expect(real.guild.reports).toHaveLength(1);
   });
 
   it('a visão e nextEventAt não mudam o estado, o gerador nem os contadores com expedições vivas', () => {
