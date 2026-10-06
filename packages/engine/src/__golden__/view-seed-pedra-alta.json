@@ -690,7 +690,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -1437,7 +1438,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -2221,7 +2223,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -3068,7 +3071,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -3914,7 +3918,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -4932,7 +4937,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -5789,7 +5795,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -6642,7 +6649,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -7486,7 +7494,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -8428,7 +8437,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -9353,7 +9363,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -10224,7 +10235,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -11070,7 +11082,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -11952,7 +11965,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -12798,7 +12812,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -13688,7 +13703,8 @@
         "perHour": 0,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -14549,7 +14565,8 @@
         "perHour": 18,
         "coveredForSeconds": 83015,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -15410,7 +15427,8 @@
           "text": "Soldo em atraso: o cofre está vazio e 2 heróis não recebem. Com 12 h de atraso, quem não é Leal fica descontente e perde 20% dos atributos; com 24 h, parte um herói a cada 2 h, o que chegou por último. As duas coisas acontecem na virada do dia. O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente na Mina de Ouro ou dispense um herói.",
           "discontentInSeconds": null,
           "nextDepartureInSeconds": 2818
-        }
+        },
+        "lingering": null
       }
     },
     "tavern": {
@@ -16163,7 +16181,8 @@
           "perHour": 2,
           "coveredForSeconds": 527218
         },
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -17024,7 +17043,8 @@
         "perHour": 6,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {
@@ -17950,7 +17970,8 @@
         "perHour": 4,
         "coveredForSeconds": null,
         "afterArrivals": null,
-        "arrears": null
+        "arrears": null,
+        "lingering": null
       }
     },
     "tavern": {

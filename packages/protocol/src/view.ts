@@ -373,6 +373,11 @@ const GuildSchema = z.strictObject({
         nextDepartureInSeconds: z.number().nullable(),
       })
       .nullable(),
+    /**
+     * O atraso que fechou há pouco e ainda cobra uma partida na próxima virada do dia: quem
+     * parte, em uma frase, e em quantos segundos reais. `null` no caso comum.
+     */
+    lingering: z.strictObject({ text: z.string(), departureInSeconds: z.number() }).nullable(),
   }),
 });
 

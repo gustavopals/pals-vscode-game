@@ -250,6 +250,33 @@ function lastArrived(heroes: readonly Hero[]): Hero | null {
   return last;
 }
 
+/** Quem a conta já pode levar: não é Leal e já viveu `leaveAfterRealMs` de atraso. */
+function mayLeaveNow(state: GameState, ledger: WageLedger): Hero[] {
+  const { leaveAfterMs } = wageArrearsPace(state);
+  return state.guild.heroes.filter(
+    (hero) => !isLoyal(hero) && heroArrearsMs(ledger, hero) >= leaveAfterMs,
+  );
+}
+
+/**
+ * O herói que a próxima virada do dia ainda leva **com o atraso já fechado**: a conta do que
+ * fechou dentro da janela (`wageLedgerAt`) deve mais do que cobrou, a virada cai dentro da
+ * janela e há quem possa partir. `null` no caso comum. É a visão que pergunta: quem paga um
+ * atraso velho precisa saber que o prazo vencido ainda é cobrado.
+ */
+export function lingeringDeparture(state: GameState): { atMs: number; hero: Hero } | null {
+  if (state.guild.wageArrears !== null) {
+    return null;
+  }
+  const atMs = nextDayBoundary(state.lastProcessedAt);
+  const ledger = wageLedgerAt(state, atMs);
+  if (ledger === null || wageDeparturesOwedAt(state, atMs) <= ledger.departed) {
+    return null;
+  }
+  const hero = lastArrived(mayLeaveNow(state, ledger));
+  return hero === null ? null : { atMs, hero };
+}
+
 /**
  * As consequências do atraso, cobradas na virada do dia de jogo (GDD §9.1; ADR 0017, decisão 3),
  * sem sorteio e em ordem fixa. **Os prazos de cada herói contam do atraso vivido por ele**
@@ -288,7 +315,7 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
   if (ledger === null) {
     return;
   }
-  const { discontentAfterMs, leaveAfterMs } = wageArrearsPace(draft);
+  const { discontentAfterMs } = wageArrearsPace(draft);
   if (ledger.open) {
     for (const hero of guild.heroes) {
       if (hero.discontent || isLoyal(hero) || heroArrearsMs(ledger, hero) < discontentAfterMs) {
@@ -298,11 +325,10 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
       emit(events, draft, atMs, 'heroDiscontent', { heroId: hero.id }, { heroi: hero.name });
     }
   }
-  const mayLeave = (hero: Hero) => !isLoyal(hero) && heroArrearsMs(ledger, hero) >= leaveAfterMs;
   const owed = wageDeparturesOwedAt(draft, atMs);
   let { departed } = ledger;
   while (departed < owed) {
-    const due = guild.heroes.filter(mayLeave);
+    const due = mayLeaveNow(draft, ledger);
     if (due.length === 0) {
       // Ninguém pode partir ainda (só Leais, ou quem chegou há pouco): o devido fica perdoado.
       departed = owed;

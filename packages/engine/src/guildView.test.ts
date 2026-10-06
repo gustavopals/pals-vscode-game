@@ -41,7 +41,13 @@ describe('a guilda na visão', () => {
       heroLimit: 1,
       heroes: [],
       arriving: [],
-      wage: { perHour: 0, coveredForSeconds: null, afterArrivals: null, arrears: null },
+      wage: {
+        perHour: 0,
+        coveredForSeconds: null,
+        afterArrivals: null,
+        arrears: null,
+        lingering: null,
+      },
     });
   });
 
@@ -150,6 +156,7 @@ describe('a guilda na visão', () => {
       coveredForSeconds: null,
       afterArrivals: null,
       arrears: null,
+      lingering: null,
     });
   });
 
@@ -393,6 +400,7 @@ describe('o soldo em atraso na visão', () => {
       'coveredForSeconds',
       'afterArrivals',
       'arrears',
+      'lingering',
     ]);
     const text = JSON.stringify(view);
     expect(text).not.toMatch(

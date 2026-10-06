@@ -35,7 +35,12 @@ import type {
   WageArrearsView,
 } from './types';
 import { HOUR_MS, MILLI, realSecondsCeil, SECOND_MS } from './units';
-import { nextDiscontentAt, nextWageDepartureAt, wageArrearsDurationAt } from './wages';
+import {
+  lingeringDeparture,
+  nextDiscontentAt,
+  nextWageDepartureAt,
+  wageArrearsDurationAt,
+} from './wages';
 
 /**
  * Os heróis e o soldo na visão (GDD §9.1; ADR 0017, decisões 3, 5 e 7). Só lê o estado: não
@@ -176,6 +181,18 @@ function coveredForSeconds(
   return goldRunsOutIn === null ? null : realSecondsFloor(goldRunsOutIn, timeScale);
 }
 
+/** O atraso fechado que ainda cobra uma partida na próxima virada (`lingeringDeparture`). */
+function lingeringView(state: GameState, timeScale: number): GuildView['wage']['lingering'] {
+  const due = lingeringDeparture(state);
+  if (due === null) {
+    return null;
+  }
+  return {
+    text: fillText(wageArrearsTexts.lingering, { heroi: due.hero.name }),
+    departureInSeconds: realSecondsCeil(due.atMs - state.lastProcessedAt, timeScale),
+  };
+}
+
 /**
  * O soldo depois de chegarem os prometidos que têm instante marcado (`wage.afterArrivals`):
  * quanto a equipe passa a custar e por quanto tempo real o ouro a paga, somando o soldo de cada
@@ -284,6 +301,7 @@ export function guildView(state: GameState, timeScale: number, outlook: CraftOut
       coveredForSeconds: coveredForSeconds(state, timeScale, outlook),
       afterArrivals: afterArrivals(state, timeScale, outlook),
       arrears: arrearsView(state, timeScale),
+      lingering: lingeringView(state, timeScale),
     },
   };
 }

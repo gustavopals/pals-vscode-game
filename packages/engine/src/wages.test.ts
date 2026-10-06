@@ -909,8 +909,16 @@ describe('o atraso fechado logo antes da virada não escapa da cobrança (revis�
     expect(open.guild.wageArrears?.departed).toBe(1);
     const paid = advanceTo(withGold(open, 500_000), 28 * HOUR - 1);
     expect(brief(paid.events)).toEqual([['wageArrearsEnded', 27 * HOUR]]);
+    // A tela não cala: o atraso fechou, mas a virada ainda cobra quem o prazo já devia.
+    const told = deriveViewState(paid.state, 28 * HOUR - 1).guild.wage;
+    expect(told.arrears).toBeNull();
+    expect(told.lingering).toEqual({
+      text: 'O soldo voltou a ser pago, mas o atraso já devia um herói: Rolf parte na próxima virada do dia. Pagar antes de o prazo vencer é o que segura quem serve.',
+      departureInSeconds: 1,
+    });
     const turned = advanceTo(paid.state, 28 * HOUR);
     expect(brief(turned.events)).toEqual([['heroLeft', 28 * HOUR, 'hero-2']]);
+    expect(deriveViewState(turned.state, 28 * HOUR).guild.wage.lingering).toBeNull();
     expect(turned.state.guild.wageArrears).toBeNull();
     expect(turned.state.guild.lastWageArrears).toEqual({
       endedAtMs: 27 * HOUR,

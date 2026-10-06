@@ -1099,6 +1099,13 @@ export type GuildView = {
     afterArrivals: { perHour: number; coveredForSeconds: number | null } | null;
     /** O atraso aberto; `null` com o soldo em dia. */
     arrears: WageArrearsView | null;
+    /**
+     * O atraso que fechou há pouco e ainda tem o que cobrar: o herói que o prazo já devia quando
+     * o ouro chegou parte na próxima virada do dia, se ela cair dentro da janela de retomada.
+     * `text` diz quem; `departureInSeconds` são segundos reais até essa virada. `null` no caso
+     * comum: nada ficou devido, ou a janela já passou.
+     */
+    lingering: { text: string; departureInSeconds: number } | null;
   };
 };
 

@@ -180,6 +180,9 @@ export const wageArrearsTexts = {
   latecomers: 'Para quem chegou com o atraso já aberto, os dois prazos contam da chegada.',
   remedy:
     'O que não foi pago não vira dívida: o atraso fecha quando o ouro voltar a pagar a equipe inteira. Para isso, ponha gente n{mina} ou dispense um herói.',
+  /** O atraso fechou há pouco, e a virada do dia ainda cobra o herói que o prazo já devia. */
+  lingering:
+    'O soldo voltou a ser pago, mas o atraso já devia um herói: {heroi} parte na próxima virada do dia. Pagar antes de o prazo vencer é o que segura quem serve.',
   /** O herói prometido que encontra a lista de heróis no teto. */
   waitingAtDoor:
     'O feudo já abriga {herois}, e não cabe mais nenhum: {heroi} espera à porta até um lugar abrir.',
