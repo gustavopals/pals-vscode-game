@@ -324,7 +324,7 @@
    "expeditionNodeResolved: No 2º dia da Primavera, Isolda achou a passagem do atoleiro, e a expedição de Pedra Alta atravessou com lama pelo joelho.",
    "expeditionAtCrossroads: No 2º dia da Primavera, a expedição \"Pântano Nebuloso\" parou em uma encruzilhada: As luzes sobre a água. A equipe espera a palavra do senhor de Pedra Alta.",
    "expeditionPathChosen: No 2º dia da Primavera, o senhor de Pedra Alta mandou dizer à expedição \"Pântano Nebuloso\": contornar pela margem dos salgueiros.",
-   "expeditionNodeFailed: No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta gastou a tarde para tirar gente da água. A prova pedia mais do que a equipe tinha: gente mais calejada.",
+   "expeditionNodeFailed: No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta tirou gente da água às pressas, e metade do que achara na margem ficou lá. A prova pedia mais do que a equipe tinha: gente mais calejada.",
    "heroInjured: No 2º dia da Primavera, Isolda sofreu um ferimento leve em \"Pântano Nebuloso\". Termina a jornada, mas depois precisa de descanso.",
    "dayStarted: Amanhece o 3º dia da Primavera em Pedra Alta.",
    "expeditionNodeFailed: No 3º dia da Primavera, a névoa da bruxa do charco entrou nos olhos de Edda: a expedição de Pedra Alta saiu da cabana às cegas, com o que estava à mão. A prova pedia mais do que a equipe tinha: gente mais calejada.",
@@ -374,7 +374,7 @@
     },
     {
      "title": "A margem dos salgueiros",
-     "text": "No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta gastou a tarde para tirar gente da água. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 19 de ouro.",
+     "text": "No 2º dia da Primavera, Edda olhou para as luzes e deu três passos charco adentro: a expedição de Pedra Alta tirou gente da água às pressas, e metade do que achara na margem ficou lá. A prova pedia mais do que a equipe tinha: gente mais calejada. Trouxe 19 de ouro.",
      "outcome": "setback",
      "outcomeLabel": "Revés",
      "notes": [

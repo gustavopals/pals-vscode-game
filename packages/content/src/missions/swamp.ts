@@ -64,7 +64,7 @@ export const swamp: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} achou a passagem do atoleiro, e a expedição de {feudo} atravessou com lama pelo joelho.',
               setback:
-                'No {dia}º dia {daEstacao}, o atoleiro prendeu {heroi} até a cintura: a expedição de {feudo} perdeu horas e fôlego para sair dali.',
+                'No {dia}º dia {daEstacao}, o atoleiro prendeu {heroi} até a cintura: a expedição de {feudo} saiu dali sem fôlego, com lama até os olhos.',
               disaster:
                 'No {dia}º dia {daEstacao}, o atoleiro quase engoliu {heroi}, e a expedição de {feudo} saiu dele quebrada.',
             },
@@ -90,8 +90,8 @@ export const swamp: ExpeditionModelDef = {
             },
             {
               id: 'retreat',
-              label: 'Recuar com o que têm',
-              hint: 'Sem risco; o pântano fica com os segredos dele.',
+              label: 'Dar meia-volta',
+              hint: 'Sem risco; voltam de mãos vazias, e o pântano fica com os segredos dele.',
               next: 'home',
             },
           ],
@@ -112,7 +112,7 @@ export const swamp: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} abriu caminho pelo charco, e a expedição de {feudo} alcançou a ilha das luzes.',
               setback:
-                'No {dia}º dia {daEstacao}, as coisas do charco agarraram {heroi} pelas pernas: a expedição de {feudo} chegou à ilha com metade da gente de pé e pegou o que pôde.',
+                'No {dia}º dia {daEstacao}, as coisas do charco agarraram {heroi} pelas pernas: a expedição de {feudo} chegou à ilha aos pedaços e pegou o que pôde.',
               disaster:
                 'No {dia}º dia {daEstacao}, as luzes do charco fecharam em volta de {heroi}: a expedição de {feudo} foi desbaratada na água e não levou nada da ilha.',
             },
@@ -141,7 +141,7 @@ export const swamp: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} manteve a expedição de {feudo} na margem dos salgueiros, de costas para as luzes.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} olhou para as luzes e deu três passos charco adentro: a expedição de {feudo} gastou a tarde para tirar gente da água.',
+                'No {dia}º dia {daEstacao}, {heroi} olhou para as luzes e deu três passos charco adentro: a expedição de {feudo} tirou gente da água às pressas, e metade do que achara na margem ficou lá.',
               disaster:
                 'No {dia}º dia {daEstacao}, as luzes levaram {heroi} para longe dos salgueiros, e a expedição de {feudo} se perdeu na bruma atrás.',
             },
@@ -166,7 +166,7 @@ export const swamp: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, a névoa da bruxa do charco entrou nos olhos de {heroi}: a expedição de {feudo} saiu da cabana às cegas, com o que estava à mão.',
               disaster:
-                'No {dia}º dia {daEstacao}, a bruxa do charco calou {heroi} com um gesto: a expedição de {feudo} foi desbaratada na névoa e deixou a cabana sem levar nada.',
+                'No {dia}º dia {daEstacao}, a bruxa do charco calou {heroi} com um gesto: a expedição de {feudo} foi desbaratada na névoa e deixou a cabana sem levar nada dela.',
             },
           },
           rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },
@@ -238,14 +238,14 @@ export const swamp: ExpeditionModelDef = {
             },
             {
               id: 'diveForBell',
-              label: 'Mergulhar até a capela do sino',
-              hint: 'Fôlego e mão segura no escuro; o cofre das esmolas afundou com a capela.',
+              label: 'Mergulhar até a torre do sino',
+              hint: 'Fôlego e mão segura no escuro; o cofre das esmolas afundou com a torre.',
               next: 'chapel',
             },
             {
               id: 'retreat',
-              label: 'Recuar com o que têm',
-              hint: 'Sem risco; o pântano fica com os segredos dele.',
+              label: 'Dar meia-volta',
+              hint: 'Sem risco; voltam de mãos vazias, e o pântano fica com os segredos dele.',
               next: 'home',
             },
           ],
@@ -282,7 +282,7 @@ export const swamp: ExpeditionModelDef = {
         },
         chapel: {
           kind: 'hazard',
-          title: 'A capela debaixo da água',
+          title: 'A torre do sino debaixo da água',
           durationMs: 60 * MINUTE_MS,
           trial: {
             difficulty: 128,
@@ -290,15 +290,15 @@ export const swamp: ExpeditionModelDef = {
             weights: { skill: { num: 1, den: 1 } },
             onDisaster: 'injury',
             helps: 'archer',
-            lesson: 'Um Arqueiro teria achado a porta da capela no escuro da água.',
+            lesson: 'Um Arqueiro teria achado a porta da torre no escuro da água.',
             outcomes: {
-              full: 'No {dia}º dia {daEstacao}, {heroi} mergulhou até a capela do sino e voltou com o cofre das esmolas inteiro, de um fôlego só.',
+              full: 'No {dia}º dia {daEstacao}, {heroi} mergulhou até a torre do sino e voltou com o cofre das esmolas inteiro, de um fôlego só.',
               success:
-                'No {dia}º dia {daEstacao}, {heroi} achou a capela debaixo da água, e a expedição de {feudo} içou o cofre das esmolas.',
+                'No {dia}º dia {daEstacao}, {heroi} achou a torre do sino debaixo da água, e a expedição de {feudo} içou o cofre das esmolas.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} ficou sem fôlego dentro da capela afundada: o cofre abriu na subida, e metade das esmolas voltou ao lodo.',
+                'No {dia}º dia {daEstacao}, {heroi} ficou sem fôlego dentro da torre afundada: o cofre abriu na subida, e metade das esmolas voltou ao lodo.',
               disaster:
-                'No {dia}º dia {daEstacao}, {heroi} quase não voltou da capela afundada, e o cofre das esmolas ficou onde estava.',
+                'No {dia}º dia {daEstacao}, {heroi} quase não voltou da torre afundada, e o cofre das esmolas ficou onde estava.',
             },
           },
           rewards: { resources: { gold: { min: 40, max: 60 } } },
@@ -321,7 +321,7 @@ export const swamp: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, o afogado que anda não sentiu os golpes de {heroi}: a expedição de {feudo} recuou com o que estava à porta.',
               disaster:
-                'No {dia}º dia {daEstacao}, o afogado que anda abraçou {heroi} e foi andando para a água: a expedição de {feudo} foi desbaratada e não levou nada.',
+                'No {dia}º dia {daEstacao}, o afogado que anda abraçou {heroi} e foi andando para a água: a expedição de {feudo} foi desbaratada e não levou nada da casa grande.',
             },
           },
           rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },
@@ -355,7 +355,7 @@ export const swamp: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} mandou a expedição de {feudo} tapar os ouvidos e atravessou o nevoeiro que chama pelo nome.',
               setback:
-                'No {dia}º dia {daEstacao}, {heroi} ouviu o próprio nome no nevoeiro e saiu do dique: a expedição de {feudo} perdeu horas procurando.',
+                'No {dia}º dia {daEstacao}, {heroi} ouviu o próprio nome no nevoeiro e saiu do dique: foi preciso mais de um braço para a expedição de {feudo} voltar inteira ao caminho.',
               disaster:
                 'No {dia}º dia {daEstacao}, o nevoeiro chamou {heroi} pelo nome até o dique acabar debaixo dos pés, e a expedição de {feudo} saiu da água quebrada.',
             },
@@ -382,8 +382,8 @@ export const swamp: ExpeditionModelDef = {
             },
             {
               id: 'retreat',
-              label: 'Recuar com o que têm',
-              hint: 'Sem risco; o pântano fica com os segredos dele.',
+              label: 'Dar meia-volta',
+              hint: 'Sem risco; voltam de mãos vazias, e o pântano fica com os segredos dele.',
               next: 'home',
             },
           ],
@@ -404,7 +404,7 @@ export const swamp: ExpeditionModelDef = {
               success:
                 'No {dia}º dia {daEstacao}, {heroi} aquietou a árvore dos enforcados o bastante para a expedição de {feudo} recolher as oferendas.',
               setback:
-                'No {dia}º dia {daEstacao}, a prece de {heroi} falhou na metade: a árvore dos enforcados acordou, e a expedição de {feudo} correu com o que tinha nas mãos.',
+                'No {dia}º dia {daEstacao}, a prece de {heroi} falhou no meio: a árvore dos enforcados acordou, e a expedição de {feudo} correu com o que tinha nas mãos.',
               disaster:
                 'No {dia}º dia {daEstacao}, as cordas da árvore dos enforcados desceram sobre {heroi}: a expedição de {feudo} foi desbaratada e não tocou nas oferendas.',
             },
@@ -459,7 +459,7 @@ export const swamp: ExpeditionModelDef = {
               setback:
                 'No {dia}º dia {daEstacao}, a serpente do lodo enrolou {heroi} e só soltou a troco de sangue: a expedição de {feudo} levou o que estava na beira do ninho.',
               disaster:
-                'No {dia}º dia {daEstacao}, a serpente do lodo arrastou {heroi} para dentro da água: a expedição de {feudo} foi desbaratada e fugiu sem nada.',
+                'No {dia}º dia {daEstacao}, a serpente do lodo arrastou {heroi} para dentro da água: a expedição de {feudo} foi desbaratada e fugiu sem nada do ninho.',
             },
           },
           rewards: { resources: { gold: { min: 100, max: 150 } }, item: swampHoard },

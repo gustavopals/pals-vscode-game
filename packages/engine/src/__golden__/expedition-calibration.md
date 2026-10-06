@@ -78,7 +78,7 @@ Em 31 sortes:
 | Pântano Nebuloso | B | A balsa podre | 140 | velocidade ×1, perícia ×0,5 | Arqueiro | fere | 0/15/16/0 | 1/26/4/0 | 17/14/0/0 |
 | Pântano Nebuloso | B | A noite da febre | 120 | vontade ×1,5, ataque ×0,5 | Clérigo | fere | 12/19/0/0 | 0/26/5/0 | 15/16/0/0 |
 | Pântano Nebuloso | B | A toca do que arrasta as redes | 138 | o padrão | Guerreiro | captura | 0/0/18/13 | 0/0/30/1 | 0/10/21/0 |
-| Pântano Nebuloso | B | A capela debaixo da água | 128 | perícia ×1 | Arqueiro | fere | 0/13/18/0 | 0/26/5/0 | 15/16/0/0 |
+| Pântano Nebuloso | B | A torre do sino debaixo da água | 128 | perícia ×1 | Arqueiro | fere | 0/13/18/0 | 0/26/5/0 | 15/16/0/0 |
 | Pântano Nebuloso | B | O afogado que anda | 120 | o padrão | Guerreiro | captura | 0/0/31/0 | 0/9/22/0 | 0/24/7/0 |
 | Pântano Nebuloso | C | O nevoeiro que chama pelo nome | 128 | vontade ×1 | Mago | fere | 2/26/3/0 | 1/26/4/0 | 17/14/0/0 |
 | Pântano Nebuloso | C | A maldição dos enforcados | 150 | vontade ×1,5, ataque ×0,5 | Clérigo | captura | 0/16/15/0 | 0/4/27/0 | 0/19/12/0 |
@@ -127,10 +127,10 @@ Em 31 sortes:
 | Ruínas de Vel'Thar | C | Catar a pedra do pátio e voltar | Cautelosa | — | Clérigo + Clérigo Nv2 (passa em 100%) | Guerreiro + Arqueiro + Mago Nv4 (passa em 100%) | 1 de 60 |
 | Pântano Nebuloso | A | Atravessar o charco, direto à ilha | Ousada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 84%) | Mago + Clérigo + Clérigo Nv1 (passa em 0%) | 6 de 20 |
 | Pântano Nebuloso | A | Contornar pela margem dos salgueiros | Equilibrada | — | Mago + Clérigo + Clérigo Nv1 (passa em 43%) | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 14 de 20 |
-| Pântano Nebuloso | A | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 0 de 20 |
+| Pântano Nebuloso | A | Dar meia-volta | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | 0 de 20 |
 | Pântano Nebuloso | B | Seguir o rastro na lama | Ousada | traço tracker | Guerreiro + Guerreiro + Mago Nv5, com tracker (passa em 90%) | Mago + Clérigo + Clérigo Nv1, com tracker (passa em 0%) | 5 de 40 |
-| Pântano Nebuloso | B | Mergulhar até a capela do sino | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Guerreiro + Guerreiro + Mago Nv5, com tracker (passa em 100%) | 35 de 40 |
-| Pântano Nebuloso | B | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5, com tracker (passa em 100%) | 0 de 40 |
+| Pântano Nebuloso | B | Mergulhar até a torre do sino | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Guerreiro + Guerreiro + Mago Nv5, com tracker (passa em 100%) | 35 de 40 |
+| Pântano Nebuloso | B | Dar meia-volta | Cautelosa | — | — | Guerreiro + Guerreiro + Mago Nv5, com tracker (passa em 100%) | 0 de 40 |
 | Pântano Nebuloso | C | Desfazer a maldição da árvore | Ousada | Clérigo | Mago + Clérigo + Clérigo Nv3 (passa em 37%) | Guerreiro + Arqueiro + Mago Nv1 (não pode) | 12 de 20 |
 | Pântano Nebuloso | C | Passar ao largo, pelo canal | Equilibrada | — | Guerreiro + Guerreiro + Mago Nv5 (passa em 100%) | Mago + Clérigo + Clérigo Nv3 (passa em 31%) | 8 de 20 |
-| Pântano Nebuloso | C | Recuar com o que têm | Cautelosa | — | — | Guerreiro + Mago + Clérigo Nv5 (passa em 100%) | 0 de 20 |
+| Pântano Nebuloso | C | Dar meia-volta | Cautelosa | — | — | Guerreiro + Mago + Clérigo Nv5 (passa em 100%) | 0 de 20 |
