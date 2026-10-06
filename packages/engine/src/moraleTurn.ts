@@ -8,6 +8,7 @@ import {
 } from '@lotg/content';
 
 import { emit } from './chronicle';
+import { famineLedgerAt } from './famine';
 import {
   aboveFloor,
   dropSpentEffects,
@@ -103,17 +104,28 @@ function drawDeparture(draft: GameState, atMs: number, events: GameEvent[]): voi
  * quem cobra é a virada do dia: saem, um a um, os aldeões que o prazo já deve e que esta fome
  * ainda não cobrou, enquanto o feudo estiver acima do piso. A conta fecha no que era devido: o
  * que o piso impediu de sair fica perdoado, e ninguém sai em bloco se a população subir depois.
+ *
+ * **A fome que acabou dentro da janela também é cobrada** (`famineLedgerAt`): a que reabrir dali
+ * é a mesma fome, então a virada que a encontra fechada há menos que a janela cobra o que a
+ * duração dela já devia, e a conta fica no registro (`lastFamine.deserted`) para quando ela
+ * reabrir. Sem isso, fechar a fome um instante antes de cada virada e reabri-la um instante
+ * depois seguraria os aldeões para sempre.
  */
 function desertFromFamine(draft: GameState, atMs: number, events: GameEvent[]): void {
-  const { famine } = draft.settlement;
+  const { settlement } = draft;
+  const ledger = famineLedgerAt(draft, atMs);
   const owed = famineDesertionsOwedAt(draft, atMs);
-  if (famine === null || owed <= famine.deserted) {
+  if (ledger === null || owed <= ledger.deserted) {
     return;
   }
-  for (let due = owed - famine.deserted; due > 0 && aboveFloor(draft); due -= 1) {
+  for (let due = owed - ledger.deserted; due > 0 && aboveFloor(draft); due -= 1) {
     loseVillager(draft, atMs, events, 'villagerDeserted');
   }
-  draft.settlement.famine = { ...famine, deserted: owed };
+  if (settlement.famine !== null) {
+    settlement.famine = { ...settlement.famine, deserted: owed };
+  } else if (settlement.lastFamine !== null) {
+    settlement.lastFamine = { ...settlement.lastFamine, deserted: owed };
+  }
 }
 
 /**

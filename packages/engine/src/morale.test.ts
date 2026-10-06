@@ -698,6 +698,57 @@ describe('deserção por fome (GDD §5.6)', () => {
     expect(fed.state.settlement.famine).toBeNull();
   });
 
+  it('fechar a fome um segundo antes de cada virada e reabri-la um segundo depois não segura os aldeões (revisão da Fase C, M-D1b)', () => {
+    // A fome abre agora. Um segundo antes de cada virada o senhor manda todos os aldeões para
+    // a Fazenda (a fome fecha); um segundo depois, tira todos (ela reabre dentro da janela).
+    let state = starving(0);
+    const events: GameEvent[] = [];
+    const order = (atMs: number, workers: Record<string, number>) => {
+      const steps = Object.entries(workers).map(([building, count]) =>
+        command('setWorkers', { building: building as 'farm', count }),
+      );
+      const done = play(state, [{ at: atMs }, ...steps]);
+      events.push(...done.events);
+      state = done.state;
+    };
+    for (let day = 1; day <= 12; day += 1) {
+      const { villagers } = state.settlement.population;
+      order(SUMMER + day * DAY - 1_000, { lumberMill: 0, quarry: 0, goldMine: 0, farm: villagers });
+      order(SUMMER + day * DAY + 1_000, { farm: 0 });
+    }
+    expect(eventsOfType(events, 'famineEnded').length).toBeGreaterThan(10);
+    // A fome é a mesma e já contou mais de 12 h: a virada cobra, mesmo com ela fechada há um
+    // segundo. O primeiro deserta na 7ª virada (as 12 h se completam logo depois da 6ª).
+    // Daí em diante, um por virada (o passo de 2 h reais é uma virada no ritmo 1).
+    expect(
+      eventsOfType(events, 'villagerDeserted')
+        .map((event) => event.atMs)
+        .slice(0, 4),
+    ).toEqual([SUMMER + 7 * DAY, SUMMER + 8 * DAY, SUMMER + 9 * DAY, SUMMER + 10 * DAY]);
+  });
+
+  it('a virada cobra a fome que acabou dentro da janela; fora dela, não, e a tela avisa antes', () => {
+    // As 12 h se completam aos 30 min; a comida volta com 1 h, e a virada vem 1 h depois.
+    const fed = play(starving(11 * HOUR + 30 * MINUTE), [
+      { at: SUMMER + HOUR },
+      command('setWorkers', { building: 'lumberMill', count: 0 }),
+      command('setWorkers', { building: 'quarry', count: 0 }),
+      command('setWorkers', { building: 'farm', count: 6 }),
+    ]);
+    expect(fed.state.settlement.famine).toBeNull();
+    expect(fed.state.settlement.lastFamine).toMatchObject({ lastedMs: 12 * HOUR + 30 * MINUTE });
+    expect(view(fed.state).morale.notes.join(' ')).toContain(
+      'A fome acabou há pouco, mas já devia um aldeão: ele deserta na próxima virada do dia, em 1 h.',
+    );
+    const turned = advanceTo(fed.state, SUMMER + 4 * DAY);
+    expect(eventsOfType(turned.events, 'villagerDeserted').map((event) => event.atMs)).toEqual([
+      SUMMER + DAY,
+    ]);
+    const after = advanceTo(fed.state, SUMMER + DAY).state;
+    expect(after.settlement.lastFamine).toMatchObject({ deserted: 1 });
+    expect(view(after).morale.notes.join(' ')).not.toContain('A fome acabou há pouco');
+  });
+
   it('quem deserta alivia a despensa: a fome pode acabar no mesmo instante', () => {
     // 6 habitantes e 1 lavrador veterano, com a moral em zero: 10 × 0,75 (fome) × 0,75 (moral)
     // = 5,625 de comida por hora, no verão.

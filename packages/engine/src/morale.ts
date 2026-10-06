@@ -2,7 +2,7 @@ import { balance, type MoraleBandDef, type MoraleTermId } from '@lotg/content';
 
 import { DAY_MS, nextDayBoundary, seasonAt } from './clock';
 import { consumptionRate, stockBalance } from './economy';
-import { famineDurationAt } from './famine';
+import { famineDurationAt, famineLedgerAt } from './famine';
 import { isAtHome, traitMorale } from './heroes';
 import { housingCapacity } from './population';
 import type { GameState, MoraleEffect } from './types';
@@ -179,17 +179,17 @@ export function famineDesertionPace(state: GameState): { graceMs: number; stepMs
  * Quantos aldeões o prazo da deserção já deve em `atMs`, desde o começo desta fome (GDD §5.6):
  * nenhum enquanto ela dura menos que a carência; a partir dela, o primeiro e mais um a cada
  * passo. Zero sem fome e na dificuldade em que a fome não faz partir. Quem cobra é a virada do
- * dia (`moraleTurn.ts`), descontando os que a fome já tinha cobrado (`famine.deserted`).
+ * dia (`moraleTurn.ts`), descontando os que a fome já tinha cobrado (`famine.deserted`). A fome
+ * que acabou há menos que a janela de retomada ainda conta, com a duração que tinha
+ * (`famineLedgerAt`): a que reabrir dali é a mesma.
  */
 export function famineDesertionsOwedAt(state: GameState, atMs: number): number {
-  if (
-    state.settlement.famine === null ||
-    !balance.difficulties[state.settings.difficulty].famineDesertion
-  ) {
+  const ledger = famineLedgerAt(state, atMs);
+  if (ledger === null || !balance.difficulties[state.settings.difficulty].famineDesertion) {
     return 0;
   }
   const { graceMs, stepMs } = famineDesertionPace(state);
-  const lasted = famineDurationAt(state, atMs);
+  const lasted = ledger.durationMs;
   return lasted < graceMs ? 0 : Math.floor((lasted - graceMs) / stepMs) + 1;
 }
 

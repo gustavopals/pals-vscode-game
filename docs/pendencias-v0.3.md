@@ -154,6 +154,15 @@ Vêm das revisões independentes da Fase C. Cada item diz o que a correção **m
 - Onde: `wageLedgerAt` e `turnWages`, em `packages/engine/src/wages.ts`; README do motor, "Heróis e soldo".
 - Se decidir diferente: (a) cobrar só quando o atraso **reabrir** dentro da janela (ninguém que pagou e ficou em dia perde herói; a partida passa a acontecer no instante em que o ouro acaba de novo, fora da virada, e a ordem do instante ganha um passo); (b) aceitar o truque como jogada legítima (ele pede presença em toda virada) e voltar à regra antiga.
 
+**C-48. A deserção por fome da v0.2 tinha o mesmo furo, e foi corrigida do mesmo jeito: é mudança de regra em partidas vivas.** *(Mudança de regra da v0.2, feita pelo agente no espírito do ADR 0016, item 3; para o autor confirmar. Revisão M-D1b.)*
+- O defeito, reproduzido: fome aberta, e todos os aldeões mandados à Fazenda um segundo antes de cada virada e tirados um segundo depois. Em doze dias de jogo no ritmo 1 a fome fechou e reabriu doze vezes, contou mais de 20 h, e **ninguém desertou**. A janela do ADR 0016 guardava a duração, mas a virada só cobrava a fome aberta.
+- Enquanto isso: a virada que encontra a fome fechada **há menos de 2 h reais** cobra os desertores que a duração dela já devia; a conta fica em `lastFamine.deserted`. O piso de 3 e a dificuldade Camponês valem como antes. Nenhuma forma de estado mudou, não há passo de migração, e nenhum golden nem retrato mudou.
+- **Quem joga de verdade sente assim:** se a fome passou das 12 h reais (ou de mais um passo de 2 h) depois da última virada e a comida voltou antes da seguinte, o aldeão que já era devido deserta nessa virada, com a despensa cheia. A aba da moral avisa antes ("A fome acabou há pouco, mas já devia um aldeão: ele deserta na próxima virada do dia, em 1 h."). O texto do aviso é rascunho do agente.
+- **O que não foi corrigido:** o termo da fome na **moral** (−20 e −2 por dia) continua contando só com a fome aberta na virada; o mesmo vaivém ainda o evita. O custo do truque é real (todo aldeão movido se readapta por um dia de jogo), e mexer na moral de quem está alimentado é mudança maior; fica para o autor.
+- Onde: `famineLedgerAt` (`packages/engine/src/famine.ts`), `desertFromFamine` (`moraleTurn.ts`), a nota em `moraleView.ts`; GDD §5.6; README do motor, "Moral".
+- A matriz do simulador: não mexeu (nenhum bot passa fome por 12 h reais; ver o Registro).
+- Se decidir diferente: as mesmas alternativas de C-47.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.

@@ -24,6 +24,26 @@ export function famineDurationAt(state: GameState, atMs: number): number {
 }
 
 /**
+ * A conta que a virada do dia em `atMs` cobra na deserção: a da fome aberta ou, sem ela, a da
+ * que acabou há menos que a janela (a que reabrir dali é a mesma fome, e a virada a cobra como
+ * tal). `durationMs` é a duração que conta (a da fome fechada parou no instante em que ela
+ * acabou) e `deserted`, os aldeões que ela já cobrou. `null` sem nada a cobrar.
+ */
+export function famineLedgerAt(
+  state: GameState,
+  atMs: number,
+): { durationMs: number; deserted: number } | null {
+  const { famine, lastFamine } = state.settlement;
+  if (famine !== null) {
+    return { durationMs: famineDurationAt(state, atMs), deserted: famine.deserted };
+  }
+  if (lastFamine !== null && atMs - lastFamine.endedAtMs < famineResumeWindowMs(state)) {
+    return { durationMs: lastFamine.lastedMs, deserted: lastFamine.deserted };
+  }
+  return null;
+}
+
+/**
  * Um passo da fome no instante `atMs`: abre ou encerra, conforme o estado de agora, e diz se
  * mexeu. Só toca nos indicadores e no estoque; a Crônica e a fila de recrutamento ficam com
  * `settleScarcity`, que só registra a mudança que sobrar no fim do instante.

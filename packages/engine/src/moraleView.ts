@@ -4,6 +4,7 @@ import { nextDayBoundary } from './clock';
 import { buildingWithArticle } from './construction';
 import type { CraftOutlook } from './craftProjection';
 import { moraleRatio, producerOf } from './economy';
+import { famineLedgerAt } from './famine';
 import { decimal, durationText, plural, sentenceCase, thousands } from './format';
 import {
   aboveFloor,
@@ -322,6 +323,20 @@ function populationNotes(
         ? `A fome já dura ${after} ou mais: deserta um aldeão a cada ${every} de fome, na virada do dia, até a comida voltar. Faltam ${left} para o próximo.`
         : `Depois de ${after} de fome, deserta um aldeão a cada ${every}, na virada do dia. Faltam ${left} para o primeiro.`,
     );
+  }
+  if (settlement.famine === null && difficulty.famineDesertion && canLose) {
+    // A fome que acabou há menos que a janela ainda é cobrada na virada (`famineLedgerAt`).
+    const turn = nextDayBoundary(state.lastProcessedAt - 1);
+    const due =
+      famineDesertionsOwedAt(state, turn) - (famineLedgerAt(state, turn)?.deserted ?? 0);
+    if (due > 0) {
+      const left = durationText(realSecondsCeil(turn - now, timeScale));
+      notes.push(
+        due === 1
+          ? `A fome acabou há pouco, mas já devia um aldeão: ele deserta na próxima virada do dia, em ${left}.`
+          : `A fome acabou há pouco, mas já devia ${due} aldeões: eles desertam na próxima virada do dia, em ${left}.`,
+      );
+    }
   }
   if (!canLose && (mayLeave || mayDesert)) {
     notes.push(
