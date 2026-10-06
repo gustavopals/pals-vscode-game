@@ -202,6 +202,15 @@ export function runsOutWhy(view: ViewState, row: ResourceRow): string | null {
  */
 export const FULL_SOON_SECONDS = 8 * 3600;
 
+/**
+ * Abaixo disto, o prazo de uma encruzilhada está **perto**: a folha ganha o sinal de aviso,
+ * "Antes de partir" a trata como perigo e a barra de status a mostra mesmo com a fome, o frio
+ * ou o soldo na linha. É escolha de apresentação, como `FULL_SOON_SECONDS`, e não regra: o
+ * prazo já vem do servidor em tempo real. Não serve o limiar da ausência comum: o prazo inteiro
+ * de uma encruzilhada é mais curto do que ela, e toda encruzilhada estaria "perto".
+ */
+export const CROSSROADS_NEAR_SECONDS = 60 * 60;
+
 /** O depósito enche antes de uma ausência comum acabar: vale o destaque e a ação ao lado. */
 export function fillsSoon(row: ResourceRow): boolean {
   return row.fullInSeconds !== null && row.fullInSeconds < FULL_SOON_SECONDS;
@@ -497,6 +506,54 @@ export function expiresIn(secondsAtReceipt: number, elapsedSeconds: number): str
  * há fome.
  */
 function statusTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
+  const topic = heldTopic(view, elapsedSeconds);
+  return topic.bar.alarm === true || view.threat.incoming !== null
+    ? withNearCrossroads(topic, view, elapsedSeconds)
+    : topic;
+}
+
+/**
+ * A encruzilhada de prazo perto (`CROSSROADS_NEAR_SECONDS`) não some atrás do estado que segura
+ * a linha (a incursão, a fome, o frio, o soldo em atraso): divide a linha com ele. É a única
+ * decisão que outra coisa toma pelo jogador em minutos, e um atraso de soldo que dura horas a
+ * esconderia até o fim. A linha continua sendo a do estado, com o tom dele; a encruzilhada
+ * entra depois, com o ícone dela e o tempo que falta, e o clique passa a levar à aba Guilda,
+ * onde está a escolha (menos na incursão, que mantém o clique para a defesa). As cartas do
+ * Conselho não entram: o prazo delas é de um dia.
+ */
+function withNearCrossroads(
+  topic: StatusTopic,
+  view: ViewState,
+  elapsedSeconds: number,
+): StatusTopic {
+  const [near] = view.pendingDecisions
+    .filter((decision) => decision.kind === 'crossroads')
+    .map((decision) => ({
+      decision,
+      left: remainingNow(decision.expiresInSeconds, elapsedSeconds),
+    }))
+    .filter((entry) => entry.left > 0 && entry.left < CROSSROADS_NEAR_SECONDS)
+    .sort((a, b) => a.left - b.left);
+  if (near === undefined) {
+    return topic;
+  }
+  return {
+    ...topic,
+    bar: {
+      ...topic.bar,
+      text: `${topic.bar.text} · $(git-compare) encruzilhada: ${formatApprox(near.left)}`,
+      tooltip:
+        `${topic.bar.tooltip} "${near.decision.title}": a espera acaba em ${formatApprox(near.left)}. ` +
+        'A equipe espera na encruzilhada, na aba Guilda.',
+      // A incursão mantém o clique dela (a defesa tem prazo também); nos outros estados, a
+      // escolha é o que vence primeiro, e o clique leva a ela.
+      ...(topic.bar.alarm === true ? { target: 'guild' as const } : {}),
+    },
+  };
+}
+
+/** O assunto que segura a linha, sem a encruzilhada de prazo perto; ver `statusTopic`. */
+function heldTopic(view: ViewState, elapsedSeconds: number): StatusTopic {
   const name = view.settlement.name;
   const { incoming } = view.threat;
   if (incoming !== null) {

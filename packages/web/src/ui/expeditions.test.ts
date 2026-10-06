@@ -9,17 +9,20 @@ import {
   expeditionReturningView,
   expeditionTravelingView,
   gameEvent,
+  guildArrearsView,
   guildPaidView,
   heroCapturedView,
   heroInjuredView,
   initialView,
   tavernOpenView,
+  threatIncomingView,
   withoutTheClass,
 } from '../test-helpers';
 import {
   armableHeroes,
   blockedReason,
   canSend,
+  CROSSROADS_NEAR_SECONDS,
   crossroadsDeadline,
   crossroadsOverdue,
   crossroadsSoon,
@@ -459,6 +462,66 @@ describe('a barra de status e o título: a encruzilhada conta como decisão pend
     expect(output.tooltip).toContain('A carta espera na aba Conselho.');
     expect(output.tooltip).toContain('A equipe espera na encruzilhada, na aba Guilda.');
     expect(documentTitle(bar(both))).toBe('(2) Pedra Alta · Lords of the Guild');
+  });
+
+  it('com o soldo em atraso (ou a fome, ou o frio) na linha, a encruzilhada de prazo perto divide a linha em vez de sumir (revisão, A15)', () => {
+    const [crossroads] = expeditionCrossroadsView.pendingDecisions;
+    if (crossroads === undefined) {
+      throw new Error('Sem encruzilhada.');
+    }
+    const arrears = (expiresInSeconds: number): ViewState => ({
+      ...expeditionCrossroadsView,
+      guild: { ...expeditionCrossroadsView.guild, wage: guildArrearsView.guild.wage },
+      pendingDecisions: [{ ...crossroads, expiresInSeconds }],
+    });
+    // Com o prazo longe, a linha é só a do atraso: a decisão está no contador do título.
+    const far = statusBar(bar(arrears(5 * 3600)));
+    expect(far.text).toMatch(/^\$\(warning\) Soldo em atraso/);
+    expect(far.text).not.toContain('git-compare');
+    // Faltando cinco minutos, a encruzilhada entra na mesma linha, com o prazo, e o clique leva
+    // à aba Guilda; o atraso continua lá, com o tom de alarme.
+    const near = statusBar(bar(arrears(300)));
+    expect(near.text).toMatch(
+      /^\$\(warning\) Soldo em atraso.* · \$\(git-compare\) encruzilhada: 5 min$/,
+    );
+    expect(near.alarm).toBe(true);
+    expect(near.target).toBe('guild');
+    expect(near.tooltip).toContain(guildArrearsView.guild.wage.arrears?.text ?? '');
+    expect(near.tooltip).toContain(
+      '"Floresta Antiga: A trilha se divide": a espera acaba em 5 min. A equipe espera na encruzilhada, na aba Guilda.',
+    );
+    // O limiar é o mesmo de "Antes de partir": uma hora, descontado o tempo desde a leitura.
+    expect(statusBar(bar(arrears(CROSSROADS_NEAR_SECONDS))).text).not.toContain('git-compare');
+    expect(statusBar(bar(arrears(CROSSROADS_NEAR_SECONDS - 1))).text).toContain('git-compare');
+    expect(statusBar(bar(arrears(5 * 3600), { elapsedSeconds: 5 * 3600 - 300 })).text).toContain(
+      'encruzilhada: 5 min',
+    );
+    // Vale para a fome também; e a carta do Conselho, de prazo longo, não entra na linha.
+    const hungry: ViewState = {
+      ...arrears(300),
+      guild: expeditionCrossroadsView.guild,
+      famine: {
+        secondsElapsed: 60,
+        endsInSeconds: null,
+        text: 'A fome chegou.',
+      } as ViewState['famine'],
+    };
+    expect(statusBar(bar(hungry)).text).toMatch(
+      /Fome em .* · \$\(git-compare\) encruzilhada: 5 min$/,
+    );
+    const card: ViewState = {
+      ...hungry,
+      pendingDecisions: [{ kind: 'card', id: 'meal-1', title: 'Pão', expiresInSeconds: 300 }],
+    };
+    expect(statusBar(bar(card)).text).not.toContain('·');
+    // Com a incursão à vista a linha também se divide, mas o clique continua sendo o da defesa.
+    const raid: ViewState = { ...arrears(300), threat: threatIncomingView.threat };
+    expect(statusBar(bar(raid)).text).toMatch(
+      /^\$\(megaphone\).* · \$\(git-compare\) encruzilhada: 5 min$/,
+    );
+    expect(statusBar(bar(raid)).target).toBe('threat');
+    // Com a espera já vencida no relógio da página, não há o que mostrar.
+    expect(statusBar(bar(arrears(300), { elapsedSeconds: 301 })).text).not.toContain('git-compare');
   });
 
   it('sem ligação a encruzilhada guardada não entra no contador', () => {
