@@ -460,9 +460,11 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
         (hero.discontent ? ' · ⚠ descontente' : ''),
       tooltip: [sheetLine(hero), ...traitLines(hero.traits), hero.powerBreakdown].join('\n'),
       icon: HERO_ICON,
-      contextValue: 'lords.hero',
       command: open,
-      actionHints: { 'lords.dismissHero': 'pede confirmação' },
+      // O botão "Dispensar" só existe em quem a visão diz que pode ser dispensado agora.
+      ...(hero.canDismiss
+        ? { contextValue: 'lords.hero', actionHints: { 'lords.dismissHero': 'pede confirmação' } }
+        : {}),
     })),
     // O id é do herói (o nome: um prometido não se repete), não da posição na lista: quando o
     // primeiro chega, a linha do segundo continua sendo a dele, com o foco e a seleção.

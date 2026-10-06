@@ -4,8 +4,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { Controller } from '../app/controller';
 import {
   gameEvent,
+  expeditionTravelingView,
   guildArrearsView,
   guildPaidView,
+  heroCapturedView,
   initialView,
   makeController,
   scriptedDialogs,
@@ -311,6 +313,45 @@ describe('dispensar herói', () => {
     ]);
     expect(tavernOpenView.guild.dismissText).toContain('não devolve nada');
     expect(orders()).toEqual([dismiss('hero-1')]);
+  });
+
+  it('a confirmação mostra o que a dispensa custa àquele herói: desistir de um cativo é dito com a frase dele', async () => {
+    const { run, answers, shown, orders } = await setup(heroCapturedView);
+    const [edda, rolf] = heroCapturedView.guild.heroes;
+    expect(edda?.captive).toBe(true);
+    expect(edda?.dismissText).not.toBe(rolf?.dismissText);
+    answers.push(true);
+    await run('lords.dismissHero', { heroId: 'hero-1' });
+    const [confirm] = shown;
+    if (confirm?.kind !== 'confirm') {
+      throw new Error('esperava a confirmação');
+    }
+    expect(confirm.detail?.[1]).toBe(edda?.dismissText);
+    expect(orders()).toEqual([dismiss('hero-1')]);
+  });
+
+  it('quem a visão diz que não pode ser dispensado agora: a lista o traz com cadeado e o motivo, e nada é confirmado nem enviado', async () => {
+    const [edda] = expeditionTravelingView.guild.heroes;
+    expect(edda?.canDismiss).toBe(false);
+    // Pela linha da árvore ou por um botão antigo: o motivo do servidor, sem confirmação.
+    const direct = await setup(expeditionTravelingView);
+    await direct.run('lords.dismissHero', { heroId: 'hero-1' });
+    expect(direct.shown).toEqual([]);
+    expect(direct.toasts()).toEqual([edda?.dismissText]);
+    expect(direct.orders()).toEqual([]);
+    // Pela paleta: a lista diz quem não pode, e escolhê-lo também só avisa.
+    const palette = await setup(expeditionTravelingView);
+    palette.answers.push(0);
+    await palette.run('lords.dismissHero');
+    const [pick] = palette.shown;
+    if (pick?.kind !== 'pick') {
+      throw new Error('esperava a lista dos heróis');
+    }
+    expect(pick.items.map((item) => item.icon)).toEqual(['lock', 'person']);
+    expect(pick.items[0]?.detail).toContain(edda?.dismissText);
+    expect(palette.shown).toHaveLength(1);
+    expect(palette.toasts()).toEqual([edda?.dismissText]);
+    expect(palette.orders()).toEqual([]);
   });
 
   it('com vários, pergunta quem, e marca o descontente; depois confirma', async () => {

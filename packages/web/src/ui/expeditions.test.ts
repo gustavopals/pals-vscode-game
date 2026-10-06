@@ -414,6 +414,13 @@ describe('a árvore: "Guilda · 3 heróis · 1 expedição na encruzilhada" (GDD
     expect(find(tree(denClearedView), 'guild')?.contextValue).toBe('lords.guild');
   });
 
+  it('a linha de um herói só tem "Dispensar" quando a visão diz que ele pode ser dispensado', () => {
+    // Edda viaja (não pode); Rolf está no feudo. A cativa do outro retrato pode: desiste-se dela.
+    expect(find(tree(expeditionTravelingView), 'hero:hero-1')?.contextValue).toBeUndefined();
+    expect(find(tree(expeditionTravelingView), 'hero:hero-2')?.contextValue).toBe('lords.hero');
+    expect(find(tree(heroCapturedView), 'hero:hero-1')?.contextValue).toBe('lords.hero');
+  });
+
   it('a linha "Hoje" conta a encruzilhada como decisão pendente', () => {
     expect(find(tree(expeditionCrossroadsView), 'today')?.description).toBe('● 1 decisão pendente');
   });

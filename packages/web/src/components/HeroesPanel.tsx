@@ -50,7 +50,9 @@ export function Traits(props: { traits: ReadonlyArray<{ label: string; text: str
  * A ficha de um herói (GDD §9.1): o nome, a classe, o nível e os traços em uma linha; embaixo, o
  * poder com a conta do servidor, a experiência, o soldo e onde ele está (no feudo, em expedição,
  * em recuperação com o prazo, em cativeiro), na frase do servidor. O Descontente tem ícone e
- * palavra: nada é dito só pela cor. "Dispensar" passa por `lords.dismissHero`, que confirma.
+ * palavra: nada é dito só pela cor. "Dispensar" aparece em quem a visão diz que pode ser
+ * dispensado (`canDismiss`: também o cativo, de quem se desiste) e passa por
+ * `lords.dismissHero`, que confirma com o que a dispensa custa àquele herói.
  * Quem o próximo Resgate solta (a visão diz quem: `nextRescued`, `rescueTargetName`) ganha
  * "Enviar o Resgate" quando a Guilda o oferece e alguma equipe pode ir; se nenhuma pode, o
  * motivo do servidor fica no lugar do botão. O equipamento vem recolhido logo abaixo.
@@ -86,16 +88,19 @@ function HeroSheet(props: {
           </span>
         ) : null}
       </p>
-      <div class="hero-actions">
-        <button
-          type="button"
-          disabled={props.disabled || props.busy}
-          aria-describedby={about}
-          onClick={() => props.actions.run('lords.dismissHero', { heroId: hero.id })}
-        >
-          Dispensar<span class="sr-only"> {hero.name}</span>
-        </button>
-      </div>
+      {/* Quem pode ser dispensado agora é o que a visão diz: o cativo sim, quem viaja não. */}
+      {hero.canDismiss ? (
+        <div class="hero-actions">
+          <button
+            type="button"
+            disabled={props.disabled || props.busy}
+            aria-describedby={about}
+            onClick={() => props.actions.run('lords.dismissHero', { heroId: hero.id })}
+          >
+            Dispensar<span class="sr-only"> {hero.name}</span>
+          </button>
+        </div>
+      ) : null}
       {rescue === null ? null : rescueBlocked !== null ? (
         <p class="blocked">
           <Icon name="lock" /> {rescue.label}: {rescueBlocked}

@@ -1022,9 +1022,15 @@ export function createCommands(
       actions: [seeGuild],
     });
 
+  /** A visão diz que este herói não pode ser dispensado agora: o motivo é a frase dela. */
+  const cannotDismiss = (hero: Hero) =>
+    controller.toast({ kind: 'info', text: hero.dismissText, actions: [seeGuild] });
+
   /**
    * "Dispensar herói": sempre com confirmação, porque não há volta; a frase do que se perde é a
-   * do servidor. O painel e a árvore mandam o herói; a paleta pergunta qual (com um só, é ele).
+   * do servidor, a daquele herói (`hero.dismissText`: desistir de um cativo custa outra coisa).
+   * O painel e a árvore mandam o herói; a paleta pergunta qual (com um só, é ele). Quem a visão
+   * diz que não pode ser dispensado agora (`canDismiss`) só recebe o motivo, sem confirmação.
    */
   const dismissHero = oneAtATime(
     async (arg) => {
@@ -1051,21 +1057,30 @@ export function createCommands(
               title: 'Dispensar herói',
               placeholder: 'Quem? A dispensa ainda pede confirmação.',
               items: heroes.map((entry) => ({
-                icon: entry.discontent ? 'warning' : 'person',
+                // Cadeado: a visão diz que ele não pode ser dispensado agora, e o detalhe, por quê.
+                icon: !entry.canDismiss ? 'lock' : entry.discontent ? 'warning' : 'person',
                 label: `${entry.name} · ${sheetLine(entry)}`,
                 description: `soldo de ${wageOf(entry.wagePerHour)}${entry.discontent ? ' · descontente' : ''}`,
-                detail: traitLines(entry.traits).join(' '),
+                detail: [
+                  ...(entry.canDismiss ? [] : [entry.dismissText]),
+                  ...traitLines(entry.traits),
+                ].join(' '),
                 value: entry,
               })),
             }));
       if (hero === undefined) {
         return;
       }
+      if (!hero.canDismiss) {
+        cannotDismiss(hero);
+        return;
+      }
       const confirmed = await dialogs.confirm({
         title: `Dispensar ${hero.name}?`,
         detail: [
           `${hero.name} · ${sheetLine(hero)} · soldo de ${wageOf(hero.wagePerHour)}.`,
-          view.guild.dismissText,
+          // O que a dispensa custa a este herói, na frase do servidor: a de um cativo é outra.
+          hero.dismissText,
         ],
         confirmLabel: `Dispensar ${hero.name}`,
         cancelLabel: `Manter ${hero.name}`,
@@ -1078,8 +1093,13 @@ export function createCommands(
         sessionEnded('a dispensa');
         return;
       }
-      if (heroNow(hero.id) === undefined) {
+      const now = heroNow(hero.id);
+      if (now === undefined) {
         heroGone();
+        return;
+      }
+      if (!now.canDismiss) {
+        cannotDismiss(now);
         return;
       }
       await controller.dismissHero(hero.id);

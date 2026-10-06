@@ -664,6 +664,30 @@ describe('o equipamento na ficha e o arsenal (V3D-T4.5)', () => {
     expect(text(markup)).toContain(CLASS_MISSING_REASON);
   });
 
+  it('"Dispensar" aparece em quem a visão diz que pode ser dispensado: o cativo sim, quem está em expedição não', () => {
+    // O cativo pode ser dispensado (desistir dele); a ficha de Edda tem o botão.
+    expect(heroCapturedView.guild.heroes.map((hero) => hero.canDismiss)).toEqual([
+      true,
+      true,
+      true,
+    ]);
+    expect(
+      buttons(heroes(heroCapturedView))
+        .map((button) => button.label)
+        .filter((label) => label.startsWith('Dispensar')),
+    ).toEqual(['Dispensar Edda', 'Dispensar Rolf', 'Dispensar Brann']);
+    // Edda em expedição: a visão diz que não, e a ficha dela fica sem o botão.
+    expect(expeditionTravelingView.guild.heroes.map((hero) => hero.canDismiss)).toEqual([
+      false,
+      true,
+    ]);
+    expect(
+      buttons(heroes(expeditionTravelingView))
+        .map((button) => button.label)
+        .filter((label) => label.startsWith('Dispensar')),
+    ).toEqual(['Dispensar Rolf']);
+  });
+
   it('com alguém em cativeiro, a ficha oferece "Enviar o Resgate" e diz o que vale para o cativo', () => {
     const { calls, actions: recorded } = recording();
     const markup = heroes(heroCapturedView);
