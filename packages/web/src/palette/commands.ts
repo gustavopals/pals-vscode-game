@@ -734,21 +734,30 @@ export function createCommands(
 
   /**
    * Um fluxo por vez (roadmap da v0.3, §11.1, lição 9): enquanto um diálogo espera, ou a ordem
-   * está a caminho, um segundo acionamento do mesmo comando (duplo clique, `Enter` repetido na
-   * paleta) não abre outro fluxo. Sem a trava, dois fluxos se intercalariam na fila de diálogos
+   * está a caminho, um segundo acionamento do mesmo comando **para o mesmo alvo** (duplo clique,
+   * `Enter` repetido na paleta) não abre outro fluxo. Sem a trava, dois fluxos se intercalariam na fila de diálogos
    * e a segunda resposta contrataria, ou dispensaria, outra vez.
    */
-  const oneAtATime = (flow: (arg?: unknown) => Promise<void>) => {
-    let running = false;
+  const oneAtATime = (
+    flow: (arg?: unknown) => Promise<void>,
+    /**
+     * O alvo que o acionamento já traz (o candidato ou o herói da linha clicada). A trava é por
+     * alvo: com a ordem de um a caminho, o clique em outro não some em silêncio. Sem alvo (a
+     * paleta, que pergunta), a trava é a do fluxo.
+     */
+    targetOf: (arg?: unknown) => string | undefined = () => undefined,
+  ) => {
+    const running = new Set<string>();
     return async (arg?: unknown) => {
-      if (running) {
+      const key = targetOf(arg) ?? '';
+      if (running.has(key)) {
         return;
       }
-      running = true;
+      running.add(key);
       try {
         await flow(arg);
       } finally {
-        running = false;
+        running.delete(key);
       }
     };
   };
@@ -831,49 +840,52 @@ export function createCommands(
    * e mandam o candidato; a paleta pergunta qual. Mesmo bloqueada, a ordem segue: quem recusa é
    * o servidor, com o motivo atualizado.
    */
-  const hireHero = oneAtATime(async (arg) => {
-    const view = requireView();
-    if (view === null) {
-      return;
-    }
-    const requested = guildRequest(arg, 'offerId', OFFER_NODE);
-    if (requested !== undefined) {
-      if (offerNow(requested) === undefined) {
+  const hireHero = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const requested = guildRequest(arg, 'offerId', OFFER_NODE);
+      if (requested !== undefined) {
+        if (offerNow(requested) === undefined) {
+          offerGone();
+          return;
+        }
+        await controller.hireHero(requested);
+        return;
+      }
+      if (view.tavern.offers.length === 0) {
+        const rotation = rotationLine(view.tavern, elapsed());
+        controller.toast({
+          kind: 'info',
+          // Sem Taverna, a frase do servidor diz como erguê-la.
+          text:
+            view.tavern.level === 0
+              ? view.tavern.text
+              : `Nenhum candidato à mesa da Taverna agora${rotation === null ? '' : `: a lista ${rotation}`}.`,
+          actions: [seeTavern],
+        });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const offer = await pickOffer(view);
+      if (offer === undefined) {
+        return;
+      }
+      // Depois da espera: a conta e a visão de agora.
+      if (!sameGame(gameId)) {
+        sessionEnded('a contratação');
+        return;
+      }
+      if (offerNow(offer.offerId) === undefined) {
         offerGone();
         return;
       }
-      await controller.hireHero(requested);
-      return;
-    }
-    if (view.tavern.offers.length === 0) {
-      const rotation = rotationLine(view.tavern, elapsed());
-      controller.toast({
-        kind: 'info',
-        // Sem Taverna, a frase do servidor diz como erguê-la.
-        text:
-          view.tavern.level === 0
-            ? view.tavern.text
-            : `Nenhum candidato à mesa da Taverna agora${rotation === null ? '' : `: a lista ${rotation}`}.`,
-        actions: [seeTavern],
-      });
-      return;
-    }
-    const gameId = controller.session.gameId;
-    const offer = await pickOffer(view);
-    if (offer === undefined) {
-      return;
-    }
-    // Depois da espera: a conta e a visão de agora.
-    if (!sameGame(gameId)) {
-      sessionEnded('a contratação');
-      return;
-    }
-    if (offerNow(offer.offerId) === undefined) {
-      offerGone();
-      return;
-    }
-    await controller.hireHero(offer.offerId);
-  });
+      await controller.hireHero(offer.offerId);
+    },
+    (arg) => guildRequest(arg, 'offerId', OFFER_NODE),
+  );
 
   /** O herói ainda serve ao feudo na visão de agora. */
   const heroNow = (heroId: string) =>
@@ -890,63 +902,66 @@ export function createCommands(
    * "Dispensar herói": sempre com confirmação, porque não há volta; a frase do que se perde é a
    * do servidor. O painel e a árvore mandam o herói; a paleta pergunta qual (com um só, é ele).
    */
-  const dismissHero = oneAtATime(async (arg) => {
-    const view = requireView();
-    if (view === null) {
-      return;
-    }
-    const { heroes } = view.guild;
-    const requested = guildRequest(arg, 'heroId', HERO_NODE);
-    if (requested !== undefined && heroNow(requested) === undefined) {
-      heroGone();
-      return;
-    }
-    if (heroes.length === 0) {
-      controller.toast({ kind: 'info', text: view.guild.text, actions: [seeGuild] });
-      return;
-    }
-    const gameId = controller.session.gameId;
-    const hero =
-      heroes.find((entry) => entry.id === requested) ??
-      (heroes.length === 1
-        ? heroes[0]
-        : await dialogs.pick<Hero>({
-            title: 'Dispensar herói',
-            placeholder: 'Quem? A dispensa ainda pede confirmação.',
-            items: heroes.map((entry) => ({
-              icon: entry.discontent ? 'warning' : 'person',
-              label: `${entry.name} · ${sheetLine(entry)}`,
-              description: `soldo de ${wageOf(entry.wagePerHour)}${entry.discontent ? ' · descontente' : ''}`,
-              detail: traitLines(entry.traits).join(' '),
-              value: entry,
-            })),
-          }));
-    if (hero === undefined) {
-      return;
-    }
-    const confirmed = await dialogs.confirm({
-      title: `Dispensar ${hero.name}?`,
-      detail: [
-        `${hero.name} · ${sheetLine(hero)} · soldo de ${wageOf(hero.wagePerHour)}.`,
-        view.guild.dismissText,
-      ],
-      confirmLabel: `Dispensar ${hero.name}`,
-      cancelLabel: `Manter ${hero.name}`,
-    });
-    if (!confirmed) {
-      return;
-    }
-    // Depois da espera: a conta e a visão de agora.
-    if (!sameGame(gameId)) {
-      sessionEnded('a dispensa');
-      return;
-    }
-    if (heroNow(hero.id) === undefined) {
-      heroGone();
-      return;
-    }
-    await controller.dismissHero(hero.id);
-  });
+  const dismissHero = oneAtATime(
+    async (arg) => {
+      const view = requireView();
+      if (view === null) {
+        return;
+      }
+      const { heroes } = view.guild;
+      const requested = guildRequest(arg, 'heroId', HERO_NODE);
+      if (requested !== undefined && heroNow(requested) === undefined) {
+        heroGone();
+        return;
+      }
+      if (heroes.length === 0) {
+        controller.toast({ kind: 'info', text: view.guild.text, actions: [seeGuild] });
+        return;
+      }
+      const gameId = controller.session.gameId;
+      const hero =
+        heroes.find((entry) => entry.id === requested) ??
+        (heroes.length === 1
+          ? heroes[0]
+          : await dialogs.pick<Hero>({
+              title: 'Dispensar herói',
+              placeholder: 'Quem? A dispensa ainda pede confirmação.',
+              items: heroes.map((entry) => ({
+                icon: entry.discontent ? 'warning' : 'person',
+                label: `${entry.name} · ${sheetLine(entry)}`,
+                description: `soldo de ${wageOf(entry.wagePerHour)}${entry.discontent ? ' · descontente' : ''}`,
+                detail: traitLines(entry.traits).join(' '),
+                value: entry,
+              })),
+            }));
+      if (hero === undefined) {
+        return;
+      }
+      const confirmed = await dialogs.confirm({
+        title: `Dispensar ${hero.name}?`,
+        detail: [
+          `${hero.name} · ${sheetLine(hero)} · soldo de ${wageOf(hero.wagePerHour)}.`,
+          view.guild.dismissText,
+        ],
+        confirmLabel: `Dispensar ${hero.name}`,
+        cancelLabel: `Manter ${hero.name}`,
+      });
+      if (!confirmed) {
+        return;
+      }
+      // Depois da espera: a conta e a visão de agora.
+      if (!sameGame(gameId)) {
+        sessionEnded('a dispensa');
+        return;
+      }
+      if (heroNow(hero.id) === undefined) {
+        heroGone();
+        return;
+      }
+      await controller.dismissHero(hero.id);
+    },
+    (arg) => guildRequest(arg, 'heroId', HERO_NODE),
+  );
 
   /**
    * "Dar um festival". O painel tem o custo e o efeito ao lado do botão e manda a ordem já

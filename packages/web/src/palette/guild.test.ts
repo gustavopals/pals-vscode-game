@@ -194,6 +194,36 @@ describe('contratar herói', () => {
     expect(made.orders()).toEqual([hire('offer-1')]);
   });
 
+  // Revisão da Fase C (A-R7): a trava do fluxo era do comando inteiro, e com uma contratação a
+  // caminho o clique em outro candidato sumia em silêncio.
+  it('a trava é por alvo: com uma contratação a caminho, o clique em outro candidato também vira ordem', async () => {
+    const made = await setup(tavernOpenView);
+    const command = made.commands.find((entry) => entry.id === 'lords.hireHero');
+    // Os dois cliques antes de a primeira resposta voltar; o mesmo candidato duas vezes é um só.
+    await Promise.all([
+      command?.run({ offerId: 'offer-1' }),
+      command?.run({ offerId: 'offer-2' }),
+      command?.run({ id: 'offer:offer-1', label: 'pela árvore' }),
+    ]);
+    await settle(made.controller);
+    expect(made.orders()).toEqual([hire('offer-1'), hire('offer-2')]);
+    expect(made.toasts()).toEqual([]);
+  });
+
+  it('a trava é por alvo na dispensa: com uma a caminho, a de outro herói ainda pergunta e segue', async () => {
+    const made = await setup(guildPaidView);
+    made.answers.push(true, true);
+    const command = made.commands.find((entry) => entry.id === 'lords.dismissHero');
+    await Promise.all([
+      command?.run({ heroId: 'hero-1' }),
+      command?.run({ heroId: 'hero-2' }),
+      command?.run({ heroId: 'hero-1' }),
+    ]);
+    await settle(made.controller);
+    expect(made.shown).toHaveLength(2);
+    expect(made.orders()).toEqual([dismiss('hero-1'), dismiss('hero-2')]);
+  });
+
   it('duplo clique no painel: com a primeira ordem a caminho, a segunda não vira ordem', async () => {
     const made = makeController({ signedIn: true });
     controllers.push(made.controller);
