@@ -805,8 +805,14 @@ describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
         label: 'Escolher caminho',
       },
     });
-    // O item entra na lista de cinco, na frente dos depósitos e dos aldeões livres.
-    expect(ids(beforeLeaving(expeditionCrossroadsView))).toContain('crossroads:expedition-2');
+    // A encruzilhada vem no topo da lista (IDEIA-08: "a equipe espera por você").
+    expect(ids(beforeLeaving(expeditionCrossroadsView))[0]).toBe('crossroads:expedition-2');
+    const hungry = withResource(expeditionCrossroadsView, 'food', {
+      stock: 5,
+      perHour: -5,
+      depletesInSeconds: HOUR,
+    });
+    expect(ids(leavingItems(hungry)).slice(0, 2)).toEqual(['crossroads:expedition-2', 'food']);
   });
 
   it('com o prazo longo, é alerta, não urgência: a decisão vai ser tomada de um jeito ou de outro', () => {

@@ -543,20 +543,21 @@ function idleItem(view: ViewState): LeavingItem | null {
 }
 
 /**
- * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: a incursão à vista (ou, sem
- * nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, as equipes que esperam em
- * uma encruzilhada, os depósitos que enchem, as obras que não começam sozinhas, os aldeões
- * livres e os heróis sem jornada. O
+ * Tudo o que há a preparar, sem o limite de linhas, nesta ordem: no topo, as equipes que esperam
+ * em uma encruzilhada (IDEIA-08, "a equipe espera por você": é a única coisa da lista que só o
+ * jogador decide, e que outra coisa decide por ele se ele sair); depois a incursão à vista (ou,
+ * sem nenhuma, a Ameaça que pode marcar uma), a comida, a lenha, o soldo, os depósitos que
+ * enchem, as obras que não começam sozinhas, os aldeões livres e os heróis sem jornada. O
  * Relatório de Retorno tira daqui a próxima ação de cada perda e o que ainda espera uma decisão.
  */
 export function leavingItems(view: ViewState): LeavingItem[] {
   return [
+    ...crossroadsItems(view),
     raidItem(view),
     threatItem(view),
     foodItem(view),
     firewoodItem(view),
     wageItem(view),
-    ...crossroadsItems(view),
     ...storageItems(view),
     queueItem(view),
     idleItem(view),

@@ -29,7 +29,7 @@ Em seis linhas, por ordem de importância:
 
 1. **O backup fora do servidor, a cópia do `RECOVERY_CODE_SECRET` e o ensaio de reversão continuam por fazer, e a v0.3 vai subir a versão do estado em produção assim mesmo** (seção 3; dúvida A-2). O roadmap dizia que esses atos bloqueavam a chegada de qualquer migração de estado à produção; a autorização de `push` de 2026-10-05 não os cumpre. O agente faz um backup manual no servidor antes de cada `push` que sobe o estado: é o mínimo, não o substituto.
 2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. **Respondido em 2026-10-06 (seção 0): a Fase C não vai ao ar sozinha.** O agente segue com commits locais, e a primeira publicação da v0.3 é a do fim da Fase D, com o `push` dado pelo autor depois do backup manual; a produção salta do estado 12 direto para o da Fase D.
-3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). **Os 18 grafos entraram em 2026-10-06, com a V3D-T3**: as fichas estão em [content-v0.3.md](content-v0.3.md), seção 6, e o texto que o jogador lê, um relatório por modelo, em `packages/engine/src/__golden__/expedition-catalog.json`. O que mais pede a sua resposta nessa tarefa: **com duas visitas por dia o jogador não decide encruzilhada nenhuma** (o prazo é de 6 h reais; D-40), a Crônica deixou de levar o nó que deu certo (D-32) e as dificuldades do Apêndice C do GDD mudaram (D-37). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
+3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). **Os 18 grafos entraram em 2026-10-06, com a V3D-T3**: as fichas estão em [content-v0.3.md](content-v0.3.md), seção 6, e o texto que o jogador lê, um relatório por modelo, em `packages/engine/src/__golden__/expedition-catalog.json`. O que mais pede a sua resposta nessa tarefa: **com duas visitas por dia o jogador não decide encruzilhada nenhuma** (o prazo é de 6 h reais; D-40), a Crônica deixou de levar o nó que deu certo (D-32) e as dificuldades do Apêndice C do GDD mudaram (D-37). **Desde a V3D-T4 as expedições estão na tela** (enviar, escolher o caminho, ler o relatório, equipar), mas **você não viu a encruzilhada nem a aba**: é a D-45, com a D-47 (a encruzilhada na barra de status) e a D-51 (no topo de "Antes de partir"). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Com a Fase C fechada esse número não caiu, subiu** (seção 5.5: 159 a 212 mil na mesma célula da semana; o soldo da equipe cheia é 1,4% do que a Mina rende no fim): é das Fases D e E. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
@@ -163,6 +163,47 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Enquanto isso: é a leitura do agente. Se o catálogo de V3D-T3 não condicionar a revelação ao desfecho, o traço fica sem efeito e sai dos modelos de candidato.
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
+
+### Fase D: as expedições na interface (V3D-T4)
+
+Vêm da implementação de V3D-T4 (a aba Guilda com as expedições, a encruzilhada, o relatório, o equipamento e o arsenal; a paleta, a árvore, a barra de status, os avisos, a aba Hoje, o Relatório de Retorno e "Antes de partir"; estado ainda na versão 19, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-45, D-47 e D-51 são as que mais pedem resposta. O que cada superfície mostra está no [README do app](../packages/web/README.md), "As expedições".
+
+**D-45. O autor não viu a encruzilhada antes da tela completa, e ninguém além dos testes usou a tela.** *(Pergunta para o autor: é a V3D-T4.1 e o critério de diversão da tarefa.)*
+- Enquanto isso: a folha da encruzilhada tem o que a subtarefa pedia (título, texto, opções com pista, prazo real e "Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.", na frase do servidor), mas foi feita junto com o resto, sem a parada para mostrar. O teste da tarefa ("o autor abrir o jogo, ver a equipe esperando e escolher sem perguntar o que as Posturas significam") não aconteceu.
+- Para ver em dois minutos, em desenvolvimento: erga a Guilda dos Aventureiros, envie um herói à Floresta Antiga pela aba Guilda e espere o primeiro trecho (20 minutos de jogo no ritmo Normal).
+
+**D-46. A visão ganhou dois campos, e um teste do protocolo mudou de assunto.**
+- Enquanto isso: `log[].outcome` (a chave do desfecho) e `available[].rescue` (o destino é o Resgate), por adição; o protocolo continua 3. O teste que recusava `outcome` em um passo (porque o schema é fechado) passou a recusar a chave do nó, a sorte e a opção, que continuam sem sair do servidor; a chave do desfecho não diz nada que a palavra (`outcomeLabel`) já não dissesse. Os goldens da visão, dos relatórios, dos desfechos e do catálogo foram regravados de propósito: o diff só tem as duas chaves, e três visões novas (`heroInjured`, `heroCaptured`, `denCleared`) para os testes do app.
+- Se decidir diferente: sem `outcome`, o ícone teria de sair da palavra, e trocar "Revés" por outra no conteúdo quebraria a tela em silêncio.
+
+**D-47. A encruzilhada divide a linha da barra de status com as cartas, na mesma prioridade.** *(Pergunta para o autor.)*
+- Enquanto isso: "N decisões pendentes · expira em …" conta as cartas e as encruzilhadas juntas, depois da incursão, da fome, do frio e do soldo em atraso; o prazo, o ícone e a aba do clique são os da que **vence primeiro** (quase sempre a encruzilhada: 6 h contra 24 h). O título da aba do navegador, o selo do Feudo e a linha "Hoje" da árvore somam as duas. O resumo da linha "Conselho" e a aba Conselho continuam contando só cartas.
+- Se decidir diferente: a encruzilhada passar na frente da fome e do frio (é a única decisão que outra coisa toma pelo jogador em horas) é mudar a ordem em `statusTopic`, `ui/format.ts`.
+
+**D-48. O aviso da encruzilhada abre a lista dos caminhos, e não sai para quem já está na aba Guilda.**
+- Enquanto isso: "Escolher caminho" leva à aba Guilda **e** abre a lista das opções (o mesmo comando da paleta); o "Decidir" de uma carta só leva à aba. A diferença é de propósito: a encruzilhada tem prazo curto, e a lista traz a situação, o prazo e o que a Postura fará. Com a aba Guilda à vista o aviso não sai, como o da carta na aba Conselho. O aviso some quando a equipe deixa de esperar.
+- **O que continua valendo da D-40:** com uma ou duas visitas por dia, o aviso só serve a quem está com a página aberta; quem volta depois de 6 h lê na Crônica que a Postura decidiu.
+
+**D-49. A régua da equipe marcada é uma conta do app sobre três números da visão.** *(Pergunta para o autor só se a D-42 mudar.)*
+- Enquanto isso: na montagem do envio a tela soma o `heroFit` de quem está marcado e compara com `fit.comfortPower` e `fit.riskPower`: "Com folga", "No limite" ou "Arriscado", com ícone e palavra, e a frase "A equipe marcada vale 51 contra o primeiro trecho". A soma e a comparação estão em `teamFit` (`ui/expeditions.ts`); nenhum limiar é do app. Como na D-42, a Postura fica de fora (o traço que rende mais em uma delas não entra), e por isso a palavra pode ser um pouco pessimista para um Corajoso na Ousada.
+- Se decidir diferente: o motor pode mandar a palavra pronta por equipe, mas teria de receber a equipe (a visão não sabe quem o jogador marcou); ou a tela mostra só os números.
+
+**D-50. No Relatório de Retorno, o nó que deu errado fica só na Crônica.**
+- Enquanto isso: nos blocos entram a volta e o que ela deixou ("prosperou") e quem se feriu, foi capturado ou morreu e a equipe que não voltou ("custou", com "Enviar o Resgate", "Ver a Taverna" ou "Ver a Guilda"). A partida, a chegada à encruzilhada, quem decidiu e `expeditionNodeFailed` (com a lição) ficam nas linhas da Crônica da ausência e no relatório da expedição. Um Revés sem ferido (metade do saque) não aparece em "custou". O saque entra na tabela como "Recebido", com teste. O tratamento completo é a V3F-T3.
+
+**D-51. "Antes de partir" põe a encruzilhada no topo, acima da incursão e da fome.** *(Pergunta para o autor.)*
+- Enquanto isso: é o que a IDEIA-08 pede ("no topo de 'Você ainda pode decidir' e de 'Antes de partir'"). A lista tem cinco linhas: com três equipes esperando, sobram duas para a incursão, a fome, a lenha e o soldo. O item diz o prazo e o que a Postura fará; é urgente (vermelho, com ícone e palavra) quando vence antes de uma ausência comum, e alerta no resto. O herói sem jornada é sugestão, no fim da lista, e só aparece quando algum destino pode mesmo partir.
+- Se decidir diferente: a encruzilhada depois do soldo é trocar uma linha de lugar em `leavingItems`.
+
+**D-52. O que a tela decide sem perguntar, e as frases que são do app.**
+- A montagem do envio já traz a equipe mínima e a Postura do meio (Equilibrada) marcadas, e "Enviar" não confirma: a expedição não custa recurso, e cada Postura tem a frase dela ao lado. **Quem clica sem ler envia com a Equilibrada.**
+- "Equipar", com um herói só no feudo, vai direto a ele; equipar por cima de um item devolve o anterior ao arsenal sem aviso (a lista diz "…, que volta ao arsenal").
+- O botão "Dispensar" continua habilitado para quem está fora do feudo: a recusa é a do servidor (`HERO_BUSY`), como antes.
+- A linha da Crônica liga ao relatório pela frase, com os 20 eventos mais recentes do app: uma linha mais antiga que isso, de um relatório ainda guardado, fica sem o botão.
+- **Frases de ligação novas, escritas no app** (nenhuma traz número de regra; `bundle.test.ts` continua passando): "Montar a equipe", "Quem vai (…)", "Com folga / No limite / Arriscado", "A equipe marcada vale N contra o primeiro trecho", "Quem pode partir agora não forma a equipe que este destino pede.", "Sem resposta, é este o caminho da Postura X.", "O prazo acabou: a Postura X está decidindo, e a Crônica conta o caminho. Nada mais é enviado daqui.", "O trecho de agora termina em …", "Destaque:", "Lição:", "Equipamento: N de 3", "Enviar o Resgate", "A equipe de “X” espera na encruzilhada: …", "X está no feudo, sem jornada, e há expedição que pode partir." e os avisos dos comandos. São rascunho, como as da V3C-T4 (C-38).
+
+**D-53. A frase nova da recusa de contratação com a lista de heróis no teto** (da resposta à D-17).
+- Enquanto isso: com lugar no limite e a lista em 12 (cativos contando), `hireHero` recusa com `HERO_LIMIT` e a frase "A guarda do feudo abriga 12 heróis, e o feudo já os tem: resgate quem está em cativeiro ou dispense um herói." O código de recusa é o mesmo do limite; só a frase muda. Não há como chegar a isso no jogo de hoje sem seis capturas sem resgate.
 
 ### Fase D: o catálogo de expedições e o relatório (V3D-T3)
 
@@ -301,7 +342,7 @@ Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Re
 - **O que isto deixa sem resposta:** como ele só vai com folga, **nunca teve um Desastre, e ninguém foi capturado em nenhuma das 270 partidas medidas do Explorador**. A pergunta do ADR 0018, "capturas por ano", não tem resposta do simulador: pede um bot que arrisque, ou gente jogando. A Floresta Antiga continua sem visita (o primeiro trecho dela não tem prova, e o bot não sabe o que vem depois).
 - A D-1 pedia um campo para "sua equipe vale 51 contra 60": continua sem ele (o poder da equipe **contra o nó**, com os pesos e a Postura). O bot soma o poder da ficha.
 
-**D-29. O app não mostra nada dos desfechos.**
+**D-29. O app não mostra nada dos desfechos.** *(**Resolvida na V3D-T4:** a aba Guilda mostra os destinos, as expedições, os relatórios, o arsenal e o equipamento.)*
 - Enquanto isso: a aba Guilda continua a de V3C-T4, sem destinos, expedições, relatórios, arsenal nem equipamento; a ficha do herói mostra `statusText`, que já diz "Em recuperação…" e "Em cativeiro…". Os avisos e a árvore não sabem dos eventos novos. É de V3D-T4.
 
 **D-30. Um teste de propriedade ganhou limite de tempo próprio.**
@@ -354,7 +395,7 @@ Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, 
 - Enquanto isso: `CROSSROADS_DECIDED` quando a expedição, ou o relatório dela, já tem uma escolha registrada (o prazo venceu, ou outra aba respondeu); `EXPEDITION_NOT_WAITING` no resto (a expedição nunca parou, ou o identificador não existe). A ordem não diz **qual** encruzilhada a tela mostrava: em um grafo com duas, a ordem atrasada para a primeira, dada com a equipe a caminho da segunda, recebe `CROSSROADS_DECIDED`; dada com a equipe já parada na segunda, recebe `INVALID_OPTION` (as opções não repetem identificador no grafo: teste de conteúdo). E um relatório que já saiu da lista dos três guardados responde `EXPEDITION_NOT_WAITING`.
 - Se decidir diferente: mandar na ordem a encruzilhada que a tela mostrava é um campo novo no comando.
 
-**D-10. O app ainda não envia expedição nem escolhe caminho.** *(Pergunta para o autor só se a Fase D for publicada antes de V3D-T4.)*
+**D-10. O app ainda não envia expedição nem escolhe caminho.** *(**Resolvida na V3D-T4.**)*
 - Enquanto isso: o protocolo subiu para 3 e o app o acompanha (o cache antigo é descartado, o cursor fica). A encruzilhada aparece em "Decisões pendentes", na aba Hoje, e em "Você ainda pode decidir", no Relatório de Retorno, com o prazo e o botão "Ver a Guilda"; **a aba Guilda não mostra os destinos, as expedições nem os relatórios, e não há como responder**: sem resposta, a Postura decide. A barra de status, o título da aba, a árvore e o selo da barra de atividades contam **só as cartas**. A interface é de V3D-T4.
 - Onde: `cardDecisions` e `crossroadsDecisions`, em `packages/web/src/ui/format.ts`; `components/Today.tsx`; `game/returnReport.ts`.
 - Como nada foi publicado, ninguém vê isto: é o estado do `main` entre duas tarefas.
@@ -775,6 +816,21 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase D: a interface (V3D-T4) e as três respostas de 2026-10-06
+
+- **Ninguém usou a tela**: o autor não viu a encruzilhada antes da tela completa (V3D-T4.1) nem depois; o critério de diversão da tarefa não foi verificado.
+- **Só Chromium.** Firefox e Safari não foram abertos; nenhum leitor de tela foi usado (o que há é o papel e o nome ARIA conferidos nos testes, e o contraste medido nos três temas).
+- **O clique da montagem do envio** não tem teste de unidade (é estado da tela); está nos testes em navegador, com um herói e a Patrulha. O envio de uma equipe de dois ou três pela tela não foi feito em navegador (só pela paleta, em teste de unidade).
+- **A encruzilhada dos testes em navegador é a da rota de teste** (a primeira variante da Floresta Antiga, sem a linha da partida na Crônica). Chegar a uma encruzilhada pelo envio da tela, esperando o primeiro trecho, não foi feito em navegador.
+- **O relatório em navegador é o de uma Patrulha** (dois passos). Um relatório com Revés, lição, item e captura só foi desenhado nos testes sem DOM, com os goldens.
+- **O prazo vencido no relógio da página com a folha aberta** (botões desabilitados e a frase) só tem teste sem DOM: em navegador a leitura seguinte chega antes e a folha some.
+- **O aviso da encruzilhada, a captura e a morte como alarme** e os avisos de "Todas" só têm teste de unidade (o controlador com a API de mentira); nenhum cenário em navegador os vê.
+- **"Enviar o Resgate"** só foi conferido sem DOM: nenhum cenário em navegador tem cativo.
+- **As capturas da página de apresentação**: `pnpm capture:landing` rodou e o `og.png` saiu idêntico byte a byte ao que estava (a aba Feudo e a árvore de um feudo sem herói não mudaram); as três imagens `.webp` **não foram refeitas**.
+- **A resposta à D-17** (o cativo fora do limite) tem teste do motor com o cativo posto à mão no estado; o caminho inteiro (captura em uma expedição, contratação, Resgate, volta por cima do limite) não foi jogado de ponta a ponta, e o simulador nunca captura ninguém.
+- **A resposta à D-25**: as três frases novas das dificuldades não foram lidas pelo autor.
+- Não rodaram: `pnpm docker:build`, `--perf`, `--matrix` fora do que o `pnpm test` cobre, a CI (nada foi enviado). O portão rodou no Node da máquina, não conferido contra o 22 do `.nvmrc`.
 
 ### Fase D: o catálogo e o relatório (V3D-T3)
 
