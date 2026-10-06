@@ -237,6 +237,9 @@ describe('a Guilda na árvore (GDD §13.2)', () => {
     expect(offer?.icon).toBe('lock');
     expect(offer === undefined ? [] : rowActions(offer)).toEqual([]);
     expect(offer?.tooltip).toContain(tavernBusyView.tavern.offers[0]?.blockedReason);
+    // Na linha estreita, só o preço de agora; a conta do desconto fica na explicação e na aba.
+    expect(offer?.description).toBe('Arqueiro · 80 de ouro');
+    expect(offer?.tooltip).toContain('80 de ouro: 100, menos 20% por Mécia, Carismática');
     const tavern = find(nodes, 'tavern');
     expect(tavern === undefined ? [] : rowActions(tavern)).toEqual([]);
     expect(tavern?.tooltip).toContain('Um festival por estação: no Verão o feudo já festejou.');
@@ -350,13 +353,9 @@ describe('a política de avisos da equipe (GDD §13.5)', () => {
     ).toEqual(['compass', 'sign-out', 'person-add', 'person']);
   });
 
-  it('o aviso do atraso leva os prazos e a frase da visão; com o atraso já fechado, nada', () => {
+  it('o aviso do atraso leva os prazos da visão (a explicação inteira fica na aba); com o atraso já fechado, nada', () => {
     const late = withArrears({ discontentInSeconds: 3 * 3600, nextDepartureInSeconds: 7 * 3600 });
-    expect(arrearsAhead(late)).toEqual([
-      'Descontentes em 3 h.',
-      'Um herói parte em 7 h.',
-      late.guild.wage.arrears?.text,
-    ]);
+    expect(arrearsAhead(late)).toEqual(['Descontentes em 3 h.', 'Um herói parte em 7 h.']);
     expect(arrearsAhead(guildPaidView)).toEqual([]);
     expect(arrearsAhead(null)).toEqual([]);
   });

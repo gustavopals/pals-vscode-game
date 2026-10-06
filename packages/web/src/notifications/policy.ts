@@ -289,15 +289,16 @@ export function isGuildEvent(event: GameEvent): boolean {
 
 /**
  * O que o aviso do soldo em atraso diz além da frase da Crônica: os prazos das consequências,
- * com os números da visão (que chega antes dos eventos), e a frase do servidor, que diz o que
- * fecha o atraso. Sem atraso aberto na visão (ele já fechou), nada.
+ * com os números da visão (que chega antes dos eventos). A explicação inteira do servidor fica
+ * na aba Guilda, aonde "Ver" leva: no aviso ela tomaria a tela. Sem atraso aberto na visão (ele
+ * já fechou), nada.
  */
 export function arrearsAhead(view: ViewState | null): string[] {
   const arrears = view?.guild.wage.arrears ?? null;
   if (arrears === null) {
     return [];
   }
-  return [...arrearsDeadlines(arrears, 0).map((line) => `${line}.`), arrears.text];
+  return arrearsDeadlines(arrears, 0).map((line) => `${line}.`);
 }
 
 /** O evento traz uma decisão à espera do jogador: hoje, uma carta nova do Conselho. */

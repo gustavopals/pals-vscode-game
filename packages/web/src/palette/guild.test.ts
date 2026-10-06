@@ -396,10 +396,7 @@ describe('os avisos da equipe no controlador (GDD §13.5)', () => {
     await serverShows(made, guildArrearsView, event(1, 'wageArrearsStarted', 'O cofre secou.'));
     const toast = made.controller.toasts.find((entry) => entry.text === 'O cofre secou.');
     expect(toast).toMatchObject({ kind: 'warning', icon: 'compass' });
-    expect(toast?.details).toEqual([
-      'Um herói parte em 47 min.',
-      guildArrearsView.guild.wage.arrears?.text,
-    ]);
+    expect(toast?.details).toEqual(['Um herói parte em 47 min.']);
     made.controller.navigate('fief');
     await toast?.actions.find((action) => action.label === 'Ver')?.run();
     expect(made.controller.route).toBe('guild');

@@ -36,7 +36,7 @@ function Offer(props: { offer: TavernOffer; disabled: boolean; busy: boolean; ac
         <Traits traits={offer.traits} />
       </p>
       <div id={about} class="hero-sheet">
-        <p class="num">{offerTerms(offer)}</p>
+        <p>{offerTerms(offer)}</p>
         {offer.blockedReason === null ? null : (
           <p class="blocked">
             <Icon name="lock" /> {offer.blockedReason}
@@ -79,7 +79,7 @@ function Festival(props: {
           <span class="num">{festivalCost(props.tavern)}</span>
         </p>
         <p>{festival.effectText}</p>
-        {running === null ? null : <p class="num">{running}</p>}
+        {running === null ? null : <p>{running}</p>}
         {festival.blockedReason === null ? null : (
           <p class="blocked">
             <Icon name="lock" /> {festival.blockedReason}
@@ -110,7 +110,7 @@ function Raise(props: { view: ViewState; disabled: boolean; actions: Actions }) 
   return (
     <div class="banner tavern-raise">
       <div id="tavern-raise-terms">
-        <p class="num">{workTerms(upgrade)}</p>
+        <p>{workTerms(upgrade)}</p>
         {upgrade.blockedReason === null ? null : (
           <p class="blocked">
             <Icon name="lock" /> {upgrade.blockedReason}

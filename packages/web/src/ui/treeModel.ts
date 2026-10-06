@@ -42,6 +42,7 @@ import {
   HERO_ICON,
   HERO_NODE,
   OFFER_NODE,
+  offerPrice,
   offerTerms,
   sheetLine,
   TAVERN_ICON,
@@ -483,7 +484,7 @@ function guildNode(view: ViewState, elapsedSeconds: number): TreeNode {
       children: tavern.offers.map((offer): TreeNode => ({
         id: `${OFFER_NODE}${offer.offerId}`,
         label: offer.name,
-        description: `${offer.classLabel} · ${offer.priceText}`,
+        description: `${offer.classLabel} · ${offerPrice(offer)}`,
         tooltip: [
           sheetLine(offer),
           ...traitLines(offer.traits),

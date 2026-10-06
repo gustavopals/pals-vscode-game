@@ -164,6 +164,14 @@ export function offerTerms(offer: TavernOffer): string {
   return `${offer.priceText} · soldo de ${wageOf(offer.wagePerHour)}`;
 }
 
+/**
+ * "176 de ouro": o preço de agora, sem a conta do desconto, para a linha estreita da árvore. É
+ * o começo da frase do servidor (`priceText`), até os dois-pontos.
+ */
+export function offerPrice(offer: TavernOffer): string {
+  return offer.priceText.split(':')[0] ?? offer.priceText;
+}
+
 /** O custo do festival, como o servidor o mandou: "100 comida, 50 ouro". */
 export function festivalCost(tavern: Tavern): string {
   return formatCost(tavern.festival.cost);
