@@ -1034,3 +1034,216 @@ test.describe('as expedições na interface (V3D-T4)', () => {
     await expect(crossroadsCard(page)).toHaveCount(0);
   });
 });
+
+// Revisão independente da Fase D (achados A17 a A20 e A2): a jornada inteira pela tela. Aqui
+// nada é posto no meio do caminho: a equipe é enviada pela tela, e é o motor que a leva à
+// encruzilhada, ao nó seguinte e de volta. Os heróis são de nível alto (`world.hero`, que é a
+// única coisa posta de fora): a variante do grafo e a sorte de cada prova saem da semente, e
+// uma equipe forte chega à encruzilhada e volta em qualquer uma. Os cenários não citam nó,
+// opção nem frase do conteúdo: leem do servidor o que a tela tem de mostrar.
+
+type ServerView = Awaited<ReturnType<typeof serverView>>;
+
+/** Funda o feudo com a Guilda no nível pedido e os heróis pedidos, cada um com classe e nível. */
+async function openGuildWith(
+  world: World,
+  page: Page,
+  team: Array<{ name: string; classId?: 'warrior' | 'archer' | 'mage' | 'cleric'; level?: number }>,
+  { level = 1 }: { level?: number } = {},
+) {
+  await playNow(page);
+  await world.raise('townHall', 3);
+  await world.raise('guild', level);
+  for (const { name, ...options } of team) {
+    await world.hero(name, options);
+  }
+  await world.passTime(MINUTE, page);
+}
+
+/**
+ * Adianta o relógio aos poucos até o servidor mostrar o que o cenário espera, e devolve essa
+ * visão. Os passos são curtos para a página ver cada instante: a chegada à encruzilhada é um
+ * evento, e é dele que o aviso nasce.
+ */
+async function until(
+  world: World,
+  page: Page,
+  request: APIRequestContext,
+  what: string,
+  done: (view: ServerView) => boolean,
+  { stepMs = 5 * MINUTE, steps = 60 }: { stepMs?: number; steps?: number } = {},
+): Promise<ServerView> {
+  for (let step = 0; step < steps; step += 1) {
+    const view = await serverView(page, request);
+    if (done(view)) {
+      return view;
+    }
+    await world.passTime(stepMs, page);
+  }
+  throw new Error(`O cenário esperava ${what}, e o relógio andou ${steps} passos sem isso.`);
+}
+
+/** A equipe que espera na encruzilhada, na visão do servidor. */
+function waitingIn(view: ServerView) {
+  const expedition = view.guild.expeditions.find((entry) => entry.crossroads !== null);
+  const crossroads = expedition?.crossroads;
+  if (expedition === undefined || crossroads === null || crossroads === undefined) {
+    throw new Error('O cenário esperava a equipe na encruzilhada.');
+  }
+  return { expedition, crossroads };
+}
+
+test.describe('a jornada inteira pela tela (revisão da Fase D)', () => {
+  test('critério 2 inteiro: enviar pela tela, a equipe chega à encruzilhada, o aviso "Escolher caminho" abre a escolha, e o relatório traz o passo escolhido (A18 e A19)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuildWith(world, page, [{ name: 'Aldo', level: 10 }]);
+    const start = await serverView(page, request);
+    // O destino de um herói só que tem encruzilhada: o que leva de um a dois.
+    const journey = start.guild.available.find(
+      (entry) => entry.canSend && entry.teamMin === 1 && entry.teamMax === 2,
+    );
+    if (journey === undefined) {
+      throw new Error('O cenário esperava um destino de um herói com encruzilhada.');
+    }
+    await guildTab(page).click();
+    const row = destinationRow(page, journey.modelId);
+    await row.getByText('Montar a equipe').click();
+    const orders = commandPosts(page);
+    await row.getByRole('button', { name: /^Enviar/ }).click();
+    await expect(away(page).locator('[data-expedition]')).toHaveCount(1);
+    expect((await serverView(page, request)).pendingDecisions).toEqual([]);
+
+    // O jogador vai cuidar do feudo; a equipe anda sozinha até a encruzilhada.
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    const arrived = await until(world, page, request, 'a equipe na encruzilhada', (view) =>
+      view.guild.expeditions.some((entry) => entry.crossroads !== null),
+    );
+    const { expedition, crossroads } = waitingIn(arrived);
+    expect(await eventsOf(page, request, 'expeditionAtCrossroads')).toHaveLength(1);
+    // O aviso chega com o prazo, o que a Postura fará e o botão que abre a escolha.
+    const notice = toasts(page).getByRole('status').filter({ hasText: crossroads.title });
+    await expect(notice).toContainText(expedition.label);
+    await expect(notice).toContainText(crossroads.postureText);
+    await notice.getByRole('button', { name: 'Escolher caminho' }).click();
+    await expect(page).toHaveURL(/#\/guilda$/);
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toContainText(crossroads.text);
+    await expect(dialog).toContainText(crossroads.postureText);
+    // O jogador escolhe um caminho que não é o da Postura (o primeiro que a equipe pode tomar).
+    const chosen =
+      crossroads.options.find(
+        (option) => !option.locked && option.id !== crossroads.postureOptionId,
+      ) ?? crossroads.options.find((option) => !option.locked);
+    if (chosen === undefined) {
+      throw new Error('O cenário esperava um caminho que a equipe pudesse tomar.');
+    }
+    await dialog.getByRole('option').filter({ hasText: chosen.label }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(crossroadsCard(page)).toHaveCount(0);
+    expect(orders.map((order) => order.type)).toEqual(['sendExpedition', 'chooseExpeditionPath']);
+    expect(await eventsOf(page, request, 'expeditionPathChosen')).toHaveLength(1);
+
+    // A equipe segue pelo caminho escolhido e volta: o relatório o traz, passo a passo.
+    const home = await until(
+      world,
+      page,
+      request,
+      'a equipe de volta',
+      (view) => view.guild.expeditions.length === 0,
+    );
+    const report = home.guild.reports.find((entry) => entry.expeditionId === expedition.id);
+    if (report === undefined) {
+      throw new Error('O cenário esperava o relatório da jornada.');
+    }
+    const step = report.log.find((entry) => entry.outcome === 'chosen');
+    expect(step?.title).toBe(crossroads.title);
+    expect(step?.text).toContain(chosen.label);
+    expect(await eventsOf(page, request, 'expeditionPostureDecided')).toHaveLength(0);
+    await guildTab(page).click();
+    const sheet = reports(page).locator(`[data-report="${expedition.id}"]`);
+    const steps = sheet.getByRole('list', { name: `O percurso de ${report.label}` });
+    await expect(steps.getByRole('listitem')).toHaveCount(report.log.length);
+    await expect(steps).toContainText(step?.text ?? 'sem o passo escolhido');
+    // O que veio depois da encruzilhada também está lá: o nó do caminho escolhido.
+    const after = report.log.slice(report.log.findIndex((entry) => entry.outcome === 'chosen') + 1);
+    expect(after.length).toBeGreaterThan(0);
+    for (const entry of after) {
+      await expect(steps).toContainText(entry.title);
+    }
+    await expect(sheet).toContainText(report.lootText);
+  });
+
+  test('critério 2, sem resposta: a equipe enviada pela tela espera o prazo inteiro, a Postura decide, e o relatório e a Crônica contam isso (A18)', async ({
+    context,
+    request,
+    world,
+  }) => {
+    const page = await world.open(context);
+    await openGuildWith(world, page, [{ name: 'Aldo', level: 10 }]);
+    const start = await serverView(page, request);
+    const journey = start.guild.available.find(
+      (entry) => entry.canSend && entry.teamMin === 1 && entry.teamMax === 2,
+    );
+    const [safest] = start.guild.postures;
+    if (journey === undefined || safest === undefined) {
+      throw new Error('O cenário esperava um destino de um herói e as Posturas na visão.');
+    }
+    await guildTab(page).click();
+    const row = destinationRow(page, journey.modelId);
+    await row.getByText('Montar a equipe').click();
+    // A primeira Postura da lista, marcada pela tela: é ela que vai decidir.
+    await row.locator(`input[data-posture="${safest.id}"]`).check();
+    await row.getByRole('button', { name: /^Enviar/ }).click();
+    await expect(away(page).locator('[data-expedition]')).toHaveCount(1);
+
+    const arrived = await until(world, page, request, 'a equipe na encruzilhada', (view) =>
+      view.guild.expeditions.some((entry) => entry.crossroads !== null),
+    );
+    const { expedition, crossroads } = waitingIn(arrived);
+    expect(crossroads.postureLabel).toBe(safest.label);
+    await expect(crossroadsCard(page)).toContainText(crossroads.postureText);
+    const orders = commandPosts(page);
+    // Ninguém responde. Um pouco antes do prazo a equipe ainda espera; passado ele, não mais.
+    await world.passTime((crossroads.decidesInSeconds - 120) * 1000, page);
+    expect((await serverView(page, request)).pendingDecisions).toHaveLength(1);
+    await world.passTime(4 * MINUTE, page);
+    expect((await serverView(page, request)).pendingDecisions).toEqual([]);
+    const [decided] = await eventsOf(page, request, 'expeditionPostureDecided');
+    if (decided === undefined) {
+      throw new Error('O cenário esperava a linha da Postura na Crônica.');
+    }
+    // No meio da frase o caminho vem em minúscula: o que se confere é o nome dele.
+    expect(decided.text.toLowerCase()).toContain(crossroads.postureOptionLabel.toLowerCase());
+    expect(await eventsOf(page, request, 'expeditionPathChosen')).toHaveLength(0);
+    expect(orders).toEqual([]);
+
+    const home = await until(
+      world,
+      page,
+      request,
+      'a equipe de volta',
+      (view) => view.guild.expeditions.length === 0,
+    );
+    const report = home.guild.reports.find((entry) => entry.expeditionId === expedition.id);
+    const step = report?.log.find((entry) => entry.outcome === 'chosen');
+    if (report === undefined || step === undefined) {
+      throw new Error('O cenário esperava o relatório com o passo da encruzilhada.');
+    }
+    // O relatório diz que foi a Postura, e qual caminho ela tomou.
+    expect(step.text).toContain(crossroads.postureOptionLabel);
+    expect(step.text).toContain(crossroads.postureLabel);
+    await guildTab(page).click();
+    const sheet = reports(page).locator(`[data-report="${expedition.id}"]`);
+    await expect(sheet.getByRole('list', { name: `O percurso de ${report.label}` })).toContainText(
+      step.text,
+    );
+    // E a Crônica do feudo conta a decisão com a frase do servidor.
+    await page.getByRole('tab', { name: 'Feudo' }).click();
+    await fief(page).getByRole('button', { name: 'Abrir a Crônica' }).click();
+    await expect(page.getByRole('tabpanel', { name: 'Crônica' })).toContainText(decided.text);
+  });
+});
