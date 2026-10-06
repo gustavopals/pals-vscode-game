@@ -131,7 +131,7 @@ Quatro coisas têm versão, cada uma com o seu tratamento ([README do servidor](
 
 | O quê | Número | Quando muda |
 |---|---|---|
-| Estado da partida | `state.schemaVersion` (hoje 18) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
+| Estado da partida | `state.schemaVersion` (hoje 19) | Uma tarefa muda a forma do `GameState`: um passo de migração por versão |
 | Conteúdo | `contentHash` em `GET /version` e `GET /catalog` | Qualquer número, texto ou carta de `@lotg/content`; o conteúdo vai na imagem e não é gravado no banco |
 | Protocolo | `protocol` em `GET /version` (hoje 3); o cliente manda `X-Lords-Protocol` | Uma mudança que o app antigo não consegue ler (ver seção 10) |
 | Recibos de comando | Nenhum | Nunca são reescritos: o reenvio devolve a resposta da época, byte a byte |
@@ -446,3 +446,23 @@ O que a segunda tarefa da Fase D construiu por cima da seção 15: **o que o des
 | Protocolo e servidor | `packages/protocol`; sem rota nova | Duas ordens novas e três recusas (`ITEM_NOT_FOUND`, `WRONG_SLOT`, `INVENTORY_FULL`); a visão cresceu por adição, e o protocolo continua 3 |
 | App | nada | **Não mostra nada disto** além do `statusText` do herói: a interface é de V3D-T4 |
 | Simulador | `bots/policies.ts` (`enviar expedições`, `equipar o melhor item`, `erguer a Guilda`) | O `explorador` envia o destino mais difícil que a equipe passa com folga, equipa o melhor item, não envia ferido e melhora a Guilda. O resumo de uma partida conta feridos, cativos, mortos, resgatados, níveis, itens e o Covil limpo |
+
+## 17. O catálogo de expedições e o relatório nó a nó (V3D-T3, 2026-10-06)
+
+O que a terceira tarefa da Fase D construiu por cima das seções 15 e 16: **os grafos de verdade e o relatório que se reconta**. Está no `main` **local**, com o estado na versão 19 e o protocolo ainda 3 (a visão só cresceu por adição), e não está em produção. O detalhe está no [README do motor](../packages/engine/README.md), "O relatório nó a nó" e "Uma expedição nova"; as fichas, em [content-v0.3.md](content-v0.3.md), seção 6; a calibragem e o que o simulador mediu, em [balance-v0.3.md](balance-v0.3.md), seção 8; as decisões do agente, em [pendencias-v0.3.md](pendencias-v0.3.md), D-31 a D-44.
+
+**Estado** (versão 19; o passo `v18ToV19` não cria prazo, evento, identificador nem sorteio): cada registro do percurso de uma expedição ganha `standout` e `lesson`. Nada mais muda de forma.
+
+| Peça | Onde | O que faz |
+|---|---|---|
+| Conteúdo | `missions/*.ts` (seis arquivos), `expeditions.ts`, `balance.expeditions.graph` | Seis modelos, três variantes cada: Patrulha dos Arredores, Floresta Antiga, Covil dos Lobos, Resgate, Ruínas de Vel'Thar e Pântano Nebuloso. Cada prova traz a dificuldade, os pesos, a classe que favorece (`helps`), a lição e uma frase por desfecho, com `{heroi}`. Uma opção de encruzilhada pode pedir uma classe ou um traço. O teto de um nó foi a 60 minutos |
+| Ids estáveis | `expeditions.test.ts` (`STABLE_IDS`) | O modelo, a posição da variante, a chave de cada nó e a de cada opção ficam gravados no estado: trocar um pede passo de migração |
+| Relatório | `expeditionReport.ts` | Não sorteia: quem se destacou (o de maior poder contra o nó), a lição do Revés e do Desastre (a classe que faltou, a Postura, o item, a força) e o modelo da frase, o mesmo para a Crônica e para o relatório |
+| Linha do tempo | `expeditionTurn.ts` (`resolveStage`) | Grava o destaque e a lição no registro, no instante do nó, e emite `expeditionNodeResolved` (o que deu certo) ou `expeditionNodeFailed` (Revés e Desastre) |
+| Crônica | `CHRONICLE_HIDDEN_EVENT_TYPES`, em `@lotg/protocol` | O nó que deu certo fica fora de `GET /chronicle` e de `/chronicle.md`; `GET /events` traz tudo |
+| Visão | `expeditionsView.ts` | Em cada passo, `standoutName` e `lessonText`; no relatório, o caminho de volta como último passo, `lossesText` e `deedsText`; em cada destino, `fit` (o poder que dá folga e o que arrisca o Desastre no primeiro trecho) e `heroFit` (o poder de cada herói contra essa prova). **Névoa:** tudo isso é do primeiro trecho, até a primeira encruzilhada |
+| Calibragem | `expeditions.calibration.test.ts`, `__golden__/expedition-calibration.md` | A distribuição exata dos desfechos (as 31 sortes de cada nó) para três equipes de referência por modelo, conferida contra o rótulo de risco; e, por opção de encruzilhada, para que equipe ela é a melhor |
+| Ramos | `expeditions.catalog.test.ts`, `__golden__/expedition-catalog.json` | Todo ramo de todo grafo, com os quatro desfechos postos à força; a névoa em todo grafo; e o relatório de cada modelo com semente fixa (critério 3 do GDD §16.2) |
+| Simulador | `bots/policies.ts` | O `explorador` envia a expedição de maior recompensa que a equipe passa com folga, pela régua da visão, e responde a metade das encruzilhadas |
+
+**Limites conhecidos:** com uma ou duas visitas por dia o jogador não decide encruzilhada nenhuma (o prazo é de 6 h reais); ninguém é capturado no simulador; o bot quase não patrulha, e com isso as Ruínas e o Pântano quase não aparecem; o app não mostra destinos, régua nem relatório (V3D-T4); os dezoito grafos e as frases são rascunho que o autor não leu.

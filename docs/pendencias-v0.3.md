@@ -26,7 +26,7 @@ Em seis linhas, por ordem de importância:
 
 1. **O backup fora do servidor, a cópia do `RECOVERY_CODE_SECRET` e o ensaio de reversão continuam por fazer, e a v0.3 vai subir a versão do estado em produção assim mesmo** (seção 3; dúvida A-2). O roadmap dizia que esses atos bloqueavam a chegada de qualquer migração de estado à produção; a autorização de `push` de 2026-10-05 não os cumpre. O agente faz um backup manual no servidor antes de cada `push` que sobe o estado: é o mínimo, não o substituto.
 2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. **Respondido em 2026-10-06 (seção 0): a Fase C não vai ao ar sozinha.** O agente segue com commits locais, e a primeira publicação da v0.3 é a do fim da Fase D, com o `push` dado pelo autor depois do backup manual; a produção salta do estado 12 direto para o da Fase D.
-3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
+3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). **Os 18 grafos entraram em 2026-10-06, com a V3D-T3**: as fichas estão em [content-v0.3.md](content-v0.3.md), seção 6, e o texto que o jogador lê, um relatório por modelo, em `packages/engine/src/__golden__/expedition-catalog.json`. O que mais pede a sua resposta nessa tarefa: **com duas visitas por dia o jogador não decide encruzilhada nenhuma** (o prazo é de 6 h reais; D-40), a Crônica deixou de levar o nó que deu certo (D-32) e as dificuldades do Apêndice C do GDD mudaram (D-37). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
 5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Com a Fase C fechada esse número não caiu, subiu** (seção 5.5: 159 a 212 mil na mesma célula da semana; o soldo da equipe cheia é 1,4% do que a Mina rende no fim): é das Fases D e E. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
@@ -131,7 +131,7 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Números que o GDD não tinha"; ADR 0018, "Consequências".
 - Se decidir diferente: não há "diferente" ainda; a escolha muda a calibragem de todo grafo que usa peso de atributo.
 
-**A-6. Com os atributos propostos, a equipe mínima das Ruínas nunca chega ao Desastre no chefe do exemplo.**
+**A-6. Com os atributos propostos, a equipe mínima das Ruínas nunca chega ao Desastre no chefe do exemplo.** *(**Fechada em V3D-T3 pela D-37:** os atributos ficaram, e as dificuldades dos guardiões subiram.)*
 - Enquanto isso: a tabela de atributos fica como está. Se a captura marcada no chefe tem de ser possível, sobe a dificuldade do chefe ou a exigência de nível; conferir em V3D-T3.6.
 - Onde: ADR 0017, "Calibragem".
 - Se decidir diferente: mexer nos atributos-base por causa de um grafo muda o poder de todas as classes em todas as expedições.
@@ -161,11 +161,83 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase D: o catálogo de expedições e o relatório (V3D-T3)
+
+Vêm da implementação de V3D-T3 (os seis modelos em dezoito grafos, o relatório nó a nó, a calibragem e as políticas do bot; estado na versão 19, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** Os dezoito grafos e todas as frases são **rascunho, não lido pelo autor** (A-7): a leitura é das fichas de [content-v0.3.md](content-v0.3.md), seção 6, ou do golden `packages/engine/src/__golden__/expedition-catalog.json`, que é o texto que o jogador lê. D-31, D-32, D-37 e D-40 são as que mais pedem resposta.
+
+**D-31. Os limites do grafo: de 2 a 5 nós, de 5 a 60 minutos cada. Fecha a D-5 e a D-16.** *(Pergunta para o autor.)*
+- Enquanto isso: "nós" conta o que a equipe atravessa em um caminho, com o retorno e sem a encruzilhada. O teto por nó subiu de 45 para **60 minutos**, porque o Pântano Nebuloso do ADR 0018 tem 5 nós em 5 horas. O Resgate ficou com **duas provas (a chegada e o cativeiro, 45 minutos cada) e a volta (30)**: é a leitura de "2 nós" que cabe em 2 horas. A Patrulha continua uma prova de 10 minutos e a volta de 5.
+- Onde: `balance.expeditions.graph`; o teste do catálogo em `packages/content/src/expeditions.test.ts` (a tabela "duração, nós, equipe"); GDD §9.2 e §9.3, com as notas.
+- Se decidir diferente: com "2 nós" contando o retorno, o Resgate vira uma prova de 60 minutos e a volta de 60, sem a chegada, e perde a encruzilhada.
+
+**D-32. A Crônica não leva o nó que deu certo. Fecha a pergunta da D-12.** *(Pergunta para o autor.)*
+- Enquanto isso: uma expedição deixa na Crônica a partida, a chegada à encruzilhada, quem decidiu, **o nó que terminou em Revés ou Desastre** (com quem se destacou e a lição) e a volta, além das linhas próprias de ferimento, captura, item, nível, destino e tile. O nó que terminou em Sucesso, em Sucesso Pleno ou sem prova fica no relatório e em `GET /events`. Para isso o nó que deu errado ganhou um tipo de evento, `expeditionNodeFailed`, e `expeditionNodeResolved` entrou em `CHRONICLE_HIDDEN_EVENT_TYPES`, ao lado da virada de dia (ADR 0007) e do fecho do desperdício (ADR 0015). **Aqueles dois foram ADRs; este é só esta pendência.**
+- O que isto custa: quem lê só a Crônica não sabe que a equipe venceu o guardião, a não ser pela linha do item e pela da volta ("voltou com 190 de pedra…"). O relatório some depois de três expedições (`reportsKept`), e com ele o nó a nó do que deu certo.
+- Onde: `packages/protocol/src/view.ts`; `resolveStage`, em `packages/engine/src/expeditionTurn.ts`.
+- Se decidir diferente: tirar `expeditionNodeResolved` da lista devolve uma linha por nó à Crônica (seis no Pântano); pôr `expeditionNodeFailed` nela tira todas.
+
+**D-33. O estado subiu para a versão 19 por dois campos.**
+- Enquanto isso: cada registro do percurso guarda `standout` (o nome de quem se destacou) e `lesson` (o tipo da lição, o herói e a Postura de que fala), escolhidos quando o nó é resolvido. Sem isso o relatório teria de refazer a conta com os heróis de agora, e diria outra coisa depois de um nível novo, de um item trocado ou de uma dispensa; a Crônica, gravada na hora, discordaria dele. O passo `v18ToV19` põe `null` nos registros que já existiam e não reconstitui nada.
+- O texto da lição **não** é gravado: sai do conteúdo de agora. Se uma frase mudar, o relatório antigo muda com ela.
+- Onde: `packages/engine/src/migrations/v19.ts`; `expeditionReport.ts`.
+
+**D-34. "Quem se destacou" é o herói de maior poder contra o nó.** *(Leitura do agente.)*
+- Enquanto isso: o roadmap diz "o herói com o maior atributo que o nó pesa". O agente leu como o maior **poder contra o nó**: a soma dos atributos que o nó pesa, com o nível, o Descontente, o traço da Postura e os itens. No empate, o de menor identificador (quem chegou antes ao feudo). Em uma equipe de um, é ele.
+- O que isto tem de estranho: a frase diz o nome de quem se destacou, e **quem se fere é sorteado**, e pode ser outro ("o lobo velho fez Edda recuar", e na linha seguinte "Rolf sofreu um ferimento leve"). As frases foram escritas sem afirmar o dano, mas a do Revés costuma pôr o destaque no meio do problema.
+- Se decidir diferente: no Revés e no Desastre o destaque poderia ser quem sofreu (aí a frase e o ferimento falam da mesma pessoa), e só no Sucesso o mais forte.
+
+**D-35. A lição: quatro motivos, em ordem fixa, e nenhuma promessa.**
+- Enquanto isso: no Revés e no Desastre a frase ganha o primeiro que valer: faltou a classe que o nó favorece (a frase é do nó: "Um Arqueiro teria visto os fios esticados…"); alguém rende mais em outra Postura; alguém partiu com espaço vago havendo item no arsenal; ou faltou força ("A prova pedia mais do que a equipe tinha: mais gente, ou gente mais calejada."). **A lição não diz que o desfecho mudaria**: não há conta do que teria acontecido, só o que a equipe não tinha.
+- O que o jogador pode achar injusto: a equipe tinha a classe certa, perdeu por sorte, e lê "faltou força". E a classe que o nó favorece só é dita **depois** do nó: antes, a pista da encruzilhada é a única dica.
+- Onde: `lessonOf`, em `packages/engine/src/expeditionReport.ts`; `trial.helps` e `trial.lesson`, em cada grafo; `expeditionTexts.lessonPosture`, `lessonItem` e `lessonStrength`.
+
+**D-36. Os identificadores de modelo, de nó e de opção estão fixados; alguns dos provisórios saíram.**
+- Enquanto isso: `STABLE_IDS`, em `packages/content/src/expeditions.test.ts`, lista os dezoito grafos, chave por chave. Dos provisórios ficaram os da Patrulha (`fences`, `ford`, `oldRoad`, `home`), os da Floresta inteira e, nos outros três, `climb`, `fallenGate`, `falseFloor` e `home`. **Saíram** `den`, `approach`, `cell`, `hall` (o nó) e `crypt`: uma expedição em curso parada em um deles volta para casa com o que juntou (D-13). Nenhuma partida de produção tem expedição: a produção está no estado 12.
+- A variante é a **posição** na lista do modelo: pôr uma variante nova no meio muda a que cada partida tira.
+
+**D-37. A calibragem mudou dificuldades que o ADR e o GDD davam. Fecha a A-6.** *(Pergunta para o autor só quanto aos números.)*
+- Enquanto isso, e a tabela inteira está em [balance-v0.3.md](balance-v0.3.md), seção 8.2:
+  - **Patrulha:** 36, 40 e 42, cada variante pesando um atributo (o ADR 0017 recomendava "em volta de 30"). O Guerreiro de nível 1 passa em 99%; **um Clérigo sozinho, em 51%**, em um destino de risco "Baixo". Ninguém chega ao Desastre.
+  - **Ruínas, variante A (o Apêndice C do GDD):** o Corredor das Inscrições foi de 60 para **110**, a Galeria Inundada, de 50 para **72**, e o Guardião de Pedra, de 90 para **92**. Com os números do Apêndice, nenhuma equipe de nível 2 falhava antes do chefe, e o Corredor era o melhor caminho para toda equipe do painel.
+  - **Os outros dois guardiões:** 116 (vontade) e 112 (perícia), acima da faixa "50 a 90" do ADR 0017. **A-6:** a dupla de referência (Guerreiro e Arqueiro de nível 2) nunca é capturada e sai com Revés em 82%; uma dupla sem a classe do guardião é capturada em 6% a 10%; três de nível 4 passam sempre. As Ruínas, para dois, são quase sempre meio saque e um ferido leve.
+  - **Pântano:** não pede nível (o catálogo do ADR não pede), e três de nível 1 com um Mago passam em 20%.
+- Onde: `packages/content/src/missions/*.ts`; `expeditions.calibration.test.ts` e o golden dele.
+- Se decidir diferente: cada número é uma linha do conteúdo, e o golden da calibragem mostra o que a troca faz a cada equipe.
+
+**D-38. Uma opção de encruzilhada pode pedir um traço.**
+- Enquanto isso: `requires` aceita `{ heroClass }` ou `{ trait }`. Dois caminhos pedem traço: o duelo com o chefe do bando (Resgate C, um Corajoso) e o rastro na lama (Pântano B, um Rastreador). Sem ele, a opção aparece bloqueada ("Requer na equipe alguém com o traço Rastreador.") e a Postura Ousada cai no caminho seguro. É a única regra que o motor ganhou além do relatório.
+- Onde: `optionLock`, em `packages/engine/src/expeditions.ts`.
+
+**D-39. "Recuar" raramente é a melhor escolha, e em uma variante nunca é.**
+- Enquanto isso: pela régua do teste, recuar é a melhor opção para poucas equipes do painel (nenhuma no Covil C e no Pântano), porque a equipe que chega inteira à encruzilhada quase sempre ganha algo seguindo. O teste exige o que dá para exigir: que para alguma equipe todo outro caminho dê Revés ou pior em metade das vezes. **Na Floresta B, seguir o riacho leva a uma cabana sem prova**: ali voltar é sempre pior, mas a encruzilhada é a mesma da Floresta A (onde o riacho tem prova), e o jogador não sabe em qual está.
+- O que falta: recuar faria mais sentido se o ferido rendesse menos (D-26: o ferimento não tira poder) ou se a equipe soubesse quanto já carrega.
+
+**D-40. Com uma ou duas visitas por dia, o jogador não decide encruzilhada nenhuma.** *(Pergunta para o autor: é a validação que o ADR 0018 pedia para a decisão 11.)*
+- Enquanto isso: a espera é de 6 h reais (ADR 0017, decisão 1). A equipe chega à encruzilhada menos de uma hora real depois da visita em que partiu, e o jogador de duas visitas volta 12 h depois: **a Postura decidiu todas** (0 de 9,9 por ano no Normal; 0 de 34,8 no Tranquilo). Com quatro visitas por dia ele responde a todas as que quer.
+- O que isto quer dizer: para o perfil de referência do GDD (duas sessões por dia), "a equipe espera por você" (IDEIA-08) não acontece; a escolha dele é a Postura no envio. O prazo teria de ser de 12 h ou mais para ele encontrar a equipe esperando, ao custo de a jornada ficar parada esse tempo quando ele não vem.
+- Onde: `balance.expeditions.crossroadsWaitRealMs`; [balance-v0.3.md](balance-v0.3.md), seção 8.4.
+
+**D-41. O bot prefere a Floresta à Patrulha, e metade do catálogo fica escondida.**
+- Enquanto isso: "a expedição de maior recompensa que a equipe passa com folga" é, com dois heróis no feudo, a Floresta Antiga. A Patrulha só sai com um herói só, as Ruínas (que ela revela) entram na rota de 3 partidas em 50 no Normal, e o Pântano só no Tranquilo. O bot deixa metade das encruzilhadas para a Postura e responde às outras pela ordem das opções na tela, **sem ler as pistas**.
+- **Nenhuma captura, de novo**: nas 1.230 partidas medidas ninguém ficou em cativeiro, e o Resgate nunca foi enviado. A pergunta "capturas por ano" continua sem resposta do simulador (D-28).
+- Onde: `enviarExpedicoes` e `escolherCaminho`, em `packages/sim-cli/src/bots/policies.ts`.
+
+**D-42. A régua da equipe antes do envio diz dois números de regra.** *(Pergunta para o autor.)*
+- Enquanto isso: cada destino da Guilda traz `fit` ("Contra o primeiro trecho, com 43 de poder a equipe passa com folga; abaixo de 30, arrisca um Desastre.") e, por herói que pode partir, o poder dele **contra a prova mais dura do primeiro trecho**. A decisão 13 do ADR 0018 deixa ver "o poder da equipe e a dificuldade do primeiro trecho"; a régua acrescenta o que a sorte e os limiares fazem dessa dificuldade, sem dizer a faixa da sorte. É o que o bot usa, e o que a tela de envio de V3D-T4 pode mostrar. Fecha a parte da D-1 e da D-28 que pedia "sua equipe vale 51 contra 60".
+- O traço da Postura (o Corajoso na Ousada) fica fora desse número: a Postura é escolhida depois.
+- Se decidir diferente: tirar `fit.text` e deixar só os dois poderes, ou tirar tudo e voltar a `firstStretchDifficulty`.
+
+**D-43. Uma frase do catálogo nunca aparece.**
+- Enquanto isso: o Desastre da estrada velha (Patrulha C) não é alcançado por nenhuma equipe de um herói, nem por um Arqueiro Descontente. A frase existe (o schema pede as quatro), e o teste do catálogo a lista como inalcançável.
+
+**D-44. O relatório ganhou o caminho de volta como último passo, e a visão, três campos de fecho.**
+- Enquanto isso: `reports[].log` termina com a frase do nó de retorno do grafo (a D-12 dizia que ela não era usada); `lossesText` diz o que a jornada custou e `deedsText`, o que deixou além do saque. A linha da Crônica da volta continua a geral (`expeditionReturned`). O app ainda não mostra relatório nenhum (D-29; V3D-T4).
+
 ### Fase D: os desfechos (V3D-T2)
 
 Vêm da implementação de V3D-T2 (ferimento, captura, morte em Rei de Ferro, Resgate, experiência e nível, equipamento, destinos por descoberta e o Covil limpo; estado na versão 18, protocolo ainda 3). **Nenhuma foi perguntada ao autor.** D-16, D-17, D-24 e D-25 são as que mais pedem resposta; a D-24 é a validação que a decisão 14 do ADR 0018 mandava voltar ao autor.
 
-**D-16. O Resgate tem dois nós de prova e o caminho de volta, e não "2 nós".** *(Pergunta para o autor; é a mesma conta da D-5.)*
+**D-16. O Resgate tem dois nós de prova e o caminho de volta, e não "2 nós".** *(Pergunta para o autor; é a mesma conta da D-5. **Mantida em V3D-T3:** ver a D-31.)*
 - Enquanto isso: o ADR 0018 diz "Resgate: 2 h de jogo, 2 nós, 2 heróis", e o teto do conteúdo é de 45 minutos por nó: dois nós dão 1 h 30. O grafo provisório tem a chegada (45 min), o cativeiro (45 min) e a volta (30 min). O Covil dos Lobos, com "3 nós", coube: a subida, a toca e a volta.
 - Onde: `packages/content/src/missions/rescue.ts`.
 - Se decidir diferente: com "2 nós" contando o retorno, o Resgate dura 1 h 30, ou o teto por nó sobe para 60 minutos em `balance.expeditions.graph`.
@@ -257,7 +329,7 @@ Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, 
 - Enquanto isso: com os dois grafos provisórios, o nível 3 custa 768 de madeira, 256 de pedra e 512 de ouro e não abre lugar nem destino. O Pântano Nebuloso, que pede a Guilda Nv3, é de V3D-T3. Todo nível cabe no depósito nas três dificuldades (teste de conteúdo).
 - Se decidir diferente: `slotsByGuildLevel` é um número do conteúdo. A regra "todo nível vendido muda algo que o jogador vê" (ADR 0014, decisão 11) fica descumprida no nível 3 até V3D-T3.
 
-**D-5. Um caminho tem de 2 a 5 nós, de 5 a 45 minutos cada, e não "3 a 5" e "10 a 45".** *(Pergunta para o autor.)*
+**D-5. Um caminho tem de 2 a 5 nós, de 5 a 45 minutos cada, e não "3 a 5" e "10 a 45".** *(Pergunta para o autor. **Fechada em V3D-T3 pela D-31:** o teto por nó foi a 60 minutos.)*
 - Enquanto isso: o GDD §9.2 e o ADR 0018 dizem "3 a 5 nós de profundidade" e "10 a 45 min por nó", e o catálogo do mesmo ADR traz a Patrulha (15 minutos, 2 nós) e o Resgate (2 nós). As duas coisas não cabem juntas. O conteúdo conta os nós que a equipe atravessa em um caminho, **com o retorno e sem a encruzilhada**, e aceita de 2 a 5, com 5 minutos de mínimo (`balance.expeditions.graph`); a Patrulha é um nó de 10 minutos e a volta de 5.
 - Onde: `packages/content/src/balance.ts`; `expeditionModelsSchema`, em `schemas.ts`; GDD §9.2, com a nota.
 - Se decidir diferente: com o mínimo em 3 nós de 10 minutos, a Patrulha dura ao menos 30 minutos, e a tabela do catálogo muda.
@@ -289,7 +361,7 @@ Vêm da implementação de V3D-T1 (a Guilda dos Aventureiros, `sendExpedition`, 
 - Onde: `erguerGuilda`, `enviarExpedicoes`, `escolherCaminho` e `inTheRace`, em `packages/sim-cli/src/bots/policies.ts`.
 - **O que isto deixa sem resposta**, e a aprovação em bloco do ADR 0018 pedia: a parcela das encruzilhadas decididas pelo jogador no perfil de 2 visitas. Fica para V3D-T3, com o catálogo, e V3D-T5.
 
-**D-12. Os dois grafos e todas as frases das expedições são provisórios e rascunho.**
+**D-12. Os dois grafos e todas as frases das expedições são provisórios e rascunho.** *(**Em V3D-T3:** os grafos são os do catálogo, ainda rascunho; a frase do retorno entrou no relatório, D-44; e as linhas dos nós na Crônica foram decididas na D-32.)*
 - Enquanto isso: a Patrulha dos Arredores e a Floresta Antiga, três variantes mínimas cada, com títulos, pistas e frases do agente ([content-v0.3.md](content-v0.3.md), seção 6). O teste editorial do ADR 0018 não foi feito. Os identificadores `patrol` e `oldForest` ficam gravados no estado e são os que o catálogo de V3D-T3 deve manter.
 - A frase do nó de retorno (`text`, em cada grafo) **ainda não é usada**: a volta sai com a frase geral de `expeditionReturned`, e o caminho de volta não entra no relatório como um passo. Fica no conteúdo para V3D-T3 decidir.
 - **As previsões da visão andam sem as expedições**: a conta da moral da próxima virada não conta com a volta de um herói Devoto nem com a comida que uma equipe traria antes dela (a cópia que prevê não pode sortear o desfecho de um nó). Se isso incomodar na tela, a saída é a visão dizer "a equipe volta antes" sem resolver nada.
@@ -700,6 +772,19 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase D: o catálogo e o relatório (V3D-T3)
+
+- **O autor não leu nem jogou nada disto.** Os dezoito grafos, as pistas, as frases de cada desfecho e as lições são rascunho; a ficha de cada grafo está "rascunho", nenhuma "aprovada" (V3D-T3.3 foi feita sem a apresentação um a um).
+- **O teste do GDD §9.4 não foi feito**: ninguém leu um relatório em voz alta e tentou recontá-lo. O golden `expedition-catalog.json` tem um relatório por modelo, com a semente fixa.
+- **"Para que equipe cada opção é razoável" é uma conta**, com uma régua que o agente inventou (o que o caminho rende em média, menos o dano). Não é medição de jogo.
+- **A calibragem trata os nós como independentes, com a equipe inteira em todos**, sem traço e sem item. Quem é capturado no meio do caminho continua contando.
+- **Nenhuma partida simulada teve Desastre, captura ou Resgate** (D-41). Esses desfechos só acontecem no teste que os põe à força (`expeditions.catalog.test.ts`) e nos de `outcomes.test.ts`.
+- **O teste dos ramos põe o desfecho à força mexendo na equipe** (quantos ficam, o nível, o Descontente e, depois da última encruzilhada, a classe) e no gerador. Não prova que um jogador chega a cada desfecho jogando.
+- **O app não mostra nada disto** (V3D-T4): nem os destinos novos, nem a régua da equipe, nem o relatório. O cache do app não precisou de marca nova: a visão só cresceu.
+- **`--perf`, os bytes do estado e da visão e a matriz inteira não foram medidos**; só a matriz do Explorador, nas três dificuldades.
+- **Nenhuma partida de produção passou pelo passo 18 → 19**: a produção está no estado 12. O que o prova são os 38 retratos congelados da versão 18 e os testes de integração da migração.
+- **A cobertura por estação e nível da Guilda** ([balance-v0.3.md](balance-v0.3.md), seção 8.3) saiu de um roteiro avulso, lendo os eventos: não há teste que a repita.
 
 ### Fase D: os desfechos (V3D-T2)
 
