@@ -25,7 +25,12 @@ import {
   withResource,
   withUpgrade,
 } from '../test-helpers';
-import { expeditionCrossroadsView } from '../test-helpers';
+import {
+  denClearedView,
+  expeditionCrossroadsView,
+  heroCapturedView,
+  heroInjuredView,
+} from '../test-helpers';
 import { cardDecisions, crossroadsDecisions } from '../ui/format';
 import { beforeLeaving, leavingItems } from './beforeLeaving';
 import {
@@ -851,5 +856,132 @@ describe('os blocos na tela: o que é da ausência fica, o que é de agora acomp
       const built = buildReturnReport(view, view, absence, HOUR);
       expect(ReturnReportSchema.safeParse(built).error).toBeUndefined();
     }
+  });
+});
+
+describe('as expedições no Relatório de Retorno (roadmap da v0.3, V3D-T4): não duplica e não mente', () => {
+  const id = { expeditionId: 'expedition-1', modelId: 'oldForest' };
+
+  it('o saque de uma expedição é "recebido", nunca produção: a conta do estoque fecha com os totais do evento', () => {
+    const before = withResource(withResource(heroInjuredView, 'gold', { stock: 100 }), 'wood', {
+      stock: 50,
+    });
+    const after = withResource(withResource(heroInjuredView, 'gold', { stock: 112 }), 'wood', {
+      stock: 50,
+    });
+    const report = buildReturnReport(
+      before,
+      after,
+      [
+        event('expeditionReturned', 'A expedição voltou com 47 de madeira e 12 de ouro.', {
+          ...id,
+          // O que entrou no estoque e o que não coube no depósito, como o motor os manda.
+          gained_gold: 12,
+          gained_wood: 0,
+          lost_wood: 47,
+          loot_gold: 12,
+          loot_wood: 47,
+        }),
+      ],
+      6 * HOUR,
+    );
+    const gold = report.resources.find((row) => row.id === 'gold');
+    const wood = report.resources.find((row) => row.id === 'wood');
+    // O ouro subiu 12, e os 12 vieram da expedição: a produção da ausência foi zero.
+    expect(gold).toMatchObject({ delta: 12, received: 12, produced: 0 });
+    // A madeira que não coube foi cortada do ganho, e não aparece como produção perdida.
+    expect(wood).toMatchObject({ delta: 0, received: 0, cut: 47, produced: 0 });
+  });
+
+  it('a volta e o que ela trouxe vão para "prosperou"; quem se feriu, foi capturado ou morreu, para "custou", com a próxima ação', () => {
+    const blocks = blocksOf(heroCapturedView, heroCapturedView, [
+      event('expeditionSent', 'Edda e Rolf partiram.', id),
+      event('expeditionAtCrossroads', 'A equipe chegou a uma encruzilhada.', id),
+      event('expeditionPostureDecided', 'A Postura decidiu.', id),
+      event('expeditionNodeFailed', 'O javali fez Edda recuar.', id),
+      event('heroInjured', 'Rolf voltou com ferimentos.', { ...id, heroId: 'hero-2' }),
+      event('heroCaptured', 'Edda caiu em cativeiro.', { ...id, heroId: 'hero-1' }),
+      event('itemFound', 'A expedição achou um item: Lança de caça.', id),
+      event('heroLeveledUp', 'Rolf chegou ao nível 2.', { heroId: 'hero-2', level: 2 }),
+      event('expeditionReturned', 'A expedição voltou com 22 de ouro.', { ...id, gained_gold: 22 }),
+    ]);
+    expect(texts(blocks.prospered)).toEqual([
+      'A expedição achou um item: Lança de caça.',
+      'Rolf chegou ao nível 2.',
+      'A expedição voltou com 22 de ouro.',
+    ]);
+    // A partida, a encruzilhada, quem decidiu e o nó que deu errado ficam na Crônica e no
+    // relatório da expedição: aqui seriam a mesma história duas vezes. (O feudo deste retrato
+    // está com o soldo em atraso desde antes: essa linha é de outro assunto.)
+    const cost = blocks.cost.filter((item) => item.topic !== 'wage');
+    expect(cost.map((item) => [item.text, item.action?.label])).toEqual([
+      ['Rolf voltou com ferimentos.', 'Ver a Guilda'],
+      // Há alguém em cativeiro e a Guilda oferece o Resgate: é o botão.
+      ['Edda caiu em cativeiro.', 'Enviar o Resgate'],
+    ]);
+    expect(cost[1]?.action).toEqual({
+      command: 'lords.sendExpedition',
+      arg: 'rescue',
+      label: 'Enviar o Resgate',
+    });
+    // Cada frase aparece uma vez só nos blocos.
+    const all = [...texts(blocks.prospered), ...texts(cost)];
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it('sem Resgate à vista, a captura leva à Guilda; a morte, à Taverna; a equipe perdida, à Guilda', () => {
+    expect(costAction(heroInjuredView, 'hero:captured')).toEqual({
+      command: 'lords.openPanel',
+      arg: 'guild',
+      label: 'Ver a Guilda',
+    });
+    expect(costAction(heroInjuredView, 'hero:died')).toEqual({
+      command: 'lords.openPanel',
+      arg: 'tavern',
+      label: 'Ver a Taverna',
+    });
+    const blocks = blocksOf(heroInjuredView, heroInjuredView, [
+      event('heroDied', 'Edda não voltou das Ruínas.', { ...id, heroId: 'hero-1' }),
+      event('expeditionLost', 'Ninguém voltou das Ruínas.', id),
+    ]);
+    expect(blocks.cost.map((item) => [item.text, item.action?.label])).toEqual([
+      ['Edda não voltou das Ruínas.', 'Ver a Taverna'],
+      ['Ninguém voltou das Ruínas.', 'Ver a Guilda'],
+    ]);
+    expect(blocks.prospered).toEqual([]);
+  });
+
+  it('o que a expedição deixou de bom: o resgatado, o que sarou, o destino novo e o Covil limpo', () => {
+    const blocks = blocksOf(denClearedView, denClearedView, [
+      event('heroRescued', 'Edda foi resgatada.', id),
+      event('heroRecovered', 'Rolf está recuperado.', { heroId: 'hero-2' }),
+      event('destinationRevealed', 'A patrulha achou o caminho das Ruínas.', id),
+      event('threatTileCleared', 'O Covil de Lobos foi limpo.', id),
+    ]);
+    expect(texts(blocks.prospered)).toEqual([
+      'Edda foi resgatada.',
+      'Rolf está recuperado.',
+      'A patrulha achou o caminho das Ruínas.',
+      'O Covil de Lobos foi limpo.',
+    ]);
+    expect(blocks.cost).toEqual([]);
+  });
+
+  it('"Você ainda pode decidir" traz o herói sem jornada, com o botão do envio, e "Antes de partir" não o repete', () => {
+    const blocks = blocksOf(heroInjuredView, heroInjuredView, []);
+    expect(blocks.pending.map((item) => [item.topic, item.action?.command])).toContainEqual([
+      'expedition',
+      'lords.sendExpedition',
+    ]);
+    expect(coveredTopics(blocks)).toContain('expedition');
+    expect(
+      beforeLeaving(heroInjuredView, coveredTopics(blocks)).map((item) => item.id),
+    ).not.toContain('expedition');
+    // E a encruzilhada, que o relatório já trouxe no topo, também não se repete.
+    const waiting = blocksOf(expeditionCrossroadsView, expeditionCrossroadsView, []);
+    expect(waiting.pending[0]?.topic).toBe('crossroads:expedition-2');
+    expect(
+      beforeLeaving(expeditionCrossroadsView, coveredTopics(waiting)).map((item) => item.id),
+    ).not.toContain('crossroads:expedition-2');
   });
 });

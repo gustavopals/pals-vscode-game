@@ -240,6 +240,16 @@ export const expeditionCrossroadsView = golden.expeditionCrossroads as unknown a
 export const expeditionReturningView = golden.expeditionReturning as unknown as ViewState;
 
 /**
+ * Os desfechos (V3D-T2 e V3D-T3), para as telas da Guilda: Edda em recuperação, com o relatório
+ * de um Revés, Rolf no feudo com um item, outro item no arsenal e destinos que podem partir; um
+ * herói em cativeiro, com o Resgate na lista da Guilda e o soldo em atraso; e o Covil limpo, com
+ * o relatório de um Sucesso Pleno e dois heróis de nível alto no feudo.
+ */
+export const heroInjuredView = golden.heroInjured as unknown as ViewState;
+export const heroCapturedView = golden.heroCaptured as unknown as ViewState;
+export const denClearedView = golden.denCleared as unknown as ViewState;
+
+/**
  * O Salão no nível 4, com as duas filas de obras ocupadas e cinco planejadas, uma de cada espera
  * (obra anterior do edifício, fila, recurso, depósito e nível de outro edifício).
  */

@@ -6,7 +6,14 @@ import {
   autumnView,
   coldView,
   craftsView,
+  denClearedView,
+  expeditionCrossroadsView,
+  expeditionReturningView,
+  expeditionTravelingView,
   FOOD_RUNS_OUT_AHEAD,
+  guildPaidView,
+  heroCapturedView,
+  heroInjuredView,
   impoverishedView,
   initialView,
   palisadeRaisedView,
@@ -774,6 +781,96 @@ describe('antes de partir', () => {
       for (const item of beforeLeaving(view)) {
         expect(item.command.label).not.toBe('');
         expect(item.command.id.startsWith('lords.')).toBe(true);
+      }
+    }
+  });
+});
+
+describe('antes de partir: as expedições (roadmap da v0.3, V3D-T4)', () => {
+  const guildItems = (view: ViewState) =>
+    leavingItems(view).filter(
+      (item) => item.id.startsWith('crossroads:') || item.id === 'expedition',
+    );
+
+  it('estado de risco: uma equipe espera na encruzilhada, e o item diz o prazo e o que a Postura fará', () => {
+    const [item] = guildItems(expeditionCrossroadsView);
+    expect(item).toEqual({
+      id: 'crossroads:expedition-2',
+      // Cinco horas: vence antes de uma ausência comum.
+      severity: 'danger',
+      text: 'A equipe de “Floresta Antiga” espera na encruzilhada: expira em 5 h. Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      command: {
+        id: 'lords.chooseExpeditionPath',
+        arg: 'expedition-2',
+        label: 'Escolher caminho',
+      },
+    });
+    // O item entra na lista de cinco, na frente dos depósitos e dos aldeões livres.
+    expect(ids(beforeLeaving(expeditionCrossroadsView))).toContain('crossroads:expedition-2');
+  });
+
+  it('com o prazo longo, é alerta, não urgência: a decisão vai ser tomada de um jeito ou de outro', () => {
+    const [expedition] = expeditionCrossroadsView.guild.expeditions;
+    if (expedition === undefined || expedition.crossroads === null) {
+      throw new Error('Sem equipe na encruzilhada.');
+    }
+    const late: ViewState = {
+      ...expeditionCrossroadsView,
+      guild: {
+        ...expeditionCrossroadsView.guild,
+        expeditions: [
+          { ...expedition, crossroads: { ...expedition.crossroads, decidesInSeconds: 10 * HOUR } },
+        ],
+      },
+    };
+    expect(guildItems(late)[0]).toMatchObject({ severity: 'warning' });
+    expect(guildItems(late)[0]?.text).toContain('expira em 10 h');
+  });
+
+  it('fora do estado de risco: a equipe em viagem, sem encruzilhada, não gera item', () => {
+    expect(guildItems(expeditionTravelingView)).toEqual([]);
+    expect(guildItems(expeditionReturningView)).toEqual([]);
+  });
+
+  it('estado de risco: herói no feudo, pronto, com destino que pode partir', () => {
+    expect(guildItems(heroInjuredView)).toEqual([
+      {
+        id: 'expedition',
+        severity: 'info',
+        text: 'Rolf está no feudo, sem jornada, e há expedição que pode partir.',
+        command: { id: 'lords.sendExpedition', label: 'Enviar expedição' },
+      },
+    ]);
+    expect(guildItems(denClearedView)[0]?.text).toBe(
+      'Edda e Rolf estão no feudo, sem jornada, e há expedição que pode partir.',
+    );
+  });
+
+  it('fora do estado de risco: sem a Guilda, com os lugares ocupados ou sem ninguém pronto, não há sugestão de envio', () => {
+    // Heróis no feudo, mas sem a Guilda dos Aventureiros: não há para onde ir.
+    expect(guildItems(guildPaidView)).toEqual([]);
+    // Rolf está no feudo, mas o único lugar da Guilda está ocupado.
+    expect(guildItems(expeditionTravelingView)).toEqual([]);
+    // Todos fora: ninguém pronto.
+    expect(guildItems(expeditionCrossroadsView).map((item) => item.id)).toEqual([
+      'crossroads:expedition-2',
+    ]);
+    // Só a heroína em recuperação no feudo: ela não pode partir.
+    const onlyInjured: ViewState = {
+      ...heroInjuredView,
+      guild: {
+        ...heroInjuredView.guild,
+        heroes: heroInjuredView.guild.heroes.filter((hero) => hero.injury !== null),
+      },
+    };
+    expect(guildItems(onlyInjured)).toEqual([]);
+  });
+
+  it('todo item das expedições tem uma ação que é um comando', () => {
+    for (const view of [expeditionCrossroadsView, heroInjuredView, heroCapturedView]) {
+      for (const item of guildItems(view)) {
+        expect(item.command.id).toMatch(/^lords\.(chooseExpeditionPath|sendExpedition)$/);
+        expect(item.command.label).not.toBe('');
       }
     }
   });

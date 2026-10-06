@@ -36,4 +36,29 @@ describe('a intenção de uma ordem', () => {
     expect(intentOf('dismissHero', { heroId: 'hero-1' })).toBe('dismissHero:hero-1');
     expect(intentOf('holdFestival', {})).toBe('holdFestival');
   });
+
+  it('as expedições: o caminho é da expedição, o envio é do destino, e o equipamento, do herói', () => {
+    expect(intentOf('chooseExpeditionPath', { expeditionId: 'expedition-2', optionId: 'a' })).toBe(
+      intentOf('chooseExpeditionPath', { expeditionId: 'expedition-2', optionId: 'b' }),
+    );
+    expect(
+      intentOf('chooseExpeditionPath', { expeditionId: 'expedition-3', optionId: 'a' }),
+    ).not.toBe(intentOf('chooseExpeditionPath', { expeditionId: 'expedition-2', optionId: 'a' }));
+    expect(
+      intentOf('sendExpedition', { modelId: 'patrol', heroIds: ['hero-1'], posture: 'bold' }),
+    ).toBe(
+      intentOf('sendExpedition', { modelId: 'patrol', heroIds: ['hero-2'], posture: 'cautious' }),
+    );
+    // Equipar e desequipar mexem no mesmo herói: a ordem nova aposenta a retentativa da outra.
+    expect(intentOf('equipItem', { heroId: 'hero-1', itemId: 'item-1' })).toBe(
+      intentOf('unequipItem', { heroId: 'hero-1', slot: 'weapon' }),
+    );
+    expect(intentOf('equipItem', { heroId: 'hero-1', itemId: 'item-1' })).not.toBe(
+      intentOf('equipItem', { heroId: 'hero-2', itemId: 'item-1' }),
+    );
+    // A dispensa do mesmo herói é outra conversa.
+    expect(intentOf('dismissHero', { heroId: 'hero-1' })).not.toBe(
+      intentOf('equipItem', { heroId: 'hero-1', itemId: 'item-1' }),
+    );
+  });
 });

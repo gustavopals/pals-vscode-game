@@ -5,6 +5,7 @@ import {
   autumnView,
   coldView,
   craftsView,
+  expeditionCrossroadsView,
   FOOD_RUNS_OUT_AHEAD,
   initialView,
   palisadeRaisedView,
@@ -14,11 +15,15 @@ import {
   withFoodAhead,
 } from '../test-helpers';
 import {
+  crossroadsNotice,
   decideNotice,
   decideNotifications,
   eventIcon,
+  isCrossroadsArrival,
   isDecision,
   isEssential,
+  isExpeditionEnd,
+  isGuildEvent,
   isRaidAlarm,
   isRaidOutcome,
   isRelief,
@@ -900,5 +905,114 @@ describe('política de notificações', () => {
         expect(seasonArrival(turn('winter'), undefined, null)).toEqual([]);
       });
     });
+  });
+});
+
+describe('as expedições nos avisos (roadmap da v0.3, V3D-T4; GDD §13.5)', () => {
+  const crossroads = event('expeditionAtCrossroads', 1);
+
+  it('a encruzilhada é aviso essencial: uma decisão à espera, sem o tom de alarme', () => {
+    expect(isDecision(crossroads)).toBe(true);
+    expect(isCrossroadsArrival(crossroads)).toBe(true);
+    expect(isCrossroadsArrival(event('cardDrawn'))).toBe(false);
+    expect(isEssential(crossroads)).toBe(false);
+    expect(decideNotifications(input({ level: 'essential', events: [crossroads] })).show).toEqual([
+      crossroads,
+    ]);
+    expect(decideNotifications(input({ level: 'silent', events: [crossroads] })).show).toEqual([]);
+    expect(eventIcon(crossroads)).toBe('git-compare');
+    expect(isGuildEvent(crossroads)).toBe(true);
+  });
+
+  it('enquanto espera, a encruzilhada não entra no contador de novidades: quem a conta são as decisões pendentes', () => {
+    const muted = decideNotifications(
+      input({ events: [crossroads, event('famineStarted', 2)], mutedUntil: now + HOUR }),
+    );
+    expect(muted.show).toEqual([]);
+    // Só a fome vira badge.
+    expect(muted.badge).toBe(1);
+  });
+
+  it('a captura e a morte de um herói são alarmes', () => {
+    for (const type of ['heroCaptured', 'heroDied'] as const) {
+      const lost = event(type);
+      expect(isEssential(lost), type).toBe(true);
+      expect(isGuildEvent(lost), type).toBe(true);
+      expect(decideNotifications(input({ level: 'essential', events: [lost] })).show).toEqual([
+        lost,
+      ]);
+      expect(eventIcon(lost)).toBeDefined();
+    }
+  });
+
+  it('a volta da expedição, o nível novo e o item achado só avisam em "Todas"', () => {
+    const quiet = [
+      event('expeditionReturned', 1),
+      event('heroLeveledUp', 2),
+      event('itemFound', 3),
+    ];
+    expect(decideNotifications(input({ level: 'essential', events: quiet }))).toMatchObject({
+      show: [],
+      badge: 0,
+    });
+    expect(decideNotifications(input({ level: 'all', events: quiet })).show).toEqual(quiet);
+    for (const entry of quiet) {
+      expect(isEssential(entry)).toBe(false);
+      expect(eventIcon(entry)).toBeDefined();
+    }
+    expect(isExpeditionEnd(event('expeditionReturned'))).toBe(true);
+    expect(isExpeditionEnd(event('expeditionLost'))).toBe(true);
+    expect(isExpeditionEnd(event('itemFound'))).toBe(false);
+  });
+
+  it('o nó resolvido, a partida e as trocas de equipamento nunca avisam', () => {
+    const silent = (
+      [
+        'expeditionSent',
+        'expeditionNodeResolved',
+        'expeditionNodeFailed',
+        'expeditionPathChosen',
+        'itemEquipped',
+        'itemUnequipped',
+      ] as const
+    ).map((type, index) => event(type, index + 1));
+    expect(decideNotifications(input({ level: 'all', events: silent }))).toMatchObject({
+      show: [],
+      badge: 0,
+    });
+  });
+
+  it('com pouco espaço, a captura passa na frente da encruzilhada, e a encruzilhada, da volta', () => {
+    const events = [
+      event('expeditionReturned', 1),
+      crossroads,
+      event('heroCaptured', 3),
+      event('itemFound', 4),
+    ];
+    const result = decideNotifications(input({ level: 'all', events }));
+    expect(result.show.map((entry) => entry.type)).toEqual([
+      'heroCaptured',
+      'expeditionAtCrossroads',
+      'expeditionReturned',
+    ]);
+    expect(result.badge).toBe(1);
+  });
+
+  it('o aviso da encruzilhada diz o prazo real, a hora em que ele acaba e o que a Postura fará', () => {
+    const [expedition] = expeditionCrossroadsView.guild.expeditions;
+    if (expedition === undefined) {
+      throw new Error('Sem equipe na encruzilhada.');
+    }
+    const notice = crossroadsNotice(expedition, { now, timeZone: 'UTC' });
+    expect(notice).toEqual({
+      text: 'Encruzilhada em Floresta Antiga: A trilha se divide',
+      details: [
+        'A equipe espera a sua palavra por 5 h, até as 17:19.',
+        'Sem resposta, a Postura Equilibrada escolhe: Seguir o riacho.',
+      ],
+    });
+    // Sem o relógio, só o prazo; para a equipe que não espera, nada.
+    expect(crossroadsNotice(expedition)?.details[0]).toBe('A equipe espera a sua palavra por 5 h.');
+    expect(crossroadsNotice({ ...expedition, crossroads: null })).toBeNull();
   });
 });

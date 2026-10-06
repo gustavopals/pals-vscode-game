@@ -210,6 +210,33 @@ export function sendable(guild: Guild): Destination[] {
 }
 
 /**
+ * A equipe que a tela de envio já traz marcada: os primeiros que o destino aceita, até o mínimo
+ * que ele pede. Enviar fica a dois cliques (abrir e confirmar); trocar é desmarcar e marcar.
+ */
+export function defaultTeam(guild: Guild, destination: Destination): string[] {
+  return eligibleHeroes(guild, destination)
+    .slice(0, destination.teamMin)
+    .map((hero) => hero.id);
+}
+
+/**
+ * A Postura que já vem marcada: a do meio da lista da visão (nem a mais segura, nem a mais
+ * arriscada). `undefined` se a visão não trouxer nenhuma.
+ */
+export function defaultPosture(postures: readonly Posture[]): Posture['id'] | undefined {
+  return postures[Math.floor(Math.max(0, postures.length - 1) / 2)]?.id;
+}
+
+/** O que o botão "Enviar" manda ao comando `lords.sendExpedition`: o destino, a equipe e a Postura. */
+export function sendArg(
+  destination: Pick<Destination, 'modelId'>,
+  heroIds: readonly string[],
+  posture: Posture['id'] | undefined,
+): { modelId: string; heroIds: string[]; posture: Posture['id'] | undefined } {
+  return { modelId: destination.modelId, heroIds: [...heroIds], posture };
+}
+
+/**
  * Quantos heróis a equipe de um destino leva, em palavras, para o rótulo da escolha: "1 herói",
  * "2 heróis", "de 2 a 3 heróis". Os números são os da visão.
  */

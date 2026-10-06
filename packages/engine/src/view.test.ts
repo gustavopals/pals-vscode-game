@@ -10,6 +10,9 @@ import {
   heroPromisedScenario,
   expeditionCrossroadsScenario,
   expeditionReturningScenario,
+  denClearedScenario,
+  heroCapturedScenario,
+  heroInjuredScenario,
   expeditionTravelingScenario,
   tavernBusyScenario,
   tavernOpenScenario,
@@ -590,6 +593,13 @@ describe('golden do ViewState', () => {
       expeditionTraveling: view(expeditionTravelingScenario()),
       expeditionCrossroads: view(expeditionCrossroadsScenario()),
       expeditionReturning: view(expeditionReturningScenario()),
+      // Os desfechos, para as telas da Guilda: uma heroína em recuperação, com o relatório de
+      // um Revés, um item no arsenal, outro equipado e um destino que pode partir; um herói em
+      // cativeiro, com o Resgate na lista e o soldo em atraso; e o Covil limpo, com o
+      // relatório de um Sucesso Pleno.
+      heroInjured: view(heroInjuredScenario()),
+      heroCaptured: view(heroCapturedScenario()),
+      denCleared: view(denClearedScenario()),
     };
     await expect(`${JSON.stringify(golden, null, 2)}\n`).toMatchFileSnapshot(
       './__golden__/view-seed-pedra-alta.json',

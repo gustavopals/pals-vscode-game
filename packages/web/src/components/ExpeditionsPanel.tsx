@@ -3,6 +3,8 @@ import { useState } from 'preact/hooks';
 
 import {
   canSend,
+  defaultPosture,
+  defaultTeam,
   type Destination,
   domId,
   durationLine,
@@ -15,6 +17,7 @@ import {
   heroFitPower,
   type Posture,
   REPORTS_ANCHOR,
+  sendArg,
   stretchEnds,
   teamFit,
   teamFits,
@@ -107,11 +110,6 @@ function Ongoing(props: {
   );
 }
 
-/** A Postura que já vem marcada: a do meio da lista da visão (nem a mais segura, nem a mais arriscada). */
-function middlePosture(postures: readonly Posture[]): Posture['id'] | undefined {
-  return postures[Math.floor(Math.max(0, postures.length - 1) / 2)]?.id;
-}
-
 /**
  * A montagem de um envio (GDD §9.2 e §13.6): quem vai, com o que cada um vale contra o primeiro
  * trecho, e a Postura, com o que cada uma faz na encruzilhada, na frase do servidor. A régua da
@@ -130,11 +128,9 @@ function SendForm(props: {
 }) {
   const { guild, destination } = props;
   const eligible = eligibleHeroes(guild, destination);
-  const [picked, setPicked] = useState<string[]>(() =>
-    eligible.slice(0, destination.teamMin).map((hero) => hero.id),
-  );
+  const [picked, setPicked] = useState<string[]>(() => defaultTeam(guild, destination));
   const [posture, setPosture] = useState<Posture['id'] | undefined>(() =>
-    middlePosture(guild.postures),
+    defaultPosture(guild.postures),
   );
   // Quem deixou de poder partir (saiu, feriu-se) com a tela aberta já não está na equipe.
   const team = picked.filter((heroId) => eligible.some((hero) => hero.id === heroId));
@@ -216,11 +212,7 @@ function SendForm(props: {
           disabled={props.disabled || props.busy || !fits || posture === undefined}
           aria-describedby={`${name}-terms ${name}-about`}
           onClick={() =>
-            props.actions.run('lords.sendExpedition', {
-              modelId: destination.modelId,
-              heroIds: team,
-              posture,
-            })
+            props.actions.run('lords.sendExpedition', sendArg(destination, team, posture))
           }
         >
           Enviar<span class="sr-only"> expedição: {destination.label}</span>

@@ -2,7 +2,10 @@ import type { ViewState } from '@lotg/protocol';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  expeditionCrossroadsView,
+  expeditionTravelingView,
   guildPaidView,
+  heroInjuredView,
   heroPromisedView,
   makeController,
   tavernOpenView,
@@ -117,6 +120,60 @@ describe('a leitura seguinte acontece quando um prazo da Guilda vence', () => {
       {
         ...view,
         tavern: { ...view.tavern, festival: { ...view.tavern.festival, activeForSeconds: 8 } },
+      },
+      8,
+    );
+  });
+
+  it('o nó de uma expedição que termina (V3D-T4)', async () => {
+    const view = quiet(expeditionTravelingView);
+    await readsRightAfter(
+      {
+        ...view,
+        guild: {
+          ...view.guild,
+          expeditions: view.guild.expeditions.map((expedition) => ({
+            ...expedition,
+            nodeEndsInSeconds: 6,
+          })),
+        },
+      },
+      6,
+    );
+  });
+
+  it('o prazo da encruzilhada, que é quando a Postura decide (V3D-T4)', async () => {
+    const view = quiet(expeditionCrossroadsView);
+    await readsRightAfter(
+      {
+        ...view,
+        guild: {
+          ...view.guild,
+          expeditions: view.guild.expeditions.map((expedition) => ({
+            ...expedition,
+            crossroads:
+              expedition.crossroads === null
+                ? null
+                : { ...expedition.crossroads, decidesInSeconds: 7 },
+          })),
+        },
+      },
+      7,
+    );
+  });
+
+  it('o herói ferido que sara e volta a poder partir (V3D-T4)', async () => {
+    const view = quiet(heroInjuredView);
+    await readsRightAfter(
+      {
+        ...view,
+        guild: {
+          ...view.guild,
+          heroes: view.guild.heroes.map((hero) => ({
+            ...hero,
+            injury: hero.injury === null ? null : { ...hero.injury, recoversInSeconds: 8 },
+          })),
+        },
       },
       8,
     );
