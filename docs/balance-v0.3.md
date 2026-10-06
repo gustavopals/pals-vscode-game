@@ -752,6 +752,172 @@ O ADR pede que estas voltem ao autor "como pergunta pontual, com o número medid
 - A cobertura do Conselho em 50 sementes (`SHOW_COVERAGE=1`) não foi remedida: o teste dela passa sem mudança de número.
 - Node v24.15.0, como as seções 1 a 3.
 
-## 5. Rodadas seguintes das Fases C a G
+## 5. Fase C fechada (V3C-T5)
 
-*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3C-T5, V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3 e 4.*
+Tarefa V3C-T5 do [roadmap da v0.3](roadmap-v0.3.md), subtarefas 5.2 e 5.3. É a rodada da fase inteira (heróis, soldo e atraso, a carta da estrangeira, a Taverna e a aba Guilda), **depois dos trinta commits de correção das duas revisões independentes** (`4e363ef` a `ad43df6`). Não muda regra, bot nem faixa: mede.
+
+| | |
+|---|---|
+| Data | 2026-10-06 |
+| Commit | `316a836` (o `ad43df6`, último commit de código e de correção, mais o registro das respostas do autor) |
+| Identificação | Motor 0.2.0 · estado v16 · conteúdo `ddd52de8b881eaa1` (era `13c1be459b007c6a` na seção 4: as correções mexeram em frases e tiraram `festival.perSeason`) |
+| Dificuldades | Camponês, Senhor e Rei de Ferro, 50 sementes cada (`pedra-alta-001` a `pedra-alta-050`) |
+| Perfis | Preguiçoso (1 visita por dia), Regular (2), Dedicado (4) e Explorador (2, o bot que contrata), nos ritmos Rápido 3×, Normal 1× e Tranquilo 0,5×: 24 células por dificuldade, 3.600 partidas |
+| Máquina | A da seção 1, Node v24.15.0 (não o 22 do `.nvmrc`) |
+
+### 5.1 Comandos
+
+```bash
+pnpm -s sim -- --matrix --difficulty peasant > peasant.csv 2> peasant.md
+pnpm -s sim -- --matrix --difficulty lord > lord.csv 2> lord.md
+pnpm -s sim -- --matrix --difficulty ironKing > ironKing.csv 2> ironKing.md
+pnpm -s sim -- --matrix --profile explorador > explorador-lord.csv 2> explorador-lord.md
+pnpm -s sim -- --perf
+```
+
+Os cinco saíram com código 0; as quatro matrizes, com "Todas as partidas dentro das faixas". As saídas não ficaram no repositório. Três roteiros descartáveis, fora do repositório, usaram o simulador como biblioteca (`simulate`, com a opção `bot` que ele já tem para medir variações): a hora do primeiro herói semente a semente, o Preguiçoso com um herói que não é Leal (seção 5.4) e os bytes com seis heróis (seção 5.6). **Nenhum arquivo do simulador mudou.**
+
+### 5.2 As correções da revisão não mexeram em número nenhum da matriz
+
+- **A linha de base das três dificuldades é igual a `MEASURED`**, linha a linha (24 células em cada uma, comparadas por roteiro com `packages/sim-cli/src/bands.ts`). As tabelas "Guilda" de Senhor são as da seção 4.3, número a número.
+- **`--matrix --profile explorador` devolve as mesmas 300 partidas** que o perfil Explorador da rodada padrão de Senhor (os dois CSVs comparados com `diff`): desde a V3C-T2 o perfil está na rodada padrão, e a opção só serve para rodá-lo sozinho.
+- O motivo é o que a seção 6 de [pendencias-v0.3.md](pendencias-v0.3.md) já dizia: nenhum bot passa 12 h reais com fome nem com um herói que não é Leal em atraso, e as regras que a revisão corrigiu (a cobrança do que venceu, o Descontente na retomada, os prazos de quem chega a um atraso velho) não são alcançadas por nenhuma partida da matriz.
+
+### 5.3 A Guilda, por perfil e ritmo, em Senhor
+
+Menor / mediana / maior das 50 sementes (um número só quando são iguais). "Primeiro herói" é a hora real, desde a fundação, em que o feudo passa a ter um herói; "7 d" são 168 horas reais.
+
+| Ritmo | Perfil | Primeiro herói (h real) | Heróis no fim, 7 d | Heróis no fim, ano de jogo | Soldo em atraso (h reais) | Heróis que partiram |
+|---|---|---:|---:|---:|---:|---:|
+| Rápido 3× | Preguiçoso | 48 | 1 | 1 | 0 | 0 |
+| Rápido 3× | Regular | 24 | 1 | 1 | 0 | 0 |
+| Rápido 3× | Dedicado | 12 | 1 | 1 | 0 | 0 |
+| Rápido 3× | Explorador | 24 | 6 | 3 | 0 | 0 |
+| Normal 1× | Preguiçoso | 48 | 1 | 1 | **21** | 0 |
+| Normal 1× | Regular | 24 / 24 / 36 | 1 | 1 | 0 | 0 |
+| Normal 1× | Dedicado | 24 | 1 | 1 | 0 | 0 |
+| Normal 1× | Explorador | 24 / 24 / 36 | 6 | 6 | 0 | 0 |
+| Tranquilo 0,5× | Preguiçoso | 48 | 1 | 1 | 0 | 0 |
+| Tranquilo 0,5× | Regular | 48 | 1 | 1 | 0 | 0 |
+| Tranquilo 0,5× | Dedicado | 48 | 1 | 1 | 0 | 0 |
+| Tranquilo 0,5× | Explorador | 48 | 3 / 5 / 5 | 6 | 0 | 0 |
+
+- **Camponês e Rei de Ferro dão a mesma tabela**, com duas diferenças no Explorador: em Camponês, no Normal, ele termina com 5 / 6 / 6 heróis; em Rei de Ferro, na semana do Tranquilo, com 2 / 5 / 5. A hora do primeiro herói, o atraso e as partidas são iguais nas três dificuldades (36 células, 50 sementes cada).
+- **Nenhum herói partiu em nenhuma das 3.600 partidas**, e nenhum foi dispensado.
+- **O único atraso é o do Preguiçoso no ritmo Normal: 21 h reais, em toda semente, nas três dificuldades**, como na seção 3.3. O herói dele é Edda, que é Leal: não fica Descontente e não parte.
+- **O Explorador nunca atrasa**: a política dele guarda um dia de soldo antes de contratar.
+
+**A meta "primeiro herói no dia 2" (GDD §15.2), medida.** O dia real 2 do ritmo Normal começa na hora 24, que é o início do 13º dia de jogo, o da carta.
+
+| Perfil, no ritmo Normal | Hora real do primeiro herói | Dia real | Veredito |
+|---|---:|---|---|
+| Dedicado (4 visitas) | 24 em toda semente | no primeiro instante do dia 2 | cumpre |
+| Regular e Explorador (2 visitas) | 24 na mediana; 36 na pior semente | dia 2 | cumpre |
+| Preguiçoso (1 visita) | 48 em toda semente | no primeiro instante do dia 3 | **não cumpre, por uma visita** |
+
+Nos outros ritmos a carta é a mesma, do 13º dia de jogo: hora 8 no Rápido, onde o herói chega nas horas 12, 24 e 48 conforme o perfil (quem não esvaziou a mesa antes da hora 8 só recebe a carta na audiência seguinte à visita, e a responde na visita depois dessa), e hora 48 no Tranquilo, onde todos a recebem e respondem na visita dessa hora. O atraso do Preguiçoso tem a causa que a seção 3.3 descreve: a carta pede lugar na mesa e não o reserva, e quem visita uma vez por dia encontra a mesa ocupada (pendência C-13, com o autor).
+
+### 5.4 O Preguiçoso perde herói só por ter ficado fora uma noite?
+
+**Na rodada padrão a pergunta continua sem medida**: o Preguiçoso só tem Edda, que é Leal. Para medi-la sem mudar o bot padrão nem as faixas, um roteiro descartável jogou o Preguiçoso com **uma política trocada**: à carta da estrangeira ele responde "Cuidar e deixar partir", e recebe Rolf, Arqueiro Prudente, que **não é Leal**. Uma segunda variante acrescenta uma contratação **sem folga** (contrata todo candidato que o cofre paga, sem guardar soldo nenhum): é quem contrata e some. 50 sementes × 3 ritmos × 3 dificuldades × as duas janelas (no Normal as duas são a mesma partida): 750 partidas por variante, 1.500 ao todo; os números foram iguais nas três dificuldades.
+
+| Variante | Ritmo | Heróis no fim (7 d / ano) | Contratados (7 d / ano) | Maior atraso seguido (h reais) | Ficaram Descontentes | **Partiram** |
+|---|---|---:|---:|---:|---:|---:|
+| Com Rolf | Rápido 3× | 1 / 1 | — | 0 | 0 | **0** |
+| Com Rolf | Normal 1× | 1 | — | 0 | 0 | **0** |
+| Com Rolf | Tranquilo 0,5× | 1 / 1 | — | **18** | 1, em toda semente | **0** |
+| Com Rolf, contratando sem folga | Rápido 3× | 5 / 1 | 4 / 0 | 0 | 0 | **0** |
+| Com Rolf, contratando sem folga | Normal 1× | 3 a 4 | 2 a 3 | 0 | 0 | **0** |
+| Com Rolf, contratando sem folga | Tranquilo 0,5× | 1 / 6 | 0 / 5 | **18** | 1, em toda semente | **0** |
+
+- **Resposta medida: não.** Em 1.500 partidas com um herói que pode partir, o jogador de uma visita por dia **não perdeu herói nenhuma vez**, em ritmo e dificuldade nenhuma, nem contratando sem guardar soldo.
+- **Mas ele vê o herói Descontente, no Tranquilo, em toda semente.** O atraso de Rolf dura 18 h reais seguidas: passa das 12 h reais do Descontente e fica a **6 h** das 24 h em que o primeiro herói parte. É uma noite fora que custa um dia de poder reduzido, e não um herói.
+- **A margem é a visita, não o ouro.** Na semente 001 do Tranquilo, o bot gasta o ouro em uma obra na visita da hora 72, o atraso abre na hora 78, Rolf fica Descontente na virada da hora 92 e o atraso fecha na visita da hora 96, quando o bot põe gente na Mina. Um atraso de quem volta todo dia e acode o ouro não chega às 24 h, porque abre depois de uma visita e fecha na seguinte. Quem pula **uma** visita com o cofre vazio (48 h fora) passa das 24 h e perde um herói, e mais um a cada 2 h reais: é a regra da decisão 3, que o autor escolheu em tempo real justamente para que uma noite não custasse um herói. Isso é conta dos prazos; **o bot que pula visitas não existe e não foi medido**.
+- **Com Rolf, o Normal não atrasa** (com Edda atrasa 21 h, da hora 51 à visita da hora 72): a opção "Cuidar" dá 40 de ouro e Rolf chega um dia de jogo depois, e na semente 001 esse ouro dura até a visita seguinte, com 2 de sobra. Conferido nessa semente só.
+- **A premissa do ADR 0017 ("o perfil Preguiçoso não perde herói por uma noite fora em nenhum ritmo") fica validada nesta medida**, com a ressalva do Descontente no Tranquilo. Não volta ao autor como pergunta; fica registrada.
+
+**O que a medida não cobre, e como cobrir:** (a) a variante não está no repositório: para ela valer a cada `pnpm test`, o caminho é um bot `preguicoso` com a opção da carta como parâmetro e uma célula sem faixa de ouro, só com "partiram = 0" (mudança do simulador, fora desta tarefa); (b) um jogador que falta um dia inteiro (uma política "pula a visita N"); (c) o atraso com heróis fora do feudo, que só existe na Fase D.
+
+### 5.5 O ouro parado: não caiu
+
+É o número que a v0.3 promete baixar (seção 1.3; roadmap, §8.3, "Ouro com destino"; pendência C-23). **Com a Fase C inteira, o ouro parado não caiu: subiu em quase toda célula de quem joga duas ou quatro vezes por dia.** Senhor, ouro em estoque no fim da janela, menor / mediana / maior das 50 sementes; "antes" é a linha de base da v0.2 fechada (seção 1.3).
+
+| Ritmo | Perfil | 7 dias: antes | 7 dias: agora | Ano de jogo: antes | Ano de jogo: agora |
+|---|---|---:|---:|---:|---:|
+| Rápido 3× | Preguiçoso | 3.925 / 7.482 / 7.497 | 2.074 / 5.894 / 5.918 | 51 / 299 / 304 | 3 / 134 / 253 |
+| Rápido 3× | Regular | 113.566 / 128.436 / 148.487 | **159.093 / 178.253 / 211.754** | 1.870 / 2.176 / 3.052 | 1.859 / 2.067 / 3.000 |
+| Rápido 3× | Dedicado | 284.168 / 309.332 / 324.539 | **319.205 / 357.744 / 366.691** | 1.130 / 8.225 / 12.964 | 332 / 8.427 / 13.499 |
+| Rápido 3× | Explorador | (o Regular, acima) | **172.009 / 197.030 / 239.360** | (o Regular) | 1.349 / 1.753 / 2.718 |
+| Normal 1× | Preguiçoso | 1.034 / 1.066 / 1.139 | 3 / 165 / 268 | a mesma partida | a mesma partida |
+| Normal 1× | Regular | 2.348 / 8.967 / 23.641 | **8.283 / 16.845 / 23.840** | a mesma partida | a mesma partida |
+| Normal 1× | Dedicado | 2.587 / 13.399 / 21.575 | 4.399 / 16.404 / 19.802 | a mesma partida | a mesma partida |
+| Normal 1× | Explorador | (o Regular) | **6.593 / 16.930 / 26.449** | a mesma partida | a mesma partida |
+| Tranquilo 0,5× | Preguiçoso | 26 / 30 / 30 | 120 / 153 / 154 | 160 / 2.714 / 3.936 | 3.190 / 6.194 / 10.670 |
+| Tranquilo 0,5× | Regular | 38 / 518 / 1.044 | 6 / 890 / 1.233 | 13.128 / 17.646 / 22.535 | 11.000 / 14.976 / 20.021 |
+| Tranquilo 0,5× | Dedicado | 53 / 244 / 940 | 68 / 521 / 745 | 23.713 / 28.208 / 32.471 | 26.232 / 29.578 / 32.859 |
+| Tranquilo 0,5× | Explorador | (o Regular) | 260 / 907 / 1.206 | (o Regular) | 11.281 / 16.858 / 23.668 |
+
+- **Não caiu.** Na semana do Rápido a mediana do Regular foi de 128 mil para 178 mil (+39%) e a do Dedicado, de 309 mil para 358 mil (+16%); no Normal a do Regular quase dobrou (9,0 mil para 16,8 mil). O Explorador, que contrata cinco heróis e dá festival, termina com **mais** ouro do que o Regular na semana do Rápido (197 mil na mediana) e igual a ele no Normal.
+- **Onde caiu, e por quê não conta.** No Preguiçoso do Rápido e do Normal (no Normal, de 1.066 para 165): ele quase não põe gente na Mina, e o soldo de um herói é parte grande de um ouro pequeno; é o mesmo perfil que passa 21 h em atraso. No ano de jogo do Rápido o Regular ficou igual (2,2 mil para 2,1 mil) e o Explorador, um pouco abaixo (1,8 mil). No ano do Tranquilo o Regular caiu 15% na mediana, e o Preguiçoso e o Dedicado subiram. Nenhuma dessas diferenças é a queda que a versão promete.
+- **Por que não cai: o soldo é ordens de grandeza menor do que a Mina no fim da semana.** Um herói custa 2 de ouro por hora de jogo (6 por hora real no Rápido); seis heróis, 36 por hora real. Na semente 001 da semana do Rápido a Mina rende cerca de 2.500 por hora real no fim (seção 4.4): o soldo da equipe cheia é 1,4% disso. Em uma semana são perto de 4 mil de ouro de soldo, 644 de contratação e 450 de festivais, contra 200 mil parados.
+- **Por que sobe:** a Taverna soma até 25 de moral, a moral rende mais em todo ofício e traz colonos, e com as obras esgotadas o bot manda todos para a Mina (seção 4.4). A Fase C deu ao ouro um destino pequeno e uma fonte maior.
+- **É o que as Fases D e E têm de resolver** (pendência C-23): as expedições (equipamento, Resgate, o que a Guilda-edifício custar) e o Mercado, onde o ouro compra o que falta. Se ao fim da Fase E estas células não caírem em relação à seção 1.3, a promessa da versão não está cumprida, e a pergunta volta ao autor com estes números (V3E-T5.2, V3G-T1).
+
+### 5.6 Desempenho, tamanho do estado e da visão, e o teto da Taverna
+
+`pnpm -s sim -- --perf`, com a máquina quieta (nenhuma outra suíte rodando), no formato das seções 1.5 e 4.7 (Motor 0.2.0 · estado v16 · conteúdo `ddd52de8b881eaa1` · ritmo 3× · Node v24.15.0 · linux x64 · 9 repetições por medida):
+
+| Feudo | Ausência (dias reais) | Viradas de dia de jogo | `advanceTo` (ms, mediana) | `advanceTo` (ms, pior) | `deriveViewState` (ms, mediana) | Eventos emitidos | Estado (bytes) | Visão (bytes) | Habitantes na volta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Feudo novo, sem nenhuma ordem | 1 | 36 | 1,3 | 4 | 0,5 | 47 | 2.145 | 17.245 | 4 |
+| Feudo novo, sem nenhuma ordem | 7 | 252 | 5,8 | 10,9 | 0,6 | 374 | 2.836 | 18.172 | 3 |
+| Feudo novo, sem nenhuma ordem | 30 | 1.080 | 14,1 | 15,8 | 0,5 | 1.579 | 2.896 | 17.993 | 3 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 0,9 | 1,3 | 0,6 | 87 | 3.794 | 20.161 | 22 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 4,7 | 4,9 | 0,6 | 609 | 3.861 | 20.894 | 22 |
+| Feudo de 2 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 17,5 | 34,3 | 0,4 | 2.641 | 4.107 | 20.858 | 9 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 1 | 36 | 0,8 | 1,3 | 0,4 | 61 | 4.364 | 20.423 | 79 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 7 | 252 | 3,4 | 4,8 | 0,3 | 575 | 4.057 | 19.073 | 85 |
+| Feudo de 7 dias reais (bot econômico, 2 visitas por dia) | 30 | 1.080 | 16,1 | 16,9 | 0,5 | 2.740 | 4.338 | 19.486 | 64 |
+
+**Contra a linha de base da v0.2 fechada (seção 1.5):**
+
+| Medida | Linha de base (estado v12) | Fase C fechada (estado v16) | Diferença |
+|---|---:|---:|---|
+| Estado, feudo novo, 1 dia fora | 1.954 | 2.145 | +191 bytes |
+| Estado, o maior dos nove cenários | 3.520 | 4.364 | +844 bytes (+24%) |
+| Visão, feudo novo, 1 dia fora | 15.724 | 17.245 | +1.521 bytes |
+| Visão, a maior dos nove cenários | 18.519 | 20.894 | +2.375 bytes (+13%) |
+| `advanceTo`, 30 dias reais fora (1.080 viradas), mediana | 14,5 a 16,7 ms | 14,1 a 17,5 ms | sem diferença que se meça |
+| `advanceTo`, 30 dias reais fora, pior das 9 repetições | 15,7 a 24,9 ms | 15,8 a 34,3 ms | uma repetição de 34 ms no feudo de 2 dias; as outras duas, 15,8 e 16,9 |
+| `deriveViewState`, mediana | 0,3 a 0,6 ms | 0,3 a 0,6 ms | igual |
+
+- **Contra a seção 4.7 (a Taverna, antes da interface e das correções): o estado é idêntico, byte a byte, nos nove cenários; a visão cresceu de 366 a 400 bytes em cada um.** O que entrou na visão entre as duas medidas foram as frases `guild.text` e `guild.dismissText` (V3C-T4) e os campos `wage.afterArrivals` e `wage.lingering` (as correções da revisão); a parte de cada um não foi separada. Nenhuma correção mudou a forma do estado.
+- **Os tempos continuam indicativos**: uma rodada só, nove repetições. A ordem de grandeza é a da linha de base: 30 dias reais fora, no ritmo 3, custam de 14 a 18 ms de `advanceTo`.
+
+**Com seis heróis e a Taverna cheia.** Roteiro descartável: as 50 sementes do Explorador em Senhor, semana do Rápido. **Todas terminam com 6 heróis, a Taverna no nível 5 e 3 candidatos na mesa**, que é o teto do que a Fase C põe no estado (o limite de contratação é 6; a lista de heróis aceita até 12 por recompensa de carta, o que hoje nenhuma partida alcança: só há dois heróis com nome).
+
+| Feudo no fim da semana do Rápido (50 sementes) | Estado (bytes): menor / mediana / maior | Visão (bytes): menor / mediana / maior | `state.guild` | `view.guild` | `view.tavern` |
+|---|---:|---:|---:|---:|---:|
+| Explorador: 6 heróis, Taverna Nv5, 3 candidatos | 4.844 / 5.092 / **5.480** | 20.541 / 22.322 / **25.475** | 1.395 a 1.443 | 2.499 a 2.902 | 1.446 a 1.806 |
+| Regular: 1 herói, Taverna Nv5, 3 candidatos | 4.030 / 4.229 / 4.640 | 18.582 / 19.169 / 23.275 | 591 a 607 | 818 | 1.211 a 1.476 |
+| Linha de base da v0.2 (seção 1.5, feudo de 7 dias) | 3.340 a 3.520 | 16.891 a 17.403 | — | — | — |
+
+- **Cinco heróis a mais custam cerca de 860 bytes de estado e 3,2 kB de visão** (as medianas). Dentro da guilda são perto de 163 bytes por herói em `state.guild` e 360 em `view.guild`; o resto da diferença da visão está fora da guilda (a moral, o ouro, os estoques de um feudo que joga diferente) e não foi separado. A semente 001 dá 5.069 bytes de estado (igual à seção 4.7) e 22.792 de visão (eram 22.408).
+- **O estado com a equipe cheia fica em 4,8 a 5,5 kB, contra 3,3 a 3,5 kB do feudo de 7 dias da linha de base (+56% no maior caso); a visão, em 20,5 a 25,5 kB, contra 16,9 a 17,4 kB (+46% no maior caso).** Longe do dimensionamento do GDD §14 (uma visão de 100 kB). Cada recibo de comando guarda uma visão inteira: a tabela `commands` cresce na mesma proporção, e o volume em produção continua sem medida.
+- **O teto do teste de desempenho** (`packages/sim-cli/src/perf.test.ts`: estado abaixo de 5.500 bytes) vale para os cenários de `--perf`, que jogam com o bot econômico (o maior dos nove: 4.364). O maior estado com seis heróis medido aqui, 5.480, **ficaria a 20 bytes dele**: quando a Fase D acrescentar expedições e inventário, o teto sobe de propósito, com a medida ao lado.
+
+**O teto da Taverna (roadmap, §0.5, "nível alcançável").** Confirmado por teste de conteúdo existente, que roda em todo `pnpm test`: `packages/content/src/content.test.ts`, "cada nível vendido da Taverna cabe no depósito nas três dificuldades, com o Armazém que o Salão daquele nível deixa erguer". Ele calcula o custo de cada um dos cinco níveis com a mesma conta do motor e o compara com o que o Armazém guarda, em Camponês, Senhor e Rei de Ferro, com o Armazém no nível que o Salão exigido por aquela obra deixa erguer; o ouro não tem depósito. Na matriz de Senhor, a Taverna chega ao nível 5 nos quatro perfis na semana do Rápido (seção 4.3).
+
+### 5.7 Limites desta medição
+
+- **A resposta sobre o Preguiçoso vem de um roteiro descartável**, que não está no repositório e não roda no `pnpm test`: uma mudança futura na carta, no soldo ou no bot pode desfazê-la sem ninguém ver (seção 5.4, "como cobrir").
+- **Ninguém perdeu herói em partida nenhuma**, padrão ou variante: a partida por soldo, a cobrança do que venceu com o atraso fechado (C-47) e os prazos de quem chega a um atraso velho (C-50) continuam provados só nos testes do motor.
+- **Nenhum bot passa fome por 12 h reais**: a correção da deserção por fome (C-48), que muda partidas vivas da v0.2, não é exercitada pela matriz.
+- **O Dedicado não contrata** (joga com o bot `economico`): quantos heróis sustenta quem visita quatro vezes por dia continua sem medida. Listas da Taverna vistas por visita, também (seção 4.6; pendência C-21).
+- **A hora do primeiro herói, semente a semente, e os bytes com seis heróis** também saíram de roteiros descartáveis; a faixa de horas (menor e maior) está no relatório da matriz e confere com eles.
+- A meta de desperdício do Regular continua "acima" no Rápido e no Normal (seção 4.5; pendência C-22): nada mudou.
+- `SHOW_COVERAGE=1` (a cobertura do Conselho) não foi remedida. Uma rodada só de `--perf`. Node v24.15.0.
+
+## 6. Rodadas seguintes das Fases D a G
+
+*Reservada. Cada fase que muda a economia registra aqui a sua rodada (V3D-T5, V3E-T5, V3F-T4, V3G-T1), comparada com as seções 1, 3, 4 e 5.*

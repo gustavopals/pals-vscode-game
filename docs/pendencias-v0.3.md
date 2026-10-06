@@ -28,7 +28,7 @@ Em seis linhas, por ordem de importância:
 2. **Você não vai jogar cada fase antes de ela ir ao ar** (dúvida A-3). Quem joga em produção recebe cada fase sem que o autor a tenha jogado. **Respondido em 2026-10-06 (seção 0): a Fase C não vai ao ar sozinha.** O agente segue com commits locais, e a primeira publicação da v0.3 é a do fim da Fase D, com o `push` dado pelo autor depois do backup manual; a produção salta do estado 12 direto para o da Fase D.
 3. **Os 18 grafos de expedição e as 24 cartas entram no jogo como "rascunho, não lido pelo autor"** (decisões 12 e 19; dúvida A-7). A leitura deles é sua, depois, um por um; os números das classes, dos traços e dos candidatos da Taverna do ADR 0017 também não foram lidos.
 4. **Dezoito das 21 decisões foram aprovadas em bloco, sem leitura item a item** (seção 4). Só a 2, a 3 e a 6 foram respondidas uma a uma. Se o simulador mostrar problema em alguma, ela volta como pergunta pontual, com o número medido.
-5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
+5. **A régua do ouro está medida** ([balance-v0.3.md](balance-v0.3.md), seção 1.3): em Senhor, no ritmo Rápido, o jogador de duas visitas termina o primeiro ano de jogo com 1,9 a 3,1 mil de ouro sem destino, e a semana, com 114 a 148 mil. É o número que a Guilda promete baixar. **Com a Fase C fechada esse número não caiu, subiu** (seção 5.5: 159 a 212 mil na mesma célula da semana; o soldo da equipe cheia é 1,4% do que a Mina rende no fim): é das Fases D e E. **Não houve playtest estruturado**, da v0.1, da v0.2 ou desta.
 6. **A carta do primeiro herói está no jogo, com texto que você não leu, e quem não responde às cartas a recebe um dia depois** (seção 5, C-13 e C-14; [content-v0.3.md](content-v0.3.md)). Ela pede lugar na mesa do Conselho e não o reserva: quem joga a recebe na audiência do 13º dia de jogo; quem deixa duas cartas na mesa, na seguinte. Toda partida, nova ou antiga, ganha um herói e passa a pagar soldo. Reservar o lugar é mudança de regra, e a pergunta é sua.
 7. **A Taverna está no motor, no servidor e, desde a V3C-T4, na tela (a aba Guilda)** (seção 5, C-20 a C-36; [balance-v0.3.md](balance-v0.3.md), seção 4). Quatro coisas pedem a sua atenção, nesta ordem: **(a)** a aba Guilda existe, mas ninguém além dos testes a usou, e seis frases dela são rascunho (C-37 a C-46; a C-31 está resolvida); **(b)** no ritmo Rápido a lista de candidatos troca a cada 8 h reais, e quem visita duas vezes por dia perde uma de cada três listas, o contrário do que o ADR 0017 pedia para validar (C-21); **(c)** com a Taverna na fila de obras o Salão sobe mais devagar em três células do simulador e a meta de desperdício do Regular volta a falhar no ritmo Normal (C-22); **(d)** o ouro parado subiu, e contratar não o gasta: cinco heróis custam cem vezes menos do que a Mina do fim de jogo rende (C-23).
 
@@ -357,7 +357,7 @@ Vêm da implementação de V3C-T2 (o edifício, os candidatos em rotação, `hir
 - Onde: [balance-v0.3.md](balance-v0.3.md), seção 4.5; `packages/sim-cli/src/balance.test.ts`, "a meta de desperdício".
 - Se decidir diferente: é o bot escolhendo a obra mais barata; um jogador que queira o Salão primeiro o terá. Se o atraso incomodar no jogo, as saídas são de conteúdo (a curva de custo da Taverna, ou o pré-requisito de cada nível), nunca no bot.
 
-**C-23. O ouro parado subiu, e contratar não o gasta.** *(Medida; é o número que a v0.3 promete baixar.)*
+**C-23. O ouro parado subiu, e contratar não o gasta.** *(Medida; é o número que a v0.3 promete baixar.)* **Medido de novo com a fase fechada (V3C-T5; [balance-v0.3.md](balance-v0.3.md), seção 5.5): não caiu. Fica para as Fases D e E.**
 - Enquanto isso: em Senhor, na semana do Rápido, o Regular termina com até 212 mil de ouro parado (eram 150 mil) e o Explorador, que contrata os cinco heróis que a Taverna deixa, com até 239 mil. A moral da Taverna traz mais gente e mais produção; o soldo de seis heróis é de 36 de ouro por hora real contra 2.500 da Mina.
 - Onde: [balance-v0.3.md](balance-v0.3.md), seção 4.4.
 - Se decidir diferente: nada a decidir agora. O que o plano tem para gastar ouro são as expedições e o Mercado (Fases D e E); se depois delas o número continuar assim, a pergunta volta com a medida.
@@ -557,6 +557,16 @@ Vêm da revisão independente de V3B-T1 (roadmap, §12, linha V3B-T3): nenhum de
 - Se decidir diferente: afrouxar de novo é mudar a guarda e a forma do estado.
 
 ## 6. O que não foi verificado
+
+### Fase C: o fechamento (V3C-T5.2, T5.3 e a integração)
+
+- **O autor não jogou a fase** (V3C-T5.4): o roteiro de 15 minutos está na seção 7, e ninguém o executou, nem quem o escreveu.
+- **Os relatórios das duas revisões independentes não estão no repositório.** As contagens (motor e servidor: 2 defeitos, 6 riscos, 5 dúvidas; app: 3 defeitos, 8 riscos, 3 dúvidas) são as que o orquestrador passou; o que se sabe de cada achado é o que os commits `V3C: corrige …` e as pendências C-47 a C-66 dizem. **O que os revisores deixaram de executar não ficou escrito em lugar nenhum**, e a linha V3C-T5 do Registro diz isso em vez de inventar uma lista.
+- **A resposta "o Preguiçoso não perde herói por uma noite fora" vem de um roteiro descartável** ([balance-v0.3.md](balance-v0.3.md), seção 5.4), fora do repositório e fora do `pnpm test`. O jogador que pula uma visita não foi simulado.
+- **O ouro parado não caiu** (seção 5.5 do mesmo arquivo): medido, não resolvido.
+- **Nenhuma partida de produção passou pelos passos 12 → 16**, e nenhuma vai passar por eles um a um: a produção salta do 12 para o estado da Fase D (seção 0).
+- `--perf` rodou uma vez; `SHOW_COVERAGE=1`, `pnpm docker:build`, `scripts/landing-smoke.sh` e `pnpm capture:landing` não rodaram neste fechamento (nenhuma tela mudou desde as capturas da V3C-T4; as correções do app mudaram a linha "Guilda" da árvore **só quando há alerta de soldo**, e o feudo das capturas não tem herói: não conferido por execução).
+- Node v24.15.0 na máquina, não o 22 do `.nvmrc`; a CI não rodou (nada foi enviado).
 
 ### Fase C: correções da revisão (V3C-T5)
 
