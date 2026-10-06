@@ -43,17 +43,48 @@ export function wageArrearsDurationAt(state: GameState, atMs: number): number {
 }
 
 /**
+ * A conta que a virada do dia em `atMs` cobra: a do atraso aberto ou, sem ele, a do que fechou
+ * há menos de `resumeWithinRealMs` (o que reabrir dali é o mesmo atraso, e a virada o cobra
+ * como tal). `durationMs` é a duração que conta para os prazos (a do fechado parou no instante
+ * em que ele fechou) e `departed`, os heróis que ele já cobrou. `null` sem nada a cobrar.
+ */
+export function wageLedgerAt(
+  state: GameState,
+  atMs: number,
+): { open: boolean; durationMs: number; departed: number } | null {
+  const { wageArrears, lastWageArrears } = state.guild;
+  if (wageArrears !== null) {
+    return {
+      open: true,
+      durationMs: wageArrearsDurationAt(state, atMs),
+      departed: wageArrears.departed,
+    };
+  }
+  if (
+    lastWageArrears !== null &&
+    atMs - lastWageArrears.endedAtMs < wageArrearsPace(state).resumeWithinMs
+  ) {
+    return {
+      open: false,
+      durationMs: lastWageArrears.lastedMs,
+      departed: lastWageArrears.departed,
+    };
+  }
+  return null;
+}
+
+/**
  * Quantos heróis o atraso já deve em `atMs`: zero antes de `leaveAfterRealMs` e, a partir dele,
  * `⌊(duração − carência) ÷ passo⌋ + 1`. É a conta da deserção por fome (`famineDesertionsOwedAt`),
- * com os prazos do soldo.
+ * com os prazos do soldo. Conta também o atraso que fechou dentro da janela (`wageLedgerAt`).
  */
 export function wageDeparturesOwedAt(state: GameState, atMs: number): number {
   const { leaveAfterMs, leaveEveryMs } = wageArrearsPace(state);
-  const duration = wageArrearsDurationAt(state, atMs);
-  if (state.guild.wageArrears === null || duration < leaveAfterMs) {
+  const ledger = wageLedgerAt(state, atMs);
+  if (ledger === null || ledger.durationMs < leaveAfterMs) {
     return 0;
   }
-  return Math.floor((duration - leaveAfterMs) / leaveEveryMs) + 1;
+  return Math.floor((ledger.durationMs - leaveAfterMs) / leaveEveryMs) + 1;
 }
 
 /**
@@ -194,16 +225,23 @@ function lastArrived(heroes: readonly Hero[]): Hero | null {
  *    primeira virada em que houver quem; se só restam Leais (ou ninguém), a conta fecha no que
  *    era devido, perdoada, como o aldeão que o piso da população segurou.
  *
+ * **O atraso que fechou dentro da janela também é cobrado** (`wageLedgerAt`): o que reabrir dali
+ * é o mesmo atraso, então a virada que o encontra fechado há menos de `resumeWithinRealMs`
+ * cobra as partidas que a duração dele já devia, e a conta fica no registro
+ * (`lastWageArrears.departed`) para quando ele reabrir. Sem isso, fechar o atraso um instante
+ * antes de cada virada e reabri-lo um instante depois seguraria os heróis para sempre. Com o
+ * atraso fechado ninguém fica Descontente (o soldo está em dia): só as partidas são cobradas.
+ *
  * A virada do dia já é um instante da linha do tempo: avançar de uma vez ou aos pedaços
  * encontra as mesmas viradas, e a cobrança não ganha instante próprio.
  */
 export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): void {
   const { guild } = draft;
-  const arrears = guild.wageArrears;
-  if (arrears === null) {
+  const ledger = wageLedgerAt(draft, atMs);
+  if (ledger === null) {
     return;
   }
-  if (wageArrearsDurationAt(draft, atMs) >= wageArrearsPace(draft).discontentAfterMs) {
+  if (ledger.open && ledger.durationMs >= wageArrearsPace(draft).discontentAfterMs) {
     for (const hero of guild.heroes) {
       if (hero.discontent || isLoyal(hero)) {
         continue;
@@ -213,7 +251,7 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
     }
   }
   const owed = wageDeparturesOwedAt(draft, atMs);
-  let { departed } = arrears;
+  let { departed } = ledger;
   while (departed < owed) {
     if (guild.heroes.every(isLoyal)) {
       // Só restam Leais, ou ninguém: o que o prazo devia fica perdoado.
@@ -236,7 +274,11 @@ export function turnWages(draft: GameState, atMs: number, events: GameEvent[]): 
       { heroi: leaver.name },
     );
   }
-  guild.wageArrears = { ...arrears, departed };
+  if (guild.wageArrears !== null) {
+    guild.wageArrears = { ...guild.wageArrears, departed };
+  } else if (guild.lastWageArrears !== null) {
+    guild.lastWageArrears = { ...guild.lastWageArrears, departed };
+  }
 }
 
 /**

@@ -824,3 +824,100 @@ describe('ler não gasta nada', () => {
     expect(balance.heroes.arrears.leaveEveryRealMs).toBe(2 * HOUR);
   });
 });
+
+describe('o atraso fechado logo antes da virada não escapa da cobrança (revisão da Fase C, M-D1)', () => {
+  /**
+   * Edda, Leal, e Rolf, com o cofre vazio. Um segundo antes de cada virada o senhor põe três
+   * aldeões na Mina (o atraso fecha) e um segundo depois os tira (reabre dentro da janela).
+   */
+  function dodging(days: number) {
+    let state = court(1, (draft) => {
+      addHero(draft, { name: 'Edda', traits: ['loyal'] });
+      addHero(draft, { name: 'Rolf' });
+    });
+    const events: GameEvent[] = [];
+    const step = (atMs: number, count: number) => {
+      const at = advanceTo(state, atMs);
+      const done = accept(at.state, command('setWorkers', { building: 'goldMine', count }));
+      events.push(...at.events, ...done.events);
+      state = done.state;
+    };
+    for (let day = 1; day <= days; day += 1) {
+      step(day * DAY - 1_000, 3);
+      step(day * DAY + 1_000, 0);
+    }
+    return { state, events };
+  }
+
+  it('fechar o atraso um segundo antes de cada virada e reabrir um segundo depois não segura o herói', () => {
+    const { state, events } = dodging(30);
+    const types = guildEvents(events).map((event) => event.type);
+    // Rolf é devido com 24 h de atraso contado: parte na primeira virada depois disso, mesmo
+    // com o atraso fechado há um segundo.
+    expect(brief(events).filter(([type]) => type === 'heroLeft')).toEqual([
+      ['heroLeft', 13 * DAY, 'hero-2'],
+    ]);
+    expect(state.guild.heroes.map((hero) => hero.name)).toEqual(['Edda']);
+    expect(types.filter((type) => type === 'wageArrearsEnded').length).toBeGreaterThan(10);
+  });
+
+  it('a virada cobra o atraso fechado dentro da janela, com a duração e os cobrados dele; fora da janela, não', () => {
+    const SINCE = 30 * MINUTE;
+    const start = court(
+      1,
+      (draft) => {
+        addHero(draft, { name: 'Edda' });
+        addHero(draft, { name: 'Rolf' });
+        addHero(draft, { name: 'Brann' });
+      },
+      SINCE,
+    );
+    // O primeiro é devido às 24 h 30 e parte na virada das 26 h; o segundo é devido às 26 h 30.
+    // O ouro chega às 27 h, antes da virada das 28 h, que cai dentro da janela (1 h < 2 h).
+    const open = advanceTo(start, 27 * HOUR).state;
+    expect(open.guild.wageArrears?.departed).toBe(1);
+    const paid = advanceTo(withGold(open, 500_000), 28 * HOUR - 1);
+    expect(brief(paid.events)).toEqual([['wageArrearsEnded', 27 * HOUR]]);
+    const turned = advanceTo(paid.state, 28 * HOUR);
+    expect(brief(turned.events)).toEqual([['heroLeft', 28 * HOUR, 'hero-2']]);
+    expect(turned.state.guild.wageArrears).toBeNull();
+    expect(turned.state.guild.lastWageArrears).toEqual({
+      endedAtMs: 27 * HOUR,
+      lastedMs: 27 * HOUR - SINCE,
+      departed: 2,
+    });
+    // Ninguém fica Descontente com o atraso fechado, e a virada das 30 h já está fora da janela.
+    expect(turned.state.guild.heroes.map((hero) => hero.discontent)).toEqual([false]);
+    const later = advanceTo(turned.state, 40 * HOUR);
+    expect(brief(later.events)).toEqual([]);
+    // De uma vez ou aos pedaços, a mesma cobrança.
+    const whole = advanceTo(withGold(open, 500_000), 40 * HOUR);
+    expect(whole.state).toStrictEqual(later.state);
+  });
+
+  it('o atraso que reabre depois de cobrado fechado continua com a conta em dia', () => {
+    const SINCE = 30 * MINUTE;
+    const start = court(
+      1,
+      (draft) => {
+        addHero(draft, { name: 'Edda' });
+        addHero(draft, { name: 'Rolf' });
+        addHero(draft, { name: 'Brann' });
+      },
+      SINCE,
+    );
+    const open = advanceTo(start, 27 * HOUR).state;
+    // 5 de ouro: dois heróis gastam 4 até a virada das 28 h, um parte, e o que sobra paga o
+    // outro por meia hora. O atraso reabre às 28 h 30, dentro da janela.
+    const back = advanceTo(withGold(open, 5_000), 28 * HOUR + 30 * MINUTE);
+    expect(brief(back.events)).toEqual([
+      ['wageArrearsEnded', 27 * HOUR],
+      ['heroLeft', 28 * HOUR, 'hero-2'],
+      ['wageArrearsStarted', 28 * HOUR + 30 * MINUTE],
+    ]);
+    expect(back.state.guild.wageArrears).toMatchObject({
+      carriedMs: 27 * HOUR - SINCE,
+      departed: 2,
+    });
+  });
+});

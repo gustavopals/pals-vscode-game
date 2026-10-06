@@ -143,6 +143,17 @@ São as contradições e as escolhas que o agente registrou ao escrever os ADRs 
 - Onde: ADR 0017, "Os oito traços".
 - Se decidir diferente: o "tile extra" do GDD é do mapa da v0.5 e não entra.
 
+### Fase C: correções da revisão independente (V3C-T5)
+
+Vêm das revisões independentes da Fase C. Cada item diz o que a correção **mudou de regra**; os de "dúvida" não mudaram nada e só pedem resposta. **Nenhuma foi perguntada ao autor**: as de regra foram decididas pelo orquestrador ou pelo agente das correções, e os commits são os `V3C: corrige …`.
+
+**C-47. A virada do dia cobra também o atraso do soldo que fechou há menos de 2 h reais.** *(Mudança de regra; revisão M-D1.)*
+- O defeito: a virada só cobrava o atraso **aberto** naquele instante. Pôr três aldeões na Mina um segundo antes de cada virada e tirá-los um segundo depois fechava e reabria o mesmo atraso para sempre: trinta dias de jogo, sessenta horas de atraso contadas, nenhum herói Descontente na virada, nenhum herói partindo.
+- Enquanto isso: a virada que encontra o atraso fechado **dentro da janela de retomada** (a mesma das 2 h reais da decisão 3) cobra as partidas que a duração dele já devia e ainda não tinha cobrado. Ninguém fica Descontente com o atraso fechado. Fora da janela, nada.
+- **A consequência que o autor precisa conhecer:** quem paga de verdade um atraso velho pode perder um herói mesmo assim. Se o atraso passou das 24 h reais (ou de mais um passo de 2 h) depois da última virada e o ouro chegou antes da seguinte, o herói que o prazo já devia parte nessa virada, com o soldo em dia. Pagar antes de o prazo vencer é o que o segura. Não há como o motor distinguir o pagamento de verdade do truque sem olhar o futuro.
+- Onde: `wageLedgerAt` e `turnWages`, em `packages/engine/src/wages.ts`; README do motor, "Heróis e soldo".
+- Se decidir diferente: (a) cobrar só quando o atraso **reabrir** dentro da janela (ninguém que pagou e ficou em dia perde herói; a partida passa a acontecer no instante em que o ouro acaba de novo, fora da virada, e a ordem do instante ganha um passo); (b) aceitar o truque como jogada legítima (ele pede presença em toda virada) e voltar à regra antiga.
+
 ### Fase C: a interface da Guilda (V3C-T4)
 
 Vêm da implementação de V3C-T4 (a aba Guilda, os três comandos, a árvore, a barra, os avisos, "Antes de partir" e o Relatório). **Nenhuma foi perguntada ao autor**; todas foram decididas pelo agente da tarefa. As três primeiras são as que pedem resposta.
