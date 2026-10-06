@@ -199,7 +199,10 @@ export function HeroesPanel(props: {
   const empty = guild.heroes.length === 0 && guild.arriving.length === 0;
   return (
     <section aria-labelledby="heroes-title">
-      <h2 id="heroes-title">Heróis · {heroCount(guild.heroes.length)}</h2>
+      {/* Sem herói o título é só "Heróis": quem conta a situação é a frase do servidor, abaixo. */}
+      <h2 id="heroes-title">
+        {guild.heroes.length === 0 ? 'Heróis' : `Heróis · ${heroCount(guild.heroes.length)}`}
+      </h2>
       <p class={empty ? 'guild-empty' : 'muted hint'}>
         {empty ? <Icon name={GUILD_ICON} /> : null} {guild.text}
       </p>

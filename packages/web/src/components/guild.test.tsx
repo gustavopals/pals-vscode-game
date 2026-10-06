@@ -125,7 +125,10 @@ function clicks(render: (actions: Actions) => ComponentChild): Call[] {
 describe('painel dos heróis (GDD §9.1 e §13.1)', () => {
   it('sem herói e sem Taverna: a frase do servidor diz como o primeiro chega, sem data, e não há soldo nem lista', () => {
     const markup = heroes(initialView);
-    expect(text(markup)).toContain('Heróis · nenhum herói');
+    // O painel vazio chama-se "Heróis", e quem diz que não há nenhum é a frase do servidor,
+    // logo abaixo: "Heróis · nenhum herói" dizia a mesma coisa duas vezes (decisão Q2).
+    expect(markup).toContain('<h2 id="heroes-title">Heróis</h2>');
+    expect(text(markup)).not.toContain('nenhum herói');
     expect(markup).toContain(initialView.guild.text);
     expect(markup).toContain('guild-empty');
     expect(text(markup)).not.toContain('Soldo');
@@ -203,6 +206,7 @@ describe('painel dos heróis (GDD §9.1 e §13.1)', () => {
   });
 
   it('o herói prometido por uma carta: quem é e em quanto tempo chega; à porta, o que o impede', () => {
+    expect(heroes(heroPromisedView)).toContain('<h2 id="heroes-title">Heróis</h2>');
     const sheet = text(heroes(heroPromisedView));
     expect(sheet).toContain(heroPromisedView.guild.text);
     expect(sheet).toContain('Rolf · Arqueiro · Prudente');

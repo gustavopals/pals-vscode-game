@@ -152,7 +152,7 @@ test.describe('a Guilda na interface', () => {
     const before = await serverView(page, request);
     await guildTab(page).click();
     await expect(page).toHaveURL(/#\/guilda$/);
-    await expect(heroes(page)).toContainText('Heróis · nenhum herói');
+    await expect(heroes(page).getByRole('heading', { level: 2 })).toHaveText('Heróis');
     await expect(heroes(page)).toContainText(before.guild.text);
     await expect(tavern(page)).toContainText(before.tavern.text);
     await expect(tavern(page).getByRole('button', { name: 'Construir Taverna' })).toBeDisabled();
@@ -381,7 +381,8 @@ test.describe('a Guilda na interface', () => {
       .getByRole('dialog')
       .getByRole('button', { name: `Dispensar ${offer.name}` })
       .click();
-    await expect(heroes(page)).toContainText('Heróis · nenhum herói');
+    await expect(heroes(page).getByRole('heading', { level: 2 })).toHaveText('Heróis');
+    await expect(team(page)).toHaveCount(0);
     expect(await eventsOf(page, request, 'heroDismissed')).toHaveLength(1);
 
     // O festival: custo e efeito ao lado do botão; dado, o servidor diz que a estação já teve o seu.
