@@ -15,6 +15,7 @@ import {
   scriptedDialogs,
   settle,
   tavernOpenView,
+  withDestination,
   withoutTheClass,
 } from '../test-helpers';
 import {
@@ -560,6 +561,27 @@ describe('enviar expedição', () => {
     await run('lords.sendExpedition', 'rescue');
     expect(orders()).toEqual([]);
     expect(toasts()).toEqual(['Este destino já não está na lista da Guilda. Nada foi enviado.']);
+  });
+
+  it('um herói da equipe deixa de poder partir com a lista da Postura aberta: nada é enviado, e o aviso diz quem (revisão, A9)', async () => {
+    const made = await setup(denClearedView);
+    const { run, answers, orders, toasts } = made;
+    // A Floresta, Edda e Rolf; com a lista da Postura aberta, Rolf sai da lista de quem pode ir.
+    answers.push(1, 1, 1, async () => {
+      await serverShows(
+        made,
+        withDestination(denClearedView, 'oldForest', {
+          eligibleHeroIds: ['hero-1'],
+          suggestedTeam: ['hero-1'],
+        }),
+      );
+      return 1;
+    });
+    await run('lords.sendExpedition');
+    expect(orders()).toEqual([]);
+    expect(toasts()).toEqual([
+      'Rolf já não pode partir para "Floresta Antiga": a equipe mudou com a escolha aberta. Nada foi enviado.',
+    ]);
   });
 
   it('a sessão termina com a lista aberta: nada é enviado', async () => {

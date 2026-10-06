@@ -1478,8 +1478,9 @@ export function createCommands(
    * equipe marcada e a Postura, e manda os três; a paleta, a árvore e "Antes de partir"
    * perguntam em listas, uma de cada vez: o destino (com a duração, o risco e o primeiro
    * trecho), a equipe e a Postura (com o que cada uma faz na encruzilhada, na frase do
-   * servidor). Depois de cada lista a conta e a visão são lidas de novo. Mesmo bloqueado, o
-   * envio pedido segue: quem recusa é o servidor, com o motivo atualizado.
+   * servidor). Depois de cada lista a conta e a visão são lidas de novo: o destino e também a
+   * equipe, até a última lista (a da Postura). O envio que o painel já montou segue como veio:
+   * quem o recusa é o servidor, com o motivo atualizado.
    */
   const sendExpedition = oneAtATime(
     async (arg) => {
@@ -1591,8 +1592,27 @@ export function createCommands(
         sessionEnded('o envio da expedição');
         return;
       }
-      if (destinationNow(modelId) === undefined) {
+      const still = destinationNow(modelId);
+      const guildNow = controller.view?.guild;
+      if (still === undefined || guildNow === undefined) {
         destinationGone();
+        return;
+      }
+      // A equipe também é lida de novo: quem a visão de agora já não lista para o destino
+      // (partiu em outra aba, feriu-se, foi dispensado) não segue em ordem nenhuma.
+      const able = eligibleHeroes(guildNow, still).map((hero) => hero.id);
+      const dropped = heroIds.filter((heroId) => !able.includes(heroId));
+      if (dropped.length > 0) {
+        const names = teamLine(
+          dropped.map(
+            (heroId) => view.guild.heroes.find((hero) => hero.id === heroId)?.name ?? heroId,
+          ),
+        );
+        controller.toast({
+          kind: 'warning',
+          text: `${names} já não ${dropped.length === 1 ? 'pode' : 'podem'} partir para "${still.label}": a equipe mudou com a escolha aberta. Nada foi enviado.`,
+          actions: [seeExpeditions],
+        });
         return;
       }
       await controller.sendExpedition(modelId, heroIds, posture);
